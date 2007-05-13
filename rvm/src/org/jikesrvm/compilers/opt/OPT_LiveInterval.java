@@ -33,15 +33,15 @@ final class OPT_LiveInterval {
    *             null represents the end of the basic block
    */
   public static void createEndLiveRange(OPT_LiveSet set,
-                                        OPT_BasicBlock block, 
+                                        OPT_BasicBlock block,
                                         OPT_Instruction inst) {
     if (DEBUG) {
       if (inst == null) {
-        System.out.println("The following are live on exit of block "+ 
-                           block.getNumber()  +"\n"+ set);
+        System.out.println("The following are live on exit of block " +
+                           block.getNumber() + "\n" + set);
       } else {
-        System.out.println("The following are live ending at inst\n  "+ inst
-                           +" for block "+  block.getNumber() +"\n"+ set);
+        System.out.println("The following are live ending at inst\n  " + inst
+                           + " for block " + block.getNumber() + "\n" + set);
       }
     }
 
@@ -65,18 +65,18 @@ final class OPT_LiveInterval {
    */
   public static void createEndLiveRange(OPT_Register reg,
                                         OPT_BasicBlock block,
-                                        OPT_Instruction inst) { 
+                                        OPT_Instruction inst) {
 
     if (DEBUG) {
-      System.out.println("Marking Register "+ reg
-                         +"'s live range as ENDing at instruction\n   "+
-                         inst +" in block #"+ block.getNumber());
+      System.out.println("Marking Register " + reg
+                         + "'s live range as ENDing at instruction\n   " +
+                         inst + " in block #" + block.getNumber());
       printLiveIntervalList(block);
     }
 
     if (!containsUnresolvedElement(block, reg)) {
-      OPT_LiveIntervalElement elem = 
-        new OPT_LiveIntervalElement(reg, null, inst);
+      OPT_LiveIntervalElement elem =
+          new OPT_LiveIntervalElement(reg, null, inst);
 
       // add elem to the list for the basic block
       block.prependLiveIntervalElement(elem);
@@ -94,15 +94,15 @@ final class OPT_LiveInterval {
    * @param block the basic block of interest
    */
   public static void setStartLiveRange(OPT_Register reg,
-                                       OPT_Instruction inst, 
+                                       OPT_Instruction inst,
                                        OPT_BasicBlock block) {
     if (DEBUG) {
-      System.out.println("Marking Register "+ reg
-                         +"'s live range as STARTing at instruction\n   "+
-                         inst +" in block #"+ block.getNumber());
+      System.out.println("Marking Register " + reg
+                         + "'s live range as STARTing at instruction\n   " +
+                         inst + " in block #" + block.getNumber());
     }
 
-    OPT_LiveIntervalElement prev = null; 
+    OPT_LiveIntervalElement prev = null;
     OPT_LiveIntervalElement elem =
         block.getFirstLiveIntervalElement();
     while (elem != null) {
@@ -111,7 +111,7 @@ final class OPT_LiveInterval {
       }
 
       prev = elem;
-      elem = elem.getNext(); 
+      elem = elem.getNext();
     }
 
     if (elem != null) {
@@ -158,12 +158,13 @@ final class OPT_LiveInterval {
 
     OPT_LiveIntervalElement prev =
         block.getFirstLiveIntervalElement();
-    if (prev == null)
+    if (prev == null) {
       return;
+    }
 
     // The first element is already at the front, so move on to the next one
     OPT_LiveIntervalElement elem = prev.getNext();
-    
+
     while (elem != null) {
       if (elem.getBegin() == null) {
         // remove elem from current position
@@ -173,15 +174,15 @@ final class OPT_LiveInterval {
         block.prependLiveIntervalElement(elem);
 
         // the next victum is the *new* one after prev
-        elem = prev.getNext(); 
+        elem = prev.getNext();
       } else {
         prev = elem;
-        elem = elem.getNext(); 
+        elem = elem.getNext();
       }
     }
   }
 
-  /** 
+  /**
    * Check to see if an unresolved LiveIntervalElement node for the register
    * passed exists for the basic block passed.
    *
@@ -194,8 +195,8 @@ final class OPT_LiveInterval {
                                                    OPT_Register reg) {
 
     if (DEBUG) {
-      System.out.println("containsUnresolvedElement called, block: "+ block
-                         +" register: "+ reg);
+      System.out.println("containsUnresolvedElement called, block: " + block
+                         + " register: " + reg);
       printLiveIntervalList(block);
     }
 
@@ -210,18 +211,18 @@ final class OPT_LiveInterval {
     return false;
   }
 
-  /** 
+  /**
    * Print the live intervals for a block.
    *
    * @param block the block
    */
   public static void printLiveIntervalList(OPT_BasicBlock block) {
-    System.out.println("Live Interval List for "+ block);
-    for (OPT_LiveIntervalElement elem 
-           = block.getFirstLiveIntervalElement();
+    System.out.println("Live Interval List for " + block);
+    for (OPT_LiveIntervalElement elem
+        = block.getFirstLiveIntervalElement();
          elem != null;
          elem = elem.getNext()) {
-      System.out.println("  "+ elem);
+      System.out.println("  " + elem);
     }
   }
 }

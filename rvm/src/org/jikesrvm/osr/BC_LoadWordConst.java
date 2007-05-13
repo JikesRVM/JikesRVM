@@ -15,9 +15,9 @@ import org.vmmagic.unboxed.Word;
  * load a word constant on the stack
  */
 public class BC_LoadWordConst extends OSR_PseudoBytecode {
-  private static final int bsize = 2+BYTES_IN_ADDRESS;
+  private static final int bsize = 2 + BYTES_IN_ADDRESS;
   private final Word wbits;
-  
+
   public BC_LoadWordConst(Word bits) {
     this.wbits = bits;
   }
@@ -29,14 +29,14 @@ public class BC_LoadWordConst extends OSR_PseudoBytecode {
   }
 
   public int getSize() {
-    return bsize; 
+    return bsize;
   }
- 
+
   public int stackChanges() {
-        return +1;
+    return +1;
   }
 
   public String toString() {
-    return "LoadWord 0x"+Long.toHexString(wbits.toLong());  
+    return "LoadWord 0x" + Long.toHexString(wbits.toLong());
   }
 }

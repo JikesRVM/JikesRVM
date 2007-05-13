@@ -15,7 +15,7 @@ import java.util.Enumeration;
  *  classes.
  */
 public class OPT_Tree {
-  
+
   /**
    *  A tree is simply a pointer to the root
    */
@@ -41,7 +41,7 @@ public class OPT_Tree {
    * @return whether the tree is empty
    */
   public final boolean isEmpty() {
-    return  root == null;
+    return root == null;
   }
 
   /**
@@ -49,7 +49,7 @@ public class OPT_Tree {
    * @return the root of the tree
    */
   public final OPT_TreeNode getRoot() {
-    return  root;
+    return root;
   }
 
   /**
@@ -66,7 +66,7 @@ public class OPT_Tree {
    * @return enumeration
    */
   public final Enumeration<OPT_TreeNode> elements() {
-    return  new OPT_TreeTopDownEnumerator(root);
+    return new OPT_TreeTopDownEnumerator(root);
   }
 
   /**
@@ -79,15 +79,15 @@ public class OPT_Tree {
       e.nextElement();
       n++;
     }
-    return  n;
+    return n;
   }
 
   /**
    * Provides a bottom-up enumeration over all elements in the tree
    * @return enumeration
    */
-  public final  Enumeration<OPT_TreeNode> getBottomUpEnumerator() {
-    return  new OPT_TreeBottomUpEnumerator(root);
+  public final Enumeration<OPT_TreeNode> getBottomUpEnumerator() {
+    return new OPT_TreeBottomUpEnumerator(root);
   }
 
   /**
@@ -95,7 +95,7 @@ public class OPT_Tree {
    * @return enumeration
    */
   public final Enumeration<OPT_TreeNode> getTopDownEnumerator() {
-    return  new OPT_TreeTopDownEnumerator(root);
+    return new OPT_TreeTopDownEnumerator(root);
   }
 
   /**
@@ -108,7 +108,7 @@ public class OPT_Tree {
     // visit the nodes in a depth first traversal, printing the nodes
     //  as they are visited, indenting by the depth of the traversal
     sb = DFS(sb, root, 0);
-    return  sb.toString();
+    return sb.toString();
   }
 
   /**
@@ -118,10 +118,10 @@ public class OPT_Tree {
    * @param depth the current depth (root = 0) in the tree
    */
   private StringBuffer DFS(StringBuffer sb,
-                                 OPT_TreeNode node, 
-                                 int depth) {
+                           OPT_TreeNode node,
+                           int depth) {
     // indent appropriate spaces and print node
-    for (int i=0; i < 2 * depth; i++) {
+    for (int i = 0; i < 2 * depth; i++) {
       sb.append(" ");
     }
     sb.append(node).append("\n");

@@ -18,7 +18,7 @@ public final class VM_SwitchBranchProfile extends VM_BranchProfile {
    * taken. By convention, the default case is the last entry.
    */
   final float[] counts;
-  
+
   /**
    * @param _bci the bytecode index of the source branch instruction
    * @param cs counts
@@ -28,13 +28,13 @@ public final class VM_SwitchBranchProfile extends VM_BranchProfile {
   VM_SwitchBranchProfile(int _bci, int[] cs, int start, int numEntries) {
     super(_bci, sumCounts(cs, start, numEntries));
     counts = new float[numEntries];
-    for (int i=0; i<numEntries; i++) {
-      counts[i] = (float)cs[start+i];
+    for (int i = 0; i < numEntries; i++) {
+      counts[i] = (float) cs[start + i];
     }
   }
 
   public float getDefaultProbability() {
-    return getProbability(counts.length-1);
+    return getProbability(counts.length - 1);
   }
 
   public float getCaseProbability(int n) {
@@ -50,17 +50,17 @@ public final class VM_SwitchBranchProfile extends VM_BranchProfile {
   }
 
   public String toString() {
-    String res = bci + "\tswitch     < " + (int)counts[0];
-    for (int i=1; i<counts.length; i++) {
-      res += ", "+(int)counts[i];
+    String res = bci + "\tswitch     < " + (int) counts[0];
+    for (int i = 1; i < counts.length; i++) {
+      res += ", " + (int) counts[i];
     }
     return res + " >";
   }
 
   private static float sumCounts(int[] counts, int start, int numEntries) {
     float sum = 0.0f;
-    for (int i=start; i<start+numEntries; i++) {
-      sum += (float)counts[i];
+    for (int i = start; i < start + numEntries; i++) {
+      sum += (float) counts[i];
     }
     return sum;
   }

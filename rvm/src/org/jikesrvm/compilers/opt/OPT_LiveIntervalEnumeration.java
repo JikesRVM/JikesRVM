@@ -31,9 +31,9 @@ public class OPT_LiveIntervalEnumeration implements Enumeration<OPT_LiveInterval
     return currentElement != null;
   }
 
-  public OPT_LiveIntervalElement nextElement() { 
+  public OPT_LiveIntervalElement nextElement() {
     OPT_LiveIntervalElement result = currentElement;
     currentElement = currentElement.getNext();
     return result;
-  } 
+  }
 }

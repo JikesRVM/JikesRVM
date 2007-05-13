@@ -16,15 +16,15 @@ import org.jikesrvm.compilers.opt.ir.OPT_LIRInfo;
  */
 final class OPT_ConvertHIRtoLIR extends OPT_CompilerPhase {
 
-  public String getName () {
+  public String getName() {
     return "HIR Operator Expansion";
   }
 
-  public OPT_CompilerPhase newExecution (OPT_IR ir) {
+  public OPT_CompilerPhase newExecution(OPT_IR ir) {
     return this;
   }
 
-  public void perform (OPT_IR ir) {
+  public void perform(OPT_IR ir) {
     if (OPT_IR.SANITY_CHECK) {
       ir.verify("before conversion to LIR", true);
     }

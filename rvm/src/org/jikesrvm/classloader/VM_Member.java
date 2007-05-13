@@ -19,8 +19,8 @@ import org.vmmagic.unboxed.Offset;
 public abstract class VM_Member extends VM_AnnotatedElement implements VM_Constants, VM_ClassLoaderConstants {
 
   /** Initial value for a field offset - indicates field not laid out. */
-  private static final int NO_OFFSET = Short.MIN_VALUE+1;
-  
+  private static final int NO_OFFSET = Short.MIN_VALUE + 1;
+
   /**
    * The class that declared this member, avaliable by calling
    * getDeclaringClass once the class is loaded.
@@ -51,7 +51,7 @@ public abstract class VM_Member extends VM_AnnotatedElement implements VM_Consta
 
   /**
    * NOTE: Only {@link VM_Class} is allowed to create an instance of a VM_Member.
-   * 
+   *
    * @param declaringClass the VM_TypeReference object of the class that declared this member
    * @param memRef the canonical memberReference for this member.
    * @param modifiers modifiers associated with this member.
@@ -77,7 +77,7 @@ public abstract class VM_Member extends VM_AnnotatedElement implements VM_Consta
   /**
    * Class that declared this field or method. Not available before
    * the class is loaded.
-   */ 
+   */
   @Uninterruptible
   public final VM_Class getDeclaringClass() {
     return declaringClass.peekResolvedType().asClass();
@@ -85,26 +85,26 @@ public abstract class VM_Member extends VM_AnnotatedElement implements VM_Consta
 
   /**
    * Canonical member reference for this member.
-   */ 
+   */
   @Uninterruptible
-  public final VM_MemberReference getMemberRef() { 
+  public final VM_MemberReference getMemberRef() {
     return memRef;
   }
 
   /**
    * Name of this member.
-   */ 
+   */
   @Uninterruptible
-  public final VM_Atom getName() { 
+  public final VM_Atom getName() {
     return memRef.getName();
   }
 
   /**
    * Descriptor for this member.
    * something like "I" for a field or "(I)V" for a method.
-   */ 
+   */
   @Uninterruptible
-  public final VM_Atom getDescriptor() { 
+  public final VM_Atom getDescriptor() {
     return memRef.getDescriptor();
   }
 
@@ -121,7 +121,7 @@ public abstract class VM_Member extends VM_AnnotatedElement implements VM_Consta
    * and thus may be used to find the member by first finding the member reference.
    */
   @Uninterruptible
-  public final int getId() { 
+  public final int getId() {
     return memRef.getId();
   }
 
@@ -129,34 +129,34 @@ public abstract class VM_Member extends VM_AnnotatedElement implements VM_Consta
    * Define hashcode in terms of VM_Atom.hashCode to enable
    * consistent hash codes during bootImage writing and run-time.
    */
-  public int hashCode() { 
+  public int hashCode() {
     return memRef.hashCode();
   }
 
   public final String toString() {
     return declaringClass + "." + getName() + " " + getDescriptor();
   }
-  
+
   /**
    * Usable from classes outside its package?
-   */ 
+   */
   public final boolean isPublic() {
-    return (modifiers & ACC_PUBLIC) != 0; 
+    return (modifiers & ACC_PUBLIC) != 0;
   }
 
   /**
    * Usable only from this class?
-   */ 
-  public final boolean isPrivate() { 
-    return (modifiers & ACC_PRIVATE) != 0; 
+   */
+  public final boolean isPrivate() {
+    return (modifiers & ACC_PRIVATE) != 0;
   }
-   
+
   /**
    * Usable from subclasses?
-   */ 
-  public final boolean isProtected() { 
-    return (modifiers & ACC_PROTECTED) != 0; 
-  } 
+   */
+  public final boolean isProtected() {
+    return (modifiers & ACC_PROTECTED) != 0;
+  }
 
   /**
    * Get the member's modifiers.
@@ -164,10 +164,10 @@ public abstract class VM_Member extends VM_AnnotatedElement implements VM_Consta
   public final int getModifiers() {
     return modifiers;
   }
-  
+
   /**
    * Has the field been laid out in the object yet ?
-   * 
+   *
    * @return
    */
   public final boolean hasOffset() {
@@ -188,9 +188,9 @@ public abstract class VM_Member extends VM_AnnotatedElement implements VM_Consta
    * <li> For a non-static field:  offset of field from start of object
    * <li> For a non-static method: offset of code object reference from start of tib
    * </ul>
-   */ 
+   */
   @Uninterruptible
-  public final Offset getOffset() { 
+  public final Offset getOffset() {
     if (VM.VerifyAssertions) VM._assert(declaringClass.isResolved());
     if (VM.VerifyAssertions) VM._assert(offset != NO_OFFSET);
     return Offset.fromIntSignExtend(offset);

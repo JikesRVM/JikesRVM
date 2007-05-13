@@ -19,13 +19,13 @@ import org.jikesrvm.util.VM_Synchronizer;
 
 /**
  * A class for managing various callbacks from the VM.
- * 
+ *
  * <p>Consumers should register an implementation of the needed interface with
  * a given callback method, and will get notified when the event happens.
- * 
+ *
  * <p>Note: callback consumers should not rely on any particular order of
  * callback invocation.
- * 
+ *
  * <p>TODO: allow limited control over callback order.
  *
  * <p>
@@ -55,10 +55,10 @@ import org.jikesrvm.util.VM_Synchronizer;
  *                          application support)
  * <li> RecompileAllDynamicallyLoadedMethods - called when the application
  *                          wants to recompile all methods that were previously
- *                          dynamically compiled.  Could be useful for 
+ *                          dynamically compiled.  Could be useful for
  *                          studying the the impact of how much of
  *                          class hierarchy being loaded effects compilation
- *                          performance 
+ *                          performance
  *                          (application must call this explicitly for anything
  *                           to happen)
  * </ul>
@@ -359,10 +359,11 @@ public final class VM_Callbacks {
       VM.sysWrite("invoking method override monitors: ");
       VM.sysWrite(method);
       VM.sysWrite(":");
-      if (parent != null)
+      if (parent != null) {
         VM.sysWrite(parent);
-      else
+      } else {
         VM.sysWrite("null");
+      }
       VM.sysWrite("\n");
       //printStack("From: ");
     }
@@ -507,7 +508,6 @@ public final class VM_Callbacks {
     forNameEnabled = true;
   }
 
-
   /**
    * Interface for monitoring defineClass calls.
    */
@@ -568,8 +568,6 @@ public final class VM_Callbacks {
     defineClassEnabled = true;
   }
 
-
-
   /**
    * Interface for monitoring loadClass calls.
    */
@@ -629,7 +627,6 @@ public final class VM_Callbacks {
     }
     loadClassEnabled = true;
   }
-
 
   /**
    * Interface for monitoring boot image writing.
@@ -899,7 +896,9 @@ public final class VM_Callbacks {
     synchronized (appCompleteLock) {
       if (appCompleteCallbacks == null) return;
       if (TRACE_APP_COMPLETE) {
-        VM.sysWrite("invoking application complete monitors for application ");VM.sysWrite(app);VM.sysWrite("\n");
+        VM.sysWrite("invoking application complete monitors for application ");
+        VM.sysWrite(app);
+        VM.sysWrite("\n");
       }
       for (CallbackList l = appCompleteCallbacks; l != null; l = l.next) {
         if (TRACE_APP_COMPLETE) {
@@ -955,7 +954,11 @@ public final class VM_Callbacks {
       if (TRACE_APP_RUN_START) {
         //VM.sysWrite(getThread(), false);
         //VM.sysWrite(": ");
-        VM.sysWrite("invoking the start monitor for application ");VM.sysWrite(app);VM.sysWrite(" at run ");VM.sysWrite(run);VM.sysWrite("\n");
+        VM.sysWrite("invoking the start monitor for application ");
+        VM.sysWrite(app);
+        VM.sysWrite(" at run ");
+        VM.sysWrite(run);
+        VM.sysWrite("\n");
       }
       for (CallbackList l = appRunStartCallbacks; l != null; l = l.next) {
         if (TRACE_APP_RUN_START) {
@@ -1028,7 +1031,7 @@ public final class VM_Callbacks {
   }
 
   /**
-   * Interface for requesting VM to recompile all previously dynamically compiled methods 
+   * Interface for requesting VM to recompile all previously dynamically compiled methods
    */
   public interface RecompileAllDynamicallyLoadedMethodsMonitor {
     /**
@@ -1098,39 +1101,44 @@ public final class VM_Callbacks {
    * Linked list of callbacks.
    */
   private static class CallbackList {
-    public CallbackList(Object cb, CallbackList n) { callback = cb; next = n; }
+    public CallbackList(Object cb, CallbackList n) {
+      callback = cb;
+      next = n;
+    }
+
     public final Object callback;
     public final CallbackList next;
   }
 
-  private static final boolean TRACE_ADDMONITOR        = false;
-  private static final boolean TRACE_CLASSLOADED       = false;
-  private static final boolean TRACE_CLASSRESOLVED     = false;
-  private static final boolean TRACE_CLASSINITIALIZED  = false;
+  private static final boolean TRACE_ADDMONITOR = false;
+  private static final boolean TRACE_CLASSLOADED = false;
+  private static final boolean TRACE_CLASSRESOLVED = false;
+  private static final boolean TRACE_CLASSINITIALIZED = false;
   private static final boolean TRACE_CLASSINSTANTIATED = false;
-  private static final boolean TRACE_METHODOVERRIDE    = false;
-  private static final boolean TRACE_METHODCOMPILE     = false;
-  private static final boolean TRACE_FORNAME           = false;
-  private static final boolean TRACE_DEFINECLASS       = false;
-  private static final boolean TRACE_LOADCLASS         = false;
-  private static final boolean TRACE_BOOTIMAGE         = false;
-  private static final boolean TRACE_STARTUP           = false;
-  private static final boolean TRACE_EXIT              = false;
-  private static final boolean TRACE_APP_RUN_START     = false;
-  private static final boolean TRACE_APP_RUN_COMPLETE  = false;
-  private static final boolean TRACE_APP_START         = false;
-  private static final boolean TRACE_APP_COMPLETE      = false;
-  private static final boolean TRACE_RECOMPILE_ALL     = false;
+  private static final boolean TRACE_METHODOVERRIDE = false;
+  private static final boolean TRACE_METHODCOMPILE = false;
+  private static final boolean TRACE_FORNAME = false;
+  private static final boolean TRACE_DEFINECLASS = false;
+  private static final boolean TRACE_LOADCLASS = false;
+  private static final boolean TRACE_BOOTIMAGE = false;
+  private static final boolean TRACE_STARTUP = false;
+  private static final boolean TRACE_EXIT = false;
+  private static final boolean TRACE_APP_RUN_START = false;
+  private static final boolean TRACE_APP_RUN_COMPLETE = false;
+  private static final boolean TRACE_APP_START = false;
+  private static final boolean TRACE_APP_COMPLETE = false;
+  private static final boolean TRACE_RECOMPILE_ALL = false;
 
   /**
    * Return class name of the object.
    * @return class name of the object
    */
   private static VM_Atom getClass(Object o) {
-    if (VM.runningVM)
-        return java.lang.JikesRVMSupport.getTypeForClass(o.getClass()).getDescriptor();
-    else
-        return VM_Atom.findOrCreateAsciiAtom(o.getClass().getName());
+    if (VM.runningVM) {
+      return java.lang.JikesRVMSupport.getTypeForClass(o.getClass()).getDescriptor();
+    } else {
+      return VM_Atom.findOrCreateAsciiAtom(o.getClass().getName());
+    }
   }
 
   /**
@@ -1139,10 +1147,11 @@ public final class VM_Callbacks {
    */
   @SuppressWarnings("unused")
   private static int getThread() {
-    if (VM.runningVM)
+    if (VM.runningVM) {
       return VM_Thread.getCurrentThread().getIndex();
-    else
+    } else {
       return System.identityHashCode(Thread.currentThread());
+    }
   }
 
   /**
@@ -1150,10 +1159,11 @@ public final class VM_Callbacks {
    */
   @SuppressWarnings("unused")
   private static void printStack(String message) {
-    if (VM.runningVM)
+    if (VM.runningVM) {
       VM_Scheduler.traceback(message);
-    else
+    } else {
       new Throwable(message).printStackTrace();
+    }
   }
 }
 

@@ -28,39 +28,59 @@ public final class VM_RecompilationManager {
   /**
    * Use the runtime compiler to forcibly recompile all dynamically
    * loaded methods
-   */ 
+   */
   public static void recompileAllDynamicallyLoadedMethods(boolean report) {
     int numMethods = VM_CompiledMethods.numCompiledMethods();
     // To avoid the assertion for unused cmids
     VM_CompiledMethod[] compiledMethods = VM_CompiledMethods.getCompiledMethods();
-    for (int cmid=1; cmid<numMethods; cmid++) {
+    for (int cmid = 1; cmid < numMethods; cmid++) {
       VM_CompiledMethod cpMeth = compiledMethods[cmid];
       if (cpMeth == null) {
-        if (DEBUG) VM.sysWrite("Not recompiling method ID ", cmid,
-                               " because it has no compiledMethod\n");
+        if (DEBUG) {
+          VM.sysWrite("Not recompiling method ID ", cmid,
+                      " because it has no compiledMethod\n");
+        }
       } else {
         VM_Method meth = cpMeth.getMethod();
-        if (DEBUG) VM.sysWrite("numMethods: "+ numMethods +", Inspecting cpMethod "+ cpMeth+ ", method: "+cpMeth.getMethod()+ "("+cmid+")\n");
+        if (DEBUG) {
+          VM.sysWrite("numMethods: " +
+                      numMethods +
+                      ", Inspecting cpMethod " +
+                      cpMeth +
+                      ", method: " +
+                      cpMeth.getMethod() +
+                      "(" +
+                      cmid +
+                      ")\n");
+        }
         if (cpMeth.getCompilerType() == VM_CompiledMethod.TRAP) {
-          if (DEBUG) VM.sysWrite("Not recompiling compiled method "+cpMeth+"("+cmid+") because it a TRAP, i.e. has no source code\n");
+          if (DEBUG) {
+            VM.sysWrite("Not recompiling compiled method " +
+                        cpMeth +
+                        "(" +
+                        cmid +
+                        ") because it a TRAP, i.e. has no source code\n");
+          }
         } else {
           if (meth.getDeclaringClass().isResolved()) {
             if (meth.getDeclaringClass().isInBootImage()) {
-              if (DEBUG) VM.sysWrite("Not recompiling bootimage method "+meth+
-                                     "("+cmid+")\n");
+              if (DEBUG) {
+                VM.sysWrite("Not recompiling bootimage method " + meth +
+                            "(" + cmid + ")\n");
+              }
             } else {
               if (meth.isAbstract()) {
-                if (DEBUG) VM.sysWrite("Not recompiling abstract method "+meth+"("+cmid+")\n");
+                if (DEBUG) VM.sysWrite("Not recompiling abstract method " + meth + "(" + cmid + ")\n");
               } else if (meth.isNative()) {
-                if (DEBUG) VM.sysWrite("Not recompiling native method "+meth+"("+cmid+")\n");
+                if (DEBUG) VM.sysWrite("Not recompiling native method " + meth + "(" + cmid + ")\n");
               } else {
-                if (DEBUG||report) VM.sysWrite("Recompiling "+meth+"("+cmid+") ");
-                recompile((VM_NormalMethod)meth);
-                if (DEBUG||report) VM.sysWrite("...done\n");
+                if (DEBUG || report) VM.sysWrite("Recompiling " + meth + "(" + cmid + ") ");
+                recompile((VM_NormalMethod) meth);
+                if (DEBUG || report) VM.sysWrite("...done\n");
               }
             }
           } else {
-            if (DEBUG) VM.sysWrite("Class not resolved"+meth+"("+cmid+")\n");
+            if (DEBUG) VM.sysWrite("Class not resolved" + meth + "(" + cmid + ")\n");
           }
         }
       }
@@ -68,7 +88,7 @@ public final class VM_RecompilationManager {
 
     if (VM.BuildForAdaptiveSystem) {
       // clear profiling counter
-      if (DEBUG||report) { VM.sysWrite("Reseting profiling information\n"); }
+      if (DEBUG || report) { VM.sysWrite("Reseting profiling information\n"); }
       VM_RuntimeMeasurements.resetReportableObjects();
     }
   }
@@ -81,7 +101,7 @@ public final class VM_RecompilationManager {
       VM_CompiledMethod cm = VM_RuntimeCompiler.compile(meth);
       meth.replaceCompiledMethod(cm);
     } catch (Throwable e) {
-      VM.sysWrite("Failure while recompiling \""+meth+"\" : "+e+"\n");
+      VM.sysWrite("Failure while recompiling \"" + meth + "\" : " + e + "\n");
     }
   }
 }

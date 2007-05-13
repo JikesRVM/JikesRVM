@@ -17,14 +17,15 @@ import org.vmmagic.pragma.Uninterruptible;
 /**
  * This class allows JMTk to register call backs with VM_Callbacks.
  */
-@Uninterruptible public class Monitor 
-  implements Constants, VM_Callbacks.ExitMonitor {
+@Uninterruptible
+public class Monitor
+    implements Constants, VM_Callbacks.ExitMonitor {
 
   /**
    * Register the exit monitor at boot time.
    */
   @Interruptible
-  public static void boot() { 
+  public static void boot() {
     VM_Callbacks.addExitMonitor(new Monitor());
   }
 

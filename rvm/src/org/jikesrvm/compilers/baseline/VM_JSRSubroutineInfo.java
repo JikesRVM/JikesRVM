@@ -24,29 +24,30 @@ public final class VM_JSRSubroutineInfo {
   public byte[] endReferenceMap;
   public int endReferenceTop;
 
-
   // for statistics
   private static int JSRRoutineCount;
   private static int JSRMismatchCount;  // count of jsr's that have different starting maps
-  private static int JSRRoutinesWithMismatch; 
+  private static int JSRRoutinesWithMismatch;
   private boolean hasMismatch;
 
   public VM_JSRSubroutineInfo(int subroutineByteCodeStart, byte[] startReferenceMap,
                               int localsTop) {
     this.subroutineByteCodeStart = subroutineByteCodeStart;
-    this.startReferenceMap = new byte[localsTop+1];
-    for (int i=0; i<= localsTop; i++) 
+    this.startReferenceMap = new byte[localsTop + 1];
+    for (int i = 0; i <= localsTop; i++) {
       this.startReferenceMap[i] = startReferenceMap[i];
+    }
     this.localsTop = localsTop;
-    
-    if (VM.ReferenceMapsStatistics) 
+
+    if (VM.ReferenceMapsStatistics) {
       JSRRoutineCount++;
+    }
   }
 
   public void
   newStartMaps(byte[] startReferenceMap) {
     if (VM.ReferenceMapsStatistics) {
-      for (int i=0; i<= localsTop; i++) {
+      for (int i = 0; i <= localsTop; i++) {
         if (this.startReferenceMap[i] != startReferenceMap[i]) {
           if (!hasMismatch) {
             hasMismatch = true;
@@ -58,49 +59,53 @@ public final class VM_JSRSubroutineInfo {
       }
     }
 
-    for (int i=0; i<= localsTop; i++) 
+    for (int i = 0; i <= localsTop; i++) {
       this.startReferenceMap[i] = startReferenceMap[i];
+    }
   }
 
   public void
-  newEndMaps(byte[] endReferenceMap, 
+  newEndMaps(byte[] endReferenceMap,
              int endReferenceTop) {
-    this.endReferenceMap = new byte[endReferenceTop+1];
-    for (int i=0; i<= endReferenceTop; i++) 
+    this.endReferenceMap = new byte[endReferenceTop + 1];
+    for (int i = 0; i <= endReferenceTop; i++) {
       this.endReferenceMap[i] = endReferenceMap[i];
+    }
     this.endReferenceTop = endReferenceTop;
   }
 
-  public byte[] 
+  public byte[]
   computeResultingMaps(int mapLength) {
 
     byte[] newReferenceMap = new byte[mapLength];
 
     // If there is no ending map, then the JSR Subroutine must have ended in
     // a return statement. Just return null
-    if (endReferenceMap == null)
+    if (endReferenceMap == null) {
       return null;
+    }
 
     // When there is no starting non reference map, then the JSR instruction is 
     // not within another  JSR subroutine
-    for (int i=0; i<=localsTop; i++) {
-        if (endReferenceMap[i] == VM_BuildReferenceMaps.NOT_SET)
-          newReferenceMap[i] = startReferenceMap[i];
-        else {
-          newReferenceMap[i] = endReferenceMap[i];
+    for (int i = 0; i <= localsTop; i++) {
+      if (endReferenceMap[i] == VM_BuildReferenceMaps.NOT_SET) {
+        newReferenceMap[i] = startReferenceMap[i];
+      } else {
+        newReferenceMap[i] = endReferenceMap[i];
       }
     }
 
     // Copy over the operand stack.
-    for (int i=localsTop+1; i<=endReferenceTop; i++)
+    for (int i = localsTop + 1; i <= endReferenceTop; i++) {
       newReferenceMap[i] = endReferenceMap[i];
- 
+    }
+
     return newReferenceMap;
   }
 
-  /** 
+  /**
    * Prints out statistics about JSR subroutines and their starting maps
- */
+   */
 
   public static void printStatistics() {
     VM.sysWrite("Number of JSR Subroutines processed: ");

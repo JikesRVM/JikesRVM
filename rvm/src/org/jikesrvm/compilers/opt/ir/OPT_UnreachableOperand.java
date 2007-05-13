@@ -11,14 +11,14 @@ package org.jikesrvm.compilers.opt.ir;
 /**
  * This operand represents, in a phi function, a control-flow path that is
  * actually unreachable.
- * 
+ *
  * @see OPT_Operand
  */
 public final class OPT_UnreachableOperand extends OPT_ConstantOperand {
 
   /**
    * Return a new operand that is semantically equivalent to <code>this</code>.
-   * 
+   *
    * @return a copy of <code>this</code>
    */
   public OPT_Operand copy() {

@@ -16,42 +16,46 @@ final class OPT_DepthFirstEnumerator
   OPT_Stack<OPT_GraphNode> stack;
   int mark;
 
-  OPT_DepthFirstEnumerator (OPT_GraphNode start, int markNumber) {
+  OPT_DepthFirstEnumerator(OPT_GraphNode start, int markNumber) {
     stack = new OPT_Stack<OPT_GraphNode>();
     stack.push(start);
     mark = markNumber;
   }
 
-  public boolean hasMoreElements () {
-    if (stack == null)
-      return  false;
+  public boolean hasMoreElements() {
+    if (stack == null) {
+      return false;
+    }
 
     for (OPT_GraphNode node : stack) {
-      if (node.getScratch() != mark)
-        return  true;
+      if (node.getScratch() != mark) {
+        return true;
+      }
     }
-    return  false;
+    return false;
   }
 
-  public OPT_GraphNode nextElement () {
-    return  next();
+  public OPT_GraphNode nextElement() {
+    return next();
   }
 
-  public OPT_GraphNode next () {
-    if (stack == null)
-      throw  new NoSuchElementException("OPT_DepthFirstEnumerator");
+  public OPT_GraphNode next() {
+    if (stack == null) {
+      throw new NoSuchElementException("OPT_DepthFirstEnumerator");
+    }
     while (!stack.isEmpty()) {
       OPT_GraphNode node = stack.pop();
       if (node.getScratch() != mark) {
         for (Enumeration<OPT_GraphNode> e = node.outNodes(); e.hasMoreElements();) {
           OPT_GraphNode n = e.nextElement();
-          if (n != null)
+          if (n != null) {
             stack.push(n);
+          }
         }
         node.setScratch(mark);
-        return  node;
+        return node;
       }
     }
-    throw  new NoSuchElementException("OPT_DepthFirstEnumerator");
+    throw new NoSuchElementException("OPT_DepthFirstEnumerator");
   }
 }

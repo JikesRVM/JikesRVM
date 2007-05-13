@@ -40,7 +40,7 @@ import org.jikesrvm.scheduler.VM_Thread;
 /**
  * Harness to select which compiler to dynamically
  * compile a method in first invocation.
- * 
+ *
  * A place to put code common to all runtime compilers.
  * This includes instrumentation code to get equivalent data for
  * each of the runtime compilers.
@@ -67,34 +67,34 @@ import org.jikesrvm.scheduler.VM_Thread;
  *   approach.
  */
 public class VM_RuntimeCompiler implements VM_Constants,
-    VM_Callbacks.ExitMonitor {
+                                           VM_Callbacks.ExitMonitor {
 
   // Use these to encode the compiler for record()
-  public static final byte JNI_COMPILER      = 0;
+  public static final byte JNI_COMPILER = 0;
   public static final byte BASELINE_COMPILER = 1;
-  public static final byte OPT_COMPILER      = 2;
+  public static final byte OPT_COMPILER = 2;
 
   // Data accumulators
-  private static final String[] name        = {"JNI\t","Base\t","Opt\t"};   // Output names
-  private static int[] totalMethods         = {0,0,0};
-  private static double[] totalCompTime     = {0,0,0};
-  private static int[] totalBCLength        = {0,0,0};
-  private static int[] totalMCLength        = {0,0,0};
+  private static final String[] name = {"JNI\t", "Base\t", "Opt\t"};   // Output names
+  private static int[] totalMethods = {0, 0, 0};
+  private static double[] totalCompTime = {0, 0, 0};
+  private static int[] totalBCLength = {0, 0, 0};
+  private static int[] totalMCLength = {0, 0, 0};
 
   // running sum of the natural logs of the rates, 
   //  used for geometric mean, the product of rates is too big for doubles
   //  so we use the principle of logs to help us 
   // We compute  e ** ((log a + log b + ... + log n) / n )
-  private static double[] totalLogOfRates   = {0,0,0};
+  private static double[] totalLogOfRates = {0, 0, 0};
 
   // We can't record values until Math.log is loaded, so we miss the first few
-  private static int[] totalLogValueMethods = {0,0,0};
+  private static int[] totalLogValueMethods = {0, 0, 0};
 
   private static String[] earlyOptArgs = new String[0];
 
   // is the opt compiler usable?
-  protected static boolean compilerEnabled;  
-  
+  protected static boolean compilerEnabled;
+
   // is opt compiler currently in use?
   // This flag is used to detect/avoid recursive opt compilation.
   // (ie when opt compilation causes a method to be compiled).
@@ -105,8 +105,8 @@ public class VM_RuntimeCompiler implements VM_Constants,
   // thread (always bad) and parallel opt compilation (currently bad, future ok).
   // NOTE: This code can be quite subtle, so please be absolutely sure
   // you know what you're doing before modifying it!!!
-  protected static boolean compilationInProgress; 
-  
+  protected static boolean compilationInProgress;
+
   // One time check to optionally preload and compile a specified class
   protected static boolean preloadChecked = false;
 
@@ -130,8 +130,8 @@ public class VM_RuntimeCompiler implements VM_Constants,
    * @param method the resulting VM_Method
    * @param compiledMethod the resulting compiled method
    */
-  public static void record(byte compiler, 
-                            VM_NormalMethod method, 
+  public static void record(byte compiler,
+                            VM_NormalMethod method,
                             VM_CompiledMethod compiledMethod) {
 
     recordCompilation(compiler, method.getBytecodeLength(),
@@ -140,10 +140,10 @@ public class VM_RuntimeCompiler implements VM_Constants,
 
     if (VM.BuildForAdaptiveSystem) {
       if (VM_AOSLogging.booted()) {
-        VM_AOSLogging.recordUpdatedCompilationRates(compiler, 
+        VM_AOSLogging.recordUpdatedCompilationRates(compiler,
                                                     method,
                                                     method.getBytecodeLength(),
-                                                    totalBCLength[compiler],              
+                                                    totalBCLength[compiler],
                                                     compiledMethod.numberOfInstructions(),
                                                     totalMCLength[compiler],
                                                     compiledMethod.getCompilationTime(),
@@ -162,12 +162,11 @@ public class VM_RuntimeCompiler implements VM_Constants,
    * @param method the resulting VM_Method
    * @param compiledMethod the resulting compiled method
    */
-  public static void record(byte compiler, 
-                            VM_NativeMethod method, 
+  public static void record(byte compiler,
+                            VM_NativeMethod method,
                             VM_CompiledMethod compiledMethod) {
 
-
-    recordCompilation(compiler, 
+    recordCompilation(compiler,
                       0, // don't have any bytecode info, its native
                       compiledMethod.numberOfInstructions(),
                       compiledMethod.getCompilationTime());
@@ -180,9 +179,9 @@ public class VM_RuntimeCompiler implements VM_Constants,
    * @param MCLength the length of the generated machine code
    * @param compTime the compilation time in ms
    */
-  private static void recordCompilation(byte compiler, 
-                                        int BCLength, 
-                                        int MCLength, 
+  private static void recordCompilation(byte compiler,
+                                        int BCLength,
+                                        int MCLength,
                                         double compTime) {
 
     totalMethods[compiler]++;
@@ -191,7 +190,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
 
     // Comp rate not useful for JNI compiler because there is no bytecode!
     if (compiler != JNI_COMPILER) {
-      totalBCLength[compiler] += BCLength; 
+      totalBCLength[compiler] += BCLength;
       double rate = BCLength / compTime;
 
       // need to be fully booted before calling log
@@ -209,11 +208,11 @@ public class VM_RuntimeCompiler implements VM_Constants,
    * This method produces a summary report of compilation activities
    * @param explain Explains the metrics used in the report
    */
-  public static void report (boolean explain) { 
+  public static void report(boolean explain) {
     VM.sysWrite("\n\t\tCompilation Subsystem Report\n");
     VM.sysWrite("Comp\t#Meths\tTime\tbcb/ms\tmcb/bcb\tMCKB\tBCKB\n");
-    for (int i=0; i<=name.length-1; i++) {
-      if (totalMethods[i]>0) {
+    for (int i = 0; i <= name.length - 1; i++) {
+      if (totalMethods[i] > 0) {
         VM.sysWrite(name[i]);
         // Number of methods
         VM.sysWrite(totalMethods[i]);
@@ -232,17 +231,19 @@ public class VM_RuntimeCompiler implements VM_Constants,
         VM.sysWrite("\t");
         // Ratio of machine code bytes to bytecode bytes
         if (i != JNI_COMPILER) {
-          VM.sysWrite((double)(totalMCLength[i] << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH)/(double)totalBCLength[i], 2);
+          VM.sysWrite((double) (totalMCLength[i] << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH) /
+                      (double) totalBCLength[i], 2);
         } else {
           VM.sysWrite("NA");
         }
         VM.sysWrite("\t");
         // Generated machine code Kbytes
-        VM.sysWrite((double)(totalMCLength[i] << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH)/1024, 1);
+        VM.sysWrite((double) (totalMCLength[i] << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH) /
+                    1024, 1);
         VM.sysWrite("\t");
         // Compiled bytecode Kbytes
         if (i != JNI_COMPILER) {
-          VM.sysWrite((double)totalBCLength[i]/1024, 1); 
+          VM.sysWrite((double) totalBCLength[i] / 1024, 1);
         } else {
           VM.sysWrite("NA");
         }
@@ -273,7 +274,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
       }
     }
   }
-   
+
   /**
    * Return the current estimate of basline-compiler rate, in bcb/msec
    */
@@ -300,7 +301,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
       cm.setCompilationTime(compileTime);
       record(BASELINE_COMPILER, method, cm);
     }
-    
+
     return cm;
   }
 
@@ -310,21 +311,21 @@ public class VM_RuntimeCompiler implements VM_Constants,
   public static void processOptCommandLineArg(String prefix, String arg) {
     if (VM.BuildForAdaptiveSystem) {
       if (compilerEnabled) {
-        if (((OPT_Options)options).processAsOption(prefix, arg)) {
+        if (((OPT_Options) options).processAsOption(prefix, arg)) {
           // update the optimization plan to reflect the new command line argument
-          optimizationPlan = OPT_OptimizationPlanner.createOptimizationPlan((OPT_Options)options);
+          optimizationPlan = OPT_OptimizationPlanner.createOptimizationPlan((OPT_Options) options);
         } else {
-          VM.sysWrite("Unrecognized opt compiler argument \""+arg+"\"");
+          VM.sysWrite("Unrecognized opt compiler argument \"" + arg + "\"");
           VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         }
       } else {
-        String[] tmp = new String[earlyOptArgs.length+2];
-        for (int i=0; i<earlyOptArgs.length; i++) {
+        String[] tmp = new String[earlyOptArgs.length + 2];
+        for (int i = 0; i < earlyOptArgs.length; i++) {
           tmp[i] = earlyOptArgs[i];
         }
         earlyOptArgs = tmp;
-        earlyOptArgs[earlyOptArgs.length-2] = prefix;
-        earlyOptArgs[earlyOptArgs.length-1] = arg;
+        earlyOptArgs[earlyOptArgs.length - 2] = prefix;
+        earlyOptArgs[earlyOptArgs.length - 1] = arg;
       }
     } else {
       if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
@@ -339,20 +340,20 @@ public class VM_RuntimeCompiler implements VM_Constants,
    * @param method the method to compile
    * @param plan the plan to use for compiling the method
    */
-  private static VM_CompiledMethod optCompile(VM_NormalMethod method, 
-                                              OPT_CompilationPlan plan) 
-    throws OPT_OptimizingCompilerException {
+  private static VM_CompiledMethod optCompile(VM_NormalMethod method,
+                                              OPT_CompilationPlan plan)
+      throws OPT_OptimizingCompilerException {
     if (VM.BuildForOptCompiler) {
       if (VM.VerifyAssertions) {
         VM._assert(compilationInProgress, "Failed to acquire compilationInProgress \"lock\"");
       }
-    
+
       VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.JNI);
       long start = 0;
       if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
         start = VM_Thread.getCurrentThread().accumulateCycles();
       }
-    
+
       VM_CompiledMethod cm = OPT_Compiler.compile(plan);
 
       if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
@@ -361,14 +362,13 @@ public class VM_RuntimeCompiler implements VM_Constants,
         cm.setCompilationTime(compileTime);
         record(OPT_COMPILER, method, cm);
       }
-    
+
       return cm;
     } else {
       if (VM.VerifyAssertions) VM._assert(false);
       return null;
     }
   }
-  
 
   // These methods are safe to invoke from VM_RuntimeCompiler.compile
 
@@ -388,7 +388,11 @@ public class VM_RuntimeCompiler implements VM_Constants,
       } else {
         try {
           compilationInProgress = true;
-          OPT_CompilationPlan plan = new OPT_CompilationPlan(method, (OPT_OptimizationPlanElement[])optimizationPlan, null, (OPT_Options)options);
+          OPT_CompilationPlan plan =
+              new OPT_CompilationPlan(method,
+                                      (OPT_OptimizationPlanElement[]) optimizationPlan,
+                                      null,
+                                      (OPT_Options) options);
           return optCompileWithFallBackInternal(method, plan);
         } finally {
           compilationInProgress = false;
@@ -410,7 +414,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
    * @param method the method to compile
    * @param plan the compilation plan to use for the compile
    */
-  public static synchronized VM_CompiledMethod optCompileWithFallBack(VM_NormalMethod method, 
+  public static synchronized VM_CompiledMethod optCompileWithFallBack(VM_NormalMethod method,
                                                                       OPT_CompilationPlan plan) {
     if (VM.BuildForOptCompiler) {
       if (compilationInProgress) {
@@ -426,7 +430,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
     } else {
       if (VM.VerifyAssertions) VM._assert(false);
       return null;
-    }      
+    }
   }
 
   /**
@@ -434,34 +438,38 @@ public class VM_RuntimeCompiler implements VM_Constants,
    * @param method the method to compile
    * @param plan the compilation plan to use
    */
-  private static VM_CompiledMethod optCompileWithFallBackInternal(VM_NormalMethod method, 
+  private static VM_CompiledMethod optCompileWithFallBackInternal(VM_NormalMethod method,
                                                                   OPT_CompilationPlan plan) {
     if (VM.BuildForOptCompiler) {
       if (method.hasNoOptCompileAnnotation()) return fallback(method);
       try {
         return optCompile(method, plan);
       } catch (OPT_OptimizingCompilerException e) {
-        String msg = "VM_RuntimeCompiler: can't optimize \"" + method + "\" (error was: " + e + "): reverting to baseline compiler\n"; 
+        String msg =
+            "VM_RuntimeCompiler: can't optimize \"" +
+            method +
+            "\" (error was: " +
+            e +
+            "): reverting to baseline compiler\n";
         if (e.isFatal && VM.ErrorsFatal) {
           e.printStackTrace();
           VM.sysFail(msg);
         } else {
           boolean printMsg = true;
           if (e instanceof OPT_MagicNotImplementedException) {
-            printMsg = !((OPT_MagicNotImplementedException)e).isExpected;
+            printMsg = !((OPT_MagicNotImplementedException) e).isExpected;
           }
           if (printMsg) VM.sysWrite(msg);
         }
         return fallback(method);
-      } 
+      }
     } else {
       if (VM.VerifyAssertions) VM._assert(false);
       return null;
     }
   }
 
-
-  /* recompile the specialized method with OPT_Compiler. */ 
+  /* recompile the specialized method with OPT_Compiler. */
   public static VM_CompiledMethod recompileWithOptOnStackSpecialization(OPT_CompilationPlan plan) {
     if (VM.BuildForOptCompiler) {
       if (VM.VerifyAssertions) { VM._assert(plan.method.isForOsrSpecialization());}
@@ -474,29 +482,29 @@ public class VM_RuntimeCompiler implements VM_Constants,
 
         // the compiler will check if isForOsrSpecialization of the method
         VM_CompiledMethod cm = optCompile(plan.method, plan);
-        
+
         // we donot replace the compiledMethod of original method, 
         // because it is temporary method
         return cm;
       } catch (OPT_OptimizingCompilerException e) {
         e.printStackTrace();
-        String msg = "Optimizing compiler " 
-          +"(via recompileWithOptOnStackSpecialization): "
-          +"can't optimize \"" + plan.method + "\" (error was: " + e + ")\n"; 
+        String msg = "Optimizing compiler "
+                     + "(via recompileWithOptOnStackSpecialization): "
+                     + "can't optimize \"" + plan.method + "\" (error was: " + e + ")\n";
 
         if (e.isFatal && VM.ErrorsFatal) {
           VM.sysFail(msg);
         } else {
           VM.sysWrite(msg);
         }
-        return null;      
+        return null;
       } finally {
         compilationInProgress = false;
       }
     } else {
       if (VM.VerifyAssertions) VM._assert(false);
       return null;
-    }      
+    }
   }
 
   /**
@@ -521,7 +529,13 @@ public class VM_RuntimeCompiler implements VM_Constants,
           try {
             plan.method.replaceCompiledMethod(cm);
           } catch (Throwable e) {
-            String msg = "Failure in VM_Method.replaceCompiledMethod (via recompileWithOpt): while replacing \"" + plan.method + "\" (error was: " + e + ")\n"; 
+            String msg =
+                "Failure in VM_Method.replaceCompiledMethod (via recompileWithOpt): while replacing \"" +
+                plan
+                    .method +
+                            "\" (error was: " +
+                            e +
+                            ")\n";
             if (VM.ErrorsFatal) {
               e.printStackTrace();
               VM.sysFail(msg);
@@ -532,7 +546,13 @@ public class VM_RuntimeCompiler implements VM_Constants,
           }
           return cm.getId();
         } catch (OPT_OptimizingCompilerException e) {
-          String msg = "Optimizing compiler (via recompileWithOpt): can't optimize \"" + plan.method + "\" (error was: " + e + ")\n"; 
+          String msg =
+              "Optimizing compiler (via recompileWithOpt): can't optimize \"" +
+              plan
+                  .method +
+                          "\" (error was: " +
+                          e +
+                          ")\n";
           if (e.isFatal && VM.ErrorsFatal) {
             e.printStackTrace();
             VM.sysFail(msg);
@@ -547,7 +567,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
     } else {
       if (VM.VerifyAssertions) VM._assert(false);
       return -1;
-    }      
+    }
   }
 
   /**
@@ -557,15 +577,15 @@ public class VM_RuntimeCompiler implements VM_Constants,
    */
   public static int recompileWithOpt(VM_NormalMethod method) {
     if (VM.BuildForOptCompiler) {
-      OPT_CompilationPlan plan = new OPT_CompilationPlan(method, 
-                                                         (OPT_OptimizationPlanElement[])optimizationPlan, 
-                                                         null, 
-                                                         (OPT_Options)options);
+      OPT_CompilationPlan plan = new OPT_CompilationPlan(method,
+                                                         (OPT_OptimizationPlanElement[]) optimizationPlan,
+                                                         null,
+                                                         (OPT_Options) options);
       return recompileWithOpt(plan);
     } else {
       if (VM.VerifyAssertions) VM._assert(false);
       return -1;
-    }      
+    }
   }
 
   /**
@@ -577,32 +597,32 @@ public class VM_RuntimeCompiler implements VM_Constants,
     // call the inherited method "baselineCompile"
     return baselineCompile(method);
   }
-  
+
   public static void boot() {
     if (VM.MeasureCompilation) {
       VM_Callbacks.addExitMonitor(new VM_RuntimeCompiler());
     }
     if (VM.BuildForAdaptiveSystem) {
-      optimizationPlan = OPT_OptimizationPlanner.createOptimizationPlan((OPT_Options)options);
+      optimizationPlan = OPT_OptimizationPlanner.createOptimizationPlan((OPT_Options) options);
       if (VM.MeasureCompilation) {
         OPT_OptimizationPlanner.initializeMeasureCompilation();
       }
 
-      OPT_Compiler.init((OPT_Options)options);
+      OPT_Compiler.init((OPT_Options) options);
 
       VM_PreCompile.init();
       // when we reach here the OPT compiler is enabled.
       compilerEnabled = true;
 
-      for (int i=0; i<earlyOptArgs.length; i+=2) {
-        processOptCommandLineArg(earlyOptArgs[i], earlyOptArgs[i+1]);
+      for (int i = 0; i < earlyOptArgs.length; i += 2) {
+        processOptCommandLineArg(earlyOptArgs[i], earlyOptArgs[i + 1]);
       }
     }
   }
-  
+
   public static void processCommandLineArg(String prefix, String arg) {
     if (VM.BuildForAdaptiveSystem) {
-      if (VM_Controller.options !=null  && VM_Controller.options.optIRC()) {
+      if (VM_Controller.options != null && VM_Controller.options.optIRC()) {
         processOptCommandLineArg(prefix, arg);
       } else {
         VM_BaselineCompiler.processCommandLineArg(prefix, arg);
@@ -611,7 +631,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
       VM_BaselineCompiler.processCommandLineArg(prefix, arg);
     }
   }
-  
+
   /**
    * Compile a Java method when it is first invoked.
    * @param method the method to compile
@@ -633,13 +653,13 @@ public class VM_RuntimeCompiler implements VM_Constants,
             // Other than when boot options are requested (processed during preloadSpecialClass
             // It is hard to communicate options for these special compilations. Use the 
             // default options and at least pick up the verbose if requested for base/irc
-            OPT_Options tmpoptions = ((OPT_Options)options).dup();
+            OPT_Options tmpoptions = ((OPT_Options) options).dup();
             tmpoptions.PRELOAD_CLASS = VM_BaselineCompiler.options.PRELOAD_CLASS;
             tmpoptions.PRELOAD_AS_BOOT = VM_BaselineCompiler.options.PRELOAD_AS_BOOT;
             if (VM_BaselineCompiler.options.PRINT_METHOD) {
               tmpoptions.PRINT_METHOD = true;
             } else {
-              tmpoptions = (OPT_Options)options;
+              tmpoptions = (OPT_Options) options;
             }
             OPT_Compiler.preloadSpecialClass(tmpoptions);
             compilationInProgress = false;
@@ -647,7 +667,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
         }
         if (VM_Controller.options.optIRC()) {
           if (// will only run once: don't bother optimizing
-              method.isClassInitializer() || 
+              method.isClassInitializer() ||
               // exception in progress. can't use opt compiler: 
               // it uses exceptions and runtime doesn't support 
               // multiple pending (undelivered) exceptions [--DL]
@@ -656,11 +676,11 @@ public class VM_RuntimeCompiler implements VM_Constants,
             cm = baselineCompile(method);
             VM_ControllerMemory.incrementNumBase();
           } else { // compile with opt compiler
-            VM_AOSInstrumentationPlan instrumentationPlan = 
-              new VM_AOSInstrumentationPlan(VM_Controller.options, method);
-            OPT_CompilationPlan compPlan = 
-              new OPT_CompilationPlan(method, (OPT_OptimizationPlanElement[])optimizationPlan, 
-                                      instrumentationPlan, (OPT_Options)options);
+            VM_AOSInstrumentationPlan instrumentationPlan =
+                new VM_AOSInstrumentationPlan(VM_Controller.options, method);
+            OPT_CompilationPlan compPlan =
+                new OPT_CompilationPlan(method, (OPT_OptimizationPlanElement[]) optimizationPlan,
+                                        instrumentationPlan, (OPT_Options) options);
             cm = optCompileWithFallBack(method, compPlan);
           }
         } else {
@@ -675,9 +695,9 @@ public class VM_RuntimeCompiler implements VM_Constants,
           } else {
             if (VM_CompilerAdviceAttribute.hasAdvice()) {
               VM_CompilerAdviceAttribute attr =
-                VM_CompilerAdviceAttribute.getCompilerAdviceInfo(method);
+                  VM_CompilerAdviceAttribute.getCompilerAdviceInfo(method);
               if (attr.getCompiler() != VM_CompiledMethod.OPT) {
-                cm=fallback(method);
+                cm = fallback(method);
                 VM_AOSLogging.recordCompileTime(cm, 0.0);
                 return cm;
               }
@@ -686,7 +706,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
               if (VM_Controller.options.counters()) {
                 // for invocation counter, we only use one optimization level
                 compPlan = VM_InvocationCounts.createCompilationPlan(method);
-              } else { 
+              } else {
                 // for now there is not two options for sampling, so
                 // we don't have to use: if (VM_Controller.options.sampling())
                 compPlan = VM_Controller.recompilationStrategy.createCompilationPlan(method, attr.getOptLevel(), null);
@@ -698,12 +718,12 @@ public class VM_RuntimeCompiler implements VM_Constants,
                 VM_AOSLogging.recompilationAborted(compPlan);
               } else if (newCMID > 0) {
                 VM_AOSLogging.recompilationCompleted(compPlan);
-              }    
+              }
               if (cm == null) { // if recompilation is aborted
                 cm = baselineCompile(method);
                 VM_ControllerMemory.incrementNumBase();
               }
-            }  else {
+            } else {
               // check to see if there is a compilation plan for this method.
               VM_ControllerPlan plan = VM_ControllerMemory.findLatestPlan(method);
               if (plan == null || plan.getStatus() != VM_ControllerPlan.IN_PROGRESS) {
@@ -716,8 +736,8 @@ public class VM_RuntimeCompiler implements VM_Constants,
                   // opt compilation aborted for some reason.
                   cm = baselineCompile(method);
                 }
-              }    
-            }       
+              }
+            }
           }
         }
       }
@@ -747,9 +767,9 @@ public class VM_RuntimeCompiler implements VM_Constants,
 
     VM_CompiledMethod cm = VM_JNICompiler.compile(method);
     if (VM.verboseJNI) {
-      VM.sysWriteln("[Dynamic-linking native method " + 
+      VM.sysWriteln("[Dynamic-linking native method " +
                     method.getDeclaringClass() + "." + method.getName() +
-                    " "+method.getDescriptor());
+                    " " + method.getDescriptor());
     }
 
     if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
@@ -758,7 +778,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
       cm.setCompilationTime(compileTime);
       record(JNI_COMPILER, method, cm);
     }
-    
+
     return cm;
   }
 

@@ -15,15 +15,15 @@ package org.jikesrvm.compilers.opt;
  */
 abstract class OPT_DF_Operator {
 
-  /** 
+  /**
    * Evaluate this equation, setting a new value for the
    * left-hand side. 
-   * 
+   *
    * @param operands The operands for this operator.  operands[0]
    *                is the left-hand side.
    * @return true if the lhs value changes. false otherwise.
    */
-  abstract boolean evaluate (OPT_DF_LatticeCell[] operands);
+  abstract boolean evaluate(OPT_DF_LatticeCell[] operands);
 }
 
 

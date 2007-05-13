@@ -22,17 +22,18 @@ import org.vmmagic.unboxed.WordArray;
  * Such frames are purely used as markers.
  * They contain no object references or JSR return addresses.
  */
-@Uninterruptible public final class VM_HardwareTrapGCMapIterator extends VM_GCMapIterator implements VM_SizeConstants {
+@Uninterruptible
+public final class VM_HardwareTrapGCMapIterator extends VM_GCMapIterator implements VM_SizeConstants {
 
   public VM_HardwareTrapGCMapIterator(WordArray registerLocations) {
     this.registerLocations = registerLocations;
   }
 
-  public void setupIterator(VM_CompiledMethod compiledMethod, Offset instructionOffset, 
-                     Address framePtr) {
+  public void setupIterator(VM_CompiledMethod compiledMethod, Offset instructionOffset,
+                            Address framePtr) {
     this.framePtr = framePtr;
   }
-  
+
   public Address getNextReferenceAddress() {
     // update register locations, noting that the trap handler represented by this stackframe
     // saved all registers into the thread's "hardwareExceptionRegisters" object
@@ -45,14 +46,14 @@ import org.vmmagic.unboxed.WordArray;
     return Address.zero();
   }
 
-  public Address getNextReturnAddressAddress() { 
+  public Address getNextReturnAddressAddress() {
     return Address.zero();
   }
 
   public void reset() {}
-  
-  public void cleanupPointers() {} 
-  
+
+  public void cleanupPointers() {}
+
   public int getType() {
     return VM_CompiledMethod.TRAP;
   }

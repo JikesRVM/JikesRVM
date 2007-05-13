@@ -39,9 +39,9 @@ import org.jikesrvm.classloader.VM_Atom;
  * <li><code>&lt;signature></code> <i>string</i> The method signature</li>
  * <li><code>&lt;advice></code> <i>int</i> The compiler type to be used --
  * an integer value corresponding to the compiler enumeration in 
-   VM_CompiledMethod</li>
+ VM_CompiledMethod</li>
  * <li><code>&lt;optLevel></code> <i>int</i> (Optional) The opt level to use 
-   if compiler is optimizing compiler</li>
+ if compiler is optimizing compiler</li>
  * </ul>
  *
  *
@@ -53,50 +53,50 @@ class VM_CompilerAdviceInfoReader {
   /**
    * Read annoations from a specified file. Reads all annotations at
    * once and returns a collection of compiler advice attributes.
-   * 
+   *
    * @param file The annoation file to be read
    * @return A list of compileration advice attributes
    */
   public static List<VM_CompilerAdviceAttribute> readCompilerAdviceFile(String file) {
-    List<VM_CompilerAdviceAttribute> compilerAdviceInfo = 
-      new ArrayList<VM_CompilerAdviceAttribute>();
+    List<VM_CompilerAdviceAttribute> compilerAdviceInfo =
+        new ArrayList<VM_CompilerAdviceAttribute>();
     BufferedReader fileIn = null;
-    
+
     if (file == null) return null;
-    
+
     try {
-      fileIn = new BufferedReader(new 
-        InputStreamReader(new FileInputStream(file), "UTF-8"));
-    
+      fileIn = new BufferedReader(new
+          InputStreamReader(new FileInputStream(file), "UTF-8"));
+
       try {
         for (String s = fileIn.readLine(); s != null; s = fileIn.readLine()) {
           StringTokenizer parser = new StringTokenizer(s, " \n,");
           compilerAdviceInfo.add(readOneAttribute(parser));
-          
+
         }
       } catch (IOException e) {
         e.printStackTrace();
-        VM.sysFail("Error parsing input compilation advice file "+file);
+        VM.sysFail("Error parsing input compilation advice file " + file);
       }
-    
+
       fileIn.close();
     } catch (java.io.FileNotFoundException e) {
-      System.out.println("IO: Couldn't read compiler advice attribute file: " 
-			 + file + e);
+      System.out.println("IO: Couldn't read compiler advice attribute file: "
+                         + file + e);
       return null;
     } catch (java.io.UnsupportedEncodingException e) {
-      System.out.println("IO: UTF-8 is not supported: " 
-			 + e);
+      System.out.println("IO: UTF-8 is not supported: "
+                         + e);
       return null;
     } catch (java.io.IOException e) {
-      System.out.println("IO: Couldn't close compiler advice attribute file: " 
-			 + file + e);
+      System.out.println("IO: Couldn't close compiler advice attribute file: "
+                         + file + e);
       return null;
     }
-    
+
     return compilerAdviceInfo;
   }
-  
+
   /**
    * Actual reading is done here.  This method reads one attribute
    * from a single line of an input stream.  There are six elements
@@ -108,10 +108,9 @@ class VM_CompilerAdviceInfoReader {
    * @param st an input stream
    * @return an compileration advice atribute
    */
-  private static VM_CompilerAdviceAttribute readOneAttribute(StringTokenizer st)
-  {
+  private static VM_CompilerAdviceAttribute readOneAttribute(StringTokenizer st) {
     int compiler, optLevel = -1;
-    
+
     try {
       VM_Atom cls = VM_Atom.findOrCreateUnicodeAtom(st.nextToken());
       VM_Atom mth = VM_Atom.findOrCreateUnicodeAtom(st.nextToken());
@@ -120,14 +119,15 @@ class VM_CompilerAdviceInfoReader {
       optLevel = Integer.parseInt(st.nextToken());
       // this is the attribute which will be returned
       VM_CompilerAdviceAttribute newAttrib;
-      
-      if (optLevel >= 0)
+
+      if (optLevel >= 0) {
         newAttrib =
-          new VM_CompilerAdviceAttribute(cls, mth, sig, compiler, optLevel);
-      else
+            new VM_CompilerAdviceAttribute(cls, mth, sig, compiler, optLevel);
+      } else {
         newAttrib =
-          new VM_CompilerAdviceAttribute(cls, mth, sig, compiler);
-      
+            new VM_CompilerAdviceAttribute(cls, mth, sig, compiler);
+      }
+
       return newAttrib;
     } catch (NoSuchElementException e) {
       return null;

@@ -25,7 +25,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_InstructionEnumeration;
 
 public class OSR_AdjustBCIndexes extends OPT_CompilerPhase {
 
-  public final boolean shouldPerform(OPT_Options options){
+  public final boolean shouldPerform(OPT_Options options) {
     return true;
   }
 
@@ -33,19 +33,19 @@ public class OSR_AdjustBCIndexes extends OPT_CompilerPhase {
    * Return this instance of this phase. This phase contains no
    * per-compilation instance fields.
    * @param ir not used
-   * @return this 
+   * @return this
    */
-  public OPT_CompilerPhase newExecution (OPT_IR ir) {
+  public OPT_CompilerPhase newExecution(OPT_IR ir) {
     return this;
   }
 
   public final String getName() { return "AdjustBytecodeIndexes"; }
 
   public final void perform(OPT_IR ir) {
-    if (!ir.method.isForOsrSpecialization()) return;    
+    if (!ir.method.isForOsrSpecialization()) return;
     int offset = ir.method.getOsrPrologueLength();
 
-    for (OPT_InstructionEnumeration ie = ir.forwardInstrEnumerator(); 
+    for (OPT_InstructionEnumeration ie = ir.forwardInstrEnumerator();
          ie.hasMoreElements();) {
       OPT_Instruction s = ie.next();
 

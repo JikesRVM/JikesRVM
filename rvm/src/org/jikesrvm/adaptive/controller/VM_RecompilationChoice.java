@@ -36,7 +36,7 @@ abstract class VM_RecompilationChoice {
    *        the method if left running with the previous compiler.
    * @return The expected future execution time if this choice were selected 
    */
-  abstract double getFutureExecutionTime(int prevCompiler, 
+  abstract double getFutureExecutionTime(int prevCompiler,
                                          double futureExecutionTime);
 
   /**

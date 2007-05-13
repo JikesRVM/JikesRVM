@@ -18,7 +18,8 @@ import org.vmmagic.pragma.Uninterruptible;
  * In the future the return address maps may be expanded to include other
  * internal pointers or internal/external pointers may be handled separately.
  */
-@Uninterruptible final class VM_UnusualMaps {
+@Uninterruptible
+final class VM_UnusualMaps {
 
   // set the index in the stack frame of the return address for this map
   //
@@ -56,7 +57,6 @@ import org.vmmagic.pragma.Uninterruptible;
     return nonReferenceMapIndex;
   }
 
-
   // set the  offset of the returnAddress map in the stackmap list of maps
   //
   void setReturnAddressMapIndex(int index) {
@@ -80,7 +80,6 @@ import org.vmmagic.pragma.Uninterruptible;
   void setNormalMapIndex(int index) {
     normalMapIndex = index;
   }
-
 
   // For maps of JSR subroutine locations
   int returnAddressIndex;   // index into the normal reference map of where the

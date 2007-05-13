@@ -49,8 +49,8 @@ import org.jikesrvm.ppc.VM_RegisterConstants;
  * using getPrev().
  * <P> TODO; clean up all this and provide appropriate enumerators
  */
-public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSet 
-  implements VM_RegisterConstants, OPT_PhysicalRegisterConstants{
+public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSet
+    implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
 
   /**
    * This array holds a pool of objects representing physical registers
@@ -67,11 +67,11 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
    * To avoid expensive save/restores when
    * making a JNI transition Jikes RVM only uses the
    * CR that AIX defines to be volatile
-   * 
+   *
    * We reserve one of the volatiles, CR7 for use only in yieldpoints.
    * This ensures that a yieldpoint won't bash an allocated CR.
    */
-  private static final int[] CR_NUMS = new int[] {0, 1, 5, 6};
+  private static final int[] CR_NUMS = new int[]{0, 1, 5, 6};
   private static final int TSR_REG = 7;
 
   /**
@@ -106,14 +106,14 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
    * Constructor: set up a pool of physical registers.
    */
   public OPT_PhysicalRegisterSet() {
-    
+
     // 1. Create all the physical registers in the pool.
-    for (int i = 0; i < reg.length ; i++) {
+    for (int i = 0; i < reg.length; i++) {
       OPT_Register r = new OPT_Register(i);
       r.setPhysical();
       reg[i] = r;
     }
-    
+
     // 2. Set the 'integer' attribute on each GPR
     for (int i = FIRST_INT; i < FIRST_DOUBLE; i++) {
       if (VM.BuildFor32Addr) {
@@ -122,7 +122,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
         reg[i].setLong();
       }
     }
-    
+
     // 3. Set the 'double' attribute on each FPR
     for (int i = FIRST_DOUBLE; i < FIRST_CONDITION; i++) {
       reg[i].setDouble();
@@ -135,7 +135,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
 
     // 5. set up the volatile GPRs
     for (int i = FIRST_VOLATILE_GPR; i < LAST_VOLATILE_GPR; i++) {
-      OPT_Register r= reg[i];
+      OPT_Register r = reg[i];
       r.setVolatile();
       r.linkWithNext(reg[i + 1]);
     }
@@ -147,7 +147,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
       r.linkWithNext(reg[i + 1]);
     }
     reg[LAST_SCRATCH_GPR].setVolatile();
-    
+
     // 6. set up the non-volatile GPRs
     for (int i = FIRST_NONVOLATILE_GPR; i < LAST_NONVOLATILE_GPR; i++) {
       OPT_Register r = reg[i];
@@ -161,28 +161,28 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
     reg[JTOC_POINTER].setSpansBasicBlock();
 
     // 8. set up the volatile FPRs
-    for (int i = FIRST_DOUBLE + FIRST_VOLATILE_FPR; i < FIRST_DOUBLE + 
-        LAST_VOLATILE_FPR; i++) {
+    for (int i = FIRST_DOUBLE + FIRST_VOLATILE_FPR; i < FIRST_DOUBLE +
+                                                        LAST_VOLATILE_FPR; i++) {
       OPT_Register r = reg[i];
       r.setVolatile();
       r.linkWithNext(reg[i + 1]);
     }
     reg[FIRST_DOUBLE + LAST_VOLATILE_FPR].linkWithNext(reg[FIRST_DOUBLE
-        + FIRST_SCRATCH_FPR]);
+                                                           + FIRST_SCRATCH_FPR]);
     reg[FIRST_DOUBLE + LAST_VOLATILE_FPR].setVolatile();
-    if (FIRST_SCRATCH_FPR != LAST_SCRATCH_FPR)
-      for (int i = FIRST_DOUBLE + FIRST_SCRATCH_FPR; i < FIRST_DOUBLE + 
-          LAST_SCRATCH_FPR; i++) {
+    if (FIRST_SCRATCH_FPR != LAST_SCRATCH_FPR) {
+      for (int i = FIRST_DOUBLE + FIRST_SCRATCH_FPR; i < FIRST_DOUBLE +
+                                                         LAST_SCRATCH_FPR; i++) {
         OPT_Register r = reg[i];
         r.setVolatile();
         r.linkWithNext(reg[i + 1]);
       }
+    }
     reg[FIRST_DOUBLE + LAST_SCRATCH_FPR].setVolatile();
-
 
     // 9. set up the non-volatile FPRs
     for (int i = FIRST_DOUBLE + FIRST_NONVOLATILE_FPR; i < FIRST_DOUBLE
-        + LAST_NONVOLATILE_FPR; i++) {
+                                                           + LAST_NONVOLATILE_FPR; i++) {
       OPT_Register r = reg[i];
       r.setNonVolatile();
       r.linkWithNext(reg[i + 1]);
@@ -193,16 +193,18 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
     int prevCR = -1;
     for (int i : CR_NUMS) {
       reg[FIRST_CONDITION + i].setVolatile();
-      if (prevCR != -1)
+      if (prevCR != -1) {
         reg[FIRST_CONDITION + prevCR].linkWithNext(reg[FIRST_CONDITION + i]);
+      }
       prevCR = i;
-      if (firstCR == -1)
+      if (firstCR == -1) {
         firstCR = i;
+      }
     }
 
     // 11. cache the volatiles for efficiency
     volatileSet = new OPT_BitSet(this);
-    for (Enumeration<OPT_Register> e = enumerateVolatiles(); e.hasMoreElements(); ) {
+    for (Enumeration<OPT_Register> e = enumerateVolatiles(); e.hasMoreElements();) {
       OPT_Register r = e.nextElement();
       volatileSet.add(r);
     }
@@ -222,7 +224,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
    * Is a certain physical register allocatable?
    */
   public boolean isAllocatable(OPT_Register r) {
-    switch(r.number) {
+    switch (r.number) {
       case PROCESSOR_REGISTER:
       case FRAME_POINTER:
       case JTOC_POINTER:
@@ -299,7 +301,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
    * @return the thread-switch register
    */
   public OPT_Register getTSR() {
-    return reg[FIRST_CONDITION + TSR_REG]; 
+    return reg[FIRST_CONDITION + TSR_REG];
   }
 
   /**
@@ -393,7 +395,6 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
     return reg[FIRST_DOUBLE + LAST_NONVOLATILE_FPR];
   }
 
-
   /**
    * @return the nth physical condition register 
    */
@@ -417,6 +418,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
     }
     return getFirstConditionRegister();
   }
+
   /**
    * @return the nth physical register in the pool. 
    */
@@ -490,8 +492,8 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
    */
   public final byte getSPR(OPT_Register r) {
     if (VM.VerifyAssertions) {
-      VM._assert ( (r == getXER()) || (r == getLR()) || (r == getCTR()) ); 
-    } 
+      VM._assert((r == getXER()) || (r == getLR()) || (r == getCTR()));
+    }
     if (r == getXER()) {
       return 1;
     } else if (r == getLR()) {
@@ -509,14 +511,18 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
    * final static values of int FP and int JTOC defined below.
    */
   private static final String[] registerName = new String[getSize()];
+
   static {
     String[] regName = registerName;
-    for (int i = 0; i < NUM_GPRS; i++)
+    for (int i = 0; i < NUM_GPRS; i++) {
       regName[i + FIRST_INT] = "R" + i;
-    for (int i = 0; i < NUM_FPRS; i++)
+    }
+    for (int i = 0; i < NUM_FPRS; i++) {
       regName[i + FIRST_DOUBLE] = "F" + i;
-    for (int i = 0; i < NUM_CRS; i++)
+    }
+    for (int i = 0; i < NUM_CRS; i++) {
       regName[i + FIRST_CONDITION] = "C" + i;
+    }
     regName[JTOC_POINTER] = "JTOC";
     regName[FRAME_POINTER] = "FP";
     regName[PROCESSOR_REGISTER] = "PR";
@@ -527,13 +533,16 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
     regName[TL] = "TL";
     regName[CR] = "CR";
   }
+
   static final int TEMP = FIRST_INT;   // temporary register (currently r0)
+
   /**
    * @return R0, a temporary register
    */
   public OPT_Register getTemp() {
     return reg[TEMP];
   }
+
   /**
    * Get the register name for a register with a particular number in the
    * pool
@@ -541,13 +550,14 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
   public static String getName(int number) {
     return registerName[number];
   }
+
   /**
    * Get the spill size for a register with a particular type
    * @param type one of INT_REG, DOUBLE_REG, CONDITION_REG, SPECIAL_REG
    */
   public static int getSpillSize(int type) {
     if (VM.VerifyAssertions) {
-      VM._assert( (type == INT_REG) || (type == DOUBLE_REG) ||
+      VM._assert((type == INT_REG) || (type == DOUBLE_REG) ||
                  (type == CONDITION_REG) || (type == SPECIAL_REG));
     }
     if (type == DOUBLE_REG) {
@@ -556,13 +566,14 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
       return BYTES_IN_ADDRESS;
     }
   }
+
   /**
    * Get the required spill alignment for a register with a particular type
    * @param type one of INT_REG, DOUBLE_REG, CONDITION_REG, SPECIAL_REG
    */
   public static int getSpillAlignment(int type) {
     if (VM.VerifyAssertions) {
-      VM._assert( (type == INT_REG) || (type == DOUBLE_REG) ||
+      VM._assert((type == INT_REG) || (type == DOUBLE_REG) ||
                  (type == CONDITION_REG) || (type == SPECIAL_REG));
     }
     if (type == DOUBLE_REG) {
@@ -576,14 +587,14 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
    * Enumerate all the physical registers in this set.
    */
   public Enumeration<OPT_Register> enumerateAll() {
-    return new PhysicalRegisterEnumeration(0,getSize()-1);
+    return new PhysicalRegisterEnumeration(0, getSize() - 1);
   }
 
   /**
    * Enumerate all the GPRs in this set.
    */
   public Enumeration<OPT_Register> enumerateGPRs() {
-    return new PhysicalRegisterEnumeration(FIRST_INT,FIRST_DOUBLE-1);
+    return new PhysicalRegisterEnumeration(FIRST_INT, FIRST_DOUBLE - 1);
   }
 
   /**
@@ -592,24 +603,25 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
    * <em> after </em> the volatile GPRs
    */
   public Enumeration<OPT_Register> enumerateVolatileGPRs() {
-    return new PhysicalRegisterEnumeration(FIRST_INT+FIRST_VOLATILE_GPR,
-                                           FIRST_INT+LAST_SCRATCH_GPR);
+    return new PhysicalRegisterEnumeration(FIRST_INT + FIRST_VOLATILE_GPR,
+                                           FIRST_INT + LAST_SCRATCH_GPR);
   }
 
   static {
     // enumerateVolatileGPRs relies on volatiles & scratches being
     // contiguous; so let's make sure that is the case!
-    if (VM.VerifyAssertions)
-      VM._assert(LAST_VOLATILE_GPR+1 == FIRST_SCRATCH_GPR);
+    if (VM.VerifyAssertions) {
+      VM._assert(LAST_VOLATILE_GPR + 1 == FIRST_SCRATCH_GPR);
+    }
   }
-  
-  
+
   /**
    * Enumerate the first n GPR parameters.
    */
   public Enumeration<OPT_Register> enumerateGPRParameters(int n) {
-    if (VM.VerifyAssertions)
+    if (VM.VerifyAssertions) {
       VM._assert(n <= NUMBER_INT_PARAM);
+    }
     return new PhysicalRegisterEnumeration(FIRST_INT_PARAM,
                                            FIRST_INT_PARAM + n - 1);
   }
@@ -619,12 +631,11 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
    */
   public Enumeration<OPT_Register> enumerateNonvolatileGPRs() {
     return new
-      PhysicalRegisterEnumeration(FIRST_INT+FIRST_NONVOLATILE_GPR,
-                                  FIRST_INT+LAST_NONVOLATILE_GPR);
+        PhysicalRegisterEnumeration(FIRST_INT + FIRST_NONVOLATILE_GPR,
+                                    FIRST_INT + LAST_NONVOLATILE_GPR);
   }
 
-
-  /** 
+  /**
    * Enumerate the nonvolatile GPRs backwards.
    */
   public Enumeration<OPT_Register> enumerateNonvolatileGPRsBackwards() {
@@ -637,16 +648,17 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
    * <em> before</em> the volatile FPRs
    */
   public Enumeration<OPT_Register> enumerateVolatileFPRs() {
-    return new PhysicalRegisterEnumeration(FIRST_DOUBLE+FIRST_SCRATCH_FPR,
-                                           FIRST_DOUBLE+LAST_VOLATILE_FPR);
+    return new PhysicalRegisterEnumeration(FIRST_DOUBLE + FIRST_SCRATCH_FPR,
+                                           FIRST_DOUBLE + LAST_VOLATILE_FPR);
   }
 
   /**
    * Enumerate the first n FPR parameters.
    */
   public Enumeration<OPT_Register> enumerateFPRParameters(int n) {
-    if (VM.VerifyAssertions)
+    if (VM.VerifyAssertions) {
       VM._assert(n <= NUMBER_DOUBLE_PARAM);
+    }
     return new PhysicalRegisterEnumeration(FIRST_DOUBLE_PARAM,
                                            FIRST_DOUBLE_PARAM + n - 1);
   }
@@ -656,8 +668,8 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
    */
   public Enumeration<OPT_Register> enumerateNonvolatileFPRs() {
     return new
-      PhysicalRegisterEnumeration(FIRST_DOUBLE+FIRST_NONVOLATILE_FPR,
-                                  FIRST_DOUBLE+LAST_NONVOLATILE_FPR);
+        PhysicalRegisterEnumeration(FIRST_DOUBLE + FIRST_NONVOLATILE_FPR,
+                                    FIRST_DOUBLE + LAST_NONVOLATILE_FPR);
   }
 
   /**
@@ -666,14 +678,16 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
    */
   public Enumeration<OPT_Register> enumerateVolatileConditionRegisters() {
     return new Enumeration<OPT_Register>() {
-        private int idx = 0;
-        public OPT_Register nextElement() {
-          return reg[FIRST_CONDITION + CR_NUMS[idx++]];
-        }
-        public boolean hasMoreElements() {
-          return idx < CR_NUMS.length;
-        }
-      };
+      private int idx = 0;
+
+      public OPT_Register nextElement() {
+        return reg[FIRST_CONDITION + CR_NUMS[idx++]];
+      }
+
+      public boolean hasMoreElements() {
+        return idx < CR_NUMS.length;
+      }
+    };
   }
 
   /**
@@ -683,7 +697,8 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
   public Enumeration<OPT_Register> enumerateNonvolatileConditionRegisters() {
     return new PhysicalRegisterEnumeration(0, -1);
   }
-  /** 
+
+  /**
    * Enumerate the volatile physical registers of a given class.
    * @param regClass one of INT_REG, DOUBLE_REG, CONDITION_REG
    */
@@ -710,7 +725,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
     Enumeration<OPT_Register> e2 = enumerateVolatileFPRs();
     Enumeration<OPT_Register> e3 = enumerateVolatileConditionRegisters();
     return new OPT_CompoundEnumerator<OPT_Register>(e1, new
-                                      OPT_CompoundEnumerator<OPT_Register>(e2,e3));
+        OPT_CompoundEnumerator<OPT_Register>(e2, e3));
   }
 
   /**
@@ -720,7 +735,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
     return volatileSet;
   }
 
-  /** 
+  /**
    * Enumerate the nonvolatile physical registers of a given class.
    * @param regClass one of INT_REG, DOUBLE_REG, CONDITION_REG
    */
@@ -736,11 +751,11 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
         return OPT_EmptyEnumerator.emptyEnumeration();
       default:
         throw new OPT_OptimizingCompilerException
-          ("Unsupported non-volatile type");
+            ("Unsupported non-volatile type");
     }
   }
 
-  /** 
+  /**
    * Enumerate the nonvolatile physical registers of a given class,
    * backwards.
    */
@@ -748,13 +763,12 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
     return new OPT_ReverseEnumerator<OPT_Register>(enumerateNonvolatiles(regClass));
   }
 
-
   /**
    * If the passed in physical register r is used as a GPR parameter register,
    * return the index into the GPR parameters for r.  Otherwise, return -1;
    */
   public int getGPRParamIndex(OPT_Register r) {
-    if ( (r.number < FIRST_INT_PARAM) || (r.number > LAST_VOLATILE_GPR)) {
+    if ((r.number < FIRST_INT_PARAM) || (r.number > LAST_VOLATILE_GPR)) {
       return -1;
     } else {
       return r.number - FIRST_INT_PARAM;
@@ -766,20 +780,20 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
    * return the index into the FPR parameters for r.  Otherwise, return -1;
    */
   public int getFPRParamIndex(OPT_Register r) {
-    if ( (r.number < FIRST_DOUBLE_PARAM) || (r.number > LAST_VOLATILE_FPR)) {
+    if ((r.number < FIRST_DOUBLE_PARAM) || (r.number > LAST_VOLATILE_FPR)) {
       return -1;
     } else {
       return r.number - FIRST_DOUBLE_PARAM;
     }
   }
 
-  /** 
+  /**
    * If r is used as the first half of a (long) register pair, return 
    * the second half of the pair.
    */
   public OPT_Register getSecondHalf(OPT_Register r) {
     int n = r.number;
-    return get(n+1);
+    return get(n + 1);
   }
 
   /**
@@ -793,9 +807,11 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
       this.end = end;
       this.index = start;
     }
+
     public OPT_Register nextElement() {
       return reg[index++];
     }
+
     public boolean hasMoreElements() {
       return (index <= end);
     }

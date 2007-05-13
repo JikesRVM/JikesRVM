@@ -28,7 +28,7 @@ import org.jikesrvm.util.VM_HashSet;
  *     compiled methods because we don't have weak pointers. 
  *     We don't want the invalidaton database to keep code alive!
  *     This would be an ideal use of weak references if we had them.
- * 
+ *
  * <p> TODO: In the future, we should think about implementing a general 
  *       dependency mechanism.  
  *   See Chambers, Dean, Grove in ICSE-17 (1995) for one possible design 
@@ -56,7 +56,7 @@ public final class OPT_InvalidationDatabase {
    * Record that if a particular VM_Method method is ever overridden, then 
    * the VM_CompiledMethod encoded by the cmid must be invalidated.
    */
-  public void addNotOverriddenDependency(VM_Method source, 
+  public void addNotOverriddenDependency(VM_Method source,
                                          int dependent_cmid) {
     MethodSet s = findOrCreateMethodSet(nonOverriddenHash, source);
     s.add(dependent_cmid);
@@ -66,7 +66,7 @@ public final class OPT_InvalidationDatabase {
    * Delete a NotOverriddenDependency. 
    * No effect if the dependency doesn't exist..
    */
-  public void removeNotOverriddenDependency(VM_Method source, 
+  public void removeNotOverriddenDependency(VM_Method source,
                                             int dependent_cmid) {
     MethodSet s = nonOverriddenHash.get(source);
     if (s != null) {
@@ -101,7 +101,7 @@ public final class OPT_InvalidationDatabase {
    * Record that if a particular VM_Class ever has a subclass, then 
    * the VM_CompiledMethod encoded by the cmid must be invalidated.
    */
-  public void addNoSubclassDependency (VM_Class source, int dependent_cmid) {
+  public void addNoSubclassDependency(VM_Class source, int dependent_cmid) {
     MethodSet s = findOrCreateMethodSet(noSubclassHash, source);
     s.add(dependent_cmid);
   }
@@ -109,7 +109,7 @@ public final class OPT_InvalidationDatabase {
   /**
    * Delete a NoSubclassDependency. No effect if the dependency doesn't exist..
    */
-  public void removeNoSubclassDependency (VM_Class source, int dependent_cmid) {
+  public void removeNoSubclassDependency(VM_Class source, int dependent_cmid) {
     MethodSet s = noSubclassHash.get(source);
     if (s != null) {
       s.remove(dependent_cmid);
@@ -119,7 +119,7 @@ public final class OPT_InvalidationDatabase {
   /**
    * Delete all NoSubclass dependencies on the argument VM_Class
    */
-  public void removeNoSubclassDependency (VM_Class source) {
+  public void removeNoSubclassDependency(VM_Class source) {
     noSubclassHash.remove(source);
   }
 
@@ -127,21 +127,21 @@ public final class OPT_InvalidationDatabase {
    * A mapping from VM_Method to MethodSet: holds the set of methods which
    * depend on a particular method being "final"
    */
-  private VM_HashMap<VM_Method,MethodSet> nonOverriddenHash = 
-    new VM_HashMap<VM_Method,MethodSet>();
-  
+  private VM_HashMap<VM_Method, MethodSet> nonOverriddenHash =
+      new VM_HashMap<VM_Method, MethodSet>();
+
   /**
    * A mapping from VM_Class to MethodSet: holds the set of methods which
    * depend on a particular class being "final"
    */
-  private VM_HashMap<VM_Class,MethodSet> noSubclassHash = 
-    new VM_HashMap<VM_Class,MethodSet>();
+  private VM_HashMap<VM_Class, MethodSet> noSubclassHash =
+      new VM_HashMap<VM_Class, MethodSet>();
 
   /**
    * Look up the MethodSet corresponding to a given key in the database.
    * If none found, create one.
    */
-  private <T> MethodSet findOrCreateMethodSet (VM_HashMap<T,MethodSet> hash, T key) {
+  private <T> MethodSet findOrCreateMethodSet(VM_HashMap<T, MethodSet> hash, T key) {
     MethodSet result = hash.get(key);
     if (result == null) {
       result = new MethodSet(key);
@@ -157,22 +157,22 @@ public final class OPT_InvalidationDatabase {
     final Object key;
     /**
      * a set of cmids (Integers)
-     */ 
-    VM_HashSet<Integer> methods = new VM_HashSet<Integer>();  
+     */
+    VM_HashSet<Integer> methods = new VM_HashSet<Integer>();
 
-    MethodSet (Object key) {
+    MethodSet(Object key) {
       this.key = key;
     }
 
-    void add (int cmid) {
+    void add(int cmid) {
       methods.add(cmid);
     }
 
-    void remove (int cmid) {
+    void remove(int cmid) {
       methods.remove(cmid);
     }
 
-    public Iterator<Integer> iterator () {
+    public Iterator<Integer> iterator() {
       return methods.iterator();
     }
   }

@@ -49,9 +49,9 @@ public class VM_CompilationThread extends VM_Thread {
     while (true) {
       Object plan = VM_Controller.compilationQueue.deleteMin();
       if (plan instanceof VM_ControllerPlan) {
-        ((VM_ControllerPlan)plan).doRecompile();
+        ((VM_ControllerPlan) plan).doRecompile();
       } else if (plan instanceof OSR_OnStackReplacementPlan) {
-        ((OSR_OnStackReplacementPlan)plan).execute();
+        ((OSR_OnStackReplacementPlan) plan).execute();
       }
     }
   }

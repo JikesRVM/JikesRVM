@@ -20,14 +20,13 @@ import java.util.Enumeration;
  * @see OPT_Graph
  * @see OPT_GraphNode
  */
-interface OPT_GraphNodeEnumeration extends Enumeration<OPT_GraphNode>
-{
+interface OPT_GraphNodeEnumeration extends Enumeration<OPT_GraphNode> {
 
   /**
    *  Return the next graph node in the enumeration.
    * @return the next graph node in the enumeration
    */
-  OPT_GraphNode next ();
+  OPT_GraphNode next();
 }
 
 

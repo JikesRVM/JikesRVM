@@ -34,7 +34,7 @@ public class VM_CompiledMethods implements VM_SizeConstants {
   public static synchronized VM_CompiledMethod createCompiledMethod(VM_Method m, int compilerType) {
     int id = ++currentCompiledMethodId;
     if (id == compiledMethods.length) {
-      compiledMethods = growArray(compiledMethods, 2 * compiledMethods.length); 
+      compiledMethods = growArray(compiledMethods, 2 * compiledMethods.length);
     }
     VM_CompiledMethod cm = null;
     if (compilerType == VM_CompiledMethod.BASELINE) {
@@ -56,23 +56,22 @@ public class VM_CompiledMethods implements VM_SizeConstants {
   public static synchronized VM_CompiledMethod createHardwareTrapCompiledMethod() {
     int id = ++currentCompiledMethodId;
     if (id == compiledMethods.length) {
-      compiledMethods = growArray(compiledMethods, 2 * compiledMethods.length); 
+      compiledMethods = growArray(compiledMethods, 2 * compiledMethods.length);
     }
     VM_CompiledMethod cm = new VM_HardwareTrapCompiledMethod(id, null);
     compiledMethods[id] = cm;
     return cm;
   }
 
-
   // Fetch a previously compiled method.
   //
   @Uninterruptible
-  public static VM_CompiledMethod getCompiledMethod(int compiledMethodId) { 
+  public static VM_CompiledMethod getCompiledMethod(int compiledMethodId) {
     VM_Magic.isync();  // see potential update from other procs
 
     if (VM.VerifyAssertions) {
       if (!(0 < compiledMethodId && compiledMethodId <= currentCompiledMethodId)) {
-        VM.sysWriteln("WARNING: attempt to get compiled method #",compiledMethodId);
+        VM.sysWriteln("WARNING: attempt to get compiled method #", compiledMethodId);
         return null;
       }
     }
@@ -83,32 +82,32 @@ public class VM_CompiledMethods implements VM_SizeConstants {
   // Get number of methods compiled so far.
   //
   @Uninterruptible
-  public static int numCompiledMethods() { 
+  public static int numCompiledMethods() {
     return currentCompiledMethodId + 1;
   }
 
   // Getter method for the debugger, interpreter.
   //
   @Uninterruptible
-  public static VM_CompiledMethod[] getCompiledMethods() { 
+  public static VM_CompiledMethod[] getCompiledMethods() {
     return compiledMethods;
   }
 
   /**
    * Find the method whose machine code contains the specified instruction.
-   * 
+   *
    * Assumption: caller has disabled gc (otherwise collector could move
    *                objects without fixing up the raw <code>ip</code> pointer)
-   * 
+   *
    * Note: this method is highly inefficient. Normally you should use the
    * following instead: 
-   * 
+   *
    * <code>
    * VM_ClassLoader.getCompiledMethod(VM_Magic.getCompiledMethodID(fp))
    * </code>
-   * 
+   *
    * @param ip  instruction address
-   * 
+   *
    * Usage note: <code>ip</code> must point to the instruction *following* the
    * actual instruction whose method is sought. This allows us to properly
    * handle the case where the only address we have to work with is a return
@@ -117,18 +116,20 @@ public class VM_CompiledMethods implements VM_SizeConstants {
    * architecture with variable length instructions.  In such situations we'd
    * have no idea how far to back up the instruction pointer to point to the
    * "call site" or "exception site".
-   * 
+   *
    * @return method (<code>null</code> --> not found)
    */
   @Uninterruptible
-  public static VM_CompiledMethod findMethodForInstruction(Address ip) { 
+  public static VM_CompiledMethod findMethodForInstruction(Address ip) {
     for (int i = 0, n = numCompiledMethods(); i < n; ++i) {
       VM_CompiledMethod compiledMethod = compiledMethods[i];
-      if (compiledMethod == null || !compiledMethod.isCompiled())
+      if (compiledMethod == null || !compiledMethod.isCompiled()) {
         continue; // empty slot
+      }
 
-      if (compiledMethod.containsReturnAddress(ip))
-	return compiledMethod;
+      if (compiledMethod.containsReturnAddress(ip)) {
+        return compiledMethod;
+      }
     }
 
     return null;
@@ -145,13 +146,14 @@ public class VM_CompiledMethods implements VM_SizeConstants {
     // and are not updated on recompilation.
     // !!TODO: When replacing a java.lang.Object method, find arrays in JTOC
     //  and update TIB to use newly recompiled method.
-    if (compiledMethod.getMethod().getDeclaringClass().isJavaLangObjectType())
+    if (compiledMethod.getMethod().getDeclaringClass().isJavaLangObjectType()) {
       return;
+    }
 
     compiledMethod.setObsolete();
     VM_Magic.sync();
     scanForObsoleteMethods = true;
-  }      
+  }
 
   // Snip reference to CompiledMethod so that we can reclaim code space. If
   // the code is currently being executed, stack scanning is responsible for
@@ -163,9 +165,9 @@ public class VM_CompiledMethods implements VM_SizeConstants {
     if (!scanForObsoleteMethods) return;
     scanForObsoleteMethods = false;
     VM_Magic.sync();
-    
-    int max = numCompiledMethods(); 
-    for (int i=0; i<max; i++) {
+
+    int max = numCompiledMethods();
+    for (int i = 0; i < max; i++) {
       VM_CompiledMethod cm = compiledMethods[i];
       if (cm != null) {
         if (cm.isActiveOnStack()) {
@@ -189,12 +191,12 @@ public class VM_CompiledMethods implements VM_SizeConstants {
    * Report on the space used by compiled code and associated mapping information
    */
   public static void spaceReport() {
-    int[] codeCount = new int[VM_CompiledMethod.NUM_COMPILER_TYPES+1];
-    int[] codeBytes = new int[VM_CompiledMethod.NUM_COMPILER_TYPES+1];
-    int[] mapBytes = new int[VM_CompiledMethod.NUM_COMPILER_TYPES+1];
+    int[] codeCount = new int[VM_CompiledMethod.NUM_COMPILER_TYPES + 1];
+    int[] codeBytes = new int[VM_CompiledMethod.NUM_COMPILER_TYPES + 1];
+    int[] mapBytes = new int[VM_CompiledMethod.NUM_COMPILER_TYPES + 1];
 
     VM_Array codeArray = VM_Type.CodeArrayType.asArray();
-    for (int i=0; i<numCompiledMethods(); i++) {
+    for (int i = 0; i < numCompiledMethods(); i++) {
       VM_CompiledMethod cm = compiledMethods[i];
       if (cm == null || !cm.isCompiled()) continue;
       int ct = cm.getCompilerType();
@@ -214,7 +216,7 @@ public class VM_CompiledMethods implements VM_SizeConstants {
       VM.sysWriteln("  Optimizing Compiler");
       VM.sysWriteln("\tNumber of compiled methods = " + codeCount[VM_CompiledMethod.OPT]);
       VM.sysWriteln("\tTotal size of code (bytes) =         " + codeBytes[VM_CompiledMethod.OPT]);
-      VM.sysWriteln("\tTotal size of mapping data (bytes) = " +mapBytes[VM_CompiledMethod.OPT]);
+      VM.sysWriteln("\tTotal size of mapping data (bytes) = " + mapBytes[VM_CompiledMethod.OPT]);
     }
 
     if (codeCount[VM_CompiledMethod.JNI] > 0) {
@@ -223,8 +225,7 @@ public class VM_CompiledMethods implements VM_SizeConstants {
       VM.sysWriteln("\tTotal size of code (bytes) =         " + codeBytes[VM_CompiledMethod.JNI]);
       VM.sysWriteln("\tTotal size of mapping data (bytes) = " + mapBytes[VM_CompiledMethod.JNI]);
     }
- }
-
+  }
 
   //----------------//
   // implementation //
@@ -245,7 +246,7 @@ public class VM_CompiledMethods implements VM_SizeConstants {
 
   // Expand an array.
   //
-  private static VM_CompiledMethod[] growArray(VM_CompiledMethod[] array, 
+  private static VM_CompiledMethod[] growArray(VM_CompiledMethod[] array,
                                                int newLength) {
     VM_CompiledMethod[] newarray = MM_Interface.newContiguousCompiledMethodArray(newLength);
     System.arraycopy(array, 0, newarray, 0, array.length);

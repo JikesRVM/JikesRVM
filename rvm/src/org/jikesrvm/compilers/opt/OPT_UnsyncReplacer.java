@@ -32,7 +32,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 public class OPT_UnsyncReplacer {
   private static final boolean DEBUG = false;
 
-  /** 
+  /**
    * Generate an instance of this class for a particular
    * instantiation site.
    *
@@ -40,45 +40,45 @@ public class OPT_UnsyncReplacer {
    * @param ir governing ir
    * @return the object, or null if illegal 
    */
-  public static OPT_UnsyncReplacer getReplacer (OPT_Instruction inst, 
-                                                OPT_IR ir) {
+  public static OPT_UnsyncReplacer getReplacer(OPT_Instruction inst,
+                                               OPT_IR ir) {
     OPT_Register r = New.getResult(inst).register;
-    return  new OPT_UnsyncReplacer(r, ir.options);
+    return new OPT_UnsyncReplacer(r, ir.options);
   }
 
-  /** 
+  /**
    * Perform the transformation
    */
-  public void transform () {
-    synchronized(context){
+  public void transform() {
+    synchronized (context) {
       // first change the defs
-      for (OPT_RegisterOperand def = reg.defList; def != null; 
+      for (OPT_RegisterOperand def = reg.defList; def != null;
            def = def.getNext()) {
         transform(def);
       }
       // now fix the uses
-      for (OPT_RegisterOperand use = reg.useList; use != null; 
+      for (OPT_RegisterOperand use = reg.useList; use != null;
            use = use.getNext()) {
         transform(use);
       }
     }
   }
 
-  /** 
+  /**
    * @param r the register operand target of the allocation 
    * @param options controlling compiler options
    */
-  private OPT_UnsyncReplacer (OPT_Register r, OPT_Options options) {
+  private OPT_UnsyncReplacer(OPT_Register r, OPT_Options options) {
     reg = r;
     this.options = options;
   }
 
-  /** 
+  /**
    * Perform the transformation for a given register appearance
    *
    * @param rop  The def or use to check
    */
-  private void transform (OPT_RegisterOperand rop) {
+  private void transform(OPT_RegisterOperand rop) {
     OPT_Instruction inst = rop.instruction;
     switch (inst.getOpcode()) {
       case SYSCALL_opcode:
@@ -89,9 +89,10 @@ public class OPT_UnsyncReplacer {
           // unsynchronized type
           OPT_MethodOperand mop = Call.getMethod(inst);
           if (mop.getTarget().isSynchronized()) {
-            mop.spMethod = context.findOrCreateSpecializedVersion((VM_NormalMethod)mop.getTarget());
-            if (DEBUG)
+            mop.spMethod = context.findOrCreateSpecializedVersion((VM_NormalMethod) mop.getTarget());
+            if (DEBUG) {
               VM.sysWrite("Identified call " + inst + " for unsynchronization\n");
+            }
           }
         }
         break;
@@ -118,18 +119,19 @@ public class OPT_UnsyncReplacer {
         break;
     }
   }
+
   /**
    * The register to replace
    */
-  private OPT_Register reg; 
+  private OPT_Register reg;
   /**
    * Controlling compiler options
    */
-  private OPT_Options options;  
+  private OPT_Options options;
   /**
    * Singleton: a single context representing "specialize this method when
    * the invokee of this method is thread-local"
    */
-  private static final OPT_InvokeeThreadLocalContext context = 
-    new OPT_InvokeeThreadLocalContext();
+  private static final OPT_InvokeeThreadLocalContext context =
+      new OPT_InvokeeThreadLocalContext();
 }

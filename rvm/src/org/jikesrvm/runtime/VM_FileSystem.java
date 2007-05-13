@@ -56,8 +56,8 @@ import org.vmmagic.pragma.Inline;
 public class VM_FileSystem {
 
   // options for open()
-  public static final int OPEN_READ   = 0; // open for read/only  access
-  public static final int OPEN_WRITE  = 1; // open for read/write access, create if doesn't already exist, 
+  public static final int OPEN_READ = 0; // open for read/only  access
+  public static final int OPEN_WRITE = 1; // open for read/write access, create if doesn't already exist,
   // truncate if already exists
   public static final int OPEN_MODIFY = 2; // open for read/write access, create if doesn't already exist
   public static final int OPEN_APPEND = 3; // open for read/write access, create if doesn't already exist, append writes
@@ -68,21 +68,21 @@ public class VM_FileSystem {
   public static final int SEEK_END = 2;    // set i/o position to end of file plus "offset"
 
   // options for stat()
-  public static final int STAT_EXISTS        = 0;
-  public static final int STAT_IS_FILE       = 1;
-  public static final int STAT_IS_DIRECTORY  = 2;
-  public static final int STAT_IS_READABLE   = 3;
-  public static final int STAT_IS_WRITABLE   = 4;
+  public static final int STAT_EXISTS = 0;
+  public static final int STAT_IS_FILE = 1;
+  public static final int STAT_IS_DIRECTORY = 2;
+  public static final int STAT_IS_READABLE = 3;
+  public static final int STAT_IS_WRITABLE = 4;
   public static final int STAT_LAST_MODIFIED = 5;
-  public static final int STAT_LENGTH        = 6;
+  public static final int STAT_LENGTH = 6;
 
   // options for access()
-  public static final int ACCESS_F_OK   = 00;
-  public static final int ACCESS_R_OK   = 04;
-  public static final int ACCESS_W_OK   = 02;
-  public static final int ACCESS_X_OK   = 01;
-  
-  /** 
+  public static final int ACCESS_F_OK = 00;
+  public static final int ACCESS_R_OK = 04;
+  public static final int ACCESS_W_OK = 02;
+  public static final int ACCESS_X_OK = 01;
+
+  /**
    * Keep track of whether or not we were able to make
    * the stdin, stdout, and stderr file descriptors nonblocking.
    * By default, we assume that these descriptors ARE blocking,
@@ -97,7 +97,7 @@ public class VM_FileSystem {
    * @return desired info (-1 -> error)
    *    The boolean ones return 0 in case of non-true, 1 in case of 
    *    true status.
-   */ 
+   */
   public static int stat(String fileName, int kind) {
     // convert file name from unicode to filesystem character set
     // (assume file name is ascii, for now)
@@ -112,7 +112,7 @@ public class VM_FileSystem {
    * @param fileName file name
    * @param kind     kind of access perm(s) to check for (ACCESS_W_OK,...)
    * @return 0 if access ok (-1 -> error)
-   */ 
+   */
   public static int access(String fileName, int kind) {
     // convert file name from unicode to filesystem character set
     // (assume file name is ascii, for now)
@@ -120,7 +120,9 @@ public class VM_FileSystem {
 
     int rc = sysCall.sysAccess(asciiName, kind);
 
-    if (VM.TraceFileSystem) VM.sysWrite("VM_FileSystem.access: name=" + fileName + " kind=" + kind + " rc=" + rc + "\n");
+    if (VM.TraceFileSystem) {
+      VM.sysWrite("VM_FileSystem.access: name=" + fileName + " kind=" + kind + " rc=" + rc + "\n");
+    }
     return rc;
   }
 
@@ -129,7 +131,7 @@ public class VM_FileSystem {
    * ready?
    */
   @Inline
-  private static boolean isFdReady(int fd) { 
+  private static boolean isFdReady(int fd) {
     return (fd & VM_ThreadIOConstants.FD_READY_BIT) != 0;
   }
 
@@ -146,10 +148,11 @@ public class VM_FileSystem {
    *    be avoided)
    */
   @Inline
-  private static boolean blockingReadHack(int fd) { 
-	 if (fd >= 3 || standardFdIsNonblocking[fd])
+  private static boolean blockingReadHack(int fd) {
+    if (fd >= 3 || standardFdIsNonblocking[fd]) {
       return true;
-	 
+    }
+
     VM_ThreadIOWaitData waitData = VM_Wait.ioWaitRead(fd);
     return isFdReady(waitData.readFds[0]);
   }
@@ -167,9 +170,10 @@ public class VM_FileSystem {
    *    be avoided)
    */
   @Inline
-  private static boolean blockingWriteHack(int fd) { 
-	 if (fd >= 3 || standardFdIsNonblocking[fd])
+  private static boolean blockingWriteHack(int fd) {
+    if (fd >= 3 || standardFdIsNonblocking[fd]) {
       return true;
+    }
 
     VM_ThreadIOWaitData waitData = VM_Wait.ioWaitWrite(fd);
     return isFdReady(waitData.writeFds[0]);
@@ -178,32 +182,37 @@ public class VM_FileSystem {
   /**
    * Read single byte from file.
    * FIXME: should throw an IOException to indicate an error?
-   * 
+   *
    * @param fd file descriptor
    * @return byte that was read (< -1: i/o error, -1: eof, >= 0: data)
-   */ 
+   */
   public static int readByte(int fd) {
-    if (!blockingReadHack(fd))
+    if (!blockingReadHack(fd)) {
       return -2;
+    }
 
     // See readBytes() method for an explanation of how the read loop works.
 
-    for (;;) {
+    for (; ;) {
       int b = sysCall.sysReadByte(fd);
       if (b >= -1)
-        // Either a valid read, or we reached EOF
+      // Either a valid read, or we reached EOF
+      {
         return b;
-      else if (b == -2) {
+      } else if (b == -2) {
         // Operation would have blocked
         VM_ThreadIOWaitData waitData = VM_Wait.ioWaitRead(fd);
         if (!isFdReady(waitData.readFds[0]))
-          // Hmm, the wait returned, but the fd is not ready.
-          // Assume an error was detected (such as the fd becoming invalid).
+        // Hmm, the wait returned, but the fd is not ready.
+        // Assume an error was detected (such as the fd becoming invalid).
+        {
           return -2;
-      }
-      else
-        // Read returned with a genuine error
+        }
+      } else
+      // Read returned with a genuine error
+      {
         return -2;
+      }
     }
   }
 
@@ -214,28 +223,32 @@ public class VM_FileSystem {
    * @param fd file descriptor
    * @param b  byte to be written
    * @return  -1: i/o error
-   */ 
+   */
   public static int writeByte(int fd, int b) {
-    if (!blockingWriteHack(fd))
+    if (!blockingWriteHack(fd)) {
       return -1;
+    }
 
     // See writeBytes() for an explanation of how the write loop works
 
-    for (;;) {
+    for (; ;) {
       int rc = sysCall.sysWriteByte(fd, b);
-      if (rc == 0)
+      if (rc == 0) {
         return 0; // success
-      else if (rc == -2) {
+      } else if (rc == -2) {
         // Write would have blocked.
         VM_ThreadIOWaitData waitData = VM_Wait.ioWaitWrite(fd);
         if (!isFdReady(waitData.writeFds[0]))
-          // Looks like an error occurred.
+        // Looks like an error occurred.
+        {
           return -1;
+        }
         // Fd looks like it's ready, so retry the write
-      }
-      else
-        // The write returned with an error.
+      } else
+      // The write returned with an error.
+      {
         return -1;
+      }
     }
   }
 
@@ -265,19 +278,21 @@ public class VM_FileSystem {
    * @param totalWaitTime number of seconds caller is willing to wait
    * @return number of bytes read (-2: error)
    * @throws VM_TimeoutException if the read times out
-   */ 
+   */
   public static int readBytes(int fd, byte[] buf, int off, int cnt, double totalWaitTime)
-    throws VM_TimeoutException {
+      throws VM_TimeoutException {
 
-    if (off < 0)
+    if (off < 0) {
       throw new IndexOutOfBoundsException();
+    }
 
     // trim request to fit array
     // note: this behavior is the way the JDK does it (as of version 1.1.3)
     // whereas the language spec says to throw IndexOutOfBounds exception...
     //
-    if (off + cnt > buf.length)
+    if (off + cnt > buf.length) {
       cnt = buf.length - off;
+    }
 
     // The canonical read loop.  Try the read repeatedly until either
     //   - it succeeds,
@@ -290,67 +305,72 @@ public class VM_FileSystem {
     boolean hasTimeout = (totalWaitTime >= 0.0);
     double lastWaitTime = hasTimeout ? now() : 0.0;
 
-    if (!blockingReadHack(fd))
+    if (!blockingReadHack(fd)) {
       return -2;
+    }
 
     int read = 0;
-    for (;;) {
+    for (; ;) {
       int rc = sysCall.sysReadBytes(fd,
-                                       VM_Magic.objectAsAddress(buf).plus(off),
-                                       cnt);
+                                    VM_Magic.objectAsAddress(buf).plus(off),
+                                    cnt);
 
       if (rc == 0) {
-          // EOF
-          return read;
+        // EOF
+        return read;
       } else if (rc > 0) {
-          // Read succeeded, perhaps partially
-          read += rc;
-          off += rc;
-          cnt -= rc;
-          if (cnt == 0) return read;
-          // did not get everything, let's try again
-      }
-      else if (rc == -1) {
+        // Read succeeded, perhaps partially
+        read += rc;
+        off += rc;
+        cnt -= rc;
+        if (cnt == 0) return read;
+        // did not get everything, let's try again
+      } else if (rc == -1) {
         // last read would have blocked
 
         // perhaps we have read some stuff already, if so, return just that
-        if (read != 0)
-            return read;
+        if (read != 0) {
+          return read;
+        }
 
         // Put thread on IO wait queue
         if (VM.VerifyAssertions) VM._assert(!hasTimeout || totalWaitTime >= 0.0);
         VM_ThreadIOWaitData waitData = VM_Wait.ioWaitRead(fd, totalWaitTime);
 
         // Did the wait time out?
-        if (waitData.timedOut())
+        if (waitData.timedOut()) {
           throw new VM_TimeoutException("read timed out");
+        }
 
         // Did the file descriptor become ready?
         if (!isFdReady(waitData.readFds[0]))
-          // Fd not ready; presumably an error was detected while on the IO queue
+        // Fd not ready; presumably an error was detected while on the IO queue
+        {
           return -2;
-        else {
+        } else {
           // Fd appears to be ready, so update the wait time (if necessary)
           // and try the read again.
           if (hasTimeout) {
             double now = now();
             totalWaitTime -= (now - lastWaitTime);
-            if (totalWaitTime < 0.0)
+            if (totalWaitTime < 0.0) {
               throw new VM_TimeoutException("read timed out");
+            }
             lastWaitTime = now;
           }
         }
-      }
-      else
-        // Read returned an error
+      } else
+      // Read returned an error
+      {
         return -2;
+      }
     }
   }
 
   // TODO: Think about getting rid of this function and switching
   //       this whole layer over to cycles instead.
   private static double now() {
-    return ((double)VM_Time.currentTimeMicros())/100000;
+    return ((double) VM_Time.currentTimeMicros()) / 100000;
   }
 
   /**
@@ -362,19 +382,21 @@ public class VM_FileSystem {
    * @param off position in buffer
    * @param cnt number of bytes to write
    * @return number of bytes written (-2: error)
-   */ 
+   */
   public static int writeBytes(int fd, byte[] buf, int off, int cnt) {
     if (cnt == 0) return 0;
 
-    if (off < 0)
+    if (off < 0) {
       throw new IndexOutOfBoundsException();
+    }
 
     // trim request to fit array
     // note: this behavior is the way the JDK does it (as of version 1.1.3)
     // whereas the language spec says to throw IndexOutOfBounds exception...
     //
-    if (off + cnt > buf.length)
+    if (off + cnt > buf.length) {
       cnt = buf.length - off;
+    }
 
     // The canonical write loop.  Try the write repeatedly until
     //   - it succeeds, or
@@ -382,14 +404,15 @@ public class VM_FileSystem {
     // If the write would have blocked, put this thread on the 
     // IO queue, then try again if it looks like the fd is ready.
 
-    if (!blockingWriteHack(fd))
+    if (!blockingWriteHack(fd)) {
       return -2;
+    }
 
     int written = 0;
-    for (;;) {
-      int rc = sysCall.sysWriteBytes(fd, 
-                                        VM_Magic.objectAsAddress(buf).plus(off),
-                                        cnt);
+    for (; ;) {
+      int rc = sysCall.sysWriteBytes(fd,
+                                     VM_Magic.objectAsAddress(buf).plus(off),
+                                     cnt);
       if (rc >= 0) {
         // Write succeeded, perhaps partially
         written += rc;
@@ -400,16 +423,18 @@ public class VM_FileSystem {
         // Write would have blocked
         VM_ThreadIOWaitData waitData = VM_Wait.ioWaitWrite(fd);
         if (!isFdReady(waitData.writeFds[0]))
-          // Fd is not ready, so presumably an error occurred while on IO queue
+        // Fd is not ready, so presumably an error occurred while on IO queue
+        {
           return -2;
+        }
         // Fd apprears to be ready, so try write again
-      }
-      else
-        // Write returned with an error
+      } else
+      // Write returned with an error
+      {
         return -2;
+      }
     }
   }
-
 
   public static boolean sync(int fd) {
     return sysCall.sysSyncFile(fd) == 0;
@@ -417,7 +442,7 @@ public class VM_FileSystem {
 
   public static int bytesAvailable(int fd) {
     return sysCall.sysBytesAvailable(fd);
-  }        
+  }
 
   /**
    * File descriptor registration hook.
@@ -441,15 +466,17 @@ public class VM_FileSystem {
     // some code caused class loading before VM_Scheduler.boot()
     // finished initializing the virtual processors.  It should generally
     // be possible to move such code later in the initialization sequence.
-    if (VM.VerifyAssertions)
+    if (VM.VerifyAssertions) {
       VM._assert(VM_Scheduler.allProcessorsInitialized, "fd used before system is fully booted\n");
+    }
 
     int rc;
 
     // Set the file descriptor to be nonblocking.
     rc = sysCall.sysNetSocketNoBlock(fd, 1);
-    if (rc < 0)
+    if (rc < 0) {
       VM.sysWrite("VM: warning: could not set file descriptor " + fd + " to nonblocking\n");
+    }
 
     // Note: it is conceivable that file descriptor 0, 1, or 2 could
     // get passed to this method.  For example, a program could close
@@ -457,15 +484,16 @@ public class VM_FileSystem {
     // fd 0.  Unlikely, but possible.  If this does happen, it's OK for
     // us to make the file descriptor nonblocking, because we don't share
     // such file descriptors with other processes.
-    if (fd < 3)
+    if (fd < 3) {
       standardFdIsNonblocking[fd] = (rc == 0);
+    }
 
     // If file descriptor will not be shared, set close-on-exec flag
     if (!shared) {
       rc = sysCall.sysSetFdCloseOnExec(fd);
       if (rc < 0) {
         VM.sysWrite("VM: warning: could not set close-on-exec flag " +
-          "for fd " + fd);
+                    "for fd " + fd);
       }
     }
   }
@@ -475,22 +503,22 @@ public class VM_FileSystem {
    * and java.lang.System.err
    */
   public static void initializeStandardStreams() {
-    FileInputStream  fdIn  = new FileInputStream(FileDescriptor.in);
+    FileInputStream fdIn = new FileInputStream(FileDescriptor.in);
     FileOutputStream fdOut = new FileOutputStream(FileDescriptor.out);
     FileOutputStream fdErr = new FileOutputStream(FileDescriptor.err);
     System.setIn(new BufferedInputStream(fdIn));
     System.setOut(new PrintStream(new BufferedOutputStream(fdOut, 128), true));
     System.setErr(new PrintStream(new BufferedOutputStream(fdErr, 128), true));
-    VM_Callbacks.addExitMonitor( new VM_Callbacks.ExitMonitor() {
-        public void notifyExit(int value) {
-          try {
-            System.err.flush();
-            System.out.flush();
-          } catch (Throwable e) {
-            VM.sysWriteln("vm: error flushing stdout, stderr");
-          }
+    VM_Callbacks.addExitMonitor(new VM_Callbacks.ExitMonitor() {
+      public void notifyExit(int value) {
+        try {
+          System.err.flush();
+          System.out.flush();
+        } catch (Throwable e) {
+          VM.sysWriteln("vm: error flushing stdout, stderr");
         }
-      });
+      }
+    });
   }
 }
 

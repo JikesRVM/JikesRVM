@@ -39,8 +39,9 @@ import org.vmmagic.unboxed.Offset;
  *    - queues
  *    - locks
  */
-@Uninterruptible public class VM_Scheduler implements VM_Constants {
-  
+@Uninterruptible
+public class VM_Scheduler implements VM_Constants {
+
   /** Toggle display of frame pointer address in stack dump */
   private static final boolean SHOW_FP_IN_STACK_DUMP = false;
 
@@ -68,55 +69,56 @@ import org.vmmagic.unboxed.Offset;
   public static final int NO_CPU_AFFINITY = -1;
 
   // scheduling quantum in milliseconds: interruptQuantum * interruptQuantumMultiplier
-  public static       int schedulingQuantum = 10;
+  public static int schedulingQuantum = 10;
 
   // Virtual cpu's.
   //
-  public static int                  cpuAffinity   = NO_CPU_AFFINITY; // physical cpu to which first virtual processor is bound (remainder are bound sequentially)
-  public static int           numProcessors = 1; // total number of virtual processors to be used
-  public static VM_Processor[]       processors;        // list thereof (slot 0 always empty)
-  public static boolean              allProcessorsInitialized; // have all completed initialization?
-  public static boolean              terminated;        // VM is terminated, clean up and exit
+  public static int cpuAffinity =
+      NO_CPU_AFFINITY; // physical cpu to which first virtual processor is bound (remainder are bound sequentially)
+  public static int numProcessors = 1; // total number of virtual processors to be used
+  public static VM_Processor[] processors;        // list thereof (slot 0 always empty)
+  public static boolean allProcessorsInitialized; // have all completed initialization?
+  public static boolean terminated;        // VM is terminated, clean up and exit
 
   // Thread creation and deletion.
   //
   /** list of threads that have been created (slot 0 always empty) */
-  public static final VM_Thread[]    threads = new VM_Thread[MAX_THREADS];
+  public static final VM_Thread[] threads = new VM_Thread[MAX_THREADS];
 
   /** place to start searching threads[] for next free slot */
-  static int                  threadAllocationIndex;
+  static int threadAllocationIndex;
   /** highest thread index allocated */
-  public static int           threadHighWatermark;
+  public static int threadHighWatermark;
   /** number of threads running or waiting to run */
-  static int                  numActiveThreads;
+  static int numActiveThreads;
   /** number of "daemon" threads, in the java sense */
-  static int                  numDaemons;
+  static int numDaemons;
   /** guard for serializing access to fields above */
-  static final VM_ProcessorLock     threadCreationMutex = new VM_ProcessorLock();
+  static final VM_ProcessorLock threadCreationMutex = new VM_ProcessorLock();
 
   // Thread execution.
   //
-   /** threads waiting to wake up from a sleep() */
-  static final VM_ProxyWakeupQueue  wakeupQueue = new VM_ProxyWakeupQueue();
-  static final VM_ProcessorLock     wakeupMutex = new VM_ProcessorLock();
+  /** threads waiting to wake up from a sleep() */
+  static final VM_ProxyWakeupQueue wakeupQueue = new VM_ProxyWakeupQueue();
+  static final VM_ProcessorLock wakeupMutex = new VM_ProcessorLock();
 
-   /** thread waiting to service debugging requests */
-  public static final VM_ThreadQueue       debuggerQueue = new VM_ThreadQueue();
-  static final VM_ProcessorLock     debuggerMutex = new VM_ProcessorLock();
+  /** thread waiting to service debugging requests */
+  public static final VM_ThreadQueue debuggerQueue = new VM_ThreadQueue();
+  static final VM_ProcessorLock debuggerMutex = new VM_ProcessorLock();
 
   /** collector threads waiting to be resumed */
-  public static final VM_ThreadQueue   collectorQueue = new VM_ThreadQueue();
+  public static final VM_ThreadQueue collectorQueue = new VM_ThreadQueue();
   public static final VM_ProcessorLock collectorMutex = new VM_ProcessorLock();
 
   /** Finalizer thread waits here when idle */
-  public static final VM_ThreadQueue   finalizerQueue = new VM_ThreadQueue();
+  public static final VM_ThreadQueue finalizerQueue = new VM_ThreadQueue();
   public static final VM_ProcessorLock finalizerMutex = new VM_ProcessorLock();
 
   // Debugging output.
 
   // Thick locks.
   //
-  public static VM_Lock [] locks;
+  public static VM_Lock[] locks;
 
   // Flag set by external signal to request debugger activation at next thread switch.
   // See also: RunBootImage.C
@@ -133,8 +135,8 @@ import org.vmmagic.unboxed.Offset;
    * Initialize boot image.
    */
   @Interruptible
-  public static void init() { 
-    threadAllocationIndex   = PRIMORDIAL_THREAD_INDEX;
+  public static void init() {
+    threadAllocationIndex = PRIMORDIAL_THREAD_INDEX;
 
     // Enable us to dump a Java Stack from the C trap handler to aid in debugging things that 
     // show up as recursive use of hardware exception registers (eg the long-standing lisp bug)
@@ -144,8 +146,9 @@ import org.vmmagic.unboxed.Offset;
     //
     processors = new VM_Processor[2 + NUM_EXTRA_PROCS];  // first slot unused, then primordial, then extra
     processors[PRIMORDIAL_PROCESSOR_ID] = new VM_Processor(PRIMORDIAL_PROCESSOR_ID);
-    for (int i=1; i<=NUM_EXTRA_PROCS; i++)
+    for (int i = 1; i <= NUM_EXTRA_PROCS; i++) {
       processors[PRIMORDIAL_PROCESSOR_ID + i] = new VM_Processor(PRIMORDIAL_PROCESSOR_ID + i);
+    }
 
     // allocate lock structures
     //
@@ -154,9 +157,9 @@ import org.vmmagic.unboxed.Offset;
 
   /** This is run from VM.boot() */
   @Interruptible
-  public static void giveBootVM_ThreadAJavaLangThread() { 
+  public static void giveBootVM_ThreadAJavaLangThread() {
     VM_Thread vt = threads[PRIMORDIAL_THREAD_INDEX];
-    
+
     vt.setJavaLangThread(java.lang.JikesRVMSupport.createThread(vt, "Jikes_RVM_Boot_Thread"));
   }
 
@@ -164,44 +167,46 @@ import org.vmmagic.unboxed.Offset;
    * Begin multi-threaded vm operation.
    */
   @Interruptible
-  public static void boot () { 
+  public static void boot() {
     if (VM.VerifyAssertions) VM._assert(1 <= numProcessors && numProcessors <= MAX_PROCESSORS);
 
-    if (VM.TraceThreads)
-      trace("VM_Scheduler.boot","numProcessors =", numProcessors);
+    if (VM.TraceThreads) {
+      trace("VM_Scheduler.boot", "numProcessors =", numProcessors);
+    }
 
     // Create a VM_Processor object for each virtual cpu that we'll be running.
     // Note that the VM_Processor object for the primordial processor
     // (the virtual cpu in whose context we are currently running)
     // was already created in the boot image by init(), above.
     //
-    VM_Processor [] origProcs = processors;
+    VM_Processor[] origProcs = processors;
     processors = new VM_Processor[1 + numProcessors];
 
     for (int i = PRIMORDIAL_PROCESSOR_ID; i <= numProcessors; i++) {
       VM_Processor p = (i < origProcs.length) ? origProcs[i] : null;
       if (p == null) {
         processors[i] = new VM_Processor(i);
-      } else { 
+      } else {
         processors[i] = p;
-        if (VM.BuildForIA32)
+        if (VM.BuildForIA32) {
           p.jtoc = VM_Magic.getJTOC();  // only needed for EXTRA_PROCS
+        }
       }
     }
 
     // Create one one idle thread per processor.
     //
     for (int i = 0; i < numProcessors; ++i) {
-      int pid = i+1;
+      int pid = i + 1;
       VM_Thread t = new VM_IdleThread(processors[pid], pid != PRIMORDIAL_PROCESSOR_ID);
       processors[pid].idleQueue.enqueue(t);
     }
 
     // JNI support
-    terminated = false;         
+    terminated = false;
 
     // the one we're running on
-    processors[PRIMORDIAL_PROCESSOR_ID].isInitialized = true; 
+    processors[PRIMORDIAL_PROCESSOR_ID].isInitialized = true;
 
     // Create virtual cpu's.
     //
@@ -216,8 +221,9 @@ import org.vmmagic.unboxed.Offset;
 
     sysCall.sysInitializeStartupLocks(numProcessors);
 
-    if (cpuAffinity != NO_CPU_AFFINITY)
+    if (cpuAffinity != NO_CPU_AFFINITY) {
       sysCall.sysVirtualProcessorBind(cpuAffinity + PRIMORDIAL_PROCESSOR_ID - 1); // bind it to a physical cpu
+    }
 
     for (int i = PRIMORDIAL_PROCESSOR_ID; ++i <= numProcessors;) {
       // create VM_Thread for virtual cpu to execute
@@ -230,8 +236,9 @@ import org.vmmagic.unboxed.Offset;
       // doesn't move code or stack before the C startoff function has a
       // chance to transfer control into the VM image.
       //
-      if (VM.TraceThreads)
+      if (VM.TraceThreads) {
         trace("VM_Scheduler.boot", "starting processor id", i);
+      }
 
       processors[i].activeThread = target;
       processors[i].activeThreadStackLimit = target.stackLimit;
@@ -243,18 +250,20 @@ import org.vmmagic.unboxed.Offset;
         //       sys toc instead of the RVM jtoc. --dave
         Address toc = VM_Magic.getTocPointer();
         sysCall.sysVirtualProcessorCreate(toc,
-            VM_Magic.objectAsAddress(processors[i]),
-            target.contextRegisters.ip,
-            target.contextRegisters.getInnermostFramePointer());
-        if (cpuAffinity != NO_CPU_AFFINITY)
+                                          VM_Magic.objectAsAddress(processors[i]),
+                                          target.contextRegisters.ip,
+                                          target.contextRegisters.getInnermostFramePointer());
+        if (cpuAffinity != NO_CPU_AFFINITY) {
           sysCall.sysVirtualProcessorBind(cpuAffinity + i - 1); // bind it to a physical cpu
+        }
       } else if (VM.BuildForIA32) {
         sysCall.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
-            VM_Magic.objectAsAddress(processors[i]),
-            target.contextRegisters.ip,
-            target.contextRegisters.getInnermostFramePointer());
-      } else if (VM.VerifyAssertions)
+                                          VM_Magic.objectAsAddress(processors[i]),
+                                          target.contextRegisters.ip,
+                                          target.contextRegisters.getInnermostFramePointer());
+      } else if (VM.VerifyAssertions) {
         VM._assert(VM.NOT_REACHED);
+      }
     }
 
     // wait for everybody to start up
@@ -271,9 +280,9 @@ import org.vmmagic.unboxed.Offset;
     //
     schedulingQuantum = VM.interruptQuantum * VM.schedulingMultiplier;
     if (VM.TraceThreads) {
-      VM.sysWrite("  schedulingQuantum "       +  schedulingQuantum);
-      VM.sysWrite(" = VM.interruptQuantum "    +VM.interruptQuantum);
-      VM.sysWrite(" * VM.schedulingMultiplier "+VM.schedulingMultiplier);
+      VM.sysWrite("  schedulingQuantum " + schedulingQuantum);
+      VM.sysWrite(" = VM.interruptQuantum " + VM.interruptQuantum);
+      VM.sysWrite(" * VM.schedulingMultiplier " + VM.schedulingMultiplier);
       VM.sysWriteln();
     }
     sysCall.sysVirtualProcessorEnableTimeSlicing(VM.interruptQuantum);
@@ -288,8 +297,8 @@ import org.vmmagic.unboxed.Offset;
 
     // Start collector threads on each VM_Processor.
     for (int i = 0; i < numProcessors; ++i) {
-      VM_Thread t = VM_CollectorThread.createActiveCollectorThread(processors[1+i]);
-      t.start(processors[1+i].readyQueue);
+      VM_Thread t = VM_CollectorThread.createActiveCollectorThread(processors[1 + i]);
+      t.start(processors[1 + i].readyQueue);
     }
 
     // Start the G.C. system.
@@ -302,7 +311,6 @@ import org.vmmagic.unboxed.Offset;
     // Store VM_Processor in pthread
     sysCall.sysStashVmProcessorInPthread(VM_Processor.getCurrentProcessor());
   }
-
 
   /**
    * Terminate all the pthreads that belong to the VM
@@ -317,7 +325,7 @@ import org.vmmagic.unboxed.Offset;
    * Note:  the NativeIdleThread's don't need to be terminated since they don't have
    * their own pthread;  they run on the external pthreads that had called CreateJavaVM
    * or AttachCurrentThread.
- */
+   */
   public static void processorExit(int rc) {
     // trace("VM_Scheduler", ("Exiting with " + numProcessors + " pthreads."));
 
@@ -327,20 +335,19 @@ import org.vmmagic.unboxed.Offset;
     // TODO:
     // Get the collector to free system memory:  no more allocation beyond this point
 
-
     // Terminate the pthread: each processor waits for the next one
     // find the pthread to wait for
     VM_Processor myVP = VM_Processor.getCurrentProcessor();
     VM_Processor VPtoWaitFor = null;
-    for (int i=1; i<numProcessors; i++) {
+    for (int i = 1; i < numProcessors; i++) {
       if (processors[i] == myVP) {
-        VPtoWaitFor = processors[i+1];
+        VPtoWaitFor = processors[i + 1];
         break;
       }
     }
 
     // each join with the expected pthread 
-    if (VPtoWaitFor!=null) {
+    if (VPtoWaitFor != null) {
       sysCall.sysPthreadJoin(VPtoWaitFor.pthread_id);
     }
 
@@ -351,8 +358,6 @@ import org.vmmagic.unboxed.Offset;
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
 
   }
-
-
 
   private static final boolean traceDetails = false;
 
@@ -366,11 +371,11 @@ import org.vmmagic.unboxed.Offset;
    *         (0 means thread switching is enabled outside of the call to debug)
    *    t* = numActiveThreads
    *    d* = numDaemons
-   * 
+   *
    * * parenthetical values, printed only if traceDetails = true)
-   * 
+   *
    * We serialize against a mutex to avoid intermingling debug output from multiple threads.
-   */ 
+   */
   public static void trace(String who, String what) {
     lockOutput();
     VM_Processor.getCurrentProcessor().disableThreadSwitching();
@@ -408,19 +413,19 @@ import org.vmmagic.unboxed.Offset;
    *         (0 means thread switching is enabled outside of the call to debug)
    *    t* = numActiveThreads
    *    d* = numDaemons
-   * 
+   *
    * * parenthetical values, printed only if traceDetails = true)
-   * 
+   *
    * We serialize against a mutex to avoid intermingling debug output from multiple threads.
    */
   public static void trace(String who, String what, int howmany) {
-    _trace( who, what, howmany, false );
+    _trace(who, what, howmany, false);
   }
 
   // same as trace, but prints integer value in hex
   //
   public static void traceHex(String who, String what, int howmany) {
-    _trace( who, what, howmany, true );
+    _trace(who, what, howmany, true);
   }
 
   public static void trace(String who, String what, Address addr) {
@@ -470,15 +475,15 @@ import org.vmmagic.unboxed.Offset;
     VM.sysWrite(": ");
     VM.sysWrite(what);
     VM.sysWrite(" ");
-    if (hex) 
+    if (hex) {
       VM.sysWriteHex(howmany);
-    else
+    } else {
       VM.sysWriteInt(howmany);
+    }
     VM.sysWrite("\n");
     unlockOutput();
     VM_Processor.getCurrentProcessor().enableThreadSwitching();
   }
-
 
   /**
    * Print interesting scheduler information, starting with a stack traceback.
@@ -498,6 +503,7 @@ import org.vmmagic.unboxed.Offset;
       VM_Processor.getCurrentProcessor().enableThreadSwitching();
     }
   }
+
   public static void traceback(String message, int number) {
     if (VM.runningVM) {
       VM_Processor.getCurrentProcessor().disableThreadSwitching();
@@ -513,22 +519,24 @@ import org.vmmagic.unboxed.Offset;
 
   static void tracebackWithoutLock() {
 
-    if (VM.runningVM)
+    if (VM.runningVM) {
       dumpStack(VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()));
-    else
+    } else {
       dumpStack();
+    }
   }
 
   /**
    * Dump stack of calling thread, starting at callers frame
    */
   @LogicallyUninterruptible
-  public static void dumpStack () { 
-    if (VM.runningVM)
+  public static void dumpStack() {
+    if (VM.runningVM) {
       dumpStack(VM_Magic.getFramePointer());
-    else
+    } else {
       (new Throwable("--traceback from Jikes RVM's VM_Scheduler class--"))
-        .printStackTrace();
+          .printStackTrace();
+    }
   }
 
   /**
@@ -536,25 +544,28 @@ import org.vmmagic.unboxed.Offset;
    * @param fp address of starting frame. first frame output
    *           is the calling frame of passed frame
    */
-  static void dumpStack (Address fp) {
-    if (VM.VerifyAssertions)
+  static void dumpStack(Address fp) {
+    if (VM.VerifyAssertions) {
       VM._assert(VM.runningVM);
+    }
 
     Address ip = VM_Magic.getReturnAddress(fp);
     fp = VM_Magic.getCallerFramePointer(fp);
-    dumpStack( ip, fp );
-      
+    dumpStack(ip, fp);
+
   }
 
   static int inDumpStack = 0;
+
   /**
    * Dump state of a (stopped) thread's stack.
    * @param ip instruction pointer for first frame to dump
    * @param fp frame pointer for first frame to dump
    */
-  public static void dumpStack (Address ip, Address fp) {
+  public static void dumpStack(Address ip, Address fp) {
     ++inDumpStack;
-    if (inDumpStack > 1 && inDumpStack <= VM.maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite ) {
+    if (inDumpStack > 1 &&
+        inDumpStack <= VM.maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite) {
       VM.sysWrite("VM_Scheduler.dumpStack(): in a recursive call, ");
       VM.sysWrite(inDumpStack);
       VM.sysWriteln(" deep.");
@@ -563,41 +574,41 @@ import org.vmmagic.unboxed.Offset;
       VM.dieAbruptlyRecursiveSystemTrouble();
       if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
-    
+
     VM.sysWrite("-- Stack --\n");
-    while (VM_Magic.getCallerFramePointer(fp).NE(ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP) ){
+    while (VM_Magic.getCallerFramePointer(fp).NE(ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP)) {
 
       // if code is outside of RVM heap, assume it to be native code,
       // skip to next frame
       if (!MM_Interface.addressInVM(ip)) {
-        showMethod("native frame",fp);
+        showMethod("native frame", fp);
         ip = VM_Magic.getReturnAddress(fp);
         fp = VM_Magic.getCallerFramePointer(fp);
         continue; // done printing this stack frame
-      } 
+      }
 
       int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
       if (compiledMethodId == ArchitectureSpecific.VM_StackframeLayoutConstants.INVISIBLE_METHOD_ID) {
         showMethod("invisible method", fp);
       } else {
         // normal java frame(s)
-        VM_CompiledMethod compiledMethod    =
-          VM_CompiledMethods.getCompiledMethod(compiledMethodId);
+        VM_CompiledMethod compiledMethod =
+            VM_CompiledMethods.getCompiledMethod(compiledMethodId);
         if (compiledMethod == null) {
-          showMethod(compiledMethodId,fp);
-        } else if (compiledMethod.getCompilerType() == VM_CompiledMethod.TRAP){
-          showMethod("hardware trap",fp);
+          showMethod(compiledMethodId, fp);
+        } else if (compiledMethod.getCompilerType() == VM_CompiledMethod.TRAP) {
+          showMethod("hardware trap", fp);
         } else {
-          VM_Method method            = compiledMethod.getMethod();
-          Offset    instructionOffset = 
-            compiledMethod.getInstructionOffset(ip);
-          int       lineNumber        = 
-            compiledMethod.findLineNumberForInstruction(instructionOffset);
-          
+          VM_Method method = compiledMethod.getMethod();
+          Offset instructionOffset =
+              compiledMethod.getInstructionOffset(ip);
+          int lineNumber =
+              compiledMethod.findLineNumberForInstruction(instructionOffset);
+
           if (VM.BuildForOptCompiler &&
               compiledMethod.getCompilerType() == VM_CompiledMethod.OPT) {
             VM_OptCompiledMethod optInfo =
-              (VM_OptCompiledMethod) compiledMethod;
+                (VM_OptCompiledMethod) compiledMethod;
             // Opt stack frames may contain multiple inlined methods.
             VM_OptMachineCodeMap map = optInfo.getMCMap();
             int iei = map.getInlineEncodingForMCOffset(instructionOffset);
@@ -605,28 +616,28 @@ import org.vmmagic.unboxed.Offset;
               int[] inlineEncoding = map.inlineEncoding;
               int bci = map.getBytecodeIndexForMCOffset(instructionOffset);
               for (; iei >= 0; iei = VM_OptEncodedCallSiteTree
-                                        .getParent(iei,inlineEncoding)) 
-              {
+                  .getParent(iei, inlineEncoding)) {
                 int mid = VM_OptEncodedCallSiteTree
-                  .getMethodID(iei, inlineEncoding);
+                    .getMethodID(iei, inlineEncoding);
                 method = VM_MemberReference.getMemberRef(mid)
-                  .asMethodReference().getResolvedMember();
-                lineNumber = ((VM_NormalMethod)method)
-                  .getLineNumberForBCIndex(bci);
-                showMethod(method, lineNumber,fp);
-                if (iei > 0) 
+                    .asMethodReference().getResolvedMember();
+                lineNumber = ((VM_NormalMethod) method)
+                    .getLineNumberForBCIndex(bci);
+                showMethod(method, lineNumber, fp);
+                if (iei > 0) {
                   bci = VM_OptEncodedCallSiteTree
-                    .getByteCodeOffset(iei, inlineEncoding);
+                      .getByteCodeOffset(iei, inlineEncoding);
+                }
               }
             } else {
-              showMethod(method, lineNumber,fp);
+              showMethod(method, lineNumber, fp);
             }
             ip = VM_Magic.getReturnAddress(fp);
             fp = VM_Magic.getCallerFramePointer(fp);
             continue; // done printing this stack frame
-          } 
+          }
 
-          showMethod(method, lineNumber,fp);
+          showMethod(method, lineNumber, fp);
         }
       }
       ip = VM_Magic.getReturnAddress(fp);
@@ -646,29 +657,31 @@ import org.vmmagic.unboxed.Offset;
 
   /**
    * Show a method where getCompiledMethod returns null
-   * 
+   *
    * @param compiledMethodId
    * @param fp
    */
   private static void showMethod(int compiledMethodId, Address fp) {
     showPrologue(fp);
-    VM.sysWrite("<unprintable normal Java frame: VM_CompiledMethods.getCompiledMethod(", 
-        compiledMethodId, ") returned null>\n");
+    VM.sysWrite("<unprintable normal Java frame: VM_CompiledMethods.getCompiledMethod(",
+                compiledMethodId, ") returned null>\n");
   }
 
   /**
    * Show a method that we can't show (ie just a text description of the 
    * stack frame
-   * 
+   *
    * @param name
    * @param fp
    */
   private static void showMethod(String name, Address fp) {
     showPrologue(fp);
-    VM.sysWrite("<"); VM.sysWrite(name); VM.sysWrite(">\n");
-  }  
+    VM.sysWrite("<");
+    VM.sysWrite(name);
+    VM.sysWrite(">\n");
+  }
 
-  /** Helper function for {@link #dumpStack(Address, Address)}.  Print a
+  /** Helper function for {@link #dumpStack(Address,Address)}.  Print a
    * stack frame showing the method.  */
   private static void showMethod(VM_Method method, int lineNumber, Address fp) {
     showPrologue(fp);
@@ -688,6 +701,7 @@ import org.vmmagic.unboxed.Offset;
   }
 
   private static boolean exitInProgress = false;
+
   /**
    * Dump state of a (stopped) thread's stack and exit the virtual machine.
    * @param fp address of starting frame
@@ -710,7 +724,7 @@ import org.vmmagic.unboxed.Offset;
 
   /**
    * Dump state of virtual machine.
-   */ 
+   */
   public static void dumpVirtualMachine() {
     VM_Processor processor;
     VM.sysWrite("\n-- Processors --\n");
@@ -721,10 +735,14 @@ import org.vmmagic.unboxed.Offset;
 
     // system queues    
     VM.sysWrite("\n-- System Queues -- \n");
-    VM.sysWrite(" wakeupQueue: ");   wakeupQueue.dump();
-    VM.sysWrite(" debuggerQueue: "); debuggerQueue.dump();
-    VM.sysWrite(" collectorQueue: ");   collectorQueue.dump();
-    VM.sysWrite(" finalizerQueue: ");   finalizerQueue.dump();
+    VM.sysWrite(" wakeupQueue: ");
+    wakeupQueue.dump();
+    VM.sysWrite(" debuggerQueue: ");
+    debuggerQueue.dump();
+    VM.sysWrite(" collectorQueue: ");
+    collectorQueue.dump();
+    VM.sysWrite(" finalizerQueue: ");
+    finalizerQueue.dump();
 
     VM.sysWrite("\n-- Threads --\n");
     for (int i = 1; i < threads.length; ++i) {
@@ -740,24 +758,31 @@ import org.vmmagic.unboxed.Offset;
     for (int i = PRIMORDIAL_PROCESSOR_ID; i <= numProcessors; ++i) {
       processor = processors[i];
       int unallocated = processor.lastLockIndex - processor.nextLockIndex + 1;
-      VM.sysWrite(" processor ");             VM.sysWriteInt(i); VM.sysWrite(": ");
-      VM.sysWriteInt(processor.locksAllocated); VM.sysWrite(" locks allocated, ");
-      VM.sysWriteInt(processor.locksFreed);     VM.sysWrite(" locks freed, ");
-      VM.sysWriteInt(processor.freeLocks);      VM.sysWrite(" free looks, ");
-      VM.sysWriteInt(unallocated);              VM.sysWrite(" unallocated slots\n");
+      VM.sysWrite(" processor ");
+      VM.sysWriteInt(i);
+      VM.sysWrite(": ");
+      VM.sysWriteInt(processor.locksAllocated);
+      VM.sysWrite(" locks allocated, ");
+      VM.sysWriteInt(processor.locksFreed);
+      VM.sysWrite(" locks freed, ");
+      VM.sysWriteInt(processor.freeLocks);
+      VM.sysWrite(" free looks, ");
+      VM.sysWriteInt(unallocated);
+      VM.sysWrite(" unallocated slots\n");
     }
     VM.sysWrite("\n");
 
     VM.sysWrite("\n-- Locks in use --\n");
-    for (VM_Lock lock : locks)
-      if (lock != null)
+    for (VM_Lock lock : locks) {
+      if (lock != null) {
         lock.dump();
+      }
+    }
     VM.sysWrite("\n");
 
     VM.sysWriteln("Dumping stack of active thread\n");
     dumpStack();
 
-    
     VM.sysWriteln("Attempting to dump the stack of all other live threads");
     VM.sysWriteln("This is somewhat risky since if the thread is running we're going to be quite confused");
     VM_Processor.getCurrentProcessor().disableThreadSwitching();
@@ -777,28 +802,35 @@ import org.vmmagic.unboxed.Offset;
 
   static int outputLock;
 
-  static void lockOutput () {
+  static void lockOutput() {
     if (VM_Scheduler.numProcessors == 1) return;
     VM_Processor.getCurrentProcessor().disableThreadSwitching();
     do {
       int processorId = VM_Magic.prepareInt(VM_Magic.getJTOC(), VM_Entrypoints.outputLockField.getOffset());
-      if (processorId == 0 && VM_Magic.attemptInt(VM_Magic.getJTOC(), VM_Entrypoints.outputLockField.getOffset(), 0, VM_Processor.getCurrentProcessorId())) {
-        break; 
+      if (processorId == 0 &&
+          VM_Magic.attemptInt(VM_Magic.getJTOC(),
+                              VM_Entrypoints.outputLockField.getOffset(),
+                              0,
+                              VM_Processor.getCurrentProcessorId())) {
+        break;
       }
     } while (true);
     VM_Magic.isync(); // TODO!! is this really necessary?
   }
 
-  static void unlockOutput () {
+  static void unlockOutput() {
     if (VM_Scheduler.numProcessors == 1) return;
     VM_Magic.sync(); // TODO!! is this really necessary?
-    if (true) outputLock = 0; // TODO!! this ought to work, but doesn't?
-    else {
+    if (true) {
+      outputLock = 0; // TODO!! this ought to work, but doesn't?
+    } else {
       do {
         int processorId = VM_Magic.prepareInt(VM_Magic.getJTOC(), VM_Entrypoints.outputLockField.getOffset());
-        if (VM.VerifyAssertions && processorId != VM_Processor.getCurrentProcessorId()) VM.sysExit(VM.EXIT_STATUS_SYSFAIL);
+        if (VM.VerifyAssertions && processorId != VM_Processor.getCurrentProcessorId()) {
+          VM.sysExit(VM.EXIT_STATUS_SYSFAIL);
+        }
         if (VM_Magic.attemptInt(VM_Magic.getJTOC(), VM_Entrypoints.outputLockField.getOffset(), processorId, 0)) {
-          break; 
+          break;
         }
       } while (true);
     }

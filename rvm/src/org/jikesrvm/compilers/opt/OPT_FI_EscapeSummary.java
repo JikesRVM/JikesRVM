@@ -21,7 +21,7 @@ class OPT_FI_EscapeSummary {
    * Returns true iff ANY object pointed to by symbolic register r
    * MUST be thread local
    */
-  boolean isThreadLocal (OPT_Register r) {
+  boolean isThreadLocal(OPT_Register r) {
     Object result = hash.get(r);
     return result != null && result == THREAD_LOCAL;
   }
@@ -30,33 +30,31 @@ class OPT_FI_EscapeSummary {
    * Returns true iff ANY object pointed to by symbolic register r
    * MUST be method local
    */
-  boolean isMethodLocal (OPT_Register r) {
+  boolean isMethodLocal(OPT_Register r) {
     Object result = hash2.get(r);
     return result != null && result == METHOD_LOCAL;
   }
 
-  /** 
+  /**
    * record the fact that ALL object pointed to by symbolic register r
    * MUST (or may) escape this thread
    */
-  void setThreadLocal (OPT_Register r, boolean b) {
+  void setThreadLocal(OPT_Register r, boolean b) {
     if (b == true) {
       hash.put(r, THREAD_LOCAL);
-    } 
-    else {
+    } else {
       hash.put(r, MAY_ESCAPE_THREAD);
     }
   }
 
-  /** 
+  /**
    * Record the fact that ALL object pointed to by symbolic register r
    * MUST (or may) escape this method
    */
-  void setMethodLocal (OPT_Register r, boolean b) {
+  void setMethodLocal(OPT_Register r, boolean b) {
     if (b == true) {
       hash2.put(r, METHOD_LOCAL);
-    } 
-    else {
+    } else {
       hash2.put(r, MAY_ESCAPE_METHOD);
     }
   }
@@ -66,15 +64,15 @@ class OPT_FI_EscapeSummary {
    * A mapping that holds the analysis result for thread-locality for each
    * OPT_Register.
    */
-  private final HashMap<OPT_Register,Object> hash =
-    new HashMap<OPT_Register,Object>();
+  private final HashMap<OPT_Register, Object> hash =
+      new HashMap<OPT_Register, Object>();
 
   /**
    * A mapping that holds the analysis result for method-locality for each
    * OPT_Register.
    */
-  private final HashMap<OPT_Register,Object> hash2 =
-    new HashMap<OPT_Register,Object>();  
+  private final HashMap<OPT_Register, Object> hash2 =
+      new HashMap<OPT_Register, Object>();
 
   /**
    * Static object used to represent analysis result

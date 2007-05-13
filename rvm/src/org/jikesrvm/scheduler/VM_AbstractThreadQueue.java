@@ -14,21 +14,22 @@ import org.vmmagic.pragma.Uninterruptible;
 /**
  * Base class for queues of VM_Threads.
  */
-@Uninterruptible abstract class VM_AbstractThreadQueue {
+@Uninterruptible
+abstract class VM_AbstractThreadQueue {
 
   // Are any threads on the queue?
   //
-  abstract boolean isEmpty ();
+  abstract boolean isEmpty();
 
   // Add a thread to tail of queue.
   //
-  abstract void enqueue (VM_Thread t);
+  abstract void enqueue(VM_Thread t);
 
   // Remove thread from head of queue.
   // Returned: the thread (null --> queue is empty)
   //
-  abstract VM_Thread dequeue ();
-  
+  abstract VM_Thread dequeue();
+
   // Number of items on queue (an estimate: queue is not locked during the scan).
   //
   abstract int length();
@@ -36,6 +37,7 @@ import org.vmmagic.pragma.Uninterruptible;
   // For debugging.
   //
   abstract boolean contains(VM_Thread t);
+
   @Interruptible
-  abstract void    dump(); 
+  abstract void dump();
 }

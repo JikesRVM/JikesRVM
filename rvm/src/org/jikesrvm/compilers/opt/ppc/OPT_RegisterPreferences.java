@@ -8,7 +8,6 @@
  */
 package org.jikesrvm.compilers.opt.ppc;
 
-
 import org.jikesrvm.compilers.opt.OPT_GenericRegisterPreferences;
 import org.jikesrvm.compilers.opt.ir.MIR_Move;
 import org.jikesrvm.compilers.opt.ir.OPT_IR;
@@ -23,7 +22,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_Register;
  * physical register, representing a preferred register assignment.
  */
 public abstract class OPT_RegisterPreferences extends OPT_GenericRegisterPreferences
-implements OPT_Operators {
+    implements OPT_Operators {
 
   /**
    * If the following is set, we use a heuristic optimization as follows:
@@ -44,7 +43,7 @@ implements OPT_Operators {
    * Set up register preferences based on instructions in an IR.
    */
   public void initialize(OPT_IR ir) {
-    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator(); 
+    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator();
          e.hasMoreElements();) {
       OPT_Instruction s = e.nextElement();
       switch (s.operator.opcode) {
@@ -55,13 +54,13 @@ implements OPT_Operators {
           if (result.isRegister() && value.isRegister()) {
             OPT_Register r1 = result.asRegister().register;
             OPT_Register r2 = value.asRegister().register;
-            addAffinity(1,r2,r1);
+            addAffinity(1, r2, r1);
 
             // double the affinities if using the heuristic described
             // above.
-            if (SYMBOLIC_SYMBOLIC_HEURISTIC && r1.isSymbolic() && 
+            if (SYMBOLIC_SYMBOLIC_HEURISTIC && r1.isSymbolic() &&
                 r2.isSymbolic()) {
-              addAffinity(1,r2,r1);
+              addAffinity(1, r2, r1);
             }
           }
           break;

@@ -1,12 +1,11 @@
-
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
- *
- * (C) Copyright IBM Corp 2001,2002,2004
- */
+* This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+* The Jikes RVM project is distributed under the Common Public License (CPL).
+* A copy of the license is included in the distribution, and is also
+* available at http://www.opensource.org/licenses/cpl1.0.php
+*
+* (C) Copyright IBM Corp 2001,2002,2004
+*/
 package org.jikesrvm.jni;
 
 import java.lang.reflect.Constructor;
@@ -53,12 +52,12 @@ import org.vmmagic.unboxed.Word;
  *
  * The first argument for all the functions is the VM_JNIEnvironment object 
  * of the thread. <br>
- * 
+ *
  * The second argument is a JREF index for either the VM_Class object
  * or the object instance itself.  To get the actual object, we use 
  * the access method in VM_JNIEnvironment and cast the reference as
  * needed. <br>
- * 
+ *
  * NOTE:  
  * <ol>
  * <li> JREF index refers to the index into the side table of references
@@ -111,15 +110,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @return 0x00010004 for JNI 1.4, 0x00010002 for JNI 1.2, 
    *        0x00010001 for JNI 1.1, 
-   */     
+   */
   private static int GetVersion(VM_JNIEnvironment env) {
     if (traceJNI) VM.sysWrite("JNI called: GetVersion  \n");
 
     return 0x00010004;          // JNI 1.4
   }
 
-
-  /** 
+  /**
    * DefineClass:  Loads a class from a buffer of raw class data.
    * @param env A JREF index for the JNI environment object
    * @param classNameAddress a raw address to a null-terminated string in C for the class name
@@ -131,20 +129,23 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @exception ClassCircularityError (not implemented)
    * @exception OutOfMemoryError (not implemented)
    */
-  private static int DefineClass(VM_JNIEnvironment env, Address classNameAddress, int classLoader, Address data, int dataLen) {
+  private static int DefineClass(VM_JNIEnvironment env, Address classNameAddress, int classLoader, Address data,
+                                 int dataLen) {
     if (traceJNI) VM.sysWrite("JNI called: DefineClass  \n");
 
     try {
       String classString = null;
-      if (!classNameAddress.isZero())
+      if (!classNameAddress.isZero()) {
         VM_JNIHelpers.createStringFromC(classNameAddress);
+      }
       ClassLoader cl;
-      if (classLoader == 0)
+      if (classLoader == 0) {
         cl = VM_Class.getClassLoaderFromStackFrame(1);
-      else
+      } else {
         cl = (ClassLoader) env.getJNIRef(classLoader);
+      }
 
-      byte[]  bytecode = new byte[dataLen];
+      byte[] bytecode = new byte[dataLen];
       VM_Memory.memcopy(VM_Magic.objectAsAddress(bytecode), data, dataLen);
 
       final VM_Type vmType = VM_ClassLoader.defineClassInternal(classString, bytecode, 0, dataLen, cl);
@@ -156,7 +157,6 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     }
 
   }
-
 
   /**
    * FindClass:  given a class name, find its VM_Class, or 0 if not found
@@ -178,7 +178,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       if (traceJNI) VM.sysWriteln(classString);
       ClassLoader cl = VM_Class.getClassLoaderFromStackFrame(1);
       Class<?> matchedClass = Class.forName(classString.replace('/', '.'), true, cl);
-      return env.pushJNIRef(matchedClass);  
+      return env.pushJNIRef(matchedClass);
     } catch (ClassNotFoundException e) {
       if (traceJNI) e.printStackTrace(System.err);
       env.recordException(new NoClassDefFoundError(classString));
@@ -201,7 +201,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: GetSuperclass  \n");
 
     try {
-      Class<?> cls = (Class<?>) env.getJNIRef(classJREF); 
+      Class<?> cls = (Class<?>) env.getJNIRef(classJREF);
       Class<?> supercls = cls.getSuperclass();
       return supercls == null ? 0 : env.pushJNIRef(supercls);
     } catch (Throwable unexpected) {
@@ -219,7 +219,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param secondClassJREF a JREF index for the second class object
    * @return true if cls1 can be assigned to cls2
    */
-  private static boolean IsAssignableFrom(VM_JNIEnvironment env, int firstClassJREF, 
+  private static boolean IsAssignableFrom(VM_JNIEnvironment env, int firstClassJREF,
                                           int secondClassJREF) {
     if (traceJNI) VM.sysWrite("JNI called: IsAssignableFrom  \n");
 
@@ -254,7 +254,6 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       return -1;
     }
   }
-
 
   /**
    * ThrowNew
@@ -291,7 +290,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * ExceptionOccurred
    * @param env A JREF index for the JNI environment object
    * @return a JREF index for the pending exception or null if nothing pending
- */
+   */
   private static int ExceptionOccurred(VM_JNIEnvironment env) {
     if (traceJNI) VM.sysWrite("JNI called: ExceptionOccurred  \n");
 
@@ -364,7 +363,6 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     }
   }
 
-
   private static int NewGlobalRef(VM_JNIEnvironment env, int objectJREF) {
     if (traceJNI) VM.sysWrite("JNI called: NewGlobalRef\n");
 
@@ -433,8 +431,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @exception InstantiationException if the class is abstract or is an interface
    * @exception OutOfMemoryError if no more memory to allocate
    */
-  private static int AllocObject(VM_JNIEnvironment env, int classJREF) 
-    throws InstantiationException, OutOfMemoryError {
+  private static int AllocObject(VM_JNIEnvironment env, int classJREF)
+      throws InstantiationException, OutOfMemoryError {
     if (traceJNI) VM.sysWrite("JNI called: AllocObject  \n");
 
     try {
@@ -465,7 +463,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a VM_MethodReference
-   * @return  the new object instance
+   * @return the new object instance
    * @exception InstantiationException if the class is abstract or is an interface
    * @exception OutOfMemoryError if no more memory to allocate
    */
@@ -473,17 +471,17 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: NewObject  \n");
 
     try {
-      Class<?> cls = (Class<?>) env.getJNIRef(classJREF); 
+      Class<?> cls = (Class<?>) env.getJNIRef(classJREF);
       VM_Class vmcls = java.lang.JikesRVMSupport.getTypeForClass(cls).asClass();
-      
+
       if (vmcls.isAbstract() || vmcls.isInterface()) {
         env.recordException(new InstantiationException());
         return 0;
       }
 
       Object newobj = VM_JNIHelpers.invokeInitializer(cls, methodID, Address.zero(), false, true);
-      
-      return env.pushJNIRef(newobj);    
+
+      return env.pushJNIRef(newobj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -502,12 +500,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @exception InstantiationException if the class is abstract or is an interface
    * @exception OutOfMemoryError if no more memory to allocate
    */
-  private static int NewObjectV(VM_JNIEnvironment env, int classJREF, 
+  private static int NewObjectV(VM_JNIEnvironment env, int classJREF,
                                 int methodID, Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: NewObjectV  \n");
 
     try {
-      Class<?> cls = (Class<?>) env.getJNIRef(classJREF); 
+      Class<?> cls = (Class<?>) env.getJNIRef(classJREF);
       VM_Class vmcls = java.lang.JikesRVMSupport.getTypeForClass(cls).asClass();
       if (vmcls.isAbstract() || vmcls.isInterface()) {
         env.recordException(new InstantiationException());
@@ -516,14 +514,13 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
       Object newobj = VM_JNIHelpers.invokeInitializer(cls, methodID, argAddress, false, false);
 
-      return env.pushJNIRef(newobj);    
+      return env.pushJNIRef(newobj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
       return 0;
     }
   }
-
 
   /**
    * NewObjectA: create a new object instance
@@ -534,9 +531,9 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *                   hold an argument of the appropriate type for the constructor invocation
    * @exception InstantiationException if the class is abstract or is an interface
    * @exception OutOfMemoryError if no more memory to allocate
-   * @return  the new object instance
+   * @return the new object instance
    */
-  private static int NewObjectA(VM_JNIEnvironment env, int classJREF, 
+  private static int NewObjectA(VM_JNIEnvironment env, int classJREF,
                                 int methodID, Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: NewObjectA  \n");
 
@@ -550,7 +547,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       }
 
       Object newobj = VM_JNIHelpers.invokeInitializer(cls, methodID, argAddress, true, false);
-      
+
       return env.pushJNIRef(newobj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -564,7 +561,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object to check
    * @return a JREF index for the Class object 
- */
+   */
   private static int GetObjectClass(VM_JNIEnvironment env, int objJREF) {
     if (traceJNI) VM.sysWrite("JNI called: GetObjectClass  \n");
 
@@ -577,7 +574,6 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       return 0;
     }
   }
-
 
   /**
    * IsInstanceOf: determine if an object is an instance of the class
@@ -614,7 +610,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @exception ExceptionInInitializerError if the class or interface static initializer fails 
    * @exception OutOfMemoryError if the system runs out of memory
    */
-  private static int GetMethodID(VM_JNIEnvironment env, int classJREF, 
+  private static int GetMethodID(VM_JNIEnvironment env, int classJREF,
                                  Address methodNameAddress, Address methodSigAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetMethodID  \n");
 
@@ -623,7 +619,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       String methodString = VM_JNIHelpers.createStringFromC(methodNameAddress);
       VM_Atom methodName = VM_Atom.findOrCreateAsciiAtom(methodString);
       String sigString = VM_JNIHelpers.createStringFromC(methodSigAddress);
-      VM_Atom sigName  = VM_Atom.findOrCreateAsciiAtom(sigString);
+      VM_Atom sigName = VM_Atom.findOrCreateAsciiAtom(sigString);
 
       // get the target class 
       Class<?> jcls = (Class<?>) env.getJNIRef(classJREF);
@@ -631,7 +627,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       if (!type.isClassType()) {
         env.recordException(new NoSuchMethodError());
         return 0;
-      } 
+      }
 
       VM_Class klass = type.asClass();
       if (!klass.isInitialized()) {
@@ -649,7 +645,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       if (meth == null) {
         env.recordException(new NoSuchMethodError(klass + ": " + methodName + " " + sigName));
         return 0;
-      } 
+      }
 
       if (traceJNI) VM.sysWrite("got method " + meth + "\n");
       return meth.getId();
@@ -671,12 +667,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @return the JREF index for the object returned from the method invocation
    */
   private static int CallObjectMethod(VM_JNIEnvironment env, int objJREF, int methodID) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallObjectMethod  \n");  
+    if (traceJNI) VM.sysWrite("JNI called: CallObjectMethod  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
+      Object obj = env.getJNIRef(objJREF);
       Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(obj, methodID, null, false);
-      return env.pushJNIRef(returnObj);     
+      return env.pushJNIRef(returnObj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -693,14 +689,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the JREF index for the object returned from the method invocation
    */
-  private static int CallObjectMethodV(VM_JNIEnvironment env, int objJREF, 
+  private static int CallObjectMethodV(VM_JNIEnvironment env, int objJREF,
                                        int methodID, Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallObjectMethodV  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
+      Object obj = env.getJNIRef(objJREF);
       Object returnObj = VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress, null, false);
-      return env.pushJNIRef(returnObj);     
+      return env.pushJNIRef(returnObj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -717,14 +713,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *        and hold an argument of the appropriate type for the method invocation   
    * @return the JREF index for the object returned from the method invocation
    */
-  private static int CallObjectMethodA(VM_JNIEnvironment env, int objJREF, int methodID, 
+  private static int CallObjectMethodA(VM_JNIEnvironment env, int objJREF, int methodID,
                                        Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallObjectMethodA  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
+      Object obj = env.getJNIRef(objJREF);
       Object returnObj = VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress, null, false);
-      return env.pushJNIRef(returnObj);     
+      return env.pushJNIRef(returnObj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -746,10 +742,10 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: CallBooleanMethod  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(obj, methodID, 
-                                                                  VM_TypeReference.Boolean, 
-                                                                  false);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(obj, methodID,
+                                                              VM_TypeReference.Boolean,
+                                                              false);
       return VM_Reflection.unwrapBoolean(returnObj);     // should be a wrapper for a boolean value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -767,14 +763,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the boolean value returned from the method invocation
    */
-  private static boolean CallBooleanMethodV(VM_JNIEnvironment env, int objJREF, int methodID, 
+  private static boolean CallBooleanMethodV(VM_JNIEnvironment env, int objJREF, int methodID,
                                             Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallBooleanMethodV  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress, 
-                                                            VM_TypeReference.Boolean, false);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress,
+                                                        VM_TypeReference.Boolean, false);
       return VM_Reflection.unwrapBoolean(returnObj);     // should be a wrapper for a boolean value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -792,14 +788,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *        and hold an argument of the appropriate type for the method invocation   
    * @return the boolean value returned from the method invocation
    */
-  private static boolean CallBooleanMethodA(VM_JNIEnvironment env, int objJREF, int methodID, 
+  private static boolean CallBooleanMethodA(VM_JNIEnvironment env, int objJREF, int methodID,
                                             Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallBooleanMethodA  \n");  
+    if (traceJNI) VM.sysWrite("JNI called: CallBooleanMethodA  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress, 
-                                                            VM_TypeReference.Boolean, false);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress,
+                                                        VM_TypeReference.Boolean, false);
       return VM_Reflection.unwrapBoolean(returnObj);     // should be a wrapper for a boolean value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -822,9 +818,9 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: CallByteMethod  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(obj, methodID, 
-                                                                  VM_TypeReference.Byte, false);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(obj, methodID,
+                                                              VM_TypeReference.Byte, false);
       return VM_Reflection.unwrapByte(returnObj);     // should be a wrapper for a byte value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -842,14 +838,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the byte value returned from the method invocation
    */
-  private static byte CallByteMethodV(VM_JNIEnvironment env, int objJREF, int methodID, 
+  private static byte CallByteMethodV(VM_JNIEnvironment env, int objJREF, int methodID,
                                       Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallByteMethodV  \n");  
+    if (traceJNI) VM.sysWrite("JNI called: CallByteMethodV  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress, 
-                                                            VM_TypeReference.Byte, false);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress,
+                                                        VM_TypeReference.Byte, false);
       return VM_Reflection.unwrapByte(returnObj);     // should be a wrapper for a byte value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -867,14 +863,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *        and hold an argument of the appropriate type for the method invocation   
    * @return the byte value returned from the method invocation
    */
-  private static byte CallByteMethodA(VM_JNIEnvironment env, int objJREF, int methodID, 
+  private static byte CallByteMethodA(VM_JNIEnvironment env, int objJREF, int methodID,
                                       Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallByteMethodA  \n");  
+    if (traceJNI) VM.sysWrite("JNI called: CallByteMethodA  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress, 
-                                                            VM_TypeReference.Byte, false);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress,
+                                                        VM_TypeReference.Byte, false);
       return VM_Reflection.unwrapByte(returnObj);     // should be a wrapper for a byte value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -894,12 +890,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @return the char value returned from the method invocation
    */
   private static char CallCharMethod(VM_JNIEnvironment env, int objJREF, int methodID) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallCharMethod  \n");  
+    if (traceJNI) VM.sysWrite("JNI called: CallCharMethod  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(obj, methodID, 
-                                                                  VM_TypeReference.Char, false);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(obj, methodID,
+                                                              VM_TypeReference.Char, false);
       return VM_Reflection.unwrapChar(returnObj);     // should be a wrapper for a char value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -917,14 +913,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the char value returned from the method invocation
    */
-  private static char CallCharMethodV(VM_JNIEnvironment env, int objJREF, int methodID, 
+  private static char CallCharMethodV(VM_JNIEnvironment env, int objJREF, int methodID,
                                       Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallCharMethodV  \n");  
+    if (traceJNI) VM.sysWrite("JNI called: CallCharMethodV  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress, 
-                                                            VM_TypeReference.Char, false);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress,
+                                                        VM_TypeReference.Char, false);
       return VM_Reflection.unwrapChar(returnObj);     // should be a wrapper for a char value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -942,13 +938,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *        and hold an argument of the appropriate type for the method invocation   
    * @return the char value returned from the method invocation
    */
-  private static char CallCharMethodA(VM_JNIEnvironment env, int objJREF, int methodID, Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallCharMethodA  \n");  
+  private static char CallCharMethodA(VM_JNIEnvironment env, int objJREF, int methodID, Address argAddress)
+      throws Exception {
+    if (traceJNI) VM.sysWrite("JNI called: CallCharMethodA  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress, 
-                                                            VM_TypeReference.Char, false);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress,
+                                                        VM_TypeReference.Char, false);
       return VM_Reflection.unwrapChar(returnObj);     // should be a wrapper for a char value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -971,9 +968,9 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: CallShortMethod  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(obj, methodID, 
-                                                                  VM_TypeReference.Short, false);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(obj, methodID,
+                                                              VM_TypeReference.Short, false);
       return VM_Reflection.unwrapShort(returnObj);     // should be a wrapper for a short value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -991,14 +988,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the short value returned from the method invocation
    */
-  private static short CallShortMethodV(VM_JNIEnvironment env, int objJREF, int methodID, 
+  private static short CallShortMethodV(VM_JNIEnvironment env, int objJREF, int methodID,
                                         Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallShortMethodV  \n");  
+    if (traceJNI) VM.sysWrite("JNI called: CallShortMethodV  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress, 
-                                                            VM_TypeReference.Short, false);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress,
+                                                        VM_TypeReference.Short, false);
       return VM_Reflection.unwrapShort(returnObj);     // should be a wrapper for a short value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -1016,14 +1013,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *        and hold an argument of the appropriate type for the method invocation   
    * @return the short value returned from the method invocation
    */
-  private static short CallShortMethodA(VM_JNIEnvironment env, int objJREF, int methodID, 
+  private static short CallShortMethodA(VM_JNIEnvironment env, int objJREF, int methodID,
                                         Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallShortMethodA  \n");  
+    if (traceJNI) VM.sysWrite("JNI called: CallShortMethodA  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress, 
-                                                            VM_TypeReference.Short, false);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress,
+                                                        VM_TypeReference.Short, false);
       return VM_Reflection.unwrapShort(returnObj);     // should be a wrapper for a short value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -1046,9 +1043,9 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: CallIntMethod  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(obj, methodID, 
-                                                                  VM_TypeReference.Int, false);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(obj, methodID,
+                                                              VM_TypeReference.Int, false);
       return VM_Reflection.unwrapInt(returnObj);     // should be a wrapper for an integer value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -1066,14 +1063,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the int value returned from the method invocation
    */
-  private static int CallIntMethodV(VM_JNIEnvironment env, int objJREF, int methodID, 
+  private static int CallIntMethodV(VM_JNIEnvironment env, int objJREF, int methodID,
                                     Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallIntMethodV  \n");  
+    if (traceJNI) VM.sysWrite("JNI called: CallIntMethodV  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress, 
-                                                            VM_TypeReference.Int, false);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress,
+                                                        VM_TypeReference.Int, false);
       return VM_Reflection.unwrapInt(returnObj);     // should be a wrapper for an integer value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -1091,14 +1088,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *        and hold an argument of the appropriate type for the method invocation   
    * @return the integer value returned from the method invocation
    */
-  private static int CallIntMethodA(VM_JNIEnvironment env, int objJREF, int methodID, 
+  private static int CallIntMethodA(VM_JNIEnvironment env, int objJREF, int methodID,
                                     Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallIntMethodA  \n");  
+    if (traceJNI) VM.sysWrite("JNI called: CallIntMethodA  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress, 
-                                                            VM_TypeReference.Int, false);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress,
+                                                        VM_TypeReference.Int, false);
       return VM_Reflection.unwrapInt(returnObj);     // should be a wrapper for an integer value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -1118,12 +1115,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @return the long value returned from the method invocation
    */
   private static long CallLongMethod(VM_JNIEnvironment env, int objJREF, int methodID) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallLongMethod  \n");  
+    if (traceJNI) VM.sysWrite("JNI called: CallLongMethod  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(obj, methodID, 
-                                                                  VM_TypeReference.Long, false);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(obj, methodID,
+                                                              VM_TypeReference.Long, false);
       return VM_Reflection.unwrapLong(returnObj);     // should be a wrapper for a long value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -1141,14 +1138,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the long value returned from the method invocation
    */
-  private static long CallLongMethodV(VM_JNIEnvironment env, int objJREF, int methodID, 
+  private static long CallLongMethodV(VM_JNIEnvironment env, int objJREF, int methodID,
                                       Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallLongMethodV  \n");  
+    if (traceJNI) VM.sysWrite("JNI called: CallLongMethodV  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress, 
-                                                            VM_TypeReference.Long, false);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress,
+                                                        VM_TypeReference.Long, false);
       return VM_Reflection.unwrapLong(returnObj);     // should be a wrapper for a long value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -1166,14 +1163,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *        and hold an argument of the appropriate type for the method invocation   
    * @return the long value returned from the method invocation
    */
-  private static long CallLongMethodA(VM_JNIEnvironment env, int objJREF, int methodID, 
+  private static long CallLongMethodA(VM_JNIEnvironment env, int objJREF, int methodID,
                                       Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallLongMethodA  \n");  
+    if (traceJNI) VM.sysWrite("JNI called: CallLongMethodA  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress, 
-                                                            VM_TypeReference.Long, false);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress,
+                                                        VM_TypeReference.Long, false);
       return VM_Reflection.unwrapLong(returnObj);     // should be a wrapper for a long value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -1181,7 +1178,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       return 0;
     }
   }
-  
+
   /**
    * CallFloatMethod:  invoke a virtual method that returns a float value
    *                           arguments passed using the vararg ... style
@@ -1193,12 +1190,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @return the float value returned from the method invocation
    */
   private static float CallFloatMethod(VM_JNIEnvironment env, int objJREF, int methodID) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallFloatMethod  \n");  
+    if (traceJNI) VM.sysWrite("JNI called: CallFloatMethod  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(obj, methodID, 
-                                                                  VM_TypeReference.Float, false);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(obj, methodID,
+                                                              VM_TypeReference.Float, false);
       return VM_Reflection.unwrapFloat(returnObj);     // should be a wrapper for a float value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -1216,14 +1213,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the float value returned from the method invocation
    */
-  private static float CallFloatMethodV(VM_JNIEnvironment env, int objJREF, int methodID, 
+  private static float CallFloatMethodV(VM_JNIEnvironment env, int objJREF, int methodID,
                                         Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallFloatMethodV  \n");  
+    if (traceJNI) VM.sysWrite("JNI called: CallFloatMethodV  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress, 
-                                                            VM_TypeReference.Float, false);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress,
+                                                        VM_TypeReference.Float, false);
       return VM_Reflection.unwrapFloat(returnObj);     // should be a wrapper for a float value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -1241,14 +1238,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *        and hold an argument of the appropriate type for the method invocation   
    * @return the float value returned from the method invocation
    */
-  private static float CallFloatMethodA(VM_JNIEnvironment env, int objJREF, int methodID, 
+  private static float CallFloatMethodA(VM_JNIEnvironment env, int objJREF, int methodID,
                                         Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallFloatMethodA  \n");  
+    if (traceJNI) VM.sysWrite("JNI called: CallFloatMethodA  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress, 
-                                                            VM_TypeReference.Float, false);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress,
+                                                        VM_TypeReference.Float, false);
       return VM_Reflection.unwrapFloat(returnObj);     // should be a wrapper for a float value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -1268,12 +1265,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @return the double value returned from the method invocation
    */
   private static double CallDoubleMethod(VM_JNIEnvironment env, int objJREF, int methodID) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallDoubleMethod  \n");  
+    if (traceJNI) VM.sysWrite("JNI called: CallDoubleMethod  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(obj, methodID, 
-                                                                  VM_TypeReference.Double, false);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(obj, methodID,
+                                                              VM_TypeReference.Double, false);
       return VM_Reflection.unwrapDouble(returnObj);     // should be a wrapper for a double value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -1291,14 +1288,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the double value returned from the method invocation
    */
-  private static double CallDoubleMethodV(VM_JNIEnvironment env, int objJREF, int methodID, 
+  private static double CallDoubleMethodV(VM_JNIEnvironment env, int objJREF, int methodID,
                                           Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallDoubleMethodV  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress, 
-                                                            VM_TypeReference.Double, false);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress,
+                                                        VM_TypeReference.Double, false);
       return VM_Reflection.unwrapDouble(returnObj);     // should be a wrapper for a double value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -1316,14 +1313,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *        and hold an argument of the appropriate type for the method invocation   
    * @return the double value returned from the method invocation
    */
-  private static double CallDoubleMethodA(VM_JNIEnvironment env, int objJREF, int methodID, 
+  private static double CallDoubleMethodA(VM_JNIEnvironment env, int objJREF, int methodID,
                                           Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallDoubleMethodA  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress, 
-                                                            VM_TypeReference.Double, false);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress,
+                                                        VM_TypeReference.Double, false);
       return VM_Reflection.unwrapDouble(returnObj);     // should be a wrapper for a double value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -1342,10 +1339,10 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param methodID id of a VM_MethodReference
    */
   private static void CallVoidMethod(VM_JNIEnvironment env, int objJREF, int methodID) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallVoidMethod  \n");  
+    if (traceJNI) VM.sysWrite("JNI called: CallVoidMethod  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
+      Object obj = env.getJNIRef(objJREF);
       VM_JNIHelpers.invokeWithDotDotVarArg(obj, methodID, VM_TypeReference.Void, false);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -1361,12 +1358,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param argAddress a raw address to a variable argument list, each element is 
    *              1-word or 2-words of the appropriate type for the method invocation
    */
-  private static void CallVoidMethodV(VM_JNIEnvironment env, int objJREF, int methodID, 
+  private static void CallVoidMethodV(VM_JNIEnvironment env, int objJREF, int methodID,
                                       Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallVoidMethodV  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
+      Object obj = env.getJNIRef(objJREF);
       VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress, VM_TypeReference.Void, false);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -1382,12 +1379,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param argAddress a raw address to an array of unions in C, each element is 2-word 
    *        and hold an argument of the appropriate type for the method invocation   
    */
-  private static void CallVoidMethodA(VM_JNIEnvironment env, int objJREF, int methodID, 
+  private static void CallVoidMethodA(VM_JNIEnvironment env, int objJREF, int methodID,
                                       Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallVoidMethodA  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
+      Object obj = env.getJNIRef(objJREF);
       VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress, VM_TypeReference.Void, false);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -1395,7 +1392,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     }
   }
 
-  /**   
+  /**
    * CallNonvirtualObjectMethod:  invoke a virtual method that returns an object
    *                           arguments passed using the vararg ... style
    * NOTE:  the vararg's are not visible in the method signature here; 
@@ -1406,14 +1403,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param methodID id of a VM_MethodReference
    * @return the JREF index for the object returned from the method invocation
    */
-  private static int CallNonvirtualObjectMethod(VM_JNIEnvironment env, int objJREF, int classJREF, 
+  private static int CallNonvirtualObjectMethod(VM_JNIEnvironment env, int objJREF, int classJREF,
                                                 int methodID) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualObjectMethod  \n");  
+    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualObjectMethod  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
+      Object obj = env.getJNIRef(objJREF);
       Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(obj, methodID, null, true);
-      return env.pushJNIRef(returnObj);     
+      return env.pushJNIRef(returnObj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -1431,14 +1428,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the JREF index for the object returned from the method invocation
    */
-  private static int CallNonvirtualObjectMethodV(VM_JNIEnvironment env, int objJREF, int classJREF, 
+  private static int CallNonvirtualObjectMethodV(VM_JNIEnvironment env, int objJREF, int classJREF,
                                                  int methodID, Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualObjectMethodV  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
+      Object obj = env.getJNIRef(objJREF);
       Object returnObj = VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress, null, true);
-      return env.pushJNIRef(returnObj);     
+      return env.pushJNIRef(returnObj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -1456,14 +1453,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *        and hold an argument of the appropriate type for the method invocation   
    * @return the JREF index for the object returned from the method invocation
    */
-  private static int CallNonvirtualObjectMethodA(VM_JNIEnvironment env, int objJREF, int classJREF, 
+  private static int CallNonvirtualObjectMethodA(VM_JNIEnvironment env, int objJREF, int classJREF,
                                                  int methodID, Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualObjectMethodA  \n");  
+    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualObjectMethodA  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
+      Object obj = env.getJNIRef(objJREF);
       Object returnObj = VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress, null, true);
-      return env.pushJNIRef(returnObj);     
+      return env.pushJNIRef(returnObj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -1482,12 +1479,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param methodID id of a VM_MethodReference
    * @return the boolean value returned from the method invocation
    */
-  private static boolean CallNonvirtualBooleanMethod(VM_JNIEnvironment env, int objJREF, int classJREF, 
+  private static boolean CallNonvirtualBooleanMethod(VM_JNIEnvironment env, int objJREF, int classJREF,
                                                      int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualBooleanMethod  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
+      Object obj = env.getJNIRef(objJREF);
       Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(obj, methodID, VM_TypeReference.Boolean, true);
       return VM_Reflection.unwrapBoolean(returnObj);     // should be a wrapper for a boolean value
     } catch (Throwable unexpected) {
@@ -1507,14 +1504,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the boolean value returned from the method invocation
    */
-  private static boolean CallNonvirtualBooleanMethodV(VM_JNIEnvironment env, int objJREF, int classJREF, 
+  private static boolean CallNonvirtualBooleanMethodV(VM_JNIEnvironment env, int objJREF, int classJREF,
                                                       int methodID, Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualBooleanMethodV  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress, 
-                                                            VM_TypeReference.Boolean, true);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress,
+                                                        VM_TypeReference.Boolean, true);
       return VM_Reflection.unwrapBoolean(returnObj);     // should be a wrapper for a boolean value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -1533,14 +1530,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *        and hold an argument of the appropriate type for the method invocation   
    * @return the boolean value returned from the method invocation
    */
-  private static boolean CallNonvirtualBooleanMethodA(VM_JNIEnvironment env, int objJREF, int classJREF, 
+  private static boolean CallNonvirtualBooleanMethodA(VM_JNIEnvironment env, int objJREF, int classJREF,
                                                       int methodID, Address argAddress) throws Exception {
-    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualBooleanMethodA  \n");  
+    if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualBooleanMethodA  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress, 
-                                                            VM_TypeReference.Boolean, true);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress,
+                                                        VM_TypeReference.Boolean, true);
       return VM_Reflection.unwrapBoolean(returnObj);     // should be a wrapper for a boolean value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -1560,14 +1557,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param methodID id of a VM_MethodReference
    * @return the byte value returned from the method invocation
    */
-  private static byte CallNonvirtualByteMethod(VM_JNIEnvironment env, int objJREF, int classJREF, 
+  private static byte CallNonvirtualByteMethod(VM_JNIEnvironment env, int objJREF, int classJREF,
                                                int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualByteMethod  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(obj, methodID, 
-                                                                  VM_TypeReference.Byte, true);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(obj, methodID,
+                                                              VM_TypeReference.Byte, true);
       return VM_Reflection.unwrapByte(returnObj);     // should be a wrapper for a byte value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -1586,14 +1583,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the byte value returned from the method invocation
    */
-  private static byte CallNonvirtualByteMethodV(VM_JNIEnvironment env, int objJREF, int classJREF, 
+  private static byte CallNonvirtualByteMethodV(VM_JNIEnvironment env, int objJREF, int classJREF,
                                                 int methodID, Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualByteMethodV  \n");
-    
+
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress, 
-                                                            VM_TypeReference.Byte, true);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress,
+                                                        VM_TypeReference.Byte, true);
       return VM_Reflection.unwrapByte(returnObj);     // should be a wrapper for a byte value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -1612,14 +1609,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *        and hold an argument of the appropriate type for the method invocation   
    * @return the byte value returned from the method invocation
    */
-  private static byte CallNonvirtualByteMethodA(VM_JNIEnvironment env, int objJREF, int classJREF, 
+  private static byte CallNonvirtualByteMethodA(VM_JNIEnvironment env, int objJREF, int classJREF,
                                                 int methodID, Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualByteMethodA  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress, 
-                                                            VM_TypeReference.Byte, true);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress,
+                                                        VM_TypeReference.Byte, true);
       return VM_Reflection.unwrapByte(returnObj);     // should be a wrapper for a byte value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -1639,14 +1636,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param methodID id of a VM_MethodReference
    * @return the char value returned from the method invocation
    */
-  private static char CallNonvirtualCharMethod(VM_JNIEnvironment env, int objJREF, int classJREF, 
+  private static char CallNonvirtualCharMethod(VM_JNIEnvironment env, int objJREF, int classJREF,
                                                int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualCharMethod  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(obj, methodID, 
-                                                                  VM_TypeReference.Char, true);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(obj, methodID,
+                                                              VM_TypeReference.Char, true);
       return VM_Reflection.unwrapChar(returnObj);     // should be a wrapper for a char value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -1665,14 +1662,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the char value returned from the method invocation
    */
-  private static char CallNonvirtualCharMethodV(VM_JNIEnvironment env, int objJREF, int classJREF, 
+  private static char CallNonvirtualCharMethodV(VM_JNIEnvironment env, int objJREF, int classJREF,
                                                 int methodID, Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualCharMethodV  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress, 
-                                                            VM_TypeReference.Char, true);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress,
+                                                        VM_TypeReference.Char, true);
       return VM_Reflection.unwrapChar(returnObj);     // should be a wrapper for a char value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -1691,14 +1688,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *        and hold an argument of the appropriate type for the method invocation   
    * @return the char value returned from the method invocation
    */
-  private static char CallNonvirtualCharMethodA(VM_JNIEnvironment env, int objJREF, int classJREF, 
+  private static char CallNonvirtualCharMethodA(VM_JNIEnvironment env, int objJREF, int classJREF,
                                                 int methodID, Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualCharMethodA  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress, 
-                                                            VM_TypeReference.Char, true);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress,
+                                                        VM_TypeReference.Char, true);
       return VM_Reflection.unwrapChar(returnObj);     // should be a wrapper for a char value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -1718,14 +1715,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param methodID id of a VM_MethodReference
    * @return the short value returned from the method invocation
    */
-  private static short CallNonvirtualShortMethod(VM_JNIEnvironment env, int objJREF, int classJREF, 
+  private static short CallNonvirtualShortMethod(VM_JNIEnvironment env, int objJREF, int classJREF,
                                                  int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualShortMethod  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(obj, methodID, 
-                                                                  VM_TypeReference.Short, true);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(obj, methodID,
+                                                              VM_TypeReference.Short, true);
       return VM_Reflection.unwrapShort(returnObj);     // should be a wrapper for a short value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -1744,14 +1741,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the short value returned from the method invocation
    */
-  private static short CallNonvirtualShortMethodV(VM_JNIEnvironment env, int objJREF, int classJREF, 
+  private static short CallNonvirtualShortMethodV(VM_JNIEnvironment env, int objJREF, int classJREF,
                                                   int methodID, Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualShortMethodV  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress, 
-                                                            VM_TypeReference.Short, true);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress,
+                                                        VM_TypeReference.Short, true);
       return VM_Reflection.unwrapShort(returnObj);     // should be a wrapper for a short value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -1770,14 +1767,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *        and hold an argument of the appropriate type for the method invocation   
    * @return the short value returned from the method invocation
    */
-  private static short CallNonvirtualShortMethodA(VM_JNIEnvironment env, int objJREF, int classJREF, 
+  private static short CallNonvirtualShortMethodA(VM_JNIEnvironment env, int objJREF, int classJREF,
                                                   int methodID, Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualShortMethodA  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress, 
-                                                            VM_TypeReference.Short, true);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress,
+                                                        VM_TypeReference.Short, true);
       return VM_Reflection.unwrapShort(returnObj);     // should be a wrapper for a short value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -1797,13 +1794,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param methodID id of a VM_MethodReference
    * @return the int value returned from the method invocation
    */
-  private static int CallNonvirtualIntMethod(VM_JNIEnvironment env, int objJREF, int classJREF, int methodID) throws Exception {
+  private static int CallNonvirtualIntMethod(VM_JNIEnvironment env, int objJREF, int classJREF, int methodID)
+      throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualIntMethod  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(obj, methodID, 
-                                                                  VM_TypeReference.Int, true);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(obj, methodID,
+                                                              VM_TypeReference.Int, true);
       return VM_Reflection.unwrapInt(returnObj);     // should be a wrapper for an integer value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -1822,14 +1820,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the int value returned from the method invocation
    */
-  private static int CallNonvirtualIntMethodV(VM_JNIEnvironment env, int objJREF, int classJREF, 
+  private static int CallNonvirtualIntMethodV(VM_JNIEnvironment env, int objJREF, int classJREF,
                                               int methodID, Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualIntMethodV  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress, 
-                                                            VM_TypeReference.Int, true);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress,
+                                                        VM_TypeReference.Int, true);
       return VM_Reflection.unwrapInt(returnObj);     // should be a wrapper for an integer value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -1848,14 +1846,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *        and hold an argument of the appropriate type for the method invocation   
    * @return the integer value returned from the method invocation
    */
-  private static int CallNonvirtualIntMethodA(VM_JNIEnvironment env, int objJREF, int classJREF, 
+  private static int CallNonvirtualIntMethodA(VM_JNIEnvironment env, int objJREF, int classJREF,
                                               int methodID, Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualIntMethodA  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress, 
-                                                            VM_TypeReference.Int, true);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress,
+                                                        VM_TypeReference.Int, true);
       return VM_Reflection.unwrapInt(returnObj);     // should be a wrapper for an integer value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -1875,14 +1873,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param methodID id of a VM_MethodReference
    * @return the long value returned from the method invocation
    */
-  private static long CallNonvirtualLongMethod(VM_JNIEnvironment env, int objJREF, int classJREF, 
+  private static long CallNonvirtualLongMethod(VM_JNIEnvironment env, int objJREF, int classJREF,
                                                int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualLongMethod  \n");
-    
+
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(obj, methodID, 
-                                                                  VM_TypeReference.Long, true);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(obj, methodID,
+                                                              VM_TypeReference.Long, true);
       return VM_Reflection.unwrapLong(returnObj);     // should be a wrapper for a long value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -1901,14 +1899,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the long value returned from the method invocation
    */
-  private static long CallNonvirtualLongMethodV(VM_JNIEnvironment env, int objJREF, int classJREF, 
+  private static long CallNonvirtualLongMethodV(VM_JNIEnvironment env, int objJREF, int classJREF,
                                                 int methodID, Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualLongMethodV  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress, 
-                                                            VM_TypeReference.Long, true);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress,
+                                                        VM_TypeReference.Long, true);
       return VM_Reflection.unwrapLong(returnObj);     // should be a wrapper for a long value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -1927,14 +1925,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *        and hold an argument of the appropriate type for the method invocation   
    * @return the long value returned from the method invocation
    */
-  private static long CallNonvirtualLongMethodA(VM_JNIEnvironment env, int objJREF, int classJREF, 
+  private static long CallNonvirtualLongMethodA(VM_JNIEnvironment env, int objJREF, int classJREF,
                                                 int methodID, Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualLongMethodA  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress, 
-                                                            VM_TypeReference.Long, true);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress,
+                                                        VM_TypeReference.Long, true);
       return VM_Reflection.unwrapLong(returnObj);     // should be a wrapper for a long value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -1954,12 +1952,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param methodID id of a VM_MethodReference
    * @return the float value returned from the method invocation
    */
-  private static float CallNonvirtualFloatMethod(VM_JNIEnvironment env, int objJREF, int classJREF, 
+  private static float CallNonvirtualFloatMethod(VM_JNIEnvironment env, int objJREF, int classJREF,
                                                  int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualFloatMethod  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
+      Object obj = env.getJNIRef(objJREF);
       Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(obj, methodID, VM_TypeReference.Float, true);
       return VM_Reflection.unwrapFloat(returnObj);     // should be a wrapper for a float value
     } catch (Throwable unexpected) {
@@ -1979,14 +1977,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the float value returned from the method invocation
    */
-  private static float CallNonvirtualFloatMethodV(VM_JNIEnvironment env, int objJREF, int classJREF, 
+  private static float CallNonvirtualFloatMethodV(VM_JNIEnvironment env, int objJREF, int classJREF,
                                                   int methodID, Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualFloatMethodV  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress, 
-                                                            VM_TypeReference.Float, true);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress,
+                                                        VM_TypeReference.Float, true);
       return VM_Reflection.unwrapFloat(returnObj);     // should be a wrapper for a float value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2005,14 +2003,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *        and hold an argument of the appropriate type for the method invocation   
    * @return the float value returned from the method invocation
    */
-  private static float CallNonvirtualFloatMethodA(VM_JNIEnvironment env, int objJREF, int classJREF, 
+  private static float CallNonvirtualFloatMethodA(VM_JNIEnvironment env, int objJREF, int classJREF,
                                                   int methodID, Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualFloatMethodA  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress, 
-                                                            VM_TypeReference.Float, true);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress,
+                                                        VM_TypeReference.Float, true);
       return VM_Reflection.unwrapFloat(returnObj);     // should be a wrapper for a float value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2032,12 +2030,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param methodID id of a VM_MethodReference
    * @return the double value returned from the method invocation
    */
-  private static double CallNonvirtualDoubleMethod(VM_JNIEnvironment env, int objJREF, int classJREF, 
+  private static double CallNonvirtualDoubleMethod(VM_JNIEnvironment env, int objJREF, int classJREF,
                                                    int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualDoubleMethod  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
+      Object obj = env.getJNIRef(objJREF);
       Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(obj, methodID, VM_TypeReference.Double, true);
       return VM_Reflection.unwrapDouble(returnObj);     // should be a wrapper for a double value
     } catch (Throwable unexpected) {
@@ -2057,14 +2055,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the double value returned from the method invocation
    */
-  private static double CallNonvirtualDoubleMethodV(VM_JNIEnvironment env, int objJREF, int classJREF, 
+  private static double CallNonvirtualDoubleMethodV(VM_JNIEnvironment env, int objJREF, int classJREF,
                                                     int methodID, Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualDoubleMethodV  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress, 
-                                                            VM_TypeReference.Double, true);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj = VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress,
+                                                        VM_TypeReference.Double, true);
       return VM_Reflection.unwrapDouble(returnObj);     // should be a wrapper for a double value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2083,15 +2081,15 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *        and hold an argument of the appropriate type for the method invocation   
    * @return the double value returned from the method invocation
    */
-  private static double CallNonvirtualDoubleMethodA(VM_JNIEnvironment env, int objJREF, int classJREF, 
+  private static double CallNonvirtualDoubleMethodA(VM_JNIEnvironment env, int objJREF, int classJREF,
                                                     int methodID, Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualDoubleMethodA  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object returnObj = 
-        VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress, 
-                                       VM_TypeReference.Double, true);
+      Object obj = env.getJNIRef(objJREF);
+      Object returnObj =
+          VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress,
+                                         VM_TypeReference.Double, true);
       return VM_Reflection.unwrapDouble(returnObj);     // should be a wrapper for a double value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2110,12 +2108,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a VM_MethodReference
    */
-  private static void CallNonvirtualVoidMethod(VM_JNIEnvironment env, int objJREF, int classJREF, 
+  private static void CallNonvirtualVoidMethod(VM_JNIEnvironment env, int objJREF, int classJREF,
                                                int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualVoidMethod  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
+      Object obj = env.getJNIRef(objJREF);
       VM_JNIHelpers.invokeWithDotDotVarArg(obj, methodID, VM_TypeReference.Void, true);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2132,12 +2130,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param argAddress a raw address to a variable argument list, each element is 
    *              1-word or 2-words of the appropriate type for the method invocation
    */
-  private static void CallNonvirtualVoidMethodV(VM_JNIEnvironment env, int objJREF, int classJREF, 
+  private static void CallNonvirtualVoidMethodV(VM_JNIEnvironment env, int objJREF, int classJREF,
                                                 int methodID, Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualVoidMethodV  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
+      Object obj = env.getJNIRef(objJREF);
       VM_JNIHelpers.invokeWithVarArg(obj, methodID, argAddress, VM_TypeReference.Void, true);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2154,12 +2152,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param argAddress a raw address to an array of unions in C, each element is 2-word 
    *        and hold an argument of the appropriate type for the method invocation   
    */
-  private static void CallNonvirtualVoidMethodA(VM_JNIEnvironment env, int objJREF, int classJREF, 
+  private static void CallNonvirtualVoidMethodA(VM_JNIEnvironment env, int objJREF, int classJREF,
                                                 int methodID, Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualVoidMethodA  \n");
-    
+
     try {
-      Object obj =  env.getJNIRef(objJREF);
+      Object obj = env.getJNIRef(objJREF);
       VM_JNIHelpers.invokeWithJValue(obj, methodID, argAddress, VM_TypeReference.Void, true);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2179,9 +2177,9 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @exception ExceptionInInitializerError if the class initializer fails
    * @exception OutOfMemoryError if the system runs out of memory
    */
-  private static int GetFieldID(VM_JNIEnvironment env, int classJREF, 
+  private static int GetFieldID(VM_JNIEnvironment env, int classJREF,
                                 Address fieldNameAddress, Address descriptorAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: GetFieldID  \n");  
+    if (traceJNI) VM.sysWrite("JNI called: GetFieldID  \n");
 
     try {
       Class<?> cls = (Class<?>) env.getJNIRef(classJREF);
@@ -2201,11 +2199,11 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
       // create exception and return 0 if not found
       env.recordException(new NoSuchFieldError(fieldString + ", " + descriptorString + " of " + cls));
-      return 0;                      
+      return 0;
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
-      return 0;                      
+      return 0;
     }
   }
 
@@ -2221,14 +2219,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: GetObjectField  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
+      Object obj = env.getJNIRef(objJREF);
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       Object objVal = field.getObjectUnchecked(obj);
       return env.pushJNIRef(objVal);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
-      return 0;                      
+      return 0;
     }
   }
 
@@ -2243,13 +2241,13 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: GetBooleanField  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
+      Object obj = env.getJNIRef(objJREF);
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       return field.getBooleanValueUnchecked(obj) ? 1 : 0;
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
-      return 0;                      
+      return 0;
     }
   }
 
@@ -2264,13 +2262,13 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: GetByteField  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
+      Object obj = env.getJNIRef(objJREF);
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       return field.getByteValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
-      return 0;                      
+      return 0;
     }
   }
 
@@ -2285,13 +2283,13 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: GetCharField  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
+      Object obj = env.getJNIRef(objJREF);
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       return field.getCharValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
-      return 0;                      
+      return 0;
     }
   }
 
@@ -2306,13 +2304,13 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: GetShortField  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
+      Object obj = env.getJNIRef(objJREF);
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       return field.getShortValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
-      return 0;                      
+      return 0;
     }
   }
 
@@ -2327,13 +2325,13 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: GetIntField  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
+      Object obj = env.getJNIRef(objJREF);
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       return field.getIntValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
-      return 0;                      
+      return 0;
     }
   }
 
@@ -2348,13 +2346,13 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: GetLongField  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
+      Object obj = env.getJNIRef(objJREF);
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       return field.getLongValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
-      return 0L;                      
+      return 0L;
     }
   }
 
@@ -2369,13 +2367,13 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: GetFloatField  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
+      Object obj = env.getJNIRef(objJREF);
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       return field.getFloatValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
-      return 0f;                      
+      return 0f;
     }
   }
 
@@ -2390,13 +2388,13 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: GetDoubleField  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
+      Object obj = env.getJNIRef(objJREF);
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
       return field.getDoubleValueUnchecked(obj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
-      return 0.0;                      
+      return 0.0;
     }
   }
 
@@ -2411,16 +2409,15 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: SetObjectField  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
-      Object value =  env.getJNIRef(valueJREF);
+      Object obj = env.getJNIRef(objJREF);
+      Object value = env.getJNIRef(valueJREF);
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
-      field.setObjectValueUnchecked(obj,value);
+      field.setObjectValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
     }
   }
-
 
   /**
    * SetBooleanField: set an instance field of type boolean
@@ -2433,9 +2430,9 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: SetBooleanField  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
+      Object obj = env.getJNIRef(objJREF);
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
-      field.setBooleanValueUnchecked(obj,value);
+      field.setBooleanValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -2453,9 +2450,9 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: SetByteField  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
+      Object obj = env.getJNIRef(objJREF);
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
-      field.setByteValueUnchecked(obj,value);    
+      field.setByteValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -2473,9 +2470,9 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: SetCharField  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
+      Object obj = env.getJNIRef(objJREF);
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
-      field.setCharValueUnchecked(obj,value);    
+      field.setCharValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -2493,9 +2490,9 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: SetShortField  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
+      Object obj = env.getJNIRef(objJREF);
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
-      field.setShortValueUnchecked(obj,value);    
+      field.setShortValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -2513,9 +2510,9 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: SetIntField  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
+      Object obj = env.getJNIRef(objJREF);
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
-      field.setIntValueUnchecked(obj,value);    
+      field.setIntValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -2533,9 +2530,9 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: SetLongField  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
+      Object obj = env.getJNIRef(objJREF);
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
-      field.setLongValueUnchecked(obj,value);
+      field.setLongValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -2553,15 +2550,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: SetFloatField  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
+      Object obj = env.getJNIRef(objJREF);
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
-      field.setFloatValueUnchecked(obj,value);    
+      field.setFloatValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
     }
   }
-
 
   /**
    * SetDoubleField: set an instance field of type double
@@ -2574,15 +2570,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: SetDoubleField  \n");
 
     try {
-      Object obj =  env.getJNIRef(objJREF);
+      Object obj = env.getJNIRef(objJREF);
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
-      field.setDoubleValueUnchecked(obj,value);    
+      field.setDoubleValueUnchecked(obj, value);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
     }
   }
-
 
   /**
    * GetStaticMethodID:  return the method ID for invocation later
@@ -2595,7 +2590,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @exception ExceptionInInitializerError if the initializer fails
    * @exception OutOfMemoryError if the system runs out of memory
    */
-  private static int GetStaticMethodID(VM_JNIEnvironment env, int classJREF, Address methodNameAddress, 
+  private static int GetStaticMethodID(VM_JNIEnvironment env, int classJREF, Address methodNameAddress,
                                        Address methodSigAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetStaticMethodID  \n");
 
@@ -2604,7 +2599,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       String methodString = VM_JNIHelpers.createStringFromC(methodNameAddress);
       VM_Atom methodName = VM_Atom.findOrCreateAsciiAtom(methodString);
       String sigString = VM_JNIHelpers.createStringFromC(methodSigAddress);
-      VM_Atom sigName  = VM_Atom.findOrCreateAsciiAtom(sigString);
+      VM_Atom sigName = VM_Atom.findOrCreateAsciiAtom(sigString);
 
       // get the target class 
       Class<?> jcls = (Class<?>) env.getJNIRef(classJREF);
@@ -2612,7 +2607,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       if (!type.isClassType()) {
         env.recordException(new NoSuchMethodError());
         return 0;
-      } 
+      }
 
       VM_Class klass = type.asClass();
       if (!klass.isInitialized()) {
@@ -2624,7 +2619,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       if (meth == null) {
         env.recordException(new NoSuchMethodError());
         return 0;
-      } 
+      }
 
       if (traceJNI) VM.sysWrite("got method " + meth + "\n");
       return meth.getId();
@@ -2667,13 +2662,13 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *                   of the appropriate type for the method invocation
    * @return the JREF index for the object returned from the method invocation
    */
-  private static int CallStaticObjectMethodV(VM_JNIEnvironment env, int classJREF, int methodID, 
+  private static int CallStaticObjectMethodV(VM_JNIEnvironment env, int classJREF, int methodID,
                                              Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticObjectMethodV  \n");
 
     try {
-      Object returnObj = VM_JNIHelpers.invokeWithVarArg(methodID, argAddress, null);    
-      return env.pushJNIRef(returnObj);           
+      Object returnObj = VM_JNIHelpers.invokeWithVarArg(methodID, argAddress, null);
+      return env.pushJNIRef(returnObj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -2690,13 +2685,13 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *                   of the appropriate type for the method invocation
    * @return the JREF index for the object returned from the method invocation
    */
-  private static int CallStaticObjectMethodA(VM_JNIEnvironment env, int classJREF, int methodID, 
+  private static int CallStaticObjectMethodA(VM_JNIEnvironment env, int classJREF, int methodID,
                                              Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticObjectMethodA  \n");
 
     try {
-      Object returnObj = VM_JNIHelpers.invokeWithJValue(methodID, argAddress, null);    
-      return env.pushJNIRef(returnObj);           
+      Object returnObj = VM_JNIHelpers.invokeWithJValue(methodID, argAddress, null);
+      return env.pushJNIRef(returnObj);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -2736,12 +2731,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *                   of the appropriate type for the method invocation
    * @return the boolean value returned from the method invocation
    */
-  private static boolean CallStaticBooleanMethodV(VM_JNIEnvironment env, int classJREF, 
+  private static boolean CallStaticBooleanMethodV(VM_JNIEnvironment env, int classJREF,
                                                   int methodID, Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticBooleanMethodV  \n");
 
     try {
-      Object returnObj = VM_JNIHelpers.invokeWithVarArg(methodID, argAddress, VM_TypeReference.Boolean);    
+      Object returnObj = VM_JNIHelpers.invokeWithVarArg(methodID, argAddress, VM_TypeReference.Boolean);
       return VM_Reflection.unwrapBoolean(returnObj);     // should be a wrapper for a boolean value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2759,12 +2754,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *                   of the appropriate type for the method invocation
    * @return the boolean value returned from the method invocation
    */
-  private static boolean CallStaticBooleanMethodA(VM_JNIEnvironment env, int classJREF, 
+  private static boolean CallStaticBooleanMethodA(VM_JNIEnvironment env, int classJREF,
                                                   int methodID, Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticBooleanMethodA  \n");
 
     try {
-      Object returnObj = VM_JNIHelpers.invokeWithJValue(methodID, argAddress, VM_TypeReference.Boolean);    
+      Object returnObj = VM_JNIHelpers.invokeWithJValue(methodID, argAddress, VM_TypeReference.Boolean);
       return VM_Reflection.unwrapBoolean(returnObj);     // should be a wrapper for a boolean value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2805,12 +2800,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *                   of the appropriate type for the method invocation
    * @return the byte value returned from the method invocation
    */
-  private static byte CallStaticByteMethodV(VM_JNIEnvironment env, int classJREF, int methodID, 
+  private static byte CallStaticByteMethodV(VM_JNIEnvironment env, int classJREF, int methodID,
                                             Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticByteMethodV  \n");
 
     try {
-      Object returnObj = VM_JNIHelpers.invokeWithVarArg(methodID, argAddress, VM_TypeReference.Byte);    
+      Object returnObj = VM_JNIHelpers.invokeWithVarArg(methodID, argAddress, VM_TypeReference.Byte);
       return VM_Reflection.unwrapByte(returnObj);     // should be a wrapper for a byte value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2828,12 +2823,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *                   of the appropriate type for the method invocation
    * @return the byte value returned from the method invocation
    */
-  private static byte CallStaticByteMethodA(VM_JNIEnvironment env, int classJREF, int methodID, 
+  private static byte CallStaticByteMethodA(VM_JNIEnvironment env, int classJREF, int methodID,
                                             Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticByteMethodA  \n");
 
     try {
-      Object returnObj = VM_JNIHelpers.invokeWithJValue(methodID, argAddress, VM_TypeReference.Byte);    
+      Object returnObj = VM_JNIHelpers.invokeWithJValue(methodID, argAddress, VM_TypeReference.Byte);
       return VM_Reflection.unwrapByte(returnObj);     // should be a wrapper for a byte value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2873,13 +2868,13 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param argAddress a raw address to a variable argument list, each element is 1-word or 2-words
    *                   of the appropriate type for the method invocation
    * @return the char value returned from the method invocation
-   */  
-  private static char CallStaticCharMethodV(VM_JNIEnvironment env, int classJREF, int methodID, 
+   */
+  private static char CallStaticCharMethodV(VM_JNIEnvironment env, int classJREF, int methodID,
                                             Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticCharMethodV  \n");
 
     try {
-      Object returnObj = VM_JNIHelpers.invokeWithVarArg(methodID, argAddress, VM_TypeReference.Char);    
+      Object returnObj = VM_JNIHelpers.invokeWithVarArg(methodID, argAddress, VM_TypeReference.Char);
       return VM_Reflection.unwrapChar(returnObj);     // should be a wrapper for a char value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2897,12 +2892,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *                   of the appropriate type for the method invocation
    * @return the char value returned from the method invocation
    */
-  private static char CallStaticCharMethodA(VM_JNIEnvironment env, int classJREF, int methodID, 
+  private static char CallStaticCharMethodA(VM_JNIEnvironment env, int classJREF, int methodID,
                                             Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticCharMethodA  \n");
 
     try {
-      Object returnObj = VM_JNIHelpers.invokeWithJValue(methodID, argAddress, VM_TypeReference.Char);    
+      Object returnObj = VM_JNIHelpers.invokeWithJValue(methodID, argAddress, VM_TypeReference.Char);
       return VM_Reflection.unwrapChar(returnObj);     // should be a wrapper for a char value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2943,12 +2938,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *                   of the appropriate type for the method invocation
    * @return the short value returned from the method invocation
    */
-  private static short CallStaticShortMethodV(VM_JNIEnvironment env, int classJREF, int methodID, 
+  private static short CallStaticShortMethodV(VM_JNIEnvironment env, int classJREF, int methodID,
                                               Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticShortMethodV  \n");
 
     try {
-      Object returnObj = VM_JNIHelpers.invokeWithVarArg(methodID, argAddress, VM_TypeReference.Short);    
+      Object returnObj = VM_JNIHelpers.invokeWithVarArg(methodID, argAddress, VM_TypeReference.Short);
       return VM_Reflection.unwrapShort(returnObj);     // should be a wrapper for a short value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -2966,12 +2961,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *                   of the appropriate type for the method invocation
    * @return the short value returned from the method invocation
    */
-  private static short CallStaticShortMethodA(VM_JNIEnvironment env, int classJREF, int methodID, 
+  private static short CallStaticShortMethodA(VM_JNIEnvironment env, int classJREF, int methodID,
                                               Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticShortMethodA  \n");
-    
+
     try {
-      Object returnObj = VM_JNIHelpers.invokeWithJValue(methodID, argAddress, VM_TypeReference.Short);    
+      Object returnObj = VM_JNIHelpers.invokeWithJValue(methodID, argAddress, VM_TypeReference.Short);
       return VM_Reflection.unwrapShort(returnObj);     // should be a wrapper for a short value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3012,12 +3007,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *                   of the appropriate type for the method invocation
    * @return the integer value returned from the method invocation
    */
-  private static int CallStaticIntMethodV(VM_JNIEnvironment env, int classJREF, int methodID, 
+  private static int CallStaticIntMethodV(VM_JNIEnvironment env, int classJREF, int methodID,
                                           Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticIntMethodV  \n");
 
     try {
-      Object returnObj = VM_JNIHelpers.invokeWithVarArg(methodID, argAddress, VM_TypeReference.Int);    
+      Object returnObj = VM_JNIHelpers.invokeWithVarArg(methodID, argAddress, VM_TypeReference.Int);
       return VM_Reflection.unwrapInt(returnObj);     // should be a wrapper for an integer value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3035,12 +3030,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *                   of the appropriate type for the method invocation
    * @return the integer value returned from the method invocation
    */
-  private static int CallStaticIntMethodA(VM_JNIEnvironment env, int classJREF, int methodID, 
+  private static int CallStaticIntMethodA(VM_JNIEnvironment env, int classJREF, int methodID,
                                           Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticIntMethodA  \n");
 
     try {
-      Object returnObj = VM_JNIHelpers.invokeWithJValue(methodID, argAddress, VM_TypeReference.Int);    
+      Object returnObj = VM_JNIHelpers.invokeWithJValue(methodID, argAddress, VM_TypeReference.Int);
       return VM_Reflection.unwrapInt(returnObj);     // should be a wrapper for an integer value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3081,12 +3076,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *                   of the appropriate type for the method invocation
    * @return the long value returned from the method invocation
    */
-  private static long CallStaticLongMethodV(VM_JNIEnvironment env, int classJREF, int methodID, 
+  private static long CallStaticLongMethodV(VM_JNIEnvironment env, int classJREF, int methodID,
                                             Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticLongMethodV  \n");
 
     try {
-      Object returnObj = VM_JNIHelpers.invokeWithVarArg(methodID, argAddress, VM_TypeReference.Long);    
+      Object returnObj = VM_JNIHelpers.invokeWithVarArg(methodID, argAddress, VM_TypeReference.Long);
       return VM_Reflection.unwrapLong(returnObj);     // should be a wrapper for a long value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3104,12 +3099,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *                   of the appropriate type for the method invocation
    * @return the long value returned from the method invocation
    */
-  private static long CallStaticLongMethodA(VM_JNIEnvironment env, int classJREF, int methodID, 
+  private static long CallStaticLongMethodA(VM_JNIEnvironment env, int classJREF, int methodID,
                                             Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticLongMethodA  \n");
 
     try {
-      Object returnObj = VM_JNIHelpers.invokeWithJValue(methodID, argAddress, VM_TypeReference.Long);    
+      Object returnObj = VM_JNIHelpers.invokeWithJValue(methodID, argAddress, VM_TypeReference.Long);
       return VM_Reflection.unwrapLong(returnObj);     // should be a wrapper for a long value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3150,12 +3145,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *                   of the appropriate type for the method invocation
    * @return the float value returned from the method invocation
    */
-  private static float CallStaticFloatMethodV(VM_JNIEnvironment env, int classJREF, int methodID, 
+  private static float CallStaticFloatMethodV(VM_JNIEnvironment env, int classJREF, int methodID,
                                               Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticFloatMethodV  \n");
 
     try {
-      Object returnObj = VM_JNIHelpers.invokeWithVarArg(methodID, argAddress, VM_TypeReference.Float);    
+      Object returnObj = VM_JNIHelpers.invokeWithVarArg(methodID, argAddress, VM_TypeReference.Float);
       return VM_Reflection.unwrapFloat(returnObj);     // should be a wrapper for a float value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3173,12 +3168,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *                   of the appropriate type for the method invocation
    * @return the float value returned from the method invocation
    */
-  private static float CallStaticFloatMethodA(VM_JNIEnvironment env, int classJREF, int methodID, 
+  private static float CallStaticFloatMethodA(VM_JNIEnvironment env, int classJREF, int methodID,
                                               Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticFloatMethodA  \n");
 
     try {
-      Object returnObj = VM_JNIHelpers.invokeWithJValue(methodID, argAddress, VM_TypeReference.Float);    
+      Object returnObj = VM_JNIHelpers.invokeWithJValue(methodID, argAddress, VM_TypeReference.Float);
       return VM_Reflection.unwrapFloat(returnObj);     // should be a wrapper for a float value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3219,12 +3214,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *                   of the appropriate type for the method invocation
    * @return the double value returned from the method invocation
    */
-  private static double CallStaticDoubleMethodV(VM_JNIEnvironment env, int classJREF, int methodID, 
+  private static double CallStaticDoubleMethodV(VM_JNIEnvironment env, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticDoubleMethodV  \n");
 
     try {
-      Object returnObj = VM_JNIHelpers.invokeWithVarArg(methodID, argAddress, VM_TypeReference.Double);    
+      Object returnObj = VM_JNIHelpers.invokeWithVarArg(methodID, argAddress, VM_TypeReference.Double);
       return VM_Reflection.unwrapDouble(returnObj);     // should be a wrapper for a double value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3242,12 +3237,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *                   of the appropriate type for the method invocation
    * @return the double value returned from the method invocation
    */
-  private static double CallStaticDoubleMethodA(VM_JNIEnvironment env, int classJREF, int methodID, 
+  private static double CallStaticDoubleMethodA(VM_JNIEnvironment env, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticDoubleMethodA  \n");
 
     try {
-      Object returnObj = VM_JNIHelpers.invokeWithJValue(methodID, argAddress, VM_TypeReference.Double);    
+      Object returnObj = VM_JNIHelpers.invokeWithJValue(methodID, argAddress, VM_TypeReference.Double);
       return VM_Reflection.unwrapDouble(returnObj);     // should be a wrapper for a double value
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3284,12 +3279,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
    *                   of the appropriate type for the method invocation
    */
-  private static void CallStaticVoidMethodV(VM_JNIEnvironment env, int classJREF, int methodID, 
+  private static void CallStaticVoidMethodV(VM_JNIEnvironment env, int classJREF, int methodID,
                                             Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticVoidMethodV  \n");
 
     try {
-      VM_JNIHelpers.invokeWithVarArg(methodID, argAddress, VM_TypeReference.Void);    
+      VM_JNIHelpers.invokeWithVarArg(methodID, argAddress, VM_TypeReference.Void);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -3304,12 +3299,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
    *                   of the appropriate type for the method invocation
    */
-  private static void CallStaticVoidMethodA(VM_JNIEnvironment env, int classJREF, int methodID, 
+  private static void CallStaticVoidMethodA(VM_JNIEnvironment env, int classJREF, int methodID,
                                             Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticVoidMethodA  \n");
 
     try {
-      VM_JNIHelpers.invokeWithJValue(methodID, argAddress, VM_TypeReference.Void);    
+      VM_JNIHelpers.invokeWithJValue(methodID, argAddress, VM_TypeReference.Void);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -3328,10 +3323,10 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @exception ExceptionInInitializerError if the class initializer fails
    * @exception OutOfMemoryError if the system runs out of memory
    */
-  private static int GetStaticFieldID(VM_JNIEnvironment env, int classJREF, 
+  private static int GetStaticFieldID(VM_JNIEnvironment env, int classJREF,
                                       Address fieldNameAddress, Address descriptorAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetStaticFieldID  \n");
-    
+
     try {
       Class<?> cls = (Class<?>) env.getJNIRef(classJREF);
 
@@ -3552,7 +3547,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
-      Object ref = env.getJNIRef(objectJREF);      
+      Object ref = env.getJNIRef(objectJREF);
       field.setObjectValueUnchecked(null, ref);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3726,7 +3721,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       final char[] contents = new char[len];
-      VM_Memory.memcopy(VM_Magic.objectAsAddress(contents), uchars, len*2);
+      VM_Memory.memcopy(VM_Magic.objectAsAddress(contents), uchars, len * 2);
       return env.pushJNIRef(new String(contents));
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3745,7 +3740,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: GetStringLength  \n");
 
     try {
-      String str =  (String) env.getJNIRef(objJREF);
+      String str = (String) env.getJNIRef(objJREF);
       return str.length();
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3767,17 +3762,17 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: GetStringChars  \n");
 
     try {
-      String str =  (String) env.getJNIRef(objJREF);
+      String str = (String) env.getJNIRef(objJREF);
       int len = str.length();
       char[] contents = str.toCharArray();
 
       // alloc non moving buffer in C heap for a copy of string contents
-      Address copyBuffer = sysCall.sysMalloc(len*2);
-      if(copyBuffer.isZero()) {
+      Address copyBuffer = sysCall.sysMalloc(len * 2);
+      if (copyBuffer.isZero()) {
         env.recordException(new OutOfMemoryError());
         return Address.zero();
       }
-      VM_Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(contents), len*2);
+      VM_Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(contents), len * 2);
 
       /* Set caller's isCopy boolean to true, if we got a valid (non-null)
          address */
@@ -3807,7 +3802,6 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       env.recordException(unexpected);
     }
   }
-
 
   /**
    * NewStringUTF: create a String Object from C array of utf8 bytes
@@ -3841,7 +3835,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: GetStringUTFLength  \n");
 
     try {
-      String str =  (String) env.getJNIRef(objJREF);
+      String str = (String) env.getJNIRef(objJREF);
       return VM_UTF8Convert.utfLength(str);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -3863,17 +3857,19 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: GetStringUTFChars  \n");
 
     try {
-      String str =  (String) env.getJNIRef(strJREF);
+      String str = (String) env.getJNIRef(strJREF);
       byte[] utfcontents = VM_UTF8Convert.toUTF8(str);
 
       int len = utfcontents.length;
-      int copyBufferLen = VM_Memory.alignDown(len + BYTES_IN_ADDRESS, BYTES_IN_ADDRESS ); // need extra at end for storing terminator and end at word boundary 
+      int copyBufferLen =
+          VM_Memory.alignDown(len + BYTES_IN_ADDRESS,
+                              BYTES_IN_ADDRESS); // need extra at end for storing terminator and end at word boundary
 
       // alloc non moving buffer in C heap for string contents as utf8 array
       // alloc extra byte for C null terminator
       Address copyBuffer = sysCall.sysMalloc(copyBufferLen);
 
-      if(copyBuffer.isZero()) {
+      if (copyBuffer.isZero()) {
         env.recordException(new OutOfMemoryError());
         return Address.zero();
       }
@@ -3947,10 +3943,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       Object initElement = env.getJNIRef(initElementJREF);
       Class<?> cls = (Class<?>) env.getJNIRef(classJREF);
 
-      if(cls == null)
+      if (cls == null) {
         throw new NullPointerException();
-      if(length < 0)
+      }
+      if (length < 0) {
         throw new NegativeArraySizeException();
+      }
 
       VM_Array arrayType = java.lang.JikesRVMSupport.getTypeForClass(cls).getArrayTypeForElementType();
       if (!arrayType.isInitialized()) {
@@ -3958,15 +3956,15 @@ public class VM_JNIFunctions implements VM_SizeConstants {
         arrayType.instantiate();
         arrayType.initialize();
       }
-      Object[] newArray = (Object []) VM_Runtime.resolvedNewArray(length, arrayType);
+      Object[] newArray = (Object[]) VM_Runtime.resolvedNewArray(length, arrayType);
 
       if (initElement != null) {
-        for (int i=0; i<length; i++) {
+        for (int i = 0; i < length; i++) {
           newArray[i] = initElement;
         }
       }
 
-      return env.pushJNIRef(newArray);  
+      return env.pushJNIRef(newArray);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -3986,14 +3984,16 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: GetObjectArrayElement  \n");
 
     try {
-      Object[] sourceArray = (Object []) env.getJNIRef(arrayJREF);
+      Object[] sourceArray = (Object[]) env.getJNIRef(arrayJREF);
 
-      if (sourceArray==null)
+      if (sourceArray == null) {
         return 0;
+      }
 
       VM_Array arrayType = VM_Magic.getObjectType(sourceArray).asArray();
-      if (arrayType.getElementType().isPrimitiveType())
+      if (arrayType.getElementType().isPrimitiveType()) {
         return 0;
+      }
 
       if (index >= VM_Magic.getArrayLength(sourceArray)) {
         env.recordException(new ArrayIndexOutOfBoundsException());
@@ -4022,14 +4022,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: SetObjectArrayElement  \n");
 
     try {
-      Object[] sourceArray = (Object []) env.getJNIRef(arrayJREF);
+      Object[] sourceArray = (Object[]) env.getJNIRef(arrayJREF);
       Object elem = env.getJNIRef(objectJREF);
       sourceArray[index] = elem;
     } catch (Throwable e) {
       env.recordException(e);
     }
   }
-  
+
   /**
    * NewBooleanArray: create a new boolean array
    * @param env A JREF index for the JNI environment object
@@ -4042,7 +4042,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       boolean[] newArray = new boolean[length];
-      return env.pushJNIRef(newArray);  
+      return env.pushJNIRef(newArray);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -4062,7 +4062,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       byte[] newArray = new byte[length];
-      return env.pushJNIRef(newArray);  
+      return env.pushJNIRef(newArray);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -4082,7 +4082,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       char[] newArray = new char[length];
-      return env.pushJNIRef(newArray);  
+      return env.pushJNIRef(newArray);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -4102,7 +4102,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       short[] newArray = new short[length];
-      return env.pushJNIRef(newArray);  
+      return env.pushJNIRef(newArray);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -4122,7 +4122,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       int[] newArray = new int[length];
-      return env.pushJNIRef(newArray);  
+      return env.pushJNIRef(newArray);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -4142,7 +4142,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       long[] newArray = new long[length];
-      return env.pushJNIRef(newArray);  
+      return env.pushJNIRef(newArray);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -4162,7 +4162,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       float[] newArray = new float[length];
-      return env.pushJNIRef(newArray);  
+      return env.pushJNIRef(newArray);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -4182,7 +4182,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
       double[] newArray = new double[length];
-      return env.pushJNIRef(newArray);  
+      return env.pushJNIRef(newArray);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -4198,17 +4198,17 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @return A pointer to the boolean array and the isCopy flag is set to true if it's a copy
    *         or false if it's a direct pointer
    * @exception OutOfMemoryError if the system runs out of memory   
-   */  
+   */
   private static Address GetBooleanArrayElements(VM_JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetBooleanArrayElements  \n");
 
     try {
-      boolean[] sourceArray = (boolean []) env.getJNIRef(arrayJREF);
+      boolean[] sourceArray = (boolean[]) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
       // alloc non moving buffer in C heap for a copy of string contents
       Address copyBuffer = sysCall.sysMalloc(size);
-      if(copyBuffer.isZero()) {
+      if (copyBuffer.isZero()) {
         env.recordException(new OutOfMemoryError());
         return Address.zero();
       }
@@ -4235,19 +4235,19 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @return A pointer to the byte array and the isCopy flag is set to true if it's a copy
    *         or false if it's a direct pointer
    * @exception OutOfMemoryError if the system runs out of memory   
-   */  
+   */
   private static Address GetByteArrayElements(VM_JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetByteArrayElements \n");
 
     try {
-      byte[] sourceArray = (byte []) env.getJNIRef(arrayJREF);
+      byte[] sourceArray = (byte[]) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
       if (MM_Interface.objectCanMove(sourceArray)) {
         // alloc non moving buffer in C heap for a copy of string contents
         Address copyBuffer = sysCall.sysMalloc(size);
 
-        if(copyBuffer.isZero()) {
+        if (copyBuffer.isZero()) {
           env.recordException(new OutOfMemoryError());
           return Address.zero();
         }
@@ -4260,7 +4260,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
         return copyBuffer;
       } else {
-         /* return a direct pointer */
+        /* return a direct pointer */
         VM_JNIGenericHelpers.setBoolStar(isCopyAddress, false);
         return VM_Magic.objectAsAddress(sourceArray);
       }
@@ -4271,7 +4271,6 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     }
   }
 
-
   /**
    * GetCharArrayElements: get all the elements of a char array
    * @param env A JREF index for the JNI environment object
@@ -4280,23 +4279,23 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @return A pointer to the char array and the isCopy flag is set to true if it's a copy
    *         or false if it's a direct pointer
    * @exception OutOfMemoryError if the system runs out of memory   
-   */  
+   */
   private static Address GetCharArrayElements(VM_JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetCharArrayElements  \n");
 
     try {
-      char[] sourceArray = (char []) env.getJNIRef(arrayJREF);
+      char[] sourceArray = (char[]) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
       if (MM_Interface.objectCanMove(sourceArray)) {
         // alloc non moving buffer in C heap for a copy of string contents
-        Address copyBuffer = sysCall.sysMalloc(size*BYTES_IN_CHAR);
+        Address copyBuffer = sysCall.sysMalloc(size * BYTES_IN_CHAR);
         if (copyBuffer.isZero()) {
           env.recordException(new OutOfMemoryError());
           return Address.zero();
         }
 
-        VM_Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(sourceArray), size*BYTES_IN_CHAR);
+        VM_Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(sourceArray), size * BYTES_IN_CHAR);
 
         /* Set caller's isCopy boolean to true, if we got a valid (non-null)
          address */
@@ -4322,23 +4321,23 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @return A pointer to the short array and the isCopy flag is set to true if it's a copy
    *         or false if it's a direct pointer
    * @exception OutOfMemoryError if the system runs out of memory   
-   */  
+   */
   private static Address GetShortArrayElements(VM_JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetShortArrayElements  \n");
 
     try {
-      short[] sourceArray = (short []) env.getJNIRef(arrayJREF);
+      short[] sourceArray = (short[]) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
       if (MM_Interface.objectCanMove(sourceArray)) {
         // alloc non moving buffer in C heap for a copy of string contents
-        Address copyBuffer = sysCall.sysMalloc(size*BYTES_IN_SHORT);
-        if(copyBuffer.isZero()) {
+        Address copyBuffer = sysCall.sysMalloc(size * BYTES_IN_SHORT);
+        if (copyBuffer.isZero()) {
           env.recordException(new OutOfMemoryError());
           return Address.zero();
         }
 
-        VM_Memory.memcopy( copyBuffer, VM_Magic.objectAsAddress(sourceArray), size*BYTES_IN_SHORT );
+        VM_Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(sourceArray), size * BYTES_IN_SHORT);
 
         /* Set caller's isCopy boolean to true, if we got a valid (non-null)
          address */
@@ -4364,18 +4363,18 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @return A pointer to the integer array and the isCopy flag is set to true if it's a copy
    *         or false if it's a direct pointer
    * @exception OutOfMemoryError if the system runs out of memory   
-   */  
+   */
   private static Address GetIntArrayElements(VM_JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetIntArrayElements  \n");
 
     try {
-      int[] sourceArray = (int []) env.getJNIRef(arrayJREF);
+      int[] sourceArray = (int[]) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
       if (MM_Interface.objectCanMove(sourceArray)) {
         // alloc non moving buffer in C heap for a copy of array contents
         Address copyBuffer = sysCall.sysMalloc(size << LOG_BYTES_IN_INT);
-        if(copyBuffer.isZero()) {
+        if (copyBuffer.isZero()) {
           env.recordException(new OutOfMemoryError());
           return Address.zero();
         }
@@ -4405,18 +4404,18 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @return A pointer to the long array and the isCopy flag is set to true if it's a copy
    *         or false if it's a direct pointer
    * @exception OutOfMemoryError if the system runs out of memory   
-   */  
+   */
   private static Address GetLongArrayElements(VM_JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetLongArrayElements  \n");
 
     try {
-      long[] sourceArray = (long []) env.getJNIRef(arrayJREF);
+      long[] sourceArray = (long[]) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
       if (MM_Interface.objectCanMove(sourceArray)) {
         // alloc non moving buffer in C heap for a copy of string contents
         Address copyBuffer = sysCall.sysMalloc(size << LOG_BYTES_IN_LONG);
-        if(copyBuffer.isZero()) {
+        if (copyBuffer.isZero()) {
           env.recordException(new OutOfMemoryError());
           return Address.zero();
         }
@@ -4446,18 +4445,18 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @return A pointer to the float array and the isCopy flag is set to true if it's a copy
    *         or false if it's a direct pointer
    * @exception OutOfMemoryError if the system runs out of memory   
-   */  
+   */
   private static Address GetFloatArrayElements(VM_JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetFloatArrayElements  \n");
-    
+
     try {
-      float[] sourceArray = (float []) env.getJNIRef(arrayJREF);
+      float[] sourceArray = (float[]) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
       if (MM_Interface.objectCanMove(sourceArray)) {
         // alloc non moving buffer in C heap for a copy of string contents
         Address copyBuffer = sysCall.sysMalloc(size << LOG_BYTES_IN_FLOAT);
-        if(copyBuffer.isZero()) {
+        if (copyBuffer.isZero()) {
           env.recordException(new OutOfMemoryError());
           return Address.zero();
         }
@@ -4488,18 +4487,18 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @return A pointer to the double array and the isCopy flag is set to true if it's a copy
    *         or false if it's a direct pointer
    * @exception OutOfMemoryError if the system runs out of memory   
-   */  
+   */
   private static Address GetDoubleArrayElements(VM_JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetDoubleArrayElements  \n");
 
     try {
-      double[] sourceArray = (double []) env.getJNIRef(arrayJREF);
+      double[] sourceArray = (double[]) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
       if (MM_Interface.objectCanMove(sourceArray)) {
         // alloc non moving buffer in C heap for a copy of string contents
         Address copyBuffer = sysCall.sysMalloc(size << LOG_BYTES_IN_DOUBLE);
-        if(copyBuffer.isZero()) {
+        if (copyBuffer.isZero()) {
           env.recordException(new OutOfMemoryError());
           return Address.zero();
         }
@@ -4530,39 +4529,39 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *    releaseMode 0:  copy back and free the buffer
    *    releaseMode 1:  JNI_COMMIT, copy back but do not free the buffer
    *    releaseMode 2:  JNI_ABORT, free the buffer with copying back
-   */  
-  private static void ReleaseBooleanArrayElements(VM_JNIEnvironment env, int arrayJREF, Address copyBufferAddress, 
+   */
+  private static void ReleaseBooleanArrayElements(VM_JNIEnvironment env, int arrayJREF, Address copyBufferAddress,
                                                   int releaseMode) {
     if (traceJNI) VM.sysWrite("JNI called: ReleaseBooleanArrayElements  \n");
 
     try {
-      boolean[] sourceArray = (boolean []) env.getJNIRef(arrayJREF);
+      boolean[] sourceArray = (boolean[]) env.getJNIRef(arrayJREF);
 
       // If a direct pointer was given to the user, no need to update or release
       if (VM_Magic.objectAsAddress(sourceArray).NE(copyBufferAddress)) {
         int size = sourceArray.length;
 
         // mode 0 and mode 1:  copy back the buffer
-        if ((releaseMode== 0 || releaseMode== 1) && size!=0) {
-          for (int i=0; i<size; i+= BYTES_IN_INT) {
+        if ((releaseMode == 0 || releaseMode == 1) && size != 0) {
+          for (int i = 0; i < size; i += BYTES_IN_INT) {
             Address addr = copyBufferAddress.plus(i);
             int data = addr.loadInt();
             if (VM.LittleEndian) {
-              if (i<size) sourceArray[i]   = ((data) & 0x000000ff) != 0;
-              if (i+1<size) sourceArray[i+1] = ((data >>> BITS_IN_BYTE) & 0x000000ff) != 0;
-              if (i+2<size) sourceArray[i+2] = ((data >>> (2 * BITS_IN_BYTE)) & 0x000000ff) != 0;
-              if (i+3<size) sourceArray[i+3] = ((data >>> (3 * BITS_IN_BYTE)) & 0x000000ff) != 0;
+              if (i < size) sourceArray[i] = ((data) & 0x000000ff) != 0;
+              if (i + 1 < size) sourceArray[i + 1] = ((data >>> BITS_IN_BYTE) & 0x000000ff) != 0;
+              if (i + 2 < size) sourceArray[i + 2] = ((data >>> (2 * BITS_IN_BYTE)) & 0x000000ff) != 0;
+              if (i + 3 < size) sourceArray[i + 3] = ((data >>> (3 * BITS_IN_BYTE)) & 0x000000ff) != 0;
             } else {
-              if (i<size) sourceArray[i]   = ((data >>> (3 * BITS_IN_BYTE)) & 0x000000ff) != 0;
-              if (i+1<size) sourceArray[i+1] = ((data >>> (2 * BITS_IN_BYTE)) & 0x000000ff) != 0;
-              if (i+2<size) sourceArray[i+2] = ((data >>> BITS_IN_BYTE) & 0x000000ff) != 0;
-              if (i+3<size) sourceArray[i+3] = ((data) & 0x000000ff) != 0;
+              if (i < size) sourceArray[i] = ((data >>> (3 * BITS_IN_BYTE)) & 0x000000ff) != 0;
+              if (i + 1 < size) sourceArray[i + 1] = ((data >>> (2 * BITS_IN_BYTE)) & 0x000000ff) != 0;
+              if (i + 2 < size) sourceArray[i + 2] = ((data >>> BITS_IN_BYTE) & 0x000000ff) != 0;
+              if (i + 3 < size) sourceArray[i + 3] = ((data) & 0x000000ff) != 0;
             }
           }
-        } 
+        }
 
         // mode 0 and mode 2:  free the buffer
-        if (releaseMode== 0 || releaseMode== 2) {
+        if (releaseMode == 0 || releaseMode == 2) {
           sysCall.sysFree(copyBufferAddress);
         }
       }
@@ -4581,26 +4580,26 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *    releaseMode 0:  copy back and free the buffer
    *    releaseMode 1:  JNI_COMMIT, copy back but do not free the buffer
    *    releaseMode 2:  JNI_ABORT, free the buffer with copying back
-   */  
-  private static void ReleaseByteArrayElements(VM_JNIEnvironment env, int arrayJREF, Address copyBufferAddress, 
+   */
+  private static void ReleaseByteArrayElements(VM_JNIEnvironment env, int arrayJREF, Address copyBufferAddress,
                                                int releaseMode) {
-    if (traceJNI) VM.sysWrite("JNI called: ReleaseByteArrayElements  releaseMode=",releaseMode);
+    if (traceJNI) VM.sysWrite("JNI called: ReleaseByteArrayElements  releaseMode=", releaseMode);
 
     try {
-      byte[] sourceArray = (byte []) env.getJNIRef(arrayJREF);
+      byte[] sourceArray = (byte[]) env.getJNIRef(arrayJREF);
 
       // If a direct pointer was given to the user, no need to update or release
       if (VM_Magic.objectAsAddress(sourceArray).NE(copyBufferAddress)) {
         int size = sourceArray.length;
-        if (traceJNI) VM.sysWrite(" size=",size);
+        if (traceJNI) VM.sysWrite(" size=", size);
 
         // mode 0 and mode 1:  copy back the buffer
-        if ((releaseMode== 0 || releaseMode== 1) && size!=0) {
+        if ((releaseMode == 0 || releaseMode == 1) && size != 0) {
           VM_Memory.memcopy(VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size);
-        } 
+        }
 
         // mode 0 and mode 2:  free the buffer
-        if (releaseMode== 0 || releaseMode== 2) {
+        if (releaseMode == 0 || releaseMode == 2) {
           sysCall.sysFree(copyBufferAddress);
         }
       } else {
@@ -4622,25 +4621,25 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *    releaseMode 0:  copy back and free the buffer
    *    releaseMode 1:  JNI_COMMIT, copy back but do not free the buffer
    *    releaseMode 2:  JNI_ABORT, free the buffer with copying back
-   */  
-  private static void ReleaseCharArrayElements(VM_JNIEnvironment env, int arrayJREF, Address copyBufferAddress, 
+   */
+  private static void ReleaseCharArrayElements(VM_JNIEnvironment env, int arrayJREF, Address copyBufferAddress,
                                                int releaseMode) {
     if (traceJNI) VM.sysWrite("JNI called: ReleaseCharArrayElements \n");
 
     try {
-      char[] sourceArray = (char []) env.getJNIRef(arrayJREF);
+      char[] sourceArray = (char[]) env.getJNIRef(arrayJREF);
 
       // If a direct pointer was given to the user, no need to update or release
       if (VM_Magic.objectAsAddress(sourceArray).NE(copyBufferAddress)) {
         int size = sourceArray.length;
 
         // mode 0 and mode 1:  copy back the buffer
-        if ((releaseMode== 0 || releaseMode== 1) && size!=0) {
+        if ((releaseMode == 0 || releaseMode == 1) && size != 0) {
           VM_Memory.memcopy(VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size << LOG_BYTES_IN_CHAR);
-        } 
+        }
 
         // mode 0 and mode 2:  free the buffer
-        if (releaseMode== 0 || releaseMode== 2) {
+        if (releaseMode == 0 || releaseMode == 2) {
           sysCall.sysFree(copyBufferAddress);
         }
       }
@@ -4659,25 +4658,25 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *    releaseMode 0:  copy back and free the buffer
    *    releaseMode 1:  JNI_COMMIT, copy back but do not free the buffer
    *    releaseMode 2:  JNI_ABORT, free the buffer with copying back
-   */  
-  private static void ReleaseShortArrayElements(VM_JNIEnvironment env, int arrayJREF, Address copyBufferAddress, 
+   */
+  private static void ReleaseShortArrayElements(VM_JNIEnvironment env, int arrayJREF, Address copyBufferAddress,
                                                 int releaseMode) {
     if (traceJNI) VM.sysWrite("JNI called: ReleaseShortArrayElements  \n");
 
     try {
-      short[] sourceArray = (short []) env.getJNIRef(arrayJREF);
+      short[] sourceArray = (short[]) env.getJNIRef(arrayJREF);
 
       // If a direct pointer was given to the user, no need to update or release
       if (VM_Magic.objectAsAddress(sourceArray).NE(copyBufferAddress)) {
         int size = sourceArray.length;
 
         // mode 0 and mode 1:  copy back the buffer
-        if ((releaseMode== 0 || releaseMode== 1) && size!=0) {
+        if ((releaseMode == 0 || releaseMode == 1) && size != 0) {
           VM_Memory.memcopy(VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size << LOG_BYTES_IN_SHORT);
-        } 
+        }
 
         // mode 0 and mode 2:  free the buffer
-        if (releaseMode== 0 || releaseMode== 2) {
+        if (releaseMode == 0 || releaseMode == 2) {
           sysCall.sysFree(copyBufferAddress);
         }
       }
@@ -4696,25 +4695,25 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *    releaseMode 0:  copy back and free the buffer
    *    releaseMode 1:  JNI_COMMIT, copy back but do not free the buffer
    *    releaseMode 2:  JNI_ABORT, free the buffer with copying back
-   */  
-  private static void ReleaseIntArrayElements(VM_JNIEnvironment env, int arrayJREF, Address copyBufferAddress, 
+   */
+  private static void ReleaseIntArrayElements(VM_JNIEnvironment env, int arrayJREF, Address copyBufferAddress,
                                               int releaseMode) {
     if (traceJNI) VM.sysWrite("JNI called: ReleaseIntArrayElements  \n");
 
     try {
-      int[] sourceArray = (int []) env.getJNIRef(arrayJREF);
+      int[] sourceArray = (int[]) env.getJNIRef(arrayJREF);
 
       // If a direct pointer was given to the user, no need to update or release
       if (VM_Magic.objectAsAddress(sourceArray).NE(copyBufferAddress)) {
         int size = sourceArray.length;
 
         // mode 0 and mode 1:  copy back the buffer
-        if (releaseMode== 0 || releaseMode== 1) {
+        if (releaseMode == 0 || releaseMode == 1) {
           VM_Memory.memcopy(VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size << LOG_BYTES_IN_INT);
-        } 
+        }
 
         // mode 0 and mode 2:  free the buffer
-        if (releaseMode== 0 || releaseMode== 2) {
+        if (releaseMode == 0 || releaseMode == 2) {
           sysCall.sysFree(copyBufferAddress);
         }
       }
@@ -4723,7 +4722,6 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       env.recordException(unexpected);
     }
   }
-
 
   /**
    * ReleaseLongArrayElements: free the native copy of the array, update changes to Java array as indicated
@@ -4734,25 +4732,25 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *    releaseMode 0:  copy back and free the buffer
    *    releaseMode 1:  JNI_COMMIT, copy back but do not free the buffer
    *    releaseMode 2:  JNI_ABORT, free the buffer with copying back
-   */  
-  private static void ReleaseLongArrayElements(VM_JNIEnvironment env, int arrayJREF, Address copyBufferAddress, 
+   */
+  private static void ReleaseLongArrayElements(VM_JNIEnvironment env, int arrayJREF, Address copyBufferAddress,
                                                int releaseMode) {
     if (traceJNI) VM.sysWrite("JNI called: ReleaseLongArrayElements  \n");
 
     try {
-      long[] sourceArray = (long []) env.getJNIRef(arrayJREF);
+      long[] sourceArray = (long[]) env.getJNIRef(arrayJREF);
 
       // If a direct pointer was given to the user, no need to update or release
       if (VM_Magic.objectAsAddress(sourceArray).NE(copyBufferAddress)) {
         int size = sourceArray.length;
 
         // mode 0 and mode 1:  copy back the buffer
-        if (releaseMode== 0 || releaseMode== 1) {
-          VM_Memory.memcopy( VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size << LOG_BYTES_IN_LONG );
-        } 
+        if (releaseMode == 0 || releaseMode == 1) {
+          VM_Memory.memcopy(VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size << LOG_BYTES_IN_LONG);
+        }
 
         // mode 0 and mode 2:  free the buffer
-        if (releaseMode== 0 || releaseMode== 2) {
+        if (releaseMode == 0 || releaseMode == 2) {
           sysCall.sysFree(copyBufferAddress);
         }
       }
@@ -4771,25 +4769,25 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *    releaseMode 0:  copy back and free the buffer
    *    releaseMode 1:  JNI_COMMIT, copy back but do not free the buffer
    *    releaseMode 2:  JNI_ABORT, free the buffer with copying back
-   */  
-  private static void ReleaseFloatArrayElements(VM_JNIEnvironment env, int arrayJREF, Address copyBufferAddress, 
+   */
+  private static void ReleaseFloatArrayElements(VM_JNIEnvironment env, int arrayJREF, Address copyBufferAddress,
                                                 int releaseMode) {
     if (traceJNI) VM.sysWrite("JNI called: ReleaseFloatArrayElements  \n");
 
     try {
-      float[] sourceArray = (float []) env.getJNIRef(arrayJREF);
+      float[] sourceArray = (float[]) env.getJNIRef(arrayJREF);
 
       // If a direct pointer was given to the user, no need to update or release
       if (VM_Magic.objectAsAddress(sourceArray).NE(copyBufferAddress)) {
         int size = sourceArray.length;
 
         // mode 0 and mode 1:  copy back the buffer
-        if (releaseMode== 0 || releaseMode== 1) {
-          VM_Memory.memcopy( VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size << LOG_BYTES_IN_FLOAT);
-        } 
+        if (releaseMode == 0 || releaseMode == 1) {
+          VM_Memory.memcopy(VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size << LOG_BYTES_IN_FLOAT);
+        }
 
         // mode 0 and mode 2:  free the buffer
-        if (releaseMode== 0 || releaseMode== 2) {
+        if (releaseMode == 0 || releaseMode == 2) {
           sysCall.sysFree(copyBufferAddress);
         }
       }
@@ -4808,25 +4806,25 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *    releaseMode 0:  copy back and free the buffer
    *    releaseMode 1:  JNI_COMMIT, copy back but do not free the buffer
    *    releaseMode 2:  JNI_ABORT, free the buffer with copying back
-   */  
-  private static void ReleaseDoubleArrayElements(VM_JNIEnvironment env, int arrayJREF, Address copyBufferAddress, 
+   */
+  private static void ReleaseDoubleArrayElements(VM_JNIEnvironment env, int arrayJREF, Address copyBufferAddress,
                                                  int releaseMode) {
     if (traceJNI) VM.sysWrite("JNI called: ReleaseDoubleArrayElements  \n");
 
     try {
-      double[] sourceArray = (double []) env.getJNIRef(arrayJREF);
+      double[] sourceArray = (double[]) env.getJNIRef(arrayJREF);
 
       // If a direct pointer was given to the user, no need to update or release
       if (VM_Magic.objectAsAddress(sourceArray).NE(copyBufferAddress)) {
         int size = sourceArray.length;
 
         // mode 0 and mode 1:  copy back the buffer
-        if (releaseMode== 0 || releaseMode== 1) {
-          VM_Memory.memcopy( VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size << LOG_BYTES_IN_DOUBLE );
-        } 
+        if (releaseMode == 0 || releaseMode == 1) {
+          VM_Memory.memcopy(VM_Magic.objectAsAddress(sourceArray), copyBufferAddress, size << LOG_BYTES_IN_DOUBLE);
+        }
 
         // mode 0 and mode 2:  free the buffer
-        if (releaseMode== 0 || releaseMode== 2) {
+        if (releaseMode == 0 || releaseMode == 2) {
           sysCall.sysFree(copyBufferAddress);
         }
       }
@@ -4845,18 +4843,18 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param bufAddress the destination address in native to copy to
    * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
-  private static void GetBooleanArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex, 
+  private static void GetBooleanArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex,
                                             int length, Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetBooleanArrayRegion  \n");
 
     try {
-      boolean[] sourceArray = (boolean []) env.getJNIRef(arrayJREF);
+      boolean[] sourceArray = (boolean[]) env.getJNIRef(arrayJREF);
 
-      if ((startIndex<0) || (startIndex+length>sourceArray.length)) {
+      if ((startIndex < 0) || (startIndex + length > sourceArray.length)) {
         env.recordException(new ArrayIndexOutOfBoundsException());
         return;
       }
-      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray).plus(startIndex), length); 
+      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray).plus(startIndex), length);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -4872,19 +4870,19 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param bufAddress the destination address in native to copy to
    * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
-  private static void GetByteArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex, 
+  private static void GetByteArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex,
                                          int length, Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetByteArrayRegion  \n");
 
     try {
-      byte[] sourceArray = (byte []) env.getJNIRef(arrayJREF);
+      byte[] sourceArray = (byte[]) env.getJNIRef(arrayJREF);
 
-      if ((startIndex<0) || (startIndex+length>sourceArray.length)) {
+      if ((startIndex < 0) || (startIndex + length > sourceArray.length)) {
         env.recordException(new ArrayIndexOutOfBoundsException());
         return;
       }
 
-      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray).plus(startIndex), length); 
+      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray).plus(startIndex), length);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -4900,19 +4898,21 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param bufAddress the destination address in native to copy to
    * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
-  private static void GetCharArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex,  
+  private static void GetCharArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex,
                                          int length, Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetCharArrayRegion  \n");
 
     try {
-      char[] sourceArray = (char []) env.getJNIRef(arrayJREF);
+      char[] sourceArray = (char[]) env.getJNIRef(arrayJREF);
 
-      if ((startIndex<0) || (startIndex+length>sourceArray.length)) {
+      if ((startIndex < 0) || (startIndex + length > sourceArray.length)) {
         env.recordException(new ArrayIndexOutOfBoundsException());
         return;
       }
 
-      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray).plus(startIndex << LOG_BYTES_IN_CHAR), length << LOG_BYTES_IN_CHAR); 
+      VM_Memory.memcopy(bufAddress,
+                        VM_Magic.objectAsAddress(sourceArray).plus(startIndex << LOG_BYTES_IN_CHAR),
+                        length << LOG_BYTES_IN_CHAR);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -4928,19 +4928,21 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param bufAddress the destination address in native to copy to
    * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
-  private static void GetShortArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex,  
+  private static void GetShortArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex,
                                           int length, Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetShortArrayRegion  \n");
 
     try {
-      short[] sourceArray = (short []) env.getJNIRef(arrayJREF);
+      short[] sourceArray = (short[]) env.getJNIRef(arrayJREF);
 
-      if ((startIndex<0) || (startIndex+length>sourceArray.length)) {
+      if ((startIndex < 0) || (startIndex + length > sourceArray.length)) {
         env.recordException(new ArrayIndexOutOfBoundsException());
         return;
       }
 
-      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray).plus(startIndex << LOG_BYTES_IN_SHORT), length << LOG_BYTES_IN_SHORT); 
+      VM_Memory.memcopy(bufAddress,
+                        VM_Magic.objectAsAddress(sourceArray).plus(startIndex << LOG_BYTES_IN_SHORT),
+                        length << LOG_BYTES_IN_SHORT);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -4956,19 +4958,21 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param bufAddress the destination address in native to copy to
    * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
-  private static void GetIntArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex, 
+  private static void GetIntArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex,
                                         int length, Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetIntArrayRegion  \n");
 
     try {
-      int[] sourceArray = (int []) env.getJNIRef(arrayJREF);
+      int[] sourceArray = (int[]) env.getJNIRef(arrayJREF);
 
-      if ((startIndex<0) || (startIndex+length>sourceArray.length)) {
+      if ((startIndex < 0) || (startIndex + length > sourceArray.length)) {
         env.recordException(new ArrayIndexOutOfBoundsException());
         return;
       }
 
-      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray).plus(startIndex << LOG_BYTES_IN_INT), length << LOG_BYTES_IN_INT); 
+      VM_Memory.memcopy(bufAddress,
+                        VM_Magic.objectAsAddress(sourceArray).plus(startIndex << LOG_BYTES_IN_INT),
+                        length << LOG_BYTES_IN_INT);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -4984,19 +4988,21 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param bufAddress the destination address in native to copy to
    * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
-  private static void GetLongArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex, 
+  private static void GetLongArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex,
                                          int length, Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetLongArrayRegion   \n");
 
     try {
-      long[] sourceArray = (long []) env.getJNIRef(arrayJREF);
+      long[] sourceArray = (long[]) env.getJNIRef(arrayJREF);
 
-      if ((startIndex<0) || (startIndex+length>sourceArray.length)) {
+      if ((startIndex < 0) || (startIndex + length > sourceArray.length)) {
         env.recordException(new ArrayIndexOutOfBoundsException());
         return;
       }
 
-      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray).plus(startIndex << LOG_BYTES_IN_LONG), length << LOG_BYTES_IN_LONG); 
+      VM_Memory.memcopy(bufAddress,
+                        VM_Magic.objectAsAddress(sourceArray).plus(startIndex << LOG_BYTES_IN_LONG),
+                        length << LOG_BYTES_IN_LONG);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -5012,19 +5018,21 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param bufAddress the destination address in native to copy to
    * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
-  private static void GetFloatArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex, 
+  private static void GetFloatArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex,
                                           int length, Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetFloatArrayRegion    \n");
 
     try {
-      float[] sourceArray = (float []) env.getJNIRef(arrayJREF);
+      float[] sourceArray = (float[]) env.getJNIRef(arrayJREF);
 
-      if ((startIndex<0) || (startIndex+length>sourceArray.length)) {
+      if ((startIndex < 0) || (startIndex + length > sourceArray.length)) {
         env.recordException(new ArrayIndexOutOfBoundsException());
         return;
       }
 
-      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray).plus(startIndex << LOG_BYTES_IN_FLOAT), length << LOG_BYTES_IN_FLOAT); 
+      VM_Memory.memcopy(bufAddress,
+                        VM_Magic.objectAsAddress(sourceArray).plus(startIndex << LOG_BYTES_IN_FLOAT),
+                        length << LOG_BYTES_IN_FLOAT);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -5040,19 +5048,21 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param bufAddress the destination address in native to copy to
    * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
-  private static void GetDoubleArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex, 
+  private static void GetDoubleArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex,
                                            int length, Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetDoubleArrayRegion   \n");
 
     try {
-      double[] sourceArray = (double []) env.getJNIRef(arrayJREF);
+      double[] sourceArray = (double[]) env.getJNIRef(arrayJREF);
 
-      if ((startIndex<0) || (startIndex+length>sourceArray.length)) {
+      if ((startIndex < 0) || (startIndex + length > sourceArray.length)) {
         env.recordException(new ArrayIndexOutOfBoundsException());
         return;
       }
 
-      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray).plus(startIndex << LOG_BYTES_IN_DOUBLE), length << LOG_BYTES_IN_DOUBLE); 
+      VM_Memory.memcopy(bufAddress,
+                        VM_Magic.objectAsAddress(sourceArray).plus(startIndex << LOG_BYTES_IN_DOUBLE),
+                        length << LOG_BYTES_IN_DOUBLE);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -5068,19 +5078,19 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param bufAddress the source address in native to copy from
    * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
-  private static void SetBooleanArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex, 
+  private static void SetBooleanArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex,
                                             int length, Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: SetBooleanArrayRegion  \n");
 
     try {
-      boolean[] destinationArray = (boolean []) env.getJNIRef(arrayJREF);
+      boolean[] destinationArray = (boolean[]) env.getJNIRef(arrayJREF);
 
-      if ((startIndex<0) || (startIndex+length>destinationArray.length)) {
+      if ((startIndex < 0) || (startIndex + length > destinationArray.length)) {
         env.recordException(new ArrayIndexOutOfBoundsException());
         return;
       }
 
-      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex), bufAddress, length); 
+      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex), bufAddress, length);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -5096,25 +5106,24 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param bufAddress the source address in native to copy from
    * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
-  private static void SetByteArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex, 
+  private static void SetByteArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex,
                                          int length, Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: SetByteArrayRegion  \n");
 
     try {
-      byte[] destinationArray = (byte []) env.getJNIRef(arrayJREF);
+      byte[] destinationArray = (byte[]) env.getJNIRef(arrayJREF);
 
-      if ((startIndex<0) || (startIndex+length>destinationArray.length)) {
+      if ((startIndex < 0) || (startIndex + length > destinationArray.length)) {
         env.recordException(new ArrayIndexOutOfBoundsException());
         return;
       }
 
-      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex), bufAddress, length); 
+      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex), bufAddress, length);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
     }
-  }   
-
+  }
 
   /**
    * SetCharArrayRegion: copy a region of the native buffer into the array (2 byte element)
@@ -5125,24 +5134,26 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param bufAddress the source address in native to copy from
    * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
-  private static void SetCharArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex, 
+  private static void SetCharArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex,
                                          int length, Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: SetCharArrayRegion  \n");
 
     try {
-      char[] destinationArray = (char []) env.getJNIRef(arrayJREF);
+      char[] destinationArray = (char[]) env.getJNIRef(arrayJREF);
 
-      if ((startIndex<0) || (startIndex+length>destinationArray.length)) {
+      if ((startIndex < 0) || (startIndex + length > destinationArray.length)) {
         env.recordException(new ArrayIndexOutOfBoundsException());
         return;
       }
 
-      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex << LOG_BYTES_IN_CHAR), bufAddress, length << LOG_BYTES_IN_CHAR); 
+      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex << LOG_BYTES_IN_CHAR),
+                        bufAddress,
+                        length << LOG_BYTES_IN_CHAR);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
     }
-  }   
+  }
 
   /**
    * SetShortArrayRegion: copy a region of the native buffer into the array (2 byte element)
@@ -5153,25 +5164,25 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param bufAddress the source address in native to copy from
    * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
-  private static void SetShortArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex, 
+  private static void SetShortArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex,
                                           int length, Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: SetShortArrayRegion  \n");
 
     try {
-      short[] destinationArray = (short []) env.getJNIRef(arrayJREF);
+      short[] destinationArray = (short[]) env.getJNIRef(arrayJREF);
 
-      if ((startIndex<0) || (startIndex+length>destinationArray.length)) {
+      if ((startIndex < 0) || (startIndex + length > destinationArray.length)) {
         env.recordException(new ArrayIndexOutOfBoundsException());
         return;
       }
 
-      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex << LOG_BYTES_IN_SHORT), 
-                        bufAddress, length << LOG_BYTES_IN_SHORT); 
+      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex << LOG_BYTES_IN_SHORT),
+                        bufAddress, length << LOG_BYTES_IN_SHORT);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
     }
-  }  
+  }
 
   /**
    * SetIntArrayRegion: copy a region of the native buffer into the array
@@ -5182,19 +5193,21 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param bufAddress the source address in native to copy from
    * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
-  private static void SetIntArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex, 
+  private static void SetIntArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex,
                                         int length, Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: SetIntArrayRegion  \n");
 
     try {
-      int[] destinationArray = (int []) env.getJNIRef(arrayJREF);
+      int[] destinationArray = (int[]) env.getJNIRef(arrayJREF);
 
-      if ((startIndex<0) || (startIndex+length>destinationArray.length)) {
+      if ((startIndex < 0) || (startIndex + length > destinationArray.length)) {
         env.recordException(new ArrayIndexOutOfBoundsException());
         return;
       }
 
-      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex << LOG_BYTES_IN_INT), bufAddress, length << LOG_BYTES_IN_INT); 
+      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex << LOG_BYTES_IN_INT),
+                        bufAddress,
+                        length << LOG_BYTES_IN_INT);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -5210,19 +5223,21 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param bufAddress the source address in native to copy from
    * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
-  private static void SetLongArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex, 
+  private static void SetLongArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex,
                                          int length, Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: SetLongArrayRegion  \n");
 
     try {
-      long[] destinationArray = (long []) env.getJNIRef(arrayJREF);
+      long[] destinationArray = (long[]) env.getJNIRef(arrayJREF);
 
-      if ((startIndex<0) || (startIndex+length>destinationArray.length)) {
+      if ((startIndex < 0) || (startIndex + length > destinationArray.length)) {
         env.recordException(new ArrayIndexOutOfBoundsException());
         return;
       }
 
-      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex << LOG_BYTES_IN_LONG), bufAddress, length << LOG_BYTES_IN_LONG); 
+      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex << LOG_BYTES_IN_LONG),
+                        bufAddress,
+                        length << LOG_BYTES_IN_LONG);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -5238,19 +5253,21 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param bufAddress the source address in native to copy from
    * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
-  private static void SetFloatArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex, 
+  private static void SetFloatArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex,
                                           int length, Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: SetFloatArrayRegion  \n");
 
     try {
-      float[] destinationArray = (float []) env.getJNIRef(arrayJREF);
+      float[] destinationArray = (float[]) env.getJNIRef(arrayJREF);
 
-      if ((startIndex<0) || (startIndex+length>destinationArray.length)) {
+      if ((startIndex < 0) || (startIndex + length > destinationArray.length)) {
         env.recordException(new ArrayIndexOutOfBoundsException());
         return;
       }
 
-      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex << LOG_BYTES_IN_FLOAT), bufAddress, length << LOG_BYTES_IN_FLOAT); 
+      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex << LOG_BYTES_IN_FLOAT),
+                        bufAddress,
+                        length << LOG_BYTES_IN_FLOAT);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -5266,25 +5283,26 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param bufAddress the source address in native to copy from
    * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
-  private static void SetDoubleArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex, 
+  private static void SetDoubleArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex,
                                            int length, Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: SetDoubleArrayRegion  \n");
 
     try {
-      double[] destinationArray = (double []) env.getJNIRef(arrayJREF);
+      double[] destinationArray = (double[]) env.getJNIRef(arrayJREF);
 
-      if ((startIndex<0) || (startIndex+length>destinationArray.length)) {
+      if ((startIndex < 0) || (startIndex + length > destinationArray.length)) {
         env.recordException(new ArrayIndexOutOfBoundsException());
         return;
       }
 
-      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex << LOG_BYTES_IN_DOUBLE), bufAddress, length << LOG_BYTES_IN_DOUBLE); 
+      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex << LOG_BYTES_IN_DOUBLE),
+                        bufAddress,
+                        length << LOG_BYTES_IN_DOUBLE);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
     }
   }
-
 
   /**
    * RegisterNatives: registers implementation of native methods
@@ -5305,7 +5323,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       if (!type.isClassType()) {
         env.recordException(new NoSuchMethodError());
         return 0;
-      } 
+      }
 
       VM_Class klass = type.asClass();
       if (!klass.isInitialized()) {
@@ -5320,17 +5338,18 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       for (int i = 0; i < nmethods; i++) {
         String methodString = VM_JNIHelpers.createStringFromC(curMethod.loadAddress());
         VM_Atom methodName = VM_Atom.findOrCreateAsciiAtom(methodString);
-        String sigString = VM_JNIHelpers.createStringFromC(curMethod.loadAddress(Offset.fromIntSignExtend(BYTES_IN_ADDRESS)));
-        VM_Atom sigName  = VM_Atom.findOrCreateAsciiAtom(sigString);
-        
+        String sigString =
+            VM_JNIHelpers.createStringFromC(curMethod.loadAddress(Offset.fromIntSignExtend(BYTES_IN_ADDRESS)));
+        VM_Atom sigName = VM_Atom.findOrCreateAsciiAtom(sigString);
+
         // Find the target method
         VM_Method meth = klass.findDeclaredMethod(methodName, sigName);
 
         if (meth == null || !meth.isNative()) {
           env.recordException(new NoSuchMethodError(klass + ": " + methodName + " " + sigName));
           return -1;
-        } 
-        methods[i] = (VM_NativeMethod)meth;
+        }
+        methods[i] = (VM_NativeMethod) meth;
         symbols.set(i, curMethod.loadAddress(Offset.fromIntSignExtend(BYTES_IN_ADDRESS * 2)));
         curMethod = curMethod.plus(3 * BYTES_IN_ADDRESS);
       }
@@ -5344,10 +5363,9 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
-      return -1; 
+      return -1;
     }
   }
-
 
   /**
    * UnregisterNatives: unregisters native methods
@@ -5366,7 +5384,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       if (!type.isClassType()) {
         env.recordException(new NoClassDefFoundError());
         return -1;
-      } 
+      }
 
       VM_Class klass = type.asClass();
       if (!klass.isInitialized()) {
@@ -5428,10 +5446,10 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       StarStarJavaVM.store(JavaVM);
 
       return 0;
-	} catch (Throwable unexpected) {
+    } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       return -1;
-	}
+    }
   }
 
   /*******************************************************************
@@ -5445,17 +5463,18 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * java.lang.reflect.Constructor object.
    * @return the jmethodID corresponding to methodJREF
    */
-  private static int FromReflectedMethod(VM_JNIEnvironment env, 
+  private static int FromReflectedMethod(VM_JNIEnvironment env,
                                          int methodJREF) {
-    if (traceJNI) VM.sysWrite("JNI called: FromReflectedMethod \n");   
+    if (traceJNI) VM.sysWrite("JNI called: FromReflectedMethod \n");
     Object methodObj = env.getJNIRef(methodJREF);
     VM_Method meth;
-    if (methodObj instanceof Constructor)
-      meth = 
-        java.lang.reflect.JikesRVMSupport.getMethodOf((Constructor<?>) methodObj);
-    else
+    if (methodObj instanceof Constructor) {
+      meth =
+          java.lang.reflect.JikesRVMSupport.getMethodOf((Constructor<?>) methodObj);
+    } else {
       meth = java.lang.reflect.JikesRVMSupport.getMethodOf((Method) methodObj);
-      
+    }
+
     if (traceJNI) VM.sysWrite("got method " + meth + "\n");
     return meth.getId();
   }
@@ -5467,7 +5486,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @return the jfieldID corresponding to fieldJREF
    * */
   private static int FromReflectedField(VM_JNIEnvironment env, int fieldJREF) {
-    if (traceJNI) VM.sysWrite("JNI called: FromReflectedField \n");   
+    if (traceJNI) VM.sysWrite("JNI called: FromReflectedField \n");
     Field fieldObj = (Field) env.getJNIRef(fieldJREF);
     VM_Field f = java.lang.reflect.JikesRVMSupport.getFieldOf(fieldObj);
     if (traceJNI) VM.sysWrite("got field " + f + "\n");
@@ -5489,17 +5508,17 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @return a JREF index for the java.lang.reflect.Method or
    * java.lang.reflect.Constructor object associated with methodID.
    */
-  private static int ToReflectedMethod(VM_JNIEnvironment env, int clsJREF, 
-                                       int methodID, boolean isStatic) 
-  {
-    if (traceJNI) VM.sysWrite("JNI called: ToReflectedMethod \n");   
-    VM_Method targetMethod = 
-      VM_MemberReference.getMemberRef(methodID).asMethodReference().resolve();
+  private static int ToReflectedMethod(VM_JNIEnvironment env, int clsJREF,
+                                       int methodID, boolean isStatic) {
+    if (traceJNI) VM.sysWrite("JNI called: ToReflectedMethod \n");
+    VM_Method targetMethod =
+        VM_MemberReference.getMemberRef(methodID).asMethodReference().resolve();
     Object ret;
-    if (targetMethod.isObjectInitializer())
+    if (targetMethod.isObjectInitializer()) {
       ret = java.lang.reflect.JikesRVMSupport.createConstructor(targetMethod);
-    else
+    } else {
       ret = java.lang.reflect.JikesRVMSupport.createMethod(targetMethod);
+    }
     return env.pushJNIRef(ret);
   }
 
@@ -5518,13 +5537,13 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @return a JREF index for the java.lang.reflect.Field object associated
    *         with fieldID. 
    */
-  private static int ToReflectedField(VM_JNIEnvironment env, 
-                                      int clsJREF, int fieldID, 
+  private static int ToReflectedField(VM_JNIEnvironment env,
+                                      int clsJREF, int fieldID,
                                       boolean isStatic) {
-    if (traceJNI) VM.sysWrite("JNI called: ToReflectedField \n");   
-    VM_Field field = 
-      VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
-    return env.pushJNIRef (java.lang.reflect.JikesRVMSupport.createField(field));
+    if (traceJNI) VM.sysWrite("JNI called: ToReflectedField \n");
+    VM_Field field =
+        VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
+    return env.pushJNIRef(java.lang.reflect.JikesRVMSupport.createField(field));
   }
 
   /** Push a local frame for local references.
@@ -5533,7 +5552,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * running out of memory in a long-running loop in JNI, of course. 
    */
   private static int PushLocalFrame(VM_JNIEnvironment env, int capacity) {
-    if (traceJNI) VM.sysWrite("JNI called: PushLocalFrame \n");   
+    if (traceJNI) VM.sysWrite("JNI called: PushLocalFrame \n");
     return 0;                   // OK
   }
 
@@ -5554,14 +5573,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
   /**
    * NewLocalRef
-   * 
+   *
    * @param env A JREF index for the JNI environment object
    * @param oldJREF JREF index of an existing reference.
    * @return a new local reference that refers to the same object as oldJREF.
    *       C NULL pointer if the oldJREF refers to null.
-   */  
+   */
   private static int NewLocalRef(VM_JNIEnvironment env, int oldJREF) {
-    if (traceJNI) VM.sysWrite("JNI called: NewLocalRef \n");   
+    if (traceJNI) VM.sysWrite("JNI called: NewLocalRef \n");
     Object oldObj = env.getJNIRef(oldJREF);
     /* pushJNIRef automatically handles null refs properly. */
     return env.pushJNIRef(oldObj);
@@ -5569,16 +5588,16 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
   /**
    * EnsureLocalCapacity
-   * 
+   *
    * @param env A JREF index for the JNI environment object
    * @param capacity how many more local references do we want to ensure can
    * be created?
    * @return 0 on success.  The JNI spec says that on failure this throws
    * OutOfMemoryError and returns a negative number.  But we don't have to
    * worry about that at all.
-   */  
+   */
   private static int EnsureLocalCapacity(VM_JNIEnvironment env, int capacity) {
-    if (traceJNI) VM.sysWrite("JNI called: EnsureLocalCapacity \n");   
+    if (traceJNI) VM.sysWrite("JNI called: EnsureLocalCapacity \n");
     return 0;                   // success!
   }
 
@@ -5594,9 +5613,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *        region of the string.  
    */
   private static void GetStringRegion(VM_JNIEnvironment env, int strJREF,
-                                      int start, int len, Address buf) 
-  {
-    if (traceJNI) VM.sysWrite("JNI called: GetStringRegion \n");   
+                                      int start, int len, Address buf) {
+    if (traceJNI) VM.sysWrite("JNI called: GetStringRegion \n");
     try {
       String str = (String) env.getJNIRef(strJREF);
       char[] strChars = java.lang.JikesRVMSupport.getBackingCharArray(str);
@@ -5616,7 +5634,6 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     }
   }
 
-
   /** GetStringUTFRegion:  Copy a region of Unicode characters from a string to
    *  the given buffer, as UTF8 characters.
    *
@@ -5629,12 +5646,11 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *        region of the string.  
    */
   private static void GetStringUTFRegion(VM_JNIEnvironment env, int strJREF,
-                                        int start, int len, Address buf) 
-  {
-    if (traceJNI) VM.sysWrite("JNI called: GetStringUTFRegion \n");   
+                                         int start, int len, Address buf) {
+    if (traceJNI) VM.sysWrite("JNI called: GetStringUTFRegion \n");
     try {
       String str = (String) env.getJNIRef(strJREF);
-      
+
       char[] strChars = java.lang.JikesRVMSupport.getBackingCharArray(str);
       int strOffset = java.lang.JikesRVMSupport.getStringOffset(str);
       int strLen = java.lang.JikesRVMSupport.getStringLength(str);
@@ -5648,7 +5664,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
        * VM_UTF8Convert.toUTF8() to handle ranges of char arrays. */
       String region = new String(strChars, strOffset + start, len);
       byte[] utfcontents = VM_UTF8Convert.toUTF8(region);
-      VM_Memory.memcopy(buf, VM_Magic.objectAsAddress(utfcontents), 
+      VM_Memory.memcopy(buf, VM_Magic.objectAsAddress(utfcontents),
                         utfcontents.length);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -5671,14 +5687,15 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static Address GetPrimitiveArrayCritical(VM_JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
 
-    if (traceJNI) VM.sysWrite("JNI called: GetPrimitiveArrayCritical \n");   
+    if (traceJNI) VM.sysWrite("JNI called: GetPrimitiveArrayCritical \n");
 
     try {
       Object primitiveArray = env.getJNIRef(arrayJREF);
 
       // not an array, return null
-      if (!primitiveArray.getClass().isArray())
+      if (!primitiveArray.getClass().isArray()) {
         return Address.zero();
+      }
 
       /* Set caller's isCopy boolean to false, if we got a valid (non-null)
          address */
@@ -5706,8 +5723,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *            copy and whether to free the copy. For this implementation, 
    *            no copy was made so this flag has no effect.
    */
-  private static void ReleasePrimitiveArrayCritical(VM_JNIEnvironment env, 
-                                                    int arrayJREF, 
+  private static void ReleasePrimitiveArrayCritical(VM_JNIEnvironment env,
+                                                    int arrayJREF,
                                                     Address arrayCopyAddress,
                                                     int mode) {
     if (traceJNI) VM.sysWrite("JNI called: ReleasePrimitiveArrayCritical \n");
@@ -5720,7 +5737,6 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     }
   }
 
-
   /** GetStringCritical
    * Like GetStringChars and ReleaseStringChars, but in some VM environments
    * the VM may be able to avoid making a copy.   Native code must not issue
@@ -5732,7 +5748,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @return The address of the backing array; address zero (null) on error, and the jboolean pointed to by isCopyAddress is set to false, indicating that this is not a copy.
    */
   private static Address GetStringCritical(VM_JNIEnvironment env, int strJREF, Address isCopyAddress) {
-    if (traceJNI) VM.sysWrite("JNI called: GetStringCritical \n");   
+    if (traceJNI) VM.sysWrite("JNI called: GetStringCritical \n");
     String str = (String) env.getJNIRef(strJREF);
     char[] strChars = java.lang.JikesRVMSupport.getBackingCharArray(str);
     int strOffset = java.lang.JikesRVMSupport.getStringOffset(str);
@@ -5757,9 +5773,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param carray the pointer returned by GetStringCritical (ignored)
    */
   private static void ReleaseStringCritical(VM_JNIEnvironment env, int strJREF,
-                                           Address carray) 
-  {
-    if (traceJNI) VM.sysWrite("JNI called: ReleaseStringCritical \n");   
+                                            Address carray) {
+    if (traceJNI) VM.sysWrite("JNI called: ReleaseStringCritical \n");
     try {
       VM.enableGC(true);
     } catch (Throwable unexpected) {
@@ -5769,7 +5784,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   }
 
   private static int NewWeakGlobalRef(VM_JNIEnvironment env, int objectJREF) {
-    if (traceJNI) VM.sysWrite("JNI called: NewWeakGlobalRef \n");   
+    if (traceJNI) VM.sysWrite("JNI called: NewWeakGlobalRef \n");
     try {
       Object obj1 = env.getJNIRef(objectJREF);
       return VM_JNIGlobalRefTable.newWeakRef(obj1);
@@ -5781,7 +5796,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   }
 
   private static void DeleteWeakGlobalRef(VM_JNIEnvironment env, int refJREF) {
-    if (traceJNI) VM.sysWrite("JNI called: DeleteWeakGlobalRef \n");   
+    if (traceJNI) VM.sysWrite("JNI called: DeleteWeakGlobalRef \n");
     try {
       VM_JNIGlobalRefTable.deleteWeakRef(refJREF);
     } catch (Throwable unexpected) {
@@ -5791,7 +5806,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   }
 
   private static int ExceptionCheck(VM_JNIEnvironment env) {
-    if (traceJNI) VM.sysWrite("JNI called: ExceptionCheck \n");   
+    if (traceJNI) VM.sysWrite("JNI called: ExceptionCheck \n");
 
     return env.getException() == null ? 0 : 1;
   }
@@ -5800,10 +5815,10 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * These functions are in JNI 1.4
    */
 
-  private static int NewDirectByteBuffer(VM_JNIEnvironment env, 
-                                                Address address, 
-                                                long capacity) {
-    if (traceJNI) VM.sysWrite("JNI called: NewDirectByteBuffer \n");   
+  private static int NewDirectByteBuffer(VM_JNIEnvironment env,
+                                         Address address,
+                                         long capacity) {
+    if (traceJNI) VM.sysWrite("JNI called: NewDirectByteBuffer \n");
     try {
       Buffer buffer = java.nio.JikesRVMSupport.newDirectByteBuffer(address, capacity);
       return env.pushJNIRef(buffer);
@@ -5814,11 +5829,11 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     }
   }
 
-  private static Address GetDirectBufferAddress(VM_JNIEnvironment env, 
-                                                   int bufJREF) {
-    if (traceJNI) VM.sysWrite("JNI called: GetDirectBufferAddress \n");   
+  private static Address GetDirectBufferAddress(VM_JNIEnvironment env,
+                                                int bufJREF) {
+    if (traceJNI) VM.sysWrite("JNI called: GetDirectBufferAddress \n");
     try {
-      Buffer buffer = (Buffer)env.getJNIRef(bufJREF);
+      Buffer buffer = (Buffer) env.getJNIRef(bufJREF);
       //if (buffer instanceof ByteBuffer) {
       //  VM.sysWrite("ByteBuffer, ");
       //  if (((ByteBuffer)buffer).isDirect())
@@ -5833,11 +5848,11 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     }
   }
 
-  private static long GetDirectBufferCapacity(VM_JNIEnvironment env, 
+  private static long GetDirectBufferCapacity(VM_JNIEnvironment env,
                                               int bufJREF) {
-    if (traceJNI) VM.sysWrite("JNI called: GetDirectBufferCapacity \n");   
+    if (traceJNI) VM.sysWrite("JNI called: GetDirectBufferCapacity \n");
     try {
-      Buffer buffer = (Buffer)env.getJNIRef(bufJREF);
+      Buffer buffer = (Buffer) env.getJNIRef(bufJREF);
       return buffer.capacity();
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -5853,24 +5868,24 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static int reserved0(VM_JNIEnvironment env) {
     VM.sysWrite("JNI ERROR: reserved function slot not implemented, exiting ...\n");
     VM.sysExit(VM.EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    return -1; 
+    return -1;
   }
 
-  private static int reserved1(VM_JNIEnvironment env){
+  private static int reserved1(VM_JNIEnvironment env) {
     VM.sysWrite("JNI ERROR: reserved function slot not implemented, exiting ...\n");
-    VM.sysExit(VM.EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);                    
-    return -1;                 
-  }                                    
+    VM.sysExit(VM.EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+    return -1;
+  }
 
-  private static int reserved2(VM_JNIEnvironment env){         
+  private static int reserved2(VM_JNIEnvironment env) {
     VM.sysWrite("JNI ERROR: reserved function slot not implemented, exiting ...\n");
-    VM.sysExit(VM.EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);                    
-    return -1;                 
-  }                                                                    
+    VM.sysExit(VM.EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+    return -1;
+  }
 
-  private static int reserved3(VM_JNIEnvironment env){         
+  private static int reserved3(VM_JNIEnvironment env) {
     VM.sysWrite("JNI ERROR: reserved function slot not implemented, exiting ...\n");
-    VM.sysExit(VM.EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);                    
-    return -1;                 
+    VM.sysExit(VM.EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+    return -1;
   }
 }

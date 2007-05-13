@@ -82,7 +82,7 @@ import org.jikesrvm.compilers.opt.ir.Unary;
  *     <li>Consideration of more loop structures</li>
  * </ul>
  * </p>
- * 
+ *
  * @see OPT_LSTNode
  */
 final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
@@ -90,12 +90,12 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
   /**
    * Flag to optionally print verbose debugging messages
    */
-  private static final boolean DEBUG=false;
+  private static final boolean DEBUG = false;
 
   // -oO Cached values for convenience Oo-
   /**
    * A pointer to the governing IR
-   */  
+   */
   private final OPT_IR ir;
 
   // -oO Blocks that get set up during the recognition of the loop Oo-
@@ -149,7 +149,6 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
    */
   OPT_Operand strideValue;
 
-
   // -oO Interfaces to the rest of the compiler Oo-
   /**
    * Constructor
@@ -166,7 +165,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
     Enumeration<OPT_GraphNode> innerLoops = node.outNodes();
     // Iterate over loops contained within this loop annotating from the inside out
     while (innerLoops.hasMoreElements()) {
-      OPT_AnnotatedLSTNode nestedLoop = new OPT_AnnotatedLSTNode(ir, (OPT_LSTNode)innerLoops.nextElement());
+      OPT_AnnotatedLSTNode nestedLoop = new OPT_AnnotatedLSTNode(ir, (OPT_LSTNode) innerLoops.nextElement());
       insertOut(nestedLoop);
     }
     // Annotate node
@@ -194,14 +193,14 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
    */
   boolean isCountableLoop() {
     return
-      (initialIteratorValue != null) &&
-      (isConstant(initialIteratorValue) == true) &&
-      (terminalIteratorValue != null) &&
-      (isConstant(terminalIteratorValue) == true) &&
-      (strideValue != null) &&
-      (isConstant(strideValue) == true) &&
-      (iteratorInstr != null) &&
-      ((iteratorInstr.operator.opcode == INT_ADD_opcode)||(iteratorInstr.operator.opcode == INT_SUB_opcode));
+        (initialIteratorValue != null) &&
+        (isConstant(initialIteratorValue) == true) &&
+        (terminalIteratorValue != null) &&
+        (isConstant(terminalIteratorValue) == true) &&
+        (strideValue != null) &&
+        (isConstant(strideValue) == true) &&
+        (iteratorInstr != null) &&
+        ((iteratorInstr.operator.opcode == INT_ADD_opcode) || (iteratorInstr.operator.opcode == INT_SUB_opcode));
   }
 
   /**
@@ -225,14 +224,14 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
    */
   boolean isAffineLoop() {
     return
-      (initialIteratorValue != null) &&
-      (isLoopInvariant(initialIteratorValue, loop, header) == true) &&
-      (terminalIteratorValue != null) &&
-      (isLoopInvariant(terminalIteratorValue, loop, header) == true) &&
-      (strideValue != null) &&
-      (isLoopInvariant(strideValue, loop, header) == true) &&
-      (iteratorInstr != null) &&
-      ((iteratorInstr.operator.opcode == INT_ADD_opcode)||(iteratorInstr.operator.opcode == INT_SUB_opcode));
+        (initialIteratorValue != null) &&
+        (isLoopInvariant(initialIteratorValue, loop, header) == true) &&
+        (terminalIteratorValue != null) &&
+        (isLoopInvariant(terminalIteratorValue, loop, header) == true) &&
+        (strideValue != null) &&
+        (isLoopInvariant(strideValue, loop, header) == true) &&
+        (iteratorInstr != null) &&
+        ((iteratorInstr.operator.opcode == INT_ADD_opcode) || (iteratorInstr.operator.opcode == INT_SUB_opcode));
   }
 
   /**
@@ -243,6 +242,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
   boolean isNonRegularLoop() {
     return isAffineLoop() == false;
   }
+
   /**
    * Is this value modified by the loop?
    *
@@ -251,15 +251,17 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
   boolean isInvariant(OPT_Operand op) {
     return isLoopInvariant(op, loop, header);
   }
+
   /**
    * Is this operand related to the iterator of this loop?
    *
    * @param  op Operand to test
    * @return whether related to iterator (initial, phi or carried)
    */
-  boolean isRelatedToIterator(OPT_Operand op){
+  boolean isRelatedToIterator(OPT_Operand op) {
     return isFixedDistanceFromPhiIterator(op);
   }
+
   /**
    * Is this operand related to the phi iterator of this loop?
    * @param op Operand to test
@@ -268,6 +270,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
   boolean isPhiLoopIterator(OPT_Operand op) {
     return op.similar(phiLoopIterator);
   }
+
   /**
    * Is this operand related to the carried iterator of this loop?
    * @param op Operand to test
@@ -276,12 +279,14 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
   boolean isCarriedLoopIterator(OPT_Operand op) {
     return op.similar(carriedLoopIterator);
   }
+
   /**
    * Is the loop iterator monotonic?
    */
   boolean isMonotonic() {
     return isConstant(strideValue);
   }
+
   /**
    * Return the stride value for monotonic loops
    *
@@ -289,34 +294,40 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
    */
   int getMonotonicStrideValue() {
     if (iteratorInstr.operator.opcode == INT_SUB_opcode) {
-      return -((OPT_IntConstantOperand)strideValue).value;
-    }
-    else if (iteratorInstr.operator.opcode == INT_ADD_opcode) {
-      return ((OPT_IntConstantOperand)strideValue).value;
-    }
-    else {
+      return -((OPT_IntConstantOperand) strideValue).value;
+    } else if (iteratorInstr.operator.opcode == INT_ADD_opcode) {
+      return ((OPT_IntConstantOperand) strideValue).value;
+    } else {
       throw new Error("Error reading stride value");
     }
   }
+
   /**
    * Is the loop iterator a monotonic increasing value
    */
   boolean isMonotonicIncreasing() {
-    if ((isMonotonic() == false) || condition.isGREATER() || condition.isGREATER_EQUAL() || condition.isHIGHER() || condition.isHIGHER_EQUAL()) {
+    if ((isMonotonic() == false) ||
+        condition.isGREATER() ||
+        condition.isGREATER_EQUAL() ||
+        condition.isHIGHER() ||
+        condition.isHIGHER_EQUAL()) {
       return false;
-    }
-    else {
+    } else {
       return getMonotonicStrideValue() > 0;
     }
   }
+
   /**
    * Is the loop iterator a monotonic decreasing value
    */
   boolean isMonotonicDecreasing() {
-    if ((isMonotonic() == false) || condition.isLESS() || condition.isLESS_EQUAL() || condition.isLOWER() || condition.isLOWER_EQUAL()) {
+    if ((isMonotonic() == false) ||
+        condition.isLESS() ||
+        condition.isLESS_EQUAL() ||
+        condition.isLOWER() ||
+        condition.isLOWER_EQUAL()) {
       return false;
-    }
-    else {
+    } else {
       return getMonotonicStrideValue() < 0;
     }
   }
@@ -327,17 +338,18 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
   boolean contains(OPT_BasicBlock block) {
     return (block.getNumber() < loop.length()) && loop.get(block.getNumber());
   }
+
   // -oO Utility methods Oo-
   /**
    * Converts the annotated loop to a concise string
-   */ 
+   */
   public String toString() {
     String ifCmpString = "??";
-    if ((ifCmpInstr != null)&&(IfCmp.conforms(ifCmpInstr))) {
+    if ((ifCmpInstr != null) && (IfCmp.conforms(ifCmpInstr))) {
       ifCmpString = IfCmp.getCond(ifCmpInstr).toString();
     }
     return ("// pred: " + predecessor + "\n" +
-            "loop : " +  initialIteratorValue + ";\n" +
+            "loop : " + initialIteratorValue + ";\n" +
             "head {" + header + "}:\n" +
             "   " + phiLoopIterator + "=phi(" + initialIteratorValue + "," + carriedLoopIterator + ");\n" +
             "   " + carriedLoopIterator + "=" + phiLoopIterator + "+" + strideValue + ";\n" +
@@ -345,23 +357,21 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
             "exit {" + exit + "}:\n" +
             "   if(" + carriedLoopIterator + " " + ifCmpString + " " + terminalIteratorValue + ")\n" +
             "      goto head;\n" +
-            "// succ: "+ successor + "\n");
+            "// succ: " + successor + "\n");
   }
+
   /**
    * Dump a human readable description of the loop
    */
   void dump() {
-    VM.sysWrite ("********* START OF SSA LOOP DUMP in OPT_AnnotatedLSTNode FOR " + ir.method + "\n");
+    VM.sysWrite("********* START OF SSA LOOP DUMP in OPT_AnnotatedLSTNode FOR " + ir.method + "\n");
     if (isNonRegularLoop()) {
       VM.sysWrite("Non-regular");
-    }
-    else if (isAffineLoop()) {
+    } else if (isAffineLoop()) {
       VM.sysWrite("Affine");
-    }
-    else if (isCountableLoop()) {
+    } else if (isCountableLoop()) {
       VM.sysWrite("Countable");
-    }
-    else {
+    } else {
       VM.sysWrite("INVALID");
     }
     VM.sysWrite(" Loop:\n\tIteratorInstr: " + iteratorInstr.toString() +
@@ -374,14 +384,14 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
                 "\n\tLoop: " + getBasicBlocks().toString() + " / " + loop.toString() +
                 "\n");
 
-    OPT_BasicBlockEnumeration loopBlocks = getBasicBlocks();   
+    OPT_BasicBlockEnumeration loopBlocks = getBasicBlocks();
     // loop_over_basic_blocks:
-    while(loopBlocks.hasMoreElements()){
+    while (loopBlocks.hasMoreElements()) {
       // The current basic block
       OPT_BasicBlock curLoopBB = loopBlocks.next();
       dumpBlock(curLoopBB);
     }
-    VM.sysWrite ("*********   END OF SSA LOOP DUMP in OPT_AnnotatedLSTNode FOR " + ir.method + "\n");
+    VM.sysWrite("*********   END OF SSA LOOP DUMP in OPT_AnnotatedLSTNode FOR " + ir.method + "\n");
   }
 
   /**
@@ -430,26 +440,25 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
       if (Label.getBlock(instr).block.getInfrequent()) {
         sb.append(" (Infrequent)");
       }
-    }
-    else {
+    } else {
       OPT_IREnumeration.AllDefsEnum defs = new OPT_IREnumeration.AllDefsEnum(ir, instr);
       OPT_IREnumeration.AllUsesEnum uses = new OPT_IREnumeration.AllUsesEnum(ir, instr);
       sb.append(instr.operator).append("\n\t     defs: ");
-      while(defs.hasMoreElements()) {
-        sb.append (defs.next().toString());
+      while (defs.hasMoreElements()) {
+        sb.append(defs.next().toString());
         if (defs.hasMoreElements()) {
-          sb.append (", ");
+          sb.append(", ");
         }
       }
       sb.append("\n\t     uses: ");
-      while(uses.hasMoreElements()) {
-        sb.append (uses.next().toString());
+      while (uses.hasMoreElements()) {
+        sb.append(uses.next().toString());
         if (uses.hasMoreElements()) {
-          sb.append (", ");
+          sb.append(", ");
         }
       }
     }
-    sb.append ("\n");
+    sb.append("\n");
     return sb.toString();
   }
 
@@ -459,7 +468,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
    * @param op Operand to determine whether it's constant
    * @return Is the operand constant 
    */
-   static boolean isConstant(OPT_Operand op){
+  static boolean isConstant(OPT_Operand op) {
     return op instanceof OPT_IntConstantOperand;
   }
 
@@ -470,22 +479,21 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
    * @return whether or not it is a fixed distance
    */
   boolean isFixedDistanceFromPhiIterator(OPT_Operand op) {
-    if(op.similar(phiLoopIterator)) {
+    if (op.similar(phiLoopIterator)) {
       return true;
-    }
-    else {
+    } else {
       OPT_Instruction opInstr = definingInstruction(op);
-      if ((opInstr.operator.opcode == INT_ADD_opcode)||(opInstr.operator.opcode == INT_SUB_opcode)){
-        OPT_Operand val1= Binary.getVal1(opInstr);
-        OPT_Operand val2= Binary.getVal2(opInstr);
+      if ((opInstr.operator.opcode == INT_ADD_opcode) || (opInstr.operator.opcode == INT_SUB_opcode)) {
+        OPT_Operand val1 = Binary.getVal1(opInstr);
+        OPT_Operand val2 = Binary.getVal2(opInstr);
         return ((val1.isConstant() && isFixedDistanceFromPhiIterator(val2)) ||
                 (val2.isConstant() && isFixedDistanceFromPhiIterator(val1)));
-      }
-      else {
+      } else {
         return false;
       }
     }
   }
+
   /**
    * Get fixed distance from the phi iterator
    *
@@ -493,29 +501,25 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
    * @return the fixed distance
    */
   int getFixedDistanceFromPhiIterator(OPT_Operand op) {
-    if(op.similar(phiLoopIterator)) {
+    if (op.similar(phiLoopIterator)) {
       return 0;
-    }
-    else {
+    } else {
       OPT_Instruction opInstr = definingInstruction(op);
       if (opInstr.operator.opcode == INT_ADD_opcode) {
-        OPT_Operand val1= Binary.getVal1(opInstr);
-        OPT_Operand val2= Binary.getVal2(opInstr);
+        OPT_Operand val1 = Binary.getVal1(opInstr);
+        OPT_Operand val2 = Binary.getVal2(opInstr);
         if (val1.isConstant()) {
           return val1.asIntConstant().value + getFixedDistanceFromPhiIterator(val2);
-        }
-        else {
+        } else {
           VM._assert(val2.isConstant());
           return getFixedDistanceFromPhiIterator(val1) + val2.asIntConstant().value;
         }
-      }
-      else if (opInstr.operator.opcode == INT_SUB_opcode){
-        OPT_Operand val1= Binary.getVal1(opInstr);
-        OPT_Operand val2= Binary.getVal2(opInstr);
+      } else if (opInstr.operator.opcode == INT_SUB_opcode) {
+        OPT_Operand val1 = Binary.getVal1(opInstr);
+        OPT_Operand val2 = Binary.getVal2(opInstr);
         if (val1.isConstant()) {
           return val1.asIntConstant().value - getFixedDistanceFromPhiIterator(val2);
-        }
-        else {
+        } else {
           VM._assert(val2.isConstant());
           return getFixedDistanceFromPhiIterator(val1) - val2.asIntConstant().value;
         }
@@ -523,6 +527,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
     }
     throw new Error("Value isn't fixed distance from phi iterator");
   }
+
   /**
    * Test whether operand value will be invariant in a loop by tracing
    * back earlier definitions.  There is similar code in {@link
@@ -533,146 +538,137 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
    * @param header The loop header for determining if PEIs are invariant
    * @return Whether the operand is invariant or not
    */
-  private static boolean isLoopInvariant (OPT_Operand op, OPT_BitVector loop, OPT_BasicBlock header) {
+  private static boolean isLoopInvariant(OPT_Operand op, OPT_BitVector loop, OPT_BasicBlock header) {
     boolean result;
     if (op.isConstant()) {
       result = true;
-    }
-    else if(op.isRegister()) {
+    } else if (op.isRegister()) {
       OPT_Instruction instr = definingInstruction(op);
       // Is the instruction that defined this register in the loop?
-      if (OPT_CFGTransformations.inLoop (instr.getBasicBlock(), loop) == false) {
+      if (OPT_CFGTransformations.inLoop(instr.getBasicBlock(), loop) == false) {
         // No => the value is invariant in the loop
         result = true;
-      }
-      else {
+      } else {
         // Trace op to where invariant/variant values may be defined
         switch (instr.operator().format) {
-        case OPT_InstructionFormat.Binary_format:
-          result = (isLoopInvariant(Binary.getVal1(instr), loop, header) &&
-                    isLoopInvariant(Binary.getVal2(instr), loop, header));
-          break;
-        case OPT_InstructionFormat.BoundsCheck_format:
-          if(isLoopInvariant(BoundsCheck.getRef(instr), loop, header) &&
-             isLoopInvariant(BoundsCheck.getIndex(instr), loop, header)) {
-            // Iterate over instructions before the null check
-            OPT_Instruction lastInst;
-            if (header == instr.getBasicBlock()) {
-              lastInst = instr;
-            }
-            else {
-              lastInst = header.lastInstruction();
-            }
-            result = false;
-            OPT_Instruction itrInst;
-            for(itrInst = header.firstRealInstruction();
-                itrInst != lastInst;
-                itrInst = itrInst.nextInstructionInCodeOrder()) {              
-              // Check it would be safe for this nullcheck to before
-              // the loop header without changing the exception
-              // semantics
-              if (BoundsCheck.conforms(itrInst) &&
-                  BoundsCheck.getRef(itrInst).similar(BoundsCheck.getRef(instr)) &&
-                  BoundsCheck.getIndex(itrInst).similar(BoundsCheck.getIndex(instr))) {
-                // it's safe if there's already an equivalent null check
-                result = true;
-                break;
+          case OPT_InstructionFormat.Binary_format:
+            result = (isLoopInvariant(Binary.getVal1(instr), loop, header) &&
+                      isLoopInvariant(Binary.getVal2(instr), loop, header));
+            break;
+          case OPT_InstructionFormat.BoundsCheck_format:
+            if (isLoopInvariant(BoundsCheck.getRef(instr), loop, header) &&
+                isLoopInvariant(BoundsCheck.getIndex(instr), loop, header)) {
+              // Iterate over instructions before the null check
+              OPT_Instruction lastInst;
+              if (header == instr.getBasicBlock()) {
+                lastInst = instr;
+              } else {
+                lastInst = header.lastInstruction();
               }
-              else if (itrInst.isAllocation() || itrInst.isDynamicLinkingPoint() ||
-                       (itrInst.operator.opcode >= ARCH_INDEPENDENT_END_opcode) ||
-                       itrInst.isPEI() || itrInst.isThrow()
-                       || itrInst.isImplicitLoad() || itrInst.isImplicitStore() ||
-                       OPT_GCP.usesOrDefsPhysicalRegisterOrAddressType(itrInst)) {
-                // it's not safe in these circumstances (see OPT_LICM)
-                if (DEBUG) {
-                  VM.sysWriteln("null check not invariant: "+ itrInst);
+              result = false;
+              OPT_Instruction itrInst;
+              for (itrInst = header.firstRealInstruction();
+                   itrInst != lastInst;
+                   itrInst = itrInst.nextInstructionInCodeOrder()) {
+                // Check it would be safe for this nullcheck to before
+                // the loop header without changing the exception
+                // semantics
+                if (BoundsCheck.conforms(itrInst) &&
+                    BoundsCheck.getRef(itrInst).similar(BoundsCheck.getRef(instr)) &&
+                    BoundsCheck.getIndex(itrInst).similar(BoundsCheck.getIndex(instr))) {
+                  // it's safe if there's already an equivalent null check
+                  result = true;
+                  break;
+                } else if (itrInst.isAllocation() || itrInst.isDynamicLinkingPoint() ||
+                           (itrInst.operator.opcode >= ARCH_INDEPENDENT_END_opcode) ||
+                           itrInst.isPEI() || itrInst.isThrow()
+                           || itrInst.isImplicitLoad() || itrInst.isImplicitStore() ||
+                           OPT_GCP.usesOrDefsPhysicalRegisterOrAddressType(itrInst)) {
+                  // it's not safe in these circumstances (see OPT_LICM)
+                  if (DEBUG) {
+                    VM.sysWriteln("null check not invariant: " + itrInst);
+                  }
+                  break;
                 }
-                break;
               }
-            }
-            if (itrInst == instr) {
-              // did we iterate to the end of the instructions and
-              // find instr
-              result = true;
-            }
-          }
-          else {
-            result = false;
-          }
-          break;
-        case OPT_InstructionFormat.GuardedBinary_format:
-          result = (isLoopInvariant(GuardedBinary.getVal1(instr), loop, header) &&
-                    isLoopInvariant(GuardedBinary.getVal2(instr), loop, header) &&
-                    isLoopInvariant(GuardedBinary.getGuard(instr), loop, header));
-          break;
-        case OPT_InstructionFormat.GuardedUnary_format:
-          result = (isLoopInvariant(GuardedUnary.getVal(instr), loop, header) &&
-                    isLoopInvariant(GuardedUnary.getGuard(instr), loop, header));
-          break;
-        case OPT_InstructionFormat.Move_format:
-          result = isLoopInvariant(Move.getVal(instr), loop, header);
-          break;
-        case OPT_InstructionFormat.NullCheck_format:
-          if(isLoopInvariant(NullCheck.getRef(instr), loop, header)) {
-            // Iterate over instructions before the null check
-            OPT_Instruction lastInst;
-            if (header == instr.getBasicBlock()) {
-              lastInst = instr;
-            }
-            else {
-              lastInst = header.lastInstruction();
-            }
-            result = false;
-            OPT_Instruction itrInst;
-            for(itrInst = header.firstRealInstruction();
-                itrInst != lastInst;
-                itrInst = itrInst.nextInstructionInCodeOrder()) {              
-              // Check it would be safe for this nullcheck to before
-              // the loop header without changing the exception
-              // semantics
-              if (NullCheck.conforms(itrInst) &&
-                  NullCheck.getRef(itrInst).similar(NullCheck.getRef(instr))) {
-                // it's safe if there's already an equivalent null check
+              if (itrInst == instr) {
+                // did we iterate to the end of the instructions and
+                // find instr
                 result = true;
-                break;
               }
-              else if (itrInst.isAllocation() || itrInst.isDynamicLinkingPoint() ||
-                       (itrInst.operator.opcode >= ARCH_INDEPENDENT_END_opcode) ||
-                       itrInst.isPEI() || itrInst.isThrow()
-                       || itrInst.isImplicitLoad() || itrInst.isImplicitStore() ||
-                       OPT_GCP.usesOrDefsPhysicalRegisterOrAddressType(itrInst)) {
-                // it's not safe in these circumstances (see OPT_LICM)
-                if (DEBUG) {
-                  VM.sysWriteln("null check not invariant: "+ itrInst);
+            } else {
+              result = false;
+            }
+            break;
+          case OPT_InstructionFormat.GuardedBinary_format:
+            result = (isLoopInvariant(GuardedBinary.getVal1(instr), loop, header) &&
+                      isLoopInvariant(GuardedBinary.getVal2(instr), loop, header) &&
+                      isLoopInvariant(GuardedBinary.getGuard(instr), loop, header));
+            break;
+          case OPT_InstructionFormat.GuardedUnary_format:
+            result = (isLoopInvariant(GuardedUnary.getVal(instr), loop, header) &&
+                      isLoopInvariant(GuardedUnary.getGuard(instr), loop, header));
+            break;
+          case OPT_InstructionFormat.Move_format:
+            result = isLoopInvariant(Move.getVal(instr), loop, header);
+            break;
+          case OPT_InstructionFormat.NullCheck_format:
+            if (isLoopInvariant(NullCheck.getRef(instr), loop, header)) {
+              // Iterate over instructions before the null check
+              OPT_Instruction lastInst;
+              if (header == instr.getBasicBlock()) {
+                lastInst = instr;
+              } else {
+                lastInst = header.lastInstruction();
+              }
+              result = false;
+              OPT_Instruction itrInst;
+              for (itrInst = header.firstRealInstruction();
+                   itrInst != lastInst;
+                   itrInst = itrInst.nextInstructionInCodeOrder()) {
+                // Check it would be safe for this nullcheck to before
+                // the loop header without changing the exception
+                // semantics
+                if (NullCheck.conforms(itrInst) &&
+                    NullCheck.getRef(itrInst).similar(NullCheck.getRef(instr))) {
+                  // it's safe if there's already an equivalent null check
+                  result = true;
+                  break;
+                } else if (itrInst.isAllocation() || itrInst.isDynamicLinkingPoint() ||
+                           (itrInst.operator.opcode >= ARCH_INDEPENDENT_END_opcode) ||
+                           itrInst.isPEI() || itrInst.isThrow()
+                           || itrInst.isImplicitLoad() || itrInst.isImplicitStore() ||
+                           OPT_GCP.usesOrDefsPhysicalRegisterOrAddressType(itrInst)) {
+                  // it's not safe in these circumstances (see OPT_LICM)
+                  if (DEBUG) {
+                    VM.sysWriteln("null check not invariant: " + itrInst);
+                  }
+                  break;
                 }
-                break;
               }
+              if (itrInst == instr) {
+                // did we iterate to the end of the instructions and
+                // find instr
+                result = true;
+              }
+            } else {
+              result = false;
             }
-            if (itrInst == instr) {
-              // did we iterate to the end of the instructions and
-              // find instr
-              result = true;
-            }
-          }
-          else {
+            break;
+          case OPT_InstructionFormat.Unary_format:
+            result = isLoopInvariant(Unary.getVal(instr), loop, header);
+            break;
+          default:
+            // Unknown instruction format so leave
             result = false;
-          }
-          break;
-        case OPT_InstructionFormat.Unary_format:
-          result = isLoopInvariant(Unary.getVal(instr), loop, header);
-          break;
-        default:
-          // Unknown instruction format so leave
-          result = false;
-          break;
+            break;
         }
       }
-    }
-    else { // Other operand types
+    } else { // Other operand types
       result = false;
     }
     if (DEBUG) {
-      VM.sysWriteln("isLoopInvariant: " +op + (result ? " true" : " false"));
+      VM.sysWriteln("isLoopInvariant: " + op + (result ? " true" : " false"));
     }
     return result;
   }
@@ -686,19 +682,17 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
    */
   OPT_Operand generateLoopInvariantOperand(OPT_BasicBlock block, OPT_Operand op) {
     OPT_Instruction instr = definingInstruction(op);
-    if (op.isConstant() || OPT_CFGTransformations.inLoop (instr.getBasicBlock(), loop) == false) {
+    if (op.isConstant() || OPT_CFGTransformations.inLoop(instr.getBasicBlock(), loop) == false) {
       // the operand is already invariant
       return op;
-    }
-    else {
+    } else {
       OPT_RegisterOperand result;
       OPT_Instruction opInstr = definingInstruction(op);
       // create result of correct type
-      if(ResultCarrier.conforms(opInstr)) {
+      if (ResultCarrier.conforms(opInstr)) {
         result = ResultCarrier.getResult(opInstr).copyRO();
         result.setRegister(ir.regpool.getReg(result));
-      }
-      else {
+      } else {
         if (VM.VerifyAssertions) VM._assert(GuardResultCarrier.conforms(opInstr));
         result = GuardResultCarrier.getGuardResult(opInstr).copyRO();
         result.setRegister(ir.regpool.getReg(result));
@@ -706,50 +700,50 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
       OPT_Instruction resultInstruction;
       OPT_Operator operator = instr.operator;
       switch (operator.format) {
-      case OPT_InstructionFormat.Binary_format:
-        resultInstruction = Binary.create(operator,
-                                          result,
-                                          generateLoopInvariantOperand(block, Binary.getVal1(instr)),
-                                          generateLoopInvariantOperand(block, Binary.getVal2(instr)));
-        break;
-      case OPT_InstructionFormat.BoundsCheck_format:
-        resultInstruction = BoundsCheck.create(operator,
-                                               result,
-                                               generateLoopInvariantOperand(block, BoundsCheck.getRef(instr)),
-                                               generateLoopInvariantOperand(block, BoundsCheck.getIndex(instr)),
-                                               generateLoopInvariantOperand(block, BoundsCheck.getGuard(instr)));
-        break;
-      case OPT_InstructionFormat.GuardedBinary_format:
-        resultInstruction = GuardedBinary.create(operator,
+        case OPT_InstructionFormat.Binary_format:
+          resultInstruction = Binary.create(operator,
+                                            result,
+                                            generateLoopInvariantOperand(block, Binary.getVal1(instr)),
+                                            generateLoopInvariantOperand(block, Binary.getVal2(instr)));
+          break;
+        case OPT_InstructionFormat.BoundsCheck_format:
+          resultInstruction = BoundsCheck.create(operator,
                                                  result,
-                                                 generateLoopInvariantOperand(block, GuardedBinary.getVal1(instr)),
-                                                 generateLoopInvariantOperand(block, GuardedBinary.getVal2(instr)),
-                                                 generateLoopInvariantOperand(block, GuardedBinary.getGuard(instr)));
-        break;
-      case OPT_InstructionFormat.GuardedUnary_format:
-        resultInstruction = GuardedUnary.create(operator,
-                                                result,
-                                                generateLoopInvariantOperand(block, GuardedUnary.getVal(instr)),
-                                                generateLoopInvariantOperand(block, GuardedUnary.getGuard(instr)));
-        break;
-      case OPT_InstructionFormat.Move_format:
-        resultInstruction = Move.create(operator,
-                                        result,
-                                        generateLoopInvariantOperand(block, Move.getVal(instr)));
-        break;
-      case OPT_InstructionFormat.NullCheck_format:
-        resultInstruction = NullCheck.create(operator,
-                                             result,
-                                             generateLoopInvariantOperand(block, NullCheck.getRef(instr)));
-        break;
-      case OPT_InstructionFormat.Unary_format:
-        resultInstruction = Unary.create(operator,
-                                         result,
-                                         generateLoopInvariantOperand(block, Unary.getVal(instr)));
-        break;
-      default:
-        // Unknown instruction format so leave
-        throw new Error("TODO: generate loop invariant for operator " + operator);
+                                                 generateLoopInvariantOperand(block, BoundsCheck.getRef(instr)),
+                                                 generateLoopInvariantOperand(block, BoundsCheck.getIndex(instr)),
+                                                 generateLoopInvariantOperand(block, BoundsCheck.getGuard(instr)));
+          break;
+        case OPT_InstructionFormat.GuardedBinary_format:
+          resultInstruction = GuardedBinary.create(operator,
+                                                   result,
+                                                   generateLoopInvariantOperand(block, GuardedBinary.getVal1(instr)),
+                                                   generateLoopInvariantOperand(block, GuardedBinary.getVal2(instr)),
+                                                   generateLoopInvariantOperand(block, GuardedBinary.getGuard(instr)));
+          break;
+        case OPT_InstructionFormat.GuardedUnary_format:
+          resultInstruction = GuardedUnary.create(operator,
+                                                  result,
+                                                  generateLoopInvariantOperand(block, GuardedUnary.getVal(instr)),
+                                                  generateLoopInvariantOperand(block, GuardedUnary.getGuard(instr)));
+          break;
+        case OPT_InstructionFormat.Move_format:
+          resultInstruction = Move.create(operator,
+                                          result,
+                                          generateLoopInvariantOperand(block, Move.getVal(instr)));
+          break;
+        case OPT_InstructionFormat.NullCheck_format:
+          resultInstruction = NullCheck.create(operator,
+                                               result,
+                                               generateLoopInvariantOperand(block, NullCheck.getRef(instr)));
+          break;
+        case OPT_InstructionFormat.Unary_format:
+          resultInstruction = Unary.create(operator,
+                                           result,
+                                           generateLoopInvariantOperand(block, Unary.getVal(instr)));
+          break;
+        default:
+          // Unknown instruction format so leave
+          throw new Error("TODO: generate loop invariant for operator " + operator);
       }
       resultInstruction.copyPosition(instr);
       block.appendInstruction(resultInstruction);
@@ -765,7 +759,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
    * @param use Operand to follow
    * @return the first defintion of the instruction which isn't a move
    */
-  public static OPT_Operand follow (OPT_Operand use) {
+  public static OPT_Operand follow(OPT_Operand use) {
     while (true) {
       // Are we still looking at a register operand?
       if (use.isRegister() == false) {
@@ -774,9 +768,9 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
       }
       // Get definitions of register
       OPT_RegisterOperand rop = use.asRegister();
-      OPT_RegisterOperandEnumeration defs = OPT_DefUse.defs (rop.register);
+      OPT_RegisterOperandEnumeration defs = OPT_DefUse.defs(rop.register);
       // Does register have definitions?
-      if (defs.hasMoreElements() == false){
+      if (defs.hasMoreElements() == false) {
         // No - Register musn't be defined in this block
         break;
       }
@@ -784,12 +778,12 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
       use = defs.next();
       OPT_Instruction def = use.instruction;
       // Was the instruction that defined this register a move?
-      if (Move.conforms (def) == false){
+      if (Move.conforms(def) == false) {
         // No - return the register operand from the defining instruction
         break;
       }
       // Does the register have multiple defintions?
-      if (defs.hasMoreElements()){
+      if (defs.hasMoreElements()) {
         // Yes - too complex to follow so let's leave
         break;
       }
@@ -804,17 +798,16 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
    *
    * @param op The operand we're searching for the definition of
    */
-  static OPT_Instruction definingInstruction (OPT_Operand op) {
+  static OPT_Instruction definingInstruction(OPT_Operand op) {
     OPT_Instruction result = op.instruction;
     // Is operand a register?
-    if(op instanceof OPT_RegisterOperand){
+    if (op instanceof OPT_RegisterOperand) {
       // Yes - check the definitions out
-      OPT_RegisterOperandEnumeration defs = OPT_DefUse.defs (((OPT_RegisterOperand) op).register);
+      OPT_RegisterOperandEnumeration defs = OPT_DefUse.defs(((OPT_RegisterOperand) op).register);
       // Does this register have any defintions?
       if (!defs.hasMoreElements()) {
         // No - must have been defined in previous block so just return register
-      }
-      else {
+      } else {
         // Get the instruction that defines the register
         result = defs.next().instruction;
         // Check to see if there are any more definitions
@@ -832,7 +825,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
    *
    * @return true => block is in the loop, false => block not in loop
    */
-  public boolean isInLoop (OPT_BasicBlock block){
+  public boolean isInLoop(OPT_BasicBlock block) {
     return OPT_CFGTransformations.inLoop(block, loop);
   }
 
@@ -846,7 +839,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
    * @return Blocks in loop with header first and exit last
    */
   private BBEnum getBasicBlocks(OPT_BasicBlock block, BBEnum bbs, OPT_BitVector blocksLeftToVisit) {
-    if(block != exit) {
+    if (block != exit) {
       bbs.add(block);
     }
     blocksLeftToVisit.clear(block.getNumber());
@@ -886,13 +879,14 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
     OPT_BasicBlockEnumeration block_outEdges = block.getOut();
     // Check that the blocks that we branch into are all inside the loop
     // loop_over_loop_body_block_out_edges:
-    while(block_outEdges.hasMoreElements()){
+    while (block_outEdges.hasMoreElements()) {
       OPT_BasicBlock curEdgeBB = block_outEdges.next();
       // Is this block in the loop?
-      if((isInLoop(curEdgeBB) == false)&&(block != exit)){
+      if ((isInLoop(curEdgeBB) == false) && (block != exit)) {
         // Block wasn't in the loop
-        throw new NonRegularLoopException("Parallelization giving up: edge out of block in loop to a block outside of the loop, and the block wasn't the loop exit" +
-                                          ((block == header) ? " (it was the header block though)" : ""));
+        throw new NonRegularLoopException(
+            "Parallelization giving up: edge out of block in loop to a block outside of the loop, and the block wasn't the loop exit" +
+            ((block == header) ? " (it was the header block though)" : ""));
       }
     } // end of loop_over_loop_body_block_out_edges
   }
@@ -907,13 +901,14 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
     OPT_BasicBlockEnumeration block_inEdges = block.getIn();
     // Check that the blocks that branch into this one are all inside the loop too
     // loop_over_loop_body_block_in_edges:
-    while(block_inEdges.hasMoreElements()){
+    while (block_inEdges.hasMoreElements()) {
       OPT_BasicBlock curEdgeBB = block_inEdges.next();
       // Is this block in the loop?
-      if((isInLoop(curEdgeBB) == false)&&(block != header)){
+      if ((isInLoop(curEdgeBB) == false) && (block != header)) {
         // Block wasn't in the loop
-        throw new NonRegularLoopException("Parallelization giving up: edge into a block in the loop from a block outside of the loop, and the block wasn't the loop header" +
-                                          ((block == exit) ? " (it was the exit block though)" : ""));
+        throw new NonRegularLoopException(
+            "Parallelization giving up: edge into a block in the loop from a block outside of the loop, and the block wasn't the loop header" +
+            ((block == exit) ? " (it was the exit block though)" : ""));
       }
     } // end of loop_over_loop_body_block_in_edges
   }
@@ -922,7 +917,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
   /**
    * Convert node into annotated format
    */
-  private void perform() throws OPT_OptimizingCompilerException {    
+  private void perform() throws OPT_OptimizingCompilerException {
     // Check we have a loop
     if (loop == null) {
       return;
@@ -935,22 +930,21 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
 
       // Loop over all blocks within this loop and calculate iterator.. information
       // loop_over_basic_blocks:
-      while(loopBlocks.hasMoreElements()) {
+      while (loopBlocks.hasMoreElements()) {
         // The current basic block
         OPT_BasicBlock curLoopBB = loopBlocks.next();
-        
+
         // Is this block the loop header?
-        if(curLoopBB == header){
+        if (curLoopBB == header) {
           // The header was already processed
-        }
-        else {
+        } else {
           processLoopBlock(curLoopBB);
         }
       }
     }
     catch (NonRegularLoopException e) {
-      if (DEBUG){
-        VM.sysWrite(e.summary()+"\n");
+      if (DEBUG) {
+        VM.sysWrite(e.summary() + "\n");
       }
       // Make sure this loop looks non-regular
       initialIteratorValue = null;
@@ -968,31 +962,32 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
     OPT_BasicBlockEnumeration head_inEdges = header.getIn();
     // Loop over blocks that branch to this one
     // loop_over_header_in_edges: 
-    while(head_inEdges.hasMoreElements()){
+    while (head_inEdges.hasMoreElements()) {
       OPT_BasicBlock curEdgeBB = head_inEdges.next();
       // Is this block in the loop?
-      if(isInLoop(curEdgeBB)){
+      if (isInLoop(curEdgeBB)) {
         // Yes - must be the exit block
-        if (exit != null){
+        if (exit != null) {
           // we already have an exit block so loop structure is too
           // complex for us to understand
-          throw new NonRegularLoopException("Multiple back edges to the header block making exit block undistinguishable.");
+          throw new NonRegularLoopException(
+              "Multiple back edges to the header block making exit block undistinguishable.");
         }
         exit = curEdgeBB;
         processExit();
-      }
-      else {
+      } else {
         // No - this is an out of loop block going into the header
-        if (predecessor != null){
+        if (predecessor != null) {
           // we already have a predecessor to the header block, more
           // than 1 is beyond this optimisation at the moment
-          throw new NonRegularLoopException("Multiple out of loop edges into the header making predecessor block undistinguishable.");
+          throw new NonRegularLoopException(
+              "Multiple out of loop edges into the header making predecessor block undistinguishable.");
         }
         predecessor = curEdgeBB;
       }
     } // end of loop_over_header_in_edges
     // If the header isn't the exit block, check it doesn't branch outside of the loop
-    if(header != exit) {
+    if (header != exit) {
       checkOutEdgesAreInLoop(header);
     }
   }
@@ -1002,19 +997,18 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
    */
   private void processExit() throws NonRegularLoopException {
     // If the exit isn't the header block, check it doesn't have in edges from outside the loop
-    if(header != exit) {
+    if (header != exit) {
       checkInEdgesAreInLoop(exit);
     }
     // Check the exit block leaves the loop
     OPT_BasicBlockEnumeration exitBlock_outEdges = exit.getOut();
     boolean exits = false;
     // check_exit_block_exits:
-    while(exitBlock_outEdges.hasMoreElements()){
+    while (exitBlock_outEdges.hasMoreElements()) {
       OPT_BasicBlock curExitBlockOutEdgeBB = exitBlock_outEdges.next();
-      if(isInLoop(curExitBlockOutEdgeBB)){
+      if (isInLoop(curExitBlockOutEdgeBB)) {
         // An in loop out edge from the exit block
-      }
-      else {
+      } else {
         // An out of loop edge from the exit block
         exits = true;
         successor = curExitBlockOutEdgeBB;
@@ -1023,75 +1017,71 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
         }
       }
     } // end of check_exit_block_exits
-    if (exits == false){
-      throw new NonRegularLoopException("Exit block (containing back edge to header) doesn't have an out of loop out edge.");
-    }
-    else {
+    if (exits == false) {
+      throw new NonRegularLoopException(
+          "Exit block (containing back edge to header) doesn't have an out of loop out edge.");
+    } else {
       // Get the if instruction used to loop in the exit block
       ifCmpInstr = exit.firstBranchInstruction();
       if (ifCmpInstr == null) {
         throw new NonRegularLoopException("Exit block branch doesn't have a (1st) branching instruction.");
-      }
-      else if (ifCmpInstr.operator.opcode != INT_IFCMP_opcode){
+      } else if (ifCmpInstr.operator.opcode != INT_IFCMP_opcode) {
         throw new NonRegularLoopException("branch is int_ifcmp but " + ifCmpInstr.operator + "\n");
-      }
-      else {
+      } else {
         // Get the terminal and iterator operations
         carriedLoopIterator = follow(IfCmp.getVal1(ifCmpInstr));
         terminalIteratorValue = follow(IfCmp.getVal2(ifCmpInstr));
-        condition = (OPT_ConditionOperand)IfCmp.getCond(ifCmpInstr).copy();
+        condition = (OPT_ConditionOperand) IfCmp.getCond(ifCmpInstr).copy();
         // Check we have them the right way around and that they do the job we expect
         {
-          boolean iteratorInvariant      = isLoopInvariant(carriedLoopIterator, loop, header);
+          boolean iteratorInvariant = isLoopInvariant(carriedLoopIterator, loop, header);
           boolean terminalValueInvariant = isLoopInvariant(terminalIteratorValue, loop, header);
           // Is the iterator loop invariant?
-          if (iteratorInvariant){
+          if (iteratorInvariant) {
             // Yes - Is the terminal value loop invariant?
-            if (terminalValueInvariant){
+            if (terminalValueInvariant) {
               // Yes - both parameters to the condition are invariant
-              throw new NonRegularLoopException("Exit block condition values are both invariant (single or infinite loop):\n"
-                                                + "Loop = " + loop.toString()
-                                                + "\nIterator = " + carriedLoopIterator
-                                                + "\nTerminal = " + terminalIteratorValue
-                                                );
-            }
-            else {
+              throw new NonRegularLoopException(
+                  "Exit block condition values are both invariant (single or infinite loop):\n"
+                  + "Loop = " + loop.toString()
+                  + "\nIterator = " + carriedLoopIterator
+                  + "\nTerminal = " + terminalIteratorValue
+              );
+            } else {
               // No - swap values over
               OPT_Operand temp = terminalIteratorValue;
               terminalIteratorValue = carriedLoopIterator;
               carriedLoopIterator = temp;
             }
-          }
-          else {
+          } else {
             // No - Is the terminal value loop invariant?
-            if (terminalValueInvariant){
+            if (terminalValueInvariant) {
               // Yes - this is the condition we hoped for
-            }
-            else {
+            } else {
               // No - both loop values are variant and loop is too complex to analyse
               throw new NonRegularLoopException("Exit block condition values are both variant.");
             }
           }
         }
         // Check target of "if" is the header
-        if(Label.getBlock(IfCmp.getTarget(ifCmpInstr).target).block != header) {
+        if (Label.getBlock(IfCmp.getTarget(ifCmpInstr).target).block != header) {
           // No - can't optimise loop in this format
           // TODO: swap ifxxx around so that branch is to header and fall-through is exit
           throw new NonRegularLoopException("Target of exit block branch isn't the loop header.");
         }
         // Calculate stride value
-        OPT_RegisterOperandEnumeration iteratorDefs = OPT_DefUse.defs (((OPT_RegisterOperand)carriedLoopIterator).register);
+        OPT_RegisterOperandEnumeration iteratorDefs =
+            OPT_DefUse.defs(((OPT_RegisterOperand) carriedLoopIterator).register);
         // Loop over definitions of the iterator operand ignoring moves
         while (iteratorDefs.hasMoreElements()) {
-         OPT_Operand curDef = follow(iteratorDefs.next());
+          OPT_Operand curDef = follow(iteratorDefs.next());
           // Is this definition within the loop?
-          if (isInLoop (curDef.instruction.getBasicBlock())) {
+          if (isInLoop(curDef.instruction.getBasicBlock())) {
             // Yes - have we already got an iterator instruction
             if ((iteratorInstr == null) || (iteratorInstr == curDef.instruction)) {
               // No - record
               iteratorInstr = curDef.instruction;
-            }
-            else {
+            } else {
               // Yes - loop too complex again
               throw new NonRegularLoopException("Multiple definitions of the iterator.");
             }
@@ -1104,7 +1094,8 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
         }
         // Is it an instruction we recognise?
         // TODO: support more iterator instructions
-        else if ((iteratorInstr.operator.opcode != INT_ADD_opcode)&&(iteratorInstr.operator.opcode != INT_SUB_opcode)){
+        else
+        if ((iteratorInstr.operator.opcode != INT_ADD_opcode) && (iteratorInstr.operator.opcode != INT_SUB_opcode)) {
           throw new NonRegularLoopException("Unrecognized iterator operator " + iteratorInstr.operator);
         }
         // only carry on further analysis if we think we can understand the loop
@@ -1112,7 +1103,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
           // Does this iterator instruction use the same register as it defines
           OPT_Operand iteratorUse = follow(Binary.getVal1(iteratorInstr));
           // The iterator should be using a phi node of the initial and generated value
-          if (carriedLoopIterator.similar(iteratorUse) == false){
+          if (carriedLoopIterator.similar(iteratorUse) == false) {
             // SSA ok so far, read PHI node
             OPT_Instruction phiInstr = iteratorUse.instruction;
             if (Phi.conforms(phiInstr) == false) {
@@ -1121,43 +1112,43 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
                                                 ") not using a phi instruction but " + phiInstr);
             }
             // We have the SSA we hoped for - tidy up
-            strideValue = follow (Binary.getVal2(iteratorInstr));
-            initialIteratorValue = follow(Phi.getValue(phiInstr,0));
+            strideValue = follow(Binary.getVal2(iteratorInstr));
+            initialIteratorValue = follow(Phi.getValue(phiInstr, 0));
             phiLoopIterator = iteratorUse;
             if (initialIteratorValue instanceof OPT_BasicBlockOperand) {
               throw new Error("OPT_BasicBlock mess up!");
             }
             if (initialIteratorValue == iteratorUse) {
-              initialIteratorValue = follow(Phi.getValue(phiInstr,1));
+              initialIteratorValue = follow(Phi.getValue(phiInstr, 1));
             }
             if (initialIteratorValue instanceof OPT_BasicBlockOperand) {
               throw new Error("OPT_BasicBlock mess up!2");
             }
-          }
-          else {
+          } else {
             // Not in SSA form as iterator modifies an operand
             throw new NonRegularLoopException("Iterator modifies (uses and defines) operand " +
                                               iteratorUse + " and is therefore not in SSA form.");
           }
           // Check the initialIteratorValue was defined outside of (before) the loop header or is constant
           if (isLoopInvariant(initialIteratorValue, loop, header) == false) {
-            throw new NonRegularLoopException("Initial iterator not constant or defined outside the loop - " + initialIteratorValue);
+            throw new NonRegularLoopException("Initial iterator not constant or defined outside the loop - " +
+                                              initialIteratorValue);
           }
           // Check the stride value constant
-          else if ((strideValue instanceof OPT_ConstantOperand) == false){
+          else if ((strideValue instanceof OPT_ConstantOperand) == false) {
             throw new NonRegularLoopException("Stride not constant - " + strideValue);
           }
         }
       }
     }
   }
-  
+
   /**
    * Process a regular block within the loop
    *
    * @param block The basic block to process
    */
-  private void processLoopBlock (OPT_BasicBlock block) throws NonRegularLoopException {       
+  private void processLoopBlock(OPT_BasicBlock block) throws NonRegularLoopException {
     checkInEdgesAreInLoop(block);
     checkOutEdgesAreInLoop(block);
   }
@@ -1182,17 +1173,19 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
      * Brief description of problem
      */
     private final String _summary;
+
     /**
      * Constructor
      */
-    NonRegularLoopException(String s) {      
+    NonRegularLoopException(String s) {
       super(s);
       _summary = s;
     }
+
     /**
      * A brief description of the error
      */
-    String summary () {
+    String summary() {
       return _summary;
     }
   }
@@ -1215,7 +1208,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
     /**
      * Constructor
      */
-    public BBEnum(){
+    public BBEnum() {
       blocks = new ArrayList<OPT_BasicBlock>();
     }
 
@@ -1223,16 +1216,18 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
      * Insert a block to the end of the list
      * @param block to insert
      */
-    public void add(OPT_BasicBlock block){
+    public void add(OPT_BasicBlock block) {
       blocks.add(block);
     }
+
     /**
      * Is the iterator at the end of the vector
      * @return whether there are more elements in the vector
      */
     public boolean hasMoreElements() {
-      return currentBlock < blocks.size(); 
+      return currentBlock < blocks.size();
     }
+
     /**
      * Get the next element from the vector and move the current block along
      * @return next element
@@ -1242,6 +1237,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
       currentBlock++;
       return result;
     }
+
     /**
      * Get the next element from the vector and return without requiring a cast
      * @return next element
@@ -1251,6 +1247,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
       currentBlock++;
       return result;
     }
+
     /**
      * String representation of the object
      * @return string representing the object
@@ -1258,5 +1255,5 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
     public String toString() {
       return blocks.toString();
     }
-  } 
+  }
 }

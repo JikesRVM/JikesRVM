@@ -21,11 +21,10 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BBEND;
 /**
  * Perform simple peephole optimizations for MIR branches.
  */
-public final class OPT_MIRBranchOptimizations 
-  extends OPT_BranchOptimizationDriver {
+public final class OPT_MIRBranchOptimizations
+    extends OPT_BranchOptimizationDriver {
 
-
-  /** 
+  /**
    * @param level the minimum optimization level at which the branch 
    * optimizations should be performed.
    */
@@ -43,8 +42,8 @@ public final class OPT_MIRBranchOptimizations
    * @return true if an optimization was applied, false otherwise
    */
   protected boolean optimizeBranchInstruction(OPT_IR ir,
-                                                    OPT_Instruction s,
-                                                    OPT_BasicBlock bb) {
+                                              OPT_Instruction s,
+                                              OPT_BasicBlock bb) {
     if (MIR_Branch.conforms(s)) {
       return processGoto(ir, s, bb);
     } else if (MIR_CondBranch.conforms(s)) {
@@ -55,7 +54,6 @@ public final class OPT_MIRBranchOptimizations
       return false;
     }
   }
-
 
   /**
    * Perform optimizations for an unconditonal branch.
@@ -79,7 +77,7 @@ public final class OPT_MIRBranchOptimizations
    * @param bb the basic block holding g
    * @return true if made a transformation
    */
-  private boolean processGoto(OPT_IR ir, OPT_Instruction g, OPT_BasicBlock bb){
+  private boolean processGoto(OPT_IR ir, OPT_Instruction g, OPT_BasicBlock bb) {
     OPT_BasicBlock targetBlock = g.getBranchTarget();
     OPT_Instruction targetLabel = targetBlock.firstInstruction();
     // get the first real instruction at the g target
@@ -107,7 +105,7 @@ public final class OPT_MIRBranchOptimizations
         // This happens in jByteMark.EmFloatPnt.denormalize() due to a while(true) {} 
         return false;
       }
-      OPT_BranchOperand top = (OPT_BranchOperand)MIR_Branch.getTarget(targetInst).copy();
+      OPT_BranchOperand top = (OPT_BranchOperand) MIR_Branch.getTarget(targetInst).copy();
       MIR_Branch.setTarget(g, top);
       bb.recomputeNormalOut(ir); // fix the CFG 
       return true;
@@ -121,7 +119,6 @@ public final class OPT_MIRBranchOptimizations
     }
     return false;
   }
-
 
   /**
    * Perform optimizations for a conditional branch.  
@@ -148,8 +145,8 @@ public final class OPT_MIRBranchOptimizations
    * @param bb the basic block holding if
    * @return true iff made a transformation
    */
-  private boolean processCondBranch(OPT_IR ir, 
-                                    OPT_Instruction cb, 
+  private boolean processCondBranch(OPT_IR ir,
+                                    OPT_Instruction cb,
                                     OPT_BasicBlock bb) {
     OPT_BasicBlock targetBlock = cb.getBranchTarget();
     OPT_Instruction targetLabel = targetBlock.firstInstruction();
@@ -188,7 +185,7 @@ public final class OPT_MIRBranchOptimizations
         // This happens in VM_GCUtil in some systems due to a while(true) {} 
         return false;
       }
-      MIR_CondBranch.setTarget(cb, (OPT_BranchOperand)(MIR_Branch.getTarget(targetInst).copy()));
+      MIR_CondBranch.setTarget(cb, (OPT_BranchOperand) (MIR_Branch.getTarget(targetInst).copy()));
       bb.recomputeNormalOut(ir); // fix the CFG 
       return true;
     }
@@ -207,7 +204,6 @@ public final class OPT_MIRBranchOptimizations
     }
     return false;
   }
-
 
   /**
    * Perform optimizations for a two way conditional branch.  
@@ -231,11 +227,11 @@ public final class OPT_MIRBranchOptimizations
    * @param bb the basic block holding if
    * @return true iff made a transformation
    */
-  private boolean processTwoTargetConditionalBranch(OPT_IR ir, 
-                                                    OPT_Instruction cb, 
+  private boolean processTwoTargetConditionalBranch(OPT_IR ir,
+                                                    OPT_Instruction cb,
                                                     OPT_BasicBlock bb) {
     // First condition/target
-    OPT_Instruction target1Label = MIR_CondBranch2.getTarget1(cb).target; 
+    OPT_Instruction target1Label = MIR_CondBranch2.getTarget1(cb).target;
     OPT_Instruction target1Inst = firstRealInstructionFollowing(target1Label);
     OPT_Instruction nextLabel = firstLabelFollowing(cb);
     boolean endsBlock = cb.nextInstructionInCodeOrder().operator() == BBEND;
@@ -256,9 +252,9 @@ public final class OPT_MIRBranchOptimizations
         return true;
       }
     }
-      
+
     // Second condition/target
-    OPT_Instruction target2Label = MIR_CondBranch2.getTarget2(cb).target; 
+    OPT_Instruction target2Label = MIR_CondBranch2.getTarget2(cb).target;
     OPT_Instruction target2Inst = firstRealInstructionFollowing(target2Label);
     if (target2Inst != null && target2Inst != cb) {
       if (MIR_Branch.conforms(target2Inst)) {
@@ -278,7 +274,7 @@ public final class OPT_MIRBranchOptimizations
       if (target2Block.isEmpty()) {
         // branch to an empty block.  Change target to the next block.
         OPT_BasicBlock nextBlock = target2Block.getFallThroughBlock();
-        MIR_CondBranch2.setTarget2(cb, nextBlock.makeJumpTarget()); 
+        MIR_CondBranch2.setTarget2(cb, nextBlock.makeJumpTarget());
         bb.recomputeNormalOut(ir); // fix the CFG 
         return true;
       }
@@ -298,7 +294,6 @@ public final class OPT_MIRBranchOptimizations
     return false;
   }
 
-
   /**
    * Is a conditional branch a candidate to be flipped?
    * See comment 3) of processCondBranch
@@ -310,17 +305,19 @@ public final class OPT_MIRBranchOptimizations
    *               branch
    * @return boolean result
    */
-  private boolean isFlipCandidate(OPT_Instruction cb, 
+  private boolean isFlipCandidate(OPT_Instruction cb,
                                   OPT_Instruction target) {
     // condition 1: is next instruction a GOTO?
     OPT_Instruction next = cb.nextInstructionInCodeOrder();
-    if (!MIR_Branch.conforms(next))
+    if (!MIR_Branch.conforms(next)) {
       return false;
+    }
     // condition 2: is the target of the conditional branch the 
     //  next instruction after the GOTO?
     next = firstRealInstructionFollowing(next);
-    if (next != target)
+    if (next != target) {
       return false;
+    }
     // got this far.  It's a candidate.
     return true;
   }

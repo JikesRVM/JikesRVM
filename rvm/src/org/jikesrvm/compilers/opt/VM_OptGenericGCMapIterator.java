@@ -29,7 +29,7 @@ import org.vmmagic.unboxed.WordArray;
  * @see org.jikesrvm.ArchitectureSpecific.VM_OptGCMapIterator
  */
 @Uninterruptible
-public abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator 
+public abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
     implements VM_OptGCMapIteratorConstants, VM_Constants {
 
   /**
@@ -72,7 +72,7 @@ public abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
   /**
    * when set to true, all registers and spills will be inspected for
    * values that look like references.
-   * 
+   *
    * THIS CAN BE COSTLY.  USE WITH CARE
    */
   static final boolean lookForMissedReferencesInRegs = false;
@@ -90,8 +90,8 @@ public abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    * @param instructionOffset The place in the method where we currently are
    * @param framePtr          The current frame pointer
    */
-  public final void setupIterator(VM_CompiledMethod cm, 
-                                  Offset instructionOffset, 
+  public final void setupIterator(VM_CompiledMethod cm,
+                                  Offset instructionOffset,
                                   Address framePtr) {
     if (DEBUG) {
       VM.sysWrite("\n\t   ==========================\n");
@@ -108,20 +108,25 @@ public abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
 
     // retrieve and save the corresponding VM_OptMachineCodeMap for
     // this method and instructionOffset
-    compiledMethod = (VM_OptCompiledMethod)cm;
+    compiledMethod = (VM_OptCompiledMethod) cm;
     map = compiledMethod.getMCMap();
     mapIndex = map.findGCMapIndex(instructionOffset);
     if (mapIndex == VM_OptGCMap.ERROR) {
       if (instructionOffset.sLT(Offset.zero())) {
-        VM.sysWriteln("VM_OptGenericGCMapIterator.setupIterator called with negative instructionOffset", instructionOffset);
+        VM.sysWriteln("VM_OptGenericGCMapIterator.setupIterator called with negative instructionOffset",
+                      instructionOffset);
       } else {
-        Offset possibleLen = Offset.fromIntZeroExtend(cm.numberOfInstructions() << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH);
+        Offset possibleLen =
+            Offset.fromIntZeroExtend(cm.numberOfInstructions() <<
+                                     ArchitectureSpecific.VM_RegisterConstants
+                                         .LG_INSTRUCTION_WIDTH);
         if (possibleLen.sLT(instructionOffset)) {
           VM.sysWriteln("VM_OptGenericGCMapIterator.setupIterator called with too big of an instructionOffset");
           VM.sysWriteln("offset is", instructionOffset);
-          VM.sysWriteln( " bytes of machine code for method ",possibleLen);
+          VM.sysWriteln(" bytes of machine code for method ", possibleLen);
         } else {
-          VM.sysWriteln("VM_OptGenericGCMapIterator.setupIterator called with apparently valid offset, but no GC map found!");
+          VM.sysWriteln(
+              "VM_OptGenericGCMapIterator.setupIterator called with apparently valid offset, but no GC map found!");
           VM.sysWrite("Method: ");
           VM.sysWrite(compiledMethod.getMethod());
           VM.sysWrite(", Machine Code (MC) Offset: ");
@@ -176,7 +181,7 @@ public abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    * @return the value of the next reference
    */
   public final Address getNextReferenceAddress() {
-    if (DEBUG) {   VM.sysWrite("  next => ");    }
+    if (DEBUG) { VM.sysWrite("  next => "); }
 
     // make sure we have a map entry to look at 
     if (mapIndex == VM_OptGCMap.NO_MAP_ENTRY) {
@@ -195,7 +200,7 @@ public abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
     // Have we gone through all the registers yet?
     if (currentRegisterIsValid()) {
       // See if there are any more
-      while (currentRegisterIsValid() && 
+      while (currentRegisterIsValid() &&
              !map.registerIsSet(mapIndex, getCurrentRegister())) {
         if (lookForMissedReferencesInRegs) {
           // inspect the register we are skipping
@@ -254,8 +259,8 @@ public abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
     } else {
       // Determine the spill location given the frame ptr and spill offset.
       // (The location of spills varies among architectures.)
-      Address newSpillLoc = getStackLocation(framePtr, 
-                                         map.gcMapInformation(mapIndex));
+      Address newSpillLoc = getStackLocation(framePtr,
+                                             map.gcMapInformation(mapIndex));
 
       if (DEBUG) {
         VM.sysWrite(" *** Ref found in Spill Loc: ");
@@ -343,14 +348,14 @@ public abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
     return currentRegister <= LAST_GCMAP_REG;
   }
 
-  /** 
+  /**
    * If any non-volatile gprs were saved by the method being processed
    * then update the registerLocations array with the locations where the
    * registers were saved.
    */
   protected abstract void updateLocateRegisters();
 
-  /** 
+  /**
    *  Determine the stack location given the frame ptr and spill offset.
    *  (The offset direction varies among architectures.)
    *  @param framePtr the frame pointer
@@ -359,14 +364,14 @@ public abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    */
   public abstract Address getStackLocation(Address framePtr, int offset);
 
-  /** 
+  /**
    *  Get address of the first spill location
    *  (The location of spills varies among architectures.)
    *  @return the first spill location
    */
   public abstract Address getFirstSpillLoc();
 
-  /** 
+  /**
    *  Get address of the last spill location
    *  (The location of spills varies among architectures.)
    *  @return the last spill location
@@ -435,7 +440,7 @@ public abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
         VM.sysWrite(ref1);
         VM.sysWrite("\n");
       }
-    } 
+    }
 
     if (ref2.isZero()) {
       // Search up to end of spill area

@@ -22,27 +22,28 @@ import org.vmmagic.unboxed.Offset;
  * Code used for recover register value after on stack replacement.
  */
 
-@Uninterruptible public abstract class OSR_PostThreadSwitch implements VM_BaselineConstants {
+@Uninterruptible
+public abstract class OSR_PostThreadSwitch implements VM_BaselineConstants {
 
   /* This method must be inlined to keep the correctness 
    * This method is called at the end of threadSwitch, the caller
    * is threadSwitchFrom<...>
    */
   @NoInline
-  public static void postProcess(VM_Thread myThread) { 
+  public static void postProcess(VM_Thread myThread) {
 
     /* We need to generate thread specific code and install new code.
-     * We have to make sure that no GC happens from here and before 
-     * the new code get executed.
-     */
+    * We have to make sure that no GC happens from here and before
+    * the new code get executed.
+    */
     // add branch instruction from CTR.
-    ArchitectureSpecific.VM_CodeArray bridge   = myThread.bridgeInstructions;
-      
+    ArchitectureSpecific.VM_CodeArray bridge = myThread.bridgeInstructions;
+
     Address bridgeaddr = VM_Magic.objectAsAddress(bridge);
 
     Offset offset = myThread.fooFPOffset.plus(STACKFRAME_NEXT_INSTRUCTION_OFFSET);
     VM_Magic.objectAsAddress(myThread.stack).store(bridgeaddr, offset);
-        
+
     myThread.fooFPOffset = Offset.zero();
 
     myThread.isWaitingForOsr = false;

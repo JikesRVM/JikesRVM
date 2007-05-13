@@ -25,8 +25,10 @@ public class VM_BlockingPriorityQueue extends VM_PriorityQueue {
    */
   public static class CallBack {
     void aboutToWait() {}
+
     void doneWaiting() {}
   }
+
   CallBack callback;
 
   /**
@@ -43,7 +45,7 @@ public class VM_BlockingPriorityQueue extends VM_PriorityQueue {
 
   /**
    * Insert the object passed with the priority value passed
-   * 
+   *
    * Notify any sleeping consumer threads that an object
    * is available for consumption.
    *

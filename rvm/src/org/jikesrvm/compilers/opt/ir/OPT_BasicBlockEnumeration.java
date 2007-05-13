@@ -9,6 +9,7 @@
 package org.jikesrvm.compilers.opt.ir;
 
 import java.util.Enumeration;
+
 /**
  * Extend java.util.Enumeration to avoid downcasts from object.
  * Also provide a preallocated empty basic block enumeration.

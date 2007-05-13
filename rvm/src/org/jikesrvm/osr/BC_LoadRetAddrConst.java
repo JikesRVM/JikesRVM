@@ -8,6 +8,7 @@
  */
 
 package org.jikesrvm.osr;
+
 /**
  * artificial instruction, load a PC on the stack. 
  */
@@ -35,7 +36,7 @@ public class BC_LoadRetAddrConst extends OSR_PseudoBytecode {
   }
 
   public int stackChanges() {
-        return +1;
+    return +1;
   }
 
   public void patch(int off) {
@@ -43,6 +44,6 @@ public class BC_LoadRetAddrConst extends OSR_PseudoBytecode {
   }
 
   public String toString() {
-    return "LoadRetAddrConst "+bcindex;
+    return "LoadRetAddrConst " + bcindex;
   }
 }

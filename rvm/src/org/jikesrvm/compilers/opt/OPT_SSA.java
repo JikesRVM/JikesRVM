@@ -102,15 +102,17 @@ class OPT_SSA {
    * @param exp whether or not to respect exception control flow at the
    *            end of the block
    */
-  static void addAtEnd (OPT_IR ir, OPT_BasicBlock bb, OPT_Instruction c, 
-      boolean exp) {
-    if (exp)
-      bb.appendInstructionRespectingTerminalBranchOrPEI(c); 
-    else 
+  static void addAtEnd(OPT_IR ir, OPT_BasicBlock bb, OPT_Instruction c,
+                       boolean exp) {
+    if (exp) {
+      bb.appendInstructionRespectingTerminalBranchOrPEI(c);
+    } else {
       bb.appendInstructionRespectingTerminalBranch(c);
+    }
     OPT_RegisterOperand aux = null;
-    if (VM.VerifyAssertions)
+    if (VM.VerifyAssertions) {
       VM._assert(Move.conforms(c));
+    }
     OPT_RegisterOperand lhs = Move.getResult(c);
     OPT_Instruction i = c.nextInstructionInCodeOrder();
     while (!BBend.conforms(i)) {
@@ -120,8 +122,8 @@ class OPT_SSA {
         if (lhs.similar(op)) {
           if (aux == null) {
             aux = ir.regpool.makeTemp(lhs);
-            c.insertBefore(makeMoveInstruction(ir, aux.register, lhs.register, 
-                lhs.type));
+            c.insertBefore(makeMoveInstruction(ir, aux.register, lhs.register,
+                                               lhs.type));
           }
           op.asRegister().register = aux.register;
         }
@@ -135,28 +137,30 @@ class OPT_SSA {
    *
    * @param ir the IR, assumed to be in SSA form
    */
-  public static void printInstructions (OPT_IR ir) {
+  public static void printInstructions(OPT_IR ir) {
     OPT_SSADictionary dictionary = ir.HIRInfo.SSADictionary;
     System.out.println("********* START OF IR DUMP in SSA FOR " + ir.method);
     for (OPT_BasicBlockEnumeration be = ir.forwardBlockEnumerator(); be.hasMoreElements();) {
       OPT_BasicBlock bb = be.next();
       // print the explicit instructions for basic block bb
-      for (Enumeration<OPT_Instruction> e = dictionary.getAllInstructions(bb); 
-          e.hasMoreElements();) {
+      for (Enumeration<OPT_Instruction> e = dictionary.getAllInstructions(bb);
+           e.hasMoreElements();) {
         OPT_Instruction s = e.nextElement();
         System.out.print(s.bcIndex + "\t" + s);
-        if (dictionary.defsHeapVariable(s) && s.operator!=PHI) {
+        if (dictionary.defsHeapVariable(s) && s.operator != PHI) {
           System.out.print("  (Implicit Defs: ");
           OPT_HeapOperand<?>[] defs = dictionary.getHeapDefs(s);
-          if (defs != null)
+          if (defs != null) {
             for (OPT_HeapOperand<?> def : defs) System.out.print(def + " ");
+          }
           System.out.print(" )");
         }
-        if (dictionary.usesHeapVariable(s) && s.operator!=PHI) {
+        if (dictionary.usesHeapVariable(s) && s.operator != PHI) {
           System.out.print("  (Implicit Uses: ");
           OPT_HeapOperand<?>[] uses = dictionary.getHeapUses(s);
-          if (uses != null)
+          if (uses != null) {
             for (OPT_HeapOperand<?> use : uses) System.out.print(use + " ");
+          }
           System.out.print(" )");
         }
         System.out.print("\n");
@@ -165,7 +169,7 @@ class OPT_SSA {
     System.out.println("*********   END OF IR DUMP in SSA FOR " + ir.method);
   }
 
-  /** 
+  /**
    * Create a move instruction r1 := r2.
    *
    * TODO: This utility function should be moved elsewhere.
@@ -175,45 +179,44 @@ class OPT_SSA {
    * @param r2 the source
    * @param t the type of r1 and r2.
    */
-  static OPT_Instruction makeMoveInstruction (OPT_IR ir, OPT_Register r1, 
-                                              OPT_Register r2, 
-                                              VM_TypeReference t) {
+  static OPT_Instruction makeMoveInstruction(OPT_IR ir, OPT_Register r1,
+                                             OPT_Register r2,
+                                             VM_TypeReference t) {
     OPT_Operator mv = OPT_IRTools.getMoveOp(t);
     OPT_RegisterOperand o1 = new OPT_RegisterOperand(r1, t);
     OPT_RegisterOperand o2 = new OPT_RegisterOperand(r2, t);
     OPT_Instruction s = Move.create(mv, o1, o2);
     s.position = ir.gc.inlineSequence;
     s.bcIndex = SSA_SYNTH_BCI;
-    return  s;
+    return s;
   }
 
-  /** 
+  /**
    * Create a move instruction r1 := c.
    *
    * !!TODO: put this functionality elsewhere.
-   * 
+   *
    * @param ir the governing ir
    * @param r1 the destination
    * @param c the source
    */
-  static OPT_Instruction makeMoveInstruction (OPT_IR ir, OPT_Register r1, 
-                                              OPT_ConstantOperand c) {
+  static OPT_Instruction makeMoveInstruction(OPT_IR ir, OPT_Register r1,
+                                             OPT_ConstantOperand c) {
     OPT_Operator mv = OPT_IRTools.getMoveOp(c.getType());
     OPT_RegisterOperand o1 = new OPT_RegisterOperand(r1, c.getType());
     OPT_Operand o2 = c.copy();
     OPT_Instruction s = Move.create(mv, o1, o2);
     s.position = ir.gc.inlineSequence;
     s.bcIndex = SSA_SYNTH_BCI;
-    return  s;
+    return s;
   }
-
 
   /**
    * Fix up any PHI instructions in the given target block to reflect that
    * the given source block is no longer a predecessor of target.
    * The basic algorithm is to erase the PHI operands related to the edge
    * from source to target by sliding the other PHI operands down as required.
-   * 
+   *
    * @param source the source block to remove from PHIs in target
    * @param target the target block that may contain PHIs to update.
    */
@@ -225,7 +228,7 @@ class OPT_SSA {
       if (s.operator() != PHI) return; // all done (assume PHIs are first!)
       int numPairs = Phi.getNumberOfPreds(s);
       int dst = 0;
-      for (int src=0; src<numPairs; src++) {
+      for (int src = 0; src < numPairs; src++) {
         OPT_BasicBlockOperand bbop = Phi.getPred(s, src);
         if (bbop.block == source) {
           Phi.setValue(s, src, null);
@@ -234,20 +237,21 @@ class OPT_SSA {
           if (src != dst) {
             Phi.setValue(s, dst, Phi.getClearValue(s, src));
             Phi.setPred(s, dst, Phi.getClearPred(s, src));
-          } 
+          }
           dst++;
         }
       }
-      for (int i=dst; i<numPairs; i++) {
+      for (int i = dst; i < numPairs; i++) {
         Phi.setValue(s, i, null);
         Phi.setPred(s, i, null);
       }
     }
   }
+
   /**
    * Update PHI instructions in the target block so that any PHIs that
    * come from basic block B1, now come from basic block B2.
-   * 
+   *
    * @param target the target block that may contain PHIs to update.
    * @param B1 the block to replace in the phi instructions
    * @param B2 the replacement block for B1
@@ -259,7 +263,7 @@ class OPT_SSA {
       OPT_Instruction s = e.next();
       if (s.operator() != PHI) return; // all done (assume PHIs are first!)
       int numPairs = Phi.getNumberOfPreds(s);
-      for (int src=0; src<numPairs; src++) {
+      for (int src = 0; src < numPairs; src++) {
         OPT_BasicBlockOperand bbop = Phi.getPred(s, src);
         if (bbop.block == B1) {
           Phi.setPred(s, src, new OPT_BasicBlockOperand(B2));

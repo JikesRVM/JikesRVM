@@ -23,14 +23,16 @@ final class OPT_ResourceMap {
   private static void debug(String s) {
     System.out.println(s);
   }
+
   // Padding
   // For internal use only.
   private static final String ZEROS = dup(32, '0');
 
   private static String toBinaryPad32(int value) {
     String s = Integer.toBinaryString(value);
-    return  ZEROS.substring(s.length()) + s;
+    return ZEROS.substring(s.length()) + s;
   }
+
   // GROWABLE Resource Usage map.
   private int[] rumap;
   // Current size of the RU map.
@@ -39,18 +41,22 @@ final class OPT_ResourceMap {
   // Grows the RU map to a given size.
   // For internal use only.
   private void grow(int s) {
-    if (verbose >= 2)
+    if (verbose >= 2) {
       debug("Growing from " + size + " to " + s);
-    if (size >= s)
+    }
+    if (size >= s) {
       return;
+    }
     int len = rumap.length;
     if (len < s) {
-      for (; len < s; len <<= 1);
+      for (; len < s; len <<= 1) ;
       int[] t = new int[len];
-      for (int i = 0; i < rumap.length; i++)
+      for (int i = 0; i < rumap.length; i++) {
         t[i] = rumap[i];
-      for (int i = rumap.length; i < len; i++)
+      }
+      for (int i = rumap.length; i < len; i++) {
         t[i] = OPT_OperatorClass.NONE;
+      }
       rumap = t;
     }
     size = s;
@@ -71,8 +77,9 @@ final class OPT_ResourceMap {
   public OPT_ResourceMap(int length) {
     rumap = new int[length];
     size = 0;
-    for (int i = 0; i < length; i++)
+    for (int i = 0; i < length; i++) {
       rumap[i] = OPT_OperatorClass.NONE;
+    }
   }
 
   /**
@@ -84,30 +91,33 @@ final class OPT_ResourceMap {
    * @see #unschedule(OPT_Instruction)
    */
   public boolean schedule(OPT_Instruction i, int time) {
-    if (OPT_SchedulingInfo.isScheduled(i))
-      throw  new InternalError("Already scheduled");
+    if (OPT_SchedulingInfo.isScheduled(i)) {
+      throw new InternalError("Already scheduled");
+    }
     OPT_OperatorClass opc = i.operator().getOpClass();
-    if (verbose >= 2)
+    if (verbose >= 2) {
       debug("Op Class=" + opc);
+    }
     for (int alt = 0; alt < opc.masks.length; alt++) {
       int[] ru = opc.masks[alt];
       if (schedule(ru, time)) {
         OPT_SchedulingInfo.setInfo(i, alt, time);
-        return  true;
+        return true;
       }
     }
-    return  false;
+    return false;
   }
 
   /**
    * Frees resources for given instruction.
    *
    * @param i instruction
-   * @see #schedule(OPT_Instruction, int)
+   * @see #schedule(OPT_Instruction,int)
    */
   public void unschedule(OPT_Instruction i) {
-    if (!OPT_SchedulingInfo.isScheduled(i))
-      throw  new InternalError("Not scheduled");
+    if (!OPT_SchedulingInfo.isScheduled(i)) {
+      throw new InternalError("Not scheduled");
+    }
     OPT_OperatorClass opc = i.operator().getOpClass();
     int[] ru = opc.masks[OPT_SchedulingInfo.getAlt(i)];
     unschedule(ru, OPT_SchedulingInfo.getTime(i));
@@ -124,7 +134,7 @@ final class OPT_ResourceMap {
     for (int i = 0; i < size; i++) {
       sb.append(toBinaryPad32(rumap[i])).append("\n");
     }
-    return  sb.toString();
+    return sb.toString();
   }
 
   // Binds resources for given resource usage pattern at given time.
@@ -137,28 +147,33 @@ final class OPT_ResourceMap {
       for (int anUsage : usage) debug("   " + toBinaryPad32(anUsage));
       debug("");
     }
-    for (int i = 0; i < usage.length; i++)
-      if ((usage[i] & rumap[time + i]) != 0)
-        return  false;
-    for (int i = 0; i < usage.length; i++)
+    for (int i = 0; i < usage.length; i++) {
+      if ((usage[i] & rumap[time + i]) != 0) {
+        return false;
+      }
+    }
+    for (int i = 0; i < usage.length; i++) {
       rumap[time + i] |= usage[i];
-    return  true;
+    }
+    return true;
   }
 
   // Unbinds resources for given resource usage pattern at given time.
   // For internal use only.
   private void unschedule(int[] usage, int time) {
-    for (int i = 0; i < usage.length; i++)
+    for (int i = 0; i < usage.length; i++) {
       rumap[time + i] &= ~usage[i];
+    }
   }
 
   // Generates a string of a given length filled by a given character.
   // For internal use only.
   private static String dup(int len, char c) {
     StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < len; i++)
+    for (int i = 0; i < len; i++) {
       sb.append(c);
-    return  sb.toString();
+    }
+    return sb.toString();
   }
 }
 

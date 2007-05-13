@@ -16,37 +16,41 @@ import java.util.Enumeration;
 // In the future, this inheritance will be removed.
 // Therefore, the user of this class should ignore that
 // this class extends DoublyLinkedList.
+
 // In short, it does NOT INHERIT FROM DoublyLinkedListElement.
 public abstract class OPT_SortedGraphNode extends OPT_SpaceEffGraphNode {
 
   // Return enumerator for all the in nodes.
   public abstract Enumeration<? extends OPT_SortedGraphNode> getInNodes();  // should be overridden 
-                                              // by a subclass
+  // by a subclass
 
   // Return enumerator for all the out nodes.
-  public abstract Enumeration<? extends OPT_SortedGraphNode> getOutNodes(); // should be overridden by a 
-                                              // subclass
+
+  public abstract Enumeration<? extends OPT_SortedGraphNode> getOutNodes(); // should be overridden by a
+  // subclass
 
   public OPT_SortedGraphNode getSortedNext(boolean forward) {
-    if (forward)
-      return  sortedNext; 
-    else 
-      return  sortedPrev;
+    if (forward) {
+      return sortedNext;
+    } else {
+      return sortedPrev;
+    }
   }
 
   public OPT_SortedGraphNode getForwardSortedNext() {
-    return  sortedNext;
+    return sortedNext;
   }
 
   public OPT_SortedGraphNode getBackwardSortedNext() {
-    return  sortedPrev;
+    return sortedPrev;
   }
 
   public void setSortedNext(OPT_SortedGraphNode next, boolean forward) {
-    if (forward)
-      sortedNext = next; 
-    else 
+    if (forward) {
+      sortedNext = next;
+    } else {
       sortedPrev = next;
+    }
   }
 
   // preferred interface
@@ -55,7 +59,7 @@ public abstract class OPT_SortedGraphNode extends OPT_SpaceEffGraphNode {
   }
 
   public int getForwardSortNumber() {
-    return  forwardSortNumber;
+    return forwardSortNumber;
   }
 
   public void setBackwardSortNumber(int number) {
@@ -63,22 +67,24 @@ public abstract class OPT_SortedGraphNode extends OPT_SpaceEffGraphNode {
   }
 
   public int getBackwardSortNumber() {
-    return  backwardSortNumber;
+    return backwardSortNumber;
   }
 
   // probably less efficient than above, but more flexible
   public void setSortNumber(int number, boolean forward) {
-    if (forward)
-      forwardSortNumber = number; 
-    else 
+    if (forward) {
+      forwardSortNumber = number;
+    } else {
       backwardSortNumber = number;
+    }
   }
 
   public int getSortNumber(boolean forward) {
-    if (forward)
-      return  forwardSortNumber; 
-    else 
-      return  backwardSortNumber;
+    if (forward) {
+      return forwardSortNumber;
+    } else {
+      return backwardSortNumber;
+    }
   }
 
   public void setSortNumber(int number) {
@@ -100,13 +106,14 @@ public abstract class OPT_SortedGraphNode extends OPT_SpaceEffGraphNode {
       }
       currentSortMarker = Integer.MIN_VALUE;
     }
-    return  ++currentSortMarker;
+    return ++currentSortMarker;
   }
+
   int sortMarker = Integer.MIN_VALUE;
   private static int currentSortMarker = Integer.MIN_VALUE;
 
   public int getSortMarker() {
-    return  sortMarker;
+    return sortMarker;
   }
 
   public void setSortMarker(int sortMarker) {
@@ -114,8 +121,9 @@ public abstract class OPT_SortedGraphNode extends OPT_SpaceEffGraphNode {
   }
 
   public boolean isSortMarkedWith(int sortMarker) {
-    return  (this.sortMarker >= sortMarker);
+    return (this.sortMarker >= sortMarker);
   }
+
   protected OPT_SortedGraphNode sortedPrev = null, sortedNext = null;
   protected int forwardSortNumber;
   protected int backwardSortNumber;

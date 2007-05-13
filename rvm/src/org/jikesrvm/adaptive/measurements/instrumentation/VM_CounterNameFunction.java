@@ -19,5 +19,5 @@ package org.jikesrvm.adaptive.measurements.instrumentation;
 
 interface VM_CounterNameFunction {
 
-   String getName(int key);
+  String getName(int key);
 }

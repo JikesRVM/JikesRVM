@@ -30,14 +30,14 @@ class OPT_DefaultPriority extends OPT_Priority {
    *
    * @param bb basic block
    */
-  public OPT_DefaultPriority (OPT_BasicBlock bb) {
+  public OPT_DefaultPriority(OPT_BasicBlock bb) {
     this.bb = bb;
   }
 
   /**
    * Resets the enumeration to the first instruction in sequence
    */
-  public final void reset () {
+  public final void reset() {
     i = bb.firstInstruction();
     instr = bb.forwardRealInstrEnumerator();
   }
@@ -47,8 +47,8 @@ class OPT_DefaultPriority extends OPT_Priority {
    *
    * @return true if there are more instructions, false otherwise
    */
-  public final boolean hasMoreElements () {
-    return  i != null || instr.hasMoreElements();
+  public final boolean hasMoreElements() {
+    return i != null || instr.hasMoreElements();
   }
 
   /**
@@ -56,12 +56,12 @@ class OPT_DefaultPriority extends OPT_Priority {
    *
    * @return the next instruction in sequence
    */
-  public final OPT_Instruction next () {
+  public final OPT_Instruction next() {
     if (i != null) {
       OPT_Instruction r = i;
       i = null;
-      return  r;
+      return r;
     }
-    return  instr.next();
+    return instr.next();
   }
 }

@@ -26,12 +26,12 @@ import org.vmmagic.unboxed.Offset;
 final class VM_HardwareTrapCompiledMethod extends VM_CompiledMethod {
 
   public VM_HardwareTrapCompiledMethod(int id, VM_Method m) {
-    super(id,m);    
+    super(id, m);
   }
 
   @Uninterruptible
-  public int getCompilerType() { 
-    return TRAP; 
+  public int getCompilerType() {
+    return TRAP;
   }
 
   public String getCompilerName() {
@@ -39,7 +39,7 @@ final class VM_HardwareTrapCompiledMethod extends VM_CompiledMethod {
   }
 
   @Uninterruptible
-  public VM_ExceptionDeliverer getExceptionDeliverer() { 
+  public VM_ExceptionDeliverer getExceptionDeliverer() {
     // this method should never get called, because exception delivery begins
     // at site of exception, which is one frame above artificial "trap" frame
     // corresponding to this compiler-info object
@@ -47,13 +47,13 @@ final class VM_HardwareTrapCompiledMethod extends VM_CompiledMethod {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return null;
   }
-      
+
   public int findCatchBlockForInstruction(Offset instructionOffset, VM_Type exceptionType) {
     return -1;
   }
-   
+
   @Uninterruptible
-  public void getDynamicLink(VM_DynamicLink dynamicLink, Offset instructionOffset) { 
+  public void getDynamicLink(VM_DynamicLink dynamicLink, Offset instructionOffset) {
     // this method should never get called, because exception delivery begins
     // at site of exception, which is one frame above artificial "trap" frame
     // corresponding to this compiler-info object
@@ -71,7 +71,7 @@ final class VM_HardwareTrapCompiledMethod extends VM_CompiledMethod {
   public void set(VM_StackBrowser browser, Offset instr) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
-       
+
   /**
    * Advance the VM_StackBrowser up one internal stack frame, if possible
    */

@@ -19,45 +19,45 @@ import org.jikesrvm.util.VM_HashMap;
  * database to hold field-level information
  * this is a mapping from VM_Field -> FieldDatabaseEntry
  */
-final class OPT_FieldDatabase extends VM_HashMap<VM_Field,OPT_FieldDatabase.FieldDatabaseEntry> {
+final class OPT_FieldDatabase extends VM_HashMap<VM_Field, OPT_FieldDatabase.FieldDatabaseEntry> {
   private static final boolean DEBUG = false;
 
   FieldDatabaseEntry findOrCreateEntry(VM_Field f) {
     FieldDatabaseEntry e = get(f);
     if (e == null) {
       e = new FieldDatabaseEntry(f);
-      put(f,e);
+      put(f, e);
     }
     return e;
   }
 
-  /** 
+  /**
    * return the concrete type of a field, or null if none determined
    */
   public VM_TypeReference getConcreteType(VM_Field f) {
     FieldDatabaseEntry e = get(f);
     if (e == null) return null;
-    
+
     if (e.allMethodsAreAnalyzed()) {
       return e.getConcreteType();
     }
-      
+
     return null;
   }
 
   // a data structure holding information about a field
   final class FieldDatabaseEntry {
-    private VM_HashMap<VM_Method,FieldWriterInfo> summaries;
+    private VM_HashMap<VM_Method, FieldWriterInfo> summaries;
     boolean cachedAllAnalyzed;  // have we already determined all methods are analyzed?
     VM_TypeReference cachedConcreteType;        // cache a copy of the concrete type already determined for this field
-    
-    FieldWriterInfo findMethodInfo(VM_Method m) { 
+
+    FieldWriterInfo findMethodInfo(VM_Method m) {
       return summaries.get(m);
     }
 
     // are all methods that may write this field analyzed already?
     boolean allMethodsAreAnalyzed() {
-      
+
       if (cachedAllAnalyzed) return true;
       for (FieldWriterInfo info : summaries.values()) {
         if (!info.isAnalyzed()) return false;
@@ -65,7 +65,7 @@ final class OPT_FieldDatabase extends VM_HashMap<VM_Field,OPT_FieldDatabase.Fiel
       cachedAllAnalyzed = true;
       return true;
     }
-    
+
     // return the concrete type of the field; null if no consistent
     // concrete type has yet been determined.
     VM_TypeReference getConcreteType() {
@@ -93,8 +93,8 @@ final class OPT_FieldDatabase extends VM_HashMap<VM_Field,OPT_FieldDatabase.Fiel
       if (VM.VerifyAssertions) VM._assert(f.isPrivate());
 
       VM_Class klass = f.getDeclaringClass();
-      summaries = new VM_HashMap<VM_Method,FieldWriterInfo>(1);
-       
+      summaries = new VM_HashMap<VM_Method, FieldWriterInfo>(1);
+
       // walk thru each method of the declaring class.  
       // If a method m may write to f, then create a FieldWriterInfo for m
       for (VM_Method m : klass.getDeclaredMethods()) {
@@ -110,16 +110,18 @@ final class OPT_FieldDatabase extends VM_HashMap<VM_Field,OPT_FieldDatabase.Fiel
   // a data structure holding information about a particular <method,field>
   // combination, where the method may write the field
   final class FieldWriterInfo {
-    static final int BOTTOM   = 0x1;
+    static final int BOTTOM = 0x1;
     static final int ANALYZED = 0x2;
     int status;
     VM_TypeReference concreteType;
 
-    void setBottom()                    { status |= BOTTOM;   }
-    void setAnalyzed()          { status |= ANALYZED; }
-      
-    boolean isBottom()          { return (status & BOTTOM)   != 0; }
-    boolean isAnalyzed()                { return (status & ANALYZED) != 0; }
+    void setBottom() { status |= BOTTOM; }
+
+    void setAnalyzed() { status |= ANALYZED; }
+
+    boolean isBottom() { return (status & BOTTOM) != 0; }
+
+    boolean isAnalyzed() { return (status & ANALYZED) != 0; }
   }
 
   // print a debug message

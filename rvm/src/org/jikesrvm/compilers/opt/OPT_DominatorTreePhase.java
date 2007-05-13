@@ -23,7 +23,7 @@ public final class OPT_DominatorTreePhase extends OPT_CompilerPhase {
   public boolean shouldPerform(OPT_Options options) {
     // only perform if the dominators were successfully computed and
     // one of the following options are set.
-    return  options.SSA || options.PRINT_DOMINATORS;
+    return options.SSA || options.PRINT_DOMINATORS;
   }
 
   /**
@@ -31,7 +31,7 @@ public final class OPT_DominatorTreePhase extends OPT_CompilerPhase {
    * @return "Dominator Tree"
    */
   public String getName() {
-    return  "Dominator Tree";
+    return "Dominator Tree";
   }
 
   /**
@@ -41,7 +41,7 @@ public final class OPT_DominatorTreePhase extends OPT_CompilerPhase {
    * @return true or false.
    */
   public boolean printingEnabled(OPT_Options options, boolean before) {
-    return  false;
+    return false;
   }
 
   /**
@@ -51,8 +51,9 @@ public final class OPT_DominatorTreePhase extends OPT_CompilerPhase {
    */
   public void perform(OPT_IR ir) {
     // make sure the dominator computation completed successfully
-    if (!ir.HIRInfo.dominatorsAreComputed)
+    if (!ir.HIRInfo.dominatorsAreComputed) {
       return;
+    }
     try {
       OPT_DominatorTree.perform(ir, true);
     } catch (OPT_OperationNotImplementedException e) {

@@ -19,12 +19,12 @@ package org.jikesrvm.compilers.opt.ir;
  */
 class OPT_EmptyBasicBlockEnumeration implements OPT_BasicBlockEnumeration {
 
-    public boolean hasMoreElements() { return false; }
+  public boolean hasMoreElements() { return false; }
 
-    public OPT_BasicBlock nextElement() { return next(); }
+  public OPT_BasicBlock nextElement() { return next(); }
 
-    public OPT_BasicBlock next() {
-        throw new java.util.NoSuchElementException("Empty BasicBlock Enumeration");
-    }
+  public OPT_BasicBlock next() {
+    throw new java.util.NoSuchElementException("Empty BasicBlock Enumeration");
+  }
 }
 

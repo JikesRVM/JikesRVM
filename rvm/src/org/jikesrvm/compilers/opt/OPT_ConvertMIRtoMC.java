@@ -26,32 +26,32 @@ public final class OPT_ConvertMIRtoMC extends OPT_OptimizationPlanCompositeEleme
    * Create this phase element as a composite of other elements.
    */
   public OPT_ConvertMIRtoMC() {
-    super("Generate Machine Code", new OPT_OptimizationPlanElement[] {
-       // Step 1: Final MIR Expansion
-       new OPT_OptimizationPlanAtomicElement(new FinalMIRExpansionDriver()),
-       // Step 2: Assembly and map generation.
-       new OPT_OptimizationPlanAtomicElement(new AssemblerDriver())
-       });
+    super("Generate Machine Code", new OPT_OptimizationPlanElement[]{
+        // Step 1: Final MIR Expansion
+        new OPT_OptimizationPlanAtomicElement(new FinalMIRExpansionDriver()),
+        // Step 2: Assembly and map generation.
+        new OPT_OptimizationPlanAtomicElement(new AssemblerDriver())
+    });
   }
 
   /**
    * A compiler phase that drives final MIR expansion.
    */
   private static final class FinalMIRExpansionDriver extends OPT_CompilerPhase {
-    public String getName () {
+    public String getName() {
       return "Final MIR Expansion";
     }
-  
-    public boolean printingEnabled (OPT_Options options, boolean before) {
+
+    public boolean printingEnabled(OPT_Options options, boolean before) {
       return !before && options.PRINT_FINAL_MIR;
     }
-  
+
     // this class has no instance fields.
-    public OPT_CompilerPhase newExecution (OPT_IR ir) {
+    public OPT_CompilerPhase newExecution(OPT_IR ir) {
       return this;
     }
 
-    public void perform (OPT_IR ir) {
+    public void perform(OPT_IR ir) {
       if (OPT_IR.SANITY_CHECK) {
         ir.verify("right before Final MIR Expansion", true);
       }
@@ -64,34 +64,33 @@ public final class OPT_ConvertMIRtoMC extends OPT_OptimizationPlanCompositeEleme
    * A compiler phase that generates machine code instructions and maps.
    */
   private static final class AssemblerDriver extends OPT_CompilerPhase
-    implements VM_Constants {
+      implements VM_Constants {
 
-    public String getName () {
+    public String getName() {
       return "Assembler Driver";
     }
-  
-    public boolean printingEnabled (OPT_Options options, boolean before) {
+
+    public boolean printingEnabled(OPT_Options options, boolean before) {
       //don't bother printing afterwards, PRINT_MACHINECODE handles that
       return before && options.DEBUG_CODEGEN;
     }
-  
+
     // this class has no instance fields.
-    public OPT_CompilerPhase newExecution (OPT_IR ir) {
+    public OPT_CompilerPhase newExecution(OPT_IR ir) {
       return this;
     }
-  
-    public void perform (OPT_IR ir) {
+
+    public void perform(OPT_IR ir) {
       OPT_Options options = ir.options;
       boolean shouldPrint =
-        (options.PRINT_MACHINECODE) &&
-        (!ir.options.hasMETHOD_TO_PRINT() ||
-         ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString()));
-      
-      
+          (options.PRINT_MACHINECODE) &&
+          (!ir.options.hasMETHOD_TO_PRINT() ||
+           ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString()));
+
       if (OPT_IR.SANITY_CHECK) {
         ir.verify("right before machine codegen", true);
       }
-  
+
       //////////
       // STEP 2: Generate the machinecode array.
       // As part of the generation, the machinecode offset
@@ -119,12 +118,13 @@ public final class OPT_ConvertMIRtoMC extends OPT_OptimizationPlanCompositeEleme
         ir.compiledMethod.printExceptionTable();
         OPT_Compiler.bottom("Final machine code", ir.method);
       }
-      
-      if (VM.runningVM)
-        VM_Memory.sync(VM_Magic.objectAsAddress(ir.MIRInfo.machinecode), 
-                     codeLength << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH);
+
+      if (VM.runningVM) {
+        VM_Memory.sync(VM_Magic.objectAsAddress(ir.MIRInfo.machinecode),
+                       codeLength << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH);
+      }
     }
-  
+
     public void verify(OPT_IR ir) {
       /* Do nothing, IR invariants violated by final expansion*/
     }

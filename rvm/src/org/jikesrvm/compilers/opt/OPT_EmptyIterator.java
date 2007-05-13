@@ -12,15 +12,15 @@ import java.util.Iterator;
 
 class OPT_EmptyIterator implements Iterator<Object> {
 
-  public boolean hasNext () {
-    return  false;
+  public boolean hasNext() {
+    return false;
   }
 
-  public Object next () {
-    throw  new java.util.NoSuchElementException();
+  public Object next() {
+    throw new java.util.NoSuchElementException();
   }
 
-  public void remove () {
+  public void remove() {
     throw new OPT_OptimizingCompilerException("EmptyIterator.remove called");
   }
 

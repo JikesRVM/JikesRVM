@@ -18,14 +18,14 @@ import org.jikesrvm.compilers.opt.ir.OPT_Operators;
 import org.jikesrvm.compilers.opt.ir.OPT_Register;
 
 public class OPT_RegisterPreferences extends OPT_GenericRegisterPreferences
-implements OPT_Operators {
+    implements OPT_Operators {
 
   /**
    * Set up register preferences based on instructions in an IR.
    */
   public void initialize(OPT_IR ir) {
 
-    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator(); 
+    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator();
          e.hasMoreElements();) {
       OPT_Instruction s = e.nextElement();
       switch (s.operator.opcode) {
@@ -36,7 +36,7 @@ implements OPT_Operators {
           if (result.isRegister() && value.isRegister()) {
             OPT_Register r1 = result.asRegister().register;
             OPT_Register r2 = value.asRegister().register;
-            addAffinity(1,r1,r2);
+            addAffinity(1, r1, r2);
           }
           break;
         default:

@@ -43,10 +43,10 @@ public abstract class VM_ExceptionDeliverer {
    *           VM.enableGC();
    *           registers.inuse = false;
    * </pre>
-   * 
+   *
    * <p> Note: this method does not return 
    * (execution resumes at catchBlockInstructionAddress)
-   * 
+   *
    * @param compiledMethod method whose catch block is to receive control
    * @param catchBlockInstructionAddress instruction address at which 
    * to begin execution of catch block
@@ -56,9 +56,9 @@ public abstract class VM_ExceptionDeliverer {
    * catch block
    */
   public abstract void deliverException(VM_CompiledMethod compiledMethod,
-                                 Address        catchBlockInstructionAddress,
-                                 Throwable         exceptionObject,
-                                 VM_Registers      registers);
+                                        Address catchBlockInstructionAddress,
+                                        Throwable exceptionObject,
+                                        VM_Registers registers);
 
   /**
    * Stackframe's method has no "catch" block for exception being thrown
@@ -80,6 +80,6 @@ public abstract class VM_ExceptionDeliverer {
    * @param registers thread state to be updated by restoring non-volatiles
    *                  and unwinding the stackframe
    */
-  public abstract void unwindStackFrame(VM_CompiledMethod compiledMethod, 
-                                 VM_Registers      registers);
+  public abstract void unwindStackFrame(VM_CompiledMethod compiledMethod,
+                                        VM_Registers registers);
 }

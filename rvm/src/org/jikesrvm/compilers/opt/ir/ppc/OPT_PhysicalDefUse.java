@@ -19,26 +19,26 @@ import org.jikesrvm.compilers.opt.ir.OPT_Register;
 public abstract class OPT_PhysicalDefUse {
 
   // constants used to encode defs/uses of physical registers
-  public static final int mask         = 0x00;  // empty mask
-  public static final int maskC0       = 0x01;
-  public static final int maskXER      = 0x02;
-  public static final int maskLR       = 0x04;
-  public static final int maskJTOC     = 0x08;
-  public static final int maskCTR      = 0x10;
-  public static final int maskPR       = 0x20;
+  public static final int mask = 0x00;  // empty mask
+  public static final int maskC0 = 0x01;
+  public static final int maskXER = 0x02;
+  public static final int maskLR = 0x04;
+  public static final int maskJTOC = 0x08;
+  public static final int maskCTR = 0x10;
+  public static final int maskPR = 0x20;
 
   // Meta mask for the enumeration.
   private static final int maskHIGH = 0x20;
-  private static final int maskALL  = 0x3F;
+  private static final int maskALL = 0x3F;
 
-  public static final int maskC0_XER   = maskC0 | maskXER;
-  public static final int maskJTOC_LR  = maskJTOC | maskLR;
+  public static final int maskC0_XER = maskC0 | maskXER;
+  public static final int maskJTOC_LR = maskJTOC | maskLR;
   public static final int maskJTOC_CTR = maskJTOC | maskCTR;
   public static final int maskcallDefs = maskLR;
   public static final int maskcallUses = maskJTOC;
   public static final int maskIEEEMagicUses = maskJTOC;
-  public static final int maskTSPDefs  = maskPR;
-  public static final int maskTSPUses  = maskJTOC;
+  public static final int maskTSPDefs = maskPR;
+  public static final int maskTSPUses = maskJTOC;
 
   /**
    * @return a string representation of the physical registers encoded by
@@ -63,7 +63,7 @@ public abstract class OPT_PhysicalDefUse {
    * @return an enumeration of the physical registers embodied by a code
    */
   public static PDUEnumeration enumerate(int code, OPT_IR ir) {
-    return new PDUEnumeration(code,ir);
+    return new PDUEnumeration(code, ir);
   }
 
   /**
@@ -72,7 +72,7 @@ public abstract class OPT_PhysicalDefUse {
    *         implicitly defed/used
    */
   public static PDUEnumeration enumerateAllImplicitDefUses(OPT_IR ir) {
-    return new PDUEnumeration(maskALL,ir);
+    return new PDUEnumeration(maskALL, ir);
   }
 
   /**
@@ -82,7 +82,7 @@ public abstract class OPT_PhysicalDefUse {
     private int code;
     private int curMask;
     private OPT_PhysicalRegisterSet phys;
-    
+
     PDUEnumeration(int c, OPT_IR ir) {
       phys = ir.regpool.getPhysicalRegisterSet();
       code = c;
@@ -105,13 +105,19 @@ public abstract class OPT_PhysicalDefUse {
     // artifically make static to enable scalar replacement of 
     // enumeration object without requiring this method to be inlined.
     private static OPT_Register getReg(int m, OPT_PhysicalRegisterSet phys) {
-      switch(m) {
-      case maskC0: return phys.getConditionRegister(0);
-      case maskXER: return phys.getXER();
-      case maskLR: return phys.getLR();
-      case maskJTOC: return phys.getJTOC();
-      case maskCTR: return phys.getCTR();
-      case maskPR: return phys.getPR();
+      switch (m) {
+        case maskC0:
+          return phys.getConditionRegister(0);
+        case maskXER:
+          return phys.getXER();
+        case maskLR:
+          return phys.getLR();
+        case maskJTOC:
+          return phys.getJTOC();
+        case maskCTR:
+          return phys.getCTR();
+        case maskPR:
+          return phys.getPR();
       }
       org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException.UNREACHABLE();
       return null; // placate jikes.

@@ -150,43 +150,45 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
    * Return this instance of this phase. This phase contains no
    * per-compilation instance fields.
    * @param ir not used
-   * @return this 
+   * @return this
    */
-  public OPT_CompilerPhase newExecution (OPT_IR ir) {
+  public OPT_CompilerPhase newExecution(OPT_IR ir) {
     return this;
   }
 
-  public final boolean shouldPerform (OPT_Options options) {
-    return  options.SIMPLE_ESCAPE_IPA;
+  public final boolean shouldPerform(OPT_Options options) {
+    return options.SIMPLE_ESCAPE_IPA;
   }
 
-  public final String getName () {
-    return  "Simple Escape Analysis";
+  public final String getName() {
+    return "Simple Escape Analysis";
   }
 
-  public final boolean printingEnabled (OPT_Options options, boolean before) {
-    return  false;
+  public final boolean printingEnabled(OPT_Options options, boolean before) {
+    return false;
   }
 
-  public void perform (OPT_IR ir) {
+  public void perform(OPT_IR ir) {
     OPT_SimpleEscape analyzer = new OPT_SimpleEscape();
     analyzer.simpleEscapeAnalysis(ir);
   }
 
-  /** 
+  /**
    * Perform the escape analysis for a method. Returns an
    * object holding the result of the analysis
    *
    * <p> Side effect: updates method summary database to hold
    *                escape analysis result for parameters
-   * 
+   *
    * @param ir IR for the target method
    */
-  public OPT_FI_EscapeSummary simpleEscapeAnalysis (OPT_IR ir) {
-    if (DEBUG)
+  public OPT_FI_EscapeSummary simpleEscapeAnalysis(OPT_IR ir) {
+    if (DEBUG) {
       VM.sysWrite("ENTER Simple Escape Analysis " + ir.method + "\n");
-    if (DEBUG)
+    }
+    if (DEBUG) {
       ir.printInstructions();
+    }
     // create a method summary object for this method
     VM_Method m = ir.method;
     OPT_MethodSummary summ = OPT_SummaryDatabase.findOrCreateMethodSummary(m);
@@ -196,23 +198,30 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
     OPT_DefUse.computeDU(ir);
     OPT_DefUse.recomputeSSA(ir);
     // pass through registers, and mark escape information
-    for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); 
-        reg != null; reg = reg.getNext()) {
+    for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister();
+         reg != null; reg = reg.getNext()) {
       // skip the following types of registers:
-      if (reg.isFloatingPoint())
+      if (reg.isFloatingPoint()) {
         continue;
-      if (reg.isInteger())
+      }
+      if (reg.isInteger()) {
         continue;
-      if (reg.isLong())
+      }
+      if (reg.isLong()) {
         continue;
-      if (reg.isCondition())
+      }
+      if (reg.isCondition()) {
         continue;
-      if (reg.isValidation())
+      }
+      if (reg.isValidation()) {
         continue;
-      if (reg.isPhysical())
+      }
+      if (reg.isPhysical()) {
         continue;
-      if (!reg.isSSA())
+      }
+      if (!reg.isSSA()) {
         continue;
+      }
       AnalysisResult escapes = checkAllAppearances(reg, ir);
       if (escapes.threadLocal) {
         result.setThreadLocal(reg, true);
@@ -227,22 +236,22 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
     for (OPT_OperandEnumeration e = ir.getParameters();
          e.hasMoreElements();
          numParam++) {
-      OPT_Register p = ((OPT_RegisterOperand)e.next()).register;
+      OPT_Register p = ((OPT_RegisterOperand) e.next()).register;
       if (result.isThreadLocal(p)) {
         summ.setParameterMayEscapeThread(numParam, false);
-      } 
-      else {
+      } else {
         summ.setParameterMayEscapeThread(numParam, true);
       }
     }
-      
+
     // update the method summary to note whether the return value
     // may escape
     boolean foundEscapingReturn = false;
     for (Iterator<OPT_Operand> itr = iterateReturnValues(ir); itr.hasNext();) {
       OPT_Operand op = itr.next();
-      if (op == null)
+      if (op == null) {
         continue;
+      }
       if (op.isRegister()) {
         OPT_Register r = op.asRegister().register;
         if (!result.isThreadLocal(r)) {
@@ -250,13 +259,15 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
         }
       }
     }
-    if (!foundEscapingReturn)
+    if (!foundEscapingReturn) {
       summ.setResultMayEscapeThread(false);
+    }
     // record that we're done with analysis
     summ.setInProgress(false);
-    if (DEBUG)
+    if (DEBUG) {
       VM.sysWrite("LEAVE Simple Escape Analysis " + ir.method + "\n");
-    return  result;
+    }
+    return result;
   }
 
   /**
@@ -266,7 +277,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
    */
   private static final OPT_OptimizationPlanElement escapePlan = initEscapePlan();
 
-  /** 
+  /**
    * Check all appearances of a register, to see if any object pointed
    * to by this register may escape this thread and/or method.
    *
@@ -274,16 +285,16 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
    * @param ir the governing IR
    * @return true if it may escape this thread, false otherwise
    */
-  private AnalysisResult checkAllAppearances (OPT_Register reg, OPT_IR ir) {
+  private AnalysisResult checkAllAppearances(OPT_Register reg, OPT_IR ir) {
     AnalysisResult result = new AnalysisResult();
     result.threadLocal = true;
     result.methodLocal = true;
-    for (OPT_RegisterOperand use = reg.useList; use != null; 
-        use = use.getNext()) {
+    for (OPT_RegisterOperand use = reg.useList; use != null;
+         use = use.getNext()) {
 
       if (VM.VerifyAssertions && use.type == null) {
-          ir.printInstructions();
-          VM._assert(false, "type of " + use + " is null");
+        ir.printInstructions();
+        VM._assert(false, "type of " + use + " is null");
       }
 
       // if the type is primitive, just say it escapes
@@ -300,12 +311,12 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
         result.methodLocal = false;
       }
     }
-    for (OPT_RegisterOperand def = reg.defList; def != null; 
-        def = def.getNext()) {
+    for (OPT_RegisterOperand def = reg.defList; def != null;
+         def = def.getNext()) {
 
       if (VM.VerifyAssertions && def.type == null) {
-          ir.printInstructions();
-          VM._assert(false, "type of " + def + " is null");
+        ir.printInstructions();
+        VM._assert(false, "type of " + def + " is null");
       }
 
       // if the type is primitive, just say it escapes
@@ -322,10 +333,10 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
         result.methodLocal = false;
       }
     }
-    return  result;
+    return result;
   }
 
-  /** 
+  /**
    * Check a single use, to see if this use may cause the object
    * referenced to escape from this thread.
    *
@@ -333,31 +344,43 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
    * @param ir the governing IR
    * @return true if it may escape, false otherwise
    */
-  private static boolean checkEscapesThread (OPT_RegisterOperand use, 
-      OPT_IR ir) {
+  private static boolean checkEscapesThread(OPT_RegisterOperand use,
+                                            OPT_IR ir) {
     OPT_Instruction inst = use.instruction;
     switch (inst.getOpcode()) {
-      case INT_ASTORE_opcode:case LONG_ASTORE_opcode:
-      case FLOAT_ASTORE_opcode:case DOUBLE_ASTORE_opcode:
-      case BYTE_ASTORE_opcode:case SHORT_ASTORE_opcode:
+      case INT_ASTORE_opcode:
+      case LONG_ASTORE_opcode:
+      case FLOAT_ASTORE_opcode:
+      case DOUBLE_ASTORE_opcode:
+      case BYTE_ASTORE_opcode:
+      case SHORT_ASTORE_opcode:
       case REF_ASTORE_opcode:
         // as long as we don't store this operand elsewhere, all
         // is OK
         OPT_Operand value = AStore.getValue(inst);
         return value == use;
-      case GETFIELD_opcode:case GETSTATIC_opcode:
-      case INT_ALOAD_opcode:case LONG_ALOAD_opcode:
-      case FLOAT_ALOAD_opcode:case DOUBLE_ALOAD_opcode:
-      case BYTE_ALOAD_opcode:case UBYTE_ALOAD_opcode:
-      case BYTE_LOAD_opcode:case UBYTE_LOAD_opcode:
-      case SHORT_ALOAD_opcode:case USHORT_ALOAD_opcode:
-      case SHORT_LOAD_opcode:case USHORT_LOAD_opcode:
+      case GETFIELD_opcode:
+      case GETSTATIC_opcode:
+      case INT_ALOAD_opcode:
+      case LONG_ALOAD_opcode:
+      case FLOAT_ALOAD_opcode:
+      case DOUBLE_ALOAD_opcode:
+      case BYTE_ALOAD_opcode:
+      case UBYTE_ALOAD_opcode:
+      case BYTE_LOAD_opcode:
+      case UBYTE_LOAD_opcode:
+      case SHORT_ALOAD_opcode:
+      case USHORT_ALOAD_opcode:
+      case SHORT_LOAD_opcode:
+      case USHORT_LOAD_opcode:
       case REF_ALOAD_opcode:
-      case INT_LOAD_opcode: case LONG_LOAD_opcode:
-      case DOUBLE_LOAD_opcode: case REF_LOAD_opcode:
+      case INT_LOAD_opcode:
+      case LONG_LOAD_opcode:
+      case DOUBLE_LOAD_opcode:
+      case REF_LOAD_opcode:
         // all is OK, unless we load this register from memory
         OPT_Operand result = ResultCarrier.getResult(inst);
-      return result == use;
+        return result == use;
       case PUTFIELD_opcode:
         // as long as we don't store this operand elsewhere, all
         // is OK. TODO: add more smarts.
@@ -368,31 +391,49 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
         // is OK. TODO: add more smarts.
         value = PutStatic.getValue(inst);
         return value == use;
-      case BYTE_STORE_opcode: case SHORT_STORE_opcode: case REF_STORE_opcode:
-      case INT_STORE_opcode:  case LONG_STORE_opcode: case DOUBLE_STORE_opcode:
+      case BYTE_STORE_opcode:
+      case SHORT_STORE_opcode:
+      case REF_STORE_opcode:
+      case INT_STORE_opcode:
+      case LONG_STORE_opcode:
+      case DOUBLE_STORE_opcode:
         // as long as we don't store this operand elsewhere, all
         // is OK. TODO: add more smarts.
         value = Store.getValue(inst);
-      return value == use;
-      // the following instructions never cause an object to
+        return value == use;
+        // the following instructions never cause an object to
         // escape
-      case BOUNDS_CHECK_opcode:case MONITORENTER_opcode:
-      case MONITOREXIT_opcode:case NULL_CHECK_opcode:
-      case ARRAYLENGTH_opcode:case REF_IFCMP_opcode:
-      case INT_IFCMP_opcode:case IG_PATCH_POINT_opcode:
-      case IG_CLASS_TEST_opcode:case IG_METHOD_TEST_opcode:
-      case BOOLEAN_CMP_INT_opcode:case BOOLEAN_CMP_ADDR_opcode:case OBJARRAY_STORE_CHECK_opcode:
+      case BOUNDS_CHECK_opcode:
+      case MONITORENTER_opcode:
+      case MONITOREXIT_opcode:
+      case NULL_CHECK_opcode:
+      case ARRAYLENGTH_opcode:
+      case REF_IFCMP_opcode:
+      case INT_IFCMP_opcode:
+      case IG_PATCH_POINT_opcode:
+      case IG_CLASS_TEST_opcode:
+      case IG_METHOD_TEST_opcode:
+      case BOOLEAN_CMP_INT_opcode:
+      case BOOLEAN_CMP_ADDR_opcode:
+      case OBJARRAY_STORE_CHECK_opcode:
       case OBJARRAY_STORE_CHECK_NOTNULL_opcode:
       case GET_OBJ_TIB_opcode:
-      case GET_TYPE_FROM_TIB_opcode:case NEW_opcode:case NEWARRAY_opcode:
-      case NEWOBJMULTIARRAY_opcode:case NEW_UNRESOLVED_opcode: case NEWARRAY_UNRESOLVED_opcode:
-      case INSTANCEOF_opcode:case INSTANCEOF_NOTNULL_opcode:
+      case GET_TYPE_FROM_TIB_opcode:
+      case NEW_opcode:
+      case NEWARRAY_opcode:
+      case NEWOBJMULTIARRAY_opcode:
+      case NEW_UNRESOLVED_opcode:
+      case NEWARRAY_UNRESOLVED_opcode:
+      case INSTANCEOF_opcode:
+      case INSTANCEOF_NOTNULL_opcode:
       case INSTANCEOF_UNRESOLVED_opcode:
-      case CHECKCAST_opcode: case MUST_IMPLEMENT_INTERFACE_opcode:
-      case CHECKCAST_NOTNULL_opcode: case CHECKCAST_UNRESOLVED_opcode:
+      case CHECKCAST_opcode:
+      case MUST_IMPLEMENT_INTERFACE_opcode:
+      case CHECKCAST_NOTNULL_opcode:
+      case CHECKCAST_UNRESOLVED_opcode:
       case GET_CAUGHT_EXCEPTION_opcode:
-      case IR_PROLOGUE_opcode: 
-        return  false;
+      case IR_PROLOGUE_opcode:
+        return false;
       case RETURN_opcode:
         // a return instruction might cause an object to escape,
         // but not a parameter (whose escape properties are determined
@@ -400,8 +441,9 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
         return !ir.isParameter(use);
       case CALL_opcode:
         OPT_MethodOperand mop = Call.getMethod(inst);
-        if (mop == null)
-          return  true;
+        if (mop == null) {
+          return true;
+        }
         if (!mop.hasPreciseTarget()) {
           // if we're not sure of the dynamic target, give up
           return true;
@@ -410,7 +452,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
         OPT_MethodSummary summ = findOrCreateMethodSummary(mop.getTarget(), ir.options);
         if (summ == null) {
           // couldn't get one. assume the object escapes
-          return  true;
+          return true;
         }
         // if use is result of the call...
         if (use == Call.getResult(inst)) {
@@ -419,21 +461,44 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
         // use is a parameter to the call.  Find out which one.
         int p = getParameterIndex(use, inst);
         return summ.parameterMayEscapeThread(p);
-      case REF_MOVE_opcode:case ATHROW_opcode:
-      case PREPARE_INT_opcode:case PREPARE_ADDR_opcode:
-      case ATTEMPT_INT_opcode:case ATTEMPT_ADDR_opcode: 
-      case INT_MOVE_opcode:case INT_ADD_opcode:case REF_ADD_opcode: 
-      case INT_MUL_opcode: case INT_DIV_opcode: case INT_REM_opcode:
-      case INT_NEG_opcode: case INT_ZERO_CHECK_opcode:                 
-      case INT_OR_opcode: case INT_AND_opcode: case INT_XOR_opcode:
-      case REF_OR_opcode: case REF_AND_opcode: case REF_XOR_opcode:
-      case INT_SUB_opcode:case REF_SUB_opcode:case INT_SHL_opcode:
-      case INT_SHR_opcode:case INT_USHR_opcode:case SYSCALL_opcode:
-      case REF_SHL_opcode:case REF_SHR_opcode:case REF_USHR_opcode:
-      case GET_CLASS_OBJECT_opcode:case SET_CAUGHT_EXCEPTION_opcode:
-      case PHI_opcode: case INT_2LONG_opcode:
-      case REF_COND_MOVE_opcode: case INT_COND_MOVE_opcode:
-      case INT_2ADDRSigExt_opcode: case INT_2ADDRZerExt_opcode: case ADDR_2INT_opcode:
+      case REF_MOVE_opcode:
+      case ATHROW_opcode:
+      case PREPARE_INT_opcode:
+      case PREPARE_ADDR_opcode:
+      case ATTEMPT_INT_opcode:
+      case ATTEMPT_ADDR_opcode:
+      case INT_MOVE_opcode:
+      case INT_ADD_opcode:
+      case REF_ADD_opcode:
+      case INT_MUL_opcode:
+      case INT_DIV_opcode:
+      case INT_REM_opcode:
+      case INT_NEG_opcode:
+      case INT_ZERO_CHECK_opcode:
+      case INT_OR_opcode:
+      case INT_AND_opcode:
+      case INT_XOR_opcode:
+      case REF_OR_opcode:
+      case REF_AND_opcode:
+      case REF_XOR_opcode:
+      case INT_SUB_opcode:
+      case REF_SUB_opcode:
+      case INT_SHL_opcode:
+      case INT_SHR_opcode:
+      case INT_USHR_opcode:
+      case SYSCALL_opcode:
+      case REF_SHL_opcode:
+      case REF_SHR_opcode:
+      case REF_USHR_opcode:
+      case GET_CLASS_OBJECT_opcode:
+      case SET_CAUGHT_EXCEPTION_opcode:
+      case PHI_opcode:
+      case INT_2LONG_opcode:
+      case REF_COND_MOVE_opcode:
+      case INT_COND_MOVE_opcode:
+      case INT_2ADDRSigExt_opcode:
+      case INT_2ADDRZerExt_opcode:
+      case ADDR_2INT_opcode:
       case ADDR_2LONG_opcode:
         // we don't currently analyze these instructions,
         // so conservatively assume everything escapes
@@ -441,13 +506,13 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
       case YIELDPOINT_OSR_opcode:
         // on stack replacement really a part of the current method, but
         // we do not know exactly, so be conservative
-        return  true;
+        return true;
       default:
         return OPT_Operators.helper.mayEscapeThread(inst);
     }
   }
 
-  /** 
+  /**
    * Check a single use, to see if this use may cause the object
    * referenced to escape from this method.
    *
@@ -455,28 +520,43 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
    * @param ir the governing IR
    * @return true if it may escape, false otherwise
    */
-  private static boolean checkEscapesMethod (OPT_RegisterOperand use, 
-      OPT_IR ir) {
+  private static boolean checkEscapesMethod(OPT_RegisterOperand use,
+                                            OPT_IR ir) {
     OPT_Instruction inst = use.instruction;
     switch (inst.getOpcode()) {
-      case INT_ASTORE_opcode:case LONG_ASTORE_opcode:
-      case FLOAT_ASTORE_opcode:case DOUBLE_ASTORE_opcode:
-      case BYTE_ASTORE_opcode:case SHORT_ASTORE_opcode:
+      case INT_ASTORE_opcode:
+      case LONG_ASTORE_opcode:
+      case FLOAT_ASTORE_opcode:
+      case DOUBLE_ASTORE_opcode:
+      case BYTE_ASTORE_opcode:
+      case SHORT_ASTORE_opcode:
       case REF_ASTORE_opcode:
         // as long as we don't store this operand elsewhere, all
         // is OK
         OPT_Operand value = AStore.getValue(inst);
         return value == use;
-      case GETFIELD_opcode:case GETSTATIC_opcode:
-      case INT_ALOAD_opcode:case LONG_ALOAD_opcode:case FLOAT_ALOAD_opcode:
-      case DOUBLE_ALOAD_opcode:case BYTE_ALOAD_opcode:case UBYTE_ALOAD_opcode:
-      case BYTE_LOAD_opcode:case UBYTE_LOAD_opcode:
-      case USHORT_ALOAD_opcode:case SHORT_ALOAD_opcode:
-      case USHORT_LOAD_opcode:case SHORT_LOAD_opcode:case REF_ALOAD_opcode:
-      case INT_LOAD_opcode:case LONG_LOAD_opcode:case DOUBLE_LOAD_opcode:case REF_LOAD_opcode:
+      case GETFIELD_opcode:
+      case GETSTATIC_opcode:
+      case INT_ALOAD_opcode:
+      case LONG_ALOAD_opcode:
+      case FLOAT_ALOAD_opcode:
+      case DOUBLE_ALOAD_opcode:
+      case BYTE_ALOAD_opcode:
+      case UBYTE_ALOAD_opcode:
+      case BYTE_LOAD_opcode:
+      case UBYTE_LOAD_opcode:
+      case USHORT_ALOAD_opcode:
+      case SHORT_ALOAD_opcode:
+      case USHORT_LOAD_opcode:
+      case SHORT_LOAD_opcode:
+      case REF_ALOAD_opcode:
+      case INT_LOAD_opcode:
+      case LONG_LOAD_opcode:
+      case DOUBLE_LOAD_opcode:
+      case REF_LOAD_opcode:
         // all is OK, unless we load this register from memory
         OPT_Operand result = ResultCarrier.getResult(inst);
-      return result == use;
+        return result == use;
       case PUTFIELD_opcode:
         // as long as we don't store this operand elsewhere, all
         // is OK. TODO: add more smarts.
@@ -487,58 +567,99 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
         // is OK. TODO: add more smarts.
         value = PutStatic.getValue(inst);
         return value == use;
-      case BYTE_STORE_opcode:case SHORT_STORE_opcode: case REF_STORE_opcode:
-      case INT_STORE_opcode:case LONG_STORE_opcode: case DOUBLE_STORE_opcode:
+      case BYTE_STORE_opcode:
+      case SHORT_STORE_opcode:
+      case REF_STORE_opcode:
+      case INT_STORE_opcode:
+      case LONG_STORE_opcode:
+      case DOUBLE_STORE_opcode:
         // as long as we don't store this operand elsewhere, all
         // is OK. TODO: add more smarts.
         value = Store.getValue(inst);
-      return value == use;
-      // the following instructions never cause an object to
+        return value == use;
+        // the following instructions never cause an object to
         // escape
-      case BOUNDS_CHECK_opcode:case MONITORENTER_opcode:
-      case MONITOREXIT_opcode:case NULL_CHECK_opcode:case ARRAYLENGTH_opcode:
-      case REF_IFCMP_opcode:case INT_IFCMP_opcode:case IG_PATCH_POINT_opcode:
-      case IG_CLASS_TEST_opcode:case IG_METHOD_TEST_opcode:
-      case BOOLEAN_CMP_INT_opcode:case BOOLEAN_CMP_ADDR_opcode:
+      case BOUNDS_CHECK_opcode:
+      case MONITORENTER_opcode:
+      case MONITOREXIT_opcode:
+      case NULL_CHECK_opcode:
+      case ARRAYLENGTH_opcode:
+      case REF_IFCMP_opcode:
+      case INT_IFCMP_opcode:
+      case IG_PATCH_POINT_opcode:
+      case IG_CLASS_TEST_opcode:
+      case IG_METHOD_TEST_opcode:
+      case BOOLEAN_CMP_INT_opcode:
+      case BOOLEAN_CMP_ADDR_opcode:
       case OBJARRAY_STORE_CHECK_opcode:
       case OBJARRAY_STORE_CHECK_NOTNULL_opcode:
-      case GET_OBJ_TIB_opcode:case GET_TYPE_FROM_TIB_opcode:case NEW_opcode:
-      case NEWARRAY_opcode:case NEWOBJMULTIARRAY_opcode:
-      case NEW_UNRESOLVED_opcode: case NEWARRAY_UNRESOLVED_opcode:
-      case INSTANCEOF_opcode:case INSTANCEOF_NOTNULL_opcode:
+      case GET_OBJ_TIB_opcode:
+      case GET_TYPE_FROM_TIB_opcode:
+      case NEW_opcode:
+      case NEWARRAY_opcode:
+      case NEWOBJMULTIARRAY_opcode:
+      case NEW_UNRESOLVED_opcode:
+      case NEWARRAY_UNRESOLVED_opcode:
+      case INSTANCEOF_opcode:
+      case INSTANCEOF_NOTNULL_opcode:
       case INSTANCEOF_UNRESOLVED_opcode:
-      case CHECKCAST_opcode: case MUST_IMPLEMENT_INTERFACE_opcode:
-      case CHECKCAST_NOTNULL_opcode: case CHECKCAST_UNRESOLVED_opcode:
+      case CHECKCAST_opcode:
+      case MUST_IMPLEMENT_INTERFACE_opcode:
+      case CHECKCAST_NOTNULL_opcode:
+      case CHECKCAST_UNRESOLVED_opcode:
       case GET_CAUGHT_EXCEPTION_opcode:
-      case IR_PROLOGUE_opcode: 
-        return  false;
+      case IR_PROLOGUE_opcode:
+        return false;
       case RETURN_opcode:
         // a return instruction causes an object to escape this method.
-        return  true;
+        return true;
       case CALL_opcode:
         // a call instruction causes an object to escape this method.
-        return  true;
-      case REF_MOVE_opcode:case ATHROW_opcode:
-      case PREPARE_INT_opcode:case PREPARE_ADDR_opcode:
-      case ATTEMPT_INT_opcode:case ATTEMPT_ADDR_opcode: 
-      case INT_MOVE_opcode:case INT_ADD_opcode:case REF_ADD_opcode: 
-      case INT_MUL_opcode: case INT_DIV_opcode: case INT_REM_opcode:
-      case INT_NEG_opcode: case INT_ZERO_CHECK_opcode:                 
-      case INT_OR_opcode: case INT_AND_opcode: case INT_XOR_opcode:
-      case REF_OR_opcode: case REF_AND_opcode: case REF_XOR_opcode:
-      case INT_SUB_opcode:case REF_SUB_opcode:case INT_SHL_opcode:
-      case INT_SHR_opcode:case INT_USHR_opcode:case SYSCALL_opcode:
-      case REF_SHL_opcode:case REF_SHR_opcode:case REF_USHR_opcode:
-      case GET_CLASS_OBJECT_opcode:case SET_CAUGHT_EXCEPTION_opcode:
-      case PHI_opcode: case INT_2LONG_opcode:
-      case REF_COND_MOVE_opcode: case INT_COND_MOVE_opcode:
-      case INT_2ADDRSigExt_opcode: case INT_2ADDRZerExt_opcode: case ADDR_2INT_opcode:
+        return true;
+      case REF_MOVE_opcode:
+      case ATHROW_opcode:
+      case PREPARE_INT_opcode:
+      case PREPARE_ADDR_opcode:
+      case ATTEMPT_INT_opcode:
+      case ATTEMPT_ADDR_opcode:
+      case INT_MOVE_opcode:
+      case INT_ADD_opcode:
+      case REF_ADD_opcode:
+      case INT_MUL_opcode:
+      case INT_DIV_opcode:
+      case INT_REM_opcode:
+      case INT_NEG_opcode:
+      case INT_ZERO_CHECK_opcode:
+      case INT_OR_opcode:
+      case INT_AND_opcode:
+      case INT_XOR_opcode:
+      case REF_OR_opcode:
+      case REF_AND_opcode:
+      case REF_XOR_opcode:
+      case INT_SUB_opcode:
+      case REF_SUB_opcode:
+      case INT_SHL_opcode:
+      case INT_SHR_opcode:
+      case INT_USHR_opcode:
+      case SYSCALL_opcode:
+      case REF_SHL_opcode:
+      case REF_SHR_opcode:
+      case REF_USHR_opcode:
+      case GET_CLASS_OBJECT_opcode:
+      case SET_CAUGHT_EXCEPTION_opcode:
+      case PHI_opcode:
+      case INT_2LONG_opcode:
+      case REF_COND_MOVE_opcode:
+      case INT_COND_MOVE_opcode:
+      case INT_2ADDRSigExt_opcode:
+      case INT_2ADDRZerExt_opcode:
+      case ADDR_2INT_opcode:
       case ADDR_2LONG_opcode:
       case YIELDPOINT_OSR_opcode:
         // we don't currently analyze these instructions,
         // so conservatively assume everything escapes
         // TODO: add more smarts
-        return  true;
+        return true;
       default:
         return OPT_Operators.helper.mayEscapeMethod(inst);
     }
@@ -548,14 +669,15 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
    * Which parameter to a call instruction corresponds to op?
    * <p> PRECONDITION: Call.conforms(s)
    */
-  private static int getParameterIndex (OPT_Operand op, OPT_Instruction s) {
+  private static int getParameterIndex(OPT_Operand op, OPT_Instruction s) {
     for (int i = 0; i < Call.getNumberOfParams(s); i++) {
       OPT_Operand p = Call.getParam(s, i);
-      if (p == op)
-        return  i;
+      if (p == op) {
+        return i;
+      }
     }
-    throw  new OPT_OptimizingCompilerException("Parameter not found" + 
-        op + s);
+    throw new OPT_OptimizingCompilerException("Parameter not found" +
+                                              op + s);
   }
 
   /**
@@ -564,38 +686,39 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
    *   perform escape analysis, which will create the method
    *    summary as a side effect, and return the summary
    */
-  private static OPT_MethodSummary findOrCreateMethodSummary (VM_Method m, 
-      OPT_Options options) {
+  private static OPT_MethodSummary findOrCreateMethodSummary(VM_Method m,
+                                                             OPT_Options options) {
     OPT_MethodSummary summ = OPT_SummaryDatabase.findMethodSummary(m);
     if (summ == null) {
       if (options.SIMPLE_ESCAPE_IPA) {
         performSimpleEscapeAnalysis(m, options);
         summ = OPT_SummaryDatabase.findMethodSummary(m);
       }
-      return  summ;
-    } 
-    else {
-      return  summ;
+      return summ;
+    } else {
+      return summ;
     }
   }
 
   /**
    * Perform the simple escape analysis for a method.
    */
-  private static void performSimpleEscapeAnalysis (VM_Method m, 
-                                                   OPT_Options options) {
-    if (!options.SIMPLE_ESCAPE_IPA)
+  private static void performSimpleEscapeAnalysis(VM_Method m,
+                                                  OPT_Options options) {
+    if (!options.SIMPLE_ESCAPE_IPA) {
       return;
+    }
     // do not perform for unloaded methods
     OPT_MethodSummary summ = OPT_SummaryDatabase.findMethodSummary(m);
     if (summ != null) {
       // do not attempt to perform escape analysis recursively
-      if (summ.inProgress())
+      if (summ.inProgress()) {
         return;
+      }
     }
-    OPT_CompilationPlan plan = 
-      new OPT_CompilationPlan((VM_NormalMethod)m, escapePlan, 
-                              null, options);
+    OPT_CompilationPlan plan =
+        new OPT_CompilationPlan((VM_NormalMethod) m, escapePlan,
+                                null, options);
     plan.analyzeOnly = true;
     try {
       OPT_Compiler.compile(plan);
@@ -608,12 +731,12 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
    * Static initializer: set up the compilation plan for
    * simple escape analysis of a method.
    */
-  private static OPT_OptimizationPlanElement initEscapePlan () {
-    return  OPT_OptimizationPlanCompositeElement.compose("Escape Analysis", 
-        new Object[] {
-      new OPT_ConvertBCtoHIR(), new OPT_Simple(true, true), 
-      new OPT_SimpleEscape()
-    });
+  private static OPT_OptimizationPlanElement initEscapePlan() {
+    return OPT_OptimizationPlanCompositeElement.compose("Escape Analysis",
+                                                        new Object[]{
+                                                            new OPT_ConvertBCtoHIR(), new OPT_Simple(true, true),
+                                                            new OPT_SimpleEscape()
+                                                        });
   }
 
   /**
@@ -622,16 +745,16 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
    *
    * <p> TODO: Move this utility elsewhere
    */
-  private static Iterator<OPT_Operand> iterateReturnValues (OPT_IR ir) {
+  private static Iterator<OPT_Operand> iterateReturnValues(OPT_IR ir) {
     ArrayList<OPT_Operand> returnValues = new ArrayList<OPT_Operand>();
-    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator(); 
-        e.hasMoreElements();) {
+    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator();
+         e.hasMoreElements();) {
       OPT_Instruction s = e.next();
       if (Return.conforms(s)) {
         returnValues.add(Return.getVal(s));
       }
     }
-    return  returnValues.iterator();
+    return returnValues.iterator();
   }
 
   /**

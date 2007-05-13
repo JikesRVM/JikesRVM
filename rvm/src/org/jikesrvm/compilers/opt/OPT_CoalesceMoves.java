@@ -20,10 +20,10 @@ import org.jikesrvm.compilers.opt.ir.OPT_Register;
  * Coalesce registers in move instructions where possible.
  */
 class OPT_CoalesceMoves extends OPT_CompilerPhase {
-  
+
   /**
    *  verbose debugging flag 
-   */ 
+   */
   static final boolean DEBUG = false;
 
   /**
@@ -41,7 +41,7 @@ class OPT_CoalesceMoves extends OPT_CompilerPhase {
    * @param options controlling compiler options
    */
   public final boolean shouldPerform(OPT_Options options) {
-    return  options.COALESCE_AFTER_SSA;
+    return options.COALESCE_AFTER_SSA;
   }
 
   /**
@@ -49,7 +49,7 @@ class OPT_CoalesceMoves extends OPT_CompilerPhase {
    * @return "Coalesce Moves"
    */
   public final String getName() {
-    return  "Coalesce Moves";
+    return "Coalesce Moves";
   }
 
   /**
@@ -79,10 +79,10 @@ class OPT_CoalesceMoves extends OPT_CompilerPhase {
         OPT_Register r = Move.getResult(s).asRegister().register;
         if (r.isSymbolic()) {
           OPT_Operand val = Move.getVal(s);
-          if (val!=null && val.isRegister()) {
+          if (val != null && val.isRegister()) {
             OPT_Register r2 = val.asRegister().register;
             if (r2.isSymbolic()) {
-              if (OPT_Coalesce.attempt(ir,live,r,r2)) {
+              if (OPT_Coalesce.attempt(ir, live, r, r2)) {
                 if (DEBUG) System.out.println("COALESCED " + r + " " + r2);
                 dead.add(s);
               }

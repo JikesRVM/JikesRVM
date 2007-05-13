@@ -47,24 +47,24 @@ public class VM_DynamicCallFileInfoReader {
   /**
    * Read annoations from a specified file. Reads all annotations at
    * once and returns a collection of compiler advice attributes.
-   * 
+   *
    * @param file The annoation file to be read
    */
   public static void readDynamicCallFile(String file, boolean boot) {
     BufferedReader fileIn = null;
-    
+
     if (file == null) return;// null;
-    
+
     if ((!VM.runningVM) && (VM_Controller.dcg == null)) {
-      VM_Controller.dcg = new VM_PartialCallGraph(300); 
+      VM_Controller.dcg = new VM_PartialCallGraph(300);
     } else if (VM_Controller.dcg == null) {
       System.out.println("dcg is null ");
       return;
     }
     try {
-      fileIn = new BufferedReader(new 
-        InputStreamReader(new FileInputStream(file), 
-                          "UTF-8"));
+      fileIn = new BufferedReader(new
+          InputStreamReader(new FileInputStream(file),
+                            "UTF-8"));
       try {
         for (String s = fileIn.readLine(); s != null; s = fileIn.readLine()) {
           StringTokenizer parser = new StringTokenizer(s, " \n,");
@@ -72,20 +72,21 @@ public class VM_DynamicCallFileInfoReader {
         }
       } catch (IOException e) {
         e.printStackTrace();
-        VM.sysFail("Error parsing input dynamic call graph file"+file);
+        VM.sysFail("Error parsing input dynamic call graph file" + file);
       }
       fileIn.close();
     } catch (java.io.FileNotFoundException e) {
-      System.out.println("IO: Couldn't read compiler advice attribute file: " 
+      System.out.println("IO: Couldn't read compiler advice attribute file: "
                          + file + e);
     } catch (java.io.UnsupportedEncodingException e) {
-      System.out.println("IO: UTF-16 is not supported: " 
+      System.out.println("IO: UTF-16 is not supported: "
                          + e);
     } catch (IOException e) {
-      VM.sysFail("Error closing input dynamic call graph file"+file);
+      VM.sysFail("Error closing input dynamic call graph file" + file);
     }
-    
+
   }
+
   private static void readOneCallSiteAttribute(StringTokenizer parser, boolean boot) {
     String firstToken = parser.nextToken();
     if (firstToken.equals("CallSite")) {
@@ -95,11 +96,12 @@ public class VM_DynamicCallFileInfoReader {
       VM_Method caller, callee;
       if (callerRef.getType().getClassLoader() == VM_ClassLoader.getApplicationClassLoader()) {
         caller = callerRef.resolve();
-      } else 
+      } else {
         caller = callerRef.getResolvedMember();
+      }
       //if (caller == null) continue;
       @SuppressWarnings("unused") // serves as doco - token skipped 
-      int callerSize = Integer.parseInt(parser.nextToken());
+          int callerSize = Integer.parseInt(parser.nextToken());
       int bci = Integer.parseInt(parser.nextToken());
       VM_MemberReference calleeKey = VM_MemberReference.parse(parser, boot);
       if (calleeKey == null) return;
@@ -107,10 +109,11 @@ public class VM_DynamicCallFileInfoReader {
       //if (callee == null) continue;
       if (calleeRef.getType().getClassLoader() == VM_ClassLoader.getApplicationClassLoader()) {
         callee = calleeRef.resolve();
-      } else 
+      } else {
         callee = calleeRef.getResolvedMember();
+      }
       @SuppressWarnings("unused") // serves as doco - token skipped 
-      int calleeSize = Integer.parseInt(parser.nextToken());
+          int calleeSize = Integer.parseInt(parser.nextToken());
       parser.nextToken(); // skip "weight:"
       float weight = Float.parseFloat(parser.nextToken());
       if ((caller == null) || (callee == null)) {
@@ -121,7 +124,7 @@ public class VM_DynamicCallFileInfoReader {
     } else {
       VM.sysFail("Format error in dynamic call graph file");
     }
-  }    
+  }
 }
 
 

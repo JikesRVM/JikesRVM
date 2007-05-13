@@ -33,12 +33,12 @@ public class VM_Wait {
   /**
    * Suspend execution of current thread for specified number of seconds 
    * (or fraction).
-   */ 
-  public static void sleep (long millis) throws InterruptedException {
+   */
+  public static void sleep(long millis) throws InterruptedException {
     VM_Thread myThread = VM_Thread.getCurrentThread();
     myThread.wakeupCycle = VM_Time.cycles() + VM_Time.millisToCycles(millis);
     // cache the proxy before obtaining lock
-    VM_Proxy proxy = new VM_Proxy (myThread, myThread.wakeupCycle); 
+    VM_Proxy proxy = new VM_Proxy(myThread, myThread.wakeupCycle);
     myThread.proxy = proxy;
 
     VM_Thread.sleepImpl(myThread);
@@ -55,8 +55,9 @@ public class VM_Wait {
     // seconds past the epoch).  Negative value indicates indefinite wait,
     // in which case nothing needs to be done.
     long maxWaitCycle = VM_Time.secsToCycles(totalWaitTimeInSeconds);
-    if (maxWaitCycle >= 0)
+    if (maxWaitCycle >= 0) {
       maxWaitCycle += VM_Time.cycles();
+    }
     return maxWaitCycle;
   }
 
@@ -67,19 +68,21 @@ public class VM_Wait {
    * @param totalWaitTime the number of seconds to wait; negative values
    *   indicate an infinite wait time
    * @return the wait data object indicating the result of the wait
-   */ 
-  public static VM_ThreadIOWaitData ioWaitRead (int fd, double totalWaitTime) {
+   */
+  public static VM_ThreadIOWaitData ioWaitRead(int fd, double totalWaitTime) {
     // Create wait data to represent the event the thread is
     // waiting for
     long maxWaitCycle = getMaxWaitCycle(totalWaitTime);
     VM_ThreadIOWaitData waitData = new VM_ThreadIOWaitData(maxWaitCycle);
-    waitData.readFds = new int[] { fd };
+    waitData.readFds = new int[]{fd};
 
-    if (noIoWait)
+    if (noIoWait) {
       waitData.markAllAsReady();
-    else
-      // Put the thread on the ioQueue
+    } else
+    // Put the thread on the ioQueue
+    {
       VM_Thread.ioWaitImpl(waitData);
+    }
 
     return waitData;
   }
@@ -98,19 +101,21 @@ public class VM_Wait {
    * @param totalWaitTime the number of seconds to wait; negative values
    *   indicate an infinite wait time
    * @return the wait data object indicating the result of the wait
-   */ 
-  public static VM_ThreadIOWaitData ioWaitWrite (int fd, double totalWaitTime){
+   */
+  public static VM_ThreadIOWaitData ioWaitWrite(int fd, double totalWaitTime) {
     // Create wait data to represent the event the thread is
     // waiting for
     long maxWaitCycle = getMaxWaitCycle(totalWaitTime);
     VM_ThreadIOWaitData waitData = new VM_ThreadIOWaitData(maxWaitCycle);
-    waitData.writeFds = new int[] { fd };
+    waitData.writeFds = new int[]{fd};
 
-    if (noIoWait)
+    if (noIoWait) {
       waitData.markAllAsReady();
-    else
-      // Put the thread on the ioQueue
+    } else
+    // Put the thread on the ioQueue
+    {
       VM_Thread.ioWaitImpl(waitData);
+    }
 
     return waitData;
   }
@@ -140,9 +145,9 @@ public class VM_Wait {
    *   from native code
    */
   public static void ioWaitSelect(int[] readFds, int[] writeFds,
-                                  int[] exceptFds, double totalWaitTime, 
+                                  int[] exceptFds, double totalWaitTime,
                                   boolean fromNative) {
-    
+
     // Create wait data to represent the event that the thread is
     // waiting for
     long maxWaitCycle = getMaxWaitCycle(totalWaitTime);
@@ -151,14 +156,16 @@ public class VM_Wait {
     waitData.writeFds = writeFds;
     waitData.exceptFds = exceptFds;
 
-    if (fromNative)
+    if (fromNative) {
       waitData.waitFlags |= VM_ThreadEventConstants.WAIT_NATIVE;
+    }
 
     // Put the thread on the ioQueue
-    if (noIoWait)
+    if (noIoWait) {
       waitData.markAllAsReady();
-    else
+    } else {
       VM_Thread.ioWaitImpl(waitData);
+    }
   }
 
   /**
@@ -170,15 +177,15 @@ public class VM_Wait {
    * @return the <code>VM_ThreadProcessWaitData</code> representing
    *   the state of the process
    */
-  public static VM_ThreadProcessWaitData processWait(VM_Process process, 
+  public static VM_ThreadProcessWaitData processWait(VM_Process process,
                                                      double totalWaitTime)
-    throws InterruptedException {
+      throws InterruptedException {
 
     // Create wait data to represent the event the thread is
     // waiting for
     long maxWaitCycle = getMaxWaitCycle(totalWaitTime);
     VM_ThreadProcessWaitData waitData =
-      new VM_ThreadProcessWaitData(process.getPid(), maxWaitCycle);
+        new VM_ThreadProcessWaitData(process.getPid(), maxWaitCycle);
 
     // Put the thread on the processWaitQueue
     VM_Thread.processWaitImpl(waitData, process);

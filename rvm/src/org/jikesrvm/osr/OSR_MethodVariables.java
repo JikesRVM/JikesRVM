@@ -16,7 +16,7 @@ import org.jikesrvm.classloader.VM_MemberReference;
  * A class to hold variables for a method at one program point.
  */
 public final class OSR_MethodVariables {
-  
+
   /* which method */
   public int methId;
 
@@ -32,21 +32,20 @@ public final class OSR_MethodVariables {
     this.tupleList = tupleList;
   }
 
-
   public LinkedList<OSR_LocalRegPair> getTupleList() {
     return tupleList;
   }
 
-  public String toString () {
+  public String toString() {
     StringBuilder buf = new StringBuilder("");
 
     buf.append(" pc@").append(bcIndex).append(VM_MemberReference.getMemberRef(methId).getName());
     buf.append("\n");
-    for (int i=0, n=tupleList.size(); i<n; i++) {
+    for (int i = 0, n = tupleList.size(); i < n; i++) {
       buf.append(tupleList.get(i).toString());
       buf.append("\n");
     }
-    return  buf.toString();
+    return buf.toString();
   }
 }
 

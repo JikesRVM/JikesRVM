@@ -27,14 +27,14 @@ import org.jikesrvm.compilers.opt.ir.OPT_WeightedBranchTargets;
 class OPT_CFGTransformations extends OPT_CompilerPhase {
 
   private static final boolean DEBUG = false;
-   
+
   /**
    * Return this instance of this phase. This phase contains no
    * per-compilation instance fields.
    * @param ir not used
-   * @return this 
+   * @return this
    */
-  public OPT_CompilerPhase newExecution (OPT_IR ir) {
+  public OPT_CompilerPhase newExecution(OPT_IR ir) {
     return this;
   }
 
@@ -60,8 +60,8 @@ class OPT_CFGTransformations extends OPT_CompilerPhase {
       moreToCome = turnWhilesIntoUntils(ir);
     }
 
-    ensureLandingPads (ir);
-    
+    ensureLandingPads(ir);
+
     dom.perform(ir);
     ir.cfg.compactNodeNumbering();
     ir.HIRInfo.dominatorsAreComputed = false; // compacting the node numbering destroys the dominator info
@@ -72,9 +72,10 @@ class OPT_CFGTransformations extends OPT_CompilerPhase {
    * OPT_Options object it is passed
    */
   public boolean shouldPerform(OPT_Options options) {
-    if (options.getOptLevel() < 2)
-      return  false;
-    return  options.TURN_WHILES_INTO_UNTILS;
+    if (options.getOptLevel() < 2) {
+      return false;
+    }
+    return options.TURN_WHILES_INTO_UNTILS;
   }
 
   /**
@@ -88,7 +89,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase {
    * Returns true if the phase wants the IR dumped before and/or after it runs.
    */
   public boolean printingEnabled(OPT_Options options, boolean before) {
-    return  false;
+    return false;
   }
 
   //Implementation
@@ -97,9 +98,10 @@ class OPT_CFGTransformations extends OPT_CompilerPhase {
    */
   private static boolean turnWhilesIntoUntils(OPT_IR ir) {
     OPT_LSTGraph lstg = ir.HIRInfo.LoopStructureTree;
-    if (lstg != null)
-      return  turnLoopTreeIntoUntils((OPT_LSTNode)lstg.firstNode(), ir);
-    return  false;
+    if (lstg != null) {
+      return turnLoopTreeIntoUntils((OPT_LSTNode) lstg.firstNode(), ir);
+    }
+    return false;
   }
 
   /**
@@ -108,41 +110,42 @@ class OPT_CFGTransformations extends OPT_CompilerPhase {
   private static boolean turnLoopTreeIntoUntils(OPT_LSTNode t, OPT_IR ir) {
     OPT_GraphNodeEnumeration e = t.outNodes();
     while (e.hasMoreElements()) {
-      OPT_LSTNode n = (OPT_LSTNode)e.nextElement();
-      if (turnLoopTreeIntoUntils(n, ir))
-        return  true;
-      if (turnLoopIntoUntil(n, ir))
-        return  true;
+      OPT_LSTNode n = (OPT_LSTNode) e.nextElement();
+      if (turnLoopTreeIntoUntils(n, ir)) {
+        return true;
+      }
+      if (turnLoopIntoUntil(n, ir)) {
+        return true;
+      }
     }
-    return  false;
+    return false;
   }
 
   /**
    * treat all loops of the ir
    */
-  private static void ensureLandingPads (OPT_IR ir) {
+  private static void ensureLandingPads(OPT_IR ir) {
     OPT_LSTGraph lstg = ir.HIRInfo.LoopStructureTree;
-    if (lstg != null)
-      ensureLandingPads ((OPT_LSTNode)lstg.firstNode(), ir);
+    if (lstg != null) {
+      ensureLandingPads((OPT_LSTNode) lstg.firstNode(), ir);
+    }
   }
 
   /**
    * deal with a sub tree of the loop structure tree
    */
-  private static void ensureLandingPads (OPT_LSTNode t, OPT_IR ir) {
+  private static void ensureLandingPads(OPT_LSTNode t, OPT_IR ir) {
     OPT_GraphNodeEnumeration e = t.outNodes();
     while (e.hasMoreElements()) {
-      OPT_LSTNode n = (OPT_LSTNode)e.nextElement();
+      OPT_LSTNode n = (OPT_LSTNode) e.nextElement();
       ensureLandingPads(n, ir);
-      ensureLandingPad (n, ir);
+      ensureLandingPad(n, ir);
     }
   }
 
-
-  private static float edgeFrequency (OPT_BasicBlock a, OPT_BasicBlock b)
-  {
+  private static float edgeFrequency(OPT_BasicBlock a, OPT_BasicBlock b) {
     float prop = 0f;
-    OPT_WeightedBranchTargets ws = new OPT_WeightedBranchTargets (a);
+    OPT_WeightedBranchTargets ws = new OPT_WeightedBranchTargets(a);
     while (ws.hasMoreElements()) {
       if (ws.curBlock() == b) prop += ws.curWeight();
       ws.advance();
@@ -150,10 +153,8 @@ class OPT_CFGTransformations extends OPT_CompilerPhase {
     return a.getExecutionFrequency() * prop;
   }
 
-  
-    private static void ensureLandingPad (OPT_LSTNode n, OPT_IR ir)
-  {
-    OPT_BasicBlock[] ps = loopPredecessors (n);
+  private static void ensureLandingPad(OPT_LSTNode n, OPT_IR ir) {
+    OPT_BasicBlock[] ps = loopPredecessors(n);
     if (ps.length == 1 && ps[0].getNumberOfOut() == 1) return;
 
     float frequency = 0f;
@@ -161,20 +162,20 @@ class OPT_CFGTransformations extends OPT_CompilerPhase {
       frequency += edgeFrequency(bb, n.header);
     }
     OPT_BasicBlock newPred;
-    newPred = n.header.createSubBlock (n.header.firstInstruction().bcIndex,
-                                       ir, 1f);
+    newPred = n.header.createSubBlock(n.header.firstInstruction().bcIndex,
+                                      ir, 1f);
     newPred.setLandingPad();
-    newPred.setExecutionFrequency (frequency);
+    newPred.setExecutionFrequency(frequency);
 
     OPT_BasicBlock p = n.header.prevBasicBlockInCodeOrder();
-    if (VM.VerifyAssertions) VM._assert (p != null);
+    if (VM.VerifyAssertions) VM._assert(p != null);
     p.killFallThrough();
-    ir.cfg.breakCodeOrder (p, n.header);
-    ir.cfg.linkInCodeOrder (p, newPred);
-    ir.cfg.linkInCodeOrder (newPred, n.header);
-    
+    ir.cfg.breakCodeOrder(p, n.header);
+    ir.cfg.linkInCodeOrder(p, newPred);
+    ir.cfg.linkInCodeOrder(newPred, n.header);
+
     newPred.lastInstruction().insertBefore
-      (Goto.create(GOTO, n.header.makeJumpTarget()));
+        (Goto.create(GOTO, n.header.makeJumpTarget()));
     newPred.recomputeNormalOut(ir);
 
     for (OPT_BasicBlock bb : ps) {
@@ -182,7 +183,6 @@ class OPT_CFGTransformations extends OPT_CompilerPhase {
     }
   }
 
-  
   /**
    * Transform a given loop
    *
@@ -199,11 +199,11 @@ class OPT_CFGTransformations extends OPT_CompilerPhase {
 
     int i = 0;
     int exiters = 0;
-    
-    OPT_BasicBlockEnumeration e = ir.getBasicBlocks (n.loop);
+
+    OPT_BasicBlockEnumeration e = ir.getBasicBlocks(n.loop);
     while (e.hasMoreElements()) {
       OPT_BasicBlock b = e.next();
-      if (!exitsLoop (b, n.loop)) {
+      if (!exitsLoop(b, n.loop)) {
         // header doesn't exit: nothing to do
         if (b == n.header) return false;
       } else {
@@ -216,29 +216,29 @@ class OPT_CFGTransformations extends OPT_CompilerPhase {
 
     // rewriting loops where the header has more than one in-loop
     // successor will lead to irreducible control flow.
-    OPT_BasicBlock[] succ = inLoopSuccessors (n);
+    OPT_BasicBlock[] succ = inLoopSuccessors(n);
     if (succ.length > 1) {
-      if (DEBUG) VM.sysWrite ("unwhiling would lead to irreducible CFG\n");
+      if (DEBUG) VM.sysWrite("unwhiling would lead to irreducible CFG\n");
       return false;
     }
-    
-    OPT_BasicBlock[] pred = inLoopPredecessors (n);
+
+    OPT_BasicBlock[] pred = inLoopPredecessors(n);
     float frequency = 0f;
 
     if (pred.length > 0) {
-      frequency += edgeFrequency (pred[0], header);
+      frequency += edgeFrequency(pred[0], header);
       // replicate the header as successor of pred[0]
       OPT_BasicBlock p = header.prevBasicBlockInCodeOrder();
       p.killFallThrough();
-      newLoopTest = pred[0].replicateThisOut (ir, header, p);
+      newLoopTest = pred[0].replicateThisOut(ir, header, p);
     }
-    for (i = 1;  i < pred.length;  ++i) { // check for aditional back edges
-      frequency += edgeFrequency (pred[i], header);
+    for (i = 1; i < pred.length; ++i) { // check for aditional back edges
+      frequency += edgeFrequency(pred[i], header);
       pred[i].redirectOuts(header, newLoopTest, ir);
     }
-    newLoopTest.setExecutionFrequency (frequency);
-    header.setExecutionFrequency (header.getExecutionFrequency() - frequency);
-    return  true;
+    newLoopTest.setExecutionFrequency(frequency);
+    header.setExecutionFrequency(header.getExecutionFrequency() - frequency);
+    return true;
   }
 
   /**
@@ -247,10 +247,10 @@ class OPT_CFGTransformations extends OPT_CompilerPhase {
   private static OPT_BasicBlock[] loopPredecessors(OPT_LSTNode n) {
     OPT_BasicBlock header = n.header;
     OPT_BitVector loop = n.loop;
-    
+
     int i = 0;
     OPT_BasicBlockEnumeration be = header.getIn();
-    while (be.hasMoreElements()) if (!inLoop (be.next(), loop)) i++;
+    while (be.hasMoreElements()) if (!inLoop(be.next(), loop)) i++;
 
     OPT_BasicBlock[] res = new OPT_BasicBlock[i];
 
@@ -260,7 +260,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase {
       OPT_BasicBlock in = be.nextElement();
       if (!inLoop(in, loop)) res[i++] = in;
     }
-    return  res;
+    return res;
   }
 
   /**
@@ -272,48 +272,49 @@ class OPT_CFGTransformations extends OPT_CompilerPhase {
 
     int i = 0;
     OPT_BasicBlockEnumeration be = header.getIn();
-    while (be.hasMoreElements()) if (inLoop (be.next(), loop)) i++;
+    while (be.hasMoreElements()) if (inLoop(be.next(), loop)) i++;
 
     OPT_BasicBlock[] res = new OPT_BasicBlock[i];
-    
+
     i = 0;
     be = header.getIn();
     while (be.hasMoreElements()) {
       OPT_BasicBlock in = be.nextElement();
       if (inLoop(in, loop)) res[i++] = in;
     }
-    return  res;
+    return res;
   }
+
   /**
    * the successors of the loop header that are part of the loop.
    */
-  private static OPT_BasicBlock[] inLoopSuccessors (OPT_LSTNode n) {
+  private static OPT_BasicBlock[] inLoopSuccessors(OPT_LSTNode n) {
     OPT_BasicBlock header = n.header;
     OPT_BitVector loop = n.loop;
 
     int i = 0;
     OPT_BasicBlockEnumeration be = header.getOut();
-    while (be.hasMoreElements()) if (inLoop (be.next(), loop)) i++;
+    while (be.hasMoreElements()) if (inLoop(be.next(), loop)) i++;
 
     OPT_BasicBlock[] res = new OPT_BasicBlock[i];
-    
+
     i = 0;
     be = header.getOut();
     while (be.hasMoreElements()) {
       OPT_BasicBlock in = be.nextElement();
       if (inLoop(in, loop)) res[i++] = in;
     }
-    return  res;
+    return res;
   }
 
   static void killFallThroughs(OPT_IR ir, OPT_BitVector nloop) {
-    OPT_BasicBlockEnumeration bs = ir.getBasicBlocks (nloop);
+    OPT_BasicBlockEnumeration bs = ir.getBasicBlocks(nloop);
     while (bs.hasMoreElements()) {
       OPT_BasicBlock block = bs.next();
       OPT_BasicBlockEnumeration bi = block.getIn();
       while (bi.hasMoreElements()) {
         OPT_BasicBlock in = bi.next();
-        if (inLoop (in, nloop)) continue;
+        if (inLoop(in, nloop)) continue;
         in.killFallThrough();
       }
       block.killFallThrough();
@@ -325,16 +326,15 @@ class OPT_CFGTransformations extends OPT_CompilerPhase {
     if (idx >= nloop.length()) return false;
     return nloop.get(idx);
   }
-  
-  private static boolean exitsLoop (OPT_BasicBlock b, OPT_BitVector loop)
-  {
+
+  private static boolean exitsLoop(OPT_BasicBlock b, OPT_BitVector loop) {
     OPT_BasicBlockEnumeration be = b.getOut();
     while (be.hasMoreElements()) {
-      if (!inLoop (be.next(), loop)) return true;
+      if (!inLoop(be.next(), loop)) return true;
     }
     return false;
   }
-  
+
   /**
    * Critical edge removal: if (a,b) is an edge in the cfg where `a' has more
    * than one out-going edge and `b' has more than one in-coming edge,
@@ -350,18 +350,21 @@ class OPT_CFGTransformations extends OPT_CompilerPhase {
       int numberOfIns = b.getNumberOfIn();
       //Exception handlers and blocks with less than two inputs
       // are no candidates for `b'.
-      if (b.isExceptionHandlerBasicBlock() || numberOfIns <= 1)
+      if (b.isExceptionHandlerBasicBlock() || numberOfIns <= 1) {
         continue;
+      }
       // copy the predecessors, since we will alter the incoming edges.
       OPT_BasicBlock[] ins = new OPT_BasicBlock[numberOfIns];
       OPT_BasicBlockEnumeration ie = b.getIn();
-      for (int i = 0; i < numberOfIns; ++i)
+      for (int i = 0; i < numberOfIns; ++i) {
         ins[i] = ie.next();
+      }
       // skip blocks, that do not fullfil our requirements for `a'
       for (int i = 0; i < numberOfIns; ++i) {
         OPT_BasicBlock a = ins[i];
-        if (a.getNumberOfOut() <= 1)
+        if (a.getNumberOfOut() <= 1) {
           continue;
+        }
         // insert pads only for moving code up to the start of the method
         //if (a.getExecutionFrequency() >= b.getExecutionFrequency()) continue;
 
@@ -371,17 +374,17 @@ class OPT_CFGTransformations extends OPT_CompilerPhase {
         int bcIndex = firstInB != null ? firstInB.bcIndex : -1;
         landingPad = b.createSubBlock(bcIndex, ir);
         landingPad.setLandingPad();
-        landingPad.setExecutionFrequency (edgeFrequency (a, b));
-        
+        landingPad.setExecutionFrequency(edgeFrequency(a, b));
+
         // make the landing pad jump to `b'
         OPT_Instruction g;
         g = Goto.create(GOTO, b.makeJumpTarget());
         landingPad.appendInstruction(g);
         landingPad.recomputeNormalOut(ir);
         // redirect a's outputs from b to the landing pad
-        a.redirectOuts(b, landingPad,ir);
+        a.redirectOuts(b, landingPad, ir);
 
-        a.killFallThrough ();
+        a.killFallThrough();
         OPT_BasicBlock aNext = a.nextBasicBlockInCodeOrder();
         if (aNext != null) {
           ir.cfg.breakCodeOrder(a, aNext);

@@ -35,9 +35,10 @@ import org.vmmagic.unboxed.WordArray;
  * this save area.  If GC does not occur, the Native C code has restored
  * these regs, and the transition return code does not do the restore.
  */
-@Uninterruptible public abstract class VM_JNIGCMapIterator extends VM_GCMapIterator 
-  implements VM_BaselineConstants,
-             VM_JNIStackframeLayoutConstants {
+@Uninterruptible
+public abstract class VM_JNIGCMapIterator extends VM_GCMapIterator
+    implements VM_BaselineConstants,
+               VM_JNIStackframeLayoutConstants {
 
   // non-volitile regs are saved at the end of the transition frame,
   // after the saved JTOC and SP, and preceeded by a GC flag.
@@ -62,16 +63,16 @@ import org.vmmagic.unboxed.WordArray;
   //
 
   public static int verbose = 0;
-  
-   // additional instance fields added by this subclass of VM_GCMapIterator
+
+  // additional instance fields added by this subclass of VM_GCMapIterator
   private AddressArray jniRefs;
   private int jniNextRef;
   private int jniFramePtr;
   private Address jniSavedReturnAddr;
-  
+
   public VM_JNIGCMapIterator(WordArray registerLocations) {
-     this.registerLocations = registerLocations;
-   }
+    this.registerLocations = registerLocations;
+  }
 
   // Override newStackWalk() in parent class VM_GCMapIterator to
   // initialize iterator for scan of JNI JREFs stack of refs
@@ -90,9 +91,9 @@ import org.vmmagic.unboxed.WordArray;
     }
   }
 
-  public void setupIterator(VM_CompiledMethod compiledMethod, 
-                            Offset instructionOffset, 
-                            Address framePtr) { 
+  public void setupIterator(VM_CompiledMethod compiledMethod,
+                            Offset instructionOffset,
+                            Address framePtr) {
     this.framePtr = framePtr;
     // processor reg (R16) was saved in reg save area at offset -72 
     // from callers frameptr, and after GC will be used to set 
@@ -101,12 +102,12 @@ import org.vmmagic.unboxed.WordArray;
     //
     Address callers_fp = this.framePtr.loadAddress();
     if (VM.BuildForPowerOpenABI) {
-      jniSavedReturnAddr       = callers_fp.minus(JNI_PROLOG_RETURN_ADDRESS_OFFSET);
+      jniSavedReturnAddr = callers_fp.minus(JNI_PROLOG_RETURN_ADDRESS_OFFSET);
     } else {
       if (VM.VerifyAssertions) VM._assert(VM.BuildForSVR4ABI || VM.BuildForMachOABI);
       // ScanThread calls getReturnAddressLocation() to get this stack frame
       // it is already processed
-      jniSavedReturnAddr       = Address.zero();
+      jniSavedReturnAddr = Address.zero();
     }
 
     // set the GC flag in the Java to C frame to indicate GC occurred
@@ -115,7 +116,7 @@ import org.vmmagic.unboxed.WordArray;
     //
     callers_fp.minus(JNI_GC_FLAG_OFFSET).store(1);
   }
-  
+
   // return (address of) next ref in the current "frame" on the
   // threads JNIEnvironment stack of refs         
   // When at the end of the current frame, update register locations to point
@@ -136,9 +137,9 @@ import org.vmmagic.unboxed.WordArray;
     //
     if (jniFramePtr > 0) {
       jniFramePtr = jniRefs.get(jniFramePtr >> LOG_BYTES_IN_ADDRESS).toInt();
-      jniNextRef = jniNextRef - BYTES_IN_ADDRESS ;
+      jniNextRef = jniNextRef - BYTES_IN_ADDRESS;
     }
-    
+
     // set register locations for non-volatiles to point to registers saved in
     // the JNI transition frame at a fixed negative offset from the callers FP.
     Address registerLocation = this.framePtr.loadAddress().minus(JNI_RVM_NONVOLATILE_OFFSET);
@@ -153,7 +154,7 @@ import org.vmmagic.unboxed.WordArray;
   }
 
   public Address getNextReturnAddressAddress() {
-    if ( !jniSavedReturnAddr.isZero() ) {
+    if (!jniSavedReturnAddr.isZero()) {
       Address ref_address = jniSavedReturnAddr;
       jniSavedReturnAddr = Address.zero();
       if (verbose > 0) {
@@ -166,9 +167,9 @@ import org.vmmagic.unboxed.WordArray;
   }
 
   public void reset() {}
-  
+
   public void cleanupPointers() {}
-  
+
   public int getType() {
     return VM_CompiledMethod.JNI;
   }

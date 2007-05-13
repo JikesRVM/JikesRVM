@@ -63,9 +63,9 @@ public class VM_Process extends java.lang.Process {
     // FIXME: check for error creating process
 
     // initialize file descriptors
-    VM_FileSystem.onCreateFileDescriptor( inputDescriptor, false );
-    VM_FileSystem.onCreateFileDescriptor( outputDescriptor, false );
-    VM_FileSystem.onCreateFileDescriptor( errorDescriptor, false );
+    VM_FileSystem.onCreateFileDescriptor(inputDescriptor, false);
+    VM_FileSystem.onCreateFileDescriptor(outputDescriptor, false);
+    VM_FileSystem.onCreateFileDescriptor(errorDescriptor, false);
   }
 
   /**
@@ -73,7 +73,7 @@ public class VM_Process extends java.lang.Process {
    * created from.
    */
   @Uninterruptible
-  public VM_Processor getCreatingProcessor() { 
+  public VM_Processor getCreatingProcessor() {
     return creatingProcessor;
   }
 
@@ -83,7 +83,7 @@ public class VM_Process extends java.lang.Process {
   public int getPid() {
     return pid;
   }
-    
+
   /**
    * Get the exit value of the process.
    * @throws IllegalThreadStateException if the process hasn't exited yet
@@ -94,8 +94,9 @@ public class VM_Process extends java.lang.Process {
         // If someone else is waiting for the process to exit,
         // then it obviously hasn't exited.  Otherwise, poll to see if
         // the process has exited.
-        if (waiting || !isDead())
+        if (waiting || !isDead()) {
           throw new IllegalThreadStateException("I'm not dead yet!");
+        }
 
         // Process is dead, and we've recorded its exit status,
         // so let anyone waiting for its status know that
@@ -106,7 +107,7 @@ public class VM_Process extends java.lang.Process {
       return exitStatus;
     }
   }
-    
+
   /**
    * Wait for the process to exit.
    * @return the process's exit value
@@ -120,8 +121,9 @@ public class VM_Process extends java.lang.Process {
       }
 
       // Maybe the process has exited already?
-      if (hasExited)
+      if (hasExited) {
         return exitStatus;
+      }
 
       // We know that the process hasn't exited, and that no one
       // else is waiting for it.  Set waiting = true, to
@@ -171,7 +173,7 @@ public class VM_Process extends java.lang.Process {
       }
     }
   }
-    
+
   /**
    * Get an <code>InputStream</code> to read process's stderr.
    */
@@ -180,7 +182,7 @@ public class VM_Process extends java.lang.Process {
 
     return errorStream;
   }
-    
+
   /**
    * Get an <code>InputStream</code> to read process's stdout.
    */
@@ -189,7 +191,7 @@ public class VM_Process extends java.lang.Process {
 
     return inputStream;
   }
-    
+
   /**
    * Get an <code>OutputStream</code> to write process's stdin.
    */
@@ -210,8 +212,9 @@ public class VM_Process extends java.lang.Process {
       // process has exited.
       VM_ThreadProcessWaitData waitData = VM_Wait.processWait(this, 1.0d);
       boolean finished = waitData.finished;
-      if (finished)
+      if (finished) {
         exitStatus = waitData.exitStatus;
+      }
       return finished;
     }
     catch (InterruptedException e) {
@@ -234,72 +237,71 @@ public class VM_Process extends java.lang.Process {
    */
   private int waitForInternal() throws InterruptedException {
     VM_ThreadProcessWaitData waitData =
-      VM_Wait.processWait(this, VM_ThreadEventConstants.WAIT_INFINITE);
+        VM_Wait.processWait(this, VM_ThreadEventConstants.WAIT_INFINITE);
     // InterruptedException may be thrown,
     // in which case we definitely did NOT do the waitpid()
 
     if (VM.VerifyAssertions) VM._assert(waitData.finished);
     return waitData.exitStatus;
   }
-    
+
   /**
    * Call fork() and execvp() to spawn the process.
    * @return the process id
    */
   private native int exec4(String program, String[] args, String[] env, String dirPath);
-    
+
   /**
    * Send the process a kill signal.
    */
   private native void destroyInternal();
 
-
   private InputStream getInputStream(final int fd) {
     return new InputStream() {
-        public int available() throws IOException {
-          return VM_FileSystem.bytesAvailable( fd );
-        }
-        
-        public void close() throws IOException {
-            // stream closed implicitly when process exits
-        }
-              
-        public int read() throws IOException {
-          return VM_FileSystem.readByte( fd );
-        }
-              
-        public int read(byte[] buffer) throws IOException {
-          return VM_FileSystem.readBytes(fd, buffer, 0, buffer.length);
-        }
-              
-        public int read(byte[] buf, int off, int len) throws IOException {
-          return VM_FileSystem.readBytes(fd, buf, off, len);
-        }
-      };
+      public int available() throws IOException {
+        return VM_FileSystem.bytesAvailable(fd);
+      }
+
+      public void close() throws IOException {
+        // stream closed implicitly when process exits
+      }
+
+      public int read() throws IOException {
+        return VM_FileSystem.readByte(fd);
+      }
+
+      public int read(byte[] buffer) throws IOException {
+        return VM_FileSystem.readBytes(fd, buffer, 0, buffer.length);
+      }
+
+      public int read(byte[] buf, int off, int len) throws IOException {
+        return VM_FileSystem.readBytes(fd, buf, off, len);
+      }
+    };
   }
-              
+
   private OutputStream getOutputStream(final int fd) {
     return new OutputStream() {
-        public void write (int b) throws IOException {
-          VM_FileSystem.writeByte(fd, b);
-        }
+      public void write(int b) throws IOException {
+        VM_FileSystem.writeByte(fd, b);
+      }
 
-        public void write (byte[] b) throws IOException {
-          VM_FileSystem.writeBytes(fd, b, 0, b.length);
-        }
+      public void write(byte[] b) throws IOException {
+        VM_FileSystem.writeBytes(fd, b, 0, b.length);
+      }
 
-        public void write (byte[] b, int off, int len) throws IOException {
-          VM_FileSystem.writeBytes(fd, b, off, len);
-        }
+      public void write(byte[] b, int off, int len) throws IOException {
+        VM_FileSystem.writeBytes(fd, b, off, len);
+      }
 
-        public void flush () throws IOException {
-          VM_FileSystem.sync( fd );
-        }
+      public void flush() throws IOException {
+        VM_FileSystem.sync(fd);
+      }
 
-        public void close () throws IOException {
-            // stream closed implicitly when process exits
-        }
-      };
+      public void close() throws IOException {
+        // stream closed implicitly when process exits
+      }
+    };
   }
 }
 

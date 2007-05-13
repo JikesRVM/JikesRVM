@@ -34,67 +34,73 @@ public final class OPT_TrapCodeOperand extends OPT_Operand {
    * Create a trap code operand for a null pointer check
    * @return the newly created trap code operand
    */
-  public static OPT_TrapCodeOperand NullPtr() { 
-    return new OPT_TrapCodeOperand((byte)VM_Runtime.TRAP_NULL_POINTER); 
+  public static OPT_TrapCodeOperand NullPtr() {
+    return new OPT_TrapCodeOperand((byte) VM_Runtime.TRAP_NULL_POINTER);
   }
+
   /**
    * Create a trap code operand for an array bounds check
    * @return the newly created trap code operand
    */
-  public static OPT_TrapCodeOperand ArrayBounds() { 
-    return new OPT_TrapCodeOperand((byte)VM_Runtime.TRAP_ARRAY_BOUNDS);
+  public static OPT_TrapCodeOperand ArrayBounds() {
+    return new OPT_TrapCodeOperand((byte) VM_Runtime.TRAP_ARRAY_BOUNDS);
   }
+
   /**
    * Create a trap code operand for a divide by zero check
    * @return the newly created trap code operand
    */
-  public static OPT_TrapCodeOperand DivByZero() { 
-    return new OPT_TrapCodeOperand((byte)VM_Runtime.TRAP_DIVIDE_BY_ZERO);
+  public static OPT_TrapCodeOperand DivByZero() {
+    return new OPT_TrapCodeOperand((byte) VM_Runtime.TRAP_DIVIDE_BY_ZERO);
   }
+
   /**
    * Create a trap code operand for a stack overflow
    * @return the newly created trap code operand
    */
-  public static OPT_TrapCodeOperand StackOverflow() { 
-    return new OPT_TrapCodeOperand((byte)VM_Runtime.TRAP_STACK_OVERFLOW);
+  public static OPT_TrapCodeOperand StackOverflow() {
+    return new OPT_TrapCodeOperand((byte) VM_Runtime.TRAP_STACK_OVERFLOW);
   }
+
   /**
    * Create a trap code operand for a check cast
    * @return the newly created trap code operand
    */
-  public static OPT_TrapCodeOperand CheckCast() { 
-    return new OPT_TrapCodeOperand((byte)VM_Runtime.TRAP_CHECKCAST);
+  public static OPT_TrapCodeOperand CheckCast() {
+    return new OPT_TrapCodeOperand((byte) VM_Runtime.TRAP_CHECKCAST);
   }
+
   /**
    * Create a trap code operand for a must implement
    * @return the newly created trap code operand
    */
-  public static OPT_TrapCodeOperand MustImplement() { 
-    return new OPT_TrapCodeOperand((byte)VM_Runtime.TRAP_MUST_IMPLEMENT);
+  public static OPT_TrapCodeOperand MustImplement() {
+    return new OPT_TrapCodeOperand((byte) VM_Runtime.TRAP_MUST_IMPLEMENT);
   }
+
   /**
    * Create a trap code operand for a must implement
    * @return the newly created trap code operand
    */
-  public static OPT_TrapCodeOperand StoreCheck() { 
-    return new OPT_TrapCodeOperand((byte)VM_Runtime.TRAP_STORE_CHECK);
+  public static OPT_TrapCodeOperand StoreCheck() {
+    return new OPT_TrapCodeOperand((byte) VM_Runtime.TRAP_STORE_CHECK);
   }
+
   /**
    * Create a trap code operand for a regeneration trap
    * @return the newly created trap code operand
    */
   public static OPT_TrapCodeOperand Regenerate() {
-    return new OPT_TrapCodeOperand((byte)VM_Runtime.TRAP_REGENERATE);
+    return new OPT_TrapCodeOperand((byte) VM_Runtime.TRAP_REGENERATE);
   }
-
 
   /**
    * Does the operand represent a null pointer check?
    * @return <code>true</code> if it does and <code>false</code> 
    *         if it does not
    */
-  public boolean isNullPtr() { 
-    return trapCode == VM_Runtime.TRAP_NULL_POINTER; 
+  public boolean isNullPtr() {
+    return trapCode == VM_Runtime.TRAP_NULL_POINTER;
   }
 
   /**
@@ -102,8 +108,8 @@ public final class OPT_TrapCodeOperand extends OPT_Operand {
    * @return <code>true</code> if it does and <code>false</code> 
    *         if it does not
    */
-  public boolean isArrayBounds() { 
-    return trapCode == VM_Runtime.TRAP_ARRAY_BOUNDS; 
+  public boolean isArrayBounds() {
+    return trapCode == VM_Runtime.TRAP_ARRAY_BOUNDS;
   }
 
   /**
@@ -111,8 +117,8 @@ public final class OPT_TrapCodeOperand extends OPT_Operand {
    * @return <code>true</code> if it does and <code>false</code> 
    *         if it does not
    */
-  public boolean isDivByZero() { 
-    return trapCode == VM_Runtime.TRAP_DIVIDE_BY_ZERO; 
+  public boolean isDivByZero() {
+    return trapCode == VM_Runtime.TRAP_DIVIDE_BY_ZERO;
   }
 
   /**
@@ -120,8 +126,8 @@ public final class OPT_TrapCodeOperand extends OPT_Operand {
    * @return <code>true</code> if it does and <code>false</code> 
    *         if it does not
    */
-  public boolean isStackOverflow() { 
-    return trapCode == VM_Runtime.TRAP_STACK_OVERFLOW; 
+  public boolean isStackOverflow() {
+    return trapCode == VM_Runtime.TRAP_STACK_OVERFLOW;
   }
 
   /**
@@ -129,7 +135,7 @@ public final class OPT_TrapCodeOperand extends OPT_Operand {
    * @return <code>true</code> if it does and <code>false</code> 
    *         if it does not
    */
-  public boolean isCheckCast() { 
+  public boolean isCheckCast() {
     return trapCode == VM_Runtime.TRAP_CHECKCAST;
   }
 
@@ -138,7 +144,7 @@ public final class OPT_TrapCodeOperand extends OPT_Operand {
    * @return <code>true</code> if it does and <code>false</code> 
    *         if it does not
    */
-  public boolean isDoesImplement() { 
+  public boolean isDoesImplement() {
     return trapCode == VM_Runtime.TRAP_MUST_IMPLEMENT;
   }
 
@@ -147,7 +153,7 @@ public final class OPT_TrapCodeOperand extends OPT_Operand {
    * @return <code>true</code> if it does and <code>false</code> 
    *         if it does not
    */
-  public boolean isStoreCheck() { 
+  public boolean isStoreCheck() {
     return trapCode == VM_Runtime.TRAP_STORE_CHECK;
   }
 
@@ -156,20 +162,18 @@ public final class OPT_TrapCodeOperand extends OPT_Operand {
    * @return <code>true</code> if it does and <code>false</code> 
    *         if it does not
    */
-  public boolean isRegenerate() { 
-    return trapCode == VM_Runtime.TRAP_REGENERATE; 
+  public boolean isRegenerate() {
+    return trapCode == VM_Runtime.TRAP_REGENERATE;
   }
-
 
   /**
    * Return a new operand that is semantically equivalent to <code>this</code>.
-   * 
+   *
    * @return a copy of <code>this</code>
    */
   public OPT_Operand copy() {
     return new OPT_TrapCodeOperand(trapCode);
   }
-
 
   /**
    * Are two operands semantically equivalent?
@@ -180,10 +184,9 @@ public final class OPT_TrapCodeOperand extends OPT_Operand {
    *           if they are not.
    */
   public boolean similar(OPT_Operand op) {
-    return op instanceof OPT_TrapCodeOperand && 
-      ((OPT_TrapCodeOperand)op).trapCode == trapCode;
+    return op instanceof OPT_TrapCodeOperand &&
+           ((OPT_TrapCodeOperand) op).trapCode == trapCode;
   }
-
 
   /**
    * Returns the string representation of this operand.
@@ -192,24 +195,24 @@ public final class OPT_TrapCodeOperand extends OPT_Operand {
    */
   public String toString() {
     switch (trapCode) {
-    case VM_Runtime.TRAP_NULL_POINTER:
-      return "<NULL PTR>";
-    case VM_Runtime.TRAP_ARRAY_BOUNDS:
-      return "<ARRAY BOUNDS>";
-    case VM_Runtime.TRAP_DIVIDE_BY_ZERO:
-      return "<DIV BY ZERO>";
-    case VM_Runtime.TRAP_STACK_OVERFLOW:
-      return "<STACK OVERFLOW>";
-    case VM_Runtime.TRAP_CHECKCAST:
-      return "<CLASSCAST>"; 
-    case VM_Runtime.TRAP_MUST_IMPLEMENT:
-      return "<MUST IMPLEMENT>"; 
-    case VM_Runtime.TRAP_STORE_CHECK:
-      return "<OBJARRAY STORE CHECK>"; 
-    case VM_Runtime.TRAP_REGENERATE:
-      return "<REGENERATE>";
-    default:
-      return "<UNKNOWN TRAP>";
+      case VM_Runtime.TRAP_NULL_POINTER:
+        return "<NULL PTR>";
+      case VM_Runtime.TRAP_ARRAY_BOUNDS:
+        return "<ARRAY BOUNDS>";
+      case VM_Runtime.TRAP_DIVIDE_BY_ZERO:
+        return "<DIV BY ZERO>";
+      case VM_Runtime.TRAP_STACK_OVERFLOW:
+        return "<STACK OVERFLOW>";
+      case VM_Runtime.TRAP_CHECKCAST:
+        return "<CLASSCAST>";
+      case VM_Runtime.TRAP_MUST_IMPLEMENT:
+        return "<MUST IMPLEMENT>";
+      case VM_Runtime.TRAP_STORE_CHECK:
+        return "<OBJARRAY STORE CHECK>";
+      case VM_Runtime.TRAP_REGENERATE:
+        return "<REGENERATE>";
+      default:
+        return "<UNKNOWN TRAP>";
     }
   }
 

@@ -14,7 +14,8 @@ import org.vmmagic.pragma.Uninterruptible;
 /**
  * Primitives from which to build interval and absolute timers.
  */
-@Uninterruptible public class VM_Time {
+@Uninterruptible
+public class VM_Time {
 
   /**
    * Conversion factor from cycles to time in milliseconds
@@ -41,13 +42,13 @@ import org.vmmagic.pragma.Uninterruptible;
 
     // insist on getting at least 0.05 seconds (ie 50,000 microseconds) 
     // between bootStageOne and bootStage2 to ensure reasonable accuracy
-    while (dur < 50000) {  
+    while (dur < 50000) {
       dur = currentTimeMicros() - bootNow;
       endCycles = cycles();
     }
     long cycles = endCycles - bootCycles;
     if (cycles < 0) VM.sysFail("VM_Time.boot failed due to negative cycle count");
-    milliPerCycle = (((double)dur) / ((double)cycles)) / 1000;
+    milliPerCycle = (((double) dur) / ((double) cycles)) / 1000;
     secPerCycle = milliPerCycle / 1000;
   }
 
@@ -55,7 +56,7 @@ import org.vmmagic.pragma.Uninterruptible;
    * Read value of cycle counter or time base register.
    * The semantics of this value are platform dependent.
    * @return the value read from cycle counter or time base register.
-   */ 
+   */
   public static long cycles() {
     // On IA32 we are reading a cycle counter.
     // On PowerPC we are reading the time base register.
@@ -94,7 +95,7 @@ import org.vmmagic.pragma.Uninterruptible;
    */
   public static long millisToCycles(double t) {
     if (VM.VerifyAssertions) VM._assert(milliPerCycle != 0);
-    return (long)(t / milliPerCycle);
+    return (long) (t / milliPerCycle);
   }
 
   /**
@@ -104,26 +105,26 @@ import org.vmmagic.pragma.Uninterruptible;
    */
   public static long secsToCycles(double t) {
     if (VM.VerifyAssertions) VM._assert(secPerCycle != 0);
-    return (long)(t / secPerCycle);
+    return (long) (t / secPerCycle);
   }
 
   /**
    * Time in microseconds (epoch Jan 1 1970).
-   */ 
+   */
   public static long currentTimeMicros() {
     return VM_SysCall.sysCall.sysGetTimeOfDay();
   }
 
   /**
    * Time in milliseconds (epoch Jan 1 1970).
-   */ 
+   */
   public static long currentTimeMillis() {
     return currentTimeMicros() / 1000;
   }
 
   /**
    * Time in seconds (epoch Jan 1 1970).
-   */ 
+   */
   public static long currentTimeSecs() {
     return currentTimeMicros() / 1000000;
   }

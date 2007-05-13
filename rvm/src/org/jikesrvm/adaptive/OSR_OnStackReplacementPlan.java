@@ -47,7 +47,7 @@ public class OSR_OnStackReplacementPlan implements VM_Constants {
    */
   @SuppressWarnings("unused")
   private byte status;
-  
+
   private VM_Thread suspendedThread;
   private OPT_CompilationPlan compPlan;
 
@@ -69,14 +69,16 @@ public class OSR_OnStackReplacementPlan implements VM_Constants {
     this.status = VM_ControllerPlan.UNINITIALIZED;
   }
 
-
   public int getTimeInitiated() { return timeInitiated; }
+
   public void setTimeInitiated(int t) { timeInitiated = t; }
+
   public int getTimeCompleted() { return timeCompleted; }
+
   public void setTimeCompleted(int t) { timeCompleted = t; }
 
-  public void setStatus(byte newStatus) { 
-    status = newStatus; 
+  public void setStatus(byte newStatus) {
+    status = newStatus;
   }
 
   /* override the normal method. */
@@ -86,16 +88,16 @@ public class OSR_OnStackReplacementPlan implements VM_Constants {
     // 3. install the code
     // 4. reschedule the thread to new code.
 
-    VM_AOSLogging.logOsrEvent("OSR compiling "+compPlan.method);
+    VM_AOSLogging.logOsrEvent("OSR compiling " + compPlan.method);
 
     VM_Thread cpThread = VM_Thread.getCurrentThread();
 
     setTimeInitiated(VM_Controller.controllerClock);
-    
+
     {
       // we will reuse the compilation plan before
       cpThread.accumulateCycles();
-      
+
       OSR_ExecStateExtractor extractor = null;
 
       VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(this.CMID);
@@ -105,18 +107,16 @@ public class OSR_OnStackReplacementPlan implements VM_Constants {
         extractor = new OSR_BaselineExecStateExtractor();
         // don't need to invalidate when transitioning from baseline 
         invalidate = false;
-      } else
-      if (cm.getCompilerType() == VM_CompiledMethod.OPT) {
+      } else if (cm.getCompilerType() == VM_CompiledMethod.OPT) {
         extractor = new OSR_OptExecStateExtractor();
       } else {
         if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
         return;
       }
 
-
       ////////
       // states is a list of state: callee -> caller -> caller
-      OSR_ExecutionState state = extractor.extractState(suspendedThread, 
+      OSR_ExecutionState state = extractor.extractState(suspendedThread,
                                                         this.tsFromFPoff,
                                                         this.ypTakenFPoff,
                                                         CMID);
@@ -127,10 +127,10 @@ public class OSR_OnStackReplacementPlan implements VM_Constants {
       }
 
       // compile from callee to caller 
-      VM_CompiledMethod newCM = OSR_SpecialCompiler.recompileState(state,invalidate);
-      
+      VM_CompiledMethod newCM = OSR_SpecialCompiler.recompileState(state, invalidate);
+
       cpThread.accumulateCycles();
-     
+
       setTimeCompleted(VM_Controller.controllerClock);
 
       if (newCM == null) {

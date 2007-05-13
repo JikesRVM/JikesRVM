@@ -46,7 +46,7 @@ public class OPT_ObjectConstantOperand extends OPT_ConstantOperand {
 
   /**
    * Return a new operand that is semantically equivalent to <code>this</code>.
-   * 
+   *
    * @return a copy of <code>this</code>
    */
   public OPT_Operand copy() {
@@ -55,17 +55,16 @@ public class OPT_ObjectConstantOperand extends OPT_ConstantOperand {
 
   /**
    * Return the {@link VM_TypeReference} of the value represented by the operand.
-   * 
+   *
    * @return type reference for type of object
    */
   public VM_TypeReference getType() {
     if (VM.runningVM) {
       return java.lang.JikesRVMSupport.getTypeForClass(value.getClass()).getTypeRef();
-    }
-    else {
+    } else {
       Class<?> rc = value.getClass();
       String className = rc.getName();
-      VM_Atom classAtom = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/'));
+      VM_Atom classAtom = VM_Atom.findOrCreateAsciiAtom(className.replace('.', '/'));
       if (className.startsWith("[")) {
         // an array
         return VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), classAtom);
@@ -79,7 +78,7 @@ public class OPT_ObjectConstantOperand extends OPT_ConstantOperand {
 
   /**
    * Does the operand represent a value of the reference data type?
-   * 
+   *
    * @return <code>true</code>
    */
   public final boolean isRef() {
@@ -96,7 +95,7 @@ public class OPT_ObjectConstantOperand extends OPT_ConstantOperand {
    */
   public boolean similar(OPT_Operand op) {
     return (op instanceof OPT_ObjectConstantOperand) &&
-      value.equals(((OPT_ObjectConstantOperand)op).value);
+           value.equals(((OPT_ObjectConstantOperand) op).value);
   }
 
   /**
@@ -105,6 +104,6 @@ public class OPT_ObjectConstantOperand extends OPT_ConstantOperand {
    * @return a string representation of this operand.
    */
   public String toString() {
-    return "object \""+ value + "\"";
+    return "object \"" + value + "\"";
   }
 }

@@ -8,6 +8,7 @@
  */
 
 package org.jikesrvm.osr;
+
 /**
  *  pop
  */
@@ -23,7 +24,7 @@ public class BC_Pop extends OSR_PseudoBytecode {
   }
 
   public int stackChanges() {
-        return -1;
+    return -1;
   }
 
   public String toString() {

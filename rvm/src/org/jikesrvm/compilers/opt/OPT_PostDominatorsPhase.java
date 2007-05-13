@@ -44,7 +44,7 @@ public final class OPT_PostDominatorsPhase extends OPT_CompilerPhase {
    * @return "Post-Dominators"
    */
   public String getName() {
-    return  "Post-Dominators";
+    return "Post-Dominators";
   }
 
   /**
@@ -54,7 +54,7 @@ public final class OPT_PostDominatorsPhase extends OPT_CompilerPhase {
    * @return true or false
    */
   public boolean printingEnabled(OPT_Options options, boolean before) {
-    return  false;
+    return false;
   }
 
   /**

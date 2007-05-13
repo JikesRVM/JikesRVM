@@ -21,18 +21,19 @@ public final class VM_HashSet<T> implements Iterable<T> {
 
   private Bucket<T>[] buckets;
   private int numElems = 0;
-  
+
   public VM_HashSet() {
     this(DEFAULT_SIZE);
   }
-  
-  @SuppressWarnings("unchecked") // the java generic array problem
+
+  @SuppressWarnings("unchecked")
+  // the java generic array problem
   private Bucket<T>[] newBucketArray(int size) {
     return new Bucket[size];
   }
-  
+
   public VM_HashSet(int size) {
-      buckets = newBucketArray(size);
+    buckets = newBucketArray(size);
   }
 
   public int size() {
@@ -56,19 +57,20 @@ public final class VM_HashSet<T> implements Iterable<T> {
       numElems++;
     }
   }
-  
+
   public T get(T key) {
     int bucketIdx = bucketIndex(key, buckets.length);
     Bucket<T> cur = buckets[bucketIdx];
     while (cur != null && !cur.key.equals(key)) {
       cur = cur.next;
     }
-    if (cur == null)
+    if (cur == null) {
       return null;
-    else
+    } else {
       return cur.key;
+    }
   }
-  
+
   public boolean contains(T key) {
     return get(key) != null;
   }
@@ -79,9 +81,8 @@ public final class VM_HashSet<T> implements Iterable<T> {
     }
   }
 
-
   private void growMap() {
-    Bucket<T>[] newBuckets = newBucketArray(buckets.length*2+1);
+    Bucket<T>[] newBuckets = newBucketArray(buckets.length * 2 + 1);
     for (Bucket<T> cur : buckets) {
       while (cur != null) {
         Bucket<T> next = cur.next;
@@ -110,13 +111,13 @@ public final class VM_HashSet<T> implements Iterable<T> {
         prev.next = cur.next;
       }
       numElems--;
-    } 
+    }
   }
 
   public Iterator<T> iterator() {
-      return new SetIterator();
+    return new SetIterator();
   }
-  
+
   private int bucketIndex(T key, int divisor) {
     if (key == null) {
       return 0;
@@ -124,7 +125,7 @@ public final class VM_HashSet<T> implements Iterable<T> {
       return (key.hashCode() & 0x7fffffff) % divisor;
     }
   }
-  
+
   private static final class Bucket<T> {
     final T key;
     Bucket<T> next;
@@ -147,7 +148,7 @@ public final class VM_HashSet<T> implements Iterable<T> {
       if (!hasNext()) {
         throw new NoSuchElementException();
       }
-        
+
       while (next == null) {
         next = buckets[bucketIndex++];
       }

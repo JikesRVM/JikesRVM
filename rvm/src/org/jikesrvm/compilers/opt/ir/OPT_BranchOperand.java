@@ -25,7 +25,7 @@ public final class OPT_BranchOperand extends OPT_Operand {
   /**
    * Construct a new branch operand with the given target.
    * <STRONG> Precondition: </STRONG> targ must be a Label instruction.
-   * 
+   *
    * @param targ target of branch
    */
   public OPT_BranchOperand(OPT_Instruction targ) {
@@ -35,7 +35,7 @@ public final class OPT_BranchOperand extends OPT_Operand {
 
   /**
    * Returns a copy of this branch operand.
-   * 
+   *
    * @return a copy of this operand
    */
   public OPT_Operand copy() {
@@ -52,7 +52,7 @@ public final class OPT_BranchOperand extends OPT_Operand {
    */
   public boolean similar(OPT_Operand op) {
     return (op instanceof OPT_BranchOperand) &&
-           (target == ((OPT_BranchOperand)op).target);
+           (target == ((OPT_BranchOperand) op).target);
   }
 
   /**
@@ -61,7 +61,7 @@ public final class OPT_BranchOperand extends OPT_Operand {
    * @return a string representation of this operand.
    */
   public String toString() {
-    return "LABEL"+Label.getBlock(target).block.getNumber(); 
+    return "LABEL" + Label.getBlock(target).block.getNumber();
   }
 
 }

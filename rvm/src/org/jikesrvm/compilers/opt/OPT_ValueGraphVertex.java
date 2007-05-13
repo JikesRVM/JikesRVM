@@ -24,14 +24,14 @@ final class OPT_ValueGraphVertex extends OPT_SpaceEffGraphNode {
   private OPT_ValueGraphVertex[] targets;   // operand vertices, in order
   private int arity;                        // number of operands needed
 
-  OPT_ValueGraphVertex (Object name) {
+  OPT_ValueGraphVertex(Object name) {
     this.name = name;
   }
 
   /**
    * Set up properties of this vertex identically to another vertex
    */
-  void copyVertex (OPT_ValueGraphVertex v) {
+  void copyVertex(OPT_ValueGraphVertex v) {
     this.label = v.label;
     this.valueNumber = v.valueNumber;
     this.arity = v.arity;
@@ -44,7 +44,7 @@ final class OPT_ValueGraphVertex extends OPT_SpaceEffGraphNode {
   /**
    * Does this vertex represent an incoming parameter?
    */
-  boolean representsParameter () {
+  boolean representsParameter() {
     return (label instanceof OPT_ValueGraphParamLabel);
   }
 
@@ -54,64 +54,63 @@ final class OPT_ValueGraphVertex extends OPT_SpaceEffGraphNode {
    * @param label the label (an operator of some type)
    * @param arity the number of operands needed
    */
-  void setLabel (Object label, int arity) {
+  void setLabel(Object label, int arity) {
     this.label = label;
     this.arity = arity;
     targets = new OPT_ValueGraphVertex[arity];
   }
 
-  Object getLabel () {
-    return  label;
+  Object getLabel() {
+    return label;
   }
 
-  Object getName () {
-    return  name;
+  Object getName() {
+    return name;
   }
 
-  int getValueNumber () {
-    return  valueNumber;
+  int getValueNumber() {
+    return valueNumber;
   }
 
-  void setValueNumber (int number) {
+  void setValueNumber(int number) {
     valueNumber = number;
   }
 
-  boolean isConstant () {
-    return  (label instanceof OPT_ConstantOperand);
+  boolean isConstant() {
+    return (label instanceof OPT_ConstantOperand);
   }
 
   // is the def for this node an allocation instruction?
-  boolean isBornAtAllocation () {
-    return  (label instanceof OPT_Instruction);
+  boolean isBornAtAllocation() {
+    return (label instanceof OPT_Instruction);
   }
 
   /**
    * return the target of the ith operand of this node
    */
-  public OPT_ValueGraphVertex getTarget (int i) {
-    return  targets[i];
+  public OPT_ValueGraphVertex getTarget(int i) {
+    return targets[i];
   }
 
-  public void addTarget (OPT_ValueGraphVertex target, int pos) {
+  public void addTarget(OPT_ValueGraphVertex target, int pos) {
     targets[pos] = target;
   }
 
-  public int getArity () {
-    return  arity;
+  public int getArity() {
+    return arity;
   }
 
-  public String toString () {
+  public String toString() {
     StringBuilder s = new StringBuilder("Vertex: " + name + " " + label);
     s.append(" Targets: ");
     for (int i = 0; i < arity; i++) {
       if (targets[i] == null) {
         s.append("null  ");
-      } 
-      else {
+      } else {
         s.append(targets[i].getName()).append("  ");
       }
     }
-    return  s.toString();
+    return s.toString();
   }
 }
 

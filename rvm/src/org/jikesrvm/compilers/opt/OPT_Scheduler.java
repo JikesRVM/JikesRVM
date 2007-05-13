@@ -57,8 +57,8 @@ final class OPT_Scheduler {
   /**
    * Names of various scheduling phases.
    */
-  public static final String[] PhaseName = new String[] {
-    "Invalid Phase!!!!!!!!", "pre-pass", "post-pass"
+  public static final String[] PhaseName = new String[]{
+      "Invalid Phase!!!!!!!!", "pre-pass", "post-pass"
   };
 
   /**
@@ -96,13 +96,14 @@ final class OPT_Scheduler {
   void perform(OPT_IR _ir) {
     // Remember the ir to schedule
     ir = _ir;
-    if (verbose >= 1)
+    if (verbose >= 1) {
       debug("Scheduling " + ir.method.getDeclaringClass() + ' '
             + ir.method.getName()
             + ' ' + ir.method.getDescriptor());
+    }
 
     // Performing live analysis may reduce dependences between PEIs and stores
-    if (ir.options.HANDLER_LIVENESS) {  
+    if (ir.options.HANDLER_LIVENESS) {
       new OPT_LiveAnalysis(false, false, true).perform(ir);
     }
 
@@ -110,19 +111,21 @@ final class OPT_Scheduler {
     i2gn = new OPT_DepGraphNode[ir.numberInstructions()];
     // Create scheduling info for each instruction
     for (OPT_InstructionEnumeration instr = ir.forwardInstrEnumerator();
-         instr.hasMoreElements();)
+         instr.hasMoreElements();) {
       OPT_SchedulingInfo.createInfo(instr.next());
+    }
     // iterate over each basic block
     for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks();
-         e.hasMoreElements();)
-    {
+         e.hasMoreElements();) {
       bb = e.nextElement();
-      if (bb.isEmpty())
+      if (bb.isEmpty()) {
         continue;
+      }
       // HACK: temporarily disable scheduling of unsafe basic blocks.
       // TODO: remove when UNINT_BEGIN/END are working properly.
-      if (bb.isUnsafeToSchedule())
+      if (bb.isUnsafeToSchedule()) {
         continue;
+      }
       // Build Dependence graph
       dg = new OPT_DepGraph(ir, bb.firstInstruction(),
                             bb.lastRealInstruction(), bb);
@@ -145,8 +148,9 @@ final class OPT_Scheduler {
 
     // Remove scheduling info for each instruction
     for (OPT_InstructionEnumeration instr = ir.forwardInstrEnumerator();
-         instr.hasMoreElements();)
+         instr.hasMoreElements();) {
       OPT_SchedulingInfo.removeInfo(instr.next());
+    }
     // Remove mapping for dependence graph
     i2gn = null;
     // Clear the ir to schedule
@@ -190,8 +194,8 @@ final class OPT_Scheduler {
    */
   private static void debug(int depth, String s) {
     if (SPACES == null) SPACES = dup(128, ' ');
-    if (SPACES.length() < depth*2) SPACES += SPACES;
-    debug(SPACES.substring(0, depth*2) + s);
+    if (SPACES.length() < depth * 2) SPACES += SPACES;
+    debug(SPACES.substring(0, depth * 2) + s);
   }
 
   /**
@@ -237,19 +241,22 @@ final class OPT_Scheduler {
    * @param depth current DFS depth
    */
   private void computeCriticalPath(OPT_DepGraphNode n, int depth) {
-    if (verbose >= 5)
+    if (verbose >= 5) {
       debug(depth, "Visiting " + n);
+    }
     OPT_Instruction i = n.instruction();
-    if (OPT_SchedulingInfo.getCriticalPath(i) != -1)
+    if (OPT_SchedulingInfo.getCriticalPath(i) != -1) {
       return;
+    }
     int cp = 0;
     for (OPT_GraphNodeEnumeration succ = n.outNodes(); succ.hasMoreElements();) {
-      OPT_DepGraphNode np = (OPT_DepGraphNode)succ.nextElement();
+      OPT_DepGraphNode np = (OPT_DepGraphNode) succ.nextElement();
       OPT_Instruction j = np.instruction();
       computeCriticalPath(np, depth + 1);
       int d = OPT_SchedulingInfo.getCriticalPath(j);
-      if (d + 1 > cp)
+      if (d + 1 > cp) {
         cp = d + 1;
+      }
     }
     OPT_SchedulingInfo.setCriticalPath(i, cp);
   }
@@ -259,42 +266,53 @@ final class OPT_Scheduler {
    * @param i given instruction
    */
   private int computeEarliestTime(OPT_Instruction i) {
-    if (verbose >= 5)
+    if (verbose >= 5) {
       debug("Computing earliest time for " + i);
+    }
     OPT_DepGraphNode n = getGraphNode(i);
     int etime = OPT_SchedulingInfo.getEarliestTime(i);
-    if (etime == -1)
+    if (etime == -1) {
       etime = 0;
+    }
     OPT_OperatorClass opc = i.operator().getOpClass();
-    if (verbose >= 7)
+    if (verbose >= 7) {
       debug("opc=" + opc);
-    if (opc == null)
+    }
+    if (opc == null) {
       throw new OPT_OptimizingCompilerException("Missing operator class "
                                                 + i.operator());
+    }
     for (OPT_GraphNodeEnumeration pred = n.inNodes();
-         pred.hasMoreElements(); ) {
-      OPT_DepGraphNode np = (OPT_DepGraphNode)pred.next();
+         pred.hasMoreElements();) {
+      OPT_DepGraphNode np = (OPT_DepGraphNode) pred.next();
       OPT_Instruction j = np.instruction();
       int time = OPT_SchedulingInfo.getTime(j);
-      if (verbose >= 6)
+      if (verbose >= 6) {
         debug("Predecessor " + j + " scheduled at " + time);
-      if (time == -1)
+      }
+      if (time == -1) {
         throw new OPT_OptimizingCompilerException(
-                     "Instructions not in topological order: " + i + "; " + j);
-      if (verbose >= 6)
+            "Instructions not in topological order: " + i + "; " + j);
+      }
+      if (verbose >= 6) {
         debug("Retrieving latency from " + j);
+      }
       OPT_OperatorClass joc = j.operator().getOpClass();
-      if (verbose >= 7)
+      if (verbose >= 7) {
         debug("j's class=" + joc);
-      if (joc == null)
+      }
+      if (joc == null) {
         throw new OPT_OptimizingCompilerException("Missing operator class " +
                                                   j.operator());
+      }
       int lat = joc.latency(opc);
-      if (time + lat > etime)
+      if (time + lat > etime) {
         etime = time + lat;
+      }
     }
-    if (verbose >= 5)
+    if (verbose >= 5) {
       debug("Updating time of " + i + " to " + etime);
+    }
     OPT_SchedulingInfo.setEarliestTime(i, etime);
     return etime;
   }
@@ -344,8 +362,9 @@ final class OPT_Scheduler {
       InstructionBucket t = p.next;
       while (t != null) {
         j = t.instruction;
-        if (OPT_SchedulingInfo.getCriticalPath(j) < cp)
+        if (OPT_SchedulingInfo.getCriticalPath(j) < cp) {
           break;
+        }
         p = t;
         t = t.next;
       }
@@ -368,12 +387,13 @@ final class OPT_Scheduler {
       InstructionBucket.insert(pool, ins);
       ins.remove();
     }
-    for (int i = 0; i <= maxtime; i++)
+    for (int i = 0; i <= maxtime; i++) {
       for (InstructionBucket t = pool[i]; t != null; t = t.next) {
         bb.appendInstruction(t.instruction);
         changed = changed || num > t.instruction.scratch;
         num = t.instruction.scratch;
       }
+    }
     return changed;
   }
 
@@ -381,72 +401,85 @@ final class OPT_Scheduler {
    * Schedule a basic block.
    */
   private void scheduleBasicBlock() {
-    if (verbose >= 2)
+    if (verbose >= 2) {
       debug("Scheduling " + bb);
+    }
     if (verbose >= 4) {
       debug("**** START OF CURRENT BB BEFORE SCHEDULING ****");
       for (OPT_InstructionEnumeration bi = bb.forwardInstrEnumerator();
-           bi.hasMoreElements();)
+           bi.hasMoreElements();) {
         debug(bi.next().toString());
+      }
       debug("**** END   OF CURRENT BB BEFORE SCHEDULING ****");
     }
     // Build mapping from instructions to graph nodes
     for (OPT_DepGraphNode dgn = (OPT_DepGraphNode) dg.firstNode();
-         dgn != null; dgn = (OPT_DepGraphNode)dgn.getNext())
-    {
+         dgn != null; dgn = (OPT_DepGraphNode) dgn.getNext()) {
       setGraphNode(dgn.instruction(), dgn);
-      if (verbose >= 4)
+      if (verbose >= 4) {
         debug("Added node for " + dgn.instruction());
+      }
     }
     OPT_ResourceMap rmap = new OPT_ResourceMap();
     int bl = 0;
     OPT_Instruction fi = bb.firstInstruction();
-    if (verbose >= 5)
+    if (verbose >= 5) {
       debug("Computing critical path for " + fi);
+    }
     computeCriticalPath(getGraphNode(fi), 0);
     int cp = OPT_SchedulingInfo.getCriticalPath(fi);
     for (OPT_InstructionEnumeration ie = bb.forwardRealInstrEnumerator();
-         ie.hasMoreElements();)
-    {
+         ie.hasMoreElements();) {
       OPT_Instruction i = ie.next();
-      if (verbose >= 5)
+      if (verbose >= 5) {
         debug("Computing critical path for " + i);
+      }
       computeCriticalPath(getGraphNode(i), 0);
       int d = OPT_SchedulingInfo.getCriticalPath(i);
-      if (d > cp)
+      if (d > cp) {
         cp = d;
+      }
       bl++;
     }
     cp++;
-    if (PRINT_CRITICAL_PATH_LENGTH)
+    if (PRINT_CRITICAL_PATH_LENGTH) {
       System.err.println("::: BL=" + bl + " CP=" + cp + " LOC=" + ir.method
                          + ":" + bb);
+    }
     OPT_Priority ilist = new OPT_DefaultPriority(bb);
     int maxtime = 0;
-    for (ilist.reset(); ilist.hasMoreElements(); ) {
+    for (ilist.reset(); ilist.hasMoreElements();) {
       OPT_Instruction i = ilist.next();
-      if (verbose >= 3)
+      if (verbose >= 3) {
         debug("Scheduling " + i + "[" + OPT_SchedulingInfo.getInfo(i) + "]");
+      }
       int time = computeEarliestTime(i);
-      while (!rmap.schedule(i, time))
+      while (!rmap.schedule(i, time)) {
         time++;
-      if (verbose >= 5)
+      }
+      if (verbose >= 5) {
         debug("Scheduled " + i + " at time " + time);
-      if (time > maxtime)
+      }
+      if (time > maxtime) {
         maxtime = time;
+      }
     }
-    if (verbose >= 2)
+    if (verbose >= 2) {
       debug("Done scheduling " + bb);
-    if (verbose >= 3)
+    }
+    if (verbose >= 3) {
       debug(rmap.toString());
+    }
     boolean changed = sortBasicBlock(maxtime);
-    if (changed && verbose >= 2)
+    if (changed && verbose >= 2) {
       debug("Basic block " + bb + " changed");
+    }
     if (verbose >= 4) {
       debug("**** START OF CURRENT BB AFTER SCHEDULING ****");
       for (OPT_InstructionEnumeration bi = bb.forwardInstrEnumerator();
-           bi.hasMoreElements();)
+           bi.hasMoreElements();) {
         debug(bi.next().toString());
+      }
       debug("**** END   OF CURRENT BB AFTER SCHEDULING ****");
     }
   }
@@ -461,8 +494,9 @@ final class OPT_Scheduler {
     StringBuffer sp2 = new StringBuffer(c);
     int p2 = 1;
     for (int i = 0; i < 32; i++) {
-      if ((len & p2) != 0)
+      if ((len & p2) != 0) {
         ret.append(sp2);
+      }
       sp2.append(sp2);
       p2 <<= 1;
     }

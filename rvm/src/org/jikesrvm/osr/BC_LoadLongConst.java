@@ -8,13 +8,14 @@
  */
 
 package org.jikesrvm.osr;
+
 /**
  * load a long constant on the stack
  */
 public class BC_LoadLongConst extends OSR_PseudoBytecode {
   private static final int bsize = 10;
   private final long lbits;
-  
+
   public BC_LoadLongConst(long bits) {
     this.lbits = bits;
   }
@@ -30,10 +31,10 @@ public class BC_LoadLongConst extends OSR_PseudoBytecode {
   }
 
   public int stackChanges() {
-        return 2;
+    return 2;
   }
 
   public String toString() {
-    return "LoadLong "+lbits;
+    return "LoadLong " + lbits;
   }
 }

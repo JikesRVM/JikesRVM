@@ -18,7 +18,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
  */
 class OPT_DominatorSystem extends OPT_DF_System {
 
-  /** 
+  /**
    * The governing IR.
    */
   OPT_IR ir;
@@ -27,12 +27,12 @@ class OPT_DominatorSystem extends OPT_DF_System {
    * Default constructor.
    * @param ir the governing IR
    */
-  public OPT_DominatorSystem (OPT_IR ir) {
+  public OPT_DominatorSystem(OPT_IR ir) {
     this.ir = ir;
     setupEquations();
   }
 
-  /** 
+  /**
    * Go through each basic block in the IR, and add equations
    * to the system as required.
    * <p> Uses the algorithm contained in Dragon book, pg. 670-1.
@@ -44,10 +44,10 @@ class OPT_DominatorSystem extends OPT_DF_System {
    *           D(n) := {n} U (intersect of D(p) over all predecessors p of n)
    * </pre>
    */
-  void setupEquations () {
+  void setupEquations() {
     // loop through each basic block in the IR
-    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); 
-        e.hasMoreElements();) {
+    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks();
+         e.hasMoreElements();) {
       OPT_BasicBlock bb = e.next();
       // add a data-flow equation for this basic block
       // DOM(n) = {n} MEET {pred(n)}
@@ -57,31 +57,32 @@ class OPT_DominatorSystem extends OPT_DF_System {
     }
   }
 
-  /** 
+  /**
    * Initialize the lattice variables (Dominator sets) for
    * each basic block.
    */
-  protected void initializeLatticeCells () {
+  protected void initializeLatticeCells() {
     if (OPT_Dominators.COMPUTE_POST_DOMINATORS) {
       OPT_BasicBlock exit = ir.cfg.exit();
-      OPT_DominatorCell last = (OPT_DominatorCell)getCell(exit);
+      OPT_DominatorCell last = (OPT_DominatorCell) getCell(exit);
       for (final OPT_DF_LatticeCell latticeCell : cells.values()) {
         OPT_DominatorCell cell = (OPT_DominatorCell) latticeCell;
-        if (cell == last)
+        if (cell == last) {
           cell.addSingleBlock(cell.block);
-        else
+        } else {
           cell.setTOP(ir);
+        }
       }
-    } 
-    else {
+    } else {
       OPT_BasicBlock start = ir.cfg.entry();
-      OPT_DominatorCell first = (OPT_DominatorCell)getCell(start);
+      OPT_DominatorCell first = (OPT_DominatorCell) getCell(start);
       for (final OPT_DF_LatticeCell latticeCell : cells.values()) {
         OPT_DominatorCell cell = (OPT_DominatorCell) latticeCell;
-        if (cell == first)
+        if (cell == first) {
           cell.addSingleBlock(cell.block);
-        else
+        } else {
           cell.setTOP(ir);
+        }
       }
     }
   }
@@ -91,46 +92,45 @@ class OPT_DominatorSystem extends OPT_DF_System {
    * <p> The initial work list is every equation containing the start
    * node.
    */
-  protected void initializeWorkList () {
+  protected void initializeWorkList() {
     if (OPT_Dominators.COMPUTE_POST_DOMINATORS) {
       // Add every equation to work list (to be safe)
       // WARNING: an "end node" may be part of a cycle
-      for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); 
-          e.hasMoreElements();) {
+      for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks();
+           e.hasMoreElements();) {
         OPT_BasicBlock bb = e.next();
         addCellAppearancesToWorkList(getCell(bb));
       }
-    } 
-    else {
-      OPT_DominatorCell first = (OPT_DominatorCell)getCell(ir.cfg.entry());
+    } else {
+      OPT_DominatorCell first = (OPT_DominatorCell) getCell(ir.cfg.entry());
       addCellAppearancesToWorkList(first);
     }
   }
 
-  /** 
+  /**
    * Get the OPT_DF_LatticeCell key corresponding to a basic block
    * @param bb the basic block 
    * @return the key (just the block itself)
    */
-  Object getKey (OPT_BasicBlock bb) {
-    return  bb;
+  Object getKey(OPT_BasicBlock bb) {
+    return bb;
   }
 
-  /** 
+  /**
    * Make a new OPT_DF_LatticeCell key corresponding to a basic block
    * @param key the basic block 
    * @return the new cell
    */
-  protected OPT_DF_LatticeCell makeCell (Object key) {
-    return  new OPT_DominatorCell((OPT_BasicBlock)key,ir);
+  protected OPT_DF_LatticeCell makeCell(Object key) {
+    return new OPT_DominatorCell((OPT_BasicBlock) key, ir);
   }
 
-  /** 
+  /**
    * Return a list of lattice cells corresponding to the 
    * predecessors of a basic block.
    * @param bb the basic block
    */
-  OPT_DF_LatticeCell[] getCellsForPredecessors (OPT_BasicBlock bb) {
+  OPT_DF_LatticeCell[] getCellsForPredecessors(OPT_BasicBlock bb) {
     if (OPT_Dominators.COMPUTE_POST_DOMINATORS) {
       /****
        if ( bb.mayThrowUncaughtException() ) {
@@ -148,27 +148,28 @@ class OPT_DominatorSystem extends OPT_DF_System {
        else 
        ****/
       {
-        if (OPT_Dominators.DEBUG)
+        if (OPT_Dominators.DEBUG) {
           VM.sysWrite("LOCATION #2 ...\n");
+        }
         OPT_DF_LatticeCell[] s = new OPT_DF_LatticeCell[bb.getNumberOfOut()];
         OPT_BasicBlockEnumeration e = bb.getOut();
         for (int i = 0; i < s.length; i++) {
           OPT_BasicBlock p = e.next();
           s[i] = findOrCreateCell(getKey(p));
         }
-        return  s;
+        return s;
       }
-    } 
-    else {
-      if (OPT_Dominators.DEBUG)
+    } else {
+      if (OPT_Dominators.DEBUG) {
         System.out.println("LOCATION #3 ...");
+      }
       OPT_DF_LatticeCell[] s = new OPT_DF_LatticeCell[bb.getNumberOfIn()];
       OPT_BasicBlockEnumeration e = bb.getIn();
       for (int i = 0; i < s.length; i++) {
         OPT_BasicBlock p = e.next();
         s[i] = findOrCreateCell(getKey(p));
       }
-      return  s;
+      return s;
     }
   }
 }

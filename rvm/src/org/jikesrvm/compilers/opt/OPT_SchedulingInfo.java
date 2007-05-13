@@ -23,7 +23,7 @@ final class OPT_SchedulingInfo {
   // Creates new scheduling info object.
   // For internal use only.
   // Other classes should invoke createInfo().
-  private OPT_SchedulingInfo () {
+  private OPT_SchedulingInfo() {
     alt = -1;
     time = -1;
     etime = -1;
@@ -35,7 +35,7 @@ final class OPT_SchedulingInfo {
    *
    * @param i instruction
    */
-  public static void createInfo (OPT_Instruction i) {
+  public static void createInfo(OPT_Instruction i) {
     i.scratchObject = new OPT_SchedulingInfo();
   }
 
@@ -44,7 +44,7 @@ final class OPT_SchedulingInfo {
    *
    * @param i instruction
    */
-  public static void removeInfo (OPT_Instruction i) {
+  public static void removeInfo(OPT_Instruction i) {
     i.scratchObject = null;
   }
 
@@ -54,8 +54,8 @@ final class OPT_SchedulingInfo {
    * @param i instruction
    * @return scheduling info for instruction
    */
-  public static OPT_SchedulingInfo getInfo (OPT_Instruction i) {
-    return  (OPT_SchedulingInfo)i.scratchObject;
+  public static OPT_SchedulingInfo getInfo(OPT_Instruction i) {
+    return (OPT_SchedulingInfo) i.scratchObject;
   }
 
   /**
@@ -65,7 +65,7 @@ final class OPT_SchedulingInfo {
    * @param alt scheduling alternative
    * @param time scheduling time
    */
-  public static void setInfo (OPT_Instruction i, int alt, int time) {
+  public static void setInfo(OPT_Instruction i, int alt, int time) {
     OPT_SchedulingInfo si = getInfo(i);
     si.alt = alt;
     si.time = time;
@@ -76,7 +76,7 @@ final class OPT_SchedulingInfo {
    *
    * @param i instruction
    */
-  public static void resetInfo (OPT_Instruction i) {
+  public static void resetInfo(OPT_Instruction i) {
     setInfo(i, -1, -1);
   }
 
@@ -86,8 +86,8 @@ final class OPT_SchedulingInfo {
    * @param i instruction
    * @return true if instruction is scheduled, false otherwise
    */
-  public static boolean isScheduled (OPT_Instruction i) {
-    return  getInfo(i).alt != -1;
+  public static boolean isScheduled(OPT_Instruction i) {
+    return getInfo(i).alt != -1;
   }
 
   /**
@@ -96,8 +96,8 @@ final class OPT_SchedulingInfo {
    * @param i instruction
    * @return scheduling alternative for instruction
    */
-  public static int getAlt (OPT_Instruction i) {
-    return  getInfo(i).alt;
+  public static int getAlt(OPT_Instruction i) {
+    return getInfo(i).alt;
   }
 
   /**
@@ -106,8 +106,8 @@ final class OPT_SchedulingInfo {
    * @param i instruction
    * @return scheduling time for instruction
    */
-  public static int getTime (OPT_Instruction i) {
-    return  getInfo(i).time;
+  public static int getTime(OPT_Instruction i) {
+    return getInfo(i).time;
   }
 
   /**
@@ -116,8 +116,8 @@ final class OPT_SchedulingInfo {
    * @param i instruction
    * @return earliest scheduling time for instruction
    */
-  public static int getEarliestTime (OPT_Instruction i) {
-    return  getInfo(i).etime;
+  public static int getEarliestTime(OPT_Instruction i) {
+    return getInfo(i).etime;
   }
 
   /**
@@ -126,7 +126,7 @@ final class OPT_SchedulingInfo {
    * @param i instruction
    * @param etime earliest scheduling time for instruction
    */
-  public static void setEarliestTime (OPT_Instruction i, int etime) {
+  public static void setEarliestTime(OPT_Instruction i, int etime) {
     getInfo(i).etime = etime;
   }
 
@@ -136,8 +136,8 @@ final class OPT_SchedulingInfo {
    * @param i instruction
    * @return critical path length for instruction
    */
-  public static int getCriticalPath (OPT_Instruction i) {
-    return  getInfo(i).cp;
+  public static int getCriticalPath(OPT_Instruction i) {
+    return getInfo(i).cp;
   }
 
   /**
@@ -146,7 +146,7 @@ final class OPT_SchedulingInfo {
    * @param i instruction
    * @param cp critical path length for instruction
    */
-  public static void setCriticalPath (OPT_Instruction i, int cp) {
+  public static void setCriticalPath(OPT_Instruction i, int cp) {
     getInfo(i).cp = cp;
   }
 
@@ -155,9 +155,9 @@ final class OPT_SchedulingInfo {
    *
    * @return string representation of scheduling info
    */
-  public String toString () {
-    return  "time=" + time + "; alt=" + alt + "; eTime=" + etime + "; cp="
-        + cp;
+  public String toString() {
+    return "time=" + time + "; alt=" + alt + "; eTime=" + etime + "; cp="
+           + cp;
   }
 }
 

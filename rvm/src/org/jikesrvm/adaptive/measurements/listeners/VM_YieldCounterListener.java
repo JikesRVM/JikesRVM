@@ -32,7 +32,7 @@ public final class VM_YieldCounterListener extends VM_NullListener {
     this.yieldThreshold = yieldThreshold;
   }
 
-  /** 
+  /**
    * This method is called when its time to record that a 
    * yield point has occurred.
    * @param whereFrom Was this a yieldpoint in a PROLOGUE, BACKEDGE, or
@@ -47,13 +47,14 @@ public final class VM_YieldCounterListener extends VM_NullListener {
   }
 
   public void report() {
-     VM.sysWriteln("Yield points counted: ", totalYields);
+    VM.sysWriteln("Yield points counted: ", totalYields);
   }
 
   public void reset() { }
 
   private int yieldThreshold;
-  @SuppressWarnings({"unused", "UnusedDeclaration","CanBeFinal"})// Accessed via VM_EntryPoints
+  @SuppressWarnings({"unused", "UnusedDeclaration", "CanBeFinal"})
+// Accessed via VM_EntryPoints
   private int numYields = 0;
   private int totalYields = 0;
 }

@@ -60,7 +60,7 @@ public abstract class VM_WeightedCallTargets {
    * @return the filtered call targets or null if no such target exisits
    */
   public abstract VM_WeightedCallTargets filter(VM_Method goal);
-  
+
   public static VM_WeightedCallTargets create(VM_Method target, double weight) {
     return new SingleTarget(target, weight);
   }
@@ -71,7 +71,7 @@ public abstract class VM_WeightedCallTargets {
   public interface Visitor {
     void visit(VM_Method target, double weight);
   }
-  
+
   /**
    * An implementation for storing a call site distribution that has a single target.
    */
@@ -81,9 +81,9 @@ public abstract class VM_WeightedCallTargets {
 
     SingleTarget(VM_Method t, double w) {
       target = t;
-      weight = (float)w;
+      weight = (float) w;
     }
-      
+
     public void visitTargets(Visitor func) {
       func.visit(target, weight);
     }
@@ -110,42 +110,42 @@ public abstract class VM_WeightedCallTargets {
       return (goal.equals(target)) ? this : null;
     }
   }
-  
+
   /**
    * An implementation for storing a call site distribution that has multiple targets.
    */
   private static final class MultiTarget extends VM_WeightedCallTargets {
     VM_Method[] methods = new VM_Method[5];
     float[] weights = new float[5];
-    
+
     public synchronized void visitTargets(Visitor func) {
       // Typically expect elements to be "almost" sorted due to previous sorting operations.
       // When this is true, expected time for insertion sort is O(n).
-      for (int i=1; i<methods.length; i++) {
+      for (int i = 1; i < methods.length; i++) {
         VM_Method m = methods[i];
         if (m != null) {
           float w = weights[i];
           int j = i;
-          while (j > 0 && weights[j-1] < w) {
-            methods[j] = methods[j-1];
-            weights[j] = weights[j-1];
+          while (j > 0 && weights[j - 1] < w) {
+            methods[j] = methods[j - 1];
+            weights[j] = weights[j - 1];
             j--;
           }
           methods[j] = m;
           weights[j] = w;
         }
       }
-      
-      for (int i=0; i<methods.length; i++) {
+
+      for (int i = 0; i < methods.length; i++) {
         if (methods[i] != null) {
           func.visit(methods[i], weights[i]);
         }
       }
-    }      
+    }
 
     public synchronized VM_WeightedCallTargets augmentCount(VM_Method t, double v) {
       int empty = -1;
-      for (int i=0; i<methods.length; i++) {
+      for (int i = 0; i < methods.length; i++) {
         if (methods[i] != null) {
           if (methods[i].equals(t)) {
             weights[i] += v;
@@ -169,12 +169,12 @@ public abstract class VM_WeightedCallTargets {
       }
 
       methods[empty] = t;
-      weights[empty] = (float)v;
+      weights[empty] = (float) v;
       return this;
     }
 
     public synchronized void decay(double rate) {
-      for (int i=0; i<weights.length; i++) {
+      for (int i = 0; i < weights.length; i++) {
         weights[i] /= rate;
       }
     }
@@ -188,7 +188,7 @@ public abstract class VM_WeightedCallTargets {
     }
 
     public synchronized VM_WeightedCallTargets filter(VM_Method goal) {
-      for (int i=0; i<methods.length; i++) {
+      for (int i = 0; i < methods.length; i++) {
         if (goal.equals(methods[i])) {
           return VM_WeightedCallTargets.create(methods[i], weights[i]);
         }

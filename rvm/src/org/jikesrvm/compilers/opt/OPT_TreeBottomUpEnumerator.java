@@ -48,7 +48,7 @@ final class OPT_TreeBottomUpEnumerator implements Enumeration<OPT_TreeNode> {
    * @return whether there are any elements left
    */
   public boolean hasMoreElements() {
-    return  iterator.hasNext();
+    return iterator.hasNext();
   }
 
   /**
@@ -56,7 +56,7 @@ final class OPT_TreeBottomUpEnumerator implements Enumeration<OPT_TreeNode> {
    * @return the next element in the list iterator or null
    */
   public OPT_TreeNode nextElement() {
-    return  iterator.next();
+    return iterator.next();
   }
 
   /**

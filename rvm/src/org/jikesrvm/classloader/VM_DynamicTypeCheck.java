@@ -101,22 +101,22 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
    * @return the superclass Id vector
    */
   static short[] buildSuperclassIds(VM_Type t) {
-    int depth   = t.getTypeDepth();
+    int depth = t.getTypeDepth();
     short[] tsi;
     if (t.isJavaLangObjectType()) {
       if (VM.VerifyAssertions) VM._assert(depth == 0);
       tsi = new short[1];
     } else {
-      int size    = MIN_SUPERCLASS_IDS_SIZE <= depth ? depth+1 : MIN_SUPERCLASS_IDS_SIZE;
+      int size = MIN_SUPERCLASS_IDS_SIZE <= depth ? depth + 1 : MIN_SUPERCLASS_IDS_SIZE;
       tsi = new short[size];
-      VM_Type p;                          
+      VM_Type p;
       if (t.isArrayType() || t.asClass().isInterface()) {
         p = VM_Type.JavaLangObjectType;
       } else {
         p = t.asClass().getSuperClass();
       }
       short[] psi = p.getSuperclassIds();
-      for (int i=0; i<depth; i++) {
+      for (int i = 0; i < depth; i++) {
         tsi[i] = psi[i];
       }
     }
@@ -127,10 +127,11 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
   }
 
   private static int[] arrayDoesImplement;
+
   /**
    * Create the doesImplement vector for a VM_Array.
    * All arrays implement exactly java.io.Serializable and java.lang.Cloneable.
-   * 
+   *
    * @param t a VM_Array to create a doesImplement vector for
    * @return the doesImplement vector
    */
@@ -139,18 +140,18 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
       int cloneIdx = VM_Type.JavaLangCloneableType.getDoesImplementIndex();
       int serialIdx = VM_Type.JavaIoSerializableType.getDoesImplementIndex();
       int size = Math.max(cloneIdx, serialIdx);
-      size = Math.max(MIN_DOES_IMPLEMENT_SIZE, size+1);
-      int [] tmp = new int[size];
+      size = Math.max(MIN_DOES_IMPLEMENT_SIZE, size + 1);
+      int[] tmp = new int[size];
       tmp[cloneIdx] = VM_Type.JavaLangCloneableType.getDoesImplementBitMask();
       tmp[serialIdx] |= VM_Type.JavaIoSerializableType.getDoesImplementBitMask();
       arrayDoesImplement = tmp;
     }
     return arrayDoesImplement;
   }
-  
+
   /**
    * Create the doesImplement vector for a VM_Class.
-   * 
+   *
    * @param t a VM_Class to create a doesImplement vector for
    * @return the doesImplement vector
    */
@@ -160,7 +161,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
       return new int[MIN_DOES_IMPLEMENT_SIZE];
     }
 
-    VM_Class [] superInterfaces = t.getDeclaredInterfaces();
+    VM_Class[] superInterfaces = t.getDeclaredInterfaces();
 
     if (!t.isInterface() && superInterfaces.length == 0) {
       // I add nothing new; share with parent.
@@ -170,7 +171,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
     // I need one of my own; first figure out how big it needs to be.
     int size;
     if (t.isInterface()) {
-      size = Math.max(MIN_DOES_IMPLEMENT_SIZE, t.getDoesImplementIndex()+1);
+      size = Math.max(MIN_DOES_IMPLEMENT_SIZE, t.getDoesImplementIndex() + 1);
     } else {
       size = t.getSuperClass().getDoesImplement().length;
     }
@@ -184,7 +185,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
       mine[t.getDoesImplementIndex()] = t.getDoesImplementBitMask();
     } else {
       int[] parent = t.getSuperClass().getDoesImplement();
-      for (int j=0; j<parent.length; j++) {
+      for (int j = 0; j < parent.length; j++) {
         mine[j] |= parent[j];
       }
     }
@@ -198,11 +199,10 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
     return mine;
   }
 
-
   /**
    * LHSclass is a fully loaded class or interface.  
    *   Is rhsTIB the TIB of an instanceof LHSclass?
-   * 
+   *
    * @param LHSclass a fully loaded class or interface class
    * @param rhsTIB the TIB of an object that might be an instance of LHSclass
    * @return <code>true</code> if the object is an instance of LHSClass
@@ -214,20 +214,19 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
     } else {
       return instanceOfClass(LHSclass, rhsTIB);
     }
-  }    
-
+  }
 
   /**
    * LHSclass is a fully loaded class.
    *  Is rhsTIB the TIB of a subclass of LHSclass?
-   * 
+   *
    * @param LHSclass a (fully loaded) class
    * @param rhsTIB the TIB of an object that might be an instance of LHSclass
    * @return <code>true</code> if the object is an instance of LHSClass
    *         or <code>false</code> if it is not
    */
   @Uninterruptible
-  public static boolean instanceOfClass(VM_Class LHSclass, Object[] rhsTIB) { 
+  public static boolean instanceOfClass(VM_Class LHSclass, Object[] rhsTIB) {
     if (VM.VerifyAssertions) {
       VM._assert(rhsTIB != null);
       VM._assert(rhsTIB[TIB_SUPERCLASS_IDS_INDEX] != null);
@@ -237,13 +236,12 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
     if (LHSDepth >= superclassIds.length) return false;
     int LHSId = LHSclass.getId();
     return superclassIds[LHSDepth] == LHSId;
-  }    
+  }
 
-
-  /** 
+  /**
    * LHSclass is a fully loaded interface.
    *   Is rhsTIB the TIB of a class that implements LHSclass?
-   * 
+   *
    * @param LHSclass a class (that is a fully loaded interface)
    * @param rhsTIB the TIB of an object that might be an instance of LHSclass
    * @return <code>true</code> if the object is an instance of LHSClass
@@ -259,7 +257,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
   /**
    * Can we store an object of type RHSType in a variable of type LHSType?
    * Assumption. LHSType and RHSType are already resolved.
-   * 
+   *
    * @param LHSType the left-hand-side type
    * @param RHSType the right-hand-size type
    * @return <code>true</code> if we can store an object of 
@@ -270,10 +268,12 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
     int LHSDimension = LHSType.getDimensionality();
     int RHSDimension = RHSType.getDimensionality();
     if (LHSDimension < 0 || RHSDimension < 0) return false;
-    if (LHSDimension == 0) return instanceOfNonArray(LHSType.asClass(), 
-                                                     RHSType.getTypeInformationBlock());
+    if (LHSDimension == 0) {
+      return instanceOfNonArray(LHSType.asClass(),
+                                RHSType.getTypeInformationBlock());
+    }
     VM_Type LHSInnermostElementType = LHSType.asArray().getInnermostElementType();
-    if (LHSInnermostElementType == VM_Type.JavaLangObjectType){
+    if (LHSInnermostElementType == VM_Type.JavaLangObjectType) {
       if (RHSDimension < LHSDimension) return false;
       if (RHSDimension > LHSDimension) return true;
       return RHSType.asArray().getInnermostElementType().isClassType(); // !primitive 
@@ -281,7 +281,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
       if (RHSDimension == LHSDimension) {
         VM_Type RHSInnermostElementType = RHSType.asArray().getInnermostElementType();
         if (RHSInnermostElementType.isPrimitiveType()) return false;
-        return instanceOfNonArray(LHSInnermostElementType.asClass(), 
+        return instanceOfNonArray(LHSInnermostElementType.asClass(),
                                   RHSInnermostElementType.getTypeInformationBlock());
       } else {
         // All array types implicitly implement java.lang.Cloneable and java.io.Serializable

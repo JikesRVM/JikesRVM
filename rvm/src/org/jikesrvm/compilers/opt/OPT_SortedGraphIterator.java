@@ -21,15 +21,15 @@ import java.util.Enumeration;
  * elements.  If there is a change, then the data-flow successors of
  * the current node become the new head of the order of remaining
  * nodes. 
- * 
+ *
  *  A typical use is as follows:
  *   OPT_BasicBlock start = ir.cfg.entry();
  *   OPT_SortedGraphIterator bbIter = new OPT_SortedGraphIterator(start, true);
  *       // true means forward analysis; false means backward analysis
  *   for (OPT_BasicBlock currBlock = start; currBlock!= null;) {
- *        
+ *
  *       // do your analysis of the currBlock here
- *     
+ *
  *       boolean changed = ... // true if the solution of currBlock has been changed since 
  *                             // the last visit of currBlock.
  *                             // false if not.
@@ -65,7 +65,7 @@ public class OPT_SortedGraphIterator {
    * @param current the node to start the iteration at
    * @param forward the direction we are processing the graph
    */
-  public OPT_SortedGraphIterator(OPT_SortedGraphNode current, 
+  public OPT_SortedGraphIterator(OPT_SortedGraphNode current,
                                  boolean forward) {
     currentNode = current;
     barrier = current.getSortedNext(forward);
@@ -92,17 +92,19 @@ public class OPT_SortedGraphIterator {
       int currOrder = currentNode.getSortNumber(forward);
       int newOrder = currOrder + 1; // currentNode can be a target to be re-executed
       int barrierOrder;
-      if (barrier == null)
-        barrierOrder = Integer.MAX_VALUE; 
-      else 
+      if (barrier == null) {
+        barrierOrder = Integer.MAX_VALUE;
+      } else {
         barrierOrder = barrier.getSortNumber(forward);
+      }
       OPT_SortedGraphNode newNode = null;
       Enumeration<? extends OPT_SortedGraphNode> e;
-      if (forward)
+      if (forward) {
         e = currentNode.getOutNodes();
-      else
+      } else {
         e = currentNode.getInNodes();
-      
+      }
+
       while (e.hasMoreElements()) {
         // Select the node with the smallest sort number among the "successor" nodes
         OPT_SortedGraphNode outNode = e.nextElement();
@@ -120,25 +122,24 @@ public class OPT_SortedGraphIterator {
         advanceBarrier();
         return newNode;
       }
-    } 
-    
+    }
+
     // Either changed = false or no retreat
     // Return the first one with changeMark before barrier or 
     // barrier itself.
     currentNode = currentNode.getSortedNext(forward);
-    for (; currentNode != barrier; currentNode = 
+    for (; currentNode != barrier; currentNode =
         currentNode.getSortedNext(forward)) {
       if (currentNode.getSortMarker() == changeMark) {
         advanceBarrier();
         return currentNode;
       }
     }
-    
+
     // Nothing before the barrier
     advanceBarrier();
     return currentNode;
   }
-  
 
   /**
    * This method checks to see if the second parameter has a single
@@ -151,7 +152,7 @@ public class OPT_SortedGraphIterator {
    * @param nextNode the node of interest
    * @return if first parameter is the only predecessor of the 2nd parameter
    */
-  public boolean isSingleSuccessor(OPT_SortedGraphNode currentNode, 
+  public boolean isSingleSuccessor(OPT_SortedGraphNode currentNode,
                                    OPT_SortedGraphNode nextNode) {
     // check that next node has only 1 predecessor
     if (!nextNode.hasOneIn()) return false;
@@ -171,10 +172,10 @@ public class OPT_SortedGraphIterator {
    * @param nextNode the node of interest
    * @return if first parameter is the only succesor of the 2nd parameter
    */
-  public boolean isSinglePredecessor(OPT_SortedGraphNode currentNode, 
+  public boolean isSinglePredecessor(OPT_SortedGraphNode currentNode,
                                      OPT_SortedGraphNode nextNode) {
     // check that next node has only 1 successor
-    if (!nextNode.hasOneOut()) return  false;
+    if (!nextNode.hasOneOut()) return false;
     // now check that the successor is current node
     Enumeration<? extends OPT_SortedGraphNode> outEnum = nextNode.getOutNodes();
     return outEnum.nextElement() == currentNode;
@@ -185,10 +186,12 @@ public class OPT_SortedGraphIterator {
    * not have been visited yet even once. Advance the barrier, if needed 
    */
   private void advanceBarrier() {
-    if (currentNode != null)
+    if (currentNode != null) {
       currentNode.setSortMarker(Integer.MIN_VALUE);
-    if ((currentNode == barrier) && (barrier != null))
+    }
+    if ((currentNode == barrier) && (barrier != null)) {
       barrier = barrier.getSortedNext(forward);
+    }
   }
 }
 

@@ -19,19 +19,19 @@ import org.vmmagic.pragma.Uninterruptible;
  */
 @Uninterruptible
 public abstract class VM_CodeArray {
-  private byte [] data;
+  private byte[] data;
 
-  public VM_CodeArray (int size) { 
+  public VM_CodeArray(int size) {
     if (VM.runningVM) VM._assert(false);  // should be unreachable
     data = new byte[size];
   }
 
-  public byte get (int index) {
+  public byte get(int index) {
     if (VM.runningVM) VM._assert(false);  // should be hijacked
     return data[index];
   }
 
-  public void set (int index, byte v) {
+  public void set(int index, byte v) {
     if (VM.runningVM) VM._assert(false);  // should be hijacked
     data[index] = v;
   }
@@ -42,8 +42,9 @@ public abstract class VM_CodeArray {
   }
 
   public Object getBacking() {
-    if (!VM.writingImage)
+    if (!VM.writingImage) {
       VM.sysFail("VM_CodeArray.getBacking called when not writing boot image");
+    }
     return data;
   }
 
@@ -52,7 +53,7 @@ public abstract class VM_CodeArray {
    * Because Jikes RVM believes that VM_CodeArray is really a Code[]
    * (ie, an array of primitives), we cannot define non-hijacked methods
    * on the 'class' VM_CodeArray.
- */
+   */
   public static class Factory {
     /**
      * Allocate a code array big enough to contain numInstrs instructions.

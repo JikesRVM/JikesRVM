@@ -21,16 +21,17 @@ import org.jikesrvm.compilers.common.assembler.VM_AbstractAssembler;
 import org.jikesrvm.compilers.common.assembler.VM_ForwardReference;
 
 class VM_AssemblerShortBranch extends VM_ForwardReference.ShortBranch {
-    final int spTopOffset;
-    
-    VM_AssemblerShortBranch (int source, int sp) {
-      super(source);
-      spTopOffset = sp;
-    }
-    public void resolve (VM_AbstractAssembler asm) {
-      super.resolve(asm);
-      if (((VM_Assembler) asm).compiler != null) {
-        ((VM_Assembler) asm).compiler.spTopOffset = spTopOffset;
-      }
+  final int spTopOffset;
+
+  VM_AssemblerShortBranch(int source, int sp) {
+    super(source);
+    spTopOffset = sp;
+  }
+
+  public void resolve(VM_AbstractAssembler asm) {
+    super.resolve(asm);
+    if (((VM_Assembler) asm).compiler != null) {
+      ((VM_Assembler) asm).compiler.spTopOffset = spTopOffset;
     }
   }
+}

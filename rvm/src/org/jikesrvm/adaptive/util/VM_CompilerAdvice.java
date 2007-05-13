@@ -30,7 +30,7 @@ import org.jikesrvm.adaptive.controller.VM_Controller;
  * @see org.jikesrvm.compilers.common.VM_RuntimeCompiler
  */
 public class VM_CompilerAdvice {
-  
+
   /**
    *  Read a list of compiler advice annotations from a file
    */
@@ -40,19 +40,19 @@ public class VM_CompilerAdvice {
     if (compilerAdviceFileName != null) {
       VM.sysWrite("Compiler advice file name ");
       VM.sysWriteln(compilerAdviceFileName);
-      List<VM_CompilerAdviceAttribute> compilerAdviceInfoList = 
-        VM_CompilerAdviceInfoReader.readCompilerAdviceFile(
-          compilerAdviceFileName);
+      List<VM_CompilerAdviceAttribute> compilerAdviceInfoList =
+          VM_CompilerAdviceInfoReader.readCompilerAdviceFile(
+              compilerAdviceFileName);
       // register these sites so that when a compilation is done,
       // these sites use compiler advice
       VM_CompilerAdviceAttribute.registerCompilerAdvice(compilerAdviceInfoList);
     }
-    String dynamicCallFileName = VM_Controller.options.DYNAMIC_CALL_FILE_INPUT; 
+    String dynamicCallFileName = VM_Controller.options.DYNAMIC_CALL_FILE_INPUT;
     if (dynamicCallFileName != null) {
       VM.sysWrite("Dynamic call file name ");
       VM.sysWriteln(dynamicCallFileName);
       //List dynamicCallInfoList = 
-        VM_DynamicCallFileInfoReader.readDynamicCallFile(
+      VM_DynamicCallFileInfoReader.readDynamicCallFile(
           dynamicCallFileName, false);
       // register these sites so that when a compilation is done,
       // these sites use compiler advice

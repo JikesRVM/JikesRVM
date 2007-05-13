@@ -39,7 +39,7 @@ class VM_IdleThread extends VM_Thread {
   private boolean runInitProc;
 
   private static final String myName = "VM_IdleThread";
-  
+
   /**
    * A thread to run if there is no other work for a virtual processor.
    */
@@ -59,33 +59,36 @@ class VM_IdleThread extends VM_Thread {
     loadBalancing = VM_Scheduler.numProcessors > 1;
     VM_Processor myProcessor = VM_Processor.getCurrentProcessor();
     if (VM.ExtremeAssertions) VM._assert(myProcessor == processorAffinity);
-    
+
     if (runInitProc) myProcessor.initializeProcessor();
     long spinInterval = loadBalancing ? VM_Time.millisToCycles(1) : 0;
-    main: while (true) {
+    main:
+    while (true) {
       if (VM_Scheduler.terminated) VM_Thread.terminate();
-      long t = VM_Time.cycles()+spinInterval;
+      long t = VM_Time.cycles() + spinInterval;
 
       if (VM_Scheduler.debugRequested) {
         System.err.println("debug requested in idle thread");
         VM_Scheduler.debugRequested = false;
       }
-      
+
       do {
         VM_Processor.idleProcessor = myProcessor;
         if (availableWork(myProcessor)) {
-          if (VM.ExtremeAssertions) 
+          if (VM.ExtremeAssertions) {
             VM._assert(myProcessor == VM_Processor.getCurrentProcessor());
+          }
           VM_Thread.yield(VM_Processor.getCurrentProcessor().idleQueue);
           continue main;
         }
-      } while (VM_Time.cycles()<t);
-      
+      } while (VM_Time.cycles() < t);
+
       /* Now go into the long-term sleep/check-for-work loop. */
-      for (;;) {
+      for (; ;) {
         sysCall.sysVirtualProcessorYield();
-        if (availableWork(myProcessor))
+        if (availableWork(myProcessor)) {
           continue main;
+        }
         /* Doze a millisecond (well, Linux rounds it up to a centisecond)  */
         sysCall.sysNanosleep(1000 * 1000);
       }
@@ -95,11 +98,11 @@ class VM_IdleThread extends VM_Thread {
   /**
    * @return true, if there appears to be a runnable thread for the processor to execute
    */
-  private static boolean availableWork ( VM_Processor p ) {
-    if (!p.readyQueue.isEmpty())        return true;
+  private static boolean availableWork(VM_Processor p) {
+    if (!p.readyQueue.isEmpty()) return true;
     VM_Magic.isync();
-    if (!p.transferQueue.isEmpty())     return true;
-    if (p.ioQueue.isReady())            return true;
+    if (!p.transferQueue.isEmpty()) return true;
+    if (p.ioQueue.isReady()) return true;
     if (VM_Scheduler.wakeupQueue.isReady()) {
       VM_Scheduler.wakeupMutex.lock();
       VM_Thread t = VM_Scheduler.wakeupQueue.dequeue();

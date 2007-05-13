@@ -81,13 +81,13 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
   private int lastFixedStackRegister;
   private int lastFloatStackRegister;
 
-  private final int[] localFixedLocations; 
-  private final int[] localFloatLocations; 
- 
+  private final int[] localFixedLocations;
+  private final int[] localFloatLocations;
+
 //  public int getStartLocalOffset() {
 //    return startLocalOffset;
 //  }
- 
+
   public int getEmptyStackOffset() {
     return emptyStackOffset;
   }
@@ -108,12 +108,12 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
 
   @Uninterruptible
   public int getGeneralStackLocation(int stackIndex) {
-    return VM_Compiler.offsetToLocation(emptyStackOffset - (stackIndex <<LOG_BYTES_IN_ADDRESS));
+    return VM_Compiler.offsetToLocation(emptyStackOffset - (stackIndex << LOG_BYTES_IN_ADDRESS));
   }
 
   @Uninterruptible
   public int getFloatStackLocation(int stackIndex) { //for now same implementation as getGeneralStackLocation, todo
-    return VM_Compiler.offsetToLocation(emptyStackOffset - (stackIndex <<LOG_BYTES_IN_ADDRESS));
+    return VM_Compiler.offsetToLocation(emptyStackOffset - (stackIndex << LOG_BYTES_IN_ADDRESS));
   }
 
   @Uninterruptible
@@ -128,11 +128,11 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
 
   public VM_BaselineCompiledMethod(int id, VM_Method m) {
     super(id, m);
-    VM_NormalMethod nm = (VM_NormalMethod)m;
+    VM_NormalMethod nm = (VM_NormalMethod) m;
     //this.startLocalOffset = VM_Compiler.getStartLocalOffset(nm);
     this.emptyStackOffset = VM_Compiler.getEmptyStackOffset(nm);
-    this.localFixedLocations = new int[nm.getLocalWords()]; 
-    this.localFloatLocations = new int[nm.getLocalWords()]; 
+    this.localFixedLocations = new int[nm.getLocalWords()];
+    this.localFloatLocations = new int[nm.getLocalWords()];
     this.lastFixedStackRegister = -1;
     this.lastFloatStackRegister = -1;
   }
@@ -143,9 +143,9 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
     this.lastFixedStackRegister = comp.getLastFixedStackRegister();
     this.lastFloatStackRegister = comp.getLastFloatStackRegister();
   }
-  
+
   @Uninterruptible
-  public int getCompilerType () { 
+  public int getCompilerType() {
     return BASELINE;
   }
 
@@ -154,11 +154,11 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
   }
 
   @Uninterruptible
-  public VM_ExceptionDeliverer getExceptionDeliverer () { 
+  public VM_ExceptionDeliverer getExceptionDeliverer() {
     return exceptionDeliverer;
   }
 
-  public int findCatchBlockForInstruction (Offset instructionOffset, VM_Type exceptionType) {
+  public int findCatchBlockForInstruction(Offset instructionOffset, VM_Type exceptionType) {
     if (eTable == null) {
       return -1;
     } else {
@@ -167,22 +167,22 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
   }
 
   @Uninterruptible
-  public void getDynamicLink (VM_DynamicLink dynamicLink, Offset instructionOffset) { 
+  public void getDynamicLink(VM_DynamicLink dynamicLink, Offset instructionOffset) {
     int bytecodeIndex = findBytecodeIndexForInstruction(instructionOffset);
-    ((VM_NormalMethod)method).getDynamicLink(dynamicLink, bytecodeIndex);
+    ((VM_NormalMethod) method).getDynamicLink(dynamicLink, bytecodeIndex);
   }
 
   /**
    * @return The line number, a positive integer.  Zero means unable to find.
    */
   @Uninterruptible
-  public int findLineNumberForInstruction (Offset instructionOffset) { 
+  public int findLineNumberForInstruction(Offset instructionOffset) {
     int bci = findBytecodeIndexForInstruction(instructionOffset);
     if (bci == -1) return 0;
-    return ((VM_NormalMethod)method).getLineNumberForBCIndex(bci);
+    return ((VM_NormalMethod) method).getLineNumberForBCIndex(bci);
   }
 
-  /** 
+  /**
    * Find bytecode index corresponding to one of this method's 
    * machine instructions.
    *
@@ -197,19 +197,18 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
    *            not available or not found.
    */
   @Uninterruptible
-  public int findBytecodeIndexForInstruction (Offset instructionOffset) { 
+  public int findBytecodeIndexForInstruction(Offset instructionOffset) {
     Offset instructionIndex = instructionOffset.toWord().rsha(LG_INSTRUCTION_WIDTH).toOffset();
     int candidateIndex = -1;
     int bcIndex = 0;
     Offset instrIndex = Offset.zero();
-    for (int i = 0; i < bytecodeMap.length; ) {
+    for (int i = 0; i < bytecodeMap.length;) {
       int b0 = ((int) bytecodeMap[i++]) & 255;  // unsign-extend
       int deltaBC, deltaIns;
       if (b0 != 255) {
         deltaBC = b0 >> 5;
         deltaIns = b0 & 31;
-      }
-      else {
+      } else {
         int b1 = ((int) bytecodeMap[i++]) & 255;  // unsign-extend
         int b2 = ((int) bytecodeMap[i++]) & 255;  // unsign-extend
         int b3 = ((int) bytecodeMap[i++]) & 255;  // unsign-extend
@@ -219,8 +218,9 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
       }
       bcIndex += deltaBC;
       instrIndex = instrIndex.plus(deltaIns);
-      if (instrIndex.sGE(instructionIndex))
+      if (instrIndex.sGE(instructionIndex)) {
         break;
+      }
       candidateIndex = bcIndex;
     }
     return candidateIndex;
@@ -235,10 +235,10 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
     browser.setBytecodeIndex(findBytecodeIndexForInstruction(instr));
 
     if (VM.TraceStackTrace) {
-        VM.sysWrite("setting stack to frame (base): ");
-        VM.sysWrite( browser.getMethod() );
-        VM.sysWrite( browser.getBytecodeIndex() );
-        VM.sysWrite("\n");
+      VM.sysWrite("setting stack to frame (base): ");
+      VM.sysWrite(browser.getMethod());
+      VM.sysWrite(browser.getBytecodeIndex());
+      VM.sysWrite("\n");
     }
   }
 
@@ -277,10 +277,11 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
   public void printExceptionTable() {
     if (eTable != null) VM_ExceptionTable.printExceptionTable(eTable);
   }
+
   /** Set the lock acquistion offset for synchronized methods */
   public void setLockAcquisitionOffset(int off) {
     if (VM.VerifyAssertions) VM._assert((off & 0xFFFF) == off);
-    lockOffset = (char)off;
+    lockOffset = (char) off;
   }
 
   /** Get the lock acquistion offset */
@@ -295,7 +296,7 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
 
   /** Does the method have a counters array? */
   @Uninterruptible
-  public boolean hasCounterArray() { 
+  public boolean hasCounterArray() {
     return hasCounters;
   }
 
@@ -303,38 +304,41 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
   //        bytecode-index to machine-instruction-index map for method
   //        number of instructions for method
   //
-  public void encodeMappingInfo(VM_ReferenceMaps referenceMaps, 
+  public void encodeMappingInfo(VM_ReferenceMaps referenceMaps,
                                 int[] bcMap, int numInstructions) {
     int count = 0;
     int lastBC = 0, lastIns = 0;
-    for (int i=0; i<bcMap.length; i++)
+    for (int i = 0; i < bcMap.length; i++) {
       if (bcMap[i] != 0) {
         int deltaBC = i - lastBC;
         int deltaIns = bcMap[i] - lastIns;
-        if (VM.VerifyAssertions) 
+        if (VM.VerifyAssertions) {
           VM._assert(deltaBC >= 0 && deltaIns >= 0);
-        if (deltaBC <= 6 && deltaIns <= 31)
+        }
+        if (deltaBC <= 6 && deltaIns <= 31) {
           count++;
-        else {
-          if (deltaBC > 65535 || deltaIns > 65535)
+        } else {
+          if (deltaBC > 65535 || deltaIns > 65535) {
             VM.sysFail("VM_BaselineCompiledMethod: a fancier encoding is needed");
+          }
           count += 5;
         }
         lastBC = i;
         lastIns = bcMap[i];
       }
+    }
     bytecodeMap = new byte[count];
     count = lastBC = lastIns = 0;
-    for (int i=0; i<bcMap.length; i++)
+    for (int i = 0; i < bcMap.length; i++) {
       if (bcMap[i] != 0) {
         int deltaBC = i - lastBC;
         int deltaIns = bcMap[i] - lastIns;
-        if (VM.VerifyAssertions) 
+        if (VM.VerifyAssertions) {
           VM._assert(deltaBC >= 0 && deltaIns >= 0);
+        }
         if (deltaBC <= 6 && deltaIns <= 31) {
           bytecodeMap[count++] = (byte) ((deltaBC << 5) | deltaIns);
-        }
-        else { // From before, we know that deltaBC <= 65535 and deltaIns <= 65535
+        } else { // From before, we know that deltaBC <= 65535 and deltaIns <= 65535
           bytecodeMap[count++] = (byte) 255;
           bytecodeMap[count++] = (byte) (deltaBC >> 8);
           bytecodeMap[count++] = (byte) (deltaBC & 255);
@@ -344,9 +348,10 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
         lastBC = i;
         lastIns = bcMap[i];
       }
+    }
     referenceMaps.translateByte2Machine(bcMap);
     this.referenceMaps = referenceMaps;
-    VM_ExceptionHandlerMap emap = ((VM_NormalMethod)method).getExceptionHandlerMap();
+    VM_ExceptionHandlerMap emap = ((VM_NormalMethod) method).getExceptionHandlerMap();
     if (emap != null) {
       eTable = VM_BaselineExceptionTable.encode(emap, bcMap);
     }

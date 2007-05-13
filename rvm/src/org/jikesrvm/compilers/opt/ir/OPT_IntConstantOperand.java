@@ -37,42 +37,43 @@ public final class OPT_IntConstantOperand extends OPT_ConstantOperand {
    * Return the {@link VM_TypeReference} of the value represented by
    * the operand. For int constants we speculate on the type
    * dependenent on the constant value.
-   * 
+   *
    * @return a speculation on the type of the value represented by the
    * operand.
    */
   public VM_TypeReference getType() {
-    if ((value == 0) || (value == 1))
+    if ((value == 0) || (value == 1)) {
       return VM_TypeReference.Boolean;
-    else if (-128 <= value && value <= 127)
+    } else if (-128 <= value && value <= 127) {
       return VM_TypeReference.Byte;
-    else if (-32768 <= value && value <= 32767)
+    } else if (-32768 <= value && value <= 32767) {
       return VM_TypeReference.Short;
-    else
+    } else {
       return VM_TypeReference.Int;
+    }
   }
 
   /**
    * Does the operand represent a value of an int-like data type?
-   * 
+   *
    * @return <code>true</code>
    */
   public boolean isIntLike() {
-	 return true;
+    return true;
   }
 
   /**
    * Does the operand represent a value of an int data type?
-   * 
+   *
    * @return <code>true</code>
    */
   public boolean isInt() {
-	 return true;
+    return true;
   }
 
   /**
    * Return a new operand that is semantically equivalent to <code>this</code>.
-   * 
+   *
    * @return a copy of <code>this</code>
    */
   public OPT_Operand copy() {
@@ -99,7 +100,7 @@ public final class OPT_IntConstantOperand extends OPT_ConstantOperand {
   public int upper16() {
     return OPT_Bits.upper16(value);
   }
-  
+
   /**
    * Return the upper 24 bits (as an int) of value
    */
@@ -117,12 +118,12 @@ public final class OPT_IntConstantOperand extends OPT_ConstantOperand {
    */
   public boolean similar(OPT_Operand op) {
     return (op instanceof OPT_IntConstantOperand) &&
-           (value == ((OPT_IntConstantOperand)op).value);
+           (value == ((OPT_IntConstantOperand) op).value);
   }
 
   public boolean equals(Object o) {
     return (o instanceof OPT_IntConstantOperand) &&
-           (value == ((OPT_IntConstantOperand)o).value);
+           (value == ((OPT_IntConstantOperand) o).value);
   }
 
   public int hashCode() {
@@ -136,7 +137,7 @@ public final class OPT_IntConstantOperand extends OPT_ConstantOperand {
    */
   public String toString() {
     if (value > 0xffff || value < -0xffff) {
-      return "0x"+Integer.toHexString(value);
+      return "0x" + Integer.toHexString(value);
     } else {
       return Integer.toString(value);
     }

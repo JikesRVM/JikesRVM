@@ -18,8 +18,8 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
  * and therefore recompilation of the method should
  * be considered to enable additional profile-directed inlining.
  */
-public final class VM_AINewHotEdgeEvent extends VM_HotMethodEvent 
-  implements VM_ControllerInputEvent {
+public final class VM_AINewHotEdgeEvent extends VM_HotMethodEvent
+    implements VM_ControllerInputEvent {
 
   /**
    * Estimate of the expected benefit if the method is 
@@ -36,6 +36,7 @@ public final class VM_AINewHotEdgeEvent extends VM_HotMethodEvent
    * (1.0 means no boost, 1.1 means a 10% improvement, etc).
    */
   private double boostFactor;
+
   public double getBoostFactor() { return boostFactor; }
 
   /**
@@ -55,15 +56,13 @@ public final class VM_AINewHotEdgeEvent extends VM_HotMethodEvent
    * @param _boostFactor improvement expected by applying FDO
    */
   VM_AINewHotEdgeEvent(VM_CompiledMethod _cm, int _numSamples, double _boostFactor) {
-    this(_cm, (double)_numSamples, _boostFactor);
+    this(_cm, (double) _numSamples, _boostFactor);
   }
-
 
   public String toString() {
-    return "NewHotEdgeEvent: "+super.toString()+
-      ", boost factor = "+getBoostFactor();
+    return "NewHotEdgeEvent: " + super.toString() +
+           ", boost factor = " + getBoostFactor();
   }
-
 
   /**
    * Called when the controller is ready to process this event.
@@ -71,7 +70,7 @@ public final class VM_AINewHotEdgeEvent extends VM_HotMethodEvent
    */
   public void process() {
     VM_CompiledMethod cmpMethod = getCompiledMethod();
-    VM_Controller.recompilationStrategy.considerHotCallEdge(cmpMethod,this);
+    VM_Controller.recompilationStrategy.considerHotCallEdge(cmpMethod, this);
   }
 
 }

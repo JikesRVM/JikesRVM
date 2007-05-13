@@ -45,12 +45,12 @@ class OPT_DominatorTreeNode extends OPT_TreeNode {
    * lower bound of dominated nodes range
    */
   private int low = 0;
-  
+
   /**
    * upper bound of dominated nodes range
    */
   private int high = 0;
-  
+
   /**
    * Construct a dominator tree node for a given basic block.
    * @param   block the basic block
@@ -64,7 +64,7 @@ class OPT_DominatorTreeNode extends OPT_TreeNode {
    * @return the basic block
    */
   OPT_BasicBlock getBlock() {
-    return  block;
+    return block;
   }
 
   /**
@@ -73,13 +73,14 @@ class OPT_DominatorTreeNode extends OPT_TreeNode {
    */
   int getDepth() {
     if (depth == -1) {
-      OPT_DominatorTreeNode dad = (OPT_DominatorTreeNode)getParent();
-      if (dad == null)
-        depth = 0; 
-      else 
+      OPT_DominatorTreeNode dad = (OPT_DominatorTreeNode) getParent();
+      if (dad == null) {
+        depth = 0;
+      } else {
         depth = dad.getDepth() + 1;
+      }
     }
-    return  depth;
+    return depth;
   }
 
   /**
@@ -87,7 +88,7 @@ class OPT_DominatorTreeNode extends OPT_TreeNode {
    * @return a bit set representing the dominance frontier for this node
    */
   OPT_BitVector getDominanceFrontier() {
-    return  dominanceFrontier;
+    return dominanceFrontier;
   }
 
   /**
@@ -105,7 +106,7 @@ class OPT_DominatorTreeNode extends OPT_TreeNode {
    * node 
    */
   String dominanceFrontierString() {
-    return  dominanceFrontier.toString();
+    return dominanceFrontier.toString();
   }
 
   /**
@@ -119,14 +120,14 @@ class OPT_DominatorTreeNode extends OPT_TreeNode {
     // Currently, this set is computed on demand, 
     // but we cache it for the next time.
     if (dominators == null) {
-      dominators = new OPT_BitVector(ir.getMaxBasicBlockNumber()+1);
+      dominators = new OPT_BitVector(ir.getMaxBasicBlockNumber() + 1);
       dominators.set(block.getNumber());
       OPT_DominatorTreeNode node = this;
-      while ((node = (OPT_DominatorTreeNode)getParent()) != null) {
+      while ((node = (OPT_DominatorTreeNode) getParent()) != null) {
         dominators.set(node.getBlock().getNumber());
       }
     }
-    return  dominators;
+    return dominators;
   }
 
   /**
@@ -137,7 +138,7 @@ class OPT_DominatorTreeNode extends OPT_TreeNode {
   boolean _isDominatedBy(OPT_DominatorTreeNode master) {
     OPT_DominatorTreeNode node = this;
     while ((node != null) && (node != master)) {
-      node = (OPT_DominatorTreeNode)node.getParent();
+      node = (OPT_DominatorTreeNode) node.getParent();
     }
     return node == master;
   }
@@ -152,28 +153,28 @@ class OPT_DominatorTreeNode extends OPT_TreeNode {
     return master.low <= low && master.high >= high;
   }
 
-  private void initializeRanges () {
+  private void initializeRanges() {
     OPT_DominatorTreeNode node = this;
     OPT_DominatorTreeNode parent = (OPT_DominatorTreeNode) getParent();
     while (parent != null) {
       node = parent;
       parent = (OPT_DominatorTreeNode) node.getParent();
     }
-    node.initializeRanges (0);
+    node.initializeRanges(0);
   }
 
-  private int initializeRanges (int i) {
+  private int initializeRanges(int i) {
     low = ++i;
     Enumeration<OPT_TreeNode> childEnum = getChildren();
     while (childEnum.hasMoreElements()) {
-      OPT_DominatorTreeNode 
-        child = (OPT_DominatorTreeNode) childEnum.nextElement();
-      i = child.initializeRanges (i);
+      OPT_DominatorTreeNode
+          child = (OPT_DominatorTreeNode) childEnum.nextElement();
+      i = child.initializeRanges(i);
     }
     high = ++i;
     return i;
   }
-  
+
   /**
    * Enumerate the basic blocks in the dominance frontier for this node.
    * @param ir the governing IR
@@ -181,7 +182,7 @@ class OPT_DominatorTreeNode extends OPT_TreeNode {
    * for this node.
    */
   OPT_BasicBlockEnumeration domFrontierEnumerator(OPT_IR ir) {
-    return  ir.getBasicBlocks(dominanceFrontier);
+    return ir.getBasicBlocks(dominanceFrontier);
   }
 
   /**
@@ -192,7 +193,7 @@ class OPT_DominatorTreeNode extends OPT_TreeNode {
     StringBuilder sb = new StringBuilder();
     sb.append(block);
     sb.append(" (").append(low).append(", ").append(high).append(")");
-    return  sb.toString();
+    return sb.toString();
   }
 }
 

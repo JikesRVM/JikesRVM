@@ -19,7 +19,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * Suppose the following inlining actions have been taken 
  * <pre>
  * (&lt;callerMID, bcIndex, calleeMID&gt;):
- * 
+ *
  * &lt;A, 12, B&gt;, &lt;A,14,C&gt;, &lt;A,16,D&gt;, &lt; B,3,E&gt;, &lt; B,5,F &gt;, &lt;C,10,G&gt;, &lt;G,20,H&gt;,
  * &lt;H,30,I&gt;
  * </pre>
@@ -30,10 +30,11 @@ import org.vmmagic.pragma.Uninterruptible;
  * -1, A, -2, 12, B, 14, C, 16, D, -6, 3, E, 5, F, -9, 10, G, -2, 20 H -2 30 I
  * </pre>
  */
-@Uninterruptible public abstract class VM_OptEncodedCallSiteTree {
+@Uninterruptible
+public abstract class VM_OptEncodedCallSiteTree {
 
   public static int getMethodID(int entryOffset, int[] encoding) {
-    return  encoding[entryOffset + 1];
+    return encoding[entryOffset + 1];
   }
 
   static void setMethodID(int entryOffset, int[] encoding, int methodID) {
@@ -41,35 +42,37 @@ import org.vmmagic.pragma.Uninterruptible;
   }
 
   public static int getByteCodeOffset(int entryOffset, int[] encoding) {
-    return  encoding[entryOffset];
+    return encoding[entryOffset];
   }
 
   @Interruptible
-  public static int[] getEncoding(OPT_CallSiteTree tree) { 
+  public static int[] getEncoding(OPT_CallSiteTree tree) {
     int size = 0;
-    if (tree.isEmpty())
-      return  null; 
-    else {
+    if (tree.isEmpty()) {
+      return null;
+    } else {
       Enumeration<OPT_TreeNode> e = tree.elements();
       while (e.hasMoreElements()) {
         OPT_TreeNode x = e.nextElement();
-        if (x.getLeftChild() == null)
-          size += 2; 
-        else 
+        if (x.getLeftChild() == null) {
+          size += 2;
+        } else {
           size += 3;
+        }
       }
       int[] encoding = new int[size];
-      getEncoding((OPT_CallSiteTreeNode)tree.getRoot(), 0, -1, encoding);
-      return  encoding;
+      getEncoding((OPT_CallSiteTreeNode) tree.getRoot(), 0, -1, encoding);
+      return encoding;
     }
   }
 
   @Interruptible
-  static int getEncoding(OPT_CallSiteTreeNode current, int offset, int parent, 
-                         int[] encoding) { 
+  static int getEncoding(OPT_CallSiteTreeNode current, int offset, int parent,
+                         int[] encoding) {
     int i = offset;
-    if (parent != -1)
+    if (parent != -1) {
       encoding[i++] = parent - offset;
+    }
     OPT_CallSiteTreeNode x = current;
     int j = i;
     while (x != null) {
@@ -77,27 +80,30 @@ import org.vmmagic.pragma.Uninterruptible;
       int byteCodeIndex = x.callSite.bcIndex;
       encoding[j++] = (byteCodeIndex >= 0) ? byteCodeIndex : -1;
       encoding[j++] = x.callSite.getMethod().getId();
-      x = (OPT_CallSiteTreeNode)x.getRightSibling();
+      x = (OPT_CallSiteTreeNode) x.getRightSibling();
     }
     x = current;
     int thisParent = i;
     while (x != null) {
-      if (x.getLeftChild() != null)
-        j = getEncoding((OPT_CallSiteTreeNode)x.getLeftChild(), j, thisParent, 
-            encoding);
+      if (x.getLeftChild() != null) {
+        j = getEncoding((OPT_CallSiteTreeNode) x.getLeftChild(), j, thisParent,
+                        encoding);
+      }
       thisParent += 2;
-      x = (OPT_CallSiteTreeNode)x.getRightSibling();
+      x = (OPT_CallSiteTreeNode) x.getRightSibling();
     }
-    return  j;
+    return j;
   }
 
   public static int getParent(int index, int[] encodedTree) {
-    while (index >= 0 && encodedTree[index] >= -1)
+    while (index >= 0 && encodedTree[index] >= -1) {
       index--;
-    if (index < 0)
-      return  -1; 
-    else 
-      return  index + encodedTree[index];
+    }
+    if (index < 0) {
+      return -1;
+    } else {
+      return index + encodedTree[index];
+    }
   }
 
   public static boolean edgePresent(int desiredCaller, int desiredBCIndex, int desiredCallee, int[] encoding) {
@@ -114,7 +120,7 @@ import org.vmmagic.pragma.Uninterruptible;
         idx++;
       }
       if (parent == desiredCaller) {
-        if (encoding[idx] == desiredBCIndex && encoding[idx+1] == desiredCallee) {
+        if (encoding[idx] == desiredBCIndex && encoding[idx + 1] == desiredCallee) {
           return true;
         }
       }

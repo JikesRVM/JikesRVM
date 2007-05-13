@@ -13,9 +13,9 @@ package org.jikesrvm.adaptive.controller;
  */
 public interface VM_ControllerInputEvent {
 
-   /** 
-    * This method is called by the controller upon dequeuing this
-    * event from the controller input queue
-    */
-   void process();
+  /**
+   * This method is called by the controller upon dequeuing this
+   * event from the controller input queue
+   */
+  void process();
 }

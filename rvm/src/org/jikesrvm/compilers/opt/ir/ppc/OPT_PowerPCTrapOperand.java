@@ -13,7 +13,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_Operand;
 
 /**
  * Encodes the T0 field for trap operations 
- * 
+ *
  * @see OPT_Operand
  */
 public final class OPT_PowerPCTrapOperand extends OPT_Operand {
@@ -41,28 +41,28 @@ public final class OPT_PowerPCTrapOperand extends OPT_Operand {
   }
 
   public static OPT_PowerPCTrapOperand LESS() {
-    return  new OPT_PowerPCTrapOperand(LESS);
+    return new OPT_PowerPCTrapOperand(LESS);
   }
 
   public static OPT_PowerPCTrapOperand GREATER() {
-    return  new OPT_PowerPCTrapOperand(GREATER);
+    return new OPT_PowerPCTrapOperand(GREATER);
   }
 
   public static OPT_PowerPCTrapOperand LOWER() {
-    return  new OPT_PowerPCTrapOperand(LOWER);
+    return new OPT_PowerPCTrapOperand(LOWER);
   }
 
   public static OPT_PowerPCTrapOperand ALWAYS() {
-    return  new OPT_PowerPCTrapOperand(ALWAYS);
+    return new OPT_PowerPCTrapOperand(ALWAYS);
   }
 
   public OPT_Operand copy() {
-    return  new OPT_PowerPCTrapOperand(value);
+    return new OPT_PowerPCTrapOperand(value);
   }
 
   public boolean similar(OPT_Operand op) {
-    return (op instanceof OPT_PowerPCTrapOperand) && 
-        (((OPT_PowerPCTrapOperand)op).value == value);
+    return (op instanceof OPT_PowerPCTrapOperand) &&
+           (((OPT_PowerPCTrapOperand) op).value == value);
   }
 
   /**
@@ -104,7 +104,7 @@ public final class OPT_PowerPCTrapOperand extends OPT_Operand {
         value = SAME;
         break;
     }
-    return  this;
+    return this;
   }
 
   /**
@@ -147,7 +147,7 @@ public final class OPT_PowerPCTrapOperand extends OPT_Operand {
         value = SAME;
         break;
     }
-    return  this;
+    return this;
   }
 
   public OPT_PowerPCTrapOperand(OPT_ConditionOperand c) {
@@ -205,31 +205,31 @@ public final class OPT_PowerPCTrapOperand extends OPT_Operand {
     String result = "ppc trap ";
     switch (value) {
       case EQUAL:
-        return  result + "==";
+        return result + "==";
       case NOT_EQUAL:
-        return  result + "!=";
+        return result + "!=";
       case LESS:
-        return  result + "<";
+        return result + "<";
       case LESS_EQUAL:
-        return  result + "<=";
+        return result + "<=";
       case GREATER:
-        return  result + ">";
+        return result + ">";
       case GREATER_EQUAL:
-        return  result + ">=";
+        return result + ">=";
       case HIGHER:
-        return  result + ">U";
+        return result + ">U";
       case LOWER:
-        return  result + "<U";
+        return result + "<U";
       case HIGHER_EQUAL:
-        return  result + ">=U";
+        return result + ">=U";
       case LOWER_EQUAL:
-        return  result + "<=U";
+        return result + "<=U";
       case NOT_SAME:
-        return  result + "U!=";
+        return result + "U!=";
       case ALWAYS:
-        return  result + "always";
+        return result + "always";
     }
-    return  "UNKNOWN";
+    return "UNKNOWN";
   }
 }
 

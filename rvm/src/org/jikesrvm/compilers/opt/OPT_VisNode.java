@@ -34,8 +34,14 @@ public interface OPT_VisNode {
    */
   class DefaultEdge implements OPT_VisEdge {
     private OPT_VisNode _s, _t;
-    public DefaultEdge(OPT_VisNode s, OPT_VisNode t) { _s = s; _t = t; }
+
+    public DefaultEdge(OPT_VisNode s, OPT_VisNode t) {
+      _s = s;
+      _t = t;
+    }
+
     public OPT_VisNode sourceNode() { return _s; }
+
     public OPT_VisNode targetNode() { return _t; }
   }
 }

@@ -22,22 +22,20 @@ import org.jikesrvm.compilers.opt.OPT_InstrumentedEventCounterManager;
  * @see VM_StringEventCounterData.java
  *
  *
-**/
+ **/
 public final class VM_YieldpointCounterData extends VM_StringEventCounterData
-  implements VM_Reportable {
+    implements VM_Reportable {
 
-  static final boolean DEBUG=false;
-
+  static final boolean DEBUG = false;
 
   /**
    *  Constructor
    *
    * @param manager the manager that will provide the counter space
    **/
-  VM_YieldpointCounterData(OPT_InstrumentedEventCounterManager manager)
-  {
+  VM_YieldpointCounterData(OPT_InstrumentedEventCounterManager manager) {
     // Call superclass constructor
-    super(manager,"Yieldpoint Counter");
+    super(manager, "Yieldpoint Counter");
 
     automaticallyGrowCounters(true);
   }
@@ -45,30 +43,31 @@ public final class VM_YieldpointCounterData extends VM_StringEventCounterData
   /**
    *  Called at end when data should dump its contents.
    */
-  public void report()
-  {
+  public void report() {
     // Turn off future instrumentation so that the data structures do
     // not change while we are iterating over them
     VM_Instrumentation.disableInstrumentation();
 
     VM.sysWrite("Printing " + dataName + ":\n");
     VM.sysWrite("--------------------------------------------------\n");
-    double total=0;
-    double methodEntryTotal=0;
-    double backedgeTotal=0;
+    double total = 0;
+    double methodEntryTotal = 0;
+    double backedgeTotal = 0;
     for (String stringName : stringToCounterMap.keySet()) {
       Integer counterNum = stringToCounterMap.get(stringName);
       double count = getCounter(counterNum);
 
       VM.sysWrite(count + " " + stringName + "\n");
       total += count;
-      
+
       // If it's a method entry event
-      if (stringName.indexOf("METHOD ENTRY") != -1)
+      if (stringName.indexOf("METHOD ENTRY") != -1) {
         methodEntryTotal += count;
-      
-      if (stringName.indexOf("BACKEDGE") != -1)
+      }
+
+      if (stringName.indexOf("BACKEDGE") != -1) {
         backedgeTotal += count;
+      }
 
     }
     VM.sysWrite("Total backedges: " + backedgeTotal + "\n");

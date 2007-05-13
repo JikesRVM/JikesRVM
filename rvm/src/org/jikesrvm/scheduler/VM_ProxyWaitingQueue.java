@@ -14,33 +14,33 @@ import org.vmmagic.pragma.Uninterruptible;
 /**
  * See VM_Proxy
  */
-@Uninterruptible final class VM_ProxyWaitingQueue 
-  extends VM_AbstractThreadQueue {
+@Uninterruptible
+final class VM_ProxyWaitingQueue
+    extends VM_AbstractThreadQueue {
 
   private VM_Proxy tail;
   private VM_Proxy head;
-  
+
   /**
    * Are any proxies on the queue?
    */
-  boolean isEmpty () {
+  boolean isEmpty() {
     return (head == null);
   }
-  
 
   /**
    * Put proxy for this thread on the queue.
    * Since a processor lock is held, the proxy cannot be created here.
    * Instead, it is cached in the proxy field of the thread.
    */
-  void enqueue (VM_Thread t) {
+  void enqueue(VM_Thread t) {
     enqueue(t.proxy);
   }
-  
+
   /**
    * Add the proxy for a thread to tail of queue.
    */
-  void enqueue (VM_Proxy p) {
+  void enqueue(VM_Proxy p) {
     if (head == null) {
       head = p;
     } else {
@@ -48,12 +48,12 @@ import org.vmmagic.pragma.Uninterruptible;
     }
     tail = p;
   }
-  
+
   /**
    * Remove thread from head of queue.
    * @return the thread (null --> queue is empty)
    */
-  VM_Thread dequeue () {
+  VM_Thread dequeue() {
     while (head != null) {
       VM_Proxy p = head;
       head = head.waitingNext;
@@ -63,20 +63,20 @@ import org.vmmagic.pragma.Uninterruptible;
     }
     return null;
   }
-  
+
   /**
    * Number of items on queue (an estimate: queue is not locked during the scan).
    */
   int length() {
     int i = 0;
     VM_Proxy p = head;
-    while ( p != null) {
+    while (p != null) {
       i = i + 1;
       p = p.waitingNext;
     }
     return i;
   }
-  
+
   // For debugging.
   //
   boolean contains(VM_Thread t) {
@@ -87,11 +87,12 @@ import org.vmmagic.pragma.Uninterruptible;
     }
     return false;
   }
-  
+
   void dump() {
-    for (VM_Proxy p = head; p != null; p = p.waitingNext)
+    for (VM_Proxy p = head; p != null; p = p.waitingNext) {
       if (p.patron != null) p.patron.dump();
+    }
     VM.sysWrite("\n");
   }
-  
+
 }

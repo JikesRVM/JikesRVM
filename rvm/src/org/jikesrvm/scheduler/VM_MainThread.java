@@ -31,9 +31,8 @@ public class VM_MainThread extends Thread {
   private final String[] agents;
   private VM_Method mainMethod;
   protected boolean launched = false;
-   
+
   private static final boolean dbg = false;
-  
 
   /**
    * Create "main" thread.
@@ -46,11 +45,13 @@ public class VM_MainThread extends Thread {
     this.args = args;
     this.vmdata.isMainThread = true;
     this.vmdata.isSystemThread = false;
-    if (dbg) VM.sysWriteln("VM_MainThread(args.length == ", args.length,
-                         "): constructor done");
-    
+    if (dbg) {
+      VM.sysWriteln("VM_MainThread(args.length == ", args.length,
+                    "): constructor done");
+    }
+
   }
-      
+
   private void runAgents(ClassLoader cl) {
     if (agents.length > 0) {
       Instrumentation instrumenter = gnu.java.lang.JikesRVMSupport.createInstrumentation();
@@ -85,9 +86,9 @@ public class VM_MainThread extends Thread {
     try {
       JarFile jf = new JarFile(agentJar);
       mf = jf.getManifest();
-    } catch(Exception e) {
+    } catch (Exception e) {
       VM.sysWriteln("vm: IO Exception opening JAR file ", agentJar,
-          ": ", e.getMessage());
+                    ": ", e.getMessage());
       VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
     if (mf == null) {
@@ -95,7 +96,7 @@ public class VM_MainThread extends Thread {
       VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
     String agentClassName = mf.getMainAttributes().getValue("Premain-Class");
-    if (agentClassName  == null) {
+    if (agentClassName == null) {
       VM.sysWriteln("The jar file is missing the Premain-Class manifest entry for the agent class: ", agentJar);
       VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
@@ -106,7 +107,7 @@ public class VM_MainThread extends Thread {
       agentPremainMethod.invoke(null, new Object[]{agentOptions, instrumenter});
     } catch (InvocationTargetException e) {
       // According to the spec, exceptions from premain() can be ignored
-    } catch (Throwable e) { 
+    } catch (Throwable e) {
       VM.sysWriteln("Failed to run the agent's premain: " + e.getMessage());
       e.printStackTrace();
       System.exit(0);
@@ -116,14 +117,14 @@ public class VM_MainThread extends Thread {
   public String toString() {
     return "MainThread";
   }
-      
+
   VM_Method getMainMethod() {
     return mainMethod;
   }
-   
+
   /**
    * Run "main" thread.
-   * 
+   *
    * This code could be made a little shorter by relying on VM_Reflection
    * to do the classloading and compilation.  We intentionally do it here
    * to give us a chance to provide error messages that are specific to
@@ -132,13 +133,13 @@ public class VM_MainThread extends Thread {
    * just to provide debug messages in a place where very little is actually
    * likely to go wrong, but there you have it....
    */
-  public void run () {
+  public void run() {
 
     if (dbg) VM.sysWriteln("VM_MainThread.run() starting ");
 
     // Set up application class loader
     ClassLoader cl = VM_ClassLoader.getApplicationClassLoader();
-    setContextClassLoader(cl); 
+    setContextClassLoader(cl);
 
     runAgents(cl);
 
@@ -147,16 +148,16 @@ public class VM_MainThread extends Thread {
     // load class specified by args[0]
     VM_Class cls = null;
     try {
-      VM_Atom mainAtom = VM_Atom.findOrCreateUnicodeAtom(args[0].replace('.','/'));
+      VM_Atom mainAtom = VM_Atom.findOrCreateUnicodeAtom(args[0].replace('.', '/'));
       VM_TypeReference mainClass = VM_TypeReference.findOrCreate(cl, mainAtom.descriptorFromClassName());
       cls = mainClass.resolve().asClass();
       cls.resolve();
       cls.instantiate();
       cls.initialize();
-    } catch (NoClassDefFoundError e) { 
+    } catch (NoClassDefFoundError e) {
       if (dbg) VM.sysWrite("failed.]");
       // no such class
-      VM.sysWrite(e+"\n");
+      VM.sysWrite(e + "\n");
       return;
     }
     if (dbg) VM.sysWriteln("loaded.]");
@@ -164,7 +165,7 @@ public class VM_MainThread extends Thread {
     // find "main" method
     //
     mainMethod = cls.findMainMethod();
-    if (mainMethod == null) { 
+    if (mainMethod == null) {
       // no such method
       VM.sysWrite(cls + " doesn't have a \"public static void main(String[])\" method to execute\n");
       return;
@@ -174,14 +175,15 @@ public class VM_MainThread extends Thread {
     // create "main" argument list
     //
     String[] mainArgs = new String[args.length - 1];
-    for (int i = 0, n = mainArgs.length; i < n; ++i)
+    for (int i = 0, n = mainArgs.length; i < n; ++i) {
       mainArgs[i] = args[i + 1];
+    }
     if (dbg) VM.sysWriteln("made.]");
-    
+
     if (dbg) VM.sysWrite("[VM_MainThread.run() compiling main(String[])... ");
     mainMethod.compile();
     if (dbg) VM.sysWriteln("compiled.]");
-    
+
     // Notify other clients that the startup is complete.
     //
     VM_Callbacks.notifyStartup();
@@ -189,7 +191,7 @@ public class VM_MainThread extends Thread {
     launched = true;
     if (dbg) VM.sysWriteln("[VM_MainThread.run() invoking \"main\" method... ");
     // invoke "main" method with argument list
-    VM_Reflection.invoke(mainMethod, null, new Object[] {mainArgs}, false);
+    VM_Reflection.invoke(mainMethod, null, new Object[]{mainArgs}, false);
     if (dbg) VM.sysWriteln("  VM_MainThread.run(): \"main\" method completed.]");
   }
 }

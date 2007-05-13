@@ -24,13 +24,13 @@ public class OPT_MethodSummary {
 
   // Top bit is result, bits 0..63 are for parameters 0..63 respectively
   // The default value encodes that the result escapes but that no parameter is escaping.
-  private static final long RES_ESCAPE = 0x80000000; 
+  private static final long RES_ESCAPE = 0x80000000;
   private long escapeInfo = RES_ESCAPE;
 
   /**
    * @param m VM_Method representing this method.
    */
-  OPT_MethodSummary (VM_Method m) { }
+  OPT_MethodSummary(VM_Method m) { }
 
   /**
    * Record that a parameter may or may not escape from a thread.
@@ -38,7 +38,7 @@ public class OPT_MethodSummary {
    * @param p the number of the parameter
    * @param b may it escape?
    */
-  public void setParameterMayEscapeThread (int p, boolean b) {
+  public void setParameterMayEscapeThread(int p, boolean b) {
     if (p > 62) return; // all params past 62 escape!
     long mask = 1L << p;
     if (b) {
@@ -54,7 +54,7 @@ public class OPT_MethodSummary {
    * @return false iff the parameter <em> must not </em> escape from the
    * thread. true otherwise.
    */
-  public boolean parameterMayEscapeThread (int p) {
+  public boolean parameterMayEscapeThread(int p) {
     if (p > 62) return true; // all params past 62 escape!
     long mask = 1L << p;
     return (escapeInfo & mask) != 0;
@@ -65,7 +65,7 @@ public class OPT_MethodSummary {
    *
    * @param b may it escape?
    */
-  public void setResultMayEscapeThread (boolean b) {
+  public void setResultMayEscapeThread(boolean b) {
     if (b) {
       escapeInfo |= RES_ESCAPE;
     } else {
@@ -78,14 +78,14 @@ public class OPT_MethodSummary {
    * @return false iff the parameter <em> must not </em> escape from the
    * thread. true otherwise.
    */
-  public boolean resultMayEscapeThread () {
+  public boolean resultMayEscapeThread() {
     return (escapeInfo & RES_ESCAPE) != 0L;
   }
 
   /**
    * Is analysis of this method in progress?
    */
-  public boolean inProgress () {
+  public boolean inProgress() {
     return inProgress;
   }
 
@@ -93,7 +93,7 @@ public class OPT_MethodSummary {
    * Mark that analysis of this method is or is not in progress.
    * @param b
    */
-  public void setInProgress (boolean b) {
+  public void setInProgress(boolean b) {
     inProgress = b;
   }
 }

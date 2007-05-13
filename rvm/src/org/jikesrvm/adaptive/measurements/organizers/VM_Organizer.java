@@ -49,9 +49,9 @@ public abstract class VM_Organizer extends VM_Thread {
         if (listener != null) listener.reset();
       } catch (Exception e) {
         e.printStackTrace();
-        if (VM.ErrorsFatal) VM.sysFail("Exception in organizer "+this);
+        if (VM.ErrorsFatal) VM.sysFail("Exception in organizer " + this);
       }
-    } 
+    }
   }
 
   /**
@@ -77,7 +77,7 @@ public abstract class VM_Organizer extends VM_Thread {
    * thread will attempt to activate the organizer.
    */
   @Uninterruptible
-  private void passivate() { 
+  private void passivate() {
     if (listener != null) {
       if (VM.VerifyAssertions) VM._assert(!listener.isActive());
       listener.activate();
@@ -89,7 +89,7 @@ public abstract class VM_Organizer extends VM_Thread {
    * Called to activate the organizer thread (ie schedule it for execution).
    */
   @Uninterruptible
-  public void activate() { 
+  public void activate() {
     if (listener != null) {
       if (VM.VerifyAssertions) VM._assert(listener.isActive());
       listener.passivate();

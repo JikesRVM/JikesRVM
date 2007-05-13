@@ -52,8 +52,8 @@ public final class OPT_TailRecursionElimination extends OPT_CompilerPhase {
   /**
    * Constructor for this compiler phase
    */
-  private static final Constructor<OPT_CompilerPhase> constructor = 
-    getCompilerPhaseConstructor(OPT_TailRecursionElimination.class);
+  private static final Constructor<OPT_CompilerPhase> constructor =
+      getCompilerPhaseConstructor(OPT_TailRecursionElimination.class);
 
   /**
    * Get a constructor object for this compiler phase
@@ -63,63 +63,63 @@ public final class OPT_TailRecursionElimination extends OPT_CompilerPhase {
     return constructor;
   }
 
-  public boolean shouldPerform (OPT_Options options) {
-    return  options.getOptLevel() >= 1;
+  public boolean shouldPerform(OPT_Options options) {
+    return options.getOptLevel() >= 1;
   }
-  public String getName () { return  "Tail Recursion Elimination";  }
-  public OPT_CompilerPhase newExecution (OPT_IR ir) { return  this;  }
 
+  public String getName() { return "Tail Recursion Elimination"; }
 
+  public OPT_CompilerPhase newExecution(OPT_IR ir) { return this; }
 
   /**
    * Perform tail recursion elimination.
-   * 
+   *
    * @param ir the IR to optimize
    */
-  public void perform (OPT_IR ir) {
+  public void perform(OPT_IR ir) {
     OPT_BasicBlock target = null;
     OPT_Instruction prologue = null;
     boolean didSomething = false;
 
     for (OPT_Instruction instr = ir.firstInstructionInCodeOrder(),
-           nextInstr = null;
+        nextInstr = null;
          instr != null;
          instr = nextInstr) {
       nextInstr = instr.nextInstructionInCodeOrder();
-      
+
       switch (instr.getOpcode()) {
-      case IR_PROLOGUE_opcode:
-        prologue = instr;
-        break;
-      case SYSCALL_opcode:
-      case CALL_opcode:
-        if (isTailRecursion(instr, ir)) {
-          if (target == null) {
-            target = prologue.getBasicBlock().splitNodeWithLinksAt(prologue, ir);
+        case IR_PROLOGUE_opcode:
+          prologue = instr;
+          break;
+        case SYSCALL_opcode:
+        case CALL_opcode:
+          if (isTailRecursion(instr, ir)) {
+            if (target == null) {
+              target = prologue.getBasicBlock().splitNodeWithLinksAt(prologue, ir);
+            }
+            if (DEBUG) dumpIR(ir, "Before transformation of " + instr);
+            nextInstr = transform(instr, prologue, target, ir);
+            if (DEBUG) dumpIR(ir, "After transformation of " + instr);
+            didSomething = true;
           }
-          if (DEBUG) dumpIR(ir, "Before transformation of "+instr);
-          nextInstr = transform(instr, prologue, target, ir);
-          if (DEBUG) dumpIR(ir, "After transformation of "+instr);
-          didSomething = true;
-        }
-        break;
-      default:
-        break;
+          break;
+        default:
+          break;
       }
     }
 
     if (didSomething) {
       branchOpts.perform(ir, true);
       if (DEBUG) dumpIR(ir, "After cleanup");
-      if (DEBUG) 
-        VM.sysWrite("Eliminated tail calls in "+ir.method+"\n");
+      if (DEBUG) {
+        VM.sysWrite("Eliminated tail calls in " + ir.method + "\n");
+      }
     }
   }
 
-
   /**
    * Is the argument call instruction a tail recursive call?
-   * 
+   *
    * @param call the call in question
    * @param ir the enclosing IR
    * @return <code>true</code> if call is tail recursive and 
@@ -136,21 +136,21 @@ public final class OPT_TailRecursionElimination extends OPT_CompilerPhase {
       if (s.isMove()) {
         if (Move.getVal(s).similar(result)) {
           result = Move.getResult(s);
-          if (DEBUG) VM.sysWrite("Updating result to "+result+"\n");
+          if (DEBUG) VM.sysWrite("Updating result to " + result + "\n");
         } else {
           return false; // move of a value that isn't the result blocks us
         }
       } else if (s.operator() == LABEL || s.operator() == BBEND ||
                  s.operator() == UNINT_BEGIN || s.operator() == UNINT_END) {
-        if (DEBUG) VM.sysWrite("Falling through "+s+"\n");
+        if (DEBUG) VM.sysWrite("Falling through " + s + "\n");
         // skip over housekeeping instructions and follow the code order.
       } else if (s.operator() == GOTO) {
         // follow the unconditional branch to its target LABEL
         s = s.getBranchTarget().firstInstruction();
-        if (DEBUG) VM.sysWrite("Following goto to "+s+"\n");
+        if (DEBUG) VM.sysWrite("Following goto to " + s + "\n");
       } else if (s.isReturn()) {
         OPT_Operand methodResult = Return.getVal(s);
-        if (DEBUG) VM.sysWrite("Found return "+s+"\n");
+        if (DEBUG) VM.sysWrite("Found return " + s + "\n");
         return methodResult == null || methodResult.similar(result);
       } else {
         // any other instruction blocks us
@@ -159,7 +159,6 @@ public final class OPT_TailRecursionElimination extends OPT_CompilerPhase {
       s = s.nextInstructionInCodeOrder();
     }
   }
-
 
   /**
    * Transform the tail recursive call into a loop.
@@ -170,33 +169,33 @@ public final class OPT_TailRecursionElimination extends OPT_CompilerPhase {
    * @param ir       the containing IR
    */
   OPT_Instruction transform(OPT_Instruction call,
-                                  OPT_Instruction prologue,
-                                  OPT_BasicBlock target,
-                                  OPT_IR ir) {
+                            OPT_Instruction prologue,
+                            OPT_BasicBlock target,
+                            OPT_IR ir) {
     // (1) insert move instructions to assign fresh temporaries 
     //     the actuals of the call.
     int numParams = Call.getNumberOfParams(call);
     OPT_RegisterOperand[] temps = new OPT_RegisterOperand[numParams];
-    for (int i=0; i<numParams; i++) {
+    for (int i = 0; i < numParams; i++) {
       OPT_Operand actual = Call.getClearParam(call, i);
       temps[i] = ir.regpool.makeTemp(actual);
-      OPT_Instruction move = 
-        Move.create(OPT_IRTools.getMoveOp(temps[i].type), temps[i], actual);
+      OPT_Instruction move =
+          Move.create(OPT_IRTools.getMoveOp(temps[i].type), temps[i], actual);
       move.copyPosition(call);
       call.insertBefore(move);
     }
-    
+
     // (2) insert move instructions to assign the formal parameters
     //     the corresponding fresh temporary
-    for (int i = 0; i<numParams; i++) {
+    for (int i = 0; i < numParams; i++) {
       OPT_RegisterOperand formal = Prologue.getFormal(prologue, i).copyD2D();
-      OPT_Instruction move = 
-        Move.create(OPT_IRTools.getMoveOp(formal.type), formal, 
-                    temps[i].copyD2U());
+      OPT_Instruction move =
+          Move.create(OPT_IRTools.getMoveOp(formal.type), formal,
+                      temps[i].copyD2U());
       move.copyPosition(call);
       call.insertBefore(move);
     }
-    
+
     // (3) Blow away all instructions below the call in the basic block
     //     (should only be moves and other housekeeping instructions 
     //      skipped over in isTailRecursion loop above)

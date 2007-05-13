@@ -51,11 +51,11 @@ public final class VM_Annotation {
    */
   static {
     baseAnnotationInitMethod =
-      VM_MemberReference.findOrCreate(VM_TypeReference.VM_BaseAnnotation,
-                                      VM_Atom.findOrCreateAsciiAtom("<init>"),
-                                      VM_Atom.findOrCreateAsciiAtom("(Lorg/jikesrvm/classloader/VM_Annotation;)V")
-                                      ).asMethodReference();
-    if(baseAnnotationInitMethod == null) {
+        VM_MemberReference.findOrCreate(VM_TypeReference.VM_BaseAnnotation,
+                                        VM_Atom.findOrCreateAsciiAtom("<init>"),
+                                        VM_Atom.findOrCreateAsciiAtom("(Lorg/jikesrvm/classloader/VM_Annotation;)V")
+        ).asMethodReference();
+    if (baseAnnotationInitMethod == null) {
       throw new Error("Error creating reference to base annotation");
     }
   }
@@ -68,7 +68,7 @@ public final class VM_Annotation {
    * that override the defaults
    * @param classLoader the class loader being used to load this annotation
    */
-  private VM_Annotation(VM_Atom type, AnnotationMember[] elementValuePairs, ClassLoader classLoader){
+  private VM_Annotation(VM_Atom type, AnnotationMember[] elementValuePairs, ClassLoader classLoader) {
     this.type = type;
     this.elementValuePairs = elementValuePairs;
     this.classLoader = classLoader;
@@ -80,8 +80,8 @@ public final class VM_Annotation {
    * @param constantPool from constant pool being loaded
    * @param input the data being rea
    */
-  static VM_Annotation readAnnotation (int[] constantPool, DataInputStream input,
-                                       ClassLoader classLoader) throws IOException, ClassNotFoundException {
+  static VM_Annotation readAnnotation(int[] constantPool, DataInputStream input,
+                                      ClassLoader classLoader) throws IOException, ClassNotFoundException {
     VM_Atom type;
     // Read type
     int typeIndex = input.readUnsignedShort();
@@ -89,7 +89,7 @@ public final class VM_Annotation {
     // Read values
     int numAnnotationMembers = input.readUnsignedShort();
     AnnotationMember[] elementValuePairs = new AnnotationMember[numAnnotationMembers];
-    for(int i=0; i < numAnnotationMembers; i++) {
+    for (int i = 0; i < numAnnotationMembers; i++) {
       elementValuePairs[i] = AnnotationMember.readAnnotationMember(constantPool, input, classLoader);
     }
     // Arrays.sort(elementValuePairs);
@@ -118,18 +118,18 @@ public final class VM_Annotation {
   private Annotation createValue() {
     // Find the annotation then find its implementing class
     VM_Class annotationInterface = VM_TypeReference.findOrCreate(classLoader, type).resolve().asClass();
-    if(!annotationInterface.isResolved()) {
+    if (!annotationInterface.isResolved()) {
       annotationInterface.resolve();
     }
     VM_Class annotationClass = annotationInterface.getAnnotationClass();
-    if(!annotationClass.isResolved()) {
+    if (!annotationClass.isResolved()) {
       annotationClass.resolve();
     }
-    if(!annotationClass.isInitialized()) {
+    if (!annotationClass.isInitialized()) {
       VM_Runtime.initializeClassForDynamicLink(annotationClass);
     }
     // Construct an instance with default values
-    Annotation annotationInstance = (Annotation)VM_Runtime.resolvedNewScalar(annotationClass);
+    Annotation annotationInstance = (Annotation) VM_Runtime.resolvedNewScalar(annotationClass);
     VM_Method defaultConstructor = annotationClass.getConstructorMethods()[0];
     VM_Reflection.invoke(defaultConstructor, annotationInstance, new VM_Annotation[]{this});
     // Override default values with those given in the element value pairs
@@ -151,11 +151,11 @@ public final class VM_Annotation {
    */
   public String toString() {
     String result = type.toString();
-    result = "@" + result.substring(1,result.length()-1) + "(";
-    if (elementValuePairs != null){
-      for(int i=0; i < elementValuePairs.length; i++) {
+    result = "@" + result.substring(1, result.length() - 1) + "(";
+    if (elementValuePairs != null) {
+      for (int i = 0; i < elementValuePairs.length; i++) {
         result += elementValuePairs[i];
-        if(i < (elementValuePairs.length - 1)) {
+        if (i < (elementValuePairs.length - 1)) {
           result += ", ";
         }
       }
@@ -177,100 +177,88 @@ public final class VM_Annotation {
     byte elementValue_tag = input.readByte();
     Object value;
     switch (elementValue_tag) {
-    case 'B':
-      {
+      case'B': {
         Offset offset = VM_Class.getLiteralOffset(constantPool, input.readUnsignedShort());
         value = (byte) VM_Statics.getSlotContentsAsInt(offset);
         break;
       }
-    case 'C':
-      {
+      case'C': {
         Offset offset = VM_Class.getLiteralOffset(constantPool, input.readUnsignedShort());
         value = (char) VM_Statics.getSlotContentsAsInt(offset);
         break;
       }
-    case 'D': 
-      {
+      case'D': {
         Offset offset = VM_Class.getLiteralOffset(constantPool, input.readUnsignedShort());
         long longValue = VM_Statics.getSlotContentsAsLong(offset);
         value = Double.longBitsToDouble(longValue);
         break;
       }
-    case 'F':
-      {
+      case'F': {
         Offset offset = VM_Class.getLiteralOffset(constantPool, input.readUnsignedShort());
         int intValue = VM_Statics.getSlotContentsAsInt(offset);
         value = Float.intBitsToFloat(intValue);
         break;
       }
-    case 'I':
-      {
+      case'I': {
         Offset offset = VM_Class.getLiteralOffset(constantPool, input.readUnsignedShort());
         value = VM_Statics.getSlotContentsAsInt(offset);
         break;
       }
-    case 'J':
-      {
+      case'J': {
         Offset offset = VM_Class.getLiteralOffset(constantPool, input.readUnsignedShort());
         value = VM_Statics.getSlotContentsAsLong(offset);
         break;
       }
-    case 'S':
-      {
+      case'S': {
         Offset offset = VM_Class.getLiteralOffset(constantPool, input.readUnsignedShort());
         value = (short) VM_Statics.getSlotContentsAsInt(offset);
         break;
       }
-    case 'Z':
-      {
+      case'Z': {
         Offset offset = VM_Class.getLiteralOffset(constantPool, input.readUnsignedShort());
         value = VM_Statics.getSlotContentsAsInt(offset) == 1;
         break;
       }
-    case 's':
-      {
+      case's': {
         value = VM_Class.getUtf(constantPool, input.readUnsignedShort()).toString();
         break;
       }
-    case 'e':
-      {
+      case'e': {
         int typeNameIndex = input.readUnsignedShort();
         @SuppressWarnings("unchecked")
         Class enumType = VM_TypeReference.findOrCreate(classLoader,
                                                        VM_Class.getUtf(constantPool, typeNameIndex)
-                                                       ).resolve().getClassForType();
+        ).resolve().getClassForType();
         int constNameIndex = input.readUnsignedShort();
 
         //noinspection unchecked
         value = Enum.valueOf(enumType, VM_Class.getUtf(constantPool, constNameIndex).toString());
         break;
       }
-    case 'c':
-      {
+      case'c': {
         int classInfoIndex = input.readUnsignedShort();
-        value= Class.forName(VM_Class.getUtf(constantPool, classInfoIndex).toString());
+        value = Class.forName(VM_Class.getUtf(constantPool, classInfoIndex).toString());
         break;
       }
-    case '@':
-      value = VM_Annotation.readAnnotation(constantPool, input, classLoader);
-      break;
-    case '[':
-      {
+      case'@':
+        value = VM_Annotation.readAnnotation(constantPool, input, classLoader);
+        break;
+      case'[': {
         int numValues = input.readUnsignedShort();
         Object[] array = new Object[numValues];
-        for (int i=0; i < numValues; i++) {
+        for (int i = 0; i < numValues; i++) {
           array[i] = readValue(constantPool, input, classLoader);
         }
         value = array;
         break;
       }
-    default:
-      throw new ClassFormatError("Unknown element_value tag '" +
-                                 (char)elementValue_tag + "'");
+      default:
+        throw new ClassFormatError("Unknown element_value tag '" +
+                                   (char) elementValue_tag + "'");
     }
     return value;
   }
-  
+
   /**
    * Return the VM_TypeReference of the declared annotation, ie an
    * interface and not the class object of this instance
@@ -296,10 +284,9 @@ public final class VM_Annotation {
    */
   static boolean equals(BaseAnnotation a, VM_Annotation vmA,
                         BaseAnnotation b, VM_Annotation vmB) {
-    if(vmA.type != vmB.type) {
+    if (vmA.type != vmB.type) {
       return false;
-    }
-    else {
+    } else {
       VM_Class annotationInterface = VM_TypeReference.findOrCreate(vmA.classLoader, vmA.type).resolve().asClass();
       VM_Class annotationClass = annotationInterface.getAnnotationClass();
       VM_Field[] annotationClassFields = annotationClass.getDeclaredFields();
@@ -350,7 +337,7 @@ public final class VM_Annotation {
    * @return member reference to init method of BaseAnnotation
    */
   static VM_MethodReference getBaseAnnotationInitMemberReference() {
-    if(baseAnnotationInitMethod == null) {
+    if (baseAnnotationInitMethod == null) {
       throw new Error("Error creating reference to base annotation");
     }
     return baseAnnotationInitMethod;
@@ -364,12 +351,14 @@ public final class VM_Annotation {
      * The VM_Annotation that this annotation is an instance of
      */
     private final VM_Annotation vmAnnotation;
+
     /**
      * Constructor, called via VM_Annotation.createValue
      */
     BaseAnnotation(VM_Annotation vmAnnotation) {
       this.vmAnnotation = vmAnnotation;
     }
+
     /**
      * Return a string representation of the annotation of the form
      * "@type(name1=val1, ...nameN=valN)"
@@ -377,34 +366,36 @@ public final class VM_Annotation {
     public String toString() {
       return vmAnnotation.toString();
     }
+
     /**
      * Return the Class object of the declared annotation, ie an
      * interface and not the class object of this instance
      *
      * @return Class object of interface annotation object implements
      */
-    @SuppressWarnings("unchecked") // We intentionally break type-safety
+    @SuppressWarnings("unchecked")
+    // We intentionally break type-safety
     public Class<? extends Annotation> annotationType() {
-      return (Class<? extends Annotation>)vmAnnotation.annotationType().resolve().getClassForType();
+      return (Class<? extends Annotation>) vmAnnotation.annotationType().resolve().getClassForType();
     }
+
     /**
      * Are two annotations logically equivalent?
      */
     public boolean equals(Object o) {
       if (o instanceof BaseAnnotation) {
-        if(o == this) {
+        if (o == this) {
           return true;
-        }
-        else{
-          BaseAnnotation b =  (BaseAnnotation)o;
+        } else {
+          BaseAnnotation b = (BaseAnnotation) o;
           return VM_Annotation.equals(this, this.vmAnnotation,
                                       b, b.vmAnnotation);
         }
-      }
-      else {
+      } else {
         return false;
       }
     }
+
     /**
      * Compute the hash code of an annotation using the standard
      * algorithm {@link java.lang.annotation.Annotation#hashCode()}
@@ -427,6 +418,7 @@ public final class VM_Annotation {
      * Elements value, decoded from its tag
      */
     private final Object value;
+
     /**
      * Construct a read value pair
      */
@@ -434,6 +426,7 @@ public final class VM_Annotation {
       this.name = name;
       this.value = value;
     }
+
     /**
      * Read the pair from the input stream and create object
      * @param constantPool the constant pool for the class being read
@@ -441,14 +434,15 @@ public final class VM_Annotation {
      * @param classLoader the class loader being used to load this annotation
      * @return a newly created annotation member
      */
-    static AnnotationMember readAnnotationMember (int[] constantPool, DataInputStream input,
-                                                  ClassLoader classLoader) throws IOException, ClassNotFoundException {
+    static AnnotationMember readAnnotationMember(int[] constantPool, DataInputStream input,
+                                                 ClassLoader classLoader) throws IOException, ClassNotFoundException {
       // Read name of pair
       int elemNameIndex = input.readUnsignedShort();
       VM_Atom name = VM_Class.getUtf(constantPool, elemNameIndex);
       Object value = VM_Annotation.readValue(constantPool, input, classLoader);
       return new AnnotationMember(name, value);
     }
+
     /**
      * Return name as it would appear in a class implementing this
      * annotation
@@ -456,38 +450,32 @@ public final class VM_Annotation {
     VM_Atom getNameAsFieldName() {
       return VM_Atom.findAsciiAtom(name.toString() + "_field");
     }
+
     /**
      * Set the value to the given field of the given annotation
      */
     void setValueToField(VM_Field field, Annotation annotation) {
-      if(value instanceof Boolean) {
+      if (value instanceof Boolean) {
         field.setBooleanValueUnchecked(annotation, (Boolean) value);
-      }
-      else if(value instanceof Integer) {
+      } else if (value instanceof Integer) {
         field.setIntValueUnchecked(annotation, (Integer) value);
-      }
-      else if(value instanceof Long) {
+      } else if (value instanceof Long) {
         field.setLongValueUnchecked(annotation, (Long) value);
-      }
-      else if(value instanceof Byte) {
+      } else if (value instanceof Byte) {
         field.setByteValueUnchecked(annotation, (Byte) value);
-      }
-      else if(value instanceof Character) {
+      } else if (value instanceof Character) {
         field.setCharValueUnchecked(annotation, (Character) value);
-      }
-      else if(value instanceof Short) {
+      } else if (value instanceof Short) {
         field.setShortValueUnchecked(annotation, (Short) value);
-      }
-      else if(value instanceof Float) {
+      } else if (value instanceof Float) {
         field.setFloatValueUnchecked(annotation, (Float) value);
-      }
-      else if(value instanceof Double) {
+      } else if (value instanceof Double) {
         field.setDoubleValueUnchecked(annotation, (Double) value);
-      }
-      else {
+      } else {
         field.setObjectValueUnchecked(annotation, value);
       }
     }
+
     /**
      * String representation of the value pair of the form
      * "name=value"
@@ -496,10 +484,10 @@ public final class VM_Annotation {
       String result = name.toString() + "=";
       if (value instanceof Object[]) {
         result += "{";
-        Object[] a = (Object[])value;
-        for(int i=0; i < a.length; i++) {
+        Object[] a = (Object[]) value;
+        for (int i = 0; i < a.length; i++) {
           result += a[i].toString();
-          if (i < (a.length -1)) {
+          if (i < (a.length - 1)) {
             result += ", ";
           }
           result += "}";
@@ -509,19 +497,19 @@ public final class VM_Annotation {
       }
       return result;
     }
+
     /**
      * Ordering for sorted annotation members
      */
     public int compareTo(AnnotationMember am) {
-      if(am.name != this.name) {
+      if (am.name != this.name) {
         return am.name.toString().compareTo(this.name.toString());
       } else {
-        if(value.getClass().isArray()) {
-          return Arrays.hashCode((Object[])value) - Arrays.hashCode((Object[])am.value);
-        }
-        else {
+        if (value.getClass().isArray()) {
+          return Arrays.hashCode((Object[]) value) - Arrays.hashCode((Object[]) am.value);
+        } else {
           @SuppressWarnings("unchecked") // True generic programming, we can't type check it in Java
-          Comparable<Object> cValue = (Comparable)value;
+              Comparable<Object> cValue = (Comparable) value;
           return cValue.compareTo(am.value);
         }
       }

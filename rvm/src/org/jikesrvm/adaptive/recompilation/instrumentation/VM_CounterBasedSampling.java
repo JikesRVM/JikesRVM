@@ -13,7 +13,7 @@ import org.jikesrvm.VM_Constants;
 import org.jikesrvm.adaptive.util.VM_AOSOptions;
 import org.vmmagic.pragma.Uninterruptible;
 
-/** 
+/**
  *  VM_CounterBasedSampling.java
  *
  *  Contains necessary infrastructure to perform counter-based
@@ -21,21 +21,20 @@ import org.vmmagic.pragma.Uninterruptible;
  *  (see OPT_InstrumentationSamplingFramework)  
  *
  * */
-@Uninterruptible public final class VM_CounterBasedSampling implements VM_Constants
-{
+@Uninterruptible
+public final class VM_CounterBasedSampling implements VM_Constants {
   static final boolean DEBUG = false;
 
+  /**
+   * Holds the value that is used to reset the global counter after
+   * a sample is taken.
+   */
+  static int resetValue = 100;
 
-   /**
-    * Holds the value that is used to reset the global counter after
-    * a sample is taken.
-    */
-  static int resetValue=100;
-
-   /**
-    *  The global counter.
-    */
-  static int globalCounter=resetValue; 
+  /**
+   *  The global counter.
+   */
+  static int globalCounter = resetValue;
 
   /**
    * Perform at system boot.
@@ -43,7 +42,7 @@ import org.vmmagic.pragma.Uninterruptible;
   public static void boot(VM_AOSOptions options) {
     // Initialize the counter values
     resetValue = options.COUNTER_BASED_SAMPLE_INTERVAL - 1;
-    globalCounter=resetValue;
+    globalCounter = resetValue;
 
   }
 }

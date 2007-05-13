@@ -21,25 +21,25 @@ import org.jikesrvm.util.VM_HashMap;
  *  </ul>
  */
 public class OPT_SummaryDatabase {
-  /** 
+  /**
    * Lookup a given method in the database
-   * 
+   *
    * @return OPT_MethodSummary instance representing method
    */
-  public static synchronized OPT_MethodSummary findMethodSummary (VM_Method m) {
+  public static synchronized OPT_MethodSummary findMethodSummary(VM_Method m) {
     return hash.get(m);
   }
 
-  public static synchronized OPT_MethodSummary findOrCreateMethodSummary (VM_Method m) {
+  public static synchronized OPT_MethodSummary findOrCreateMethodSummary(VM_Method m) {
     OPT_MethodSummary result = findMethodSummary(m);
     if (result == null) {
       result = new OPT_MethodSummary(m);
       hash.put(m, result);
     }
-    return  result;
+    return result;
   }
 
   /** Implementation */
-  private static final VM_HashMap<VM_Method,OPT_MethodSummary> hash = 
-    new VM_HashMap<VM_Method,OPT_MethodSummary>();
+  private static final VM_HashMap<VM_Method, OPT_MethodSummary> hash =
+      new VM_HashMap<VM_Method, OPT_MethodSummary>();
 }

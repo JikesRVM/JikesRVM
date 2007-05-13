@@ -15,20 +15,20 @@ import org.jikesrvm.compilers.opt.OPT_CompilerPhase;
  */
 public final class OPT_ConvertBCtoHIR extends OPT_CompilerPhase {
 
-  public String getName () { 
+  public String getName() {
     return "Generate HIR";
   }
 
   /**
    * Generate HIR for ir.method into ir
-   * 
+   *
    * @param ir The IR to generate HIR into
    */
-  public void perform (OPT_IR ir) {
+  public void perform(OPT_IR ir) {
     // Generate the cfg into gc
-    OPT_GenerationContext gc = 
-      new OPT_GenerationContext(ir.method, ir.compiledMethod, 
-                                ir.options, ir.inlinePlan);
+    OPT_GenerationContext gc =
+        new OPT_GenerationContext(ir.method, ir.compiledMethod,
+                                  ir.options, ir.inlinePlan);
     OPT_BC2IR.generateHIR(gc);
     // Transfer HIR and misc state from gc to the ir object
     ir.gc = gc;
@@ -46,7 +46,7 @@ public final class OPT_ConvertBCtoHIR extends OPT_CompilerPhase {
   }
 
   // This phase contains no instance fields.
-  public OPT_CompilerPhase newExecution (OPT_IR ir) {
+  public OPT_CompilerPhase newExecution(OPT_IR ir) {
     return this;
   }
 }

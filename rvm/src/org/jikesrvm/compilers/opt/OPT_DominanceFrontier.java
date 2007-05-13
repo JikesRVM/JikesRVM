@@ -51,18 +51,18 @@ class OPT_DominanceFrontier extends OPT_CompilerPhase {
    * Return this instance of this phase. This phase contains no
    * per-compilation instance fields.
    * @param ir not used
-   * @return this 
+   * @return this
    */
-  public OPT_CompilerPhase newExecution (OPT_IR ir) {
+  public OPT_CompilerPhase newExecution(OPT_IR ir) {
     return this;
-  } 
+  }
 
   /**
    * Return a String representation for this phase
    * @return a String representation for this phase
    */
   public final String getName() {
-    return  "Dominance Frontier";
+    return "Dominance Frontier";
   }
 
   /**
@@ -73,14 +73,14 @@ class OPT_DominanceFrontier extends OPT_CompilerPhase {
    * @return true or false
    */
   public final boolean printingEnabled(OPT_Options options, boolean before) {
-    return  false;
+    return false;
   }
 
-  /** 
+  /**
    * Calculate the dominance frontier for each basic block in the
    * CFG. Stores the result in the DominatorTree for the governing
    * IR.
-   * 
+   *
    * <p> NOTE: The dominator tree MUST be calculated BEFORE calling this
    *      routine.
    *
@@ -88,61 +88,71 @@ class OPT_DominanceFrontier extends OPT_CompilerPhase {
    */
   public void perform(OPT_IR ir) {
     // make sure the dominator computation completed successfully
-    if (!ir.HIRInfo.dominatorsAreComputed)
+    if (!ir.HIRInfo.dominatorsAreComputed) {
       return;
+    }
     // make sure dominator tree is computed
-    if (ir.HIRInfo.dominatorTree == null)
+    if (ir.HIRInfo.dominatorTree == null) {
       return;
+    }
     // for each X in a bottom-up traversal of the dominator tree do
     OPT_DominatorTree tree = ir.HIRInfo.dominatorTree;
     for (Enumeration<OPT_TreeNode> x = tree.getBottomUpEnumerator(); x.hasMoreElements();) {
-      OPT_DominatorTreeNode v = (OPT_DominatorTreeNode)x.nextElement();
+      OPT_DominatorTreeNode v = (OPT_DominatorTreeNode) x.nextElement();
       OPT_BasicBlock X = v.getBlock();
-      if (DEBUG)
+      if (DEBUG) {
         System.out.println("Computing frontier for node " + X);
-      OPT_BitVector DF = new OPT_BitVector(ir.getMaxBasicBlockNumber()+1);
+      }
+      OPT_BitVector DF = new OPT_BitVector(ir.getMaxBasicBlockNumber() + 1);
       v.setDominanceFrontier(DF);
       // for each Y in Succ(X) do
       for (OPT_BasicBlockEnumeration y = X.getOut(); y.hasMoreElements();) {
         OPT_BasicBlock Y = y.next();
         // skip EXIT node
-        if (Y.isExit())
+        if (Y.isExit()) {
           continue;
+        }
         // if (idom(Y)!=X) then DF(X) <- DF(X) U Y
-        if (OPT_LTDominatorInfo.getIdom(Y) != X)
+        if (OPT_LTDominatorInfo.getIdom(Y) != X) {
           DF.set(Y.getNumber());
+        }
       }
-      if (DEBUG)
+      if (DEBUG) {
         System.out.println("After local " + DF);
+      }
       //        for each Z in {idom(z) = X} do
       for (Enumeration<OPT_TreeNode> z = tree.getChildren(X); z.hasMoreElements();) {
-        OPT_DominatorTreeNode zVertex = (OPT_DominatorTreeNode)z.nextElement();
+        OPT_DominatorTreeNode zVertex = (OPT_DominatorTreeNode) z.nextElement();
         OPT_BasicBlock Z = zVertex.getBlock();
-        if (DEBUG)
+        if (DEBUG) {
           System.out.println("Processing Z = " + Z);
+        }
         // for each Y in DF(Z) do
-        for (OPT_BasicBlockEnumeration y = 
+        for (OPT_BasicBlockEnumeration y =
             zVertex.domFrontierEnumerator(ir); y.hasMoreElements();) {
           OPT_BasicBlock Y = y.next();
           // if (idom(Y)!=X) then DF(X) <- DF(X) U Y
-          if (OPT_LTDominatorInfo.getIdom(Y) != X)
+          if (OPT_LTDominatorInfo.getIdom(Y) != X) {
             DF.set(Y.getNumber());
+          }
         }
       }
-      if (DEBUG)
+      if (DEBUG) {
         System.out.println("After up " + DF);
+      }
     }
     if (DEBUG) {
       for (Enumeration<OPT_BasicBlock> bbEnum = ir.cfg.basicBlocks(); bbEnum.hasMoreElements();) {
         OPT_BasicBlock block = bbEnum.nextElement();
-        if (block.isExit())
+        if (block.isExit()) {
           continue;
+        }
         System.out.println(block + " DF: " + tree.getDominanceFrontier(block));
       }
     }
   }
 
-  /** 
+  /**
    * Calculate the dominance frontier for the set of basic blocks
    * represented by a BitVector.
    *
@@ -154,17 +164,17 @@ class OPT_DominanceFrontier extends OPT_CompilerPhase {
    * @return a BitVector representing the dominance frontier for the set
    */
   public static OPT_BitVector getDominanceFrontier(OPT_IR ir, OPT_BitVector bits) {
-    OPT_BitVector result = new OPT_BitVector(ir.getMaxBasicBlockNumber()+1);
+    OPT_BitVector result = new OPT_BitVector(ir.getMaxBasicBlockNumber() + 1);
     OPT_DominatorTree dTree = ir.HIRInfo.dominatorTree;
     for (int i = 0; i < bits.length(); i++) {
       if (bits.get(i)) {
         result.or(dTree.getDominanceFrontier(i));
       }
     }
-    return  result;
+    return result;
   }
 
-  /** 
+  /**
    * Calculate the iterated dominance frontier for a set of basic blocks
    * represented by a BitVector.
    *
@@ -176,17 +186,18 @@ class OPT_DominanceFrontier extends OPT_CompilerPhase {
    * @return an {@link OPT_BitVector} representing the dominance frontier for
    *    the set 
    */
-  public static OPT_BitVector getIteratedDominanceFrontier(OPT_IR ir, 
+  public static OPT_BitVector getIteratedDominanceFrontier(OPT_IR ir,
                                                            OPT_BitVector S) {
     OPT_BitVector DFi = getDominanceFrontier(ir, S);
     while (true) {
       OPT_BitVector DFiplus1 = getDominanceFrontier(ir, DFi);
       DFiplus1.or(DFi);
-      if (DFi.equals(DFiplus1))
+      if (DFi.equals(DFiplus1)) {
         break;
+      }
       DFi = DFiplus1;
     }
-    return  DFi;
+    return DFi;
   }
 }
 

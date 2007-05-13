@@ -35,17 +35,17 @@ public final class VM_MethodCountSet {
   VM_MethodCountSet(VM_CompiledMethod[] _cms, double[] _counters) {
     if (VM.VerifyAssertions) VM._assert(_cms.length == _counters.length);
     cms = _cms;
-    counters= _counters;
+    counters = _counters;
   }
 
   /**
    * String representation of fields
-   * 
+   *
    * @return string representation of compiled method id's and thier counts
    */
   public String toString() {
     String ans = "";
-    for (int i=0; i<cms.length; i++) {
+    for (int i = 0; i < cms.length; i++) {
       ans += cms[i] + " = " + counters[i] + "\n";
     }
     return ans;

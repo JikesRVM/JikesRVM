@@ -23,14 +23,14 @@ public final class VM_InterfaceMethodSignature implements VM_TIBLayoutConstants,
   /**
    * Used to canonicalize VM_InterfaceMethodSignatures
    */
-  private static VM_HashSet<VM_InterfaceMethodSignature> dictionary = 
-    new VM_HashSet<VM_InterfaceMethodSignature>();
+  private static VM_HashSet<VM_InterfaceMethodSignature> dictionary =
+      new VM_HashSet<VM_InterfaceMethodSignature>();
 
   /**
    * Used to assign ids. Don't use id 0 to allow clients to use id 0 as a 'null'.
    */
-  private static int nextId = 1; 
-  
+  private static int nextId = 1;
+
   /**
    * Name of the interface method
    */
@@ -58,14 +58,14 @@ public final class VM_InterfaceMethodSignature implements VM_TIBLayoutConstants,
    * @return the interface method signature
    */
   public static synchronized VM_InterfaceMethodSignature findOrCreate(VM_MemberReference ref) {
-    VM_InterfaceMethodSignature key = 
-      new VM_InterfaceMethodSignature(ref.getName(), ref.getDescriptor());
+    VM_InterfaceMethodSignature key =
+        new VM_InterfaceMethodSignature(ref.getName(), ref.getDescriptor());
     VM_InterfaceMethodSignature val = dictionary.get(key);
-    if (val != null)  return val;
+    if (val != null) return val;
     key.id = nextId++;
     dictionary.add(key);
     return key;
-  }    
+  }
 
   /**
    * @return name of the interface method
@@ -96,9 +96,9 @@ public final class VM_InterfaceMethodSignature implements VM_TIBLayoutConstants,
 
   public boolean equals(Object other) {
     if (other instanceof VM_InterfaceMethodSignature) {
-      VM_InterfaceMethodSignature that = (VM_InterfaceMethodSignature)other;
+      VM_InterfaceMethodSignature that = (VM_InterfaceMethodSignature) other;
       return name == that.name && descriptor == that.descriptor;
-    }  else {
+    } else {
       return false;
     }
   }
@@ -109,9 +109,9 @@ public final class VM_InterfaceMethodSignature implements VM_TIBLayoutConstants,
    * Note that all methods with same name & descriptor map to the same slot.
    * <p>
    * TODO!! replace this stupid offset assignment algorithm with something more reasonable.
-   * 
+   *
    * @return offset in TIB/IMT
-   */ 
+   */
   public Offset getIMTOffset() {
     if (VM.VerifyAssertions) VM._assert(VM.BuildForIMTInterfaceInvocation);
     int slot = id % IMT_METHOD_SLOTS;

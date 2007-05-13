@@ -23,13 +23,17 @@ public final class OPT_WeightedBranchTargets {
   private float[] weights;
   private int cur;
   private int max;
-  
+
   public void reset() { cur = 0; }
+
   public boolean hasMoreElements() { return cur < max; }
+
   public void advance() { cur++; }
+
   public OPT_BasicBlock curBlock() { return targets[cur]; }
+
   public float curWeight() { return weights[cur]; }
-  
+
   public OPT_WeightedBranchTargets(OPT_BasicBlock bb) {
     targets = new OPT_BasicBlock[3];
     weights = new float[3];
@@ -71,7 +75,7 @@ public final class OPT_WeightedBranchTargets {
         int highLimit = TableSwitch.getHigh(s).value;
         int number = highLimit - lowLimit + 1;
         float total = 0f;
-        for (int i=0; i<number; i++) {
+        for (int i = 0; i < number; i++) {
           OPT_BasicBlock target = TableSwitch.getTarget(s, i).target.getBasicBlock();
           OPT_BranchProfileOperand prof = TableSwitch.getBranchProfile(s, i);
           float taken = prob * prof.takenProbability;
@@ -83,13 +87,13 @@ public final class OPT_WeightedBranchTargets {
         float taken = prob * prof.takenProbability;
         total += prof.takenProbability;
         if (VM.VerifyAssertions && !epsilon(total, 1f)) {
-          VM.sysFail("Total outflow ("+total+") does not sum to 1 for: "+s);
+          VM.sysFail("Total outflow (" + total + ") does not sum to 1 for: " + s);
         }
         addEdge(target, taken);
       } else if (LowTableSwitch.conforms(s)) {
         int number = LowTableSwitch.getNumberOfTargets(s);
         float total = 0f;
-        for (int i=0; i<number; i++) {
+        for (int i = 0; i < number; i++) {
           OPT_BasicBlock target = LowTableSwitch.getTarget(s, i).target.getBasicBlock();
           OPT_BranchProfileOperand prof = LowTableSwitch.getBranchProfile(s, i);
           float taken = prob * prof.takenProbability;
@@ -97,12 +101,12 @@ public final class OPT_WeightedBranchTargets {
           addEdge(target, taken);
         }
         if (VM.VerifyAssertions && !epsilon(total, 1f)) {
-          VM.sysFail("Total outflow ("+total+") does not sum to 1 for: "+s);
+          VM.sysFail("Total outflow (" + total + ") does not sum to 1 for: " + s);
         }
       } else if (LookupSwitch.conforms(s)) {
         int number = LookupSwitch.getNumberOfTargets(s);
         float total = 0f;
-        for (int i=0; i<number; i++) {
+        for (int i = 0; i < number; i++) {
           OPT_BasicBlock target = LookupSwitch.getTarget(s, i).target.getBasicBlock();
           OPT_BranchProfileOperand prof = LookupSwitch.getBranchProfile(s, i);
           float taken = prob * prof.takenProbability;
@@ -114,11 +118,11 @@ public final class OPT_WeightedBranchTargets {
         float taken = prob * prof.takenProbability;
         total += prof.takenProbability;
         if (VM.VerifyAssertions && !epsilon(total, 1f)) {
-          VM.sysFail("Total outflow ("+total+") does not sum to 1 for: "+s);
+          VM.sysFail("Total outflow (" + total + ") does not sum to 1 for: " + s);
         }
         addEdge(target, taken);
       } else {
-        throw new OPT_OptimizingCompilerException("TODO "+s+"\n");
+        throw new OPT_OptimizingCompilerException("TODO " + s + "\n");
       }
     }
     OPT_BasicBlock ft = bb.getFallThroughBlock();
@@ -128,12 +132,12 @@ public final class OPT_WeightedBranchTargets {
   private void addEdge(OPT_BasicBlock target, float weight) {
     if (max == targets.length) {
       OPT_BasicBlock[] tmp = new OPT_BasicBlock[targets.length << 1];
-      for (int i=0; i<targets.length; i++) {
+      for (int i = 0; i < targets.length; i++) {
         tmp[i] = targets[i];
       }
       targets = tmp;
-      float [] tmp2 = new float[weights.length << 1];
-      for (int i=0; i<weights.length; i++) {
+      float[] tmp2 = new float[weights.length << 1];
+      for (int i = 0; i < weights.length; i++) {
         tmp2[i] = weights[i];
       }
       weights = tmp2;

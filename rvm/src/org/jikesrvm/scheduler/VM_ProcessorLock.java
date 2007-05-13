@@ -76,14 +76,15 @@ import org.vmmagic.unboxed.Offset;
  *
  * @see VM_Processor
  * @see VM_Lock */
-@Uninterruptible public final class VM_ProcessorLock implements VM_Constants {
+@Uninterruptible
+public final class VM_ProcessorLock implements VM_Constants {
 
   /**
    * Should contending <code>VM_Processor</code>s spin on processor local addresses (true)
    * or on a globally shared address (false).
    */
   private static final boolean MCS_Locking = false;
-  
+
   /**
    * The state of the processor lock.
    * <ul>
@@ -99,7 +100,7 @@ import org.vmmagic.unboxed.Offset;
   /**
    * Acquire a processor lock.
    */
-  public void lock () {
+  public void lock() {
     if (VM_Scheduler.numProcessors == 1) return;
     VM_Processor i = VM_Processor.getCurrentProcessor();
     if (VM.VerifyAssertions) i.lockCount += 1;
@@ -111,14 +112,14 @@ import org.vmmagic.unboxed.Offset;
       if (p == null) { // nobody owns the lock
         if (VM_Magic.attemptAddress(this, latestContenderOffset, Address.zero(), VM_Magic.objectAsAddress(i))) {
           VM_Magic.isync(); // so subsequent instructions wont see stale values
-          return; 
+          return;
         } else {
           continue; // don't handle contention
         }
       } else if (MCS_Locking && VM_Magic.objectAsAddress(p).NE(IN_FLUX)) { // lock is owned, but not being changed
         if (VM_Magic.attemptAddress(this, latestContenderOffset, VM_Magic.objectAsAddress(p), IN_FLUX)) {
           VM_Magic.isync(); // so subsequent instructions wont see stale values
-          break; 
+          break;
         }
       }
       handleMicrocontention(attempts++);
@@ -143,14 +144,14 @@ import org.vmmagic.unboxed.Offset;
    * Conditionally acquire a processor lock.
    * @return whether acquisition succeeded
    */
-  boolean tryLock () {
+  boolean tryLock() {
     if (VM_Scheduler.numProcessors == 1) return true;
     Offset latestContenderOffset = VM_Entrypoints.latestContenderField.getOffset();
     if (VM_Magic.prepareAddress(this, latestContenderOffset).isZero()) {
       Address cp = VM_Magic.objectAsAddress(VM_Processor.getCurrentProcessor());
       if (VM_Magic.attemptAddress(this, latestContenderOffset, Address.zero(), cp)) {
         VM_Magic.isync(); // so subsequent instructions wont see stale values
-        return true; 
+        return true;
       }
     }
     return false;
@@ -159,7 +160,7 @@ import org.vmmagic.unboxed.Offset;
   /**
    * Release a processor lock.
    */
-  public void unlock () {
+  public void unlock() {
     if (VM_Scheduler.numProcessors == 1) return;
     VM_Magic.sync(); // commit changes while lock was held so they are visiable to the next processor that acquires the lock
     Offset latestContenderOffset = VM_Entrypoints.latestContenderField.getOffset();
@@ -176,9 +177,10 @@ import org.vmmagic.unboxed.Offset;
         if (VM_Magic.attemptAddress(this, latestContenderOffset, VM_Magic.objectAsAddress(p), Address.zero())) {
           break;
         }
-      } else if (VM_Magic.objectAsAddress(p).NE(IN_FLUX)) { // there are waiters, but the contention chain is not being chainged
+      } else
+      if (VM_Magic.objectAsAddress(p).NE(IN_FLUX)) { // there are waiters, but the contention chain is not being chainged
         if (VM_Magic.attemptAddress(this, latestContenderOffset, VM_Magic.objectAsAddress(p), IN_FLUX)) {
-          break; 
+          break;
         }
       } else { // in flux
         handleMicrocontention(-1); // wait a little before trying again
@@ -208,25 +210,25 @@ import org.vmmagic.unboxed.Offset;
    * succeed.
    */
   @NoInline
-  private static void handleMicrocontention(int n) { 
+  private static void handleMicrocontention(int n) {
     if (n <= 0) return;                                  // method call overhead is delay enough
-    int pid    =  VM_Processor.getCurrentProcessorId();
-    if (pid < 0) pid = - pid;                            // native processors have negative ids
+    int pid = VM_Processor.getCurrentProcessorId();
+    if (pid < 0) pid = -pid;                            // native processors have negative ids
     delayIndex = (delayIndex + pid) % delayCount.length;
-    int delay  = delayCount[delayIndex]*delayMultiplier; // pseudorandom backoff component
-    delay     += delayBase << (n-1);                     // exponential backoff component
-    for (int i=delay; i>0; i--) ;                        // delay a different amount of time on each processor
+    int delay = delayCount[delayIndex] * delayMultiplier; // pseudorandom backoff component
+    delay += delayBase << (n - 1);                     // exponential backoff component
+    for (int i = delay; i > 0; i--) ;                        // delay a different amount of time on each processor
   }
 
-  private static final int   delayMultiplier = 10;
-  private static final int   delayBase       = 64;
-  private static       int   delayIndex;
-  private static final int[] delayCount = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
+  private static final int delayMultiplier = 10;
+  private static final int delayBase = 64;
+  private static int delayIndex;
+  private static final int[] delayCount = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
 
   /**
    * For MCS locking, indicates that another processor is changing the
    * state of the circular waiting queue.
    */
-  private static final Address  IN_FLUX = Address.max();
+  private static final Address IN_FLUX = Address.max();
 
 }

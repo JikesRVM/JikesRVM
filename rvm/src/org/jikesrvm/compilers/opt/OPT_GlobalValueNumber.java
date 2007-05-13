@@ -33,20 +33,20 @@ class OPT_GlobalValueNumber extends OPT_CompilerPhase {
    * Return the name of this phase.
    * @return "Global Value Number"
    */
-  public final String getName () {
-    return  "Global Value Number";
+  public final String getName() {
+    return "Global Value Number";
   }
 
-  /** 
+  /**
    * Main driver for global value number-related computations
    * <p> PRECONDITION: Array SSA form
    * <p> POSTCONDITION: ir.valueNumbers holds global value number state
    *
    * @param ir the governing IR
    */
-  public final void perform (OPT_IR ir) {
+  public final void perform(OPT_IR ir) {
     if (ir.desiredSSAOptions.getAbort()) return;
-    
+
     // make sure the SSA computation completed successfully
     // TODO if (!ir.SSAForm()) return;
     OPT_DefUse.computeDU(ir);
@@ -62,8 +62,9 @@ class OPT_GlobalValueNumber extends OPT_CompilerPhase {
     // compute global value numbers
     OPT_GlobalValueNumberState gvn = new OPT_GlobalValueNumberState(ir);
 
-    if (DEBUG)
+    if (DEBUG) {
       gvn.printValueNumbers();
+    }
     ir.HIRInfo.valueNumbers = gvn;
   }
 }

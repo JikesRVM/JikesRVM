@@ -20,19 +20,19 @@ public final class OPT_EmptyEnumerator
   private static final OPT_EmptyEnumerator EMPTY = new OPT_EmptyEnumerator();
 
   @SuppressWarnings({"unchecked", "RedundantCast"})
-  public static <T> Enumeration<T> emptyEnumeration(){
-    return (Enumeration<T>)(Enumeration)EMPTY; 
-  }
-  
-  public boolean hasMoreElements () {
-    return  false;
+  public static <T> Enumeration<T> emptyEnumeration() {
+    return (Enumeration<T>) (Enumeration) EMPTY;
   }
 
-  public Object nextElement () {
-    throw  new NoSuchElementException();
+  public boolean hasMoreElements() {
+    return false;
   }
 
-  private OPT_EmptyEnumerator () {
+  public Object nextElement() {
+    throw new NoSuchElementException();
+  }
+
+  private OPT_EmptyEnumerator() {
   }
 }
 

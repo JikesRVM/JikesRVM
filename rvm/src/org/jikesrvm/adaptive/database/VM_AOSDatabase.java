@@ -15,25 +15,23 @@ import org.jikesrvm.adaptive.util.VM_AOSOptions;
 
 /**
  * VM_AOSDatabase.java
- * 
+ *
  * Used to keep track of the various data structures that make up the
  * AOS database.  
  */
-public final class VM_AOSDatabase 
-{
-  /** 
+public final class VM_AOSDatabase {
+  /**
    * Static links to data objects that are "whole-program" (as opposed
    * to per-method)
-    */
+   */
   public static VM_MethodInvocationCounterData methodInvocationCounterData;
   public static VM_YieldpointCounterData yieldpointCounterData;
   public static VM_StringEventCounterData instructionCounterData;
   public static VM_StringEventCounterData debuggingCounterData;
- 
+
   /**
    * Called at startup
    **/
-  public static void boot(VM_AOSOptions options)
-  {
+  public static void boot(VM_AOSOptions options) {
   }
 }

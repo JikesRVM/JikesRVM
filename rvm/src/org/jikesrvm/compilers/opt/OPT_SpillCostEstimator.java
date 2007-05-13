@@ -18,8 +18,8 @@ import org.jikesrvm.compilers.opt.ir.OPT_Register;
  */
 abstract class OPT_SpillCostEstimator {
 
-  private final HashMap<OPT_Register,Double> map =
-	 new HashMap<OPT_Register,Double>(); 
+  private final HashMap<OPT_Register, Double> map =
+      new HashMap<OPT_Register, Double>();
 
   /**
    * Return a number that represents an estimate of the relative cost of
@@ -27,8 +27,11 @@ abstract class OPT_SpillCostEstimator {
    */
   double getCost(OPT_Register r) {
     Double d = map.get(r);
-    if (d == null) return 0;
-    else return d;
+    if (d == null) {
+      return 0;
+    } else {
+      return d;
+    }
   }
 
   /**

@@ -41,7 +41,7 @@ public final class VM_MethodSampleOrganizer extends VM_Organizer {
    *                         were compiled at this level or higher
    */
   public VM_MethodSampleOrganizer(int filterOptLevel) {
-    this.filterOptLevel   = filterOptLevel;
+    this.filterOptLevel = filterOptLevel;
     makeDaemon(true);
   }
 
@@ -58,7 +58,7 @@ public final class VM_MethodSampleOrganizer extends VM_Organizer {
     VM_MethodListener methodListener = new VM_MethodListener(numSamples);
     listener = methodListener;
     listener.setOrganizer(this);
-     
+
     if (VM_Controller.options.mlTimer()) {
       VM_RuntimeMeasurements.installTimerMethodListener(methodListener);
     } else if (VM_Controller.options.mlCBS()) {
@@ -74,12 +74,12 @@ public final class VM_MethodSampleOrganizer extends VM_Organizer {
   void thresholdReached() {
     VM_AOSLogging.organizerThresholdReached();
 
-    int numSamples = ((VM_MethodListener)listener).getNumSamples();
-    int[] samples = ((VM_MethodListener)listener).getSamples();
+    int numSamples = ((VM_MethodListener) listener).getNumSamples();
+    int[] samples = ((VM_MethodListener) listener).getSamples();
 
     // (1) Update the global (cumulative) sample data
     VM_Controller.methodSamples.update(samples, numSamples);
-    
+
     // (2) Remove duplicates from samples buffer.
     //     NOTE: This is a dirty trick and may be ill-advised.
     //     Rather than copying the unique samples into a different buffer
@@ -88,10 +88,10 @@ public final class VM_MethodSampleOrganizer extends VM_Organizer {
     //     significant number of duplicates, so it's probably better than
     //     the other obvious alternative (sorting samples).
     int uniqueIdx = 1;
-  outer:
-    for (int i=1; i<numSamples; i++) {
+    outer:
+    for (int i = 1; i < numSamples; i++) {
       int cur = samples[i];
-      for (int j=0; j<uniqueIdx; j++) {
+      for (int j = 0; j < uniqueIdx; j++) {
         if (cur == samples[j]) continue outer;
       }
       samples[uniqueIdx++] = cur;
@@ -100,7 +100,7 @@ public final class VM_MethodSampleOrganizer extends VM_Organizer {
     // (3) For all samples in 0...uniqueIdx, if the method represented by
     //     the sample is compiled at an opt level below filterOptLevel
     //     then report it to the controller. 
-    for (int i=0; i<uniqueIdx; i++) {
+    for (int i = 0; i < uniqueIdx; i++) {
       int cmid = samples[i];
       double ns = VM_Controller.methodSamples.getData(cmid);
       VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
@@ -110,10 +110,10 @@ public final class VM_MethodSampleOrganizer extends VM_Organizer {
         // Enqueue it unless it's either a trap method or already opt
         // compiled at filterOptLevel or higher.
         if (!(compilerType == VM_CompiledMethod.TRAP ||
-              (compilerType == VM_CompiledMethod.OPT && 
-               (((VM_OptCompiledMethod)cm).getOptLevel() >= filterOptLevel)))) {
-          VM_HotMethodRecompilationEvent event = 
-            new VM_HotMethodRecompilationEvent(cm, ns);
+              (compilerType == VM_CompiledMethod.OPT &&
+               (((VM_OptCompiledMethod) cm).getOptLevel() >= filterOptLevel)))) {
+          VM_HotMethodRecompilationEvent event =
+              new VM_HotMethodRecompilationEvent(cm, ns);
           VM_Controller.controllerInputQueue.insert(ns, event);
           VM_AOSLogging.controllerNotifiedForHotness(cm, ns);
         }

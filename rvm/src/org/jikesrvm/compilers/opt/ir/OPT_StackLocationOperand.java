@@ -12,16 +12,16 @@ import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
 
 /**
  * Represents a symbolic name for a stack location.
- * 
+ *
  * The stack location is defined by an offset from either the framepointer
  * (top of stack frame) or stackpointer-home-location (bottom of frame).
  */
-public final class OPT_StackLocationOperand extends OPT_Operand  {
+public final class OPT_StackLocationOperand extends OPT_Operand {
   /**
    * Is the offset from the top or bottom of stack frame?
    */
   private boolean fromTop;
-  
+
   /**
    * The offset (top/bottom of stack frame) corresponding
    * to this stack location.
@@ -32,7 +32,6 @@ public final class OPT_StackLocationOperand extends OPT_Operand  {
    * Size (in bytes) reserved for the value of this operand.
    */
   private byte size;
-
 
   /**
    * @param fromTop is the offset from the top of bottom of the frame?
@@ -55,7 +54,7 @@ public final class OPT_StackLocationOperand extends OPT_Operand  {
   public OPT_StackLocationOperand(boolean fromTop, int offset, int size) {
     this.fromTop = fromTop;
     this.offset = offset;
-    this.size = (byte)size;
+    this.size = (byte) size;
   }
 
   /**
@@ -75,7 +74,7 @@ public final class OPT_StackLocationOperand extends OPT_Operand  {
     return offset;
   }
 
-  /** 
+  /**
    * @return Size (in bytes) of this stack location.
    */
   public byte getSize() {
@@ -85,22 +84,30 @@ public final class OPT_StackLocationOperand extends OPT_Operand  {
   public String toString() {
     String s = "";
     switch (size) {
-    case 1: s = ">B"; break;
-    case 2: s = ">W"; break;
-    case 4: s = ">DW"; break;
-    case 8: s = ">QW"; break;
-    default:
-      OPT_OptimizingCompilerException.UNREACHABLE();
+      case 1:
+        s = ">B";
+        break;
+      case 2:
+        s = ">W";
+        break;
+      case 4:
+        s = ">DW";
+        break;
+      case 8:
+        s = ">QW";
+        break;
+      default:
+        OPT_OptimizingCompilerException.UNREACHABLE();
     }
-    return "<"+(isFromTop()?"FrameTop":"FrameBottom")+
-      (getOffset()<0?"":"+") + getOffset()+ s;
+    return "<" + (isFromTop() ? "FrameTop" : "FrameBottom") +
+           (getOffset() < 0 ? "" : "+") + getOffset() + s;
   }
 
   public boolean similar(OPT_Operand op) {
     if (op instanceof OPT_StackLocationOperand) {
-      OPT_StackLocationOperand o2 = (OPT_StackLocationOperand)op;
+      OPT_StackLocationOperand o2 = (OPT_StackLocationOperand) op;
       return ((o2.isFromTop() == isFromTop()) &&
-              (o2.getOffset() == getOffset()) && 
+              (o2.getOffset() == getOffset()) &&
               (o2.getSize() == getSize()));
     } else {
       return false;

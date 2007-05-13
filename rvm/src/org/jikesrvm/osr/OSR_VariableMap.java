@@ -35,7 +35,7 @@ public final class OSR_VariableMap {
    * @param inst      the IR instruction we care about
    * @param mvarList  the set of symbolic registers as a list
    */
-  public void insert (OPT_Instruction inst, LinkedList<OSR_MethodVariables> mvarList) {
+  public void insert(OPT_Instruction inst, LinkedList<OSR_MethodVariables> mvarList) {
     // make a VariableMapElement and put it on the big list
     list.add(new OSR_VariableMapElement(inst, mvarList));
   }
@@ -43,7 +43,7 @@ public final class OSR_VariableMap {
   /**
    * Inserts a new entry at the begin of the list.
    */
-  public void insertFirst (OPT_Instruction inst, LinkedList<OSR_MethodVariables> mvarList) {
+  public void insertFirst(OPT_Instruction inst, LinkedList<OSR_MethodVariables> mvarList) {
     list.addFirst(new OSR_VariableMapElement(inst, mvarList));
   }
 
@@ -58,17 +58,17 @@ public final class OSR_VariableMap {
   /**
    * @return string version of this object
    */
-  public String toString () {
+  public String toString() {
     StringBuilder buf = new StringBuilder("");
 
-    if (list.isEmpty())
-      buf.append("empty"); 
-    else {
+    if (list.isEmpty()) {
+      buf.append("empty");
+    } else {
       for (OSR_VariableMapElement ptr : list) {
         buf.append(ptr.toString());
       }
     }
-    return  buf.toString();
+    return buf.toString();
   }
 }
 

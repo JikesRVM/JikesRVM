@@ -22,22 +22,23 @@ import org.jikesrvm.compilers.baseline.VM_BaselineBootImageCompiler;
  */
 public abstract class VM_BootImageCompiler {
 
-  private static VM_BootImageCompiler compiler = VM.BuildWithBaseBootImageCompiler ? new VM_BaselineBootImageCompiler() : new org.jikesrvm.compilers.opt.VM_OptimizingBootImageCompiler();
+  private static VM_BootImageCompiler compiler =
+      VM.BuildWithBaseBootImageCompiler ? new VM_BaselineBootImageCompiler() : new org.jikesrvm.compilers.opt.VM_OptimizingBootImageCompiler();
 
-  /** 
+  /**
    * Initialize boot image compiler.
    * @param args command line arguments to the bootimage compiler
    */
   protected abstract void initCompiler(String[] args);
 
-  /** 
+  /**
    * Compile a method with bytecodes.
    * @param method the method to compile
    * @return the compiled method
    */
   protected abstract VM_CompiledMethod compileMethod(VM_NormalMethod method);
-  
-  /** 
+
+  /**
    * Initialize boot image compiler.
    * @param args command line arguments to the bootimage compiler
    */
@@ -47,7 +48,7 @@ public abstract class VM_BootImageCompiler {
     } catch (Throwable e) {
       while (e != null) {
         e.printStackTrace();
-        e= e.getCause();
+        e = e.getCause();
       }
     }
   }
@@ -55,8 +56,8 @@ public abstract class VM_BootImageCompiler {
   public static VM_CompiledMethod compile(VM_NormalMethod method) {
     return compiler.compileMethod(method);
   }
-  
-  /** 
+
+  /**
    * Compile a native method.
    * @param method the method to compile
    * @return the compiled method

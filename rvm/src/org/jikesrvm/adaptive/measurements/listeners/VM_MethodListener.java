@@ -20,7 +20,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * Samples are collected in a buffer.  
  * When sampleSize samples have been collected 
  * the listener's organizer is activated to process them.
- *  
+ *
  * Defines update's interface to be a compiled method identifier, CMID.
  */
 @Uninterruptible
@@ -29,19 +29,19 @@ public final class VM_MethodListener extends VM_Listener {
   /**
    * Number of samples to be gathered before they are processed 
    */
-  int sampleSize;  
-  
+  int sampleSize;
+
   /**
    * Number of samples taken so far
    */
   int numSamples;
-  
+
   /**
    * The sample buffer
    * Key Invariant: samples.length >= sampleSize
    */
   int[] samples;
-  
+
   /**
    * @param sampleSize the initial sampleSize for the listener
    */
@@ -50,7 +50,7 @@ public final class VM_MethodListener extends VM_Listener {
     samples = new int[sampleSize];
   }
 
-  /** 
+  /**
    * This method is called when a sample is taken.
    * It parameter "cmid" represents the compiled method ID of the method
    * which was executing at the time of the sample.  This method
@@ -76,7 +76,7 @@ public final class VM_MethodListener extends VM_Listener {
         if (callerCmid != -1) {
           recordSample(callerCmid);
         } // nothing to insert
-      } else { 
+      } else {
         // loop backedge or epilogue.  
         recordSample(cmid);
       }
@@ -90,7 +90,7 @@ public final class VM_MethodListener extends VM_Listener {
         if (callerCmid != -1) {
           recordSample(callerCmid);
         }
-      } else { 
+      } else {
         // loop backedge.  We're only called once, so need to take
         // two samples to avoid penalizing methods with loops.
         recordSample(cmid);
@@ -108,16 +108,16 @@ public final class VM_MethodListener extends VM_Listener {
    *
    * @param CMID compiled method ID to record
    */
-  private void recordSample(int CMID) {  
+  private void recordSample(int CMID) {
     // reserve the next available slot
     int idx = VM_Synchronization.fetchAndAdd(this, VM_Entrypoints.methodListenerNumSamplesField.getOffset(), 1);
     // make sure it is valid
     if (idx < sampleSize) {
       samples[idx] = CMID;
     }
-    if (idx+1 == sampleSize) {
+    if (idx + 1 == sampleSize) {
       // The last sample. 
-      activateOrganizer(); 
+      activateOrganizer();
     }
   }
 

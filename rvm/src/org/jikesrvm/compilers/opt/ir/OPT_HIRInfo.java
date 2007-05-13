@@ -18,7 +18,7 @@ import org.jikesrvm.compilers.opt.OPT_SSADictionary;
  * Wrapper class around IR info that is valid on the HIR/LIR/MIR
  */
 public final class OPT_HIRInfo {
-  
+
   OPT_HIRInfo(OPT_IR ir) { }
 
   /** Place to hang dominator tree. */

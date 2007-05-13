@@ -35,7 +35,7 @@ class OPT_Dominators {
    */
   static boolean COMPUTE_POST_DOMINATORS = false;
 
-  /** 
+  /**
    * Calculate the dominators for an IR.
    * <p> After this pass, each basic block's scrach field points to
    * an <code> OPT_DominatorInfo </code> object, which holds the dominators
@@ -43,31 +43,39 @@ class OPT_Dominators {
    *
    * @param ir the IR in question
    */
-  public static void perform (OPT_IR ir) {
-    if (ir.hasReachableExceptionHandlers())
-      throw  new OPT_OperationNotImplementedException(
+  public static void perform(OPT_IR ir) {
+    if (ir.hasReachableExceptionHandlers()) {
+      throw new OPT_OperationNotImplementedException(
           "IR with exception handlers");
+    }
     OPT_DominatorSystem system = new OPT_DominatorSystem(ir);
-    if (DEBUG)
+    if (DEBUG) {
       System.out.print("Solving...");
-    if (DEBUG)
+    }
+    if (DEBUG) {
       System.out.println(system);
+    }
     system.solve();
-    if (DEBUG)
+    if (DEBUG) {
       System.out.println("done");
+    }
     OPT_DF_Solution solution = system.getSolution();
-    if (DEBUG)
+    if (DEBUG) {
       System.out.println("Dominator Solution :" + solution);
-    if (DEBUG)
+    }
+    if (DEBUG) {
       System.out.print("Updating blocks ...");
+    }
     updateBlocks(solution);
-    if (DEBUG)
+    if (DEBUG) {
       System.out.println("done.");
-    if (ir.options.PRINT_DOMINATORS)
+    }
+    if (ir.options.PRINT_DOMINATORS) {
       printDominators(ir);
+    }
   }
 
-  /** 
+  /**
    * Calculate the "approximate" dominators for an IR i.e., the
    * dominators in the factored CFG rather than the normal CFG.
    * <p> (No exception is thrown if the input IR has handler blocks.)
@@ -78,28 +86,35 @@ class OPT_Dominators {
    *
    * @param ir the IR in question
    */
-  public static void computeApproxDominators (OPT_IR ir) {
+  public static void computeApproxDominators(OPT_IR ir) {
     OPT_DominatorSystem system = new OPT_DominatorSystem(ir);
-    if (DEBUG)
+    if (DEBUG) {
       System.out.print("Solving...");
-    if (DEBUG)
+    }
+    if (DEBUG) {
       System.out.println(system);
+    }
     system.solve();
-    if (DEBUG)
+    if (DEBUG) {
       System.out.println("done");
+    }
     OPT_DF_Solution solution = system.getSolution();
-    if (DEBUG)
+    if (DEBUG) {
       System.out.println("Dominator Solution :" + solution);
-    if (DEBUG)
+    }
+    if (DEBUG) {
       System.out.print("Updating blocks ...");
+    }
     updateBlocks(solution);
-    if (DEBUG)
+    if (DEBUG) {
       System.out.println("done.");
-    if (ir.options.PRINT_DOMINATORS)
+    }
+    if (ir.options.PRINT_DOMINATORS) {
       printDominators(ir);
+    }
   }
 
-  /** 
+  /**
    * Calculate the postdominators for an IR.
    * <p> After this pass, each basic block's scrach field points to
    * an OPT_DominatorInfo object, which holds the postdominators
@@ -107,55 +122,63 @@ class OPT_Dominators {
    *
    * @param ir the IR in question
    */
-  public static void computeApproxPostdominators (OPT_IR ir) {
+  public static void computeApproxPostdominators(OPT_IR ir) {
     OPT_Dominators.COMPUTE_POST_DOMINATORS = true;
     OPT_DominatorSystem system = new OPT_DominatorSystem(ir);
-    if (DEBUG)
+    if (DEBUG) {
       System.out.print("Solving...");
-    if (DEBUG)
+    }
+    if (DEBUG) {
       System.out.println(system);
+    }
     system.solve();
-    if (DEBUG)
+    if (DEBUG) {
       System.out.println("done");
+    }
     OPT_DF_Solution solution = system.getSolution();
-    if (DEBUG)
+    if (DEBUG) {
       System.out.println("Postdominator Solution :" + solution);
-    if (DEBUG)
+    }
+    if (DEBUG) {
       System.out.print("Updating blocks ...");
+    }
     updateBlocks(solution);
-    if (DEBUG)
+    if (DEBUG) {
       System.out.println("done.");
-    if (ir.options.PRINT_DOMINATORS)
+    }
+    if (ir.options.PRINT_DOMINATORS) {
       printDominators(ir);
+    }
     OPT_Dominators.COMPUTE_POST_DOMINATORS = false;
   }
 
-  /** 
+  /**
    * For each basic block in the data flow system solution,
    * create an <code> OPT_DominatorInfo </code> and store it in the basic
    * blocks scratchObject
    *
    * @param solution the solution to the Dominators equations
    */
-  public static void updateBlocks (OPT_DF_Solution solution) {
+  public static void updateBlocks(OPT_DF_Solution solution) {
     for (final OPT_DF_LatticeCell latticeCell : solution.values()) {
       OPT_DominatorCell cell = (OPT_DominatorCell) latticeCell;
       OPT_BasicBlock b = cell.block;
       b.scratchObject = new OPT_DominatorInfo(cell.dominators);
-      if (DEBUG)
+      if (DEBUG) {
         System.out.println("Dominators of " + b + ":" + cell.dominators);
+      }
     }
   }
 
-  /** 
+  /**
    * Print the (already calculated) dominators.
    * @param ir the IR
    */
-  public static void printDominators (OPT_IR ir) {
-    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); 
-        e.hasMoreElements();) {
+  public static void printDominators(OPT_IR ir) {
+    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks();
+         e.hasMoreElements();) {
       OPT_BasicBlock b = e.next();
-      OPT_DominatorInfo i = (OPT_DominatorInfo)b.scratchObject;
+      OPT_DominatorInfo i = (OPT_DominatorInfo) b.scratchObject;
       System.out.println("Dominators of " + b + ":" + i.dominators);
     }
   }

@@ -37,7 +37,7 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GUARD_MOVE;
  * NOTE: the check for exactly one in edge is used to rule out
  *       situations like the following:
  * <pre>
-[5~ *      if (C) goto L2              // cb2
+ [5~ *      if (C) goto L2              // cb2
  *      x = x + 1;
  *  L2: x = x + 1;
  *      if (C) goto L3.            // cb1
@@ -49,24 +49,24 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GUARD_MOVE;
  */
 final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanCompositeElement {
 
-  public boolean shouldPerform (OPT_Options options) {
+  public boolean shouldPerform(OPT_Options options) {
     return options.REDUNDANT_BRANCH_ELIMINATION;
   }
-  
+
   /**
    * Create this phase element as a composite of other elements
    */
-  OPT_RedundantBranchElimination () {
-    super("RedundantBranchElimination", new OPT_OptimizationPlanElement[] {
-            // Stage 1: Require SSA form
-            new OPT_OptimizationPlanAtomicElement(new EnsureSSA()),
-      
-            // Stage2: Require GVNs
-            new OPT_OptimizationPlanAtomicElement(new OPT_GlobalValueNumber()),
+  OPT_RedundantBranchElimination() {
+    super("RedundantBranchElimination", new OPT_OptimizationPlanElement[]{
+        // Stage 1: Require SSA form
+        new OPT_OptimizationPlanAtomicElement(new EnsureSSA()),
 
-            // Stage3: Do the optimization
-            new OPT_OptimizationPlanAtomicElement(new RBE()),
-          });
+        // Stage2: Require GVNs
+        new OPT_OptimizationPlanAtomicElement(new OPT_GlobalValueNumber()),
+
+        // Stage3: Do the optimization
+        new OPT_OptimizationPlanAtomicElement(new RBE()),
+    });
   }
 
   private static final class EnsureSSA extends OPT_CompilerPhase {
@@ -74,13 +74,16 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
     public String getName() {
       return "Ensure SSA";
     }
+
     public boolean shouldPerform() {
       return true;
     }
+
     public void perform(OPT_IR ir) {
       ir.desiredSSAOptions = new OPT_SSAOptions();
       new OPT_EnterSSA().perform(ir);
     }
+
     public OPT_CompilerPhase newExecution(OPT_IR ir) {
       return this;
     }
@@ -88,8 +91,10 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
 
   private static final class RBE extends OPT_CompilerPhase {
     private static final boolean DEBUG = false;
+
     public String getName() { return "RBE Transform"; }
-    public boolean printingEnabled (OPT_Options options, boolean before) {
+
+    public boolean printingEnabled(OPT_Options options, boolean before) {
       return false && DEBUG;
     }
 
@@ -106,10 +111,10 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
     /**
      * Transform to eliminate redundant branches passed on 
      * GVNs and dominator information.
-     * 
+     *
      * @param ir   The IR on which to apply the phase
      */
-    public void perform (OPT_IR ir) {
+    public void perform(OPT_IR ir) {
       // (1) Remove redundant conditional branches and locally fix the PHIs
       OPT_GlobalValueNumberState gvns = ir.HIRInfo.valueNumbers;
       OPT_DominatorTree dt = ir.HIRInfo.dominatorTree;
@@ -122,19 +127,19 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
         OPT_GVCongruenceClass cc = gvns.congruenceClass(candTest);
         if (cc.size() > 1) {
           for (OPT_ValueGraphVertex vertex : cc) {
-            OPT_Instruction poss = (OPT_Instruction)vertex.getName();
+            OPT_Instruction poss = (OPT_Instruction) vertex.getName();
             if (poss != candTest) {
               OPT_BasicBlock notTaken = getNotTakenBlock(poss);
               OPT_BasicBlock taken = poss.getBranchTarget();
               if (taken == notTaken) continue; // both go to same block, so we don't know anything!
               if (notTaken.hasOneIn() && dt.dominates(notTaken, candBB)) {
-                if (DEBUG) VM.sysWrite(candTest + " is dominated by not-taken branch of "+poss+"\n");
+                if (DEBUG) VM.sysWrite(candTest + " is dominated by not-taken branch of " + poss + "\n");
                 removeCondBranch(candBB, candTest, ir, poss);
                 cc.removeVertex(gvns.valueGraph.getVertex(candTest));
                 break;
               }
               if (taken.hasOneIn() && dt.dominates(taken, candBB)) {
-                if (DEBUG) VM.sysWrite(candTest + " is dominated by taken branch of "+poss+"\n");
+                if (DEBUG) VM.sysWrite(candTest + " is dominated by taken branch of " + poss + "\n");
                 takeCondBranch(candBB, candTest, ir);
                 cc.removeVertex(gvns.valueGraph.getVertex(candTest));
                 break;
@@ -148,7 +153,6 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
       removeUnreachableCode(ir);
     }
 
-
     /**
      * Remove unreachable code
      *
@@ -161,10 +165,10 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
       entry.sortDFS();
       for (OPT_BasicBlock node = entry; node != null;) {
         // save it now before removeFromCFGAndCodeOrder nulls it out!!!
-        OPT_BasicBlock nextNode = (OPT_BasicBlock)node.getNext();
+        OPT_BasicBlock nextNode = (OPT_BasicBlock) node.getNext();
         if (!node.dfsVisited()) {
           for (OPT_BasicBlockEnumeration e = node.getOut();
-               e.hasMoreElements(); ) {
+               e.hasMoreElements();) {
             OPT_BasicBlock target = e.next();
             if (target != node && !target.isExit() && target.dfsVisited()) {
               OPT_SSA.purgeBlockFromPHIs(node, target);
@@ -175,13 +179,12 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
         }
         node = nextNode;
       }
-      if(removedCode) {
+      if (removedCode) {
         ir.cfg.compactNodeNumbering();
         ir.HIRInfo.dominatorTree = null;
         ir.HIRInfo.dominatorsAreComputed = false;
       }
     }
-
 
     /**
      * Return the basic block that s's block will goto if s is not taken.
@@ -205,8 +208,8 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
                                   OPT_Instruction cb,
                                   OPT_IR ir,
                                   OPT_Instruction di) {
-      if (DEBUG) VM.sysWrite("Eliminating definitely not-taken branch "+cb+"\n");
-      if(IfCmp.conforms(cb) && IfCmp.hasGuardResult(cb)) {
+      if (DEBUG) VM.sysWrite("Eliminating definitely not-taken branch " + cb + "\n");
+      if (IfCmp.conforms(cb) && IfCmp.hasGuardResult(cb)) {
         cb.insertBefore(Move.create(GUARD_MOVE, IfCmp.getGuardResult(cb), IfCmp.getGuardResult(di).copy()));
       }
       OPT_BasicBlock deadBB = cb.getBranchTarget();
@@ -225,8 +228,8 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
     private void takeCondBranch(OPT_BasicBlock source,
                                 OPT_Instruction cb,
                                 OPT_IR ir) {
-      if (DEBUG) VM.sysWrite("Eliminating definitely taken branch "+cb+"\n");
-      OPT_BasicBlock  deadBB = source.nextBasicBlockInCodeOrder();
+      if (DEBUG) VM.sysWrite("Eliminating definitely taken branch " + cb + "\n");
+      OPT_BasicBlock deadBB = source.nextBasicBlockInCodeOrder();
       OPT_Instruction next = cb.nextInstructionInCodeOrder();
       if (Goto.conforms(next)) {
         deadBB = next.getBranchTarget();

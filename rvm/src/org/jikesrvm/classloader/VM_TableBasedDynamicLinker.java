@@ -35,6 +35,7 @@ import org.jikesrvm.runtime.VM_Runtime;
 public class VM_TableBasedDynamicLinker implements VM_Constants {
 
   private static int[] memberOffsets;
+
   static {
     memberOffsets = MM_Interface.newContiguousIntArray(16000);
     if (NEEDS_DYNAMIC_LINK != 0) {
@@ -67,7 +68,6 @@ public class VM_TableBasedDynamicLinker implements VM_Constants {
     memberOffsets[ref.getId()] = offset;
     return offset;
   }
-    
 
   /**
    * Method invoked from VM_MemberReference to 
@@ -77,7 +77,7 @@ public class VM_TableBasedDynamicLinker implements VM_Constants {
   static synchronized void ensureCapacity(int id) {
     if (id == memberOffsets.length) {
       int oldLen = memberOffsets.length;
-      int[] tmp1 = MM_Interface.newContiguousIntArray(oldLen*2);
+      int[] tmp1 = MM_Interface.newContiguousIntArray(oldLen * 2);
       System.arraycopy(memberOffsets, 0, tmp1, 0, oldLen);
       if (NEEDS_DYNAMIC_LINK != 0) {
         java.util.Arrays.fill(tmp1, oldLen, tmp1.length, NEEDS_DYNAMIC_LINK);

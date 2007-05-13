@@ -25,7 +25,7 @@ public final class OPT_BURSManagedFPROperand extends OPT_Operand {
   /**
    * Returns a copy of the current operand.
    */
-  public OPT_Operand copy() { 
+  public OPT_Operand copy() {
     return new OPT_BURSManagedFPROperand(regNum);
   }
 
@@ -35,13 +35,13 @@ public final class OPT_BURSManagedFPROperand extends OPT_Operand {
    * @param op other operand
    */
   public boolean similar(OPT_Operand op) {
-    return (op instanceof OPT_BURSManagedFPROperand) && 
-      ((OPT_BURSManagedFPROperand)op).regNum == regNum;
+    return (op instanceof OPT_BURSManagedFPROperand) &&
+           ((OPT_BURSManagedFPROperand) op).regNum == regNum;
   }
 
   // Returns the string representation of this operand.
   public String toString() {
-    return "ST("+regNum+")";
+    return "ST(" + regNum + ")";
   }
 
 }

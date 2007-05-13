@@ -21,11 +21,11 @@ public final class OPT_ReverseEnumerator<T> implements Enumeration<T> {
   private final ArrayList<T> vec;
   private int index;
 
-  public boolean hasMoreElements () {
+  public boolean hasMoreElements() {
     return index > 0;
   }
 
-  public T nextElement () {
+  public T nextElement() {
     index--;
     if (index >= 0) {
       return vec.get(index);
@@ -36,7 +36,7 @@ public final class OPT_ReverseEnumerator<T> implements Enumeration<T> {
 
   public OPT_ReverseEnumerator(Enumeration<T> e) {
     vec = new ArrayList<T>();
-    while(e.hasMoreElements()) {
+    while (e.hasMoreElements()) {
       vec.add(e.nextElement());
     }
     index = vec.size();

@@ -16,14 +16,14 @@ package org.jikesrvm.compilers.opt;
  */
 final class OPT_ValueGraphEdge extends OPT_SpaceEffGraphEdge {
 
-  OPT_ValueGraphEdge (OPT_ValueGraphVertex src, OPT_ValueGraphVertex target) {
+  OPT_ValueGraphEdge(OPT_ValueGraphVertex src, OPT_ValueGraphVertex target) {
     super(src, target);
   }
 
-  public String toString () {
-    OPT_ValueGraphVertex src = (OPT_ValueGraphVertex)fromNode();
-    OPT_ValueGraphVertex dest = (OPT_ValueGraphVertex)toNode();
-    return  src.getName() + " --> " + dest.getName();
+  public String toString() {
+    OPT_ValueGraphVertex src = (OPT_ValueGraphVertex) fromNode();
+    OPT_ValueGraphVertex dest = (OPT_ValueGraphVertex) toNode();
+    return src.getName() + " --> " + dest.getName();
   }
 }
 

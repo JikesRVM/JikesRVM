@@ -32,31 +32,32 @@ import org.vmmagic.unboxed.WordArray;
  * that are part of the input parameters, local variables, and 
  * java stack for the stack frame.
  */
-@Uninterruptible public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator 
-  implements VM_BaselineConstants {
+@Uninterruptible
+public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator
+    implements VM_BaselineConstants {
 
   // Iterator state for mapping any stackframe.
   //
-  private   int              mapIndex; // current offset in current map
-  private   int              mapId;     // id of current map out of all maps
-  private   VM_ReferenceMaps maps;      // set of maps for this method
+  private int mapIndex; // current offset in current map
+  private int mapId;     // id of current map out of all maps
+  private VM_ReferenceMaps maps;      // set of maps for this method
 
   // Additional iterator state for mapping dynamic bridge stackframes.
   //
   private VM_DynamicLink dynamicLink;                    // place to keep info returned by VM_CompiledMethod.getDynamicLink
-  private VM_Method      bridgeTarget;                   // method to be invoked via dynamic bridge (null: current frame is not a dynamic bridge)
+  private VM_Method bridgeTarget;                   // method to be invoked via dynamic bridge (null: current frame is not a dynamic bridge)
   private VM_NormalMethod currentMethod;                  // method for the frame
   private VM_BaselineCompiledMethod currentCompiledMethod;                  // compiled method for the frame
   private int currentNumLocals;
-  private VM_TypeReference[]      bridgeParameterTypes;           // parameter types passed by that method
-  private boolean        bridgeParameterMappingRequired; // have all bridge parameters been mapped yet?
-  private boolean        bridgeRegistersLocationUpdated; // have the register location been updated
-  private boolean        finishedWithRegularMap;         // have we processed all the values in the regular map yet?
-  private int            bridgeParameterInitialIndex;    // first parameter to be mapped (-1 == "this")
-  private int            bridgeParameterIndex;           // current parameter being mapped (-1 == "this")
-  private int            bridgeRegisterIndex;            // gpr register it lives in
-  private Address     bridgeRegisterLocation;         // memory address at which that register was saved
-  private Address     bridgeSpilledParamLocation;     // current spilled param location
+  private VM_TypeReference[] bridgeParameterTypes;           // parameter types passed by that method
+  private boolean bridgeParameterMappingRequired; // have all bridge parameters been mapped yet?
+  private boolean bridgeRegistersLocationUpdated; // have the register location been updated
+  private boolean finishedWithRegularMap;         // have we processed all the values in the regular map yet?
+  private int bridgeParameterInitialIndex;    // first parameter to be mapped (-1 == "this")
+  private int bridgeParameterIndex;           // current parameter being mapped (-1 == "this")
+  private int bridgeRegisterIndex;            // gpr register it lives in
+  private Address bridgeRegisterLocation;         // memory address at which that register was saved
+  private Address bridgeSpilledParamLocation;     // current spilled param location
 
   //
   // Remember the location array for registers. This array needs to be updated
@@ -67,7 +68,7 @@ import org.vmmagic.unboxed.WordArray;
   //
   public VM_BaselineGCMapIterator(WordArray registerLocations) {
     this.registerLocations = registerLocations; // (in superclass)
-    dynamicLink  = new VM_DynamicLink();
+    dynamicLink = new VM_DynamicLink();
   }
 
   //
@@ -84,28 +85,31 @@ import org.vmmagic.unboxed.WordArray;
   //
   public void setupIterator(VM_CompiledMethod compiledMethod, Offset instructionOffset, Address fp) {
     currentCompiledMethod = (VM_BaselineCompiledMethod) compiledMethod;
-    currentMethod = (VM_NormalMethod)compiledMethod.getMethod();
+    currentMethod = (VM_NormalMethod) compiledMethod.getMethod();
     currentNumLocals = currentMethod.getLocalWords();
     // setup superclass
     //
     framePtr = fp;
-      
+
     // setup stackframe mapping
     //
-    maps      = currentCompiledMethod.referenceMaps;
-    mapId     = maps.locateGCPoint(instructionOffset, currentMethod);
+    maps = currentCompiledMethod.referenceMaps;
+    mapId = maps.locateGCPoint(instructionOffset, currentMethod);
     mapIndex = 0;
     if (mapId < 0) {
       // lock the jsr lock to serialize jsr processing
       VM_ReferenceMaps.jsrLock.lock();
-      int JSRindex  = maps.setupJSRSubroutineMap(mapId);
+      int JSRindex = maps.setupJSRSubroutineMap(mapId);
       while (JSRindex != 0) {
         Address nextCallerAddress;
         int location = convertIndexToLocation(JSRindex);
-        if (VM_Compiler.isRegister(location))
+        if (VM_Compiler.isRegister(location)) {
           nextCallerAddress = registerLocations.get(location).toAddress();
-        else
-          nextCallerAddress = framePtr.plus(VM_Compiler.locationToOffset(location) - BYTES_IN_ADDRESS); //location offsets are positioned on top of stackslot
+        } else {
+          nextCallerAddress =
+              framePtr.plus(VM_Compiler.locationToOffset(location) -
+                            BYTES_IN_ADDRESS); //location offsets are positioned on top of stackslot
+        }
         nextCallerAddress = nextCallerAddress.loadAddress();
         Offset nextMachineCodeOffset = compiledMethod.getInstructionOffset(nextCallerAddress);
         if (VM.TraceStkMaps) {
@@ -113,8 +117,9 @@ import org.vmmagic.unboxed.WordArray;
           VM.sysWriteln("      next jsraddress offset = ", JSRindex);
           VM.sysWriteln("      next callers address = ", nextCallerAddress);
           VM.sysWriteln("      next machinecodeoffset = ", nextMachineCodeOffset);
-          if (nextMachineCodeOffset.sLT(Offset.zero()))
+          if (nextMachineCodeOffset.sLT(Offset.zero())) {
             VM.sysWriteln("BAD MACHINE CODE OFFSET");
+          }
         }
         JSRindex = maps.getNextJSRAddressIndex(nextMachineCodeOffset, currentMethod);
       }
@@ -126,34 +131,34 @@ import org.vmmagic.unboxed.WordArray;
       VM.sysWrite(currentMethod);
       VM.sysWrite(".\n");
     }
-      
+
     // setup dynamic bridge mapping
     //
-    bridgeTarget                   = null;
-    bridgeParameterTypes           = null;
+    bridgeTarget = null;
+    bridgeParameterTypes = null;
     bridgeParameterMappingRequired = false;
     bridgeRegistersLocationUpdated = false;
-    bridgeParameterIndex           = 0;
-    bridgeRegisterIndex            = 0;
-    bridgeRegisterLocation         = Address.zero();
-    bridgeSpilledParamLocation     = Address.zero();
+    bridgeParameterIndex = 0;
+    bridgeRegisterIndex = 0;
+    bridgeRegisterLocation = Address.zero();
+    bridgeSpilledParamLocation = Address.zero();
 
     if (currentMethod.getDeclaringClass().hasDynamicBridgeAnnotation()) {
-      fp                       = VM_Magic.getCallerFramePointer(fp);
-      Address        ip                       = VM_Magic.getNextInstructionAddress(fp);
-      int               callingCompiledMethodId  = VM_Magic.getCompiledMethodID(fp);
-      VM_CompiledMethod callingCompiledMethod    = VM_CompiledMethods.getCompiledMethod(callingCompiledMethodId);
-      Offset            callingInstructionOffset = callingCompiledMethod.getInstructionOffset(ip);
+      fp = VM_Magic.getCallerFramePointer(fp);
+      Address ip = VM_Magic.getNextInstructionAddress(fp);
+      int callingCompiledMethodId = VM_Magic.getCompiledMethodID(fp);
+      VM_CompiledMethod callingCompiledMethod = VM_CompiledMethods.getCompiledMethod(callingCompiledMethodId);
+      Offset callingInstructionOffset = callingCompiledMethod.getInstructionOffset(ip);
 
       callingCompiledMethod.getDynamicLink(dynamicLink, callingInstructionOffset);
-      bridgeTarget                = dynamicLink.methodRef().getResolvedMember();
+      bridgeTarget = dynamicLink.methodRef().getResolvedMember();
       bridgeParameterInitialIndex = dynamicLink.isInvokedWithImplicitThisParameter() ? -1 : 0;
-      bridgeParameterTypes        = bridgeTarget.getParameterTypes();
+      bridgeParameterTypes = bridgeTarget.getParameterTypes();
     }
-        
+
     reset();
   }
-  
+
   // Reset iteration to initial state.
   // This allows a map to be scanned multiple times
   //
@@ -165,15 +170,16 @@ import org.vmmagic.unboxed.WordArray;
     if (bridgeTarget != null) {
       // point to first saved gpr
       bridgeParameterMappingRequired = true;
-      bridgeParameterIndex   = bridgeParameterInitialIndex;
-      bridgeRegisterIndex    = FIRST_VOLATILE_GPR;
+      bridgeParameterIndex = bridgeParameterInitialIndex;
+      bridgeRegisterIndex = FIRST_VOLATILE_GPR;
       bridgeRegisterLocation = framePtr.loadAddress();
-      bridgeRegisterLocation = bridgeRegisterLocation.minus(BYTES_IN_DOUBLE * (LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) +
-                                                          BYTES_IN_ADDRESS * (LAST_NONVOLATILE_GPR - FIRST_VOLATILE_GPR + 1));
+      bridgeRegisterLocation =
+          bridgeRegisterLocation.minus(BYTES_IN_DOUBLE * (LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) +
+                                       BYTES_IN_ADDRESS * (LAST_NONVOLATILE_GPR - FIRST_VOLATILE_GPR + 1));
 
       // get to my caller's frameptr and then walk up to the spill area
       Address callersFP = VM_Magic.getCallerFramePointer(framePtr);
-      bridgeSpilledParamLocation     = callersFP.plus(STACKFRAME_HEADER_SIZE);
+      bridgeSpilledParamLocation = callersFP.plus(STACKFRAME_HEADER_SIZE);
     }
   }
 
@@ -181,17 +187,18 @@ import org.vmmagic.unboxed.WordArray;
    * given a index in the local area (biased : local0 has index 1)
    *   this routine determines the correspondig offset in the stack
    */
-  public int convertIndexToLocation(int index)   {
+  public int convertIndexToLocation(int index) {
     if (index == 0) return 0;
 
     if (index <= currentNumLocals) { //index is biased by 1;
-      return currentCompiledMethod.getGeneralLocalLocation(index-1); //register (positive value) or stacklocation (negative value)
+      return currentCompiledMethod.getGeneralLocalLocation(index -
+                                                           1); //register (positive value) or stacklocation (negative value)
     } else {
-      return currentCompiledMethod.getGeneralStackLocation(index-1-currentNumLocals);
-        //(VM_Compiler.offsetToLocation(maps.convertIndexToOffset(index) + BYTES_IN_STACKSLOT)); //locations must point to the top of the slot
+      return currentCompiledMethod.getGeneralStackLocation(index - 1 - currentNumLocals);
+      //(VM_Compiler.offsetToLocation(maps.convertIndexToOffset(index) + BYTES_IN_STACKSLOT)); //locations must point to the top of the slot
     }
-  } 
-  
+  }
+
   // Get location of next reference.
   // A zero return indicates that no more references exist.
   //
@@ -222,15 +229,20 @@ import org.vmmagic.unboxed.WordArray;
         }
 
         Address nextCallerAddress;
-        if (VM_Compiler.isRegister(location))
+        if (VM_Compiler.isRegister(location)) {
           nextCallerAddress = registerLocations.get(location).toAddress();
-        else
-          nextCallerAddress = framePtr.plus(VM_Compiler.locationToOffset(location) - BYTES_IN_ADDRESS); //location offsets are positioned on top of stackslot
+        } else {
+          nextCallerAddress =
+              framePtr.plus(VM_Compiler.locationToOffset(location) -
+                            BYTES_IN_ADDRESS); //location offsets are positioned on top of stackslot
+        }
         nextCallerAddress = nextCallerAddress.loadAddress();
-        if (VM_Compiler.isRegister(location))
+        if (VM_Compiler.isRegister(location)) {
           return registerLocations.get(location).toAddress();
-        else
-          return framePtr.plus(VM_Compiler.locationToOffset(location) - BYTES_IN_ADDRESS); //location offsets are positioned on top of stackslot
+        } else {
+          return framePtr.plus(VM_Compiler.locationToOffset(location) -
+                               BYTES_IN_ADDRESS); //location offsets are positioned on top of stackslot
+        }
       } else {
         // remember that we are done with the map for future calls, and then
         //   drop down to the code below 
@@ -243,7 +255,7 @@ import org.vmmagic.unboxed.WordArray;
         // point registerLocations[] to our callers stackframe
         //
         Address location = framePtr.plus(VM_Compiler.getFrameSize(currentCompiledMethod));
-        location = location.minus((LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) * BYTES_IN_DOUBLE); 
+        location = location.minus((LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) * BYTES_IN_DOUBLE);
         // skip non-volatile and volatile fprs
         for (int i = LAST_NONVOLATILE_GPR; i >= FIRST_VOLATILE_GPR; --i) {
           location = location.minus(BYTES_IN_ADDRESS);
@@ -256,19 +268,19 @@ import org.vmmagic.unboxed.WordArray;
       // handle implicit "this" parameter, if any
       //
       if (bridgeParameterIndex == -1) {
-        bridgeParameterIndex   += 1;
-        bridgeRegisterIndex    += 1;
+        bridgeParameterIndex += 1;
+        bridgeRegisterIndex += 1;
         bridgeRegisterLocation = bridgeRegisterLocation.plus(BYTES_IN_ADDRESS);
 
         if (VM.TraceStkMaps) {
           VM.sysWrite("VM_BaselineGCMapIterator getNextReferenceOffset, ");
-          VM.sysWrite("  this, bridge, returning: "); 
-          VM.sysWrite(bridgeRegisterLocation.minus(BYTES_IN_ADDRESS)); 
+          VM.sysWrite("  this, bridge, returning: ");
+          VM.sysWrite(bridgeRegisterLocation.minus(BYTES_IN_ADDRESS));
           VM.sysWrite("\n");
         }
         return bridgeRegisterLocation.minus(BYTES_IN_ADDRESS);
       }
-         
+
       // now the remaining parameters
       //
       while (bridgeParameterIndex < bridgeParameterTypes.length) {
@@ -280,12 +292,12 @@ import org.vmmagic.unboxed.WordArray;
           // update the bridgeRegisterLocation (based on type) and return a value if it is a ref
           if (bridgeParameterType.isReferenceType()) {
             bridgeRegisterLocation = bridgeRegisterLocation.plus(BYTES_IN_ADDRESS);
-            bridgeRegisterIndex    += 1;
+            bridgeRegisterIndex += 1;
 
             if (VM.TraceStkMaps) {
               VM.sysWrite("VM_BaselineGCMapIterator getNextReferenceOffset, ");
-              VM.sysWrite("  parm: "); 
-              VM.sysWrite(bridgeRegisterLocation.minus(BYTES_IN_ADDRESS)); 
+              VM.sysWrite("  parm: ");
+              VM.sysWrite(bridgeRegisterLocation.minus(BYTES_IN_ADDRESS));
               VM.sysWrite("\n");
             }
             return bridgeRegisterLocation.minus(BYTES_IN_ADDRESS);
@@ -296,7 +308,7 @@ import org.vmmagic.unboxed.WordArray;
             // nothing to do, these are not stored in gprs
           } else {
             // boolean, byte, char, short, int
-            bridgeRegisterIndex    += 1;
+            bridgeRegisterIndex += 1;
             bridgeRegisterLocation = bridgeRegisterLocation.plus(BYTES_IN_ADDRESS);
           }
         } else {  // now process the register spill area for the remain params
@@ -307,7 +319,7 @@ import org.vmmagic.unboxed.WordArray;
 
             if (VM.TraceStkMaps) {
               VM.sysWrite("VM_BaselineGCMapIterator getNextReferenceOffset, dynamic link spilled parameter, returning: ");
-              VM.sysWrite(bridgeSpilledParamLocation.minus(BYTES_IN_ADDRESS));    
+              VM.sysWrite(bridgeSpilledParamLocation.minus(BYTES_IN_ADDRESS));
               VM.sysWrite(".\n");
             }
             return bridgeSpilledParamLocation.minus(BYTES_IN_ADDRESS);
@@ -348,25 +360,30 @@ import org.vmmagic.unboxed.WordArray;
       VM.sysWrite(mapIndex);
       VM.sysWrite(".\n");
     }
-    
+
     if (mapIndex == 0) return Address.zero();
-    
+
     int location = convertIndexToLocation(mapIndex);
     if (VM.TraceStkMaps) {
       VM.sysWrite("VM_BaselineGCMapIterator getNextReturnAddress location = ");
       VM.sysWrite(location);
       VM.sysWrite(".\n");
     }
-        Address nextCallerAddress;
-        if (VM_Compiler.isRegister(location))
-          nextCallerAddress = registerLocations.get(location).toAddress();
-        else
-          nextCallerAddress = framePtr.plus(VM_Compiler.locationToOffset(location) - BYTES_IN_ADDRESS); //location offsets are positioned on top of stackslot
-        nextCallerAddress = nextCallerAddress.loadAddress();
-    if (VM_Compiler.isRegister(location))
+    Address nextCallerAddress;
+    if (VM_Compiler.isRegister(location)) {
+      nextCallerAddress = registerLocations.get(location).toAddress();
+    } else {
+      nextCallerAddress =
+          framePtr.plus(VM_Compiler.locationToOffset(location) -
+                        BYTES_IN_ADDRESS); //location offsets are positioned on top of stackslot
+    }
+    nextCallerAddress = nextCallerAddress.loadAddress();
+    if (VM_Compiler.isRegister(location)) {
       return registerLocations.get(location).toAddress();
-    else
-      return framePtr.plus(VM_Compiler.locationToOffset(location) - BYTES_IN_ADDRESS); //location offsets are positioned on top of stackslot
+    } else {
+      return framePtr.plus(VM_Compiler.locationToOffset(location) -
+                           BYTES_IN_ADDRESS); //location offsets are positioned on top of stackslot
+    }
   }
 
   // cleanup pointers - used with method maps to release data structures
@@ -382,26 +399,29 @@ import org.vmmagic.unboxed.WordArray;
 
     maps.cleanupPointers();
     maps = null;
-    if (mapId < 0) 
+    if (mapId < 0) {
       VM_ReferenceMaps.jsrLock.unlock();
-    bridgeTarget         = null;
+    }
+    bridgeTarget = null;
     bridgeParameterTypes = null;
   }
-       
+
   public int getType() {
     return VM_CompiledMethod.BASELINE;
   }
-  
+
   private void updateCallerRegisterLocations() {
     //dynamic bridge's registers already restored by calls to getNextReferenceAddress()
     if (!currentMethod.getDeclaringClass().hasDynamicBridgeAnnotation()) {
       if (VM.TraceStkMaps) VM.sysWriteln("    Update Caller RegisterLocations");
       Address addr = framePtr.plus(VM_Compiler.getFrameSize(currentCompiledMethod));
-      addr = addr.minus((currentCompiledMethod.getLastFloatStackRegister() - FIRST_FLOAT_LOCAL_REGISTER +1 ) << LOG_BYTES_IN_DOUBLE); //skip float registers
-    
+      addr =
+          addr.minus((currentCompiledMethod.getLastFloatStackRegister() - FIRST_FLOAT_LOCAL_REGISTER + 1) <<
+                     LOG_BYTES_IN_DOUBLE); //skip float registers
+
       for (int i = currentCompiledMethod.getLastFixedStackRegister(); i >= FIRST_FIXED_LOCAL_REGISTER; --i) {
         addr = addr.minus(BYTES_IN_ADDRESS);
-        registerLocations.set(i,addr.toWord());
+        registerLocations.set(i, addr.toWord());
       }
     }
   }

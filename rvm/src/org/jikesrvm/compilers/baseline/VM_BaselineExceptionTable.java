@@ -32,14 +32,17 @@ final class VM_BaselineExceptionTable extends VM_ExceptionTable {
     int[] handlerPCs = emap.getHandlerPC();
     VM_TypeReference[] exceptionTypes = emap.getExceptionTypes();
     int tableSize = startPCs.length;
-    int[] eTable = new int[tableSize*4];
-    
-    for (int i=0; i<tableSize; i++) {
-      eTable[i*4 + TRY_START] = bytecodeMap[startPCs[i]] << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH;
-      eTable[i*4 + TRY_END] = bytecodeMap[endPCs[i]] << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH;
-      eTable[i*4 + CATCH_START] = bytecodeMap[handlerPCs[i]] << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH;
+    int[] eTable = new int[tableSize * 4];
+
+    for (int i = 0; i < tableSize; i++) {
+      eTable[i * 4 + TRY_START] =
+          bytecodeMap[startPCs[i]] << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH;
+      eTable[i * 4 + TRY_END] =
+          bytecodeMap[endPCs[i]] << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH;
+      eTable[i * 4 + CATCH_START] =
+          bytecodeMap[handlerPCs[i]] << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH;
       try {
-        eTable[i*4 + EX_TYPE] = exceptionTypes[i].resolve().getId();
+        eTable[i * 4 + EX_TYPE] = exceptionTypes[i].resolve().getId();
       } catch (NoClassDefFoundError except) {
         // Yuck.  If this happens beatup Dave and make him do the right thing.
         // For now, we are forcing early loading of exception types to 
@@ -49,9 +52,9 @@ final class VM_BaselineExceptionTable extends VM_ExceptionTable {
         // type reference might entail calling arbitrary classloader code. 
         VM.sysWriteln("Trouble resolving a caught exception at compile time:");
         except.printStackTrace(); // sysFail won't print the stack trace that
-                                // lead to the NoClassDefFoundError.
+        // lead to the NoClassDefFoundError.
         VM.sysFail("Unable to resolve caught exception type at compile time");
-       }
+      }
     }
     return eTable;
   }

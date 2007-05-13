@@ -45,15 +45,16 @@ public class VM_ManagedCounterData {
     // Confirm that this method is called only once.  Once a handle is
     // assigned, it should not be changed.  Use resizeCounters(int) to
     // change the size of the data.
-    if (VM.VerifyAssertions)
+    if (VM.VerifyAssertions) {
       VM._assert(handle == -1);
+    }
 
     this.numCounters = countersNeeded;
     // Register  this many counters with the counter manager
     this.handle = counterManager.registerCounterSpace(countersNeeded);
   }
 
-  /** 
+  /**
    * Tell the data to automatically expand the counters if there is a
    * request to count an event that is greater than the current size.
    *
@@ -64,41 +65,44 @@ public class VM_ManagedCounterData {
     final int INITIAL_COUNTER_SIZE = 20;
 
     automaticallyGrowCounters = autoGrow;
-    if (automaticallyGrowCounters)
+    if (automaticallyGrowCounters) {
       initializeCounters(INITIAL_COUNTER_SIZE);
+    }
   }
 
   /**
    * Used to reset the number of counters for this data
-   * 
+   *
    * @param countersNeeded The number of counters needed
    */
   public void resizeCounters(int countersNeeded) {
     // Confirm that counters have been initialized (using initializeCounters(int))
-    if (VM.VerifyAssertions)
+    if (VM.VerifyAssertions) {
       VM._assert(handle != -1);
-    
-    counterManager.resizeCounterSpace(this.getHandle(),countersNeeded);
+    }
+
+    counterManager.resizeCounterSpace(this.getHandle(), countersNeeded);
     numCounters = countersNeeded;
   }
 
   /**
    * Return the count for the given (relative) index
-   * 
+   *
    * @param counterNumber The event number within the data
    * @return The count associated with this counter
    */
   public double getCounter(int counterNumber) {
     // Confirm that counters have been initialized 
     //  (using initializeCounters(int))
-    if (VM.VerifyAssertions)
+    if (VM.VerifyAssertions) {
       VM._assert(handle != -1);
+    }
     return counterManager.getCounter(this.getHandle(), counterNumber);
   }
 
   /**
    * Set the count for the given index
-   * 
+   *
    * @param counterNumber The event number within the data
    * @param value The new value of the counter
    */
@@ -109,17 +113,16 @@ public class VM_ManagedCounterData {
     }
     if (counterNumber >= getNumCounters()) {
       if (automaticallyGrowCounters) {
-        while (counterNumber >= getNumCounters()) 
-          resizeCounters(getNumCounters()*2);
-      }
-      else {
+        while (counterNumber >= getNumCounters()) {
+          resizeCounters(getNumCounters() * 2);
+        }
+      } else {
         VM._assert(false);
       }
     }
 
     counterManager.setCounter(this.getHandle(), counterNumber, value);
   }
-
 
   /**
    * Return the number of counters currently allocated for this data
@@ -128,8 +131,9 @@ public class VM_ManagedCounterData {
    */
   public int getNumCounters() {
     // Confirm that counters have been initialized (using initializeCounters(int))
-    if (VM.VerifyAssertions)
+    if (VM.VerifyAssertions) {
       VM._assert(handle != -1);
+    }
     return numCounters;
   }
 
@@ -142,10 +146,10 @@ public class VM_ManagedCounterData {
   public int getHandle() {
     return handle;
   }
-  
+
   /**
    * Return the counter manager for this data.
-   * 
+   *
    * @return the counter manager object
    */
   public OPT_InstrumentedEventCounterManager getCounterManager() {
@@ -161,7 +165,7 @@ public class VM_ManagedCounterData {
    * @return The instruction that will update the given counter
    */
   public OPT_Instruction createEventCounterInstruction(int counterNumber) {
-    return createEventCounterInstruction(counterNumber,1.0);
+    return createEventCounterInstruction(counterNumber, 1.0);
   }
 
   /**
@@ -182,10 +186,10 @@ public class VM_ManagedCounterData {
     // If we automatically growing counters, see if we need to.
     if (counterNumber >= numCounters) {
       if (automaticallyGrowCounters) {
-        while (counterNumber >= numCounters)
-          resizeCounters(getNumCounters()*2);
-      }
-      else{
+        while (counterNumber >= numCounters) {
+          resizeCounters(getNumCounters() * 2);
+        }
+      } else {
         // Should we put a warning here?? Not sure.  
       }
     }
@@ -194,23 +198,23 @@ public class VM_ManagedCounterData {
                                                              incrementValue);
   }
 
-   /**
-    *  This method prints the (sorted) nonzero elements a counter
-    *  array.
-    *
-    * @param f a function that gets the "name" for each counter
-    */
-   final void report(VM_CounterNameFunction f) {
+  /**
+   *  This method prints the (sorted) nonzero elements a counter
+   *  array.
+   *
+   * @param f a function that gets the "name" for each counter
+   */
+  final void report(VM_CounterNameFunction f) {
     double sum = 0;
     Vector<Counter> vec = new Vector<Counter>();
 
     // set up a vector of non-zero counts
-    for (int i=0; i < getNumCounters(); i++) {
+    for (int i = 0; i < getNumCounters(); i++) {
       double count = getCounter(i);
       if (count > 0.0) {
         sum += count;
         String s = f.getName(i);
-        vec.addElement(new Counter(s,count));
+        vec.addElement(new Counter(s, count));
       }
     }
 
@@ -218,12 +222,12 @@ public class VM_ManagedCounterData {
     sort(vec);
 
     // print
-    for (Enumeration<Counter> e = vec.elements(); e.hasMoreElements(); ) {
-       Counter c = e.nextElement();
-       String s = c.name;
-       double count = c.count;
-       double percent = (100 * count) / sum;
-       VM.sysWrite(count + "/" + sum + " = " + percent + "% " + s + "\n");
+    for (Enumeration<Counter> e = vec.elements(); e.hasMoreElements();) {
+      Counter c = e.nextElement();
+      String s = c.name;
+      double count = c.count;
+      double percent = (100 * count) / sum;
+      VM.sysWrite(count + "/" + sum + " = " + percent + "% " + s + "\n");
     }
   }
 
@@ -234,24 +238,24 @@ public class VM_ManagedCounterData {
    * Reference: "The C Programming Language", Kernighan & Ritchie, p. 116
    */
   private void sort(Vector<?> v) {
-     int n = v.size();
-     for (int gap = n/2; gap > 0; gap /= 2) {
-       for (int i = gap; i<n; ++i) {
-          for (int j = i-gap; j >=0; j-=gap) {
-             double a = ((Counter)v.elementAt(j)).count;
-             double b = ((Counter)v.elementAt(j+gap)).count;
-             if (a>=b) break;
-             swap(v,j,j+gap);
-          }
-       }
-     }
+    int n = v.size();
+    for (int gap = n / 2; gap > 0; gap /= 2) {
+      for (int i = gap; i < n; ++i) {
+        for (int j = i - gap; j >= 0; j -= gap) {
+          double a = ((Counter) v.elementAt(j)).count;
+          double b = ((Counter) v.elementAt(j + gap)).count;
+          if (a >= b) break;
+          swap(v, j, j + gap);
+        }
+      }
+    }
   }
-  
+
   // Interchange vec[i] with vec[j]
-  private <T> void swap (Vector<T> vec, int i, int j) {
-     T t = vec.elementAt(i);
-     vec.setElementAt(vec.elementAt(j),i);
-     vec.setElementAt(t,j);
+  private <T> void swap(Vector<T> vec, int i, int j) {
+    T t = vec.elementAt(i);
+    vec.setElementAt(vec.elementAt(j), i);
+    vec.setElementAt(t, j);
   }
 
   /* -----   Implementation   ---- */
@@ -259,31 +263,35 @@ public class VM_ManagedCounterData {
   /**
    * How many counters are needed by this data?
    **/
-  protected int numCounters=0;
+  protected int numCounters = 0;
 
   /**
    *  When a data object is registered with a counter manager, it is
    *  given an id, which is stored here.
    **/
-   
-   protected int handle=-1;
+
+  protected int handle = -1;
 
   /**
    * Basic block instrumentation stores its counters using an
    * abstracted counter allocation technique (a counterManager)
    **/
-  protected OPT_InstrumentedEventCounterManager counterManager=null;
-  
+  protected OPT_InstrumentedEventCounterManager counterManager = null;
+
   protected boolean automaticallyGrowCounters = false;
 
- /**
-  * Auxiliary class
-  */
- class Counter {
-     String name;
-     double count;
-     Counter(String s, double c) { name=s; count = c; }
- }
+  /**
+   * Auxiliary class
+   */
+  class Counter {
+    String name;
+    double count;
+
+    Counter(String s, double c) {
+      name = s;
+      count = c;
+    }
+  }
 
 }
 

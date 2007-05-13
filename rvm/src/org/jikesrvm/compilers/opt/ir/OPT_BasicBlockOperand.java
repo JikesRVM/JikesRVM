@@ -22,7 +22,7 @@ public final class OPT_BasicBlockOperand extends OPT_Operand {
 
   /**
    * Construct a new basic block operand with the given block.
-   * 
+   *
    * @param b the basic block
    */
   public OPT_BasicBlockOperand(OPT_BasicBlock b) {
@@ -31,13 +31,12 @@ public final class OPT_BasicBlockOperand extends OPT_Operand {
 
   /**
    * Return a new operand that is semantically equivalent to <code>this</code>.
-   * 
+   *
    * @return a copy of <code>this</code>
    */
   public OPT_Operand copy() {
     return new OPT_BasicBlockOperand(block);
   }
-
 
   /**
    * Are two operands semantically equivalent?
@@ -49,7 +48,7 @@ public final class OPT_BasicBlockOperand extends OPT_Operand {
    */
   public boolean similar(OPT_Operand op) {
     return (op instanceof OPT_BasicBlockOperand) &&
-           (block == ((OPT_BasicBlockOperand)op).block);
+           (block == ((OPT_BasicBlockOperand) op).block);
   }
 
   /**

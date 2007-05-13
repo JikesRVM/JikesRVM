@@ -15,8 +15,8 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
  * Dependence graph edges: connect operands of different instructions
  * represented by dependence graph nodes.
  */
-final class OPT_DepGraphEdge extends OPT_SpaceEffGraphEdge 
-  implements OPT_DepGraphConstants {
+final class OPT_DepGraphEdge extends OPT_SpaceEffGraphEdge
+    implements OPT_DepGraphConstants {
   /**
    * Does this edge represent a register true dependence?
    * @return true if yes, false otherwise
@@ -159,7 +159,7 @@ final class OPT_DepGraphEdge extends OPT_SpaceEffGraphEdge
    * @param destNode destination dependence graph node
    * @param depKind the type of the dependence edge
    */
-  OPT_DepGraphEdge(OPT_DepGraphNode sourceNode, 
+  OPT_DepGraphEdge(OPT_DepGraphNode sourceNode,
                    OPT_DepGraphNode destNode,
                    int depKind) {
     this(null, sourceNode, destNode, depKind);
@@ -204,38 +204,54 @@ final class OPT_DepGraphEdge extends OPT_SpaceEffGraphEdge
    */
   public String getTypeString() {
     String result = "";
-    if (isRegTrue())
+    if (isRegTrue()) {
       result += " REG_TRUE ";
-    if (isRegAnti())
+    }
+    if (isRegAnti()) {
       result += " REG_ANTI ";
-    if (isRegOutput())
+    }
+    if (isRegOutput()) {
       result += " REG_OUT  ";
-    if (isMemTrue())
+    }
+    if (isMemTrue()) {
       result += " MEM_TRUE ";
-    if (isMemAnti())
+    }
+    if (isMemAnti()) {
       result += " MEM_ANTI ";
-    if (isMemOutput())
+    }
+    if (isMemOutput()) {
       result += " MEM_OUT  ";
-    if (isMemReadsKill())
+    }
+    if (isMemReadsKill()) {
       result += " MEM_READS_KILL  ";
-    if (isControl())
+    }
+    if (isControl()) {
       result += " CONTROL  ";
-    if (isExceptionE())
+    }
+    if (isExceptionE()) {
       result += " EXCEP_E  ";
-    if (isExceptionMS())
+    }
+    if (isExceptionMS()) {
       result += " EXCEP_MS ";
-    if (isExceptionML())
+    }
+    if (isExceptionML()) {
       result += " EXCEP_ML ";
-    if (isExceptionR())
+    }
+    if (isExceptionR()) {
       result += " EXCEP_R  ";
-    if (isGuardTrue())
+    }
+    if (isGuardTrue()) {
       result += " GUARD_TRUE ";
-    if (isGuardAnti())
+    }
+    if (isGuardAnti()) {
       result += " GUARD_ANTI ";
-    if (isGuardOutput())
+    }
+    if (isGuardOutput()) {
       result += " GUARD_OUT  ";
-    if (isRegMayDef())
+    }
+    if (isRegMayDef()) {
       result += " REG_MAY_DEF";
+    }
     return result;
   }
 
@@ -247,7 +263,7 @@ final class OPT_DepGraphEdge extends OPT_SpaceEffGraphEdge
   public OPT_VCGEdge.EdgeDesc getVCGDescriptor() {
     return new OPT_VCGEdge.EdgeDesc() {
       public String getLabel() { return getTypeString(); }
-      };
+    };
   }
 
   /**
@@ -283,12 +299,13 @@ final class OPT_DepGraphEdge extends OPT_SpaceEffGraphEdge
    * @return input edge or null if not found
    */
   public static OPT_DepGraphEdge findInputEdge(OPT_DepGraphNode n,
-                                                     OPT_Operand op) {
+                                               OPT_Operand op) {
     for (OPT_DepGraphEdge inEdge = (OPT_DepGraphEdge) n.firstInEdge();
-         inEdge != null; 
+         inEdge != null;
          inEdge = (OPT_DepGraphEdge) inEdge.getNextIn()) {
-      if (inEdge.destOperand() == op)
-        return inEdge; 
+      if (inEdge.destOperand() == op) {
+        return inEdge;
+      }
     }
     return null; // edge not found
   }

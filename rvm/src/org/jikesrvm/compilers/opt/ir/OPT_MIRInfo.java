@@ -16,7 +16,7 @@ import org.jikesrvm.osr.OSR_VariableMap;
  * Wrapper class around IR info that is valid on the MIR
  */
 public final class OPT_MIRInfo {
-  
+
   /**
    * The generated machinecodes produced by this compilation of 'method'
    */
@@ -31,7 +31,7 @@ public final class OPT_MIRInfo {
   /**
    * The IRMap for the method (symbolic GCMapping info)
    */
-  public OPT_GCIRMap  gcIRMap;
+  public OPT_GCIRMap gcIRMap;
 
   public OSR_VariableMap osrVarMap;
   /**

@@ -8,13 +8,14 @@
  */
 
 package org.jikesrvm.osr;
+
 /**
  * checkcast instruction
  */
 public class BC_CheckCast extends OSR_PseudoBytecode {
   private static final int bsize = 6;
   private final int tid;
-  
+
   public BC_CheckCast(int typeId) {
     this.tid = typeId;
   }
@@ -30,10 +31,10 @@ public class BC_CheckCast extends OSR_PseudoBytecode {
   }
 
   public int stackChanges() {
-        return 0;
+    return 0;
   }
- 
+
   public String toString() {
-    return "CheckCast "+this.tid;
+    return "CheckCast " + this.tid;
   }
 }

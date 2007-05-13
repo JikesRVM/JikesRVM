@@ -34,9 +34,9 @@ import org.vmmagic.unboxed.WordArray;
  */
 @Uninterruptible
 public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator
-  implements VM_BaselineConstants {
+    implements VM_BaselineConstants {
   private static final boolean TRACE_ALL = false;
-  private static final boolean TRACE_DL  = false; // dynamic link frames
+  private static final boolean TRACE_DL = false; // dynamic link frames
 
   //-------------//
   // Constructor //
@@ -49,10 +49,10 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator
   // other types of iterators (ones for the opt compiler built frames)
   // The locations are kept as addresses within the stack.
   //
-  
+
   public VM_BaselineGCMapIterator(WordArray registerLocations) {
     this.registerLocations = registerLocations; // (in superclass)
-    dynamicLink  = new VM_DynamicLink();
+    dynamicLink = new VM_DynamicLink();
   }
 
   //-----------//
@@ -71,24 +71,25 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator
   //
   //  NOTE: An iterator may be reused to scan a different method and map.
   //
+
   public void setupIterator(VM_CompiledMethod compiledMethod, Offset instructionOffset, Address fp) {
-    currentCompiledMethod = (VM_BaselineCompiledMethod)compiledMethod;
+    currentCompiledMethod = (VM_BaselineCompiledMethod) compiledMethod;
     currentMethod = (VM_NormalMethod) currentCompiledMethod.getMethod();
     currentNumLocals = currentMethod.getLocalWords();
-      
+
     // setup superclass
     //
     framePtr = fp;
-      
+
     // setup stackframe mapping
     //
-    maps      = ((VM_BaselineCompiledMethod)compiledMethod).referenceMaps;
-    mapId     = maps.locateGCPoint(instructionOffset, currentMethod);
+    maps = ((VM_BaselineCompiledMethod) compiledMethod).referenceMaps;
+    mapId = maps.locateGCPoint(instructionOffset, currentMethod);
     mapIndex = 0;
     if (mapId < 0) {
       // lock the jsr lock to serialize jsr processing
       VM_ReferenceMaps.jsrLock.lock();
-      int JSRindex  = maps.setupJSRSubroutineMap(mapId);
+      int JSRindex = maps.setupJSRSubroutineMap(mapId);
       while (JSRindex != 0) {
         Address nextCallerAddress = framePtr.plus(convertIndexToOffset(JSRindex)).loadAddress();
         Offset nextMachineCodeOffset = compiledMethod.getInstructionOffset(nextCallerAddress);
@@ -97,56 +98,57 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator
           VM.sysWriteln("      next jsraddress offset = ", JSRindex);
           VM.sysWriteln("      next callers address = ", nextCallerAddress);
           VM.sysWriteln("      next machinecodeoffset = ", nextMachineCodeOffset);
-          if (nextMachineCodeOffset.sLT(Offset.zero()))
+          if (nextMachineCodeOffset.sLT(Offset.zero())) {
             VM.sysWriteln("BAD MACHINE CODE OFFSET");
+          }
         }
         JSRindex = maps.getNextJSRAddressIndex(nextMachineCodeOffset, currentMethod);
       }
     }
-    if (VM.TraceStkMaps || TRACE_ALL ) {
+    if (VM.TraceStkMaps || TRACE_ALL) {
       VM.sysWrite("VM_BaselineGCMapIterator setupIterator mapId = ");
       VM.sysWrite(mapId);
       VM.sysWrite(" for ");
       VM.sysWrite(compiledMethod.getMethod());
       VM.sysWrite(".\n");
     }
-      
+
     // setup dynamic bridge mapping
     //
-    bridgeTarget                   = null;
-    bridgeParameterTypes           = null;
+    bridgeTarget = null;
+    bridgeParameterTypes = null;
     bridgeParameterMappingRequired = false;
     bridgeRegistersLocationUpdated = false;
-    bridgeParameterIndex           = 0;
-    bridgeRegisterIndex            = 0;
-    bridgeRegisterLocation         = Address.zero();
-    bridgeSpilledParamLocation     = Address.zero();
-    
+    bridgeParameterIndex = 0;
+    bridgeRegisterIndex = 0;
+    bridgeRegisterLocation = Address.zero();
+    bridgeSpilledParamLocation = Address.zero();
+
     if (currentMethod.getDeclaringClass().hasDynamicBridgeAnnotation()) {
-      Address        ip                       = VM_Magic.getReturnAddress(fp);
-                        fp                       = VM_Magic.getCallerFramePointer(fp);
-      int               callingCompiledMethodId  = VM_Magic.getCompiledMethodID(fp);
-      VM_CompiledMethod callingCompiledMethod    = VM_CompiledMethods.getCompiledMethod(callingCompiledMethodId);
-      Offset            callingInstructionOffset = callingCompiledMethod.getInstructionOffset(ip);
+      Address ip = VM_Magic.getReturnAddress(fp);
+      fp = VM_Magic.getCallerFramePointer(fp);
+      int callingCompiledMethodId = VM_Magic.getCompiledMethodID(fp);
+      VM_CompiledMethod callingCompiledMethod = VM_CompiledMethods.getCompiledMethod(callingCompiledMethodId);
+      Offset callingInstructionOffset = callingCompiledMethod.getInstructionOffset(ip);
 
       callingCompiledMethod.getDynamicLink(dynamicLink, callingInstructionOffset);
-      bridgeTarget                    = dynamicLink.methodRef().getResolvedMember();
-      bridgeParameterTypes            = bridgeTarget.getParameterTypes();
+      bridgeTarget = dynamicLink.methodRef().getResolvedMember();
+      bridgeParameterTypes = bridgeTarget.getParameterTypes();
       if (dynamicLink.isInvokedWithImplicitThisParameter()) {
-        bridgeParameterInitialIndex     = -1;
-        bridgeSpilledParamInitialOffset =  8; // this + return addr
-      } else {  
-        bridgeParameterInitialIndex     =  0;
-        bridgeSpilledParamInitialOffset =  4; // return addr
+        bridgeParameterInitialIndex = -1;
+        bridgeSpilledParamInitialOffset = 8; // this + return addr
+      } else {
+        bridgeParameterInitialIndex = 0;
+        bridgeSpilledParamInitialOffset = 4; // return addr
       }
-      bridgeSpilledParamInitialOffset  += (4 * bridgeTarget.getParameterWords());
-      bridgeSpilledParameterMappingRequired = 
+      bridgeSpilledParamInitialOffset += (4 * bridgeTarget.getParameterWords());
+      bridgeSpilledParameterMappingRequired =
           callingCompiledMethod.getCompilerType() != VM_CompiledMethod.BASELINE;
     }
-        
+
     reset();
   }
-  
+
   // Reset iteration to initial state.
   // This allows a map to be scanned multiple times
   //
@@ -155,14 +157,14 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator
     finishedWithRegularMap = false;
 
     // setup map to report EBX if this method is holding the base of counter array in it.
-    counterArrayBase                 = currentCompiledMethod.hasCounterArray();
+    counterArrayBase = currentCompiledMethod.hasCounterArray();
 
     if (bridgeTarget != null) {
       bridgeParameterMappingRequired = true;
-      bridgeParameterIndex           = bridgeParameterInitialIndex;
-      bridgeRegisterIndex            = 0;
-      bridgeRegisterLocation         = framePtr.plus(STACKFRAME_FIRST_PARAMETER_OFFSET); // top of frame
-      bridgeSpilledParamLocation     = framePtr.plus(bridgeSpilledParamInitialOffset);
+      bridgeParameterIndex = bridgeParameterInitialIndex;
+      bridgeRegisterIndex = 0;
+      bridgeRegisterLocation = framePtr.plus(STACKFRAME_FIRST_PARAMETER_OFFSET); // top of frame
+      bridgeSpilledParamLocation = framePtr.plus(bridgeSpilledParamInitialOffset);
     }
   }
 
@@ -170,19 +172,19 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator
    * given a index in the local area (biased : local0 has index 1)
    *   this routine determines the correspondig offset in the stack
    */
-  public int convertIndexToLocation(int index)   {
+  public int convertIndexToLocation(int index) {
     if (index == 0) return 0;
     if (index <= currentNumLocals) { //index is biased by 1;
-      return currentCompiledMethod.getGeneralLocalLocation(index-1); 
+      return currentCompiledMethod.getGeneralLocalLocation(index - 1);
     } else {
-      return currentCompiledMethod.getGeneralStackLocation(index-1-currentNumLocals);
+      return currentCompiledMethod.getGeneralStackLocation(index - 1 - currentNumLocals);
     }
-  } 
-  
-  private int convertIndexToOffset(int index) { 
+  }
+
+  private int convertIndexToOffset(int index) {
     //for ia32: always offset, never registers
     if (index == 0) return 0; //invalid
-   
+
     // index is biased by 1, index 1 means local 0, this is at offset -BYTES_IN_ADDRESS from startLocalOffset 
     int offset = VM_Compiler.locationToOffset(convertIndexToLocation(index)) - BYTES_IN_ADDRESS; // no jsrbit here
     if (VM.TraceStkMaps) {
@@ -205,9 +207,9 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator
       } else {
         mapIndex = maps.getNextRefIndex(mapIndex, mapId);
       }
-      
+
       if (mapIndex != 0) {
-        int mapOffset=convertIndexToOffset(mapIndex);
+        int mapOffset = convertIndexToOffset(mapIndex);
         if (VM.TraceStkMaps || TRACE_ALL) {
           VM.sysWrite("VM_BaselineGCMapIterator getNextReferenceOffset = ");
           VM.sysWriteHex(mapOffset);
@@ -222,9 +224,9 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator
               VM.sysWrite("Offset is a JSR return address ie internal pointer.\n");
             }
           }
-          
+
           // TODO  clean this
-          return (framePtr.plus(mapOffset - BRIDGE_FRAME_EXTRA_SIZE ));
+          return (framePtr.plus(mapOffset - BRIDGE_FRAME_EXTRA_SIZE));
         } else {
           if (VM.TraceStkMaps || TRACE_ALL) {
             VM.sysWriteHex(framePtr.plus(mapOffset).loadInt());
@@ -233,7 +235,7 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator
               VM.sysWrite("Offset is a JSR return address ie internal pointer.\n");
             }
           }
-          return (framePtr.plus(mapOffset) );
+          return (framePtr.plus(mapOffset));
         }
       } else {
         // remember that we are done with the map for future calls, and then
@@ -244,8 +246,10 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator
 
     if (bridgeParameterMappingRequired) {
       if (VM.TraceStkMaps || TRACE_ALL || TRACE_DL) {
-        VM.sysWrite("getNextReferenceAddress: bridgeTarget="); VM.sysWrite(bridgeTarget); VM.sysWrite("\n");
-      }         
+        VM.sysWrite("getNextReferenceAddress: bridgeTarget=");
+        VM.sysWrite(bridgeTarget);
+        VM.sysWrite("\n");
+      }
 
       if (!bridgeRegistersLocationUpdated) {
         // point registerLocations[] to our callers stackframe
@@ -254,18 +258,18 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator
         registerLocations.set(T0, framePtr.plus(T0_SAVE_OFFSET).toWord());
         registerLocations.set(T1, framePtr.plus(T1_SAVE_OFFSET).toWord());
         registerLocations.set(EBX, framePtr.plus(EBX_SAVE_OFFSET).toWord());
-        
+
         bridgeRegistersLocationUpdated = true;
       }
 
       // handle implicit "this" parameter, if any
       //
       if (bridgeParameterIndex == -1) {
-        bridgeParameterIndex       += 1;
-        bridgeRegisterIndex        += 1;
-        bridgeRegisterLocation     = bridgeRegisterLocation.minus(4);
+        bridgeParameterIndex += 1;
+        bridgeRegisterIndex += 1;
+        bridgeRegisterLocation = bridgeRegisterLocation.minus(4);
         bridgeSpilledParamLocation = bridgeSpilledParamLocation.minus(4);
-        
+
         if (VM.TraceStkMaps || TRACE_ALL || TRACE_DL) {
           VM.sysWrite("VM_BaselineGCMapIterator getNextReferenceOffset = dynamic link GPR this ");
           VM.sysWrite(bridgeRegisterLocation.plus(4));
@@ -274,17 +278,17 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator
 
         return bridgeRegisterLocation.plus(4);
       }
-         
+
       // now the remaining parameters
       //
-      while(bridgeParameterIndex < bridgeParameterTypes.length) {
+      while (bridgeParameterIndex < bridgeParameterTypes.length) {
         VM_TypeReference bridgeParameterType = bridgeParameterTypes[bridgeParameterIndex++];
-        
+
         if (bridgeParameterType.isReferenceType()) {
-          bridgeRegisterIndex        += 1;
-          bridgeRegisterLocation     = bridgeRegisterLocation.minus(4);
+          bridgeRegisterIndex += 1;
+          bridgeRegisterLocation = bridgeRegisterLocation.minus(4);
           bridgeSpilledParamLocation = bridgeSpilledParamLocation.minus(4);
-          
+
           if (bridgeRegisterIndex <= NUM_PARAMETER_GPRS) {
             if (VM.TraceStkMaps || TRACE_ALL || TRACE_DL) {
               VM.sysWrite("VM_BaselineGCMapIterator getNextReferenceOffset = dynamic link GPR parameter ");
@@ -305,17 +309,17 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator
             }
           }
         } else if (bridgeParameterType.isLongType()) {
-          bridgeRegisterIndex        += 2;
-          bridgeRegisterLocation     = bridgeRegisterLocation.minus(8);
+          bridgeRegisterIndex += 2;
+          bridgeRegisterLocation = bridgeRegisterLocation.minus(8);
           bridgeSpilledParamLocation = bridgeSpilledParamLocation.minus(8);
         } else if (bridgeParameterType.isDoubleType()) {
           bridgeSpilledParamLocation = bridgeSpilledParamLocation.minus(8);
         } else if (bridgeParameterType.isFloatType()) {
           bridgeSpilledParamLocation = bridgeSpilledParamLocation.minus(4);
-        } else { 
+        } else {
           // boolean, byte, char, short, int
-          bridgeRegisterIndex        += 1;
-          bridgeRegisterLocation     = bridgeRegisterLocation.minus(4);
+          bridgeRegisterIndex += 1;
+          bridgeRegisterLocation = bridgeRegisterLocation.minus(4);
           bridgeSpilledParamLocation = bridgeSpilledParamLocation.minus(4);
         }
       }
@@ -325,7 +329,7 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator
       registerLocations.set(JTOC, framePtr.plus(JTOC_SAVE_OFFSET).toWord());
       registerLocations.set(EBX, framePtr.plus(EBX_SAVE_OFFSET).toWord());
     }
-    
+
     return Address.zero();
   }
 
@@ -359,9 +363,10 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator
   public void cleanupPointers() {
     maps.cleanupPointers();
     maps = null;
-    if (mapId < 0)   
+    if (mapId < 0) {
       VM_ReferenceMaps.jsrLock.unlock();
-    bridgeTarget         = null;
+    }
+    bridgeTarget = null;
     bridgeParameterTypes = null;
   }
 
@@ -377,11 +382,11 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator
 
   // Iterator state for mapping any stackframe.
   //
-  private VM_NormalMethod  currentMethod;      // compiled method for the frame
-  private VM_BaselineCompiledMethod  currentCompiledMethod;      // compiled method for the frame
+  private VM_NormalMethod currentMethod;      // compiled method for the frame
+  private VM_BaselineCompiledMethod currentCompiledMethod;      // compiled method for the frame
   private int currentNumLocals;
-  private int              mapIndex; // current index in current map
-  private int              mapId;     // id of current map out of all maps
+  private int mapIndex; // current index in current map
+  private int mapId;     // id of current map out of all maps
   private VM_ReferenceMaps maps;      // set of maps for this method
   private boolean counterArrayBase;   // have we reported the base ptr of the edge counter array?
 
@@ -389,15 +394,15 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator
   //
   private VM_DynamicLink dynamicLink;                    // place to keep info returned by VM_CompiledMethod.getDynamicLink
   private VM_Method bridgeTarget;                        // method to be invoked via dynamic bridge (null: current frame is not a dynamic bridge)
-  private VM_TypeReference[]      bridgeParameterTypes;           // parameter types passed by that method
-  private boolean        bridgeParameterMappingRequired; // have all bridge parameters been mapped yet?
-  private boolean        bridgeSpilledParameterMappingRequired; // do we need to map spilled params (baseline compiler = no, opt = yes)
-  private boolean        bridgeRegistersLocationUpdated; // have the register location been updated
-  private boolean        finishedWithRegularMap;         // have we processed all the values in the regular map yet?
-  private int            bridgeParameterInitialIndex;    // first parameter to be mapped (-1 == "this")
-  private int            bridgeParameterIndex;           // current parameter being mapped (-1 == "this")
-  private int            bridgeRegisterIndex;            // gpr register it lives in
-  private Address     bridgeRegisterLocation;         // memory address at which that register was saved
-  private Address     bridgeSpilledParamLocation;     // current spilled param location
-  private int            bridgeSpilledParamInitialOffset;// starting offset to stack location for param0
+  private VM_TypeReference[] bridgeParameterTypes;           // parameter types passed by that method
+  private boolean bridgeParameterMappingRequired; // have all bridge parameters been mapped yet?
+  private boolean bridgeSpilledParameterMappingRequired; // do we need to map spilled params (baseline compiler = no, opt = yes)
+  private boolean bridgeRegistersLocationUpdated; // have the register location been updated
+  private boolean finishedWithRegularMap;         // have we processed all the values in the regular map yet?
+  private int bridgeParameterInitialIndex;    // first parameter to be mapped (-1 == "this")
+  private int bridgeParameterIndex;           // current parameter being mapped (-1 == "this")
+  private int bridgeRegisterIndex;            // gpr register it lives in
+  private Address bridgeRegisterLocation;         // memory address at which that register was saved
+  private Address bridgeSpilledParamLocation;     // current spilled param location
+  private int bridgeSpilledParamInitialOffset;// starting offset to stack location for param0
 }

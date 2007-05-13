@@ -27,13 +27,13 @@ import org.vmmagic.unboxed.Offset;
  * hardware architectures
  * @see org.jikesrvm.ArchitectureSpecific.OSR_BaselineExecStateExtractor
  * @see org.jikesrvm.ArchitectureSpecific.OSR_OptExecStateExtractor
- * 
+ *
  * It returns a compiler and architecture neutered runtime state 
  * OSR_ExecutionState.
  */
 
-public abstract class OSR_ExecStateExtractor implements VM_Constants{
-  /** 
+public abstract class OSR_ExecStateExtractor implements VM_Constants {
+  /**
    * Returns a VM scope descriptor (OSR_ExecutionState) for a compiled method
    * on the top of a thread stack, (or a list of descriptors for an inlined
    * method).  
@@ -44,10 +44,10 @@ public abstract class OSR_ExecStateExtractor implements VM_Constants{
    *                      yield point was taken. tsFrom is the callee of ypTaken
    * @param cmid the compiled method id of ypTaken
    */
-  public abstract OSR_ExecutionState extractState(VM_Thread thread, 
-                                           Offset tsFromFPoff,
-                                           Offset ypTakenFPoff,
-                                           int cmid);
+  public abstract OSR_ExecutionState extractState(VM_Thread thread,
+                                                  Offset tsFromFPoff,
+                                                  Offset ypTakenFPoff,
+                                                  int cmid);
 
   public static void printStackTraces(int[] stack, Offset osrFPoff) {
 
@@ -56,7 +56,7 @@ public abstract class OSR_ExecStateExtractor implements VM_Constants{
     Address fp = VM_Magic.objectAsAddress(stack).plus(osrFPoff);
     Address ip = VM_Magic.getReturnAddress(fp);
     fp = VM_Magic.getCallerFramePointer(fp);
-    while (VM_Magic.getCallerFramePointer(fp).NE(ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP) ){
+    while (VM_Magic.getCallerFramePointer(fp).NE(ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP)) {
       int cmid = VM_Magic.getCompiledMethodID(fp);
 
       if (cmid == ArchitectureSpecific.VM_StackframeLayoutConstants.INVISIBLE_METHOD_ID) {
@@ -70,7 +70,7 @@ public abstract class OSR_ExecStateExtractor implements VM_Constants{
           fp = VM_Runtime.unwindNativeStackFrame(fp);
         }
       }
-      
+
       ip = VM_Magic.getReturnAddress(fp);
       fp = VM_Magic.getCallerFramePointer(fp);
     }

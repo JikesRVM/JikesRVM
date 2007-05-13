@@ -50,8 +50,8 @@ import org.vmmagic.unboxed.Offset;
  * not meant to be used in isolation, but rather to provide support
  * from the OPT_Assembler.
  */
-abstract class OPT_AssemblerBase extends VM_Assembler 
-  implements OPT_Operators, VM_Constants, OPT_PhysicalRegisterConstants {
+abstract class OPT_AssemblerBase extends VM_Assembler
+    implements OPT_Operators, VM_Constants, OPT_PhysicalRegisterConstants {
 
   private static final boolean DEBUG_ESTIMATE = false;
 
@@ -59,12 +59,12 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * Hold EBP register object for use in estimating size of memory operands.
    */
   private final OPT_Register EBP;
-  
+
   /**
    * Hold EBP register object for use in estimating size of memory operands.
    */
   private final OPT_Register ESP;
-  
+
   /**
    * Construct Assembler object
    * @see VM_Assembler
@@ -96,9 +96,9 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    */
   boolean isImm(OPT_Operand op) {
     return
-      (op instanceof OPT_IntConstantOperand) ||
-      (op instanceof OPT_TrapCodeOperand) ||
-      (op instanceof OPT_BranchOperand && op.asBranch().target.getmcOffset() >= 0);
+        (op instanceof OPT_IntConstantOperand) ||
+        (op instanceof OPT_TrapCodeOperand) ||
+        (op instanceof OPT_BranchOperand && op.asBranch().target.getmcOffset() >= 0);
   }
 
   /**
@@ -121,7 +121,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
       // used by ImmOrLabel stuff
       return op.asBranch().target.getmcOffset();
     } else if (op instanceof OPT_TrapCodeOperand) {
-      return ((OPT_TrapCodeOperand)op).getTrapCode() + VM_TrapConstants.RVM_TRAP_BASE;
+      return ((OPT_TrapCodeOperand) op).getTrapCode() + VM_TrapConstants.RVM_TRAP_BASE;
     } else {
       return op.asIntConstant().value;
     }
@@ -157,14 +157,15 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    */
   private byte getMachineRegister(OPT_Register reg) {
     int type = OPT_PhysicalRegisterSet.getPhysicalRegisterType(reg);
-    if (type == INT_REG) 
+    if (type == INT_REG) {
       return (byte) (reg.number - FIRST_INT);
-    else if (type == DOUBLE_REG)
+    } else if (type == DOUBLE_REG) {
       return (byte) (reg.number - FIRST_DOUBLE);
-    else
+    } else {
       throw new OPT_OptimizingCompilerException("unexpected register type " + type);
+    }
   }
-        
+
   /**
    *  Given a register operand, return the 3 bit IA32 ISA encoding
    * of that register.  This function translates an optimizing
@@ -173,13 +174,13 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * operand is a register operand, and will blow up if it is not;
    * use isReg to check operands passed to this method.
    *
-   * @see #isReg 
+   * @see #isReg
    *
    * @param op the register operand being queried
    * @return the 3 bit IA32 ISA encoding of op
    */
   byte getReg(OPT_Operand op) {
-    return getMachineRegister( op.asRegister().register );
+    return getMachineRegister(op.asRegister().register);
   }
 
   /**
@@ -200,7 +201,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @return the 3 bit IA32 ISA encoding of the base register of op
    */
   byte getBase(OPT_Operand op) {
-    return getMachineRegister(((OPT_MemoryOperand)op).base.register);
+    return getMachineRegister(((OPT_MemoryOperand) op).base.register);
   }
 
   /**
@@ -220,7 +221,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @return the 3 bit IA32 ISA encoding of the index register of op
    */
   byte getIndex(OPT_Operand op) {
-    return getMachineRegister(((OPT_MemoryOperand)op).index.register);
+    return getMachineRegister(((OPT_MemoryOperand) op).index.register);
   }
 
   /**
@@ -237,7 +238,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @return the IA32 ISA encoding of the scale of op
    */
   short getScale(OPT_Operand op) {
-    return ((OPT_MemoryOperand)op).scale;
+    return ((OPT_MemoryOperand) op).scale;
   }
 
   /**
@@ -254,7 +255,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @return the IA32 ISA encoding of the scale of op
    */
   Offset getDisp(OPT_Operand op) {
-    return ((OPT_MemoryOperand)op).disp;
+    return ((OPT_MemoryOperand) op).disp;
   }
 
   /**
@@ -273,11 +274,12 @@ abstract class OPT_AssemblerBase extends VM_Assembler
     if (op instanceof OPT_MemoryOperand) {
       OPT_MemoryOperand mop = (OPT_MemoryOperand) op;
       return (mop.base != null) &&
-        (mop.index == null) &&
-        (!mop.disp.isZero()) &&
-        (mop.scale == 0);
-    } else
+             (mop.index == null) &&
+             (!mop.disp.isZero()) &&
+             (mop.scale == 0);
+    } else {
       return false;
+    }
   }
 
   /**
@@ -295,11 +297,12 @@ abstract class OPT_AssemblerBase extends VM_Assembler
     if (op instanceof OPT_MemoryOperand) {
       OPT_MemoryOperand mop = (OPT_MemoryOperand) op;
       return (mop.base == null) &&
-        (mop.index == null) &&
-        (!mop.disp.isZero()) &&
-        (mop.scale == 0);
-    } else
+             (mop.index == null) &&
+             (!mop.disp.isZero()) &&
+             (mop.scale == 0);
+    } else {
       return false;
+    }
   }
 
   /**
@@ -318,11 +321,12 @@ abstract class OPT_AssemblerBase extends VM_Assembler
     if (op instanceof OPT_MemoryOperand) {
       OPT_MemoryOperand mop = (OPT_MemoryOperand) op;
       return (mop.base != null) &&
-        (mop.index == null) &&
-        (mop.disp.isZero()) &&
-        (mop.scale == 0);
-    } else
+             (mop.index == null) &&
+             (mop.disp.isZero()) &&
+             (mop.scale == 0);
+    } else {
       return false;
+    }
   }
 
   /**
@@ -341,9 +345,10 @@ abstract class OPT_AssemblerBase extends VM_Assembler
     if (op instanceof OPT_MemoryOperand) {
       OPT_MemoryOperand mop = (OPT_MemoryOperand) op;
       return (mop.base == null) &&
-        (mop.index != null);
-    } else
+             (mop.index != null);
+    } else {
       return false;
+    }
   }
 
   /**
@@ -359,10 +364,11 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @return true if op should be assembled as SIB mode
    */
   boolean isRegIdx(OPT_Operand op) {
-    if (op instanceof OPT_MemoryOperand) 
+    if (op instanceof OPT_MemoryOperand) {
       return !(isAbs(op) || isRegInd(op) || isRegDisp(op) || isRegOff(op));
-    else
+    } else {
       return false;
+    }
   }
 
   /**
@@ -380,7 +386,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @return the bits that (usually) represent the given condition
    * in the IA32 ISA */
   byte getCond(OPT_Operand op) {
-    return ((OPT_IA32ConditionOperand)op).value;
+    return ((OPT_IA32ConditionOperand) op).value;
   }
 
   /**
@@ -413,10 +419,11 @@ abstract class OPT_AssemblerBase extends VM_Assembler
       // used by ImmOrLabel stuff
       return 0;
     } else {
-      if (op.asBranch().target.getmcOffset() < 0)
-        return - op.asBranch().target.getmcOffset();
-      else
+      if (op.asBranch().target.getmcOffset() < 0) {
+        return -op.asBranch().target.getmcOffset();
+      } else {
         return -1;
+      }
     }
   }
 
@@ -432,7 +439,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
     return (op instanceof OPT_BranchOperand &&
             op.asBranch().target.getmcOffset() < 0);
   }
-    
+
   /**
    *  Is the given operand a branch target?
    *
@@ -443,7 +450,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @return true if it represents a branch target
    */
   @NoInline
-  boolean isImmOrLabel(OPT_Operand op) { 
+  boolean isImmOrLabel(OPT_Operand op) {
     // TODO: Remove NoInlinePragma, work around for leave SSA bug
     return (isImm(op) || isLabel(op));
   }
@@ -461,13 +468,15 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @return true if inst operates upon byte data
    */
   boolean isByte(OPT_Instruction inst) {
-    if (inst.operator.toString().indexOf("__b") != -1)
+    if (inst.operator.toString().indexOf("__b") != -1) {
       return true;
+    }
 
-    for(int i = 0; i < inst.getNumberOfOperands(); i++) {
+    for (int i = 0; i < inst.getNumberOfOperands(); i++) {
       OPT_Operand op = inst.getOperand(i);
-      if (op instanceof OPT_MemoryOperand)
-        return (((OPT_MemoryOperand)op).size == 1);
+      if (op instanceof OPT_MemoryOperand) {
+        return (((OPT_MemoryOperand) op).size == 1);
+      }
     }
 
     return false;
@@ -486,13 +495,15 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @return true if inst operates upon word data
    */
   boolean isWord(OPT_Instruction inst) {
-    if (inst.operator.toString().indexOf("__w") != -1)
+    if (inst.operator.toString().indexOf("__w") != -1) {
       return true;
+    }
 
-    for(int i = 0; i < inst.getNumberOfOperands(); i++) {
+    for (int i = 0; i < inst.getNumberOfOperands(); i++) {
       OPT_Operand op = inst.getOperand(i);
-      if (op instanceof OPT_MemoryOperand)
-        return (((OPT_MemoryOperand)op).size == 2);
+      if (op instanceof OPT_MemoryOperand) {
+        return (((OPT_MemoryOperand) op).size == 2);
+      }
     }
 
     return false;
@@ -511,13 +522,15 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @return true if inst operates upon quad data
    */
   boolean isQuad(OPT_Instruction inst) {
-    if (inst.operator.toString().indexOf("__q") != -1)
+    if (inst.operator.toString().indexOf("__q") != -1) {
       return true;
+    }
 
-    for(int i = 0; i < inst.getNumberOfOperands(); i++) {
+    for (int i = 0; i < inst.getNumberOfOperands(); i++) {
       OPT_Operand op = inst.getOperand(i);
-      if (op instanceof OPT_MemoryOperand)
-        return (((OPT_MemoryOperand)op).size == 8);
+      if (op instanceof OPT_MemoryOperand) {
+        return (((OPT_MemoryOperand) op).size == 8);
+      }
     }
 
     return false;
@@ -535,7 +548,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
     OPT_Instruction inst = start.nextInstructionInCodeOrder();
     int budget = 120; // slight fudge factor could be 127
     while (true) {
-      if (budget <= 0 ) return false;
+      if (budget <= 0) return false;
       if (inst.getmcOffset() == target) {
         return true;
       }
@@ -546,71 +559,72 @@ abstract class OPT_AssemblerBase extends VM_Assembler
 
   protected int estimateSize(OPT_Instruction inst) {
     switch (inst.getOpcode()) {
-      case LABEL_opcode:case BBEND_opcode:case UNINT_BEGIN_opcode:case UNINT_END_opcode:
+      case LABEL_opcode:
+      case BBEND_opcode:
+      case UNINT_BEGIN_opcode:
+      case UNINT_END_opcode:
         // these generate no code
         return 0;
 
         // Generated from the same case in VM_Assembler
-      case IA32_ADC_opcode:case IA32_ADD_opcode:case IA32_AND_opcode:
-      case IA32_OR_opcode:case IA32_SBB_opcode:
-      case IA32_XOR_opcode:
-        {
-          int size = 2; // opcode + modr/m
-          size += operandCost(MIR_BinaryAcc.getResult(inst), true);
-          size += operandCost(MIR_BinaryAcc.getValue(inst), true);
-          return size;
-        }
-      case IA32_CMP_opcode:
-        {
-          int size = 2; // opcode + modr/m
-          size += operandCost(MIR_Compare.getVal1(inst), true);
-          size += operandCost(MIR_Compare.getVal2(inst), true);
-          return size;
-        }
-      case IA32_TEST_opcode:
-        {
-          int size = 2; // opcode + modr/m
-          size += operandCost(MIR_Test.getVal1(inst), true);
-          size += operandCost(MIR_Test.getVal2(inst), true);
-          return size;
-        }
-        
-      case IA32_PUSH_opcode:
-        {
-          OPT_Operand op = MIR_UnaryNoRes.getVal(inst);
-          int size = 0;
-          if (op instanceof OPT_RegisterOperand) {
-            size += 1;
-          } else if (op instanceof OPT_IntConstantOperand) {
-            if (fits(((OPT_IntConstantOperand)op).value,8)) {
-              size += 2;
-            } else {
-              size += 5;
-            }
+      case IA32_ADC_opcode:
+      case IA32_ADD_opcode:
+      case IA32_AND_opcode:
+      case IA32_OR_opcode:
+      case IA32_SBB_opcode:
+      case IA32_XOR_opcode: {
+        int size = 2; // opcode + modr/m
+        size += operandCost(MIR_BinaryAcc.getResult(inst), true);
+        size += operandCost(MIR_BinaryAcc.getValue(inst), true);
+        return size;
+      }
+      case IA32_CMP_opcode: {
+        int size = 2; // opcode + modr/m
+        size += operandCost(MIR_Compare.getVal1(inst), true);
+        size += operandCost(MIR_Compare.getVal2(inst), true);
+        return size;
+      }
+      case IA32_TEST_opcode: {
+        int size = 2; // opcode + modr/m
+        size += operandCost(MIR_Test.getVal1(inst), true);
+        size += operandCost(MIR_Test.getVal2(inst), true);
+        return size;
+      }
+
+      case IA32_PUSH_opcode: {
+        OPT_Operand op = MIR_UnaryNoRes.getVal(inst);
+        int size = 0;
+        if (op instanceof OPT_RegisterOperand) {
+          size += 1;
+        } else if (op instanceof OPT_IntConstantOperand) {
+          if (fits(((OPT_IntConstantOperand) op).value, 8)) {
+            size += 2;
           } else {
-            size += (2+operandCost(op, true));
+            size += 5;
           }
-          return size;
+        } else {
+          size += (2 + operandCost(op, true));
         }
-      case IA32_LEA_opcode:
-        {
-          int size = 2; // opcode + 1 byte modr/m
-          size += operandCost(MIR_Lea.getResult(inst), false);
-          size += operandCost(MIR_Lea.getValue(inst), false);
-          return size;
-        }
-      case IA32_MOV_opcode:
-        {
-          int size = 2; // opcode + modr/m
-          OPT_Operand result = MIR_Move.getResult(inst);
-          OPT_Operand value = MIR_Move.getValue(inst);
-          size += operandCost(result, false);
-          size += operandCost(value, false);
-          return size;
-        }
+        return size;
+      }
+      case IA32_LEA_opcode: {
+        int size = 2; // opcode + 1 byte modr/m
+        size += operandCost(MIR_Lea.getResult(inst), false);
+        size += operandCost(MIR_Lea.getValue(inst), false);
+        return size;
+      }
+      case IA32_MOV_opcode: {
+        int size = 2; // opcode + modr/m
+        OPT_Operand result = MIR_Move.getResult(inst);
+        OPT_Operand value = MIR_Move.getValue(inst);
+        size += operandCost(result, false);
+        size += operandCost(value, false);
+        return size;
+      }
       case IA32_OFFSET_opcode:
         return 4;
-      case IA32_JCC_opcode: case IA32_JMP_opcode:
+      case IA32_JCC_opcode:
+      case IA32_JMP_opcode:
         return 6; // assume long form
       case IA32_LOCK_opcode:
         return 1;
@@ -627,32 +641,31 @@ abstract class OPT_AssemblerBase extends VM_Assembler
         } else {
           return 2 + operandCost(target, false); // opcode + modr/m
         }
-      default:
-        {
-          int size = 3; // 2 bytes opcode + 1 byte modr/m
-          for (OPT_OperandEnumeration opEnum = inst.getRootOperands();
-               opEnum.hasMoreElements();) {
-            OPT_Operand op = opEnum.next();
-            size += operandCost(op, false);
-          }
-          return size;
+      default: {
+        int size = 3; // 2 bytes opcode + 1 byte modr/m
+        for (OPT_OperandEnumeration opEnum = inst.getRootOperands();
+             opEnum.hasMoreElements();) {
+          OPT_Operand op = opEnum.next();
+          size += operandCost(op, false);
         }
+        return size;
+      }
     }
   }
-  
+
   private int operandCost(OPT_Operand op, boolean shortFormImmediate) {
     if (op instanceof OPT_MemoryOperand) {
-      OPT_MemoryOperand mop = (OPT_MemoryOperand)op;
+      OPT_MemoryOperand mop = (OPT_MemoryOperand) op;
       // If it's a 2byte mem location, we're going to need an override prefix
       int prefix = mop.size == 2 ? 1 : 0;
-      
+
       // Deal with EBP wierdness
       if (mop.base != null && mop.base.register == EBP) {
         if (mop.index != null) {
           // forced into SIB + 32 bit displacement no matter what disp is
           return prefix + 5;
         }
-        if (fits(mop.disp,8)) {
+        if (fits(mop.disp, 8)) {
           return prefix + 1;
         } else {
           return prefix + 4;
@@ -665,19 +678,19 @@ abstract class OPT_AssemblerBase extends VM_Assembler
 
       // Deal with ESP wierdness -- requires SIB byte even when index is null
       if (mop.base != null && mop.base.register == ESP) {
-        if (fits(mop.disp,8)) {
+        if (fits(mop.disp, 8)) {
           return prefix + 2;
         } else {
           return prefix + 5;
         }
-      }      
+      }
 
       if (mop.index == null) {
         // just displacement to worry about
         if (mop.disp.isZero()) {
           return prefix + 0;
-        } else if (fits(mop.disp,8)) {
-          return  prefix + 1;
+        } else if (fits(mop.disp, 8)) {
+          return prefix + 1;
         } else {
           return prefix + 4;
         }
@@ -689,15 +702,15 @@ abstract class OPT_AssemblerBase extends VM_Assembler
         } else {
           if (mop.disp.isZero()) {
             return prefix + 1;
-          } else if (fits(mop.disp,8)) {
-            return  prefix + 2;
+          } else if (fits(mop.disp, 8)) {
+            return prefix + 2;
           } else {
             return prefix + 5;
           }
-        }          
+        }
       }
     } else if (op instanceof OPT_IntConstantOperand) {
-      if (shortFormImmediate && fits(((OPT_IntConstantOperand)op).value,8)) {
+      if (shortFormImmediate && fits(((OPT_IntConstantOperand) op).value, 8)) {
         return 1;
       } else {
         return 4;
@@ -706,7 +719,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
       return 0;
     }
   }
-  
+
   /**
    * Emit the given instruction, assuming that
    * it is a MIR_CondBranch instruction
@@ -724,9 +737,9 @@ abstract class OPT_AssemblerBase extends VM_Assembler
       int targetLabel = getLabel(MIR_CondBranch.getTarget(inst));
       int delta = targetLabel - sourceLabel;
       if (VM.VerifyAssertions) VM._assert(delta >= 0);
-      if (delta<10 || (delta<90 && targetIsClose(inst, -targetLabel))) {
+      if (delta < 10 || (delta < 90 && targetIsClose(inst, -targetLabel))) {
         int miStart = mi;
-        VM_ForwardReference r =  new VM_ForwardReference.ShortBranch(mi, targetLabel);
+        VM_ForwardReference r = new VM_ForwardReference.ShortBranch(mi, targetLabel);
         forwardRefs = VM_ForwardReference.enqueue(forwardRefs, r);
         setMachineCodes(mi++, (byte) (0x70 + cond));
         mi += 1; // leave space for displacement
@@ -752,9 +765,9 @@ abstract class OPT_AssemblerBase extends VM_Assembler
       int targetLabel = getLabel(MIR_Branch.getTarget(inst));
       int delta = targetLabel - sourceLabel;
       if (VM.VerifyAssertions) VM._assert(delta >= 0);
-      if (delta<10 || (delta<90 && targetIsClose(inst, -targetLabel))) {
+      if (delta < 10 || (delta < 90 && targetIsClose(inst, -targetLabel))) {
         int miStart = mi;
-        VM_ForwardReference r =  new VM_ForwardReference.ShortBranch(mi, targetLabel);
+        VM_ForwardReference r = new VM_ForwardReference.ShortBranch(mi, targetLabel);
         forwardRefs = VM_ForwardReference.enqueue(forwardRefs, r);
         setMachineCodes(mi++, (byte) 0xEB);
         mi += 1; // leave space for displacement
@@ -769,9 +782,14 @@ abstract class OPT_AssemblerBase extends VM_Assembler
     } else if (isRegDisp(MIR_Branch.getTarget(inst))) {
       emitJMP_RegDisp(getBase(MIR_Branch.getTarget(inst)), getDisp(MIR_Branch.getTarget(inst)));
     } else if (isRegOff(MIR_Branch.getTarget(inst))) {
-      emitJMP_RegOff(getIndex(MIR_Branch.getTarget(inst)), getScale(MIR_Branch.getTarget(inst)), getDisp(MIR_Branch.getTarget(inst)));
+      emitJMP_RegOff(getIndex(MIR_Branch.getTarget(inst)),
+                     getScale(MIR_Branch.getTarget(inst)),
+                     getDisp(MIR_Branch.getTarget(inst)));
     } else if (isRegIdx(MIR_Branch.getTarget(inst))) {
-      emitJMP_RegIdx(getBase(MIR_Branch.getTarget(inst)), getIndex(MIR_Branch.getTarget(inst)), getScale(MIR_Branch.getTarget(inst)), getDisp(MIR_Branch.getTarget(inst)));
+      emitJMP_RegIdx(getBase(MIR_Branch.getTarget(inst)),
+                     getIndex(MIR_Branch.getTarget(inst)),
+                     getScale(MIR_Branch.getTarget(inst)),
+                     getDisp(MIR_Branch.getTarget(inst)));
     } else if (isRegInd(MIR_Branch.getTarget(inst))) {
       emitJMP_RegInd(getBase(MIR_Branch.getTarget(inst)));
     } else {
@@ -784,7 +802,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    *
    * @param instr  An integer to be interpreted as a PowerPC instruction
    * @param offset the mcoffset (in bytes) of the instruction
- */
+   */
   public String disasm(int instr, int offset) {
     OPT_OptimizingCompilerException.TODO("OPT_Assembler: disassembler");
     return null;
@@ -794,27 +812,26 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * generate machine code into ir.machinecode.
    * @param ir the IR to generate
    * @param shouldPrint should we print the machine code?
-   * @return   the number of machinecode instructions generated
+   * @return the number of machinecode instructions generated
    */
   public static int generateCode(OPT_IR ir, boolean shouldPrint) {
     int count = 0;
     OPT_Assembler asm = new OPT_Assembler(count, shouldPrint, ir);
-    
-    for (OPT_Instruction p = ir.firstInstructionInCodeOrder(); 
+
+    for (OPT_Instruction p = ir.firstInstructionInCodeOrder();
          p != null; p = p.nextInstructionInCodeOrder()) {
-      p.setmcOffset( - ++count);
+      p.setmcOffset(-++count);
     }
 
-    
-    for (OPT_Instruction p = ir.firstInstructionInCodeOrder(); 
+    for (OPT_Instruction p = ir.firstInstructionInCodeOrder();
          p != null; p = p.nextInstructionInCodeOrder()) {
       if (DEBUG_ESTIMATE) {
         int start = asm.getMachineCodeIndex();
         int estimate = asm.estimateSize(p);
         asm.doInst(p);
         int end = asm.getMachineCodeIndex();
-        if (end-start > estimate) {
-          VM.sysWriteln("Bad estimate: "+(end-start)+" "+estimate+" "+p);
+        if (end - start > estimate) {
+          VM.sysWriteln("Bad estimate: " + (end - start) + " " + estimate + " " + p);
           VM.sysWrite("\tMachine code: ");
           asm.writeLastInstruction(start);
           VM.sysWriteln();
@@ -823,7 +840,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
         asm.doInst(p);
       }
     }
-    
+
     ir.MIRInfo.machinecode = asm.getMachineCodes();
 
     return ir.MIRInfo.machinecode.length();

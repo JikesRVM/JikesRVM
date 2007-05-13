@@ -36,22 +36,23 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
    * may be a conservative approximation (java.lang.Object).
    * If there is no common superclass, than null is returned.
    */
-  public static VM_TypeReference findCommonSuperclass (VM_TypeReference t1, VM_TypeReference t2) {
-    if (t1 == t2)
+  public static VM_TypeReference findCommonSuperclass(VM_TypeReference t1, VM_TypeReference t2) {
+    if (t1 == t2) {
       return t1;
-    
+    }
+
     if (t1.isPrimitiveType() || t2.isPrimitiveType()) {
       if (t1.isIntLikeType() && t2.isIntLikeType()) {
         // 2 non-identical int like types, return the largest 
-        if (t1.isIntType() || t2.isIntType())
+        if (t1.isIntType() || t2.isIntType()) {
           return VM_TypeReference.Int;
-        else if (t1.isCharType() || t2.isCharType())
+        } else if (t1.isCharType() || t2.isCharType()) {
           return VM_TypeReference.Char;
-        else if (t1.isShortType() || t2.isShortType())
+        } else if (t1.isShortType() || t2.isShortType()) {
           return VM_TypeReference.Short;
-        else if (t1.isByteType() || t2.isByteType())
+        } else if (t1.isByteType() || t2.isByteType()) {
           return VM_TypeReference.Byte;
-        else {
+        } else {
           // Unreachable
           if (VM.VerifyAssertions) VM._assert(false);
           return null;
@@ -63,19 +64,21 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
         return null;
       }
     }
-    
+
     //Neither t1 nor t2 are primitive or unboxed types at this point
 
     // Is either t1 or t2 null? Null is assignable to all types so the type of
     // the other operand is the most precise
-    if (t1 == VM_TypeReference.NULL_TYPE)
+    if (t1 == VM_TypeReference.NULL_TYPE) {
       return t2;
-    else if (t2 == VM_TypeReference.NULL_TYPE)
+    } else if (t2 == VM_TypeReference.NULL_TYPE) {
       return t1;
- 
-    if (OPT_IRGenOptions.DBG_TYPE)
+    }
+
+    if (OPT_IRGenOptions.DBG_TYPE) {
       VM.sysWrite("finding common supertype of " + t1 + " and " + t2);
- 
+    }
+
     // Strip off all array junk.
     int arrayDimensions = 0;
     while (t1.isArrayType() && t2.isArrayType()) {
@@ -94,37 +97,41 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
           arrayDimensions++;
           type = t1;
         } else {
-            if (VM.VerifyAssertions) VM._assert(false);
+          if (VM.VerifyAssertions) VM._assert(false);
         }
       }
       --arrayDimensions;
-      while (arrayDimensions-- > 0)
+      while (arrayDimensions-- > 0) {
         type = type.getArrayTypeForElementType();
-      if (OPT_IRGenOptions.DBG_TYPE)
+      }
+      if (OPT_IRGenOptions.DBG_TYPE) {
         VM.sysWrite("one is a primitive array, so supertype is " + type);
+      }
       return type;
     }
 
     // At this point neither t1 or t2 is a primitive or word type and either
     // one or the other maybe an array type
-        
+
     // is this a case of arrays with different dimensionalities?
     if (t1.isArrayType() || t2.isArrayType()) {
       // one is a class type, while the other is an array
       VM_TypeReference type = VM_TypeReference.JavaLangObject;
-      while (arrayDimensions-- > 0)
+      while (arrayDimensions-- > 0) {
         type = type.getArrayTypeForElementType();
-      if (OPT_IRGenOptions.DBG_TYPE)
+      }
+      if (OPT_IRGenOptions.DBG_TYPE) {
         VM.sysWrite("differing dimensionalities for arrays, so supertype is "
                     + type);
+      }
       return type;
     }
     // At this point they both must be class types.
 
     // technique: push heritage of each type on a separate stack,
     // then find the highest point in the stack where they differ.
-    VM_Class c1 = (VM_Class)t1.peekResolvedType();
-    VM_Class c2 = (VM_Class)t2.peekResolvedType();
+    VM_Class c1 = (VM_Class) t1.peekResolvedType();
+    VM_Class c2 = (VM_Class) t2.peekResolvedType();
     if (c1 != null && c2 != null) {
       // The ancestor hierarchy is available, so do this exactly
       OPT_Stack<VM_Class> s1 = new OPT_Stack<VM_Class>();
@@ -137,31 +144,39 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
         s2.push(c2);
         c2 = c2.getSuperClass();
       } while (c2 != null);
-      if (OPT_IRGenOptions.DBG_TYPE)
+      if (OPT_IRGenOptions.DBG_TYPE) {
         VM.sysWrite("stack 1: " + s1);
-      if (OPT_IRGenOptions.DBG_TYPE)
+      }
+      if (OPT_IRGenOptions.DBG_TYPE) {
         VM.sysWrite("stack 2: " + s2);
+      }
       VM_TypeReference best = VM_TypeReference.JavaLangObject;
       while (!s1.empty() && !s2.empty()) {
         VM_Class temp = s1.pop();
-        if (temp == s2.pop())
-          best = temp.getTypeRef(); 
-        else 
+        if (temp == s2.pop()) {
+          best = temp.getTypeRef();
+        } else {
           break;
+        }
       }
-      if (OPT_IRGenOptions.DBG_TYPE)
+      if (OPT_IRGenOptions.DBG_TYPE) {
         VM.sysWrite("common supertype of the two classes is " + best);
-      while (arrayDimensions-- > 0)
+      }
+      while (arrayDimensions-- > 0) {
         best = best.getArrayTypeForElementType();
+      }
       return best;
     } else {
-      if (OPT_IRGenOptions.DBG_TYPE && c1 == null)
+      if (OPT_IRGenOptions.DBG_TYPE && c1 == null) {
         VM.sysWrite(c1 + " is not loaded, using Object as common supertype");
-      if (OPT_IRGenOptions.DBG_TYPE && c2 == null)
+      }
+      if (OPT_IRGenOptions.DBG_TYPE && c2 == null) {
         VM.sysWrite(c2 + " is not loaded, using Object as common supertype");
+      }
       VM_TypeReference common = VM_TypeReference.JavaLangObject;
-      while (arrayDimensions-- > 0)
+      while (arrayDimensions-- > 0) {
         common = common.getArrayTypeForElementType();
+      }
       return common;
     }
   }
@@ -181,7 +196,7 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
    * @param childType child type
    * @return OPT_Constants.YES, OPT_Constants.NO, or OPT_Constants.MAYBE
    */
-  public static byte includesType (VM_TypeReference parentType, VM_TypeReference childType) {
+  public static byte includesType(VM_TypeReference parentType, VM_TypeReference childType) {
     // First handle some cases that we can answer without needing to 
     // look at the type hierarchy
     // NOTE: The ordering of these tests is critical!
@@ -189,22 +204,17 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
       // Sanity assertion that a null isn't being assigned to an unboxed type
       if (VM.VerifyAssertions && parentType.isReferenceType()) VM._assert(!parentType.isWordType());
       return parentType.isReferenceType() ? YES : NO;
-    }
-    else if (parentType == VM_TypeReference.NULL_TYPE) {
+    } else if (parentType == VM_TypeReference.NULL_TYPE) {
       return NO;
-    }
-    else if (parentType == childType) {
+    } else if (parentType == childType) {
       return YES;
-    }
-    else if (parentType == VM_TypeReference.Word && childType.isWordType()) {
+    } else if (parentType == VM_TypeReference.Word && childType.isWordType()) {
       return YES;
-    }
-    else if (parentType.isPrimitiveType() || childType.isPrimitiveType()) {
+    } else if (parentType.isPrimitiveType() || childType.isPrimitiveType()) {
       return NO;
-    }
-    else if (parentType == VM_TypeReference.JavaLangObject)
+    } else if (parentType == VM_TypeReference.JavaLangObject) {
       return YES;
-    else {
+    } else {
       // Unboxed types are handled in the word and primitive type case
       if (VM.VerifyAssertions) {
         VM._assert(!parentType.isWordType() && !childType.isWordType());
@@ -219,40 +229,39 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
         if (parentType.isArrayType()) {
           if (childType == VM_TypeReference.JavaLangObject) {
             return MAYBE;        // arrays are subtypes of Object.
-          }
-          else if (!childType.isArrayType()) {
+          } else if (!childType.isArrayType()) {
             return NO;
-          }
-          else {
+          } else {
             VM_TypeReference parentET = parentType.getInnermostElementType();
             if (parentET == VM_TypeReference.JavaLangObject) {
               int LHSDimension = parentType.getDimensionality();
               int RHSDimension = childType.getDimensionality();
               if ((RHSDimension > LHSDimension) ||
-                  (RHSDimension == LHSDimension && 
-                      childType.getInnermostElementType().isClassType()))
-                return YES; 
-              else 
+                  (RHSDimension == LHSDimension &&
+                   childType.getInnermostElementType().isClassType())) {
+                return YES;
+              } else {
                 return NO;
+              }
             } else {
               // parentType is [^k of something other than Object
               // If dimensionalities are equal, then we can reduce 
               // to isAssignableWith(parentET, childET).
               // If the dimensionalities are not equal then the answer is NO
-              if (parentType.getDimensionality() == childType.getDimensionality())
-                return includesType(parentET, childType.getInnermostElementType()); 
-              else 
+              if (parentType.getDimensionality() == childType.getDimensionality()) {
+                return includesType(parentET, childType.getInnermostElementType());
+              } else {
                 return NO;
+              }
             }
           }
         } else {                    // parentType.isClassType()
           if (!childType.isClassType()) {
             // parentType is known to not be java.lang.Object.
             return NO;
-          }
-          else {
-            VM_Class childClass = (VM_Class)childType.peekResolvedType();
-            VM_Class parentClass = (VM_Class)parentType.peekResolvedType();
+          } else {
+            VM_Class childClass = (VM_Class) childType.peekResolvedType();
+            VM_Class parentClass = (VM_Class) parentType.peekResolvedType();
             if (childClass != null && parentClass != null) {
               if (parentClass.isResolved() && childClass.isResolved() ||
                   (VM.writingBootImage && parentClass.isInBootImage() && childClass.isInBootImage())) {
@@ -279,13 +288,14 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
                   // But, if the reverse instanceOf is also false, then we know 
                   // that parent and child are completely 
                   // unrelated and we can return NO.
-                  if (childClass.isFinal())
-                    return NO; 
-                  else {
-                    if (VM_Runtime.isAssignableWith(childClass, parentClass))
-                      return MAYBE; 
-                    else 
+                  if (childClass.isFinal()) {
+                    return NO;
+                  } else {
+                    if (VM_Runtime.isAssignableWith(childClass, parentClass)) {
+                      return MAYBE;
+                    } else {
                       return NO;
+                    }
                   }
                 }
               }
@@ -327,9 +337,9 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
    * Get the integer stored at a particular index of a class's constant
    * pool.
    */
-  public static OPT_IntConstantOperand getIntFromConstantPool (VM_Class klass, 
-                                                               int index) {
-    Offset offset = klass.getLiteralOffset(index) ;
+  public static OPT_IntConstantOperand getIntFromConstantPool(VM_Class klass,
+                                                              int index) {
+    Offset offset = klass.getLiteralOffset(index);
     int val = VM_Statics.getSlotContentsAsInt(offset);
     return new OPT_IntConstantOperand(val);
   }
@@ -338,9 +348,9 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
    * Get the double stored at a particular index of a class's constant
    * pool.
    */
-  public static OPT_DoubleConstantOperand getDoubleFromConstantPool (VM_Class klass, 
-                                                                     int index) {
-    Offset offset = klass.getLiteralOffset(index) ;
+  public static OPT_DoubleConstantOperand getDoubleFromConstantPool(VM_Class klass,
+                                                                    int index) {
+    Offset offset = klass.getLiteralOffset(index);
     long val_raw = VM_Statics.getSlotContentsAsLong(offset);
     double val = Double.longBitsToDouble(val_raw);
     return new OPT_DoubleConstantOperand(val, offset);
@@ -350,9 +360,9 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
    * Get the float stored at a particular index of a class's constant
    * pool.
    */
-  public static OPT_FloatConstantOperand getFloatFromConstantPool (VM_Class klass, 
-                                                                   int index) {
-    Offset offset = klass.getLiteralOffset(index) ;
+  public static OPT_FloatConstantOperand getFloatFromConstantPool(VM_Class klass,
+                                                                  int index) {
+    Offset offset = klass.getLiteralOffset(index);
     int val_raw = VM_Statics.getSlotContentsAsInt(offset);
     float val = Float.intBitsToFloat(val_raw);
     return new OPT_FloatConstantOperand(val, offset);
@@ -362,9 +372,9 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
    * Get the long stored at a particular index of a class's constant
    * pool.
    */
-  public static OPT_LongConstantOperand getLongFromConstantPool (VM_Class klass, 
-                                                                 int index) {
-    Offset offset = klass.getLiteralOffset(index) ;
+  public static OPT_LongConstantOperand getLongFromConstantPool(VM_Class klass,
+                                                                int index) {
+    Offset offset = klass.getLiteralOffset(index);
     long val = VM_Statics.getSlotContentsAsLong(offset);
     return new OPT_LongConstantOperand(val, offset);
   }
@@ -373,11 +383,11 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
    * Get the String stored at a particular index of a class's constant
    * pool.
    */
-  public static OPT_StringConstantOperand getStringFromConstantPool (VM_Class klass, int index) {
+  public static OPT_StringConstantOperand getStringFromConstantPool(VM_Class klass, int index) {
     Offset offset = klass.getLiteralOffset(index);
     try {
       String val;
-      val = (String)VM_Statics.getSlotContentsAsObject(offset);
+      val = (String) VM_Statics.getSlotContentsAsObject(offset);
       return new OPT_StringConstantOperand(val, offset);
     } catch (ClassCastException e) {
       throw new Error("Corrupt JTOC at offset " + offset.toInt(), e);
@@ -388,7 +398,7 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
    * Get the Class stored at a particular index of a class's constant
    * pool.
    */
-  public static OPT_ClassConstantOperand getClassFromConstantPool (VM_Class klass, int index) {
+  public static OPT_ClassConstantOperand getClassFromConstantPool(VM_Class klass, int index) {
     Offset offset = klass.getLiteralOffset(index);
     try {
       Class<?> val = klass.getClassForType();

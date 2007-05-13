@@ -35,20 +35,20 @@ public abstract class VM_MachineSpecificIA extends VM_MachineSpecific implements
   public static final class IA32 extends VM_MachineSpecificIA {
     public static final IA32 singleton = new IA32();
   }
-  
+
   /**
    * Wrappers around EMT64-specific code (64-bit specific)
    */
   public static final class EM64T extends VM_MachineSpecificIA {
     public static final EM64T singleton = new EM64T();
   }
- 
-  
+
   /* 
-   * Generic (32/64 neutral) IA support
-   */
-  
+  * Generic (32/64 neutral) IA support
+  */
+
   /* common to all ISAs */
+
   /**
    * The following method will emit code that moves a reference to an
    * object's TIB into a destination register.
@@ -59,24 +59,24 @@ public abstract class VM_MachineSpecificIA extends VM_MachineSpecific implements
    * @param tibOffset the offset of the tib from the object header
    */
   @Interruptible
-  public final void baselineEmitLoadTIB(ArchitectureSpecific.VM_Assembler asm, int dest, int object, Offset tibOffset) { 
+  public final void baselineEmitLoadTIB(ArchitectureSpecific.VM_Assembler asm, int dest, int object, Offset tibOffset) {
     asm.emitMOV_Reg_RegDisp((byte) dest, (byte) object, tibOffset);
   }
-  
+
   /**
    * The following method initializes a thread stack as if
    * "startoff" method had been called by an empty baseline-compiled
    *  "sentinel" frame with one local variable
-   * 
+   *
    * @param contextRegisters The context registers for this thread
    * @param ip The instruction pointer for the "startoff" method
    * @param sp The base of the stack
-  */
+   */
   @Uninterruptible
   public final void initializeStack(ArchitectureSpecific.VM_Registers contextRegisters, Address ip, Address sp) {
     Address fp;
     sp = sp.minus(STACKFRAME_HEADER_SIZE);                   // last word of header
-    fp = sp.minus(VM_SizeConstants.BYTES_IN_ADDRESS + STACKFRAME_BODY_OFFSET);  
+    fp = sp.minus(VM_SizeConstants.BYTES_IN_ADDRESS + STACKFRAME_BODY_OFFSET);
     VM_Magic.setCallerFramePointer(fp, STACKFRAME_SENTINEL_FP);
     VM_Magic.setCompiledMethodID(fp, INVISIBLE_METHOD_ID);
 
@@ -84,16 +84,16 @@ public abstract class VM_MachineSpecificIA extends VM_MachineSpecific implements
     contextRegisters.gprs.set(ESP, sp.toWord());
     contextRegisters.gprs.set(VM_BaselineConstants.JTOC,
                               VM_Magic.objectAsAddress(VM_Magic.getJTOC()).toWord());
-    contextRegisters.fp  = fp;
-    contextRegisters.ip  = ip;    
+    contextRegisters.fp = fp;
+    contextRegisters.ip = ip;
   }
- 
+
   /* unique to IA */
-  
+
   /**
    * A thread's stack has been moved or resized.
    * Adjust the ESP register to reflect new position.
-   * 
+   *
    * @param registers The registers for this thread
    * @param delta The displacement to be applied
    * @param traceAdjustments Log all adjustments to stderr if true
@@ -106,6 +106,6 @@ public abstract class VM_MachineSpecificIA extends VM_MachineSpecific implements
     if (traceAdjustments) {
       VM.sysWrite(" esp =");
       VM.sysWrite(registers.gprs.get(ESP));
-    }   
+    }
   }
 }

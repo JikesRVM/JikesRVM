@@ -35,7 +35,7 @@ public class OPT_LiveSetEnumerator implements Enumeration<OPT_RegisterOperand> {
    * @return whether there are any more elements?
    */
   public boolean hasMoreElements() {
-    return  current != null;
+    return current != null;
   }
 
   /**
@@ -46,10 +46,9 @@ public class OPT_LiveSetEnumerator implements Enumeration<OPT_RegisterOperand> {
     if (current != null) {
       OPT_LiveSetElement ret = current;
       current = current.getNext();
-      return  ret.getRegisterOperand();
-    } 
-    else {
-      throw  new NoSuchElementException("OPT_LiveSetEnumerator");
+      return ret.getRegisterOperand();
+    } else {
+      throw new NoSuchElementException("OPT_LiveSetEnumerator");
     }
   }
 }

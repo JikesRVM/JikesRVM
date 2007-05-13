@@ -51,7 +51,7 @@ public class OPT_Compiler implements VM_Callbacks.StartupMonitor {
    * Prepare compiler for use.
    * @param options options to use for compilations during initialization
    */
-  public static void init (OPT_Options options) {
+  public static void init(OPT_Options options) {
     try {
       if (!(VM.writingBootImage || VM.runningTool || VM.runningVM)) {
         // Caller failed to ensure that the VM was initialized.
@@ -79,10 +79,10 @@ public class OPT_Compiler implements VM_Callbacks.StartupMonitor {
       e.isFatal = true;
       throw e;
     } catch (Throwable e) {
-        VM.sysWriteln( e.toString() );
-        throw new OPT_OptimizingCompilerException("OPT_Compiler", 
-                                                  "untrapped failure during init, "
-                                                  + " Converting to OPT_OptimizingCompilerException");
+      VM.sysWriteln(e.toString());
+      throw new OPT_OptimizingCompilerException("OPT_Compiler",
+                                                "untrapped failure during init, "
+                                                + " Converting to OPT_OptimizingCompilerException");
     }
   }
 
@@ -100,8 +100,10 @@ public class OPT_Compiler implements VM_Callbacks.StartupMonitor {
    * indicate when the application has started
    */
   private static boolean appStarted = false;
+
   public static synchronized boolean getAppStarted() { return appStarted; }
-  public static synchronized void setAppStarted() { appStarted = true; }  
+
+  public static synchronized void setAppStarted() { appStarted = true; }
 
   /**
    * Set up option used while compiling the boot image
@@ -109,7 +111,7 @@ public class OPT_Compiler implements VM_Callbacks.StartupMonitor {
    */
   public static void setBootOptions(OPT_Options options) {
     // Pick an optimization level
-    options.setOptLevel(2); 
+    options.setOptLevel(2);
 
     // Only do guarded inlining if we can use code patches.
     // Early speculation with method test/class test can result in
@@ -128,28 +130,29 @@ public class OPT_Compiler implements VM_Callbacks.StartupMonitor {
    * @param klassName the class to load
    * @param options compiler options for compiling the class
    */
-  private static void loadSpecialClass (String klassName, OPT_Options options) {
-    VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), 
+  private static void loadSpecialClass(String klassName, OPT_Options options) {
+    VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
                                                           VM_Atom.findOrCreateAsciiAtom(klassName));
-    VM_Class klass = (VM_Class)tRef.peekResolvedType();
+    VM_Class klass = (VM_Class) tRef.peekResolvedType();
     for (VM_Method meth : klass.getDeclaredMethods()) {
-      if (meth.isClassInitializer())
+      if (meth.isClassInitializer()) {
         continue;
+      }
       if (!meth.isCompiled() ||
           meth.getCurrentCompiledMethod().getCompilerType() != VM_CompiledMethod.OPT) {
         OPT_CompilationPlan cp =
             new OPT_CompilationPlan((VM_NormalMethod) meth,
-                OPT_OptimizationPlanner.createOptimizationPlan(options),
-                null, options);
+                                    OPT_OptimizationPlanner.createOptimizationPlan(options),
+                                    null, options);
         meth.replaceCompiledMethod(compile(cp));
       }
     }
   }
 
   public static void preloadSpecialClass(OPT_Options options) {
-    String klassName = "L"+options.PRELOAD_CLASS+";";
+    String klassName = "L" + options.PRELOAD_CLASS + ";";
 
-    if (options.PRELOAD_AS_BOOT ) {
+    if (options.PRELOAD_AS_BOOT) {
       setBootOptions(options);
       // Make a local copy so that some options can be altered to mimic options
       // during boot build
@@ -160,21 +163,21 @@ public class OPT_Compiler implements VM_Callbacks.StartupMonitor {
       loadSpecialClass(klassName, options);
     } catch (Throwable e) {
       e.printStackTrace();
-      VM.sysWrite("Ignoring failure of preloadSpecialClass of "+klassName+"\n");
+      VM.sysWrite("Ignoring failure of preloadSpecialClass of " + klassName + "\n");
     }
   }
 
   /**
    * Call the static init functions for the OPT_Compiler subsystems
    */
-  private static void initializeStatics () {
+  private static void initializeStatics() {
     OPT_InvokeeThreadLocalContext.init();
   }
 
   /**
    * Prevent instantiation by clients
    */
-  private OPT_Compiler () {
+  private OPT_Compiler() {
   }
 
   /**
@@ -185,14 +188,14 @@ public class OPT_Compiler implements VM_Callbacks.StartupMonitor {
   /**
    * Has the optimizing compiler been initialized?
    */
-  public static boolean isInitialized () {
+  public static boolean isInitialized() {
     return isInitialized;
   }
 
   /**
    * Reset the optimizing compiler
    */
-  static void reset () {
+  static void reset() {
     isInitialized = false;
   }
 
@@ -201,11 +204,11 @@ public class OPT_Compiler implements VM_Callbacks.StartupMonitor {
   ////////////////////////////////////////////
   /**
    * Invoke the opt compiler to execute a compilation plan.
-   * 
+   *
    * @param cp the compilation plan to be executed
    * @return the VM_CompiledMethod object that is the result of compilation
    */
-  public static VM_CompiledMethod compile (OPT_CompilationPlan cp) {
+  public static VM_CompiledMethod compile(OPT_CompilationPlan cp) {
     VM_NormalMethod method = cp.method;
     OPT_Options options = cp.options;
     checkSupported(method, options);
@@ -213,8 +216,9 @@ public class OPT_Compiler implements VM_Callbacks.StartupMonitor {
       printMethodMessage(method, options);
       OPT_IR ir = cp.execute();
       // if doing analysis only, don't try to return an object
-      if (cp.analyzeOnly || cp.irGeneration)
+      if (cp.analyzeOnly || cp.irGeneration) {
         return null;
+      }
       // now that we're done compiling, give the specialization
       // system a chance to eagerly compile any specialized version
       // that are pending.  TODO: use lazy compilation with specialization.
@@ -233,7 +237,7 @@ public class OPT_Compiler implements VM_Callbacks.StartupMonitor {
    * Debugging aid.
    * @param what a string message to print
    */
-  public static void report (String what) {
+  public static void report(String what) {
     VM.sysWrite(what + '\n');
   }
 
@@ -242,12 +246,14 @@ public class OPT_Compiler implements VM_Callbacks.StartupMonitor {
    * @param what a string message to print
    * @param time a timestamp to print
    */
-  public static void report (String what, long time) {
+  public static void report(String what, long time) {
     VM.sysWrite(what);
-    if (what.length() < 8)
+    if (what.length() < 8) {
       VM.sysWrite('\t');
-    if (what.length() < 16)
+    }
+    if (what.length() < 16) {
       VM.sysWrite('\t');
+    }
     VM.sysWrite('\t' + time + " ms");
   }
 
@@ -256,7 +262,7 @@ public class OPT_Compiler implements VM_Callbacks.StartupMonitor {
    * @param what a string message to print
    * @param method the method being compiled
    */
-  public static void header (String what, VM_NormalMethod method) {
+  public static void header(String what, VM_NormalMethod method) {
     System.out.println("********* START OF:  " + what + "   FOR " + method);
   }
 
@@ -265,7 +271,7 @@ public class OPT_Compiler implements VM_Callbacks.StartupMonitor {
    * @param what a string message to print
    * @param method the method being compiled
    */
-  public static void bottom (String what, VM_NormalMethod method) {
+  public static void bottom(String what, VM_NormalMethod method) {
     System.out.println("*********   END OF:  " + what + "   FOR " + method);
   }
 
@@ -274,7 +280,7 @@ public class OPT_Compiler implements VM_Callbacks.StartupMonitor {
    * @param ir
    * @param message
    */
-  public static void printInstructions (OPT_IR ir, String message) {
+  public static void printInstructions(OPT_IR ir, String message) {
     header(message, ir.method);
     ir.printInstructions();
     bottom(message, ir.method);
@@ -285,12 +291,13 @@ public class OPT_Compiler implements VM_Callbacks.StartupMonitor {
    * @param method
    * @param options
    */
-  private static void printMethodMessage (VM_NormalMethod method, 
-                                          OPT_Options options) {
-    if (options.PRINT_METHOD || options.PRINT_INLINE_REPORT)
-      VM.sysWrite("-methodOpt "+ method.getDeclaringClass() + ' ' 
-                  + method.getName() + ' ' 
+  private static void printMethodMessage(VM_NormalMethod method,
+                                         OPT_Options options) {
+    if (options.PRINT_METHOD || options.PRINT_INLINE_REPORT) {
+      VM.sysWrite("-methodOpt " + method.getDeclaringClass() + ' '
+                  + method.getName() + ' '
                   + method.getDescriptor() + " \n");
+    }
   }
 
   /**
@@ -298,18 +305,18 @@ public class OPT_Compiler implements VM_Callbacks.StartupMonitor {
    * @param e The exception thrown by a compiler phase
    * @param method The method being compiled
    */
-  private static void fail (Throwable e, VM_NormalMethod method) {
-    OPT_OptimizingCompilerException optExn = new OPT_OptimizingCompilerException("OPT_Compiler", 
-                                              "failure during compilation of", method.toString());
+  private static void fail(Throwable e, VM_NormalMethod method) {
+    OPT_OptimizingCompilerException optExn = new OPT_OptimizingCompilerException("OPT_Compiler",
+                                                                                 "failure during compilation of",
+                                                                                 method.toString());
     if (e instanceof OutOfMemoryError) {
-        VM.sysWriteln("OPT_Compiler ran out of memory during compilation of ",
-                      method.toString());
-        optExn.isFatal = false;
-    }
-    else {
-        VM.sysWriteln("OPT_Compiler failure during compilation of ",
-                      method.toString());
-        e.printStackTrace();
+      VM.sysWriteln("OPT_Compiler ran out of memory during compilation of ",
+                    method.toString());
+      optExn.isFatal = false;
+    } else {
+      VM.sysWriteln("OPT_Compiler failure during compilation of ",
+                    method.toString());
+      e.printStackTrace();
     }
     throw optExn;
   }
@@ -318,7 +325,7 @@ public class OPT_Compiler implements VM_Callbacks.StartupMonitor {
    * Check whether opt compilation of a particular method is supported.
    * If not, throw a non-fatal run-time exception.
    */
-  private static void checkSupported (VM_NormalMethod method, OPT_Options options) {
+  private static void checkSupported(VM_NormalMethod method, OPT_Options options) {
     if (method.getDeclaringClass().hasDynamicBridgeAnnotation()) {
       String msg = "Dynamic Bridge register save protocol not implemented";
       throw OPT_MagicNotImplementedException.EXPECTED(msg);

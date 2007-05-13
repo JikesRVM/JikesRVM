@@ -31,7 +31,7 @@ public class VM_PriorityQueue {
     queue = new VM_PriorityQueueNode[20];
 
     // We don't use element #0
-    for (int i=1; i<queue.length; i++) {
+    for (int i = 1; i < queue.length; i++) {
       queue[i] = new VM_PriorityQueueNode();
     }
   }
@@ -85,9 +85,9 @@ public class VM_PriorityQueue {
     numElements++;
 
     if (numElements == queue.length) {
-      VM_PriorityQueueNode[] tmp = new VM_PriorityQueueNode[(int)(queue.length * 1.5)];
+      VM_PriorityQueueNode[] tmp = new VM_PriorityQueueNode[(int) (queue.length * 1.5)];
       System.arraycopy(queue, 0, tmp, 0, queue.length);
-      for (int i = queue.length; i<tmp.length; i++) {
+      for (int i = queue.length; i < tmp.length; i++) {
         tmp[i] = new VM_PriorityQueueNode();
       }
       queue = tmp;
@@ -131,8 +131,7 @@ public class VM_PriorityQueue {
 
       if (queue[smaller].priority <= queue[current].priority) {
         break;
-      }
-      else {
+      } else {
         // exchange parrent and current values
         VM_PriorityQueueNode tmp = queue[smaller];
         queue[smaller] = queue[current];
@@ -167,13 +166,13 @@ public class VM_PriorityQueue {
     sb.append(" elements:\n");
     if (numElements >= 1) sb.append("\t");
 
-    for (int i=1; i<=numElements; i++) {
+    for (int i = 1; i <= numElements; i++) {
       sb.append(queue[i].toString());
-      if (i<numElements) sb.append("\n\t");
+      if (i < numElements) sb.append("\n\t");
     }
     return sb.toString();
   }
-  
+
   /**
    * A local class that holds the nodes of the priority tree
    */

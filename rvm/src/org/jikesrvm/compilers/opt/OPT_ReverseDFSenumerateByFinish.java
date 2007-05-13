@@ -17,10 +17,10 @@ class OPT_ReverseDFSenumerateByFinish extends OPT_DFSenumerateByFinish {
 
   /**
    *  Construct a reverse DFS across a graph.
-   * 
+   *
    * @param net The graph over which to search.
    */
-  OPT_ReverseDFSenumerateByFinish (OPT_Graph net) {
+  OPT_ReverseDFSenumerateByFinish(OPT_Graph net) {
     super(net);
   }
 
@@ -31,7 +31,7 @@ class OPT_ReverseDFSenumerateByFinish extends OPT_DFSenumerateByFinish {
    * @param net The graph over which to search
    * @param nodes The nodes at which to start the search
    */
-  OPT_ReverseDFSenumerateByFinish (OPT_Graph net, OPT_GraphNodeEnumeration nodes) {
+  OPT_ReverseDFSenumerateByFinish(OPT_Graph net, OPT_GraphNodeEnumeration nodes) {
     super(net, nodes);
   }
 
@@ -41,8 +41,8 @@ class OPT_ReverseDFSenumerateByFinish extends OPT_DFSenumerateByFinish {
    * @param n A node in the DFS
    * @return The nodes that have edges leading to n
    */
-  protected OPT_GraphNodeEnumeration getConnected (OPT_GraphNode n) {
-    return  n.inNodes();
+  protected OPT_GraphNodeEnumeration getConnected(OPT_GraphNode n) {
+    return n.inNodes();
   }
 }
 

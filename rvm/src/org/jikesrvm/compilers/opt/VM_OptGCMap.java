@@ -21,7 +21,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * An instance of this class is created to encode and instance of a
  * OPT_GCIRMap into an int[].  The int[] is stored persistently,
  * but the instance of the VM_OptGCMap is NOT.
- * 
+ *
  * <ul>
  * <li> each map will be a sequence of 1 or more ints
  * <li> the first int in each map is a bit map of registers that
@@ -31,16 +31,17 @@ import org.vmmagic.pragma.Uninterruptible;
  * <li> the sequence will continue as long as the most significant bit
  *   is set to 1
  * </ul>
- * 
+ *
  *  Note: This file contains two types of methods
  *         1) methods called during compilation to create the GC maps
  *            these methods are virtual
  *         2) methods called at GC time (no allocation allowed!)
  *            these methods are static
  */
-@Uninterruptible public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants {
+@Uninterruptible
+public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants {
   public static final int NO_MAP_ENTRY = -1;
-  public static final int ERROR        = -2;
+  public static final int ERROR = -2;
 
   /**
    *  The initial allocation size for a map
@@ -52,10 +53,10 @@ import org.vmmagic.pragma.Uninterruptible;
    */
   private static final int NEXT_BIT = 0x80000000;
 
-  /** 
+  /**
    * the index of the last map entry in use
    */
-  private int lastGCMapEntry;      
+  private int lastGCMapEntry;
 
   /**
    *  The gc map array, a sequence of gc maps.  Each sequence starts
@@ -74,19 +75,18 @@ import org.vmmagic.pragma.Uninterruptible;
     lastGCMapEntry = -1;
     gcMapInformation = new int[INITIAL_MAP_SIZE];   // initial map size
   }
-  
+
   /**
    * Called to complete the encoding and return the final int[]
    */
   @Interruptible
-  public int[] finish() { 
-    if ((gcMapInformation != null) && 
+  public int[] finish() {
+    if ((gcMapInformation != null) &&
         (lastGCMapEntry < gcMapInformation.length - 1)) {
       resizeMapInformation(lastGCMapEntry + 1);
     }
     return gcMapInformation;
   }
-
 
   /**
    * Construct the GCMap for the argument GCIRMapElement
@@ -94,7 +94,7 @@ import org.vmmagic.pragma.Uninterruptible;
    * @return the GCMap index.
    */
   @Interruptible
-  public int generateGCMapEntry(OPT_GCIRMapElement irMapElem) { 
+  public int generateGCMapEntry(OPT_GCIRMapElement irMapElem) {
     // the index into the GC maps we will use for this instruction.
     int mapIndex = NO_MAP_ENTRY;
 
@@ -160,7 +160,6 @@ import org.vmmagic.pragma.Uninterruptible;
     return mapIndex;
   }
 
-
   ////////////////////////////////////////////
   // Methods called at GC time
   ////////////////////////////////////////////
@@ -180,13 +179,13 @@ import org.vmmagic.pragma.Uninterruptible;
    * @param  registerNumber   the register number
    * @param  gcMap            the encoded GCMap
    */
-  public static boolean registerIsSet(int entry, 
-                                      int registerNumber, 
+  public static boolean registerIsSet(int entry,
+                                      int registerNumber,
                                       int[] gcMap) {
     if (VM.VerifyAssertions) {
-      VM._assert(registerNumber >= FIRST_GCMAP_REG && 
-                registerNumber <= LAST_GCMAP_REG, 
-                "Bad registerNumber");
+      VM._assert(registerNumber >= FIRST_GCMAP_REG &&
+                 registerNumber <= LAST_GCMAP_REG,
+                 "Bad registerNumber");
     }
 
     // Get the bit position for the register number
@@ -226,7 +225,6 @@ import org.vmmagic.pragma.Uninterruptible;
     return registerNumber - FIRST_GCMAP_REG + 1;
   }
 
-
   /**
    * Determines if the next bit is set for the entry passed in the gc map passed
    * @param entry the entry (index) to check 
@@ -237,22 +235,22 @@ import org.vmmagic.pragma.Uninterruptible;
     return (gcMap[entry] & NEXT_BIT) == NEXT_BIT;
   }
 
-
   /**
    * Dumps the GCmap that starts at entry.
    * @param entry  the entry where the map begins
    * @param gcMap the encoded GCmaps
    */
   @Interruptible
-  public static void dumpMap(int entry, int[] gcMap) { 
+  public static void dumpMap(int entry, int[] gcMap) {
     VM.sysWrite("Regs [");
     // Inspect the register bit map for the entry passed and print
     // those bit map entries that are true
-    for (int registerNumber = FIRST_GCMAP_REG; 
-         registerNumber <= LAST_GCMAP_REG; 
+    for (int registerNumber = FIRST_GCMAP_REG;
+         registerNumber <= LAST_GCMAP_REG;
          registerNumber++) {
-      if (registerIsSet(entry, registerNumber, gcMap)) 
+      if (registerIsSet(entry, registerNumber, gcMap)) {
         VM.sysWrite(registerNumber, " ");
+      }
     }
     VM.sysWrite("]");
     VM.sysWrite(" Spills [");
@@ -264,7 +262,6 @@ import org.vmmagic.pragma.Uninterruptible;
     VM.sysWrite("]");
   }
 
-
   ////////////////////////////////////////////
   // Helper methods for GCMap creation
   ////////////////////////////////////////////
@@ -273,7 +270,7 @@ import org.vmmagic.pragma.Uninterruptible;
    * @return the entry in the map table that can be used
    */
   @Interruptible
-  private int getNextMapEntry() { 
+  private int getNextMapEntry() {
     // make sure we have enough room
     int oldLength = gcMapInformation.length - 1;
     if (lastGCMapEntry >= oldLength) {
@@ -288,7 +285,7 @@ import org.vmmagic.pragma.Uninterruptible;
    * @param newSize the new size for the map array
    */
   @Interruptible
-  private void resizeMapInformation(int newSize) { 
+  private void resizeMapInformation(int newSize) {
     int[] newMapInformation = new int[newSize];
     for (int i = 0; i <= lastGCMapEntry; i++) {
       newMapInformation[i] = gcMapInformation[i];
@@ -357,11 +354,11 @@ import org.vmmagic.pragma.Uninterruptible;
     gcMapInformation[lastEntry] = gcMapInformation[lastEntry] & ~NEXT_BIT;
 
     if (DEBUG) {
-      System.out.println("\nendCurrentMap called with firstIndex: "+
-                         firstIndex +", lastGCMapEntry: "+ lastGCMapEntry);
+      System.out.println("\nendCurrentMap called with firstIndex: " +
+                         firstIndex + ", lastGCMapEntry: " + lastGCMapEntry);
       System.out.println("gc map array before reuse checking");
-      for (int i=0; i<=lastGCMapEntry; i++) {
-        System.out.println(i+ ": "+ gcMapInformation[i]);
+      for (int i = 0; i <= lastGCMapEntry; i++) {
+        System.out.println(i + ": " + gcMapInformation[i]);
       }
     }
 
@@ -375,8 +372,8 @@ import org.vmmagic.pragma.Uninterruptible;
       int cur = gcMapInformation[curIndex++];
       if (old != cur) {
         if (DEBUG) {
-          System.out.println("entries at "+ (candidateIndex-1)
-                             +" and "+ (curIndex-1) +" don't match");
+          System.out.println("entries at " + (candidateIndex - 1)
+                             + " and " + (curIndex - 1) + " don't match");
         }
         // this entry won't work, advance to candidateIndex to GC map entry
         //  and reset curIndex
@@ -392,9 +389,9 @@ import org.vmmagic.pragma.Uninterruptible;
         //  a winner to reuse
 
         if (DEBUG) {
-          System.out.println("found a matching map: ["+ candidateBeginningIndex
-                             +", "+ (candidateIndex-1) +"] == ["+
-                             firstIndex +", "+ lastGCMapEntry +"]");
+          System.out.println("found a matching map: [" + candidateBeginningIndex
+                             + ", " + (candidateIndex - 1) + "] == [" +
+                             firstIndex + ", " + lastGCMapEntry + "]");
         }
 
         lastGCMapEntry = firstIndex - 1;

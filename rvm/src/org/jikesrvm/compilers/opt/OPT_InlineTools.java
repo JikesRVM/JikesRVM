@@ -31,8 +31,9 @@ public abstract class OPT_InlineTools implements OPT_Constants {
    */
   public static boolean implementsInterface(Class<?> A, Class<?> B) {
     for (Class<?> i : A.getInterfaces()) {
-      if (i == B)
+      if (i == B) {
         return true;
+      }
     }
     return false;
   }
@@ -49,18 +50,19 @@ public abstract class OPT_InlineTools implements OPT_Constants {
   /**
    * Does an inlined call to callee need a guard, to protect against
    * a mispredicted dynamic dispatch?
-   * 
+   *
    * @param callee the callee method
    */
   public static boolean needsGuard(VM_Method callee) {
-    if (callee.isFinal() || 
-        callee.getDeclaringClass().isFinal() || 
-        callee.isPrivate() || 
-        callee.isObjectInitializer() || 
-        callee.isStatic())
-      return false; 
-    else 
+    if (callee.isFinal() ||
+        callee.getDeclaringClass().isFinal() ||
+        callee.isPrivate() ||
+        callee.isObjectInitializer() ||
+        callee.isStatic()) {
+      return false;
+    } else {
       return true;
+    }
   }
 
   /**
@@ -68,7 +70,7 @@ public abstract class OPT_InlineTools implements OPT_Constants {
    * Note that this says nothing about whether or not the method will
    * be overriden by future dynamically loaded classes.
    */
-  public static boolean isCurrentlyFinal(VM_Method callee, 
+  public static boolean isCurrentlyFinal(VM_Method callee,
                                          boolean searchSubclasses) {
     VM_Class klass = callee.getDeclaringClass();
     if (klass.isInterface()) {
@@ -87,8 +89,8 @@ public abstract class OPT_InlineTools implements OPT_Constants {
       }
       while (!s.isEmpty()) {
         VM_Class subClass = s.pop();
-        if (subClass.findDeclaredMethod(callee.getName(), 
-            callee.getDescriptor()) != null) {
+        if (subClass.findDeclaredMethod(callee.getName(),
+                                        callee.getDescriptor()) != null) {
           return false;        // found an overridding method
         }
         subClasses = subClass.getSubClasses();
@@ -110,7 +112,7 @@ public abstract class OPT_InlineTools implements OPT_Constants {
    *              is to be inlined
    * @return an inlined size estimate (number of machine code instructions)
    */
-  public static int inlinedSizeEstimate(VM_NormalMethod callee, 
+  public static int inlinedSizeEstimate(VM_NormalMethod callee,
                                         OPT_CompilationState state) {
     int sizeEstimate = callee.inlinedSizeEstimate();
     // Adjust size estimate downward to account for optimizations enabled 
@@ -121,13 +123,16 @@ public abstract class OPT_InlineTools implements OPT_Constants {
     for (int i = 0; i < numArgs; i++) {
       OPT_Operand op = Call.getParam(callInstr, i);
       if (op instanceof OPT_RegisterOperand) {
-        OPT_RegisterOperand rop = (OPT_RegisterOperand)op;
-        if (rop.isExtant())
+        OPT_RegisterOperand rop = (OPT_RegisterOperand) op;
+        if (rop.isExtant()) {
           reductionFactor -= 0.05;      //  5% credit for being extant.
-        if (rop.isPreciseType())
+        }
+        if (rop.isPreciseType()) {
           reductionFactor -= 0.15;      // 15% credit for being a precise type.
-        if (rop.isDeclaredType())
+        }
+        if (rop.isDeclaredType()) {
           reductionFactor -= 0.01;      //  1% credit for being a declared type.
+        }
       } else if (op.isIntConstant()) {
         reductionFactor -= 0.10;        // 10% credit for being an int constant
       } else if (op.isNullConstant()) {
@@ -137,8 +142,8 @@ public abstract class OPT_InlineTools implements OPT_Constants {
       }
     }
     reductionFactor = Math.max(reductionFactor, 0.40); // bound credits at 60% 
-                                                       // off.
-    return (int)(sizeEstimate*reductionFactor);
+    // off.
+    return (int) (sizeEstimate * reductionFactor);
   }
 
   /**
@@ -150,7 +155,7 @@ public abstract class OPT_InlineTools implements OPT_Constants {
    * @param state the compilation state of the caller.
    * @return whether or not the callee should be unconditionally inlined. 
    */
-  public static boolean hasInlinePragma(VM_Method callee, 
+  public static boolean hasInlinePragma(VM_Method callee,
                                         OPT_CompilationState state) {
     if (callee.hasInlineAnnotation()) return true;
     // If we know what kind of array "src" (argument 0) is
@@ -165,17 +170,17 @@ public abstract class OPT_InlineTools implements OPT_Constants {
     // it's not the object array version 
     // (too big...kills other inlining), then inline it.
     if (callee.getDeclaringClass().getTypeRef() == VM_TypeReference.VM_Array &&
-        callee.getName() == arraycopyName && 
+        callee.getName() == arraycopyName &&
         callee.getDescriptor() != objectArrayCopyDescriptor) {
       return Call.getParam(state.getCallInstruction(), 1).isConstant()
-          && Call.getParam(state.getCallInstruction(), 3).isConstant();
+             && Call.getParam(state.getCallInstruction(), 3).isConstant();
     }
     return false;
   }
 
   private static VM_Atom arraycopyName = VM_Atom.findOrCreateAsciiAtom("arraycopy");
-  private static VM_Atom objectArrayCopyDescriptor = 
-    VM_Atom.findOrCreateAsciiAtom("([Ljava/lang/Object;I[Ljava/lang/Object;II)V");
+  private static VM_Atom objectArrayCopyDescriptor =
+      VM_Atom.findOrCreateAsciiAtom("([Ljava/lang/Object;I[Ljava/lang/Object;II)V");
 
   /**
    * Should the callee method be barred from ever being considered for inlining?
@@ -185,8 +190,8 @@ public abstract class OPT_InlineTools implements OPT_Constants {
    * @return whether or not the callee should be unconditionally barred 
    *         from being inlined.
    */
-  public static boolean hasNoInlinePragma (VM_Method callee, 
-                                           OPT_CompilationState state) {
+  public static boolean hasNoInlinePragma(VM_Method callee,
+                                          OPT_CompilationState state) {
     return callee.hasNoInlinePragma();
   }
 
@@ -209,7 +214,7 @@ public abstract class OPT_InlineTools implements OPT_Constants {
    */
   public static boolean isForbiddenSpeculation(VM_Method caller, VM_Method callee) {
     return caller.getDeclaringClass().isInBootImage() &&
-      !callee.getDeclaringClass().getDescriptor().isRVMDescriptor();
+           !callee.getDeclaringClass().getDescriptor().isRVMDescriptor();
   }
 }
 

@@ -21,22 +21,22 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
  */
 public final class VM_BaselineBootImageCompiler extends VM_BootImageCompiler {
 
-  /** 
+  /**
    * Initialize boot image compiler.
    * @param args command line arguments to the bootimage compiler
    */
-  protected void initCompiler(String[] args) { 
+  protected void initCompiler(String[] args) {
     VM_BaselineCompiler.initOptions();
     // Process arguments specified by the user.
     for (int i = 0, n = args.length; i < n; i++) {
       String arg = args[i];
       if (!VM_Compiler.options.processAsOption("-X:bc:", arg)) {
-        VM.sysWrite("VM_BootImageCompiler(baseline): Unrecognized argument "+arg+"; ignoring\n");
+        VM.sysWrite("VM_BootImageCompiler(baseline): Unrecognized argument " + arg + "; ignoring\n");
       }
     }
   }
 
-  /** 
+  /**
    * Compile a method with bytecodes.
    * @param method the method to compile
    * @return the compiled method

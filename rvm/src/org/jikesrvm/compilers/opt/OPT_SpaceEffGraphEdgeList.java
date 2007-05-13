@@ -8,11 +8,11 @@
  */
 package org.jikesrvm.compilers.opt;
 
-
 import java.util.Enumeration;
 
 //
 // List of Graph Edges.
+
 //
 class OPT_SpaceEffGraphEdgeList
     implements Enumeration<OPT_SpaceEffGraphEdgeList> {
@@ -27,28 +27,29 @@ class OPT_SpaceEffGraphEdgeList
   public OPT_SpaceEffGraphEdgeList nextElement() {
     OPT_SpaceEffGraphEdgeList tmp = _next;
     _next = _next._next;
-    return  tmp;
+    return tmp;
   }
 
   public OPT_SpaceEffGraphEdge edge() {
-    return  _edge;
+    return _edge;
   }
 
   public OPT_SpaceEffGraphEdgeList next() {
-    return  _next;
+    return _next;
   }
 
   public OPT_SpaceEffGraphEdgeList prev() {
-    return  _prev;
+    return _prev;
   }
 
   public boolean inGraphEdgeList(OPT_SpaceEffGraphEdge edge) {
     OPT_SpaceEffGraphEdgeList n = this;
     while (n != null) {
-      if (n._edge == edge)
-        return  true;
+      if (n._edge == edge) {
+        return true;
+      }
       n = n._next;
     }
-    return  false;
+    return false;
   }
 }

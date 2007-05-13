@@ -22,7 +22,7 @@ import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
 /**
  * This class codifies the cost/benefit properties of the various compilers
  * used in the adaptive optimization system.
- * 
+ *
  * <p>
  * The DNA tells the AOS two important kinds of averages for each optimization
  * level: the cost of compiling at an optimization level (as measured in
@@ -40,7 +40,6 @@ public class VM_CompilerDNA implements VM_Constants {
   static final int OPT1 = 2;
   static final int OPT2 = 3;
 
-
   /**
    *  The number of compilers available
    */
@@ -52,15 +51,16 @@ public class VM_CompilerDNA implements VM_Constants {
    * and Dec 2nd, 2004 on wormtongue (Linux/IA32) using unweighted compilation rate.
    */
   private static final double[] compilationRates;
+
   static {
     if (VM.BuildForPowerPC) {
-      compilationRates = new double [] {
-        359.17,             // base
-        10.44, 4.69, 1.56}; // opt 0...2
+      compilationRates = new double[]{
+          359.17,             // base
+          10.44, 4.69, 1.56}; // opt 0...2
     } else if (VM.BuildForIA32) {
-      compilationRates = new double[] {
-        696.58,             // base
-        18.19, 8.90, 3.90}; // opt 0...2
+      compilationRates = new double[]{
+          696.58,             // base
+          18.19, 8.90, 3.90}; // opt 0...2
     } else {
       if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
       compilationRates = null;
@@ -73,19 +73,20 @@ public class VM_CompilerDNA implements VM_Constants {
    * and Dec 2nd, 2004 on wormtongue (Linux/IA32) using unweighted compilation rate.
    */
   private static final double[] speedupRates;
+
   static {
     if (VM.BuildForPowerPC) {
-      speedupRates = new double[] {
-        1.00,               // base 
-        4.73, 6.65, 7.39};  // opt 0...2
+      speedupRates = new double[]{
+          1.00,               // base
+          4.73, 6.65, 7.39};  // opt 0...2
     } else if (VM.BuildForIA32) {
-      speedupRates = new double[] {
-        1.00,               // base
-        4.56, 7.13, 7.35};  // opt 0...2
+      speedupRates = new double[]{
+          1.00,               // base
+          4.56, 7.13, 7.35};  // opt 0...2
     } else {
       if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
       speedupRates = null;
-    }      
+    }
   }
 
   /**
@@ -133,9 +134,9 @@ public class VM_CompilerDNA implements VM_Constants {
    * @param compiler the compiler to compile meth
    * @param meth the method to be compiled
    * @return an estimate of compile time (in milliseconds)
-   */ 
+   */
   public static double estimateCompileTime(int compiler, VM_NormalMethod meth) {
-    double bytes = (double)meth.getBytecodeLength();
+    double bytes = (double) meth.getBytecodeLength();
     double runtimeBaselineRate = VM_RuntimeCompiler.getBaselineRate();
     double compileTime = bytes / runtimeBaselineRate;
     if (compiler != BASELINE) {
@@ -143,7 +144,7 @@ public class VM_CompilerDNA implements VM_Constants {
     }
     return compileTime;
   }
-    
+
   /**
    * Returns the compilation rates of the baseline compiler in 
    *  bytecodes/millisecond.
@@ -157,7 +158,7 @@ public class VM_CompilerDNA implements VM_Constants {
   /**
    * initialize static fields
    */
-  public static void init()  { 
+  public static void init() {
     // check to see if the raw rates are specified during boot time
     if (VM_Controller.options.COMPILER_DNA_FILE_NAME.length() != 0) {
       //  Read the DNA values from disk
@@ -169,46 +170,46 @@ public class VM_CompilerDNA implements VM_Constants {
     benefitRatio = new double[numCompilers][numCompilers];
     compileTimeRatio = new double[numCompilers][numCompilers];
 
-    for (int i=0; i < compilationRates.length; i++) {
+    for (int i = 0; i < compilationRates.length; i++) {
       VM_AOSLogging.reportCompilationRate(i, compilationRates[i]);
     }
-    for (int i=0; i < speedupRates.length; i++) {
+    for (int i = 0; i < speedupRates.length; i++) {
       VM_AOSLogging.reportSpeedupRate(i, speedupRates[i]);
     }
 
     // fill in the upper triangular matrices
-    for (int prevCompiler = 0; 
-         prevCompiler < numCompilers; 
+    for (int prevCompiler = 0;
+         prevCompiler < numCompilers;
          prevCompiler++) {
 
       benefitRatio[prevCompiler][prevCompiler] = 1.0;
       compileTimeRatio[prevCompiler][prevCompiler] = 1.0;
 
-      for (int nextCompiler = prevCompiler+1; 
-           nextCompiler < numCompilers; 
+      for (int nextCompiler = prevCompiler + 1;
+           nextCompiler < numCompilers;
            nextCompiler++) {
-          benefitRatio[prevCompiler][nextCompiler] = 
+        benefitRatio[prevCompiler][nextCompiler] =
             speedupRates[nextCompiler] / speedupRates[prevCompiler];
 
-          // Since compilation rates are not relative to the 1st compiler
-          //  we invert the division.
-          compileTimeRatio[prevCompiler][nextCompiler] = 
-            compilationRates[prevCompiler] / compilationRates[nextCompiler];  
+        // Since compilation rates are not relative to the 1st compiler
+        //  we invert the division.
+        compileTimeRatio[prevCompiler][nextCompiler] =
+            compilationRates[prevCompiler] / compilationRates[nextCompiler];
         VM_AOSLogging.reportBenefitRatio(
-                         prevCompiler, nextCompiler,
-                         benefitRatio[prevCompiler][nextCompiler]);
+            prevCompiler, nextCompiler,
+            benefitRatio[prevCompiler][nextCompiler]);
 
         VM_AOSLogging.reportCompileTimeRatio(
-                         prevCompiler, nextCompiler,
-                         compileTimeRatio[prevCompiler][nextCompiler]);
+            prevCompiler, nextCompiler,
+            compileTimeRatio[prevCompiler][nextCompiler]);
       }
     }
 
     // Compute MAX_OPT_LEVEL
     int maxProfitableCompiler = 0;
     for (int compiler = 1; compiler < numCompilers; compiler++) {
-      if (compilationRates[compiler] > compilationRates[compiler-1] ||
-          speedupRates[compiler] > speedupRates[compiler-1]) {
+      if (compilationRates[compiler] > compilationRates[compiler - 1] ||
+          speedupRates[compiler] > speedupRates[compiler - 1]) {
         maxProfitableCompiler = compiler;
       }
     }
@@ -217,8 +218,7 @@ public class VM_CompilerDNA implements VM_Constants {
     VM_Controller.options.FILTER_OPT_LEVEL = maxOptLevel;
   }
 
-
-  /** 
+  /**
    * Read a serialized representation of the DNA info
    * @param filename DNA filename
    */
@@ -226,7 +226,7 @@ public class VM_CompilerDNA implements VM_Constants {
     try {
 
       LineNumberReader in =
-        new LineNumberReader(new FileReader(filename));
+          new LineNumberReader(new FileReader(filename));
 
       // Expected Format
       //   CompilationRates  aaa.a  bbbb.b cccc.c dddd.d ....
@@ -251,22 +251,22 @@ public class VM_CompilerDNA implements VM_Constants {
 
     String s = in.readLine();
     if (VM.VerifyAssertions) VM._assert(s != null);
-    
+
     // parse the string
     StringTokenizer parser = new StringTokenizer(s);
-    
+
     // make sure the title matches
     String token = parser.nextToken();
     if (VM.VerifyAssertions) VM._assert(token.equals(title));
-    
+
     // walk through the array, making sure we still have tokens
-    for (int i=0;
+    for (int i = 0;
          parser.hasMoreTokens() && i < valueHolder.length;
          i++) {
 
       // get the available token
       token = parser.nextToken();
-      
+
       // convert token to a double
       valueHolder[i] = Double.valueOf(token);
     }
@@ -280,7 +280,6 @@ public class VM_CompilerDNA implements VM_Constants {
     return numCompilers;
   }
 
-
   /**
    * A mapping from an Opt compiler number to the corresponding Opt level
    * @param compiler the compiler constant of interest
@@ -288,10 +287,14 @@ public class VM_CompilerDNA implements VM_Constants {
    */
   public static int getOptLevel(int compiler) {
     switch (compiler) {
-      case BASELINE: return -1;
-      case OPT0: return 0;
-      case OPT1: return 1;
-      case OPT2: return 2;
+      case BASELINE:
+        return -1;
+      case OPT0:
+        return 0;
+      case OPT1:
+        return 1;
+      case OPT2:
+        return 2;
       default:
         if (VM.VerifyAssertions) VM._assert(NOT_REACHED, "Unknown compiler constant\n");
         return -99;
@@ -314,9 +317,12 @@ public class VM_CompilerDNA implements VM_Constants {
    */
   public static int getCompilerConstant(int optLevel) {
     switch (optLevel) {
-      case 0: return OPT0;
-      case 1: return OPT1;
-      case 2: return OPT2;
+      case 0:
+        return OPT0;
+      case 1:
+        return OPT1;
+      case 2:
+        return OPT2;
       default:
         if (VM.VerifyAssertions) VM._assert(NOT_REACHED, "Unknown Opt Level\n");
         return -99;

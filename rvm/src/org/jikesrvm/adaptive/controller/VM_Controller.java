@@ -16,11 +16,11 @@ import org.jikesrvm.adaptive.OSR_OrganizerThread;
 import org.jikesrvm.adaptive.database.VM_AOSDatabase;
 import org.jikesrvm.adaptive.database.callgraph.VM_PartialCallGraph;
 import org.jikesrvm.adaptive.database.methodsamples.VM_MethodCountData;
-import org.jikesrvm.adaptive.recompilation.VM_CompilationThread;
-import org.jikesrvm.adaptive.recompilation.instrumentation.VM_CounterBasedSampling;
 import org.jikesrvm.adaptive.measurements.VM_RuntimeMeasurements;
 import org.jikesrvm.adaptive.measurements.instrumentation.VM_Instrumentation;
 import org.jikesrvm.adaptive.measurements.organizers.VM_Organizer;
+import org.jikesrvm.adaptive.recompilation.VM_CompilationThread;
+import org.jikesrvm.adaptive.recompilation.instrumentation.VM_CounterBasedSampling;
 import org.jikesrvm.adaptive.util.VM_AOSLogging;
 import org.jikesrvm.adaptive.util.VM_AOSOptions;
 import org.jikesrvm.adaptive.util.VM_BlockingPriorityQueue;
@@ -35,7 +35,7 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
                                       VM_Callbacks.AppStartMonitor,
                                       VM_Callbacks.AppCompleteMonitor,
                                       VM_Callbacks.AppRunStartMonitor,
-                                      VM_Callbacks.AppRunCompleteMonitor, 
+                                      VM_Callbacks.AppRunCompleteMonitor,
                                       VM_Callbacks.RecompileAllDynamicallyLoadedMethodsMonitor {
 
   /**
@@ -47,22 +47,24 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
    * Controller subsystem control options
    */
   public static VM_AOSOptions options = new VM_AOSOptions();
-  
+
   /**
    * Deferred command line arguments for the opt compiler
    */
   private static String[] optCompilerOptions = new String[0];
+
   /**
    * Add a deferred command line argument
    */
   public static void addOptCompilerOption(String arg) {
-    String[] tmp = new String[optCompilerOptions.length+1];
-    for (int i=0; i< optCompilerOptions.length; i++) {
+    String[] tmp = new String[optCompilerOptions.length + 1];
+    for (int i = 0; i < optCompilerOptions.length; i++) {
       tmp[i] = optCompilerOptions[i];
     }
     tmp[optCompilerOptions.length] = arg;
     optCompilerOptions = tmp;
   }
+
   /**
    * Get the deferred command line arguments
    */
@@ -89,7 +91,6 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
    * Threads that will organize profile data as directed by the controller
    */
   public static Vector<VM_Organizer> organizers = new Vector<VM_Organizer>();
-
 
   /**
    * A blocking priority queue where organizers place events to 
@@ -140,9 +141,10 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
     enabled = true;
 
     // Initialize the controller input queue
-    controllerInputQueue = 
-      new VM_BlockingPriorityQueue(new VM_BlockingPriorityQueue.CallBack() {
+    controllerInputQueue =
+        new VM_BlockingPriorityQueue(new VM_BlockingPriorityQueue.CallBack() {
           void aboutToWait() { controllerThread.aboutToWait(); }
+
           void doneWaiting() { controllerThread.doneWaiting(); }
         });
 
@@ -156,7 +158,7 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
 
     // Initialize subsystems, if being used
     VM_AdaptiveInlining.boot(options);
-    
+
     // boot any instrumentation options
     VM_Instrumentation.boot(options);
 
@@ -179,7 +181,7 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
       VM_Callbacks.addRecompileAllDynamicallyLoadedMethodsMonitor(controller);
     }
 
-    booted=true;
+    booted = true;
   }
 
   /**
@@ -244,7 +246,7 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
     tt.start();
     // wait until controller threads are up and running.
     try {
-      synchronized(sentinel) {
+      synchronized (sentinel) {
         sentinel.wait();
       }
     } catch (Exception e) {
@@ -252,7 +254,6 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
       VM.sysFail("Failed to start up controller subsystem");
     }
   }
-
 
   /**
    * Process any command line arguments passed to the controller subsystem.
@@ -268,7 +269,7 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
    */
   public static void processCommandLineArg(String arg) {
     if (!options.processAsOption("-X:aos", arg)) {
-      VM.sysWrite("vm: illegal adaptive configuration directive \""+arg+"\" specified as -X:aos:"+arg+"\n");
+      VM.sysWrite("vm: illegal adaptive configuration directive \"" + arg + "\" specified as -X:aos:" + arg + "\n");
       VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
   }
@@ -286,7 +287,7 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
     VM_ControllerThread.report();
     VM_RuntimeMeasurements.report();
 
-    for (Enumeration<VM_Organizer> e = organizers.elements(); e.hasMoreElements(); ) {
+    for (Enumeration<VM_Organizer> e = organizers.elements(); e.hasMoreElements();) {
       VM_Organizer organizer = e.nextElement();
       organizer.report();
     }
@@ -298,15 +299,14 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
 
     if (options.REPORT_INTERRUPT_STATS) {
       VM.sysWriteln("Timer Interrupt and Listener Stats");
-      VM.sysWriteln("\tTotal number of clock ticks ",VM_Processor.timerTicks);
+      VM.sysWriteln("\tTotal number of clock ticks ", VM_Processor.timerTicks);
       VM.sysWriteln("\tReported clock ticks ", VM_Processor.reportedTimerTicks);
-      VM.sysWriteln("\tController clock ",controllerClock);
-      VM.sysWriteln("\tNumber of method samples taken ",(int)methodSamples.getTotalNumberOfSamples());
+      VM.sysWriteln("\tController clock ", controllerClock);
+      VM.sysWriteln("\tNumber of method samples taken ", (int) methodSamples.getTotalNumberOfSamples());
     }
 
     VM_AOSLogging.systemExiting();
   }
-
 
   /**
    * Stop all AOS threads and exit the adaptive system.
@@ -316,9 +316,9 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
    */
   public static void stop() {
     if (!booted) return;
-    
+
     VM.sysWriteln("AOS: Killing all adaptive system threads");
-    for (Enumeration<VM_Organizer> e = organizers.elements(); e.hasMoreElements(); ) {
+    for (Enumeration<VM_Organizer> e = organizers.elements(); e.hasMoreElements();) {
       VM_Organizer organizer = e.nextElement();
       organizer.kill(new ThreadDeath(), true);
     }

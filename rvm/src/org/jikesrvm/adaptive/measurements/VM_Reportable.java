@@ -13,15 +13,16 @@ package org.jikesrvm.adaptive.measurements;
  * measurements.
  */
 
-public interface VM_Reportable { 
+public interface VM_Reportable {
   /**
    * generate a report
    */
-  void report(); 
+  void report();
+
   /**
    * reset (clear) data set being gathered
    */
-  void reset();  
+  void reset();
 }
 
 

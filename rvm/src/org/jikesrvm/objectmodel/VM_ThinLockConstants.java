@@ -29,21 +29,25 @@ import org.vmmagic.unboxed.Word;
  * VM_JavaHeader.THIN_LOCK_SHIFT = # of b's
  * </pre>
  */
-public interface VM_ThinLockConstants  extends VM_SizeConstants {
+public interface VM_ThinLockConstants extends VM_SizeConstants {
 
-  int NUM_BITS_TID        = VM_Scheduler.LOG_MAX_THREADS;
-  int NUM_BITS_RC         = VM_JavaHeader.NUM_THIN_LOCK_BITS - NUM_BITS_TID;
+  int NUM_BITS_TID = VM_Scheduler.LOG_MAX_THREADS;
+  int NUM_BITS_RC = VM_JavaHeader.NUM_THIN_LOCK_BITS - NUM_BITS_TID;
 
   int TL_LOCK_COUNT_SHIFT = VM_JavaHeader.THIN_LOCK_SHIFT;
-  int TL_THREAD_ID_SHIFT  = TL_LOCK_COUNT_SHIFT + NUM_BITS_RC;
-  int TL_LOCK_ID_SHIFT    = VM_JavaHeader.THIN_LOCK_SHIFT;
+  int TL_THREAD_ID_SHIFT = TL_LOCK_COUNT_SHIFT + NUM_BITS_RC;
+  int TL_LOCK_ID_SHIFT = VM_JavaHeader.THIN_LOCK_SHIFT;
 
-  int TL_LOCK_COUNT_UNIT  = 1 << TL_LOCK_COUNT_SHIFT;
+  int TL_LOCK_COUNT_UNIT = 1 << TL_LOCK_COUNT_SHIFT;
 
-  Word TL_LOCK_COUNT_MASK  = Word.fromIntSignExtend(-1).rshl(BITS_IN_ADDRESS - NUM_BITS_RC).lsh(TL_LOCK_COUNT_SHIFT);
-  Word TL_THREAD_ID_MASK   = Word.fromIntSignExtend(-1).rshl(BITS_IN_ADDRESS - NUM_BITS_TID).lsh(TL_THREAD_ID_SHIFT);
-  Word TL_LOCK_ID_MASK     = Word.fromIntSignExtend(-1).rshl(BITS_IN_ADDRESS - (NUM_BITS_RC + NUM_BITS_TID - 1)).lsh(TL_LOCK_ID_SHIFT);
-  Word TL_FAT_LOCK_MASK    = Word.one().lsh(VM_JavaHeader.THIN_LOCK_SHIFT + NUM_BITS_RC + NUM_BITS_TID -1);
-  Word TL_UNLOCK_MASK      = Word.fromIntSignExtend(-1).rshl(BITS_IN_ADDRESS - VM_JavaHeader.NUM_THIN_LOCK_BITS).lsh(VM_JavaHeader.THIN_LOCK_SHIFT).not();
+  Word TL_LOCK_COUNT_MASK = Word.fromIntSignExtend(-1).rshl(BITS_IN_ADDRESS - NUM_BITS_RC).lsh(TL_LOCK_COUNT_SHIFT);
+  Word TL_THREAD_ID_MASK = Word.fromIntSignExtend(-1).rshl(BITS_IN_ADDRESS - NUM_BITS_TID).lsh(TL_THREAD_ID_SHIFT);
+  Word TL_LOCK_ID_MASK =
+      Word.fromIntSignExtend(-1).rshl(BITS_IN_ADDRESS - (NUM_BITS_RC + NUM_BITS_TID - 1)).lsh(TL_LOCK_ID_SHIFT);
+  Word TL_FAT_LOCK_MASK = Word.one().lsh(VM_JavaHeader.THIN_LOCK_SHIFT + NUM_BITS_RC + NUM_BITS_TID - 1);
+  Word TL_UNLOCK_MASK =
+      Word.fromIntSignExtend(-1).rshl(BITS_IN_ADDRESS -
+                                      VM_JavaHeader
+                                          .NUM_THIN_LOCK_BITS).lsh(VM_JavaHeader.THIN_LOCK_SHIFT).not();
 }
 

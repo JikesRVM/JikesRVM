@@ -31,10 +31,9 @@ import org.jikesrvm.runtime.VM_Magic;
  *  Renamed the former "system class loader" to the "bootstrap class loader".
  */
 public class VM_ApplicationClassLoader extends URLClassLoader {
-  
 
   static final boolean DBG = false;
-  
+
   static int numInstantiations = 0;
 
   /** For status printing, to make sure that, if an application class loader is
@@ -48,13 +47,14 @@ public class VM_ApplicationClassLoader extends URLClassLoader {
 
   public VM_ApplicationClassLoader(String specifiedClasspath) {
     super(new URL[0]);
-    if (DBG)
+    if (DBG) {
       VM.sysWriteln("The Application Class Loader has been instantiated ", numInstantiations, " times");
+    }
     ++numInstantiations;
 
-    createdAtBootImageWritingTime =  VM.writingBootImage;
-    createdWithRunningVM =  VM.runningVM;
-    
+    createdAtBootImageWritingTime = VM.writingBootImage;
+    createdWithRunningVM = VM.runningVM;
+
     try {
       if (specifiedClasspath == null) {
         addURL(new URL("file", null, -1, System.getProperty("user.dir") + File.separator));
@@ -62,9 +62,9 @@ public class VM_ApplicationClassLoader extends URLClassLoader {
         StringTokenizer tok = new StringTokenizer(specifiedClasspath, File.pathSeparator);
         while (tok.hasMoreElements()) {
           String elt = tok.nextToken();
-          
+
           if (!(elt.endsWith(".jar") || elt.endsWith(".zip"))) {
-            if (! elt.endsWith( File.separator )) {
+            if (!elt.endsWith(File.separator)) {
               elt += File.separator;
             }
           }
@@ -79,7 +79,9 @@ public class VM_ApplicationClassLoader extends URLClassLoader {
         }
       }
     } catch (MalformedURLException e) {
-      VM.sysFail("JikesRVM: VM_ApplicationClassLoader: Initialization Failed with a MalformedURLException; there was an error setting the application's classpath: " + e);
+      VM.sysFail(
+          "JikesRVM: VM_ApplicationClassLoader: Initialization Failed with a MalformedURLException; there was an error setting the application's classpath: " +
+          e);
     }
   }
 
@@ -91,13 +93,13 @@ public class VM_ApplicationClassLoader extends URLClassLoader {
    */
   public static final String myName = "SystemAppCL";
 
-  public String toString() { 
+  public String toString() {
     return myName
-      + (createdAtBootImageWritingTime ? "-createdAtBootImageWritingTime" : "")
-      + (createdWithRunningVM ? "" : "-NOTcreatedWithRunningVM")
-      + (DBG 
-         ? "@" + VM.addressAsHexString(VM_Magic.objectAsAddress(this)) 
-         : "");
+           + (createdAtBootImageWritingTime ? "-createdAtBootImageWritingTime" : "")
+           + (createdWithRunningVM ? "" : "-NOTcreatedWithRunningVM")
+           + (DBG
+              ? "@" + VM.addressAsHexString(VM_Magic.objectAsAddress(this))
+              : "");
   }
 
   protected String findLibrary(String libName) {

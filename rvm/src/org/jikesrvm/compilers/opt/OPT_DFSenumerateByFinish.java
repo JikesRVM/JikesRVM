@@ -24,7 +24,7 @@ class OPT_DFSenumerateByFinish extends OPT_Stack<OPT_GraphNode>
    *
    * @param net the graph whose nodes to enumerate
    */
-  OPT_DFSenumerateByFinish (OPT_Graph net) {
+  OPT_DFSenumerateByFinish(OPT_Graph net) {
     this(net, net.enumerateNodes());
   }
 
@@ -36,14 +36,16 @@ class OPT_DFSenumerateByFinish extends OPT_Stack<OPT_GraphNode>
    * @param net the graph whose nodes to enumerate
    * @param nodes the set of nodes from which to start searching
    */
-  OPT_DFSenumerateByFinish (OPT_Graph net, OPT_GraphNodeEnumeration nodes) {
+  OPT_DFSenumerateByFinish(OPT_Graph net, OPT_GraphNodeEnumeration nodes) {
     e = nodes;
     net.compactNodeNumbering();
     info = new OPT_GraphNodeEnumeration[net.numberOfNodes() + 1];
     //  info = new java.util.HashMap( net.numberOfNodes() );
-    if (e.hasMoreElements())
+    if (e.hasMoreElements()) {
       theNextElement = e.next();
+    }
   }
+
   /**
    * While a depth-first enumeration is in progress, this field
    * holds the current root node, i.e. the current botton of the
@@ -57,9 +59,9 @@ class OPT_DFSenumerateByFinish extends OPT_Stack<OPT_GraphNode>
    *
    * @return true if there nodes left to enumerate.
    */
-  public boolean hasMoreElements () {
-    return  (!empty() || (theNextElement != null && info[theNextElement.getIndex()]
-        == null));
+  public boolean hasMoreElements() {
+    return (!empty() || (theNextElement != null && info[theNextElement.getIndex()]
+                                                   == null));
   }
 
   /**
@@ -69,14 +71,15 @@ class OPT_DFSenumerateByFinish extends OPT_Stack<OPT_GraphNode>
    *
    *  @return the next graph node in finishing time order.
    */
-  public OPT_GraphNode next () {
+  public OPT_GraphNode next() {
     if (empty()) {
       OPT_GraphNode v = theNextElement;
       currentRoot = theNextElement;
       info[v.getIndex()] = getConnected(v);
       push(v);
     }
-    recurse: while (!empty()) {
+    recurse:
+    while (!empty()) {
       OPT_GraphNode v = peek();
       OPT_GraphNodeEnumeration pendingChildren = info[v.getIndex()];
       for (OPT_GraphNodeEnumeration e = pendingChildren; e.hasMoreElements();) {
@@ -86,15 +89,16 @@ class OPT_DFSenumerateByFinish extends OPT_Stack<OPT_GraphNode>
           // found a new child: recurse to it.
           info[n.getIndex()] = getConnected(n);
           push(n);
-          continue  recurse;
+          continue recurse;
         }
       }
       // no more children to visit: finished this vertex
-      while (info[theNextElement.getIndex()] != null && e.hasMoreElements())
+      while (info[theNextElement.getIndex()] != null && e.hasMoreElements()) {
         theNextElement = e.next();
+      }
       return pop();
     }
-    return  null;
+    return null;
   }
 
   /**
@@ -103,10 +107,11 @@ class OPT_DFSenumerateByFinish extends OPT_Stack<OPT_GraphNode>
    * @see #next
    *
    * @return the next node in finishing time order
- */
-  public OPT_GraphNode nextElement () {
-    return  next();
+   */
+  public OPT_GraphNode nextElement() {
+    return next();
   }
+
   /**
    * the current next element in finishing time order
    */
@@ -125,8 +130,8 @@ class OPT_DFSenumerateByFinish extends OPT_Stack<OPT_GraphNode>
    *
    * @param n the node of which to get the out edges
    * @return the out edges
- */
+   */
   protected OPT_GraphNodeEnumeration getConnected(OPT_GraphNode n) {
-    return  n.outNodes();
+    return n.outNodes();
   }
 }

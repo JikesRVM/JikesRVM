@@ -24,71 +24,76 @@ import org.vmmagic.pragma.Uninterruptible;
  *      then a request is made to reuse a previous VP and pthread
  *    so the result is that the VP and pthread are recycled
  */
-@Uninterruptible final class VM_ProcessorQueue {
+@Uninterruptible
+final class VM_ProcessorQueue {
 
   /**
    * first thread on list
    */
-  private VM_Processor head;   
+  private VM_Processor head;
   /**
    * last thread on list
    */
-  private VM_Processor tail;   
- 
+  private VM_Processor tail;
+
   /**
    * is the queue empty
-   */ 
-  boolean isEmpty () {
-   return head == null;
+   */
+  boolean isEmpty() {
+    return head == null;
   }
 
   /**
    * Add a VP to tail of queue.
-   */ 
+   */
   @Interruptible
-  synchronized void enqueue (VM_Processor p) { 
+  synchronized void enqueue(VM_Processor p) {
     if (VM.VerifyAssertions) VM._assert(p.next == null); // not currently on any other queue
-    if (head == null)
+    if (head == null) {
       head = p;
-    else
+    } else {
       tail.next = p;
+    }
     tail = p;
   }
 
   /**
    * Remove VP from head of queue.
    * @return the thread (null --> queue is empty)
-   */ 
+   */
   @Interruptible
-  synchronized VM_Processor dequeue () { 
+  synchronized VM_Processor dequeue() {
     VM_Processor p = head;
-    if (p == null)
-       return null;
+    if (p == null) {
+      return null;
+    }
     head = p.next;
     p.next = null;
-    if (head == null)
+    if (head == null) {
       tail = null;
+    }
     return p;
   }
 
- 
   /**
    * Number of items on queue (an estimate: queue is not locked during the scan).
-   */ 
+   */
   int length() {
     int length = 0;
-    for (VM_Processor p = head; p != null; p = p.next)
+    for (VM_Processor p = head; p != null; p = p.next) {
       length += 1;
+    }
     return length;
   }
 
   /**
    * dump the vp queue
-   */ 
-  void dump () {
+   */
+  void dump() {
     VM.sysWrite("Virtual Processor Dead Queue\n");
-    for (VM_Processor p = head; p != null; p = p.next)
+    for (VM_Processor p = head; p != null; p = p.next) {
       p.dumpProcessorState();
+    }
     VM.sysWrite("\n");
   }
 }

@@ -91,19 +91,19 @@ public class VM_BootRecord {
    * field access instructions (the assembler bootstrap function, on the other
    * hand, simply addresses the boot record as the first object in 
    * the boot image).
-   */ 
+   */
   public static VM_BootRecord the_boot_record;
 
   public VM_BootRecord() {
     int len = 2 * (1 + MM_Interface.getMaxHeaps());
     heapRanges = AddressArray.create(len);
     // Indicate end of array with sentinel value
-    heapRanges.set(len -1, Address.fromIntSignExtend(-1));
-    heapRanges.set(len -2, Address.fromIntSignExtend(-1));
+    heapRanges.set(len - 1, Address.fromIntSignExtend(-1));
+    heapRanges.set(len - 2, Address.fromIntSignExtend(-1));
   }
 
   public void showHeapRanges() {
-    for (int i=0; i<heapRanges.length() / 2; i++) {
+    for (int i = 0; i < heapRanges.length() / 2; i++) {
       VM.sysWrite(i, "  ");
       VM.sysWrite(heapRanges.get(2 * i));
       VM.sysWrite("  ", heapRanges.get(2 * i + 1));
@@ -112,12 +112,12 @@ public class VM_BootRecord {
   }
 
   @Uninterruptible
-  public void setHeapRange(int id, Address start, Address end) { 
-    if (VM.VerifyAssertions) VM._assert(id < heapRanges.length() - 2); 
+  public void setHeapRange(int id, Address start, Address end) {
+    if (VM.VerifyAssertions) VM._assert(id < heapRanges.length() - 2);
     heapRanges.set(2 * id, start);
     heapRanges.set(2 * id + 1, end);
   }
-  
+
   // The following fields are written when the virtual machine image
   // is generated (see BootImage.java), loaded (see RunBootImage.C),
   // or executed (see VM.java).
@@ -134,7 +134,7 @@ public class VM_BootRecord {
   public Address bootImageCodeEnd;
   public Address bootImageRMapStart;
   public Address bootImageRMapEnd;
-  
+
   /**
    * initial size of heap
    */
@@ -146,20 +146,19 @@ public class VM_BootRecord {
   public Extent maximumHeapSize;
 
   public AddressArray heapRanges; // [start1, end1, ..., start_k, end_k, -1, -1]
-                                     // C-style termination with sentinel values
+  // C-style termination with sentinel values
   /**
    * Verbosity level for booting
    * set by -X:verboseBoot=
    */
   public int verboseBoot = 0;
-  
+
   // RVM startoff
   //
   public int tiRegister;          // value to place into TI register
   public Address spRegister;   // value to place into SP register
   public Address ipRegister;   // value to place into IP register
   public Address tocRegister;  // value to place into JTOC register
-
 
   /**
    * flag to indicate RVM has completed booting and ready to run Java programs
@@ -178,46 +177,46 @@ public class VM_BootRecord {
   /**
    * method id for inserting stackframes at site of hardware traps
    */
-  int hardwareTrapMethodId;           
+  int hardwareTrapMethodId;
   /**
    * jtoc offset of VM_Runtime.deliverHardwareException()
    */
-  Offset deliverHardwareExceptionOffset; 
+  Offset deliverHardwareExceptionOffset;
   /**
    * jtoc offset of VM_Scheduler.dumpStackAndDie(I)
    */
-  public Offset dumpStackAndDieOffset;          
+  public Offset dumpStackAndDieOffset;
   /**
    * jtoc offset of VM_Scheduler.processors[]
    */
-  public Offset processorsOffset;               
+  public Offset processorsOffset;
   /**
    * jtoc offset of VM_Scheduler.debugRequested
    */
-  Offset debugRequestedOffset;           
+  Offset debugRequestedOffset;
   /**
    * an external signal has been sent e.g. kill -signalnumber processid
    */
-  int externalSignalFlag;             
+  int externalSignalFlag;
 
   // Host operating system entrypoints - see "sys.C"
   //
 
   // lowlevel write to console
-  public Address sysConsoleWriteCharIP;    
-  public Address sysConsoleWriteIntegerIP;            
+  public Address sysConsoleWriteCharIP;
+  public Address sysConsoleWriteIntegerIP;
   public Address sysConsoleWriteLongIP;
   public Address sysConsoleWriteDoubleIP;
-  
+
   // startup/shutdown
-  public Address sysExitIP;                     
+  public Address sysExitIP;
   public Address sysArgIP;
 
   // misc. info on the process -- used in startup/shutdown
   public Address sysGetenvIP;
 
   // memory
-  public Address sysCopyIP;         
+  public Address sysCopyIP;
   public Address sysMallocIP;
   public Address sysFreeIP;
   public Address sysZeroIP;
@@ -225,15 +224,15 @@ public class VM_BootRecord {
   public Address sysSyncCacheIP;
 
   // files
-  public Address sysStatIP;         
-  public Address sysReadByteIP;            
+  public Address sysStatIP;
+  public Address sysReadByteIP;
   public Address sysWriteByteIP;
   public Address sysReadBytesIP;
   public Address sysWriteBytesIP;
   public Address sysBytesAvailableIP;
   public Address sysSyncFileIP;
   public Address sysSetFdCloseOnExecIP;
-  
+
   public Address sysAccessIP;
 
   // mmap - memory mapping
@@ -327,41 +326,41 @@ public class VM_BootRecord {
   public Address sysVMMathHypotIP;
   public Address sysVMMathLog10IP;
   public Address sysVMMathLog1pIP;
-  
-   /* FIXME: We *really* don't want all these syscalls here unconditionally --- need to push them out somehow */
-   // GCspy entry points
-   public Address gcspyDriverAddStreamIP;
-   public Address gcspyDriverEndOutputIP;
-   public Address gcspyDriverInitIP;
-   public Address gcspyDriverInitOutputIP;
-   public Address gcspyDriverResizeIP;
-   public Address gcspyDriverSetTileNameRangeIP;
-   public Address gcspyDriverSetTileNameIP;
-   public Address gcspyDriverSpaceInfoIP;
-   public Address gcspyDriverStartCommIP;
-   public Address gcspyDriverStreamIP;
-   public Address gcspyDriverStreamByteValueIP;
-   public Address gcspyDriverStreamShortValueIP;
-   public Address gcspyDriverStreamIntValueIP;
-   public Address gcspyDriverSummaryIP;
-   public Address gcspyDriverSummaryValueIP;
 
-   public Address gcspyIntWriteControlIP;
+  /* FIXME: We *really* don't want all these syscalls here unconditionally --- need to push them out somehow */
+  // GCspy entry points
+  public Address gcspyDriverAddStreamIP;
+  public Address gcspyDriverEndOutputIP;
+  public Address gcspyDriverInitIP;
+  public Address gcspyDriverInitOutputIP;
+  public Address gcspyDriverResizeIP;
+  public Address gcspyDriverSetTileNameRangeIP;
+  public Address gcspyDriverSetTileNameIP;
+  public Address gcspyDriverSpaceInfoIP;
+  public Address gcspyDriverStartCommIP;
+  public Address gcspyDriverStreamIP;
+  public Address gcspyDriverStreamByteValueIP;
+  public Address gcspyDriverStreamShortValueIP;
+  public Address gcspyDriverStreamIntValueIP;
+  public Address gcspyDriverSummaryIP;
+  public Address gcspyDriverSummaryValueIP;
 
-   public Address gcspyMainServerAddDriverIP;
-   public Address gcspyMainServerAddEventIP;
-   public Address gcspyMainServerInitIP;
-   public Address gcspyMainServerIsConnectedIP;
-   public Address gcspyMainServerOuterLoopIP;
-   public Address gcspyMainServerSafepointIP;
-   public Address gcspyMainServerSetGeneralInfoIP;
-   public Address gcspyMainServerStartCompensationTimerIP;
-   public Address gcspyMainServerStopCompensationTimerIP;
+  public Address gcspyIntWriteControlIP;
 
-   public Address gcspyStartserverIP;
-     
-   public Address gcspyStreamInitIP;
+  public Address gcspyMainServerAddDriverIP;
+  public Address gcspyMainServerAddEventIP;
+  public Address gcspyMainServerInitIP;
+  public Address gcspyMainServerIsConnectedIP;
+  public Address gcspyMainServerOuterLoopIP;
+  public Address gcspyMainServerSafepointIP;
+  public Address gcspyMainServerSetGeneralInfoIP;
+  public Address gcspyMainServerStartCompensationTimerIP;
+  public Address gcspyMainServerStopCompensationTimerIP;
 
-   public Address gcspyFormatSizeIP;
-   public Address gcspySprintfIP;
+  public Address gcspyStartserverIP;
+
+  public Address gcspyStreamInitIP;
+
+  public Address gcspyFormatSizeIP;
+  public Address gcspySprintfIP;
 }

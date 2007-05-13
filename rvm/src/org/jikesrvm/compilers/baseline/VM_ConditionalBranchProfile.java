@@ -15,7 +15,7 @@ public final class VM_ConditionalBranchProfile extends VM_BranchProfile {
 
   final float taken;
   final boolean backwards;
-  
+
   /**
    * @param _bci the bytecode index of the source branch instruction
    * @param yea the number of times the branch was taken
@@ -23,14 +23,14 @@ public final class VM_ConditionalBranchProfile extends VM_BranchProfile {
    * @param bw is this a backwards branch?
    */
   VM_ConditionalBranchProfile(int _bci, int yea, int nea, boolean bw) {
-    super(_bci, ((float)yea + (float)nea));
-    taken = (float)yea;
+    super(_bci, ((float) yea + (float) nea));
+    taken = (float) yea;
     backwards = bw;
   }
 
   public float getTakenProbability() {
     if (freq > 0) {
-      return taken/freq;
+      return taken / freq;
     } else if (backwards) {
       return 0.9f;
     } else {
@@ -40,9 +40,9 @@ public final class VM_ConditionalBranchProfile extends VM_BranchProfile {
 
   public String toString() {
     String ans = bci + (backwards ? "\tbackbranch" : "\tforwbranch");
-    ans += " < " + (int)taken + ", " +(int)(freq-taken) + " > ";
-    if (freq>0) {
-      ans += (100.0f*taken/freq) + "% taken";
+    ans += " < " + (int) taken + ", " + (int) (freq - taken) + " > ";
+    if (freq > 0) {
+      ans += (100.0f * taken / freq) + "% taken";
     } else {
       ans += "Never Executed";
     }

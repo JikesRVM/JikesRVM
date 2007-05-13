@@ -18,12 +18,12 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
  * recompilation choices that should be considered by the analytic model.
  */
 class VM_MultiLevelAdaptiveModel extends VM_AnalyticModel {
-  
-  /** 
+
+  /**
    * List of all opt-level choices that can be considered by the
    * cost-benefit model 
    */
-  protected  VM_RecompileOptChoice[] allOptLevelChoices;
+  protected VM_RecompileOptChoice[] allOptLevelChoices;
 
   /**
    * Keep a map from previous compiler to a set of recompilation
@@ -31,8 +31,7 @@ class VM_MultiLevelAdaptiveModel extends VM_AnalyticModel {
    * x is the previous compiler, y makes sense as a possible
    * recompilation choice.
    */
-  protected  VM_RecompilationChoice[][] viableChoices;
-
+  protected VM_RecompilationChoice[][] viableChoices;
 
   /**
    * Initialize the set of "optimization choices" that the
@@ -43,15 +42,15 @@ class VM_MultiLevelAdaptiveModel extends VM_AnalyticModel {
    * they do not need to be recomputed to answer queries.
    */
   void populateRecompilationChoices() {
-    int maxOptLevel =  VM_Controller.options.MAX_OPT_LEVEL;
-    int maxCompiler =  VM_CompilerDNA.getCompilerConstant(maxOptLevel);
-    allOptLevelChoices = new VM_RecompileOptChoice[maxOptLevel+1];
+    int maxOptLevel = VM_Controller.options.MAX_OPT_LEVEL;
+    int maxCompiler = VM_CompilerDNA.getCompilerConstant(maxOptLevel);
+    allOptLevelChoices = new VM_RecompileOptChoice[maxOptLevel + 1];
 
     // Create one main list of all possible recompilation choices that
     // will be considered.  For each opt-level, create a recompilation
     // choice for that opt-level and record it indexed by opt-level
-    for (int optLevel=0; optLevel <= maxOptLevel; optLevel++) {
-      allOptLevelChoices[optLevel] = 
+    for (int optLevel = 0; optLevel <= maxOptLevel; optLevel++) {
+      allOptLevelChoices[optLevel] =
           new VM_RecompileOptChoice(optLevel);
     }
 
@@ -61,7 +60,6 @@ class VM_MultiLevelAdaptiveModel extends VM_AnalyticModel {
     // efficiently as possible.
     createViableOptionLookupTable(maxCompiler);
   }
-
 
   /**
    * Compute the set of optimization choices that should be
@@ -77,7 +75,6 @@ class VM_MultiLevelAdaptiveModel extends VM_AnalyticModel {
     return viableChoices[prevCompiler];
   }
 
-
   /**
    * Setup a lookup table that maps a "previous compiler" to a set
    * of viable recompilation choices.  In this case, a viable choice
@@ -90,13 +87,13 @@ class VM_MultiLevelAdaptiveModel extends VM_AnalyticModel {
     VM_RecompilationChoice[] temp = new VM_RecompilationChoice[maxCompiler];
 
     // For each potential value of the previous compiler
-    for (int prevCompiler= VM_CompilerDNA.BASELINE;
+    for (int prevCompiler = VM_CompilerDNA.BASELINE;
          prevCompiler < maxCompiler;
          prevCompiler++) {
-      
+
       // Consider each choice in the list of all choices.
       // If it is greater than cur compiler, add it.
-      int curSlot=0;
+      int curSlot = 0;
       for (VM_RecompileOptChoice choice : allOptLevelChoices) {
         if (choice.getCompiler() > prevCompiler) {
           // Add the current opt-level as a choice to consider when
@@ -108,9 +105,9 @@ class VM_MultiLevelAdaptiveModel extends VM_AnalyticModel {
       // Now that you know how many choices there are, create an array
       // of them and copy the choices in.
       viableChoices[prevCompiler] = new VM_RecompilationChoice[curSlot];
-      for (int i=0; i<curSlot; i++) {
+      for (int i = 0; i < curSlot; i++) {
         viableChoices[prevCompiler][i] = temp[i];
-        temp[i]=null;
+        temp[i] = null;
       }
     }
   }

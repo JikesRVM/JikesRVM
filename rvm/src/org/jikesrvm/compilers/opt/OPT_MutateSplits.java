@@ -28,17 +28,17 @@ public final class OPT_MutateSplits extends OPT_CompilerPhase {
    * Return this instance of this phase. This phase contains no
    * per-compilation instance fields.
    * @param ir not used
-   * @return this 
+   * @return this
    */
-  public OPT_CompilerPhase newExecution (OPT_IR ir) {
+  public OPT_CompilerPhase newExecution(OPT_IR ir) {
     return this;
   }
 
-  public boolean shouldPerform (OPT_Options options) {
+  public boolean shouldPerform(OPT_Options options) {
     return options.LIVE_RANGE_SPLITTING;
   }
 
-  public String getName () {
+  public String getName() {
     return "Mutate Splits";
   }
 
@@ -52,7 +52,7 @@ public final class OPT_MutateSplits extends OPT_CompilerPhase {
         OPT_RegisterOperand lhs = Unary.getResult(s);
         OPT_Operator mv = OPT_IRTools.getMoveOp(lhs.type);
         OPT_Operand rhs = Unary.getVal(s);
-        Move.mutate(s,mv,lhs,rhs);
+        Move.mutate(s, mv, lhs, rhs);
       }
     }
   }

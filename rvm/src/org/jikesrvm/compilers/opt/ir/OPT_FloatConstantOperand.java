@@ -18,7 +18,7 @@ import org.vmmagic.unboxed.Offset;
  *
  * @see OPT_Operand
  */
-public final class OPT_FloatConstantOperand extends OPT_ConstantOperand implements VM_SizeConstants{
+public final class OPT_FloatConstantOperand extends OPT_ConstantOperand implements VM_SizeConstants {
 
   /**
    * Value of this operand.
@@ -62,29 +62,29 @@ public final class OPT_FloatConstantOperand extends OPT_ConstantOperand implemen
 
   /**
    * Return a new operand that is semantically equivalent to <code>this</code>.
-   * 
+   *
    * @return a copy of <code>this</code>
    */
   public OPT_Operand copy() {
-    return new OPT_FloatConstantOperand(value,offset);
+    return new OPT_FloatConstantOperand(value, offset);
   }
 
   /**
    * Return the {@link VM_TypeReference} of the value represented by the operand.
-   * 
+   *
    * @return VM_TypeReference.Float
    */
   public VM_TypeReference getType() {
-	 return VM_TypeReference.Float;	 
+    return VM_TypeReference.Float;
   }
 
   /**
    * Does the operand represent a value of the float data type?
-   * 
+   *
    * @return <code>true</code>
    */
   public boolean isFloat() {
-	 return true;
+    return true;
   }
 
   /**
@@ -97,7 +97,7 @@ public final class OPT_FloatConstantOperand extends OPT_ConstantOperand implemen
    */
   public boolean similar(OPT_Operand op) {
     return (op instanceof OPT_FloatConstantOperand) &&
-           (value == ((OPT_FloatConstantOperand)op).value);
+           (value == ((OPT_FloatConstantOperand) op).value);
   }
 
   /**

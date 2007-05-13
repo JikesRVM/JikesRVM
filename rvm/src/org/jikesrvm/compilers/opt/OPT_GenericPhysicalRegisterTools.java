@@ -28,7 +28,6 @@ public abstract class OPT_GenericPhysicalRegisterTools extends OPT_IRTools {
    */
   public abstract OPT_IR getIR();
 
-
   /**
    * Create an address register operand for a given physical GPR.
    * To be used in passthrough expressions like
@@ -50,7 +49,7 @@ public abstract class OPT_GenericPhysicalRegisterTools extends OPT_IRTools {
    * <pre>
    *    ... Load.create(INT_LOAD, I(2), A(1), IC(4)) ...
    * </pre>
-   * 
+   *
    * @param regnum the given GPR register number
    * @return integer register operand
    */
@@ -108,7 +107,7 @@ public abstract class OPT_GenericPhysicalRegisterTools extends OPT_IRTools {
    * Does instruction s have an operand that contains a physical register?
    */
   static boolean hasPhysicalOperand(OPT_Instruction s) {
-    for (Enumeration<OPT_Operand> e = s.getOperands(); e.hasMoreElements(); ) {
+    for (Enumeration<OPT_Operand> e = s.getOperands(); e.hasMoreElements();) {
       OPT_Operand op = e.nextElement();
       if (op == null) continue;
       if (op.isRegister()) {

@@ -30,8 +30,8 @@ final class OPT_BURS_IntConstantTreeNode extends OPT_BURS_TreeNode {
     value = val;
     setNumRegisters(0);
   }
- 
+
   public String toString() {
-    return "INT_CONSTANT "+value;
+    return "INT_CONSTANT " + value;
   }
 }

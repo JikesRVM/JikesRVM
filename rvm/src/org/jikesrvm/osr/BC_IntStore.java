@@ -8,6 +8,7 @@
  */
 
 package org.jikesrvm.osr;
+
 /**
  * BC_IntStore : istore_<?>, istore 
  *
@@ -20,7 +21,7 @@ public class BC_IntStore extends OSR_PseudoBytecode {
   private byte[] codes;
   private int lnum;
 
-  public BC_IntStore(int local){
+  public BC_IntStore(int local) {
     this.lnum = local;
     if (local <= 255) {
       bsize = 2;
@@ -28,7 +29,7 @@ public class BC_IntStore extends OSR_PseudoBytecode {
     } else {
       bsize = 4;
       codes = makeWOUUcode(JBC_istore, local);
-    }  
+    }
   }
 
   public byte[] getBytes() {
@@ -40,10 +41,10 @@ public class BC_IntStore extends OSR_PseudoBytecode {
   }
 
   public int stackChanges() {
-        return -1;
+    return -1;
   }
 
   public String toString() {
-    return "istore "+lnum;
+    return "istore " + lnum;
   }
 }

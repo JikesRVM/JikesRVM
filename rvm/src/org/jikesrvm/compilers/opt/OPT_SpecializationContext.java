@@ -13,7 +13,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 
 public interface OPT_SpecializationContext {
 
-  /** 
+  /**
    * Find or create a specialized version of source for this 
    * context.  Do NOT compile it immediately.  However, DO
    * allocate an spmd if needed
@@ -24,7 +24,7 @@ public interface OPT_SpecializationContext {
    * Generate code for a specialized version of source in this
    * context.
    */
-  VM_CompiledMethod specialCompile (VM_NormalMethod source);
+  VM_CompiledMethod specialCompile(VM_NormalMethod source);
 }
 
 

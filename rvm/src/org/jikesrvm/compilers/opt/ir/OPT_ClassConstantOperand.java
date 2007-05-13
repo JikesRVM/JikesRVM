@@ -30,16 +30,16 @@ public final class OPT_ClassConstantOperand extends OPT_ObjectConstantOperand {
 
   /**
    * Return a new operand that is semantically equivalent to <code>this</code>.
-   * 
+   *
    * @return a copy of <code>this</code>
    */
   public OPT_Operand copy() {
-    return new OPT_ClassConstantOperand((Class<?>)value, offset);
+    return new OPT_ClassConstantOperand((Class<?>) value, offset);
   }
 
   /**
    * Return the {@link VM_TypeReference} of the value represented by the operand.
-   * 
+   *
    * @return VM_TypeReference.JavaLangClass
    */
   public VM_TypeReference getType() {
@@ -52,6 +52,6 @@ public final class OPT_ClassConstantOperand extends OPT_ObjectConstantOperand {
    * @return a string representation of this operand.
    */
   public String toString() {
-    return "class \""+ value + "\"";
+    return "class \"" + value + "\"";
   }
 }

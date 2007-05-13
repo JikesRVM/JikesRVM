@@ -33,36 +33,36 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
    * Makes sure we are in SSA and have global value numbers at hand.
    * Then execute the transformations.
    */
-  OPT_GCP () {
+  OPT_GCP() {
     super("Global Code Placement",
-      new OPT_OptimizationPlanElement[] {
-      // 1. Set up IR state to control SSA translation as needed
-      new OPT_OptimizationPlanAtomicElement(new GCPPreparation()),   
-      // 2. Get the desired SSA form
-      new OPT_OptimizationPlanAtomicElement(new OPT_EnterSSA()),
-      // 3. Perform global CSE
-      new OPT_OptimizationPlanAtomicElement(new OPT_GlobalCSE()),
-      // 4. Repair SSA
-      new OPT_OptimizationPlanAtomicElement(new OPT_EnterSSA()),
-      // 5. Perform Loop Invariant Code Motion
-      new OPT_OptimizationPlanAtomicElement(new OPT_LICM()),
-      // 6. Finalize GCP
-      new OPT_OptimizationPlanAtomicElement(new GCPFinalization())
-    });
+          new OPT_OptimizationPlanElement[]{
+              // 1. Set up IR state to control SSA translation as needed
+              new OPT_OptimizationPlanAtomicElement(new GCPPreparation()),
+              // 2. Get the desired SSA form
+              new OPT_OptimizationPlanAtomicElement(new OPT_EnterSSA()),
+              // 3. Perform global CSE
+              new OPT_OptimizationPlanAtomicElement(new OPT_GlobalCSE()),
+              // 4. Repair SSA
+              new OPT_OptimizationPlanAtomicElement(new OPT_EnterSSA()),
+              // 5. Perform Loop Invariant Code Motion
+              new OPT_OptimizationPlanAtomicElement(new OPT_LICM()),
+              // 6. Finalize GCP
+              new OPT_OptimizationPlanAtomicElement(new GCPFinalization())
+          });
   }
 
   /**
    * Redefine shouldPerform so that none of the subphases will occur
    * unless we pass through this test.
    */
-  public boolean shouldPerform (OPT_Options options) {
-    if (options.getOptLevel() < 2)
-      return  false;
-    return  options.GCP || options.VERBOSE_GCP || options.GCSE;
+  public boolean shouldPerform(OPT_Options options) {
+    if (options.getOptLevel() < 2) {
+      return false;
+    }
+    return options.GCP || options.VERBOSE_GCP || options.GCSE;
   }
 
-
-  static boolean tooBig(OPT_IR ir){
+  static boolean tooBig(OPT_IR ir) {
     boolean res = false;
     if (ir.getMaxBasicBlockNumber() > 1000) {
       //VM.sysWrite (ir.method.toString() + " is too large\n");
@@ -70,7 +70,7 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
     }
     return res;
   }
-  
+
   /**
    * This class sets up the IR state prior to entering SSA for GCP
    */
@@ -79,9 +79,9 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
      * Return this instance of this phase. This phase contains no
      * per-compilation instance fields.
      * @param ir not used
-     * @return this 
+     * @return this
      */
-    public OPT_CompilerPhase newExecution (OPT_IR ir) {
+    public OPT_CompilerPhase newExecution(OPT_IR ir) {
       return this;
     }
 
@@ -89,25 +89,25 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
      * Should this phase perform?
      * @param options
      */
-    public final boolean shouldPerform (OPT_Options options) {
-      return  options.GCP || options.VERBOSE_GCP || options.GCSE;
+    public final boolean shouldPerform(OPT_Options options) {
+      return options.GCP || options.VERBOSE_GCP || options.GCSE;
     }
 
     /**
      * Return the name of the phase
      */
-    public final String getName () {
-      return  "GCP Preparation";
+    public final String getName() {
+      return "GCP Preparation";
     }
 
     /**
      * perform the phase
      * @param ir
      */
-    public final void perform (OPT_IR ir) {
+    public final void perform(OPT_IR ir) {
       boolean dont = false;
       //VM.sysWrite("> " + ir.method + "\n");
-      
+
       if (ir.hasReachableExceptionHandlers()) {
         //VM.sysWrite("has exceptionhandlers\n");
         dont = true;
@@ -127,8 +127,7 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
         ir.desiredSSAOptions.setInsertUsePhis(false);
         ir.desiredSSAOptions.setInsertPEIDeps(false);
         ir.desiredSSAOptions.setHeapTypes(null);
-      } 
-      else {
+      } else {
         // HIR options 
         ir.desiredSSAOptions.setScalarsOnly(false);
         ir.desiredSSAOptions.setBackwards(true);
@@ -139,7 +138,6 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
     }
   }
 
-
   /**
    * This class sets up the IR state prior to entering SSA for GCP
    */
@@ -148,9 +146,9 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
      * Return this instance of this phase. This phase contains no
      * per-compilation instance fields.
      * @param ir not used
-     * @return this 
+     * @return this
      */
-    public OPT_CompilerPhase newExecution (OPT_IR ir) {
+    public OPT_CompilerPhase newExecution(OPT_IR ir) {
       return this;
     }
 
@@ -158,22 +156,22 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
      * Should this phase perform?
      * @param options
      */
-    public final boolean shouldPerform (OPT_Options options) {
-      return  options.GCP || options.VERBOSE_GCP || options.GCSE;
+    public final boolean shouldPerform(OPT_Options options) {
+      return options.GCP || options.VERBOSE_GCP || options.GCSE;
     }
 
     /**
      * Return the name of the phase
      */
-    public final String getName () {
-      return  "GCP Finalization";
+    public final String getName() {
+      return "GCP Finalization";
     }
 
     /**
      * perform the phase
      * @param ir
      */
-    public final void perform (OPT_IR ir) {
+    public final void perform(OPT_IR ir) {
       ir.options.SSA = true;
       //VM.sysWrite("< " + ir.method + "\n");
       // register in the IR the SSA properties GCP preserves
@@ -186,8 +184,7 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
           ir.actualSSAOptions.setInsertUsePhis(false);
           ir.actualSSAOptions.setInsertPEIDeps(false);
           ir.actualSSAOptions.setHeapTypes(null);
-        }
-        else {
+        } else {
           // HIR options 
           ir.actualSSAOptions.setScalarsOnly(false);
           ir.actualSSAOptions.setBackwards(true);
@@ -198,17 +195,20 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
       }
     }
   }
-  
-  static boolean usesOrDefsPhysicalRegisterOrAddressType (OPT_Instruction inst) {
 
-    for (int i = inst.getNumberOfOperands() - 1; i >= 0;  --i) {
+  static boolean usesOrDefsPhysicalRegisterOrAddressType(OPT_Instruction inst) {
+
+    for (int i = inst.getNumberOfOperands() - 1; i >= 0; --i) {
       OPT_Operand op = inst.getOperand(i);
-      if (op instanceof OPT_RegisterOperand)
-          if (op.asRegister().type.isWordType() ||
-              op.asRegister().register.isPhysical()) return true;
+      if (op instanceof OPT_RegisterOperand) {
+        if (op.asRegister().type.isWordType() ||
+            op.asRegister().register.isPhysical()) {
+          return true;
+        }
+      }
     }
     return false;
-  }  
+  }
 }
 
 

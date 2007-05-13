@@ -23,17 +23,18 @@ import org.vmmagic.unboxed.WordArray;
  *
  * @see VM_GCMapIteratorGroup
  */
-@Uninterruptible public abstract class VM_GCMapIterator {
-  
+@Uninterruptible
+public abstract class VM_GCMapIterator {
+
   /** thread whose stack is currently being scanned */
-  public VM_Thread thread; 
-  
+  public VM_Thread thread;
+
   /** address of stackframe currently being scanned */
-  public Address  framePtr;
-  
+  public Address framePtr;
+
   /** address where each gpr register was saved by previously scanned stackframe(s) */
-  public WordArray   registerLocations;
-  
+  public WordArray registerLocations;
+
   /**
    * Prepare to scan a thread's stack and saved registers for object references.
    *
@@ -42,16 +43,16 @@ import org.vmmagic.unboxed.WordArray;
   public void newStackWalk(VM_Thread thread) {
     this.thread = thread;
   }
-  
+
   /**
    * Prepare to iterate over object references and JSR return addresses held by a stackframe.
-   * 
+   *
    * @param compiledMethod     method running in the stackframe
    * @param instructionOffset  offset of current instruction within that method's code
    * @param framePtr           address of stackframe to be visited
    */
   public abstract void setupIterator(VM_CompiledMethod compiledMethod, Offset instructionOffset, Address framePtr);
-  
+
   /**
    * Get address of next object reference held by current stackframe.
    * Returns zero when there are no more references to report.
@@ -65,7 +66,7 @@ import org.vmmagic.unboxed.WordArray;
    *         zero if no more references to report
    */
   public abstract Address getNextReferenceAddress();
-  
+
   /**
    * Get address of next JSR return address held by current stackframe.
    *
@@ -73,19 +74,19 @@ import org.vmmagic.unboxed.WordArray;
    *         zero if no more return addresses to report
    */
   public abstract Address getNextReturnAddressAddress();
-  
+
   /**
    * Prepare to re-iterate on same stackframe, and to switch between
    * "reference" iteration and "JSR return address" iteration.
    */
   public abstract void reset();
-  
+
   /**
    * Iteration is complete, release any internal data structures including 
    * locks acquired during setupIterator for jsr maps.
- */
+   */
   public abstract void cleanupPointers();
-  
+
   /**
    * Get the type of this iterator (BASELINE, OPT, etc.).
    * Called from VM_GCMapIteratorGroup to select which iterator

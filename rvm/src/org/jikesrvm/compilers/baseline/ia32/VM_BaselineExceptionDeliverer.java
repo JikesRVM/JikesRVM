@@ -26,24 +26,24 @@ import org.vmmagic.unboxed.Offset;
  * Handle exception delivery and stack unwinding for methods compiled by 
  * baseline compiler.
  */
-public abstract class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer 
-   implements VM_BaselineConstants {
+public abstract class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
+    implements VM_BaselineConstants {
 
   /**
    * Pass control to a catch block.
    */
   public void deliverException(VM_CompiledMethod compiledMethod,
-                               Address        catchBlockInstructionAddress,
-                               Throwable         exceptionObject,
-                               ArchitectureSpecific.VM_Registers      registers) {
-    Address fp     = registers.getInnermostFramePointer();
-    VM_NormalMethod method = (VM_NormalMethod)compiledMethod.getMethod();
+                               Address catchBlockInstructionAddress,
+                               Throwable exceptionObject,
+                               ArchitectureSpecific.VM_Registers registers) {
+    Address fp = registers.getInnermostFramePointer();
+    VM_NormalMethod method = (VM_NormalMethod) compiledMethod.getMethod();
     VM_Thread myThread = VM_Thread.getCurrentThread();
 
     // reset sp to "empty expression stack" state
     //
     Address sp = fp.plus(VM_Compiler.getEmptyStackOffset(method));
-    
+
     // push exception object as argument to catch block
     //
     sp = sp.minus(BYTES_IN_ADDRESS);
@@ -56,7 +56,7 @@ public abstract class VM_BaselineExceptionDeliverer extends VM_ExceptionDelivere
     // branch to catch block
     //
     VM.enableGC(); // disabled right before VM_Runtime.deliverException was called
-    if (VM.VerifyAssertions) VM._assert(registers.inuse == true); 
+    if (VM.VerifyAssertions) VM._assert(registers.inuse == true);
 
     registers.inuse = false;
 
@@ -73,24 +73,25 @@ public abstract class VM_BaselineExceptionDeliverer extends VM_ExceptionDelivere
     VM_Magic.restoreHardwareExceptionState(registers);
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
   }
-   
 
   /**
    * Unwind a stackframe.
    */
   public void unwindStackFrame(VM_CompiledMethod compiledMethod, ArchitectureSpecific.VM_Registers registers) {
-    VM_NormalMethod method = (VM_NormalMethod)compiledMethod.getMethod();
-    Address fp     = registers.getInnermostFramePointer();
+    VM_NormalMethod method = (VM_NormalMethod) compiledMethod.getMethod();
+    Address fp = registers.getInnermostFramePointer();
     if (method.isSynchronized()) { // release the lock, if it is being held
       Address ip = registers.getInnermostInstructionAddress();
       Offset instr = compiledMethod.getInstructionOffset(ip);
-      Offset lockOffset = ((VM_BaselineCompiledMethod)compiledMethod).getLockAcquisitionOffset();
+      Offset lockOffset = ((VM_BaselineCompiledMethod) compiledMethod).getLockAcquisitionOffset();
       if (instr.sGT(lockOffset)) { // we actually have the lock, so must unlock it.
         Object lock;
         if (method.isStatic()) {
           lock = method.getDeclaringClass().getClassForType();
         } else {
-          lock = VM_Magic.addressAsObject(fp.plus(VM_Compiler.locationToOffset(((VM_BaselineCompiledMethod)compiledMethod).getGeneralLocalLocation(0)) - BYTES_IN_ADDRESS).loadAddress());
+          lock =
+              VM_Magic.addressAsObject(fp.plus(VM_Compiler.locationToOffset(((VM_BaselineCompiledMethod) compiledMethod).getGeneralLocalLocation(
+                  0)) - BYTES_IN_ADDRESS).loadAddress());
         }
         VM_ObjectModel.genericUnlock(lock);
       }
@@ -99,7 +100,7 @@ public abstract class VM_BaselineExceptionDeliverer extends VM_ExceptionDelivere
     if (VM.VerifyAssertions) VM._assert(SAVED_GPRS == 2);
     registers.gprs.set(JTOC, fp.plus(JTOC_SAVE_OFFSET).loadWord());
     registers.gprs.set(EBX, fp.plus(EBX_SAVE_OFFSET).loadWord());
-    
+
     registers.unwindStackFrame();
   }
 }

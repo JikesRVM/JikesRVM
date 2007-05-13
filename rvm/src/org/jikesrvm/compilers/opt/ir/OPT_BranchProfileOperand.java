@@ -35,7 +35,7 @@ public final class OPT_BranchProfileOperand extends OPT_Operand {
   public static OPT_BranchProfileOperand likely() {
     return new OPT_BranchProfileOperand(LIKELY);
   }
-  
+
   public static OPT_BranchProfileOperand unlikely() {
     return new OPT_BranchProfileOperand(UNLIKELY);
   }
@@ -46,7 +46,7 @@ public final class OPT_BranchProfileOperand extends OPT_Operand {
 
   /**
    * Returns a copy of this branch operand.
-   * 
+   *
    * @return a copy of this operand
    */
   public OPT_Operand copy() {
@@ -71,8 +71,8 @@ public final class OPT_BranchProfileOperand extends OPT_Operand {
    */
   public boolean similar(OPT_Operand op) {
     return (op instanceof OPT_BranchProfileOperand) &&
-      (takenProbability == 
-       ((OPT_BranchProfileOperand)op).takenProbability);
+           (takenProbability ==
+            ((OPT_BranchProfileOperand) op).takenProbability);
   }
 
   /**

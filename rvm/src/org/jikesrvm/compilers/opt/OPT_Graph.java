@@ -27,15 +27,15 @@ interface OPT_Graph {
    * @see OPT_GraphNode
    *
    * @return an enumeration of all nodes in the graph
- */
-  OPT_GraphNodeEnumeration enumerateNodes ();
+   */
+  OPT_GraphNodeEnumeration enumerateNodes();
 
   /**
    *  Find out how many nodes are in the graph
    *
    *  @return the number of nodes in the graph 
    */
-  int numberOfNodes ();
+  int numberOfNodes();
 
   /**
    *  After this method is called, all nodes in the graph should
@@ -46,14 +46,14 @@ interface OPT_Graph {
    * storage for graph nodes in an 
    * array. 
    */
-  void compactNodeNumbering ();
+  void compactNodeNumbering();
 
   /**
    *  Add a new graph node to the graph.
    *
    * @param node the node to add to the graph
    */
-  void addGraphNode (OPT_GraphNode node);
+  void addGraphNode(OPT_GraphNode node);
 
   /**
    *  Add a new edge to a graph.  This method is deliberately
@@ -63,5 +63,5 @@ interface OPT_Graph {
    * @param source the source node of the edge to add
    * @param target the target node of the edge to add
    */
-  void addGraphEdge (OPT_GraphNode source, OPT_GraphNode target);
+  void addGraphEdge(OPT_GraphNode source, OPT_GraphNode target);
 }

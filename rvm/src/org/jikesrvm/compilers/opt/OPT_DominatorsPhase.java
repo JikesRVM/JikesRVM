@@ -10,6 +10,7 @@ package org.jikesrvm.compilers.opt;
 
 import java.lang.reflect.Constructor;
 import org.jikesrvm.compilers.opt.ir.OPT_IR;
+
 /**
  * Driver routine for dominator computation.  This phase invokes
  * the Lengauer-Tarjan dominator calculation.
@@ -26,14 +27,15 @@ final class OPT_DominatorsPhase extends OPT_CompilerPhase {
    * dominators?
    */
   public OPT_DominatorsPhase(boolean unfactor) {
-	 super(new Object[]{unfactor});
-	 this.unfactor = unfactor;
+    super(new Object[]{unfactor});
+    this.unfactor = unfactor;
   }
 
   /**
    * Constructor for this compiler phase
    */
-  private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor(OPT_DominatorsPhase.class, new Class[]{Boolean.TYPE});
+  private static final Constructor<OPT_CompilerPhase> constructor =
+      getCompilerPhaseConstructor(OPT_DominatorsPhase.class, new Class[]{Boolean.TYPE});
 
   /**
    * Get a constructor object for this compiler phase
@@ -49,15 +51,16 @@ final class OPT_DominatorsPhase extends OPT_CompilerPhase {
    * dictate.
    * @param options controlling compiler options
    */
-  public boolean shouldPerform (OPT_Options options) {
+  public boolean shouldPerform(OPT_Options options) {
     return true;
   }
+
   /**
    * Return a string representation of this phase
    * @return "Dominators + LpStrTree"
    */
   public String getName() {
-    return  "Dominators + LpStrTree";
+    return "Dominators + LpStrTree";
   }
 
   /**
@@ -67,7 +70,7 @@ final class OPT_DominatorsPhase extends OPT_CompilerPhase {
    * @return true or false
    */
   public boolean printingEnabled(OPT_Options options, boolean before) {
-    return  false;
+    return false;
   }
 
   /**
@@ -93,7 +96,7 @@ final class OPT_DominatorsPhase extends OPT_CompilerPhase {
       // computation completed, so set flag
       ir.HIRInfo.dominatorsAreComputed = true;
     } catch (OPT_OperationNotImplementedException e) {
-        OPT_Compiler.report(e.getMessage());
+      OPT_Compiler.report(e.getMessage());
     }
   }
 }

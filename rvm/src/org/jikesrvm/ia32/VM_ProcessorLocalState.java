@@ -21,7 +21,7 @@ import org.vmmagic.unboxed.Offset;
  * @see VM_Processor
  */
 public abstract class VM_ProcessorLocalState {
-  
+
   protected static final byte PROCESSOR_REGISTER = VM_RegisterConstants.ESI;
 
   /**
@@ -30,16 +30,15 @@ public abstract class VM_ProcessorLocalState {
    */
   @Uninterruptible
   public
-  static void boot() { 
+  static void boot() {
     // do nothing - everything is already set up.
   }
-
 
   /**
    * Return the current VM_Processor object
    */
   @Uninterruptible
-  public static VM_Processor getCurrentProcessor() { 
+  public static VM_Processor getCurrentProcessor() {
     return VM_Magic.getESIAsProcessor();
   }
 
@@ -47,7 +46,7 @@ public abstract class VM_ProcessorLocalState {
    * Set the current VM_Processor object
    */
   @Uninterruptible
-  public static void setCurrentProcessor(VM_Processor p) { 
+  public static void setCurrentProcessor(VM_Processor p) {
     VM_Magic.setESIAsProcessor(p);
   }
 
@@ -60,7 +59,7 @@ public abstract class VM_ProcessorLocalState {
    * @param reg number of the register supplying the new value
    */
   public static void emitMoveRegToField(VM_Assembler asm, Offset offset, byte reg) {
-    asm.emitMOV_RegDisp_Reg(PROCESSOR_REGISTER,offset,reg);
+    asm.emitMOV_RegDisp_Reg(PROCESSOR_REGISTER, offset, reg);
   }
 
   /**
@@ -72,7 +71,7 @@ public abstract class VM_ProcessorLocalState {
    * @param imm immediate value
    */
   public static void emitMoveImmToField(VM_Assembler asm, Offset offset, int imm) {
-    asm.emitMOV_RegDisp_Imm(PROCESSOR_REGISTER,offset,imm);
+    asm.emitMOV_RegDisp_Imm(PROCESSOR_REGISTER, offset, imm);
   }
 
   /**
@@ -84,7 +83,7 @@ public abstract class VM_ProcessorLocalState {
    * @param offset of field in the <code>VM_Processor</code> object
    */
   public static void emitMoveFieldToReg(VM_Assembler asm, byte dest, Offset offset) {
-    asm.emitMOV_Reg_RegDisp(dest,PROCESSOR_REGISTER,offset);
+    asm.emitMOV_Reg_RegDisp(dest, PROCESSOR_REGISTER, offset);
   }
 
   /**
@@ -96,7 +95,7 @@ public abstract class VM_ProcessorLocalState {
    * @param imm immediate value to compare with
    */
   public static void emitCompareFieldWithImm(VM_Assembler asm, Offset offset, int imm) {
-    asm.emitCMP_RegDisp_Imm(PROCESSOR_REGISTER,offset,imm);
+    asm.emitCMP_RegDisp_Imm(PROCESSOR_REGISTER, offset, imm);
   }
 
   /**
@@ -119,8 +118,9 @@ public abstract class VM_ProcessorLocalState {
    * @param offset of field in the <code>VM_Processor</code> object
    */
   public static void emitDecrementField(VM_Assembler asm, Offset offset) {
-    asm.emitDEC_RegDisp(PROCESSOR_REGISTER,offset);
+    asm.emitDEC_RegDisp(PROCESSOR_REGISTER, offset);
   }
+
   /**
    * Emit an instruction sequence to PUSH the value of a field in the 
    * current processor offset
@@ -129,8 +129,9 @@ public abstract class VM_ProcessorLocalState {
    * @param offset of field in the <code>VM_Processor</code> object
    */
   public static void emitPushField(VM_Assembler asm, Offset offset) {
-    asm.emitPUSH_RegDisp(PROCESSOR_REGISTER,offset);
+    asm.emitPUSH_RegDisp(PROCESSOR_REGISTER, offset);
   }
+
   /**
    * Emit an instruction sequence to POP a value into a field in the 
    * current processor offset
@@ -171,8 +172,9 @@ public abstract class VM_ProcessorLocalState {
    * @param offset offset
    */
   public static void emitStoreProcessor(VM_Assembler asm, byte base, Offset offset) {
-    asm.emitMOV_RegDisp_Reg(base,offset,PROCESSOR_REGISTER);
+    asm.emitMOV_RegDisp_Reg(base, offset, PROCESSOR_REGISTER);
   }
+
   /**
    * Emit an instruction sequence to load current VM_Processor
    * object from a location defined by [base]+offset
@@ -182,6 +184,6 @@ public abstract class VM_ProcessorLocalState {
    * @param offset offset
    */
   public static void emitLoadProcessor(VM_Assembler asm, byte base, Offset offset) {
-    asm.emitMOV_Reg_RegDisp(PROCESSOR_REGISTER,base,offset);
+    asm.emitMOV_Reg_RegDisp(PROCESSOR_REGISTER, base, offset);
   }
 }

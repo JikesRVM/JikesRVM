@@ -28,19 +28,19 @@ import org.jikesrvm.compilers.opt.ir.OsrPoint;
  * after inlining.
  */
 public class OSR_OsrPointConstructor extends OPT_CompilerPhase {
-  
+
   public final boolean shouldPerform(OPT_Options options) {
     return VM.runningVM && options.OSR_GUARDED_INLINING;
   }
-  
+
   /**
    * Return this instance of this phase. This phase contains no
    * per-compilation instance fields.
    * @param ir not used
-   * @return this 
+   * @return this
    */
-  public OPT_CompilerPhase newExecution (OPT_IR ir) {
-      return this;
+  public OPT_CompilerPhase newExecution(OPT_IR ir) {
+    return this;
   }
 
   public final String getName() {
@@ -51,11 +51,12 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase {
    * Need to run branch optimizations after
    */
   private final OPT_BranchOptimizations branchOpts;
+
   /**
    * Constructor
    */
   OSR_OsrPointConstructor() {
-    branchOpts = new OPT_BranchOptimizations(-1,false,false);
+    branchOpts = new OPT_BranchOptimizations(-1, false, false);
   }
 
   /**
@@ -78,7 +79,7 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase {
     //    new OPT_IRPrinter("after removing barriers").perform(ir);
 
     // 4. reconstruct CFG, cut off pieces after OsrPoint.
-        fixupCFGForOsr(osrs, ir);
+    fixupCFGForOsr(osrs, ir);
 /*
         if (VM.TraceOnStackReplacement && (0 != osrs.size())) {
       new OPT_IRPrinter("After OsrPointConstructor").perform(ir);
@@ -89,7 +90,7 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase {
       verifyNoOsrBarriers(ir);
     }
 */
-        branchOpts.perform(ir);
+    branchOpts.perform(ir);
   }
 
   /** Iterates instructions, build a list of OsrPoint instructions. */
@@ -99,7 +100,7 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase {
     OPT_InstructionEnumeration instenum = ir.forwardInstrEnumerator();
     while (instenum.hasMoreElements()) {
       OPT_Instruction inst = instenum.next();
-      
+
       if (OsrPoint.conforms(inst)) {
         osrs.add(inst);
       }
@@ -114,14 +115,14 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase {
    */
   private void renovateOsrPoints(LinkedList<OPT_Instruction> osrs, OPT_IR ir) {
 
-    for (int osrIdx=0, osrSize=osrs.size(); osrIdx<osrSize; osrIdx++) {
-      OPT_Instruction osr = osrs.get(osrIdx);      
+    for (int osrIdx = 0, osrSize = osrs.size(); osrIdx < osrSize; osrIdx++) {
+      OPT_Instruction osr = osrs.get(osrIdx);
       LinkedList<OPT_Instruction> barriers = new LinkedList<OPT_Instruction>();
 
       // Step 1: collect barriers put before inlined method
       //         in the order of from inner to outer
       {
-        OPT_Instruction bar = (OPT_Instruction)osr.scratchObject;
+        OPT_Instruction bar = (OPT_Instruction) osr.scratchObject;
 
         if (osr.position == null) osr.position = bar.position;
 
@@ -134,24 +135,24 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase {
           // verify each barrier is clean
           if (VM.VerifyAssertions) {
             if (!isBarrierClean(bar)) {
-              VM.sysWriteln("Barrier "+bar+" is not clean!");
+              VM.sysWriteln("Barrier " + bar + " is not clean!");
             }
             VM._assert(isBarrierClean(bar));
           }
 
           OPT_Instruction callsite = bar.position.getCallSite();
           if (callsite != null) {
-            bar = (OPT_Instruction)callsite.scratchObject;
+            bar = (OPT_Instruction) callsite.scratchObject;
 
-                if (bar == null) {
-                  VM.sysWrite("call site :"+callsite);
-                  VM._assert(false);
-                }
-                
+            if (bar == null) {
+              VM.sysWrite("call site :" + callsite);
+              VM._assert(false);
+            }
+
             adjustBCIndex(bar);
           } else {
             bar = null;
-          } 
+          }
         }
       }
 
@@ -159,19 +160,20 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase {
 
       if (VM.VerifyAssertions) {
         if (inlineDepth == 0) {
-          VM.sysWriteln("Inlining depth for "+osr+" is 0!");
+          VM.sysWriteln("Inlining depth for " + osr + " is 0!");
         }
-        VM._assert(inlineDepth != 0); }
+        VM._assert(inlineDepth != 0);
+      }
 
       // Step 2: make a new InlinedOsrTypeOperand from barriers
       int[] methodids = new int[inlineDepth];
       int[] bcindexes = new int[inlineDepth];
       byte[][] localTypeCodes = new byte[inlineDepth][];
       byte[][] stackTypeCodes = new byte[inlineDepth][];
-      
+
       int totalOperands = 0;
       // first iteration, count the size of total locals and stack sizes
-      for (int barIdx=0, barSize=barriers.size(); barIdx<barSize; barIdx++) {
+      for (int barIdx = 0, barSize = barriers.size(); barIdx < barSize; barIdx++) {
 
         OPT_Instruction bar = barriers.get(barIdx);
         methodids[barIdx] = bar.position.method.getId();
@@ -195,41 +197,40 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase {
 
       // new make InlinedOsrTypeInfoOperand
       OPT_InlinedOsrTypeInfoOperand typeInfo =
-        new OPT_InlinedOsrTypeInfoOperand(methodids, bcindexes,
-                                          localTypeCodes,
-                                          stackTypeCodes);
-      
+          new OPT_InlinedOsrTypeInfoOperand(methodids, bcindexes,
+                                            localTypeCodes,
+                                            stackTypeCodes);
+
       OsrPoint.mutate(osr, osr.operator(),
-                      typeInfo, 
+                      typeInfo,
                       totalOperands);
 
       // Step 3: second iteration, copy operands
       int opIndex = 0;
-      for (int barIdx=0, barSize=barriers.size(); barIdx<barSize; barIdx++) {
+      for (int barIdx = 0, barSize = barriers.size(); barIdx < barSize; barIdx++) {
 
         OPT_Instruction bar = barriers.get(barIdx);
-        for (int elmIdx=0, elmSize=OsrBarrier.getNumberOfElements(bar); 
-             elmIdx<elmSize; 
+        for (int elmIdx = 0, elmSize = OsrBarrier.getNumberOfElements(bar);
+             elmIdx < elmSize;
              elmIdx++) {
 
-          OPT_Operand op = OsrBarrier.getElement(bar, elmIdx);    
+          OPT_Operand op = OsrBarrier.getElement(bar, elmIdx);
 
           if (VM.VerifyAssertions) {
             if (op == null) {
-              VM.sysWriteln(elmIdx+"th Operand of "+bar+" is null!");   
+              VM.sysWriteln(elmIdx + "th Operand of " + bar + " is null!");
             }
             VM._assert(op != null);
           }
- 
+
           if (op.isRegister()) {
             op = op.asRegister().copyU2U();
-          }
-          else {
+          } else {
             op = op.copy();
           }
 
           OsrPoint.setElement(osr, opIndex, op);
-          opIndex ++;
+          opIndex++;
         }
       }
 /*
@@ -243,21 +244,21 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase {
         OPT_Instruction lastBar = barriers.getLast();
         if (ir.method != lastBar.position.method) {
           VM.sysWriteln("The last barrier is not in the same method as osr:");
-          VM.sysWriteln(lastBar+"@"+lastBar.position.method);
-          VM.sysWriteln("current method @"+ir.method);
+          VM.sysWriteln(lastBar + "@" + lastBar.position.method);
+          VM.sysWriteln("current method @" + ir.method);
         }
         VM._assert(ir.method == lastBar.position.method);
 
         if (opIndex != totalOperands) {
           VM.sysWriteln("opIndex and totalOperands do not match:");
-          VM.sysWriteln("opIndex = "+opIndex);
-          VM.sysWriteln("totalOperands = "+totalOperands);
+          VM.sysWriteln("opIndex = " + opIndex);
+          VM.sysWriteln("totalOperands = " + totalOperands);
         }
         VM._assert(opIndex == totalOperands);
       } // end of assertion
     } // end of for loop
   }
- 
+
   /**
    * The OsrBarrier instruction is not in IR, so the bc index was not
    * adjusted in OSR_AdjustBCIndex
@@ -268,7 +269,6 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase {
       barrier.bcIndex -= source.getOsrPrologueLength();
     }
   }
-
 
   /** remove OsrBarrier instructions. */
   private void removeOsrBarriers(OPT_IR ir) {
@@ -283,7 +283,8 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase {
     }
   }
 
-  @SuppressWarnings("unused") // it's a debugging tool
+  @SuppressWarnings("unused")
+  // it's a debugging tool
   private void verifyNoOsrBarriers(OPT_IR ir) {
     VM.sysWrite("Verifying no osr barriers");
     OPT_InstructionEnumeration instenum = ir.forwardInstrEnumerator();
@@ -295,7 +296,7 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase {
         if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
         break;
       }
-    }    
+    }
     VM.sysWriteln(" SANE");
   }
 
@@ -309,7 +310,7 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase {
 
   private int countNonVoidTypes(byte[] typeCodes) {
     int count = 0;
-    for (int idx=0, size=typeCodes.length;
+    for (int idx = 0, size = typeCodes.length;
          idx < size; idx++) {
       if (typeCodes[idx] != org.jikesrvm.osr.OSR_Constants.VoidTypeCode) {
         count++;
@@ -318,12 +319,12 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase {
     return count;
   }
 
-  /** 
+  /**
    * Split each OsrPoint, and connect it to the exit point.
    */
   private void fixupCFGForOsr(LinkedList<OPT_Instruction> osrs, OPT_IR ir) {
-    
-    for (int i=0, n=osrs.size(); i<n; i++) {
+
+    for (int i = 0, n = osrs.size(); i < n; i++) {
       OPT_Instruction osr = osrs.get(i);
       OPT_BasicBlock bb = osr.getBasicBlock();
       OPT_BasicBlock newBB = bb.segregateInstruction(osr, ir);

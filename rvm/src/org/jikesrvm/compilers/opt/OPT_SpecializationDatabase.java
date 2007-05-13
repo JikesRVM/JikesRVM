@@ -33,8 +33,9 @@ public final class OPT_SpecializationDatabase {
    */
   static synchronized void doDeferredSpecializations() {
     // prevent recursive entry to this method
-    if (specializationInProgress)
+    if (specializationInProgress) {
       return;
+    }
     specializationInProgress = true;
     Iterator<OPT_SpecializedMethod> methods = deferredMethods.iterator();
     while (methods.hasNext()) {
@@ -51,9 +52,10 @@ public final class OPT_SpecializationDatabase {
     }
     specializationInProgress = false;
   }
+
   private static boolean specializationInProgress;
-  private static VM_HashSet<OPT_SpecializedMethod> deferredMethods = 
-    new VM_HashSet<OPT_SpecializedMethod>();
+  private static VM_HashSet<OPT_SpecializedMethod> deferredMethods =
+      new VM_HashSet<OPT_SpecializedMethod>();
 
   // write the new compiled method in the specialized method pool
   private static void registerCompiledMethod(OPT_SpecializedMethod m) {
@@ -68,9 +70,9 @@ public final class OPT_SpecializationDatabase {
   static synchronized Iterator<OPT_SpecializedMethod> getSpecialVersions(VM_Method m) {
     MethodSet<VM_Method> s = specialVersionsHash.get(m);
     if (s == null) {
-      return  null;
+      return null;
     } else {
-      return  s.iterator();
+      return s.iterator();
     }
   }
 
@@ -82,7 +84,7 @@ public final class OPT_SpecializationDatabase {
         count++;
       }
     }
-    return  count;
+    return count;
   }
 
   /**
@@ -90,26 +92,27 @@ public final class OPT_SpecializationDatabase {
    * Also remember that this method will need to be compiled later,
    * at the next call to <code> doDeferredSpecializations() </code>
    */
-  static synchronized  void registerSpecialVersion(OPT_SpecializedMethod spMethod) {
+  static synchronized void registerSpecialVersion(OPT_SpecializedMethod spMethod) {
     VM_Method source = spMethod.getMethod();
     MethodSet<VM_Method> s = findOrCreateMethodSet(specialVersionsHash, source);
     s.add(spMethod);
     deferredMethods.add(spMethod);
   }
-  private static VM_HashMap<VM_Method,MethodSet<VM_Method>> specialVersionsHash = 
-    new VM_HashMap<VM_Method,MethodSet<VM_Method>>();
+
+  private static VM_HashMap<VM_Method, MethodSet<VM_Method>> specialVersionsHash =
+      new VM_HashMap<VM_Method, MethodSet<VM_Method>>();
 
   /**
    * Look up the MethodSet corresponding to a given key in the database
    * If none found, create one.
    */
-  private static <T> MethodSet<T> findOrCreateMethodSet(VM_HashMap<T,MethodSet<T>> hash, T key) {
+  private static <T> MethodSet<T> findOrCreateMethodSet(VM_HashMap<T, MethodSet<T>> hash, T key) {
     MethodSet<T> result = hash.get(key);
     if (result == null) {
       result = new MethodSet<T>(key);
       hash.put(key, result);
     }
-    return  result;
+    return result;
   }
 
   /**
@@ -132,7 +135,7 @@ public final class OPT_SpecializationDatabase {
     }
 
     public Iterator<OPT_SpecializedMethod> iterator() {
-      return  methods.iterator();
+      return methods.iterator();
     }
   }
 }

@@ -26,13 +26,13 @@ public class OPT_RegisterAllocatorState {
    */
   static void resetPhysicalRegisters(OPT_IR ir) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    for (Enumeration<OPT_Register> e = phys.enumerateAll(); e.hasMoreElements(); ) {
+    for (Enumeration<OPT_Register> e = phys.enumerateAll(); e.hasMoreElements();) {
       OPT_Register reg = e.nextElement();
       reg.deallocateRegister();
       reg.mapsToRegister = null;  // mapping from real to symbolic
-  //    putPhysicalRegResurrectList(reg, null);
-      reg.defList        = null;
-      reg.useList        = null;
+      //    putPhysicalRegResurrectList(reg, null);
+      reg.defList = null;
+      reg.useList = null;
       setSpill(reg, 0);
     }
   }
@@ -61,7 +61,6 @@ public class OPT_RegisterAllocatorState {
     return (OPT_LinearScanLiveInterval) r.scratchObject;
   }
   */
-  
   static void setSpill(OPT_Register reg, int spill) {
     reg.spillRegister();
     reg.scratch = spill;

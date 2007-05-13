@@ -30,7 +30,7 @@ import org.vmmagic.pragma.Uninterruptible;
  *     C.osr_flag = true;
  *     C.activate(); 
  *   }
- * 
+ *
  * C:
  *   while (true) {
  *     while (osr_flag == true) {
@@ -58,9 +58,9 @@ public class OSR_OrganizerThread extends VM_Thread {
   }
 
   public OSR_OrganizerThread() {
-        makeDaemon(true);
+    makeDaemon(true);
   }
-  
+
   public boolean osr_flag = false;
 
   public void run() {
@@ -75,12 +75,14 @@ public class OSR_OrganizerThread extends VM_Thread {
   }
 
   // lock = 0, free , 1 owned by someone
-  @SuppressWarnings("unused") // Accessed via VM_EntryPoints
+  @SuppressWarnings("unused")
+  // Accessed via VM_EntryPoints
   private int queueLock = 0;
   private VM_ThreadQueue tq = new VM_ThreadQueue();
+
   private void passivate() {
-    boolean gainedLock = VM_Synchronization.testAndSet(this, 
-                    VM_Entrypoints.osrOrganizerQueueLockField.getOffset(), 1);
+    boolean gainedLock = VM_Synchronization.testAndSet(this,
+                                                       VM_Entrypoints.osrOrganizerQueueLockField.getOffset(), 1);
     if (gainedLock) {
 
       // we cannot release lock before enqueue the organizer.
@@ -101,7 +103,7 @@ public class OSR_OrganizerThread extends VM_Thread {
       //
       this.queueLock = 0; // release lock
       yield(tq);     // sleep in tq
-    }     
+    }
     // if failed, just continue the loop again
   }
 
@@ -110,9 +112,9 @@ public class OSR_OrganizerThread extends VM_Thread {
    * Only one thread can access queue at one time
    */
   @Uninterruptible
-  public void activate() { 
+  public void activate() {
     boolean gainedLock = VM_Synchronization.testAndSet(this,
-         VM_Entrypoints.osrOrganizerQueueLockField.getOffset(), 1);
+                                                       VM_Entrypoints.osrOrganizerQueueLockField.getOffset(), 1);
     if (gainedLock) {
       VM_Thread org = tq.dequeue();
       // release lock
@@ -128,7 +130,7 @@ public class OSR_OrganizerThread extends VM_Thread {
   // proces osr request
   private void processOsrRequest() {
     // scanning VM_Scheduler.threads
-    for (int i=0, n= VM_Scheduler.threads.length; i<n; i++) {
+    for (int i = 0, n = VM_Scheduler.threads.length; i < n; i++) {
       VM_Thread thread = VM_Scheduler.threads[i];
       if (thread != null) {
         if (thread.requesting_osr) {

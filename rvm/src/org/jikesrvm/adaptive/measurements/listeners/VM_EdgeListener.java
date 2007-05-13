@@ -34,8 +34,8 @@ import org.vmmagic.unboxed.Offset;
  * the callee, caller, and machine code offset of the call site
  */
 @Uninterruptible
-public class VM_EdgeListener extends VM_ContextListener 
-  implements VM_StackframeLayoutConstants {
+public class VM_EdgeListener extends VM_ContextListener
+    implements VM_StackframeLayoutConstants {
 
   protected static final boolean DEBUG = false;
 
@@ -68,15 +68,15 @@ public class VM_EdgeListener extends VM_ContextListener
    * Constructor
    */
   public VM_EdgeListener() {
-    buffer         = null;
+    buffer = null;
     desiredSamples = 0;
   }
 
   /**
    * @return the number of times that update has been called
    */
-  int getTimesUpdateCalled() { 
-    return updateCalled; 
+  int getTimesUpdateCalled() {
+    return updateCalled;
   }
 
   /**
@@ -90,14 +90,14 @@ public class VM_EdgeListener extends VM_ContextListener
   public void setBuffer(int[] buffer) {
     // ensure buffer is proper length
     if (VM.VerifyAssertions) {
-      VM._assert(buffer.length%3 == 0);
+      VM._assert(buffer.length % 3 == 0);
     }
 
     if (DEBUG) {
-      VM.sysWrite("VM_EdgeListener.setBuffer(",buffer.length,"): enter\n");     
+      VM.sysWrite("VM_EdgeListener.setBuffer(", buffer.length, "): enter\n");
     }
 
-    this.buffer    = buffer;
+    this.buffer = buffer;
     desiredSamples = buffer.length / 3;
     resetBuffer();
   }
@@ -125,38 +125,40 @@ public class VM_EdgeListener extends VM_ContextListener
                                    1);
 
     // don't take a sample for back edge yield points
-    if (whereFrom == VM_Thread.BACKEDGE) return; 
+    if (whereFrom == VM_Thread.BACKEDGE) return;
 
-    int calleeCMID    = 0;
-    int callerCMID    = 0;
+    int calleeCMID = 0;
+    int callerCMID = 0;
     Address returnAddress = Address.zero();
 
     if (sfp.loadAddress() == STACKFRAME_SENTINEL_FP) {
-      if (DEBUG) VM.sysWrite(" Walking off end of stack!\n");   
+      if (DEBUG) VM.sysWrite(" Walking off end of stack!\n");
       return;
     }
 
     calleeCMID = VM_Magic.getCompiledMethodID(sfp);
     if (calleeCMID == INVISIBLE_METHOD_ID) {
-      if (DEBUG){
+      if (DEBUG) {
         VM.sysWrite(" INVISIBLE_METHOD_ID  (assembler code) ");
-        VM.sysWrite(calleeCMID); VM.sysWrite("\n");       
-      } 
+        VM.sysWrite(calleeCMID);
+        VM.sysWrite("\n");
+      }
       return;
     }
 
     returnAddress = VM_Magic.getReturnAddress(sfp); // return address in caller
     sfp = VM_Magic.getCallerFramePointer(sfp);      // caller's frame pointer
-    if(sfp.loadAddress() == STACKFRAME_SENTINEL_FP) {
-      if (DEBUG) VM.sysWrite(" Walking off end of stack\n");    
+    if (sfp.loadAddress() == STACKFRAME_SENTINEL_FP) {
+      if (DEBUG) VM.sysWrite(" Walking off end of stack\n");
       return;
     }
     callerCMID = VM_Magic.getCompiledMethodID(sfp);
     if (callerCMID == INVISIBLE_METHOD_ID) {
-      if (DEBUG) { 
+      if (DEBUG) {
         VM.sysWrite(" INVISIBLE_METHOD_ID  (assembler code) ");
-        VM.sysWrite(callerCMID); VM.sysWrite("\n"); 
-      } 
+        VM.sysWrite(callerCMID);
+        VM.sysWrite("\n");
+      }
       return;
     }
 
@@ -171,34 +173,38 @@ public class VM_EdgeListener extends VM_ContextListener
     }
     Offset callSite = callerCM.getInstructionOffset(returnAddress);
 
-    if (DEBUG){ 
-      VM.sysWrite("  <");VM.sysWrite(calleeCMID);VM.sysWrite(",");
-      VM.sysWrite(callerCMID);VM.sysWrite(",");VM.sysWrite(returnAddress);
+    if (DEBUG) {
+      VM.sysWrite("  <");
+      VM.sysWrite(calleeCMID);
+      VM.sysWrite(",");
+      VM.sysWrite(callerCMID);
+      VM.sysWrite(",");
+      VM.sysWrite(returnAddress);
       VM.sysWrite(">\n");
     }
-    
+
     // Find out what sample we are.
-    int sampleNumber =  VM_Synchronization.fetchAndAdd(this, 
-                                                       VM_Entrypoints.edgeListenerSamplesTakenField.getOffset(),
-                                                       1);
-    int idx = 3*sampleNumber;
+    int sampleNumber = VM_Synchronization.fetchAndAdd(this,
+                                                      VM_Entrypoints.edgeListenerSamplesTakenField.getOffset(),
+                                                      1);
+    int idx = 3 * sampleNumber;
 
     // If we got buffer slots that are beyond the end of the buffer, that means
     // that we're actually not supposed to take the sample at all (the system
     // is in the process of activating our organizer and processing the buffer).
     if (idx < buffer.length) {
-      buffer[idx+0] = calleeCMID;
-      buffer[idx+1] = callerCMID;
-      buffer[idx+2] = callSite.toInt();
+      buffer[idx + 0] = calleeCMID;
+      buffer[idx + 1] = callerCMID;
+      buffer[idx + 2] = callSite.toInt();
 
       // If we are the last sample, we need to activate the organizer.
-      if (sampleNumber+1 == desiredSamples) {
+      if (sampleNumber + 1 == desiredSamples) {
         activateOrganizer();
-      } 
-    } 
+      }
+    }
   }
 
-  /** 
+  /**
    *  report() noop
    */
   public final void report() {}
@@ -207,17 +213,17 @@ public class VM_EdgeListener extends VM_ContextListener
    * Reset (in preparation of starting a new sampling window)
    */
   public void reset() {
-     if (DEBUG) VM.sysWrite("VM_EdgeListener.reset(): enter\n");     
-     samplesTaken = 0;
-     updateCalled = 0;
-     resetBuffer();
+    if (DEBUG) VM.sysWrite("VM_EdgeListener.reset(): enter\n");
+    samplesTaken = 0;
+    updateCalled = 0;
+    resetBuffer();
   }
 
   /**
    *  Reset the buffer
    */
   private void resetBuffer() {
-    for (int i=0; i<buffer.length; i++) {
+    for (int i = 0; i < buffer.length; i++) {
       buffer[i] = 0;
     }
   }

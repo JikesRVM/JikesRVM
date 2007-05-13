@@ -18,7 +18,8 @@ import org.vmmagic.unboxed.WordArray;
 /**
  * The machine state comprising a thread's execution context.
  */
-@Uninterruptible public abstract class VM_Registers implements VM_RegisterConstants {
+@Uninterruptible
+public abstract class VM_Registers implements VM_RegisterConstants {
 
   // The following are used both for thread context switching
   // and for software/hardware exception reporting/delivery.
@@ -27,24 +28,24 @@ import org.vmmagic.unboxed.WordArray;
   public final double[] fprs; // floating point registers
   public Address ip;     // instruction address register
   public Address fp;     // frame pointer
-  
+
   // set by C hardware exception handler and VM_Runtime.athrow 
   // and reset by each implementation of VM_ExceptionDeliverer.deliverException
   //
   public boolean inuse; // do exception registers currently contain live values?
-  
+
   public VM_Registers() {
     gprs = WordArray.create(NUM_GPRS);
     fprs = new double[NUM_FPRS];
   }
-  
+
   /**
    * Return framepointer for the deepest stackframe
    */
   public final Address getInnermostFramePointer() {
     return fp;
   }
-  
+
   /**
    * Return next instruction address for the deepest stackframe
    */

@@ -59,7 +59,7 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
    */
   private static final MeetOperator MEET = new MeetOperator();
 
-  /** 
+  /**
    * Set up the system of dataflow equations.
    * @param _ir the IR
    */
@@ -76,19 +76,20 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
    * @return a new lattice cell corresponding to this heap variable
    */
   protected OPT_DF_LatticeCell makeCell(Object o) {
-    if (!(o instanceof OPT_HeapVariable))
-      throw  new OPT_OptimizingCompilerException("OPT_IndexPropagation:makeCell");
-    OPT_DF_LatticeCell result = null;
-    Object heapType = ((OPT_HeapVariable<?>)o).getHeapType();
-    if (heapType instanceof VM_TypeReference) {
-      result = new ArrayCell((OPT_HeapVariable<?>)o);
-    } else {
-      result = new ObjectCell((OPT_HeapVariable<?>)o);
+    if (!(o instanceof OPT_HeapVariable)) {
+      throw new OPT_OptimizingCompilerException("OPT_IndexPropagation:makeCell");
     }
-    return  result;
+    OPT_DF_LatticeCell result = null;
+    Object heapType = ((OPT_HeapVariable<?>) o).getHeapType();
+    if (heapType instanceof VM_TypeReference) {
+      result = new ArrayCell((OPT_HeapVariable<?>) o);
+    } else {
+      result = new ObjectCell((OPT_HeapVariable<?>) o);
+    }
+    return result;
   }
 
-  /** 
+  /**
    * Initialize the lattice variables. 
    */
   protected void initializeLatticeCells() {
@@ -96,14 +97,13 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
     // set the lattice cells that are exposed on entry to BOTTOM
     for (OPT_DF_LatticeCell c : cells.values()) {
       if (c instanceof ObjectCell) {
-        ObjectCell c1 = (ObjectCell)c;
+        ObjectCell c1 = (ObjectCell) c;
         OPT_HeapVariable<?> key = c1.getKey();
         if (key.isExposedOnEntry()) {
           c1.setBOTTOM();
         }
-      } 
-      else {
-        ArrayCell c1 = (ArrayCell)c;
+      } else {
+        ArrayCell c1 = (ArrayCell) c;
         OPT_HeapVariable<?> key = c1.getKey();
         if (key.isExposedOnEntry()) {
           c1.setBOTTOM();
@@ -112,7 +112,7 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
     }
   }
 
-  /** 
+  /**
    * Initialize the work list for the dataflow equation system.
    */
   protected void initializeWorkList() {
@@ -136,7 +136,7 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
     }
   }
 
-  /** 
+  /**
    * Walk through the IR and add dataflow equations for each instruction
    * that affects the values of Array SSA variables.
    */
@@ -146,42 +146,44 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
       for (OPT_SSADictionary.AllInstructionEnumeration e2 = ssa.getAllInstructions(bb); e2.hasMoreElements();) {
         OPT_Instruction s = e2.nextElement();
         // only consider instructions which use/def Array SSA variables
-        if (!ssa.usesHeapVariable(s) && !ssa.defsHeapVariable(s))
+        if (!ssa.usesHeapVariable(s) && !ssa.defsHeapVariable(s)) {
           continue;
-        if (s.isDynamicLinkingPoint())
-          processCall(s); 
-        else if (GetStatic.conforms(s))
-          processLoad(s); 
-        else if (GetField.conforms(s))
-          processLoad(s); 
-        else if (PutStatic.conforms(s))
-          processStore(s); 
-        else if (PutField.conforms(s))
-          processStore(s); 
-        else if (New.conforms(s))
-          processNew(s); 
-        else if (NewArray.conforms(s))
-          processNew(s); 
-        else if (ALoad.conforms(s))
-          processALoad(s); 
-        else if (AStore.conforms(s))
-          processAStore(s); 
-        else if (Call.conforms(s))
-          processCall(s); 
-        else if (MonitorOp.conforms(s))
-          processCall(s); 
-        else if (Prepare.conforms(s))
-          processCall(s); 
-        else if (Attempt.conforms(s))
-          processCall(s); 
-        else if (CacheOp.conforms(s))
-          processCall(s); 
-        else if (Phi.conforms(s))
-          processPhi(s);
-        else if (s.operator == READ_CEILING)
-          processCall(s); 
-        else if (s.operator == WRITE_FLOOR)
+        }
+        if (s.isDynamicLinkingPoint()) {
           processCall(s);
+        } else if (GetStatic.conforms(s)) {
+          processLoad(s);
+        } else if (GetField.conforms(s)) {
+          processLoad(s);
+        } else if (PutStatic.conforms(s)) {
+          processStore(s);
+        } else if (PutField.conforms(s)) {
+          processStore(s);
+        } else if (New.conforms(s)) {
+          processNew(s);
+        } else if (NewArray.conforms(s)) {
+          processNew(s);
+        } else if (ALoad.conforms(s)) {
+          processALoad(s);
+        } else if (AStore.conforms(s)) {
+          processAStore(s);
+        } else if (Call.conforms(s)) {
+          processCall(s);
+        } else if (MonitorOp.conforms(s)) {
+          processCall(s);
+        } else if (Prepare.conforms(s)) {
+          processCall(s);
+        } else if (Attempt.conforms(s)) {
+          processCall(s);
+        } else if (CacheOp.conforms(s)) {
+          processCall(s);
+        } else if (Phi.conforms(s)) {
+          processPhi(s);
+        } else if (s.operator == READ_CEILING) {
+          processCall(s);
+        } else if (s.operator == WRITE_FLOOR) {
+          processCall(s);
+        }
       }
     }
   }
@@ -203,28 +205,28 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
   void processLoad(OPT_Instruction s) {
     OPT_HeapOperand<?>[] A1 = ssa.getHeapUses(s);
     OPT_HeapOperand<?>[] A2 = ssa.getHeapDefs(s);
-    if ((A1.length != 1) || (A2.length != 1))
-      throw  new OPT_OptimizingCompilerException("OPT_IndexPropagation.processLoad: load instruction defs or uses multiple heap variables?");
+    if ((A1.length != 1) || (A2.length != 1)) {
+      throw new OPT_OptimizingCompilerException(
+          "OPT_IndexPropagation.processLoad: load instruction defs or uses multiple heap variables?");
+    }
     int valueNumber = -1;
     if (GetField.conforms(s)) {
       Object address = GetField.getRef(s);
       valueNumber = valueNumbers.getValueNumber(address);
-    } 
-    else {      // GetStatic.conforms(s)
+    } else {      // GetStatic.conforms(s)
       valueNumber = 0;
     }
     if (OPT_IRTools.mayBeVolatileFieldLoad(s) ||
         ir.options.READS_KILL) {
       // to obey JMM strictly, we must treat every load as a 
       // DEF
-      addUpdateObjectDefEquation(A2[0].getHeapVariable(), 
-                                 A1[0].getHeapVariable(), 
+      addUpdateObjectDefEquation(A2[0].getHeapVariable(),
+                                 A1[0].getHeapVariable(),
                                  valueNumber);
-    } 
-    else {
+    } else {
       // otherwise, don't have to treat every load as a DEF
-      addUpdateObjectUseEquation(A2[0].getHeapVariable(), 
-                                 A1[0].getHeapVariable(), 
+      addUpdateObjectUseEquation(A2[0].getHeapVariable(),
+                                 A1[0].getHeapVariable(),
                                  valueNumber);
     }
   }
@@ -246,18 +248,19 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
   void processStore(OPT_Instruction s) {
     OPT_HeapOperand<?>[] A1 = ssa.getHeapUses(s);
     OPT_HeapOperand<?>[] A2 = ssa.getHeapDefs(s);
-    if ((A1.length != 1) || (A2.length != 1))
-      throw  new OPT_OptimizingCompilerException("OPT_IndexPropagation.processStore: store instruction defs or uses multiple heap variables?");
+    if ((A1.length != 1) || (A2.length != 1)) {
+      throw new OPT_OptimizingCompilerException(
+          "OPT_IndexPropagation.processStore: store instruction defs or uses multiple heap variables?");
+    }
     int valueNumber = -1;
     if (PutField.conforms(s)) {
       Object address = PutField.getRef(s);
       valueNumber = valueNumbers.getValueNumber(address);
-    } 
-    else {      // PutStatic.conforms(s)
+    } else {      // PutStatic.conforms(s)
       valueNumber = 0;
     }
-    addUpdateObjectDefEquation(A2[0].getHeapVariable(), 
-                               A1[0].getHeapVariable(), 
+    addUpdateObjectDefEquation(A2[0].getHeapVariable(),
+                               A1[0].getHeapVariable(),
                                valueNumber);
   }
 
@@ -278,22 +281,23 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
   void processALoad(OPT_Instruction s) {
     OPT_HeapOperand<?>[] A1 = ssa.getHeapUses(s);
     OPT_HeapOperand<?>[] A2 = ssa.getHeapDefs(s);
-    if ((A1.length != 1) || (A2.length != 1))
-      throw  new OPT_OptimizingCompilerException("OPT_IndexPropagation.processALoad: aload instruction defs or uses multiple heap variables?");
+    if ((A1.length != 1) || (A2.length != 1)) {
+      throw new OPT_OptimizingCompilerException(
+          "OPT_IndexPropagation.processALoad: aload instruction defs or uses multiple heap variables?");
+    }
     OPT_Operand array = ALoad.getArray(s);
     OPT_Operand index = ALoad.getIndex(s);
     if (OPT_IRTools.mayBeVolatileFieldLoad(s) ||
         ir.options.READS_KILL) {
       // to obey JMM strictly, we must treat every load as a 
       // DEF
-      addUpdateArrayDefEquation(A2[0].getHeapVariable(), 
-                                A1[0].getHeapVariable(), 
+      addUpdateArrayDefEquation(A2[0].getHeapVariable(),
+                                A1[0].getHeapVariable(),
                                 array, index);
-    } 
-    else {
+    } else {
       // otherwise, don't have to treat every load as a DEF
-      addUpdateArrayUseEquation(A2[0].getHeapVariable(), 
-                                A1[0].getHeapVariable(), 
+      addUpdateArrayUseEquation(A2[0].getHeapVariable(),
+                                A1[0].getHeapVariable(),
                                 array, index);
     }
   }
@@ -315,18 +319,20 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
   void processAStore(OPT_Instruction s) {
     OPT_HeapOperand<?>[] A1 = ssa.getHeapUses(s);
     OPT_HeapOperand<?>[] A2 = ssa.getHeapDefs(s);
-    if ((A1.length != 1) || (A2.length != 1))
-      throw  new OPT_OptimizingCompilerException("OPT_IndexPropagation.processAStore: astore instruction defs or uses multiple heap variables?");
+    if ((A1.length != 1) || (A2.length != 1)) {
+      throw new OPT_OptimizingCompilerException(
+          "OPT_IndexPropagation.processAStore: astore instruction defs or uses multiple heap variables?");
+    }
     OPT_Operand array = AStore.getArray(s);
     OPT_Operand index = AStore.getIndex(s);
-    addUpdateArrayDefEquation(A2[0].getHeapVariable(), A1[0].getHeapVariable(), 
+    addUpdateArrayDefEquation(A2[0].getHeapVariable(), A1[0].getHeapVariable(),
                               array, index);
   }
 
   /**
    * Update the set of dataflow equations to account for the actions
    * of allocation instruction s
-   * 
+   *
    * @param s the New instruction
    */
   void processNew(OPT_Instruction s) {
@@ -376,13 +382,14 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
    */
   void processPhi(OPT_Instruction s) {
     OPT_Operand result = Phi.getResult(s);
-    if (!(result instanceof OPT_HeapOperand))
+    if (!(result instanceof OPT_HeapOperand)) {
       return;
-    OPT_HeapVariable<?> lhs = ((OPT_HeapOperand<?>)result).value;
+    }
+    OPT_HeapVariable<?> lhs = ((OPT_HeapOperand<?>) result).value;
     OPT_DF_LatticeCell A1 = findOrCreateCell(lhs);
     OPT_DF_LatticeCell[] rhs = new OPT_DF_LatticeCell[Phi.getNumberOfValues(s)];
     for (int i = 0; i < rhs.length; i++) {
-      OPT_HeapOperand<?> op = (OPT_HeapOperand<?>)Phi.getValue(s, i);
+      OPT_HeapOperand<?> op = (OPT_HeapOperand<?>) Phi.getValue(s, i);
       rhs[i] = findOrCreateCell(op.value);
     }
     newEquation(A1, MEET, rhs);
@@ -391,12 +398,12 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
   /**
    * Add an equation to the system of the form
    * L(A1) = updateDef(L(A2), VALNUM(address))
-   * 
+   *
    * @param A1 variable in the equation
    * @param A2 variable in the equation
    * @param valueNumber value number of the address
    */
-  void addUpdateObjectDefEquation(OPT_HeapVariable<?> A1, OPT_HeapVariable<?> A2, 
+  void addUpdateObjectDefEquation(OPT_HeapVariable<?> A1, OPT_HeapVariable<?> A2,
                                   int valueNumber) {
     OPT_DF_LatticeCell cell1 = findOrCreateCell(A1);
     OPT_DF_LatticeCell cell2 = findOrCreateCell(A2);
@@ -409,13 +416,13 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
    * <pre>
    * L(A1) = updateUse(L(A2), VALNUM(address))
    * </pre>
-   * 
+   *
    * @param A1 variable in the equation
    * @param A2 variable in the equation
    * @param valueNumber value number of address
    */
-  void addUpdateObjectUseEquation (OPT_HeapVariable<?> A1, OPT_HeapVariable<?> A2, 
-                                   int valueNumber) {
+  void addUpdateObjectUseEquation(OPT_HeapVariable<?> A1, OPT_HeapVariable<?> A2,
+                                  int valueNumber) {
     OPT_DF_LatticeCell cell1 = findOrCreateCell(A1);
     OPT_DF_LatticeCell cell2 = findOrCreateCell(A2);
     UpdateUseObjectOperator op = new UpdateUseObjectOperator(valueNumber);
@@ -427,19 +434,19 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
    * <pre>
    * L(A1) = updateDef(L(A2), <VALNUM(array),VALNUM(index)>)
    * </pre>
-   * 
+   *
    * @param A1 variable in the equation
    * @param A2 variable in the equation
    * @param array variable in the equation
    * @param index variable in the equation
    */
-  void addUpdateArrayDefEquation(OPT_HeapVariable<?> A1, OPT_HeapVariable<?> A2, 
+  void addUpdateArrayDefEquation(OPT_HeapVariable<?> A1, OPT_HeapVariable<?> A2,
                                  Object array, Object index) {
     OPT_DF_LatticeCell cell1 = findOrCreateCell(A1);
     OPT_DF_LatticeCell cell2 = findOrCreateCell(A2);
     int arrayNumber = valueNumbers.getValueNumber(array);
     int indexNumber = valueNumbers.getValueNumber(index);
-    UpdateDefArrayOperator op = new UpdateDefArrayOperator(arrayNumber, 
+    UpdateDefArrayOperator op = new UpdateDefArrayOperator(arrayNumber,
                                                            indexNumber);
     newEquation(cell1, op, cell2);
   }
@@ -449,19 +456,19 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
    * <pre>
    * L(A1) = updateUse(L(A2), <VALNUM(array),VALNUM(index)>)
    * </pre>
-   * 
+   *
    * @param A1 variable in the equation
    * @param A2 variable in the equation
    * @param array variable in the equation
    * @param index variable in the equation
    */
-  void addUpdateArrayUseEquation(OPT_HeapVariable<?> A1, OPT_HeapVariable<?> A2, 
+  void addUpdateArrayUseEquation(OPT_HeapVariable<?> A1, OPT_HeapVariable<?> A2,
                                  Object array, Object index) {
     OPT_DF_LatticeCell cell1 = findOrCreateCell(A1);
     OPT_DF_LatticeCell cell2 = findOrCreateCell(A2);
     int arrayNumber = valueNumbers.getValueNumber(array);
     int indexNumber = valueNumbers.getValueNumber(index);
-    UpdateUseArrayOperator op = new UpdateUseArrayOperator(arrayNumber, 
+    UpdateUseArrayOperator op = new UpdateUseArrayOperator(arrayNumber,
                                                            indexNumber);
     newEquation(cell1, op, cell2);
   }
@@ -485,8 +492,7 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
       OPT_DF_LatticeCell lhs = operands[0];
       if (lhs instanceof ObjectCell) {
         return evaluateObjectMeet(operands);
-      } 
-      else {
+      } else {
         return evaluateArrayMeet(operands);
       }
     }
@@ -498,7 +504,7 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
      * @return true iff the value of the lhs changes
      */
     boolean evaluateObjectMeet(OPT_DF_LatticeCell[] operands) {
-      ObjectCell lhs = (ObjectCell)operands[0];
+      ObjectCell lhs = (ObjectCell) operands[0];
 
       // short-circuit if lhs is already bottom
       if (lhs.isBOTTOM()) {
@@ -507,10 +513,10 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
 
       // short-circuit if any rhs is bottom
       for (int j = 1; j < operands.length; j++) {
-        ObjectCell r = (ObjectCell)operands[j];
+        ObjectCell r = (ObjectCell) operands[j];
         if (r.isBOTTOM()) {
           // from the previous short-circuit, we know lhs was not already bottom, so ...
-          lhs.setBOTTOM(); 
+          lhs.setBOTTOM();
           return true;
         }
       }
@@ -526,7 +532,7 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
         int firstNonTopRHS = -1;
         // find the first RHS lattice cell that is not TOP
         for (int j = 1; j < operands.length; j++) {
-          ObjectCell r = (ObjectCell)operands[j];
+          ObjectCell r = (ObjectCell) operands[j];
           if (!r.isTOP()) {
             firstNonTopRHS = j;
             break;
@@ -536,11 +542,11 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
         // lhs to top and return 
         if (firstNonTopRHS == -1) {
           lhs.setTOP(true);
-          return  false;
+          return false;
         }
         // if we get here, we found a non-top cell. Start merging
         // here
-        int[] rhsNumbers = ((ObjectCell)operands[firstNonTopRHS]).copyValueNumbers();
+        int[] rhsNumbers = ((ObjectCell) operands[firstNonTopRHS]).copyValueNumbers();
 
         if (rhsNumbers != null) {
           for (int v : rhsNumbers) {
@@ -569,7 +575,7 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
      * @return true iff the value of the lhs changes
      */
     boolean evaluateArrayMeet(OPT_DF_LatticeCell[] operands) {
-      ArrayCell lhs = (ArrayCell)operands[0];
+      ArrayCell lhs = (ArrayCell) operands[0];
 
       // short-circuit if lhs is already bottom
       if (lhs.isBOTTOM()) {
@@ -578,10 +584,10 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
 
       // short-circuit if any rhs is bottom
       for (int j = 1; j < operands.length; j++) {
-        ArrayCell r = (ArrayCell)operands[j];
+        ArrayCell r = (ArrayCell) operands[j];
         if (r.isBOTTOM()) {
           // from the previous short-circuit, we know lhs was not already bottom, so ...
-          lhs.setBOTTOM(); 
+          lhs.setBOTTOM();
           return true;
         }
       }
@@ -596,7 +602,7 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
         int firstNonTopRHS = -1;
         // find the first RHS lattice cell that is not TOP
         for (int j = 1; j < operands.length; j++) {
-          ArrayCell r = (ArrayCell)operands[j];
+          ArrayCell r = (ArrayCell) operands[j];
           if (!r.isTOP()) {
             firstNonTopRHS = j;
             break;
@@ -606,11 +612,11 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
         // lhs to top and return 
         if (firstNonTopRHS == -1) {
           lhs.setTOP(true);
-          return  false;
+          return false;
         }
         // if we get here, we found a non-top cell. Start merging
         // here
-        OPT_ValueNumberPair[] rhsNumbers = ((ArrayCell)operands[firstNonTopRHS]).copyValueNumbers();
+        OPT_ValueNumberPair[] rhsNumbers = ((ArrayCell) operands[firstNonTopRHS]).copyValueNumbers();
         if (rhsNumbers != null) {
           for (OPT_ValueNumberPair pair : rhsNumbers) {
             int v1 = pair.v1;
@@ -627,7 +633,7 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
         }
       }
       // check if anything has changed
-      if (lhsWasTOP) return  true;
+      if (lhsWasTOP) return true;
       OPT_ValueNumberPair[] newNumbers = lhs.copyValueNumbers();
 
       return ArrayCell.setsDiffer(oldNumbers, newNumbers);
@@ -665,20 +671,20 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
      * @return true iff the lhs changes from this evaluation
      */
     boolean evaluate(OPT_DF_LatticeCell[] operands) {
-      ObjectCell lhs = (ObjectCell)operands[0];
+      ObjectCell lhs = (ObjectCell) operands[0];
 
       if (lhs.isBOTTOM()) {
         return false;
       }
 
-      ObjectCell rhs = (ObjectCell)operands[1];
+      ObjectCell rhs = (ObjectCell) operands[1];
       boolean lhsWasTOP = lhs.isTOP();
       int[] oldNumbers = null;
       if (!lhsWasTOP) oldNumbers = lhs.copyValueNumbers();
       lhs.clear();
       if (rhs.isTOP()) {
-        throw  new OPT_OptimizingCompilerException(
-                                                   "Unexpected lattice operation");
+        throw new OPT_OptimizingCompilerException(
+            "Unexpected lattice operation");
       }
       int[] numbers = rhs.copyValueNumbers();
       // add all rhs numbers that are DD from valueNumber
@@ -692,7 +698,7 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
       // add value number generated by this update 
       lhs.add(valueNumber);
       // check if anything has changed
-      if (lhsWasTOP) return  true;
+      if (lhsWasTOP) return true;
       int[] newNumbers = lhs.copyValueNumbers();
 
       return ObjectCell.setsDiffer(oldNumbers, newNumbers);
@@ -731,19 +737,19 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
      * @return true iff the lhs changes from this evaluation
      */
     boolean evaluate(OPT_DF_LatticeCell[] operands) {
-      ObjectCell lhs = (ObjectCell)operands[0];
+      ObjectCell lhs = (ObjectCell) operands[0];
 
       if (lhs.isBOTTOM()) {
         return false;
       }
 
-      ObjectCell rhs = (ObjectCell)operands[1];
+      ObjectCell rhs = (ObjectCell) operands[1];
       int[] oldNumbers = null;
       boolean lhsWasTOP = lhs.isTOP();
       if (!lhsWasTOP) oldNumbers = lhs.copyValueNumbers();
       lhs.clear();
       if (rhs.isTOP()) {
-        throw  new OPT_OptimizingCompilerException("Unexpected lattice operation");
+        throw new OPT_OptimizingCompilerException("Unexpected lattice operation");
       }
       int[] numbers = rhs.copyValueNumbers();
       // add all rhs numbers 
@@ -755,7 +761,7 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
       // add value number generated by this update 
       lhs.add(valueNumber);
       // check if anything has changed
-      if (lhsWasTOP) return  true;
+      if (lhsWasTOP) return true;
       int[] newNumbers = lhs.copyValueNumbers();
 
       return ObjectCell.setsDiffer(oldNumbers, newNumbers);
@@ -779,7 +785,6 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
      */
     public String toString() { return "UPDATE-DEF<" + v + ">"; }
 
-
     /**
      * Create an operator with a given value number pair
      * @param     v1 first value number in the pari
@@ -795,18 +800,18 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
      * @return true iff the lhs changes from this evaluation
      */
     boolean evaluate(OPT_DF_LatticeCell[] operands) {
-      ArrayCell lhs = (ArrayCell)operands[0];
+      ArrayCell lhs = (ArrayCell) operands[0];
 
       if (lhs.isBOTTOM()) {
         return false;
       }
-      ArrayCell rhs = (ArrayCell)operands[1];
+      ArrayCell rhs = (ArrayCell) operands[1];
       OPT_ValueNumberPair[] oldNumbers = null;
       boolean lhsWasTOP = lhs.isTOP();
       if (!lhsWasTOP) oldNumbers = lhs.copyValueNumbers();
       lhs.clear();
       if (rhs.isTOP()) {
-        throw  new OPT_OptimizingCompilerException("Unexpected lattice operation");
+        throw new OPT_OptimizingCompilerException("Unexpected lattice operation");
       }
       OPT_ValueNumberPair[] numbers = rhs.copyValueNumbers();
       // add all rhs pairs that are DD from either v.v1 or v.v2
@@ -822,8 +827,9 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
       // add the value number pair generated by this update 
       lhs.add(v.v1, v.v2);
       // check if anything has changed
-      if (lhsWasTOP)
-        return  true;
+      if (lhsWasTOP) {
+        return true;
+      }
       OPT_ValueNumberPair[] newNumbers = lhs.copyValueNumbers();
 
       return ArrayCell.setsDiffer(oldNumbers, newNumbers);
@@ -863,19 +869,19 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
      * @return true iff the lhs changes from this evaluation
      */
     boolean evaluate(OPT_DF_LatticeCell[] operands) {
-      ArrayCell lhs = (ArrayCell)operands[0];
+      ArrayCell lhs = (ArrayCell) operands[0];
 
       if (lhs.isBOTTOM()) {
         return false;
       }
 
-      ArrayCell rhs = (ArrayCell)operands[1];
+      ArrayCell rhs = (ArrayCell) operands[1];
       OPT_ValueNumberPair[] oldNumbers = null;
       boolean lhsWasTOP = lhs.isTOP();
       if (!lhsWasTOP) oldNumbers = lhs.copyValueNumbers();
       lhs.clear();
       if (rhs.isTOP()) {
-        throw  new OPT_OptimizingCompilerException("Unexpected lattice operation");
+        throw new OPT_OptimizingCompilerException("Unexpected lattice operation");
       }
       OPT_ValueNumberPair[] numbers = rhs.copyValueNumbers();
       // add all rhs numbers 
@@ -883,12 +889,13 @@ class OPT_IndexPropagationSystem extends OPT_DF_System {
         for (OPT_ValueNumberPair number : numbers) {
           lhs.add(number.v1, number.v2);
         }
-      } 
+      }
       // add value number generated by this update 
       lhs.add(v.v1, v.v2);
       // check if anything has changed
-      if (lhsWasTOP)
-        return  true;
+      if (lhsWasTOP) {
+        return true;
+      }
       OPT_ValueNumberPair[] newNumbers = lhs.copyValueNumbers();
 
       return ArrayCell.setsDiffer(oldNumbers, newNumbers);

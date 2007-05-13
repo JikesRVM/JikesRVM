@@ -37,35 +37,35 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
   /*
    * constants for compiler types
    */
-  public static final int TRAP      = 0; // no code: special trap handling stackframe
-  public static final int BASELINE  = 1; // baseline code
-  public static final int OPT       = 3; // opt code
-  public static final int JNI       = 4; // java to Native C transition frame
+  public static final int TRAP = 0; // no code: special trap handling stackframe
+  public static final int BASELINE = 1; // baseline code
+  public static final int OPT = 3; // opt code
+  public static final int JNI = 4; // java to Native C transition frame
   public static final int NUM_COMPILER_TYPES = 4;
 
   /*
    * constants for flags
    */
-  private static final byte COMPILED        = 0x08;
-  private static final byte INVALID         = 0x04;
-  private static final byte OBSOLETE        = 0x02;
+  private static final byte COMPILED = 0x08;
+  private static final byte INVALID = 0x04;
+  private static final byte OBSOLETE = 0x02;
   private static final byte ACTIVE_ON_STACK = 0x01;
   /** flags the compiled method as outdated, needs OSR */
-  private static final byte OUTDATED        = 0x10;
+  private static final byte OUTDATED = 0x10;
   /**
    * Has the method sample data for this compiled method been reset?
    */
-  private static final byte SAMPLES_RESET   = 0x20;
+  private static final byte SAMPLES_RESET = 0x20;
   private static final byte SPECIAL_FOR_OSR = 0x40;
-  
+
   /** Flags bit field */
   private byte flags;
 
   /**
    * The compiled method id of this compiled method (index into VM_CompiledMethods)
    */
-  protected final int cmid; 
-  
+  protected final int cmid;
+
   /**
    * The VM_Method that was compiled
    */
@@ -74,7 +74,7 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
   /**
    * The compiled machine code for said method.
    */
-  protected VM_CodeArray instructions; 
+  protected VM_CodeArray instructions;
 
   /**
    * the offset of instructions in JTOC, for osr-special compiled
@@ -89,11 +89,11 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
    * The time in milliseconds taken to compile the method.
    */
   protected float compilationTime;
-  
+
   public void setSamplesReset() {
     flags |= SAMPLES_RESET;
   }
-  
+
   public boolean getSamplesReset() {
     return (flags & SAMPLES_RESET) != 0;
   }
@@ -118,7 +118,7 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
    * Set the cmid and method fields
    */
   public VM_CompiledMethod(int id, VM_Method m) {
-    cmid   = id;
+    cmid = id;
     method = m;
   }
 
@@ -126,16 +126,16 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
    * Return the compiled method id for this compiled method
    */
   @Uninterruptible
-  public final int getId() { 
-    return cmid;           
+  public final int getId() {
+    return cmid;
   }
 
   /**
    * Return the VM_Method associated with this compiled method
    */
   @Uninterruptible
-  public final VM_Method getMethod() { 
-    return method;       
+  public final VM_Method getMethod() {
+    return method;
   }
 
   /**
@@ -143,7 +143,7 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
    *         code_array[0] contains the first instruction of the method's prologue).
    */
   @Uninterruptible
-  public final VM_CodeArray getEntryCodeArray() { 
+  public final VM_CodeArray getEntryCodeArray() {
     if (VM.VerifyAssertions) VM._assert((flags & COMPILED) != 0);
     return instructions;
   }
@@ -153,7 +153,7 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
    *         may be an overestimate if we have adding padding to machine code.
    */
   @Uninterruptible
-  public final int numberOfInstructions() { 
+  public final int numberOfInstructions() {
     if (VM.VerifyAssertions) VM._assert((flags & COMPILED) != 0);
     return instructions.length();
   }
@@ -165,12 +165,12 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
    * @return offset of addr from start of instructions in bytes
    */
   @Uninterruptible
-  public final Offset getInstructionOffset(Address ip) { 
+  public final Offset getInstructionOffset(Address ip) {
     if (getCompilerType() == JNI || getCompilerType() == TRAP) {
       return Offset.zero();
     } else {
       Offset offset = ip.diff(VM_Magic.objectAsAddress(instructions));
-      int max = (instructions.length()+1)<< ArchitectureSpecific.VM_ArchConstants.LG_INSTRUCTION_WIDTH;
+      int max = (instructions.length() + 1) << ArchitectureSpecific.VM_ArchConstants.LG_INSTRUCTION_WIDTH;
       if (!offset.toWord().LT(Word.fromIntZeroExtend(max))) {
         Address instructionStart = VM_Magic.objectAsAddress(instructions);
         VM.sysWriteln("\ngetInstructionOffset: ip is not within compiled code for method");
@@ -205,7 +205,7 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
    * @return Address of the specified instruction
    */
   @Uninterruptible
-  public final Address getInstructionAddress(Offset offset) { 
+  public final Address getInstructionAddress(Offset offset) {
     Address startAddress = VM_Magic.objectAsAddress(instructions);
     return startAddress.plus(offset);
   }
@@ -216,17 +216,17 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
    * @return VM_CodeArray that contains the specified instruction
    */
   @Uninterruptible
-  public final VM_CodeArray codeArrayForOffset(Offset offset) { 
+  public final VM_CodeArray codeArrayForOffset(Offset offset) {
     return instructions;
   }
-  
+
   /**
    * Does the code for the compiled method contain the given return address?
    * @param ip a return address
    * @return true if it belongs to this method's code, false otherwise.
    */
   @Uninterruptible
-  public final boolean containsReturnAddress(Address ip) { 
+  public final boolean containsReturnAddress(Address ip) {
     Address beg = VM_Magic.objectAsAddress(instructions);
     Address end = beg.plus(instructions.length() << ArchitectureSpecific.VM_ArchConstants.LG_INSTRUCTION_WIDTH);
 
@@ -236,7 +236,7 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
     //
     return !(ip.LE(beg) || ip.GT(end));
   }
-  
+
   /**
    * Record that the compilation is complete.
    */
@@ -256,44 +256,44 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
    * Mark the compiled method as obsolete (ie a candidate for eventual GC)
    */
   @Uninterruptible
-  public final void setObsolete() { 
+  public final void setObsolete() {
     flags |= OBSOLETE;
   }
 
   @Uninterruptible
-  public final void setActiveOnStack() { 
+  public final void setActiveOnStack() {
     flags |= ACTIVE_ON_STACK;
   }
 
   @Uninterruptible
-  public final void clearActiveOnStack() { 
+  public final void clearActiveOnStack() {
     flags &= ~ACTIVE_ON_STACK;
   }
-  
+
   /**
    * Mark the compiled method as outdated (ie requires OSR),
    * the flag is set in VM_AnalyticModel
    */
   @Uninterruptible
-  public final void setOutdated() { 
+  public final void setOutdated() {
     if (VM.VerifyAssertions) VM._assert(this.getCompilerType() == BASELINE);
     flags |= OUTDATED;
   }
-  
+
   /**
    * Check if the compiled method is marked as outdated,
    * called by VM_Thread
    */
   @Uninterruptible
-  public final boolean isOutdated() { 
+  public final boolean isOutdated() {
     return (flags & OUTDATED) != 0;
   }
-  
+
   /**
    * Has compilation completed?
    */
   @Uninterruptible
-  public final boolean isCompiled() { 
+  public final boolean isCompiled() {
     return (flags & COMPILED) != 0;
   }
 
@@ -301,7 +301,7 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
    * Is the compiled code invalid?
    */
   @Uninterruptible
-  public final boolean isInvalid() { 
+  public final boolean isInvalid() {
     return (flags & INVALID) != 0;
   }
 
@@ -309,50 +309,56 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
    * Is the compiled code obsolete?
    */
   @Uninterruptible
-  public final boolean isObsolete() { 
+  public final boolean isObsolete() {
     return (flags & OBSOLETE) != 0;
   }
 
   @Uninterruptible
-  public final boolean isActiveOnStack() { 
+  public final boolean isActiveOnStack() {
     return (flags & ACTIVE_ON_STACK) != 0;
   }
-  
-  public final double getCompilationTime() { return (double)compilationTime; }
-  public final void setCompilationTime(double ct) { compilationTime = (float)ct; }
+
+  public final double getCompilationTime() { return (double) compilationTime; }
+
+  public final void setCompilationTime(double ct) { compilationTime = (float) ct; }
 
   /**
    * Identify the compiler that produced this compiled method.
    * @return one of TRAP, BASELINE, OPT, or JNI.
    * Note: use this instead of "instanceof" when gc is disabled (ie. during gc)
-   */ 
+   */
   @Uninterruptible
-  public abstract int getCompilerType(); 
+  public abstract int getCompilerType();
 
   @Uninterruptible
-  public static String compilerTypeToString (int compilerType) {
+  public static String compilerTypeToString(int compilerType) {
     switch (compilerType) {
-      case TRAP: return "TRAP";
-      case BASELINE: return "BASELINE";
-      case OPT: return "OPT";
-      case JNI: return "JNI";
-      default: if (VM.VerifyAssertions) VM._assert(false); return null;
+      case TRAP:
+        return "TRAP";
+      case BASELINE:
+        return "BASELINE";
+      case OPT:
+        return "OPT";
+      case JNI:
+        return "JNI";
+      default:
+        if (VM.VerifyAssertions) VM._assert(false);
+        return null;
     }
   }
 
-
   /**
    * @return Name of the compiler that produced this compiled method.
-   */ 
+   */
   public abstract String getCompilerName();
 
   /**
    * Get handler to deal with stack unwinding and exception delivery for this 
    * compiled method's stackframes.
-   */ 
+   */
   @Uninterruptible
-  public abstract VM_ExceptionDeliverer getExceptionDeliverer(); 
-   
+  public abstract VM_ExceptionDeliverer getExceptionDeliverer();
+
   /**
    * Find "catch" block for a machine instruction of 
    * this method that might be guarded 
@@ -362,7 +368,7 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
    * @param exceptionType type of exception being thrown - something like "NullPointerException"
    * @return offset of machine instruction for catch block 
    * (-1 --> no catch block)
-   * 
+   *
    * Notes: 
    * <ul>
    * <li> The "instructionOffset" must point to the instruction 
@@ -378,7 +384,7 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
    * In such situations we'd have no idea how far to back up the 
    * instruction pointer
    * to point to the "call site" or "exception site".
-   * 
+   *
    * <li> This method must not cause any allocations, because it executes with
    * gc disabled when called by VM_Runtime.deliverException().
    * </ul>
@@ -411,32 +417,32 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
    * <ul>
    */
   @Uninterruptible
-  public abstract void getDynamicLink(VM_DynamicLink dynamicLink, 
-                                      Offset instructionOffset); 
+  public abstract void getDynamicLink(VM_DynamicLink dynamicLink,
+                                      Offset instructionOffset);
 
-   /**
-    * Find source line number corresponding to one of this method's 
-    * machine instructions.
-    * @param instructionOffset of machine instruction from start of this method, in bytes
-    * @return source line number 
-    * (0 == no line info available, 1 == first line of source file)
-    *
-    * <p> Usage note: "instructionOffset" must point to the 
-    * instruction <em> following </em> the actual instruction
-    * whose line number is sought. 
-    * This allows us to properly handle the case where
-    * the only address we have to work with is a return address 
-    * (ie. from a stackframe)
-    * or an exception address 
-    * (ie. from a null pointer dereference, array bounds check,
-    * or divide by zero) on a machine architecture with variable length 
-    * instructions.
-    * In such situations we'd have no idea how far to back up the 
-    * instruction pointer
-    * to point to the "call site" or "exception site".
-    */
+  /**
+   * Find source line number corresponding to one of this method's
+   * machine instructions.
+   * @param instructionOffset of machine instruction from start of this method, in bytes
+   * @return source line number
+   * (0 == no line info available, 1 == first line of source file)
+   *
+   * <p> Usage note: "instructionOffset" must point to the
+   * instruction <em> following </em> the actual instruction
+   * whose line number is sought.
+   * This allows us to properly handle the case where
+   * the only address we have to work with is a return address
+   * (ie. from a stackframe)
+   * or an exception address
+   * (ie. from a null pointer dereference, array bounds check,
+   * or divide by zero) on a machine architecture with variable length
+   * instructions.
+   * In such situations we'd have no idea how far to back up the
+   * instruction pointer
+   * to point to the "call site" or "exception site".
+   */
   @Uninterruptible
-  public int findLineNumberForInstruction(Offset instructionOffset) { 
+  public int findLineNumberForInstruction(Offset instructionOffset) {
     return 0;
   }
 

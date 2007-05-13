@@ -8,13 +8,14 @@
  */
 
 package org.jikesrvm.osr;
+
 /**
  * load an integer constant on the stack
  */
 public class BC_LoadIntConst extends OSR_PseudoBytecode {
   private static final int bsize = 6;
   private final int ibits;
-  
+
   public BC_LoadIntConst(int bits) {
     this.ibits = bits;
   }
@@ -26,14 +27,14 @@ public class BC_LoadIntConst extends OSR_PseudoBytecode {
   }
 
   public int getSize() {
-    return bsize; 
+    return bsize;
   }
- 
+
   public int stackChanges() {
-        return +1;
+    return +1;
   }
 
   public String toString() {
-    return "LoadInt "+ibits;  
+    return "LoadInt " + ibits;
   }
 }

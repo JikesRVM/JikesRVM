@@ -18,12 +18,12 @@ public class OPT_RegSpillListElement {
   /**
    * this should be a symbolic register
    */
-  private OPT_Register symbolicReg; 
+  private OPT_Register symbolicReg;
 
   /**
    * this could be either a spill or a real reg number
    */
-  private int value;            
+  private int value;
 
   /**
    * Constructor
@@ -58,7 +58,7 @@ public class OPT_RegSpillListElement {
    * @return whether this is a spill
    */
   public final boolean isSpill() {
-    return  (value > 0);
+    return (value > 0);
   }
 
   /**
@@ -66,7 +66,7 @@ public class OPT_RegSpillListElement {
    * @return the symbolic register associated with this object
    */
   public final OPT_Register getSymbolicReg() {
-    return  symbolicReg;
+    return symbolicReg;
   }
 
   /**
@@ -75,8 +75,8 @@ public class OPT_RegSpillListElement {
    */
   public final int getRealRegNumber() {
     if (VM.VerifyAssertions) {
-      VM._assert(!isSpill(), 
-        "OPT_RegSpillListElement asked for a Real Reg, when it had a spill");
+      VM._assert(!isSpill(),
+                 "OPT_RegSpillListElement asked for a Real Reg, when it had a spill");
     }
 
     // real regs are stored as non-positive values
@@ -89,8 +89,8 @@ public class OPT_RegSpillListElement {
    */
   public final int getSpill() {
     if (VM.VerifyAssertions) {
-      VM._assert(isSpill(), 
-      "OPT_RegSpillListElement asked for a spill, when it had a real register");
+      VM._assert(isSpill(),
+                 "OPT_RegSpillListElement asked for a spill, when it had a real register");
     }
 
     return value;
@@ -109,7 +109,7 @@ public class OPT_RegSpillListElement {
       buf.append("Reg: ").append(getRealRegNumber());
     }
     buf.append(")  ");
-    return  buf.toString();
+    return buf.toString();
   }
 }
 

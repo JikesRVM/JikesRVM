@@ -28,7 +28,7 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
    * Adjustment to offset in data from the bytecode index for taken
    * branch counts
    */
-  public static final int TAKEN     = 0;
+  public static final int TAKEN = 0;
   /**
    * Adjustment to offset in data from the bytecode index for not
    * taken branch counts
@@ -68,11 +68,11 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
 
   private static synchronized void allocateCounters(int id, int numEntries) {
     if (data == null) {
-      data = new int[id+500][];
+      data = new int[id + 500][];
     }
     if (id >= data.length) {
-      int newSize = data.length*2;
-      if (newSize <= id) newSize = id+500;
+      int newSize = data.length * 2;
+      if (newSize <= id) newSize = id + 500;
       int[][] tmp = new int[newSize][];
       System.arraycopy(data, 0, tmp, 0, data.length);
       VM_Magic.sync();
@@ -87,7 +87,7 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
     if (data[id] == null) return null;
     return new VM_BranchProfiles(m, data[id]);
   }
-  
+
   /**
    * Dump all the profile data to the file VM_BaselineCompiler.options.EDGE_COUNTER_FILE
    */
@@ -108,9 +108,10 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
       return;
     }
     if (data == null) return;
-    for (int i=0; i<data.length; i++) {
+    for (int i = 0; i < data.length; i++) {
       if (data[i] != null) {
-        VM_NormalMethod m = (VM_NormalMethod)VM_MemberReference.getMemberRef(i).asMethodReference().peekResolvedMethod();
+        VM_NormalMethod m =
+            (VM_NormalMethod) VM_MemberReference.getMemberRef(i).asMethodReference().peekResolvedMethod();
         new VM_BranchProfiles(m, data[i]).print(f);
       }
     }
@@ -122,7 +123,7 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
       in = new LineNumberReader(new FileReader(fn));
     } catch (IOException e) {
       e.printStackTrace();
-      VM.sysFail("Unable to open input edge counter file "+fn);
+      VM.sysFail("Unable to open input edge counter file " + fn);
     }
     try {
       int[] cur = null;
@@ -156,7 +157,7 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
       }
     } catch (IOException e) {
       e.printStackTrace();
-      VM.sysFail("Error parsing input edge counter file"+fn);
+      VM.sysFail("Error parsing input edge counter file" + fn);
     }
 
     // Enable debug of input by dumping file as we exit the VM.

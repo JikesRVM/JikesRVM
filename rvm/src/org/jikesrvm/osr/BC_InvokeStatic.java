@@ -42,37 +42,37 @@ public class BC_InvokeStatic extends OSR_PseudoBytecode {
   public int stackChanges() {
     VM_Method callee = null;
     switch (tid) {
-    case GETREFAT:
-      callee = VM_Entrypoints.osrGetRefAtMethod;
-      break;
-    case CLEANREFS:
-      callee = VM_Entrypoints.osrCleanRefsMethod;
-      break;
-    default:
-      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-      break;
+      case GETREFAT:
+        callee = VM_Entrypoints.osrGetRefAtMethod;
+        break;
+      case CLEANREFS:
+        callee = VM_Entrypoints.osrCleanRefsMethod;
+        break;
+      default:
+        if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+        break;
     }
-  
+
     int psize = callee.getParameterWords();
     int schanges = -psize;
-    
+
     VM_TypeReference rtype = callee.getReturnType();
     byte tcode = rtype.getName().parseForTypeCode();
-    
+
     if (tcode == VoidTypeCode) {
       // do nothing
     } else {
-      if ( (tcode == LongTypeCode) ||
-           (tcode == DoubleTypeCode) ) {
-        schanges ++;
+      if ((tcode == LongTypeCode) ||
+          (tcode == DoubleTypeCode)) {
+        schanges++;
       }
-      schanges ++;
+      schanges++;
     }
-    
+
     return schanges;
   }
- 
+
   public String toString() {
-    return "InvokeStatic "+tid;
+    return "InvokeStatic " + tid;
   }
 }

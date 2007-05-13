@@ -13,8 +13,8 @@ package org.jikesrvm.compilers.opt;
  */
 public interface OPT_AggregateReplacer {
 
-  /** 
+  /**
    * Perform the transformation
    */
-  void transform ();
+  void transform();
 }

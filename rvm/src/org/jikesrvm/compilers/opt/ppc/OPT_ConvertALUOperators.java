@@ -16,25 +16,26 @@ import org.jikesrvm.compilers.opt.ir.OPT_Operators;
 /**
  * Nothing to do on PowerPC.
  */
-public abstract class OPT_ConvertALUOperators extends OPT_CompilerPhase 
-  implements OPT_Operators {
- 
+public abstract class OPT_ConvertALUOperators extends OPT_CompilerPhase
+    implements OPT_Operators {
+
   /**
    * Return this instance of this phase. This phase contains no
    * per-compilation instance fields.
    * @param ir not used
-   * @return this 
+   * @return this
    */
-  public OPT_CompilerPhase newExecution (OPT_IR ir) {
+  public OPT_CompilerPhase newExecution(OPT_IR ir) {
     return this;
   }
 
   public final String getName() { return "ConvertALUOps"; }
-  public final boolean printingEnabled (OPT_Options options, boolean before) {
+
+  public final boolean printingEnabled(OPT_Options options, boolean before) {
     return false;
   }
 
-  public final void perform(OPT_IR ir) { 
+  public final void perform(OPT_IR ir) {
     // Nothing to do on PPC
   }
 }

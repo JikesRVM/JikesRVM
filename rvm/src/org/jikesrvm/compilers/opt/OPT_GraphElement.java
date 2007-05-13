@@ -22,19 +22,19 @@ package org.jikesrvm.compilers.opt;
 @Deprecated
 interface OPT_GraphElement {
 
-  /** 
+  /**
    * read the scratch field of int type
    * @return the contents of the int scratch field
    * @deprecated
    */
   @Deprecated
-  int getScratch ();
+  int getScratch();
 
-  /** 
+  /**
    * set the scratch field of int type
    * @param scratch the new contents of the int scratch field
    * @deprecated
    */
   @Deprecated
-  int setScratch (int scratch);
+  int setScratch(int scratch);
 }

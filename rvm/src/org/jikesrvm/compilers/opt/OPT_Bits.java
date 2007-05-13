@@ -24,7 +24,7 @@ public class OPT_Bits {
    * be used in a PPC immediate field
    */
   public static int PPCMaskLower16(int value) {
-    return  (value & 0xffff);
+    return (value & 0xffff);
   }
 
   /**
@@ -32,7 +32,7 @@ public class OPT_Bits {
    * be used in a PPC immediate field
    */
   public static int PPCMaskLower16(Offset value) {
-    return  (value.toInt() & 0xffff);
+    return (value.toInt() & 0xffff);
   }
 
   /**
@@ -40,8 +40,8 @@ public class OPT_Bits {
    * immediate field
    */
   public static int PPCMaskUpper16(int value) {
-    short s = (short)(value & 0xffff);
-    return  ((value - (int)s) >> 16) & 0xffff;
+    short s = (short) (value & 0xffff);
+    return ((value - (int) s) >> 16) & 0xffff;
   }
 
   /**
@@ -84,48 +84,45 @@ public class OPT_Bits {
    * Return the lower 32 bits (as an int) of a long
    */
   public static int lower32(long value) {
-    return (int)value;
+    return (int) value;
   }
 
   /**
    * Return the upper 32 bits (as an int) of a long
    */
   public static int upper32(long value) {
-    return (int)(value >>> 32);
+    return (int) (value >>> 32);
   }
-
 
   /**
    * Does a long literal val fit in bits bits?
    */
-  public static boolean fits (long val, int bits) {
+  public static boolean fits(long val, int bits) {
     val = val >> bits - 1;
-    return  (val == 0L || val == -1L);
+    return (val == 0L || val == -1L);
   }
 
   /**
    * Does an offset literal val fit in bits bits?
    */
-  public static boolean fits (Offset val, int bits) {
+  public static boolean fits(Offset val, int bits) {
     return (VM.BuildFor32Addr) ? fits(val.toInt(), bits) : fits(val.toLong(), bits);
   }
 
   /**
    * Does an address literal val fit in bits bits?
    */
-  public static boolean fits (Address val, int bits) {
+  public static boolean fits(Address val, int bits) {
     return (VM.BuildFor32Addr) ? fits(val.toInt(), bits) : fits(val.toLong(), bits);
   }
-
 
   /**
    * Does an int literal val fit in bits bits?
    */
-  public static boolean fits (int val, int bits) {
+  public static boolean fits(int val, int bits) {
     val = val >> bits - 1;
-    return  (val == 0 || val == -1);
+    return (val == 0 || val == -1);
   }
-
 
   /**
    * Return the number of ones in the binary representation of an integer.
@@ -134,7 +131,7 @@ public class OPT_Bits {
     int result = 0;
     while (value != 0) {
       result++;
-      value &= (value-1); // clear lsb 1 bit
+      value &= (value - 1); // clear lsb 1 bit
     }
     return result;
   }

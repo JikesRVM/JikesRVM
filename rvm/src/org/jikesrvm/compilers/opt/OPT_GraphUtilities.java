@@ -20,38 +20,39 @@ class OPT_GraphUtilities {
    * Note: if G is cyclic, results are undefined
    */
   public static OPT_GraphNodeEnumeration enumerateTopSort(OPT_Graph G) {
-    return  enumerateTopSort(G, G.enumerateNodes());
+    return enumerateTopSort(G, G.enumerateNodes());
   }
 
   public static OPT_GraphNodeEnumeration enumerateTopSort(OPT_Graph G, OPT_GraphNodeEnumeration ie) {
     return enumerateTopSortInternal(G, new OPT_DFSenumerateByFinish(G, ie));
   }
 
-  public static OPT_GraphNodeEnumeration enumerateTopSort(OPT_Graph G, OPT_GraphNodeEnumeration ie, 
+  public static OPT_GraphNodeEnumeration enumerateTopSort(OPT_Graph G, OPT_GraphNodeEnumeration ie,
                                                           OPT_GraphEdgeFilter f) {
-      return enumerateTopSortInternal(G, new OPT_FilteredDFSenumerateByFinish(G, ie, f));
+    return enumerateTopSortInternal(G, new OPT_FilteredDFSenumerateByFinish(G, ie, f));
+  }
+
+  private static OPT_GraphNodeEnumeration enumerateTopSortInternal(OPT_Graph G,
+                                                                   OPT_GraphNodeEnumeration e) {
+    final OPT_GraphNode[] elts = new OPT_GraphNode[G.numberOfNodes()];
+
+    int i = 0;
+    while (e.hasMoreElements()) {
+      elts[i++] = e.next();
     }
 
-  private static OPT_GraphNodeEnumeration enumerateTopSortInternal(OPT_Graph G, 
-                                                                  OPT_GraphNodeEnumeration e) { 
-      final OPT_GraphNode[] elts = new OPT_GraphNode[ G.numberOfNodes() ];
+    final int i1 = i;
 
-      int i = 0;
-      while (e.hasMoreElements())
-        elts[i++] = e.next();
+    return new OPT_GraphNodeEnumerator() {
+      private int top = i1;
 
-      final int i1 = i;
+      public boolean hasMoreElements() {
+        return top > 0;
+      }
 
-      return  new OPT_GraphNodeEnumerator() {
-        private int top = i1;
-
-        public boolean hasMoreElements() {
-          return top > 0;
-        }
-
-        public OPT_GraphNode next() {
-          return elts[--top];
-        }
-      };
-    }
+      public OPT_GraphNode next() {
+        return elts[--top];
+      }
+    };
+  }
 }

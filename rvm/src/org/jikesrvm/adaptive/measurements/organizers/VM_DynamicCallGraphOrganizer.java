@@ -64,8 +64,8 @@ public class VM_DynamicCallGraphOrganizer extends VM_Organizer {
    * by calling thresholdReached().
    */
   private int[] buffer;
-  private int   bufferSize;
-  private int   numberOfBufferTriples;
+  private int bufferSize;
+  private int numberOfBufferTriples;
 
   /**
    * Constructor
@@ -89,15 +89,15 @@ public class VM_DynamicCallGraphOrganizer extends VM_Organizer {
     }
     numberOfBufferTriples *= VM_Scheduler.numProcessors;
     bufferSize = numberOfBufferTriples * 3;
-    buffer     = new int[bufferSize];
+    buffer = new int[bufferSize];
 
-    ((VM_EdgeListener)listener).setBuffer(buffer); 
+    ((VM_EdgeListener) listener).setBuffer(buffer);
 
     // Install the edge listener
     if (VM_Controller.options.cgTimer()) {
-      VM_RuntimeMeasurements.installTimerContextListener((VM_EdgeListener)listener);
+      VM_RuntimeMeasurements.installTimerContextListener((VM_EdgeListener) listener);
     } else if (VM_Controller.options.cgCBS()) {
-      VM_RuntimeMeasurements.installCBSContextListener((VM_EdgeListener)listener);
+      VM_RuntimeMeasurements.installCBSContextListener((VM_EdgeListener) listener);
     } else {
       if (VM.VerifyAssertions) VM._assert(false, "Unexpected value of call_graph_listener_trigger");
     }
@@ -110,43 +110,41 @@ public class VM_DynamicCallGraphOrganizer extends VM_Organizer {
    */
   void thresholdReached() {
     if (DEBUG) VM.sysWriteln("DCG_Organizer.thresholdReached()");
-    
-    for (int i=0; i<bufferSize; i=i+3) {
-      int calleeCMID = buffer[i+0];
-      VM_CompiledMethod compiledMethod   = VM_CompiledMethods.getCompiledMethod(calleeCMID);
+
+    for (int i = 0; i < bufferSize; i = i + 3) {
+      int calleeCMID = buffer[i + 0];
+      VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(calleeCMID);
       if (compiledMethod == null) continue;
       VM_Method callee = compiledMethod.getMethod();
       if (callee.isRuntimeServiceMethod()) {
         if (DEBUG) VM.sysWrite("Skipping sample with runtime service callee");
         continue;
       }
-      int callerCMID = buffer[i+1];
-      compiledMethod   = VM_CompiledMethods.getCompiledMethod(callerCMID);
+      int callerCMID = buffer[i + 1];
+      compiledMethod = VM_CompiledMethods.getCompiledMethod(callerCMID);
       if (compiledMethod == null) continue;
       VM_Method stackFrameCaller = compiledMethod.getMethod();
-       
-      int MCOff = buffer[i+2];
-      Offset MCOffset = Offset.fromIntSignExtend(buffer[i+2]);
+
+      int MCOff = buffer[i + 2];
+      Offset MCOffset = Offset.fromIntSignExtend(buffer[i + 2]);
       int bytecodeIndex = -1;
       VM_Method caller = null;
 
       switch (compiledMethod.getCompilerType()) {
-      case VM_CompiledMethod.TRAP:
-      case VM_CompiledMethod.JNI:
-        if (DEBUG) VM.sysWrite("Skipping sample with TRAP/JNI caller");
-        continue;
-      case VM_CompiledMethod.BASELINE:
-        {
-          VM_BaselineCompiledMethod baseCompiledMethod = 
-            (VM_BaselineCompiledMethod)compiledMethod;
+        case VM_CompiledMethod.TRAP:
+        case VM_CompiledMethod.JNI:
+          if (DEBUG) VM.sysWrite("Skipping sample with TRAP/JNI caller");
+          continue;
+        case VM_CompiledMethod.BASELINE: {
+          VM_BaselineCompiledMethod baseCompiledMethod =
+              (VM_BaselineCompiledMethod) compiledMethod;
           // note: the following call expects the offset in INSTRUCTIONS!
           bytecodeIndex = baseCompiledMethod.findBytecodeIndexForInstruction(MCOffset);
           caller = stackFrameCaller;
         }
         break;
-      case VM_CompiledMethod.OPT:
-        {
-          VM_OptCompiledMethod optCompiledMethod = (VM_OptCompiledMethod)compiledMethod;
+        case VM_CompiledMethod.OPT: {
+          VM_OptCompiledMethod optCompiledMethod = (VM_OptCompiledMethod) compiledMethod;
           VM_OptMachineCodeMap mc_map = optCompiledMethod.getMCMap();
           try {
             bytecodeIndex = mc_map.getBytecodeIndexForMCOffset(MCOffset);
@@ -156,48 +154,48 @@ public class VM_DynamicCallGraphOrganizer extends VM_Organizer {
               // We aren't setup to inline such methods anyways, 
               // so skip the sample.
               if (DEBUG) {
-                  VM.sysWrite("  *** SKIP SAMPLE ", stackFrameCaller.toString());
-                  VM.sysWrite("@",compiledMethod.toString());
-                  VM.sysWrite(" at MC offset ", MCOff);
-                  VM.sysWrite(" calling ", callee.toString());
-                  VM.sysWriteln(" due to invalid bytecodeIndex");
+                VM.sysWrite("  *** SKIP SAMPLE ", stackFrameCaller.toString());
+                VM.sysWrite("@", compiledMethod.toString());
+                VM.sysWrite(" at MC offset ", MCOff);
+                VM.sysWrite(" calling ", callee.toString());
+                VM.sysWriteln(" due to invalid bytecodeIndex");
               }
               continue; // skip sample.
             }
           } catch (java.lang.ArrayIndexOutOfBoundsException e) {
-              VM.sysWrite("  ***ERROR: getBytecodeIndexForMCOffset(", MCOffset);
-              VM.sysWrite(") ArrayIndexOutOfBounds!\n");
-              e.printStackTrace();
-              if (VM.ErrorsFatal) VM.sysFail("Exception in AI organizer.");
-              caller = stackFrameCaller;
-              continue;  // skip sample
+            VM.sysWrite("  ***ERROR: getBytecodeIndexForMCOffset(", MCOffset);
+            VM.sysWrite(") ArrayIndexOutOfBounds!\n");
+            e.printStackTrace();
+            if (VM.ErrorsFatal) VM.sysFail("Exception in AI organizer.");
+            caller = stackFrameCaller;
+            continue;  // skip sample
           } catch (OPT_OptimizingCompilerException e) {
-            VM.sysWrite("***Error: SKIP SAMPLE: can't find bytecode index in OPT compiled "+
-                        stackFrameCaller+"@"+compiledMethod+" at MC offset ",MCOff);
+            VM.sysWrite("***Error: SKIP SAMPLE: can't find bytecode index in OPT compiled " +
+                        stackFrameCaller + "@" + compiledMethod + " at MC offset ", MCOff);
             VM.sysWrite("!\n");
             if (VM.ErrorsFatal) VM.sysFail("Exception in AI organizer.");
             continue;  // skip sample
           }
-          
+
           try {
             caller = mc_map.getMethodForMCOffset(MCOffset);
           } catch (java.lang.ArrayIndexOutOfBoundsException e) {
-            VM.sysWrite("  ***ERROR: getMethodForMCOffset(",MCOffset);
-                 VM.sysWrite(") ArrayIndexOutOfBounds!\n");
+            VM.sysWrite("  ***ERROR: getMethodForMCOffset(", MCOffset);
+            VM.sysWrite(") ArrayIndexOutOfBounds!\n");
             e.printStackTrace();
             if (VM.ErrorsFatal) VM.sysFail("Exception in AI organizer.");
             caller = stackFrameCaller;
             continue;
           } catch (OPT_OptimizingCompilerException e) {
-            VM.sysWrite("***Error: SKIP SAMPLE: can't find caller in OPT compiled "+
-                        stackFrameCaller+"@"+compiledMethod+" at MC offset ",MCOff);
+            VM.sysWrite("***Error: SKIP SAMPLE: can't find caller in OPT compiled " +
+                        stackFrameCaller + "@" + compiledMethod + " at MC offset ", MCOff);
             VM.sysWrite("!\n");
             if (VM.ErrorsFatal) VM.sysFail("Exception in AI organizer.");
             continue;  // skip sample
           }
 
           if (caller == null) {
-            VM.sysWrite("  ***ERROR: getMethodForMCOffset(",MCOffset);
+            VM.sysWrite("  ***ERROR: getMethodForMCOffset(", MCOffset);
             VM.sysWrite(") returned null!\n");
             caller = stackFrameCaller;
             continue;  // skip sample

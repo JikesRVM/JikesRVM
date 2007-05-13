@@ -24,7 +24,8 @@ import org.vmmagic.unboxed.Offset;
  * and highly depends on the calling convention. It should not be interrupted
  * because it deals with row instruction address.
  */
-@Uninterruptible public abstract class OSR_PostThreadSwitch implements VM_BaselineConstants {
+@Uninterruptible
+public abstract class OSR_PostThreadSwitch implements VM_BaselineConstants {
 
   /**
    * This method must not be inlined to keep the correctness 
@@ -32,21 +33,21 @@ import org.vmmagic.unboxed.Offset;
    * is threadSwitchFrom<...>
    */
   @NoInline
-  public static void postProcess(VM_Thread myThread) { 
+  public static void postProcess(VM_Thread myThread) {
 
     /* We need to generate thread specific code and install new code.
-     * We have to make sure that no GC happens from here and before 
-     * the new code get executed.
-     */
+    * We have to make sure that no GC happens from here and before
+    * the new code get executed.
+    */
     // add branch instruction from CTR.
-    ArchitectureSpecific.VM_CodeArray bridge   = myThread.bridgeInstructions;
-      
+    ArchitectureSpecific.VM_CodeArray bridge = myThread.bridgeInstructions;
+
     Address bridgeaddr = VM_Magic.objectAsAddress(bridge);
 
     if (VM.TraceOnStackReplacement) {
       VM.sysWrite("osr post processing\n");
     }
-        
+
     Offset offset = myThread.tsFPOffset.plus(STACKFRAME_RETURN_ADDRESS_OFFSET);
     VM_Magic.objectAsAddress(myThread.stack).store(bridgeaddr, offset);
 

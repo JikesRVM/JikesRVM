@@ -37,21 +37,21 @@ public final class VM_PendingRETInfo {
 
   // --------------------- Constructors ----------------------------
 
-  public VM_PendingRETInfo(int JSRSubStartByteIndex, int JSRBBNum, 
+  public VM_PendingRETInfo(int JSRSubStartByteIndex, int JSRBBNum,
                            int returnAddressLocation, short JSRNextBBNum) {
-    this.JSRSubStartByteIndex  = JSRSubStartByteIndex;
-    this.JSRBBNum              = JSRBBNum;
+    this.JSRSubStartByteIndex = JSRSubStartByteIndex;
+    this.JSRBBNum = JSRBBNum;
     this.returnAddressLocation = returnAddressLocation;
-    this.JSRNextBBNum          = JSRNextBBNum;
-    updatedOnce                = false;
+    this.JSRNextBBNum = JSRNextBBNum;
+    updatedOnce = false;
   }
 
   public VM_PendingRETInfo(VM_PendingRETInfo copyfrom) {
-    this.JSRSubStartByteIndex  = copyfrom.JSRSubStartByteIndex;
-    this.JSRBBNum              = copyfrom.JSRBBNum;
+    this.JSRSubStartByteIndex = copyfrom.JSRSubStartByteIndex;
+    this.JSRBBNum = copyfrom.JSRBBNum;
     this.returnAddressLocation = copyfrom.returnAddressLocation;
-    this.JSRNextBBNum          = copyfrom.JSRNextBBNum;
-    this.updatedOnce           = copyfrom.updatedOnce;
+    this.JSRNextBBNum = copyfrom.JSRNextBBNum;
+    this.updatedOnce = copyfrom.updatedOnce;
   }
 
   // ------------------ Instance Method ---------------------------

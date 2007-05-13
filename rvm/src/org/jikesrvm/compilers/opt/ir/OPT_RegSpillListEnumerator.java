@@ -44,8 +44,7 @@ public class OPT_RegSpillListEnumerator implements Enumeration<OPT_RegSpillListE
   public final OPT_RegSpillListElement nextElement() {
     if (nextElementToReturn != null) {
       return next();
-    } 
-    else {
+    } else {
       throw new NoSuchElementException("OPT_RegSpillListElementEnumerator");
     }
   }
@@ -57,7 +56,7 @@ public class OPT_RegSpillListEnumerator implements Enumeration<OPT_RegSpillListE
   public final OPT_RegSpillListElement next() {
     OPT_RegSpillListElement ret = nextElementToReturn;
 //    nextElementToReturn = (OPT_RegSpillListElement)ret.getNext();
-    return  ret;
+    return ret;
   }
 }
 

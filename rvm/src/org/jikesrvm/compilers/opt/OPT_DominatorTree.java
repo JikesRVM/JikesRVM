@@ -31,14 +31,14 @@ public class OPT_DominatorTree extends OPT_Tree {
   /**
    * The governing IR
    */
-  private OPT_IR ir;        
+  private OPT_IR ir;
 
   /**
    * A structure used to quickly index into the DominatorVertex tree
    */
   private OPT_DominatorTreeNode[] dominatorInfoMap;
 
-  /** 
+  /**
    * Build a dominator tree from an IR. NOTE: the dominator
    * information MUST be computed BEFORE calling this method!
    * We assume the scratch object of each basic block contains
@@ -52,30 +52,30 @@ public class OPT_DominatorTree extends OPT_Tree {
       ir.HIRInfo.dominatorTree = new OPT_DominatorTree(ir, forward);
       if (ir.options.PRINT_DOMINATORS) {
         if (DEBUG) {
-          System.out.println("Here is the CFG for method "+
-                             ir.method.getName() +"\n"+
+          System.out.println("Here is the CFG for method " +
+                             ir.method.getName() + "\n" +
                              ir.cfg);
         }
-        System.out.println("Here is the Dominator Tree for method "+
-                           ir.method.getName() +"\n"+
+        System.out.println("Here is the Dominator Tree for method " +
+                           ir.method.getName() + "\n" +
                            ir.HIRInfo.dominatorTree);
       }
     } else {
       ir.HIRInfo.postDominatorTree = new OPT_DominatorTree(ir, forward);
       if (ir.options.PRINT_POST_DOMINATORS) {
         if (DEBUG) {
-          System.out.println("Here is the CFG for method "+
-                             ir.method.getName() +"\n"+
+          System.out.println("Here is the CFG for method " +
+                             ir.method.getName() + "\n" +
                              ir.cfg);
         }
-        System.out.println("Here is the Post-Dominator Tree for method "+
-                           ir.method.getName() +"\n"+
+        System.out.println("Here is the Post-Dominator Tree for method " +
+                           ir.method.getName() + "\n" +
                            ir.HIRInfo.postDominatorTree);
       }
     }
   }
 
-  /** 
+  /**
    * Build a dominator tree from an IR. NOTE: the dominator
    * information MUST be computed BEFORE calling this
    * constructor!
@@ -96,8 +96,8 @@ public class OPT_DominatorTree extends OPT_Tree {
     ir.resetBasicBlockMap();
 
     // allocate the dominator vertex map
-    dominatorInfoMap = 
-      new OPT_DominatorTreeNode[ir.getMaxBasicBlockNumber() + 1];
+    dominatorInfoMap =
+        new OPT_DominatorTreeNode[ir.getMaxBasicBlockNumber() + 1];
 
     // allocate the tree and root node
     // Step 1: add all basic blocks to the tree as nodes
@@ -151,7 +151,7 @@ public class OPT_DominatorTree extends OPT_Tree {
     }
   }
 
-  /** 
+  /**
    * Enumerate the children of the vertex corresponding to a basic 
    * block
    *
@@ -160,10 +160,10 @@ public class OPT_DominatorTree extends OPT_Tree {
    */
   public Enumeration<OPT_TreeNode> getChildren(OPT_BasicBlock bb) {
     OPT_DominatorTreeNode node = dominatorInfoMap[bb.getNumber()];
-    return  node.getChildren();
+    return node.getChildren();
   }
 
-  /** 
+  /**
    * Return the parent of the vertex corresponding to a basic 
    * block
    *
@@ -172,10 +172,10 @@ public class OPT_DominatorTree extends OPT_Tree {
    */
   public OPT_BasicBlock getParent(OPT_BasicBlock bb) {
     OPT_DominatorTreeNode node = dominatorInfoMap[bb.getNumber()];
-    return  ((OPT_DominatorTreeNode)node.getParent()).getBlock();
+    return ((OPT_DominatorTreeNode) node.getParent()).getBlock();
   }
 
-  /** 
+  /**
    * Return the (already calculated) dominance frontier for 
    * a basic block
    *
@@ -184,10 +184,10 @@ public class OPT_DominatorTree extends OPT_Tree {
    */
   public OPT_BitVector getDominanceFrontier(OPT_BasicBlock bb) {
     OPT_DominatorTreeNode info = dominatorInfoMap[bb.getNumber()];
-    return  info.getDominanceFrontier();
+    return info.getDominanceFrontier();
   }
 
-  /** 
+  /**
    * Return the (already calculated) dominance frontier for 
    * a basic block
    *
@@ -195,10 +195,10 @@ public class OPT_DominatorTree extends OPT_Tree {
    * @return a BitVector representing the dominance frontier
    */
   public OPT_BitVector getDominanceFrontier(int number) {
-    return  getDominanceFrontier(ir.getBasicBlock(number));
+    return getDominanceFrontier(ir.getBasicBlock(number));
   }
 
-  /** 
+  /**
    * Does basic block number b dominate all basic blocks in a set?
    *
    * @param b the number of the basic block to test
@@ -207,15 +207,17 @@ public class OPT_DominatorTree extends OPT_Tree {
    */
   public boolean dominates(int b, OPT_BitVector bits) {
     for (int i = 0; i < bits.length(); i++) {
-      if (!bits.get(i))
+      if (!bits.get(i)) {
         continue;
-      if (!dominates(b, i))
-        return  false;
+      }
+      if (!dominates(b, i)) {
+        return false;
+      }
     }
-    return  true;
+    return true;
   }
 
-  /** 
+  /**
    * Does basic block number "master" dominate basic block number "slave"?
    *
    * @param master the number of the proposed "master" basic block
@@ -225,13 +227,13 @@ public class OPT_DominatorTree extends OPT_Tree {
   public boolean dominates(int master, int slave) {
     OPT_BasicBlock masterBlock = ir.getBasicBlock(master);
     OPT_BasicBlock slaveBlock = ir.getBasicBlock(slave);
-    OPT_DominatorTreeNode masterNode = 
+    OPT_DominatorTreeNode masterNode =
         dominatorInfoMap[masterBlock.getNumber()];
     OPT_DominatorTreeNode slaveNode = dominatorInfoMap[slaveBlock.getNumber()];
-    return  slaveNode.isDominatedBy(masterNode);
+    return slaveNode.isDominatedBy(masterNode);
   }
 
-  /** 
+  /**
    * Does basic block number "master" dominate basic block number "slave"?
    *
    * @param master the number of the proposed "master" basic block
@@ -244,7 +246,7 @@ public class OPT_DominatorTree extends OPT_Tree {
     return slaveNode.isDominatedBy(masterNode);
   }
 
-  /** 
+  /**
    * Creates domniator tree nodes for the passed block and adds them to the
    * map.
    * @param b the basic block
@@ -262,7 +264,7 @@ public class OPT_DominatorTree extends OPT_Tree {
    * @return <code>b</code>'s depth
    */
   public int depth(OPT_BasicBlock b) {
-    return  dominatorInfoMap[b.getNumber()].getDepth();
+    return dominatorInfoMap[b.getNumber()].getDepth();
   }
 
   /**
@@ -273,16 +275,18 @@ public class OPT_DominatorTree extends OPT_Tree {
    * @return the deepest common dominance ancestor of blocks <code>a</code> 
    *        and <code>b</code>
    */
-  public OPT_BasicBlock 
-      deepestCommonAncestor(OPT_BasicBlock a, OPT_BasicBlock b) {
+  public OPT_BasicBlock
+  deepestCommonAncestor(OPT_BasicBlock a, OPT_BasicBlock b) {
     OPT_DominatorTreeNode n_a = dominatorInfoMap[a.getNumber()];
     OPT_DominatorTreeNode n_b = dominatorInfoMap[b.getNumber()];
-    while (n_a != n_b)
-      if (n_a.getDepth() > n_b.getDepth())
-        n_a = (OPT_DominatorTreeNode)n_a.getParent(); 
-      else 
-        n_b = (OPT_DominatorTreeNode)n_b.getParent();
-    return  n_a.getBlock();
+    while (n_a != n_b) {
+      if (n_a.getDepth() > n_b.getDepth()) {
+        n_a = (OPT_DominatorTreeNode) n_a.getParent();
+      } else {
+        n_b = (OPT_DominatorTreeNode) n_b.getParent();
+      }
+    }
+    return n_a.getBlock();
   }
 
 }

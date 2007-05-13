@@ -21,7 +21,7 @@ import org.jikesrvm.compilers.opt.OPT_LiveSet;
  * Exception Handler Basic Block; acronym EHBB.
  */
 public final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
-  
+
   /**
    * The VM_Type(s) of the exception(s) caught by this block.
    */
@@ -37,15 +37,15 @@ public final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
   /**
    * Creates a new exception handler basic block at the specified location,
    * which catches the specified type of exception.
-   * 
+   *
    * @param loc   Bytecode index to create basic block at
    * @param position  The inline context for this basic block
    * @param type  The exception type
    * @param cfg   The OPT_ControlFlowGraph that will contain the basic block
    */
-  OPT_ExceptionHandlerBasicBlock(int loc, 
+  OPT_ExceptionHandlerBasicBlock(int loc,
                                  OPT_InlineSequence position,
-                                 OPT_TypeOperand type, 
+                                 OPT_TypeOperand type,
                                  OPT_ControlFlowGraph cfg) {
     super(loc, position, cfg);
     exceptionTypes = new OPT_TypeOperand[1];
@@ -53,7 +53,6 @@ public final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
     setExceptionHandlerBasicBlock();
     liveSet = null;
   }
-
 
   /**
    * Add a new exception type to an extant exception handler block.
@@ -67,19 +66,18 @@ public final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
     for (OPT_TypeOperand exceptionType : exceptionTypes) {
       if (exceptionType.similar(et)) return;
     }
-    OPT_TypeOperand[] newets = new OPT_TypeOperand[exceptionTypes.length+1];
-    for (int i=0; i<exceptionTypes.length; i++) {
+    OPT_TypeOperand[] newets = new OPT_TypeOperand[exceptionTypes.length + 1];
+    for (int i = 0; i < exceptionTypes.length; i++) {
       newets[i] = exceptionTypes[i];
     }
     newets[exceptionTypes.length] = et;
     exceptionTypes = newets;
   }
 
-
   /**
    * Return YES/NO/MAYBE values that answer the question is it possible for
    * this handler block to catch an exception of the type et.
-   * 
+   *
    * @param cand the VM_TypeReference of the exception in question.
    * @return YES, NO, MAYBE
    */
@@ -97,11 +95,10 @@ public final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
     return seenMaybe ? MAYBE : NO;
   }
 
-
   /**
    * Return YES/NO/MAYBE values that answer the question is it guarenteed that 
    * this handler block will catch an exception of type <code>cand</code>
-   * 
+   *
    * @param cand  the VM_TypeReference of the exception in question.
    * @return YES, NO, MAYBE
    */
@@ -113,12 +110,12 @@ public final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
       if (t == YES) return YES;
       seenMaybe |= (t == MAYBE);
     }
-    if (seenMaybe)
+    if (seenMaybe) {
       return MAYBE;
-    else
+    } else {
       return NO;
+    }
   }
-
 
   /**
    * Return an Enumeration of the caught exception types.
@@ -129,9 +126,11 @@ public final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
   public Enumeration<OPT_TypeOperand> getExceptionTypes() {
     return new Enumeration<OPT_TypeOperand>() {
       private int idx = 0;
-      public boolean hasMoreElements() { 
-        return idx != exceptionTypes.length; 
+
+      public boolean hasMoreElements() {
+        return idx != exceptionTypes.length;
       }
+
       public OPT_TypeOperand nextElement() {
         try {
           return exceptionTypes[idx++];
@@ -142,14 +141,13 @@ public final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
     };
   }
 
-
   /**
    * Get how many table entires this EHBB needs.
    * Really only of interest during final assembly.
    *
    * @see org.jikesrvm.compilers.opt.VM_OptExceptionTable
    *
-  * @return the number of table entries for this basic block
+   * @return the number of table entries for this basic block
    */
   public int getNumberOfExceptionTableEntries() {
     return exceptionTypes.length;
@@ -177,7 +175,6 @@ public final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
     this.liveSet = liveSet;
   }
 
-
   /**
    * Return a string representation of the basic block
    * (augment {@link OPT_BasicBlock#toString} with 
@@ -187,16 +184,17 @@ public final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
    */
   public String toString() {
     String exmsg = " (catches ";
-    for (int i=0; i<exceptionTypes.length-1; i++) {
-      exmsg = exmsg + exceptionTypes[i].toString() +", ";
+    for (int i = 0; i < exceptionTypes.length - 1; i++) {
+      exmsg = exmsg + exceptionTypes[i].toString() + ", ";
     }
-    exmsg = exmsg + exceptionTypes[exceptionTypes.length-1].toString();
+    exmsg = exmsg + exceptionTypes[exceptionTypes.length - 1].toString();
     exmsg = exmsg + " for";
     OPT_BasicBlockEnumeration in = getIn();
-    while (in.hasMoreElements()) 
+    while (in.hasMoreElements()) {
       exmsg = exmsg + " " + in.next().toString();
+    }
     exmsg = exmsg + ")";
-    
-    return super.toString() + exmsg; 
+
+    return super.toString() + exmsg;
   }
 }

@@ -22,7 +22,7 @@ import org.vmmagic.unboxed.Offset;
  * Trigger an OSR from a running thread.
  */
 public class OSR_OnStackReplacementTrigger {
-  
+
   /**
    * Trigger an OSR from a running thread.
    */
@@ -31,16 +31,15 @@ public class OSR_OnStackReplacementTrigger {
   public static void trigger(int ypTakenInCMID,
                              Offset tsFromFPoff,
                              Offset ypTakenFPoff,
-                             int whereFrom) { 
+                             int whereFrom) {
 
-
-    VM_Thread thread = VM_Thread.getCurrentThread();    
+    VM_Thread thread = VM_Thread.getCurrentThread();
     VM_CompiledMethod ypTakenInCM = VM_CompiledMethods.getCompiledMethod(ypTakenInCMID);
-    VM_Method ypTakenInMethod = ypTakenInCM.getMethod(); 
+    VM_Method ypTakenInMethod = ypTakenInCM.getMethod();
     boolean isInBootImage = ypTakenInMethod.getDeclaringClass().isInBootImage();
 
     if (isInBootImage) return;
-    OSR_OnStackReplacementEvent event = (OSR_OnStackReplacementEvent)thread.onStackReplacementEvent;
+    OSR_OnStackReplacementEvent event = (OSR_OnStackReplacementEvent) thread.onStackReplacementEvent;
     event.suspendedThread = thread;
     event.whereFrom = whereFrom;
     event.CMID = ypTakenInCMID;
@@ -49,7 +48,7 @@ public class OSR_OnStackReplacementTrigger {
 
     // consumer:
     thread.requesting_osr = true;
-        
+
     // osr organizer must be initialized already
     if (VM_Controller.osrOrganizer.osr_flag == false) {
       VM_Controller.osrOrganizer.osr_flag = true;

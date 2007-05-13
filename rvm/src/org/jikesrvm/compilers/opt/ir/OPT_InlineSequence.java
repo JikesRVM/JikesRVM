@@ -17,7 +17,7 @@ import org.jikesrvm.compilers.opt.OPT_Stack;
  * Used to uniquely identify program locations.
  */
 public final class OPT_InlineSequence {
-  static final boolean DEBUG=false;
+  static final boolean DEBUG = false;
 
   /**
    * Current method.
@@ -42,30 +42,30 @@ public final class OPT_InlineSequence {
   /**
    * @return contents of {@link #method}
    */
-  public VM_NormalMethod getMethod() { 
-    return method; 
+  public VM_NormalMethod getMethod() {
+    return method;
   }
 
   /**
    * @return contents of {@link #caller}
    */
   public OPT_InlineSequence getCaller() {
-    return caller; 
+    return caller;
   }
 
-     public boolean equals(Object o) {
-      if (!(o instanceof OPT_InlineSequence)) return false;
-      OPT_InlineSequence is = (OPT_InlineSequence)o;
-      if (method == null) return (is.method == null);
-      if (!method.equals(is.method)) return false;
-      if (bcIndex != is.bcIndex) return false;
-      if (caller == null) return (is.caller== null);
-      return (caller.equals(is.caller));
-   }
+  public boolean equals(Object o) {
+    if (!(o instanceof OPT_InlineSequence)) return false;
+    OPT_InlineSequence is = (OPT_InlineSequence) o;
+    if (method == null) return (is.method == null);
+    if (!method.equals(is.method)) return false;
+    if (bcIndex != is.bcIndex) return false;
+    if (caller == null) return (is.caller == null);
+    return (caller.equals(is.caller));
+  }
 
   /**
    * Constructs a new top-level inline sequence operand.
-   * 
+   *
    * @param method current method
    */
   OPT_InlineSequence(VM_NormalMethod method) {
@@ -113,21 +113,22 @@ public final class OPT_InlineSequence {
    */
   public String toString() {
     StringBuilder sb = new StringBuilder(" ");
-    for (OPT_InlineSequence is = this; is != null; is = is.caller)
+    for (OPT_InlineSequence is = this; is != null; is = is.caller) {
       sb.append(is.method.getDeclaringClass().getDescriptor()).append(" ").
-        append(is.method.getName()).append(" ").
-        append(is.method.getDescriptor()).append(" ").
-        append(is.bcIndex).append(" ");
+          append(is.method.getName()).append(" ").
+          append(is.method.getDescriptor()).append(" ").
+          append(is.bcIndex).append(" ");
+    }
     return sb.toString();
   }
-  
+
   /**
    * return the depth of inlining: (0 corresponds to no inlining)
    */
   public int getInlineDepth() {
     int depth = 0;
     OPT_InlineSequence parent = this.caller;
-    while (parent != null) { 
+    while (parent != null) {
       depth++;
       parent = parent.caller;
     }
@@ -139,7 +140,7 @@ public final class OPT_InlineSequence {
    */
   public VM_NormalMethod getRootMethod() {
     OPT_InlineSequence parent = this;
-    while (parent.caller != null) { 
+    while (parent.caller != null) {
       parent = parent.caller;
     }
     return parent.method;
@@ -154,7 +155,7 @@ public final class OPT_InlineSequence {
     return (caller.containsMethod(m));
   }
 
-  /** 
+  /**
    * Return a hashcode for this object.  
    *
    * TODO: Figure out a better hashcode.  Efficiency doesn't matter
@@ -162,27 +163,30 @@ public final class OPT_InlineSequence {
    *
    * @return the hashcode for this object.
    */
-  public int hashCode () {
+  public int hashCode() {
     return bcIndex;
   }
 
-  public java.util.Enumeration<OPT_InlineSequence> enumerateFromRoot()  {
+  public java.util.Enumeration<OPT_InlineSequence> enumerateFromRoot() {
     return new java.util.Enumeration<OPT_InlineSequence>() {
-        OPT_Stack<OPT_InlineSequence> stack;
-        {
-          stack = new OPT_Stack<OPT_InlineSequence>();
-          OPT_InlineSequence parent = OPT_InlineSequence.this;
-          while (parent.caller != null) { 
-            stack.push(parent);
-            parent = parent.caller;
-          }
+      OPT_Stack<OPT_InlineSequence> stack;
+
+      {
+        stack = new OPT_Stack<OPT_InlineSequence>();
+        OPT_InlineSequence parent = OPT_InlineSequence.this;
+        while (parent.caller != null) {
+          stack.push(parent);
+          parent = parent.caller;
         }
-        public boolean hasMoreElements()  {
-          return !stack.isEmpty();
-        }
-        public OPT_InlineSequence nextElement() {
-          return stack.pop();
-        }
-      };
+      }
+
+      public boolean hasMoreElements() {
+        return !stack.isEmpty();
+      }
+
+      public OPT_InlineSequence nextElement() {
+        return stack.pop();
+      }
+    };
   }
 }

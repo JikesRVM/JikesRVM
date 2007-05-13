@@ -86,7 +86,7 @@ public abstract class OPT_CallingConvention extends OPT_IRTools {
    * @param ir
    */
   public static void expandCallingConventions(OPT_IR ir) {
-    for (OPT_Instruction inst = ir.firstInstructionInCodeOrder(); 
+    for (OPT_Instruction inst = ir.firstInstructionInCodeOrder();
          inst != null; inst = inst.nextInstructionInCodeOrder()) {
       if (inst.isCall()) {
         callExpand(inst, ir);
@@ -97,17 +97,16 @@ public abstract class OPT_CallingConvention extends OPT_IRTools {
     prologueExpand(ir);
   }
 
-
   /**
    * This is just called for instructions that were added by 
    * instrumentation during register allocation
    */
-  public static void expandCallingConventionsForInstrumentation(OPT_IR ir, 
-                                                                OPT_Instruction 
-                                                                from, 
-                                                                OPT_Instruction 
-                                                                to) {
-    for (OPT_Instruction inst = from; inst != to; 
+  public static void expandCallingConventionsForInstrumentation(OPT_IR ir,
+                                                                OPT_Instruction
+                                                                    from,
+                                                                OPT_Instruction
+                                                                    to) {
+    for (OPT_Instruction inst = from; inst != to;
          inst = inst.nextInstructionInCodeOrder()) {
       if (inst.isCall()) {
         callExpand(inst, ir);
@@ -121,28 +120,28 @@ public abstract class OPT_CallingConvention extends OPT_IRTools {
    * Calling convention to implement calls to 
    * native (C) routines using the AIX linkage conventions
    */
-   public static void expandSysCall(OPT_Instruction s, OPT_IR ir) {
-    OPT_RegisterOperand ip = (OPT_RegisterOperand)Call.getClearAddress(s);
+  public static void expandSysCall(OPT_Instruction s, OPT_IR ir) {
+    OPT_RegisterOperand ip = (OPT_RegisterOperand) Call.getClearAddress(s);
     int numberParams = Call.getNumberOfParams(s);
 
     /* Long, float, and double constants are loaded from the JTOC.
      * We must ensure that they are loaded _before_ we change
      * the JTOC to be the C TOC so inject explicit moves to do so.
      */
-    for (int i = 0; i< numberParams; i++) {
+    for (int i = 0; i < numberParams; i++) {
       OPT_Operand arg = Call.getParam(s, i);
       if (arg instanceof OPT_LongConstantOperand) {
-        OPT_LongConstantOperand op = (OPT_LongConstantOperand)Call.getClearParam(s, i);
+        OPT_LongConstantOperand op = (OPT_LongConstantOperand) Call.getClearParam(s, i);
         OPT_RegisterOperand rop = ir.regpool.makeTempLong();
         s.insertBefore(Move.create(LONG_MOVE, rop, op));
         Call.setParam(s, i, rop.copy());
       } else if (arg instanceof OPT_DoubleConstantOperand) {
-        OPT_DoubleConstantOperand op = (OPT_DoubleConstantOperand)Call.getClearParam(s, i);
+        OPT_DoubleConstantOperand op = (OPT_DoubleConstantOperand) Call.getClearParam(s, i);
         OPT_RegisterOperand rop = ir.regpool.makeTempDouble();
         s.insertBefore(Move.create(DOUBLE_MOVE, rop, op));
         Call.setParam(s, i, rop.copy());
       } else if (arg instanceof OPT_FloatConstantOperand) {
-        OPT_FloatConstantOperand op = (OPT_FloatConstantOperand)Call.getClearParam(s, i);
+        OPT_FloatConstantOperand op = (OPT_FloatConstantOperand) Call.getClearParam(s, i);
         OPT_RegisterOperand rop = ir.regpool.makeTempFloat();
         s.insertBefore(Move.create(FLOAT_MOVE, rop, op));
         Call.setParam(s, i, rop.copy());
@@ -157,7 +156,7 @@ public abstract class OPT_CallingConvention extends OPT_IRTools {
         parameterWords++;
         OPT_Operand op = Call.getParam(s, i);
         if (op instanceof OPT_RegisterOperand) {
-          OPT_RegisterOperand reg = (OPT_RegisterOperand)op;
+          OPT_RegisterOperand reg = (OPT_RegisterOperand) op;
           if (reg.type.isLongType() || reg.type.isDoubleType()) {
             parameterWords++;
           }
@@ -167,16 +166,18 @@ public abstract class OPT_CallingConvention extends OPT_IRTools {
       parameterWords = numberParams;
     }
     // see PowerPC Compiler Writer's Guide, pp. 162
-    ir.stackManager.allocateParameterSpace((6 + parameterWords)*BYTES_IN_ADDRESS);
+    ir.stackManager.allocateParameterSpace((6 + parameterWords) * BYTES_IN_ADDRESS);
     // IMPORTANT WARNING: as the callee C routine may destroy the cmid field
     // (it is the saved CR field of the callee in C convention) 
     // we are restoring the methodID after a sysCall. 
-    OPT_Instruction s2 = Store.create(REF_STORE, ir.regpool.makeJTOCOp(ir,s), 
-                                      ir.regpool.makeFPOp(), 
-                                      AC(Offset.fromIntSignExtend(5*BYTES_IN_ADDRESS)), null);         // TODO: valid location?
+    OPT_Instruction s2 = Store.create(REF_STORE,
+                                      ir.regpool.makeJTOCOp(ir, s),
+                                      ir.regpool.makeFPOp(),
+                                      AC(Offset.fromIntSignExtend(5 * BYTES_IN_ADDRESS)),
+                                      null);         // TODO: valid location?
     s.insertBefore(s2);
     if (VM.BuildForPowerOpenABI) {
-      s2 = Load.create(REF_LOAD, ir.regpool.makeJTOCOp(ir,s), ip,
+      s2 = Load.create(REF_LOAD, ir.regpool.makeJTOCOp(ir, s), ip,
                        AC(Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)), null);
       s.insertBefore(s2);
       OPT_RegisterOperand iptmp = ir.regpool.makeTempAddress();
@@ -185,14 +186,16 @@ public abstract class OPT_CallingConvention extends OPT_IRTools {
       ip = iptmp;
     }
     Call.mutate0(s, SYSCALL, Call.getClearResult(s), ip, null);
-    s2 = Load.create(REF_LOAD, ir.regpool.makeJTOCOp(ir,s), ir.regpool.makeFPOp(),
-                     AC(Offset.fromIntSignExtend(5*BYTES_IN_ADDRESS)), null);         // TODO: valid location?
+    s2 = Load.create(REF_LOAD, ir.regpool.makeJTOCOp(ir, s), ir.regpool.makeFPOp(),
+                     AC(Offset.fromIntSignExtend(5 * BYTES_IN_ADDRESS)), null);         // TODO: valid location?
     s.insertAfter(s2);
     OPT_RegisterOperand temp = ir.regpool.makeTempInt();
     s2 = Move.create(INT_MOVE, temp, IC(ir.compiledMethod.getId()));
-    OPT_Instruction s3 = Store.create(INT_STORE, temp.copy(), 
-                                      ir.regpool.makeFPOp(), 
-                                      AC(Offset.fromIntSignExtend(STACKFRAME_METHOD_ID_OFFSET)), null);  // TODO: valid location?
+    OPT_Instruction s3 = Store.create(INT_STORE,
+                                      temp.copy(),
+                                      ir.regpool.makeFPOp(),
+                                      AC(Offset.fromIntSignExtend(STACKFRAME_METHOD_ID_OFFSET)),
+                                      null);  // TODO: valid location?
     s.insertAfter(s3);
     s.insertAfter(s2);
   }
@@ -205,27 +208,27 @@ public abstract class OPT_CallingConvention extends OPT_IRTools {
    * Expand the prologue instruction to make calling convention explicit.
    */
   private static void prologueExpand(OPT_IR ir) {
-    
+
     // set up register lists for dead code elimination.
     boolean useDU = ir.options.getOptLevel() >= 1;
     if (useDU) {
       OPT_DefUse.computeDU(ir);
     }
 
-    OPT_Instruction prologueInstr = 
-      ir.firstInstructionInCodeOrder().nextInstructionInCodeOrder();
+    OPT_Instruction prologueInstr =
+        ir.firstInstructionInCodeOrder().nextInstructionInCodeOrder();
     if (VM.VerifyAssertions) VM._assert(prologueInstr.operator == IR_PROLOGUE);
     OPT_Instruction start = prologueInstr.nextInstructionInCodeOrder();
 
     int int_index = 0;
     int double_index = 0;
-    int spilledArgumentCounter = 
-      (-256 - ArchitectureSpecific.VM_ArchConstants.STACKFRAME_HEADER_SIZE) >> LOG_BYTES_IN_ADDRESS;
+    int spilledArgumentCounter =
+        (-256 - ArchitectureSpecific.VM_ArchConstants.STACKFRAME_HEADER_SIZE) >> LOG_BYTES_IN_ADDRESS;
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     OPT_Register FP = phys.getFP();
     for (OPT_OperandEnumeration symParams = prologueInstr.getDefs();
-         symParams.hasMoreElements(); ) {
-      OPT_RegisterOperand symParamOp = (OPT_RegisterOperand)symParams.next();
+         symParams.hasMoreElements();) {
+      OPT_RegisterOperand symParamOp = (OPT_RegisterOperand) symParams.next();
       OPT_Register symParam = symParamOp.register;
       VM_TypeReference t = symParamOp.type;
       if (t.isFloatType()) {
@@ -238,9 +241,10 @@ public abstract class OPT_CallingConvention extends OPT_IRTools {
             OPT_Register param = phys.get(FIRST_DOUBLE_PARAM + (double_index));
             start.insertBefore(MIR_Move.create(PPC_FMR, F(symParam), F(param)));
           } else {                  // spilled parameter
-            start.insertBefore(MIR_Load.create(PPC_LFS, F(symParam), 
-                                             A(FP), 
-                                             IC((spilledArgumentCounter << LOG_BYTES_IN_ADDRESS) - BYTES_IN_ADDRESS + BYTES_IN_FLOAT)));
+            start.insertBefore(MIR_Load.create(PPC_LFS, F(symParam),
+                                               A(FP),
+                                               IC((spilledArgumentCounter << LOG_BYTES_IN_ADDRESS) - BYTES_IN_ADDRESS +
+                                                  BYTES_IN_FLOAT)));
             spilledArgumentCounter--;
           }
         }
@@ -254,10 +258,10 @@ public abstract class OPT_CallingConvention extends OPT_IRTools {
             OPT_Register param = phys.get(FIRST_DOUBLE_PARAM + (double_index));
             start.insertBefore(MIR_Move.create(PPC_FMR, D(symParam), D(param)));
           } else {                  // spilled parameter
-            start.insertBefore(MIR_Load.create(PPC_LFD, D(symParam), 
-                                             A(FP), 
-                                             IC(spilledArgumentCounter << LOG_BYTES_IN_ADDRESS)));
-            spilledArgumentCounter -= BYTES_IN_DOUBLE/BYTES_IN_ADDRESS;
+            start.insertBefore(MIR_Load.create(PPC_LFD, D(symParam),
+                                               A(FP),
+                                               IC(spilledArgumentCounter << LOG_BYTES_IN_ADDRESS)));
+            spilledArgumentCounter -= BYTES_IN_DOUBLE / BYTES_IN_ADDRESS;
           }
         }
         double_index++;
@@ -268,18 +272,27 @@ public abstract class OPT_CallingConvention extends OPT_IRTools {
         if (true || !useDU || symParam.useList != null) {
           if (int_index < NUMBER_INT_PARAM) {
             OPT_Register param = phys.get(FIRST_INT_PARAM + (int_index));
-            start.insertBefore(MIR_Move.create(PPC_MOVE, 
-                                             new OPT_RegisterOperand
-                                             (symParam, t),
-                                             A(param)));
+            start.insertBefore(MIR_Move.create(PPC_MOVE,
+                                               new OPT_RegisterOperand
+                                                   (symParam, t),
+                                               A(param)));
           } else {                  // spilled parameter
-            if (VM.BuildFor64Addr && (t.isIntType() || t.isShortType() || t.isByteType() || t.isCharType() || t.isBooleanType())) {
-              start.insertBefore(MIR_Load.create(PPC_LInt, new OPT_RegisterOperand(symParam, t), 
-                                               A(FP), IC((spilledArgumentCounter << LOG_BYTES_IN_ADDRESS) - BYTES_IN_ADDRESS + BYTES_IN_INT )));
+            if (VM
+                .BuildFor64Addr &&
+                                (t.isIntType() ||
+                                 t.isShortType() ||
+                                 t.isByteType() ||
+                                 t.isCharType() ||
+                                 t.isBooleanType())) {
+              start.insertBefore(MIR_Load.create(PPC_LInt,
+                                                 new OPT_RegisterOperand(symParam, t),
+                                                 A(FP),
+                                                 IC((spilledArgumentCounter << LOG_BYTES_IN_ADDRESS) -
+                                                    BYTES_IN_ADDRESS + BYTES_IN_INT)));
             } else {
               // same size as addr (ie, either we're in 32 bit mode or we're in 64 bit mode and it's a reference or long)
-              start.insertBefore(MIR_Load.create(PPC_LAddr, new OPT_RegisterOperand(symParam, t), 
-                                               A(FP), IC(spilledArgumentCounter << LOG_BYTES_IN_ADDRESS)));
+              start.insertBefore(MIR_Load.create(PPC_LAddr, new OPT_RegisterOperand(symParam, t),
+                                                 A(FP), IC(spilledArgumentCounter << LOG_BYTES_IN_ADDRESS)));
             }
             spilledArgumentCounter--;
           }
@@ -292,7 +305,6 @@ public abstract class OPT_CallingConvention extends OPT_IRTools {
     // set IR_PROLOGUE to have no defs.
     prologueInstr.replace(Prologue.create(IR_PROLOGUE, 0));
   }
-
 
   /**
    * Expand the call as appropriate
@@ -313,7 +325,7 @@ public abstract class OPT_CallingConvention extends OPT_IRTools {
     // (1) Expand parameters
     for (int opNum = 0; opNum < NumberParams; opNum++) {
       OPT_Operand param = MIR_Call.getClearParam(s, opNum);
-      OPT_RegisterOperand Reg = (OPT_RegisterOperand)param;
+      OPT_RegisterOperand Reg = (OPT_RegisterOperand) param;
       // as part of getting into MIR, we make sure all params are in registers.
       OPT_Register reg = Reg.register;
       if (Reg.type.isFloatType()) {
@@ -372,16 +384,16 @@ public abstract class OPT_CallingConvention extends OPT_IRTools {
         } else {                  // spill to memory
           OPT_Instruction p = prev.nextInstructionInCodeOrder();
           callSpillLoc += BYTES_IN_ADDRESS;
-          if (VM.BuildFor64Addr && (Reg.type.isIntType() || Reg.type.isShortType() || Reg.type.isByteType() || 
+          if (VM.BuildFor64Addr && (Reg.type.isIntType() || Reg.type.isShortType() || Reg.type.isByteType() ||
                                     Reg.type.isCharType() || Reg.type.isBooleanType())) {
             p.insertBefore(MIR_Store.create(PPC_STW,
-                                          new OPT_RegisterOperand(reg, Reg.type),
-                                          A(FP), IC(callSpillLoc - BYTES_IN_INT)));
+                                            new OPT_RegisterOperand(reg, Reg.type),
+                                            A(FP), IC(callSpillLoc - BYTES_IN_INT)));
           } else {
             // same size as addr (ie, either we're in 32 bit mode or we're in 64 bit mode and it's a reference or long)
             p.insertBefore(MIR_Store.create(PPC_STAddr,
-                                          new OPT_RegisterOperand(reg, Reg.type),
-                                          A(FP), IC(callSpillLoc - BYTES_IN_ADDRESS)));
+                                            new OPT_RegisterOperand(reg, Reg.type),
+                                            A(FP), IC(callSpillLoc - BYTES_IN_ADDRESS)));
           }
           // We don't have uses of the heap at MIR, so null it out
           MIR_Call.setParam(s, opNum, null);
@@ -390,16 +402,17 @@ public abstract class OPT_CallingConvention extends OPT_IRTools {
     }
     // If we needed to pass arguments on the stack, 
     // then make sure we have a big enough stack 
-    if (callSpillLoc != STACKFRAME_HEADER_SIZE)
+    if (callSpillLoc != STACKFRAME_HEADER_SIZE) {
       ir.stackManager.allocateParameterSpace(callSpillLoc);
+    }
     // (2) expand result
     OPT_Instruction lastCallSeqInstr = s;
     if (MIR_Call.hasResult2(s)) {
       if (VM.VerifyAssertions) VM._assert(VM.BuildFor32Addr);
       OPT_RegisterOperand result2 = MIR_Call.getClearResult2(s);
       OPT_RegisterOperand physical = new OPT_RegisterOperand(phys.get
-                                                             (FIRST_INT_RETURN 
-                                                              + 1), 
+          (FIRST_INT_RETURN
+           + 1),
                                                              result2.type);
       OPT_Instruction tmp = MIR_Move.create(PPC_MOVE, result2, physical);
       lastCallSeqInstr.insertAfter(tmp);
@@ -409,17 +422,17 @@ public abstract class OPT_CallingConvention extends OPT_IRTools {
     if (MIR_Call.hasResult(s)) {
       OPT_RegisterOperand result1 = MIR_Call.getClearResult(s);
       if (result1.type.isFloatType() || result1.type.isDoubleType()) {
-        OPT_RegisterOperand physical = new 
-          OPT_RegisterOperand(phys.get(FIRST_DOUBLE_RETURN), 
-                              result1.type);
+        OPT_RegisterOperand physical = new
+            OPT_RegisterOperand(phys.get(FIRST_DOUBLE_RETURN),
+                                result1.type);
         OPT_Instruction tmp = MIR_Move.create(PPC_FMR, result1, physical);
         lastCallSeqInstr.insertAfter(tmp);
         lastCallSeqInstr = tmp;
         MIR_Call.setResult(s, null);
       } else {
-        OPT_RegisterOperand physical = new 
-          OPT_RegisterOperand(phys.get(FIRST_INT_RETURN), 
-                              result1.type);
+        OPT_RegisterOperand physical = new
+            OPT_RegisterOperand(phys.get(FIRST_INT_RETURN),
+                                result1.type);
         OPT_Instruction tmp = MIR_Move.create(PPC_MOVE, result1, physical);
         lastCallSeqInstr.insertAfter(tmp);
         lastCallSeqInstr = tmp;
@@ -433,7 +446,7 @@ public abstract class OPT_CallingConvention extends OPT_IRTools {
    * @param s the return instruction
    * @param ir the ir
    */
-  private static void returnExpand (OPT_Instruction s, OPT_IR ir) {
+  private static void returnExpand(OPT_Instruction s, OPT_IR ir) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     if (MIR_Return.hasVal(s)) {
       OPT_RegisterOperand symb1 = MIR_Return.getClearVal(s);
@@ -466,5 +479,4 @@ public abstract class OPT_CallingConvention extends OPT_IRTools {
   public static void saveNonvolatilesAroundSysCall(OPT_Instruction call, OPT_IR ir) {
   }
 
-  
 }

@@ -8,7 +8,7 @@
  */
 package org.jikesrvm.compilers.opt;
 
-/** 
+/**
  * Interface to allow building top-sort, by calling OPT_TopSort.buildTopSort()
  * 5/25/1999
  */
@@ -33,7 +33,7 @@ public interface OPT_TopSortInterface {
    * Return true if no resetTopSorted(forward) has been executed
    * since the last setTopSorted(forward) has been executed
    * @param forward whether we are viewing the graph in the forward direction
-   * @return  true if no resetTopSorted(forward) has been executed
+   * @return true if no resetTopSorted(forward) has been executed
    * since the last setTopSorted(forward) has been executed
    */
   boolean isTopSorted(boolean forward);

@@ -29,13 +29,13 @@ import org.vmmagic.unboxed.Offset;
  */
 public abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
   // word size for memory operands
-  protected static final byte B  = 0x01;  // byte (8 bits)
-  protected static final byte W  = 0x02;  // word (16 bits)
+  protected static final byte B = 0x01;  // byte (8 bits)
+  protected static final byte W = 0x02;  // word (16 bits)
   protected static final byte DW = 0x04;  // doubleword (32 bits)
   protected static final byte QW = 0x08;  // quadword (64 bits)
 
-  protected static final byte B_S  = 0x00;  // byte (8*2^0 bits)
-  protected static final byte W_S  = 0x01;  // word (8*2^116 bits)
+  protected static final byte B_S = 0x00;  // byte (8*2^0 bits)
+  protected static final byte W_S = 0x01;  // word (8*2^116 bits)
   protected static final byte DW_S = 0x02;  // doubleword (8*2^2 bits)
   protected static final byte QW_S = 0x03;  // quadword (8*2^3 bits)
 
@@ -47,6 +47,7 @@ public abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
   protected final int ADDRESS_EQUAL(OPT_Instruction store, OPT_Instruction load, int trueCost) {
     return ADDRESS_EQUAL(store, load, trueCost, INFINITE);
   }
+
   protected final int ADDRESS_EQUAL(OPT_Instruction store, OPT_Instruction load, int trueCost, int falseCost) {
     if (Store.getAddress(store).similar(Load.getAddress(load)) &&
         Store.getOffset(store).similar(Load.getOffset(load))) {
@@ -59,6 +60,7 @@ public abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
   protected final int ARRAY_ADDRESS_EQUAL(OPT_Instruction store, OPT_Instruction load, int trueCost) {
     return ARRAY_ADDRESS_EQUAL(store, load, trueCost, INFINITE);
   }
+
   protected final int ARRAY_ADDRESS_EQUAL(OPT_Instruction store, OPT_Instruction load, int trueCost, int falseCost) {
     if (AStore.getArray(store).similar(ALoad.getArray(load)) &&
         AStore.getIndex(store).similar(ALoad.getIndex(load))) {
@@ -75,6 +77,7 @@ public abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
     byte scale;
     Offset displacement;
     AddrStackElement next;
+
     AddrStackElement(OPT_RegisterOperand b,
                      OPT_RegisterOperand i,
                      byte s, Offset d,
@@ -86,13 +89,16 @@ public abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
       next = n;
     }
   }
+
   private AddrStackElement AddrStack;
+
   protected final void pushAddress(OPT_RegisterOperand base,
                                    OPT_RegisterOperand index,
                                    byte scale,
                                    Offset disp) {
     AddrStack = new AddrStackElement(base, index, scale, disp, AddrStack);
   }
+
   protected final void augmentAddress(OPT_Operand op) {
     if (VM.VerifyAssertions) VM._assert(AddrStack != null, "No address to augment");
     if (op.isRegister()) {
@@ -100,16 +106,17 @@ public abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
       if (AddrStack.base == null) {
         AddrStack.base = rop;
       } else if (AddrStack.index == null) {
-        if (VM.VerifyAssertions) VM._assert(AddrStack.scale == (byte)0);
+        if (VM.VerifyAssertions) VM._assert(AddrStack.scale == (byte) 0);
         AddrStack.index = rop;
       } else {
         throw new OPT_OptimizingCompilerException("three base registers in address");
       }
     } else {
-      int disp = ((OPT_IntConstantOperand)op).value;
+      int disp = ((OPT_IntConstantOperand) op).value;
       AddrStack.displacement = AddrStack.displacement.plus(disp);
     }
   }
+
   protected final void combineAddresses() {
     if (VM.VerifyAssertions) VM._assert(AddrStack != null, "No address to combine");
     AddrStackElement tmp = AddrStack;
@@ -119,7 +126,7 @@ public abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
       if (AddrStack.base == null) {
         AddrStack.base = tmp.base;
       } else if (AddrStack.index == null) {
-        if (VM.VerifyAssertions) VM._assert(AddrStack.scale == (byte)0);
+        if (VM.VerifyAssertions) VM._assert(AddrStack.scale == (byte) 0);
         AddrStack.index = tmp.base;
       } else {
         throw new OPT_OptimizingCompilerException("three base registers in address");
@@ -127,10 +134,10 @@ public abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
     }
     if (tmp.index != null) {
       if (AddrStack.index == null) {
-        if (VM.VerifyAssertions) VM._assert(AddrStack.scale == (byte)0);
+        if (VM.VerifyAssertions) VM._assert(AddrStack.scale == (byte) 0);
         AddrStack.index = tmp.index;
         AddrStack.scale = tmp.scale;
-      } else if (AddrStack.base == null && tmp.scale == (byte)0) {
+      } else if (AddrStack.base == null && tmp.scale == (byte) 0) {
         AddrStack.base = tmp.base;
       } else {
         throw new OPT_OptimizingCompilerException("two scaled registers in address");
@@ -138,13 +145,14 @@ public abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
     }
     AddrStack.displacement = AddrStack.displacement.plus(tmp.displacement.toInt());
   }
-  protected final OPT_MemoryOperand consumeAddress(byte size, 
-                                         OPT_LocationOperand loc,
-                                         OPT_Operand guard) {
+
+  protected final OPT_MemoryOperand consumeAddress(byte size,
+                                                   OPT_LocationOperand loc,
+                                                   OPT_Operand guard) {
     if (VM.VerifyAssertions) VM._assert(AddrStack != null, "No address to consume");
-    OPT_MemoryOperand mo = 
-      new OPT_MemoryOperand(AddrStack.base, AddrStack.index, AddrStack.scale,
-                            AddrStack.displacement, size, loc, guard);
+    OPT_MemoryOperand mo =
+        new OPT_MemoryOperand(AddrStack.base, AddrStack.index, AddrStack.scale,
+                              AddrStack.displacement, size, loc, guard);
     AddrStack = AddrStack.next;
     return mo;
   }
@@ -153,15 +161,19 @@ public abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
   private static final class MOStackElement {
     OPT_MemoryOperand mo;
     MOStackElement next;
+
     MOStackElement(OPT_MemoryOperand m, MOStackElement n) {
       mo = m;
       next = n;
     }
   }
+
   private MOStackElement MOStack;
+
   protected final void pushMO(OPT_MemoryOperand mo) {
     MOStack = new MOStackElement(mo, MOStack);
   }
+
   protected final OPT_MemoryOperand consumeMO() {
     if (VM.VerifyAssertions) VM._assert(MOStack != null, "No memory operand to consume");
     OPT_MemoryOperand mo = MOStack.mo;
@@ -169,29 +181,31 @@ public abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
     return mo;
   }
 
-
-  // Construct a memory operand for the effective address of the 
+  // Construct a memory operand for the effective address of the
   // load instruction
   protected final OPT_MemoryOperand MO_L(OPT_Instruction s, byte size) {
-    return MO(Load.getAddress(s), Load.getOffset(s), size, 
+    return MO(Load.getAddress(s), Load.getOffset(s), size,
               Load.getLocation(s), Load.getGuard(s));
   }
-  // Construct a memory operand for the effective address of the 
+
+  // Construct a memory operand for the effective address of the
   // store instruction
   protected final OPT_MemoryOperand MO_S(OPT_Instruction s, byte size) {
-    return MO(Store.getAddress(s), Store.getOffset(s), size, 
+    return MO(Store.getAddress(s), Store.getOffset(s), size,
               Store.getLocation(s), Store.getGuard(s));
   }
-  // Construct a memory operand for the effective address of the 
+
+  // Construct a memory operand for the effective address of the
   // array load instruction
   protected final OPT_MemoryOperand MO_AL(OPT_Instruction s, byte scale, byte size) {
-    return MO_ARRAY(ALoad.getArray(s), ALoad.getIndex(s), scale, size, 
+    return MO_ARRAY(ALoad.getArray(s), ALoad.getIndex(s), scale, size,
                     ALoad.getLocation(s), ALoad.getGuard(s));
   }
-  // Construct a memory operand for the effective address of the 
+
+  // Construct a memory operand for the effective address of the
   // array store instruction
   protected final OPT_MemoryOperand MO_AS(OPT_Instruction s, byte scale, byte size) {
-    return MO_ARRAY(AStore.getArray(s), AStore.getIndex(s), scale, size, 
+    return MO_ARRAY(AStore.getArray(s), AStore.getIndex(s), scale, size,
                     AStore.getLocation(s), AStore.getGuard(s));
   }
 
@@ -201,30 +215,33 @@ public abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
     return MO(Load.getAddress(s), Load.getOffset(s), size, Offset.fromIntSignExtend(disp),
               Load.getLocation(s), Load.getGuard(s));
   }
-  // Construct a memory operand for the effective address of the 
+
+  // Construct a memory operand for the effective address of the
   // store instruction
   protected final OPT_MemoryOperand MO_S(OPT_Instruction s, byte size, int disp) {
     return MO(Store.getAddress(s), Store.getOffset(s), size, Offset.fromIntSignExtend(disp),
               Store.getLocation(s), Store.getGuard(s));
   }
-  // Construct a memory operand for the effective address of the 
+
+  // Construct a memory operand for the effective address of the
   // array load instruction
   protected final OPT_MemoryOperand MO_AL(OPT_Instruction s, byte scale, byte size, int disp) {
     return MO_ARRAY(ALoad.getArray(s), ALoad.getIndex(s), scale, size, Offset.fromIntSignExtend(disp),
                     ALoad.getLocation(s), ALoad.getGuard(s));
   }
+
   // Construct a memory operand for the effective address of the array store instruction
   protected final OPT_MemoryOperand MO_AS(OPT_Instruction s, byte scale, byte size, int disp) {
     return MO_ARRAY(AStore.getArray(s), AStore.getIndex(s), scale, size, Offset.fromIntSignExtend(disp),
                     AStore.getLocation(s), AStore.getGuard(s));
   }
 
-  protected final OPT_MemoryOperand MO(OPT_Operand base, OPT_Operand offset, 
+  protected final OPT_MemoryOperand MO(OPT_Operand base, OPT_Operand offset,
                                        byte size, OPT_LocationOperand loc,
                                        OPT_Operand guard) {
     if (base instanceof OPT_IntConstantOperand) {
       if (offset instanceof OPT_IntConstantOperand) {
-        return MO_D(Offset.fromIntSignExtend(IV(base)+IV(offset)), size, loc, guard);
+        return MO_D(Offset.fromIntSignExtend(IV(base) + IV(offset)), size, loc, guard);
       } else {
         return MO_BD(offset, Offset.fromIntSignExtend(IV(base)), size, loc, guard);
       }
@@ -237,26 +254,25 @@ public abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
     }
   }
 
-  protected final OPT_MemoryOperand MO_ARRAY(OPT_Operand base, 
-                                             OPT_Operand index, 
-                                             byte scale, byte size, 
+  protected final OPT_MemoryOperand MO_ARRAY(OPT_Operand base,
+                                             OPT_Operand index,
+                                             byte scale, byte size,
                                              OPT_LocationOperand loc,
                                              OPT_Operand guard) {
     if (index instanceof OPT_IntConstantOperand) {
-      return MO_BD(base, Offset.fromIntZeroExtend(IV(index)<<scale), size, loc, guard);
+      return MO_BD(base, Offset.fromIntZeroExtend(IV(index) << scale), size, loc, guard);
     } else {
       return MO_BIS(base, index, scale, size, loc, guard);
     }
   }
 
-
-  protected final OPT_MemoryOperand MO(OPT_Operand base, OPT_Operand offset, 
+  protected final OPT_MemoryOperand MO(OPT_Operand base, OPT_Operand offset,
                                        byte size, Offset disp,
                                        OPT_LocationOperand loc,
                                        OPT_Operand guard) {
     if (base instanceof OPT_IntConstantOperand) {
       if (offset instanceof OPT_IntConstantOperand) {
-        return MO_D(disp.plus(IV(base)+IV(offset)), size, loc, guard);
+        return MO_D(disp.plus(IV(base) + IV(offset)), size, loc, guard);
       } else {
         return MO_BD(offset, disp.plus(IV(base)), size, loc, guard);
       }
@@ -269,57 +285,56 @@ public abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
     }
   }
 
-  protected final OPT_MemoryOperand MO_ARRAY(OPT_Operand base, 
-                                             OPT_Operand index, 
-                                             byte scale, byte size, 
+  protected final OPT_MemoryOperand MO_ARRAY(OPT_Operand base,
+                                             OPT_Operand index,
+                                             byte scale, byte size,
                                              Offset disp,
                                              OPT_LocationOperand loc,
                                              OPT_Operand guard) {
     if (index instanceof OPT_IntConstantOperand) {
-      return MO_BD(base, disp.plus(IV(index)<<scale), size, loc, guard);
+      return MO_BD(base, disp.plus(IV(index) << scale), size, loc, guard);
     } else {
-      return new OPT_MemoryOperand(R(base), R(index), scale, 
+      return new OPT_MemoryOperand(R(base), R(index), scale,
                                    disp, size, loc, guard);
     }
   }
 
- 
-  protected final OPT_MemoryOperand MO_B(OPT_Operand base, byte size, 
+  protected final OPT_MemoryOperand MO_B(OPT_Operand base, byte size,
                                          OPT_LocationOperand loc,
                                          OPT_Operand guard) {
     return OPT_MemoryOperand.B(R(base), size, loc, guard);
   }
 
-  protected final OPT_MemoryOperand MO_BI(OPT_Operand base, 
-                                          OPT_Operand index, 
+  protected final OPT_MemoryOperand MO_BI(OPT_Operand base,
+                                          OPT_Operand index,
                                           byte size, OPT_LocationOperand loc,
                                           OPT_Operand guard) {
     return OPT_MemoryOperand.BI(R(base), R(index), size, loc, guard);
   }
 
-  protected final OPT_MemoryOperand MO_BD(OPT_Operand base, Offset disp, 
+  protected final OPT_MemoryOperand MO_BD(OPT_Operand base, Offset disp,
                                           byte size, OPT_LocationOperand loc,
                                           OPT_Operand guard) {
     return OPT_MemoryOperand.BD(R(base), disp, size, loc, guard);
   }
 
-  protected final OPT_MemoryOperand MO_BID(OPT_Operand base, 
-                                           OPT_Operand index, 
-                                           Offset disp, byte size, 
+  protected final OPT_MemoryOperand MO_BID(OPT_Operand base,
+                                           OPT_Operand index,
+                                           Offset disp, byte size,
                                            OPT_LocationOperand loc,
                                            OPT_Operand guard) {
     return OPT_MemoryOperand.BID(R(base), R(index), disp, size, loc, guard);
   }
 
-  protected final OPT_MemoryOperand MO_BIS(OPT_Operand base, 
-                                           OPT_Operand index, 
-                                           byte scale, byte size, 
+  protected final OPT_MemoryOperand MO_BIS(OPT_Operand base,
+                                           OPT_Operand index,
+                                           byte scale, byte size,
                                            OPT_LocationOperand loc,
                                            OPT_Operand guard) {
     return OPT_MemoryOperand.BIS(R(base), R(index), scale, size, loc, guard);
   }
 
-  protected final OPT_MemoryOperand MO_D(Offset disp, 
+  protected final OPT_MemoryOperand MO_D(Offset disp,
                                          byte size, OPT_LocationOperand loc,
                                          OPT_Operand guard) {
     return OPT_MemoryOperand.D(disp.toWord().toAddress(), size, loc, guard);
@@ -329,7 +344,7 @@ public abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
     OPT_Operand base = Binary.getVal1(s);
     OPT_Operand val = Binary.getVal2(s);
     if (val instanceof OPT_FloatConstantOperand) {
-      OPT_FloatConstantOperand fc = (OPT_FloatConstantOperand)val;
+      OPT_FloatConstantOperand fc = (OPT_FloatConstantOperand) val;
       Offset offset = fc.offset;
       OPT_LocationOperand loc = new OPT_LocationOperand(offset);
       if (base instanceof OPT_IntConstantOperand) {
@@ -338,7 +353,7 @@ public abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
         return MO_BD(Binary.getVal1(s), offset, DW, loc, TG());
       }
     } else {
-      OPT_DoubleConstantOperand dc = (OPT_DoubleConstantOperand)val;
+      OPT_DoubleConstantOperand dc = (OPT_DoubleConstantOperand) val;
       Offset offset = dc.offset;
       OPT_LocationOperand loc = new OPT_LocationOperand(offset);
       if (base instanceof OPT_IntConstantOperand) {

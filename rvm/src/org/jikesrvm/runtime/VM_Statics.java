@@ -117,28 +117,28 @@ public class VM_Statics implements VM_Constants {
    * Mapping from int like literals (ints and floats) to the jtoc slot
    * that contains them.
    */
-  private static final VM_HashMap<Integer,Integer> intSizeLiterals = 
-    new VM_HashMap<Integer,Integer>();
+  private static final VM_HashMap<Integer, Integer> intSizeLiterals =
+      new VM_HashMap<Integer, Integer>();
 
   /**
    * Mapping from long like literals (longs and doubles) to the jtoc
    * slot that contains them.
    */
-  private static final VM_HashMap<Long,Integer> longSizeLiterals = 
-    new VM_HashMap<Long,Integer>();
+  private static final VM_HashMap<Long, Integer> longSizeLiterals =
+      new VM_HashMap<Long, Integer>();
 
   /**
    * Mapping from object literals to the jtoc slot that contains them.
    */
-  private static final VM_HashMap<Object,Integer> objectLiterals = 
-    new VM_HashMap<Object,Integer>();
+  private static final VM_HashMap<Object, Integer> objectLiterals =
+      new VM_HashMap<Object, Integer>();
 
   /**
    * A special mapping from VM_Atom objects to the jtoc slot of String
    * objects that represent the same value.
    */
-  private static final VM_HashMap<VM_Atom,Integer> stringLiterals = 
-    new VM_HashMap<VM_Atom,Integer>();
+  private static final VM_HashMap<VM_Atom, Integer> stringLiterals =
+      new VM_HashMap<VM_Atom, Integer>();
 
   /**
    * Conversion from JTOC slot index to JTOC offset.
@@ -161,7 +161,7 @@ public class VM_Statics implements VM_Constants {
    * Return the lowest slot number in use
    */
   public static int getLowestInUseSlot() {
-    return nextNumericSlot+1;
+    return nextNumericSlot + 1;
   }
 
   /**
@@ -179,14 +179,14 @@ public class VM_Statics implements VM_Constants {
    */
   public static int findOrCreateIntSizeLiteral(int literal) {
     Integer offsetAsInt;
-    synchronized(intSizeLiterals) {
-       offsetAsInt = intSizeLiterals.get(literal);
+    synchronized (intSizeLiterals) {
+      offsetAsInt = intSizeLiterals.get(literal);
     }
     if (offsetAsInt != null) {
       return offsetAsInt;
     } else {
       Offset newOff = allocateNumericSlot(BYTES_IN_INT);
-      synchronized(intSizeLiterals) {
+      synchronized (intSizeLiterals) {
         intSizeLiterals.put(literal, newOff.toInt());
       }
       setSlotContents(newOff, literal);
@@ -202,14 +202,14 @@ public class VM_Statics implements VM_Constants {
    */
   public static int findOrCreateLongSizeLiteral(long literal) {
     Integer offsetAsInt;
-    synchronized(longSizeLiterals) {
-       offsetAsInt = longSizeLiterals.get(literal);
+    synchronized (longSizeLiterals) {
+      offsetAsInt = longSizeLiterals.get(literal);
     }
     if (offsetAsInt != null) {
       return offsetAsInt;
     } else {
       Offset newOff = allocateNumericSlot(BYTES_IN_LONG);
-      synchronized(longSizeLiterals) {
+      synchronized (longSizeLiterals) {
         longSizeLiterals.put(literal, newOff.toInt());
       }
       setSlotContents(newOff, literal);
@@ -224,10 +224,10 @@ public class VM_Statics implements VM_Constants {
    * @param       literal value
    * @return offset of slot that was allocated
    * Side effect: literal value is stored into jtoc
-   */ 
+   */
   public static int findOrCreateStringLiteral(VM_Atom literal) throws java.io.UTFDataFormatException {
     Integer offAsInt;
-    synchronized (stringLiterals){
+    synchronized (stringLiterals) {
       offAsInt = stringLiterals.get(literal);
     }
     if (offAsInt != null) {
@@ -238,9 +238,9 @@ public class VM_Statics implements VM_Constants {
         stringValue = stringValue.intern();
       }
       Offset newOff = allocateReferenceSlot();
-      synchronized(stringLiterals) {
+      synchronized (stringLiterals) {
         stringLiterals.put(literal, newOff.toInt());
-        synchronized(objectLiterals) {
+        synchronized (objectLiterals) {
           objectLiterals.put(stringValue, newOff.toInt());
           setSlotContents(newOff, stringValue);
         }
@@ -249,19 +249,19 @@ public class VM_Statics implements VM_Constants {
     }
   }
 
- /**
+  /**
    * Try to find a string literal from the given String object.
    * @param     literal value
-   * @return    String literal if it exists, otherwise null.
-   */ 
+   * @return String literal if it exists, otherwise null.
+   */
   public static String findStringLiteral(String literal) {
     Integer offAsInt;
-    synchronized(objectLiterals) {
+    synchronized (objectLiterals) {
       offAsInt = objectLiterals.get(literal);
     }
     if (offAsInt != null) {
       Offset off = Offset.fromIntSignExtend(offAsInt);
-      return (String)getSlotContentsAsObject(off);
+      return (String) getSlotContentsAsObject(off);
     }
     return null;
   }
@@ -273,16 +273,16 @@ public class VM_Statics implements VM_Constants {
    */
   public static int findOrCreateClassLiteral(int typeReferenceID) {
     Class<?> literalAsClass =
-      VM_TypeReference.getTypeRef(typeReferenceID).resolve().getClassForType();
+        VM_TypeReference.getTypeRef(typeReferenceID).resolve().getClassForType();
     Integer offAsInt;
-    synchronized(objectLiterals) {
+    synchronized (objectLiterals) {
       offAsInt = objectLiterals.get(literalAsClass);
     }
     if (offAsInt != null) {
       return offAsInt;
     } else {
       Offset newOff = allocateReferenceSlot();
-      synchronized(objectLiterals) {
+      synchronized (objectLiterals) {
         objectLiterals.put(literalAsClass, newOff.toInt());
         setSlotContents(newOff, literalAsClass);
       }
@@ -295,17 +295,17 @@ public class VM_Statics implements VM_Constants {
    * @param       literal value
    * @return offset of slot that was allocated
    * Side effect: literal value is stored into jtoc
-   */ 
+   */
   public static int findOrCreateObjectLiteral(Object literal) {
     Integer offAsInt;
-    synchronized (objectLiterals){
+    synchronized (objectLiterals) {
       offAsInt = objectLiterals.get(literal);
     }
     if (offAsInt != null) {
       return offAsInt;
     } else {
       Offset newOff = allocateReferenceSlot();
-      synchronized(objectLiterals) {
+      synchronized (objectLiterals) {
         objectLiterals.put(literal, newOff.toInt());
       }
       setSlotContents(newOff, literal);
@@ -317,10 +317,10 @@ public class VM_Statics implements VM_Constants {
    * Find a slot in the jtoc with this object literal in else return 0
    * @param  literal value
    * @return offset containing literal or 0
-   */ 
+   */
   public static int findObjectLiteral(Object literal) {
     Integer offAsInt;
-    synchronized (objectLiterals){
+    synchronized (objectLiterals) {
       offAsInt = objectLiterals.get(literal);
     }
     if (offAsInt != null) {
@@ -335,7 +335,7 @@ public class VM_Statics implements VM_Constants {
    * @param size of slot
    * @return offset of slot that was allocated as int
    * (two slots are allocated for longs and doubles)
-   */ 
+   */
   public static synchronized Offset allocateNumericSlot(int size) {
     // Result slot
     int slot;
@@ -345,10 +345,10 @@ public class VM_Statics implements VM_Constants {
       // widen for a wide
       nextNumericSlot--;
       // check alignment
-      if((nextNumericSlot & 1) != 0) {
+      if ((nextNumericSlot & 1) != 0) {
         // slot isn't 8byte aligned so increase by 1 and record hole
         nextNumericSlot--;
-        numericSlotHole = nextNumericSlot+2;
+        numericSlotHole = nextNumericSlot + 2;
       }
       // Remember the slot and adjust the next available slot
       slot = nextNumericSlot;
@@ -373,10 +373,10 @@ public class VM_Statics implements VM_Constants {
    * Allocate a reference slot in the jtoc.
    * @return offset of slot that was allocated as int
    * (two slots are allocated on 64bit architectures)
-   */ 
+   */
   public static synchronized Offset allocateReferenceSlot() {
     int slot = nextReferenceSlot;
-    if(VM.BuildFor64Addr) {
+    if (VM.BuildFor64Addr) {
       nextReferenceSlot += 2;
     } else {
       nextReferenceSlot++;
@@ -394,30 +394,30 @@ public class VM_Statics implements VM_Constants {
     // !!TODO: enlarge slots[] and descriptions[], and modify jtoc register to
     // point to newly enlarged slots[]
     // NOTE: very tricky on IA32 because opt uses 32 bit literal address to access jtoc.
-    VM.sysFail("VM_Statics.enlargeTable: jtoc is full");    
+    VM.sysFail("VM_Statics.enlargeTable: jtoc is full");
   }
 
   /**
    * Fetch number of numeric jtoc slots currently allocated.
-   */ 
+   */
   @Uninterruptible
-  public static int getNumberOfNumericSlots() { 
+  public static int getNumberOfNumericSlots() {
     return middleOfTable - nextNumericSlot;
   }
 
   /**
    * Fetch number of reference jtoc slots currently allocated.
-   */ 
+   */
   @Uninterruptible
-  public static int getNumberOfReferenceSlots() { 
+  public static int getNumberOfReferenceSlots() {
     return nextReferenceSlot - middleOfTable;
   }
 
   /**
    * Fetch total number of slots comprising the jtoc.
-   */ 
+   */
   @Uninterruptible
-  public static int getTotalNumberOfSlots() { 
+  public static int getTotalNumberOfSlots() {
     return slots.length;
   }
 
@@ -425,9 +425,9 @@ public class VM_Statics implements VM_Constants {
    * Does specified jtoc slot contain a reference?
    * @param  slot obtained from offsetAsSlot()
    * @return true --> slot contains a reference
-   */ 
+   */
   @Uninterruptible
-  public static boolean isReference(int slot) { 
+  public static boolean isReference(int slot) {
     return slot > middleOfTable;
   }
 
@@ -435,15 +435,15 @@ public class VM_Statics implements VM_Constants {
    * Does specified jtoc slot contain an int sized literal?
    * @param  slot obtained from offsetAsSlot()
    * @return true --> slot contains a reference
-   */ 
+   */
   public static boolean isIntSizeLiteral(int slot) {
-    if(isReference(slot)) {
+    if (isReference(slot)) {
       return false;
     } else {
       int ival = getSlotContentsAsInt(slotAsOffset(slot));
       Integer offsetAsInt;
-      synchronized(intSizeLiterals) {
-         offsetAsInt = intSizeLiterals.get(ival);
+      synchronized (intSizeLiterals) {
+        offsetAsInt = intSizeLiterals.get(ival);
       }
       if (offsetAsInt == null) {
         return false;
@@ -457,15 +457,15 @@ public class VM_Statics implements VM_Constants {
    * Does specified jtoc slot contain a long sized literal?
    * @param  slot obtained from offsetAsSlot()
    * @return true --> slot contains a reference
-   */ 
+   */
   public static boolean isLongSizeLiteral(int slot) {
-    if(isReference(slot)) {
+    if (isReference(slot)) {
       return false;
     } else {
       long lval = getSlotContentsAsLong(slotAsOffset(slot));
       Integer offsetAsInt;
-      synchronized(longSizeLiterals) {
-         offsetAsInt = longSizeLiterals.get(lval);
+      synchronized (longSizeLiterals) {
+        offsetAsInt = longSizeLiterals.get(lval);
       }
       if (offsetAsInt == null) {
         return false;
@@ -479,31 +479,31 @@ public class VM_Statics implements VM_Constants {
    * Get size occupied by a reference
    */
   @Uninterruptible
-  public static int getReferenceSlotSize () { 
-      return VM.BuildFor64Addr ? 2 : 1;
+  public static int getReferenceSlotSize() {
+    return VM.BuildFor64Addr ? 2 : 1;
   }
 
   /**
    * Fetch jtoc object (for JNI environment and GC).
-   */ 
+   */
   @Uninterruptible
-  public static Address getSlots() { 
+  public static Address getSlots() {
     return VM_Magic.objectAsAddress(slots).plus(middleOfTable << LOG_BYTES_IN_INT);
   }
 
   /**
    * Fetch jtoc object (for JNI environment and GC).
-   */ 
+   */
   @Uninterruptible
-  public static int [] getSlotsAsIntArray() { 
+  public static int[] getSlotsAsIntArray() {
     return slots;
   }
 
   /**
    * Fetch contents of a slot, as an integer
-   */ 
+   */
   @Uninterruptible
-  public static int getSlotContentsAsInt(Offset offset) { 
+  public static int getSlotContentsAsInt(Offset offset) {
     if (VM.runningVM) {
       return VM_Magic.getIntAtOffset(slots, offset.plus(middleOfTable << LOG_BYTES_IN_INT));
     } else {
@@ -514,20 +514,20 @@ public class VM_Statics implements VM_Constants {
 
   /**
    * Fetch contents of a slot-pair, as a long integer.
-   */ 
+   */
   @Uninterruptible
-  public static long getSlotContentsAsLong(Offset offset) { 
+  public static long getSlotContentsAsLong(Offset offset) {
     if (VM.runningVM) {
-      return VM_Magic.getLongAtOffset(slots, offset.plus(middleOfTable  << LOG_BYTES_IN_INT));
+      return VM_Magic.getLongAtOffset(slots, offset.plus(middleOfTable << LOG_BYTES_IN_INT));
     } else {
       int slot = offsetAsSlot(offset);
       long result;
       if (VM.LittleEndian) {
-        result = (((long) slots[slot+1]) << BITS_IN_INT); // hi
+        result = (((long) slots[slot + 1]) << BITS_IN_INT); // hi
         result |= ((long) slots[slot]) & 0xFFFFFFFFL; // lo
       } else {
         result = (((long) slots[slot]) << BITS_IN_INT);     // hi
-        result |= ((long) slots[slot+1]) & 0xFFFFFFFFL; // lo
+        result |= ((long) slots[slot + 1]) & 0xFFFFFFFFL; // lo
       }
       return result;
     }
@@ -535,14 +535,15 @@ public class VM_Statics implements VM_Constants {
 
   /**
    * Fetch contents of a slot, as an object.
-   */ 
+   */
   @Uninterruptible
-  public static Object getSlotContentsAsObject(Offset offset) { 
-    if(VM.runningVM) {
-      if (VM.BuildFor32Addr)
+  public static Object getSlotContentsAsObject(Offset offset) {
+    if (VM.runningVM) {
+      if (VM.BuildFor32Addr) {
         return VM_Magic.addressAsObject(Address.fromIntSignExtend(getSlotContentsAsInt(offset)));
-      else
+      } else {
         return VM_Magic.addressAsObject(Address.fromLong(getSlotContentsAsLong(offset)));
+      }
     } else {
       return objectSlots[offsetAsSlot(offset)];
     }
@@ -550,30 +551,27 @@ public class VM_Statics implements VM_Constants {
 
   /**
    * Fetch contents of a slot, as an Address.
-   */ 
+   */
   @LogicallyUninterruptible
-  public static Address getSlotContentsAsAddress(Offset offset) { 
-    if(VM.runningVM) {
-      if (VM.BuildFor32Addr)
+  public static Address getSlotContentsAsAddress(Offset offset) {
+    if (VM.runningVM) {
+      if (VM.BuildFor32Addr) {
         return Address.fromIntSignExtend(getSlotContentsAsInt(offset));
-      else
+      } else {
         return Address.fromLong(getSlotContentsAsLong(offset));
+      }
     } else {
       // Addresses are represented by objects in the tools building the VM
       Object unboxed = objectSlots[offsetAsSlot(offset)];
       if (unboxed instanceof Address) {
-        return (Address)unboxed;
-      }
-      else if (unboxed instanceof Word) {
-        return ((Word)unboxed).toAddress();
-      }
-      else if (unboxed instanceof Extent) {
-        return ((Extent)unboxed).toWord().toAddress();
-      }
-      else if (unboxed instanceof Offset) {
-        return ((Offset)unboxed).toWord().toAddress();
-      }
-      else {
+        return (Address) unboxed;
+      } else if (unboxed instanceof Word) {
+        return ((Word) unboxed).toAddress();
+      } else if (unboxed instanceof Extent) {
+        return ((Extent) unboxed).toWord().toAddress();
+      } else if (unboxed instanceof Offset) {
+        return ((Offset) unboxed).toWord().toAddress();
+      } else {
         if (VM.VerifyAssertions) VM._assert(false);
         return Address.zero();
       }
@@ -584,7 +582,7 @@ public class VM_Statics implements VM_Constants {
    * Set contents of a slot, as an integer.
    */
   @Uninterruptible
-  public static void setSlotContents(Offset offset, int value) { 
+  public static void setSlotContents(Offset offset, int value) {
     if (VM.runningVM) {
       VM_Magic.setIntAtOffset(slots, offset.plus(middleOfTable << LOG_BYTES_IN_INT), value);
     } else {
@@ -596,26 +594,26 @@ public class VM_Statics implements VM_Constants {
    * Set contents of a slot, as a long integer.
    */
   @Uninterruptible
-  public static void setSlotContents(Offset offset, long value) { 
+  public static void setSlotContents(Offset offset, long value) {
     if (VM.runningVM) {
       VM_Magic.setLongAtOffset(slots, offset.plus(middleOfTable << LOG_BYTES_IN_INT), value);
     } else {
       int slot = offsetAsSlot(offset);
       if (VM.LittleEndian) {
-        slots[slot + 1] = (int)(value >>> BITS_IN_INT); // hi
-        slots[slot    ] = (int)(value       ); // lo
+        slots[slot + 1] = (int) (value >>> BITS_IN_INT); // hi
+        slots[slot] = (int) (value); // lo
       } else {
-        slots[slot    ] = (int)(value >>> BITS_IN_INT); // hi
-        slots[slot + 1] = (int)(value       ); // lo
+        slots[slot] = (int) (value >>> BITS_IN_INT); // hi
+        slots[slot + 1] = (int) (value); // lo
       }
     }
   }
 
   /**
    * Set contents of a slot, as an object.
-   */ 
+   */
   @UninterruptibleNoWarn
-  public static void setSlotContents(Offset offset, Object object) { 
+  public static void setSlotContents(Offset offset, Object object) {
     // NB uninterruptible warnings are disabled for this method due to
     // the array store which could cause a fault - this can't actually
     // happen as the fault would only ever occur when not running the
@@ -623,7 +621,7 @@ public class VM_Statics implements VM_Constants {
 
     setSlotContents(offset, VM_Magic.objectAsAddress(object).toWord());
     if (VM.VerifyAssertions) VM._assert(offset.toInt() > 0);
-    if (!VM.runningVM && objectSlots != null){
+    if (!VM.runningVM && objectSlots != null) {
       // When creating the boot image objectSlots is populated as
       // VM_Magic won't work in the bootstrap JVM.
       objectSlots[offsetAsSlot(offset)] = object;
@@ -632,7 +630,7 @@ public class VM_Statics implements VM_Constants {
 
   /**
    * Set contents of a slot, as a VM_CodeArray.
-   */ 
+   */
   @Uninterruptible
   public static void setSlotContents(Offset offset, VM_CodeArray code) {
     setSlotContents(offset, VM_Magic.codeArrayToAddress(code).toWord());
@@ -641,16 +639,17 @@ public class VM_Statics implements VM_Constants {
 
   /**
    * Set contents of a slot, as a Word.
-   */ 
+   */
   @Uninterruptible
-  public static void setSlotContents(Offset offset, Word word) { 
+  public static void setSlotContents(Offset offset, Word word) {
     if (VM.runningVM) {
       VM_Magic.setWordAtOffset(slots, offset.plus(middleOfTable << LOG_BYTES_IN_INT), word);
     } else {
-      if (VM.BuildFor32Addr)
+      if (VM.BuildFor32Addr) {
         setSlotContents(offset, word.toInt());
-      else
+      } else {
         setSlotContents(offset, word.toLong());
+      }
     }
   }
 
@@ -667,10 +666,11 @@ public class VM_Statics implements VM_Constants {
    * @param tibOff offset of TIB in JTOC
    * @return type of TIB or null
    */
-  public static VM_Type findTypeOfTIBSlot (Offset tibOff) {
+  public static VM_Type findTypeOfTIBSlot(Offset tibOff) {
     for (VM_Type type : VM_Type.getTypes()) {
-      if (type != null && type.getTibOffset().EQ(tibOff))
+      if (type != null && type.getTibOffset().EQ(tibOff)) {
         return type;
+      }
     }
     return null;
   }

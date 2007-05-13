@@ -31,14 +31,14 @@ public final class SynchronizationBarrier {
   private static final int verbose = 0;
 
   // number of physical processors on running computer 
-  private int   numRealProcessors; 
+  private int numRealProcessors;
 
   final Barrier barrier = new Barrier();
 
   /**
    * Constructor
    */
-  public SynchronizationBarrier () { 
+  public SynchronizationBarrier() {
     // initialize numRealProcessors to 1. Will be set to actual value later.
     // Using without resetting will cause waitABit() to yield instead of spinning
     numRealProcessors = 1;
@@ -48,7 +48,7 @@ public final class SynchronizationBarrier {
    * Wait for all other collectorThreads/processors to arrive at this barrier.
    */
   @Uninterruptible
-  public int rendezvous (int where) { 
+  public int rendezvous(int where) {
 
     barrier.arrive(where);
 
@@ -67,16 +67,20 @@ public final class SynchronizationBarrier {
    * been declared non-participating.
    */
   @Uninterruptible
-  public void startupRendezvous () { 
+  public void startupRendezvous() {
 
     int myProcessorId = VM_Processor.getCurrentProcessorId();
     VM_CollectorThread th = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
     int myNumber = th.getGCOrdinal();
 
-    if (verbose > 0)
-      VM.sysWriteln("GC Message: SynchronizationBarrier.startupRendezvous: proc ", myProcessorId, " ordinal ", myNumber);
+    if (verbose > 0) {
+      VM.sysWriteln("GC Message: SynchronizationBarrier.startupRendezvous: proc ",
+                    myProcessorId,
+                    " ordinal ",
+                    myNumber);
+    }
 
-    if ( myNumber > 1 ) {   // non-designated guys just wait for designated guy to finish
+    if (myNumber > 1) {   // non-designated guys just wait for designated guy to finish
       barrier.arrive(8888); // wait for designated guy to do his job
       VM_Magic.isync();     // so subsequent instructions won't see stale values
       if (verbose > 0) VM.sysWriteln("GC Message: startupRendezvous  leaving as ", myNumber);
@@ -89,22 +93,24 @@ public final class SynchronizationBarrier {
     waitABit(5);          // give missing threads a chance to show up
     int numParticipating = 0;
     for (int i = 1; i <= VM_Scheduler.numProcessors; i++) {
-      if ( VM_Scheduler.processors[i].lockInCIfInC() ) { // can't be true for self
-          if (verbose > 0) VM.sysWriteln("GC Message: excluding processor ", i);
-          removeProcessor(i);
-      }
-      else
+      if (VM_Scheduler.processors[i].lockInCIfInC()) { // can't be true for self
+        if (verbose > 0) VM.sysWriteln("GC Message: excluding processor ", i);
+        removeProcessor(i);
+      } else {
         numParticipating++;
+      }
     }
 
-    if (verbose > 0) 
-        VM.sysWriteln("GC Message: startupRendezvous  numParticipating = ", numParticipating);
+    if (verbose > 0) {
+      VM.sysWriteln("GC Message: startupRendezvous  numParticipating = ", numParticipating);
+    }
     barrier.setTarget(numParticipating);
     barrier.arrive(8888);    // all setup now complete and we can proceed
     VM_Magic.sync();   // update main memory so other processors will see it in "while" loop
     VM_Magic.isync();  // so subsequent instructions won't see stale values
-    if (verbose > 0) 
-        VM.sysWriteln("GC Message: startupRendezvous  designated proc leaving");
+    if (verbose > 0) {
+      VM.sysWriteln("GC Message: startupRendezvous  designated proc leaving");
+    }
 
   }  // startupRendezvous
 
@@ -113,7 +119,7 @@ public final class SynchronizationBarrier {
    * Also sets numRealProcessors to number of real CPUs.
    */
   @Uninterruptible
-  public void resetRendezvous () { 
+  public void resetRendezvous() {
     numRealProcessors = sysCall.sysNumProcessors();
     barrier.clearTarget();
     VM_Magic.sync();      // make other threads/processors see the update
@@ -129,19 +135,19 @@ public final class SynchronizationBarrier {
    * @param x amount to spin in some unknown units
    */
   @Uninterruptible
-  private int waitABit ( int x ) { 
+  private int waitABit(int x) {
     int sum = 0;
     if (VM_Scheduler.numProcessors < numRealProcessors) {
       // spin for a while, keeping the operating system thread
-      for ( int i = 0; i < (x*100); i++)
+      for (int i = 0; i < (x * 100); i++) {
         sum = sum + i;
+      }
       return sum;
     } else {
       sysCall.sysVirtualProcessorYield();        // pthread yield 
       return 0;
     }
   }
-
 
   /**
    * remove a processor from the rendezvous for the current collection.
@@ -150,7 +156,7 @@ public final class SynchronizationBarrier {
    * @param id  processor id of processor to be removed.
    */
   @Uninterruptible
-  private void removeProcessor( int id ) { 
+  private void removeProcessor(int id) {
 
     VM_Processor vp = VM_Scheduler.processors[id];
 
@@ -158,8 +164,9 @@ public final class SynchronizationBarrier {
     vp.transferMutex.lock();
     VM_Thread ct = vp.transferQueue.dequeueGCThread(null);
     vp.transferMutex.unlock();
-    if (VM.VerifyAssertions) 
+    if (VM.VerifyAssertions) {
       VM._assert(ct != null && ct.isGCThread == true);
+    }
 
     // put it back on the global collector thread queue
     VM_Scheduler.collectorMutex.lock();

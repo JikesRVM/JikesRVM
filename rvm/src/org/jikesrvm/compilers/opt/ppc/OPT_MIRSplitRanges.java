@@ -34,12 +34,12 @@ class OPT_MIRSplitRanges extends OPT_CompilerPhase {
    * @return "Live Range Splitting"
    */
   public final String getName() {
-    return "MIR Range Splitting"; 
+    return "MIR Range Splitting";
   }
 
   /**
    * The main method.
-   * 
+   *
    * @param ir the governing IR
    */
   public final void perform(OPT_IR ir) {

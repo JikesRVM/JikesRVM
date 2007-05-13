@@ -24,9 +24,10 @@ public final class OPT_CompilationPlan {
    */
   public VM_NormalMethod method;
 
-  public VM_NormalMethod getMethod () {
+  public VM_NormalMethod getMethod() {
     return method;
   }
+
   /**
    * The OPT_OptimizationPlanElements to be invoked during compilation.
    */
@@ -44,7 +45,7 @@ public final class OPT_CompilationPlan {
    */
   public OPT_Options options;
 
-  /** 
+  /**
    * Whether this compilation is for analysis only?
    */
   public boolean analyzeOnly;
@@ -59,8 +60,8 @@ public final class OPT_CompilationPlan {
    * @param mp   The instrumentation plan to be executed on m
    * @param opts The OPT_Options to be used for compiling m
    */
-  public OPT_CompilationPlan (VM_NormalMethod m, OPT_OptimizationPlanElement[] op, 
-                              OPT_InstrumentationPlan mp, OPT_Options opts) {
+  public OPT_CompilationPlan(VM_NormalMethod m, OPT_OptimizationPlanElement[] op,
+                             OPT_InstrumentationPlan mp, OPT_Options opts) {
     method = m;
     inlinePlan = new OPT_DefaultInlineOracle();
     optimizationPlan = op;
@@ -75,15 +76,15 @@ public final class OPT_CompilationPlan {
    * @param mp   The instrumentation plan to be executed on m
    * @param opts The OPT_Options to be used for compiling m
    */
-  public OPT_CompilationPlan (VM_NormalMethod m, OPT_OptimizationPlanElement op, 
-                              OPT_InstrumentationPlan mp, OPT_Options opts) {
-    this(m, new OPT_OptimizationPlanElement[] { op }, mp, opts);
+  public OPT_CompilationPlan(VM_NormalMethod m, OPT_OptimizationPlanElement op,
+                             OPT_InstrumentationPlan mp, OPT_Options opts) {
+    this(m, new OPT_OptimizationPlanElement[]{op}, mp, opts);
   }
 
   /**
    * Set the inline oracle
    */
-  public void setInlineOracle (OPT_InlineOracle o) {
+  public void setInlineOracle(OPT_InlineOracle o) {
     inlinePlan = o;
   }
 
@@ -91,7 +92,7 @@ public final class OPT_CompilationPlan {
    * Execute a compilation plan by executing each element
    * in the optimization plan.
    */
-  public OPT_IR execute () {
+  public OPT_IR execute() {
     OPT_IR ir = new OPT_IR(method, this);
 
     // If there is instrumentation to perform, do some initialization

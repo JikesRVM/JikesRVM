@@ -14,23 +14,23 @@ import org.jikesrvm.classloader.VM_TypeReference;
  * This operand represents a "true" guard.
  * Eg non-nullness of the result of an allocation or
  * boundcheck eliminate via analysis of the loop induction variables.
- * 
+ *
  * @see OPT_Operand
  */
 public final class OPT_TrueGuardOperand extends OPT_ConstantOperand {
 
   /**
    * Return the {@link VM_TypeReference} of the value represented by the operand.
-   * 
+   *
    * @return VM_TypeReference.VALIDATION_TYPE
    */
   public VM_TypeReference getType() {
-	 return VM_TypeReference.VALIDATION_TYPE;
+    return VM_TypeReference.VALIDATION_TYPE;
   }
 
   /**
    * Return a new operand that is semantically equivalent to <code>this</code>.
-   * 
+   *
    * @return a copy of <code>this</code>
    */
   public OPT_Operand copy() {

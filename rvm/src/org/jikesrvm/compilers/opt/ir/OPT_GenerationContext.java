@@ -36,9 +36,9 @@ import org.vmmagic.unboxed.Offset;
  * a method's bytecodes and populate targetIR with instructions.
  *
  **/
-public final class OPT_GenerationContext 
-  implements org.jikesrvm.compilers.opt.OPT_Constants, 
-             OPT_Operators {
+public final class OPT_GenerationContext
+    implements org.jikesrvm.compilers.opt.OPT_Constants,
+               OPT_Operators {
 
   //////////
   // These fields are used to communicate information from its 
@@ -179,15 +179,15 @@ public final class OPT_GenerationContext
   /**
    * Use this constructor to create an outermost (non-inlined) 
    * OPT_GenerationContext.
-   * 
+   *
    * @param meth The VM_NormalMethod whose IR will be generated
    * @param cm   The compiled method id to be used for this compilation
    * @param opts The OPT_Options to be used for the generation
    * @param ip   The OPT_InlineOracle to be used for the generation
    */
-  OPT_GenerationContext(VM_NormalMethod meth, 
-                        VM_CompiledMethod cm, 
-                        OPT_Options opts, 
+  OPT_GenerationContext(VM_NormalMethod meth,
+                        VM_CompiledMethod cm,
+                        OPT_Options opts,
                         OPT_InlineOracle ip) {
     original_method = meth;
     original_cm = cm;
@@ -216,10 +216,10 @@ public final class OPT_GenerationContext
     int numParams = params.length;
     int argIdx = 0;
     int localNum = 0;
-    arguments = new OPT_Operand[method.isStatic()?numParams:numParams+1];
+    arguments = new OPT_Operand[method.isStatic() ? numParams : numParams + 1];
     // Insert IR_PROLOGUE instruction.  Loop below will fill in its operands
-    OPT_Instruction prologueInstr = 
-      Prologue.create(IR_PROLOGUE, arguments.length);
+    OPT_Instruction prologueInstr =
+        Prologue.create(IR_PROLOGUE, arguments.length);
     appendInstruction(prologue, prologueInstr, PROLOGUE_BCI);
 
     if (!method.isStatic()) {
@@ -229,14 +229,15 @@ public final class OPT_GenerationContext
       OPT_RegisterOperand guard = makeNullCheckGuard(thisOp.register);
       OPT_BC2IR.setGuard(thisOp, guard);
       appendInstruction(prologue,
-                        Move.create(GUARD_MOVE, guard.copyRO(), 
+                        Move.create(GUARD_MOVE, guard.copyRO(),
                                     new OPT_TrueGuardOperand()),
                         PROLOGUE_BCI);
       thisOp.setDeclaredType();
       thisOp.setExtant();
       arguments[0] = thisOp;
       Prologue.setFormal(prologueInstr, 0, thisOp.copyU2D());
-      argIdx++; localNum++;
+      argIdx++;
+      localNum++;
     }
     for (int paramIdx = 0; paramIdx < numParams; paramIdx++) {
       VM_TypeReference argType = params[paramIdx];
@@ -247,7 +248,8 @@ public final class OPT_GenerationContext
       }
       arguments[argIdx] = argOp;
       Prologue.setFormal(prologueInstr, argIdx, argOp.copyU2D());
-      argIdx++; localNum++;
+      argIdx++;
+      localNum++;
       if (argType.isLongType() || argType.isDoubleType()) {
         localNum++; // longs & doubles take two words of local space
       }
@@ -256,7 +258,7 @@ public final class OPT_GenerationContext
     if (returnType != VM_TypeReference.Void) {
       resultReg = temps.makeTemp(returnType).register;
     }
-    
+
     enclosingHandlers = null;
 
     completePrologue(true);
@@ -301,7 +303,7 @@ public final class OPT_GenerationContext
                                                   callSite);
     child.enclosingHandlers = ebag;
     child.arguments = new OPT_Operand[Call.getNumberOfParams(callSite)];
-    for (int i=0; i< child.arguments.length; i++) {
+    for (int i = 0; i < child.arguments.length; i++) {
       child.arguments[i] = Call.getParam(callSite, i).copy(); // copy instead 
       // of clearing in case inlining aborts.
     }
@@ -309,13 +311,13 @@ public final class OPT_GenerationContext
       child.resultReg = Call.getResult(callSite).copyD2D().register;
       child.resultReg.setSpansBasicBlock(); // it will...
     }
- 
+
     // Initialize the child CFG, prologue, and epilogue blocks
     child.cfg = new OPT_ControlFlowGraph(parent.cfg.numberOfNodes());
-    child.prologue = new OPT_BasicBlock(PROLOGUE_BCI, 
+    child.prologue = new OPT_BasicBlock(PROLOGUE_BCI,
                                         child.inlineSequence, child.cfg);
     child.prologue.exceptionHandlers = ebag;
-    child.epilogue = new OPT_BasicBlock(EPILOGUE_BCI, 
+    child.epilogue = new OPT_BasicBlock(EPILOGUE_BCI,
                                         child.inlineSequence, child.cfg);
     child.epilogue.exceptionHandlers = ebag;
     child.cfg.addLastInCodeOrder(child.prologue);
@@ -349,8 +351,8 @@ public final class OPT_GenerationContext
         // Constants trivially non-null
         OPT_RegisterOperand guard = child.makeNullCheckGuard(local.register);
         OPT_BC2IR.setGuard(local, guard);
-        child.prologue.appendInstruction(Move.create(GUARD_MOVE, 
-                                                     guard.copyRO(), 
+        child.prologue.appendInstruction(Move.create(GUARD_MOVE,
+                                                     guard.copyRO(),
                                                      new OPT_TrueGuardOperand()));
       } else {
         OPT_OptimizingCompilerException.UNREACHABLE("Unexpected receiver operand");
@@ -360,7 +362,7 @@ public final class OPT_GenerationContext
       s.position = callSite.position;
       child.prologue.appendInstruction(s);
     }
-    for (int paramIdx = 0; paramIdx<numParams; paramIdx++, argIdx++) {
+    for (int paramIdx = 0; paramIdx < numParams; paramIdx++, argIdx++) {
       VM_TypeReference argType = params[paramIdx];
       OPT_RegisterOperand formal;
       OPT_Operand actual = child.arguments[argIdx];
@@ -379,8 +381,8 @@ public final class OPT_GenerationContext
       } else {
         formal = child.makeLocal(localNum++, argType);
       }
-      OPT_Instruction s = 
-        Move.create(OPT_IRTools.getMoveOp(argType), formal, actual);
+      OPT_Instruction s =
+          Move.create(OPT_IRTools.getMoveOp(argType), formal, actual);
       s.bcIndex = PROLOGUE_BCI;
       s.position = callSite.position;
       child.prologue.appendInstruction(s);
@@ -418,10 +420,10 @@ public final class OPT_GenerationContext
     // targets, so in the cases that I've observed where the prologue
     // and epilogue don't disappear, it was correct to have the
     // parent's position. -- Matt
-    child.prologue = new OPT_BasicBlock(PROLOGUE_BCI, parent.inlineSequence, 
+    child.prologue = new OPT_BasicBlock(PROLOGUE_BCI, parent.inlineSequence,
                                         parent.cfg);
     child.prologue.exceptionHandlers = ebag;
-    child.epilogue = new OPT_BasicBlock(EPILOGUE_BCI, parent.inlineSequence, 
+    child.epilogue = new OPT_BasicBlock(EPILOGUE_BCI, parent.inlineSequence,
                                         parent.cfg);
     child.epilogue.exceptionHandlers = ebag;
     child.cfg.addLastInCodeOrder(child.prologue);
@@ -440,22 +442,22 @@ public final class OPT_GenerationContext
     return child;
   }
 
-
   /**
    * Use this to transfer state back from a child context back to its parent.
-   * 
+   *
    * @param parent the parent context that will receive the state
    * @param child  the child context from which the state will be taken
    */
-  public static void transferState(OPT_GenerationContext parent, 
+  public static void transferState(OPT_GenerationContext parent,
                                    OPT_GenerationContext child) {
     parent.cfg.setNumberOfNodes(child.cfg.numberOfNodes());
-    if (child.generatedExceptionHandlers)
+    if (child.generatedExceptionHandlers) {
       parent.generatedExceptionHandlers = true;
-    if (child.allocFrame)
+    }
+    if (child.allocFrame) {
       parent.allocFrame = true;
+    }
   }
-
 
   ///////////
   // Local variables
@@ -491,7 +493,6 @@ public final class OPT_GenerationContext
       return intLocals;
     }
   }
-
 
   /**
    * Return the OPT_Register used to for local i of VM_TypeReference type
@@ -535,7 +536,7 @@ public final class OPT_GenerationContext
    */
   public int getLocalNumberFor(OPT_Register reg, VM_TypeReference type) {
     OPT_Register[] pool = getPool(type);
-    for (int i=0; i< pool.length; i++) {
+    for (int i = 0; i < pool.length; i++) {
       if (pool[i] == reg) return i;
     }
     return -1;
@@ -546,11 +547,10 @@ public final class OPT_GenerationContext
    */
   public boolean isLocal(OPT_Operand op, int i, VM_TypeReference type) {
     if (op instanceof OPT_RegisterOperand) {
-      if (getPool(type)[i] == ((OPT_RegisterOperand)op).register) return true;
+      if (getPool(type)[i] == ((OPT_RegisterOperand) op).register) return true;
     }
     return false;
   }
-
 
   ///////////
   // Validation operands (guards)
@@ -569,13 +569,11 @@ public final class OPT_GenerationContext
     if (guard == null) {
       guard = temps.makeTempValidation();
       _ncGuards.put(ref, guard.copyRO());
-    }
-    else {
+    } else {
       guard = guard.copyRO();
     }
     return guard;
   }
-
 
   ///////////
   // Profile data
@@ -584,7 +582,7 @@ public final class OPT_GenerationContext
     float prob;
     if (branchProfiles != null) {
       VM_BranchProfile bp = branchProfiles.getEntry(bcIndex);
-      prob = ((VM_ConditionalBranchProfile)bp).getTakenProbability();
+      prob = ((VM_ConditionalBranchProfile) bp).getTakenProbability();
     } else if (backwards) {
       prob = 0.9f;
     } else {
@@ -601,12 +599,11 @@ public final class OPT_GenerationContext
   public VM_SwitchBranchProfile getSwitchProfile(int bcIndex) {
     if (branchProfiles != null) {
       VM_BranchProfile bp = branchProfiles.getEntry(bcIndex);
-      return (VM_SwitchBranchProfile)bp;
+      return (VM_SwitchBranchProfile) bp;
     } else {
       return null;
     }
   }
-
 
   ///////////
   // Implementation
@@ -616,7 +613,6 @@ public final class OPT_GenerationContext
    * for internal use only (in createInlinedContext)
    */
   private OPT_GenerationContext() {}
-
 
   /**
    * Fill in the rest of the method prologue.
@@ -641,12 +637,11 @@ public final class OPT_GenerationContext
     } else if (method.isSynchronized() && !options.MONITOR_NOP
                && !options.INVOKEE_THREAD_LOCAL) {
       OPT_Operand lockObject = getLockObject();
-      OPT_Instruction s = 
-        MonitorOp.create(MONITORENTER, lockObject, new OPT_TrueGuardOperand());
+      OPT_Instruction s =
+          MonitorOp.create(MONITORENTER, lockObject, new OPT_TrueGuardOperand());
       appendInstruction(prologue, s, SYNCHRONIZED_MONITORENTER_BCI);
     }
   }
-
 
   /**
    * Fill in the rest of the method epilogue.
@@ -654,8 +649,8 @@ public final class OPT_GenerationContext
    */
   private void completeEpilogue(boolean isOutermost) {
     // Deal with implicit monitorexit for synchronized methods.
-    if (method.isSynchronized() && !options.MONITOR_NOP 
-                                && !options.INVOKEE_THREAD_LOCAL) {
+    if (method.isSynchronized() && !options.MONITOR_NOP
+        && !options.INVOKEE_THREAD_LOCAL) {
       OPT_Operand lockObject = getLockObject();
       OPT_Instruction s = MonitorOp.create(MONITOREXIT, lockObject, new OPT_TrueGuardOperand());
       appendInstruction(epilogue, s, SYNCHRONIZED_MONITOREXIT_BCI);
@@ -669,13 +664,12 @@ public final class OPT_GenerationContext
 
     if (isOutermost) {
       VM_TypeReference returnType = method.getReturnType();
-      OPT_Operand retVal = returnType.isVoidType() ? null : 
-          new OPT_RegisterOperand(resultReg, returnType);
+      OPT_Operand retVal = returnType.isVoidType() ? null :
+                           new OPT_RegisterOperand(resultReg, returnType);
       OPT_Instruction s = Return.create(RETURN, retVal);
       appendInstruction(epilogue, s, EPILOGUE_BCI);
     }
   }
-
 
   /**
    * If the method is synchronized then we wrap it in a
@@ -685,8 +679,8 @@ public final class OPT_GenerationContext
   private void completeExceptionHandlers(boolean isOutermost) {
     if (method.isSynchronized() && !options.MONITOR_NOP) {
       OPT_ExceptionHandlerBasicBlock rethrow =
-        new OPT_ExceptionHandlerBasicBlock(SYNTH_CATCH_BCI, inlineSequence,
-                                           new OPT_TypeOperand(VM_Type.JavaLangThrowableType), cfg);
+          new OPT_ExceptionHandlerBasicBlock(SYNTH_CATCH_BCI, inlineSequence,
+                                             new OPT_TypeOperand(VM_Type.JavaLangThrowableType), cfg);
       rethrow.exceptionHandlers = enclosingHandlers;
       OPT_RegisterOperand ceo = temps.makeTemp(VM_TypeReference.JavaLangThrowable);
       OPT_Instruction s = Nullary.create(GET_CAUGHT_EXCEPTION, ceo);
@@ -705,7 +699,7 @@ public final class OPT_GenerationContext
       // May be overly conservative 
       // (if enclosed by another catch of Throwable...)
       if (enclosingHandlers != null) {
-        for (OPT_BasicBlockEnumeration e = enclosingHandlers.enumerator(); 
+        for (OPT_BasicBlockEnumeration e = enclosingHandlers.enumerator();
              e.hasMoreElements();) {
           OPT_BasicBlock eh = e.next();
           rethrow.insertOut(eh);
@@ -718,15 +712,14 @@ public final class OPT_GenerationContext
       // save a reference to this block so we can discard it if unused.
       unlockAndRethrow = rethrow;
 
-      OPT_ExceptionHandlerBasicBlock[] sh = 
+      OPT_ExceptionHandlerBasicBlock[] sh =
           new OPT_ExceptionHandlerBasicBlock[1];
       sh[0] = rethrow;
-      enclosingHandlers = 
+      enclosingHandlers =
           new OPT_ExceptionHandlerBasicBlockBag(sh, enclosingHandlers);
       generatedExceptionHandlers = true;
     }
   }
-
 
   /**
    * Get the object for locking for synchronized methods.
@@ -736,14 +729,14 @@ public final class OPT_GenerationContext
     if (method.isStatic()) {
       Class klass = method.getDeclaringClass().getClassForType();
       Offset offs = Offset.fromIntSignExtend(VM_Statics.findOrCreateObjectLiteral(klass));
-      return new OPT_ClassConstantOperand(klass,offs);
+      return new OPT_ClassConstantOperand(klass, offs);
     } else {
       return makeLocal(0, arguments[0].getType());
     }
   }
 
-  private void appendInstruction(OPT_BasicBlock b, 
-                                 OPT_Instruction s, 
+  private void appendInstruction(OPT_BasicBlock b,
+                                 OPT_Instruction s,
                                  int bcIndex) {
     s.position = inlineSequence;
     s.bcIndex = bcIndex;
@@ -752,7 +745,7 @@ public final class OPT_GenerationContext
 
   private boolean requiresUnintMarker() {
     if (method.isInterruptible()) return false;
-    
+
     // supress redundant markers by detecting when we're inlining
     // one Uninterruptible method into another one.
     for (OPT_InlineSequence p = inlineSequence.getCaller();
@@ -764,44 +757,41 @@ public final class OPT_GenerationContext
     return true;
   }
 
-    
   /**
    * Make sure, the gc is still in sync with the IR, even if we applied some
    * optimizations. This method should be called before hir2lir conversions
    * which might trigger inlining.
    */
-  public void resync () {
+  public void resync() {
     //make sure the _ncGuards contain no dangling mappings
     resync_ncGuards();
   }
-  
 
   /**
    * This method makes sure that _ncGuard only maps to registers that
    * are actually in the IRs register pool.
    */
-  private void resync_ncGuards ()
-  {
+  private void resync_ncGuards() {
     HashSet<OPT_Register> regPool = new HashSet<OPT_Register>();
-    
+
     for (OPT_Register r = temps.getFirstSymbolicRegister();
-         r != null;  r = r.next) regPool.add (r);
-    
-    Iterator<Map.Entry<OPT_Register,OPT_RegisterOperand>> i = _ncGuards.entrySet().iterator();
+         r != null; r = r.next) {
+      regPool.add(r);
+    }
+
+    Iterator<Map.Entry<OPT_Register, OPT_RegisterOperand>> i = _ncGuards.entrySet().iterator();
     while (i.hasNext()) {
-      Map.Entry<OPT_Register,OPT_RegisterOperand> entry = i.next();
-      if (!(regPool.contains (entry.getValue()))) i.remove();
+      Map.Entry<OPT_Register, OPT_RegisterOperand> entry = i.next();
+      if (!(regPool.contains(entry.getValue()))) i.remove();
     }
   }
 
-  
   /**
    * Kill ncGuards, so we do not use outdated mappings unintendedly later on
    */
-  public void close () {
+  public void close() {
     _ncGuards = null;
   }
-  
 
 }
  

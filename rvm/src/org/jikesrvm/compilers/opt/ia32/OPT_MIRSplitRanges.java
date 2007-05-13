@@ -25,16 +25,16 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
  * This class splits live ranges for certain special cases to ensure
  * correctness during IA32 register allocation.
  */
-class OPT_MIRSplitRanges extends OPT_CompilerPhase 
-  implements OPT_Operators {
-   	 
+class OPT_MIRSplitRanges extends OPT_CompilerPhase
+    implements OPT_Operators {
+
   /**
    * Return this instance of this phase. This phase contains no
    * per-compilation instance fields.
    * @param ir not used
-   * @return this 
+   * @return this
    */
-  public OPT_CompilerPhase newExecution (OPT_IR ir) {
+  public OPT_CompilerPhase newExecution(OPT_IR ir) {
     return this;
   }
 
@@ -42,13 +42,13 @@ class OPT_MIRSplitRanges extends OPT_CompilerPhase
    * Return the name of this phase
    * @return "Live Range Splitting"
    */
-  public final String getName () {
-    return "MIR Range Splitting"; 
+  public final String getName() {
+    return "MIR Range Splitting";
   }
 
   /**
    * The main method.
-   * 
+   *
    * We split live ranges for registers around PEIs which have catch
    * blocks.  Suppose we have a
    * PEI s which uses a symbolic register r1.  We must ensure that after
@@ -58,20 +58,20 @@ class OPT_MIRSplitRanges extends OPT_CompilerPhase
    * So, instead, we introduce a new temporary r2 which holds the value of
    * r1.  The live range for r2 spans only the instruction s.  Later, we
    * will ensure that r2 is never spilled.
-   * 
+   *
    * TODO: This could be implemented more efficiently.
    *
    * @param ir the governing IR
    */
-  public final void perform (OPT_IR ir) {
+  public final void perform(OPT_IR ir) {
 
-    java.util.HashMap<OPT_Register, OPT_Register> newMap = 
-      new java.util.HashMap<OPT_Register, OPT_Register>(5);
+    java.util.HashMap<OPT_Register, OPT_Register> newMap =
+        new java.util.HashMap<OPT_Register, OPT_Register>(5);
 
-    for (OPT_BasicBlockEnumeration be = ir.getBasicBlocks(); be.hasMoreElements(); ) {
+    for (OPT_BasicBlockEnumeration be = ir.getBasicBlocks(); be.hasMoreElements();) {
       OPT_BasicBlock bb = be.nextElement();
-      for (OPT_InstructionEnumeration ie  = bb.forwardInstrEnumerator(); 
-           ie.hasMoreElements(); ) {
+      for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator();
+           ie.hasMoreElements();) {
         OPT_Instruction s = ie.next();
 
         // clear the cache of register assignments
@@ -92,21 +92,20 @@ class OPT_MIRSplitRanges extends OPT_CompilerPhase
         // handle special cases for IA32
         //  (1) Some operands must be in registers
         switch (s.getOpcode()) {
-          case MIR_LOWTABLESWITCH_opcode:
-            {
-              OPT_RegisterOperand rOp = MIR_LowTableSwitch.getIndex(s);
-              OPT_RegisterOperand temp = findOrCreateTemp(rOp, newMap, ir);
-              // NOTE: Index as marked as a DU because LowTableSwitch is 
-              //       going to destroy the value in the register.
-              //       By construction (see ConvertToLowLevelIR), no one will
-              //       every read the value computed by a LowTableSwitch.
-              //       Therefore, don't insert a move instruction after the
-              //       LowTableSwitch (which would cause IR verification 
-              //       problems anyways, since LowTableSwitch is a branch).
-              insertMoveBefore(temp, rOp.copyRO(), s); // move r into 'temp' before s
-              rOp.register = temp.register;
-            }
-            break;
+          case MIR_LOWTABLESWITCH_opcode: {
+            OPT_RegisterOperand rOp = MIR_LowTableSwitch.getIndex(s);
+            OPT_RegisterOperand temp = findOrCreateTemp(rOp, newMap, ir);
+            // NOTE: Index as marked as a DU because LowTableSwitch is
+            //       going to destroy the value in the register.
+            //       By construction (see ConvertToLowLevelIR), no one will
+            //       every read the value computed by a LowTableSwitch.
+            //       Therefore, don't insert a move instruction after the
+            //       LowTableSwitch (which would cause IR verification
+            //       problems anyways, since LowTableSwitch is a branch).
+            insertMoveBefore(temp, rOp.copyRO(), s); // move r into 'temp' before s
+            rOp.register = temp.register;
+          }
+          break;
         }
       }
     }
@@ -119,13 +118,13 @@ class OPT_MIRSplitRanges extends OPT_CompilerPhase
    * @param ir  the containing IR
    * @param rootOnly only consider root operands?
    */
-  private static void splitAllLiveRanges(OPT_Instruction s, 
+  private static void splitAllLiveRanges(OPT_Instruction s,
                                          java.util.HashMap<OPT_Register, OPT_Register> newMap,
                                          OPT_IR ir,
                                          boolean rootOnly) {
     // walk over each USE
-    for (OPT_OperandEnumeration u = rootOnly?s.getRootUses():s.getUses(); 
-         u.hasMoreElements(); ) {
+    for (OPT_OperandEnumeration u = rootOnly ? s.getRootUses() : s.getUses();
+         u.hasMoreElements();) {
       OPT_Operand use = u.next();
       if (use.isRegister()) {
         OPT_RegisterOperand rUse = use.asRegister();
@@ -135,23 +134,23 @@ class OPT_MIRSplitRanges extends OPT_CompilerPhase
       }
     }
     // walk over each DEF (by defintion defs == root defs)
-    for (OPT_OperandEnumeration d = s.getDefs(); d.hasMoreElements(); ) {
+    for (OPT_OperandEnumeration d = s.getDefs(); d.hasMoreElements();) {
       OPT_Operand def = d.next();
       if (def.isRegister()) {
         OPT_RegisterOperand rDef = def.asRegister();
-        OPT_RegisterOperand temp = findOrCreateTemp(rDef ,newMap, ir);
+        OPT_RegisterOperand temp = findOrCreateTemp(rDef, newMap, ir);
         // move 'temp' into 'r' after s
         insertMoveAfter(rDef.copyRO(), temp, s);
       }
     }
     // Now go back and replace the registers.
-    for (OPT_OperandEnumeration ops = rootOnly?s.getRootOperands():s.getOperands(); 
-         ops.hasMoreElements(); ) {
+    for (OPT_OperandEnumeration ops = rootOnly ? s.getRootOperands() : s.getOperands();
+         ops.hasMoreElements();) {
       OPT_Operand op = ops.next();
       if (op.isRegister()) {
         OPT_RegisterOperand rOp = op.asRegister();
         OPT_Register r = rOp.register;
-        OPT_Register newR = newMap.get(r); 
+        OPT_Register newR = newMap.get(r);
         if (newR != null) {
           rOp.register = newR;
         }
@@ -182,19 +181,20 @@ class OPT_MIRSplitRanges extends OPT_CompilerPhase
   /**
    * Insert an instruction to move r1 into r2 before instruction s
    */
-  private static void insertMoveBefore(OPT_RegisterOperand r2, 
+  private static void insertMoveBefore(OPT_RegisterOperand r2,
                                        OPT_RegisterOperand r1,
                                        OPT_Instruction s) {
-    OPT_Instruction m = OPT_PhysicalRegisterTools.makeMoveInstruction(r2,r1);
+    OPT_Instruction m = OPT_PhysicalRegisterTools.makeMoveInstruction(r2, r1);
     s.insertBefore(m);
   }
+
   /**
    * Insert an instruction to move r1 into r2 after instruction s
    */
-  private static void insertMoveAfter(OPT_RegisterOperand r2, 
+  private static void insertMoveAfter(OPT_RegisterOperand r2,
                                       OPT_RegisterOperand r1,
                                       OPT_Instruction s) {
-    OPT_Instruction m = OPT_PhysicalRegisterTools.makeMoveInstruction(r2,r1);
+    OPT_Instruction m = OPT_PhysicalRegisterTools.makeMoveInstruction(r2, r1);
     s.insertAfter(m);
   }
 }

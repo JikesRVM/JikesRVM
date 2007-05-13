@@ -22,16 +22,16 @@ import org.vmmagic.unboxed.Offset;
 class VM_Barriers implements VM_BaselineConstants {
 
   // on entry T0, T1, and T2 already contain the appropriate values
-  static void compileArrayStoreBarrier (VM_Compiler comp) {
+  static void compileArrayStoreBarrier(VM_Compiler comp) {
     VM_Assembler asm = comp.asm;
-    asm.emitLAddrToc(S0,  VM_Entrypoints.arrayStoreWriteBarrierMethod.getOffset());
+    asm.emitLAddrToc(S0, VM_Entrypoints.arrayStoreWriteBarrierMethod.getOffset());
     asm.emitMTCTR(S0);
     asm.emitBCCTRL();  // MM_Interface.arrayStoreWriteBarrier(Object ref, int index, Object value)
   }
 
   //  on entry java stack contains ...|target_ref|ref_to_store|
   // T1 already contains the offset of the field on entry
-  static void compilePutfieldBarrier (VM_Compiler comp, int locationMetadata) {
+  static void compilePutfieldBarrier(VM_Compiler comp, int locationMetadata) {
     VM_Assembler asm = comp.asm;
     asm.emitLAddrToc(S0, VM_Entrypoints.putfieldWriteBarrierMethod.getOffset());
     asm.emitMTCTR(S0);
@@ -43,13 +43,13 @@ class VM_Barriers implements VM_BaselineConstants {
   }
 
   //  on entry java stack contains ...|target_ref|ref_to_store|
-  static void compilePutfieldBarrierImm (VM_Compiler comp, Offset fieldOffset, int locationMetadata) {
+  static void compilePutfieldBarrierImm(VM_Compiler comp, Offset fieldOffset, int locationMetadata) {
     VM_Assembler asm = comp.asm;
     asm.emitLAddrToc(S0, VM_Entrypoints.putfieldWriteBarrierMethod.getOffset());
     asm.emitMTCTR(S0);
     comp.peekAddr(T0, 1);                 // object base
     if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T0);
-    asm.emitLVALAddr (T1, fieldOffset);       // offset 
+    asm.emitLVALAddr(T1, fieldOffset);       // offset
     comp.peekAddr(T2, 0);                 // value to store
     asm.emitLVAL(T3, locationMetadata);
     asm.emitBCCTRL();  // MM_Interface.putfieldWriteBarrier(T0,T1,T2,T3)
@@ -59,7 +59,8 @@ class VM_Barriers implements VM_BaselineConstants {
   // nothing, for now...  (still scanning all of statics/jtoc during
   // each GC)
   //
-  static void compilePutstaticBarrier (VM_Compiler comp) { }
-  static void compilePutstaticBarrierImm (VM_Compiler comp, Offset fieldOffset) { }
+  static void compilePutstaticBarrier(VM_Compiler comp) { }
+
+  static void compilePutstaticBarrierImm(VM_Compiler comp, Offset fieldOffset) { }
 
 }

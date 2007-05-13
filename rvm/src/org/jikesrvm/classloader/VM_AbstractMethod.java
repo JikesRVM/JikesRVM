@@ -32,8 +32,7 @@ public final class VM_AbstractMethod extends VM_Method {
                     short modifiers, VM_TypeReference[] exceptionTypes, VM_Atom signature,
                     VM_Annotation[] annotations,
                     VM_Annotation[] parameterAnnotations,
-                    Object annotationDefault)
-  {
+                    Object annotationDefault) {
     super(declaringClass, memRef, modifiers, exceptionTypes, signature,
           annotations, parameterAnnotations, annotationDefault);
   }

@@ -44,7 +44,7 @@ public class OPT_TreeNode {
    * @return my parent
    */
   public OPT_TreeNode getParent() {
-    return  parent;
+    return parent;
   }
 
   /**
@@ -52,7 +52,7 @@ public class OPT_TreeNode {
    * @return the first child of this node
    */
   public OPT_TreeNode getLeftChild() {
-    return  leftChild;
+    return leftChild;
   }
 
   /**
@@ -60,7 +60,7 @@ public class OPT_TreeNode {
    * @return the next node with the same parent as me 
    */
   public OPT_TreeNode getRightSibling() {
-    return  rightSibling;
+    return rightSibling;
   }
 
   /**
@@ -70,8 +70,7 @@ public class OPT_TreeNode {
   public void addChild(OPT_TreeNode node) {
     if (leftChild == null) {
       leftChild = node;
-    } 
-    else {
+    } else {
       // get to the last sibling
       OPT_TreeNode siblingNode = leftChild;
       while (siblingNode.rightSibling != null) {
@@ -92,7 +91,7 @@ public class OPT_TreeNode {
   }
 
   public Enumeration<OPT_TreeNode> getChildren() {
-    return  new OPT_TreeNodeChildrenEnumerator(this);
+    return new OPT_TreeNodeChildrenEnumerator(this);
   }
 
 }

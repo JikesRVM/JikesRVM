@@ -52,7 +52,7 @@ public final class OPT_GCIRMap implements Iterable<OPT_GCIRMapElement> {
    *  Calculates the number of spill entries in this GCIRMap
    *  This is the total number of spills for all instructions
    *  in this map.
-   *  @return  the number of spill entries in this map
+   *  @return the number of spill entries in this map
    */
   public int countNumSpillElements() {
     // Since spill locations are not determined until after
@@ -60,14 +60,15 @@ public final class OPT_GCIRMap implements Iterable<OPT_GCIRMapElement> {
     // IR-based maps are created, we actually count the
     // number of spills.
     int count = 0;
-    for (OPT_GCIRMapElement elem : this)
+    for (OPT_GCIRMapElement elem : this) {
       count += elem.countNumSpillElements();
+    }
     return count;
   }
 
   /**
    * TODO What is this method doing in this class ?? RJG
-   * 
+   *
    * This method creates a regSpillList from the passed live set.
    * @param set the set of registers, encoded as a OPT_LiveSet object 
    * @return a list corresponding to the set passed
@@ -86,8 +87,8 @@ public final class OPT_GCIRMap implements Iterable<OPT_GCIRMapElement> {
       // add this register to the regList, if it is a reference
       //  and not a physcial register
       if (regOp.type.isReferenceType() && !regOp.register.isPhysical()) {
-        OPT_RegSpillListElement elem = 
-          new OPT_RegSpillListElement(regOp.register);
+        OPT_RegSpillListElement elem =
+            new OPT_RegSpillListElement(regOp.register);
         regList.add(elem);
       }
     }
@@ -105,7 +106,7 @@ public final class OPT_GCIRMap implements Iterable<OPT_GCIRMapElement> {
     OPT_GCIRMapElement item = new OPT_GCIRMapElement(inst, regList);
 
     if (DEBUG) {
-      System.out.println("Inserting new item: "+ item);
+      System.out.println("Inserting new item: " + item);
     }
 
     list.add(item);
@@ -127,7 +128,7 @@ public final class OPT_GCIRMap implements Iterable<OPT_GCIRMapElement> {
         return;
       }
     }
-    throw new OPT_OptimizingCompilerException("OPT_GCIRMap.delete("+inst+
+    throw new OPT_OptimizingCompilerException("OPT_GCIRMap.delete(" + inst +
                                               ") did not delete instruction from GC Map ");
   }
 
@@ -147,10 +148,9 @@ public final class OPT_GCIRMap implements Iterable<OPT_GCIRMapElement> {
         return;
       }
     }
-    throw new OPT_OptimizingCompilerException("OPT_GCIRMap.moveToEnd("+inst+
+    throw new OPT_OptimizingCompilerException("OPT_GCIRMap.moveToEnd(" + inst +
                                               ") did not delete instruction from GC Map ");
   }
-
 
   /**
    * This method inserts an entry for a "twin" instruction immediately after the 
@@ -167,10 +167,10 @@ public final class OPT_GCIRMap implements Iterable<OPT_GCIRMapElement> {
         iter.add(newPtr.createTwin(twin));
         return;
       }
-    }           
-    throw new OPT_OptimizingCompilerException("OPT_GCIRMap.createTwin: "+inst+" not found");
+    }
+    throw new OPT_OptimizingCompilerException("OPT_GCIRMap.createTwin: " + inst + " not found");
   }
-  
+
   public Iterator<OPT_GCIRMapElement> iterator() {
     return list.iterator();
   }
@@ -188,13 +188,13 @@ public final class OPT_GCIRMap implements Iterable<OPT_GCIRMapElement> {
   public String toString() {
     StringBuilder buf = new StringBuilder("");
     if (list.isEmpty()) {
-      buf.append("empty"); 
+      buf.append("empty");
     } else {
       for (OPT_GCIRMapElement ptr : list) {
         buf.append(ptr);
       }
     }
-    return  buf.toString();
+    return buf.toString();
   }
 }
 

@@ -33,7 +33,7 @@ import org.vmmagic.unboxed.Offset;
  * A class that encapsulates mapping information about generated machine code.
  * Since there will be an instance of this class with every VM_OptCompiledMethod,
  * we attempt to pack the data into a reasonably small number of bits.
- * 
+ *
  * <p> The supported functions are:
  * <ul>
  *  <li> (1) Map from a machine code offset to a GC map (register & stack map).
@@ -59,7 +59,8 @@ import org.vmmagic.unboxed.Offset;
  *         1) methods called during compilation to create the maps
  *         2) methods called at GC time (no allocation allowed!)
  */
-@Uninterruptible public final class VM_OptMachineCodeMap
+@Uninterruptible
+public final class VM_OptMachineCodeMap
     implements VM_Constants, OPT_Constants {
 
   /**
@@ -70,6 +71,7 @@ import org.vmmagic.unboxed.Offset;
     gcMaps = _gcMaps;
     inlineEncoding = _inlineEncoding;
   }
+
   /**
    * Private null constructor for no information
    */
@@ -78,77 +80,84 @@ import org.vmmagic.unboxed.Offset;
     gcMaps = null;
     inlineEncoding = null;
   }
-  
+
   /**
    * Create the map, called during compilation
    * @param ir   the ir object for this method
    * @param machineCodeSize the number of machine code instructions generated.
    */
   @Interruptible
-  static VM_OptMachineCodeMap create (OPT_IR ir, int machineCodeSize) {
+  static VM_OptMachineCodeMap create(OPT_IR ir, int machineCodeSize) {
     if (DUMP_MAPS) {
       VM.sysWrite("Creating final machine code map for " + ir.method + "\n");
     }
-    
+
     // create all machine code maps
     final VM_OptMachineCodeMap map = generateMCInformation(ir.MIRInfo.gcIRMap);
-    
+
     if (DUMP_MAP_SIZES) {
-      map.recordStats(ir.method, map.size(), machineCodeSize << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH);
+      map.recordStats(ir.method,
+                      map.size(),
+                      machineCodeSize << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH);
     }
 
     if (DUMP_MAPS) {
       VM.sysWrite("Final Machine code information:\n");
       map.dumpMCInformation();
-      for (OPT_Instruction i = ir.firstInstructionInCodeOrder(); 
-           i != null; 
-           i = i.nextInstructionInCodeOrder())
+      for (OPT_Instruction i = ir.firstInstructionInCodeOrder();
+           i != null;
+           i = i.nextInstructionInCodeOrder()) {
         VM.sysWriteln(i.getmcOffset() + "\t" + i);
+      }
     }
     return map;
   }
 
   /**
    * Get the bytecode index for a machine instruction offset.
-   * 
+   *
    * @param MCOffset the machine code offset of interest
    * @return -1 if unknown.
    */
   public int getBytecodeIndexForMCOffset(Offset MCOffset) {
     int entry = findMCEntry(MCOffset);
-    if (entry == -1)
-      return  -1;
+    if (entry == -1) {
+      return -1;
+    }
     return getBytecodeIndex(entry);
   }
 
   /**
    * Get the VM_Method for a machine instruction offset.
    * This method is the source method that the instruction came from.
-   * 
+   *
    * @param MCOffset the machine code offset of interest
    * @return null if unknown
    */
   public VM_NormalMethod getMethodForMCOffset(Offset MCOffset) {
     int entry = findMCEntry(MCOffset);
-    if (entry == -1)
-      return  null;
+    if (entry == -1) {
+      return null;
+    }
     int iei = getInlineEncodingIndex(entry);
-    if (iei == -1)
-      return  null;
+    if (iei == -1) {
+      return null;
+    }
     int mid = VM_OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
-    return (VM_NormalMethod)VM_MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
+    return (VM_NormalMethod) VM_MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
   }
 
   /**
    * Return the inlining encoding index for the machine instruction offset.
-   * 
+   *
    * @param MCOffset the machine code offset of interest
    * @return -1 if unknown.
    */
   public int getInlineEncodingForMCOffset(Offset MCOffset) {
     int entry = findMCEntry(MCOffset);
-    if (entry == -1)
-      return  -1;
+    if (entry == -1) {
+      return -1;
+    }
     return getInlineEncodingIndex(entry);
   }
 
@@ -159,7 +168,7 @@ import org.vmmagic.unboxed.Offset;
    *  is returned.
    *
    *  @param MCOffset the machine code offset to look for
-   *  @return         the GC map index or VM_OptGCMap.ERROR
+   *  @return the GC map index or VM_OptGCMap.ERROR
    */
   public int findGCMapIndex(Offset MCOffset) {
     int entry = findMCEntry(MCOffset);
@@ -172,7 +181,7 @@ import org.vmmagic.unboxed.Offset;
    *         callsites in the method. Returns null if there are no such callsites.
    */
   @Interruptible
-  public ArrayList<VM_CallSite> getNonInlinedCallSites() { 
+  public ArrayList<VM_CallSite> getNonInlinedCallSites() {
     ArrayList<VM_CallSite> ans = null;
     if (MCInformation == null) return ans;
     for (int entry = 0; entry < MCInformation.length;) {
@@ -195,7 +204,7 @@ import org.vmmagic.unboxed.Offset;
     }
     return ans;
   }
-  
+
   /**
    * This method searches the machine code maps and determines if
    * the given call edge is definitely inlined into the method.
@@ -212,7 +221,6 @@ import org.vmmagic.unboxed.Offset;
     if (inlineEncoding == null) return false;
     return VM_OptEncodedCallSiteTree.edgePresent(caller.getId(), bcIndex, callee.getId(), inlineEncoding);
   }
-  
 
   /**
    * Returns the GC map information for the GC map information entry passed
@@ -238,11 +246,10 @@ import org.vmmagic.unboxed.Offset;
     return VM_OptGCMap.nextLocation(currentIndex, gcMaps);
   }
 
-
   ///////////////////////////////////////
   // Implementation
   ///////////////////////////////////////
-  
+
   /**
    * Do a binary search of the machine code maps to find the index
    * in MCInformation where the entry for the argument machine code 
@@ -256,7 +263,7 @@ import org.vmmagic.unboxed.Offset;
     if (MCInformation.length == 0) return -1;
 
     int left = 0;
-    int right = MCInformation.length-1;
+    int right = MCInformation.length - 1;
     while (left <= right) {
       int middle = (left + right) >> 1;         // take the average
       while ((MCInformation[middle] & START_OF_ENTRY) != START_OF_ENTRY) {
@@ -268,14 +275,15 @@ import org.vmmagic.unboxed.Offset;
         return middle;
       } else if (MCOffset.sGT(offset)) {
         // middle is too small, shift interval to the right
-        left = middle + 1; 
+        left = middle + 1;
         if (left >= MCInformation.length) return -1;
         while ((MCInformation[left] & START_OF_ENTRY) != START_OF_ENTRY) {
           // if necessary, step forward to find next entry, but not passed end
           // Need to do this to avoid finding middle again
           left++;
-          if (left >= MCInformation.length)
+          if (left >= MCInformation.length) {
             return -1;
+          }
         }
       } else {
         // middle is too small, shift interval to the left
@@ -283,7 +291,7 @@ import org.vmmagic.unboxed.Offset;
         // Note no need to adjust as, we won't chance finding middle again
       }
     }
-    return  -1;
+    return -1;
   }
 
   private int nextEntry(int entry) {
@@ -291,7 +299,7 @@ import org.vmmagic.unboxed.Offset;
     if (isHugeEntry(entry)) return entry + SIZEOF_HUGE_ENTRY;
     return entry + SIZEOF_ENTRY;
   }
-  
+
   ////////////////////////////////////////////
   // Create the map (at compile time)
   ////////////////////////////////////////////
@@ -303,10 +311,10 @@ import org.vmmagic.unboxed.Offset;
    *  @param irMap  the irmap to translate from
    */
   @Interruptible
-  private static VM_OptMachineCodeMap generateMCInformation(OPT_GCIRMap irMap) { 
+  private static VM_OptMachineCodeMap generateMCInformation(OPT_GCIRMap irMap) {
     OPT_CallSiteTree inliningMap = new OPT_CallSiteTree();
     int numEntries = 0;
-    
+
     // (1) Count how many entries we are going to have and
     //     construct and encode the inlining information for those entries.
     for (OPT_GCIRMapElement irMapElem : irMap) {
@@ -328,18 +336,18 @@ import org.vmmagic.unboxed.Offset;
 
     // (2) Encode the primary machine code mapping information and the GCMaps.
     VM_OptGCMap gcMapBuilder = new VM_OptGCMap();
-    int[] tmpMC = new int[numEntries*SIZEOF_HUGE_ENTRY];
+    int[] tmpMC = new int[numEntries * SIZEOF_HUGE_ENTRY];
     int lastMCInfoEntry = 0;
     for (OPT_GCIRMapElement irMapElem : irMap) {
       OPT_Instruction instr = irMapElem.getInstruction();
       if (DUMP_MAPS) VM.sysWrite("IR Map for " + instr + "\n\t" + irMapElem);
 
       // retrieve the machine code offset (in bytes) from the instruction,
-      int mco= instr.getmcOffset();
+      int mco = instr.getmcOffset();
       if (mco < 0) {
         VM.sysWrite("Negative machine code MCOffset found:" + mco);
         OPT_Instruction i = irMapElem.getInstruction();
-        VM.sysWrite(i.bcIndex+", "+i+", "+i.getmcOffset()+"\n");
+        VM.sysWrite(i.bcIndex + ", " + i + ", " + i.getmcOffset() + "\n");
         throw new OPT_OptimizingCompilerException("Negative machine code MCOffset found");
       }
       // create GC map and get GCI
@@ -371,21 +379,21 @@ import org.vmmagic.unboxed.Offset;
       // Encode this entry into MCInformation
       if (bci < INVALID_BCI &&
           iei < INVALID_IEI &&
-          gci < INVALID_GCI && 
+          gci < INVALID_GCI &&
           mco < (OFFSET_MASK >>> OFFSET_SHIFT)) {
         // use a small entry
         if (bci == -1) bci = INVALID_BCI;
         if (iei == -1) iei = INVALID_IEI;
         if (gci == -1) gci = INVALID_GCI;
         if (VM.VerifyAssertions) {
-          VM._assert((cm  & (CALL_MASK>>>CALL_SHIFT)) == cm);
-          VM._assert((bci & (BCI_MASK>>>BCI_SHIFT)) == bci);
-          VM._assert((iei & (IEI_MASK>>>IEI_SHIFT)) == iei);
-          VM._assert((gci & (GCI_MASK>>>GCI_SHIFT)) == gci);
-          VM._assert((mco & (OFFSET_MASK>>>OFFSET_SHIFT)) == mco);
+          VM._assert((cm & (CALL_MASK >>> CALL_SHIFT)) == cm);
+          VM._assert((bci & (BCI_MASK >>> BCI_SHIFT)) == bci);
+          VM._assert((iei & (IEI_MASK >>> IEI_SHIFT)) == iei);
+          VM._assert((gci & (GCI_MASK >>> GCI_SHIFT)) == gci);
+          VM._assert((mco & (OFFSET_MASK >>> OFFSET_SHIFT)) == mco);
         }
         int t = START_OF_ENTRY;
-        t |= (cm  << CALL_SHIFT);
+        t |= (cm << CALL_SHIFT);
         t |= (bci << BCI_SHIFT);
         t |= (iei << IEI_SHIFT);
         t |= (gci << GCI_SHIFT);
@@ -400,19 +408,19 @@ import org.vmmagic.unboxed.Offset;
         if (iei == -1) iei = BIG_INVALID_IEI;
         if (gci == -1) gci = BIG_INVALID_GCI;
         if (VM.VerifyAssertions) {
-          VM._assert((cm  & (BIG_CALL_MASK>>>BIG_CALL_SHIFT)) == cm);
-          VM._assert((bci & (BIG_BCI_MASK>>>BIG_BCI_SHIFT)) == bci);
-          VM._assert((iei & (BIG_IEI_MASK>>>BIG_IEI_SHIFT)) == iei);
-          VM._assert((gci & (BIG_GCI_MASK>>>BIG_GCI_SHIFT)) == gci);
-          VM._assert((mco & (BIG_OFFSET_MASK>>>BIG_OFFSET_SHIFT)) == mco);
+          VM._assert((cm & (BIG_CALL_MASK >>> BIG_CALL_SHIFT)) == cm);
+          VM._assert((bci & (BIG_BCI_MASK >>> BIG_BCI_SHIFT)) == bci);
+          VM._assert((iei & (BIG_IEI_MASK >>> BIG_IEI_SHIFT)) == iei);
+          VM._assert((gci & (BIG_GCI_MASK >>> BIG_GCI_SHIFT)) == gci);
+          VM._assert((mco & (BIG_OFFSET_MASK >>> BIG_OFFSET_SHIFT)) == mco);
         }
         int startIdx = lastMCInfoEntry;
         tmpMC[startIdx] = START_OF_BIG_ENTRY;
-        tmpMC[startIdx+BIG_CALL_IDX_ADJ] |= (cm << BIG_CALL_SHIFT);
-        tmpMC[startIdx+BIG_BCI_IDX_ADJ] |= (bci << BIG_BCI_SHIFT);
-        tmpMC[startIdx+BIG_OFFSET_IDX_ADJ] |= (mco << BIG_OFFSET_SHIFT);
-        tmpMC[startIdx+BIG_GCI_IDX_ADJ] |= (gci << BIG_GCI_SHIFT);
-        tmpMC[startIdx+BIG_IEI_IDX_ADJ] |= (iei << BIG_IEI_SHIFT);
+        tmpMC[startIdx + BIG_CALL_IDX_ADJ] |= (cm << BIG_CALL_SHIFT);
+        tmpMC[startIdx + BIG_BCI_IDX_ADJ] |= (bci << BIG_BCI_SHIFT);
+        tmpMC[startIdx + BIG_OFFSET_IDX_ADJ] |= (mco << BIG_OFFSET_SHIFT);
+        tmpMC[startIdx + BIG_GCI_IDX_ADJ] |= (gci << BIG_GCI_SHIFT);
+        tmpMC[startIdx + BIG_IEI_IDX_ADJ] |= (iei << BIG_IEI_SHIFT);
         lastMCInfoEntry += SIZEOF_BIG_ENTRY;
       } else {
         // use a huge entry
@@ -420,19 +428,19 @@ import org.vmmagic.unboxed.Offset;
         if (iei == -1) iei = HUGE_INVALID_IEI;
         if (gci == -1) gci = HUGE_INVALID_GCI;
         if (VM.VerifyAssertions) {
-          VM._assert((cm  & (HUGE_CALL_MASK>>>HUGE_CALL_SHIFT)) == cm);
-          VM._assert((bci & (HUGE_BCI_MASK>>>HUGE_BCI_SHIFT)) == bci);
-          VM._assert((iei & (HUGE_IEI_MASK>>>HUGE_IEI_SHIFT)) == iei);
-          VM._assert((gci & (HUGE_GCI_MASK>>>HUGE_GCI_SHIFT)) == gci);
-          VM._assert((mco & (HUGE_OFFSET_MASK>>>HUGE_OFFSET_SHIFT)) == mco);
+          VM._assert((cm & (HUGE_CALL_MASK >>> HUGE_CALL_SHIFT)) == cm);
+          VM._assert((bci & (HUGE_BCI_MASK >>> HUGE_BCI_SHIFT)) == bci);
+          VM._assert((iei & (HUGE_IEI_MASK >>> HUGE_IEI_SHIFT)) == iei);
+          VM._assert((gci & (HUGE_GCI_MASK >>> HUGE_GCI_SHIFT)) == gci);
+          VM._assert((mco & (HUGE_OFFSET_MASK >>> HUGE_OFFSET_SHIFT)) == mco);
         }
         int startIdx = lastMCInfoEntry;
         tmpMC[startIdx] = START_OF_HUGE_ENTRY;
-        tmpMC[startIdx+HUGE_CALL_IDX_ADJ] |= (cm << HUGE_CALL_SHIFT);
-        tmpMC[startIdx+HUGE_BCI_IDX_ADJ] |= (bci << HUGE_BCI_SHIFT);
-        tmpMC[startIdx+HUGE_OFFSET_IDX_ADJ] |= (mco << HUGE_OFFSET_SHIFT);
-        tmpMC[startIdx+HUGE_GCI_IDX_ADJ] |= (gci << HUGE_GCI_SHIFT);
-        tmpMC[startIdx+HUGE_IEI_IDX_ADJ] |= (iei << HUGE_IEI_SHIFT);
+        tmpMC[startIdx + HUGE_CALL_IDX_ADJ] |= (cm << HUGE_CALL_SHIFT);
+        tmpMC[startIdx + HUGE_BCI_IDX_ADJ] |= (bci << HUGE_BCI_SHIFT);
+        tmpMC[startIdx + HUGE_OFFSET_IDX_ADJ] |= (mco << HUGE_OFFSET_SHIFT);
+        tmpMC[startIdx + HUGE_GCI_IDX_ADJ] |= (gci << HUGE_GCI_SHIFT);
+        tmpMC[startIdx + HUGE_IEI_IDX_ADJ] |= (iei << HUGE_IEI_SHIFT);
         lastMCInfoEntry += SIZEOF_HUGE_ENTRY;
       }
     }
@@ -443,7 +451,6 @@ import org.vmmagic.unboxed.Offset;
     return new VM_OptMachineCodeMap(mcInformation, gcMaps, inlineEncoding);
   }
 
-
   ////////////////////////////////////////////
   //  Accessors
   //  NB: The accessors take an entry number, which is defined to
@@ -452,14 +459,14 @@ import org.vmmagic.unboxed.Offset;
   /**
    * Returns the MCOffset for the entry passed
    * @param  entry the index of the start of the entry
-   * @return       the MCOffset for this entry
+   * @return the MCOffset for this entry
    */
   private int getMCOffset(int entry) {
     if (isBigEntry(entry)) {
-      int t = MCInformation[entry+BIG_OFFSET_IDX_ADJ];
+      int t = MCInformation[entry + BIG_OFFSET_IDX_ADJ];
       return (t & BIG_OFFSET_MASK) >>> BIG_OFFSET_SHIFT;
     } else if (isHugeEntry(entry)) {
-      int t = MCInformation[entry+HUGE_OFFSET_IDX_ADJ];
+      int t = MCInformation[entry + HUGE_OFFSET_IDX_ADJ];
       return (t & HUGE_OFFSET_MASK) >>> HUGE_OFFSET_SHIFT;
     } else {
       int t = MCInformation[entry];
@@ -470,21 +477,21 @@ import org.vmmagic.unboxed.Offset;
   /**
    * Returns the GC map index for the entry passed
    * @param   entry the index of the start of the entry
-   * @return        the GC map entry index for this entry (or -1 if none)
+   * @return the GC map entry index for this entry (or -1 if none)
    */
   private int getGCMapIndex(int entry) {
     if (isBigEntry(entry)) {
-      int t  = MCInformation[entry+BIG_GCI_IDX_ADJ];
+      int t = MCInformation[entry + BIG_GCI_IDX_ADJ];
       int gci = (t & BIG_GCI_MASK) >>> BIG_GCI_SHIFT;
       if (gci == BIG_INVALID_GCI) return -1;
       return gci;
     } else if (isHugeEntry(entry)) {
-      int t  = MCInformation[entry+HUGE_GCI_IDX_ADJ];
+      int t = MCInformation[entry + HUGE_GCI_IDX_ADJ];
       int gci = (t & HUGE_GCI_MASK) >>> HUGE_GCI_SHIFT;
       if (gci == HUGE_INVALID_GCI) return -1;
       return gci;
     } else {
-      int t =  MCInformation[entry];
+      int t = MCInformation[entry];
       int gci = (t & GCI_MASK) >>> GCI_SHIFT;
       if (gci == INVALID_GCI) return -1;
       return gci;
@@ -494,21 +501,21 @@ import org.vmmagic.unboxed.Offset;
   /**
    * Returns the Bytecode index for the entry passed
    * @param entry the index of the start of the entry
-   * @return      the bytecode index for this entry (-1 if unknown)
+   * @return the bytecode index for this entry (-1 if unknown)
    */
   private int getBytecodeIndex(int entry) {
     if (isBigEntry(entry)) {
-      int t  = MCInformation[entry+BIG_BCI_IDX_ADJ];
+      int t = MCInformation[entry + BIG_BCI_IDX_ADJ];
       int bci = (t & BIG_BCI_MASK) >>> BIG_BCI_SHIFT;
       if (bci == BIG_INVALID_BCI) return -1;
       return bci;
     } else if (isHugeEntry(entry)) {
-      int t  = MCInformation[entry+HUGE_BCI_IDX_ADJ];
+      int t = MCInformation[entry + HUGE_BCI_IDX_ADJ];
       int bci = (t & HUGE_BCI_MASK) >>> HUGE_BCI_SHIFT;
       if (bci == HUGE_INVALID_BCI) return -1;
       return bci;
     } else {
-      int t  = MCInformation[entry];
+      int t = MCInformation[entry];
       int bci = (t & BCI_MASK) >>> BCI_SHIFT;
       if (bci == INVALID_BCI) return -1;
       return bci;
@@ -518,21 +525,21 @@ import org.vmmagic.unboxed.Offset;
   /**
    * Returns the inline encoding index for the entry passed.
    * @param entry the index of the start of the entry
-   * @return      the inline encoding index for this entry (-1 if unknown)
+   * @return the inline encoding index for this entry (-1 if unknown)
    */
   private int getInlineEncodingIndex(int entry) {
     if (isBigEntry(entry)) {
-      int t  = MCInformation[entry+BIG_IEI_IDX_ADJ];
+      int t = MCInformation[entry + BIG_IEI_IDX_ADJ];
       int iei = (t & BIG_IEI_MASK) >>> BIG_IEI_SHIFT;
       if (iei == BIG_INVALID_IEI) return -1;
       return iei;
     } else if (isHugeEntry(entry)) {
-      int t  = MCInformation[entry+HUGE_IEI_IDX_ADJ];
+      int t = MCInformation[entry + HUGE_IEI_IDX_ADJ];
       int iei = (t & HUGE_IEI_MASK) >>> HUGE_IEI_SHIFT;
       if (iei == HUGE_INVALID_IEI) return -1;
       return iei;
     } else {
-      int t  = MCInformation[entry];
+      int t = MCInformation[entry];
       int iei = (t & IEI_MASK) >>> IEI_SHIFT;
       if (iei == INVALID_IEI) return -1;
       return iei;
@@ -542,21 +549,21 @@ import org.vmmagic.unboxed.Offset;
   /**
    * Returns the call info for the entry passed.
    * @param entry the index of the start of the entry
-   * @return      the call info for this entry 
+   * @return the call info for this entry
    */
   private int getCallInfo(int entry) {
     if (isBigEntry(entry)) {
-      int t = MCInformation[entry+BIG_CALL_IDX_ADJ];
+      int t = MCInformation[entry + BIG_CALL_IDX_ADJ];
       return (t & BIG_CALL_MASK) >>> BIG_CALL_SHIFT;
     } else if (isHugeEntry(entry)) {
-      int t = MCInformation[entry+HUGE_CALL_IDX_ADJ];
+      int t = MCInformation[entry + HUGE_CALL_IDX_ADJ];
       return (t & HUGE_CALL_MASK) >>> HUGE_CALL_SHIFT;
     } else {
       int t = MCInformation[entry];
       return (t & CALL_MASK) >>> CALL_SHIFT;
     }
   }
-  
+
   /**
    * Is the entry a big entry?
    */
@@ -582,11 +589,11 @@ import org.vmmagic.unboxed.Offset;
   ////////////////////////////////////////////
 
   @Interruptible
-  public void dumpMCInformation() { 
+  public void dumpMCInformation() {
     if (DUMP_MAPS) {
       VM.sysWrite("  Dumping the MCInformation\n");
       if (MCInformation == null) return;
-      for (int idx = 0; idx<MCInformation.length;) {
+      for (int idx = 0; idx < MCInformation.length;) {
         printMCInformationEntry(idx);
         idx = nextEntry(idx);
       }
@@ -605,11 +612,13 @@ import org.vmmagic.unboxed.Offset;
       if (isHugeEntry(entry)) sep = "H\tMC: ";
       VM.sysWrite(entry + sep + getMCOffset(entry));
       int bci = getBytecodeIndex(entry);
-      if (bci != -1)
+      if (bci != -1) {
         VM.sysWrite("\n\tBCI: " + bci);
+      }
       int iei = getInlineEncodingIndex(entry);
-      if (iei != -1)
-        VM.sysWrite("\n\tIEI: "+iei);
+      if (iei != -1) {
+        VM.sysWrite("\n\tIEI: " + iei);
+      }
       boolean first = true;
       while (iei >= 0) {
         int mid = VM_OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
@@ -635,7 +644,6 @@ import org.vmmagic.unboxed.Offset;
     }
   }
 
-
   /**
    * Gather cumulative stats about the space consumed by maps.
    * @param method
@@ -643,17 +651,17 @@ import org.vmmagic.unboxed.Offset;
    * @param machineCodeSize
    */
   @Interruptible
-  private void recordStats(VM_Method method, int mapSize, 
-                           int machineCodeSize) { 
+  private void recordStats(VM_Method method, int mapSize,
+                           int machineCodeSize) {
     if (DUMP_MAP_SIZES) {
-      double mapMCPercent = (double)mapSize/machineCodeSize;
+      double mapMCPercent = (double) mapSize / machineCodeSize;
       VM.sysWrite(method);
-      VM.sysWrite(" map is " + (int)(mapMCPercent*100) + "% (" 
+      VM.sysWrite(" map is " + (int) (mapMCPercent * 100) + "% ("
                   + mapSize + "/" + machineCodeSize + ") of MC.\n");
       totalMCSize += machineCodeSize;
       totalMapSize += mapSize;
-      double MCPct = (double)totalMapSize/totalMCSize;
-      VM.sysWrite("  Cumulative maps are now " + (int)(MCPct*100) + 
+      double MCPct = (double) totalMapSize / totalMCSize;
+      VM.sysWrite("  Cumulative maps are now " + (int) (MCPct * 100) +
                   "% (" + totalMapSize + "/" + totalMCSize + ") of MC.\n");
     }
   }
@@ -688,79 +696,79 @@ import org.vmmagic.unboxed.Offset;
   // 
   // We support three entry formats as defined below
   // 
-  private static final int START_OF_ENTRY     = 0x80000000;
+  private static final int START_OF_ENTRY = 0x80000000;
   private static final int START_OF_BIG_ENTRY = 0xc0000000;
-  private static final int START_OF_HUGE_ENTRY= 0xe0000000;
-  private static final int START_BITS         = 0xe0000000;
+  private static final int START_OF_HUGE_ENTRY = 0xe0000000;
+  private static final int START_BITS = 0xe0000000;
 
   // A small entry is 1 int used as follows:
   // 10cc bbbb bbii iiii iggg ggoo oooo oooo 
-  private static final int CALL_MASK          = 0x30000000;
-  private static final int CALL_SHIFT         = 28;
-  private static final int BCI_MASK           = 0x0fc00000;
-  private static final int BCI_SHIFT          = 22;
-  private static final int IEI_MASK           = 0x003f8000;
-  private static final int IEI_SHIFT          = 15;
-  private static final int GCI_MASK           = 0x00007c00;
-  private static final int GCI_SHIFT          = 10;
-  private static final int OFFSET_MASK        = 0x000003ff;
-  private static final int OFFSET_SHIFT       = 0;
-  private static final int INVALID_GCI        = (GCI_MASK >>> GCI_SHIFT);
-  private static final int INVALID_BCI        = (BCI_MASK >>> BCI_SHIFT);
-  private static final int INVALID_IEI        = (IEI_MASK >>> IEI_SHIFT);
-  private static final int SIZEOF_ENTRY       = 1;
-  
+  private static final int CALL_MASK = 0x30000000;
+  private static final int CALL_SHIFT = 28;
+  private static final int BCI_MASK = 0x0fc00000;
+  private static final int BCI_SHIFT = 22;
+  private static final int IEI_MASK = 0x003f8000;
+  private static final int IEI_SHIFT = 15;
+  private static final int GCI_MASK = 0x00007c00;
+  private static final int GCI_SHIFT = 10;
+  private static final int OFFSET_MASK = 0x000003ff;
+  private static final int OFFSET_SHIFT = 0;
+  private static final int INVALID_GCI = (GCI_MASK >>> GCI_SHIFT);
+  private static final int INVALID_BCI = (BCI_MASK >>> BCI_SHIFT);
+  private static final int INVALID_IEI = (IEI_MASK >>> IEI_SHIFT);
+  private static final int SIZEOF_ENTRY = 1;
+
   // A big entry is 2 ints used as follows:
   // 110c cbbb bbbb bbbb biii iiii iiii iiii 
   // 0ggg gggg gggg ggoo oooo oooo oooo oooo 
-  private static final int BIG_CALL_MASK      = 0x18000000;
-  private static final int BIG_CALL_SHIFT     = 27;
-  private static final int BIG_CALL_IDX_ADJ   = 0;
-  private static final int BIG_BCI_MASK       = 0x07ff8000;
-  private static final int BIG_BCI_SHIFT      = 15;
-  private static final int BIG_BCI_IDX_ADJ    = 0;
-  private static final int BIG_IEI_MASK       = 0x00007fff;
-  private static final int BIG_IEI_SHIFT      = 0;
-  private static final int BIG_IEI_IDX_ADJ    = 0;
-  private static final int BIG_GCI_MASK       = 0x7ffc0000;
-  private static final int BIG_GCI_SHIFT      = 18;
-  private static final int BIG_GCI_IDX_ADJ    = 1;
-  private static final int BIG_OFFSET_MASK    = 0x0003ffff;
-  private static final int BIG_OFFSET_SHIFT   = 0;
+  private static final int BIG_CALL_MASK = 0x18000000;
+  private static final int BIG_CALL_SHIFT = 27;
+  private static final int BIG_CALL_IDX_ADJ = 0;
+  private static final int BIG_BCI_MASK = 0x07ff8000;
+  private static final int BIG_BCI_SHIFT = 15;
+  private static final int BIG_BCI_IDX_ADJ = 0;
+  private static final int BIG_IEI_MASK = 0x00007fff;
+  private static final int BIG_IEI_SHIFT = 0;
+  private static final int BIG_IEI_IDX_ADJ = 0;
+  private static final int BIG_GCI_MASK = 0x7ffc0000;
+  private static final int BIG_GCI_SHIFT = 18;
+  private static final int BIG_GCI_IDX_ADJ = 1;
+  private static final int BIG_OFFSET_MASK = 0x0003ffff;
+  private static final int BIG_OFFSET_SHIFT = 0;
   private static final int BIG_OFFSET_IDX_ADJ = 1;
-  private static final int BIG_INVALID_GCI    = (BIG_GCI_MASK >>> BIG_GCI_SHIFT);
-  private static final int BIG_INVALID_BCI    = (BIG_BCI_MASK >>> BIG_BCI_SHIFT);  
-  private static final int BIG_INVALID_IEI    = (BIG_IEI_MASK >>> BIG_IEI_SHIFT);
-  private static final int SIZEOF_BIG_ENTRY   = 2;
+  private static final int BIG_INVALID_GCI = (BIG_GCI_MASK >>> BIG_GCI_SHIFT);
+  private static final int BIG_INVALID_BCI = (BIG_BCI_MASK >>> BIG_BCI_SHIFT);
+  private static final int BIG_INVALID_IEI = (BIG_IEI_MASK >>> BIG_IEI_SHIFT);
+  private static final int SIZEOF_BIG_ENTRY = 2;
 
   // A huge entry is 4 ints used as follows:
   // 111c cUUU UUUU UUUU bbbb bbbb bbbb bbbb
   // 0iii iiii iiii iiii iiii iiii iiii iiii
   // 0ggg gggg gggg gggg gggg gggg gggg gggg
   // 0ooo oooo oooo oooo oooo oooo oooo oooo
-  private static final int HUGE_CALL_MASK     = 0x18000000;
-  private static final int HUGE_CALL_SHIFT    = 27;
-  private static final int HUGE_CALL_IDX_ADJ  = 0;
-  private static final int HUGE_BCI_MASK      = 0x0000ffff;
-  private static final int HUGE_BCI_SHIFT     = 0;
-  private static final int HUGE_BCI_IDX_ADJ   = 0;
-  private static final int HUGE_IEI_MASK      = 0x7fffffff;
-  private static final int HUGE_IEI_SHIFT     = 0;
-  private static final int HUGE_IEI_IDX_ADJ   = 1;
-  private static final int HUGE_GCI_MASK      = 0x7fffffff;
-  private static final int HUGE_GCI_SHIFT     = 0;
-  private static final int HUGE_GCI_IDX_ADJ   = 2;
-  private static final int HUGE_OFFSET_MASK   = 0x7fffffff;
-  private static final int HUGE_OFFSET_SHIFT  = 0;
-  private static final int HUGE_OFFSET_IDX_ADJ= 3;
-  private static final int HUGE_INVALID_GCI   = (HUGE_GCI_MASK >>> HUGE_GCI_SHIFT);
-  private static final int HUGE_INVALID_BCI   = (HUGE_BCI_MASK >>> HUGE_BCI_SHIFT);  
-  private static final int HUGE_INVALID_IEI   = (HUGE_IEI_MASK >>> HUGE_IEI_SHIFT);
-  private static final int SIZEOF_HUGE_ENTRY  = 4;
-  
+  private static final int HUGE_CALL_MASK = 0x18000000;
+  private static final int HUGE_CALL_SHIFT = 27;
+  private static final int HUGE_CALL_IDX_ADJ = 0;
+  private static final int HUGE_BCI_MASK = 0x0000ffff;
+  private static final int HUGE_BCI_SHIFT = 0;
+  private static final int HUGE_BCI_IDX_ADJ = 0;
+  private static final int HUGE_IEI_MASK = 0x7fffffff;
+  private static final int HUGE_IEI_SHIFT = 0;
+  private static final int HUGE_IEI_IDX_ADJ = 1;
+  private static final int HUGE_GCI_MASK = 0x7fffffff;
+  private static final int HUGE_GCI_SHIFT = 0;
+  private static final int HUGE_GCI_IDX_ADJ = 2;
+  private static final int HUGE_OFFSET_MASK = 0x7fffffff;
+  private static final int HUGE_OFFSET_SHIFT = 0;
+  private static final int HUGE_OFFSET_IDX_ADJ = 3;
+  private static final int HUGE_INVALID_GCI = (HUGE_GCI_MASK >>> HUGE_GCI_SHIFT);
+  private static final int HUGE_INVALID_BCI = (HUGE_BCI_MASK >>> HUGE_BCI_SHIFT);
+  private static final int HUGE_INVALID_IEI = (HUGE_IEI_MASK >>> HUGE_IEI_SHIFT);
+  private static final int SIZEOF_HUGE_ENTRY = 4;
+
   // bit patterns for cc portion of machine code map */
-  private static final int  IS_UNGUARDED_CALL = 0x1;
-  private static final int  IS_GUARDED_CALL   = 0x3;
+  private static final int IS_UNGUARDED_CALL = 0x1;
+  private static final int IS_GUARDED_CALL = 0x3;
 
   /**
    * Hold entries as defined by the constants above.
@@ -768,7 +776,7 @@ import org.vmmagic.unboxed.Offset;
   private final int[] MCInformation;
   /**
    * array of GC maps as defined by VM_OptGCMap
-   */ 
+   */
   private final int[] gcMaps;
   /**
    * encoded data as defined by VM_OptEncodedCallSiteTree.

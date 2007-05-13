@@ -18,9 +18,10 @@ import org.vmmagic.pragma.Uninterruptible;
  *
  * @see VM_ThreadEventWaitData
  */
-@Uninterruptible public class VM_ThreadIOWaitData
-  extends VM_ThreadEventWaitData
-  implements VM_ThreadIOConstants  {
+@Uninterruptible
+public class VM_ThreadIOWaitData
+    extends VM_ThreadEventWaitData
+    implements VM_ThreadIOConstants {
 
   public int[] readFds;
   public int[] writeFds;
@@ -60,8 +61,9 @@ import org.vmmagic.pragma.Uninterruptible;
 
   private void markAsReady(int[] fds) {
     if (fds != null) {
-      for (int i = 0; i < fds.length; ++i)
+      for (int i = 0; i < fds.length; ++i) {
         fds[i] |= FD_READY_BIT;
+      }
     }
   }
 }

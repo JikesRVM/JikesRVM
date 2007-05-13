@@ -41,29 +41,29 @@ class OPT_AdjustBranchProbabilities extends OPT_CompilerPhase {
    *   if (P) { infrequent block } 
    *   if (P) { } else { infrequent block }
    * that are introduced by OPT_ExpandRuntimeServices.
-   * 
+   *
    * Key idea: If a block is infrequent then make sure that
    *           any conditional branch that targets/avoids the block
    *           does not have 0.5 as its branch probability.
-   * 
+   *
    * @param ir the governing IR
    */
-  public final void perform (OPT_IR ir) {
+  public final void perform(OPT_IR ir) {
     for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks();
          e.hasMoreElements();) {
       OPT_BasicBlock target = e.next();
       if (findInfrequentInstruction(target)) {
-      blockLoop:
+        blockLoop:
         for (OPT_BasicBlockEnumeration sources = target.getIn();
              sources.hasMoreElements();) {
           OPT_BasicBlock source = sources.next();
           // Found an edge to an infrequent block.
           // Look to see if there is a conditional branch that we need to adjust
           OPT_Instruction condBranch = null;
-          for (OPT_InstructionEnumeration ie = source.enumerateBranchInstructions(); 
+          for (OPT_InstructionEnumeration ie = source.enumerateBranchInstructions();
                ie.hasMoreElements();) {
             OPT_Instruction s = ie.next();
-            if (IfCmp.conforms(s) && 
+            if (IfCmp.conforms(s) &&
                 IfCmp.getBranchProfile(s).takenProbability == 0.5f) {
               if (condBranch == null) {
                 condBranch = s;

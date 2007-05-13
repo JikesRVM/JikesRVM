@@ -34,7 +34,7 @@ public abstract class OPT_BranchOptimizationDriver extends OPT_CompilerPhase {
    */
   private final boolean simplify;
 
-  /** 
+  /**
    * @param level the minimum optimization level at which the branch 
    * optimizations should be performed.
    * @param simplify perform simplification prior to optimization?
@@ -44,7 +44,7 @@ public abstract class OPT_BranchOptimizationDriver extends OPT_CompilerPhase {
     this.simplify = simplify;
   }
 
-  /** 
+  /**
    * @param level the minimum optimization level at which the branch 
    * optimizations should be performed.
    */
@@ -55,16 +55,16 @@ public abstract class OPT_BranchOptimizationDriver extends OPT_CompilerPhase {
 
   /** Interface */
   public final boolean shouldPerform(OPT_Options options) {
-    return  options.getOptLevel() >= level;
+    return options.getOptLevel() >= level;
   }
 
   public final String getName() {
-    return  "Branch Optimizations";
+    return "Branch Optimizations";
   }
 
   public final boolean printingEnabled(OPT_Options options, boolean before) {
     return false;
-  } 
+  }
 
   /**
    * This phase contains no per-compilation instance fields.
@@ -73,20 +73,20 @@ public abstract class OPT_BranchOptimizationDriver extends OPT_CompilerPhase {
     return this;
   }
 
-
   /**
    * Perform peephole branch optimizations.
-   * 
+   *
    * @param ir the IR to optimize
    */
-  public final void perform(OPT_IR ir) {    
+  public final void perform(OPT_IR ir) {
     perform(ir, true);
   }
 
   public final void perform(OPT_IR ir, boolean renumber) {
-    if (simplify)
+    if (simplify) {
       applySimplify(ir);
-    
+    }
+
     maximizeBasicBlocks(ir);
     if (VM.BuildForIA32) {
       // spans-bb information is used for CMOV insertion
@@ -99,8 +99,9 @@ public abstract class OPT_BranchOptimizationDriver extends OPT_CompilerPhase {
       didSomethingThisTime = removeUnreachableCode(ir);
       didSomething |= didSomethingThisTime;
     }
-    if (didSomething)
+    if (didSomething) {
       maximizeBasicBlocks(ir);
+    }
 
     ir.cfg.compactNodeNumbering();
 
@@ -117,7 +118,7 @@ public abstract class OPT_BranchOptimizationDriver extends OPT_CompilerPhase {
    */
   private static boolean applySimplify(OPT_IR ir) {
     boolean didSomething = false;
-    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); 
+    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks();
          e.hasMoreElements();) {
       OPT_BasicBlock bb = e.next();
       didSomething |= OPT_BranchSimplifier.simplify(bb, ir);
@@ -133,11 +134,11 @@ public abstract class OPT_BranchOptimizationDriver extends OPT_CompilerPhase {
    */
   protected boolean applyPeepholeBranchOpts(OPT_IR ir) {
     boolean didSomething = false;
-    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); 
+    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks();
          e.hasMoreElements();) {
       OPT_BasicBlock bb = e.next();
       if (!bb.isEmpty()) {
-        for (OPT_InstructionEnumeration ie = bb.enumerateBranchInstructions(); 
+        for (OPT_InstructionEnumeration ie = bb.enumerateBranchInstructions();
              ie.hasMoreElements();) {
           OPT_Instruction s = ie.next();
           if (optimizeBranchInstruction(ir, s, bb)) {
@@ -174,8 +175,8 @@ public abstract class OPT_BranchOptimizationDriver extends OPT_CompilerPhase {
 
     // (1) All code in a basic block after an unconditional 
     //     trap instruction is dead.
-    for (OPT_Instruction s = ir.firstInstructionInCodeOrder(); 
-         s != null; 
+    for (OPT_Instruction s = ir.firstInstructionInCodeOrder();
+         s != null;
          s = s.nextInstructionInCodeOrder()) {
       if (Trap.conforms(s)) {
         OPT_Instruction p = s.nextInstructionInCodeOrder();
@@ -199,15 +200,15 @@ public abstract class OPT_BranchOptimizationDriver extends OPT_CompilerPhase {
     entry.sortDFS();
     for (OPT_SpaceEffGraphNode node = entry; node != null;) {
       // save it now before removeFromCFGAndCodeOrder nulls it out!!!
-      OPT_SpaceEffGraphNode nextNode = node.getNext();         
+      OPT_SpaceEffGraphNode nextNode = node.getNext();
       if (!node.dfsVisited()) {
-        OPT_BasicBlock bb = (OPT_BasicBlock)node;
+        OPT_BasicBlock bb = (OPT_BasicBlock) node;
         ir.cfg.removeFromCFGAndCodeOrder(bb);
         result = true;
       }
       node = nextNode;
     }
-    return  result;
+    return result;
   }
 
   /**
@@ -225,21 +226,20 @@ public abstract class OPT_BranchOptimizationDriver extends OPT_CompilerPhase {
     }
   }
 
-
   // Helper functions
-  
+
   /**
    * Given an instruction s, return the first LABEL instruction
    * following s.
    */
   protected final OPT_Instruction firstLabelFollowing(OPT_Instruction s) {
-    for (s = s.nextInstructionInCodeOrder(); s != null; 
+    for (s = s.nextInstructionInCodeOrder(); s != null;
          s = s.nextInstructionInCodeOrder()) {
       if (s.operator() == LABEL) {
-        return  s;
+        return s;
       }
     }
-    return  null;
+    return null;
   }
 
   /**
@@ -247,13 +247,13 @@ public abstract class OPT_BranchOptimizationDriver extends OPT_CompilerPhase {
    * following s
    */
   protected final OPT_Instruction firstRealInstructionFollowing(OPT_Instruction s) {
-    for (s = s.nextInstructionInCodeOrder(); 
-         s != null; 
+    for (s = s.nextInstructionInCodeOrder();
+         s != null;
          s = s.nextInstructionInCodeOrder()) {
       if (s.operator() != LABEL && s.operator() != BBEND) {
-        return  s;
+        return s;
       }
     }
-    return  s;
+    return s;
   }
 }

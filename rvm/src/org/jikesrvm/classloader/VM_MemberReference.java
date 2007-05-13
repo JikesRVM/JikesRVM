@@ -42,8 +42,8 @@ public abstract class VM_MemberReference {
   /**
    * Used to assign ids.  Id 0 is not used to support usage of member reference id's in JNI.
    */
-  private static int nextId = 1; 
-  
+  private static int nextId = 1;
+
   /**
    * The type reference
    */
@@ -82,11 +82,11 @@ public abstract class VM_MemberReference {
       key = new VM_FieldReference(tRef, mn, md);
     }
     VM_MemberReference val = dictionary.get(key);
-    if (val != null)  return val;
+    if (val != null) return val;
     key.id = nextId++;
     VM_TableBasedDynamicLinker.ensureCapacity(key.id);
     if (key.id == members.length) {
-      VM_MemberReference[] tmp = new VM_MemberReference[members.length*2];
+      VM_MemberReference[] tmp = new VM_MemberReference[members.length * 2];
       System.arraycopy(members, 0, tmp, 0, members.length);
       members = tmp;
     }
@@ -94,7 +94,6 @@ public abstract class VM_MemberReference {
     dictionary.add(key);
     return key;
   }
-
 
   /**
    * Given a StringTokenizer currently pointing to the start of a {@link
@@ -107,7 +106,7 @@ public abstract class VM_MemberReference {
     return parse(parser, false);
   }
 
-  public static VM_MemberReference parse(StringTokenizer parser, boolean boot){
+  public static VM_MemberReference parse(StringTokenizer parser, boolean boot) {
     try {
       parser.nextToken(); // discard <
       String clName = parser.nextToken();
@@ -124,10 +123,10 @@ public abstract class VM_MemberReference {
       } else if (clName.equals(VM_ApplicationClassLoader.myName)) {
         cl = VM_ClassLoader.getApplicationClassLoader();
       } else {
-       try {
+        try {
           ClassLoader appCl = VM_ClassLoader.getApplicationClassLoader();
           Class<?> cls = appCl.loadClass(clName.substring(0, clName.indexOf('@')));
-          cl = (ClassLoader)cls.newInstance();
+          cl = (ClassLoader) cls.newInstance();
         } catch (Exception ex) {
           throw new InternalError("Unable to load class with custom class loader: " + ex);
         }
@@ -146,7 +145,7 @@ public abstract class VM_MemberReference {
   //END HRM
 
   @Uninterruptible
-  public static VM_MemberReference getMemberRef(int id) { 
+  public static VM_MemberReference getMemberRef(int id) {
     return members[id];
   }
 
@@ -165,7 +164,7 @@ public abstract class VM_MemberReference {
    * @return the type reference component of this member reference
    */
   @Uninterruptible
-  public final VM_TypeReference getType() { 
+  public final VM_TypeReference getType() {
     return type;
   }
 
@@ -173,7 +172,7 @@ public abstract class VM_MemberReference {
    * @return the member name component of this member reference
    */
   @Uninterruptible
-  public final VM_Atom getName() { 
+  public final VM_Atom getName() {
     return name;
   }
 
@@ -181,7 +180,7 @@ public abstract class VM_MemberReference {
    * @return the descriptor component of this member reference
    */
   @Uninterruptible
-  public final VM_Atom getDescriptor() { 
+  public final VM_Atom getDescriptor() {
     return descriptor;
   }
 
@@ -189,7 +188,7 @@ public abstract class VM_MemberReference {
    * @return the dynamic linking id to use for this member.
    */
   @Uninterruptible
-  public final int getId() { 
+  public final int getId() {
     return id;
   }
 
@@ -197,7 +196,7 @@ public abstract class VM_MemberReference {
    * Is this member reference to a field?
    */
   @Uninterruptible
-  public final boolean isFieldReference() { 
+  public final boolean isFieldReference() {
     return this instanceof VM_FieldReference;
   }
 
@@ -205,7 +204,7 @@ public abstract class VM_MemberReference {
    * Is this member reference to a method?
    */
   @Uninterruptible
-  public final boolean isMethodReference() { 
+  public final boolean isMethodReference() {
     return this instanceof VM_MethodReference;
   }
 
@@ -213,16 +212,16 @@ public abstract class VM_MemberReference {
    * @return this cast to a VM_FieldReference
    */
   @Uninterruptible
-  public final VM_FieldReference asFieldReference() { 
-    return (VM_FieldReference)this;
+  public final VM_FieldReference asFieldReference() {
+    return (VM_FieldReference) this;
   }
 
   /**
    * @return this cast to a VM_MethodReference
    */
   @Uninterruptible
-  public final VM_MethodReference asMethodReference() { 
-    return (VM_MethodReference)this;
+  public final VM_MethodReference asMethodReference() {
+    return (VM_MethodReference) this;
   }
 
   /**
@@ -248,12 +247,11 @@ public abstract class VM_MemberReference {
       return this.asMethodReference().resolve();
     }
   }
-  
-  
+
   /**
    * Is dynamic linking code required to access "this" member when 
    * referenced from "that" method?
-   */ 
+   */
   public final boolean needsDynamicLink(VM_Method that) {
     VM_Member resolvedThis = this.peekResolvedMember();
 
@@ -269,15 +267,15 @@ public abstract class VM_MemberReference {
       // because they execute *after* class has been loaded/resolved/compiled.
       return false;
     }
-    
+
     if (thisClass.isInitialized()) {
       // No dynamic linking code is required to access this member
       // because its size and offset are known and its class's static 
       // initializer has already run.
       return false;
     }
-        
-    if (isFieldReference() && thisClass.isResolved() && 
+
+    if (isFieldReference() && thisClass.isResolved() &&
         thisClass.getClassInitializerMethod() == null) {
       // No dynamic linking code is required to access this field
       // because its size and offset is known and its class has no static
@@ -285,7 +283,7 @@ public abstract class VM_MemberReference {
       // (its default value of zero or null is sufficient).
       return false;
     }
-        
+
     if (VM.writingBootImage && thisClass.isInBootImage()) {
       // Loads, stores, and calls within boot image are compiled without dynamic
       // linking code because all boot image classes are explicitly 
@@ -307,9 +305,9 @@ public abstract class VM_MemberReference {
 
   public final boolean equals(Object other) {
     if (other instanceof VM_MemberReference) {
-      VM_MemberReference that = (VM_MemberReference)other;
+      VM_MemberReference that = (VM_MemberReference) other;
       return type == that.type && name == that.name &&
-        descriptor == that.descriptor;
+             descriptor == that.descriptor;
     } else {
       return false;
     }

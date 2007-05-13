@@ -10,7 +10,7 @@ package org.jikesrvm;
 
 /**
  * Flags that control the behavior of our virtual machine.
- * 
+ *
  * Typically these are properties that can be set from the command line
  * (and thus are NOT final).  All final properties should be 
  * declared in VM_Configuration
@@ -23,19 +23,19 @@ public class VM_Properties extends VM_Options {
   //    - by vm image itself, at execution time
   // The following flags specify which behavior is desired.
   //
-  
+
   /**
    * use classes for boot image generation? (see BootImageWriter)
    */
-  public static boolean writingBootImage; 
+  public static boolean writingBootImage;
   /**
    * use classes for generic java programming?
    */
-  public static boolean runningTool;      
+  public static boolean runningTool;
   /**
    * use classes for running actual VM?
    */
-  public static boolean runningVM;        
+  public static boolean runningVM;
   /**
    * are we in the boot-image-writing portion of boot-image-creation
    */
@@ -83,19 +83,19 @@ public class VM_Properties extends VM_Options {
 
   // Runtime subsystem tracing.
   //
-  public static final boolean TraceDictionaries       = false;
-  public static final boolean TraceStatics            = false;
-  public static final boolean TraceFileSystem         = false;
-  public static final boolean TraceThreads            = false;
-  public static final boolean TraceStackTrace         = false;
+  public static final boolean TraceDictionaries = false;
+  public static final boolean TraceStatics = false;
+  public static final boolean TraceFileSystem = false;
+  public static final boolean TraceThreads = false;
+  public static final boolean TraceStackTrace = false;
 
   // Baseline compiler reference map tracing.
   //
-  public static final boolean TraceStkMaps                  = false;
-  public static final boolean ReferenceMapsStatistics       = false;
-  public static final boolean ReferenceMapsBitStatistics    = false;
+  public static final boolean TraceStkMaps = false;
+  public static final boolean ReferenceMapsStatistics = false;
+  public static final boolean ReferenceMapsBitStatistics = false;
 
-  public static final boolean TraceOnStackReplacement   = false; 
+  public static final boolean TraceOnStackReplacement = false;
 
   /** How much farther? */
   public static final int maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite = 3;

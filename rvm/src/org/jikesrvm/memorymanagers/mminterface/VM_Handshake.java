@@ -30,14 +30,14 @@ import org.vmmagic.pragma.Uninterruptible;
  * @see VM_CollectorThread
  */
 public class VM_Handshake {
-  
+
   /***********************************************************************
    *
    * Class variables
    */
   public static final int verbose = 0;
   static final int LOCKOUT_GC_WORD = 0x0CCCCCCC;
-  
+
   /***********************************************************************
    *
    * Instance variables
@@ -47,10 +47,10 @@ public class VM_Handshake {
   protected boolean completionFlag;
   public int gcTrigger;  // reason for this GC
 
-  public VM_Handshake () {
+  public VM_Handshake() {
     reset();
   }
-  
+
   /**
    * Called by mutators to request a garbage collection and wait for
    * it to complete.
@@ -60,7 +60,7 @@ public class VM_Handshake {
    * the processor until it has completed the collection.
    */
   @Interruptible
-  public void requestAndAwaitCompletion(int why) { 
+  public void requestAndAwaitCompletion(int why) {
     if (request()) {
       gcTrigger = why;
       if (verbose >= 1) VM.sysWriteln("GC Message: VM_Handshake.requestAndAwaitCompletion - yielding");
@@ -70,7 +70,7 @@ public class VM_Handshake {
       if (verbose >= 1) VM.sysWriteln("GC Message: VM_Handshake.requestAndAwaitCompletion - mutator running");
     }
   }
-  
+
   /**
    * Called by mutators to request an asynchronous garbage collection.
    * After initiating a GC (if one is not already initiated), the
@@ -78,12 +78,12 @@ public class VM_Handshake {
    * this call at an otherwise unsafe point.
    */
   @Uninterruptible
-  public void requestAndContinue() { 
+  public void requestAndContinue() {
     request();
   }
 
   @Uninterruptible
-  public void reset() { 
+  public void reset() {
     gcTrigger = Collection.UNKNOWN_GC_TRIGGER;
     requestFlag = false;
     completionFlag = false;
@@ -115,7 +115,7 @@ public class VM_Handshake {
    * processors, until the collector threads re-enable thread switching.
    */
   @Uninterruptible
-  private void initiateCollection() { 
+  private void initiateCollection() {
 
     /* check that scheduler initialization is complete */
     if (!VM_Scheduler.allProcessorsInitialized) {
@@ -139,21 +139,23 @@ public class VM_Handshake {
     /* reset counter for collector threads arriving to participate in
      * the collection */
     VM_CollectorThread.participantCount[0] = 0;
-    
+
     /* reset rendezvous counters to 0, the decision about which
-     * collector threads will participate has moved to the run method
-     * of CollectorThread */
+ * collector threads will participate has moved to the run method
+ * of CollectorThread */
     VM_CollectorThread.gcBarrier.resetRendezvous();
 
     /* Deque and schedule collector threads on ALL RVM Processors.
      */
-    if (verbose >= 1) 
+    if (verbose >= 1) {
       VM.sysWriteln("GC Message: VM_Handshake.initiateCollection: scheduling collector threads");
+    }
     VM_Scheduler.collectorMutex.lock();
-    if (VM_Scheduler.collectorQueue.length() != maxCollectorThreads) 
-      VM.sysWriteln("GC Error: Expected ", maxCollectorThreads, 
-                    " GC threads.   Found ", 
+    if (VM_Scheduler.collectorQueue.length() != maxCollectorThreads) {
+      VM.sysWriteln("GC Error: Expected ", maxCollectorThreads,
+                    " GC threads.   Found ",
                     VM_Scheduler.collectorQueue.length());
+    }
     while (VM_Scheduler.collectorQueue.length() > 0) {
       VM_Thread t = VM_Scheduler.collectorQueue.dequeue();
       t.schedule();
@@ -168,18 +170,18 @@ public class VM_Handshake {
    * @return The number of GC threads.
    */
   @Uninterruptible
-  private int waitForPrecedingGC() { 
+  private int waitForPrecedingGC() {
     /*
-     * Get the number of GC threads.  Include NativeDaemonProcessor
-     * collector thread in the count.  If it exists, check for null to
-     * allow builds without a NativeDaemon (see VM_Scheduler)
-     */
+    * Get the number of GC threads.  Include NativeDaemonProcessor
+    * collector thread in the count.  If it exists, check for null to
+    * allow builds without a NativeDaemon (see VM_Scheduler)
+    */
     int maxCollectorThreads = VM_Scheduler.numProcessors;
-    
+
     /* Wait for all gc threads to finish preceeding collection cycle */
     if (verbose >= 1) {
-        VM.sysWrite("GC Message: VM_Handshake.initiateCollection ");
-        VM.sysWriteln("checking if previous collection is finished");
+      VM.sysWrite("GC Message: VM_Handshake.initiateCollection ");
+      VM.sysWriteln("checking if previous collection is finished");
     }
     int count = 0;
     while (true) {
@@ -193,20 +195,23 @@ public class VM_Handshake {
       }
       VM_Scheduler.collectorMutex.unlock();
       if (len < maxCollectorThreads) {
-        if (verbose >= 1) VM.sysWrite("GC Message: VM_Handshake.initiateCollection waiting for previous collection to finish");
+        if (verbose >= 1) {
+          VM.sysWrite("GC Message: VM_Handshake.initiateCollection waiting for previous collection to finish");
+        }
         lock.release();   // release lock so other threads can make progress
         VM_Thread.yield();
         lock.acquire();   // acquire lock to make progress
-      } else 
+      } else {
         break;
+      }
     }
     return maxCollectorThreads;
   }
 
   @Uninterruptible
-  private void complete() { 
+  private void complete() {
     for (int i = 1; i <= VM_Scheduler.numProcessors; i++) {
-        VM_Scheduler.processors[i].unblockIfBlockedInC();
+      VM_Scheduler.processors[i].unblockIfBlockedInC();
     }
   }
 
@@ -219,17 +224,19 @@ public class VM_Handshake {
    * @return true if the completion flag is not already set.
    */
   @Uninterruptible
-  private boolean request() { 
+  private boolean request() {
     lock.acquire();
     if (completionFlag) {
-      if (verbose >= 1)
+      if (verbose >= 1) {
         VM.sysWriteln("GC Message: mutator: already completed");
+      }
       lock.release();
       return false;
     }
     if (requestFlag) {
-      if (verbose >= 1)
+      if (verbose >= 1) {
         VM.sysWriteln("GC Message: mutator: already in progress");
+      }
     } else {
       // first mutator initiates collection by making all gc threads
       // runnable at high priority
@@ -237,11 +244,10 @@ public class VM_Handshake {
       requestFlag = true;
       initiateCollection();
     }
-    lock.release();  
+    lock.release();
     return true;
   }
 
-  
   /**
    * Set the completion flag that indicates the collection has
    * completed.  Called by a collector thread after the collection has
@@ -252,10 +258,11 @@ public class VM_Handshake {
    * @see VM_CollectorThread
    */
   @Uninterruptible
-  void notifyCompletion() { 
+  void notifyCompletion() {
     lock.acquire();
-    if (verbose >= 1)
+    if (verbose >= 1) {
       VM.sysWriteln("GC Message: VM_Handshake.notifyCompletion");
+    }
     complete();
     completionFlag = true;
     lock.release();

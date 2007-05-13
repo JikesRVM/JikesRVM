@@ -13,9 +13,6 @@ import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.OSR_OnStackReplacementEvent;
 import org.jikesrvm.adaptive.OSR_OrganizerThread;
 import org.jikesrvm.adaptive.database.methodsamples.VM_MethodCountData;
-import org.jikesrvm.adaptive.recompilation.VM_CompilationThread;
-import org.jikesrvm.adaptive.recompilation.VM_CompilerDNA;
-import org.jikesrvm.adaptive.recompilation.VM_InvocationCounts;
 import org.jikesrvm.adaptive.measurements.listeners.VM_EdgeListener;
 import org.jikesrvm.adaptive.measurements.listeners.VM_YieldCounterListener;
 import org.jikesrvm.adaptive.measurements.organizers.VM_AccumulatingMethodSampleOrganizer;
@@ -23,6 +20,9 @@ import org.jikesrvm.adaptive.measurements.organizers.VM_DecayOrganizer;
 import org.jikesrvm.adaptive.measurements.organizers.VM_DynamicCallGraphOrganizer;
 import org.jikesrvm.adaptive.measurements.organizers.VM_MethodSampleOrganizer;
 import org.jikesrvm.adaptive.measurements.organizers.VM_Organizer;
+import org.jikesrvm.adaptive.recompilation.VM_CompilationThread;
+import org.jikesrvm.adaptive.recompilation.VM_CompilerDNA;
+import org.jikesrvm.adaptive.recompilation.VM_InvocationCounts;
 import org.jikesrvm.adaptive.util.VM_AOSGenerator;
 import org.jikesrvm.adaptive.util.VM_AOSLogging;
 import org.jikesrvm.adaptive.util.VM_AOSOptions;
@@ -48,10 +48,11 @@ public class VM_ControllerThread extends VM_Thread {
    * constructor
    * @param sentinel   An object to signal when up and running
    */
-  VM_ControllerThread(Object sentinel)  { 
-    this.sentinel = sentinel; 
+  VM_ControllerThread(Object sentinel) {
+    this.sentinel = sentinel;
     makeDaemon(true);
   }
+
   private Object sentinel;
 
   /**
@@ -61,7 +62,6 @@ public class VM_ControllerThread extends VM_Thread {
    */
   private VM_DynamicCallGraphOrganizer dcgOrg;
 
-  
   /**
    * This method is the entry point to the controller, it is called when
    * the controllerThread is created.
@@ -72,8 +72,9 @@ public class VM_ControllerThread extends VM_Thread {
 
     // Bring up the logging system
     VM_AOSLogging.boot();
-    if (VM_Controller.options.ENABLE_ADVICE_GENERATION) 
+    if (VM_Controller.options.ENABLE_ADVICE_GENERATION) {
       VM_AOSGenerator.boot();
+    }
     VM_AOSLogging.controllerStarted();
 
     // Create measurement entities that are NOT related to 
@@ -89,8 +90,8 @@ public class VM_ControllerThread extends VM_Thread {
       return; // controller thread exits.
     }
 
-    if ((VM_Controller.options.ENABLE_REPLAY_COMPILE) 
-        ||(VM_Controller.options.ENABLE_PRECOMPILE)) { 
+    if ((VM_Controller.options.ENABLE_REPLAY_COMPILE)
+        || (VM_Controller.options.ENABLE_PRECOMPILE)) {
       // if we want to do precompile, we need to initial optimization plans
       // just allow the advice to be the max opt level 2
       VM_Controller.options.MAX_OPT_LEVEL = 2;
@@ -117,7 +118,7 @@ public class VM_ControllerThread extends VM_Thread {
           VM_Controller.stop();
         }
         Object event = VM_Controller.controllerInputQueue.deleteMin();
-        ((OSR_OnStackReplacementEvent)event).process();
+        ((OSR_OnStackReplacementEvent) event).process();
       }
 
     }
@@ -154,21 +155,21 @@ public class VM_ControllerThread extends VM_Thread {
         VM_Controller.stop();
       }
       Object event = VM_Controller.controllerInputQueue.deleteMin();
-      ((VM_ControllerInputEvent)event).process();
+      ((VM_ControllerInputEvent) event).process();
     }
   }
 
   // Now that we're done initializing, Schedule all the organizer threads
   // and signal the sentinel object.
   private void controllerInitDone() {
-    for (Enumeration<VM_Organizer> e = VM_Controller.organizers.elements(); 
-         e.hasMoreElements(); ) {
+    for (Enumeration<VM_Organizer> e = VM_Controller.organizers.elements();
+         e.hasMoreElements();) {
       VM_Organizer o = e.nextElement();
       o.start();
     }
 
     try {
-      synchronized(sentinel) {
+      synchronized (sentinel) {
         sentinel.notify();
       }
     } catch (Exception e) {
@@ -177,14 +178,12 @@ public class VM_ControllerThread extends VM_Thread {
     }
   }
 
-  
   /**
    * Called when the controller thread is about to wait on 
    * VM_Controller.controllerInputQueue
    */
   public void aboutToWait() {
   }
-
 
   /**
    * Called when the controller thread is woken after waiting on 
@@ -193,7 +192,6 @@ public class VM_ControllerThread extends VM_Thread {
   public void doneWaiting() {
     VM_ControllerMemory.incrementNumAwoken();
   }
-
 
   ///////////////////////
   // Initialization.
@@ -219,7 +217,7 @@ public class VM_ControllerThread extends VM_Thread {
       VM_Controller.organizers.addElement(dcgOrg);
     }
   }
-  
+
   /**
    * Create profiling entities that are independent of whether or not
    * adaptive recompilation is actually enabled.
@@ -233,7 +231,6 @@ public class VM_ControllerThread extends VM_Thread {
       createDynamicCallGraphOrganizer();
     }
   }
-
 
   /**
    *  Create the organizerThreads and schedule them
@@ -249,20 +246,19 @@ public class VM_ControllerThread extends VM_Thread {
       VM_Controller.organizers.addElement(new VM_MethodSampleOrganizer(opts.FILTER_OPT_LEVEL));
       // Additional set up for feedback directed inlining
       if (opts.ADAPTIVE_INLINING) {
-        VM_Organizer decayOrganizer = 
-          new VM_DecayOrganizer(new VM_YieldCounterListener(opts.DECAY_FREQUENCY));
+        VM_Organizer decayOrganizer =
+            new VM_DecayOrganizer(new VM_YieldCounterListener(opts.DECAY_FREQUENCY));
         VM_Controller.organizers.addElement(decayOrganizer);
         createDynamicCallGraphOrganizer();
       }
-    }    
+    }
 
-    if ((!VM_Controller.options.ENABLE_REPLAY_COMPILE) 
-        &&(!VM_Controller.options.ENABLE_PRECOMPILE)) { 
+    if ((!VM_Controller.options.ENABLE_REPLAY_COMPILE)
+        && (!VM_Controller.options.ENABLE_PRECOMPILE)) {
       VM_Controller.osrOrganizer = new OSR_OrganizerThread();
       VM_Controller.osrOrganizer.start();
     }
   }
-
 
   /**
    * Final report

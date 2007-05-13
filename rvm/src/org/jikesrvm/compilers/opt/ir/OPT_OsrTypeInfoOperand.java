@@ -8,6 +8,7 @@
  */
 
 package org.jikesrvm.compilers.opt.ir;
+
 import java.util.Arrays;
 /*
  * An OPT_OsrTypeInfoOperand object keeps type information of locals
@@ -32,13 +33,13 @@ public final class OPT_OsrTypeInfoOperand extends OPT_Operand {
 
   /**
    * Return a new operand that is semantically equivalent to <code>this</code>.
-   * 
+   *
    * @return a copy of <code>this</code>
    */
   public OPT_Operand copy() {
     return new OPT_OsrTypeInfoOperand(localTypeCodes, stackTypeCodes);
   }
-  
+
   /**
    * Are two operands semantically equivalent?
    *
@@ -50,16 +51,17 @@ public final class OPT_OsrTypeInfoOperand extends OPT_Operand {
   public boolean similar(OPT_Operand op) {
     boolean result = true;
 
-    if (!(op instanceof OPT_OsrTypeInfoOperand))
+    if (!(op instanceof OPT_OsrTypeInfoOperand)) {
       return false;
+    }
 
-    OPT_OsrTypeInfoOperand other = (OPT_OsrTypeInfoOperand)op;
-    
-    result = Arrays.equals(this.localTypeCodes, 
-                           other.localTypeCodes) 
-          && Arrays.equals(this.stackTypeCodes, 
-                           other.stackTypeCodes);
-    
+    OPT_OsrTypeInfoOperand other = (OPT_OsrTypeInfoOperand) op;
+
+    result = Arrays.equals(this.localTypeCodes,
+                           other.localTypeCodes)
+             && Arrays.equals(this.stackTypeCodes,
+                              other.stackTypeCodes);
+
     return result;
   }
 
@@ -70,13 +72,13 @@ public final class OPT_OsrTypeInfoOperand extends OPT_Operand {
    */
   public String toString() {
     StringBuilder buf = new StringBuilder("OsrTypeInfo(");
-    for (int i=0, n=localTypeCodes.length; i<n; i++) {
-      buf.append((char)localTypeCodes[i]);
+    for (int i = 0, n = localTypeCodes.length; i < n; i++) {
+      buf.append((char) localTypeCodes[i]);
     }
 
     buf.append(",");
-    for (int i=0, n=stackTypeCodes.length; i<n; i++) {
-      buf.append((char)stackTypeCodes[i]);
+    for (int i = 0, n = stackTypeCodes.length; i < n; i++) {
+      buf.append((char) stackTypeCodes[i]);
     }
 
     buf.append(")");

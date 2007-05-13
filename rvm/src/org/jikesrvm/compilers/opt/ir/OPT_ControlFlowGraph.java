@@ -74,13 +74,13 @@ public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
   /**
    * Return the entry node of the FCFG.  All reachable nodes
    * can be found by doing a forward traversal from this node.
-   * 
+   *
    * @return the entry node of the FCFG
    */
   public OPT_BasicBlock entry() {
-    return (OPT_BasicBlock)_firstNode;
+    return (OPT_BasicBlock) _firstNode;
   }
-  
+
   /**
    * Return the "exit" node of the FCFG.  In a perfect world,
    * we'd have the invariant that all nodes that are reachable in a 
@@ -89,35 +89,32 @@ public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
    * but that's currently not the case.  Not all forward reachable nodes can
    * be found by going backwards from exit.  The issue is infinite loops 
    * (loops without normal exits).
-   * 
+   *
    * @return the exit node of the FCFG
    */
   public OPT_BasicBlock exit() {
     return _exitNode;
   }
 
-
   /**
    * Return the first basic block with respect to 
    * the current code linearization order.
-   * 
+   *
    * @return the first basic block in the code order
    */
   public OPT_BasicBlock firstInCodeOrder() {
-    return (OPT_BasicBlock)_firstNode;
+    return (OPT_BasicBlock) _firstNode;
   }
-
 
   /**
    * Return the last basic block with respect to 
    * the current code linearization order.
-   * 
+   *
    * @return the last basic block in the code order
    */
   public OPT_BasicBlock lastInCodeOrder() {
-    return (OPT_BasicBlock)_lastNode;
+    return (OPT_BasicBlock) _lastNode;
   }
-
 
   /**
    * Return the node to start with for a topological traversal
@@ -125,15 +122,16 @@ public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
    * Override {@link OPT_SpaceEffGraph#startNode(boolean)} 
    * to use entry and exit; we want topological traversals to be with 
    * respect to FCFG edges not the code linearization order
-   * 
+   *
    * @param forward  true for forward traversal, false for reverse
    * @return the node to use as the start of a topological traversal
    */
   public OPT_SortedGraphNode startNode(boolean forward) {
-    if (forward)
+    if (forward) {
       return entry();
-    else
+    } else {
       return exit();
+    }
   }
 
   /**
@@ -189,7 +187,6 @@ public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
     return firstNode;
   }
 
-
   /**
    * @param number starting value for assigning node numbers
    */
@@ -198,20 +195,18 @@ public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
     numberOfNodes = number;
   }
 
-
   /**
    * Add an FCFG edge from the given basic block to the exit node.
-   * 
+   *
    * @param bb basic block to link to the exit
    */
   public void linkToExit(OPT_BasicBlock bb) {
-     bb.insertOut(exit());
+    bb.insertOut(exit());
   }
-
 
   /**
    * Remove a basic block from both the CFG and code ordering
-   * 
+   *
    * @param bb the block to remove
    */
   public void removeFromCFGAndCodeOrder(OPT_BasicBlock bb) {
@@ -219,9 +214,9 @@ public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
     removeFromCodeOrder(bb);
   }
 
-  /** 
+  /**
    * Remove a basic block from the FCFG, leaving the code ordering unchanged.
-   * 
+   *
    * @param bb the block to remove
    */
   public void removeFromCFG(OPT_BasicBlock bb) {
@@ -245,13 +240,12 @@ public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
     bb.remove();
   }
 
-
   /**
    * Insert a block 'toAdd' not currently in the code ordering after
    * a block 'old' that is currently in the code ordering. 
    * If necessary, _lastNode is updated.
    * No impact on FCFG edges.
-   * 
+   *
    * @param old a block currently in the code ordering
    * @param toAdd a block to add after old in the code ordering
    */
@@ -269,13 +263,12 @@ public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
     }
   }
 
-
   /**
    * Insert a block 'toAdd' not currently in the code ordering before
    * a block 'old' that is currently in the code ordering. 
    * If necessary, _firstNode is updated.
    * No impact on FCFG edges.
-   * 
+   *
    * @param old a block currently in the code ordering
    * @param toAdd a block to add before old in the code ordering
    */
@@ -292,7 +285,6 @@ public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
       toAdd.append(old);
     }
   }
-    
 
   /**
    * Add a block not currently in the code ordering to the end of the 
@@ -313,12 +305,11 @@ public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
     }
   }
 
-
   /**
    * Make BB1 follow BB2 in the code ordering.
    * If _lastNode == BB1, then update BB1 appropriately
    * No impact on FCFG edges.
-   * 
+   *
    * @param bb1 a basic block
    * @param bb2 the basic block to follow bb1 in the code ordering
    */
@@ -330,7 +321,6 @@ public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
       _lastNode = bb2;
     }
   }
-
 
   /**
    * Create a break in the code order between bb1 and bb2
@@ -370,29 +360,34 @@ public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
   // Enumerate the nodes in the CFG, casting them to whatever concrete type
   // the caller wants.
   private static final class NodeEnumeration<T> implements Enumeration<T> {
-    private OPT_SpaceEffGraphNode  _node;
-    private OPT_SpaceEffGraphNode  _end;
-    public NodeEnumeration(OPT_ControlFlowGraph cfg) { 
+    private OPT_SpaceEffGraphNode _node;
+    private OPT_SpaceEffGraphNode _end;
+
+    public NodeEnumeration(OPT_ControlFlowGraph cfg) {
       _node = cfg.entry();
-      _end=cfg.exit(); 
+      _end = cfg.exit();
     }
+
     public boolean hasMoreElements() { return _node != null; }
-    @SuppressWarnings("unchecked") // We cast to whatever the concrete type of the graph is
+
+    @SuppressWarnings("unchecked")
+    // We cast to whatever the concrete type of the graph is
     public T nextElement() {
       OPT_SpaceEffGraphNode n = _node;
       _node = n.getNext();
-      if ((n != _end) && (_node == null)) 
+      if ((n != _end) && (_node == null)) {
         _node = _end;
-      return (T)n;
+      }
+      return (T) n;
     }
   }
 
   // implements OPT_VCGGraph
   public Enumeration<OPT_VCGNode> nodes() { return new NodeEnumeration<OPT_VCGNode>(this); }
-  
+
   // implements OPT_VCGGraph
   public Enumeration<OPT_GraphNode> graphNodes() { return new NodeEnumeration<OPT_GraphNode>(this); }
-  
+
   // implements OPT_VCGGraph
   public Enumeration<OPT_BasicBlock> basicBlocks() { return new NodeEnumeration<OPT_BasicBlock>(this); }
 }

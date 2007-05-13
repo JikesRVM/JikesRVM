@@ -15,9 +15,9 @@ package org.jikesrvm.osr;
 
 public class BC_DoubleStore extends OSR_PseudoBytecode {
   private int bsize;
-  private byte[] codes; 
+  private byte[] codes;
   private int lnum;
-  
+
   public BC_DoubleStore(int local) {
     this.lnum = local;
     if (local <= 255) {
@@ -30,7 +30,7 @@ public class BC_DoubleStore extends OSR_PseudoBytecode {
   }
 
   public byte[] getBytes() {
-    return codes;        
+    return codes;
   }
 
   public int getSize() {
@@ -38,10 +38,10 @@ public class BC_DoubleStore extends OSR_PseudoBytecode {
   }
 
   public int stackChanges() {
-        return -2;
+    return -2;
   }
 
   public String toString() {
-    return "dstore "+lnum;
+    return "dstore " + lnum;
   }
 }

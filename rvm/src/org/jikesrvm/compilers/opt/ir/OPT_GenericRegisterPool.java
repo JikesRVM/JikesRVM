@@ -15,12 +15,12 @@ import org.jikesrvm.classloader.VM_TypeReference;
 /**
  * Pool of symbolic registers.
  * Each IR contains has exactly one register pool object associated with it.
- * 
+ *
  * @see OPT_Register
  */
 public class OPT_GenericRegisterPool extends OPT_AbstractRegisterPool {
 
-  protected OPT_PhysicalRegisterSet physical = new OPT_PhysicalRegisterSet(); 
+  protected OPT_PhysicalRegisterSet physical = new OPT_PhysicalRegisterSet();
 
   public OPT_PhysicalRegisterSet getPhysicalRegisterSet() {
     return physical;
@@ -28,7 +28,7 @@ public class OPT_GenericRegisterPool extends OPT_AbstractRegisterPool {
 
   /**
    * Initializes a new register pool for the method meth.
-   * 
+   *
    * @param meth the VM_Method of the outermost method
    */
   protected OPT_GenericRegisterPool(VM_Method meth) {
@@ -48,27 +48,27 @@ public class OPT_GenericRegisterPool extends OPT_AbstractRegisterPool {
 
   /**
    * Get the Framepointer (FP)
-   * 
+   *
    * @return the FP register
-   */ 
+   */
   public OPT_Register getFP() {
     return physical.getFP();
   }
 
   /**
    * Get a temporary that represents the FP register
-   * 
+   *
    * @return the temp
-   */ 
+   */
   public OPT_RegisterOperand makeFPOp() {
     return new OPT_RegisterOperand(getFP(), VM_TypeReference.Address);
   }
 
   /**
    * Get a temporary that represents the PR register
-   * 
+   *
    * @return the temp
-   */ 
+   */
   public OPT_RegisterOperand makePROp() {
     return new OPT_RegisterOperand(physical.getPR(), VM_TypeReference.VM_Processor);
   }

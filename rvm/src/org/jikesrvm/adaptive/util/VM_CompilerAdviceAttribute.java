@@ -33,7 +33,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
  * <li><code>&lt;advice></code> <i>in </i> The integer value for the
  * compiler, as given in VM_CompilerInfo</li>
  * <li><code>&lt;optLevel></code> <i>in </i> The optimization level when 
-   the Opt compiler is used
+ the Opt compiler is used
  * </ul>
  *
  *
@@ -42,7 +42,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
  */
 public class VM_CompilerAdviceAttribute {
 
-  private static HashMap<VM_CompilerAdviceAttribute,VM_CompilerAdviceAttribute> attribMap = null;
+  private static HashMap<VM_CompilerAdviceAttribute, VM_CompilerAdviceAttribute> attribMap = null;
   private static VM_CompilerAdviceAttribute defaultAttr = null;
   private static VM_CompilerAdviceAttribute tempAttr = null;
   private static boolean hasAdvice = false;
@@ -50,25 +50,25 @@ public class VM_CompilerAdviceAttribute {
   private VM_Atom className;  // The name of the class for the compiler site 
   private VM_Atom methodName; // The name of the method for the compiler site
   private VM_Atom methodSig;  // The signature of the method
-  private int     compiler;   // The compiler to use for the method
-  private int     optLevel;   // The optimization level
+  private int compiler;   // The compiler to use for the method
+  private int optLevel;   // The optimization level
 
   /**
    * Initialization of key compiler advice data structure.  
    */
-  public static void postBoot () {
-    attribMap = new HashMap<VM_CompilerAdviceAttribute,VM_CompilerAdviceAttribute>();
+  public static void postBoot() {
+    attribMap = new HashMap<VM_CompilerAdviceAttribute, VM_CompilerAdviceAttribute>();
 
     // With defaultAttr set up this way, methods will be BASELINE compiled
     // *unless* they appear in the advice file. If defaultAttr is set to
     // null, then methods will be compiled in the default way for the
     // current build configuration *unless* they appear in the advice file.
     defaultAttr =
-      new VM_CompilerAdviceAttribute(null, null, null, 
-                                     VM_CompiledMethod.BASELINE);
+        new VM_CompilerAdviceAttribute(null, null, null,
+                                       VM_CompiledMethod.BASELINE);
     tempAttr =
-      new VM_CompilerAdviceAttribute(null, null, null, 
-                                     VM_CompiledMethod.BASELINE);
+        new VM_CompilerAdviceAttribute(null, null, null,
+                                       VM_CompiledMethod.BASELINE);
   }
 
   /**
@@ -117,14 +117,14 @@ public class VM_CompilerAdviceAttribute {
    * @see VM_CompilerAdviceInfoReader
    */
   public VM_CompilerAdviceAttribute(VM_Atom className, VM_Atom methodName,
-				   VM_Atom methodSig, int  compiler) {
-    this.className  = className;
+                                    VM_Atom methodSig, int compiler) {
+    this.className = className;
     this.methodName = methodName;
-    this.methodSig  = methodSig;
-    this.compiler   = compiler;
-    this.optLevel   = -1;
+    this.methodSig = methodSig;
+    this.compiler = compiler;
+    this.optLevel = -1;
   }
-  
+
   /**
    * Constructor
    *
@@ -137,23 +137,23 @@ public class VM_CompilerAdviceAttribute {
    * @see VM_CompilerAdviceInfoReader
    */
   public VM_CompilerAdviceAttribute(VM_Atom className, VM_Atom methodName,
-                                    VM_Atom methodSig, int  compiler, 
+                                    VM_Atom methodSig, int compiler,
                                     int optLevel) {
-    this.className  = className;
+    this.className = className;
     this.methodName = methodName;
-    this.methodSig  = methodSig;
-    this.compiler   = compiler;
-    this.optLevel   = optLevel;
+    this.methodSig = methodSig;
+    this.compiler = compiler;
+    this.optLevel = optLevel;
   }
-  
+
   /**
    * Stringify this instance
-   * 
+   *
    * @return The state of this instance expressed as a string
    */
   public String toString() {
-    return ("Compiler advice: " + className + " " + methodName + " " 
-	    + methodSig + " " + compiler + "("+optLevel+")");
+    return ("Compiler advice: " + className + " " + methodName + " "
+            + methodSig + " " + compiler + "(" + optLevel + ")");
   }
 
   /**
@@ -170,7 +170,7 @@ public class VM_CompilerAdviceAttribute {
     if (compilerAdviceList == null) return;
 
     hasAdvice = true;
-    
+
     // iterate over each element of the list
     ListIterator<VM_CompilerAdviceAttribute> it = compilerAdviceList.listIterator();
     while (it.hasNext()) {
@@ -189,16 +189,17 @@ public class VM_CompilerAdviceAttribute {
    * @return Attribute advice for that site or null if none is found.
    */
   public static VM_CompilerAdviceAttribute getCompilerAdviceInfo(VM_Method method) {
-    tempAttr.className  = method.getDeclaringClass().getDescriptor();
+    tempAttr.className = method.getDeclaringClass().getDescriptor();
     tempAttr.methodName = method.getName();
-    tempAttr.methodSig  = method.getDescriptor();
+    tempAttr.methodSig = method.getDescriptor();
     VM_CompilerAdviceAttribute value =
         attribMap.get(tempAttr);
 
-    if (value == null)
+    if (value == null) {
       return defaultAttr;
-    else
+    } else {
       return value;
+    }
   }
 
   public static Collection<VM_CompilerAdviceAttribute> values() {
@@ -208,23 +209,25 @@ public class VM_CompilerAdviceAttribute {
   public static boolean hasAdvice() {
     return hasAdvice;
   }
-  
+
   public boolean equals(Object obj) {
-    if (super.equals(obj))
+    if (super.equals(obj)) {
       return true;
+    }
 
     if (obj instanceof VM_CompilerAdviceAttribute) {
-      VM_CompilerAdviceAttribute attr = (VM_CompilerAdviceAttribute)obj;
-      if (attr.className  == className &&
+      VM_CompilerAdviceAttribute attr = (VM_CompilerAdviceAttribute) obj;
+      if (attr.className == className &&
           attr.methodName == methodName &&
-          attr.methodSig  == methodSig)
+          attr.methodSig == methodSig) {
         return true;
+      }
     }
     return false;
   }
 
   public int hashCode() {
-    return className.hashCode() ^ methodName.hashCode() 
+    return className.hashCode() ^ methodName.hashCode()
            ^ methodSig.hashCode();
   }
 }

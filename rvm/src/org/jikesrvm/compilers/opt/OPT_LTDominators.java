@@ -20,7 +20,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
  * TOPLAS 1(1), July 1979.  This implementation uses path compression and
  * results in a O(e * alpha(e,n)) complexity, where e is the number of
  * edges in the CFG and n is the number of nodes.
- *  
+ *
  * Sources: TOPLAS article, Muchnick book
  *
  * The current implementation (4/25/00) does not include the EXIT node
@@ -61,9 +61,9 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
   public static void perform(OPT_IR ir, boolean forward, boolean unfactor) {
     if (ir.hasReachableExceptionHandlers()) {
       if (unfactor) {
-        ir.unfactor(); 
+        ir.unfactor();
       } else {
-        throw  new OPT_OperationNotImplementedException(
+        throw new OPT_OperationNotImplementedException(
             "IR with exception handlers");
       }
     }
@@ -82,7 +82,6 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
     OPT_LTDominators dom = new OPT_LTDominators(ir, forward);
     dom.analyze(ir);
   }
-  
 
   /**
    * The constructor, called by the perform method
@@ -97,11 +96,10 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
   /**
    * analyze dominators
    */
-  protected void analyze(OPT_IR ir)
-  {
-    if (DEBUG) { 
-      System.out.println("   Here's the CFG for method: "+ ir.method.getName()
-                         +"\n"+ ir.cfg);
+  protected void analyze(OPT_IR ir) {
+    if (DEBUG) {
+      System.out.println("   Here's the CFG for method: " + ir.method.getName()
+                         + "\n" + ir.cfg);
     }
 
     // Step 1: Perform a DFS numbering
@@ -118,29 +116,27 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
     //    number of the node's semidominator.
     step3();
 
-    if (DEBUG) { 
+    if (DEBUG) {
       printResults(ir);
     }
     cfg = null;                 // no longer need a pointer to the cfg
   }
 
-
   /**
    * Check to make sure all nodes were reached
    */
-  private void checkReachability (OPT_IR ir)
-  {
+  private void checkReachability(OPT_IR ir) {
     if (!forward) {
       if (DFSCounter != cfg.numberOfNodes()) {
-          VM.sysWrite(" *** Warning ***\n CFG for method "+ ir.method.getName()
-                      + " in class " + ir.method.getDeclaringClass()
-                      + " has unreachable nodes.\n");
+        VM.sysWrite(" *** Warning ***\n CFG for method " + ir.method.getName()
+                    + " in class " + ir.method.getDeclaringClass()
+                    + " has unreachable nodes.\n");
         VM.sysWrite(" Assuming pessimistic results in dominators computation\n"
                     + " for unreachable nodes.\n");
       }
     }
   }
-  
+
   /**
    *  The goal of this step is to perform a DFS numbering on the CFG,
    *  starting at the root.  The exit node is not included.
@@ -165,16 +161,16 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
       }
     }
 
-    DFS ();
-    
-    if (DEBUG) { 
-      System.out.println("DFSCounter: "+ DFSCounter +", CFG Nodes: "+
-                         cfg.numberOfNodes()); 
+    DFS();
+
+    if (DEBUG) {
+      System.out.println("DFSCounter: " + DFSCounter + ", CFG Nodes: " +
+                         cfg.numberOfNodes());
       printDFSNumbers();
     }
   }
 
-  private void DFS () { DFS(getFirstNode()); }
+  private void DFS() { DFS(getFirstNode()); }
 
   /**
    * Get the first node, either entry or exit
@@ -248,14 +244,14 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
     // push node on to the emulated activation stack
     push(block);
 
-  recurse:
+    recurse:
     while (!empty()) {
 
       block = peek();
-      if (DEBUG) { System.out.println(" Processing (peek)" + block);   }
+      if (DEBUG) { System.out.println(" Processing (peek)" + block); }
 
       if (block == null) {
-        if (DEBUG) { System.out.println(" Popping");   }
+        if (DEBUG) { System.out.println(" Popping"); }
         pop();   // return
         continue;
       }
@@ -266,7 +262,7 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
       //
       // However, it really shouldn't be in the CFG, if it isn't a node!
       if (forward && block == cfg.exit()) {
-        if (DEBUG) { System.out.println(" Popping");   }
+        if (DEBUG) { System.out.println(" Popping"); }
         pop();   // return
         continue;
       }
@@ -275,14 +271,14 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
       e = OPT_LTDominatorInfo.getInfo(block).getEnum();
 
       if (e == null) {
-        if (DEBUG) { System.out.println(" Initial processing of " + block);   }
+        if (DEBUG) { System.out.println(" Initial processing of " + block); }
 
         DFSCounter++;
         OPT_LTDominatorInfo.getInfo(block).setSemiDominator(DFSCounter);
         vertex[DFSCounter] = block;
         e = getNextNodes(block);
       } else {
-        if (DEBUG) { System.out.println(" Resuming processing of " + block);   }
+        if (DEBUG) { System.out.println(" Resuming processing of " + block); }
       }
 
       while (e.hasMoreElements()) {
@@ -301,22 +297,22 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
           // save the enumeration state for resumption later
           OPT_LTDominatorInfo.getInfo(block).setEnum(e);
 
-          if (DEBUG) { System.out.println(" Pushing"+ next);   }
+          if (DEBUG) { System.out.println(" Pushing" + next); }
           push(next);
-          continue recurse;  
+          continue recurse;
         }
       }           // while more nexts
       // "Pop" from the emulated activiation stack
-      if (DEBUG) { System.out.println(" Popping");   }
+      if (DEBUG) { System.out.println(" Popping"); }
       pop();
     }  // while stack not empty loop
-  }  
+  }
 
   /**
    *  This is the heart of the algorithm.  See sources for details.
    */
   private void step2() {
-    if (DEBUG) { System.out.println(" ******* Beginning STEP 2 *******\n");  }
+    if (DEBUG) { System.out.println(" ******* Beginning STEP 2 *******\n"); }
 
     // Visit each node in reverse DFS order, except for the root, which
     // has number 1
@@ -326,13 +322,13 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
       OPT_BasicBlock block = vertex[i];
       OPT_LTDominatorInfo blockInfo = OPT_LTDominatorInfo.getInfo(block);
 
-      if (DEBUG) { System.out.println(" Processing: "+ block +"\n"); }
+      if (DEBUG) { System.out.println(" Processing: " + block + "\n"); }
 
       // visit each predecessor
       OPT_BasicBlockEnumeration e = getPrevNodes(block);
       while (e.hasMoreElements()) {
         OPT_BasicBlock prev = e.next();
-        if (DEBUG) {  System.out.println("    Inspecting prev: " + prev);   }
+        if (DEBUG) { System.out.println("    Inspecting prev: " + prev); }
         OPT_BasicBlock u = EVAL(prev);
         // if semi(u) < semi(block) then semi(block) = semi(u)
         // u may be part of infinite loop and thus, is unreachable from the exit node.
@@ -344,14 +340,14 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
 
       // add "block" to bucket(vertex(semi(block)));
       OPT_LTDominatorInfo.getInfo(vertex[blockInfo.getSemiDominator()]).
-                                                            addToBucket(block);
+          addToBucket(block);
 
       // LINK(parent(block), block)
       LINK(blockInfo.getParent(), block);
 
       // foreach block2 in bucket(parent(block)) do
-      java.util.Iterator<OPT_BasicBlock> bucketEnum = 
-        OPT_LTDominatorInfo.getInfo(getParent(block)).getBucketIterator();
+      java.util.Iterator<OPT_BasicBlock> bucketEnum =
+          OPT_LTDominatorInfo.getInfo(getParent(block)).getBucketIterator();
       while (bucketEnum.hasNext()) {
         OPT_BasicBlock block2 = bucketEnum.next();
 
@@ -374,7 +370,7 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
   /**
    * This method inspects the passed block and returns the following:
    *    block,                       if block is a root of a tree in the forest
-   *     
+   *
    *    any vertex, u != r such that                        otherwise
    *      r is the root of the tree containing block and
    *                                        *
@@ -390,13 +386,13 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
       System.out.println("  Evaling " + block);
     }
     if (getAncestor(block) == null) {
-      return  getLabel(block);
+      return getLabel(block);
     } else {
       compress(block);
       if (getSemi(getLabel(getAncestor(block))) >= getSemi(getLabel(block))) {
-        return  getLabel(block);
+        return getLabel(block);
       } else {
-        return  getLabel(getAncestor(block));
+        return getLabel(getAncestor(block));
       }
     }
   }
@@ -431,8 +427,8 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
     }
     OPT_BasicBlock s = block2;
     while (getSemi(getLabel(block2)) < getSemi(getLabel(getChild(s)))) {
-      if (getSize(s) + getSize(getChild(getChild(s))) 
-                                         >= 2*getSize(getChild(s))) {
+      if (getSize(s) + getSize(getChild(getChild(s)))
+          >= 2 * getSize(getChild(s))) {
         OPT_LTDominatorInfo.getInfo(getChild(s)).setAncestor(s);
         OPT_LTDominatorInfo.getInfo(s).setChild(getChild(getChild(s)));
       } else {
@@ -442,8 +438,8 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
       }
     }
     OPT_LTDominatorInfo.getInfo(s).setLabel(getLabel(block2));
-    OPT_LTDominatorInfo.getInfo(block1).setSize(getSize(block1) 
-        + getSize(block2));
+    OPT_LTDominatorInfo.getInfo(block1).setSize(getSize(block1)
+                                                + getSize(block2));
     if (getSize(block1) < 2 * getSize(block2)) {
       OPT_BasicBlock tmp = s;
       s = getChild(block1);
@@ -480,20 +476,20 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
 
   /**
    * Returns the current dominator for the passed block 
-   * @param block 
+   * @param block
    * @return the domiator for the passed block 
    */
   private OPT_BasicBlock getDom(OPT_BasicBlock block) {
-    return  OPT_LTDominatorInfo.getInfo(block).getDominator();
+    return OPT_LTDominatorInfo.getInfo(block).getDominator();
   }
 
   /**
    * Returns the parent for the passed block 
-   * @param block 
+   * @param block
    * @return the parent for the passed block 
    */
   private OPT_BasicBlock getParent(OPT_BasicBlock block) {
-    return  OPT_LTDominatorInfo.getInfo(block).getParent();
+    return OPT_LTDominatorInfo.getInfo(block).getParent();
   }
 
   /**
@@ -502,7 +498,7 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
    * @return the ancestor for the passed block 
    */
   private OPT_BasicBlock getAncestor(OPT_BasicBlock block) {
-    return  OPT_LTDominatorInfo.getInfo(block).getAncestor();
+    return OPT_LTDominatorInfo.getInfo(block).getAncestor();
   }
 
   /**
@@ -512,9 +508,9 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
    */
   private OPT_BasicBlock getLabel(OPT_BasicBlock block) {
     if (block == null) {
-      return  null;
+      return null;
     }
-    return  OPT_LTDominatorInfo.getInfo(block).getLabel();
+    return OPT_LTDominatorInfo.getInfo(block).getLabel();
   }
 
   /**
@@ -524,9 +520,9 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
    */
   private int getSemi(OPT_BasicBlock block) {
     if (block == null) {
-      return  0;
+      return 0;
     }
-    return  OPT_LTDominatorInfo.getInfo(block).getSemiDominator();
+    return OPT_LTDominatorInfo.getInfo(block).getSemiDominator();
   }
 
   /**
@@ -536,9 +532,9 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
    */
   private int getSize(OPT_BasicBlock block) {
     if (block == null) {
-      return  0;
+      return 0;
     }
-    return  OPT_LTDominatorInfo.getInfo(block).getSize();
+    return OPT_LTDominatorInfo.getInfo(block).getSize();
   }
 
   /**
@@ -547,7 +543,7 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
    * @return the child node
    */
   private OPT_BasicBlock getChild(OPT_BasicBlock block) {
-    return  OPT_LTDominatorInfo.getInfo(block).getChild();
+    return OPT_LTDominatorInfo.getInfo(block).getChild();
   }
 
   /**
@@ -556,25 +552,25 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
    */
   private void printResults(OPT_IR ir) {
     if (forward) {
-      System.out.println("Results of dominators computation for method "+
-                         ir.method.getName() +"\n");
+      System.out.println("Results of dominators computation for method " +
+                         ir.method.getName() + "\n");
       System.out.println("   Here's the CFG:");
       System.out.println(ir.cfg);
       System.out.println("\n\n  Here's the Dominator Info:");
     } else {
-      System.out.println("Results of Post-Dominators computation for method "+
-                         ir.method.getName() +"\n");
+      System.out.println("Results of Post-Dominators computation for method " +
+                         ir.method.getName() + "\n");
       System.out.println("   Here's the CFG:");
       System.out.println(ir.cfg);
       System.out.println("\n\n  Here's the Post-Dominator Info:");
     }
-    
+
     for (Enumeration<OPT_BasicBlock> bbEnum = cfg.basicBlocks(); bbEnum.hasMoreElements();) {
       OPT_BasicBlock block = bbEnum.nextElement();
       // We don't compute a result for the exit node for forward direction
       if (!forward || !block.isExit()) {
-        System.out.println("Dominators of " + block + ":" 
-            + OPT_LTDominatorInfo.getInfo(block).dominators(block,ir));
+        System.out.println("Dominators of " + block + ":"
+                           + OPT_LTDominatorInfo.getInfo(block).dominators(block, ir));
       }
     }
     System.out.println("\n");
@@ -590,8 +586,8 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
       if (forward && block.isExit()) {
         continue;
       }
-      OPT_LTDominatorInfo info = (OPT_LTDominatorInfo)block.scratchObject;
-      System.out.println(" "+ block +" "+ info);
+      OPT_LTDominatorInfo info = (OPT_LTDominatorInfo) block.scratchObject;
+      System.out.println(" " + block + " " + info);
     }
     // Visit each node in reverse DFS order, except for the root, which
     // has number 1

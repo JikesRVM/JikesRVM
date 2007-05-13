@@ -30,7 +30,8 @@ import org.vmmagic.unboxed.WordArray;
  *
  * @see VM_JNICompiler
  */
-@Uninterruptible public abstract class VM_JNIGCMapIterator extends VM_GCMapIterator
+@Uninterruptible
+public abstract class VM_JNIGCMapIterator extends VM_GCMapIterator
     implements VM_BaselineConstants {
 
   // Java to Native C transition frame...(see VM_JNICompiler)
@@ -53,14 +54,14 @@ import org.vmmagic.unboxed.WordArray;
 
   // additional instance fields added by this subclass of VM_GCMapIterator
   AddressArray jniRefs;
-  int             jniNextRef;
-  int             jniFramePtr;
-  Address      jniSavedReturnAddr;           // -> return addr in generated transition prolog
-  
+  int jniNextRef;
+  int jniFramePtr;
+  Address jniSavedReturnAddr;           // -> return addr in generated transition prolog
+
   public VM_JNIGCMapIterator(WordArray registerLocations) {
     this.registerLocations = registerLocations;
   }
-  
+
   // Override newStackWalk() in parent class VM_GCMapIterator to
   // initialize iterator for scan of JNI JREFs stack of refs
   // Taken:    thread
@@ -74,18 +75,18 @@ import org.vmmagic.unboxed.WordArray;
     if (env != null) {
       this.jniRefs = env.refsArray();
       this.jniNextRef = env.refsTop();
-      this.jniFramePtr = env.savedRefsFP();  
-    } 
+      this.jniFramePtr = env.savedRefsFP();
+    }
   }
-     
+
   public void setupIterator(VM_CompiledMethod compiledMethod, Offset instructionOffset, Address framePtr) {
     this.framePtr = framePtr;
 
     // return address into generated prolog must be relocated if the code object
     // for that prolog/epilog is moved by GC
-    jniSavedReturnAddr       = framePtr.plus(VM_JNICompiler.JNI_RETURN_ADDRESS_OFFSET);
+    jniSavedReturnAddr = framePtr.plus(VM_JNICompiler.JNI_RETURN_ADDRESS_OFFSET);
   }
-   
+
   // return (address of) next ref in the current "frame" on the
   // threads JNIEnvironment stack of refs         
   // When at the end of the current frame, update register locations to point
@@ -124,7 +125,7 @@ import org.vmmagic.unboxed.WordArray;
 
     return Address.zero();  // no more refs to report
   }
-  
+
   public Address getNextReturnAddressAddress() {
     if (!jniSavedReturnAddr.isZero()) {
       Address ref_address = jniSavedReturnAddr;
@@ -133,11 +134,11 @@ import org.vmmagic.unboxed.WordArray;
     }
     return Address.zero();
   }
-  
+
   public void reset() { }
-  
+
   public void cleanupPointers() { }
-  
+
   public int getType() {
     return VM_CompiledMethod.JNI;
   }

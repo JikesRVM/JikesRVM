@@ -14,8 +14,8 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.opt.OPT_Options;
 
 /**
-  * This class holds miscellaneous information regarding the state of
-  * a compilation
+ * This class holds miscellaneous information regarding the state of
+ * a compilation
  */
 public final class OPT_CompilationState {
 
@@ -41,15 +41,15 @@ public final class OPT_CompilationState {
 
   /**
    * Does this state represent an invokeinterface call?
-   * 
+   *
    * @return <code>true</code> if it is an interface call
    *         or <code>false</code> if it is not.
    */
   public boolean isInvokeInterface() {
-     return Call.getMethod(call).isInterface();
-   }
+    return Call.getMethod(call).isInterface();
+  }
 
-  /** 
+  /**
    * Return the depth of inlining so far.
    */
   public int getInlineDepth() {
@@ -71,49 +71,49 @@ public final class OPT_CompilationState {
     return Call.getMethod(call).getTarget();
   }
 
-  /** 
+  /**
    * Return the controlling compiler options
    */
   public OPT_Options getOptions() {
     return options;
   }
 
-  /** 
+  /**
    * Return whether or not the receiving object is extant
    */
   public boolean getIsExtant() {
     return isExtant;
   }
 
-  /** 
+  /**
    * Return whether or not the target is precise (ie needs no guard)
    */
   public boolean getHasPreciseTarget() {
     return Call.getMethod(call).hasPreciseTarget();
   }
 
-  /** 
+  /**
    * Return the root method of the compilation 
    */
   public VM_NormalMethod getRootMethod() {
     return call.position.getRootMethod();
   }
 
-  /** 
+  /**
    * Return the method being compiled
    */
   public VM_NormalMethod getMethod() {
     return call.position.getMethod();
   }
 
-  /** 
+  /**
    * Return the current bytecode index
    */
   public int getBytecodeIndex() {
     return call.bcIndex;
   }
 
-  /** 
+  /**
    * Return the inlining sequence
    */
   public OPT_InlineSequence getSequence() {

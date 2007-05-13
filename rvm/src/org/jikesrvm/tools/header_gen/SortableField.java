@@ -17,8 +17,13 @@ import org.vmmagic.unboxed.Offset;
 class SortableField implements Comparable {
   final VM_Field f;
   final Offset offset;
-  SortableField(VM_Field ff) { f = ff; offset = f.getOffset(); }
-  public int compareTo (Object y) {
+
+  SortableField(VM_Field ff) {
+    f = ff;
+    offset = f.getOffset();
+  }
+
+  public int compareTo(Object y) {
     if (y instanceof SortableField) {
       Offset offset2 = ((SortableField) y).offset;
       if (offset.sGT(offset2)) return 1;

@@ -20,12 +20,12 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
  */
 class VM_RecompileOptChoice extends VM_RecompilationChoice {
 
-  /** 
+  /**
    * The opt level associated with this recompilation choice 
-   */ 
+   */
   private int thisChoiceOptLevel;
 
-  /** 
+  /**
    * The "compiler" (see VM_CompilerDNA) that is associated with this choice 
    */
   private int thisChoiceCompiler;
@@ -35,7 +35,7 @@ class VM_RecompileOptChoice extends VM_RecompilationChoice {
    */
   VM_RecompileOptChoice(int level) {
     thisChoiceOptLevel = level;
-    thisChoiceCompiler = VM_CompilerDNA.getCompilerConstant(level); 
+    thisChoiceCompiler = VM_CompilerDNA.getCompilerConstant(level);
   }
 
   /**
@@ -48,7 +48,6 @@ class VM_RecompileOptChoice extends VM_RecompilationChoice {
     return VM_CompilerDNA.estimateCompileTime(getCompiler(), meth);
   }
 
-
   /**
    * What is the benefit of executing this plan, given the estimated
    * future time for the method if nothing changes?
@@ -58,10 +57,10 @@ class VM_RecompileOptChoice extends VM_RecompilationChoice {
    *        the method if left running with the previous compiler.
    * @return The expected future execution time if this choice were selected 
    */
-  double getFutureExecutionTime(int prevCompiler, 
+  double getFutureExecutionTime(int prevCompiler,
                                 double futureTimeForMethod) {
-    double rtFactor = 
-      VM_CompilerDNA.getBenefitRatio(prevCompiler, getCompiler());
+    double rtFactor =
+        VM_CompilerDNA.getBenefitRatio(prevCompiler, getCompiler());
     return futureTimeForMethod / rtFactor;
   }
 
@@ -78,18 +77,18 @@ class VM_RecompileOptChoice extends VM_RecompilationChoice {
    * @return The controller plan implementing this recompilation choice
    */
   VM_ControllerPlan makeControllerPlan(VM_CompiledMethod cmpMethod,
-                                       int prevCompiler, 
+                                       int prevCompiler,
                                        double prevTimeForMethod,
                                        double bestActionTime,
                                        double expectedCompilationTime) {
-    double speedup = 
-      VM_CompilerDNA.getBenefitRatio(prevCompiler, getCompiler());
+    double speedup =
+        VM_CompilerDNA.getBenefitRatio(prevCompiler, getCompiler());
     double priority = prevTimeForMethod - bestActionTime;
     return VM_Controller.recompilationStrategy.
-      createControllerPlan(cmpMethod.getMethod(), thisChoiceOptLevel, 
-                           null, cmpMethod.getId(), speedup, 
-                           expectedCompilationTime,
-                           priority);
+        createControllerPlan(cmpMethod.getMethod(), thisChoiceOptLevel,
+                             null, cmpMethod.getId(), speedup,
+                             expectedCompilationTime,
+                             priority);
   }
 
   /**

@@ -25,9 +25,9 @@ import org.jikesrvm.VM;
  *     }
  */
 
-public class OSR_MapIterator implements OSR_Constants{
+public class OSR_MapIterator implements OSR_Constants {
   private int curidx;
-  private int[] maps;  
+  private int[] maps;
   private int curmid;
   private int curmpc;
 
@@ -37,7 +37,7 @@ public class OSR_MapIterator implements OSR_Constants{
   public OSR_MapIterator(int[] mapcode, int index) {
     // skip over the map of registers which are references.
     this.curidx = index + 1;
-    this.maps   = mapcode;
+    this.maps = mapcode;
 
     if ((mapcode[index] & NEXT_BIT) != 0) {
       this.moreMethId = true;
@@ -57,12 +57,12 @@ public class OSR_MapIterator implements OSR_Constants{
 
     this.curmid = maps[curidx] & ~NEXT_BIT;
     this.moreMethId = (maps[curidx] & NEXT_BIT) != 0;
-    
-    this.curidx ++;
+
+    this.curidx++;
     this.curmpc = maps[curidx] & ~NEXT_BIT;
     this.moreElemnt = (maps[curidx] & NEXT_BIT) != 0;
 
-    this.curidx ++;
+    this.curidx++;
 
     // if this method id entry is empty, skip to the next
     if (!hasMoreElements() && hasMoreMethodId()) {
@@ -84,11 +84,11 @@ public class OSR_MapIterator implements OSR_Constants{
    * Moves the index to the next element, update more first because
    * we use last element's bit to indicate whether this element is
    * available.
-   */ 
+   */
   public void moveToNext() {
     if (VM.VerifyAssertions) VM._assert(this.hasMore());
 
-    this.moreElemnt    = (maps[curidx] & NEXT_BIT) != 0;
+    this.moreElemnt = (maps[curidx] & NEXT_BIT) != 0;
     this.curidx += 2;
     if (!hasMoreElements() && hasMoreMethodId()) {
       moveToNextMethodId();
@@ -98,6 +98,7 @@ public class OSR_MapIterator implements OSR_Constants{
   /* for the current element, provide a list of queries. */
 
   /* what kind. */
+
   public int getKind() {
     return (maps[curidx] & KIND_MASK) >> KIND_SHIFT;
   }
@@ -119,7 +120,7 @@ public class OSR_MapIterator implements OSR_Constants{
 
   /* value */
   public int getValue() {
-    return maps[curidx+1];
+    return maps[curidx + 1];
   }
 
   /* current mid */

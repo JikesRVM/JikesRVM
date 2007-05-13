@@ -49,10 +49,10 @@ final class OPT_NormalBURS extends OPT_BURS {
 
   /**
    * Create a BURS object for the given IR.
-   * 
+   *
    * @param IR the IR to translate from LIR to MIR.
    */
-  OPT_NormalBURS (OPT_IR IR) {
+  OPT_NormalBURS(OPT_IR IR) {
     super(IR);
   }
 
@@ -61,7 +61,7 @@ final class OPT_NormalBURS extends OPT_BURS {
    * then generate MIR instructions based on the labeling.
    * @param dg the dependence graph.
    */
-  public void invoke (OPT_DepGraph dg) {
+  public void invoke(OPT_DepGraph dg) {
     if (DEBUG) dg.printDepGraph();
     OPT_BURS_STATE burs = new OPT_BURS_STATE(this);
     buildTrees(dg);
@@ -74,7 +74,6 @@ final class OPT_NormalBURS extends OPT_BURS {
     generateTrees(burs);
   }
 
-
   ////////////////////////////////
   // Implementation 
   ////////////////////////////////
@@ -86,21 +85,21 @@ final class OPT_NormalBURS extends OPT_BURS {
    * This step is also where we introduce intermediate tree nodes for 
    * any LIR instruction that has > 2 "real" operands e.g., a CALL.
    * We also mark nodes that must be tree roots.
-   * 
+   *
    * @param dg  The dependence graph. 
    */
   private void buildTrees(OPT_DepGraph dg) {
-    OPT_DepGraphNode bbNodes = (OPT_DepGraphNode)dg.firstNode();
-    for (OPT_DepGraphNode n = bbNodes; 
-         n != null; 
-         n = (OPT_DepGraphNode)n.getNext()) {
+    OPT_DepGraphNode bbNodes = (OPT_DepGraphNode) dg.firstNode();
+    for (OPT_DepGraphNode n = bbNodes;
+         n != null;
+         n = (OPT_DepGraphNode) n.getNext()) {
       // Initialize n.treeNode
       OPT_BURS_TreeNode cur_parent = new OPT_BURS_TreeNode(n);
       n.scratchObject = cur_parent;
       OPT_Instruction instr = n.instruction();
       // cur_parent = current parent node for var length IR instructions
       // loop for USES of an instruction
-      for (OPT_OperandEnumeration uses = instr.getUses(); 
+      for (OPT_OperandEnumeration uses = instr.getUses();
            uses.hasMoreElements();) {
         // Create tree edge for next use.
         OPT_Operand op = uses.next();
@@ -109,17 +108,17 @@ final class OPT_NormalBURS extends OPT_BURS {
         // Set child = OPT_BURS_TreeNode for operand op
         OPT_BURS_TreeNode child;
         if (op instanceof OPT_RegisterOperand) {
-          OPT_RegisterOperand regOp = (OPT_RegisterOperand)op;
+          OPT_RegisterOperand regOp = (OPT_RegisterOperand) op;
           // ignore validation registers
           if (regOp.register.isValidation()) continue;
           OPT_DepGraphEdge e = OPT_DepGraphEdge.findInputEdge(n, op);
           if (e == null) {        // operand is leaf        
-            child = Register; 
+            child = Register;
           } else {
-            child = (OPT_BURS_TreeNode)e.fromNode().scratchObject;
+            child = (OPT_BURS_TreeNode) e.fromNode().scratchObject;
           }
         } else if (op instanceof OPT_IntConstantOperand) {
-          child = new OPT_BURS_IntConstantTreeNode(((OPT_IntConstantOperand)op).value);
+          child = new OPT_BURS_IntConstantTreeNode(((OPT_IntConstantOperand) op).value);
         } else if (op instanceof OPT_LongConstantOperand) {
           child = LongConstant;
         } else if (op instanceof OPT_AddressConstantOperand) {
@@ -127,16 +126,16 @@ final class OPT_NormalBURS extends OPT_BURS {
         } else if (op instanceof OPT_BranchOperand && instr.isCall()) {
           child = BranchTarget;
         } else if (op instanceof OPT_InlinedOsrTypeInfoOperand && instr.isYieldPoint()) {
-          child = NullTreeNode; 
+          child = NullTreeNode;
         } else {
           continue;
         }
 
         // Attach child as child of cur_parent in correct position
         if (cur_parent.child1 == null) {
-          cur_parent.child1 = child; 
+          cur_parent.child1 = child;
         } else if (cur_parent.child2 == null) {
-          cur_parent.child2 = child; 
+          cur_parent.child2 = child;
         } else {
           // Create auxiliary node so as to represent
           // a instruction with arity > 2 in a binary tree.
@@ -151,34 +150,36 @@ final class OPT_NormalBURS extends OPT_BURS {
 
       // patch for calls & return 
       switch (instr.getOpcode()) {
-      case CALL_opcode:
-      case SYSCALL_opcode:
-      case YIELDPOINT_OSR_opcode:
-        if (cur_parent.child2 == null)
-          cur_parent.child2 = NullTreeNode;
-        // fall through
-      case RETURN_opcode:
-        if (cur_parent.child1 == null)
-          cur_parent.child1 = NullTreeNode;
+        case CALL_opcode:
+        case SYSCALL_opcode:
+        case YIELDPOINT_OSR_opcode:
+          if (cur_parent.child2 == null) {
+            cur_parent.child2 = NullTreeNode;
+          }
+          // fall through
+        case RETURN_opcode:
+          if (cur_parent.child1 == null) {
+            cur_parent.child1 = NullTreeNode;
+          }
       }
 
       if (mustBeTreeRoot(n)) {
-        makeTreeRoot((OPT_BURS_TreeNode)n.scratchObject);
+        makeTreeRoot((OPT_BURS_TreeNode) n.scratchObject);
       }
-    } 
+    }
   }
-
 
   /**
    * Stage 1b: Do bookkeeping to make it easier to identify 
    * harmless problem edges.
    */
   private void problemEdgePrep() {
-    for (int i=0; i<numTreeRoots; i++) {
+    for (int i = 0; i < numTreeRoots; i++) {
       OPT_BURS_TreeNode n = treeRoots[i];
       problemEdgePrep(n, n.dg_node);
     }
   }
+
   private void problemEdgePrep(OPT_BURS_TreeNode n, OPT_SpaceEffGraphNode root) {
     OPT_BURS_TreeNode child1 = n.child1;
     OPT_BURS_TreeNode child2 = n.child2;
@@ -203,7 +204,7 @@ final class OPT_NormalBURS extends OPT_BURS {
     //          is the root of their own tree; these edges 
     //          are trivially redundant with reg-true edges.
     int remaining = 0;
-    for (int i=0; i<numProblemEdges; i++) {
+    for (int i = 0; i < numProblemEdges; i++) {
       OPT_SpaceEffGraphEdge e = problemEdges[i];
       OPT_SpaceEffGraphNode src = e.fromNode();
       OPT_SpaceEffGraphNode dst = e.toNode();
@@ -218,11 +219,11 @@ final class OPT_NormalBURS extends OPT_BURS {
 
     // Still some edges that might introduce cycles.
     int searchnum = 0;
-    for (int i=0; i<numProblemEdges; i++) {
+    for (int i = 0; i < numProblemEdges; i++) {
       OPT_SpaceEffGraphEdge e = problemEdges[i];
       OPT_SpaceEffGraphNode src = e.fromNode();
       OPT_SpaceEffGraphNode dst = e.toNode();
-      OPT_BURS_TreeNode n = (OPT_BURS_TreeNode)src.scratchObject;
+      OPT_BURS_TreeNode n = (OPT_BURS_TreeNode) src.scratchObject;
       if (n.isTreeRoot()) continue; // some other problem edge already forced it
       OPT_SpaceEffGraphNode srcRoot = src.nextSorted;
       OPT_SpaceEffGraphNode dstRoot = dst.nextSorted;
@@ -230,8 +231,8 @@ final class OPT_NormalBURS extends OPT_BURS {
         // potential for intra-tree cycle
         if (!trueEdgeRedundant(src, dst, srcRoot)) {
           if (DEBUG) {
-            VM.sysWrite("Potential intra-tree cycle with edge "+e+
-                        " forcing "+n+" to be a tree root\n");
+            VM.sysWrite("Potential intra-tree cycle with edge " + e +
+                        " forcing " + n + " to be a tree root\n");
           }
           makeTreeRoot(n);
           problemEdgePrep(n, n.dg_node);
@@ -240,8 +241,8 @@ final class OPT_NormalBURS extends OPT_BURS {
         // potential for inter-tree cycle
         if (reachableRoot(dstRoot, srcRoot, ++searchnum)) {
           if (DEBUG) {
-            VM.sysWrite("Potential inter-tree cycle with edge "+e+
-                        " forcing "+n+" to be a tree root\n");
+            VM.sysWrite("Potential inter-tree cycle with edge " + e +
+                        " forcing " + n + " to be a tree root\n");
           }
           makeTreeRoot(n);
           problemEdgePrep(n, n.dg_node);
@@ -249,6 +250,7 @@ final class OPT_NormalBURS extends OPT_BURS {
       }
     }
   }
+
   // routine to identify harmless intra-tree edges.
   // if the edge is redundant wrt regTrue edges, then it
   // can be ignored.
@@ -260,13 +262,14 @@ final class OPT_NormalBURS extends OPT_BURS {
     for (OPT_SpaceEffGraphEdge out = current.firstOutEdge();
          out != null;
          out = out.getNextOut()) {
-      if (OPT_DepGraphEdge.isRegTrue(out) && 
+      if (OPT_DepGraphEdge.isRegTrue(out) &&
           trueEdgeRedundant(out.toNode(), goal, root)) {
         return true;
       }
     }
     return false;
   }
+
   // routine to identify harmless inter-tree edges.
   // Is goal reachable via any edge in the current tree?
   private boolean reachableRoot(OPT_SpaceEffGraphNode current,
@@ -275,9 +278,10 @@ final class OPT_NormalBURS extends OPT_BURS {
     if (current == goal) return true;
     if (current.scratch == searchnum) return false;
     current.scratch = searchnum;
-    OPT_BURS_TreeNode root = (OPT_BURS_TreeNode)current.scratchObject;
+    OPT_BURS_TreeNode root = (OPT_BURS_TreeNode) current.scratchObject;
     return reachableChild(root, goal, searchnum);
   }
+
   private boolean reachableChild(OPT_BURS_TreeNode n,
                                  OPT_SpaceEffGraphNode goal,
                                  int searchnum) {
@@ -303,32 +307,33 @@ final class OPT_NormalBURS extends OPT_BURS {
   /**
    * Stage 2: Construct topological ordering of tree roots based on the
    * dependencies between nodes in the tree. 
-   * 
+   *
    * @param dg  The dependence graph. 
    */
   private void orderTrees(OPT_DepGraph dg) {
     // Initialize tree root field for all nodes
-    for (int i=0; i<numTreeRoots; i++) {
+    for (int i = 0; i < numTreeRoots; i++) {
       OPT_BURS_TreeNode n = treeRoots[i];
-      n.dg_node.scratch = 0; 
+      n.dg_node.scratch = 0;
       initTreeRootNode(n, n.dg_node);
     }
 
     // Initialize predCount[*]
-    for (OPT_SpaceEffGraphNode node = dg.firstNode(); 
-         node != null; 
+    for (OPT_SpaceEffGraphNode node = dg.firstNode();
+         node != null;
          node = node.getNext()) {
       OPT_SpaceEffGraphNode n_treeRoot = node.nextSorted;
-      for (OPT_SpaceEffGraphEdge in = node.firstInEdge(); 
-           in != null; 
+      for (OPT_SpaceEffGraphEdge in = node.firstInEdge();
+           in != null;
            in = in.getNextIn()) {
         OPT_SpaceEffGraphNode source_treeRoot = in.fromNode().nextSorted;
-        if (source_treeRoot != n_treeRoot)
+        if (source_treeRoot != n_treeRoot) {
           n_treeRoot.scratch++;
+        }
       }
     }
     if (DEBUG) {
-      for (int i=0; i<numTreeRoots; i++) {
+      for (int i = 0; i < numTreeRoots; i++) {
         OPT_BURS_TreeNode n = treeRoots[i];
         VM.sysWrite(n.dg_node.scratch + ":" + n + "\n");
       }
@@ -340,24 +345,23 @@ final class OPT_NormalBURS extends OPT_BURS {
    * @param burs the OPT_BURS_STATE object.
    */
   private void labelTrees(OPT_BURS_STATE burs) {
-    for (int i=0; i<numTreeRoots; i++) {
+    for (int i = 0; i < numTreeRoots; i++) {
       OPT_BURS_TreeNode n = treeRoots[i];
       burs.label(n);
-      OPT_BURS_STATE.mark(n, /* goalnt */(byte)1);
+      OPT_BURS_STATE.mark(n, /* goalnt */(byte) 1);
     }
   }
-
 
   /**
    * Stage 4: Visit the tree roots in topological order and 
    * emit MIR instructions by calling OPT_BURS_STATE.code on each
    * supernode in the tree.
-   * 
+   *
    * @param burs the OPT_BURS_STATE object.
    */
   private void generateTrees(OPT_BURS_STATE burs) {
     // Append tree roots with predCount = 0 to readySet
-    for (int i=0; i<numTreeRoots; i++) {
+    for (int i = 0; i < numTreeRoots; i++) {
       OPT_BURS_TreeNode n = treeRoots[i];
       if (n.dg_node.scratch == 0) {
         readySetInsert(n);
@@ -370,15 +374,16 @@ final class OPT_NormalBURS extends OPT_BURS {
       // Invoke burs.code on the supernodes of k in a post order walk of the
       // tree (thus code for children is emited before code for the parent).
       if (DEBUG) {
-        VM.sysWrite("PROCESSING TREE ROOTED AT "+ k.dg_node + "\n");
+        VM.sysWrite("PROCESSING TREE ROOTED AT " + k.dg_node + "\n");
         OPT_BURS_STATE.dumpTree(k);
       }
       numTreeRoots--;
       generateTree(k, burs);
-    }  
-    if (numTreeRoots != 0)
-      throw new OPT_OptimizingCompilerException("BURS", 
+    }
+    if (numTreeRoots != 0) {
+      throw new OPT_OptimizingCompilerException("BURS",
                                                 "Not all tree roots were processed");
+    }
   }
 
   // Generate code for a single tree root.
@@ -414,7 +419,7 @@ final class OPT_NormalBURS extends OPT_BURS {
           } else {
             generateTree(child1, burs);
             generateTree(child2, burs);
-          } 
+          }
         }
       } else {
         generateTree(child1, burs);
@@ -433,15 +438,15 @@ final class OPT_NormalBURS extends OPT_BURS {
     OPT_DepGraphNode dgnode = k.dg_node;
     if (dgnode != null) {
       OPT_SpaceEffGraphNode source = dgnode.nextSorted;
-      for (OPT_SpaceEffGraphEdge out = dgnode.firstOutEdge(); 
-           out != null; 
+      for (OPT_SpaceEffGraphEdge out = dgnode.firstOutEdge();
+           out != null;
            out = out.getNextOut()) {
         OPT_SpaceEffGraphNode dest = out.toNode().nextSorted;
         if (source != dest) {
           int count = --dest.scratch;
           if (DEBUG) VM.sysWrite(count + ": edge " + source + " to " + dest + "\n");
           if (count == 0) {
-            readySetInsert((OPT_BURS_TreeNode)dest.scratchObject);
+            readySetInsert((OPT_BURS_TreeNode) dest.scratchObject);
           }
         }
       }
@@ -459,8 +464,8 @@ final class OPT_NormalBURS extends OPT_BURS {
     // A "fan-out" node must be a root of a BURS tree.
     // (A fan-out node is a node with > 1 outgoing register-true dependences)
     OPT_SpaceEffGraphEdge trueDepEdge = null;
-    for (OPT_SpaceEffGraphEdge out = n.firstOutEdge(); 
-         out != null; 
+    for (OPT_SpaceEffGraphEdge out = n.firstOutEdge();
+         out != null;
          out = out.getNextOut()) {
       if (OPT_DepGraphEdge.isRegTrue(out)) {
         if (trueDepEdge != null) return true;
@@ -484,13 +489,13 @@ final class OPT_NormalBURS extends OPT_BURS {
       // other out edges (ignoring trueDepEdge)
       // then we don't have to worry about creating cycles
       // by not forcing n to be a tree root.
-      for (OPT_SpaceEffGraphEdge out = n.firstOutEdge(); 
-           out != null; 
+      for (OPT_SpaceEffGraphEdge out = n.firstOutEdge();
+           out != null;
            out = out.getNextOut()) {
         if (out != trueDepEdge) {
           boolean match = false;
-          for (OPT_SpaceEffGraphEdge out2 = parent.firstOutEdge(); 
-               out2 != null; 
+          for (OPT_SpaceEffGraphEdge out2 = parent.firstOutEdge();
+               out2 != null;
                out2 = out2.getNextOut()) {
             if (out2.toNode() == out.toNode()) {
               match = true;
@@ -511,8 +516,8 @@ final class OPT_NormalBURS extends OPT_BURS {
   //       an expression tree and is not the tree root).
   @SuppressWarnings("unused")
   private OPT_SpaceEffGraphNode regTrueParent(OPT_SpaceEffGraphNode n) {
-    for (OPT_SpaceEffGraphEdge out = n.firstOutEdge(); 
-         out != null; 
+    for (OPT_SpaceEffGraphEdge out = n.firstOutEdge();
+         out != null;
          out = out.getNextOut()) {
       if (OPT_DepGraphEdge.isRegTrue(out)) {
         return out.toNode();
@@ -522,25 +527,24 @@ final class OPT_NormalBURS extends OPT_BURS {
     return null;
   }
 
-
   /**
    * Initialize nextSorted for nodes in tree rooted at t i.e.
    * for all register true descendants of t up to but not including 
    * any new tree roots. 
    */
-  private void initTreeRootNode(OPT_BURS_TreeNode t, 
+  private void initTreeRootNode(OPT_BURS_TreeNode t,
                                 OPT_SpaceEffGraphNode treeRoot) {
     // Recurse
     if (t.child1 != null) {
       if (t.child1.isTreeRoot()) {
-        t.child1 = Register; 
+        t.child1 = Register;
       } else {
         initTreeRootNode(t.child1, treeRoot);
       }
     }
     if (t.child2 != null) {
       if (t.child2.isTreeRoot()) {
-        t.child2 = Register; 
+        t.child2 = Register;
       } else {
         initTreeRootNode(t.child2, treeRoot);
       }
@@ -554,11 +558,11 @@ final class OPT_NormalBURS extends OPT_BURS {
       int lchild = (t.child1 != null) ? t.child1.numRegisters() : 0;
       int rchild = (t.child2 != null) ? t.child2.numRegisters() : 0;
       if (lchild == rchild) {
-        t.setNumRegisters(lchild+1);
+        t.setNumRegisters(lchild + 1);
       } else {
         t.setNumRegisters(Math.max(lchild, rchild));
       }
-      if (DEBUG) VM.sysWrite("\tnum registers = "+t.numRegisters()+"\n");
+      if (DEBUG) VM.sysWrite("\tnum registers = " + t.numRegisters() + "\n");
     }
   }
 
@@ -566,10 +570,11 @@ final class OPT_NormalBURS extends OPT_BURS {
    * Set of all tree roots.
    */
   private OPT_BURS_TreeNode[] treeRoots = new OPT_BURS_TreeNode[32];
+
   private void makeTreeRoot(OPT_BURS_TreeNode n) {
     if (numTreeRoots == treeRoots.length) {
-      OPT_BURS_TreeNode[] tmp = new OPT_BURS_TreeNode[treeRoots.length*2];
-      for (int i=0; i<treeRoots.length; i++) {
+      OPT_BURS_TreeNode[] tmp = new OPT_BURS_TreeNode[treeRoots.length * 2];
+      for (int i = 0; i < treeRoots.length; i++) {
         tmp[i] = treeRoots[i];
       }
       treeRoots = tmp;
@@ -577,7 +582,6 @@ final class OPT_NormalBURS extends OPT_BURS {
     n.setTreeRoot();
     treeRoots[numTreeRoots++] = n;
   }
-
 
   /**
    * A priority queue of ready tree nodes. 
@@ -599,19 +603,19 @@ final class OPT_NormalBURS extends OPT_BURS {
     OPT_Instruction s = node.getInstruction();
     if (s.operator == GUARD_COMBINE ||
         s.operator == GUARD_COND_MOVE ||
-        s.operator == GUARD_MOVE || 
+        s.operator == GUARD_MOVE ||
         !ResultCarrier.conforms(s)) {
       // Adjust numRegisters to bias away from picking trees that
       // are rooted in result carriers, since they start a new live 
       // range. We don't count guard operations as result carriers, since
       // guard operations get wiped out before register allocation anyways.
-      node.setNumRegisters(node.numRegisters()+2);
+      node.setNumRegisters(node.numRegisters() + 2);
     }
 
     numElements++;
     if (numElements == heap.length) {
-      OPT_BURS_TreeNode[] tmp = new OPT_BURS_TreeNode[heap.length*2];
-      for (int i=0; i<heap.length; i++) {
+      OPT_BURS_TreeNode[] tmp = new OPT_BURS_TreeNode[heap.length * 2];
+      for (int i = 0; i < heap.length; i++) {
         tmp[i] = heap[i];
       }
       heap = tmp;
@@ -634,7 +638,7 @@ final class OPT_NormalBURS extends OPT_BURS {
     return numElements > 0;
   }
 
-  /** 
+  /**
    * Remove a node from the ready set
    */
   private OPT_BURS_TreeNode readySetRemove() {
@@ -643,7 +647,7 @@ final class OPT_NormalBURS extends OPT_BURS {
     heapify(1);
     return ans;
   }
-    
+
   private void heapify(int p) {
     int l = p * 2;
     int r = l + 1;
@@ -668,10 +672,9 @@ final class OPT_NormalBURS extends OPT_BURS {
     heap[y] = t;
   }
 
-
   /*
-   * track problem nodes (nodes with outgoing non-reg-true edges)
-   */
+  * track problem nodes (nodes with outgoing non-reg-true edges)
+  */
   private OPT_SpaceEffGraphEdge[] problemEdges;
   private int numProblemEdges = 0;
 
@@ -680,8 +683,8 @@ final class OPT_NormalBURS extends OPT_BURS {
       problemEdges = new OPT_SpaceEffGraphEdge[8];
     }
     if (numProblemEdges == problemEdges.length) {
-      OPT_SpaceEffGraphEdge[] tmp = new OPT_SpaceEffGraphEdge[problemEdges.length*2];
-      for (int i=0; i<problemEdges.length; i++) {
+      OPT_SpaceEffGraphEdge[] tmp = new OPT_SpaceEffGraphEdge[problemEdges.length * 2];
+      for (int i = 0; i < problemEdges.length; i++) {
         tmp[i] = problemEdges[i];
       }
       problemEdges = tmp;

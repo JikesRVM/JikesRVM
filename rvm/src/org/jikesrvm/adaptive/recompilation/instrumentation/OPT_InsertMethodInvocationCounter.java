@@ -36,9 +36,9 @@ public class OPT_InsertMethodInvocationCounter extends OPT_CompilerPhase {
    * Return this instance of this phase. This phase contains no
    * per-compilation instance fields.
    * @param ir not used
-   * @return this 
+   * @return this
    */
-  public OPT_CompilerPhase newExecution (OPT_IR ir) {
+  public OPT_CompilerPhase newExecution(OPT_IR ir) {
     return this;
   }
 
@@ -47,10 +47,10 @@ public class OPT_InsertMethodInvocationCounter extends OPT_CompilerPhase {
   }
 
   public final String getName() { return "InsertMethodInvocationCounters"; }
-  
+
   /**
    * Insert basic block counters
-   * 
+   *
    * @param ir the governing IR
    */
   public final void perform(OPT_IR ir) {
@@ -58,13 +58,14 @@ public class OPT_InsertMethodInvocationCounter extends OPT_CompilerPhase {
     // save volatile methods, or when instrumentation is disabled
     if (!ir.method.isInterruptible() ||
         !VM_Instrumentation.instrumentationEnabled() ||
-        ir.method.getDeclaringClass().hasSaveVolatileAnnotation())
+        ir.method.getDeclaringClass().hasSaveVolatileAnnotation()) {
       return;
-    
+    }
+
     OPT_BasicBlock firstBB = ir.cfg.entry();
 
-    VM_MethodInvocationCounterData data = 
-      VM_AOSDatabase.methodInvocationCounterData;
+    VM_MethodInvocationCounterData data =
+        VM_AOSDatabase.methodInvocationCounterData;
 
     int cmid = ir.compiledMethod.getId();
 

@@ -17,8 +17,8 @@ import java.util.Enumeration;
  * OPT_SpaceEffGraph is a generic graph.  Extend to implement specific
  * graph types.
  */
-public class OPT_SpaceEffGraph implements OPT_Graph, 
-                                          OPT_VCGGraph, 
+public class OPT_SpaceEffGraph implements OPT_Graph,
+                                          OPT_VCGGraph,
                                           OPT_TopSortInterface {
   /**
    * First node
@@ -47,6 +47,7 @@ public class OPT_SpaceEffGraph implements OPT_Graph,
    * @return number of nodes
    */
   public final int numberOfNodes() { return numberOfNodes; }
+
   /**
    * Set number of nodes
    * @param n new number of nodes
@@ -74,7 +75,7 @@ public class OPT_SpaceEffGraph implements OPT_Graph,
    * Enumerate the nodes in no particular order
    */
   public OPT_GraphNodeEnumeration enumerateNodes() {
-      return new NodeEnumeration(_firstNode);
+    return new NodeEnumeration(_firstNode);
   }
 
   //////////////////
@@ -82,24 +83,27 @@ public class OPT_SpaceEffGraph implements OPT_Graph,
   //////////////////
 
   public OPT_SortedGraphNode startNode(boolean forward) {
-    if (forward)
+    if (forward) {
       return (OPT_SortedGraphNode) _firstNode;
-    else
+    } else {
       return (OPT_SortedGraphNode) _lastNode;
+    }
   }
 
   public boolean isTopSorted(boolean forward) {
-    if (forward)
+    if (forward) {
       return forwardTopSorted;
-    else
+    } else {
       return backwardTopSorted;
+    }
   }
 
   public void setTopSorted(boolean forward) {
-    if (forward)
+    if (forward) {
       forwardTopSorted = true;
-    else
+    } else {
       backwardTopSorted = true;
+    }
   }
 
   public void resetTopSorted() {
@@ -122,7 +126,7 @@ public class OPT_SpaceEffGraph implements OPT_Graph,
     //_nodes.add(node);
     if (_firstNode == null) {
       _firstNode = node;
-      _lastNode  = node;
+      _lastNode = node;
     } else {
       _lastNode.append(node);  // this is cheaper than add() call.
       _lastNode = node;
@@ -136,10 +140,11 @@ public class OPT_SpaceEffGraph implements OPT_Graph,
    */
   public final void removeGraphNode(OPT_SpaceEffGraphNode node) {
     if (node == _firstNode) {
-      if (node == _lastNode)
+      if (node == _lastNode) {
         _firstNode = _lastNode = null;
-      else
+      } else {
         _firstNode = node.getNext();
+      }
     } else if (node == _lastNode) {
       _lastNode = node.getPrev();
     }
@@ -198,8 +203,9 @@ public class OPT_SpaceEffGraph implements OPT_Graph,
    */
   public final void addRootNode(OPT_SpaceEffGraphNode root) {
     //_rootNodes.add(root);
-    if (_rootNodes == null)
+    if (_rootNodes == null) {
       _rootNodes = new OPT_SpaceEffGraphNodeListHeader();
+    }
     _rootNodes.append(root);
   }
 
@@ -223,8 +229,9 @@ public class OPT_SpaceEffGraph implements OPT_Graph,
    * Clear the DFS flags.
    */
   public final void clearDFS() {
-    for (OPT_SpaceEffGraphNode n = firstNode(); n != null; n = n.getNext())
+    for (OPT_SpaceEffGraphNode n = firstNode(); n != null; n = n.getNext()) {
       n.clearDfsVisited();
+    }
   }
 
   /**
@@ -259,6 +266,7 @@ public class OPT_SpaceEffGraph implements OPT_Graph,
   protected void initTopSort() {
     _topSortNodes = new OPT_SpaceEffGraphNodeListHeader();
   }
+
   protected void addTopSortNode(OPT_SpaceEffGraphNode node) {
     _topSortNodes.append(node);
   }
@@ -283,8 +291,9 @@ public class OPT_SpaceEffGraph implements OPT_Graph,
         succ.setDfsVisited();
         succ.setOnStack();
         dfs(succ);
-      } else if(succ.onStack() || succ == node)
-         edge.setBackEdge();
+      } else if (succ.onStack() || succ == node) {
+        edge.setBackEdge();
+      }
     }
     node.clearOnStack();
     for (OPT_SpaceEffGraphEdge edge = node.firstOutEdge(); edge != null;
@@ -334,7 +343,7 @@ public class OPT_SpaceEffGraph implements OPT_Graph,
   int markNumber;
 
   final int getNewMark() {
-     return ++markNumber;
+    return ++markNumber;
   }
 
   /**
@@ -358,29 +367,34 @@ public class OPT_SpaceEffGraph implements OPT_Graph,
   }
 
   private static final class NodeEnumeration
-  implements OPT_GraphNodeEnumeration
-{
-  private OPT_SpaceEffGraphNode _node;
-  public NodeEnumeration(OPT_SpaceEffGraphNode n) { _node = n; }
-  public boolean hasMoreElements() { return _node != null; }
-  public OPT_GraphNode nextElement() { return next(); }
-  public OPT_GraphNode next() {
-    OPT_SpaceEffGraphNode n = _node;
-    _node = n.getNext();
-    return n;
-  }
-}
-
-  protected static final class VCGNodeEnumeration
-  implements Enumeration<OPT_VCGNode>
-  {
+      implements OPT_GraphNodeEnumeration {
     private OPT_SpaceEffGraphNode _node;
-    public VCGNodeEnumeration(OPT_SpaceEffGraphNode n) { _node = n; }
+
+    public NodeEnumeration(OPT_SpaceEffGraphNode n) { _node = n; }
+
     public boolean hasMoreElements() { return _node != null; }
-    public OPT_VCGNode nextElement() { 
+
+    public OPT_GraphNode nextElement() { return next(); }
+
+    public OPT_GraphNode next() {
       OPT_SpaceEffGraphNode n = _node;
       _node = n.getNext();
-      return n; 
+      return n;
+    }
+  }
+
+  protected static final class VCGNodeEnumeration
+      implements Enumeration<OPT_VCGNode> {
+    private OPT_SpaceEffGraphNode _node;
+
+    public VCGNodeEnumeration(OPT_SpaceEffGraphNode n) { _node = n; }
+
+    public boolean hasMoreElements() { return _node != null; }
+
+    public OPT_VCGNode nextElement() {
+      OPT_SpaceEffGraphNode n = _node;
+      _node = n.getNext();
+      return n;
     }
   }
 
@@ -389,10 +403,9 @@ public class OPT_SpaceEffGraph implements OPT_Graph,
    * @return the enumeration that would list the nodes of the graph
    * @see OPT_VCGGraph#nodes
    */
-  public Enumeration<OPT_VCGNode> nodes() { 
+  public Enumeration<OPT_VCGNode> nodes() {
     return new VCGNodeEnumeration(firstNode());
   }
-
 
   /**
    * Returns a VCG descriptor for the graph which will provide VCG-relevant

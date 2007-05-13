@@ -92,28 +92,28 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
    * loop, thus creating two loop entry blocks.
    */
   private final boolean mayDuplicateCondBranches;
-   
-  /** 
+
+  /**
    * @param level the minimum optimization level at which the branch 
    *              optimizations should be performed.
    * @param mayReorderCode are we allowed to change the code order?
    * @param mayDuplicateCondBranches are we allowed to duplicate conditional branches?
    */
-  public OPT_BranchOptimizations (int level, boolean mayReorderCode, boolean mayDuplicateCondBranches) {
+  public OPT_BranchOptimizations(int level, boolean mayReorderCode, boolean mayDuplicateCondBranches) {
     super(level, true);
     this.mayReorderCode = mayReorderCode;
     this.mayDuplicateCondBranches = mayDuplicateCondBranches;
   }
-  
-  /** 
+
+  /**
    * @param level the minimum optimization level at which the branch 
    *              optimizations should be performed.
    * @param mayReorderCode are we allowed to change the code order?
    * @param mayDuplicateCondBranches are we allowed to duplicate conditional branches?
    * @param simplify simplify prior to optimizing?
    */
-  public OPT_BranchOptimizations (int level, boolean mayReorderCode, boolean mayDuplicateCondBranches,
-                                  boolean simplify) {
+  public OPT_BranchOptimizations(int level, boolean mayReorderCode, boolean mayDuplicateCondBranches,
+                                 boolean simplify) {
     super(level, simplify);
     this.mayReorderCode = mayReorderCode;
     this.mayDuplicateCondBranches = mayDuplicateCondBranches;
@@ -129,20 +129,20 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
    * @return true if an optimization was applied, false otherwise
    */
   protected boolean optimizeBranchInstruction(OPT_IR ir,
-                                                    OPT_Instruction s,
-                                                    OPT_BasicBlock bb) {
-    if (Goto.conforms(s))
+                                              OPT_Instruction s,
+                                              OPT_BasicBlock bb) {
+    if (Goto.conforms(s)) {
       return processGoto(ir, s, bb);
-    else if (IfCmp.conforms(s))
+    } else if (IfCmp.conforms(s)) {
       return processConditionalBranch(ir, s, bb);
-    else if (InlineGuard.conforms(s))
+    } else if (InlineGuard.conforms(s)) {
       return processInlineGuard(ir, s, bb);
-    else if (IfCmp2.conforms(s)) 
+    } else if (IfCmp2.conforms(s)) {
       return processTwoTargetConditionalBranch(ir, s, bb);
-    else 
+    } else {
       return false;
+    }
   }
-
 
   /**
    * Perform optimizations for a Goto.  
@@ -172,13 +172,13 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
    * @param bb the basic block holding g
    * @return true if made a transformation
    */
-  private boolean processGoto(OPT_IR ir, OPT_Instruction g, 
+  private boolean processGoto(OPT_IR ir, OPT_Instruction g,
                               OPT_BasicBlock bb) {
     OPT_BasicBlock targetBlock = g.getBranchTarget();
 
     // don't optimize jumps to a code motion landing pad 
     if (targetBlock.getLandingPad()) return false;
-    
+
     OPT_Instruction targetLabel = targetBlock.firstInstruction();
     // get the first real instruction at the g target
     // NOTE: this instruction is not necessarily in targetBlock,
@@ -205,7 +205,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
         // This happens in jByteMark.EmFloatPnt.denormalize() due to a while(true) {} 
         return false;
       }
-      Goto.setTarget(g, (OPT_BranchOperand)Goto.getTarget(targetInst).copy());
+      Goto.setTarget(g, (OPT_BranchOperand) Goto.getTarget(targetInst).copy());
       bb.recomputeNormalOut(ir); // fix the CFG 
       return true;
     }
@@ -226,13 +226,13 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
       // target of targetInst's block.
       // We impose these additional restrictions to avoid getting 
       // multiple conditional branches in a single basic block.
-      if (!g.prevInstructionInCodeOrder().isBranch() && 
+      if (!g.prevInstructionInCodeOrder().isBranch() &&
           (targetInst.nextInstructionInCodeOrder().operator == BBEND ||
            targetInst.nextInstructionInCodeOrder().operator == GOTO)) {
         OPT_Instruction copy = targetInst.copyWithoutLinks();
         g.replace(copy);
-        OPT_Instruction newGoto = 
-          targetInst.getBasicBlock().getNotTakenNextBlock().makeGOTO();
+        OPT_Instruction newGoto =
+            targetInst.getBasicBlock().getNotTakenNextBlock().makeGOTO();
         copy.insertAfter(newGoto);
         bb.recomputeNormalOut(ir); // fix the CFG 
         return true;
@@ -244,17 +244,16 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
       OPT_BasicBlock ftBlock = targetBlock.getFallThroughBlock();
       if (ftBlock != null) {
         OPT_BranchOperand ftTarget = ftBlock.makeJumpTarget();
-        targetBlock.appendInstruction(Goto.create(GOTO,ftTarget));
+        targetBlock.appendInstruction(Goto.create(GOTO, ftTarget));
       }
-     
+
       ir.cfg.removeFromCodeOrder(targetBlock);
-      ir.cfg.insertAfterInCodeOrder(bb,targetBlock);
+      ir.cfg.insertAfterInCodeOrder(bb, targetBlock);
       targetBlock.recomputeNormalOut(ir); // fix the CFG
       return true;
     }
     return false;
   }
-
 
   /**
    * Perform optimizations for a conditional branch.  
@@ -283,14 +282,14 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
    * @param bb the basic block holding if
    * @return true iff made a transformation
    */
-  private boolean processConditionalBranch(OPT_IR ir, 
-                                           OPT_Instruction cb, 
+  private boolean processConditionalBranch(OPT_IR ir,
+                                           OPT_Instruction cb,
                                            OPT_BasicBlock bb) {
     OPT_BasicBlock targetBlock = cb.getBranchTarget();
 
     // don't optimize jumps to a code motion landing pad 
     if (targetBlock.getLandingPad()) return false;
-    
+
     OPT_Instruction targetLabel = targetBlock.firstInstruction();
     // get the first real instruction at the branch target
     // NOTE: this instruction is not necessarily in targetBlock,
@@ -331,15 +330,15 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
     OPT_BasicBlock fallThrough = bb.getFallThroughBlock();
     if (fallThrough != null) {
       OPT_Instruction
-        fallThroughInstruction = fallThrough.firstRealInstruction();
-      if ((  fallThroughInstruction != null)
-          && Goto.conforms (fallThroughInstruction)) {
+          fallThroughInstruction = fallThrough.firstRealInstruction();
+      if ((fallThroughInstruction != null)
+          && Goto.conforms(fallThroughInstruction)) {
         // copy goto to bb
-        bb.appendInstruction (fallThroughInstruction.copyWithoutLinks());
+        bb.appendInstruction(fallThroughInstruction.copyWithoutLinks());
         bb.recomputeNormalOut(ir);
-      }                                                                  
+      }
     }
-    
+
     if (Goto.conforms(targetInst)) {
       // conditional branch to unconditional branch.
       // change conditional branch target to latter's target
@@ -352,7 +351,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
         // This happens in VM_GCUtil in some systems due to a while(true) {} 
         return false;
       }
-      IfCmp.setTarget(cb, (OPT_BranchOperand)Goto.getTarget(targetInst).copy());
+      IfCmp.setTarget(cb, (OPT_BranchOperand) Goto.getTarget(targetInst).copy());
       bb.recomputeNormalOut(ir); // fix the CFG 
       return true;
     }
@@ -381,8 +380,8 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
    * @param bb the basic block holding if
    * @return true iff made a transformation
    */
-  private boolean processInlineGuard(OPT_IR ir, 
-                                     OPT_Instruction cb, 
+  private boolean processInlineGuard(OPT_IR ir,
+                                     OPT_Instruction cb,
                                      OPT_BasicBlock bb) {
     OPT_BasicBlock targetBlock = cb.getBranchTarget();
     OPT_Instruction targetLabel = targetBlock.firstInstruction();
@@ -413,19 +412,19 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
     OPT_BasicBlock fallThrough = bb.getFallThroughBlock();
     if (fallThrough != null) {
       OPT_Instruction
-        fallThroughInstruction = fallThrough.firstRealInstruction();
-      if ((  fallThroughInstruction != null)
-          && Goto.conforms (fallThroughInstruction)) {
+          fallThroughInstruction = fallThrough.firstRealInstruction();
+      if ((fallThroughInstruction != null)
+          && Goto.conforms(fallThroughInstruction)) {
         // copy goto to bb
-        bb.appendInstruction (fallThroughInstruction.copyWithoutLinks());
+        bb.appendInstruction(fallThroughInstruction.copyWithoutLinks());
         bb.recomputeNormalOut(ir);
-      }                                                                  
+      }
     }
-    
+
     if (Goto.conforms(targetInst)) {
       // conditional branch to unconditional branch.
       // change conditional branch target to latter's target
-      InlineGuard.setTarget(cb, (OPT_BranchOperand)Goto.getTarget(targetInst).copy());
+      InlineGuard.setTarget(cb, (OPT_BranchOperand) Goto.getTarget(targetInst).copy());
       bb.recomputeNormalOut(ir); // fix the CFG 
       return true;
     }
@@ -439,7 +438,6 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
     return false;
   }
 
-
   /**
    * Perform optimizations for a two way conditional branch.  
    *
@@ -450,11 +448,11 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
    * @param bb the basic block holding if
    * @return true iff made a transformation
    */
-  private boolean processTwoTargetConditionalBranch(OPT_IR ir, 
-                                                    OPT_Instruction cb, 
+  private boolean processTwoTargetConditionalBranch(OPT_IR ir,
+                                                    OPT_Instruction cb,
                                                     OPT_BasicBlock bb) {
     // First condition/target
-    OPT_Instruction target1Label = IfCmp2.getTarget1(cb).target; 
+    OPT_Instruction target1Label = IfCmp2.getTarget1(cb).target;
     OPT_Instruction target1Inst = firstRealInstructionFollowing(target1Label);
     OPT_Instruction nextLabel = firstLabelFollowing(cb);
     boolean endsBlock = cb.nextInstructionInCodeOrder().operator() == BBEND;
@@ -462,7 +460,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
       if (Goto.conforms(target1Inst)) {
         // conditional branch to unconditional branch.
         // change conditional branch target to latter's target
-        IfCmp2.setTarget1(cb, (OPT_BranchOperand)Goto.getTarget(target1Inst).copy());
+        IfCmp2.setTarget1(cb, (OPT_BranchOperand) Goto.getTarget(target1Inst).copy());
         bb.recomputeNormalOut(ir); // fix CFG
         return true;
       }
@@ -475,15 +473,15 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
         return true;
       }
     }
-      
+
     // Second condition/target
-    OPT_Instruction target2Label = IfCmp2.getTarget2(cb).target; 
+    OPT_Instruction target2Label = IfCmp2.getTarget2(cb).target;
     OPT_Instruction target2Inst = firstRealInstructionFollowing(target2Label);
     if (target2Inst != null && target2Inst != cb) {
       if (Goto.conforms(target2Inst)) {
         // conditional branch to unconditional branch.
         // change conditional branch target to latter's target
-        IfCmp2.setTarget2(cb, (OPT_BranchOperand)Goto.getTarget(target2Inst).copy());
+        IfCmp2.setTarget2(cb, (OPT_BranchOperand) Goto.getTarget(target2Inst).copy());
         bb.recomputeNormalOut(ir); // fix CFG
         return true;
       }
@@ -492,7 +490,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
         if (VM.VerifyAssertions) VM._assert(cb.operator() == INT_IFCMP2);
         IfCmp.mutate(cb, INT_IFCMP,
                      IfCmp2.getGuardResult(cb), IfCmp2.getVal1(cb),
-                     IfCmp2.getVal2(cb), IfCmp2.getCond1(cb), 
+                     IfCmp2.getVal2(cb), IfCmp2.getCond1(cb),
                      IfCmp2.getTarget1(cb), IfCmp2.getBranchProfile1(cb));
         return true;
       }
@@ -500,7 +498,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
       if (target2Block.isEmpty()) {
         // branch to an empty block.  Change target to the next block.
         OPT_BasicBlock nextBlock = target2Block.getFallThroughBlock();
-        IfCmp2.setTarget2(cb, nextBlock.makeJumpTarget()); 
+        IfCmp2.setTarget2(cb, nextBlock.makeJumpTarget());
         bb.recomputeNormalOut(ir); // fix the CFG 
         return true;
       }
@@ -520,7 +518,6 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
     return false;
   }
 
-  
   /**
    * Is a conditional branch a candidate to be flipped?
    * See comment 3) of processConditionalBranch
@@ -532,17 +529,19 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
    *               branch
    * @return boolean result
    */
-  private boolean isFlipCandidate (OPT_Instruction cb, 
-      OPT_Instruction target) {
+  private boolean isFlipCandidate(OPT_Instruction cb,
+                                  OPT_Instruction target) {
     // condition 1: is next instruction a GOTO?
     OPT_Instruction next = cb.nextInstructionInCodeOrder();
-    if (!Goto.conforms(next))
+    if (!Goto.conforms(next)) {
       return false;
+    }
     // condition 2: is the target of the conditional branch the 
     //  next instruction after the GOTO?
     next = firstRealInstructionFollowing(next);
-    if (next != target)
+    if (next != target) {
       return false;
+    }
     // got this far.  It's a candidate.
     return true;
   }
@@ -554,10 +553,10 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
    * <p> Precondition isFlipCandidate(cb)
    * @param cb the conditional branch instruction
    */
-  private void flipConditionalBranch (OPT_Instruction cb) {
+  private void flipConditionalBranch(OPT_Instruction cb) {
     // get the trailing GOTO instruction
     OPT_Instruction g = cb.nextInstructionInCodeOrder();
-    OPT_BranchOperand gTarget = (OPT_BranchOperand)(Goto.getTarget(g).copy());
+    OPT_BranchOperand gTarget = (OPT_BranchOperand) (Goto.getTarget(g).copy());
     // now flip the test and set the new target
     IfCmp.setCond(cb, IfCmp.getCond(cb).flipCode());
     IfCmp.setTarget(cb, gTarget);
@@ -586,17 +585,18 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
    * @param val2 value being compared with
    * @param cond comparison condition
    */
-  private void booleanCompareHelper(OPT_Instruction cb, 
-                                    OPT_RegisterOperand res, 
-                                    OPT_Operand val1, 
-                                    OPT_Operand val2, 
+  private void booleanCompareHelper(OPT_Instruction cb,
+                                    OPT_RegisterOperand res,
+                                    OPT_Operand val1,
+                                    OPT_Operand val2,
                                     OPT_ConditionOperand cond) {
-    if ((val1 instanceof OPT_RegisterOperand) && 
-        ((OPT_RegisterOperand)val1).type.isBooleanType() && 
+    if ((val1 instanceof OPT_RegisterOperand) &&
+        ((OPT_RegisterOperand) val1).type.isBooleanType() &&
         (val2 instanceof OPT_IntConstantOperand)) {
-      int value = ((OPT_IntConstantOperand)val2).value;
-      if (VM.VerifyAssertions && (value != 0) && (value != 1))
-        throw  new OPT_OptimizingCompilerException("Invalid boolean value");
+      int value = ((OPT_IntConstantOperand) val2).value;
+      if (VM.VerifyAssertions && (value != 0) && (value != 1)) {
+        throw new OPT_OptimizingCompilerException("Invalid boolean value");
+      }
       int c = cond.evaluate(value, 0);
       if (c == OPT_ConditionOperand.TRUE) {
         Unary.mutate(cb, BOOLEAN_NOT, res, val1);
@@ -605,9 +605,9 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
         Move.mutate(cb, INT_MOVE, res, val1);
         return;
       }
-    } 
-    BooleanCmp.mutate(cb, (cb.operator() == REF_IFCMP )? BOOLEAN_CMP_ADDR : BOOLEAN_CMP_INT, res,
-                     val1, val2, cond, new OPT_BranchProfileOperand());
+    }
+    BooleanCmp.mutate(cb, (cb.operator() == REF_IFCMP) ? BOOLEAN_CMP_ADDR : BOOLEAN_CMP_INT, res,
+                      val1, val2, cond, new OPT_BranchProfileOperand());
   }
 
   /**
@@ -665,7 +665,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
    * @param cb conditional branch instruction
    * @return true if the transformation succeeds, false otherwise
    */
-  private boolean generateCondMove(OPT_IR ir, OPT_BasicBlock bb, 
+  private boolean generateCondMove(OPT_IR ir, OPT_BasicBlock bb,
                                    OPT_Instruction cb) {
     if (!VM.BuildForIA32) return false;
     if (!IfCmp.conforms(cb)) return false;
@@ -674,7 +674,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
     OPT_Diamond diamond = OPT_Diamond.buildDiamond(bb);
     if (diamond == null) return false;
     OPT_BasicBlock taken = diamond.getTaken();
-    OPT_BasicBlock notTaken= diamond.getNotTaken();
+    OPT_BasicBlock notTaken = diamond.getNotTaken();
 
     // do not perform the transformation if either branch of the diamond
     // has a taboo instruction (eg., a PEI, store or divide).
@@ -686,9 +686,9 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
     // the out-of-order engine (Intel Optimization Guide -
     // Assembly/Compiler Coding Rule 2)
     OPT_BranchProfileOperand profile = IfCmp.getBranchProfile(cb);
-    if(!VM.runningVM ||
-       (profile.takenProbability >= OPT_BranchProfileOperand.LIKELY)||
-       (profile.takenProbability <= OPT_BranchProfileOperand.UNLIKELY)) {
+    if (!VM.runningVM ||
+        (profile.takenProbability >= OPT_BranchProfileOperand.LIKELY) ||
+        (profile.takenProbability <= OPT_BranchProfileOperand.UNLIKELY)) {
       return false;
     }
 
@@ -697,12 +697,11 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
     if (cond.isFLOATINGPOINT()) {
       if (!fpConditionOK(cond)) {
         // Condition not OK, but maybe if we flip the operands
-        if(!fpConditionOK(cond.flipOperands())) {
+        if (!fpConditionOK(cond.flipOperands())) {
           // still not ok so flip operands back and give up
           cond.flipOperands();
           return false;
-        }
-        else {
+        } else {
           // flip operands
           OPT_Operand val1 = IfCmp.getVal1(cb);
           OPT_Operand val2 = IfCmp.getVal2(cb);
@@ -711,9 +710,9 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
         }
       }
     }
-    
+
     // Can only generate FMOV instructions for FP and unsigned int compares
-    if(!cond.isFLOATINGPOINT() || !cond.isUNSIGNED()) {
+    if (!cond.isFLOATINGPOINT() || !cond.isUNSIGNED()) {
       if (hasFloatingPointDef(taken) || hasFloatingPointDef(notTaken)) {
         return false;
       }
@@ -723,21 +722,21 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
     if (IfCmp.getVal1(cb).isConstant() && IfCmp.getVal2(cb).isConstant()) {
       return false;
     }
-    
+
     // For now, do not generate CMOVs for longs.
     if (hasLongDef(taken) || hasLongDef(notTaken)) {
       return false;
     }
-    
+
     // count the number of expression evaluations in each side of the
     // diamond
     int takenCost = 0;
     int notTakenCost = 0;
     if (taken != null) takenCost = evaluateCost(taken);
     if (notTaken != null) notTakenCost = evaluateCost(notTaken);
-    
+
     // evaluate whether it's profitable.
-    int shortestCost = Math.min(takenCost,notTakenCost);
+    int shortestCost = Math.min(takenCost, notTakenCost);
     int xformCost = 2 * (takenCost + notTakenCost);
     int k = ir.options.COND_MOVE_CUTOFF;
     if (xformCost - shortestCost > k) return false;
@@ -758,21 +757,31 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
     // left < right          0      0       1
     // left == right         1      0       0
     // UNORDERED             1      1       1
-    switch(c.value) {
-    case OPT_ConditionOperand.CMPL_EQUAL:         return false; // (ZF == 1) but ordered
-    case OPT_ConditionOperand.CMPL_NOT_EQUAL:     return false; // (ZF == 0) but unordered
-    case OPT_ConditionOperand.CMPG_LESS:          return false; // (CF == 1) but ordered
-    case OPT_ConditionOperand.CMPG_GREATER_EQUAL: return false; // (CF == 0) but unordered
-    case OPT_ConditionOperand.CMPG_LESS_EQUAL:    return false; // (CF == 1 || ZF == 1) but ordered
-    case OPT_ConditionOperand.CMPG_GREATER:       return false; // (CF == 0 && ZF == 0) but unordered
+    switch (c.value) {
+      case OPT_ConditionOperand.CMPL_EQUAL:
+        return false; // (ZF == 1) but ordered
+      case OPT_ConditionOperand.CMPL_NOT_EQUAL:
+        return false; // (ZF == 0) but unordered
+      case OPT_ConditionOperand.CMPG_LESS:
+        return false; // (CF == 1) but ordered
+      case OPT_ConditionOperand.CMPG_GREATER_EQUAL:
+        return false; // (CF == 0) but unordered
+      case OPT_ConditionOperand.CMPG_LESS_EQUAL:
+        return false; // (CF == 1 || ZF == 1) but ordered
+      case OPT_ConditionOperand.CMPG_GREATER:
+        return false; // (CF == 0 && ZF == 0) but unordered
 
-    case OPT_ConditionOperand.CMPL_GREATER:       return true; // (CF == 0 && ZF == 0) and ordered
-    case OPT_ConditionOperand.CMPL_LESS_EQUAL:    return true; // (CF == 1 || ZF == 1) and unordered
-    case OPT_ConditionOperand.CMPL_GREATER_EQUAL: return true; // (CF == 0) and ordered
-    case OPT_ConditionOperand.CMPL_LESS:          return true; // (CF == 1) and unordered
-    default:
-      OPT_OptimizingCompilerException.UNREACHABLE();
-      return false; // keep jikes happy
+      case OPT_ConditionOperand.CMPL_GREATER:
+        return true; // (CF == 0 && ZF == 0) and ordered
+      case OPT_ConditionOperand.CMPL_LESS_EQUAL:
+        return true; // (CF == 1 || ZF == 1) and unordered
+      case OPT_ConditionOperand.CMPL_GREATER_EQUAL:
+        return true; // (CF == 0) and ordered
+      case OPT_ConditionOperand.CMPL_LESS:
+        return true; // (CF == 1) and unordered
+      default:
+        OPT_OptimizingCompilerException.UNREACHABLE();
+        return false; // keep jikes happy
     }
   }
 
@@ -783,9 +792,9 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
   private boolean hasFloatingPointDef(OPT_BasicBlock bb) {
     if (bb == null) return false;
     for (OPT_InstructionEnumeration e = bb.forwardRealInstrEnumerator();
-         e.hasMoreElements(); ) {
+         e.hasMoreElements();) {
       OPT_Instruction s = e.nextElement();
-      for (OPT_OperandEnumeration d = s.getDefs(); d.hasMoreElements(); ) {
+      for (OPT_OperandEnumeration d = s.getDefs(); d.hasMoreElements();) {
         OPT_Operand def = d.nextElement();
         if (def.isRegister()) {
           if (def.asRegister().register.isFloatingPoint()) return true;
@@ -794,16 +803,17 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
     }
     return false;
   }
+
   /**
    * Do any of the instructions in a basic block define a long
    * register?
    */
   private boolean hasLongDef(OPT_BasicBlock bb) {
-     if (bb == null) return false;
-     for (OPT_InstructionEnumeration e = bb.forwardRealInstrEnumerator();
-         e.hasMoreElements(); ) {
+    if (bb == null) return false;
+    for (OPT_InstructionEnumeration e = bb.forwardRealInstrEnumerator();
+         e.hasMoreElements();) {
       OPT_Instruction s = e.nextElement();
-      for (OPT_OperandEnumeration d = s.getDefs(); d.hasMoreElements(); ) {
+      for (OPT_OperandEnumeration d = s.getDefs(); d.hasMoreElements();) {
         OPT_Operand def = d.nextElement();
         if (def.isRegister()) {
           if (def.asRegister().register.isLong()) return true;
@@ -812,6 +822,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
     }
     return false;
   }
+
   /**
    * Do any of the instructions in a basic block preclude eliminating the
    * basic block with conditional moves?
@@ -825,7 +836,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
     HashSet<OPT_Register> defined = new HashSet<OPT_Register>();
 
     for (OPT_InstructionEnumeration e = bb.forwardRealInstrEnumerator();
-         e.hasMoreElements(); ) {
+         e.hasMoreElements();) {
       OPT_Instruction s = e.nextElement();
       if (s.isBranch()) continue;
       // for now, only the following opcodes are legal.
@@ -860,10 +871,9 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
         default:
           return true;
       }
-      
-      
+
       // make sure no register is defined more than once in this block.
-      for (OPT_OperandEnumeration defs = s.getDefs(); defs.hasMoreElements(); ) {
+      for (OPT_OperandEnumeration defs = s.getDefs(); defs.hasMoreElements();) {
         OPT_Operand def = defs.nextElement();
         if (VM.VerifyAssertions) VM._assert(def.isRegister());
         OPT_Register r = def.asRegister().register;
@@ -874,13 +884,14 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
 
     return false;
   }
+
   /**
    * Evaluate the cost of a basic block, in number of real instructions. 
    */
   private int evaluateCost(OPT_BasicBlock bb) {
     int result = 0;
     for (OPT_InstructionEnumeration e = bb.forwardRealInstrEnumerator();
-         e.hasMoreElements(); ) {
+         e.hasMoreElements();) {
       OPT_Instruction s = e.nextElement();
       if (!s.isBranch()) result++;
     }
@@ -895,13 +906,13 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
    * </ul>
    */
   private OPT_Instruction[] copyAndMapInstructions(OPT_BasicBlock bb,
-                                                   HashMap<OPT_Instruction,OPT_Instruction> map) {
+                                                   HashMap<OPT_Instruction, OPT_Instruction> map) {
     if (bb == null) return new OPT_Instruction[0];
-                
+
     int count = 0;
     // first count the number of instructions
     for (OPT_InstructionEnumeration e = bb.forwardRealInstrEnumerator();
-         e.hasMoreElements(); ) {
+         e.hasMoreElements();) {
       OPT_Instruction s = e.nextElement();
       if (s.isBranch()) continue;
       count++;
@@ -909,13 +920,13 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
     // now copy.
     OPT_Instruction[] result = new OPT_Instruction[count];
     int i = 0;
-    for (OPT_InstructionEnumeration e = bb.forwardRealInstrEnumerator(); 
-         e.hasMoreElements(); ) {
+    for (OPT_InstructionEnumeration e = bb.forwardRealInstrEnumerator();
+         e.hasMoreElements();) {
       OPT_Instruction s = e.nextElement();
       if (s.isBranch()) continue;
       OPT_Instruction sprime = s.copyWithoutLinks();
       result[i++] = sprime;
-      map.put(s,sprime);
+      map.put(s, sprime);
     }
     return result;
   }
@@ -928,8 +939,8 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
   private void rewriteWithTemporaries(OPT_Instruction[] set, OPT_IR ir) {
 
     // Maintain a mapping holding the new name for each register
-    HashMap<OPT_Register,OPT_Register> map =
-      new HashMap<OPT_Register,OPT_Register>();
+    HashMap<OPT_Register, OPT_Register> map =
+        new HashMap<OPT_Register, OPT_Register>();
     for (OPT_Instruction s : set) {
       // rewrite the uses to use the new names
       for (OPT_OperandEnumeration e = s.getUses(); e.hasMoreElements();) {
@@ -955,7 +966,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
 
   /**
    * Insert each instruction in a list before instruction s
-   */ 
+   */
   private void insertBefore(OPT_Instruction[] list, OPT_Instruction s) {
     for (OPT_Instruction x : list) {
       s.insertBefore(x);
@@ -977,16 +988,16 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
     // for each non-branch instruction s in the diamond, 
     // copy s to a new instruction s'
     // and store a mapping from s to s'
-    HashMap<OPT_Instruction,OPT_Instruction> takenInstructions =
-      new HashMap<OPT_Instruction,OPT_Instruction>();
+    HashMap<OPT_Instruction, OPT_Instruction> takenInstructions =
+        new HashMap<OPT_Instruction, OPT_Instruction>();
     OPT_Instruction[] takenInstructionList = copyAndMapInstructions
-      (taken, takenInstructions);
+        (taken, takenInstructions);
 
-    HashMap<OPT_Instruction,OPT_Instruction> notTakenInstructions =
-      new HashMap<OPT_Instruction,OPT_Instruction>();
+    HashMap<OPT_Instruction, OPT_Instruction> notTakenInstructions =
+        new HashMap<OPT_Instruction, OPT_Instruction>();
     OPT_Instruction[] notTakenInstructionList =
-      copyAndMapInstructions(notTaken, notTakenInstructions);
-    
+        copyAndMapInstructions(notTaken, notTakenInstructions);
+
     // Extract the values and condition from the conditional branch.
     OPT_Operand val1 = IfCmp.getVal1(cb);
     OPT_Operand val2 = IfCmp.getVal2(cb);
@@ -997,29 +1008,29 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
     // should clean these moves up.
     OPT_RegisterOperand tempVal1 = ir.regpool.makeTemp(val1);
     OPT_Operator op = OPT_IRTools.getMoveOp(tempVal1.type);
-    cb.insertBefore(Move.create(op,tempVal1.copyRO(),val1.copy()));
+    cb.insertBefore(Move.create(op, tempVal1.copyRO(), val1.copy()));
     OPT_RegisterOperand tempVal2 = ir.regpool.makeTemp(val2);
     op = OPT_IRTools.getMoveOp(tempVal2.type);
-    cb.insertBefore(Move.create(op,tempVal2.copyRO(),val2.copy()));
+    cb.insertBefore(Move.create(op, tempVal2.copyRO(), val2.copy()));
 
     // For each instruction in each temporary set, rewrite it to def a new
     // temporary, and insert it before the branch.
-    rewriteWithTemporaries(takenInstructionList,ir);
-    rewriteWithTemporaries(notTakenInstructionList,ir);
-    insertBefore(takenInstructionList,cb);
-    insertBefore(notTakenInstructionList,cb);
-    
+    rewriteWithTemporaries(takenInstructionList, ir);
+    rewriteWithTemporaries(notTakenInstructionList, ir);
+    insertBefore(takenInstructionList, cb);
+    insertBefore(notTakenInstructionList, cb);
+
     // For each register defined in the TAKEN branch, save a mapping to
     // the corresponding conditional move.
-    HashMap<OPT_Register,OPT_Instruction> takenMap =
-      new HashMap<OPT_Register,OPT_Instruction>();
-    
+    HashMap<OPT_Register, OPT_Instruction> takenMap =
+        new HashMap<OPT_Register, OPT_Instruction>();
+
     // Now insert conditional moves to replace each instruction in the diamond.
     // First handle the taken branch.
     if (taken != null) {
-      for (OPT_InstructionEnumeration e = taken.forwardRealInstrEnumerator(); 
+      for (OPT_InstructionEnumeration e = taken.forwardRealInstrEnumerator();
            e.hasMoreElements();) {
-        OPT_Instruction s = e.nextElement(); 
+        OPT_Instruction s = e.nextElement();
         if (s.isBranch()) continue;
         OPT_Operand def = s.getDefs().nextElement();
         // if the register does not span a basic block, it is a temporary
@@ -1027,15 +1038,15 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
         if (def.asRegister().register.spansBasicBlock()) {
           OPT_Instruction tempS = takenInstructions.get(s);
           OPT_RegisterOperand temp = (OPT_RegisterOperand)
-            tempS.getDefs().nextElement();
+              tempS.getDefs().nextElement();
           op = OPT_IRTools.getCondMoveOp(def.asRegister().type);
-          OPT_Instruction cmov = CondMove.create(op,def.asRegister() ,
+          OPT_Instruction cmov = CondMove.create(op, def.asRegister(),
                                                  tempVal1.copy(),
                                                  tempVal2.copy(),
                                                  cond.copy().asCondition(),
                                                  temp.copy(),
                                                  def.copy());
-          takenMap.put(def.asRegister().register,cmov);
+          takenMap.put(def.asRegister().register, cmov);
           cb.insertBefore(cmov);
         }
         s.remove();
@@ -1043,13 +1054,13 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
     }
     // For each register defined in the NOT-TAKEN branch, save a mapping to
     // the corresponding conditional move.
-    HashMap<OPT_Register,OPT_Instruction> notTakenMap =
-      new HashMap<OPT_Register,OPT_Instruction>();
+    HashMap<OPT_Register, OPT_Instruction> notTakenMap =
+        new HashMap<OPT_Register, OPT_Instruction>();
     // Next handle the not taken branch.
     if (notTaken != null) {
-      for (OPT_InstructionEnumeration e = notTaken.forwardRealInstrEnumerator(); 
+      for (OPT_InstructionEnumeration e = notTaken.forwardRealInstrEnumerator();
            e.hasMoreElements();) {
-        OPT_Instruction s = e.nextElement(); 
+        OPT_Instruction s = e.nextElement();
         if (s.isBranch()) continue;
         OPT_Operand def = s.getDefs().nextElement();
         // if the register does not span a basic block, it is a temporary
@@ -1057,26 +1068,26 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
         if (def.asRegister().register.spansBasicBlock()) {
           OPT_Instruction tempS = notTakenInstructions.get(s);
           OPT_RegisterOperand temp = (OPT_RegisterOperand)
-            tempS.getDefs().nextElement();
+              tempS.getDefs().nextElement();
 
           OPT_Instruction prevCmov = takenMap.get(def.asRegister
-                                                                   ().register);
+              ().register);
           if (prevCmov != null) {
             // if this register was also defined in the taken branch, change
             // the previous cmov with a different 'False' Value
             CondMove.setFalseValue(prevCmov, temp.copy());
-            notTakenMap.put(def.asRegister().register,prevCmov);
+            notTakenMap.put(def.asRegister().register, prevCmov);
           } else {
             // create a new cmov instruction
             op = OPT_IRTools.getCondMoveOp(def.asRegister().type);
-            OPT_Instruction cmov = CondMove.create(op,def.asRegister(),
+            OPT_Instruction cmov = CondMove.create(op, def.asRegister(),
                                                    tempVal1.copy(),
                                                    tempVal2.copy(),
                                                    cond.copy().asCondition(),
                                                    def.copy(),
                                                    temp.copy());
             cb.insertBefore(cmov);
-            notTakenMap.put(def.asRegister().register,cmov);
+            notTakenMap.put(def.asRegister().register, cmov);
           }
         }
         s.remove();
@@ -1085,8 +1096,8 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
 
     // Mutate the conditional branch into a GOTO.
     OPT_BranchOperand target = diamond.getBottom().makeJumpTarget();
-    Goto.mutate(cb,GOTO,target);
-    
+    Goto.mutate(cb, GOTO, target);
+
     // Delete a potential GOTO after cb.
     OPT_Instruction next = cb.nextInstructionInCodeOrder();
     if (next.operator != BBEND) {
@@ -1116,102 +1127,123 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
    * @param cb conditional branch instruction
    * @return true if the transformation succeeds, false otherwise
    */
-  private boolean generateBooleanCompare (OPT_IR ir, 
-                                          OPT_BasicBlock bb, 
-                                          OPT_Instruction cb, 
-                                          OPT_BasicBlock tb) 
-  {
-    
-    if ((cb.operator() != INT_IFCMP) && (cb.operator() != REF_IFCMP))
+  private boolean generateBooleanCompare(OPT_IR ir,
+                                         OPT_BasicBlock bb,
+                                         OPT_Instruction cb,
+                                         OPT_BasicBlock tb) {
+
+    if ((cb.operator() != INT_IFCMP) && (cb.operator() != REF_IFCMP)) {
       return false;
+    }
     // make sure this is the last branch in the block
-    if (cb.nextInstructionInCodeOrder().operator() != BBEND)
+    if (cb.nextInstructionInCodeOrder().operator() != BBEND) {
       return false;
+    }
     OPT_Operand val1 = IfCmp.getVal1(cb);
     OPT_Operand val2 = IfCmp.getVal2(cb);
     OPT_ConditionOperand condition = IfCmp.getCond(cb);
     // "not taken" path
     OPT_BasicBlock fb = cb.getBasicBlock().getNotTakenNextBlock();
     // make sure it's a diamond
-    if (tb.getNumberOfNormalOut() != 1)
+    if (tb.getNumberOfNormalOut() != 1) {
       return false;
-    if (fb.getNumberOfNormalOut() != 1)
+    }
+    if (fb.getNumberOfNormalOut() != 1) {
       return false;
+    }
     OPT_BasicBlock jb = fb.getNormalOut().next();               // join block
     // make sure it's a diamond
-    if (!tb.pointsOut(jb))
+    if (!tb.pointsOut(jb)) {
       return false;
+    }
     OPT_Instruction ti = tb.firstRealInstruction();
     OPT_Instruction fi = fb.firstRealInstruction();
     // make sure the instructions in target blocks are either both moves
     // or both returns
-    if (ti == null || fi == null)
+    if (ti == null || fi == null) {
       return false;
-    if (ti.operator() != fi.operator())
+    }
+    if (ti.operator() != fi.operator()) {
       return false;
-    if (ti.operator != RETURN && ti.operator() != INT_MOVE)
+    }
+    if (ti.operator != RETURN && ti.operator() != INT_MOVE) {
       return false;
+    }
     //
     // WARNING: This code is currently NOT exercised!
     //
     if (ti.operator() == RETURN) {
       // make sure each of the target blocks contains only one instruction
-      if (ti != tb.lastRealInstruction())
+      if (ti != tb.lastRealInstruction()) {
         return false;
-      if (fi != fb.lastRealInstruction())
+      }
+      if (fi != fb.lastRealInstruction()) {
         return false;
+      }
       OPT_Operand tr = Return.getVal(ti);
       OPT_Operand fr = Return.getVal(fi);
       // make sure we're returning constants
-      if (!(tr instanceof OPT_IntConstantOperand) || 
-          !(fr instanceof OPT_IntConstantOperand))
+      if (!(tr instanceof OPT_IntConstantOperand) ||
+          !(fr instanceof OPT_IntConstantOperand)) {
         return false;
-      int tv = ((OPT_IntConstantOperand)tr).value;
-      int fv = ((OPT_IntConstantOperand)fr).value;
-      if (!((tv == 1 && fv == 0) || (tv == 1 && fv == 0)))
+      }
+      int tv = ((OPT_IntConstantOperand) tr).value;
+      int fv = ((OPT_IntConstantOperand) fr).value;
+      if (!((tv == 1 && fv == 0) || (tv == 1 && fv == 0))) {
         return false;
+      }
       OPT_RegisterOperand t = ir.regpool.makeTemp(VM_TypeReference.Boolean);
       // Cases 1) and 2)
-      if (tv == 0)
+      if (tv == 0) {
         condition = condition.flipCode();
+      }
       booleanCompareHelper(cb, t, val1.copy(), val2.copy(), condition);
       cb.insertAfter(Return.create(RETURN, t.copyD2U()));
     } else {      // (ti.operator() == INT_MOVE)
       // make sure each of the target blocks only does the move
-      if (ti != tb.lastRealInstruction() && 
+      if (ti != tb.lastRealInstruction() &&
           ti.nextInstructionInCodeOrder().operator()
-          != GOTO) return false;
-      if (fi != fb.lastRealInstruction() && 
-          fi.nextInstructionInCodeOrder().operator() != GOTO)
+          != GOTO) {
         return false;
+      }
+      if (fi != fb.lastRealInstruction() &&
+          fi.nextInstructionInCodeOrder().operator() != GOTO) {
+        return false;
+      }
       OPT_RegisterOperand t = Move.getResult(ti);
       // make sure both moves are to the same register
-      if (t.register != Move.getResult(fi).register)
+      if (t.register != Move.getResult(fi).register) {
         return false;
+      }
       OPT_Operand tr = Move.getVal(ti);
       OPT_Operand fr = Move.getVal(fi);
       // make sure we're assigning constants
-      if (!(tr instanceof OPT_IntConstantOperand) || 
-          !(fr instanceof OPT_IntConstantOperand)) return false;
-      int tv = ((OPT_IntConstantOperand)tr).value;
-      int fv = ((OPT_IntConstantOperand)fr).value;
-      if (!((tv == 1 && fv == 0) || (tv == 0 && fv == 1)))
+      if (!(tr instanceof OPT_IntConstantOperand) ||
+          !(fr instanceof OPT_IntConstantOperand)) {
         return false;
+      }
+      int tv = ((OPT_IntConstantOperand) tr).value;
+      int fv = ((OPT_IntConstantOperand) fr).value;
+      if (!((tv == 1 && fv == 0) || (tv == 0 && fv == 1))) {
+        return false;
+      }
       // Cases 3) and 4)
-      if (tv == 0)
+      if (tv == 0) {
         condition = condition.flipCode();
+      }
       booleanCompareHelper(cb, t.copyRO(), val1.copy(), val2.copy(), condition);
       OPT_Instruction next = cb.nextInstructionInCodeOrder();
-      if (next.operator() == GOTO)
-        Goto.setTarget(next, jb.makeJumpTarget()); 
-      else 
+      if (next.operator() == GOTO) {
+        Goto.setTarget(next, jb.makeJumpTarget());
+      } else {
         cb.insertAfter(jb.makeGOTO());
+      }
     }
     // fixup CFG
     bb.deleteOut(tb);
     bb.deleteOut(fb);
     bb.insertOut(jb);           // Note: if we processed returns, 
-                                // jb is the exit node.
+    // jb is the exit node.
     return true;
   }
 }

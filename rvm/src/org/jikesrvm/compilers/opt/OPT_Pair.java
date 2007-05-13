@@ -17,18 +17,18 @@ class OPT_Pair {
    * @param    f  The first element in the pair.
    * @param    s  The second element in the pair.
    */
-  OPT_Pair (Object f, Object s) {
+  OPT_Pair(Object f, Object s) {
     first = f;
     second = s;
   }
 
-    public int hashCode () {
-    return  (first.hashCode() | second.hashCode());
+  public int hashCode() {
+    return (first.hashCode() | second.hashCode());
   }
 
-    public boolean equals (Object o) {
-    return  (o instanceof OPT_Pair) && first == ((OPT_Pair)o).first && 
-        second == ((OPT_Pair)o).second;
+  public boolean equals(Object o) {
+    return (o instanceof OPT_Pair) && first == ((OPT_Pair) o).first &&
+           second == ((OPT_Pair) o).second;
   }
 }
 

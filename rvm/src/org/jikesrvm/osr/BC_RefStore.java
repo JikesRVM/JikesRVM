@@ -8,15 +8,16 @@
  */
 
 package org.jikesrvm.osr;
+
 /**
  * BC_RefStore: astore, astore_<i> 
  */
 
 public class BC_RefStore extends OSR_PseudoBytecode {
-  private int bsize; 
-  private byte[] codes; 
+  private int bsize;
+  private byte[] codes;
   private int lnum;
-  
+
   public BC_RefStore(int local) {
     this.lnum = local;
 
@@ -38,10 +39,10 @@ public class BC_RefStore extends OSR_PseudoBytecode {
   }
 
   public int stackChanges() {
-        return -1;
+    return -1;
   }
 
   public String toString() {
-    return "astore "+this.lnum;
+    return "astore " + this.lnum;
   }
 }

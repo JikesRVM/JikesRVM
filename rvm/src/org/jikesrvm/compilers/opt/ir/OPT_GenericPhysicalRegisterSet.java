@@ -26,7 +26,7 @@ public abstract class OPT_GenericPhysicalRegisterSet implements OPT_BitSetMappin
   /**
    * Return the total number of physical registers.
    */
-  public abstract int getNumberOfPhysicalRegisters(); 
+  public abstract int getNumberOfPhysicalRegisters();
 
   /**
    * @return the FP register
@@ -46,12 +46,12 @@ public abstract class OPT_GenericPhysicalRegisterSet implements OPT_BitSetMappin
   /**
    * @return the first GPR return
    */
-  public abstract OPT_Register getFirstReturnGPR(); 
+  public abstract OPT_Register getFirstReturnGPR();
 
   /**
    * @return the nth physical FPR 
    */
-  public abstract OPT_Register getFPR(int n); 
+  public abstract OPT_Register getFPR(int n);
 
   /**
    * @return the nth physical register in the pool. 
@@ -66,12 +66,12 @@ public abstract class OPT_GenericPhysicalRegisterSet implements OPT_BitSetMappin
   /**
    * Enumerate all the GPRs in this set.
    */
-  public abstract Enumeration<OPT_Register> enumerateGPRs(); 
+  public abstract Enumeration<OPT_Register> enumerateGPRs();
 
   /**
    * Enumerate all the volatile GPRs in this set.
    */
-  public abstract Enumeration<OPT_Register> enumerateVolatileGPRs(); 
+  public abstract Enumeration<OPT_Register> enumerateVolatileGPRs();
 
   /**
    * Enumerate all the nonvolatile GPRs in this set.
@@ -91,7 +91,7 @@ public abstract class OPT_GenericPhysicalRegisterSet implements OPT_BitSetMappin
   /**
    * Enumerate all the volatile physical registers
    */
-  public abstract Enumeration<OPT_Register> enumerateVolatiles(); 
+  public abstract Enumeration<OPT_Register> enumerateVolatiles();
 
   /**
    * Enumerate all the nonvolatile GPRs in this set, backwards
@@ -118,7 +118,7 @@ public abstract class OPT_GenericPhysicalRegisterSet implements OPT_BitSetMappin
    * Implementation of the OPT_BitSetMapping interface.
    */
   public final int getMappedIndex(Object o) {
-    OPT_Register r = (OPT_Register)o;
+    OPT_Register r = (OPT_Register) o;
     return r.number;
   }
 

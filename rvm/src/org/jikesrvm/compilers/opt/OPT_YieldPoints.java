@@ -56,28 +56,28 @@ class OPT_YieldPoints extends OPT_CompilerPhase {
 
   /**
    * Insert yield points in method prologues, loop heads, and method exits
-   * 
+   *
    * @param ir the governing IR
    */
-  public final void perform (OPT_IR ir) {
+  public final void perform(OPT_IR ir) {
     if (!ir.method.isInterruptible()) {
       return;   // don't insert yieldpoints in Uninterruptible code.
     }
-    
+
     // (1) Insert prologue yieldpoint unconditionally.
     //     As part of prologue/epilogue insertion we'll remove
     //     the yieldpoints in trival methods that otherwise wouldn't need 
     //     a stackframe.
     prependYield(ir.cfg.entry(), YIELDPOINT_PROLOGUE, 0, ir.gc.inlineSequence);
-    
+
     // (2) If using epilogue yieldpoints scan basic blocks, looking for returns or throws
     if (VM.UseEpilogueYieldPoints) {
-      for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); 
+      for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks();
            e.hasMoreElements();) {
         OPT_BasicBlock block = e.next();
         if (block.hasReturn() || block.hasAthrowInst()) {
           prependYield(block, YIELDPOINT_EPILOGUE, INSTRUMENTATION_BCI, ir.gc.inlineSequence);
-        } 
+        }
       }
     }
 
@@ -106,16 +106,16 @@ class OPT_YieldPoints extends OPT_CompilerPhase {
   /**
    * Add a YIELD instruction to the appropriate place for the basic 
    * block passed.
-   * 
+   *
    * @param bb the basic block
    * @param yp the yieldpoint operator to insert
    * @param bcIndex the bcIndex of the yieldpoint
    * @param position the source position of the yieldpoint
    */
-  private void prependYield(OPT_BasicBlock bb, 
-                            OPT_Operator yp, 
+  private void prependYield(OPT_BasicBlock bb,
+                            OPT_Operator yp,
                             int bcIndex,
-                            OPT_InlineSequence position) { 
+                            OPT_InlineSequence position) {
     OPT_Instruction insertionPoint = null;
 
     if (bb.isEmpty()) {
@@ -126,8 +126,8 @@ class OPT_YieldPoints extends OPT_CompilerPhase {
 
     if (yp == YIELDPOINT_PROLOGUE) {
       if (VM.VerifyAssertions) {
-        VM._assert((insertionPoint != null) && 
-                  (insertionPoint.getOpcode() == IR_PROLOGUE_opcode));
+        VM._assert((insertionPoint != null) &&
+                   (insertionPoint.getOpcode() == IR_PROLOGUE_opcode));
       }
       // put it after the prologue
       insertionPoint = insertionPoint.nextInstructionInCodeOrder();
@@ -136,7 +136,7 @@ class OPT_YieldPoints extends OPT_CompilerPhase {
       // epilogues go before the return or athrow (at end of block)
       insertionPoint = bb.lastRealInstruction();
     }
-    
+
     OPT_Instruction s = Empty.create(yp);
     insertionPoint.insertBefore(s);
     s.position = position;

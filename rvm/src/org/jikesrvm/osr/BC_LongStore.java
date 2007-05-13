@@ -8,13 +8,14 @@
  */
 
 package org.jikesrvm.osr;
+
 /**
  * BC_LongStore: lstore, lstore_<n> 
  */
 
 public class BC_LongStore extends OSR_PseudoBytecode {
-  private int bsize; 
-  private byte[] codes; 
+  private int bsize;
+  private byte[] codes;
   private int lnum;
 
   public BC_LongStore(int local) {
@@ -37,10 +38,10 @@ public class BC_LongStore extends OSR_PseudoBytecode {
   }
 
   public int stackChanges() {
-        return -2;
+    return -2;
   }
 
   public String toString() {
-    return "lstore "+lnum;
+    return "lstore " + lnum;
   }
 }

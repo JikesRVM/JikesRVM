@@ -29,7 +29,7 @@ class OPT_DF_Graph implements OPT_Graph {
   /**
    * @return number of nodes in the graph
    */
-  public int numberOfNodes () {
+  public int numberOfNodes() {
     return count;
   }
 
@@ -37,25 +37,25 @@ class OPT_DF_Graph implements OPT_Graph {
    * Implementation for OPT_Graph Interface.  TODO: why is this in the
    * OPT_Graph interface?
    */
-  public void compactNodeNumbering () {}
+  public void compactNodeNumbering() {}
 
   /**
    * Enumerate the nodes in the graph.
    * @return an enumeration of the nodes in the graph
    */
-  public OPT_GraphNodeEnumeration enumerateNodes () {
+  public OPT_GraphNodeEnumeration enumerateNodes() {
     return new OPT_GraphNodeEnumeration() {
       private int i = 0;
 
-      public boolean hasMoreElements () {
+      public boolean hasMoreElements() {
         return i < count;
       }
 
-      public OPT_GraphNode next () {
+      public OPT_GraphNode next() {
         return nodes.get(i++);
       }
 
-      public OPT_GraphNode nextElement () {
+      public OPT_GraphNode nextElement() {
         return next();
       }
     };
@@ -65,7 +65,7 @@ class OPT_DF_Graph implements OPT_Graph {
    * Add a node to the graph.
    * @param x the node to add
    */
-  public void addGraphNode (OPT_GraphNode x) {
+  public void addGraphNode(OPT_GraphNode x) {
     x.setIndex(count);
     nodes.add(x);
     count++;
@@ -74,7 +74,7 @@ class OPT_DF_Graph implements OPT_Graph {
   /**
    * Unsupported.  Why is this here?
    */
-  public void addGraphEdge (OPT_GraphNode x, OPT_GraphNode y) {
+  public void addGraphEdge(OPT_GraphNode x, OPT_GraphNode y) {
     throw new OPT_OptimizingCompilerException("DF_Graph edges implicit");
   }
 }

@@ -34,8 +34,8 @@ public class VM_Services {
     }
     return buf.toString();
   }
-  
+
   @NoInline
-  public static void breakStub() { 
+  public static void breakStub() {
   }
 }

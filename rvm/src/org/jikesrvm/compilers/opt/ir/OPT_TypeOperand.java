@@ -57,11 +57,11 @@ public final class OPT_TypeOperand extends OPT_Operand {
 
   /**
    * Return the {@link VM_TypeReference} of the value represented by the operand.
-   * 
+   *
    * @return VM_TypeReference.VM_Type
    */
   public VM_TypeReference getType() {
-	 return VM_TypeReference.VM_Type;
+    return VM_TypeReference.VM_Type;
   }
 
   /**
@@ -80,13 +80,13 @@ public final class OPT_TypeOperand extends OPT_Operand {
 
   /**
    * Return a new operand that is semantically equivalent to <code>this</code>.
-   * 
+   *
    * @return a copy of <code>this</code>
    */
   public OPT_Operand copy() {
     return new OPT_TypeOperand(type, typeRef);
   }
-  
+
   /**
    * Are two operands semantically equivalent?
    *
@@ -97,7 +97,7 @@ public final class OPT_TypeOperand extends OPT_Operand {
    */
   public boolean similar(OPT_Operand op) {
     if (op instanceof OPT_TypeOperand) {
-      OPT_TypeOperand that = (OPT_TypeOperand)op;
+      OPT_TypeOperand that = (OPT_TypeOperand) op;
       return type == that.type && typeRef == that.typeRef;
     } else {
       return false;

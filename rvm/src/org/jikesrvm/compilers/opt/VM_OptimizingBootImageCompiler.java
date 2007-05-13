@@ -25,8 +25,8 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
 
   // Cache objects needed to cons up compilation plans
-  private final Vector<OPT_OptimizationPlanElement[]> optimizationPlans = 
-    new Vector<OPT_OptimizationPlanElement[]>();
+  private final Vector<OPT_OptimizationPlanElement[]> optimizationPlans =
+      new Vector<OPT_OptimizationPlanElement[]>();
   private final Vector<Boolean> optimizationPlanLocks = new Vector<Boolean>();
   private final Vector<OPT_Options> options = new Vector<OPT_Options>();
   private final OPT_Options masterOptions = new OPT_Options();
@@ -35,7 +35,8 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
   // Otherwise, methods that match the pattern are not opt-compiled.
   // In any case, the class VM_OptSaveVolatile is always opt-compiled.
   //
-  private String excludePattern; 
+  private String excludePattern;
+
   private boolean match(VM_Method method) {
     if (excludePattern == null) return true;
     VM_Class cls = method.getDeclaringClass();
@@ -46,7 +47,7 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
     return (fullName.indexOf(excludePattern)) < 0;
   }
 
-  /** 
+  /**
    * Initialize boot image compiler.
    * @param args command line arguments to the bootimage compiler
    */
@@ -54,7 +55,7 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
     try {
       VM_BaselineCompiler.initOptions();
       VM.sysWrite("VM_BootImageCompiler: init (opt compiler)\n");
-         
+
       // Writing a boot image is a little bit special.  We're not really 
       // concerned about compile time, but we do care a lot about the quality
       // and stability of the generated code.  Set the options accordingly.
@@ -64,16 +65,17 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
       for (int i = 0, n = args.length; i < n; i++) {
         String arg = args[i];
         if (!masterOptions.processAsOption("-X:bc:", arg)) {
-          if (arg.startsWith("exclude=")) 
+          if (arg.startsWith("exclude=")) {
             excludePattern = arg.substring(8);
-          else
-            VM.sysWrite("VM_BootImageCompiler: Unrecognized argument "+arg+"; ignoring\n");
+          } else {
+            VM.sysWrite("VM_BootImageCompiler: Unrecognized argument " + arg + "; ignoring\n");
+          }
         }
       }
 
       OPT_Compiler.init(masterOptions);
     } catch (OPT_OptimizingCompilerException e) {
-      String msg = "VM_BootImageCompiler: OPT_Compiler failed during initialization: "+e+"\n";
+      String msg = "VM_BootImageCompiler: OPT_Compiler failed during initialization: " + e + "\n";
       if (e.isFatal) {
         // An unexpected error when building the opt boot image should be fatal
         e.printStackTrace();
@@ -84,8 +86,7 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
     }
   }
 
-
-  /** 
+  /**
    * Compile a method with bytecodes.
    * @param method the method to compile
    * @return the compiled method
@@ -95,22 +96,24 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
       return baselineCompile(method);
     } else {
       VM_CompiledMethod cm = null;
-      OPT_OptimizingCompilerException escape =  new OPT_OptimizingCompilerException(false);
+      OPT_OptimizingCompilerException escape = new OPT_OptimizingCompilerException(false);
       try {
         VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.OPT);
         boolean include = match(method);
-        if (!include)
+        if (!include) {
           throw escape;
+        }
         long start = System.currentTimeMillis();
         int freeOptimizationPlan = getFreeOptimizationPlan();
         OPT_OptimizationPlanElement[] optimizationPlan = optimizationPlans.get(freeOptimizationPlan);
-        OPT_CompilationPlan cp = new OPT_CompilationPlan(method, optimizationPlan, null, options.get(freeOptimizationPlan));
+        OPT_CompilationPlan cp =
+            new OPT_CompilationPlan(method, optimizationPlan, null, options.get(freeOptimizationPlan));
         cm = OPT_Compiler.compile(cp);
         releaseOptimizationPlan(freeOptimizationPlan);
         if (VM.BuildForAdaptiveSystem) {
           long stop = System.currentTimeMillis();
           long compileTime = stop - start;
-          cm.setCompilationTime((float)compileTime);
+          cm.setCompilationTime((float) compileTime);
         }
         return cm;
       } catch (OPT_OptimizingCompilerException e) {
@@ -120,16 +123,18 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
           System.exit(VM.EXIT_STATUS_OPT_COMPILER_FAILED);
         } else {
           boolean printMsg = true;
-          if (e instanceof OPT_MagicNotImplementedException) 
-            printMsg = !((OPT_MagicNotImplementedException)e).isExpected;
-          if (e == escape) 
+          if (e instanceof OPT_MagicNotImplementedException) {
+            printMsg = !((OPT_MagicNotImplementedException) e).isExpected;
+          }
+          if (e == escape) {
             printMsg = false;
+          }
           if (printMsg) {
             if (e.toString().indexOf("method excluded") >= 0) {
-              String msg = "VM_BootImageCompiler: " + method + " excluded from opt-compilation\n"; 
+              String msg = "VM_BootImageCompiler: " + method + " excluded from opt-compilation\n";
               VM.sysWrite(msg);
             } else {
-              String msg = "VM_BootImageCompiler: can't optimize \"" + method + "\" (error was: " + e + ")\n"; 
+              String msg = "VM_BootImageCompiler: can't optimize \"" + method + "\" (error was: " + e + ")\n";
               VM.sysWrite(msg);
             }
           }
@@ -150,17 +155,17 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
     cm.setCompilationTime(compileTime);
     return cm;
   }
-  
+
   /**
    * Return an optimization plan that isn't in use
    * @return optimization plan
    */
   private int getFreeOptimizationPlan() {
     // Find plan
-    synchronized(optimizationPlanLocks) {
-      for (int i=0; i < optimizationPlanLocks.size(); i++) {
-        if(!optimizationPlanLocks.get(i)) {
-          optimizationPlanLocks.set(i,Boolean.TRUE);
+    synchronized (optimizationPlanLocks) {
+      for (int i = 0; i < optimizationPlanLocks.size(); i++) {
+        if (!optimizationPlanLocks.get(i)) {
+          optimizationPlanLocks.set(i, Boolean.TRUE);
           return i;
         }
       }
@@ -174,13 +179,14 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
       return optimizationPlanLocks.size() - 1;
     }
   }
+
   /**
    * Release an optimization plan
    * @param plan an optimization plan
    */
   private void releaseOptimizationPlan(int plan) {
-    synchronized(optimizationPlanLocks) {
-      optimizationPlanLocks.set(plan,Boolean.FALSE);
+    synchronized (optimizationPlanLocks) {
+      optimizationPlanLocks.set(plan, Boolean.FALSE);
     }
   }
 }

@@ -10,7 +10,7 @@ package org.jikesrvm.ia32;
 
 import org.jikesrvm.ArchitectureSpecific;
 
-/** 
+/**
  */
 public abstract class VM_MachineCode {
   private final ArchitectureSpecific.VM_CodeArray instructions;
@@ -19,16 +19,16 @@ public abstract class VM_MachineCode {
   //       OSR is currently implemented.
   private int[] bytecodeMap;
 
-  public VM_MachineCode (ArchitectureSpecific.VM_CodeArray i, int[] bm) {
+  public VM_MachineCode(ArchitectureSpecific.VM_CodeArray i, int[] bm) {
     instructions = i;
-    bytecodeMap  = bm;
+    bytecodeMap = bm;
   }
 
-  public final ArchitectureSpecific.VM_CodeArray getInstructions () {
+  public final ArchitectureSpecific.VM_CodeArray getInstructions() {
     return instructions;
   }
 
-  public final int[] getBytecodeMap () {
+  public final int[] getBytecodeMap() {
     return bytecodeMap;
   }
 

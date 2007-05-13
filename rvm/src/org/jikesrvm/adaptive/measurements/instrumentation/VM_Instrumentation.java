@@ -20,10 +20,9 @@ import org.jikesrvm.compilers.opt.OPT_InstrumentedEventCounterManager;
  * instrumenting methods.
  *
  *
-*/
+ */
 
-public final class VM_Instrumentation
-{
+public final class VM_Instrumentation {
 
   /**
    * A pointer to a OPT_InstrumentedEventCounterManager, (See
@@ -34,13 +33,11 @@ public final class VM_Instrumentation
    **/
   public static OPT_InstrumentedEventCounterManager eventCounterManager;
 
-
   /**
    * Called at boot time
    **/
-  public static void boot(VM_AOSOptions options) 
-  {
-    
+  public static void boot(VM_AOSOptions options) {
+
     // If the system may perform any instrumentation that uses managed
     // event counters, initialize a counter manager here.  
     if (options.INSERT_INSTRUCTION_COUNTERS ||
@@ -53,18 +50,18 @@ public final class VM_Instrumentation
     // If inserting method counters, initialize the counter space for
     // the invocation counters, using the eventCounterManager from above.
     if (options.INSERT_METHOD_COUNTERS_OPT) {
-      VM_AOSDatabase.methodInvocationCounterData = 
-        new VM_MethodInvocationCounterData(eventCounterManager);
+      VM_AOSDatabase.methodInvocationCounterData =
+          new VM_MethodInvocationCounterData(eventCounterManager);
 
       // Method Counters have only one array of counters for the whole
       // program, so initialize it here. Make it automitacally double
       // in size when needed.
       VM_AOSDatabase.methodInvocationCounterData.
-        automaticallyGrowCounters(true);
+          automaticallyGrowCounters(true);
 
       // Report at end
       VM_RuntimeMeasurements.
-        registerReportableObject(VM_AOSDatabase.methodInvocationCounterData);
+          registerReportableObject(VM_AOSDatabase.methodInvocationCounterData);
     }
 
     /**
@@ -74,12 +71,12 @@ public final class VM_Instrumentation
     if (options.INSERT_YIELDPOINT_COUNTERS) {
       // Create it here, because we need only one array of numbers,
       // not one per method.
-      VM_AOSDatabase.yieldpointCounterData = 
-        new VM_YieldpointCounterData(eventCounterManager);
+      VM_AOSDatabase.yieldpointCounterData =
+          new VM_YieldpointCounterData(eventCounterManager);
 
       // We want to report everything at the end.
       VM_RuntimeMeasurements.
-        registerReportableObject(VM_AOSDatabase.yieldpointCounterData);
+          registerReportableObject(VM_AOSDatabase.yieldpointCounterData);
 
     }
 
@@ -88,14 +85,14 @@ public final class VM_Instrumentation
      * data here.
      **/
     if (options.INSERT_INSTRUCTION_COUNTERS) {
-      VM_AOSDatabase.instructionCounterData = 
-        new VM_StringEventCounterData(eventCounterManager,
-                                      "Instruction Counter");
+      VM_AOSDatabase.instructionCounterData =
+          new VM_StringEventCounterData(eventCounterManager,
+                                        "Instruction Counter");
       VM_AOSDatabase.instructionCounterData.automaticallyGrowCounters(true);
 
       // We want to report everything at the end.
       VM_RuntimeMeasurements.
-        registerReportableObject(VM_AOSDatabase.instructionCounterData);
+          registerReportableObject(VM_AOSDatabase.instructionCounterData);
     }
 
     /**
@@ -103,14 +100,14 @@ public final class VM_Instrumentation
      * data here.
      **/
     if (options.INSERT_DEBUGGING_COUNTERS) {
-      VM_AOSDatabase.debuggingCounterData = 
-        new VM_StringEventCounterData(eventCounterManager,
-                                      "Debugging Counters");
+      VM_AOSDatabase.debuggingCounterData =
+          new VM_StringEventCounterData(eventCounterManager,
+                                        "Debugging Counters");
       VM_AOSDatabase.debuggingCounterData.automaticallyGrowCounters(true);
 
       // We want to report everything at the end.
       VM_RuntimeMeasurements.
-        registerReportableObject(VM_AOSDatabase.debuggingCounterData);
+          registerReportableObject(VM_AOSDatabase.debuggingCounterData);
     }
 
   }
@@ -120,17 +117,17 @@ public final class VM_Instrumentation
    * instrumentation, regardless of what the options say.  Used during
    * system shutdown.  Note, this method will not stop instrumentation
    * in currently compiled methods from executing.
- */
+   */
   static void disableInstrumentation() {
-    instrumentationEnabled=false;
+    instrumentationEnabled = false;
   }
 
   /**
    * Enable instrumentations, so that future compilations will not
    * perform any instrumentation.
- */
+   */
   static void enableInstrumentation() {
-    instrumentationEnabled=true;
+    instrumentationEnabled = true;
   }
 
   /**
@@ -139,5 +136,6 @@ public final class VM_Instrumentation
   public static boolean instrumentationEnabled() {
     return instrumentationEnabled;
   }
-  private static boolean instrumentationEnabled=true;
+
+  private static boolean instrumentationEnabled = true;
 }

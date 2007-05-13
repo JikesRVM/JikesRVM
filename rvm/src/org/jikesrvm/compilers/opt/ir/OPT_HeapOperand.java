@@ -12,7 +12,7 @@ import org.jikesrvm.compilers.opt.OPT_HeapVariable;
 
 /**
  * Represents a heap variable for instructions in Heap Array SSA form.
- * 
+ *
  * @see OPT_Operand
  * @see OPT_HeapVariable
  */
@@ -62,7 +62,7 @@ public final class OPT_HeapOperand<T> extends OPT_Operand {
   /**
    * Construct a new heap operand associated with the same heap variable as
    * this operand
-   * 
+   *
    * @return a new heap operand associated with the same heap variable as
    * this operand
    */
@@ -78,10 +78,11 @@ public final class OPT_HeapOperand<T> extends OPT_Operand {
    * @return true or false
    */
   public boolean similar(OPT_Operand op) {
-    if (!(op instanceof OPT_HeapOperand<?>))
-      return  false;
-    OPT_HeapOperand<?> h = (OPT_HeapOperand<?>)op;
-    return  (h.value == value);
+    if (!(op instanceof OPT_HeapOperand<?>)) {
+      return false;
+    }
+    OPT_HeapOperand<?> h = (OPT_HeapOperand<?>) op;
+    return (h.value == value);
   }
 
   /**
@@ -89,7 +90,7 @@ public final class OPT_HeapOperand<T> extends OPT_Operand {
    * @return a string representation of this operand.
    */
   public String toString() {
-    return  value.toString();
+    return value.toString();
   }
 
   /**
@@ -105,6 +106,6 @@ public final class OPT_HeapOperand<T> extends OPT_Operand {
    * @return the instruction associated with this operand.
    */
   public OPT_Instruction getInstruction() {
-    return  instruction;
+    return instruction;
   }
 }

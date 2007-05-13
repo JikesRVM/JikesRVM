@@ -40,7 +40,7 @@ class OPT_DepGraphStats {
   /**
    * Create a statistical summary of a dependence graph for a given basic
    * block.
-   * 
+   *
    * @param   dg        the dependence graph
    * @param   bbName    name of the basic block
    */
@@ -48,12 +48,13 @@ class OPT_DepGraphStats {
     // First pass -- compute numNodes
     int _numNodes = 0;
     boolean containsLoadOrStore = false;
-    for (OPT_DepGraphNode n = (OPT_DepGraphNode)dg.firstNode(); 
-        n != null; n = (OPT_DepGraphNode)n.getNext()) {
+    for (OPT_DepGraphNode n = (OPT_DepGraphNode) dg.firstNode();
+         n != null; n = (OPT_DepGraphNode) n.getNext()) {
       _numNodes++;
       OPT_Instruction instr = n.instruction();
-      if (instr.isImplicitStore() || instr.isImplicitLoad())
+      if (instr.isImplicitStore() || instr.isImplicitLoad()) {
         containsLoadOrStore = true;
+      }
     }
     OPT_DepGraphNode[] nodes = new OPT_DepGraphNode[_numNodes];
     int[] ECT = new int[_numNodes];              // Earliest Completion Times
@@ -61,22 +62,23 @@ class OPT_DepGraphStats {
     int _critPathLength = 0;
     // Second pass -- compute times
     int i = 0;
-    for (OPT_DepGraphNode n = (OPT_DepGraphNode)dg.firstNode(); n != null; 
-        n = (OPT_DepGraphNode)n.getNext()) {
+    for (OPT_DepGraphNode n = (OPT_DepGraphNode) dg.firstNode(); n != null;
+         n = (OPT_DepGraphNode) n.getNext()) {
       nodes[i] = n;
       ECT[i] = 0;
-      for (OPT_DepGraphEdge e = (OPT_DepGraphEdge)n.firstInEdge(); e != 
-          null; e = (OPT_DepGraphEdge)e.getNextIn()) {
-        OPT_DepGraphNode pred = (OPT_DepGraphNode)e.fromNode();
+      for (OPT_DepGraphEdge e = (OPT_DepGraphEdge) n.firstInEdge(); e !=
+                                                                    null; e = (OPT_DepGraphEdge) e.getNextIn()) {
+        OPT_DepGraphNode pred = (OPT_DepGraphNode) e.fromNode();
         // Look for pred in nodes[]
         int j;
         for (j = 0; j < i; j++) {
-          if (nodes[j] == pred)
+          if (nodes[j] == pred) {
             break;
+          }
         }
         if (j == i) {
           // Not found
-          throw  new OPT_OptimizingCompilerException(
+          throw new OPT_OptimizingCompilerException(
               "OPT_DepGraphStats: dep graph is not topologically sorted ???");
           // NOTE: I could not use OPT_SortedGraphIterator 
           // for top sort because OPT_DepGraphNode
@@ -93,9 +95,9 @@ class OPT_DepGraphStats {
       i++;
     }           // for ( n = ... )
     System.out.println("@@@@ BB " + bbName + "; totalTime = " + _totalTime
-        + "; containsLoadOrStore = " + containsLoadOrStore + 
-        "; critPathLength = "
-        + _critPathLength);
+                       + "; containsLoadOrStore = " + containsLoadOrStore +
+                       "; critPathLength = "
+                       + _critPathLength);
   }
 
   /**
@@ -105,21 +107,21 @@ class OPT_DepGraphStats {
   static void printBasicBlockStatistics(OPT_IR ir) {
     System.out.println();
     System.out.println("**** START OF printBasicBlockStatistics() for method "
-        + ir.method + " ****");
+                       + ir.method + " ****");
     if (debug) {
       ir.printInstructions();
     }
 
     // Performing live analysis may reduce dependences between PEIs and stores
-    if (ir.options.HANDLER_LIVENESS) {  
+    if (ir.options.HANDLER_LIVENESS) {
       new OPT_LiveAnalysis(false, false, true).perform(ir);
     }
 
-    for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); 
-        bb != null; bb = bb.nextBasicBlockInCodeOrder()) {
+    for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder();
+         bb != null; bb = bb.nextBasicBlockInCodeOrder()) {
       //OPT_DepGraph dg =
-                          new OPT_DepGraph(ir, bb.firstRealInstruction(), 
-                                           bb.lastRealInstruction(), bb);
+      new OPT_DepGraph(ir, bb.firstRealInstruction(),
+                       bb.lastRealInstruction(), bb);
     }
     System.out.println("**** END OF printBasicBlockStatistics() ****");
   }
@@ -130,9 +132,10 @@ class OPT_DepGraphStats {
    * @param instr the instruction
    */
   int estimateExecutionTime(OPT_Instruction instr) {
-    if (instr.operator() == NULL_CHECK)
-      return  0; 
-    else 
-      return  1;
+    if (instr.operator() == NULL_CHECK) {
+      return 0;
+    } else {
+      return 1;
+    }
   }
 }

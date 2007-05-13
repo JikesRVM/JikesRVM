@@ -20,23 +20,23 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
 
-/** 
+/**
  * Handle exception delivery and stack unwinding for 
  * opt compiled methods.
  */
 public abstract class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
     implements VM_Constants, VM_BytecodeConstants {
 
-  /** 
+  /**
    * Pass control to a catch block.
    */
-  public void deliverException(VM_CompiledMethod cm, 
-                        Address catchBlockInstructionAddress, 
-                        Throwable exceptionObject, 
-                        VM_Registers registers) {
+  public void deliverException(VM_CompiledMethod cm,
+                               Address catchBlockInstructionAddress,
+                               Throwable exceptionObject,
+                               VM_Registers registers) {
 
     // store exception object for later retrieval by catch block
-    VM_OptCompiledMethod compiledMethod = (VM_OptCompiledMethod)cm;
+    VM_OptCompiledMethod compiledMethod = (VM_OptCompiledMethod) cm;
     Offset offset = Offset.fromIntSignExtend(compiledMethod.getUnsignedExceptionOffset());
     if (!offset.isZero()) {
       // only put the exception object in the stackframe if the catch block is expecting it.
@@ -60,10 +60,10 @@ public abstract class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
 
   /**
    * Unwind a stackframe.
-   */ 
+   */
   public void unwindStackFrame(VM_CompiledMethod cm, VM_Registers registers) {
     Address fp = registers.getInnermostFramePointer();
-    VM_OptCompiledMethod compiledMethod = (VM_OptCompiledMethod)cm;
+    VM_OptCompiledMethod compiledMethod = (VM_OptCompiledMethod) cm;
 
     // restore non-volatile registers
     Offset frameOffset = Offset.fromIntSignExtend(compiledMethod.getUnsignedNonVolatileOffset());

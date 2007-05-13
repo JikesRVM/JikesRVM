@@ -15,9 +15,9 @@ import org.jikesrvm.classloader.VM_Method;
  */
 public final class OPT_InlineDecision {
 
-  /** 
+  /**
    * Return a decision NOT to inline.
-   * 
+   *
    * @param target the method that is not being inlined.
    * @param reason a rationale for not inlining
    * @return a decision NOT to inline
@@ -30,7 +30,7 @@ public final class OPT_InlineDecision {
 
   /**
    * Return a decision NOT to inline.
-   * 
+   *
    * @param reason a rationale for not inlining
    * @return a decision NOT to inline
    */
@@ -38,7 +38,7 @@ public final class OPT_InlineDecision {
     return new OPT_InlineDecision(null, null, DECIDE_NO, reason);
   }
 
-  /** 
+  /**
    * Return a decision to inline without a guard.
    * @param target the method to inline
    * @param reason a rationale for inlining
@@ -50,16 +50,16 @@ public final class OPT_InlineDecision {
     return new OPT_InlineDecision(targets, null, DECIDE_YES, reason);
   }
 
-  /** 
+  /**
    * Return a decision YES to do a guarded inline.
-   * 
+   *
    * @param target the method to inline
    * @param guard  the type of guard to use
    * @param reason a rationale for inlining
    * @return a decision YES to inline, but it is not always safe. 
    */
-  public static OPT_InlineDecision guardedYES(VM_Method target, 
-                                              byte guard, 
+  public static OPT_InlineDecision guardedYES(VM_Method target,
+                                              byte guard,
                                               String reason) {
     VM_Method[] targets = new VM_Method[1];
     byte[] guards = new byte[1];
@@ -68,15 +68,15 @@ public final class OPT_InlineDecision {
     return new OPT_InlineDecision(targets, guards, GUARDED_YES, reason);
   }
 
-  /** 
+  /**
    * Return a decision YES to do a guarded inline.
-   * 
+   *
    * @param targets   The methods to inline
    * @param guards  the types of guard to use
    * @param reason   A rationale for inlining
    * @return a decision YES to inline, but it is not always safe. 
    */
-  public static OPT_InlineDecision guardedYES(VM_Method[] targets, 
+  public static OPT_InlineDecision guardedYES(VM_Method[] targets,
                                               byte[] guards,
                                               String reason) {
     return new OPT_InlineDecision(targets, guards, GUARDED_YES, reason);
@@ -85,44 +85,45 @@ public final class OPT_InlineDecision {
   /**
    * Is this inline decision a YES?
    */
-  public boolean isYES () {
+  public boolean isYES() {
     return !isNO();
   }
 
   /**
    * Is this inline decision a NO?
    */
-  public boolean isNO () {
+  public boolean isNO() {
     return (code == DECIDE_NO);
   }
 
   /**
    * Does this inline site need a guard?
    */
-  public boolean needsGuard () {
+  public boolean needsGuard() {
     return (code == GUARDED_YES);
   }
 
   /**
    * Return the methods to inline according to this decision.
    */
-  public VM_Method[] getTargets () {
+  public VM_Method[] getTargets() {
     return targets;
   }
 
   /**
    * Return the guards to use according to this decision.
    */
-  public byte[] getGuards () {
+  public byte[] getGuards() {
     return guards;
   }
 
   /**
    * Return the number methods to inline.
    */
-  public int getNumberOfTargets () {
-    if (targets == null)
+  public int getNumberOfTargets() {
+    if (targets == null) {
       return 0;
+    }
     return targets.length;
   }
 
@@ -130,9 +131,11 @@ public final class OPT_InlineDecision {
    * Should the test-failed block be replaced with an OSR point?
    */
   private boolean testFailedOSR = false;
+
   public void setOSRTestFailed() { testFailedOSR = true; }
+
   public boolean OSRTestFailed() { return testFailedOSR; }
-  
+
   /**
    * Symbolic constant coding internal state.
    */
@@ -163,53 +166,54 @@ public final class OPT_InlineDecision {
    */
   private byte[] guards;
 
-
-  /** 
+  /**
    * @param targets   The methods to inline
    * @param code the decision code
    * @param reason a string rationale
    */
-  private OPT_InlineDecision (VM_Method[] targets, byte[] guards,
-                              short code, String reason) {
-    this(code,reason);
+  private OPT_InlineDecision(VM_Method[] targets, byte[] guards,
+                             short code, String reason) {
+    this(code, reason);
     this.targets = targets;
     this.guards = guards;
   }
 
-  /** 
+  /**
    * @param code the decision code
    * @param reason a string rationale
    */
-  private OPT_InlineDecision (short code, String reason) {
+  private OPT_InlineDecision(short code, String reason) {
     this.code = code;
     this.rationale = reason;
   }
 
-  public String toString () {
+  public String toString() {
     String s = null;
-    if (code == DECIDE_NO)
-      s = "DECIDE_NO"; 
-    else if (code == DECIDE_YES)
-      s = "DECIDE_YES"; 
-    else if (code == GUARDED_YES)
+    if (code == DECIDE_NO) {
+      s = "DECIDE_NO";
+    } else if (code == DECIDE_YES) {
+      s = "DECIDE_YES";
+    } else if (code == GUARDED_YES) {
       s = "GUARDED_YES";
-    if (testFailedOSR)
+    }
+    if (testFailedOSR) {
       s += "(OSR off-branch)";
+    }
     s += ":" + rationale;
     if (targets != null) {
       for (int i = 0; i < targets.length; i++) {
         s += " " + targets[i];
         if (guards != null) {
           switch (guards[i]) {
-          case OPT_Options.IG_METHOD_TEST:
-            s += " (method test)";
-            break;
-          case OPT_Options.IG_CLASS_TEST:
-            s += " (class test)";
-            break;
-          case OPT_Options.IG_CODE_PATCH:
-            s += " (code patch)";
-            break;
+            case OPT_Options.IG_METHOD_TEST:
+              s += " (method test)";
+              break;
+            case OPT_Options.IG_CLASS_TEST:
+              s += " (class test)";
+              break;
+            case OPT_Options.IG_CODE_PATCH:
+              s += " (code patch)";
+              break;
           }
         }
       }

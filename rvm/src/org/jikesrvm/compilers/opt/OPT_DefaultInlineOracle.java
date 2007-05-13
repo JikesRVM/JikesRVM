@@ -31,7 +31,7 @@ import org.jikesrvm.scheduler.VM_Thread;
  *      to inline larger methods and methods that require guards.
  */
 public final class OPT_DefaultInlineOracle extends OPT_InlineTools
-  implements OPT_InlineOracle {
+    implements OPT_InlineOracle {
 
   /**
    * Should we inline a particular call site?
@@ -39,7 +39,7 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools
    * @param state information needed to make the inlining decision
    * @return an OPT_InlineDecision with the result
    */
-  public OPT_InlineDecision shouldInline (final OPT_CompilationState state) {
+  public OPT_InlineDecision shouldInline(final OPT_CompilationState state) {
     final OPT_Options opts = state.getOptions();
     final boolean verbose = opts.PRINT_DETAILED_INLINE_REPORT;
     if (!opts.INLINE) {
@@ -51,8 +51,8 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools
     final VM_Method caller = state.getMethod();
     final int bcIndex = state.getBytecodeIndex();
 
-    if (verbose) VM.sysWriteln("Begin inline decision for "+"<"+caller+","+bcIndex+","+staticCallee+">");
-    
+    if (verbose) VM.sysWriteln("Begin inline decision for " + "<" + caller + "," + bcIndex + "," + staticCallee + ">");
+
     // Stage 1: At all optimization levels we should attempt to inline
     //          trivial methods. Even if the inline code is never executed,
     //          inlining a trivial method is a no cost operation as the impact
@@ -69,9 +69,9 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools
         return OPT_InlineDecision.NO("pragmaNoInline");
       }
       if (!staticCallee.isAbstract()) {
-        int inlinedSizeEstimate = inlinedSizeEstimate((VM_NormalMethod)staticCallee, state);
+        int inlinedSizeEstimate = inlinedSizeEstimate((VM_NormalMethod) staticCallee, state);
         boolean guardless = state.getHasPreciseTarget() || !needsGuard(staticCallee);
-        if (inlinedSizeEstimate < opts.IC_MAX_ALWAYS_INLINE_TARGET_SIZE && 
+        if (inlinedSizeEstimate < opts.IC_MAX_ALWAYS_INLINE_TARGET_SIZE &&
             guardless &&
             !state.getSequence().containsMethod(staticCallee)) {
           if (verbose) VM.sysWriteln("\tYES: trivial guardless inline\n");
@@ -121,7 +121,7 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools
 
     // Critical section: must prevent class hierarchy from changing while
     // we are inspecting it to determine how/whether to do the inline guard.
-    synchronized(VM_Class.classLoadListener) {
+    synchronized (VM_Class.classLoadListener) {
 
       boolean guardOverrideOnStaticCallee = false;
       if (targets == null) {
@@ -133,7 +133,12 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools
           if (opts.GUARDED_INLINE_INTERFACE) {
             VM_Method singleImpl = OPT_InterfaceHierarchy.getUniqueImplementation(staticCallee);
             if (singleImpl != null && hasBody(singleImpl)) {
-              if (verbose) VM.sysWriteln("\tFound a single implementation "+singleImpl+" of an interface method "+staticCallee);
+              if (verbose) {
+                VM.sysWriteln("\tFound a single implementation " +
+                              singleImpl +
+                              " of an interface method " +
+                              staticCallee);
+              }
               targets = VM_WeightedCallTargets.create(singleImpl, 0);
               guardOverrideOnStaticCallee = true;
             }
@@ -162,154 +167,154 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools
           }
         }
       }
-      
+
       // At this point targets is either null, or accurately represents what we
       // think are the likely target(s) of the call site.
       // This information may be either derived from profile information or
       // from static heuristics. To the first approximation, we don't care which.
       // If there is a precise target, then targets contains exactly that target method.
       if (targets == null) return OPT_InlineDecision.NO("No potential targets identified");
-      
+
       // Stage 3: We have one or more targets.  Determine what if anything should be done with them.
-      final ArrayList<VM_Method> methodsToInline = new ArrayList<VM_Method>(); 
+      final ArrayList<VM_Method> methodsToInline = new ArrayList<VM_Method>();
       final ArrayList<Boolean> methodsNeedGuard = new ArrayList<Boolean>();
       final double callSiteWeight = targets.totalWeight();
       final boolean goosc = guardOverrideOnStaticCallee; // real closures anyone?
       final boolean ps = purelyStatic;                   // real closures anyone?
       targets.visitTargets(new VM_WeightedCallTargets.Visitor() {
-          public void visit(VM_Method callee, double weight) {
-            if (hasBody(callee)) {
-              if (verbose) {
-                VM.sysWriteln("\tEvaluating target "+callee+" with "+weight+
-                              " samples ("+(100*VM_AdaptiveInlining.adjustedWeight(weight))+"%)");
-              }
-              // Don't inline recursively and respect no inline pragmas
-              OPT_InlineSequence seq = state.getSequence();
-              if (seq.containsMethod(callee)) {
-                if (verbose) VM.sysWriteln("\t\tReject: recursive");
-                return;
-              }
-              if (hasNoInlinePragma(callee, state)) {
-                if (verbose) VM.sysWriteln("\t\tReject: noinline pragma");
-                return;
-              }
+        public void visit(VM_Method callee, double weight) {
+          if (hasBody(callee)) {
+            if (verbose) {
+              VM.sysWriteln("\tEvaluating target " + callee + " with " + weight +
+                            " samples (" + (100 * VM_AdaptiveInlining.adjustedWeight(weight)) + "%)");
+            }
+            // Don't inline recursively and respect no inline pragmas
+            OPT_InlineSequence seq = state.getSequence();
+            if (seq.containsMethod(callee)) {
+              if (verbose) VM.sysWriteln("\t\tReject: recursive");
+              return;
+            }
+            if (hasNoInlinePragma(callee, state)) {
+              if (verbose) VM.sysWriteln("\t\tReject: noinline pragma");
+              return;
+            }
 
-              // more or less figure out the guard situation early -- impacts size estimate.
-              boolean needsGuard = !state.getHasPreciseTarget() && (staticCallee != callee || needsGuard(staticCallee));
-              if (needsGuard && isForbiddenSpeculation(state.getRootMethod(), callee)) {
-                if (verbose) VM.sysWriteln("\t\tReject: forbidden speculation");
-                return;
-              }
-              boolean currentlyFinal =
+            // more or less figure out the guard situation early -- impacts size estimate.
+            boolean needsGuard = !state.getHasPreciseTarget() && (staticCallee != callee || needsGuard(staticCallee));
+            if (needsGuard && isForbiddenSpeculation(state.getRootMethod(), callee)) {
+              if (verbose) VM.sysWriteln("\t\tReject: forbidden speculation");
+              return;
+            }
+            boolean currentlyFinal =
                 (goosc || (staticCallee == callee)) && isCurrentlyFinal(callee,
                                                                         !opts.guardWithClassTest());
-              boolean preEx = needsGuard && state.getIsExtant() && opts.PREEX_INLINE && currentlyFinal;
-              if (needsGuard && !preEx) {
-                if (!opts.GUARDED_INLINE) {
-                  if (verbose) VM.sysWriteln("\t\tReject: guarded inlining disabled");
-                  return;
-                }
-                if (!currentlyFinal && ps) {
-                  if (verbose) VM.sysWriteln("\t\tReject: multiple targets and no profile data");
-                  return;
+            boolean preEx = needsGuard && state.getIsExtant() && opts.PREEX_INLINE && currentlyFinal;
+            if (needsGuard && !preEx) {
+              if (!opts.GUARDED_INLINE) {
+                if (verbose) VM.sysWriteln("\t\tReject: guarded inlining disabled");
+                return;
+              }
+              if (!currentlyFinal && ps) {
+                if (verbose) VM.sysWriteln("\t\tReject: multiple targets and no profile data");
+                return;
+              }
+            }
+
+            // Estimate cost of performing this inlining action.
+            // Includes cost of guard & off-branch call if they are going to be generated.
+            boolean decideYes = false;
+            if (hasInlinePragma(callee, state)) {
+              if (verbose) VM.sysWriteln("\t\tSelect: pragma inline");
+              decideYes = true;
+            } else {
+              // Preserve previous inlining decisions
+              // Not the best thing in the world due to phase shifts, but
+              // it does buy some degree of stability. So, it is probably the lesser
+              // of two evils.
+              VM_CompiledMethod prev = state.getRootMethod().getCurrentCompiledMethod();
+              if (prev != null && prev.getCompilerType() == VM_CompiledMethod.OPT) {
+                if (((VM_OptCompiledMethod) prev).getMCMap().hasInlinedEdge(caller, bcIndex, callee)) {
+                  if (verbose) VM.sysWriteln("\t\tSelect: Previously inlined");
+                  decideYes = true;
                 }
               }
-              
-              // Estimate cost of performing this inlining action.
-              // Includes cost of guard & off-branch call if they are going to be generated.
-              boolean decideYes = false;
-              if (hasInlinePragma(callee, state)) {
-                if (verbose) VM.sysWriteln("\t\tSelect: pragma inline");
-                decideYes = true;
-              } else {
-                // Preserve previous inlining decisions
-                // Not the best thing in the world due to phase shifts, but
-                // it does buy some degree of stability. So, it is probably the lesser
-                // of two evils.
-                VM_CompiledMethod prev = state.getRootMethod().getCurrentCompiledMethod();
-                if (prev != null && prev.getCompilerType() == VM_CompiledMethod.OPT) {
-                  if (((VM_OptCompiledMethod)prev).getMCMap().hasInlinedEdge(caller, bcIndex, callee)) {
-                    if (verbose) VM.sysWriteln("\t\tSelect: Previously inlined");
-                    decideYes = true;
-                  }
-                }
 
-                if (!decideYes) {
-                  int inlinedSizeEstimate = inlinedSizeEstimate((VM_NormalMethod)callee, state);
-                  int cost = inliningActionCost(inlinedSizeEstimate, needsGuard, preEx, opts);
-                  int maxCost = opts.IC_MAX_TARGET_SIZE;
+              if (!decideYes) {
+                int inlinedSizeEstimate = inlinedSizeEstimate((VM_NormalMethod) callee, state);
+                int cost = inliningActionCost(inlinedSizeEstimate, needsGuard, preEx, opts);
+                int maxCost = opts.IC_MAX_TARGET_SIZE;
 
-                  if (callSiteWeight > VM_Controller.options.AI_SEED_MULTIPLIER) {
-                    // real profile data with enough samples for us to trust it.
-                    // Use weight and shape of call site distrubution to compute
-                    // a higher maxCost.
-                    double fractionOfSample = weight/callSiteWeight;
-                    if (needsGuard && fractionOfSample < opts.AI_MIN_CALLSITE_FRACTION) {
-                      // This call accounts for less than AI_MIN_CALLSITE_FRACTION
-                      // of the profiled targets at this call site.
-                      // It is highly unlikely to be profitable to inline it.
-                      if (verbose) VM.sysWriteln("\t\tReject: less than AI_MIN_CALLSITE_FRACTION of distribution");
-                      maxCost = 0;
-                    } else {
-                      if (cost > maxCost) {
-                        // adjust up based on weight of callsite
-                        double adjustedWeight = VM_AdaptiveInlining.adjustedWeight(weight);
-                        if (adjustedWeight > VM_Controller.options.AI_CONTROL_POINT) {
-                          maxCost = opts.AI_MAX_TARGET_SIZE;
-                        } else {
-                          int range = opts.AI_MAX_TARGET_SIZE - opts.IC_MAX_TARGET_SIZE;
-                          double slope = ((double)range) / VM_Controller.options.AI_CONTROL_POINT;
-                          int sizeAdj = (int) (slope * adjustedWeight);
-                          maxCost += sizeAdj;
-                        }
+                if (callSiteWeight > VM_Controller.options.AI_SEED_MULTIPLIER) {
+                  // real profile data with enough samples for us to trust it.
+                  // Use weight and shape of call site distrubution to compute
+                  // a higher maxCost.
+                  double fractionOfSample = weight / callSiteWeight;
+                  if (needsGuard && fractionOfSample < opts.AI_MIN_CALLSITE_FRACTION) {
+                    // This call accounts for less than AI_MIN_CALLSITE_FRACTION
+                    // of the profiled targets at this call site.
+                    // It is highly unlikely to be profitable to inline it.
+                    if (verbose) VM.sysWriteln("\t\tReject: less than AI_MIN_CALLSITE_FRACTION of distribution");
+                    maxCost = 0;
+                  } else {
+                    if (cost > maxCost) {
+                      // adjust up based on weight of callsite
+                      double adjustedWeight = VM_AdaptiveInlining.adjustedWeight(weight);
+                      if (adjustedWeight > VM_Controller.options.AI_CONTROL_POINT) {
+                        maxCost = opts.AI_MAX_TARGET_SIZE;
+                      } else {
+                        int range = opts.AI_MAX_TARGET_SIZE - opts.IC_MAX_TARGET_SIZE;
+                        double slope = ((double) range) / VM_Controller.options.AI_CONTROL_POINT;
+                        int sizeAdj = (int) (slope * adjustedWeight);
+                        maxCost += sizeAdj;
                       }
                     }
                   }
-
-                  // Somewhat bogus, but if we get really deeply inlined we start backing off.
-                  int curDepth = state.getInlineDepth();
-                  if (curDepth > opts.IC_MAX_INLINE_DEPTH) {
-                    maxCost /= (curDepth - opts.IC_MAX_INLINE_DEPTH + 1);
-                  }
-                  
-                  decideYes = cost <= maxCost;
-                  if (verbose) {
-                    if (decideYes) {
-                      VM.sysWriteln("\t\tAccept: cost of "+cost+" was below threshold "+maxCost);
-                    } else {
-                      VM.sysWriteln("\t\tReject: cost of "+cost+" was above threshold "+maxCost);
-                    }
-                  }
                 }
-              }
 
-              if (decideYes) {
-                // Ok, we're going to inline it.
-                // Record that and also whether or not we think it needs a guard.
-                methodsToInline.add(callee);
-                if (preEx) {
-                  OPT_ClassLoadingDependencyManager cldm = (OPT_ClassLoadingDependencyManager)VM_Class.classLoadListener;
-                  if (OPT_ClassLoadingDependencyManager.TRACE || 
-                      OPT_ClassLoadingDependencyManager.DEBUG) {
-                    cldm.report("PREEX_INLINE: Inlined " + callee + " into " + caller + "\n");
+                // Somewhat bogus, but if we get really deeply inlined we start backing off.
+                int curDepth = state.getInlineDepth();
+                if (curDepth > opts.IC_MAX_INLINE_DEPTH) {
+                  maxCost /= (curDepth - opts.IC_MAX_INLINE_DEPTH + 1);
+                }
+
+                decideYes = cost <= maxCost;
+                if (verbose) {
+                  if (decideYes) {
+                    VM.sysWriteln("\t\tAccept: cost of " + cost + " was below threshold " + maxCost);
+                  } else {
+                    VM.sysWriteln("\t\tReject: cost of " + cost + " was above threshold " + maxCost);
                   }
-                  cldm.addNotOverriddenDependency(callee, state.getCompiledMethod());
-                  if (goosc) {
-                    cldm.addNotOverriddenDependency(staticCallee, state.getCompiledMethod());
-                  }
-                  methodsNeedGuard.add(Boolean.FALSE);
-                } else {
-                  methodsNeedGuard.add(needsGuard);
                 }
               }
             }
+
+            if (decideYes) {
+              // Ok, we're going to inline it.
+              // Record that and also whether or not we think it needs a guard.
+              methodsToInline.add(callee);
+              if (preEx) {
+                OPT_ClassLoadingDependencyManager cldm = (OPT_ClassLoadingDependencyManager) VM_Class.classLoadListener;
+                if (OPT_ClassLoadingDependencyManager.TRACE ||
+                    OPT_ClassLoadingDependencyManager.DEBUG) {
+                  cldm.report("PREEX_INLINE: Inlined " + callee + " into " + caller + "\n");
+                }
+                cldm.addNotOverriddenDependency(callee, state.getCompiledMethod());
+                if (goosc) {
+                  cldm.addNotOverriddenDependency(staticCallee, state.getCompiledMethod());
+                }
+                methodsNeedGuard.add(Boolean.FALSE);
+              } else {
+                methodsNeedGuard.add(needsGuard);
+              }
+            }
           }
-        });
+        }
+      });
 
       // Stage 4: Choose guards and package up the results in an InlineDecision object
       if (methodsToInline.isEmpty()) {
         OPT_InlineDecision d = OPT_InlineDecision.NO("No desirable targets");
-        if (verbose) VM.sysWriteln("\tDecide: "+d);
+        if (verbose) VM.sysWriteln("\tDecide: " + d);
         return d;
       } else if (methodsToInline.size() == 1) {
         VM_Method target = methodsToInline.get(0);
@@ -317,29 +322,33 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools
         if (needsGuard) {
           if ((guardOverrideOnStaticCallee || target == staticCallee) &&
               isCurrentlyFinal(target, !opts.guardWithClassTest())) {
-            OPT_InlineDecision d = OPT_InlineDecision.guardedYES(target, 
-                                                                 chooseGuard(caller, target, staticCallee, state, true), 
+            OPT_InlineDecision d = OPT_InlineDecision.guardedYES(target,
+                                                                 chooseGuard(caller, target, staticCallee, state, true),
                                                                  "Guarded inline of single static target");
-            if (opts.OSR_GUARDED_INLINING && 
+            if (opts.OSR_GUARDED_INLINING &&
                 OPT_Compiler.getAppStarted() &&
                 VM_Controller.options.ENABLE_RECOMPILATION) {
               // note that we will OSR the failed case.
               d.setOSRTestFailed();
             }
-            if (verbose) VM.sysWriteln("\tDecide: "+d);
+            if (verbose) VM.sysWriteln("\tDecide: " + d);
             return d;
           } else {
             OPT_InlineDecision d = OPT_InlineDecision.guardedYES(target,
-                                                                 chooseGuard(caller, target, staticCallee, state, false), 
+                                                                 chooseGuard(caller,
+                                                                             target,
+                                                                             staticCallee,
+                                                                             state,
+                                                                             false),
                                                                  "Guarded inlining of one potential target");
-            if (verbose) VM.sysWriteln("\tDecide: "+d);
+            if (verbose) VM.sysWriteln("\tDecide: " + d);
             return d;
           }
         } else {
           OPT_InlineDecision d = OPT_InlineDecision.YES(target, "Unique and desirable target");
-          if (verbose) VM.sysWriteln("\tDecide: "+d);
+          if (verbose) VM.sysWriteln("\tDecide: " + d);
           return d;
-        }        
+        }
       } else {
         VM_Method[] methods = new VM_Method[methodsNeedGuard.size()];
         byte[] guards = new byte[methods.length];
@@ -353,9 +362,9 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools
           methods[idx] = target;
           guards[idx] = chooseGuard(caller, target, staticCallee, state, false);
           idx++;
-        } 
+        }
         OPT_InlineDecision d = OPT_InlineDecision.guardedYES(methods, guards, "Inline multiple targets");
-        if (verbose) VM.sysWriteln("\tDecide: "+d);
+        if (verbose) VM.sysWriteln("\tDecide: " + d);
         return d;
       }
     }
@@ -384,8 +393,8 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools
                                             VM_Thread.getCurrentThread()));
       }
       if (guard == OPT_Options.IG_CODE_PATCH) {
-        OPT_ClassLoadingDependencyManager cldm = (OPT_ClassLoadingDependencyManager)VM_Class.classLoadListener;
-        if (OPT_ClassLoadingDependencyManager.TRACE || 
+        OPT_ClassLoadingDependencyManager cldm = (OPT_ClassLoadingDependencyManager) VM_Class.classLoadListener;
+        if (OPT_ClassLoadingDependencyManager.TRACE ||
             OPT_ClassLoadingDependencyManager.DEBUG) {
           cldm.report("CODE PATCH: Inlined " + singleImpl + " into " + caller + "\n");
         }
@@ -395,7 +404,7 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools
       guard = OPT_Options.IG_METHOD_TEST;
     }
 
-    if (guard == OPT_Options.IG_METHOD_TEST && 
+    if (guard == OPT_Options.IG_METHOD_TEST &&
         singleImpl.getDeclaringClass().isFinal()) {
       // class test is more efficient and just as effective
       guard = OPT_Options.IG_CLASS_TEST;
@@ -413,19 +422,19 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools
    * @param opts       controlling options object
    * @return the estimated cost of the inlining action
    */
-  private int inliningActionCost(int inlinedBodyEstimate, 
-                                 boolean needsGuard, 
-                                 boolean preEx, 
+  private int inliningActionCost(int inlinedBodyEstimate,
+                                 boolean needsGuard,
+                                 boolean preEx,
                                  OPT_Options opts) {
     int guardCost = 0;
     if (needsGuard & !preEx) {
       guardCost += VM_NormalMethod.CALL_COST;
       if (opts.guardWithMethodTest()) {
-        guardCost += 3*VM_NormalMethod.SIMPLE_OPERATION_COST;
+        guardCost += 3 * VM_NormalMethod.SIMPLE_OPERATION_COST;
       } else if (opts.guardWithCodePatch()) {
         guardCost += VM_NormalMethod.SIMPLE_OPERATION_COST;
       } else { // opts.guardWithClassTest()
-        guardCost += 2*VM_NormalMethod.SIMPLE_OPERATION_COST;
+        guardCost += 2 * VM_NormalMethod.SIMPLE_OPERATION_COST;
       }
     }
     return guardCost + inlinedBodyEstimate;

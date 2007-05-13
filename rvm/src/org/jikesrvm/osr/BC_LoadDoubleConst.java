@@ -8,6 +8,7 @@
  */
 
 package org.jikesrvm.osr;
+
 /**
  * BC_LoadDoubleConst: ldc2_w 
  */
@@ -30,11 +31,11 @@ public class BC_LoadDoubleConst extends OSR_PseudoBytecode {
   }
 
   public int stackChanges() {
-        return +2;
+    return +2;
   }
 
   public String toString() {
-    return "LoadDouble 0x"+ Long.toHexString(dbits) + " : "+Double.longBitsToDouble(dbits);
+    return "LoadDouble 0x" + Long.toHexString(dbits) + " : " + Double.longBitsToDouble(dbits);
   }
 }
 

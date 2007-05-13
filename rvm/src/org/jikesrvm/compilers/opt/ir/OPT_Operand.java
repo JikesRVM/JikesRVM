@@ -1,12 +1,11 @@
-
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
- *
- * (C) Copyright IBM Corp. 2001
- */
+* This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+* The Jikes RVM project is distributed under the Common Public License (CPL).
+* A copy of the license is included in the distribution, and is also
+* available at http://www.opensource.org/licenses/cpl1.0.php
+*
+* (C) Copyright IBM Corp. 2001
+*/
 package org.jikesrvm.compilers.opt.ir;
 
 import org.jikesrvm.VM;
@@ -76,399 +75,398 @@ public abstract class OPT_Operand {
 
   /**
    * Is the operand an {@link OPT_RegisterOperand}?
-   * 
+   *
    * @return <code>true</code> if <code>this</code> is an
    *         <code>instanceof</code> an {@link OPT_RegisterOperand}
    *         or <code>false</code> if it is not.
    */
-  public final boolean isRegister() { 
-    return this instanceof OPT_RegisterOperand; 
+  public final boolean isRegister() {
+    return this instanceof OPT_RegisterOperand;
   }
 
   /**
    * Is the operand an {@link OPT_ConstantOperand}?
-   * 
+   *
    * @return <code>true</code> if <code>this</code> is an
    *         <code>instanceof</code> an {@link OPT_ConstantOperand}
    *         or <code>false</code> if it is not.
    */
-  public final boolean isConstant() { 
-    return this instanceof OPT_ConstantOperand; 
+  public final boolean isConstant() {
+    return this instanceof OPT_ConstantOperand;
   }
 
   /**
    * Is the operand an {@link OPT_IntConstantOperand}?
-   * 
+   *
    * @return <code>true</code> if <code>this</code> is an
    *         <code>instanceof</code> an {@link OPT_IntConstantOperand}
    *         or <code>false</code> if it is not.
    */
-  public final boolean isIntConstant() { 
-    return this instanceof OPT_IntConstantOperand; 
+  public final boolean isIntConstant() {
+    return this instanceof OPT_IntConstantOperand;
   }
 
   /**
    * Is the operand an {@link OPT_AddressConstantOperand}?
-   * 
+   *
    * @return <code>true</code> if <code>this</code> is an
    *         <code>instanceof</code> an {@link OPT_AddressConstantOperand}
    *         or <code>false</code> if it is not.
    */
-  public final boolean isAddressConstant() { 
-    return this instanceof OPT_AddressConstantOperand; 
+  public final boolean isAddressConstant() {
+    return this instanceof OPT_AddressConstantOperand;
   }
 
   /**
    * Is the operand an {@link OPT_FloatConstantOperand}?
-   * 
+   *
    * @return <code>true</code> if <code>this</code> is an
    *         <code>instanceof</code> an {@link OPT_FloatConstantOperand}
    *         or <code>false</code> if it is not.
    */
-  public final boolean isFloatConstant() { 
-    return this instanceof OPT_FloatConstantOperand; 
+  public final boolean isFloatConstant() {
+    return this instanceof OPT_FloatConstantOperand;
   }
 
   /**
    * Is the operand an {@link OPT_LongConstantOperand}?
-   * 
+   *
    * @return <code>true</code> if <code>this</code> is an
    *         <code>instanceof</code> an {@link OPT_LongConstantOperand}
    *         or <code>false</code> if it is not.
    */
-  public final boolean isLongConstant() { 
-    return this instanceof OPT_LongConstantOperand; 
+  public final boolean isLongConstant() {
+    return this instanceof OPT_LongConstantOperand;
   }
 
   /**
    * Is the operand an {@link OPT_DoubleConstantOperand}?
-   * 
+   *
    * @return <code>true</code> if <code>this</code> is an
    *         <code>instanceof</code> an {@link OPT_DoubleConstantOperand}
    *         or <code>false</code> if it is not.
    */
-  public final boolean isDoubleConstant() { 
-    return this instanceof OPT_DoubleConstantOperand; 
+  public final boolean isDoubleConstant() {
+    return this instanceof OPT_DoubleConstantOperand;
   }
 
   /**
    * Is the operand an {@link OPT_StringConstantOperand}?
-   * 
+   *
    * @return <code>true</code> if <code>this</code> is an
    *         <code>instanceof</code> an {@link OPT_StringConstantOperand}
    *         or <code>false</code> if it is not.
    */
-  public final boolean isStringConstant() { 
-    return this instanceof OPT_StringConstantOperand; 
+  public final boolean isStringConstant() {
+    return this instanceof OPT_StringConstantOperand;
   }
 
   /**
    * Is the operand an {@link OPT_ClassConstantOperand}?
-   * 
+   *
    * @return <code>true</code> if <code>this</code> is an
    *         <code>instanceof</code> an {@link OPT_ClassConstantOperand}
    *         or <code>false</code> if it is not.
    */
-  public final boolean isClassConstant() { 
-    return this instanceof OPT_ClassConstantOperand; 
+  public final boolean isClassConstant() {
+    return this instanceof OPT_ClassConstantOperand;
   }
 
   /**
    * Is the operand an {@link OPT_ObjectConstantOperand}?
-   * 
+   *
    * @return <code>true</code> if <code>this</code> is an
    *         <code>instanceof</code> an {@link OPT_ObjectConstantOperand}
    *         or <code>false</code> if it is not.
    */
-  public final boolean isObjectConstant() { 
-    return this instanceof OPT_ObjectConstantOperand; 
+  public final boolean isObjectConstant() {
+    return this instanceof OPT_ObjectConstantOperand;
   }
 
   /**
    * Is the operand an {@link OPT_TIBConstantOperand}?
-   * 
+   *
    * @return <code>true</code> if <code>this</code> is an
    *         <code>instanceof</code> an {@link OPT_TIBConstantOperand}
    *         or <code>false</code> if it is not.
    */
-  public final boolean isTIBConstant() { 
-    return this instanceof OPT_TIBConstantOperand; 
+  public final boolean isTIBConstant() {
+    return this instanceof OPT_TIBConstantOperand;
   }
 
   /**
    * Is the operand an {@link OPT_NullConstantOperand}?
-   * 
+   *
    * @return <code>true</code> if <code>this</code> is an
    *         <code>instanceof</code> an {@link OPT_NullConstantOperand}
    *         or <code>false</code> if it is not.
    */
-  public final boolean isNullConstant() { 
-    return this instanceof OPT_NullConstantOperand; 
+  public final boolean isNullConstant() {
+    return this instanceof OPT_NullConstantOperand;
   }
 
   /**
    * Is the operand an {@link OPT_TrueGuardOperand}?
-   * 
+   *
    * @return <code>true</code> if <code>this</code> is an
    *         <code>instanceof</code> an {@link OPT_TrueGuardOperand}
    *         or <code>false</code> if it is not.
    */
-  public final boolean isTrueGuard() { 
-    return this instanceof OPT_TrueGuardOperand; 
+  public final boolean isTrueGuard() {
+    return this instanceof OPT_TrueGuardOperand;
   }
 
   /**
    * Is the operand an {@link OPT_BranchOperand}?
-   * 
+   *
    * @return <code>true</code> if <code>this</code> is an
    *         <code>instanceof</code> an {@link OPT_BranchOperand}
    *         or <code>false</code> if it is not.
    */
-  public final boolean isBranch() { 
-    return this instanceof OPT_BranchOperand; 
+  public final boolean isBranch() {
+    return this instanceof OPT_BranchOperand;
   }
 
   /**
    * Is the operand an {@link OPT_BasicBlockOperand}?
-   * 
+   *
    * @return <code>true</code> if <code>this</code> is an
    *         <code>instanceof</code> an {@link OPT_BasicBlockOperand}
    *         or <code>false</code> if it is not.
    */
-  public final boolean isBlock() { 
-    return this instanceof OPT_BasicBlockOperand; 
+  public final boolean isBlock() {
+    return this instanceof OPT_BasicBlockOperand;
   }
 
   /**
    * Is the operand an {@link OPT_MemoryOperand}?
-   * 
+   *
    * @return <code>true</code> if <code>this</code> is an
    *         <code>instanceof</code> an {@link OPT_MemoryOperand}
    *         or <code>false</code> if it is not.
    */
-  public final boolean isMemory() { 
-    return this instanceof OPT_MemoryOperand; 
+  public final boolean isMemory() {
+    return this instanceof OPT_MemoryOperand;
   }
 
   /**
    * Is the operand an {@link OPT_StackLocationOperand}?
-   * 
+   *
    * @return <code>true</code> if <code>this</code> is an
    *         <code>instanceof</code> an {@link OPT_StackLocationOperand}
    *         or <code>false</code> if it is not.
    */
-  public final boolean isStackLocation() { 
-    return this instanceof OPT_StackLocationOperand; 
+  public final boolean isStackLocation() {
+    return this instanceof OPT_StackLocationOperand;
   }
 
   /**
    * Is the operand an {@link OPT_MethodOperand}?
-   * 
+   *
    * @return <code>true</code> if <code>this</code> is an
    *         <code>instanceof</code> an {@link OPT_MethodOperand}
    *         or <code>false</code> if it is not.
    */
-  public final boolean isMethod() { 
-    return this instanceof OPT_MethodOperand; 
+  public final boolean isMethod() {
+    return this instanceof OPT_MethodOperand;
   }
 
   /**
    * Is the operand an {@link OPT_LocationOperand}?
-   * 
+   *
    * @return <code>true</code> if <code>this</code> is an
    *         <code>instanceof</code> an {@link OPT_LocationOperand}
    *         or <code>false</code> if it is not.
    */
-  public final boolean isLocation() { 
-    return this instanceof OPT_LocationOperand; 
+  public final boolean isLocation() {
+    return this instanceof OPT_LocationOperand;
   }
 
   /**
    * Is the operand an {@link OPT_TypeOperand}?
-   * 
+   *
    * @return <code>true</code> if <code>this</code> is an
    *         <code>instanceof</code> an {@link OPT_TypeOperand}
    *         or <code>false</code> if it is not.
    */
-  public final boolean isType() { 
-    return this instanceof OPT_TypeOperand; 
+  public final boolean isType() {
+    return this instanceof OPT_TypeOperand;
   }
 
-  
   /**
    * Cast to an {@link OPT_RegisterOperand}.
-   * 
+   *
    * @return <code>this</code> cast as an {@link OPT_RegisterOperand}
    */
-  public final OPT_RegisterOperand asRegister() { 
-    return (OPT_RegisterOperand)this; 
+  public final OPT_RegisterOperand asRegister() {
+    return (OPT_RegisterOperand) this;
   }
 
   /**
    * Cast to an {@link OPT_IntConstantOperand}.
-   * 
+   *
    * @return <code>this</code> cast as an {@link OPT_IntConstantOperand}
    */
-  public final OPT_IntConstantOperand asIntConstant() { 
-    return (OPT_IntConstantOperand)this; 
+  public final OPT_IntConstantOperand asIntConstant() {
+    return (OPT_IntConstantOperand) this;
   }
 
   /**
    * Cast to an {@link OPT_AddressConstantOperand}.
-   * 
+   *
    * @return <code>this</code> cast as an {@link OPT_AddressConstantOperand}
    */
-  public final OPT_AddressConstantOperand asAddressConstant() { 
-    return (OPT_AddressConstantOperand)this; 
+  public final OPT_AddressConstantOperand asAddressConstant() {
+    return (OPT_AddressConstantOperand) this;
   }
 
   /**
    * Cast to an {@link OPT_FloatConstantOperand}.
-   * 
+   *
    * @return <code>this</code> cast as an {@link OPT_FloatConstantOperand}
    */
-  public final OPT_FloatConstantOperand asFloatConstant() { 
-    return (OPT_FloatConstantOperand)this; 
+  public final OPT_FloatConstantOperand asFloatConstant() {
+    return (OPT_FloatConstantOperand) this;
   }
 
   /**
    * Cast to an {@link OPT_LongConstantOperand}.
-   * 
+   *
    * @return <code>this</code> cast as an {@link OPT_LongConstantOperand}
    */
-  public final OPT_LongConstantOperand asLongConstant() { 
-    return (OPT_LongConstantOperand)this; 
+  public final OPT_LongConstantOperand asLongConstant() {
+    return (OPT_LongConstantOperand) this;
   }
 
   /**
    * Cast to an {@link OPT_DoubleConstantOperand}.
-   * 
+   *
    * @return <code>this</code> cast as an {@link OPT_DoubleConstantOperand}
    */
-  public final OPT_DoubleConstantOperand asDoubleConstant() { 
-    return (OPT_DoubleConstantOperand)this; 
+  public final OPT_DoubleConstantOperand asDoubleConstant() {
+    return (OPT_DoubleConstantOperand) this;
   }
 
   /**
    * Cast to an {@link OPT_StringConstantOperand}.
-   * 
+   *
    * @return <code>this</code> cast as an {@link OPT_StringConstantOperand}
    */
-  public final OPT_StringConstantOperand asStringConstant() { 
-    return (OPT_StringConstantOperand)this; 
+  public final OPT_StringConstantOperand asStringConstant() {
+    return (OPT_StringConstantOperand) this;
   }
 
   /**
    * Cast to an {@link OPT_ClassConstantOperand}.
-   * 
+   *
    * @return <code>this</code> cast as an {@link OPT_ClassConstantOperand}
    */
-  public final OPT_ClassConstantOperand asClassConstant() { 
-    return (OPT_ClassConstantOperand)this; 
+  public final OPT_ClassConstantOperand asClassConstant() {
+    return (OPT_ClassConstantOperand) this;
   }
 
   /**
    * Cast to an {@link OPT_ObjectConstantOperand}.
-   * 
+   *
    * @return <code>this</code> cast as an {@link OPT_ObjectConstantOperand}
    */
-  public final OPT_ObjectConstantOperand asObjectConstant() { 
-    return (OPT_ObjectConstantOperand)this; 
+  public final OPT_ObjectConstantOperand asObjectConstant() {
+    return (OPT_ObjectConstantOperand) this;
   }
 
   /**
    * Cast to an {@link OPT_TIBConstantOperand}.
-   * 
+   *
    * @return <code>this</code> cast as an {@link OPT_TIBConstantOperand}
    */
-  public final OPT_TIBConstantOperand asTIBConstant() { 
-    return (OPT_TIBConstantOperand)this; 
+  public final OPT_TIBConstantOperand asTIBConstant() {
+    return (OPT_TIBConstantOperand) this;
   }
 
   /**
    * Cast to an {@link OPT_NullConstantOperand}.
-   * 
+   *
    * @return <code>this</code> cast as an {@link OPT_NullConstantOperand}
    */
-  public final OPT_NullConstantOperand asNullConstant() { 
-    return (OPT_NullConstantOperand)this; 
+  public final OPT_NullConstantOperand asNullConstant() {
+    return (OPT_NullConstantOperand) this;
   }
 
   /**
    * Cast to an {@link OPT_BranchOperand}.
-   * 
+   *
    * @return <code>this</code> cast as an {@link OPT_BranchOperand}
    */
-  public final OPT_BranchOperand asBranch() { 
-    return (OPT_BranchOperand)this; 
+  public final OPT_BranchOperand asBranch() {
+    return (OPT_BranchOperand) this;
   }
 
   /**
    * Cast to an {@link OPT_BasicBlockOperand}.
-   * 
+   *
    * @return <code>this</code> cast as an {@link OPT_BasicBlockOperand}
    */
-  public final OPT_BasicBlockOperand asBlock() { 
-    return (OPT_BasicBlockOperand)this; 
+  public final OPT_BasicBlockOperand asBlock() {
+    return (OPT_BasicBlockOperand) this;
   }
 
   /**
    * Cast to an {@link OPT_MemoryOperand}.
-   * 
+   *
    * @return <code>this</code> cast as an {@link OPT_MemoryOperand}
    */
-  public final OPT_MemoryOperand asMemory() { 
-    return (OPT_MemoryOperand)this; 
+  public final OPT_MemoryOperand asMemory() {
+    return (OPT_MemoryOperand) this;
   }
 
   /**
    * Cast to an {@link OPT_StackLocationOperand}.
-   * 
+   *
    * @return <code>this</code> cast as an {@link OPT_StackLocationOperand}
    */
-  public final OPT_StackLocationOperand asStackLocation() { 
-    return (OPT_StackLocationOperand)this; 
+  public final OPT_StackLocationOperand asStackLocation() {
+    return (OPT_StackLocationOperand) this;
   }
 
   /**
    * Cast to an {@link OPT_MethodOperand}.
-   * 
+   *
    * @return <code>this</code> cast as an {@link OPT_MethodOperand}
    */
-  public final OPT_MethodOperand asMethod() { 
-    return (OPT_MethodOperand)this; 
+  public final OPT_MethodOperand asMethod() {
+    return (OPT_MethodOperand) this;
   }
 
   /**
    * Cast to an {@link OPT_TypeOperand}.
-   * 
+   *
    * @return <code>this</code> cast as an {@link OPT_TypeOperand}
    */
-  public final OPT_TypeOperand asType() { 
-    return (OPT_TypeOperand)this; 
+  public final OPT_TypeOperand asType() {
+    return (OPT_TypeOperand) this;
   }
 
   /**
    * Cast to an {@link OPT_ConditionOperand}.
-   * 
+   *
    * @return <code>this</code> cast as an {@link OPT_ConditionOperand}
    */
-  public final OPT_ConditionOperand asCondition() { 
-    return (OPT_ConditionOperand)this; 
+  public final OPT_ConditionOperand asCondition() {
+    return (OPT_ConditionOperand) this;
   }
 
   /**
    * Cast to an {@link OPT_LocationOperand}.
-   * 
+   *
    * @return <code>this</code> cast as an {@link OPT_LocationOperand}
    */
-  public final OPT_LocationOperand asLocation() { 
-    return (OPT_LocationOperand)this; 
+  public final OPT_LocationOperand asLocation() {
+    return (OPT_LocationOperand) this;
   }
 
   /**
    * Does the operand represent a value of an int-like data type?
-   * 
+   *
    * @return <code>true</code> if the data type of <code>this</code> 
    *         is int-like as defined by {@link VM_TypeReference#isIntLikeType}
    *         or <code>false</code> if it is not.
@@ -480,7 +478,7 @@ public abstract class OPT_Operand {
 
   /**
    * Does the operand represent a value of the int data type?
-   * 
+   *
    * @return <code>true</code> if the data type of <code>this</code> 
    *         is an int as defined by {@link VM_TypeReference#isIntType}
    *         or <code>false</code> if it is not.
@@ -492,7 +490,7 @@ public abstract class OPT_Operand {
 
   /**
    * Does the operand represent a value of the long data type?
-   * 
+   *
    * @return <code>true</code> if the data type of <code>this</code> 
    *         is a long as defined by {@link VM_TypeReference#isLongType}
    *         or <code>false</code> if it is not.
@@ -504,7 +502,7 @@ public abstract class OPT_Operand {
 
   /**
    * Does the operand represent a value of the float data type?
-   * 
+   *
    * @return <code>true</code> if the data type of <code>this</code> 
    *         is a float as defined by {@link VM_TypeReference#isFloatType}
    *         or <code>false</code> if it is not.
@@ -516,7 +514,7 @@ public abstract class OPT_Operand {
 
   /**
    * Does the operand represent a value of the double data type?
-   * 
+   *
    * @return <code>true</code> if the data type of <code>this</code> 
    *         is a double as defined by {@link VM_TypeReference#isDoubleType}
    *         or <code>false</code> if it is not.
@@ -528,7 +526,7 @@ public abstract class OPT_Operand {
 
   /**
    * Does the operand represent a value of the reference data type?
-   * 
+   *
    * @return <code>true</code> if the data type of <code>this</code> 
    *         is a reference as defined by {@link VM_TypeReference#isReferenceType}
    *         or <code>false</code> if it is not.
@@ -540,7 +538,7 @@ public abstract class OPT_Operand {
 
   /**
    * Does the operand represent a value of the address data type?
-   * 
+   *
    * @return <code>true</code> if the data type of <code>this</code> 
    *         is an address as defined by {@link VM_TypeReference#isWordType}
    *         or <code>false</code> if it is not.
@@ -552,7 +550,7 @@ public abstract class OPT_Operand {
 
   /**
    * Does the operand definitely represent <code>null</code>?
-   * 
+   *
    * @return <code>true</code> if the operand definitely represents
    *         <code>null</code> or <code>false</code> if it does not.
    */
@@ -563,11 +561,10 @@ public abstract class OPT_Operand {
 
   /**
    * Return a new operand that is semantically equivalent to <code>this</code>.
-   * 
+   *
    * @return a copy of <code>this</code>
    */
   public abstract OPT_Operand copy();
-
 
   /**
    * Are two operands semantically equivalent?
@@ -581,7 +578,7 @@ public abstract class OPT_Operand {
 
   /**
    * Return the {@link VM_TypeReference} of the value represented by the operand.
-   * 
+   *
    * @return the type of the value represented by the operand
    */
   public VM_TypeReference getType() {
@@ -589,20 +586,19 @@ public abstract class OPT_Operand {
     // operands have a type.
     throw new OPT_OptimizingCompilerException("Getting the type for this operand has no defined meaning: " + this);
   }
-  
+
   /**
    * Return the index of the operand in its containing instruction (SLOW).
-   * 
+   *
    * @return the index of the operand in its containing instruction
    */
   public int getIndexInInstruction() {
-    for (int i=0; i<instruction.getNumberOfOperands(); i++) {
+    for (int i = 0; i < instruction.getNumberOfOperands(); i++) {
       OPT_Operand op = instruction.getOperand(i);
       if (op == this) return i;
     }
     throw new OPT_OptimizingCompilerException("OPT_Operand.getIndexInInstruction");
   }
-
 
   /**
    * Compare two operands based on their positions in the operand lattice.
@@ -615,13 +611,13 @@ public abstract class OPT_Operand {
    * Note that lattices are partial orders, so it is quite 
    * possible for both conservativelyApproximates(op1, op2)
    * and conservativelyApproximates(op2, op1) to return false.
-   * 
+   *
    * @param op1 the first operand to compare
    * @param op2 the second operand to compare
    * @return <code>true</code> if op1 conservatively approximates op2 or
    *         <code>false</code> if it does not.
- */
-  public static boolean conservativelyApproximates(OPT_Operand op1, 
+   */
+  public static boolean conservativelyApproximates(OPT_Operand op1,
                                                    OPT_Operand op2) {
     // Step 1: Handle pointer equality and bottom
     if (op1 == op2) {
@@ -717,16 +713,16 @@ public abstract class OPT_Operand {
         }
       } else {
         // op2 is not a register
-        if (op2 instanceof OPT_BC2IR.ReturnAddressOperand || 
+        if (op2 instanceof OPT_BC2IR.ReturnAddressOperand ||
             op2 == OPT_BC2IR.DUMMY) {
           if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
             VM.sysWrite("Operands are incompatibale values\n");
           }
           return false;
         }
-        
+
         VM_TypeReference type2 = op2.getType();
-        if (type1 == type2 || 
+        if (type1 == type2 ||
             compatiblePrimitives(type1, type2) ||
             (OPT_ClassLoaderProxy.includesType(type1, type2) == OPT_Constants.YES)) {
           // only have to consider state of op1's flags.  Types are ok.
@@ -736,7 +732,7 @@ public abstract class OPT_Operand {
             }
             return false;
           }
-          if ((rop1.scratchObject instanceof OPT_Operand) && 
+          if ((rop1.scratchObject instanceof OPT_Operand) &&
               ((type2 == VM_TypeReference.NULL_TYPE) ||
                (type2.isIntLikeType() && op2.asIntConstant().value == 0) ||
                (type2.isWordType() && op2.asAddressConstant().value.EQ(Address.zero())) ||
@@ -773,7 +769,6 @@ public abstract class OPT_Operand {
     }
   }
 
-
   /**
    * Meet two operands based on their positions in the operand lattice.
    * For the purposes of doing dataflow analysis, OPT_Operands can be 
@@ -801,9 +796,9 @@ public abstract class OPT_Operand {
    *         the meet evaluates to bottom.  It will return
    *         op1 when conservativelyApproximates(op1, op2)
    *         evaluates to <code>true</code>.
- */
-  public static OPT_Operand meet(OPT_Operand op1, 
-                                 OPT_Operand op2, 
+   */
+  public static OPT_Operand meet(OPT_Operand op1,
+                                 OPT_Operand op2,
                                  OPT_Register reg) {
     // Step 1: Handler pointer equality and bottom
     if (op1 == op2) {
@@ -849,7 +844,7 @@ public abstract class OPT_Operand {
          * 
          * -- Robin Garner 1 Feb 7
          */
-        if (op2 instanceof OPT_BC2IR.ReturnAddressOperand || 
+        if (op2 instanceof OPT_BC2IR.ReturnAddressOperand ||
             op2 == OPT_BC2IR.DUMMY) {
           if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
             VM.sysWrite("Incompatabily typed operands");
@@ -879,9 +874,9 @@ public abstract class OPT_Operand {
         }
         return op1;
       } else {
-        VM_TypeReference superType = 
-          OPT_ClassLoaderProxy.findCommonSuperclass(op1.getType(), 
-                                                    op2.getType());
+        VM_TypeReference superType =
+            OPT_ClassLoaderProxy.findCommonSuperclass(op1.getType(),
+                                                      op2.getType());
         if (superType == null) {
           if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
             VM.sysWrite("op1 and op2 have incompatible types\n");
@@ -910,18 +905,19 @@ public abstract class OPT_Operand {
             if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
               VM.sysWrite("mismatch\n");
             }
-            OPT_RegisterOperand res = 
-              new OPT_RegisterOperand(reg, type1, rop1.getFlags());
+            OPT_RegisterOperand res =
+                new OPT_RegisterOperand(reg, type1, rop1.getFlags());
             if (rop1.scratchObject instanceof OPT_Operand &&
                 rop2.scratchObject instanceof OPT_Operand &&
-                (((OPT_Operand)rop1.scratchObject).similar(((OPT_Operand)rop2.scratchObject)))) {
+                (((OPT_Operand) rop1.scratchObject).similar(((OPT_Operand) rop2.scratchObject)))) {
               res.scratchObject = rop1.scratchObject; // compatible, so preserve onto res
             }
             res.meetInheritableFlags(rop2);
             return res;
           } else if (OPT_BC2IR.hasLessConservativeGuard(rop1, rop2)) {
             if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
-              VM.sysWrite("Operands are registers of identical type with compatible flags but with incompatible non-null guards\n");
+              VM.sysWrite(
+                  "Operands are registers of identical type with compatible flags but with incompatible non-null guards\n");
             }
             // by not setting scratchObject we mark as possible null
             return new OPT_RegisterOperand(reg, type1, rop1.getFlags());
@@ -936,22 +932,22 @@ public abstract class OPT_Operand {
           if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
             VM.sysWrite("Compatabily typed register operands, checking flags...");
           }
-          if (rop1.isPreciseType() || 
+          if (rop1.isPreciseType() ||
               rop1.hasLessConservativeFlags(rop2)) {
             if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
               VM.sysWrite("mismatch\n");
             }
-            OPT_RegisterOperand res = 
-              new OPT_RegisterOperand(reg, type1, rop1.getFlags());
+            OPT_RegisterOperand res =
+                new OPT_RegisterOperand(reg, type1, rop1.getFlags());
             res.meetInheritableFlags(rop2);
             // even if both op1 & op2 are precise, 
             // op1.type != op2.type, so clear it on res
             res.clearPreciseType();
             if (rop1.scratchObject instanceof OPT_Operand &&
                 rop2.scratchObject instanceof OPT_Operand &&
-                (((OPT_Operand)rop1.scratchObject).similar(((OPT_Operand)rop2.scratchObject)))) {
+                (((OPT_Operand) rop1.scratchObject).similar(((OPT_Operand) rop2.scratchObject)))) {
               // it matched, so preserve onto res.
-              res.scratchObject = rop1.scratchObject; 
+              res.scratchObject = rop1.scratchObject;
             }
             return res;
           } else if (OPT_BC2IR.hasLessConservativeGuard(rop1, rop2)) {
@@ -967,7 +963,7 @@ public abstract class OPT_Operand {
           }
         } else {
           if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
-            VM.sysWrite("Incompatibly typed register operands...("+type1+", "+type2+")...");
+            VM.sysWrite("Incompatibly typed register operands...(" + type1 + ", " + type2 + ")...");
           }
           VM_TypeReference resType = OPT_ClassLoaderProxy.findCommonSuperclass(type1, type2);
           if (resType == null) {
@@ -979,14 +975,14 @@ public abstract class OPT_Operand {
             if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
               VM.sysWrite("found common supertype\n");
             }
-            OPT_RegisterOperand res = 
-              new OPT_RegisterOperand(reg, resType, rop1.getFlags());
+            OPT_RegisterOperand res =
+                new OPT_RegisterOperand(reg, resType, rop1.getFlags());
             res.meetInheritableFlags(rop2);
             res.clearPreciseType();     // invalid on res
             res.clearDeclaredType();    // invalid on res
             if (rop1.scratchObject instanceof OPT_Operand &&
                 rop2.scratchObject instanceof OPT_Operand &&
-                (((OPT_Operand)rop1.scratchObject).similar(((OPT_Operand)rop2.scratchObject)))) {
+                (((OPT_Operand) rop1.scratchObject).similar(((OPT_Operand) rop2.scratchObject)))) {
               // it matched, so preserve onto res.
               res.scratchObject = rop1.scratchObject;
             }
@@ -994,7 +990,7 @@ public abstract class OPT_Operand {
           }
         }
       } else {
-        if (op2 instanceof OPT_BC2IR.ReturnAddressOperand || 
+        if (op2 instanceof OPT_BC2IR.ReturnAddressOperand ||
             op2 == OPT_BC2IR.DUMMY) {
           if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
             VM.sysWrite("Incompatabily typed operands");
@@ -1002,7 +998,7 @@ public abstract class OPT_Operand {
           return null; // bottom
         }
         VM_TypeReference type2 = op2.getType();
-        if (type1 == type2 || 
+        if (type1 == type2 ||
             compatiblePrimitives(type1, type2) ||
             (OPT_ClassLoaderProxy.includesType(type1, type2) == OPT_Constants.YES)) {
           if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
@@ -1013,7 +1009,7 @@ public abstract class OPT_Operand {
             res = res.copyU2U();
             res.clearPreciseType();
           }
-          if ((rop1.scratchObject instanceof OPT_Operand) && 
+          if ((rop1.scratchObject instanceof OPT_Operand) &&
               ((type2 == VM_TypeReference.NULL_TYPE) ||
                (type2.isIntLikeType() && op2.asIntConstant().value == 0) ||
                (type2.isWordType() && op2.asAddressConstant().value.isZero()) ||
@@ -1031,7 +1027,7 @@ public abstract class OPT_Operand {
           return res;
         } else {
           if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
-            VM.sysWrite("Incompatabily typed register & other operand...("+type1+", "+type2+")...");
+            VM.sysWrite("Incompatabily typed register & other operand...(" + type1 + ", " + type2 + ")...");
           }
           VM_TypeReference resType = OPT_ClassLoaderProxy.findCommonSuperclass(type1, type2);
           if (resType == null) {
@@ -1067,19 +1063,20 @@ public abstract class OPT_Operand {
     if (type1.isIntLikeType() && type2.isIntLikeType()) {
       if (type1.isIntType()) {
         return type2.isBooleanType() ||
-          type2.isByteType() ||
-          type2.isShortType() ||
-          type2.isIntType();
+               type2.isByteType() ||
+               type2.isShortType() ||
+               type2.isIntType();
       }
       if (type1.isShortType()) {
         return type2.isBooleanType() ||
-          type2.isByteType() ||
-          type2.isShortType();
-      } 
+               type2.isByteType() ||
+               type2.isShortType();
+      }
       if (type1.isByteType()) {
-        return type2.isBooleanType() || 
-          type2.isByteType();
-      } if (type1.isBooleanType()) {
+        return type2.isBooleanType() ||
+               type2.isByteType();
+      }
+      if (type1.isBooleanType()) {
         return type2.isBooleanType();
       }
     }

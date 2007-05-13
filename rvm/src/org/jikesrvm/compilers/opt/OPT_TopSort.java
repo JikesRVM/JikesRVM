@@ -20,27 +20,27 @@ public class OPT_TopSort extends OPT_Stack<OPT_SortedGraphNode> {
   /**
    * the "visited" marker to use
    */
-  private int sortMarker;       
+  private int sortMarker;
 
   /**
    * the next "number" to give out
    */
-  private int sortNumber;       
+  private int sortNumber;
 
   /**
    * the last node to get a number
    */
-  private OPT_SortedGraphNode lastNumberedNode; 
+  private OPT_SortedGraphNode lastNumberedNode;
 
   /**
    * are we processing the graph in forward order?
    */
-  private boolean forward;      
+  private boolean forward;
 
   /**
    * Prevent instantiation
    */
-  private OPT_TopSort() {  }
+  private OPT_TopSort() { }
 
   /**
    * @param graph the graph
@@ -48,15 +48,15 @@ public class OPT_TopSort extends OPT_Stack<OPT_SortedGraphNode> {
    *  This is the second version of the implementation 
    *   (see CVS file for older one)
    */
-  public static OPT_SortedGraphNode 
-    buildTopological(OPT_TopSortInterface graph, boolean forward) {
+  public static OPT_SortedGraphNode
+  buildTopological(OPT_TopSortInterface graph, boolean forward) {
 
     OPT_SortedGraphNode start = graph.startNode(forward);
     OPT_TopSort sorter = new OPT_TopSort();
     sorter.sortMarker = OPT_SortedGraphNode.getNewSortMarker(start);
     sorter.forward = forward;
     sorter.DFS(start, graph.numberOfNodes());
-    return  sorter.lastNumberedNode;
+    return sorter.lastNumberedNode;
   }
 
   /**
@@ -69,9 +69,9 @@ public class OPT_TopSort extends OPT_Stack<OPT_SortedGraphNode> {
     // push node on to the emulated activation stack
     push(node);
     @SuppressWarnings("unchecked") // the java generic array problem
-    Enumeration<? extends OPT_SortedGraphNode>[] nodeEnum = new Enumeration[numNodes];
+        Enumeration<? extends OPT_SortedGraphNode>[] nodeEnum = new Enumeration[numNodes];
 
-  recurse:
+    recurse:
     while (!empty()) {
 
       node = peek();
@@ -84,14 +84,13 @@ public class OPT_TopSort extends OPT_Stack<OPT_SortedGraphNode> {
         node.setSortMarker(sortMarker);
         if (forward) {
           _enum = node.getOutNodes();
-        } 
-        else {
+        } else {
           _enum = node.getInNodes();
         }
       }
 
       while (_enum.hasMoreElements()) {
-        OPT_SortedGraphNode target =  _enum.nextElement();
+        OPT_SortedGraphNode target = _enum.nextElement();
 
         // have we visited target?
         if (target.getSortMarker() != sortMarker) {
@@ -99,7 +98,7 @@ public class OPT_TopSort extends OPT_Stack<OPT_SortedGraphNode> {
           // but first save the enumeration state for resumption later
           nodeEnum[node.getNumber()] = _enum;
           push(target);
-          continue recurse;  
+          continue recurse;
         }
       }
 
@@ -109,7 +108,7 @@ public class OPT_TopSort extends OPT_Stack<OPT_SortedGraphNode> {
       node.setSortedNext(lastNumberedNode, forward);
       // update the smallest node
       lastNumberedNode = node;
-      
+
       // "Pop" from the emulated activiation stack
       pop();
     }

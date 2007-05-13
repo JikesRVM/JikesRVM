@@ -26,8 +26,7 @@ import java.util.Hashtable;
  * @see OPT_VCGEdge
  */
 
-public final class OPT_VCG implements OPT_VCGConstants
-{
+public final class OPT_VCG implements OPT_VCGConstants {
   /**
    * Returns a VCG representation for a given graph.
    * @param g the graph in question.
@@ -52,8 +51,9 @@ public final class OPT_VCG implements OPT_VCGConstants
     res.append(pair("edge.linestyle", gd.defaultEdgeStyle(), 1));
     String[] eClasses = gd.getEdgeClasses();
     if (eClasses != null) {
-      for (int i = 0; i < eClasses.length; i++)
-        res.append(pair("classname "+i, quote(eClasses[i]), 1));
+      for (int i = 0; i < eClasses.length; i++) {
+        res.append(pair("classname " + i, quote(eClasses[i]), 1));
+      }
       res.append("\n");
     }
     String[] eColors = gd.getEdgeColors();
@@ -62,7 +62,7 @@ public final class OPT_VCG implements OPT_VCGConstants
      * Process nodes
      */
 
-    Hashtable<OPT_VisNode, String> nodeNames = new Hashtable<OPT_VisNode,String>();
+    Hashtable<OPT_VisNode, String> nodeNames = new Hashtable<OPT_VisNode, String>();
     int nodenum = 0;
 
     for (Enumeration<OPT_VCGNode> nodes = g.nodes(); nodes.hasMoreElements();) {
@@ -71,7 +71,7 @@ public final class OPT_VCG implements OPT_VCGConstants
       res.append(indent("node: {", 1));
       String name = nodeNames.get(node);
       if (name == null) {
-        name = "Node "+(nodenum++);
+        name = "Node " + (nodenum++);
         nodeNames.put(node, name);
       }
       res.append(pair("title", quote(name), 1));
@@ -96,23 +96,23 @@ public final class OPT_VCG implements OPT_VCGConstants
        * Process edges
        */
 
-      for (Enumeration<OPT_VisEdge> edges = node.edges(); edges.hasMoreElements(); ) {
-        OPT_VCGEdge edge = (OPT_VCGEdge)edges.nextElement();
+      for (Enumeration<OPT_VisEdge> edges = node.edges(); edges.hasMoreElements();) {
+        OPT_VCGEdge edge = (OPT_VCGEdge) edges.nextElement();
         OPT_VCGEdge.EdgeDesc ed = edge.getVCGDescriptor();
-        String eName = edge.backEdge()?"backedge":"edge";
-        res.append(indent(eName+": {", 1));
+        String eName = edge.backEdge() ? "backedge" : "edge";
+        res.append(indent(eName + ": {", 1));
 
         OPT_VisNode fromNode = edge.sourceNode();
         String fromName = nodeNames.get(fromNode);
         if (fromName == null) {
-          fromName = "Node "+(nodenum++);
+          fromName = "Node " + (nodenum++);
           nodeNames.put(fromNode, fromName);
         }
         res.append(pair("sourcename", quote(fromName), 2));
         OPT_VisNode toNode = edge.targetNode();
         String toName = nodeNames.get(toNode);
         if (toName == null) {
-          toName = "Node "+(nodenum++);
+          toName = "Node " + (nodenum++);
           nodeNames.put(toNode, toName);
         }
         res.append(pair("targetname", quote(toName), 2));
@@ -198,7 +198,8 @@ public final class OPT_VCG implements OPT_VCGConstants
    * @param filename name of file
    * @param VCGOutput the string to write
    */
-  @SuppressWarnings("unused") // for debugging ??
+  @SuppressWarnings("unused")
+  // for debugging ??
   private static void writeToVCGFile(String filename, String VCGOutput) {
     writeToVCGFile(filename, VCGOutput, false);
   }
@@ -211,41 +212,45 @@ public final class OPT_VCG implements OPT_VCGConstants
    * @param append should the string be appended to the end?
    */
   private static void writeToVCGFile(String filename, String VCGOutput,
-                                     boolean append)
-  {
+                                     boolean append) {
     try {
       PrintWriter out = new PrintWriter(new FileOutputStream(filename, append));
       out.println(VCGOutput);
-      out.close() ;
-    } catch(IOException e) {
-      System.out.println("An error occurred: "+e);
+      out.close();
+    } catch (IOException e) {
+      System.out.println("An error occurred: " + e);
     }
   }
 
   private static String[] indents = {
-    "",
-    "   ",
-    "      ",
-    "         ",
-    "            ",
-    "               ",
+      "",
+      "   ",
+      "      ",
+      "         ",
+      "            ",
+      "               ",
   };
+
   // Creates an {indent}value string
   // For internal use only.
   private static String indent(String value, int indent) {
-    return indents[indent]+value+"\n";
+    return indents[indent] + value + "\n";
   }
+
   // Creates an {indent}name:value string
   // For internal use only.
   private static String pair(String name, String value, int indent) {
-    return indents[indent]+name+":"+value+"\n";
+    return indents[indent] + name + ":" + value + "\n";
   }
+
   private static String pair(String name, int value, int indent) {
-    return indents[indent]+name+":"+value+"\n";
+    return indents[indent] + name + ":" + value + "\n";
   }
+
   private static String pair(String name, boolean value, int indent) {
-    return indents[indent]+name+":"+(value?"yes":"no")+"\n";
+    return indents[indent] + name + ":" + (value ? "yes" : "no") + "\n";
   }
+
   // Place value in quotes, quoting all special characters (only '"' for now)
   // For internal use only.
   private static String quote(String value) {
@@ -253,12 +258,13 @@ public final class OPT_VCG implements OPT_VCGConstants
     if ((k = value.indexOf('\"')) != -1) {
       StringBuilder sb = new StringBuilder();
       int s = k;
-      for (; (k = value.indexOf('\"', s + 1)) != -1; s = k)
+      for (; (k = value.indexOf('\"', s + 1)) != -1; s = k) {
         sb.append(value.substring(s, k - 1)).append('\\');
+      }
       sb.append(value.substring(s));
       value = sb.toString();
     }
-    return "\""+value+"\"";
+    return "\"" + value + "\"";
   }
 
   // private constructor, so no objects can be created.

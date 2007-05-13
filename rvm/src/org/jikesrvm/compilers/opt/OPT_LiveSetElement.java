@@ -43,7 +43,7 @@ final class OPT_LiveSetElement {
    * @return the register operand associated with this element
    */
   public OPT_RegisterOperand getRegisterOperand() {
-    return  regOp;
+    return regOp;
   }
 
   /**
@@ -60,7 +60,7 @@ final class OPT_LiveSetElement {
    * @return the register associated with this element
    */
   public OPT_Register getRegister() {
-    return  regOp.register;
+    return regOp.register;
   }
 
   /**
@@ -76,7 +76,7 @@ final class OPT_LiveSetElement {
    * @return the next element on this list
    */
   public OPT_LiveSetElement getNext() {
-    return  next;
+    return next;
   }
 
   /**
@@ -94,7 +94,7 @@ final class OPT_LiveSetElement {
   public String toString() {
     StringBuilder buf = new StringBuilder("");
     buf.append(regOp);
-    return  buf.toString();
+    return buf.toString();
   }
 }
 

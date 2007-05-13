@@ -16,17 +16,18 @@ public class VM_FieldLayoutUnpacked extends VM_FieldLayout implements VM_SizeCon
   private static class LayoutContext extends VM_FieldLayoutContext {
     private static final int NO_HOLE = -1;
     int intHole = NO_HOLE;
-    
+
     LayoutContext(byte alignment) {
       super(alignment);
     }
-    
+
     LayoutContext(byte alignment, LayoutContext superLayout) {
-      super(alignment,superLayout);
-      if (superLayout != null)
+      super(alignment, superLayout);
+      if (superLayout != null) {
         intHole = superLayout.intHole;
+      }
     }
-    
+
     /** Return the next available offset for a given size */
     @Override
     int nextOffset(int size, boolean isReference) {
@@ -34,27 +35,27 @@ public class VM_FieldLayoutUnpacked extends VM_FieldLayout implements VM_SizeCon
       if (size == VM_FieldLayoutUnpacked.BYTES_IN_DOUBLE) {
         adjustAlignment(VM_FieldLayoutUnpacked.BYTES_IN_DOUBLE);
         if ((objectSize & 0x7) == 0) {
-          ensureObjectSize(objectSize+VM_FieldLayoutUnpacked.BYTES_IN_DOUBLE);
+          ensureObjectSize(objectSize + VM_FieldLayoutUnpacked.BYTES_IN_DOUBLE);
           return objectSize;
         } else {
-          ensureObjectSize(objectSize+VM_FieldLayoutUnpacked.BYTES_IN_DOUBLE+VM_FieldLayoutUnpacked.BYTES_IN_INT);
+          ensureObjectSize(objectSize + VM_FieldLayoutUnpacked.BYTES_IN_DOUBLE + VM_FieldLayoutUnpacked.BYTES_IN_INT);
           intHole = objectSize;
-          return objectSize+VM_FieldLayoutUnpacked.BYTES_IN_INT;
+          return objectSize + VM_FieldLayoutUnpacked.BYTES_IN_INT;
         }
       } else if (intHole >= 0) {
         int result = intHole;
         intHole = NO_HOLE;
         return result;
       } else {
-        ensureObjectSize(objectSize+VM_FieldLayoutUnpacked.BYTES_IN_INT);
+        ensureObjectSize(objectSize + VM_FieldLayoutUnpacked.BYTES_IN_INT);
         return objectSize;
       }
     }
   }
-  
+
   public VM_FieldLayoutUnpacked(boolean largeFieldsFirst,
-      boolean clusterReferenceFields) {
-    super(largeFieldsFirst,clusterReferenceFields);
+                                boolean clusterReferenceFields) {
+    super(largeFieldsFirst, clusterReferenceFields);
   }
 
   /**
@@ -63,7 +64,7 @@ public class VM_FieldLayoutUnpacked extends VM_FieldLayout implements VM_SizeCon
    */
   @Override
   protected VM_FieldLayoutContext getLayoutContext(VM_Class klass) {
-    return new LayoutContext((byte)klass.getAlignment(), 
-        (LayoutContext)klass.getFieldLayoutContext());
+    return new LayoutContext((byte) klass.getAlignment(),
+                             (LayoutContext) klass.getFieldLayoutContext());
   }
 }

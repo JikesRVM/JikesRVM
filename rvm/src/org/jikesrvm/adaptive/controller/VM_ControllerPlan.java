@@ -51,14 +51,14 @@ public final class VM_ControllerPlan {
 
   // The compilation plan is for a promotion from BASE to OPT
   public static final byte OSR_BASE_2_OPT = 5;
-  
+
   // This is used by clients to initialize local variables for Java semantics
-  public static final byte UNKNOWN = 99;   
-  
+  public static final byte UNKNOWN = 99;
+
   /**
    *  The associate compilation plan 
    */
-  private OPT_CompilationPlan compPlan; 
+  private OPT_CompilationPlan compPlan;
 
   /**
    *  The time we created this plan
@@ -108,8 +108,7 @@ public final class VM_ControllerPlan {
   /**
    *  The list that we are onstatus of this plan
    */
-  private LinkedList<VM_ControllerPlan> planList; 
-
+  private LinkedList<VM_ControllerPlan> planList;
 
   /**
    * Construct a controller plan
@@ -121,9 +120,9 @@ public final class VM_ControllerPlan {
    * @param expectedCompilationTime     Expected recompilation cost
    * @param priority     How important is executing this plan?
    */
-  public VM_ControllerPlan(OPT_CompilationPlan compPlan, 
-                           int timeCreated, 
-                           int prevCMID, 
+  public VM_ControllerPlan(OPT_CompilationPlan compPlan,
+                           int timeCreated,
+                           int prevCMID,
                            double expectedSpeedup,
                            double expectedCompilationTime,
                            double priority) {
@@ -135,29 +134,27 @@ public final class VM_ControllerPlan {
     this.expectedCompilationTime = expectedCompilationTime;
     this.priority = priority;
   }
-  
 
   /**
    * Execute the plan.
-   * 
+   *
    * @return true on success, false on failure
    */
   public boolean execute() {
     // mark plan as in progress and insert it into controller memory
     setStatus(VM_ControllerPlan.IN_PROGRESS);
     VM_ControllerMemory.insert(this);
-      
+
     if (VM_Controller.options.BACKGROUND_RECOMPILATION ||
         getCompPlan().getMethod().getDeclaringClass().isInBootImage()) {
       VM_Controller.compilationQueue.insert(getPriority(), this);
-      VM_AOSLogging.recompilationScheduled(getCompPlan(), getPriority()); 
+      VM_AOSLogging.recompilationScheduled(getCompPlan(), getPriority());
       return true;
     } else {
       getCompPlan().getMethod().replaceCompiledMethod(null);
       return true;
     }
   }
-
 
   /**
    * This method will recompile the method designated by the controller plan
@@ -171,12 +168,12 @@ public final class VM_ControllerPlan {
     OPT_CompilationPlan cp = getCompPlan();
 
     setTimeInitiated(VM_Controller.controllerClock);
-    VM_AOSLogging.recompilationStarted(cp); 
+    VM_AOSLogging.recompilationStarted(cp);
 
     if (cp.options.PRINT_METHOD) {
-      VM.sysWrite("-oc:O"+cp.options.getOptLevel()+" \n");
+      VM.sysWrite("-oc:O" + cp.options.getOptLevel() + " \n");
     }
-    
+
     // Compile the method.
     int newCMID = VM_RuntimeCompiler.recompileWithOpt(cp);
     int prevCMID = getPrevCMID();
@@ -211,8 +208,8 @@ public final class VM_ControllerPlan {
       VM_AOSLogging.recordCompileTime(cm, getExpectedCompilationTime());
     }
     if (VM_Controller.options.ENABLE_ADVICE_GENERATION && (newCMID != -1)) {
-        VM_AOSGenerator.reCompilationWithOpt(cp);
-    }    
+      VM_AOSGenerator.reCompilationWithOpt(cp);
+    }
     return cm;
   }
 
@@ -239,31 +236,31 @@ public final class VM_ControllerPlan {
   /**
    * The time this plan was created
    */
-  public int getTimeCreated() { return timeCreated;  }
-   
+  public int getTimeCreated() { return timeCreated; }
+
   /**
    * The time (according to the controller clock) compilation of this plan 
    * began.
    */
   public int getTimeInitiated() { return timeInitiated; }
+
   public void setTimeInitiated(int t) { timeInitiated = t; }
-  
 
   /**
    * The time (according to the controller clock) compilation of this plan 
    * completed.
    */
   public int getTimeCompleted() { return timeCompleted; }
-  public void setTimeCompleted(int t) { timeCompleted = t; }
 
+  public void setTimeCompleted(int t) { timeCompleted = t; }
 
   /**
    * CMID (compiled method id) associated with the code produced 
    * by executing this plan
    */
   public int getCMID() { return CMID; }
-  public void setCMID(int x) { CMID = x; }
 
+  public void setCMID(int x) { CMID = x; }
 
   /**
    * CMID (compiled method id) associated with the *PREVIOUS* compiled 
@@ -271,24 +268,23 @@ public final class VM_ControllerPlan {
    */
   public int getPrevCMID() { return prevCMID; }
 
-
   /**
    * Status of this compilation plan, choose from the values above
    */
   public byte getStatus() { return status; }
 
-  public void setStatus(byte newStatus) { 
-    status = newStatus; 
+  public void setStatus(byte newStatus) {
+    status = newStatus;
 
     // if we are marking this plan as completed, all previous completed plans
     // for this method should be marked as OUTDATED
     if (newStatus == COMPLETED) {
       // iterate over the planList until we get to this item
-      synchronized(planList) {
+      synchronized (planList) {
         for (VM_ControllerPlan curPlan : planList) {
           // exit when we find ourselves
           if (curPlan == this) break;
-          
+
           if (curPlan.getStatus() == COMPLETED) {
             curPlan.status = OUTDATED;
           }
@@ -304,21 +300,34 @@ public final class VM_ControllerPlan {
 
   public String getStatusString() {
     switch (status) {
-    case UNINITIALIZED:             return "UNINITIALIZED";
-    case COMPLETED:                 return "COMPLETED";
-    case ABORTED_COMPILATION_ERROR: return "ABORTED_COMPILATION_ERROR";
-    case IN_PROGRESS:               return "IN_PROGRESS";
-    case OUTDATED:                  return "OUTDATED";
-    case OSR_BASE_2_OPT:            return "OSR_BASE_2_OPT";
-    case UNKNOWN:                   return "UNKNOWN (not error)";
-    default:                        return "**** ERROR, UNKNOWN STATUS ****";
+      case UNINITIALIZED:
+        return "UNINITIALIZED";
+      case COMPLETED:
+        return "COMPLETED";
+      case ABORTED_COMPILATION_ERROR:
+        return "ABORTED_COMPILATION_ERROR";
+      case IN_PROGRESS:
+        return "IN_PROGRESS";
+      case OUTDATED:
+        return "OUTDATED";
+      case OSR_BASE_2_OPT:
+        return "OSR_BASE_2_OPT";
+      case UNKNOWN:
+        return "UNKNOWN (not error)";
+      default:
+        return "**** ERROR, UNKNOWN STATUS ****";
     }
   }
 
   public String toString() {
     StringBuilder buf = new StringBuilder();
 
-    buf.append("Method: ").append(getCompPlan().method).append("\n\tCompiled Method ID: ").append(CMID).append("\n\tPrevious Compiled Method ID: ").append(prevCMID).append("\n\tCreated at ").append(timeCreated).append("\n\tInitiated at ").append(timeInitiated).append("\n\tCompleted at ").append(timeCompleted).append("\n\tExpected Speedup: ").append(expectedSpeedup).append("\n\tExpected Compilation Time: ").append(expectedCompilationTime).append("\n\tPriority: ").append(priority).append("\n\tStatus: ").append(getStatusString()).append("\n\tComp. Plan Level: ").append(compPlan.options.getOptLevel()).append("\n");
+    buf.append("Method: ").append(getCompPlan().method).append("\n\tCompiled Method ID: ").append(CMID).append(
+        "\n\tPrevious Compiled Method ID: ").append(prevCMID).append("\n\tCreated at ").append(timeCreated).append(
+        "\n\tInitiated at ").append(timeInitiated).append("\n\tCompleted at ").append(timeCompleted).append(
+        "\n\tExpected Speedup: ").append(expectedSpeedup).append("\n\tExpected Compilation Time: ").append(
+        expectedCompilationTime).append("\n\tPriority: ").append(priority).append("\n\tStatus: ").append(getStatusString()).append(
+        "\n\tComp. Plan Level: ").append(compPlan.options.getOptLevel()).append("\n");
     return buf.toString();
   }
 

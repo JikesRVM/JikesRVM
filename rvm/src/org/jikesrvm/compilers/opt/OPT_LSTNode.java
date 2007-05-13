@@ -21,7 +21,7 @@ class OPT_LSTNode extends OPT_SpaceEffGraphNode {
    * Basic block which is the loop head
    */
   final OPT_BasicBlock header;
-  
+
   /**
    * Basic blocks in the loop
    */
@@ -43,7 +43,6 @@ class OPT_LSTNode extends OPT_SpaceEffGraphNode {
    */
   ArrayList<Edge> loopExits;
 
-
   OPT_LSTNode(OPT_BasicBlock bb) {
     header = bb;
   }
@@ -54,11 +53,11 @@ class OPT_LSTNode extends OPT_SpaceEffGraphNode {
    * @param node for copying
    */
   protected OPT_LSTNode(OPT_LSTNode node) {
-    header         = node.header;
-    loop           = node.loop;
-    depth          = node.depth;
+    header = node.header;
+    loop = node.loop;
+    depth = node.depth;
     loopMultiplier = node.loopMultiplier;
-    loopExits      = node.loopExits;
+    loopExits = node.loopExits;
   }
 
   OPT_BasicBlock getHeader() {
@@ -71,24 +70,26 @@ class OPT_LSTNode extends OPT_SpaceEffGraphNode {
 
   public String toString() {
     String tab = "";
-    for (int i=0; i<depth; i++) {
+    for (int i = 0; i < depth; i++) {
       tab += "\t";
     }
-    return tab + header + " " + loop + " "+loopExits+"\n";
+    return tab + header + " " + loop + " " + loopExits + "\n";
   }
 
-  public OPT_LSTNode getParent() { return (OPT_LSTNode)inNodes().next(); }
+  public OPT_LSTNode getParent() { return (OPT_LSTNode) inNodes().next(); }
 
   public Enumeration<OPT_LSTNode> getChildren() {
     return new Enumeration<OPT_LSTNode>() {
-        private OPT_SpaceEffGraphEdge _edge = _outEdgeStart;
-        public boolean hasMoreElements() { return _edge != null; }
-        public OPT_LSTNode nextElement()      {
-          OPT_SpaceEffGraphEdge e = _edge;
-          _edge = e.nextOut;
-          return (OPT_LSTNode)e.toNode();
-        }
-      };
+      private OPT_SpaceEffGraphEdge _edge = _outEdgeStart;
+
+      public boolean hasMoreElements() { return _edge != null; }
+
+      public OPT_LSTNode nextElement() {
+        OPT_SpaceEffGraphEdge e = _edge;
+        _edge = e.nextOut;
+        return (OPT_LSTNode) e.toNode();
+      }
+    };
   }
 
   public void initializeLoopExits() {
@@ -109,8 +110,9 @@ class OPT_LSTNode extends OPT_SpaceEffGraphNode {
       target = t;
       probability = p;
     }
+
     public String toString() {
-      return source + "->" + target + " prob = "+probability;
+      return source + "->" + target + " prob = " + probability;
     }
   }
 

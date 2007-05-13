@@ -18,7 +18,10 @@ package org.jikesrvm.compilers.common.assembler;
 
 public abstract class VM_AbstractAssembler {
   public abstract void patchShortBranch(int sourceMachinecodeIndex);
+
   public abstract void patchUnconditionalBranch(int sourceMachinecodeIndex);
+
   public abstract void patchConditionalBranch(int sourceMachinecodeIndex);
+
   public abstract void patchSwitchCase(int sourceMachinecodeIndex);
 }

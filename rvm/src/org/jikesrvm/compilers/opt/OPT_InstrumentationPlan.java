@@ -22,10 +22,10 @@ public abstract class OPT_InstrumentationPlan {
   /**
    * Called before at the beginning of compilation
    */
-  public abstract void initInstrumentation (VM_NormalMethod method);
+  public abstract void initInstrumentation(VM_NormalMethod method);
 
   /**
    * Called after compilation completes, but before method is executed
    */
-  public abstract void finalizeInstrumentation (VM_NormalMethod method);
+  public abstract void finalizeInstrumentation(VM_NormalMethod method);
 }

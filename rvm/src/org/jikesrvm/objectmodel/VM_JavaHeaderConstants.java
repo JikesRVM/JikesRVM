@@ -22,12 +22,12 @@ import org.vmmagic.unboxed.Word;
 public interface VM_JavaHeaderConstants extends VM_SizeConstants {
 
   /** Number of bytes in object's TIB pointer */
-  int TIB_BYTES         = BYTES_IN_ADDRESS;
+  int TIB_BYTES = BYTES_IN_ADDRESS;
   /** Number of bytes indicating an object's status */
-  int STATUS_BYTES      = BYTES_IN_ADDRESS;
+  int STATUS_BYTES = BYTES_IN_ADDRESS;
 
-  int ALIGNMENT_MASK    = 0x00000001;
-  int ALIGNMENT_VALUE   = 0xdeadbeef;
+  int ALIGNMENT_MASK = 0x00000001;
+  int ALIGNMENT_VALUE = 0xdeadbeef;
   int LOG_MIN_ALIGNMENT = LOG_BYTES_IN_INT;
 
   /**
@@ -36,8 +36,8 @@ public interface VM_JavaHeaderConstants extends VM_SizeConstants {
    * words 8-byte aligned, and the header has to be 8-byte aligned.
    */
   int ARRAY_LENGTH_BYTES = VM.BuildFor64Addr
-                                        ? BYTES_IN_ADDRESS
-                                        : BYTES_IN_INT;
+                           ? BYTES_IN_ADDRESS
+                           : BYTES_IN_INT;
 
   /** Number of bytes used by the Java Header */
   int JAVA_HEADER_BYTES = TIB_BYTES + STATUS_BYTES;
@@ -53,13 +53,13 @@ public interface VM_JavaHeaderConstants extends VM_SizeConstants {
   /** Offset of the first field from object reference */
   Offset FIELD_ZERO_OFFSET = ARRAY_LENGTH_OFFSET;
   /** Offset of the Java header from the object reference */
-  Offset JAVA_HEADER_OFFSET  = ARRAY_LENGTH_OFFSET.minus(JAVA_HEADER_BYTES);
+  Offset JAVA_HEADER_OFFSET = ARRAY_LENGTH_OFFSET.minus(JAVA_HEADER_BYTES);
   /** Offset of the miscellaneous header from the object reference */
-  Offset MISC_HEADER_OFFSET  = JAVA_HEADER_OFFSET.minus(MISC_HEADER_BYTES);
+  Offset MISC_HEADER_OFFSET = JAVA_HEADER_OFFSET.minus(MISC_HEADER_BYTES);
   /** Offset of the garbage collection header from the object reference */
-  Offset GC_HEADER_OFFSET    = MISC_HEADER_OFFSET.minus(GC_HEADER_BYTES);
+  Offset GC_HEADER_OFFSET = MISC_HEADER_OFFSET.minus(GC_HEADER_BYTES);
   /** Offset of first element of an array */
-  Offset ARRAY_BASE_OFFSET   = Offset.zero();
+  Offset ARRAY_BASE_OFFSET = Offset.zero();
 
   /**
    * This object model supports two schemes for hashcodes:
@@ -84,8 +84,8 @@ public interface VM_JavaHeaderConstants extends VM_SizeConstants {
    * after the data (at a dynamic offset)
    */
   boolean DYNAMIC_HASH_OFFSET
-    = ADDRESS_BASED_HASHING && MM_Constants.NEEDS_LINEAR_SCAN;
-                                           
+      = ADDRESS_BASED_HASHING && MM_Constants.NEEDS_LINEAR_SCAN;
+
   /**
    * Can we perform a linear scan?
    */
@@ -99,12 +99,12 @@ public interface VM_JavaHeaderConstants extends VM_SizeConstants {
   /*
    * Stuff for address based hashing
    */
-  Word HASH_STATE_UNHASHED         = Word.zero();
-  Word HASH_STATE_HASHED           = Word.one().lsh(8); //0x00000100
+  Word HASH_STATE_UNHASHED = Word.zero();
+  Word HASH_STATE_HASHED = Word.one().lsh(8); //0x00000100
   Word HASH_STATE_HASHED_AND_MOVED = Word.fromIntZeroExtend(3).lsh(8); //0x0000300
-  Word HASH_STATE_MASK             = HASH_STATE_UNHASHED.or(HASH_STATE_HASHED).or(HASH_STATE_HASHED_AND_MOVED);
-  
-  int HASHCODE_BYTES              = BYTES_IN_INT;
+  Word HASH_STATE_MASK = HASH_STATE_UNHASHED.or(HASH_STATE_HASHED).or(HASH_STATE_HASHED_AND_MOVED);
+
+  int HASHCODE_BYTES = BYTES_IN_INT;
   Offset HASHCODE_OFFSET = GC_HEADER_OFFSET.minus(HASHCODE_BYTES);
-  
+
 }

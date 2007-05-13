@@ -46,8 +46,9 @@ import org.vmmagic.pragma.Uninterruptible;
  *
  * @see org.jikesrvm.runtime.VM_Process
  */
-@Uninterruptible public class VM_ThreadProcessWaitQueue extends VM_ThreadEventWaitQueue
-  implements VM_ThreadEventConstants {
+@Uninterruptible
+public class VM_ThreadProcessWaitQueue extends VM_ThreadEventWaitQueue
+    implements VM_ThreadEventConstants {
 
   /**
    * Class to safely downcast from <code>VM_ThreadEventWaitData</code>
@@ -56,7 +57,8 @@ import org.vmmagic.pragma.Uninterruptible;
    * a thread switch, which is obviously bad in uninterruptible
    * code.
    */
-  @Uninterruptible private static class WaitDataDowncaster extends VM_ThreadEventWaitDataVisitor {
+  @Uninterruptible
+  private static class WaitDataDowncaster extends VM_ThreadEventWaitDataVisitor {
 
     public VM_ThreadProcessWaitData waitData;
 
@@ -159,15 +161,16 @@ import org.vmmagic.pragma.Uninterruptible;
 
     // If any threads are interrupted, then they're ready now,
     // so don't bother querying pids
-    if (numInterrupted > 0)
+    if (numInterrupted > 0) {
       return true;
+    }
 
     waitPidLock.lock();
 
     // Call sysWaitPids() to see which (if any) have finished
     sysCall.sysWaitPids(VM_Magic.objectAsAddress(pidArray),
-                           VM_Magic.objectAsAddress(exitStatusArray),
-                           numPids);
+                        VM_Magic.objectAsAddress(exitStatusArray),
+                        numPids);
 
     waitPidLock.unlock();
 
@@ -200,8 +203,9 @@ import org.vmmagic.pragma.Uninterruptible;
    */
   public boolean isReady(VM_Thread thread) {
     // Do not wake up threads being dispatched on another processor!
-    if (thread.beingDispatched)
+    if (thread.beingDispatched) {
       return false;
+    }
 
     // Wake up the thread if it has been interrupted
     if (thread.externalInterrupt != null) {
@@ -222,12 +226,12 @@ import org.vmmagic.pragma.Uninterruptible;
     return ready;
   }
 
-  /** 
+  /**
    * Dump text description of what given thread is waiting for.
    * For debugging.
    */
   @Interruptible
-  void dumpWaitDescription(VM_Thread thread) { 
+  void dumpWaitDescription(VM_Thread thread) {
     // Safe downcast from VM_ThreadEventWaitData to VM_ThreadProcessWaitData.
     // Because this method may be called by other VM_Processors without
     // locking (and thus execute concurrently with other methods), do NOT
@@ -246,7 +250,7 @@ import org.vmmagic.pragma.Uninterruptible;
    * This method must be interruptible!
    */
   @Interruptible
-  String getWaitDescription(VM_Thread thread) { 
+  String getWaitDescription(VM_Thread thread) {
     // Safe downcast from VM_ThreadEventWaitData to VM_ThreadProcessWaitData.
     WaitDataDowncaster downcaster = new WaitDataDowncaster();
     thread.waitData.accept(downcaster);

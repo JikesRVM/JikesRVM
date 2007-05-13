@@ -30,8 +30,9 @@ import org.vmmagic.pragma.Uninterruptible;
  * @see VM_ThreadProcessWaitQueue
  * @see VM_ThreadEventConstants
  */
-@Uninterruptible abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue
-  implements VM_ThreadEventConstants {
+@Uninterruptible
+abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue
+    implements VM_ThreadEventConstants {
 
   protected VM_Thread head, tail;
 
@@ -48,7 +49,7 @@ import org.vmmagic.pragma.Uninterruptible;
   public boolean isEmpty() {
     return length == 0;
   }
-   
+
   /**
    * Number of threads on queue.
    */
@@ -60,15 +61,15 @@ import org.vmmagic.pragma.Uninterruptible;
    * Dump state for debugging.
    */
   @Interruptible
-  void dump() { 
+  void dump() {
     dump(" ");
   }
- 
+
   /**
    * Dump state for debugging.
    */
   @Interruptible
-  void dump(String prefix) { 
+  void dump(String prefix) {
     VM.sysWrite(prefix);
     for (VM_Thread t = head; t != null; t = t.next) {
       VM.sysWrite(t.getIndex());
@@ -77,39 +78,41 @@ import org.vmmagic.pragma.Uninterruptible;
     VM.sysWrite("\n");
   }
 
-  /** 
+  /**
    * Dump description of what given thread is waiting for.
    * For debugging.
    */
   @Interruptible
-  abstract void dumpWaitDescription(VM_Thread thread); 
+  abstract void dumpWaitDescription(VM_Thread thread);
 
   /**
    * Get string describing what given thread is waiting for.
    * This method must be interruptible!
    */
   @Interruptible
-  abstract String getWaitDescription(VM_Thread thread); 
+  abstract String getWaitDescription(VM_Thread thread);
 
   /**
    * Check to see if any threads are ready to run, either because
    * their events occurred or their waits timed out.
    */
   public boolean isReady() {
-    if (length == 0)
+    if (length == 0) {
       return false; // no threads waiting
+    }
 
-    if (VM.VerifyAssertions) VM._assert(ready >= 0); 
+    if (VM.VerifyAssertions) VM._assert(ready >= 0);
 
     if (ready == 0) {
       // No threads are ready, so try to find some that are...
 
       // Allow subclass to check for events
-      if (!pollForEvents()) 
+      if (!pollForEvents()) {
         return false; // possibly transient error; try again later
+      }
 
       VM_Thread thread = head;
-      long currentCycle = VM_Time.cycles(); 
+      long currentCycle = VM_Time.cycles();
 
       // See if any threads have become ready to run
       while (thread != null) {
@@ -120,11 +123,12 @@ import org.vmmagic.pragma.Uninterruptible;
           // Wait timed out
           waitData.waitFlags = WAIT_FINISHED | WAIT_TIMEOUT;
           ++ready;
-        } else if (isReady(thread)) { 
+        } else if (isReady(thread)) {
           // Subclass has decided that the thread is ready to schedule;
           // it should have updated waitFlags appropriately
-          if (VM.VerifyAssertions)
-            VM._assert((waitData.waitFlags & WAIT_FINISHED) != 0); 
+          if (VM.VerifyAssertions) {
+            VM._assert((waitData.waitFlags & WAIT_FINISHED) != 0);
+          }
           ++ready;
         } else {
           waitData.waitFlags &= ~(WAIT_FINISHED);
@@ -161,15 +165,16 @@ import org.vmmagic.pragma.Uninterruptible;
   public void enqueue(VM_Thread thread) {
     if (VM.VerifyAssertions) {
       VM._assert(thread.waitData.waitFlags == WAIT_PENDING ||
-                          thread.waitData.waitFlags == WAIT_NATIVE); 
-      VM._assert(thread.next == null); 
+                 thread.waitData.waitFlags == WAIT_NATIVE);
+      VM._assert(thread.next == null);
     }
 
     // Add to queue
-    if (head == null)
+    if (head == null) {
       head = thread;
-    else
+    } else {
       tail.next = thread;
+    }
     tail = thread;
     ++length;
   }
@@ -183,44 +188,46 @@ import org.vmmagic.pragma.Uninterruptible;
     VM_Thread prev = null;
     VM_Thread thread = head;
 
-    if (VM.VerifyAssertions) VM._assert(ready >= 0); 
+    if (VM.VerifyAssertions) VM._assert(ready >= 0);
 
     // See if a thread is finished waiting
     while (thread != null) {
       VM_ThreadEventWaitData waitData = thread.waitData;
-      if ((waitData.waitFlags & WAIT_FINISHED) != 0)
+      if ((waitData.waitFlags & WAIT_FINISHED) != 0) {
         break;
+      }
       prev = thread;
       thread = thread.next;
     }
 
     // If we found one, take it off the queue
     if (thread != null) {
-      if (prev == null)
+      if (prev == null) {
         head = thread.next;
-      else
+      } else {
         prev.next = thread.next;
-      if (tail == thread)
+      }
+      if (tail == thread) {
         tail = prev;
+      }
       thread.next = null;
-         
+
       --length;
       --ready;
-    }
-    else /* thread == null */ {
-      if (VM.VerifyAssertions) VM._assert(ready == 0); 
+    } else /* thread == null */ {
+      if (VM.VerifyAssertions) VM._assert(ready == 0);
     }
 
     return thread;
   }
 
-   
   /**
    * Debugging.
    */
   boolean contains(VM_Thread x) {
-    for (VM_Thread t = head; t != null; t = t.next)
+    for (VM_Thread t = head; t != null; t = t.next) {
       if (t == x) return true;
+    }
     return false;
   }
 }

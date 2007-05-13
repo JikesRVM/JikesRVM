@@ -57,14 +57,13 @@ public abstract class OPT_AbstractRegisterPool {
    * containing the next available register number.
    */
   protected int currentNum;
-    
+
   private OPT_Register makeNewReg() {
     OPT_Register reg = new OPT_Register(currentNum);
     currentNum++;
     registerListappend(reg);
     return reg;
   }
-
 
   /**
    * Release a now unused register.
@@ -74,12 +73,11 @@ public abstract class OPT_AbstractRegisterPool {
    */
   public void release(OPT_RegisterOperand r) {
     OPT_Register reg = r.register;
-    if (reg.number == currentNum -1) {
+    if (reg.number == currentNum - 1) {
       currentNum--;
       registerListremove(end);
     }
   }
-
 
   /**
    * Remove register from register pool.
@@ -167,29 +165,28 @@ public abstract class OPT_AbstractRegisterPool {
     return reg;
   }
 
-
   /**
    * Get a new register of the same type as the argument register
-   * 
+   *
    * @param template the register to get the type from
    * @return the newly created register object 
    */
   public OPT_Register getReg(OPT_Register template) {
-    switch(template.getType()) {
-    case OPT_Register.ADDRESS_TYPE:
-      return getAddress();
-    case OPT_Register.INTEGER_TYPE:
-      return getInteger();
-    case OPT_Register.FLOAT_TYPE:
-      return getFloat();
-    case OPT_Register.DOUBLE_TYPE:
-      return getDouble();
-    case OPT_Register.CONDITION_TYPE:
-      return getCondition();
-    case OPT_Register.LONG_TYPE:
-      return getLong();
-    case OPT_Register.VALIDATION_TYPE: 
-      return getValidation();
+    switch (template.getType()) {
+      case OPT_Register.ADDRESS_TYPE:
+        return getAddress();
+      case OPT_Register.INTEGER_TYPE:
+        return getInteger();
+      case OPT_Register.FLOAT_TYPE:
+        return getFloat();
+      case OPT_Register.DOUBLE_TYPE:
+        return getDouble();
+      case OPT_Register.CONDITION_TYPE:
+        return getCondition();
+      case OPT_Register.LONG_TYPE:
+        return getLong();
+      case OPT_Register.VALIDATION_TYPE:
+        return getValidation();
     }
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return null;
@@ -197,7 +194,7 @@ public abstract class OPT_AbstractRegisterPool {
 
   /**
    * Get a new register of the same type as the argument RegisterOperand
-   * 
+   *
    * @param template the register operand to get the type from
    * @return the newly created register object 
    */
@@ -205,37 +202,38 @@ public abstract class OPT_AbstractRegisterPool {
     return getReg(template.register);
   }
 
-
   /**
    * Get a new register of the appropriate type to hold values of 'type'
-   * 
+   *
    * @param type the type of values that the register will hold
    * @return the newly created register object 
    */
   public OPT_Register getReg(VM_TypeReference type) {
-    if (type.isLongType())
+    if (type.isLongType()) {
       return getLong();
-    else if (type.isDoubleType())
+    } else if (type.isDoubleType()) {
       return getDouble();
-    else if (type.isFloatType())
+    } else if (type.isFloatType()) {
       return getFloat();
-    else if (type == VM_TypeReference.VALIDATION_TYPE)
+    } else if (type == VM_TypeReference.VALIDATION_TYPE) {
       return getValidation();
-    else if (type.isWordType() || type.isReferenceType())
+    } else if (type.isWordType() || type.isReferenceType()) {
       return getAddress();
-    else
+    } else {
       return getInteger();
+    }
   }
 
   private final HashMap<OPT_Register, OPT_Register> _regPairs =
-    new HashMap<OPT_Register, OPT_Register>();
+      new HashMap<OPT_Register, OPT_Register>();
+
   /**
    * MIR: Get the other half of the register pair that is 
    * associated with the argument register.
    * Note: this isn't incredibly general, but all architectures we're currently
    * targeting need at most 2 machine registers to hold Java data values, so
    * for now don't bother implementing a general mechanism.
-   * 
+   *
    * @param reg a register that may already be part of a register pair
    * @return the register that is the other half of the register pair,
    *         if the pairing doesn't already exist then it is created.
@@ -251,11 +249,10 @@ public abstract class OPT_AbstractRegisterPool {
     return otherHalf;
   }
 
-
   /**
    * Make a temporary register operand to hold values of the specified type
    * (a new register is allocated).
-   * 
+   *
    * @param type the type of values to be held in the temp register
    * @return the new temp
    */
@@ -265,13 +262,13 @@ public abstract class OPT_AbstractRegisterPool {
 
   /**
    * Make a temporary register operand that is similar to the argument.
-   * 
+   *
    * @param template the register operand to use as a template.
    * @return the new temp
    */
   public OPT_RegisterOperand makeTemp(OPT_RegisterOperand template) {
-    OPT_RegisterOperand temp = 
-      new OPT_RegisterOperand(getReg(template), template.type);
+    OPT_RegisterOperand temp =
+        new OPT_RegisterOperand(getReg(template), template.type);
     temp.addFlags(template.getFlags());
     return temp;
   }
@@ -279,14 +276,14 @@ public abstract class OPT_AbstractRegisterPool {
   /**
    * Make a temporary register operand that can hold the values 
    * implied by the passed operand.
-   * 
+   *
    * @param op the operand to use as a template.
    * @return the new temp
    */
   public OPT_RegisterOperand makeTemp(OPT_Operand op) {
     OPT_RegisterOperand result;
     if (op.isRegister()) {
-      result = makeTemp((OPT_RegisterOperand)op);
+      result = makeTemp((OPT_RegisterOperand) op);
     } else {
       result = makeTemp(op.getType());
     }
@@ -295,7 +292,7 @@ public abstract class OPT_AbstractRegisterPool {
 
   /**
    * Make a temporary to hold an address (allocating a new register).
-   * 
+   *
    * @return the newly created temporary
    */
   public OPT_RegisterOperand makeTempAddress() {
@@ -304,7 +301,7 @@ public abstract class OPT_AbstractRegisterPool {
 
   /**
    * Make a temporary to hold an address (allocating a new register).
-   * 
+   *
    * @return the newly created temporary
    */
   public OPT_RegisterOperand makeTempOffset() {
@@ -313,7 +310,7 @@ public abstract class OPT_AbstractRegisterPool {
 
   /**
    * Make a temporary to hold an int (allocating a new register).
-   * 
+   *
    * @return the newly created temporary
    */
   public OPT_RegisterOperand makeTempInt() {
@@ -322,7 +319,7 @@ public abstract class OPT_AbstractRegisterPool {
 
   /**
    * Make a temporary to hold a boolean (allocating a new register).
-   * 
+   *
    * @return the newly created temporary
    */
   public OPT_RegisterOperand makeTempBoolean() {
@@ -331,7 +328,7 @@ public abstract class OPT_AbstractRegisterPool {
 
   /**
    * Make a temporary to hold a float (allocating a new register).
-   * 
+   *
    * @return the newly created temporary
    */
   public OPT_RegisterOperand makeTempFloat() {
@@ -340,7 +337,7 @@ public abstract class OPT_AbstractRegisterPool {
 
   /**
    * Make a temporary to hold a double (allocating a new register).
-   * 
+   *
    * @return the newly created temporary
    */
   public OPT_RegisterOperand makeTempDouble() {
@@ -349,7 +346,7 @@ public abstract class OPT_AbstractRegisterPool {
 
   /**
    * Make a temporary to hold a long (allocating a new register).
-   * 
+   *
    * @return the newly created temporary
    */
   public OPT_RegisterOperand makeTempLong() {
@@ -358,7 +355,7 @@ public abstract class OPT_AbstractRegisterPool {
 
   /**
    * Make a temporary to hold a condition code (allocating a new register).
-   * 
+   *
    * @return the newly created temporary
    */
   public OPT_RegisterOperand makeTempCondition() {
@@ -368,7 +365,7 @@ public abstract class OPT_AbstractRegisterPool {
 
   /**
    * Make a temporary to hold a guard (validation) (allocating a new register).
-   * 
+   *
    * @return the newly created temporary
    */
   public OPT_RegisterOperand makeTempValidation() {

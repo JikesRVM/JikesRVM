@@ -25,7 +25,7 @@ public class OPT_IRPrinter extends OPT_CompilerPhase {
   }
 
   public final String getName() {
-    return  "IR_Printer: " + msg;
+    return "IR_Printer: " + msg;
   }
 
   /**
@@ -46,9 +46,9 @@ public class OPT_IRPrinter extends OPT_CompilerPhase {
   /**
    * Return this instance of this phase
    * @param ir not used
-   * @return this 
+   * @return this
    */
-  public OPT_CompilerPhase newExecution (OPT_IR ir) {
+  public OPT_CompilerPhase newExecution(OPT_IR ir) {
     return this;
   }
 }

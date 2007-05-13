@@ -39,22 +39,22 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
    * Return this instance of this phase. This phase contains no
    * per-compilation instance fields.
    * @param ir not used
-   * @return this 
+   * @return this
    */
-  public OPT_CompilerPhase newExecution (OPT_IR ir) {
+  public OPT_CompilerPhase newExecution(OPT_IR ir) {
     return this;
-  } 
+  }
 
-  public boolean shouldPerform (OPT_Options options) {
+  public boolean shouldPerform(OPT_Options options) {
     return options.REORDER_CODE;
   }
 
-  public boolean printingEnabled (OPT_Options options, boolean before) {
+  public boolean printingEnabled(OPT_Options options, boolean before) {
     return DEBUG;
   }
 
-  public String getName () { 
-    return "Code Reordering"; 
+  public String getName() {
+    return "Code Reordering";
   }
 
   /**
@@ -66,7 +66,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
    * by reversing the branch condition, however.  That is saved for
    * OPT_BranchOptimizations.
    */
-  public void perform (OPT_IR ir) {
+  public void perform(OPT_IR ir) {
     ir.cfg.entry().clearInfrequent();
     if (ir.options.REORDER_CODE_PH) {
       // Do Pettis and Hansen PLDI'90 Algo2
@@ -76,7 +76,6 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
       exileInfrequentBlocks(ir);
     }
   }
-
 
   /////////////////////////
   // Code for trivial algorithm
@@ -92,7 +91,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
     //     Also count how many blocks there are.
     int numBlocks = 0;
     boolean foundSome = false;
-    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); 
+    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks();
          e.hasMoreElements();) {
       OPT_BasicBlock bb = e.next();
       numBlocks++;
@@ -105,30 +104,32 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
     OPT_BasicBlock[] newOrdering = new OPT_BasicBlock[numBlocks];
     int idx = 0;
     // First append frequent blocks to newOrdering
-    for (OPT_BasicBlock bb = ir.cfg.firstInCodeOrder(); 
-         bb != null; 
+    for (OPT_BasicBlock bb = ir.cfg.firstInCodeOrder();
+         bb != null;
          bb = bb.nextBasicBlockInCodeOrder()) {
-      if (!bb.getInfrequent()) 
+      if (!bb.getInfrequent()) {
         newOrdering[idx++] = bb;
+      }
     }
     // Next append infrequent blocks to newOrdering
-    for (OPT_BasicBlock bb = ir.cfg.firstInCodeOrder(); 
-         bb != null; 
+    for (OPT_BasicBlock bb = ir.cfg.firstInCodeOrder();
+         bb != null;
          bb = bb.nextBasicBlockInCodeOrder()) {
-      if (bb.getInfrequent()) 
+      if (bb.getInfrequent()) {
         newOrdering[idx++] = bb;
+      }
     }
 
     if (VM.VerifyAssertions) VM._assert(idx == numBlocks); // don't lose blocks!
     if (VM.VerifyAssertions) VM._assert(ir.cfg.entry() == newOrdering[0]);
 
     // Add/remove unconditional goto's as needed.
-    for (int i = 0; i<newOrdering.length; i++) {
+    for (int i = 0; i < newOrdering.length; i++) {
       OPT_Instruction lastInstr = newOrdering[i].lastRealInstruction();
       // Append a GOTO if needed to maintain old fallthrough semantics.
       OPT_BasicBlock fallthroughBlock = newOrdering[i].getFallThroughBlock();
       if (fallthroughBlock != null) {
-        if (i == newOrdering.length - 1 || fallthroughBlock != newOrdering[i+1]) {
+        if (i == newOrdering.length - 1 || fallthroughBlock != newOrdering[i + 1]) {
           // Add unconditional goto to preserve old fallthrough semantics
           newOrdering[i].appendInstruction(fallthroughBlock.makeGOTO());
         }
@@ -136,9 +137,9 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
       // Remove last instruction if it is a redundant GOTO that
       // can be implemented by a fallthrough edge in the new ordering.
       // (Only possible if newOrdering[i] is not the last basic block.)
-      if (i<newOrdering.length-1 && lastInstr != null && lastInstr.operator() == GOTO) {
+      if (i < newOrdering.length - 1 && lastInstr != null && lastInstr.operator() == GOTO) {
         OPT_BranchOperand op = Goto.getTarget(lastInstr);
-        if (op.target.getBasicBlock() == newOrdering[i+1]) {
+        if (op.target.getBasicBlock() == newOrdering[i + 1]) {
           // unconditional goto is redundant in new ordering 
           lastInstr.remove();
         }
@@ -151,7 +152,6 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
       ir.cfg.addLastInCodeOrder(bb);
     }
   }
-
 
   /////////////////////////
   // Code for P&H Algo2
@@ -175,13 +175,13 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
     if (VM.VerifyAssertions) VM._assert(ir.cfg.entry() == ir.cfg.firstInCodeOrder());
 
     for (OPT_BasicBlock bb = entry;
-         bb != null; 
+         bb != null;
          bb = bb.nextBasicBlockInCodeOrder()) {
       numBlocks++;
       chainHeads.add(bb);
       bb.scratchObject = bb;
       OPT_BasicBlock ft = bb.getFallThroughBlock();
-      if (ft != null) { 
+      if (ft != null) {
         bb.appendInstruction(Goto.create(GOTO, ft.makeJumpTarget()));
       }
       float bw = bb.getExecutionFrequency();
@@ -191,7 +191,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
       }
     }
 
-    if (DEBUG) VM.sysWriteln("Edges = "+edges);
+    if (DEBUG) VM.sysWriteln("Edges = " + edges);
 
     // (2) Build chains
     ir.cfg.clearCodeOrder();
@@ -230,12 +230,12 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
     }
 
     if (DEBUG) VM.sysWriteln("Chains constructed ");
-    HashMap<OPT_BasicBlock,ChainInfo> chainInfo = new HashMap<OPT_BasicBlock,ChainInfo>();
+    HashMap<OPT_BasicBlock, ChainInfo> chainInfo = new HashMap<OPT_BasicBlock, ChainInfo>();
     for (OPT_BasicBlock head : chainHeads) {
       if (DEBUG) dumpChain(head);
       chainInfo.put(head, new ChainInfo(head));
     }
-      
+
     // (3) Summarize inter-chain edges.
     for (Edge e : edges) {
       if (e.source.scratchObject != e.target.scratchObject) {
@@ -243,7 +243,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
         Object targetChain = e.target.scratchObject;
         ChainInfo sourceInfo = chainInfo.get(sourceChain);
         ChainInfo targetInfo = chainInfo.get(targetChain);
-        if (DEBUG) VM.sysWriteln("Inter-chain edge "+sourceChain+"->"+targetChain+" ("+e.weight+")");
+        if (DEBUG) VM.sysWriteln("Inter-chain edge " + sourceChain + "->" + targetChain + " (" + e.weight + ")");
         Object value = sourceInfo.outWeights.get(targetInfo);
         float weight = e.weight;
         if (value != null) {
@@ -251,11 +251,11 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
         }
         sourceInfo.outWeights.put(targetInfo, weight);
         targetInfo.inWeight += e.weight;
-        if (DEBUG) VM.sysWriteln("\t"+targetInfo + ","+sourceInfo.outWeights.get(targetInfo));
+        if (DEBUG) VM.sysWriteln("\t" + targetInfo + "," + sourceInfo.outWeights.get(targetInfo));
       }
     }
 
-    if (DEBUG) VM.sysWriteln("Chain Info "+chainInfo);
+    if (DEBUG) VM.sysWriteln("Chain Info " + chainInfo);
 
     // (4) Construct a total order of the chains, guided by the interchain edge weights.
     //     Constructing an optimal order is NP-Hard, so we apply the following heuristic.
@@ -270,11 +270,11 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
     int numPlaced = 0;
     ir.cfg._firstNode = entry;
     while (true) {
-      if (DEBUG) VM.sysWriteln("Placing chain "+nextChoice);
+      if (DEBUG) VM.sysWriteln("Placing chain " + nextChoice);
       // Append nextChoice to the previous chain
       if (lastNode != null) ir.cfg.linkInCodeOrder(lastNode, nextChoice.head);
-      for (OPT_BasicBlock ptr = nextChoice.head; 
-           ptr != null; 
+      for (OPT_BasicBlock ptr = nextChoice.head;
+           ptr != null;
            ptr = ptr.nextBasicBlockInCodeOrder()) {
         numPlaced++;
         lastNode = ptr;
@@ -283,26 +283,26 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
       chainInfo.remove(nextChoice.head);
       if (chainInfo.isEmpty()) break; // no chains left to place.
       for (ChainInfo target : nextChoice.outWeights.keySet()) {
-        if (DEBUG) VM.sysWrite("\toutedge "+target);
+        if (DEBUG) VM.sysWrite("\toutedge " + target);
         float weight = (Float) nextChoice.outWeights.get(target);
-        if (DEBUG) VM.sysWriteln(" = "+weight);
+        if (DEBUG) VM.sysWriteln(" = " + weight);
         target.placedWeight += weight;
         target.inWeight -= weight;
       }
 
-      if (DEBUG) VM.sysWriteln("Chain Info "+chainInfo);
+      if (DEBUG) VM.sysWriteln("Chain Info " + chainInfo);
 
       // Find the next chain to append.
       nextChoice = null;
       for (ChainInfo cand : chainInfo.values()) {
         if (cand.placedWeight > 0f) {
           if (nextChoice == null) {
-            if (DEBUG) VM.sysWriteln("First reachable candidate "+cand);
+            if (DEBUG) VM.sysWriteln("First reachable candidate " + cand);
             nextChoice = cand;
           } else if (cand.inWeight > nextChoice.inWeight ||
-                     (cand.inWeight == nextChoice.inWeight && 
+                     (cand.inWeight == nextChoice.inWeight &&
                       cand.placedWeight > nextChoice.placedWeight)) {
-            if (DEBUG) VM.sysWriteln(cand + " is a better choice than "+nextChoice);
+            if (DEBUG) VM.sysWriteln(cand + " is a better choice than " + nextChoice);
             nextChoice = cand;
           }
         }
@@ -313,10 +313,10 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
       // Pick one with minimal inWeight and continue.
       for (ChainInfo cand : chainInfo.values()) {
         if (nextChoice == null) {
-          if (DEBUG) VM.sysWriteln("First candidate "+cand);
+          if (DEBUG) VM.sysWriteln("First candidate " + cand);
           nextChoice = cand;
         } else if (cand.inWeight < nextChoice.inWeight) {
-          if (DEBUG) VM.sysWriteln(cand + " is a better choice than "+nextChoice);
+          if (DEBUG) VM.sysWriteln(cand + " is a better choice than " + nextChoice);
           nextChoice = cand;
         }
       }
@@ -327,27 +327,27 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
   }
 
   private void dumpChain(OPT_BasicBlock head) {
-    VM.sysWrite("{"+head);
+    VM.sysWrite("{" + head);
     for (OPT_BasicBlock next = head.nextBasicBlockInCodeOrder();
-         next != null; 
+         next != null;
          next = next.nextBasicBlockInCodeOrder()) {
-      VM.sysWrite(", "+next);
+      VM.sysWrite(", " + next);
     }
     VM.sysWriteln("}");
   }
-      
+
   private static class ChainInfo {
     final OPT_BasicBlock head;
     float placedWeight;
     float inWeight;
-    final HashMap<ChainInfo,Object> outWeights = new HashMap<ChainInfo,Object>();
+    final HashMap<ChainInfo, Object> outWeights = new HashMap<ChainInfo, Object>();
 
     ChainInfo(OPT_BasicBlock h) {
       head = h;
     }
 
     public String toString() {
-      return "["+head+","+placedWeight+","+inWeight+"] "+outWeights.size();
+      return "[" + head + "," + placedWeight + "," + inWeight + "] " + outWeights.size();
     }
   }
 
@@ -363,7 +363,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
     }
 
     public String toString() {
-      return weight + ": "+ source.toString() + " -> " + target.toString();
+      return weight + ": " + source.toString() + " -> " + target.toString();
     }
 
     public int compareTo(Edge that) {

@@ -22,15 +22,15 @@ import org.jikesrvm.compilers.common.VM_CompiledMethods;
 
 class VM_MethodNameFunction implements VM_CounterNameFunction {
 
-   /**
-    * @param key the compiled method id of a method
-    */
-   public String getName(int key) {
-     VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(key);
-     if (cm == null) {
-       return "OBSOLETE";
-     } else {
-       return cm.getMethod().toString();
-     }
-   }
+  /**
+   * @param key the compiled method id of a method
+   */
+  public String getName(int key) {
+    VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(key);
+    if (cm == null) {
+      return "OBSOLETE";
+    } else {
+      return cm.getMethod().toString();
+    }
+  }
 }

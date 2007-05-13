@@ -10,7 +10,7 @@ package org.jikesrvm.compilers.opt.ir;
 
 /**
  * Common superclass for all constant operands
- * 
+ *
  * @see OPT_Operand
  */
 public abstract class OPT_ConstantOperand extends OPT_Operand {

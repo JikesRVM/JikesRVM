@@ -15,21 +15,21 @@ import org.vmmagic.pragma.Uninterruptible;
 /**
  * Scratch space for JSR processing.  Used from VM_ReferenceMaps
  */
-@Uninterruptible public final class VM_JSRInfo implements VM_BaselineConstants {
+@Uninterruptible
+public final class VM_JSRInfo implements VM_BaselineConstants {
 
-  int              numberUnusualMaps;
+  int numberUnusualMaps;
   VM_UnusualMaps[] unusualMaps;
-  byte[]           unusualReferenceMaps;
-  int              freeMapSlot = 0;
-  VM_UnusualMaps   extraUnusualMap = new VM_UnusualMaps(); //merged jsr ret  and callers maps
-  int              tempIndex = 0;
-  int              mergedReferenceMap = 0;       // result of jsrmerged maps - stored in referenceMaps
-  int              mergedReturnAddressMap = 0;   // result of jsrmerged maps - stored return addresses
+  byte[] unusualReferenceMaps;
+  int freeMapSlot = 0;
+  VM_UnusualMaps extraUnusualMap = new VM_UnusualMaps(); //merged jsr ret  and callers maps
+  int tempIndex = 0;
+  int mergedReferenceMap = 0;       // result of jsrmerged maps - stored in referenceMaps
+  int mergedReturnAddressMap = 0;   // result of jsrmerged maps - stored return addresses
 
-  VM_JSRInfo (int initialMaps) {
+  VM_JSRInfo(int initialMaps) {
     unusualMaps = new VM_UnusualMaps[initialMaps];
   }
-
 
   /**
    * show the basic information for each of the unusual maps
@@ -39,7 +39,7 @@ import org.vmmagic.pragma.Uninterruptible;
     VM.sysWrite("-------------------------------------------------\n");
     VM.sysWriteln("     numberUnusualMaps = ", numberUnusualMaps);
 
-    for (int i=0; i<numberUnusualMaps; i++) {
+    for (int i = 0; i < numberUnusualMaps; i++) {
       VM.sysWrite("-----------------\n");
       VM.sysWrite("Unusual map #", i);
       VM.sysWrite(":\n");
@@ -75,6 +75,5 @@ import org.vmmagic.pragma.Uninterruptible;
     }
     VM.sysWrite("   ");
   }
-
 
 }

@@ -45,24 +45,26 @@ class OPT_StaticSplitting extends OPT_CompilerPhase {
   private final OPT_BranchOptimizations branchOpts;
 
   protected OPT_StaticSplitting() {
-	 branchOpts = new OPT_BranchOptimizations(-1,false,false);
+    branchOpts = new OPT_BranchOptimizations(-1, false, false);
   }
 
   /**
    * Return this instance of this phase. This phase contains no
    * per-compilation instance fields.
    * @param ir not used
-   * @return this 
+   * @return this
    */
-  public OPT_CompilerPhase newExecution (OPT_IR ir) {
+  public OPT_CompilerPhase newExecution(OPT_IR ir) {
     return this;
   }
 
-  public String getName () { return  "Static Splitting"; }
-  public boolean shouldPerform (OPT_Options options) {
+  public String getName() { return "Static Splitting"; }
+
+  public boolean shouldPerform(OPT_Options options) {
     return options.STATIC_SPLITTING;
   }
-  public boolean printingEnabled (OPT_Options options, boolean before) {
+
+  public boolean printingEnabled(OPT_Options options, boolean before) {
     return DEBUG;
   }
 
@@ -70,10 +72,10 @@ class OPT_StaticSplitting extends OPT_CompilerPhase {
    * Do simplistic static splitting to create hot traces
    * with that do not have incoming edges from 
    * blocks that are statically predicted to be cold.
-   * 
+   *
    * @param ir   The IR on which to apply the phase
    */
-  public void perform (OPT_IR ir) {
+  public void perform(OPT_IR ir) {
     // (1) Find candidates to split
     simpleCandidateSearch(ir);
 
@@ -83,10 +85,10 @@ class OPT_StaticSplitting extends OPT_CompilerPhase {
       splitCandidate(nextCandidate(), ir);
     }
 
-	 // (3) If something was split optimize the CFG
-	 if (needCleanup) {
-		branchOpts.perform(ir);
-	 }
+    // (3) If something was split optimize the CFG
+    if (needCleanup) {
+      branchOpts.perform(ir);
+    }
   }
 
   /**
@@ -125,9 +127,9 @@ class OPT_StaticSplitting extends OPT_CompilerPhase {
       OPT_BasicBlock coldSucc = findColdSucc(cand, candTest);
       if (DEBUG) {
         VM.sysWrite("Found candidate \n");
-        VM.sysWrite("\tTest is "+candTest+"\n");
-        VM.sysWrite("\tcoldPrev is "+coldPrev+"\n");
-        VM.sysWrite("\tcoldSucc is "+coldSucc+"\n");
+        VM.sysWrite("\tTest is " + candTest + "\n");
+        VM.sysWrite("\tcoldPrev is " + coldPrev + "\n");
+        VM.sysWrite("\tcoldSucc is " + coldSucc + "\n");
         cand.printExtended();
       }
       pushCandidate(cand, coldPrev, coldSucc, candTest);
@@ -160,7 +162,6 @@ class OPT_StaticSplitting extends OPT_CompilerPhase {
     clone.setInfrequent();
   }
 
-
   /**
    * Return the candidate test in b, or <code>null</code> if 
    * b does not have one.
@@ -179,7 +180,6 @@ class OPT_StaticSplitting extends OPT_CompilerPhase {
     }
     return test;
   }
-  
 
   /**
    * Return the cold predecessor to the argument block.
@@ -187,7 +187,7 @@ class OPT_StaticSplitting extends OPT_CompilerPhase {
    */
   private OPT_BasicBlock findColdPrev(OPT_BasicBlock bb) {
     OPT_BasicBlock cold = null;
-    for (java.util.Enumeration<OPT_BasicBlock> e = bb.getInNodes(); 
+    for (java.util.Enumeration<OPT_BasicBlock> e = bb.getInNodes();
          e.hasMoreElements();) {
       OPT_BasicBlock p = e.nextElement();
       if (p.getInfrequent()) {
@@ -213,7 +213,7 @@ class OPT_StaticSplitting extends OPT_CompilerPhase {
    * static hints, we are only willing to
    * copy a very small amount of code.
    */
-  private boolean tooBig(OPT_BasicBlock bb) { 
+  private boolean tooBig(OPT_BasicBlock bb) {
     int cost = 0;
     for (OPT_InstructionEnumeration e = bb.forwardRealInstrEnumerator();
          e.hasMoreElements();) {
@@ -234,6 +234,7 @@ class OPT_StaticSplitting extends OPT_CompilerPhase {
    * Support for remembering candidates
    */
   private CandInfo cands;
+
   private static class CandInfo {
     OPT_BasicBlock candBB;
     OPT_BasicBlock prevBB;
@@ -241,8 +242,8 @@ class OPT_StaticSplitting extends OPT_CompilerPhase {
     final OPT_Instruction test;
     CandInfo next;
 
-    CandInfo(OPT_BasicBlock c, OPT_BasicBlock p, 
-             OPT_BasicBlock s, OPT_Instruction t, 
+    CandInfo(OPT_BasicBlock c, OPT_BasicBlock p,
+             OPT_BasicBlock s, OPT_Instruction t,
              CandInfo n) {
       candBB = c;
       prevBB = p;
@@ -251,17 +252,20 @@ class OPT_StaticSplitting extends OPT_CompilerPhase {
       next = n;
     }
   }
+
   private void pushCandidate(OPT_BasicBlock cand,
                              OPT_BasicBlock prev,
                              OPT_BasicBlock succ,
                              OPT_Instruction test) {
     cands = new CandInfo(cand, prev, succ, test, cands);
   }
+
   private boolean haveCandidates() {
     return cands != null;
   }
+
   private CandInfo nextCandidate() {
-    CandInfo res = cands; 
+    CandInfo res = cands;
     cands = cands.next;
     return res;
   }

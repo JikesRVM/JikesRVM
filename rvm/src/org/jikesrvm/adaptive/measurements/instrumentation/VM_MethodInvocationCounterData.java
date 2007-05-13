@@ -19,7 +19,7 @@ import org.jikesrvm.compilers.opt.OPT_InstrumentedEventCounterManager;
  * writes into this data.
  */
 public final class VM_MethodInvocationCounterData extends VM_ManagedCounterData
-  implements VM_Reportable {
+    implements VM_Reportable {
 
   /**
    * @param manager The manager that will provide the counter space
@@ -38,8 +38,8 @@ public final class VM_MethodInvocationCounterData extends VM_ManagedCounterData
   /**
    *  Part of VM_Reportable interface
    **/
-  public void reset() { 
-    VM._assert(false, "TODO: implement reset for VM_BasicBlockCounterDatabase"); 
+  public void reset() {
+    VM._assert(false, "TODO: implement reset for VM_BasicBlockCounterDatabase");
   }
 
 }

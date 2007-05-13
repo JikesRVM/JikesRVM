@@ -25,22 +25,22 @@ public final class OPT_ScratchMap {
   /**
    * For each register, the set of intervals describing the register.
    */
-  private final HashMap<OPT_Register,ArrayList<Interval>> map =
-    new HashMap<OPT_Register,ArrayList<Interval>>();
+  private final HashMap<OPT_Register, ArrayList<Interval>> map =
+      new HashMap<OPT_Register, ArrayList<Interval>>();
 
   /**
    * For each register, a pending (incomplete) interval under
    * construction.
    */
-  private final HashMap<OPT_Register,Interval> pending =
-    new HashMap<OPT_Register,Interval>();
+  private final HashMap<OPT_Register, Interval> pending =
+      new HashMap<OPT_Register, Interval>();
 
   /**
    * For each GC Point s, a set of symbolic registers that are cached in
    * dirty scratch registers before s.
    */
-  private final HashMap<OPT_Instruction,HashSet<OPT_Register>> dirtyMap =
-    new HashMap<OPT_Instruction,HashSet<OPT_Register>>();
+  private final HashMap<OPT_Instruction, HashSet<OPT_Register>> dirtyMap =
+      new HashMap<OPT_Instruction, HashSet<OPT_Register>>();
 
   /**
    * Begin a new interval of scratch-ness for a symbolic register.
@@ -53,15 +53,15 @@ public final class OPT_ScratchMap {
   void beginSymbolicInterval(OPT_Register r, OPT_Register scratch,
                              OPT_Instruction begin) {
     if (DEBUG) {
-      System.out.println("beginSymbolicInterval " + r + " " + scratch + 
-                         " " + begin.scratch); 
+      System.out.println("beginSymbolicInterval " + r + " " + scratch +
+                         " " + begin.scratch);
     }
 
-    SymbolicInterval i = new SymbolicInterval(r,scratch);
+    SymbolicInterval i = new SymbolicInterval(r, scratch);
     i.begin = begin;
     ArrayList<Interval> v = findOrCreateIntervalSet(r);
     v.add(i);
-    pending.put(r,i);
+    pending.put(r, i);
   }
 
   /**
@@ -72,14 +72,13 @@ public final class OPT_ScratchMap {
    */
   public void endSymbolicInterval(OPT_Register r, OPT_Instruction end) {
     if (DEBUG) {
-      System.out.println("endSymbolicInterval " + r + " " + end.scratch); 
+      System.out.println("endSymbolicInterval " + r + " " + end.scratch);
     }
 
-    SymbolicInterval i = (SymbolicInterval)pending.get(r);
+    SymbolicInterval i = (SymbolicInterval) pending.get(r);
     i.end = end;
     pending.remove(i);
   }
-
 
   /**
    * Begin a new interval of scratch-ness for a physical register.
@@ -96,7 +95,7 @@ public final class OPT_ScratchMap {
     p.begin = begin;
     ArrayList<Interval> v = findOrCreateIntervalSet(r);
     v.add(p);
-    pending.put(r,p);
+    pending.put(r, p);
   }
 
   /**
@@ -108,9 +107,9 @@ public final class OPT_ScratchMap {
    */
   public void endScratchInterval(OPT_Register r, OPT_Instruction end) {
     if (DEBUG) {
-      System.out.println("endScratchInterval " + r + " "  + end.scratch);
+      System.out.println("endScratchInterval " + r + " " + end.scratch);
     }
-    PhysicalInterval p = (PhysicalInterval)pending.get(r);
+    PhysicalInterval p = (PhysicalInterval) pending.get(r);
     p.end = end;
     pending.remove(r);
   }
@@ -122,7 +121,7 @@ public final class OPT_ScratchMap {
     ArrayList<Interval> v = map.get(r);
     if (v == null) {
       v = new ArrayList<Interval>();
-      map.put(r,v);
+      map.put(r, v);
     }
     return v;
   }
@@ -169,7 +168,7 @@ public final class OPT_ScratchMap {
     HashSet<OPT_Register> set = dirtyMap.get(s);
     if (set == null) {
       set = new HashSet<OPT_Register>(3);
-      dirtyMap.put(s,set);
+      dirtyMap.put(s, set);
     }
     set.add(symb);
   }
@@ -214,14 +213,16 @@ public final class OPT_ScratchMap {
     OPT_Instruction end;
     /**
      * The physical scratch register or register evicted.
-     */ 
+     */
     final OPT_Register scratch;
+
     /**
      * Initialize scratch register
      */
     Interval(OPT_Register scratch) {
       this.scratch = scratch;
     }
+
     /**
      * Does this interval contain the instruction numbered n?
      */
@@ -252,7 +253,7 @@ public final class OPT_ScratchMap {
      */
     public String toString() {
       return "SI: " + symbolic + " " + scratch + " [" +
-              begin.scratch + "," + end.scratch + "]";
+             begin.scratch + "," + end.scratch + "]";
     }
   }
 
@@ -272,7 +273,7 @@ public final class OPT_ScratchMap {
      */
     public String toString() {
       return "PI: " + scratch + " [" +
-              begin.scratch + "," + end.scratch + "]";
+             begin.scratch + "," + end.scratch + "]";
     }
   }
 }

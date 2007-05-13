@@ -28,8 +28,8 @@ class OPT_CoalesceGraph extends OPT_SpaceEffGraph {
   /**
    * Mapping register -> Node
    */
-  final HashMap<OPT_Register,Node> nodeMap =
-    new HashMap<OPT_Register,Node>();
+  final HashMap<OPT_Register, Node> nodeMap =
+      new HashMap<OPT_Register, Node>();
 
   /**
    * find or create a node in the graph corresponding to a register.
@@ -38,7 +38,7 @@ class OPT_CoalesceGraph extends OPT_SpaceEffGraph {
     Node n = nodeMap.get(r);
     if (n == null) {
       n = new Node(r);
-      nodeMap.put(r,n);
+      nodeMap.put(r, n);
       addGraphNode(n);
     }
     return n;
@@ -56,16 +56,16 @@ class OPT_CoalesceGraph extends OPT_SpaceEffGraph {
    */
   private Edge findOrCreateEdge(Node src, Node dest) {
     Edge edge = null;
-    for (Enumeration<OPT_VisEdge> e = src.edges(); e.hasMoreElements(); ) {
-      Edge candidate = (Edge)e.nextElement();
+    for (Enumeration<OPT_VisEdge> e = src.edges(); e.hasMoreElements();) {
+      Edge candidate = (Edge) e.nextElement();
       if (candidate.toNode() == dest) {
         edge = candidate;
         break;
       }
     }
     if (edge == null) {
-      edge = new Edge(src,dest);
-      addGraphEdge(edge); 
+      edge = new Edge(src, dest);
+      addGraphEdge(edge);
     }
     return edge;
   }
@@ -87,7 +87,7 @@ class OPT_CoalesceGraph extends OPT_SpaceEffGraph {
       dest = findOrCreateNode(r1);
     }
 
-    Edge edge = findOrCreateEdge(src,dest);
+    Edge edge = findOrCreateEdge(src, dest);
 
     edge.addWeight(w);
   }
@@ -99,15 +99,16 @@ class OPT_CoalesceGraph extends OPT_SpaceEffGraph {
       this.r = r;
     }
 
-    OPT_Register getRegister() { 
+    OPT_Register getRegister() {
       return r;
     }
   }
-  static class Edge extends OPT_SpaceEffGraphEdge{
+
+  static class Edge extends OPT_SpaceEffGraphEdge {
     private int w;
 
     Edge(Node src, Node dest) {
-      super(src,dest);
+      super(src, dest);
     }
 
     void addWeight(int x) {

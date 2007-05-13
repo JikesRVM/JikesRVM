@@ -24,16 +24,17 @@ import org.vmmagic.unboxed.WordArray;
  * its architecture-independent code from VM_OptGenericGCMapIterator.
  * This version is for IA32
  */
-@Uninterruptible public abstract class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
-  implements VM_SizeConstants {
+@Uninterruptible
+public abstract class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
+    implements VM_SizeConstants {
 
   private static final boolean DEBUG = false;
- 
+
   public VM_OptGCMapIterator(WordArray registerLocations) {
     super(registerLocations);
   }
 
-  /** 
+  /**
    * If any non-volatile gprs were saved by the method being processed
    * then update the registerLocations array with the locations where the
    * registers were saved.  Also, check for special methods that also
@@ -65,18 +66,18 @@ import org.vmmagic.unboxed.WordArray;
     //       +---------------+                                           
     //
     //           LOW MEMORY
-    
+
     int frameOffset = compiledMethod.getUnsignedNonVolatileOffset();
     if (frameOffset >= 0) {
       // get to the non vol area
       Address nonVolArea = framePtr.minus(frameOffset);
-    
+
       // update non-volatiles
       int first = compiledMethod.getFirstNonVolatileGPR();
       if (first >= 0) {
         // move to the beginning of the nonVol area
         Address location = nonVolArea;
-        
+
         for (int i = first; i < NUM_NONVOLATILE_GPRS; i++) {
           // determine what register index corresponds to this location
           int registerIndex = NONVOLATILE_GPRS[i];
@@ -91,12 +92,12 @@ import org.vmmagic.unboxed.WordArray;
           location = location.minus(BYTES_IN_ADDRESS);
         }
       }
-      
+
       // update volatiles if needed
       if (compiledMethod.isSaveVolatile()) {
         // move to the beginning of the nonVol area
         Address location = nonVolArea.plus(4 * NUM_VOLATILE_GPRS);
-        
+
         for (int i = 0; i < NUM_VOLATILE_GPRS; i++) {
           // determine what register index corresponds to this location
           int registerIndex = VOLATILE_GPRS[i];
@@ -114,7 +115,7 @@ import org.vmmagic.unboxed.WordArray;
     }
   }
 
-  /** 
+  /**
    *  Determine the spill location given the frame ptr and spill offset.
    *  (The location of spills varies among architectures.)
    *  @param framePtr the frame pointer
@@ -125,7 +126,7 @@ import org.vmmagic.unboxed.WordArray;
     return framePtr.minus(offset);
   }
 
-  /** 
+  /**
    *  Get address of the first spill location for the given frame ptr
    *  @return the first spill location
    */
@@ -133,7 +134,7 @@ import org.vmmagic.unboxed.WordArray;
     return framePtr.minus(-VM_StackframeLayoutConstants.STACKFRAME_BODY_OFFSET);
   }
 
-  /** 
+  /**
    *  Get address of the last spill location for the given frame ptr
    *  @return the last spill location
    */

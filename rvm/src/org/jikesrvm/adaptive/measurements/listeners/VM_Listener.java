@@ -29,7 +29,8 @@ import org.vmmagic.pragma.Uninterruptible;
  * expected to complete execution quickly, and therefore, 
  * must do a minimal amount of work.
  */
-@Uninterruptible public abstract class VM_Listener {
+@Uninterruptible
+public abstract class VM_Listener {
 
   /**
    * Entry point to dump what has been collected.
@@ -46,7 +47,7 @@ import org.vmmagic.pragma.Uninterruptible;
    * Transition listener to active state
    */
   public final void activate() { active = true; }
-  
+
   /**
    * Transition listener to passive state 
    */

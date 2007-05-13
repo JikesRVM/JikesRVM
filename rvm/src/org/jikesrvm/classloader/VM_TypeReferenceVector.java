@@ -15,23 +15,24 @@ final class VM_TypeReferenceVector {
   //-----------//
   // interface //
   //-----------//
-   
+
   public VM_TypeReferenceVector() {
     array = new VM_TypeReference[10];
   }
-      
+
   // Add item.
   //
   void addElement(VM_TypeReference item) {
-    if (cnt == array.length)
+    if (cnt == array.length) {
       adjustLength(cnt << 1); // double size of array
+    }
     array[cnt++] = item;
   }
 
   // Add item if it is not already in the Vector.
   // 
   public void addUniqueElement(VM_TypeReference item) {
-    for (int i=0; i<cnt; i++) {
+    for (int i = 0; i < cnt; i++) {
       if (array[i] == item) return;
     }
     addElement(item);
@@ -67,21 +68,23 @@ final class VM_TypeReferenceVector {
   //----------------//
 
   private VM_TypeReference[] array;
-  private int   cnt;
+  private int cnt;
 
-  private static final VM_TypeReference[] empty = new VM_TypeReference[0];	
-  
+  private static final VM_TypeReference[] empty = new VM_TypeReference[0];
+
   private void adjustLength(int newLength) {
     if (newLength == 0) {
       array = empty;
     } else {
       VM_TypeReference[] newElements = new VM_TypeReference[newLength];
       int n = array.length;
-      if (n > newLength)
+      if (n > newLength) {
         n = newLength;
-         
-      for (int i = 0; i < n; ++i)
+      }
+
+      for (int i = 0; i < n; ++i) {
         newElements[i] = array[i];
+      }
 
       array = newElements;
     }

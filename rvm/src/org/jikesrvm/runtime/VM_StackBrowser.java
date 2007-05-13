@@ -33,44 +33,47 @@ public final class VM_StackBrowser implements ArchitectureSpecific.VM_Stackframe
   private int currentInlineEncodingIndex;
 
   @NoInline
-  public void init() { 
+  public void init() {
     currentFramePointer = VM_Magic.getFramePointer();
     upOneFrame();
   }
 
   private boolean upOneFrameInternal(boolean set) {
     Address fp;
-    if (currentMethod != null && currentMethod.getDeclaringClass().hasBridgeFromNativeAnnotation()) 
+    if (currentMethod != null && currentMethod.getDeclaringClass().hasBridgeFromNativeAnnotation()) {
       fp = VM_Runtime.unwindNativeStackFrame(currentFramePointer);
-    else 
+    } else {
       fp = currentFramePointer;
+    }
 
     Address prevFP = fp;
     Address newFP = VM_Magic.getCallerFramePointer(fp);
-    if (newFP.EQ(STACKFRAME_SENTINEL_FP) )
+    if (newFP.EQ(STACKFRAME_SENTINEL_FP)) {
       return false;
+    }
     // getReturnAddress has to be put here, consider the case
     // on ppc, when fp is the frame above SENTINEL FP
     Address newIP = VM_Magic.getReturnAddress(prevFP);
 
     int cmid = VM_Magic.getCompiledMethodID(newFP);
-        
+
     while (cmid == INVISIBLE_METHOD_ID) {
       prevFP = newFP;
       newFP = VM_Magic.getCallerFramePointer(newFP);
-      if (newFP.EQ(STACKFRAME_SENTINEL_FP))
+      if (newFP.EQ(STACKFRAME_SENTINEL_FP)) {
         return false;
+      }
       newIP = VM_Magic.getReturnAddress(prevFP);
       cmid = VM_Magic.getCompiledMethodID(newFP);
     }
-        
+
     if (set) {
       VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
       currentFramePointer = newFP;
       currentInstructionPointer = cm.getInstructionOffset(newIP);
       cm.set(this, currentInstructionPointer);
     }
-        
+
     return true;
   }
 
@@ -82,7 +85,7 @@ public final class VM_StackBrowser implements ArchitectureSpecific.VM_Stackframe
   public boolean hasMoreFrames() {
     return upOneFrameInternal(false);
   }
-    
+
   public void up() {
     if (!currentCompiledMethod.up(this)) {
       upOneFrame();

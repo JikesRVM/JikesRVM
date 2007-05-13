@@ -46,15 +46,15 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
     return this;
   }
 
-  public boolean shouldPerform (OPT_Options options) {
+  public boolean shouldPerform(OPT_Options options) {
     return options.FIELD_ANALYSIS;
   }
 
-  public String getName () {
+  public String getName() {
     return "Field Analysis";
   }
 
-  /** 
+  /**
    * Is a type a candidate for type analysis?
    * <p> NO iff:
    * <ul>
@@ -64,13 +64,15 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
    *    <li> it's an array of final
    * </ul>
    */
-  private static boolean isCandidate (VM_TypeReference tref) {
+  private static boolean isCandidate(VM_TypeReference tref) {
     VM_Type t = tref.peekResolvedType();
     if (t == null) return false;
-    if (t.isPrimitiveType())
+    if (t.isPrimitiveType()) {
       return false;
-    if (t.isClassType() && t.asClass().isFinal())
+    }
+    if (t.isClassType() && t.asClass().isFinal()) {
       return false;
+    }
     if (t.isArrayType()) {
       return isCandidate(tref.getInnermostElementType());
     }
@@ -81,17 +83,19 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
    * Have we determined a single concrete type for a field? If so,
    * return the concrete type.  Else, return null.
    */
-  public static VM_TypeReference getConcreteType (VM_Field f) {
+  public static VM_TypeReference getConcreteType(VM_Field f) {
     // don't bother for primitives and arrays of primitives
     // and friends
-    if (!isCandidate(f.getType()))
+    if (!isCandidate(f.getType())) {
       return f.getType();
+    }
     // for some special classes, the flow-insensitive summaries
     // are INCORRECT due to using the wrong implementation
     // during boot image writing.  For these special cases,
     // give up.
-    if (isTrouble(f))
+    if (isTrouble(f)) {
       return null;
+    }
     if (DEBUG) {
       VM_TypeReference t = db.getConcreteType(f);
       if (t != null) VM.sysWriteln("CONCRETE TYPE " + f + " IS " + t);
@@ -104,12 +108,12 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
    *
    * @param ir the governing IR
    */
-  public void perform (OPT_IR ir) {
+  public void perform(OPT_IR ir) {
     // walk over each instructions.  For each putfield or putstatic,
     // record the concrete type assigned to a field; or, record
     // BOTTOM if the concrete type is unknown.
-    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator(); 
-        e.hasMoreElements();) {
+    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator();
+         e.hasMoreElements();) {
       OPT_Instruction s = e.next();
       if (PutField.conforms(s)) {
         OPT_LocationOperand l = PutField.getLocation(s);
@@ -119,8 +123,9 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
         // a little tricky: we cannot draw any conclusions from inlined
         // method bodies, since we cannot assume what information, 
         // gleaned from context, does not hold everywhere
-        if (s.position.getMethod() != ir.method)
+        if (s.position.getMethod() != ir.method) {
           continue;
+        }
         OPT_Operand value = PutField.getValue(s);
         if (value.isRegister()) {
           if (value.asRegister().isPreciseType()) {
@@ -138,8 +143,9 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
         // a little tricky: we cannot draw any conclusions from inlined
         // method bodies, since we cannot assume what information, 
         // gleaned from context, does not hold everywhere
-        if (s.position.getMethod() != ir.method)
+        if (s.position.getMethod() != ir.method) {
           continue;
+        }
         OPT_Operand value = PutStatic.getValue(s);
         if (value.isRegister()) {
           if (value.asRegister().isPreciseType()) {
@@ -161,17 +167,20 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
   /**
    * Record that a method writes an unknown concrete type to a field.
    */
-  private static synchronized  void recordBottom (VM_Method m, VM_Field f) {
+  private static synchronized void recordBottom(VM_Method m, VM_Field f) {
     // for now, only track private fields
-    if (!f.isPrivate())
+    if (!f.isPrivate()) {
       return;
-    if (isTrouble(f))
+    }
+    if (isTrouble(f)) {
       return;
+    }
     OPT_FieldDatabase.FieldDatabaseEntry entry = db.findOrCreateEntry(f);
     OPT_FieldDatabase.FieldWriterInfo info = entry.findMethodInfo(m);
     if (VM.VerifyAssertions) {
-      if (info == null)
+      if (info == null) {
         VM.sysWrite("ERROR recordBottom: method " + m + " field " + f);
+      }
       VM._assert(info != null);
     }
     info.setBottom();
@@ -182,15 +191,17 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
    * Record that a method stores an object of a particular concrete type
    * to a field.
    */
-  private static synchronized void recordConcreteType (VM_Method m, VM_Field f, VM_TypeReference t) {
+  private static synchronized void recordConcreteType(VM_Method m, VM_Field f, VM_TypeReference t) {
     // for now, only track private fields
-    if (!f.isPrivate())
+    if (!f.isPrivate()) {
       return;
+    }
     OPT_FieldDatabase.FieldDatabaseEntry entry = db.findOrCreateEntry(f);
     OPT_FieldDatabase.FieldWriterInfo info = entry.findMethodInfo(m);
     info.setAnalyzed();
-    if (info.isBottom())
+    if (info.isBottom()) {
       return;
+    }
     VM_TypeReference oldType = info.concreteType;
     if (oldType == null) {
       // set a new concrete type for this field.
@@ -209,7 +220,7 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
    * give up. TODO: work around this by recomputing the summary at
    * runtime?
    */
-  private static boolean isTrouble (VM_Field f) {
+  private static boolean isTrouble(VM_Field f) {
     return f.getDeclaringClass() == VM_Type.JavaLangStringType;
   }
 }

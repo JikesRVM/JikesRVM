@@ -32,7 +32,6 @@ import org.jikesrvm.compilers.opt.OPT_SplitBasicBlock;
  */
 public abstract class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner {
 
-
   /**
    * Initialize the "master plan" for the PowerPC backend of the opt compiler.
    */
@@ -42,36 +41,36 @@ public abstract class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner
     MIR2MC(temp);
   }
 
-  /** 
+  /**
    * This method defines the optimization plan elements that
    * are to be performed to convert LIR to PowerPC MIR.
    *
    * @param p the plan under construction
    */
   private static void LIR2MIR(ArrayList<OPT_OptimizationPlanElement> p) {
-    composeComponents(p, "Convert LIR to MIR", new Object[] {
-      // Optional printing of final LIR
-      new OPT_IRPrinter("Final LIR") {
-        public boolean shouldPerform(OPT_Options options) {
-          return options.PRINT_FINAL_LIR;
-        }
-      }, 
-      // Split very large basic blocks into smaller ones.
-      new OPT_SplitBasicBlock(), 
-      // Change operations that split live ranges to moves
-      new OPT_MutateSplits(),
-      // Instruction selection
-      new OPT_ConvertLIRtoMIR(), 
-      // Optional printing of initial MIR
-      new OPT_IRPrinter("Initial MIR") {
+    composeComponents(p, "Convert LIR to MIR", new Object[]{
+        // Optional printing of final LIR
+        new OPT_IRPrinter("Final LIR") {
           public boolean shouldPerform(OPT_Options options) {
-          return options.PRINT_MIR;
+            return options.PRINT_FINAL_LIR;
+          }
+        },
+        // Split very large basic blocks into smaller ones.
+        new OPT_SplitBasicBlock(),
+        // Change operations that split live ranges to moves
+        new OPT_MutateSplits(),
+        // Instruction selection
+        new OPT_ConvertLIRtoMIR(),
+        // Optional printing of initial MIR
+        new OPT_IRPrinter("Initial MIR") {
+          public boolean shouldPerform(OPT_Options options) {
+            return options.PRINT_MIR;
+          }
         }
-      }
     });
   }
 
-  /** 
+  /**
    * This method defines the optimization plan elements that
    * are to be performed on PowerPC MIR.
    *
@@ -87,15 +86,15 @@ public abstract class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner
     // GCMapping part1 and RegisterAllocation
     ////////////////////
 
-    composeComponents(p, "Register Mapping", new Object[] {
-      // MANDATORY: Expand calling convention
-      new OPT_ExpandCallingConvention(),
-      // MANDATORY: Perform Live analysis and create GC maps
-      new OPT_LiveAnalysis(true, false),
-      // MANDATORY: Perform register allocation
-      new OPT_RegisterAllocator(),
-      // MANDATORY: Add prologue and epilogue
-      new OPT_PrologueEpilogueCreator(),
+    composeComponents(p, "Register Mapping", new Object[]{
+        // MANDATORY: Expand calling convention
+        new OPT_ExpandCallingConvention(),
+        // MANDATORY: Perform Live analysis and create GC maps
+        new OPT_LiveAnalysis(true, false),
+        // MANDATORY: Perform register allocation
+        new OPT_RegisterAllocator(),
+        // MANDATORY: Add prologue and epilogue
+        new OPT_PrologueEpilogueCreator(),
     });
     ////////////////////
     // MIR OPTS(2) (after register allocation)
@@ -111,19 +110,20 @@ public abstract class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner
     addComponent(p, new OPT_MIRBranchOptimizations(1));
   }
 
-  /** 
+  /**
    * This method defines the optimization plan elements that
    * are to be performed to convert PowerPC MIR into
    * ready-to-execute machinecode (and associated mapping tables).
-   * 
+   *
    * @param p the plan under construction
    */
   private static void MIR2MC(ArrayList<OPT_OptimizationPlanElement> p) {
     // MANDATORY: Final assembly
     addComponent(p, new OPT_IRPrinter("Final MIR") {
-        public boolean shouldPerform(OPT_Options options) {
-          return options.PRINT_FINAL_MIR; } 
-      });
+      public boolean shouldPerform(OPT_Options options) {
+        return options.PRINT_FINAL_MIR;
+      }
+    });
     addComponent(p, new OPT_ConvertMIRtoMC());
   }
 

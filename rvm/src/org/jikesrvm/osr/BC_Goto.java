@@ -8,6 +8,7 @@
  */
 
 package org.jikesrvm.osr;
+
 /**
  * goto instruction
  */
@@ -15,7 +16,7 @@ public class BC_Goto extends OSR_PseudoBytecode {
   private int offset;
   private byte[] codes;
   private int bsize;
-  
+
   public BC_Goto(int off) {
     this.offset = off;
     adjustFields();
@@ -43,22 +44,22 @@ public class BC_Goto extends OSR_PseudoBytecode {
   }
 
   private void adjustFields() {
-    if ( (offset >= -32768)
-        &&(offset <= 32767) ) {
+    if ((offset >= -32768)
+        && (offset <= 32767)) {
       bsize = 3;
       codes = new byte[3];
-      codes[0] = (byte)JBC_goto;
-      codes[1] = (byte)(offset >> 8);
-      codes[2] = (byte)(offset & 0xFF);
+      codes[0] = (byte) JBC_goto;
+      codes[1] = (byte) (offset >> 8);
+      codes[2] = (byte) (offset & 0xFF);
     } else {
       bsize = 5;
       codes = new byte[5];
-      codes[0] = (byte)JBC_goto_w;
+      codes[0] = (byte) JBC_goto_w;
       int2bytes(codes, 1, offset);
     }
   }
- 
+
   public String toString() {
-    return "goto "+this.offset;
+    return "goto " + this.offset;
   }
 }

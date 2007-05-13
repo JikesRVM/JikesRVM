@@ -13,12 +13,12 @@ package org.jikesrvm.compilers.opt;
  */
 final class OPT_ValueGraphParamLabel {
   private final int paramNum;
-  
+
   OPT_ValueGraphParamLabel(int pn) {
     paramNum = pn;
   }
 
   public String toString() {
-    return "formal"+paramNum;
+    return "formal" + paramNum;
   }
 }

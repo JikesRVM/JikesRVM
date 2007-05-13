@@ -23,32 +23,33 @@ import org.vmmagic.pragma.Uninterruptible;
  * Initial implementation by Susan Flynn Hummel.  Revised to support
  * interrupt() by Bowen Alpern
  */
-@Uninterruptible final class VM_Proxy {
-  
-  VM_Thread              patron;
-  VM_Proxy               waitingNext;
-  VM_Proxy               wakeupNext;
-  long                   wakeupCycle;
+@Uninterruptible
+final class VM_Proxy {
+
+  VM_Thread patron;
+  VM_Proxy waitingNext;
+  VM_Proxy wakeupNext;
+  long wakeupCycle;
   final VM_ProcessorLock lock = new VM_ProcessorLock();
- 
+
   // Create a proxy for a thread on a waiting queue
   //
-  VM_Proxy (VM_Thread t) {
+  VM_Proxy(VM_Thread t) {
     patron = t;
   }
-  
+
   // Create a proxy for a thread on a wakeup queue 
   // (may be on a waiting queue also)
   //
-  VM_Proxy (VM_Thread t, long cycles) {
+  VM_Proxy(VM_Thread t, long cycles) {
     patron = t;
     wakeupCycle = cycles;
   }
-  
+
   // Remove the thread from the queue
   // null means the thread has already been scheduled (ignore)
   //
-  VM_Thread unproxy () {
+  VM_Thread unproxy() {
     if (patron == null) return null;
     lock.lock(); // make sure only one VP schedules the patron of this proxy
     VM_Thread t = patron;
@@ -57,6 +58,6 @@ import org.vmmagic.pragma.Uninterruptible;
     lock.unlock();
     return t;
   }
- 
+
 }
 

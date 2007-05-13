@@ -33,8 +33,8 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
   /**
    * Constructor for this compiler phase
    */
-  private static final Constructor<OPT_CompilerPhase> constructor = 
-    getCompilerPhaseConstructor(OPT_IndexPropagation.class);
+  private static final Constructor<OPT_CompilerPhase> constructor =
+      getCompilerPhaseConstructor(OPT_IndexPropagation.class);
 
   /**
    * Get a constructor object for this compiler phase
@@ -58,15 +58,15 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
    * @return "Index Propagation"
    */
   public String getName() {
-    return  "Index Propagation";
+    return "Index Propagation";
   }
 
   /**
    * Print vervose debugging messages?
-   */ 
+   */
   private static final boolean DEBUG = false;
 
-  /** 
+  /**
    * Perform the analysis.
    * <p> Pre-condition: The ir is in Array SSA form and global value numbers
    *    have been computed.
@@ -76,17 +76,19 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
   public void perform(OPT_IR ir) {
     if (ir.desiredSSAOptions.getAbort()) return;
     OPT_IndexPropagationSystem system = new OPT_IndexPropagationSystem(ir);
-    if (DEBUG)
+    if (DEBUG) {
       System.out.print("Solving...");
+    }
     system.solve();
-    if (DEBUG)
+    if (DEBUG) {
       System.out.println("done");
+    }
     OPT_DF_Solution solution = system.getSolution();
-    if (DEBUG)
+    if (DEBUG) {
       System.out.println("Index Propagation Solution: " + solution);
+    }
     ir.HIRInfo.indexPropagationSolution = solution;
   }
-
 
   /**
    * An ObjectCell is a lattice cell for the index propagation 
@@ -98,7 +100,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
    *
    * <p> Note: this implementation does not scale, and is not terribly
    * efficient.
- */
+   */
   static final class ObjectCell extends OPT_DF_AbstractCell {
     /**
      * a bound on the size of a lattice cell.
@@ -149,7 +151,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      * @return true or false.
      */
     boolean isBOTTOM() {
-      return !TOP && (size==0);
+      return !TOP && (size == 0);
     }
 
     /**
@@ -181,10 +183,11 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
       if (v == OPT_GlobalValueNumberState.UNKNOWN) return false;
 
       for (int i = 0; i < size; i++) {
-        if (numbers[i] == v)
-          return  true;
+        if (numbers[i] == v) {
+          return true;
+        }
       }
-      return  false;
+      return false;
     }
 
     /**
@@ -211,7 +214,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      */
     void remove(int v) {
       if (isTOP()) {
-        throw  new OPT_OptimizingCompilerException("Unexpected lattice operation");
+        throw new OPT_OptimizingCompilerException("Unexpected lattice operation");
       }
       int[] old = numbers;
       int[] numbers = new int[CAPACITY];
@@ -219,8 +222,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
       for (int i = 0; i < size; i++) {
         if (old[i] == v) {
           size--;
-        } 
-        else {
+        } else {
           numbers[index++] = old[i];
         }
       }
@@ -241,8 +243,8 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      * represent empty set.
      */
     int[] copyValueNumbers() {
-      if (isTOP()) { 
-        throw  new OPT_OptimizingCompilerException("Unexpected lattice operation");
+      if (isTOP()) {
+        throw new OPT_OptimizingCompilerException("Unexpected lattice operation");
       }
       if (size == 0) return null;
 
@@ -274,18 +276,17 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
     /**
      * Do two sets of value numbers differ? 
      * <p> SIDE EFFECT: sorts the sets
-     * 
+     *
      * @param set1 first set to compare
      * @param set2 second set to compare
      * @return true iff the two sets are different
      */
     public static boolean setsDiffer(int[] set1, int[] set2) {
       if ((set1 != null) && (set2 != null)) {
-        Arrays.sort(set1);      
+        Arrays.sort(set1);
         Arrays.sort(set2);
         return !Arrays.equals(set1, set2);
-      }
-      else {
+      } else {
         return set1 == set2;
       }
     }
@@ -305,7 +306,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
    *
    * <p> Note: this implementation does not scale, and is not terribly
    * efficient.
- */
+   */
   static final class ArrayCell extends OPT_DF_AbstractCell {
     /**
      * a bound on the size of a lattice cell.
@@ -356,7 +357,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      * @return true or false.
      */
     boolean isBOTTOM() {
-      return !TOP && (size==0);
+      return !TOP && (size == 0);
     }
 
     /**
@@ -384,17 +385,18 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      * @return true or false
      */
     boolean contains(int v1, int v2) {
-      if (isTOP()) return  true;
-      if (v1 == OPT_GlobalValueNumberState.UNKNOWN) return  false;
-      if (v2 == OPT_GlobalValueNumberState.UNKNOWN) return  false;
+      if (isTOP()) return true;
+      if (v1 == OPT_GlobalValueNumberState.UNKNOWN) return false;
+      if (v2 == OPT_GlobalValueNumberState.UNKNOWN) return false;
       if (size == 0) return false;
 
       OPT_ValueNumberPair p = new OPT_ValueNumberPair(v1, v2);
       for (int i = 0; i < size; i++) {
-        if (numbers[i].equals(p))
-          return  true;
+        if (numbers[i].equals(p)) {
+          return true;
+        }
       }
-      return  false;
+      return false;
     }
 
     /**
@@ -424,7 +426,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      */
     void remove(int v1, int v2) {
       if (isTOP()) {
-        throw  new OPT_OptimizingCompilerException("Unexpected lattice operation");
+        throw new OPT_OptimizingCompilerException("Unexpected lattice operation");
       }
       OPT_ValueNumberPair[] old = numbers;
       OPT_ValueNumberPair[] numbers = new OPT_ValueNumberPair[CAPACITY];
@@ -433,8 +435,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
       for (int i = 0; i < size; i++) {
         if (old[i].equals(p)) {
           size--;
-        } 
-        else {
+        } else {
           numbers[index++] = old[i];
         }
       }
@@ -455,7 +456,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      */
     OPT_ValueNumberPair[] copyValueNumbers() {
       if (isTOP()) {
-        throw  new OPT_OptimizingCompilerException("Unexpected lattice operation");
+        throw new OPT_OptimizingCompilerException("Unexpected lattice operation");
       }
 
       if (size == 0) return null;
@@ -464,7 +465,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
       for (int i = 0; i < size; i++) {
         result[i] = new OPT_ValueNumberPair(numbers[i]);
       }
-      return  result;
+      return result;
     }
 
     /**
@@ -474,7 +475,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
     public String toString() {
       StringBuilder s = new StringBuilder(key.toString());
 
-      if (isTOP()) return  s.append("{TOP}").toString();
+      if (isTOP()) return s.append("{TOP}").toString();
       if (isBOTTOM()) return s.append("{BOTTOM}").toString();
 
       s.append("{");
@@ -488,19 +489,18 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
     /**
      * Do two sets of value number pairs differ? 
      * <p> SIDE EFFECT: sorts the sets
-     * 
+     *
      * @param set1 first set to compare
      * @param set2 second set to compare
      * @return true iff the two sets are different
      */
-    public static boolean setsDiffer(OPT_ValueNumberPair[] set1, 
-                                      OPT_ValueNumberPair[] set2) {
+    public static boolean setsDiffer(OPT_ValueNumberPair[] set1,
+                                     OPT_ValueNumberPair[] set2) {
       if ((set1 != null) && (set2 != null)) {
-        Arrays.sort(set1);      
+        Arrays.sort(set1);
         Arrays.sort(set2);
         return !Arrays.equals(set1, set2);
-      }
-      else {
+      } else {
         return set1 == set2;
       }
     }

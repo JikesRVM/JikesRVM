@@ -8,6 +8,7 @@
  */
 
 package org.jikesrvm.osr;
+
 /**
  *  nop
  */
@@ -23,7 +24,7 @@ public class BC_Nop extends OSR_PseudoBytecode {
   }
 
   public int stackChanges() {
-        return 0;
+    return 0;
   }
 
   public String toString() {

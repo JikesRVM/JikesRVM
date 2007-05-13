@@ -12,7 +12,7 @@ package org.jikesrvm.compilers.opt;
  * Describes a reservation on a particular resource.
  * A reservation is for a continuous period of time.
  * Used in OPT_OperatorClass.
- * 
+ *
  * @see OPT_OperatorClass
  */
 final class OPT_ResourceReservation {
@@ -33,9 +33,9 @@ final class OPT_ResourceReservation {
    *
    * @param rclass resource class
    * @param duration duration
-   * @see #OPT_ResourceReservation(int, int, int)
+   * @see #OPT_ResourceReservation(int,int,int)
    */
-  public OPT_ResourceReservation (int rclass, int duration) {
+  public OPT_ResourceReservation(int rclass, int duration) {
     this(rclass, 0, duration);
   }
 
@@ -47,7 +47,7 @@ final class OPT_ResourceReservation {
    * @param start start time
    * @param duration duration
    */
-  public OPT_ResourceReservation (int rclass, int start, int duration) {
+  public OPT_ResourceReservation(int rclass, int start, int duration) {
     this.rclass = rclass;
     this.start = start;
     this.duration = duration;
@@ -55,32 +55,36 @@ final class OPT_ResourceReservation {
 
   /**
    * The resource class of this reservation.
-   * 
+   *
    * @return resource class of this reservation
    */
-  public int rclass () {
-    return  (rclass & 0x7FFFFFFF);
+  public int rclass() {
+    return (rclass & 0x7FFFFFFF);
   }
 
   /**
    * Checks whether this reservation is for all available units of the class.
-   * 
+   *
    * @return true if it's a global reservation, false otherwise
    */
-  public boolean isGlobal () {
-    return  (rclass & 0x80000000) != 0;
+  public boolean isGlobal() {
+    return (rclass & 0x80000000) != 0;
   }
 
   // Compares this reservation with another reservation
   // For internal use only.
-  private int compareTo (OPT_ResourceReservation r) {
-    if (rclass() != r.rclass())
-      return  rclass() - r.rclass();
+  private int compareTo(OPT_ResourceReservation r) {
+    if (rclass() != r.rclass()) {
+      return rclass() - r.rclass();
+    }
     if (rclass != r.rclass)                     // if either of them is global
-      return  r.rclass - rclass;                // global goes first
-    if (start != r.start)
-      return  start - r.start;
-    return  duration - r.duration;
+    {
+      return r.rclass - rclass;                // global goes first
+    }
+    if (start != r.start) {
+      return start - r.start;
+    }
+    return duration - r.duration;
   }
 
   /**
@@ -88,14 +92,15 @@ final class OPT_ResourceReservation {
    *
    * @param usage array of reservations
    */
-  public static void sort (OPT_ResourceReservation[] usage) {
+  public static void sort(OPT_ResourceReservation[] usage) {
     // bubble sort
-    for (int i = 0; i < usage.length; i++)
+    for (int i = 0; i < usage.length; i++) {
       for (int j = i; j > 0 && usage[j - 1].compareTo(usage[j]) > 0; j--) {
         OPT_ResourceReservation t = usage[j];
         usage[j] = usage[j - 1];
         usage[j - 1] = t;
       }
+    }
   }
 
   /**
@@ -104,10 +109,11 @@ final class OPT_ResourceReservation {
    * @param o   The object to compare with
    * @return <code>true</code> if the objects are the same; <code>false</code> otherwise.
    */
-  public boolean equals (Object o) {
-    if (!(o instanceof OPT_ResourceReservation))
-      return  false;
-    return  compareTo((OPT_ResourceReservation)o) == 0;
+  public boolean equals(Object o) {
+    if (!(o instanceof OPT_ResourceReservation)) {
+      return false;
+    }
+    return compareTo((OPT_ResourceReservation) o) == 0;
   }
 
   /**
@@ -116,9 +122,9 @@ final class OPT_ResourceReservation {
    * @param rsrv the reservation to check
    * @return true if the reservations conflict; false otherwise.
    */
-  public boolean conflicts (OPT_ResourceReservation rsrv) {
-    return  (rclass() == rsrv.rclass() && start < rsrv.start + rsrv.duration
-        && start + duration > rsrv.start);
+  public boolean conflicts(OPT_ResourceReservation rsrv) {
+    return (rclass() == rsrv.rclass() && start < rsrv.start + rsrv.duration
+            && start + duration > rsrv.start);
   }
 }
 

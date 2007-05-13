@@ -12,7 +12,7 @@ import java.util.Enumeration;
 
 /**
  * List of Graph nodes. 
- * 
+ *
  * comments: should a doubly linked list implement Enumeration?
  */
 class OPT_SpaceEffGraphNodeList
@@ -35,18 +35,18 @@ class OPT_SpaceEffGraphNodeList
   public OPT_SpaceEffGraphNodeList nextElement() {
     OPT_SpaceEffGraphNodeList tmp = _next;
     _next = _next._next;
-    return  tmp;
+    return tmp;
   }
 
   OPT_SpaceEffGraphNode node() {
-    return  _node;
+    return _node;
   }
 
   OPT_SpaceEffGraphNodeList next() {
-    return  _next;
+    return _next;
   }
 
   OPT_SpaceEffGraphNodeList prev() {
-    return  _prev;
+    return _prev;
   }
 }

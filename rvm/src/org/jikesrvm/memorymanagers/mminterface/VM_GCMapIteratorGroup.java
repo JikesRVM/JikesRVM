@@ -39,7 +39,7 @@ import org.vmmagic.unboxed.WordArray;
  * @see VM_CollectorThread
  */
 public final class VM_GCMapIteratorGroup implements VM_SizeConstants {
-  
+
   /** current location (memory address) of each gpr register */
   private final WordArray registerLocations;
 
@@ -48,16 +48,16 @@ public final class VM_GCMapIteratorGroup implements VM_SizeConstants {
 
   /** iterator for opt compiled frames */
   private final VM_GCMapIterator optIterator;
-  
+
   /** iterator for VM_HardwareTrap stackframes */
   private final VM_GCMapIterator hardwareTrapIterator;
-  
+
   /** iterator for JNI Java -> C  stackframes */
   private final VM_GCMapIterator jniIterator;
-  
-  public VM_GCMapIteratorGroup() { 
-    registerLocations         = WordArray.create(ArchitectureSpecific.VM_ArchConstants.NUM_GPRS);
-    
+
+  public VM_GCMapIteratorGroup() {
+    registerLocations = WordArray.create(ArchitectureSpecific.VM_ArchConstants.NUM_GPRS);
+
     baselineIterator = new VM_BaselineGCMapIterator(registerLocations);
     if (VM.BuildForOptCompiler) {
       optIterator = new VM_OptGCMapIterator(registerLocations);
@@ -65,9 +65,9 @@ public final class VM_GCMapIteratorGroup implements VM_SizeConstants {
       optIterator = null;
     }
     jniIterator = new VM_JNIGCMapIterator(registerLocations);
-    hardwareTrapIterator      = new VM_HardwareTrapGCMapIterator(registerLocations);
+    hardwareTrapIterator = new VM_HardwareTrapGCMapIterator(registerLocations);
   }
-  
+
   /**
    * Prepare to scan a thread's stack for object references.
    * Called by collector threads when beginning to scan a threads stack.
@@ -82,7 +82,7 @@ public final class VM_GCMapIteratorGroup implements VM_SizeConstants {
    * @param thread  VM_Thread whose registers and stack are to be scanned
    */
   @Uninterruptible
-  public void newStackWalk(VM_Thread thread, Address registerLocation) { 
+  public void newStackWalk(VM_Thread thread, Address registerLocation) {
     for (int i = 0; i < ArchitectureSpecific.VM_ArchConstants.NUM_GPRS; ++i) {
       registerLocations.set(i, registerLocation.toWord());
       registerLocation = registerLocation.plus(BYTES_IN_ADDRESS);
@@ -94,7 +94,7 @@ public final class VM_GCMapIteratorGroup implements VM_SizeConstants {
     hardwareTrapIterator.newStackWalk(thread);
     jniIterator.newStackWalk(thread);
   }
-  
+
   /**
    * Select iterator for scanning for object references in a stackframe.
    * Called by collector threads while scanning a threads stack.
@@ -105,27 +105,31 @@ public final class VM_GCMapIteratorGroup implements VM_SizeConstants {
    * @return VM_GCMapIterator to use
    */
   @Uninterruptible
-  public VM_GCMapIterator selectIterator(VM_CompiledMethod compiledMethod) { 
+  public VM_GCMapIterator selectIterator(VM_CompiledMethod compiledMethod) {
     switch (compiledMethod.getCompilerType()) {
-    case VM_CompiledMethod.TRAP: return hardwareTrapIterator;
-    case VM_CompiledMethod.BASELINE: return baselineIterator;
-    case VM_CompiledMethod.OPT: return optIterator;
-    case VM_CompiledMethod.JNI: return jniIterator;
+      case VM_CompiledMethod.TRAP:
+        return hardwareTrapIterator;
+      case VM_CompiledMethod.BASELINE:
+        return baselineIterator;
+      case VM_CompiledMethod.OPT:
+        return optIterator;
+      case VM_CompiledMethod.JNI:
+        return jniIterator;
     }
     if (VM.VerifyAssertions) {
       VM._assert(false, "VM_GCMapIteratorGroup.selectIterator: Unknown type of compiled method");
     }
     return null;
   }
-  
+
   /**
    * get the VM_GCMapIterator used for scanning JNI native stack frames.
    *
    * @return jniIterator
    */
   @Uninterruptible
-  public VM_GCMapIterator getJniIterator() { 
-    if (VM.VerifyAssertions) VM._assert(jniIterator!=null);
-    return jniIterator;  
+  public VM_GCMapIterator getJniIterator() {
+    if (VM.VerifyAssertions) VM._assert(jniIterator != null);
+    return jniIterator;
   }
 }

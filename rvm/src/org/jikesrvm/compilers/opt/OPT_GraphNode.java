@@ -18,28 +18,23 @@ package org.jikesrvm.compilers.opt;
  * @see OPT_GraphEdge
  * @see OPT_GraphUtilities
  */
-public interface OPT_GraphNode extends OPT_GraphElement
-{
+public interface OPT_GraphNode extends OPT_GraphElement {
 
-  /** 
+  /**
    * Get an enumeration of all the edges to which edges sourced at
    * this node point.
    * @return an enumeration of all the edges to which edges sourced
    * at this node point. 
    */
-  OPT_GraphNodeEnumeration outNodes ();
+  OPT_GraphNodeEnumeration outNodes();
 
-
-
-  /** 
+  /**
    * Get an enumeration of all the edges at which edges that point
    * to this node are sourced.
    * @return an enumeration of all the edges at which edges that
    * point to this node are sourced.
    */
-  OPT_GraphNodeEnumeration inNodes ();
-
-
+  OPT_GraphNodeEnumeration inNodes();
 
   /**
    *  The index of this node in its graph.  In general, this can e
@@ -50,9 +45,9 @@ public interface OPT_GraphNode extends OPT_GraphElement
    *
    * @return the index of this node in its graph.
    */
-  int getIndex ();
+  int getIndex();
 
-  void setIndex (int i);
+  void setIndex(int i);
 }
 
 

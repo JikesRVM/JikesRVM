@@ -13,7 +13,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_Operand;
 
 /**
  * Encodes the BO & BI condition fields for PowerPC
- * 
+ *
  * @see OPT_Operand
  */
 public final class OPT_PowerPCConditionOperand extends OPT_Operand {
@@ -65,51 +65,51 @@ public final class OPT_PowerPCConditionOperand extends OPT_Operand {
   }
 
   public static OPT_PowerPCConditionOperand EQUAL() {
-    return  new OPT_PowerPCConditionOperand(EQUAL);
+    return new OPT_PowerPCConditionOperand(EQUAL);
   }
 
   public static OPT_PowerPCConditionOperand NOT_EQUAL() {
-    return  new OPT_PowerPCConditionOperand(NOT_EQUAL);
+    return new OPT_PowerPCConditionOperand(NOT_EQUAL);
   }
 
   public static OPT_PowerPCConditionOperand LESS() {
-    return  new OPT_PowerPCConditionOperand(LESS);
+    return new OPT_PowerPCConditionOperand(LESS);
   }
 
   public static OPT_PowerPCConditionOperand LESS_EQUAL() {
-    return  new OPT_PowerPCConditionOperand(LESS_EQUAL);
+    return new OPT_PowerPCConditionOperand(LESS_EQUAL);
   }
 
   public static OPT_PowerPCConditionOperand GREATER() {
-    return  new OPT_PowerPCConditionOperand(GREATER);
+    return new OPT_PowerPCConditionOperand(GREATER);
   }
 
   public static OPT_PowerPCConditionOperand GREATER_EQUAL() {
-    return  new OPT_PowerPCConditionOperand(GREATER_EQUAL);
+    return new OPT_PowerPCConditionOperand(GREATER_EQUAL);
   }
 
   public static OPT_PowerPCConditionOperand UNORDERED() {
-    return  new OPT_PowerPCConditionOperand(UNORDERED);
+    return new OPT_PowerPCConditionOperand(UNORDERED);
   }
 
   public static OPT_PowerPCConditionOperand get(OPT_ConditionOperand cond) {
-    return  new OPT_PowerPCConditionOperand(cond);
+    return new OPT_PowerPCConditionOperand(cond);
   }
 
   public OPT_Operand copy() {
-    return  new OPT_PowerPCConditionOperand(value);
+    return new OPT_PowerPCConditionOperand(value);
   }
 
   public boolean similar(OPT_Operand op) {
-    return (op instanceof OPT_PowerPCConditionOperand) 
-        &&(((OPT_PowerPCConditionOperand)op).value == value);
+    return (op instanceof OPT_PowerPCConditionOperand)
+           && (((OPT_PowerPCConditionOperand) op).value == value);
   }
 
   /**
    * flips the direction of the condition
    */
   public OPT_PowerPCConditionOperand flipCode() {
-    switch(value) {
+    switch (value) {
       case EQUAL:
         value = NOT_EQUAL;
         break;
@@ -140,10 +140,10 @@ public final class OPT_PowerPCConditionOperand extends OPT_Operand {
       case CTRNZ:
         value = CTRZ;
         break;
-    default:
-      throw new org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException("Unhandled case in flipCode");
+      default:
+        throw new org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException("Unhandled case in flipCode");
     }
-    return  this;
+    return this;
   }
 
   /**
@@ -178,7 +178,7 @@ public final class OPT_PowerPCConditionOperand extends OPT_Operand {
         break;
         // TODO remaining
     }
-    return  this;
+    return this;
   }
 
   public OPT_PowerPCConditionOperand(OPT_ConditionOperand c) {
@@ -190,42 +190,42 @@ public final class OPT_PowerPCConditionOperand extends OPT_Operand {
    */
   public void translate(OPT_ConditionOperand c) {
     switch (c.value) {
-    case OPT_ConditionOperand.EQUAL:
-    case OPT_ConditionOperand.SAME:
-    case OPT_ConditionOperand.CMPL_EQUAL:
-      value =  EQUAL;
-      break;
-    case OPT_ConditionOperand.NOT_EQUAL:
-    case OPT_ConditionOperand.NOT_SAME:
-    case OPT_ConditionOperand.CMPL_NOT_EQUAL: // Extra unordered test required
-      value =  NOT_EQUAL;
-      break;
-    case OPT_ConditionOperand.LESS:
-    case OPT_ConditionOperand.LOWER:
-    case OPT_ConditionOperand.CMPG_LESS:
-    case OPT_ConditionOperand.CMPL_LESS: // Extra unordered test required
-      value =  LESS;
-      break;
-    case OPT_ConditionOperand.LESS_EQUAL:
-    case OPT_ConditionOperand.LOWER_EQUAL:
-    case OPT_ConditionOperand.CMPG_LESS_EQUAL:
-    case OPT_ConditionOperand.CMPL_LESS_EQUAL: // Extra unordered test required
-      value =  LESS_EQUAL;
-      break;
-    case OPT_ConditionOperand.GREATER:
-    case OPT_ConditionOperand.HIGHER:
-    case OPT_ConditionOperand.CMPL_GREATER:
-    case OPT_ConditionOperand.CMPG_GREATER: // Extra unordered test required
-      value =  GREATER;
-      break;
-    case OPT_ConditionOperand.GREATER_EQUAL:
-    case OPT_ConditionOperand.HIGHER_EQUAL:
-    case OPT_ConditionOperand.CMPL_GREATER_EQUAL:
-    case OPT_ConditionOperand.CMPG_GREATER_EQUAL: // Extra unordered test required
-      value =  GREATER_EQUAL;
-      break;
-    default:
-      org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException.UNREACHABLE();
+      case OPT_ConditionOperand.EQUAL:
+      case OPT_ConditionOperand.SAME:
+      case OPT_ConditionOperand.CMPL_EQUAL:
+        value = EQUAL;
+        break;
+      case OPT_ConditionOperand.NOT_EQUAL:
+      case OPT_ConditionOperand.NOT_SAME:
+      case OPT_ConditionOperand.CMPL_NOT_EQUAL: // Extra unordered test required
+        value = NOT_EQUAL;
+        break;
+      case OPT_ConditionOperand.LESS:
+      case OPT_ConditionOperand.LOWER:
+      case OPT_ConditionOperand.CMPG_LESS:
+      case OPT_ConditionOperand.CMPL_LESS: // Extra unordered test required
+        value = LESS;
+        break;
+      case OPT_ConditionOperand.LESS_EQUAL:
+      case OPT_ConditionOperand.LOWER_EQUAL:
+      case OPT_ConditionOperand.CMPG_LESS_EQUAL:
+      case OPT_ConditionOperand.CMPL_LESS_EQUAL: // Extra unordered test required
+        value = LESS_EQUAL;
+        break;
+      case OPT_ConditionOperand.GREATER:
+      case OPT_ConditionOperand.HIGHER:
+      case OPT_ConditionOperand.CMPL_GREATER:
+      case OPT_ConditionOperand.CMPG_GREATER: // Extra unordered test required
+        value = GREATER;
+        break;
+      case OPT_ConditionOperand.GREATER_EQUAL:
+      case OPT_ConditionOperand.HIGHER_EQUAL:
+      case OPT_ConditionOperand.CMPL_GREATER_EQUAL:
+      case OPT_ConditionOperand.CMPG_GREATER_EQUAL: // Extra unordered test required
+        value = GREATER_EQUAL;
+        break;
+      default:
+        org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException.UNREACHABLE();
     }
   }
 
@@ -234,10 +234,12 @@ public final class OPT_PowerPCConditionOperand extends OPT_Operand {
    */
   public String toString() {
     String result = "ppc ";
-    if ((value & 0x1C0) == 0)
+    if ((value & 0x1C0) == 0) {
       result = result + "--ctr!=0 && ";
-    if ((value & 0x1C0) == 0x40)
+    }
+    if ((value & 0x1C0) == 0x40) {
       result = result + "--ctr==0 && ";
+    }
     String temp = null;
     if ((value & 0x300) == 0x100) {             // true
       switch (value & 0x3) {
@@ -271,7 +273,7 @@ public final class OPT_PowerPCConditionOperand extends OPT_Operand {
           break;
       }
     }
-    return  result + temp;
+    return result + temp;
   }
 }
 

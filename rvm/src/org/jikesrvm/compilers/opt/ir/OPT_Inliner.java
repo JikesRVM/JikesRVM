@@ -51,11 +51,11 @@ public class OPT_Inliner {
    * @param ir the governing IR
    * @param callSite the call site to inline
    */
-  public static void execute (OPT_InlineDecision inlDec, OPT_IR ir, 
-                              OPT_Instruction callSite) {
+  public static void execute(OPT_InlineDecision inlDec, OPT_IR ir,
+                             OPT_Instruction callSite) {
     // Find out where the call site is and isolate it in its own basic block.
-    OPT_BasicBlock bb = 
-      callSite.getBasicBlock().segregateInstruction(callSite, ir);
+    OPT_BasicBlock bb =
+        callSite.getBasicBlock().segregateInstruction(callSite, ir);
     OPT_BasicBlock in = bb.prevBasicBlockInCodeOrder();
     OPT_BasicBlock out = bb.nextBasicBlockInCodeOrder();
     // Clear the sratch object of any register operands being 
@@ -65,7 +65,7 @@ public class OPT_Inliner {
     for (int i = 0; i < Call.getNumberOfParams(callSite); i++) {
       OPT_Operand arg = Call.getParam(callSite, i);
       if (arg instanceof OPT_RegisterOperand) {
-        ((OPT_RegisterOperand)arg).scratchObject = null;
+        ((OPT_RegisterOperand) arg).scratchObject = null;
       }
     }
     // We need to ensure that inlining the CALL instruction does not
@@ -78,14 +78,14 @@ public class OPT_Inliner {
     // which will enforce this behavior.
     OPT_ExceptionHandlerBasicBlock[] catchBlocks = new OPT_ExceptionHandlerBasicBlock[bb.getNumberOfExceptionalOut()];
     Enumeration<OPT_BasicBlock> e = bb.getExceptionalOut();
-    for (int i=0; i<catchBlocks.length; i++) {
-       catchBlocks[i] = (OPT_ExceptionHandlerBasicBlock)e.nextElement();
+    for (int i = 0; i < catchBlocks.length; i++) {
+      catchBlocks[i] = (OPT_ExceptionHandlerBasicBlock) e.nextElement();
     }
-    OPT_ExceptionHandlerBasicBlockBag bag = new OPT_ExceptionHandlerBasicBlockBag(catchBlocks,null);    
+    OPT_ExceptionHandlerBasicBlockBag bag = new OPT_ExceptionHandlerBasicBlockBag(catchBlocks, null);
 
     // Execute the inlining decision, updating ir.gc's state.
-    OPT_GenerationContext childgc = 
-      execute(inlDec, ir.gc, bag, callSite);
+    OPT_GenerationContext childgc =
+        execute(inlDec, ir.gc, bag, callSite);
     // Splice the callee into the caller's code order
     ir.cfg.removeFromCFGAndCodeOrder(bb);
     ir.cfg.breakCodeOrder(in, out);
@@ -97,7 +97,6 @@ public class OPT_Inliner {
       childgc.epilogue.insertOut(out);
     }
   }
-
 
   /**
    * Return a generation context that represents the 
@@ -119,36 +118,36 @@ public class OPT_Inliner {
    * @return a generation context that represents the execution of the
    *         inline decision in the given context
    */
-  public static OPT_GenerationContext execute(OPT_InlineDecision inlDec, 
-                                              OPT_GenerationContext parent, 
-                                              OPT_ExceptionHandlerBasicBlockBag ebag, 
+  public static OPT_GenerationContext execute(OPT_InlineDecision inlDec,
+                                              OPT_GenerationContext parent,
+                                              OPT_ExceptionHandlerBasicBlockBag ebag,
                                               OPT_Instruction callSite) {
     if (inlDec.needsGuard()) {
       //Step 1: create the synthetic generation context we'll 
       // return to our caller.
-      OPT_GenerationContext container = 
-        OPT_GenerationContext.createSynthetic(parent, ebag);
+      OPT_GenerationContext container =
+          OPT_GenerationContext.createSynthetic(parent, ebag);
       container.cfg.breakCodeOrder(container.prologue, container.epilogue);
       // Step 2: (a) Print a message (optional)
       //         (b) Generate the child GC for each target
       VM_Method[] targets = inlDec.getTargets();
       byte[] guards = inlDec.getGuards();
-      OPT_GenerationContext[] children = 
-        new OPT_GenerationContext[targets.length];
+      OPT_GenerationContext[] children =
+          new OPT_GenerationContext[targets.length];
       for (int i = 0; i < targets.length; i++) {
-        VM_NormalMethod callee = (VM_NormalMethod)targets[i];
+        VM_NormalMethod callee = (VM_NormalMethod) targets[i];
         // (a)
         if (parent.options.PRINT_INLINE_REPORT) {
-          String guard = guards[i] == 
-            OPT_Options.IG_CLASS_TEST ? " (class test) " : " (method test) ";
-          VM.sysWrite("\tGuarded inline" + guard + " " + callee 
-                      + " into " + callSite.position.getMethod() 
+          String guard = guards[i] ==
+                         OPT_Options.IG_CLASS_TEST ? " (class test) " : " (method test) ";
+          VM.sysWrite("\tGuarded inline" + guard + " " + callee
+                      + " into " + callSite.position.getMethod()
                       + " at bytecode " + callSite.bcIndex + "\n");
         }
         // (b) 
-        children[i] = 
-          OPT_GenerationContext.createChildContext(parent, ebag, 
-                                                   callee, callSite);
+        children[i] =
+            OPT_GenerationContext.createChildContext(parent, ebag,
+                                                     callee, callSite);
         OPT_BC2IR.generateHIR(children[i]);
         OPT_GenerationContext.transferState(parent, children[i]);
       }
@@ -157,8 +156,8 @@ public class OPT_Inliner {
         OPT_Register reg = Call.getResult(callSite).register;
         container.result = children[0].result;
         for (int i = 1; i < targets.length; i++) {
-          container.result = 
-            OPT_Operand.meet(container.result, children[i].result, reg);
+          container.result =
+              OPT_Operand.meet(container.result, children[i].result, reg);
         }
         // Account for the non-predicted case as well...
         // Most likely this means that we shouldn't even bother 
@@ -166,38 +165,38 @@ public class OPT_Inliner {
         // and simply pick up Call.getResult(callsite) directly.
         // SJF: However, it's good to keep this around; maybe
         //      IPA will give us more information about the result.
-        container.result = 
-          OPT_Operand.meet(container.result, Call.getResult(callSite), reg);
+        container.result =
+            OPT_Operand.meet(container.result, Call.getResult(callSite), reg);
       }
       // Step 4: Create a block to contain a copy of the original call 
       // in case all predictions fail. It falls through to container.epilogue
-      OPT_BasicBlock testFailed = 
-        new OPT_BasicBlock(callSite.bcIndex, callSite.position, parent.cfg);
+      OPT_BasicBlock testFailed =
+          new OPT_BasicBlock(callSite.bcIndex, callSite.position, parent.cfg);
       testFailed.exceptionHandlers = ebag;
       OPT_Instruction call = callSite.copyWithoutLinks();
       Call.getMethod(call).setIsGuardedInlineOffBranch(true);
       call.bcIndex = callSite.bcIndex;
       call.position = callSite.position;
 
-      if (COUNT_FAILED_GUARDS && 
+      if (COUNT_FAILED_GUARDS &&
           VM_Controller.options.INSERT_DEBUGGING_COUNTERS) {
         // Get a dynamic count of how many times guards fail at runtime.
         // Need a name for the event to count.  In this example, a
         // separate counter for each method by using the method name
         // as the event name.  You could also have used just the string 
         // "Guarded inline failed" to keep only one counter.
-        String eventName = 
-          "Guarded inline failed: " + callSite.position.getMethod().toString();
+        String eventName =
+            "Guarded inline failed: " + callSite.position.getMethod().toString();
         // Create instruction that will increment the counter
         // corresponding to the named event.
-        OPT_Instruction counterInst = 
-          VM_AOSDatabase.debuggingCounterData.getCounterInstructionForEvent(eventName);
+        OPT_Instruction counterInst =
+            VM_AOSDatabase.debuggingCounterData.getCounterInstructionForEvent(eventName);
         testFailed.appendInstruction(counterInst);
       }
-        
+
       if (inlDec.OSRTestFailed()) {
         // note where we're storing the osr barrier instruction
-        OPT_Instruction lastOsrBarrier = (OPT_Instruction)callSite.scratchObject;
+        OPT_Instruction lastOsrBarrier = (OPT_Instruction) callSite.scratchObject;
         OPT_Instruction s = OPT_BC2IR._osrHelper(lastOsrBarrier);
         s.position = callSite.position;
         s.bcIndex = callSite.bcIndex;
@@ -214,7 +213,7 @@ public class OPT_Inliner {
       // be in a basic block yet (when execute is invoked from 
       // BC2IR.maybeInlineMethod).
       if (ebag != null) {
-        for (OPT_BasicBlockEnumeration e = ebag.enumerator(); 
+        for (OPT_BasicBlockEnumeration e = ebag.enumerator();
              e.hasMoreElements();) {
           OPT_BasicBlock handler = e.next();
           testFailed.insertOut(handler);
@@ -237,21 +236,21 @@ public class OPT_Inliner {
             (VM.BuildForITableInterfaceInvocation && VM.DirectlyIndexedITables)) {
           VM_Type interfaceType = mo.getTarget().getDeclaringClass();
           VM_TypeReference recTypeRef = receiver.getType();
-          VM_Class recType = (VM_Class)recTypeRef.peekResolvedType();
+          VM_Class recType = (VM_Class) recTypeRef.peekResolvedType();
           // Attempt to avoid inserting the check by seeing if the 
           // known static type of the receiver implements the interface.
           boolean requiresImplementsTest = true;
           if (recType != null && recType.isResolved() && !recType.isInterface()) {
-            byte doesImplement = 
-              OPT_ClassLoaderProxy.includesType(interfaceType.getTypeRef(), recTypeRef);
+            byte doesImplement =
+                OPT_ClassLoaderProxy.includesType(interfaceType.getTypeRef(), recTypeRef);
             requiresImplementsTest = doesImplement != OPT_Constants.YES;
           }
           if (requiresImplementsTest) {
-            OPT_Instruction dtc = 
-              TypeCheck.create(MUST_IMPLEMENT_INTERFACE,
-                               receiver.copy(),
-                               new OPT_TypeOperand(interfaceType),
-                               Call.getGuard(callSite).copy());
+            OPT_Instruction dtc =
+                TypeCheck.create(MUST_IMPLEMENT_INTERFACE,
+                                 receiver.copy(),
+                                 new OPT_TypeOperand(interfaceType),
+                                 Call.getGuard(callSite).copy());
             dtc.copyPosition(callSite);
             testFailed.prependInstruction(dtc);
           }
@@ -261,12 +260,12 @@ public class OPT_Inliner {
       // chain from the bottom (testFailed). Some excessive cuteness
       // to allow us to have multiple if blocks for a single
       // "logical" test and to share test insertion for interfaces/virtuals.
-      for (int i = children.length - 1; 
-           i >= 0; 
+      for (int i = children.length - 1;
+           i >= 0;
            i--, testFailed = firstIfBlock) {
-        firstIfBlock = 
-          new OPT_BasicBlock(callSite.bcIndex, callSite.position, 
-                             parent.cfg);
+        firstIfBlock =
+            new OPT_BasicBlock(callSite.bcIndex, callSite.position,
+                               parent.cfg);
         firstIfBlock.exceptionHandlers = ebag;
         OPT_BasicBlock lastIfBlock = firstIfBlock;
         VM_Method target = children[i].method;
@@ -291,9 +290,10 @@ public class OPT_Inliner {
             // entangled into the parent (due to exceptional control flow).
             // This potential entanglement is what forces us to bail on 
             // the entire compilation.
-            throw new OPT_OptimizingCompilerException("Attempted guarded inline of invoke interface when decl class of target method may not be an interface");
+            throw new OPT_OptimizingCompilerException(
+                "Attempted guarded inline of invoke interface when decl class of target method may not be an interface");
           }
-            
+
           // We potentially have to generate IR to perform two tests here:
           // (1) Does the receiver object implement callDeclClass?
           // (2) Given that it does, is target the method that would 
@@ -302,7 +302,7 @@ public class OPT_Inliner {
           // time, in which case we only have to generate IR to establish 
           // (2) at runtime.
           byte doesImplement = OPT_ClassLoaderProxy.
-            includesType(callDeclClass.getTypeRef(), target.getDeclaringClass().getTypeRef());
+              includesType(callDeclClass.getTypeRef(), target.getDeclaringClass().getTypeRef());
           if (doesImplement != OPT_Constants.YES) {
             // We can't be sure at compile time that the receiver implements
             // the interface. So, inject a test to make sure that it does.
@@ -311,16 +311,16 @@ public class OPT_Inliner {
             // implements the interface).
             if (parent.options.PRINT_INLINE_REPORT) {
               VM.sysWrite("\t\tRequired additional instanceof "
-                          +callDeclClass+" test\n");
+                          + callDeclClass + " test\n");
             }
-            firstIfBlock = 
-              new OPT_BasicBlock(callSite.bcIndex, callSite.position, 
-                                 parent.cfg);
+            firstIfBlock =
+                new OPT_BasicBlock(callSite.bcIndex, callSite.position,
+                                   parent.cfg);
             firstIfBlock.exceptionHandlers = ebag;
 
-            OPT_RegisterOperand instanceOfResult = 
-              parent.temps.makeTempInt();
-            tmp = InstanceOf.create(INSTANCEOF_NOTNULL, 
+            OPT_RegisterOperand instanceOfResult =
+                parent.temps.makeTempInt();
+            tmp = InstanceOf.create(INSTANCEOF_NOTNULL,
                                     instanceOfResult,
                                     new OPT_TypeOperand(callDeclClass),
                                     receiver.copy(),
@@ -345,9 +345,9 @@ public class OPT_Inliner {
         }
 
         if (guards[i] == OPT_Options.IG_CLASS_TEST) {
-          tmp = InlineGuard.create(IG_CLASS_TEST, receiver.copy(), 
-                                   Call.getGuard(callSite).copy(), 
-                                   new OPT_TypeOperand(target.getDeclaringClass()), 
+          tmp = InlineGuard.create(IG_CLASS_TEST, receiver.copy(),
+                                   Call.getGuard(callSite).copy(),
+                                   new OPT_TypeOperand(target.getDeclaringClass()),
                                    testFailed.makeJumpTarget(),
                                    OPT_BranchProfileOperand.unlikely());
         } else if (guards[i] == OPT_Options.IG_METHOD_TEST) {
@@ -372,8 +372,8 @@ public class OPT_Inliner {
             lastIfBlock.appendInstruction(cmp);
 
             OPT_BasicBlock subclassTest =
-              new OPT_BasicBlock(callSite.bcIndex, callSite.position,
-                                 parent.cfg);
+                new OPT_BasicBlock(callSite.bcIndex, callSite.position,
+                                   parent.cfg);
 
             lastIfBlock.insertOut(testFailed);
             lastIfBlock.insertOut(subclassTest);
@@ -384,15 +384,15 @@ public class OPT_Inliner {
             lastIfBlock = subclassTest;
           }
 
-          tmp = InlineGuard.create(IG_METHOD_TEST, receiver.copy(), 
-                                   Call.getGuard(callSite).copy(), 
-                                   OPT_MethodOperand.VIRTUAL(target.getMemberRef().asMethodReference(), target), 
+          tmp = InlineGuard.create(IG_METHOD_TEST, receiver.copy(),
+                                   Call.getGuard(callSite).copy(),
+                                   OPT_MethodOperand.VIRTUAL(target.getMemberRef().asMethodReference(), target),
                                    testFailed.makeJumpTarget(),
                                    OPT_BranchProfileOperand.unlikely());
         } else {
-          tmp = InlineGuard.create(IG_PATCH_POINT, receiver.copy(), 
-                                   Call.getGuard(callSite).copy(), 
-                                   OPT_MethodOperand.VIRTUAL(target.getMemberRef().asMethodReference(), target), 
+          tmp = InlineGuard.create(IG_PATCH_POINT, receiver.copy(),
+                                   Call.getGuard(callSite).copy(),
+                                   OPT_MethodOperand.VIRTUAL(target.getMemberRef().asMethodReference(), target),
                                    testFailed.makeJumpTarget(),
                                    OPT_BranchProfileOperand.unlikely());
         }
@@ -401,32 +401,32 @@ public class OPT_Inliner {
 
         lastIfBlock.insertOut(testFailed);
         lastIfBlock.insertOut(children[i].prologue);
-        container.cfg.linkInCodeOrder(lastIfBlock, 
+        container.cfg.linkInCodeOrder(lastIfBlock,
                                       children[i].cfg.firstInCodeOrder());
         if (children[i].epilogue != null) {
           children[i].epilogue.appendInstruction(container.epilogue.makeGOTO());
           children[i].epilogue.insertOut(container.epilogue);
         }
-        container.cfg.linkInCodeOrder(children[i].cfg.lastInCodeOrder(), 
+        container.cfg.linkInCodeOrder(children[i].cfg.lastInCodeOrder(),
                                       testFailed);
       }
       //Step 6: finsh by linking container.prologue & testFailed
       container.prologue.insertOut(testFailed);
       container.cfg.linkInCodeOrder(container.prologue, testFailed);
-      return  container;
+      return container;
     } else {
       if (VM.VerifyAssertions) VM._assert(inlDec.getNumberOfTargets() == 1);
-      VM_NormalMethod callee = (VM_NormalMethod)inlDec.getTargets()[0];
+      VM_NormalMethod callee = (VM_NormalMethod) inlDec.getTargets()[0];
       if (parent.options.PRINT_INLINE_REPORT) {
-        VM.sysWrite("\tInline " + callee 
+        VM.sysWrite("\tInline " + callee
                     + " into " + callSite.position.getMethod()
                     + " at bytecode " + callSite.bcIndex + "\n");
       }
       OPT_GenerationContext child = OPT_GenerationContext.
-        createChildContext(parent, ebag, callee, callSite);
+          createChildContext(parent, ebag, callee, callSite);
       OPT_BC2IR.generateHIR(child);
       OPT_GenerationContext.transferState(parent, child);
-      return  child;
+      return child;
     }
   }
 }

@@ -8,6 +8,7 @@
  */
 
 package org.jikesrvm.osr;
+
 /**
  * BC_LoadFloatConst: ldc, ldc_w 
  */
@@ -30,10 +31,10 @@ public class BC_LoadFloatConst extends OSR_PseudoBytecode {
   }
 
   public int stackChanges() {
-        return +1;
+    return +1;
   }
-  
+
   public String toString() {
-    return "LoadFloat "+Float.intBitsToFloat(fbits);
+    return "LoadFloat " + Float.intBitsToFloat(fbits);
   }
 }

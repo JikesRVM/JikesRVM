@@ -16,7 +16,7 @@ import org.jikesrvm.scheduler.VM_Thread;
 /**
  * An element in the opt compiler's optimization plan
  * that consists of a single OPT_CompilerPhase.
- * 
+ *
  * <p> NOTE: Instances of this class are
  *       held in <code> OPT_OptimizationPlanner.masterPlan </code>
  *       and thus represent global state.
@@ -24,8 +24,8 @@ import org.jikesrvm.scheduler.VM_Thread;
  *       state to be stored in an instance field of
  *       one of these objects.
  */
-public final class OPT_OptimizationPlanAtomicElement extends 
-                                          OPT_OptimizationPlanElement {
+public final class OPT_OptimizationPlanAtomicElement extends
+                                                     OPT_OptimizationPlanElement {
   /**
    * The phase to be performed.
    */
@@ -60,7 +60,7 @@ public final class OPT_OptimizationPlanAtomicElement extends
   /**
    * Determine, possibly by consulting the passed options object,
    * if this optimization plan element should be performed.
-   * 
+   *
    * @param options The OPT_Options object for the current compilation.
    * @return true if the plan element should be performed.
    */
@@ -71,7 +71,7 @@ public final class OPT_OptimizationPlanAtomicElement extends
   /**
    * Do the work represented by this element in the optimization plan.
    * The assumption is that the work will modify the IR in some way.
-   * 
+   *
    * @param ir The OPT_IR object to work with.
    */
   public void perform(OPT_IR ir) {
@@ -79,7 +79,7 @@ public final class OPT_OptimizationPlanAtomicElement extends
     if (VM.MeasureCompilation && VM.runningVM) {
       start = VM_Thread.getCurrentThread().accumulateCycles();
     }
-    OPT_CompilerPhase cmpPhase= myPhase.newExecution(ir);
+    OPT_CompilerPhase cmpPhase = myPhase.newExecution(ir);
     cmpPhase.setContainer(this);
     cmpPhase.performPhase(ir);
     if (VM.MeasureCompilation && VM.runningVM) {
@@ -92,7 +92,7 @@ public final class OPT_OptimizationPlanAtomicElement extends
    * @return a String which is the name of the phase.
    */
   public String getName() {
-	 return myPhase.getName();
+    return myPhase.getName();
   }
 
   /**

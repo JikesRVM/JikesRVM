@@ -25,10 +25,10 @@ public abstract class OPT_GenericRegisterPreferences {
    * Add a affinity of weight w between two registers.
    */
   protected void addAffinity(int w, OPT_Register r1, OPT_Register r2) {
-    graph.addAffinity(w,r1,r2);
+    graph.addAffinity(w, r1, r2);
   }
 
-  /** 
+  /**
    * Set up register preferences for an IR. This is machine-dependent.
    */
   public abstract void initialize(OPT_IR ir);

@@ -37,12 +37,12 @@ public final class VM_InvocationCounts {
 
   public static synchronized void allocateCounter(int id) {
     if (counts == null) {
-      counts = new int[id+500];
+      counts = new int[id + 500];
       processed = new boolean[counts.length];
     }
     if (id >= counts.length) {
-      int newSize = counts.length*2;
-      if (newSize <= id) newSize = id+500;
+      int newSize = counts.length * 2;
+      if (newSize <= id) newSize = id + 500;
       int[] tmp = new int[newSize];
       System.arraycopy(counts, 0, tmp, 0, counts.length);
       boolean[] tmp2 = new boolean[newSize];
@@ -65,9 +65,9 @@ public final class VM_InvocationCounts {
     VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(id);
     if (cm == null) return;
     if (VM.VerifyAssertions) VM._assert(cm.getCompilerType() == VM_CompiledMethod.BASELINE);
-    VM_NormalMethod m = (VM_NormalMethod)cm.getMethod();
+    VM_NormalMethod m = (VM_NormalMethod) cm.getMethod();
     OPT_CompilationPlan compPlan = new OPT_CompilationPlan(m, _optPlan, null, _options);
-    VM_ControllerPlan cp = new VM_ControllerPlan(compPlan, VM_Controller.controllerClock, 
+    VM_ControllerPlan cp = new VM_ControllerPlan(compPlan, VM_Controller.controllerClock,
                                                  id, 2.0, 2.0, 2.0); // 2.0 is a bogus number....
     cp.execute();
   }
@@ -93,11 +93,12 @@ public final class VM_InvocationCounts {
    */
   public static void init() {
     createOptimizationPlan();
-    VM_BaselineCompiler.options.INVOCATION_COUNTERS=true;
+    VM_BaselineCompiler.options.INVOCATION_COUNTERS = true;
   }
 
-  private static  OPT_OptimizationPlanElement[] _optPlan;
+  private static OPT_OptimizationPlanElement[] _optPlan;
   private static OPT_Options _options;
+
   /**
    * Create the default set of <optimization plan, options> pairs
    * Process optimizing compiler command line options.
@@ -108,7 +109,7 @@ public final class VM_InvocationCounts {
     int optLevel = VM_Controller.options.INVOCATION_COUNT_OPT_LEVEL;
     String[] optCompilerOptions = VM_Controller.getOptCompilerOptions();
     _options.setOptLevel(optLevel);
-    VM_RecompilationStrategy.processCommandLineOptions(_options,optLevel,optLevel,optCompilerOptions);
+    VM_RecompilationStrategy.processCommandLineOptions(_options, optLevel, optLevel, optCompilerOptions);
     _optPlan = OPT_OptimizationPlanner.createOptimizationPlan(_options);
   }
 

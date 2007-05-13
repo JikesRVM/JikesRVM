@@ -25,47 +25,47 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
  * Perform local copy propagation for a factored basic block.
  * Orthogonal to the copy propagation performed in OPT_Simple
  * since here we use flow-sensitive analysis within a basic block.
- * 
+ *
  * TODO: factor out common functionality in the various local propagation
  * phases?
  */
 public class OPT_LocalCopyProp extends OPT_CompilerPhase {
 
-  public final boolean shouldPerform (OPT_Options options) {
+  public final boolean shouldPerform(OPT_Options options) {
     return options.LOCAL_COPY_PROP;
   }
 
-  public final String getName () {
+  public final String getName() {
     return "Local CopyProp";
   }
 
- public void reportAdditionalStats() {
+  public void reportAdditionalStats() {
     VM.sysWrite("  ");
-    VM.sysWrite(container.counter1/container.counter2*100, 2);
+    VM.sysWrite(container.counter1 / container.counter2 * 100, 2);
     VM.sysWrite("% Infrequent BBs");
- }
+  }
 
- /**
-  * Return this instance of this phase. This phase contains no
-  * per-compilation instance fields.
-  * @param ir not used
-  * @return this
-  */
+  /**
+   * Return this instance of this phase. This phase contains no
+   * per-compilation instance fields.
+   * @param ir not used
+   * @return this
+   */
   public OPT_CompilerPhase newExecution(OPT_IR ir) {
     return this;
   }
 
   /**
    * Perform local constant propagation for a method.
-   * 
+   *
    * @param ir the IR to optimize
    */
-  public void perform (OPT_IR ir) {
+  public void perform(OPT_IR ir) {
     // info is a mapping from OPT_Register to OPT_Register
-    HashMap<OPT_Register,OPT_Operand> info =
-      new HashMap<OPT_Register,OPT_Operand>();
-    for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); 
-         bb != null; 
+    HashMap<OPT_Register, OPT_Operand> info =
+        new HashMap<OPT_Register, OPT_Operand>();
+    for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder();
+         bb != null;
          bb = bb.nextBasicBlockInCodeOrder()) {
       if (bb.isEmpty()) continue;
       container.counter2++;
@@ -74,9 +74,9 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase {
         if (ir.options.FREQ_FOCUS_EFFORT) continue;
       }
       // iterate over all instructions in the basic block
-      for (OPT_Instruction s = bb.firstRealInstruction(), 
-             sentinel = bb.lastInstruction();
-           s != sentinel; 
+      for (OPT_Instruction s = bb.firstRealInstruction(),
+          sentinel = bb.lastInstruction();
+           s != sentinel;
            s = s.nextInstructionInCodeOrder()) {
 
         if (!info.isEmpty()) {
@@ -84,17 +84,17 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase {
           int numUses = s.getNumberOfUses();
           if (numUses > 0) {
             boolean didSomething = false;
-            for (OPT_OperandEnumeration e = s.getUses(); e.hasMoreElements(); ) {
+            for (OPT_OperandEnumeration e = s.getUses(); e.hasMoreElements();) {
               OPT_Operand use = e.next();
               if (use instanceof OPT_RegisterOperand) {
-                OPT_RegisterOperand rUse = (OPT_RegisterOperand)use;
+                OPT_RegisterOperand rUse = (OPT_RegisterOperand) use;
                 OPT_Operand value = info.get(rUse.register);
                 if (value != null) {
                   didSomething = true;
                   value = value.copy();
                   if (value instanceof OPT_RegisterOperand) {
                     // preserve program point specific typing!
-                    ((OPT_RegisterOperand)value).copyType(rUse);
+                    ((OPT_RegisterOperand) value).copyType(rUse);
                   }
                   s.replaceOperand(use, value);
                 }
@@ -110,7 +110,7 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase {
           // premature optimization.
           if (killPhysicals) {
             HashSet<OPT_Register> toRemove =
-              new HashSet<OPT_Register>();
+                new HashSet<OPT_Register>();
             for (Map.Entry<OPT_Register, OPT_Operand> entry : info.entrySet()) {
               OPT_Register eR = entry.getValue().
                   asRegister().register;
@@ -157,7 +157,7 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase {
           OPT_Operand val = Move.getVal(s);
           if (val.isRegister() && !val.asRegister().register.isPhysical()) {
             info.put(Move.getResult(s).register, val);
-          } 
+          }
         }
       }
       info.clear();

@@ -28,36 +28,38 @@ public class OPT_FilterIterator<T>
   private void advance() {
     while (i.hasNext()) {
       next = i.next();
-      if (f.isElement(next))
+      if (f.isElement(next)) {
         return;
+      }
     }
     done = true;
   }
 
   public T next() {
-    if (done)
-      throw  new java.util.NoSuchElementException();
+    if (done) {
+      throw new java.util.NoSuchElementException();
+    }
     T o = next;
     advance();
-    return  f.map(o);
+    return f.map(o);
   }
 
   public boolean hasNext() {
-    return  !done;
+    return !done;
   }
 
-  public void remove () {
-    throw  new java.lang.UnsupportedOperationException();
+  public void remove() {
+    throw new java.lang.UnsupportedOperationException();
   }
 
   public static class Filter<T> {                  // override with your mapping.
 
     public boolean isElement(Object o) {
-      return  true;
+      return true;
     }
 
     public T map(T o) {
-      return  o;
+      return o;
     }
   }
 }

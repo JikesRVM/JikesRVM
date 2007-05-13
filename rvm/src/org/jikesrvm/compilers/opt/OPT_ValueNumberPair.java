@@ -16,7 +16,7 @@ class OPT_ValueNumberPair implements Comparable<OPT_ValueNumberPair> {
   final int v1;
   /** the value number of an array index */
   final int v2;
-  
+
   /** Construct a pair from the given arguments */
   OPT_ValueNumberPair(int v1, int v2) {
     this.v1 = v1;
@@ -30,10 +30,11 @@ class OPT_ValueNumberPair implements Comparable<OPT_ValueNumberPair> {
   }
 
   public boolean equals(Object o) {
-    if (!(o instanceof OPT_ValueNumberPair))
-      return  false;
-    OPT_ValueNumberPair p = (OPT_ValueNumberPair)o;
-    return  (v1 == p.v1) && (v2 == p.v2);
+    if (!(o instanceof OPT_ValueNumberPair)) {
+      return false;
+    }
+    OPT_ValueNumberPair p = (OPT_ValueNumberPair) o;
+    return (v1 == p.v1) && (v2 == p.v2);
   }
 
   public int hashCode() {
@@ -41,23 +42,26 @@ class OPT_ValueNumberPair implements Comparable<OPT_ValueNumberPair> {
   }
 
   public String toString() {
-    return  "<" + v1 + "," + v2 + ">";
+    return "<" + v1 + "," + v2 + ">";
   }
 
   // total order over OPT_ValueNumberPairs
   public int compareTo(OPT_ValueNumberPair p) {
-    if (v1 > p.v1)
-      return  1;
-    else if (v1 < p.v1)
-      return  -1;
-    // v1 == p.v1
-    else if(v2 > p.v2)
+    if (v1 > p.v1) {
       return 1;
-    else if(v2 < p.v2)
+    } else if (v1 < p.v1) {
       return -1;
+    }
+    // v1 == p.v1
+    else if (v2 > p.v2) {
+      return 1;
+    } else if (v2 < p.v2) {
+      return -1;
+    }
     // v2 == p.v2
-    else
+    else {
       return 0;
+    }
   }
 }
 

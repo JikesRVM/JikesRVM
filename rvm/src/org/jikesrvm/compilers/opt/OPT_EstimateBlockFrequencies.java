@@ -19,10 +19,10 @@ import org.jikesrvm.compilers.opt.ir.OPT_WeightedBranchTargets;
 
 /**
  * Derive relative basic block execution frequencies from branch probabilities.<p>
- * 
+ *
  * This code assumes that the loop structure tree can be constructed for
  * the CFG in question.  This implies that the CFG is reducible. <p>
- * 
+ *
  * The basic algorithm is as follows:
  * <ul>
  * <li> Construct the loop structure tree for the CFG. </li>
@@ -54,7 +54,8 @@ public class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
   /**
    * Constructor for this compiler phase
    */
-  private static final Constructor<OPT_CompilerPhase> constructor = getCompilerPhaseConstructor(OPT_EstimateBlockFrequencies.class);
+  private static final Constructor<OPT_CompilerPhase> constructor =
+      getCompilerPhaseConstructor(OPT_EstimateBlockFrequencies.class);
 
   /**
    * Get a constructor object for this compiler phase
@@ -69,11 +70,11 @@ public class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
    */
   private OPT_BasicBlock[] topOrder;
 
-  public String getName() { return  "Estimate Block Frequencies"; }
+  public String getName() { return "Estimate Block Frequencies"; }
 
   public void reportAdditionalStats() {
     VM.sysWrite("  ");
-    VM.sysWrite(container.counter1/container.counter2*100, 2);
+    VM.sysWrite(container.counter1 / container.counter2 * 100, 2);
     VM.sysWrite("% Infrequent BBs");
   }
 
@@ -99,7 +100,7 @@ public class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
     int idx = 0;
     for (OPT_BasicBlock ptr = ir.cfg.entry();
          ptr != null;
-         ptr = (OPT_BasicBlock)ptr.getForwardSortedNext()) {
+         ptr = (OPT_BasicBlock) ptr.getForwardSortedNext()) {
       topOrder[idx++] = ptr;
       ptr.setExecutionFrequency(0f);
       ptr.clearScratchFlag();
@@ -135,6 +136,7 @@ public class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
       bb.setExecutionFrequency(1f);
     }
   }
+
   /**
    * Compute which blocks are infrequent.
    * Algorithm: let f = INFREQUENT_THRESHOLD.
@@ -150,25 +152,25 @@ public class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
     float[] freq = new float[ir.getMaxBasicBlockNumber()];
     float total = 0f;
     // count the total frequency of all blocks
-    for (Enumeration<OPT_BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements(); ) {
+    for (Enumeration<OPT_BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
       OPT_BasicBlock bb = e.nextElement();
-      freq[i]= bb.getExecutionFrequency();  
+      freq[i] = bb.getExecutionFrequency();
       total += freq[i];
       i++;
     }
     // sort the frequencies (ascending);
     Arrays.sort(freq);
     float f = ir.options.INFREQUENT_THRESHOLD;
-    float goal = (1f-f)*total;
+    float goal = (1f - f) * total;
     total = 0f;
     float threshold = 0f;
     // add up the frequencies (desceding) until we real the goal.
-    for (i = freq.length-1; i>=0 && total<goal; i--) {
+    for (i = freq.length - 1; i >= 0 && total < goal; i--) {
       threshold = freq[i];
       total += threshold;
     }
     // go back and set infrequent bits.
-    for (Enumeration<OPT_BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements(); ) {
+    for (Enumeration<OPT_BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
       OPT_BasicBlock bb = e.nextElement();
       if (bb.getExecutionFrequency() < threshold) {
         bb.setInfrequent();
@@ -179,7 +181,7 @@ public class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
       container.counter2++;
     }
   }
-  
+
   /**
    * Postorder traversal of LST computing loop multiplier and loop exits 
    * for each loop.
@@ -193,7 +195,6 @@ public class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
       n.header.clearScratchFlag(); // so we won't ignore when processing enclosing loop
     }
   }
-  
 
   /**
    * Compute the loop multiplier for this loop nest
@@ -204,7 +205,6 @@ public class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
     float loopExitWeight = computeLoopExitWeight(n);
     n.loopMultiplier = 1.0f / loopExitWeight;
   }
-  
 
   /**
    * Propagate execution frequencies through the loop.
@@ -244,11 +244,10 @@ public class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
     }
   }
 
-
-  private void processEdge(OPT_LSTNode n, 
-                           OPT_BasicBlock source, 
-                           OPT_BasicBlock target, 
-                           float prob, 
+  private void processEdge(OPT_LSTNode n,
+                           OPT_BasicBlock source,
+                           OPT_BasicBlock target,
+                           float prob,
                            float weight) {
     if (target.getScratchFlag()) return; // ignore backedge
     if (n.loop.get(target.getNumber())) {
@@ -262,9 +261,9 @@ public class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
         //            Effectively we are treating the nested loop as an n-way branch to its loop exits.
         target.setScratchFlag();
         float exitWeight = computeLoopExitWeight(other);
-        for (OPT_LSTNode.Edge exit :  other.loopExits) {
+        for (OPT_LSTNode.Edge exit : other.loopExits) {
           float myWeight = exit.source.getExecutionFrequency() * exit.probability;
-          float myFraction = myWeight/exitWeight;
+          float myFraction = myWeight / exitWeight;
           processEdge(n, source, exit.target, prob * myFraction, weight);
         }
         target.clearScratchFlag();
@@ -273,7 +272,6 @@ public class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
       n.addLoopExit(source, target, prob);
     }
   }
-  
 
   private float computeLoopExitWeight(OPT_LSTNode n) {
     float exitWeight = 0f;
@@ -284,7 +282,6 @@ public class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
     //         chance of exiting to avoid getting NaN's in our computation.
     return exitWeight == 0f ? 0.01f : exitWeight;
   }
-
 
   private void computeBlockFrequencies() {
     ir.cfg.entry().setExecutionFrequency(1f);

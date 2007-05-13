@@ -68,7 +68,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * the current scratch assignment for the physical register.
    */
   protected final ArrayList<ScratchRegister> scratchInUse =
-    new ArrayList<ScratchRegister>(20);
+      new ArrayList<ScratchRegister>(20);
 
   /**
    * An array which holds the spill location number used to stash nonvolatile
@@ -84,9 +84,8 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
   protected final int[] saveVolatileGPRLocation = new int[NUM_GPRS];
   protected final int[] saveVolatileFPRLocation = new int[NUM_FPRS];
 
-
   protected static final boolean debug = false;
-  protected static final boolean verbose= false;
+  protected static final boolean verbose = false;
   protected static final boolean verboseDebug = false;
 
   /**
@@ -112,12 +111,12 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * @param type the type to spill
    * @return the spill location
    */
-  public abstract int allocateNewSpillLocation(int type); 
+  public abstract int allocateNewSpillLocation(int type);
 
   /**
    * Clean up some junk that's left in the IR after register allocation,
    * and add epilogue code.
-   */ 
+   */
   public abstract void cleanUpAndInsertEpilogue();
 
   /**
@@ -126,7 +125,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * the stackpointer after the prologue of the method completes).
    * @return size in bytes of the fixed portion of the stackframe
    */
-  public abstract int getFrameFixedSize(); 
+  public abstract int getFrameFixedSize();
 
   /**
    * Compute the number of stack words needed to hold nonvolatile
@@ -143,7 +142,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
 
   /**
    * Insert the prologue for a normal method.  
- */
+   */
   public abstract void insertNormalPrologue();
 
   /**
@@ -173,8 +172,8 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * @param s the instruction to mutate.
    * @param symb the symbolic register operand to replace
    */
-  public abstract void replaceOperandWithSpillLocation(OPT_Instruction s, 
-                                                OPT_RegisterOperand symb);
+  public abstract void replaceOperandWithSpillLocation(OPT_Instruction s,
+                                                       OPT_RegisterOperand symb);
 
   // Get the spill location previously assigned to the symbolic
   /**
@@ -197,10 +196,10 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * Also, for any register r3 that is spilled to the same location as
    * r1, replace r3 with r2.
    */
-  private void replaceRegisterWithScratch(OPT_Instruction s, 
+  private void replaceRegisterWithScratch(OPT_Instruction s,
                                           OPT_Register r1, OPT_Register r2) {
     int spill1 = OPT_RegisterAllocatorState.getSpill(r1);
-    for (Enumeration<OPT_Operand> e = s.getOperands(); e.hasMoreElements(); ) {
+    for (Enumeration<OPT_Operand> e = s.getOperands(); e.hasMoreElements();) {
       OPT_Operand op = e.nextElement();
       if (op != null) {
         if (op.isRegister()) {
@@ -252,7 +251,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * Spill the contents of a scratch register to memory before 
    * instruction s.  
    */
-  protected void unloadScratchRegisterBefore(OPT_Instruction s, 
+  protected void unloadScratchRegisterBefore(OPT_Instruction s,
                                              ScratchRegister scratch) {
     // if the scratch register is not dirty, don't need to write anything, 
     // since the stack holds the current value
@@ -262,20 +261,21 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     OPT_Register scratchContents = scratch.currentContents;
     if (scratchContents != null) {
       int location = OPT_RegisterAllocatorState.getSpill(scratchContents);
-      insertSpillBefore(s,scratch.scratch,getValueType(scratchContents),
+      insertSpillBefore(s, scratch.scratch, getValueType(scratchContents),
                         location);
     }
 
   }
+
   /**
    * Restore the contents of a scratch register before instruction s.  
    */
-  protected void reloadScratchRegisterBefore(OPT_Instruction s, 
+  protected void reloadScratchRegisterBefore(OPT_Instruction s,
                                              ScratchRegister scratch) {
     if (scratch.hadToSpill()) {
       // Restore the live contents into the scratch register.
       int location = OPT_RegisterAllocatorState.getSpill(scratch.scratch);
-      insertUnspillBefore(s,scratch.scratch,getValueType(scratch.scratch),
+      insertUnspillBefore(s, scratch.scratch, getValueType(scratch.scratch),
                           location);
     }
   }
@@ -288,7 +288,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     ArrayList<OPT_Register> result = new ArrayList<OPT_Register>(3);
 
     for (ScratchRegister sr : scratchInUse) {
-      if (sr.currentContents != null && appearsIn(sr.currentContents,s)) {
+      if (sr.currentContents != null && appearsIn(sr.currentContents, s)) {
         result.add(sr.scratch);
       }
     }
@@ -308,28 +308,29 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * @param r the symbolic register to hold
    * @param s the instruction for which we need r in a register
    */
-  private ScratchRegister getCurrentScratchRegister(OPT_Register r,OPT_Instruction s) {
+  private ScratchRegister getCurrentScratchRegister(OPT_Register r, OPT_Instruction s) {
     for (ScratchRegister sr : scratchInUse) {
       if (sr.currentContents == r) {
         return sr;
       }
       int location = OPT_RegisterAllocatorState.getSpill(sr.currentContents);
-      int location2 = OPT_RegisterAllocatorState.getSpill(r); 
+      int location2 = OPT_RegisterAllocatorState.getSpill(r);
       if (location == location2) {
         // OK. We're currently holding a different symbolic register r2 in
         // a scratch register, and r2 is mapped to the same spill location
         // as r.  So, coopt the scratch register for r, instead.
         OPT_Register r2 = sr.currentContents;
         sr.currentContents = r;
-        scratchMap.endScratchInterval(sr.scratch,s);
-        scratchMap.endSymbolicInterval(r2,s);
-        scratchMap.beginScratchInterval(sr.scratch,s);
-        scratchMap.beginSymbolicInterval(r,sr.scratch,s);
+        scratchMap.endScratchInterval(sr.scratch, s);
+        scratchMap.endSymbolicInterval(r2, s);
+        scratchMap.beginScratchInterval(sr.scratch, s);
+        scratchMap.beginSymbolicInterval(r, sr.scratch, s);
         return sr;
       }
     }
     return null;
   }
+
   /**
    * If register r is currently in use as a scratch register, 
    * then return that scratch register.
@@ -344,7 +345,6 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     return null;
   }
 
-
   /**
    * Walk over the currently available scratch registers. 
    *
@@ -354,7 +354,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
   private void markDirtyScratchRegisters(OPT_Instruction s) {
     for (ScratchRegister scratch : scratchInUse) {
       if (scratch.isDirty()) {
-        scratchMap.markDirty(s,scratch.currentContents);
+        scratchMap.markDirty(s, scratch.currentContents);
       }
     }
   }
@@ -369,28 +369,32 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * registers that are used by s.  The others are dead.
    */
   private void restoreAllScratchRegistersBefore(OPT_Instruction s) {
-    for (Iterator<ScratchRegister> i = scratchInUse.iterator(); i.hasNext(); ) {
+    for (Iterator<ScratchRegister> i = scratchInUse.iterator(); i.hasNext();) {
       ScratchRegister scratch = i.next();
 
       // SPECIAL CASE: If s is a return instruction, only restore the 
       // scratch
       // registers that are used by s.  The others are dead.
-      if (!s.isReturn() || usedIn(scratch.scratch,s)) {
-        unloadScratchRegisterBefore(s,scratch);
-        reloadScratchRegisterBefore(s,scratch);
+      if (!s.isReturn() || usedIn(scratch.scratch, s)) {
+        unloadScratchRegisterBefore(s, scratch);
+        reloadScratchRegisterBefore(s, scratch);
       }
       // update the scratch maps, even if the scratch registers are now
       // dead.
-      if (verboseDebug) System.out.println("RALL: End scratch interval " + 
-                                           scratch.scratch + " " + s);
+      if (verboseDebug) {
+        System.out.println("RALL: End scratch interval " +
+                           scratch.scratch + " " + s);
+      }
       i.remove();
-      scratchMap.endScratchInterval(scratch.scratch,s);
+      scratchMap.endScratchInterval(scratch.scratch, s);
       OPT_Register scratchContents = scratch.currentContents;
       if (scratchContents != null) {
-        if (verboseDebug) System.out.println("RALL: End symbolic interval " + 
-                                             scratchContents + " " + s);
-        scratchMap.endSymbolicInterval(scratchContents,s);
-      } 
+        if (verboseDebug) {
+          System.out.println("RALL: End symbolic interval " +
+                             scratchContents + " " + s);
+        }
+        scratchMap.endSymbolicInterval(scratchContents, s);
+      }
     }
   }
 
@@ -399,31 +403,35 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    */
   public boolean isDeadBefore(OPT_Register r, OPT_Instruction s) {
 
-    OPT_LinearScan.BasicInterval bi = activeSet.getBasicInterval(r,s);
+    OPT_LinearScan.BasicInterval bi = activeSet.getBasicInterval(r, s);
     // If there is no basic interval containing s, then r is dead before
     // s.
-    if (bi == null) return true;
+    if (bi == null) {
+      return true;
+    }
     // If the basic interval begins at s, then r is dead before
     // s.
-    else return bi.getBegin() == OPT_LinearScan.getDFN(s);
+    else {
+      return bi.getBegin() == OPT_LinearScan.getDFN(s);
+    }
   }
 
   /**
    * Insert code as needed so that after instruction s, the value of
    * a symbolic register will be held in a particular scratch physical
    * register.
-   * 
+   *
    * @param beCheap don't expend much effort optimizing scratch
    * assignments
    * @return the physical scratch register that holds the value 
    *         after instruction s
    */
-  private ScratchRegister holdInScratchAfter(OPT_Instruction s, 
+  private ScratchRegister holdInScratchAfter(OPT_Instruction s,
                                              OPT_Register symb,
                                              boolean beCheap) {
 
     // Get a scratch register.
-    ScratchRegister sr = getScratchRegister(symb,s,beCheap);
+    ScratchRegister sr = getScratchRegister(symb, s, beCheap);
 
     // make the scratch register available to hold the new 
     // symbolic register
@@ -433,7 +441,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
       int location = OPT_RegisterAllocatorState.getSpill(current);
       int location2 = OPT_RegisterAllocatorState.getSpill(symb);
       if (location != location2) {
-        insertSpillBefore(s,sr.scratch,getValueType(current),location);
+        insertSpillBefore(s, sr.scratch, getValueType(current), location);
       }
     }
 
@@ -450,22 +458,23 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
   protected boolean isLegal(OPT_Register symb, OPT_Register phys, OPT_Instruction s) {
     // If the physical scratch register already appears in s, so we can't 
     // use it as a scratch register for another value.
-    if (appearsIn(phys,s)) return false;
+    if (appearsIn(phys, s)) return false;
 
     // Check register restrictions for symb.
-    if (getRestrictions().isForbidden(symb,phys,s)) return false;
+    if (getRestrictions().isForbidden(symb, phys, s)) return false;
 
     // Further assure legality for all other symbolic registers in symb
     // which are mapped to the same spill location as symb.
     int location = OPT_RegisterAllocatorState.getSpill(symb);
-    for (Enumeration<OPT_Operand> e = s.getOperands(); e.hasMoreElements(); ) {
+    for (Enumeration<OPT_Operand> e = s.getOperands(); e.hasMoreElements();) {
       OPT_Operand op = e.nextElement();
       if (op.isRegister()) {
         OPT_Register r = op.asRegister().register;
         if (r.isSymbolic()) {
           if (location == OPT_RegisterAllocatorState.getSpill(r)) {
-            if (getRestrictions().isForbidden(r,phys,s)) 
+            if (getRestrictions().isForbidden(r, phys, s)) {
               return false;
+            }
           }
         }
       }
@@ -474,6 +483,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     // Otherwise, all is kosher.
     return true;
   }
+
   /**
    * Get a scratch register to hold symbolic register symb in instruction
    * s.
@@ -484,24 +494,28 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
                                              OPT_Instruction s,
                                              boolean beCheap) {
 
-    ScratchRegister r = getCurrentScratchRegister(symb,s);
+    ScratchRegister r = getCurrentScratchRegister(symb, s);
     if (r != null) {
       // symb is currently assigned to scratch register r
-      if (isLegal(symb,r.scratch,s)) {
+      if (isLegal(symb, r.scratch, s)) {
         if (r.currentContents != symb) {
           // we're reusing a scratch register based on the fact that symb
           // shares a spill location with r.currentContents.  However,
           // update the mapping information.
           if (r.currentContents != null) {
-            if (verboseDebug) System.out.println("GSR: End symbolic interval " + 
-                                                 r.currentContents + " " 
-                                                 + s);
-            scratchMap.endSymbolicInterval(r.currentContents,s);
-          } 
-          if (verboseDebug) System.out.println("GSR: Begin symbolic interval " + 
-                                               symb + " " + r.scratch + 
-                                               " " + s);
-          scratchMap.beginSymbolicInterval(symb,r.scratch,s);
+            if (verboseDebug) {
+              System.out.println("GSR: End symbolic interval " +
+                                 r.currentContents + " "
+                                 + s);
+            }
+            scratchMap.endSymbolicInterval(r.currentContents, s);
+          }
+          if (verboseDebug) {
+            System.out.println("GSR: Begin symbolic interval " +
+                               symb + " " + r.scratch +
+                               " " + s);
+          }
+          scratchMap.beginSymbolicInterval(symb, r.scratch, s);
         }
         return r;
       }
@@ -511,13 +525,13 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     // the current assignment is illegal.  Find a new scratch register.
     ScratchRegister result = null;
     if (beCheap || activeSet == null) {
-      result = getFirstAvailableScratchRegister(symb,s);
+      result = getFirstAvailableScratchRegister(symb, s);
     } else {
-      result = getScratchRegisterUsingIntervals(symb,s);
+      result = getScratchRegisterUsingIntervals(symb, s);
     }
 
     // Record that we will touch the scratch register.
-    result.scratch.touchRegister(); 
+    result.scratch.touchRegister();
     return result;
   }
 
@@ -529,25 +543,25 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * register is free for use.
    */
   private ScratchRegister getScratchRegisterUsingIntervals(OPT_Register r,
-                                                           OPT_Instruction s){
+                                                           OPT_Instruction s) {
     ArrayList<OPT_Register> reservedScratch = getReservedScratchRegisters(s);
 
     OPT_Register phys = null;
     if (r.isFloatingPoint()) {
-      phys = getFirstDeadFPRNotUsedIn(r,s,reservedScratch);
+      phys = getFirstDeadFPRNotUsedIn(r, s, reservedScratch);
     } else {
-      phys = getFirstDeadGPRNotUsedIn(r,s,reservedScratch);
+      phys = getFirstDeadGPRNotUsedIn(r, s, reservedScratch);
     }
 
     // if the version above failed, default to the dumber heuristics
     if (phys == null) {
       if (r.isFloatingPoint()) {
-        phys = getFirstFPRNotUsedIn(r,s,reservedScratch);
+        phys = getFirstFPRNotUsedIn(r, s, reservedScratch);
       } else {
-        phys = getFirstGPRNotUsedIn(r,s,reservedScratch);
+        phys = getFirstGPRNotUsedIn(r, s, reservedScratch);
       }
     }
-    return createScratchBefore(s,phys,r);
+    return createScratchBefore(s, phys, r);
   }
 
   /**
@@ -558,16 +572,16 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * register is free for use.
    */
   private ScratchRegister getFirstAvailableScratchRegister(OPT_Register r,
-                                                           OPT_Instruction s){
+                                                           OPT_Instruction s) {
     ArrayList<OPT_Register> reservedScratch = getReservedScratchRegisters(s);
 
     OPT_Register phys = null;
     if (r.isFloatingPoint()) {
-      phys = getFirstFPRNotUsedIn(r,s,reservedScratch);
+      phys = getFirstFPRNotUsedIn(r, s, reservedScratch);
     } else {
-      phys = getFirstGPRNotUsedIn(r,s,reservedScratch);
+      phys = getFirstGPRNotUsedIn(r, s, reservedScratch);
     }
-    return createScratchBefore(s,phys,r);
+    return createScratchBefore(s, phys, r);
   }
 
   /**
@@ -580,11 +594,11 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * @return the physical register used to hold the value when it is
    * loaded from the spill location
    */
-  private ScratchRegister moveToScratchBefore(OPT_Instruction s, 
+  private ScratchRegister moveToScratchBefore(OPT_Instruction s,
                                               OPT_Register symb,
                                               boolean beCheap) {
 
-    ScratchRegister sr = getScratchRegister(symb,s,beCheap);
+    ScratchRegister sr = getScratchRegister(symb, s, beCheap);
 
     OPT_Register scratchContents = sr.currentContents;
     if (scratchContents != symb) {
@@ -592,22 +606,22 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
         // the scratch register currently holds a different 
         // symbolic register.
         // spill the contents of the scratch register to free it up.
-        unloadScratchRegisterBefore(s,sr);
+        unloadScratchRegisterBefore(s, sr);
       }
 
       // Now load up the scratch register.
       // since symbReg must have been previously spilled, get the spill
       // location previous assigned to symbReg
       int location = OPT_RegisterAllocatorState.getSpill(symb);
-      insertUnspillBefore(s,sr.scratch,getValueType(symb),location);
+      insertUnspillBefore(s, sr.scratch, getValueType(symb), location);
 
       // we have not yet written to sr, so mark it 'clean'
       sr.setDirty(false);
 
-    } else { 
+    } else {
       // In this case the scratch register already holds the desired
       // symbolic register.  So: do nothing. 
-    }    
+    }
 
     // Record the current contents of the scratch register
     sr.currentContents = symb;
@@ -620,7 +634,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * before instruction s.  In instruction s, r will hold the value of
    * register symb.
    */
-  private ScratchRegister createScratchBefore(OPT_Instruction s, 
+  private ScratchRegister createScratchBefore(OPT_Instruction s,
                                               OPT_Register r,
                                               OPT_Register symb) {
     int type = OPT_PhysicalRegisterSet.getPhysicalRegisterType(r);
@@ -628,50 +642,58 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     if (spillLocation <= 0) {
       // no spillLocation yet assigned to the physical register.
       // allocate a new location and assign it for the physical register
-      spillLocation = allocateNewSpillLocation(type);      
-      OPT_RegisterAllocatorState.setSpill(r,spillLocation);
+      spillLocation = allocateNewSpillLocation(type);
+      OPT_RegisterAllocatorState.setSpill(r, spillLocation);
     }
 
     ScratchRegister sr = getPhysicalScratchRegister(r);
     if (sr == null) {
-      sr = new ScratchRegister(r,null);
+      sr = new ScratchRegister(r, null);
       scratchInUse.add(sr);
       // Since this is a new scratch register, spill the old contents of
       // r if necessary.
       if (activeSet == null) {
-        insertSpillBefore(s, r, (byte)type, spillLocation);
+        insertSpillBefore(s, r, (byte) type, spillLocation);
         sr.setHadToSpill(true);
       } else {
-        if (!isDeadBefore(r,s)) {
-          insertSpillBefore(s, r, (byte)type, spillLocation);
+        if (!isDeadBefore(r, s)) {
+          insertSpillBefore(s, r, (byte) type, spillLocation);
           sr.setHadToSpill(true);
         }
       }
     } else {
       // update mapping information
-      if (verboseDebug) System.out.println("CSB: " + 
-                                           " End scratch interval " + 
-                                           sr.scratch + " " + s);
-      scratchMap.endScratchInterval(sr.scratch,s);
+      if (verboseDebug) {
+        System.out.println("CSB: " +
+                           " End scratch interval " +
+                           sr.scratch + " " + s);
+      }
+      scratchMap.endScratchInterval(sr.scratch, s);
       OPT_Register scratchContents = sr.currentContents;
       if (scratchContents != null) {
-        if (verboseDebug) System.out.println("CSB: " + 
-                                             " End symbolic interval " + 
-                                             sr.currentContents + " " 
-                                             + s);
-        scratchMap.endSymbolicInterval(sr.currentContents,s);
-      } 
+        if (verboseDebug) {
+          System.out.println("CSB: " +
+                             " End symbolic interval " +
+                             sr.currentContents + " "
+                             + s);
+        }
+        scratchMap.endSymbolicInterval(sr.currentContents, s);
+      }
     }
 
     // update mapping information
-    if (verboseDebug) System.out.println("CSB: Begin scratch interval " + r + 
-                                         " " + s);
-    scratchMap.beginScratchInterval(r,s);
+    if (verboseDebug) {
+      System.out.println("CSB: Begin scratch interval " + r +
+                         " " + s);
+    }
+    scratchMap.beginScratchInterval(r, s);
 
-    if (verboseDebug) System.out.println("CSB: Begin symbolic interval " + 
-                                         symb + " " + r + 
-                                         " " + s);
-    scratchMap.beginSymbolicInterval(symb,r,s);
+    if (verboseDebug) {
+      System.out.println("CSB: Begin symbolic interval " +
+                         symb + " " + r +
+                         " " + s);
+    }
+    scratchMap.beginSymbolicInterval(symb, r, s);
 
     return sr;
   }
@@ -681,7 +703,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    */
   private boolean usesSpillLocation(OPT_Register r, OPT_Instruction s) {
     int location = OPT_RegisterAllocatorState.getSpill(r);
-    return usesSpillLocation(location,s);
+    return usesSpillLocation(location, s);
   }
 
   /**
@@ -690,7 +712,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    */
   private OPT_Register spillLocationUse(OPT_Register r, OPT_Instruction s) {
     int location = OPT_RegisterAllocatorState.getSpill(r);
-    return spillLocationUse(location,s);
+    return spillLocationUse(location, s);
   }
 
   /**
@@ -698,16 +720,17 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    */
   private boolean definesSpillLocation(OPT_Register r, OPT_Instruction s) {
     int location = OPT_RegisterAllocatorState.getSpill(r);
-    return definesSpillLocation(location,s);
+    return definesSpillLocation(location, s);
   }
+
   /**
    * Does instruction s define spill location loc?
    */
   private boolean definesSpillLocation(int loc, OPT_Instruction s) {
-    for (Enumeration<OPT_Operand> e = s.getDefs(); e.hasMoreElements(); ) {
+    for (Enumeration<OPT_Operand> e = s.getDefs(); e.hasMoreElements();) {
       OPT_Operand op = e.nextElement();
       if (op != null && op.isRegister()) {
-        OPT_Register r= op.asRegister().register;
+        OPT_Register r = op.asRegister().register;
         if (OPT_RegisterAllocatorState.getSpill(r) == loc) {
           return true;
         }
@@ -715,14 +738,15 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     }
     return false;
   }
+
   /**
    * Does instruction s use spill location loc?
    */
   private boolean usesSpillLocation(int loc, OPT_Instruction s) {
-    for (Enumeration<OPT_Operand> e = s.getUses(); e.hasMoreElements(); ) {
+    for (Enumeration<OPT_Operand> e = s.getUses(); e.hasMoreElements();) {
       OPT_Operand op = e.nextElement();
       if (op != null && op.isRegister()) {
-        OPT_Register r= op.asRegister().register;
+        OPT_Register r = op.asRegister().register;
         if (OPT_RegisterAllocatorState.getSpill(r) == loc) {
           return true;
         }
@@ -738,10 +762,10 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * live register can use a given spill location.
    */
   private OPT_Register spillLocationUse(int loc, OPT_Instruction s) {
-    for (Enumeration<OPT_Operand> e = s.getUses(); e.hasMoreElements(); ) {
+    for (Enumeration<OPT_Operand> e = s.getUses(); e.hasMoreElements();) {
       OPT_Operand op = e.nextElement();
       if (op != null && op.isRegister()) {
-        OPT_Register r= op.asRegister().register;
+        OPT_Register r = op.asRegister().register;
         if (OPT_RegisterAllocatorState.getSpill(r) == loc) {
           return r;
         }
@@ -757,17 +781,17 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * Except, do NOT return any register that is a member of the reserved set.
    *
    * Throw an exception if none found.
-   */ 
-  private OPT_Register getFirstFPRNotUsedIn(OPT_Register r, 
-                                            OPT_Instruction s, 
+   */
+  private OPT_Register getFirstFPRNotUsedIn(OPT_Register r,
+                                            OPT_Instruction s,
                                             ArrayList<OPT_Register> reserved) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
     // first try the volatiles
-    for (Enumeration<OPT_Register> e = phys.enumerateVolatileFPRs(); e.hasMoreElements(); ) {
+    for (Enumeration<OPT_Register> e = phys.enumerateVolatileFPRs(); e.hasMoreElements();) {
       OPT_Register p = e.nextElement();
-      if (!appearsIn(p,s) && !p.isPinned() &&
-          !reserved.contains(p) && isLegal(r,p,s)) {
+      if (!appearsIn(p, s) && !p.isPinned() &&
+          !reserved.contains(p) && isLegal(r, p, s)) {
         return p;
       }
     }
@@ -783,17 +807,17 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * return any register that is a member of the reserved set.
    *
    * Return null if none found
-   */ 
-  private OPT_Register getFirstDeadFPRNotUsedIn(OPT_Register r, 
-                                                OPT_Instruction s, 
+   */
+  private OPT_Register getFirstDeadFPRNotUsedIn(OPT_Register r,
+                                                OPT_Instruction s,
                                                 ArrayList<OPT_Register> reserved) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
     // first try the volatiles
-    for (Enumeration<OPT_Register> e = phys.enumerateVolatileFPRs(); e.hasMoreElements(); ) {
+    for (Enumeration<OPT_Register> e = phys.enumerateVolatileFPRs(); e.hasMoreElements();) {
       OPT_Register p = e.nextElement();
-      if (!appearsIn(p,s) && !p.isPinned() && !reserved.contains(p)) {
-        if (isDeadBefore(p,s) && isLegal(r,p,s)) return p;
+      if (!appearsIn(p, s) && !p.isPinned() && !reserved.contains(p)) {
+        if (isDeadBefore(p, s) && isLegal(r, p, s)) return p;
       }
     }
 
@@ -807,31 +831,31 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * return any register that is a member of the reserved set.
    *
    * Throw an exception if none found.
-   */ 
-  private OPT_Register getFirstGPRNotUsedIn(OPT_Register r, 
-                                            OPT_Instruction s, 
+   */
+  private OPT_Register getFirstGPRNotUsedIn(OPT_Register r,
+                                            OPT_Instruction s,
                                             ArrayList<OPT_Register> reserved) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     // first try the volatiles
     for (Enumeration<OPT_Register> e = phys.enumerateVolatileGPRs();
-         e.hasMoreElements(); ) {
-      OPT_Register p= e.nextElement();
-      if (!appearsIn(p,s) && !p.isPinned() && !reserved.contains(p)
-          && isLegal(r,p,s)) {
+         e.hasMoreElements();) {
+      OPT_Register p = e.nextElement();
+      if (!appearsIn(p, s) && !p.isPinned() && !reserved.contains(p)
+          && isLegal(r, p, s)) {
         return p;
       }
     }
     // next try the non-volatiles. We allocate the nonvolatiles backwards
     for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRsBackwards();
-         e.hasMoreElements(); ) {
+         e.hasMoreElements();) {
       OPT_Register p = e.nextElement();
-      if (!appearsIn(p,s) && !p.isPinned() && !reserved.contains(p) && 
-          isLegal(r,p,s)) {
+      if (!appearsIn(p, s) && !p.isPinned() && !reserved.contains(p) &&
+          isLegal(r, p, s)) {
         return p;
       }
     }
     OPT_OptimizingCompilerException.TODO(
-                                         "Could not find a free GPR in spill situation");
+        "Could not find a free GPR in spill situation");
     return null;
   }
 
@@ -842,25 +866,25 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * return any register that is a member of the reserved set.
    *
    * return null if none found
-   */ 
+   */
   private OPT_Register getFirstDeadGPRNotUsedIn(OPT_Register r,
-                                                OPT_Instruction s, 
+                                                OPT_Instruction s,
                                                 ArrayList<OPT_Register> reserved) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     // first try the volatiles
     for (Enumeration<OPT_Register> e = phys.enumerateVolatileGPRs();
-         e.hasMoreElements(); ) {
+         e.hasMoreElements();) {
       OPT_Register p = e.nextElement();
-      if (!appearsIn(p,s) && !p.isPinned() && !reserved.contains(p)) {
-        if (isDeadBefore(p,s) && isLegal(r,p,s)) return p;
+      if (!appearsIn(p, s) && !p.isPinned() && !reserved.contains(p)) {
+        if (isDeadBefore(p, s) && isLegal(r, p, s)) return p;
       }
     }
     // next try the non-volatiles. We allocate the nonvolatiles backwards
     for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRsBackwards();
-         e.hasMoreElements(); ) {
+         e.hasMoreElements();) {
       OPT_Register p = e.nextElement();
-      if (!appearsIn(p,s) && !p.isPinned() && !reserved.contains(p)) {
-        if (isDeadBefore(p,s) && isLegal(r,p,s)) return p;
+      if (!appearsIn(p, s) && !p.isPinned() && !reserved.contains(p)) {
+        if (isDeadBefore(p, s) && isLegal(r, p, s)) return p;
       }
     }
     return null;
@@ -870,7 +894,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * Does register r appear in instruction s?
    */
   private boolean appearsIn(OPT_Register r, OPT_Instruction s) {
-    for (Enumeration<OPT_Operand> e = s.getOperands(); e.hasMoreElements(); ) {
+    for (Enumeration<OPT_Operand> e = s.getOperands(); e.hasMoreElements();) {
       OPT_Operand op = e.nextElement();
       if (op != null && op.isRegister()) {
         if (op.asRegister().register.number == r.number) {
@@ -878,7 +902,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
         }
       }
     }
-    if (VM.BuildForIA32 && r.isFloatingPoint() && 
+    if (VM.BuildForIA32 && r.isFloatingPoint() &&
         (OPT_Operators.helper.isFNInit(s.operator) ||
          OPT_Operators.helper.isFClear(s.operator))) {
       return true;
@@ -889,12 +913,11 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     return s.isCall() && s.operator != CALL_SAVE_VOLATILE && r.isVolatile();
   }
 
-
   /**
    * Is s a PEI with a reachable catch block?
    */
   private boolean isPEIWithCatch(OPT_Instruction s) {
-    if (s.isPEI())  {
+    if (s.isPEI()) {
       // TODO: optimize this away by passing the basic block in.
       OPT_BasicBlock b = s.getBasicBlock();
 
@@ -950,7 +973,6 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     }
   }
 
-
   /**
    * After register allocation, go back through the IR and insert
    * compensating code to deal with spills.
@@ -975,7 +997,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     }
 
     // walk over each instruction in the IR
-    for (Enumeration<OPT_BasicBlock> blocks = ir.getBasicBlocks(); blocks.hasMoreElements(); ) {
+    for (Enumeration<OPT_BasicBlock> blocks = ir.getBasicBlocks(); blocks.hasMoreElements();) {
       OPT_BasicBlock bb = blocks.nextElement();
       for (Enumeration<OPT_Instruction> e = bb.forwardInstrEnumerator(); e.hasMoreElements();) {
 
@@ -990,7 +1012,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
 
         // If any scratch registers are currently in use, but use physical
         // registers that appear in s, then free the scratch register.
-        restoreScratchRegistersBefore(s);  
+        restoreScratchRegistersBefore(s);
 
         // we must spill all scratch registers before leaving this basic block
         if (s.operator == BBEND || isPEIWithCatch(s) || s.isBranch() || s.isReturn()) {
@@ -1023,25 +1045,25 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
 
         // Walk over each operand and insert the appropriate spill code.
         // for the operand.
-        for (Enumeration<OPT_Operand> ops = s.getOperands(); ops.hasMoreElements(); ) {
+        for (Enumeration<OPT_Operand> ops = s.getOperands(); ops.hasMoreElements();) {
           OPT_Operand op = ops.nextElement();
           if (op != null && op.isRegister()) {
             OPT_Register r = op.asRegister().register;
             if (!r.isPhysical()) {
               // Is r currently assigned to a scratch register?
               // Note that if we're being cheap, the answer is always no (null)
-              ScratchRegister scratch = getCurrentScratchRegister(r,s);
+              ScratchRegister scratch = getCurrentScratchRegister(r, s);
               if (verboseDebug) {
                 System.out.println(r + " SCRATCH " + scratch);
               }
               if (scratch != null) {
                 // r is currently assigned to a scratch register.  Continue to
                 // use the same scratch register.
-                boolean defined = definedIn(r,s) || definesSpillLocation(r,s);
+                boolean defined = definedIn(r, s) || definesSpillLocation(r, s);
                 if (defined) {
                   scratch.setDirty(true);
                 }
-                replaceRegisterWithScratch(s,r,scratch.scratch);
+                replaceRegisterWithScratch(s, r, scratch.scratch);
               } else {
                 // r is currently NOT assigned to a scratch register.
                 // Do we need to create a new scratch register to hold r?
@@ -1049,41 +1071,41 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
                 // for FMOVs, since we already have a scratch stack location
                 // reserved.
                 // If we're being cheap, then always create a new scratch register.
-                if (needScratch(r,s)) {
+                if (needScratch(r, s)) {
                   // We must create a new scratch register.
-                  boolean used = usedIn(r,s) || usesSpillLocation(r,s);
-                  boolean defined = definedIn(r,s) || definesSpillLocation(r,s);
+                  boolean used = usedIn(r, s) || usesSpillLocation(r, s);
+                  boolean defined = definedIn(r, s) || definesSpillLocation(r, s);
                   if (used) {
-                    if (!usedIn(r,s)) {
-                      OPT_Register r2 = spillLocationUse(r,s);
-                      scratch = moveToScratchBefore(s,r2,beCheap);
+                    if (!usedIn(r, s)) {
+                      OPT_Register r2 = spillLocationUse(r, s);
+                      scratch = moveToScratchBefore(s, r2, beCheap);
                       if (verboseDebug) {
-                        System.out.println("MOVED TO SCRATCH BEFORE " + r2 + 
+                        System.out.println("MOVED TO SCRATCH BEFORE " + r2 +
                                            " " + scratch);
                       }
                     } else {
-                      scratch = moveToScratchBefore(s,r,beCheap);
+                      scratch = moveToScratchBefore(s, r, beCheap);
                       if (verboseDebug) {
-                        System.out.println("MOVED TO SCRATCH BEFORE " + r + 
+                        System.out.println("MOVED TO SCRATCH BEFORE " + r +
                                            " " + scratch);
                       }
                     }
-                  }   
+                  }
                   if (defined) {
-                    scratch = holdInScratchAfter(s,r,beCheap);
+                    scratch = holdInScratchAfter(s, r, beCheap);
                     scratch.setDirty(true);
                     if (verboseDebug) {
-                      System.out.println("HELD IN SCRATCH AFTER" + r + 
+                      System.out.println("HELD IN SCRATCH AFTER" + r +
                                          " " + scratch);
                     }
                   }
                   // replace the register in the target instruction.
-                  replaceRegisterWithScratch(s,r,scratch.scratch);
+                  replaceRegisterWithScratch(s, r, scratch.scratch);
                 } else {
                   if (s.operator != YIELDPOINT_OSR) {
                     if (VM.BuildForIA32) {
                       // No need to use a scratch register here.
-                      replaceOperandWithSpillLocation(s,op.asRegister());
+                      replaceOperandWithSpillLocation(s, op.asRegister());
                     } else {
                       if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
                     }
@@ -1096,7 +1118,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
 
         // deal with sys calls that may bash non-volatiles
         if (isSysCall(s)) {
-          OPT_CallingConvention.saveNonvolatilesAroundSysCall(s,ir);
+          OPT_CallingConvention.saveNonvolatilesAroundSysCall(s, ir);
         }
       }
     }
@@ -1107,6 +1129,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * registers
    */
   protected OPT_ScratchMap scratchMap = new OPT_ScratchMap();
+
   OPT_ScratchMap getScratchMap() { return scratchMap; }
 
   /**
@@ -1119,7 +1142,8 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * @param location the spill location
    */
   public abstract void insertSpillBefore(OPT_Instruction s, OPT_Register r,
-                                  byte type, int location);
+                                         byte type, int location);
+
   /**
    * Insert a spill of a physical register after instruction s.
    *
@@ -1130,8 +1154,8 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * @param location the spill location
    */
   public final void insertSpillAfter(OPT_Instruction s, OPT_Register r,
-                              byte type, int location) {
-    insertSpillBefore(s.nextInstructionInCodeOrder(),r,type,location);
+                                     byte type, int location) {
+    insertSpillBefore(s.nextInstructionInCodeOrder(), r, type, location);
   }
 
   /**
@@ -1144,8 +1168,9 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    *                    CONDITION_VALUE
    * @param location the spill location
    */
-  public abstract void insertUnspillBefore(OPT_Instruction s, OPT_Register r, 
-                                    byte type, int location);
+  public abstract void insertUnspillBefore(OPT_Instruction s, OPT_Register r,
+                                           byte type, int location);
+
   /**
    * Insert a load of a physical register from a spill location before 
    * instruction s.
@@ -1156,28 +1181,30 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    *                    CONDITION_VALUE
    * @param location the spill location
    */
-  public final void insertUnspillAfter(OPT_Instruction s, OPT_Register r, 
-                                byte type, int location) {
-    insertUnspillBefore(s.nextInstructionInCodeOrder(),r,type,location);
+  public final void insertUnspillAfter(OPT_Instruction s, OPT_Register r,
+                                       byte type, int location) {
+    insertUnspillBefore(s.nextInstructionInCodeOrder(), r, type, location);
   }
 
   /**
    * Object holding register preferences
    */
   protected OPT_RegisterPreferences pref = new OPT_RegisterPreferences();
+
   OPT_RegisterPreferences getPreferences() { return pref; }
 
   /**
    * Object holding register restrictions
    */
   protected OPT_RegisterRestrictions restrict;
+
   OPT_RegisterRestrictions getRestrictions() { return restrict; }
 
   /**
    * Spill pointer (in bytes) relative to the beginning of the 
    * stack frame (starts after the header).
    */
-  protected int spillPointer = ArchitectureSpecific.VM_ArchConstants.STACKFRAME_HEADER_SIZE; 
+  protected int spillPointer = ArchitectureSpecific.VM_ArchConstants.STACKFRAME_HEADER_SIZE;
 
   /**
    * Have we decided that a stack frame is required for this method?
@@ -1229,7 +1256,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
   /**
    * Allocate the specified number of bytes in the stackframe,
    * returning the offset to the start of the allocated space.
-   * 
+   *
    * @param size the number of bytes to allocate
    * @return offset to the start of the allocated space.
    */
@@ -1253,7 +1280,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
   public int allocateSpaceForConversion() {
     if (conversionOffset == 0) {
       conversionOffset = allocateOnStackFrame(8);
-    } 
+    }
     return conversionOffset;
   }
 
@@ -1265,7 +1292,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
   public int allocateSpaceForCaughtException() {
     if (caughtExceptionOffset == 0) {
       caughtExceptionOffset = allocateOnStackFrame(BYTES_IN_ADDRESS);
-    } 
+    }
     return caughtExceptionOffset;
   }
 
@@ -1335,9 +1362,9 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     //    create the stack frame on demand.
 
     OPT_BasicBlock firstBB = ir.cfg.entry();
-    boolean isSingleBlock = firstBB.hasZeroIn() && 
-      firstBB.hasOneOut() && firstBB.pointsOut(ir.cfg.exit());
-    boolean removeYieldpoints = isSingleBlock && ! preventYieldPointRemoval;
+    boolean isSingleBlock = firstBB.hasZeroIn() &&
+                            firstBB.hasOneOut() && firstBB.pointsOut(ir.cfg.exit());
+    boolean removeYieldpoints = isSingleBlock && !preventYieldPointRemoval;
 
     // In adaptive systems if we require a frame, we don't remove 
     //  any yield poits
@@ -1377,7 +1404,6 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     restrict = new OPT_RegisterRestrictions(ir.regpool.getPhysicalRegisterSet());
   }
 
-
   protected OPT_IR ir;
   protected int frameSize;      // = 0;  (by default)
   protected boolean allocFrame; // = false;  (by default)
@@ -1400,17 +1426,16 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
 
     int physType = OPT_PhysicalRegisterSet.getPhysicalRegisterType(symbReg);
     for (Enumeration<OPT_Register> e = phys.enumerateVolatiles(physType);
-         e.hasMoreElements(); ) {
+         e.hasMoreElements();) {
       OPT_Register realReg = e.nextElement();
       if (realReg.isAvailable()) {
         realReg.allocateToRegister(symbReg);
-        if (debug) VM.sysWrite(" volat."+realReg+" to symb "+symbReg+'\n');
+        if (debug) VM.sysWrite(" volat." + realReg + " to symb " + symbReg + '\n');
         return realReg;
       }
     }
     return null;
   }
-
 
   /**
    * Given a symbolic register, return a code that indicates the type
@@ -1452,7 +1477,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     int physType = OPT_PhysicalRegisterSet.getPhysicalRegisterType(symbReg);
     for (Enumeration<OPT_Register> e = phys.enumerateNonvolatilesBackwards(physType);
-         e.hasMoreElements(); ) {
+         e.hasMoreElements();) {
       OPT_Register realReg = e.nextElement();
       if (realReg.isAvailable()) {
         realReg.allocateToRegister(symbReg);
@@ -1484,25 +1509,27 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     private boolean dirty = false;
 
     public boolean isDirty() { return dirty; }
+
     public void setDirty(boolean b) { dirty = b; }
 
     /**
      * Did we spill a value in order to free up this scratch register?
      */
     private boolean spilledIt = false;
-    public boolean hadToSpill() { return spilledIt; }
-    public void setHadToSpill(boolean b) { spilledIt = b; }
 
+    public boolean hadToSpill() { return spilledIt; }
+
+    public void setHadToSpill(boolean b) { spilledIt = b; }
 
     public ScratchRegister(OPT_Register scratch, OPT_Register currentContents) {
       this.scratch = scratch;
       this.currentContents = currentContents;
     }
 
-    public String toString() { 
+    public String toString() {
       String dirtyString = dirty ? "D" : "C";
       return "SCRATCH<" + scratch + "," + currentContents + "," +
-        dirtyString + ">";
+             dirtyString + ">";
     }
   }
 }

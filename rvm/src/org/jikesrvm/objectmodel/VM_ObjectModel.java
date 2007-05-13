@@ -31,7 +31,7 @@ import org.vmmagic.unboxed.Word;
 /**
  * The interface to the object model definition accessible to the 
  * virtual machine. <p>
- * 
+ *
  * Conceptually each Java object is composed of the following pieces:
  * <ul>
  * <li> The JavaHeader defined by {@link VM_JavaHeader}. This portion of the
@@ -48,7 +48,7 @@ import org.vmmagic.unboxed.Word;
  *      Factoring this code out and making it possible to lay out the instance
  *      fields in different ways is a todo item.
  * </ul>
- * 
+ *
  * Every object's header contains the three portions outlined above.
  *
  * <pre>
@@ -79,7 +79,7 @@ import org.vmmagic.unboxed.Word;
  *      The GCHeader should use buts 0..i, MiscHeader should use bits i..k.
  * <li> JHOFF is a constant for a given configuration.
  * </ul>
- * 
+ *
  * This model allows efficient array access: the array pointer can be
  * used directly in the base+offset subscript calculation, with no
  * additional constant required.<p>
@@ -90,14 +90,14 @@ import org.vmmagic.unboxed.Word;
  * long as these segments of memory are not mapped to the current
  * process, loads/stores through such a pointer will cause a trap that
  * we can catch with a unix signal handler.<p>
- * 
+ *
  * Note that on AIX we are forced to perform explicit null checks on
  * scalar field accesses as we are unable to protect low memory.
- * 
+ *
  * Note the key invariant that all elements of the header are 
  * available at the same offset from an objref for both arrays and 
  * scalar objects.
- * 
+ *
  * Note that this model allows for arbitrary growth of the GC header
  * to the left of the object.  A possible TODO item is to modify the
  * necessary interfaces within this class and JavaHeader to allow
@@ -114,38 +114,38 @@ import org.vmmagic.unboxed.Word;
  * code is switched off, or that all objects are aligned.  Linear
  * scanning is used in several GC algorithms including card-marking
  * and compaction.
- *  
+ *
  * @see VM_JavaHeader
  * @see VM_MiscHeader
  * @see MM_Interface
  */
-@Uninterruptible 
+@Uninterruptible
 public class VM_ObjectModel implements VM_JavaHeaderConstants,
-    VM_SizeConstants {
+                                       VM_SizeConstants {
 
   /** Should we gather stats on hash code state transitions for address-based hashing? */
   public static final boolean HASH_STATS = false;
   /** count number of Object.hashCode() operations */
-  public static int hashRequests    = 0; 
+  public static int hashRequests = 0;
   /** count transitions from UNHASHED to HASHED */
-  public static int hashTransition1 = 0; 
+  public static int hashTransition1 = 0;
   /** count transitions from HASHED to HASHED_AND_MOVED */
-  public static int hashTransition2 = 0; 
+  public static int hashTransition2 = 0;
 
   /** Whether to pack bytes and shorts into 32bit fields*/
   private static final boolean PACKED = true;
 
   /** Layout widget */
   private static VM_FieldLayout layout;
-  
+
   static {
-     if (PACKED) {
-      layout = new VM_FieldLayoutPacked(true,false);
+    if (PACKED) {
+      layout = new VM_FieldLayoutPacked(true, false);
     } else {
-      layout = new VM_FieldLayoutUnpacked(true,false);
+      layout = new VM_FieldLayoutUnpacked(true, false);
     }
   }
-  
+
   /**
    * Layout the instance fields declared in this class.
    * @param klass the class to layout
@@ -174,17 +174,17 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
   /**
    * Get the TIB for an object.
    */
-  public static Object[] getTIB(ObjectReference ptr) { 
-    return getTIB(ptr.toObject()); 
+  public static Object[] getTIB(ObjectReference ptr) {
+    return getTIB(ptr.toObject());
   }
 
   /**
    * Get the TIB for an object.
    */
-  public static Object[] getTIB(Object o) { 
+  public static Object[] getTIB(Object o) {
     return VM_JavaHeader.getTIB(o);
   }
-  
+
   /**
    * Set the TIB for an object.
    */
@@ -204,7 +204,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
    */
   @Interruptible
   public static void setTIB(BootImageInterface bootImage, Address refAddress,
-                            Address tibAddr, VM_Type type) { 
+                            Address tibAddr, VM_Type type) {
     VM_JavaHeader.setTIB(bootImage, refAddress, tibAddr, type);
   }
 
@@ -221,14 +221,14 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
       return getObjectEndAddress(obj, type.asArray(), numElements);
     }
   }
-  
+
   /**
    * Get the pointer just past an object 
    */
   public static Address getObjectEndAddress(Object object, VM_Class type) {
     return VM_JavaHeader.getObjectEndAddress(object, type);
   }
-  
+
   /**
    * Get the pointer just past an object 
    */
@@ -281,16 +281,15 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
 
   /**
    * Get the next object after this array under contiguous allocation. 
-  */
+   */
   public static ObjectReference getNextObject(ObjectReference obj,
                                               VM_Array type, int numElements) {
     return VM_JavaHeader.getNextObject(obj, type, numElements);
   }
- 
 
-  /**       
+  /**
    * how many bytes are used by the object?
-   */       
+   */
   public static Object getReferenceWhenCopiedTo(Object obj, Address to) {
     Object[] tib = getTIB(obj);
     VM_Type type = VM_Magic.objectAsType(tib[VM_TIBLayoutConstants.TIB_TYPE_INDEX]);
@@ -301,9 +300,9 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
     }
   }
 
-  /**       
+  /**
    * how many bytes are used by the object?
-   */       
+   */
   public static int bytesUsed(Object obj) {
     Object[] tib = getTIB(obj);
     VM_Type type = VM_Magic.objectAsType(tib[VM_TIBLayoutConstants.TIB_TYPE_INDEX]);
@@ -324,12 +323,12 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
 
   /**
    * how many bytes are used by the array? 
-  */
+   */
   public static int bytesUsed(Object obj, VM_Array type, int numElements) {
     return VM_JavaHeader.bytesUsed(obj, type, numElements);
   }
 
-  /**       
+  /**
    * how many bytes are required when the object is copied by GC?
    */
   public static int bytesRequiredWhenCopied(Object obj) {
@@ -349,6 +348,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
   public static int bytesRequiredWhenCopied(Object fromObj, VM_Class type) {
     return VM_JavaHeader.bytesRequiredWhenCopied(fromObj, type);
   }
+
   /**
    * how many bytes are needed when the array object is copied by GC?
    */
@@ -361,7 +361,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
    * associated with the object
    */
   @Inline
-  public static Address objectStartRef(ObjectReference obj) { 
+  public static Address objectStartRef(ObjectReference obj) {
     return VM_JavaHeader.objectStartRef(obj);
   }
 
@@ -414,11 +414,11 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
   /**
    * Get the type of an object.  
    */
-  public static VM_Type getObjectType(Object o) { 
+  public static VM_Type getObjectType(Object o) {
     return VM_Magic.getObjectType(o);
   }
 
-  /** 
+  /**
    * Get the length of an array
    */
   public static int getArrayLength(Object o) {
@@ -435,7 +435,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
   /**
    * Get the hash code of an object.
    */
-  public static int getObjectHashCode(Object o) { 
+  public static int getObjectHashCode(Object o) {
     if (HASH_STATS) hashRequests++;
     return VM_JavaHeader.getObjectHashCode(o);
   }
@@ -465,7 +465,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
   /**
    * Generic lock
    */
-  public static void genericLock(Object o) { 
+  public static void genericLock(Object o) {
     VM_JavaHeader.genericLock(o);
   }
 
@@ -485,7 +485,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
   public static boolean holdsLock(Object obj, VM_Thread thread) {
     return VM_JavaHeader.holdsLock(obj, thread);
   }
-  
+
   /**
    * Obtains the heavy-weight lock, if there is one, associated with the
    * indicated object.  Returns <code>null</code>, if there is no
@@ -555,7 +555,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
   public static Word prepareAvailableBits(Object o) {
     return VM_JavaHeader.prepareAvailableBits(o);
   }
-  
+
   /**
    * An attempt on the word containing the available bits
    */
@@ -568,7 +568,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
    * Given the smallest base address in a region, return the smallest
    * object reference that could refer to an object in the region.
    */
-  public static Address minimumObjectRef (Address regionBaseAddr) {
+  public static Address minimumObjectRef(Address regionBaseAddr) {
     return VM_JavaHeader.minimumObjectRef(regionBaseAddr);
   }
 
@@ -576,7 +576,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
    * Given the largest base address in a region, return the largest
    * object reference that could refer to an object in the region.
    */
-  public static Address maximumObjectRef (Address regionHighAddr) {
+  public static Address maximumObjectRef(Address regionHighAddr) {
     return VM_JavaHeader.maximumObjectRef(regionHighAddr);
   }
 
@@ -584,7 +584,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
    * Compute the header size of an instance of the given type.
    */
   @Inline
-  public static int computeHeaderSize(VM_Type type) { 
+  public static int computeHeaderSize(VM_Type type) {
     if (type.isArrayType()) {
       return computeArrayHeaderSize(type.asArray());
     } else {
@@ -596,7 +596,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
    * Compute the header size of an object 
    */
   @Interruptible
-  public static int computeHeaderSize(Object ref) { 
+  public static int computeHeaderSize(Object ref) {
     return computeHeaderSize(getObjectType(ref));
   }
 
@@ -604,7 +604,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
    * Compute the header size of an instance of the given type.
    */
   @Inline
-  public static int computeScalarHeaderSize(VM_Class type) { 
+  public static int computeScalarHeaderSize(VM_Class type) {
     return VM_JavaHeader.computeScalarHeaderSize(type);
   }
 
@@ -717,13 +717,13 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
   /**
    * Initialize raw storage with low memory word ptr of size bytes
    * to be an uninitialized instance of the (scalar) type specified by tib.
-   * 
+   *
    * @param ptr address of raw storage
    * @param tib the type information block
    * @param size number of bytes of raw storage allocated.
    */
   @Inline
-  public static Object initializeScalar(Address ptr, Object[] tib, int size) { 
+  public static Object initializeScalar(Address ptr, Object[] tib, int size) {
     Object ref = VM_JavaHeader.initializeScalarHeader(ptr, tib, size);
     VM_MiscHeader.initializeHeader(ref, tib, size, true);
     setTIB(ref, tib);
@@ -734,14 +734,14 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
    * Allocate and initialize space in the bootimage (at bootimage writing time)
    * to be an uninitialized instance of the (scalar) type specified by klass.
    * NOTE: TIB is set by BootImageWriter2
-   * 
+   *
    * @param bootImage the bootimage to put the object in
    * @param klass the VM_Class object of the instance to create.
    * @return the offset of object in bootimage (in bytes)
    */
   @Interruptible
   public static Address allocateScalar(BootImageInterface bootImage,
-                                       VM_Class klass) { 
+                                       VM_Class klass) {
     Object[] tib = klass.getTypeInformationBlock();
     int size = klass.getInstanceSize();
     int align = getAlignment(klass);
@@ -758,26 +758,26 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
    */
   @Interruptible
   public static void fillAlignmentGap(BootImageInterface bootImage,
-                                      Address address, Extent size) { 
-    while(size.GT(Extent.zero())) {
+                                      Address address, Extent size) {
+    while (size.GT(Extent.zero())) {
       bootImage.setFullWord(address, VM_JavaHeader.ALIGNMENT_VALUE);
       address = address.plus(BYTES_IN_INT);
       size = size.minus(BYTES_IN_INT);
     }
-  } 
+  }
 
   /**
    * Initialize raw storage with low memory word ptr of size bytes
    * to be an uninitialized instance of the array type specific by tib
    * with numElems elements.
-   * 
+   *
    * @param ptr address of raw storage
    * @param tib the type information block
    * @param numElems number of elements in the array
    * @param size number of bytes of raw storage allocated.
    */
   @Inline
-  public static Object initializeArray(Address ptr, Object[] tib, int numElems, int size) { 
+  public static Object initializeArray(Address ptr, Object[] tib, int numElems, int size) {
     Object ref = VM_JavaHeader.initializeArrayHeader(ptr, tib, size);
     VM_MiscHeader.initializeHeader(ref, tib, size, false);
     setTIB(ref, tib);
@@ -789,16 +789,16 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
    * Allocate and initialize space in the bootimage (at bootimage writing time)
    * to be an uninitialized instance of the (array) type specified by array.
    * NOTE: TIB is set by BootimageWriter2
-   * 
+   *
    * @param bootImage the bootimage to put the object in
    * @param array VM_Array object of array being allocated.
    * @param numElements number of elements
    * @return Address of object in bootimage (in bytes)
    */
   @Interruptible
-  public static Address allocateArray(BootImageInterface bootImage, 
+  public static Address allocateArray(BootImageInterface bootImage,
                                       VM_Array array,
-                                      int numElements) { 
+                                      int numElements) {
     Object[] tib = array.getTypeInformationBlock();
     int size = array.getInstanceSize(numElements);
     int align = getAlignment(array);
@@ -811,21 +811,20 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
     return ref;
   }
 
-
   /**
    * Allocate and initialize space in the bootimage (at bootimage writing time)
    * to be an uninitialized instance of the (array) type specified by array.
    * NOTE: TIB is set by BootimageWriter2
-   * 
+   *
    * @param bootImage the bootimage to put the object in
    * @param array VM_Array object of array being allocated.
    * @param numElements number of elements
    * @return Address of object in bootimage
    */
   @Interruptible
-  public static Address allocateCode(BootImageInterface bootImage, 
+  public static Address allocateCode(BootImageInterface bootImage,
                                      VM_Array array,
-                                     int numElements) { 
+                                     int numElements) {
     Object[] tib = array.getTypeInformationBlock();
     int size = array.getInstanceSize(numElements);
     int align = getAlignment(array);
@@ -877,7 +876,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
    * @param object the number of the register holding the object reference
    */
   @Interruptible
-  public static void baselineEmitLoadTIB(VM_Assembler asm, int dest, int object) { 
+  public static void baselineEmitLoadTIB(VM_Assembler asm, int dest, int object) {
     VM_JavaHeader.baselineEmitLoadTIB(asm, dest, object);
   }
 }

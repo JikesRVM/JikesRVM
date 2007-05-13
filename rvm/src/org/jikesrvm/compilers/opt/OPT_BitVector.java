@@ -10,7 +10,7 @@ package org.jikesrvm.compilers.opt;
 
 import java.io.Serializable;
 
-/** 
+/**
  * OPT_BitVector.java
  *
  * implements a bit vector
@@ -18,12 +18,12 @@ import java.io.Serializable;
 public final class OPT_BitVector implements Serializable {
   /** Support for serialization */
   static final long serialVersionUID = 6961578653974090041L;
-  
+
   private static final int LOG_BITS_PER_UNIT = 5;
   private static final int MASK = 0xffffffff;
   private static final int LOW_MASK = 0x1f;
   private final int[] bits;
-  private final int nbits; 
+  private final int nbits;
 
   /**
    * Convert bitIndex to a subscript into the bits[] array.
@@ -42,6 +42,7 @@ public final class OPT_BitVector implements Serializable {
     bits = new int[subscript(nbits) + 1];
     this.nbits = nbits;
   }
+
   /**
    * Creates a copy of a Bit String
    * @param s the string to copy
@@ -51,12 +52,12 @@ public final class OPT_BitVector implements Serializable {
     this.nbits = s.nbits;
     System.arraycopy(s.bits, 0, this.bits, 0, s.bits.length);
   }
-  
+
   /**
    * Sets all bits.
    */
   public void setAll() {
-    for (int i=0; i<bits.length; i++) {
+    for (int i = 0; i < bits.length; i++) {
       bits[i] = MASK;
     }
   }
@@ -69,16 +70,15 @@ public final class OPT_BitVector implements Serializable {
     int shiftBits = bit & LOW_MASK;
     bits[subscript(bit)] |= (1 << shiftBits);
   }
-  
+
   /**
    * Clears all bits.
    */
   public void clearAll() {
-    for (int i=0; i<bits.length; i++) {
+    for (int i = 0; i < bits.length; i++) {
       bits[i] = 0;
     }
   }
-
 
   /**
    * Clears a bit.
@@ -98,15 +98,16 @@ public final class OPT_BitVector implements Serializable {
     int n = subscript(bit);
     return ((bits[n] & (1 << shiftBits)) != 0);
   }
-  
+
   /**
    * Logically NOT this bit string
    */
   public void not() {
-    for (int i=0; i<bits.length; i++) {
-       bits[i] ^= MASK;
+    for (int i = 0; i < bits.length; i++) {
+      bits[i] ^= MASK;
     }
   }
+
   /**
    * Return the NOT of a bit string
    */
@@ -121,14 +122,15 @@ public final class OPT_BitVector implements Serializable {
    * @param set the bit set to be ANDed with
    */
   public void and(OPT_BitVector set) {
-    if (this == set) { 
+    if (this == set) {
       return;
     }
     int n = bits.length;
-    for (int i = n ; i-- > 0 ; ) {
+    for (int i = n; i-- > 0;) {
       bits[i] &= set.bits[i];
     }
   }
+
   /**
    * Return a new bit string as the AND of two others.
    */
@@ -137,7 +139,7 @@ public final class OPT_BitVector implements Serializable {
     b.and(b2);
     return b;
   }
-  
+
   /**
    * Logically ORs this bit set with the specified set of bits.
    * @param set the bit set to be ORed with
@@ -147,10 +149,11 @@ public final class OPT_BitVector implements Serializable {
       return;
     }
     int setLength = set.bits.length;
-    for (int i = setLength; i-- > 0 ;) {
+    for (int i = setLength; i-- > 0;) {
       bits[i] |= set.bits[i];
     }
   }
+
   /**
    * Return a new OPT_BitVector as the OR of two others
    */
@@ -159,25 +162,25 @@ public final class OPT_BitVector implements Serializable {
     b.or(b2);
     return b;
   }
-  
+
   /**
    * Logically XORs this bit set with the specified set of bits.
    * @param set the bit set to be XORed with
    */
   public void xor(OPT_BitVector set) {
     int setLength = set.bits.length;
-    for (int i = setLength; i-- > 0 ;) {
+    for (int i = setLength; i-- > 0;) {
       bits[i] ^= set.bits[i];
     }
   }
-  
+
   /**
    * Check if the intersection of the two sets is empty
    * @param other the set to check intersection with
    */
   public boolean intersectionEmpty(OPT_BitVector other) {
     int n = bits.length;
-    for (int i = n ; i-- > 0 ; ) {
+    for (int i = n; i-- > 0;) {
       if ((bits[i] & other.bits[i]) != 0) return false;
     }
     return true;
@@ -190,13 +193,13 @@ public final class OPT_BitVector implements Serializable {
   public void copyBits(OPT_BitVector set) {
     System.arraycopy(set.bits, 0, this.bits, 0, set.bits.length);
   }
-  
+
   /**
    * Gets the hashcode.
    */
   public int hashCode() {
     int h = 1234;
-    for (int i = bits.length; --i >= 0; ) {
+    for (int i = bits.length; --i >= 0;) {
       h ^= bits[i] * (i + 1);
     }
     return h;
@@ -212,7 +215,7 @@ public final class OPT_BitVector implements Serializable {
     }
     return count;
   }
-  
+
   /**
    * Calculates and returns the set's size in bits.
    * The maximum element in the set is the size - 1st element.
@@ -234,7 +237,7 @@ public final class OPT_BitVector implements Serializable {
       OPT_BitVector set = (OPT_BitVector) obj;
       int n = bits.length;
       if (n != set.bits.length) return false;
-      for (int i = n ; i-- > 0 ;) {
+      for (int i = n; i-- > 0;) {
         if (bits[i] != set.bits[i]) {
           return false;
         }
@@ -246,7 +249,7 @@ public final class OPT_BitVector implements Serializable {
 
   public boolean isZero() {
     int setLength = bits.length;
-    for (int i = setLength; i-- > 0 ;) {
+    for (int i = setLength; i-- > 0;) {
       if (bits[i] != 0) return false;
     }
     return true;
@@ -255,7 +258,7 @@ public final class OPT_BitVector implements Serializable {
   public OPT_BitVector dup() {
     return new OPT_BitVector(this);
   }
-  
+
   /**
    * Converts the OPT_BitVector to a String.
    */
@@ -265,7 +268,7 @@ public final class OPT_BitVector implements Serializable {
     buffer.append('{');
 //    int limit = length();
     int limit = this.nbits;
-    for (int i = 0 ; i < limit ; i++) {
+    for (int i = 0; i < limit; i++) {
       if (get(i)) {
         if (needSeparator) {
           buffer.append(", ");

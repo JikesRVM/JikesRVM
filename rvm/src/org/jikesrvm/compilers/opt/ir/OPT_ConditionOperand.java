@@ -13,7 +13,7 @@ import org.vmmagic.unboxed.Address;
 
 /**
  * Encodes the condition codes for branches.
- * 
+ *
  * @see OPT_Operand
  */
 public final class OPT_ConditionOperand extends OPT_Operand {
@@ -36,17 +36,17 @@ public final class OPT_ConditionOperand extends OPT_Operand {
 
   /* floating-point arithmethic */
   // branches that fall through when unordered
-  public static final int CMPL_EQUAL         = 12; // Branch if == (equivalent to CMPG_EQUAL)
-  public static final int CMPL_GREATER       = 13; // Branch if >
-  public static final int CMPG_LESS          = 14; // Branch if <
+  public static final int CMPL_EQUAL = 12; // Branch if == (equivalent to CMPG_EQUAL)
+  public static final int CMPL_GREATER = 13; // Branch if >
+  public static final int CMPG_LESS = 14; // Branch if <
   public static final int CMPL_GREATER_EQUAL = 15; // Branch if >=
-  public static final int CMPG_LESS_EQUAL    = 16; // Brnach if <=
+  public static final int CMPG_LESS_EQUAL = 16; // Brnach if <=
   // branches that are taken when unordered
-  public static final int CMPL_NOT_EQUAL     = 17; // Branch if != (equivalent to CMPG_NOT_EQUAL)
-  public static final int CMPL_LESS          = 18; // Branch if < or unordered
+  public static final int CMPL_NOT_EQUAL = 17; // Branch if != (equivalent to CMPG_NOT_EQUAL)
+  public static final int CMPL_LESS = 18; // Branch if < or unordered
   public static final int CMPG_GREATER_EQUAL = 19; // Brach if >= or unordered
-  public static final int CMPG_GREATER       = 20; // Branch if > or unordered
-  public static final int CMPL_LESS_EQUAL    = 21; // Branch if <= or unordered
+  public static final int CMPG_GREATER = 20; // Branch if > or unordered
+  public static final int CMPL_LESS_EQUAL = 21; // Branch if <= or unordered
 
   /**
    * Value of this operand.
@@ -62,7 +62,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
 
   /**
    * Create the condition code operand for EQUAL
-   * 
+   *
    * @return a new condition code operand
    */
   public static OPT_ConditionOperand EQUAL() {
@@ -71,7 +71,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
 
   /**
    * Create the condition code operand for NOT_EQUAL
-   * 
+   *
    * @return a newly created condition code operand
    */
   public static OPT_ConditionOperand NOT_EQUAL() {
@@ -80,7 +80,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
 
   /**
    * Create the condition code operand for LESS
-   * 
+   *
    * @return a newly created condition code operand
    */
   public static OPT_ConditionOperand LESS() {
@@ -89,7 +89,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
 
   /**
    * Create the condition code operand for GREATER_EQUAL
-   * 
+   *
    * @return a newly created condition code operand
    */
   public static OPT_ConditionOperand GREATER_EQUAL() {
@@ -98,7 +98,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
 
   /**
    * Create the condition code operand for GREATER
-   * 
+   *
    * @return a newly created condition code operand
    */
   public static OPT_ConditionOperand GREATER() {
@@ -107,7 +107,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
 
   /**
    * Create the condition code operand for LESS_EQUAL
-   * 
+   *
    * @return a newly created condition code operand
    */
   public static OPT_ConditionOperand LESS_EQUAL() {
@@ -116,7 +116,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
 
   /**
    * Create the condition code operand for HIGHER
-   * 
+   *
    * @return a newly created condition code operand
    */
   public static OPT_ConditionOperand HIGHER() {
@@ -125,7 +125,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
 
   /**
    * Create the condition code operand for LOWER
-   * 
+   *
    * @return a newly created condition code operand
    */
   public static OPT_ConditionOperand LOWER() {
@@ -134,7 +134,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
 
   /**
    * Create the condition code operand for HIGHER_EQUAL
-   * 
+   *
    * @return a newly created condition code operand
    */
   public static OPT_ConditionOperand HIGHER_EQUAL() {
@@ -143,7 +143,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
 
   /**
    * Create the condition code operand for LOWER_EQUAL
-   * 
+   *
    * @return a newly created condition code operand
    */
   public static OPT_ConditionOperand LOWER_EQUAL() {
@@ -152,7 +152,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
 
   /**
    * Is the condition code EQUAL?
-   * 
+   *
    * @return <code>true</code> if it is or <code>false</code> if it is not
    */
   public boolean isEQUAL() {
@@ -161,83 +161,83 @@ public final class OPT_ConditionOperand extends OPT_Operand {
 
   /**
    * Is the condition code NOT_EQUAL?
-   * 
+   *
    * @return <code>true</code> if it is or <code>false</code> if it is not
    */
   public boolean isNOT_EQUAL() {
-    return  value == NOT_EQUAL;
+    return value == NOT_EQUAL;
   }
 
   /**
    * Is the condition code LESS EQUAL?
-   * 
+   *
    * @return <code>true</code> if it is or <code>false</code> if it is not
    */
   public boolean isLESS_EQUAL() {
-    return  value == LESS_EQUAL;
+    return value == LESS_EQUAL;
   }
 
   /**
    * Is the condition code GREATER_EQUAL?
-   * 
+   *
    * @return <code>true</code> if it is or <code>false</code> if it is not
    */
   public boolean isGREATER_EQUAL() {
-    return  value == GREATER_EQUAL;
+    return value == GREATER_EQUAL;
   }
 
   /**
    * Is the condition code GREATER?
-   * 
+   *
    * @return <code>true</code> if it is or <code>false</code> if it is not
    */
   public boolean isGREATER() {
-    return  value == GREATER;
+    return value == GREATER;
   }
 
   /**
    * Is the condition code LESS?
-   * 
+   *
    * @return <code>true</code> if it is or <code>false</code> if it is not
    */
   public boolean isLESS() {
-    return  value == LESS;
+    return value == LESS;
   }
 
   /**
    * Is the condition code HIGHER?
-   * 
+   *
    * @return <code>true</code> if it is or <code>false</code> if it is not
    */
   public boolean isHIGHER() {
-    return  value == HIGHER;
+    return value == HIGHER;
   }
 
   /**
    * Is the condition code LOWER?
-   * 
+   *
    * @return <code>true</code> if it is or <code>false</code> if it is not
    */
   public boolean isLOWER() {
-    return  value == LOWER;
+    return value == LOWER;
   }
 
   /**
    * Is the condition code HIGHER_EQUAL?
-   * 
+   *
    * @return <code>true</code> if it is or <code>false</code> if it is not
    */
   public boolean isHIGHER_EQUAL() {
-    return  value == HIGHER_EQUAL;
+    return value == HIGHER_EQUAL;
   }
 
   /**
    * Is the condition code LOWER_EQUAL?
-   * 
+   *
    * @return <code>true</code> if it is or <code>false</code> if it is not
    */
   public boolean isLOWER_EQUAL() {
-    return  value == LOWER_EQUAL;
+    return value == LOWER_EQUAL;
   }
 
   /**
@@ -246,15 +246,15 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    */
   public boolean isUNSIGNED() {
     switch (value) {
-    case SAME:
-    case NOT_SAME:
-    case HIGHER: 
-    case LOWER: 
-    case HIGHER_EQUAL:
-    case LOWER_EQUAL: 
-      return true;
-    default:
-      return false;
+      case SAME:
+      case NOT_SAME:
+      case HIGHER:
+      case LOWER:
+      case HIGHER_EQUAL:
+      case LOWER_EQUAL:
+        return true;
+      default:
+        return false;
     }
   }
 
@@ -264,19 +264,19 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    */
   public boolean isFLOATINGPOINT() {
     switch (value) {
-    case CMPL_EQUAL:
-    case CMPL_GREATER:
-    case CMPG_LESS:
-    case CMPL_GREATER_EQUAL:
-    case CMPG_LESS_EQUAL:
-    case CMPL_NOT_EQUAL:
-    case CMPL_LESS:
-    case CMPG_GREATER_EQUAL:
-    case CMPG_GREATER:
-    case CMPL_LESS_EQUAL:
-      return true;
-    default:
-      return false;
+      case CMPL_EQUAL:
+      case CMPL_GREATER:
+      case CMPG_LESS:
+      case CMPL_GREATER_EQUAL:
+      case CMPG_LESS_EQUAL:
+      case CMPL_NOT_EQUAL:
+      case CMPL_LESS:
+      case CMPG_GREATER_EQUAL:
+      case CMPG_GREATER:
+      case CMPL_LESS_EQUAL:
+        return true;
+      default:
+        return false;
     }
   }
 
@@ -287,20 +287,20 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    */
   public boolean branchIfUnordered() {
     switch (value) {
-    case CMPL_EQUAL:
-    case CMPL_GREATER:
-    case CMPG_LESS:
-    case CMPL_GREATER_EQUAL:
-    case CMPG_LESS_EQUAL:
-      return false;
-    case CMPL_NOT_EQUAL:
-    case CMPL_LESS:
-    case CMPG_GREATER_EQUAL:
-    case CMPG_GREATER:
-    case CMPL_LESS_EQUAL:
-      return true;
-    default:
-      throw new OPT_OptimizingCompilerException("invalid condition " + this);
+      case CMPL_EQUAL:
+      case CMPL_GREATER:
+      case CMPG_LESS:
+      case CMPL_GREATER_EQUAL:
+      case CMPG_LESS_EQUAL:
+        return false;
+      case CMPL_NOT_EQUAL:
+      case CMPL_LESS:
+      case CMPG_GREATER_EQUAL:
+      case CMPG_GREATER:
+      case CMPL_LESS_EQUAL:
+        return true;
+      default:
+        throw new OPT_OptimizingCompilerException("invalid condition " + this);
     }
   }
 
@@ -309,27 +309,27 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    * compare. Used during bc2ir.
    */
   public void translateCMPL() {
-    switch(value) {
-    case EQUAL:
-      value = CMPL_EQUAL;
-      break;
-    case NOT_EQUAL:
-      value = CMPL_NOT_EQUAL;
-      break;
-    case LESS:
-      value = CMPL_LESS;
-      break;
-    case GREATER_EQUAL:
-      value = CMPL_GREATER_EQUAL;
-      break;
-    case GREATER:
-      value = CMPL_GREATER;
-      break;
-    case LESS_EQUAL:
-      value = CMPL_LESS_EQUAL;
-      break;
-    default:
-      throw new OPT_OptimizingCompilerException("invalid condition " + this);
+    switch (value) {
+      case EQUAL:
+        value = CMPL_EQUAL;
+        break;
+      case NOT_EQUAL:
+        value = CMPL_NOT_EQUAL;
+        break;
+      case LESS:
+        value = CMPL_LESS;
+        break;
+      case GREATER_EQUAL:
+        value = CMPL_GREATER_EQUAL;
+        break;
+      case GREATER:
+        value = CMPL_GREATER;
+        break;
+      case LESS_EQUAL:
+        value = CMPL_LESS_EQUAL;
+        break;
+      default:
+        throw new OPT_OptimizingCompilerException("invalid condition " + this);
     }
   }
 
@@ -338,27 +338,27 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    * compare. Used during bc2ir.
    */
   public void translateCMPG() {
-    switch(value) {
-    case EQUAL:
-      value = CMPL_EQUAL;
-      break;
-    case NOT_EQUAL:
-      value = CMPL_NOT_EQUAL;
-      break;
-    case LESS:
-      value = CMPG_LESS;
-      break;
-    case GREATER_EQUAL:
-      value = CMPG_GREATER_EQUAL;
-      break;
-    case GREATER:
-      value = CMPG_GREATER;
-      break;
-    case LESS_EQUAL:
-      value = CMPG_LESS_EQUAL;
-      break;
-    default:
-      throw new OPT_OptimizingCompilerException("invalid condition " + this);
+    switch (value) {
+      case EQUAL:
+        value = CMPL_EQUAL;
+        break;
+      case NOT_EQUAL:
+        value = CMPL_NOT_EQUAL;
+        break;
+      case LESS:
+        value = CMPG_LESS;
+        break;
+      case GREATER_EQUAL:
+        value = CMPG_GREATER_EQUAL;
+        break;
+      case GREATER:
+        value = CMPG_GREATER;
+        break;
+      case LESS_EQUAL:
+        value = CMPG_LESS_EQUAL;
+        break;
+      default:
+        throw new OPT_OptimizingCompilerException("invalid condition " + this);
     }
   }
 
@@ -369,32 +369,51 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    * safe to.
    */
   public OPT_ConditionOperand translateUNSIGNED() {
-    switch(value) {
-	 case CMPL_EQUAL:         value = SAME;         break;
-	 case CMPL_GREATER:       value = HIGHER;       break;
-	 case CMPG_LESS:          value = LOWER;        break;
-	 case CMPL_GREATER_EQUAL: value = HIGHER_EQUAL; break;
-	 case CMPG_LESS_EQUAL:    value = LOWER_EQUAL;  break;
-	 case CMPL_NOT_EQUAL:     value = NOT_SAME;     break;
-	 case CMPL_LESS:          value = LOWER;        break;
-	 case CMPG_GREATER_EQUAL: value = HIGHER_EQUAL; break;
-	 case CMPG_GREATER:       value = HIGHER;       break;
-	 case CMPL_LESS_EQUAL:    value = LOWER_EQUAL;  break;
-    default:
-      throw new OPT_OptimizingCompilerException("invalid condition " + this);
+    switch (value) {
+      case CMPL_EQUAL:
+        value = SAME;
+        break;
+      case CMPL_GREATER:
+        value = HIGHER;
+        break;
+      case CMPG_LESS:
+        value = LOWER;
+        break;
+      case CMPL_GREATER_EQUAL:
+        value = HIGHER_EQUAL;
+        break;
+      case CMPG_LESS_EQUAL:
+        value = LOWER_EQUAL;
+        break;
+      case CMPL_NOT_EQUAL:
+        value = NOT_SAME;
+        break;
+      case CMPL_LESS:
+        value = LOWER;
+        break;
+      case CMPG_GREATER_EQUAL:
+        value = HIGHER_EQUAL;
+        break;
+      case CMPG_GREATER:
+        value = HIGHER;
+        break;
+      case CMPL_LESS_EQUAL:
+        value = LOWER_EQUAL;
+        break;
+      default:
+        throw new OPT_OptimizingCompilerException("invalid condition " + this);
     }
-	 return this;
+    return this;
   }
 
   /**
    * Return a new operand that is semantically equivalent to <code>this</code>.
-   * 
+   *
    * @return a copy of <code>this</code>
    */
   public OPT_Operand copy() {
-    return  new OPT_ConditionOperand(value);
+    return new OPT_ConditionOperand(value);
   }
-
 
   /**
    * Are two operands semantically equivalent?
@@ -406,9 +425,8 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    */
   public boolean similar(OPT_Operand op) {
     return (op instanceof OPT_ConditionOperand) &&
-           (((OPT_ConditionOperand)op).value == value);
+           (((OPT_ConditionOperand) op).value == value);
   }
-
 
   public static final int FALSE = 0;
   public static final int TRUE = 1;
@@ -416,7 +434,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
 
   /**
    * Given two operands, evaluate the condition on them.
-   * 
+   *
    * @param v1 first operand to condition
    * @param v2 second operand to condition
    * @return <code>TRUE</code> if (v1 cond v2) or 
@@ -426,38 +444,38 @@ public final class OPT_ConditionOperand extends OPT_Operand {
   public int evaluate(OPT_Operand v1, OPT_Operand v2) {
     if (v1.isAddressConstant()) {
       if (v2.isAddressConstant()) {
-        return evaluate(v1.asAddressConstant().value, 
+        return evaluate(v1.asAddressConstant().value,
                         v2.asAddressConstant().value);
       } else if (v2.isNullConstant()) {
-        return evaluate(v1.asAddressConstant().value, Address.zero()); 
+        return evaluate(v1.asAddressConstant().value, Address.zero());
       } else if (v2.isIntConstant()) {
-        return evaluate(v1.asAddressConstant().value, 
-                        Address.fromIntSignExtend(v2.asIntConstant().value)); 
+        return evaluate(v1.asAddressConstant().value,
+                        Address.fromIntSignExtend(v2.asIntConstant().value));
       }
     } else if (v1.isIntConstant()) {
       if (v2.isIntConstant()) {
         return evaluate(v1.asIntConstant().value, v2.asIntConstant().value);
       } else if (v2.isNullConstant()) {
-        return evaluate(v1.asIntConstant().value, 0); 
+        return evaluate(v1.asIntConstant().value, 0);
       } else if (v2.isAddressConstant()) {
         return evaluate(Address.fromIntSignExtend(v1.asIntConstant().value),
                         v2.asAddressConstant().value);
       }
     } else if (v1.isLongConstant()) {
       if (v2.isLongConstant()) {
-        return evaluate(v1.asLongConstant().value, 
+        return evaluate(v1.asLongConstant().value,
                         v2.asLongConstant().value);
-      } 
+      }
     } else if (v1.isFloatConstant()) {
       if (v2.isFloatConstant()) {
-        return evaluate(v1.asFloatConstant().value, 
+        return evaluate(v1.asFloatConstant().value,
                         v2.asFloatConstant().value);
-      } 
+      }
     } else if (v1.isDoubleConstant()) {
       if (v2.isDoubleConstant()) {
-        return evaluate(v1.asDoubleConstant().value, 
+        return evaluate(v1.asDoubleConstant().value,
                         v2.asDoubleConstant().value);
-      } 
+      }
     } else if (v1.isObjectConstant()) {
       if (v2.isObjectConstant()) {
         if (isEQUAL()) {
@@ -488,34 +506,33 @@ public final class OPT_ConditionOperand extends OPT_Operand {
         }
       }
     } else if (v1.similar(v2) && !isFLOATINGPOINT()) {
-		// comparisons of identical operands can be evaluated, except
-		// for floating point NaN cases
-		switch (value) {
-		case EQUAL:
-		case GREATER_EQUAL:
-		case LESS_EQUAL:
-		case SAME:
-		case HIGHER_EQUAL:
-		case LOWER_EQUAL:
-		  return TRUE;
-		case NOT_EQUAL:
-		case LESS:
-		case GREATER:
-		case NOT_SAME:
-		case HIGHER:
-		case LOWER:
-		  return FALSE;
-		default:
-		  throw new OPT_OptimizingCompilerException("invalid condition " + this);
-		}
-	 }
+      // comparisons of identical operands can be evaluated, except
+      // for floating point NaN cases
+      switch (value) {
+        case EQUAL:
+        case GREATER_EQUAL:
+        case LESS_EQUAL:
+        case SAME:
+        case HIGHER_EQUAL:
+        case LOWER_EQUAL:
+          return TRUE;
+        case NOT_EQUAL:
+        case LESS:
+        case GREATER:
+        case NOT_SAME:
+        case HIGHER:
+        case LOWER:
+          return FALSE;
+        default:
+          throw new OPT_OptimizingCompilerException("invalid condition " + this);
+      }
+    }
     return UNKNOWN;
   }
 
-
   /**
    * Given two ints, evaluate the condition on them.
-   * 
+   *
    * @param v1 first operand to condition
    * @param v2 second operand to condition
    * @return <code>TRUE</code> if (v1 cond v2) or 
@@ -524,38 +541,59 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    */
   public int evaluate(int v1, int v2) {
     switch (value) {
-    case SAME:
-    case EQUAL: return (v1 == v2) ? TRUE : FALSE;
-    case NOT_SAME:
-    case NOT_EQUAL: return (v1 != v2) ? TRUE : FALSE;
-    case GREATER:   return (v1 > v2)  ? TRUE : FALSE;
-    case LESS:     return (v1 < v2) ? TRUE : FALSE;
-    case GREATER_EQUAL: return (v1 >= v2)  ? TRUE : FALSE;
-    case LESS_EQUAL:    return (v1 <= v2)  ? TRUE : FALSE;
-    case LOWER: 
-      if ((v1 >= 0 && v2 >= 0) || (v1 < 0 && v2 < 0)) return (v1 < v2) ? TRUE : FALSE;
-      else if (v1 < 0) return FALSE;
-      else return TRUE;
-    case LOWER_EQUAL:
-      if ((v1 >= 0 && v2 >= 0) || (v1 < 0 && v2 < 0)) return (v1 <= v2) ? TRUE : FALSE;
-      else if (v1 < 0) return FALSE;
-      else return TRUE;
-    case HIGHER: 
-      if ((v1 >= 0 && v2 >= 0) || (v1 < 0 && v2 < 0)) return (v1 > v2) ? TRUE : FALSE;
-      else if (v1 < 0) return TRUE;
-      else return FALSE;
-    case HIGHER_EQUAL:
-      if ((v1 >= 0 && v2 >= 0) || (v1 < 0 && v2 < 0)) return (v1 >= v2) ? TRUE : FALSE;
-      else if (v1 < 0) return TRUE;
-      else return FALSE;
+      case SAME:
+      case EQUAL:
+        return (v1 == v2) ? TRUE : FALSE;
+      case NOT_SAME:
+      case NOT_EQUAL:
+        return (v1 != v2) ? TRUE : FALSE;
+      case GREATER:
+        return (v1 > v2) ? TRUE : FALSE;
+      case LESS:
+        return (v1 < v2) ? TRUE : FALSE;
+      case GREATER_EQUAL:
+        return (v1 >= v2) ? TRUE : FALSE;
+      case LESS_EQUAL:
+        return (v1 <= v2) ? TRUE : FALSE;
+      case LOWER:
+        if ((v1 >= 0 && v2 >= 0) || (v1 < 0 && v2 < 0)) {
+          return (v1 < v2) ? TRUE : FALSE;
+        } else if (v1 < 0) {
+          return FALSE;
+        } else {
+          return TRUE;
+        }
+      case LOWER_EQUAL:
+        if ((v1 >= 0 && v2 >= 0) || (v1 < 0 && v2 < 0)) {
+          return (v1 <= v2) ? TRUE : FALSE;
+        } else if (v1 < 0) {
+          return FALSE;
+        } else {
+          return TRUE;
+        }
+      case HIGHER:
+        if ((v1 >= 0 && v2 >= 0) || (v1 < 0 && v2 < 0)) {
+          return (v1 > v2) ? TRUE : FALSE;
+        } else if (v1 < 0) {
+          return TRUE;
+        } else {
+          return FALSE;
+        }
+      case HIGHER_EQUAL:
+        if ((v1 >= 0 && v2 >= 0) || (v1 < 0 && v2 < 0)) {
+          return (v1 >= v2) ? TRUE : FALSE;
+        } else if (v1 < 0) {
+          return TRUE;
+        } else {
+          return FALSE;
+        }
     }
     throw new OPT_OptimizingCompilerException("invalid condition " + this);
   }
 
-
   /**
    * Given two longs, evaluate the condition on them.
-   * 
+   *
    * @param v1 first operand to condition
    * @param v2 second operand to condition
    * @return <code>TRUE</code> if (v1 cond v2) or 
@@ -564,20 +602,25 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    */
   public int evaluate(long v1, long v2) {
     switch (value) {
-    case EQUAL:         return (v1 == v2) ? TRUE : FALSE;
-    case NOT_EQUAL:     return (v1 != v2) ? TRUE : FALSE;
-    case GREATER:       return (v1 > v2)  ? TRUE : FALSE;
-    case LESS:          return (v1 < v2)  ? TRUE : FALSE;
-    case GREATER_EQUAL: return (v1 >= v2) ? TRUE : FALSE;
-    case LESS_EQUAL:    return (v1 <= v2) ? TRUE : FALSE;
+      case EQUAL:
+        return (v1 == v2) ? TRUE : FALSE;
+      case NOT_EQUAL:
+        return (v1 != v2) ? TRUE : FALSE;
+      case GREATER:
+        return (v1 > v2) ? TRUE : FALSE;
+      case LESS:
+        return (v1 < v2) ? TRUE : FALSE;
+      case GREATER_EQUAL:
+        return (v1 >= v2) ? TRUE : FALSE;
+      case LESS_EQUAL:
+        return (v1 <= v2) ? TRUE : FALSE;
     }
-    throw  new OPT_OptimizingCompilerException("invalid condition " + this);
+    throw new OPT_OptimizingCompilerException("invalid condition " + this);
   }
-
 
   /**
    * Given two floats, evaluate the condition on them.
-   * 
+   *
    * @param v1 first operand to condition
    * @param v2 second operand to condition
    * @return <code>true</code> if (v1 cond v2) or 
@@ -586,24 +629,34 @@ public final class OPT_ConditionOperand extends OPT_Operand {
   public int evaluate(float v1, float v2) {
     switch (value) {
       // Return FALSE when UNORDERED
-    case CMPL_EQUAL:               return (v1 == v2) ? TRUE : FALSE;
-    case CMPL_GREATER:             return (v1 > v2)  ? TRUE : FALSE;
-    case CMPG_LESS:                return (v1 < v2)  ? TRUE : FALSE;
-    case CMPL_GREATER_EQUAL:        return (v1 >= v2) ? TRUE : FALSE;
-    case CMPG_LESS_EQUAL:          return (v1 <= v2) ? TRUE : FALSE;
-      // Return TRUE when UNORDERED
-    case CMPL_NOT_EQUAL:           return (v1 == v2) ? FALSE : TRUE;
-    case CMPL_LESS:                return (v1 >= v2) ? FALSE : TRUE;
-    case CMPG_GREATER_EQUAL:       return (v1 < v2)  ? FALSE : TRUE;
-    case CMPG_GREATER:             return (v1 <= v2) ? FALSE : TRUE;
-    case CMPL_LESS_EQUAL:          return (v1 > v2)  ? FALSE : TRUE;
+      case CMPL_EQUAL:
+        return (v1 == v2) ? TRUE : FALSE;
+      case CMPL_GREATER:
+        return (v1 > v2) ? TRUE : FALSE;
+      case CMPG_LESS:
+        return (v1 < v2) ? TRUE : FALSE;
+      case CMPL_GREATER_EQUAL:
+        return (v1 >= v2) ? TRUE : FALSE;
+      case CMPG_LESS_EQUAL:
+        return (v1 <= v2) ? TRUE : FALSE;
+        // Return TRUE when UNORDERED
+      case CMPL_NOT_EQUAL:
+        return (v1 == v2) ? FALSE : TRUE;
+      case CMPL_LESS:
+        return (v1 >= v2) ? FALSE : TRUE;
+      case CMPG_GREATER_EQUAL:
+        return (v1 < v2) ? FALSE : TRUE;
+      case CMPG_GREATER:
+        return (v1 <= v2) ? FALSE : TRUE;
+      case CMPL_LESS_EQUAL:
+        return (v1 > v2) ? FALSE : TRUE;
     }
-    throw  new OPT_OptimizingCompilerException("invalid condition " + this);
+    throw new OPT_OptimizingCompilerException("invalid condition " + this);
   }
 
   /**
    * Given two doubles, evaluate the condition on them.
-   * 
+   *
    * @param v1 first operand to condition
    * @param v2 second operand to condition
    * @return <code>true</code> if (v1 cond v2) or 
@@ -612,24 +665,34 @@ public final class OPT_ConditionOperand extends OPT_Operand {
   public int evaluate(double v1, double v2) {
     switch (value) {
       // Return FALSE when UNORDERED
-    case CMPL_EQUAL:               return (v1 == v2) ? TRUE : FALSE;
-    case CMPL_GREATER:             return (v1 > v2)  ? TRUE : FALSE;
-    case CMPG_LESS:                return (v1 < v2)  ? TRUE : FALSE;
-    case CMPL_GREATER_EQUAL:        return (v1 >= v2) ? TRUE : FALSE;
-    case CMPG_LESS_EQUAL:          return (v1 <= v2) ? TRUE : FALSE;
-      // Return TRUE when UNORDERED
-    case CMPL_NOT_EQUAL:           return (v1 == v2) ? FALSE : TRUE;
-    case CMPL_LESS:                return (v1 >= v2) ? FALSE : TRUE;
-    case CMPG_GREATER_EQUAL:       return (v1 < v2)  ? FALSE : TRUE;
-    case CMPG_GREATER:             return (v1 <= v2) ? FALSE : TRUE;
-    case CMPL_LESS_EQUAL:          return (v1 > v2)  ? FALSE : TRUE;
+      case CMPL_EQUAL:
+        return (v1 == v2) ? TRUE : FALSE;
+      case CMPL_GREATER:
+        return (v1 > v2) ? TRUE : FALSE;
+      case CMPG_LESS:
+        return (v1 < v2) ? TRUE : FALSE;
+      case CMPL_GREATER_EQUAL:
+        return (v1 >= v2) ? TRUE : FALSE;
+      case CMPG_LESS_EQUAL:
+        return (v1 <= v2) ? TRUE : FALSE;
+        // Return TRUE when UNORDERED
+      case CMPL_NOT_EQUAL:
+        return (v1 == v2) ? FALSE : TRUE;
+      case CMPL_LESS:
+        return (v1 >= v2) ? FALSE : TRUE;
+      case CMPG_GREATER_EQUAL:
+        return (v1 < v2) ? FALSE : TRUE;
+      case CMPG_GREATER:
+        return (v1 <= v2) ? FALSE : TRUE;
+      case CMPL_LESS_EQUAL:
+        return (v1 > v2) ? FALSE : TRUE;
     }
-    throw  new OPT_OptimizingCompilerException("invalid condition " + this);
+    throw new OPT_OptimizingCompilerException("invalid condition " + this);
   }
 
   /**
    * Given two Addresses, evaluate the condition on them.
-   * 
+   *
    * @param v1 first operand to condition
    * @param v2 second operand to condition
    * @return <code>TRUE</code> if (v1 cond v2) or 
@@ -638,18 +701,28 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    */
   public int evaluate(Address v1, Address v2) {
     switch (value) {
-    case EQUAL:
-    case SAME:          return (v1.EQ(v2)) ? TRUE : FALSE;
-    case NOT_EQUAL:
-    case NOT_SAME:      return (v1.NE(v2)) ? TRUE : FALSE;
-    case GREATER:       return (v1.toWord().toOffset().sGT(v2.toWord().toOffset())) ? TRUE : FALSE;
-    case LESS:          return (v1.toWord().toOffset().sLT(v2.toWord().toOffset())) ? TRUE : FALSE;
-    case GREATER_EQUAL: return (v1.toWord().toOffset().sGE(v2.toWord().toOffset())) ? TRUE : FALSE;
-    case LESS_EQUAL:    return (v1.toWord().toOffset().sLE(v2.toWord().toOffset())) ? TRUE : FALSE;
-    case LOWER:         return (v1.LT(v2)) ? TRUE : FALSE;
-    case LOWER_EQUAL:   return (v1.LE(v2)) ? TRUE : FALSE;
-    case HIGHER:        return (v1.GT(v2)) ? TRUE : FALSE;
-    case HIGHER_EQUAL:  return (v1.GE(v2)) ? TRUE : FALSE;
+      case EQUAL:
+      case SAME:
+        return (v1.EQ(v2)) ? TRUE : FALSE;
+      case NOT_EQUAL:
+      case NOT_SAME:
+        return (v1.NE(v2)) ? TRUE : FALSE;
+      case GREATER:
+        return (v1.toWord().toOffset().sGT(v2.toWord().toOffset())) ? TRUE : FALSE;
+      case LESS:
+        return (v1.toWord().toOffset().sLT(v2.toWord().toOffset())) ? TRUE : FALSE;
+      case GREATER_EQUAL:
+        return (v1.toWord().toOffset().sGE(v2.toWord().toOffset())) ? TRUE : FALSE;
+      case LESS_EQUAL:
+        return (v1.toWord().toOffset().sLE(v2.toWord().toOffset())) ? TRUE : FALSE;
+      case LOWER:
+        return (v1.LT(v2)) ? TRUE : FALSE;
+      case LOWER_EQUAL:
+        return (v1.LE(v2)) ? TRUE : FALSE;
+      case HIGHER:
+        return (v1.GT(v2)) ? TRUE : FALSE;
+      case HIGHER_EQUAL:
+        return (v1.GE(v2)) ? TRUE : FALSE;
     }
     throw new OPT_OptimizingCompilerException("invalid condition " + this);
   }
@@ -669,34 +742,78 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    * </code>
    * Note that this is not the same as calling {@link #flipOperands}.
    */
-  public OPT_ConditionOperand flipCode () {
+  public OPT_ConditionOperand flipCode() {
     switch (value) {
-    case EQUAL:              value = NOT_EQUAL; break;
-    case NOT_EQUAL:          value = EQUAL; break;
-    case LESS:               value = GREATER_EQUAL; break;
-    case LESS_EQUAL:         value = GREATER; break;
-    case GREATER:            value = LESS_EQUAL; break;
-    case GREATER_EQUAL:      value = LESS; break;
-    case SAME:               value = NOT_SAME; break;
-    case NOT_SAME:           value = SAME; break;
-    case HIGHER:             value = LOWER_EQUAL; break;
-    case LOWER:              value = HIGHER_EQUAL; break;
-    case HIGHER_EQUAL:       value = LOWER; break;
-    case LOWER_EQUAL:        value = HIGHER; break;
-    case CMPL_EQUAL:         value = CMPL_NOT_EQUAL; break;
-    case CMPL_GREATER:       value = CMPL_LESS_EQUAL; break;
-    case CMPG_LESS:          value = CMPG_GREATER_EQUAL; break;
-    case CMPL_GREATER_EQUAL: value = CMPL_LESS; break;
-    case CMPG_LESS_EQUAL:    value = CMPG_GREATER; break;
-    case CMPL_NOT_EQUAL:     value = CMPL_EQUAL; break;
-    case CMPL_LESS:          value = CMPL_GREATER_EQUAL; break;
-    case CMPG_GREATER_EQUAL: value = CMPG_LESS; break;
-    case CMPG_GREATER:       value = CMPG_LESS_EQUAL; break;
-    case CMPL_LESS_EQUAL:    value = CMPL_GREATER; break;
-    default:
-      OPT_OptimizingCompilerException.UNREACHABLE();
+      case EQUAL:
+        value = NOT_EQUAL;
+        break;
+      case NOT_EQUAL:
+        value = EQUAL;
+        break;
+      case LESS:
+        value = GREATER_EQUAL;
+        break;
+      case LESS_EQUAL:
+        value = GREATER;
+        break;
+      case GREATER:
+        value = LESS_EQUAL;
+        break;
+      case GREATER_EQUAL:
+        value = LESS;
+        break;
+      case SAME:
+        value = NOT_SAME;
+        break;
+      case NOT_SAME:
+        value = SAME;
+        break;
+      case HIGHER:
+        value = LOWER_EQUAL;
+        break;
+      case LOWER:
+        value = HIGHER_EQUAL;
+        break;
+      case HIGHER_EQUAL:
+        value = LOWER;
+        break;
+      case LOWER_EQUAL:
+        value = HIGHER;
+        break;
+      case CMPL_EQUAL:
+        value = CMPL_NOT_EQUAL;
+        break;
+      case CMPL_GREATER:
+        value = CMPL_LESS_EQUAL;
+        break;
+      case CMPG_LESS:
+        value = CMPG_GREATER_EQUAL;
+        break;
+      case CMPL_GREATER_EQUAL:
+        value = CMPL_LESS;
+        break;
+      case CMPG_LESS_EQUAL:
+        value = CMPG_GREATER;
+        break;
+      case CMPL_NOT_EQUAL:
+        value = CMPL_EQUAL;
+        break;
+      case CMPL_LESS:
+        value = CMPL_GREATER_EQUAL;
+        break;
+      case CMPG_GREATER_EQUAL:
+        value = CMPG_LESS;
+        break;
+      case CMPG_GREATER:
+        value = CMPG_LESS_EQUAL;
+        break;
+      case CMPL_LESS_EQUAL:
+        value = CMPL_GREATER;
+        break;
+      default:
+        OPT_OptimizingCompilerException.UNREACHABLE();
     }
-    return  this;
+    return this;
   }
 
   /**
@@ -711,34 +828,78 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    * </code>
    * Note that this is not the same as calling {@link #flipCode}.
    */
-  public OPT_ConditionOperand flipOperands () {
+  public OPT_ConditionOperand flipOperands() {
     switch (value) {
-    case EQUAL:              value = EQUAL; break;
-    case NOT_EQUAL:          value = NOT_EQUAL;   break;
-    case LESS:               value = GREATER; break;
-    case LESS_EQUAL:         value = GREATER_EQUAL; break;
-    case GREATER:            value = LESS; break;
-    case GREATER_EQUAL:      value = LESS_EQUAL; break;
-    case SAME:               value = SAME; break;
-    case NOT_SAME:           value = NOT_SAME; break;
-    case HIGHER:             value = LOWER; break;
-    case LOWER:              value = HIGHER; break;
-    case HIGHER_EQUAL:       value = LOWER_EQUAL; break;
-    case LOWER_EQUAL:        value = HIGHER_EQUAL; break;
-    case CMPL_EQUAL:         value = CMPL_EQUAL; break;
-    case CMPL_GREATER:       value = CMPG_LESS; break;
-    case CMPG_LESS:          value = CMPL_GREATER; break;
-    case CMPL_GREATER_EQUAL: value = CMPG_LESS_EQUAL; break;
-    case CMPG_LESS_EQUAL:    value = CMPL_GREATER_EQUAL; break;
-    case CMPL_NOT_EQUAL:     value = CMPL_NOT_EQUAL; break;
-    case CMPL_LESS:          value = CMPG_GREATER; break;
-    case CMPG_GREATER_EQUAL: value = CMPL_LESS_EQUAL; break;
-    case CMPG_GREATER:       value = CMPL_LESS; break;
-    case CMPL_LESS_EQUAL:    value = CMPG_GREATER_EQUAL; break;
-    default:
-      OPT_OptimizingCompilerException.UNREACHABLE();
+      case EQUAL:
+        value = EQUAL;
+        break;
+      case NOT_EQUAL:
+        value = NOT_EQUAL;
+        break;
+      case LESS:
+        value = GREATER;
+        break;
+      case LESS_EQUAL:
+        value = GREATER_EQUAL;
+        break;
+      case GREATER:
+        value = LESS;
+        break;
+      case GREATER_EQUAL:
+        value = LESS_EQUAL;
+        break;
+      case SAME:
+        value = SAME;
+        break;
+      case NOT_SAME:
+        value = NOT_SAME;
+        break;
+      case HIGHER:
+        value = LOWER;
+        break;
+      case LOWER:
+        value = HIGHER;
+        break;
+      case HIGHER_EQUAL:
+        value = LOWER_EQUAL;
+        break;
+      case LOWER_EQUAL:
+        value = HIGHER_EQUAL;
+        break;
+      case CMPL_EQUAL:
+        value = CMPL_EQUAL;
+        break;
+      case CMPL_GREATER:
+        value = CMPG_LESS;
+        break;
+      case CMPG_LESS:
+        value = CMPL_GREATER;
+        break;
+      case CMPL_GREATER_EQUAL:
+        value = CMPG_LESS_EQUAL;
+        break;
+      case CMPG_LESS_EQUAL:
+        value = CMPL_GREATER_EQUAL;
+        break;
+      case CMPL_NOT_EQUAL:
+        value = CMPL_NOT_EQUAL;
+        break;
+      case CMPL_LESS:
+        value = CMPG_GREATER;
+        break;
+      case CMPG_GREATER_EQUAL:
+        value = CMPL_LESS_EQUAL;
+        break;
+      case CMPG_GREATER:
+        value = CMPL_LESS;
+        break;
+      case CMPL_LESS_EQUAL:
+        value = CMPG_GREATER_EQUAL;
+        break;
+      default:
+        OPT_OptimizingCompilerException.UNREACHABLE();
     }
-    return  this;
+    return this;
   }
 
   /**
@@ -753,31 +914,54 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    *
    * @return a string representation of this operand.
    */
-  public String toString () {
+  public String toString() {
     switch (value) {
-    case EQUAL:              return "==";
-    case NOT_EQUAL:          return "!=";
-    case LESS:               return "<";
-    case LESS_EQUAL:         return "<=";
-    case GREATER:            return ">";
-    case GREATER_EQUAL:      return ">=";
-    case SAME:               return "==U";
-    case NOT_SAME:           return "!=U";
-    case HIGHER:             return ">U";
-    case LOWER:              return "<U";
-    case HIGHER_EQUAL:       return ">=U";
-    case LOWER_EQUAL:        return "<=U";
-    case CMPL_EQUAL:         return "==F";
-    case CMPL_GREATER:       return ">F";
-    case CMPG_LESS:          return "<F";
-    case CMPL_GREATER_EQUAL: return ">=F";
-    case CMPG_LESS_EQUAL:    return "<=F";
-    case CMPL_NOT_EQUAL:     return "!=FU";
-    case CMPL_LESS:          return "<FU";
-    case CMPG_GREATER_EQUAL: return ">=FU";
-    case CMPG_GREATER:       return ">FU";
-    case CMPL_LESS_EQUAL:    return "<=FU";
-    default:                 return "UNKNOWN";
+      case EQUAL:
+        return "==";
+      case NOT_EQUAL:
+        return "!=";
+      case LESS:
+        return "<";
+      case LESS_EQUAL:
+        return "<=";
+      case GREATER:
+        return ">";
+      case GREATER_EQUAL:
+        return ">=";
+      case SAME:
+        return "==U";
+      case NOT_SAME:
+        return "!=U";
+      case HIGHER:
+        return ">U";
+      case LOWER:
+        return "<U";
+      case HIGHER_EQUAL:
+        return ">=U";
+      case LOWER_EQUAL:
+        return "<=U";
+      case CMPL_EQUAL:
+        return "==F";
+      case CMPL_GREATER:
+        return ">F";
+      case CMPG_LESS:
+        return "<F";
+      case CMPL_GREATER_EQUAL:
+        return ">=F";
+      case CMPG_LESS_EQUAL:
+        return "<=F";
+      case CMPL_NOT_EQUAL:
+        return "!=FU";
+      case CMPL_LESS:
+        return "<FU";
+      case CMPG_GREATER_EQUAL:
+        return ">=FU";
+      case CMPG_GREATER:
+        return ">FU";
+      case CMPL_LESS_EQUAL:
+        return "<=FU";
+      default:
+        return "UNKNOWN";
     }
   }
 }

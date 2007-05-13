@@ -15,5 +15,6 @@ package org.jikesrvm.tools.header_gen;
  */
 abstract class GenArch extends GenerateInterfaceDeclarations {
   abstract void emitArchVirtualMachineDeclarations();
-  abstract void emitArchAssemblerDeclarations(); 
+
+  abstract void emitArchAssemblerDeclarations();
 }

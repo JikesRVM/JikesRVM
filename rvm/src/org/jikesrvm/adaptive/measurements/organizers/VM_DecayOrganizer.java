@@ -21,7 +21,7 @@ public final class VM_DecayOrganizer extends VM_Organizer {
    * @param listener the associated listener
    */
   public VM_DecayOrganizer(VM_YieldCounterListener listener) {
-    this.listener   = listener;
+    this.listener = listener;
     listener.setOrganizer(this);
     makeDaemon(true);
   }
@@ -30,7 +30,7 @@ public final class VM_DecayOrganizer extends VM_Organizer {
    * Initialization: install and activate our listener.
    */
   public void initialize() {
-    VM_RuntimeMeasurements.installTimerNullListener((VM_YieldCounterListener)listener);
+    VM_RuntimeMeasurements.installTimerNullListener((VM_YieldCounterListener) listener);
   }
 
   /**
@@ -39,7 +39,7 @@ public final class VM_DecayOrganizer extends VM_Organizer {
    */
   void thresholdReached() {
     VM_RuntimeMeasurements.decayDecayableObjects();
-  }  
+  }
 }
 
 

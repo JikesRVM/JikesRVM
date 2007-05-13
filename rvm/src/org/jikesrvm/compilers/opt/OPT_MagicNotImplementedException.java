@@ -24,7 +24,7 @@ public class OPT_MagicNotImplementedException extends OPT_OperationNotImplemente
    */
   public final boolean isExpected;
 
-  private OPT_MagicNotImplementedException (String s, boolean isExpected) {
+  private OPT_MagicNotImplementedException(String s, boolean isExpected) {
     super(s);
     this.isExpected = isExpected;
   }
@@ -39,7 +39,7 @@ public class OPT_MagicNotImplementedException extends OPT_OperationNotImplemente
   public static OPT_MagicNotImplementedException EXPECTED(String s) {
     return new OPT_MagicNotImplementedException(s, true);
   }
-    
+
   /**
    * Create a MagicNotImplemented exception with message <code>s</code> when we
    * encounter a magic that we have decided to not implement in the opt

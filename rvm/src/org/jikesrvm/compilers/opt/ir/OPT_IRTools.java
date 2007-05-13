@@ -147,11 +147,11 @@ public abstract class OPT_IRTools {
   public static OPT_AddressConstantOperand AC(Address value) {
     return new OPT_AddressConstantOperand(value);
   }
-  
+
   public static OPT_AddressConstantOperand AC(Offset value) {
     return new OPT_AddressConstantOperand(value);
   }
-  
+
   /**
    * Create an integer constant operand with a given value.
    * To be used in passthrough expressions like
@@ -214,13 +214,12 @@ public abstract class OPT_IRTools {
    * <pre>
    *    ...<op>.create(...., TG() ...
    * </pre>
-   * 
+   *
    * @return true guard operand
    */
   public static OPT_TrueGuardOperand TG() {
     return new OPT_TrueGuardOperand();
   }
-
 
   /**
    * Copy the position information from the source instruction to
@@ -235,7 +234,7 @@ public abstract class OPT_IRTools {
    * @return dest
    */
   public static OPT_Instruction CPOS(OPT_Instruction src,
-                                           OPT_Instruction dst) {
+                                     OPT_Instruction dst) {
     dst.copyPosition(src);
     return dst;
   }
@@ -248,13 +247,13 @@ public abstract class OPT_IRTools {
    */
   public static OPT_Operand getDefaultOperand(VM_TypeReference type) {
     if (type.isBooleanType()) return new OPT_IntConstantOperand(0);
-    if (type.isByteType())    return new OPT_IntConstantOperand(0);
-    if (type.isCharType())    return new OPT_IntConstantOperand(0);
-    if (type.isIntType())     return new OPT_IntConstantOperand(0);
-    if (type.isShortType())   return new OPT_IntConstantOperand(0);
-    if (type.isLongType())    return new OPT_LongConstantOperand(0);
-    if (type.isFloatType())   return new OPT_FloatConstantOperand(0f);
-    if (type.isDoubleType())  return new OPT_DoubleConstantOperand(0.0);
+    if (type.isByteType()) return new OPT_IntConstantOperand(0);
+    if (type.isCharType()) return new OPT_IntConstantOperand(0);
+    if (type.isIntType()) return new OPT_IntConstantOperand(0);
+    if (type.isShortType()) return new OPT_IntConstantOperand(0);
+    if (type.isLongType()) return new OPT_LongConstantOperand(0);
+    if (type.isFloatType()) return new OPT_FloatConstantOperand(0f);
+    if (type.isDoubleType()) return new OPT_DoubleConstantOperand(0.0);
     return new OPT_NullConstantOperand();
   }
 
@@ -265,14 +264,13 @@ public abstract class OPT_IRTools {
    * @return the OPT_Operator to use for moving a value of the given type
    */
   public static OPT_Operator getMoveOp(VM_TypeReference type) {
-    if (type.isLongType())    return LONG_MOVE;
-    if (type.isFloatType())   return FLOAT_MOVE;
-    if (type.isDoubleType())  return DOUBLE_MOVE;
+    if (type.isLongType()) return LONG_MOVE;
+    if (type.isFloatType()) return FLOAT_MOVE;
+    if (type.isDoubleType()) return DOUBLE_MOVE;
     if (type == VM_TypeReference.VALIDATION_TYPE) return GUARD_MOVE;
     if (type.isReferenceType() || type.isWordType()) return REF_MOVE;
     return INT_MOVE;
   }
-
 
   /**
    * Returns the correct operator for a conditional move with the given data 
@@ -282,14 +280,13 @@ public abstract class OPT_IRTools {
    * @return the OPT_Operator to use for moving a value of the given type
    */
   public static OPT_Operator getCondMoveOp(VM_TypeReference type) {
-    if (type.isLongType())    return LONG_COND_MOVE;
-    if (type.isFloatType())   return FLOAT_COND_MOVE;
-    if (type.isDoubleType())  return DOUBLE_COND_MOVE;
+    if (type.isLongType()) return LONG_COND_MOVE;
+    if (type.isFloatType()) return FLOAT_COND_MOVE;
+    if (type.isDoubleType()) return DOUBLE_COND_MOVE;
     if (type == VM_TypeReference.VALIDATION_TYPE) return GUARD_COND_MOVE;
     if (type.isReferenceType() || type.isWordType()) return REF_COND_MOVE;
     return INT_COND_MOVE;
   }
-
 
   /**
    * Returns the correct operator for loading from the given field
@@ -312,20 +309,20 @@ public abstract class OPT_IRTools {
   public static OPT_Operator getLoadOp(VM_TypeReference type, boolean isStatic) {
     if (!VM_Configuration.LittleEndian && isStatic) {
       // Handle the statics table hold subword values in ints
-      if (type.isByteType())      return INT_LOAD;
-      if (type.isBooleanType())   return INT_LOAD;
-      if (type.isCharType())      return INT_LOAD;
-      if (type.isShortType())     return INT_LOAD;
-    }      
-    if (type.isByteType())      return BYTE_LOAD;
-    if (type.isBooleanType())   return UBYTE_LOAD;
-    if (type.isCharType())      return USHORT_LOAD;
-    if (type.isShortType())     return SHORT_LOAD;
-    if (type.isLongType())      return LONG_LOAD;
-    if (type.isFloatType())     return FLOAT_LOAD;
-    if (type.isDoubleType())    return DOUBLE_LOAD;
+      if (type.isByteType()) return INT_LOAD;
+      if (type.isBooleanType()) return INT_LOAD;
+      if (type.isCharType()) return INT_LOAD;
+      if (type.isShortType()) return INT_LOAD;
+    }
+    if (type.isByteType()) return BYTE_LOAD;
+    if (type.isBooleanType()) return UBYTE_LOAD;
+    if (type.isCharType()) return USHORT_LOAD;
+    if (type.isShortType()) return SHORT_LOAD;
+    if (type.isLongType()) return LONG_LOAD;
+    if (type.isFloatType()) return FLOAT_LOAD;
+    if (type.isDoubleType()) return DOUBLE_LOAD;
     if (type.isReferenceType()) return REF_LOAD;
-    if (type.isWordType())      return REF_LOAD;
+    if (type.isWordType()) return REF_LOAD;
     return INT_LOAD;
   }
 
@@ -350,23 +347,22 @@ public abstract class OPT_IRTools {
   public static OPT_Operator getStoreOp(VM_TypeReference type, boolean isStatic) {
     if (!VM_Configuration.LittleEndian && isStatic) {
       // Handle the statics table hold subword values in ints
-      if (type.isByteType())      return INT_STORE;
-      if (type.isBooleanType())   return INT_STORE;
-      if (type.isCharType())      return INT_STORE;
-      if (type.isShortType())     return INT_STORE;
+      if (type.isByteType()) return INT_STORE;
+      if (type.isBooleanType()) return INT_STORE;
+      if (type.isCharType()) return INT_STORE;
+      if (type.isShortType()) return INT_STORE;
     }
-    if (type.isByteType())      return BYTE_STORE;
-    if (type.isBooleanType())   return BYTE_STORE;
-    if (type.isCharType())      return SHORT_STORE;
-    if (type.isShortType())     return SHORT_STORE;
-    if (type.isLongType())       return LONG_STORE;
-    if (type.isFloatType())      return FLOAT_STORE;
-    if (type.isDoubleType())     return DOUBLE_STORE;
-    if (type.isReferenceType())  return REF_STORE;
-    if (type.isWordType())       return REF_STORE;
+    if (type.isByteType()) return BYTE_STORE;
+    if (type.isBooleanType()) return BYTE_STORE;
+    if (type.isCharType()) return SHORT_STORE;
+    if (type.isShortType()) return SHORT_STORE;
+    if (type.isLongType()) return LONG_STORE;
+    if (type.isFloatType()) return FLOAT_STORE;
+    if (type.isDoubleType()) return DOUBLE_STORE;
+    if (type.isReferenceType()) return REF_STORE;
+    if (type.isWordType()) return REF_STORE;
     return INT_STORE;
   }
-
 
   /**
    * Generates an instruction to move the given operand into a register, and
@@ -378,8 +374,8 @@ public abstract class OPT_IRTools {
    * @return register operand that we copied into
    */
   public static OPT_RegisterOperand moveIntoRegister(OPT_RegisterPool pool,
-                                                           OPT_Instruction s,
-                                                           OPT_Operand op) {
+                                                     OPT_Instruction s,
+                                                     OPT_Operand op) {
     if (op instanceof OPT_RegisterOperand) {
       return (OPT_RegisterOperand) op;
     }
@@ -387,7 +383,6 @@ public abstract class OPT_IRTools {
     OPT_Operator move_op = OPT_IRTools.getMoveOp(type);
     return moveIntoRegister(type, move_op, pool, s, op);
   }
-
 
   /**
    * Generates an instruction to move the given operand into a register, and
@@ -401,16 +396,15 @@ public abstract class OPT_IRTools {
    * @return last use register operand that we copied into
    */
   public static OPT_RegisterOperand moveIntoRegister(VM_TypeReference type,
-                                                           OPT_Operator move_op,
-                                                           OPT_RegisterPool pool,
-                                                           OPT_Instruction s,
-                                                           OPT_Operand op) {
+                                                     OPT_Operator move_op,
+                                                     OPT_RegisterPool pool,
+                                                     OPT_Instruction s,
+                                                     OPT_Operand op) {
     OPT_RegisterOperand rop = pool.makeTemp(type);
     s.insertBefore(Move.create(move_op, rop, op));
     rop = rop.copyD2U();
     return rop;
   }
-
 
   /**
    * Moves the 'from' instruction to immediately before the 'to' instruction.
@@ -423,7 +417,6 @@ public abstract class OPT_IRTools {
     to.insertBefore(from);
   }
 
-
   /**
    * Inserts the instructions in the given basic block after the given
    * instruction.
@@ -432,7 +425,7 @@ public abstract class OPT_IRTools {
    * @param temp basic block which contains the instructions to be inserted.
    */
   public static void insertInstructionsAfter(OPT_Instruction after,
-                                                   OPT_BasicBlock temp) {
+                                             OPT_BasicBlock temp) {
     if (temp.isEmpty()) return;
     OPT_Instruction after_after = after.getNext();
     after.linkWithNext(temp.firstRealInstruction());
@@ -442,6 +435,7 @@ public abstract class OPT_IRTools {
       temp.lastRealInstruction().linkWithNext(after_after);
     }
   }
+
   /**
    * Make an empty basic block on an edge in the control flow graph,
    * and fix up the control flow graph and IR instructions accordingly.
@@ -458,70 +452,82 @@ public abstract class OPT_IRTools {
    * @param ir the governing IR
    * @return the new basic block bb
    */
-  public static OPT_BasicBlock makeBlockOnEdge (OPT_BasicBlock in, 
-                                                OPT_BasicBlock out, 
-                                                OPT_IR ir) {
+  public static OPT_BasicBlock makeBlockOnEdge(OPT_BasicBlock in,
+                                               OPT_BasicBlock out,
+                                               OPT_IR ir) {
     // 1. Create the new basic block
     OPT_BasicBlock bb = in.createSubBlock(out.firstInstruction().bcIndex, ir);
-    
+
     // 2. Splice the new basic block into the code order
     OPT_BasicBlock next = in.nextBasicBlockInCodeOrder();
-    if (next == null ) {
+    if (next == null) {
       ir.cfg.addLastInCodeOrder(bb);
     } else {
       ir.cfg.breakCodeOrder(in, next);
       ir.cfg.linkInCodeOrder(in, bb);
       ir.cfg.linkInCodeOrder(bb, next);
     }
-  
+
     // 3. update in's branch instructions
     boolean foundGoto = false;
     OPT_BranchOperand target = bb.makeJumpTarget();
     OPT_BranchOperand outTarget = out.makeJumpTarget();
-    for (OPT_InstructionEnumeration e = in.reverseRealInstrEnumerator(); 
-        e.hasMoreElements();) {
+    for (OPT_InstructionEnumeration e = in.reverseRealInstrEnumerator();
+         e.hasMoreElements();) {
       OPT_Instruction s = e.next();
       if (IfCmp2.conforms(s)) {
-        if (IfCmp2.getTarget1(s).similar(outTarget))
-          IfCmp2.setTarget1(s, (OPT_BranchOperand)target.copy());
-        if (IfCmp2.getTarget2(s).similar(outTarget))
-          IfCmp2.setTarget2(s, (OPT_BranchOperand)target.copy());
+        if (IfCmp2.getTarget1(s).similar(outTarget)) {
+          IfCmp2.setTarget1(s, (OPT_BranchOperand) target.copy());
+        }
+        if (IfCmp2.getTarget2(s).similar(outTarget)) {
+          IfCmp2.setTarget2(s, (OPT_BranchOperand) target.copy());
+        }
       } else if (IfCmp.conforms(s)) {
         if (IfCmp.getTarget(s).similar(outTarget)) {
-          IfCmp.setTarget(s, (OPT_BranchOperand)target.copy());
+          IfCmp.setTarget(s, (OPT_BranchOperand) target.copy());
         }
       } else if (InlineGuard.conforms(s)) {
-        if (InlineGuard.getTarget(s).similar(outTarget))
-          InlineGuard.setTarget(s, (OPT_BranchOperand)target.copy());
+        if (InlineGuard.getTarget(s).similar(outTarget)) {
+          InlineGuard.setTarget(s, (OPT_BranchOperand) target.copy());
+        }
       } else if (Goto.conforms(s)) {
         foundGoto = true;
-        if (Goto.getTarget(s).similar(outTarget))
-          Goto.setTarget(s, (OPT_BranchOperand)target.copy());
+        if (Goto.getTarget(s).similar(outTarget)) {
+          Goto.setTarget(s, (OPT_BranchOperand) target.copy());
+        }
       } else if (TableSwitch.conforms(s)) {
         foundGoto = true;
-        if (TableSwitch.getDefault(s).similar(outTarget))
-          TableSwitch.setDefault(s, (OPT_BranchOperand)target.copy());
-        for (int i = 0; i < TableSwitch.getNumberOfTargets(s); i++)
-          if (TableSwitch.getTarget(s, i).similar(outTarget))
-            TableSwitch.setTarget(s, i, (OPT_BranchOperand)target.copy());
+        if (TableSwitch.getDefault(s).similar(outTarget)) {
+          TableSwitch.setDefault(s, (OPT_BranchOperand) target.copy());
+        }
+        for (int i = 0; i < TableSwitch.getNumberOfTargets(s); i++) {
+          if (TableSwitch.getTarget(s, i).similar(outTarget)) {
+            TableSwitch.setTarget(s, i, (OPT_BranchOperand) target.copy());
+          }
+        }
       } else if (LowTableSwitch.conforms(s)) {
         foundGoto = true;
-        for (int i = 0; i < LowTableSwitch.getNumberOfTargets(s); i++)
-          if (LowTableSwitch.getTarget(s, i).similar(outTarget))
-            LowTableSwitch.setTarget(s, i, (OPT_BranchOperand)target.copy());
+        for (int i = 0; i < LowTableSwitch.getNumberOfTargets(s); i++) {
+          if (LowTableSwitch.getTarget(s, i).similar(outTarget)) {
+            LowTableSwitch.setTarget(s, i, (OPT_BranchOperand) target.copy());
+          }
+        }
       } else if (LookupSwitch.conforms(s)) {
         foundGoto = true;
-        if (LookupSwitch.getDefault(s).similar(outTarget))
-          LookupSwitch.setDefault(s, (OPT_BranchOperand)target.copy());
-        for (int i = 0; i < LookupSwitch.getNumberOfTargets(s); i++)
-          if (LookupSwitch.getTarget(s, i).similar(outTarget))
-            LookupSwitch.setTarget(s, i, (OPT_BranchOperand)target.copy());
+        if (LookupSwitch.getDefault(s).similar(outTarget)) {
+          LookupSwitch.setDefault(s, (OPT_BranchOperand) target.copy());
+        }
+        for (int i = 0; i < LookupSwitch.getNumberOfTargets(s); i++) {
+          if (LookupSwitch.getTarget(s, i).similar(outTarget)) {
+            LookupSwitch.setTarget(s, i, (OPT_BranchOperand) target.copy());
+          }
+        }
       } else {
         // done processing all branches
         break;
       }
     }
-    
+
     // 4. Add a goto bb->out 
     OPT_Instruction s = Goto.create(GOTO, out.makeJumpTarget());
     bb.appendInstruction(s);
@@ -558,8 +564,9 @@ public abstract class OPT_IRTools {
     in.recomputeNormalOut(ir);
     bb.recomputeNormalOut(ir);
 
-    return  bb;
+    return bb;
   }
+
   /**
    * Is the operand u, which is a use in instruction s, also a def
    * in instruction s?  That is, is this operand defined as a DU operand
@@ -572,9 +579,9 @@ public abstract class OPT_IRTools {
    * to put effort into this now, as the whole scratch register
    * architecture has a questionable future.
    */
-  public static boolean useDoublesAsDef(OPT_Operand u, 
+  public static boolean useDoublesAsDef(OPT_Operand u,
                                         OPT_Instruction s) {
-    for (Enumeration<OPT_Operand> d = s.getDefs(); d.hasMoreElements(); ) {
+    for (Enumeration<OPT_Operand> d = s.getDefs(); d.hasMoreElements();) {
       OPT_Operand def = d.nextElement();
       if (def != null) {
         if (def == u) return true;
@@ -582,6 +589,7 @@ public abstract class OPT_IRTools {
     }
     return false;
   }
+
   /**
    * Is the operand d, which is a def in instruction s, also a def
    * in instruction s?  That is, is this operand defined as a DU operand
@@ -594,9 +602,9 @@ public abstract class OPT_IRTools {
    * to put effort into this now, as the whole scratch register
    * architecture has a questionable future.
    */
-  public static boolean defDoublesAsUse(OPT_Operand d, 
+  public static boolean defDoublesAsUse(OPT_Operand d,
                                         OPT_Instruction s) {
-    for (Enumeration<OPT_Operand> u = s.getUses(); u.hasMoreElements(); ) {
+    for (Enumeration<OPT_Operand> u = s.getUses(); u.hasMoreElements();) {
       OPT_Operand use = u.nextElement();
       if (use != null) {
         if (use.similar(d)) return true;
@@ -609,7 +617,7 @@ public abstract class OPT_IRTools {
    * Does instruction s define register r?
    */
   public static boolean definedIn(OPT_Register r, OPT_Instruction s) {
-    for (Enumeration<OPT_Operand> e = s.getDefs(); e.hasMoreElements(); ) {
+    for (Enumeration<OPT_Operand> e = s.getDefs(); e.hasMoreElements();) {
       OPT_Operand op = e.nextElement();
       if (op != null && op.isRegister()) {
         if (op.asRegister().register.number == r.number) {
@@ -624,7 +632,7 @@ public abstract class OPT_IRTools {
    * Does instruction s use register r?
    */
   public static boolean usedIn(OPT_Register r, OPT_Instruction s) {
-    for (Enumeration<OPT_Operand> e = s.getUses(); e.hasMoreElements(); ) {
+    for (Enumeration<OPT_Operand> e = s.getUses(); e.hasMoreElements();) {
       OPT_Operand op = e.nextElement();
       if (op != null && op.isRegister()) {
         if (op.asRegister().register.number == r.number) {

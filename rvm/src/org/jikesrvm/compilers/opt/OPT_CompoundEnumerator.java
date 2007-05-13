@@ -10,10 +10,10 @@ package org.jikesrvm.compilers.opt;
 
 import java.util.Enumeration;
 
-/** 
+/**
  */
 public class OPT_CompoundEnumerator<T> implements Enumeration<T> {
-  private final Enumeration<T> first;    
+  private final Enumeration<T> first;
   private final Enumeration<T> second;
 
   public OPT_CompoundEnumerator(Enumeration<T> first, Enumeration<T> second) {
@@ -22,13 +22,14 @@ public class OPT_CompoundEnumerator<T> implements Enumeration<T> {
   }
 
   public boolean hasMoreElements() {
-    return first.hasMoreElements()||second.hasMoreElements();
+    return first.hasMoreElements() || second.hasMoreElements();
   }
 
   public T nextElement() {
-    if (first.hasMoreElements())
+    if (first.hasMoreElements()) {
       return first.nextElement();
-    else
+    } else {
       return second.nextElement();
+    }
   }
 }

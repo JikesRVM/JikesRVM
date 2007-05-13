@@ -37,13 +37,13 @@ import org.vmmagic.unboxed.Offset;
 public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
 
   /* install the newly compiled instructions. */
-  public static boolean install(OSR_ExecutionState state, 
-                         VM_CompiledMethod cm) {
+  public static boolean install(OSR_ExecutionState state,
+                                VM_CompiledMethod cm) {
 
     VM_Thread thread = state.getThread();
     byte[] stack = thread.stack;
 
-    Offset fooFPOffset    = state.getFPOffset();
+    Offset fooFPOffset = state.getFPOffset();
 
     // we are going to dynamically generate some code recover 
     // register values from the stack frame.
@@ -53,37 +53,37 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
     int cType = foo.getCompilerType();
 
     VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0, VM.TraceOnStackReplacement);
-    
+
     /////////////////////////////////////
     ////// recover saved registers.
     /////////////////////////////////////         
     if (cType == VM_CompiledMethod.BASELINE) {
-      VM_BaselineCompiledMethod  bcm = (VM_BaselineCompiledMethod)foo;
+      VM_BaselineCompiledMethod bcm = (VM_BaselineCompiledMethod) foo;
       int offset = VM_Compiler.getFrameSize(bcm);
-      for (int i = bcm.getLastFloatStackRegister(); i >= FIRST_FLOAT_LOCAL_REGISTER; --i) {    
+      for (int i = bcm.getLastFloatStackRegister(); i >= FIRST_FLOAT_LOCAL_REGISTER; --i) {
         offset -= BYTES_IN_DOUBLE;
         asm.emitLFD(i, offset, FP);
       }
-      for (int i = bcm.getLastFixedStackRegister(); i >= FIRST_FIXED_LOCAL_REGISTER; --i) {    
+      for (int i = bcm.getLastFixedStackRegister(); i >= FIRST_FIXED_LOCAL_REGISTER; --i) {
         offset -= BYTES_IN_ADDRESS;
         asm.emitLAddr(i, offset, FP);
       }
     } else if (cType == VM_CompiledMethod.OPT) {
-      VM_OptCompiledMethod  fooOpt = (VM_OptCompiledMethod)foo;
-        
+      VM_OptCompiledMethod fooOpt = (VM_OptCompiledMethod) foo;
+
       // foo definitely not save volatile.
       boolean saveVolatile = fooOpt.isSaveVolatile();
       if (VM.VerifyAssertions) {
         VM._assert(!saveVolatile);
       }
-        
+
       int offset = fooOpt.getUnsignedNonVolatileOffset();
 
       // recover nonvolatile GPRs
       int firstGPR = fooOpt.getFirstNonVolatileGPR();
       if (firstGPR != -1) {
-        for (int i=firstGPR;
-             i<=LAST_NONVOLATILE_GPR;
+        for (int i = firstGPR;
+             i <= LAST_NONVOLATILE_GPR;
              i++) {
           asm.emitLAddr(i, offset, FP);
           offset += BYTES_IN_STACKSLOT;
@@ -93,7 +93,7 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
       // recover nonvolatile FPRs
       int firstFPR = fooOpt.getFirstNonVolatileFPR();
       if (firstFPR != -1) {
-        for (int i=firstFPR;
+        for (int i = firstFPR;
              i <= LAST_NONVOLATILE_FPR;
              i++) {
           asm.emitLFD(i, offset, FP);
@@ -105,8 +105,8 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
     if (VM.VerifyAssertions) {
       Object jtocContent = VM_Statics.getSlotContentsAsObject(cm.getOsrJTOCoffset());
       VM._assert(jtocContent == cm.getEntryCodeArray());
-    }   
-    
+    }
+
     // load address of newInstructions from JTOC
     asm.emitLAddrToc(S0, cm.getOsrJTOCoffset());
     // mov CTR addr
@@ -120,17 +120,17 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
     // bctr
     asm.emitBCCTR();
 
-    VM_MachineCode mc = asm.makeMachineCode();  
+    VM_MachineCode mc = asm.makeMachineCode();
 
     // mark the thread as waiting for on stack replacement.
     thread.isWaitingForOsr = true;
     thread.bridgeInstructions = mc.getInstructions();
     thread.fooFPOffset = fooFPOffset;
 
-    Address bridgeaddr = 
-      VM_Magic.objectAsAddress(thread.bridgeInstructions);
+    Address bridgeaddr =
+        VM_Magic.objectAsAddress(thread.bridgeInstructions);
 
-    VM_Memory.sync(bridgeaddr, 
+    VM_Memory.sync(bridgeaddr,
                    thread.bridgeInstructions.length() << LG_INSTRUCTION_WIDTH);
 
     VM_AOSLogging.logOsrEvent("OSR code installation succeeded");

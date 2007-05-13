@@ -34,12 +34,12 @@ import org.vmmagic.unboxed.Offset;
 public final class VM_JNICompiledMethod extends VM_CompiledMethod {
 
   public VM_JNICompiledMethod(int id, VM_Method m) {
-    super(id,m);    
+    super(id, m);
   }
 
   @Uninterruptible
-  public int getCompilerType() { 
-    return JNI; 
+  public int getCompilerType() {
+    return JNI;
   }
 
   public String getCompilerName() {
@@ -47,14 +47,14 @@ public final class VM_JNICompiledMethod extends VM_CompiledMethod {
   }
 
   @Uninterruptible
-  public VM_ExceptionDeliverer getExceptionDeliverer() { 
+  public VM_ExceptionDeliverer getExceptionDeliverer() {
     // this method should never get called.
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return null;
   }
-      
+
   @Uninterruptible
-  public void getDynamicLink(VM_DynamicLink dynamicLink, Offset instructionOffset) { 
+  public void getDynamicLink(VM_DynamicLink dynamicLink, Offset instructionOffset) {
     // this method should never get called.
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
@@ -62,7 +62,7 @@ public final class VM_JNICompiledMethod extends VM_CompiledMethod {
   public int findCatchBlockForInstruction(Offset instructionOffset, VM_Type exceptionType) {
     return -1;
   }
-   
+
   public void printStackTrace(Offset instructionOffset, org.jikesrvm.VM_PrintLN out) {
     if (method != null) {
       // print name of native method

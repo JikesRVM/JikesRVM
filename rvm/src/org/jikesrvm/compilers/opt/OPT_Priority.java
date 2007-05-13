@@ -23,22 +23,22 @@ abstract class OPT_Priority
   /**
    * Resets the enumeration to the first instruction in sequence
    */
-  public abstract void reset ();
+  public abstract void reset();
 
   /**
    * Returns true if there are more instructions, false otherwise
    *
    * @return true if there are more instructions, false otherwise
    */
-  public abstract boolean hasMoreElements ();
+  public abstract boolean hasMoreElements();
 
   /**
    * Returns the next instruction in sequence
    *
    * @return the next instruction in sequence
    */
-  public final OPT_Instruction nextElement () {
-    return  next();
+  public final OPT_Instruction nextElement() {
+    return next();
   }
 
   /**
@@ -46,7 +46,7 @@ abstract class OPT_Priority
    *
    * @return the next instruction in sequence
    */
-  public abstract OPT_Instruction next ();
+  public abstract OPT_Instruction next();
 }
 
 

@@ -23,9 +23,9 @@ public class OPT_SpecializedMethod {
   /**
    * Corresponding compiled method
    */
-  VM_CompiledMethod compiledMethod;             
+  VM_CompiledMethod compiledMethod;
 
-  /** 
+  /**
    * Specialized Method index into the SpecializedMethods table
    */
   int smid;
@@ -38,7 +38,7 @@ public class OPT_SpecializedMethod {
   /**
    * constructor for OPT compiler.
    */
-  OPT_SpecializedMethod (VM_NormalMethod source, OPT_SpecializationContext context) {
+  OPT_SpecializedMethod(VM_NormalMethod source, OPT_SpecializationContext context) {
     this.method = source;
     this.context = context;
     this.smid = OPT_SpecializedMethodPool.createSpecializedMethodID();
@@ -47,19 +47,19 @@ public class OPT_SpecializedMethod {
   /**
    * generate the specialized code for this method
    */
-  void compile () {
+  void compile() {
     compiledMethod = context.specialCompile(method);
   }
 
-  public VM_NormalMethod getMethod () {
+  public VM_NormalMethod getMethod() {
     return method;
   }
 
-  public OPT_SpecializationContext getSpecializationContext () {
+  public OPT_SpecializationContext getSpecializationContext() {
     return context;
   }
 
-  public VM_CompiledMethod getCompiledMethod () {
+  public VM_CompiledMethod getCompiledMethod() {
     return compiledMethod;
   }
 
@@ -67,11 +67,11 @@ public class OPT_SpecializedMethod {
     compiledMethod = cm;
   }
 
-  public int getSpecializedMethodIndex () {
+  public int getSpecializedMethodIndex() {
     return smid;
   }
 
-  public String toString () {
+  public String toString() {
     return "Specialized " + method + "  (Context: " + context + ")";
   }
 }

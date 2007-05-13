@@ -23,7 +23,8 @@ import org.vmmagic.unboxed.WordArray;
  * its architecture-independent code from VM_OptGenericGCMapIterator.
  * This version is for the PowerPC
  */
-@Uninterruptible public abstract class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator implements VM_ArchConstants {
+@Uninterruptible
+public abstract class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator implements VM_ArchConstants {
 
   private static final boolean DEBUG = false;
 
@@ -31,11 +32,11 @@ import org.vmmagic.unboxed.WordArray;
     super(registerLocations);
   }
 
-  /** 
+  /**
    * If any non-volatile gprs were saved by the method being processed
    * then update the registerLocations array with the locations where the
    * registers were saved.
- */
+   */
   protected void updateLocateRegisters() {
 
     //  HIGH MEMORY
@@ -55,13 +56,13 @@ import org.vmmagic.unboxed.WordArray;
     //    +------------------+                                           
     //
     //  LOW MEMORY
-    
+
     int frameOffset = compiledMethod.getUnsignedNonVolatileOffset();
     if (frameOffset >= 0) {
 
       // get to the nonVol area
       Address nonVolArea = framePtr.plus(frameOffset);
-      
+
       // update non-volatiles that were saved
       int first = compiledMethod.getFirstNonVolatileGPR();
       if (first >= 0) {
@@ -72,18 +73,18 @@ import org.vmmagic.unboxed.WordArray;
           location = location.plus(BYTES_IN_ADDRESS);
         }
       }
-      
+
       // update volatiles if needed
       if (compiledMethod.isSaveVolatile()) {
         // move to the beginning of the save area for volatiles
         Address location = nonVolArea.minus(SAVE_VOL_SIZE);
-        
+
         // Walk the saved volatiles, updating registerLocations array
         for (int i = FIRST_VOLATILE_GPR; i <= LAST_VOLATILE_GPR; i++) {
           registerLocations.set(i, location.toWord());
           location = location.plus(BYTES_IN_ADDRESS);
         }
-        
+
         // Walk the saved scratch, updating registerLocations array
         for (int i = FIRST_SCRATCH_GPR; i <= LAST_SCRATCH_GPR; i++) {
           registerLocations.set(i, location.toWord());
@@ -93,7 +94,7 @@ import org.vmmagic.unboxed.WordArray;
     }
   }
 
-  /** 
+  /**
    *  Determine the stack location given the frame ptr and spill offset.
    *  (The offset direction varies among architectures.)
    *  @param framePtr the frame pointer
@@ -104,7 +105,7 @@ import org.vmmagic.unboxed.WordArray;
     return framePtr.plus(offset);
   }
 
-  /** 
+  /**
    *  Get address of the first spill location for the frame ptr.
    *  @return the first spill location
    */
@@ -112,7 +113,7 @@ import org.vmmagic.unboxed.WordArray;
     return framePtr.plus(SPILL_DISTANCE_FROM_FP);
   }
 
-  /** 
+  /**
    *  Get address of the last spill location for the frame ptr.
    *
    *  @return the last spill location, if no spills occur, we return the
@@ -168,7 +169,7 @@ import org.vmmagic.unboxed.WordArray;
 
   static final int SPILL_DISTANCE_FROM_FP = 3 * BYTES_IN_ADDRESS;
   static final int SAVE_VOL_SIZE = BYTES_IN_ADDRESS *
-    ((LAST_VOLATILE_GPR - FIRST_VOLATILE_GPR + 1) + 
-     (LAST_SCRATCH_GPR - FIRST_SCRATCH_GPR + 1)); 
+                                   ((LAST_VOLATILE_GPR - FIRST_VOLATILE_GPR + 1) +
+                                    (LAST_SCRATCH_GPR - FIRST_SCRATCH_GPR + 1));
 
 }

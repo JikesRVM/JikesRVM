@@ -17,16 +17,16 @@ package org.jikesrvm.compilers.opt;
 public final class OPT_PrePassScheduler extends OPT_CompilerPhase {
 
   public boolean shouldPerform(OPT_Options options) {
-    return  options.SCHEDULE_PREPASS;
+    return options.SCHEDULE_PREPASS;
   }
 
   public String getName() {
-    return  "InstrSched (pre-pass)";
+    return "InstrSched (pre-pass)";
   }
 
   public boolean printingEnabled(OPT_Options options, boolean before) {
-    return  !before &&          // old interface only printed afterwards
-    options.PRINT_SCHEDULE_PRE;
+    return !before &&          // old interface only printed afterwards
+           options.PRINT_SCHEDULE_PRE;
   }
 
   /**

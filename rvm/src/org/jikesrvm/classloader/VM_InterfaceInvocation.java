@@ -19,7 +19,7 @@ import org.jikesrvm.runtime.VM_Runtime;
 
 /**
  * Runtime system mechanisms and data structures to implement interface invocation.
- * 
+ *
  * We support five mechanisms:
  * <pre>
  *   IMT-based (Alpern, Cocchi, Fink, Grove, and Lieber OOPSLA'01). 
@@ -49,56 +49,56 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
    * @param mid id of the VM_MemberReference for the target interface method.
    * @return machine code corresponding to desired interface method
    */
-  public static VM_CodeArray invokeInterface(Object target, int mid) 
-    throws IncompatibleClassChangeError {
+  public static VM_CodeArray invokeInterface(Object target, int mid)
+      throws IncompatibleClassChangeError {
 
     VM_MethodReference mref = VM_MemberReference.getMemberRef(mid).asMethodReference();
     VM_Method sought = mref.resolveInterfaceMethod();
     VM_Class I = sought.getDeclaringClass();
-    VM_Class C = VM_Magic.getObjectType(target).asClass(); 
+    VM_Class C = VM_Magic.getObjectType(target).asClass();
     if (VM.BuildForITableInterfaceInvocation) {
       Object[] tib = C.getTypeInformationBlock();
       Object[] iTable = findITable(tib, I.getInterfaceId());
-      return (VM_CodeArray)iTable[getITableIndex(I, mref.getName(), mref.getDescriptor())];
-    } else { 
+      return (VM_CodeArray) iTable[getITableIndex(I, mref.getName(), mref.getDescriptor())];
+    } else {
       if (!VM_Runtime.isAssignableWith(I, C)) throw new IncompatibleClassChangeError();
-      VM_Method found  = C.findVirtualMethod(sought.getName(), 
-                                             sought.getDescriptor());
+      VM_Method found = C.findVirtualMethod(sought.getName(),
+                                            sought.getDescriptor());
       if (found == null) throw new IncompatibleClassChangeError();
       return found.getCurrentEntryCodeArray();
     }
   }
-  
+
   /**
    * Return a reference to the itable for a given class, interface pair
    * Under searched iTables, we might not have created the iTable yet,
    * in which case we will do that and then return it.
-   * 
+   *
    * @param tib the TIB for the class
    * @param id interface id of the interface sought (NOT dictionary id!!)
    * @return iTable for desired interface
    */
   public static Object[] findITable(Object[] tib, int id) throws IncompatibleClassChangeError {
-    Object[] iTables = 
-      (Object[])tib[TIB_ITABLES_TIB_INDEX];
+    Object[] iTables =
+        (Object[]) tib[TIB_ITABLES_TIB_INDEX];
     if (VM.DirectlyIndexedITables) {
       // ITable is at fixed offset
-      return (Object[])iTables[id];
+      return (Object[]) iTables[id];
     } else {
       // Search for the right ITable
       VM_Type I = VM_Class.getInterface(id);
       if (iTables != null) {
         // check the cache at slot 0
-        Object[] iTable = (Object[])iTables[0];
-        if (iTable[0] == I) { 
+        Object[] iTable = (Object[]) iTables[0];
+        if (iTable[0] == I) {
           return iTable; // cache hit :)
         }
-          
+
         // cache miss :(
         // Have to search the 'real' entries for the iTable
-        for (int i=1; i<iTables.length; i++) {
-          iTable = (Object[])iTables[i];
-          if (iTable[0] == I) { 
+        for (int i = 1; i < iTables.length; i++) {
+          iTable = (Object[]) iTables[i];
+          if (iTable[0] == I) {
             // found it; update cache
             iTables[0] = iTable;
             return iTable;
@@ -110,10 +110,10 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
       // the class implements the interface. :((( 
       // Therefore, we need to establish that and then 
       // look for the iTable again.
-      VM_Class C = (VM_Class)tib[0];
+      VM_Class C = (VM_Class) tib[0];
       if (!VM_Runtime.isAssignableWith(I, C)) throw new IncompatibleClassChangeError();
       synchronized (C) {
-        installITable(C, (VM_Class)I);
+        installITable(C, (VM_Class) I);
       }
       Object[] iTable = findITable(tib, id);
       if (VM.VerifyAssertions) VM._assert(iTable != null);
@@ -121,17 +121,16 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
     }
   }
 
-  
   /**
    * LHSclass is an interface that RHS class must implement.
    * Raises an IncompatibleClassChangeError if RHStib does not
    * implement LHSclass.
-   * 
+   *
    * @param LHSclass an class (should be an interface)
    * @param RHStib the TIB of an object that must implement LHSclass
    */
-  public static void invokeinterfaceImplementsTest(VM_Class LHSclass, Object[] RHStib) 
-    throws IncompatibleClassChangeError {
+  public static void invokeinterfaceImplementsTest(VM_Class LHSclass, Object[] RHStib)
+      throws IncompatibleClassChangeError {
     if (!LHSclass.isResolved()) {
       LHSclass.resolve();
     }
@@ -139,7 +138,6 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
     // Raise an IncompatibleClassChangeError.
     throw new IncompatibleClassChangeError();
   }
-
 
   /**
    * <code>mid</code> is the dictionary id of an interface method we are
@@ -149,29 +147,26 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
    * We were unable to resolve the member reference at compile time.
    * Therefore we must resolve it now and then call invokeinterfaceImplementsTest
    * with the right LHSclass.
-   * 
+   *
    * @param mid     Dictionary id of the {@link VM_MemberReference} for the
    *            target interface method. 
    * @param RHStib  The TIB of the object on which we are attempting to 
    *            invoke the interface method
    */
-  public static void unresolvedInvokeinterfaceImplementsTest(int mid, Object[] RHStib) 
-    throws IncompatibleClassChangeError {
+  public static void unresolvedInvokeinterfaceImplementsTest(int mid, Object[] RHStib)
+      throws IncompatibleClassChangeError {
     VM_Method sought = VM_MemberReference.getMemberRef(mid).asMethodReference().resolveInterfaceMethod();
     invokeinterfaceImplementsTest(sought.getDeclaringClass(), RHStib);
   }
 
-
-
   /*
-   * PART II: Code to initialize the interface dispatching data structures.
-   *          Called during the instantiate step of class loading.
-   *          Preconditions: 
-   *            (1) the caller has the lock on the VM_Class object
-   *                whose data structures and being initialized.
-   *            (2) the VMT for the class contains valid code.
-   */
-  
+  * PART II: Code to initialize the interface dispatching data structures.
+  *          Called during the instantiate step of class loading.
+  *          Preconditions:
+  *            (1) the caller has the lock on the VM_Class object
+  *                whose data structures and being initialized.
+  *            (2) the VMT for the class contains valid code.
+  */
 
   /**
    * Main entrypoint called from VM_Class.instantiate to
@@ -182,7 +177,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
    */
   public static void initializeDispatchStructures(VM_Class klass) {
     // if klass is abstract, we'll never use the dispatching structures.
-    if (klass.isAbstract()) return; 
+    if (klass.isAbstract()) return;
     VM_Class[] interfaces = klass.getAllImplementedInterfaces();
     if (interfaces.length != 0) {
       if (VM.BuildForIMTInterfaceInvocation) {
@@ -197,12 +192,12 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
       }
     }
   }
-  
+
   /**
    * Build up a description of the IMT contents for the given class.
    * NOTE: this structure is only used during class loading, so
    *       we don't have to worry about making it space efficient.
-   * 
+   *
    * @param klass the VM_Class whose IMT we are going to build.
    * @return an IMTDict that describes the IMT we need to build for the class.
    */
@@ -247,7 +242,6 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
     tib[TIB_IMT_TIB_INDEX] = IMT;
   }
 
-
   /**
    * Populate the ITables array for DirectlyIndexedITables
    */
@@ -257,14 +251,13 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
       int cur = i.getInterfaceId();
       if (cur > maxId) maxId = cur;
     }
-    Object[][] iTables = new Object[maxId+1][];
+    Object[][] iTables = new Object[maxId + 1][];
     for (VM_Class interf : interfaces) {
       iTables[interf.getInterfaceId()] = buildITable(klass, interf);
     }
     Object[] tib = klass.getTypeInformationBlock();
     tib[TIB_ITABLES_TIB_INDEX] = iTables;
-  }    
-
+  }
 
   /**
    * Build and install an iTable for the given class interface pair
@@ -272,7 +265,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
    */
   private static void installITable(VM_Class C, VM_Class I) {
     Object[] tib = C.getTypeInformationBlock();
-    Object[] iTables = (Object[])tib[TIB_ITABLES_TIB_INDEX];
+    Object[] iTables = (Object[]) tib[TIB_ITABLES_TIB_INDEX];
 
     if (iTables == null) {
       iTables = new Object[2];
@@ -283,12 +276,12 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
           return; // some other thread just built the iTable
         }
       }
-      Object[] tmp = new Object[iTables.length+1];
+      Object[] tmp = new Object[iTables.length + 1];
       System.arraycopy(iTables, 0, tmp, 0, iTables.length);
       iTables = tmp;
       tib[TIB_ITABLES_TIB_INDEX] = iTables;
     }
-    if (VM.VerifyAssertions) VM._assert(iTables[iTables.length-1] == null);
+    if (VM.VerifyAssertions) VM._assert(iTables[iTables.length - 1] == null);
     Object[] iTable = buildITable(C, I);
     iTables[iTables.length - 1] = iTable;
     // iTables[0] is a move to front cache; fill it here so we can
@@ -296,14 +289,13 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
     iTables[0] = iTable;
   }
 
-
   /**
    * Build a single ITable for the pair of class C and interface I
    */
   private static Object[] buildITable(VM_Class C, VM_Class I) {
-    VM_Method [] interfaceMethods = I.getDeclaredMethods();
+    VM_Method[] interfaceMethods = I.getDeclaredMethods();
     Object[] tib = C.getTypeInformationBlock();
-    Object[] iTable = new Object[interfaceMethods.length+1];
+    Object[] iTable = new Object[interfaceMethods.length + 1];
     iTable[0] = I;
     for (VM_Method im : interfaceMethods) {
       if (im.isClassInitializer()) continue;
@@ -321,16 +313,16 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
         vm.compile();
         iTable[getITableIndex(I, im.getName(), im.getDescriptor())] = vm.getCurrentEntryCodeArray();
       } else {
-        iTable[getITableIndex(I, im.getName(), im.getDescriptor())] = tib[vm.getOffset().toInt() >> LOG_BYTES_IN_ADDRESS];
+        iTable[getITableIndex(I, im.getName(), im.getDescriptor())] =
+            tib[vm.getOffset().toInt() >> LOG_BYTES_IN_ADDRESS];
       }
     }
     return iTable;
   }
 
-
   /*
-   * PART III: Supporting low-level code for manipulating IMTs and ITables
-   */
+  * PART III: Supporting low-level code for manipulating IMTs and ITables
+  */
 
   /**
    * Return the index of the interface method m in the itable
@@ -339,20 +331,19 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
     if (VM.VerifyAssertions) VM._assert(VM.BuildForITableInterfaceInvocation);
     if (VM.VerifyAssertions) VM._assert(klass.isInterface());
     VM_Method[] methods = klass.getDeclaredMethods();
-    for (int i=0; i<methods.length; i++) {
+    for (int i = 0; i < methods.length; i++) {
       if (methods[i].getName() == mname && methods[i].getDescriptor() == mdesc) {
-        return i+1;
+        return i + 1;
       }
     }
     return -1;
   }
 
-
   /**
    * If there is an an IMT or ITable entry that contains 
    * compiled code for the argument method, then update it to
    * contain the current compiled code for the method.
-   * 
+   *
    * @param klass the VM_Class who's IMT/ITable is being reset
    * @param m the method that needs to be updated.
    */
@@ -361,13 +352,13 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
     if (VM.BuildForIMTInterfaceInvocation) {
       VM_Method[] map = klass.noIMTConflictMap;
       if (map != null) {
-        for (int i = 0; i<IMT_METHOD_SLOTS; i++) {
+        for (int i = 0; i < IMT_METHOD_SLOTS; i++) {
           if (map[i] == m) {
             if (VM.BuildForIndirectIMT) {
-              VM_CodeArray[] IMT = (VM_CodeArray[])tib[TIB_IMT_TIB_INDEX];
+              VM_CodeArray[] IMT = (VM_CodeArray[]) tib[TIB_IMT_TIB_INDEX];
               IMT[i] = m.getCurrentEntryCodeArray();
             } else {
-              tib[i+TIB_FIRST_INTERFACE_METHOD_INDEX] = m.getCurrentEntryCodeArray();
+              tib[i + TIB_FIRST_INTERFACE_METHOD_INDEX] = m.getCurrentEntryCodeArray();
             }
             return; // all done -- a method is in at most 1 IMT slot
           }
@@ -375,7 +366,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
       }
     } else if (VM.BuildForITableInterfaceInvocation) {
       if (tib[TIB_ITABLES_TIB_INDEX] != null) {
-        Object[] iTables = (Object[])tib[TIB_ITABLES_TIB_INDEX];
+        Object[] iTables = (Object[]) tib[TIB_ITABLES_TIB_INDEX];
         VM_Atom name = m.getName();
         VM_Atom desc = m.getDescriptor();
         for (Object element : iTables) {
@@ -405,7 +396,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
       klass = c;
       links = new Link[IMT_METHOD_SLOTS];
     }
-    
+
     // Convert from the internally visible IMTOffset to an index
     // into my internal data structure.
     private int getIndex(VM_InterfaceMethodSignature sig) {
@@ -417,7 +408,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
     }
 
     // count the number of signatures in the given IMT slot
-    private int populationCount (int index) {
+    private int populationCount(int index) {
       Link p = links[index];
       int count = 0;
       while (p != null) {
@@ -452,7 +443,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
     // populate the
     public void populateIMT(Object[] tib, Object[] IMT) {
       int adjust = VM.BuildForEmbeddedIMT ? TIB_FIRST_INTERFACE_METHOD_INDEX : 0;
-      for (int slot = 0; slot<links.length; slot++) {
+      for (int slot = 0; slot < links.length; slot++) {
         int extSlot = slot + adjust;
         int count = populationCount(slot);
         if (count == 0) {
@@ -464,7 +455,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
             target.compile();
             IMT[extSlot] = target.getCurrentEntryCodeArray();
           } else {
-            IMT[extSlot] = tib[target.getOffset().toInt()>>LOG_BYTES_IN_ADDRESS];
+            IMT[extSlot] = tib[target.getOffset().toInt() >> LOG_BYTES_IN_ADDRESS];
             if (klass.noIMTConflictMap == null) {
               klass.noIMTConflictMap = new VM_Method[IMT_METHOD_SLOTS];
             }
@@ -486,11 +477,12 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
     private static class Link {
       final VM_InterfaceMethodSignature signature;
       final VM_Method method;
-      Link      next;
-      Link (VM_InterfaceMethodSignature sig, VM_Method m, Link n) {
+      Link next;
+
+      Link(VM_InterfaceMethodSignature sig, VM_Method m, Link n) {
         signature = sig;
-        method    = m;
-        next      = n;
+        method = m;
+        next = n;
       }
     }
   }

@@ -38,7 +38,7 @@ import org.jikesrvm.compilers.opt.ir.Unary;
  */
 class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
 
-  public final boolean shouldPerform (OPT_Options options) {
+  public final boolean shouldPerform(OPT_Options options) {
     return options.LIVE_RANGE_SPLITTING;
   }
 
@@ -46,24 +46,24 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
    * Build this phase as a composite of others.
    */
   OPT_LiveRangeSplitting() {
-    super("LIR SSA Live Range Splitting", new OPT_OptimizationPlanElement[] {
-            // 0. Clean up the IR
-            new OPT_OptimizationPlanAtomicElement(new OPT_BranchOptimizations(2, true, true)),
-            new OPT_OptimizationPlanAtomicElement(new OPT_CoalesceMoves()),
-            // 1. Insert the split operations.
-            new OPT_OptimizationPlanAtomicElement(new LiveRangeSplitting()),
-            new OPT_OptimizationPlanAtomicElement(new OPT_BranchOptimizations(2, true, true)),
-            // 2. Use SSA to rename
-            new OPT_OptimizationPlanAtomicElement(new OPT_DominatorsPhase(true)), 
-            new OPT_OptimizationPlanAtomicElement(new OPT_DominanceFrontier()),
-            new OPT_OptimizationPlanAtomicElement(new RenamePreparation()),
-            new OPT_OptimizationPlanAtomicElement(new OPT_EnterSSA()),
-            new OPT_OptimizationPlanAtomicElement(new OPT_LeaveSSA())
-          });
+    super("LIR SSA Live Range Splitting", new OPT_OptimizationPlanElement[]{
+        // 0. Clean up the IR
+        new OPT_OptimizationPlanAtomicElement(new OPT_BranchOptimizations(2, true, true)),
+        new OPT_OptimizationPlanAtomicElement(new OPT_CoalesceMoves()),
+        // 1. Insert the split operations.
+        new OPT_OptimizationPlanAtomicElement(new LiveRangeSplitting()),
+        new OPT_OptimizationPlanAtomicElement(new OPT_BranchOptimizations(2, true, true)),
+        // 2. Use SSA to rename
+        new OPT_OptimizationPlanAtomicElement(new OPT_DominatorsPhase(true)),
+        new OPT_OptimizationPlanAtomicElement(new OPT_DominanceFrontier()),
+        new OPT_OptimizationPlanAtomicElement(new RenamePreparation()),
+        new OPT_OptimizationPlanAtomicElement(new OPT_EnterSSA()),
+        new OPT_OptimizationPlanAtomicElement(new OPT_LeaveSSA())
+    });
   }
 
   private static class LiveRangeSplitting extends OPT_CompilerPhase {
-    
+
     /**
      * Return this instance of this phase. This phase contains no
      * per-compilation instance fields.
@@ -74,12 +74,11 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
       return this;
     }
 
-
-    public final boolean shouldPerform (OPT_Options options) {
+    public final boolean shouldPerform(OPT_Options options) {
       return options.LIVE_RANGE_SPLITTING;
     }
 
-    public final String getName () {
+    public final String getName() {
       return "Live Range Splitting";
     }
 
@@ -100,21 +99,21 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
       // scratchObject field of the Basic Blocks.  Thus, liveness must be 
       // computed AFTER the dominators, since the dominator phase also uses
       // the scratchObject field.
-      OPT_LiveAnalysis live = 
-        new OPT_LiveAnalysis(false,  // don't create GC maps
-                             false,  // don't skip (final) local 
-                                     // propagation step of live analysis
-                             false,  // don't store information at handlers
-                             true);  // skip guards
+      OPT_LiveAnalysis live =
+          new OPT_LiveAnalysis(false,  // don't create GC maps
+                               false,  // don't skip (final) local
+                               // propagation step of live analysis
+                               false,  // don't store information at handlers
+                               true);  // skip guards
       live.perform(ir);
 
       // 3. Perform the analysis
       OPT_DefUse.computeDU(ir);
-      HashMap<BasicBlockPair,HashSet<OPT_Register>> result =
-        findSplitPoints(ir,live,lst);
+      HashMap<BasicBlockPair, HashSet<OPT_Register>> result =
+          findSplitPoints(ir, live, lst);
 
       // 4. Perform the transformation.
-      transform(ir,result);
+      transform(ir, result);
 
       // 5. Record that we've destroyed SSA
       if (ir.actualSSAOptions != null) {
@@ -131,43 +130,43 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
      * @param lst a valid loop structure tree
      * @return the result as a mapping from BasicBlockPair to a set of registers
      */
-    private static HashMap<BasicBlockPair,HashSet<OPT_Register>> findSplitPoints(OPT_IR ir,
-                                                                                 OPT_LiveAnalysis live,
-                                                                                 OPT_LSTGraph lst) {
+    private static HashMap<BasicBlockPair, HashSet<OPT_Register>> findSplitPoints(OPT_IR ir,
+                                                                                  OPT_LiveAnalysis live,
+                                                                                  OPT_LSTGraph lst) {
 
-      HashMap<BasicBlockPair,HashSet<OPT_Register>> result =
-        new HashMap<BasicBlockPair,HashSet<OPT_Register>>(10);
-      for (Enumeration<OPT_GraphNode> e = lst.enumerateNodes(); e.hasMoreElements(); ) {
-        OPT_LSTNode node = (OPT_LSTNode)e.nextElement();
+      HashMap<BasicBlockPair, HashSet<OPT_Register>> result =
+          new HashMap<BasicBlockPair, HashSet<OPT_Register>>(10);
+      for (Enumeration<OPT_GraphNode> e = lst.enumerateNodes(); e.hasMoreElements();) {
+        OPT_LSTNode node = (OPT_LSTNode) e.nextElement();
         OPT_BasicBlock header = node.getHeader();
         OPT_BitVector loop = node.getLoop();
         if (loop == null) continue;
 
         // First split live ranges on edges coming into the loop header.
-        for (Enumeration<OPT_BasicBlock> in = header.getIn(); in.hasMoreElements(); ) {
+        for (Enumeration<OPT_BasicBlock> in = header.getIn(); in.hasMoreElements();) {
           OPT_BasicBlock bb = in.nextElement();
           if (loop.get(bb.getNumber())) continue;
           HashSet<OPT_Register> liveRegisters =
-            live.getLiveRegistersOnEdge(bb,header);
+              live.getLiveRegistersOnEdge(bb, header);
           for (OPT_Register r : liveRegisters) {
             if (r.isSymbolic()) {
-              HashSet<OPT_Register> s = findOrCreateSplitSet(result,bb,header);
+              HashSet<OPT_Register> s = findOrCreateSplitSet(result, bb, header);
               s.add(r);
             }
           }
         }
 
         // Next split live ranges on every normal exit from the loop.
-        for (int i=0; i<loop.length(); i++) {
+        for (int i = 0; i < loop.length(); i++) {
           if (loop.get(i)) {
             OPT_BasicBlock bb = ir.getBasicBlock(i);
-            for (Enumeration<OPT_BasicBlock> out = bb.getNormalOut(); out.hasMoreElements(); ){
+            for (Enumeration<OPT_BasicBlock> out = bb.getNormalOut(); out.hasMoreElements();) {
               OPT_BasicBlock dest = out.nextElement();
               if (loop.get(dest.getNumber())) continue;
-              HashSet<OPT_Register> liveRegisters = live.getLiveRegistersOnEdge(bb,dest);
+              HashSet<OPT_Register> liveRegisters = live.getLiveRegistersOnEdge(bb, dest);
               for (OPT_Register r : liveRegisters) {
                 if (r.isSymbolic()) {
-                  HashSet<OPT_Register> s = findOrCreateSplitSet(result,bb,dest);
+                  HashSet<OPT_Register> s = findOrCreateSplitSet(result, bb, dest);
                   s.add(r);
                 }
               }
@@ -175,7 +174,7 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
           }
         }
       }
-      
+
       addEntriesForInfrequentBlocks(ir, live, result);
 
       return result;
@@ -191,18 +190,18 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
      * @param result mapping from BasicBlockPair to a set of registers
      */
     private static void addEntriesForInfrequentBlocks(OPT_IR ir, OPT_LiveAnalysis live,
-                                                      HashMap<BasicBlockPair,HashSet<OPT_Register>> result) {
-      for (Enumeration<OPT_BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements(); ) {
+                                                      HashMap<BasicBlockPair, HashSet<OPT_Register>> result) {
+      for (Enumeration<OPT_BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
         OPT_BasicBlock bb = e.nextElement();
         boolean bbInfrequent = bb.getInfrequent();
-        for (Enumeration<OPT_BasicBlock> out = bb.getNormalOut(); out.hasMoreElements(); ) {
+        for (Enumeration<OPT_BasicBlock> out = bb.getNormalOut(); out.hasMoreElements();) {
           OPT_BasicBlock dest = out.nextElement();
           boolean destInfrequent = dest.getInfrequent();
           if (bbInfrequent ^ destInfrequent) {
-            HashSet<OPT_Register> liveRegisters = live.getLiveRegistersOnEdge(bb,dest);
+            HashSet<OPT_Register> liveRegisters = live.getLiveRegistersOnEdge(bb, dest);
             for (OPT_Register r : liveRegisters) {
               if (r.isSymbolic()) {
-                HashSet<OPT_Register> s = findOrCreateSplitSet(result,bb,dest);
+                HashSet<OPT_Register> s = findOrCreateSplitSet(result, bb, dest);
                 s.add(r);
               }
             }
@@ -210,7 +209,6 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
         }
       }
     }
-
 
     /**
      * Given a mapping from BasicBlockPair -> HashSet, find or create the hash
@@ -220,10 +218,10 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
      * @param b1 the first basic block in the pair
      * @param b2 the second basic block in the pair
      */
-    private static HashSet<OPT_Register> findOrCreateSplitSet(HashMap<BasicBlockPair,HashSet<OPT_Register>> map,
-                                                              OPT_BasicBlock b1, 
+    private static HashSet<OPT_Register> findOrCreateSplitSet(HashMap<BasicBlockPair, HashSet<OPT_Register>> map,
+                                                              OPT_BasicBlock b1,
                                                               OPT_BasicBlock b2) {
-      BasicBlockPair pair = new BasicBlockPair(b1,b2);
+      BasicBlockPair pair = new BasicBlockPair(b1, b2);
       HashSet<OPT_Register> set = map.get(pair);
       if (set == null) {
         set = new HashSet<OPT_Register>(5);
@@ -240,15 +238,15 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
      * to split
      */
     private static void transform(OPT_IR ir,
-                                  HashMap<BasicBlockPair,HashSet<OPT_Register>> xform) {
+                                  HashMap<BasicBlockPair, HashSet<OPT_Register>> xform) {
       for (BasicBlockPair bbp : xform.keySet()) {
         HashSet<OPT_Register> toSplit = xform.get(bbp);
-        
+
         // we go ahead and split all edges, instead of just critical ones.
         // we'll clean up the mess later after SSA.
         OPT_BasicBlock target = OPT_IRTools.makeBlockOnEdge(bbp.src,
-                                                            bbp.dest,ir);
-        OPT_SSA.replaceBlockInPhis(bbp.dest,bbp.src,target);
+                                                            bbp.dest, ir);
+        OPT_SSA.replaceBlockInPhis(bbp.dest, bbp.src, target);
 
         for (OPT_Register r : toSplit) {
           if (r.defList == null) continue;
@@ -346,13 +344,14 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
 
       static int nextHash = 0;
       int myHash = ++nextHash;
+
       public int hashCode() {
         return myHash;
       }
 
       public boolean equals(Object o) {
         if (!(o instanceof BasicBlockPair)) return false;
-        BasicBlockPair p = (BasicBlockPair)o;
+        BasicBlockPair p = (BasicBlockPair) o;
         return (src.equals(p.src) && dest.equals(p.dest));
       }
 
@@ -361,11 +360,12 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
       }
     }
   }
+
   /**
    * This class sets up the IR state prior to entering SSA.
    */
   private static class RenamePreparation extends OPT_CompilerPhase {
-  
+
     /**
      * Return this instance of this phase. This phase contains no
      * per-compilation instance fields.
@@ -376,13 +376,12 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
       return this;
     }
 
-
-    public final boolean shouldPerform (OPT_Options options) {
+    public final boolean shouldPerform(OPT_Options options) {
       return options.LIVE_RANGE_SPLITTING;
     }
 
-    public final String getName () {
-      return  "Rename Preparation";
+    public final String getName() {
+      return "Rename Preparation";
     }
 
     /**

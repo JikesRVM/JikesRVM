@@ -28,7 +28,7 @@ public abstract class VM_DynamicLinkerHelper {
    */
   @NoInline
   public
-  static Object getReceiverObject() { 
+  static Object getReceiverObject() {
 
     Address callingFrame = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());
     callingFrame = VM_Magic.getCallerFramePointer(callingFrame);

@@ -27,69 +27,71 @@ import org.jikesrvm.runtime.VM_Reflection;
  */
 public class VM_FinalizerThread extends VM_Thread {
 
-   private static final int verbose = 0; // currently goes up to 2
+  private static final int verbose = 0; // currently goes up to 2
 
-  private final Object[]  none = new Object[0];
-  
-   public VM_FinalizerThread() {
-     super(null);
-   }
+  private final Object[] none = new Object[0];
 
-   public String toString() {
-     return "FinalizerThread";
-   }
+  public VM_FinalizerThread() {
+    super(null);
+  }
 
-   // Run the finalizer thread (one per RVM)
-   //
-   public void run() {
+  public String toString() {
+    return "FinalizerThread";
+  }
 
-     if (verbose >= 1)
-       VM_Scheduler.trace("VM_FinalizerThread ", "run routine entered");
-     
-     try {
-       while (true) {
-         
-         // suspend this thread: it will resume when the garbage collector
-         // places objects on the finalizer queue and notifies.
-         
-         VM_Scheduler.finalizerMutex.lock();
-         VM_Thread.yield(VM_Scheduler.finalizerQueue, 
-                         VM_Scheduler.finalizerMutex);
-         
-         if (verbose >= 1)
-           VM.sysWriteln("VM_FinalizerThread starting finalization");
-         
-         while (true) {
-           Object o = MM_Interface.getFinalizedObject();
-           if (o == null) break;
-           if (verbose >= 2) {
-             VM.sysWrite("VM_FinalizerThread finalizing object at ", VM_Magic.objectAsAddress(o));
-             VM.sysWrite("of type ");
-             VM.sysWrite(VM_Magic.getObjectType(o).getDescriptor());
-             VM.sysWriteln();
-           }
-           try {
-             VM_Method method = VM_Magic.getObjectType(o).asClass().getFinalizer();
-             if (VM.VerifyAssertions) VM._assert(method != null);
-             VM_Reflection.invoke(method, o, none);
-           }
-           catch (Exception e) {
-               if (verbose >= 1) VM.sysWriteln("Throwable exception caught for finalize call");
-           }
-           if (verbose >= 2) VM.sysWriteln("VM_FinalizerThread done with object at ",
-                                           VM_Magic.objectAsAddress(o));
-         }
-         if (verbose >= 1) VM.sysWriteln("VM_FinalizerThread finished finalization");
-         
-       }          // while (true)
-     }
-     catch (Exception e) {
-       VM.sysWriteln("Unexpected exception thrown in finalizer thread: ", e.toString());
-       e.printStackTrace();
-     }
-     
-   }  // run
-  
-  
+  // Run the finalizer thread (one per RVM)
+  //
+  public void run() {
+
+    if (verbose >= 1) {
+      VM_Scheduler.trace("VM_FinalizerThread ", "run routine entered");
+    }
+
+    try {
+      while (true) {
+
+        // suspend this thread: it will resume when the garbage collector
+        // places objects on the finalizer queue and notifies.
+
+        VM_Scheduler.finalizerMutex.lock();
+        VM_Thread.yield(VM_Scheduler.finalizerQueue,
+                        VM_Scheduler.finalizerMutex);
+
+        if (verbose >= 1) {
+          VM.sysWriteln("VM_FinalizerThread starting finalization");
+        }
+
+        while (true) {
+          Object o = MM_Interface.getFinalizedObject();
+          if (o == null) break;
+          if (verbose >= 2) {
+            VM.sysWrite("VM_FinalizerThread finalizing object at ", VM_Magic.objectAsAddress(o));
+            VM.sysWrite("of type ");
+            VM.sysWrite(VM_Magic.getObjectType(o).getDescriptor());
+            VM.sysWriteln();
+          }
+          try {
+            VM_Method method = VM_Magic.getObjectType(o).asClass().getFinalizer();
+            if (VM.VerifyAssertions) VM._assert(method != null);
+            VM_Reflection.invoke(method, o, none);
+          }
+          catch (Exception e) {
+            if (verbose >= 1) VM.sysWriteln("Throwable exception caught for finalize call");
+          }
+          if (verbose >= 2) {
+            VM.sysWriteln("VM_FinalizerThread done with object at ",
+                          VM_Magic.objectAsAddress(o));
+          }
+        }
+        if (verbose >= 1) VM.sysWriteln("VM_FinalizerThread finished finalization");
+
+      }          // while (true)
+    }
+    catch (Exception e) {
+      VM.sysWriteln("Unexpected exception thrown in finalizer thread: ", e.toString());
+      e.printStackTrace();
+    }
+
+  }  // run
 
 }

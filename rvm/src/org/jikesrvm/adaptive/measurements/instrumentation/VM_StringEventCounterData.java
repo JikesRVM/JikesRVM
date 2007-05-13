@@ -16,17 +16,16 @@ import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
 
 /**
  * VM_StringEventCounterData.java
- * 
+ *
  * A generic data object that maps strings to counters.  The key
  * method is "OPT_Instruction getCounterInstructionForEvent(String)"
  * which, given a string, returns a counter instruction that
  * increments the corresponding counter for that string.
  */
 public class VM_StringEventCounterData extends VM_ManagedCounterData
-  implements VM_Reportable {
+    implements VM_Reportable {
 
-  static final boolean DEBUG=false;
-
+  static final boolean DEBUG = false;
 
   /**
    *  Constructor
@@ -34,11 +33,10 @@ public class VM_StringEventCounterData extends VM_ManagedCounterData
    * @param manager The manager that will provide the counter space
    **/
   VM_StringEventCounterData(OPT_InstrumentedEventCounterManager manager,
-                            String name)
-  {
+                            String name) {
     // Call superclass constructor
     super(manager);
-    
+
     dataName = name;
   }
 
@@ -50,7 +48,7 @@ public class VM_StringEventCounterData extends VM_ManagedCounterData
    * @return An instruction to increment the count associated with the event.
    */
   public OPT_Instruction getCounterInstructionForEvent(String event) {
-    return getCounterInstructionForEvent(event,1.0);
+    return getCounterInstructionForEvent(event, 1.0);
   }
 
   /**
@@ -60,14 +58,14 @@ public class VM_StringEventCounterData extends VM_ManagedCounterData
    * @param event The name of the event
    * @param incrementValue The value to add to counter
    * @return An instruction that will update the count associated with the event.
- */
-  public OPT_Instruction getCounterInstructionForEvent(String event, 
-                                                double incrementValue) {
+   */
+  public OPT_Instruction getCounterInstructionForEvent(String event,
+                                                       double incrementValue) {
 
     // Get (or create) the counter for this string and return it.
     int counterIdx = getOrCreateCounterIndexForString(event);
 
-    return createEventCounterInstruction(counterIdx,incrementValue);
+    return createEventCounterInstruction(counterIdx, incrementValue);
   }
 
   /**
@@ -75,10 +73,11 @@ public class VM_StringEventCounterData extends VM_ManagedCounterData
    * @param num double to convert
    */
   protected static String doubleToString(double num) {
-    long whole = (long)num;
-    if (whole == Long.MAX_VALUE || whole == Long.MIN_VALUE)
+    long whole = (long) num;
+    if (whole == Long.MAX_VALUE || whole == Long.MIN_VALUE) {
       return Double.toString(whole);
-    double fract = Math.abs(num - (double)whole);
+    }
+    double fract = Math.abs(num - (double) whole);
     String res = Long.toString(whole);
     if (fract != 0.0) {
       String f2s = Double.toString(fract + 1.0);
@@ -91,15 +90,14 @@ public class VM_StringEventCounterData extends VM_ManagedCounterData
    * Part of VM_Reportable interface
    * Print a report at the end of execution
    */
-  public void report()
-  {
+  public void report() {
     // Turn off future instrumentation to avoid hanging during 
     // iteration
     VM_Instrumentation.disableInstrumentation();
 
     VM.sysWrite("Printing " + dataName + ":\n");
     VM.sysWrite("--------------------------------------------------\n");
-    double total=0;
+    double total = 0;
     for (String stringName : stringToCounterMap.keySet()) {
       int counterIdx = getCounterIndexForString(stringName);
       double counterVal = getCounter(counterIdx);
@@ -123,14 +121,13 @@ public class VM_StringEventCounterData extends VM_ManagedCounterData
     int counterIdx = getCounterIndexForString(str);
     if (counterIdx == -1) {
       // Use new counter
-      counterIdx = ++ eventNumber;
+      counterIdx = ++eventNumber;
       // remember it, and return it
       stringToCounterMap.put(str, eventNumber);
     }
 
     return counterIdx;
   }
-
 
   /**
    * For a given string, return the number of the counter associated
@@ -139,14 +136,15 @@ public class VM_StringEventCounterData extends VM_ManagedCounterData
    *
    * @param str The string for which you want the counter number
    * @return The counter number for this string, or -1 if the string has no 
-             counter associated with it. 
+  counter associated with it.
    */
   public int getCounterIndexForString(String str) {
 
     int counter = -1;
     Integer counterNum = stringToCounterMap.get(str);
-    if (counterNum != null) 
+    if (counterNum != null) {
       counter = counterNum;
+    }
 
     return counter;
   }
@@ -154,28 +152,28 @@ public class VM_StringEventCounterData extends VM_ManagedCounterData
   /**
    *  Part of VM_Reportable interface
    **/
-  public void reset() { 
+  public void reset() {
     for (String stringName : stringToCounterMap.keySet()) {
       int counterIdx = getCounterIndexForString(stringName);
       setCounter(counterIdx, 0.0);
     }
   }
 
- /** 
-  *  Map strings to a counter location
-  */
-  protected final Hashtable<String,Integer> stringToCounterMap = 
-    new Hashtable<String,Integer>();
+  /**
+   *  Map strings to a counter location
+   */
+  protected final Hashtable<String, Integer> stringToCounterMap =
+      new Hashtable<String, Integer>();
 
   /**
    * A string description of this data;
    */
   final String dataName;
 
-  /** 
+  /**
    * Used to keep track of how many counters have been used so far.
-   */ 
-  int eventNumber=-1;
+   */
+  int eventNumber = -1;
 
 } // end of class
 

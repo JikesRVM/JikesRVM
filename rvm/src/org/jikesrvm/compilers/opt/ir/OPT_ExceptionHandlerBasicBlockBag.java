@@ -12,7 +12,7 @@ import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
 
 /**
  * A container for the chain of exception handlers for a basic block.
- * 
+ *
  *
  * @see OPT_BasicBlock
  * @see OPT_ExceptionHandlerBasicBlock
@@ -45,7 +45,7 @@ final class OPT_ExceptionHandlerBasicBlockBag {
    * @param l the local array of EHBBs
    * @param c the enclosing EHBBB
    */
-  OPT_ExceptionHandlerBasicBlockBag(OPT_ExceptionHandlerBasicBlock[] l, 
+  OPT_ExceptionHandlerBasicBlockBag(OPT_ExceptionHandlerBasicBlock[] l,
                                     OPT_ExceptionHandlerBasicBlockBag c) {
     local = l;
     caller = c;
@@ -56,14 +56,14 @@ final class OPT_ExceptionHandlerBasicBlockBag {
    * to remove is not in the bag
    */
   public void remove(OPT_BasicBlock bb) {
-    for(int i = 0; i < local.length; i++) {
+    for (int i = 0; i < local.length; i++) {
       if (bb == local[i]) {
         OPT_ExceptionHandlerBasicBlock[] newLocal =
-          new OPT_ExceptionHandlerBasicBlock[ local.length - 1 ];
-               
-        for(int j = 0; j < i; j++) newLocal[j] = local[j];
+            new OPT_ExceptionHandlerBasicBlock[local.length - 1];
 
-        for(int j = i+1; j < local.length; j++) newLocal[j-1]=local[j];
+        for (int j = 0; j < i; j++) newLocal[j] = local[j];
+
+        for (int j = i + 1; j < local.length; j++) newLocal[j - 1] = local[j];
 
         local = newLocal;
         return;
@@ -80,38 +80,42 @@ final class OPT_ExceptionHandlerBasicBlockBag {
    */
   public OPT_BasicBlockEnumeration enumerator() {
     return new OPT_BasicBlockEnumeration() {
-        private int cur_idx = 0;
-        private OPT_ExceptionHandlerBasicBlockBag cur_bag = null;
-        // Initialize enumeration to point to first ehbb (if any)
-        {
-          OPT_ExceptionHandlerBasicBlockBag c = OPT_ExceptionHandlerBasicBlockBag.this;
-          while (c != null && (c.local == null || c.local.length == 0)) { c = c.caller; }
-          if (c != null) {
-            cur_bag = c;
-          }
+      private int cur_idx = 0;
+      private OPT_ExceptionHandlerBasicBlockBag cur_bag = null;
+
+      // Initialize enumeration to point to first ehbb (if any)
+      {
+        OPT_ExceptionHandlerBasicBlockBag c = OPT_ExceptionHandlerBasicBlockBag.this;
+        while (c != null && (c.local == null || c.local.length == 0)) { c = c.caller; }
+        if (c != null) {
+          cur_bag = c;
         }
-        public boolean hasMoreElements() { return cur_bag != null; }
-        public OPT_BasicBlock nextElement() { return next(); }
-        public OPT_BasicBlock next() {
-          OPT_ExceptionHandlerBasicBlock ans;
-          try {
-            ans = cur_bag.local[cur_idx++];
-          } catch (NullPointerException e) {
-            throw new java.util.NoSuchElementException();
-          }
-          // Now advance state to point to next element.
-          if (cur_idx == cur_bag.local.length) {
+      }
+
+      public boolean hasMoreElements() { return cur_bag != null; }
+
+      public OPT_BasicBlock nextElement() { return next(); }
+
+      public OPT_BasicBlock next() {
+        OPT_ExceptionHandlerBasicBlock ans;
+        try {
+          ans = cur_bag.local[cur_idx++];
+        } catch (NullPointerException e) {
+          throw new java.util.NoSuchElementException();
+        }
+        // Now advance state to point to next element.
+        if (cur_idx == cur_bag.local.length) {
+          cur_bag = cur_bag.caller;
+          while (cur_bag != null && (cur_bag.local == null || cur_bag.local.length == 0)) {
             cur_bag = cur_bag.caller;
-            while (cur_bag != null && (cur_bag.local == null || cur_bag.local.length == 0)) {
-              cur_bag = cur_bag.caller;
-            }
-            if (cur_bag != null) {
-              cur_idx = 0; // found the next array, reset idx to first element.
-            }
           }
-          return ans;
+          if (cur_bag != null) {
+            cur_idx = 0; // found the next array, reset idx to first element.
+          }
         }
-      };
+        return ans;
+      }
+    };
   }
 }
 

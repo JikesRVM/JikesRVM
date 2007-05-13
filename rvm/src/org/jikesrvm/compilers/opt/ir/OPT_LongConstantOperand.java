@@ -54,16 +54,16 @@ public final class OPT_LongConstantOperand extends OPT_ConstantOperand {
 
   /**
    * Return the {@link VM_TypeReference} of the value represented by the operand.
-   * 
+   *
    * @return VM_TypeReference.Long
    */
   public VM_TypeReference getType() {
-	 return VM_TypeReference.Long;	 
+    return VM_TypeReference.Long;
   }
 
   /**
    * Does the operand represent a value of the long data type?
-   * 
+   *
    * @return <code>true</code>
    */
   public boolean isLong() {
@@ -83,10 +83,10 @@ public final class OPT_LongConstantOperand extends OPT_ConstantOperand {
   public int upper32() {
     return OPT_Bits.upper32(value);
   }
-  
+
   /**
    * Return a new operand that is semantically equivalent to <code>this</code>.
-   * 
+   *
    * @return a copy of <code>this</code>
    */
   public OPT_Operand copy() {
@@ -103,7 +103,7 @@ public final class OPT_LongConstantOperand extends OPT_ConstantOperand {
    */
   public boolean similar(OPT_Operand op) {
     return (op instanceof OPT_LongConstantOperand) &&
-           (value == ((OPT_LongConstantOperand)op).value);
+           (value == ((OPT_LongConstantOperand) op).value);
   }
 
   /**
@@ -112,7 +112,7 @@ public final class OPT_LongConstantOperand extends OPT_ConstantOperand {
    * @return a string representation of this operand.
    */
   public String toString() {
-    return Long.toString(value)+"L";
+    return Long.toString(value) + "L";
   }
 
 }

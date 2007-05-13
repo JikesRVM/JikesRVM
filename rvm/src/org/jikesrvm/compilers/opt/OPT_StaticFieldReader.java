@@ -37,94 +37,77 @@ import org.vmmagic.unboxed.Word;
  * getstatic's of initialized static fields
  * by replacing the getstatic with a constant operand.
  */
-public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
+public abstract class OPT_StaticFieldReader implements VM_SizeConstants {
 
   /**
    * Read the field from obj and return as the appropriate constant
    */
   public static OPT_ConstantOperand getFieldValueAsConstant(VM_Field field, Object obj) throws NoSuchFieldException {
-    if (VM.VerifyAssertions) VM._assert(field.isFinal(),"Error reading field " + field);
-    if (VM.VerifyAssertions) VM._assert(field.getDeclaringClass().isInitialized() || field.getDeclaringClass().isInBootImage(),"Error reading field " + field);
-    
+    if (VM.VerifyAssertions) VM._assert(field.isFinal(), "Error reading field " + field);
+    if (VM.VerifyAssertions) {
+      VM._assert(field.getDeclaringClass().isInitialized() ||
+                 field.getDeclaringClass().isInBootImage(),
+                 "Error reading field " + field);
+    }
+
     VM_TypeReference type = field.getType();
     if (VM.runningVM) {
-      if(type.isReferenceType() && !type.isMagicType()) {
+      if (type.isReferenceType() && !type.isMagicType()) {
         Object value = field.getObjectValueUnchecked(obj);
         if (value != null) {
           return new OPT_ObjectConstantOperand(value, Offset.zero());
-        }
-        else {
+        } else {
           return new OPT_NullConstantOperand();
         }
-      }
-      else if(type.isIntType()) {
+      } else if (type.isIntType()) {
         return new OPT_IntConstantOperand(field.getIntValueUnchecked(obj));
-      }
-      else if(type.isBooleanType()) {
+      } else if (type.isBooleanType()) {
         return new OPT_IntConstantOperand(field.getBooleanValueUnchecked(obj) ? 1 : 0);
-      }
-      else if(type.isByteType()) {
+      } else if (type.isByteType()) {
         return new OPT_IntConstantOperand(field.getByteValueUnchecked(obj));
-      }
-      else if(type.isCharType()) {
+      } else if (type.isCharType()) {
         return new OPT_IntConstantOperand(field.getCharValueUnchecked(obj));
-      }
-      else if(type.isDoubleType()) {
+      } else if (type.isDoubleType()) {
         return new OPT_DoubleConstantOperand(field.getDoubleValueUnchecked(obj));
-      }
-      else if(type.isFloatType()) {
+      } else if (type.isFloatType()) {
         return new OPT_FloatConstantOperand(field.getFloatValueUnchecked(obj));
-      }
-      else if(type.isLongType()) {
+      } else if (type.isLongType()) {
         return new OPT_LongConstantOperand(field.getLongValueUnchecked(obj));
-      }
-      else if(type.isShortType()) {
+      } else if (type.isShortType()) {
         return new OPT_IntConstantOperand(field.getShortValueUnchecked(obj));
-      }
-      else {
+      } else {
         OPT_OptimizingCompilerException.UNREACHABLE("Unknown type " + type);
         return null;
       }
-    }
-    else {
+    } else {
       try {
         String cn = field.getDeclaringClass().toString();
         Field f = Class.forName(cn).getDeclaredField(field.getName().toString());
         f.setAccessible(true);
-        if(type.isReferenceType() && !type.isMagicType()) {
+        if (type.isReferenceType() && !type.isMagicType()) {
           Object value = f.get(obj);
           if (value != null) {
             return new OPT_ObjectConstantOperand(value, Offset.zero());
-          }
-          else {
+          } else {
             return new OPT_NullConstantOperand();
           }
-        }
-        else if(type.isIntType()) {
+        } else if (type.isIntType()) {
           return new OPT_IntConstantOperand(f.getInt(obj));
-        }
-        else if(type.isBooleanType()) {
+        } else if (type.isBooleanType()) {
           return new OPT_IntConstantOperand(f.getBoolean(obj) ? 1 : 0);
-        }
-        else if(type.isByteType()) {
+        } else if (type.isByteType()) {
           return new OPT_IntConstantOperand(f.getByte(obj));
-        }
-        else if(type.isCharType()) {
+        } else if (type.isCharType()) {
           return new OPT_IntConstantOperand(f.getChar(obj));
-        }
-        else if(type.isDoubleType()) {
+        } else if (type.isDoubleType()) {
           return new OPT_DoubleConstantOperand(f.getDouble(obj));
-        }
-        else if(type.isFloatType()) {
+        } else if (type.isFloatType()) {
           return new OPT_FloatConstantOperand(f.getFloat(obj));
-        }
-        else if(type.isLongType()) {
+        } else if (type.isLongType()) {
           return new OPT_LongConstantOperand(f.getLong(obj));
-        }
-        else if(type.isShortType()) {
+        } else if (type.isShortType()) {
           return new OPT_IntConstantOperand(f.getShort(obj));
-        }
-        else {
+        } else {
           OPT_OptimizingCompilerException.UNREACHABLE("Unknown type " + type);
           return null;
         }
@@ -139,7 +122,7 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
       } catch (NoClassDefFoundError e) {
         throw new NoSuchFieldException(field.toString());
       } catch (IllegalAccessError e) {
-        throw new NoSuchFieldException(field.toString());      
+        throw new NoSuchFieldException(field.toString());
       }
     }
   }
@@ -150,18 +133,22 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
    * @param field the static field whose current value we want to read
    * @return a constant operand representing the current value of the field.
    */
-  public static OPT_ConstantOperand getStaticFieldValue(VM_Field field) 
-    throws NoSuchFieldException {
+  public static OPT_ConstantOperand getStaticFieldValue(VM_Field field)
+      throws NoSuchFieldException {
     if (VM.VerifyAssertions) VM._assert(field.isFinal(), "Error reading field " + field);
     if (VM.VerifyAssertions) VM._assert(field.isStatic(), "Error reading field " + field);
-    if (VM.VerifyAssertions) VM._assert(field.getDeclaringClass().isInitialized() || field.getDeclaringClass().isInBootImage(), "Error reading field " + field);
+    if (VM.VerifyAssertions) {
+      VM._assert(field.getDeclaringClass().isInitialized() ||
+                 field.getDeclaringClass().isInBootImage(),
+                 "Error reading field " + field);
+    }
 
     VM_TypeReference fieldType = field.getType();
     Offset off = field.getOffset();
     if ((fieldType == VM_TypeReference.Address) ||
         (fieldType == VM_TypeReference.Word) ||
         (fieldType == VM_TypeReference.Offset) ||
-        (fieldType == VM_TypeReference.Extent)){
+        (fieldType == VM_TypeReference.Extent)) {
       Address val = getAddressStaticFieldValue(field);
       return new OPT_AddressConstantOperand(val);
     } else if (fieldType.isIntLikeType()) {
@@ -182,9 +169,9 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
       if (val == null) {
         return new OPT_NullConstantOperand();
       } else if (fieldType == VM_TypeReference.JavaLangString) {
-        return new OPT_StringConstantOperand((String)val, off);
+        return new OPT_StringConstantOperand((String) val, off);
       } else if (fieldType == VM_TypeReference.JavaLangClass) {
-        Class<?> klass = (Class<?>)getObjectStaticFieldValue(field);
+        Class<?> klass = (Class<?>) getObjectStaticFieldValue(field);
         VM_Type type;
         if (VM.runningVM) {
           type = java.lang.JikesRVMSupport.getTypeForClass(klass);
@@ -200,12 +187,12 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
 
   /**
    * Returns the current contents of an int-like static field.
-   * 
+   *
    * @param field a static field
    * @return the current value of the field
    */
-  public static int getIntStaticFieldValue(VM_Field field) 
-    throws NoSuchFieldException {
+  public static int getIntStaticFieldValue(VM_Field field)
+      throws NoSuchFieldException {
     if (VM.runningVM) {
       return VM_Statics.getSlotContentsAsInt(field.getOffset());
     } else {
@@ -214,7 +201,7 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
         VM_TypeReference fieldType = field.getType();
         if (fieldType.isBooleanType()) {
           boolean val = f.getBoolean(null);
-          return val?1:0;
+          return val ? 1 : 0;
         } else if (fieldType.isByteType()) {
           return f.getByte(null);
         } else if (fieldType.isShortType()) {
@@ -224,24 +211,24 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
         } else if (fieldType.isCharType()) {
           return f.getChar(null);
         } else {
-          throw new OPT_OptimizingCompilerException("Unsupported type "+field+"\n");
+          throw new OPT_OptimizingCompilerException("Unsupported type " + field + "\n");
         }
       } catch (IllegalAccessException e) {
-        throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
+        throw new OPT_OptimizingCompilerException("Accessing " + field + " caused " + e);
       } catch (IllegalArgumentException e) {
-        throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
+        throw new OPT_OptimizingCompilerException("Accessing " + field + " caused " + e);
       }
     }
   }
 
   /**
    * Returns the current contents of a float static field.
-   * 
+   *
    * @param field a static field
    * @return the current value of the field
    */
-  public static float getFloatStaticFieldValue(VM_Field field) 
-    throws NoSuchFieldException {
+  public static float getFloatStaticFieldValue(VM_Field field)
+      throws NoSuchFieldException {
     if (VM.runningVM) {
       int bits = VM_Statics.getSlotContentsAsInt(field.getOffset());
       return VM_Magic.intBitsAsFloat(bits);
@@ -249,9 +236,9 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
       try {
         return getJDKField(field).getFloat(null);
       } catch (IllegalAccessException e) {
-        throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
+        throw new OPT_OptimizingCompilerException("Accessing " + field + " caused " + e);
       } catch (IllegalArgumentException e) {
-        throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
+        throw new OPT_OptimizingCompilerException("Accessing " + field + " caused " + e);
       }
     }
   }
@@ -263,16 +250,16 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
    * @return the current value of the field
    */
   public static long getLongStaticFieldValue(VM_Field field)
-    throws NoSuchFieldException {
+      throws NoSuchFieldException {
     if (VM.runningVM) {
       return VM_Statics.getSlotContentsAsLong(field.getOffset());
     } else {
       try {
         return getJDKField(field).getLong(null);
       } catch (IllegalAccessException e) {
-        throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
+        throw new OPT_OptimizingCompilerException("Accessing " + field + " caused " + e);
       } catch (IllegalArgumentException e) {
-        throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
+        throw new OPT_OptimizingCompilerException("Accessing " + field + " caused " + e);
       }
     }
   }
@@ -284,7 +271,7 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
    * @return the current value of the field
    */
   public static double getDoubleStaticFieldValue(VM_Field field)
-    throws NoSuchFieldException {
+      throws NoSuchFieldException {
     if (VM.runningVM) {
       long bits = VM_Statics.getSlotContentsAsLong(field.getOffset());
       return VM_Magic.longBitsAsDouble(bits);
@@ -292,9 +279,9 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
       try {
         return getJDKField(field).getDouble(null);
       } catch (IllegalAccessException e) {
-        throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
+        throw new OPT_OptimizingCompilerException("Accessing " + field + " caused " + e);
       } catch (IllegalArgumentException e) {
-        throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
+        throw new OPT_OptimizingCompilerException("Accessing " + field + " caused " + e);
       }
     }
   }
@@ -306,16 +293,16 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
    * @return the current value of the field
    */
   public static Object getObjectStaticFieldValue(VM_Field field)
-    throws NoSuchFieldException {
+      throws NoSuchFieldException {
     if (VM.runningVM) {
       return VM_Statics.getSlotContentsAsObject(field.getOffset());
     } else {
       try {
         return getJDKField(field).get(null);
       } catch (IllegalAccessException e) {
-        throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
+        throw new OPT_OptimizingCompilerException("Accessing " + field + " caused " + e);
       } catch (IllegalArgumentException e) {
-        throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
+        throw new OPT_OptimizingCompilerException("Accessing " + field + " caused " + e);
       }
     }
   }
@@ -327,32 +314,28 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
    * @return the current value of the field
    */
   public static Address getAddressStaticFieldValue(VM_Field field)
-    throws NoSuchFieldException {
+      throws NoSuchFieldException {
     if (VM.runningVM) {
       return VM_Statics.getSlotContentsAsAddress(field.getOffset());
     } else {
       try {
         Object unboxed = getJDKField(field).get(null);
         if (unboxed instanceof Address) {
-          return (Address)unboxed;
-        }
-        else if (unboxed instanceof Word) {
-          return ((Word)unboxed).toAddress();
-        }
-        else if (unboxed instanceof Extent) {
-          return ((Extent)unboxed).toWord().toAddress();
-        }
-        else if (unboxed instanceof Offset) {
-          return ((Offset)unboxed).toWord().toAddress();
-        }
-        else {
+          return (Address) unboxed;
+        } else if (unboxed instanceof Word) {
+          return ((Word) unboxed).toAddress();
+        } else if (unboxed instanceof Extent) {
+          return ((Extent) unboxed).toWord().toAddress();
+        } else if (unboxed instanceof Offset) {
+          return ((Offset) unboxed).toWord().toAddress();
+        } else {
           if (VM.VerifyAssertions) VM._assert(false);
           return Address.zero();
         }
       } catch (IllegalAccessException e) {
-        throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
+        throw new OPT_OptimizingCompilerException("Accessing " + field + " caused " + e);
       } catch (IllegalArgumentException e) {
-        throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
+        throw new OPT_OptimizingCompilerException("Accessing " + field + " caused " + e);
       }
     }
   }
@@ -364,7 +347,7 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
    * @return true if the field contains null, false otherwise
    */
   public static boolean isStaticFieldNull(VM_Field field)
-    throws NoSuchFieldException {
+      throws NoSuchFieldException {
     return getObjectStaticFieldValue(field) == null;
   }
 
@@ -374,8 +357,8 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
    * @param field a static field
    * @return type of value contained in the field
    */
-  public static VM_TypeReference getTypeFromStaticField (VM_Field field)
-    throws NoSuchFieldException {
+  public static VM_TypeReference getTypeFromStaticField(VM_Field field)
+      throws NoSuchFieldException {
     Object o = getObjectStaticFieldValue(field);
     if (o == null) return VM_TypeReference.NULL_TYPE;
     if (VM.runningVM) {
@@ -389,7 +372,7 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
    * Utilitiy to convert a VM_Field to a java.lang.reflect.Field
    */
   private static Field getJDKField(VM_Field field)
-    throws NoSuchFieldException {
+      throws NoSuchFieldException {
     try {
       String cn = field.getDeclaringClass().toString();
       Field f = Class.forName(cn).getDeclaredField(field.getName().toString());
@@ -402,7 +385,7 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
     } catch (NoClassDefFoundError e) {
       throw new NoSuchFieldException(field.toString());
     } catch (IllegalAccessError e) {
-      throw new NoSuchFieldException(field.toString());      
-    } 
+      throw new NoSuchFieldException(field.toString());
+    }
   }
 }

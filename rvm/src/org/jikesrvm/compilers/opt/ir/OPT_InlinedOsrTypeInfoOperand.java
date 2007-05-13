@@ -51,16 +51,16 @@ public final class OPT_InlinedOsrTypeInfoOperand extends OPT_Operand {
 
   /**
    * Return a new operand that is semantically equivalent to <code>this</code>.
-   * 
+   *
    * @return a copy of <code>this</code>
    */
   public OPT_Operand copy() {
     return new OPT_InlinedOsrTypeInfoOperand(methodids,
                                              bcindexes,
-                                             localTypeCodes, 
+                                             localTypeCodes,
                                              stackTypeCodes);
   }
-  
+
   /**
    * Are two operands semantically equivalent?
    *
@@ -72,16 +72,17 @@ public final class OPT_InlinedOsrTypeInfoOperand extends OPT_Operand {
   public boolean similar(OPT_Operand op) {
     boolean result = true;
 
-    if (!(op instanceof OPT_InlinedOsrTypeInfoOperand))
+    if (!(op instanceof OPT_InlinedOsrTypeInfoOperand)) {
       return false;
+    }
 
-    OPT_InlinedOsrTypeInfoOperand other = (OPT_InlinedOsrTypeInfoOperand)op;
-    
+    OPT_InlinedOsrTypeInfoOperand other = (OPT_InlinedOsrTypeInfoOperand) op;
+
     result = Arrays.equals(this.methodids, other.methodids)
-      &&     Arrays.equals(this.bcindexes, other.bcindexes)
-      &&     Arrays.equals(this.localTypeCodes, other.localTypeCodes) 
-      &&     Arrays.equals(this.stackTypeCodes, other.stackTypeCodes);
-    
+             && Arrays.equals(this.bcindexes, other.bcindexes)
+             && Arrays.equals(this.localTypeCodes, other.localTypeCodes)
+             && Arrays.equals(this.stackTypeCodes, other.stackTypeCodes);
+
     return result;
   }
 
@@ -93,22 +94,22 @@ public final class OPT_InlinedOsrTypeInfoOperand extends OPT_Operand {
   public String toString() {
     StringBuffer buf = new StringBuffer("(");
 
-    for (int i=0, n=methodids.length; i<n; i++) {
+    for (int i = 0, n = methodids.length; i < n; i++) {
       buf.append(bcindexes[i]).append("@").append(VM_MemberReference.getMemberRef(methodids[i]).getName()).append(" : ");
-      
-      for (int j=0, m=localTypeCodes[i].length; j<m; j++) {
-        buf.append((char)localTypeCodes[i][j]);
+
+      for (int j = 0, m = localTypeCodes[i].length; j < m; j++) {
+        buf.append((char) localTypeCodes[i][j]);
       }
 
       buf.append(",");
-      for (int j=0, m=stackTypeCodes[i].length; j<m; j++) {
-        buf.append((char)stackTypeCodes[i][j]);
+      for (int j = 0, m = stackTypeCodes[i].length; j < m; j++) {
+        buf.append((char) stackTypeCodes[i][j]);
       }
-     
-      if (i!=n-1) {
+
+      if (i != n - 1) {
         buf.append(" | ");
       }
-    }      
+    }
     buf.append(")");
     return new String(buf);
   }

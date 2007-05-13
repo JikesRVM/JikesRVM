@@ -16,22 +16,24 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
 public final class OPT_RegisterAllocator extends OPT_OptimizationPlanCompositeElement {
 
   public OPT_RegisterAllocator() {
-    super("Register Allocation", new OPT_OptimizationPlanElement[] {
-      // 1. Prepare for the allocation
-      new OPT_OptimizationPlanAtomicElement(new RegisterAllocPreparation()), 
-      // 2. Perform the allocation, using the live information
-      new OPT_LinearScan()
+    super("Register Allocation", new OPT_OptimizationPlanElement[]{
+        // 1. Prepare for the allocation
+        new OPT_OptimizationPlanAtomicElement(new RegisterAllocPreparation()),
+        // 2. Perform the allocation, using the live information
+        new OPT_LinearScan()
     });
   }
-  
+
   public boolean shouldPerform(OPT_Options options) { return true; }
+
   public String getName() { return "RegAlloc"; }
+
   public boolean printingEnabled(OPT_Options options, boolean before) {
     return options.PRINT_REGALLOC;
   }
 
   private static class RegisterAllocPreparation extends OPT_CompilerPhase {
-    public final boolean shouldPerform (OPT_Options options) {
+    public final boolean shouldPerform(OPT_Options options) {
       return true;
     }
 
@@ -45,14 +47,14 @@ public final class OPT_RegisterAllocator extends OPT_OptimizationPlanCompositeEl
       return this;
     }
 
-    public final String getName () {
-      return  "Register Allocation Preparation";
+    public final String getName() {
+      return "Register Allocation Preparation";
     }
 
     /**
      * create the stack manager
      */
-    public final void perform (org.jikesrvm.compilers.opt.ir.OPT_IR ir) {
+    public final void perform(org.jikesrvm.compilers.opt.ir.OPT_IR ir) {
       ir.stackManager.prepare(ir);
     }
   }

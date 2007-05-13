@@ -16,19 +16,19 @@ public class OPT_EnumerationIterator<T>
     implements java.util.Iterator<T> {
   private final java.util.Enumeration<T> e;
 
-  public OPT_EnumerationIterator (java.util.Enumeration<T> e) {
+  public OPT_EnumerationIterator(java.util.Enumeration<T> e) {
     this.e = e;
   }
 
-  public boolean hasNext () {
-    return  e.hasMoreElements();
+  public boolean hasNext() {
+    return e.hasMoreElements();
   }
 
-  public T next () {
-    return  e.nextElement();
+  public T next() {
+    return e.nextElement();
   }
 
-  public void remove () {
-    throw  new java.lang.UnsupportedOperationException();
+  public void remove() {
+    throw new java.lang.UnsupportedOperationException();
   }
 }

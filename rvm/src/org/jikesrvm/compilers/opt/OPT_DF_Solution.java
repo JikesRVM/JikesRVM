@@ -19,16 +19,17 @@ import java.util.HashMap;
 public class OPT_DF_Solution extends HashMap<Object, OPT_DF_LatticeCell> {
   /** Support for serialization */
   static final long serialVersionUID = -335649266901802532L;
-  /** 
+
+  /**
    * Return a string representation of the dataflow solution
    * @return a string representation of the dataflow solution
    */
-  public String toString () {
+  public String toString() {
     String result = "";
     for (OPT_DF_LatticeCell cell : values()) {
       result = result + cell + "\n";
     }
-    return  result;
+    return result;
   }
 
   /**
@@ -36,8 +37,8 @@ public class OPT_DF_Solution extends HashMap<Object, OPT_DF_LatticeCell> {
    * @param k the object to look up
    * @return its lattice cell
    */
-  public Object lookup (Object k) {
-    return  get(k);
+  public Object lookup(Object k) {
+    return get(k);
   }
 }
 

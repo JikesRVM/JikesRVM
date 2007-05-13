@@ -36,8 +36,9 @@ public final class OPT_ClassLoadingDependencyManager implements VM_ClassLoadingL
                                             boolean writingBootImage) {
     // Process any dependencies on methods not being overridden.
     if (!writingBootImage) {
-      if (DEBUG)
+      if (DEBUG) {
         report("CLDM: " + c + " is about to be marked as initialized.\n");
+      }
       handleOverriddenMethods(c);
       handleSubclassing(c);
     }
@@ -48,14 +49,15 @@ public final class OPT_ClassLoadingDependencyManager implements VM_ClassLoadingL
   // Entrypoints for the opt compiler to record dependencies
   /////////////////////////
 
-  /** 
+  /**
    * Record that the code currently being compiled (cm) must be 
    * invalidated if source is overridden.
    */
   public synchronized void addNotOverriddenDependency(VM_Method source, VM_CompiledMethod cm) {
     int cmid = cm.getId();
-    if (TRACE || DEBUG)
-      report("CLDM: " + cmid + "("+cm.getMethod()+") is dependent on " + source + " not being overridden\n");
+    if (TRACE || DEBUG) {
+      report("CLDM: " + cmid + "(" + cm.getMethod() + ") is dependent on " + source + " not being overridden\n");
+    }
     db.addNotOverriddenDependency(source, cmid);
   }
 
@@ -65,8 +67,9 @@ public final class OPT_ClassLoadingDependencyManager implements VM_ClassLoadingL
    */
   public synchronized void addNoSubclassDependency(VM_Class source, VM_CompiledMethod cm) {
     int cmid = cm.getId();
-    if (TRACE || DEBUG)
-      report("CLDM: " + cmid + "("+cm.getMethod()+") is dependent on " + source + " not having a subclass\n");
+    if (TRACE || DEBUG) {
+      report("CLDM: " + cmid + "(" + cm.getMethod() + ") is dependent on " + source + " not having a subclass\n");
+    }
     db.addNoSubclassDependency(source, cmid);
   }
 
@@ -98,10 +101,10 @@ public final class OPT_ClassLoadingDependencyManager implements VM_ClassLoadingL
       }
     }
   }
-  
+
   private void processOverride(VM_Method overridden) {
-    Iterator<Integer> invalidatedMethods = 
-      db.invalidatedByOverriddenMethod(overridden);
+    Iterator<Integer> invalidatedMethods =
+        db.invalidatedByOverriddenMethod(overridden);
     if (invalidatedMethods != null) {
       while (invalidatedMethods.hasNext()) {
         int cmid = invalidatedMethods.next();
@@ -114,7 +117,6 @@ public final class OPT_ClassLoadingDependencyManager implements VM_ClassLoadingL
     }
   }
 
-  
   private void handleSubclassing(VM_Class c) {
     if (c.isJavaLangObjectType() || c.isInterface()) return; // nothing to do
     VM_Class sc = c.getSuperClass();
@@ -136,11 +138,12 @@ public final class OPT_ClassLoadingDependencyManager implements VM_ClassLoadingL
    */
   private void invalidate(VM_CompiledMethod cm) {
     VM_Method m = cm.getMethod();
-    if (TRACE || DEBUG)
+    if (TRACE || DEBUG) {
       report("CLDM: Invalidating compiled method " + cm.getId() + "(" + m + ")\n");
+    }
 
     // (1) Mark the compiled method as invalid.
-    synchronized(cm) {
+    synchronized (cm) {
       if (cm.isInvalid()) {
         if (TRACE || DEBUG) report("\tcmid was alrady invalid; nothing more to do\n");
         return;
@@ -148,7 +151,7 @@ public final class OPT_ClassLoadingDependencyManager implements VM_ClassLoadingL
 
       // (2) Apply any code patches to protect invocations already executing
       //     in the soon to be invalid code.
-      ((VM_OptCompiledMethod)cm).applyCodePatches(cm);
+      ((VM_OptCompiledMethod) cm).applyCodePatches(cm);
 
       cm.setInvalid();
     }
@@ -180,6 +183,7 @@ public final class OPT_ClassLoadingDependencyManager implements VM_ClassLoadingL
       System.out.print(s);
     }
   }
+
   private OPT_InvalidationDatabase db = new OPT_InvalidationDatabase();
   private static PrintStream log;
 }

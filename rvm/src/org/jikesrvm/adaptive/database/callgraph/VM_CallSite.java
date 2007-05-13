@@ -44,12 +44,12 @@ public final class VM_CallSite {
    * @return call site's bytecode index in its method
    */
   public int getBytecodeIndex() {return bcIndex;}
-  
+
   /**
    * @return string representation of call site
    */
   public String toString() {
-    return "<"+method+", "+bcIndex+">";
+    return "<" + method + ", " + bcIndex + ">";
   }
 
   /**
@@ -59,8 +59,8 @@ public final class VM_CallSite {
    * @return true if call sites are the same; otherwise, return false
    */
   public boolean equals(Object obj) {
-    if (obj instanceof VM_CallSite) { 
-      VM_CallSite cs = (VM_CallSite)obj;
+    if (obj instanceof VM_CallSite) {
+      VM_CallSite cs = (VM_CallSite) obj;
       return method.equals(cs.method) && bcIndex == cs.bcIndex;
     } else {
       return false;

@@ -29,24 +29,27 @@ public abstract class OPT_IREnumeration {
   /**
    * Forward intra basic block instruction enumerations from 
    * from start...last inclusive.
-   * 
+   *
    * NB: start and last _must_ be in the same basic block
    *     and must be in the proper relative order.
    *     This code does _not_ check this invariant, and will
    *     simply fail by eventually thowing a NoSuchElementException
    *     if it is not met. Caller's must be sure the invariants are met.
-   * 
+   *
    * @param start the instruction to start with
    * @param end   the instruction to end with
    * @return an enumeration of the instructions from start to end
    */
   public static OPT_InstructionEnumeration forwardIntraBlockIE(final OPT_Instruction start,
-                                                                     final OPT_Instruction end) {
+                                                               final OPT_Instruction end) {
     return new OPT_InstructionEnumeration() {
       private OPT_Instruction current = start;
       private final OPT_Instruction last = end;
+
       public boolean hasMoreElements() { return current != null; }
+
       public OPT_Instruction nextElement() { return next(); }
+
       public OPT_Instruction next() {
         OPT_Instruction res = current;
         if (current == last) {
@@ -66,24 +69,27 @@ public abstract class OPT_IREnumeration {
   /**
    * Reverse intra basic block instruction enumerations from 
    * from start...last inclusive.
-   * 
+   *
    * NB: start and last _must_ be in the same basic block
    *     and must be in the proper relative order.
    *     This code does _not_ check this invariant, and will
    *     simply fail by eventually thowing a NoSuchElementException
    *     if it is not met. Caller's must be sure the invariants are met.
-   * 
+   *
    * @param start the instruction to start with
    * @param end   the instruction to end with
    * @return an enumeration of the instructions from start to end
    */
   public static OPT_InstructionEnumeration reverseIntraBlockIE(final OPT_Instruction start,
-                                                                     final OPT_Instruction end) {
+                                                               final OPT_Instruction end) {
     return new OPT_InstructionEnumeration() {
       private OPT_Instruction current = start;
       private final OPT_Instruction last = end;
+
       public boolean hasMoreElements() { return current != null; }
+
       public OPT_Instruction nextElement() { return next(); }
+
       public OPT_Instruction next() {
         OPT_Instruction res = current;
         if (current == last) {
@@ -102,15 +108,18 @@ public abstract class OPT_IREnumeration {
 
   /**
    * A forward enumeration of all the instructions in the IR.
-   * 
+   *
    * @param ir the IR to walk over
    * @return a forward enumeration of the insturctions in ir
-   */ 
+   */
   public static OPT_InstructionEnumeration forwardGlobalIE(final OPT_IR ir) {
     return new OPT_InstructionEnumeration() {
       private OPT_Instruction current = ir.firstInstructionInCodeOrder();
+
       public boolean hasMoreElements() { return current != null; }
+
       public OPT_Instruction nextElement() { return next(); }
+
       public OPT_Instruction next() {
         try {
           OPT_Instruction res = current;
@@ -126,15 +135,18 @@ public abstract class OPT_IREnumeration {
 
   /**
    * A reverse enumeration of all the instructions in the IR.
-   * 
+   *
    * @param ir the IR to walk over
    * @return a forward enumeration of the insturctions in ir
-   */ 
+   */
   public static OPT_InstructionEnumeration reverseGlobalIE(final OPT_IR ir) {
     return new OPT_InstructionEnumeration() {
       private OPT_Instruction current = ir.lastInstructionInCodeOrder();
+
       public boolean hasMoreElements() { return current != null; }
+
       public OPT_Instruction nextElement() { return next(); }
+
       public OPT_Instruction next() {
         try {
           OPT_Instruction res = current;
@@ -150,15 +162,18 @@ public abstract class OPT_IREnumeration {
 
   /**
    * A forward enumeration of all the basic blocks in the IR.
-   * 
+   *
    * @param ir the IR to walk over
    * @return a forward enumeration of the basic blocks in ir
-   */ 
+   */
   public static OPT_BasicBlockEnumeration forwardBE(final OPT_IR ir) {
     return new OPT_BasicBlockEnumeration() {
       private OPT_BasicBlock current = ir.firstBasicBlockInCodeOrder();
+
       public boolean hasMoreElements() { return current != null; }
+
       public OPT_BasicBlock nextElement() { return next(); }
+
       public OPT_BasicBlock next() {
         try {
           OPT_BasicBlock res = current;
@@ -174,15 +189,18 @@ public abstract class OPT_IREnumeration {
 
   /**
    * A reverse enumeration of all the basic blocks in the IR.
-   * 
+   *
    * @param ir the IR to walk over
    * @return a reverse enumeration of the basic blocks in ir
-   */ 
+   */
   public static OPT_BasicBlockEnumeration reverseBE(final OPT_IR ir) {
     return new OPT_BasicBlockEnumeration() {
       private OPT_BasicBlock current = ir.lastBasicBlockInCodeOrder();
+
       public boolean hasMoreElements() { return current != null; }
+
       public OPT_BasicBlock nextElement() { return next(); }
+
       public OPT_BasicBlock next() {
         try {
           OPT_BasicBlock res = current;
@@ -195,7 +213,7 @@ public abstract class OPT_IREnumeration {
       }
     };
   }
-  
+
   /**
    * This class implements an {@link OPT_InstructionEnumeration} over
    * all instructions for a basic block. This enumeration includes
@@ -233,22 +251,22 @@ public abstract class OPT_IREnumeration {
      */
     public AllInstructionsEnum(OPT_IR ir, OPT_BasicBlock block) {
       explicitInstructions = block.forwardInstrEnumerator();
-      if(ir.inSSAForm()) {
+      if (ir.inSSAForm()) {
         implicitInstructions = ir.HIRInfo.SSADictionary.getHeapPhiInstructions(block);
       } else {
         implicitInstructions = null;
       }
       labelInstruction = explicitInstructions.next();
     }
-    
+
     /**
      * Are there more elements in the enumeration?
      *
      * @return true or false
      */
-    public boolean hasMoreElements () {
-      return  (((implicitInstructions != null) && implicitInstructions.hasNext()) ||
-               explicitInstructions.hasMoreElements());
+    public boolean hasMoreElements() {
+      return (((implicitInstructions != null) && implicitInstructions.hasNext()) ||
+              explicitInstructions.hasMoreElements());
     }
 
     /**
@@ -256,16 +274,14 @@ public abstract class OPT_IREnumeration {
      *
      * @return the next instruction
      */
-    public OPT_Instruction next () {
+    public OPT_Instruction next() {
       if (labelInstruction != null) {
         OPT_Instruction temp = labelInstruction;
         labelInstruction = null;
-        return  temp;
-      }
-      else if ((implicitInstructions != null) && implicitInstructions.hasNext()) {
+        return temp;
+      } else if ((implicitInstructions != null) && implicitInstructions.hasNext()) {
         return implicitInstructions.next();
-      }
-      else {
+      } else {
         return explicitInstructions.next();
       }
     }
@@ -275,10 +291,11 @@ public abstract class OPT_IREnumeration {
      *
      * @return the next instruction
      */
-    public OPT_Instruction nextElement () {
+    public OPT_Instruction nextElement() {
       return next();
     }
   }
+
   /**
    * This class implements an {@link OPT_OperandEnumeration}. It used
    * for holding the definitions of a particular instruction and being
@@ -315,10 +332,10 @@ public abstract class OPT_IREnumeration {
      * @param ir    Containing IR
      * @param instr Instruction to get definitions for
      */
-    public AllDefsEnum (OPT_IR ir, OPT_Instruction instr) {
+    public AllDefsEnum(OPT_IR ir, OPT_Instruction instr) {
       this.instr = instr;
       instructionOperands = instr.getDefs();
-      if(instr.operator().getNumberOfImplicitDefs() > 0) {
+      if (instr.operator().getNumberOfImplicitDefs() > 0) {
         implicitDefs = ArchitectureSpecific.OPT_PhysicalDefUse.enumerate(instr.operator().implicitDefs, ir);
       } else {
         implicitDefs = null;
@@ -331,6 +348,7 @@ public abstract class OPT_IREnumeration {
         heapOperands = null;
       }
     }
+
     /**
      * Are there any more elements in the enumeration
      */
@@ -338,22 +356,21 @@ public abstract class OPT_IREnumeration {
       return ((instructionOperands.hasMoreElements()) ||
               ((heapOperands != null) && (curHeapOperand < heapOperands.length)) ||
               ((implicitDefs != null) && (implicitDefs.hasMoreElements()))
-              );
+      );
     }
+
     /**
      * Next element in the enumeration
      */
-    public OPT_Operand next () {
-      if (instructionOperands.hasMoreElements() == true){
+    public OPT_Operand next() {
+      if (instructionOperands.hasMoreElements() == true) {
         return instructionOperands.next();
-      }
-      else {
+      } else {
         if ((implicitDefs != null) && implicitDefs.hasMoreElements()) {
           OPT_RegisterOperand rop = new OPT_RegisterOperand(implicitDefs.nextElement(), VM_TypeReference.Int);
           rop.instruction = instr;
           return rop;
-        }
-        else {
+        } else {
           if (curHeapOperand >= heapOperands.length) {
             fail("Regular and heap operands exhausted");
           }
@@ -363,13 +380,15 @@ public abstract class OPT_IREnumeration {
         }
       }
     }
+
     /**
      * Next element in the enumeration
      */
-    public OPT_Operand nextElement () {
+    public OPT_Operand nextElement() {
       return next();
     }
   }
+
   /**
    * This class implements an {@link OPT_OperandEnumeration}. It used
    * for holding the uses of a particular instruction and being used
@@ -406,15 +425,15 @@ public abstract class OPT_IREnumeration {
      * @param ir    Containing IR
      * @param instr Instruction to get uses for
      */
-    public AllUsesEnum (OPT_IR ir, OPT_Instruction instr) {
+    public AllUsesEnum(OPT_IR ir, OPT_Instruction instr) {
       this.instr = instr;
       instructionOperands = instr.getUses();
-      if(instr.operator().getNumberOfImplicitUses() > 0) {
+      if (instr.operator().getNumberOfImplicitUses() > 0) {
         implicitUses = OPT_PhysicalDefUse.enumerate(instr.operator().implicitUses, ir);
       } else {
         implicitUses = null;
       }
-      if(ir.inSSAForm() && (instr.operator != PHI)) {
+      if (ir.inSSAForm() && (instr.operator != PHI)) {
         // Phi instructions store the heap SSA in the actual
         // instruction
         heapOperands = ir.HIRInfo.SSADictionary.getHeapUses(instr);
@@ -422,6 +441,7 @@ public abstract class OPT_IREnumeration {
         heapOperands = null;
       }
     }
+
     /**
      * Are there any more elements in the enumeration
      */
@@ -429,22 +449,21 @@ public abstract class OPT_IREnumeration {
       return ((instructionOperands.hasMoreElements()) ||
               ((heapOperands != null) && (curHeapOperand < heapOperands.length)) ||
               ((implicitUses != null) && (implicitUses.hasMoreElements()))
-              );
+      );
     }
+
     /**
      * Next element in the enumeration
      */
-    public OPT_Operand next () {
-      if (instructionOperands.hasMoreElements() == true){
+    public OPT_Operand next() {
+      if (instructionOperands.hasMoreElements() == true) {
         return instructionOperands.next();
-      }
-      else {
+      } else {
         if ((implicitUses != null) && implicitUses.hasMoreElements()) {
           OPT_RegisterOperand rop = new OPT_RegisterOperand(implicitUses.nextElement(), VM_TypeReference.Int);
           rop.instruction = instr;
           return rop;
-        }
-        else {
+        } else {
           if (curHeapOperand >= heapOperands.length) {
             fail("Regular and heap operands exhausted");
           }
@@ -454,10 +473,11 @@ public abstract class OPT_IREnumeration {
         }
       }
     }
+
     /**
      * Next element in the enumeration
      */
-    public OPT_Operand nextElement () {
+    public OPT_Operand nextElement() {
       return next();
     }
   }

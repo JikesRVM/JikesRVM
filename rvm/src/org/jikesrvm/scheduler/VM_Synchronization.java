@@ -20,7 +20,8 @@ import org.vmmagic.unboxed.Offset;
  * synchronization is insufficient and VM_Magic.prepare and VM_Magic.attempt
  * are at too low a level
  */
-@Uninterruptible public class VM_Synchronization {
+@Uninterruptible
+public class VM_Synchronization {
 
   @Inline
   public static boolean tryCompareAndSwap(Object base, Offset offset, int testValue, int newValue) {
@@ -65,7 +66,7 @@ import org.vmmagic.unboxed.Offset;
     int oldValue;
     do {
       oldValue = VM_Magic.prepareInt(base, offset);
-    } while (!VM_Magic.attemptInt(base, offset, oldValue, oldValue+increment));
+    } while (!VM_Magic.attemptInt(base, offset, oldValue, oldValue + increment));
     return oldValue;
   }
 
@@ -74,7 +75,7 @@ import org.vmmagic.unboxed.Offset;
     int oldValue;
     do {
       oldValue = VM_Magic.prepareInt(base, offset);
-    } while (!VM_Magic.attemptInt(base, offset, oldValue, oldValue-decrement));
+    } while (!VM_Magic.attemptInt(base, offset, oldValue, oldValue - decrement));
     return oldValue;
   }
 
@@ -83,7 +84,10 @@ import org.vmmagic.unboxed.Offset;
     Address oldValue;
     do {
       oldValue = VM_Magic.prepareAddress(VM_Magic.addressAsObject(addr), Offset.zero());
-    } while (!VM_Magic.attemptAddress(VM_Magic.addressAsObject(addr), Offset.zero(), oldValue, oldValue.plus(increment)));
+    } while (!VM_Magic.attemptAddress(VM_Magic.addressAsObject(addr),
+                                      Offset.zero(),
+                                      oldValue,
+                                      oldValue.plus(increment)));
     return oldValue;
   }
 
@@ -113,7 +117,7 @@ import org.vmmagic.unboxed.Offset;
 
   @Inline
   public static Address fetchAndAddAddressWithBound(Object base, Offset offset,
-                                                             int increment, Address bound) { 
+                                                    int increment, Address bound) {
     Address oldValue, newValue;
     if (VM.VerifyAssertions) VM._assert(increment > 0);
     do {
@@ -126,7 +130,7 @@ import org.vmmagic.unboxed.Offset;
 
   @Inline
   public static Address fetchAndSubAddressWithBound(Object base, Offset offset,
-                                                             int decrement, Address bound) { 
+                                                    int decrement, Address bound) {
     Address oldValue, newValue;
     if (VM.VerifyAssertions) VM._assert(decrement > 0);
     do {

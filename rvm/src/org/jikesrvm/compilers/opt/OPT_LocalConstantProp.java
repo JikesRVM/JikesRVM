@@ -27,19 +27,20 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
  */
 public class OPT_LocalConstantProp extends OPT_CompilerPhase {
 
-  public final boolean shouldPerform (OPT_Options options) {
+  public final boolean shouldPerform(OPT_Options options) {
     return options.LOCAL_CONSTANT_PROP;
   }
 
-  public final String getName () {
+  public final String getName() {
     return "Local ConstantProp";
   }
 
- public void reportAdditionalStats() {
-     VM.sysWrite("  ");
-     VM.sysWrite(container.counter1/container.counter2*100, 2);
-     VM.sysWrite("% Infrequent BBs");
- }
+  public void reportAdditionalStats() {
+    VM.sysWrite("  ");
+    VM.sysWrite(container.counter1 / container.counter2 * 100, 2);
+    VM.sysWrite("% Infrequent BBs");
+  }
+
   /**
    * Return this instance of this phase. This phase contains no
    * per-compilation instance fields.
@@ -52,16 +53,16 @@ public class OPT_LocalConstantProp extends OPT_CompilerPhase {
 
   /**
    * Perform Local Constant propagation for a method.
-   * 
+   *
    * @param ir the IR to optimize
    */
-  public void perform (OPT_IR ir) {
+  public void perform(OPT_IR ir) {
     // info is a mapping from OPT_Register to OPT_ConstantOperand.
     HashMap<OPT_Register, OPT_ConstantOperand> info =
-      new HashMap<OPT_Register, OPT_ConstantOperand>();
+        new HashMap<OPT_Register, OPT_ConstantOperand>();
     boolean runBranchOpts = false;
-    for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); 
-         bb != null; 
+    for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder();
+         bb != null;
          bb = bb.nextBasicBlockInCodeOrder()) {
       if (bb.isEmpty()) continue;
       container.counter2++;
@@ -70,9 +71,9 @@ public class OPT_LocalConstantProp extends OPT_CompilerPhase {
         if (ir.options.FREQ_FOCUS_EFFORT) continue;
       }
       // iterate over all instructions in the basic block
-      for (OPT_Instruction s = bb.firstRealInstruction(), 
-             sentinel = bb.lastInstruction();
-           s != sentinel; 
+      for (OPT_Instruction s = bb.firstRealInstruction(),
+          sentinel = bb.lastInstruction();
+           s != sentinel;
            s = s.nextInstructionInCodeOrder()) {
 
         if (!info.isEmpty()) {
@@ -84,7 +85,7 @@ public class OPT_LocalConstantProp extends OPT_CompilerPhase {
             for (int idx = numDefs; idx < numUses + numDefs; idx++) {
               OPT_Operand use = s.getOperand(idx);
               if (use instanceof OPT_RegisterOperand) {
-                OPT_RegisterOperand rUse = (OPT_RegisterOperand)use;
+                OPT_RegisterOperand rUse = (OPT_RegisterOperand) use;
                 OPT_Operand value = info.get(rUse.register);
                 if (value != null) {
                   didSomething = true;
@@ -99,14 +100,14 @@ public class OPT_LocalConstantProp extends OPT_CompilerPhase {
                e.hasMoreElements();) {
             OPT_Operand def = e.next();
             if (def != null) {
-              info.remove(((OPT_RegisterOperand)def).register);
+              info.remove(((OPT_RegisterOperand) def).register);
             }
           }
         }
         // GEN
         if (Move.conforms(s) && Move.getVal(s).isConstant()) {
-          info.put(Move.getResult(s).register, (OPT_ConstantOperand)Move.getVal(s));
-        } 
+          info.put(Move.getResult(s).register, (OPT_ConstantOperand) Move.getVal(s));
+        }
       }
       info.clear();
       runBranchOpts |= OPT_BranchSimplifier.simplify(bb, ir);

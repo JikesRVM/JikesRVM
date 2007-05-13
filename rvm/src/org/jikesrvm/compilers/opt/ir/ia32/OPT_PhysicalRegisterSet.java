@@ -78,13 +78,12 @@ public abstract class OPT_PhysicalRegisterSet
     return NUM_PARAMETER_FPRS;
   }
 
-
   /**
    * Return the (zero-based indexed) nth GPR that may hold a parameter.
    */
   public final OPT_Register getGPRParam(int n) {
     if (VM.VerifyAssertions) VM._assert(n < 2);
-    if (n==0) {
+    if (n == 0) {
       return getEAX();
     } else {
       return getEDX();
@@ -103,7 +102,7 @@ public abstract class OPT_PhysicalRegisterSet
    */
   public OPT_Register getReturnGPR(int n) {
     if (VM.VerifyAssertions) VM._assert(n < 2);
-    if (n==0) {
+    if (n == 0) {
       return getEAX();
     } else {
       return getEDX();
@@ -116,7 +115,7 @@ public abstract class OPT_PhysicalRegisterSet
   protected OPT_PhysicalRegisterSet() {
 
     // 1. Create all the physical registers in the pool.
-    for (int i = 0; i < reg.length ; i++) {
+    for (int i = 0; i < reg.length; i++) {
       OPT_Register r = new OPT_Register(i);
       r.setPhysical();
       reg[i] = r;
@@ -133,13 +132,13 @@ public abstract class OPT_PhysicalRegisterSet
     }
 
     // 4. set up the volatile GPRs
-    for (Enumeration<OPT_Register> e = enumerateVolatileGPRs(); e.hasMoreElements(); ) {
+    for (Enumeration<OPT_Register> e = enumerateVolatileGPRs(); e.hasMoreElements();) {
       OPT_Register r = e.nextElement();
       r.setVolatile();
     }
 
     // 5. set up the non-volatile GPRs
-    for (Enumeration<OPT_Register> e = enumerateNonvolatileGPRs(); e.hasMoreElements(); ) {
+    for (Enumeration<OPT_Register> e = enumerateNonvolatileGPRs(); e.hasMoreElements();) {
       OPT_Register r = e.nextElement();
       r.setNonVolatile();
     }
@@ -158,27 +157,27 @@ public abstract class OPT_PhysicalRegisterSet
     reg[PROCESSOR_REGISTER].setSpansBasicBlock();
 
     // 7. set up the volatile FPRs
-    for (Enumeration<OPT_Register> e = enumerateVolatileFPRs(); e.hasMoreElements(); ) {
+    for (Enumeration<OPT_Register> e = enumerateVolatileFPRs(); e.hasMoreElements();) {
       OPT_Register r = e.nextElement();
       r.setVolatile();
     }
 
     // 8. set up the non-volatile FPRs
-    for (Enumeration<OPT_Register> e = enumerateNonvolatileFPRs(); e.hasMoreElements(); ) {
+    for (Enumeration<OPT_Register> e = enumerateNonvolatileFPRs(); e.hasMoreElements();) {
       OPT_Register r = e.nextElement();
       r.setNonVolatile();
     }
 
     // 9. Cache the volatile registers for efficiency
     volatileSet = new OPT_BitSet(this);
-    for (Enumeration<OPT_Register> e = enumerateVolatiles(); e.hasMoreElements(); ) {
+    for (Enumeration<OPT_Register> e = enumerateVolatiles(); e.hasMoreElements();) {
       OPT_Register r = e.nextElement();
       volatileSet.add(r);
     }
 
     // 10. Cache the FPRs for efficiency
     fpSet = new OPT_BitSet(this);
-    for (Enumeration<OPT_Register> e = enumerateFPRs(); e.hasMoreElements(); ) {
+    for (Enumeration<OPT_Register> e = enumerateFPRs(); e.hasMoreElements();) {
       OPT_Register r = e.nextElement();
       fpSet.add(r);
     }
@@ -193,7 +192,6 @@ public abstract class OPT_PhysicalRegisterSet
   public boolean isAllocatable(OPT_Register r) {
     return (r.number < FIRST_SPECIAL && r != getPR() && r != getESP());
   }
-
 
   /**
    * @return the processor register
@@ -264,7 +262,6 @@ public abstract class OPT_PhysicalRegisterSet
   public OPT_Register getEDI() {
     return getGPR(EDI);
   }
-
 
   /**
    * @return a register representing the AF bit of the EFLAGS register.
@@ -340,7 +337,7 @@ public abstract class OPT_PhysicalRegisterSet
    * @return the nth physical GPR 
    */
   public OPT_Register getGPR(int n) {
-    return reg[FIRST_INT+n];
+    return reg[FIRST_INT + n];
   }
 
   /**
@@ -420,12 +417,15 @@ public abstract class OPT_PhysicalRegisterSet
    * Register names for each class. used in printing the IR
    */
   private static final String[] registerName = new String[getSize()];
+
   static {
     String[] regName = registerName;
-    for (int i = 0; i < NUM_GPRS; i++)
+    for (int i = 0; i < NUM_GPRS; i++) {
       regName[i + FIRST_INT] = GPR_NAMES[i];
-    for (int i = 0; i < NUM_FPRS; i++)
+    }
+    for (int i = 0; i < NUM_FPRS; i++) {
       regName[i + FIRST_DOUBLE] = FPR_NAMES[i];
+    }
     regName[PROCESSOR_REGISTER] = "PR";
     regName[AF] = "AF";
     regName[CF] = "CF";
@@ -442,13 +442,14 @@ public abstract class OPT_PhysicalRegisterSet
   public static String getName(int number) {
     return registerName[number];
   }
+
   /**
    * Get the spill size for a register with a particular type
    * @param type one of INT_REG, DOUBLE_REG, SPECIAL_REG
    */
   public static int getSpillSize(int type) {
     if (VM.VerifyAssertions) {
-      VM._assert( (type == INT_REG) || (type == DOUBLE_REG) ||
+      VM._assert((type == INT_REG) || (type == DOUBLE_REG) ||
                  (type == SPECIAL_REG));
     }
     if (type == DOUBLE_REG) {
@@ -457,13 +458,14 @@ public abstract class OPT_PhysicalRegisterSet
       return 4;
     }
   }
+
   /**
    * Get the required spill alignment for a register with a particular type
    * @param type one of INT_REG, DOUBLE_REG,  SPECIAL_REG
    */
   public static int getSpillAlignment(int type) {
     if (VM.VerifyAssertions) {
-      VM._assert( (type == INT_REG) || (type == DOUBLE_REG) ||
+      VM._assert((type == INT_REG) || (type == DOUBLE_REG) ||
                  (type == SPECIAL_REG));
     }
     if (type == DOUBLE_REG) {
@@ -477,30 +479,31 @@ public abstract class OPT_PhysicalRegisterSet
    * Enumerate all the physical registers in this set.
    */
   public Enumeration<OPT_Register> enumerateAll() {
-    return new RangeEnumeration(0,getSize()-1);
+    return new RangeEnumeration(0, getSize() - 1);
   }
 
   /**
    * Enumerate all the GPRs in this set.
    */
   public Enumeration<OPT_Register> enumerateGPRs() {
-    return new RangeEnumeration(FIRST_INT,FIRST_DOUBLE-1);
+    return new RangeEnumeration(FIRST_INT, FIRST_DOUBLE - 1);
   }
 
   /**
    * Enumerate all the GPRs in this set.
    */
   public Enumeration<OPT_Register> enumerateFPRs() {
-    return new RangeEnumeration(FIRST_DOUBLE,FIRST_SPECIAL-1);
+    return new RangeEnumeration(FIRST_DOUBLE, FIRST_SPECIAL - 1);
   }
 
   /**
    * Enumerate all the volatile GPRs in this set.
    */
   public PhysicalRegisterEnumeration enumerateVolatileGPRs() {
-    OPT_Register[] r = new OPT_Register[ NUM_VOLATILE_GPRS ];
-    for(int i = 0; i < NUM_VOLATILE_GPRS; i++)
+    OPT_Register[] r = new OPT_Register[NUM_VOLATILE_GPRS];
+    for (int i = 0; i < NUM_VOLATILE_GPRS; i++) {
       r[i] = getGPR(VOLATILE_GPRS[i]);
+    }
     return new PhysicalRegisterEnumeration(r);
   }
 
@@ -508,13 +511,14 @@ public abstract class OPT_PhysicalRegisterSet
    * Enumerate all the nonvolatile GPRs in this set.
    */
   public PhysicalRegisterEnumeration enumerateNonvolatileGPRs() {
-    OPT_Register[] r = new OPT_Register[ NUM_NONVOLATILE_GPRS ];
-    for(int i = 0; i < NUM_NONVOLATILE_GPRS; i++)
+    OPT_Register[] r = new OPT_Register[NUM_NONVOLATILE_GPRS];
+    for (int i = 0; i < NUM_NONVOLATILE_GPRS; i++) {
       r[i] = getGPR(NONVOLATILE_GPRS[i]);
+    }
     return new PhysicalRegisterEnumeration(r);
   }
 
-  /** 
+  /**
    * Enumerate the nonvolatile GPRS backwards
    */
   public Enumeration<OPT_Register> enumerateNonvolatileGPRsBackwards() {
@@ -525,9 +529,10 @@ public abstract class OPT_PhysicalRegisterSet
    * Enumerate all the volatile FPRs in this set.
    */
   public PhysicalRegisterEnumeration enumerateVolatileFPRs() {
-    OPT_Register[] r = new OPT_Register[ NUM_VOLATILE_FPRS ];
-    for(int i = 0; i < NUM_VOLATILE_FPRS; i++)
+    OPT_Register[] r = new OPT_Register[NUM_VOLATILE_FPRS];
+    for (int i = 0; i < NUM_VOLATILE_FPRS; i++) {
       r[i] = getFPR(VOLATILE_FPRS[i]);
+    }
     return new PhysicalRegisterEnumeration(r);
   }
 
@@ -535,13 +540,14 @@ public abstract class OPT_PhysicalRegisterSet
    * Enumerate all the nonvolatile FPRs in this set.
    */
   public PhysicalRegisterEnumeration enumerateNonvolatileFPRs() {
-    OPT_Register[] r = new OPT_Register[ NUM_NONVOLATILE_FPRS ];
-    for(int i = 0; i < NUM_NONVOLATILE_FPRS; i++)
+    OPT_Register[] r = new OPT_Register[NUM_NONVOLATILE_FPRS];
+    for (int i = 0; i < NUM_NONVOLATILE_FPRS; i++) {
       r[i] = getFPR(NONVOLATILE_FPRS[i]);
+    }
     return new PhysicalRegisterEnumeration(r);
   }
 
-  /** 
+  /**
    * Enumerate the volatile physical registers of a given class.
    * @param regClass one of INT_REG, DOUBLE_REG, SPECIAL_REG
    */
@@ -581,7 +587,7 @@ public abstract class OPT_PhysicalRegisterSet
     return fpSet;
   }
 
-  /** 
+  /**
    * Enumerate the nonvolatile physical registers of a given class.
    * @param regClass one of INT_REG, DOUBLE_REG, SPECIAL_REG
    */
@@ -595,10 +601,11 @@ public abstract class OPT_PhysicalRegisterSet
         return OPT_EmptyEnumerator.emptyEnumeration();
       default:
         throw new OPT_OptimizingCompilerException
-          ("Unsupported non-volatile type");
+            ("Unsupported non-volatile type");
     }
   }
-  /** 
+
+  /**
    * Enumerate the nonvolatile physical registers of a given class,
    * backwards
    * @param regClass one of INT_REG, DOUBLE_REG, SPECIAL_REG
@@ -607,24 +614,27 @@ public abstract class OPT_PhysicalRegisterSet
     return new OPT_ReverseEnumerator<OPT_Register>(enumerateNonvolatiles(regClass));
   }
 
-
   /**
    * An enumerator for use by the physical register utilities.
    */
   static final class PhysicalRegisterEnumeration implements Enumeration<OPT_Register> {
     private int index;
     private final OPT_Register[] r;
+
     PhysicalRegisterEnumeration(OPT_Register[] r) {
       this.r = r;
       this.index = 0;
     }
+
     public OPT_Register nextElement() {
       return r[index++];
     }
+
     public boolean hasMoreElements() {
       return (index < r.length);
     }
   }
+
   /**
    * An enumerator for use by the physical register utilities.
    */
@@ -632,20 +642,24 @@ public abstract class OPT_PhysicalRegisterSet
     private final int end;
     private int index;
     private final int exclude; // an index in the register range to exclude
+
     RangeEnumeration(int start, int end) {
       this.end = end;
       this.exclude = -1;
       this.index = start;
     }
+
     RangeEnumeration(int start, int end, int exclude) {
       this.end = end;
       this.exclude = exclude;
       this.index = start;
     }
+
     public OPT_Register nextElement() {
       if (index == exclude) index++;
       return reg[index++];
     }
+
     public boolean hasMoreElements() {
       if (index == exclude) index++;
       return (index <= end);

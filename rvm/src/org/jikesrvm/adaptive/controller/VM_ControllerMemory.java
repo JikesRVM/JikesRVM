@@ -28,8 +28,8 @@ public final class VM_ControllerMemory implements VM_Constants {
    *  This is a hashtable of controller plans indexed by VM_Method.  
    *  Each method can have a list of such plans associated with.
    */
-  private static final VM_HashMap<VM_Method,LinkedList<VM_ControllerPlan>> table = 
-    new VM_HashMap<VM_Method,LinkedList<VM_ControllerPlan>>();
+  private static final VM_HashMap<VM_Method, LinkedList<VM_ControllerPlan>> table =
+      new VM_HashMap<VM_Method, LinkedList<VM_ControllerPlan>>();
 
   /**
    * Number of times controller is awoken and did nothing.
@@ -42,38 +42,54 @@ public final class VM_ControllerMemory implements VM_Constants {
   private static int awoken = 0;
 
   // counters for chosen opt levels
-  private static int numMethodsConsidered               = 0;
-  private static int numMethodsScheduledForRecomp       = 0;
-  private static int numBase                            = 0;
-  private static int numOpt0                            = 0;
-  private static int numOpt1                            = 0;
-  private static int numOpt2                            = 0;
-  private static int numOpt3                            = 0;
-  private static int numOpt4                            = 0;
+  private static int numMethodsConsidered = 0;
+  private static int numMethodsScheduledForRecomp = 0;
+  private static int numBase = 0;
+  private static int numOpt0 = 0;
+  private static int numOpt1 = 0;
+  private static int numOpt2 = 0;
+  private static int numOpt3 = 0;
+  private static int numOpt4 = 0;
 
-  public static int getNumAwoken()                    { return awoken; }
-  public static int getNumDidNothing()                { return didNothing; }
-  public static int getNumMethodsConsidered()         { return numMethodsConsidered; }
-  public static int getNumMethodsScheduledForRecomp() 
-    { return numMethodsScheduledForRecomp; }
-  public static int getNumBase()                       { return numBase; }
-  public static int getNumOpt0()                       { return numOpt0; }
-  public static int getNumOpt1()                       { return numOpt1; }
-  public static int getNumOpt2()                       { return numOpt2; }
-  public static int getNumOpt3()                       { return numOpt3; }
-  static int getNumOpt4()                       { return numOpt4; }
+  public static int getNumAwoken() { return awoken; }
 
-  static void incrementNumAwoken()              { awoken++; }
-  static void incrementNumDidNothing()          { didNothing++; }
-  static void incrementNumMethodsConsidered()   { numMethodsConsidered++; }
-  static void incrementNumMethodsScheduledForRecomp()  
-    { numMethodsScheduledForRecomp++; }
-  public static void incrementNumBase()                { numBase++; }
-  static void incrementNumOpt0()                { numOpt0++; }
-  static void incrementNumOpt1()                { numOpt1++; }
-  static void incrementNumOpt2()                { numOpt2++; }
-  static void incrementNumOpt3()                { numOpt3++; }
-  static void incrementNumOpt4()                { numOpt4++; }
+  public static int getNumDidNothing() { return didNothing; }
+
+  public static int getNumMethodsConsidered() { return numMethodsConsidered; }
+
+  public static int getNumMethodsScheduledForRecomp() { return numMethodsScheduledForRecomp; }
+
+  public static int getNumBase() { return numBase; }
+
+  public static int getNumOpt0() { return numOpt0; }
+
+  public static int getNumOpt1() { return numOpt1; }
+
+  public static int getNumOpt2() { return numOpt2; }
+
+  public static int getNumOpt3() { return numOpt3; }
+
+  static int getNumOpt4() { return numOpt4; }
+
+  static void incrementNumAwoken() { awoken++; }
+
+  static void incrementNumDidNothing() { didNothing++; }
+
+  static void incrementNumMethodsConsidered() { numMethodsConsidered++; }
+
+  static void incrementNumMethodsScheduledForRecomp() { numMethodsScheduledForRecomp++; }
+
+  public static void incrementNumBase() { numBase++; }
+
+  static void incrementNumOpt0() { numOpt0++; }
+
+  static void incrementNumOpt1() { numOpt1++; }
+
+  static void incrementNumOpt2() { numOpt2++; }
+
+  static void incrementNumOpt3() { numOpt3++; }
+
+  static void incrementNumOpt4() { numOpt4++; }
 
   /**
    *  Inserts a controller plan keyed on the underlying method
@@ -85,13 +101,23 @@ public final class VM_ControllerMemory implements VM_Constants {
     numMethodsScheduledForRecomp++;
     int optLevel = plan.getCompPlan().options.getOptLevel();
     switch (optLevel) {
-    case 0:  numOpt0++; break;
-    case 1:  numOpt1++; break;
-    case 2:  numOpt2++; break;
-    case 3:  numOpt3++; break;
-    case 4:  numOpt4++; break;
-    default:
-      if (VM.VerifyAssertions) VM._assert(NOT_REACHED, "Unknown Opt Level");
+      case 0:
+        numOpt0++;
+        break;
+      case 1:
+        numOpt1++;
+        break;
+      case 2:
+        numOpt2++;
+        break;
+      case 3:
+        numOpt3++;
+        break;
+      case 4:
+        numOpt4++;
+        break;
+      default:
+        if (VM.VerifyAssertions) VM._assert(NOT_REACHED, "Unknown Opt Level");
     }
 
     // first check to see if there is a plan list for this method
@@ -108,7 +134,7 @@ public final class VM_ControllerMemory implements VM_Constants {
       table.put(plan.getCompPlan().method, planList);
     } else {
       // add the current plan to the end of the list
-      synchronized(planList) {
+      synchronized (planList) {
         planList.addLast(plan);
       }
     }
@@ -124,7 +150,8 @@ public final class VM_ControllerMemory implements VM_Constants {
    * @return the list of controller plans for this method if one exists, 
    *         otherwise, null
    */
-  @SuppressWarnings("unchecked") // until VM_HashMap becomes generic
+  @SuppressWarnings("unchecked")
+  // until VM_HashMap becomes generic
   private static synchronized LinkedList<VM_ControllerPlan> findPlan(VM_Method method) {
     return table.get(method);
   }
@@ -140,9 +167,9 @@ public final class VM_ControllerMemory implements VM_Constants {
     LinkedList<VM_ControllerPlan> planList = findPlan(method);
     if (planList == null) {
       return null;
-    } else{
+    } else {
       // iterate over the planList until we get to this item
-      synchronized(planList) {
+      synchronized (planList) {
         for (VM_ControllerPlan plan : planList) {
           // exit when we find ourselves
           if (plan.getCMID() == cmpMethod.getId()) {
@@ -160,7 +187,7 @@ public final class VM_ControllerMemory implements VM_Constants {
    *  A method should not be reconsider for initial AOS recompilation if 
    *  a plan already exists for the method whose status is IN_PROGRESS, 
    *  COMPLETED, OUTDATED, or ABORTED because of compilation error.
-   * 
+   *
    *  @param method the method of interest
    *  @return whether the method should be considered or not
    */
@@ -171,13 +198,13 @@ public final class VM_ControllerMemory implements VM_Constants {
     } else {
       // iterate over the planList until we find a plan whose status is
       // inprogress, completed, 
-      synchronized(planList) {
+      synchronized (planList) {
         for (VM_ControllerPlan curPlan : planList) {
           // exit when we find ourselves
           byte status = curPlan.getStatus();
-          if (status == VM_ControllerPlan.COMPLETED || 
-              status == VM_ControllerPlan.IN_PROGRESS || 
-              status == VM_ControllerPlan.ABORTED_COMPILATION_ERROR || 
+          if (status == VM_ControllerPlan.COMPLETED ||
+              status == VM_ControllerPlan.IN_PROGRESS ||
+              status == VM_ControllerPlan.ABORTED_COMPILATION_ERROR ||
               status == VM_ControllerPlan.OUTDATED) {
             return false;
           }
@@ -186,7 +213,6 @@ public final class VM_ControllerMemory implements VM_Constants {
       return true;  // we didn't find any, so return true
     }
   }
-
 
   /**
    * Return true if there is a plan with the given status for the given method
@@ -199,7 +225,7 @@ public final class VM_ControllerMemory implements VM_Constants {
     LinkedList<VM_ControllerPlan> planList = findPlan(method);
     if (planList != null) {
       // iterate over the planList until we find a plan with status 'status'
-      synchronized(planList) {
+      synchronized (planList) {
         for (VM_ControllerPlan curPlan : planList) {
           if (curPlan.getStatus() == status) {
             return true;
@@ -216,14 +242,14 @@ public final class VM_ControllerMemory implements VM_Constants {
    */
   public static synchronized boolean requestedOSR(int cmid) {
     VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
-    
+
     // make sure that the cm in question is baseline-compiled
-    if (cm.getCompilerType() != VM_CompiledMethod.BASELINE) return false; 
+    if (cm.getCompilerType() != VM_CompiledMethod.BASELINE) return false;
 
     // OK; now check for an OSR plan 
     VM_Method m = cm.getMethod();
     if (m == null) return false;
-    return planWithStatus(m,VM_ControllerPlan.OSR_BASE_2_OPT);
+    return planWithStatus(m, VM_ControllerPlan.OSR_BASE_2_OPT);
   }
 
   /**
@@ -240,7 +266,7 @@ public final class VM_ControllerMemory implements VM_Constants {
     if (planList != null) {
       // iterate over the planList until we find a completed plan with the
       // opt level passed
-      synchronized(planList) {
+      synchronized (planList) {
         for (VM_ControllerPlan curPlan : planList) {
           if (curPlan.getStatus() == VM_ControllerPlan.COMPLETED &&
               curPlan.getCompPlan().options.getOptLevel() == optLevel) {
@@ -251,7 +277,6 @@ public final class VM_ControllerMemory implements VM_Constants {
     }
     return false;
   }
-
 
   /**
    * Looks for the last controller plan for the passed method
@@ -290,8 +315,8 @@ public final class VM_ControllerMemory implements VM_Constants {
     //  recompiled an arbitrary amount of times.  We record this in in a counter.
 
     final int MAX_BIT_PATTERN = 7;
-    int[] summaryArray = new int[MAX_BIT_PATTERN+1];
-    int[] recompsAtLevel2Array = new int[MAX_BIT_PATTERN+1];
+    int[] summaryArray = new int[MAX_BIT_PATTERN + 1];
+    int[] recompsAtLevel2Array = new int[MAX_BIT_PATTERN + 1];
     int totalRecompsAtLevel2 = 0;
 
     // traverse table and give a summary of all actions that have occurred
@@ -300,29 +325,29 @@ public final class VM_ControllerMemory implements VM_Constants {
 
       int bitPattern = 0;
       int recompsAtLevel2 = 0;
-        
+
       for (VM_ControllerPlan plan : planList) {
 
         // only process plans that were completed or completed and outdated 
         // by subsequent plans for this method
         byte status = plan.getStatus();
-        if (status == VM_ControllerPlan.COMPLETED || 
+        if (status == VM_ControllerPlan.COMPLETED ||
             status == VM_ControllerPlan.OUTDATED) {
-            int optLevel = plan.getCompPlan().options.getOptLevel();
+          int optLevel = plan.getCompPlan().options.getOptLevel();
 
-            // check for recomps at level 2
-            if (optLevel == 2 && bitIsSet(bitPattern, 2)) {
-              recompsAtLevel2++;
-            }
+          // check for recomps at level 2
+          if (optLevel == 2 && bitIsSet(bitPattern, 2)) {
+            recompsAtLevel2++;
+          }
 
-            bitPattern = setBitPattern(bitPattern, optLevel);
+          bitPattern = setBitPattern(bitPattern, optLevel);
         } // if
       } // while
-      
+
       if (VM_Controller.options.LOGGING_LEVEL >= 2) {
-        log.println("Method: "+ meth 
-                    +", bitPattern: "+ bitPattern
-                    +", recompsAtLevel2: "+ recompsAtLevel2);
+        log.println("Method: " + meth
+                    + ", bitPattern: " + bitPattern
+                    + ", recompsAtLevel2: " + recompsAtLevel2);
       }
 
       summaryArray[bitPattern]++;
@@ -332,25 +357,25 @@ public final class VM_ControllerMemory implements VM_Constants {
 
     // Print the summary
     int totalUniqueMethods = 0;
-    for (int i=1; i<=MAX_BIT_PATTERN; i++) {
+    for (int i = 1; i <= MAX_BIT_PATTERN; i++) {
       log.print("    Base");
-      for (int optLevel=0;  optLevel <=2; optLevel++) {
+      for (int optLevel = 0; optLevel <= 2; optLevel++) {
         if (bitIsSet(i, optLevel)) {
-          log.print(" -> "+ optLevel);
+          log.print(" -> " + optLevel);
         }
       }
-      log.print(": "+ summaryArray[i]);
+      log.print(": " + summaryArray[i]);
       // print any level 2 recomps for this pattern
       if (recompsAtLevel2Array[i] > 0) {
         totalRecompsAtLevel2 += recompsAtLevel2Array[i];
-        log.println(" ("+ recompsAtLevel2Array[i] +" opt level 2 recomps)");
+        log.println(" (" + recompsAtLevel2Array[i] + " opt level 2 recomps)");
       } else {
         log.println();
       }
       totalUniqueMethods = totalUniqueMethods + summaryArray[i];
     }
-    log.println("  Num recompilations At level 2: "+ totalRecompsAtLevel2);
-    log.println("  Num unique methods recompiled: "+ totalUniqueMethods +"\n");
+    log.println("  Num recompilations At level 2: " + totalRecompsAtLevel2);
+    log.println("  Num unique methods recompiled: " + totalUniqueMethods + "\n");
   }
 
   /**

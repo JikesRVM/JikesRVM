@@ -10,7 +10,7 @@ package org.jikesrvm.compilers.opt;
 
 import org.jikesrvm.VM;
 
-/** 
+/**
  * OPT_BitSet.java
  *
  * A bit set is a set of elements, each of which corresponds to a unique

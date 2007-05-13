@@ -35,7 +35,7 @@ final class OPT_TreeNodeChildrenEnumerator implements Enumeration<OPT_TreeNode> 
    * @return whether there are any elements left
    */
   public boolean hasMoreElements() {
-    return  currentChild != null;
+    return currentChild != null;
   }
 
   /**
@@ -49,13 +49,12 @@ final class OPT_TreeNodeChildrenEnumerator implements Enumeration<OPT_TreeNode> 
     // update the currentChild pointer, if possible
     if (currentChild != null) {
       currentChild = currentChild.getRightSibling();
-    } 
-    else {
-      throw  new NoSuchElementException("OPT_TreeNodeChildrenEnumerator");
+    } else {
+      throw new NoSuchElementException("OPT_TreeNodeChildrenEnumerator");
     }
 
     // return the value
-    return  returnValue;
+    return returnValue;
   }
 }
 

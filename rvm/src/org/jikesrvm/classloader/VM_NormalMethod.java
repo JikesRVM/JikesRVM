@@ -18,10 +18,9 @@ import org.vmmagic.pragma.Uninterruptible;
 /**
  * A method of a java class that has bytecodes.
  */
-public final class VM_NormalMethod 
-  extends VM_Method 
-  implements VM_BytecodeConstants 
-{
+public final class VM_NormalMethod
+    extends VM_Method
+    implements VM_BytecodeConstants {
 
   /* As we read the bytecodes for the method, we compute
    * a simple summary of some interesting properties of the method.
@@ -51,36 +50,36 @@ public final class VM_NormalMethod
   // and propagation of nonNullness
   public static final int ALLOCATION_COST = 4;
   // Approximations, assuming some CSE/PRE of object model computations
-  public static final int CLASS_CHECK_COST = 2*SIMPLE_OPERATION_COST;
-  public static final int STORE_CHECK_COST = 4*SIMPLE_OPERATION_COST;
+  public static final int CLASS_CHECK_COST = 2 * SIMPLE_OPERATION_COST;
+  public static final int STORE_CHECK_COST = 4 * SIMPLE_OPERATION_COST;
   // Just a call.
   public static final int THROW_COST = CALL_COST;
   // Really a bunch of operations plus a call, but undercharge because
   // we don't have worry about this causing an exponential growth of call chain
   // and we probably want to inline synchronization 
   // (to get a chance to optimize it).
-  public static final int SYNCH_COST = 4*SIMPLE_OPERATION_COST;
+  public static final int SYNCH_COST = 4 * SIMPLE_OPERATION_COST;
   // The additional cost of a switch isn't that large, since if the 
   // switch has more than a few cases the method will be too big to inline 
   // anyways.
   public static final int SWITCH_COST = CALL_COST;
 
   // Definition of flag bits
-  private static final char HAS_MAGIC      = 0x8000;
-  private static final char HAS_SYNCH      = 0x4000;
+  private static final char HAS_MAGIC = 0x8000;
+  private static final char HAS_SYNCH = 0x4000;
   private static final char HAS_ALLOCATION = 0x2000;
-  private static final char HAS_THROW      = 0x1000;
-  private static final char HAS_INVOKE     = 0x0800;
+  private static final char HAS_THROW = 0x1000;
+  private static final char HAS_INVOKE = 0x0800;
   private static final char HAS_FIELD_READ = 0x0400;
-  private static final char HAS_FIELD_WRITE= 0x0200;
+  private static final char HAS_FIELD_WRITE = 0x0200;
   private static final char HAS_ARRAY_READ = 0x0100;
-  private static final char HAS_ARRAY_WRITE= 0x0080;
-  private static final char HAS_JSR        = 0x0040;
-  private static final char HAS_COND_BRANCH= 0x0020;
-  private static final char HAS_SWITCH     = 0x0010;
-  private static final char HAS_BACK_BRANCH= 0x0008;
-  private static final char IS_RS_METHOD   = 0x0004;
-  
+  private static final char HAS_ARRAY_WRITE = 0x0080;
+  private static final char HAS_JSR = 0x0040;
+  private static final char HAS_COND_BRANCH = 0x0020;
+  private static final char HAS_SWITCH = 0x0010;
+  private static final char HAS_BACK_BRANCH = 0x0008;
+  private static final char IS_RS_METHOD = 0x0004;
+
   /**
    * storage for bytecode summary flags
    */
@@ -93,31 +92,31 @@ public final class VM_NormalMethod
   /**
    * words needed for local variables (including parameters)
    */
-  private final short localWords;          
+  private final short localWords;
 
   /**
    * words needed for operand stack (high water mark)
    * TODO: OSR redesign;  add subclass of NormalMethod for OSR method
    *       and then make this field final in NormalMethod.
    */
-  private short operandWords;        
+  private short operandWords;
 
   /**
    * bytecodes for this method (null --> none)
    */
-  private final byte[] bytecodes;           
+  private final byte[] bytecodes;
 
   /**
    * try/catch/finally blocks for this method (null --> none)
    */
-  private final VM_ExceptionHandlerMap exceptionHandlerMap; 
+  private final VM_ExceptionHandlerMap exceptionHandlerMap;
 
   /**
    * pc to source-line info (null --> none)
    * Each entry contains both the line number (upper 16 bits)
    * and corresponding start PC (lower 16 bits).
    */
-  private final int[] lineNumberMap;       
+  private final int[] lineNumberMap;
 
   // Extra fields for on-stack replacement
   // TODO: rework the system so we don't waste space for this on the VM_Method object
@@ -153,8 +152,7 @@ public final class VM_NormalMethod
                   int[] constantPool, VM_Atom sig,
                   VM_Annotation[] annotations,
                   VM_Annotation[] parameterAnnotations,
-                  Object ad) 
-  {
+                  Object ad) {
     super(dc, mr, mo, et, sig, annotations, parameterAnnotations, ad);
     localWords = lw;
     operandWords = ow;
@@ -175,18 +173,18 @@ public final class VM_NormalMethod
 //     }
 
     if (VM.writingBootImage) {
-      return VM_BootImageCompiler.compile(this); 
+      return VM_BootImageCompiler.compile(this);
     } else {
       return VM_RuntimeCompiler.compile(this);
     }
   }
-  
+
   /**
    * Space required by this method for its local variables, in words.
    * Note: local variables include parameters
    */
   @Uninterruptible
-  public int getLocalWords() { 
+  public int getLocalWords() {
     return localWords;
   }
 
@@ -194,7 +192,7 @@ public final class VM_NormalMethod
    * Space required by this method for its operand stack, in words.
    */
   @Uninterruptible
-  public int getOperandWords() { 
+  public int getOperandWords() {
     return operandWords;
   }
 
@@ -204,20 +202,22 @@ public final class VM_NormalMethod
    */
   public VM_BytecodeStream getBytecodes() {
     return new VM_BytecodeStream(this, bytecodes);
-  }  
-  
+  }
+
   /**
    * Fill in DynamicLink object for the invoke at the given bytecode index
    * @param dynamicLink the dynamicLink object to initialize
    * @param bcIndex the bcIndex of the invoke instruction
    */
   @Uninterruptible
-  public void getDynamicLink(VM_DynamicLink dynamicLink, int bcIndex) { 
+  public void getDynamicLink(VM_DynamicLink dynamicLink, int bcIndex) {
     if (VM.VerifyAssertions) VM._assert(bytecodes != null);
     if (VM.VerifyAssertions) VM._assert(bcIndex + 2 < bytecodes.length);
     int bytecode = bytecodes[bcIndex] & 0xFF;
-    if (VM.VerifyAssertions) VM._assert((VM_BytecodeConstants.JBC_invokevirtual <= bytecode)
-                                        && (bytecode <= VM_BytecodeConstants.JBC_invokeinterface));
+    if (VM.VerifyAssertions) {
+      VM._assert((VM_BytecodeConstants.JBC_invokevirtual <= bytecode)
+                 && (bytecode <= VM_BytecodeConstants.JBC_invokeinterface));
+    }
     int constantPoolIndex = ((bytecodes[bcIndex + 1] & 0xFF) << BITS_IN_BYTE) | (bytecodes[bcIndex + 2] & 0xFF);
     dynamicLink.set(getDeclaringClass().getMethodRef(constantPoolIndex), bytecode);
   }
@@ -234,7 +234,7 @@ public final class VM_NormalMethod
    * @return info (null --> method doesn't catch any exceptions)
    */
   @Uninterruptible
-  public VM_ExceptionHandlerMap getExceptionHandlerMap() { 
+  public VM_ExceptionHandlerMap getExceptionHandlerMap() {
     return exceptionHandlerMap;
   }
 
@@ -243,10 +243,10 @@ public final class VM_NormalMethod
    * @return The line number, a positive integer.  Zero means unable to find.
    */
   @Uninterruptible
-  public int getLineNumberForBCIndex(int bci) { 
+  public int getLineNumberForBCIndex(int bci) {
     if (lineNumberMap == null) return 0;
     int idx;
-    for (idx = 0; idx<lineNumberMap.length; idx++) {
+    for (idx = 0; idx < lineNumberMap.length; idx++) {
       int pc = lineNumberMap[idx] & 0xffff; // lower 16 bits are bcIndex
       if (bci < pc) {
         if (idx == 0) idx++; // add 1, so we can subtract 1 below.
@@ -262,7 +262,7 @@ public final class VM_NormalMethod
   // uses synthesized bytecodes (prologue + original bytecodes) for 
   // OSRing method. Other interfaces of method are not changed, therefore,
   // dynamic linking and gc referring to bytecodes are safe.
-  
+
   /**
    * Checks if the method is in state for OSR specialization now 
    * @return true, if it is (with prologue)
@@ -286,21 +286,22 @@ public final class VM_NormalMethod
     byte[] newBytecodes = new byte[prologue.length + bytecodes.length];
     System.arraycopy(prologue, 0, newBytecodes, 0, prologue.length);
     System.arraycopy(bytecodes, 0, newBytecodes, prologue.length, bytecodes.length);
-   
+
     this.osrPrologue = prologue;
     this.synthesizedBytecodes = newBytecodes;
     this.savedOperandWords = operandWords;
-    if (newStackHeight > operandWords) 
+    if (newStackHeight > operandWords) {
       this.operandWords = newStackHeight;
+    }
   }
- 
+
   /**
    * Restores the original state of the method.
    */
   public void finalizeOsrSpecialization() {
     if (VM.VerifyAssertions) VM._assert(this.synthesizedBytecodes != null);
     this.synthesizedBytecodes = null;
-    this.osrPrologue  = null;
+    this.osrPrologue = null;
     this.operandWords = savedOperandWords;
   }
 
@@ -310,10 +311,10 @@ public final class VM_NormalMethod
    *         0 otherwise.
    */
   public int getOsrPrologueLength() {
-    return isForOsrSpecialization()?this.osrPrologue.length:0;
+    return isForOsrSpecialization() ? this.osrPrologue.length : 0;
   }
 
-  /** 
+  /**
    * Returns a bytecode stream of osr prologue
    * @return osr prologue bytecode stream
    */
@@ -321,7 +322,7 @@ public final class VM_NormalMethod
     if (VM.VerifyAssertions) VM._assert(synthesizedBytecodes != null);
     return new VM_BytecodeStream(this, osrPrologue);
   }
-  
+
   /**
    * Returns the synthesized bytecode stream with osr prologue
    * @return bytecode stream
@@ -329,14 +330,13 @@ public final class VM_NormalMethod
   public VM_BytecodeStream getOsrSynthesizedBytecodes() {
     if (VM.VerifyAssertions) VM._assert(synthesizedBytecodes != null);
     return new VM_BytecodeStream(this, synthesizedBytecodes);
-  }              
-
+  }
 
   /*
-   * Methods to access and compute method summary information
-   */
+  * Methods to access and compute method summary information
+  */
 
-  /** 
+  /**
    * @return An estimate of the expected size of the machine code instructions 
    * that will be generated by the opt compiler if the method is inlined.
    */
@@ -460,7 +460,7 @@ public final class VM_NormalMethod
       summaryFlags &= ~IS_RS_METHOD;
     }
   }
-  
+
   /**
    * @return true if the method may write to a given field
    */
@@ -488,164 +488,235 @@ public final class VM_NormalMethod
     int calleeSize = 0;
     if (isSynchronized()) {
       summaryFlags |= HAS_SYNCH;
-      calleeSize += 2*SYNCH_COST; // NOTE: ignoring catch/unlock/rethrow block.  Probably the right thing to do.
+      calleeSize += 2 * SYNCH_COST; // NOTE: ignoring catch/unlock/rethrow block.  Probably the right thing to do.
     }
-    
+
     VM_BytecodeStream bcodes = getBytecodes();
     while (bcodes.hasMoreBytecodes()) {
       switch (bcodes.nextInstruction()) {
         // Array loads: null check, bounds check, index computation, load
-      case JBC_iaload:case JBC_laload:case JBC_faload:case JBC_daload:
-      case JBC_aaload:case JBC_baload:case JBC_caload:case JBC_saload:
-        summaryFlags |= HAS_ARRAY_READ;
-        calleeSize += ARRAY_LOAD_COST;
-        break;
+        case JBC_iaload:
+        case JBC_laload:
+        case JBC_faload:
+        case JBC_daload:
+        case JBC_aaload:
+        case JBC_baload:
+        case JBC_caload:
+        case JBC_saload:
+          summaryFlags |= HAS_ARRAY_READ;
+          calleeSize += ARRAY_LOAD_COST;
+          break;
 
-        // Array stores: null check, bounds check, index computation, load
-      case JBC_iastore:case JBC_lastore:case JBC_fastore:
-      case JBC_dastore:case JBC_bastore:case JBC_castore:case JBC_sastore:
-        summaryFlags |= HAS_ARRAY_WRITE;
-        calleeSize += ARRAY_STORE_COST;
-        break;
-      case JBC_aastore:
-        summaryFlags |= HAS_ARRAY_WRITE;
-        calleeSize += ARRAY_STORE_COST + STORE_CHECK_COST;
-        break;
+          // Array stores: null check, bounds check, index computation, load
+        case JBC_iastore:
+        case JBC_lastore:
+        case JBC_fastore:
+        case JBC_dastore:
+        case JBC_bastore:
+        case JBC_castore:
+        case JBC_sastore:
+          summaryFlags |= HAS_ARRAY_WRITE;
+          calleeSize += ARRAY_STORE_COST;
+          break;
+        case JBC_aastore:
+          summaryFlags |= HAS_ARRAY_WRITE;
+          calleeSize += ARRAY_STORE_COST + STORE_CHECK_COST;
+          break;
 
-        // primitive computations (likely to be very cheap)
-      case JBC_iadd:case JBC_fadd:case JBC_dadd:case JBC_isub:
-      case JBC_fsub:case JBC_dsub:case JBC_imul:case JBC_fmul:
-      case JBC_dmul:case JBC_idiv:case JBC_fdiv:case JBC_ddiv:
-      case JBC_irem:case JBC_frem:case JBC_drem:case JBC_ineg:
-      case JBC_fneg:case JBC_dneg:case JBC_ishl:case JBC_ishr:
-      case JBC_lshr:case JBC_iushr:case JBC_iand:case JBC_ior:
-      case JBC_ixor:case JBC_iinc:
-        calleeSize += SIMPLE_OPERATION_COST;
-        break;
+          // primitive computations (likely to be very cheap)
+        case JBC_iadd:
+        case JBC_fadd:
+        case JBC_dadd:
+        case JBC_isub:
+        case JBC_fsub:
+        case JBC_dsub:
+        case JBC_imul:
+        case JBC_fmul:
+        case JBC_dmul:
+        case JBC_idiv:
+        case JBC_fdiv:
+        case JBC_ddiv:
+        case JBC_irem:
+        case JBC_frem:
+        case JBC_drem:
+        case JBC_ineg:
+        case JBC_fneg:
+        case JBC_dneg:
+        case JBC_ishl:
+        case JBC_ishr:
+        case JBC_lshr:
+        case JBC_iushr:
+        case JBC_iand:
+        case JBC_ior:
+        case JBC_ixor:
+        case JBC_iinc:
+          calleeSize += SIMPLE_OPERATION_COST;
+          break;
 
-        // long computations may be different cost than primitive computations
-      case JBC_ladd:case JBC_lsub:case JBC_lmul:case JBC_ldiv:
-      case JBC_lrem:case JBC_lneg:case JBC_lshl:case JBC_lushr:
-      case JBC_land:case JBC_lor:case JBC_lxor:
-        calleeSize += LONG_OPERATION_COST;
-        break;
+          // long computations may be different cost than primitive computations
+        case JBC_ladd:
+        case JBC_lsub:
+        case JBC_lmul:
+        case JBC_ldiv:
+        case JBC_lrem:
+        case JBC_lneg:
+        case JBC_lshl:
+        case JBC_lushr:
+        case JBC_land:
+        case JBC_lor:
+        case JBC_lxor:
+          calleeSize += LONG_OPERATION_COST;
+          break;
 
-        // Some conversion operations are very cheap
-      case JBC_int2byte:case JBC_int2char:case JBC_int2short:
-        calleeSize += SIMPLE_OPERATION_COST;
-        break;
-        // Others are a little more costly
-      case JBC_i2l:case JBC_l2i:
-        calleeSize += LONG_OPERATION_COST;
-        break;
-        // Most are roughly as expensive as a call
-      case JBC_i2f:case JBC_i2d:case JBC_l2f:case JBC_l2d:
-      case JBC_f2i:case JBC_f2l:case JBC_f2d:case JBC_d2i:
-      case JBC_d2l:case JBC_d2f:
-        calleeSize += CALL_COST;
-        break;
+          // Some conversion operations are very cheap
+        case JBC_int2byte:
+        case JBC_int2char:
+        case JBC_int2short:
+          calleeSize += SIMPLE_OPERATION_COST;
+          break;
+          // Others are a little more costly
+        case JBC_i2l:
+        case JBC_l2i:
+          calleeSize += LONG_OPERATION_COST;
+          break;
+          // Most are roughly as expensive as a call
+        case JBC_i2f:
+        case JBC_i2d:
+        case JBC_l2f:
+        case JBC_l2d:
+        case JBC_f2i:
+        case JBC_f2l:
+        case JBC_f2d:
+        case JBC_d2i:
+        case JBC_d2l:
+        case JBC_d2f:
+          calleeSize += CALL_COST;
+          break;
 
-        // approximate compares as 1 simple operation
-      case JBC_lcmp:case JBC_fcmpl:case JBC_fcmpg:case JBC_dcmpl:
-      case JBC_dcmpg:
-        calleeSize += SIMPLE_OPERATION_COST;
-        break;
+          // approximate compares as 1 simple operation
+        case JBC_lcmp:
+        case JBC_fcmpl:
+        case JBC_fcmpg:
+        case JBC_dcmpl:
+        case JBC_dcmpg:
+          calleeSize += SIMPLE_OPERATION_COST;
+          break;
 
-        // most control flow is cheap; jsr is more expensive
-      case JBC_ifeq:case JBC_ifne:case JBC_iflt:case JBC_ifge:
-      case JBC_ifgt:case JBC_ifle:case JBC_if_icmpeq:case JBC_if_icmpne:
-      case JBC_if_icmplt:case JBC_if_icmpge:case JBC_if_icmpgt:
-      case JBC_if_icmple:case JBC_if_acmpeq:case JBC_if_acmpne:
-      case JBC_ifnull:case JBC_ifnonnull:
-        summaryFlags |= HAS_COND_BRANCH;
-        if (bcodes.getBranchOffset() < 0) summaryFlags |= HAS_BACK_BRANCH;
-        calleeSize += SIMPLE_OPERATION_COST;
-        continue; // we've processed all of the bytes, so avoid the call to skipInstruction()
-      case JBC_goto:
-        if (bcodes.getBranchOffset() < 0) summaryFlags |= HAS_BACK_BRANCH;
-        calleeSize += SIMPLE_OPERATION_COST;
-        continue; // we've processed all of the bytes, so avoid the call to skipInstruction()
-      case JBC_goto_w:
-        if (bcodes.getWideBranchOffset() < 0) summaryFlags |= HAS_BACK_BRANCH;
-        calleeSize += SIMPLE_OPERATION_COST;
-        continue; // we've processed all of the bytes, so avoid the call to skipInstruction()
-      case JBC_jsr:case JBC_jsr_w:
-        summaryFlags |= HAS_JSR;
-        calleeSize += JSR_COST;
-        break;
+          // most control flow is cheap; jsr is more expensive
+        case JBC_ifeq:
+        case JBC_ifne:
+        case JBC_iflt:
+        case JBC_ifge:
+        case JBC_ifgt:
+        case JBC_ifle:
+        case JBC_if_icmpeq:
+        case JBC_if_icmpne:
+        case JBC_if_icmplt:
+        case JBC_if_icmpge:
+        case JBC_if_icmpgt:
+        case JBC_if_icmple:
+        case JBC_if_acmpeq:
+        case JBC_if_acmpne:
+        case JBC_ifnull:
+        case JBC_ifnonnull:
+          summaryFlags |= HAS_COND_BRANCH;
+          if (bcodes.getBranchOffset() < 0) summaryFlags |= HAS_BACK_BRANCH;
+          calleeSize += SIMPLE_OPERATION_COST;
+          continue; // we've processed all of the bytes, so avoid the call to skipInstruction()
+        case JBC_goto:
+          if (bcodes.getBranchOffset() < 0) summaryFlags |= HAS_BACK_BRANCH;
+          calleeSize += SIMPLE_OPERATION_COST;
+          continue; // we've processed all of the bytes, so avoid the call to skipInstruction()
+        case JBC_goto_w:
+          if (bcodes.getWideBranchOffset() < 0) summaryFlags |= HAS_BACK_BRANCH;
+          calleeSize += SIMPLE_OPERATION_COST;
+          continue; // we've processed all of the bytes, so avoid the call to skipInstruction()
+        case JBC_jsr:
+        case JBC_jsr_w:
+          summaryFlags |= HAS_JSR;
+          calleeSize += JSR_COST;
+          break;
 
-      case JBC_tableswitch:case JBC_lookupswitch:
-        summaryFlags |= HAS_SWITCH;
-        calleeSize += SWITCH_COST;
-        break;
+        case JBC_tableswitch:
+        case JBC_lookupswitch:
+          summaryFlags |= HAS_SWITCH;
+          calleeSize += SWITCH_COST;
+          break;
 
-      case JBC_putstatic: case JBC_putfield: 
-        summaryFlags |= HAS_FIELD_WRITE;
-        calleeSize += SIMPLE_OPERATION_COST;
-        break;
+        case JBC_putstatic:
+        case JBC_putfield:
+          summaryFlags |= HAS_FIELD_WRITE;
+          calleeSize += SIMPLE_OPERATION_COST;
+          break;
 
-      case JBC_getstatic: case JBC_getfield: 
-        summaryFlags |= HAS_FIELD_READ;
-        calleeSize += SIMPLE_OPERATION_COST;
-        break;
-        
-        // Various flavors of calls. Assign them call cost (differentiate?)
-      case JBC_invokevirtual:case JBC_invokespecial:
-      case JBC_invokestatic:   
-        // Special case VM_Magic's as being cheaper.
-        VM_MethodReference meth = bcodes.getMethodReference(constantPool);
-        if (meth.getType().isMagicType()) {
-          summaryFlags |= HAS_MAGIC;
-          calleeSize += MAGIC_COST;
-        } else {
+        case JBC_getstatic:
+        case JBC_getfield:
+          summaryFlags |= HAS_FIELD_READ;
+          calleeSize += SIMPLE_OPERATION_COST;
+          break;
+
+          // Various flavors of calls. Assign them call cost (differentiate?)
+        case JBC_invokevirtual:
+        case JBC_invokespecial:
+        case JBC_invokestatic:
+          // Special case VM_Magic's as being cheaper.
+          VM_MethodReference meth = bcodes.getMethodReference(constantPool);
+          if (meth.getType().isMagicType()) {
+            summaryFlags |= HAS_MAGIC;
+            calleeSize += MAGIC_COST;
+          } else {
+            summaryFlags |= HAS_INVOKE;
+            calleeSize += CALL_COST;
+          }
+          continue; // we've processed all of the bytes, so avoid the call to skipInstruction()
+
+        case JBC_invokeinterface:
           summaryFlags |= HAS_INVOKE;
           calleeSize += CALL_COST;
-        }
-        continue; // we've processed all of the bytes, so avoid the call to skipInstruction()
-        
-      case JBC_invokeinterface:
-        summaryFlags |= HAS_INVOKE;
-        calleeSize += CALL_COST;
-        break;
+          break;
 
-      case JBC_xxxunusedxxx:
-        if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-        break;
+        case JBC_xxxunusedxxx:
+          if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+          break;
 
-      case JBC_new: case JBC_newarray: case JBC_anewarray:
-        summaryFlags |= HAS_ALLOCATION;
-        calleeSize += ALLOCATION_COST;
-        break;
+        case JBC_new:
+        case JBC_newarray:
+        case JBC_anewarray:
+          summaryFlags |= HAS_ALLOCATION;
+          calleeSize += ALLOCATION_COST;
+          break;
 
-      case JBC_arraylength:
-        calleeSize += SIMPLE_OPERATION_COST;
-        break;
+        case JBC_arraylength:
+          calleeSize += SIMPLE_OPERATION_COST;
+          break;
 
-      case JBC_athrow:
-        summaryFlags |= HAS_THROW;
-        calleeSize += THROW_COST;
-        break;
+        case JBC_athrow:
+          summaryFlags |= HAS_THROW;
+          calleeSize += THROW_COST;
+          break;
 
-      case JBC_checkcast:case JBC_instanceof:
-        calleeSize += CLASS_CHECK_COST;
-        break;
+        case JBC_checkcast:
+        case JBC_instanceof:
+          calleeSize += CLASS_CHECK_COST;
+          break;
 
-      case JBC_monitorenter:case JBC_monitorexit:
-        summaryFlags |= HAS_SYNCH;
-        calleeSize += SYNCH_COST;
-        break;
+        case JBC_monitorenter:
+        case JBC_monitorexit:
+          summaryFlags |= HAS_SYNCH;
+          calleeSize += SYNCH_COST;
+          break;
 
-      case JBC_multianewarray:
-        summaryFlags |= HAS_ALLOCATION;
-        calleeSize += CALL_COST;
-        break;
+        case JBC_multianewarray:
+          summaryFlags |= HAS_ALLOCATION;
+          calleeSize += CALL_COST;
+          break;
       }
       bcodes.skipInstruction();
     }
     if (calleeSize > Character.MAX_VALUE) {
       summarySize = Character.MAX_VALUE;
     } else {
-      summarySize = (char)calleeSize;
+      summarySize = (char) calleeSize;
     }
   }
 }

@@ -13,14 +13,14 @@ import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.unboxed.Word;
 
-/** 
+/**
  * An instance of OSR_VariableElement represents a byte code variable
  * (local or stack element).  It is used to generate prologue to
  * recover the runtime state.  It refers to VM architecture.
  */
 
 public class OSR_VariableElement implements OSR_Constants {
-  
+
   //////////////////////////////////
   // instance fields
   //////////////////////////////////
@@ -56,26 +56,26 @@ public class OSR_VariableElement implements OSR_Constants {
   ///////////////////////////////// 
   static boolean isIBitsType(int tcode) {
     switch (tcode) {
-    case INT:
-    case FLOAT:
-    case RET_ADDR:
-      return true;
-    case WORD:
-      return VM.BuildFor32Addr;
-    default:
-      return false;
+      case INT:
+      case FLOAT:
+      case RET_ADDR:
+        return true;
+      case WORD:
+        return VM.BuildFor32Addr;
+      default:
+        return false;
     }
   }
 
   static boolean isLBitsType(int tcode) {
     switch (tcode) {
-    case LONG:
-    case DOUBLE:
-      return true;
-    case WORD:
-      return VM.BuildFor64Addr;
-    default:
-      return false;
+      case LONG:
+      case DOUBLE:
+        return true;
+      case WORD:
+        return VM.BuildFor64Addr;
+      default:
+        return false;
     }
   }
 
@@ -92,66 +92,68 @@ public class OSR_VariableElement implements OSR_Constants {
   /////////////////////////////////////
 
   /* for 32-bit value */
-  public OSR_VariableElement(int what_kind, 
-                     int which_num,
-                     int type,
-                     int ibits) {
+
+  public OSR_VariableElement(int what_kind,
+                             int which_num,
+                             int type,
+                             int ibits) {
     if (VM.VerifyAssertions) {
       VM._assert(isIBitsType(type));
     }
-    
-    this.kind  = what_kind;
-    this.num   = which_num;
+
+    this.kind = what_kind;
+    this.num = which_num;
     this.tcode = type;
-    this.value = (long)ibits & 0x0FFFFFFFFL;
+    this.value = (long) ibits & 0x0FFFFFFFFL;
   }
 
   /* for 64-bit value */
   public OSR_VariableElement(int what_kind,
-                     int which_num,
-                     int type,
-                     long lbits) {
+                             int which_num,
+                             int type,
+                             long lbits) {
     if (VM.VerifyAssertions) {
       VM._assert(isLBitsType(type));
     }
-    
-    this.kind  = what_kind;
-    this.num   = which_num;
+
+    this.kind = what_kind;
+    this.num = which_num;
     this.tcode = type;
     this.value = lbits;
   }
 
   /* for reference type */
   public OSR_VariableElement(int what_kind,
-                     int which_num,
-                     int type,
-                     Object ref) {
+                             int which_num,
+                             int type,
+                             Object ref) {
     if (VM.VerifyAssertions) {
       VM._assert(isRefType(type));
     }
 
-    this.kind  = what_kind;
-    this.num   = which_num;
+    this.kind = what_kind;
+    this.num = which_num;
     this.tcode = type;
-    this.ref   = ref;
+    this.ref = ref;
   }
 
   /* for word type */
   public OSR_VariableElement(int what_kind,
-                     int which_num,
-                     int type,
-                     Word word) {
+                             int which_num,
+                             int type,
+                             Word word) {
     if (VM.VerifyAssertions) {
       VM._assert(isWordType(type));
     }
 
-    this.kind  = what_kind;
-    this.num   = which_num;
+    this.kind = what_kind;
+    this.num = which_num;
     this.tcode = type;
-    if (VM.BuildFor32Addr)
-      this.value = ((long)word.toInt()) & 0x0FFFFFFFFL;
-    else 
+    if (VM.BuildFor32Addr) {
+      this.value = ((long) word.toInt()) & 0x0FFFFFFFFL;
+    } else {
       this.value = word.toLong();
+    }
   }
 
   ////////////////////////////////
@@ -159,6 +161,7 @@ public class OSR_VariableElement implements OSR_Constants {
   ////////////////////////////////
 
   /* local or stack element */
+
   boolean isLocal() {
     return kind == LOCAL;
   }
@@ -187,12 +190,12 @@ public class OSR_VariableElement implements OSR_Constants {
   }
 
   Word getWord() {
-    return (VM.BuildFor32Addr) ? Word.fromIntSignExtend((int)value) : Word.fromLong(value);
+    return (VM.BuildFor32Addr) ? Word.fromIntSignExtend((int) value) : Word.fromLong(value);
   }
 
   /* for numerical */
   int getIntBits() {
-    return (int)(value & 0x0FFFFFFFF);
+    return (int) (value & 0x0FFFFFFFF);
   }
 
   long getLongBits() {
@@ -203,76 +206,78 @@ public class OSR_VariableElement implements OSR_Constants {
   public String toString() {
     StringBuilder buf = new StringBuilder("(");
 
-    if (kind == LOCAL)
+    if (kind == LOCAL) {
       buf.append('L');
-    else 
+    } else {
       buf.append('S');
+    }
     buf.append(num);
     buf.append(",");
 
     char t = 'V';
     switch (tcode) {
-    case INT:
-      t = 'I';
-      break;
-    case FLOAT:
-      t = 'F';
-      break;
-    case LONG:
-      t = 'J';
-      break;
-    case DOUBLE:
-      t = 'D';
-      break;
-    case RET_ADDR:
-      t = 'R';
-      break;
-    case REF:
-      t = 'L';
-      break;
-    case WORD:
-      t = 'W';
-      break;
+      case INT:
+        t = 'I';
+        break;
+      case FLOAT:
+        t = 'F';
+        break;
+      case LONG:
+        t = 'J';
+        break;
+      case DOUBLE:
+        t = 'D';
+        break;
+      case RET_ADDR:
+        t = 'R';
+        break;
+      case REF:
+        t = 'L';
+        break;
+      case WORD:
+        t = 'W';
+        break;
     }
 
     buf.append(t);
     buf.append(",");
-    
+
     switch (tcode) {
-    case REF:
-      // it is legal to have a null reference.
-      if (ref == null) {
-        buf.append("null");
-      } else {
-        buf.append(VM.addressAsHexString(VM_Magic.objectAsAddress(ref)));
-        buf.append(" ");
+      case REF:
+        // it is legal to have a null reference.
+        if (ref == null) {
+          buf.append("null");
+        } else {
+          buf.append(VM.addressAsHexString(VM_Magic.objectAsAddress(ref)));
+          buf.append(" ");
 //      buf.append(ref.toString());
-      }
-      break;
-    case WORD:
-      buf.append("0x");
-      if (VM.BuildFor32Addr)
-        buf.append(Integer.toHexString((int)(value & 0x0FFFFFFFFL)));
-      else
-        buf.append(Long.toHexString(value));
-      buf.append(" ");
-      break;
-    case FLOAT:
-      buf.append(VM_Magic.intBitsAsFloat((int)(value & 0x0FFFFFFFF)));
-      break;
-    case LONG:
-      buf.append(value);
-      break;
-    case DOUBLE:
-      buf.append(VM_Magic.longBitsAsDouble(value));
-      break;
-    default:
-      buf.append((int)(value & 0x0FFFFFFFF));
-      break;
+        }
+        break;
+      case WORD:
+        buf.append("0x");
+        if (VM.BuildFor32Addr) {
+          buf.append(Integer.toHexString((int) (value & 0x0FFFFFFFFL)));
+        } else {
+          buf.append(Long.toHexString(value));
+        }
+        buf.append(" ");
+        break;
+      case FLOAT:
+        buf.append(VM_Magic.intBitsAsFloat((int) (value & 0x0FFFFFFFF)));
+        break;
+      case LONG:
+        buf.append(value);
+        break;
+      case DOUBLE:
+        buf.append(VM_Magic.longBitsAsDouble(value));
+        break;
+      default:
+        buf.append((int) (value & 0x0FFFFFFFF));
+        break;
     }
 
     buf.append(")");
-    
+
     return buf.toString();
   }
 }

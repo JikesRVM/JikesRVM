@@ -13,11 +13,11 @@ class OPT_SpaceEffGraphEdgeListHeader {
   OPT_SpaceEffGraphEdgeList _last;
 
   OPT_SpaceEffGraphEdgeList first() {
-    return  _first;
+    return _first;
   }
 
   OPT_SpaceEffGraphEdgeList last() {
-    return  _last;
+    return _last;
   }
 
   public void append(OPT_SpaceEffGraphEdge edge) {
@@ -28,8 +28,7 @@ class OPT_SpaceEffGraphEdgeListHeader {
       // will be the case for first edge.
       _first = p;
       _last = p;
-    } 
-    else {
+    } else {
       // there is at least one node.
       last._next = p;
       p._prev = last;           // doubly linked list.

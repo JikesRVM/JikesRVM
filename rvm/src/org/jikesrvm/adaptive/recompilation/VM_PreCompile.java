@@ -39,7 +39,7 @@ import org.jikesrvm.compilers.opt.OPT_CompilationPlan;
  * @see org.jikesrvm.compilers.common.VM_RuntimeCompiler
  */
 public class VM_PreCompile implements VM_Callbacks.StartupMonitor {
-  
+
   public static void init() {
     VM_Callbacks.addStartupMonitor(new VM_PreCompile());
   }
@@ -50,12 +50,12 @@ public class VM_PreCompile implements VM_Callbacks.StartupMonitor {
       // precompile the methods
       compileAllMethods();
       VM.sysWrite("Finish precompiling");
-    } 
+    }
   }
 
   /**
    * Compile all methods in the advice file
- */
+   */
   public static void compileAllMethods() {
     //Collection allMethodsSet = attribMap.values();
     VM.sysWriteln("Start precompile");
@@ -63,8 +63,9 @@ public class VM_PreCompile implements VM_Callbacks.StartupMonitor {
       //while (allMethods.hasNext()) {
       //VM.sysWriteln("checking one");
 
-      VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_ClassLoader.getApplicationClassLoader(), value.getClassName());
-      VM_Class cls = (VM_Class)tRef.peekResolvedType();
+      VM_TypeReference tRef =
+          VM_TypeReference.findOrCreate(VM_ClassLoader.getApplicationClassLoader(), value.getClassName());
+      VM_Class cls = (VM_Class) tRef.peekResolvedType();
       if (cls == null) {
         try {
           cls = tRef.resolve().asClass();
@@ -75,17 +76,18 @@ public class VM_PreCompile implements VM_Callbacks.StartupMonitor {
           VM.sysWriteln("Bad entry in the advice file");
         }
       }
-      
+
       if (cls != null) {
         // Find the method
-        VM_Method method = cls.findDeclaredMethod(value.getMethodName(),value.getMethodSig());
-        
+        VM_Method method = cls.findDeclaredMethod(value.getMethodName(), value.getMethodSig());
+
         // If found, compile it
         if ((method != null) &&
             !method.hasNoOptCompileAnnotation() &&
             (method instanceof org.jikesrvm.classloader.VM_NormalMethod)) {
           // if user's requirement is higher than advice
-          if ((((org.jikesrvm.compilers.opt.OPT_Options) VM_RuntimeCompiler.options).getOptLevel() > value.getOptLevel())
+          if ((((org.jikesrvm.compilers.opt.OPT_Options) VM_RuntimeCompiler.options).getOptLevel() >
+               value.getOptLevel())
               || (VM_Controller.options.MAX_OPT_LEVEL < value.getOptLevel())) {
             method.compile();
           } else {
@@ -95,16 +97,19 @@ public class VM_PreCompile implements VM_Callbacks.StartupMonitor {
             OPT_CompilationPlan compPlan;
             if (VM_Controller.options.counters()) {
               // for invocation counter, we only use one optimization level
-              compPlan = VM_InvocationCounts.createCompilationPlan((VM_NormalMethod)method);
+              compPlan = VM_InvocationCounts.createCompilationPlan((VM_NormalMethod) method);
               VM_AOSLogging.recompilationStarted(compPlan);
               VM_RuntimeCompiler.recompileWithOpt(compPlan);
-              VM_AOSLogging.recompilationCompleted(compPlan); 
+              VM_AOSLogging.recompilationCompleted(compPlan);
             } else if (VM_Controller.options.sampling()) {
               // Create our set of standard optimization plans.
-              compPlan = VM_Controller.recompilationStrategy.createCompilationPlan((VM_NormalMethod)method, value.getOptLevel(), null);
+              compPlan =
+                  VM_Controller.recompilationStrategy.createCompilationPlan((VM_NormalMethod) method,
+                                                                            value.getOptLevel(),
+                                                                            null);
               VM_AOSLogging.recompilationStarted(compPlan);
               VM_RuntimeCompiler.recompileWithOpt(compPlan);
-              VM_AOSLogging.recompilationCompleted(compPlan); 
+              VM_AOSLogging.recompilationCompleted(compPlan);
             } else {
               VM.sysWriteln("Compiler advice file is not followed  ");
               method.compile();

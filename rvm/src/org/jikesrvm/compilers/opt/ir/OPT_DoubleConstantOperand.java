@@ -19,7 +19,7 @@ import org.vmmagic.unboxed.Offset;
  * @see OPT_Operand
  */
 
-public final class OPT_DoubleConstantOperand extends OPT_ConstantOperand implements VM_SizeConstants{
+public final class OPT_DoubleConstantOperand extends OPT_ConstantOperand implements VM_SizeConstants {
 
   /**
    * Value of this operand.
@@ -61,7 +61,7 @@ public final class OPT_DoubleConstantOperand extends OPT_ConstantOperand impleme
 
   /**
    * Return a new operand that is semantically equivalent to <code>this</code>.
-   * 
+   *
    * @return a copy of <code>this</code>
    */
   public OPT_Operand copy() {
@@ -70,20 +70,20 @@ public final class OPT_DoubleConstantOperand extends OPT_ConstantOperand impleme
 
   /**
    * Return the {@link VM_TypeReference} of the value represented by the operand.
-   * 
+   *
    * @return VM_TypeReference.Double
    */
   public VM_TypeReference getType() {
-	 return VM_TypeReference.Double;
+    return VM_TypeReference.Double;
   }
 
   /**
    * Does the operand represent a value of the double data type?
-   * 
+   *
    * @return <code>true</code>
    */
   public boolean isDouble() {
-	 return true;
+    return true;
   }
 
   /**
@@ -95,8 +95,8 @@ public final class OPT_DoubleConstantOperand extends OPT_ConstantOperand impleme
    *           if they are not.
    */
   public boolean similar(OPT_Operand op) {
-    return (op instanceof OPT_DoubleConstantOperand)&&
-           (value == ((OPT_DoubleConstantOperand)op).value);
+    return (op instanceof OPT_DoubleConstantOperand) &&
+           (value == ((OPT_DoubleConstantOperand) op).value);
   }
 
   /**
@@ -105,7 +105,7 @@ public final class OPT_DoubleConstantOperand extends OPT_ConstantOperand impleme
    * @return a string representation of this operand.
    */
   public String toString() {
-    return Double.toString(value)+"D";
+    return Double.toString(value) + "D";
   }
 
 }

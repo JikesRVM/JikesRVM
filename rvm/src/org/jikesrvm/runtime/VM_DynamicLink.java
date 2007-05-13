@@ -18,16 +18,17 @@ import org.vmmagic.pragma.Uninterruptible;
  * and has to be uninterruptible (ie contain no new bytecodes),
  * therefore the fields of this class are non-final).
  */
-@Uninterruptible public final class VM_DynamicLink implements VM_BytecodeConstants {
+@Uninterruptible
+public final class VM_DynamicLink implements VM_BytecodeConstants {
   /** method referenced at a call site */
   private VM_MethodReference methodRef;
   /** how method was called at that site */
-  private int       bytecode;
+  private int bytecode;
 
   /** set the dynamic link information. */
   public void set(VM_MethodReference methodRef, int bytecode) {
     this.methodRef = methodRef;
-    this.bytecode  = bytecode;
+    this.bytecode = bytecode;
   }
 
   public VM_MethodReference methodRef() {

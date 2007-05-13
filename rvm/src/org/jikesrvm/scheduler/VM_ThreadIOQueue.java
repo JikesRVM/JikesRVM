@@ -26,8 +26,9 @@ import org.vmmagic.pragma.Uninterruptible;
  * done for disk i/o, but we currently don't bother: we use blocking disk i/o 
  * and assume that it will complete immediately.
  */
-@Uninterruptible public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue 
-  implements VM_ThreadEventConstants, VM_ThreadIOConstants {
+@Uninterruptible
+public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
+    implements VM_ThreadEventConstants, VM_ThreadIOConstants {
 
   // Note: this class was modified by David Hovemeyer
   // for Extreme Blue 2002 to implement it as a subclass of
@@ -42,7 +43,8 @@ import org.vmmagic.pragma.Uninterruptible;
    * a thread switch, which is obviously bad in uninterruptible
    * code.
    */
-  @Uninterruptible private static class WaitDataDowncaster extends VM_ThreadEventWaitDataVisitor {
+  @Uninterruptible
+  private static class WaitDataDowncaster extends VM_ThreadEventWaitDataVisitor {
 
     public VM_ThreadIOWaitData waitData;
 
@@ -60,13 +62,13 @@ import org.vmmagic.pragma.Uninterruptible;
    * Avoids having to create them repeatedly.
    */
   private final WaitDataDowncaster myDowncaster = new WaitDataDowncaster();
- 
+
   private static final int FD_SETSIZE = 2048;
 
   /**
-    * Array containing read, write, and exception file descriptor sets.
-    * Used by sysNetSelect().
-    */
+   * Array containing read, write, and exception file descriptor sets.
+   * Used by sysNetSelect().
+   */
   private int[] allFds = new int[3 * FD_SETSIZE];
 
   /** Offset of read file descriptors in allFds. */
@@ -112,8 +114,8 @@ import org.vmmagic.pragma.Uninterruptible;
    */
   private static boolean isKilled(VM_Thread thread) {
     return (thread.waitData.waitFlags & WAIT_NATIVE) != 0
-        && thread.externalInterrupt != null
-        && thread.throwInterruptWhenScheduled;
+           && thread.externalInterrupt != null
+           && thread.throwInterruptWhenScheduled;
   }
 
   /**
@@ -130,10 +132,11 @@ import org.vmmagic.pragma.Uninterruptible;
    *     or invalid
    */
   private int updateStatus(int[] waitDataFds, int waitDataOffset,
-    int[] selectFds, int setOffset) {
+                           int[] selectFds, int setOffset) {
 
-    if (waitDataFds == null)
+    if (waitDataFds == null) {
       return 0;
+    }
 
     int numReady = 0;
     int selectIndex = setOffset + waitDataOffset;
@@ -141,27 +144,27 @@ import org.vmmagic.pragma.Uninterruptible;
       //boolean ready = selectFds[selectIndex++] == FD_READY;
       int fd = selectFds[selectIndex++];
       switch (fd) {
-      case FD_READY:
-        waitDataFds[i] |= FD_READY_BIT;
-        ++numReady;
-        break;
+        case FD_READY:
+          waitDataFds[i] |= FD_READY_BIT;
+          ++numReady;
+          break;
 
-      case FD_INVALID:
-        waitDataFds[i] |= FD_INVALID_BIT;
-        ++numReady;
-        break;
+        case FD_INVALID:
+          waitDataFds[i] |= FD_INVALID_BIT;
+          ++numReady;
+          break;
 
-      default:
-        waitDataFds[i] &= FD_MASK;
+        default:
+          waitDataFds[i] &= FD_MASK;
       }
     }
 
     return numReady;
   }
-   
-   //-----------//
-   // Interface //
-   //-----------//
+
+  //-----------//
+  // Interface //
+  //-----------//
 
   /**
    * Poll file descriptors to see which ones have become ready.
@@ -202,17 +205,17 @@ import org.vmmagic.pragma.Uninterruptible;
         if (waitData.readFds != null) {
           waitData.readOffset = readCount;
           readCount += addFileDescriptors(
-            allFds, READ_OFFSET + readCount, waitData.readFds);
+              allFds, READ_OFFSET + readCount, waitData.readFds);
         }
         if (waitData.writeFds != null) {
           waitData.writeOffset = writeCount;
           writeCount += addFileDescriptors(
-            allFds, WRITE_OFFSET + writeCount, waitData.writeFds);
+              allFds, WRITE_OFFSET + writeCount, waitData.writeFds);
         }
         if (waitData.exceptFds != null) {
           waitData.exceptOffset = exceptCount;
           exceptCount += addFileDescriptors(
-            allFds, EXCEPT_OFFSET + exceptCount, waitData.exceptFds);
+              allFds, EXCEPT_OFFSET + exceptCount, waitData.exceptFds);
         }
       }
 
@@ -221,16 +224,17 @@ import org.vmmagic.pragma.Uninterruptible;
 
     // If there are killed non-native threads, just wake up one of
     // those and don't bother with the select().
-    if (numKilledInJava > 0)
+    if (numKilledInJava > 0) {
       return true;
+    }
 
     // Do the select()
     VM_Processor.getCurrentProcessor().isInSelect = true;
     selectInProgressMutex.lock();
     int ret = sysCall.sysNetSelect(allFds,
-                                      readCount,
-                                      writeCount,
-                                      exceptCount);
+                                   readCount,
+                                   writeCount,
+                                   exceptCount);
     selectInProgressMutex.unlock();
     VM_Processor.getCurrentProcessor().isInSelect = false;
 
@@ -262,11 +266,11 @@ import org.vmmagic.pragma.Uninterruptible;
     // Also, set FD_INVALID_BIT in any fds that are invalid.
     int numReady = 0;
     numReady += updateStatus(
-      waitData.readFds, waitData.readOffset, allFds, READ_OFFSET);
+        waitData.readFds, waitData.readOffset, allFds, READ_OFFSET);
     numReady += updateStatus(
-      waitData.writeFds, waitData.writeOffset, allFds, WRITE_OFFSET);
+        waitData.writeFds, waitData.writeOffset, allFds, WRITE_OFFSET);
     numReady += updateStatus(
-      waitData.exceptFds, waitData.exceptOffset, allFds, EXCEPT_OFFSET);
+        waitData.exceptFds, waitData.exceptOffset, allFds, EXCEPT_OFFSET);
 
     // If any fds became ready, then this thread is a candidate for
     // being scheduled.
@@ -278,25 +282,29 @@ import org.vmmagic.pragma.Uninterruptible;
   }
 
   private void dumpFds(int[] fds) {
-    if (fds == null)
+    if (fds == null) {
       return;
+    }
     for (int i = 0; i < fds.length; ++i) {
       VM.sysWrite(fds[i] & FD_MASK);
-      if ((fds[i] & FD_READY_BIT) != 0)
+      if ((fds[i] & FD_READY_BIT) != 0) {
         VM.sysWrite('+');
-      if ((fds[i] & FD_INVALID_BIT) != 0)
+      }
+      if ((fds[i] & FD_INVALID_BIT) != 0) {
         VM.sysWrite('X');
-      if (i != fds.length - 1)
+      }
+      if (i != fds.length - 1) {
         VM.sysWrite(',');
+      }
     }
   }
 
-  /** 
+  /**
    * Dump text description of what given thread is waiting for.
    * For debugging.
    */
   @Interruptible
-  void dumpWaitDescription(VM_Thread thread) { 
+  void dumpWaitDescription(VM_Thread thread) {
     // Safe downcast from VM_ThreadEventWaitData to VM_ThreadIOWaitData.
     // Because this method may be called by other VM_Processors without
     // locking (and thus execute concurrently with other methods), do NOT
@@ -317,17 +325,21 @@ import org.vmmagic.pragma.Uninterruptible;
   }
 
   @Interruptible
-  private void appendFds(StringBuffer buffer, int[] fds) { 
-    if (fds == null)
+  private void appendFds(StringBuffer buffer, int[] fds) {
+    if (fds == null) {
       return;
+    }
     for (int i = 0; i < fds.length; ++i) {
       buffer.append(fds[i] & FD_MASK);
-      if ((fds[i] & FD_READY_BIT) != 0)
+      if ((fds[i] & FD_READY_BIT) != 0) {
         buffer.append('+');
-      if ((fds[i] & FD_INVALID_BIT) != 0)
+      }
+      if ((fds[i] & FD_INVALID_BIT) != 0) {
         buffer.append('X');
-      if (i != fds.length - 1)
+      }
+      if (i != fds.length - 1) {
         buffer.append(',');
+      }
     }
   }
 
@@ -336,7 +348,7 @@ import org.vmmagic.pragma.Uninterruptible;
    * This method must be interruptible!
    */
   @Interruptible
-  String getWaitDescription(VM_Thread thread) { 
+  String getWaitDescription(VM_Thread thread) {
     // Safe downcast from VM_ThreadEventWaitData to VM_ThreadIOWaitData.
     WaitDataDowncaster downcaster = new WaitDataDowncaster();
     thread.waitData.accept(downcaster);

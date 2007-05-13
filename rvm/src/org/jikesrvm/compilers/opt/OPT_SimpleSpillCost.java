@@ -41,9 +41,9 @@ class OPT_SimpleSpillCost extends OPT_SpillCostEstimator {
    * Calculate the estimated cost for each register.  
    */
   void calculate(OPT_IR ir) {
-    for (Enumeration<OPT_BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements(); ) {
+    for (Enumeration<OPT_BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
       OPT_BasicBlock bb = e.nextElement();
-      for (Enumeration<OPT_Instruction> ie = bb.forwardInstrEnumerator();ie.hasMoreElements();) {
+      for (Enumeration<OPT_Instruction> ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
         OPT_Instruction s = ie.nextElement();
         double factor = (bb.getInfrequent()) ? 0.0 : 1.0;
         if (s.isMove()) {
@@ -54,29 +54,29 @@ class OPT_SimpleSpillCost extends OPT_SpillCostEstimator {
           baseFactor *= MEMORY_OPERAND_FACTOR;
         }
         // first deal with non-memory operands
-        for (Enumeration<OPT_Operand> e2 = s.getRootOperands(); e2.hasMoreElements(); ) {
+        for (Enumeration<OPT_Operand> e2 = s.getRootOperands(); e2.hasMoreElements();) {
           OPT_Operand op = e2.nextElement();
           if (op.isRegister()) {
             OPT_Register r = op.asRegister().register;
             if (r.isSymbolic()) {
-              update(r,baseFactor);
+              update(r, baseFactor);
             }
           }
         }
         // now handle memory operands
         factor *= MEMORY_OPERAND_FACTOR;
-        for (Enumeration<OPT_Operand> e2 = s.getMemoryOperands(); e2.hasMoreElements(); ) {
-          OPT_MemoryOperand M = (OPT_MemoryOperand)e2.nextElement();
+        for (Enumeration<OPT_Operand> e2 = s.getMemoryOperands(); e2.hasMoreElements();) {
+          OPT_MemoryOperand M = (OPT_MemoryOperand) e2.nextElement();
           if (M.base != null) {
             OPT_Register r = M.base.register;
             if (r.isSymbolic()) {
-              update(r,factor);
+              update(r, factor);
             }
           }
           if (M.index != null) {
             OPT_Register r = M.index.register;
             if (r.isSymbolic()) {
-              update(r,factor);
+              update(r, factor);
             }
           }
         }
@@ -89,8 +89,8 @@ class OPT_SimpleSpillCost extends OPT_SpillCostEstimator {
    * NOTE: This is pretty intel-specific.  Refactor to arch/ tree.
    */
   static boolean hasBadSizeMemoryOperand(OPT_Instruction s) {
-    for (Enumeration<OPT_Operand> e = s.getMemoryOperands(); e.hasMoreElements(); ) {
-      OPT_MemoryOperand M = (OPT_MemoryOperand)e.nextElement();
+    for (Enumeration<OPT_Operand> e = s.getMemoryOperands(); e.hasMoreElements();) {
+      OPT_MemoryOperand M = (OPT_MemoryOperand) e.nextElement();
       if (M.size != 4) return true;
     }
     return false;

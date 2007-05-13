@@ -25,21 +25,21 @@ public final class OPT_StringConstantOperand extends OPT_ObjectConstantOperand {
    * @param i JTOC offset of the string constant
    */
   public OPT_StringConstantOperand(String v, Offset i) {
-    super (v,i);
+    super(v, i);
   }
 
   /**
    * Return a new operand that is semantically equivalent to <code>this</code>.
-   * 
+   *
    * @return a copy of <code>this</code>
    */
   public OPT_Operand copy() {
-    return new OPT_StringConstantOperand((String)value, offset);
+    return new OPT_StringConstantOperand((String) value, offset);
   }
 
   /**
    * Return the {@link VM_TypeReference} of the value represented by the operand.
-   * 
+   *
    * @return VM_TypeReference.JavaLangString
    */
   public VM_TypeReference getType() {
@@ -52,6 +52,6 @@ public final class OPT_StringConstantOperand extends OPT_ObjectConstantOperand {
    * @return a string representation of this operand.
    */
   public String toString() {
-    return "string \""+ value + "\"";
+    return "string \"" + value + "\"";
   }
 }

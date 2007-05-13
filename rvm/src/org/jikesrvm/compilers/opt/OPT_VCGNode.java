@@ -95,15 +95,18 @@ public interface OPT_VCGNode extends OPT_VisNode {
    * have explicit edge representation.
    */
   class DefaultEdge extends OPT_VisNode.DefaultEdge
-    implements OPT_VCGEdge
-  {
+      implements OPT_VCGEdge {
     private boolean _backEdge;
+
     public DefaultEdge(OPT_VCGNode s, OPT_VCGNode t) { this(s, t, false); }
+
     public DefaultEdge(OPT_VCGNode s, OPT_VCGNode t, boolean backEdge) {
       super(s, t);
       _backEdge = backEdge;
     }
+
     public boolean backEdge() { return _backEdge; }
+
     public OPT_VCGEdge.EdgeDesc getVCGDescriptor() { return OPT_VCGEdge.defaultVCGDesc; }
   }
 }

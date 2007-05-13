@@ -32,8 +32,8 @@ import org.jikesrvm.compilers.opt.ir.OPT_Register;
 public abstract class OPT_GenericRegisterRestrictions {
   // for each symbolic register, the set of physical registers that are
   // illegal for assignment
-  private final HashMap<OPT_Register,RestrictedRegisterSet> hash =
-    new HashMap<OPT_Register,RestrictedRegisterSet>();
+  private final HashMap<OPT_Register, RestrictedRegisterSet> hash =
+      new HashMap<OPT_Register, RestrictedRegisterSet>();
 
   // a set of symbolic registers that must not be spilled.
   private final HashSet<OPT_Register> noSpill = new HashSet<OPT_Register>();
@@ -71,7 +71,7 @@ public abstract class OPT_GenericRegisterRestrictions {
    */
   public final void init(OPT_IR ir) {
     // process each basic block
-    for (Enumeration<OPT_BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements(); ) {
+    for (Enumeration<OPT_BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
       OPT_BasicBlock b = e.nextElement();
       processBlock(b);
     }
@@ -87,10 +87,10 @@ public abstract class OPT_GenericRegisterRestrictions {
    */
   private void processBlock(OPT_BasicBlock bb) {
     ArrayList<OPT_LiveIntervalElement> symbolic =
-      new ArrayList<OPT_LiveIntervalElement>(20);
+        new ArrayList<OPT_LiveIntervalElement>(20);
     ArrayList<OPT_LiveIntervalElement> physical =
-      new ArrayList<OPT_LiveIntervalElement>(20);
-    
+        new ArrayList<OPT_LiveIntervalElement>(20);
+
     // 1. walk through the live intervals and identify which correspond to
     // physical and symbolic registers
     for (Enumeration<OPT_LiveIntervalElement> e = bb.enumerateLiveIntervals(); e.hasMoreElements();) {
@@ -110,8 +110,8 @@ public abstract class OPT_GenericRegisterRestrictions {
     // overlaps a live range for a symbolic register.
     for (OPT_LiveIntervalElement phys : physical) {
       for (OPT_LiveIntervalElement symb : symbolic) {
-        if (overlaps(phys,symb)) {
-          addRestriction(symb.getRegister(),phys.getRegister());
+        if (overlaps(phys, symb)) {
+          addRestriction(symb.getRegister(), phys.getRegister());
         }
       }
     }
@@ -120,11 +120,11 @@ public abstract class OPT_GenericRegisterRestrictions {
     // the liveness information.  Handle CALL instructions as a special
     // case.
     for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator();
-         ie.hasMoreElements(); ) {
+         ie.hasMoreElements();) {
       OPT_Instruction s = ie.next();
       if (s.operator.isCall() && s.operator != CALL_SAVE_VOLATILE) {
         for (OPT_LiveIntervalElement symb : symbolic) {
-          if (contains(symb,s.scratch)) {
+          if (contains(symb, s.scratch)) {
             forbidAllVolatiles(symb.getRegister());
           }
         }
@@ -137,16 +137,16 @@ public abstract class OPT_GenericRegisterRestrictions {
       if (s.operator == YIELDPOINT_OSR) {
         for (OPT_LiveIntervalElement symb : symbolic) {
           if (symb.getRegister().isFloatingPoint()) {
-            if (contains(symb,s.scratch)) {
+            if (contains(symb, s.scratch)) {
               forbidAllVolatiles(symb.getRegister());
             }
           }
-        }       
+        }
       }
     }
 
     // 3. architecture-specific restrictions
-    addArchRestrictions(bb,symbolic);
+    addArchRestrictions(bb, symbolic);
   }
 
   /**
@@ -161,7 +161,7 @@ public abstract class OPT_GenericRegisterRestrictions {
 
   /**
    * Does a live range R contain an instruction with number n?
-   * 
+   *
    * PRECONDITION: the instructions in each basic block are numbered in
    * increasing order before calling this.  The number for each
    * instruction is stored in its <code>scratch</code> field.
@@ -173,10 +173,10 @@ public abstract class OPT_GenericRegisterRestrictions {
       begin = R.getBegin().scratch;
     }
     if (R.getEnd() != null) {
-      end= R.getEnd().scratch;
+      end = R.getEnd().scratch;
     }
 
-    return ((begin<=n) && (n<=end));
+    return ((begin <= n) && (n <= end));
   }
 
   /**
@@ -193,10 +193,10 @@ public abstract class OPT_GenericRegisterRestrictions {
     // 2. begin1 >= end2 > -1
     // Under all other cases, the ranges overlap
 
-    int begin1  = -1;
-    int end1    = -1;
-    int begin2  = -1;
-    int end2    = -1;
+    int begin1 = -1;
+    int end1 = -1;
+    int begin2 = -1;
+    int end2 = -1;
 
     if (li1.getBegin() != null) {
       begin1 = li1.getBegin().scratch;
@@ -224,7 +224,7 @@ public abstract class OPT_GenericRegisterRestrictions {
     RestrictedRegisterSet r = hash.get(symb);
     if (r == null) {
       r = new RestrictedRegisterSet(phys);
-      hash.put(symb,r);
+      hash.put(symb, r);
     }
     r.setNoVolatiles();
   }
@@ -237,7 +237,7 @@ public abstract class OPT_GenericRegisterRestrictions {
     RestrictedRegisterSet r = hash.get(symb);
     if (r == null) {
       r = new RestrictedRegisterSet(phys);
-      hash.put(symb,r);
+      hash.put(symb, r);
     }
     r.addAll(set);
   }
@@ -250,7 +250,7 @@ public abstract class OPT_GenericRegisterRestrictions {
     RestrictedRegisterSet r = hash.get(symb);
     if (r == null) {
       r = new RestrictedRegisterSet(phys);
-      hash.put(symb,r);
+      hash.put(symb, r);
     }
     r.add(p);
   }
@@ -297,12 +297,12 @@ public abstract class OPT_GenericRegisterRestrictions {
    * in instruction s?
    */
   public abstract boolean isForbidden(OPT_Register symb, OPT_Register r,
-                               OPT_Instruction s);
+                                      OPT_Instruction s);
 
   /**
    * An instance of this class represents restrictions on physical register 
    * assignment.
- */
+   */
   private static final class RestrictedRegisterSet {
     /**
      * The set of registers to which assignment is forbidden.
@@ -313,7 +313,9 @@ public abstract class OPT_GenericRegisterRestrictions {
      * additionally, are all volatile registers forbidden?
      */
     private boolean noVolatiles = false;
+
     boolean getNoVolatiles() { return noVolatiles; }
+
     void setNoVolatiles() { noVolatiles = true; }
 
     /**
@@ -341,8 +343,11 @@ public abstract class OPT_GenericRegisterRestrictions {
      * Does this set contain a particular register?
      */
     boolean contains(OPT_Register r) {
-      if (r.isVolatile() && noVolatiles) return true;
-      else return bitset.contains(r);
+      if (r.isVolatile() && noVolatiles) {
+        return true;
+      } else {
+        return bitset.contains(r);
+      }
     }
   }
 }

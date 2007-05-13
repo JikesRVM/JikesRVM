@@ -12,26 +12,27 @@ import java.util.Iterator;
 
 class OPT_SingletonIterator<T> implements Iterator<T> {
 
-  OPT_SingletonIterator (T o) {
+  OPT_SingletonIterator(T o) {
     item = o;
     not_done = true;
   }
+
   boolean not_done;
   T item;
 
-  public boolean hasNext () {
-    return  not_done;
+  public boolean hasNext() {
+    return not_done;
   }
 
-  public T next () {
+  public T next() {
     if (not_done) {
       not_done = false;
-      return  item;
+      return item;
     }
-    throw  new java.util.NoSuchElementException();
+    throw new java.util.NoSuchElementException();
   }
 
-  public void remove () {
-    throw  new java.lang.UnsupportedOperationException();
+  public void remove() {
+    throw new java.lang.UnsupportedOperationException();
   }
 }

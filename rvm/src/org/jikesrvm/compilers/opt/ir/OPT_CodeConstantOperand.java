@@ -39,7 +39,7 @@ public final class OPT_CodeConstantOperand extends OPT_ConstantOperand {
 
   /**
    * Return a new operand that is semantically equivalent to <code>this</code>.
-   * 
+   *
    * @return a copy of <code>this</code>
    */
   public OPT_Operand copy() {
@@ -48,7 +48,7 @@ public final class OPT_CodeConstantOperand extends OPT_ConstantOperand {
 
   /**
    * Return the {@link VM_TypeReference} of the value represented by the operand.
-   * 
+   *
    * @return VM_TypeReference.JavaLangObjectArray
    */
   public VM_TypeReference getType() {
@@ -57,7 +57,7 @@ public final class OPT_CodeConstantOperand extends OPT_ConstantOperand {
 
   /**
    * Does the operand represent a value of the reference data type?
-   * 
+   *
    * @return <code>true</code>
    */
   public boolean isRef() {
@@ -74,7 +74,7 @@ public final class OPT_CodeConstantOperand extends OPT_ConstantOperand {
    */
   public boolean similar(OPT_Operand op) {
     return (op instanceof OPT_CodeConstantOperand) &&
-      value == ((OPT_CodeConstantOperand)op).value;
+           value == ((OPT_CodeConstantOperand) op).value;
   }
 
   /**
@@ -83,6 +83,6 @@ public final class OPT_CodeConstantOperand extends OPT_ConstantOperand {
    * @return a string representation of this operand.
    */
   public String toString() {
-    return "code \""+ value + "\"";
+    return "code \"" + value + "\"";
   }
 }

@@ -22,26 +22,27 @@ import org.vmmagic.unboxed.Offset;
  * get around of GC problem
  */
 
-@Uninterruptible public class OSR_ObjectHolder implements VM_SizeConstants {
+@Uninterruptible
+public class OSR_ObjectHolder implements VM_SizeConstants {
 
   // initialize pool size
   private static final int POOLSIZE = 8;
 
-  private static Object[][] refs; 
+  private static Object[][] refs;
 
   @Interruptible
-  public static void boot() { 
+  public static void boot() {
     refs = new Object[POOLSIZE][];
-    
+
     // exercise the method to avoid lazy compilation in the future
     Object[] objs = new Object[1];
     int p = handinRefs(objs);
-    getRefAt(p,0);
+    getRefAt(p, 0);
     cleanRefs(p);
-        
-        if (VM.TraceOnStackReplacement) {
-          VM.sysWriteln("OSR_ObjectHolder booted...");
-        }
+
+    if (VM.TraceOnStackReplacement) {
+      VM.sysWriteln("OSR_ObjectHolder booted...");
+    }
   }
 
   /**
@@ -50,18 +51,18 @@ import org.vmmagic.unboxed.Offset;
   @Interruptible
   public static int handinRefs(Object[] objs) {
     int n = refs.length;
-    for (int i=0; i<n; i++) {
+    for (int i = 0; i < n; i++) {
       if (refs[i] == null) {
         refs[i] = objs;
         return i;
       }
     }
     // grow the array
-    Object[][] newRefs = new Object[2*n][];
+    Object[][] newRefs = new Object[2 * n][];
     System.arraycopy(refs, 0, newRefs, 0, n);
     newRefs[n] = objs;
     refs = newRefs;
-        
+
     return n;
   }
 
@@ -70,11 +71,11 @@ import org.vmmagic.unboxed.Offset;
    */
   @Inline
   public static Object getRefAt(int h, int i) {
-        
-        if (VM.TraceOnStackReplacement) {
-          VM.sysWriteln("OSR_ObjectHolder getRefAt");
-        }
-        Object obj = refs[h][i];
+
+    if (VM.TraceOnStackReplacement) {
+      VM.sysWriteln("OSR_ObjectHolder getRefAt");
+    }
+    Object obj = refs[h][i];
     return obj;
   }
 
@@ -87,6 +88,6 @@ import org.vmmagic.unboxed.Offset;
     if (VM.TraceOnStackReplacement) {
       VM.sysWriteln("OSR_ObjectHolder cleanRefs");
     }
-    VM_Magic.setObjectAtOffset(refs, Offset.fromIntZeroExtend(i<<LOG_BYTES_IN_ADDRESS), null); // refs[i] = null;
+    VM_Magic.setObjectAtOffset(refs, Offset.fromIntZeroExtend(i << LOG_BYTES_IN_ADDRESS), null); // refs[i] = null;
   }
 }

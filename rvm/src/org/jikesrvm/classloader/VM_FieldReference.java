@@ -17,7 +17,7 @@ import org.vmmagic.pragma.Uninterruptible;
  */
 public final class VM_FieldReference extends VM_MemberReference implements VM_SizeConstants {
 
-  /** 
+  /**
    * The VM_Field that this field reference resolved to (null if not yet resolved).
    */
   private VM_Field resolvedMember;
@@ -41,22 +41,22 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
    * @return the type of the field's value
    */
   @Uninterruptible
-  public VM_TypeReference getFieldContentsType() { 
+  public VM_TypeReference getFieldContentsType() {
     return fieldContentsType;
   }
-  
+
   /**
    * How many stackslots do value of this type take?
    */
   public int getNumberOfStackSlots() {
-    return getFieldContentsType().getStackWords();  
+    return getFieldContentsType().getStackWords();
   }
-    
+
   /**
    * Get size of the field's value, in bytes.
-   */ 
+   */
   @Uninterruptible
-  public int getSize() { 
+  public int getSize() {
     return fieldContentsType.getMemoryBytes();
   }
 
@@ -66,21 +66,24 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
   public boolean definitelyDifferent(VM_FieldReference that) {
     if (this == that) return false;
     if (getName() != that.getName() ||
-        getDescriptor() != that.getDescriptor()) return true;
+        getDescriptor() != that.getDescriptor()) {
+      return true;
+    }
     VM_Field mine = peekResolvedField();
     VM_Field theirs = that.peekResolvedField();
     if (mine == null || theirs == null) return false;
     return mine != theirs;
   }
 
-    
   /**
    * Do this and that definitely refer to the same field?
    */
   public boolean definitelySame(VM_FieldReference that) {
     if (this == that) return true;
     if (getName() != that.getName() ||
-        getDescriptor() != that.getDescriptor()) return false;
+        getDescriptor() != that.getDescriptor()) {
+      return false;
+    }
     VM_Field mine = peekResolvedField();
     VM_Field theirs = that.peekResolvedField();
     if (mine == null || theirs == null) return false;
@@ -109,9 +112,9 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
    */
   public VM_Field peekResolvedField() {
     if (resolvedMember != null) return resolvedMember;
-    
+
     // Hasn't been resolved yet. Try to do it now without triggering class loading.
-    VM_Class declaringClass = (VM_Class)type.peekResolvedType();
+    VM_Class declaringClass = (VM_Class) type.peekResolvedType();
     if (declaringClass == null) return null;
     return resolveInternal(declaringClass);
   }
@@ -123,9 +126,9 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
    */
   public synchronized VM_Field resolve() {
     if (resolvedMember != null) return resolvedMember;
-    
+
     // Hasn't been resolved yet. Do it now triggering class loading if necessary.
-    return resolveInternal((VM_Class)type.resolve());
+    return resolveInternal((VM_Class) type.resolve());
   }
 
   private VM_Field resolveInternal(VM_Class declaringClass) {
@@ -136,7 +139,7 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
       // Look in this class
       VM_Field it = c.findDeclaredField(name, descriptor);
       if (it != null) {
-        resolvedMember = it; 
+        resolvedMember = it;
         return resolvedMember;
       }
       // Look at all interfaces directly and indirectly implemented by this class.

@@ -33,23 +33,29 @@ public class OPT_SpaceEffGraphEdge implements OPT_GraphEdge, OPT_VCGEdge {
    */
   protected int scratch;
 
-  static final int VISITED   = 0x10000000; // general purpose
+  static final int VISITED = 0x10000000; // general purpose
 
   static final int BACK_EDGE = 0x20000000; // edge information
   static final int DOMINATOR = 0x40000000; // edge information
 
   static final int INFO_MASK = 0x0fffffff;
 
-  public final boolean visited()       { return (scratch & VISITED  ) != 0; }
-  public final boolean backEdge()      { return (scratch & BACK_EDGE) != 0; }
+  public final boolean visited() { return (scratch & VISITED) != 0; }
+
+  public final boolean backEdge() { return (scratch & BACK_EDGE) != 0; }
+
   public final boolean dominatorEdge() { return (scratch & DOMINATOR) != 0; }
 
-  public final void setVisited()       { scratch |= VISITED;   }
-  public final void setBackEdge()      { scratch |= BACK_EDGE; }
+  public final void setVisited() { scratch |= VISITED; }
+
+  public final void setBackEdge() { scratch |= BACK_EDGE; }
+
   public final void setDominatorEdge() { scratch |= DOMINATOR; }
 
-  public final void clearVisited()       { scratch &= ~VISITED;   }
-  public final void clearBackEdge()      { scratch &= ~BACK_EDGE; }
+  public final void clearVisited() { scratch &= ~VISITED; }
+
+  public final void clearBackEdge() { scratch &= ~BACK_EDGE; }
+
   public final void clearDominatorEdge() { scratch &= ~DOMINATOR; }
 
   public final int getInfo() {
@@ -99,8 +105,7 @@ public class OPT_SpaceEffGraphEdge implements OPT_GraphEdge, OPT_VCGEdge {
    * @param toNode end node
    */
   OPT_SpaceEffGraphEdge(OPT_SpaceEffGraphNode fromNode,
-                        OPT_SpaceEffGraphNode toNode)
-  {
+                        OPT_SpaceEffGraphNode toNode) {
     _toNode = toNode;
     _fromNode = fromNode;
   }
@@ -124,7 +129,7 @@ public class OPT_SpaceEffGraphEdge implements OPT_GraphEdge, OPT_VCGEdge {
    * @return string representation of the end node
    */
   public String toNodeString() {
-     return "---> "+_toNode;
+    return "---> " + _toNode;
   }
 
   /**
@@ -132,21 +137,21 @@ public class OPT_SpaceEffGraphEdge implements OPT_GraphEdge, OPT_VCGEdge {
    * @return string representation of the start node
    */
   public String fromNodeString() {
-     return "<--- "+_fromNode;
+    return "<--- " + _fromNode;
   }
 
   /**
-    * Get the end node for the edge.
-    * @return end node for the edge
-    */
+   * Get the end node for the edge.
+   * @return end node for the edge
+   */
   public final OPT_GraphNode to() { return _toNode; }
- 
+
   /**
    * Get the start node for the edge.
    * @return start node for the edge
    */
   public final OPT_GraphNode from() { return _fromNode; }
- 
+
   /**
    * Returns the source node of the edge.
    * @return edge source node
@@ -177,9 +182,11 @@ public class OPT_SpaceEffGraphEdge implements OPT_GraphEdge, OPT_VCGEdge {
    */
   public OPT_VCGEdge.EdgeDesc getVCGDescriptor() {
     return new OPT_VCGEdge.EdgeDesc() {
-      public String getStyle() { return backEdge()?"dotted":null; }
-      public String getColor() { return backEdge()?"red":null; }
-      public int getThickness() { return dominatorEdge()?3:1; }
+      public String getStyle() { return backEdge() ? "dotted" : null; }
+
+      public String getColor() { return backEdge() ? "red" : null; }
+
+      public int getThickness() { return dominatorEdge() ? 3 : 1; }
     };
   }
 

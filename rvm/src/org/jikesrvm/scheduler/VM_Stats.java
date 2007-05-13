@@ -12,33 +12,53 @@ package org.jikesrvm.scheduler;
 import org.jikesrvm.VM;
 import org.vmmagic.pragma.Uninterruptible;
 
-
-@Uninterruptible public final class VM_Stats {
+@Uninterruptible
+public final class VM_Stats {
 
   static void println() { VM.sysWrite("\n"); }
-  static void print(String s) { VM.sysWrite(s); }
-  static void println(String s) { print(s); println(); }
-  static void print(int i) { VM.sysWrite(i); }
-  static void println(int i) { print(i); println(); }
-  static void print(String s, int i) { print(s); print(i); }
-  static void println(String s, int i) { print(s,i); println(); }
 
-  public static void percentage (int numerator, int denominator, String quantity) {
+  static void print(String s) { VM.sysWrite(s); }
+
+  static void println(String s) {
+    print(s);
+    println();
+  }
+
+  static void print(int i) { VM.sysWrite(i); }
+
+  static void println(int i) {
+    print(i);
+    println();
+  }
+
+  static void print(String s, int i) {
+    print(s);
+    print(i);
+  }
+
+  static void println(String s, int i) {
+    print(s, i);
+    println();
+  }
+
+  public static void percentage(int numerator, int denominator, String quantity) {
     print("\t");
-    if (denominator > 0) 
+    if (denominator > 0) {
       print((int) ((((double) numerator) * 100.0) / ((double) denominator)));
-    else
+    } else {
       print("0");
+    }
     print("% of ");
     println(quantity);
   }
 
-  static void percentage (long numerator, long denominator, String quantity) {
+  static void percentage(long numerator, long denominator, String quantity) {
     print("\t");
-    if (denominator > 0l) 
+    if (denominator > 0l) {
       print((int) ((((double) numerator) * 100.0) / ((double) denominator)));
-    else
+    } else {
       print("0");
+    }
     print("% of ");
     println(quantity);
   }

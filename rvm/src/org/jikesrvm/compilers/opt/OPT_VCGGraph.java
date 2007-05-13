@@ -60,63 +60,63 @@ public interface OPT_VCGGraph extends OPT_VisGraph {
      */
     public String[] getEdgeClasses() { return null; }
 
-    /** 
+    /**
      * Returns InfoName: for labeling node information.
      * @return node info labels
      */
     public String[] getNodeNames() { return null; }
 
-    /** 
+    /**
      * Returns default width of a node.
      * @return default node width
      */
     public int defaultNodeWidth() { return NONE; }
 
-    /** 
+    /**
      * Returns default border width of a node.
      * @return default node border width
      */
     public int defaultBorderWidth() { return 1; }
 
-    /** 
+    /**
      * Returns default color of a node.
      * @return default node color
      */
     public String defaultNodeColor() { return "pink"; }
 
-    /** 
+    /**
      * Returns default line style of an edge.
      * @return default edge line style
      */
     public String defaultEdgeStyle() { return "solid"; }
 
-    /** 
+    /**
      * Returns whether the viewer should share "ports"
      * (edge connection points).
      * @return true if sharing is allowed, false otherwise
      */
     public boolean portSharing() { return false; }
 
-    /** 
+    /**
      * Returns whether the viewer should display labels for edges.
      * @return true if labels should be displayed, false otherwise
      */
     public boolean displayEdgeLabels() { return true; }
 
-    /** 
+    /**
      * Returns whether the viewer should ? labels for edges.
      * @return true if labels should be ?, false otherwise
      */
     public boolean lateEdgeLabels() { return true; }
 
-    /** 
+    /**
      * Returns layout parameters of the graph.
      * @return graph layout parameters
      */
     public String getLayoutParameters() {
       return "   layout_algorithm:minbackward\n" +
-        "   layout_nearfactor:1\n" +
-        "   layout_downfactor:100\n";
+             "   layout_nearfactor:1\n" +
+             "   layout_downfactor:100\n";
     }
   }
 }

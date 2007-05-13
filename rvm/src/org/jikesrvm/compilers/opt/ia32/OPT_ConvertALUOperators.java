@@ -38,7 +38,7 @@ import org.vmmagic.pragma.NoOptCompile;
  * <li> Convert instructions with 2-operand unary ALU operators to use 
  *      1-operand ALU operators.
  * </ul>
- * 
+ *
  * <pre>
  * In the most general case, we must do the following:
  *
@@ -46,9 +46,9 @@ import org.vmmagic.pragma.NoOptCompile;
  *                                      op   r100 <-- r300
  *
  * but there are several easy cases where we can avoid the move
- * 
+ *
  *  op r100 = r100, r300      =====>    op   r100 <-- r300
- *                                          
+ *
  *  op r100 = r200, r100      =====>    op   r100 <-- r200
  *  (if op is commutative) 
  *
@@ -64,7 +64,7 @@ import org.vmmagic.pragma.NoOptCompile;
  * of one of the uses being the last use of a temporary.  When this happens
  * we can sometimes avoid inserting a move at all. When this happens, we 
  * rewrite:
- * 
+ *
  *  op r100 = r200, r300     =====>    op r200 <-- r300
  * and replace all uses of r100 with r200. 
  *
@@ -78,7 +78,7 @@ import org.vmmagic.pragma.NoOptCompile;
  * These conditions are designed to be cheap to verify and 
  * cover those cases where it is advantegous from BURS's perspective to
  * coalesce the registers to avoid the move instruction.
- * 
+ *
  * If we are in the following very similar case:
  *  op r100 = r200, r300     =====>      op r200 <-- r300
  *                                           move r100 = r200
@@ -91,11 +91,11 @@ import org.vmmagic.pragma.NoOptCompile;
  * We depend on the register allocator to later coalesce r100 and r200,
  * since they are not simultaneously live.
  * Ditto (5) and (6) on r300 if op is commutative and r200 doesn't work out.
- * 
+ *
  * </pre>
  */
-public class OPT_ConvertALUOperators extends OPT_CompilerPhase 
-  implements OPT_Operators {
+public class OPT_ConvertALUOperators extends OPT_CompilerPhase
+    implements OPT_Operators {
 
   private static final boolean OPTIMIZE = true;
 
@@ -105,14 +105,13 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
    * Return this instance of this phase. This phase contains no
    * per-compilation instance fields.
    * @param ir not used
-   * @return this 
+   * @return this
    */
-  public OPT_CompilerPhase newExecution (OPT_IR ir) {
+  public OPT_CompilerPhase newExecution(OPT_IR ir) {
     return this;
   }
 
- 
-  public final void perform(OPT_IR ir) { 
+  public final void perform(OPT_IR ir) {
     // Calling OPT_Simplifier.simplify ensures that the instruction is 
     // in normalized form. This reduces the number of cases we have to 
     // worry about (and does last minute constant folding on the off 
@@ -121,7 +120,7 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
     // OPTIMIZE is false.
     for (OPT_InstructionEnumeration instrs = ir.forwardInstrEnumerator();
          instrs.hasMoreElements();) {
-      OPT_Instruction s = instrs.next(); 
+      OPT_Instruction s = instrs.next();
       OPT_Simplifier.simplify(ir.regpool, s);
     }
 
@@ -131,105 +130,234 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
       OPT_DefUse.computeDU(ir);
       OPT_DefUse.recomputeSSA(ir);
       OPT_DefUse.recomputeSpansBasicBlock(ir);
-      for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); 
-           reg != null; 
+      for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister();
+           reg != null;
            reg = reg.getNext()) {
         markDead(reg);
       }
     }
 
     // Reverse pass over instructions supports simple live analysis.
-    for (OPT_Instruction next, s = ir.lastInstructionInCodeOrder(); 
-         s != null; 
+    for (OPT_Instruction next, s = ir.lastInstructionInCodeOrder();
+         s != null;
          s = next) {
       next = s.prevInstructionInCodeOrder();
-      
-      switch(s.getOpcode()) {
-      case BOOLEAN_NOT_opcode: unary(s, BOOLEAN_NOT_ACC, ir); break;
 
-      case REF_ADD_opcode: commutative(s, INT_ADD_ACC, ir); break;
-      case INT_ADD_opcode: commutative(s, INT_ADD_ACC, ir); break;
-      case REF_SUB_opcode: noncommutative(s, INT_SUB_ACC, ir); break;
-      case INT_SUB_opcode: noncommutative(s, INT_SUB_ACC, ir); break;
-      case INT_MUL_opcode: commutative(s, INT_MUL_ACC, ir); break;
-      case REF_SHL_opcode: noncommutative(s, INT_SHL_ACC, ir); break;
-      case INT_SHL_opcode: noncommutative(s, INT_SHL_ACC, ir); break;
-      case REF_SHR_opcode: noncommutative(s, INT_SHR_ACC, ir); break;
-      case INT_SHR_opcode: noncommutative(s, INT_SHR_ACC, ir); break;
-      case REF_USHR_opcode: noncommutative(s, INT_USHR_ACC, ir); break;
-      case INT_USHR_opcode: noncommutative(s, INT_USHR_ACC, ir); break;
-      case REF_AND_opcode: commutative(s, INT_AND_ACC, ir); break;
-      case INT_AND_opcode: commutative(s, INT_AND_ACC, ir); break;
-      case REF_OR_opcode: commutative(s, INT_OR_ACC, ir); break;
-      case INT_OR_opcode: commutative(s, INT_OR_ACC, ir); break;
-      case REF_XOR_opcode: commutative(s, INT_XOR_ACC, ir); break;
-      case INT_XOR_opcode: commutative(s, INT_XOR_ACC, ir); break;
-      case INT_NEG_opcode: unary(s, INT_NEG_ACC, ir); break;
-      case REF_NEG_opcode: unary(s, INT_NEG_ACC, ir); break;
-      case REF_NOT_opcode: unary(s, INT_NOT_ACC, ir); break;
-      case INT_NOT_opcode: unary(s, INT_NOT_ACC, ir); break;
+      switch (s.getOpcode()) {
+        case BOOLEAN_NOT_opcode:
+          unary(s, BOOLEAN_NOT_ACC, ir);
+          break;
 
-      case LONG_ADD_opcode: commutative(s, LONG_ADD_ACC, ir); break;
-      case LONG_SUB_opcode: noncommutative(s, LONG_SUB_ACC, ir); break;
-      case LONG_MUL_opcode: commutative(s, LONG_MUL_ACC, ir); break;
-      case LONG_SHL_opcode: noncommutative(s, LONG_SHL_ACC, ir); break;
-      case LONG_SHR_opcode: noncommutative(s, LONG_SHR_ACC, ir); break;
-      case LONG_USHR_opcode: noncommutative(s, LONG_USHR_ACC, ir); break;
-      case LONG_AND_opcode: commutative(s, LONG_AND_ACC, ir); break;
-      case LONG_OR_opcode: commutative(s, LONG_OR_ACC, ir); break;
-      case LONG_XOR_opcode: commutative(s, LONG_XOR_ACC, ir); break;
-      case LONG_NEG_opcode: unary(s, LONG_NEG_ACC, ir); break;
-      case LONG_NOT_opcode: unary(s, LONG_NOT_ACC, ir); break;
-      
-                // BURS doesn't really care, so consolidate to reduce rule space
-      case BOOLEAN_CMP_ADDR_opcode: s.operator = BOOLEAN_CMP_INT; break;
+        case REF_ADD_opcode:
+          commutative(s, INT_ADD_ACC, ir);
+          break;
+        case INT_ADD_opcode:
+          commutative(s, INT_ADD_ACC, ir);
+          break;
+        case REF_SUB_opcode:
+          noncommutative(s, INT_SUB_ACC, ir);
+          break;
+        case INT_SUB_opcode:
+          noncommutative(s, INT_SUB_ACC, ir);
+          break;
+        case INT_MUL_opcode:
+          commutative(s, INT_MUL_ACC, ir);
+          break;
+        case REF_SHL_opcode:
+          noncommutative(s, INT_SHL_ACC, ir);
+          break;
+        case INT_SHL_opcode:
+          noncommutative(s, INT_SHL_ACC, ir);
+          break;
+        case REF_SHR_opcode:
+          noncommutative(s, INT_SHR_ACC, ir);
+          break;
+        case INT_SHR_opcode:
+          noncommutative(s, INT_SHR_ACC, ir);
+          break;
+        case REF_USHR_opcode:
+          noncommutative(s, INT_USHR_ACC, ir);
+          break;
+        case INT_USHR_opcode:
+          noncommutative(s, INT_USHR_ACC, ir);
+          break;
+        case REF_AND_opcode:
+          commutative(s, INT_AND_ACC, ir);
+          break;
+        case INT_AND_opcode:
+          commutative(s, INT_AND_ACC, ir);
+          break;
+        case REF_OR_opcode:
+          commutative(s, INT_OR_ACC, ir);
+          break;
+        case INT_OR_opcode:
+          commutative(s, INT_OR_ACC, ir);
+          break;
+        case REF_XOR_opcode:
+          commutative(s, INT_XOR_ACC, ir);
+          break;
+        case INT_XOR_opcode:
+          commutative(s, INT_XOR_ACC, ir);
+          break;
+        case INT_NEG_opcode:
+          unary(s, INT_NEG_ACC, ir);
+          break;
+        case REF_NEG_opcode:
+          unary(s, INT_NEG_ACC, ir);
+          break;
+        case REF_NOT_opcode:
+          unary(s, INT_NOT_ACC, ir);
+          break;
+        case INT_NOT_opcode:
+          unary(s, INT_NOT_ACC, ir);
+          break;
 
-      // BURS doesn't really care, so consolidate to reduce rule space
-      case FLOAT_ADD_opcode: s.operator = FP_ADD; break;
-      case DOUBLE_ADD_opcode: s.operator = FP_ADD; break;
-      case FLOAT_SUB_opcode: s.operator = FP_SUB; break;
-      case DOUBLE_SUB_opcode: s.operator = FP_SUB; break;
-      case FLOAT_MUL_opcode: s.operator = FP_MUL; break;
-      case DOUBLE_MUL_opcode: s.operator = FP_MUL; break;
-      case FLOAT_DIV_opcode: s.operator = FP_DIV; break;
-      case DOUBLE_DIV_opcode: s.operator = FP_DIV; break; 
-      case FLOAT_REM_opcode: s.operator = FP_REM; break;
-      case DOUBLE_REM_opcode: s.operator = FP_REM; break;
-      case FLOAT_NEG_opcode: s.operator = FP_NEG; break;
-      case DOUBLE_NEG_opcode: s.operator = FP_NEG; break;
+        case LONG_ADD_opcode:
+          commutative(s, LONG_ADD_ACC, ir);
+          break;
+        case LONG_SUB_opcode:
+          noncommutative(s, LONG_SUB_ACC, ir);
+          break;
+        case LONG_MUL_opcode:
+          commutative(s, LONG_MUL_ACC, ir);
+          break;
+        case LONG_SHL_opcode:
+          noncommutative(s, LONG_SHL_ACC, ir);
+          break;
+        case LONG_SHR_opcode:
+          noncommutative(s, LONG_SHR_ACC, ir);
+          break;
+        case LONG_USHR_opcode:
+          noncommutative(s, LONG_USHR_ACC, ir);
+          break;
+        case LONG_AND_opcode:
+          commutative(s, LONG_AND_ACC, ir);
+          break;
+        case LONG_OR_opcode:
+          commutative(s, LONG_OR_ACC, ir);
+          break;
+        case LONG_XOR_opcode:
+          commutative(s, LONG_XOR_ACC, ir);
+          break;
+        case LONG_NEG_opcode:
+          unary(s, LONG_NEG_ACC, ir);
+          break;
+        case LONG_NOT_opcode:
+          unary(s, LONG_NOT_ACC, ir);
+          break;
 
-      // BURS doesn't really care, so consolidate to reduce rule space
-      case INT_COND_MOVE_opcode: 
-      case REF_COND_MOVE_opcode:
-        s.operator = CondMove.getCond(s).isFLOATINGPOINT() ? FCMP_CMOV : (CondMove.getVal1(s).isLong() ? LCMP_CMOV : CMP_CMOV);
-        break;
-      case FLOAT_COND_MOVE_opcode:
-      case DOUBLE_COND_MOVE_opcode:
-        s.operator = CondMove.getCond(s).isFLOATINGPOINT() ? FCMP_FCMOV : CMP_FCMOV;
-        break;
-      case LONG_COND_MOVE_opcode: OPT_OptimizingCompilerException.TODO(); break;
-      case GUARD_COND_MOVE_opcode: OPT_OptimizingCompilerException.TODO(); break;
+          // BURS doesn't really care, so consolidate to reduce rule space
+        case BOOLEAN_CMP_ADDR_opcode:
+          s.operator = BOOLEAN_CMP_INT;
+          break;
 
-      // BURS doesn't really care, so consolidate to reduce rule space
-      case INT_2FLOAT_opcode: s.operator = INT_2FP; break;
-      case INT_2DOUBLE_opcode: s.operator = INT_2FP; break;
-      case LONG_2FLOAT_opcode: s.operator = LONG_2FP; break;
-      case LONG_2DOUBLE_opcode: s.operator = LONG_2FP; break;
+          // BURS doesn't really care, so consolidate to reduce rule space
+        case FLOAT_ADD_opcode:
+          s.operator = FP_ADD;
+          break;
+        case DOUBLE_ADD_opcode:
+          s.operator = FP_ADD;
+          break;
+        case FLOAT_SUB_opcode:
+          s.operator = FP_SUB;
+          break;
+        case DOUBLE_SUB_opcode:
+          s.operator = FP_SUB;
+          break;
+        case FLOAT_MUL_opcode:
+          s.operator = FP_MUL;
+          break;
+        case DOUBLE_MUL_opcode:
+          s.operator = FP_MUL;
+          break;
+        case FLOAT_DIV_opcode:
+          s.operator = FP_DIV;
+          break;
+        case DOUBLE_DIV_opcode:
+          s.operator = FP_DIV;
+          break;
+        case FLOAT_REM_opcode:
+          s.operator = FP_REM;
+          break;
+        case DOUBLE_REM_opcode:
+          s.operator = FP_REM;
+          break;
+        case FLOAT_NEG_opcode:
+          s.operator = FP_NEG;
+          break;
+        case DOUBLE_NEG_opcode:
+          s.operator = FP_NEG;
+          break;
 
-      // BURS doesn't really care, so consolidate to reduce rule space
-      case REF_LOAD_opcode: s.operator = INT_LOAD; break;
-      case REF_STORE_opcode: s.operator = INT_STORE; break;
-      case REF_ALOAD_opcode: s.operator = INT_ALOAD; break;
-      case REF_ASTORE_opcode: s.operator = INT_ASTORE; break;
-      case REF_MOVE_opcode: s.operator = INT_MOVE; break;
-      case REF_IFCMP_opcode: s.operator = INT_IFCMP; break;
-      case ATTEMPT_ADDR_opcode: s.operator = ATTEMPT_INT; break;
-      case PREPARE_ADDR_opcode: s.operator = PREPARE_INT; break;
-      case INT_2ADDRSigExt_opcode: s.operator = INT_MOVE; break;
-      case INT_2ADDRZerExt_opcode: s.operator = INT_MOVE; break;
-      case ADDR_2INT_opcode: s.operator = INT_MOVE; break;
-      case ADDR_2LONG_opcode: s.operator = INT_2LONG; break;
-                }
+          // BURS doesn't really care, so consolidate to reduce rule space
+        case INT_COND_MOVE_opcode:
+        case REF_COND_MOVE_opcode:
+          s.operator =
+              CondMove.getCond(s).isFLOATINGPOINT() ? FCMP_CMOV : (CondMove.getVal1(s).isLong() ? LCMP_CMOV : CMP_CMOV);
+          break;
+        case FLOAT_COND_MOVE_opcode:
+        case DOUBLE_COND_MOVE_opcode:
+          s.operator = CondMove.getCond(s).isFLOATINGPOINT() ? FCMP_FCMOV : CMP_FCMOV;
+          break;
+        case LONG_COND_MOVE_opcode:
+          OPT_OptimizingCompilerException.TODO();
+          break;
+        case GUARD_COND_MOVE_opcode:
+          OPT_OptimizingCompilerException.TODO();
+          break;
+
+          // BURS doesn't really care, so consolidate to reduce rule space
+        case INT_2FLOAT_opcode:
+          s.operator = INT_2FP;
+          break;
+        case INT_2DOUBLE_opcode:
+          s.operator = INT_2FP;
+          break;
+        case LONG_2FLOAT_opcode:
+          s.operator = LONG_2FP;
+          break;
+        case LONG_2DOUBLE_opcode:
+          s.operator = LONG_2FP;
+          break;
+
+          // BURS doesn't really care, so consolidate to reduce rule space
+        case REF_LOAD_opcode:
+          s.operator = INT_LOAD;
+          break;
+        case REF_STORE_opcode:
+          s.operator = INT_STORE;
+          break;
+        case REF_ALOAD_opcode:
+          s.operator = INT_ALOAD;
+          break;
+        case REF_ASTORE_opcode:
+          s.operator = INT_ASTORE;
+          break;
+        case REF_MOVE_opcode:
+          s.operator = INT_MOVE;
+          break;
+        case REF_IFCMP_opcode:
+          s.operator = INT_IFCMP;
+          break;
+        case ATTEMPT_ADDR_opcode:
+          s.operator = ATTEMPT_INT;
+          break;
+        case PREPARE_ADDR_opcode:
+          s.operator = PREPARE_INT;
+          break;
+        case INT_2ADDRSigExt_opcode:
+          s.operator = INT_MOVE;
+          break;
+        case INT_2ADDRZerExt_opcode:
+          s.operator = INT_MOVE;
+          break;
+        case ADDR_2INT_opcode:
+          s.operator = INT_MOVE;
+          break;
+        case ADDR_2LONG_opcode:
+          s.operator = INT_2LONG;
+          break;
+      }
 
       if (OPTIMIZE) {
         // update liveness 
@@ -291,8 +419,8 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
             OPT_DefUse.removeUse(rop1);
             OPT_DefUse.recordDefUse(rop1);
             BinaryAcc.mutate(s, opCode, rop1, op2);
-            OPT_Instruction move =   
-              Move.create(getMoveOp(result.type), result, rop1.copy());
+            OPT_Instruction move =
+                Move.create(getMoveOp(result.type), result, rop1.copy());
             OPT_DefUse.updateDUForNewInstruction(move);
             s.insertAfter(move);
             return;
@@ -316,8 +444,8 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
             OPT_DefUse.removeUse(rop2);
             OPT_DefUse.recordDefUse(rop2);
             BinaryAcc.mutate(s, opCode, rop2, op1);
-            OPT_Instruction move =   
-              Move.create(getMoveOp(result.type), result, rop2.copy());
+            OPT_Instruction move =
+                Move.create(getMoveOp(result.type), result, rop2.copy());
             OPT_DefUse.updateDUForNewInstruction(move);
             s.insertAfter(move);
             return;
@@ -327,8 +455,8 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
     }
 
     // Sigh, need some kind of move instruction
-    OPT_Instruction move =   
-      Move.create(getMoveOp(result.type), result.copyRO(), op1.copy());
+    OPT_Instruction move =
+        Move.create(getMoveOp(result.type), result.copyRO(), op1.copy());
     OPT_DefUse.updateDUForNewInstruction(move);
     s.insertBefore(move);
     OPT_DefUse.removeDef(result);
@@ -337,9 +465,9 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
       OPT_DefUse.removeUse(op1.asRegister());
     }
     BinaryAcc.mutate(s, opCode, result, op2);
-  }    
+  }
 
-  private void noncommutative(OPT_Instruction s, OPT_Operator opCode, 
+  private void noncommutative(OPT_Instruction s, OPT_Operator opCode,
                               OPT_IR ir) {
     OPT_RegisterOperand result = Binary.getClearResult(s);
     OPT_Operand op1 = Binary.getClearVal1(s);
@@ -373,8 +501,8 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
             OPT_DefUse.removeUse(rop1);
             OPT_DefUse.recordDefUse(rop1);
             BinaryAcc.mutate(s, opCode, rop1, op2);
-            OPT_Instruction move =   
-              Move.create(getMoveOp(result.type), result, rop1.copy());
+            OPT_Instruction move =
+                Move.create(getMoveOp(result.type), result, rop1.copy());
             OPT_DefUse.updateDUForNewInstruction(move);
             s.insertAfter(move);
             return;
@@ -387,8 +515,8 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
     if (result.similar(op2)) {
       similarNonCommutative(s, opCode, ir, result, op1, op2);
     } else {
-      OPT_Instruction move =   
-        Move.create(getMoveOp(result.type), result.copyRO(), op1.copy());
+      OPT_Instruction move =
+          Move.create(getMoveOp(result.type), result.copyRO(), op1.copy());
       OPT_DefUse.updateDUForNewInstruction(move);
       s.insertBefore(move);
       OPT_DefUse.removeDef(result);
@@ -400,11 +528,13 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
     }
   }
 
-  @NoOptCompile // this code is pulled out and baseline compiled to work around a bug (see bug track 1626523)
-  private void similarNonCommutative(OPT_Instruction s, OPT_Operator opCode, OPT_IR ir, OPT_RegisterOperand result, OPT_Operand op1, OPT_Operand op2) {
+  @NoOptCompile
+  // this code is pulled out and baseline compiled to work around a bug (see bug track 1626523)
+  private void similarNonCommutative(OPT_Instruction s, OPT_Operator opCode, OPT_IR ir, OPT_RegisterOperand result,
+                                     OPT_Operand op1, OPT_Operand op2) {
     OPT_RegisterOperand tmp = ir.regpool.makeTemp(op1);
-    OPT_Instruction move = 
-      Move.create(getMoveOp(tmp.type), tmp.copyRO(), op1.copy());
+    OPT_Instruction move =
+        Move.create(getMoveOp(tmp.type), tmp.copyRO(), op1.copy());
     s.insertBefore(move);
     OPT_DefUse.updateDUForNewInstruction(move);
     OPT_DefUse.removeDef(result);
@@ -450,8 +580,8 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
             OPT_DefUse.removeUse(rop1);
             OPT_DefUse.recordDefUse(rop1);
             UnaryAcc.mutate(s, opCode, rop1);
-            OPT_Instruction move =   
-              Move.create(getMoveOp(result.type), result, rop1.copy());
+            OPT_Instruction move =
+                Move.create(getMoveOp(result.type), result, rop1.copy());
             OPT_DefUse.updateDUForNewInstruction(move);
             s.insertAfter(move);
             return;
@@ -461,8 +591,8 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
     }
 
     // Sigh, need the move instruction before op.
-    OPT_Instruction move =   
-      Move.create(getMoveOp(result.type), result.copyRO(), op1.copy());
+    OPT_Instruction move =
+        Move.create(getMoveOp(result.type), result.copyRO(), op1.copy());
     OPT_DefUse.updateDUForNewInstruction(move);
     s.insertBefore(move);
     OPT_DefUse.removeDef(result);
@@ -475,7 +605,7 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
 
   private static OPT_Operator getMoveOp(VM_TypeReference t) {
     OPT_Operator op = OPT_IRTools.getMoveOp(t);
-    if (op == REF_MOVE) { 
+    if (op == REF_MOVE) {
       return INT_MOVE;
     } else {
       return op;
@@ -487,13 +617,17 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
   private static void markDead(OPT_Register r) {
     r.scratch = 0;
   }
+
   private static void markLive(OPT_Register r) {
     r.scratch = 1;
   }
+
   private static boolean isDead(OPT_Register r) {
     return r.scratch == 0;
   }
-  @SuppressWarnings("unused") // completes the set
+
+  @SuppressWarnings("unused")
+  // completes the set
   private static boolean isLive(OPT_Register r) {
     return r.scratch == 1;
   }

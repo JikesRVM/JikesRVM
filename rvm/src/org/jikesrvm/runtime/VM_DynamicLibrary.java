@@ -24,8 +24,8 @@ public class VM_DynamicLibrary {
   /**
    * Currently loaded dynamic libraries.
    */
-  private static final VM_HashMap<String,VM_DynamicLibrary> dynamicLibraries = 
-    new VM_HashMap<String,VM_DynamicLibrary>();
+  private static final VM_HashMap<String, VM_DynamicLibrary> dynamicLibraries =
+      new VM_HashMap<String, VM_DynamicLibrary>();
 
   /**
    * Add symbol for the boot image runner to find symbols within it.
@@ -47,7 +47,7 @@ public class VM_DynamicLibrary {
   /**
    * Load a dynamic library and maintain it in this object.
    * @param libraryName library name
-   */ 
+   */
   private VM_DynamicLibrary(String libraryName) {
     // Convert file name from unicode to filesystem character set.
     // (Assume file name is ASCII, for now).
@@ -63,7 +63,7 @@ public class VM_DynamicLibrary {
       if (myThread.hasNativeStackFrame()) {
         throw new java.lang.StackOverflowError("dlopen");
       } else {
-        VM_Thread.resizeCurrentStack(myThread.stack.length + stackNeededInBytes, null); 
+        VM_Thread.resizeCurrentStack(myThread.stack.length + stackNeededInBytes, null);
       }
     }
 
@@ -75,15 +75,15 @@ public class VM_DynamicLibrary {
     }
 
     libName = libraryName;
-   try {
-       callOnLoad();
-   } catch (UnsatisfiedLinkError e) {
+    try {
+      callOnLoad();
+    } catch (UnsatisfiedLinkError e) {
       unload();
       throw e;
-   }
+    }
 
     if (VM.verboseJNI) {
-      VM.sysWriteln("[Loaded native library: "+libName+"]");
+      VM.sysWriteln("[Loaded native library: " + libName + "]");
     }
   }
 
@@ -116,24 +116,25 @@ public class VM_DynamicLibrary {
    * @param version to check
    */
   private static void checkJNIVersion(int version) {
-      int major = version >>> 16;
-      int minor = version & 0xFFFF;
-     if (major > 1 || minor > 4)
-        throw new UnsatisfiedLinkError("Unsupported JNI version: " + major + "." + minor); 
+    int major = version >>> 16;
+    int minor = version & 0xFFFF;
+    if (major > 1 || minor > 4) {
+      throw new UnsatisfiedLinkError("Unsupported JNI version: " + major + "." + minor);
+    }
   }
 
   /**
    * @return the true name of the dynamic library
    */
   public String getLibName() { return libName; }
-  
+
   /**
    * look up this dynamic library for a symbol
    * @param symbolName symbol name
    * @return The <code>Address</code> of the symbol system handler
    * (actually an address to an AixLinkage triplet).
    *           (-1: not found or couldn't be created)
-   */ 
+   */
   public Address getSymbol(String symbolName) {
     // Convert file name from unicode to filesystem character set
     // (assume file name is ascii, for now).
@@ -169,7 +170,7 @@ public class VM_DynamicLibrary {
   public static synchronized int load(String libname) {
     VM_DynamicLibrary dl = dynamicLibraries.get(libname);
     if (dl != null) return 1; // success: already loaded
-    
+
     if (VM_FileSystem.stat(libname, VM_FileSystem.STAT_EXISTS) == 1) {
       dynamicLibraries.put(libname, new VM_DynamicLibrary(libname));
       return 1;

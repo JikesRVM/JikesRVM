@@ -7,6 +7,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 package org.jikesrvm.compilers.opt.ir;
+
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOUNDS_CHECK;
 
 /**
@@ -14,17 +15,18 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOUNDS_CHECK;
  */
 public final class OPT_IRSummary {
 
-  /** 
+  /**
    * Does this IR have a bounds check expression?
    */
-  public static boolean hasBoundsCheck (OPT_IR ir) {
-    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator(); 
-        e.hasMoreElements();) {
+  public static boolean hasBoundsCheck(OPT_IR ir) {
+    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator();
+         e.hasMoreElements();) {
       OPT_Instruction s = e.next();
-      if (s.operator == BOUNDS_CHECK)
-        return  true;
+      if (s.operator == BOUNDS_CHECK) {
+        return true;
+      }
     }
-    return  false;
+    return false;
   }
 }
 

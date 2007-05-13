@@ -28,19 +28,19 @@ public class OPT_Stack<T> implements Iterable<T> {
 
   public final T push(T e) {
     stack.add(e);
-    return  e;
+    return e;
   }
 
   public final T pop() {
-    return stack.remove(stack.size()-1);
+    return stack.remove(stack.size() - 1);
   }
 
   public final T getTOS() {
-    return stack.get(stack.size()-1);
+    return stack.get(stack.size() - 1);
   }
 
   public final T peek() {
-    return  getTOS();
+    return getTOS();
   }
 
   public final boolean isEmpty() {
@@ -48,20 +48,22 @@ public class OPT_Stack<T> implements Iterable<T> {
   }
 
   public final boolean empty() {
-    return  isEmpty();
+    return isEmpty();
   }
 
   public final boolean compare(OPT_Stack<T> s2) {
     Iterator<T> i1 = iterator();
     Iterator<T> i2 = s2.iterator();
-    if (isEmpty() && s2.isEmpty())
+    if (isEmpty() && s2.isEmpty()) {
       return true;
-    else if (isEmpty() || s2.isEmpty())
+    } else if (isEmpty() || s2.isEmpty()) {
       return false;
+    }
     for (T t1 = i1.next(), t2 = i2.next();
-         i1.hasNext() && i2.hasNext(); ) {
-      if (t1 != t2)
+         i1.hasNext() && i2.hasNext();) {
+      if (t1 != t2) {
         return false;
+      }
     }
     return !i1.hasNext() && !i2.hasNext();
   }
@@ -69,17 +71,17 @@ public class OPT_Stack<T> implements Iterable<T> {
   public final OPT_Stack<T> copy() {
     OPT_Stack<T> s = new OPT_Stack<T>();
     s.stack.addAll(stack);
-    return  s;
+    return s;
   }
 
   public final OPT_Stack<T> shallowCopy() {
     OPT_Stack<T> s = new OPT_Stack<T>();
     s.stack.addAll(stack);
-    return  s;
+    return s;
   }
 
   public final Iterator<T> iterator() {
-    return  stack.iterator();
+    return stack.iterator();
   }
 
   public String toString() {
@@ -88,6 +90,6 @@ public class OPT_Stack<T> implements Iterable<T> {
       sb.append(t.toString());
       sb.append(' ');
     }
-    return  sb.toString();
+    return sb.toString();
   }
 }

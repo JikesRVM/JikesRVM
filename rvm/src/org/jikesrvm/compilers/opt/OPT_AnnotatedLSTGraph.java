@@ -28,8 +28,8 @@ public class OPT_AnnotatedLSTGraph extends OPT_LSTGraph {
    * Debug helper
    * @param message debug message
    */
-  private static void report (String message){
-    if(DEBUG) {
+  private static void report(String message) {
+    if (DEBUG) {
       VM.sysWrite(message);
     }
   }
@@ -39,13 +39,13 @@ public class OPT_AnnotatedLSTGraph extends OPT_LSTGraph {
    * @param ir the IR to process
    */
   public static void perform(OPT_IR ir) {
-	 if (DEBUG) {
-		report("Creating an AnnotatedLSTGraph for " + ir.method);    
-	 }
+    if (DEBUG) {
+      report("Creating an AnnotatedLSTGraph for " + ir.method);
+    }
     ir.HIRInfo.LoopStructureTree = new OPT_AnnotatedLSTGraph(ir, ir.HIRInfo.LoopStructureTree);
-	 if (DEBUG) {
-		report(ir.HIRInfo.LoopStructureTree.toString());
-	 }
+    if (DEBUG) {
+      report(ir.HIRInfo.LoopStructureTree.toString());
+    }
   }
 
   /**
@@ -54,7 +54,7 @@ public class OPT_AnnotatedLSTGraph extends OPT_LSTGraph {
    * @param ir    The containing IR
    * @param graph The {@link OPT_LSTGraph} to convert into an annotated graph
    */
-  OPT_AnnotatedLSTGraph (OPT_IR ir, OPT_LSTGraph graph) {
+  OPT_AnnotatedLSTGraph(OPT_IR ir, OPT_LSTGraph graph) {
     super(graph);
     rootNode = new OPT_AnnotatedLSTNode(ir, rootNode);
   }

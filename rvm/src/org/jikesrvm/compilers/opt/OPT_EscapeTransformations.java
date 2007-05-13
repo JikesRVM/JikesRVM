@@ -36,30 +36,30 @@ class OPT_EscapeTransformations extends OPT_CompilerPhase {
    * Return this instance of this phase. This phase contains no
    * per-compilation instance fields.
    * @param ir not used
-   * @return this 
+   * @return this
    */
-  public OPT_CompilerPhase newExecution (OPT_IR ir) {
+  public OPT_CompilerPhase newExecution(OPT_IR ir) {
     return this;
   }
 
-  public final boolean shouldPerform (OPT_Options options) {
-    return  options.MONITOR_REMOVAL || options.SCALAR_REPLACE_AGGREGATES;
+  public final boolean shouldPerform(OPT_Options options) {
+    return options.MONITOR_REMOVAL || options.SCALAR_REPLACE_AGGREGATES;
   }
 
-  public final String getName () {
-    return  "Escape Transformations";
+  public final String getName() {
+    return "Escape Transformations";
   }
 
-  public final boolean printingEnabled (OPT_Options options, boolean before) {
+  public final boolean printingEnabled(OPT_Options options, boolean before) {
     return false;
   }
 
-  /** 
+  /**
    * Perform the transformations
    *
    * @param ir IR for the target method
    */
-  public void perform (OPT_IR ir) {
+  public void perform(OPT_IR ir) {
     // perform simple optimizations to increase efficacy
     OPT_DefUse.computeDU(ir);
     OPT_DefUse.recomputeSSA(ir);
@@ -68,14 +68,16 @@ class OPT_EscapeTransformations extends OPT_CompilerPhase {
     // pass through registers. look for registers that point
     // to objects that do not escape. When found,
     // perform the transformations
-    for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); reg != null; 
-        reg = reg.getNext()) {
+    for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); reg != null;
+         reg = reg.getNext()) {
       // check if register is SSA
-      if (!reg.isSSA())
+      if (!reg.isSSA()) {
         continue;
+      }
       // The following can occur for guards. Why?
-      if (reg.defList == null)
+      if (reg.defList == null) {
         continue;
+      }
       // *********************************************************
       // check if def is allocation. If so, try scalar replacement
       // of aggregates
@@ -83,7 +85,7 @@ class OPT_EscapeTransformations extends OPT_CompilerPhase {
       OPT_Instruction def = reg.defList.instruction;
       if (ir.options.SCALAR_REPLACE_AGGREGATES && summary.isMethodLocal(reg)) {
         OPT_AggregateReplacer s = null;
-        if ((def.getOpcode() == NEW_opcode) || 
+        if ((def.getOpcode() == NEW_opcode) ||
             (def.getOpcode() == NEWARRAY_opcode)) {
           s = getAggregateReplacer(def, ir);
         }
@@ -97,7 +99,7 @@ class OPT_EscapeTransformations extends OPT_CompilerPhase {
       // *********************************************************
       if (ir.options.MONITOR_REMOVAL && summary.isThreadLocal(reg)) {
         OPT_UnsyncReplacer unsync = null;
-        if ((def.getOpcode() == NEW_opcode) || 
+        if ((def.getOpcode() == NEW_opcode) ||
             (def.getOpcode() == NEWARRAY_opcode)) {
           unsync = getUnsyncReplacer(reg, def, ir);
         }
@@ -109,7 +111,7 @@ class OPT_EscapeTransformations extends OPT_CompilerPhase {
     }
   }
 
-  /** 
+  /**
    * Generate an object which transforms defs & uses of "synchronized"
    * objects to defs & uses of "unsynchronized" objects
    *
@@ -121,12 +123,13 @@ class OPT_EscapeTransformations extends OPT_CompilerPhase {
    * @return an OPT_UnsyncReplacer specialized to the allocation site,
    *            null if no legal transformation found
    */
-  private OPT_UnsyncReplacer getUnsyncReplacer (OPT_Register reg, 
-      OPT_Instruction inst, 
-      OPT_IR ir) {
-    if (!synchronizesOn(ir, reg))
-      return  null;
-    return  OPT_UnsyncReplacer.getReplacer(inst, ir);
+  private OPT_UnsyncReplacer getUnsyncReplacer(OPT_Register reg,
+                                               OPT_Instruction inst,
+                                               OPT_IR ir) {
+    if (!synchronizesOn(ir, reg)) {
+      return null;
+    }
+    return OPT_UnsyncReplacer.getReplacer(inst, ir);
   }
 
   /**
@@ -134,15 +137,17 @@ class OPT_EscapeTransformations extends OPT_CompilerPhase {
    * on an object pointed to by a particular register?
    * PRECONDITION: register lists computed and valid
    */
-  private static boolean synchronizesOn (OPT_IR ir, OPT_Register r) {
+  private static boolean synchronizesOn(OPT_IR ir, OPT_Register r) {
     // walk through uses of r
-    for (OPT_RegisterOperand use = r.useList; use != null; 
-        use = use.getNext()) {
+    for (OPT_RegisterOperand use = r.useList; use != null;
+         use = use.getNext()) {
       OPT_Instruction s = use.instruction;
-      if (s.operator == MONITORENTER)
-        return  true;
-      if (s.operator == MONITOREXIT)
-        return  true;
+      if (s.operator == MONITORENTER) {
+        return true;
+      }
+      if (s.operator == MONITOREXIT) {
+        return true;
+      }
       // check if this instruction invokes a synchronized method on the
       // object
       // we must pass the following conditions:
@@ -156,29 +161,29 @@ class OPT_EscapeTransformations extends OPT_CompilerPhase {
           if (invokee == use) {
             if (!mo.hasPreciseTarget()) return true; // if I don't know exactly what is called, assume the worse
             if (mo.getTarget().isSynchronized()) {
-              return  true;
+              return true;
             }
           }
         }
       }
     }
-    return  false;
+    return false;
   }
 
-  /** 
+  /**
    * Generate an object which will perform scalar replacement of
    * an aggregate allocated by a given instruction
    *
    * <p> PRECONDITION: objects returned by this allocation site do NOT escape
    *                 the current method
-   * 
+   *
    * @param inst the allocation site
    * @param ir controlling ir
    * @return an OPT_AggregateReplacer specialized to the allocation site,
    *            null if no legal transformation found
    */
-  private OPT_AggregateReplacer getAggregateReplacer (OPT_Instruction inst, 
-                                                      OPT_IR ir) {
+  private OPT_AggregateReplacer getAggregateReplacer(OPT_Instruction inst,
+                                                     OPT_IR ir) {
     OPT_Options options = ir.options;
     VM_Type t = null;
     if (inst.getOpcode() == NEW_opcode) {
@@ -188,7 +193,7 @@ class OPT_EscapeTransformations extends OPT_CompilerPhase {
     } else {
       throw new OPT_OptimizingCompilerException("Logic Error in OPT_EscapeTransformations");
     }
-    
+
     // first attempt to perform scalar replacement for an object
     if (t.isClassType() && options.SCALAR_REPLACE_AGGREGATES) {
       return OPT_ObjectReplacer.getReplacer(inst, ir);
@@ -197,7 +202,7 @@ class OPT_EscapeTransformations extends OPT_CompilerPhase {
     if (t.isArrayType() && options.SCALAR_REPLACE_AGGREGATES) {
       return OPT_ShortArrayReplacer.getReplacer(inst, ir);
     }
-    return  null;
+    return null;
   }
 }
 

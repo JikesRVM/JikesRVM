@@ -20,7 +20,7 @@ import org.vmmagic.unboxed.Word;
 public class OSR_LocalRegPair implements OSR_Constants {
 
   // is it a local or stack? 
-  public int kind; 
+  public int kind;
 
   // what's the number of local of stack
   public int num;
@@ -33,22 +33,22 @@ public class OSR_LocalRegPair implements OSR_Constants {
    * it out later.
    */
   public OPT_Operand operand;
- 
+
   /* rest part only available after updated by OPT_LinearScan.updateOSRMaps. */
-  
+
   /* A reg value could be an integer constant (ICONST),
-   *                      a physical register (PHYREG), or
-   *                      a spill on the stack (SPILL).
-   * The  valueType is one of them, combined with the typeCode, one shuld be
-   * able to recover the value of a variable.
-   */
-  public int valueType;    
+  *                      a physical register (PHYREG), or
+  *                      a spill on the stack (SPILL).
+  * The  valueType is one of them, combined with the typeCode, one shuld be
+  * able to recover the value of a variable.
+  */
+  public int valueType;
 
   /* The meaning of value field depends on valueType
-   * for ICONST, ACONST and LCONST, it is the value of the constant,
-   * for PHYREG, it is the register number,
-   * for SPILL, it is the spill location.
-   */ 
+  * for ICONST, ACONST and LCONST, it is the value of the constant,
+  * for PHYREG, it is the register number,
+  * for SPILL, it is the spill location.
+  */
   public Word value;
 
   /* A LONG variable takes two symbolic registers, we need to know another
@@ -62,7 +62,7 @@ public class OSR_LocalRegPair implements OSR_Constants {
    * After register allocation, we should not use <code>operand</code>
    * anymore. The physical register number, spilled location, or
    * constant value is represented by (valueType, value)
-   */ 
+   */
   public OSR_LocalRegPair(int kind, int num, byte type, OPT_Operand op) {
     this.kind = kind;
     this.num = num;
@@ -76,14 +76,14 @@ public class OSR_LocalRegPair implements OSR_Constants {
 
   /* converts tuple to string as
    *  ( L/S num, type, valueType, value, oprand )
-   */      
+   */
   public String toString() {
     StringBuilder buf = new StringBuilder("(");
 
-    buf.append((char)kind);
+    buf.append((char) kind);
     buf.append(num).append(" , ");
 
-    char tcode = (char)typeCode;
+    char tcode = (char) typeCode;
 
     buf.append(tcode).append(" , ");
     buf.append(valueType).append(" , ");

@@ -16,30 +16,31 @@ import org.vmmagic.pragma.Uninterruptible;
  * A queue of VM_Proxys prioritized by their thread wakeup times.
  * based on VM_WakeupQueue (14 October 1998 Bowen Alpern)
  */
-@Uninterruptible final class VM_ProxyWakeupQueue extends VM_AbstractThreadQueue {
-  
+@Uninterruptible
+final class VM_ProxyWakeupQueue extends VM_AbstractThreadQueue {
+
   private VM_Proxy head; // first thread on list
 
-  boolean isEmpty () {
+  boolean isEmpty() {
     return head == null;
   }
 
-  boolean isReady () {
+  boolean isReady() {
     VM_Proxy temp = head;
     return ((temp != null) && (VM_Time.cycles() >= temp.wakeupCycle));
   }
 
-  void enqueue (VM_Thread t) {
+  void enqueue(VM_Thread t) {
     enqueue(t.proxy);
   }
 
-  void enqueue (VM_Proxy p) {
+  void enqueue(VM_Proxy p) {
     VM_Proxy previous = null;
-    VM_Proxy current  = head;
+    VM_Proxy current = head;
     while (current != null && current.wakeupCycle <= p.wakeupCycle) { // skip proxies with earlier wakeupCycles
       previous = current;
       current = current.wakeupNext;
-      }
+    }
     // insert p
     if (previous == null) {
       head = p;
@@ -52,7 +53,7 @@ import org.vmmagic.pragma.Uninterruptible;
   // Remove a thread from the queue if there's one ready to wake up "now".
   // Returned: the thread (null --> nobody ready to wake up)
   //
-  VM_Thread dequeue () {
+  VM_Thread dequeue() {
     long currentCycle = VM_Time.cycles();
     while (head != null) {
       if (currentCycle < head.wakeupCycle) return null;
@@ -70,16 +71,18 @@ import org.vmmagic.pragma.Uninterruptible;
   int length() {
     if (head == null) return 0;
     int length = 1;
-    for (VM_Proxy  p = head; p != null; p = p.wakeupNext)
+    for (VM_Proxy p = head; p != null; p = p.wakeupNext) {
       length += 1;
+    }
     return length;
   }
 
   // Debugging.
   //
   boolean contains(VM_Thread t) {
-    for (VM_Proxy p = head; p != null; p = p.wakeupNext)
+    for (VM_Proxy p = head; p != null; p = p.wakeupNext) {
       if (p.patron == t) return true;
+    }
     return false;
   }
 

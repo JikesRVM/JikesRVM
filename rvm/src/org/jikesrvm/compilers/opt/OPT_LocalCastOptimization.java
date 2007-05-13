@@ -53,7 +53,7 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase {
 
   public void reportAdditionalStats() {
     VM.sysWrite("  ");
-    VM.sysWrite(container.counter1/container.counter2*100, 2);
+    VM.sysWrite(container.counter1 / container.counter2 * 100, 2);
     VM.sysWrite("% Infrequent BBs");
   }
 
@@ -61,7 +61,7 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase {
    * Return this instance of this phase. This phase contains no
    * per-compilation instance fields.
    * @param ir not used
-   * @return this 
+   * @return this
    */
   public OPT_CompilerPhase newExecution(OPT_IR ir) {
     return this;
@@ -73,7 +73,7 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase {
    */
   public void perform(OPT_IR ir) {
     // loop over all basic blocks ...
-    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); 
+    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks();
          e.hasMoreElements();) {
       OPT_BasicBlock bb = e.next();
       if (bb.isEmpty()) continue;
@@ -83,13 +83,15 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase {
         if (ir.options.FREQ_FOCUS_EFFORT) continue;
       }
       // visit each instruction in the basic block
-      for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator(); 
+      for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator();
            ie.hasMoreElements();) {
         OPT_Instruction s = ie.next();
-        if (TypeCheck.conforms(s) && (invertNullAndTypeChecks(s) || 
+        if (TypeCheck.conforms(s) && (invertNullAndTypeChecks(s) ||
                                       pushTypeCheckBelowIf(s, ir)))
-          // hack: we may have modified the instructions; start over
+        // hack: we may have modified the instructions; start over
+        {
           ie = bb.forwardInstrEnumerator();
+        }
       }
     }
   }
@@ -105,22 +107,22 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase {
     if (s.operator() == CHECKCAST) {
       OPT_Register r = TypeCheck.getRef(s).asRegister().register;
       OPT_Instruction n = s.nextInstructionInCodeOrder();
-      while (n.operator() == REF_MOVE && Move.getVal(n) 
-             instanceof OPT_RegisterOperand
+      while (n.operator() == REF_MOVE && Move.getVal(n)
+          instanceof OPT_RegisterOperand
              && Move.getVal(n).asRegister().register == r) {
         r = Move.getResult(n).asRegister().register;
         n = n.nextInstructionInCodeOrder();
       }
-      if (n.operator() == NULL_CHECK && TypeCheck.getRef(s).asRegister().register == 
-          NullCheck.getRef(n).asRegister().register) {
+      if (n.operator() == NULL_CHECK && TypeCheck.getRef(s).asRegister().register ==
+                                        NullCheck.getRef(n).asRegister().register) {
         s.remove();
-        TypeCheck.mutate(s, CHECKCAST_NOTNULL, TypeCheck.getClearRef(s), 
+        TypeCheck.mutate(s, CHECKCAST_NOTNULL, TypeCheck.getClearRef(s),
                          TypeCheck.getClearType(s), NullCheck.getGuardResult(n).copy());
         n.insertAfter(s);
-        return  true;
+        return true;
       }
     }
-    return  false;
+    return false;
   }
 
   /**
@@ -136,13 +138,13 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase {
          optimize cases where the checked value is moved before
          it is used
       */
-      while (n.operator() == REF_MOVE && Move.getVal(n) 
-             instanceof OPT_RegisterOperand
+      while (n.operator() == REF_MOVE && Move.getVal(n)
+          instanceof OPT_RegisterOperand
              && Move.getVal(n).asRegister().register == r) {
         r = Move.getResult(n).asRegister().register;
         n = n.nextInstructionInCodeOrder();
       }
-      if (n.operator() == REF_IFCMP && 
+      if (n.operator() == REF_IFCMP &&
           IfCmp.getVal2(n) instanceof OPT_NullConstantOperand &&
           IfCmp.getVal1(n) instanceof OPT_RegisterOperand &&
           r == IfCmp.getVal1(n).asRegister().register) {
@@ -157,46 +159,50 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase {
               in which case control falls through to the next
               block in code order.  This case is if the
               instruction after n is a BBEND
+          */ {
+          if (after.operator() == BBEND) {
+            patchBlock = myBlock.nextBasicBlockInCodeOrder();
+          }
+          /* 2. n is followed by an unconditional goto.  In
+             this case control jumps to the target of the
+             goto.
           */
-          if (after.operator() == BBEND)
-            patchBlock = myBlock.nextBasicBlockInCodeOrder();          
-        /* 2. n is followed by an unconditional goto.  In
-           this case control jumps to the target of the
-           goto.                                     
-        */
-          else if (after.operator() == GOTO)
-            patchBlock = after.getBranchTarget();          
-        /* 3. n is followed by another conditional branch. In
-           this case, we will split the basic block to make
-           n the last instruction in the block, and then
-           we have the fall through case again.
-        */
+          else if (after.operator() == GOTO) {
+            patchBlock = after.getBranchTarget();
+          }
+          /* 3. n is followed by another conditional branch. In
+             this case, we will split the basic block to make
+             n the last instruction in the block, and then
+             we have the fall through case again.
+          */
           else if (after.operator() == REF_IFCMP) {
             patchBlock = myBlock.splitNodeAt(n, ir);
             myBlock.insertOut(patchBlock);
             ir.cfg.linkInCodeOrder(myBlock, patchBlock);
-          } 
+          }
 
-        /* this is a bad thing */
-          else 
-            return  false; 
-        else 
+          /* this is a bad thing */
+          else {
+            return false;
+          }
+        } else
           /* We branch on not-NULL values, so the checkcast 
              must be spliced in before the branch target
-          */
+          */ {
           patchBlock = n.getBranchTarget();
+        }
         /* add block between branch and appropriate successor */
 
         newBlock = OPT_IRTools.makeBlockOnEdge(myBlock, patchBlock, ir);
 
         /* put check in new block */
         s.remove();
-        TypeCheck.mutate(s, CHECKCAST_NOTNULL, TypeCheck.getClearRef(s), 
+        TypeCheck.mutate(s, CHECKCAST_NOTNULL, TypeCheck.getClearRef(s),
                          TypeCheck.getClearType(s), IfCmp.getGuardResult(n).copyRO());
         newBlock.prependInstruction(s);
-        return  true;
+        return true;
       }
     }
-    return  false;
+    return false;
   }
 }

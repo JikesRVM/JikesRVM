@@ -22,19 +22,19 @@ public class OSR_VariableMapElement {
   public LinkedList<OSR_MethodVariables> mvars;
 
   public OSR_VariableMapElement(OPT_Instruction inst,
-                                   LinkedList<OSR_MethodVariables> methVars) {
+                                LinkedList<OSR_MethodVariables> methVars) {
     if (VM.VerifyAssertions) {
       VM._assert(OsrPoint.conforms(inst));
     }
 
-    this.osr   = inst;
+    this.osr = inst;
     this.mvars = methVars;
   }
- 
+
   public String toString() {
     StringBuffer buf = new StringBuffer("  ");
     buf.append(this.osr.toString()).append("\n");
-    for (int i=0, n=this.mvars.size(); i<n; i++) {
+    for (int i = 0, n = this.mvars.size(); i < n; i++) {
       buf.append(i);
       buf.append("  ");
       buf.append(this.mvars.get(i).toString());

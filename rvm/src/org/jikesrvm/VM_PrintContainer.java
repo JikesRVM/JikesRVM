@@ -26,33 +26,39 @@ import org.jikesrvm.classloader.VM_Member;
 public class VM_PrintContainer {
   /** Can not be instantiated. */
   private VM_PrintContainer() {}
+
   /** Print via PrintWriter */
   private static class WithPrintWriter
-    extends VM_PrintLN {
+      extends VM_PrintLN {
     private PrintWriter out;
 
     WithPrintWriter(PrintWriter out) {
       this.out = out;
     }
+
     public void flush() {
       out.flush();
     }
+
     public void println() {
       out.println();
     }
+
     public void print(String s) {
-      if (s == null)
+      if (s == null) {
         s = "(*null String pointer*)";
+      }
       out.print(s);
     }
+
     public void print(char c) {
       out.print(c);
     }
   }
-  
+
   /** Print via PrintStream */
   private static class WithPrintStream
-    extends VM_PrintLN {
+      extends VM_PrintLN {
     private PrintStream out;
 
     WithPrintStream(PrintStream out) {
@@ -62,36 +68,41 @@ public class VM_PrintContainer {
     public boolean isSystemErr() {
       return this.out == System.err;
     }
+
     public void flush() {
       out.flush();
     }
+
     public void println() {
       out.println();
     }
+
     public void print(String s) {
-      if (s == null)
+      if (s == null) {
         s = "(*null String pointer*)";
+      }
       out.print(s);
     }
+
     public void print(char c) {
       out.print(c);
     }
   }
 
   public static VM_PrintLN get(PrintStream out) {
-     return new WithPrintStream(out);
+    return new WithPrintStream(out);
   }
 
   public static VM_PrintLN get(PrintWriter out) {
-     return new WithPrintWriter(out);
+    return new WithPrintWriter(out);
   }
 
   // Keep this one ready to go at all times :)
   public static final VM_PrintLN readyPrinter = new WithSysWrite();
-  
+
   /** This (nested) class does printing via {@link VM#sysWrite} */
-  private static class WithSysWrite 
-    extends VM_PrintLN {
+  private static class WithSysWrite
+      extends VM_PrintLN {
     /** This doesn't carry any state, but we have a constructor so that we can
      * pass an instance of this to something expecting a {@link VM_PrintLN} . */
     WithSysWrite() {}
@@ -99,33 +110,43 @@ public class VM_PrintContainer {
     public boolean isSysWrite() {
       return true;
     }
+
     public void flush() {
     }
+
     public void println() {
       VM.sysWriteln();
     }
+
     public void print(String s) {
-      if (s == null)
+      if (s == null) {
         s = "(*null String pointer*)";
-      
+      }
+
       VM.sysWrite(s);
     }
+
     public void println(String s) {
       print(s);
       println();
     }
+
     public void print(int i) {
       VM.sysWrite(i);
     }
+
     public void printHex(int i) {
       VM.sysWriteHex(i);
     }
+
     public void print(char c) {
       VM.sysWrite(c);
     }
+
     public void print(VM_Member m) {
       VM.sysWrite(m);
     }
+
     public void print(VM_Atom a) {
       VM.sysWrite(a);
     }

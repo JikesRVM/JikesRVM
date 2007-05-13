@@ -12,10 +12,10 @@ public interface VM_RegisterConstants {
   //---------------------------------------------------------------------------------------//
   //               RVM register usage conventions - Intel version.                         //
   //---------------------------------------------------------------------------------------//
-    
+
   byte LG_INSTRUCTION_WIDTH = 0;             // log2 of instruction width in bytes
   int INSTRUCTION_WIDTH = 1 << LG_INSTRUCTION_WIDTH;
-    
+
   // Symbolic values for fixed-point registers.
   // These values are used to assemble instructions and as indices into:
   //    VM_Registers.gprs[]
@@ -34,7 +34,7 @@ public interface VM_RegisterConstants {
 
   // Mnemonics corresponding to the above constants.
   String[] GPR_NAMES = {
-    "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi"
+      "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi"
   };
 
   byte FP0 = 0x0;
@@ -45,32 +45,32 @@ public interface VM_RegisterConstants {
   byte FP5 = 0x5;
   byte FP6 = 0x6;
   byte FP7 = 0x7;
-  
-  String [] FPR_NAMES = {
-    "FP0", "FP1", "FP2", "FP3", "FP4", "FP5", "FP6", "FP7"
+
+  String[] FPR_NAMES = {
+      "FP0", "FP1", "FP2", "FP3", "FP4", "FP5", "FP6", "FP7"
   };
-    
+
   // Register sets (``range'' is a misnomer for the alphabet soup of
   // of intel registers)
   //
 
   // Note: the order here is important.  The opt-compiler allocates
   // the volatile registers in the order they appear here.
-  byte[]  VOLATILE_GPRS = { EAX, EDX, ECX };
+  byte[] VOLATILE_GPRS = {EAX, EDX, ECX};
   int NUM_VOLATILE_GPRS = VOLATILE_GPRS.length;
-    
+
   // Note: the order here is very important.  The opt-compiler allocates
   // the nonvolatile registers in the reverse of order they appear here.
   // EBX must be last, because it is the only non-volatile that can
   // be used in instructions that are using r8 and we must ensure that
   // opt doesn't skip over another nonvol while looking for an r8 nonvol.
-  byte[]  NONVOLATILE_GPRS = { EBP, EDI, EBX};
+  byte[] NONVOLATILE_GPRS = {EBP, EDI, EBX};
   int NUM_NONVOLATILE_GPRS = NONVOLATILE_GPRS.length;
-    
-  byte[]  VOLATILE_FPRS = { FP0, FP1, FP2, FP3, FP4, FP5, FP6, FP7 };
+
+  byte[] VOLATILE_FPRS = {FP0, FP1, FP2, FP3, FP4, FP5, FP6, FP7};
   int NUM_VOLATILE_FPRS = VOLATILE_FPRS.length;
-    
-  byte[]  NONVOLATILE_FPRS = {  };
+
+  byte[] NONVOLATILE_FPRS = {};
   int NUM_NONVOLATILE_FPRS = NONVOLATILE_FPRS.length;
 
   /*
@@ -84,12 +84,11 @@ public interface VM_RegisterConstants {
   int NUM_RETURN_GPRS = 2;
   int NUM_RETURN_FPRS = 1;
 
-
   // Dedicated registers.
   //
-  byte STACK_POINTER              = ESP;
-  byte PROCESSOR_REGISTER         = ESI;
-   
-  byte NUM_GPRS                   =  8;
-  byte NUM_FPRS                   =  8;
+  byte STACK_POINTER = ESP;
+  byte PROCESSOR_REGISTER = ESI;
+
+  byte NUM_GPRS = 8;
+  byte NUM_FPRS = 8;
 }

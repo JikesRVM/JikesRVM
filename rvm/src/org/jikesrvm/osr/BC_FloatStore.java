@@ -8,6 +8,7 @@
  */
 
 package org.jikesrvm.osr;
+
 /**
  * BC_FloatStore: fstore, fstore_<i> 
  */
@@ -15,7 +16,7 @@ public class BC_FloatStore extends OSR_PseudoBytecode {
   private int bsize;
   private byte[] codes;
   private int lnum;
-  
+
   public BC_FloatStore(int local) {
     this.lnum = local;
     if (local <= 255) {
@@ -36,10 +37,10 @@ public class BC_FloatStore extends OSR_PseudoBytecode {
   }
 
   public int stackChanges() {
-        return -1;
+    return -1;
   }
 
   public String toString() {
-    return "FloatStore "+lnum;
+    return "FloatStore " + lnum;
   }
 }

@@ -34,7 +34,7 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
   private static long codeGenCycles;
   private static long encodingCycles;
 
-  /** 
+  /**
    * Options used during base compiler execution 
    */
   public static VM_BaselineOptions options;
@@ -48,7 +48,7 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
     return Offset.fromIntZeroExtend(method.getId() << LOG_BYTES_IN_ADDRESS);
   }
 
-  /** 
+  /**
    * The types that locals can take.
    * There are two types of locals. First the parameters of the method, they only have one type
    * Second, the other locals, numbers get reused when stack shrinks and grows again.
@@ -58,16 +58,15 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
    */
   protected final byte[] localTypes;
 
-
   /**
    * Construct a VM_Compiler
    */
   protected VM_BaselineCompiler(VM_BaselineCompiledMethod cm) {
     super(cm);
-    shouldPrint  = (!VM.runningTool &&
-                    (options.PRINT_MACHINECODE) &&
-                    (!options.hasMETHOD_TO_PRINT() ||
-                     options.fuzzyMatchMETHOD_TO_PRINT(method.toString())));
+    shouldPrint = (!VM.runningTool &&
+                   (options.PRINT_MACHINECODE) &&
+                   (!options.hasMETHOD_TO_PRINT() ||
+                    options.fuzzyMatchMETHOD_TO_PRINT(method.toString())));
     if (!VM.runningTool && options.PRINT_METHOD) printMethodMessage();
     if (shouldPrint && VM.runningVM && !fullyBootedVM) {
       shouldPrint = false;
@@ -75,7 +74,7 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
         VM.sysWriteln("\ttoo early in VM.boot() to print machine code");
       }
     }
-    asm = new VM_Assembler(bcodes.length(), shouldPrint, (VM_Compiler)this);
+    asm = new VM_Assembler(bcodes.length(), shouldPrint, (VM_Compiler) this);
     localTypes = new byte[method.getLocalWords()];
   }
 
@@ -114,7 +113,7 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
    */
   public static void processCommandLineArg(String prefix, String arg) {
     if (!options.processAsOption(prefix, arg)) {
-      VM.sysWrite("VM_BaselineCompiler: Unrecognized argument \""+ arg + "\"\n");
+      VM.sysWrite("VM_BaselineCompiler: Unrecognized argument \"" + arg + "\"\n");
       VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
   }
@@ -138,37 +137,39 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
     double codeGenTime = VM_Time.cyclesToMillis(codeGenCycles);
     double encodingTime = VM_Time.cyclesToMillis(encodingCycles);
     double total = gcMapTime + osrSetupTime + codeGenTime + encodingTime;
-    
+
     VM.sysWrite("\tCompute GC Maps\t\t", gcMapTime);
-    VM.sysWriteln("\t",100*gcMapTime/total);
+    VM.sysWriteln("\t", 100 * gcMapTime / total);
 
     if (osrSetupTime > 0) {
       VM.sysWrite("\tOSR setup \t\t", osrSetupTime);
-      VM.sysWriteln("\t",100*osrSetupTime/total);
+      VM.sysWriteln("\t", 100 * osrSetupTime / total);
     }
 
     VM.sysWrite("\tCode generation\t\t", codeGenTime);
-    VM.sysWriteln("\t",100*codeGenTime/total);
+    VM.sysWriteln("\t", 100 * codeGenTime / total);
 
     VM.sysWrite("\tEncode GC/MC maps\t", encodingTime);
-    VM.sysWriteln("\t",100*encodingTime/total);
+    VM.sysWriteln("\t", 100 * encodingTime / total);
 
     VM.sysWriteln("\tTOTAL\t\t\t", total);
   }
 
   /**
    * Compile the given method with the baseline compiler.
-   * 
+   *
    * @param method the VM_NormalMethod to compile.
    * @return the generated VM_CompiledMethod for said VM_NormalMethod.
    */
-  public static VM_CompiledMethod compile (VM_NormalMethod method) {
-    VM_BaselineCompiledMethod cm = (VM_BaselineCompiledMethod) VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.BASELINE);
+  public static VM_CompiledMethod compile(VM_NormalMethod method) {
+    VM_BaselineCompiledMethod cm =
+        (VM_BaselineCompiledMethod) VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.BASELINE);
     cm.compile();
     return cm;
   }
 
-  protected abstract void initializeCompiler(); 
+  protected abstract void initializeCompiler();
+
   /**
    * Top level driver for baseline compilation of a method.
    */
@@ -178,7 +179,8 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
     // Phase 1: GC map computation
     long start = 0;
     if (VM.MeasureCompilation) start = VM_Thread.getCurrentThread().accumulateCycles();
-    VM_ReferenceMaps refMaps = new VM_ReferenceMaps((VM_BaselineCompiledMethod)compiledMethod, stackHeights, localTypes);
+    VM_ReferenceMaps refMaps =
+        new VM_ReferenceMaps((VM_BaselineCompiledMethod) compiledMethod, stackHeights, localTypes);
     if (VM.MeasureCompilation) {
       long end = VM_Thread.getCurrentThread().accumulateCycles();
       gcMapCycles += end - start;
@@ -196,35 +198,34 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
     if (VM.BuildForAdaptiveSystem && method.isForOsrSpecialization()) {
       options.EDGE_COUNTERS = false;
       // we already allocated enough space for stackHeights, shift it back first
-      System.arraycopy(stackHeights, 0, stackHeights, 
-                       method.getOsrPrologueLength(), 
+      System.arraycopy(stackHeights, 0, stackHeights,
+                       method.getOsrPrologueLength(),
                        method.getBytecodeLength());   // NB: getBytecodeLength returns back the length of original bytecodes
-      
+
       // compute stack height for prologue
       new OSR_BytecodeTraverser().prologueStackHeights(method, method.getOsrPrologue(), stackHeights);
-    } 
+    }
     if (VM.MeasureCompilation) {
       long end = VM_Thread.getCurrentThread().accumulateCycles();
       osrSetupCycles += end - start;
     }
-    
+
     // Phase 3: Code gen
     if (VM.MeasureCompilation) start = VM_Thread.getCurrentThread().accumulateCycles();
 
     // determine if we are going to insert edge counters for this method
-    if (options.EDGE_COUNTERS && 
+    if (options.EDGE_COUNTERS &&
         !method.getDeclaringClass().hasBridgeFromNativeAnnotation() &&
         (method.hasCondBranch() || method.hasSwitch())) {
-      ((VM_BaselineCompiledMethod)compiledMethod).setHasCounterArray(); // yes, we will inject counters for this method.
+      ((VM_BaselineCompiledMethod) compiledMethod).setHasCounterArray(); // yes, we will inject counters for this method.
     }
-    
+
     //do platform specific tasks before generating code;
     initializeCompiler();
-    
-    
-    VM_MachineCode  machineCode  = genCode();
-    VM_CodeArray    instructions = machineCode.getInstructions();
-    int[]           bcMap        = machineCode.getBytecodeMap();
+
+    VM_MachineCode machineCode = genCode();
+    VM_CodeArray instructions = machineCode.getInstructions();
+    int[] bcMap = machineCode.getBytecodeMap();
     if (VM.MeasureCompilation) {
       long end = VM_Thread.getCurrentThread().accumulateCycles();
       codeGenCycles += end - start;
@@ -248,25 +249,25 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
       // switch back to original state
       method.finalizeOsrSpecialization();
       // restore options
-      options.EDGE_COUNTERS = edge_counters;     
+      options.EDGE_COUNTERS = edge_counters;
     }
     if (VM.MeasureCompilation) {
       long end = VM_Thread.getCurrentThread().accumulateCycles();
       osrSetupCycles += end - start;
     }
-        
+
     // Phase 5: Encode machine code maps
     if (VM.MeasureCompilation) start = VM_Thread.getCurrentThread().accumulateCycles();
     if (method.isSynchronized()) {
-      ((VM_BaselineCompiledMethod)compiledMethod).setLockAcquisitionOffset(lockOffset);
+      ((VM_BaselineCompiledMethod) compiledMethod).setLockAcquisitionOffset(lockOffset);
     }
-    ((VM_BaselineCompiledMethod)compiledMethod).encodeMappingInfo(refMaps, bcMap, instructions.length());
+    ((VM_BaselineCompiledMethod) compiledMethod).encodeMappingInfo(refMaps, bcMap, instructions.length());
     compiledMethod.compileComplete(instructions);
     if (edgeCounterIdx > 0) {
       VM_EdgeCounts.allocateCounters(method, edgeCounterIdx);
     }
     if (shouldPrint) {
-      ((VM_BaselineCompiledMethod)compiledMethod).printExceptionTable();
+      ((VM_BaselineCompiledMethod) compiledMethod).printExceptionTable();
       printEndHeader(method);
     }
     if (VM.MeasureCompilation) {

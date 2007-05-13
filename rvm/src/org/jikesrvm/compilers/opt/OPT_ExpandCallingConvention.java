@@ -26,15 +26,15 @@ public final class OPT_ExpandCallingConvention extends OPT_CompilerPhase {
     return this;
   }
 
-  public boolean printingEnabled (OPT_Options options, boolean before) {
-    return  options.PRINT_CALLING_CONVENTIONS && !before;
+  public boolean printingEnabled(OPT_Options options, boolean before) {
+    return options.PRINT_CALLING_CONVENTIONS && !before;
   }
 
-  public String getName() { 
-    return "Expand Calling Convention"; 
+  public String getName() {
+    return "Expand Calling Convention";
   }
 
-  public void perform(org.jikesrvm.compilers.opt.ir.OPT_IR ir)  {
+  public void perform(org.jikesrvm.compilers.opt.ir.OPT_IR ir) {
     OPT_CallingConvention.expandCallingConventions(ir);
   }
 }

@@ -67,12 +67,12 @@ class OPT_LTDominatorInfo {
     // Currently this set is computed on demand.  We may want to cache
     // the result for reuse.  The cost of computing is the height of the
     // the dominator tree.
-    OPT_BitVector dominators = new OPT_BitVector(ir.getMaxBasicBlockNumber()+1);
+    OPT_BitVector dominators = new OPT_BitVector(ir.getMaxBasicBlockNumber() + 1);
     dominators.set(block.getNumber());
     while ((block = getIdom(block)) != null) {
       dominators.set(block.getNumber());
     }
-    return  dominators;
+    return dominators;
   }
 
   /**
@@ -84,10 +84,10 @@ class OPT_LTDominatorInfo {
    *   @param master the potential dominating block
    *   @return whether master dominates block
    */
-  public static boolean isDominatedBy(OPT_BasicBlock block, 
+  public static boolean isDominatedBy(OPT_BasicBlock block,
                                       OPT_BasicBlock master) {
     if (block == master) {
-      return  true;
+      return true;
     }
     // walk up the dominator tree looking for the passed block
     block = getIdom(block);
@@ -95,7 +95,7 @@ class OPT_LTDominatorInfo {
       block = getIdom(block);
     }
     // If we found the master, the condition is true
-    return  block == master;
+    return block == master;
   }
 
   /**
@@ -111,7 +111,7 @@ class OPT_LTDominatorInfo {
    * @return the semidomintor for this node
    */
   public int getSemiDominator() {
-    return  semiDominator;
+    return semiDominator;
   }
 
   /**
@@ -127,7 +127,7 @@ class OPT_LTDominatorInfo {
    * @return the immediate dominator for this node
    */
   public OPT_BasicBlock getDominator() {
-    return  dominator;
+    return dominator;
   }
 
   /**
@@ -143,7 +143,7 @@ class OPT_LTDominatorInfo {
    * @return the parent of this block
    */
   public OPT_BasicBlock getParent() {
-    return  parent;
+    return parent;
   }
 
   /**
@@ -151,7 +151,7 @@ class OPT_LTDominatorInfo {
    * @return an iterator over this block's bucket
    */
   public Iterator<OPT_BasicBlock> getBucketIterator() {
-    return  bucket.iterator();
+    return bucket.iterator();
   }
 
   /**
@@ -183,7 +183,7 @@ class OPT_LTDominatorInfo {
    * @return the ancestor for this block
    */
   public OPT_BasicBlock getAncestor() {
-    return  ancestor;
+    return ancestor;
   }
 
   /**
@@ -199,7 +199,7 @@ class OPT_LTDominatorInfo {
    * @return the label
    */
   public OPT_BasicBlock getLabel() {
-    return  label;
+    return label;
   }
 
   /**
@@ -215,7 +215,7 @@ class OPT_LTDominatorInfo {
    * @return the size
    */
   public int getSize() {
-    return  size;
+    return size;
   }
 
   /**
@@ -231,7 +231,7 @@ class OPT_LTDominatorInfo {
    * @return the child
    */
   public OPT_BasicBlock getChild() {
-    return  child;
+    return child;
   }
 
   /**
@@ -255,8 +255,8 @@ class OPT_LTDominatorInfo {
    * @param block the block of interest
    * @return the LTInfo info
    */
-  public static OPT_LTDominatorInfo getInfo (OPT_BasicBlock block) {
-    return  (OPT_LTDominatorInfo)block.scratchObject;
+  public static OPT_LTDominatorInfo getInfo(OPT_BasicBlock block) {
+    return (OPT_LTDominatorInfo) block.scratchObject;
   }
 
   /**
@@ -266,14 +266,14 @@ class OPT_LTDominatorInfo {
    * @return bb's immediate dominator
    */
   public static OPT_BasicBlock getIdom(OPT_BasicBlock bb) {
-    return  getInfo(bb).dominator;
+    return getInfo(bb).dominator;
   }
 
   /**
    * Prints a string version of objection
    */
   public String toString() {
-    return  super.toString() + " [Parent: " + parent + " SDom: " + semiDominator
-        + " Dom: " + dominator + "]";
+    return super.toString() + " [Parent: " + parent + " SDom: " + semiDominator
+           + " Dom: " + dominator + "]";
   }
 }

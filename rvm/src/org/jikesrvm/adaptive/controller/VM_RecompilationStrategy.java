@@ -41,15 +41,13 @@ public abstract class VM_RecompilationStrategy {
   /**
    * A hot call edge has been passed to the controller by an organizer
    */
-  void considerHotCallEdge(VM_CompiledMethod cmpMethod, 
+  void considerHotCallEdge(VM_CompiledMethod cmpMethod,
                            VM_AINewHotEdgeEvent event) {
     // Default behavior, do nothing.
   }
 
-
-  // Functionality common to all recompilation strategies 
+  // Functionality common to all recompilation strategies
   // (at least for now) 
-
 
   /**
    *  Initialize the recompilation strategy.
@@ -62,12 +60,11 @@ public abstract class VM_RecompilationStrategy {
     createOptimizationPlans();
   }
 
-
   /**
    * This helper method creates a ControllerPlan, which contains a 
    * CompilationPlan, for the passed method using the passed optimization 
    * level and instrumentation plan.
-   * 
+   *
    * @param method the VM_Method for the plan
    * @param optLevel the optimization level to use in the plan
    * @param instPlan the instrumentation plan to use
@@ -77,7 +74,7 @@ public abstract class VM_RecompilationStrategy {
    *                 by executing this plan.
    * @return the compilation plan to be used 
    */
-  VM_ControllerPlan createControllerPlan(VM_Method method, 
+  VM_ControllerPlan createControllerPlan(VM_Method method,
                                          int optLevel,
                                          OPT_InstrumentationPlan instPlan,
                                          int prevCMID,
@@ -85,16 +82,15 @@ public abstract class VM_RecompilationStrategy {
                                          double expectedCompilationTime,
                                          double priority) {
 
-     // Construct the compilation plan (varies depending on strategy)
-     OPT_CompilationPlan compPlan = 
-       createCompilationPlan((VM_NormalMethod)method, optLevel, instPlan);
+    // Construct the compilation plan (varies depending on strategy)
+    OPT_CompilationPlan compPlan =
+        createCompilationPlan((VM_NormalMethod) method, optLevel, instPlan);
 
-     // Create the controller plan
-     return new VM_ControllerPlan(compPlan, VM_Controller.controllerClock, 
-                                  prevCMID, expectedSpeedup, expectedCompilationTime,
-                                  priority);
+    // Create the controller plan
+    return new VM_ControllerPlan(compPlan, VM_Controller.controllerClock,
+                                 prevCMID, expectedSpeedup, expectedCompilationTime,
+                                 priority);
   }
-
 
   /**
    * Construct a compilation plan that will compile the given method
@@ -104,23 +100,23 @@ public abstract class VM_RecompilationStrategy {
    * @param optLevel The opt-level to recompile at 
    * @param instPlan The instrumentation plan
    */
-  public OPT_CompilationPlan createCompilationPlan(VM_NormalMethod method, 
-                                            int optLevel,
-                                            OPT_InstrumentationPlan instPlan) {
+  public OPT_CompilationPlan createCompilationPlan(VM_NormalMethod method,
+                                                   int optLevel,
+                                                   OPT_InstrumentationPlan instPlan) {
 
-     // Construct a plan from the basic pre-computed opt-levels
-     return new OPT_CompilationPlan(method, _optPlans[optLevel],
-                                    null, _options[optLevel]);
-   }
+    // Construct a plan from the basic pre-computed opt-levels
+    return new OPT_CompilationPlan(method, _optPlans[optLevel],
+                                   null, _options[optLevel]);
+  }
 
   /**
    * Should we consider the hme for recompilation?
-   * 
+   *
    * @param hme the VM_HotMethodEvent
    * @param plan the VM_ControllerPlan for the compiled method (may be null)
    * @return true/false value
- */
-  boolean considerForRecompilation(VM_HotMethodEvent hme, 
+   */
+  boolean considerForRecompilation(VM_HotMethodEvent hme,
                                    VM_ControllerPlan plan) {
     VM_Method method = hme.getMethod();
     if (plan == null) {
@@ -141,8 +137,8 @@ public abstract class VM_RecompilationStrategy {
       }
     } else {
       // A matching plan was found.
-      if (plan.getStatus() == VM_ControllerPlan.OUTDATED || 
-          VM_ControllerMemory.planWithStatus(method, 
+      if (plan.getStatus() == VM_ControllerPlan.OUTDATED ||
+          VM_ControllerMemory.planWithStatus(method,
                                              VM_ControllerPlan.IN_PROGRESS)) {
         // (a) The HotMethodEvent actually corresponds to an 
         // old compiled version of the method
@@ -160,7 +156,7 @@ public abstract class VM_RecompilationStrategy {
   }
 
   private void transferSamplesToNewPlan(VM_HotMethodEvent hme) {
-    VM_AOSLogging.oldVersionStillHot(hme); 
+    VM_AOSLogging.oldVersionStillHot(hme);
     double oldNumSamples = VM_Controller.methodSamples.getData(hme.getCMID());
     VM_ControllerPlan activePlan = VM_ControllerMemory.findLatestPlan(hme.getMethod());
     if (activePlan == null) return; // shouldn't happen.
@@ -175,35 +171,34 @@ public abstract class VM_RecompilationStrategy {
       VM_Controller.methodSamples.augmentData(newCMID, newNumSamples);
     }
   }
-  
+
   /**
    *  This method returns true if we've already tried to recompile the
    *  passed method.  It does not guarantee that the compilation was
    *  successful.
-   * 
+   *
    *  @param method the method of interest
    *  @return whether we've tried to recompile this method
    */
-   boolean previousRecompilationAttempted(VM_Method method) {
-     return VM_ControllerMemory.findLatestPlan(method) != null;
+  boolean previousRecompilationAttempted(VM_Method method) {
+    return VM_ControllerMemory.findLatestPlan(method) != null;
   }
 
   /**
    *  This method retrieves the previous compiler constant.
    */
-   int getPreviousCompiler(VM_CompiledMethod cmpMethod) {
-    switch(cmpMethod.getCompilerType()) {
-    case VM_CompiledMethod.TRAP: 
-    case VM_CompiledMethod.JNI:
-      return -1; // don't try to optimize these guys!
-    case VM_CompiledMethod.BASELINE:
-      { 
+  int getPreviousCompiler(VM_CompiledMethod cmpMethod) {
+    switch (cmpMethod.getCompilerType()) {
+      case VM_CompiledMethod.TRAP:
+      case VM_CompiledMethod.JNI:
+        return -1; // don't try to optimize these guys!
+      case VM_CompiledMethod.BASELINE: {
         // Prevent the adaptive system from recompiling certain classes
         // of baseline compiled methods.
         if (cmpMethod.getMethod().getDeclaringClass().hasDynamicBridgeAnnotation()) {
           // The opt compiler does not implement this calling convention.
           return -1;
-        } 
+        }
         if (cmpMethod.getMethod().getDeclaringClass().hasBridgeFromNativeAnnotation()) {
           // The opt compiler does not implement this calling convention.
           return -1;
@@ -224,12 +219,12 @@ public abstract class VM_RecompilationStrategy {
         }
         return 0;
       }
-    case VM_CompiledMethod.OPT:
-      VM_OptCompiledMethod optMeth = (VM_OptCompiledMethod)cmpMethod;
-      return VM_CompilerDNA.getCompilerConstant(optMeth.getOptLevel());
-    default:
-      if (VM.VerifyAssertions) VM._assert(false, "Unknown Compiler");
-      return -1;
+      case VM_CompiledMethod.OPT:
+        VM_OptCompiledMethod optMeth = (VM_OptCompiledMethod) cmpMethod;
+        return VM_CompilerDNA.getCompilerConstant(optMeth.getOptLevel());
+      default:
+        if (VM.VerifyAssertions) VM._assert(false, "Unknown Compiler");
+        return -1;
     }
   }
 
@@ -240,9 +235,9 @@ public abstract class VM_RecompilationStrategy {
     return VM_Controller.options.MAX_OPT_LEVEL;
   }
 
+  private OPT_OptimizationPlanElement[][] _optPlans;
+  private OPT_Options[] _options;
 
-  private  OPT_OptimizationPlanElement[][] _optPlans;
-  private  OPT_Options[] _options;
   /**
    * Create the default set of <optimization plan, options> pairs
    * Process optimizing compiler command line options.
@@ -251,14 +246,14 @@ public abstract class VM_RecompilationStrategy {
     OPT_Options options = new OPT_Options();
 
     int maxOptLevel = getMaxOptLevel();
-    _options = new OPT_Options[maxOptLevel+1];
-    _optPlans = new OPT_OptimizationPlanElement[maxOptLevel+1][];
+    _options = new OPT_Options[maxOptLevel + 1];
+    _optPlans = new OPT_OptimizationPlanElement[maxOptLevel + 1][];
     String[] optCompilerOptions = VM_Controller.getOptCompilerOptions();
-    for (int i=0; i<= maxOptLevel; i++) {
+    for (int i = 0; i <= maxOptLevel; i++) {
       _options[i] = options.dup();
       _options[i].setOptLevel(i);               // set optimization level specific optimiations
-      processCommandLineOptions(_options[i],i,maxOptLevel,optCompilerOptions);
-      _optPlans[i]=OPT_OptimizationPlanner.createOptimizationPlan(_options[i]);
+      processCommandLineOptions(_options[i], i, maxOptLevel, optCompilerOptions);
+      _optPlans[i] = OPT_OptimizationPlanner.createOptimizationPlan(_options[i]);
       if (_options[i].PRELOAD_CLASS != null) {
         VM.sysWrite("PRELOAD_CLASS should be specified with -X:irc not -X:recomp\n");
         VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
@@ -270,30 +265,30 @@ public abstract class VM_RecompilationStrategy {
    * Process the command line arguments and pass the appropriate ones to the 
    * OPT_Options
    * Called by sampling and counters recompilation strategy.
-   * 
+   *
    * @param options The options being constructed
    * @param optLevel The level of the options being constructed
    * @param maxOptLevel The maximum valid opt level
    * @param optCompilerOptions The list of command line options
    */
   public static void processCommandLineOptions(OPT_Options options, int optLevel, int maxOptLevel,
-                                        String[] optCompilerOptions) {
+                                               String[] optCompilerOptions) {
 
-    String prefix = "opt"+optLevel+":";
+    String prefix = "opt" + optLevel + ":";
     for (String optCompilerOption : optCompilerOptions) {
       if (optCompilerOption.startsWith("opt:")) {
         String option = optCompilerOption.substring(4);
         if (!options.processAsOption("-X:recomp:", option)) {
           VM.sysWrite("vm: Unrecognized optimizing compiler command line argument: \""
-              + option + "\" passed in as "
-              + optCompilerOption + "\n");
+                      + option + "\" passed in as "
+                      + optCompilerOption + "\n");
         }
       } else if (optCompilerOption.startsWith(prefix)) {
         String option = optCompilerOption.substring(5);
         if (!options.processAsOption("-X:recomp:" + prefix, option)) {
           VM.sysWrite("vm: Unrecognized optimizing compiler command line argument: \""
-              + option + "\" passed in as "
-              + optCompilerOption + "\n");
+                      + option + "\" passed in as "
+                      + optCompilerOption + "\n");
         }
       }
     }
@@ -310,7 +305,7 @@ public abstract class VM_RecompilationStrategy {
         int endPoint = optCompilerOption1.indexOf(":");
         if (endPoint == -1) {
           VM.sysWrite("vm: Unrecognized optimization level in optimizing compiler command line argument: \""
-              + optCompilerOption1 + "\"\n");
+                      + optCompilerOption1 + "\"\n");
         }
         String optLevelS;
         try {
@@ -325,13 +320,13 @@ public abstract class VM_RecompilationStrategy {
           int cmdOptLevel = optLevelI;
           if (cmdOptLevel > maxOptLevel) {
             VM.sysWrite("vm: Invalid optimization level in optimizing compiler command line argument: \""
-                + optCompilerOption1 + "\"\n" +
-                "  Specified optimization level " + cmdOptLevel +
-                " must be less than " + maxOptLevel + "\n");
+                        + optCompilerOption1 + "\"\n" +
+                        "  Specified optimization level " + cmdOptLevel +
+                        " must be less than " + maxOptLevel + "\n");
           }
         } catch (NumberFormatException e) {
           VM.sysWrite("vm: Unrecognized optimization level in optimizing compiler command line argument: \""
-              + optCompilerOption1 + "\"\n");
+                      + optCompilerOption1 + "\"\n");
         }
       }
     }

@@ -24,8 +24,8 @@ public class OPT_InterfaceHierarchy {
    * a mapping from VM_Class (an interface) to a set of classes that
    * claim to implement this interface.
    */
-  private static VM_HashMap<VM_Class,VM_HashSet<VM_Class>> interfaceMapping = 
-    new VM_HashMap<VM_Class,VM_HashSet<VM_Class>>();
+  private static VM_HashMap<VM_Class, VM_HashSet<VM_Class>> interfaceMapping =
+      new VM_HashMap<VM_Class, VM_HashSet<VM_Class>>();
 
   /**
    * Notify this dictionary that a new class has been initialized. 
@@ -56,7 +56,7 @@ public class OPT_InterfaceHierarchy {
     VM_HashSet<VM_Class> set = interfaceMapping.get(I);
     if (set == null) {
       set = new VM_HashSet<VM_Class>(3);
-      interfaceMapping.put(I,set);
+      interfaceMapping.put(I, set);
     }
     return set;
   }
@@ -67,7 +67,7 @@ public class OPT_InterfaceHierarchy {
   private static VM_HashSet<VM_Class> allImplementors(VM_Class I) {
     // get the set of classes registered as implementing I
     VM_HashSet<VM_Class> result = findOrCreateSet(I);
-    
+
     // also add any classes that implement a sub-interface of I.
     // need to do this kludge to avoid recursive concurrent modification
     for (VM_Class subClass : I.getSubClasses()) {
@@ -90,7 +90,7 @@ public class OPT_InterfaceHierarchy {
    */
   private static VM_HashSet<VM_Class> allSubClasses(VM_Class C) {
     VM_HashSet<VM_Class> result = new VM_HashSet<VM_Class>(5);
-    
+
     // also add any classes that implement a sub-interface of I.
     for (VM_Class subClass : C.getSubClasses()) {
       result.add(subClass);
@@ -115,12 +115,14 @@ public class OPT_InterfaceHierarchy {
     VM_Atom desc = foo.getDescriptor();
 
     for (VM_Class klass : classes) {
-      VM_Method m = klass.findDeclaredMethod(name,desc);
-      if (firstMethod == null) 
+      VM_Method m = klass.findDeclaredMethod(name, desc);
+      if (firstMethod == null) {
         firstMethod = m;
+      }
 
-      if (m != firstMethod)
+      if (m != firstMethod) {
         return null;
+      }
     }
     return firstMethod;
   }

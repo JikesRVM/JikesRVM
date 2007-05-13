@@ -37,69 +37,69 @@ public class OPT_SSAOptions {
     abort = b;
   }
 
-  final boolean getScalarsOnly () {
-    return  scalarsOnly;
+  final boolean getScalarsOnly() {
+    return scalarsOnly;
   }
 
-  final boolean getBackwards () {
-    return  backwards;
+  final boolean getBackwards() {
+    return backwards;
   }
 
-  final boolean getInsertUsePhis () {
-    return  insertUsePhis;
+  final boolean getInsertUsePhis() {
+    return insertUsePhis;
   }
 
-  final boolean getInsertPEIDeps () {
-    return  insertPEIDeps;
+  final boolean getInsertPEIDeps() {
+    return insertPEIDeps;
   }
 
-  final boolean getExcludeGuards () {
-    return  excludeGuards;
+  final boolean getExcludeGuards() {
+    return excludeGuards;
   }
 
-  final java.util.Set<Object> getHeapTypes () {
-    return  heapTypes;
+  final java.util.Set<Object> getHeapTypes() {
+    return heapTypes;
   }
 
-  public final boolean getHeapValid () {
-    return  heapValid;
+  public final boolean getHeapValid() {
+    return heapValid;
   }
 
-  public final boolean getScalarValid () {
-    return  scalarValid;
+  public final boolean getScalarValid() {
+    return scalarValid;
   }
 
-  final void setScalarsOnly (boolean b) {
+  final void setScalarsOnly(boolean b) {
     scalarsOnly = b;
   }
 
-  final void setBackwards (boolean b) {
+  final void setBackwards(boolean b) {
     backwards = b;
   }
 
-  final void setInsertUsePhis (boolean b) {
+  final void setInsertUsePhis(boolean b) {
     insertUsePhis = b;
   }
 
-  final void setExcludeGuards (boolean b) {
+  final void setExcludeGuards(boolean b) {
     excludeGuards = b;
   }
-  
-  final void setInsertPEIDeps (boolean b) {
+
+  final void setInsertPEIDeps(boolean b) {
     insertPEIDeps = b;
   }
 
-  final void setHeapTypes (java.util.Set<Object> s) {
+  final void setHeapTypes(java.util.Set<Object> s) {
     heapTypes = s;
   }
 
   // CAUTION: only Enter and LeaveSSA should use the following.
   // Don't use these unless you know what you're doing.
-  final void setHeapValid (boolean b) {
+  final void setHeapValid(boolean b) {
     heapValid = b;
   }
 
-  final void setScalarValid (boolean b) {
+  final void setScalarValid(boolean b) {
     scalarValid = b;
   }
 
@@ -107,8 +107,8 @@ public class OPT_SSAOptions {
    * Set up instructions for an form of heap Array SSA, or turn it
    * off
    */
-  OPT_SSAOptions (boolean scalarsOnly, boolean backwards, boolean insertUsePhis, 
-      java.util.Set<Object> heapTypes) {
+  OPT_SSAOptions(boolean scalarsOnly, boolean backwards, boolean insertUsePhis,
+                 java.util.Set<Object> heapTypes) {
     this.scalarsOnly = scalarsOnly;
     this.backwards = backwards;
     this.insertUsePhis = insertUsePhis;
@@ -122,7 +122,7 @@ public class OPT_SSAOptions {
   /**
    * default configuration: just perform forward scalar SSA
    */
-  OPT_SSAOptions () {
+  OPT_SSAOptions() {
     this.scalarsOnly = true;
     this.backwards = false;
     this.insertUsePhis = false;
@@ -139,31 +139,39 @@ public class OPT_SSAOptions {
    *
    * @param d the desired SSA options
    */
-  boolean satisfies (OPT_SSAOptions d) {
+  boolean satisfies(OPT_SSAOptions d) {
     // 1. At a minimum , scalars must be valid
-    if (!scalarValid)
-      return  false;
+    if (!scalarValid) {
+      return false;
+    }
     // 2. OK, scalar SSA is valid.  Is this enough?
-    if (d.getScalarsOnly())
-      return  true;
+    if (d.getScalarsOnly()) {
+      return true;
+    }
     // 3. OK, we desire more than scalars.  So now, at least
     //    Heap SSA must be valid
-    if (!heapValid)
-      return  false;
+    if (!heapValid) {
+      return false;
+    }
     // 4. OK, Heap Array SSA is valid.  Do we have the correct
     //    backwards, usePhis, and heapTypes??
-    if (backwards != d.getBackwards())
-      return  false;
-    if (insertUsePhis != d.getInsertUsePhis())
-      return  false;
-    if (insertPEIDeps != d.getInsertPEIDeps())
-      return  false;
-    if (excludeGuards != d.getExcludeGuards())
-      return  false;
-    if (heapTypes != d.getHeapTypes())
-      return  false;
+    if (backwards != d.getBackwards()) {
+      return false;
+    }
+    if (insertUsePhis != d.getInsertUsePhis()) {
+      return false;
+    }
+    if (insertPEIDeps != d.getInsertPEIDeps()) {
+      return false;
+    }
+    if (excludeGuards != d.getExcludeGuards()) {
+      return false;
+    }
+    if (heapTypes != d.getHeapTypes()) {
+      return false;
+    }
     // Got this far.  SUCCESS!!
-    return  true;
+    return true;
   }
 }
 

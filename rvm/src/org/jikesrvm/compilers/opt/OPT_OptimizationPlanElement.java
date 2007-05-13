@@ -13,7 +13,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
 
 /**
  * An element in the opt compiler's optimization plan.
- * 
+ *
  * NOTE: Instances of subclasses of this class are
  *       held in OPT_OptimizationPlanner.masterPlan
  *       and thus represent global state.
@@ -28,19 +28,19 @@ public abstract class OPT_OptimizationPlanElement {
   /**
    * Determine, possibly by consulting the passed options object,
    * if this optimization plan element should be performed.
-   * 
+   *
    * @param options The OPT_Options object for the current compilation.
    * @return true if the plan element should be performed.
    */
-  public abstract boolean shouldPerform (OPT_Options options);
+  public abstract boolean shouldPerform(OPT_Options options);
 
   /**
    * Do the work represented by this element in the optimization plan.
    * The assumption is that the work will modify the IR in some way.
-   * 
+   *
    * @param ir The OPT_IR object to work with.
    */
-  public abstract void perform (OPT_IR ir);
+  public abstract void perform(OPT_IR ir);
 
   /**
    * @return a String which is the name of the phase.
@@ -61,38 +61,44 @@ public abstract class OPT_OptimizationPlanElement {
    * @param timeCol Column number of time portion of report.
    * @param totalTime Total opt compilation time in seconds.
    */
-  public abstract void reportStats (int indent, int timeCol, double totalTime);
+  public abstract void reportStats(int indent, int timeCol, double totalTime);
 
   /**
    * Report the elapsed time spent in the PlanElement
    * @return time spend in the plan (in ms)
    */
-  public abstract double elapsedTime ();
+  public abstract double elapsedTime();
 
   /**
    * Helper function for <code> reportStats </code>
    */
-  protected void prettyPrintTime (double time, double totalTime) {
-    int t = (int)time;
-    if (t < 1000000)
+  protected void prettyPrintTime(double time, double totalTime) {
+    int t = (int) time;
+    if (t < 1000000) {
       VM.sysWrite(" ");
-    if (t < 100000)
+    }
+    if (t < 100000) {
       VM.sysWrite(" ");
-    if (t < 10000)
+    }
+    if (t < 10000) {
       VM.sysWrite(" ");
-    if (t < 1000)
+    }
+    if (t < 1000) {
       VM.sysWrite(" ");
-    if (t < 100)
+    }
+    if (t < 100) {
       VM.sysWrite(" ");
-    if (t < 10)
+    }
+    if (t < 10) {
       VM.sysWrite(" ");
+    }
     VM.sysWrite(t);
-    if (time/totalTime > 0.10) {
+    if (time / totalTime > 0.10) {
       VM.sysWrite("    ");
     } else {
       VM.sysWrite("     ");
     }
-    VM.sysWrite(time/totalTime*100, 2);
+    VM.sysWrite(time / totalTime * 100, 2);
     VM.sysWrite("%");
   }
 }

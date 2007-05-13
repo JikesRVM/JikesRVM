@@ -24,13 +24,13 @@ import org.jikesrvm.runtime.VM_Entrypoints;
 public abstract class VM_LazyCompilationTrampolineGenerator implements VM_BaselineConstants {
 
   /** Generate a new lazy compilation trampoline. */
-  public static ArchitectureSpecific.VM_CodeArray getTrampoline (){
-    VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0); 
+  public static ArchitectureSpecific.VM_CodeArray getTrampoline() {
+    VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
     // get JTOC into ECX
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, ECX,
                                               VM_Entrypoints.jtocField.getOffset());
     // jmp to real lazy mathod invoker
-    asm.emitJMP_RegDisp(ECX, VM_Entrypoints.lazyMethodInvokerMethod.getOffset()); 
+    asm.emitJMP_RegDisp(ECX, VM_Entrypoints.lazyMethodInvokerMethod.getOffset());
     return asm.getMachineCodes();
   }
 }

@@ -32,6 +32,7 @@ public abstract class VM_BranchProfile {
   }
 
   public final int getBytecodeIndex() { return bci; }
+
   public final float getFrequency() { return freq; }
-  
+
 }

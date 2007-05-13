@@ -19,7 +19,7 @@ import org.vmmagic.unboxed.Address;
  * Helper routine to pull the parameters to multianewarray off the
  * Java expression stack maintained by the baseline compiler and 
  * pass them to VM_Runtime.buildMultiDimensionalArray.
- * 
+ *
  * TODO: There is only 1 line of platform dependent code here; refactor?
  */
 public abstract class VM_MultianewarrayHelper {
@@ -36,26 +36,27 @@ public abstract class VM_MultianewarrayHelper {
    *
    * See also: bytecode 0xc5 ("multianewarray") in VM_Compiler
    */
-  static Object newArrayArray (int methodId, int numDimensions, int typeId, int argOffset)
-    throws NoClassDefFoundError,
-           NegativeArraySizeException, 
-           OutOfMemoryError {
+  static Object newArrayArray(int methodId, int numDimensions, int typeId, int argOffset)
+      throws NoClassDefFoundError,
+             NegativeArraySizeException,
+             OutOfMemoryError {
     // fetch number of elements to be allocated for each array dimension
     //
     int[] numElements = new int[numDimensions];
     VM.disableGC();
     Address argp = VM_Magic.getFramePointer().plus(argOffset);
     for (int i = 0; i < numDimensions; ++i) {
-        argp = argp.minus(4);
-        numElements[i] = argp.loadInt();
+      argp = argp.minus(4);
+      numElements[i] = argp.loadInt();
     }
     VM.enableGC();
-    
+
     // validate arguments
     //
-    for (int i = 0; i < numDimensions; ++i)
+    for (int i = 0; i < numDimensions; ++i) {
       if (numElements[i] < 0) throw new NegativeArraySizeException();
-    
+    }
+
     // create array
     //
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(typeId);

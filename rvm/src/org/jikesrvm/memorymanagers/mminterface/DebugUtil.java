@@ -28,37 +28,39 @@ import org.vmmagic.unboxed.ObjectReference;
 /**
  * Common debugging utility functions used by various garbage collectors
  */
-@Uninterruptible public class DebugUtil implements VM_Constants, Constants {
+@Uninterruptible
+public class DebugUtil implements VM_Constants, Constants {
 
   private static Object[] tibForArrayType;
   private static Object[] tibForClassType;
   private static Object[] tibForPrimitiveType;
 
   @Interruptible
-  static void boot (VM_BootRecord theBootRecord) {
+  static void boot(VM_BootRecord theBootRecord) {
     // get addresses of TIBs for VM_Array & VM_Class used for testing Type ptrs
     VM_Type t = VM_Array.IntArray;
     tibForArrayType = VM_ObjectModel.getTIB(t);
     tibForPrimitiveType = VM_ObjectModel.getTIB(VM_Type.IntType);
     t = VM_Magic.getObjectType(VM_BootRecord.the_boot_record);
     tibForClassType = VM_ObjectModel.getTIB(t);
-  }    
+  }
 
   /**
    * Check if an address appears to point to an instance of VM_Type
-   * 
+   *
    * @param typeAddress the address to check
    */
   @Uninterruptible
-  public static boolean validType(ObjectReference typeAddress) { 
-     if (!Space.isMappedObject(typeAddress))
+  public static boolean validType(ObjectReference typeAddress) {
+    if (!Space.isMappedObject(typeAddress)) {
       return false;  // type address is outside of heap
+    }
 
     // check if types tib is one of three possible values
     Object[] typeTib = VM_ObjectModel.getTIB(typeAddress);
-    return ( (typeTib == tibForClassType) || 
-             (typeTib == tibForArrayType) ||
-             (typeTib == tibForPrimitiveType));
+    return ((typeTib == tibForClassType) ||
+            (typeTib == tibForArrayType) ||
+            (typeTib == tibForPrimitiveType));
   }
 
   /**
@@ -66,11 +68,11 @@ import org.vmmagic.unboxed.ObjectReference;
    * by the threads saved contextRegisters (ip & fp fields).
    */
   @Uninterruptible
-  public static void dumpAllThreadStacks() { 
-      Address ip, fp;
-      VM_Thread t;
-      VM_Scheduler.trace("\ndumpAllThreadStacks",
-                         "dumping stacks for all threads");
+  public static void dumpAllThreadStacks() {
+    Address ip, fp;
+    VM_Thread t;
+    VM_Scheduler.trace("\ndumpAllThreadStacks",
+                       "dumping stacks for all threads");
     for (VM_Thread thread : VM_Scheduler.threads) {
       t = thread;
       if (t == null) continue;
@@ -89,22 +91,23 @@ import org.vmmagic.unboxed.ObjectReference;
    * Check if a ref, its tib pointer & type pointer are all in the heap
    */
   @Uninterruptible
-  public static boolean validObject(Object ref) { 
-      return validRef(ObjectReference.fromObject(ref));
+  public static boolean validObject(Object ref) {
+    return validRef(ObjectReference.fromObject(ref));
   }
 
   @Uninterruptible
-  public static boolean validRef(ObjectReference ref) { 
+  public static boolean validRef(ObjectReference ref) {
 
     if (ref.isNull()) return true;
     if (!Space.isMappedObject(ref)) {
       VM.sysWrite("validRef: REF outside heap, ref = ");
-      VM.sysWrite(ref); VM.sysWrite("\n");
+      VM.sysWrite(ref);
+      VM.sysWrite("\n");
       Space.printVMMap();
       return false;
     }
     if (MM_Constants.MOVES_OBJECTS) {
-        /*
+      /*
       TODO: Work out how to check if forwarded
       if (Plan.isForwardedOrBeingForwarded(ref)) {
         // TODO: actually follow forwarding pointer
@@ -113,45 +116,53 @@ import org.vmmagic.unboxed.ObjectReference;
       }
       */
     }
-    
+
     Object[] tib = VM_ObjectModel.getTIB(ref);
     Address tibAddr = VM_Magic.objectAsAddress(tib);
     if (!Space.isMappedObject(ObjectReference.fromObject(tib))) {
-      VM.sysWrite("validRef: TIB outside heap, ref = "); VM.sysWrite(ref);
-      VM.sysWrite(" tib = ");VM.sysWrite(tibAddr);
+      VM.sysWrite("validRef: TIB outside heap, ref = ");
+      VM.sysWrite(ref);
+      VM.sysWrite(" tib = ");
+      VM.sysWrite(tibAddr);
       VM.sysWrite("\n");
       return false;
     }
     if (tibAddr.isZero()) {
-      VM.sysWrite("validRef: TIB is Zero! "); VM.sysWrite(ref);
+      VM.sysWrite("validRef: TIB is Zero! ");
+      VM.sysWrite(ref);
       VM.sysWrite("\n");
       return false;
     }
     if (tib.length == 0) {
-      VM.sysWrite("validRef: TIB length zero, ref = "); VM.sysWrite(ref);
-      VM.sysWrite(" tib = ");VM.sysWrite(tibAddr);
+      VM.sysWrite("validRef: TIB length zero, ref = ");
+      VM.sysWrite(ref);
+      VM.sysWrite(" tib = ");
+      VM.sysWrite(tibAddr);
       VM.sysWrite("\n");
       return false;
     }
 
     ObjectReference type = ObjectReference.fromObject(tib[0]);
     if (!validType(type)) {
-      VM.sysWrite("validRef: invalid TYPE, ref = "); VM.sysWrite(ref);
+      VM.sysWrite("validRef: invalid TYPE, ref = ");
+      VM.sysWrite(ref);
       VM.sysWrite(" tib = ");
       VM.sysWrite(VM_Magic.objectAsAddress(tib));
-      VM.sysWrite(" type = ");VM.sysWrite(type); VM.sysWrite("\n");
+      VM.sysWrite(" type = ");
+      VM.sysWrite(type);
+      VM.sysWrite("\n");
       return false;
     }
     return true;
   }  // validRef
 
   @Uninterruptible
-  public static boolean mappedVMRef(ObjectReference ref) { 
+  public static boolean mappedVMRef(ObjectReference ref) {
     return Space.isMappedObject(ref) && Mmapper.objectIsMapped(ref);
   }
 
   @Uninterruptible
-  public static void dumpRef(ObjectReference ref) { 
+  public static void dumpRef(ObjectReference ref) {
     VM.sysWrite("REF=");
     if (ref.isNull()) {
       VM.sysWrite("NULL\n");
@@ -183,6 +194,6 @@ import org.vmmagic.unboxed.ObjectReference;
 
   public static boolean addrInBootImage(Address addr) {
     return (addr.GE(BOOT_IMAGE_DATA_START) && addr.LT(BOOT_IMAGE_DATA_END)) ||
-        (addr.GE(BOOT_IMAGE_CODE_START) && addr.LT(BOOT_IMAGE_CODE_END));
+           (addr.GE(BOOT_IMAGE_CODE_START) && addr.LT(BOOT_IMAGE_CODE_END));
   }
 } 

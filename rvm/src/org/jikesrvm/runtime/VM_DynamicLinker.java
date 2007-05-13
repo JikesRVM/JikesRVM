@@ -42,7 +42,6 @@ public class VM_DynamicLinker implements VM_Constants {
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);  // does not return here
   }
 
-
   /**
    * Report unimplemented native method error.
    *  Taken:    nothing (calling context is implicit)
@@ -69,15 +68,15 @@ public class VM_DynamicLinker implements VM_Constants {
    * that it doesn't implement DynamicBridge magic.
    */
   private static class DL_Helper {
-    
+
     /**
      * Discover method reference to be invoked via dynamic bridge.
-     * 
+     *
      * Taken:       nothing (call stack is examined to find invocation site)
      * Returned:    VM_DynamicLink that describes call site.
      */
     @NoInline
-    static VM_DynamicLink resolveDynamicInvocation() { 
+    static VM_DynamicLink resolveDynamicInvocation() {
 
       // find call site 
       //
@@ -85,10 +84,10 @@ public class VM_DynamicLinker implements VM_Constants {
       Address callingFrame = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());
       Address returnAddress = VM_Magic.getReturnAddress(callingFrame);
       callingFrame = VM_Magic.getCallerFramePointer(callingFrame);
-      int callingCompiledMethodId  = VM_Magic.getCompiledMethodID(callingFrame);
+      int callingCompiledMethodId = VM_Magic.getCompiledMethodID(callingFrame);
       VM_CompiledMethod callingCompiledMethod = VM_CompiledMethods.getCompiledMethod(callingCompiledMethodId);
       Offset callingInstructionOffset = callingCompiledMethod.getInstructionOffset(returnAddress);
-      VM.enableGC();     
+      VM.enableGC();
 
       // obtain symbolic method reference
       //
@@ -100,12 +99,12 @@ public class VM_DynamicLinker implements VM_Constants {
 
     /**
      * Resolve method ref into appropriate VM_Method 
-     * 
+     *
      * Taken:       VM_DynamicLink that describes call site.
      * Returned:    VM_Method that should be invoked.
      */
     @NoInline
-    static VM_Method resolveMethodRef(VM_DynamicLink dynamicLink) { 
+    static VM_Method resolveMethodRef(VM_DynamicLink dynamicLink) {
       // resolve symbolic method reference into actual method
       //
       VM_MethodReference methodRef = dynamicLink.methodRef();
@@ -127,13 +126,12 @@ public class VM_DynamicLinker implements VM_Constants {
       }
     }
 
-
     /**
      * Compile (if necessary) targetMethod and patch the appropriate disaptch tables
      * @param targetMethod the VM_Method to compile (if not already compiled)
      */
     @NoInline
-    static void compileMethod(VM_DynamicLink dynamicLink, VM_Method targetMethod) { 
+    static void compileMethod(VM_DynamicLink dynamicLink, VM_Method targetMethod) {
 
       VM_Class targetClass = targetMethod.getDeclaringClass();
 
@@ -148,18 +146,18 @@ public class VM_DynamicLinker implements VM_Constants {
           targetClass.updateTIBEntry(targetMethod);
         }
       }
-      
+
       // patch appropriate dispatch table
       //
-      if (targetMethod.isObjectInitializer() || targetMethod.isStatic()) { 
+      if (targetMethod.isObjectInitializer() || targetMethod.isStatic()) {
         targetClass.updateJTOCEntry(targetMethod);
-      } else if (dynamicLink.isInvokeSpecial()) { 
+      } else if (dynamicLink.isInvokeSpecial()) {
         targetClass.updateTIBEntry(targetMethod);
       } else {
         VM.disableGC();
         Object targetObject = VM_DynamicLinkerHelper.getReceiverObject();
         VM.enableGC();
-        VM_Class recvClass = (VM_Class)VM_Magic.getObjectType(targetObject);
+        VM_Class recvClass = (VM_Class) VM_Magic.getObjectType(targetObject);
         recvClass.updateTIBEntry(targetMethod);
       }
     }

@@ -24,6 +24,7 @@ public abstract class OPT_RegisterRestrictions extends OPT_GenericRegisterRestri
   public OPT_RegisterRestrictions(OPT_PhysicalRegisterSet phys) {
     super(phys);
   }
+
   /**
    * Is it forbidden to assign symbolic register symb to physical register r
    * in instruction s?

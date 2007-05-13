@@ -23,7 +23,8 @@ import org.vmmagic.unboxed.Word;
 /**
  * Implementation of thin locks.
  */
-@Uninterruptible public final class VM_ThinLock implements VM_ThinLockConstants {
+@Uninterruptible
+public final class VM_ThinLock implements VM_ThinLockConstants {
 
   ////////////////////////////////////////
   /// Support for light-weight locking ///
@@ -40,9 +41,9 @@ import org.vmmagic.unboxed.Word;
    * @see org.jikesrvm.compilers.opt.OPT_ExpandRuntimeServices
    */
   @Inline
-  static void inlineLock(Object o, Offset lockOffset) { 
+  static void inlineLock(Object o, Offset lockOffset) {
     Word old = VM_Magic.prepareWord(o, lockOffset);
-    if (old.rshl(TL_THREAD_ID_SHIFT).isZero()) { 
+    if (old.rshl(TL_THREAD_ID_SHIFT).isZero()) {
       // implies that fatbit == 0 & threadid == 0
       int threadId = VM_Processor.getCurrentProcessor().threadId;
       if (VM_Magic.attemptWord(o, lockOffset, old, old.or(Word.fromIntZeroExtend(threadId)))) {
@@ -65,7 +66,7 @@ import org.vmmagic.unboxed.Word;
    * @see org.jikesrvm.compilers.opt.OPT_ExpandRuntimeServices
    */
   @Inline
-  static void inlineUnlock(Object o, Offset lockOffset) { 
+  static void inlineUnlock(Object o, Offset lockOffset) {
     Word old = VM_Magic.prepareWord(o, lockOffset);
     Word threadId = Word.fromIntZeroExtend(VM_Processor.getCurrentProcessor().threadId);
     if (old.xor(threadId).rshl(TL_LOCK_COUNT_SHIFT).isZero()) { // implies that fatbit == 0 && count == 0 && lockid == me
@@ -86,71 +87,74 @@ import org.vmmagic.unboxed.Word;
    * @param lockOffset the offset of the thin lock word in the object.
    */
   @NoInline
-  public static void lock(Object o, Offset lockOffset) { 
-major: while (true) { // repeat only if attempt to lock a promoted lock fails
-         int retries = retryLimit;
-         Word threadId = Word.fromIntZeroExtend(VM_Processor.getCurrentProcessor().threadId);
-         while (0 != retries--) { // repeat if there is contention for thin lock
-          Word old = VM_Magic.prepareWord(o, lockOffset);
-          Word id = old.and(TL_THREAD_ID_MASK.or(TL_FAT_LOCK_MASK));
-          if (id.isZero()) { // o isn't locked
-            if (VM_Magic.attemptWord(o, lockOffset, old, old.or(threadId))) {
-              VM_Magic.isync(); // don't use stale prefetched data in monitor
-              if (STATS) slowLocks++;
-              break major;  // lock succeeds
-            }
-            continue; // contention, possibly spurious, try again
+  public static void lock(Object o, Offset lockOffset) {
+    major:
+    while (true) { // repeat only if attempt to lock a promoted lock fails
+      int retries = retryLimit;
+      Word threadId = Word.fromIntZeroExtend(VM_Processor.getCurrentProcessor().threadId);
+      while (0 != retries--) { // repeat if there is contention for thin lock
+        Word old = VM_Magic.prepareWord(o, lockOffset);
+        Word id = old.and(TL_THREAD_ID_MASK.or(TL_FAT_LOCK_MASK));
+        if (id.isZero()) { // o isn't locked
+          if (VM_Magic.attemptWord(o, lockOffset, old, old.or(threadId))) {
+            VM_Magic.isync(); // don't use stale prefetched data in monitor
+            if (STATS) slowLocks++;
+            break major;  // lock succeeds
           }
-          if (id.EQ(threadId)) { // this thread has o locked already
-            Word changed = old.toAddress().plus(TL_LOCK_COUNT_UNIT).toWord(); // update count
-            if (changed.and(TL_LOCK_COUNT_MASK).isZero()) { // count wrapped around (most unlikely), make heavy lock
-              while (!inflateAndLock(o, lockOffset)) { // wait for a lock to become available
-                if (VM_Processor.getCurrentProcessor().threadSwitchingEnabled())
-                  VM_Thread.yield();
+          continue; // contention, possibly spurious, try again
+        }
+        if (id.EQ(threadId)) { // this thread has o locked already
+          Word changed = old.toAddress().plus(TL_LOCK_COUNT_UNIT).toWord(); // update count
+          if (changed.and(TL_LOCK_COUNT_MASK).isZero()) { // count wrapped around (most unlikely), make heavy lock
+            while (!inflateAndLock(o, lockOffset)) { // wait for a lock to become available
+              if (VM_Processor.getCurrentProcessor().threadSwitchingEnabled()) {
+                VM_Thread.yield();
               }
-              break major;  // lock succeeds (note that lockHeavy has issued an isync)
             }
-            if (VM_Magic.attemptWord(o, lockOffset, old, changed)) {
-              VM_Magic.isync(); // don't use stale prefetched data in monitor !!TODO: is this isync required?
-              if (STATS) slowLocks++;
-              break major;  // lock succeeds
-            }
-            continue; // contention, probably spurious, try again (TODO!! worry about this)
+            break major;  // lock succeeds (note that lockHeavy has issued an isync)
           }
+          if (VM_Magic.attemptWord(o, lockOffset, old, changed)) {
+            VM_Magic.isync(); // don't use stale prefetched data in monitor !!TODO: is this isync required?
+            if (STATS) slowLocks++;
+            break major;  // lock succeeds
+          }
+          continue; // contention, probably spurious, try again (TODO!! worry about this)
+        }
 
-          if (!(old.and(TL_FAT_LOCK_MASK).isZero())) { // o has a heavy lock
-            int index = old.and(TL_LOCK_ID_MASK).rshl(TL_LOCK_ID_SHIFT).toInt();
-            while (index >= VM_Scheduler.locks.length) 
-              VM_Lock.growLocks();
-            if (VM_Scheduler.locks[index].lockHeavy(o)) {
-              break major; // lock succeeds (note that lockHeavy has issued an isync)
-            }
-            // heavy lock failed (deflated or contention for system lock)
-            if (VM_Processor.getCurrentProcessor().threadSwitchingEnabled()) {
-              VM_Thread.yield(); // wait, hope o gets unlocked
-            }
-            continue major;    // try again
+        if (!(old.and(TL_FAT_LOCK_MASK).isZero())) { // o has a heavy lock
+          int index = old.and(TL_LOCK_ID_MASK).rshl(TL_LOCK_ID_SHIFT).toInt();
+          while (index >= VM_Scheduler.locks.length) {
+            VM_Lock.growLocks();
           }
-          // real contention: wait (hope other thread unlocks o), try again
-          if (traceContention) { // for performance tuning only (see section 5)
-            Address fp = VM_Magic.getFramePointer();
-            fp = VM_Magic.getCallerFramePointer(fp);
-            int mid = VM_Magic.getCompiledMethodID(fp);
-            VM_Method m1 = VM_CompiledMethods.getCompiledMethod(mid).getMethod();
-            fp = VM_Magic.getCallerFramePointer(fp);
-            mid = VM_Magic.getCompiledMethodID(fp);
-            VM_Method m2 = VM_CompiledMethods.getCompiledMethod(mid).getMethod();
-            String s = m1.getDeclaringClass() + "." + m1.getName() + " " + m2.getDeclaringClass() + "." + m2.getName();
-            VM_Scheduler.trace(VM_Magic.getObjectType(o).toString(), s, -2-retries);
+          if (VM_Scheduler.locks[index].lockHeavy(o)) {
+            break major; // lock succeeds (note that lockHeavy has issued an isync)
           }
-          if (0 != retries && VM_Processor.getCurrentProcessor().threadSwitchingEnabled()) {
+          // heavy lock failed (deflated or contention for system lock)
+          if (VM_Processor.getCurrentProcessor().threadSwitchingEnabled()) {
             VM_Thread.yield(); // wait, hope o gets unlocked
           }
+          continue major;    // try again
         }
-        // create a heavy lock for o and lock it
-        if (inflateAndLock(o, lockOffset)) break;
-       }
-       // o has been locked, must return before an exception can be thrown
+        // real contention: wait (hope other thread unlocks o), try again
+        if (traceContention) { // for performance tuning only (see section 5)
+          Address fp = VM_Magic.getFramePointer();
+          fp = VM_Magic.getCallerFramePointer(fp);
+          int mid = VM_Magic.getCompiledMethodID(fp);
+          VM_Method m1 = VM_CompiledMethods.getCompiledMethod(mid).getMethod();
+          fp = VM_Magic.getCallerFramePointer(fp);
+          mid = VM_Magic.getCompiledMethodID(fp);
+          VM_Method m2 = VM_CompiledMethods.getCompiledMethod(mid).getMethod();
+          String s = m1.getDeclaringClass() + "." + m1.getName() + " " + m2.getDeclaringClass() + "." + m2.getName();
+          VM_Scheduler.trace(VM_Magic.getObjectType(o).toString(), s, -2 - retries);
+        }
+        if (0 != retries && VM_Processor.getCurrentProcessor().threadSwitchingEnabled()) {
+          VM_Thread.yield(); // wait, hope o gets unlocked
+        }
+      }
+      // create a heavy lock for o and lock it
+      if (inflateAndLock(o, lockOffset)) break;
+    }
+    // o has been locked, must return before an exception can be thrown
   }
 
   /**
@@ -162,19 +166,19 @@ major: while (true) { // repeat only if attempt to lock a promoted lock fails
    * @param lockOffset the offset of the thin lock word in the object.
    */
   @NoInline
-  public static void unlock(Object o, Offset lockOffset) { 
+  public static void unlock(Object o, Offset lockOffset) {
     VM_Magic.sync(); // prevents stale data from being seen by next owner of the lock
     while (true) { // spurious contention detected
       Word old = VM_Magic.prepareWord(o, lockOffset);
-      Word id  = old.and(TL_THREAD_ID_MASK.or(TL_FAT_LOCK_MASK));
+      Word id = old.and(TL_THREAD_ID_MASK.or(TL_FAT_LOCK_MASK));
       Word threadId = Word.fromIntZeroExtend(VM_Processor.getCurrentProcessor().threadId);
       if (id.NE(threadId)) { // not normal case
         if (!(old.and(TL_FAT_LOCK_MASK).isZero())) { // o has a heavy lock
           int index = old.and(TL_LOCK_ID_MASK).rshl(TL_LOCK_ID_SHIFT).toInt();
-          VM_Scheduler.locks[index].unlockHeavy(o); 
+          VM_Scheduler.locks[index].unlockHeavy(o);
           // note that unlockHeavy has issued a sync
           return;
-        } 
+        }
         VM_Scheduler.trace("VM_Lock", "unlock error: thin lock word = ", old.toAddress());
         VM_Scheduler.trace("VM_Lock", "unlock error: thin lock word = ", VM_Magic.objectAsAddress(o));
         // VM_Scheduler.trace("VM_Lock", VM_Thread.getCurrentThread().toString(), 0);
@@ -184,12 +188,12 @@ major: while (true) { // repeat only if attempt to lock a promoted lock fails
         Word changed = old.and(TL_UNLOCK_MASK);
         if (VM_Magic.attemptWord(o, lockOffset, old, changed)) {
           return; // unlock succeeds
-        } 
+        }
         continue;
       }
       // more than one lock
       // decrement recursion count
-      Word changed = old.toAddress().minus(TL_LOCK_COUNT_UNIT).toWord(); 
+      Word changed = old.toAddress().minus(TL_LOCK_COUNT_UNIT).toWord();
       if (VM_Magic.attemptWord(o, lockOffset, old, changed)) {
         return; // unlock succeeds
       }
@@ -210,11 +214,13 @@ major: while (true) { // repeat only if attempt to lock a promoted lock fails
    * @param lockOffset the offset of the thin lock word in the object.
    * @return the heavy-weight lock on this object
    */
-  private static VM_Lock inflate (Object o, Offset lockOffset) {
+  private static VM_Lock inflate(Object o, Offset lockOffset) {
     Word old;
     Word changed;
     VM_Lock l = VM_Lock.allocate();
-    if (VM.VerifyAssertions) VM._assert(l != null); // inflate called by wait (or notify) which shouldn't be called during GC
+    if (VM.VerifyAssertions) {
+      VM._assert(l != null); // inflate called by wait (or notify) which shouldn't be called during GC
+    }
     Word locked = TL_FAT_LOCK_MASK.or(Word.fromIntZeroExtend(l.index).lsh(TL_LOCK_ID_SHIFT));
     l.mutex.lock();
     do {
@@ -230,9 +236,10 @@ major: while (true) { // repeat only if attempt to lock a promoted lock fails
       changed = locked.or(old.and(TL_UNLOCK_MASK));
       if (VM_Magic.attemptWord(o, lockOffset, old, changed)) {
         l.lockedObject = o;
-        l.ownerId      = old.and(TL_THREAD_ID_MASK).toInt();
-        if (l.ownerId != 0) 
-          l.recursionCount = old.and(TL_LOCK_COUNT_MASK).rshl(TL_LOCK_COUNT_SHIFT).toInt() +1;
+        l.ownerId = old.and(TL_THREAD_ID_MASK).toInt();
+        if (l.ownerId != 0) {
+          l.recursionCount = old.and(TL_LOCK_COUNT_MASK).rshl(TL_LOCK_COUNT_SHIFT).toInt() + 1;
+        }
         l.mutex.unlock();
         return l;      // VM_Lock in place
       }
@@ -240,7 +247,7 @@ major: while (true) { // repeat only if attempt to lock a promoted lock fails
     } while (true);
   }
 
-  static void deflate (Object o, Offset lockOffset, VM_Lock l) {
+  static void deflate(Object o, Offset lockOffset, VM_Lock l) {
     if (VM.VerifyAssertions) {
       Word old = VM_Magic.getWordAtOffset(o, lockOffset);
       VM._assert(!(old.and(TL_FAT_LOCK_MASK).isZero()));
@@ -252,7 +259,6 @@ major: while (true) { // repeat only if attempt to lock a promoted lock fails
     } while (!VM_Magic.attemptWord(o, lockOffset, old, old.and(TL_UNLOCK_MASK)));
   }
 
-
   /**
    * Promotes a light-weight lock to a heavy-weight lock and locks it.
    * Note: the object in question will normally be locked by another
@@ -263,7 +269,7 @@ major: while (true) { // repeat only if attempt to lock a promoted lock fails
    * @param lockOffset the offset of the thin lock word in the object.
    * @return whether the object was successfully locked
    */
-  private static boolean inflateAndLock (Object o, Offset lockOffset) {
+  private static boolean inflateAndLock(Object o, Offset lockOffset) {
     Word old;
     Word changed;
     VM_Lock l = VM_Lock.allocate();
@@ -287,13 +293,14 @@ major: while (true) { // repeat only if attempt to lock a promoted lock fails
       if (VM_Magic.attemptWord(o, lockOffset, old, changed)) {
         l.lockedObject = o;
         l.ownerId = old.and(TL_THREAD_ID_MASK).toInt();
-        if (l.ownerId != 0) 
-          l.recursionCount = old.and(TL_LOCK_COUNT_MASK).rshl(TL_LOCK_COUNT_SHIFT).toInt() +1;
+        if (l.ownerId != 0) {
+          l.recursionCount = old.and(TL_LOCK_COUNT_MASK).rshl(TL_LOCK_COUNT_SHIFT).toInt() + 1;
+        }
         break;  // l is heavy lock for o
-      } 
+      }
       // contention detected, try again
     } while (true);
-    int threadId = VM_Processor.getCurrentProcessor().threadId; 
+    int threadId = VM_Processor.getCurrentProcessor().threadId;
     if (l.ownerId == 0) {
       l.ownerId = threadId;
       l.recursionCount = 1;
@@ -334,7 +341,7 @@ major: while (true) { // repeat only if attempt to lock a promoted lock fails
       return l != null && l.ownerId == tid;
     }
   }
-  
+
   ////////////////////////////////////////////////////////////////////////////
   /// Get heavy-weight lock for an object; if thin, inflate it.
   ////////////////////////////////////////////////////////////////////////////
@@ -349,7 +356,7 @@ major: while (true) { // repeat only if attempt to lock a promoted lock fails
    * @param create if true, create heavy lock if none found
    * @return the heavy-weight lock on the object (if any)
    */
-  public static VM_Lock getHeavyLock (Object o, Offset lockOffset, boolean create) {
+  public static VM_Lock getHeavyLock(Object o, Offset lockOffset, boolean create) {
     Word old = VM_Magic.getWordAtOffset(o, lockOffset);
     if (!(old.and(TL_FAT_LOCK_MASK).isZero())) { // already a fat lock in place
       int index = old.and(TL_LOCK_ID_MASK).rshl(TL_LOCK_ID_SHIFT).toInt();
@@ -388,17 +395,21 @@ major: while (true) { // repeat only if attempt to lock a promoted lock fails
   static int fastLocks;
   static int slowLocks;
 
-  static void notifyAppRunStart (String app, int value) {
+  static void notifyAppRunStart(String app, int value) {
     if (!STATS) return;
     fastLocks = 0;
     slowLocks = 0;
   }
 
-  static void notifyExit (int value) {
+  static void notifyExit(int value) {
     if (!STATS) return;
-    VM.sysWrite("ThinLocks: "); VM.sysWrite(fastLocks);      VM.sysWrite(" fast locks");
+    VM.sysWrite("ThinLocks: ");
+    VM.sysWrite(fastLocks);
+    VM.sysWrite(" fast locks");
     VM_Stats.percentage(fastLocks, value, "all lock operations");
-    VM.sysWrite("ThinLocks: "); VM.sysWrite(slowLocks);      VM.sysWrite(" slow locks");
+    VM.sysWrite("ThinLocks: ");
+    VM.sysWrite(slowLocks);
+    VM.sysWrite(" slow locks");
     VM_Stats.percentage(slowLocks, value, "all lock operations");
   }
 

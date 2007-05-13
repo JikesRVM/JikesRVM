@@ -36,13 +36,13 @@ public final class OPT_TIBConstantOperand extends OPT_ConstantOperand {
    * @param v the type of this TIB
    */
   public OPT_TIBConstantOperand(VM_Type v) {
-	 if (VM.VerifyAssertions) VM._assert(v != null);
+    if (VM.VerifyAssertions) VM._assert(v != null);
     value = v;
   }
 
   /**
    * Return a new operand that is semantically equivalent to <code>this</code>.
-   * 
+   *
    * @return a copy of <code>this</code>
    */
   public OPT_Operand copy() {
@@ -51,20 +51,20 @@ public final class OPT_TIBConstantOperand extends OPT_ConstantOperand {
 
   /**
    * Return the {@link VM_TypeReference} of the value represented by the operand.
-   * 
+   *
    * @return VM_TypeReference.JavaLangObjectArray
    */
   public VM_TypeReference getType() {
-	 return VM_TypeReference.JavaLangObjectArray;
+    return VM_TypeReference.JavaLangObjectArray;
   }
 
   /**
    * Does the operand represent a value of the reference data type?
-   * 
+   *
    * @return <code>true</code>
    */
   public boolean isRef() {
-	 return true;
+    return true;
   }
 
   /**
@@ -76,8 +76,8 @@ public final class OPT_TIBConstantOperand extends OPT_ConstantOperand {
    *           if they are not.
    */
   public boolean similar(OPT_Operand op) {
-	 return (op instanceof OPT_TIBConstantOperand) &&
-		value == ((OPT_TIBConstantOperand)op).value;
+    return (op instanceof OPT_TIBConstantOperand) &&
+           value == ((OPT_TIBConstantOperand) op).value;
   }
 
   /**
@@ -86,6 +86,6 @@ public final class OPT_TIBConstantOperand extends OPT_ConstantOperand {
    * @return a string representation of this operand.
    */
   public String toString() {
-	 return "tib \""+ value + "\"";
+    return "tib \"" + value + "\"";
   }
 }

@@ -59,8 +59,8 @@ import org.jikesrvm.compilers.opt.ir.ia32.OPT_PhysicalRegisterSet;
  */
 
 final class OPT_ExpandFPRStackConvention extends OPT_CompilerPhase
-  implements OPT_Operators{
-  
+    implements OPT_Operators {
+
   /**
    * The number of FPRs available for allocation.
    * Normally 7: we reserve one for final MIR expansion.
@@ -77,26 +77,26 @@ final class OPT_ExpandFPRStackConvention extends OPT_CompilerPhase
     return this;
   }
 
-  public boolean printingEnabled (OPT_Options options, boolean before) {
-    return  options.PRINT_CALLING_CONVENTIONS && !before;
+  public boolean printingEnabled(OPT_Options options, boolean before) {
+    return options.PRINT_CALLING_CONVENTIONS && !before;
   }
 
-  public String getName() { 
-    return "Expand Calling Convention"; 
+  public String getName() {
+    return "Expand Calling Convention";
   }
 
   /**
    * Insert the needed dummy defs and uses.
    */
-  public void perform(OPT_IR ir)  {
+  public void perform(OPT_IR ir) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
-    for (OPT_BasicBlockEnumeration b = ir.getBasicBlocks(); b.hasMoreElements(); ) {
+    for (OPT_BasicBlockEnumeration b = ir.getBasicBlocks(); b.hasMoreElements();) {
       OPT_BasicBlock bb = b.nextElement();
-      
+
       if (bb instanceof OPT_ExceptionHandlerBasicBlock) {
         // clear all floating-point state at the entry to a catch block
-        for (int i=0; i<NUM_ALLOCATABLE_FPR; i++) {
+        for (int i = 0; i < NUM_ALLOCATABLE_FPR; i++) {
           OPT_Register fpr = phys.getFPR(i);
           bb.prependInstruction(MIR_UnaryNoRes.create(DUMMY_USE,
                                                       OPT_IRTools.D(fpr)));
@@ -104,28 +104,30 @@ final class OPT_ExpandFPRStackConvention extends OPT_CompilerPhase
                                                    OPT_IRTools.D(fpr)));
         }
       }
-      
+
       // The following holds the floating point stack offset from its
       // 'normal' position.
       int fpStackOffset = 0;
 
-      for (OPT_InstructionEnumeration inst = bb.forwardInstrEnumerator(); 
+      for (OPT_InstructionEnumeration inst = bb.forwardInstrEnumerator();
            inst.hasMoreElements();) {
         OPT_Instruction s = inst.nextElement();
         if (s.operator().isFpPop()) {
           // A pop instruction 'ends' a dummy live range.
-          OPT_Register fpr = phys.getFPR(NUM_ALLOCATABLE_FPR-fpStackOffset);
-          s.insertAfter(MIR_UnaryNoRes.create(DUMMY_USE,OPT_IRTools.D(fpr)));
+          OPT_Register fpr = phys.getFPR(NUM_ALLOCATABLE_FPR - fpStackOffset);
+          s.insertAfter(MIR_UnaryNoRes.create(DUMMY_USE, OPT_IRTools.D(fpr)));
           fpStackOffset--;
         } else if (s.operator().isFpPush()) {
           fpStackOffset++;
-          OPT_Register fpr = phys.getFPR(NUM_ALLOCATABLE_FPR-fpStackOffset);
-          s.insertBefore(MIR_Nullary.create(DUMMY_DEF,OPT_IRTools.D(fpr)));
+          OPT_Register fpr = phys.getFPR(NUM_ALLOCATABLE_FPR - fpStackOffset);
+          s.insertBefore(MIR_Nullary.create(DUMMY_DEF, OPT_IRTools.D(fpr)));
         }
         if (VM.VerifyAssertions) VM._assert(fpStackOffset >= 0);
-        if (VM.VerifyAssertions) VM._assert(fpStackOffset <
-                                           NUM_ALLOCATABLE_FPR);
+        if (VM.VerifyAssertions) {
+          VM._assert(fpStackOffset <
+                     NUM_ALLOCATABLE_FPR);
+        }
       }
     }
-  } 
+  }
 }

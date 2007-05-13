@@ -18,7 +18,7 @@ import org.vmmagic.unboxed.Address;
  * Platform independent utility functions called from VM_JNIFunctions
  * (cannot be placed in VM_JNIFunctions because methods 
  * there are specially compiled to be called from native).
- * 
+ *
  * @see VM_JNIFunctions
  */
 public abstract class VM_JNIGenericHelpers {
@@ -26,7 +26,7 @@ public abstract class VM_JNIGenericHelpers {
   /**
    * Given an address in C that points to a null-terminated string,
    * create a new Java byte[] with a copy of the string.
-   * 
+   *
    * @param stringAddress an address in C space for a string
    * @return a new Java byte[]
    */
@@ -47,30 +47,34 @@ public abstract class VM_JNIGenericHelpers {
         byte2 = ((word >> 8) & 0xFF);
         byte3 = (word & 0xFF);
       }
-      if (byte0==0)
+      if (byte0 == 0) {
         break;
+      }
       length++;
-      if (byte1==0) 
+      if (byte1 == 0) {
         break;
+      }
       length++;
-      if (byte2==0)
+      if (byte2 == 0) {
         break;
+      }
       length++;
-      if (byte3==0)
+      if (byte3 == 0) {
         break;
+      }
       length++;
     }
 
-   byte[] contents = new byte[length];
-   VM_Memory.memcopy(VM_Magic.objectAsAddress(contents), stringAddress, length);
-   
-   return contents;
+    byte[] contents = new byte[length];
+    VM_Memory.memcopy(VM_Magic.objectAsAddress(contents), stringAddress, length);
+
+    return contents;
   }
 
   /**
    * Given an address in C that points to a null-terminated string,
    * create a new Java String with a copy of the string.
-   * 
+   *
    * @param stringAddress an address in C space for a string
    * @return a new Java String
    */
@@ -99,21 +103,28 @@ public abstract class VM_JNIGenericHelpers {
 
   static void setBoolStar(Address boolPtr, boolean val) {
     // VM.sysWriteln("Someone called setBoolStar");
-    if (boolPtr.isZero())
+    if (boolPtr.isZero()) {
       return;
+    }
     int temp = boolPtr.loadInt();
     int intval;
     if (VM.LittleEndian) {
       if (val)                  // set to true.
+      {
         intval = (temp & 0xffffff00) | 0x00000001;
-      else                      // set to false
+      } else                      // set to false
+      {
         intval = (temp & 0xffffff00);
+      }
     } else {
       /* Big Endian */
       if (val)                  // set to true
+      {
         intval = (temp & 0x00ffffff) | 0x01000000;
-      else                      // set to false
-        intval =  temp & 0x00ffffff;
+      } else                      // set to false
+      {
+        intval = temp & 0x00ffffff;
+      }
     }
     boolPtr.store(intval);
   }

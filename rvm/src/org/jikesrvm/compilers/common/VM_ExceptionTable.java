@@ -38,8 +38,8 @@ public abstract class VM_ExceptionTable {
    * @return the machine code offset of the catch block.
    */
   public static int findCatchBlockForInstruction(int[] eTable,
-                                                       Offset instructionOffset, 
-                                                       VM_Type exceptionType) {
+                                                 Offset instructionOffset,
+                                                 VM_Type exceptionType) {
     for (int i = 0, n = eTable.length; i < n; i += 4) {
       // note that instructionOffset points to the instruction after the PEI
       // so the range check here must be "offset >  beg && offset <= end"
@@ -66,14 +66,14 @@ public abstract class VM_ExceptionTable {
    * Print an encoded exception table.
    * @param eTable the encoded exception table to print.
    */
-  public static void printExceptionTable (int[] eTable) {
+  public static void printExceptionTable(int[] eTable) {
     int length = eTable.length;
     VM.sysWriteln("Exception Table:");
     VM.sysWriteln("    trystart   tryend    catch    type");
-    for (int i = 0; i<length; i+=4) {
-      VM.sysWriteln("    " + 
-                    VM_Services.getHexString(eTable[i + TRY_START], true) + " "+
-                    VM_Services.getHexString(eTable[i + TRY_END], true) + " " + 
+    for (int i = 0; i < length; i += 4) {
+      VM.sysWriteln("    " +
+                    VM_Services.getHexString(eTable[i + TRY_START], true) + " " +
+                    VM_Services.getHexString(eTable[i + TRY_END], true) + " " +
                     VM_Services.getHexString(eTable[i + CATCH_START], true) + "    " +
                     VM_Type.getType(eTable[i + EX_TYPE]));
     }

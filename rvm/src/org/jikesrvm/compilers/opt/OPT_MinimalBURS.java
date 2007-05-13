@@ -46,10 +46,10 @@ final class OPT_MinimalBURS extends OPT_BURS {
 
   /**
    * Create a BURS object for the given IR.
-   * 
+   *
    * @param IR the IR to translate from LIR to MIR.
    */
-  OPT_MinimalBURS (OPT_IR IR) {
+  OPT_MinimalBURS(OPT_IR IR) {
     super(IR);
   }
 
@@ -58,18 +58,17 @@ final class OPT_MinimalBURS extends OPT_BURS {
    * then generate MIR instructions based on the labeling.
    * @param bb   The dependence graph.   XXX Is this correct?
    */
-  public void invoke (OPT_BasicBlock bb) {
+  public void invoke(OPT_BasicBlock bb) {
     OPT_BURS_STATE burs = new OPT_BURS_STATE(this);
     for (OPT_InstructionEnumeration e = bb.forwardRealInstrEnumerator();
          e.hasMoreElements();) {
       OPT_Instruction s = e.next();
       OPT_BURS_TreeNode tn = buildTree(s);
       burs.label(tn);
-      OPT_BURS_STATE.mark(tn, /* goalnt */(byte)1);
+      OPT_BURS_STATE.mark(tn, /* goalnt */(byte) 1);
       generateTree(tn, burs);
     }
   }
-
 
   ////////////////////////////////
   // Implementation 
@@ -81,11 +80,11 @@ final class OPT_MinimalBURS extends OPT_BURS {
    * creating tree edges by calling insertChild1() or insertChild2()
    * This step is also where we introduce intermediate tree nodes for 
    * any LIR instruction that has > 2 "real" operands e.g., a CALL.
-   * 
+   *
    * @param s The instruction for which a tree must be built
    */
   private OPT_BURS_TreeNode buildTree(OPT_Instruction s) {
-    
+
     OPT_BURS_TreeNode root = new OPT_BURS_TreeNode(new OPT_DepGraphNode(s));
     OPT_BURS_TreeNode cur = root;
     for (OPT_OperandEnumeration uses = s.getUses(); uses.hasMoreElements();) {
@@ -96,9 +95,9 @@ final class OPT_MinimalBURS extends OPT_BURS {
       OPT_BURS_TreeNode child;
       if (op instanceof OPT_RegisterOperand) {
         if (op.asRegister().register.isValidation()) continue;
-        child = Register; 
+        child = Register;
       } else if (op instanceof OPT_IntConstantOperand) {
-        child = new OPT_BURS_IntConstantTreeNode(((OPT_IntConstantOperand)op).value);
+        child = new OPT_BURS_IntConstantTreeNode(((OPT_IntConstantOperand) op).value);
       } else if (op instanceof OPT_LongConstantOperand) {
         child = LongConstant;
       } else if (op instanceof OPT_AddressConstantOperand) {
@@ -113,9 +112,9 @@ final class OPT_MinimalBURS extends OPT_BURS {
 
       // Attach child as child of cur_parent in correct position
       if (cur.child1 == null) {
-        cur.child1 = child; 
+        cur.child1 = child;
       } else if (cur.child2 == null) {
-        cur.child2 = child; 
+        cur.child2 = child;
       } else {
         // Create auxiliary node so as to represent
         // a instruction with arity > 2 in a binary tree.
@@ -130,15 +129,17 @@ final class OPT_MinimalBURS extends OPT_BURS {
 
     // patch for calls & return 
     switch (s.getOpcode()) {
-    case CALL_opcode:
-    case SYSCALL_opcode:
-    case YIELDPOINT_OSR_opcode:
-      if (cur.child2 == null)
-        cur.child2 = NullTreeNode;
-      // fall through
-    case RETURN_opcode:
-      if (cur.child1 == null)
-        cur.child1 = NullTreeNode;
+      case CALL_opcode:
+      case SYSCALL_opcode:
+      case YIELDPOINT_OSR_opcode:
+        if (cur.child2 == null) {
+          cur.child2 = NullTreeNode;
+        }
+        // fall through
+      case RETURN_opcode:
+        if (cur.child1 == null) {
+          cur.child1 = NullTreeNode;
+        }
     }
     return root;
   }

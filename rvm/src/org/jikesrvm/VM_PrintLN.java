@@ -16,19 +16,24 @@ import org.jikesrvm.classloader.VM_Member;
  * This interface is implemented by org.jikesrvm.VM_PrintContainer.  The
  * interfaces is used by our java.lang.Throwable to print stack traces.
  */
-@SuppressWarnings("unused")  // Suppress the unused import warning as per comment above
+@SuppressWarnings("unused")
+// Suppress the unused import warning as per comment above
 public abstract class VM_PrintLN {
   //  VM_PrintLN(PrintWriter out);
   //  VM_PrintLN(PrintStream out);
   public boolean isSysWrite() { return false; }
+
   public boolean isSystemErr() { return false; }
+
   public abstract void flush();
-  
+
   public abstract void println();
+
   public void println(String s) {
     print(s);
     println();
   }
+
   public abstract void print(String s);
 
   /* Here, we are writing code to make sure that we do not rely upon any
@@ -48,14 +53,15 @@ public abstract class VM_PrintLN {
     } else if (n < 0) {
       print('-');
       n = -n;
-    }     
+    }
     /* We now have a positive # of the proper range.  Will need to exit from
-       the bottom of the loop. */
+the bottom of the loop. */
     for (int p = max_int_pow10; p >= 1; p /= 10) {
       int digit = n / p;
       n -= digit * p;
-      if (digit == 0 && suppress_leading_zero)
+      if (digit == 0 && suppress_leading_zero) {
         continue;
+      }
       suppress_leading_zero = false;
       char c = (char) ('0' + digit);
       print(c);
@@ -84,24 +90,26 @@ public abstract class VM_PrintLN {
 //    * 
 //    * @param o Print the name of the class to which o belongs. */
 //   public void printClassName(Object o) {
-    
+
 //   }
 
   /** Print the name of the class represented by the class descriptor.
-   * 
+   *
    * @param descriptor The class descriptor whose name we'll print. */
   public void printClassName(VM_Atom descriptor) {
     // toByteArray does not allocate; just returns an existing descriptor.
     byte[] val = descriptor.toByteArray();
 
-    if (VM.VerifyAssertions) 
-      VM._assert(val[0] == 'L' && val[val.length-1] == ';'); 
+    if (VM.VerifyAssertions) {
+      VM._assert(val[0] == 'L' && val[val.length - 1] == ';');
+    }
     for (int i = 1; i < val.length - 1; ++i) {
       char c = (char) val[i];
-      if (c == '/')
+      if (c == '/') {
         print('.');
-      else
+      } else {
         print(c);
+      }
     }
     // We could do this in an emergency.  But we don't need to.
     // print(descriptor);
@@ -110,11 +118,11 @@ public abstract class VM_PrintLN {
   /* Code related to VM_Atom.classNameFromDescriptor() */
   public void print(VM_Class class_) {
     // getDescriptor() does no allocation.
-    VM_Atom descriptor = class_.getDescriptor(); 
+    VM_Atom descriptor = class_.getDescriptor();
     printClassName(descriptor);
   }
 
-    // A kludgy alternative:
+  // A kludgy alternative:
 //     public void print(VM_Class c) {
 //       VM_Atom descriptor = c.getDescriptor();
 //       try {
@@ -124,14 +132,14 @@ public abstract class VM_PrintLN {
 //       }
 //     }
 
-    // No such method:
-    //public void print(VM_Class c) {
-    //      VM.sysWrite(c);
-    //    }
-
+  // No such method:
+  //public void print(VM_Class c) {
+  //      VM.sysWrite(c);
+  //    }
 
   /* Here we need to imitate the work that would normally be done by
-   * VM_Member.toString() (which VM_Method.toString() inherits) */
+* VM_Member.toString() (which VM_Method.toString() inherits) */
+
   public void print(VM_Member m) {
     print(m.getDeclaringClass()); // VM_Class
     print('.');
@@ -142,14 +150,14 @@ public abstract class VM_PrintLN {
 
   public void print(VM_Atom a) {
     byte[] val;
-	 if (a != null) {
-		val = a.toByteArray();
-     for (byte aVal : val) {
-       print((char) aVal);
-     }
-   } else {
-		print("(null)");
-	 }
+    if (a != null) {
+      val = a.toByteArray();
+      for (byte aVal : val) {
+        print((char) aVal);
+      }
+    } else {
+      print("(null)");
+    }
   }
 }
 

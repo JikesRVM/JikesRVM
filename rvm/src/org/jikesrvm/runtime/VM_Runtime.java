@@ -68,21 +68,21 @@ import org.vmmagic.unboxed.Offset;
  * </ul>
  */
 public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_StackframeLayoutConstants {
-   
+
   // Trap codes for communication with C trap handler.
   //
-  public static final int TRAP_UNKNOWN        = -1;
-  public static final int TRAP_NULL_POINTER   =  0;
-  public static final int TRAP_ARRAY_BOUNDS   =  1;
-  public static final int TRAP_DIVIDE_BY_ZERO =  2;
-  public static final int TRAP_STACK_OVERFLOW =  3;
-  public static final int TRAP_CHECKCAST      =  4; // opt-compiler
-  public static final int TRAP_REGENERATE     =  5; // opt-compiler
-  public static final int TRAP_JNI_STACK      =  6; // jni
-  public static final int TRAP_MUST_IMPLEMENT =  7; 
-  public static final int TRAP_STORE_CHECK    =  8; // opt-compiler
+  public static final int TRAP_UNKNOWN = -1;
+  public static final int TRAP_NULL_POINTER = 0;
+  public static final int TRAP_ARRAY_BOUNDS = 1;
+  public static final int TRAP_DIVIDE_BY_ZERO = 2;
+  public static final int TRAP_STACK_OVERFLOW = 3;
+  public static final int TRAP_CHECKCAST = 4; // opt-compiler
+  public static final int TRAP_REGENERATE = 5; // opt-compiler
+  public static final int TRAP_JNI_STACK = 6; // jni
+  public static final int TRAP_MUST_IMPLEMENT = 7;
+  public static final int TRAP_STORE_CHECK = 8; // opt-compiler
   public static final int TRAP_STACK_OVERFLOW_FATAL = 9; // assertion checking
-   
+
   //---------------------------------------------------------------//
   //                     Type Checking.                            //
   //---------------------------------------------------------------//
@@ -94,9 +94,9 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * @param targetID type reference id corresponding to target
    *                 class/array/interface 
    * @return true iff is object instance of target type?
-   */ 
+   */
   static boolean instanceOf(Object object, int targetID)
-    throws NoClassDefFoundError {
+      throws NoClassDefFoundError {
 
     /*  Here, LHS and RHS refer to the way we would treat these if they were
         arguments to an assignment operator and we were testing for
@@ -114,14 +114,15 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
     }
 
     /* Test for null only AFTER we have resolved the type of targetID. */
-    if (object == null)
+    if (object == null) {
       return false; // null is not an instance of any type
+    }
 
     VM_Type rhsType = VM_ObjectModel.getObjectType(object);
     /* RHS must already be resolved, since we have a non-null object that is 
        an instance of RHS  */
-    if (VM.VerifyAssertions)  VM._assert(rhsType.isResolved());
-    if (VM.VerifyAssertions)  VM._assert(lhsType.isResolved());
+    if (VM.VerifyAssertions) VM._assert(rhsType.isResolved());
+    if (VM.VerifyAssertions) VM._assert(lhsType.isResolved());
 
     return lhsType == rhsType || VM_DynamicTypeCheck.instanceOfResolved(lhsType, rhsType);
   }
@@ -133,10 +134,11 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * @return true iff is object instance of target type?
    */
   @Uninterruptible
-  static boolean instanceOfResolvedClass(Object object, int id) { 
-    if (object == null)
+  static boolean instanceOfResolvedClass(Object object, int id) {
+    if (object == null) {
       return false; // null is not an instance of any type
-    
+    }
+
     VM_Class lhsType = VM_Type.getType(id).asClass();
     Object[] rhsTIB = VM_ObjectModel.getTIB(object);
     return VM_DynamicTypeCheck.instanceOfClass(lhsType, rhsTIB);
@@ -145,7 +147,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
   /**
    * Quick version for final classes, array of final class or array of
    * primitives
-   * 
+   *
    * @param object Object to be tested
    * @param targetTibOffset  JTOC offset of TIB of target type
    *
@@ -153,27 +155,28 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    *         target type
    */
   @Uninterruptible
-  static boolean instanceOfFinal(Object object, Offset targetTibOffset) { 
-    if (object == null)
+  static boolean instanceOfFinal(Object object, Offset targetTibOffset) {
+    if (object == null) {
       return false; // null is not an instance of any type
+    }
 
-    Object lhsTib= VM_Magic.getObjectAtOffset(VM_Magic.getJTOC(), targetTibOffset);
-    Object rhsTib= VM_ObjectModel.getTIB(object);
+    Object lhsTib = VM_Magic.getObjectAtOffset(VM_Magic.getJTOC(), targetTibOffset);
+    Object rhsTib = VM_ObjectModel.getTIB(object);
     return lhsTib == rhsTib;
   }
-
 
   /**
    * Throw exception unless object is instance of target 
    * class/array or implements target interface.
    * @param object object to be tested
    * @param id of type reference corresponding to target class/array/interface
-   */ 
-  static void checkcast(Object object, int id) 
-    throws ClassCastException,
-           NoClassDefFoundError {
-    if (object == null)
+   */
+  static void checkcast(Object object, int id)
+      throws ClassCastException,
+             NoClassDefFoundError {
+    if (object == null) {
       return; // null may be cast to any type
+    }
 
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
     VM_Type lhsType = tRef.peekResolvedType();
@@ -181,8 +184,9 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
       lhsType = tRef.resolve();
     }
     VM_Type rhsType = VM_ObjectModel.getObjectType(object);
-    if (lhsType == rhsType)
+    if (lhsType == rhsType) {
       return; // exact match
+    }
 
     // not an exact match, do more involved lookups
     //
@@ -195,9 +199,9 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * Throw exception unless object is instance of target resolved proper class.
    * @param object object to be tested
    * @param id of type corresponding to target class
-   */ 
+   */
   @Uninterruptible
-  static void checkcastResolvedClass(Object object, int id) { 
+  static void checkcastResolvedClass(Object object, int id) {
     if (object == null) return; // null can be cast to any type
 
     VM_Class lhsType = VM_Type.getType(id).asClass();
@@ -215,21 +219,27 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * quick version for final classes, array of final class or array of primitives
    */
   @Uninterruptible
-  static void checkcastFinal(Object object, Offset targetTibOffset) { 
+  static void checkcastFinal(Object object, Offset targetTibOffset) {
     if (object == null) return; // null can be cast to any type
 
-    Object lhsTib= VM_Magic.getObjectAtOffset(VM_Magic.getJTOC(), targetTibOffset);
-    Object rhsTib= VM_ObjectModel.getTIB(object);
+    Object lhsTib = VM_Magic.getObjectAtOffset(VM_Magic.getJTOC(), targetTibOffset);
+    Object rhsTib = VM_ObjectModel.getTIB(object);
     if (lhsTib != rhsTib) {
-      VM_Type lhsType = VM_Magic.objectAsType(VM_Magic.getObjectAtOffset(lhsTib,Offset.fromIntZeroExtend(TIB_TYPE_INDEX<<LOG_BYTES_IN_ADDRESS)));
-      VM_Type rhsType = VM_Magic.objectAsType(VM_Magic.getObjectAtOffset(rhsTib,Offset.fromIntZeroExtend(TIB_TYPE_INDEX<<LOG_BYTES_IN_ADDRESS)));
+      VM_Type lhsType =
+          VM_Magic.objectAsType(VM_Magic.getObjectAtOffset(lhsTib,
+                                                           Offset.fromIntZeroExtend(TIB_TYPE_INDEX <<
+                                                                                    LOG_BYTES_IN_ADDRESS)));
+      VM_Type rhsType =
+          VM_Magic.objectAsType(VM_Magic.getObjectAtOffset(rhsTib,
+                                                           Offset.fromIntZeroExtend(TIB_TYPE_INDEX <<
+                                                                                    LOG_BYTES_IN_ADDRESS)));
       raiseCheckcastException(lhsType, rhsType);
     }
   }
 
   @LogicallyUninterruptible
   @Uninterruptible
-  private static void raiseCheckcastException(VM_Type lhsType, VM_Type rhsType) { 
+  private static void raiseCheckcastException(VM_Type lhsType, VM_Type rhsType) {
     throw new ClassCastException("Cannot cast a(n) " + rhsType + " to a(n) " + lhsType);
   }
 
@@ -237,37 +247,40 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * Throw exception iff array assignment is illegal.
    */
   static void checkstore(Object array, Object arrayElement) throws ArrayStoreException {
-    if (arrayElement == null)
+    if (arrayElement == null) {
       return; // null may be assigned to any type
+    }
 
     VM_Type lhsType = VM_Magic.getObjectType(array);
     VM_Type elmType = lhsType.asArray().getElementType();
-      
-    if (elmType == VM_Type.JavaLangObjectType) 
+
+    if (elmType == VM_Type.JavaLangObjectType) {
       return; // array of Object can receive anything
+    }
 
     VM_Type rhsType = VM_Magic.getObjectType(arrayElement);
-     
-    if (elmType == rhsType)
-      return; // exact type match
 
-    if (isAssignableWith(elmType, rhsType))
+    if (elmType == rhsType) {
+      return; // exact type match
+    }
+
+    if (isAssignableWith(elmType, rhsType)) {
       return;
+    }
 
     throw new ArrayStoreException();
   }
-
 
   /**
    * May a variable of type "lhs" be assigned a value of type "rhs"?
    * @param lhs type of variable
    * @param rhs type of value
-   * @return   true  --> assignment is legal
+   * @return true  --> assignment is legal
    *           false --> assignment is illegal
    * <strong>Assumption</strong>: caller has already tested "trivial" case 
    * (exact type match)
    *             so we need not repeat it here
-   */ 
+   */
   public static boolean isAssignableWith(VM_Type lhs, VM_Type rhs) {
     if (!lhs.isResolved()) {
       lhs.resolve();
@@ -278,11 +291,10 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
     return VM_DynamicTypeCheck.instanceOfResolved(lhs, rhs);
   }
 
-      
   //---------------------------------------------------------------//
   //                     Object Allocation.                        //
   //---------------------------------------------------------------//
-   
+
   static int countDownToGC = VM.StressGCAllocationInterval;
 
   /**
@@ -291,31 +303,32 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * @return object with header installed and all fields set to zero/null
    *           (ready for initializer to be run on it)
    * See also: bytecode 0xbb ("new")
-   */ 
-  static Object unresolvedNewScalar(int id, int site) 
-    throws NoClassDefFoundError, 
-           OutOfMemoryError { 
+   */
+  static Object unresolvedNewScalar(int id, int site)
+      throws NoClassDefFoundError,
+             OutOfMemoryError {
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
     VM_Type t = tRef.peekResolvedType();
     if (t == null) {
       t = tRef.resolve();
     }
     VM_Class cls = t.asClass();
-    if (!cls.isInitialized()) 
+    if (!cls.isInitialized()) {
       initializeClassForDynamicLink(cls);
+    }
 
     int allocator = MM_Interface.pickAllocator(cls);
     int align = VM_ObjectModel.getAlignment(cls);
     int offset = VM_ObjectModel.getOffsetForAlignment(cls);
-    return resolvedNewScalar(cls.getInstanceSize(), 
-                             cls.getTypeInformationBlock(), 
+    return resolvedNewScalar(cls.getInstanceSize(),
+                             cls.getTypeInformationBlock(),
                              cls.hasFinalizer(),
                              allocator,
                              align,
                              offset,
                              site);
   }
-   
+
   /**
    * Allocate something like "new Foo()".
    * @param cls VM_Class of array to create 
@@ -324,13 +337,13 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * See also: bytecode 0xbb ("new")
    */
   public static Object resolvedNewScalar(VM_Class cls) {
-    
+
     int allocator = MM_Interface.pickAllocator(cls);
     int site = MM_Interface.getAllocationSite(false);
     int align = VM_ObjectModel.getAlignment(cls);
     int offset = VM_ObjectModel.getOffsetForAlignment(cls);
-    return resolvedNewScalar(cls.getInstanceSize(), 
-                             cls.getTypeInformationBlock(), 
+    return resolvedNewScalar(cls.getInstanceSize(),
+                             cls.getTypeInformationBlock(),
                              cls.hasFinalizer(),
                              allocator,
                              align,
@@ -351,14 +364,14 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    *           (ready for initializer to be run on it)
    * See also: bytecode 0xbb ("new")
    */
-  public static Object resolvedNewScalar(int size, 
-                                         Object[] tib, 
-                                         boolean hasFinalizer, 
+  public static Object resolvedNewScalar(int size,
+                                         Object[] tib,
+                                         boolean hasFinalizer,
                                          int allocator,
                                          int align,
                                          int offset,
-                                         int site) 
-    throws OutOfMemoryError {
+                                         int site)
+      throws OutOfMemoryError {
 
     // GC stress testing
     if (VM.ForceFrequentGC && VM_Scheduler.allProcessorsInitialized) {
@@ -377,7 +390,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
 
     return newObj;
   }
-   
+
   /**
    * Allocate something like "new Foo[]".
    * @param numElements number of array elements
@@ -385,9 +398,9 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * @param site the site id of the calling allocation site 
    * @return array with header installed and all fields set to zero/null
    * See also: bytecode 0xbc ("anewarray")
-   */ 
-  public static Object unresolvedNewArray(int numElements, int id, int site) 
-    throws NoClassDefFoundError, OutOfMemoryError, NegativeArraySizeException { 
+   */
+  public static Object unresolvedNewArray(int numElements, int id, int site)
+      throws NoClassDefFoundError, OutOfMemoryError, NegativeArraySizeException {
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
     VM_Type t = tRef.peekResolvedType();
     if (t == null) {
@@ -408,16 +421,16 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * @param array VM_Array of array to create 
    * @return array with header installed and all fields set to zero/null
    * See also: bytecode 0xbc ("anewarray")
-   */ 
-  public static Object resolvedNewArray(int numElements, VM_Array array) 
-    throws OutOfMemoryError, NegativeArraySizeException { 
+   */
+  public static Object resolvedNewArray(int numElements, VM_Array array)
+      throws OutOfMemoryError, NegativeArraySizeException {
     return resolvedNewArray(numElements, array, MM_Interface.getAllocationSite(false));
   }
-  
-  public static Object resolvedNewArray(int numElements, VM_Array array, int site) 
-    throws OutOfMemoryError, NegativeArraySizeException { 
 
-    return resolvedNewArray(numElements, 
+  public static Object resolvedNewArray(int numElements, VM_Array array, int site)
+      throws OutOfMemoryError, NegativeArraySizeException {
+
+    return resolvedNewArray(numElements,
                             array.getLogElementSize(),
                             VM_ObjectModel.computeArrayHeaderSize(array),
                             array.getTypeInformationBlock(),
@@ -426,7 +439,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
                             VM_ObjectModel.getOffsetForAlignment(array),
                             site);
   }
-   
+
   /**
    * Allocate something like "new int[cnt]" or "new Foo[cnt]".
    * @param numElements number of array elements
@@ -439,16 +452,16 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * @return array object with header installed and all elements set 
    *         to zero/null
    * See also: bytecode 0xbc ("newarray") and 0xbd ("anewarray")
-   */ 
-  public static Object resolvedNewArray(int numElements, 
+   */
+  public static Object resolvedNewArray(int numElements,
                                         int logElementSize,
-                                        int headerSize, 
+                                        int headerSize,
                                         Object[] tib,
                                         int allocator,
                                         int align,
                                         int offset,
                                         int site)
-    throws OutOfMemoryError, NegativeArraySizeException {
+      throws OutOfMemoryError, NegativeArraySizeException {
 
     if (numElements < 0) raiseNegativeArraySizeException();
 
@@ -462,14 +475,14 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
     }
 
     // Allocate the array and initialize its header
-    return MM_Interface.allocateArray(numElements, logElementSize, 
+    return MM_Interface.allocateArray(numElements, logElementSize,
                                       headerSize, tib, allocator, align, offset, site);
   }
 
   /**
    * clone a Scalar or Array Object
    * called from java/lang/Object.clone()
-   * 
+   *
    * For simplicity, we just code this more or less in Java using
    * internal reflective operations and some magic.  
    * This is inefficient for large scalar objects, but until that 
@@ -477,24 +490,25 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * By keeping this in Java instead of dropping into VM_Memory.copy,
    * we avoid having to add special case code to deal with write barriers,
    * and other such things.
-   * 
+   *
    * @param obj the object to clone
    * @return the cloned object
-   */ 
-  public static Object clone (Object obj)
-    throws OutOfMemoryError, CloneNotSupportedException {
+   */
+  public static Object clone(Object obj)
+      throws OutOfMemoryError, CloneNotSupportedException {
     VM_Type type = VM_Magic.getObjectType(obj);
     if (type.isArrayType()) {
-      VM_Array ary   = type.asArray();
-      int      nelts = VM_ObjectModel.getArrayLength(obj);
-      Object newObj  = resolvedNewArray(nelts, ary);
+      VM_Array ary = type.asArray();
+      int nelts = VM_ObjectModel.getArrayLength(obj);
+      Object newObj = resolvedNewArray(nelts, ary);
       System.arraycopy(obj, 0, newObj, 0, nelts);
       return newObj;
     } else {
-      if (!(obj instanceof Cloneable))
+      if (!(obj instanceof Cloneable)) {
         throw new CloneNotSupportedException();
-      VM_Class cls   = type.asClass();
-      Object newObj  = resolvedNewScalar(cls);
+      }
+      VM_Class cls = type.asClass();
+      Object newObj = resolvedNewScalar(cls);
       for (VM_Field f : cls.getInstanceFields()) {
         VM_TypeReference ft = f.getType();
         if (ft.isReferenceType()) {
@@ -505,27 +519,27 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
         } else {
           Offset offset = f.getOffset();
           switch (ft.getMemoryBytes()) {
-          case BYTES_IN_BYTE: {
-            byte bits = VM_Magic.getByteAtOffset(obj, offset);
-            VM_Magic.setByteAtOffset(newObj, offset, bits);
-            break;
-          }
-          case BYTES_IN_CHAR: {
-            char bits = VM_Magic.getCharAtOffset(obj, offset);
-            VM_Magic.setCharAtOffset(newObj, offset, bits);
-            break;
-          }
-          case BYTES_IN_LONG: {
-            long bits = VM_Magic.getLongAtOffset(obj, offset);
-            VM_Magic.setLongAtOffset(newObj, offset, bits);
-            break;
-          }
-          default: {
-            if (VM.VerifyAssertions) VM._assert(ft.getMemoryBytes() == BYTES_IN_INT);
-            int bits = VM_Magic.getIntAtOffset(obj, offset);
-            VM_Magic.setIntAtOffset(newObj, offset, bits);
-            break;
-          }
+            case BYTES_IN_BYTE: {
+              byte bits = VM_Magic.getByteAtOffset(obj, offset);
+              VM_Magic.setByteAtOffset(newObj, offset, bits);
+              break;
+            }
+            case BYTES_IN_CHAR: {
+              char bits = VM_Magic.getCharAtOffset(obj, offset);
+              VM_Magic.setCharAtOffset(newObj, offset, bits);
+              break;
+            }
+            case BYTES_IN_LONG: {
+              long bits = VM_Magic.getLongAtOffset(obj, offset);
+              VM_Magic.setLongAtOffset(newObj, offset, bits);
+              break;
+            }
+            default: {
+              if (VM.VerifyAssertions) VM._assert(ft.getMemoryBytes() == BYTES_IN_INT);
+              int bits = VM_Magic.getIntAtOffset(obj, offset);
+              VM_Magic.setIntAtOffset(newObj, offset, bits);
+              break;
+            }
           }
         }
       }
@@ -539,7 +553,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    */
   @NoInline
   private static void raiseNegativeArraySizeException()
-    throws NegativeArraySizeException { 
+      throws NegativeArraySizeException {
     throw new NegativeArraySizeException();
   }
 
@@ -548,10 +562,10 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    *
    * Side effect: hash value is generated and stored into object's 
    * status word.
-   * 
+   *
    * @return object's hashcode.
    * @see java.lang.Object#hashCode().
-   */ 
+   */
   public static int getObjectHashCode(Object object) {
     return VM_ObjectModel.getObjectHashCode(object);
   }
@@ -565,17 +579,19 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * field access, or method invocation.
    * Made public so that it is accessible from java.lang.reflect.*.
    * @see VM_MemberReference#needsDynamicLink
-   */ 
+   */
   public static void initializeClassForDynamicLink(VM_Class cls) {
-    if (VM.TraceClassLoading) 
+    if (VM.TraceClassLoading) {
       VM.sysWrite("VM_Runtime.initializeClassForDynamicLink: (begin) " + cls + "\n");
+    }
 
     cls.resolve();
-    cls.instantiate();  
+    cls.instantiate();
     cls.initialize();   // throws ExceptionInInitializerError
 
-    if (VM.TraceClassLoading) 
+    if (VM.TraceClassLoading) {
       VM.sysWrite("VM_Runtime.initializeClassForDynamicLink: (end)   " + cls + "\n");
+    }
   }
 
   //---------------------------------------------------------------//
@@ -585,25 +601,25 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
   /**
    * Report unexpected method call: interface method 
    * (virtual machine dispatching error, shouldn't happen).
-   */ 
+   */
   static void unexpectedInterfaceMethodCall() {
     VM.sysFail("interface method dispatching error");
   }
-   
+
   /**
    * Report unexpected method call: abstract method (verification error).
    */
   static void unexpectedAbstractMethodCall() {
-    VM.sysWrite("VM_Runtime.unexpectedAbstractMethodCall\n"); 
+    VM.sysWrite("VM_Runtime.unexpectedAbstractMethodCall\n");
     throw new AbstractMethodError();
   }
-   
+
   /**
    * Report unimplemented bytecode.
-   */ 
-  static void unimplementedBytecode(int bytecode) { 
-    VM.sysWrite(bytecode);                                  
-    VM.sysFail("VM_Runtime.unimplementedBytecode\n");      
+   */
+  static void unimplementedBytecode(int bytecode) {
+    VM.sysWrite(bytecode);
+    VM.sysFail("VM_Runtime.unimplementedBytecode\n");
   }
 
   //---------------------------------------------------------------//
@@ -620,12 +636,12 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * This method is public so that it can be invoked by java.lang.VMClass.
    */
   @NoInline
-  public static void athrow(Throwable exceptionObject) { 
+  public static void athrow(Throwable exceptionObject) {
     VM_Registers registers = new VM_Registers();
     VM.disableGC();              // VM.enableGC() is called when the exception is delivered.
     VM_Magic.saveThreadState(registers);
     registers.inuse = true;
-    deliverException(exceptionObject,registers);
+    deliverException(exceptionObject, registers);
   }
 
   /**
@@ -638,7 +654,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    *           execution resumes in a catch block somewhere up the stack)
    *     /or/  execution resumes at instruction following trap 
    *     (for TRAP_STACK_OVERFLOW)
-   * 
+   *
    * <p> Note:     Control reaches here by the actions of an 
    *           external "C" signal handler
    *           which saves the register state of the trap site into the 
@@ -654,12 +670,12 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
   @NoOptCompile
   static void deliverHardwareException(int trapCode, int trapInfo) {
 
-    VM_Thread    myThread           = VM_Thread.getCurrentThread();
+    VM_Thread myThread = VM_Thread.getCurrentThread();
     VM_Registers exceptionRegisters = myThread.hardwareExceptionRegisters;
 
-    if ((trapCode == TRAP_STACK_OVERFLOW || trapCode == TRAP_JNI_STACK) && 
-        myThread.stack.length < (STACK_SIZE_MAX >> LOG_BYTES_IN_ADDRESS) && 
-        !myThread.hasNativeStackFrame()) { 
+    if ((trapCode == TRAP_STACK_OVERFLOW || trapCode == TRAP_JNI_STACK) &&
+        myThread.stack.length < (STACK_SIZE_MAX >> LOG_BYTES_IN_ADDRESS) &&
+        !myThread.hasNativeStackFrame()) {
       // expand stack by the size appropriate for normal or native frame 
       // and resume execution at successor to trap instruction
       // (C trap handler has set register.ip to the instruction following the trap).
@@ -668,7 +684,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
       } else {
         VM_Thread.resizeCurrentStack(myThread.stack.length + STACK_SIZE_GROW, exceptionRegisters);
       }
-      if (VM.VerifyAssertions) VM._assert(exceptionRegisters.inuse == true); 
+      if (VM.VerifyAssertions) VM._assert(exceptionRegisters.inuse == true);
       exceptionRegisters.inuse = false;
       VM_Magic.restoreHardwareExceptionState(exceptionRegisters);
 
@@ -683,39 +699,38 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
 
     Throwable exceptionObject;
     switch (trapCode) {
-    case TRAP_NULL_POINTER:
-      exceptionObject = new java.lang.NullPointerException();
-      break;
-    case TRAP_ARRAY_BOUNDS:
-      exceptionObject = new java.lang.ArrayIndexOutOfBoundsException(trapInfo);
-      break;
-    case TRAP_DIVIDE_BY_ZERO:
-      exceptionObject = new java.lang.ArithmeticException();
-      break;
-    case TRAP_STACK_OVERFLOW:
-    case TRAP_JNI_STACK:
-      exceptionObject = new java.lang.StackOverflowError();
-      break;
-    case TRAP_CHECKCAST:
-      exceptionObject = new java.lang.ClassCastException();
-      break;
-    case TRAP_MUST_IMPLEMENT:
-      exceptionObject = new java.lang.IncompatibleClassChangeError();
-      break;
-    case TRAP_STORE_CHECK:
-      exceptionObject = new java.lang.ArrayStoreException();
-      break;
-    default:
-      exceptionObject = new java.lang.UnknownError();
-      VM_Scheduler.traceback("UNKNOWN ERROR");
-      break;
+      case TRAP_NULL_POINTER:
+        exceptionObject = new java.lang.NullPointerException();
+        break;
+      case TRAP_ARRAY_BOUNDS:
+        exceptionObject = new java.lang.ArrayIndexOutOfBoundsException(trapInfo);
+        break;
+      case TRAP_DIVIDE_BY_ZERO:
+        exceptionObject = new java.lang.ArithmeticException();
+        break;
+      case TRAP_STACK_OVERFLOW:
+      case TRAP_JNI_STACK:
+        exceptionObject = new java.lang.StackOverflowError();
+        break;
+      case TRAP_CHECKCAST:
+        exceptionObject = new java.lang.ClassCastException();
+        break;
+      case TRAP_MUST_IMPLEMENT:
+        exceptionObject = new java.lang.IncompatibleClassChangeError();
+        break;
+      case TRAP_STORE_CHECK:
+        exceptionObject = new java.lang.ArrayStoreException();
+        break;
+      default:
+        exceptionObject = new java.lang.UnknownError();
+        VM_Scheduler.traceback("UNKNOWN ERROR");
+        break;
     }
-      
+
     VM.disableGC();  // VM.enableGC() is called when the exception is delivered.
     deliverException(exceptionObject, exceptionRegisters);
   }
 
-     
   /**
    * Unlock an object and then deliver a software exception 
    * to current java thread.
@@ -723,9 +738,9 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * @param objToThrow exception object to deliver 
    * (null --> deliver NullPointerException).
    * does not return (stack is unwound and execution resumes in a catch block)
-   */ 
+   */
   @NoInline
-  static void unlockAndThrow(Object objToUnlock, Throwable objToThrow) { 
+  static void unlockAndThrow(Object objToUnlock, Throwable objToThrow) {
     VM_ObjectModel.genericUnlock(objToUnlock);
     athrow(objToThrow);
   }
@@ -736,7 +751,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * then recover the array index from a trap instruction.
    */
   @NoInline
-  static void raiseArrayIndexOutOfBoundsException(int index) { 
+  static void raiseArrayIndexOutOfBoundsException(int index) {
     throw new java.lang.ArrayIndexOutOfBoundsException(index);
   }
 
@@ -747,7 +762,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * error, but it has lost track of exactly what the index is going to be.
    */
   @NoInline
-  static void raiseArrayIndexOutOfBoundsException() { 
+  static void raiseArrayIndexOutOfBoundsException() {
     throw new java.lang.ArrayIndexOutOfBoundsException();
   }
 
@@ -761,7 +776,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * raise a null pointer exception.
    */
   @NoInline
-  public static void raiseNullPointerException() { 
+  public static void raiseNullPointerException() {
     throw new java.lang.NullPointerException();
   }
 
@@ -771,7 +786,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * of inlining (see java.lang.System.arraycopy()). 
    */
   @NoInline
-  public static void raiseArrayStoreException() { 
+  public static void raiseArrayStoreException() {
     throw new java.lang.ArrayStoreException();
   }
 
@@ -783,7 +798,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * raise an arithmetic exception.
    */
   @NoInline
-  static void raiseArithmeticException() { 
+  static void raiseArithmeticException() {
     throw new java.lang.ArithmeticException();
   }
 
@@ -792,7 +807,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * Used to handle error cases in invokeinterface dispatching.
    */
   @NoInline
-  static void raiseAbstractMethodError() { 
+  static void raiseAbstractMethodError() {
     throw new java.lang.AbstractMethodError();
   }
 
@@ -801,31 +816,29 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * Used to handle error cases in invokeinterface dispatching.
    */
   @NoInline
-  static void raiseIllegalAccessError() { 
+  static void raiseIllegalAccessError() {
     throw new java.lang.IllegalAccessError();
   }
-
-
 
   //----------------//
   // implementation //
   //----------------//
-   
+
   public static void init() {
     // tell "RunBootImage.C" to pass control to 
     // "VM_Runtime.deliverHardwareException()"
     // whenever the host operating system detects a hardware trap
     //
-    VM_BootRecord.the_boot_record.hardwareTrapMethodId = 
-      VM_CompiledMethods.createHardwareTrapCompiledMethod().getId();
-    VM_BootRecord.the_boot_record.deliverHardwareExceptionOffset = 
-      VM_Entrypoints.deliverHardwareExceptionMethod.getOffset();
+    VM_BootRecord.the_boot_record.hardwareTrapMethodId =
+        VM_CompiledMethods.createHardwareTrapCompiledMethod().getId();
+    VM_BootRecord.the_boot_record.deliverHardwareExceptionOffset =
+        VM_Entrypoints.deliverHardwareExceptionMethod.getOffset();
 
     // tell "RunBootImage.C" to set "VM_Scheduler.debugRequested" flag
     // whenever the host operating system detects a debug request signal
     //
-    VM_BootRecord.the_boot_record.debugRequestedOffset = 
-      VM_Entrypoints.debugRequestedField.getOffset();
+    VM_BootRecord.the_boot_record.debugRequestedOffset =
+        VM_Entrypoints.debugRequestedField.getOffset();
   }
 
   /**
@@ -834,9 +847,9 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * @param numElements number of elements to allocate for each dimension
    * @param arrayType type of array that will result
    * @return array object
-   */ 
+   */
   public static Object buildMultiDimensionalArray(int methodId,
-                                                  int[] numElements, 
+                                                  int[] numElements,
                                                   VM_Array arrayType) {
     VM_Method method = VM_MemberReference.getMemberRef(methodId).asMethodReference().peekResolvedMethod();
     if (VM.VerifyAssertions) VM._assert(method != null);
@@ -849,32 +862,33 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * @param dimIndex Current dimension to build
    * @param arrayType type of array that will result
    */
-  public static Object buildMDAHelper (VM_Method method,
-                                       int[] numElements, 
-                                       int dimIndex, 
-                                       VM_Array arrayType) {
+  public static Object buildMDAHelper(VM_Method method,
+                                      int[] numElements,
+                                      int dimIndex,
+                                      VM_Array arrayType) {
 
     if (!arrayType.isInstantiated()) {
       arrayType.resolve();
       arrayType.instantiate();
     }
 
-    int    nelts     = numElements[dimIndex];
+    int nelts = numElements[dimIndex];
     Object newObject = resolvedNewArray(nelts, arrayType);
 
-    if (++dimIndex == numElements.length)
+    if (++dimIndex == numElements.length) {
       return newObject; // all dimensions have been built
+    }
 
-    Object[] newArray     = (Object[]) newObject;
+    Object[] newArray = (Object[]) newObject;
     VM_Array newArrayType = arrayType.getElementType().asArray();
-   
+
     for (int i = 0; i < nelts; ++i) {
       newArray[i] = buildMDAHelper(method, numElements, dimIndex, newArrayType);
     }
 
     return newArray;
   }
-   
+
   /**
    * Deliver an exception to current java thread.
    * <STRONG> Precondition: </STRONG> VM.disableGC has already been called. 
@@ -892,42 +906,45 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    *  <li> <em> or </em> current thread is terminated if no catch block is found
    * </ul>
    */
-  private static void deliverException(Throwable exceptionObject, 
+  private static void deliverException(Throwable exceptionObject,
                                        VM_Registers exceptionRegisters) {
     if (VM.debugOOM) {
       VM.sysWriteln("VM_Runtime.deliverException() entered; just got an exception object.");
     }
-    if (VM.BuildForIA32)
+    if (VM.BuildForIA32) {
       VM_Magic.clearFloatingPointState();
-    
+    }
+
     // walk stack and look for a catch block
     //
-    if(VM.debugOOM)
+    if (VM.debugOOM) {
       VM.sysWrite("Hunting for a catch block...");
+    }
     VM_Type exceptionType = VM_Magic.getObjectType(exceptionObject);
     Address fp = exceptionRegisters.getInnermostFramePointer();
-    while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP) ){
+    while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
       int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
-      if (compiledMethodId != INVISIBLE_METHOD_ID) { 
-          VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
-          VM_ExceptionDeliverer exceptionDeliverer = compiledMethod.getExceptionDeliverer();
-          Address ip = exceptionRegisters.getInnermostInstructionAddress();
-          Offset ipOffset = compiledMethod.getInstructionOffset(ip);
-          int catchBlockOffset = compiledMethod.findCatchBlockForInstruction(ipOffset, exceptionType);
+      if (compiledMethodId != INVISIBLE_METHOD_ID) {
+        VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
+        VM_ExceptionDeliverer exceptionDeliverer = compiledMethod.getExceptionDeliverer();
+        Address ip = exceptionRegisters.getInnermostInstructionAddress();
+        Offset ipOffset = compiledMethod.getInstructionOffset(ip);
+        int catchBlockOffset = compiledMethod.findCatchBlockForInstruction(ipOffset, exceptionType);
 
-          if (catchBlockOffset >= 0  ){ 
-            // found an appropriate catch block
-            if (VM.debugOOM)
-              VM.sysWriteln("found one; delivering.");
-            Address catchBlockStart = compiledMethod.getInstructionAddress(Offset.fromIntSignExtend(catchBlockOffset));
-            exceptionDeliverer.deliverException(compiledMethod,
-                                                catchBlockStart,
-                                                exceptionObject, 
-                                                exceptionRegisters);
-            if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
+        if (catchBlockOffset >= 0) {
+          // found an appropriate catch block
+          if (VM.debugOOM) {
+            VM.sysWriteln("found one; delivering.");
           }
-          
-          exceptionDeliverer.unwindStackFrame(compiledMethod, exceptionRegisters);
+          Address catchBlockStart = compiledMethod.getInstructionAddress(Offset.fromIntSignExtend(catchBlockOffset));
+          exceptionDeliverer.deliverException(compiledMethod,
+                                              catchBlockStart,
+                                              exceptionObject,
+                                              exceptionRegisters);
+          if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
+        }
+
+        exceptionDeliverer.unwindStackFrame(compiledMethod, exceptionRegisters);
       } else {
         unwindInvisibleStackFrame(exceptionRegisters);
       }
@@ -941,21 +958,22 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
     /* No appropriate catch block found. */
 
     VM_Thread.getCurrentThread().dyingWithUncaughtException = true;
-    
+
     /* Grow the heap.
-     * This could be (but isn't) undoable.  That doesn't matter here, since
-     * we're dying in any case.  
-     *
-     * There's no way to give the additional memory exclusively to this
-     * particular thread; too bad. */
-    if (VM.doEmergencyGrowHeap && exceptionObject instanceof OutOfMemoryError)
-      MM_Interface.emergencyGrowHeap(5 * (1<<20)); // ask for 5 megs and pray
+* This could be (but isn't) undoable.  That doesn't matter here, since
+* we're dying in any case.
+*
+* There's no way to give the additional memory exclusively to this
+* particular thread; too bad. */
+    if (VM.doEmergencyGrowHeap && exceptionObject instanceof OutOfMemoryError) {
+      MM_Interface.emergencyGrowHeap(5 * (1 << 20)); // ask for 5 megs and pray
+    }
     handlePossibleRecursiveException();
-    VM.enableGC();    
+    VM.enableGC();
     VM_Thread vmThr = VM_Thread.getCurrentThread();
     Thread thr = vmThr.peekJavaLangThread();
     if (thr == null) {
-      VM.sysWrite("Exception in the primordial thread \"", vmThr.toString(), 
+      VM.sysWrite("Exception in the primordial thread \"", vmThr.toString(),
                   "\" while booting: ");
     } else {
       // This is output like that of the Sun JDK.
@@ -967,18 +985,20 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
   }
 
   private static int handlingUncaughtException = 0; // used by handlePossibleRecursiveException()
-    
 
   /** Handle the case of exception handling triggering new exceptions. */
   private static void handlePossibleRecursiveException() {
     ++handlingUncaughtException;
-    if (handlingUncaughtException > 1 
-        && handlingUncaughtException <= VM.maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite) {
+    if (handlingUncaughtException > 1
+        &&
+        handlingUncaughtException <=
+        VM.maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite) {
       VM.sysWrite("We got an uncaught exception while (recursively) handling ");
       VM.sysWrite(handlingUncaughtException - 1);
       VM.sysWrite(" uncaught exception");
-      if (handlingUncaughtException - 1 != 1)
+      if (handlingUncaughtException - 1 != 1) {
         VM.sysWrite("s");
+      }
       VM.sysWriteln(".");
     }
     if (handlingUncaughtException > VM.maxSystemTroubleRecursionDepth) {
@@ -986,7 +1006,6 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
       if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
     }
   }
-
 
   /**
    * The current frame is expected to be one of the JNI functions 
@@ -1002,7 +1021,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * Ton Ngo 7/30/01
    */
   @Uninterruptible
-  public static Address unwindNativeStackFrame(Address currfp) { 
+  public static Address unwindNativeStackFrame(Address currfp) {
     Address ip, callee_fp;
     Address fp = VM_Magic.getCallerFramePointer(currfp);
 
@@ -1023,7 +1042,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
         } else {
           return callee_fp;
         }
-      // AIX and 64-bit Linux PPC use PowerOpen ABI
+        // AIX and 64-bit Linux PPC use PowerOpen ABI
       } else {
         return callee_fp;
       }
@@ -1040,7 +1059,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * references. 
    */
   @Uninterruptible
-  public static Address unwindNativeStackFrameForGC(Address currfp) { 
+  public static Address unwindNativeStackFrameForGC(Address currfp) {
     if (VM.BuildForMachOABI) {
       // Unlike on AIX, there are two glue frames. The frame the
       // VM_JNICompiler refers to as "glue frame 1" will contain saved
@@ -1056,14 +1075,15 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
       } while (!MM_Interface.addressInVM(ip) && fp.NE(STACKFRAME_SENTINEL_FP));
 
       return callee_fp;
-    } else
+    } else {
       return unwindNativeStackFrame(currfp);
+    }
   }
-  
+
   /**
    * Unwind stack frame for an <invisible method>.
    * See also: VM_ExceptionDeliverer.unwindStackFrame()
-   * 
+   *
    * !!TODO: Could be a reflective method invoker frame.
    *        Does it clobber any non-volatiles?
    *        If so, how do we restore them?

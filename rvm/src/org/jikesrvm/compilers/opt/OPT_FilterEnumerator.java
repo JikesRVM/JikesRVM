@@ -15,49 +15,51 @@ import java.util.NoSuchElementException;
  * A <code>FilterEnumerator</code> filters and maps a source
  * <code>Enumeration</code> to generate a new one.
  */
-public class OPT_FilterEnumerator<S,T>
+public class OPT_FilterEnumerator<S, T>
     implements Enumeration<T> {
   final Enumeration<S> e;
-  final Filter<S,T> f;
+  final Filter<S, T> f;
   private S next;
   private boolean done;
 
-  public OPT_FilterEnumerator (Enumeration<S> e, Filter<S,T> f) {
+  public OPT_FilterEnumerator(Enumeration<S> e, Filter<S, T> f) {
     this.e = e;
     this.f = f;
     advance();
   }
 
-  private void advance () {
+  private void advance() {
     while (e.hasMoreElements()) {
       next = e.nextElement();
-      if (f.isElement(next))
+      if (f.isElement(next)) {
         return;
+      }
     }
     done = true;
   }
 
-  public T nextElement () {
-    if (done)
-      throw  new NoSuchElementException();
+  public T nextElement() {
+    if (done) {
+      throw new NoSuchElementException();
+    }
     S o = next;
     advance();
-    return  f.map(o);
+    return f.map(o);
   }
 
-  public boolean hasMoreElements () {
-    return  !done;
+  public boolean hasMoreElements() {
+    return !done;
   }
 
-  public static class Filter<S,T> {                  // override with your mapping.
+  public static class Filter<S, T> {                  // override with your mapping.
 
-    public boolean isElement (S o) {
-      return  true;
+    public boolean isElement(S o) {
+      return true;
     }
 
     @SuppressWarnings("unchecked")
-    public T map (S o) {
-      return  (T)o;
+    public T map(S o) {
+      return (T) o;
     }
   }
 }

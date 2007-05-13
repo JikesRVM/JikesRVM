@@ -27,7 +27,7 @@ import org.vmmagic.unboxed.Offset;
  * ISSUE: GCMapping for dynamic bridge assumes that it is being used for
  *        lazy method compilation.  Need to generalize to support 
  *        opt's use for other purposes. 
- * 
+ *
  * @see OPT_Compiler (hooks to recognize & specially compile this class)
  */
 @SaveVolatile
@@ -39,7 +39,7 @@ public class VM_OptSaveVolatile {
    * This method is identical to the yieldpointFromPrologue() 
    * method used by the baseline compiler, except in the OPT compiler world, 
    * we also save the volatile registers.
-   */         
+   */
   public static void OPT_yieldpointFromPrologue() {
     VM_Thread.yieldpoint(VM_Thread.PROLOGUE);
   }
@@ -49,7 +49,7 @@ public class VM_OptSaveVolatile {
    * This method is identical to the yieldpointFromEpilogue() 
    * method used by the baseline compiler, except in the OPT compiler world, 
    * we also save the volatile registers.
-   */         
+   */
   public static void OPT_yieldpointFromEpilogue() {
     VM_Thread.yieldpoint(VM_Thread.EPILOGUE);
   }
@@ -59,14 +59,14 @@ public class VM_OptSaveVolatile {
    * This method is identical to the yieldpointFromBackedge() method used 
    * method used by the baseline compiler, except in the OPT compiler world, 
    * we also save the volatile registers.
-   */         
+   */
   public static void OPT_yieldpointFromBackedge() {
     VM_Thread.yieldpoint(VM_Thread.BACKEDGE);
   }
 
   /**
    * Handle timer interrupt taken in the prologue of a native method.
-   */         
+   */
   public static void OPT_yieldpointFromNativePrologue() {
     // VM.sysWriteln(123);
     // VM.sysWriteln(VM_Magic.getFramePointer());
@@ -78,7 +78,7 @@ public class VM_OptSaveVolatile {
 
   /**
    * Handle timer interrupt taken in the epilogue of a native method.
-   */         
+   */
   public static void OPT_yieldpointFromNativeEpilogue() {
     // VM.sysWriteln(321);
     // VM.sysWriteln(VM_Magic.getFramePointer());
@@ -92,7 +92,7 @@ public class VM_OptSaveVolatile {
    * OSR invalidation being initiated.
    */
   @Uninterruptible
-  public static void OPT_yieldpointFromOsrOpt() { 
+  public static void OPT_yieldpointFromOsrOpt() {
     VM_Processor.getCurrentProcessor().yieldToOSRRequested = true;
     VM_Thread.yieldpoint(VM_Thread.OSROPT);
   }
@@ -102,7 +102,7 @@ public class VM_OptSaveVolatile {
    * dynamically loaded/resolved/etc.
    */
   @Interruptible
-  public static void OPT_resolve() throws NoClassDefFoundError { 
+  public static void OPT_resolve() throws NoClassDefFoundError {
     VM.disableGC();
     // (1) Get the compiled method & compilerInfo for the (opt) 
     // compiled method that called OPT_resolve
