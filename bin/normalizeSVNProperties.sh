@@ -7,13 +7,10 @@
 #
 # (C) Copyright IBM Corp. 2006
 #
-#
-# @author Dave Grove
-#
 # This is really an administrative script used by the core team to maintain
 # the svn repository.  It's job is to normalize the svn properties on files
 # based on their extensions.
-
+#
 
 cd $RVM_ROOT
 
