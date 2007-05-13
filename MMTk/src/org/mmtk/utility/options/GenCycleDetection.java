@@ -13,7 +13,6 @@ package org.mmtk.utility.options;
  * Should we use a generational approach to cycle detection?
  * 
  *
- * @author Daniel Frampton
  */
 public class GenCycleDetection extends BooleanOption {
   /**

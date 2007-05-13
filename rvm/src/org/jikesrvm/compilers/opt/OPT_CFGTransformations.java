@@ -24,7 +24,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_WeightedBranchTargets;
  *    <li>  elimination of critical edges,
  *  </ul>
  *
- * @author Martin Trapp
  */
 class OPT_CFGTransformations extends OPT_CompilerPhase {
 

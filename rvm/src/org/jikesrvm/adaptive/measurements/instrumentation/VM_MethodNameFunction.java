@@ -14,7 +14,6 @@ import org.jikesrvm.compilers.common.VM_CompiledMethods;
 /**
  * VM_MethodNameFunction.java
  *
- * @author Stephen Fink
  *
  * This class takes a compiled method id and returns a string
  * representation of the method name.

@@ -9,8 +9,6 @@
 package org.jikesrvm.compilers.opt;
 
 /**
- * @author Mauricio J. Serrano
- * @author John Whaley
  */
 class OPT_SpaceEffGraphEdgeListHeader {
   OPT_SpaceEffGraphEdgeList _first;

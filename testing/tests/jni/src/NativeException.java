@@ -9,8 +9,6 @@
 /**
  *  Test exception handling through JNI and native code
  *
- * @author Ton Ngo, Steve Smith 
- * @date   3/24/00
  */
 
 

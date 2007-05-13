@@ -29,12 +29,6 @@ import org.vmmagic.unboxed.Word;
  * VM_JavaHeader.THIN_LOCK_SHIFT = # of b's
  * </pre>
  * 
- * @author Bowen Alpern
- * @author David Bacon
- * @author Stephen Fink
- * @author Dave Grove
- * @author Derek Lieber
- * @modified to Word Kris Venstermans
  */
 public interface VM_ThinLockConstants  extends VM_SizeConstants {
 

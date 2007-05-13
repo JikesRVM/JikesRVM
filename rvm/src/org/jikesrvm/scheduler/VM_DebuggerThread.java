@@ -22,8 +22,6 @@ import org.vmmagic.unboxed.Address;
  * by VM_Thread.threadSwitch() following receipt of a debug request 
  * signal (SIGQUIT).
  *
- * @author Derek Lieber
- * @date 28 April 1999 
  */
 public class VM_DebuggerThread extends VM_Thread {
 

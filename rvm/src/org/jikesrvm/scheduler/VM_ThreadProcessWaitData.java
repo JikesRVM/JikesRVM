@@ -15,7 +15,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * Object specifying a process to wait for,
  * and for recording its exit status.
  *
- * @author David Hovemeyer
  * @see VM_ThreadProcessWaitQueue
  */
 @Uninterruptible public class VM_ThreadProcessWaitData

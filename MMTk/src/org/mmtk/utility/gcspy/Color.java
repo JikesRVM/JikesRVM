@@ -21,7 +21,6 @@ import org.vmmagic.pragma.*;
  * the server side (Stream) with colours
  * 
  *
- * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  */
 @Uninterruptible public class Color {
 

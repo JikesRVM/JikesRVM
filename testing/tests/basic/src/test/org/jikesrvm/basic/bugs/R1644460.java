@@ -13,8 +13,6 @@ package test.org.jikesrvm.basic.bugs;
  *
  * Should be tested with -X:aos:initial_compiler=opt in at least one test-configuration. 
  *
- * @author Peter Donald
- * @author Dave Grove
  */
 public class R1644460 {
   public static float b = 0.009765625f;

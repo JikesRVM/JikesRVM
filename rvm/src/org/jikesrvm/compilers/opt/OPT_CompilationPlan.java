@@ -14,9 +14,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
 /*
  * OPT_CompilationPlan.java
  *
- * @author Stephen Fink
- * @author Dave Grove
- * @author Michael Hind
  *
  * An instance of this class acts instructs the optimizing
  * compiler how to compile the specified method.

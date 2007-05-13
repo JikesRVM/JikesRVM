@@ -8,7 +8,6 @@
  */
 
 /** 
- * @author Ton Ngo
  */
 #include <stdlib.h>
 #include <string.h>

@@ -13,7 +13,6 @@ package org.mmtk.utility.options;
  * Should memory be protected on release?
  * 
  *
- * @author Daniel Frampton
  */
 public class ProtectOnRelease extends BooleanOption {
   /**

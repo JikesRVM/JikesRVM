@@ -14,8 +14,6 @@ package org.jikesrvm.compilers.opt;
  * IMPORTANT: Phases that change the SSA state MUST update the SSA
  *            actual options held by the IR object.
  *
- * @author Stephen Fink
- * @author Martin Trapp
  */
 public class OPT_SSAOptions {
   /**

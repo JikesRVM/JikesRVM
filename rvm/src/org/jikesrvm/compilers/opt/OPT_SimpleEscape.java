@@ -143,7 +143,6 @@ import org.jikesrvm.compilers.opt.ir.Store;
  * <p> TODO: This would be more effective if formulated as a data-flow
  *       problem, and solved with iteration
  *
- * @author Stephen Fink
  *
  */
 class OPT_SimpleEscape extends OPT_CompilerPhase {

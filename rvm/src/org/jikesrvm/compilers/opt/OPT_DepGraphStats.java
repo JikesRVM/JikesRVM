@@ -20,7 +20,6 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.NULL_CHECK;
  * compile-time overhead is less of a concern.)
  *
  * @see OPT_DepGraph
- * @author Vivek Sarkar
  */
 class OPT_DepGraphStats {
   /**

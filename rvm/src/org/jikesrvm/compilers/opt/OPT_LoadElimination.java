@@ -61,7 +61,6 @@ import org.jikesrvm.compilers.opt.ir.ResultCarrier;
  * This class implements the redundant load elimination by
  * Fink, Knobe && Sarkar.  See SAS 2000 paper for details.
  *
- * @author Stephen Fink
  */
 final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
 

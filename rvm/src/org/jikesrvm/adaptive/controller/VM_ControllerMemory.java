@@ -22,8 +22,6 @@ import org.jikesrvm.util.VM_HashMap;
  *  controller plans, which contain compilation plans and other goodies,
  *  and allows searching for previous decisions
  *
- *  @author Michael Hind
- *  @author Stephen Fink
  */
 public final class VM_ControllerMemory implements VM_Constants {
 

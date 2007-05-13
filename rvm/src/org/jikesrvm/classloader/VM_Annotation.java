@@ -22,7 +22,6 @@ import org.vmmagic.unboxed.Offset;
  * Internal representation of an annotation. We synthetically create
  * actual annotations {@link VM_Class}.
  *
- * @author Ian Rogers
  */
 public final class VM_Annotation {
   /**

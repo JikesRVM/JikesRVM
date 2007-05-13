@@ -17,8 +17,6 @@ import java.util.NoSuchElementException;
  *
  * TODO: This should be a final class; rewrite subclasses to let us do that.
  *
- * @author Dave Grove
- * @author Robin Garner
  */
 public class VM_HashMap<K,V> {
   private static final int DEFAULT_SIZE = 7;

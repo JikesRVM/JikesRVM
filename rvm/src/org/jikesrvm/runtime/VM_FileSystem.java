@@ -53,8 +53,6 @@ import org.vmmagic.pragma.Inline;
  * functions to perform a preemptive IO wait, which hopefully prevents
  * them from blocking in the OS.
  *
- * @author Bowen Alpern
- * @author Derek Lieber
  */
 public class VM_FileSystem {
 

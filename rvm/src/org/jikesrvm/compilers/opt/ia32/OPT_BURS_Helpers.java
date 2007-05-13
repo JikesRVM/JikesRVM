@@ -135,9 +135,6 @@ import org.vmmagic.unboxed.Offset;
 /**
  * Contains IA32-specific helper functions for BURS.
  * 
- * @author Dave Grove
- * @author Stephen Fink
- * @author Ian Rogers
  */
 abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
   /** Constant log10(2), supported as an x87 constant */

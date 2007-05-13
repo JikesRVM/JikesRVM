@@ -74,11 +74,6 @@ import org.jikesrvm.compilers.opt.ir.Unary;
 /**
  * Perform simple peephole optimizations for branches.
  * 
- * @author Stephen Fink
- * @author Dave Grove
- * @author Mauricio Serrano
- * @author Martin Trapp
- * @author Ian Rogers
  */
 public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver {
 
@@ -585,7 +580,6 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
    * 3) IF v1 ~ v2 THEN x=1 ELSE x=0       replaced by BOOLEAN_CMP x=v1,v2,~
    * </pre>
    *
-   * @modified Igor Pechtchanski
    *
    * @param cb conditional branch instruction
    * @param res the operand for result
@@ -1117,7 +1111,6 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
    *
    * <p> Precondition: <code>IfCmp.conforms(<i>cb</i>)</code>
    *
-   * @modified Igor Pechtchanski
    *
    * @param ir governing IR
    * @param bb basic block of cb

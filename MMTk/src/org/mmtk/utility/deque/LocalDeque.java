@@ -24,8 +24,6 @@ import org.vmmagic.pragma.*;
  * the ability for entries to be added to the head of the deque and popped
  * from the rear.
  * 
- * @author Steve Blackburn
- * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
  */
 @Uninterruptible public class LocalDeque extends LocalQueue 
   implements Constants {

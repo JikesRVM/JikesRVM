@@ -37,9 +37,6 @@ import org.vmmagic.unboxed.Word;
  * getstatic's of initialized static fields
  * by replacing the getstatic with a constant operand.
  *
- * @author Steve Fink
- * @author Dave Grove
- * @modified Perry Cheng
  */
 public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
 

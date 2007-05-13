@@ -39,7 +39,6 @@ import org.vmmagic.unboxed.Offset;
  * could inline these methods if they wanted.  We do not believe this would 
  * be very easy since they return assuming the return address is on the stack.)
  *
- * @author Maria Butrico
  */
 public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   //-----------//

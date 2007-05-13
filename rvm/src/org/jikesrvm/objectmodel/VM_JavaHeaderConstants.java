@@ -19,11 +19,6 @@ import org.vmmagic.unboxed.Word;
  *
  * @see VM_ObjectModel
  * 
- * @author David Bacon
- * @author Steve Blackburn
- * @author Steve Fink
- * @author Daniel Frampton
- * @author Dave Grove
  */
 public interface VM_JavaHeaderConstants extends VM_SizeConstants {
 

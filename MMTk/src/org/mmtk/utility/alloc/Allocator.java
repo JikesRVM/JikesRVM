@@ -37,8 +37,6 @@ import org.vmmagic.pragma.*;
  * GC are run incorrectly.
  * 
  *
- * @author Perry Cheng
- * @modified Daniel Frampton
  */
 
 @Uninterruptible public abstract class Allocator implements Constants {

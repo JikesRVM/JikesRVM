@@ -26,7 +26,6 @@ import org.vmmagic.unboxed.*;
  * data.
  * 
  *
- * @author Steve Blackburn
  */
 @Uninterruptible public final class RawPageSpace extends Space 
   implements Constants {

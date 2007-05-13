@@ -13,7 +13,6 @@ package org.jikesrvm.compilers.opt;
  * of increasing finishing time in a reverse Depth First Search,
  * i.e. a search traversing nodes from target to source.
  *
- * @author Julian Dolby
  *
  */
 class OPT_ReverseDFSenumerateByFinish extends OPT_DFSenumerateByFinish {

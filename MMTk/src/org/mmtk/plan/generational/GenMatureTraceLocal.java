@@ -23,9 +23,6 @@ import org.vmmagic.pragma.*;
  * closure over the heap graph.
  * 
  *
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public abstract class GenMatureTraceLocal extends TraceLocal {
 

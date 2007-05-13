@@ -13,7 +13,6 @@ import org.mmtk.utility.options.Option;
 /**
  * Skeleton for class to handle command-line arguments and options for GC.
  * 
- * @author Daniel Frampton
  **/
 public abstract class Options {
 

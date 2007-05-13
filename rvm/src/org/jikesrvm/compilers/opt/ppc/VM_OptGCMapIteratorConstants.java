@@ -11,7 +11,6 @@ package org.jikesrvm.compilers.opt.ppc;
 /**
  * This interface holds constants for the Opt GC map code specific to PowerPC
  *
- * @author Michael Hind
  */
 public interface VM_OptGCMapIteratorConstants extends OPT_PhysicalRegisterConstants {
   

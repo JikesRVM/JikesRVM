@@ -18,7 +18,6 @@ import org.vmmagic.Pragma;
  * Methods with this pragma that are BaselineCompiled should save in its prologue, ALL registers that
  * can be used to store local and stack registers in any BaselineCompiled method. Used by OSR.
  * 
- * @author Kris Venstermans
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

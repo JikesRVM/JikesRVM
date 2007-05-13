@@ -40,7 +40,6 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.plan.SimplePhase#delegatePhase
  * 
  *
- * @author Daniel Frampton
  */
 @Uninterruptible public class MCMutator extends StopTheWorldMutator {
 

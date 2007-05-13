@@ -14,7 +14,6 @@ import java.util.NoSuchElementException;
 /**
  * This class provides enumeration of all children of a OPT_TreeNode
  *
- * @author Michael Hind
  */
 final class OPT_TreeNodeChildrenEnumerator implements Enumeration<OPT_TreeNode> {
 

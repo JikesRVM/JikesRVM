@@ -16,7 +16,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
 
 /**
- * @author Elias Naur
  */
 public class TestFileChannel {
   private static final int MAGIC_INT = 0xdeadbeef;

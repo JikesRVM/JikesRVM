@@ -25,10 +25,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
  *
  * @see OPT_DominatorsPhase
  *
- * @author Mauricio J. Serrano
- * @modified Stephen Fink
- * @modified Dave Grove
- * @modified Michael Hind
  */
 public class OPT_LSTGraph extends OPT_SpaceEffGraph {
   private static final boolean DEBUG = false;

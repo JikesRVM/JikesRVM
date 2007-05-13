@@ -10,7 +10,6 @@
 package org.jikesrvm.apt.annotations;
 
 /**
- * @author robing
  *
  */
 public @interface GenerateImplementation {

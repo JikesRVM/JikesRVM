@@ -13,7 +13,6 @@ import java.util.Enumeration;
  * Extend java.util.Enumeration to avoid downcasts from object.
  * Also provide a preallocated empty basic block enumeration.
  *
- * @author Dave Grove
  */
 public interface OPT_BasicBlockEnumeration extends Enumeration<OPT_BasicBlock> {
   /**

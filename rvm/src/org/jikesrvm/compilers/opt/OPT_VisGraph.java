@@ -16,7 +16,6 @@ import java.util.Enumeration;
  * visualization.  The graph nodes and edges should implement OPT_VisNode
  * and OPT_VisEdge interfaces respectively.
  *
- * @author Igor Pechtchanski
  * @see OPT_VisNode
  * @see OPT_VisEdge
  */

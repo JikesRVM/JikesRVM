@@ -22,7 +22,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Register;
  * An object that returns an estimate of the relative cost of spilling a 
  * symbolic register, based on basic block frequencies.
  *
- * @author Stephen Fink
  */
 class OPT_BlockCountSpillCost extends OPT_SpillCostEstimator {
 

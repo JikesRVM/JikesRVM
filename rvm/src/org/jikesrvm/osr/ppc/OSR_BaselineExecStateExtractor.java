@@ -36,7 +36,6 @@ import org.vmmagic.unboxed.WordArray;
  * OSR_BaselineExecStateExtractor retrieves the runtime state from a suspended
  * thread whose top method was compiled by a baseline compiler.
  *
- * @author Feng Qian
  */
 
 public abstract class OSR_BaselineExecStateExtractor 

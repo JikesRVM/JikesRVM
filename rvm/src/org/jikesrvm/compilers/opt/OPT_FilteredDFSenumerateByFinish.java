@@ -9,8 +9,6 @@
 package org.jikesrvm.compilers.opt;
 
 /**
- * @author Steve Fink
- * @date May 20, 2002
  */
 
 class OPT_FilteredDFSenumerateByFinish extends OPT_DFSenumerateByFinish {

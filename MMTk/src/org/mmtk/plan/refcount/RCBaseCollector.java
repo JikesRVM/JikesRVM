@@ -45,9 +45,6 @@ import org.vmmagic.unboxed.*;
  * @see SimplePhase#delegatePhase
  * 
  *
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public abstract class RCBaseCollector extends StopTheWorldCollector {
 

@@ -9,11 +9,6 @@
 package org.jikesrvm.compilers.common.assembler.ppc;
 /**
  * Constants exported by the assembler
- * @author Bowen Alpern
- * @author Maria Butrico
- * @author Anthony Cocchi
- * @author Dave Grove
- * @author Derek Lieber
  */
 public interface VM_AssemblerConstants {
 

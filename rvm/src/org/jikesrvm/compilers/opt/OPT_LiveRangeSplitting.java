@@ -36,7 +36,6 @@ import org.jikesrvm.compilers.opt.ir.Unary;
  *
  * <p> This composite phase should be performed at the end of SSA in LIR.
  *
- * @author Stephen Fink
  */
 class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
 

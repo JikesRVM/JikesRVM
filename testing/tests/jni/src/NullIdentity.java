@@ -8,7 +8,6 @@
  */
 /**
  * Test to check to that NULL gets JNIID 0.
- * @author Dave Grove
  */
 class NullIdentity {
 

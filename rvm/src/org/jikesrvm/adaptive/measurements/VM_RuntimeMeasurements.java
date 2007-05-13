@@ -43,10 +43,6 @@ import org.vmmagic.unboxed.Address;
  * is typically registered and used by the instrumentation subsystem. 
  * A Reporable can be reset and reported.
  * 
- * @author Matthew Arnold
- * @author Stephen Fink
- * @author Dave Grove
- * @modified Peter Sweeney
  */
 public abstract class VM_RuntimeMeasurements {
 

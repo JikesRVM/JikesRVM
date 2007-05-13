@@ -28,7 +28,6 @@ import org.vmmagic.pragma.*;
  * All drivers for GCspy spaces should inherit from this class.
  *
  *
- * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  */
 @Uninterruptible
 public abstract class AbstractDriver {

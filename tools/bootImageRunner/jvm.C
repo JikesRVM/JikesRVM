@@ -10,10 +10,6 @@
 /**
  * Implementation of JNI Invocation API for Jikes RVM.
  *
- * @author Steve Augart
- * @author Julian Dolby
- * @author Dave Grove
- * @author Ian Rogers
  */
 
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS

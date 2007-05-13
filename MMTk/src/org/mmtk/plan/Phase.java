@@ -30,8 +30,6 @@ import org.vmmagic.pragma.*;
  * carefully
  * 
  *
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public abstract class Phase implements Constants {
   private static final int MAX_PHASES = 64;

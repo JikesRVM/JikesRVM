@@ -13,7 +13,6 @@ import org.jikesrvm.classloader.VM_Method;
 /**
  * Instances of this class represent decisions to inline.
  *
- * @author Stephen Fink
  */
 public final class OPT_InlineDecision {
 

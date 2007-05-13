@@ -17,8 +17,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
  *
  * TODO: we do not support IRs with exception handlers.
  *
- * @author Stephen Fink
- * @author Michael Hind
  */
 public class OPT_DominatorTree extends OPT_Tree {
   /**

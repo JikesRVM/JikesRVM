@@ -19,7 +19,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
  * Lengauer-Tarjan dominator calculation.  
  * @see OPT_LTDominators
  *
- * @author Michael Hind
  */
 class OPT_LTDominatorInfo {
   static final boolean DEBUG = false;

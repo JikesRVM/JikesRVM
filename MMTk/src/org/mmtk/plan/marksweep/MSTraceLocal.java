@@ -21,9 +21,6 @@ import org.vmmagic.unboxed.*;
  * closure over a mark-sweep space.
  * 
  *
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public final class MSTraceLocal extends TraceLocal {
   /**

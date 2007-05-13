@@ -38,12 +38,7 @@ import org.vmmagic.pragma.*;
  * @see org.mmtk.plan.SimplePhase#delegatePhase
  * 
  *
- * @author <a href="http://www.cs.ukc.ac.uk/~rej">Richard Jones</a>
- * @author Steve Blackburn
- * @author Perry Cheng
- * @author Daniel Frampton
- * @author Robin Garner
- * 
+ *
  */
 @Uninterruptible public class SSGCspyCollector extends SSCollector {
 

@@ -36,7 +36,6 @@ package org.mmtk.utility.gcspy;
  * StreamConstants
  * 
  *
- * @author Richard Jones
  */
 
 public interface StreamConstants {

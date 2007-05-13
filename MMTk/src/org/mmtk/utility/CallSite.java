@@ -10,7 +10,6 @@
 package org.mmtk.utility;
 
 /*
- * @author Perry Cheng
  */
 public class CallSite {
 }

@@ -17,7 +17,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Register;
  * An instance of this class encapsulates restrictions on register
  * allocation.
  * 
- * @author Stephen Fink
  */
 public abstract class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions {
   /**

@@ -18,7 +18,6 @@ import org.vmmagic.pragma.*;
 /**
  * Simple linear scan to dump object information.
  * 
- * @author Daniel Frampton
  */
 @Uninterruptible
 public final class DumpLinearScan extends LinearScan {

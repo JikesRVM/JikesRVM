@@ -11,7 +11,6 @@ package org.jikesrvm.osr;
 /**
  *  LocalInitEnd
  *
- * @author Feng Qian
  */
 public class BC_ParamInitEnd extends OSR_PseudoBytecode {
   public byte[] getBytes() {

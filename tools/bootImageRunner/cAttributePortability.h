@@ -7,7 +7,6 @@
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
  * (C) Copyright IBM Corp. 2003
- * @author Steven Augart
  */
 
 /* This hair gets around hassles in GNU C 2.96, where the unused attribute is

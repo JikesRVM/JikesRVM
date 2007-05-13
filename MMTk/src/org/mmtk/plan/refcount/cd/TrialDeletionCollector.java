@@ -26,7 +26,6 @@ import org.vmmagic.unboxed.ObjectReference;
  * and state for a trial deletion cycle detector.
  * 
  *
- * @author Daniel Frampton
  */
 @Uninterruptible public final class TrialDeletionCollector extends CDCollector implements Constants {
 

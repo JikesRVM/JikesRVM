@@ -38,7 +38,6 @@ import org.vmmagic.unboxed.Offset;
  * could inline these methods if they wanted.  We do not believe this would 
  * be very easy since they return thru the LR.)
  *
- * @author Derek Lieber
  */
 public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
                                          VM_JNIStackframeLayoutConstants,

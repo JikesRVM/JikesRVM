@@ -13,8 +13,6 @@
  * the face of long-running native calls;
  * this thread executes a native method call
  * that sleeps for the specified time.
- * @author Stephen Smith
- * @modified by Dick Attanasio
  */
 
 class BlockingWorker extends Thread {

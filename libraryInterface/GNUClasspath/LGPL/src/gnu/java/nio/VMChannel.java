@@ -74,8 +74,6 @@ import org.jikesrvm.runtime.VM_FileSystem;
  * 
  * JikesRVM-specific implementation by Robin Garner.
  * 
- * @author Michael Barker <mike@middlesoft.co.uk>
- * @author Robin Garner <Robin.Garner@anu.edu.au>
  *
  */
 public final class VMChannel
@@ -188,7 +186,6 @@ public final class VMChannel
    * A thread-local store of non-moving buffers.  Used to perform IO to
    * in cases where the actual user buffer is in a moving space.
    * 
-   * @author Robin Garner
    *
    */
   private static class LocalByteArray extends ThreadLocal<byte[]> {

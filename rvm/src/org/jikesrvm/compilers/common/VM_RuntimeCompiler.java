@@ -66,9 +66,6 @@ import org.jikesrvm.scheduler.VM_Thread;
  *   still be an accurate measure of the space costs of the compile-only 
  *   approach.
  * 
- * @author Matthew Arnold
- * @author Dave Grove
- * @author Michael Hind
  */
 public class VM_RuntimeCompiler implements VM_Constants,
     VM_Callbacks.ExitMonitor {

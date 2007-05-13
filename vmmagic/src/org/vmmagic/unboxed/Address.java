@@ -23,7 +23,6 @@ import org.vmmagic.Unboxed;
  * operations (Java does not have unsigned int types).
  * 
  *
- * @author Daniel Frampton
  */
 @Unboxed
 public final class Address {

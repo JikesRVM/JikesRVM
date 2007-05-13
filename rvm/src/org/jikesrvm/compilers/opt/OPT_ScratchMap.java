@@ -18,7 +18,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Register;
  * This class holds information on scratch register usage, needed to
  * adjust GC Maps.
  *
- * @author Stephen Fink
  */
 public final class OPT_ScratchMap {
 

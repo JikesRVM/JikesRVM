@@ -50,7 +50,6 @@ import org.jikesrvm.runtime.VM_Entrypoints;
  *      the summary of local types. Thus, after analysis, local
  *      types are same for all PCs.
  * 
- * @author Feng Qian    
  */
 public class OSR_BytecodeTraverser implements VM_BytecodeConstants, 
                                               OSR_Constants {

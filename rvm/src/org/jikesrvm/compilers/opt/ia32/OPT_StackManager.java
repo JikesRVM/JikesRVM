@@ -74,10 +74,6 @@ import org.vmmagic.unboxed.Offset;
  * functions.
  * <p>
  *
- * @author Stephen Fink
- * @author Dave Grove
- * @author Mauricio J. Serrano
- * @author Julian Dolby
  */
 public abstract class OPT_StackManager extends OPT_GenericStackManager {
 

@@ -13,8 +13,6 @@ import org.jikesrvm.VM_SizeConstants;
  * OSR_Constants defines constants used for on-stack-replacement mapping,
  * VM scope descriptor, and pseudo bytecodes.
  *
- * @author Feng Qian
- * @date 19 Dec 2002
  */
 public interface OSR_Constants extends VM_SizeConstants {
 

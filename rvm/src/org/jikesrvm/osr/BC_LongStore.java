@@ -11,7 +11,6 @@ package org.jikesrvm.osr;
 /**
  * BC_LongStore: lstore, lstore_<n> 
  * 
- * @author Feng Qian
  */
 
 public class BC_LongStore extends OSR_PseudoBytecode {

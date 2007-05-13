@@ -20,7 +20,6 @@ import org.vmmagic.pragma.*;
  * The counter is trivially composed from two event counters (one for
  * counting the number of events, the other for counting the volume).
  * 
- * @author Steve Blackburn
  */
 @Uninterruptible public class SizeCounter {
 

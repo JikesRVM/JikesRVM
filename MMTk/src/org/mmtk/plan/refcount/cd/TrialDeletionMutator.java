@@ -16,7 +16,6 @@ import org.vmmagic.pragma.*;
  * behavior for a trial deletion cycle detector. 
  * 
  *
- * @author Daniel Frampton
  */
 @Uninterruptible public final class TrialDeletionMutator extends CDMutator {
 }

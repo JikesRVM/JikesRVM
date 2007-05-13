@@ -10,7 +10,6 @@
  * This method invokes run() methods in the classes specified,
  * in order to generate the "expected" output by running under JDK
  *
- * @author unascribed
  */
 
 import java.lang.reflect.Method;

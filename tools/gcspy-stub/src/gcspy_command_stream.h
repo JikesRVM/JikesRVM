@@ -10,7 +10,6 @@
 /**
  * A testing stub for GCspy
  *
- * @author Richard Jones
  */
 
 #ifndef _GCSPY_COMMAND_STREAM_H_

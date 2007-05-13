@@ -14,8 +14,6 @@ package org.jikesrvm.compilers.opt;
  * specific graph edge types, or use it as a generic edge.
  * OPT_SpaceEffGraphEdges are directed, and therefore, have a from-node and
  * a to-node.
- * @author Mauricio J. Serrano
- * @author Igor Pechtchanski
  */
 public class OPT_SpaceEffGraphEdge implements OPT_GraphEdge, OPT_VCGEdge {
   /**

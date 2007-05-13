@@ -35,8 +35,6 @@ import org.vmmagic.unboxed.Offset;
  * Defines the context in which BC2IR will abstractly interpret
  * a method's bytecodes and populate targetIR with instructions.
  *
- * @author Dave Grove
- * @author Martin Trapp
  **/
 public final class OPT_GenerationContext 
   implements org.jikesrvm.compilers.opt.OPT_Constants, 

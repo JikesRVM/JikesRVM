@@ -13,7 +13,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
 /**
  * Driver routine for register allocation
  *
- * @author Stephen Fink
  */
 public final class OPT_RegisterAllocator extends OPT_OptimizationPlanCompositeElement {
 

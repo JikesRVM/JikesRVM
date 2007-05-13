@@ -11,7 +11,6 @@ package org.vmmagic.unboxed;
 /**
  * Commenting required
  * 
- * @author Daniel Frampton
  */
 public final class AddressArray {
 

@@ -15,7 +15,6 @@ import org.vmmagic.pragma.Uninterruptible;
 /**
  * A counter that supports atomic increment and reset.
  * 
- * @author Perry Cheng
  */
 @Uninterruptible public abstract class SynchronizedCounter {
 

@@ -21,8 +21,6 @@ import org.vmmagic.pragma.*;
  * @see BumpPointer
  * @see CopySpace
  * 
- * @author Daniel Frampton
- * @author Steve Blackburn
  */
 @Uninterruptible public final class CopyLocal extends BumpPointer {
 

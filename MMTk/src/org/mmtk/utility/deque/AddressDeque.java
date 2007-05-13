@@ -19,7 +19,6 @@ import org.vmmagic.pragma.*;
 /**
  * This supports <i>unsynchronized</i> enqueuing and dequeuing of addresses
  * 
- * @author Steve Blackburn
  */
 @Uninterruptible public class AddressDeque extends LocalDeque 
   implements Constants {

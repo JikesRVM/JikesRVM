@@ -74,12 +74,6 @@ import org.vmmagic.pragma.NoInline;
  * @see OPT_Operator
  * @see OPT_Operand
  * 
- * @author Dave Grove
- * @author John Whaley
- * @author Stephen Fink
- * @author Mauricio J. Serrano
- * @author Martin Trapp
- * @author Ian Rogers
  */
 public final class OPT_IR {
 

@@ -9,7 +9,6 @@
 package org.jikesrvm.compilers.common.assembler.ia32;
 /**
  * Constants exported by the assembler
- * @author Julian Dolby
  */
 public interface VM_AssemblerConstants {
   String [] CONDITION = {

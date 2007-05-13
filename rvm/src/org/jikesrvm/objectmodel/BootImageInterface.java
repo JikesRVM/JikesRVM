@@ -14,8 +14,6 @@ import org.vmmagic.unboxed.Word;
 /**
  * Interface of BootImage that is used to define object model classes.
  *
- * @author Dave Grove
- * @author Derek Lieber
  */
 public interface BootImageInterface {
 

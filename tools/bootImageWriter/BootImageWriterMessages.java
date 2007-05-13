@@ -10,9 +10,6 @@
 
 /**
  * Functionality to write messages during image generation.
- *
- * @author Derek Lieber
- * @version 03 Jan 2000
  */
 public class BootImageWriterMessages {
 

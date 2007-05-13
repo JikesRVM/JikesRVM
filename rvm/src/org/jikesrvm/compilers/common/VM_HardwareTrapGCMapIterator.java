@@ -22,8 +22,6 @@ import org.vmmagic.unboxed.WordArray;
  * Such frames are purely used as markers.
  * They contain no object references or JSR return addresses.
  *
- * @author Derek Lieber
- * @date 02 Jun 1999 
  */
 @Uninterruptible public final class VM_HardwareTrapGCMapIterator extends VM_GCMapIterator implements VM_SizeConstants {
 

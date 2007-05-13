@@ -13,7 +13,6 @@ import org.jikesrvm.runtime.VM_Magic;
 /**
  * Double <==> long bit transfer for Jikes RVM.
  * 
- * @author Dave Grove
  */
 final class VMDouble {
 

@@ -19,7 +19,6 @@ import org.vmmagic.unboxed.Offset;
  * initialized static final).
  *
  * @see OPT_Operand
- * @author Ian Rogers
  */
 public class OPT_ObjectConstantOperand extends OPT_ConstantOperand {
 

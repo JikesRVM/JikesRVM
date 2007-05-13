@@ -9,9 +9,6 @@
 
 /**
  * Adapted for Jikes RVM
- * @author Ton Ngo
- * @author Steve Smith 
- * @date 4/12/00
  */
 
 #ifndef JNI_H

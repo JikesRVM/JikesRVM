@@ -49,10 +49,6 @@ import org.jikesrvm.ppc.VM_Disassembler;
 /**
  * Assemble PowerPC MIR into binary code.
  *
- * @author Jong-Deok Choi
- * @author Dave Grove
- * @author Igor Pechtchanski
- * @author Mauricio Serrano
  */
 public abstract class OPT_Assembler implements OPT_Operators, VM_Constants, VM_ArchConstants {
 

@@ -8,7 +8,6 @@ import java.security.ProtectionDomain;
  * A ClassFileTransformer that just prints out when a class is loaded. Useful for testing loading
  * and resolving of classes.
  *
- * @author Peter Donald
  */
 public class IdentityClassFileTransformer implements ClassFileTransformer {
   public static void premain(final String args, final Instrumentation instrumentation) {

@@ -18,10 +18,6 @@ import org.jikesrvm.classloader.VM_NormalMethod;
  * Currently empty, but will gradually add function here 
  * as the Adaptive Optimization Subsystem evolves.
  *
- * @author Dave Grove
- * @author Michael Hind
- * @author Peter Sweeney
- * @author Matthew Arnold
  */
 public abstract class OPT_InstrumentationPlan {
   /**

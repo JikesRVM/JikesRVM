@@ -14,7 +14,6 @@ import org.jikesrvm.adaptive.measurements.listeners.VM_YieldCounterListener;
 /**
  * An organizer that periodically decays runtime counters
  *
- * @author Michael Hind
  **/
 public final class VM_DecayOrganizer extends VM_Organizer {
 

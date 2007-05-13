@@ -17,7 +17,6 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
  * inherited from VM_AnalyticModel.  This class defines the the specific 
  * recompilation choices that should be considered by the analytic model.
  *
- * @author Matthew Arnold 
  */
 class VM_MultiLevelAdaptiveModel extends VM_AnalyticModel {
   

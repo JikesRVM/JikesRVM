@@ -20,8 +20,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * In effect, this class provides a way to "wake up" an infrequent
  * service periodically.
  *
- * @author Stephen Fink
- * @modified Peter Sweeney
  */
 @Uninterruptible
 public final class VM_YieldCounterListener extends VM_NullListener {

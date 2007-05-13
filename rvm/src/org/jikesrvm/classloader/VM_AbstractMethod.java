@@ -14,10 +14,6 @@ import org.jikesrvm.runtime.VM_Entrypoints;
 /**
  * An abstract method of a java class.
  *
- * @author Bowen Alpern
- * @author Dave Grove
- * @author Derek Lieber
- * @modified Ian Rogers
  */
 public final class VM_AbstractMethod extends VM_Method {
 

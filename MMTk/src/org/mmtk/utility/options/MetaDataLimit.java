@@ -13,7 +13,6 @@ package org.mmtk.utility.options;
  * Provide a bound on how much metadata is allowed before a GC is triggered.
  * 
  *
- * @author Daniel Frampton
  */
 public class MetaDataLimit extends PagesOption {
   /**

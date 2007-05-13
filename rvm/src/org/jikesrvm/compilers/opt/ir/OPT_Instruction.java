@@ -111,11 +111,6 @@ import org.vmmagic.pragma.NoInline;
  * @see OPT_Operand
  * @see OPT_BasicBlock
  * 
- * @author Jong Choi
- * @author Dave Grove
- * @author Mauricio J. Serrano
- * @author Harini Srinivasan
- * @author John Whaley
  */
 public final class OPT_Instruction 
   implements VM_Constants, 

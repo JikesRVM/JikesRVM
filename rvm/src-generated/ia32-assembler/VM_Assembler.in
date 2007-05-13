@@ -174,8 +174,6 @@ import org.vmmagic.unboxed.Word;
  * @see VM_Lister
  * @see VM_ForwardReference
  *
- * @author Julian Dolby
- * @author Bowen Alpern 
 */
 public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_RegisterConstants, VM_AssemblerConstants {
 	

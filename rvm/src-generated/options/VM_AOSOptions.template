@@ -22,7 +22,6 @@ import org.jikesrvm.VM_CommandLineArgs;
  *       All other options are defined in VALUE_DAT_FILES
  *       (value, enumeration, bitmask)
  *
- * @author Dave Grove
  **/
 public class VM_AOSExternalOptions implements Cloneable {
 

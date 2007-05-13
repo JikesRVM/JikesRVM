@@ -25,7 +25,6 @@ import org.vmmagic.pragma.*;
  * Here, it largely to forward calls to the gcspy C library.
  *
  *
- * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  */
 @Uninterruptible public class ServerSpace extends org.mmtk.vm.gcspy.ServerSpace { 
 

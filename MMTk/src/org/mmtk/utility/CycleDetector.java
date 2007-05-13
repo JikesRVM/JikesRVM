@@ -15,7 +15,6 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /*
- * @author Steve Blackburn
  */
 @Uninterruptible abstract class CycleDetector {
 

@@ -17,8 +17,6 @@ import org.vmmagic.unboxed.Offset;
  *
  * utilities for manipulating values at the bit-level.
  *
- * @author Stephen Fink
- * @author Dave Grove
  */
 public class OPT_Bits {
 

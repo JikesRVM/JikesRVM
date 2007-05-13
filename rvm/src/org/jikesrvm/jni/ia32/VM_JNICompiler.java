@@ -38,8 +38,6 @@ import org.vmmagic.unboxed.Offset;
  *
  * If this code is being used, then we assume RVM_WITH_SVR4_ABI is set.
  * 
- * @author Ton Ngo
- * @author Steve Smith
  */
 public abstract class VM_JNICompiler implements VM_BaselineConstants {
 

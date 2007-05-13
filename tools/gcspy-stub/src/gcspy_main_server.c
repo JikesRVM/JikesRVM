@@ -10,7 +10,6 @@
 /**
  * A testing stub for GCspy
  *
- * @author Richard Jones
  */
 
 

@@ -32,8 +32,6 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.MUST_IMPLEMENT_INTERFA
 /**
  * This class contains the high level logic for executing an inlining decision.
  *
- * @author Steve Fink
- * @author Dave Grove
  *
  * @see OPT_InlineDecision
  * @see OPT_GenerationContext

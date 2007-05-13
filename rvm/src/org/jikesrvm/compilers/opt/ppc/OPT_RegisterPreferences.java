@@ -22,7 +22,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Register;
  * An instance of this class provides a mapping from symbolic register to
  * physical register, representing a preferred register assignment.
  * 
- * @author Stephen Fink
  */
 public abstract class OPT_RegisterPreferences extends OPT_GenericRegisterPreferences
 implements OPT_Operators {

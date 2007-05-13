@@ -9,7 +9,6 @@
 package test.org.jikesrvm.basic.core.bytecode;
 
 /**
- * @author unascribed
  */
 class TestArithmetic {
   public static void main(String[] args) {

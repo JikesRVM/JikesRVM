@@ -20,7 +20,6 @@ import org.vmmagic.pragma.*;
  * This class implements a simple event counter (counting number
  * events that occur for each phase).
  * 
- * @author Steve Blackburn
  */
 @Uninterruptible public class EventCounter extends Counter {
 

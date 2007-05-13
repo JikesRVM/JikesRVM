@@ -9,7 +9,6 @@
 /**
  * simple test of inlining & exception handling
  *
- * @author unascribed
  */
 
 final class inlineExcept {

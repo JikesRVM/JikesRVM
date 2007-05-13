@@ -18,8 +18,6 @@ import org.vmmagic.pragma.*;
 
 /**
  *
- * @author Steve Blackburn
- * @author Perry Cheng
  *
  */
 @Uninterruptible public final class Strings extends org.mmtk.vm.Strings {

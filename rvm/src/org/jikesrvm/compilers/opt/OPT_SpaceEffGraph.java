@@ -17,8 +17,6 @@ import java.util.Enumeration;
  * OPT_SpaceEffGraph is a generic graph.  Extend to implement specific
  * graph types.
  *
- * @author Harini Srinivasan
- * @author Igor Pechtchanski
  */
 public class OPT_SpaceEffGraph implements OPT_Graph, 
                                           OPT_VCGGraph, 
@@ -232,7 +230,6 @@ public class OPT_SpaceEffGraph implements OPT_Graph,
 
   /**
    * Build a topological sort of this graph
-   * @author Jong-Deok Choi
    */
   public void buildTopSort() {
     if (!forwardTopSorted) {
@@ -245,7 +242,6 @@ public class OPT_SpaceEffGraph implements OPT_Graph,
   /**
    * Build a reverse topological sort of this graph
    * @return a node if we build a new order, null if we reused the old
-   * @author Jong-Deok Choi
    */
   public OPT_SortedGraphNode buildRevTopSort() {
     if (!backwardTopSorted) {

@@ -21,9 +21,6 @@ import org.vmmagic.unboxed.Offset;
  * 
  * @see OPT_Operand
  * 
- * @author Igor Pechtchanski
- * @author Mauricio Serrano
- * @author John Whaley
  */
 public final class OPT_LocationOperand extends OPT_Operand 
   implements org.jikesrvm.compilers.opt.OPT_Constants  {

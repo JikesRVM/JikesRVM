@@ -9,8 +9,6 @@
 package org.jikesrvm.compilers.opt;
 
 /**
- * @author Julian Dolby
- * @date May 20, 2002
  */
 
 class OPT_ReverseFilteredDFSenumerateByFinish extends OPT_ReverseDFSenumerateByFinish {

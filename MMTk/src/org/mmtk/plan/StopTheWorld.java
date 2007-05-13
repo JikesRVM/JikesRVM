@@ -36,10 +36,6 @@ import org.vmmagic.pragma.*;
  * @see org.mmtk.plan.Plan
  * 
  *
- * @author Perry Cheng
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public abstract class StopTheWorld extends Plan
   implements Constants {

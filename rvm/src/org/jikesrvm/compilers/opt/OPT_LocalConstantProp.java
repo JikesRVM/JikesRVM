@@ -25,7 +25,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
  * Orthogonal to the constant propagation performed in OPT_Simple
  * since here we use flow-sensitive analysis within a basic block.
  * 
- * @author Dave Grove
  */
 public class OPT_LocalConstantProp extends OPT_CompilerPhase {
 

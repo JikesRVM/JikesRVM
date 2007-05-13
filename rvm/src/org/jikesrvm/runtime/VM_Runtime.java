@@ -67,8 +67,6 @@ import org.vmmagic.unboxed.Offset;
  *   <li> "fp" values that point to interior of "stack" objects
  * </ul>
  *
- * @author Bowen Alpern
- * @author Derek Lieber
  */
 public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_StackframeLayoutConstants {
    

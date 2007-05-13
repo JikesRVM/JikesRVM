@@ -11,7 +11,6 @@ package test.org.jikesrvm.basic.core.bytecode;
 import org.vmmagic.pragma.NoInline;
 
 /*
-* @author unascribed
 */
 class TestInvoke {
 

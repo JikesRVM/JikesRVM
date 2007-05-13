@@ -16,7 +16,6 @@ import org.vmmagic.pragma.*;
  * behavior for a null cycle detector. 
  * 
  *
- * @author Daniel Frampton
  */
 @Uninterruptible public final class NullCDMutator extends CDMutator {
 }

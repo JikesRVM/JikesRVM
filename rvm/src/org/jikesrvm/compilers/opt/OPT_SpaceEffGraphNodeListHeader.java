@@ -9,7 +9,6 @@
 package org.jikesrvm.compilers.opt;
 
 /**
- * @author Harini Srinivasan.
  */
 final class OPT_SpaceEffGraphNodeListHeader {
   OPT_SpaceEffGraphNodeList _first;

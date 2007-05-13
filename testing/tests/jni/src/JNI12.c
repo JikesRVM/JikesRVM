@@ -7,8 +7,6 @@
  * (C) Copyright IBM Corp. 2001, 2004
  *
  *
- * @author Ton Ngo
- * @author Steven Augart
  */
 /* Test method invocation from native code 
  * Implement native methods from JNI12.java 

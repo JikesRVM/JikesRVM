@@ -17,7 +17,6 @@
  *      or:                     cc -O -DPOUT -s -o whet whet.c
  *      if output is desired.
  *
- * @author unascribed
  */
 
 public class whet {

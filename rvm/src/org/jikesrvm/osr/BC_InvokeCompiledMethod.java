@@ -17,7 +17,6 @@ import org.jikesrvm.compilers.common.VM_CompiledMethods;
 /**
  * invoke a compiled method
  * 
- * @author Feng Qian
  */
 
 public class BC_InvokeCompiledMethod extends OSR_PseudoBytecode {

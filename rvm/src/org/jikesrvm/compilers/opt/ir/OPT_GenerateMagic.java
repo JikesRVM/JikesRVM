@@ -78,9 +78,6 @@ import org.vmmagic.unboxed.Offset;
  * It does not mean that the eventual MIR that implements the magic 
  * won't differ from architecture to architecture.
  *
- * @author Dave Grove
- * @author Mauricio Serrano
- * @author Perry Cheng
  */
 public class OPT_GenerateMagic {
 

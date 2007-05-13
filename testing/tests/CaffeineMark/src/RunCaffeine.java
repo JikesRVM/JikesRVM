@@ -7,7 +7,6 @@
  * (C) Copyright IBM Corp. 2001
  */
 /**
- * @author Julian Dolby
  */
 class RunCaffeine {
 

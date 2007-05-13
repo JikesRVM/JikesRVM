@@ -24,9 +24,6 @@ import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
 /**
  * A container for recording how often a method is executed.
  *
- * @author Dave Grove
- * @author Michael Hind
- * @modified Peter Sweeney
  */
 public final class VM_MethodCountData implements VM_Reportable {
 

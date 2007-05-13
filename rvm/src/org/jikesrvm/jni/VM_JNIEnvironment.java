@@ -22,9 +22,6 @@ import org.vmmagic.unboxed.ObjectReference;
 /**
  * A JNIEnvironment is created for each Java thread.
  * 
- * @author Dave Grove
- * @author Ton Ngo
- * @author Steve Smith 
  */
 public class VM_JNIEnvironment implements VM_SizeConstants {
 

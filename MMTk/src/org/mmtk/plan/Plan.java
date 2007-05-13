@@ -52,10 +52,6 @@ import org.vmmagic.unboxed.*;
  * performance proprties of MMTk plans.
  * 
  *
- * @author Perry Cheng
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public abstract class Plan implements Constants {
   /****************************************************************************

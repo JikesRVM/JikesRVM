@@ -44,7 +44,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * <p> I would imagine that AIX pthreads work correctly with respect to
  * allowing arbitrary pthreads to perform a <code>waitpid()</code>.
  *
- * @author David Hovemeyer
  * @see org.jikesrvm.runtime.VM_Process
  */
 @Uninterruptible public class VM_ThreadProcessWaitQueue extends VM_ThreadEventWaitQueue

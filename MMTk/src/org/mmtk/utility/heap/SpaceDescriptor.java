@@ -33,7 +33,6 @@ import org.vmmagic.unboxed.*;
  * optimal code for the test.
  * 
  *
- * @author Steve Blackburn
  */
 @Uninterruptible public class SpaceDescriptor implements Constants {
 

@@ -23,11 +23,6 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
  *
  * @see VM_MultiLevelAdaptiveModel
  *
- * @author Mike Hind
- * @author Dave Grove
- * @author Peter Sweeney
- * @author Stephen Fink
- * @author Matthew Arnold 
  */
 abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
 

@@ -30,7 +30,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
  *  <li> 2. scalar replacement of aggregates and short arrays
  * </ul>
  *
- * @author Stephen Fink
  *
  */
 class OPT_EscapeTransformations extends OPT_CompilerPhase {

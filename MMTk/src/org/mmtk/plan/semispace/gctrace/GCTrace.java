@@ -78,12 +78,7 @@ import org.vmmagic.pragma.*;
  * performance proprties of this plan.
  * 
  *
- * @author Steve Blackburn
- * @author Perry Cheng
- * @author Daniel Frampton
- * @author Robin Garner
- * @author <a href="http://cs.canisius.edu/~hertzm">Matthew Hertz</a>
- * 
+ *
  */
 @Uninterruptible public class GCTrace extends SS {
 

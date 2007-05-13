@@ -21,7 +21,6 @@ import org.jikesrvm.runtime.VM_Entrypoints;
  * instructions does not imply source equality, since both targets may in fact
  * be the globally shared lazy compilation stub.
  * 
- * @author Dave Grove
  */
 public abstract class VM_LazyCompilationTrampolineGenerator implements VM_BaselineConstants {
 

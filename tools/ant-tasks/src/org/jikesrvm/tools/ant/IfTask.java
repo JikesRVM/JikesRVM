@@ -11,7 +11,6 @@ import org.apache.tools.ant.taskdefs.condition.ConditionBase;
  * The if task makes it easier to performs some tasks conditionally.
  * It contains a nested condition and associated sequential task.
  *
- * @author Peter Donald
  */
 public class IfTask
     extends Task {

@@ -25,8 +25,6 @@ import org.vmmagic.pragma.*;
  * and timing.
  * 
  *
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public final class SimplePhase extends Phase
   implements Constants {

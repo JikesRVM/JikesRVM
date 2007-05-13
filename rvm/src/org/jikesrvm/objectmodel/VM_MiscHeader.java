@@ -27,10 +27,6 @@ import org.vmmagic.unboxed.Word;
  *
  * @see VM_ObjectModel
  * 
- * @author David Bacon
- * @author Steve Fink
- * @author Dave Grove
- * @modified <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
  */
 @Uninterruptible public final class VM_MiscHeader implements VM_Constants, VM_MiscHeaderConstants {
 

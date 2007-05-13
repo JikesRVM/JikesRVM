@@ -79,7 +79,6 @@ import org.jikesrvm.runtime.VM_Entrypoints;
  *  opportunity to be sampled.
  *
  *
- * @author Matthew Arnold 
  * */
 
 public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhase {

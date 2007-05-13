@@ -17,7 +17,6 @@ import org.vmmagic.pragma.Uninterruptible;
 /**
  * This class allows JMTk to register call backs with VM_Callbacks.
  * 
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  *
  */
 @Uninterruptible public class Monitor 

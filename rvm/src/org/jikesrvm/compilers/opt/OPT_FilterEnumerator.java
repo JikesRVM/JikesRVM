@@ -15,8 +15,6 @@ import java.util.NoSuchElementException;
  * A <code>FilterEnumerator</code> filters and maps a source
  * <code>Enumeration</code> to generate a new one.
  *
- * @author Mauricio J. Serrano
- * @author John Whaley
  */
 public class OPT_FilterEnumerator<S,T>
     implements Enumeration<T> {

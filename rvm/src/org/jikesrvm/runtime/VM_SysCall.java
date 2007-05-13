@@ -33,10 +33,6 @@ import org.vmmagic.unboxed.Offset;
  * NOTE: There must be a matching field NAMEIP in VM_BootRecord.java
  *       for each method declared here.
  * 
- * @author Dave Grove
- * @author Derek Lieber
- * @author Ian Rogers
- * @author Robin Garner
  */
 @Uninterruptible
 @GenerateImplementation(generatedClass = "org.jikesrvm.runtime.VM_SysCallImpl")

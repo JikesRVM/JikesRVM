@@ -24,9 +24,6 @@ import org.vmmagic.unboxed.WordArray;
 /**
  * Arch-independent portion of reflective method invoker.
  *
- * @author Bowen Alpern
- * @author Derek Lieber
- * @date 15 Jul 1998
  */
 public class VM_Reflection implements VM_Constants {
 

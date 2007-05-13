@@ -77,11 +77,6 @@ import org.vmmagic.pragma.NoInline;
  * @see OPT_Instruction
  * @see OPT_ControlFlowGraph
  * 
- * @author Stephen Fink
- * @author Dave Grove
- * @author Mauricio J. Serrano
- * @author John Whaley
- * @author Martin Trapp
  */
 
 public class OPT_BasicBlock extends OPT_SortedGraphNode {

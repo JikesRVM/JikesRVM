@@ -11,8 +11,6 @@ package org.jikesrvm.compilers.opt;
 import java.util.Iterator;
 
 /**
- * @author Mauricio J. Serrano
- * @author John Whaley
  */
 class OPT_EmptyIterator implements Iterator<Object> {
 

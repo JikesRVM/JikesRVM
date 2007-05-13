@@ -21,7 +21,6 @@ import org.vmmagic.unboxed.ObjectReference;
  * and state for a cycle detector.
  * 
  *
- * @author Daniel Frampton
  */
 @Uninterruptible public abstract class CDCollector {
   /****************************************************************************

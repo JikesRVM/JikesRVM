@@ -20,8 +20,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * simple or complex tasks, but it is always simply following the 
  * instructions given by the controller.
  * 
- * @author Matthew Arnold
- * @author Stephen Fink
  */
 public abstract class VM_Organizer extends VM_Thread {
 

@@ -30,8 +30,6 @@ import org.jikesrvm.runtime.VM_Magic;
  * If an invocation counter trips, then the method is enqueued for
  * recompilation at a default optimization level.
  * 
- * @author Dave Grove
- * @modified Peter Sweeney 8/2003 to process command line arguments
  */
 public final class VM_InvocationCounts {
 

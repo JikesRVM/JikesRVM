@@ -22,8 +22,6 @@ import org.jikesrvm.scheduler.VM_Scheduler;
 /**
  * Command line option processing.
  *
- * @author Peter Sweeney
- * @modified Igor Pechtchanski
  *      Arbitrary prefix support
  */
 public class VM_CommandLineArgs { 

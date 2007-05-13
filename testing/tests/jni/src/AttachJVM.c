@@ -17,7 +17,6 @@
  * This is adapted from the example in the JNI book by Sheng Liang
  * (page 90-91)
  *
- * @author Ton Ngo, Steve Smith 4/10/00
  */
 
 #include <pthread.h> 

@@ -18,7 +18,6 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
  * expected compilation time at that level, and the benefit is the
  * execution improvement of executing at that level.
  *
- * @author Matthew Arnold 
  */
 class VM_RecompileOptChoice extends VM_RecompilationChoice {
 

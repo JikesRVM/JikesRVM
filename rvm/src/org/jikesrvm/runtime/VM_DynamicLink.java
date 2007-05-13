@@ -18,8 +18,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * and has to be uninterruptible (ie contain no new bytecodes),
  * therefore the fields of this class are non-final).
  *
- * @author Bowen Alpern
- * @author Derek Lieber
  */
 @Uninterruptible public final class VM_DynamicLink implements VM_BytecodeConstants {
   /** method referenced at a call site */

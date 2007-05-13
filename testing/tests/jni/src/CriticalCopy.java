@@ -11,8 +11,6 @@
  * to Java internal memory such as array, string
  * These functions are added for Java 2.
  *
- * @author Ton Ngo, Steve Smith 
- * @date   6/19/00
  */
 
 class CriticalCopy {

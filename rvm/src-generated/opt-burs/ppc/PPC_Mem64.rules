@@ -7,8 +7,6 @@
 # (C) Copyright IBM Corp. 2004
 #
 #
-# @author Darko Stefanovic
-# @author Sergiy Kyrylkov
 #
 # BURS rules for memory access (load/stores)
 # that are specific to a 64-bit platform.

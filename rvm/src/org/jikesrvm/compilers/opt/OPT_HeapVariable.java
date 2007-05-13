@@ -14,8 +14,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
 /**
  * An OPT_HeapVariable represents a heap variable for heap array SSA form
  *
- * @author Stephen Fink
- * @modified Ian Rogers
  */
 public class OPT_HeapVariable<T> {
   /**

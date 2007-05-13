@@ -21,9 +21,6 @@ import org.vmmagic.pragma.*;
 /**
  * Class that supports scanning of objects (scalar and array)
  * 
- * @author Robin Garner
- * @author Andrew Gray
- * @author Steve Blackburn
  */
 @Uninterruptible public final class Scan {
   /**

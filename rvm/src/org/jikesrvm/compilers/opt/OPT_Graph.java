@@ -13,7 +13,6 @@ package org.jikesrvm.compilers.opt;
  * should be defined in terms of this interface and all graph
  * implementations in the system should implement it.
  *
- * @author Julian Dolby
  *
  * @see OPT_GraphNode
  * @see OPT_GraphEdge

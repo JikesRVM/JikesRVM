@@ -30,7 +30,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
  * counters) where a separate data object is maintained for each
  * method.
  *
- * @author Matthew Arnold 
  */
 public class OPT_InsertMethodInvocationCounter extends OPT_CompilerPhase {
 

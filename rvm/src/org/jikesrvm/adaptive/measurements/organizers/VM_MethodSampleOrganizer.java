@@ -28,7 +28,6 @@ import org.jikesrvm.scheduler.VM_Scheduler;
  * sample data with the new data and then notify the controller of all 
  * methods that were sampled in the current window.
  * 
- * @author Dave Grove
  */
 public final class VM_MethodSampleOrganizer extends VM_Organizer {
 

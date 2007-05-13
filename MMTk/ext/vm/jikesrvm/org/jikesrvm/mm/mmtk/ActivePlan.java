@@ -23,9 +23,6 @@ import org.vmmagic.pragma.*;
  * plan constraints instances.
  *
  *
- * @author Daniel Frampton 
- * @author Robin Garner 
- * @author Steve Blackburn
  */
 @Uninterruptible public final class ActivePlan extends org.mmtk.vm.ActivePlan {
 

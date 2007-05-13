@@ -9,7 +9,6 @@
 /****
  * Test loading a library and looking up a symbol 
  *
- * @author unascribed
  */
 
 #include <stdio.h>

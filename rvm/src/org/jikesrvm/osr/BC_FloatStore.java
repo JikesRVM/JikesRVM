@@ -11,7 +11,6 @@ package org.jikesrvm.osr;
 /**
  * BC_FloatStore: fstore, fstore_<i> 
  * 
- * @author Feng Qian
  */
 public class BC_FloatStore extends OSR_PseudoBytecode {
   private int bsize;

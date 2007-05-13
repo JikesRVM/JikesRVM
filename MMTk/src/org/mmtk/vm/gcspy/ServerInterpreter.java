@@ -19,7 +19,6 @@ import org.vmmagic.unboxed.Address;
  * Implementing classes will mostly forward calls to the C gcspy library.
  * 
  *
- * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  */
 @Uninterruptible public abstract class ServerInterpreter {
 

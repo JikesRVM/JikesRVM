@@ -21,7 +21,6 @@ import org.jikesrvm.compilers.opt.OPT_InstrumentedEventCounterManager;
  *
  * @see VM_StringEventCounterData.java
  *
- * @author Matthew Arnold
  *
 **/
 public final class VM_YieldpointCounterData extends VM_StringEventCounterData

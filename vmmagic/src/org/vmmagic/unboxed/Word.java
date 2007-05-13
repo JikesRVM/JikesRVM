@@ -12,7 +12,6 @@ import org.vmmagic.Unboxed;
 
 /**
  * (Mistakes in) comments by Robin Garner
- * @author Daniel Frampton
  * @see Address
  */
 @Unboxed

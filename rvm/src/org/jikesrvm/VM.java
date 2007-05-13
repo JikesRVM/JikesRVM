@@ -58,12 +58,8 @@ import org.vmmagic.unboxed.Word;
 /**
  * A virtual machine.
  *
- * @author Derek Lieber (project start).
- * @date 21 Nov 1997 
  *
- * @modified Steven Augart (to catch recursive shutdowns, 
  *                          such as when out of memory)
- * @date 10 July 2003
  */
 @Uninterruptible public class VM extends VM_Properties 
   implements VM_Constants, VM_ExitStatus { 

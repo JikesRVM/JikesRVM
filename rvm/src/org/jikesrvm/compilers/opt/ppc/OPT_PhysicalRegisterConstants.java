@@ -13,9 +13,6 @@ import org.jikesrvm.ppc.VM_RegisterConstants;
 /**
  * This class holds constants that describe PowerPC register set.
  *
- * @author Mauricio J. Serrano
- * @author Stephen Fink
- * @modified Vivek Sarkar
  * @see org.jikesrvm.compilers.opt.OPT_RegisterAllocator
  */
 public interface OPT_PhysicalRegisterConstants extends VM_RegisterConstants {

@@ -70,8 +70,6 @@ import org.vmmagic.unboxed.Word;
 
 /**
  * Contains architecture-specific helper functions for BURS.
- * @author Dave Grove
- * @author Mauricio J. Serrano
  */
 abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   implements OPT_Operators, OPT_PhysicalRegisterConstants {

@@ -176,8 +176,6 @@ import org.jikesrvm.compilers.opt.ir.ResultCarrier;
 /**
  * This class does the job. It is a subphase of OPT_GCP.
  * 
- * @author Martin Trapp
- * @modified Stephen Fink 
  */
 public class OPT_LICM extends OPT_CompilerPhase {
   /** Generate debug output? */

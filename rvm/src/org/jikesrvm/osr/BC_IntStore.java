@@ -15,7 +15,6 @@ package org.jikesrvm.osr;
  *      [0, 3]                  istore_<i>
  *      other                   istore, wide istore
  *
- * @author Feng Qian
  */
 public class BC_IntStore extends OSR_PseudoBytecode {
   private int bsize;

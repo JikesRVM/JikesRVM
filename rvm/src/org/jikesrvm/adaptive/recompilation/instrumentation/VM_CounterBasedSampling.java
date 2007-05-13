@@ -20,7 +20,6 @@ import org.vmmagic.pragma.Uninterruptible;
  *  sampling used with the instrumentation sampling code (PLDI'01)
  *  (see OPT_InstrumentationSamplingFramework)  
  *
- *  @author Matthew Arnold 
  * */
 @Uninterruptible public final class VM_CounterBasedSampling implements VM_Constants
 {

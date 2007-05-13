@@ -12,7 +12,6 @@ import org.jikesrvm.VM;
 
 /**
  * A class to hold each element in the GCIRMap
- * @author Michael Hind
  */
 public class OPT_RegSpillListElement {
 

@@ -41,8 +41,6 @@
  *    CallNonvirtualVoidMethodA      CallNonvirtualVoidMethodV      CallNonvirtualVoidMethod    
  *    CallNonvirtualObjectMethodA    CallNonvirtualObjectMethodV    CallNonvirtualObjectMethod
  *
- * @author Ton Ngo, Steve Smith 
- * @date   2/11/00
  */
 
 class MethodInvocation {

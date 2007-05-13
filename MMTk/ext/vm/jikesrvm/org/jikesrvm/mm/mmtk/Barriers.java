@@ -20,8 +20,6 @@ import org.vmmagic.pragma.*;
 
 /**
  *
- * @author Steve Blackburn
- * @author Perry Cheng
  *
  */
 @Uninterruptible public class Barriers extends org.mmtk.vm.Barriers implements VM_SizeConstants {

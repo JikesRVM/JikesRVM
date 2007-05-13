@@ -19,7 +19,6 @@ import org.vmmagic.pragma.Uninterruptible;
  *
  * @see VM_Processor
  *
- * @author Stephen Fink
  */
 @Uninterruptible public abstract class VM_ProcessorLocalState {
   

@@ -37,8 +37,6 @@ import org.vmmagic.unboxed.Offset;
  * data structures from C++.
  * Posix version: AIX PPC, Linux PPC, Linux IA32
  *
- * @author Derek Lieber
- * @modified Steven Augart -- added the "-out" command-line argument.
  */
 public class GenerateInterfaceDeclarations {
 

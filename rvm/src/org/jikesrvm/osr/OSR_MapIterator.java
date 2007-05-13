@@ -24,7 +24,6 @@ import org.jikesrvm.VM;
  *       it.moveToNext();
  *     }
  * 
- * @author Feng Qian
  */
 
 public class OSR_MapIterator implements OSR_Constants{

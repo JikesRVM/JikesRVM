@@ -18,7 +18,6 @@ import org.vmmagic.unboxed.Word;
  * (local or stack element).  It is used to generate prologue to
  * recover the runtime state.  It refers to VM architecture.
  *
- * @author Feng Qian
  */
 
 public class OSR_VariableElement implements OSR_Constants {

@@ -14,7 +14,6 @@ import org.vmmagic.pragma.*;
 
 /**
  * The JikesRVM implementation of the java.lang.ref.Reference class.
- * @author Chris Hoffmann
  */
 public abstract class Reference<T> {
 

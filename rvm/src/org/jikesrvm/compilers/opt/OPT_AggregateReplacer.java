@@ -11,7 +11,6 @@ package org.jikesrvm.compilers.opt;
 /**
  * Class that performs scalar replacement of aggregates
  *
- * @author Stephen Fink
  */
 public interface OPT_AggregateReplacer {
 

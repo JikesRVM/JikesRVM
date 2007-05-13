@@ -217,8 +217,6 @@ import org.vmmagic.unboxed.Word;
  * I'd rather have this module be 2000 lines of obviously correct code than 
  * 500 lines of clever code. 
  *
- * @author Dave Grove
- * @author Ian Rogers
  */
 public abstract class OPT_Simplifier extends OPT_IRTools {
   // NOTE: The convention is that constant folding is controlled based

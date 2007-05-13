@@ -20,7 +20,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
  * OSR_MethodVariables      ---> (Method, PC, List of LocalRegTuple)
  * LocalRegTuple   ---> ( LocalNum, regOp, Type ) or ( StackNum, regOp, Type )
  * *
- *  @author Feng Qian
  */
 public final class OSR_VariableMap {
 

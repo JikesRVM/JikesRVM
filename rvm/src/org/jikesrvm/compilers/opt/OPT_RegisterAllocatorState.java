@@ -19,9 +19,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Register;
  * TODO: Consider caching the state in a lookaside structure.
  * TODO: Currently, the physical registers are STATIC! fix this.
  *
- * @author Stephen Fink
- * @author Dave Grove
- * @author Mauricio J. Serrano
  */
 public class OPT_RegisterAllocatorState {
 

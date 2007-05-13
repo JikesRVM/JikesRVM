@@ -24,9 +24,6 @@ import org.jikesrvm.scheduler.VM_Thread;
  *       state to be stored in an instance field of
  *       one of these objects.
  *
- * @author Steve Fink
- * @author Dave Grove
- * @author Michael Hind
  */
 public final class OPT_OptimizationPlanAtomicElement extends 
                                           OPT_OptimizationPlanElement {

@@ -14,7 +14,6 @@ package org.mmtk.utility.options;
  * format.
  * 
  *
- * @author Robin Garner
  */
 public class XmlStats extends BooleanOption {
 

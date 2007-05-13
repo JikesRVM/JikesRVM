@@ -29,8 +29,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * expected to complete execution quickly, and therefore, 
  * must do a minimal amount of work.
  *
- * @author Peter Sweeney
- * @author Dave Grove
  */
 @Uninterruptible public abstract class VM_Listener {
 

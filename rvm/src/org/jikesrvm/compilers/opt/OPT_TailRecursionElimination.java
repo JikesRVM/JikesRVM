@@ -44,7 +44,6 @@ import org.jikesrvm.compilers.opt.ir.Return;
  *      does not need to insert a yieldpoint in the newly created loop header.
  * </ul>
  *
- * @author Dave Grove
  */
 public final class OPT_TailRecursionElimination extends OPT_CompilerPhase {
 

@@ -21,13 +21,6 @@ import org.jikesrvm.runtime.VM_Runtime;
  * By convention, order methods in the same order
  * as they appear in the method summary list of Sun's 1.4 Javadoc API. 
  *
- * @author John Barton 
- * @author Julian Dolby
- * @author Stephen Fink
- * @author Eugene Gluzberg
- * @author Dave Grove
- * @modified Steven Augart
- * @modified Ian Rogers
  */
 public final class Method extends AccessibleObject implements Member {
   final VM_Method method;

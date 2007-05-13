@@ -13,7 +13,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
 
 /**
  *  Phase for expanding the calling convention
- *  @author Michael Hind
  */
 public final class OPT_ExpandCallingConvention extends OPT_CompilerPhase {
 

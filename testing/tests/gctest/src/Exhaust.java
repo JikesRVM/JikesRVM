@@ -12,7 +12,6 @@ import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.vmmagic.pragma.*;
 
 /**
- * @author Perry Cheng
  */
 class Exhaust {
 

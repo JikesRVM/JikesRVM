@@ -30,8 +30,6 @@ import org.vmmagic.unboxed.Address;
  * consequence, implementors of these methods must not cause object allocations
  * to take place (ie. by calling "new" either directly or indirectly).
  *
- * @author Bowen Alpern
- * @author Derek Lieber
  */
 public abstract class VM_ExceptionDeliverer {
   /**

@@ -16,9 +16,6 @@ import org.jikesrvm.objectmodel.VM_ThinLockConstants;
  * Some of these constants are architecture-specific
  * and some are (at the moment) architecture-neutral.
  *
- * @author Bowen Alpern
- * @author Stephen Fink
- * @author David Grove
  */
 public interface VM_Constants
 extends VM_ThinLockConstants,         // architecture-neutral

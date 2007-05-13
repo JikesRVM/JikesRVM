@@ -37,7 +37,6 @@ import org.vmmagic.unboxed.*;
  * arity) are packed to the low end of the buffer.  Thus buffer
  * underflows will always arise when then cursor is buffer-size aligned.
  * 
- * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
  */
 @Uninterruptible class LocalQueue extends LocalSSB implements Constants {
 

@@ -15,7 +15,6 @@ import org.vmmagic.pragma.*;
  * The granularity of the trace being produced.
  * 
  *
- * @author Daniel Frampton
  */
 public class TraceRate extends IntOption
   implements org.mmtk.utility.Constants {

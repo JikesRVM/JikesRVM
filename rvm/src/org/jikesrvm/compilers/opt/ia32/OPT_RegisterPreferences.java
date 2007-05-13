@@ -18,7 +18,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Operators;
 import org.jikesrvm.compilers.opt.ir.OPT_Register;
 
 /**
- * @author Stephen Fink
  */
 public class OPT_RegisterPreferences extends OPT_GenericRegisterPreferences
 implements OPT_Operators {

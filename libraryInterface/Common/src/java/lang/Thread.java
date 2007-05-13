@@ -21,8 +21,6 @@ import org.jikesrvm.scheduler.VM_Wait;
 /**
  * Jikes RVM implementation of a Java thread.
  *
- * @author Julian Dolby
- * @modified Steven Augart -- so it doesn't subclass VM_Thread any more.
  */
 public class Thread implements Runnable {
 

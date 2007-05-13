@@ -9,7 +9,6 @@
 /* Test JNI Functions related to Strings
  * Implement native methods from StringFunctions.java 
  * 
- * @author Ton Ngo, Steve Smith 2/29/00
  */
 
 #include <stdio.h>

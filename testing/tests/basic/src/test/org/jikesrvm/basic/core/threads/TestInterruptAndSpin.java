@@ -15,7 +15,6 @@ package test.org.jikesrvm.basic.core.threads;
  * was far too willing to throw InterruptedExceptions
  * in places where they should not have originated.
  *
- * @author David Hovemeyer
  */
 public class TestInterruptAndSpin {
   public static void main(String[] argv) {

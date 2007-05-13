@@ -11,7 +11,6 @@ package org.jikesrvm.compilers.opt.ir;
 /**
  *
  * @see OPT_Operand
- * @author Matthew Arnold
  */
 public final class OPT_BranchProfileOperand extends OPT_Operand {
   public float takenProbability;

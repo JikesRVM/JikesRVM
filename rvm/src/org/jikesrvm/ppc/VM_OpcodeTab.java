@@ -11,7 +11,6 @@ package org.jikesrvm.ppc;
 /**
  * Structure for the D and XL forms, PowerPC instruction set 
  *
- * @author John Waley
  * @see VM_Disassembler
  */
 final class VM_OpcodeTab {  

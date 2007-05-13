@@ -22,7 +22,6 @@ import org.vmmagic.unboxed.*;
  * closure over a mark-compact space during the forwarding phase.
  * 
  *
- * @author Daniel Frampton
  */
 @Uninterruptible public final class MCForwardTraceLocal extends TraceLocal {
   /**

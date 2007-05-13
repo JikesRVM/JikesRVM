@@ -21,10 +21,6 @@ import org.jikesrvm.classloader.VM_TypeReference;
  * as validation (guard) operands.
  * 
  * @see OPT_Operand
- * @author Mauricio Serrano
- * @author John Whaley
- * @modified Stephen Fink
- * @author Ian Rogers
  */
 public final class OPT_RegisterOperand extends OPT_Operand {
 

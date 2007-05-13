@@ -11,7 +11,6 @@ package org.jikesrvm.osr;
 /**
  * BC_LoadFloatConst: ldc, ldc_w 
  *
- * @author Feng Qian
  */
 public class BC_LoadFloatConst extends OSR_PseudoBytecode {
   private static final int bsize = 6;

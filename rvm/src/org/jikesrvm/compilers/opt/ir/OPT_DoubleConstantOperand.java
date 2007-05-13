@@ -17,8 +17,6 @@ import org.vmmagic.unboxed.Offset;
  * Represents a constant double operand.
  *
  * @see OPT_Operand
- * @author John Whaley
- * @modified Mauricio Serrano 6/6/98
  */
 
 public final class OPT_DoubleConstantOperand extends OPT_ConstantOperand implements VM_SizeConstants{

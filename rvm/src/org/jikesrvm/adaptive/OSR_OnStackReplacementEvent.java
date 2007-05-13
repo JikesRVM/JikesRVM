@@ -30,7 +30,6 @@ import org.vmmagic.unboxed.Offset;
  * method id. Since it does not need to go through analytic model, it does 
  * not extend the VM_HotMethodEvent.
  * 
- * @author Feng Qian
  */
 
 public final class OSR_OnStackReplacementEvent

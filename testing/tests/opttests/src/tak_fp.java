@@ -7,7 +7,6 @@
  * (C) Copyright IBM Corp. 2001
  */
 /**
- * @author unascribed
  */
 public class tak_fp{
 

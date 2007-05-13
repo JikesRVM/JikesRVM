@@ -24,7 +24,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
  * </pre>
  * <p> TODO: we do not support IRs with exception handlers!!
  *
- * @author Stephen Fink
  *
  */
 class OPT_Dominators {

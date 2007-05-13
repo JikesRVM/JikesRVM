@@ -23,7 +23,6 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements basic statistics functionality
  * 
- * @author Steve Blackburn
  */
 @Uninterruptible public class Stats {
 

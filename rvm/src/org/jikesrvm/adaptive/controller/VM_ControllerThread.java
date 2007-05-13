@@ -38,10 +38,6 @@ import org.jikesrvm.scheduler.VM_Thread;
  *     c) static information about a method; or 
  *     d) all of the above.
  *
- *  @author Michael Hind
- *  @author David Grove
- *  @author Stephen Fink
- *  @author Peter Sweeney
  */
 public class VM_ControllerThread extends VM_Thread {
 

@@ -30,9 +30,6 @@ import org.vmmagic.unboxed.Address;
  * 
  * @see VM_JNIFunctions
  * 
- * @author Dave Grove
- * @author Ton Ngo
- * @author Steve Smith 
  */
 public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
   

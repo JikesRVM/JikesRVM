@@ -33,9 +33,6 @@ import org.vmmagic.unboxed.Offset;
  * @see VM_Class
  * @see VM_Primitive
  *
- * @author Bowen Alpern
- * @author Dave Grove
- * @author Derek Lieber
  */
 public final class VM_Array extends VM_Type implements VM_Constants, 
                                                        VM_ClassLoaderConstants  {

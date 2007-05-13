@@ -15,7 +15,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
  * This phase puts the IR in SSA form and performs a set of simple
  * optimizations to clean up.  
  *
- * @author Stephen Fink
  */
 final class OPT_SSATuneUp extends OPT_OptimizationPlanCompositeElement {
 

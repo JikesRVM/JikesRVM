@@ -34,7 +34,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
  *
  * <p> TODO: we do not support IRs with exception handlers!!
  *
- * @author Stephen Fink
  */
 class OPT_DominanceFrontier extends OPT_CompilerPhase {
   static final boolean DEBUG = false;

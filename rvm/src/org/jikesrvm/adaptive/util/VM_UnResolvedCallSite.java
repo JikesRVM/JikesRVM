@@ -17,7 +17,6 @@ import org.jikesrvm.classloader.VM_MethodReference;
 /**
  * A unresolved call site is a pair: <VM_MethodReference, bcIndex>
  *
- * @author Xianglong Huang
  */
 public final class VM_UnResolvedCallSite {
 

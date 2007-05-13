@@ -20,9 +20,6 @@ import java.util.jar.*;
  * the contents of <old> to <new>.  First, the classes found in <new> not found
  * in <old> are reported -- these are denoted by <diff>.  Then from those classes, 
  * the fields, methods, and constructors found in <diff> not in <old> are reported.
- *
- * @author Jeffrey Palm
- * @since  03 Jun 2002
  */
 public class FindMissingAPI {
   

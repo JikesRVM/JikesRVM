@@ -16,9 +16,6 @@ import org.vmmagic.unboxed.Offset;
 /**
  * A field or method of a java class.
  *
- * @author Bowen Alpern
- * @author Dave Grove
- * @author Derek Lieber
  */
 public abstract class VM_Member extends VM_AnnotatedElement implements VM_Constants, VM_ClassLoaderConstants {
 

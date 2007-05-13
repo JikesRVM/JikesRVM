@@ -14,9 +14,6 @@ import java.io.IOException;
 /** 
  * A java method's try/catch/finally information.
  *
- * @author Bowen Alpern
- * @author Derek Lieber
- * @modified Ian Rogers
  */
 public final class VM_ExceptionHandlerMap {
   //-----------//

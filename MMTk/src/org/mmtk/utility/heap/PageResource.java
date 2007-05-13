@@ -34,7 +34,6 @@ import org.vmmagic.unboxed.*;
  * monotonically before freeing the entire space and starting over).
  * 
  *
- * @author Steve Blackburn
  */
 @Uninterruptible
 public abstract class PageResource implements Constants {

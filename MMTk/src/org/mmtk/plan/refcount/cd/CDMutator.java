@@ -16,7 +16,6 @@ import org.vmmagic.pragma.*;
  * behavior for a cycle detector. 
  * 
  *
- * @author Daniel Frampton
  */
 @Uninterruptible public abstract class CDMutator {
   /****************************************************************************

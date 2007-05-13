@@ -12,7 +12,6 @@ import org.jikesrvm.*;
 /**
  * Test native method with threads
  *
- * @author unascribed
  */
 
 class tNativeThreads

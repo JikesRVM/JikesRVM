@@ -49,7 +49,6 @@ import org.jikesrvm.compilers.opt.ir.PutField;
  * Class that performs scalar replacement of aggregates for non-array
  * objects
  *
- * @author Stephen Fink
  *
  */
 public class OPT_ObjectReplacer implements OPT_AggregateReplacer {

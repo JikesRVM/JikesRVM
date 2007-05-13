@@ -10,7 +10,6 @@
 import org.jikesrvm.scheduler.VM_Scheduler;
 
 /*
-* @author Ton Ngo
 */
 class BlockingThreadsWorker extends Thread {
 

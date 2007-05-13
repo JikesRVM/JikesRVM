@@ -33,7 +33,6 @@ import org.jikesrvm.compilers.opt.ir.PutStatic;
  * <li> TODO: force eager analysis of methods
  * </ul>
  *
- * @author Stephen Fink
  */
 public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
   private static final boolean DEBUG = false;

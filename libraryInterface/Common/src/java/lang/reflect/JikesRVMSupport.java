@@ -15,7 +15,6 @@ import org.jikesrvm.classloader.*;
 /**
  * Library support interface of Jikes RVM
  *
- * @author Julian Dolby
  */
 public class JikesRVMSupport {
 

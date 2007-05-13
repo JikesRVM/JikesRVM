@@ -17,7 +17,6 @@ package test.org.jikesrvm.basic.core.threads;
  *     then loops until a GC is done by a different object
  *        then it starts the GC object that it created
  *
- * @author unascribed
  */
 
 /**

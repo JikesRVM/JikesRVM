@@ -11,7 +11,6 @@ package test.org.jikesrvm.basic.core.bytecode;
 import test.org.jikesrvm.basic.core.bytecode.data.SubClassInDifferentPackage;
 
 /**
- * @author Peter Donald
  */
 public class TestClassHierarchy {
 

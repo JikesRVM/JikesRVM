@@ -25,7 +25,6 @@ import org.vmmagic.unboxed.*;
  * This class is not thread safe.
  * 
  *
- * @author Daniel Frampton
  */
 @Uninterruptible public final class SanityDataTable extends SimpleHashtable 
   implements Constants {

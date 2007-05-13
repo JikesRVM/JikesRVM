@@ -21,7 +21,6 @@ import org.vmmagic.unboxed.Offset;
  * Wrappers around PowerPC-specific code common to both 32 & 64 bit
  * 
  *
- * @author Steve Blackburn
  */
 public abstract class VM_MachineSpecificPowerPC extends VM_MachineSpecific implements VM_ArchConstants {
 

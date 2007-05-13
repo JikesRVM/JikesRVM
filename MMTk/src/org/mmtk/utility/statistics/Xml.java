@@ -19,7 +19,6 @@ import org.vmmagic.unboxed.Word;
 /**
  * Utility class for writing statistics out in XML format.
  * 
- * @author Robin Garner
  *
  */
 @Uninterruptible public class Xml {

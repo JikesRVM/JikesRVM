@@ -21,7 +21,6 @@ import org.jikesrvm.compilers.opt.OPT_Tree;
  * encoding of inlining information, stored in the
  * VM_OptMachineCodeMap.
  *
- * @author Julian Dolby
  *
  * @see OPT_InlineSequence
  * @see OPT_CallSiteTreeNode

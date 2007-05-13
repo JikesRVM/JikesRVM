@@ -29,8 +29,7 @@ import org.vmmagic.unboxed.ObjectReference;
 /**
  * Common debugging utility functions used by various garbage collectors
  *
- * @author Stephen Smith
- */  
+ */
 @Uninterruptible public class DebugUtil implements VM_Constants, Constants {
 
   private static Object[] tibForArrayType;

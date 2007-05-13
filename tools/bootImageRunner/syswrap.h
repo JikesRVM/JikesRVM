@@ -7,7 +7,6 @@
  * (C) Copyright IBM Corp. 2002
  */
 
-// @author David Hovemeyer
 
 // Wrapper functions for blocking system calls,
 // and accessors for the real libc system call functions.

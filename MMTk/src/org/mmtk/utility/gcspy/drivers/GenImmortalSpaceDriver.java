@@ -29,8 +29,6 @@ import org.vmmagic.pragma.*;
  * the contiguous MMTk ImmortalSpace.
  *
  *
- * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
- * @author Hanspeter Johner
  */
 @Uninterruptible public class GenImmortalSpaceDriver extends ImmortalSpaceDriver {
 

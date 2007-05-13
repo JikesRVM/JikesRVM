@@ -25,9 +25,6 @@ import org.vmmagic.unboxed.*;
  * collector. 
  * 
  *
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public class GenCopyMatureTraceLocal extends GenMatureTraceLocal {
 

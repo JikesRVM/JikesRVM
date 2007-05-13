@@ -22,9 +22,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
  *       state to be stored in an instance field of
  *       one of these objects.
  *
- * @author Steve Fink
- * @author Dave Grove
- * @author Michael Hind
  */
 public class OPT_OptimizationPlanCompositeElement extends OPT_OptimizationPlanElement {
   /**

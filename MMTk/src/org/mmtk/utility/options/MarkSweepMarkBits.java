@@ -15,7 +15,6 @@ import org.mmtk.policy.MarkSweepSpace;
  * Number of bits to use for the header cycle of mark sweep spaces.
  * 
  *
- * @author Daniel Frampton
  */
 public class MarkSweepMarkBits extends IntOption {
   /**

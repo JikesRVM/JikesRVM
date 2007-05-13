@@ -12,9 +12,6 @@ import java.util.Iterator;
 import org.jikesrvm.util.VM_LinkedList;
 
 /**
- * @author Mauricio J. Serrano
- * @author John Whaley
- * @author Robin Garner
  */
 final class OPT_Queue<T> implements Iterable<T> {
   private final VM_LinkedList<T> elements = new VM_LinkedList<T>();

@@ -10,7 +10,6 @@ package org.jikesrvm.compilers.opt;
 
 /** 
  * Interface to allow building top-sort, by calling OPT_TopSort.buildTopSort()
- * @author Jong Choi
  * 5/25/1999
  */
 public interface OPT_TopSortInterface {

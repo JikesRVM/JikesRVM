@@ -40,10 +40,6 @@ import org.jikesrvm.compilers.opt.ir.TableSwitch;
  * transformation engine, allowing us to share the
  * simplification code among multiple analysis modules.
  *
- * @author Steve Fink
- * @author Dave Grove
- * @author Mauricio Serrano
- * @author Martin Trapp
  */
 abstract class OPT_BranchSimplifier {
 

@@ -11,7 +11,6 @@ package org.jikesrvm.compilers.baseline;
 /**
  * Profile data for a branch instruction.
  * 
- * @author Dave Grove
  */
 public final class VM_SwitchBranchProfile extends VM_BranchProfile {
 

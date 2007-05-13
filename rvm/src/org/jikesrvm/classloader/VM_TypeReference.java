@@ -29,11 +29,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * to create a VM_TypeReference for a string that would not be syntactically
  * valid in a class file.   --Steven Augart
  * 
- * @author Bowen Alpern
- * @author Dave Grove
- * @author Derek Lieber
- * @author Ian Rogers
- * @modified Steven Augart
  */
 public final class VM_TypeReference {
   /**

@@ -20,7 +20,6 @@ import org.vmmagic.pragma.*;
  * their time of death (TOD).
  * 
  *
- * @author Steve Blackburn
  */
 @Uninterruptible
 public final class SortTODSharedDeque extends SortSharedDeque {

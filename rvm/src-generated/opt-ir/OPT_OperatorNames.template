@@ -15,9 +15,6 @@ package org.jikesrvm.compilers.opt.ir;
  * They are in a separate class for efficiency.
  *
  * @see OPT_Operator
- * @author John Whaley
- * @date 02/19/98
- * @author Igor Pechtchanski
  */
 public abstract class OPT_OperatorNames {
 

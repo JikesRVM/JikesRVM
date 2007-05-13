@@ -13,7 +13,6 @@ import org.vmmagic.Unboxed;
 /**
  * To be commented
  * 
- * @author Daniel Frampton
  */
 @Unboxed
 public final class Offset {

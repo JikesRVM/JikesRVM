@@ -23,7 +23,6 @@ import java.util.ArrayList;
  * 
  * @see OPT_Operator
  * @see OPT_Operators
- * @author Igor Pechtchanski
  */
 public final class OPT_OperatorClass implements OPT_Operators {
 

@@ -28,8 +28,7 @@ import org.mmtk.vm.gcspy.Util;
  * to perform the object instantiation.
  * 
  *
- * @author Steve Blackburn
- * 
+ *
  */
 public abstract class Factory {
 

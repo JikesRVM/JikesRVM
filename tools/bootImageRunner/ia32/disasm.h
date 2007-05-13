@@ -9,7 +9,6 @@
  */
 
 /*
- * @author Ton Ngo
  */
 #ifndef _disasm_hpp
 #define _disasm_hpp

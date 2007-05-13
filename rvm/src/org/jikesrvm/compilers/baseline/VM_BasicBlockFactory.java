@@ -9,7 +9,6 @@
 package org.jikesrvm.compilers.baseline;
 
 /**
- * @author Perry Cheng
  */
 public final class VM_BasicBlockFactory {
 

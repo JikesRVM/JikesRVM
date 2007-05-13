@@ -14,8 +14,6 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
  * Event used by the basic recompilation organizer
  * to notify the controller that a method is hot.
  *
- * @author Dave Grove 
- * @author Stephen Fink
  */
 public final class VM_HotMethodRecompilationEvent extends VM_HotMethodEvent 
   implements VM_ControllerInputEvent {

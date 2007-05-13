@@ -19,8 +19,6 @@ import org.vmmagic.pragma.*;
 /**
  * Error and trace logging.
  * 
- * @author Derek Lieber
- * @author Andrew Gray
  */
 @Uninterruptible public class Log implements Constants {
 

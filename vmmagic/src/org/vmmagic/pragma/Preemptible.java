@@ -17,7 +17,6 @@ import org.vmmagic.Pragma;
 /**
  * Commenting required.
  * 
- * @author Daniel Frampton
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})

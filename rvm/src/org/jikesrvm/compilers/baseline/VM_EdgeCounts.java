@@ -23,7 +23,6 @@ import org.jikesrvm.runtime.VM_Magic;
 /**
  * A repository of edge counters for bytecode-level edge conditional branches.
  * 
- * @author Dave Grove
  */
 public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
   /**

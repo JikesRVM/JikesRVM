@@ -145,13 +145,6 @@ import org.vmmagic.unboxed.Offset;
  * Converts all remaining instructions with HIR-only operators into 
  * an equivalent sequence of LIR operators.
  *
- * @author John Whaley
- * @author Mauricio J. Serrano
- * @author Jong-Deok Choi
- * @author Dave Grove
- * @author Stephen Fink
- * @author Igor Pechtchanski
- * @modified Peter F. Sweeney
  */
 public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
 

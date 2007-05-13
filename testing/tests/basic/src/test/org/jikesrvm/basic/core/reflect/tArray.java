@@ -11,7 +11,6 @@ package test.org.jikesrvm.basic.core.reflect;
 import java.lang.reflect.Array;
 
 /**
- * @author unascribed
  */
 class tArray {
   private int i;

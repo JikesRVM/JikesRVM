@@ -14,7 +14,6 @@ package org.jikesrvm.compilers.opt;
  * visualization.  The graph should implement OPT_VisGraph interface, and
  * its nodes - OPT_VisNode interface.
  *
- * @author Igor Pechtchanski
  * @see OPT_VisGraph
  * @see OPT_VisNode
  */

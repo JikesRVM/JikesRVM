@@ -15,7 +15,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Operand;
  * Encodes the BO & BI condition fields for PowerPC
  * 
  * @see OPT_Operand
- * @author by Mauricio Serrano
  */
 public final class OPT_PowerPCConditionOperand extends OPT_Operand {
   public static final int ALWAYS = (20 << 5);

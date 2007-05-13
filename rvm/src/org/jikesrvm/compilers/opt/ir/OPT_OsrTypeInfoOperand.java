@@ -13,7 +13,6 @@ import java.util.Arrays;
  * An OPT_OsrTypeInfoOperand object keeps type information of locals
  * and stacks at a byte code index.
  *
- * @author Feng Qian
  */
 
 public final class OPT_OsrTypeInfoOperand extends OPT_Operand {

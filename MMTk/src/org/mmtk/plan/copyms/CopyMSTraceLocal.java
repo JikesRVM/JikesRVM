@@ -21,9 +21,6 @@ import org.vmmagic.unboxed.*;
  * transitive closure over a coping/mark-sweep hybrid collector.
  * 
  *
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public final class CopyMSTraceLocal extends TraceLocal {
 

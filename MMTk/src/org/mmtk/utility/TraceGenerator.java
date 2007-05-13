@@ -28,7 +28,6 @@ import org.vmmagic.unboxed.*;
  * Class that supports scanning Objects and Arrays for references
  * during tracing, handling those references, and computing death times
  * 
- * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
  */
 @Uninterruptible public final class TraceGenerator 
   implements Constants, TracingConstants {

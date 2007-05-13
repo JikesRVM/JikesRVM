@@ -27,8 +27,6 @@ import org.vmmagic.pragma.*;
  * are static.
  * 
  *
- * @author Perry Cheng
- * @author Steve Blackburn
  */
 @Uninterruptible public final class ImmortalSpace extends Space 
   implements Constants {

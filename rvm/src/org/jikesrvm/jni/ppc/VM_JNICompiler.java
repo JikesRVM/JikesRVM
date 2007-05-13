@@ -29,10 +29,6 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * @author Ton Ngo 
- * @author Steve Smith
- * @modified Dave Grove
- * @modified by Kris Venstermans (64-bit port AIX)
  *
  * TODO: This class is a disaster.
  *       Refactor into an abstract parent with subclasses for target ABIs.

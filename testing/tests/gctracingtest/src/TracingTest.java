@@ -9,7 +9,6 @@
 
 
 /**
- * @author <a href="http://cs.canisius.edu/~hertzm">Matthew Hertz</a>
  */
 public class TracingTest {
   public static Integer[] arr;

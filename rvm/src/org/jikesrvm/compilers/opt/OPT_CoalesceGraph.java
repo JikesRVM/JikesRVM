@@ -23,7 +23,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Register;
  * convention, we enforce that the register with the lower number is the
  * source of an edge.
  *
- * @author Stephen Fink
  */
 class OPT_CoalesceGraph extends OPT_SpaceEffGraph {
 

@@ -19,7 +19,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * call density of the program.  If most yieldpoints are being taken at
  * backedges, then call density is low.
  * 
- * @author Dave Grove
  */
 @Uninterruptible
 public final class VM_CallDensityListener extends VM_NullListener {

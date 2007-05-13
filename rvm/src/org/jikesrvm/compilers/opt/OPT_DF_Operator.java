@@ -13,7 +13,6 @@ package org.jikesrvm.compilers.opt;
  *
  * represents a function for OPT_DF_LatticeCell values
  *
- * @author Stephen Fink
  */
 abstract class OPT_DF_Operator {
 

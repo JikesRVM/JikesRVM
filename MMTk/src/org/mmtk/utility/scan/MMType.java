@@ -18,8 +18,6 @@ import org.vmmagic.pragma.*;
 /**
  * This class encapsulates type-specific memory management information.
  * 
- * @author Andrew Gray
- * @author Steve Blackburn
  */
 @Uninterruptible public final class MMType implements Constants {
   // AJG: Maybe should make this immutable. See Item 13 of Effective Java.

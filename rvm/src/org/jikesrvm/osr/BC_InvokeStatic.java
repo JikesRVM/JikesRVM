@@ -19,7 +19,6 @@ import org.jikesrvm.runtime.VM_Entrypoints;
  * OSR_ObjectHolder.getRefAt and OSR_ObjectHolder.cleanRefs
  * indiced by GETREFAT and CLEANREFS.
  * 
- * @author Feng Qian
  */
 
 public class BC_InvokeStatic extends OSR_PseudoBytecode {

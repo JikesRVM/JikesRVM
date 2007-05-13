@@ -13,8 +13,6 @@ import org.jikesrvm.VM_Constants;
 /**
  * Registers used by baseline compiler code.
  *
- * @author Bowen Alpern
- * @author Derek Lieber
  */
 public interface VM_BaselineConstants extends VM_Constants, VM_ArchConstants {
 

@@ -27,9 +27,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * be an expensive operation.  Therefore we canonicalize
  * VM_MemberReference instances and cache the result of resolution.
  * 
- * @author Bowen Alpern
- * @author Dave Grove
- * @author Derek Lieber
  */
 public abstract class VM_MemberReference {
 

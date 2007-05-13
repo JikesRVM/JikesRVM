@@ -21,8 +21,6 @@ import org.vmmagic.pragma.*;
 
 /**
  *
- * @author Steve Blackburn
- * @author Perry Cheng
  *
  */
 @Uninterruptible public class Assert extends org.mmtk.vm.Assert {

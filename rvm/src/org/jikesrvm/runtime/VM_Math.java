@@ -12,9 +12,6 @@ package org.jikesrvm.runtime;
  * Placeholder for constants that are accessed from
  * generated code.
  *
- * @author Bowen Alpern
- * @author Mauricio Serrano
- * @author John Whaley
  */
 public class VM_Math {
   /*

@@ -17,9 +17,6 @@ import org.vmmagic.unboxed.Address;
 /**
  * Machine specific helper functions for dynamic linking.
  * 
- * @author Bowen Alpern
- * @author Maria Butrico
- * @author Anthony Cocchi
  */
 @Uninterruptible
 public abstract class VM_DynamicLinkerHelper {

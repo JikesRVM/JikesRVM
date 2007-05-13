@@ -18,7 +18,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_InstructionEnumeration;
  *
  * @see OPT_Priority
  * @see OPT_Scheduler
- * @author Igor Pechtchanski
  */
 class OPT_DefaultPriority extends OPT_Priority {
   // Underlying enumeration.

@@ -39,12 +39,6 @@ import org.vmmagic.unboxed.Offset;
  * one that generates code as each bytecode in the class file is
  * seen. It is the common base class of the base compiler.
  *
- * @author Chris Hoffmann
- * @author Maria Butrico
- * @author Anthony Cocchi
- * @author Dave Grove
- * @author Derek Lieber
- * @author Janice Shepherd
  */
 public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_SizeConstants,
                                                       VM_StackframeLayoutConstants {

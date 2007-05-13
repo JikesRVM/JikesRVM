@@ -17,11 +17,7 @@ import org.vmmagic.pragma.*;
  * SemiSpace common constants.
  * 
  *
- * @author Steve Blackburn
- * @author Perry Cheng
- * @author Robin Garner
- * @author Daniel Frampton
- * 
+ *
  */
 @Uninterruptible public class SSConstraints extends StopTheWorldConstraints {
 

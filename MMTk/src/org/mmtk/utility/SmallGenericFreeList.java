@@ -90,7 +90,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * coalesce.  The top sentinel also serves as the head and tail of
  * the doubly linked list of free blocks.
  * 
- * @author Steve Blackburn
  *
  */
 @Uninterruptible final class SmallGenericFreeList extends BaseGenericFreeList implements Constants {

@@ -26,9 +26,6 @@ import org.vmmagic.unboxed.Word;
 /**
  * Memory image of virtual machine that will be written to disk file and later
  * "booted".
- *
- * @author Derek Lieber
- * @version 03 Jan 2000
  */
 public class BootImage extends BootImageWriterMessages 
   implements BootImageWriterConstants, BootImageInterface, VM_SizeConstants {

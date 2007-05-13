@@ -23,11 +23,6 @@ import org.vmmagic.pragma.Uninterruptible;
  *  
  * Defines update's interface to be a compiled method identifier, CMID.
  * 
- * @author Matthew Arnold
- * @author Stephen Fink
- * @author Dave Grove
- * @author Michael Hind
- * @author Peter Sweeney
  */
 @Uninterruptible
 public final class VM_MethodListener extends VM_Listener {

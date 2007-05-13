@@ -35,7 +35,6 @@ import org.vmmagic.unboxed.*;
  * constructor argument.
  * 
  *
- * @author Perry Cheng
  */
 @Uninterruptible public final class DoublyLinkedList implements Constants {
 

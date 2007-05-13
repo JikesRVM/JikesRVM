@@ -24,7 +24,6 @@ import org.jikesrvm.compilers.opt.ir.Unary;
  *
  * @see OPT_CoalesceMoves
  *
- * @author Stephen Fink
  */
 class OPT_Coalesce {
 

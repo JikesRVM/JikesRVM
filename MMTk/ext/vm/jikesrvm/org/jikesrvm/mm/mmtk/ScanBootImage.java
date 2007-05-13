@@ -26,8 +26,7 @@ import org.vmmagic.pragma.*;
  * Scan the boot image for references using the boot image reference map
  *
  *
- * @author Steve Blackburn
- */  
+ */
 public class ScanBootImage implements Constants {
   
   private static final boolean DEBUG = false;

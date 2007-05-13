@@ -36,9 +36,6 @@ import org.vmmagic.unboxed.*;
  * @see SimplePhase#delegatePhase
  * 
  *
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public class GenMutator extends StopTheWorldMutator {
 

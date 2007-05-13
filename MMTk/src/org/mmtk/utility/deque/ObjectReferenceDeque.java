@@ -21,7 +21,6 @@ import org.vmmagic.pragma.*;
  * object references
  * 
  *
- * @author Steve Blackburn
  */
 @Uninterruptible public class ObjectReferenceDeque extends LocalDeque 
   implements Constants {

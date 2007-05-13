@@ -25,7 +25,6 @@ import org.jikesrvm.VM;
  * @see org.mmtk.vm.Factory
  * 
  *
- * @author Steve Blackburn
  */
 public final class Factory extends org.mmtk.vm.Factory {
 

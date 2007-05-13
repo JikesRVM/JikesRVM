@@ -18,7 +18,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
  * counting of events, but to keep the implemntation of the counters
  * completely hidden.  
  * 
- * @author Matthew Arnold
  *
  **/
 public abstract class OPT_InstrumentedEventCounterManager {

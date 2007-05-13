@@ -39,7 +39,6 @@ import org.vmmagic.unboxed.*;
  * @see SimplePhase#delegatePhase
  * 
  *
- * @author Daniel Frampton
  */
 @Uninterruptible public class MCCollector extends StopTheWorldCollector {
 

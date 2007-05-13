@@ -84,8 +84,6 @@ import org.vmmagic.unboxed.Offset;
  * between services residing in the host operating system and services
  * residing in the virtual machine.
  *
- * @author Bowen Alpern
- * @author Derek Lieber
  */
 public class VM_BootRecord {
   /**

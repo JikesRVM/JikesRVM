@@ -34,7 +34,6 @@ import org.vmmagic.unboxed.Offset;
  * prologue ( machine code ) is adjusted to cooperate with the code
  * installer.
  *
- * @author Feng Qian
  */
 public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
 

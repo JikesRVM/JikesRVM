@@ -36,7 +36,6 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
    the Opt compiler is used
  * </ul>
  *
- * @author Xianglong Huang
  *
  * @see VM_CompilerAdvice
  * @see VM_CompilerAdviceInfoReader

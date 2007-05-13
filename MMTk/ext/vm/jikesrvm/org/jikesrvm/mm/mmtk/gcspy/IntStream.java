@@ -24,7 +24,6 @@ import org.vmmagic.unboxed.Address;
 /**
  * Set up a GCspy Stream with data type INT_TYPE.
  *
- * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  */
 
 @Uninterruptible public class IntStream extends org.mmtk.vm.gcspy.IntStream {

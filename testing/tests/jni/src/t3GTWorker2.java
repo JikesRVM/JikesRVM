@@ -13,7 +13,6 @@
  * this thread sleeps for the specified time when called
  * repeatedly, until it receives a signal
  *
- * @author Dick Attanasio
  */
 
 class t3GTWorker2 extends Thread {

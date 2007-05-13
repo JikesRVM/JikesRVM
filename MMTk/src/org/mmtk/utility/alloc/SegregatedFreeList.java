@@ -42,7 +42,6 @@ import org.vmmagic.unboxed.*;
  * there are no more blocks the a new block is allocated.<p>
  * 
  *
- * @author Steve Blackburn
  */
 @Uninterruptible public abstract class SegregatedFreeList extends Allocator 
   implements Constants {

@@ -21,7 +21,6 @@ import org.vmmagic.pragma.*;
  * bytecode is forbidden in uninterruptible code.
  * 
  *
- * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  */
 @Uninterruptible public class LinearScan extends org.mmtk.utility.alloc.LinearScan {
 

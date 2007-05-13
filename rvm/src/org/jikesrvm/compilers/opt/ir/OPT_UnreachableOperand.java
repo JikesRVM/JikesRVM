@@ -13,7 +13,6 @@ package org.jikesrvm.compilers.opt.ir;
  * actually unreachable.
  * 
  * @see OPT_Operand
- * @author Stephen Fink
  */
 public final class OPT_UnreachableOperand extends OPT_ConstantOperand {
 

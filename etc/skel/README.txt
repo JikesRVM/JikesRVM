@@ -1,8 +1,7 @@
 -*-text-*-
 Skeleton.java
 
-    Skeleton file to use to begin a new Java source file.  Contains
-    an IBM copyright notice and Javadoc @author tag.
+    Skeleton file to use to begin a new Java source file.
 
 skeleton.C
 

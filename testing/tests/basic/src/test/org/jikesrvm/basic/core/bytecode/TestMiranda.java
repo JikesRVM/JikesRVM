@@ -13,7 +13,6 @@ import org.vmmagic.pragma.NoInline;
 /**
  * This class provides a test of Miranda methods.
  *
- * @author Ian Rogers
  */
 public class TestMiranda {
 

@@ -11,7 +11,6 @@ package org.jikesrvm.osr;
 /**
  *  pop
  *
- * @author Feng Qian
  */
 public class BC_Pop extends OSR_PseudoBytecode {
   public byte[] getBytes() {

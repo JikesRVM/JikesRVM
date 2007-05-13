@@ -19,7 +19,6 @@ import org.jikesrvm.VM;
  * The value starts on the top of the stack, but is usually quickly moved to 
  * a local variable. 
  *
- * @author Anthony Cocchi
  */
 public final class VM_PendingRETInfo {
 

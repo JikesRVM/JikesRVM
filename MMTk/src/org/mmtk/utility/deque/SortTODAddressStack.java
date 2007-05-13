@@ -20,7 +20,6 @@ import org.vmmagic.pragma.*;
  * This supports <i>unsynchronized</i> pushing and popping of addresses. 
  * In addition, this can sort the entries currently on the shared stack.
  * 
- * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
  */
 @Uninterruptible public class SortTODAddressStack extends LocalDeque 
   implements Constants {

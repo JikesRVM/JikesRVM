@@ -21,7 +21,6 @@ import org.vmmagic.pragma.*;
  * references.  In addition, this can sort the entries currently on
  * the shared stack.
  * 
- * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
  */
 @Uninterruptible public class SortTODObjectReferenceStack extends LocalDeque 
   implements Constants {

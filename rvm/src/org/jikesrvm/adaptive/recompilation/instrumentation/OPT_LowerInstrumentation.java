@@ -27,7 +27,6 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INSTRUMENTED_EVENT_COU
  *  converting them to the actual instructions that perform the
  *  instrumentation.
  *
- *  @author Matthew Arnold
  */
 public class OPT_LowerInstrumentation  extends OPT_CompilerPhase {
 

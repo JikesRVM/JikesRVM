@@ -9,7 +9,6 @@
 package test.org.jikesrvm.basic.core.classloading;
 
 /**
- * @author unascribed
  */
 class TestUTF8 {
   static String[] test = {

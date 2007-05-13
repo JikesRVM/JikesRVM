@@ -18,8 +18,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Register;
  * This class provides utilities to record defs and uses of physical
  * registers by IR operators.
  *
- * @author Stephen Fink
- * @author Dave Grove
  */
 public abstract class OPT_PhysicalDefUse {
 

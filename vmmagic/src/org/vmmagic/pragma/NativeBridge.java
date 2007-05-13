@@ -22,8 +22,6 @@ import org.vmmagic.Pragma;
  *   frame to map from the native stack/register convention to RVM's convention
  *  -It is an error to call these methods from Java
  *
- * @author Bowen Alpern
- * @author Derek Lieber
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

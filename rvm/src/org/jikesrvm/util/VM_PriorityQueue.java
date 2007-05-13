@@ -15,7 +15,6 @@ import org.jikesrvm.VM;
  * (balanced partially-ordered tree, i.e., "heap") algorithm.
  * Smaller priority objects are in the front of the queue.
  *
- * @author Michael Hind
  */
 public class VM_PriorityQueue {
 

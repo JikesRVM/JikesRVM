@@ -7,7 +7,6 @@
  * (C) Copyright IBM Corp. 2002, 2003, 2004
  */
 
-// @author Stephen Fink
 
 // Definitions of constants for handling C command-line arguments
 // These are actually only included by one caller, RunBootImage.C

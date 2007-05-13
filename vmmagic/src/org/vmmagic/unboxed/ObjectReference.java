@@ -18,7 +18,6 @@ import org.vmmagic.Unboxed;
  * objects that the VM is managing. No operations that can not be completed in
  * pure Java should be allowed on Object.
  * 
- * @author Daniel Frampton
  */
 @Unboxed
 public final class ObjectReference {

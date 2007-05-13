@@ -11,7 +11,6 @@ package org.jikesrvm.runtime;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * @author Dave Grove 
  */
 public class VM_Magic {
   public static void setIntAtOffset(Object o, Offset x, int y) { } 

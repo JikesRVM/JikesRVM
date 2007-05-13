@@ -17,7 +17,6 @@ import org.mmtk.plan.Plan;
  * This option is not intended to be created directly, but via NurserySize.
  * 
  *
- * @author Daniel Frampton
  */
 public class FixedNursery extends PagesOption {
   // values

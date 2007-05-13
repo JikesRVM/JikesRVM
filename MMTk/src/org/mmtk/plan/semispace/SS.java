@@ -37,11 +37,7 @@ import org.vmmagic.unboxed.*;
  * performance proprties of this plan.
  * 
  *
- * @author Steve Blackburn
- * @author Perry Cheng
- * @author Robin Garner
- * @author Daniel Frampton
- * 
+ *
  */
 @Uninterruptible public class SS extends StopTheWorld {
   /** Fraction of available virtual memory available to each semispace */

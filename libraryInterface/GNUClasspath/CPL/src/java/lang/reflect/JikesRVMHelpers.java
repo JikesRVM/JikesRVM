@@ -18,7 +18,6 @@ import gnu.java.lang.reflect.FieldSignatureParser;
  * Class library dependent helper methods used to implement
  * class library independent code in java.lang.reflect
  *
- * @author Dave Grove
  */
 class JikesRVMHelpers {
 

@@ -37,7 +37,6 @@ import java.util.Map;
  * class for methods annotated with this, that provides an indirection to
  * a native method annotated with @SysCall.
  * 
- * @author Robin Garner
  *
  */
 public class SysCallProcessor implements AnnotationProcessor {
@@ -66,7 +65,6 @@ public class SysCallProcessor implements AnnotationProcessor {
   /**
    * Visit a class that has SysCall annotations
    * 
-   * @author robing
    */
   private class SysCallVisitor extends SimpleDeclarationVisitor {
     private PrintWriter out;

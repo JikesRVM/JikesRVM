@@ -12,7 +12,6 @@ import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 
 /**
  * Implementation of java.lang.ref.SoftReference for JikesRVM.
- * @author Chris Hoffmann
  */
 public class SoftReference<T> extends Reference<T> {
 

@@ -15,9 +15,6 @@ import java.io.Serializable;
  *
  * implements a bit vector
  *
- * @author John Whaley
- * @modified Stephen Fink
- * @modified Ian Rogers
  */
 public final class OPT_BitVector implements Serializable {
   /** Support for serialization */

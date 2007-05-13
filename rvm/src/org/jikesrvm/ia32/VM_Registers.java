@@ -18,8 +18,6 @@ import org.vmmagic.unboxed.WordArray;
 /**
  * The machine state comprising a thread's execution context.
  *
- * @author Bowen Alpern
- * @author David Grove
  */
 @Uninterruptible public abstract class VM_Registers implements VM_RegisterConstants {
 

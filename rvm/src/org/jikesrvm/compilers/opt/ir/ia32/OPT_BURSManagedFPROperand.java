@@ -15,7 +15,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Operand;
  * Created by a fld, and then eventually
  * deallocated with some popping alu/store.
  *
- * @author Dave Grove
  */
 public final class OPT_BURSManagedFPROperand extends OPT_Operand {
   public int regNum;

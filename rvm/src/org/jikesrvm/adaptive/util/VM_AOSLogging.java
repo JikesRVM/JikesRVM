@@ -55,9 +55,6 @@ import org.jikesrvm.scheduler.VM_Thread;
  *   2  Log interesting AOS events and controller actions
  *   3  Exhaustively log pretty much everything that is going on
  *
- * @author Dave Grove
- * @author Michael Hind
- * @modified Peter Sweeney
  */
 public class VM_AOSLogging {
 

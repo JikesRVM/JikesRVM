@@ -24,7 +24,6 @@ import org.vmmagic.unboxed.Address;
  * Set up a GCspy Stream with data type SHORT_TYPE.
  *
  *
- * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  */
 
 @Uninterruptible public class ShortStream extends org.mmtk.vm.gcspy.ShortStream {

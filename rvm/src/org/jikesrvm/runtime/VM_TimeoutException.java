@@ -16,7 +16,6 @@ package org.jikesrvm.runtime;
  * to know what the calling method wants.  For example, InterruptedException,
  * SocketTimeoutException, etc.
  *
- * @author David Hovemeyer
  */
 public class VM_TimeoutException extends Exception {
   public VM_TimeoutException(String msg) {

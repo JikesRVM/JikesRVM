@@ -27,8 +27,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
  *
  * There is no code yet to deal with partial redundancies.
  *
- * @author Martin Trapp
- * @modified Stephen Fink
  */
 final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
 

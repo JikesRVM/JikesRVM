@@ -12,7 +12,6 @@ package org.jikesrvm.adaptive.measurements;
  * Interface for all reportable objects that are managed by the runtime
  * measurements.
  *
- * @author Peter Sweeney
  */
 
 public interface VM_Reportable { 

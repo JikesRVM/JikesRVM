@@ -16,7 +16,6 @@ import java.lang.annotation.RetentionPolicy;
 /**
  * Class to test inheritance of annotations.
  *
- * @author Peter Donald
  */
 public class TestAnnotationInheritance {
 

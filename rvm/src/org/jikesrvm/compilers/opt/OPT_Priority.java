@@ -16,7 +16,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_InstructionEnumeration;
  * Used by the scheduler to enumerate over instructions
  *
  * @see OPT_Scheduler
- * @author Igor Pechtchanski
  */
 abstract class OPT_Priority
     implements OPT_InstructionEnumeration {

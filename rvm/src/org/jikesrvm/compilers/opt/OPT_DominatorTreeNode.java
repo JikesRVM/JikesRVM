@@ -17,8 +17,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
  * This class implements a node in the dominator tree.
  *
  * <p> TODO: we do not support IRs with exception handlers!!
- * @author Michael Hind
- * @author Martin Trapp
  */
 class OPT_DominatorTreeNode extends OPT_TreeNode {
 

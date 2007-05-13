@@ -25,7 +25,6 @@ import org.vmmagic.unboxed.*;
  * This class performs sanity checks for StopTheWorld collectors.
  * 
  *
- * @author Daniel Frampton
  */
 @Uninterruptible public final class SanityChecker implements Constants {
 

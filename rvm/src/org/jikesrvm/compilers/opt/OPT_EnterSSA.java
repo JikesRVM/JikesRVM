@@ -67,9 +67,6 @@ import org.jikesrvm.compilers.opt.ir.Return;
  * @see OPT_SSAOptions
  * @see OPT_LTDominators
  *
- * @author Stephen Fink
- * @author Julian Dolby
- * @author Martin Trapp
  */
 public class OPT_EnterSSA extends OPT_CompilerPhase {
   /**

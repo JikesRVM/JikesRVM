@@ -18,7 +18,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
  * @see OPT_LSTGraph
  * @see OPT_AnnotatedLSTNode
  *
- * @author Ian Rogers
  */
 public class OPT_AnnotatedLSTGraph extends OPT_LSTGraph {
   /**

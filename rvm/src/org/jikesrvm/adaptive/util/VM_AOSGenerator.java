@@ -26,7 +26,6 @@ import org.jikesrvm.compilers.opt.OPT_CompilationPlan;
  * Right now this class is basically duplicate part of the VM_AOSLogging
  * class.
  *
- * @author Xianglong Huang
  */
 public class VM_AOSGenerator {
 

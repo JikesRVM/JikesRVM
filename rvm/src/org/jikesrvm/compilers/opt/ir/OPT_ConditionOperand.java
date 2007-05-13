@@ -16,8 +16,6 @@ import org.vmmagic.unboxed.Address;
  * 
  * @see OPT_Operand
  *
- * @author Mauricio Serrano
- * @author Ian Rogers
  */
 public final class OPT_ConditionOperand extends OPT_Operand {
 

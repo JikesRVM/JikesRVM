@@ -38,9 +38,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
  * memory leaks and concurrent access problems, so this should be done
  * with great care!
  *
- * @author Stephen Fink
- * @author Dave Grove
- * @author Michael Hind
  */
 public abstract class OPT_CompilerPhase {
 

@@ -15,7 +15,6 @@ import org.jikesrvm.compilers.opt.OPT_Bits;
  * Represents a constant int operand.
  *
  * @see OPT_Operand
- * @author John Whaley
  */
 public final class OPT_IntConstantOperand extends OPT_ConstantOperand {
 

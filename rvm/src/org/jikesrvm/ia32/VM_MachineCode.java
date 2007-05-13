@@ -11,7 +11,6 @@ package org.jikesrvm.ia32;
 import org.jikesrvm.ArchitectureSpecific;
 
 /** 
- * @author Julian Dolby
  */
 public abstract class VM_MachineCode {
   private final ArchitectureSpecific.VM_CodeArray instructions;

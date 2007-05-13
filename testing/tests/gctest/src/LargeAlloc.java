@@ -7,7 +7,6 @@
  * (C) Copyright IBM Corp. 2001
  */
 /*
- * @author Perry Cheng
  */
 
 class LargeAlloc {

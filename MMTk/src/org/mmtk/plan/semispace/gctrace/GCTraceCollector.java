@@ -37,12 +37,7 @@ import org.vmmagic.pragma.*;
  * @see org.mmtk.plan.SimplePhase#delegatePhase
  * 
  *
- * @author Steve Blackburn
- * @author Perry Cheng
- * @author Daniel Frampton
- * @author Robin Garner
- * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
- * 
+ *
  */
 @Uninterruptible public class GCTraceCollector extends SSCollector {
   /****************************************************************************

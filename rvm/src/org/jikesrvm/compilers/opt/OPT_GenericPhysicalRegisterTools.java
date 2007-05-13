@@ -21,11 +21,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
  * methods for
  * manipulating physical registers for an IR.
  *
- * @author Jong-Deok Choi
- * @author Dave Grove
- * @author Mauricio Serrano
- * @author John Whaley
- * @author Stephen Fink
  */
 public abstract class OPT_GenericPhysicalRegisterTools extends OPT_IRTools {
 

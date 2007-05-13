@@ -9,7 +9,6 @@
 /**
  * Sub class of MethodInvocation to test CallNonVirtual<type>Method
  *
- * @author Ton Ngo
  */
 class MethodInvocationSub extends MethodInvocation {
 

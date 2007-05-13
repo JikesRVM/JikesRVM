@@ -9,9 +9,6 @@
 package org.jikesrvm.ia32;
 
 /**
- * @author Bowen Alpern
- * @author Stephen Fink
- * @author Dave Grove
  */
 public interface VM_RegisterConstants {
   //---------------------------------------------------------------------------------------//

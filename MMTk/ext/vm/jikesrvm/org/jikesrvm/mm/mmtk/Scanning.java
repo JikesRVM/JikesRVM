@@ -28,8 +28,6 @@ import org.vmmagic.pragma.*;
 
 /**
  *
- * @author Steve Blackburn
- * @author Perry Cheng
  *
  */
 @Uninterruptible public class Scanning extends org.mmtk.vm.Scanning implements Constants {

@@ -14,7 +14,6 @@ import org.jikesrvm.classloader.VM_TypeReference;
  * This operand represents the null constant.
  * 
  * @see OPT_Operand
- * @author John Whaley
  */
 public final class OPT_NullConstantOperand extends OPT_ConstantOperand {
 

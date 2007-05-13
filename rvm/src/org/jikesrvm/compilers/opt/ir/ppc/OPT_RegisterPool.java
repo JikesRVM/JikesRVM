@@ -23,11 +23,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
  * 
  * @see OPT_Register
  * 
- * @author Dave Grove
- * @author Mauricio J. Serrano
- * @author John Whaley
- * @modified Vivek Sarkar
- * @author Peter Sweeney
  */
 public abstract class OPT_RegisterPool extends OPT_GenericRegisterPool {
 

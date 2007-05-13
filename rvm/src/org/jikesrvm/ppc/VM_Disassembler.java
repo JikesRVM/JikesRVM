@@ -10,7 +10,6 @@ package org.jikesrvm.ppc;
 
 /**
  * Disassembler for Rios instruction set.
- * @author Ton Ngo
  *
  * Defined: disasm(inst, addr, buf, reg)
  *          INSTRUCTION inst; Address addr;  CHAR *buf; CHAR reg[4][10];

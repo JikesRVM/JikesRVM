@@ -16,7 +16,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
 
 /**
- * @author Peter Donald
  */
 class TestSerialization {
   public static void main(String[] args) throws Exception {

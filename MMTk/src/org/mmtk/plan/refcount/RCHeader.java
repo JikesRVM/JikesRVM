@@ -32,8 +32,6 @@ import org.vmmagic.pragma.*;
  * in the instance methods of RefCountLocal.
  *
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
- * @author Ian Warrington
  */
 @Uninterruptible public final class RCHeader implements Constants {
 

@@ -21,7 +21,6 @@ import org.vmmagic.unboxed.Offset;
  * OSR_ObjectHolder helps the specialized prologue to load reference
  * get around of GC problem
  *
- * @author Feng Qian
  */
 
 @Uninterruptible public class OSR_ObjectHolder implements VM_SizeConstants {

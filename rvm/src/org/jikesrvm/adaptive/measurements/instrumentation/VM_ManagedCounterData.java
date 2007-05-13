@@ -20,7 +20,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
  * It provides the basic interface to access counters,  forwarding
  * those requests to the counter manager.
  *
- * @author Matthew Arnold
  */
 public class VM_ManagedCounterData {
 

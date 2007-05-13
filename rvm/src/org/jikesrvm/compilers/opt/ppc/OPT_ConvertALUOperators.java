@@ -16,7 +16,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Operators;
 /**
  * Nothing to do on PowerPC.
  *
- * @author Dave Grove
  */
 public abstract class OPT_ConvertALUOperators extends OPT_CompilerPhase 
   implements OPT_Operators {

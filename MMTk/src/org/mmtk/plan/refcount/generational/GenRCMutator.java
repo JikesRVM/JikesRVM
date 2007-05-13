@@ -46,9 +46,6 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.plan.SimplePhase#delegatePhase
  *
  *
- * @author Steve Blackburn
- * @author Robin Garner
- * @author Daniel Frampton
  */
 @Uninterruptible public abstract class GenRCMutator extends RCBaseMutator implements Constants {
   /****************************************************************************

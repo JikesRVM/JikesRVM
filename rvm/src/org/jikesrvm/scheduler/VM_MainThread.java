@@ -26,9 +26,6 @@ import org.jikesrvm.runtime.VM_Reflection;
 /**
  * Thread in which user's "main" program runs.
  *
- * @author Bowen Alpern
- * @author Derek Lieber
- * @modified Steven Augart
  */
 public class VM_MainThread extends Thread {
   private String[] args;

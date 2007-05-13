@@ -15,7 +15,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
  * ala Alpern, Wegman and Zadeck, PoPL 88.
  * See Muchnick p.348 for a nice discussion.
  *
- * @author Stephen Fink
  */
 class OPT_GlobalValueNumber extends OPT_CompilerPhase {
   /** Print verbose debugging output? */

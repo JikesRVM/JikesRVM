@@ -17,7 +17,6 @@ import org.vmmagic.pragma.*;
  * Class that supports scanning Objects or Arrays for references
  * during tracing, handling those references, and computing death times
  * 
- * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
  */
 @Uninterruptible public abstract class TraceInterface {
 

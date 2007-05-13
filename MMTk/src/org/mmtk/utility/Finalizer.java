@@ -31,7 +31,6 @@ import org.vmmagic.unboxed.*;
  * if needed and if the VM_Scheduler finalizerQueue is not empty, 
  * the finalizer thread is scheduled to be run when gc is completed.
  * 
- * @author Perry Cheng
  */
 @Uninterruptible public class Finalizer {
 

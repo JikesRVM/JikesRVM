@@ -95,12 +95,7 @@ import org.vmmagic.unboxed.Word;
  * <li>We don't really free local refs when we call the 
  *      {@link #PopLocalFrame} method.
  * </ol>
- * @author Ton Ngo 
- * @author Steve Smith  
- * @date 1 February 2000
  *
- * @modified Steven Augart
- * @date June 2004 -- JNI 1.2 and 1.4 largely implemented
  */
 @SuppressWarnings({"unused", "UnusedDeclaration"})
 // called from native code

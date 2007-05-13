@@ -29,9 +29,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.TypeCheck;
 
 /**
- * @author Rastislav Bodik
- * @author Stephen Fink
- * @author Julian Dolby
  *
  * This pass inserts PI nodes (Effectively copies)
  * on branch edges, to introduce new names for analysis

@@ -16,7 +16,6 @@ import org.vmmagic.unboxed.Word;
 /**
  * OSR_PseudoBytecode is super class of all pseudo instructions.
  *
- * @author Feng Qian
  */
 
 public abstract class OSR_PseudoBytecode 

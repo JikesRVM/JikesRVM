@@ -72,12 +72,6 @@ import org.vmmagic.unboxed.Offset;
  * and has more advanced and effective implementation of the inlining 
  * transformation. <p>
  * 
- * @author Jong-Deok Choi
- * @author Stephen Fink
- * @author Dave Grove
- * @author Igor Pechtchanski
- * @author Mauricio Serrano
- * @author John Whaley
  *
  * @see OPT_IRGenOptions
  * @see OPT_GenerationContext

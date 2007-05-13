@@ -44,9 +44,6 @@ import org.jikesrvm.compilers.opt.ir.Phi;
  * @see OPT_SSAOptions
  * @see OPT_LTDominators
  *
- * @author Stephen Fink
- * @author Julian Dolby
- * @author Martin Trapp
  */
 public class OPT_LeaveSSA extends OPT_CompilerPhase {
 

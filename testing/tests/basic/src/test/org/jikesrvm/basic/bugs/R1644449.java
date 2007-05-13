@@ -11,7 +11,6 @@ package test.org.jikesrvm.basic.bugs;
 /**
  * [ 1644449 ] Floating point display breaks on IA32.
  *
- * @author Peter Donald
  */
 public class R1644449 {
   public static float b = 0.009765625f;

@@ -19,7 +19,6 @@ package org.jikesrvm.compilers.opt;
  *
  * @see OPT_Graph
  *
- * @author Julian Dolby
  *
  */
 @Deprecated

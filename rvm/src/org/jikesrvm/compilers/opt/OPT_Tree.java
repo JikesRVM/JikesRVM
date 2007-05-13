@@ -14,7 +14,6 @@ import java.util.Enumeration;
  *  This class is a generic tree.  It uses OPT_TreeNode and some enumeration
  *  classes.
  *
- *  @author Michael Hind
  */
 public class OPT_Tree {
   

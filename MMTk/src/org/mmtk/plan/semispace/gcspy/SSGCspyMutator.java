@@ -41,8 +41,6 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.plan.SimplePhase#delegatePhase
  * 
  *
- * @author Steve Blackburn
- * @author <a href="http://www.cs.ukc.ac.uk/~rej">Richard Jones</a>
  */
 @Uninterruptible public class SSGCspyMutator extends SSMutator {
 

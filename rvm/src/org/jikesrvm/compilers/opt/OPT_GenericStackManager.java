@@ -46,10 +46,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
  * the stackframe.
  * <p>
  *
- * @author Dave Grove
- * @author Mauricio J. Serrano
- * @author Stephen Fink
- * @author Michael Hind
  */
 public abstract class OPT_GenericStackManager extends OPT_IRTools {
 

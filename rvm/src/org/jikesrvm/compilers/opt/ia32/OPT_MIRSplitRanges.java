@@ -25,7 +25,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
  * This class splits live ranges for certain special cases to ensure
  * correctness during IA32 register allocation.
  *
- * @author Stephen Fink
  */
 class OPT_MIRSplitRanges extends OPT_CompilerPhase 
   implements OPT_Operators {

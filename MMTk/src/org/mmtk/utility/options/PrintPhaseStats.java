@@ -14,7 +14,6 @@ package org.mmtk.utility.options;
  * gc-mutator phase be printed?
  * 
  *
- * @author Daniel Frampton
  */
 public class PrintPhaseStats extends BooleanOption {
   /**

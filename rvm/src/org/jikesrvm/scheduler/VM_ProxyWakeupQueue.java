@@ -16,7 +16,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * A queue of VM_Proxys prioritized by their thread wakeup times.
  * based on VM_WakeupQueue (14 October 1998 Bowen Alpern)
  *
- * @author Bowen Alpern
  */
 @Uninterruptible final class VM_ProxyWakeupQueue extends VM_AbstractThreadQueue {
   

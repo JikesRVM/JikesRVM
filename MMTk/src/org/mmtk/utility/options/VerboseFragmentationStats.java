@@ -13,7 +13,6 @@ package org.mmtk.utility.options;
  * Should we print verbose fragmentation statistics for the free list allocator?
  * 
  *
- * @author Daniel Frampton
  */
 public class VerboseFragmentationStats extends BooleanOption {
   /**

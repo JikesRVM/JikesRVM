@@ -15,8 +15,6 @@ package org.jikesrvm.runtime;
  * must exit with some failure condition.  By default, if all goes well, the
  * virtual machine will exit with status zero.
  *
- * @author Steven Augart
- * @date   31 January 2005
  */
 public interface VM_ExitStatus {
   /* Exit statuses, pending a better location.       

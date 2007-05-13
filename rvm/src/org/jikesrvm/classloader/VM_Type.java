@@ -49,10 +49,6 @@ import org.vmmagic.unboxed.Offset;
  * Their "resolution", "instantiation", and "initialization" phases
  * are no-ops.
  *
- * @author Bowen Alpern
- * @author Dave Grove
- * @author Derek Lieber
- * @author Ian Rogers
  */
 public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoaderConstants, VM_SizeConstants, VM_Constants {
 

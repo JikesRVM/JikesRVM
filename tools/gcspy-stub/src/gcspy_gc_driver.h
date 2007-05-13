@@ -10,7 +10,6 @@
 /**
  * A testing stub for GCspy
  *
- * @author Richard Jones
  */
 
 #ifndef _GCSPY_GC_DRIVER_H_

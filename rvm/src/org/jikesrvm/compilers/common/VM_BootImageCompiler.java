@@ -20,9 +20,6 @@ import org.jikesrvm.compilers.baseline.VM_BaselineBootImageCompiler;
  * Individual compilers provide concrete implementations, one of which is
  * instantiated by VM_BootImageCompiler.init.
  * 
- * @author Bowen Alpern
- * @author Dave Grove
- * @author Derek Lieber
  */
 public abstract class VM_BootImageCompiler {
 

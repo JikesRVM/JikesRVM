@@ -21,8 +21,6 @@ import org.jikesrvm.VM;
  *       All other options are defined in VALUE_DAT_FILES 
  *       (value, enumeration, bitmask)
  *
- * @author Janice Shepherd
- * @author Dave Grove
  **/
 public final class VM_BaselineOptions implements Cloneable {
 

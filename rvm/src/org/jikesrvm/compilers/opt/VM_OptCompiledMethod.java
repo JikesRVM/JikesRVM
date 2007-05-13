@@ -45,8 +45,6 @@ import org.vmmagic.unboxed.Offset;
  * state that is really required to be persistent.  Anything
  * transitory should be stored on the OPT_IR object. 
  * 
- * @author Dave Grove
- * @author Mauricio Serrano
  */
 @SynchronizedObject
 @Uninterruptible

@@ -11,8 +11,6 @@
  * O/S support services required by the java class libraries.
  * See also: VM_BootRecord.java
  *
- * @author Derek Lieber
- * @date 20 Apr 1998
  */
 
 // Aix and Linux version.  PowerPC and IA32.
@@ -2490,7 +2488,6 @@ getArrayLength(void* ptr)
 }
 
 // VMMath
-// @author Ian Rogers 2007
 extern "C" double
 sysVMMathSin(double a) {
     return sin(a);
@@ -2609,7 +2606,6 @@ sysVMMathLog1p(double a) {
 
 #ifdef RVM_WITH_GCSPY
 // GCspy
-// @author Richard Jones 2002-6
 
 //NOTE It is the responsibility of the calling code to
 //     check that server, driver etc are non-null.

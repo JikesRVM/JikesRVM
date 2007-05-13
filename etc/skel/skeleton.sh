@@ -10,5 +10,3 @@
 #
 # Substitute a brief description of what this program or library does.
 #
-# @author Your Name Here
-# @date 11 March 2004

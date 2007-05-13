@@ -8,8 +8,6 @@
  */
 /*
  * Begin execution of a VM_Thread "startoff" method.
- * @author Derek Lieber
- * @date 21 Oct 1998
  *
  * Signature:
  *    void bootThread(int jtoc, int pr, int ti, int fp);

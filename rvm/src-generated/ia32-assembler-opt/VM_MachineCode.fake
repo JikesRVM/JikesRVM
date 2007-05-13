@@ -8,7 +8,6 @@
  */
 package org.jikesrvm.ia32;
 /**
- * @author Dave Grove 
  */
 public class VM_MachineCode {
   public VM_MachineCode(VM_CodeArray x, int[] y) {} 

@@ -18,7 +18,6 @@ import java.util.Set;
 /**
  * Utility class to make it easier to generate deterministic output by caching output per thread and outputting it at end.
  *
- * @author Peter Donald
  */
 abstract class XThread extends Thread {
 

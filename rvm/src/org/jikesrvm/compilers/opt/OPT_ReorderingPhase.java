@@ -31,8 +31,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_WeightedBranchTargets;
  *     to the end of the code order.
  * (2) Pettis and Hansen Algo2.
  *
- * @author Vivek Sarkar
- * @author Dave Grove
  */
 final class OPT_ReorderingPhase extends OPT_CompilerPhase {
 

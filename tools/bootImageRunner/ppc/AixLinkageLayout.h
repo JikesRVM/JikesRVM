@@ -8,7 +8,6 @@
  */
 // Layout of an AIX function linkage area.
 //
-// @author unascribed
 //
 #include <inttypes.h>
 #ifdef RVM_FOR_32_ADDR

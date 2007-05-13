@@ -1453,10 +1453,6 @@ target.jni-suffix=${target.jni-suffix}
         <pathelement location="${build.dir}/javadoc/classes-ia32"/>
       </classpath>
 
-      <tag name="author" description="Author:"/>
-      <tag name="modified" description="Modified by:"/>
-      <tag name="todo" scope="all" description="To do:"/>
-
       <group title="RVM" packages="org.jikesrvm*"/>
       <group title="VM Magic" packages="org.vmmagic.*"/>
       <group title="MMTk" packages="org.mmtk.*"/>

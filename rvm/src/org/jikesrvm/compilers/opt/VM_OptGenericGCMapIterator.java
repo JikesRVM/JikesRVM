@@ -28,7 +28,6 @@ import org.vmmagic.unboxed.WordArray;
  *
  * @see org.jikesrvm.ArchitectureSpecific.VM_OptGCMapIterator
  *
- * @author Michael Hind
  */
 @Uninterruptible
 public abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator 

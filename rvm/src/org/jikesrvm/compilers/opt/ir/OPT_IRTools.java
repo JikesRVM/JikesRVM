@@ -49,10 +49,6 @@ import org.vmmagic.unboxed.Offset;
  * This abstract class contains a bunch of useful static methods for
  * performing operations on IR.
  *
- * @author Jong-Deok Choi
- * @author Dave Grove
- * @author Mauricio Serrano
- * @author John Whaley
  */
 public abstract class OPT_IRTools {
 

@@ -13,7 +13,6 @@ import org.jikesrvm.ia32.VM_RegisterConstants;
 import org.vmmagic.unboxed.Offset;
 
 /** 
- * @author Julian Dolby
  */
 public class VM_Lister implements VM_RegisterConstants {
 

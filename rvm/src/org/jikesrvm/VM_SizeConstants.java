@@ -12,9 +12,6 @@ package org.jikesrvm;
 /**
  * Constants defining the basic sizes of primitive quantities
  *
- * @author David F. Bacon
- * @author Perry Cheng
- * @author Kris Venstermans
  */
 public interface VM_SizeConstants {
 

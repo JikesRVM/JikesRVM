@@ -32,8 +32,6 @@ import org.jikesrvm.runtime.VM_Runtime;
  * <p> NOTE: We believe that only use of invokespecial that could possibly 
  * require dynamic linking is that of invoking an object initializer.
  *
- * @author Jong-Deok Choi
- * @author Dave Grove
  */
 public class VM_TableBasedDynamicLinker implements VM_Constants {
 

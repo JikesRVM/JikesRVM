@@ -8,7 +8,6 @@
 # (C) Copyright IBM Corp. 2001
 #
 #
-# @author Julian Dolby
 #
 
 FILENAME=$1

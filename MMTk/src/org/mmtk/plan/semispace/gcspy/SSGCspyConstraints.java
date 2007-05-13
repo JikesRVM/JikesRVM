@@ -16,12 +16,7 @@ import org.vmmagic.pragma.*;
  * Semi space GCspy constants.
  * 
  *
- * @author Steve Blackburn
- * @author Perry Cheng
- * @author Daniel Frampton
- * @author Robin Garner
- * @author <a href="http://www.cs.ukc.ac.uk/~rej">Richard Jones</a>
- * 
+ *
  */
 @Uninterruptible public class SSGCspyConstraints extends SSConstraints {
 

@@ -18,7 +18,6 @@ import org.vmmagic.unboxed.Offset;
  * Represents an address constant operand.
  *
  * @see OPT_Operand
- * @author John Whaley
  */
 public final class OPT_AddressConstantOperand extends OPT_ConstantOperand {
 

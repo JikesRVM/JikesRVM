@@ -49,8 +49,6 @@ import org.jikesrvm.ppc.VM_RegisterConstants;
  * using getPrev().
  * <P> TODO; clean up all this and provide appropriate enumerators
  * 
- * @author Stephen Fink
- * @author Mauricio J. Serrano
  */
 public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSet 
   implements VM_RegisterConstants, OPT_PhysicalRegisterConstants{

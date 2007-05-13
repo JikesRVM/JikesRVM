@@ -18,9 +18,6 @@ import org.jikesrvm.runtime.VM_Memory;
  * There are two kinds of transitions Java -> native method
  * and native method -> JNIFunction.
  * 
- * @author Dave Grove
- * @author Ton Ngo 
- * @author Steve Smith
  */
 public interface VM_JNIStackframeLayoutConstants extends VM_RegisterConstants,
                                                          VM_StackframeLayoutConstants {

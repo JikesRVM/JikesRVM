@@ -7,9 +7,6 @@
 # (C) Copyright IBM Corp. 2001,2002,2004
 #
 #
-# @author Dave Grove
-# @author Mauricio J. Serrano
-# @modified Kris Venstermans
 #
 # BURS rules that are common to PPC32 and PPC64
 # !!!warning: pay attention to rules that set condition bits !!! 

@@ -47,9 +47,6 @@ import org.vmmagic.unboxed.Word;
 /**
  * Main driver for linear scan register allocation.
  *
- * @author Stephen Fink
- * @author Michael Hind
- * @author Mauricio Serrano
  */
 public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 

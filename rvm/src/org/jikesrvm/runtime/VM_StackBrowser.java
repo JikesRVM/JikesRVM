@@ -22,8 +22,6 @@ import org.vmmagic.unboxed.Offset;
  *  Use this class to explore the stack.  It is sometimes necessary to
  *  find out the current context class loader, and other things like that.
  *  
- * @author Julian Dolby
- * @date May 20, 2002
  */
 public final class VM_StackBrowser implements ArchitectureSpecific.VM_StackframeLayoutConstants {
 

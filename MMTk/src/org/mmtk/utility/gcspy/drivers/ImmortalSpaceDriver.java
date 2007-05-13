@@ -27,8 +27,6 @@ import org.vmmagic.pragma.*;
  * such as CopySpace and ImmortalSpace.
  *
  *
- * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
- * @author Hanspeter Johner
  */
 @Uninterruptible public class ImmortalSpaceDriver extends LinearSpaceDriver {
 

@@ -12,7 +12,6 @@ package org.jikesrvm.compilers.opt.ir;
  * Represents a basic block (used in LABEL and BBEND instructions)
  *
  * @see OPT_Operand
- * @author Dave Grove 
  */
 public final class OPT_BasicBlockOperand extends OPT_Operand {
 

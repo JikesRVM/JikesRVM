@@ -18,11 +18,6 @@ import org.jikesrvm.classloader.VM_TypeReference;
  * 
  * @see OPT_Register
  * 
- * @author Dave Grove
- * @author Mauricio J. Serrano
- * @author John Whaley
- * @modified Vivek Sarkar
- * @modified Peter Sweeney
  */
 public class OPT_GenericRegisterPool extends OPT_AbstractRegisterPool {
 

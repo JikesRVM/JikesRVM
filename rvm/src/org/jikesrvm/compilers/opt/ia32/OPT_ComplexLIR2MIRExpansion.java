@@ -49,9 +49,6 @@ import org.jikesrvm.compilers.opt.ir.ia32.OPT_IA32ConditionOperand;
  * Handles the conversion from LIR to MIR of operators whose 
  * expansion requires the introduction of new control flow (new basic blocks).
  *
- * @author Dave Grove
- * @modified Peter Sweeney
- * @modified Ian Rogers
  */
 public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
 

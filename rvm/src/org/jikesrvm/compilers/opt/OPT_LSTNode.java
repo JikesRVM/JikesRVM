@@ -15,8 +15,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
 /**
  * A node in the LST (Loop Structure Tree)
  * 
- * @author Dave Grove
- * @author Mauricio J. Serrano
  */
 class OPT_LSTNode extends OPT_SpaceEffGraphNode {
 

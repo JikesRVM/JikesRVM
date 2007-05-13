@@ -15,8 +15,6 @@ import org.jikesrvm.osr.OSR_VariableMap;
 /**
  * Wrapper class around IR info that is valid on the MIR
  *
- * @author Dave Grove
- * @author Mauricio Serrano
  */
 public final class OPT_MIRInfo {
   

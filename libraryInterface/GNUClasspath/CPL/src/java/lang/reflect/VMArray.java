@@ -14,8 +14,6 @@ import org.jikesrvm.runtime.VM_Runtime;
 /**
  * VM dependent Array operations
  *
- * @author Chris Kirkham
- * @author Ian Rogers
  */
 class VMArray {
   /**

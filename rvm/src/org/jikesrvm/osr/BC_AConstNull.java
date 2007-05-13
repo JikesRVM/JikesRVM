@@ -12,7 +12,6 @@ package org.jikesrvm.osr;
 /**
  * aconst_null
  *
- * @author Feng Qian
  */
 public class BC_AConstNull extends OSR_PseudoBytecode {
   public byte[] getBytes() {

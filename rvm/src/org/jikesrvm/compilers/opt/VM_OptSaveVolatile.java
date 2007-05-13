@@ -30,8 +30,6 @@ import org.vmmagic.unboxed.Offset;
  * 
  * @see OPT_Compiler (hooks to recognize & specially compile this class)
  * 
- * @author Mauricio Serrano
- * @author Dave Grove
  */
 @SaveVolatile
 @Uninterruptible

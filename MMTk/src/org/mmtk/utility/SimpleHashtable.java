@@ -22,7 +22,6 @@ import org.vmmagic.unboxed.*;
  * This class is not thread safe.
  * 
  *
- * @author Daniel Frampton
  */
 @Uninterruptible public abstract class SimpleHashtable implements Constants {
   /** The number of low order bits to ignore */

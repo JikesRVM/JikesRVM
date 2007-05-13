@@ -50,7 +50,6 @@ import org.vmmagic.unboxed.Offset;
  * not meant to be used in isolation, but rather to provide support
  * from the OPT_Assembler.
  *
- * @author Julian Dolby
  */
 abstract class OPT_AssemblerBase extends VM_Assembler 
   implements OPT_Operators, VM_Constants, OPT_PhysicalRegisterConstants {

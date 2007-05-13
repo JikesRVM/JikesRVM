@@ -227,7 +227,6 @@ import org.jikesrvm.compilers.opt.ir.Phi;
  * label2:
  * </listing>
  * 
- * @author Ian Rogers
  */
 public final class OPT_LoopVersioning extends OPT_CompilerPhase {
   // -oO Debug variables Oo-

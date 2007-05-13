@@ -29,7 +29,6 @@ import org.vmmagic.unboxed.WordArray;
  * in the transition frame.
  *
  * @see VM_JNICompiler
- * @author Steve Smith
  */
 @Uninterruptible public abstract class VM_JNIGCMapIterator extends VM_GCMapIterator
     implements VM_BaselineConstants {

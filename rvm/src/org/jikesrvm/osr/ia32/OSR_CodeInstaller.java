@@ -32,7 +32,6 @@ import org.vmmagic.unboxed.Offset;
  * The glue code is installed right before returning to the threading method
  * by OSR_PostThreadSwitch
  *
- * @author Feng Qian
  */
 public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
 

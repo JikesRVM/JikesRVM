@@ -9,7 +9,6 @@
 
 /* Test the JavaVM and GetEnv JNI functionality 
  * 
- * @author Julian Dolby
  */
 class GetEnv {
 

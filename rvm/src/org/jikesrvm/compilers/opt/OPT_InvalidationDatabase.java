@@ -34,8 +34,6 @@ import org.jikesrvm.util.VM_HashSet;
  *   See Chambers, Dean, Grove in ICSE-17 (1995) for one possible design 
  *   and pointers to related work.
  *
- * @author Stephen Fink
- * @author Dave Grove
  */
 public final class OPT_InvalidationDatabase {
 

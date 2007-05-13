@@ -22,7 +22,6 @@ import org.vmmagic.Pragma;
  * cheaper than JNI. The first argument to the function is the address
  * of the C function to run.
  * 
- * @author Ian Rogers
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})

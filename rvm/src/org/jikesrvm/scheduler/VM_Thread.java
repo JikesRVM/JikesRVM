@@ -45,7 +45,6 @@ import org.vmmagic.unboxed.Offset;
  * 
  * @see org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread
  *  
- * @author Derek Lieber
  */
 @Uninterruptible public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConstants {
 
@@ -1276,7 +1275,6 @@ import org.vmmagic.unboxed.Offset;
    *
    *         -1 if <code>offset</code> is negative.
    *
-   * @author Steven Augart
    */
   public int dump(char[] dest, int offset) {
     offset = sprintf(dest, offset, getIndex());   // id
@@ -1373,8 +1371,7 @@ import org.vmmagic.unboxed.Offset;
    *
    * @return  -1 if <code>offset</code> is negative.
    *
-   * @author Steven Augart (who swiped the implementation from 
-   * the MMTk {@link org.mmtk.utility.Log} class). 
+   * the MMTk {@link org.mmtk.utility.Log} class).
    */
   public static int sprintf(char[] dest, int destOffset, String s) {
     final char[] sArray = java.lang.JikesRVMSupport.getBackingCharArray(s);
@@ -1398,7 +1395,6 @@ import org.vmmagic.unboxed.Offset;
    * @param srcStart index of the first character of <code>src</code> to copy.
    * @param srcEnd index after the last character of <code>src</code> to copy.
    *
-   * @author Steven Augart
    */
   public static int sprintf(char[] dest, int destOffset, char[] src,
                             int srcStart, int srcEnd) 
@@ -1448,7 +1444,6 @@ import org.vmmagic.unboxed.Offset;
    *
    * @return  -1 if <code>offset</code> is negative.
    *
-   * @author Steven Augart
    */
   public static int sprintf(char[] dest, int offset, long l) {
     boolean negative = l < 0;

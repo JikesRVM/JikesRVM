@@ -50,9 +50,6 @@ import org.jikesrvm.osr.OSR_VariableMap;
  *
  * The bottom of the file contains comments regarding imprecise exceptions.
  *
- * @author Michael Hind
- * @author Martin Trapp
- * @author Stephen Fink
  */
 public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
   // Real Instance Variables

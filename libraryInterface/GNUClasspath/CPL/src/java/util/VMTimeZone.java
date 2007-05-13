@@ -11,8 +11,6 @@ package java.util;
 
 /** java.util.VMTimeZone for compatibility with GNU classpath 0.11.
  *
- * @author Steven Augart
- * @date 5 October 2004
  */
 public class VMTimeZone {
   static TimeZone getDefaultTimeZoneId() {

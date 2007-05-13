@@ -15,7 +15,6 @@ import java.util.Iterator;
  *
  * Represents a single lattice cell in a dataflow equation system.
  *
- * @author Stephen Fink
  */
 interface OPT_DF_LatticeCell extends OPT_GraphNode {
 

@@ -11,7 +11,6 @@ package org.jikesrvm.compilers.baseline;
 /**
  * Profile data for a branch instruction.
  * 
- * @author Dave Grove
  */
 public abstract class VM_BranchProfile {
   /**

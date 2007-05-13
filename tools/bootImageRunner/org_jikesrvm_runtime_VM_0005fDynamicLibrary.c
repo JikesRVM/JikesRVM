@@ -9,8 +9,6 @@
 /*****************************************************************
  * JNI functions to support OnLoad
  *
- * @author Ian Rogers
- * @author Dave Grove
  */
 
 // Java includes

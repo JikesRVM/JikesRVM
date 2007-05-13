@@ -19,7 +19,6 @@ import org.apache.tools.ant.types.RegularExpression;
 import org.apache.tools.ant.util.regexp.Regexp;
 
 /**
- * @author Peter Donald
  */
 public class SelectRegexTask
     extends Task {

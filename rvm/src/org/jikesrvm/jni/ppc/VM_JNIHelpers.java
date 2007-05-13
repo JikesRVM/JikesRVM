@@ -33,9 +33,6 @@ import org.vmmagic.unboxed.Word;
  * 
  * @see org.jikesrvm.jni.VM_JNIFunctions
  *
- * @author Dave Grove
- * @author Ton Ngo 
- * @author Steve Smith
  */
 public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_RegisterConstants,
                                                                             VM_JNIStackframeLayoutConstants {

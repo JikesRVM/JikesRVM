@@ -22,7 +22,6 @@ import org.jikesrvm.classloader.VM_TypeReference;
  * TIBs type is Object[].
  *
  * @see OPT_Operand
- * @author Ian Rogers
  */
 public final class OPT_TIBConstantOperand extends OPT_ConstantOperand {
 

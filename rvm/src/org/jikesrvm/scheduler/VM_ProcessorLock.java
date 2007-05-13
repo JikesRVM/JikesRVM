@@ -74,7 +74,6 @@ import org.vmmagic.unboxed.Offset;
  * implement Uninterruptible) that might allow a thread switch or
  * trigger a garbage collection between lock and unlock.
  *
- * @author Bowen Alpern
  * @see VM_Processor
  * @see VM_Lock */
 @Uninterruptible public final class VM_ProcessorLock implements VM_Constants {

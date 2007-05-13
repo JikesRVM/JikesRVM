@@ -15,7 +15,6 @@ import java.util.NoSuchElementException;
  * Stripped down implementation of HashSet for use
  * by core parts of the JikesRVM runtime.
  *
- * @author Dave Grove
  */
 public final class VM_HashSet<T> implements Iterable<T> {
   private static final int DEFAULT_SIZE = 7;

@@ -15,7 +15,6 @@ import java.util.NoSuchElementException;
  * Enumeration that doesn't have any elements.
  * Use the EMPTY object to access.
  * 
- * @author Igor Pechtchanski
  */
 public final class OPT_EmptyEnumerator
     implements Enumeration<Object> {

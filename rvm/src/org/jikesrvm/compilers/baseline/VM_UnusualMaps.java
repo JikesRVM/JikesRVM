@@ -18,7 +18,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * In the future the return address maps may be expanded to include other
  * internal pointers or internal/external pointers may be handled separately.
  *
- * @author Anthony Cocchi
  */
 @Uninterruptible final class VM_UnusualMaps {
 

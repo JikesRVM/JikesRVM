@@ -22,7 +22,6 @@ import java.io.UTFDataFormatException;
  * directly, whereas in pseudo-utf8, it is encoded as a two-byte 
  * sequence.  See the JVM spec for more information.
  *
- * @author John Whaley
  */
 public abstract class VM_UTF8Convert {
 

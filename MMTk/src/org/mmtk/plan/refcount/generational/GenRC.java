@@ -39,9 +39,6 @@ import org.vmmagic.unboxed.*;
  * performance properties of MMTk plans.
  * 
  *
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public class GenRC extends RCBase {
   

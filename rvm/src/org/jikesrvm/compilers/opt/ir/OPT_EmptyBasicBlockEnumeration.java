@@ -17,7 +17,6 @@ package org.jikesrvm.compilers.opt.ir;
  * interfaces cannot have private members.  This is truly retarded,
  * even by Java's low standards.
  *
- * @author Julian Dolby
  */
 class OPT_EmptyBasicBlockEnumeration implements OPT_BasicBlockEnumeration {
 

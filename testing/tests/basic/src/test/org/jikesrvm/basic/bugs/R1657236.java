@@ -13,7 +13,6 @@ package test.org.jikesrvm.basic.bugs;
  * <p/>
  * Should be tested with -X:aos:initial_compiler=opt in at least one test-configuration.
  *
- * @author Peter Donald
  */
 public class R1657236 {
   public static void main(String[] args) {

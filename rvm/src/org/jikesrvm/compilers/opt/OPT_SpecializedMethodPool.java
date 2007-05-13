@@ -15,8 +15,6 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
  * This class holds the static array of pointers to instructions
  * of specialized methods
  *
- * @author Rajesh Bordawekar
- * @modified Stephen Fink
  */
 public class OPT_SpecializedMethodPool {
   private static final int SPECIALIZED_METHOD_COUNT = 1024;

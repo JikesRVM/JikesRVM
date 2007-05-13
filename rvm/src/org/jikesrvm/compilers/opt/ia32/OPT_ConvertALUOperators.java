@@ -93,7 +93,6 @@ import org.vmmagic.pragma.NoOptCompile;
  * Ditto (5) and (6) on r300 if op is commutative and r200 doesn't work out.
  * 
  * </pre>
- * @author Dave Grove
  */
 public class OPT_ConvertALUOperators extends OPT_CompilerPhase 
   implements OPT_Operators {

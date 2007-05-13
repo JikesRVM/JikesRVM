@@ -8,7 +8,6 @@
  */
 /* test native code for jni
  *
- * @author unascribed
  */
 
 #include <stdio.h>

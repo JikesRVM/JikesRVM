@@ -25,8 +25,6 @@ import org.mmtk.vm.VM;
  * static final int BITS_IN_INT = 1<<LOG_BITS_IN_INT;
  * 
  *
- * @author Perry Cheng
- * @author Steve Blackburn
  */
 public interface Constants {
 

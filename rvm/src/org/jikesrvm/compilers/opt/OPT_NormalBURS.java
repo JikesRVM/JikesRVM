@@ -43,9 +43,6 @@ import org.jikesrvm.compilers.opt.ir.ResultCarrier;
  * @see OPT_BURS_STATE
  * @see OPT_BURS_TreeNode
  *
- * @author Dave Grove
- * @author Vivek Sarkar
- * @author Mauricio Serrano
  */
 final class OPT_NormalBURS extends OPT_BURS {
 

@@ -18,7 +18,6 @@ import java.util.ListIterator;
  *  the parent.
  *  This is not necessarily the same as a top-down level walk.
  *
- *  @author Michael Hind
  */
 final class OPT_TreeTopDownEnumerator implements Enumeration<OPT_TreeNode> {
 

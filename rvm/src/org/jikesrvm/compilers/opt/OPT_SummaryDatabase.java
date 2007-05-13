@@ -20,7 +20,6 @@ import org.jikesrvm.util.VM_HashMap;
  *   <li>OPT_MethodSummary, indexed by VM_Method
  *  </ul>
  *
- * @author Stephen Fink
  */
 public class OPT_SummaryDatabase {
   /** 

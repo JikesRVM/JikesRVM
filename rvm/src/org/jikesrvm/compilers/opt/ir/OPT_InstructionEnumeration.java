@@ -14,7 +14,6 @@ import java.util.Enumeration;
  * Extend java.util.Enumeration to avoid downcasts from object.
  * Also provide a preallocated empty instruction enumeration.
  *
- * @author Dave Grove
  */
 public interface OPT_InstructionEnumeration extends Enumeration<OPT_Instruction> {
   /**

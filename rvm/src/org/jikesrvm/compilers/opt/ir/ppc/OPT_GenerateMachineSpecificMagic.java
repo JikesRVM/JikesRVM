@@ -33,8 +33,6 @@ import org.vmmagic.unboxed.Offset;
  *
  * @see org.jikesrvm.compilers.opt.ir.OPT_GenerateMagic for the machine-independent magics.
  * 
- * @author Dave Grove
- * @author Mauricio Serrano
  */
 public abstract class OPT_GenerateMachineSpecificMagic 
   implements OPT_Operators, VM_StackframeLayoutConstants {

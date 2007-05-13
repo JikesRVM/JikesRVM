@@ -24,9 +24,6 @@ import org.vmmagic.unboxed.Word;
  * cause the current thread to yield the cpu to another thread (one that
  * might cause a gc, for example).
  *
- * @author Dave Grove
- * @author Derek Lieber
- * @author Kris Venstermans
  */
 @Uninterruptible public class VM_Memory implements VM_SizeConstants {
 

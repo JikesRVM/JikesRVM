@@ -19,7 +19,6 @@ import org.vmmagic.unboxed.WordArray;
 /**
  * Machine dependent portion of Reflective method invoker.
  *
- * @author Maria Butrico
  */
 public abstract class VM_MachineReflection implements VM_RegisterConstants {
 

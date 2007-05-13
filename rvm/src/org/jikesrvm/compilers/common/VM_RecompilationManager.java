@@ -20,7 +20,6 @@ import org.jikesrvm.classloader.VM_NormalMethod;
  * of early vs. late compilation by removing all dynamic linking
  * and "bad" class hierarchy based optimizations.
  * <p>
- * @author Dave Grove
  */
 public final class VM_RecompilationManager {
 

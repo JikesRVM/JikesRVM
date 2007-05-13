@@ -9,7 +9,6 @@
 /**
  * unresolved static invocation test.
  *
- * @author unascribed
  */
 
 public class unresolved {

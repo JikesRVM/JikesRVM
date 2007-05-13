@@ -23,7 +23,6 @@ import org.vmmagic.unboxed.WordArray;
  *
  * @see VM_GCMapIteratorGroup
  *
- * @author Janice Shepherd
  */
 @Uninterruptible public abstract class VM_GCMapIterator {
   

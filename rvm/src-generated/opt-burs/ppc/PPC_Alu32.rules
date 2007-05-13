@@ -7,9 +7,6 @@
 # (C) Copyright IBM Corp. 2001,2002
 #
 #
-# @author Dave Grove
-# @author Mauricio J. Serrano
-# @modified Kris Venstermans
 #
 # BURS rules for long ALU operations 
 # that are specific to PPC with 32 bit GPRs

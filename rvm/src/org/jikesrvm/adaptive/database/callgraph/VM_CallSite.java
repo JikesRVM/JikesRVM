@@ -13,7 +13,6 @@ import org.jikesrvm.classloader.VM_Method;
 /**
  * A call site is a pair: <VM_Method, bcIndex>
  *
- * @author Dave Grove
  */
 public final class VM_CallSite {
 

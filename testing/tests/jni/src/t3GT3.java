@@ -16,7 +16,6 @@
  * that executes a call to a native method
  * that sleeps for the specified time.
  *
- * @author Dick Attanasio
  */
 
 // Test multi-threaded execution

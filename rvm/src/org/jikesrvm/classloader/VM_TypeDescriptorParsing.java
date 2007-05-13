@@ -82,8 +82,6 @@ import org.vmmagic.pragma.Interruptible;
     VM_TypeReference names are just field descriptors plus "V".
    </dl>
 
-    @author Steven Augart
-    @date July 31, 2003 
 */
 
 public abstract class VM_TypeDescriptorParsing 

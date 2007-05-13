@@ -15,17 +15,6 @@ import org.jikesrvm.classloader.VM_Class;
 /**
  * Layout fields in an object, packt like sardines in a crushd tin box.
  * 
- * @author Robin Garner
- * @author Ian Rogers (initial implementation)
- * @author Bowen Alpern
- * @author David Bacon
- * @author Stephen Fink
- * @author Daniel Frampton
- * @author Dave Grove
- * @author Derek Lieber
- * @author Kris Venstermans
- * @author Ian Rogers
- * @author Robin Garner
  */
 public class VM_FieldLayoutPacked extends VM_FieldLayout implements VM_SizeConstants {
   
@@ -33,7 +22,6 @@ public class VM_FieldLayoutPacked extends VM_FieldLayout implements VM_SizeConst
    * Lay out an object, maintaining offsets of free slots of size 1,2,4 and 8
    * bytes.
    * 
-   * @author Robin Garner
    */
   private static class LayoutContext extends VM_FieldLayoutContext {
     private static final int LOG_MAX_SLOT_SIZE = 3;

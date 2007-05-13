@@ -12,11 +12,7 @@ package org.jikesrvm.compilers.baseline;
  * A set of constants that define some useful Java types and stack
  * sizes that describe the state of a basic block and its stack
  * contents on entry.
- *
- * @author Chris Hoffmann
- * @version 1.0
  */
-
 public interface VM_BBConstants {
 
   // first two bits determine the number of Java words making up the

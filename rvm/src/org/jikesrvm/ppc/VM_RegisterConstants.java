@@ -14,9 +14,6 @@ import org.jikesrvm.VM_SizeConstants;
 /**
  * Register Usage Conventions for PowerPC.
  *
- * @author Bowen Alpern
- * @author Dave Grove
- * @author Derek Lieber
  */
 public interface VM_RegisterConstants extends VM_SizeConstants {
   // Machine instructions.

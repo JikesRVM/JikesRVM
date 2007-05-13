@@ -28,9 +28,6 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.YIELDPOINT_PROLOGUE;
  *  2) loop headers
  *  3) (optionally) method exits (epilogue, athrow)
  *
- * @author Stephen Fink
- * @author Dave Grove
- * @author Michael Hind
  */
 class OPT_YieldPoints extends OPT_CompilerPhase {
 

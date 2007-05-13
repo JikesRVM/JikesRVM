@@ -13,7 +13,6 @@ package org.mmtk.utility.options;
  * Trigger cycle buffer filtering if the space available falls below this threshold.
  * 
  *
- * @author Daniel Frampton
  */
 public class CycleFilterThreshold extends PagesOption {
   /**

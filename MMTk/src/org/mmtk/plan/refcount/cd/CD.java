@@ -25,7 +25,6 @@ import org.vmmagic.unboxed.*;
  * and state for a cycle detector.
  *  
  *
- * @author Daniel Frampton
  */
 @Uninterruptible public abstract class CD {
 

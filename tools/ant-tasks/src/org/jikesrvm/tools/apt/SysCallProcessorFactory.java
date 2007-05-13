@@ -23,7 +23,6 @@ import java.util.Set;
 /**
  * Fctory class for APT - dispatches annotations to their handling classes.
  * 
- * @author Robin Garner
  *
  */
 public class SysCallProcessorFactory implements AnnotationProcessorFactory {

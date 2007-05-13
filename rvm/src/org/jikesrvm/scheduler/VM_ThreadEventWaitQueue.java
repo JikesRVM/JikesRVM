@@ -25,8 +25,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * <p>This class was adapted from the original
  * <code>VM_ThreadIOQueue</code>, which is now a subclass.
  *
- * @author Derek Lieber (original <code>VM_ThreadIOQueue</code> class)
- * @author David Hovemeyer
  *
  * @see VM_ThreadIOQueue
  * @see VM_ThreadProcessWaitQueue

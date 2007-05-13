@@ -14,7 +14,6 @@ package org.jikesrvm.compilers.opt;
  * This class is declared as "final" which implies that all its methods
  * are "final" too.      
  *
- * @author Igor Pechtchanski
  */
 public final class OPT_PrePassScheduler extends OPT_CompilerPhase {
 

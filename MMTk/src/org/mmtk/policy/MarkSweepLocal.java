@@ -41,7 +41,6 @@ import org.vmmagic.pragma.*;
  * @see MarkSweepSpace
  * 
  *
- * @author Steve Blackburn
  */
 @Uninterruptible public final class MarkSweepLocal extends SegregatedFreeList
   implements Constants {

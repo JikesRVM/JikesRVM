@@ -22,7 +22,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_InstructionEnumeration;
  * It adjust the byte code index of instructions from specialized
  * byte code to its original byte code.
  *
- * @author Feng Qian
  */
 
 public class OSR_AdjustBCIndexes extends OPT_CompilerPhase {

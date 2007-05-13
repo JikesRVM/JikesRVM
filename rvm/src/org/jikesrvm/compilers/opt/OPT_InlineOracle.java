@@ -12,7 +12,6 @@ package org.jikesrvm.compilers.opt;
  * Oracle interface: the compiler queries this oracle to decide whether
  * to inline a call site.
  *
- * @author Stephen Fink
  */
 public interface OPT_InlineOracle {
 

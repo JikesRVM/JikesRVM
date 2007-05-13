@@ -9,7 +9,6 @@
 package test.org.jikesrvm.basic.java.lang;
 
 /*
- * @author unascribed
  */
 class TestMath {
   public static void main(String[] args) {

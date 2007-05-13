@@ -4,7 +4,6 @@
 package org.jikesrvm.util;
 
 /**
- * @author robing
  *
  */
 public class VM_StringUtilities {

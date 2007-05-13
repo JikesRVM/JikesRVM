@@ -39,7 +39,6 @@ import org.vmmagic.pragma.*;
  * performance properties of MMTk plans.
  * 
  *
- * @author Daniel Frampton
  */
 @Uninterruptible public class MC extends StopTheWorld {
 

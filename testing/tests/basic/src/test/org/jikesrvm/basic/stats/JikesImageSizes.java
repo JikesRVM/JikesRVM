@@ -13,7 +13,6 @@ import java.io.File;
 /**
  * This "test" just aids in extracting and displaying image sizes so that they can be tracked through the testing framework.
  *
- * @author Peter Donald
  */
 public class JikesImageSizes {
 

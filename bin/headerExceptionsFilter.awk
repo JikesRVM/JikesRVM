@@ -6,10 +6,6 @@
 # (C) Copyright IBM Corp. 2001, 2003, 2005, 2006
 #
 
-# @author Peter Sweeney
-# @date 11/1/2001
-# @modified Steven Augart
-# @date June, 2003
 
 ## Auxiliary AWK program to help out /bin/findDeviantFiles.  You should
 ## never run this directly; to discourage people from doing so, this is not an
@@ -31,9 +27,6 @@
 /generated\// { next }
 /target\// { next }
 /doc\/api\// { next }
-
-# don't need an author for all the build scripts
-/build\// { next }
 
 /doc\/userguide\// { next }
 /MMTk\/doc\// { next }

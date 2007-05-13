@@ -15,7 +15,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * Object specifying sets of file descriptors to wait for.
  * Used as event wait data for {@link VM_ThreadEventWaitQueue#enqueue}.
  *
- * @author David Hovemeyer
  *
  * @see VM_ThreadEventWaitData
  */

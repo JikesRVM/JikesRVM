@@ -14,7 +14,6 @@ import java.lang.instrument.Instrumentation;
 import java.security.ProtectionDomain;
 
 /**
- * @author Elias Naur
  */
 public class AgentX implements ClassFileTransformer {
   public static void premain(final String args, final Instrumentation instrumentation) {

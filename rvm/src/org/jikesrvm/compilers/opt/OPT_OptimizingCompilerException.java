@@ -18,8 +18,6 @@ import org.jikesrvm.classloader.VM_TypeReference;
  * non-optimizing compiler instead (or by reverting to the previous
  * version of compiled code).
  *
- * @author Dave Grove
- * @author Vivek Sarkar
  */
 public class OPT_OptimizingCompilerException extends RuntimeException {
   /** Support for exception serialization */
@@ -27,7 +25,6 @@ public class OPT_OptimizingCompilerException extends RuntimeException {
 
   /**
    * Capture illegal upcasts from magic types to java.lang.Object
-   * @author Ian Rogers
    */
   public static class IllegalUpcast extends RuntimeException {
     final VM_TypeReference magicType;

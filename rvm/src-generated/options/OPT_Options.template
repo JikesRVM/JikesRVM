@@ -21,7 +21,6 @@ import org.jikesrvm.*;
  *       All other options are defined in VALUE_DAT_FILES
  *       (value, enumeration, bitmask)
  *
- * @author Dave Grove
  **/
 public class OPT_Options implements Cloneable {
 

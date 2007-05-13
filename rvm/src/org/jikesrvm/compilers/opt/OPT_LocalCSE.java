@@ -64,8 +64,6 @@ import org.jikesrvm.compilers.opt.ir.ZeroCheck;
  * </ul>
  * Algorithm: Muchnick pp.379-385
  *
- * @author Stephen Fink
- * @modified Dave Grove (elimination of checks, 
  *                       partially based on OPT_LocalBoundsCheck)
  */
 public class OPT_LocalCSE extends OPT_CompilerPhase {

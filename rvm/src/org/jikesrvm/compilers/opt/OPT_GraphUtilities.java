@@ -11,7 +11,6 @@ package org.jikesrvm.compilers.opt;
 /**
  * This class implements miscellaneous utilities for graphs.
  *
- * @author Stephen Fink
  */
 class OPT_GraphUtilities {
 

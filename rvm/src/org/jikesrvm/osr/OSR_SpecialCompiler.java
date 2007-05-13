@@ -26,7 +26,6 @@ import org.jikesrvm.compilers.opt.OPT_Options;
  * It accepts an instance of OSR_ExecutionState, generates the specialized 
  * byte code, and compiles it to machine code instructions.
  *
- * @author Feng Qian
  */
 public class OSR_SpecialCompiler{
 

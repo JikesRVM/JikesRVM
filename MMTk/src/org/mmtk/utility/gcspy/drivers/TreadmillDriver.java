@@ -29,7 +29,6 @@ import org.vmmagic.pragma.*;
  * This class implements a simple driver for the MMTk LargeObjectSpace.
  * 
  *
- * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  */
 @Uninterruptible public class TreadmillDriver extends AbstractDriver {
 

@@ -79,9 +79,6 @@ import org.vmmagic.unboxed.Offset;
  *      sequence of LIR instructions.
  *  </ul>
  *
- * @author Mauricio J. Serrano
- * @author Dave Grove
- * @author Stephen Fink
  */
 public abstract class OPT_CallingConvention extends OPT_IRTools {
 

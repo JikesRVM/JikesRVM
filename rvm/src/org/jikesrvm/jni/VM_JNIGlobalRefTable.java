@@ -14,10 +14,7 @@ import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.vmmagic.unboxed.ObjectReference;
 
 /**
- * @author Julian Dolby
- * @date May 20, 2002
  *
- * @modified Steven Augart -- to handle Weak References as well. 
  *
  * Weak Global References are global references (negative numbers), with the
  * 2^30 bit UNset.  Mask in the 2^30 bit to get the real index into the table.

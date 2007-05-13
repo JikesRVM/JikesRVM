@@ -20,7 +20,6 @@ import org.vmmagic.unboxed.Offset;
  * required to access VM data structures from C++.
  * Posix version: AIX PPC, Linux PPC, Linux IA32
  *
- * @author Derek Lieber
  */
 final class GenArch_ia32 extends GenArch {
   public void emitArchVirtualMachineDeclarations() {

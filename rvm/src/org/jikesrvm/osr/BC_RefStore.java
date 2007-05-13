@@ -11,7 +11,6 @@ package org.jikesrvm.osr;
 /**
  * BC_RefStore: astore, astore_<i> 
  * 
- * @author Feng Qian
  */
 
 public class BC_RefStore extends OSR_PseudoBytecode {

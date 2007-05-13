@@ -26,8 +26,6 @@ import org.vmmagic.pragma.*;
  * for Generational Collectors.
  *
  *
- * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
- * @author Hanspeter Johner
  */
 @Uninterruptible public class GenLOSDriver extends TreadmillDriver {
   

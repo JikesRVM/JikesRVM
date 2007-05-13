@@ -11,7 +11,6 @@
 /**
  * A testing stub for GCspy
  *
- * @author Richard Jones
  */
 
 #ifndef _GCSPY_COLOR_DB_H_

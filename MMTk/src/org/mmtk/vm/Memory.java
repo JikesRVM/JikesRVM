@@ -18,9 +18,7 @@ import org.vmmagic.pragma.*;
 
 /**
  *
- * @author Steve Blackburn
- * @author Perry Cheng
- * 
+ *
  */
 @Uninterruptible public abstract class Memory
 {

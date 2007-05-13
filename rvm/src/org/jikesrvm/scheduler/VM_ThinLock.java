@@ -23,10 +23,6 @@ import org.vmmagic.unboxed.Word;
 /**
  * Implementation of thin locks.
  * 
- * @author Bowen Alpern
- * @author David Bacon
- * @author Dave Grove
- * @author Derek Lieber
  */
 @Uninterruptible public final class VM_ThinLock implements VM_ThinLockConstants {
 

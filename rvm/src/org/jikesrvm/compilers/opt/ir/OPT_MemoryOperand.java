@@ -26,8 +26,6 @@ import org.vmmagic.unboxed.Offset;
  * 
  * @see OPT_Operand
  * 
- * @author Michael Hind
- * @author Dave Grove
  */
 public final class OPT_MemoryOperand extends OPT_Operand {
 

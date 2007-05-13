@@ -9,7 +9,6 @@
 /**
  * unresolved putstatic/getstatic test
  *
- * @author unascribed
  */
 public class stPutGet {
   static boolean run() {

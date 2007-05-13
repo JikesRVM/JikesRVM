@@ -81,8 +81,6 @@ import org.vmmagic.unboxed.Address;
  * 
  * </pre>
  *
- * @author Bowen Alpern
- * @author Derek Lieber
  *
  *
  * On the 64 bit powerPC some design decisions were made as follows:
@@ -93,7 +91,6 @@ import org.vmmagic.unboxed.Address;
  * A Long and a Double take 2 slots of 8 bytes, one of which is not used:
  * the actual value is also stored at the side of the highest addresses.
  *  
- * @author Kris Venstermans
  * Here are some pictures of what a stackslot might look like in memory.
  *
  *                               64 bit                                          32 bit

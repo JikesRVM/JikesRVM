@@ -32,7 +32,6 @@ import org.jikesrvm.compilers.opt.ir.Prologue;
  * Note: The counters are added at the end of HIR, so the counts will
  * NOT reflect any changes to the code that occur after HIR.
  * 
- * @author Matthew Arnold 
  */
 public class OPT_InsertInstructionCounters  extends OPT_CompilerPhase {
 

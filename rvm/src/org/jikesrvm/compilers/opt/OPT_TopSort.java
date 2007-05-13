@@ -13,8 +13,6 @@ import java.util.Enumeration;
 /**
  * Depth First Spanning Tree
  * March 14, 1998
- * @author  Jong Choi (jdchoi@us.ibm.com)
- * @author  Michael Hind
  * Builds topological sort of a graph consisting of OPT_SortedGraphNode.
  */
 public class OPT_TopSort extends OPT_Stack<OPT_SortedGraphNode> {
@@ -49,7 +47,6 @@ public class OPT_TopSort extends OPT_Stack<OPT_SortedGraphNode> {
    * @param forward should we treat edges as forward?
    *  This is the second version of the implementation 
    *   (see CVS file for older one)
-   * @author Michael Hind 
    */
   public static OPT_SortedGraphNode 
     buildTopological(OPT_TopSortInterface graph, boolean forward) {

@@ -17,7 +17,6 @@ import org.vmmagic.pragma.*;
  * An option that has a simple single precision floating point value.
  * 
  *
- * @author Daniel Frampton
  */
 public class FloatOption extends Option {
   // values

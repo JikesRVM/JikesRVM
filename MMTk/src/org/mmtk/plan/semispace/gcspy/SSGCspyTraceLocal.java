@@ -24,12 +24,7 @@ import org.vmmagic.unboxed.*;
  * closure over the heap graph.
  * 
  *
- * @author Steve Blackburn
- * @author Perry Cheng
- * @author Robin Garner
- * @author Daniel Frampton
- * @author <a href="http://www.cs.kent.ac.uk/~rej">Richard Jones</a>
- * 
+ *
  */
 @Uninterruptible public class SSGCspyTraceLocal extends SSTraceLocal {
   /**

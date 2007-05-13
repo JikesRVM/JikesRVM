@@ -87,13 +87,6 @@ import org.vmmagic.unboxed.WordArray;
  *    -numThreads=N            number of parallel compilation threads we should create
  *
  * </pre>
- * @author Derek Lieber
- * @version 03 Jan 2000
- * (complete rewrite of John Barton's original, this time using java2
- * reflection)
- *
- * @modified Steven Augart 16 Mar 2004  Fixes to bootstrap under Kaffe
- * @modified Ian Rogers To support knowing about fields we can't reflect upon
  */
 public class BootImageWriter extends BootImageWriterMessages
  implements BootImageWriterConstants {
@@ -850,8 +843,6 @@ public class BootImageWriter extends BootImageWriterMessages
 
   /**
    * Compare sizes of types allocated to boot image
-   * @author Perry Cheng
-   * @modified Ian Rogers
    */
   private static class TypeComparator<T> implements Comparator<T> {
     

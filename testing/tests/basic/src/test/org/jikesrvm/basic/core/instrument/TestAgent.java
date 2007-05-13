@@ -10,7 +10,6 @@
 package test.org.jikesrvm.basic.core.instrument;
 
 /**
- * @author Elias Naur
  */
 public class TestAgent {
 	public static void main(String[] args) {

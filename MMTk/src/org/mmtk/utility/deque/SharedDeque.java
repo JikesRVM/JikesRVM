@@ -25,8 +25,6 @@ import org.vmmagic.pragma.*;
  * of the deque.  
  * 
  *
- * @author Steve Blackburn
- * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
  */
 @Uninterruptible public class SharedDeque extends Deque implements Constants {
 

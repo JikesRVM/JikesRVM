@@ -37,7 +37,6 @@ import org.vmmagic.pragma.*;
  * during tracing, handling those references, and computing death times
  * 
  *
- * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
  */
 @Uninterruptible public final class TraceInterface extends org.mmtk.vm.TraceInterface implements ArchitectureSpecific.VM_ArchConstants {
 

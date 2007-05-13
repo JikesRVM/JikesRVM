@@ -11,7 +11,6 @@ import org.apache.tools.ant.Task;
  * Task for copying a task from one file to another thile replacing non-ascii 
  * chars with ? ensuring it is an ascii value.
  * 
- * @author Peter Donald
  */
 public class ToAsciiTask
     extends Task {

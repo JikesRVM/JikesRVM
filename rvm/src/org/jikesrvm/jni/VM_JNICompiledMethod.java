@@ -30,7 +30,6 @@ import org.vmmagic.unboxed.Offset;
  * frame with a pending exception. JNI causes an athrow to happen as if it
  * was called at the call site of the call to the native method.
  *
- * @author Ton Ngo
  */
 @SynchronizedObject
 public final class VM_JNICompiledMethod extends VM_CompiledMethod {

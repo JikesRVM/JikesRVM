@@ -33,7 +33,6 @@ import org.vmmagic.unboxed.Word;
  * from a suspended thread whose top method was compiled by the
  * baseline compiler.
  *
- * @author Feng Qian
  */
 
 public abstract class OSR_BaselineExecStateExtractor 

@@ -41,14 +41,6 @@ import org.vmmagic.unboxed.*;
  * 
  * Machine code generators:
  *
- * @author Bowen Alpern
- * @author Maria Butrico
- * @author Anthony Cocchi
- * @author Derek Lieber
- * @modified Dave Grove
- * @modified Kris Venstermans
- * @modified Daniel Frampton
- * @modified Ian Rogers
  */
 public abstract class VM_Assembler 
     extends VM_AbstractAssembler

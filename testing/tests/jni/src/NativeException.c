@@ -9,8 +9,6 @@
 /* Test JNI Functions related to Exception
  * Implement native methods from NativeException.java 
  * 
- * @author Ton Ngo, Steve Smith 
- * @date   3/24/00
  */
 #include <stdio.h>
 #include <stdlib.h>             /* malloc() */

@@ -39,8 +39,6 @@ import org.vmmagic.unboxed.Offset;
  *    - queues
  *    - locks
  *
- * @author Bowen Alpern
- * @author Derek Lieber
  */
 @Uninterruptible public class VM_Scheduler implements VM_Constants {
   

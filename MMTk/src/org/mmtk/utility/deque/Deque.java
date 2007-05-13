@@ -20,8 +20,6 @@ import org.vmmagic.pragma.*;
  * more efficient to dequeue buffers and, for example, enables sorting of
  * its contents.
  * 
- * @author Steve Blackburn
- * @modified <a href="http://www-ali.cs.umass.edu">Matthew Hertz</a>
  */
 @Uninterruptible class Deque implements Constants {
 

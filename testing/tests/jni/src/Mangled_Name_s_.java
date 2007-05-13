@@ -9,8 +9,6 @@
 /**
  * Test name mangling from java to C
  *
- * @author Ton Ngo 
- * @date   7/12/01
  */
 
 class Mangled_Name_s_ {

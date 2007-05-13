@@ -23,9 +23,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
  *
  * TODO: refactor the optimization plan elements and compiler phases
  *
- * @author Steve Fink
- * @author Dave Grove
- * @author Michael Hind
  */
 public abstract class OPT_OptimizationPlanElement {
 

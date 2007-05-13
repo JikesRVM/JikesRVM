@@ -44,7 +44,6 @@ import org.jikesrvm.classloader.VM_Atom;
    if compiler is optimizing compiler</li>
  * </ul>
  *
- * @author Xianglong Huang
  *
  * @see VM_CompilerAdvice
  * @see VM_CompilerAdviceAttribute

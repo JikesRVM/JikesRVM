@@ -15,8 +15,6 @@ import org.vmmagic.unboxed.Address;
  * This object that is invoked when online measurement information must 
  * be collected.
  *
- * @author Peter Sweeney
- * @date   2 June 2000
  */
 @Uninterruptible
 public abstract class VM_ContextListener extends VM_Listener {

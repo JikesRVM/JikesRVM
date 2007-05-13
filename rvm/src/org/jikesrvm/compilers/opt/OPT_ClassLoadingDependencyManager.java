@@ -27,8 +27,6 @@ import org.jikesrvm.compilers.common.VM_CompiledMethods;
  * for identifying and performing all necessary invalidations of 
  * opt compiler code.
  *
- * @author Steve Fink
- * @author Dave Grove
  */
 public final class OPT_ClassLoadingDependencyManager implements VM_ClassLoadingListener {
 

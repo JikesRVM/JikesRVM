@@ -14,7 +14,6 @@ import org.jikesrvm.runtime.VM_Runtime;
  * Encode the semantic reason for a trap instruction.
  *
  * @see OPT_Operand
- * @author Dave Grove
  */
 public final class OPT_TrapCodeOperand extends OPT_Operand {
 

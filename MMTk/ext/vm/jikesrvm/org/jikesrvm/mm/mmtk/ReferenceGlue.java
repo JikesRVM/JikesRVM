@@ -50,8 +50,6 @@ import java.lang.ref.PhantomReference;
  * As an optimization for generational collectors, each reference type
  * maintains two queues: a nursery queue and the main queue. 
  * 
- * @author Chris Hoffmann
- * @modified Andrew Gray
  */
 @Uninterruptible public final class ReferenceGlue extends org.mmtk.vm.ReferenceGlue {
   /********************************************************************

@@ -16,8 +16,6 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
  *  (1) an array of compiled method id's
  *  (2) an array of counts: how many times each compiled method id is counted
  *
- * @author Dave Grove 
- * @modified Peter Sweeney
  */
 public final class VM_MethodCountSet {
   /**

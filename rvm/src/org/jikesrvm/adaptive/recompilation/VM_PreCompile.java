@@ -33,8 +33,6 @@ import org.jikesrvm.compilers.opt.OPT_CompilationPlan;
  * through a command line option:
  * <code>-X:aos:compiler_advice_file=path-to-advice-file</code>.
  *
- * @author Xianglong Huang
- * @author <a href="http://www.cs.utexas.edu/users/xlhuang">Xianglong Huang</a>
  *
  * @see org.jikesrvm.adaptive.util.VM_CompilerAdviceAttribute
  * @see VM_CompilerAdviceInfoReader

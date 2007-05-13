@@ -77,11 +77,6 @@ import org.vmmagic.unboxed.Word;
  *                                             +---------------+
  * </pre>
  *
- * @author Ian Rogers
- * @author Bowen Alpern
- * @author Dave Grove
- * @author Derek Lieber
- * @author Kris Venstermans
  */
 public class VM_Statics implements VM_Constants {
   /**

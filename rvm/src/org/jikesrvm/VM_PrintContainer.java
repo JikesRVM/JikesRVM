@@ -23,7 +23,6 @@ import org.jikesrvm.classloader.VM_Member;
  * <p> We use it so we can print stack traces without having to provide
  * multiple versions of each method, one for each kind of output stream.
  *
- * @author Steven Augart (w/ brainstorming by David Grove)
  */
 public class VM_PrintContainer {
   /** Can not be instantiated. */

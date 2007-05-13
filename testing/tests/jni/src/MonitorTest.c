@@ -9,8 +9,6 @@
 /* Test field access from native code 
  * Implement native methods from FieldAccess.java 
  * 
- * @author Ton Ngo, Steve Smith 
- * @date   1/4/01
  */
 
 #include <stdio.h>

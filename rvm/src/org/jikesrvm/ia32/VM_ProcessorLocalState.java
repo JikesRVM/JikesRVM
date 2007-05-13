@@ -20,7 +20,6 @@ import org.vmmagic.unboxed.Offset;
  *
  * @see VM_Processor
  *
- * @author Stephen Fink
  */
 public abstract class VM_ProcessorLocalState {
   

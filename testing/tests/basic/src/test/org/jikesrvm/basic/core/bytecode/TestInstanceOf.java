@@ -11,7 +11,6 @@ package test.org.jikesrvm.basic.core.bytecode;
 import java.io.Serializable;
 
 /**
- * @author Peter Donald
  */
 class TestInstanceOf {
 

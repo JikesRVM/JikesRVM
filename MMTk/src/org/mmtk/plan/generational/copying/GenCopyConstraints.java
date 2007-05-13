@@ -16,9 +16,6 @@ import org.vmmagic.pragma.*;
 /**
  * GenCopy constants.
  * 
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public class GenCopyConstraints extends GenConstraints {
 }

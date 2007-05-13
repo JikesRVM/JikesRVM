@@ -63,8 +63,6 @@ import org.vmmagic.unboxed.Offset;
 /**
  * Convert an IR object from LIR to MIR via BURS
  *
- * @author Dave Grove
- * @author Mauricio Serrano
  */
 public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 

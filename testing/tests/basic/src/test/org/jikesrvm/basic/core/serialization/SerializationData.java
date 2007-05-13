@@ -11,7 +11,6 @@ package test.org.jikesrvm.basic.core.serialization;
 import java.io.Serializable;
 
 /**
- * @author unascribed
  */
 class SerializationData implements Serializable {
   private static final class Obj implements Serializable {

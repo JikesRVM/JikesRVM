@@ -13,8 +13,6 @@ package org.jikesrvm.classloader;
  * Just before a class is marked as INITIALIZED, VM_Class.initialize()
  * invokes listeners that implement this interface.
  *
- * @author Steve Fink
- * @author Dave Grove
  */
 public interface VM_ClassLoadingListener {
 

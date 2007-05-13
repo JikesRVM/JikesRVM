@@ -11,7 +11,6 @@ package org.jikesrvm.adaptive.measurements.instrumentation;
 /**
  * VM_CounterNameFunction.java
  *
- * @author Stephen Fink
  *
  * This interface defines a function that takes an integer and
  * returns a string corresponding to that integer.

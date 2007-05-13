@@ -30,8 +30,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * -1, A, -2, 12, B, 14, C, 16, D, -6, 3, E, 5, F, -9, 10, G, -2, 20 H -2 30 I
  * </pre>
  * 
- * @author Julian Dolby
- * @modified Dave Grove
  */
 @Uninterruptible public abstract class VM_OptEncodedCallSiteTree {
 

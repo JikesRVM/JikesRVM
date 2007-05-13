@@ -7,7 +7,6 @@
  * (C) Copyright IBM Corp. 2001
  */
 /**
- * @author unascribed
  */
 class Worker extends Thread  {
   private String name;

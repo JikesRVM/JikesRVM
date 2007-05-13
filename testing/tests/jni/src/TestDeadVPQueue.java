@@ -10,7 +10,6 @@
 import org.jikesrvm.scheduler.VM_Scheduler;
 
 /**
- * @author unascribed
  */
 class TestDeadVPQueue
    {

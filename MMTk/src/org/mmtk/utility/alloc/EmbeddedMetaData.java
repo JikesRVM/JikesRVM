@@ -26,7 +26,6 @@ import org.vmmagic.pragma.*;
  * to the start of each page to be heavily conflicted).
  * 
  *
- * @author Steve Blackburn
  */
 @Uninterruptible public final class EmbeddedMetaData implements Constants {
 

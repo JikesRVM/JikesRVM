@@ -29,8 +29,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
  * TODO: factor out common functionality in the various local propagation
  * phases?
  *
- * @author Dave Grove
- * @author Stephen Fink
  */
 public class OPT_LocalCopyProp extends OPT_CompilerPhase {
 

@@ -9,7 +9,6 @@
 package test.org.jikesrvm.basic.core.bytecode;
 
 /**
- * @author unascribed
  */
 class TestFinally {
   @SuppressWarnings({"ReturnInsideFinallyBlock", "finally"})

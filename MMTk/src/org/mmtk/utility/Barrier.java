@@ -20,7 +20,6 @@ import org.vmmagic.pragma.*;
  * and supports unconditional blocking until the number of participants
  * can be determined.
  * 
- * @author Perry Cheng
  */
 @Uninterruptible public final class Barrier {
 

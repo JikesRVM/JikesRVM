@@ -31,8 +31,6 @@ import org.vmmagic.unboxed.Offset;
  * It returns a compiler and architecture neutered runtime state 
  * OSR_ExecutionState.
  *
- * @author Feng Qian
- * @modified Steven Augart
  */
 
 public abstract class OSR_ExecStateExtractor implements VM_Constants{

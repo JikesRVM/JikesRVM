@@ -34,7 +34,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_InstructionEnumeration;
  *
  * - Change bubble sort to insertion sort.
  *
- * @author Igor Pechtchanski
  */
 
 final class OPT_Scheduler {

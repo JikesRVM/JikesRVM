@@ -40,7 +40,6 @@ import org.jikesrvm.scheduler.VM_Wait;
 /**
  * Sockets using Jikes RVM non-blocking I/O support
  *
- * @author Julian Dolby
  */
 final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
 
@@ -93,9 +92,6 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
     
   /**
    * Connects this socket to the specified remote host address/port.
-   *
-   * @author            OTI
-   * @version           initial
    *
    * @param             remoteAddr      the remote host address to connect to
    * @param             remotePort      the remote port to connect to

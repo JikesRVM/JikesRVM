@@ -13,7 +13,6 @@ package org.jikesrvm.compilers.opt;
  * compile an unsupported magic.  
  * We define this to be a non-fatal OPT_OptimizingCompilerException.
  *
- * @author Dave Grove
  */
 public class OPT_MagicNotImplementedException extends OPT_OperationNotImplementedException {
   /** Support for exception serialization */

@@ -7,8 +7,6 @@
 # (C) Copyright IBM Corp. 2001,2002
 #
 #
-# @author Dave Grove
-# @author Mauricio J. Serrano
 #
 # BURS rules for memory access (load/stores) 
 # that are specific to a 32 bit platform.

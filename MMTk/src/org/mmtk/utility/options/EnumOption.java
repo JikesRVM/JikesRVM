@@ -21,7 +21,6 @@ import org.vmmagic.pragma.*;
  * Enumerations are case sensitive.
  * 
  *
- * @author Daniel Frampton
  */
 public class EnumOption extends Option {
   // values

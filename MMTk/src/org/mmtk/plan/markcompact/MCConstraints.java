@@ -22,7 +22,6 @@ import org.vmmagic.pragma.*;
  * issues with ordering of static initialization.
  * 
  *
- * @author Daniel Frampton
  */
 @Uninterruptible public class MCConstraints extends StopTheWorldConstraints {
 

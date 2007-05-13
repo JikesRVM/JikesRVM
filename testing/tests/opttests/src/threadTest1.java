@@ -10,7 +10,6 @@
 /**
  * Just lots of unsynchronized read/write to static shared variables.
  *
- * @author unascribed
  */
 public class threadTest1 {
 

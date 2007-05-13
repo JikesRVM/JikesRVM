@@ -11,8 +11,6 @@
  * The following JNI calls are tested:
  *      MonitorEnter         MonitorExit
  *
- * @author Ton Ngo, Steve Smith 
- * @date 1/3/01
  */
 
 class MonitorTest {

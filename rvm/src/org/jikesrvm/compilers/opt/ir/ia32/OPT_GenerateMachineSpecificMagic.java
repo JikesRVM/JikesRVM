@@ -39,7 +39,6 @@ import org.jikesrvm.runtime.VM_MagicNames;
  *
  * @see org.jikesrvm.compilers.opt.ir.OPT_GenerateMagic for the machine-independent magics
  * 
- * @author Dave Grove
  */
 public abstract class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_StackframeLayoutConstants {
 

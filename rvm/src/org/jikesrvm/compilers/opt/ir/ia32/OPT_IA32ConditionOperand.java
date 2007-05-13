@@ -16,7 +16,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Operand;
 /**
  * An IA32 condition operand
  *
- * @author Dave Grove
  */
 public final class OPT_IA32ConditionOperand extends OPT_Operand 
   implements VM_AssemblerConstants {

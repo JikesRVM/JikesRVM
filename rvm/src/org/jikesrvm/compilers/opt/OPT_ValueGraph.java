@@ -68,7 +68,6 @@ import org.jikesrvm.compilers.opt.ir.ZeroCheck;
  * indicate the operand postion that each operand has with repsect to
  * the given operator or function."
  *
- * @author Stephen Fink
  */
 final class OPT_ValueGraph {
 

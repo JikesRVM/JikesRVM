@@ -27,10 +27,6 @@ import org.jikesrvm.runtime.VM_Statics;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * @author Doug Lorch (retired)
- * @author Dave Grove
- * @author Julian Dolby
- * @author Ian Rogers
  **/
 public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
 

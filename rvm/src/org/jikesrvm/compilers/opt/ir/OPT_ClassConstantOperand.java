@@ -15,7 +15,6 @@ import org.vmmagic.unboxed.Offset;
  * Represents a constant class operand.
  *
  * @see OPT_Operand
- * @author Ian Rogers
  */
 public final class OPT_ClassConstantOperand extends OPT_ObjectConstantOperand {
 

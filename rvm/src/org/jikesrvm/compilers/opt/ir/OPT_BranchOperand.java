@@ -14,7 +14,6 @@ import org.jikesrvm.VM;
  * Represents a branch target.
  *
  * @see OPT_Operand
- * @author John Whaley
  */
 public final class OPT_BranchOperand extends OPT_Operand {
 

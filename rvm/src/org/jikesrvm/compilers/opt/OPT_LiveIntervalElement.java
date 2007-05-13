@@ -18,8 +18,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Register;
  * 
  * @see OPT_LinearScan
  * 
- * @author Michael Hind
- * @author Mauricio Serrano
  */
 public final class OPT_LiveIntervalElement {
 

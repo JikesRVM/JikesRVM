@@ -20,7 +20,6 @@ import org.jikesrvm.runtime.VM_Reflection;
  * <p/>
  * The minimal set has to be discovered by trial and error. Sorry.
  *
- * @author Derek Lieber
  */
 class Dummy {
   static org.jikesrvm.VM a;

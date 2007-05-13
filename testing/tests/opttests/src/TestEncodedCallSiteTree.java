@@ -8,7 +8,6 @@
  */
 /*
  * Unit tests for VM_OptEncodedCallSiteTree.callEdgeMissing
- * @author Dave Grove
  */
 
 class TestEncodedCallSiteTree {

@@ -12,8 +12,6 @@ package org.jikesrvm.compilers.opt;
  *  Graph representations that use explicit ede objects should have
  * their edge objects implement this interface.
  *
- * @author Mauricio J. Serrano
- * @author John Whaley
  */
 interface OPT_GraphEdge extends OPT_VCGEdge{
 

@@ -106,7 +106,6 @@ import org.vmmagic.unboxed.Word;
    @see java.lang.Object
    @see VM_ThinLock
    @see VM_ProcessorLock
-   @author Bowen Alpern 
 */
 
 @Uninterruptible public final class VM_Lock implements VM_Constants {

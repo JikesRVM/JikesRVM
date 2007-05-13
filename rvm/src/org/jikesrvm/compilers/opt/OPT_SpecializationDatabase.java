@@ -25,8 +25,6 @@ import org.jikesrvm.util.VM_HashSet;
  * There is no provision for removing/deleting method versions as classes 
  * are never unloaded and the ClassLoader.compiledMethods[] is never cleaned.
  *
- * @author Rajesh Bordawekar
- * @author Stephen Fink
  */
 public final class OPT_SpecializationDatabase {
 

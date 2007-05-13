@@ -91,12 +91,6 @@ import org.jikesrvm.compilers.opt.ir.ppc.OPT_PowerPCConditionOperand;
  * TODO: Make these methods virtual; spilt into Common superclass with
  *       32/64 subclasses.
  *       
- * @author Dave Grove
- * @author Mauricio J. Serrano
- * @modified Vivek Sarkar
- * @modified Igor Pechtchanski
- * @modified Martin Trapp
- * @modified Stephen Fink
  */
 public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
 

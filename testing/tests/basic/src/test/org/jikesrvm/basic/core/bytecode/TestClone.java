@@ -9,7 +9,6 @@
 package test.org.jikesrvm.basic.core.bytecode;
 
 /**
- * @author unascribed
  */
 class TestClone implements Cloneable {
   String id;

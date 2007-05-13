@@ -13,7 +13,6 @@ import java.util.NoSuchElementException;
 
 /**
  * This class provides an enumerator for a list of OPT_RegSpillElements
- * @author Michael Hind
  */
 public class OPT_RegSpillListEnumerator implements Enumeration<OPT_RegSpillListElement> {
 

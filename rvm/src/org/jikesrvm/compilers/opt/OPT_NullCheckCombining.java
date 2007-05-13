@@ -41,9 +41,6 @@ import org.vmmagic.unboxed.Offset;
  * So, until we have an urgent need to preserve guard operands all 
  * the way through the MIR, we'll take the easy way out.
  *
- * @author Dave Grove
- * @author Mauricio J. Serrano
- * @modified Daniel Frampton
  */
 public class OPT_NullCheckCombining extends OPT_CompilerPhase {
 

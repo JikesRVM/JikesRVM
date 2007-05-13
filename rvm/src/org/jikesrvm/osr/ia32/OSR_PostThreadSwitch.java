@@ -24,7 +24,6 @@ import org.vmmagic.unboxed.Offset;
  * and highly depends on the calling convention. It should not be interrupted
  * because it deals with row instruction address.
  *
- * @author Feng Qian
  */
 @Uninterruptible public abstract class OSR_PostThreadSwitch implements VM_BaselineConstants {
 

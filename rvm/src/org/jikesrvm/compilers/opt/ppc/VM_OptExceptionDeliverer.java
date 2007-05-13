@@ -24,8 +24,6 @@ import org.vmmagic.unboxed.Word;
  * Handle exception delivery and stack unwinding for 
  * opt compiled methods.
  * 
- * @author Dave Grove
- * @author Mauricio J. Serrano 
  */
 public abstract class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
     implements VM_Constants, VM_BytecodeConstants {

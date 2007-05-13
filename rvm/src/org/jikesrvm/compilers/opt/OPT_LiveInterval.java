@@ -16,8 +16,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 /**
  * This class contains useful methods for managing liveIntervals.
  *
- * @author Michael Hind
- * @author Mauricio Serrano
  */
 final class OPT_LiveInterval {
 

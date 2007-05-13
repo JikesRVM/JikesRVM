@@ -24,7 +24,6 @@ import org.vmmagic.unboxed.*;
  * Discontigious spaces are currently unsupported.
  * 
  *
- * @author Steve Blackburn
  */
 @Uninterruptible public class Map implements Constants {
 

@@ -11,7 +11,6 @@ package org.jikesrvm.compilers.opt.ir;
 /**
  * This interface contains flags to control IR generation.
  *
- * @author John Whaley
  * @see OPT_BC2IR
  */
 public interface OPT_IRGenOptions {

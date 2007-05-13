@@ -19,10 +19,6 @@ import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
  *
  * @see VM_ObjectModel
  * 
- * @author David Bacon
- * @author Steve Fink
- * @author Dave Grove
- * @modified <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
  */
 public interface VM_MiscHeaderConstants extends VM_Constants {
 

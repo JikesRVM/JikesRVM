@@ -18,9 +18,7 @@ import org.vmmagic.unboxed.*;
 
 /**
  *
- * @author Steve Blackburn
- * @author Perry Cheng
- * 
+ *
  */
 @Uninterruptible public abstract class ObjectModel {
   /**

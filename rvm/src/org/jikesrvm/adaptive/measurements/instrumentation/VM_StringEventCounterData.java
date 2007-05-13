@@ -22,7 +22,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
  * which, given a string, returns a counter instruction that
  * increments the corresponding counter for that string.
  *
- * @author Matthew Arnold
  *
  */
 public class VM_StringEventCounterData extends VM_ManagedCounterData

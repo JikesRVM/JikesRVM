@@ -18,8 +18,6 @@ import org.vmmagic.unboxed.Address;
  *
  * See also VM_Magic.setObjectAddressRemapper()
  *
- * @author Bowen Alpern
- * @author Derek Lieber
  */
 public interface VM_ObjectAddressRemapper {
   /**

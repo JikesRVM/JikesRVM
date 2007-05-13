@@ -12,8 +12,6 @@ package org.jikesrvm.compilers.opt;
  * A <code>FilterIterator</code> filters and maps a source
  * <code>Iterator</code> to generate a new one.
  *
- * @author Mauricio J. Serrano
- * @author John Whaley
  */
 public class OPT_FilterIterator<T>
     implements java.util.Iterator<T> {

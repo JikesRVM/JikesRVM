@@ -19,9 +19,6 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 /**
  * Use baseline compiler to build virtual machine boot image.
  * 
- * @author Bowen Alpern
- * @author Dave Grove
- * @author Derek Lieber
  */
 public final class VM_BaselineBootImageCompiler extends VM_BootImageCompiler {
 

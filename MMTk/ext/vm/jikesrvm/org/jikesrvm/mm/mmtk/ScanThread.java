@@ -73,9 +73,6 @@ import org.vmmagic.pragma.*;
  * points into the newly copied object.<p>
  *
  *
- * @author Stephen Smith
- * @author Perry Cheng
- * @author Steve Blackburn
  *
  */
 @Uninterruptible public final class ScanThread implements VM_Constants {

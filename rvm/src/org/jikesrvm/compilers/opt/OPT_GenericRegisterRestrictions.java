@@ -29,7 +29,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Register;
  * Each architcture will subclass this in a class
  * OPT_RegisterRestrictions.
  * 
- * @author Stephen Fink
  */
 public abstract class OPT_GenericRegisterRestrictions {
   // for each symbolic register, the set of physical registers that are
@@ -305,7 +304,6 @@ public abstract class OPT_GenericRegisterRestrictions {
    * An instance of this class represents restrictions on physical register 
    * assignment.
    * 
-   * @author Stephen Fink
    */
   private static final class RestrictedRegisterSet {
     /**

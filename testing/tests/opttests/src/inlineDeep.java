@@ -11,7 +11,6 @@
  *
  *     jsh java optCompilerDriver +depgraph +ir +low +burs +regalloc fibo 
  *
- * @author unascribed
  */
 
 public final class inlineDeep {

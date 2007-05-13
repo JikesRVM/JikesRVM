@@ -20,7 +20,6 @@ import org.vmmagic.pragma.*;
  * This abstract class implements a simple counter (counting some
  * integer (long) value for each phase).
  * 
- * @author Steve Blackburn
  */
 @Uninterruptible public abstract class LongCounter extends Counter {
 

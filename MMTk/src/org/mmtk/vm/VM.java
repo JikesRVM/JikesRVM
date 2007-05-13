@@ -44,7 +44,6 @@ import org.vmmagic.unboxed.Offset;
  * and initialize the constants and singletons defined here.
  * 
  *
- * @author Steve Blackburn
  */
 public final class VM {
   

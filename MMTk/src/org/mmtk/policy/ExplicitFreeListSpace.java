@@ -26,8 +26,6 @@ import org.vmmagic.unboxed.*;
  * in the instance methods of MarkSweepLocal.
  * 
  *
- * @author Steve Blackburn
- * @author Daniel Frampton
  */
 @Uninterruptible public final class ExplicitFreeListSpace extends Space
   implements Constants {

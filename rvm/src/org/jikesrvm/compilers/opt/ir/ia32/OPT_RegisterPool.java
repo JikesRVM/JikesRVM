@@ -25,8 +25,6 @@ import org.vmmagic.unboxed.Address;
  * 
  * @see OPT_Register
  * 
- * @author Peter Sweeney
- * @author Stephen Fink
  */
 public abstract class OPT_RegisterPool extends OPT_GenericRegisterPool implements OPT_Operators {
 

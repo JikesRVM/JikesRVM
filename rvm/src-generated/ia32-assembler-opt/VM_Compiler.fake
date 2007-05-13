@@ -8,7 +8,6 @@
  */
 package org.jikesrvm.compilers.baseline.ia32;
 /**
- * @author Dave Grove
  */
 public class VM_Compiler {
 }

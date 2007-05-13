@@ -11,7 +11,6 @@ package test.org.jikesrvm.basic.core.reflect;
 import java.lang.reflect.Method;
 
 /**
- * @author unascribed
  */
 class tInstance {
   public int ifield;

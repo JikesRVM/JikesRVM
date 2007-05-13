@@ -19,7 +19,6 @@ import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
  * used to communicate that a method should be considered as a candidate
  * for recompilation.
  *
- * @author Dave Grove 
  */
 public abstract class VM_HotMethodEvent {
 

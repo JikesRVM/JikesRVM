@@ -11,7 +11,6 @@ package org.jikesrvm.adaptive.controller;
 /**
  * Abstract parent class for events from organizers to the controller. 
  *
- * @author Stephen Fink 
  */
 public interface VM_ControllerInputEvent {
 

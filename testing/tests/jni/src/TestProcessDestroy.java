@@ -10,7 +10,6 @@
 /**
  * Test of <code>Process.destroy()</code>.
  *
- * @author David Hovemeyer
  */
 public class TestProcessDestroy {
   public static void main(String[] argv) {

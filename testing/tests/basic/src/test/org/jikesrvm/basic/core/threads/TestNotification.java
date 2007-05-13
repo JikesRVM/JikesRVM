@@ -18,7 +18,6 @@ package test.org.jikesrvm.basic.core.threads;
  * notify
  * notifyAll
  *
- * @author unascribed
  */
 class TestNotification {
   public static void main(String[] args) {

@@ -26,7 +26,6 @@ import org.vmmagic.pragma.*;
  * be satisfied (for either reason) a GC may be triggered.<p>
  * 
  *
- * @author Steve Blackburn
  */
 @Uninterruptible public final class FreeListPageResource extends PageResource 
   implements Constants {

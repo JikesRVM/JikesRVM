@@ -24,9 +24,6 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REGISTER_opcode;
  * to do instruction selection.  The interesting code is in the
  * subclasses of this class.
  *
- * @author Dave Grove
- * @author Vivek Sarkar
- * @author Mauricio Serrano
  */
 public abstract class OPT_BURS {
 

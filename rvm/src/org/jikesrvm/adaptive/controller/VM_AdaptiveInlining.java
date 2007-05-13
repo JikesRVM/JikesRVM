@@ -16,11 +16,6 @@ import org.jikesrvm.adaptive.util.VM_AOSOptions;
 /**
  * Collection of static methods to assist with adaptive inlining.
  *
- * @author Stephen Fink
- * @modified Michael Hind
- * @modified Peter F. Sweeney
- * @modified Matthew Arnold
- * @modified Dave Grove
  */
 public class VM_AdaptiveInlining {
 

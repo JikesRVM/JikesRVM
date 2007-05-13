@@ -21,7 +21,6 @@ import org.vmmagic.unboxed.*;
  * This class performs sanity checks for CopyMS collectors.
  * 
  *
- * @author Daniel Frampton
  */
 @Uninterruptible public class CopyMSSanityCheckerLocal extends SanityCheckerLocal {
 

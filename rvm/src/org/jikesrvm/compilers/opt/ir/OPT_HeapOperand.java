@@ -15,8 +15,6 @@ import org.jikesrvm.compilers.opt.OPT_HeapVariable;
  * 
  * @see OPT_Operand
  * @see OPT_HeapVariable
- * @author Stephen Fink
- * @modified Ian Rogers
  */
 public final class OPT_HeapOperand<T> extends OPT_Operand {
 

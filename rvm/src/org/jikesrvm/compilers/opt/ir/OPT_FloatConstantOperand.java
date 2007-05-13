@@ -17,7 +17,6 @@ import org.vmmagic.unboxed.Offset;
  * Represents a constant float operand.
  *
  * @see OPT_Operand
- * @author John Whaley
  */
 public final class OPT_FloatConstantOperand extends OPT_ConstantOperand implements VM_SizeConstants{
 

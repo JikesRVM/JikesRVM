@@ -11,8 +11,6 @@ package org.jikesrvm.ppc;
 /**
  * Trap Conventions
  *
- * @author Bowen Alpern
- * @author Derek Lieber
  */
 public interface VM_TrapConstants {
   //--------------------------------------------------------------------------------------------//

@@ -15,7 +15,6 @@ package org.jikesrvm.compilers.opt;
  * graph nodes to define the graph, but this behavior can be changed
  * by overriding the getConnected method.
  *
- * @author Julian Dolby
  */
 class OPT_DFSenumerateByFinish extends OPT_Stack<OPT_GraphNode>
     implements OPT_GraphNodeEnumeration {

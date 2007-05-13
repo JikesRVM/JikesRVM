@@ -14,7 +14,6 @@ package org.jikesrvm.compilers.opt;
  * Used in OPT_OperatorClass.
  * 
  * @see OPT_OperatorClass
- * @author Igor Pechtchanski
  */
 final class OPT_ResourceReservation {
   // Resource Class.

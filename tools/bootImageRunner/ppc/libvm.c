@@ -18,11 +18,7 @@
  *
  * PowerPC version for AIX, Linux, and Mac OS X
  *
- * @author  Derek Lieber
- * @modified Perry Cheng
- * @date    03 Feb 1998
  *
- * @date    17 Oct 2000     Split from the original RunBootImage.  Contains
  *             everything except the command line parsing in main().
  */
 

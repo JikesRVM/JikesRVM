@@ -13,7 +13,6 @@ package org.mmtk.utility.options;
  * Should we shrink/grow the heap to adjust to application working set?
  * 
  *
- * @author Daniel Frampton
  */
 public class VariableSizeHeap extends BooleanOption {
   /**

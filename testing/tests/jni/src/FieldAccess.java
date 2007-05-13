@@ -30,8 +30,6 @@
  *      GetObjectField             SetObjectField            
  *
  *
- * @author Ton Ngo, Steve Smith 
- * @date   1/25/00
  */
 class FieldAccess {
   static boolean verbose = true;         // set to true to get messages for each test

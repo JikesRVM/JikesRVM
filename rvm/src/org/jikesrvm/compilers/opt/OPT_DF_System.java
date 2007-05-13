@@ -26,7 +26,6 @@ import java.util.TreeSet;
  *      in a topological order according to these edges.
  *
  *
- * @author Stephen Fink
  *
  */
 public abstract class OPT_DF_System {

@@ -19,7 +19,6 @@ import org.jikesrvm.classloader.VM_TypeReference;
  * need to support replacement
  *
  * @see OPT_Operand
- * @author Ian Rogers
  */
 public final class OPT_CodeConstantOperand extends OPT_ConstantOperand {
 

@@ -12,10 +12,6 @@
 /**
  * Generate from ir.template and assembled rules files.
  *
- * @author Dave Grove
- * @author Igor Pechtchanski
- * @author Vivek Sarkar
- * @author Mauricio Serrano
  */
 %}
 $$$$ FOREACH OPERATOR ../opt-ir/OperatorList.dat

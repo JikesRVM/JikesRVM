@@ -38,11 +38,7 @@ import org.vmmagic.pragma.*;
  * @see SimplePhase#delegatePhase
  * 
  *
- * @author Steve Blackburn
- * @author Perry Cheng
- * @author Robin Garner
- * @author Daniel Frampton
- * 
+ *
  */
 @Uninterruptible public abstract class SSMutator extends StopTheWorldMutator {
   /****************************************************************************

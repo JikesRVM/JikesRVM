@@ -8,7 +8,6 @@
  */
 
 /*
- * @author Dick Anttanasio
  */
 #include <stdio.h>
 #include <unistd.h>

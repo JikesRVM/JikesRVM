@@ -15,7 +15,6 @@ import org.mmtk.policy.ImmortalSpace;
 
 /**
  * This interface provides an immortal allocation space for GCspy objects.
- * @author Richard Jones
  */
 public interface GCspyPlan {
   

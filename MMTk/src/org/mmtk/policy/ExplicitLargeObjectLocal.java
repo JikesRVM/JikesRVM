@@ -32,8 +32,6 @@ import org.vmmagic.unboxed.*;
  * instances of this class, one for each CPU, LargeObjectSpace pair.
  * 
  *
- * @author Steve Blackburn
- * @author Daniel Frampton
  */
 @Uninterruptible public final class ExplicitLargeObjectLocal extends LargeObjectAllocator
   implements Constants {

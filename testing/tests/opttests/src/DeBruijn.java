@@ -15,7 +15,6 @@
  *
  * I'm not sure how to prove this -- any suggestions ?
  *
- * @author John Whaley
  */
 
 class DeBruijn {

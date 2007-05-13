@@ -18,10 +18,6 @@ import org.vmmagic.pragma.*;
  * issues with ordering of static initialization.
  * 
  *
- * @author Perry Cheng
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public abstract class PlanConstraints {
   /** @return True if this Plan requires write barriers. */

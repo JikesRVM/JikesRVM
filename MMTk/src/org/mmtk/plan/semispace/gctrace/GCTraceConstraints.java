@@ -20,12 +20,7 @@ import org.vmmagic.pragma.*;
 /**
  * GCTrace constants.
  * 
- * @author Steve Blackburn
- * @author Perry Cheng
- * @author Daniel Frampton
- * @author Robin Garner
- * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
- * 
+ *
  */
 @Uninterruptible public class GCTraceConstraints extends SSConstraints {
   public boolean needsWriteBarrier() { return true; }

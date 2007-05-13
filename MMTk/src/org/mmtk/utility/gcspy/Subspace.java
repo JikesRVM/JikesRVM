@@ -31,7 +31,6 @@ import org.vmmagic.pragma.*;
  * and the number of blocks in this subspace.
  *
  *
- * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  */
 @Uninterruptible public class Subspace {
 

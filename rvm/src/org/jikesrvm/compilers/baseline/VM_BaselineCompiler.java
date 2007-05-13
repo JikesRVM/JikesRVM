@@ -27,12 +27,6 @@ import org.vmmagic.unboxed.Offset;
  * the host of abstract methods defined by VM_CompilerFramework to complete
  * the implementation of a baseline compiler for a particular target,
  *
- * @author Bowen Alpern
- * @author Maria Butrico
- * @author Anthony Cocchi
- * @author Dave Grove
- * @author Derek Lieber
- * @author Janice Shepherd
  */
 public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
 

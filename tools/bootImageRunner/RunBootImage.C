@@ -16,16 +16,12 @@
  * The file "sys.C" contains the o/s support services to match
  * the entrypoints declared by VM_SysCall.java
  *
- * @author Derek Lieber 03 Feb 1998
  * 17 Oct 2000 The system code (everything except command line parsing in main)
  *             are moved into libvm.C to accomodate the JNI call CreateJVM
  *             (Ton Ngo)
- * @modified Peter Sweeney 05 Jan 2001
  *             Add support to recognize quotes in command line arguments,
  *             standardize command line arguments with JDK 1.3.
  *             Eliminate order dependence on command line arguments
- * @modified Steven Augart
- * @date 18 Aug 2003
  *      Cleaned up memory management.  Made the handling of numeric args
  *      robust. 
  */

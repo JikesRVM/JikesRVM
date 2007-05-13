@@ -16,7 +16,6 @@ import java.util.Enumeration;
  * visualization.  The graph should implement OPT_VisGraph interface, and
  * its edges - OPT_VisEdge interface.
  *
- * @author Igor Pechtchanski
  * @see OPT_VisGraph
  * @see OPT_VisEdge
  */

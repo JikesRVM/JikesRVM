@@ -9,7 +9,6 @@
 import org.jikesrvm.runtime.VM_Magic;
 
 /**
- * @author unascribed
  */
 class NativeThreadsWorker extends Thread
    {

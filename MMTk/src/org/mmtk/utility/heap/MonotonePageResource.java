@@ -27,7 +27,6 @@ import org.vmmagic.unboxed.*;
  * be satisfied (for either reason) a GC may be triggered.<p>
  * 
  *
- * @author Steve Blackburn
  */
 @Uninterruptible public final class MonotonePageResource extends PageResource 
   implements Constants {

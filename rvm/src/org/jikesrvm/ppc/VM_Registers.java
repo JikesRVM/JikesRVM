@@ -18,8 +18,6 @@ import org.vmmagic.unboxed.WordArray;
 /**
  * The machine state comprising a thread's execution context.
  *
- * @author Bowen Alpern
- * @author Derek Lieber
  */
 @Uninterruptible public abstract class VM_Registers implements VM_ArchConstants {
   // The following are used both for thread context switching

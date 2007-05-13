@@ -17,8 +17,6 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
  * We use this context to remove unnecessary synchronizations.
  *
  *
- * @author Rajesh Bordawekar
- * @author Stephen Fink
  */
 public class OPT_InvokeeThreadLocalContext
     implements OPT_SpecializationContext {

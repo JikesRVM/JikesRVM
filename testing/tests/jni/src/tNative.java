@@ -9,7 +9,6 @@
 /**
  * Test native method
  *
- * @author unascribed
  */
 
 class tNative

@@ -14,7 +14,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Register;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 
 /*
- * @author Michael Hind
  *
  * A simple class that holds an element in a LiveSet.
  */

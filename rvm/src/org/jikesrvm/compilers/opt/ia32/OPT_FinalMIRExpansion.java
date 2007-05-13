@@ -99,10 +99,6 @@ import org.vmmagic.unboxed.Offset;
  * org.jikesrvm.compilers.common.assembler.ia32.VM_Assembler#emitOFFSET_Imm_ImmOrLabel}).  If you want to mess with
  * it, you will probably need to mess with them as well.
  *
- * @author Dave Grove
- * @author Stephen Fink
- * @author Julian Dolby
- * @modified Peter Sweeney 
  */
 public class OPT_FinalMIRExpansion extends OPT_IRTools {
 

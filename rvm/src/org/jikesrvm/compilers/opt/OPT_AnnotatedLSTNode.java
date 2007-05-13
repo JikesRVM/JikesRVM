@@ -85,7 +85,6 @@ import org.jikesrvm.compilers.opt.ir.Unary;
  * 
  * @see OPT_LSTNode
  *
- * @author Ian Rogers
  */
 final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
   // -oO Debug information Oo-

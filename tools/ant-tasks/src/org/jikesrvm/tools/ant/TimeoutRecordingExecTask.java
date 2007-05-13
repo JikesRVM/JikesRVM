@@ -16,7 +16,6 @@ import org.apache.tools.ant.taskdefs.Property;
 /**
  * ExecTask extension that sets a proeprty when watchdog kills task.
  *
- * @author Peter Donald
  */
 public class TimeoutRecordingExecTask
     extends ExecTask {

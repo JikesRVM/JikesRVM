@@ -9,7 +9,6 @@
 package org.vmmagic.unboxed;
 
 /**
- * @author Kris Venstermans 
  */
 public class Word {
   public Word rsha (int sh) {

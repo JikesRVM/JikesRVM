@@ -25,7 +25,6 @@ import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
  * An abstract class providing the interface to the decision making
  * component of the controller. 
  *
- * @author Matthew Arnold
  */
 public abstract class VM_RecompilationStrategy {
 

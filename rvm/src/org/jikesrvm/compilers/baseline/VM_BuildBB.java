@@ -19,7 +19,6 @@ import org.jikesrvm.classloader.VM_NormalMethod;
  * basic blocks. Used for building the reference maps for a 
  * method.
  *
- * @author Anthony Cocchi
  */
 
 public final class VM_BuildBB

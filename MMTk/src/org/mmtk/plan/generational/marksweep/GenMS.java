@@ -41,9 +41,6 @@ import org.vmmagic.unboxed.*;
  * to Plan.java and PlanLocal.java.
  * 
  *
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public class GenMS extends Gen {
 

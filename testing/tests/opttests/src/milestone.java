@@ -11,7 +11,6 @@
  *
  *  jsh java optCompilerDriver +depgraph +ir +low +burs +regalloc milestone 
  *
- * @author unascribed
  */
 
 final class milestone

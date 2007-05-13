@@ -14,7 +14,6 @@ package org.mmtk.utility.options;
  * Should a major GC be performed when a system GC is triggered?
  * 
  *
- * @author Daniel Frampton
  */
 public class SanityCheck extends BooleanOption {
   /**

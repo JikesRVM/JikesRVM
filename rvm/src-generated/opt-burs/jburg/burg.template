@@ -25,10 +25,6 @@ import org.vmmagic.unboxed.*;
  * See $RVM_ROOT/rvm/src-generated/opt-burs/jburg/COPYRIGHT file for copyright restrictions.
  *
  * @see OPT_BURS
- * @author Mauricio Serrano
- * @author Vivek Sarkar
- * @author Igor Pechtchanski
- * @modified Dave Grove
  *
  * NOTE: Program generated file, do not edit!
  */

@@ -39,7 +39,6 @@ import org.jikesrvm.classloader.VM_MethodReference;
  * <li><code>&lt;signature></code> <i>string</i> The method signature</li>
  * </ul>
  *
- * @author Xianglong Huang
  *
  * @see VM_CompilerAdvice
  */

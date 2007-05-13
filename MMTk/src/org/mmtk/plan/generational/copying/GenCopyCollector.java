@@ -39,9 +39,6 @@ import org.vmmagic.pragma.*;
  * @see org.mmtk.plan.SimplePhase#delegatePhase
  * 
  *
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public abstract class GenCopyCollector extends GenCollector {
 

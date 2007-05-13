@@ -26,9 +26,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * The code in this class is in charge of VM-related idiosyncrasies like
  * computing how many processors are participating in a particular collection.
  *
- * @author   Derek Lieber
- * @author   Perry Cheng - Rewrite major portions
- * @modified Steve Smith
  */
 public final class SynchronizationBarrier {
 

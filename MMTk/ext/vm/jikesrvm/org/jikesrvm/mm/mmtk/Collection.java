@@ -41,8 +41,6 @@ import org.vmmagic.pragma.*;
 
 /**
  *
- * @author Steve Blackburn
- * @author Perry Cheng
  *
  */
 @Uninterruptible public class Collection extends org.mmtk.vm.Collection implements Constants, VM_Constants {

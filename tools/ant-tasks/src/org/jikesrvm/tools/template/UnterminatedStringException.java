@@ -9,8 +9,6 @@
 package org.jikesrvm.tools.template;
 
 /**
- * @author John Whaley
- * @author Igor Pechtchanski
  */
 class UnterminatedStringException extends RuntimeException {
   private static final long serialVersionUID = 5639864127476661778L;

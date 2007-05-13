@@ -17,7 +17,6 @@ import org.jikesrvm.VM;
  * of the instruction that is immediately after the JSR, we need the maps at 
  * the time of the JSR and the maps at the time of the RET.
  * 
- * @author Anthony Cocchi
  */
 public final class VM_JSRSubroutineInfo {
   public int subroutineByteCodeStart;

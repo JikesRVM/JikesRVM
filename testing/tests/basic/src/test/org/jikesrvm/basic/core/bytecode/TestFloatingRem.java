@@ -9,7 +9,6 @@
 package test.org.jikesrvm.basic.core.bytecode;
 
 /**
- * @author unascribed
  */
 class TestFloatingRem {
    public static void main(String[] args) {

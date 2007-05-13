@@ -23,9 +23,6 @@ import org.vmmagic.unboxed.Address;
  * 
  * TODO: There is only 1 line of platform dependent code here; refactor?
  *
- * @author Bowen Alpern
- * @author Tony Cocchi 
- * @author Derek Lieber
  */
 public abstract class VM_MultianewarrayHelper implements VM_Constants {
 

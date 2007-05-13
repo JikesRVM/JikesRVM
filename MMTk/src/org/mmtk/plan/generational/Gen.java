@@ -41,9 +41,6 @@ import org.vmmagic.unboxed.*;
  * classes.
  * 
  *
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public abstract class Gen extends StopTheWorld {
 

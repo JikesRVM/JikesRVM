@@ -17,7 +17,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
  * ala Alpern, Wegman and Zadeck.  See Muchnick p.348 for a nice
  * discussion.
  *
- * @author Stephen Fink
  */
 final class OPT_ValueGraphVertex extends OPT_SpaceEffGraphNode {
   private final Object name;  // the name of the variable defined by this node

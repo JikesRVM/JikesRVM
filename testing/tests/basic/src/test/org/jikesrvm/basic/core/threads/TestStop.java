@@ -9,7 +9,6 @@
 package test.org.jikesrvm.basic.core.threads;
 
 /**
- * @author unascribed
  */
 class TestStop {
   public static void main(String[] args) {

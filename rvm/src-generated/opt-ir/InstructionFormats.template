@@ -35,8 +35,6 @@ import org.jikesrvm.VM;
  * an explanation of the role of InstructionFormats in the
  * opt compiler's IR.
  *	
- * @author Dave Grove
- * @author Igor Pechtchanski
  */
 public abstract class OPT_InstructionFormat {
 
@@ -148,8 +146,6 @@ $$$$ END IF
  * an explanation of the role of InstructionFormats in the
  * opt compiler's IR.
  *	
- * @author Dave Grove
- * @author Igor Pechtchanski
  */
 @SuppressWarnings("unused")  // Machine generated code is never 100% clean
 public final class OPTYPE.NAME extends OPT_InstructionFormat {

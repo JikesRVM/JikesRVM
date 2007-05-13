@@ -25,10 +25,6 @@ import org.vmmagic.unboxed.Offset;
  * A list of compiled method and instructionOffset pairs that describe 
  * the state of the call stack at a particular instant.
  *
- * @author Bowen Alpern
- * @author Dave Grove
- * @author Derek Lieber
- * @author Steven Augart
  */
 public class VM_StackTrace {
 

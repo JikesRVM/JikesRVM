@@ -13,8 +13,6 @@ import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
 /**
  * A container for the chain of exception handlers for a basic block.
  * 
- * @author Dave Grove
- * @modified by Steve Fink
  *
  * @see OPT_BasicBlock
  * @see OPT_ExceptionHandlerBasicBlock

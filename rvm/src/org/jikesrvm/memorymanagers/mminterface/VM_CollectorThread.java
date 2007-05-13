@@ -60,10 +60,6 @@ import org.vmmagic.unboxed.Offset;
  *
  * @see VM_Handshake
  *
- * @author Derek Lieber
- * @author Bowen Alpern 
- * @author Stephen Smith
- * @modified Perry Cheng
  *
  */
 public class VM_CollectorThread extends VM_Thread {

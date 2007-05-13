@@ -12,7 +12,6 @@ import org.jikesrvm.classloader.VM_Type;
 
 /**
  * Worker for parallel compilation during bootimage writing.
- * @author Perry Cheng
  */
 public class BootImageWorker implements Runnable {
 

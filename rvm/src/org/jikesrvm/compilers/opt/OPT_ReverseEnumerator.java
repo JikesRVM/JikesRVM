@@ -11,7 +11,6 @@ package org.jikesrvm.compilers.opt;
 /**
  * Reverse the order of an enumeration.
  * 
- * @author Stephen Fink
  */
 
 import java.util.ArrayList;

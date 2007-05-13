@@ -15,7 +15,6 @@ import org.vmmagic.unboxed.*;
  * Constants defining heap layout constants
  *
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  *
  */
 public interface VM_HeapLayoutConstants {

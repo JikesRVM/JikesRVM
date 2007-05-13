@@ -16,8 +16,6 @@ import org.vmmagic.unboxed.*;
  * This class manages SoftReferences, WeakReferences, and
  * PhantomReferences. 
  * 
- * @author Chris Hoffmann
- * @modified Andrew Gray
  */
 @Uninterruptible public abstract class ReferenceGlue {
   /**

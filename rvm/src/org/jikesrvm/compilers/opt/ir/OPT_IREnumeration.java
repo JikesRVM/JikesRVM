@@ -24,7 +24,6 @@ import org.vmmagic.pragma.NoInline;
  * General clients should use the higher level interfaces provided
  * by those classes
  *
- * @author Dave Grove
  */
 public abstract class OPT_IREnumeration {
 
@@ -205,7 +204,6 @@ public abstract class OPT_IREnumeration {
    * heap variables, which are stored only in this lookaside
    * structure.
    * @see org.jikesrvm.compilers.opt.OPT_SSADictionary
-   * @author Ian Rogers
    */
   public static final class AllInstructionsEnum implements OPT_InstructionEnumeration {
     /**
@@ -289,7 +287,6 @@ public abstract class OPT_IREnumeration {
    * {@link OPT_OperandEnumeration} as it iterates over both implicit
    * and explicit operands.
    * @see org.jikesrvm.compilers.opt.OPT_SSADictionary
-   * @author Ian Rogers
    */
   public static final class AllDefsEnum implements OPT_OperandEnumeration {
     /**
@@ -381,7 +378,6 @@ public abstract class OPT_IREnumeration {
    * {@link OPT_OperandEnumeration} as it iterates over both implicit
    * and explicit operands.
    * @see org.jikesrvm.compilers.opt.OPT_SSADictionary
-   * @author Ian Rogers
    */
   public static final class AllUsesEnum implements OPT_OperandEnumeration {
     /**

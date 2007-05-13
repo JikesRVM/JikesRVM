@@ -34,8 +34,6 @@ import org.jikesrvm.VM;
  *  is "next".  A separate linked list ("other" is the link) contains all
  *  forward references with the same target.
  *
- * @author Julian Dolby
- * @author Bowen Alpern
  */
 public abstract class VM_ForwardReference {
 

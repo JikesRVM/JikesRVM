@@ -16,8 +16,6 @@ import org.vmmagic.pragma.Uninterruptible;
  *
  * Defines update's interface.
  *
- * @author Peter Sweeney
- * @date   2 June 2000
  */
 
 @Uninterruptible

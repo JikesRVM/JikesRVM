@@ -28,7 +28,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
  *
  * <p> TODO: This implementation is not terribly efficient.  Speed it up.
  *
- * @author Stephen Fink
  */
 public final class OPT_IndexPropagation extends OPT_CompilerPhase {
 
@@ -101,7 +100,6 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
    * <p> Note: this implementation does not scale, and is not terribly
    * efficient.
    *
-   * @author Stephen Fink
    */
   static final class ObjectCell extends OPT_DF_AbstractCell {
     /**
@@ -310,7 +308,6 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
    * <p> Note: this implementation does not scale, and is not terribly
    * efficient.
    *
-   * @author Stephen Fink
    */
   static final class ArrayCell extends OPT_DF_AbstractCell {
     /**

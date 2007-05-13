@@ -31,9 +31,6 @@ import org.vmmagic.unboxed.Word;
  * We implement SynchronizedObject because we need to synchronize
  * on the VM_CompiledMethod object as part of the invalidation protocol.
  * 
- * @author Bowen Alpern
- * @author Derek Lieber
- * @modified Steven Augart
  */
 @SynchronizedObject
 public abstract class VM_CompiledMethod implements VM_SizeConstants {
@@ -83,7 +80,7 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
   /**
    * the offset of instructions in JTOC, for osr-special compiled
    * method only. all osr-ed method is treated like static.
-   * @todo OSR redesign: put in subclass?  Stick somewhere else?
+   * TODO: OSR redesign: put in subclass?  Stick somewhere else?
    *       Don't want to waste space for this on every compiled
    *       method.
    */

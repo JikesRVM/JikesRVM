@@ -11,8 +11,6 @@ package org.jikesrvm.compilers.opt;
 import java.util.Enumeration;
 
 /** 
- * @author Mauricio J. Serrano
- * @author John Whaley
  */
 public class OPT_CompoundEnumerator<T> implements Enumeration<T> {
   private final Enumeration<T> first;    

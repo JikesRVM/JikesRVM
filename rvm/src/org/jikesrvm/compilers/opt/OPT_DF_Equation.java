@@ -13,7 +13,6 @@ package org.jikesrvm.compilers.opt;
  *
  * represents a single Data Flow equation
  *
- * @author Stephen Fink
  */
 public class OPT_DF_Equation implements OPT_GraphNode {
 

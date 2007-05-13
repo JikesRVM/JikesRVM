@@ -13,8 +13,6 @@ import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_TypeReference;
 
 /**
- * @author Julian Dolby
- * @date May 20, 2002
  */
 public abstract class OPT_AbstractRegisterPool {
 

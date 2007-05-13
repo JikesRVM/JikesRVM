@@ -32,10 +32,6 @@ import org.vmmagic.unboxed.WordArray;
  * that are part of the input parameters, local variables, and 
  * java stack for the stack frame.
  *
- * @author Bowen Alpern
- * @author Maria Butrico
- * @author Anthony Cocchi
- * @author Derek Lieber
  */
 @Uninterruptible public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator 
   implements VM_BaselineConstants {

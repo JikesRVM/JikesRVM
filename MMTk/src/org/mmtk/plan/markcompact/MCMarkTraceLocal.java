@@ -23,7 +23,6 @@ import org.vmmagic.unboxed.*;
  * closure over a mark-compact space during the initial marking phase.
  * 
  *
- * @author Daniel Frampton
  */
 @Uninterruptible public final class MCMarkTraceLocal extends TraceLocal {
   /**

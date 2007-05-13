@@ -26,9 +26,6 @@ import org.vmmagic.unboxed.Address;
  * Manage pool of compiled methods. <p>
  * Original extracted from VM_ClassLoader. <p>
  * 
- * @author Bowen Alpern
- * @author Derek Lieber
- * @author Arvin Shepherd
  */
 public class VM_CompiledMethods implements VM_SizeConstants {
 

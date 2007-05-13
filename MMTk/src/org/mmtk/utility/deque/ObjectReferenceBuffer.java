@@ -23,7 +23,6 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.plan.TraceStep
  * 
  *
- * @author Daniel Frampton
  */
 @Uninterruptible public abstract class ObjectReferenceBuffer extends TraceStep implements Constants {
   /****************************************************************************

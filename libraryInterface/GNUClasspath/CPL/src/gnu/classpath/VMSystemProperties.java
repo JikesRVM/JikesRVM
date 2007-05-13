@@ -23,8 +23,6 @@ import org.jikesrvm.classloader.VM_BootstrapClassLoader;
  * GNU Classpath's reference implementation of VMSystemProperties -- for
  * copyright reasons, we cannot duplicate it here.
  *
- * @author Steven Augart
- * @date   7 January 2005 -- 9 January 2005
  */
 
 public class VMSystemProperties {

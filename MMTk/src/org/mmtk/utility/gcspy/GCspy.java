@@ -25,7 +25,6 @@ import org.vmmagic.pragma.*;
  * creates a new ServerInterpreter, and adds events and space drivers.
  * 
  *
- * @author <a href="http://www.cs.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  */
 @Uninterruptible public class GCspy {
 

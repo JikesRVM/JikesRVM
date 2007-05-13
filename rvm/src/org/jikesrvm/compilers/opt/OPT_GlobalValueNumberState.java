@@ -25,7 +25,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
  * have stuck to the dragon book, which gives a high-level description of
  * the correct algorithm on page 143).
  *
- * @author Stephen Fink
  */
 public final class OPT_GlobalValueNumberState {
   /**

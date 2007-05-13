@@ -25,8 +25,6 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_SUB;
  * and 'uniformly generated expressions'.  See EURO-PAR 01 paper for
  * more details.
  *
- * @author Vivek Sarkar
- * @author Stephen Fink
  */
 class OPT_UniformlyGeneratedGVN {
   static final boolean DEBUG = false;

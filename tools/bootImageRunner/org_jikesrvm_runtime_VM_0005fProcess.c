@@ -9,9 +9,6 @@
 /*****************************************************************
  * JNI interface to manage processes.
  *
- * @author Julian Dolby
- * @author David Hovemeyer
- * @date May 20, 2002
  */
 
 // Unix includes

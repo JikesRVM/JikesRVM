@@ -14,8 +14,6 @@ import org.vmmagic.pragma.Uninterruptible;
 /**
  * Base class for queues of VM_Threads.
  *
- * @author Bowen Alpern
- * @author Derek Lieber
  */
 @Uninterruptible abstract class VM_AbstractThreadQueue {
 

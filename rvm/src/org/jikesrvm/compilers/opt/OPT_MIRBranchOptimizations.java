@@ -21,9 +21,6 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BBEND;
 /**
  * Perform simple peephole optimizations for MIR branches.
  * 
- * @author Stephen Fink
- * @author Dave Grove
- * @author Mauricio Serrano
  */
 public final class OPT_MIRBranchOptimizations 
   extends OPT_BranchOptimizationDriver {

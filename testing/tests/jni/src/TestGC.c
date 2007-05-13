@@ -8,8 +8,6 @@
  */
 /* Test GC with Native frames on stack
  * 
- * @author Ton Ngo, Steve Smith 
- * @date   3/29/00
  */
 
 #include <stdio.h>

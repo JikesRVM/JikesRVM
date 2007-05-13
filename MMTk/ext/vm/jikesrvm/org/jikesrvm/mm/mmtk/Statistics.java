@@ -19,8 +19,6 @@ import org.vmmagic.pragma.*;
 
 /**
  *
- * @author Steve Blackburn
- * @author Perry Cheng
  *
  */
 @Uninterruptible public final class Statistics extends org.mmtk.vm.Statistics implements Constants {

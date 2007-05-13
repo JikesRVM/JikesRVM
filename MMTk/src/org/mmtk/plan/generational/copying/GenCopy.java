@@ -48,9 +48,6 @@ import org.vmmagic.pragma.*;
  * performance proprties of this plan.
  * 
  *
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public class GenCopy extends Gen {
 

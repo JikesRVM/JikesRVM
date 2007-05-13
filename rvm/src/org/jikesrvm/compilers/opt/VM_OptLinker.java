@@ -26,8 +26,6 @@ import org.vmmagic.unboxed.Offset;
  * @see VM_OptSaveVolatile (transitions from compiled code to resolveDynamicLink)
  * @see VM_TableBasedDynamicLinker 
  *
- * @author Jong-Deok Choi
- * @author Dave Grove
  */
 public final class VM_OptLinker implements VM_BytecodeConstants {
 

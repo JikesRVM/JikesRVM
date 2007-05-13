@@ -156,7 +156,6 @@ import org.vmmagic.unboxed.Offset;
  * Normalize the use of constants in the LIR
  * to match the patterns supported in LIR2MIR.rules
  *
- * @author Dave Grove, Mauricio J. Serrano, Martin Trapp
  */
 public abstract class OPT_NormalizeConstants extends OPT_IRTools {
   /**

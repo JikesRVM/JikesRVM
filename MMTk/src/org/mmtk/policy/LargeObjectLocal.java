@@ -30,7 +30,6 @@ import org.vmmagic.unboxed.*;
  * instances of this class, one for each CPU, TreadmillSpace pair.
  * 
  *
- * @author Steve Blackburn
  */
 @Uninterruptible public final class LargeObjectLocal extends LargeObjectAllocator
   implements Constants {

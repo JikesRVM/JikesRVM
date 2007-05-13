@@ -14,8 +14,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 /**
  * Dependence graph edges: connect operands of different instructions
  * represented by dependence graph nodes.
- * @author Harini Srinivasan
- * @author Igor Pechtchanski
  */
 final class OPT_DepGraphEdge extends OPT_SpaceEffGraphEdge 
   implements OPT_DepGraphConstants {

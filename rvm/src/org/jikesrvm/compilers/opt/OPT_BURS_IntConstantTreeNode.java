@@ -18,7 +18,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Operators;
  * int constant during BURS, so we make it easy to do so by creating
  * a special kind of node.
  * 
- * @author David Grove
  */
 final class OPT_BURS_IntConstantTreeNode extends OPT_BURS_TreeNode {
 

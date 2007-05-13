@@ -17,7 +17,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * VM_CodeArray represents a code object (contiguous memory region containing code).
  * The types of the access methods are platform-dependent.
  *
- * @author Perry Cheng
  */
 @Uninterruptible
 public abstract class VM_CodeArray {
@@ -55,7 +54,6 @@ public abstract class VM_CodeArray {
    * (ie, an array of primitives), we cannot define non-hijacked methods
    * on the 'class' VM_CodeArray.
    * 
-   * @author Dave Grove
    */
   public static class Factory {
     /**

@@ -7,7 +7,6 @@
  * (C) Copyright Elias Naur 2006
  *
  *
- * @author Elias Naur
  */
 
 #include <inttypes.h>

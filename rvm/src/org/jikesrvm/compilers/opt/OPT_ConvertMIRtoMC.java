@@ -20,8 +20,6 @@ import org.jikesrvm.runtime.VM_Memory;
 /**
  * Convert an IR object from MIR to final Machinecode
  *
- * @author Dave Grove
- * @author Stephen Fink
  */
 public final class OPT_ConvertMIRtoMC extends OPT_OptimizationPlanCompositeElement {
 

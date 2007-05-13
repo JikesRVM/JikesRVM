@@ -27,9 +27,6 @@ $$$$ END IF
  * Interface with all operator names and opcodes.
  * 
  * @see OPT_Operator
- * @author Dave Grove
- * @author Igor Pechtchanski
- * @author John Whaley
  */
 public interface OPT_Operators {
 

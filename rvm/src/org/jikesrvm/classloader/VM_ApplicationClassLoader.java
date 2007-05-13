@@ -27,9 +27,7 @@ import org.jikesrvm.runtime.VM_Magic;
  * loader.  This class loader first delegates to its parent (the Bootstrap
  * Class Loader) before trying the class itself.
  *
- * @author Julian Dolby
  *
- * @modified Steven Augart, 2004-Mar-04 
  *  Renamed the former "system class loader" to the "bootstrap class loader".
  */
 public class VM_ApplicationClassLoader extends URLClassLoader {

@@ -20,8 +20,6 @@
  *
  * This also defines the JNI VM Invocation Interface calls.
  *
- * @author David Hovemeyer
- * @date 10 Jun 2002
  */
 
 #define VERBOSE_WRAPPERS 0

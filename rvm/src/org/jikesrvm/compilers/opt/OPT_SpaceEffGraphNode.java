@@ -16,8 +16,6 @@ import java.util.Enumeration;
  * specific graph node types.  A node has a list of out edges and a
  * list of in edges.  We maintain both to support bidirectional traversal
  * of the graph.
- * @author Mauricio J. Serrano
- * @author Igor Pechtchanski
  */
 public class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
 

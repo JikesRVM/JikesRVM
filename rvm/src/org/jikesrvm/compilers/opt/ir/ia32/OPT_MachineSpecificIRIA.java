@@ -55,7 +55,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
  * Wrappers around IA32-specific IR common to both 32 & 64 bit
  * 
  *
- * @author Steve Blackburn
  */
 public abstract class OPT_MachineSpecificIRIA extends OPT_MachineSpecificIR {
 

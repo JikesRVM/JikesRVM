@@ -27,8 +27,6 @@ import org.vmmagic.unboxed.Offset;
  * Multiplex execution of large number of VM_Threads on small 
  * number of o/s kernel threads.
  *
- * @author Bowen Alpern 
- * @author Derek Lieber
  */
 @Uninterruptible public final class VM_Processor extends MM_ProcessorContext
 implements VM_Constants {

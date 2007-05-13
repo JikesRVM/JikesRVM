@@ -65,11 +65,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
  * <li> more precise treatment of exceptions, control and acquire/release
  * </ul>
  * 
- * @author Dave Grove
- * @author Igor Pechtchanski
- * @author Vivek Sarkar
- * @author Mauricio Serrano
- * @author Harini Srinivasan
  */
 final class OPT_DepGraph extends OPT_SpaceEffGraph {
 

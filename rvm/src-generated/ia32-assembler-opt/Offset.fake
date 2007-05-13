@@ -9,8 +9,6 @@
 package org.vmmagic.unboxed;
 
 /**
- * @author Dave Grove 
- * @author Kris Venstermans 
  */
 public class Offset {
   public static Offset fromIntSignExtend(int x) {

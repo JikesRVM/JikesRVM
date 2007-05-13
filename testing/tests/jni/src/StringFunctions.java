@@ -12,8 +12,6 @@
  *      NewString                  GetStringLength
  *      NewStringUTF               GetStringUTFLength
  *
- * @author Ton Ngo, Steve Smith 
- * @date   2/29/00
  */
 class StringFunctions {
   static boolean verbose = true;         // set to true to get messages for each test

@@ -12,9 +12,6 @@ import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 
 /**
- * @author Rajesh Bordawekar
- * @author Manish Gupta
- * @author Stephen Fink
  */
 public interface OPT_SpecializationContext {
 

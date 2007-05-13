@@ -24,9 +24,6 @@ import org.vmmagic.unboxed.*;
  * closure over the heap graph.
  * 
  *
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public final class GenNurseryTraceLocal extends TraceLocal {
 

@@ -13,8 +13,6 @@ package org.jikesrvm.tools.header_gen;
  * required to access VM data structures from C++.
  * Posix version: AIX PPC, Linux PPC, Linux IA32
  *
- * @author Derek Lieber
- * @modified Steven Augart -- added the "-out" command-line argument.
  */
 abstract class GenArch extends GenerateInterfaceDeclarations {
   abstract void emitArchVirtualMachineDeclarations();

@@ -14,8 +14,6 @@ import org.jikesrvm.classloader.VM_Atom;
  * Method names that are treated specially by compiler.
  * See also: VM_Magic, various magic compilers.
  *
- * @author Bowen Alpern
- * @author Derek Lieber
  */
 public class VM_MagicNames {
 

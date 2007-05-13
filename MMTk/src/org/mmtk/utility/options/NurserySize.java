@@ -16,7 +16,6 @@ import org.vmmagic.pragma.*;
  * and a fixed/bounded option interface to the VM/user.
  * 
  *
- * @author Daniel Frampton
  */
 public class NurserySize {
   // values

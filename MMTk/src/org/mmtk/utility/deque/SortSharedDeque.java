@@ -23,7 +23,6 @@ import org.vmmagic.unboxed.*;
  * routines were modified from code written by Narendran Sachindran and 
  * Matthew Hertz for GCTk.
  * 
- * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
  */
 @Uninterruptible public abstract class SortSharedDeque extends SharedDeque {
 

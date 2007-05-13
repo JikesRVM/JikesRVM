@@ -17,7 +17,6 @@ import org.vmmagic.unboxed.Word;
  * An OSR_LocalRegPair keeps the type information and localtion of 
  * a local variable/stack slot from byte code to machine code.
  *
- * @author Feng Qian
  */
 public class OSR_LocalRegPair implements OSR_Constants {
 

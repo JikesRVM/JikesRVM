@@ -59,11 +59,6 @@ import org.vmmagic.unboxed.Offset;
  *         1) methods called during compilation to create the maps
  *         2) methods called at GC time (no allocation allowed!)
  *
- * @author Julian Dolby
- * @author Stephen Fink
- * @author Dave Grove
- * @author Michael Hind
- * @author Mauricio Serrano
  */
 @Uninterruptible public final class VM_OptMachineCodeMap
     implements VM_Constants, OPT_Constants {

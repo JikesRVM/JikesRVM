@@ -9,7 +9,6 @@
  *
  * Simple test for sys call interception.
  * 
- * @author David Grove
  */
 
 #include <stdio.h>

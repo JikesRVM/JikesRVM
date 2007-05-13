@@ -14,7 +14,6 @@ import org.vmmagic.pragma.Uninterruptible;
 /**
  * Simple, fair locks with deadlock detection.
  * 
- * @author Perry Cheng
  */
 @Uninterruptible public abstract class Lock {
 

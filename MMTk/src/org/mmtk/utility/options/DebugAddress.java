@@ -15,7 +15,6 @@ import org.vmmagic.unboxed.Address;
  * Allow an address to be specified on the command line for use in debugging.
  * 
  *
- * @author Steve Blackburn
  */
 public class DebugAddress extends AddressOption {
   /**

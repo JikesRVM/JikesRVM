@@ -16,8 +16,6 @@
  *
  * IA32 version for Linux
  *
- * @author Derek Lieber
- * @date 06 Apr 2000
  */
 
 #ifndef _GNU_SOURCE

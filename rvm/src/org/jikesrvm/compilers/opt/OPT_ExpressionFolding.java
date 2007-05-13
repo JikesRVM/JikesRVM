@@ -182,9 +182,6 @@ import org.vmmagic.unboxed.Word;
 /**
  * This class simplifies expressions in SSA form.
  * 
- * @author Stephen Fink
- * @author Ian Rogers
- * @author Michael Baer
  */
 class OPT_ExpressionFolding {
   /**

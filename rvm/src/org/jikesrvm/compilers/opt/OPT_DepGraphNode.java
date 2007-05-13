@@ -13,8 +13,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 
 /**
  * Dependence graph node: there is one for each instruction in a basic block.
- * @author Harini Srinivasan
- * @author Igor Pechtchanski
  */
 public final class OPT_DepGraphNode extends OPT_SpaceEffGraphNode 
   implements OPT_DepGraphConstants {
@@ -64,7 +62,6 @@ public final class OPT_DepGraphNode extends OPT_SpaceEffGraphNode
    * Add an out edge from this node to the given node.
    * @param node destination node for the edge
    * @param type the type of the edge to add
-   * @author Mauricio J. Serrano
    */
   public void insertOutEdge(OPT_DepGraphNode node, int type) {
     if (COMPACT) {

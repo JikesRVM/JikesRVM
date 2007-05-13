@@ -24,8 +24,6 @@ import org.jikesrvm.adaptive.controller.VM_Controller;
  * through a command line option:
  * <code>-X:aos:cafi=path-to-advice-file</code>.
  *
- * @author Xianglong Huang
- * @author <a href="http://www.cs.utexas.edu/users/xlhuang">Xianglong Huang</a>
  *
  * @see VM_CompilerAdviceAttribute
  * @see VM_CompilerAdviceInfoReader

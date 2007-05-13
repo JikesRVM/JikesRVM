@@ -9,7 +9,6 @@
 /**
  * IPA Escape Analysis Test.
  * 
- * @author Jong Choi (jdchoi@us.ibm.com)
  */
 
 public class OPT_EscapeTest {

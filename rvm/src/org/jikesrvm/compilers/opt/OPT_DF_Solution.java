@@ -16,7 +16,6 @@ import java.util.HashMap;
  * Represents the solution to a system of Data Flow equations.
  * Namely, a function mapping Objects to OPT_DF_LatticeCells
  *
- * @author Stephen Fink
  */
 public class OPT_DF_Solution extends HashMap<Object, OPT_DF_LatticeCell> {
   /** Support for serialization */

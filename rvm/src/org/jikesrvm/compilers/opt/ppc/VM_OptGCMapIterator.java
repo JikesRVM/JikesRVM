@@ -23,7 +23,6 @@ import org.vmmagic.unboxed.WordArray;
  * its architecture-independent code from VM_OptGenericGCMapIterator.
  * This version is for the PowerPC
  *
- * @author Michael Hind
  */
 @Uninterruptible public abstract class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator implements VM_ArchConstants {
 

@@ -23,7 +23,6 @@ import org.vmmagic.pragma.*;
  * space.
  * 
  *
- * @author Daniel Frampton
  */
 @Uninterruptible public final class MarkCompactSpace extends Space
   implements Constants {

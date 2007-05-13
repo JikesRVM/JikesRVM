@@ -20,8 +20,6 @@ import org.vmmagic.unboxed.Offset;
  * synchronization is insufficient and VM_Magic.prepare and VM_Magic.attempt
  * are at too low a level
  *
- * @author Bowen Alpern
- * @author Anthony Cocchi
  */
 @Uninterruptible public class VM_Synchronization {
 

@@ -14,7 +14,6 @@
  * <p/>
  * The minimal set has to be discovered by trial and error. Sorry. --Derek
  *
- * @author Derek Lieber
  */
 class OptDummy {
   static org.jikesrvm.compilers.opt.OPT_Compiler a;

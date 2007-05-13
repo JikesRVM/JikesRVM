@@ -9,8 +9,6 @@
 package org.jikesrvm.compilers.opt;
 
 /**
- * @author Julian Dolby
- * @date May 20, 2002
  */
 
 interface OPT_GraphEdgeFilter {

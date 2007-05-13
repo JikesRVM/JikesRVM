@@ -47,9 +47,6 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GUARD_MOVE;
  * reachable (but not dominated) from the continutation
  * block of cb2!
  *
- * @author Steve Fink
- * @author Dave Grove
- * @author Martin Trapp
  */
 final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanCompositeElement {
 

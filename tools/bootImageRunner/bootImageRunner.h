@@ -8,8 +8,6 @@
  */
 /* Handles "extern" declarations shared among files in
  * tools/bootImageRunner/.
- * @author: Steven Augart, based on contributions from everyone who ever
- * touched files in that directory.
  *
  */
 #include <stdio.h>

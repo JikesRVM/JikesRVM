@@ -10,7 +10,6 @@
 /**
  * Native code for ArgumentPassing.java
  *
- * @author unascribed
  */
 
 #include <stdio.h>

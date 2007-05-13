@@ -24,12 +24,7 @@ import org.vmmagic.pragma.*;
  * methods are static.
  * 
  *
- * @author Perry Cheng
- * @author Steve Blackburn
- * @author David Bacon
- * @author Steve Fink
- * @author Dave Grove
- * 
+ *
  */
 @Uninterruptible public final class CopySpace extends Space
   implements Constants {

@@ -13,7 +13,6 @@ import java.lang.Process;
 /**
  * Test whether the Runtime.exec API works
  *
- * @author David Hovemeyer
  */
 class TestRuntimeExec extends Thread {
 

@@ -19,9 +19,6 @@ import org.vmmagic.unboxed.Offset;
 /**
  * Interface to the dynamic libraries of our underlying operating system.
  *
- * @author Bowen Alpern
- * @author Dave Grove
- * @author Derek Lieber
  */
 public class VM_DynamicLibrary {
 

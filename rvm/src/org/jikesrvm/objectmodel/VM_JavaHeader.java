@@ -63,12 +63,6 @@ import org.vmmagic.unboxed.Word;
  * A = available for use by GCHeader and/or MiscHeader.
  * </pre>
  * 
- * @author Bowen Alpern
- * @author David Bacon
- * @author Steve Fink
- * @author Daniel Frampton
- * @author Dave Grove
- * @author Derek Lieber
  */
 @Uninterruptible public class VM_JavaHeader implements VM_JavaHeaderConstants
 {

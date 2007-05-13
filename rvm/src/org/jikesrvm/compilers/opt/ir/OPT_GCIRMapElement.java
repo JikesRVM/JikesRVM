@@ -12,7 +12,6 @@ import java.util.List;
 
 /**
  *  This class holds each element in the OPT_GCIRMap
- *  @author Michael Hind
  */
 public final class OPT_GCIRMapElement {
 

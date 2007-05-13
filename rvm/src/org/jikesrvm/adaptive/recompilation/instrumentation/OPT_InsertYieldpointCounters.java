@@ -30,7 +30,6 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.YIELDPOINT_PROLOGUE;
  * them, using the VM_CounterArrayManager counter manager to implement
  * the counters.
  *
- * @author Matthew Arnold 
  */
 public class OPT_InsertYieldpointCounters  extends OPT_CompilerPhase {
 

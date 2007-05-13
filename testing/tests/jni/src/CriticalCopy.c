@@ -9,8 +9,6 @@
 /* Test JNI Functions that access Java internal data directly
  * Implement native methods from CriticalCopy.java 
  * 
- * @author Ton Ngo, Steve Smith 
- * @date   6/19/00
  */
 
 #include "CriticalCopy.h"

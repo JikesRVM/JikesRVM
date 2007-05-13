@@ -11,8 +11,6 @@ package org.jikesrvm.tools.template;
 import java.util.NoSuchElementException;
 
 /**
- * @author John Whaley
- * @author Igor Pechtchanski
  */
 class QuotedStringTokenizer {
   private String str;

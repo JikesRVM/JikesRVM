@@ -15,8 +15,6 @@ import org.jikesrvm.runtime.VM_Magic;
  *  -second nested entry to native code: no resize
  *  -fill up stack and make another entry to native code:  second resize
  *
- * @author Ton Ngo 
- * @date   9/6/01
  */
 
 class StackResize

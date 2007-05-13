@@ -11,8 +11,6 @@
  * Test JNI Functions related to Array
  * Implement native methods from ArrayFunctions.java 
  * 
- * @author Ton Ngo, Steve Smith 
- * @date   3/9/00
  */
 
 #include <stdio.h>

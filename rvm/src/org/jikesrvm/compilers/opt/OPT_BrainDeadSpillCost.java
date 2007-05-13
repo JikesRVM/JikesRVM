@@ -16,7 +16,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
  *
  * This implementation returns a cost of zero for all registers.
  *
- * @author Stephen Fink
  */
 class OPT_BrainDeadSpillCost extends OPT_SpillCostEstimator {
 

@@ -13,7 +13,6 @@ import org.vmmagic.Unboxed;
 /**
  * Commenting required
  * 
- * @author Daniel Frampton
  */
 @Unboxed
 public final class Extent {

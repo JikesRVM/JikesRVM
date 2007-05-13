@@ -13,7 +13,6 @@ package org.mmtk.utility.options;
  * Should the VM wait for the visualiser to connect?
  * 
  *
- * @author Daniel Frampton
  */
 public class GCspyWait extends BooleanOption {
   /**

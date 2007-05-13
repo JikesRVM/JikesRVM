@@ -20,7 +20,6 @@ import org.jikesrvm.classloader.VM_BootstrapClassLoader;
  * methods verbatim to there, rather than doing them by call, because of
  * the silly interface.
  *
- * @author Julian Dolby
  *
  */
 final class VMSecurityManager

@@ -22,10 +22,6 @@ import org.vmmagic.pragma.*;
  * 
  *
  *
- * @author Perry Cheng
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public class Trace implements Constants {
 

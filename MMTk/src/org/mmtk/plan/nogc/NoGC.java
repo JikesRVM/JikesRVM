@@ -23,9 +23,6 @@ import org.vmmagic.pragma.*;
  * without a collector.
  * 
  *
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public class NoGC extends Plan {
 

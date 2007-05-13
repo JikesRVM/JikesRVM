@@ -9,7 +9,6 @@
 /* Test stack resize with native methods
  * Implement native methods from StackResize.java 
  * 
- * @author Ton Ngo 9/6/01
  */
 
 #include <stdio.h>

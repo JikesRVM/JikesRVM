@@ -14,8 +14,6 @@ import org.vmmagic.pragma.NoInline;
 /**
  *  Various service utilities.  This is a common place for some shared utility routines
  *
- * @author Janice Shepherd
- * @date 28 Nov 2001
  */
 public class VM_Services {
 

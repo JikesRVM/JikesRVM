@@ -14,9 +14,6 @@ import org.vmmagic.pragma.Uninterruptible;
 /**
  * Primitives from which to build interval and absolute timers.
  * 
- * @author Bowen Alpern
- * @author Dave Grove
- * @author Derek Lieber
  */
 @Uninterruptible public class VM_Time {
 

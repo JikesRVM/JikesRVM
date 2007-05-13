@@ -13,7 +13,6 @@ package org.mmtk.utility.options;
  * Port number for GCSpy server to connect with visualiser.
  * 
  *
- * @author Daniel Frampton
  */
 public class GCspyPort extends IntOption {
   /**

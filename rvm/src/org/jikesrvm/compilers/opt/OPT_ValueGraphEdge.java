@@ -14,7 +14,6 @@ package org.jikesrvm.compilers.opt;
  * ala Alpern, Wegman and Zadeck.  See Muchnick p.348 for a nice
  * discussion.
  *
- * @author Stephen Fink
  */
 final class OPT_ValueGraphEdge extends OPT_SpaceEffGraphEdge {
 

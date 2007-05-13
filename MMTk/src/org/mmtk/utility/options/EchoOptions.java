@@ -13,7 +13,6 @@ package org.mmtk.utility.options;
  * Echo when options are set?
  * 
  *
- * @author Daniel Frampton
  */
 public class EchoOptions extends BooleanOption {
   /**

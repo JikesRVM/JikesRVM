@@ -28,8 +28,6 @@ import org.jikesrvm.util.VM_HashMap;
  * Implements an object that functions as the bootstrap class loader.
  * This class is a Singleton pattern.
  *
- * @author Bowen Alpern
- * @author Derek Lieber
  */
 public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
 

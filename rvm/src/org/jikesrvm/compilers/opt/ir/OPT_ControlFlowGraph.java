@@ -64,9 +64,6 @@ import org.jikesrvm.compilers.opt.OPT_VCGNode;
  * @see OPT_BasicBlock
  * @see OPT_IR
  * 
- * @author Dave Grove
- * @author Mauricio Serrano
- * @author John Whaley
  */
 public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
 

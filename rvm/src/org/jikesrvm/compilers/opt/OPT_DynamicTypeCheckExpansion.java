@@ -72,9 +72,6 @@ import org.vmmagic.unboxed.Offset;
  *
  * @see VM_DynamicTypeCheck
  * 
- * @author Bowen Alpern
- * @author Dave Grove
- * @author Martin Trapp
  */
 abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 

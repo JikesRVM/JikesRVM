@@ -48,11 +48,6 @@ import org.vmmagic.unboxed.Offset;
  * <p>
  * EXPECTATION: buffer is filled all the way up with triples.
  * 
- * @author Peter Sweeney 
- * @author Dave Grove
- * @modified Stephen Fink
- * @modified Michael Hind
- * @modified Matthew Arnold
  */
 public class VM_DynamicCallGraphOrganizer extends VM_Organizer {
 

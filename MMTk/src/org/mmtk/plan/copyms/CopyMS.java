@@ -42,9 +42,6 @@ import org.vmmagic.pragma.*;
  * performance properties of MMTk plans.
  * 
  *
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public class CopyMS extends StopTheWorld {
 

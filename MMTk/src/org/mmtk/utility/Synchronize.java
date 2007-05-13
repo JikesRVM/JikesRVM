@@ -12,7 +12,6 @@ package org.mmtk.utility;
 import org.vmmagic.pragma.*;
 
 /*
- * @author Perry Cheng
  */
 @Uninterruptible public class Synchronize{
 

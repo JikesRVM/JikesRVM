@@ -16,7 +16,6 @@ import org.mmtk.plan.Plan;
  * be created directly, but via NurserySize.
  * 
  *
- * @author Daniel Frampton
  */
 public class BoundedNursery extends PagesOption {
   /**

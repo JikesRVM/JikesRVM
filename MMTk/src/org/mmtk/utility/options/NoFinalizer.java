@@ -13,7 +13,6 @@ package org.mmtk.utility.options;
  * Should finalization be disabled?
  * 
  *
- * @author Daniel Frampton
  */
 public class NoFinalizer extends BooleanOption {
   /**

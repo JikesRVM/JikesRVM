@@ -19,7 +19,6 @@ import org.jikesrvm.VM_CommandLineArgs;
  * Class to handle command-line arguments and options for GC.
  *
  *
- * @author Daniel Frampton 
  *
  */
 public final class Options extends org.mmtk.vm.Options {

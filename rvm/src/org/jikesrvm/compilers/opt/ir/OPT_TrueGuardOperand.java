@@ -16,7 +16,6 @@ import org.jikesrvm.classloader.VM_TypeReference;
  * boundcheck eliminate via analysis of the loop induction variables.
  * 
  * @see OPT_Operand
- * @author Dave Grove
  */
 public final class OPT_TrueGuardOperand extends OPT_ConstantOperand {
 

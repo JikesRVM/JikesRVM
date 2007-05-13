@@ -20,8 +20,6 @@ import org.jikesrvm.compilers.opt.OPT_LiveSet;
  * A basic block that marks the start of an exception handler.
  * Exception Handler Basic Block; acronym EHBB.
  * 
- * @author Dave Grove
- * @author John Whaley
  */
 public final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
   

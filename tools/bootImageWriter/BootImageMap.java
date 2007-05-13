@@ -15,9 +15,6 @@ import org.vmmagic.unboxed.Address;
 /**
  * Correlate objects in host jdk with corresponding objects in target rvm
  * bootimage.
- *
- * @author Derek Lieber
- * @version 03 Jan 2000
  */
 public class BootImageMap extends BootImageWriterMessages
   implements BootImageWriterConstants

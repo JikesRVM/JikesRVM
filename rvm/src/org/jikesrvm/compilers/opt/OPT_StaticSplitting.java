@@ -38,8 +38,6 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GOTO;
  * been able to use a subset of to common-case trace.
  * <p>
  * 
- * @author Steve Fink
- * @author Dave Grove
  */
 class OPT_StaticSplitting extends OPT_CompilerPhase {
 

@@ -16,7 +16,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * Subclasses can recover the actual type of an object from a
  * <code>VM_ThreadEventWaitData</code> reference.
  *
- * @author David Hovemeyer
  */
 @Uninterruptible public abstract class VM_ThreadEventWaitDataVisitor {
 

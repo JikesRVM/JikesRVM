@@ -108,11 +108,6 @@ import org.vmmagic.pragma.*;
  --Phase Plan.complete
  *
  *
- * @author <a href="http://www.cs.ukc.ac.uk/~rej/">Richard Jones</a>
- * @author Steve Blackburn
- * @author Perry Cheng
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public class SSGCspy extends SS implements GCspyPlan {
 

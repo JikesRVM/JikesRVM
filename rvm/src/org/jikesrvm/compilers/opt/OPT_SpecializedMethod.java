@@ -14,9 +14,6 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 /**
  * This is the top-level class to support specialized versions of Java methods
  *
- * @author Rajesh Bordawekar
- * @author Manish Gupta
- * @modified by Stephen Fink
  */
 public class OPT_SpecializedMethod {
   /**

@@ -23,9 +23,6 @@ import org.vmmagic.pragma.*;
  * collector.
  * 
  *
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public final class GenMSMatureTraceLocal extends GenMatureTraceLocal{
 

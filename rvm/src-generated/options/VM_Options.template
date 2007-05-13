@@ -28,9 +28,6 @@ import org.vmmagic.pragma.*;
  *       -X:vm options to be processed very early in the 
  *       booting process.
  *
- * @author Bowen Alpern
- * @author Stephen Fink
- * @author Dave Grove
  **/
 @Uninterruptible public class VM_Options extends VM_Configuration {
 

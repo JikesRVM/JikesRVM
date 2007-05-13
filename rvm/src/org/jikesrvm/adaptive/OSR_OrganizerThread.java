@@ -50,7 +50,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * C.activate and passivate have to acquire a lock before dequeue and
  * enqueue.
  *
- * @author Feng Qian
  */
 
 public class OSR_OrganizerThread extends VM_Thread {

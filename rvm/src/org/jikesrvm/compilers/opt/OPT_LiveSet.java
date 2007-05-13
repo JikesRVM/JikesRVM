@@ -25,7 +25,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
  *    toString() - returns a string version of the set
  *    isEmpty() - returns true, iff the set is empty
  *
- * @author Michael Hind 
  */
 public class OPT_LiveSet {
 

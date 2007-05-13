@@ -15,7 +15,6 @@ import org.jikesrvm.classloader.VM_Method;
  * Depending on the size of the callee set, we use different subclasses
  * that optimize the time/space tradeoffs.
  *
- * @author Dave Grove
  */
 public abstract class VM_WeightedCallTargets {
 

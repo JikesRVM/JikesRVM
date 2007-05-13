@@ -29,9 +29,6 @@
 #
 #   3) Run computeDNA.pl on this file from step 2
 #
-#  @author Michael Hind, Oct 30, 2001
-#  @author Stephen Fink
-#  @modified Peter F Sweeney 8/13/2003 get to run with new command line options
 
 if [[ $# = 0 || $1 = -help || $# < 1 ]]; then
   more <<EOF

@@ -8,7 +8,6 @@
  */
 
 /** 
- * @author Steve Fink
  */
 
 class Hello {

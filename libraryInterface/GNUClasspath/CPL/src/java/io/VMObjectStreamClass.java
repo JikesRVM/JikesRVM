@@ -16,7 +16,6 @@ import org.jikesrvm.classloader.VM_Type;
 /**
  * java.io.ObjectStream helper implemented for Jikes RVM.
  *
- * @author Dave Grove
  */
 final class VMObjectStreamClass {
 

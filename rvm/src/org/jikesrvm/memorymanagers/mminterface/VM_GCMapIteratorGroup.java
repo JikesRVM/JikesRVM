@@ -38,9 +38,6 @@ import org.vmmagic.unboxed.WordArray;
  * @see VM_CompiledMethod
  * @see VM_CollectorThread
  * 
- * @author Janice Shepherd
- * @modified by Stephen Smith
- * @modified by anyone adding a new iterator
  */
 public final class VM_GCMapIteratorGroup implements VM_SizeConstants {
   

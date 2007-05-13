@@ -16,8 +16,6 @@ import org.jikesrvm.compilers.opt.OPT_Stack;
  * Represents an inlining sequence.
  * Used to uniquely identify program locations.
  * 
- * @author Igor Pechtchanski
- * @author Stephen Fink
  */
 public final class OPT_InlineSequence {
   static final boolean DEBUG=false;

@@ -12,7 +12,6 @@ package org.jikesrvm.compilers.opt;
 /**
  * A set of constants for use in VCG routines.
  *
- * @author Igor Pechtchanski
  * @see OPT_VCG
  * @see OPT_VCGGraph
  * @see OPT_VCGNode

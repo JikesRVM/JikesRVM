@@ -7,9 +7,6 @@
 # (C) Copyright IBM Corp. 2004
 #
 #
-# @author Darko Stefanovic
-# @author Sergiy Kyrylkov
-# @author Kris Venstermans
 #
 # BURS rules for long ALU operations
 # that are specific to PPC with 64 bit GPRs

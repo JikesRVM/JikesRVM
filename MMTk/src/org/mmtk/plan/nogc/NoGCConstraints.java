@@ -20,9 +20,6 @@ import org.vmmagic.pragma.*;
  * issues with ordering of static initialization.
  * 
  *
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public class NoGCConstraints extends PlanConstraints {
 

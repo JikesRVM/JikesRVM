@@ -35,9 +35,6 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.plan.SimplePhase#delegatePhase
  * 
  *
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public abstract class CopyMSMutator extends StopTheWorldMutator {
 

@@ -35,8 +35,6 @@ import org.vmmagic.pragma.*;
  * (and the language has immutable references), then it is safe to only
  * process references created since the last collection.
  * 
- * @author Chris Hoffmann
- * @modified Andrew Gray
  */
 @Uninterruptible public class ReferenceProcessor {
 

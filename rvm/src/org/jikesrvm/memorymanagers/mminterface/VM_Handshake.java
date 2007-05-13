@@ -29,10 +29,6 @@ import org.vmmagic.pragma.Uninterruptible;
  *
  * @see VM_CollectorThread
  *
- * @author Derek Lieber
- * @author Bowen Alpern
- * @author Stephen Smith
- * @modified Perry Cheng
  *
  */
 public class VM_Handshake {

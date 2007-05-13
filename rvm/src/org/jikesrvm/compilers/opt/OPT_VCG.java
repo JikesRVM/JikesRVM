@@ -21,7 +21,6 @@ import java.util.Hashtable;
  * and the graph nodes and edges should implement OPT_VCGNode and
  * OPT_VCGEdge interfaces respectively.
  *
- * @author Igor Pechtchanski
  * @see OPT_VCGGraph
  * @see OPT_VCGNode
  * @see OPT_VCGEdge

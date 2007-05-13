@@ -13,9 +13,6 @@ import org.vmmagic.unboxed.Address;
 
 /**
  * Manifest constants for bootimage writer.
- *
- * @author Derek Lieber
- * @version 03 Jan 2000
  */
 public interface BootImageWriterConstants extends VM_Constants {
 

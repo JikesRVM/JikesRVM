@@ -24,8 +24,6 @@ import org.vmmagic.pragma.Uninterruptible;
  *      then a request is made to reuse a previous VP and pthread
  *    so the result is that the VP and pthread are recycled
  *
- * @author Bowen Alpern
- * @author Derek Lieber
  */
 @Uninterruptible final class VM_ProcessorQueue {
 

@@ -27,7 +27,6 @@ import org.vmmagic.pragma.*;
  * This is a first cut implementation, with plenty of room for
  * improvement...
  * 
- * @author Steve Blackburn
  */
 @Uninterruptible public abstract class LargeObjectAllocator extends Allocator implements Constants {
 

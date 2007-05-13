@@ -16,9 +16,7 @@ import org.vmmagic.pragma.Uninterruptible;
 
 /**
  *
- * @author Steve Blackburn
- * @author Perry Cheng
- * 
+ *
  */
 @Uninterruptible public abstract class Statistics {
   /**

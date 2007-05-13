@@ -19,7 +19,6 @@ import org.jikesrvm.compilers.opt.OPT_InstrumentationPlan;
  * different from an OPT_InstrumentationPlan because it contains
  * information that the non-adaptive opt-compiler can't see.
  *
- * @author Matthew Arnold
  */
 public class VM_AOSInstrumentationPlan extends OPT_InstrumentationPlan {
   /**

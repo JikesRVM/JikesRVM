@@ -14,7 +14,6 @@ package org.jikesrvm.compilers.opt;
  * in VCG format.  The graph nodes and edges should implement OPT_VCGNode
  * and OPT_VCGEdge interfaces respectively.
  *
- * @author Igor Pechtchanski
  * @see OPT_VCG
  * @see OPT_VCGNode
  * @see OPT_VCGEdge

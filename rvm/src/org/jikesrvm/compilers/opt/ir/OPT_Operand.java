@@ -67,11 +67,6 @@ import org.vmmagic.unboxed.Address;
  * @see OPT_TrueGuardOperand
  * @see OPT_TypeOperand
  *
- * @author Dave Grove
- * @author Mauricio J. Serrano
- * @author John Whaley
- * @modified by Stephen Fink
- * @modified by Igor Pechtchanski
  */
 public abstract class OPT_Operand {
 
@@ -627,7 +622,6 @@ public abstract class OPT_Operand {
    * @return <code>true</code> if op1 conservatively approximates op2 or
    *         <code>false</code> if it does not.
    * 
-   * @author Dave Grove
    */
   public static boolean conservativelyApproximates(OPT_Operand op1, 
                                                    OPT_Operand op2) {
@@ -810,7 +804,6 @@ public abstract class OPT_Operand {
    *         op1 when conservativelyApproximates(op1, op2)
    *         evaluates to <code>true</code>.
    *
-   * @author Dave Grove
    */
   public static OPT_Operand meet(OPT_Operand op1, 
                                  OPT_Operand op2, 

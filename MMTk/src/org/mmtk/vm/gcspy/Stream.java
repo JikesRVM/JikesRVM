@@ -25,7 +25,6 @@ import org.vmmagic.unboxed.Address;
  * to the gcspy C library
  * 
  *
- * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  */
 
 @Uninterruptible public abstract class Stream {

@@ -164,8 +164,6 @@ import java.util.Vector;
  * of the field named <field name> in the current record of the FOREACH file.
  * A special field INDEX will contain the current record number.
  *
- * @author John Whaley
- * @author Igor Pechtchanski
  */
 public class GenerateFromTemplate {
 

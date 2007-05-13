@@ -26,9 +26,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * done for disk i/o, but we currently don't bother: we use blocking disk i/o 
  * and assume that it will complete immediately.
  *
- * @author Derek Lieber
- * @author David Hovemeyer (made it a subclass of VM_ThreadEventWaitQueue)
- * @date 25 June 1999 
  */
 @Uninterruptible public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue 
   implements VM_ThreadEventConstants, VM_ThreadIOConstants {

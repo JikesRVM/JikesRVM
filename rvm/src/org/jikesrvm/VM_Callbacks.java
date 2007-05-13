@@ -63,7 +63,6 @@ import org.jikesrvm.util.VM_Synchronizer;
  *                           to happen)
  * </ul>
  *
- * @author Igor Pechtchanski
  */
 public final class VM_Callbacks {
   ///////////////

@@ -21,11 +21,7 @@ import org.vmmagic.unboxed.*;
  * closure over the heap graph.
  * 
  *
- * @author Steve Blackburn
- * @author Perry Cheng
- * @author Robin Garner
- * @author Daniel Frampton
- * 
+ *
  */
 @Uninterruptible public class SSTraceLocal extends TraceLocal {
   /**

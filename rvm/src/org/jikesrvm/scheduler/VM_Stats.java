@@ -14,7 +14,6 @@ import org.vmmagic.pragma.Uninterruptible;
 
 /**
  *
- * @author David Bacon
  */
 
 @Uninterruptible public final class VM_Stats {

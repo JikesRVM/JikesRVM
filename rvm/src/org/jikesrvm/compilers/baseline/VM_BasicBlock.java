@@ -9,7 +9,6 @@
 package org.jikesrvm.compilers.baseline;
 
 /**
- * @author Anthony Cocchi
  */
 public final class VM_BasicBlock {
 

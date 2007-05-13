@@ -17,8 +17,6 @@ import org.jikesrvm.util.VM_PriorityQueue;
  * the consumers are blocked if no objects are available
  * to consume.
  *
- * @author Dave Grove
- * @author Michael Hind
  */
 public class VM_BlockingPriorityQueue extends VM_PriorityQueue {
 

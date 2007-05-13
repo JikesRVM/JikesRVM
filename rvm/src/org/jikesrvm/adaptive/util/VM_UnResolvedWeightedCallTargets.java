@@ -19,7 +19,6 @@ import org.jikesrvm.classloader.VM_MethodReference;
  * class too early in the process. So we recorded it as unresolved and 
  * resolve the method when the method is being compiled.
  *
- * @author Xianglong Huang
  */
 public abstract class VM_UnResolvedWeightedCallTargets {
 

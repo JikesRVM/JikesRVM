@@ -15,7 +15,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Operand;
  * Encodes the T0 field for trap operations 
  * 
  * @see OPT_Operand
- * @author by Mauricio Serrano
  */
 public final class OPT_PowerPCTrapOperand extends OPT_Operand {
   /**

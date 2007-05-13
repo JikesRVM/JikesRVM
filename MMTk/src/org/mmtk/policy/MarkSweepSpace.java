@@ -31,7 +31,6 @@ import org.vmmagic.unboxed.*;
  * in the instance methods of MarkSweepLocal.
  * 
  *
- * @author Steve Blackburn
  */
 @Uninterruptible public final class MarkSweepSpace extends Space
   implements Constants {

@@ -21,9 +21,6 @@ import org.jikesrvm.runtime.VM_Memory;
  * produced by VM_Compiler, typically by translating the bytecodes
  * of a VM_Method. The code entrypoint is the first word in the array.
  *
- * @author Bowen Alpern
- * @author Tony Cocchi 
- * @author Derek Lieber
  */
 public abstract class VM_MachineCode {
 

@@ -14,7 +14,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
  *
  * @see OPT_AnnotatedLSTGraph
  *
- * @author Ian Rogers
  */
 public class OPT_LoopAnalysis extends OPT_CompilerPhase {
   /**

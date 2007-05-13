@@ -30,7 +30,6 @@ import org.vmmagic.pragma.*;
  * 
  * Access to the instances may be synchronized depending on the constructor argument.
  * 
- * @author Perry Cheng
  */
 @Uninterruptible public final class Treadmill
   implements Constants {

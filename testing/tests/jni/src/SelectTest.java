@@ -10,7 +10,6 @@
 /**
  * Simple test to see if hijacking of select works.
  * 
- * @author Dave Grove
  */
 class SelectTest {
 

@@ -57,7 +57,6 @@ import org.jikesrvm.compilers.opt.ir.ia32.OPT_PhysicalRegisterSet;
  * insert dummy defs and uses for each floating-point register at the
  * beginning of each catch block.
  *
- * @author Stephen Fink
  */
 
 final class OPT_ExpandFPRStackConvention extends OPT_CompilerPhase

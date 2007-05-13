@@ -8,10 +8,6 @@
 # (C) Copyright IBM Corp. 2001, 2003.
 #
 #
-# @author Peter Sweeney
-# @date   11/2/2001
-# @modified Steven Augart
-# @date   6/9/2003
 #	Added check for internal error.
 
 ## This is a helper program for

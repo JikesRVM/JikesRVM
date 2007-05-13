@@ -11,7 +11,6 @@ package gnu.java.lang;
 import java.lang.instrument.Instrumentation;
 
 /**
- * @author Elias Naur
  */
 public final class JikesRVMSupport {
   public static Instrumentation createInstrumentation() {

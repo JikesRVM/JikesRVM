@@ -32,8 +32,6 @@ import org.vmmagic.unboxed.Offset;
  * Compiler-specific information associated with a method's machine 
  * instructions.
  *
- * @author Bowen Alpern
- * @modified Steven Augart
  */
 @SynchronizedObject
 public final class VM_BaselineCompiledMethod extends VM_CompiledMethod

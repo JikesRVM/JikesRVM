@@ -20,10 +20,7 @@ package gnu.classpath;
  * (classpath/vm/reference/gnu/classpath/VMStackWalker.java) for the latest
  * description of what these methods should do.
  * 
- * @author Julian Dolby
- * @modified Steven Augart
  *
- * @date   13 January 2005
  */
 
 import org.jikesrvm.VM;

@@ -22,9 +22,7 @@ import org.vmmagic.pragma.*;
  * Class that determines all JTOC slots (statics) that hold references
  *
  *
- * @author Perry Cheng
- * @author Ian Rogers
- */  
+ */
 public final class ScanStatics implements Constants {
   /**
    * Size in 32bits words of a JTOC slot (ie 32bit addresses = 1,

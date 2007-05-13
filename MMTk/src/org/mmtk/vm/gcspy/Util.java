@@ -19,7 +19,6 @@ import org.vmmagic.pragma.*;
  * methods.
  * 
  *
- * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  */
 @Uninterruptible public abstract class Util {
   

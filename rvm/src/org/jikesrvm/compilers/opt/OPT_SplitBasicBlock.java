@@ -16,7 +16,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
 /**
  * Splits a large basic block into smaller ones with size <= MAX_NUM_INSTRUCTIONS.
  * 
- * @author Jong Choi
  */
 public final class OPT_SplitBasicBlock extends OPT_CompilerPhase {
 

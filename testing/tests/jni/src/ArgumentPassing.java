@@ -22,8 +22,6 @@
  *  -for double and long (2 words), whether the words are straddle between 
  *       register/spill
  *
- * @author Ton Ngo
- * @date   12/22/99
  */
 class ArgumentPassing
 {

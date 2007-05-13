@@ -17,7 +17,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * Subclasses <em>must</em> directly implement the
  * {@link Uninterruptible} interface.
  *
- * @author David Hovemeyer
  */
 @Uninterruptible public abstract class VM_ThreadEventWaitData
   implements VM_ThreadEventConstants {

@@ -11,7 +11,6 @@ package test.org.jikesrvm.basic.core.threads;
 /**
  * Test that Thread.sleep() can be interrupted.
  *
- * @author David Hovemeyer
  */
 public class TestInterruptedSleep {
   private static volatile boolean started;

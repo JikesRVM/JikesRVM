@@ -28,10 +28,6 @@ import org.vmmagic.pragma.NoInline;
  * <P> Note: DU operands are stored on the USE lists, but not the DEF 
  * lists.
  *
- * @author Vivek Sarkar
- * @author Stephen Fink
- * @author Dave Grove
- * @modified Mauricio Serrano
  */
 public final class OPT_DefUse {
   static final boolean DEBUG = false;

@@ -32,10 +32,6 @@ import org.vmmagic.pragma.*;
  * @see SimplePhase#delegatePhase
  * 
  *
- * @author Perry Cheng
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public abstract class StopTheWorldCollector extends CollectorContext {
 

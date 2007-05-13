@@ -7,7 +7,6 @@
  * (C) Copyright IBM Corp. 2001
  *
  *
- * @author Ton Ngo
  */
 /* Test method invocation from native code 
  * Implement native methods from Allocation.java 

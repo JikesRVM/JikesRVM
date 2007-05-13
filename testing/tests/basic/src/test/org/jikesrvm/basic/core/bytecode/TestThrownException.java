@@ -11,7 +11,6 @@ package test.org.jikesrvm.basic.core.bytecode;
 import java.io.IOException;
 
 /**
- * @author unascribed
  */
 class TestThrownException {
   private static void testHardwareException() {

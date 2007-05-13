@@ -12,7 +12,6 @@ package org.jikesrvm.scheduler;
 /**
  * Constants associated with I/O waits.
  *
- * @author David Hovemeyer
  *
  * @see VM_ThreadIOWaitData
  * @see VM_ThreadIOQueue

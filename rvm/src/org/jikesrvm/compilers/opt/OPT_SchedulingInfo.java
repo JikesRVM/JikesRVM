@@ -14,7 +14,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
  * Object containing scheduling information
  * Used by the scheduler
  *
- * @author Igor Pechtchanski
  */
 final class OPT_SchedulingInfo {
   int alt;

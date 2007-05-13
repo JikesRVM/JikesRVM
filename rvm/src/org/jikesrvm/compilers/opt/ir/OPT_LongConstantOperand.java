@@ -16,7 +16,6 @@ import org.vmmagic.unboxed.Offset;
  * Represents a constant long operand.
  *
  * @see OPT_Operand
- * @author John Whaley
  */
 public final class OPT_LongConstantOperand extends OPT_ConstantOperand {
 

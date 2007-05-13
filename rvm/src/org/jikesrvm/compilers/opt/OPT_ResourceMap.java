@@ -16,7 +16,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
  *
  * @see OPT_OperatorClass
  * @see org.jikesrvm.compilers.opt.ir.OPT_Operator
- * @author Igor Pechtchanski
  */
 final class OPT_ResourceMap {
   private static final int verbose = 0;

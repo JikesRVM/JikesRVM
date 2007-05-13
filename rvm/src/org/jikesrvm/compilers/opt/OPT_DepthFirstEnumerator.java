@@ -12,8 +12,6 @@ import java.util.Enumeration;
 import java.util.NoSuchElementException;
 
 /**
- * @author Mauricio J. Serrano
- * @author John Whaley
  */
 final class OPT_DepthFirstEnumerator
     implements Enumeration<OPT_GraphNode> {

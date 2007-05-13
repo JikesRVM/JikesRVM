@@ -21,7 +21,6 @@ import org.vmmagic.unboxed.*;
  * This class performs sanity checks for MarkCompact collectors.
  * 
  *
- * @author Daniel Frampton
  */
 @Uninterruptible public class MCSanityCheckerLocal extends SanityCheckerLocal {
 

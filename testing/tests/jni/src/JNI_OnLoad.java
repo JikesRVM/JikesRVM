@@ -9,7 +9,6 @@
  */
 
 /**
- * @author Elias Naur
  */
 public class JNI_OnLoad {
 

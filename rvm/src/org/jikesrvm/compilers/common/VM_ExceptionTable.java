@@ -18,8 +18,6 @@ import org.vmmagic.unboxed.Offset;
  * Encoding of try ranges in the final machinecode and the
  * corresponding exception type and catch block start.
  *
- * @author Dave Grove
- * @author Mauricio Serrano
  */
 public abstract class VM_ExceptionTable {
 

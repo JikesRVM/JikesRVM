@@ -7,7 +7,6 @@
 // (C) Copyright IBM Corp. 2001
 //
 /**
- * @author  Derek Lieber
  */
 /*
  * Called as: bootThread(int ip, int jtoc, int pr, int rvm_sp)

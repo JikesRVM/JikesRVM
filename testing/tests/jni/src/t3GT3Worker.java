@@ -12,7 +12,6 @@
  * t3GT3.runit the specified number of times; that
  * method is gcbench.
  *
- * @author Dick Attanasio
  */
 
 class t3GT3Worker extends Thread {

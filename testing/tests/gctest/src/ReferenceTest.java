@@ -13,7 +13,6 @@ import java.lang.ref.*;
 /**
  * A test to test java.lang.ref.*.
  * 
- * @author Perry Cheng
  */
 class ReferenceTest {
 

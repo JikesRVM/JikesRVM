@@ -14,7 +14,6 @@ import org.jikesrvm.classloader.VM_Method;
  * Hold semantic information about a method that is not defined in
  * VM_Method.
  *
- * @author Stephen Fink
  */
 public class OPT_MethodSummary {
 

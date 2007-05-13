@@ -10,7 +10,6 @@
 package org.mmtk.utility.alloc;
 
 /*
- * @author Perry Cheng
  */
 public class AllocAdvice {
 }

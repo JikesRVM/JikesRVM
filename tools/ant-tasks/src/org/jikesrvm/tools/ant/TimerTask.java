@@ -21,7 +21,6 @@ import org.apache.tools.ant.taskdefs.Property;
  * stores the current time in "&lt;property&gt;.end" and the duration between "&lt;property&gt;.start"
  * and now in "&lt;property&gt;.duration". 
  *
- * @author Peter Donald
  */
 public class TimerTask
     extends Task {

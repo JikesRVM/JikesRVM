@@ -31,7 +31,6 @@ import org.mmtk.vm.VM;
  * the case of any character.
  * 
  *
- * @author Daniel Frampton
  */
 public abstract class Option {
   // options registry

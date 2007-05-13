@@ -45,8 +45,6 @@ import org.jikesrvm.compilers.opt.ir.TypeCheck;
  * it to a checkcast_not_null
  * </ul>
  *
- * @author Mauricio Serrano
- * @author Julian Dolby
  */
 public final class OPT_LocalCastOptimization extends OPT_CompilerPhase {
 

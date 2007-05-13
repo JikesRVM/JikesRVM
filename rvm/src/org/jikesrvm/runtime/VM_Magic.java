@@ -31,8 +31,6 @@ import org.vmmagic.unboxed.WordArray;
  * and cause inline machine code to be generated instead of 
  * actual method calls.
  *
- * @author Bowen Alpern
- * @author Derek Lieber
  */
 @SuppressWarnings({"UnusedDeclaration"})
 @Intrinsic

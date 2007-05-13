@@ -13,7 +13,6 @@ package org.mmtk.utility.options;
  * Should reference type processing be disabled?
  * 
  *
- * @author Daniel Frampton
  */
 public class NoReferenceTypes extends BooleanOption {
   /**

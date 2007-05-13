@@ -10,8 +10,6 @@
 /* Test miscellaneous query JNI Functions 
  * Implement native methods from ClassQuery.java 
  * 
- * @author Ton Ngo, Steve Smith 
- * @date   3/21/00
  */
 
 #include <stdio.h>

@@ -16,8 +16,6 @@
  *     AllocObject
  *
  *
- * @author Ton Ngo, Steve Smith 
- * @date   3/21/00
  */
 class ClassQuery extends ClassQuerySuper {
   static boolean verbose = true;         // set to true to get messages for each test

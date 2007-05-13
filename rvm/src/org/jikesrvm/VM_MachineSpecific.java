@@ -18,7 +18,6 @@ import org.vmmagic.unboxed.Offset;
  * Wrappers around machine specific code
  * 
  *
- * @author Steve Blackburn
  */
 public abstract class VM_MachineSpecific {
 

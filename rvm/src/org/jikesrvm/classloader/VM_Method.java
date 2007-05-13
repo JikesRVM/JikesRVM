@@ -26,10 +26,6 @@ import org.vmmagic.unboxed.Offset;
  * in the class file. A method is read from a class file using the
  * {@link #readMethod} method.
  *
- * @author Bowen Alpern
- * @author Dave Grove
- * @author Derek Lieber
- * @author Ian Rogers
  */
 public abstract class VM_Method extends VM_Member implements VM_BytecodeConstants {
 

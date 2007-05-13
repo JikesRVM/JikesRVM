@@ -13,7 +13,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
 /**
  * A trivial phase that can be inserted to dump the IR.
  *
- * @author Dave Grove
  */
 public class OPT_IRPrinter extends OPT_CompilerPhase {
   protected String msg;

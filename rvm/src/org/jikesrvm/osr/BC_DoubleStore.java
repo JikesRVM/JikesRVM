@@ -12,7 +12,6 @@ package org.jikesrvm.osr;
 /**
  * BC_DoubleStore: dstore, dstore_<l> 
  * 
- * @author Feng Qian
  */
 
 public class BC_DoubleStore extends OSR_PseudoBytecode {

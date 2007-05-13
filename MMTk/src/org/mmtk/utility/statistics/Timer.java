@@ -18,7 +18,6 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements a simple timer.
  * 
- * @author Steve Blackburn
  */
 @Uninterruptible public class Timer extends LongCounter {
 

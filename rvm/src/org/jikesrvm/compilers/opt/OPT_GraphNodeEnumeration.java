@@ -16,7 +16,6 @@ import java.util.Enumeration;
  * nodes implement this interface, and all graph utilities that need
  * to enumerate nodes should use this interface.
  *
- * @author Julian Dolby
  *
  * @see OPT_Graph
  * @see OPT_GraphNode

@@ -33,9 +33,6 @@ import org.vmmagic.unboxed.Offset;
  * it places a triple of integers in buffer that correspond to
  * the callee, caller, and machine code offset of the call site
  *
- * @author Peter Sweeney
- * @author Michael Hind
- * @date   May 18, 2000
  */
 @Uninterruptible
 public class VM_EdgeListener extends VM_ContextListener 

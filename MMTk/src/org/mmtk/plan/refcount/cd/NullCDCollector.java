@@ -19,7 +19,6 @@ import org.vmmagic.unboxed.ObjectReference;
  * for a null cycle detector.
  * 
  *
- * @author Daniel Frampton
  */
 @Uninterruptible public final class NullCDCollector extends CDCollector {
   /**

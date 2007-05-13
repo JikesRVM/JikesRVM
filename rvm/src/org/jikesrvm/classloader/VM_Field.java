@@ -19,10 +19,6 @@ import org.vmmagic.pragma.Uninterruptible;
 /**
  * A field of a java class.
  *
- * @author Bowen Alpern
- * @author Dave Grove
- * @author Derek Lieber
- * @modified Ian Rogers
  */
 public final class VM_Field extends VM_Member {
 

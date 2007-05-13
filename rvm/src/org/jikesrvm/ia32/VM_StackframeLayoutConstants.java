@@ -130,8 +130,6 @@ import org.vmmagic.unboxed.Address;
  *
  * </pre>
  *
- * @author David Grove
- * @author Bowen Alpern
  */
 public interface VM_StackframeLayoutConstants  {
 

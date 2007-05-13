@@ -33,7 +33,6 @@ import org.vmmagic.unboxed.*;
  * TreadmillLocal corresponds to one thread operating over one space.
  * 
  *
- * @author Steve Blackburn
  */
 @Uninterruptible public final class LargeObjectSpace extends Space 
   implements Constants {

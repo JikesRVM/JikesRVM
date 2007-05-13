@@ -28,10 +28,7 @@ import org.jikesrvm.compilers.opt.OPT_SplitBasicBlock;
  * executed in the target-specific backend of the optimzing compiler.
  * The methods LIR2MIR, MIROptimizations, and MIR2MC each specify the
  * elements that make up the main compilation stages.
- *
- * @author Stephen Fink
- * @author Dave Grove
- * @author Michael Hind */
+ */
 public class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner {
 
   /**

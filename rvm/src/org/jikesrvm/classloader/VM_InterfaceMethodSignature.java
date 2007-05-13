@@ -18,9 +18,6 @@ import org.vmmagic.unboxed.Offset;
  *  An interface method signature is a pair of atoms: 
  *  interfaceMethodName + interfaceMethodDescriptor.
  *
- * @author Bowen Alpern
- * @author Dave Grove
- * @author Derek Lieber
  */
 public final class VM_InterfaceMethodSignature implements VM_TIBLayoutConstants, VM_SizeConstants {
 

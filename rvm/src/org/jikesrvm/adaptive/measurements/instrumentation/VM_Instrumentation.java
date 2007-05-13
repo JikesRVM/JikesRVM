@@ -19,7 +19,6 @@ import org.jikesrvm.compilers.opt.OPT_InstrumentedEventCounterManager;
  * This class is used to provide general functionality useful to
  * instrumenting methods.
  *
- * @author Matthew Arnold
  *
 */
 

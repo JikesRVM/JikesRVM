@@ -25,9 +25,6 @@ import org.jikesrvm.osr.OSR_AdjustBCIndexes;
  *
  * @see OPT_MIROptimizationPlanner
  * 
- * @author Stephen Fink
- * @author Dave Grove
- * @author Michael Hind
  */
 public class OPT_OptimizationPlanner {
 

@@ -74,10 +74,6 @@ import org.vmmagic.unboxed.*;
  * @see Plan
  * 
  *
- * @author Perry Cheng
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 
 @Uninterruptible  public abstract class MutatorContext implements Constants {

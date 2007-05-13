@@ -38,10 +38,6 @@ import org.vmmagic.unboxed.Offset;
  * @see VM_Array
  * @see VM_Primitive
  *
- * @author Bowen Alpern
- * @author Dave Grove
- * @author Derek Lieber
- * @author Ian Rogers
  */
 public final class VM_Class extends VM_Type implements VM_Constants, 
                                                        VM_ClassLoaderConstants {
@@ -1032,8 +1028,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * the initiating loader of the required class is the
    * defining loader of the requiring class.
    *
-   * @author Julian Dolby
-   * 
+   *
    * @param skip specifies the number of frames back from the 
    *             caller to the method whose class's loader is required
    */

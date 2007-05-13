@@ -10,7 +10,6 @@
 /* Test the JavaVM and GetEnv JNI functionality 
  * Implement native methods from GetEnv.java 
  * 
- * @author Julian Dolby
  */
 
 #include "GetEnv.h"

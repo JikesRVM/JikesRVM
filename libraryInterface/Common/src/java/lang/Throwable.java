@@ -22,9 +22,6 @@ import org.jikesrvm.VM_PrintContainer;
  * By convention, order methods in the same order
  * as they appear in the method summary list of Sun's 1.4 Javadoc API. 
  * 
- * @author Julian Dolby
- * @author Dave Grove
- * @modified Steven Augart
  */
 public class Throwable implements java.io.Serializable {
 

@@ -31,9 +31,6 @@ import org.jikesrvm.scheduler.VM_Processor;
 /**
  * This class contains top level adaptive compilation subsystem functions.
  *
- * @author Michael Hind
- * @author Dave Grove
- * @author Stephen Fink
  */
 public class VM_Controller implements VM_Callbacks.ExitMonitor,
                                       VM_Callbacks.AppStartMonitor,
