@@ -8,9 +8,6 @@
  */
 package org.vmmagic.unboxed;
 
-/**
- * Commenting required
- */
 public final class WordArray {
 
   public static WordArray create(int size) {

@@ -8,9 +8,6 @@
  */
 package org.vmmagic.unboxed;
 
-/**
- * Commenting required
- */
 public final class ExtentArray {
 
   public static ExtentArray create(int size) {

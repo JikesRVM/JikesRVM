@@ -8,9 +8,6 @@
  */
 package org.vmmagic.unboxed;
 
-/**
- * Commenting required
- */
 public final class ObjectReferenceArray {
 
   public static ObjectReferenceArray create(int size) {

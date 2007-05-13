@@ -10,9 +10,6 @@ package org.vmmagic.unboxed;
 
 import org.vmmagic.Unboxed;
 
-/**
- * Commenting required
- */
 @Unboxed
 public final class Extent {
   public static Extent fromIntSignExtend(int address) {

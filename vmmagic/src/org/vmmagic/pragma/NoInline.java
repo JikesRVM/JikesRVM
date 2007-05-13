@@ -14,9 +14,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.ElementType;
 import org.vmmagic.Pragma;
 
-/**
- * Commenting required.
- */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 @Pragma

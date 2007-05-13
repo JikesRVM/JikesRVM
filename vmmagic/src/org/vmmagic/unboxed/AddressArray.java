@@ -8,9 +8,6 @@
  */
 package org.vmmagic.unboxed;
 
-/**
- * Commenting required
- */
 public final class AddressArray {
 
   public static AddressArray create(int size) {
