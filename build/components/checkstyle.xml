@@ -1,0 +1,40 @@
+<project name="checkstyle" default="build" basedir=".">
+
+  <import file="base.xml"/>
+  <property file="${components.file}"/>
+
+  <property name="checkstyle.version" value="4.3"/>
+  <property name="checkstyle.description" value="PMD"/>
+
+  <property name="checkstyle.package.dir" value="${components.dir}/checkstyle/${checkstyle.version}"/>
+  <property name="checkstyle.dir" location="${checkstyle.package.dir}/checkstyle-${checkstyle.version}"/>
+
+  <target name="init-checkstyle-properties" depends="prepare-ant-tasks">
+    <condition property="checkstyle.from-web" value="true">
+      <or>
+        <not>
+          <available file="${checkstyle.dir}/constants.properties"/>
+        </not>
+        <isset property="checkstyle.force-download"/>
+      </or>
+    </condition>
+  </target>
+
+  <target name="fetch" depends="init-checkstyle-properties" if="checkstyle.from-web">
+    <property name="checkstyle.web-archive" value="checkstyle-${checkstyle.version}.tar.gz"/>
+    <mkdir dir="${checkstyle.package.dir}"/>
+    <get src="http://optusnet.dl.sourceforge.net/sourceforge/checkstyle/${checkstyle.web-archive}"
+         dest="${checkstyle.package.dir}/${checkstyle.web-archive}"/>
+    <untar src="${checkstyle.package.dir}/${checkstyle.web-archive}" compression="gzip" dest="${checkstyle.package.dir}"/>
+    <writeComponentConstants dir="${checkstyle.dir}"/>
+  </target>
+
+  <target name="build" depends="fetch">
+    <setComponentsConfig key="checkstyle.dir" value="${checkstyle.dir}"/>
+  </target>
+
+  <target name="ensure" depends="prepare-ant-tasks">
+    <ensureUptodate name="checkstyle" dir="${checkstyle.dir}"/>
+  </target>
+
+</project>

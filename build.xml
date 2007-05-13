@@ -1346,6 +1346,27 @@ target.jni-suffix=${target.jni-suffix}
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
+  <target name="checkstyle" depends="prepare-source,prepare-config-source,choose-classlib">
+    <ant antfile="build/components/checkstyle.xml" target="ensure"/>
+    <taskdef resource="checkstyletask.properties" classpath="${checkstyle.dir}/checkstyle-all-4.3.jar"/>
+
+    <mkdir dir="${build.dir}/checkstyle"/>
+    <checkstyle config="build/checkstyle/rvm-checks.xml" failOnViolation="false">
+      <formatter type="xml" tofile="${build.dir}/checkstyle/report.xml"/>
+      <fileset dir="rvm/src" includes="**/*.java"/>
+    </checkstyle>
+
+    <style in="${build.dir}/checkstyle/report.xml"
+           out="${build.dir}/checkstyle/report.html"
+           style="${checkstyle.dir}/contrib/checkstyle-frames.xsl"/>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                                Doc                                       * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
   <target name="pmd" depends="prepare-source,prepare-config-source,choose-classlib">
     <ant antfile="build/components/pmd.xml" target="ensure"/>
 
