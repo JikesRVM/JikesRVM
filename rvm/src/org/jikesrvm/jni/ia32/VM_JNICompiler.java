@@ -37,7 +37,6 @@ import org.vmmagic.unboxed.Offset;
  * </pre>
  *
  * If this code is being used, then we assume RVM_WITH_SVR4_ABI is set.
- * 
  */
 public abstract class VM_JNICompiler implements VM_BaselineConstants {
 
@@ -62,8 +61,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
 
   /*****************************************************************
    * Handle the Java to C transition:  native methods
-   *
-   */
+ */
   public static synchronized VM_CompiledMethod compile (VM_NativeMethod method) {
     VM_JNICompiledMethod cm = (VM_JNICompiledMethod) VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.JNI);
     VM_Assembler asm     = new ArchitectureSpecific.VM_Assembler(100);   // some size for the instruction array

@@ -43,8 +43,6 @@ import org.vmmagic.unboxed.*;
  * @see StopTheWorldCollector
  * @see CollectorContext
  * @see SimplePhase#delegatePhase
- * 
- *
  */
 @Uninterruptible public abstract class RCBaseCollector extends StopTheWorldCollector {
 

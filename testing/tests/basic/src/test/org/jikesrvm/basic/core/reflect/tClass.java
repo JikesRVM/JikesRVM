@@ -13,8 +13,6 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Comparator;
 
-/**
- */
 class tClass {
 
   private static class ToStringComparator implements Comparator<Object> {

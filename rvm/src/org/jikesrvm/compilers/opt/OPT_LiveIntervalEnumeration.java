@@ -16,7 +16,6 @@ import java.util.Enumeration;
  * Note: This is fragile.  Use with care iff you know what you're doing.
  * TODO: redesign the way live info is stored on the IR to be a bit more
  * robust.  eg., don't use scratch fields.
- *
  */
 public class OPT_LiveIntervalEnumeration implements Enumeration<OPT_LiveIntervalElement> {
   private OPT_LiveIntervalElement currentElement;

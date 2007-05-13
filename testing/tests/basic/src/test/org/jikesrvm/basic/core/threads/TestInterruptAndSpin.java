@@ -14,7 +14,6 @@ package test.org.jikesrvm.basic.core.threads;
  * The original VM_Thread.externalInterrupt related code
  * was far too willing to throw InterruptedExceptions
  * in places where they should not have originated.
- *
  */
 public class TestInterruptAndSpin {
   public static void main(String[] argv) {

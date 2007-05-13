@@ -8,8 +8,6 @@
  */
 package test.org.jikesrvm.basic.core.classloading;
 
-/**
- */
 class TestClassLoading {
   public static void main(String[] args) {
     doTest("java.lang.String");

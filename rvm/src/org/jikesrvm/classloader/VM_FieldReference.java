@@ -14,7 +14,6 @@ import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * A class to represent the reference in a class file to a field.
- * 
  */
 public final class VM_FieldReference extends VM_MemberReference implements VM_SizeConstants {
 

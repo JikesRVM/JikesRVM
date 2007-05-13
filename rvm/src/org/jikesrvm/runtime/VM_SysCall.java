@@ -32,7 +32,6 @@ import org.vmmagic.unboxed.Offset;
  * <p>
  * NOTE: There must be a matching field NAMEIP in VM_BootRecord.java
  *       for each method declared here.
- * 
  */
 @Uninterruptible
 @GenerateImplementation(generatedClass = "org.jikesrvm.runtime.VM_SysCallImpl")
@@ -195,8 +194,7 @@ public abstract class VM_SysCall {
    * @param buf a null terminated byte[] that can be parsed
    *            by strtol()
    * @return the int value produced by the call to strtol() on buf.
-   * 
-   */
+ */
   @SysCallTemplate
   public abstract int sysPrimitiveParseInt(byte[] buf);
 

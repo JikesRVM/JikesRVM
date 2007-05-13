@@ -24,7 +24,6 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_SUB;
  * This class implements index equivalence via global value numbering 
  * and 'uniformly generated expressions'.  See EURO-PAR 01 paper for
  * more details.
- *
  */
 class OPT_UniformlyGeneratedGVN {
   static final boolean DEBUG = false;

@@ -13,7 +13,6 @@ import org.jikesrvm.runtime.VM_Runtime;
 
 /**
  * VM dependent Array operations
- *
  */
 class VMArray {
   /**

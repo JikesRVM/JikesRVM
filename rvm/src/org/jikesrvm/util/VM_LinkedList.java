@@ -18,7 +18,6 @@ import org.jikesrvm.VM;
 /**
  * Implementation of java.util.LinkedList for use in classes that
  * end up in the boot image.
- * 
  */
 public final class VM_LinkedList<T> implements List<T> {
   

@@ -7,8 +7,6 @@
  * (C) Copyright IBM Corp. 2001
  */
 package org.jikesrvm;
-/**
- */
 public class VM {
 
     public static boolean BuildForFastInterfaceInvocation;

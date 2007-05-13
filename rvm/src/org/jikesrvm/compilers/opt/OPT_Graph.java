@@ -27,8 +27,7 @@ interface OPT_Graph {
    * @see OPT_GraphNode
    *
    * @return an enumeration of all nodes in the graph
-   *
-   */
+ */
   OPT_GraphNodeEnumeration enumerateNodes ();
 
   /**

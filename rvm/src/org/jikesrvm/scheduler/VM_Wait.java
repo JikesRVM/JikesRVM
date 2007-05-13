@@ -16,7 +16,6 @@ import org.jikesrvm.runtime.VM_Time;
  * These methods may allocate objects for recordkeeping purposes,
  * and thus may not be called from within the scheduler proper
  * (e.g., <code>VM_Thread</code>, which is uninterruptible).
- *
  */
 public class VM_Wait {
   private static boolean noIoWait = false;

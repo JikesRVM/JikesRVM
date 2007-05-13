@@ -16,8 +16,7 @@ import org.jikesrvm.compilers.opt.OPT_Options;
 /**
   * This class holds miscellaneous information regarding the state of
   * a compilation
-  *
-  */
+ */
 public final class OPT_CompilationState {
 
   /*

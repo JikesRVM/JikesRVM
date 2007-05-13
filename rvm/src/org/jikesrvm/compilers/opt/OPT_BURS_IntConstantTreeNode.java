@@ -17,7 +17,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Operators;
  * It is very common for us to want to access the value of an 
  * int constant during BURS, so we make it easy to do so by creating
  * a special kind of node.
- * 
  */
 final class OPT_BURS_IntConstantTreeNode extends OPT_BURS_TreeNode {
 

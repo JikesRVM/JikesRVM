@@ -19,7 +19,6 @@ import org.vmmagic.pragma.*;
 /*
  import org.jikesrvm.VM_Offset;
  * Conversions between different units.
- *
  */
 @Uninterruptible public class Conversions implements Constants {
 

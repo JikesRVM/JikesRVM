@@ -8,8 +8,6 @@
  */
 package org.vmmagic.unboxed;
 
-/**
- */
 public class Word {
   public Word rsha (int sh) {
     return null;

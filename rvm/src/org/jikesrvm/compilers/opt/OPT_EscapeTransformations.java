@@ -29,8 +29,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
  *  <li> 1. synchronization removal
  *  <li> 2. scalar replacement of aggregates and short arrays
  * </ul>
- *
- *
  */
 class OPT_EscapeTransformations extends OPT_CompilerPhase {
 

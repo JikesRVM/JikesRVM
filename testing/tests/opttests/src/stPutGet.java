@@ -8,7 +8,6 @@
  */
 /**
  * unresolved putstatic/getstatic test
- *
  */
 public class stPutGet {
   static boolean run() {

@@ -8,8 +8,6 @@
  */
 package test.org.jikesrvm.basic.core.threads;
 
-/**
- */
 class TestVolatiles extends XThread {
 
   public static void main(String[] args) {

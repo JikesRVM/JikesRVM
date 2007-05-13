@@ -20,7 +20,6 @@ import org.vmmagic.pragma.*;
 
 /**
  * Class that supports scanning of objects (scalar and array)
- * 
  */
 @Uninterruptible public final class Scan {
   /**

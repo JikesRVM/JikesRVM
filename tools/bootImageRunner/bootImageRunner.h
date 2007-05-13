@@ -8,7 +8,6 @@
  */
 /* Handles "extern" declarations shared among files in
  * tools/bootImageRunner/.
- *
  */
 #include <stdio.h>
 #include <inttypes.h>

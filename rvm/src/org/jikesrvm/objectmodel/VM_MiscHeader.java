@@ -26,7 +26,6 @@ import org.vmmagic.unboxed.Word;
  * kinds of instrumentation or profiling.
  *
  * @see VM_ObjectModel
- * 
  */
 @Uninterruptible public final class VM_MiscHeader implements VM_Constants, VM_MiscHeaderConstants {
 

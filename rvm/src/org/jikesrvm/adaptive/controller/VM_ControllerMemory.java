@@ -21,7 +21,6 @@ import org.jikesrvm.util.VM_HashMap;
  *  This class records decisions taken by the controller.  It will remember
  *  controller plans, which contain compilation plans and other goodies,
  *  and allows searching for previous decisions
- *
  */
 public final class VM_ControllerMemory implements VM_Constants {
 

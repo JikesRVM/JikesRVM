@@ -13,7 +13,6 @@ package org.jikesrvm.compilers.opt;
  * numbering
  * ala Alpern, Wegman and Zadeck.  See Muchnick p.348 for a nice
  * discussion.
- *
  */
 final class OPT_ValueGraphEdge extends OPT_SpaceEffGraphEdge {
 

@@ -38,8 +38,6 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.plan.StopTheWorldMutator
  * @see org.mmtk.plan.MutatorContext
  * @see org.mmtk.plan.SimplePhase#delegatePhase
- * 
- *
  */
 @Uninterruptible public abstract class GenMSMutator extends GenMutator {
   /******************************************************************

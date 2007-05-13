@@ -12,7 +12,6 @@ import org.vmmagic.Unboxed;
 
 /**
  * To be commented
- * 
  */
 @Unboxed
 public final class Offset {

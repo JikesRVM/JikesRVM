@@ -31,7 +31,6 @@ import org.vmmagic.unboxed.Offset;
  * @see VM_Type
  * @see VM_Class
  * @see VM_Array
- *
  */
 @SynchronizedObject
 public final class VM_Primitive extends VM_Type implements VM_Constants, 

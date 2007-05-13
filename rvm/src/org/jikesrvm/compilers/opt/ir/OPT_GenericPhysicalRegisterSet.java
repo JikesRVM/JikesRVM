@@ -20,7 +20,6 @@ import org.jikesrvm.compilers.opt.OPT_ReverseEnumerator;
  * <P> Implementation Note: Each register has an integer field
  * OPT_Register.number.  This class must number the physical registers so
  * that get(n) returns an OPT_Register r with r.number = n!
- *
  */
 public abstract class OPT_GenericPhysicalRegisterSet implements OPT_BitSetMapping {
 

@@ -17,10 +17,6 @@ import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 
 import org.vmmagic.pragma.*;
 
-/**
- *
- *
- */
 @Uninterruptible public final class Statistics extends org.mmtk.vm.Statistics implements Constants {
   /**
    * Returns the number of collections that have occured.

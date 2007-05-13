@@ -15,7 +15,6 @@ import org.jikesrvm.adaptive.util.VM_AOSOptions;
 
 /**
  * Collection of static methods to assist with adaptive inlining.
- *
  */
 public class VM_AdaptiveInlining {
 

@@ -16,10 +16,6 @@ import org.mmtk.plan.MutatorContext;
 
 import org.vmmagic.pragma.*;
 
-/**
- *
- *
- */
 @Uninterruptible public abstract class Collection {
 
   /****************************************************************************

@@ -8,7 +8,6 @@
  */
 /*****************************************************************
  * JNI functions to support OnLoad
- *
  */
 
 // Java includes

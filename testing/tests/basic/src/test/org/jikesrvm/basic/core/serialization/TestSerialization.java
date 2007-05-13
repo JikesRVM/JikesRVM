@@ -15,8 +15,6 @@ import java.io.ObjectInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
 
-/**
- */
 class TestSerialization {
   public static void main(String[] args) throws Exception {
     //Uncomment when need to generate serialized data from jdk again

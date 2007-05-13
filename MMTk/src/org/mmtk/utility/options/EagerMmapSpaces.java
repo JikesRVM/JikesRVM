@@ -11,8 +11,6 @@ package org.mmtk.utility.options;
 
 /**
  * Should spaces be eagerly demand zero mmapped?
- * 
- *
  */
 public class EagerMmapSpaces extends BooleanOption {
   /**

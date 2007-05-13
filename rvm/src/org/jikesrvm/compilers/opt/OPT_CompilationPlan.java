@@ -17,7 +17,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
  *
  * An instance of this class acts instructs the optimizing
  * compiler how to compile the specified method.
- *
  */
 public final class OPT_CompilationPlan {
   /**

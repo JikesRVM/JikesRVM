@@ -39,7 +39,6 @@ import org.jikesrvm.compilers.opt.ir.TableSwitch;
  * operands. The intent is that analysis modules can call this 
  * transformation engine, allowing us to share the
  * simplification code among multiple analysis modules.
- *
  */
 abstract class OPT_BranchSimplifier {
 

@@ -78,7 +78,6 @@ import org.vmmagic.unboxed.Offset;
  *      expand a SYSCALL HIR instruction into the appropriate 
  *      sequence of LIR instructions.
  *  </ul>
- *
  */
 public abstract class OPT_CallingConvention extends OPT_IRTools {
 

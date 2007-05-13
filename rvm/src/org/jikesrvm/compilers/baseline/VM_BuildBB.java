@@ -18,7 +18,6 @@ import org.jikesrvm.classloader.VM_NormalMethod;
  * Analyze the byte codes and determine the boundaries of the 
  * basic blocks. Used for building the reference maps for a 
  * method.
- *
  */
 
 public final class VM_BuildBB

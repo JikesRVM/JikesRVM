@@ -11,8 +11,6 @@ package org.mmtk.utility.options;
 
 /**
  * GC verbosity level.
- * 
- *
  */
 public class Verbose extends IntOption {
   /**

@@ -24,7 +24,6 @@ import org.jikesrvm.runtime.VM_Reflection;
  *    3. Go to 1
  *
  * This thread comes out of wait state via notify from the garbage collector  
- *
  */
 public class VM_FinalizerThread extends VM_Thread {
 

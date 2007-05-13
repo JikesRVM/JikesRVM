@@ -6,7 +6,6 @@
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
  * (C) Copyright IBM Corp 2005
- *
  */
 
 package gnu.classpath;
@@ -19,8 +18,6 @@ package gnu.classpath;
  * Never the less, look at the source code of the GNU Class
  * (classpath/vm/reference/gnu/classpath/VMStackWalker.java) for the latest
  * description of what these methods should do.
- * 
- *
  */
 
 import org.jikesrvm.VM;

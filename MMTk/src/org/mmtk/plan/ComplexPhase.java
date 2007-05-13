@@ -25,8 +25,6 @@ import org.vmmagic.pragma.*;
  * from arrays of either the phases or phase IDs.
  * 
  * TODO write a replacePhase method.
- * 
- *
  */
 @Uninterruptible public final class ComplexPhase extends Phase
   implements Constants {

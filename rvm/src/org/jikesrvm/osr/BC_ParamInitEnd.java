@@ -10,7 +10,6 @@
 package org.jikesrvm.osr;
 /**
  *  LocalInitEnd
- *
  */
 public class BC_ParamInitEnd extends OSR_PseudoBytecode {
   public byte[] getBytes() {

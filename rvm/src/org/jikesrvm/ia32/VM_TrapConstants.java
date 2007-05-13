@@ -10,7 +10,6 @@ package org.jikesrvm.ia32;
 
 /**
  * Trap constants for IA32 platform.
- * 
  */
 public interface VM_TrapConstants {
 

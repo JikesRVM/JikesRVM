@@ -40,8 +40,6 @@ import org.vmmagic.pragma.*;
  * (such as memory and virtual memory resources).  This mapping of threads to
  * instances is crucial to understanding the correctness and
  * performance properties of MMTk plans.
- * 
- *
  */
 @Uninterruptible public class CopyMS extends StopTheWorld {
 
@@ -76,8 +74,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Constructor.
-   * 
-   */
+ */
   public CopyMS() {
     trace = new Trace(metaDataSpace);
   }

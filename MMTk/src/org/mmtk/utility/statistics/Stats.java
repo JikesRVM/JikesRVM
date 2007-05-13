@@ -22,7 +22,6 @@ import org.vmmagic.pragma.*;
 
 /**
  * This class implements basic statistics functionality
- * 
  */
 @Uninterruptible public class Stats {
 
@@ -225,8 +224,7 @@ import org.vmmagic.pragma.*;
   /* ****************************************************************
    * 
    *              Statistics output in xml format
-   * 
-   */
+ */
 
   /**
    * Print command-line options and statistics in XML format

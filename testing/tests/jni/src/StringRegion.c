@@ -8,7 +8,6 @@
  *
  * Test JNI 1.2 Functions related to Strings
  * Implement native methods from StringRegion.java 
- * 
  */
 
 #include <jni.h>

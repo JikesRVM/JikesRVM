@@ -12,7 +12,6 @@ package org.jikesrvm.compilers.opt;
  * OPT_DF_Operator.java
  *
  * represents a function for OPT_DF_LatticeCell values
- *
  */
 abstract class OPT_DF_Operator {
 

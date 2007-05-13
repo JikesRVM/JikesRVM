@@ -27,7 +27,6 @@ import org.jikesrvm.scheduler.VM_Scheduler;
  * the sampling threshold is reached we update the accumulated method 
  * sample data with the new data and then notify the controller of all 
  * methods that were sampled in the current window.
- * 
  */
 public final class VM_MethodSampleOrganizer extends VM_Organizer {
 

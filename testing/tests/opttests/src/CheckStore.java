@@ -6,8 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-/**
- */
 class CheckStore {
 
   public static void main(String[] args) {

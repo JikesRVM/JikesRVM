@@ -14,7 +14,6 @@ import org.jikesrvm.classloader.VM_MemberReference;
 
 /**
  * A class to hold variables for a method at one program point.
- *
  */
 public final class OSR_MethodVariables {
   

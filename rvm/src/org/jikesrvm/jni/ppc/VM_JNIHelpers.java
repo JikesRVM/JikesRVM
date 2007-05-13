@@ -32,7 +32,6 @@ import org.vmmagic.unboxed.Word;
  * there are specially compiled to be called from native).
  * 
  * @see org.jikesrvm.jni.VM_JNIFunctions
- *
  */
 public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_RegisterConstants,
                                                                             VM_JNIStackframeLayoutConstants {

@@ -21,7 +21,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
  *       It is therefore incorrect for any per-compilation
  *       state to be stored in an instance field of
  *       one of these objects.
- *
  */
 public class OPT_OptimizationPlanCompositeElement extends OPT_OptimizationPlanElement {
   /**

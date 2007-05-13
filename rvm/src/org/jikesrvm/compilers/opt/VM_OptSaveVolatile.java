@@ -29,7 +29,6 @@ import org.vmmagic.unboxed.Offset;
  *        opt's use for other purposes. 
  * 
  * @see OPT_Compiler (hooks to recognize & specially compile this class)
- * 
  */
 @SaveVolatile
 @Uninterruptible

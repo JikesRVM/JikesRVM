@@ -16,7 +16,6 @@ import org.jikesrvm.VM;
  * be encountered that "jump" to the same subroutine. To calculate the maps 
  * of the instruction that is immediately after the JSR, we need the maps at 
  * the time of the JSR and the maps at the time of the RET.
- * 
  */
 public final class VM_JSRSubroutineInfo {
   public int subroutineByteCodeStart;
@@ -101,8 +100,7 @@ public final class VM_JSRSubroutineInfo {
 
   /** 
    * Prints out statistics about JSR subroutines and their starting maps
-   *
-   */
+ */
 
   public static void printStatistics() {
     VM.sysWrite("Number of JSR Subroutines processed: ");

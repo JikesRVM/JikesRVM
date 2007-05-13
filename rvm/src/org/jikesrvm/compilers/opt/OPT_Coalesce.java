@@ -23,7 +23,6 @@ import org.jikesrvm.compilers.opt.ir.Unary;
  * Utility to help coalesce registers.
  *
  * @see OPT_CoalesceMoves
- *
  */
 class OPT_Coalesce {
 

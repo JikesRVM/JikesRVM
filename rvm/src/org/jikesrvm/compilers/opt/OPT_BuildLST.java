@@ -16,7 +16,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
  * 
  * @see OPT_LTDominators
  * @see OPT_LSTGraph
- *
  */
 public class OPT_BuildLST extends OPT_CompilerPhase {
   public String getName () { return  "Build LST"; }

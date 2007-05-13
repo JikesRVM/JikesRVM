@@ -22,7 +22,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Register;
  * Implementation: this is meant to be an undirected graph.  By
  * convention, we enforce that the register with the lower number is the
  * source of an edge.
- *
  */
 class OPT_CoalesceGraph extends OPT_SpaceEffGraph {
 

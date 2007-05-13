@@ -5,7 +5,6 @@
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
  * (C) Copyright Elias Naur 2006
- *
  */
 package test.org.jikesrvm.basic.java.nio;
 
@@ -15,8 +14,6 @@ import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
 
-/**
- */
 public class TestFileChannel {
   private static final int MAGIC_INT = 0xdeadbeef;
 

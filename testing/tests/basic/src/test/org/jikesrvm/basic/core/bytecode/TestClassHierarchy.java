@@ -10,8 +10,6 @@ package test.org.jikesrvm.basic.core.bytecode;
 
 import test.org.jikesrvm.basic.core.bytecode.data.SubClassInDifferentPackage;
 
-/**
- */
 public class TestClassHierarchy {
 
   public interface Magic { void magic(); }

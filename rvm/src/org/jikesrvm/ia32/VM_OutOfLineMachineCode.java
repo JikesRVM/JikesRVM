@@ -38,7 +38,6 @@ import org.vmmagic.unboxed.Offset;
  * <p> 15 Jun 2001 Dave Grove and Bowen Alpern (Derek believed that compilers 
  * could inline these methods if they wanted.  We do not believe this would 
  * be very easy since they return assuming the return address is on the stack.)
- *
  */
 public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   //-----------//
@@ -123,8 +122,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
    * Side effects at runtime:
    *   artificial stackframe created and destroyed
    *   volatile, and scratch registers destroyed
-   *
-  */
+ */
   private static ArchitectureSpecific.VM_CodeArray generateReflectiveMethodInvokerInstructions() {
     VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(100);
 

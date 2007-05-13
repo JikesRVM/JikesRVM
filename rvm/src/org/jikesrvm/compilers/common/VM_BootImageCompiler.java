@@ -19,7 +19,6 @@ import org.jikesrvm.compilers.baseline.VM_BaselineBootImageCompiler;
  * Abstract superclass to interface bootimage compiler to the rest of the VM.
  * Individual compilers provide concrete implementations, one of which is
  * instantiated by VM_BootImageCompiler.init.
- * 
  */
 public abstract class VM_BootImageCompiler {
 

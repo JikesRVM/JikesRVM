@@ -20,7 +20,6 @@ import org.jikesrvm.runtime.VM_Entrypoints;
  * Without per-method lazy compilation trampolines, ptr equality of target
  * instructions does not imply source equality, since both targets may in fact
  * be the globally shared lazy compilation stub.
- * 
  */
 public abstract class VM_LazyCompilationTrampolineGenerator implements VM_BaselineConstants {
 

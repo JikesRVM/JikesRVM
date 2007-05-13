@@ -38,8 +38,6 @@ import org.vmmagic.unboxed.*;
  * memory).<p>
  * 
  * Discontigious spaces are currently unsupported.
- * 
- *
  */
 @Uninterruptible public abstract class Space implements Constants {
 

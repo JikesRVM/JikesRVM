@@ -97,7 +97,6 @@ import org.jikesrvm.compilers.opt.ir.PutStatic;
 
 /*
  * This module tracks heap variables needed for Array SSA form.
- *
  */
 
 /**

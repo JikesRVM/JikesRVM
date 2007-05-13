@@ -19,7 +19,6 @@ import org.vmmagic.unboxed.Offset;
  * use in order to access the current <code>VM_Processor</code> object.
  *
  * @see VM_Processor
- *
  */
 public abstract class VM_ProcessorLocalState {
   

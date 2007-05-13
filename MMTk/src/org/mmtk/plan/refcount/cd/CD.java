@@ -23,8 +23,6 @@ import org.vmmagic.unboxed.*;
 /**
  * This class implements <i>global</i> behavior 
  * and state for a cycle detector.
- *  
- *
  */
 @Uninterruptible public abstract class CD {
 
@@ -42,8 +40,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Constructor.
-   * 
-   */
+ */
   public CD() {
     Options.cycleFilterThreshold = new CycleFilterThreshold();
     Options.cycleTriggerThreshold = new CycleTriggerThreshold();

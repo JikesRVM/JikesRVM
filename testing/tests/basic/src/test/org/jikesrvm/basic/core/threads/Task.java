@@ -8,8 +8,6 @@
  */
 package test.org.jikesrvm.basic.core.threads;
 
-/**
- */
 class Task extends XThread {
   final Mailbox mailbox;
   final Flag flag;

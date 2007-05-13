@@ -15,7 +15,6 @@
  * The file "sys.C" contains the o/s support services required by the java class libraries.
  *
  * IA32 version for Linux
- *
  */
 
 #ifndef _GNU_SOURCE

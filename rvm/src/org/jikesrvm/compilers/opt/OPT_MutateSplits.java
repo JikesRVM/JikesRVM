@@ -21,7 +21,6 @@ import org.jikesrvm.compilers.opt.ir.Unary;
 
 /**
  * Change SPLIT operations inserting for live range splitting into Moves.
- *
  */
 public final class OPT_MutateSplits extends OPT_CompilerPhase {
 

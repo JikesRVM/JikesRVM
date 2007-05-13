@@ -48,7 +48,6 @@ import org.jikesrvm.ppc.VM_RegisterConstants;
  * <STRONG> Backwards </STRONG>, starting with getLastNonvolatile() and 
  * using getPrev().
  * <P> TODO; clean up all this and provide appropriate enumerators
- * 
  */
 public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSet 
   implements VM_RegisterConstants, OPT_PhysicalRegisterConstants{

@@ -24,7 +24,6 @@ import org.jikesrvm.util.VM_HashSet;
  * versions are represented by using the OPT_SpecializedMethod class.
  * There is no provision for removing/deleting method versions as classes 
  * are never unloaded and the ClassLoader.compiledMethods[] is never cleaned.
- *
  */
 public final class OPT_SpecializationDatabase {
 

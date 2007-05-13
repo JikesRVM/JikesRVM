@@ -15,7 +15,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
  * symbolic register.
  *
  * This implementation returns a cost of zero for all registers.
- *
  */
 class OPT_BrainDeadSpillCost extends OPT_SpillCostEstimator {
 

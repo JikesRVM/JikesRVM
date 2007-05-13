@@ -38,7 +38,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_WeightedBranchTargets;
  *      (ignoring backedges), propagate the weights.  When processing a loop head,
  *      multiply the incoming weight by the loop multiplier.</li>
  * </ul>
- *
  */
 public class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
 

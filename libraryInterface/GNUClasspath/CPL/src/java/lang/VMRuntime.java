@@ -23,7 +23,6 @@ import org.vmmagic.unboxed.Offset;
 /**
  * Jikes RVM implementation of GNU Classpath's java.lang.VMRuntime.
  * See reference implementation for javadoc.
- *
  */
 final class VMRuntime {
 

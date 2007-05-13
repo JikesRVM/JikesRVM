@@ -21,7 +21,6 @@ import org.vmmagic.Pragma;
  *  -The compiler will generate the necessary prolog to insert a glue stack
  *   frame to map from the native stack/register convention to RVM's convention
  *  -It is an error to call these methods from Java
- *
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

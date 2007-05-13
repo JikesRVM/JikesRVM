@@ -23,8 +23,6 @@ import org.vmmagic.unboxed.*;
  * This abstract class implments the core functionality for a transitive
  * closure over the heap graph, specifically in a Generational copying
  * collector. 
- * 
- *
  */
 @Uninterruptible public class GenCopyMatureTraceLocal extends GenMatureTraceLocal {
 

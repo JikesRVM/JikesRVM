@@ -13,8 +13,6 @@ import org.jikesrvm.compilers.opt.OPT_LiveIntervalElement;
 
 /**
  * Generic wrappers around machine-specific IR
- * 
- *
  */
 public abstract class OPT_MachineSpecificIR {
   /* common to all ISAs */

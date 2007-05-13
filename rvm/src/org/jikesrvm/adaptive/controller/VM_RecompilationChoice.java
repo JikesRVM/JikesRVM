@@ -14,7 +14,6 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 /**
  * A recompilation choice represents an action (or a set of actions)
  * that can be considered by the controller's analytic model.
- *
  */
 abstract class VM_RecompilationChoice {
 

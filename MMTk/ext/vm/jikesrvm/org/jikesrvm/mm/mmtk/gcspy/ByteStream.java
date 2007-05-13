@@ -22,7 +22,6 @@ import org.vmmagic.unboxed.Address;
 
 /**
  * Set up a GCspy Stream with data type BYTE_TYPE.
- *
  */
 
 @Uninterruptible public class ByteStream extends org.mmtk.vm.gcspy.ByteStream {

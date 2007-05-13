@@ -7,8 +7,6 @@
  * (C) Copyright IBM Corp. 2001
  */
 package org.jikesrvm.ia32;
-/**
- */
 public class VM_MachineCode {
   public VM_MachineCode(VM_CodeArray x, int[] y) {} 
 }

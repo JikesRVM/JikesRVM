@@ -36,8 +36,6 @@ import java.util.Map;
  * Process the '@SysCallTemplate' annotation.  Generates an implementation
  * class for methods annotated with this, that provides an indirection to
  * a native method annotated with @SysCall.
- * 
- *
  */
 public class SysCallProcessor implements AnnotationProcessor {
   
@@ -64,8 +62,7 @@ public class SysCallProcessor implements AnnotationProcessor {
 
   /**
    * Visit a class that has SysCall annotations
-   * 
-   */
+ */
   private class SysCallVisitor extends SimpleDeclarationVisitor {
     private PrintWriter out;
     private final Messager mess = env.getMessager();

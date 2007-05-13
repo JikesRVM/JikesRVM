@@ -13,7 +13,6 @@ import org.vmmagic.unboxed.Offset;
 
 /**
  * Registers used by baseline compiler implementation of virtual machine.
- *
  */
 public interface VM_BaselineConstants extends VM_Constants, VM_ArchConstants {
   

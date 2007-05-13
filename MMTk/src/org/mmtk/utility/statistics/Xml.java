@@ -18,8 +18,6 @@ import org.vmmagic.unboxed.Word;
 
 /**
  * Utility class for writing statistics out in XML format.
- * 
- *
  */
 @Uninterruptible public class Xml {
   

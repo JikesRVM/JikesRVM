@@ -23,7 +23,6 @@ import org.jikesrvm.scheduler.VM_Scheduler;
  * 
  * This organizer is used to simply gather aggregate sample data and 
  * report it.
- * 
  */
 public final class VM_AccumulatingMethodSampleOrganizer extends VM_Organizer {
 

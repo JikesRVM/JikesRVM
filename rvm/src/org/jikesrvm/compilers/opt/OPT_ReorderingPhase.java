@@ -30,7 +30,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_WeightedBranchTargets;
  * (1) A simple 'fluff' removal pass that moves all infrequent basic blocks
  *     to the end of the code order.
  * (2) Pettis and Hansen Algo2.
- *
  */
 final class OPT_ReorderingPhase extends OPT_CompilerPhase {
 

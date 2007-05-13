@@ -27,8 +27,6 @@ import org.vmmagic.pragma.*;
  * Additional Stream for remset references.
  * This class extends ImmortalSpaceDriver, a simple driver for 
  * the contiguous MMTk ImmortalSpace.
- *
- *
  */
 @Uninterruptible public class GenImmortalSpaceDriver extends ImmortalSpaceDriver {
 
@@ -82,8 +80,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Heelper methods to create the additional streams
-   *
-   */
+ */
   @Interruptible
   private ShortStream createRemsetStream() { 
     return VM.newGCspyShortStream(
@@ -106,8 +103,7 @@ import org.vmmagic.pragma.*;
   /**
    * Setup summaries part of the <code>transmit</code> method.<p>
    * Overrides method in superclass to handle additional Stream.
-   * 
-   */
+ */
   protected void setupSummaries() {
     super.setupSummaries();
     remsetStream.setSummary(totalRemset);
@@ -136,8 +132,7 @@ import org.vmmagic.pragma.*;
    * Reset the remset Stream
    * The remset Stream has to be reset seperately because we do not
    * gather data in the usual way using scan().
-   *
-   */
+ */
   public void resetRemsetStream() {
     remsetStream.resetData();
     totalRemset = 0;

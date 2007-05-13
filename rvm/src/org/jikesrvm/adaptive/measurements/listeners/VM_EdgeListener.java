@@ -32,7 +32,6 @@ import org.vmmagic.unboxed.Offset;
  * integer array, buffer.  Each time this listener is called, 
  * it places a triple of integers in buffer that correspond to
  * the callee, caller, and machine code offset of the call site
- *
  */
 @Uninterruptible
 public class VM_EdgeListener extends VM_ContextListener 

@@ -17,7 +17,6 @@ import org.jikesrvm.compilers.common.VM_ExceptionTable;
 /**
  * Encoding of try ranges in the final machinecode and the
  * corresponding exception type and catch block start.
- *
  */
 final class VM_BaselineExceptionTable extends VM_ExceptionTable {
 

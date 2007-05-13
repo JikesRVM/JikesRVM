@@ -14,7 +14,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
  * This class implements global value numbering 
  * ala Alpern, Wegman and Zadeck, PoPL 88.
  * See Muchnick p.348 for a nice discussion.
- *
  */
 class OPT_GlobalValueNumber extends OPT_CompilerPhase {
   /** Print verbose debugging output? */

@@ -18,10 +18,6 @@ import org.jikesrvm.VM;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
-/**
- *
- *
- */
 @Uninterruptible public class Barriers extends org.mmtk.vm.Barriers implements VM_SizeConstants {
   /**
    * Perform the actual write of the write barrier.

@@ -5,12 +5,9 @@
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
  * (C) Copyright Elias Naur 2006
- * 
  */
 import java.nio.*;
 
-/**
- */
 public class TestJNIDirectBuffers {
 
   // set to true to get messages for each test

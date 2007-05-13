@@ -14,7 +14,6 @@ import org.jikesrvm.classloader.*;
 
 /**
  * Library support interface of Jikes RVM
- *
  */
 public class JikesRVMSupport {
 

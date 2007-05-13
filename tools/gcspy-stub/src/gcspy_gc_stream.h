@@ -9,7 +9,6 @@
 
 /**
  * A testing stub for GCspy
- *
  */
 
 #ifndef _GCSPY_GC_STREAM_H_

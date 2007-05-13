@@ -41,7 +41,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
  *
  * @see OPT_BURS_STATE
  * @see OPT_BURS_TreeNode
- *
  */
 final class OPT_MinimalBURS extends OPT_BURS {
 

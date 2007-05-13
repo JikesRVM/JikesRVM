@@ -14,7 +14,6 @@ import org.jikesrvm.classloader.VM_Method;
  * A collection of weighted call targets.
  * Depending on the size of the callee set, we use different subclasses
  * that optimize the time/space tradeoffs.
- *
  */
 public abstract class VM_WeightedCallTargets {
 

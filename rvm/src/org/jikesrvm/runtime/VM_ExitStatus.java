@@ -5,7 +5,6 @@
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
  * (C) Copyright IBM Corp 2003, 2004, 2005
- *
  */
 package org.jikesrvm.runtime;
 
@@ -14,7 +13,6 @@ package org.jikesrvm.runtime;
  * These process exit status codes are used by the virtual machine whenever it
  * must exit with some failure condition.  By default, if all goes well, the
  * virtual machine will exit with status zero.
- *
  */
 public interface VM_ExitStatus {
   /* Exit statuses, pending a better location.       

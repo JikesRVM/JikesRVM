@@ -30,8 +30,6 @@ import org.vmmagic.pragma.*;
  *
  * This class implements a simple driver for contiguous MMTk spaces
  * such as CopySpace and ImmortalSpace.
- *
- *
  */
 @Uninterruptible public class LinearSpaceDriver extends AbstractDriver {
 
@@ -437,8 +435,7 @@ import org.vmmagic.pragma.*;
   /**
    * Setup summaries part of the <code>transmit</code> method.<p>
    * Override this method to setup summaries of additional streams in subclasses.
-   * 
-   */
+ */
   protected void setupSummaries() {
     scalarUsedSpaceStream.setSummary(totalScalarUsedSpace,
                                      subspace.getEnd().diff(subspace.getStart()).toInt());
@@ -454,8 +451,7 @@ import org.vmmagic.pragma.*;
   /**
    * Setup control info part of the <code>transmit</code> method.<p>
    * Override this method to change the controls for your own driver subclass.   
-   * 
-   */
+ */
   protected void setupControlInfo() {
     int numBlocks = subspace.getBlockNum();
     controlValues(CONTROL_USED, subspace.getFirstIndex(), numBlocks);
@@ -491,8 +487,7 @@ import org.vmmagic.pragma.*;
    * Reset the roots Stream
    * The roots Stream has to be reset seperately because we do not
    * gather data in the usual way using <code>scan()</code>.
-   *
-   */
+ */
   public void resetRootsStream() {
     rootsStream.resetData();
     totalRoots = 0;

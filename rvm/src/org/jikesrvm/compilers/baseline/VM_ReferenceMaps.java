@@ -22,7 +22,6 @@ import org.vmmagic.unboxed.Offset;
 /**
  * class that provides stack (and local var) map for a baseline compiled method
  * GC uses the methods provided here
- * 
  */
 @Uninterruptible public final class VM_ReferenceMaps implements VM_BaselineConstants  {
 
@@ -691,8 +690,7 @@ import org.vmmagic.unboxed.Offset;
    *   expand the array and referencemap array if necessary
    *
    * @param jsrSiteMap   unusualMap to be added to array
-   *
-   */
+ */
   @Interruptible
   private int addUnusualMap(VM_UnusualMaps jsrSiteMap) { 
     if (jsrInfo.unusualMaps == null) {
@@ -1083,8 +1081,7 @@ import org.vmmagic.unboxed.Offset;
    *  location site) into the jsrInfo.extraUnusualMap where the deltas are accumulated
    *  NOTE: while the routine is written to combine 2 jsrInfo.unusualMaps in general
    *      in reality the target map is always the same ( the jsrInfo.extraUnusualMap)
-   *
-   */  
+ */
   private VM_UnusualMaps combineDeltaMaps( int jsrUnusualMapid)   {
     //get the delta unusualMap
     VM_UnusualMaps deltaMap = jsrInfo.unusualMaps[jsrUnusualMapid];

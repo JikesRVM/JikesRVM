@@ -90,7 +90,6 @@ import org.vmmagic.unboxed.Offset;
  * the stackframe.  This class holds only the architecture-specific
  * functions.
  * <p>
- *
  */
 public abstract class OPT_StackManager extends OPT_GenericStackManager {
   

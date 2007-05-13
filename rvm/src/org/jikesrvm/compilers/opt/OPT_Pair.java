@@ -8,8 +8,6 @@
  */
 package org.jikesrvm.compilers.opt;
 
-/**
- */
 class OPT_Pair {
   final Object first;
   final Object second;
@@ -24,15 +22,11 @@ class OPT_Pair {
     second = s;
   }
 
-  /**
-   */
-  public int hashCode () {
+    public int hashCode () {
     return  (first.hashCode() | second.hashCode());
   }
 
-  /**
-   */
-  public boolean equals (Object o) {
+    public boolean equals (Object o) {
     return  (o instanceof OPT_Pair) && first == ((OPT_Pair)o).first && 
         second == ((OPT_Pair)o).second;
   }

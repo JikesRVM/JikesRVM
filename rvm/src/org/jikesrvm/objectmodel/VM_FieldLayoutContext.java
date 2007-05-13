@@ -20,8 +20,6 @@ import org.jikesrvm.runtime.VM_Memory;
  * 
  * This abstract superclass looks after the total object size and
  * alignment.
- * 
- *
  */
 public abstract class VM_FieldLayoutContext implements VM_SizeConstants {
 

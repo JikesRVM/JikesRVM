@@ -20,7 +20,6 @@ import org.vmmagic.unboxed.*;
 /**
  * This supports <i>unsynchronized</i> enqueuing and dequeuing of tracing data
  * and bulk processing of the buffer.
- * 
  */
 @Uninterruptible public class TraceBuffer extends LocalQueue 
   implements Constants, TracingConstants {

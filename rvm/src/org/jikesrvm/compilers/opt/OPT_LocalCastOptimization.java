@@ -44,7 +44,6 @@ import org.jikesrvm.compilers.opt.ir.TypeCheck;
  * the path where the obejct is known not to be null.  And convert
  * it to a checkcast_not_null
  * </ul>
- *
  */
 public final class OPT_LocalCastOptimization extends OPT_CompilerPhase {
 

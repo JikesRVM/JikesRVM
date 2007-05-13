@@ -22,7 +22,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
  * Each IR contains has exactly one register pool object associated with it.
  * 
  * @see OPT_Register
- * 
  */
 public abstract class OPT_RegisterPool extends OPT_GenericRegisterPool {
 

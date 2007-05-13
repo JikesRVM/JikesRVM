@@ -12,7 +12,6 @@ import java.util.Enumeration;
 
 /**
  * Extend java.util.Enumeration to avoid downcasts from object.
- *
  */
 public interface OPT_RegisterOperandEnumeration extends Enumeration<OPT_RegisterOperand> {
   /** Same as nextElement but avoid the need to downcast from Object */

@@ -40,8 +40,6 @@ import org.vmmagic.unboxed.*;
  * list on the current block is exhausted, the next block for that
  * size class becomes the current block and its free list is used.  If
  * there are no more blocks the a new block is allocated.<p>
- * 
- *
  */
 @Uninterruptible public abstract class SegregatedFreeList extends Allocator 
   implements Constants {
@@ -518,8 +516,7 @@ import org.vmmagic.unboxed.*;
   /****************************************************************************
    * 
    * Preserving (saving & restoring) free lists
-   * 
-   */
+ */
 
   protected abstract boolean maintainSideBitmap();
   protected abstract boolean preserveFreeList();

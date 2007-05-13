@@ -20,7 +20,6 @@ import org.vmmagic.pragma.*;
  * 
  * @see BumpPointer
  * @see ImmortalSpace
- * 
  */
 @Uninterruptible public final class ImmortalLocal extends BumpPointer {
 

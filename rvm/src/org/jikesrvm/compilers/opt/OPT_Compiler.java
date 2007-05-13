@@ -41,8 +41,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
  *  </ul>
  *
  * <p> This class is not meant to be instantiated.
- *
- *
  */
 public class OPT_Compiler implements VM_Callbacks.StartupMonitor {
 

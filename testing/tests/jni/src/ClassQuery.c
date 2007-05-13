@@ -5,11 +5,9 @@
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
  * (C) Copyright IBM Corp. 2001
- *
  */
 /* Test miscellaneous query JNI Functions 
  * Implement native methods from ClassQuery.java 
- * 
  */
 
 #include <stdio.h>

@@ -49,7 +49,6 @@ import org.vmmagic.unboxed.Offset;
  * assembled, like the top-level generateCode driver.  This class is
  * not meant to be used in isolation, but rather to provide support
  * from the OPT_Assembler.
- *
  */
 abstract class OPT_AssemblerBase extends VM_Assembler 
   implements OPT_Operators, VM_Constants, OPT_PhysicalRegisterConstants {
@@ -785,8 +784,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    *
    * @param instr  An integer to be interpreted as a PowerPC instruction
    * @param offset the mcoffset (in bytes) of the instruction
-   *
-   */
+ */
   public String disasm(int instr, int offset) {
     OPT_OptimizingCompilerException.TODO("OPT_Assembler: disassembler");
     return null;

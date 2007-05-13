@@ -5,7 +5,6 @@
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
  * (C) Copyright IBM Corp 2001,2002,2003,2004
- *
  */
 
 /**
@@ -1422,7 +1421,6 @@ createVM(int vmInSeparateThread)
 
 /*
  * Wrapper for bootThread for a new pthread to start up the VM
- *
  */
 static void *
 bootThreadCaller(void UNUSED *dummy) 

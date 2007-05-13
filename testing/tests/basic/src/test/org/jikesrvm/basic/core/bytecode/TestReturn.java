@@ -8,8 +8,6 @@
  */
 package test.org.jikesrvm.basic.core.bytecode;
 
-/**
- */
 class TestReturn {
   public static void main(String[] args) {
     System.out.println(boolean_f());

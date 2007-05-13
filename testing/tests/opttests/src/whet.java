@@ -16,7 +16,6 @@
  *      Compile by:             cc -O -s -o whet whet.c
  *      or:                     cc -O -DPOUT -s -o whet whet.c
  *      if output is desired.
- *
  */
 
 public class whet {

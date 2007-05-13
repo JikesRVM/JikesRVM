@@ -29,7 +29,6 @@ import org.jikesrvm.scheduler.VM_Thread;
  *  (1) Always inline trivial methods that can be inlined without a guard
  *  (2) At O1 and greater use a mix of profile information and static heuristics
  *      to inline larger methods and methods that require guards.
- *
  */
 public final class OPT_DefaultInlineOracle extends OPT_InlineTools
   implements OPT_InlineOracle {

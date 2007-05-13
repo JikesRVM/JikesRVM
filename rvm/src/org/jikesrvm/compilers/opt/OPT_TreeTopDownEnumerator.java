@@ -17,7 +17,6 @@ import java.util.ListIterator;
  *  It guarantees that all children of a node will only be visited after
  *  the parent.
  *  This is not necessarily the same as a top-down level walk.
- *
  */
 final class OPT_TreeTopDownEnumerator implements Enumeration<OPT_TreeNode> {
 

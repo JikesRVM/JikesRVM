@@ -71,9 +71,6 @@ import org.vmmagic.pragma.*;
  * and second, if the pointed to object is moved by a copying
  * collector, the pointer into the object must be adjusted so it now
  * points into the newly copied object.<p>
- *
- *
- *
  */
 @Uninterruptible public final class ScanThread implements VM_Constants {
 

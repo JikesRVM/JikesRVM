@@ -17,8 +17,6 @@ import org.vmmagic.unboxed.Offset;
 
 /**
  * A counter that supports atomic increment and reset.
- *
- *
  */
 @Uninterruptible public final class SynchronizedCounter extends org.mmtk.vm.SynchronizedCounter {
 

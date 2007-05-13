@@ -36,7 +36,6 @@ import org.vmmagic.unboxed.Offset;
  *
  * The execution of this plan compiles the method, installs the new
  * code, and reschedule the thread.
- *
  */
 public class OSR_OnStackReplacementPlan implements VM_Constants {
   private int CMID;

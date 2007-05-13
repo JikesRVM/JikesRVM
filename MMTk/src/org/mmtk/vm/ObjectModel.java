@@ -16,10 +16,6 @@ import org.mmtk.utility.scan.MMType;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.*;
 
-/**
- *
- *
- */
 @Uninterruptible public abstract class ObjectModel {
   /**
    * Copy an object using a plan's allocCopy to get space and install

@@ -27,7 +27,6 @@ import org.vmmagic.unboxed.WordArray;
  * across the references represented by a frame built by the OPT compiler.
  *
  * @see org.jikesrvm.ArchitectureSpecific.VM_OptGCMapIterator
- *
  */
 @Uninterruptible
 public abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator 

@@ -16,7 +16,6 @@ import org.apache.tools.ant.taskdefs.MacroInstance;
 /**
  * A looping construct for ant. The task will accept a list of space separated
  * values. The task will then iterate over inner macro with name passed in as a parameter.
- *
  */
 public class ForEachTask
     extends Task {

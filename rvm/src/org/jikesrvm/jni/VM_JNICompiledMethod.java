@@ -29,7 +29,6 @@ import org.vmmagic.unboxed.Offset;
  * to Java leaving the exception pending.  If it returns to the transition
  * frame with a pending exception. JNI causes an athrow to happen as if it
  * was called at the call site of the call to the native method.
- *
  */
 @SynchronizedObject
 public final class VM_JNICompiledMethod extends VM_CompiledMethod {

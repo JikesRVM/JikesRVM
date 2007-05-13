@@ -45,7 +45,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
  * Class to manage the allocation of the "compiler-independent" portion of 
  * the stackframe.
  * <p>
- *
  */
 public abstract class OPT_GenericStackManager extends OPT_IRTools {
 
@@ -144,8 +143,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
 
   /**
    * Insert the prologue for a normal method.  
-   *
-   */
+ */
   public abstract void insertNormalPrologue();
 
   /**

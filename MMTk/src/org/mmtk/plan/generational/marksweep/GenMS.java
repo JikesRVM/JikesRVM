@@ -39,8 +39,6 @@ import org.vmmagic.unboxed.*;
  * 
  * For general comments about the global/local distinction among classes refer
  * to Plan.java and PlanLocal.java.
- * 
- *
  */
 @Uninterruptible public class GenMS extends Gen {
 

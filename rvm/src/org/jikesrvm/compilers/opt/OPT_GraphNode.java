@@ -17,7 +17,6 @@ package org.jikesrvm.compilers.opt;
  * @see OPT_Graph
  * @see OPT_GraphEdge
  * @see OPT_GraphUtilities
- *
  */
 public interface OPT_GraphNode extends OPT_GraphElement
 {

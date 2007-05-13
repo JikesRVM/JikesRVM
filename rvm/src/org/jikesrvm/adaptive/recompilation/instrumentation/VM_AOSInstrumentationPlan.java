@@ -18,7 +18,6 @@ import org.jikesrvm.compilers.opt.OPT_InstrumentationPlan;
  * information that is needed by the instrumentation phases.  Is is
  * different from an OPT_InstrumentationPlan because it contains
  * information that the non-adaptive opt-compiler can't see.
- *
  */
 public class VM_AOSInstrumentationPlan extends OPT_InstrumentationPlan {
   /**

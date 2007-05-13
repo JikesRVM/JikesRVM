@@ -69,7 +69,6 @@ import java.lang.reflect.*;
  * @see org.jikesrvm.compilers.opt.ir.OPT_Instruction
  * @see org.jikesrvm.compilers.opt.OPT_Assembler
  * @see VM_Assembler
- *
  */
 public class GenerateAssembler {
 
@@ -151,8 +150,7 @@ public class GenerateAssembler {
     /**
      *  The instruction format for the IA32_* opt compiler opcode(s)
      * being processed. 
-     *
-     */
+ */
     static String currentFormat;
 
     /**
@@ -335,8 +333,7 @@ public class GenerateAssembler {
      *
      * @param str A valid VM_Assembler encoding of operand type
      * @return The OPT_Assembler constant corresponding to str, or -1 if none
-     *
-     */
+ */
     private static int getEncoding(String str) {
         for(int i = 0; i < encoding.length - SIZES; i++)
             if (encoding[i].equals(str))
@@ -353,8 +350,7 @@ public class GenerateAssembler {
      *
      * @param str A valid VM_Assembler encoding of operand size
      * @return The OPT_Assembler constant corresponding to str, or -1 if none
-     *
-     */
+ */
     private static int getSize(String str) {
         for(int i = encoding.length - SIZES; i < encoding.length; i++)
             if (encoding[i].equals(str))
@@ -947,8 +943,7 @@ public class GenerateAssembler {
          * @param opcode the IA32 opcode being generated
          * @param testsPerformed the set of tests already performed
          * @param level the indentation level for pretty printing
-         *
-         */
+ */
         private void emitSet(String opcode, boolean[][] testsPerformed, int level) {
             if (emitters.isEmpty()) {
                 // do nothing

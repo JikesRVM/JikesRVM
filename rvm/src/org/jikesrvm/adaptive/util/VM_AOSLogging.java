@@ -54,7 +54,6 @@ import org.jikesrvm.scheduler.VM_Thread;
  *      This logging level is supposed to produce minimal performance pertubation.
  *   2  Log interesting AOS events and controller actions
  *   3  Exhaustively log pretty much everything that is going on
- *
  */
 public class VM_AOSLogging {
 

@@ -26,7 +26,6 @@ import org.vmmagic.pragma.*;
  * The server runs as a separate pthread and communicates with GCspy
  * clients. It handles commands from the client and passes data to it.
  * Mostly it forwards calls to the C gcspy library.
- *
  */
 @Uninterruptible public class ServerInterpreter extends org.mmtk.vm.gcspy.ServerInterpreter
   implements VM_JavaHeaderConstants {

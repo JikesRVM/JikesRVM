@@ -20,8 +20,6 @@ import org.vmmagic.unboxed.*;
  * This class implements a dec-buffer for a reference counting collector
  * 
  * @see org.mmtk.plan.TraceStep
- * 
- *
  */
 @Uninterruptible public final class DecBuffer extends ObjectReferenceBuffer implements Constants {
   /****************************************************************************

@@ -16,7 +16,6 @@ import org.jikesrvm.util.VM_PriorityQueue;
  * support multiple producers/consumers where 
  * the consumers are blocked if no objects are available
  * to consume.
- *
  */
 public class VM_BlockingPriorityQueue extends VM_PriorityQueue {
 

@@ -18,7 +18,6 @@ import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
  * kinds of instrumentation or profiling.
  *
  * @see VM_ObjectModel
- * 
  */
 public interface VM_MiscHeaderConstants extends VM_Constants {
 

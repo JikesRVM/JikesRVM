@@ -17,7 +17,6 @@ import org.jikesrvm.util.VM_HashSet;
 /**
  * This class holds, for each interface, the set of initialized classes
  * that implement the interface.
- *
  */
 public class OPT_InterfaceHierarchy {
 

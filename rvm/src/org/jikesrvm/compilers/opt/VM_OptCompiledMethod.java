@@ -44,7 +44,6 @@ import org.vmmagic.unboxed.Offset;
  * compiled machine code.  Therefore, they should only contain
  * state that is really required to be persistent.  Anything
  * transitory should be stored on the OPT_IR object. 
- * 
  */
 @SynchronizedObject
 @Uninterruptible

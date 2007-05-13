@@ -6,7 +6,6 @@ import org.apache.tools.ant.taskdefs.Property;
 
 /**
  * AntTask extension that can ignore build failures and may set a property on failure.
- *
  */
 public class ErrorRecordingAntTask
     extends Ant {

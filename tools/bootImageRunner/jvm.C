@@ -9,7 +9,6 @@
 
 /**
  * Implementation of JNI Invocation API for Jikes RVM.
- *
  */
 
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS

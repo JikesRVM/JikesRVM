@@ -13,7 +13,6 @@
  * recompiled by just compiling "OptDummy.java".
  * <p/>
  * The minimal set has to be discovered by trial and error. Sorry. --Derek
- *
  */
 class OptDummy {
   static org.jikesrvm.compilers.opt.OPT_Compiler a;

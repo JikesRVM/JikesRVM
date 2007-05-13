@@ -48,7 +48,6 @@ import org.vmmagic.unboxed.Offset;
  * VM_Primitive's are constructed ab initio. 
  * Their "resolution", "instantiation", and "initialization" phases
  * are no-ops.
- *
  */
 public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoaderConstants, VM_SizeConstants, VM_Constants {
 

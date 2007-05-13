@@ -8,8 +8,6 @@
  */
 package org.jikesrvm.compilers.baseline;
 
-/**
- */
 public final class VM_BasicBlockFactory {
 
   private int nextBlockNumber = VM_BasicBlock.STARTBBNUMBER;

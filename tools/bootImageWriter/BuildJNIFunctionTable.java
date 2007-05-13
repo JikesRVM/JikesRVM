@@ -22,7 +22,6 @@ import org.jikesrvm.jni.VM_JNIFunctions;
  * of the appropriate JNI function implementation.
  * <p>
  * It builds a JNI function table for JNI version 1.2.
- *
  */
 public class BuildJNIFunctionTable {
 

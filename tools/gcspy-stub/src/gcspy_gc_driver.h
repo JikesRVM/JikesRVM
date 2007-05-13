@@ -9,7 +9,6 @@
 
 /**
  * A testing stub for GCspy
- *
  */
 
 #ifndef _GCSPY_GC_DRIVER_H_

@@ -16,7 +16,6 @@ package test.org.jikesrvm.basic.core.threads;
  * An object of this class loops creates a Call GC object
  *     then loops until a GC is done by a different object
  *        then it starts the GC object that it created
- *
  */
 
 /**

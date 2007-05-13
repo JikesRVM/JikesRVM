@@ -10,7 +10,6 @@
 /**
  * O/S support services required by the java class libraries.
  * See also: VM_BootRecord.java
- *
  */
 
 // Aix and Linux version.  PowerPC and IA32.

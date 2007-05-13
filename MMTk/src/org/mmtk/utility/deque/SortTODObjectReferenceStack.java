@@ -20,7 +20,6 @@ import org.vmmagic.pragma.*;
  * This supports <i>unsynchronized</i> pushing and popping of object
  * references.  In addition, this can sort the entries currently on
  * the shared stack.
- * 
  */
 @Uninterruptible public class SortTODObjectReferenceStack extends LocalDeque 
   implements Constants {

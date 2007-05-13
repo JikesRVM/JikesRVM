@@ -25,7 +25,6 @@ import org.vmmagic.unboxed.*;
  * 
  * Virtual memory space is taken from a VM resource, and pages
  * consumed by blocks are accounted for by a memory resource.
- * 
  */
 @Uninterruptible public final class BlockAllocator implements Constants {
 

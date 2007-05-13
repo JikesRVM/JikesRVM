@@ -15,7 +15,6 @@ import org.jikesrvm.VM;
  *
  * A bit set is a set of elements, each of which corresponds to a unique
  * integer from [0,MAX].  
- *
  */
 public final class OPT_BitSet {
 

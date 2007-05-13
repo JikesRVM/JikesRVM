@@ -15,7 +15,6 @@ import org.vmmagic.unboxed.Address;
 
 /**
  * Machine specific helper functions for dynamic linking.
- *
  */
 @Uninterruptible
 public abstract class VM_DynamicLinkerHelper implements VM_RegisterConstants {

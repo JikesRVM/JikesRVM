@@ -23,8 +23,6 @@ import org.jikesrvm.VM;
  * VM-specific types which must be instantiated within MMTk.
  * 
  * @see org.mmtk.vm.Factory
- * 
- *
  */
 public final class Factory extends org.mmtk.vm.Factory {
 

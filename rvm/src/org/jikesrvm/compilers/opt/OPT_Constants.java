@@ -10,7 +10,6 @@ package org.jikesrvm.compilers.opt;
 
 /**
  * Class that holds miscellaneous constants used in the opt compiler
- *
  */
 public interface OPT_Constants {
   // the following constants are dummy bytecode indices,

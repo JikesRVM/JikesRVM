@@ -42,7 +42,6 @@ import org.vmmagic.unboxed.Address;
  * A reportable object implements the Reportable interface, and 
  * is typically registered and used by the instrumentation subsystem. 
  * A Reporable can be reset and reported.
- * 
  */
 public abstract class VM_RuntimeMeasurements {
 

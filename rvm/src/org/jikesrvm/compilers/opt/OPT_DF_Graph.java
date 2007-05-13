@@ -13,7 +13,6 @@ import java.util.ArrayList;
 /**
  * Implementation of a graph used in the guts of the dataflow equation
  * solver.
- *
  */
 class OPT_DF_Graph implements OPT_Graph {
 

@@ -8,8 +8,6 @@
  */
 package test.org.jikesrvm.basic.core.classloading;
 
-/**
- */
 class TestUTF8 {
   static String[] test = {
   "\000\001\002\003\004\005\006\007\010\011\012" +

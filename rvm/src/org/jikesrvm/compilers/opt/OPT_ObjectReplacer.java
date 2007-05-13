@@ -48,8 +48,6 @@ import org.jikesrvm.compilers.opt.ir.PutField;
 /**
  * Class that performs scalar replacement of aggregates for non-array
  * objects
- *
- *
  */
 public class OPT_ObjectReplacer implements OPT_AggregateReplacer {
   static final boolean DEBUG = false;

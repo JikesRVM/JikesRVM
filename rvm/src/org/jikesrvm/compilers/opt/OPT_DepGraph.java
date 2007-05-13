@@ -64,7 +64,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
  * <li> large scale refactor and cleanup
  * <li> more precise treatment of exceptions, control and acquire/release
  * </ul>
- * 
  */
 final class OPT_DepGraph extends OPT_SpaceEffGraph {
 

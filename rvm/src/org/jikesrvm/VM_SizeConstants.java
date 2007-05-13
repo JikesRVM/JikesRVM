@@ -11,7 +11,6 @@ package org.jikesrvm;
 
 /**
  * Constants defining the basic sizes of primitive quantities
- *
  */
 public interface VM_SizeConstants {
 

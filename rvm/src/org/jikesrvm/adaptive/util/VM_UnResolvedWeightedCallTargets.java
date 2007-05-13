@@ -18,7 +18,6 @@ import org.jikesrvm.classloader.VM_MethodReference;
  * A collection of weighted call targets. In some case we can't resolve a
  * class too early in the process. So we recorded it as unresolved and 
  * resolve the method when the method is being compiled.
- *
  */
 public abstract class VM_UnResolvedWeightedCallTargets {
 

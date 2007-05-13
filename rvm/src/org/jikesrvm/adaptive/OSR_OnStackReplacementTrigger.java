@@ -20,7 +20,6 @@ import org.vmmagic.unboxed.Offset;
 
 /**
  * Trigger an OSR from a running thread.
- * 
  */
 public class OSR_OnStackReplacementTrigger {
   

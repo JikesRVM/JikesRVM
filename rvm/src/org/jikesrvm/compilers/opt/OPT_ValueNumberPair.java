@@ -10,7 +10,6 @@ package org.jikesrvm.compilers.opt;
 
 /**
  * utility class: represents a pair of value numbers.
- *
  */
 class OPT_ValueNumberPair implements Comparable<OPT_ValueNumberPair> {
   /** the value number of an array pointer */

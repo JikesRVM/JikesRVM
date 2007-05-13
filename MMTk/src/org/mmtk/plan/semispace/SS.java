@@ -35,9 +35,6 @@ import org.vmmagic.unboxed.*;
  * and therefore "static" members of Plan.  This mapping of threads to
  * instances is crucial to understanding the correctness and
  * performance proprties of this plan.
- * 
- *
- *
  */
 @Uninterruptible public class SS extends StopTheWorld {
   /** Fraction of available virtual memory available to each semispace */

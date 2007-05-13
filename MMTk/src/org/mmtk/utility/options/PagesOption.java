@@ -17,8 +17,6 @@ import org.vmmagic.unboxed.*;
 
 /**
  * A memory option that stores values as a whole number of pages.
- * 
- *
  */
 public class PagesOption extends Option {
   // values

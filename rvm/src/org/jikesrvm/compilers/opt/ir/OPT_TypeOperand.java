@@ -21,7 +21,6 @@ import org.jikesrvm.classloader.VM_TypeReference;
  * @see OPT_Operand
  * @see VM_Type
  * @see VM_TypeReference
- * 
  */
 public final class OPT_TypeOperand extends OPT_Operand {
 

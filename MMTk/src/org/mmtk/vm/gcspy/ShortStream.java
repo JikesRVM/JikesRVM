@@ -19,8 +19,6 @@ import org.vmmagic.pragma.*;
 
 /**
  * Set up a GCspy Stream with data type SHORT_TYPE.
- *
- *
  */
 @Uninterruptible public abstract class ShortStream extends Stream {
 

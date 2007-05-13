@@ -8,8 +8,6 @@
  */
 package org.jikesrvm.compilers.opt;
 
-/**
- */
 final class OPT_SpaceEffGraphNodeListHeader {
   OPT_SpaceEffGraphNodeList _first;
   OPT_SpaceEffGraphNodeList _last;

@@ -62,7 +62,6 @@ import org.vmmagic.unboxed.Word;
  * H = hash code state bits
  * A = available for use by GCHeader and/or MiscHeader.
  * </pre>
- * 
  */
 @Uninterruptible public class VM_JavaHeader implements VM_JavaHeaderConstants
 {

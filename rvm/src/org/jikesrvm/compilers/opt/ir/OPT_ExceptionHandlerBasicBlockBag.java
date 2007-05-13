@@ -16,7 +16,6 @@ import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
  *
  * @see OPT_BasicBlock
  * @see OPT_ExceptionHandlerBasicBlock
- *
  */
 final class OPT_ExceptionHandlerBasicBlockBag {
 

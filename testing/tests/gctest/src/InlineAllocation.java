@@ -23,7 +23,6 @@ import java.lang.reflect.*;
  * 
  * It can also be used with org.jikesrvm.tools.oth.OptTestHarness to manually inspect and 
  * tune the inline allocation sequence.
- *
  */
 class InlineAllocation {
   int a;

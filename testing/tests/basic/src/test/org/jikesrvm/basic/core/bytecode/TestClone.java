@@ -8,8 +8,6 @@
  */
 package test.org.jikesrvm.basic.core.bytecode;
 
-/**
- */
 class TestClone implements Cloneable {
   String id;
 

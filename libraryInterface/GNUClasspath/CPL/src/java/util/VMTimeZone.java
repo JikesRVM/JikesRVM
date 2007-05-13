@@ -5,12 +5,10 @@
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
  * (C) Copyright IBM Corp 2004
- *
  */
 package java.util;
 
 /** java.util.VMTimeZone for compatibility with GNU classpath 0.11.
- *
  */
 public class VMTimeZone {
   static TimeZone getDefaultTimeZoneId() {

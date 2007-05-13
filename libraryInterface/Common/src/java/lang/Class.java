@@ -45,7 +45,6 @@ import org.jikesrvm.VM_UnimplementedError;
  *
  * By convention, order methods in the same order
  * as they appear in the method summary list of Sun's 1.4 Javadoc API. 
- * 
  */
 public final class Class<T> implements Serializable, Type, AnnotatedElement, GenericDeclaration {
 

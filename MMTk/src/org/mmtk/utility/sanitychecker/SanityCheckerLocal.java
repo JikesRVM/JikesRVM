@@ -22,8 +22,6 @@ import org.vmmagic.unboxed.*;
 
 /**
  * This class performs sanity checks for StopTheWorld collectors.
- * 
- *
  */
 @Uninterruptible public class SanityCheckerLocal implements Constants {
 

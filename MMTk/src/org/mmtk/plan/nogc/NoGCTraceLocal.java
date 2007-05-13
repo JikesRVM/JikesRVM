@@ -19,8 +19,6 @@ import org.vmmagic.unboxed.*;
 /**
  * This class implments the thread-local core functionality for a transitive
  * closure over the heap graph.
- * 
- *
  */
 @Uninterruptible public final class NoGCTraceLocal extends TraceLocal {
 

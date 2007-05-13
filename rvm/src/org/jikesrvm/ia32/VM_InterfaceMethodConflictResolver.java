@@ -27,7 +27,6 @@ import org.vmmagic.unboxed.Offset;
  *
  * <p><STRONG>Assumption:</STRONG>
  * Register ECX is available as a scratch register (we need one!)
- * 
  */
 public abstract class VM_InterfaceMethodConflictResolver implements VM_RegisterConstants {
 

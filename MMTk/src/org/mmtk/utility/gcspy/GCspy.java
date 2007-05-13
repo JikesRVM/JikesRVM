@@ -23,8 +23,6 @@ import org.vmmagic.pragma.*;
  * whether the VM should wait for a GCspy client to connect, and tile size.
  * Most importantly, it calls the Plan's startGCspyServer method which
  * creates a new ServerInterpreter, and adds events and space drivers.
- * 
- *
  */
 @Uninterruptible public class GCspy {
 

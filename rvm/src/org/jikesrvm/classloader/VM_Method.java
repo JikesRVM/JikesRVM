@@ -25,7 +25,6 @@ import org.vmmagic.unboxed.Offset;
  * A method of a java class corresponding to a method_info structure
  * in the class file. A method is read from a class file using the
  * {@link #readMethod} method.
- *
  */
 public abstract class VM_Method extends VM_Member implements VM_BytecodeConstants {
 

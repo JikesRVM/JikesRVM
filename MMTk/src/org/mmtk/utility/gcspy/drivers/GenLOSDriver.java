@@ -24,8 +24,6 @@ import org.vmmagic.pragma.*;
 /**
  * This class extends a simple driver for the MMTk LargeObjectSpace 
  * for Generational Collectors.
- *
- *
  */
 @Uninterruptible public class GenLOSDriver extends TreadmillDriver {
   
@@ -93,8 +91,7 @@ import org.vmmagic.pragma.*;
    * Setup summaries part of the <code>transmit</code> method.<p>
    * Overrides <code>transmitSetupSummaries </code> of superclass to
    * handle additional streams.
-   * 
-   */
+ */
   protected void setupSummaries() {
     super.setupSummaries();
     remsetStream.setSummary(totalRemset);
@@ -123,8 +120,7 @@ import org.vmmagic.pragma.*;
    * Reset the remset Stream. <p>
    * The remset Stream has to be reset seperately because we do not
    * gather data in the usual way using <code>scan()</code>.
-   *
-   */
+ */
   public void resetRemsetStream() {
     remsetStream.resetData();
     totalRemset = 0;

@@ -8,8 +8,6 @@
  */
 package test.org.jikesrvm.basic.core.bytecode;
 
-/**
- */
 class TestFinally {
   @SuppressWarnings({"ReturnInsideFinallyBlock", "finally"})
   private static int foo() {

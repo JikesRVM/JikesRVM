@@ -30,8 +30,6 @@ import org.vmmagic.pragma.*;
  * 
  * @see CollectorContext
  * @see SimplePhase#delegatePhase
- * 
- *
  */
 @Uninterruptible public abstract class StopTheWorldCollector extends CollectorContext {
 

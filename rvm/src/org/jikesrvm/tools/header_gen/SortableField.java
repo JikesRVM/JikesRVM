@@ -13,7 +13,6 @@ import org.vmmagic.unboxed.Offset;
 
 /**
  * Utility class to help sot fields.
- *
  */
 class SortableField implements Comparable {
   final VM_Field f;

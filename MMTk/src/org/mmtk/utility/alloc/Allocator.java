@@ -35,21 +35,17 @@ import org.vmmagic.pragma.*;
  * Failing to handle this properly will lead to very hard to trace bugs
  * where the allocation that caused a GC or allocations immediately following
  * GC are run incorrectly.
- * 
- *
  */
 
 @Uninterruptible public abstract class Allocator implements Constants {
   /**
    * Maximum number of retries on consecutive allocation failure.
-   * 
-   */
+ */
   private static final int MAX_RETRY = 5;
 
   /**
    * Constructor
-   * 
-   */
+ */
   Allocator() {
   }
 

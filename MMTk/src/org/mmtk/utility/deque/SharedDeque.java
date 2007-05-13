@@ -23,8 +23,6 @@ import org.vmmagic.pragma.*;
  * This supports <i>unsynchronized</i> enqueuing and dequeuing of buffers
  * for shared use.  The data can be added to and removed from either end
  * of the deque.  
- * 
- *
  */
 @Uninterruptible public class SharedDeque extends Deque implements Constants {
 
@@ -37,8 +35,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Constructor
-   * 
-   */
+ */
   public SharedDeque(RawPageSpace rps, int arity) {
     this.rps = rps;
     this.arity = arity;

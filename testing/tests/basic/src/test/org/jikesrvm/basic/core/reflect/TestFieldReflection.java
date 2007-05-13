@@ -12,8 +12,6 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Comparator;
 
-/**
- */
 class TestFieldReflection {
 
   @SuppressWarnings({"CanBeFinal"})

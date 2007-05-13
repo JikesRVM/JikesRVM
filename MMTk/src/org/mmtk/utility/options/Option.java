@@ -29,8 +29,6 @@ import org.mmtk.vm.VM;
  * "No Finalizer" to noFinalizer. The VM may not remove any letters
  * when performing this mapping but may remove spaces and change
  * the case of any character.
- * 
- *
  */
 public abstract class Option {
   // options registry

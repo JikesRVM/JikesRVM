@@ -14,10 +14,6 @@ package org.mmtk.vm;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.*;
 
-/**
- *
- *
- */
 @Uninterruptible public abstract class Barriers {
   /**
    * Sets an element of a char array without invoking any write

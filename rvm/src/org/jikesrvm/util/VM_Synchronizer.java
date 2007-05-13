@@ -14,7 +14,6 @@ import org.vmmagic.pragma.SynchronizedObject;
 /**
  * This class defines an object which should always be allocated a
  * thin lock, since it is likely to be synchronized.
- *
  */
 @SynchronizedObject
 public class VM_Synchronizer {

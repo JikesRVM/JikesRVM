@@ -26,8 +26,6 @@ import org.vmmagic.pragma.*;
 
 /**
  * This class provides generally useful methods.
- *
- *
  */
 @Uninterruptible public class Util extends org.mmtk.vm.gcspy.Util implements Constants {
   private static final boolean DEBUG_ = false;

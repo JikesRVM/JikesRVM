@@ -14,8 +14,6 @@
  *     GetVersion
  *     IsSameObject
  *     AllocObject
- *
- *
  */
 class ClassQuery extends ClassQuerySuper {
   static boolean verbose = true;         // set to true to get messages for each test

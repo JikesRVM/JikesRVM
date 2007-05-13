@@ -8,7 +8,6 @@
  */
 /**
  * Test name mangling from java to C
- *
  */
 
 class Mangled_Name_s_ {

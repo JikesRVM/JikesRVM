@@ -5,7 +5,6 @@
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
  * (C) Copyright IBM Corp 2001,2002
- *
  */
 package org.mmtk.utility;
 
@@ -29,7 +28,6 @@ import org.vmmagic.pragma.*;
  * The treadmill object itself must not be moved.
  * 
  * Access to the instances may be synchronized depending on the constructor argument.
- * 
  */
 @Uninterruptible public final class Treadmill
   implements Constants {

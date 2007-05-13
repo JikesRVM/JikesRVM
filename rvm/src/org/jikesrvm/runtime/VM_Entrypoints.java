@@ -22,7 +22,6 @@ import org.jikesrvm.classloader.VM_TypeReference;
 /**
  * Fields and methods of the virtual machine that are needed by 
  * compiler-generated machine code or C runtime code.
- *
  */
 public class VM_Entrypoints implements VM_Constants {
 

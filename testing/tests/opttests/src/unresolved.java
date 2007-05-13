@@ -8,7 +8,6 @@
  */
 /**
  * unresolved static invocation test.
- *
  */
 
 public class unresolved {

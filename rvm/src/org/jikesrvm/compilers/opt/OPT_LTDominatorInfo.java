@@ -18,7 +18,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
  * This class holds data associated with a basic block as computed by the
  * Lengauer-Tarjan dominator calculation.  
  * @see OPT_LTDominators
- *
  */
 class OPT_LTDominatorInfo {
   static final boolean DEBUG = false;

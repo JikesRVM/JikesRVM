@@ -9,7 +9,6 @@
 
 /**
  * Just lots of unsynchronized read/write to static shared variables.
- *
  */
 public class threadTest1 {
 

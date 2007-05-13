@@ -19,7 +19,6 @@ import org.vmmagic.unboxed.Offset;
  * Class to provide synchronization methods where java language 
  * synchronization is insufficient and VM_Magic.prepare and VM_Magic.attempt
  * are at too low a level
- *
  */
 @Uninterruptible public class VM_Synchronization {
 

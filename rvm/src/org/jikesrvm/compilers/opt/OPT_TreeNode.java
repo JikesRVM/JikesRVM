@@ -12,7 +12,6 @@ import java.util.Enumeration;
 
 /**
  *  This class is a node in a tree.  Both up and down pointers are used.
- *
  */
 public class OPT_TreeNode {
 

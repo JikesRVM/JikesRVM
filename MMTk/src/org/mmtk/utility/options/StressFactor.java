@@ -14,8 +14,6 @@ import org.mmtk.utility.Constants;
 
 /**
  * Force frequent collections after amounts of allocation.
- * 
- *
  */
 public class StressFactor extends PagesOption {
   /**

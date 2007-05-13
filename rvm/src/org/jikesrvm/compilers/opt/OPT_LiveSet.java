@@ -24,7 +24,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
  *    enumerator() - returns an enumeration of the set
  *    toString() - returns a string version of the set
  *    isEmpty() - returns true, iff the set is empty
- *
  */
 public class OPT_LiveSet {
 

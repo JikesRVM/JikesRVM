@@ -19,8 +19,6 @@ import org.vmmagic.pragma.*;
  * a string array.
  * 
  * Enumerations are case sensitive.
- * 
- *
  */
 public class EnumOption extends Option {
   // values

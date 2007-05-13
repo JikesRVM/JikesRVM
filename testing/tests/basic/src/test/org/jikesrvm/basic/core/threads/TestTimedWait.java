@@ -18,7 +18,6 @@ package test.org.jikesrvm.basic.core.threads;
  * wait(millis)
  * notify
  * notifyAll
- *
  */
 
 class TestTimedWait {

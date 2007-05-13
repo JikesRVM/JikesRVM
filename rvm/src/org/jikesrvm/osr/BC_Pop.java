@@ -10,7 +10,6 @@
 package org.jikesrvm.osr;
 /**
  *  pop
- *
  */
 public class BC_Pop extends OSR_PseudoBytecode {
   public byte[] getBytes() {

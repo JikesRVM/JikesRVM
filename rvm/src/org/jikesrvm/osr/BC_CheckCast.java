@@ -10,7 +10,6 @@
 package org.jikesrvm.osr;
 /**
  * checkcast instruction
- *
  */
 public class BC_CheckCast extends OSR_PseudoBytecode {
   private static final int bsize = 6;

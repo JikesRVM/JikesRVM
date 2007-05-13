@@ -11,7 +11,6 @@ package org.jikesrvm;
 /**
  * This error is thrown when the VM encounters an operation
  * that is not yet implemented.
- *
  */
 public class VM_UnimplementedError extends VirtualMachineError {
   /**

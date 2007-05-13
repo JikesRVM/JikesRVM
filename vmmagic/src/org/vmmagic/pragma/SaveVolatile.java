@@ -19,7 +19,6 @@ import org.vmmagic.Pragma;
  * are treated specially by the machine code compiler:
  * the method prologue saves all the volatile registers
  * and the method epilogue restores all the volatile registers
- *
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

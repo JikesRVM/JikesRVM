@@ -40,7 +40,6 @@ import org.vmmagic.unboxed.Offset;
  * Although this would be possible, it would not be a trivial change. 
  * So, until we have an urgent need to preserve guard operands all 
  * the way through the MIR, we'll take the easy way out.
- *
  */
 public class OPT_NullCheckCombining extends OPT_CompilerPhase {
 

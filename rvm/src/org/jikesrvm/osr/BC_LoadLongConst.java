@@ -10,7 +10,6 @@
 package org.jikesrvm.osr;
 /**
  * load a long constant on the stack
- *
  */
 public class BC_LoadLongConst extends OSR_PseudoBytecode {
   private static final int bsize = 10;

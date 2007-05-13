@@ -24,7 +24,6 @@ import org.jikesrvm.compilers.opt.ir.Trap;
 /**
  * This pass adjusts branch probabilities derived from static estimates
  * to account for blocks that are statically guessed to be infrequent.
- *
  */
 class OPT_AdjustBranchProbabilities extends OPT_CompilerPhase {
 

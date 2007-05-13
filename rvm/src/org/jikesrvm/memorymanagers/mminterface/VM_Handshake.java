@@ -28,8 +28,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * revision, the logic here is also changing and somewhat "messy".
  *
  * @see VM_CollectorThread
- *
- *
  */
 public class VM_Handshake {
   

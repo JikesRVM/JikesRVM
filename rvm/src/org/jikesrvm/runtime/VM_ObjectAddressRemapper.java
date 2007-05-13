@@ -17,7 +17,6 @@ import org.vmmagic.unboxed.Address;
  * remote (debugee vm) addresses.
  *
  * See also VM_Magic.setObjectAddressRemapper()
- *
  */
 public interface VM_ObjectAddressRemapper {
   /**

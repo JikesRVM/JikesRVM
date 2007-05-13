@@ -11,8 +11,6 @@ package org.mmtk.utility.options;
 
 /**
  * Try to limit reference counting collections to this time cap.
- * 
- *
  */
 public class GCTimeCap extends MicrosecondsOption {
   /**

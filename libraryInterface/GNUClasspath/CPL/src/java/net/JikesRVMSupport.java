@@ -11,7 +11,6 @@ import org.jikesrvm.VM_SizeConstants;
 
 /**
  * Library support interface of Jikes RVM
- *
  */
 public class JikesRVMSupport implements VM_SizeConstants {
 

@@ -44,7 +44,6 @@ import org.vmmagic.unboxed.Offset;
  * A java thread's execution context.
  * 
  * @see org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread
- *  
  */
 @Uninterruptible public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConstants {
 
@@ -1274,8 +1273,7 @@ import org.vmmagic.unboxed.Offset;
    *         <code>dest.length - offset</code> characters of space.
    *
    *         -1 if <code>offset</code> is negative.
-   *
-   */
+ */
   public int dump(char[] dest, int offset) {
     offset = sprintf(dest, offset, getIndex());   // id
     if (isDaemon)              
@@ -1394,8 +1392,7 @@ import org.vmmagic.unboxed.Offset;
    * @param src Char array to copy from
    * @param srcStart index of the first character of <code>src</code> to copy.
    * @param srcEnd index after the last character of <code>src</code> to copy.
-   *
-   */
+ */
   public static int sprintf(char[] dest, int destOffset, char[] src,
                             int srcStart, int srcEnd) 
   {
@@ -1443,8 +1440,7 @@ import org.vmmagic.unboxed.Offset;
    *         <code>dest.length - offset</code> characters of space.
    *
    * @return  -1 if <code>offset</code> is negative.
-   *
-   */
+ */
   public static int sprintf(char[] dest, int offset, long l) {
     boolean negative = l < 0;
     int nextDigit;

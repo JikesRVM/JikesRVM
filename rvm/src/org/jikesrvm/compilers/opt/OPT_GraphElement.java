@@ -18,8 +18,6 @@ package org.jikesrvm.compilers.opt;
  * @deprecated
  *
  * @see OPT_Graph
- *
- *
  */
 @Deprecated
 interface OPT_GraphElement {

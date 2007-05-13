@@ -34,8 +34,6 @@ package org.mmtk.utility.gcspy;
       <tr><td>INT_TYPE</td>   <td>stream of ints</td>
    </table>
  * StreamConstants
- * 
- *
  */
 
 public interface StreamConstants {

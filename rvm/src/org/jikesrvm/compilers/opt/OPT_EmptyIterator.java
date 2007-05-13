@@ -10,8 +10,6 @@ package org.jikesrvm.compilers.opt;
 
 import java.util.Iterator;
 
-/**
- */
 class OPT_EmptyIterator implements Iterator<Object> {
 
   public boolean hasNext () {

@@ -7,7 +7,6 @@
  * (C) Copyright IBM Corp. 2001
  */
 /* Test GC with Native frames on stack
- * 
  */
 
 #include <stdio.h>

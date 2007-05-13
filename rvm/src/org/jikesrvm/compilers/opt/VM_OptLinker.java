@@ -25,7 +25,6 @@ import org.vmmagic.unboxed.Offset;
  * @see org.jikesrvm.ArchitectureSpecific.OPT_FinalMIRExpansion
  * @see VM_OptSaveVolatile (transitions from compiled code to resolveDynamicLink)
  * @see VM_TableBasedDynamicLinker 
- *
  */
 public final class VM_OptLinker implements VM_BytecodeConstants {
 

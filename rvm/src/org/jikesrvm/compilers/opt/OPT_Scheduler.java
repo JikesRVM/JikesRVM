@@ -33,7 +33,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_InstructionEnumeration;
  *   scheduling time of predecessors + latencies.
  *
  * - Change bubble sort to insertion sort.
- *
  */
 
 final class OPT_Scheduler {

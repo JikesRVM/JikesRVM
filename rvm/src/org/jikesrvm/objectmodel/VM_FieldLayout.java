@@ -19,8 +19,6 @@ import org.vmmagic.unboxed.Offset;
  * in an object.  Not header fields, (scalar) object fields.
  *
  * The field layout object encapsulates layout state.
- *
- *
  */
 public abstract class VM_FieldLayout implements VM_SizeConstants {
   

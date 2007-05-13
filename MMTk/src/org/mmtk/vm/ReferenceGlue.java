@@ -5,7 +5,6 @@
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
  * (C) Copyright IBM Corp. 2001
- *
  */
 package org.mmtk.vm;
 
@@ -15,7 +14,6 @@ import org.vmmagic.unboxed.*;
 /**
  * This class manages SoftReferences, WeakReferences, and
  * PhantomReferences. 
- * 
  */
 @Uninterruptible public abstract class ReferenceGlue {
   /**

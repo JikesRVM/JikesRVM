@@ -15,7 +15,6 @@ import org.vmmagic.unboxed.Address;
  * Encodes the condition codes for branches.
  * 
  * @see OPT_Operand
- *
  */
 public final class OPT_ConditionOperand extends OPT_Operand {
 

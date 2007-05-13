@@ -5,7 +5,6 @@
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
  * (C) Copyright IBM Corp. 2001
- *
  */
 package org.jikesrvm.memorymanagers.mminterface;
 
@@ -28,7 +27,6 @@ import org.vmmagic.unboxed.ObjectReference;
 
 /**
  * Common debugging utility functions used by various garbage collectors
- *
  */
 @Uninterruptible public class DebugUtil implements VM_Constants, Constants {
 

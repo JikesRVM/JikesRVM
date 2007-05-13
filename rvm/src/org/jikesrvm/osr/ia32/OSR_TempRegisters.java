@@ -18,7 +18,6 @@ import org.vmmagic.unboxed.WordArray;
 /** 
  * Temporary resiter set.
  * see: VM_Registers
- *
  */
 public class OSR_TempRegisters implements VM_ArchConstants {
 

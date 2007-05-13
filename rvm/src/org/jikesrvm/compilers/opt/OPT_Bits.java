@@ -16,7 +16,6 @@ import org.vmmagic.unboxed.Offset;
  * OPT_Bits.java
  *
  * utilities for manipulating values at the bit-level.
- *
  */
 public class OPT_Bits {
 

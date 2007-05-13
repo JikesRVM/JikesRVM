@@ -46,7 +46,6 @@ import org.vmmagic.unboxed.Offset;
 
 /**
  * VM_Compiler is the baseline compiler class for the IA32 architecture.
- * 
  */
 public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConstants, VM_SizeConstants {
 

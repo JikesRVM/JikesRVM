@@ -20,7 +20,6 @@
  *
  * Returned:
  *    does not return
- *
  */
 #define NEED_ASSEMBLER_DECLARATIONS
 #include <InterfaceDeclarations.h>

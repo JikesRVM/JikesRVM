@@ -8,8 +8,6 @@
  */
 package org.jikesrvm.compilers.opt;
 
-/**
- */
 
 class OPT_ReverseFilteredDFSenumerateByFinish extends OPT_ReverseDFSenumerateByFinish {
 

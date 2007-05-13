@@ -31,7 +31,6 @@ import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
  *
  * <p>There is an AOS command-line option to set the compiler DNA.  The method
  * {@link VM_CompilerDNA#readDNA} contains a comment on the expected format.
- * 
  */
 public class VM_CompilerDNA implements VM_Constants {
 

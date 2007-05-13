@@ -45,7 +45,6 @@ import org.jikesrvm.runtime.VM_Entrypoints;
  *
  * TODO: Much of this code could still be factored out as
  * architecture-independent.
- *
  */
 public abstract class OPT_CallingConvention extends OPT_IRTools
   implements OPT_Operators,

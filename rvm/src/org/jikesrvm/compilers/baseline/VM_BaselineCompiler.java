@@ -26,7 +26,6 @@ import org.vmmagic.unboxed.Offset;
  * Platform dependent versions extend this class and define
  * the host of abstract methods defined by VM_CompilerFramework to complete
  * the implementation of a baseline compiler for a particular target,
- *
  */
 public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
 

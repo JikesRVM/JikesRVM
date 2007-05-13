@@ -77,7 +77,6 @@ import org.vmmagic.unboxed.Offset;
  * is independent of the target-architecture.  
  * It does not mean that the eventual MIR that implements the magic 
  * won't differ from architecture to architecture.
- *
  */
 public class OPT_GenerateMagic {
 

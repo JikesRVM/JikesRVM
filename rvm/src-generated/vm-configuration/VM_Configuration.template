@@ -13,7 +13,6 @@ package org.jikesrvm;
  *
  * Note: Changing any <code>final</code> flags requires that the whole vm
  *       be recompiled and rebuilt after their values are changed.
- *
  */
 public abstract class VM_Configuration {
 

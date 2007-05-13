@@ -10,8 +10,6 @@ package test.org.jikesrvm.basic.core.bytecode;
 
 import java.io.IOException;
 
-/**
- */
 class TestThrownException {
   private static void testHardwareException() {
     System.out.println("testHardwareException");

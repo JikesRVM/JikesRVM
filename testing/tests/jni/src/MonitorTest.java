@@ -10,7 +10,6 @@
  * Test monitor operation from native
  * The following JNI calls are tested:
  *      MonitorEnter         MonitorExit
- *
  */
 
 class MonitorTest {

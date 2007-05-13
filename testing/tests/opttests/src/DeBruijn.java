@@ -14,7 +14,6 @@
  * will not give you a subsequence that you have already encountered.
  *
  * I'm not sure how to prove this -- any suggestions ?
- *
  */
 
 class DeBruijn {

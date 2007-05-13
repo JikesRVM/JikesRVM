@@ -12,7 +12,6 @@ import org.jikesrvm.ia32.VM_RegisterConstants;
 
 /**
  * This class holds constants that describe IA32 physical register set.
- *
  */
 public interface OPT_PhysicalRegisterConstants extends VM_RegisterConstants {
 

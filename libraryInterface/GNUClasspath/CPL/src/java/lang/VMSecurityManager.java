@@ -19,8 +19,6 @@ import org.jikesrvm.classloader.VM_BootstrapClassLoader;
  * methods have been transferred to VMStackWalker.  We are copying the
  * methods verbatim to there, rather than doing them by call, because of
  * the silly interface.
- *
- *
  */
 final class VMSecurityManager
 {

@@ -28,7 +28,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * It is officially illegal (as of July 31, 2003) 
  * to create a VM_TypeReference for a string that would not be syntactically
  * valid in a class file.   --Steven Augart
- * 
  */
 public final class VM_TypeReference {
   /**

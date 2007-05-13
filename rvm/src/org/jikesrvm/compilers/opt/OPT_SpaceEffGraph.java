@@ -16,7 +16,6 @@ import java.util.Enumeration;
  *
  * OPT_SpaceEffGraph is a generic graph.  Extend to implement specific
  * graph types.
- *
  */
 public class OPT_SpaceEffGraph implements OPT_Graph, 
                                           OPT_VCGGraph, 

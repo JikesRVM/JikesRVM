@@ -19,7 +19,6 @@ import org.jikesrvm.runtime.VM_Time;
  * for execution.
  *
  * This follows the Singleton pattern.
- *
  */
 class VM_IdleThread extends VM_Thread {
 

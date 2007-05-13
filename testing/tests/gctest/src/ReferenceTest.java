@@ -12,7 +12,6 @@ import java.lang.ref.*;
 
 /**
  * A test to test java.lang.ref.*.
- * 
  */
 class ReferenceTest {
 

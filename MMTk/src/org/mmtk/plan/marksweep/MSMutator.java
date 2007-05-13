@@ -40,8 +40,6 @@ import org.vmmagic.unboxed.*;
  * @see StopTheWorldMutator
  * @see MutatorContext
  * @see SimplePhase#delegatePhase
- * 
- *
  */
 @Uninterruptible public abstract class MSMutator extends StopTheWorldMutator {
 

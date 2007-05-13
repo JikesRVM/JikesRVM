@@ -26,7 +26,6 @@ import org.vmmagic.unboxed.Offset;
 
 /**
  * Contains common BURS helper functions for platforms with memory operands.
- * 
  */
 public abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
   // word size for memory operands

@@ -16,8 +16,6 @@ import org.vmmagic.unboxed.*;
 
 /**
  * This trace step is used during trial deletion processing.
- * 
- *
  */
 @Uninterruptible public final class TrialDeletionCollectStep extends TraceStep {
 

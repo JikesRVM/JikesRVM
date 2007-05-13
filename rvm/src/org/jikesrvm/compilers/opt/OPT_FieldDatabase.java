@@ -18,7 +18,6 @@ import org.jikesrvm.util.VM_HashMap;
 /**
  * database to hold field-level information
  * this is a mapping from VM_Field -> FieldDatabaseEntry
- *
  */
 final class OPT_FieldDatabase extends VM_HashMap<VM_Field,OPT_FieldDatabase.FieldDatabaseEntry> {
   private static final boolean DEBUG = false;

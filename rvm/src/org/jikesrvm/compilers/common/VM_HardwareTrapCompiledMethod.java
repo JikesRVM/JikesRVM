@@ -21,7 +21,6 @@ import org.vmmagic.unboxed.Offset;
 /**
  * Information associated with artifical stackframe inserted by hardware 
  * trap handler.
- *
  */
 @SynchronizedObject
 final class VM_HardwareTrapCompiledMethod extends VM_CompiledMethod {

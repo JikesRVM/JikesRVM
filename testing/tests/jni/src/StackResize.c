@@ -8,7 +8,6 @@
  */
 /* Test stack resize with native methods
  * Implement native methods from StackResize.java 
- * 
  */
 
 #include <stdio.h>

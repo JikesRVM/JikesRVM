@@ -23,7 +23,6 @@ import org.vmmagic.unboxed.Word;
  * Note that this class is "uninterruptible" - calling its methods will never 
  * cause the current thread to yield the cpu to another thread (one that
  * might cause a gc, for example).
- *
  */
 @Uninterruptible public class VM_Memory implements VM_SizeConstants {
 

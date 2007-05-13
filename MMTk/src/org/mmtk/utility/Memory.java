@@ -21,8 +21,6 @@ import org.vmmagic.pragma.*;
  * granularity of a Java integer (ie 4-byte units)
  * 
  * FIXME: Why can't these operations be performed at word-granularity?
- * 
- *
  */
 @Uninterruptible public class Memory implements Constants {
 

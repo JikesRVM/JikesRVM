@@ -14,8 +14,6 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements the <i>per-mutator thread</i> 
  * behavior for a null cycle detector. 
- * 
- *
  */
 @Uninterruptible public final class NullCDMutator extends CDMutator {
 }

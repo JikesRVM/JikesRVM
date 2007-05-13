@@ -46,8 +46,6 @@ import org.vmmagic.pragma.*;
  * and therefore "static" members of Plan.  This mapping of threads to
  * instances is crucial to understanding the correctness and
  * performance proprties of this plan.
- * 
- *
  */
 @Uninterruptible public class GenCopy extends Gen {
 

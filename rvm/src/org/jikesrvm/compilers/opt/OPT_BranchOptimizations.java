@@ -73,7 +73,6 @@ import org.jikesrvm.compilers.opt.ir.Unary;
 
 /**
  * Perform simple peephole optimizations for branches.
- * 
  */
 public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver {
 

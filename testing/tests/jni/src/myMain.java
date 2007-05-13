@@ -6,8 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-/**
- */
 public class myMain {
 
   public static int compute (String[] args) {

@@ -12,7 +12,6 @@ import org.jikesrvm.runtime.VM_Magic;
 
 /**
  * Float <==> int bit transfer for Jikes RVM.
- * 
  */
 final class VMFloat {
 

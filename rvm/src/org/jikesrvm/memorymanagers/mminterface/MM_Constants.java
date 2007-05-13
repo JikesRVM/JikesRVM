@@ -17,7 +17,6 @@ import org.jikesrvm.VM_SizeConstants;
  * package space so that they can be accessed by the VM in an
  * MM-neutral way.  It is separate from MM_Interface to break
  * cyclic class-loading dependencies.
- * 
  */
 public class MM_Constants implements VM_SizeConstants {
   /** True if the selected plan needs support for linearly scanning the heap */

@@ -37,8 +37,6 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PPC_BCOND;
 
 /**
  * Wrappers around PowerPC-specific IR common to both 32 & 64 bit
- * 
- *
  */
 public abstract class OPT_MachineSpecificIRPowerPC extends OPT_MachineSpecificIR {
   /**

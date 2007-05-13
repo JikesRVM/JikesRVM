@@ -21,8 +21,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
  * method is "OPT_Instruction getCounterInstructionForEvent(String)"
  * which, given a string, returns a counter instruction that
  * increments the corresponding counter for that string.
- *
- *
  */
 public class VM_StringEventCounterData extends VM_ManagedCounterData
   implements VM_Reportable {
@@ -62,8 +60,7 @@ public class VM_StringEventCounterData extends VM_ManagedCounterData
    * @param event The name of the event
    * @param incrementValue The value to add to counter
    * @return An instruction that will update the count associated with the event.
-   *
-   */
+ */
   public OPT_Instruction getCounterInstructionForEvent(String event, 
                                                 double incrementValue) {
 

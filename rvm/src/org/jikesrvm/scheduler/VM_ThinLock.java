@@ -22,7 +22,6 @@ import org.vmmagic.unboxed.Word;
 
 /**
  * Implementation of thin locks.
- * 
  */
 @Uninterruptible public final class VM_ThinLock implements VM_ThinLockConstants {
 

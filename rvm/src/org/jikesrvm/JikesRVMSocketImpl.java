@@ -39,7 +39,6 @@ import org.jikesrvm.scheduler.VM_Wait;
 
 /**
  * Sockets using Jikes RVM non-blocking I/O support
- *
  */
 final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
 
@@ -134,8 +133,7 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
    *
    * @param             backlog         the max number of outstanding connection requests
    * @exception IOException     thrown if an error occurs while listening
-   *
-   */
+ */
   protected synchronized void listen(int backlog) throws java.io.IOException {
     int rc = sysCall.sysNetSocketListen(native_fd, backlog);
     if (rc == -1)

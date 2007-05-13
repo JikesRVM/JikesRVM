@@ -110,7 +110,6 @@ import org.vmmagic.pragma.NoInline;
  * @see OPT_Operator
  * @see OPT_Operand
  * @see OPT_BasicBlock
- * 
  */
 public final class OPT_Instruction 
   implements VM_Constants, 
@@ -1233,8 +1232,7 @@ public final class OPT_Instruction
    * Invert the probabilty of this branch being taken.  This method
    * should be called on a branch instruction when its condition is
    * reversed using flipCode().
-   * 
-   */
+ */
   public void flipBranchProbability() {
     if (VM.VerifyAssertions) VM._assert(isTwoWayBranch());
     setBranchProbability(1.0f-getBranchProbability());
@@ -1859,8 +1857,7 @@ public final class OPT_Instruction
    * For IR internal use only;   general clients should always use higer level
    * mutation functions. 
    * Clear the {@link #prev} and {@link #next} fields of the instruction.
-   * 
-   */
+ */
   void clearLinks() {
     next = null;
     prev = null;

@@ -25,7 +25,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * The core barrier functionality is implemented by a barrier object.
  * The code in this class is in charge of VM-related idiosyncrasies like
  * computing how many processors are participating in a particular collection.
- *
  */
 public final class SynchronizationBarrier {
 

@@ -17,8 +17,6 @@ import org.vmmagic.unboxed.*;
 
 /**
  * This class implements the simply sanity closure.
- * 
- *
  */
 @Uninterruptible public final class SanityTraceLocal extends TraceLocal {
 

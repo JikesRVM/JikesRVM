@@ -12,7 +12,6 @@ import org.jikesrvm.VM;
 
 /**
  * Layout the TIB (Type Information Block).
- *
  */
 
 public interface VM_TIBLayoutConstants {

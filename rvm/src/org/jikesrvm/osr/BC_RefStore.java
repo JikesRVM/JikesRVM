@@ -10,7 +10,6 @@
 package org.jikesrvm.osr;
 /**
  * BC_RefStore: astore, astore_<i> 
- * 
  */
 
 public class BC_RefStore extends OSR_PseudoBytecode {

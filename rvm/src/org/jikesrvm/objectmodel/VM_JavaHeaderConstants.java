@@ -18,7 +18,6 @@ import org.vmmagic.unboxed.Word;
  * Constants for the JavaHeader. 
  *
  * @see VM_ObjectModel
- * 
  */
 public interface VM_JavaHeaderConstants extends VM_SizeConstants {
 

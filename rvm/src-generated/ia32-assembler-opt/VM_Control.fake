@@ -7,8 +7,6 @@
  * (C) Copyright IBM Corp. 2001
  */
 package org.jikesrvm;
-/**
- */
 class VM_Control {
 
     public static boolean EagerIMTpopulation;

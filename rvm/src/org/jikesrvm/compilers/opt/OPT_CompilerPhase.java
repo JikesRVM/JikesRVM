@@ -37,7 +37,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
  * <code> newExecution() </code> to return this.  Doing so may lead to
  * memory leaks and concurrent access problems, so this should be done
  * with great care!
- *
  */
 public abstract class OPT_CompilerPhase {
 

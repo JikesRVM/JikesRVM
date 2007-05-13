@@ -34,8 +34,6 @@ import org.vmmagic.unboxed.*;
  * @see StopTheWorldMutator
  * @see MutatorContext
  * @see SimplePhase#delegatePhase
- * 
- *
  */
 @Uninterruptible public class GenMutator extends StopTheWorldMutator {
 

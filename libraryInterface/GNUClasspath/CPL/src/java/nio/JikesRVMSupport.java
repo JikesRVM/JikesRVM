@@ -13,7 +13,6 @@ import gnu.classpath.Pointer;
 
 /**
  * Library support interface of Jikes RVM
- *
  */
 public class JikesRVMSupport {
   public static Address getDirectBufferAddress(Buffer buffer) {

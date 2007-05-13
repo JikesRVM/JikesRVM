@@ -13,7 +13,6 @@ import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * Simple, fair locks with deadlock detection.
- * 
  */
 @Uninterruptible public abstract class Lock {
 

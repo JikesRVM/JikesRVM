@@ -37,7 +37,6 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GOTO;
  * execution in the uncommon-case trace that might have 
  * been able to use a subset of to common-case trace.
  * <p>
- * 
  */
 class OPT_StaticSplitting extends OPT_CompilerPhase {
 

@@ -11,8 +11,6 @@ package org.mmtk.utility.options;
 
 /**
  * Should we ignore calls to java.lang.System.gc?
- * 
- *
  */
 public class IgnoreSystemGC extends BooleanOption {
   /**

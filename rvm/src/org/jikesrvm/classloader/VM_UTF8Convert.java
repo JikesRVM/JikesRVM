@@ -21,7 +21,6 @@ import java.io.UTFDataFormatException;
  * treatment of null.  In utf8, null is encoded as a single byte
  * directly, whereas in pseudo-utf8, it is encoded as a two-byte 
  * sequence.  See the JVM spec for more information.
- *
  */
 public abstract class VM_UTF8Convert {
 

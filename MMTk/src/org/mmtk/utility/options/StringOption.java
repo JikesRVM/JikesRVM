@@ -15,8 +15,6 @@ import org.vmmagic.pragma.*;
 
 /**
  * An option that has a simple string value.
- * 
- *
  */
 public class StringOption extends Option {
   // values

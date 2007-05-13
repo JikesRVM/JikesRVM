@@ -20,8 +20,6 @@ import org.vmmagic.pragma.*;
 
 /**
  * Stub to give access to plan local, constraint and global instances
- * 
- *
  */
 @Uninterruptible public abstract class ActivePlan {
 

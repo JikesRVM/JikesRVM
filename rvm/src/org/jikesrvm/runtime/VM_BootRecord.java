@@ -83,7 +83,6 @@ import org.vmmagic.unboxed.Offset;
  * <P> The remaining fields of the boot record serve as a function linkage area
  * between services residing in the host operating system and services
  * residing in the virtual machine.
- *
  */
 public class VM_BootRecord {
   /**

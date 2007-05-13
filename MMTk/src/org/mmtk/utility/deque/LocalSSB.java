@@ -41,7 +41,6 @@ import org.vmmagic.unboxed.*;
  * arity) are packed to the low end of the buffer.  Thus buffer
  * overflows on inserts and pops (underflow actually) will always arise
  * when then cursor is buffer-size aligned.
- * 
  */
 @Uninterruptible class LocalSSB extends Deque implements Constants {
 

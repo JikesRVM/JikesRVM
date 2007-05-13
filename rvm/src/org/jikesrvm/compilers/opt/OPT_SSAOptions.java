@@ -13,7 +13,6 @@ package org.jikesrvm.compilers.opt;
  * This is used to pass information between compiler phases.  
  * IMPORTANT: Phases that change the SSA state MUST update the SSA
  *            actual options held by the IR object.
- *
  */
 public class OPT_SSAOptions {
   /**

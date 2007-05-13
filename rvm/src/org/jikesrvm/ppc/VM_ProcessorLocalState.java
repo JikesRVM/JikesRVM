@@ -18,7 +18,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * use in order to access the current <code>VM_Processor</code> object.
  *
  * @see VM_Processor
- *
  */
 @Uninterruptible public abstract class VM_ProcessorLocalState {
   

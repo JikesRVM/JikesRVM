@@ -23,7 +23,6 @@ import org.jikesrvm.ia32.VM_RegisterConstants;
 /**
  * This class represents a set of OPT_Registers corresponding to the
  * IA32 register set.
- *
  */
 public abstract class OPT_PhysicalRegisterSet
     extends OPT_GenericPhysicalRegisterSet

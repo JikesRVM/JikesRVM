@@ -14,8 +14,6 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements the abstract <i>per-mutator thread</i> 
  * behavior for a cycle detector. 
- * 
- *
  */
 @Uninterruptible public abstract class CDMutator {
   /****************************************************************************

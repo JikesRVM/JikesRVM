@@ -23,7 +23,6 @@ import org.vmmagic.unboxed.Offset;
  * 
  * In VM_OptCompiledMethod, an instance of this class will represent
  * all OSR map info for that method.
- *
  */
 
 public class OSR_EncodedOSRMap 
@@ -69,8 +68,7 @@ public class OSR_EncodedOSRMap
   }
 
   /* 
-   *
-   */
+ */
   public OSR_EncodedOSRMap(OSR_VariableMap varMap) {
     int entries = varMap.getNumberOfElements();
     

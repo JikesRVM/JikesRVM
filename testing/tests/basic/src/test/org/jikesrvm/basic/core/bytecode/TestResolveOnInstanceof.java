@@ -5,7 +5,6 @@ package test.org.jikesrvm.basic.core.bytecode;
  * See http://java.sun.com/docs/books/jvms/second_edition/html/Instructions2.doc6.html#instanceof.Description
  *
  * Also described in [ 1147107 ]  unresolved instanceof etc. on &lt;null&gt; not compliant.
- *
  */
 public class TestResolveOnInstanceof {
 

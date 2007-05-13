@@ -16,7 +16,6 @@ import org.vmmagic.pragma.Uninterruptible;
 /**
  * VM_CodeArray represents a code object (contiguous memory region containing code).
  * The types of the access methods are platform-dependent.
- *
  */
 @Uninterruptible
 public abstract class VM_CodeArray {
@@ -53,8 +52,7 @@ public abstract class VM_CodeArray {
    * Because Jikes RVM believes that VM_CodeArray is really a Code[]
    * (ie, an array of primitives), we cannot define non-hijacked methods
    * on the 'class' VM_CodeArray.
-   * 
-   */
+ */
   public static class Factory {
     /**
      * Allocate a code array big enough to contain numInstrs instructions.

@@ -37,8 +37,6 @@ import org.vmmagic.pragma.*;
  * @see org.mmtk.plan.StopTheWorldMutator
  * @see org.mmtk.plan.MutatorContext
  * @see org.mmtk.plan.SimplePhase#delegatePhase
- * 
- *
  */
 @Uninterruptible public abstract class GenCopyMutator extends GenMutator {
   /******************************************************************

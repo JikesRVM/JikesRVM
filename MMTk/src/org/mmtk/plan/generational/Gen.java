@@ -39,8 +39,6 @@ import org.vmmagic.unboxed.*;
  * 
  * See also Plan.java for general comments on local vs global plan
  * classes.
- * 
- *
  */
 @Uninterruptible public abstract class Gen extends StopTheWorld {
 

@@ -106,8 +106,6 @@ import org.vmmagic.pragma.*;
      SSGCspy.gcspyGatherData, event=2
  --Phase Collector.complete
  --Phase Plan.complete
- *
- *
  */
 @Uninterruptible public class SSGCspy extends SS implements GCspyPlan {
 

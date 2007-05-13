@@ -34,7 +34,6 @@ import org.vmmagic.unboxed.WordArray;
  * set to cause the returning Native code to restore those registers from
  * this save area.  If GC does not occur, the Native C code has restored
  * these regs, and the transition return code does not do the restore.
- *
  */
 @Uninterruptible public abstract class VM_JNIGCMapIterator extends VM_GCMapIterator 
   implements VM_BaselineConstants,

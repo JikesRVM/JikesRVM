@@ -5,7 +5,6 @@
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
  * (C) Copyright Elias Naur 2006
- *
  */
 package test.org.jikesrvm.basic.core.instrument;
 
@@ -13,8 +12,6 @@ import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
 import java.security.ProtectionDomain;
 
-/**
- */
 public class AgentX implements ClassFileTransformer {
   public static void premain(final String args, final Instrumentation instrumentation) {
     System.out.println("Running premain with args: " + args);

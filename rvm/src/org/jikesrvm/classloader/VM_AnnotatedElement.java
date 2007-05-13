@@ -18,7 +18,6 @@ import org.vmmagic.pragma.Uninterruptible;
 /**
  * A common abstract super class for all elements that can be
  * annotated within the JVM. Namely classes, methods and fields.
- *
  */
 public abstract class VM_AnnotatedElement implements AnnotatedElement {
   /**

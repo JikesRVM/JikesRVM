@@ -8,8 +8,6 @@
  */
 package test.org.jikesrvm.basic.core.threads;
 
-/**
- */
 class TestStop {
   public static void main(String[] args) {
     final Worker w = new Worker();

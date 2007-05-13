@@ -26,10 +26,6 @@ import org.jikesrvm.VM_SizeConstants;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
-/**
- *
- *
- */
 @Uninterruptible public class Memory extends org.mmtk.vm.Memory
   implements Constants, VM_HeapLayoutConstants, VM_SizeConstants {
 

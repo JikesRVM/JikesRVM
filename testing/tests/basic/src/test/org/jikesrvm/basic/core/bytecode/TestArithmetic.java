@@ -8,8 +8,6 @@
  */
 package test.org.jikesrvm.basic.core.bytecode;
 
-/**
- */
 class TestArithmetic {
   public static void main(String[] args) {
     System.out.println();

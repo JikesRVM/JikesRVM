@@ -8,7 +8,6 @@
  */
 /**
  * simple test of inlining & exception handling
- *
  */
 
 final class inlineExcept {

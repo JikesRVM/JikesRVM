@@ -8,7 +8,6 @@
  *
  * Test that NULL is assigned JNI id 0.
  * Implement native methods from NullIdentity.java 
- *
  */
 
 #include <stdio.h>

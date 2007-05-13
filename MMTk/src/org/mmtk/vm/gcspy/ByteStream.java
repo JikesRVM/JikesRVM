@@ -19,8 +19,6 @@ import org.vmmagic.pragma.*;
 
 /**
  * Set up a GCspy Stream with data type BYTE_TYPE
- *
- *
  */
 
 @Uninterruptible public abstract class ByteStream extends Stream {

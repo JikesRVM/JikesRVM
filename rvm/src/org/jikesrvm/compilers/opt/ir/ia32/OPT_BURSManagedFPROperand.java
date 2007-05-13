@@ -14,7 +14,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Operand;
  * An FPR register that BURS is managing.
  * Created by a fld, and then eventually
  * deallocated with some popping alu/store.
- *
  */
 public final class OPT_BURSManagedFPROperand extends OPT_Operand {
   public int regNum;

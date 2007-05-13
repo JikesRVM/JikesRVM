@@ -65,7 +65,6 @@ import org.jikesrvm.scheduler.VM_Thread;
  *   Note that even if 3. & 4. are inflated due to padding, the numbers will 
  *   still be an accurate measure of the space costs of the compile-only 
  *   approach.
- * 
  */
 public class VM_RuntimeCompiler implements VM_Constants,
     VM_Callbacks.ExitMonitor {

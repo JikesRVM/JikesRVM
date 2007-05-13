@@ -26,10 +26,6 @@ import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
-/**
- *
- *
- */
 @Uninterruptible public class Scanning extends org.mmtk.vm.Scanning implements Constants {
   /****************************************************************************
    *

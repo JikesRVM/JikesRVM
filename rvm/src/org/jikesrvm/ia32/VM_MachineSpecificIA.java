@@ -21,8 +21,6 @@ import org.vmmagic.unboxed.Word;
 
 /**
  * Wrappers around IA32-specific code common to both 32 & 64 bit
- * 
- *
  */
 public abstract class VM_MachineSpecificIA extends VM_MachineSpecific implements VM_ArchConstants {
 

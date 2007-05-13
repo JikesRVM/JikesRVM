@@ -13,9 +13,6 @@ import org.vmmagic.unboxed.*;
 
 /**
  * Constants defining heap layout constants
- *
- *
- *
  */
 public interface VM_HeapLayoutConstants {
 

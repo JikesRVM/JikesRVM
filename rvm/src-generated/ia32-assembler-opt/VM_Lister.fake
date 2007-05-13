@@ -10,8 +10,6 @@ package org.jikesrvm.compilers.common.assembler.ia32;
 
 import org.vmmagic.unboxed.Offset;
 
-/**
- */
 class VM_Lister {
 
   VM_Lister (VM_Assembler asm) {

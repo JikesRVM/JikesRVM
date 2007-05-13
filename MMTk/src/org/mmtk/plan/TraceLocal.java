@@ -29,8 +29,6 @@ import org.vmmagic.unboxed.*;
  * 
  * @see org.mmtk.plan.Plan
  * @see org.mmtk.plan.Trace
- * 
- *
  */
 @Uninterruptible public abstract class TraceLocal extends TraceStep 
   implements Constants {

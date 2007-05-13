@@ -15,8 +15,6 @@ import org.vmmagic.pragma.*;
 
 /**
  * An option with a simple integer value.
- * 
- *
  */
 public class IntOption extends Option {
   // values

@@ -19,8 +19,6 @@ import org.vmmagic.pragma.*;
  * This class is only necessary because we cannot implement
  * org.mmtk.utility.alloc.LinearScan as an interface since the invokeinterface
  * bytecode is forbidden in uninterruptible code.
- * 
- *
  */
 @Uninterruptible public class LinearScan extends org.mmtk.utility.alloc.LinearScan {
 

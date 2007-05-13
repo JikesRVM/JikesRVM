@@ -16,7 +16,6 @@
  *    GetEnv
  * This is adapted from the example in the JNI book by Sheng Liang
  * (page 90-91)
- *
  */
 
 #include <pthread.h> 
@@ -43,8 +42,6 @@ void dummyBreakpoint () {
 
 /****************************************************
  *  Procedure to be executed by the pthreads
- * 
- * 
  */
 void *thread_fun(void *arg)
 {

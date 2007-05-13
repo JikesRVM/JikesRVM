@@ -11,7 +11,6 @@ import org.jikesrvm.scheduler.VM_Scheduler;
 
 /**
  * Test native methods that block in native code
- *
  */
 
 class tBlockingThreads

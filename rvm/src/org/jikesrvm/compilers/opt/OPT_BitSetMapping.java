@@ -11,7 +11,6 @@ package org.jikesrvm.compilers.opt;
 /** 
  * An object that implements a bijection between whole numbers and
  * objects.
- *
  */
 public interface OPT_BitSetMapping {
   /**

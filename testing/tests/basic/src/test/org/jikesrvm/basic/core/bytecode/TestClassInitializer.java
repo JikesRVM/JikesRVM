@@ -8,8 +8,6 @@
  */
 package test.org.jikesrvm.basic.core.bytecode;
 
-/**
- */
 class TestClassInitializer {
   private static class TypeA {
     static { System.out.println("TypeA.<clinit>()"); }

@@ -31,7 +31,6 @@ import org.vmmagic.unboxed.WordArray;
  * reference map of a method returning the offsets of any refereces
  * that are part of the input parameters, local variables, and 
  * java stack for the stack frame.
- *
  */
 @Uninterruptible
 public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator

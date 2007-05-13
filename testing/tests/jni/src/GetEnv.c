@@ -9,7 +9,6 @@
 
 /* Test the JavaVM and GetEnv JNI functionality 
  * Implement native methods from GetEnv.java 
- * 
  */
 
 #include "GetEnv.h"

@@ -1,11 +1,5 @@
-/**
- * 
- */
 package org.jikesrvm.util;
 
-/**
- *
- */
 public class VM_StringUtilities {
 
   /**

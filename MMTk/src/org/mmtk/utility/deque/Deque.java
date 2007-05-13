@@ -19,7 +19,6 @@ import org.vmmagic.pragma.*;
  * double-linking increases the space demands slightly, but makes it far
  * more efficient to dequeue buffers and, for example, enables sorting of
  * its contents.
- * 
  */
 @Uninterruptible class Deque implements Constants {
 

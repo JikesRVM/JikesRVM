@@ -33,8 +33,6 @@ import org.vmmagic.unboxed.*;
  * 
  * Access to the instances may be synchronized depending on the
  * constructor argument.
- * 
- *
  */
 @Uninterruptible public final class DoublyLinkedList implements Constants {
 

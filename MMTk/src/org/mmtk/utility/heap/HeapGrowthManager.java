@@ -20,7 +20,6 @@ import org.vmmagic.unboxed.*;
 /**
  * This class is responsible for growing and shrinking the 
  * heap size by observing heap utilization and GC load.
- * 
  */
 @Uninterruptible public abstract class HeapGrowthManager implements Constants {
 

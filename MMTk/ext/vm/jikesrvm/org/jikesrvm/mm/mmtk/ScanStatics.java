@@ -20,8 +20,6 @@ import org.vmmagic.pragma.*;
 
 /**
  * Class that determines all JTOC slots (statics) that hold references
- *
- *
  */
 public final class ScanStatics implements Constants {
   /**

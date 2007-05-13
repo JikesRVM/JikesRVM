@@ -20,7 +20,6 @@ import org.vmmagic.unboxed.Offset;
  * Represents a location in memory. Used to keep track of memory aliasing.
  * 
  * @see OPT_Operand
- * 
  */
 public final class OPT_LocationOperand extends OPT_Operand 
   implements org.jikesrvm.compilers.opt.OPT_Constants  {
@@ -133,8 +132,7 @@ public final class OPT_LocationOperand extends OPT_Operand
 
   /**
    * Constructs a new location operand with the given JTOC offset
-   * 
-   */
+ */
   public OPT_LocationOperand(Offset jtocOffset) {
       type = JTOC_ACCESS;
       JTOCoffset = jtocOffset;
@@ -142,8 +140,7 @@ public final class OPT_LocationOperand extends OPT_Operand
 
   /**
    * Constructs a new location operand with the given spill offset.
-   * 
-   */
+ */
   public OPT_LocationOperand(int index) {
     if (VM.VerifyAssertions) VM._assert(index <= 0);
     type = SPILL_ACCESS;

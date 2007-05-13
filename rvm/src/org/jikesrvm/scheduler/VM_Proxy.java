@@ -22,7 +22,6 @@ import org.vmmagic.pragma.Uninterruptible;
  *
  * Initial implementation by Susan Flynn Hummel.  Revised to support
  * interrupt() by Bowen Alpern
- *
  */
 @Uninterruptible final class VM_Proxy {
   

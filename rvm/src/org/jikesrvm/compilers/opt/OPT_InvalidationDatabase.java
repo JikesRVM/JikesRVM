@@ -33,7 +33,6 @@ import org.jikesrvm.util.VM_HashSet;
  *       dependency mechanism.  
  *   See Chambers, Dean, Grove in ICSE-17 (1995) for one possible design 
  *   and pointers to related work.
- *
  */
 public final class OPT_InvalidationDatabase {
 

@@ -13,7 +13,6 @@ import org.jikesrvm.VM;
 
 /**
  * Library support interface of Jikes RVM
- *
  */
 public class JikesRVMSupport {
   public static Address getAddressFromPointer(Pointer pointer) {

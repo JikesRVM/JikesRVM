@@ -8,8 +8,6 @@
  */
 package test.org.jikesrvm.basic.core.threads;
 
-/**
- */
 class Mailbox {
   final String[] messages;
   int received;

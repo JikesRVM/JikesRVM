@@ -23,7 +23,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_WeightedBranchTargets;
  *    <li> transforming while into until loops,
  *    <li>  elimination of critical edges,
  *  </ul>
- *
  */
 class OPT_CFGTransformations extends OPT_CompilerPhase {
 
@@ -152,10 +151,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase {
   }
 
   
-  /**
-   *
-   */
-  private static void ensureLandingPad (OPT_LSTNode n, OPT_IR ir)
+    private static void ensureLandingPad (OPT_LSTNode n, OPT_IR ir)
   {
     OPT_BasicBlock[] ps = loopPredecessors (n);
     if (ps.length == 1 && ps[0].getNumberOfOut() == 1) return;

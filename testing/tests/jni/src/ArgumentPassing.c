@@ -5,11 +5,9 @@
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
  * (C) Copyright IBM Corp. 2001
- *
  */
 /**
  * Native code for ArgumentPassing.java
- *
  */
 
 #include <stdio.h>
@@ -34,7 +32,6 @@ JNIEXPORT void JNICALL Java_ArgumentPassing_setVerboseOff
  * Class:     ArgumentPassing
  * Method:    integerFitStatic
  * Signature: (IIIIII)I
- *
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_integerFitStatic
   (JNIEnv *env, jclass cls, 
@@ -792,7 +789,6 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleLongSpillStatic
  * Class:     ArgumentPassing
  * Method:    integerFitVirtual
  * Signature: (IIIIII)I
- *
  */
 JNIEXPORT jint JNICALL Java_ArgumentPassing_integerFitVirtual
   (JNIEnv *env, jobject obj, 

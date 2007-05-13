@@ -21,7 +21,6 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 
 /**
  * Use optimizing compiler to build virtual machine boot image.
- * 
  */
 public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
 

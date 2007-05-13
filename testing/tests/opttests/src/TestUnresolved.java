@@ -6,8 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-/**
- */
 public class TestUnresolved {
 
    public static void main(String args[]) {

@@ -6,8 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-/**
- */
 public class tak_fp{
 
   // float tak(float x, float y, float z);

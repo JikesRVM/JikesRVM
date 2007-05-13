@@ -22,8 +22,6 @@ import org.vmmagic.unboxed.*;
  * This class manages the mapping of spaces to virtual memory ranges.<p>
  * 
  * Discontigious spaces are currently unsupported.
- * 
- *
  */
 @Uninterruptible public class Map implements Constants {
 

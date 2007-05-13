@@ -118,7 +118,6 @@ import org.vmmagic.unboxed.Word;
  * @see VM_JavaHeader
  * @see VM_MiscHeader
  * @see MM_Interface
- * 
  */
 @Uninterruptible 
 public class VM_ObjectModel implements VM_JavaHeaderConstants,

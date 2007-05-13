@@ -28,8 +28,6 @@ import org.vmmagic.unboxed.Offset;
 
 /**
  * Library support interface of Jikes RVM
- *
- *
  */
 final class VMSystem {
 

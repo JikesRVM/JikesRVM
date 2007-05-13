@@ -23,7 +23,6 @@ import org.jikesrvm.runtime.VM_Entrypoints;
 
 /**
  * This class provides some utilities that are useful for inlining.
- *
  */
 public abstract class OPT_InlineTools implements OPT_Constants {
 

@@ -15,7 +15,6 @@
  * requirements for gc, and another
  * that executes a call to a native method
  * that sleeps for the specified time.
- *
  */
 
 // Test multi-threaded execution

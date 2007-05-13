@@ -13,7 +13,6 @@ import java.util.Enumeration;
 /**
  * Extend java.util.Enumeration to avoid downcasts from object.
  * Also provide a preallocated empty instruction enumeration.
- *
  */
 public interface OPT_InstructionEnumeration extends Enumeration<OPT_Instruction> {
   /**

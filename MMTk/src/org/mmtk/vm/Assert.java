@@ -13,10 +13,6 @@ package org.mmtk.vm;
 
 import org.vmmagic.pragma.Uninterruptible;
 
-/**
- *
- *
- */
 @Uninterruptible public abstract class Assert {
   /**
    * Logs a message and traceback, then exits.

@@ -16,7 +16,6 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
  * model, as described in the OOPSLA 2000 paper.  Most behavior
  * inherited from VM_AnalyticModel.  This class defines the the specific 
  * recompilation choices that should be considered by the analytic model.
- *
  */
 class VM_MultiLevelAdaptiveModel extends VM_AnalyticModel {
   

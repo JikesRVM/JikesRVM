@@ -8,7 +8,6 @@
  */
 /* Test method invocation from native code 
  * Implement native methods from MethodInvocation.java 
- *
  */
 
 #include <stdio.h>

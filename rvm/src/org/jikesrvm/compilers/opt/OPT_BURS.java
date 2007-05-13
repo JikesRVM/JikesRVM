@@ -23,7 +23,6 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REGISTER_opcode;
  * A few common utilites used for invoking BURS tree-pattern matching
  * to do instruction selection.  The interesting code is in the
  * subclasses of this class.
- *
  */
 public abstract class OPT_BURS {
 

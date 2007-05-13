@@ -36,8 +36,6 @@ import org.vmmagic.unboxed.Offset;
  * 
  * NOTE: Much of this class was stolen from VM_CounterArray.java, which
  * is now gone.
- *
- *
  */
 final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
   implements OPT_Operators, OPT_Constants {

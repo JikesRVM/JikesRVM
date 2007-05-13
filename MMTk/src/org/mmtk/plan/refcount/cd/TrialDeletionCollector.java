@@ -24,8 +24,6 @@ import org.vmmagic.unboxed.ObjectReference;
 /**
  * This class implements <i>per-collector thread</i> behavior 
  * and state for a trial deletion cycle detector.
- * 
- *
  */
 @Uninterruptible public final class TrialDeletionCollector extends CDCollector implements Constants {
 
@@ -202,8 +200,7 @@ import org.vmmagic.unboxed.ObjectReference;
    * may never get processed).  It is therefore important that the
    * "insert" operation is used when adding to the purple queue,
    * rather than "push".
-   * 
-   */
+ */
 
   /**
    * Vist as many purple objects as time allows and transitively mark

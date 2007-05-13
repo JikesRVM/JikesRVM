@@ -22,7 +22,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * the listener's organizer is activated to process them.
  *  
  * Defines update's interface to be a compiled method identifier, CMID.
- * 
  */
 @Uninterruptible
 public final class VM_MethodListener extends VM_Listener {

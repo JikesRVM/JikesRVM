@@ -10,7 +10,6 @@ package org.jikesrvm.compilers.opt;
 
 /**
  * This class implements miscellaneous utilities for graphs.
- *
  */
 class OPT_GraphUtilities {
 

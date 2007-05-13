@@ -13,7 +13,6 @@ import java.io.IOException;
 
 /** 
  * A java method's try/catch/finally information.
- *
  */
 public final class VM_ExceptionHandlerMap {
   //-----------//

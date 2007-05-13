@@ -30,8 +30,6 @@ import org.vmmagic.pragma.*;
  * instances correspond to *plan* instances and therefore to kernel
  * threads.  Thus unlike this class, synchronization is not necessary
  * in the instance methods of RefCountLocal.
- *
- *
  */
 @Uninterruptible public final class RCHeader implements Constants {
 

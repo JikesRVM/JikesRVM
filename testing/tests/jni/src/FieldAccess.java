@@ -28,8 +28,6 @@
  *      GetFloatField              SetFloatField             
  *      GetDoubleField             SetDoubleField            
  *      GetObjectField             SetObjectField            
- *
- *
  */
 class FieldAccess {
   static boolean verbose = true;         // set to true to get messages for each test

@@ -24,8 +24,6 @@ import org.vmmagic.pragma.*;
  *
  * @see SegregatedFreeList
  * @see ExplicitFreeListSpace
- *
- *
  */
 @Uninterruptible public final class ExplicitFreeListLocal extends SegregatedFreeList
   implements Constants {
@@ -138,16 +136,14 @@ import org.vmmagic.pragma.*;
 
   /**
    * Finish up after a collection.
-   * 
-   */
+ */
   public void releaseCollector() {
     sweepBlocks(true);
   }
   
   /**
    * Finish up after a collection.
-   * 
-   */
+ */
   public void releaseMutator() {
     restoreFreeLists();
   }

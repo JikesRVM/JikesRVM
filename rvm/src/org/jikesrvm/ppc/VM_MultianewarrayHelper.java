@@ -22,7 +22,6 @@ import org.vmmagic.unboxed.Address;
  * pass them to VM_Runtime.buildMultiDimensionalArray.
  * 
  * TODO: There is only 1 line of platform dependent code here; refactor?
- *
  */
 public abstract class VM_MultianewarrayHelper implements VM_Constants {
 

@@ -13,7 +13,6 @@ import org.vmmagic.unboxed.Word;
 
 /**
  * Interface of BootImage that is used to define object model classes.
- *
  */
 public interface BootImageInterface {
 

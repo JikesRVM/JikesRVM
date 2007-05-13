@@ -17,7 +17,6 @@ import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
  * 
  * @see OPT_RegisterOperand
  * @see org.jikesrvm.ArchitectureSpecific.OPT_RegisterPool
- * 
  */
 public final class OPT_Register {
 

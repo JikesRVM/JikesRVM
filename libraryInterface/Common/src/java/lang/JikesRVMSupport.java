@@ -20,7 +20,6 @@ import org.jikesrvm.scheduler.VM_Thread;
 
 /**
  * Library support interface of Jikes RVM
- *
  */
 public class JikesRVMSupport {
 

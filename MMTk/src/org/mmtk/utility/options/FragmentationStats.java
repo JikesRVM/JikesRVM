@@ -11,8 +11,6 @@ package org.mmtk.utility.options;
 
 /**
  * Option to print fragmentation information for the free list.
- * 
- *
  */
 public class FragmentationStats extends BooleanOption {
   /**

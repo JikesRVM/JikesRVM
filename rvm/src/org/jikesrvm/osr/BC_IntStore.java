@@ -14,7 +14,6 @@ package org.jikesrvm.osr;
  *      Local number            Instruction
  *      [0, 3]                  istore_<i>
  *      other                   istore, wide istore
- *
  */
 public class BC_IntStore extends OSR_PseudoBytecode {
   private int bsize;

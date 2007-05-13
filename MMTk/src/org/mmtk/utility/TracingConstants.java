@@ -14,8 +14,6 @@ import org.vmmagic.unboxed.*;
 
 /**
  * The constants needed when storing events and then generating the trace.
- * 
- *
  */
 public interface TracingConstants {
   Word TRACE_EXACT_ALLOC = Word.zero();

@@ -26,7 +26,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
  * The current implementation (4/25/00) does not include the EXIT node
  * in any solution despite the fact that it is part of the CFG (it has
  * incoming edges).  This is to be compatible with the old code.
- * 
  */
 class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
   static final boolean DEBUG = false;

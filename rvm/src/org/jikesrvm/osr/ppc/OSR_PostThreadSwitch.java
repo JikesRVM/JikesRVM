@@ -20,7 +20,6 @@ import org.vmmagic.unboxed.Offset;
 
 /**
  * Code used for recover register value after on stack replacement.
- *
  */
 
 @Uninterruptible public abstract class OSR_PostThreadSwitch implements VM_BaselineConstants {

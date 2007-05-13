@@ -95,7 +95,6 @@ import org.vmmagic.unboxed.Word;
  * <li>We don't really free local refs when we call the 
  *      {@link #PopLocalFrame} method.
  * </ol>
- *
  */
 @SuppressWarnings({"unused", "UnusedDeclaration"})
 // called from native code
@@ -292,8 +291,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * ExceptionOccurred
    * @param env A JREF index for the JNI environment object
    * @return a JREF index for the pending exception or null if nothing pending
-   *
-   */
+ */
   private static int ExceptionOccurred(VM_JNIEnvironment env) {
     if (traceJNI) VM.sysWrite("JNI called: ExceptionOccurred  \n");
 
@@ -566,8 +564,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object to check
    * @return a JREF index for the Class object 
-   *
-   */
+ */
   private static int GetObjectClass(VM_JNIEnvironment env, int objJREF) {
     if (traceJNI) VM.sysWrite("JNI called: GetObjectClass  \n");
 

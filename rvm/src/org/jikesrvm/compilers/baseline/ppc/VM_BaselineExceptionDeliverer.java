@@ -23,7 +23,6 @@ import org.vmmagic.unboxed.Offset;
 /**
  *  Handle exception delivery and stack unwinding for methods compiled 
  * by baseline compiler.
- *
  */
 public abstract class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
     implements VM_BaselineConstants {

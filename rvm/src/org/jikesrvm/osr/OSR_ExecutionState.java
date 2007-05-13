@@ -10,7 +10,6 @@
 /** 
  * VM scope descriptor (execution state) of a method activation. 
  * A descriptor has two parts: VM architecture-depend, and execution context. 
- * 
  */
 
 package org.jikesrvm.osr;

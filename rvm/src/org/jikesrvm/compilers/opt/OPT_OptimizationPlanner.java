@@ -24,7 +24,6 @@ import org.jikesrvm.osr.OSR_AdjustBCIndexes;
  * executed during the HIR and LIR phase of the opt compilation of a method.
  *
  * @see OPT_MIROptimizationPlanner
- * 
  */
 public class OPT_OptimizationPlanner {
 

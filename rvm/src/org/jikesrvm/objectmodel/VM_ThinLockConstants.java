@@ -28,7 +28,6 @@ import org.vmmagic.unboxed.Word;
  * VM_JavaHeader.NUM_THIN_LOCK_BITS = # of T's
  * VM_JavaHeader.THIN_LOCK_SHIFT = # of b's
  * </pre>
- * 
  */
 public interface VM_ThinLockConstants  extends VM_SizeConstants {
 

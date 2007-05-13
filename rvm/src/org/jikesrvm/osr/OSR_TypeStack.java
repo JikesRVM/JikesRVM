@@ -12,7 +12,6 @@ import org.jikesrvm.VM;
 
 /**
  * Utility class used by OSR_BytecodeTraverser.
- * 
  */
 class OSR_TypeStack {
   private byte[] stack;

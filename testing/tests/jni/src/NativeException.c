@@ -8,7 +8,6 @@
  */
 /* Test JNI Functions related to Exception
  * Implement native methods from NativeException.java 
- * 
  */
 #include <stdio.h>
 #include <stdlib.h>             /* malloc() */

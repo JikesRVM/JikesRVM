@@ -21,7 +21,6 @@
  *  -fit in register or spilled
  *  -for double and long (2 words), whether the words are straddle between 
  *       register/spill
- *
  */
 class ArgumentPassing
 {
@@ -523,8 +522,7 @@ class ArgumentPassing
 
   /**
    * Return value: check for 2 words returned
-   *
-   */
+ */
   public static native long returnLong(long val1);
   public static native float returnFloat(float val1);
   public static native double returnDouble(double val1);

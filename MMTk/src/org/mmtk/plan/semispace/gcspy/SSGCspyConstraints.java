@@ -14,9 +14,6 @@ import org.vmmagic.pragma.*;
 
 /**
  * Semi space GCspy constants.
- * 
- *
- *
  */
 @Uninterruptible public class SSGCspyConstraints extends SSConstraints {
 

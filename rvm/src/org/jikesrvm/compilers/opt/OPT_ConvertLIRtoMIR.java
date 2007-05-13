@@ -62,7 +62,6 @@ import org.vmmagic.unboxed.Offset;
 
 /**
  * Convert an IR object from LIR to MIR via BURS
- *
  */
 public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 
@@ -307,9 +306,7 @@ public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElem
     }
   }
 
-  /**
-   */
-  private static final class DoLiveness extends OPT_CompilerPhase {
+    private static final class DoLiveness extends OPT_CompilerPhase {
 
     public String getName () {
       return "Live Handlers";

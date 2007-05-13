@@ -52,7 +52,6 @@ import org.vmmagic.pragma.Inline;
  * If they are connected to a tty, then we kluge our read and write
  * functions to perform a preemptive IO wait, which hopefully prevents
  * them from blocking in the OS.
- *
  */
 public class VM_FileSystem {
 

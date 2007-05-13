@@ -32,8 +32,6 @@ import org.vmmagic.unboxed.*;
  * respectively.  Monotonic use is easier to manage, but is obviously
  * more restrictive (useful for copying collectors which allocate
  * monotonically before freeing the entire space and starting over).
- * 
- *
  */
 @Uninterruptible
 public abstract class PageResource implements Constants {

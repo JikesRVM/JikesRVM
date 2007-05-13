@@ -12,8 +12,6 @@ package org.jikesrvm.compilers.opt;
  *  This class generates an enumeration of nodes of a graph, in order
  * of increasing finishing time in a reverse Depth First Search,
  * i.e. a search traversing nodes from target to source.
- *
- *
  */
 class OPT_ReverseDFSenumerateByFinish extends OPT_DFSenumerateByFinish {
 

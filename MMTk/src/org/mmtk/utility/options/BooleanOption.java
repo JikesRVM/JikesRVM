@@ -15,8 +15,6 @@ import org.vmmagic.pragma.*;
 
 /**
  * Base class for boolean options.
- * 
- *
  */
 public class BooleanOption extends Option {
   // values

@@ -10,7 +10,6 @@
 
 /**
  * A testing stub for GCspy
- *
  */
 
 #ifndef _GCSPY_COLOR_DB_H_

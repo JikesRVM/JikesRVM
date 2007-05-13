@@ -10,7 +10,6 @@ package org.jikesrvm.compilers.baseline;
 
 /**
  * Profile data for a branch instruction.
- * 
  */
 public final class VM_ConditionalBranchProfile extends VM_BranchProfile {
 

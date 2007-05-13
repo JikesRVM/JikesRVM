@@ -20,7 +20,6 @@ import org.vmmagic.unboxed.Offset;
  * Emit the architecture-specific part of a header file containing declarations
  * required to access VM data structures from C++.
  * Posix version: AIX PPC, Linux PPC, Linux IA32
- *
  */
 final class GenArch_ppc extends GenArch {
   public void emitArchVirtualMachineDeclarations() {

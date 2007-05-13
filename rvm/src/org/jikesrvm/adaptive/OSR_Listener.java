@@ -21,7 +21,6 @@ import org.vmmagic.unboxed.Offset;
 
 /**
  * Code invoked from VM_Thread.yieldpoint for the purposes of OSR.
- * 
  */
 @Uninterruptible public class OSR_Listener {
 

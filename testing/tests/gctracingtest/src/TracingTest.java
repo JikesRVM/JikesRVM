@@ -8,8 +8,6 @@
  */
 
 
-/**
- */
 public class TracingTest {
   public static Integer[] arr;
   

@@ -21,7 +21,6 @@ import org.jikesrvm.compilers.opt.ir.Trap;
 /**
  * IR level independent driver for 
  * simple peephole optimizations of branches.
- * 
  */
 public abstract class OPT_BranchOptimizationDriver extends OPT_CompilerPhase {
 

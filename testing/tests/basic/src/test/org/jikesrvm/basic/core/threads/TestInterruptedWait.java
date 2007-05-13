@@ -10,7 +10,6 @@ package test.org.jikesrvm.basic.core.threads;
 
 /**
  * Test to ensure that monitor waits can be interrupted.
- *
  */
 public class TestInterruptedWait {
   private static volatile boolean started;

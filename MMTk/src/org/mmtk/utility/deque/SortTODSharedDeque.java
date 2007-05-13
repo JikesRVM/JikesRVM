@@ -18,8 +18,6 @@ import org.vmmagic.pragma.*;
 /**
  * This class specializes SortSharedQueue to sort objects according to
  * their time of death (TOD).
- * 
- *
  */
 @Uninterruptible
 public final class SortTODSharedDeque extends SortSharedDeque {

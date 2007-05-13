@@ -33,7 +33,6 @@ import org.vmmagic.unboxed.Offset;
  * specialized thread as a normal thread get scheduled. The method
  * prologue ( machine code ) is adjusted to cooperate with the code
  * installer.
- *
  */
 public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
 

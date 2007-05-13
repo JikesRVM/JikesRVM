@@ -23,8 +23,6 @@ import org.vmmagic.unboxed.Address;
  * Abstract class for a GCspy Stream.
  * Implementing classes will mostly forward calls
  * to the gcspy C library
- * 
- *
  */
 
 @Uninterruptible public abstract class Stream {

@@ -30,7 +30,6 @@ import org.vmmagic.unboxed.Word;
  * A method that has been compiled into machine code by one of our compilers.
  * We implement SynchronizedObject because we need to synchronize
  * on the VM_CompiledMethod object as part of the invalidation protocol.
- * 
  */
 @SynchronizedObject
 public abstract class VM_CompiledMethod implements VM_SizeConstants {

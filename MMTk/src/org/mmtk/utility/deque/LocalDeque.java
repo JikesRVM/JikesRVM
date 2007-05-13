@@ -23,7 +23,6 @@ import org.vmmagic.pragma.*;
  * only uses the fields inherited from <code>LocalQueue</code>, but adds
  * the ability for entries to be added to the head of the deque and popped
  * from the rear.
- * 
  */
 @Uninterruptible public class LocalDeque extends LocalQueue 
   implements Constants {

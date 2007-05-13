@@ -67,7 +67,6 @@ import org.jikesrvm.compilers.opt.ir.ZeroCheck;
  * its operands; the edges are labeled with natural numbers that
  * indicate the operand postion that each operand has with repsect to
  * the given operator or function."
- *
  */
 final class OPT_ValueGraph {
 

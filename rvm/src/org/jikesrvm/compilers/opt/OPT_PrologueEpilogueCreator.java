@@ -12,7 +12,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
 
 /**
  * This class is a phase that inserts prologues and epilogues
- *
  */
 public final class OPT_PrologueEpilogueCreator extends OPT_CompilerPhase {
 

@@ -14,7 +14,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
  * OPT_DominatorInfo.java
  *
  * This structure holds dominator-related information for a basic block.
- *
  */
 class OPT_DominatorInfo {
   /**

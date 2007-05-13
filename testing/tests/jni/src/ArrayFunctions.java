@@ -17,8 +17,6 @@
  *      GetArrayLength
  *      GetObjectArrayElement
  *      SetObjectArrayElement
- *
- *
  */
 class ArrayFunctions {
   static boolean verbose = true;         // set to true to get messages for each test

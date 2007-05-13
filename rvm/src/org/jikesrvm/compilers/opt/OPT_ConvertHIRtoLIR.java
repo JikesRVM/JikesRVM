@@ -13,7 +13,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_LIRInfo;
 
 /**
  * Convert an IR object from HIR to LIR
- *
  */
 final class OPT_ConvertHIRtoLIR extends OPT_CompilerPhase {
 

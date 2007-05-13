@@ -15,7 +15,6 @@ import java.util.Iterator;
  * OPT_Stack
  * OPT_Stack is a smaller implementation of java.util.Stack, that uses a linked
  * list rather than a vector.
- *
  */
 public class OPT_Stack<T> implements Iterable<T> {
   private final ArrayList<T> stack = new ArrayList<T>();

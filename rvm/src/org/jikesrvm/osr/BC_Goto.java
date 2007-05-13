@@ -10,7 +10,6 @@
 package org.jikesrvm.osr;
 /**
  * goto instruction
- *
  */
 public class BC_Goto extends OSR_PseudoBytecode {
   private int offset;

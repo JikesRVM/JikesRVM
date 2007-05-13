@@ -18,7 +18,6 @@ import org.vmmagic.unboxed.Offset;
  * Class called from baseline compiler to generate architecture specific
  * write barrier for generational garbage collectors.  For baseline 
  * compiled methods, the write barrier calls methods of VM_WriteBarrier.
- *
  */
 class VM_Barriers implements VM_BaselineConstants {
 

@@ -6,8 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-/**
- */
 
 import java.io.FileInputStream;
 import java.io.IOException;

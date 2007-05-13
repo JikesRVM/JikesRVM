@@ -6,7 +6,6 @@
  *
  * (C) Copyright Richard Jones, 2006
  * Computing Laboratory, University of Kent at Canterbury
- *
  */
 
 package org.mmtk.plan;

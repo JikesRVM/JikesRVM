@@ -31,8 +31,6 @@ import org.vmmagic.unboxed.*;
  * This stands in contrast to TreadmillLocal, which is instantiated
  * and called on a per-thread basis, where each instance of
  * TreadmillLocal corresponds to one thread operating over one space.
- * 
- *
  */
 @Uninterruptible public final class LargeObjectSpace extends Space 
   implements Constants {
@@ -178,8 +176,7 @@ import org.vmmagic.unboxed.*;
    * Prepare for a new collection increment.  For the mark-sweep
    * collector we must flip the state of the mark bit between
    * collections.
-   * 
-   */
+ */
   public void prepare(boolean fullHeap) {
     if (fullHeap) { 
       if (VM.VERIFY_ASSERTIONS) {
@@ -194,8 +191,7 @@ import org.vmmagic.unboxed.*;
   /**
    * A new collection increment has completed.  For the mark-sweep
    * collector this means we can perform the sweep phase.
-   * 
-   */
+ */
   public void release(boolean fullHeap) {
     // sweep the large objects
     sweepLargePages(true);                // sweep the nursery

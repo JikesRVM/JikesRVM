@@ -21,8 +21,6 @@ import org.vmmagic.pragma.*;
  * This abstract class implments the core functionality for a transitive
  * closure over the heap graph, specifically in a Generational Mark-Sweep
  * collector.
- * 
- *
  */
 @Uninterruptible public final class GenMSMatureTraceLocal extends GenMatureTraceLocal{
 

@@ -76,7 +76,6 @@ import org.vmmagic.pragma.NoInline;
  * @see OPT_IR
  * @see OPT_Instruction
  * @see OPT_ControlFlowGraph
- * 
  */
 
 public class OPT_BasicBlock extends OPT_SortedGraphNode {
@@ -1186,8 +1185,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    * CFG edges correctly if the method contains certain instructions
    * such as throws and returns.  Incorrect liveness info and GC maps
    * result, causing crashes during GC.  CMVC Defect 171189 
-   *
-   */
+ */
   public final void recomputeNormalOut(OPT_IR ir) {
     deleteNormalOut();
     for (OPT_InstructionEnumeration e = enumerateBranchInstructions();

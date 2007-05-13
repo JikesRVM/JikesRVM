@@ -16,7 +16,6 @@ import org.jikesrvm.runtime.VM_Statics;
 
 /**
  * Implementation of string interning for JikesRVM.
- * 
  */
 final class VMString {
   private static final WeakHashMap<String,WeakReference<String>> internedStrings = 

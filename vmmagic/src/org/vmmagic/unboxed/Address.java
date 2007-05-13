@@ -21,8 +21,6 @@ import org.vmmagic.Unboxed;
  * Java int type for coding clarity,  machine-portability (it can map
  * to 32 bit and 64 bit integral types), and access to unsigned
  * operations (Java does not have unsigned int types).
- * 
- *
  */
 @Unboxed
 public final class Address {

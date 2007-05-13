@@ -26,9 +26,6 @@ import org.mmtk.vm.gcspy.Util;
  * be instantiated within MMTk.  Since the concrete type is defined at
  * build time, we leave it to a concrete vm-specific instance of this class
  * to perform the object instantiation.
- * 
- *
- *
  */
 public abstract class Factory {
 

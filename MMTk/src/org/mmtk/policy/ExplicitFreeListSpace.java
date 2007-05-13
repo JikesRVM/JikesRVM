@@ -24,8 +24,6 @@ import org.vmmagic.unboxed.*;
  * instances correspond to *plan* instances and therefore to kernel
  * threads.  Thus unlike this class, synchronization is not necessary
  * in the instance methods of MarkSweepLocal.
- * 
- *
  */
 @Uninterruptible public final class ExplicitFreeListSpace extends Space
   implements Constants {

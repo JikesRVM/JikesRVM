@@ -15,7 +15,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * online measurement information must be collected.
  *
  * Defines update's interface.
- *
  */
 
 @Uninterruptible

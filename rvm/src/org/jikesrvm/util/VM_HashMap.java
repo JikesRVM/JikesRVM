@@ -16,7 +16,6 @@ import java.util.NoSuchElementException;
  * by core parts of the JikesRVM runtime.
  *
  * TODO: This should be a final class; rewrite subclasses to let us do that.
- *
  */
 public class VM_HashMap<K,V> {
   private static final int DEFAULT_SIZE = 7;

@@ -17,8 +17,6 @@ import org.vmmagic.unboxed.Address;
  * Abstract class for the GCspy server interpreter
  * 
  * Implementing classes will mostly forward calls to the C gcspy library.
- * 
- *
  */
 @Uninterruptible public abstract class ServerInterpreter {
 

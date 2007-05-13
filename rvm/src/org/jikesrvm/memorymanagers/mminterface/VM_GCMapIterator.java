@@ -22,7 +22,6 @@ import org.vmmagic.unboxed.WordArray;
  * All compiler specific GCMapIterators extend this abstract class.
  *
  * @see VM_GCMapIteratorGroup
- *
  */
 @Uninterruptible public abstract class VM_GCMapIterator {
   
@@ -84,8 +83,7 @@ import org.vmmagic.unboxed.WordArray;
   /**
    * Iteration is complete, release any internal data structures including 
    * locks acquired during setupIterator for jsr maps.
-   * 
-   */
+ */
   public abstract void cleanupPointers();
   
   /**

@@ -14,7 +14,6 @@ import org.vmmagic.unboxed.Address;
 /**
  * Pass as much as we can, the work of Math functions onto the C
  * implementations in libm using system call (cheaper) native calls
- *
  */
 class VMMath {
   @SysCall private static native double mathMagic(Address functionAddress, double a);

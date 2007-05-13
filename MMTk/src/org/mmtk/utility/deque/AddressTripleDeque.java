@@ -20,7 +20,6 @@ import org.vmmagic.pragma.Uninterruptible;
 /**
  * This supports <i>unsynchronized</i> enqueuing and dequeuing of
  * address triples
- * 
  */
 @Uninterruptible public class AddressTripleDeque extends LocalDeque implements Constants {
 

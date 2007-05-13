@@ -12,7 +12,6 @@ package test.org.jikesrvm.basic.bugs;
  * Test code demonstrating bug [ 1657236 ] Converting -0.0F to a string does not work in Opt compiler.
  * <p/>
  * Should be tested with -X:aos:initial_compiler=opt in at least one test-configuration.
- *
  */
 public class R1657236 {
   public static void main(String[] args) {

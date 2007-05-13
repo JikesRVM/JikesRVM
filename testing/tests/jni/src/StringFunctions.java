@@ -11,7 +11,6 @@
  * The following JNI calls are tested:
  *      NewString                  GetStringLength
  *      NewStringUTF               GetStringUTFLength
- *
  */
 class StringFunctions {
   static boolean verbose = true;         // set to true to get messages for each test

@@ -17,8 +17,6 @@ import org.vmmagic.unboxed.ObjectReference;
 /**
  * This class implements <i>per-collector thread</i> behavior 
  * for a null cycle detector.
- * 
- *
  */
 @Uninterruptible public final class NullCDCollector extends CDCollector {
   /**

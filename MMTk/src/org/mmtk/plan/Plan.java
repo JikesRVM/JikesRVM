@@ -50,8 +50,6 @@ import org.vmmagic.unboxed.*;
  * (such as memory and virtual memory resources).  This mapping of threads to
  * instances is crucial to understanding the correctness and
  * performance proprties of MMTk plans.
- * 
- *
  */
 @Uninterruptible public abstract class Plan implements Constants {
   /****************************************************************************

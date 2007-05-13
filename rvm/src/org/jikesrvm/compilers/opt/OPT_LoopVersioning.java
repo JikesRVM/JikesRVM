@@ -226,7 +226,6 @@ import org.jikesrvm.compilers.opt.ir.Phi;
  * after_loop:
  * label2:
  * </listing>
- * 
  */
 public final class OPT_LoopVersioning extends OPT_CompilerPhase {
   // -oO Debug variables Oo-

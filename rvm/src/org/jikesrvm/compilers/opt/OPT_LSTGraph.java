@@ -24,7 +24,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
  *  irreducible loops.)
  *
  * @see OPT_DominatorsPhase
- *
  */
 public class OPT_LSTGraph extends OPT_SpaceEffGraph {
   private static final boolean DEBUG = false;

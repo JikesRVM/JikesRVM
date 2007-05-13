@@ -12,7 +12,6 @@ package org.jikesrvm.compilers.opt;
  * OPT_DF_Equation.java
  *
  * represents a single Data Flow equation
- *
  */
 public class OPT_DF_Equation implements OPT_GraphNode {
 

@@ -48,7 +48,6 @@ import org.jikesrvm.ppc.VM_Disassembler;
 
 /**
  * Assemble PowerPC MIR into binary code.
- *
  */
 public abstract class OPT_Assembler implements OPT_Operators, VM_Constants, VM_ArchConstants {
 
@@ -1318,8 +1317,7 @@ public abstract class OPT_Assembler implements OPT_Operators, VM_Constants, VM_A
    * @param code        the code intructions to be patched
    * @param patchOffset the offset of the last byte of the patch point
    * @param rel32       the new immediate to use in the branch instruction
-   * 
-   */
+ */
   public static void patchCode(VM_CodeArray code,
                               int patchOffset,
                               int rel32) {

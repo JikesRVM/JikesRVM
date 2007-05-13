@@ -18,7 +18,6 @@ import org.vmmagic.Pragma;
 /**
  * This interface designates an object which should always be allocated a
  * thin lock, since it is likely to be synchronized.
- *
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

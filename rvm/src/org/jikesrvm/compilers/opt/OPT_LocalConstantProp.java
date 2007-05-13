@@ -24,7 +24,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
  * Perform local constant propagation for a factored basic block.
  * Orthogonal to the constant propagation performed in OPT_Simple
  * since here we use flow-sensitive analysis within a basic block.
- * 
  */
 public class OPT_LocalConstantProp extends OPT_CompilerPhase {
 

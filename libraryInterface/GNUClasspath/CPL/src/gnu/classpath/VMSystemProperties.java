@@ -4,7 +4,6 @@
  * A copy of the license is included in the distribution, and is also
  * available at http://www.opensource.org/licenses/cpl1.0.php
  * (C) Copyright IBM Corp 2005
- *
  */
 package gnu.classpath;
 
@@ -22,7 +21,6 @@ import org.jikesrvm.classloader.VM_BootstrapClassLoader;
  * Library support interface of Jikes RVM.  See the Javadoc documentation for
  * GNU Classpath's reference implementation of VMSystemProperties -- for
  * copyright reasons, we cannot duplicate it here.
- *
  */
 
 public class VMSystemProperties {
@@ -30,8 +28,7 @@ public class VMSystemProperties {
    *  Classpath  0.12.   Starting with Classpath 0.13, we use
    *  gnu.classpath.VMSystemProperties.preInit and
    *  gnu.classpath.VMSystemProperties.postInit.
-   *
-   */
+ */
   public static void preInit(Properties p) {
     p.put("java.version", "1.6.0"); /* This is a lie, of course -- we don't 
                                        really support all 1.6 features, such

@@ -11,8 +11,6 @@ package org.mmtk.utility.options;
 
 /**
  * Should we eagerly finish sweeping at the start of a collection
- * 
- *
  */
 public class EagerCompleteSweep extends BooleanOption {
   /**

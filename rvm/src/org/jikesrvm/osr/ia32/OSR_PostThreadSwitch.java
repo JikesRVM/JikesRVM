@@ -23,7 +23,6 @@ import org.vmmagic.unboxed.Offset;
  * A class helps schedule OSRed method, it is called right after thread switch
  * and highly depends on the calling convention. It should not be interrupted
  * because it deals with row instruction address.
- *
  */
 @Uninterruptible public abstract class OSR_PostThreadSwitch implements VM_BaselineConstants {
 

@@ -26,7 +26,6 @@ import org.jikesrvm.compilers.opt.ir.OsrPoint;
 /**
  * A phase in the OPT compiler for construction OsrPoint instructions
  * after inlining.
- * 
  */
 public class OSR_OsrPointConstructor extends OPT_CompilerPhase {
   

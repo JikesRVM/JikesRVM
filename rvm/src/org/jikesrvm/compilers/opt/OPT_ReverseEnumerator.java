@@ -10,7 +10,6 @@ package org.jikesrvm.compilers.opt;
 
 /**
  * Reverse the order of an enumeration.
- * 
  */
 
 import java.util.ArrayList;

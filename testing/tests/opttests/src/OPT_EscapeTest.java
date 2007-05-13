@@ -8,7 +8,6 @@
  */
 /**
  * IPA Escape Analysis Test.
- * 
  */
 
 public class OPT_EscapeTest {

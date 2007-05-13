@@ -41,8 +41,7 @@ public abstract class Reference<T> {
    * default implementation of java.lang.ref.ReferenceQueue in the GNU
    * classpath release.
    * @see java.lang.ref.ReferenceQueue
-   *
-   */
+ */
   Reference<?> nextOnQueue;
 
   

@@ -16,7 +16,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
  * This class provides the abstraction of a dominator tree 
  *
  * TODO: we do not support IRs with exception handlers.
- *
  */
 public class OPT_DominatorTree extends OPT_Tree {
   /**

@@ -14,7 +14,6 @@ import org.jikesrvm.VM;
  * This class implements a priority queue using the standard
  * (balanced partially-ordered tree, i.e., "heap") algorithm.
  * Smaller priority objects are in the front of the queue.
- *
  */
 public class VM_PriorityQueue {
 

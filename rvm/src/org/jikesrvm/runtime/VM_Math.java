@@ -11,7 +11,6 @@ package org.jikesrvm.runtime;
 /**
  * Placeholder for constants that are accessed from
  * generated code.
- *
  */
 public class VM_Math {
   /*

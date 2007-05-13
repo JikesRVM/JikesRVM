@@ -38,8 +38,6 @@ import org.vmmagic.pragma.*;
  * @see StopTheWorldCollector
  * @see CollectorContext
  * @see SimplePhase#delegatePhase
- * 
- *
  */
 @Uninterruptible public abstract class RCCollector extends RCBaseCollector
   implements Constants {

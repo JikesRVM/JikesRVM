@@ -12,7 +12,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
 
 /**
  * Driver routine for dominator tree computation
- *
  */
 public final class OPT_DominatorTreePhase extends OPT_CompilerPhase {
 

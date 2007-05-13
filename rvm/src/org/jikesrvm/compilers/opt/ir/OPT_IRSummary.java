@@ -11,7 +11,6 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOUNDS_CHECK;
 
 /**
  * General utilities to summarize an IR
- *
  */
 public final class OPT_IRSummary {
 

@@ -22,7 +22,6 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
  * some improvements since then...
  *
  * @see VM_MultiLevelAdaptiveModel
- *
  */
 abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
 

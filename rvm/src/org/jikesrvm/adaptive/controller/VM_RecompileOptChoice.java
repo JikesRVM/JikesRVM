@@ -17,7 +17,6 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
  * method in question at a particular opt-level.  The cost is the
  * expected compilation time at that level, and the benefit is the
  * execution improvement of executing at that level.
- *
  */
 class VM_RecompileOptChoice extends VM_RecompilationChoice {
 

@@ -14,7 +14,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 
 /**
  * An enumeration over live set lists
- *
  */
 public class OPT_LiveSetEnumerator implements Enumeration<OPT_RegisterOperand> {
 

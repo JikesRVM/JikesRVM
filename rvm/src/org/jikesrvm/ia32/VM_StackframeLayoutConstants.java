@@ -129,7 +129,6 @@ import org.vmmagic.unboxed.Address;
  *  low-memory  +---------------+
  *
  * </pre>
- *
  */
 public interface VM_StackframeLayoutConstants  {
 

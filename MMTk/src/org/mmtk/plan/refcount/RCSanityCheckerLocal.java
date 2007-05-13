@@ -19,8 +19,6 @@ import org.vmmagic.unboxed.*;
 
 /**
  * This class performs sanity checks for reference counting collectors.
- * 
- *
  */
 @Uninterruptible public class RCSanityCheckerLocal extends SanityCheckerLocal {
 

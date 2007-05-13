@@ -27,7 +27,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
  * the dataflow equation solver framework.
  *
  * <p> TODO: This implementation is not terribly efficient.  Speed it up.
- *
  */
 public final class OPT_IndexPropagation extends OPT_CompilerPhase {
 
@@ -99,8 +98,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
    *
    * <p> Note: this implementation does not scale, and is not terribly
    * efficient.
-   *
-   */
+ */
   static final class ObjectCell extends OPT_DF_AbstractCell {
     /**
      * a bound on the size of a lattice cell.
@@ -307,8 +305,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
    *
    * <p> Note: this implementation does not scale, and is not terribly
    * efficient.
-   *
-   */
+ */
   static final class ArrayCell extends OPT_DF_AbstractCell {
     /**
      * a bound on the size of a lattice cell.

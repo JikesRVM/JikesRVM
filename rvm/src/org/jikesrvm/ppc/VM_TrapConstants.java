@@ -10,7 +10,6 @@ package org.jikesrvm.ppc;
 
 /**
  * Trap Conventions
- *
  */
 public interface VM_TrapConstants {
   //--------------------------------------------------------------------------------------------//

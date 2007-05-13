@@ -8,7 +8,6 @@
  */
 /* Test JNI Functions related to Strings
  * Implement native methods from StringFunctions.java 
- * 
  */
 
 #include <stdio.h>

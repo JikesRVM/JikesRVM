@@ -89,8 +89,6 @@ import org.vmmagic.pragma.*;
  * because they both appear as "used" blocks and so will never
  * coalesce.  The top sentinel also serves as the head and tail of
  * the doubly linked list of free blocks.
- * 
- *
  */
 @Uninterruptible abstract class BaseGenericFreeList implements Constants {
 

@@ -16,10 +16,6 @@ import org.jikesrvm.scheduler.VM_Processor;
 
 import org.vmmagic.pragma.*;
 
-/**
- *
- *
- */
 @Uninterruptible public final class Strings extends org.mmtk.vm.Strings {
   /**
    * Log a message.

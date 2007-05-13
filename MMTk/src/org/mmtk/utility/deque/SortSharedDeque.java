@@ -22,7 +22,6 @@ import org.vmmagic.unboxed.*;
  * of the deque. This class is based upon the SharedQueue class.  The sorting 
  * routines were modified from code written by Narendran Sachindran and 
  * Matthew Hertz for GCTk.
- * 
  */
 @Uninterruptible public abstract class SortSharedDeque extends SharedDeque {
 
@@ -346,8 +345,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Debug routine, used to check if the object buffer is sorted correctly in
    * decreasing final reference deletion time
-   * 
-   */
+ */
   private void checkIfSorted() {
     if (VM.VERIFY_ASSERTIONS) {
       Address buf, end;

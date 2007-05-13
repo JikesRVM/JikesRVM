@@ -11,8 +11,6 @@ import java.io.PrintStream;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.vmmagic.pragma.*;
 
-/**
- */
 class Exhaust {
 
   private static final PrintStream o = System.out;

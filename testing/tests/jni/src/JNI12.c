@@ -5,8 +5,6 @@
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
  * (C) Copyright IBM Corp. 2001, 2004
- *
- *
  */
 /* Test method invocation from native code 
  * Implement native methods from JNI12.java 

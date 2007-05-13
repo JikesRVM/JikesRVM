@@ -24,7 +24,6 @@ import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
 /**
  * An abstract class providing the interface to the decision making
  * component of the controller. 
- *
  */
 public abstract class VM_RecompilationStrategy {
 
@@ -120,8 +119,7 @@ public abstract class VM_RecompilationStrategy {
    * @param hme the VM_HotMethodEvent
    * @param plan the VM_ControllerPlan for the compiled method (may be null)
    * @return true/false value
-   * 
-   */
+ */
   boolean considerForRecompilation(VM_HotMethodEvent hme, 
                                    VM_ControllerPlan plan) {
     VM_Method method = hme.getMethod();

@@ -25,7 +25,6 @@ import org.jikesrvm.compilers.opt.OPT_CompilationPlan;
  * This class provides advice file used by compile replay experiments
  * Right now this class is basically duplicate part of the VM_AOSLogging
  * class.
- *
  */
 public class VM_AOSGenerator {
 

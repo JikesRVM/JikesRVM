@@ -37,7 +37,6 @@ import org.vmmagic.pragma.Uninterruptible;
  *            these methods are virtual
  *         2) methods called at GC time (no allocation allowed!)
  *            these methods are static
- *
  */
 @Uninterruptible public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants {
   public static final int NO_MAP_ENTRY = -1;

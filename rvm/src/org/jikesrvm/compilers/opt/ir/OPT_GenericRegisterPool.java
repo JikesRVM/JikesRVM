@@ -17,7 +17,6 @@ import org.jikesrvm.classloader.VM_TypeReference;
  * Each IR contains has exactly one register pool object associated with it.
  * 
  * @see OPT_Register
- * 
  */
 public class OPT_GenericRegisterPool extends OPT_AbstractRegisterPool {
 

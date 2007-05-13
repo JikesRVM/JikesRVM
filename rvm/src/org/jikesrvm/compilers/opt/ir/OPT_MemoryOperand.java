@@ -25,7 +25,6 @@ import org.vmmagic.unboxed.Offset;
  *     [base] + [index]*(2^scale) + disp
  * 
  * @see OPT_Operand
- * 
  */
 public final class OPT_MemoryOperand extends OPT_Operand {
 

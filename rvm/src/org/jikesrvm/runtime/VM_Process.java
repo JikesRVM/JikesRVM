@@ -20,7 +20,6 @@ import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * Jikes RVM implementation of <code>java.lang.Process</code>.
- *
  */
 public class VM_Process extends java.lang.Process {
 

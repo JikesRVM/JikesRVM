@@ -8,8 +8,6 @@
  */
 package test.org.jikesrvm.basic.core.bytecode;
 
-/**
- */
 public class TestCompare {
   public static void main(String[] args) {
     zero_cmp();

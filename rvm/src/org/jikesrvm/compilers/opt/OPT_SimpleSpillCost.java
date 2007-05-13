@@ -19,7 +19,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Register;
 /**
  * An object that returns an estimate of the relative cost of spilling a 
  * symbolic register.
- *
  */
 class OPT_SimpleSpillCost extends OPT_SpillCostEstimator {
 

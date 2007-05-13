@@ -13,7 +13,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
  * The driver that creates an annotated {@link OPT_AnnotatedLSTGraph}.
  *
  * @see OPT_AnnotatedLSTGraph
- *
  */
 public class OPT_LoopAnalysis extends OPT_CompilerPhase {
   /**

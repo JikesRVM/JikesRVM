@@ -15,7 +15,6 @@ import org.jikesrvm.objectmodel.VM_ThinLockConstants;
  * Constants describing vm object, stack, and register characteristics.
  * Some of these constants are architecture-specific
  * and some are (at the moment) architecture-neutral.
- *
  */
 public interface VM_Constants
 extends VM_ThinLockConstants,         // architecture-neutral

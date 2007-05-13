@@ -11,8 +11,6 @@ package org.jikesrvm.compilers.opt;
 import java.util.Enumeration;
 import java.util.NoSuchElementException;
 
-/**
- */
 final class OPT_DepthFirstEnumerator
     implements Enumeration<OPT_GraphNode> {
   OPT_Stack<OPT_GraphNode> stack;

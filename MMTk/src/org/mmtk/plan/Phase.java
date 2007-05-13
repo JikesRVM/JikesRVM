@@ -28,8 +28,6 @@ import org.vmmagic.pragma.*;
  * Urgent TODO: Assess cost of rendezvous when running in parallel.
  * It should be possible to remove some by thinking about phases more 
  * carefully
- * 
- *
  */
 @Uninterruptible public abstract class Phase implements Constants {
   private static final int MAX_PHASES = 64;

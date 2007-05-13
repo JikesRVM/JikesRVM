@@ -13,7 +13,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
 /**
  * Driver routine for post-dominator computation.  This phase invokes
  * the Lengauer-Tarjan dominator calculation.
- *
  */
 public final class OPT_PostDominatorsPhase extends OPT_CompilerPhase {
 

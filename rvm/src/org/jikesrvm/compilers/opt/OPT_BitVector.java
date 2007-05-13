@@ -14,7 +14,6 @@ import java.io.Serializable;
  * OPT_BitVector.java
  *
  * implements a bit vector
- *
  */
 public final class OPT_BitVector implements Serializable {
   /** Support for serialization */

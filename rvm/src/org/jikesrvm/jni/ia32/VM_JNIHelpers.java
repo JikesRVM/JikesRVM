@@ -29,7 +29,6 @@ import org.vmmagic.unboxed.Address;
  * there are specially compiled to be called from native).
  * 
  * @see VM_JNIFunctions
- * 
  */
 public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
   

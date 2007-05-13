@@ -26,7 +26,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * contains statements like:
  *          return "";
  * will have one in its constant pool.
- * 
  */
 public final class VM_Atom implements VM_ClassLoaderConstants {
 

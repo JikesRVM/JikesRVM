@@ -49,7 +49,6 @@ import org.jikesrvm.osr.OSR_VariableMap;
  * are later used to create the final gc map (see VM_OptReferenceMap.java). 
  *
  * The bottom of the file contains comments regarding imprecise exceptions.
- *
  */
 public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
   // Real Instance Variables
@@ -586,8 +585,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
    *  @param reuseCurrentSet whether we can reuse the "currentSet" or else
    *                         clear it out and recompute the meet of our succs
    *  @param ir the governing ir
-   *
-   */
+ */
   private boolean processBlock(OPT_BasicBlock block, boolean reuseCurrentSet,
                                OPT_IR ir) {
     if (verbose) {

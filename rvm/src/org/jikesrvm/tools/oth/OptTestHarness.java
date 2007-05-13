@@ -60,7 +60,6 @@ import org.jikesrvm.runtime.VM_Time;
  * -methodBase <class> <method> [-|<descrip>] Compile method with base compiler
  * -er <class> <method> [-|<descrip>] {args} Compile with default compiler and execute a method
  * -performance                   Show performance results
- *
  */
 class OptTestHarness {
   static boolean DISABLE_CLASS_LOADING   = false;

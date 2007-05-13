@@ -22,7 +22,6 @@ import org.jikesrvm.compilers.opt.OPT_TreeNode;
  * @see OPT_InlineSequence
  * @see org.jikesrvm.compilers.opt.VM_OptMachineCodeMap
  * @see org.jikesrvm.compilers.opt.VM_OptEncodedCallSiteTree
- *
  */
 public class OPT_CallSiteTreeNode extends OPT_TreeNode {
   /**

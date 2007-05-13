@@ -19,8 +19,6 @@ import org.vmmagic.unboxed.*;
 /**
  * This abstract class implments the thread-local functionality for a
  * transitive closure over a coping/mark-sweep hybrid collector.
- * 
- *
  */
 @Uninterruptible public final class CopyMSTraceLocal extends TraceLocal {
 

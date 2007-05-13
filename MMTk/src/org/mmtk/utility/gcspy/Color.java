@@ -19,8 +19,6 @@ import org.vmmagic.pragma.*;
  * 
  * Cut-down implementation of java.awt.Color sufficient to provide
  * the server side (Stream) with colours
- * 
- *
  */
 @Uninterruptible public class Color {
 

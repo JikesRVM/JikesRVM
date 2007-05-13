@@ -15,7 +15,6 @@ import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
  * 
  * The stack location is defined by an offset from either the framepointer
  * (top of stack frame) or stackpointer-home-location (bottom of frame).
- * 
  */
 public final class OPT_StackLocationOperand extends OPT_Operand  {
   /**

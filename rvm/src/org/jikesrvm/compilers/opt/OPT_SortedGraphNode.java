@@ -10,9 +10,7 @@ package org.jikesrvm.compilers.opt;
 
 import java.util.Enumeration;
 
-/**
- */
-// For now, OPT_SortedGraphNode inherits from DoublyLinkedList only 
+// For now, OPT_SortedGraphNode inherits from DoublyLinkedList only
 // for compatibility
 // with the current implementation of OPT_BasicBlock. 
 // In the future, this inheritance will be removed.

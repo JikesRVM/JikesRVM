@@ -18,7 +18,6 @@ import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
  * Abstract parent class for events from organizers to the controller 
  * used to communicate that a method should be considered as a candidate
  * for recompilation.
- *
  */
 public abstract class VM_HotMethodEvent {
 

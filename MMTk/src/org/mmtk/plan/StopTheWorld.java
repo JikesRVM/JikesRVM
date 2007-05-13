@@ -34,8 +34,6 @@ import org.vmmagic.pragma.*;
  * 
  * For details of the split between global and thread-local operations
  * @see org.mmtk.plan.Plan
- * 
- *
  */
 @Uninterruptible public abstract class StopTheWorld extends Plan
   implements Constants {

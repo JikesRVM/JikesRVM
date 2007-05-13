@@ -36,8 +36,6 @@ import java.util.Enumeration;
  *
  *       currBlock = (OPT_BasicBlock) bbIter.markAndGetNextTopSort(changed);
  *  }
- *
- *
  */
 public class OPT_SortedGraphIterator {
 

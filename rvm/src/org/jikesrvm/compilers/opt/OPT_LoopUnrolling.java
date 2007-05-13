@@ -45,7 +45,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperandEnumeration;
 
 /*
  * Loop unrolling
- *
  */
 public class OPT_LoopUnrolling extends OPT_CompilerPhase {
 

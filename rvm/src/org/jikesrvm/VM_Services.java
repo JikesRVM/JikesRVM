@@ -13,7 +13,6 @@ import org.vmmagic.pragma.NoInline;
 
 /**
  *  Various service utilities.  This is a common place for some shared utility routines
- *
  */
 public class VM_Services {
 

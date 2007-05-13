@@ -15,8 +15,6 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
  * This class represents a specialization context meaning
  * "the invokee is thread local".
  * We use this context to remove unnecessary synchronizations.
- *
- *
  */
 public class OPT_InvokeeThreadLocalContext
     implements OPT_SpecializationContext {

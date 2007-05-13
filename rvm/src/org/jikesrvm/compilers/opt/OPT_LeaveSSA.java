@@ -43,7 +43,6 @@ import org.jikesrvm.compilers.opt.ir.Phi;
  * @see OPT_SSA
  * @see OPT_SSAOptions
  * @see OPT_LTDominators
- *
  */
 public class OPT_LeaveSSA extends OPT_CompilerPhase {
 

@@ -10,7 +10,6 @@ package org.jikesrvm.compilers.opt.ir;
 
 /**
  * Extend java.util.Enumeration to avoid downcasts from object.
- *
  */
 public interface OPT_OperandEnumeration extends java.util.Enumeration<OPT_Operand> {
   /** Same as nextElement but avoid the need to downcast from Object */

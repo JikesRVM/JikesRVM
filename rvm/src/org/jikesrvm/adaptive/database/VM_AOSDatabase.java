@@ -18,7 +18,6 @@ import org.jikesrvm.adaptive.util.VM_AOSOptions;
  * 
  * Used to keep track of the various data structures that make up the
  * AOS database.  
- *
  */
 public final class VM_AOSDatabase 
 {

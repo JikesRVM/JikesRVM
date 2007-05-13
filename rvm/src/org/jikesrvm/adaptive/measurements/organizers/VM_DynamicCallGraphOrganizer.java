@@ -47,7 +47,6 @@ import org.vmmagic.unboxed.Offset;
  *       but not reported as inlining candidates to the 
  * <p>
  * EXPECTATION: buffer is filled all the way up with triples.
- * 
  */
 public class VM_DynamicCallGraphOrganizer extends VM_Organizer {
 

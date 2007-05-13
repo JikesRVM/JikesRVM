@@ -8,8 +8,6 @@
  */
 package test.org.jikesrvm.basic.core.threads;
 
-/**
- */
 class Flag {
   static boolean timedWait;
   boolean flag;

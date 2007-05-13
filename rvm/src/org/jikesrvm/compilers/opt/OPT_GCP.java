@@ -26,7 +26,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
  * code placement instead of code motion. <p>
  *
  * There is no code yet to deal with partial redundancies.
- *
  */
 final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
 

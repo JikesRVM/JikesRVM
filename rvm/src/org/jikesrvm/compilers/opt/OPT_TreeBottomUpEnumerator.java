@@ -16,7 +16,6 @@ import java.util.ListIterator;
  * This class provides enumeration of a tree in bottom-up order
  * It guarantees that all children of a node will be visited before the parent.
  * This is not necessarily the same as a bottom-up level walk.
- *
  */
 final class OPT_TreeBottomUpEnumerator implements Enumeration<OPT_TreeNode> {
 

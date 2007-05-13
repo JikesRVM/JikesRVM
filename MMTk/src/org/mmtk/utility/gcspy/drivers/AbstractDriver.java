@@ -26,8 +26,6 @@ import org.vmmagic.pragma.*;
  *
  * This class implements for the MMTk a base driver for a GCspy space.
  * All drivers for GCspy spaces should inherit from this class.
- *
- *
  */
 @Uninterruptible
 public abstract class AbstractDriver {

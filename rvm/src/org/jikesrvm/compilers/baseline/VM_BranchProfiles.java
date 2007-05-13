@@ -16,7 +16,6 @@ import org.jikesrvm.classloader.VM_NormalMethod;
 /**
  * Profile data for all conditional branches (including switches)
  * of a single VM_Method.
- *
  */
 public final class VM_BranchProfiles implements VM_BytecodeConstants {
   private final VM_NormalMethod method;

@@ -14,10 +14,6 @@ package org.mmtk.vm;
 import org.vmmagic.pragma.Uninterruptible;
 
 
-/**
- *
- *
- */
 @Uninterruptible public abstract class Statistics {
   /**
    * Returns the number of collections that have occured.

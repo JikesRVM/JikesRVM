@@ -163,7 +163,6 @@ import java.util.Vector;
  * On substitution, <FOREACH var>.<field name> is substituted by a value
  * of the field named <field name> in the current record of the FOREACH file.
  * A special field INDEX will contain the current record number.
- *
  */
 public class GenerateFromTemplate {
 

@@ -15,9 +15,6 @@ import org.vmmagic.pragma.*;
 
 /**
  * SemiSpace common constants.
- * 
- *
- *
  */
 @Uninterruptible public class SSConstraints extends StopTheWorldConstraints {
 

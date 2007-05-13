@@ -29,7 +29,6 @@ import org.vmmagic.unboxed.Address;
  * object motion during gc. As a 
  * consequence, implementors of these methods must not cause object allocations
  * to take place (ie. by calling "new" either directly or indirectly).
- *
  */
 public abstract class VM_ExceptionDeliverer {
   /**

@@ -12,7 +12,6 @@ package test.org.jikesrvm.basic.bugs;
  * Test code demonstrating bug [ 1644460 ] DaCapo lusearch fails when opt compiled.
  * <p/>
  * Should be tested with -X:aos:initial_compiler=opt in at least one test-configuration.
- *
  */
 public class R1644460_B {
   public static float b = 0.009765625f;

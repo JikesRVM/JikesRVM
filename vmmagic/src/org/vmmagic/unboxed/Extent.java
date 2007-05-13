@@ -12,7 +12,6 @@ import org.vmmagic.Unboxed;
 
 /**
  * Commenting required
- * 
  */
 @Unboxed
 public final class Extent {

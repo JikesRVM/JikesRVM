@@ -37,7 +37,6 @@ import org.jikesrvm.scheduler.VM_Thread;
  *     b) optimized executables; 
  *     c) static information about a method; or 
  *     d) all of the above.
- *
  */
 public class VM_ControllerThread extends VM_Thread {
 

@@ -42,7 +42,6 @@ import org.jikesrvm.compilers.opt.ir.ResultCarrier;
  * @see OPT_DepGraph
  * @see OPT_BURS_STATE
  * @see OPT_BURS_TreeNode
- *
  */
 final class OPT_NormalBURS extends OPT_BURS {
 

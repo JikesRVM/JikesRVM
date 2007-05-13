@@ -35,8 +35,6 @@ import org.vmmagic.pragma.*;
 /**
  * Class that supports scanning Objects or Arrays for references
  * during tracing, handling those references, and computing death times
- * 
- *
  */
 @Uninterruptible public final class TraceInterface extends org.mmtk.vm.TraceInterface implements ArchitectureSpecific.VM_ArchConstants {
 

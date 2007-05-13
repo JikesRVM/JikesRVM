@@ -10,8 +10,6 @@ package test.org.jikesrvm.basic.core.reflect;
 
 import java.lang.reflect.Method;
 
-/**
- */
 class tInstance {
   public int ifield;
   public double dfield;

@@ -9,7 +9,6 @@
 
 /**
  * Simple test to see if hijacking of select works.
- * 
  */
 class SelectTest {
 

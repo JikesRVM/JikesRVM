@@ -73,7 +73,6 @@ import org.vmmagic.pragma.NoInline;
  * @see OPT_Instruction
  * @see OPT_Operator
  * @see OPT_Operand
- * 
  */
 public final class OPT_IR {
 

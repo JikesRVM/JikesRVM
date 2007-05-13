@@ -18,7 +18,6 @@ import org.jikesrvm.runtime.VM_Entrypoints;
  * Special invokestatic, with only two possible target
  * OSR_ObjectHolder.getRefAt and OSR_ObjectHolder.cleanRefs
  * indiced by GETREFAT and CLEANREFS.
- * 
  */
 
 public class BC_InvokeStatic extends OSR_PseudoBytecode {

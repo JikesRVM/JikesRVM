@@ -29,7 +29,6 @@ import org.jikesrvm.runtime.VM_Magic;
  * by the adaptive system.  Bypasses the normal controller logic:
  * If an invocation counter trips, then the method is enqueued for
  * recompilation at a default optimization level.
- * 
  */
 public final class VM_InvocationCounts {
 

@@ -12,7 +12,6 @@ package org.jikesrvm.adaptive.measurements;
  *  This interface defines the decay method.  Implementors are 
  *  eligible for decay if they register with the 
  *  VM_RuntimeMeasurements class.
- *
  */
 
 public interface VM_Decayable {

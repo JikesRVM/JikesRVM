@@ -23,7 +23,6 @@ import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
 
 /**
  * A container for recording how often a method is executed.
- *
  */
 public final class VM_MethodCountData implements VM_Reportable {
 
@@ -232,8 +231,7 @@ public final class VM_MethodCountData implements VM_Reportable {
    *                  be hot. (0.0 to 1.0)
    * @return a VM_MethodCountSet containing an
    *            array of compiled methods and an array of their counts.
-   * 
-   */
+ */
   public synchronized VM_MethodCountSet collectHotMethods(int optLevel, 
                                                                 double threshold) {
     if (DEBUG) validityCheck();

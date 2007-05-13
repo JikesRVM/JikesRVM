@@ -77,7 +77,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * @see VM_Type
  * @see VM_Class
  * @see VM_Array
- * 
  */
 public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
 

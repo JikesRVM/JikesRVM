@@ -12,7 +12,6 @@ import org.jikesrvm.VM_SizeConstants;
 /**
  * OSR_Constants defines constants used for on-stack-replacement mapping,
  * VM scope descriptor, and pseudo bytecodes.
- *
  */
 public interface OSR_Constants extends VM_SizeConstants {
 
@@ -68,8 +67,7 @@ public interface OSR_Constants extends VM_SizeConstants {
    *     n : the number this element ( e.g, L0, S1 ), which is 16-bit
    *         as required by JVM spec.
    *     v : the type of the next word
-   * 
-   */
+ */
   
   /* bit pattern for the "Next" bit in the OSR maps array
    */

@@ -12,8 +12,6 @@ import java.util.HashMap;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_TypeReference;
 
-/**
- */
 public abstract class OPT_AbstractRegisterPool {
 
   /* inlined behavior of DoublyLinkedList */

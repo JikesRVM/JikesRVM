@@ -9,7 +9,6 @@
 
 /**
  * Test of <code>Process.destroy()</code>.
- *
  */
 public class TestProcessDestroy {
   public static void main(String[] argv) {

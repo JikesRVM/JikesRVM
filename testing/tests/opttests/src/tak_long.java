@@ -6,8 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-/**
- */
 public class tak_long {
 
   // long tak(long x, long y, long z);

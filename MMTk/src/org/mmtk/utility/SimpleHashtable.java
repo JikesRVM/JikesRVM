@@ -20,8 +20,6 @@ import org.vmmagic.unboxed.*;
  * in sanity checking or debugging, not high-performance algorithms.<p> 
  * 
  * This class is not thread safe.
- * 
- *
  */
 @Uninterruptible public abstract class SimpleHashtable implements Constants {
   /** The number of low order bits to ignore */

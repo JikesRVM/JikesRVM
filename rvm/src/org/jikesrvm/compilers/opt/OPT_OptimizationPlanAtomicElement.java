@@ -23,7 +23,6 @@ import org.jikesrvm.scheduler.VM_Thread;
  *       It is therefore incorrect for any per-compilation
  *       state to be stored in an instance field of
  *       one of these objects.
- *
  */
 public final class OPT_OptimizationPlanAtomicElement extends 
                                           OPT_OptimizationPlanElement {

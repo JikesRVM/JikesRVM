@@ -17,7 +17,6 @@ import org.jikesrvm.runtime.VM_Memory;
  * Define the stackframes used for JNI transition frames.
  * There are two kinds of transitions Java -> native method
  * and native method -> JNIFunction.
- * 
  */
 public interface VM_JNIStackframeLayoutConstants extends VM_RegisterConstants,
                                                          VM_StackframeLayoutConstants {

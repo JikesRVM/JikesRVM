@@ -17,7 +17,6 @@ import org.jikesrvm.classloader.VM_TypeReference;
  * optimizing compiler.  The caller can recover by calling the 
  * non-optimizing compiler instead (or by reverting to the previous
  * version of compiled code).
- *
  */
 public class OPT_OptimizingCompilerException extends RuntimeException {
   /** Support for exception serialization */

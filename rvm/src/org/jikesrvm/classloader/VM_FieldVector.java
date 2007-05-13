@@ -10,7 +10,6 @@ package org.jikesrvm.classloader;
 
 /**
  *  Lightweight implementation of a vector of VM_Fields.
- *
  */
 final class VM_FieldVector {
   //-----------//

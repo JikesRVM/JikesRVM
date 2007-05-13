@@ -18,7 +18,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Register;
 
 /**
  * Coalesce registers in move instructions where possible.
- *
  */
 class OPT_CoalesceMoves extends OPT_CompilerPhase {
   

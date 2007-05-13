@@ -32,7 +32,6 @@ import org.jikesrvm.compilers.opt.ir.PutStatic;
  * <li> TODO: context-sensitive or flow-sensitive summaries.
  * <li> TODO: force eager analysis of methods
  * </ul>
- *
  */
 public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
   private static final boolean DEBUG = false;

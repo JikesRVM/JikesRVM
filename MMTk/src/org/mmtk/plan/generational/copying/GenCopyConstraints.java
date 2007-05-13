@@ -6,7 +6,6 @@
  *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2005
- *
  */
 package org.mmtk.plan.generational.copying;
 
@@ -15,7 +14,6 @@ import org.vmmagic.pragma.*;
 
 /**
  * GenCopy constants.
- * 
  */
 @Uninterruptible public class GenCopyConstraints extends GenConstraints {
 }

@@ -16,8 +16,6 @@ import org.vmmagic.unboxed.*;
 
 /**
  * An option with a simple integer value.
- * 
- *
  */
 public class AddressOption extends Option {
   // values

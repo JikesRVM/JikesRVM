@@ -8,7 +8,6 @@
  */
 /*****************************************************************
  * JNI interface to manage processes.
- *
  */
 
 // Unix includes

@@ -13,7 +13,6 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 
 /**
  * This is the top-level class to support specialized versions of Java methods
- *
  */
 public class OPT_SpecializedMethod {
   /**

@@ -59,8 +59,6 @@ import org.vmmagic.unboxed.Offset;
  * VM_Handshake is allocated for the next garbage collection.
  *
  * @see VM_Handshake
- *
- *
  */
 public class VM_CollectorThread extends VM_Thread {
   

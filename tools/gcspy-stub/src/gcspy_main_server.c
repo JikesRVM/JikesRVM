@@ -9,7 +9,6 @@
 
 /**
  * A testing stub for GCspy
- *
  */
 
 

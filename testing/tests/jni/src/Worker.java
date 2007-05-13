@@ -6,8 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-/**
- */
 class Worker extends Thread  {
   private String name;
   volatile boolean readyFlag = false;

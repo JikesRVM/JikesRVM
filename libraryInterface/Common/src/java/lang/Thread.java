@@ -5,7 +5,6 @@
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
  * (C) Copyright IBM Corp 2002, 2004
- *
  */
 package java.lang;
 
@@ -20,7 +19,6 @@ import org.jikesrvm.scheduler.VM_Wait;
 
 /**
  * Jikes RVM implementation of a Java thread.
- *
  */
 public class Thread implements Runnable {
 

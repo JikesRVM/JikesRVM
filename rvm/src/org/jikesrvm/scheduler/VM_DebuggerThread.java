@@ -21,7 +21,6 @@ import org.vmmagic.unboxed.Address;
  * This thread is normally dormant and only scheduled for execution
  * by VM_Thread.threadSwitch() following receipt of a debug request 
  * signal (SIGQUIT).
- *
  */
 public class VM_DebuggerThread extends VM_Thread {
 

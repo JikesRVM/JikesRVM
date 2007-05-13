@@ -33,7 +33,6 @@ import org.jikesrvm.VM;
  *  references with strictly increasing targets.  The link for this list
  *  is "next".  A separate linked list ("other" is the link) contains all
  *  forward references with the same target.
- *
  */
 public abstract class VM_ForwardReference {
 

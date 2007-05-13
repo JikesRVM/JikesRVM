@@ -18,7 +18,6 @@ import org.jikesrvm.VM;
  * is being held (ie is it on the operand stack, or in a local variable). 
  * The value starts on the top of the stack, but is usually quickly moved to 
  * a local variable. 
- *
  */
 public final class VM_PendingRETInfo {
 

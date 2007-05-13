@@ -28,7 +28,6 @@ import org.jikesrvm.classloader.VM_MethodReference;
 /**
  * A partial call graph (PCG) is a partial mapping from callsites
  * to weighted targets.
- *
  */
 public final class VM_PartialCallGraph implements VM_Decayable,
     VM_Reportable {
@@ -276,8 +275,7 @@ public final class VM_PartialCallGraph implements VM_Decayable,
 
   /**
    * Used to compare two call sites by total weight.
-   *
-   */
+ */
   private final class OrderByTotalWeight implements Comparator<VM_CallSite> {
     public int compare(VM_CallSite o1, VM_CallSite o2) {
       if (o1.equals(o2)) return 0;

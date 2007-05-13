@@ -39,8 +39,6 @@ import org.vmmagic.pragma.*;
  * 
  * @see SegregatedFreeList
  * @see MarkSweepSpace
- * 
- *
  */
 @Uninterruptible public final class MarkSweepLocal extends SegregatedFreeList
   implements Constants {
@@ -182,15 +180,13 @@ import org.vmmagic.pragma.*;
 
   /**
    * Finish up after a collection.
-   * 
-   */
+ */
   public void releaseCollector() {
     sweepBlocks(true); // sweep the blocks
   }
   /**
    * Finish up after a collection.
-   * 
-   */
+ */
   public void releaseMutator() {
     restoreFreeLists();
     if (Options.fragmentationStats.getValue())

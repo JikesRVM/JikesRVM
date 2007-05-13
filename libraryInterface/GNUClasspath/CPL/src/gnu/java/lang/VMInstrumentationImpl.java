@@ -18,7 +18,6 @@ import org.jikesrvm.classloader.VM_Array;
 
 /**
  * Jikes RVM implementation of VMInstrumentationImpl
- *
  */
 final class VMInstrumentationImpl {
   static boolean isRedefineClassesSupported() {

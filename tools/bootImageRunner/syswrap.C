@@ -19,7 +19,6 @@
  * from blocking the virtual processor.
  *
  * This also defines the JNI VM Invocation Interface calls.
- *
  */
 
 #define VERBOSE_WRAPPERS 0

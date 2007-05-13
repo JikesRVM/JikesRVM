@@ -10,7 +10,6 @@
 package org.jikesrvm.osr;
 /**
  * BC_LongStore: lstore, lstore_<n> 
- * 
  */
 
 public class BC_LongStore extends OSR_PseudoBytecode {

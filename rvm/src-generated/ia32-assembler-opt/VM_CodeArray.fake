@@ -10,8 +10,6 @@ package org.jikesrvm.ia32;
 
 import org.jikesrvm.ArchitectureSpecific;
 
-/**
- */
 public class VM_CodeArray {
   private byte [] data;
 

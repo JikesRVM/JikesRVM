@@ -8,8 +8,6 @@
  */
 package org.vmmagic.unboxed;
 
-/**
- */
 public class Offset {
   public static Offset fromIntSignExtend(int x) {
     return null;

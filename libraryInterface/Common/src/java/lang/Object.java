@@ -17,7 +17,6 @@ import org.jikesrvm.runtime.VM_Runtime;
  * 
  * By convention, order methods in the same order
  * as they appear in the method summary list of Sun's 1.4 Javadoc API. 
- * 
  */
 public class Object {
 

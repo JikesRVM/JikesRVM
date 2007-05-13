@@ -16,7 +16,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
  * value numbering
  * ala Alpern, Wegman and Zadeck.  See Muchnick p.348 for a nice
  * discussion.
- *
  */
 final class OPT_ValueGraphVertex extends OPT_SpaceEffGraphNode {
   private final Object name;  // the name of the variable defined by this node

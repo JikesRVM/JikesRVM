@@ -14,7 +14,6 @@ package org.jikesrvm;
  * Typically these are properties that can be set from the command line
  * (and thus are NOT final).  All final properties should be 
  * declared in VM_Configuration
- *
  */
 public class VM_Properties extends VM_Options {
 

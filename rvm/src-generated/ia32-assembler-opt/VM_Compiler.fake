@@ -7,7 +7,5 @@
  * (C) Copyright IBM Corp. 2003
  */
 package org.jikesrvm.compilers.baseline.ia32;
-/**
- */
 public class VM_Compiler {
 }

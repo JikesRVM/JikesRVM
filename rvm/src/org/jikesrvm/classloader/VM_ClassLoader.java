@@ -18,7 +18,6 @@ import org.jikesrvm.VM_Properties;
 
 /**
  * Manufacture type descriptions as needed by the running virtual machine. <p>
- * 
  */
 public class VM_ClassLoader implements VM_Constants, 
                                        VM_ClassLoaderConstants {

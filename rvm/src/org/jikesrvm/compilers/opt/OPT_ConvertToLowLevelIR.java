@@ -144,7 +144,6 @@ import org.vmmagic.unboxed.Offset;
 /**
  * Converts all remaining instructions with HIR-only operators into 
  * an equivalent sequence of LIR operators.
- *
  */
 public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
 

@@ -14,7 +14,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Register;
 /**
  * This class holds the results of a flow-insensitive escape analysis
  * for a method.
- *
  */
 class OPT_FI_EscapeSummary {
 

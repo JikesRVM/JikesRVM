@@ -12,7 +12,6 @@ import org.jikesrvm.compilers.opt.OPT_CompilerPhase;
 
 /**
  * Translate from bytecodes to HIR
- *
  */
 public final class OPT_ConvertBCtoHIR extends OPT_CompilerPhase {
 

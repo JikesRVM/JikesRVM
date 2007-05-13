@@ -40,7 +40,6 @@
  *    CallNonvirtualDoubleMethodA    CallNonvirtualDoubleMethodV    CallNonvirtualDoubleMethod  
  *    CallNonvirtualVoidMethodA      CallNonvirtualVoidMethodV      CallNonvirtualVoidMethod    
  *    CallNonvirtualObjectMethodA    CallNonvirtualObjectMethodV    CallNonvirtualObjectMethod
- *
  */
 
 class MethodInvocation {
@@ -233,8 +232,7 @@ class MethodInvocation {
 
   /************************************************************
    * Main body of the test program
-   *
-   */
+ */
   public static void main(String args[]) {
     int returnValue;
     String anObj = new String("Year of the Dragon");

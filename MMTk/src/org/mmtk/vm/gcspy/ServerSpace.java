@@ -19,8 +19,6 @@ import org.vmmagic.pragma.*;
  * Abstract class for the GCspy Space abstraction.
  * 
  * Implementing classes will largely forward calls to the gcspy C library.
- * 
- *
  */
 @Uninterruptible public abstract class ServerSpace {
 

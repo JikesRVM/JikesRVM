@@ -18,7 +18,6 @@ import org.vmmagic.pragma.*;
 
 /**
  * Error and trace logging.
- * 
  */
 @Uninterruptible public class Log implements Constants {
 

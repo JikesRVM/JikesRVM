@@ -23,8 +23,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
  *             D(n) := {n} U (intersect of D(p) over all predecessors p of n)
  * </pre>
  * <p> TODO: we do not support IRs with exception handlers!!
- *
- *
  */
 class OPT_Dominators {
   /**

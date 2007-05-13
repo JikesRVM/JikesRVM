@@ -23,7 +23,6 @@ import org.jikesrvm.VM;
  *
  *       it.moveToNext();
  *     }
- * 
  */
 
 public class OSR_MapIterator implements OSR_Constants{

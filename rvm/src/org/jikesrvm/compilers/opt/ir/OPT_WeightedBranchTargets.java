@@ -17,7 +17,6 @@ import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
  * Takes into account the ordering of branch instructions when 
  * computing the edge weights such that the total target weight will always 
  * be equal to 1.0 (flow in == flow out).  
- *
  */
 public final class OPT_WeightedBranchTargets {
   private OPT_BasicBlock[] targets;

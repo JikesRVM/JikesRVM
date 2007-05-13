@@ -62,7 +62,6 @@ import org.jikesrvm.runtime.VM_Entrypoints;
  * This pass is also responsible for inserting write barriers
  * if we are using an allocator that requires them. Write barriers
  * are always inline expanded.
- *   
  */
 public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase {
 

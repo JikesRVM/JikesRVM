@@ -26,7 +26,6 @@ import org.jikesrvm.compilers.common.VM_CompiledMethods;
  * OPT_ClassLoadingDependencyManager.classInitialized(), which is responsible
  * for identifying and performing all necessary invalidations of 
  * opt compiler code.
- *
  */
 public final class OPT_ClassLoadingDependencyManager implements VM_ClassLoadingListener {
 

@@ -39,7 +39,6 @@ import org.jikesrvm.compilers.opt.ir.PutStatic;
 /**
  * Represents a set of dataflow equations used to solve the
  * index propagation problem.
- *
  */
 class OPT_IndexPropagationSystem extends OPT_DF_System {
 

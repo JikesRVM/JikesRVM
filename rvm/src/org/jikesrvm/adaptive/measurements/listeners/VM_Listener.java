@@ -28,7 +28,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * Since thread switching is disabled, listeners are 
  * expected to complete execution quickly, and therefore, 
  * must do a minimal amount of work.
- *
  */
 @Uninterruptible public abstract class VM_Listener {
 

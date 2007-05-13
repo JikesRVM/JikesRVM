@@ -8,8 +8,6 @@
  */
 package org.jikesrvm.ia32;
 
-/**
- */
 public interface VM_RegisterConstants {
   //---------------------------------------------------------------------------------------//
   //               RVM register usage conventions - Intel version.                         //

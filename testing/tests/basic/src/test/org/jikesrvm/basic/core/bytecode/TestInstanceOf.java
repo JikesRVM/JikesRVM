@@ -10,8 +10,6 @@ package test.org.jikesrvm.basic.core.bytecode;
 
 import java.io.Serializable;
 
-/**
- */
 class TestInstanceOf {
 
   static class Science {}

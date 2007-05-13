@@ -11,8 +11,6 @@ package org.mmtk.utility.options;
 
 /**
  * A sample enumeration for testing.
- * 
- *
  */
 public final class DummyEnum extends EnumOption {
 

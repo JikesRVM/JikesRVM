@@ -8,8 +8,6 @@
  */
 package org.jikesrvm.compilers.opt;
 
-/**
- */
 class OPT_SpaceEffGraphEdgeListHeader {
   OPT_SpaceEffGraphEdgeList _first;
   OPT_SpaceEffGraphEdgeList _last;

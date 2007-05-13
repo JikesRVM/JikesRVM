@@ -30,7 +30,6 @@ import org.vmmagic.unboxed.WordArray;
  * Java code. Their names are recognized by RVM's compilers 
  * and cause inline machine code to be generated instead of 
  * actual method calls.
- *
  */
 @SuppressWarnings({"UnusedDeclaration"})
 @Intrinsic

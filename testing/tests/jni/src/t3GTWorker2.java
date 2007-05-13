@@ -12,7 +12,6 @@
  * the face of long-running native calls;
  * this thread sleeps for the specified time when called
  * repeatedly, until it receives a signal
- *
  */
 
 class t3GTWorker2 extends Thread {

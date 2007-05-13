@@ -18,10 +18,6 @@ import org.mmtk.utility.Constants;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.*;
 
-/**
- *
- *
- */
 @Uninterruptible public abstract class Scanning implements Constants {
   /**
    * Delegated scanning of a object, processing each pointer field

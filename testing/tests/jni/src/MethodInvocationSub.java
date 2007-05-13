@@ -8,7 +8,6 @@
  */
 /**
  * Sub class of MethodInvocation to test CallNonVirtual<type>Method
- *
  */
 class MethodInvocationSub extends MethodInvocation {
 

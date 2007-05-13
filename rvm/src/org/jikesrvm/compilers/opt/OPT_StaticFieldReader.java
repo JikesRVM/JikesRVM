@@ -36,7 +36,6 @@ import org.vmmagic.unboxed.Word;
  * compile time.  This is used to optimize
  * getstatic's of initialized static fields
  * by replacing the getstatic with a constant operand.
- *
  */
 public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
 

@@ -14,7 +14,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Register;
 /**
  * This class helps manage register preferences for coalescing and
  * register allocation.
- *
  */
 public abstract class OPT_GenericRegisterPreferences {
   /**

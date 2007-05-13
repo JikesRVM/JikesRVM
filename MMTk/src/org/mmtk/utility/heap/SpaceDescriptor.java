@@ -31,8 +31,6 @@ import org.vmmagic.unboxed.*;
  * in tests to determine whether an object is in a space.  A good
  * compiler can perform this decoding at compile time and produce
  * optimal code for the test.
- * 
- *
  */
 @Uninterruptible public class SpaceDescriptor implements Constants {
 

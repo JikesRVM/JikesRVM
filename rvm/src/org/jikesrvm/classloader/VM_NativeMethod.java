@@ -19,7 +19,6 @@ import org.vmmagic.unboxed.Offset;
 
 /**
  * A native method of a java class.
- *
  */
 public final class VM_NativeMethod extends VM_Method {
 

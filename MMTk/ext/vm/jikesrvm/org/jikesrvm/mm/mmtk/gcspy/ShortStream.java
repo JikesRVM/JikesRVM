@@ -22,8 +22,6 @@ import org.vmmagic.unboxed.Address;
 
 /**
  * Set up a GCspy Stream with data type SHORT_TYPE.
- *
- *
  */
 
 @Uninterruptible public class ShortStream extends org.mmtk.vm.gcspy.ShortStream {

@@ -21,8 +21,6 @@ import org.vmmagic.unboxed.*;
  * transitive closure over an object graph.<p>
  * 
  * @see org.mmtk.plan.TraceLocal
- * 
- *
  */
 @Uninterruptible public final class GenRCModifiedProcessor extends TraceStep { 
   private final GenRCTraceLocal trace;

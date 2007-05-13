@@ -6,8 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-/**
- */
 
 public class hanoi {
   static int[] num = new int[4];

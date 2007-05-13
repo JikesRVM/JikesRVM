@@ -8,8 +8,6 @@
  */
 package org.jikesrvm.compilers.baseline;
 
-/**
- */
 public final class VM_BasicBlock {
 
  // structure to describe the basic blocks of the byte code

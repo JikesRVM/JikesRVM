@@ -11,7 +11,6 @@
  * worker thread for thread management test.  Calls
  * t3GT3.runit the specified number of times; that
  * method is gcbench.
- *
  */
 
 class t3GT3Worker extends Thread {

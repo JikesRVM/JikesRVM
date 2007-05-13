@@ -37,8 +37,6 @@ import org.vmmagic.unboxed.*;
  * (such as memory and virtual memory resources).  This mapping of threads to
  * instances is crucial to understanding the correctness and
  * performance properties of MMTk plans.
- * 
- *
  */
 @Uninterruptible public class GenRC extends RCBase {
   
@@ -61,8 +59,7 @@ import org.vmmagic.unboxed.*;
   
   /**
    * Constructor.
-   * 
-   */
+ */
   public GenRC() {
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(WITH_COALESCING_RC);

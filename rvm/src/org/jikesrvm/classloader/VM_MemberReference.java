@@ -26,7 +26,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * Resolving a VM_MemberReference to a VM_Member can
  * be an expensive operation.  Therefore we canonicalize
  * VM_MemberReference instances and cache the result of resolution.
- * 
  */
 public abstract class VM_MemberReference {
 

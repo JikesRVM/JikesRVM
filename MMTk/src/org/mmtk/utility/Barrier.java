@@ -19,7 +19,6 @@ import org.vmmagic.pragma.*;
  * The mechanism handles proper resetting by usnig 3 underlying counters
  * and supports unconditional blocking until the number of participants
  * can be determined.
- * 
  */
 @Uninterruptible public final class Barrier {
 

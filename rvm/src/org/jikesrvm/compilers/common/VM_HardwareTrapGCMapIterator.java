@@ -21,7 +21,6 @@ import org.vmmagic.unboxed.WordArray;
  * Iterator for stack frames inserted by hardware trap handler.
  * Such frames are purely used as markers.
  * They contain no object references or JSR return addresses.
- *
  */
 @Uninterruptible public final class VM_HardwareTrapGCMapIterator extends VM_GCMapIterator implements VM_SizeConstants {
 

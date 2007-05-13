@@ -8,8 +8,6 @@
  */
 package test.org.jikesrvm.basic.core.threads;
 
-/**
- */
 class TestSuspend extends XThread {
 
   static Thread sleeper;

@@ -8,7 +8,6 @@
  *
  *
  * Simple test for sys call interception.
- * 
  */
 
 #include <stdio.h>

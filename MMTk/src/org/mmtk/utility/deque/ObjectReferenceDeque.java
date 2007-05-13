@@ -19,8 +19,6 @@ import org.vmmagic.pragma.*;
 /**
  * This supports <i>unsynchronized</i> enqueuing and dequeuing of
  * object references
- * 
- *
  */
 @Uninterruptible public class ObjectReferenceDeque extends LocalDeque 
   implements Constants {

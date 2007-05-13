@@ -31,8 +31,6 @@ import org.vmmagic.pragma.*;
  * @see StopTheWorldCollector
  * @see CollectorContext
  * @see SimplePhase#delegatePhase
- * 
- *
  */
 @Uninterruptible public abstract class GenCollector extends StopTheWorldCollector {
 

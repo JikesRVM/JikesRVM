@@ -66,7 +66,6 @@ import org.vmmagic.unboxed.Address;
  * @see OPT_TrapCodeOperand
  * @see OPT_TrueGuardOperand
  * @see OPT_TypeOperand
- *
  */
 public abstract class OPT_Operand {
 
@@ -621,8 +620,7 @@ public abstract class OPT_Operand {
    * @param op2 the second operand to compare
    * @return <code>true</code> if op1 conservatively approximates op2 or
    *         <code>false</code> if it does not.
-   * 
-   */
+ */
   public static boolean conservativelyApproximates(OPT_Operand op1, 
                                                    OPT_Operand op2) {
     // Step 1: Handle pointer equality and bottom
@@ -803,8 +801,7 @@ public abstract class OPT_Operand {
    *         the meet evaluates to bottom.  It will return
    *         op1 when conservativelyApproximates(op1, op2)
    *         evaluates to <code>true</code>.
-   *
-   */
+ */
   public static OPT_Operand meet(OPT_Operand op1, 
                                  OPT_Operand op2, 
                                  OPT_Register reg) {

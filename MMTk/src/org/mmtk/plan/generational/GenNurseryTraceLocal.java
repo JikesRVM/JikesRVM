@@ -22,8 +22,6 @@ import org.vmmagic.unboxed.*;
 /**
  * This abstract class implments the core functionality for a transitive
  * closure over the heap graph.
- * 
- *
  */
 @Uninterruptible public final class GenNurseryTraceLocal extends TraceLocal {
 

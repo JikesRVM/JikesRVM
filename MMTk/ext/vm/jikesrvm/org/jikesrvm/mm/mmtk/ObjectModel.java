@@ -31,10 +31,6 @@ import org.jikesrvm.memorymanagers.mminterface.Selected;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
-/**
- *
- *
- */
 @Uninterruptible public final class ObjectModel extends org.mmtk.vm.ObjectModel implements Constants, VM_Constants {
 
   protected Offset getArrayBaseOffset() { return VM_JavaHeaderConstants.ARRAY_BASE_OFFSET; }

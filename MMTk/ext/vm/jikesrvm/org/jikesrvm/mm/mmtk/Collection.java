@@ -39,10 +39,6 @@ import org.jikesrvm.memorymanagers.mminterface.Selected;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
-/**
- *
- *
- */
 @Uninterruptible public class Collection extends org.mmtk.vm.Collection implements Constants, VM_Constants {
 
   /****************************************************************************

@@ -12,9 +12,6 @@ package org.jikesrvm.scheduler;
 import org.jikesrvm.VM;
 import org.vmmagic.pragma.Uninterruptible;
 
-/**
- *
- */
 
 @Uninterruptible public final class VM_Stats {
 

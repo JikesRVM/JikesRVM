@@ -10,8 +10,6 @@ package test.org.jikesrvm.basic.core.serialization;
 
 import java.io.Serializable;
 
-/**
- */
 class SerializationData implements Serializable {
   private static final class Obj implements Serializable {
     private static final long serialVersionUID = 42L;

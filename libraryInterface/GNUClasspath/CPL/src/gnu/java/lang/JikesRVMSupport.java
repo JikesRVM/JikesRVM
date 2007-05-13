@@ -10,8 +10,6 @@ package gnu.java.lang;
 
 import java.lang.instrument.Instrumentation;
 
-/**
- */
 public final class JikesRVMSupport {
   public static Instrumentation createInstrumentation() {
     return new InstrumentationImpl();

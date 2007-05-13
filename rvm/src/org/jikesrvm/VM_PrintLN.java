@@ -15,7 +15,6 @@ import org.jikesrvm.classloader.VM_Member;
 /**
  * This interface is implemented by org.jikesrvm.VM_PrintContainer.  The
  * interfaces is used by our java.lang.Throwable to print stack traces.
- *
  */
 @SuppressWarnings("unused")  // Suppress the unused import warning as per comment above
 public abstract class VM_PrintLN {

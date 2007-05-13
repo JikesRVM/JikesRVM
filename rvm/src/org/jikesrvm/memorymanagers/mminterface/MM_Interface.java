@@ -55,7 +55,6 @@ import org.vmmagic.unboxed.Word;
 /**
  * The interface that the JMTk memory manager presents to the Jikes
  * research virtual machine.
- * 
  */
 @Uninterruptible public class MM_Interface implements VM_HeapLayoutConstants, Constants {
 

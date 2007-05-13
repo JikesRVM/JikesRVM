@@ -64,8 +64,6 @@ import org.vmmagic.unboxed.*;
  * @see MutatorContext
  * @see org.mmtk.vm.ActivePlan
  * @see Plan
- * 
- *
  */
 @Uninterruptible public abstract class CollectorContext implements Constants {
 

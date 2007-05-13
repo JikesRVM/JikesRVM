@@ -13,8 +13,6 @@ import org.vmmagic.pragma.*;
 
 /**
  * Constraints specific to Stop-the-world collectors.
- * 
- *
  */
 @Uninterruptible public abstract class StopTheWorldConstraints extends PlanConstraints {
 }

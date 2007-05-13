@@ -19,7 +19,6 @@ import org.jikesrvm.runtime.VM_Reflection;
  * by just compiling "Dummy.java".
  * <p/>
  * The minimal set has to be discovered by trial and error. Sorry.
- *
  */
 class Dummy {
   static org.jikesrvm.VM a;

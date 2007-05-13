@@ -24,8 +24,6 @@ import org.vmmagic.pragma.*;
  * will be reduced (as compared with embedding meta-data at the start
  * of each page which will cause those few cache lines corresponding
  * to the start of each page to be heavily conflicted).
- * 
- *
  */
 @Uninterruptible public final class EmbeddedMetaData implements Constants {
 

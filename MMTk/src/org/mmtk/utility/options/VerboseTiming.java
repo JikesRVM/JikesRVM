@@ -11,8 +11,6 @@ package org.mmtk.utility.options;
 
 /**
  * Should we display detailed breakdown of where GC time is spent?
- * 
- *
  */
 public class VerboseTiming extends BooleanOption {
   /**

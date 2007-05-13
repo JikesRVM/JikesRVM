@@ -19,7 +19,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * online measurements and the controller.  An organizer may perform
  * simple or complex tasks, but it is always simply following the 
  * instructions given by the controller.
- * 
  */
 public abstract class VM_Organizer extends VM_Thread {
 

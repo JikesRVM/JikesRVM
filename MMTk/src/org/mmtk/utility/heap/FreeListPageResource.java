@@ -24,8 +24,6 @@ import org.vmmagic.pragma.*;
  * page is requested by the space both a page budget and the use of
  * virtual address space are checked.  If the request for space can't
  * be satisfied (for either reason) a GC may be triggered.<p>
- * 
- *
  */
 @Uninterruptible public final class FreeListPageResource extends PageResource 
   implements Constants {

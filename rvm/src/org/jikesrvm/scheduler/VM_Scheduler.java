@@ -38,7 +38,6 @@ import org.vmmagic.unboxed.Offset;
  *    - threads
  *    - queues
  *    - locks
- *
  */
 @Uninterruptible public class VM_Scheduler implements VM_Constants {
   
@@ -318,8 +317,7 @@ import org.vmmagic.unboxed.Offset;
    * Note:  the NativeIdleThread's don't need to be terminated since they don't have
    * their own pthread;  they run on the external pthreads that had called CreateJavaVM
    * or AttachCurrentThread.
-   * 
-   */
+ */
   public static void processorExit(int rc) {
     // trace("VM_Scheduler", ("Exiting with " + numProcessors + " pthreads."));
 

@@ -14,7 +14,6 @@ import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * Scratch space for JSR processing.  Used from VM_ReferenceMaps
- * 
  */
 @Uninterruptible public final class VM_JSRInfo implements VM_BaselineConstants {
 

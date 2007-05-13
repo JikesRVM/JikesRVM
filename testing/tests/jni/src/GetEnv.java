@@ -8,7 +8,6 @@
  */
 
 /* Test the JavaVM and GetEnv JNI functionality 
- * 
  */
 class GetEnv {
 

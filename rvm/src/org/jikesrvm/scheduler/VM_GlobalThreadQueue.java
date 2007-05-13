@@ -14,7 +14,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * A global queue of VM_Threads.
  *
  * For the transferQueues (more efficient implementation of length()).
- *
  */
 @Uninterruptible public final class VM_GlobalThreadQueue extends VM_ThreadQueue {
 

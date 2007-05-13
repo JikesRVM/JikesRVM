@@ -30,7 +30,6 @@ import org.jikesrvm.compilers.opt.OPT_CompilationPlan;
  * status states:
  * UNINITIALIZED -> IN_PROGRESS -> COMPLETED -> OUTDATED
  *             \              \--> ABORTED_COMPILATION_ERROR (never recompile method)
- *
  */
 public final class VM_ControllerPlan {
 

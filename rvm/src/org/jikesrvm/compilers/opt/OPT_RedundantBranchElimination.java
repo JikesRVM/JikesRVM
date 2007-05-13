@@ -46,7 +46,6 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GUARD_MOVE;
  * is not correct to eliminate cb1 because it is also 
  * reachable (but not dominated) from the continutation
  * block of cb2!
- *
  */
 final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanCompositeElement {
 

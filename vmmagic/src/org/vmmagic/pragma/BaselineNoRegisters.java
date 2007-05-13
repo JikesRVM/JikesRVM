@@ -17,7 +17,6 @@ import org.vmmagic.Pragma;
 /**
  * Some methods shouldn't use registers for locals and stack values.
  * E.g. VM_CollectorThread can't relocate refs in registers of its own. 
- * 
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

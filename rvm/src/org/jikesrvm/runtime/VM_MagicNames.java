@@ -13,7 +13,6 @@ import org.jikesrvm.classloader.VM_Atom;
 /**
  * Method names that are treated specially by compiler.
  * See also: VM_Magic, various magic compilers.
- *
  */
 public class VM_MagicNames {
 

@@ -29,7 +29,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
  * unlike other kinds of instrumentation (such as basic block
  * counters) where a separate data object is maintained for each
  * method.
- *
  */
 public class OPT_InsertMethodInvocationCounter extends OPT_CompilerPhase {
 

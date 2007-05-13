@@ -8,7 +8,6 @@
  */
 /**
  * Test native method
- *
  */
 
 class tNative

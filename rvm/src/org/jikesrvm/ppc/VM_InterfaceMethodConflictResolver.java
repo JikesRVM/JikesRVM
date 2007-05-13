@@ -20,7 +20,6 @@ import org.jikesrvm.runtime.VM_Memory;
 /**
  * Generates a custom IMT-conflict resolution stub.
  * We create a binary search tree.
- * 
  */
 public abstract class VM_InterfaceMethodConflictResolver implements VM_BaselineConstants,
     VM_AssemblerConstants {

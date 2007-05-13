@@ -17,7 +17,6 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
  * originating in a hot method has become hot
  * and therefore recompilation of the method should
  * be considered to enable additional profile-directed inlining.
- *
  */
 public final class VM_AINewHotEdgeEvent extends VM_HotMethodEvent 
   implements VM_ControllerInputEvent {

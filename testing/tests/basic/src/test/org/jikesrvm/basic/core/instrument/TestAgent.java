@@ -5,12 +5,9 @@
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
  * (C) Copyright Elias Naur 2006
- *
  */
 package test.org.jikesrvm.basic.core.instrument;
 
-/**
- */
 public class TestAgent {
 	public static void main(String[] args) {
 		System.out.println("TestAgent executed.");

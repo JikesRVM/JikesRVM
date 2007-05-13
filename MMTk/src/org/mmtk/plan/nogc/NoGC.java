@@ -21,8 +21,6 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements the global state of a a simple allocator
  * without a collector.
- * 
- *
  */
 @Uninterruptible public class NoGC extends Plan {
 

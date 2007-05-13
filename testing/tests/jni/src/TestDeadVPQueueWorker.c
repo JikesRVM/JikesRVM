@@ -7,7 +7,6 @@
  * (C) Copyright IBM Corp. 2001
  */
 /* test native code for jni
- *
  */
 
 #include <stdio.h>

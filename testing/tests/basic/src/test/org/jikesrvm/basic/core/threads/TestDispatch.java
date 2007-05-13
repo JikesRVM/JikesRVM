@@ -8,8 +8,6 @@
  */
 package test.org.jikesrvm.basic.core.threads;
 
-/**
- */
 class TestDispatch {
 
   public static void main(String[] args) {

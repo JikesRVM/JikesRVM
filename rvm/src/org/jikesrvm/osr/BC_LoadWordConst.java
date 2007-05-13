@@ -13,7 +13,6 @@ import org.vmmagic.unboxed.Word;
 
 /**
  * load a word constant on the stack
- *
  */
 public class BC_LoadWordConst extends OSR_PseudoBytecode {
   private static final int bsize = 2+BYTES_IN_ADDRESS;

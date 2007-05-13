@@ -17,7 +17,6 @@ import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * A method of a java class that has bytecodes.
- *
  */
 public final class VM_NormalMethod 
   extends VM_Method 

@@ -26,7 +26,6 @@ import org.vmmagic.unboxed.*;
 /**
  * This class implements the global state of a trial deletion cycle detector.
 
- *
  */
 @Uninterruptible public final class TrialDeletion extends CD {
 

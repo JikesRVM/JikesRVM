@@ -22,9 +22,6 @@ import org.vmmagic.pragma.*;
  * This class implements tracing functionality for a simple copying
  * space.  Since no state needs to be held globally or locally, all
  * methods are static.
- * 
- *
- *
  */
 @Uninterruptible public final class CopySpace extends Space
   implements Constants {

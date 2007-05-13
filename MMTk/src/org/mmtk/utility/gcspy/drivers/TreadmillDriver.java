@@ -27,8 +27,6 @@ import org.vmmagic.pragma.*;
 
 /**
  * This class implements a simple driver for the MMTk LargeObjectSpace.
- * 
- *
  */
 @Uninterruptible public class TreadmillDriver extends AbstractDriver {
 
@@ -298,8 +296,7 @@ import org.vmmagic.pragma.*;
    * Reset the roots Stream. <br>
    * The roots Stream has to be reset seperately because we do not
    * gather data in the usual way using <code>scan()</code>.
-   *
-   */
+ */
   public void resetRootsStream () {
     rootsStream.resetData();
     totalRoots = 0;

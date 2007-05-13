@@ -6,8 +6,6 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-/**
- */
 class TestClassInitializerA
    {
    static         { System.out.println("clinit called for TestClassInitializerA"); }

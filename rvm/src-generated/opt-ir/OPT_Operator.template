@@ -35,7 +35,6 @@ import org.jikesrvm.compilers.opt.*;
  * @see OPT_Operators
  * @see OPT_Instruction
  * @see OPT_OperatorNames
- * 
  */
 public final class OPT_Operator {
 

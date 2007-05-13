@@ -42,8 +42,6 @@ import org.vmmagic.unboxed.Offset;
  * initializer for this class then uses the system property
  * <code>mmtk.hostjvm</code> to load the VM-specific concrete classes
  * and initialize the constants and singletons defined here.
- * 
- *
  */
 public final class VM {
   

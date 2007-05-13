@@ -49,7 +49,6 @@ import org.vmmagic.unboxed.Offset;
 
 /**
  * VM_Compiler is the baseline compiler class for powerPC architectures.
- *
  */
 public abstract class VM_Compiler extends VM_BaselineCompiler
     implements VM_BaselineConstants,

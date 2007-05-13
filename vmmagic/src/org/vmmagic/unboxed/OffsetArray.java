@@ -10,7 +10,6 @@ package org.vmmagic.unboxed;
 
 /**
  * Commenting required
- * 
  */
 public final class OffsetArray {
 

@@ -5,12 +5,10 @@
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
  * (C) Copyright IBM Corp. 2001
- *
  */
 /**
  * Test JNI Functions related to Array
  * Implement native methods from ArrayFunctions.java 
- * 
  */
 
 #include <stdio.h>

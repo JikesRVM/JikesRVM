@@ -36,7 +36,6 @@ import org.vmmagic.unboxed.*;
  * Invariants: Buffers are filled such that tuples (of the specified
  * arity) are packed to the low end of the buffer.  Thus buffer
  * underflows will always arise when then cursor is buffer-size aligned.
- * 
  */
 @Uninterruptible class LocalQueue extends LocalSSB implements Constants {
 

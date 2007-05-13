@@ -25,8 +25,6 @@ import org.vmmagic.pragma.*;
  * "collector" to propogate marks in a liveness trace.  It does not
  * actually collect.  This class does not hold any state, all methods
  * are static.
- * 
- *
  */
 @Uninterruptible public final class ImmortalSpace extends Space 
   implements Constants {

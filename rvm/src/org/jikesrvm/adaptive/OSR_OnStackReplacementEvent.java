@@ -29,7 +29,6 @@ import org.vmmagic.unboxed.Offset;
  * The event is feed to the controller with suspended thread, and hot
  * method id. Since it does not need to go through analytic model, it does 
  * not extend the VM_HotMethodEvent.
- * 
  */
 
 public final class OSR_OnStackReplacementEvent

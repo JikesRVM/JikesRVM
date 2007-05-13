@@ -6,7 +6,6 @@
  *
  * (C) Copyright Department of Computer Science,
  * University of Massachusetts, Amherst. 2003.
- *
  */
 package org.mmtk.vm;
 
@@ -16,7 +15,6 @@ import org.vmmagic.pragma.*;
 /**
  * Class that supports scanning Objects or Arrays for references
  * during tracing, handling those references, and computing death times
- * 
  */
 @Uninterruptible public abstract class TraceInterface {
 

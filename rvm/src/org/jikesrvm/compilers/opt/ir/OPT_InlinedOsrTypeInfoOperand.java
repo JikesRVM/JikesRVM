@@ -13,7 +13,6 @@ import org.jikesrvm.classloader.VM_MemberReference;
 /*
  * An OPT_InlinedOsrTypeInfoOperand object keeps necessary information
  * to recover non-inlined status for an inlined method.
- *
  */
 
 public final class OPT_InlinedOsrTypeInfoOperand extends OPT_Operand {

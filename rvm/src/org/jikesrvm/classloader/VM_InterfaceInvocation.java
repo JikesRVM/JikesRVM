@@ -30,7 +30,6 @@ import org.jikesrvm.runtime.VM_Runtime;
  *     - searched (at dispatch time)
  *   Naive, class object is searched for matching method on every dispatch.
  * </pre>
- * 
  */
 public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeConstants {
 

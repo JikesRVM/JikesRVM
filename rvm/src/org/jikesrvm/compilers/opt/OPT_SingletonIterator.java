@@ -10,8 +10,6 @@ package org.jikesrvm.compilers.opt;
 
 import java.util.Iterator;
 
-/**
- */
 class OPT_SingletonIterator<T> implements Iterator<T> {
 
   OPT_SingletonIterator (T o) {

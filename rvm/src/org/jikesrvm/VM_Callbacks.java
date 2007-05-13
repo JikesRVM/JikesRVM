@@ -62,7 +62,6 @@ import org.jikesrvm.util.VM_Synchronizer;
  *                          (application must call this explicitly for anything
  *                           to happen)
  * </ul>
- *
  */
 public final class VM_Callbacks {
   ///////////////

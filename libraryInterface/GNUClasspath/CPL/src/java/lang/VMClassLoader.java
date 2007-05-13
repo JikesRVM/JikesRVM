@@ -40,7 +40,6 @@ import org.jikesrvm.util.VM_HashMap;
 /**
  * Jikes RVM impl of VMClassLoader.
  * See GNU classpath reference impl for javadoc.
- *
  */
 final class VMClassLoader
 {

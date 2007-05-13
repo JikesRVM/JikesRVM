@@ -22,7 +22,6 @@ import org.jikesrvm.scheduler.VM_Thread;
  *
  *  No intelligence is contained in this class.  All policy decisions are
  *  made by the controllerThread.
- *
  */
 public class VM_CompilationThread extends VM_Thread {
 

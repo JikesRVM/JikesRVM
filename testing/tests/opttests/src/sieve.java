@@ -9,7 +9,6 @@
 /**
  * Eratosthenes Sieve Prime-Number Program from BYTE
  * January 1983
- *
  */
  
 class sieve { 

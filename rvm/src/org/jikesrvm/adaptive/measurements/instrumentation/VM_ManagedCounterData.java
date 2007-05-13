@@ -19,7 +19,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
  * that use counters allocated from a VM_InstrumentedEventCounterManager.  
  * It provides the basic interface to access counters,  forwarding
  * those requests to the counter manager.
- *
  */
 public class VM_ManagedCounterData {
 

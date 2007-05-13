@@ -8,7 +8,6 @@
  */
 /**
  *  Test exception handling through JNI and native code
- *
  */
 
 

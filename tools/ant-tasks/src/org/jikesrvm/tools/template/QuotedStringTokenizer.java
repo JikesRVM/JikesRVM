@@ -10,8 +10,6 @@ package org.jikesrvm.tools.template;
 
 import java.util.NoSuchElementException;
 
-/**
- */
 class QuotedStringTokenizer {
   private String str;
   private int curPos;

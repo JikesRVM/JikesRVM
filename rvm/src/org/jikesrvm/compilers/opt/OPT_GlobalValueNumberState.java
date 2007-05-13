@@ -24,7 +24,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
  * See Muchnick p.348 for a discussion (which is quite buggy, should
  * have stuck to the dragon book, which gives a high-level description of
  * the correct algorithm on page 143).
- *
  */
 public final class OPT_GlobalValueNumberState {
   /**

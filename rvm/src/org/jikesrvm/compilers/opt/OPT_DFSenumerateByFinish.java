@@ -14,7 +14,6 @@ package org.jikesrvm.compilers.opt;
  * increasing finishing time.  This class follows the outNodes of the
  * graph nodes to define the graph, but this behavior can be changed
  * by overriding the getConnected method.
- *
  */
 class OPT_DFSenumerateByFinish extends OPT_Stack<OPT_GraphNode>
     implements OPT_GraphNodeEnumeration {
@@ -104,8 +103,7 @@ class OPT_DFSenumerateByFinish extends OPT_Stack<OPT_GraphNode>
    * @see #next
    *
    * @return the next node in finishing time order
-   *
-   */
+ */
   public OPT_GraphNode nextElement () {
     return  next();
   }
@@ -127,8 +125,7 @@ class OPT_DFSenumerateByFinish extends OPT_Stack<OPT_GraphNode>
    *
    * @param n the node of which to get the out edges
    * @return the out edges
-   *
-   */
+ */
   protected OPT_GraphNodeEnumeration getConnected(OPT_GraphNode n) {
     return  n.outNodes();
   }

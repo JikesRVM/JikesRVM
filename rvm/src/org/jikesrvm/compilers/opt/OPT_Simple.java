@@ -43,8 +43,6 @@ import org.jikesrvm.compilers.opt.ir.Phi;
  *
  * <p> Except for the "CompilerPhase" methods, all fields and methods in 
  * this class are declared static.
- *
- *
  */
 public final class OPT_Simple extends OPT_CompilerPhase {
 

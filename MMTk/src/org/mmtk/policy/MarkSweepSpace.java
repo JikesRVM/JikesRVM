@@ -29,8 +29,6 @@ import org.vmmagic.unboxed.*;
  * instances correspond to *plan* instances and therefore to kernel
  * threads.  Thus unlike this class, synchronization is not necessary
  * in the instance methods of MarkSweepLocal.
- * 
- *
  */
 @Uninterruptible public final class MarkSweepSpace extends Space
   implements Constants {
@@ -197,8 +195,7 @@ import org.vmmagic.unboxed.*;
   /**
    * A new collection increment has completed.  For the mark-sweep
    * collector this means we can perform the sweep phase.
-   * 
-   */
+ */
   public void release() {
     inMSCollection = false;
   }

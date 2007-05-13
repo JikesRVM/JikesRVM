@@ -17,7 +17,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Register;
  * and used in Linear Scan.
  * 
  * @see OPT_LinearScan
- * 
  */
 public final class OPT_LiveIntervalElement {
 

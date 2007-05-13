@@ -15,7 +15,6 @@ import org.vmmagic.pragma.*;
 /**
  * Callbacks from BumpPointer during a linear scan are dispatched through
  * a subclass of this object.
- * 
  */
 @Uninterruptible
 public abstract class LinearScan {

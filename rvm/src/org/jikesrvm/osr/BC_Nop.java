@@ -10,7 +10,6 @@
 package org.jikesrvm.osr;
 /**
  *  nop
- *
  */
 public class BC_Nop extends OSR_PseudoBytecode {
   public byte[] getBytes() {

@@ -24,7 +24,6 @@ import org.vmmagic.unboxed.Address;
  * and accessed through the processor register.  
  * 
  * @see OPT_Register
- * 
  */
 public abstract class OPT_RegisterPool extends OPT_GenericRegisterPool implements OPT_Operators {
 

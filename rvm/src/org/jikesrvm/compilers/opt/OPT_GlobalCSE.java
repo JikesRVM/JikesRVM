@@ -134,7 +134,6 @@ import org.jikesrvm.compilers.opt.ir.ResultCarrier;
 
 /**
  * This class provides global common sub expression elimination.
- *
  */
 public final class OPT_GlobalCSE extends OPT_CompilerPhase {
 

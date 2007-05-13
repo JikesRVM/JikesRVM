@@ -20,7 +20,6 @@ import org.jikesrvm.compilers.opt.OPT_DepGraphNode;
  * 
  * @see org.jikesrvm.compilers.opt.OPT_BURS
  * @see OPT_BURS_STATE
- *
  */
 public class OPT_BURS_TreeNode implements OPT_BURS_Definitions {
 

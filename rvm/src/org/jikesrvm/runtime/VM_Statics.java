@@ -76,7 +76,6 @@ import org.vmmagic.unboxed.Word;
  *                     +---------------+       |    for "m"    |
  *                                             +---------------+
  * </pre>
- *
  */
 public class VM_Statics implements VM_Constants {
   /**

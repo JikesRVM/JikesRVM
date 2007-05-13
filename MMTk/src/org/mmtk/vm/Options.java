@@ -5,7 +5,6 @@
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
  * (C) Copyright ANU. 2004
- *
  */
 package org.mmtk.vm;
 

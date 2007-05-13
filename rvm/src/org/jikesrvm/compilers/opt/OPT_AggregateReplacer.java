@@ -10,7 +10,6 @@ package org.jikesrvm.compilers.opt;
 
 /**
  * Class that performs scalar replacement of aggregates
- *
  */
 public interface OPT_AggregateReplacer {
 

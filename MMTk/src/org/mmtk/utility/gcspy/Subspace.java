@@ -29,8 +29,6 @@ import org.vmmagic.pragma.*;
  * A subspace keeps track of the start and end address of the region,
  * the index of its first block, the size of the blocks in this space,
  * and the number of blocks in this subspace.
- *
- *
  */
 @Uninterruptible public class Subspace {
 

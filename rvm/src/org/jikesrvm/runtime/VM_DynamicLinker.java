@@ -24,7 +24,6 @@ import org.vmmagic.unboxed.Offset;
 
 /**
  * Implement lazy compilation.
- *
  */
 @DynamicBridge
 public class VM_DynamicLinker implements VM_Constants {

@@ -15,7 +15,6 @@ package org.jikesrvm.runtime;
  * because in the context of the VM it is sometimes not possible
  * to know what the calling method wants.  For example, InterruptedException,
  * SocketTimeoutException, etc.
- *
  */
 public class VM_TimeoutException extends Exception {
   public VM_TimeoutException(String msg) {

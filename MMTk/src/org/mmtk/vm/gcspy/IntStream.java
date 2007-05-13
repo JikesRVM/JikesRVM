@@ -19,8 +19,6 @@ import org.vmmagic.pragma.*;
 
 /**
  * Set up a GCspy Stream with data type INT_TYPE.
- *
- *
  */
 @Uninterruptible public abstract class IntStream extends Stream {
 

@@ -16,7 +16,6 @@ import org.vmmagic.unboxed.Offset;
 /**
  * Provides minimal abstraction layer to a stream of bytecodes
  * from the code attribute of a method.
- * 
  */
 public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants {
   private final VM_NormalMethod method;

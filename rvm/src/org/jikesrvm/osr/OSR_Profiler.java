@@ -25,7 +25,6 @@ import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
 
 /**
  * Maintain statistic information about on stack replacement events
- *
  */
 public class OSR_Profiler implements VM_Callbacks.ExitMonitor {
 

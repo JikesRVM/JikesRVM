@@ -21,8 +21,6 @@ import org.vmmagic.unboxed.*;
  * intelligent processing of child references as objects are scanned.
  * 
  * @see org.mmtk.plan.TraceStep
- * 
- *
  */
 @Uninterruptible public abstract class ObjectReferenceBuffer extends TraceStep implements Constants {
   /****************************************************************************

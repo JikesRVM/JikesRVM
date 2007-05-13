@@ -35,7 +35,6 @@ import org.jikesrvm.compilers.opt.ir.Unary;
  * <p>This pass also splits live ranges on edges to and from infrequent code.
  *
  * <p> This composite phase should be performed at the end of SSA in LIR.
- *
  */
 class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
 

@@ -24,8 +24,6 @@ import org.vmmagic.pragma.*;
 
 /**
  * Scan the boot image for references using the boot image reference map
- *
- *
  */
 public class ScanBootImage implements Constants {
   
@@ -270,8 +268,7 @@ public class ScanBootImage implements Constants {
    * @return The next offset, which is either explicitly encoded in
    * the byte array or inferred from an encoded delta and the last
    * offset.
-   * 
-   */
+ */
   private static int getOffset(byte[] code, int index, int lastOffset) {
     if (((int) code[index] & RUN_MASK) == RUN_MASK) {
       return lastOffset + BYTES_IN_WORD;

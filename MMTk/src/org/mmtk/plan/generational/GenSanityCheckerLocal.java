@@ -20,8 +20,6 @@ import org.vmmagic.unboxed.*;
 
 /**
  * This class performs sanity checks for RefCount collectors.
- * 
- *
  */
 @Uninterruptible public class GenSanityCheckerLocal extends SanityCheckerLocal {
 

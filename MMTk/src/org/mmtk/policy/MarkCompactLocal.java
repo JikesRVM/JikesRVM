@@ -27,7 +27,6 @@ import org.vmmagic.unboxed.ObjectReference;
  * 
  * @see BumpPointer
  * @see MarkCompactSpace
- * 
  */
 @Uninterruptible public final class MarkCompactLocal extends BumpPointer {
 

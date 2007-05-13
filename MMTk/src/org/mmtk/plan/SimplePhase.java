@@ -23,8 +23,6 @@ import org.vmmagic.pragma.*;
  * A simple phase calls the collectionPhase method of a global
  * and/or all thread-local plan instances, and performs synchronization
  * and timing.
- * 
- *
  */
 @Uninterruptible public final class SimplePhase extends Phase
   implements Constants {

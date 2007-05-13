@@ -75,7 +75,6 @@ import org.vmmagic.unboxed.Offset;
  * Things that are expanded here (immediately before final assembly)
  * should only be those sequences that cannot be expanded earlier
  * due to difficulty in keeping optimizations from interfering with them.
- *
  */
 public abstract class OPT_FinalMIRExpansion extends OPT_IRTools {
 

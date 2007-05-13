@@ -29,7 +29,6 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.YIELDPOINT_PROLOGUE;
  * for all yieldpoint instructions and inserts an increment after
  * them, using the VM_CounterArrayManager counter manager to implement
  * the counters.
- *
  */
 public class OPT_InsertYieldpointCounters  extends OPT_CompilerPhase {
 

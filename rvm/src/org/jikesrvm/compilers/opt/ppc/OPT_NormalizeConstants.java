@@ -155,7 +155,6 @@ import org.vmmagic.unboxed.Offset;
 /**
  * Normalize the use of constants in the LIR
  * to match the patterns supported in LIR2MIR.rules
- *
  */
 public abstract class OPT_NormalizeConstants extends OPT_IRTools {
   /**

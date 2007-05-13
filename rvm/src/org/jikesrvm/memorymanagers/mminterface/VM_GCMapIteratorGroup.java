@@ -37,7 +37,6 @@ import org.vmmagic.unboxed.WordArray;
  * @see VM_GCMapIterator
  * @see VM_CompiledMethod
  * @see VM_CollectorThread
- * 
  */
 public final class VM_GCMapIteratorGroup implements VM_SizeConstants {
   

@@ -22,7 +22,6 @@ import org.vmmagic.unboxed.WordArray;
  * The architecture-specific version of the GC Map iterator.  It inherits
  * its architecture-independent code from VM_OptGenericGCMapIterator.
  * This version is for the PowerPC
- *
  */
 @Uninterruptible public abstract class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator implements VM_ArchConstants {
 
@@ -36,8 +35,7 @@ import org.vmmagic.unboxed.WordArray;
    * If any non-volatile gprs were saved by the method being processed
    * then update the registerLocations array with the locations where the
    * registers were saved.
-   *
-   */
+ */
   protected void updateLocateRegisters() {
 
     //  HIGH MEMORY

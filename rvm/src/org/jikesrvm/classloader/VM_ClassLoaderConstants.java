@@ -8,8 +8,6 @@
  */
 package org.jikesrvm.classloader;
 
-/**
- */
 interface VM_ClassLoaderConstants {
   // Attribute modifiers for class-, method-, and field- descriptions.
   //

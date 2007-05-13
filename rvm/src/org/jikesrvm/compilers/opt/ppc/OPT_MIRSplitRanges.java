@@ -17,7 +17,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
  * allocation.
  *
  * On PPC, this phase is currently a No-op.
- *
  */
 class OPT_MIRSplitRanges extends OPT_CompilerPhase {
 

@@ -23,7 +23,6 @@ import org.vmmagic.unboxed.Address;
 
 /**
  * Contains BURS helper functions common to all platforms.
- * 
  */
 public abstract class OPT_BURS_Common_Helpers extends OPT_PhysicalRegisterTools {
 

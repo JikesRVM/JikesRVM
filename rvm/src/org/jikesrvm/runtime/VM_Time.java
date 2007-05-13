@@ -13,7 +13,6 @@ import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * Primitives from which to build interval and absolute timers.
- * 
  */
 @Uninterruptible public class VM_Time {
 

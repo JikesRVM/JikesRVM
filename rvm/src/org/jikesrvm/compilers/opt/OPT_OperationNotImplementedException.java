@@ -19,7 +19,6 @@ package org.jikesrvm.compilers.opt;
  * an OptimzingCompilerException.
  *
  * We define this to be a non-fatal OPT_OptimizingCompilerException.
- *
  */
 public class OPT_OperationNotImplementedException extends 
     OPT_OptimizingCompilerException {

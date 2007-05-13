@@ -15,7 +15,6 @@ import org.jikesrvm.compilers.opt.OPT_Stack;
 /**
  * Represents an inlining sequence.
  * Used to uniquely identify program locations.
- * 
  */
 public final class OPT_InlineSequence {
   static final boolean DEBUG=false;
@@ -54,9 +53,7 @@ public final class OPT_InlineSequence {
     return caller; 
   }
 
-  /**
-   */
-   public boolean equals(Object o) {
+     public boolean equals(Object o) {
       if (!(o instanceof OPT_InlineSequence)) return false;
       OPT_InlineSequence is = (OPT_InlineSequence)o;
       if (method == null) return (is.method == null);

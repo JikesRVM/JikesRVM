@@ -9,7 +9,6 @@
  *
  * (C) Copyright Department of Computer Science,
  * University of Massachusetts, Amherst. 2003
- *
  */
 package org.mmtk.plan.semispace.gctrace;
 
@@ -19,8 +18,6 @@ import org.vmmagic.pragma.*;
 
 /**
  * GCTrace constants.
- * 
- *
  */
 @Uninterruptible public class GCTraceConstraints extends SSConstraints {
   public boolean needsWriteBarrier() { return true; }

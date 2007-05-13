@@ -8,7 +8,6 @@
  */
 /* Test field access from native code 
  * Implement native methods from FieldAccess.java 
- * 
  */
 
 #include <stdio.h>
@@ -34,7 +33,6 @@ JNIEXPORT void JNICALL Java_MonitorTest_setVerboseOff
  * Signature: (Ljava/lang/Object;)I
  *
  * Return 0 on success, non-zero on failure.
- *
  */
 JNIEXPORT jint JNICALL Java_MonitorTest_accessMonitorFromNative
   (JNIEnv *env, jclass cls, jobject lockObj) {

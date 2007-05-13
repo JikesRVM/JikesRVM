@@ -20,7 +20,6 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BBEND;
 
 /**
  * Perform simple peephole optimizations for MIR branches.
- * 
  */
 public final class OPT_MIRBranchOptimizations 
   extends OPT_BranchOptimizationDriver {

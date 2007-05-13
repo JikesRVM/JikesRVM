@@ -14,7 +14,6 @@ import org.vmmagic.pragma.Uninterruptible;
 /**
  * A class to represent the reference in a class file to a method of
  * that class or interface. 
- * 
  */
 public final class VM_MethodReference extends VM_MemberReference {
 

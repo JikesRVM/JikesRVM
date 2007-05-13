@@ -8,8 +8,6 @@
  */
 package org.jikesrvm.compilers.opt;
 
-/**
- */
 
 interface OPT_GraphEdgeFilter {
 

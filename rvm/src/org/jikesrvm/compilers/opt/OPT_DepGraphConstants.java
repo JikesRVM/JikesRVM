@@ -10,7 +10,6 @@ package org.jikesrvm.compilers.opt;
 
 /**
  * Constants used in the dependence graph
- *
  */
 public interface OPT_DepGraphConstants {
 

@@ -15,7 +15,6 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
  * Wrapper around a pair of parallel arrays:
  *  (1) an array of compiled method id's
  *  (2) an array of counts: how many times each compiled method id is counted
- *
  */
 public final class VM_MethodCountSet {
   /**

@@ -36,7 +36,6 @@ import org.vmmagic.unboxed.WordArray;
 /**
  * OSR_OptExecStateExtractor is a subclass of OSR_ExecStateExtractor. 
  * It extracts the execution state from an optimized activation.
- *
  */
 public abstract class OSR_OptExecStateExtractor 
   extends OSR_ExecStateExtractor 
@@ -176,8 +175,7 @@ public abstract class OSR_OptExecStateExtractor
    *    |          |
    *    |FPR states|
    *    |__________|  ___ FP
-   * 
-   */
+ */
   private void restoreValuesFromOptSaveVolatile(byte[] stack,
                                                 Offset osrFPoff,
                                                 OSR_TempRegisters registers,

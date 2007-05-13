@@ -73,8 +73,6 @@ import org.jikesrvm.runtime.VM_FileSystem;
  * manner and support scatter/gather io operations.
  * 
  * JikesRVM-specific implementation by Robin Garner.
- * 
- *
  */
 public final class VMChannel
 {
@@ -185,9 +183,7 @@ public final class VMChannel
   /**
    * A thread-local store of non-moving buffers.  Used to perform IO to
    * in cases where the actual user buffer is in a moving space.
-   * 
-   *
-   */
+ */
   private static class LocalByteArray extends ThreadLocal<byte[]> {
     private static final int INITIAL_BUFFER_SIZE = 8192; // force into LOS
     protected byte[] initialValue() {

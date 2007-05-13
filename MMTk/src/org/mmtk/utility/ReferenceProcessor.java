@@ -6,7 +6,6 @@
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
  * (C) Copyright IBM Corp. 2001
- *
  */
 package org.mmtk.utility;
 
@@ -34,7 +33,6 @@ import org.vmmagic.pragma.*;
  * reference nursery. If the appropriate flag is passed during processing
  * (and the language has immutable references), then it is safe to only
  * process references created since the last collection.
- * 
  */
 @Uninterruptible public class ReferenceProcessor {
 

@@ -10,7 +10,6 @@
  * Test JNI functions that provide direct pointer
  * to Java internal memory such as array, string
  * These functions are added for Java 2.
- *
  */
 
 class CriticalCopy {

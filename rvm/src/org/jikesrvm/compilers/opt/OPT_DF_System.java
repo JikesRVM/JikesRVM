@@ -24,9 +24,6 @@ import java.util.TreeSet;
  *      that is used by another equation, the graph has a directed edge
  *      from the producer to the consumer.  Fixed-point iteration proceeds
  *      in a topological order according to these edges.
- *
- *
- *
  */
 public abstract class OPT_DF_System {
   static final boolean DEBUG = false;

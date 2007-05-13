@@ -9,9 +9,6 @@
 //$Id:$
 package org.jikesrvm.apt.annotations;
 
-/**
- *
- */
 public @interface GenerateImplementation {
   String generatedClass();
 }

@@ -21,8 +21,6 @@ import org.vmmagic.pragma.*;
 /**
  * This class contains interfaces to access the current plan, plan local and
  * plan constraints instances.
- *
- *
  */
 @Uninterruptible public final class ActivePlan extends org.mmtk.vm.ActivePlan {
 

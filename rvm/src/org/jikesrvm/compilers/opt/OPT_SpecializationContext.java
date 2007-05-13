@@ -11,8 +11,6 @@ package org.jikesrvm.compilers.opt;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 
-/**
- */
 public interface OPT_SpecializationContext {
 
   /** 

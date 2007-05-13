@@ -40,7 +40,6 @@ import org.vmmagic.unboxed.*;
  * mIP will be incremented to point to the next machine instruction.
  * 
  * Machine code generators:
- *
  */
 public abstract class VM_Assembler 
     extends VM_AbstractAssembler

@@ -8,8 +8,6 @@
  */
 package test.org.jikesrvm.basic.core.bytecode;
 
-/**
- */
 class TestFieldAccess {
   static boolean s0 = true;
   static byte s1 = -1;

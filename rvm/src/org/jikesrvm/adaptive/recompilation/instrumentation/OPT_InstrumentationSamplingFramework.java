@@ -108,17 +108,11 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
     return constructor;
   }
 
-  /**
-   *  
-   */
-  public boolean shouldPerform(OPT_Options options) {
+    public boolean shouldPerform(OPT_Options options) {
     return options.INSTRUMENTATION_SAMPLING;
   }
 
-  /**
-   *
-   */
-  public String getName() { return "InstrumentationSamplingFramework"; }
+    public String getName() { return "InstrumentationSamplingFramework"; }
 
   /**
    * Perform this phase
@@ -769,8 +763,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    *
    * PRECONDITION:  the spansBasicBlock bit must be correct by calling
    *                OPT_DefUse.recomputeSpansBasicBlock(OPT_IR);
-   * 
-   */
+ */
   private static OPT_BasicBlock myCopyWithoutLinks(OPT_BasicBlock bb,
                                                  OPT_IR ir) {
 
@@ -950,8 +943,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    * How to determine whether a given instruction is an
    * "instrumentation instruction".  In other words, it should be
    * executed only when a sample is being taken.  
-   *
-   */
+ */
   private static boolean isInstrumentationInstruction(OPT_Instruction i) {
     
     //    if (i.bcIndex == INSTRUMENTATION_BCI &&

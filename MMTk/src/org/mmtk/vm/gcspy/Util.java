@@ -17,8 +17,6 @@ import org.vmmagic.pragma.*;
 /**
  * Abstract class that provides generally useful
  * methods.
- * 
- *
  */
 @Uninterruptible public abstract class Util {
   

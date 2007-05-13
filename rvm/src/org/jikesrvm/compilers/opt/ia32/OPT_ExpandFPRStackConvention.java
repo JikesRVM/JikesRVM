@@ -56,7 +56,6 @@ import org.jikesrvm.compilers.opt.ir.ia32.OPT_PhysicalRegisterSet;
  * floating-point stack when delivering an exception.  To model this, we
  * insert dummy defs and uses for each floating-point register at the
  * beginning of each catch block.
- *
  */
 
 final class OPT_ExpandFPRStackConvention extends OPT_CompilerPhase

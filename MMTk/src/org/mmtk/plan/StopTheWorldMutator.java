@@ -25,8 +25,6 @@ import org.vmmagic.pragma.*;
  * 
  * @see MutatorContext
  * @see SimplePhase#delegatePhase
- * 
- *
  */
 @Uninterruptible public abstract class StopTheWorldMutator extends MutatorContext {
 

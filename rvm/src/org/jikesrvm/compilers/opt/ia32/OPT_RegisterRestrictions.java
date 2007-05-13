@@ -36,7 +36,6 @@ import org.jikesrvm.compilers.opt.ir.ia32.OPT_BURSManagedFPROperand;
 /**
  * An instance of this class encapsulates restrictions on register
  * assignment.
- * 
  */
 public class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions implements OPT_Operators, OPT_PhysicalRegisterConstants {
 

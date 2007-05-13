@@ -10,7 +10,6 @@ package org.jikesrvm.compilers.opt;
 
 /**
  * Represent a value that is a parameter
- *
  */
 final class OPT_ValueGraphParamLabel {
   private final int paramNum;

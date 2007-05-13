@@ -55,8 +55,7 @@ public class VM_PreCompile implements VM_Callbacks.StartupMonitor {
 
   /**
    * Compile all methods in the advice file
-   *
-   */
+ */
   public static void compileAllMethods() {
     //Collection allMethodsSet = attribMap.values();
     VM.sysWriteln("Start precompile");

@@ -49,7 +49,6 @@ import org.jikesrvm.runtime.VM_Entrypoints;
  *   2. We need program-point specific stack type, but only need 
  *      the summary of local types. Thus, after analysis, local
  *      types are same for all PCs.
- * 
  */
 public class OSR_BytecodeTraverser implements VM_BytecodeConstants, 
                                               OSR_Constants {

@@ -23,7 +23,6 @@ import org.vmmagic.pragma.NoInline;
  * anywhere except OPT_IR, OPT_Instruction, and OPT_BasicBlock.
  * General clients should use the higher level interfaces provided
  * by those classes
- *
  */
 public abstract class OPT_IREnumeration {
 

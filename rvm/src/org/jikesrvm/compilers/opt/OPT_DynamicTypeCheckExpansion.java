@@ -71,7 +71,6 @@ import org.vmmagic.unboxed.Offset;
  * Expansion of Dynamic Type Checking operations.
  *
  * @see VM_DynamicTypeCheck
- * 
  */
 abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 

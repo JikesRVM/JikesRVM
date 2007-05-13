@@ -8,7 +8,6 @@
  */
 /* Test field access from native code 
  * Implement native methods from FieldAccess.java 
- * 
  */
 
 #include <stdio.h>

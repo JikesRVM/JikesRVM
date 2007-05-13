@@ -11,7 +11,6 @@
 
 /**
  * Generate from ir.template and assembled rules files.
- *
  */
 %}
 $$$$ FOREACH OPERATOR ../opt-ir/OperatorList.dat

@@ -25,7 +25,6 @@ import org.vmmagic.unboxed.Offset;
  * 
  * @see OPT_Operand
  * @see VM_Method
- * 
  */
 public final class OPT_MethodOperand extends OPT_Operand {
 

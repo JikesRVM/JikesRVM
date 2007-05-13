@@ -19,7 +19,6 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements a simple boolean counter (counting number of
  * phases where some boolean event is true).
- * 
  */
 @Uninterruptible public class BooleanCounter extends Counter {
 

@@ -24,7 +24,6 @@ import org.vmmagic.unboxed.Offset;
 /**
  * Handle exception delivery and stack unwinding for methods 
  *  compiled by optimizing Compiler 
- *
  */
 public abstract class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
     implements ArchitectureSpecific.VM_ArchConstants {

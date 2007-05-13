@@ -9,7 +9,6 @@
 /**
  * This method invokes run() methods in the classes specified,
  * in order to generate the "expected" output by running under JDK
- *
  */
 
 import java.lang.reflect.Method;

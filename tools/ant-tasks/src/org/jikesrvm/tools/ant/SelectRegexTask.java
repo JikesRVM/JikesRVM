@@ -18,8 +18,6 @@ import org.apache.tools.ant.taskdefs.Property;
 import org.apache.tools.ant.types.RegularExpression;
 import org.apache.tools.ant.util.regexp.Regexp;
 
-/**
- */
 public class SelectRegexTask
     extends Task {
 

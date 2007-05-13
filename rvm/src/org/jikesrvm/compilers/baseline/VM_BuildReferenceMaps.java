@@ -29,7 +29,6 @@ import org.jikesrvm.classloader.VM_TypeReference;
  * "stack maps" was not used as it is too ambiguous - does "stack" refer to the 
  * java operand stack or a C-like stack?; when processing java bytecodes it
  * seemed best to use "stack" for java operand stack.)
- * 
  */
 final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstants {
   

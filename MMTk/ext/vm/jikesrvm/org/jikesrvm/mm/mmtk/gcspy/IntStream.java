@@ -6,7 +6,6 @@
  *
  * (C) Copyright Richard Jones, 2005-6
  * Computing Laboratory, University of Kent at Canterbury
- *
  */
 package org.jikesrvm.mm.mmtk.gcspy;
 
@@ -23,7 +22,6 @@ import org.vmmagic.unboxed.Address;
 
 /**
  * Set up a GCspy Stream with data type INT_TYPE.
- *
  */
 
 @Uninterruptible public class IntStream extends org.mmtk.vm.gcspy.IntStream {

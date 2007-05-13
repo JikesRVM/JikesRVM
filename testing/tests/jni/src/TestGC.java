@@ -13,7 +13,6 @@ import org.vmmagic.unboxed.*;
 
 /**
  * Test GC with Native frames on stack
- *
  */
 class TestGC {
   static boolean verbose = true;         // set to true to get messages for each test

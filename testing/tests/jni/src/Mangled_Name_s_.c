@@ -7,7 +7,6 @@
  * (C) Copyright IBM Corp. 2001
  */
 /* Native code for Mangled_Name_s_.java
- *
  */
 
 #include <stdio.h>

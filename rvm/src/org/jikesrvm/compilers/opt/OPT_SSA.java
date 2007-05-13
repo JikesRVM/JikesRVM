@@ -88,7 +88,6 @@ import org.jikesrvm.compilers.opt.ir.Phi;
  * @see OPT_LeaveSSA
  * @see OPT_SSADictionary
  * @see org.jikesrvm.compilers.opt.ir.OPT_HIRInfo
- *
  */
 class OPT_SSA {
 

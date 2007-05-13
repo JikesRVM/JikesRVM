@@ -23,8 +23,6 @@ import org.vmmagic.unboxed.*;
  * object information for sanity checking. <p> 
  * 
  * This class is not thread safe.
- * 
- *
  */
 @Uninterruptible public final class SanityDataTable extends SimpleHashtable 
   implements Constants {

@@ -8,7 +8,6 @@
  */
 /****
  * Test loading a library and looking up a symbol 
- *
  */
 
 #include <stdio.h>

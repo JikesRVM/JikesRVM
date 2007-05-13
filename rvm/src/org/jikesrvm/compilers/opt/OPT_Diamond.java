@@ -19,7 +19,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
 /**
  * This class represents a diamond (if-then-else) structure in the
  * control-flow graph.
- * 
  */
 final class OPT_Diamond {
   /**

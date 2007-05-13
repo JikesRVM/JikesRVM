@@ -25,7 +25,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * At the moment we only use this technique for network i/o. The same could be
  * done for disk i/o, but we currently don't bother: we use blocking disk i/o 
  * and assume that it will complete immediately.
- *
  */
 @Uninterruptible public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue 
   implements VM_ThreadEventConstants, VM_ThreadIOConstants {
