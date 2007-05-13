@@ -30,24 +30,24 @@ public abstract class VM_MachineSpecific {
    * @param tibOffset the offset of the tib from the object header
    */
   public abstract void baselineEmitLoadTIB(VM_Assembler asm, int dest, int object, Offset tibOffset);
-  
+
   /**
    * The following method initializes a thread stack as if
    * "startoff" method had been called by an empty baseline-compiled
    * "sentinel" frame with one local variable.
-   * 
+   *
    * @param contextRegisters The context registers for this thread
    * @param ip The instruction pointer for the "startoff" method
    * @param sp The base of the stack
    */
   public abstract void initializeStack(VM_Registers contextRegisters, Address ip, Address sp);
-  
+
   /* unique to IA */
   /**
    * A thread's stack has been moved or resized.
    * Adjust the ESP register to reflect new position.
-   * 
-   * @param VM_Registers The registers for this thread
+   *
+   * @param registers The registers for this thread
    * @param delta The displacement to be applied
    * @param traceAdjustments Log all adjustments to stderr if true
    */
@@ -55,7 +55,4 @@ public abstract class VM_MachineSpecific {
   public void adjustESP(VM_Registers registers, Offset delta, boolean traceAdjustments) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
-
-  /* unique to PowerPC */
-
 }
