@@ -54,7 +54,7 @@ public final class VM_Stats {
 
   static void percentage(long numerator, long denominator, String quantity) {
     print("\t");
-    if (denominator > 0l) {
+    if (denominator > 0L) {
       print((int) ((((double) numerator) * 100.0) / ((double) denominator)));
     } else {
       print("0");
