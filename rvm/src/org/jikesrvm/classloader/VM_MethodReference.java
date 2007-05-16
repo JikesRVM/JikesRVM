@@ -193,8 +193,7 @@ public final class VM_MethodReference extends VM_MemberReference {
    * method invocation points to a method inherited from an
    * interface.
    *
-   * @return boolean    true iff this member method reference
-   * 						is a miranda method
+   * @return boolean    true iff this member method reference is a miranda method
    */
   public boolean isMiranda() {
 
