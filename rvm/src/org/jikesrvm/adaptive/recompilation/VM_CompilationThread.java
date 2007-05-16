@@ -37,14 +37,14 @@ public class VM_CompilationThread extends VM_Thread {
   }
 
   /**
-   * This is the main loop of the compilation thread. It's job is to 
+   * This is the main loop of the compilation thread. It's job is to
    * remove controller plans from the compilation queue and perform
    * them.
    */
   public void run() {
     VM_AOSLogging.compilationThreadStarted();
 
-    // Make a blocking call to deleteMin to get a plan and then execute it. 
+    // Make a blocking call to deleteMin to get a plan and then execute it.
     // Repeat...
     while (true) {
       Object plan = VM_Controller.compilationQueue.deleteMin();

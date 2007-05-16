@@ -10,7 +10,7 @@
 package org.jikesrvm.osr;
 
 /**
- * BC_IntStore : istore_<?>, istore 
+ * BC_IntStore : istore_<?>, istore
  *
  *      Local number            Instruction
  *      [0, 3]                  istore_<i>

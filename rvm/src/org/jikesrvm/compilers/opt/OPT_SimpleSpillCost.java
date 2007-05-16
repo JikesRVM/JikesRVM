@@ -17,19 +17,19 @@ import org.jikesrvm.compilers.opt.ir.OPT_Operand;
 import org.jikesrvm.compilers.opt.ir.OPT_Register;
 
 /**
- * An object that returns an estimate of the relative cost of spilling a 
+ * An object that returns an estimate of the relative cost of spilling a
  * symbolic register.
  */
 class OPT_SimpleSpillCost extends OPT_SpillCostEstimator {
 
-  // modify the following factor to adjust the spill penalty in move 
+  // modify the following factor to adjust the spill penalty in move
   // instructions
   public static final double MOVE_FACTOR = 1.0;
 
   // registers used in memory operands may hurt more than 'normal', since
-  // they will definitely use a scratch register.  
+  // they will definitely use a scratch register.
   // rationale for 5: 5 instructions affected when using a scratch register.
-  // (2 to save physical register, 1 to load scratch, 1 to dump scratch, and 
+  // (2 to save physical register, 1 to load scratch, 1 to dump scratch, and
   // the original)
   public static final double MEMORY_OPERAND_FACTOR = 5.0;
 
@@ -38,7 +38,7 @@ class OPT_SimpleSpillCost extends OPT_SpillCostEstimator {
   }
 
   /**
-   * Calculate the estimated cost for each register.  
+   * Calculate the estimated cost for each register.
    */
   void calculate(OPT_IR ir) {
     for (Enumeration<OPT_BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {

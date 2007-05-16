@@ -53,7 +53,7 @@ class OPT_Coalesce {
     // Liveness is OK.  Check for SPLIT operations
     if (split(r1, r2)) return false;
 
-    // Don't merge a register with itself               
+    // Don't merge a register with itself
     if (r1 == r2) return false;
 
     // Update liveness information to reflect the merge.

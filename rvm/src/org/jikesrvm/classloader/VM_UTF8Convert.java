@@ -19,7 +19,7 @@ import java.io.UTFDataFormatException;
  *
  * The difference between utf8 and pseudo-utf8 is the special
  * treatment of null.  In utf8, null is encoded as a single byte
- * directly, whereas in pseudo-utf8, it is encoded as a two-byte 
+ * directly, whereas in pseudo-utf8, it is encoded as a two-byte
  * sequence.  See the JVM spec for more information.
  */
 public abstract class VM_UTF8Convert {

@@ -86,7 +86,7 @@ import org.jikesrvm.runtime.VM_Entrypoints;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * Class to manage the allocation of the "compiler-specific" portion of 
+ * Class to manage the allocation of the "compiler-specific" portion of
  * the stackframe.  This class holds only the architecture-specific
  * functions.
  * <p>
@@ -228,7 +228,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
   }
 
   /**
-   * Insert a load of a physical register from a spill location before 
+   * Insert a load of a physical register from a spill location before
    * instruction s.
    *
    * @param s the instruction before which the spill should occur
@@ -288,7 +288,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
   }
 
   /**
-   * Insert code in the prologue to save the 
+   * Insert code in the prologue to save the
    * volatile registers.
    *
    * @param inst
@@ -327,9 +327,9 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
 
   /**
    * Insert code into the prologue to save any used non-volatile
-   * registers.  
+   * registers.
    *
-   * @param inst the first instruction after the prologue.  
+   * @param inst the first instruction after the prologue.
    */
   private void saveNonVolatiles(OPT_Instruction inst) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
@@ -383,7 +383,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
   }
 
   /**
-   * Insert code before a return instruction to restore the nonvolatile 
+   * Insert code before a return instruction to restore the nonvolatile
    * registers.
    *
    * @param inst the return instruction
@@ -431,7 +431,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
   }
 
   /**
-   * Insert code before a return instruction to restore the 
+   * Insert code before a return instruction to restore the
    * volatile registers.
    *
    * @param inst the return instruction
@@ -629,7 +629,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       ptr = next;
     }
 
-    // Buy stack frame, save LR, caller's FP 
+    // Buy stack frame, save LR, caller's FP
     ptr.insertBefore(MIR_Move.create(PPC_MFSPR, A(R0),
                                      A(phys.getLR())));
     ptr.insertBefore(MIR_StoreUpdate.create(PPC_STAddrU, A(FP), A(FP),
@@ -668,9 +668,9 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
    * Compute the number of stack words needed to hold nonvolatile
    * registers.
    *
-   * Side effects: 
+   * Side effects:
    * <ul>
-   * <li> updates the VM_OptCompiler structure 
+   * <li> updates the VM_OptCompiler structure
    * <li> updates the <code>frameSize</code> field of this object
    * <li> updates the <code>frameRequired</code> field of this object
    * </ul>
@@ -730,7 +730,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       int gprOffset = getNonvolatileGPROffset(0);
       ir.compiledMethod.setUnsignedNonVolatileOffset(gprOffset);
     } else {
-      // Count the number of nonvolatiles used. 
+      // Count the number of nonvolatiles used.
       int numGprNv = 0;
       int i = 0;
       for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRs();
@@ -771,17 +771,17 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
   }
 
   /**
-   * Walk over the currently available scratch registers. 
+   * Walk over the currently available scratch registers.
    *
-   * <p>For any scratch register r which is def'ed by instruction s, 
-   * spill r before s and remove r from the pool of available scratch 
-   * registers.  
+   * <p>For any scratch register r which is def'ed by instruction s,
+   * spill r before s and remove r from the pool of available scratch
+   * registers.
    *
-   * <p>For any scratch register r which is used by instruction s, 
-   * restore r before s and remove r from the pool of available scratch 
-   * registers.  
+   * <p>For any scratch register r which is used by instruction s,
+   * restore r before s and remove r from the pool of available scratch
+   * registers.
    *
-   * <p>For any scratch register r which has current contents symb, and 
+   * <p>For any scratch register r which has current contents symb, and
    * symb is spilled to location M, and s defs M: the old value of symb is
    * dead.  Mark this.
    *
@@ -830,8 +830,8 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
 
       if (usedIn(scratch.scratch, s) ||
           !isLegal(scratch.currentContents, scratch.scratch, s)) {
-        // first spill the currents contents of the scratch register to 
-        // memory 
+        // first spill the currents contents of the scratch register to
+        // memory
         if (!unloaded) {
           if (verboseDebug) {
             System.out.println("RESTORE : unload because used " + scratch);
@@ -855,7 +855,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
           }
 
         }
-        // s or some future instruction uses the scratch register, 
+        // s or some future instruction uses the scratch register,
         // so restore the correct contents.
         if (verboseDebug) {
           System.out.println("RESTORE : reload because used " + scratch);
@@ -901,7 +901,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
   }
 
   /**
-   * In instruction s, replace all appearances of a symbolic register 
+   * In instruction s, replace all appearances of a symbolic register
    * operand with uses of the appropriate spill location, as cached by the
    * register allocator.
    *

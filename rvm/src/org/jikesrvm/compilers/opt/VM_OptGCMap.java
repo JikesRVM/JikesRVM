@@ -62,7 +62,7 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants {
    *  The gc map array, a sequence of gc maps.  Each sequence starts
    *  with a register bit mask and is followed by a list of spills.
    *  The most significant bit of the spill location is used to chain
-   *  the list.  
+   *  the list.
    */
   private int[] gcMapInformation;
 
@@ -215,21 +215,21 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants {
    *  @param registerNumber the register number of interest
    */
   private static int getRegBitPosition(int registerNumber) {
-    //  Because we can't use bit position 0 (that is the next bit), we 
+    //  Because we can't use bit position 0 (that is the next bit), we
     // adjust depending on the value of FIRST_GCMAP_REG
     //
     // For example,
     //  FIRST_GCMAP_REG = 1 => registerNumber = 1    (PPC)
     //  FIRST_GCMAP_REG = 0 => registerNumber = 1    (IA32)
-    // 
+    //
     return registerNumber - FIRST_GCMAP_REG + 1;
   }
 
   /**
    * Determines if the next bit is set for the entry passed in the gc map passed
-   * @param entry the entry (index) to check 
+   * @param entry the entry (index) to check
    * @param gcMap the gcmap
-   * @return whether the next bit is set 
+   * @return whether the next bit is set
    */
   private static boolean nextBitSet(int entry, int[] gcMap) {
     return (gcMap[entry] & NEXT_BIT) == NEXT_BIT;
@@ -364,7 +364,7 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants {
 
     // Now that we know the complete map information, let's determine if
     // we really need to store it, or instead can reuse a previous map.
-    int candidateBeginningIndex = 0; //this will be the beginning  
+    int candidateBeginningIndex = 0; //this will be the beginning
     int candidateIndex = candidateBeginningIndex;  // this will walk the map
     int curIndex = firstIndex;
     while (candidateIndex < firstIndex && curIndex <= lastEntry) {
@@ -401,4 +401,4 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants {
 
     return firstIndex;
   }
-}  
+}

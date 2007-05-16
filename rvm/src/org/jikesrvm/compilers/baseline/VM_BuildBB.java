@@ -15,8 +15,8 @@ import org.jikesrvm.classloader.VM_ExceptionHandlerMap;
 import org.jikesrvm.classloader.VM_NormalMethod;
 
 /**
- * Analyze the byte codes and determine the boundaries of the 
- * basic blocks. Used for building the reference maps for a 
+ * Analyze the byte codes and determine the boundaries of the
+ * basic blocks. Used for building the reference maps for a
  * method.
  */
 
@@ -25,7 +25,7 @@ public final class VM_BuildBB
 
   // ---------------- Static Class Fields --------------------
 
-  // Types of Instructions 
+  // Types of Instructions
   private static final byte NONBRANCH = 1;
   private static final byte CONDITIONAL_BRANCH = 2;
   private static final byte BRANCH = 3;
@@ -33,20 +33,20 @@ public final class VM_BuildBB
   //***************************************************************************//
   //                                                                           //
   //  Once the method determineTheBasicBlocks is complete, these 4 items       //
-  //  basicBlocks, byteToBlockMap, numJsrs and gcPointCount will be            // 
+  //  basicBlocks, byteToBlockMap, numJsrs and gcPointCount will be            //
   //  appropriately filled in. They will be accessed by VM_BuildReferenceMaps  //
   //  VM_BuildLiveRefMaps, so that the reference maps can be built.            //
   //                                                                           //
   //***************************************************************************//
 
   /**
-   * basic blocks of the byte code 
+   * basic blocks of the byte code
    */
   public VM_BasicBlockFactory bbf;
   public VM_BasicBlock[] basicBlocks;
 
   /**
-   * identify which block a byte is part of 
+   * identify which block a byte is part of
    */
   public short[] byteToBlockMap;
 
@@ -96,9 +96,9 @@ public final class VM_BuildBB
 
     retList = null;
 
-    // 
+    //
     //  Set up the EXIT basic block
-    // 
+    //
     basicBlocks[VM_BasicBlock.EXITBLOCK] =
         new VM_BasicBlock(bytelength, bytelength, VM_BasicBlock.EXITBLOCK);
 
@@ -116,7 +116,7 @@ public final class VM_BuildBB
       //
       setupHandlerBBs(exceptions);
 
-      // Set up blocks for start of try block, which tend not be to at clear 
+      // Set up blocks for start of try block, which tend not be to at clear
       // block boundaries
       //
       setupTryStartBBs(exceptions);
@@ -128,7 +128,7 @@ public final class VM_BuildBB
     while (bcodes.hasMoreBytecodes()) {
       // Determine if we are at a block boundary
       // We are at a block boundary if:
-      //   1) non-branch instruction followed by a known block 
+      //   1) non-branch instruction followed by a known block
       //   2) last instruction was a conditional branch
       //   3) last instruction was a branch
       // Note that forward branches mean that the byteToBlockMap will have
@@ -137,7 +137,7 @@ public final class VM_BuildBB
       if (lastInstrType == NONBRANCH) {
         if (byteToBlockMap[bcodes.index()] == VM_BasicBlock.NOTBLOCK) {
           // Not a new block
-          // Make note of current block 
+          // Make note of current block
           byteToBlockMap[bcodes.index()] = (short) currentBB.getBlockNumber();
         } else {
           // Earlier forward branch must have started this block
@@ -154,10 +154,10 @@ public final class VM_BuildBB
             addBasicBlock(newBB);
             newBB.addPredecessor(currentBB);
             currentBB = newBB;
-            // Make note of current block 
+            // Make note of current block
             byteToBlockMap[bcodes.index()] = (short) currentBB.getBlockNumber();
           } else {
-            // From an earlier forward branch 
+            // From an earlier forward branch
             basicBlocks[byteToBlockMap[bcodes.index()]].addPredecessor(currentBB);
             currentBB = basicBlocks[byteToBlockMap[bcodes.index()]];
           }
@@ -169,10 +169,10 @@ public final class VM_BuildBB
               VM_BasicBlock newBB = bbf.newBlock(bcodes.index());
               addBasicBlock(newBB);
               currentBB = newBB;
-              // Make note of current block 
+              // Make note of current block
               byteToBlockMap[bcodes.index()] = (short) currentBB.getBlockNumber();
             } else {
-              // From an earlier forward branch 
+              // From an earlier forward branch
               currentBB = basicBlocks[byteToBlockMap[bcodes.index()]];
             }
           }
@@ -398,7 +398,7 @@ public final class VM_BuildBB
           byteToBlockMap[lastInstrStart] = (short) currentBB.getBlockNumber();
           break;
         }
-      } // switch (opcode) 
+      } // switch (opcode)
     } // while (bcodes.hasMoreBytecodes)
 
     currentBB.setEnd(lastInstrStart);   // close off last block
@@ -424,12 +424,12 @@ public final class VM_BuildBB
   /********************************/
 
   /**
-   * Processing a branch that appears at location index in the byte code and has a 
-   * target index of branchtarget in the byte code. The target of a branch must 
-   * start a basic block. So if the byteToBlockMap doesn't already show a basic 
-   * block at the target, make one start there. If a basic block is already set 
+   * Processing a branch that appears at location index in the byte code and has a
+   * target index of branchtarget in the byte code. The target of a branch must
+   * start a basic block. So if the byteToBlockMap doesn't already show a basic
+   * block at the target, make one start there. If a basic block is already set
    * up and this is a branch forward then only need to adjust predecessor list
-   * (we know it is not a branch into the middle of a block as only starts are 
+   * (we know it is not a branch into the middle of a block as only starts are
    * marked in byte code beyond "index"). If the basic block is already set up and
    * this is a backward branch then we must check if the block needs splitting,
    * branching to the middle of a block is not allowed.
@@ -447,7 +447,7 @@ public final class VM_BuildBB
       // This is a backwards branch
       processBackwardBranch(index, branchtarget);
     } else {
-      // This is a forward branch to an existing block, need to register 
+      // This is a forward branch to an existing block, need to register
       // the predecessor
       currentBB = basicBlocks[byteToBlockMap[index]];
       basicBlocks[byteToBlockMap[branchtarget]].addPredecessor(currentBB);
@@ -455,10 +455,10 @@ public final class VM_BuildBB
   }
 
   /**
-   * A backwards branch has been found from the byte code at location "index" 
-   * to a target location of "branchtarget". Need to make sure that the 
-   * branchtarget location is the start of a block (and if not, then split the 
-   * existing block into two) Need to register the block that ends at "index" 
+   * A backwards branch has been found from the byte code at location "index"
+   * to a target location of "branchtarget". Need to make sure that the
+   * branchtarget location is the start of a block (and if not, then split the
+   * existing block into two) Need to register the block that ends at "index"
    * as a predecessor of the block that starts at branchtarget.
    */
   private void processBackwardBranch(int index, int branchtarget) {
@@ -471,7 +471,7 @@ public final class VM_BuildBB
       // at the previous instruction and starting a new block at the branchtarget.
       // Need to split the existing block in two. It is best to set up the new
       // block to end at the instruction before the target and the existing
-      // block to start at the target. That way the tail stays the same. 
+      // block to start at the target. That way the tail stays the same.
 
       newBB = bbf.newBlock(existingBB.getStart());
       addBasicBlock(newBB);
@@ -486,7 +486,7 @@ public final class VM_BuildBB
       newBlockEnd = i;
       newBB.setEnd(i);
 
-      // Going forwards, mark the start of each instruction with the new block 
+      // Going forwards, mark the start of each instruction with the new block
       // number
       //
       for (i = newBB.getStart(); i <= newBlockEnd; i++) {
@@ -504,7 +504,7 @@ public final class VM_BuildBB
     }
 
     // Now mark the "current" block (the one that ends at "index") as a predecessor
-    // of the target block (which is either the existing block or a newly made 
+    // of the target block (which is either the existing block or a newly made
     // block)
     //
     currentBB = basicBlocks[byteToBlockMap[index]];
@@ -533,7 +533,7 @@ public final class VM_BuildBB
   }
 
   /**
-   * scan back from ret instruction to jsr call sites 
+   * scan back from ret instruction to jsr call sites
    */
   private void findAndSetJSRCallSite(int pred, VM_BasicBlock retBB, int otherRetCount, boolean[] seenAlready) {
     seenAlready[pred] = true;
@@ -667,8 +667,8 @@ public final class VM_BuildBB
   /**
    * Check if an athrow is within a try block, if it is, then handlers have this
    * block as their predecessor; which is registered in "processExceptionHandlers"
-   * Otherwise, the athrow acts as a branch to the exit and that should be marked 
-   * here. Note exceptions may be null. 
+   * Otherwise, the athrow acts as a branch to the exit and that should be marked
+   * here. Note exceptions may be null.
    */
   private void processAthrow(VM_ExceptionHandlerMap exceptions, int athrowIndex) {
     if (exceptions != null) {

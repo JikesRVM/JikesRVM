@@ -12,7 +12,7 @@ import org.jikesrvm.VM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 
 /**
- * Defines other header words not used for 
+ * Defines other header words not used for
  * core Java language support of memory allocation.
  * Typically these are extra header words used for various
  * kinds of instrumentation or profiling.

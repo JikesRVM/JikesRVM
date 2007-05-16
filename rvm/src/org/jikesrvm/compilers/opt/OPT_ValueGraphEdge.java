@@ -9,7 +9,7 @@
 package org.jikesrvm.compilers.opt;
 
 /**
- * This class implements an edge in the value graph used in global value 
+ * This class implements an edge in the value graph used in global value
  * numbering
  * ala Alpern, Wegman and Zadeck.  See Muchnick p.348 for a nice
  * discussion.

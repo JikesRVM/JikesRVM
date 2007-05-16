@@ -15,7 +15,7 @@ import org.jikesrvm.util.VM_HashSet;
 import org.vmmagic.unboxed.Offset;
 
 /**
- *  An interface method signature is a pair of atoms: 
+ *  An interface method signature is a pair of atoms:
  *  interfaceMethodName + interfaceMethodDescriptor.
  */
 public final class VM_InterfaceMethodSignature implements VM_TIBLayoutConstants, VM_SizeConstants {

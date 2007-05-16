@@ -16,7 +16,7 @@ package org.jikesrvm.compilers.baseline;
 public interface VM_BBConstants {
 
   // first two bits determine the number of Java words making up the
-  // entity 
+  // entity
   byte LENGTH_MASK = 0x03;
 
   byte VOID_TYPE = 0x00;

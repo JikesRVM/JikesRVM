@@ -57,9 +57,9 @@ public class VM_FieldLayoutPacked extends VM_FieldLayout implements VM_SizeConst
     }
 
     /**
-     * Return the next available offset for a given size 
+     * Return the next available offset for a given size
      *
-     * @param size Size of the field to be laid out.  Must be 
+     * @param size Size of the field to be laid out.  Must be
      * a power of 2.
      */
     @Override
@@ -75,7 +75,7 @@ public class VM_FieldLayoutPacked extends VM_FieldLayout implements VM_SizeConst
       int result = slots[logSize];
       slots[logSize] += size;
 
-      /* 
+      /*
       * Other size classes may have been pointing to this slot.
       * Bump them up to the next multiple of their size class past
       * the space allocated for this field.

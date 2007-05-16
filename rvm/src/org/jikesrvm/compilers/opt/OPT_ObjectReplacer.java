@@ -77,7 +77,7 @@ public class OPT_ObjectReplacer implements OPT_AggregateReplacer {
   public void transform() {
     // store the object's fields in a ArrayList
     ArrayList<VM_Field> fields = getFieldsAsArrayList(klass);
-    // create a scalar for each field. initialize the scalar to 
+    // create a scalar for each field. initialize the scalar to
     // default values before the object's def
     OPT_RegisterOperand[] scalars = new OPT_RegisterOperand[fields.size()];
     OPT_RegisterOperand def = reg.defList;

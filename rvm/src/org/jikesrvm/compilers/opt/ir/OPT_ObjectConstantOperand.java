@@ -90,7 +90,7 @@ public class OPT_ObjectConstantOperand extends OPT_ConstantOperand {
    *
    * @param op other operand
    * @return   <code>true</code> if <code>this</code> and <code>op</code>
-   *           are semantically equivalent or <code>false</code> 
+   *           are semantically equivalent or <code>false</code>
    *           if they are not.
    */
   public boolean similar(OPT_Operand op) {

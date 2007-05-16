@@ -15,15 +15,15 @@ import org.vmmagic.unboxed.Address;
 
 /**
  *--------------------------------------------------------------------------
- *                     Stackframe layout conventions           
+ *                     Stackframe layout conventions
  *---------------------------------------------------------------------------
  *
  * A stack is an array of "slots", declared formally as 4 bytes on 32bit architectures
  * and 8 bytes on 64bit architectures, each slot
  * containing either a primitive (byte, int, float, etc), an object pointer,
  * a machine code pointer (a return address pointer), or a pointer to another
- * slot in the same stack (a frame pointer). The interpretation of a slot's 
- * contents depends on the current value of IP, the machine instruction 
+ * slot in the same stack (a frame pointer). The interpretation of a slot's
+ * contents depends on the current value of IP, the machine instruction
  * address register.
  * Each machine code generator provides maps, for use by the garbage collector,
  * that tell how to interpret the stack slots at "safe points" in the
@@ -74,23 +74,23 @@ import org.vmmagic.unboxed.Address;
  *                 |     ...       |  /
  *                 +---------------+ /
  *                 |(object header)|
- *  low-memory     +---------------+              
+ *  low-memory     +---------------+
  *
- * note: (++) means "baseline compiler frame layout and register 
+ * note: (++) means "baseline compiler frame layout and register
  * usage conventions"
- * 
+ *
  * </pre>
  *
  *
  *
  * On the 64 bit powerPC some design decisions were made as follows:
- * 
+ *
  * An Address, Float and Integer-Like types take 1 slot of 8 bytes.
  * The 4 byte quantities resides in the least significant half of the slot,
  * which is at side of the higher addresses.
  * A Long and a Double take 2 slots of 8 bytes, one of which is not used:
  * the actual value is also stored at the side of the highest addresses.
- *  
+ *
  * Here are some pictures of what a stackslot might look like in memory.
  *
  *                               64 bit                                          32 bit
@@ -100,24 +100,24 @@ import org.vmmagic.unboxed.Address;
  *   |  Stack grows down
  *   |
  *   |              +---------------+---------------+                        +---------------+
- *   |              |  Integer      | '''garbage''' |                        |    Integer    | 
+ *   |              |  Integer      | '''garbage''' |                        |    Integer    |
  *   |              +---------------+---------------+                        +---------------+
- *   |              |            Address            |                        |    Address    | 
+ *   |              |            Address            |                        |    Address    |
  *   |              +---------------+---------------+                        +---------------+
- *   |              |              Long             |                        |               | 
+ *   |              |              Long             |                        |               |
  *   |              +---------------+---------------+                        +--    Long  ---+
- *   |              |         '''garbage'''         |                        |               | 
+ *   |              |         '''garbage'''         |                        |               |
  *   |              +---------------+---------------+                        +---------------+
- *   |              |Byte| ''| 'g| a| r b a g e ''' |                        |Byte| 'garbage'| 
+ *   |              |Byte| ''| 'g| a| r b a g e ''' |                        |Byte| 'garbage'|
  *   |              +---------------+---------------+                        +---------------+
- *   |              |            Double             |                        |               | 
+ *   |              |            Double             |                        |               |
  *   |              +---------------+---------------+                        +---  Double ---+
- *   |              |         '''garbage'''         |                        |               | 
+ *   |              |         '''garbage'''         |                        |               |
  *   |              +---------------+---------------+                        +---------------+
- *   |              |            empty              |                        |     empty     | 
+ *   |              |            empty              |                        |     empty     |
  *   |              +---------------+---------------+                        +---------------+
  *  \ /
- *      
+ *
  *   Low Memory
  */
 public interface VM_StackframeLayoutConstants  {
@@ -130,9 +130,9 @@ public interface VM_StackframeLayoutConstants  {
   // SVR4 ABI has no space between FP and LR, swap the positions for LR and CMID depending on ABI.
   int STACKFRAME_NEXT_INSTRUCTION_OFFSET = VM.BuildForPowerOpenABI ? 2*BYTES_IN_STACKSLOT : BYTES_IN_STACKSLOT;
   int STACKFRAME_METHOD_ID_OFFSET = VM.BuildForPowerOpenABI ? BYTES_IN_STACKSLOT : 2*BYTES_IN_STACKSLOT;
-  
+
   int STACKFRAME_FRAME_POINTER_OFFSET = 0;    // base of this frame
-      
+
   Address STACKFRAME_SENTINEL_FP = Address.fromIntSignExtend(-2); // fp value indicating end of stack walkback
   int INVISIBLE_METHOD_ID    = -1; // marker for "assembler" frames that have no associated VM_Method
 
@@ -140,7 +140,7 @@ public interface VM_StackframeLayoutConstants  {
   // Align to 8 byte boundary for good floating point save/restore performance (on powerPC, anyway).
   //
   int STACKFRAME_ALIGNMENT = VM_SizeConstants.BYTES_IN_DOUBLE;
-   
+
   // Sizes for stacks and subregions thereof.
   // Values are in bytes and must be a multiple of 8 (size of a stack slot on 64-architecture).
   //
@@ -152,7 +152,7 @@ public interface VM_StackframeLayoutConstants  {
   int STACK_SIZE_JNINATIVE_GROW = 184*1024; // size to grow once for native on first entry via JNI
   int STACK_SIZE_GCDISABLED     =   4*1024; // max space needed while running with gc disabled
   int STACK_SIZE_MAX            = 512*1024; // upper limit on stack size (includes guard region)
-   
+
   // Complications:
   // - STACK_SIZE_GUARD must be greater than STACK_SIZE_NATIVE or STACK_SIZE_GCDISABLED
   //   to ensure that frames allocated by stack growing code will fit within guard region.

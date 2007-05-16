@@ -96,7 +96,7 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
 
       // 2. Compute liveness.
       // YUCK: We will later retrieve the live analysis info, relying on the
-      // scratchObject field of the Basic Blocks.  Thus, liveness must be 
+      // scratchObject field of the Basic Blocks.  Thus, liveness must be
       // computed AFTER the dominators, since the dominator phase also uses
       // the scratchObject field.
       OPT_LiveAnalysis live =
@@ -182,7 +182,7 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
 
     /**
      * Split live ranges on entry and exit to infrequent regions.
-     * Add this information to 'result', a mapping from BasicBlockPair to a set of 
+     * Add this information to 'result', a mapping from BasicBlockPair to a set of
      * registers to split.
      *
      * @param ir the governing IR
@@ -234,7 +234,7 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
      * Perform the transformation
      *
      * @param ir the governing IR
-     * @param xform a mapping from BasicBlockPair to the set of registers 
+     * @param xform a mapping from BasicBlockPair to the set of registers
      * to split
      */
     private static void transform(OPT_IR ir,

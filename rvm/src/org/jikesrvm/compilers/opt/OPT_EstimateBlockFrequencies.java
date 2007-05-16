@@ -27,8 +27,8 @@ import org.jikesrvm.compilers.opt.ir.OPT_WeightedBranchTargets;
  * <ul>
  * <li> Construct the loop structure tree for the CFG. </li>
  * <li> In a postorder traversal, compute the loop multiplier for each loop.
- *      The loop multiplier is a number such that the execution frequency of 
- *      the loop pre-header times the loop multiplier is equal to the 
+ *      The loop multiplier is a number such that the execution frequency of
+ *      the loop pre-header times the loop multiplier is equal to the
  *      execution frequency of the loop head.  This can be derived by computing
  *      the loop exit weight (the probability of exiting the loop) and applying
  *      Kirchoff's law that flow in is equal to flow out.  Loop exit weight
@@ -86,7 +86,7 @@ public class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
    * @param _ir the IR on which to apply the phase
    */
   public void perform(OPT_IR _ir) {
-    // Prepare 
+    // Prepare
     ir = _ir;
 
     if (ir.options.FREQUENCY_STRATEGY == OPT_Options.DUMB_FREQ) {
@@ -183,7 +183,7 @@ public class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
   }
 
   /**
-   * Postorder traversal of LST computing loop multiplier and loop exits 
+   * Postorder traversal of LST computing loop multiplier and loop exits
    * for each loop.
    */
   private void computeLoopMultipliers(OPT_LSTNode n) {

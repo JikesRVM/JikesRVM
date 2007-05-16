@@ -11,10 +11,10 @@ package org.jikesrvm.compilers.baseline;
 import org.jikesrvm.VM;
 
 /**
- * This class is used during the building of reference/nonreference maps for 
- * a method.  Once a JSR/RET combination has been processed, other JSR may 
- * be encountered that "jump" to the same subroutine. To calculate the maps 
- * of the instruction that is immediately after the JSR, we need the maps at 
+ * This class is used during the building of reference/nonreference maps for
+ * a method.  Once a JSR/RET combination has been processed, other JSR may
+ * be encountered that "jump" to the same subroutine. To calculate the maps
+ * of the instruction that is immediately after the JSR, we need the maps at
  * the time of the JSR and the maps at the time of the RET.
  */
 public final class VM_JSRSubroutineInfo {
@@ -85,7 +85,7 @@ public final class VM_JSRSubroutineInfo {
       return null;
     }
 
-    // When there is no starting non reference map, then the JSR instruction is 
+    // When there is no starting non reference map, then the JSR instruction is
     // not within another  JSR subroutine
     for (int i = 0; i <= localsTop; i++) {
       if (endReferenceMap[i] == VM_BuildReferenceMaps.NOT_SET) {

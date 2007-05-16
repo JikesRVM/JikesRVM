@@ -14,9 +14,9 @@ import org.vmmagic.unboxed.Word;
 
 /**
  * Constants used to implement thin locks.
- * A portion of a word, either in the object header 
+ * A portion of a word, either in the object header
  * or in some other location, is used to provide light weight
- * synchronization operations. This class defines 
+ * synchronization operations. This class defines
  * how the bits available for thin locks are allocated.
  * Either a lock is in fat state, in which case it looks like
  * 1Z..Z where Z..Z is the id of a heavy lock, or it is in

@@ -20,7 +20,7 @@ import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 
 /**
- * Fields and methods of the virtual machine that are needed by 
+ * Fields and methods of the virtual machine that are needed by
  * compiler-generated machine code or C runtime code.
  */
 public class VM_Entrypoints implements VM_Constants {
@@ -455,7 +455,7 @@ public class VM_Entrypoints implements VM_Constants {
     }
   }
 
-  ////////////////// 
+  //////////////////
   // Entrypoints that are valid only when the adaptive optimization system is included in the build
   //////////////////
   public static final VM_Field methodListenerNumSamplesField;
@@ -521,8 +521,8 @@ public class VM_Entrypoints implements VM_Constants {
 
   /**
    * Get description of virtual machine component (field or method).
-   * Note: This is method is intended for use only by VM classes that need 
-   * to address their own fields and methods in the runtime virtual machine 
+   * Note: This is method is intended for use only by VM classes that need
+   * to address their own fields and methods in the runtime virtual machine
    * image.  It should not be used for general purpose class loading.
    * @param classDescriptor  class  descriptor - something like "Lorg/jikesrvm/VM_Runtime;"
    * @param memberName       member name       - something like "invokestatic"

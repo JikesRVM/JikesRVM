@@ -29,7 +29,7 @@ import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
 
 /**
- * The interface to the object model definition accessible to the 
+ * The interface to the object model definition accessible to the
  * virtual machine. <p>
  *
  * Conceptually each Java object is composed of the following pieces:
@@ -38,11 +38,11 @@ import org.vmmagic.unboxed.Word;
  *      object supports language-level functions such as locking, hashcodes,
  *      dynamic type checking, virtual function invocation, and array length.
  * <li> The GCHeader defined by {@link MM_Interface}. This portion
- *      of the object supports allocator-specific requirements such as 
+ *      of the object supports allocator-specific requirements such as
  *      mark/barrier bits, reference counts, etc.
- * <li> The MiscHeader defined by {@link VM_MiscHeader}. This portion supports 
- *      various other clients that want to add bits/words to all objects. 
- *      Typical uses are profiling and instrumentation (basically this is a 
+ * <li> The MiscHeader defined by {@link VM_MiscHeader}. This portion supports
+ *      various other clients that want to add bits/words to all objects.
+ *      Typical uses are profiling and instrumentation (basically this is a
  *      way to add an instance field to java.lang.Object).
  * <li> The instance fields.  Currently defined by various classloader classes.
  *      Factoring this code out and making it possible to lay out the instance
@@ -61,7 +61,7 @@ import org.vmmagic.unboxed.Word;
  * +----------+------------+------------+------+------+------+--------+
  *                         ^ JHOFF             ^objref
  *                                             .
- *    ARRAY LAYOUT:                            . 
+ *    ARRAY LAYOUT:                            .
  * |<---------- array header ----------------->|
  * +----------+------------+------------+------+------+------+------+------+
  * | GCHeader | MiscHeader | JavaHeader | len  | elt0 | elt1 | ...  |eltN-1|
@@ -69,9 +69,9 @@ import org.vmmagic.unboxed.Word;
  *                         ^ JHOFF             ^objref
  * </pre>
  *
- * Assumptions: 
+ * Assumptions:
  * <ul>
- * <li> Each portion of the header (JavaHeader, GCHeader, MiscHeader) 
+ * <li> Each portion of the header (JavaHeader, GCHeader, MiscHeader)
  *      is some multiple of 4 bytes (possibly 0).  This simplifies access, since we
  *      can access each portion independently without having to worry about word tearing.
  * <li> The JavaHeader exports k (>=0) unused contiguous bits that can be used
@@ -94,8 +94,8 @@ import org.vmmagic.unboxed.Word;
  * Note that on AIX we are forced to perform explicit null checks on
  * scalar field accesses as we are unable to protect low memory.
  *
- * Note the key invariant that all elements of the header are 
- * available at the same offset from an objref for both arrays and 
+ * Note the key invariant that all elements of the header are
+ * available at the same offset from an objref for both arrays and
  * scalar objects.
  *
  * Note that this model allows for arbitrary growth of the GC header
@@ -209,7 +209,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
   }
 
   /**
-   * Get the pointer just past an object 
+   * Get the pointer just past an object
    */
   public static Address getObjectEndAddress(Object obj) {
     Object[] tib = getTIB(obj);
@@ -223,14 +223,14 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
   }
 
   /**
-   * Get the pointer just past an object 
+   * Get the pointer just past an object
    */
   public static Address getObjectEndAddress(Object object, VM_Class type) {
     return VM_JavaHeader.getObjectEndAddress(object, type);
   }
 
   /**
-   * Get the pointer just past an object 
+   * Get the pointer just past an object
    */
   public static Address getObjectEndAddress(Object object, VM_Array type, int elements) {
     return VM_JavaHeader.getObjectEndAddress(object, type, elements);
@@ -258,7 +258,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
   }
 
   /**
-   * Get the next object in the heap under contiguous allocation. 
+   * Get the next object in the heap under contiguous allocation.
    */
   public static ObjectReference getNextObject(ObjectReference obj) {
     Object[] tib = getTIB(obj);
@@ -272,7 +272,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
   }
 
   /**
-   * Get the next object after this scalar under contiguous allocation. 
+   * Get the next object after this scalar under contiguous allocation.
    */
   public static ObjectReference getNextObject(ObjectReference obj,
                                               VM_Class type) {
@@ -280,7 +280,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
   }
 
   /**
-   * Get the next object after this array under contiguous allocation. 
+   * Get the next object after this array under contiguous allocation.
    */
   public static ObjectReference getNextObject(ObjectReference obj,
                                               VM_Array type, int numElements) {
@@ -322,7 +322,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
   }
 
   /**
-   * how many bytes are used by the array? 
+   * how many bytes are used by the array?
    */
   public static int bytesUsed(Object obj, VM_Array type, int numElements) {
     return VM_JavaHeader.bytesUsed(obj, type, numElements);
@@ -412,7 +412,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
   }
 
   /**
-   * Get the type of an object.  
+   * Get the type of an object.
    */
   public static VM_Type getObjectType(Object o) {
     return VM_Magic.getObjectType(o);
@@ -593,7 +593,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
   }
 
   /**
-   * Compute the header size of an object 
+   * Compute the header size of an object
    */
   @Interruptible
   public static int computeHeaderSize(Object ref) {
@@ -623,7 +623,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
   }
 
   /**
-   * For a reference to an object, what is the offset in bytes to the 
+   * For a reference to an object, what is the offset in bytes to the
    * last word of the header from an out-to-in perspective for the object?
    */
   public static int getHeaderEndOffset() {
@@ -754,7 +754,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
   }
 
   /**
-   * Fill an alignment gap with the alignment value 
+   * Fill an alignment gap with the alignment value
    */
   @Interruptible
   public static void fillAlignmentGap(BootImageInterface bootImage,
@@ -838,18 +838,18 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
   }
 
   /**
-   * For low level debugging of GC subsystem. 
+   * For low level debugging of GC subsystem.
    * Dump the header word(s) of the given object reference.
-   * @param ptr the object reference whose header should be dumped 
+   * @param ptr the object reference whose header should be dumped
    */
   public static void dumpHeader(ObjectReference ptr) {
     dumpHeader(ptr.toObject());
   }
 
   /**
-   * For low level debugging of GC subsystem. 
+   * For low level debugging of GC subsystem.
    * Dump the header word(s) of the given object reference.
-   * @param ref the object reference whose header should be dumped 
+   * @param ref the object reference whose header should be dumped
    */
   public static void dumpHeader(Object ref) {
     VM.sysWrite(" TIB=");
@@ -881,4 +881,4 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
   }
 }
 
- 	  	 
+

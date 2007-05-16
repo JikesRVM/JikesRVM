@@ -48,7 +48,7 @@ import org.jikesrvm.compilers.opt.ir.ResultCarrier;
 import org.jikesrvm.compilers.opt.ir.Return;
 
 /**
- * This compiler phase constructs SSA form.  
+ * This compiler phase constructs SSA form.
  *
  * <p> This module constructs SSA according to the SSA properties defined
  * in </code> OPT_IR.desiredSSAOptions </code>.  See <code> OPT_SSAOptions
@@ -248,7 +248,7 @@ public class OPT_EnterSSA extends OPT_CompilerPhase {
   }
 
   /**
-   * Work around some problems with PEI-generated values and 
+   * Work around some problems with PEI-generated values and
    * handlers.  Namely, if a PEI has a return value, rename the
    * result register before and after the PEI in order to reflect the fact
    * that the PEI may not actually assign the result register.
@@ -324,14 +324,14 @@ public class OPT_EnterSSA extends OPT_CompilerPhase {
    * @param ir the governing IR
    * @param scalarsOnly should we compute SSA only for scalar variables?
    * @param backwards If this is true, then every statement that
-   * can leave the procedure is considered to <em> use </em> every heap 
+   * can leave the procedure is considered to <em> use </em> every heap
    * variable.  This option is useful for backwards analyses such as dead
    * store elimination.
    * @param heapTypes If this variable is non-null, then heap array SSA
-   * form will restrict itself to this set of types. If this is null, build 
+   * form will restrict itself to this set of types. If this is null, build
    * heap array SSA for all types.
    * @param insertUsePhis Should we insert uphi functions for heap array
-   * SSA? ie., should we create a new name for each heap array at every use 
+   * SSA? ie., should we create a new name for each heap array at every use
    * of the heap array? This option is useful for some analyses, such as
    * our redundant load elimination algorithm.
    * @param insertPEIDeps Should we model exceptions with an explicit
@@ -444,7 +444,7 @@ public class OPT_EnterSSA extends OPT_CompilerPhase {
   /**
    * Register every CALL instruction in this method with the
    * implicit heap array SSA look aside structure.
-   * Namely, mark that this instruction defs and uses <em> every </em> 
+   * Namely, mark that this instruction defs and uses <em> every </em>
    * type of heap variable in the IR's SSA dictionary.
    *
    * @param ir the governing IR
@@ -682,7 +682,7 @@ public class OPT_EnterSSA extends OPT_CompilerPhase {
   }
 
   /**
-   * Rename the symbolic registers so that each register has only one 
+   * Rename the symbolic registers so that each register has only one
    * definition.
    *
    * <p><em> Note </em>: call this after phi functions have been inserted.
@@ -813,7 +813,7 @@ public class OPT_EnterSSA extends OPT_CompilerPhase {
             if (r2 == null) {
               // in this case, the register is never defined along
               // this particular control flow path into the basic
-              // block.  
+              // block.
               Phi.setValue(s, j, new OPT_UnreachableOperand());
             } else {
               OPT_RegisterOperand rop = r2.copyRO();

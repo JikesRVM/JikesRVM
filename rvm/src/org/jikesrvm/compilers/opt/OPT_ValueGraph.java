@@ -80,7 +80,7 @@ final class OPT_ValueGraph {
   private final HashMap<Object, OPT_ValueGraphVertex> nameMap;
 
   /**
-   *  Construct a value graph from an IR. 
+   *  Construct a value graph from an IR.
    *
    * <p><b> PRECONDITION:</b> The IR <em> must </em> be in SSA form.
    * @param ir the IR
@@ -139,7 +139,7 @@ final class OPT_ValueGraph {
   }
 
   /**
-   * Return the vertex which has a given name. 
+   * Return the vertex which has a given name.
    *
    * @param name the name of the vertex
    * @return the vertex with the name.  null if none found.
@@ -415,7 +415,7 @@ final class OPT_ValueGraph {
    * <p><b>PRECONDITION:</b> <code> GuardedUnary.conforms(s); </code>
    *
    * Careful: we define two Guarded Unaries to be equivalent regardless of
-   * whether the guards are equivalent!  
+   * whether the guards are equivalent!
    *
    * @param s the instruction in question
    */
@@ -497,7 +497,7 @@ final class OPT_ValueGraph {
    * <p><b>PRECONDITION:</b> <code> GuardedBinary.conforms(s); </code>
    *
    * Careful: we define two Guarded Binaries to be equivalent regardless of
-   * whether the guards are equivalent!  
+   * whether the guards are equivalent!
    *
    * @param s the instruction in question
    */
@@ -608,7 +608,7 @@ final class OPT_ValueGraph {
   }
 
   /**
-   * Find or create an OPT_ValueGraphVertex corresponding to a 
+   * Find or create an OPT_ValueGraphVertex corresponding to a
    * given variable.
    *
    * @param var   The variable
@@ -635,7 +635,7 @@ final class OPT_ValueGraph {
   }
 
   /**
-   * Find or create an OPT_ValueGraphVertex corresponding to a 
+   * Find or create an OPT_ValueGraphVertex corresponding to a
    * given register
    *
    * @param r the register
@@ -653,8 +653,8 @@ final class OPT_ValueGraph {
   }
 
   /**
-   * Find or create an OPT_ValueGraphVertex corresponding to a 
-   * given constant operand 
+   * Find or create an OPT_ValueGraphVertex corresponding to a
+   * given constant operand
    *
    * @param op the constant operand
    * @return a value graph vertex corresponding to this variable
@@ -698,8 +698,8 @@ final class OPT_ValueGraph {
   }
 
   /**
-   * Find or create an OPT_ValueGraphVertex corresponding to a 
-   * given type operand 
+   * Find or create an OPT_ValueGraphVertex corresponding to a
+   * given type operand
    *
    * @param op the operand in question
    * @return a value graph vertex corresponding to this type
@@ -717,8 +717,8 @@ final class OPT_ValueGraph {
   }
 
   /**
-   * Find or create an OPT_ValueGraphVertex corresponding to a 
-   * given method operand 
+   * Find or create an OPT_ValueGraphVertex corresponding to a
+   * given method operand
    *
    * @param op the operand in question
    * @return a value graph vertex corresponding to this type
@@ -741,8 +741,8 @@ final class OPT_ValueGraph {
   }
 
   /**
-   * Find or create an OPT_ValueGraphVertex corresponding to a 
-   * given method operand 
+   * Find or create an OPT_ValueGraphVertex corresponding to a
+   * given method operand
    *
    * @param op the operand in question
    * @return a value graph vertex corresponding to this type
@@ -793,7 +793,7 @@ final class OPT_ValueGraph {
     }
     if (Move.conforms(def)) {
       //   In a perfect world, this shouldn't happen. Copy propagation
-      //   in SSA form should remove all 'normal' moves.  
+      //   in SSA form should remove all 'normal' moves.
       //   We can't simply bypass this move, since it may lead to
       //   infinite mutual recursion.
       return op;

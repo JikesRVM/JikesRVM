@@ -39,18 +39,18 @@ public abstract class VM_JNIGCMapIterator extends VM_GCMapIterator
   //  0         + saved FP   + <---- FP for Jave to Native C glue frame
   // -4         | methodID   |
   // -8         | saved EDI  |  non-volatile GPR (JTOC for baseline callers or ? for opt callers)
-  // -C         | saved EBX  |  non-volatile GPR  
-  // -10        | saved EBP  |  non-volatile GPR  
+  // -C         | saved EBX  |  non-volatile GPR
+  // -10        | saved EBP  |  non-volatile GPR
   // -14        | returnAddr |  (for return from OutOfLineMachineCode)
-  // -18        | saved PR   |  
+  // -18        | saved PR   |
   // -1C        | arg n-1    |  reordered arguments to native method
   // -20        |  ...       |  ...
   // -24        | arg 1      |  ...
   // -28        | arg 0      |  ...
   // -2C        | class/obj  |  required 2nd argument to all native methods
   // -30        | jniEnv     |  required 1st argument to all native methods
-  // -34        | returnAddr |  return address pushed by call to native method  
-  //            + saved FP   +  <---- FP for called native method  
+  // -34        | returnAddr |  return address pushed by call to native method
+  //            + saved FP   +  <---- FP for called native method
 
   // additional instance fields added by this subclass of VM_GCMapIterator
   AddressArray jniRefs;
@@ -88,7 +88,7 @@ public abstract class VM_JNIGCMapIterator extends VM_GCMapIterator
   }
 
   // return (address of) next ref in the current "frame" on the
-  // threads JNIEnvironment stack of refs         
+  // threads JNIEnvironment stack of refs
   // When at the end of the current frame, update register locations to point
   // to the non-volatile registers saved in the JNI transition frame.
   //

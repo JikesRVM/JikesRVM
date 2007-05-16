@@ -68,7 +68,7 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase {
 
     //    new OPT_IRPrinter("before renovating osrs").perform(ir);
 
-    // 2. trace OsrBarrier for each OsrPoint, and rebuild OsrPoint    
+    // 2. trace OsrBarrier for each OsrPoint, and rebuild OsrPoint
     renovateOsrPoints(osrs, ir);
 
     //    new OPT_IRPrinter("before removing barriers").perform(ir);

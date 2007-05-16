@@ -27,7 +27,7 @@ final class OPT_ExceptionHandlerBasicBlockBag {
 
   /**
    * If this is an inlined method, then this points to the enclosing
-   * method's (the caller's) ExcpetionHandlerBasicBlockBag.  If this is 
+   * method's (the caller's) ExcpetionHandlerBasicBlockBag.  If this is
    * the outermost method, then this is null
    */
   private final OPT_ExceptionHandlerBasicBlockBag caller;
@@ -41,7 +41,7 @@ final class OPT_ExceptionHandlerBasicBlockBag {
   }
 
   /**
-   * Create an EHBBB 
+   * Create an EHBBB
    * @param l the local array of EHBBs
    * @param c the enclosing EHBBB
    */
@@ -74,7 +74,7 @@ final class OPT_ExceptionHandlerBasicBlockBag {
   }
 
   /**
-   * An enumeration of all the exception handler basic blocks 
+   * An enumeration of all the exception handler basic blocks
    * (transitively) in the EHBBB.
    * @return An enumeration of the exception handler basic blocks in the bag.
    */

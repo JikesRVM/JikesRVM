@@ -250,7 +250,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * @param object the object to check
    */
   public static void modifyCheck(Object object) {
-    /* Make sure that during GC, we don't update on a possibly moving object. 
+    /* Make sure that during GC, we don't update on a possibly moving object.
        Such updates are dangerous because they can be lost.
      */
     if (Plan.gcInProgressProper()) {
@@ -548,7 +548,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * @param align the alignment requested; must be a power of 2.
    * @param offset the offset at which the alignment is desired.
    * @param site allocation site.
-   * @return array object with header installed and all elements set 
+   * @return array object with header installed and all elements set
    *         to zero/null
    * See also: bytecode 0xbc ("newarray") and 0xbd ("anewarray")
    */
@@ -940,7 +940,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants {
 
   /**
    * Override the boot-time initialization method here, so that
-   * the core JMTk code doesn't need to know about the 
+   * the core JMTk code doesn't need to know about the
    * BootImageInterface type.
    */
   @Interruptible

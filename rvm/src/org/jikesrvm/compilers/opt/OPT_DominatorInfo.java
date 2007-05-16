@@ -36,7 +36,7 @@ class OPT_DominatorInfo {
   }
 
   /**
-   * Return the immediate dominator of a basic block. 
+   * Return the immediate dominator of a basic block.
    *
    * <p> Note: the dominator info must be calculated before calling this
    * routine

@@ -26,10 +26,10 @@ public abstract class OPT_RegisterPreferences extends OPT_GenericRegisterPrefere
 
   /**
    * If the following is set, we use a heuristic optimization as follows:
-   * weight a  
-   *                    MOVE symbolic = symbolic 
+   * weight a
+   *                    MOVE symbolic = symbolic
    * TWICE as much as either of:
-   *                    MOVE symbolic = physical, 
+   *                    MOVE symbolic = physical,
    *                    MOVE physical = symbolic.
    *
    * Rationale: At this point (before register allocation), the second

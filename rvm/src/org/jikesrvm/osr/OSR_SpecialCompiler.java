@@ -23,7 +23,7 @@ import org.jikesrvm.compilers.opt.OPT_Options;
 
 /**
  * OSR_SpecialCompiler is a wrapper for compiling specialized byte code.
- * It accepts an instance of OSR_ExecutionState, generates the specialized 
+ * It accepts an instance of OSR_ExecutionState, generates the specialized
  * byte code, and compiles it to machine code instructions.
  */
 public class OSR_SpecialCompiler {

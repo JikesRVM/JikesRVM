@@ -99,7 +99,7 @@ public final class OPT_ConvertMIRtoMC extends OPT_OptimizationPlanCompositeEleme
       int codeLength = OPT_Assembler.generateCode(ir, shouldPrint);
 
       //////////
-      // STEP 3: Generate all the mapping information 
+      // STEP 3: Generate all the mapping information
       // associated with the machine code.
       //////////
       // 3a: Create the exception table

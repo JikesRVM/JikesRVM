@@ -74,8 +74,8 @@ import org.vmmagic.unboxed.Offset;
 /**
  * This class implements the non-machine-specific magics for the opt compiler.
  * By non-machine-specific we mean that the IR generated to implement the magic
- * is independent of the target-architecture.  
- * It does not mean that the eventual MIR that implements the magic 
+ * is independent of the target-architecture.
+ * It does not mean that the eventual MIR that implements the magic
  * won't differ from architecture to architecture.
  */
 public class OPT_GenerateMagic {
@@ -85,7 +85,7 @@ public class OPT_GenerateMagic {
    * Based on the methodName, generate a sequence of opt instructions
    * that implement the magic, updating the expression stack as necessary.
    *
-   * @param bc2ir the bc2ir object that is generating the 
+   * @param bc2ir the bc2ir object that is generating the
    *              ir containing this magic
    * @param gc must be bc2ir.gc
    * @param meth the VM_Method that is the magic method

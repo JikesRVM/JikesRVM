@@ -41,7 +41,7 @@ import org.jikesrvm.compilers.opt.ir.Phi;
 /*
  * Simple flow-insensitive optimizations.
  *
- * <p> Except for the "CompilerPhase" methods, all fields and methods in 
+ * <p> Except for the "CompilerPhase" methods, all fields and methods in
  * this class are declared static.
  */
 public final class OPT_Simple extends OPT_CompilerPhase {
@@ -86,8 +86,8 @@ public final class OPT_Simple extends OPT_CompilerPhase {
 
   /**
    * The constructor is used to specify what pieces of OPT_Simple will
-   * be enabled for this instance.  Some pieces are always enabled. 
-   * Customizing can be useful because some of the optimizations are not 
+   * be enabled for this instance.  Some pieces are always enabled.
+   * Customizing can be useful because some of the optimizations are not
    * valid/useful on LIR or even on "late stage" HIR.  With this
    * constructor, branches will be folded.
    *
@@ -100,8 +100,8 @@ public final class OPT_Simple extends OPT_CompilerPhase {
 
   /**
    * The constructor is used to specify what pieces of OPT_Simple will
-   * be enabled for this instance.  Some pieces are always enabled. 
-   * Customizing can be useful because some of the optimizations are not 
+   * be enabled for this instance.  Some pieces are always enabled.
+   * Customizing can be useful because some of the optimizations are not
    * valid/useful on LIR or even on "late stage" HIR.  With this
    * constructor, branches will be folded.
    *
@@ -115,9 +115,9 @@ public final class OPT_Simple extends OPT_CompilerPhase {
 
   /**
    * The constructor is used to specify what pieces of OPT_Simple will
-   * be enabled for this instance.  Some pieces are always enabled. 
-   * Customizing can be useful because some of the optimizations are not 
-   * valid/useful on LIR or even on "late stage" HIR.  
+   * be enabled for this instance.  Some pieces are always enabled.
+   * Customizing can be useful because some of the optimizations are not
+   * valid/useful on LIR or even on "late stage" HIR.
    *
    * @param typeProp should type propagation be peformed?
    * @param foldChecks should we attempt to eliminate boundscheck?
@@ -130,9 +130,9 @@ public final class OPT_Simple extends OPT_CompilerPhase {
 
   /**
    * The constructor is used to specify what pieces of OPT_Simple will
-   * be enabled for this instance.  Some pieces are always enabled. 
-   * Customizing can be useful because some of the optimizations are not 
-   * valid/useful on LIR or even on "late stage" HIR.  
+   * be enabled for this instance.  Some pieces are always enabled.
+   * Customizing can be useful because some of the optimizations are not
+   * valid/useful on LIR or even on "late stage" HIR.
    *
    * @param level at what optimization level should the phase be enabled?
    * @param typeProp should type propagation be peformed?
@@ -177,7 +177,7 @@ public final class OPT_Simple extends OPT_CompilerPhase {
     // This pass incrementally updates the register list.
     copyPropagation(ir);
     // Simple type propagation.
-    // This pass uses the register list, but doesn't modify it. 
+    // This pass uses the register list, but doesn't modify it.
     if (typeProp) {
       typePropagation(ir);
     }
@@ -194,7 +194,7 @@ public final class OPT_Simple extends OPT_CompilerPhase {
     // if it does it will recompute it.
     foldConstants(ir);
     // Try to remove conditional branches with constant operands
-    // If it actually constant folds a branch, 
+    // If it actually constant folds a branch,
     // this pass will recompute the DU
     if (foldBranches) {
       simplifyConstantBranches(ir);
@@ -202,8 +202,8 @@ public final class OPT_Simple extends OPT_CompilerPhase {
   }
 
   /**
-   * Perform flow-insensitive copy and constant propagation using 
-   * register list information. 
+   * Perform flow-insensitive copy and constant propagation using
+   * register list information.
    *
    * <ul>
    * <li> Note: register list MUST be initialized BEFORE calling this routine.
@@ -213,7 +213,7 @@ public final class OPT_Simple extends OPT_CompilerPhase {
    * @param ir the IR in question
    */
   static void copyPropagation(OPT_IR ir) {
-    // Use register list to enumerate register objects 
+    // Use register list to enumerate register objects
     OPT_Register elemNext;
     boolean reiterate = true;
     while (reiterate) {         // /MT/ better think about proper ordering.
@@ -221,11 +221,11 @@ public final class OPT_Simple extends OPT_CompilerPhase {
       for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister();
            reg != null; reg = elemNext) {
         elemNext = reg.getNext(); // we may remove reg, so get elemNext up front
-        if (reg.useList == null ||   // Copy propagation not possible if reg 
+        if (reg.useList == null ||   // Copy propagation not possible if reg
             // has no uses
-            reg.defList == null ||   // Copy propagation not possible if reg 
+            reg.defList == null ||   // Copy propagation not possible if reg
             // has no defs
-            !reg.isSSA())            // Flow-insensitive copy prop only possible 
+            !reg.isSSA())            // Flow-insensitive copy prop only possible
         // for SSA registers.
         {
           continue;
@@ -248,7 +248,7 @@ public final class OPT_Simple extends OPT_CompilerPhase {
         if (rhs.isRegister()) {
           OPT_Register rrhs = rhs.asRegister().register;
           // If rhs is a non-SSA register, then we can't propagate it
-          // because we can't be sure that the same definition reaches 
+          // because we can't be sure that the same definition reaches
           // all uses.
           if (!rrhs.isSSA()) continue;
 
@@ -259,13 +259,13 @@ public final class OPT_Simple extends OPT_CompilerPhase {
         }
 
         reiterate = ir.options.getOptLevel() > 1;
-        // Now substitute rhs for all uses of lhs, updating the 
+        // Now substitute rhs for all uses of lhs, updating the
         // register list as we go.
         if (rhs.isRegister()) {
           OPT_RegisterOperand nextUse;
           OPT_RegisterOperand rhsRegOp = rhs.asRegister();
           for (OPT_RegisterOperand use = reg.useList; use != null; use = nextUse) {
-            nextUse = use.getNext(); // get early before reg's useList is updated. 
+            nextUse = use.getNext(); // get early before reg's useList is updated.
             if (VM.VerifyAssertions) VM._assert(rhsRegOp.register.getType() == use.register.getType());
             OPT_DefUse.transferUse(use, rhsRegOp);
           }
@@ -319,7 +319,7 @@ public final class OPT_Simple extends OPT_CompilerPhase {
    * information. Note: register list MUST be initialized BEFORE
    * calling this routine.
    *
-   * <p> Kept separate from copyPropagation loop to enable clients 
+   * <p> Kept separate from copyPropagation loop to enable clients
    * more flexibility.
    *
    * @param ir the IR in question
@@ -367,7 +367,7 @@ public final class OPT_Simple extends OPT_CompilerPhase {
         if (OPT_ClassLoaderProxy.includesType(rhs.type, use.type) == YES) {
           continue;
         }
-        // If VM_Magic has been employed to convert an int to a reference, 
+        // If VM_Magic has been employed to convert an int to a reference,
         // don't undo the effects!
         if (rhs.type.isPrimitiveType() && !use.type.isPrimitiveType()) {
           continue;
@@ -495,7 +495,7 @@ public final class OPT_Simple extends OPT_CompilerPhase {
     for (OPT_Instruction instr = ir.lastInstructionInCodeOrder(),
         prevInstr = null;
          instr != null; instr = prevInstr) {
-      prevInstr = instr.prevInstructionInCodeOrder(); // cache because 
+      prevInstr = instr.prevInstructionInCodeOrder(); // cache because
       // remove nulls next/prev fields
       // if instr is a PEI, store, branch, or call, then it's not dead ...
       if (instr.isPEI() || instr.isImplicitStore() || instr.isBranch()
@@ -532,7 +532,7 @@ public final class OPT_Simple extends OPT_CompilerPhase {
           }
         }
       }
-      // check that all defs are to dead registers and that 
+      // check that all defs are to dead registers and that
       // there is at least 1 def.
       boolean isDead = true;
       boolean foundRegisterDef = false;
@@ -560,7 +560,7 @@ public final class OPT_Simple extends OPT_CompilerPhase {
       if (!foundRegisterDef) {
         continue;
       }
-      // There are 1 or more register defs, but all of them are dead. 
+      // There are 1 or more register defs, but all of them are dead.
       // Remove instr.
       OPT_DefUse.removeInstructionAndUpdateDU(instr);
     }
@@ -576,10 +576,10 @@ public final class OPT_Simple extends OPT_CompilerPhase {
     for (OPT_Instruction s = ir.firstInstructionInCodeOrder(); s != null;
          s = s.nextInstructionInCodeOrder()) {
       OPT_Simplifier.DefUseEffect code = OPT_Simplifier.simplify(ir.regpool, s);
-      // If something was reduced (as opposed to folded) then its uses may 
-      // be different. This happens so infrequently that it's cheaper to 
+      // If something was reduced (as opposed to folded) then its uses may
+      // be different. This happens so infrequently that it's cheaper to
       // handle it by  recomputing the DU from
-      // scratch rather than trying to do the incremental bookkeeping. 
+      // scratch rather than trying to do the incremental bookkeeping.
       recomputeRegList |= (code == OPT_Simplifier.DefUseEffect.MOVE_REDUCED ||
                            code == OPT_Simplifier.DefUseEffect.TRAP_REDUCED ||
                            code == OPT_Simplifier.DefUseEffect.REDUCED);
@@ -593,7 +593,7 @@ public final class OPT_Simple extends OPT_CompilerPhase {
   /**
    * Simplify branches whose operands are constants.
    *
-   * <p> NOTE: This pass ensures that the register list is still valid after it 
+   * <p> NOTE: This pass ensures that the register list is still valid after it
    * is done.
    *
    * @param ir the IR to optimize

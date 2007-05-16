@@ -32,7 +32,7 @@ public class VM_Reflection implements VM_Constants {
    * @param thisArg "this" argument (ignored if method is static)
    * @param otherArgs remaining arguments
    *
-   * isNonvirtual flag is false if the method of the real class of this 
+   * isNonvirtual flag is false if the method of the real class of this
    * object is to be invoked; true if a method of a superclass may be invoked
    * @return return value (wrapped if primitive)
    * See also: java/lang/reflect/Method.invoke()
@@ -52,7 +52,7 @@ public class VM_Reflection implements VM_Constants {
     }
 
     // remember return type
-    // Determine primitive type-ness early to avoid call (possible yield) 
+    // Determine primitive type-ness early to avoid call (possible yield)
     // later while refs are possibly being held in int arrays.
     //
     VM_TypeReference returnType = method.getReturnType();
@@ -71,7 +71,7 @@ public class VM_Reflection implements VM_Constants {
     WordArray Spills = WordArray.create(spillCount);
 
     if (firstUse) {
-      // force dynamic link sites in unwrappers to get resolved, 
+      // force dynamic link sites in unwrappers to get resolved,
       // before disabling gc.
       // this is a bit silly, but I can't think of another way to do it [--DL]
       unwrapBoolean(wrapBoolean(0));
@@ -171,7 +171,7 @@ public class VM_Reflection implements VM_Constants {
   }
 
   // Method parameter wrappers.
-  // 
+  //
   @NoInline
   public static Object wrapBoolean(int b) { return b == 1; }
 

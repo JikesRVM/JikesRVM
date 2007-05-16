@@ -19,7 +19,7 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LABEL;
 import org.jikesrvm.compilers.opt.ir.Trap;
 
 /**
- * IR level independent driver for 
+ * IR level independent driver for
  * simple peephole optimizations of branches.
  */
 public abstract class OPT_BranchOptimizationDriver extends OPT_CompilerPhase {
@@ -35,7 +35,7 @@ public abstract class OPT_BranchOptimizationDriver extends OPT_CompilerPhase {
   private final boolean simplify;
 
   /**
-   * @param level the minimum optimization level at which the branch 
+   * @param level the minimum optimization level at which the branch
    * optimizations should be performed.
    * @param simplify perform simplification prior to optimization?
    */
@@ -45,7 +45,7 @@ public abstract class OPT_BranchOptimizationDriver extends OPT_CompilerPhase {
   }
 
   /**
-   * @param level the minimum optimization level at which the branch 
+   * @param level the minimum optimization level at which the branch
    * optimizations should be performed.
    */
   OPT_BranchOptimizationDriver(int level) {
@@ -127,7 +127,7 @@ public abstract class OPT_BranchOptimizationDriver extends OPT_CompilerPhase {
   }
 
   /**
-   * This pass performs peephole branch optimizations. 
+   * This pass performs peephole branch optimizations.
    * See Muchnick ~p.590
    *
    * @param ir the IR to optimize
@@ -173,7 +173,7 @@ public abstract class OPT_BranchOptimizationDriver extends OPT_CompilerPhase {
   protected final boolean removeUnreachableCode(OPT_IR ir) {
     boolean result = false;
 
-    // (1) All code in a basic block after an unconditional 
+    // (1) All code in a basic block after an unconditional
     //     trap instruction is dead.
     for (OPT_Instruction s = ir.firstInstructionInCodeOrder();
          s != null;

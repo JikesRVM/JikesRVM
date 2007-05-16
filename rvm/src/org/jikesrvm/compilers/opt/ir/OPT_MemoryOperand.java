@@ -18,10 +18,10 @@ import org.vmmagic.unboxed.Offset;
  * A memory operand contains some set of other operands that are used
  * in the address calculation.
  *
- * May contain 0, 1, or 2 OPT_RegisterOperands as well as a scale factor and 
+ * May contain 0, 1, or 2 OPT_RegisterOperands as well as a scale factor and
  * dispacement.
  *
- * The effective address represented by this operand is: 
+ * The effective address represented by this operand is:
  *     [base] + [index]*(2^scale) + disp
  *
  * @see OPT_Operand
@@ -55,7 +55,7 @@ public final class OPT_MemoryOperand extends OPT_Operand {
   public byte scale;
 
   /**
-   * The displacement 
+   * The displacement
    */
   public Offset disp;
 

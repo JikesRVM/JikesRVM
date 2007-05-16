@@ -17,7 +17,7 @@ import org.vmmagic.unboxed.Address;
 
 /**
  * Helper routine to pull the parameters to multianewarray off the
- * Java expression stack maintained by the baseline compiler and 
+ * Java expression stack maintained by the baseline compiler and
  * pass them to VM_Runtime.buildMultiDimensionalArray.
  *
  * TODO: There is only 1 line of platform dependent code here; refactor?

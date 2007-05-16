@@ -10,7 +10,7 @@
 package org.jikesrvm.osr;
 
 /**
- * artificial instruction, load a PC on the stack. 
+ * artificial instruction, load a PC on the stack.
  */
 
 public class BC_LoadRetAddrConst extends OSR_PseudoBytecode {

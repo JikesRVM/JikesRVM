@@ -37,7 +37,7 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
                                                            VM_ClassLoaderConstants {
   /**
    * The pretty (external) name for this primitive.
-   * For example, for a long the name is 'long' 
+   * For example, for a long the name is 'long'
    * and the descriptor is 'J'
    */
   private final VM_Atom name;
@@ -169,7 +169,7 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
   }
 
   /**
-   * get number of superclasses to Object 
+   * get number of superclasses to Object
    * @return 0
    */
   @Uninterruptible
@@ -331,10 +331,10 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
   }
 
   /*
-   * Primitives are not first class objects - 
+   * Primitives are not first class objects -
    * but the implementation of reflection is cleaner if
-   * we pretend that they are and provide dummy implementations of 
-   * the following methods 
+   * we pretend that they are and provide dummy implementations of
+   * the following methods
    */
 
   /**
@@ -346,7 +346,7 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
   }
 
   /**
-   * Non-static fields of this class/array type 
+   * Non-static fields of this class/array type
    * (composed with supertypes, if any).
    * @return zero length array
    */
@@ -363,7 +363,7 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
   }
 
   /**
-   * Virtually dispatched methods of this class/array type 
+   * Virtually dispatched methods of this class/array type
    * (composed with supertypes, if any).
    * @return zero length array
    */

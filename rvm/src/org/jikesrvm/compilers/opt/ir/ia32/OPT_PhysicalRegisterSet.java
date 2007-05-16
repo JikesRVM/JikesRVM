@@ -334,7 +334,7 @@ public abstract class OPT_PhysicalRegisterSet
   }
 
   /**
-   * @return the nth physical GPR 
+   * @return the nth physical GPR
    */
   public OPT_Register getGPR(int n) {
     return reg[FIRST_INT + n];
@@ -374,7 +374,7 @@ public abstract class OPT_PhysicalRegisterSet
   }
 
   /**
-   * @return the nth physical FPR 
+   * @return the nth physical FPR
    */
   public OPT_Register getFPR(int n) {
     return reg[FIRST_DOUBLE + n];
@@ -390,7 +390,7 @@ public abstract class OPT_PhysicalRegisterSet
   }
 
   /**
-   * @return the nth physical register in the pool. 
+   * @return the nth physical register in the pool.
    */
   public OPT_Register get(int n) {
     return reg[n];
@@ -400,7 +400,7 @@ public abstract class OPT_PhysicalRegisterSet
    * Given a symbolic register, return a code that gives the physical
    * register type to hold the value of the symbolic register.
    * @param r a symbolic register
-   * @return one of INT_REG, DOUBLE_REG 
+   * @return one of INT_REG, DOUBLE_REG
    */
   public static int getPhysicalRegisterType(OPT_Register r) {
     if (r.isInteger() || r.isLong() || r.isAddress()) {

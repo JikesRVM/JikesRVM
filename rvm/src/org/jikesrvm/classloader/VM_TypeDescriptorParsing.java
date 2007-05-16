@@ -89,11 +89,11 @@ public abstract class VM_TypeDescriptorParsing
 {
   /** Is the string <code>s</code> a legal name for a Java class or interface?
    * This will take either fully-qualified names or names that are not fully
-   * qualified. 
+   * qualified.
    * <p>
    * @param s The string to check for whether it's a valid name for a Java
    *          class.  This is a string of the form, for example:
-   * "<code>java.lang.String</code>" 
+   * "<code>java.lang.String</code>"
    * @return <code>true</code> if <code>s</code> is valid, <code>false</code>
    * otherwise.
    *
@@ -101,7 +101,7 @@ public abstract class VM_TypeDescriptorParsing
 
    * <small><b>Implementation Question for wiser heads than mine:</b>
    * Would it be more efficient for me to convert this to a <code>char</code>
-   * array? 
+   * array?
    * That's the way the example in <i>The Java Class Libraries</i> for
    * <code>Character.isJavaIdentifier<i>*</i>()</code> is written.  Or is the
    * <code>String.charAt()</code> method inexpensive?</small> */
@@ -132,9 +132,9 @@ public abstract class VM_TypeDescriptorParsing
   }
 
   /**
-   * Java 1.5 relaxes the historical convention that class file identifiers 
-   * (i.e. class, field, and method names) must be drawn from the characters 
-   * specified by JLS identifiers (i.e. implemented by 
+   * Java 1.5 relaxes the historical convention that class file identifiers
+   * (i.e. class, field, and method names) must be drawn from the characters
+   * specified by JLS identifiers (i.e. implemented by
    * java.lang.Character.isJavaIdentifierStart()).<p>
    *
    * Given that, parsing rules for internal and external VM identifier
@@ -144,12 +144,12 @@ public abstract class VM_TypeDescriptorParsing
    * and <code>&lt;clinit&gt;</code>, are further constrained to not include
    * the characters <code>'&lt;'</code> or <code>'&gt;'</code>.<p>
    *
-   * To avoid word boundary ambiguity, identifiers are presumed to not 
+   * To avoid word boundary ambiguity, identifiers are presumed to not
    * begin with a space character. Although not stated explicitly, this
-   * remains convention.<p> 
+   * remains convention.<p>
    *
-   * This method evaluates whether <code>c</code> is compatible as the starting 
-   * character for a VM identifier. 
+   * This method evaluates whether <code>c</code> is compatible as the starting
+   * character for a VM identifier.
    *
    * @param c      character to evaluate for VM identifier compatibility
    * @return boolean  true iff <code>c</code> represents a valid VM identifier starting character
@@ -160,9 +160,9 @@ public abstract class VM_TypeDescriptorParsing
   }
 
   /**
-   * Java 1.5 relaxes the historical convention that class file identifiers 
-   * (i.e. class, field, and method names) must be drawn from the characters 
-   * specified by JLS identifiers (i.e. implemented by 
+   * Java 1.5 relaxes the historical convention that class file identifiers
+   * (i.e. class, field, and method names) must be drawn from the characters
+   * specified by JLS identifiers (i.e. implemented by
    * java.lang.Character.isJavaIdentifierPart()).<p>
    *
    * Given that, parsing rules for internal and external VM identifier
@@ -172,8 +172,8 @@ public abstract class VM_TypeDescriptorParsing
    * and <code>&lt;clinit&gt;</code>, are further constrained to not include
    * the characters <code>'&lt;'</code> or <code>'&gt;'</code>.<p>
    *
-   * This method evaluates whether <code>c</code> is compatible as a non-starting 
-   * character for a VM identifier. 
+   * This method evaluates whether <code>c</code> is compatible as a non-starting
+   * character for a VM identifier.
    *
    * @param c      character to evaluate for VM identifier compatibility
    * @return boolean  true iff <code>c</code> represents a valid VM identifier non-starting character
@@ -258,7 +258,7 @@ public abstract class VM_TypeDescriptorParsing
     }
   }
 
-  /** Validate that the String @param s is a valid type descriptor. 
+  /** Validate that the String @param s is a valid type descriptor.
    @throws IllegalArgumentException if it isn't.
    */
   @Interruptible
@@ -349,7 +349,7 @@ public abstract class VM_TypeDescriptorParsing
   //  // Test isJavaClassName()
 //   public static void main(String[] args) {
 //     for (int i = 0; i < args.length; ++i) {
-//       System.out.println(args[i] + " is " 
+//       System.out.println(args[i] + " is "
 //                       + (TypeDescriptorParsing.isJavaClassName(args[i]) ? "" : "NOT " ) + "a valid Java class name.");
 //     }
 //   }

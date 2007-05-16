@@ -13,7 +13,7 @@ import org.jikesrvm.VM;
 
 /**
  * An iterator over an encoded OSR map.
- * It is a bit odd to used now. 
+ * It is a bit odd to used now.
  *     while (it.hasMore()) {
  *       it.getKind();
  *       it.getNumber();
@@ -49,7 +49,7 @@ public class OSR_MapIterator implements OSR_Constants {
     return this.moreElemnt;
   }
 
-  /* after finishing iteration of one method, move to the next, 
+  /* after finishing iteration of one method, move to the next,
    * it if is empty, move further.
    */
   private void moveToNextMethodId() {

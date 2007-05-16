@@ -39,7 +39,7 @@ public abstract class OPT_GenericPhysicalRegisterSet implements OPT_BitSetMappin
   public abstract OPT_Register getPR();
 
   /**
-   * @return the nth physical GPR 
+   * @return the nth physical GPR
    */
   public abstract OPT_Register getGPR(int n);
 
@@ -49,12 +49,12 @@ public abstract class OPT_GenericPhysicalRegisterSet implements OPT_BitSetMappin
   public abstract OPT_Register getFirstReturnGPR();
 
   /**
-   * @return the nth physical FPR 
+   * @return the nth physical FPR
    */
   public abstract OPT_Register getFPR(int n);
 
   /**
-   * @return the nth physical register in the pool. 
+   * @return the nth physical register in the pool.
    */
   public abstract OPT_Register get(int n);
 

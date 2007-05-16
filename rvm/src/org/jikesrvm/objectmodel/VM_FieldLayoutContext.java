@@ -12,10 +12,10 @@ import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.runtime.VM_Memory;
 
 /**
- * State for the field layout engine.  Subtypes of this are closely 
+ * State for the field layout engine.  Subtypes of this are closely
  * tied to field layout schemes, and are generally defined in same.
  *
- * A FieldLayoutContext deals in an abstract offset space, where 
+ * A FieldLayoutContext deals in an abstract offset space, where
  * there is no header, and fields are laid out relative to 0.
  *
  * This abstract superclass looks after the total object size and

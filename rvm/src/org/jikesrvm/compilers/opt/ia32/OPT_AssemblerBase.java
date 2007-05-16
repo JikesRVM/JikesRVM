@@ -513,7 +513,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    *  Does the given instruction operate upon quad-sized data?  The
    * opt compiler does not represent the size of register data, so
    * this method typically looks at the memory operand, if any, and
-   * checks whether that is a byte.  This method also recognizes 
+   * checks whether that is a byte.  This method also recognizes
    * the operator convention that __q on the end of the operator
    * name means operate upon quad data; no operator currently uses
    * this convention.

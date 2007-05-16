@@ -12,9 +12,9 @@ import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.classloader.VM_TypeReference;
 
 /**
- * A OPT_TypeOperand represents a type. 
+ * A OPT_TypeOperand represents a type.
  * Used in checkcast, instanceof, new, etc.
- * It will contain either a VM_Type (if the type can be resolved 
+ * It will contain either a VM_Type (if the type can be resolved
  * at compile time) or a VM_TypeReference (if the type cannot be resolved
  * at compile time).
  *
@@ -92,7 +92,7 @@ public final class OPT_TypeOperand extends OPT_Operand {
    *
    * @param op other operand
    * @return   <code>true</code> if <code>this</code> and <code>op</code>
-   *           are semantically equivalent or <code>false</code> 
+   *           are semantically equivalent or <code>false</code>
    *           if they are not.
    */
   public boolean similar(OPT_Operand op) {

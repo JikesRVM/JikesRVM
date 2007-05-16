@@ -35,7 +35,7 @@ public final class OPT_HeapOperand<T> extends OPT_Operand {
    * Return the number of the heap variable corresponding to this
    * operand.
    * @return the number of the heap variable corresponding to this
-   * operand. 
+   * operand.
    */
   public int getNumber() {
     return value.getNumber();

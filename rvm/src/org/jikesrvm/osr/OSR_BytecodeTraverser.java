@@ -34,19 +34,19 @@ import org.jikesrvm.runtime.VM_Entrypoints;
  * GC a value is REFERENCE or NON-REFERENCE we also want to know it
  * is INT or DOUBLE, and takes two words value or one word.
  *
- * The produced type information has to be adjusted by consulting 
+ * The produced type information has to be adjusted by consulting
  * GC maps because two different types may merge at one program point
  * (REF and non-REF types). Bytecode verifier will make the type info
  * undefined in that case. But this class won't know. So the caller
  * should check the GC map to validate a REF type variable.
  *
- * More or less, this class needs to do the same work as a bytecode 
+ * More or less, this class needs to do the same work as a bytecode
  * verifier, which tells the type and size of each locals and stacks.
  * The JSR/RET instructions pose the difficulty to our case. However,
  * we can assume the bytecode is verified. We use following assumptions:
  *   1. After JSR, the stack was not changed, only local variable
  *      type needs to merge with FINALLY clause.
- *   2. We need program-point specific stack type, but only need 
+ *   2. We need program-point specific stack type, but only need
  *      the summary of local types. Thus, after analysis, local
  *      types are same for all PCs.
  */
@@ -75,10 +75,10 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
 
   ///////////////////////////
   // COMPUTE TYPE INFORMATION
-  //////////////////////////   
+  //////////////////////////
   /**
-   * Computes types of local variable and stack slots at an interesting point 
-   * for future querying. Computing type info and retrieval should not be 
+   * Computes types of local variable and stack slots at an interesting point
+   * for future querying. Computing type info and retrieval should not be
    * reentered. The type info of local variable is not accurate about reference
    * types, see JVM SPEC (2nd edition) p 146.  The caller can consult GC map
    * to verify if a local is a reference or not.
@@ -227,8 +227,8 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
         for (int i = 0, n = handlerPCs.length; i < n; i++) {
           int startpc = handlerPCs[i];
 
-          /* for baseline compilation, the OSR_SpecialCompiler 
-           * didnot adjust exception table, we has to adjust it 
+          /* for baseline compilation, the OSR_SpecialCompiler
+           * didnot adjust exception table, we has to adjust it
            * here.
            */
           if (adjustExptable && method.isForOsrSpecialization()) {
@@ -1436,4 +1436,4 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
     return false;
   }
 }
-    
+

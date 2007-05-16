@@ -108,14 +108,14 @@ public abstract class OPT_InlineTools implements OPT_Constants {
    * Given the currently available information at the call site,
    * what's our best guess on the inlined size of the callee?
    * @param callee the method to be inlined
-   * @param state the compilation state decribing the call site where it 
+   * @param state the compilation state decribing the call site where it
    *              is to be inlined
    * @return an inlined size estimate (number of machine code instructions)
    */
   public static int inlinedSizeEstimate(VM_NormalMethod callee,
                                         OPT_CompilationState state) {
     int sizeEstimate = callee.inlinedSizeEstimate();
-    // Adjust size estimate downward to account for optimizations enabled 
+    // Adjust size estimate downward to account for optimizations enabled
     // by constant parameters.
     OPT_Instruction callInstr = state.getCallInstruction();
     int numArgs = Call.getNumberOfParams(callInstr);
@@ -141,7 +141,7 @@ public abstract class OPT_InlineTools implements OPT_Constants {
         reductionFactor -= 0.10;      // 10% credit for being a string constant
       }
     }
-    reductionFactor = Math.max(reductionFactor, 0.40); // bound credits at 60% 
+    reductionFactor = Math.max(reductionFactor, 0.40); // bound credits at 60%
     // off.
     return (int) (sizeEstimate * reductionFactor);
   }
@@ -153,7 +153,7 @@ public abstract class OPT_InlineTools implements OPT_Constants {
    *
    * @param callee the method being considered for inlining
    * @param state the compilation state of the caller.
-   * @return whether or not the callee should be unconditionally inlined. 
+   * @return whether or not the callee should be unconditionally inlined.
    */
   public static boolean hasInlinePragma(VM_Method callee,
                                         OPT_CompilationState state) {
@@ -167,7 +167,7 @@ public abstract class OPT_InlineTools implements OPT_Constants {
       return src.getType() != VM_TypeReference.JavaLangObject;
     }
     // More arraycopy hacks.  If we the two starting indices are constant and
-    // it's not the object array version 
+    // it's not the object array version
     // (too big...kills other inlining), then inline it.
     if (callee.getDeclaringClass().getTypeRef() == VM_TypeReference.VM_Array &&
         callee.getName() == arraycopyName &&
@@ -187,7 +187,7 @@ public abstract class OPT_InlineTools implements OPT_Constants {
    *
    * @param callee the method being considered for inlining
    * @param state the compilation state of the caller.
-   * @return whether or not the callee should be unconditionally barred 
+   * @return whether or not the callee should be unconditionally barred
    *         from being inlined.
    */
   public static boolean hasNoInlinePragma(VM_Method callee,
@@ -198,9 +198,9 @@ public abstract class OPT_InlineTools implements OPT_Constants {
   /**
    * Is it safe to speculatively inline the callee into the caller?
    *
-   * Some forms of speculative inlining are unsafe to apply to 
-   * methods of the core virtual machine because if we are forced to 
-   * invalidate the methods, we will be unable to compile their 
+   * Some forms of speculative inlining are unsafe to apply to
+   * methods of the core virtual machine because if we are forced to
+   * invalidate the methods, we will be unable to compile their
    * replacement method.
    * The current test is overly conservative, but past attempts at
    * defining a more precise set of "third rail" classes have

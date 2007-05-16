@@ -16,7 +16,7 @@ import org.vmmagic.unboxed.Address;
 
 /**
  * Platform independent utility functions called from VM_JNIFunctions
- * (cannot be placed in VM_JNIFunctions because methods 
+ * (cannot be placed in VM_JNIFunctions because methods
  * there are specially compiled to be called from native).
  *
  * @see VM_JNIFunctions
@@ -93,7 +93,7 @@ public abstract class VM_JNIGenericHelpers {
    * of type (jboolean *).
    * @param boolPtr Native pointer to a jboolean variable to be set.   May be
    *            the NULL pointer, in which case we do nothing.
-   * @param val Value to set it to (usually TRUE) 
+   * @param val Value to set it to (usually TRUE)
    *
    * XXX There was a strange bug where calling this would crash the VM.
    * That's why it's ifdef'd.  So the dozen-odd places in VM_JNIFunctions

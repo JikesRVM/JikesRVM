@@ -68,7 +68,7 @@ public abstract class OPT_PhysicalDefUse {
 
   /**
    * @param ir the governing IR
-   * @return an enumeration of all physical registers that code be 
+   * @return an enumeration of all physical registers that code be
    *         implicitly defed/used
    */
   public static PDUEnumeration enumerateAllImplicitDefUses(OPT_IR ir) {
@@ -102,7 +102,7 @@ public abstract class OPT_PhysicalDefUse {
       }
     }
 
-    // artifically make static to enable scalar replacement of 
+    // artifically make static to enable scalar replacement of
     // enumeration object without requiring this method to be inlined.
     private static OPT_Register getReg(int m, OPT_PhysicalRegisterSet phys) {
       switch (m) {

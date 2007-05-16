@@ -29,7 +29,7 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * OSR_CodeInstaller adjusts registers and return address to make a 
+ * OSR_CodeInstaller adjusts registers and return address to make a
  * specialized thread as a normal thread get scheduled. The method
  * prologue ( machine code ) is adjusted to cooperate with the code
  * installer.
@@ -45,7 +45,7 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
 
     Offset fooFPOffset = state.getFPOffset();
 
-    // we are going to dynamically generate some code recover 
+    // we are going to dynamically generate some code recover
     // register values from the stack frame.
     int foomid = VM_Magic.getIntAtOffset(stack, fooFPOffset.plus(STACKFRAME_METHOD_ID_OFFSET));
 
@@ -56,7 +56,7 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
 
     /////////////////////////////////////
     ////// recover saved registers.
-    /////////////////////////////////////         
+    /////////////////////////////////////
     if (cType == VM_CompiledMethod.BASELINE) {
       VM_BaselineCompiledMethod bcm = (VM_BaselineCompiledMethod) foo;
       int offset = VM_Compiler.getFrameSize(bcm);

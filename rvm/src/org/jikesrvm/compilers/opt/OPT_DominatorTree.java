@@ -13,7 +13,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
 import org.jikesrvm.compilers.opt.ir.OPT_IR;
 
 /**
- * This class provides the abstraction of a dominator tree 
+ * This class provides the abstraction of a dominator tree
  *
  * TODO: we do not support IRs with exception handlers.
  */
@@ -89,7 +89,7 @@ public class OPT_DominatorTree extends OPT_Tree {
 
     // The query methods of dominator information, such as
     // getDominanceFrontier, dominates, and domFrontierEnumerator
-    // all use ir.getBasicBlock(int).  This method relies on 
+    // all use ir.getBasicBlock(int).  This method relies on
     // the basic block map being up to date.  Here we ensure this
     // property, even though it is needed for computing the dominator
     // tree.
@@ -135,7 +135,7 @@ public class OPT_DominatorTree extends OPT_Tree {
         // tell the parent they have a child
         parentNode.addChild(blockNode);
       }
-    }           // for loop     
+    }           // for loop
   }             // method
 
   /**
@@ -152,7 +152,7 @@ public class OPT_DominatorTree extends OPT_Tree {
   }
 
   /**
-   * Enumerate the children of the vertex corresponding to a basic 
+   * Enumerate the children of the vertex corresponding to a basic
    * block
    *
    * @param bb the basic block
@@ -164,7 +164,7 @@ public class OPT_DominatorTree extends OPT_Tree {
   }
 
   /**
-   * Return the parent of the vertex corresponding to a basic 
+   * Return the parent of the vertex corresponding to a basic
    * block
    *
    * @param bb the basic block
@@ -176,7 +176,7 @@ public class OPT_DominatorTree extends OPT_Tree {
   }
 
   /**
-   * Return the (already calculated) dominance frontier for 
+   * Return the (already calculated) dominance frontier for
    * a basic block
    *
    * @param bb the basic block
@@ -188,7 +188,7 @@ public class OPT_DominatorTree extends OPT_Tree {
   }
 
   /**
-   * Return the (already calculated) dominance frontier for 
+   * Return the (already calculated) dominance frontier for
    * a basic block
    *
    * @param number the number of the basic block
@@ -272,7 +272,7 @@ public class OPT_DominatorTree extends OPT_Tree {
    *
    * @param a The first basic block
    * @param b The second basic block
-   * @return the deepest common dominance ancestor of blocks <code>a</code> 
+   * @return the deepest common dominance ancestor of blocks <code>a</code>
    *        and <code>b</code>
    */
   public OPT_BasicBlock

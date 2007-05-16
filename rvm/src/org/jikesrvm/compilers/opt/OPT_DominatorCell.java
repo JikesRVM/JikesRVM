@@ -37,7 +37,7 @@ class OPT_DominatorCell extends OPT_DF_AbstractCell {
   static final int CAPACITY = 5;
 
   /**
-   * Make a bit set for a basic block 
+   * Make a bit set for a basic block
    * @param bb the basic block
    * @param ir the governing IR
    */

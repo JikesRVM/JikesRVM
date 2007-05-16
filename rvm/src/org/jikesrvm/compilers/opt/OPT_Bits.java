@@ -36,7 +36,7 @@ public class OPT_Bits {
   }
 
   /**
-   * Return the upper 16 bits to be used in a PPC 
+   * Return the upper 16 bits to be used in a PPC
    * immediate field
    */
   public static int PPCMaskUpper16(int value) {
@@ -45,7 +45,7 @@ public class OPT_Bits {
   }
 
   /**
-   * Return the upper 16 bits to be used in a PPC 
+   * Return the upper 16 bits to be used in a PPC
    * immediate field, make sure fits in 32 bits
    */
   public static int PPCMaskUpper16(Offset value) {

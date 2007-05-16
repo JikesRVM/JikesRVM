@@ -28,7 +28,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * P1, P2:
  *   if (C.osr_flag == false) {
  *     C.osr_flag = true;
- *     C.activate(); 
+ *     C.activate();
  *   }
  *
  * C:
@@ -41,7 +41,7 @@ import org.vmmagic.pragma.Uninterruptible;
  *     C.passivate();
  *   }
  *
- * // compensate the case C missed osr_flag 
+ * // compensate the case C missed osr_flag
  * Other thread switching:
  *   if (C.osr_flag == true) {
  *     C.activate();
@@ -88,14 +88,14 @@ public class OSR_OrganizerThread extends VM_Thread {
       // we cannot release lock before enqueue the organizer.
       // ideally, calling yield(q, l) is the solution, but
       // we donot want to use a lock
-      // 
+      //
       // this.beingDispatched = true;
       // tq.enqueue(this);
       // this.queueLock = 0;
       // morph(false);
       //
       // currently we go through following sequence which is incorrect
-      // 
+      //
       // this.queueLock = 0;
       // this.beingDispatched = true;
       // tq.enqueue(this);

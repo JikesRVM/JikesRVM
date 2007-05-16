@@ -31,7 +31,7 @@ public class VM_Wait {
   }
 
   /**
-   * Suspend execution of current thread for specified number of seconds 
+   * Suspend execution of current thread for specified number of seconds
    * (or fraction).
    */
   public static void sleep(long millis) throws InterruptedException {
@@ -46,7 +46,7 @@ public class VM_Wait {
 
   /**
    * Given a total number of seconds to wait, computes timestamp
-   * of time when the wait should time out.  
+   * of time when the wait should time out.
    * Leaves negative times unchanged, since these indicate infinite waits.
    */
   private static long getMaxWaitCycle(double totalWaitTimeInSeconds) {
@@ -62,7 +62,7 @@ public class VM_Wait {
   }
 
   /**
-   * Suspend execution of current thread until "fd" can be read without 
+   * Suspend execution of current thread until "fd" can be read without
    * blocking.
    * @param fd the native file descriptor to wait on
    * @param totalWaitTime the number of seconds to wait; negative values
@@ -95,7 +95,7 @@ public class VM_Wait {
   }
 
   /**
-   * Suspend execution of current thread until "fd" can be written without 
+   * Suspend execution of current thread until "fd" can be written without
    * blocking.
    * @param fd the native file descriptor to wait on
    * @param totalWaitTime the number of seconds to wait; negative values

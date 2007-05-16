@@ -49,7 +49,7 @@ public final class VM_BaselineBootImageCompiler extends VM_BootImageCompiler {
     if (VM.BuildForAdaptiveSystem) {
       // Must estimate compilation time by using offline ratios.
       // It is tempting to time via System.currentTimeMillis()
-      // but 1 millisecond granularity isn't good enough because the 
+      // but 1 millisecond granularity isn't good enough because the
       // the baseline compiler is just too fast.
       // TODO: Try Using System.nanoTime() instead
       double compileTime = method.getBytecodeLength() / VM_CompilerDNA.getBaselineCompilationRate();

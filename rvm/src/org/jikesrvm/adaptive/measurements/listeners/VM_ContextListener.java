@@ -12,7 +12,7 @@ import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 
 /**
- * This object that is invoked when online measurement information must 
+ * This object that is invoked when online measurement information must
  * be collected.
  */
 @Uninterruptible
@@ -21,7 +21,7 @@ public abstract class VM_ContextListener extends VM_Listener {
   /**
    * Entry point when listener is awoken.
    *
-   * @param sfp  pointer to stack frame where call stack should start 
+   * @param sfp  pointer to stack frame where call stack should start
    *             to be examined.
    * @param whereFrom Was this a yieldpoint in a PROLOGUE, BACKEDGE, or
    *            EPILOGUE?

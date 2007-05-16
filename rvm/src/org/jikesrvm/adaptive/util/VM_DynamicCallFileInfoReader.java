@@ -4,7 +4,7 @@
  * A copy of the license is included in the distribution, and is also
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
- * (C) Copyright 
+ * (C) Copyright
  * Department of Computer Science,
  * University of Texas at Austin 2005
  * All rights reserved.
@@ -100,7 +100,7 @@ public class VM_DynamicCallFileInfoReader {
         caller = callerRef.getResolvedMember();
       }
       //if (caller == null) continue;
-      @SuppressWarnings("unused") // serves as doco - token skipped 
+      @SuppressWarnings("unused") // serves as doco - token skipped
           int callerSize = Integer.parseInt(parser.nextToken());
       int bci = Integer.parseInt(parser.nextToken());
       VM_MemberReference calleeKey = VM_MemberReference.parse(parser, boot);
@@ -112,7 +112,7 @@ public class VM_DynamicCallFileInfoReader {
       } else {
         callee = calleeRef.getResolvedMember();
       }
-      @SuppressWarnings("unused") // serves as doco - token skipped 
+      @SuppressWarnings("unused") // serves as doco - token skipped
           int calleeSize = Integer.parseInt(parser.nextToken());
       parser.nextToken(); // skip "weight:"
       float weight = Float.parseFloat(parser.nextToken());

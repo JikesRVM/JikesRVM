@@ -16,7 +16,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
 
 /**
  * This class holds data associated with a basic block as computed by the
- * Lengauer-Tarjan dominator calculation.  
+ * Lengauer-Tarjan dominator calculation.
  * @see OPT_LTDominators
  */
 class OPT_LTDominatorInfo {
@@ -35,7 +35,7 @@ class OPT_LTDominatorInfo {
   // used to capture activation record state to avoid the use of recursion
   // in Step 1 of the LT algorithm
   // A null value will signal that we have not started to process this
-  // block, otherwise, we'll skip the (redundant) 
+  // block, otherwise, we'll skip the (redundant)
   // initialization step for the block
   //  See OPT_LTDominators.DFS() for details
   private OPT_BasicBlockEnumeration bbEnum;
@@ -260,7 +260,7 @@ class OPT_LTDominatorInfo {
   }
 
   /**
-   * return the immediate dominator of a basic block. 
+   * return the immediate dominator of a basic block.
    * Note: the dominator info must be pre-calculated
    * @param bb the basic block in question
    * @return bb's immediate dominator

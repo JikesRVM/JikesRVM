@@ -27,7 +27,7 @@ public final class OPT_GCIRMap implements Iterable<OPT_GCIRMapElement> {
    *  This is the list of maps
    *   Each element on the list is an OPT_GCIRMapElement, which is a pair
    *          - an IR instruction (the GC point)
-   *          - a list of OPT_RegSpillListElement, which initially hold symbolic 
+   *          - a list of OPT_RegSpillListElement, which initially hold symbolic
    *               registers that are references
    *               (these are expanded to either physical regs or spills
    *                by the register allocator)
@@ -40,8 +40,8 @@ public final class OPT_GCIRMap implements Iterable<OPT_GCIRMapElement> {
   private static final boolean DEBUG = false;
 
   /**
-   * returns the number of GC points in this map, i.e., the number of 
-   * instructions we have maps for. 
+   * returns the number of GC points in this map, i.e., the number of
+   * instructions we have maps for.
    * @return the number of GC points in this map
    */
   public int getNumInstructionMaps() {
@@ -70,7 +70,7 @@ public final class OPT_GCIRMap implements Iterable<OPT_GCIRMapElement> {
    * TODO What is this method doing in this class ?? RJG
    *
    * This method creates a regSpillList from the passed live set.
-   * @param set the set of registers, encoded as a OPT_LiveSet object 
+   * @param set the set of registers, encoded as a OPT_LiveSet object
    * @return a list corresponding to the set passed
    */
   public List<OPT_RegSpillListElement> createDU(OPT_LiveSet set) {
@@ -153,11 +153,11 @@ public final class OPT_GCIRMap implements Iterable<OPT_GCIRMapElement> {
   }
 
   /**
-   * This method inserts an entry for a "twin" instruction immediately after the 
+   * This method inserts an entry for a "twin" instruction immediately after the
    * original entry.
    * If the instruction is not found in the GC Map an exeception is thrown.
-   * @param inst    the orignal IR instruction 
-   * @param twin    the new twin IR instruction 
+   * @param inst    the orignal IR instruction
+   * @param twin    the new twin IR instruction
    */
   public void insertTwin(OPT_Instruction inst, OPT_Instruction twin) {
     ListIterator<OPT_GCIRMapElement> iter = list.listIterator();

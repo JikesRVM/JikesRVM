@@ -13,7 +13,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
 
 /**
  * This phase puts the IR in SSA form and performs a set of simple
- * optimizations to clean up.  
+ * optimizations to clean up.
  */
 final class OPT_SSATuneUp extends OPT_OptimizationPlanCompositeElement {
 
@@ -61,7 +61,7 @@ final class OPT_SSATuneUp extends OPT_OptimizationPlanCompositeElement {
     }
 
     /**
-     * Execute expression folding. 
+     * Execute expression folding.
      */
     public final void perform(OPT_IR ir) {
       OPT_DefUse.computeDU(ir);

@@ -156,7 +156,7 @@ class OPT_DominanceFrontier extends OPT_CompilerPhase {
    * Calculate the dominance frontier for the set of basic blocks
    * represented by a BitVector.
    *
-   * <p> NOTE: The dominance frontiers for the IR MUST be calculated 
+   * <p> NOTE: The dominance frontiers for the IR MUST be calculated
    *    BEFORE calling this routine.
    *
    * @param ir the governing IR
@@ -178,13 +178,13 @@ class OPT_DominanceFrontier extends OPT_CompilerPhase {
    * Calculate the iterated dominance frontier for a set of basic blocks
    * represented by a BitVector.
    *
-   * <p> NOTE: The dominance frontiers for the IR MUST be calculated 
+   * <p> NOTE: The dominance frontiers for the IR MUST be calculated
    *    BEFORE calling this routine.
    *
    * @param ir The governing IR
    * @param S  The {@link OPT_BitVector} representing the set of basic blocks
    * @return an {@link OPT_BitVector} representing the dominance frontier for
-   *    the set 
+   *    the set
    */
   public static OPT_BitVector getIteratedDominanceFrontier(OPT_IR ir,
                                                            OPT_BitVector S) {

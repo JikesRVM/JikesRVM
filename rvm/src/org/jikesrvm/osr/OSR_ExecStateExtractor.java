@@ -22,13 +22,13 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * A OSR_ExecStateExtractor extracts a runtime state (VM scope descriptor) 
- * of a method activation. The implementation depends on compilers and 
+ * A OSR_ExecStateExtractor extracts a runtime state (VM scope descriptor)
+ * of a method activation. The implementation depends on compilers and
  * hardware architectures
  * @see org.jikesrvm.ArchitectureSpecific.OSR_BaselineExecStateExtractor
  * @see org.jikesrvm.ArchitectureSpecific.OSR_OptExecStateExtractor
  *
- * It returns a compiler and architecture neutered runtime state 
+ * It returns a compiler and architecture neutered runtime state
  * OSR_ExecutionState.
  */
 
@@ -36,11 +36,11 @@ public abstract class OSR_ExecStateExtractor implements VM_Constants {
   /**
    * Returns a VM scope descriptor (OSR_ExecutionState) for a compiled method
    * on the top of a thread stack, (or a list of descriptors for an inlined
-   * method).  
+   * method).
    *
    * @param thread a suspended RVM thread
    * @param tsFromFPoff the frame pointer offset of the threadSwitchFrom method
-   * @param ypTakenFPoff the frame pointer offset of the real method where 
+   * @param ypTakenFPoff the frame pointer offset of the real method where
    *                      yield point was taken. tsFrom is the callee of ypTaken
    * @param cmid the compiled method id of ypTaken
    */

@@ -72,7 +72,7 @@ public class OPT_LowerInstrumentation extends OPT_CompilerPhase {
    */
   static void lowerInstrumentation(OPT_IR ir) {
     /*
-    for (OPT_BasicBlockEnumeration bbe = ir.getBasicBlocks(); 
+    for (OPT_BasicBlockEnumeration bbe = ir.getBasicBlocks();
          bbe.hasMoreElements(); ) {
       OPT_BasicBlock bb = bbe.next();
       bb.printExtended();
@@ -115,7 +115,7 @@ public class OPT_LowerInstrumentation extends OPT_CompilerPhase {
     }
 
     /*
-    for (OPT_BasicBlockEnumeration bbe = ir.getBasicBlocks(); 
+    for (OPT_BasicBlockEnumeration bbe = ir.getBasicBlocks();
          bbe.hasMoreElements(); ) {
       OPT_BasicBlock bb = bbe.next();
       bb.printExtended();

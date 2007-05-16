@@ -21,15 +21,15 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * A VM_EdgeListener defines a listener 
+ * A VM_EdgeListener defines a listener
  * that computes a call graph edge from the call stack.
- * After a parameterized number of edges are collected, 
+ * After a parameterized number of edges are collected,
  * it notifies its organizer that the threshold is reached.
  *
  * Defines update's interface.
  *
- * VM_EdgeListener communicates with an organizer through a 
- * integer array, buffer.  Each time this listener is called, 
+ * VM_EdgeListener communicates with an organizer through a
+ * integer array, buffer.  Each time this listener is called,
  * it places a triple of integers in buffer that correspond to
  * the callee, caller, and machine code offset of the call site
  */
@@ -50,7 +50,7 @@ public class VM_EdgeListener extends VM_ContextListener
   private int[] buffer;
 
   /**
-   * Number of samples to be taken before issuing callback to controller 
+   * Number of samples to be taken before issuing callback to controller
    */
   private int desiredSamples;
 
@@ -80,7 +80,7 @@ public class VM_EdgeListener extends VM_ContextListener
   }
 
   /**
-   * Setup buffer and buffer size.  
+   * Setup buffer and buffer size.
    * This method must be called before any data can be written to
    * the buffer.
    *
@@ -103,7 +103,7 @@ public class VM_EdgeListener extends VM_ContextListener
   }
 
   /**
-   * This method is called when a call stack edge needs to be 
+   * This method is called when a call stack edge needs to be
    * sampled.  Expect the sfp argument to point to the stack frame that
    * contains the target of the edge to be sampled.
    * NOTE: This method is uninterruptible, therefore we don't need to disable
@@ -162,7 +162,7 @@ public class VM_EdgeListener extends VM_ContextListener
       return;
     }
 
-    // store the offset of the return address from the beginning of the 
+    // store the offset of the return address from the beginning of the
     // instruction
     VM_CompiledMethod callerCM = VM_CompiledMethods.getCompiledMethod(callerCMID);
     if (callerCM.getCompilerType() == VM_CompiledMethod.TRAP) {
@@ -227,4 +227,4 @@ public class VM_EdgeListener extends VM_ContextListener
       buffer[i] = 0;
     }
   }
-} 
+}

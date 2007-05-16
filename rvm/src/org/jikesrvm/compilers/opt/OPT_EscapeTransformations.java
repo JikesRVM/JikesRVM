@@ -25,7 +25,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 
 /**
  * Transformations that use escape analysis.
- * <ul> 
+ * <ul>
  *  <li> 1. synchronization removal
  *  <li> 2. scalar replacement of aggregates and short arrays
  * </ul>

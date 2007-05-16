@@ -17,7 +17,7 @@ import org.vmmagic.unboxed.Offset;
 
 /**
  * Class called from baseline compiler to generate architecture specific
- * write barrier for generational garbage collectors.  For baseline 
+ * write barrier for generational garbage collectors.  For baseline
  * compiled methods, the write barrier calls methods of VM_WriteBarrier.
  */
 class VM_Barriers implements VM_BaselineConstants {
@@ -62,7 +62,7 @@ class VM_Barriers implements VM_BaselineConstants {
   static void compileModifyCheck(VM_Assembler asm, int offset) {
     if (!VM_Configuration.ExtremeAssertions) return;
     // on entry java stack contains ... [SP+offset] -> target_ref
-    // on exit: stack is the same  
+    // on exit: stack is the same
     asm.emitPUSH_RegDisp(SP, Offset.fromIntSignExtend(offset));   // dup
     genParameterRegisterLoad(asm, 1);
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.modifyCheckMethod.getOffset());

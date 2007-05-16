@@ -20,8 +20,8 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.opt.ir.OPT_IR;
 
 /**
- * <p> The main driver of the OPT_Compiler. 
- * <p> External drivers are responsible for providing the policies; the 
+ * <p> The main driver of the OPT_Compiler.
+ * <p> External drivers are responsible for providing the policies; the
  * role of this class is simply to take a OPT_CompilationPlan
  * and execute it.
  *
@@ -30,7 +30,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
  *  <li> (1) Command line: ExecuteOptCode
  *  <li> (2) BootImageWriting: VM_BootImageCompiler.compile (optimizing version)
  *  <li> (3) RuntimeCompiler: VM_RuntimeCompiler.compile (optimizing version)
- *  <li> (4) AOS: Compilation threads execute controller plans by invoking 
+ *  <li> (4) AOS: Compilation threads execute controller plans by invoking
  *      the opt compiler.
  * </ul>
  *
@@ -64,9 +64,9 @@ public class OPT_Compiler implements VM_Callbacks.StartupMonitor {
 
       initializeStatics();
       if (VM.runningVM) {
-        // Make sure that VM_OptSaveVolatile.java is opt 
+        // Make sure that VM_OptSaveVolatile.java is opt
         // compiled (to get special prologues/epilogues)
-        // TODO: This could be phased out as the new DynamicBridge 
+        // TODO: This could be phased out as the new DynamicBridge
         // magic comes on line.
         loadSpecialClass("Lorg/jikesrvm/compilers/opt/VM_OptSaveVolatile;", options);
 
@@ -120,7 +120,7 @@ public class OPT_Compiler implements VM_Callbacks.StartupMonitor {
 
     // Compute summaries of bootimage methods if we haven't encountered them yet.
     // Does not handle unimplemented magics very well; disable until
-    // we can get a chance to either implement them on IA32 or fix the 
+    // we can get a chance to either implement them on IA32 or fix the
     // analysis to not be so brittle.
     // options.SIMPLE_ESCAPE_IPA = true;
   }

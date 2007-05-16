@@ -54,7 +54,7 @@ public class VM_DynamicLibrary {
     //
     byte[] asciiName = VM_StringUtilities.stringToBytesNullTerminated(libraryName);
 
-    // make sure we have enough stack to load the library.  
+    // make sure we have enough stack to load the library.
     // This operation has been known to require more than 20K of stack.
     VM_Thread myThread = VM_Thread.getCurrentThread();
     Offset remaining = VM_Magic.getFramePointer().diff(myThread.stackLimit);
@@ -151,7 +151,7 @@ public class VM_DynamicLibrary {
   }
 
   /**
-   * Tell the operating system to remove the dynamic library from the 
+   * Tell the operating system to remove the dynamic library from the
    * system space.
    */
   public void clean() {

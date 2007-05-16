@@ -27,9 +27,9 @@ final class OPT_LiveInterval {
    * a node with the end instruction being "inst".  If one already exists
    * no action is taken.
    *
-   * @param set  the set of registers, encoded as a OPT_LiveSet object 
+   * @param set  the set of registers, encoded as a OPT_LiveSet object
    * @param block the basic block
-   * @param inst the intruction where the register's live range ends, 
+   * @param inst the intruction where the register's live range ends,
    *             null represents the end of the basic block
    */
   public static void createEndLiveRange(OPT_LiveSet set,
@@ -132,7 +132,7 @@ final class OPT_LiveInterval {
       // if prev == null, the element is already first in the list!
     } else {
       // if we didn't find it, it means we have a def that is not later
-      // used, i.e., a dead assignment.  This may exist because the 
+      // used, i.e., a dead assignment.  This may exist because the
       // instruction has side effects such as a function call or a PEI
       // In this case, we create a LiveIntervalElement node with begining
       // and ending instruction "inst"

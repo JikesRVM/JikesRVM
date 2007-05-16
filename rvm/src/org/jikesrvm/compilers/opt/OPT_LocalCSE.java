@@ -58,8 +58,8 @@ import org.jikesrvm.compilers.opt.ir.ZeroCheck;
  * Perform local common-subexpression elimination for a factored basic
  * block.
  * <ul>
- *   <li> Note: this module also performs scalar replacement of loads 
- *   <li> Note: this module also performs elimination of redundant 
+ *   <li> Note: this module also performs scalar replacement of loads
+ *   <li> Note: this module also performs elimination of redundant
  *         nullchecks, boundchecks, and zero checks.
  * </ul>
  * Algorithm: Muchnick pp.379-385
@@ -142,7 +142,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
         nextInstr = null;
          inst != sentinel;
          inst = nextInstr) {
-      nextInstr = inst.nextInstructionInCodeOrder(); // cache before we 
+      nextInstr = inst.nextInstructionInCodeOrder(); // cache before we
       // mutate prev/next links
       // 1. try and replace this instruction according to
       // available expressions in the cache, and update cache
@@ -184,7 +184,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
         nextInstr = null;
          inst != sentinel;
          inst = nextInstr) {
-      nextInstr = inst.nextInstructionInCodeOrder(); // cache before we 
+      nextInstr = inst.nextInstructionInCodeOrder(); // cache before we
       // mutate prev/next links
       // 1. try and replace this instruction according to
       // available expressions in the cache, and update cache
@@ -284,7 +284,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
         if (ae.isLoad()) {
           // the first appearance was a load.
           // Modify the first load to assign its result to a new temporary
-          // and then insert a move from the new temporary to the old result 
+          // and then insert a move from the new temporary to the old result
           // after the mutated first load.
           OPT_RegisterOperand res = ResultCarrier.getClearResult(ae.inst);
           ResultCarrier.setResult(ae.inst, newRes);
@@ -385,7 +385,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
         OPT_RegisterOperand newRes = ir.regpool.makeTemp(dest.type);
         ae.tmp = newRes.register;
         // (2) Modify ae.inst to assign its guard result to the new temporary
-        // and then insert a guard move from the new temporary to the 
+        // and then insert a guard move from the new temporary to the
         // old guard result of ae.inst after ae.inst.
         OPT_RegisterOperand res = GuardResultCarrier.getClearGuardResult(ae.inst);
         GuardResultCarrier.setGuardResult(ae.inst, newRes);
@@ -445,7 +445,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
   }
 
   /**
-   * Implements a cache of Available Expressions 
+   * Implements a cache of Available Expressions
    */
   protected static final class AvExCache {
     /** Implementation of the cache */
@@ -640,7 +640,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
         if (opx instanceof OPT_RegisterOperand &&
             ((OPT_RegisterOperand) opx).register == op.register) {
           cache.remove(i);
-          continue;               // don't increment i, since we removed 
+          continue;               // don't increment i, since we removed
         }
         opx = ae.op2;
         if (opx instanceof OPT_RegisterOperand &&
@@ -682,7 +682,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
           // walk through the cache and invalidate any killed locations
           while (i < cache.size()) {
             AvailableExpression ae = cache.get(i);
-            if (ae.inst != s) {   // a store instruction doesn't kill itself 
+            if (ae.inst != s) {   // a store instruction doesn't kill itself
               boolean killIt = false;
               if (ae.isLoadOrStore()) {
                 if ((sLocation == null) && (ae.location == null)) {
@@ -694,7 +694,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
               }
               if (killIt) {
                 cache.remove(i);
-                continue;         // don't increment i, since we removed 
+                continue;         // don't increment i, since we removed
               }
             }
             i++;
@@ -713,7 +713,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
         AvailableExpression ae = cache.get(i);
         if (ae.isLoadOrStore()) {
           cache.remove(i);
-          continue;               // don't increment i, since we removed 
+          continue;               // don't increment i, since we removed
         }
         i++;
       }
@@ -721,7 +721,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
   }
 
   /**
-   * A tuple to record an Available Expression 
+   * A tuple to record an Available Expression
    */
   private static final class AvailableExpression {
     /**
@@ -777,9 +777,9 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
     }
 
     /**
-     * Two AEs are "equal" iff  
-     *  <ul> 
-     *   <li> for unary, binary and ternary expressions: 
+     * Two AEs are "equal" iff
+     *  <ul>
+     *   <li> for unary, binary and ternary expressions:
      *     the operator and the operands match
      *    <li> for loads and stores: if the 2 operands and the location match
      *  </ul>
@@ -812,7 +812,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
         }
         return result;
       } else if (isBoundsCheck()) {
-        // Augment equality with BC(ref,C1) ==> BC(ref,C2) 
+        // Augment equality with BC(ref,C1) ==> BC(ref,C2)
         // when C1>0, C2>=0, and C1>C2
         if (!opr.equals(ae.opr)) {
           return false;

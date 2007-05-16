@@ -43,7 +43,7 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
 
     if (t1.isPrimitiveType() || t2.isPrimitiveType()) {
       if (t1.isIntLikeType() && t2.isIntLikeType()) {
-        // 2 non-identical int like types, return the largest 
+        // 2 non-identical int like types, return the largest
         if (t1.isIntType() || t2.isIntType()) {
           return VM_TypeReference.Int;
         } else if (t1.isCharType() || t2.isCharType()) {
@@ -184,7 +184,7 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
   /**
    * Return OPT_Constants.YES if the parent type is defintely a supertype
    *    of the child type.
-   * <p> Return OPT_Constants.NO if the parent type is definitely not 
+   * <p> Return OPT_Constants.NO if the parent type is definitely not
    * a supertype of the child type.
    * <p> Return OPT_Constants.MAYBE if the question cannot be currently answered
    *    (for example if one/both of the classes is not resolved)
@@ -197,7 +197,7 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
    * @return OPT_Constants.YES, OPT_Constants.NO, or OPT_Constants.MAYBE
    */
   public static byte includesType(VM_TypeReference parentType, VM_TypeReference childType) {
-    // First handle some cases that we can answer without needing to 
+    // First handle some cases that we can answer without needing to
     // look at the type hierarchy
     // NOTE: The ordering of these tests is critical!
     if (childType == VM_TypeReference.NULL_TYPE) {
@@ -219,11 +219,11 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
       if (VM.VerifyAssertions) {
         VM._assert(!parentType.isWordType() && !childType.isWordType());
       }
-      // Oh well, we're going to have to try to actually look 
+      // Oh well, we're going to have to try to actually look
       // at the type hierarchy.
-      // IMPORTANT: We aren't allowed to cause dynamic class loading, 
-      // so we have to roll some of this ourselves 
-      // instead of simply calling VM_Runtime.instanceOf 
+      // IMPORTANT: We aren't allowed to cause dynamic class loading,
+      // so we have to roll some of this ourselves
+      // instead of simply calling VM_Runtime.instanceOf
       // (which is allowed/required to load classes to answer the question).
       try {
         if (parentType.isArrayType()) {
@@ -245,7 +245,7 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
               }
             } else {
               // parentType is [^k of something other than Object
-              // If dimensionalities are equal, then we can reduce 
+              // If dimensionalities are equal, then we can reduce
               // to isAssignableWith(parentET, childET).
               // If the dimensionalities are not equal then the answer is NO
               if (parentType.getDimensionality() == childType.getDimensionality()) {
@@ -269,7 +269,7 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
                   if (VM_Runtime.isAssignableWith(parentClass, childClass)) {
                     return YES;
                   } else {
-                    // If child is not a final class, it is 
+                    // If child is not a final class, it is
                     // possible that a subclass will implement parent.
                     return childClass.isFinal() ? NO : MAYBE;
                   }
@@ -281,12 +281,12 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
                   if (VM_Runtime.isAssignableWith(parentClass, childClass)) {
                     return YES;
                   }
-                  // If child is a final class, then 
+                  // If child is a final class, then
                   // !instanceOfClass(parent, child) lets us return NO.
-                  // However, if child is not final, then it might have 
+                  // However, if child is not final, then it might have
                   // subclasses so we can't return NO out of hand.
-                  // But, if the reverse instanceOf is also false, then we know 
-                  // that parent and child are completely 
+                  // But, if the reverse instanceOf is also false, then we know
+                  // that parent and child are completely
                   // unrelated and we can return NO.
                   if (childClass.isFinal()) {
                     return NO;

@@ -25,7 +25,7 @@ import org.vmmagic.pragma.NoInline;
 /**
  * This class computes du-lists and associated information.
  *
- * <P> Note: DU operands are stored on the USE lists, but not the DEF 
+ * <P> Note: DU operands are stored on the USE lists, but not the DEF
  * lists.
  */
 public final class OPT_DefUse {
@@ -36,7 +36,7 @@ public final class OPT_DefUse {
   /**
    * Clear defList, useList for an IR.
    *
-   * @param ir the IR in question 
+   * @param ir the IR in question
    */
   public static void clearDU(OPT_IR ir) {
     for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister();
@@ -197,7 +197,7 @@ public final class OPT_DefUse {
    *
    *  <p> If the type of <code>origRegOp</code> is not a reference, but the
    *  type of <code>newRegOp</code> is a reference, we need to update
-   *  <code>origRegOp</code> to be a reference. 
+   *  <code>origRegOp</code> to be a reference.
    *  Otherwise, the GC map code will be incorrect.   -- Mike Hind
    *  @param origRegOp the register operand to change
    *  @param newRegOp the register operand to use for the change
@@ -323,7 +323,7 @@ public final class OPT_DefUse {
   }
 
   /**
-   * Recompute <code> isSSA </code> for all registers by traversing register 
+   * Recompute <code> isSSA </code> for all registers by traversing register
    * list.
    * NOTE: the DU MUST be computed BEFORE calling this function
    *
@@ -440,7 +440,7 @@ public final class OPT_DefUse {
 
   /**
    * Mark that we have seen a register in a particular
-   * basic block, and whether we saw a use 
+   * basic block, and whether we saw a use
    *
    * @param reg the register
    * @param bbNum the number of the basic block

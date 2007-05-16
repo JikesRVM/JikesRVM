@@ -209,8 +209,8 @@ public abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
                     AStore.getLocation(s), AStore.getGuard(s));
   }
 
-  // Construct a memory operand for the effective address of the 
-  // load instruction 
+  // Construct a memory operand for the effective address of the
+  // load instruction
   protected final OPT_MemoryOperand MO_L(OPT_Instruction s, byte size, int disp) {
     return MO(Load.getAddress(s), Load.getOffset(s), size, Offset.fromIntSignExtend(disp),
               Load.getLocation(s), Load.getGuard(s));

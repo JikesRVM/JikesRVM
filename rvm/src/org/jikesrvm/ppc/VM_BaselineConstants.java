@@ -23,7 +23,7 @@ public interface VM_BaselineConstants extends VM_Constants, VM_ArchConstants {
   int S0   = FIRST_SCRATCH_GPR;
   int S1   = FIRST_SCRATCH_GPR+1;
 
-  // Temporary general purpose registers 
+  // Temporary general purpose registers
   int T0   = FIRST_VOLATILE_GPR;
   int T1   = FIRST_VOLATILE_GPR+1;
   int T2   = FIRST_VOLATILE_GPR+2;
@@ -45,7 +45,7 @@ public interface VM_BaselineConstants extends VM_Constants, VM_ArchConstants {
   int FIRST_FIXED_LOCAL_REGISTER = FIRST_NONVOLATILE_GPR;
   int LAST_FIXED_LOCAL_REGISTER = LAST_NONVOLATILE_GPR;
   int LAST_FIXED_STACK_REGISTER = LAST_NONVOLATILE_GPR;
-  
+
   int FIRST_FLOAT_LOCAL_REGISTER = FIRST_NONVOLATILE_FPR;
   int LAST_FLOAT_LOCAL_REGISTER = LAST_NONVOLATILE_FPR;
   int LAST_FLOAT_STACK_REGISTER = LAST_NONVOLATILE_FPR;

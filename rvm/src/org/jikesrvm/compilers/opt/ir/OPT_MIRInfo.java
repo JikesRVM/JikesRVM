@@ -70,7 +70,7 @@ public final class OPT_MIRInfo {
   public OPT_BasicBlock osrYieldpointBlock = null;
 
   /**
-   * Information needed for linear scan. 
+   * Information needed for linear scan.
    */
   public OPT_LinearScan.LinearScanState linearScanState = null;
 

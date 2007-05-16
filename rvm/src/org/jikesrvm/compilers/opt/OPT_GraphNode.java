@@ -24,7 +24,7 @@ public interface OPT_GraphNode extends OPT_GraphElement {
    * Get an enumeration of all the edges to which edges sourced at
    * this node point.
    * @return an enumeration of all the edges to which edges sourced
-   * at this node point. 
+   * at this node point.
    */
   OPT_GraphNodeEnumeration outNodes();
 
@@ -41,7 +41,7 @@ public interface OPT_GraphNode extends OPT_GraphElement {
    * anarbitrary number, but after a call to
    * {@link OPT_Graph#compactNodeNumbering
    * OPT_Graph.compactNodeNumbering} the nodes of a graph should be
-   * numbered 0 thru (# of nodes in graph - 1). 
+   * numbered 0 thru (# of nodes in graph - 1).
    *
    * @return the index of this node in its graph.
    */

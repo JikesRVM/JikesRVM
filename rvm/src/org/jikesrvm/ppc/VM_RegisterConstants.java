@@ -35,11 +35,11 @@ public interface VM_RegisterConstants extends VM_SizeConstants {
   int FIRST_OS_NONVOLATILE_FPR       = 14;
   int LAST_OS_NONVOLATILE_FPR        = 31;
   int LAST_OS_VARARG_PARAMETER_FPR   =  VM.BuildForAix ? 6 : 8;
-  
+
   // Jikes RVM's general purpose register usage (32 or 64 bits wide based on VM.BuildFor64Addr).
   //
   int REGISTER_ZERO              = 0; // special instruction semantics on this register
-  
+
   int FRAME_POINTER              = 1; // same as AIX/OSX/Linux
   int FIRST_VOLATILE_GPR         = FIRST_OS_PARAMETER_GPR;
   //                                            ...
@@ -78,7 +78,7 @@ public interface VM_RegisterConstants extends VM_SizeConstants {
   // condition registers
   // TODO: fill table
   int NUM_CRS                    = 8;
-   
+
   // special registers (user visible)
   int NUM_SPECIALS               = 8;
 
@@ -93,7 +93,7 @@ public interface VM_RegisterConstants extends VM_SizeConstants {
       "F16",  "F17",  "F18",  "F19",  "F20",  "F21",  "F22",  "F23",
       "F24",  "F25",  "F26",  "F27",  "F28",  "F29",  "F30",  "F31"
     };
-  
+
   /**
    * This class exists only to kludge around the fact that we can't
    * put static clinit blocks in interfaces.  As a result,
@@ -107,7 +107,7 @@ public interface VM_RegisterConstants extends VM_SizeConstants {
                          "R12", "R13","R14", "R15","R16", "R17",
                          "R18", "R19", "R20", "R21", "R22", "R23",
                          "R24", "R25", "R26", "R27", "R28", "R29", "R30", "R31"
-      };    
+      };
       names[FRAME_POINTER] = "FP";
       names[JTOC_POINTER] = "JT";
       names[PROCESSOR_REGISTER] = "PR";

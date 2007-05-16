@@ -49,7 +49,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
    *   -Allocate the glue frame
    *   -Save the PR register in the JNI Environment for reentering Java later
    *   -Shuffle the parameters in the registers to conform to the AIX convention
-   *   -Save the nonvolatile registers in a known space in the frame to be used 
+   *   -Save the nonvolatile registers in a known space in the frame to be used
    *    for the GC stack map
    *   -Push a new JREF frame on the JNIRefs stack
    *   -Supply the first JNI argument:  the JNI environment pointer
@@ -61,7 +61,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
    *   -Restore the nonvolatile registers if GC has occurred
    *   -Pop the JREF frame off the JNIRefs stack
    *   -Check for pending exception and deliver to Java caller if present
-   *   -Process the return value from native:  push onto caller's Java stack  
+   *   -Process the return value from native:  push onto caller's Java stack
    *
    * The stack frame created by this stub conforms to the AIX convention:
    *   -6-word frame header
@@ -77,7 +77,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
    *   + toc      +
    *   |          |
    *   |          |
-   *   |----------|  
+   *   |----------|
    *   | fp       | <- Java to C glue frame
    *   | cr/mid   |
    *   | lr       |
@@ -92,20 +92,20 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
    *   |   5      |
    *   |   6      |
    *   |   7      |
-   *   |  ...     | 
+   *   |  ...     |
    *   |          |
    *   |GC flag   | offset = JNI_SAVE_AREA_OFFSET           <- JNI_GC_FLAG_OFFSET
    *   |vol fpr1  | saved AIX volatile fpr during becomeNativeThread
-   *   | ...      | 
+   *   | ...      |
    *   |vol fpr6  | saved AIX volatile fpr during becomeNativeThread
-   *   |vol r4    | saved AIX volatile regs during Yield (to be removed when code moved to Java)   
-   *   | ...      | 
+   *   |vol r4    | saved AIX volatile regs during Yield (to be removed when code moved to Java)
+   *   | ...      |
    *   |vol r10   | saved AIX volatile regs during Yield    <- JNI_OS_PARAMETER_REGISTER_OFFSET
    *   |ENV       | VM_JNIEnvironment                       <- JNI_ENV_OFFSET
    *   |nonvol 17 | save 15 nonvolatile GPRs for GC stack mapper
    *   | ...      |
    *   |nonvol 31 |                                         <- JNI_RVM_NONVOLATILE_OFFSET
-   *   |----------|   
+   *   |----------|
    *   |  fp      | <- Java caller frame
    *   | mid      |
    *   | xxx      |
@@ -118,7 +118,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
    *
    * Linux (and OSX) uses different transition scheme: the Java-to-Native transition
    * stackframe consists of two mini frames: frame 1 has RVM's stack header with
-   * compiled method ID, and frame 2 has C (SVR4)'s stackframe layout. 
+   * compiled method ID, and frame 2 has C (SVR4)'s stackframe layout.
    * Comparing to AIX transition frame,
    * Linux version inserts a RVM frame header right above JNI_SAVE_AREA. <p>
    *
@@ -131,15 +131,15 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
    *   | 0          | <- spill area, see getFrameSize
    *   | 1          |
    *   | .......    |
-   *   |------------| 
+   *   |------------|
    *   | fp         | <- Java to C glue frame (1)
    *   | lr         |
-   *   | cmid       | 
+   *   | cmid       |
    *   | padding    |
    *   | GC flag    |
    *   | Affinity   |
    *   | .......    |
-   *   |------------| 
+   *   |------------|
    *   | fp         | <- Java caller frame
    *   | lr         |
    *   | cmid       |                        (higher addresses)
@@ -147,9 +147,9 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
    * </pre>
    *
    * VM_Runtime.unwindNativeStackFrame will return a pointer to glue frame (2).
-   * The lr slot of frame (2) holds the address of out-of-line machine code 
-   * which should be in bootimage, and GC shouldn't move this code. 
-   * The VM_JNIGCIterator returns the lr of frame (2) as the result of 
+   * The lr slot of frame (2) holds the address of out-of-line machine code
+   * which should be in bootimage, and GC shouldn't move this code.
+   * The VM_JNIGCIterator returns the lr of frame (2) as the result of
    * getReturnAddressAddress.
    */
   public static synchronized VM_CompiledMethod compile(VM_NativeMethod method) {
@@ -196,7 +196,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
       asm.emitSTW(S0, STACKFRAME_METHOD_ID_OFFSET, FP);
     }
 
-    // establish S1 -> VM_Thread, S0 -> threads JNIEnv structure      
+    // establish S1 -> VM_Thread, S0 -> threads JNIEnv structure
     asm.emitLAddrOffset(S1, PROCESSOR_REGISTER, VM_Entrypoints.activeThreadField.getOffset());
     asm.emitLAddrOffset(S0, S1, VM_Entrypoints.jniEnvField.getOffset());
 
@@ -248,7 +248,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
     asm.emitLVALAddr(S1, nativeIP);
 
     // go to VM_OutOfLineMachineCode.invokeNativeFunctionInstructions
-    // It will change the Processor status to "in_native" and transfer to the native code.  
+    // It will change the Processor status to "in_native" and transfer to the native code.
     // On return it will change the state back to "in_java" (waiting if blocked).
     //
     // The native address entrypoint is in register S1
@@ -257,7 +257,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
     //
     asm.emitBCCTRL();
 
-    // check if GC has occurred, If GC did not occur, then 
+    // check if GC has occurred, If GC did not occur, then
     // VM NON_VOLATILE regs were restored by OS and are valid.  If GC did occur
     // objects referenced by these restored regs may have moved, in this case we
     // restore the nonvolatile registers from our save area,
@@ -391,13 +391,13 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
     // offset to the spill area in the caller (RVM frame), relative to the callee's FP
     int spillOffsetVM = frameSize + STACKFRAME_HEADER_SIZE;
 
-    // does NOT include implicit this or class ptr    
+    // does NOT include implicit this or class ptr
     VM_TypeReference[] types = method.getParameterTypes();
 
     // Set up the Reference table for GC
     // PR <- JREFS array base
     asm.emitLAddrOffset(PROCESSOR_REGISTER, S0, VM_Entrypoints.JNIRefsField.getOffset());
-    // TI <- JREFS current top 
+    // TI <- JREFS current top
     asm.emitLIntOffset(KLUDGE_TI_REG,
                        S0,
                        VM_Entrypoints.JNIRefsTopField.getOffset());   // JREFS offset for current TOP
@@ -421,25 +421,25 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
 
     // for static methods: caller has placed args in r3,r4,...
     // for non-static methods:"this" ptr is in r3, and args start in r4,r5,...
-    // 
-    // for static methods:                for nonstatic methods:       
-    //  Java caller     OS callee         Java caller     OS callee    
-    //  -----------     ----------          -----------     ----------  
-    //  spill = arg11 -> new spill          spill = arg11 -> new spill  
-    //  spill = arg10 -> new spill          spill = arg10 -> new spill  
-    //                                      spill = arg9  -> new spill  
-    //  spill = arg9  -> new spill                                      
-    //  spill = arg8  -> new spill          spill = arg8  -> new spill  
-    //    R10 = arg7  -> new spill          spill = arg7  -> new spill  
-    //    R9  = arg6  -> new spill            R10 = arg6  -> new spill  
-    //                                                             
-    //    R8  = arg5  -> R10                  R9  = arg5  -> R10         
-    //    R7  = arg4  -> R9                   R8  = arg4  -> R9          
-    //    R6  = arg3  -> R8                   R7  = arg3  -> R8          
-    //    R5  = arg2  -> R7                   R6  = arg2  -> R7          
-    //    R4  = arg1  -> R6                   R5  = arg1  -> R6          
-    //    R3  = arg0  -> R5                   R4  = arg0  -> R5          
-    //                   R4 = class           R3  = this  -> R4         
+    //
+    // for static methods:                for nonstatic methods:
+    //  Java caller     OS callee         Java caller     OS callee
+    //  -----------     ----------          -----------     ----------
+    //  spill = arg11 -> new spill          spill = arg11 -> new spill
+    //  spill = arg10 -> new spill          spill = arg10 -> new spill
+    //                                      spill = arg9  -> new spill
+    //  spill = arg9  -> new spill
+    //  spill = arg8  -> new spill          spill = arg8  -> new spill
+    //    R10 = arg7  -> new spill          spill = arg7  -> new spill
+    //    R9  = arg6  -> new spill            R10 = arg6  -> new spill
+    //
+    //    R8  = arg5  -> R10                  R9  = arg5  -> R10
+    //    R7  = arg4  -> R9                   R8  = arg4  -> R9
+    //    R6  = arg3  -> R8                   R7  = arg3  -> R8
+    //    R5  = arg2  -> R7                   R6  = arg2  -> R7
+    //    R4  = arg1  -> R6                   R5  = arg1  -> R6
+    //    R3  = arg0  -> R5                   R4  = arg0  -> R5
+    //                   R4 = class           R3  = this  -> R4
     //                   R3 = JNIenv                         R3 = JNIenv
     //
 
@@ -486,7 +486,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
       asm.emitSUBFC(SECOND_OS_PARAMETER_GPR, PROCESSOR_REGISTER, KLUDGE_TI_REG);  // pass offset in bytes
     }
 
-    // store the new JNIRefs array TOP back into JNIEnv 
+    // store the new JNIRefs array TOP back into JNIEnv
     asm.emitSUBFC(KLUDGE_TI_REG, PROCESSOR_REGISTER, KLUDGE_TI_REG);     // compute offset for the current TOP
     asm.emitSTWoffset(KLUDGE_TI_REG, S0, VM_Entrypoints.JNIRefsTopField.getOffset());
   }
@@ -557,7 +557,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
       //    need to be shifted down in addition to being moved
       //   -to avoid overwriting each other, the arguments must be copied in reverse order
       //   -the analysis for mapping however must be done in forward order
-      //   -the moving/mapping for each argument may involve a sequence of 1-3 instructions 
+      //   -the moving/mapping for each argument may involve a sequence of 1-3 instructions
       //    which must be kept in the normal order
       // To solve this problem, the instructions for each argument is generated in its
       // own VM_Assembler in the forward pass, then in the reverse pass, each VM_Assembler
@@ -573,7 +573,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
         VM_Assembler asmArg = asmForArgs[arg];
 
         // For 32-bit float arguments, must be converted to
-        // double 
+        // double
         //
         if (types[arg].isFloatType() || types[arg].isDoubleType()) {
           boolean is32bits = types[arg].isFloatType();
@@ -604,7 +604,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
             }
           }
 
-          // 2. check the destination, 
+          // 2. check the destination,
           if (nextOSArgFloatReg <= LAST_OS_PARAMETER_FPR) {
             // leave it there
             nextOSArgFloatReg++;
@@ -645,7 +645,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
             dstSpilling = true;
 
             if (VM.BuildForSVR4ABI) {
-              /* NOTE: following adjustment is not stated in SVR4 ABI, but 
+              /* NOTE: following adjustment is not stated in SVR4 ABI, but
                * was implemented in GCC.
                * -- Feng
                */
@@ -695,7 +695,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
               asmArg.emitMR(regOrSpilling, nextVMArgReg);
             }
             // advance register counting, Linux register number
-            // already advanced 
+            // already advanced
             nextVMArgReg += 2;
           } else if (nextVMArgReg == LAST_VOLATILE_GPR) {
             // VM striding
@@ -731,7 +731,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
             // goes to spilling area
             dstSpilling = true;
 
-            /* NOTE: following adjustment is not stated in SVR4 ABI, but 
+            /* NOTE: following adjustment is not stated in SVR4 ABI, but
              * was implemented in GCC.
              * -- Feng
              */
@@ -760,7 +760,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
               asmArg.emitMR(regOrSpilling, nextVMArgReg);
             }
             // advance register counting, Linux register number
-            // already advanced 
+            // already advanced
             nextVMArgReg += 1;
           } else if (nextVMArgReg > LAST_VOLATILE_GPR) {
             if (dstSpilling) {
@@ -858,7 +858,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
         }
       }
 
-      // Append the code sequences for parameter mapping 
+      // Append the code sequences for parameter mapping
       // to the current machine code in reverse order
       // so that the move does not overwrite the parameters
       for (int arg = asmForArgs.length - 1; arg >= 0; arg--) {
@@ -897,7 +897,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
       //    need to be shifted down in addition to being moved
       //   -to avoid overwriting each other, the arguments must be copied in reverse order
       //   -the analysis for mapping however must be done in forward order
-      //   -the moving/mapping for each argument may involve a sequence of 1-3 instructions 
+      //   -the moving/mapping for each argument may involve a sequence of 1-3 instructions
       //    which must be kept in the normal order
       // To solve this problem, the instructions for each argument is generated in its
       // own VM_Assembler in the forward pass, then in the reverse pass, each VM_Assembler
@@ -939,7 +939,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
             asmArg.emitSTFS(nextVMArgFloatReg, spillOffsetOS - BYTES_IN_FLOAT, FP);
             nextVMArgFloatReg++;
           } else {
-            // (2c) run out of FPR in VM, now get the remaining args from the caller spill area 
+            // (2c) run out of FPR in VM, now get the remaining args from the caller spill area
             // and move them into the callee spill area
             //Kris Venstermans: Attention, different calling convention !!
             spillOffsetVM += BYTES_IN_STACKSLOT;
@@ -947,7 +947,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
             asmArg.emitSTFS(FIRST_SCRATCH_FPR, spillOffsetOS - BYTES_IN_FLOAT, FP);
           }
         } else if (types[arg].isDoubleType()) {
-          // For 64-bit float arguments 
+          // For 64-bit float arguments
           if (VM.BuildFor64Addr) {
             // Side effect of float arguments on the GPR's
             // (1a) reserve one GPR for double
@@ -991,7 +991,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
             asmArg.emitSTFD(nextVMArgFloatReg, spillOffsetOS - BYTES_IN_DOUBLE, FP);
             nextVMArgFloatReg++;
           } else {
-            // (2c) run out of FPR in VM, now get the remaining args from the caller spill area 
+            // (2c) run out of FPR in VM, now get the remaining args from the caller spill area
             // and move them into the callee spill area
             spillOffsetVM += BYTES_IN_DOUBLE;
             asmArg.emitLFD(FIRST_SCRATCH_FPR, spillOffsetVM - BYTES_IN_DOUBLE, FP);
@@ -1109,7 +1109,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
             asmArg.emitSTAddr(REGISTER_ZERO, spillOffsetOS - BYTES_IN_ADDRESS, FP); // spill into OS frame
           }
         } else {
-          // For all other types: int, short, char, byte, boolean 
+          // For all other types: int, short, char, byte, boolean
           spillOffsetOS += BYTES_IN_STACKSLOT;
 
           // (1a) fit in OS register, move the register
@@ -1129,7 +1129,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
         }
       }
 
-      // Append the code sequences for parameter mapping 
+      // Append the code sequences for parameter mapping
       // to the current machine code in reverse order
       // so that the move does not overwrite the parameters
       for (int arg = numArguments - 1; arg >= 0; arg--) {
@@ -1191,7 +1191,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
     // Here we check if this is a JNI function that takes the vararg in the ... style
     // This includes CallStatic<type>Method, Call<type>Method, CallNonVirtual<type>Method
     // For these calls, the vararg starts at the 4th or 5th argument (GPR 6 or 7)
-    // So, we save the GPR 6-10 and FPR 1-3 in a volatile register save area 
+    // So, we save the GPR 6-10 and FPR 1-3 in a volatile register save area
     // in the glue stack frame so that the JNI function can later repackage the arguments
     // based on the parameter types of target method to be invoked.
     // (For long argument lists, the additional arguments, have been saved in
@@ -1237,7 +1237,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
         // adjust register contents (following SVR4 ABI) for normal JNI functions
         // especially dealing with long, spills
         // number of parameters of normal JNI functions should fix in
-        // r3 - r12, f1 - f15, + 24 words, 
+        // r3 - r12, f1 - f15, + 24 words,
         convertParametersFromSVR4ToJava(asm, mth);
       }
     }
@@ -1259,7 +1259,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
     asm.emitSTAddr(REGISTER_ZERO, glueFrameSize + STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);
 
     // Attempt to change the vpStatus of the current Processor to IN_JAVA
-    // 
+    //
     // on entry T0 = JNIEnv* which is an interior pointer to this thread's VM_JNIEnvironment.
     // We first adjust this in place to be a pointer to a VM_JNIEnvironment and then use
     // it to acquire PROCESSOR_REGISTER (and JTOC on OSX/Linux).
@@ -1326,13 +1326,13 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
     // restore the saved volatile GPRs 3-10 and FPRs 1-6
     offset = STACKFRAME_HEADER_SIZE;
 
-    // restore volatile GPRS 3-10 
+    // restore volatile GPRS 3-10
     for (int i = FIRST_OS_PARAMETER_GPR; i <= LAST_OS_PARAMETER_GPR; i++) {
       asm.emitLAddr(i, offset, FP);
       offset += BYTES_IN_ADDRESS;
     }
 
-    // restore volatile FPRS 1-6  
+    // restore volatile FPRS 1-6
     for (int i = FIRST_OS_PARAMETER_FPR; i <= LAST_OS_VARARG_PARAMETER_FPR; i++) {
       asm.emitLFD(i, offset, FP);
       offset += BYTES_IN_DOUBLE;
@@ -1343,7 +1343,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
     // NOW_IN_JAVA:
     // JTOC, and PR are all as Jikes RVM expects them;
     // params are where the Jikes RVM calling conventions expects them.
-    // 
+    //
     frInJava.resolve(asm);
 
     // get pointer to top java frame from JNIEnv, compute offset from current
@@ -1369,11 +1369,11 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
     // the glue code prolog and the real body of the JNI method.
     // T0 & T1 (R3 & R4) or F1 contain the return value from the function - DO NOT USE
 
-    // assume: JTOC and PROCESSOR_REG are valid, and all RVM non-volatile 
+    // assume: JTOC and PROCESSOR_REG are valid, and all RVM non-volatile
     // GPRs and FPRs have been restored.  Our processor state will be  IN_JAVA.
 
     // establish T2 -> current thread's VM_JNIEnvironment, from activeThread field
-    // of current processor      
+    // of current processor
     asm.emitLAddrOffset(T2,
                         PROCESSOR_REGISTER,
                         VM_Entrypoints.activeThreadField.getOffset());   // T2 <- activeThread of PR

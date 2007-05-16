@@ -171,7 +171,7 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
 
         case NULL_CHECK_opcode: {
           // mutate this into a TRAPIF, and then fall through to the the
-          // TRAP_IF case. 
+          // TRAP_IF case.
           OPT_Operand ref = NullCheck.getRef(p);
           MIR_TrapIf.mutate(p, IA32_TRAPIF, null, ref.copy(), IC(0),
                             OPT_IA32ConditionOperand.EQ(),
@@ -193,7 +193,7 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
                                                    MIR_TrapIf.getVal1(p),
                                                    MIR_TrapIf.getVal2(p));
           if (p.isMarkedAsPEI()) {
-            // The trap if was explictly marked, which means that it has 
+            // The trap if was explictly marked, which means that it has
             // a memory operand into which we've folded a null check.
             // Actually need a GC map for both the compare and the INT.
             cmp.markAsPEI();
@@ -205,16 +205,16 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
               (IA32_JCC, MIR_TrapIf.getCond(p),
                trap.makeJumpTarget(), null));
 
-          // add block at end to hold trap instruction, and 
+          // add block at end to hold trap instruction, and
           // insert trap sequence
           ir.cfg.addLastInCodeOrder(trap);
           if (tc.isArrayBounds()) {
-            // attempt to store index expression in processor object for 
+            // attempt to store index expression in processor object for
             // C trap handler
             OPT_Operand index = MIR_TrapIf.getVal2(p);
             if (!(index instanceof OPT_RegisterOperand ||
                   index instanceof OPT_IntConstantOperand)) {
-              index = IC(0xdeadbeef); // index was spilled, and 
+              index = IC(0xdeadbeef); // index was spilled, and
               // we can't get it back here.
             }
             OPT_MemoryOperand mo =
@@ -227,7 +227,7 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
                                                    index.copy()));
           }
           // NOTE: must make p the trap instruction: it is the GC point!
-          // IMPORTANT: must also inform the GCMap that the instruction has 
+          // IMPORTANT: must also inform the GCMap that the instruction has
           // been moved!!!
           trap.appendInstruction(MIR_Trap.mutate(p, IA32_INT, null, tc));
           ir.MIRInfo.gcIRMap.moveToEnd(p);

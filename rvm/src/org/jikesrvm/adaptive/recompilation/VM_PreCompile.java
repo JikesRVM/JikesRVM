@@ -4,7 +4,7 @@
  * A copy of the license is included in the distribution, and is also
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
- * (C) Copyright 
+ * (C) Copyright
  * Department of Computer Science,
  * University of Texas at Austin 2005
  * All rights reserved.

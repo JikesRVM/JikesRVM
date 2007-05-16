@@ -43,7 +43,7 @@ public final class VM_BasicBlock {
   // First 2 are listed individually.
   short pred1;
   short pred2;
-  short[] restPredecessors;  // list of rest preceeding basic blocks 
+  short[] restPredecessors;  // list of rest preceeding basic blocks
   // may be bigger then predcount;
   byte state = 0;           // additional state info for jsr handling,
   // and other flags

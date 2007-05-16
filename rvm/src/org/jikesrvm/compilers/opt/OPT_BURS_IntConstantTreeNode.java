@@ -14,7 +14,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_Operators;
 
 /**
  * A subclass of OPT_BURS_TreeNode for an IntConstantOperand.
- * It is very common for us to want to access the value of an 
+ * It is very common for us to want to access the value of an
  * int constant during BURS, so we make it easy to do so by creating
  * a special kind of node.
  */

@@ -48,9 +48,9 @@ import org.jikesrvm.compilers.opt.ir.Phi;
  *       that reads or writes from the heap implicitly uses a Heap variable.
  *       The particular heap variable for each instruction is cached
  *       in {@link OPT_SSADictionary <code> ir.HIRInfo.SSADictionary </code>}.
- *       dphi functions do <em> not </em> 
+ *       dphi functions do <em> not </em>
  *       explicitly appear in the IR.
- *  <p> 
+ *  <p>
  *  For example, consider the code:
  *  <p>
  *  <pre>
@@ -77,10 +77,10 @@ import org.jikesrvm.compilers.opt.ir.Phi;
  *              y = a.x   (implicit: reads HEAP_x)
  *  </pre>
  *
- *  <p>Similarly, phi functions for the implicit heap 
+ *  <p>Similarly, phi functions for the implicit heap
  *  variables <em> will not </em>
  *  appear explicitly in the instruction stream. Instead, the
- *  OPT_SSADictionary data structure keeps the heap control phi 
+ *  OPT_SSADictionary data structure keeps the heap control phi
  *  functions for each basic block in a lookaside table.
  *  </ul>
  *

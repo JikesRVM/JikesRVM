@@ -43,7 +43,7 @@ import org.vmmagic.unboxed.Offset;
  * <p> NOTE: VM_OptCompilerMethod live as long as their corresponding
  * compiled machine code.  Therefore, they should only contain
  * state that is really required to be persistent.  Anything
- * transitory should be stored on the OPT_IR object. 
+ * transitory should be stored on the OPT_IR object.
  */
 @SynchronizedObject
 @Uninterruptible
@@ -68,7 +68,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
   }
 
   /**
-   * Get handler to deal with stack unwinding and exception delivery 
+   * Get handler to deal with stack unwinding and exception delivery
    * for this method's stackframes.
    */
   public VM_ExceptionDeliverer getExceptionDeliverer() {
@@ -89,10 +89,10 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
   }
 
   /**
-   * Fetch symbolic reference to a method that's called 
+   * Fetch symbolic reference to a method that's called
    * by one of this method's instructions.
    * @param dynamicLink place to put return information
-   * @param instructionOffset offset of machine instruction that issued 
+   * @param instructionOffset offset of machine instruction that issued
    *                          the call
    */
   public void getDynamicLink(VM_DynamicLink dynamicLink, Offset instructionOffset) {
@@ -105,7 +105,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
   }
 
   /**
-   * Find source line number corresponding to one of this method's 
+   * Find source line number corresponding to one of this method's
    * machine instructions.
    */
   public int findLineNumberForInstruction(Offset instructionOffset) {
@@ -248,7 +248,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
   }
 
   //////////////////////////////////////
-  // Information the opt compiler needs to persistently associate 
+  // Information the opt compiler needs to persistently associate
   // with a particular compiled method.
 
   /** The primary machine code maps */
@@ -430,7 +430,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
   /**
    * Create the final machine code map for the compiled method.
    * Remember the offset for the end of prologue too for debugger.
-   * @param ir the ir 
+   * @param ir the ir
    * @param machineCodeLength the number of machine code instructions.
    */
   @Interruptible
@@ -440,7 +440,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
 
   /**
    * Create the final exception table from the IR for the method.
-   * @param ir the ir 
+   * @param ir the ir
    */
   @Interruptible
   public void createFinalExceptionTable(OPT_IR ir) {
@@ -451,7 +451,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
 
   /**
    * Create the code patching maps from the IR for the method
-   * @param ir the ir 
+   * @param ir the ir
    */
   @Interruptible
   public void createCodePatchMaps(OPT_IR ir) {

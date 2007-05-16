@@ -20,7 +20,7 @@ import org.jikesrvm.compilers.opt.OPT_Options;
 public final class OPT_CompilationState {
 
   /*
-   * Interface 
+   * Interface
    */
 
   /**
@@ -93,7 +93,7 @@ public final class OPT_CompilationState {
   }
 
   /**
-   * Return the root method of the compilation 
+   * Return the root method of the compilation
    */
   public VM_NormalMethod getRootMethod() {
     return call.position.getRootMethod();
@@ -128,7 +128,7 @@ public final class OPT_CompilationState {
   }
 
   /*
-   * Implementation 
+   * Implementation
    */
   private OPT_Instruction call;
   private boolean isExtant;

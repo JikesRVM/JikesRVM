@@ -127,7 +127,7 @@ public final class VM_PartialCallGraph implements VM_Decayable,
   }
 
   /**
-   * Increment the edge represented by the input parameters, 
+   * Increment the edge represented by the input parameters,
    * creating it if it is not already in the call graph.
    *
    * @param caller   method making the call
@@ -139,7 +139,7 @@ public final class VM_PartialCallGraph implements VM_Decayable,
   }
 
   /**
-   * Increment the edge represented by the input parameters, 
+   * Increment the edge represented by the input parameters,
    * creating it if it is not already in the call graph.
    *
    * @param caller   method making the call
@@ -152,11 +152,11 @@ public final class VM_PartialCallGraph implements VM_Decayable,
   }
 
   /**
-   * For the calling edge we read from a profile, we may not have 
-   * the methods loaded in yet. Therefore, we will record the method 
-   * reference infomation first, the next time we resolved the method, 
+   * For the calling edge we read from a profile, we may not have
+   * the methods loaded in yet. Therefore, we will record the method
+   * reference infomation first, the next time we resolved the method,
    * we will promote it into the regular call graph.
-   * Increment the edge represented by the input parameters, 
+   * Increment the edge represented by the input parameters,
    * creating it if it is not already in the call graph.
    *
    * @param callerRef   method making the call
@@ -181,7 +181,7 @@ public final class VM_PartialCallGraph implements VM_Decayable,
   }
 
   /**
-   * Increment the edge represented by the input parameters, 
+   * Increment the edge represented by the input parameters,
    * creating it if it is not already in the call graph.
    *
    * @param caller   method making the call

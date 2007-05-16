@@ -67,7 +67,7 @@ public class OSR_EncodedOSRMap
     return regnum - FIRST_GCMAP_REG + 1;
   }
 
-  /* 
+  /*
  */
   public OSR_EncodedOSRMap(OSR_VariableMap varMap) {
     int entries = varMap.getNumberOfElements();
@@ -90,12 +90,12 @@ if (VM.TraceOnStackReplacement) {
 
   /*
    * translates a list of OSR_MapElement to encoding,
-   * we can not trust the osrlist is in the increasing order of 
+   * we can not trust the osrlist is in the increasing order of
    * machine code offset. Sort it first.
    */
   private void translateMap(LinkedList<OSR_VariableMapElement> osrlist) {
 
-    /* sort the list, use the mc offset of the index instruction 
+    /* sort the list, use the mc offset of the index instruction
      * as the key.
      */
     int n = osrlist.size();
@@ -108,7 +108,7 @@ if (VM.TraceOnStackReplacement) {
     /* ideally, the osrList should be in sorted order by MC offset,
      * but I got once it is not in the order. To work correctly,
      * sort it first.
-     * 
+     *
      * TODO: figure out why LiveAnalysis does not give correct order?
      */
     quickSort(osrarray, 0, n - 1);
@@ -131,7 +131,7 @@ if (VM.TraceOnStackReplacement) {
       int iei = inliningTree.find(instr.position).encodedOffset;
       setIEIndex(i, iei);
 
-      // get osr map 
+      // get osr map
       LinkedList<OSR_MethodVariables> mVarList = elm.mvars;
       int osrMapIndex = generateOsrMaps(mVarList);
 
@@ -186,17 +186,17 @@ if (VM.TraceOnStackReplacement) {
 
   /* generate value in the Osr map,
    * return the index of the first integer in the map.
-   * 
+   *
    * An OSR Map has following structure:
    * | regmap || mid, mpc, (n1, n2) ... ||
    *          || mid, mpc, (n1, n2) ... ||
    * Regmap indicates the value of which register is a reference,
    * the execution state extractor can convert the value to an
    * object to avoid confusing GC.
-   * The MSB of regmap indicates next mid is valid. 
+   * The MSB of regmap indicates next mid is valid.
    *
-   * The MSB of mid indicates if the next mid item will be 
-   * available. 
+   * The MSB of mid indicates if the next mid item will be
+   * available.
    *
    * The MSB of mpc indicates if the next is a valid pair
    */
@@ -231,7 +231,7 @@ if (VM.TraceOnStackReplacement) {
     int bci = (m == 0) ? mVar.bcIndex : (mVar.bcIndex | NEXT_BIT);
     addIntToOsrMap(bci);
 
-    // append each element 
+    // append each element
     for (int j = 0; j < m; j++) {
       OSR_LocalRegPair tuple = tupleList.get(j);
 
@@ -251,7 +251,7 @@ if (VM.TraceOnStackReplacement) {
 
   /*
    * process on 32-bit tuple.
-   * 
+   *
    * tuple, maps the local to register, spill
    * isLast, indicates to set NEXT_BIT
    */
@@ -394,9 +394,9 @@ if (VM.TraceOnStackReplacement) {
   }
 
   ////////////////////////////////////
-  // INTERFACE 
+  // INTERFACE
   ///////////////////////////////////
-  /* 
+  /*
    * does the OSR map exist for a machine instruction offset
    */
   public final boolean hasOSRMap(Offset mcOffset) {
@@ -408,7 +408,7 @@ if (VM.TraceOnStackReplacement) {
    * It is the caller's reposibility to make sure there are OSR
    * entry exist for a machine instruction offset.
    */
-  /* 
+  /*
    * get bytecode index for a given instruction offset in bytes.
    */
   public final int getBytecodeIndexForMCOffset(Offset mcOffset) {
@@ -447,8 +447,8 @@ if (VM.TraceOnStackReplacement) {
   /////////////////////////////////
   // private functions
   ////////////////////////////////
-  /* 
-   * Do a binary search, find the entry for the machine code offset. 
+  /*
+   * Do a binary search, find the entry for the machine code offset.
    * Return -1 if no entry was found.
    */
   private int findOSREntry(Offset mcOffset) {
@@ -518,7 +518,7 @@ if (VM.TraceOnStackReplacement) {
   }
 
   /*
-   * print the encoded map for debugging. 
+   * print the encoded map for debugging.
    */
   public void printMap() {
     if (lastEntry > 0) {

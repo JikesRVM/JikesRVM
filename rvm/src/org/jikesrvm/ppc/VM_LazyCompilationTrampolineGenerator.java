@@ -23,8 +23,8 @@ import org.jikesrvm.runtime.VM_Entrypoints;
  */
 public abstract class VM_LazyCompilationTrampolineGenerator implements VM_BaselineConstants {
 
-  /** 
-   * Generate a new lazy compilation trampoline. 
+  /**
+   * Generate a new lazy compilation trampoline.
    */
   public static ArchitectureSpecific.VM_CodeArray getTrampoline () {
     VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);

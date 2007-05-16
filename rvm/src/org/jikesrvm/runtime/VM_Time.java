@@ -40,7 +40,7 @@ public class VM_Time {
     long endCycles = cycles();
     long dur = endNow - bootNow;
 
-    // insist on getting at least 0.05 seconds (ie 50,000 microseconds) 
+    // insist on getting at least 0.05 seconds (ie 50,000 microseconds)
     // between bootStageOne and bootStage2 to ensure reasonable accuracy
     while (dur < 50000) {
       dur = currentTimeMicros() - bootNow;
@@ -61,7 +61,7 @@ public class VM_Time {
     // On IA32 we are reading a cycle counter.
     // On PowerPC we are reading the time base register.
     // The relationship between ticks of the time base register and
-    // cycle count is architecturally undefined.  
+    // cycle count is architecturally undefined.
     // See PPC architecture book for more details.
     return VM_Magic.getTimeBase();
   }

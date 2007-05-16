@@ -39,7 +39,7 @@ public final class VM_Instrumentation {
   public static void boot(VM_AOSOptions options) {
 
     // If the system may perform any instrumentation that uses managed
-    // event counters, initialize a counter manager here.  
+    // event counters, initialize a counter manager here.
     if (options.INSERT_INSTRUCTION_COUNTERS ||
         options.INSERT_METHOD_COUNTERS_OPT ||
         options.INSERT_YIELDPOINT_COUNTERS ||
@@ -65,7 +65,7 @@ public final class VM_Instrumentation {
     }
 
     /**
-     * If collecting yieldpoint counts, initialize the 
+     * If collecting yieldpoint counts, initialize the
      * data here.
      **/
     if (options.INSERT_YIELDPOINT_COUNTERS) {
@@ -81,7 +81,7 @@ public final class VM_Instrumentation {
     }
 
     /**
-     * If collecting instruction counts, initialize the 
+     * If collecting instruction counts, initialize the
      * data here.
      **/
     if (options.INSERT_INSTRUCTION_COUNTERS) {
@@ -96,7 +96,7 @@ public final class VM_Instrumentation {
     }
 
     /**
-     * If collecting instruction counts, initialize the 
+     * If collecting instruction counts, initialize the
      * data here.
      **/
     if (options.INSERT_DEBUGGING_COUNTERS) {

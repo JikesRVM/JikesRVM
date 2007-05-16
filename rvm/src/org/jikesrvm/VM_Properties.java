@@ -12,7 +12,7 @@ package org.jikesrvm;
  * Flags that control the behavior of our virtual machine.
  *
  * Typically these are properties that can be set from the command line
- * (and thus are NOT final).  All final properties should be 
+ * (and thus are NOT final).  All final properties should be
  * declared in VM_Configuration
  */
 public class VM_Properties extends VM_Options {
@@ -48,7 +48,7 @@ public class VM_Properties extends VM_Options {
 
   /**
    * Is it safe to create a java.lang.Thread now?  Set by VM.boot at the
-   * appropriate time. 
+   * appropriate time.
    */
   public static boolean safeToAllocateJavaThread = false;
 
@@ -56,7 +56,7 @@ public class VM_Properties extends VM_Options {
    * If true, don't exit from the process.  As of July, 2003, this has not
    * worked in a couple of years, nor has there been much interest in using it.
    * If it is resurrected, we need to check the code that calls dieAbruptlyRecursiveSystemTrouble(), to make
-   * sure that instead we just kill the proper threads. 
+   * sure that instead we just kill the proper threads.
    */
   public static boolean runningAsSubsystem = false;
 

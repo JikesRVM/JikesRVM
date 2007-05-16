@@ -41,7 +41,7 @@ import java.lang.reflect.*;
  * OPT_OperatorFormatTable.  It then, for each operator, generates a
  * handler method to call the appropriate VM_Assembler emit method
  * given an OPT_Instruction.  The VM_Assembler will have a family of
- * emit methods named for each opcode, each such emit method takes a 
+ * emit methods named for each opcode, each such emit method takes a
  * specific set of operand addressing modes and sizes.  The handler
  * methods that the GenerateAssembler emits examine the operands to an
  * OPT_Instruction, and determine which VM_Assembler method to call
@@ -62,7 +62,7 @@ import java.lang.reflect.*;
  *
  *  <P>Since this is a freestanding program, use the regular Java exit
  *   code conventions.</P>
- * 
+ *
  * @see OPT_InstructionFormatTables
  * @see OPT_OperatorFormatTables
  * @see org.jikesrvm.compilers.opt.OPT_AssemblerBase
@@ -92,7 +92,7 @@ public class GenerateAssembler {
     }
 
     /**
-     * Write tabification to the assembler source file.  This is used 
+     * Write tabification to the assembler source file.  This is used
      * to make the generates source more readable by identing it.
      * @param int level  The level of indentation to generate
      */
@@ -101,9 +101,9 @@ public class GenerateAssembler {
     }
 
     /**
-     *  Global reference to the OPT_InstructionFormatTables class that 
+     *  Global reference to the OPT_InstructionFormatTables class that
      * contains descriptions of each optimizing compiler instruction
-     * format that sis visible to the assembler (i.e. the MIR_* 
+     * format that sis visible to the assembler (i.e. the MIR_*
      * instruction formats.
      *
      * @see OPT_InstructionFormatTables
@@ -149,7 +149,7 @@ public class GenerateAssembler {
 
     /**
      *  The instruction format for the IA32_* opt compiler opcode(s)
-     * being processed. 
+     * being processed.
  */
     static String currentFormat;
 
@@ -210,13 +210,13 @@ public class GenerateAssembler {
     /**
      * Constant representing register arguments to VM_Assembler calls.
      * This covers the cases when a register is encoded into the mod/rm
-     * byte; the VM_Assembler handles the detais of generating either 
+     * byte; the VM_Assembler handles the detais of generating either
      * the reg bits of the mod/rm byte or encoding a register as mod 11.
      */
     static final int Register = 1;
     /**
      * Constant representing condition arguments to VM_Assembler calls.
-     * Such operands are not arguments to the ultimate IA32 machine 
+     * Such operands are not arguments to the ultimate IA32 machine
      * code instruction, but they are used to calculate the opcode that
      * is generated.
      */
@@ -229,7 +229,7 @@ public class GenerateAssembler {
     static final int Absolute = 3;
     /**
      * Constant representing IA32 memory operands that use register-
-     * displacement addressing mode (usually mod bits 01 and 10) arguments 
+     * displacement addressing mode (usually mod bits 01 and 10) arguments
      * to VM_Assembler calls.  The VM_Assembler takes care of choosing the
      * right mode for the size of the displacement, so this one mode
      * covers two of the four addressing modes the IA32 has.  The
@@ -247,12 +247,12 @@ public class GenerateAssembler {
      */
     static final int RegisterOffset = 5;
     /**
-     * Constant representing scaled-index-base (SIB) mode arguments to 
+     * Constant representing scaled-index-base (SIB) mode arguments to
      * VM_Assembler calls.
      */
     static final int RegisterIndexed = 6;
     /**
-     * Constant representing register-indirect arguments to VM_Assembler 
+     * Constant representing register-indirect arguments to VM_Assembler
      * calls.  This mode handles what is (usually) mod 00 in the mod/rm
      * byte.
      */
@@ -262,8 +262,8 @@ public class GenerateAssembler {
      * is being generated, the machine code offset for a forward branch
      * cannot, in general, be computed as the target code has not been
      * generated yet.  The OPT_Assembler uses synthetic code offsets,
-     * based upon the order of OPT_Instructions in the code being 
-     * compiled, to communicate forward branch targets to the 
+     * based upon the order of OPT_Instructions in the code being
+     * compiled, to communicate forward branch targets to the
      * VM_Assembler.  These synthetic offsets are passed to the
      * VM_Assembler where it expected Label arguments.
      */
@@ -297,12 +297,12 @@ public class GenerateAssembler {
     /**
      *  This array denotes all possible encodings in a VM_Assembler emitter
      * function.  It includes all possible operand types and all possible
-     * instruction sizes.  For all of the constants corresponding to a 
+     * instruction sizes.  For all of the constants corresponding to a
      * possible operand type or instruction size, the corresponding entry
      * is this table holds the string that the VM_Assembler uses to denote
      * that operand type or instruction size.
      *
-     * This table is used when parsing a VM_Assembler emitter name to create 
+     * This table is used when parsing a VM_Assembler emitter name to create
      * a descriptor that denotes the operand size and types of the given
      * emitter in terms of the constants.
      *
@@ -310,7 +310,7 @@ public class GenerateAssembler {
      * functions to allow the generator to pick which queries to use to
      * dispatch an OPT_Instruction to the appropriate VM_Assembler emitter.
      */
-    static final String[] encoding = 
+    static final String[] encoding =
     {"Imm",             // encoding[Immediate]
      "Reg",             // encoding[Register]
      "Cond",            // encoding[Condition]
@@ -326,7 +326,7 @@ public class GenerateAssembler {
      "Quad"};
 
     /**
-     * For a given string representing a valid operand encoding for the 
+     * For a given string representing a valid operand encoding for the
      * VM_Assembler, return the corresponding OPT_Assembler constant.  This
      * function only looks for encodings of operand types, and will not
      * accept strings that correspond to size encodings.
@@ -343,9 +343,9 @@ public class GenerateAssembler {
     }
 
     /**
-     * For a given string representing a valid size encoding for the 
+     * For a given string representing a valid size encoding for the
      * VM_Assembler, return the corresponding OPT_Assembler constant.  This
-     * function only looks for encodings of sizes, and will not accept 
+     * function only looks for encodings of sizes, and will not accept
      * strings that correspond to operand types.
      *
      * @param str A valid VM_Assembler encoding of operand size
@@ -395,9 +395,9 @@ public class GenerateAssembler {
      * if statements of the dispatch functions for each opt compiler opcode.
      *
      * @param argNumber The argument to examine
-     * @param argEncoding The encoding for which to check 
+     * @param argEncoding The encoding for which to check
      */
-    private static void emitTest(int argNumber, int argEncoding) {   
+    private static void emitTest(int argNumber, int argEncoding) {
         if (argEncoding < encoding.length - SIZES)
             emit("is" + encoding[argEncoding] + "(" + getOperand(argNumber) + ")");
         else
@@ -412,8 +412,8 @@ public class GenerateAssembler {
      * all (or, in some cases, any) of the arguments of the OPT_Instruction.
      * An example is the ENTER instruction that only takes one immediate
      * parameter, so the opt assembler could simply call that VM_Assembler
-     * emiiter without checking that argument is really an immediate. In 
-     * such cases, the opt assembler generates guarded tests that verify 
+     * emiiter without checking that argument is really an immediate. In
+     * such cases, the opt assembler generates guarded tests that verify
      * that OPT_Instruction operand actually matches the required encoding.
      * This function emits such tests to the assembler being generated.
      *
@@ -421,7 +421,7 @@ public class GenerateAssembler {
      * @param argEncoding The encoding for which to check
      * @param level current level for generating pretty, tabified output
      */
-    private static void emitVerify(int argNumber, int argEncoding, int level) {   
+    private static void emitVerify(int argNumber, int argEncoding, int level) {
         emitTab(level);
         emit("if (VM.VerifyAssertions && !");
         emitTest(argNumber, argEncoding);
@@ -438,7 +438,7 @@ public class GenerateAssembler {
      * operand number and encoding; that is, it generates reads of the
      * appropriate OPT_Instruction argument and fetches of the appropriate
      * pieces of information from the operand.
-     * 
+     *
      * @param argNumber The argument being generated.
      * @param argEcoding The encoding to use.
      */
@@ -451,35 +451,35 @@ public class GenerateAssembler {
         else if (argEncoding == Absolute)
             emit("getDisp(" + op + ")");
         else if (argEncoding == RegisterOffset)
-            emit("getIndex(" + op + "), getScale(" + op + 
+            emit("getIndex(" + op + "), getScale(" + op +
                  "), getDisp(" + op + ")");
         else if (argEncoding == RegisterIndexed)
-            emit("getBase(" + op + "), getIndex(" + op + 
+            emit("getBase(" + op + "), getIndex(" + op +
                  "), getScale(" + op + "), getDisp(" + op + ")");
         else if (argEncoding == RegisterIndirect)
             emit("getBase(" + op + ")");
-        else 
+        else
             emit("get" + encoding[argEncoding] + "(" + op + ")");
     }
 
     /**
      *  This exception class is used to indicate that GenerateAssembler
-     * found an emit* method in the vM_Assembler that it does not 
-     * understand. To generate the OPT_Assembler for a given 
-     * IA32 OPT_Operator, GenerateAssembler looks at all of the emit* 
-     * methods for the corresponding IA32 opcode in the VM_Assembler.  It 
+     * found an emit* method in the vM_Assembler that it does not
+     * understand. To generate the OPT_Assembler for a given
+     * IA32 OPT_Operator, GenerateAssembler looks at all of the emit*
+     * methods for the corresponding IA32 opcode in the VM_Assembler.  It
      * parses each name to determine what kinds of operands it expects and
      * what size operands it uses; this requires the emit* methods to
-     * have stylized names (see the header comment of VM_Assembler for 
-     * details).  If an emit* method name does not have the stylized 
+     * have stylized names (see the header comment of VM_Assembler for
+     * details).  If an emit* method name does not have the stylized
      * format required, GenerateAssembler will throw a BadEmitMethod
      * exception and abort.
      */
-    static class BadEmitMethod extends RuntimeException {	
+    static class BadEmitMethod extends RuntimeException {
 	static final long serialVersionUID = 0; // Keep Eclipse quiet
 
         /**
-         *  Create a BadEmitMethod exception indicating that 
+         *  Create a BadEmitMethod exception indicating that
          * GenerateAssembler cannot understand the code portion
          * of the method name methodName.
          *
@@ -496,24 +496,24 @@ public class GenerateAssembler {
      *  An EmitterDescriptor represents a single emit method from the
      * VM_Assembler: it explicitly represents the types of operands the
      * method expects, their number, and the size of the data it uses.
-     * When GenerateAssembler encounters an emit* method from the 
-     * VM_Assembler, it creates an EmitterDescriptor for it.  Based upon 
+     * When GenerateAssembler encounters an emit* method from the
+     * VM_Assembler, it creates an EmitterDescriptor for it.  Based upon
      * the stlyized form the method name is required to have, the
-     * EmitterDexcriptor represents information about its arguments. This 
-     * information is stored in terms of the GenerateAssembler constants 
+     * EmitterDexcriptor represents information about its arguments. This
+     * information is stored in terms of the GenerateAssembler constants
      * that represent operand type and size.
      * <P>
-     * The EmitterDescriptor class encapsulates the logic for parsing the 
+     * The EmitterDescriptor class encapsulates the logic for parsing the
      * stylized emit* method names that the VM_Assembler has, and turning
-     * them into the explicit representation that GenerateAssembler uses.  
-     * If parsing a name fails, a {@link GenerateAssembler.BadEmitMethod} 
+     * them into the explicit representation that GenerateAssembler uses.
+     * If parsing a name fails, a {@link GenerateAssembler.BadEmitMethod}
      * runtime exception is thrown and assembler generation is aborted.
      * <P>
      * <HR>
      * <EM>See the descriptions of the GenerateAssembler constants:</EM>
      * <DL>
      * <DT> <EM>Operand types</EM>
-     * <DI> 
+     * <DI>
      *  <UL>
      *   <LI> {@link #Immediate}
      *   <LI> {@link #Label}
@@ -538,8 +538,8 @@ public class GenerateAssembler {
         private final int args[];
 
         /**
-         * Create an EmitterDescriptor for the given methodName.  This 
-         * conmstructor creates a descriptor that represents explicitly 
+         * Create an EmitterDescriptor for the given methodName.  This
+         * conmstructor creates a descriptor that represents explicitly
          * the types and size of the operands of the given emit* method.
          * This constructor encapsulate the logic to parse the given
          * method name into the appropriate explicit representation.
@@ -581,7 +581,7 @@ public class GenerateAssembler {
          * <EM>See the descriptions of the GenerateAssembler constants:</EM>
          * <DL>
          * <DT> <EM>Operand types</EM>
-         * <DI> 
+         * <DI>
          *  <UL>
          *   <LI> {@link #Immediate}
          *   <LI> {@link #Label}
@@ -600,9 +600,9 @@ public class GenerateAssembler {
          *  </UL>
          * </DL>
          * <P>
-         * @param argument The operand number examined 
+         * @param argument The operand number examined
          * @param enc The argument type queried, as encoded as one of
-         *    the operand type constants used throughout 
+         *    the operand type constants used throughout
          *    GenerateAssembler.
          *
          * @return True if this method expects an argument type encoded
@@ -624,7 +624,7 @@ public class GenerateAssembler {
         int[] getArgs() { return args; }
 
         /**
-         * Access the data size operated upon by emit method represented 
+         * Access the data size operated upon by emit method represented
          * by this EmitterDescriptor.
          *
          * @return data size for this descriptor
@@ -632,7 +632,7 @@ public class GenerateAssembler {
         int getSize() { return size; }
 
         /**
-         * Access the number of operands operated upon by emit method 
+         * Access the number of operands operated upon by emit method
          * represented by this EmitterDescriptor.
          *
          * @return number of operands for this descriptor
@@ -675,9 +675,9 @@ public class GenerateAssembler {
             StringBuffer s = new StringBuffer();
             s.append("Emitter Set of:\n");
             Iterator<EmitterDescriptor> i = emitters.iterator();
-            while (i.hasNext()) 
+            while (i.hasNext())
                 s.append(i.next().toString() + "\n");
-            
+
             s.append("-------------\n");
             return s.toString();
         }
@@ -800,7 +800,7 @@ public class GenerateAssembler {
          * partition this EmitterSet.  This method searches across all
          * possible ways of splitting this set--all possible operand
          * types and sizes, and all possible operands--to determine
-         * which one splits the set most evenly.  
+         * which one splits the set most evenly.
          *
          * @return a SplitRecord representing the most-even split
          */
@@ -880,15 +880,15 @@ public class GenerateAssembler {
          *
          * @param opcode the IA32 opcode to generate
          * @param testsPerformed the set of queries already performed
-         *        by splitting.  
+         *        by splitting.
          * @param level level of indentation for prett printing */
         private void emitSingleton(String opcode, boolean[][] testsPerformed, int level) {
-            EmitterDescriptor ed = 
+            EmitterDescriptor ed =
                 (EmitterDescriptor) emitters.iterator().next();
 
             int[] args = ed.getArgs();
             int count = ed.getCount();
-            for(int i = 0; i < count; i++) 
+            for(int i = 0; i < count; i++)
                 if (! testsPerformed[i][args[i]])
                     emitVerify(i, args[i], level);
 
@@ -896,15 +896,15 @@ public class GenerateAssembler {
             if (size != 0) {
                 boolean needed = true;
 
-                for(int i = 0; i < count; i++) 
+                for(int i = 0; i < count; i++)
                     if (testsPerformed[i][size])
                         needed = false;
-                    
+
                 if (needed)
                     emitVerify(0, size, level);
 
                 if (size == Byte)
-                    for(int i = 0; i < count; i++) 
+                    for(int i = 0; i < count; i++)
                         if (args[i] == Register)
                             if (currentOpcode.indexOf("MOVZX") == -1 &&
                                 currentOpcode.indexOf("MOVSX") == -1)
@@ -914,7 +914,7 @@ public class GenerateAssembler {
                                 emitArgs(i, Register);
                                 emit(" < 4)) VM._assert(false, inst.toString());\n");
                             }
-                
+
             }
 
             emitEmitCall(opcode, args, count, level, ed.getSize());
@@ -992,13 +992,13 @@ public class GenerateAssembler {
      * @param emitters the set of all emit methods
      * @param opcode the opcode being examined
      */
-    private static EmitterSet 
+    private static EmitterSet
         buildSetForOpcode(Method[] emitters, String opcode)
     {
         EmitterSet s = new EmitterSet();
         for(int i = 0; i < emitters.length; i++) {
             Method m = emitters[i];
-            if (m.getName().startsWith("emit" + opcode + "_") 
+            if (m.getName().startsWith("emit" + opcode + "_")
                                     ||
                 m.getName().equals("emit" + opcode))
             {
@@ -1018,7 +1018,7 @@ public class GenerateAssembler {
     private static Set<String> excludedOpcodes;
 
     /**
-     *  Initialize the set of opcodes to ignore 
+     *  Initialize the set of opcodes to ignore
      *
      * @see #excludedOpcodes
      */
@@ -1076,7 +1076,7 @@ public class GenerateAssembler {
      * generating of error checking code.
      *
      * @param emittedOpcodes the set of IA32 opcodes the assembler
-     * understands. 
+     * understands.
      * @return the set of IA32 opt operators that the assembler does
      * not understand.
      */
@@ -1099,7 +1099,7 @@ public class GenerateAssembler {
      * an IA32 opcde, so this method might seem useless.  However,
      * there are some special cases, notably for operand size.  In
      * this case, an opt operator of the form ADD__B would mean use the
-     * ADD IA32 opcode with a byte operand size.  
+     * ADD IA32 opcode with a byte operand size.
      */
     private static Set<String> getMatchingOperators(String lowLevelOpcode) {
         Iterator<String> e = OPT_OperatorFormatTables.getOpcodes();
@@ -1202,7 +1202,7 @@ public class GenerateAssembler {
             Iterator<String> operators = getMatchingOperators( opcode ).iterator();
             while (operators.hasNext()) {
                 String operator = operators.next();
-                emitTab(3); 
+                emitTab(3);
                 emittedOpcodes.add( operator );
                 emit("case IA32_" + operator + "_opcode:\n");
             }
@@ -1223,14 +1223,14 @@ public class GenerateAssembler {
         emitTab(3);    emit("case IA32_JMP_opcode:\n");
         emitTab(4);    emit("doJMP(inst);\n");
         emitTab(4);    emit("break;\n");
-        
+
         // Kludge for IA32_LOCK which needs to call emitLockNextInstruction
         emittedOpcodes.add("LOCK");
         emitTab(3);    emit("case IA32_LOCK_opcode:\n");
         emitTab(4);    emit("emitLockNextInstruction();\n");
         emitTab(4);    emit("break;\n");
 
-        // Kludge for PATCH_POINT 
+        // Kludge for PATCH_POINT
         emitTab(3);    emit("case IG_PATCH_POINT_opcode:\n");
         emitTab(4);    emit("emitPatchPoint();\n");
         emitTab(4);    emit("break;\n");
@@ -1239,16 +1239,16 @@ public class GenerateAssembler {
         if (! errorOpcodes.isEmpty()) {
             i = errorOpcodes.iterator();
             while (i.hasNext()) {
-                emitTab(3); 
+                emitTab(3);
                 emit("case IA32_" + i.next() + "_opcode:\n");
             }
             emitTab(4); emit("throw new OPT_OptimizingCompilerException(inst + \" has unimplemented IA32 opcode (check excludedOpcodes)\");\n");
         }
-        
+
         emitTab(2);    emit("}\n");
         emitTab(2);    emit("inst.setmcOffset( mi );\n");
         emitTab(1); emit("}\n\n");
-        
+
         emit("\n}\n");
 
         try {

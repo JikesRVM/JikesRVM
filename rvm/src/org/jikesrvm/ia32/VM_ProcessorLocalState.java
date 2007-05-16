@@ -26,7 +26,7 @@ public abstract class VM_ProcessorLocalState {
 
   /**
    * The C bootstrap program has placed a pointer to the initial
-   * VM_Processor in ESI.  
+   * VM_Processor in ESI.
    */
   @Uninterruptible
   public
@@ -51,8 +51,8 @@ public abstract class VM_ProcessorLocalState {
   }
 
   /**
-   * Emit an instruction sequence to move the value of a register into a field 
-   * in the current processor offset 
+   * Emit an instruction sequence to move the value of a register into a field
+   * in the current processor offset
    *
    * @param asm assembler object
    * @param offset of field in the <code>VM_Processor</code> object
@@ -63,8 +63,8 @@ public abstract class VM_ProcessorLocalState {
   }
 
   /**
-   * Emit an instruction sequence to move an immediate value into a field 
-   * in the current processor offset 
+   * Emit an instruction sequence to move an immediate value into a field
+   * in the current processor offset
    *
    * @param asm assembler object
    * @param offset of field in the <code>VM_Processor</code> object
@@ -75,7 +75,7 @@ public abstract class VM_ProcessorLocalState {
   }
 
   /**
-   * Emit an instruction sequence to move the value of a field in the 
+   * Emit an instruction sequence to move the value of a field in the
    * current processor offset to a register
    *
    * @param asm assembler object
@@ -87,7 +87,7 @@ public abstract class VM_ProcessorLocalState {
   }
 
   /**
-   * Emit an instruction sequence to compare the value of a field in the 
+   * Emit an instruction sequence to compare the value of a field in the
    * current processor offset with an immediate value
    *
    * @param asm assembler object
@@ -99,7 +99,7 @@ public abstract class VM_ProcessorLocalState {
   }
 
   /**
-   * Emit an instruction sequence to to an atomic compare and exchange on a field in the 
+   * Emit an instruction sequence to to an atomic compare and exchange on a field in the
    * current processor offset with an immediate value. Assumes EAX (T0) contains old value.
    *
    * @param asm assembler object
@@ -111,7 +111,7 @@ public abstract class VM_ProcessorLocalState {
   }
 
   /**
-   * Emit an instruction sequence to decrement the value of a field in the 
+   * Emit an instruction sequence to decrement the value of a field in the
    * current processor offset
    *
    * @param asm assembler object
@@ -122,7 +122,7 @@ public abstract class VM_ProcessorLocalState {
   }
 
   /**
-   * Emit an instruction sequence to PUSH the value of a field in the 
+   * Emit an instruction sequence to PUSH the value of a field in the
    * current processor offset
    *
    * @param asm assembler object
@@ -133,7 +133,7 @@ public abstract class VM_ProcessorLocalState {
   }
 
   /**
-   * Emit an instruction sequence to POP a value into a field in the 
+   * Emit an instruction sequence to POP a value into a field in the
    * current processor offset
    *
    * @param asm assembler object

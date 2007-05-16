@@ -38,7 +38,7 @@ class OPT_AdjustBranchProbabilities extends OPT_CompilerPhase {
   /**
    * Simplistic adjustment of branch probabilities.
    * The main target of this pass is to detect idioms like
-   *   if (P) { infrequent block } 
+   *   if (P) { infrequent block }
    *   if (P) { } else { infrequent block }
    * that are introduced by OPT_ExpandRuntimeServices.
    *

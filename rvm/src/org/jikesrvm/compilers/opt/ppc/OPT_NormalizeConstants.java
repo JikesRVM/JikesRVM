@@ -192,7 +192,7 @@ public abstract class OPT_NormalizeConstants extends OPT_IRTools {
          s = s.nextInstructionInCodeOrder()) {
 
       // STEP ONE: Get 'large' constants into a form that the PPC BURS rules
-      //           are prepared to deal with. 
+      //           are prepared to deal with.
       // Constants can't appear as defs, so only scan the uses.
       //
       int numUses = s.getNumberOfUses();
@@ -282,8 +282,8 @@ public abstract class OPT_NormalizeConstants extends OPT_IRTools {
         }
       }
 
-      // Calling OPT_Simplifier.simplify ensures that the instruction is 
-      // in normalized form. This reduces the number of cases we have to 
+      // Calling OPT_Simplifier.simplify ensures that the instruction is
+      // in normalized form. This reduces the number of cases we have to
       // worry about (and does last minute constant folding on the off chance
       // we've missed an opportunity...)
       OPT_Simplifier.simplify(ir.regpool, s);

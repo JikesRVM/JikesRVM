@@ -78,7 +78,7 @@ public abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
   static final boolean lookForMissedReferencesInRegs = false;
   static final boolean lookForMissedReferencesInSpills = false;
 
-  // Constructor 
+  // Constructor
   protected VM_OptGenericGCMapIterator(WordArray registerLocations) {
     super();
     this.registerLocations = registerLocations;
@@ -183,7 +183,7 @@ public abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
   public final Address getNextReferenceAddress() {
     if (DEBUG) { VM.sysWrite("  next => "); }
 
-    // make sure we have a map entry to look at 
+    // make sure we have a map entry to look at
     if (mapIndex == VM_OptGCMap.NO_MAP_ENTRY) {
       if (DEBUG) {
         VM.sysWrite("  No Map, returning 0\n");
@@ -359,7 +359,7 @@ public abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    *  Determine the stack location given the frame ptr and spill offset.
    *  (The offset direction varies among architectures.)
    *  @param framePtr the frame pointer
-   *  @param offset  the offset 
+   *  @param offset  the offset
    *  @return the resulting stack location
    */
   public abstract Address getStackLocation(Address framePtr, int offset);
@@ -453,7 +453,7 @@ public abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
     }
 
     // since different archs will have the relative order of ref1, ref2
-    // differently, we normalize them by ensuring that ref1 < ref2; 
+    // differently, we normalize them by ensuring that ref1 < ref2;
     if (ref1.GT(ref2)) {
       Address tmp = ref1;
       ref1 = ref2;

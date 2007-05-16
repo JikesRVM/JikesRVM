@@ -121,7 +121,7 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
         if (f == null) continue;
         if (!isCandidate(f.getType())) continue;
         // a little tricky: we cannot draw any conclusions from inlined
-        // method bodies, since we cannot assume what information, 
+        // method bodies, since we cannot assume what information,
         // gleaned from context, does not hold everywhere
         if (s.position.getMethod() != ir.method) {
           continue;
@@ -141,7 +141,7 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
         if (f == null) continue;
         if (!isCandidate(f.getType())) continue;
         // a little tricky: we cannot draw any conclusions from inlined
-        // method bodies, since we cannot assume what information, 
+        // method bodies, since we cannot assume what information,
         // gleaned from context, does not hold everywhere
         if (s.position.getMethod() != ir.method) {
           continue;

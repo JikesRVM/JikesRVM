@@ -29,7 +29,7 @@ public class OSR_VariableElement implements OSR_Constants {
    */
   private int kind;
 
-  /* the number of element, e.g., with kind we 
+  /* the number of element, e.g., with kind we
    * can know it is L0 or S1.
    */
   private int num;
@@ -37,13 +37,13 @@ public class OSR_VariableElement implements OSR_Constants {
   /* type code, can only be INT, FLOAT, LONG, DOUBLE, RET_ADDR, WORD or REF */
   private int tcode;
 
-  /* The value of this element. 
+  /* The value of this element.
    * For type INT, FLOAT, RET_ADDR and WORD (32-bit), the lower 32 bits are valid.
    * For type LONG and DOUBLE and WORD(64-bit), 64 bits are valid.
    * For REF type, next field 'ref' is valid.
    *
    * For FLOAT, and DOUBLE, use VM_Magic.intBitsAsFloat
-   *                         or VM_Magic.longBitsAsDouble 
+   *                         or VM_Magic.longBitsAsDouble
    * to convert bits to floating-point value.
    */
   private long value;
@@ -53,7 +53,7 @@ public class OSR_VariableElement implements OSR_Constants {
 
   //////////////////////////////////
   // class auxiliary methods
-  ///////////////////////////////// 
+  /////////////////////////////////
   static boolean isIBitsType(int tcode) {
     switch (tcode) {
       case INT:

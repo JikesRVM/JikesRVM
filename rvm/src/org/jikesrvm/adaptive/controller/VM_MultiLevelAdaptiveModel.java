@@ -14,14 +14,14 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 /**
  * Implements the multi-level adaptive strategy using an analytic
  * model, as described in the OOPSLA 2000 paper.  Most behavior
- * inherited from VM_AnalyticModel.  This class defines the the specific 
+ * inherited from VM_AnalyticModel.  This class defines the the specific
  * recompilation choices that should be considered by the analytic model.
  */
 class VM_MultiLevelAdaptiveModel extends VM_AnalyticModel {
 
   /**
    * List of all opt-level choices that can be considered by the
-   * cost-benefit model 
+   * cost-benefit model
    */
   protected VM_RecompileOptChoice[] allOptLevelChoices;
 
@@ -63,9 +63,9 @@ class VM_MultiLevelAdaptiveModel extends VM_AnalyticModel {
 
   /**
    * Compute the set of optimization choices that should be
-   * considered by the cost-benefit model.  
+   * considered by the cost-benefit model.
    *
-   * @param prevCompiler The compiler compiler that was used to 
+   * @param prevCompiler The compiler compiler that was used to
    *                     comile cmpMethod
    * @param cmpMethod The compiled method being considered
    */
@@ -78,7 +78,7 @@ class VM_MultiLevelAdaptiveModel extends VM_AnalyticModel {
   /**
    * Setup a lookup table that maps a "previous compiler" to a set
    * of viable recompilation choices.  In this case, a viable choice
-   * is any compiler > prevCompiler. 
+   * is any compiler > prevCompiler.
    */
   protected void createViableOptionLookupTable(int maxCompiler) {
     viableChoices = new VM_RecompilationChoice[maxCompiler][];

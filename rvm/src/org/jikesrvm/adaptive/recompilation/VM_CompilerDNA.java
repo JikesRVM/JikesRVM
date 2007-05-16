@@ -98,9 +98,9 @@ public class VM_CompilerDNA implements VM_Constants {
   /**
    * Compile time ratio of one compilation level to another
    * For example, if compiler1 (say OPT1) compiles at 50 bc/msec
-   * and compiler2 (say OPT2) compiles at 100 bc/msec, 
+   * and compiler2 (say OPT2) compiles at 100 bc/msec,
    *    compileTimeRatio[OPT1][OPT2] = 2
-   * USAGE NOTE: The data is layed out in a upper triangular matrix 
+   * USAGE NOTE: The data is layed out in a upper triangular matrix
    */
   private static double[][] compileTimeRatio;
 
@@ -119,7 +119,7 @@ public class VM_CompilerDNA implements VM_Constants {
    * of compile2 compile time.  For example, if compiler1 compiles at
    * 50 bc/msec and compiler2 compiles at 100 bc/msec, this method returns 2
    * @param compiler1 the compiler whose compile time we compare to
-   * @param compiler2 the compiler's compile time we care about 
+   * @param compiler2 the compiler's compile time we care about
    * @return the additional overhead (relative to compiler1 compile time)
    * of compile2 compile time
    */
@@ -128,7 +128,7 @@ public class VM_CompilerDNA implements VM_Constants {
   }
 
   /**
-   * Estimate how long (in milliseconds) it will/did take the 
+   * Estimate how long (in milliseconds) it will/did take the
    * given compiler to compile the given method.
    *
    * @param compiler the compiler to compile meth
@@ -146,9 +146,9 @@ public class VM_CompilerDNA implements VM_Constants {
   }
 
   /**
-   * Returns the compilation rates of the baseline compiler in 
+   * Returns the compilation rates of the baseline compiler in
    *  bytecodes/millisecond.
-   * @return the compilation rates of the baseline compiler in 
+   * @return the compilation rates of the baseline compiler in
    *   bytecodes/millisecond
    */
   public static double getBaselineCompilationRate() {
@@ -273,8 +273,8 @@ public class VM_CompilerDNA implements VM_Constants {
   }
 
   /**
-   * returns the number of compilers 
-   * @return the number of compilers 
+   * returns the number of compilers
+   * @return the number of compilers
    */
   public static int getNumberOfCompilers() {
     return numCompilers;

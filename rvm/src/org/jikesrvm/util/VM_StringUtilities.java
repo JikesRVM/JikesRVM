@@ -4,7 +4,7 @@ public class VM_StringUtilities {
 
   /**
    * Convert a <code>String</code> filename to a byte array using the
-   * deprecated ascii String method for cases where passing it through 
+   * deprecated ascii String method for cases where passing it through
    * a character set converter is too heavyweight.  Allocates an
    * additional null-terminator byte so that the resulting byte array
    * can be passed to native C functions.
@@ -21,8 +21,8 @@ public class VM_StringUtilities {
 
   /**
    * Convert a <code>String</code> filename to a byte array using the
-   * deprecated ascii String method for cases where passing it through 
-   * a character set converter is too heavyweight. 
+   * deprecated ascii String method for cases where passing it through
+   * a character set converter is too heavyweight.
    *
    * @param fileName File name
    * @return Byte-array representation

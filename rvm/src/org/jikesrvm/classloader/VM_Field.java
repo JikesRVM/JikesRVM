@@ -168,7 +168,7 @@ public final class VM_Field extends VM_Member {
   }
 
   /**
-   * Get index of constant pool entry containing this 
+   * Get index of constant pool entry containing this
    * "static final constant" field's value.
    * @return constant pool index (0 --> field is not a "static final constant")
    */

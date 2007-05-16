@@ -235,7 +235,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
 
   /**
    * Emit code to load a 32 bit constant
-   * @param offset JTOC offset of the constant 
+   * @param offset JTOC offset of the constant
    * @param type the type of the constant
    */
   protected final void emit_ldc(Offset offset, byte type) {
@@ -244,11 +244,11 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
 
   /**
    * Emit code to load a 64 bit constant
-   * @param offset JTOC offset of the constant 
+   * @param offset JTOC offset of the constant
    * @param type the type of the constant
    */
   protected final void emit_ldc2(Offset offset, byte type) {
-    asm.emitPUSH_RegDisp(JTOC, offset.plus(4)); // high 32 bits 
+    asm.emitPUSH_RegDisp(JTOC, offset.plus(4)); // high 32 bits
     asm.emitPUSH_RegDisp(JTOC, offset);   // low 32 bits
   }
 
@@ -1268,7 +1268,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     for (int i = 0; i < numNonVols; i++) {
       asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
     }
-    // (2) Push arg to C function 
+    // (2) Push arg to C function
     asm.emitPUSH_RegDisp(SP, off);
     // (3) invoke C function through bootrecord
     asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
@@ -1293,7 +1293,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     for (int i = 0; i < numNonVols; i++) {
       asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
     }
-    // (2) Push arg to C function 
+    // (2) Push arg to C function
     asm.emitPUSH_RegDisp(SP, off);
     // (3) invoke C function through bootrecord
     asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
@@ -2313,7 +2313,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       }
       if (itableIndex == -1) {
         // itable index is not known at compile-time.
-        // call "invokeInterface" to resolve object + method id into 
+        // call "invokeInterface" to resolve object + method id into
         // method address
         int methodRefId = methodRef.getId();
         asm.emitPUSH_RegDisp(SP, Offset.fromIntZeroExtend((count - 1) << LG_WORDSIZE));  // "this" parameter is obj
@@ -2326,7 +2326,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
         asm.emitCALL_Reg(S0);                          // the interface method (its parameters are on stack)
       } else {
         // itable index is known at compile-time.
-        // call "findITable" to resolve object + interface id into 
+        // call "findITable" to resolve object + interface id into
         // itable address
         asm.emitMOV_Reg_RegDisp(T0, SP, Offset.fromIntZeroExtend((count - 1) << 2));             // "this" object
         VM_ObjectModel.baselineEmitLoadTIB(asm, S0, T0);
@@ -2428,7 +2428,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * @param dimensions the number of dimensions
    */
   protected final void emit_multianewarray(VM_TypeReference typeRef, int dimensions) {
-    // Calculate the offset from FP on entry to newarray: 
+    // Calculate the offset from FP on entry to newarray:
     //      1 word for each parameter, plus 1 for return address on
     //      stack and 1 for code technique in VM_Linker
     final int PARAMETERS = 4;
@@ -2493,7 +2493,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    */
   protected final void emit_checkcast_final(VM_Type type) {
     asm.emitPUSH_RegInd(SP);                        // duplicate the object ref on the stack
-    asm.emitPUSH_Imm(type.getTibOffset().toInt());           // JTOC index that identifies klass  
+    asm.emitPUSH_Imm(type.getTibOffset().toInt());           // JTOC index that identifies klass
     genParameterRegisterLoad(2);                     // pass 2 parameter words
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.checkcastFinalMethod.getOffset()); // checkcast(obj, TIB's JTOC offset)
   }
@@ -2627,7 +2627,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       int emptyStackOffset = firstLocalOffset - (method.getLocalWords() << LG_WORDSIZE) + WORDSIZE;
       asm.emitADD_Reg_Imm(SP, emptyStackOffset);               // set aside room for non parameter locals
 
-      /* defer generating code which may cause GC until 
+      /* defer generating code which may cause GC until
        * locals were initialized. see emit_deferred_prologue
        */
       if (method.isForOsrSpecialization()) {
@@ -2667,14 +2667,14 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
                                                 VM_Entrypoints.activeThreadStackLimitField.getOffset());
       asm.emitSUB_Reg_Reg(S0, SP);                                       // spa
       asm.emitADD_Reg_Imm(S0, method.getOperandWords() << LG_WORDSIZE);  // spa
-      VM_ForwardReference fr = asm.forwardJcc(VM_Assembler.LT);    // Jmp around trap if 
+      VM_ForwardReference fr = asm.forwardJcc(VM_Assembler.LT);    // Jmp around trap if
       asm.emitINT_Imm(VM_Runtime.TRAP_STACK_OVERFLOW + RVM_TRAP_BASE); // tra
       fr.resolve(asm);
     } else {
-      // TODO!! make sure stackframe of uninterruptible method doesn't overflow 
+      // TODO!! make sure stackframe of uninterruptible method doesn't overflow
     }
 
-    /* never do monitor enter for synced method since the specialized 
+    /* never do monitor enter for synced method since the specialized
      * code starts after original monitor enter.
      */
 
@@ -3166,7 +3166,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       // Stores all take the form:
       // ..., Address, [Offset], Value -> ...
       if (methodName == VM_MagicNames.store) {
-        // Always at least one parameter to a store. 
+        // Always at least one parameter to a store.
         // First parameter is the type to be stored.
         VM_TypeReference storeType = types[0];
 
@@ -3185,7 +3185,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
             // Store at offset
             asm.emitPOP_Reg(S0);                   // offset
             asm.emitPOP_Reg(T0);                   // value
-            asm.emitPOP_Reg(T1);                   // address 
+            asm.emitPOP_Reg(T1);                   // address
             asm.emitMOV_RegIdx_Reg(T1, S0,
                                    VM_Assembler.BYTE, NO_SLOT, T0); // [T1+S0] <- T0
           }
@@ -3194,15 +3194,15 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
 
         if (storeType == VM_TypeReference.Byte) {
           if (types.length == 1) {
-            // No offset 
+            // No offset
             asm.emitPOP_Reg(T0);                   // value
-            asm.emitPOP_Reg(T1);                   // base 
+            asm.emitPOP_Reg(T1);                   // base
             asm.emitMOV_RegInd_Reg_Byte(T1, T0);
           } else {
             // Store at offset
             asm.emitPOP_Reg(S0);                   // offset
             asm.emitPOP_Reg(T0);                   // value
-            asm.emitPOP_Reg(T1);                   // base 
+            asm.emitPOP_Reg(T1);                   // base
             asm.emitMOV_RegIdx_Reg_Byte(T1, S0,
                                         VM_Assembler.BYTE, NO_SLOT, T0); // [T1+S0] <- (byte) T0
           }
@@ -3213,15 +3213,15 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
             storeType == VM_TypeReference.Char) {
 
           if (types.length == 1) {
-            // No offset 
+            // No offset
             asm.emitPOP_Reg(T0);                   // value
-            asm.emitPOP_Reg(T1);                   // base 
+            asm.emitPOP_Reg(T1);                   // base
             asm.emitMOV_RegInd_Reg_Word(T1, T0);
           } else {
             // Store at offset
-            asm.emitPOP_Reg(S0);                   // offset    
+            asm.emitPOP_Reg(S0);                   // offset
             asm.emitPOP_Reg(T0);                   // value
-            asm.emitPOP_Reg(T1);                   // base      
+            asm.emitPOP_Reg(T1);                   // base
             asm.emitMOV_RegIdx_Reg_Word(T1, S0,
                                         VM_Assembler.BYTE, NO_SLOT, T0); // [T1+S0] <- (word) T0
           }
@@ -3232,13 +3232,13 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
             storeType == VM_TypeReference.Long) {
 
           if (types.length == 1) {
-            // No offset 
+            // No offset
             throw new RuntimeException("Magic not implemented");
           } else {
             // Store at offset
             asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);          // value high
             asm.emitMOV_Reg_RegInd(S0, SP);     // offset
-            asm.emitMOV_Reg_RegDisp(T1, SP, THREE_SLOTS);     // base 
+            asm.emitMOV_Reg_RegDisp(T1, SP, THREE_SLOTS);     // base
             asm.emitMOV_RegIdx_Reg(T1, S0, VM_Assembler.BYTE, NO_SLOT, T0); // [T1+S0] <- T0
             asm.emitMOV_Reg_RegDisp(T0, SP, TWO_SLOTS);     // value low
             asm.emitMOV_RegIdx_Reg(T1, S0, VM_Assembler.BYTE, ONE_SLOT, T0); // [T1+S0+4] <- T0
@@ -3437,7 +3437,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       return true;
     }
 
-    // Get the value in ESI 
+    // Get the value in ESI
     if (methodName == VM_MagicNames.getESIAsProcessor) {
       asm.emitPUSH_Reg(ESI);
       return true;
@@ -3788,7 +3788,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
         asm.emitPUSH_Imm(0); // upper 32 bits
         asm.emitPUSH_Reg(T0); // lower 32 bits
         return true;
-      } // else fill unused stackslot 
+      } // else fill unused stackslot
       if (VM.VerifyAssertions) VM._assert(false);
     }
 
@@ -3940,14 +3940,14 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   }
 
   // Offset of Java local variable (off stack pointer)
-  // assuming ESP is still positioned as it was at the 
+  // assuming ESP is still positioned as it was at the
   // start of the current bytecode (biStart)
   private Offset localOffset(int local) {
     return Offset.fromIntZeroExtend((stackHeights[biStart] - local) << LG_WORDSIZE);
   }
 
-  // Translate a FP offset into an SP offset 
-  // assuming ESP is still positioned as it was at the 
+  // Translate a FP offset into an SP offset
+  // assuming ESP is still positioned as it was at the
   // start of the current bytecode (biStart)
   private Offset fp2spOffset(Offset offset) {
     int offsetToFrameHead = (stackHeights[biStart] << LG_WORDSIZE) - firstLocalOffset;

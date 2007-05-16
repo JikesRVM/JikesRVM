@@ -20,7 +20,7 @@ import java.util.Enumeration;
  * result.  If not, the iterator continues thru other unanalyzed
  * elements.  If there is a change, then the data-flow successors of
  * the current node become the new head of the order of remaining
- * nodes. 
+ * nodes.
  *
  *  A typical use is as follows:
  *   OPT_BasicBlock start = ir.cfg.entry();
@@ -30,7 +30,7 @@ import java.util.Enumeration;
  *
  *       // do your analysis of the currBlock here
  *
- *       boolean changed = ... // true if the solution of currBlock has been changed since 
+ *       boolean changed = ... // true if the solution of currBlock has been changed since
  *                             // the last visit of currBlock.
  *                             // false if not.
  *
@@ -125,7 +125,7 @@ public class OPT_SortedGraphIterator {
     }
 
     // Either changed = false or no retreat
-    // Return the first one with changeMark before barrier or 
+    // Return the first one with changeMark before barrier or
     // barrier itself.
     currentNode = currentNode.getSortedNext(forward);
     for (; currentNode != barrier; currentNode =
@@ -183,7 +183,7 @@ public class OPT_SortedGraphIterator {
 
   /**
    *  This method keeps track of nodes in the graph that are known to
-   * not have been visited yet even once. Advance the barrier, if needed 
+   * not have been visited yet even once. Advance the barrier, if needed
    */
   private void advanceBarrier() {
     if (currentNode != null) {

@@ -1960,7 +1960,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
     return asm.finalizeMachineCode(bytecodeMap);
   }
 
-  /* for invoke compiled method, we have to fool GC map, 
+  /* for invoke compiled method, we have to fool GC map,
   * InvokeCompiledMethod has two parameters compiledMethodID
   * and originalBytecodeIndex of that call site
   *
@@ -2120,14 +2120,14 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
 
   /**
    * Emit code to load a 32 bit constant
-   * @param offset JTOC offset of the constant 
+   * @param offset JTOC offset of the constant
    * @param type the type of the constant
    */
   protected abstract void emit_ldc(Offset offset, byte type);
 
   /**
    * Emit code to load a 64 bit constant
-   * @param offset JTOC offset of the constant 
+   * @param offset JTOC offset of the constant
    * @param type the type of the constant
    */
   protected abstract void emit_ldc2(Offset offset, byte type);

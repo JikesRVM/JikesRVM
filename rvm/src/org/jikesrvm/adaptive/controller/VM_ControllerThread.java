@@ -29,13 +29,13 @@ import org.jikesrvm.adaptive.util.VM_AOSOptions;
 import org.jikesrvm.scheduler.VM_Thread;
 
 /**
- * This class implements the controller thread.  This entity is the brains of 
- * the adaptive optimization system.  It communicates with the runtime 
- * measurements subsystem to instruct and gather profiling information.  
- * It also talks to the compilation threads to generate 
+ * This class implements the controller thread.  This entity is the brains of
+ * the adaptive optimization system.  It communicates with the runtime
+ * measurements subsystem to instruct and gather profiling information.
+ * It also talks to the compilation threads to generate
  *     a) instrumented executables;
- *     b) optimized executables; 
- *     c) static information about a method; or 
+ *     b) optimized executables;
+ *     c) static information about a method; or
  *     d) all of the above.
  */
 public class VM_ControllerThread extends VM_Thread {
@@ -77,12 +77,12 @@ public class VM_ControllerThread extends VM_Thread {
     }
     VM_AOSLogging.controllerStarted();
 
-    // Create measurement entities that are NOT related to 
+    // Create measurement entities that are NOT related to
     // adaptive recompilation
     createProfilers();
 
     if (!VM_Controller.options.ENABLE_RECOMPILATION) {
-      // We're running an AOS bootimage with a non-adaptive primary strategy. 
+      // We're running an AOS bootimage with a non-adaptive primary strategy.
       // We already set up any requested profiling infrastructure, so nothing
       // left to do but exit.
       controllerInitDone();
@@ -104,11 +104,11 @@ public class VM_ControllerThread extends VM_Thread {
       VM_Controller.osrOrganizer = new OSR_OrganizerThread();
       VM_Controller.osrOrganizer.start();
       createCompilationThread();
-      // We're running an AOS bootimage with a non-adaptive primary strategy. 
+      // We're running an AOS bootimage with a non-adaptive primary strategy.
       // We already set up any requested profiling infrastructure, so nothing
       // left to do but exit.
       controllerInitDone();
-      // to have a fair comparison, we need to create the data structures 
+      // to have a fair comparison, we need to create the data structures
       // of organizers
       createOrganizerThreads();
       VM.sysWriteln("AOS: In replay mode; controller thread only runs for OSR inlining.");
@@ -144,9 +144,9 @@ public class VM_ControllerThread extends VM_Thread {
     controllerInitDone();
 
     // Enter main controller loop.
-    // Pull an event to process off of 
-    // VM_Controller.controllerInputQueue and handle it.  
-    // If no events are on the queue, then the deleteMin call will 
+    // Pull an event to process off of
+    // VM_Controller.controllerInputQueue and handle it.
+    // If no events are on the queue, then the deleteMin call will
     // block until an event is available.
     // Repeat forever.
     while (true) {
@@ -179,14 +179,14 @@ public class VM_ControllerThread extends VM_Thread {
   }
 
   /**
-   * Called when the controller thread is about to wait on 
+   * Called when the controller thread is about to wait on
    * VM_Controller.controllerInputQueue
    */
   public void aboutToWait() {
   }
 
   /**
-   * Called when the controller thread is woken after waiting on 
+   * Called when the controller thread is woken after waiting on
    * VM_Controller.controllerInputQueue
    */
   public void doneWaiting() {
@@ -242,7 +242,7 @@ public class VM_ControllerThread extends VM_Thread {
       // Primary backing store for method sample data
       VM_Controller.methodSamples = new VM_MethodCountData();
 
-      // Install organizer to drive method recompilation 
+      // Install organizer to drive method recompilation
       VM_Controller.organizers.addElement(new VM_MethodSampleOrganizer(opts.FILTER_OPT_LEVEL));
       // Additional set up for feedback directed inlining
       if (opts.ADAPTIVE_INLINING) {
@@ -267,4 +267,4 @@ public class VM_ControllerThread extends VM_Thread {
     VM_AOSLogging.controllerCompleted();
   }
 
-} 
+}

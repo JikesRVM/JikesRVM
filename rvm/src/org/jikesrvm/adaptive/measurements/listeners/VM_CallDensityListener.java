@@ -26,7 +26,7 @@ public final class VM_CallDensityListener extends VM_NullListener {
   private double numBackedgeSamples = 0;
 
   /**
-   * This method is called when its time to record that a 
+   * This method is called when its time to record that a
    * yield point has occurred.
    * @param whereFrom Was this a yieldpoint in a PROLOGUE, BACKEDGE, or
    *             EPILOGUE?

@@ -85,7 +85,7 @@ public final class OPT_GCIRMapElement {
   }
 
   /**
-   * Counts and returns the number of register elements (not spills) 
+   * Counts and returns the number of register elements (not spills)
    *     for this entry
    * @return the number of register elements for this entry
    */

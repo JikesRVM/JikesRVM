@@ -29,7 +29,7 @@ public interface OSR_Constants extends VM_SizeConstants {
    *    b : the bytecode index of the instruction
    *    i : index into the inline encoding
    *
-   * (HIGH)  iiii iiii iiii iiib bbbb bbbb bbbb bbbo 
+   * (HIGH)  iiii iiii iiii iiib bbbb bbbb bbbb bbbo
    * (LOW)   oooo oooo oooo ommm mmmm mmmm mmmm mmmm
    */
   long OFFSET_MASK = 0x000000000007ffffL;
@@ -49,17 +49,17 @@ public interface OSR_Constants extends VM_SizeConstants {
   int INVALID_IEI = (int) (IEI_MASK >>> IEI_SHIFT);
 
   /* array of OSR maps.
-   * 
+   *
    *  1. Each map has one or more ints as following:
-   *     REG_REF (WORD1 WORD2) (WORD1 WORD2) 
-   * 
+   *     REG_REF (WORD1 WORD2) (WORD1 WORD2)
+   *
    *  2. The first in REG_REF is a bit map of registers that
    *     contain references ( the MSB is used for chaining ).
-   *     Use 'getRegBitPosition' to find the position for 
+   *     Use 'getRegBitPosition' to find the position for
    *     a register.
-   *  
+   *
    *  3. The following words are tuple of two words:
-   *     (WORD 1)  Nxxx xxxx xxkt ttnn nnnn nnnn nnnn nnvv  
+   *     (WORD 1)  Nxxx xxxx xxkt ttnn nnnn nnnn nnnn nnvv
    *     (WORD 2)  int bits value
    *
    *     N : next tuple is valid.

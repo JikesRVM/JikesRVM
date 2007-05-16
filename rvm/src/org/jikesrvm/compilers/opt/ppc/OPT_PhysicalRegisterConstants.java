@@ -17,7 +17,7 @@ import org.jikesrvm.ppc.VM_RegisterConstants;
  */
 public interface OPT_PhysicalRegisterConstants extends VM_RegisterConstants {
 
-  // Types of values stored in physical registers; 
+  // Types of values stored in physical registers;
   // These affect instruction selection for accessing
   // the data
   byte INT_VALUE = 0;
@@ -59,16 +59,16 @@ public interface OPT_PhysicalRegisterConstants extends VM_RegisterConstants {
                             + 1;
 
   // Derived constants for use by the register pool.
-  // These constants give the register pool numbers for caller saved registers 
+  // These constants give the register pool numbers for caller saved registers
   // (or volatile registers, preserved across function calls).
-  // NOTE: the order is used by the register allocator 
+  // NOTE: the order is used by the register allocator
   // TODO: fix this.
   int FIRST_INT_RETURN = FIRST_VOLATILE_GPR + FIRST_INT;
   int NUMBER_INT_RETURN = 2;
   int FIRST_DOUBLE_RETURN = FIRST_VOLATILE_FPR + FIRST_DOUBLE;
   int NUMBER_DOUBLE_RETURN = 1;
 
-  // special PowerPC registers 
+  // special PowerPC registers
   int XER = FIRST_SPECIAL + 0;     // extended register
   int LR = FIRST_SPECIAL + 1;      // link register
   int CTR = FIRST_SPECIAL + 2;     // count register

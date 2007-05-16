@@ -33,7 +33,7 @@ interface OPT_Graph {
   /**
    *  Find out how many nodes are in the graph
    *
-   *  @return the number of nodes in the graph 
+   *  @return the number of nodes in the graph
    */
   int numberOfNodes();
 
@@ -43,8 +43,8 @@ interface OPT_Graph {
    * graph - 1).  This number is what should be returned by
    * {@link OPT_GraphNode#getIndex OPT_GraphNode.getIndex}.  This
    * method is used by clients that want to e.g. allocate look-aside
-   * storage for graph nodes in an 
-   * array. 
+   * storage for graph nodes in an
+   * array.
    */
   void compactNodeNumbering();
 

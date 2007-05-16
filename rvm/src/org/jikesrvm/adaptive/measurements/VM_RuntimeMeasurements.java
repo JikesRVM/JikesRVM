@@ -24,23 +24,23 @@ import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 
 /**
- * RuntimeMeasurements manages listeners, decayable objects, and 
+ * RuntimeMeasurements manages listeners, decayable objects, and
  * reportable objects.
  *
  * A listener is installed by an organizer, and activated at thread
  * switch time by VM_Thread.  Depending on the update method that the
- * listener supports, it can be either a method, context, or a null 
- * listener.  Currently we have different registries for different 
- * listeners.  An alternative design is to have one register with where 
+ * listener supports, it can be either a method, context, or a null
+ * listener.  Currently we have different registries for different
+ * listeners.  An alternative design is to have one register with where
  * entries are tagged.
  *
  * A decayable object implements the VM_Decayable interface.
  * Anyone can register a decayable object,
- * The VM_DecayOrganizer periodically decays all objects that have 
+ * The VM_DecayOrganizer periodically decays all objects that have
  * been registers.
  *
- * A reportable object implements the Reportable interface, and 
- * is typically registered and used by the instrumentation subsystem. 
+ * A reportable object implements the Reportable interface, and
+ * is typically registered and used by the instrumentation subsystem.
  * A Reporable can be reset and reported.
  */
 public abstract class VM_RuntimeMeasurements {
@@ -117,7 +117,7 @@ public abstract class VM_RuntimeMeasurements {
    */
   @Uninterruptible
   public static void takeTimerSample(int whereFrom) {
-    // We use threadswitches as a rough approximation of time. 
+    // We use threadswitches as a rough approximation of time.
     // Every threadswitch is a clock tick.
     // TODO: kill controller clock in favor of VM_Processor.reportedTimerTicks
     VM_Controller.controllerClock++;
@@ -130,7 +130,7 @@ public abstract class VM_RuntimeMeasurements {
       // NB: depends on calling structure described in method comment!!!
       Address fp = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()); // VM_Thread.yieldpoint
       fp = VM_Magic.getCallerFramePointer(fp); // wrapper routine
-      Address ypTakenInFP = VM_Magic.getCallerFramePointer(fp); // method that took yieldpoint          
+      Address ypTakenInFP = VM_Magic.getCallerFramePointer(fp); // method that took yieldpoint
 
       // Get the cmid for the method in which the yieldpoint was taken.
       int ypTakenInCMID = VM_Magic.getCompiledMethodID(ypTakenInFP);
@@ -231,7 +231,7 @@ public abstract class VM_RuntimeMeasurements {
       // NB: depends on calling structure described in method comment!!!
       Address fp = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()); // VM_Thread.yieldpoint
       fp = VM_Magic.getCallerFramePointer(fp); // wrapper routine
-      Address ypTakenInFP = VM_Magic.getCallerFramePointer(fp); // method that took yieldpoint          
+      Address ypTakenInFP = VM_Magic.getCallerFramePointer(fp); // method that took yieldpoint
 
       // Get the cmid for the method in which the yieldpoint was taken.
       int ypTakenInCMID = VM_Magic.getCompiledMethodID(ypTakenInFP);
@@ -278,7 +278,7 @@ public abstract class VM_RuntimeMeasurements {
       // NB: depends on calling structure described in method comment!!!
       Address fp = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()); // VM_Thread.yieldpoint
       fp = VM_Magic.getCallerFramePointer(fp); // wrapper routine
-      Address ypTakenInFP = VM_Magic.getCallerFramePointer(fp); // method that took yieldpoint          
+      Address ypTakenInFP = VM_Magic.getCallerFramePointer(fp); // method that took yieldpoint
 
       // Get the cmid for the method in which the yieldpoint was taken.
       int ypTakenInCMID = VM_Magic.getCompiledMethodID(ypTakenInFP);

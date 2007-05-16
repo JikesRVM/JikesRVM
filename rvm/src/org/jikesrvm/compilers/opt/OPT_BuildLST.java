@@ -12,7 +12,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
 
 /**
  * A compiler phase to construct the loop structure tree (LST).
- * The steps are (1) construct approximate dominators (ie blocks are 
+ * The steps are (1) construct approximate dominators (ie blocks are
  * not unfactored) and (2) build the LST.
  *
  * @see OPT_LTDominators
@@ -30,7 +30,7 @@ public class OPT_BuildLST extends OPT_CompilerPhase {
 
   /**
    * Build the Loop Structure Tree (LST) for the given IR.
-   * NOTE: CFG must be reducible.  
+   * NOTE: CFG must be reducible.
    * TODO: Detect irreducible CFG, apply node splitting and then construct LST.
    *
    * @param ir the IR on which to apply the phase

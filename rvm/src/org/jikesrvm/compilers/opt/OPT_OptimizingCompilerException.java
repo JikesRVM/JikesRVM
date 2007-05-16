@@ -13,8 +13,8 @@ import java.io.StringWriter;
 import org.jikesrvm.classloader.VM_TypeReference;
 
 /**
- * Use this exception if we encounter a runtime error in the dynamic 
- * optimizing compiler.  The caller can recover by calling the 
+ * Use this exception if we encounter a runtime error in the dynamic
+ * optimizing compiler.  The caller can recover by calling the
  * non-optimizing compiler instead (or by reverting to the previous
  * version of compiled code).
  */
@@ -36,13 +36,13 @@ public class OPT_OptimizingCompilerException extends RuntimeException {
 
   /**
    * When running in the RVM, typically optimizing compiler
-   * exceptions are caught, optionally a message is printed, and we 
+   * exceptions are caught, optionally a message is printed, and we
    * fallback to using the baseline compiler.  However, this
    * may not be desirable when running regression testing because
    * an optimizing compiler exception may be a symptom of a serious failure.
    * Thus, the code throwing the exception can use an optional boolean value
-   * to indicate if the exception is "normal" or if it should be treated 
-   * as a fatal failure for the purpose of regression testing. 
+   * to indicate if the exception is "normal" or if it should be treated
+   * as a fatal failure for the purpose of regression testing.
    */
   public boolean isFatal = true;
 
@@ -63,7 +63,7 @@ public class OPT_OptimizingCompilerException extends RuntimeException {
   }
 
   /**
-   * @param   err message descrining reason for exception 
+   * @param   err message descrining reason for exception
    * @param   b is the exception fatal?
    */
   public OPT_OptimizingCompilerException(String err, boolean b) {
@@ -73,7 +73,7 @@ public class OPT_OptimizingCompilerException extends RuntimeException {
 
   /**
    * @param   module opt compiler module in which exception was raised
-   * @param   err message describing reason for exception 
+   * @param   err message describing reason for exception
    */
   public OPT_OptimizingCompilerException(String module, String err) {
     super("ERROR produced in module:" + module + "\n    " + err + "\n");
@@ -81,8 +81,8 @@ public class OPT_OptimizingCompilerException extends RuntimeException {
 
   /**
    * @param   module opt compiler module in which exception was raised
-   * @param   err1 message describing reason for exception 
-   * @param   err2 message describing reason for exception 
+   * @param   err1 message describing reason for exception
+   * @param   err2 message describing reason for exception
    */
   public OPT_OptimizingCompilerException(String module, String err1, String err2) {
     super("ERROR produced in module:" + module + "\n    " + err1 + " "
@@ -91,7 +91,7 @@ public class OPT_OptimizingCompilerException extends RuntimeException {
 
   /**
    * @param   module opt compiler module in which exception was raised
-   * @param   err1 message describing reason for exception 
+   * @param   err1 message describing reason for exception
    * @param   obj  object to print describing reason for exception
    */
   public OPT_OptimizingCompilerException(String module, String err1, Object obj) {
@@ -100,7 +100,7 @@ public class OPT_OptimizingCompilerException extends RuntimeException {
 
   /**
    * @param   module opt compiler module in which exception was raised
-   * @param   err1 message describing reason for exception 
+   * @param   err1 message describing reason for exception
    * @param   val  integer to print describing reason for exception
    */
   public OPT_OptimizingCompilerException(String module, String err1, int val) {
@@ -109,9 +109,9 @@ public class OPT_OptimizingCompilerException extends RuntimeException {
 
   /**
    * @param   module opt compiler module in which exception was raised
-   * @param   err1 message describing reason for exception 
-   * @param   err2 message describing reason for exception 
-   * @param   err3 message describing reason for exception 
+   * @param   err1 message describing reason for exception
+   * @param   err2 message describing reason for exception
+   * @param   err3 message describing reason for exception
    */
   public OPT_OptimizingCompilerException(String module, String err1, String err2,
                                          String err3) {
@@ -121,8 +121,8 @@ public class OPT_OptimizingCompilerException extends RuntimeException {
 
   /**
    * @param   module opt compiler module in which exception was raised
-   * @param   err1 message describing reason for exception 
-   * @param   err2 message describing reason for exception 
+   * @param   err1 message describing reason for exception
+   * @param   err2 message describing reason for exception
    * @param   obj  object to print describing reason for exception
    */
   public OPT_OptimizingCompilerException(String module, String err1, String err2,
@@ -132,8 +132,8 @@ public class OPT_OptimizingCompilerException extends RuntimeException {
 
   /**
    * @param   module opt compiler module in which exception was raised
-   * @param   err1 message describing reason for exception 
-   * @param   err2 message describing reason for exception 
+   * @param   err1 message describing reason for exception
+   * @param   err2 message describing reason for exception
    * @param   val  integer to print describing reason for exception
    */
   OPT_OptimizingCompilerException(String module, String err1, String err2,
@@ -165,7 +165,7 @@ public class OPT_OptimizingCompilerException extends RuntimeException {
    * Use the UNREACHABLE methods to mark code that should never execute
    * eg, unexpected cases of switch statments and nested if/then/else
    * @param   module opt compiler module in which exception was raised
-   * @param   err1 message describing reason for exception 
+   * @param   err1 message describing reason for exception
    * @exception OPT_OptimizingCompilerException
    */
   public static void UNREACHABLE(String module, String err1) throws
@@ -178,8 +178,8 @@ public class OPT_OptimizingCompilerException extends RuntimeException {
    * Use the UNREACHABLE methods to mark code that should never execute
    * eg, unexpected cases of switch statments and nested if/then/else
    * @param   module opt compiler module in which exception was raised
-   * @param   err1 message describing reason for exception 
-   * @param   err2 message describing reason for exception 
+   * @param   err1 message describing reason for exception
+   * @param   err2 message describing reason for exception
    * @exception OPT_OptimizingCompilerException
    */
   public static void UNREACHABLE(String module, String err1, String err2)

@@ -100,7 +100,7 @@ public class VM_CompiledMethods implements VM_SizeConstants {
    *                objects without fixing up the raw <code>ip</code> pointer)
    *
    * Note: this method is highly inefficient. Normally you should use the
-   * following instead: 
+   * following instead:
    *
    * <code>
    * VM_ClassLoader.getCompiledMethod(VM_Magic.getCompiledMethodID(fp))

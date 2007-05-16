@@ -273,7 +273,7 @@ public abstract class OPT_IRTools {
   }
 
   /**
-   * Returns the correct operator for a conditional move with the given data 
+   * Returns the correct operator for a conditional move with the given data
    * type.
    *
    * @param type desired type to move
@@ -444,7 +444,7 @@ public abstract class OPT_IRTools {
    * <pre>
    * in -> bb -> out.
    * </pre>
-   * <em> Precondition </em>: There is an edge in the control flow graph 
+   * <em> Precondition </em>: There is an edge in the control flow graph
    * from * in -> out.
    *
    * @param in the source of the control flow edge
@@ -528,7 +528,7 @@ public abstract class OPT_IRTools {
       }
     }
 
-    // 4. Add a goto bb->out 
+    // 4. Add a goto bb->out
     OPT_Instruction s = Goto.create(GOTO, out.makeJumpTarget());
     bb.appendInstruction(s);
     // add goto in->next
@@ -539,16 +539,16 @@ public abstract class OPT_IRTools {
       if (!foundGoto) {
         /*
          * TODO: come up with a better fix (?).
-         * 
-         * This is a fix to a particular problem in dacapo xalan.  
-         * 
-         * We have a loop inside an exception handler, and the exception handler 
+         *
+         * This is a fix to a particular problem in dacapo xalan.
+         *
+         * We have a loop inside an exception handler, and the exception handler
          * is empty.  The loop termination condition simply falls through the
          * exception handler to the next block.  This works fine until LeaveSSA,
-         * when we split the final block and insert a GOTO to the exception handler 
+         * when we split the final block and insert a GOTO to the exception handler
          * block.  When we reassemble the IR afterwards, kaboom.
-         * 
-         * I would have though it better not to fall through empty exception handlers 
+         *
+         * I would have though it better not to fall through empty exception handlers
          * at all, and explicitly GOTO past them from the get go.   RJG 4/2/7
          */
         OPT_BasicBlock jumpTarget = next;
@@ -659,12 +659,12 @@ public abstract class OPT_IRTools {
   }
 
   /**
-   * Might this instruction be a load from a field that is declared 
+   * Might this instruction be a load from a field that is declared
    * to be volatile?
    *
    * @param s the insruction to check
    * @return <code>true</code> if the instruction might be a load
-   *         from a volatile field or <code>false</code> if it 
+   *         from a volatile field or <code>false</code> if it
    *         cannot be a load from a volatile field
    */
   public static boolean mayBeVolatileFieldLoad(OPT_Instruction s) {

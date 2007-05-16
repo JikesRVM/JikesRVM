@@ -83,9 +83,9 @@ public class OPT_OptimizationPlanCompositeElement extends OPT_OptimizationPlanEl
    * of an optimization plan.
    *
    * @param name The name associated with this composite.
-   * @param elems An Object[] of OPT_CompilerPhases or 
+   * @param elems An Object[] of OPT_CompilerPhases or
    *              OPT_OptimizationPlanElements to be composed
-   * @return an OPT_OptimizationPlanCompositeElement that 
+   * @return an OPT_OptimizationPlanCompositeElement that
    *         represents the composition.
    */
   public static OPT_OptimizationPlanCompositeElement compose(String name,
@@ -159,7 +159,7 @@ public class OPT_OptimizationPlanCompositeElement extends OPT_OptimizationPlanEl
 
   /**
    * Generate (to the sysWrite stream) a report of the
-   * time spent performing this element of the optimization plan. 
+   * time spent performing this element of the optimization plan.
    *
    * @param indent Number of spaces to indent report.
    * @param timeCol Column number of time portion of report.

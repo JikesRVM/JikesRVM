@@ -30,7 +30,7 @@ public final class SynchronizationBarrier {
 
   private static final int verbose = 0;
 
-  // number of physical processors on running computer 
+  // number of physical processors on running computer
   private int numRealProcessors;
 
   final Barrier barrier = new Barrier();
@@ -144,7 +144,7 @@ public final class SynchronizationBarrier {
       }
       return sum;
     } else {
-      sysCall.sysVirtualProcessorYield();        // pthread yield 
+      sysCall.sysVirtualProcessorYield();        // pthread yield
       return 0;
     }
   }

@@ -25,7 +25,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_WeightedBranchTargets;
 /**
  * Reorder code layout of basic blocks for improved I-cache locality and
  * branch prediction. This code assumes that basic block frequencies have
- * been computed and blocks have been marked infrequent. 
+ * been computed and blocks have been marked infrequent.
  * This pass actually implements two code placement algorithms:
  * (1) A simple 'fluff' removal pass that moves all infrequent basic blocks
  *     to the end of the code order.
@@ -58,7 +58,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
   }
 
   /**
-   * Reorder basic blocks either by trivially moving infrequent blocks 
+   * Reorder basic blocks either by trivially moving infrequent blocks
    * to the end of the code order or by applying Pettis and Hansen Algo2.
    *
    * We will rearrange basic blocks and insert/remove
@@ -87,7 +87,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
    * @param ir the OPT_IR object to reorder
    */
   private void exileInfrequentBlocks(OPT_IR ir) {
-    // (1) Look to see if there are infrequent blocks 
+    // (1) Look to see if there are infrequent blocks
     //     Also count how many blocks there are.
     int numBlocks = 0;
     boolean foundSome = false;
@@ -140,7 +140,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
       if (i < newOrdering.length - 1 && lastInstr != null && lastInstr.operator() == GOTO) {
         OPT_BranchOperand op = Goto.getTarget(lastInstr);
         if (op.target.getBasicBlock() == newOrdering[i + 1]) {
-          // unconditional goto is redundant in new ordering 
+          // unconditional goto is redundant in new ordering
           lastInstr.remove();
         }
       }
@@ -261,7 +261,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
     //     Constructing an optimal order is NP-Hard, so we apply the following heuristic.
     //     The chain that starts with the entry node is placed first.
     //     At each step, pick the chain with the maximal placedWeight (incoming edges from chains
-    //     that are already placed) and minimal inWeight (incoming edges from chains that are not 
+    //     that are already placed) and minimal inWeight (incoming edges from chains that are not
     //     already placed). Prefer a node with non-zero placedWeight and inWeight to one that has
     //     zeros for both. (A node with both zero placedWeight and zero inWeight is something that
     //     the profile data predicts is not reachable via normal control flow from the entry node).
@@ -372,7 +372,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
       } else if (weight > that.weight) {
         return -1;
       } else {
-        // Equal weights.  
+        // Equal weights.
         // Sort based on original code ordering, which is implied by block number
         if (source.getNumber() < that.source.getNumber()) {
           return 1;

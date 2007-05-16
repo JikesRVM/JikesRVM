@@ -99,7 +99,7 @@ public class OPT_Tree {
   }
 
   /**
-   * Prints the tree 
+   * Prints the tree
    * @return the tree as a string
    */
   public final String toString() {

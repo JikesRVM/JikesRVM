@@ -203,9 +203,9 @@ import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
 
 /**
- * A constant folder, strength reducer and axiomatic simplifier. 
+ * A constant folder, strength reducer and axiomatic simplifier.
  *
- * <p> This module performs no analysis, it simply attempts to 
+ * <p> This module performs no analysis, it simply attempts to
  * simplify the instruction as is. The intent is that
  * analysis modules can call this transformation engine, allowing us to
  * share the tedious simplification code among multiple analysis modules.
@@ -214,8 +214,8 @@ import org.vmmagic.unboxed.Word;
  * clever about combining 'similar' operators together into a combined case
  * of the main switch switch statement. Also, operators are in sorted ordered
  * within each major grouping.  Please maintain this coding style.
- * I'd rather have this module be 2000 lines of obviously correct code than 
- * 500 lines of clever code. 
+ * I'd rather have this module be 2000 lines of obviously correct code than
+ * 500 lines of clever code.
  */
 public abstract class OPT_Simplifier extends OPT_IRTools {
   // NOTE: The convention is that constant folding is controlled based
@@ -292,7 +292,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
    * Given an instruction, attempt to simplify it.
    * The instruction will be mutated in place.
    *
-   * <p> We don't deal with branching operations here -- 
+   * <p> We don't deal with branching operations here --
    * doing peephole optimizations of branches
    * is the job of a separate module.
    *
@@ -1390,9 +1390,9 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       if (op2.isIntConstant()) {
         int val2 = op2.asIntConstant().value;
         if (val2 == 0) {
-          // TODO: This instruction is actually unreachable.  
+          // TODO: This instruction is actually unreachable.
           // There will be an INT_ZERO_CHECK
-          // guarding this instruction that will result in an 
+          // guarding this instruction that will result in an
           // ArithmeticException.  We
           // should probabbly just remove the INT_DIV as dead code.
           return DefUseEffect.UNCHANGED;
@@ -1580,9 +1580,9 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       if (op2.isIntConstant()) {
         int val2 = op2.asIntConstant().value;
         if (val2 == 0) {
-          // TODO: This instruction is actually unreachable.  
+          // TODO: This instruction is actually unreachable.
           // There will be an INT_ZERO_CHECK
-          // guarding this instruction that will result in an 
+          // guarding this instruction that will result in an
           // ArithmeticException.  We
           // should probabbly just remove the INT_REM as dead code.
           return DefUseEffect.UNCHANGED;
@@ -1670,7 +1670,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       } else if (op1.isIntConstant()) {
         int val1 = op1.asIntConstant().value;
         // ONLY OP1 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
-        if ((val1 == -1) || (val1 == 0)) { // -1 >> x == -1,0 >> x == 0 
+        if ((val1 == -1) || (val1 == 0)) { // -1 >> x == -1,0 >> x == 0
           Move.mutate(s, INT_MOVE, Binary.getClearResult(s), op1);
           return DefUseEffect.MOVE_FOLDED;
         }
@@ -2198,9 +2198,9 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       if (op2.isLongConstant()) {
         long val2 = op2.asLongConstant().value;
         if (val2 == 0L) {
-          // TODO: This instruction is actually unreachable.  
+          // TODO: This instruction is actually unreachable.
           // There will be a LONG_ZERO_CHECK
-          // guarding this instruction that will result in an 
+          // guarding this instruction that will result in an
           // ArithmeticException.  We
           // should probabbly just remove the LONG_DIV as dead code.
           return DefUseEffect.UNCHANGED;
@@ -2334,9 +2334,9 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       if (op2.isLongConstant()) {
         long val2 = op2.asLongConstant().value;
         if (val2 == 0L) {
-          // TODO: This instruction is actually unreachable.  
+          // TODO: This instruction is actually unreachable.
           // There will be a LONG_ZERO_CHECK
-          // guarding this instruction that will result in an 
+          // guarding this instruction that will result in an
           // ArithmeticException.  We
           // should probabbly just remove the LONG_REM as dead code.
           return DefUseEffect.UNCHANGED;
@@ -3459,7 +3459,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
   }
 
   /**
-   * To reduce the number of conditions to consider, we 
+   * To reduce the number of conditions to consider, we
    * transform all commutative
    * operators to a canoncial form.  The following forms are considered
    * canonical:

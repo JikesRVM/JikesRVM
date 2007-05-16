@@ -29,7 +29,7 @@ import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * Compiler-specific information associated with a method's machine 
+ * Compiler-specific information associated with a method's machine
  * instructions.
  */
 @SynchronizedObject
@@ -60,7 +60,7 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
   public VM_ReferenceMaps referenceMaps;
 
   /*
-   * Currently needed to support dynamic bridge magic; 
+   * Currently needed to support dynamic bridge magic;
    * Consider integrating with GC maps
    */
   private byte[] bytecodeMap;
@@ -94,7 +94,7 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
 
   //These Locations are positioned at the top of the stackslot that contains the value
   //before accessing, substract size of value you want to access
-  //e.g. to load int: load at VM_Compiler.locationToOffset(location) - BYTES_IN_INT 
+  //e.g. to load int: load at VM_Compiler.locationToOffset(location) - BYTES_IN_INT
   //e.g. to load double: load at VM_Compiler.locationToOffset(location) - BYTES_IN_DOUBLE
   @Uninterruptible
   public int getGeneralLocalLocation(int localIndex) {
@@ -183,7 +183,7 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
   }
 
   /**
-   * Find bytecode index corresponding to one of this method's 
+   * Find bytecode index corresponding to one of this method's
    * machine instructions.
    *
    * Note: This method expects the instructionIndex to refer to the machine
@@ -249,7 +249,7 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
     return false;
   }
 
-  // Print this compiled method's portion of a stack trace 
+  // Print this compiled method's portion of a stack trace
   // Taken:   offset of machine instruction from start of method
   //          the VM_PrintLN to print the stack trace to.
   public void printStackTrace(Offset instructionOffset, VM_PrintLN out) {

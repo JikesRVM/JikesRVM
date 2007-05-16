@@ -25,7 +25,7 @@ public abstract class VM_InterfaceMethodConflictResolver implements VM_BaselineC
     VM_AssemblerConstants {
 
   // Create a conflict resolution stub for the set of interface method signatures l.
-  // 
+  //
   public static ArchitectureSpecific.VM_CodeArray createStub(int[] sigIds, VM_Method[] targets) {
     // (1) Create an assembler.
     int numEntries = sigIds.length;
@@ -43,16 +43,16 @@ public abstract class VM_InterfaceMethodConflictResolver implements VM_BaselineC
     // of the VM_Assembler.
     int[] bcIndices = new int[numEntries];
     assignBytecodeIndices(0, bcIndices, 0, numEntries -1);
-    
+
     // (4) Generate the stub.
     insertStubPrologue(asm);
     insertStubCase(asm, sigIds, targets, bcIndices, 0, numEntries-1);
-    
+
     ArchitectureSpecific.VM_CodeArray stub = asm.makeMachineCode().getInstructions();
 
     // (5) synchronize icache with generated machine code that was written through dcache
-    if (VM.runningVM)    
-      VM_Memory.sync(VM_Magic.objectAsAddress(stub), stub.length() << LG_INSTRUCTION_WIDTH); 
+    if (VM.runningVM)
+      VM_Memory.sync(VM_Magic.objectAsAddress(stub), stub.length() << LG_INSTRUCTION_WIDTH);
 
     return stub;
   }
@@ -67,7 +67,7 @@ public abstract class VM_InterfaceMethodConflictResolver implements VM_BaselineC
       // Recurse.
       if (low < middle) {
         bcIndex = assignBytecodeIndices(bcIndex, bcIndices, low, middle-1);
-      } 
+      }
       if (middle < high) {
         bcIndex = assignBytecodeIndices(bcIndex, bcIndices, middle+1, high);
       }
@@ -83,8 +83,8 @@ public abstract class VM_InterfaceMethodConflictResolver implements VM_BaselineC
   }
 
   // Generate a subtree covering from low to high inclusive.
-  private static void insertStubCase(VM_Assembler asm,  
-                                     int[] sigIds, 
+  private static void insertStubCase(VM_Assembler asm,
+                                     int[] sigIds,
                                      VM_Method[] targets,
                                      int[] bcIndices, int low, int high) {
     int middle = (high + low)/2;
@@ -121,7 +121,7 @@ public abstract class VM_InterfaceMethodConflictResolver implements VM_BaselineC
       // Recurse.
       if (low < middle) {
         insertStubCase(asm, sigIds, targets, bcIndices, low, middle-1);
-      } 
+      }
       if (middle < high) {
         insertStubCase(asm, sigIds, targets, bcIndices, middle+1, high);
       }

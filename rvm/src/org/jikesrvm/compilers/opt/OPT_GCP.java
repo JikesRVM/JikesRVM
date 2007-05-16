@@ -128,7 +128,7 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
         ir.desiredSSAOptions.setInsertPEIDeps(false);
         ir.desiredSSAOptions.setHeapTypes(null);
       } else {
-        // HIR options 
+        // HIR options
         ir.desiredSSAOptions.setScalarsOnly(false);
         ir.desiredSSAOptions.setBackwards(true);
         ir.desiredSSAOptions.setInsertUsePhis(true);
@@ -185,7 +185,7 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
           ir.actualSSAOptions.setInsertPEIDeps(false);
           ir.actualSSAOptions.setHeapTypes(null);
         } else {
-          // HIR options 
+          // HIR options
           ir.actualSSAOptions.setScalarsOnly(false);
           ir.actualSSAOptions.setBackwards(true);
           ir.actualSSAOptions.setInsertUsePhis(true);

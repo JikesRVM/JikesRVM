@@ -85,7 +85,7 @@ import org.jikesrvm.compilers.opt.ir.ppc.OPT_PhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.ppc.OPT_PowerPCConditionOperand;
 
 /**
- * Handles the conversion from LIR to MIR of operators whose 
+ * Handles the conversion from LIR to MIR of operators whose
  * expansion requires the introduction of new control flow (new basic blocks).
  *
  * TODO: Make these methods virtual; spilt into Common superclass with

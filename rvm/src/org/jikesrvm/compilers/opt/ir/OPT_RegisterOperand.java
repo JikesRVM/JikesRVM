@@ -212,7 +212,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
   /**
    * Does the operand represent a value of an int-like data type?
    *
-   * @return <code>true</code> if the data type of <code>this</code> 
+   * @return <code>true</code> if the data type of <code>this</code>
    *         is int-like as defined by {@link VM_TypeReference#isIntLikeType}
    *         or <code>false</code> if it is not.
    */
@@ -223,7 +223,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
   /**
    * Does the operand represent a value of an int data type?
    *
-   * @return <code>true</code> if the data type of <code>this</code> 
+   * @return <code>true</code> if the data type of <code>this</code>
    *         is int-like as defined by {@link VM_TypeReference#isIntLikeType}
    *         or <code>false</code> if it is not.
    */
@@ -234,7 +234,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
   /**
    * Does the operand represent a value of the long data type?
    *
-   * @return <code>true</code> if the data type of <code>this</code> 
+   * @return <code>true</code> if the data type of <code>this</code>
    *         is a long as defined by {@link VM_TypeReference#isLongType}
    *         or <code>false</code> if it is not.
    */
@@ -245,7 +245,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
   /**
    * Does the operand represent a value of the float data type?
    *
-   * @return <code>true</code> if the data type of <code>this</code> 
+   * @return <code>true</code> if the data type of <code>this</code>
    *         is a float as defined by {@link VM_TypeReference#isFloatType}
    *         or <code>false</code> if it is not.
    */
@@ -256,7 +256,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
   /**
    * Does the operand represent a value of the double data type?
    *
-   * @return <code>true</code> if the data type of <code>this</code> 
+   * @return <code>true</code> if the data type of <code>this</code>
    *         is a double as defined by {@link VM_TypeReference#isDoubleType}
    *         or <code>false</code> if it is not.
    */
@@ -267,7 +267,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
   /**
    * Does the operand represent a value of the reference data type?
    *
-   * @return <code>true</code> if the data type of <code>this</code> 
+   * @return <code>true</code> if the data type of <code>this</code>
    *         is a reference as defined by {@link VM_TypeReference#isReferenceType}
    *         or <code>false</code> if it is not.
    */
@@ -278,7 +278,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
   /**
    * Does the operand represent a value of the address data type?
    *
-   * @return <code>true</code> if the data type of <code>this</code> 
+   * @return <code>true</code> if the data type of <code>this</code>
    *         is an address as defined by {@link VM_TypeReference#isWordType}
    *         or <code>false</code> if it is not.
    */

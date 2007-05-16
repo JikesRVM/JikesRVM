@@ -45,7 +45,7 @@ public class OPT_TopSort extends OPT_Stack<OPT_SortedGraphNode> {
   /**
    * @param graph the graph
    * @param forward should we treat edges as forward?
-   *  This is the second version of the implementation 
+   *  This is the second version of the implementation
    *   (see CVS file for older one)
    */
   public static OPT_SortedGraphNode

@@ -17,7 +17,7 @@ import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * Information required to start the virtual machine and communicate 
+ * Information required to start the virtual machine and communicate
  * with the outside world.
  *
  * <p> The virtual machine image consists entirely of java objects.
@@ -29,7 +29,7 @@ import org.vmmagic.unboxed.Offset;
  *
  * <p> See also: BootImageWriter.main(), RunBootImage.C
  *
- * <p>The boot record looks like this 
+ * <p>The boot record looks like this
  * (note that fields are layed out "backwards"):
  *
  * <pre>
@@ -51,7 +51,7 @@ import org.vmmagic.unboxed.Offset;
  * </pre>
  *
  * The "spRegister" field of the boot record points to the word immediately
- * preceeding the top of a stack object (ie. it's ready to accept a "push" 
+ * preceeding the top of a stack object (ie. it's ready to accept a "push"
  * instruction). The stack object is an array of words that looks like this:
  *
  * <pre>
@@ -61,7 +61,7 @@ import org.vmmagic.unboxed.Offset;
  *                  +---------------+  | array
  *                  |  lock word    |  |   object
  *                  +---------------+  |      header
- *                  |    .length    |  | 
+ *                  |    .length    |  |
  *                  +---------------+ /
  *                  |    <empty>    |
  *                  +---------------+
@@ -87,9 +87,9 @@ import org.vmmagic.unboxed.Offset;
 public class VM_BootRecord {
   /**
    * The following static field is initialized by the boot image writer.
-   * It allows the virtual machine to address the boot record using normal 
+   * It allows the virtual machine to address the boot record using normal
    * field access instructions (the assembler bootstrap function, on the other
-   * hand, simply addresses the boot record as the first object in 
+   * hand, simply addresses the boot record as the first object in
    * the boot image).
    */
   public static VM_BootRecord the_boot_record;
@@ -122,7 +122,7 @@ public class VM_BootRecord {
   // is generated (see BootImage.java), loaded (see RunBootImage.C),
   // or executed (see VM.java).
   //
-  // If you add/remove/change fields here, be sure to change the 
+  // If you add/remove/change fields here, be sure to change the
   // corresponding code in RunBootImage.
 
   /**
@@ -254,7 +254,7 @@ public class VM_BootRecord {
   public Address sysPthreadJoinIP;
   public Address sysStashVmProcessorInPthreadIP;
 
-  // arithmetic 
+  // arithmetic
   public Address sysLongDivideIP;
   public Address sysLongRemainderIP;
   public Address sysLongToFloatIP;

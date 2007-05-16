@@ -358,7 +358,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   }
 
   /**
-   * Name of source file from which class was compiled - 
+   * Name of source file from which class was compiled -
    * something like "c:\java\src\java\lang\Object.java".
    * (null --> "unknown - wasn't recorded by compiler").
    */
@@ -367,7 +367,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   }
 
   /**
-   * Superclass of this class (null means "no superclass", 
+   * Superclass of this class (null means "no superclass",
    * ie. class is "java/lang/Object").
    */
   @Uninterruptible
@@ -384,7 +384,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   }
 
   /**
-   * Interfaces implemented directly by this class 
+   * Interfaces implemented directly by this class
    * (ie. not including superclasses).
    */
   @Uninterruptible
@@ -417,7 +417,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 
   /**
    * Class that declared this class, or null if this is not an
-   * inner/nested class. 
+   * inner/nested class.
    */
   public VM_TypeReference getDeclaringClass() {
     return declaringClass;
@@ -512,7 +512,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   }
 
   /**
-   * Find description of "public static void main(String[])" 
+   * Find description of "public static void main(String[])"
    * method of this class.
    * @return description (null --> not found)
    */
@@ -535,7 +535,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   //
   // Constant pool accessors.
   //
-  // The constant pool holds literals and external references used by 
+  // The constant pool holds literals and external references used by
   // the bytecodes of this class's methods.
   // Items are fetched by specifying their "constant pool index".
   //
@@ -792,7 +792,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   }
 
   /**
-   * Get finalize method that overrides java.lang.Object.finalize(), 
+   * Get finalize method that overrides java.lang.Object.finalize(),
    * if one exists
    */
   @Uninterruptible
@@ -836,7 +836,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   }
 
   /**
-   * Virtually dispatched methods of this class 
+   * Virtually dispatched methods of this class
    * (composed with supertypes, if any).
    */
   public VM_Method[] getVirtualMethods() {
@@ -876,7 +876,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   }
 
   /**
-   * Total size, in bytes, of an instance of this class 
+   * Total size, in bytes, of an instance of this class
    * (including object header).
    */
   @Uninterruptible
@@ -1028,7 +1028,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * defining loader of the requiring class.
    *
    *
-   * @param skip specifies the number of frames back from the 
+   * @param skip specifies the number of frames back from the
    *             caller to the method whose class's loader is required
    */
   public static ClassLoader getClassLoaderFromStackFrame(int skip) {
@@ -1045,7 +1045,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Used for accessibility checks in reflection code.
    * Find the class of the method that corresponds to the requested frame.
    *
-   * @param skip   Specifies the number of frames back from the 
+   * @param skip   Specifies the number of frames back from the
    *               caller to the method whose class is required
    */
   public static VM_Class getClassFromStackFrame(int skip) {
@@ -1247,7 +1247,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     }
 
     //
-    // pass 2: post-process type and string constant pool entries 
+    // pass 2: post-process type and string constant pool entries
     // (we must do this in a second pass because of forward references)
     //
     try {
@@ -1279,7 +1279,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     }
 
     //
-    // pass 3: post-process type field and method constant pool entries 
+    // pass 3: post-process type field and method constant pool entries
     //
     for (int i = 1; i < constantPool.length; i++) {
       switch (tmpTags[i]) {
@@ -1313,7 +1313,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     int myTypeIndex = input.readUnsignedShort();
     VM_TypeReference myTypeRef = getTypeRef(constantPool, myTypeIndex);
     if (myTypeRef != typeRef) {
-      // eg. file contains a different class than would be 
+      // eg. file contains a different class than would be
       // expected from its .class file name
       throw new ClassFormatError("expected class \"" + typeRef.getName()
                                  + "\" but found \"" + myTypeRef.getName() + "\"");
@@ -1388,8 +1388,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
         sourceName = getUtf(constantPool, input.readUnsignedShort());
       } else if (attName == VM_ClassLoader.innerClassesAttributeName) {
         // Parse InnerClasses attribute, and use the information to populate
-        // the list of declared member classes.  We do this so we can 
-        // support the java.lang.Class.getDeclaredClasses() 
+        // the list of declared member classes.  We do this so we can
+        // support the java.lang.Class.getDeclaredClasses()
         // and java.lang.Class.getDeclaredClass methods.
 
         int numberOfClasses = input.readUnsignedShort();
@@ -1455,8 +1455,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 
   /**
    * Generate size and offset information for members of this class and
-   * allocate space in jtoc for static fields, static methods, and virtual 
-   * method table. 
+   * allocate space in jtoc for static fields, static methods, and virtual
+   * method table.
    * Side effects: superclasses and superinterfaces are resolved.
    */
   public synchronized void resolve() {
@@ -1708,7 +1708,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     // (element type for arrays not used classes)
 
     if (!isInterface()) {
-      // lay out virtual method section of type information block 
+      // lay out virtual method section of type information block
       // (to be filled in by instantiate)
       for (int i = 0, n = virtualMethods.length; i < n; ++i) {
         VM_Method method = virtualMethods[i];
@@ -1770,7 +1770,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   }
 
   /**
-   * Insert the value of a final static field into the JTOC 
+   * Insert the value of a final static field into the JTOC
    */
   private void setFinalStaticJTOCEntry(VM_Field field, Offset fieldOffset) {
     if (!field.isFinal()) return;
@@ -1823,7 +1823,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     if (VM.runningVM) {
       // can't instantiate if building bootimage, since this can cause
       // class initializer to be lost (when interface is not included in bootimage).
-      // since we don't need to instantiate/initialize for the purposes of 
+      // since we don't need to instantiate/initialize for the purposes of
       // dynamic type checking and interface invocation, defer it until runtime
       // and the class actually refers to a static field of the interface.
       for (VM_Class declaredInterface : declaredInterfaces) {
@@ -1879,7 +1879,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 
   /**
    * Execute this class's static initializer, <clinit>.
-   * Side effects: superclasses are initialized, static fields receive 
+   * Side effects: superclasses are initialized, static fields receive
    * initial values.
    */
   public synchronized void initialize()
@@ -1932,7 +1932,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     }
 
     if (VM.BuildForOptCompiler) {
-      // report that a class is about to be marked initialized to 
+      // report that a class is about to be marked initialized to
       // the opt compiler so it can invalidate speculative CHA optimizations
       // before an instance of this class could actually be created.
       classLoadListener.classInitialized(this, false);
@@ -1947,7 +1947,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   }
 
   /**
-   * Copy the values of all static final fields into 
+   * Copy the values of all static final fields into
    * the JTOC.  Note: This method should only be run AFTER
    * the class initializer has run.
    */
@@ -2004,9 +2004,9 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   }
 
   //------------------------------------------------------------//
-  // Support for speculative optimizations that may need to 
+  // Support for speculative optimizations that may need to
   // invalidate compiled code when new classes are loaded.
-  // 
+  //
   // TODO: Make this into a more general listener API
   //------------------------------------------------------------//
   public static final VM_ClassLoadingListener classLoadListener =
@@ -2061,7 +2061,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   }
 
   /**
-   * Update the TIB entry's for all classes that inherit the given method 
+   * Update the TIB entry's for all classes that inherit the given method
    * to point to the current compiled code for the given method.
    * NOTE: This method is intentionally not synchronized to avoid deadlocks.
    *       We instead rely on the fact that we are always updating the JTOC with
@@ -2336,7 +2336,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   }
 
   /**
-   * get number of superclasses to Object 
+   * get number of superclasses to Object
    */
   @Uninterruptible
   public int getTypeDepth() {

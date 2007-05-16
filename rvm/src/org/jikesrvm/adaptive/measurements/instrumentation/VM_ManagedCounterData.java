@@ -16,7 +16,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
 
 /**
  * This class provides the basic functionality for instrumented data
- * that use counters allocated from a VM_InstrumentedEventCounterManager.  
+ * that use counters allocated from a VM_InstrumentedEventCounterManager.
  * It provides the basic interface to access counters,  forwarding
  * those requests to the counter manager.
  */
@@ -58,7 +58,7 @@ public class VM_ManagedCounterData {
    * Tell the data to automatically expand the counters if there is a
    * request to count an event that is greater than the current size.
    *
-   * @param autoGrow Whether the counters should grow automatically. 
+   * @param autoGrow Whether the counters should grow automatically.
    */
   public void automaticallyGrowCounters(boolean autoGrow) {
 
@@ -92,7 +92,7 @@ public class VM_ManagedCounterData {
    * @return The count associated with this counter
    */
   public double getCounter(int counterNumber) {
-    // Confirm that counters have been initialized 
+    // Confirm that counters have been initialized
     //  (using initializeCounters(int))
     if (VM.VerifyAssertions) {
       VM._assert(handle != -1);
@@ -127,7 +127,7 @@ public class VM_ManagedCounterData {
   /**
    * Return the number of counters currently allocated for this data
    *
-   *  @return the number of counters 
+   *  @return the number of counters
    */
   public int getNumCounters() {
     // Confirm that counters have been initialized (using initializeCounters(int))
@@ -139,7 +139,7 @@ public class VM_ManagedCounterData {
 
   /**
    * Counter Managers give id's that identify the counter space they
-   * have given to each data. This method returns that ID. 
+   * have given to each data. This method returns that ID.
    *
    * @return The handle given to this data object by the counter manager.
    **/
@@ -161,7 +161,7 @@ public class VM_ManagedCounterData {
    * particular counted event.  Simply forwards the request to the
    * counter manager.
    *
-   * @param counterNumber The number of the counter to increment 
+   * @param counterNumber The number of the counter to increment
    * @return The instruction that will update the given counter
    */
   public OPT_Instruction createEventCounterInstruction(int counterNumber) {
@@ -172,13 +172,13 @@ public class VM_ManagedCounterData {
    * Create a place holder instruction to represent the counted event.
    * Simply forwards the request to the counter manager.
    *
-   * @param counterNumber The number of the counter to increment 
+   * @param counterNumber The number of the counter to increment
    * @param incrementValue The value to add to the given counter
    * @return The instruction that will update the given counter
    */
   OPT_Instruction createEventCounterInstruction(int counterNumber,
                                                 double incrementValue) {
-    // Confirm that counters have been initialized 
+    // Confirm that counters have been initialized
     if (VM.VerifyAssertions) {
       VM._assert(handle != -1);
     }
@@ -190,7 +190,7 @@ public class VM_ManagedCounterData {
           resizeCounters(getNumCounters() * 2);
         }
       } else {
-        // Should we put a warning here?? Not sure.  
+        // Should we put a warning here?? Not sure.
       }
     }
     return getCounterManager().createEventCounterInstruction(getHandle(),

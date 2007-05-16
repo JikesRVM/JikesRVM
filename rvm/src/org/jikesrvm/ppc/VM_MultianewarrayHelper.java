@@ -18,9 +18,9 @@ import org.vmmagic.unboxed.Address;
 
 /**
  * Helper routine to pull the parameters to multianewarray off the
- * Java expression stack maintained by the baseline compiler and 
+ * Java expression stack maintained by the baseline compiler and
  * pass them to VM_Runtime.buildMultiDimensionalArray.
- * 
+ *
  * TODO: There is only 1 line of platform dependent code here; refactor?
  */
 public abstract class VM_MultianewarrayHelper implements VM_Constants {
@@ -32,12 +32,12 @@ public abstract class VM_MultianewarrayHelper implements VM_Constants {
    * @param numDimensions number of array dimensions
    * @param id            {@link VM_TypeReference} id of type of array
    * @param argOffset     position of word *above* `cnt0' argument within caller's frame
-   *                      This is used to access the number of elements to 
+   *                      This is used to access the number of elements to
    *                      be allocated for each dimension.
    * See also: bytecode 0xc5 ("multianewarray") in VM_Compiler
    */
   static Object newArrayArray(int methodId, int numDimensions, int id, int argOffset)
-    throws NegativeArraySizeException, 
+    throws NegativeArraySizeException,
            OutOfMemoryError {
     // fetch number of elements to be allocated for each array dimension
     //

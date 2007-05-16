@@ -17,7 +17,7 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.WordArray;
 
 /**
- * An instance of this class provides iteration across the references 
+ * An instance of this class provides iteration across the references
  * represented by a frame built by the OPT compiler.
  *
  * The architecture-specific version of the GC Map iterator.  It inherits
@@ -53,17 +53,17 @@ public abstract class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
     //       |  Spill Area   |  <-- spills and other method-specific     |
     //       |     ...       |      compiler-managed storage             |
     //       +---------------+                                           |
-    //       |   Saved FP    |     only SaveVolatile Frames              |   
+    //       |   Saved FP    |     only SaveVolatile Frames              |
     //       |    State      |                                           |
     //       +---------------+                                           |
-    //       |  VolGPR[0]    |                                           
-    //       |     ...       |     only SaveVolatile Frames              
-    //       |  VolGPR[n]    |                                           
-    //       +---------------+                                           
-    //       |  NVolGPR[k]   |  <-- cm.getUnsignedNonVolatileOffset()  
-    //       |     ...       |   k == cm.getFirstNonVolatileGPR()      
-    //       |  NVolGPR[n]   |                                           
-    //       +---------------+                                           
+    //       |  VolGPR[0]    |
+    //       |     ...       |     only SaveVolatile Frames
+    //       |  VolGPR[n]    |
+    //       +---------------+
+    //       |  NVolGPR[k]   |  <-- cm.getUnsignedNonVolatileOffset()
+    //       |     ...       |   k == cm.getFirstNonVolatileGPR()
+    //       |  NVolGPR[n]   |
+    //       +---------------+
     //
     //           LOW MEMORY
 
@@ -119,7 +119,7 @@ public abstract class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
    *  Determine the spill location given the frame ptr and spill offset.
    *  (The location of spills varies among architectures.)
    *  @param framePtr the frame pointer
-   *  @param offset  the offset for the spill 
+   *  @param offset  the offset for the spill
    *  @return the resulting spill location
    */
   public Address getStackLocation(Address framePtr, int offset) {

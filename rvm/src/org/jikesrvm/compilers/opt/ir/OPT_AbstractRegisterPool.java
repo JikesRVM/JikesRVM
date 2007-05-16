@@ -169,7 +169,7 @@ public abstract class OPT_AbstractRegisterPool {
    * Get a new register of the same type as the argument register
    *
    * @param template the register to get the type from
-   * @return the newly created register object 
+   * @return the newly created register object
    */
   public OPT_Register getReg(OPT_Register template) {
     switch (template.getType()) {
@@ -196,7 +196,7 @@ public abstract class OPT_AbstractRegisterPool {
    * Get a new register of the same type as the argument RegisterOperand
    *
    * @param template the register operand to get the type from
-   * @return the newly created register object 
+   * @return the newly created register object
    */
   public OPT_Register getReg(OPT_RegisterOperand template) {
     return getReg(template.register);
@@ -206,7 +206,7 @@ public abstract class OPT_AbstractRegisterPool {
    * Get a new register of the appropriate type to hold values of 'type'
    *
    * @param type the type of values that the register will hold
-   * @return the newly created register object 
+   * @return the newly created register object
    */
   public OPT_Register getReg(VM_TypeReference type) {
     if (type.isLongType()) {
@@ -228,7 +228,7 @@ public abstract class OPT_AbstractRegisterPool {
       new HashMap<OPT_Register, OPT_Register>();
 
   /**
-   * MIR: Get the other half of the register pair that is 
+   * MIR: Get the other half of the register pair that is
    * associated with the argument register.
    * Note: this isn't incredibly general, but all architectures we're currently
    * targeting need at most 2 machine registers to hold Java data values, so
@@ -274,7 +274,7 @@ public abstract class OPT_AbstractRegisterPool {
   }
 
   /**
-   * Make a temporary register operand that can hold the values 
+   * Make a temporary register operand that can hold the values
    * implied by the passed operand.
    *
    * @param op the operand to use as a template.

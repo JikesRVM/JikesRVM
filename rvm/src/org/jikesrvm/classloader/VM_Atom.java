@@ -16,7 +16,7 @@ import org.vmmagic.pragma.Uninterruptible;
 /**
  * An  utf8-encoded byte string.
  *
- * VM_Atom's are interned (canonicalized) 
+ * VM_Atom's are interned (canonicalized)
  * so they may be compared for equality using the "==" operator.
  *
  * VM_Atoms are used to represent names, descriptors, and string literals
@@ -87,7 +87,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
 
   /**
    * Find or create an atom.
-   * @param str atom value, as string literal whose characters are from 
+   * @param str atom value, as string literal whose characters are from
    *            ascii subset of unicode (not including null)
    * @return atom
    */
@@ -97,7 +97,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
 
   /**
    * Find an atom.
-   * @param str atom value, as string literal whose characters are from 
+   * @param str atom value, as string literal whose characters are from
    *            ascii subset of unicode (not including null)
    * @return atom or null if it doesn't already exist
    */
@@ -295,7 +295,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   //--------------------//
 
   /**
-   * Parse "this" method descriptor to obtain description of method's 
+   * Parse "this" method descriptor to obtain description of method's
    * return type.
    * this: method descriptor - something like "(III)V"
    * @return type description
@@ -352,7 +352,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   }
 
   /**
-   * Parse "this" method descriptor to obtain descriptions of method's 
+   * Parse "this" method descriptor to obtain descriptions of method's
    * parameters.
    * this: method descriptor     - something like "(III)V"
    * @return parameter descriptions
@@ -445,10 +445,10 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   }
 
   /**
-   * Parse "this" field, parameter, or return descriptor to obtain its 
+   * Parse "this" field, parameter, or return descriptor to obtain its
    * type code.
    * this: descriptor - something like "Ljava/lang/String;" or "[I" or "I"
-   * @return type code  - something like ObjectTypeCode, ArrayTypeCode, or 
+   * @return type code  - something like ObjectTypeCode, ArrayTypeCode, or
    * IntTypeCode
    *
    * The type code will be one of the following constants:
@@ -478,7 +478,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   }
 
   /**
-   * Parse "this" array descriptor to obtain number of dimensions in 
+   * Parse "this" array descriptor to obtain number of dimensions in
    * corresponding array type.
    * this: descriptor     - something like "[Ljava/lang/String;" or "[[I"
    * @return dimensionality - something like "1" or "2"
@@ -535,7 +535,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   }
 
   /**
-   * Parse "this" array descriptor to obtain descriptor for array's element 
+   * Parse "this" array descriptor to obtain descriptor for array's element
    * type.
    * this: array descriptor         - something like "[I"
    * @return array element descriptor - something like "I"

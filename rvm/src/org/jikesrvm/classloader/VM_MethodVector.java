@@ -30,7 +30,7 @@ final class VM_MethodVector {
   }
 
   // Add item if it is not already in the Vector.
-  // 
+  //
   public void addUniqueElement(VM_Method item) {
     for (int i = 0; i < cnt; i++) {
       if (array[i] == item) return;

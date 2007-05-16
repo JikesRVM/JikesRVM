@@ -23,12 +23,12 @@ import org.vmmagic.unboxed.Word;
 import org.vmmagic.unboxed.WordArray;
 
 /**
- * Magic methods for accessing raw machine memory, registers, and 
+ * Magic methods for accessing raw machine memory, registers, and
  * operating system calls.
  *
  * <p> These are "inline assembler functions" that cannot be implemented in
- * Java code. Their names are recognized by RVM's compilers 
- * and cause inline machine code to be generated instead of 
+ * Java code. Their names are recognized by RVM's compilers
+ * and cause inline machine code to be generated instead of
  * actual method calls.
  */
 @SuppressWarnings({"UnusedDeclaration"})
@@ -97,7 +97,7 @@ public final class VM_Magic {
   //---------------------------------------//
 
   /**
-   * Get fp for parent frame 
+   * Get fp for parent frame
    * @param fp frame pointer for child frame
    */
   public static Address getCallerFramePointer(Address fp) {
@@ -106,8 +106,8 @@ public final class VM_Magic {
   }
 
   /**
-   * Set fp for parent frame 
-   * @param fp frame pointer for child frame 
+   * Set fp for parent frame
+   * @param fp frame pointer for child frame
    * @param newCallerFP new value for caller frame pointer
    */
   public static void setCallerFramePointer(Address fp, Address newCallerFP) {
@@ -133,7 +133,7 @@ public final class VM_Magic {
   }
 
   /**
-   * Get next instruction address for a frame 
+   * Get next instruction address for a frame
    * @param fp its frame pointer.
    */
   public static Address getNextInstructionAddress(Address fp) {
@@ -230,7 +230,7 @@ public final class VM_Magic {
 
   /**
    * Get Object at arbitrary (byte) offset from object.
-   * Use getObjectAtOffset(obj, ofs) instead of 
+   * Use getObjectAtOffset(obj, ofs) instead of
    * addressAsObject(getMemoryAddress(objectAsAddress(obj)+ofs))
    */
   public static Object getObjectAtOffset(Object object, Offset offset) {
@@ -240,7 +240,7 @@ public final class VM_Magic {
 
   /**
    * Get Object[] at arbitrary (byte) offset from object.
-   * Use getObjectArrayAtOffset(obj, ofs) instead of 
+   * Use getObjectArrayAtOffset(obj, ofs) instead of
    * (Object[])addressAsObject(getMemoryAddr(objectAsAddress(obj)+ofs))
    */
   public static Object[] getObjectArrayAtOffset(Object object, Offset offset) {
@@ -364,7 +364,7 @@ public final class VM_Magic {
   }
 
   /**
-   * Sets the memory at (object + offset) to newValue if its contents are oldValue.  
+   * Sets the memory at (object + offset) to newValue if its contents are oldValue.
    * Must be paired with a preceding prepare (which returned the oldValue)
    * Returns true if successful.
    * Ends conditional critical section.
@@ -375,7 +375,7 @@ public final class VM_Magic {
   }
 
   /**
-   * Sets the memory at (object + offset) to newValue if its contents are oldValue.  
+   * Sets the memory at (object + offset) to newValue if its contents are oldValue.
    * Must be paired with a preceding prepare (which returned the oldValue)
    * Returns true if successful.
    * Ends conditional critical section.
@@ -386,7 +386,7 @@ public final class VM_Magic {
   }
 
   /**
-   * Sets the memory at (object + offset) to newValue if its contents are oldValue.  
+   * Sets the memory at (object + offset) to newValue if its contents are oldValue.
    * Must be paired with a preceding prepare (which returned the oldValue)
    * Returns true if successful.
    * Ends conditional critical section.
@@ -397,7 +397,7 @@ public final class VM_Magic {
   }
 
   /**
-   * Sets the memory at (object + offset) to newValue if its contents are oldValue.  
+   * Sets the memory at (object + offset) to newValue if its contents are oldValue.
    * Must be paired with a preceding prepare (which returned the oldValue)
    * Returns true if successful.
    * Ends conditional critical section.
@@ -424,8 +424,8 @@ public final class VM_Magic {
 
   /**
    * Cast bits.
-   * Note: the returned integer is only valid until next garbage collection 
-   *   cycle (thereafter the referenced object might have moved and 
+   * Note: the returned integer is only valid until next garbage collection
+   *   cycle (thereafter the referenced object might have moved and
    *   its address changed)
    * @param object object reference
    * @return object reference as bits
@@ -463,7 +463,7 @@ public final class VM_Magic {
    * Cast bits of code array into an address
    * Note: for use by VM_Statics when assigning slots to static method pointers
    * @param code the code array to convert
-   * @return word that 
+   * @return word that
    */
   public static Address codeArrayToAddress(VM_CodeArray code) {
     if (VM.runningVM && VM.VerifyAssertions) {
@@ -564,7 +564,7 @@ public final class VM_Magic {
   /**
    * Recast.
    * Note:     for use by gc to avoid checkcast during GC
-   * @param byte_array an address 
+   * @param byte_array an address
    * Returned: byte array (byte[])  object reference
    */
   public static byte[] addressAsByteArray(Address byte_array) {
@@ -633,7 +633,7 @@ public final class VM_Magic {
    * We used to use this to implement thread switching, but we have a
    * threadSwitch magic now that does both of these in a single step as that
    * is less error-prone.  saveThreadState is now only used in the
-   * implementation of athrow (VM_Runtime.athrow). 
+   * implementation of athrow (VM_Runtime.athrow).
    *
    * Note that #args to this method must match #args to VM_Processor.dispatch()
    *
@@ -656,8 +656,8 @@ public final class VM_Magic {
    *        - FRAME_POINTER "register"
    *        - THREAD_ID     "register"
    *
-   * @param currentThread thread that is currently running 
-   * @param restoreRegs   registers from which we should restore 
+   * @param currentThread thread that is currently running
+   * @param restoreRegs   registers from which we should restore
    *                      the saved hardware state of another thread.
    */
   public static void threadSwitch(VM_Thread currentThread,
@@ -668,7 +668,7 @@ public final class VM_Magic {
   /**
    * Resume execution with specified thread exception state.
    * Restores virtually all registers (details vary by architecutre).
-   * But, the following are _NOT_ restored 
+   * But, the following are _NOT_ restored
    *        - JTOC_POINTER
    *        - PROCESSOR_REGISTER
    * does not return (execution resumes at new IP)
@@ -679,7 +679,7 @@ public final class VM_Magic {
   }
 
   /**
-   * Return to caller of current method, resuming execution on a new stack 
+   * Return to caller of current method, resuming execution on a new stack
    * that's a copy of the original.
    * @param fp value to place into FRAME_POINTER register
    */

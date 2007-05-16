@@ -22,7 +22,7 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * A list of compiled method and instructionOffset pairs that describe 
+ * A list of compiled method and instructionOffset pairs that describe
  * the state of the call stack at a particular instant.
  */
 public class VM_StackTrace {
@@ -147,10 +147,10 @@ public class VM_StackTrace {
 //       since somebody might be experimenting with new JikesRVM features;
 //       perhaps using it to launch web browser applets?  (Admittedly this seems
 //       unlikely.)  We'll just kindly return null. Better a verbose stack trace
-//       than generating an InternalError().  
+//       than generating an InternalError().
 //       <p>
 //       We will assume that no user class calls
-//       org.jikesrvm.scheduler.VM_MainThread.run().  This is a pretty safe bet. 
+//       org.jikesrvm.scheduler.VM_MainThread.run().  This is a pretty safe bet.
 //       </li>
 
 //       <li>
@@ -160,7 +160,7 @@ public class VM_StackTrace {
 //         A Java virtual machine starts execution by invoking the method
 //       <tt>main</tt> of some specified class, passing it a single argument,
 //       which is an array of strings.  In the examples in this specification,
-//       the first class is typically called <tt>Test</tt>.  [&hellip;] 
+//       the first class is typically called <tt>Test</tt>.  [&hellip;]
 //       <p>
 //       The manner in which the initial class is specified to the Java virtual
 //       machine is  beyond the scope of this specification [&hellip;]
@@ -234,7 +234,7 @@ public class VM_StackTrace {
    *  already seen. May be <code>null</code>
    *  <p>
    *  <b>TODO:</b> Implement the elision.  As of this writing,
-   *  it's unused.  
+   *  it's unused.
    *
    *  @param depth How deep is our current stack of recursive printings?
    */
@@ -297,7 +297,7 @@ public class VM_StackTrace {
    * Really Print the stack trace.
    * Delegate the actual printing of the stack trace to the
    * VM_CompiledMethod; this means it will deal with inlining by the opt
-   * compiler in a sensible fashion. 
+   * compiler in a sensible fashion.
    *
    * This is not ever supposed to throw an OutOfMemoryError.  But if it should
    * ever happen to do so, we will catch it in the caller, print().
@@ -380,7 +380,7 @@ public class VM_StackTrace {
           try {
             out.flush();
             // The output's been flushed, I guess.  Make sure the line ends
-            // cleanly. 
+            // cleanly.
             VM.sysWriteln();
           } catch (OutOfMemoryError e2) {
             trigger.tallyOutOfMemoryError();
@@ -401,17 +401,17 @@ public class VM_StackTrace {
     int lastFrame = compiledMethods.length - 1;
 
     // The Main Thread's last six stack frames are always:
-    //   
+    //
     //   <invisible method>  (the reflection frame)
     //   Lorg/jikesrvm/VM_Reflection; invoke()
     //   Lorg/jikesrvm/VM_MainThread; run()V
-    //   Lorg/jikesrvm/VM_Thread; run()V 
-    //   Lorg/jikesrvm/VM_Thread; startoff()V 
+    //   Lorg/jikesrvm/VM_Thread; run()V
+    //   Lorg/jikesrvm/VM_Thread; startoff()V
     // so we can skip them.
     //
     // Other Threads, except for the boot thread, have VM_Thread.startoff as
     // the last stack frame, and VM_Thread.run() as the penultimate stack
-    // frame. 
+    // frame.
     for (; lastFrame > 0; --lastFrame) {
       VM_Method m = compiledMethods[lastFrame].getMethod();
       if (m == VM_Entrypoints.threadStartoffMethod) {
@@ -470,7 +470,7 @@ public class VM_StackTrace {
     // Handle case where an out of line machine code frame is
     // at compiledMethods[foundTriggerAt +1].
     // Happens when the exception object being thrown is created via
-    // reflection (which is how JNI does it). 
+    // reflection (which is how JNI does it).
     while (foundTriggerAt + 2 < compiledMethods.length &&
            compiledMethods[foundTriggerAt + 1] == null) {
       foundTriggerAt++;

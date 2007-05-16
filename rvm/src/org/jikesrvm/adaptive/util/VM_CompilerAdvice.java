@@ -4,7 +4,7 @@
  * A copy of the license is included in the distribution, and is also
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
- * (C) Copyright 
+ * (C) Copyright
  * Department of Computer Science,
  * University of Texas at Austin 2005
  * All rights reserved.
@@ -51,7 +51,7 @@ public class VM_CompilerAdvice {
     if (dynamicCallFileName != null) {
       VM.sysWrite("Dynamic call file name ");
       VM.sysWriteln(dynamicCallFileName);
-      //List dynamicCallInfoList = 
+      //List dynamicCallInfoList =
       VM_DynamicCallFileInfoReader.readDynamicCallFile(
           dynamicCallFileName, false);
       // register these sites so that when a compilation is done,

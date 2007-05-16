@@ -36,7 +36,7 @@ class OPT_DominatorTreeNode extends OPT_TreeNode {
   private OPT_BitVector dominanceFrontier;
 
   /**
-   * the cache to hold the set of nodes that dominate this one.  This is 
+   * the cache to hold the set of nodes that dominate this one.  This is
    * computed on demand by walking up the tree.
    */
   OPT_BitVector dominators;
@@ -103,7 +103,7 @@ class OPT_DominatorTreeNode extends OPT_TreeNode {
    * Return a string representation of the dominance frontier for this
    * node.
    * @return a string representation of the dominance frontier for this
-   * node 
+   * node
    */
   String dominanceFrontierString() {
     return dominanceFrontier.toString();
@@ -117,7 +117,7 @@ class OPT_DominatorTreeNode extends OPT_TreeNode {
    *   @return a BitVector containing those blocks that dominate me
    */
   OPT_BitVector dominators(OPT_IR ir) {
-    // Currently, this set is computed on demand, 
+    // Currently, this set is computed on demand,
     // but we cache it for the next time.
     if (dominators == null) {
       dominators = new OPT_BitVector(ir.getMaxBasicBlockNumber() + 1);

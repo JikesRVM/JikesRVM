@@ -16,7 +16,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
  * OPT_InstrumentedEventCounterManager.  The goal of this interface is
  * to provide a mechanism for instrumentation phases to performing
  * counting of events, but to keep the implemntation of the counters
- * completely hidden.  
+ * completely hidden.
  *
  *
  **/
@@ -28,7 +28,7 @@ public abstract class OPT_InstrumentedEventCounterManager {
    *  reserve the needed space.  A handle is returned telling where
    *  the counter space begins.
    *
-   * @param countersNeeded The number of counters being requested 
+   * @param countersNeeded The number of counters being requested
    * @return A "handle", or name  for the counter space reserved.
    */
   public abstract int registerCounterSpace(int countersNeeded);
@@ -70,14 +70,14 @@ public abstract class OPT_InstrumentedEventCounterManager {
                                                                 int location, double incrementValue);
 
   /**
-   *  Take an event counter instruction and mutate it into IR instructions that 
-   *  will do the actual counting. 
+   *  Take an event counter instruction and mutate it into IR instructions that
+   *  will do the actual counting.
    */
   public abstract void mutateOptEventCounterInstruction(OPT_Instruction i, OPT_IR ir);
 
   /**
    * Allow a counter to be inserted into a baseline compiled method.
-   * Still  under construction. 
+   * Still  under construction.
    */
   public abstract void insertBaselineCounter();
 }               // end of class

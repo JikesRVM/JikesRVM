@@ -410,7 +410,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
   }
 
   /**
-   * Exceptions thrown by this method - 
+   * Exceptions thrown by this method -
    * something like { "java/lang/IOException", "java/lang/EOFException" }
    * @return info (null --> method doesn't throw any exceptions)
    */
@@ -545,7 +545,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
 
   /**
    * Generate machine code for this method if valid
-   * machine code doesn't already exist. 
+   * machine code doesn't already exist.
    * Return the resulting VM_CompiledMethod object.
    */
   public final synchronized void compile() {
@@ -572,15 +572,15 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
 
   //----------------------------------------------------------------//
   //                        Section 3.                              //
-  // The following are available after the declaring class has been // 
+  // The following are available after the declaring class has been //
   // "instantiated".                                                //
   //----------------------------------------------------------------//
 
   /**
-   * Change machine code that will be used by future executions of this method 
+   * Change machine code that will be used by future executions of this method
    * (ie. optimized <-> non-optimized)
    * @param compiledMethod new machine code
-   * Side effect: updates jtoc or method dispatch tables 
+   * Side effect: updates jtoc or method dispatch tables
    * ("type information blocks")
    *              for this class and its subclasses
    */
@@ -613,7 +613,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
   }
 
   /**
-   * If CM is the current compiled code for this, then invaldiate it. 
+   * If CM is the current compiled code for this, then invaldiate it.
    */
   public final synchronized void invalidateCompiledMethod(VM_CompiledMethod cm) {
     if (VM.VerifyAssertions) VM._assert(getDeclaringClass().isInstantiated());

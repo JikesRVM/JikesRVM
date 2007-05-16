@@ -136,7 +136,7 @@ public final class VM_HashSet<T> implements Iterable<T> {
   }
 
   /**
-   * Iterator 
+   * Iterator
    */
   private class SetIterator implements Iterator<T> {
     private int bucketIndex = 0;
@@ -173,4 +173,4 @@ public final class VM_HashSet<T> implements Iterable<T> {
 }
 
 
-    
+

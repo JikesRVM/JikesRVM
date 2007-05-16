@@ -176,7 +176,7 @@ public abstract class VM_Member extends VM_AnnotatedElement implements VM_Consta
 
   //------------------------------------------------------------------//
   //                       Section 2.                                 //
-  // The following are available after the declaring class has been   // 
+  // The following are available after the declaring class has been   //
   // "resolved".                                                      //
   //------------------------------------------------------------------//
 

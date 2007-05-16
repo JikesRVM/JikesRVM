@@ -45,7 +45,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
  * Dependence Graph for a single basic block in the program.
  *
  * <p> June 1998 extensions by Vivek Sarkar:
- * <ul> 
+ * <ul>
  * <li> 1. Fix direction of register anti dependences
  * <li> 2. Add conservative memory dependences (suitable for low opt level)
  * </ul>
@@ -108,7 +108,7 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
   }
 
   /**
-   * Determine the set of variables live on entry to any handler 
+   * Determine the set of variables live on entry to any handler
    * block that is reachable from currentBlock
    */
   private void computeHandlerLiveSet() {
@@ -137,7 +137,7 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
   }
 
   /**
-   * Compute flow and output dependences by doing a forward 
+   * Compute flow and output dependences by doing a forward
    * traversal of the instructions from start to end.
    */
   private void computeForwardDependences(OPT_Instruction start,
@@ -230,7 +230,7 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
   }
 
   /**
-   * Compute anti dependences by doing a backwards 
+   * Compute anti dependences by doing a backwards
    * traversal of the instructions from start to end.
    */
   private void computeBackwardDependences(OPT_Instruction start,
@@ -300,14 +300,14 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
 
   /**
    * Compute control and barrier (acquire/release) dependences
-   * in two passes (one forward, one reverse over the instructions 
+   * in two passes (one forward, one reverse over the instructions
    * from start to end.
    */
   private void computeControlAndBarrierDependences(OPT_Instruction start,
                                                    OPT_Instruction end) {
     // (1) In a forward pass, we add the following dependences:
     //    a) No load instruction may rise above an acquire
-    //    b) No instruction may rise above an UNINT_BEGIN (conservative), 
+    //    b) No instruction may rise above an UNINT_BEGIN (conservative),
     //       a yieldpoint (we placed the yieldpoints where we wanted them),
     //       or an IR_PROLOGUE.
     //    c) No GC point may rise above an UNINT_END
@@ -454,7 +454,7 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
     OPT_DepGraphNode sourceNode = regOp.register.dNode();
     if (sourceNode != null) {
       int type = regOp.register.isValidation() ? GUARD_ANTI : REG_ANTI;
-      // create antidependence edge. 
+      // create antidependence edge.
       // NOTE: sourceNode contains the def and destNode contains the use.
       destNode.insertOutEdge(sourceNode, type);
     }
@@ -561,8 +561,8 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
   }
 
   /**
-   * Initialize (clear) the dNode field in OPT_Register for all registers 
-   * in this basic block by setting them to null.   
+   * Initialize (clear) the dNode field in OPT_Register for all registers
+   * in this basic block by setting them to null.
    * Handles both explicit and implict use/defs.
    * @param start the first opt instruction in the region
    * @param end   the last opt instruction in the region

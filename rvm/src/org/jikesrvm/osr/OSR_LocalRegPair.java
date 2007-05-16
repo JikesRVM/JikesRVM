@@ -14,12 +14,12 @@ import org.jikesrvm.compilers.opt.ir.OPT_Operand;
 import org.vmmagic.unboxed.Word;
 
 /**
- * An OSR_LocalRegPair keeps the type information and localtion of 
+ * An OSR_LocalRegPair keeps the type information and localtion of
  * a local variable/stack slot from byte code to machine code.
  */
 public class OSR_LocalRegPair implements OSR_Constants {
 
-  // is it a local or stack? 
+  // is it a local or stack?
   public int kind;
 
   // what's the number of local of stack
@@ -57,7 +57,7 @@ public class OSR_LocalRegPair implements OSR_Constants {
   public OSR_LocalRegPair _otherHalf;
 
   /* The LiveAnalysis phase builds the linked list of tuples, and
-   * the long type variables will get another half register 
+   * the long type variables will get another half register
    * ( splitted in BURS ).
    * After register allocation, we should not use <code>operand</code>
    * anymore. The physical register number, spilled location, or
@@ -98,4 +98,4 @@ public class OSR_LocalRegPair implements OSR_Constants {
     return buf.toString();
   }
 }
-  
+

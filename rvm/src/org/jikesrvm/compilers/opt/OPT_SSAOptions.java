@@ -10,7 +10,7 @@ package org.jikesrvm.compilers.opt;
 
 /**
  * This module defines parameters to the SSA construction process.
- * This is used to pass information between compiler phases.  
+ * This is used to pass information between compiler phases.
  * IMPORTANT: Phases that change the SSA state MUST update the SSA
  *            actual options held by the IR object.
  */
@@ -19,7 +19,7 @@ public class OPT_SSAOptions {
    * options for SSA construction
    */
   private boolean scalarsOnly;        // construct SSA only for scalars?
-  private boolean backwards;          // construct Heap SSA for backwards 
+  private boolean backwards;          // construct Heap SSA for backwards
   // analysis?
   private boolean insertUsePhis;      // constuct Heap SSA with uPhi functions?
   private boolean insertPEIDeps;      // constuct Heap SSA with PEI deps?

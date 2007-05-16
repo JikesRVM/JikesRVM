@@ -24,7 +24,7 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * Multiplex execution of large number of VM_Threads on small 
+ * Multiplex execution of large number of VM_Threads on small
  * number of o/s kernel threads.
  */
 @Uninterruptible
@@ -37,13 +37,13 @@ public final class VM_Processor extends MM_ProcessorContext
   public static final int BLOCKED_IN_NATIVE = 3;
 
   /**
-   * Create data object to be associated with an o/s kernel thread 
+   * Create data object to be associated with an o/s kernel thread
    * (aka "virtual cpu" or "pthread").
-   * @param id id that will be returned by getCurrentProcessorId() for 
+   * @param id id that will be returned by getCurrentProcessorId() for
    * this processor.
    */
   VM_Processor(int id) {
-    // presave JTOC register contents 
+    // presave JTOC register contents
     // (so lintel compiler can us JTOC for scratch)
     if (VM.BuildForIA32 && VM.runningVM) this.jtoc = VM_Magic.getJTOC();
 
@@ -189,7 +189,7 @@ public final class VM_Processor extends MM_ProcessorContext
 
     if (!previousThread.isDaemon &&
         idleProcessor != null && !readyQueue.isEmpty()) {
-      // if we've got too much work, transfer some of it to another 
+      // if we've got too much work, transfer some of it to another
       // processor that has nothing to do
       // don't schedule when switching away from a daemon thread...
       // kludge to avoid thrashing when VM is underloaded with real threads.
@@ -210,7 +210,7 @@ public final class VM_Processor extends MM_ProcessorContext
   }
 
   /**
-   * Find a thread that can be run by this processor and remove it 
+   * Find a thread that can be run by this processor and remove it
    * from its queue.
    */
   @Inline
@@ -444,7 +444,7 @@ public final class VM_Processor extends MM_ProcessorContext
    *       For IA32, it is valuable (saves code space) to
    *       declare the most frequently used fields first so that
    *       they can be accessed with 8 bit immediates.
-   *       On PPC, we have plenty of bits of immediates in 
+   *       On PPC, we have plenty of bits of immediates in
    *       load/store instructions, so it doesn't matter.
    */
 
@@ -601,7 +601,7 @@ public final class VM_Processor extends MM_ProcessorContext
   /**
    * Identity of this processor.
    * Note: 1. VM_Scheduler.processors[id] == this processor
-   *      2. id must be non-zero because it is used in 
+   *      2. id must be non-zero because it is used in
    *      VM_ProcessorLock ownership tests
    */
   public int id;
@@ -615,9 +615,9 @@ public final class VM_Processor extends MM_ProcessorContext
   boolean isInitialized;
 
   /**
-   * Should this processor dispatch a new VM_Thread when 
+   * Should this processor dispatch a new VM_Thread when
    * "threadSwitch" is called?
-   * Also used to decide if it's safe to call yield() when 
+   * Also used to decide if it's safe to call yield() when
    * contending for a lock.
    * A value of:
    *    1 means "yes" (switching enabled)
@@ -626,7 +626,7 @@ public final class VM_Processor extends MM_ProcessorContext
   int threadSwitchingEnabledCount;
 
   /**
-   * Was "threadSwitch" called while this processor had 
+   * Was "threadSwitch" called while this processor had
    * thread switching disabled?
    */
   int threadSwitchPending;
@@ -726,7 +726,7 @@ public final class VM_Processor extends MM_ProcessorContext
    */
   public int pthread_id;
 
-  // manage thick locks 
+  // manage thick locks
   int firstLockIndex;
   int lastLockIndex;
   int nextLockIndex;
@@ -740,7 +740,7 @@ public final class VM_Processor extends MM_ProcessorContext
   VM_ProcessorLock awaitingProcessorLock;
   VM_Processor contenderLink;
 
-  // Scratch area for use for gpr <=> fpr transfers by 
+  // Scratch area for use for gpr <=> fpr transfers by
   // PPC baseline compiler
   @SuppressWarnings({"unused", "CanBeFinal", "UnusedDeclaration"})
 // accessed via VM_EntryPoints

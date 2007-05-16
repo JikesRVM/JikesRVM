@@ -38,7 +38,7 @@ import org.vmmagic.unboxed.Offset;
  * <ul>
  *  <li> (1) Map from a machine code offset to a GC map (register & stack map).
  *  <li> (2) Map from machinecode offset to <method, bcIndex> pair.
- *        Used for: 
+ *        Used for:
  *                  <ul>
  *                  <li> dynamic linking
  *                  <li> lazy compilation
@@ -46,10 +46,10 @@ import org.vmmagic.unboxed.Offset;
  *                  </ul>
  *  <li> (3) Map from a machine code offset to a tree of <method, bcIndex> pairs
  *      that encodes the inlining sequence.
- *        Used for: 
+ *        Used for:
  *                  <ul>
  *                  <li> IPA
- *                  <li> stack inspection (print stack trace, 
+ *                  <li> stack inspection (print stack trace,
  *                                         security manager, etc).
  *                  <li> general debugging support.
  *                  <li> adaptive system profiling
@@ -163,7 +163,7 @@ public final class VM_OptMachineCodeMap
 
   /**
    *  This method searches for the GC map corresponding to the
-   *  passed machine code offset.  
+   *  passed machine code offset.
    *  If no map is present, an error has occurred and VM_OptGCMap.ERROR
    *  is returned.
    *
@@ -224,7 +224,7 @@ public final class VM_OptMachineCodeMap
 
   /**
    * Returns the GC map information for the GC map information entry passed
-   * @param  index     GCmap entry 
+   * @param  index     GCmap entry
    */
   public int gcMapInformation(int index) {
     return VM_OptGCMap.gcMapInformation(index, gcMaps);
@@ -252,7 +252,7 @@ public final class VM_OptMachineCodeMap
 
   /**
    * Do a binary search of the machine code maps to find the index
-   * in MCInformation where the entry for the argument machine code 
+   * in MCInformation where the entry for the argument machine code
    * offset starts. Will return -1 if the entry doesn't exist.
    *
    * @param MCOffset the machine code offset of interest
@@ -693,16 +693,16 @@ public final class VM_OptMachineCodeMap
   //      (c) the instruction is a call in the off-branch
   //          of a guarded inline.
   //   U indicates an unused bit; its value is undefined.
-  // 
+  //
   // We support three entry formats as defined below
-  // 
+  //
   private static final int START_OF_ENTRY = 0x80000000;
   private static final int START_OF_BIG_ENTRY = 0xc0000000;
   private static final int START_OF_HUGE_ENTRY = 0xe0000000;
   private static final int START_BITS = 0xe0000000;
 
   // A small entry is 1 int used as follows:
-  // 10cc bbbb bbii iiii iggg ggoo oooo oooo 
+  // 10cc bbbb bbii iiii iggg ggoo oooo oooo
   private static final int CALL_MASK = 0x30000000;
   private static final int CALL_SHIFT = 28;
   private static final int BCI_MASK = 0x0fc00000;
@@ -719,8 +719,8 @@ public final class VM_OptMachineCodeMap
   private static final int SIZEOF_ENTRY = 1;
 
   // A big entry is 2 ints used as follows:
-  // 110c cbbb bbbb bbbb biii iiii iiii iiii 
-  // 0ggg gggg gggg ggoo oooo oooo oooo oooo 
+  // 110c cbbb bbbb bbbb biii iiii iiii iiii
+  // 0ggg gggg gggg ggoo oooo oooo oooo oooo
   private static final int BIG_CALL_MASK = 0x18000000;
   private static final int BIG_CALL_SHIFT = 27;
   private static final int BIG_CALL_IDX_ADJ = 0;
@@ -783,7 +783,7 @@ public final class VM_OptMachineCodeMap
    */
   public final int[] inlineEncoding;
   /**
-   * Dump maps as methods are compiled. 
+   * Dump maps as methods are compiled.
    */
   private static final boolean DUMP_MAPS = false;
   /**

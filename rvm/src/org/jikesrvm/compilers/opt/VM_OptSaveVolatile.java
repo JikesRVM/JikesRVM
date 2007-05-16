@@ -25,8 +25,8 @@ import org.vmmagic.unboxed.Offset;
  * TODO: Instead of SaveVolatile, make this class implement
  * DynamicBridge...will allow us to kill support for SaveVolatile!.
  * ISSUE: GCMapping for dynamic bridge assumes that it is being used for
- *        lazy method compilation.  Need to generalize to support 
- *        opt's use for other purposes. 
+ *        lazy method compilation.  Need to generalize to support
+ *        opt's use for other purposes.
  *
  * @see OPT_Compiler (hooks to recognize & specially compile this class)
  */
@@ -36,8 +36,8 @@ public class VM_OptSaveVolatile {
 
   /**
    * Handle timer interrupt taken in method prologue.
-   * This method is identical to the yieldpointFromPrologue() 
-   * method used by the baseline compiler, except in the OPT compiler world, 
+   * This method is identical to the yieldpointFromPrologue()
+   * method used by the baseline compiler, except in the OPT compiler world,
    * we also save the volatile registers.
    */
   public static void OPT_yieldpointFromPrologue() {
@@ -46,8 +46,8 @@ public class VM_OptSaveVolatile {
 
   /**
    * Handle timer interrupt taken in method epilogue.
-   * This method is identical to the yieldpointFromEpilogue() 
-   * method used by the baseline compiler, except in the OPT compiler world, 
+   * This method is identical to the yieldpointFromEpilogue()
+   * method used by the baseline compiler, except in the OPT compiler world,
    * we also save the volatile registers.
    */
   public static void OPT_yieldpointFromEpilogue() {
@@ -56,8 +56,8 @@ public class VM_OptSaveVolatile {
 
   /**
    * Handle timer interrupt taken on loop backedge.
-   * This method is identical to the yieldpointFromBackedge() method used 
-   * method used by the baseline compiler, except in the OPT compiler world, 
+   * This method is identical to the yieldpointFromBackedge() method used
+   * method used by the baseline compiler, except in the OPT compiler world,
    * we also save the volatile registers.
    */
   public static void OPT_yieldpointFromBackedge() {
@@ -104,12 +104,12 @@ public class VM_OptSaveVolatile {
   @Interruptible
   public static void OPT_resolve() throws NoClassDefFoundError {
     VM.disableGC();
-    // (1) Get the compiled method & compilerInfo for the (opt) 
+    // (1) Get the compiled method & compilerInfo for the (opt)
     // compiled method that called OPT_resolve
     Address fp = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());
     int cmid = VM_Magic.getCompiledMethodID(fp);
     VM_OptCompiledMethod cm = (VM_OptCompiledMethod) VM_CompiledMethods.getCompiledMethod(cmid);
-    // (2) Get the return address 
+    // (2) Get the return address
     Address ip = VM_Magic.getReturnAddress(VM_Magic.getFramePointer());
     Offset offset = cm.getInstructionOffset(ip);
     VM.enableGC();

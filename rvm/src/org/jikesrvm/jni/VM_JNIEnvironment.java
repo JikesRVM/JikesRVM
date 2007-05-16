@@ -32,7 +32,7 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
   /**
    * sometimes we put stuff onto the jnirefs array bypassing the code
    * that makes sure that it does not overflow (evil assembly code in the
-   * jni stubs that would be painful to fix).  So, we keep some space 
+   * jni stubs that would be painful to fix).  So, we keep some space
    * between the max value in JNIRefsMax and the actual size of the
    * array.  How much is governed by this field.
    */
@@ -46,7 +46,7 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
 
   /**
    * For the PowerOpenABI we need a linkage triple instead of just
-   * a function pointer.  
+   * a function pointer.
    * This is an array of such triples that matches JNIFunctions.
    */
   private static AddressArray[] LinkageTriplets;
@@ -65,7 +65,7 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
    * When we invoke a native method, we adjust the pointer we
    * pass to the native code such that this field is at offset 0.
    * In other words, we turn a VM_JNIEnvironment into a JNIEnv*
-   * by handing the native code an interior pointer to 
+   * by handing the native code an interior pointer to
    * this object that points directly to this field.
    */
   @SuppressWarnings({"unused", "UnusedDeclaration"})
@@ -74,13 +74,13 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
       VM.BuildForPowerOpenABI ? VM_Magic.objectAsAddress(LinkageTriplets) : VM_Magic.objectAsAddress(JNIFunctions);
 
   /**
-   * For saving processor register on entry to native, 
+   * For saving processor register on entry to native,
    * to be restored on JNI call from native
    */
   protected VM_Processor savedPRreg;
 
   /**
-   * true if the bottom stack frame is native, 
+   * true if the bottom stack frame is native,
    * such as thread for CreateJVM or AttachCurrentThread
    */
   protected boolean alwaysHasNativeFrame;
@@ -91,7 +91,7 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
   public AddressArray JNIRefs;
 
   /**
-   * address of current top ref in JNIRefs array   
+   * address of current top ref in JNIRefs array
    */
   public int JNIRefsTop;
 
@@ -116,7 +116,7 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
   protected Throwable pendingException;
 
   /**
-   * We allocate VM_JNIEnvironments in the immortal heap (so we 
+   * We allocate VM_JNIEnvironments in the immortal heap (so we
    * can hand them directly to C code).  Therefore, we must do some
    * kind of pooling of VM_JNIEnvironment instances.
    * This is the free list of unused instances.
@@ -197,8 +197,8 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
   }
 
   /**
-   * Push a reference onto thread local JNIRefs stack.   
-   * To be used by JNI functions when returning a reference 
+   * Push a reference onto thread local JNIRefs stack.
+   * To be used by JNI functions when returning a reference
    * back to JNI native C code.
    * @param ref the object to put on stack
    * @return offset of entry in JNIRefs stack

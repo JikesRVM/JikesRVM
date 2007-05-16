@@ -36,9 +36,9 @@ public class OPT_UnsyncReplacer {
    * Generate an instance of this class for a particular
    * instantiation site.
    *
-   * @param inst the allocation site 
+   * @param inst the allocation site
    * @param ir governing ir
-   * @return the object, or null if illegal 
+   * @return the object, or null if illegal
    */
   public static OPT_UnsyncReplacer getReplacer(OPT_Instruction inst,
                                                OPT_IR ir) {
@@ -65,7 +65,7 @@ public class OPT_UnsyncReplacer {
   }
 
   /**
-   * @param r the register operand target of the allocation 
+   * @param r the register operand target of the allocation
    * @param options controlling compiler options
    */
   private OPT_UnsyncReplacer(OPT_Register r, OPT_Options options) {
@@ -85,7 +85,7 @@ public class OPT_UnsyncReplacer {
       case CALL_opcode:
         OPT_RegisterOperand invokee = Call.getParam(inst, 0).asRegister();
         if (invokee == rop) {
-          // replace with equivalent call on the synthetic 
+          // replace with equivalent call on the synthetic
           // unsynchronized type
           OPT_MethodOperand mop = Call.getMethod(inst);
           if (mop.getTarget().isSynchronized()) {

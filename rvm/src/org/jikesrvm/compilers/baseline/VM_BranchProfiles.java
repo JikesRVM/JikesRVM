@@ -62,9 +62,9 @@ public final class VM_BranchProfiles implements VM_BytecodeConstants {
 
     // Originally we only allocate half of the number of edges for branch
     // profiles, like data = new VM_BranchProfile[cs.length/2]
-    // The conditional branch, tableswitch and lookupswitch all have at 
-    // least two edges, supposingly. Then we found that the lookupswitch 
-    // bytecode could have only one edge, so the number of branch profiles 
+    // The conditional branch, tableswitch and lookupswitch all have at
+    // least two edges, supposingly. Then we found that the lookupswitch
+    // bytecode could have only one edge, so the number of branch profiles
     // is not necessarily less than half of the number of edges.
     VM_BranchProfile[] data = new VM_BranchProfile[cs.length];
     VM_BytecodeStream bcodes = m.getBytecodes();
@@ -73,7 +73,7 @@ public final class VM_BranchProfiles implements VM_BytecodeConstants {
 
     // We didn't record the bytecode index in the profile data to record space.
     // Therefore we must now recover that information.
-    // We exploit the fact that the baseline compiler generates code in 
+    // We exploit the fact that the baseline compiler generates code in
     // a linear pass over the bytecodes to make this possible.
     while (bcodes.hasMoreBytecodes()) {
       int bcIndex = bcodes.index();

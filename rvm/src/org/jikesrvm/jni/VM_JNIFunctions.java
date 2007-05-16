@@ -45,32 +45,32 @@ import org.vmmagic.unboxed.Word;
  * This class implements the 232 JNI functions.
  * All methods here will be specially compiled with the necessary prolog to
  * perform the transition from native code (Linux/AIX/OSX convention) to RVM.
- * For this reason, no Java methods (including the JNI methods here) can call 
- * any methods in this class from within Java.  These JNI methods are to 
+ * For this reason, no Java methods (including the JNI methods here) can call
+ * any methods in this class from within Java.  These JNI methods are to
  * be invoked from native C or C++.   They're all declared private to enforce
  * this discipline.  <br>
  *
- * The first argument for all the functions is the VM_JNIEnvironment object 
+ * The first argument for all the functions is the VM_JNIEnvironment object
  * of the thread. <br>
  *
  * The second argument is a JREF index for either the VM_Class object
- * or the object instance itself.  To get the actual object, we use 
+ * or the object instance itself.  To get the actual object, we use
  * the access method in VM_JNIEnvironment and cast the reference as
  * needed. <br>
  *
- * NOTE:  
+ * NOTE:
  * <ol>
  * <li> JREF index refers to the index into the side table of references
  * maintained by the VM_JNIEnvironment for each thread. Except for some cases
- * of array access, no references are passed directly to the native code; 
- * rather, the references are kept in the table and the index is passed to the 
- * native procedure.  The JREF index are used by the JNI code to retrieve the 
+ * of array access, no references are passed directly to the native code;
+ * rather, the references are kept in the table and the index is passed to the
+ * native procedure.  The JREF index are used by the JNI code to retrieve the
  * corresponding reference. </li>
  *
- * <li> Strings from C are seen as raw address (int) and need to be cloned as 
+ * <li> Strings from C are seen as raw address (int) and need to be cloned as
  * Java Strings </li>
  *
- * <li> Because of many of the transformation above, the method signature of the 
+ * <li> Because of many of the transformation above, the method signature of the
  * JNI functions may not match its definition in the jni.h file </li>
  *
  * <li> For exception handling, all JNI functions are wrapped in Try/Catch block
@@ -91,7 +91,7 @@ import org.vmmagic.unboxed.Word;
  *      creates and destroys virtual machines.
  * <li>Similarly, we can not attach and detach a native threads to and from
  *     the VM.
- * <li>We don't really free local refs when we call the 
+ * <li>We don't really free local refs when we call the
  *      {@link #PopLocalFrame} method.
  * </ol>
  */
@@ -108,8 +108,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * GetVersion: the version of the JNI
    * @param env A JREF index for the JNI environment object
-   * @return 0x00010004 for JNI 1.4, 0x00010002 for JNI 1.2, 
-   *        0x00010001 for JNI 1.1, 
+   * @return 0x00010004 for JNI 1.4, 0x00010002 for JNI 1.2,
+   *        0x00010001 for JNI 1.1,
    */
   private static int GetVersion(VM_JNIEnvironment env) {
     if (traceJNI) VM.sysWrite("JNI called: GetVersion  \n");
@@ -212,7 +212,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   }
 
   /**
-   * IsAssignableFrom:  determine if an an object of class or interface cls1 
+   * IsAssignableFrom:  determine if an an object of class or interface cls1
    * can be cast to the class or interface cls2
    * @param env A JREF index for the JNI environment object
    * @param firstClassJREF a JREF index for the first class object
@@ -239,7 +239,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *         delivered on return to the Java caller
    * @param env A JREF index for the JNI environment object
    * @param exceptionJREF A JREF index for the {@link Throwable} object to be
-   *        thrown 
+   *        thrown
    * @return 0 if successful, -1 if not
    */
   private static int Throw(VM_JNIEnvironment env, int exceptionJREF) {
@@ -310,7 +310,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   }
 
   /**
-   * ExceptionDescribe: print the exception description and the stack trace back, 
+   * ExceptionDescribe: print the exception description and the stack trace back,
    *                    then clear the exception
    * @param env A JREF index for the JNI environment object
    */
@@ -458,7 +458,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
   /**
    * NewObject: create a new object instance
-   * NOTE:  the vararg's are not visible in the method signature here; 
+   * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
@@ -494,7 +494,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to a variable argument list, each element is 1-word or 
+   * @param argAddress a raw address to a variable argument list, each element is 1-word or
    *                   2-words of the appropriate type for the constructor invocation
    * @return the new object instance
    * @exception InstantiationException if the class is abstract or is an interface
@@ -527,7 +527,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word and 
+   * @param argAddress a raw address to an array of unions in C, each element is 2-word and
    *                   hold an argument of the appropriate type for the constructor invocation
    * @exception InstantiationException if the class is abstract or is an interface
    * @exception OutOfMemoryError if no more memory to allocate
@@ -560,7 +560,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * GetObjectClass
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object to check
-   * @return a JREF index for the Class object 
+   * @return a JREF index for the Class object
    */
   private static int GetObjectClass(VM_JNIEnvironment env, int objJREF) {
     if (traceJNI) VM.sysWrite("JNI called: GetObjectClass  \n");
@@ -607,7 +607,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param methodSigAddress a raw address to a null-terminated string in C for the method signature
    * @return id of a VM_MethodReference
    * @exception NoSuchMethodError if the method cannot be found
-   * @exception ExceptionInInitializerError if the class or interface static initializer fails 
+   * @exception ExceptionInInitializerError if the class or interface static initializer fails
    * @exception OutOfMemoryError if the system runs out of memory
    */
   private static int GetMethodID(VM_JNIEnvironment env, int classJREF,
@@ -621,7 +621,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       String sigString = VM_JNIHelpers.createStringFromC(methodSigAddress);
       VM_Atom sigName = VM_Atom.findOrCreateAsciiAtom(sigString);
 
-      // get the target class 
+      // get the target class
       Class<?> jcls = (Class<?>) env.getJNIRef(classJREF);
       VM_Type type = java.lang.JikesRVMSupport.getTypeForClass(jcls);
       if (!type.isClassType()) {
@@ -659,7 +659,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * CallObjectMethod:  invoke a virtual method that returns an object
    *                           arguments passed using the vararg ... style
-   * NOTE:  the vararg's are not visible in the method signature here; 
+   * NOTE:  the vararg's are not visible in the method signature here;
    *        they are saved in the caller frame and the glue frame
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
@@ -685,7 +685,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to a variable argument list, each element is 
+   * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the JREF index for the object returned from the method invocation
    */
@@ -709,8 +709,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word 
-   *        and hold an argument of the appropriate type for the method invocation   
+   * @param argAddress a raw address to an array of unions in C, each element is 2-word
+   *        and hold an argument of the appropriate type for the method invocation
    * @return the JREF index for the object returned from the method invocation
    */
   private static int CallObjectMethodA(VM_JNIEnvironment env, int objJREF, int methodID,
@@ -731,8 +731,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * CallBooleanMethod:  invoke a virtual method that returns a boolean value
    *                           arguments passed using the vararg ... style
-   * NOTE:  the vararg's are not visible in the method signature here; 
-   *        they are saved in the caller frame and the glue frame 
+   * NOTE:  the vararg's are not visible in the method signature here;
+   *        they are saved in the caller frame and the glue frame
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a VM_MethodReference
@@ -759,7 +759,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to a variable argument list, each element is 
+   * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the boolean value returned from the method invocation
    */
@@ -784,8 +784,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word 
-   *        and hold an argument of the appropriate type for the method invocation   
+   * @param argAddress a raw address to an array of unions in C, each element is 2-word
+   *        and hold an argument of the appropriate type for the method invocation
    * @return the boolean value returned from the method invocation
    */
   private static boolean CallBooleanMethodA(VM_JNIEnvironment env, int objJREF, int methodID,
@@ -807,8 +807,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * CallByteMethod:  invoke a virtual method that returns a byte value
    *                           arguments passed using the vararg ... style
-   * NOTE:  the vararg's are not visible in the method signature here; 
-   *        they are saved in the caller frame and the glue frame 
+   * NOTE:  the vararg's are not visible in the method signature here;
+   *        they are saved in the caller frame and the glue frame
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a VM_MethodReference
@@ -834,7 +834,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to a variable argument list, each element is 
+   * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the byte value returned from the method invocation
    */
@@ -859,8 +859,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word 
-   *        and hold an argument of the appropriate type for the method invocation   
+   * @param argAddress a raw address to an array of unions in C, each element is 2-word
+   *        and hold an argument of the appropriate type for the method invocation
    * @return the byte value returned from the method invocation
    */
   private static byte CallByteMethodA(VM_JNIEnvironment env, int objJREF, int methodID,
@@ -882,8 +882,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * CallCharMethod:  invoke a virtual method that returns a char value
    *                           arguments passed using the vararg ... style
-   * NOTE:  the vararg's are not visible in the method signature here; 
-   *        they are saved in the caller frame and the glue frame 
+   * NOTE:  the vararg's are not visible in the method signature here;
+   *        they are saved in the caller frame and the glue frame
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a VM_MethodReference
@@ -909,7 +909,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to a variable argument list, each element is 
+   * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the char value returned from the method invocation
    */
@@ -934,8 +934,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word 
-   *        and hold an argument of the appropriate type for the method invocation   
+   * @param argAddress a raw address to an array of unions in C, each element is 2-word
+   *        and hold an argument of the appropriate type for the method invocation
    * @return the char value returned from the method invocation
    */
   private static char CallCharMethodA(VM_JNIEnvironment env, int objJREF, int methodID, Address argAddress)
@@ -957,8 +957,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * CallShortMethod:  invoke a virtual method that returns a short value
    *                           arguments passed using the vararg ... style
-   * NOTE:  the vararg's are not visible in the method signature here; 
-   *        they are saved in the caller frame and the glue frame 
+   * NOTE:  the vararg's are not visible in the method signature here;
+   *        they are saved in the caller frame and the glue frame
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a VM_MethodReference
@@ -984,7 +984,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to a variable argument list, each element is 
+   * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the short value returned from the method invocation
    */
@@ -1009,8 +1009,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word 
-   *        and hold an argument of the appropriate type for the method invocation   
+   * @param argAddress a raw address to an array of unions in C, each element is 2-word
+   *        and hold an argument of the appropriate type for the method invocation
    * @return the short value returned from the method invocation
    */
   private static short CallShortMethodA(VM_JNIEnvironment env, int objJREF, int methodID,
@@ -1032,8 +1032,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * CallIntMethod:  invoke a virtual method that returns a int value
    *                           arguments passed using the vararg ... style
-   * NOTE:  the vararg's are not visible in the method signature here; 
-   *        they are saved in the caller frame and the glue frame 
+   * NOTE:  the vararg's are not visible in the method signature here;
+   *        they are saved in the caller frame and the glue frame
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a VM_MethodReference
@@ -1059,7 +1059,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to a variable argument list, each element is 
+   * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the int value returned from the method invocation
    */
@@ -1084,8 +1084,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word 
-   *        and hold an argument of the appropriate type for the method invocation   
+   * @param argAddress a raw address to an array of unions in C, each element is 2-word
+   *        and hold an argument of the appropriate type for the method invocation
    * @return the integer value returned from the method invocation
    */
   private static int CallIntMethodA(VM_JNIEnvironment env, int objJREF, int methodID,
@@ -1107,8 +1107,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * CallLongMethod:  invoke a virtual method that returns a long value
    *                           arguments passed using the vararg ... style
-   * NOTE:  the vararg's are not visible in the method signature here; 
-   *        they are saved in the caller frame and the glue frame 
+   * NOTE:  the vararg's are not visible in the method signature here;
+   *        they are saved in the caller frame and the glue frame
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a VM_MethodReference
@@ -1134,7 +1134,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to a variable argument list, each element is 
+   * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the long value returned from the method invocation
    */
@@ -1159,8 +1159,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word 
-   *        and hold an argument of the appropriate type for the method invocation   
+   * @param argAddress a raw address to an array of unions in C, each element is 2-word
+   *        and hold an argument of the appropriate type for the method invocation
    * @return the long value returned from the method invocation
    */
   private static long CallLongMethodA(VM_JNIEnvironment env, int objJREF, int methodID,
@@ -1182,8 +1182,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * CallFloatMethod:  invoke a virtual method that returns a float value
    *                           arguments passed using the vararg ... style
-   * NOTE:  the vararg's are not visible in the method signature here; 
-   *        they are saved in the caller frame and the glue frame 
+   * NOTE:  the vararg's are not visible in the method signature here;
+   *        they are saved in the caller frame and the glue frame
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a VM_MethodReference
@@ -1209,7 +1209,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to a variable argument list, each element is 
+   * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the float value returned from the method invocation
    */
@@ -1234,8 +1234,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word 
-   *        and hold an argument of the appropriate type for the method invocation   
+   * @param argAddress a raw address to an array of unions in C, each element is 2-word
+   *        and hold an argument of the appropriate type for the method invocation
    * @return the float value returned from the method invocation
    */
   private static float CallFloatMethodA(VM_JNIEnvironment env, int objJREF, int methodID,
@@ -1257,8 +1257,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * CallDoubleMethod:  invoke a virtual method that returns a double value
    *                           arguments passed using the vararg ... style
-   * NOTE:  the vararg's are not visible in the method signature here; 
-   *        they are saved in the caller frame and the glue frame 
+   * NOTE:  the vararg's are not visible in the method signature here;
+   *        they are saved in the caller frame and the glue frame
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a VM_MethodReference
@@ -1284,7 +1284,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to a variable argument list, each element is 
+   * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the double value returned from the method invocation
    */
@@ -1309,8 +1309,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word 
-   *        and hold an argument of the appropriate type for the method invocation   
+   * @param argAddress a raw address to an array of unions in C, each element is 2-word
+   *        and hold an argument of the appropriate type for the method invocation
    * @return the double value returned from the method invocation
    */
   private static double CallDoubleMethodA(VM_JNIEnvironment env, int objJREF, int methodID,
@@ -1332,8 +1332,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * CallVoidMethod:  invoke a virtual method that returns a void value
    *                           arguments passed using the vararg ... style
-   * NOTE:  the vararg's are not visible in the method signature here; 
-   *        they are saved in the caller frame and the glue frame 
+   * NOTE:  the vararg's are not visible in the method signature here;
+   *        they are saved in the caller frame and the glue frame
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a VM_MethodReference
@@ -1355,7 +1355,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to a variable argument list, each element is 
+   * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    */
   private static void CallVoidMethodV(VM_JNIEnvironment env, int objJREF, int methodID,
@@ -1376,8 +1376,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word 
-   *        and hold an argument of the appropriate type for the method invocation   
+   * @param argAddress a raw address to an array of unions in C, each element is 2-word
+   *        and hold an argument of the appropriate type for the method invocation
    */
   private static void CallVoidMethodA(VM_JNIEnvironment env, int objJREF, int methodID,
                                       Address argAddress) throws Exception {
@@ -1395,8 +1395,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * CallNonvirtualObjectMethod:  invoke a virtual method that returns an object
    *                           arguments passed using the vararg ... style
-   * NOTE:  the vararg's are not visible in the method signature here; 
-   *        they are saved in the caller frame and the glue frame 
+   * NOTE:  the vararg's are not visible in the method signature here;
+   *        they are saved in the caller frame and the glue frame
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
@@ -1424,7 +1424,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to a variable argument list, each element is 
+   * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the JREF index for the object returned from the method invocation
    */
@@ -1449,8 +1449,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word 
-   *        and hold an argument of the appropriate type for the method invocation   
+   * @param argAddress a raw address to an array of unions in C, each element is 2-word
+   *        and hold an argument of the appropriate type for the method invocation
    * @return the JREF index for the object returned from the method invocation
    */
   private static int CallNonvirtualObjectMethodA(VM_JNIEnvironment env, int objJREF, int classJREF,
@@ -1471,8 +1471,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * CallNonvirtualBooleanMethod:  invoke a virtual method that returns a boolean value
    *                           arguments passed using the vararg ... style
-   * NOTE:  the vararg's are not visible in the method signature here; 
-   *        they are saved in the caller frame and the glue frame 
+   * NOTE:  the vararg's are not visible in the method signature here;
+   *        they are saved in the caller frame and the glue frame
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
@@ -1500,7 +1500,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to a variable argument list, each element is 
+   * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the boolean value returned from the method invocation
    */
@@ -1526,8 +1526,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word 
-   *        and hold an argument of the appropriate type for the method invocation   
+   * @param argAddress a raw address to an array of unions in C, each element is 2-word
+   *        and hold an argument of the appropriate type for the method invocation
    * @return the boolean value returned from the method invocation
    */
   private static boolean CallNonvirtualBooleanMethodA(VM_JNIEnvironment env, int objJREF, int classJREF,
@@ -1549,8 +1549,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * CallNonvirtualByteMethod:  invoke a virtual method that returns a byte value
    *                           arguments passed using the vararg ... style
-   * NOTE:  the vararg's are not visible in the method signature here; 
-   *        they are saved in the caller frame and the glue frame 
+   * NOTE:  the vararg's are not visible in the method signature here;
+   *        they are saved in the caller frame and the glue frame
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
@@ -1579,7 +1579,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a VM_MethodReference
    * @param classJREF a JREF index for the class object that declares this method
-   * @param argAddress a raw address to a variable argument list, each element is 
+   * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the byte value returned from the method invocation
    */
@@ -1605,8 +1605,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a VM_MethodReference
    * @param classJREF a JREF index for the class object that declares this method
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word 
-   *        and hold an argument of the appropriate type for the method invocation   
+   * @param argAddress a raw address to an array of unions in C, each element is 2-word
+   *        and hold an argument of the appropriate type for the method invocation
    * @return the byte value returned from the method invocation
    */
   private static byte CallNonvirtualByteMethodA(VM_JNIEnvironment env, int objJREF, int classJREF,
@@ -1628,8 +1628,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * CallNonvirtualCharMethod:  invoke a virtual method that returns a char value
    *                           arguments passed using the vararg ... style
-   * NOTE:  the vararg's are not visible in the method signature here; 
-   *        they are saved in the caller frame and the glue frame 
+   * NOTE:  the vararg's are not visible in the method signature here;
+   *        they are saved in the caller frame and the glue frame
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
@@ -1658,7 +1658,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to a variable argument list, each element is 
+   * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the char value returned from the method invocation
    */
@@ -1684,8 +1684,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word 
-   *        and hold an argument of the appropriate type for the method invocation   
+   * @param argAddress a raw address to an array of unions in C, each element is 2-word
+   *        and hold an argument of the appropriate type for the method invocation
    * @return the char value returned from the method invocation
    */
   private static char CallNonvirtualCharMethodA(VM_JNIEnvironment env, int objJREF, int classJREF,
@@ -1707,8 +1707,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * CallNonvirtualShortMethod:  invoke a virtual method that returns a short value
    *                           arguments passed using the vararg ... style
-   * NOTE:  the vararg's are not visible in the method signature here; 
-   *        they are saved in the caller frame and the glue frame 
+   * NOTE:  the vararg's are not visible in the method signature here;
+   *        they are saved in the caller frame and the glue frame
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
@@ -1737,7 +1737,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to a variable argument list, each element is 
+   * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the short value returned from the method invocation
    */
@@ -1763,8 +1763,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word 
-   *        and hold an argument of the appropriate type for the method invocation   
+   * @param argAddress a raw address to an array of unions in C, each element is 2-word
+   *        and hold an argument of the appropriate type for the method invocation
    * @return the short value returned from the method invocation
    */
   private static short CallNonvirtualShortMethodA(VM_JNIEnvironment env, int objJREF, int classJREF,
@@ -1786,8 +1786,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * CallNonvirtualIntMethod:  invoke a virtual method that returns a int value
    *                           arguments passed using the vararg ... style
-   * NOTE:  the vararg's are not visible in the method signature here; 
-   *        they are saved in the caller frame and the glue frame 
+   * NOTE:  the vararg's are not visible in the method signature here;
+   *        they are saved in the caller frame and the glue frame
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
@@ -1816,7 +1816,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to a variable argument list, each element is 
+   * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the int value returned from the method invocation
    */
@@ -1842,8 +1842,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word 
-   *        and hold an argument of the appropriate type for the method invocation   
+   * @param argAddress a raw address to an array of unions in C, each element is 2-word
+   *        and hold an argument of the appropriate type for the method invocation
    * @return the integer value returned from the method invocation
    */
   private static int CallNonvirtualIntMethodA(VM_JNIEnvironment env, int objJREF, int classJREF,
@@ -1865,8 +1865,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * CallNonvirtualLongMethod:  invoke a virtual method that returns a long value
    *                           arguments passed using the vararg ... style
-   * NOTE:  the vararg's are not visible in the method signature here; 
-   *        they are saved in the caller frame and the glue frame 
+   * NOTE:  the vararg's are not visible in the method signature here;
+   *        they are saved in the caller frame and the glue frame
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
@@ -1895,7 +1895,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to a variable argument list, each element is 
+   * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the long value returned from the method invocation
    */
@@ -1921,8 +1921,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word 
-   *        and hold an argument of the appropriate type for the method invocation   
+   * @param argAddress a raw address to an array of unions in C, each element is 2-word
+   *        and hold an argument of the appropriate type for the method invocation
    * @return the long value returned from the method invocation
    */
   private static long CallNonvirtualLongMethodA(VM_JNIEnvironment env, int objJREF, int classJREF,
@@ -1944,8 +1944,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * CallNonvirtualFloatMethod:  invoke a virtual method that returns a float value
    *                           arguments passed using the vararg ... style
-   * NOTE:  the vararg's are not visible in the method signature here; 
-   *        they are saved in the caller frame and the glue frame 
+   * NOTE:  the vararg's are not visible in the method signature here;
+   *        they are saved in the caller frame and the glue frame
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
@@ -1973,7 +1973,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to a variable argument list, each element is 
+   * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the float value returned from the method invocation
    */
@@ -1999,8 +1999,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word 
-   *        and hold an argument of the appropriate type for the method invocation   
+   * @param argAddress a raw address to an array of unions in C, each element is 2-word
+   *        and hold an argument of the appropriate type for the method invocation
    * @return the float value returned from the method invocation
    */
   private static float CallNonvirtualFloatMethodA(VM_JNIEnvironment env, int objJREF, int classJREF,
@@ -2022,8 +2022,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * CallNonvirtualDoubleMethod:  invoke a virtual method that returns a double value
    *                           arguments passed using the vararg ... style
-   * NOTE:  the vararg's are not visible in the method signature here; 
-   *        they are saved in the caller frame and the glue frame 
+   * NOTE:  the vararg's are not visible in the method signature here;
+   *        they are saved in the caller frame and the glue frame
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
@@ -2051,7 +2051,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to a variable argument list, each element is 
+   * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the double value returned from the method invocation
    */
@@ -2077,8 +2077,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word 
-   *        and hold an argument of the appropriate type for the method invocation   
+   * @param argAddress a raw address to an array of unions in C, each element is 2-word
+   *        and hold an argument of the appropriate type for the method invocation
    * @return the double value returned from the method invocation
    */
   private static double CallNonvirtualDoubleMethodA(VM_JNIEnvironment env, int objJREF, int classJREF,
@@ -2101,8 +2101,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * CallNonvirtualVoidMethod:  invoke a virtual method that returns a void value
    *                           arguments passed using the vararg ... style
-   * NOTE:  the vararg's are not visible in the method signature here; 
-   *        they are saved in the caller frame and the glue frame 
+   * NOTE:  the vararg's are not visible in the method signature here;
+   *        they are saved in the caller frame and the glue frame
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
@@ -2127,7 +2127,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to a variable argument list, each element is 
+   * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    */
   private static void CallNonvirtualVoidMethodV(VM_JNIEnvironment env, int objJREF, int classJREF,
@@ -2149,8 +2149,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a VM_MethodReference
-   * @param argAddress a raw address to an array of unions in C, each element is 2-word 
-   *        and hold an argument of the appropriate type for the method invocation   
+   * @param argAddress a raw address to an array of unions in C, each element is 2-word
+   *        and hold an argument of the appropriate type for the method invocation
    */
   private static void CallNonvirtualVoidMethodA(VM_JNIEnvironment env, int objJREF, int classJREF,
                                                 int methodID, Address argAddress) throws Exception {
@@ -2166,12 +2166,12 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   }
 
   /**
-   * GetFieldID:  return a field id, which can be cached in native code and reused 
+   * GetFieldID:  return a field id, which can be cached in native code and reused
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the VM_Class object
    * @param fieldNameAddress a raw address to a null-terminated string in C for the field name
    * @param descriptorAddress a raw address to a null-terminated string in C for the descriptor
-   * @return the fieldID of an instance field given the class, field name 
+   * @return the fieldID of an instance field given the class, field name
    *         and type. Return 0 if the field is not found
    * @exception NoSuchFieldError if the specified field cannot be found
    * @exception ExceptionInInitializerError if the class initializer fails
@@ -2601,7 +2601,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       String sigString = VM_JNIHelpers.createStringFromC(methodSigAddress);
       VM_Atom sigName = VM_Atom.findOrCreateAsciiAtom(sigString);
 
-      // get the target class 
+      // get the target class
       Class<?> jcls = (Class<?>) env.getJNIRef(classJREF);
       VM_Type type = java.lang.JikesRVMSupport.getTypeForClass(jcls);
       if (!type.isClassType()) {
@@ -2633,8 +2633,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * CallStaticObjectMethod:  invoke a static method that returns an object value
    *                          arguments passed using the vararg ... style
-   * NOTE:  the vararg's are not visible in the method signature here; they are saved 
-   *        in the caller frame and the glue frame 
+   * NOTE:  the vararg's are not visible in the method signature here; they are saved
+   *        in the caller frame and the glue frame
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a VM_MethodReference
@@ -2702,8 +2702,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * CallStaticBooleanMethod:  invoke a static method that returns a boolean value
    *                           arguments passed using the vararg ... style
-   * NOTE:  the vararg's are not visible in the method signature here; they are saved 
-   *        in the caller frame and the glue frame 
+   * NOTE:  the vararg's are not visible in the method signature here; they are saved
+   *        in the caller frame and the glue frame
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a VM_MethodReference
@@ -2771,8 +2771,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * CallStaticByteMethod:  invoke a static method that returns a byte value
    *                        arguments passed using the vararg ... style
-   * NOTE:  the vararg's are not visible in the method signature here; they are saved 
-   *        in the caller frame and the glue frame 
+   * NOTE:  the vararg's are not visible in the method signature here; they are saved
+   *        in the caller frame and the glue frame
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a VM_MethodReference
@@ -2840,8 +2840,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * CallStaticCharMethod:  invoke a static method that returns a char value
    *                        arguments passed using the vararg ... style
-   * NOTE:  the vararg's are not visible in the method signature here; they are saved 
-   *        in the caller frame and the glue frame 
+   * NOTE:  the vararg's are not visible in the method signature here; they are saved
+   *        in the caller frame and the glue frame
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a VM_MethodReference
@@ -2909,8 +2909,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * CallStaticShortMethod:  invoke a static method that returns a short value
    *                         arguments passed using the vararg ... style
-   * NOTE:  the vararg's are not visible in the method signature here; they are saved 
-   *        in the caller frame and the glue frame 
+   * NOTE:  the vararg's are not visible in the method signature here; they are saved
+   *        in the caller frame and the glue frame
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a VM_MethodReference
@@ -2978,8 +2978,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * CallStaticIntMethod:  invoke a static method that returns an integer value
    *                       arguments passed using the vararg ... style
-   * NOTE:  the vararg's are not visible in the method signature here; they are saved 
-   *        in the caller frame and the glue frame 
+   * NOTE:  the vararg's are not visible in the method signature here; they are saved
+   *        in the caller frame and the glue frame
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a VM_MethodReference
@@ -3047,8 +3047,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * CallStaticLongMethod:  invoke a static method that returns a long value
    *                        arguments passed using the vararg ... style
-   * NOTE:  the vararg's are not visible in the method signature here; they are saved 
-   *        in the caller frame and the glue frame 
+   * NOTE:  the vararg's are not visible in the method signature here; they are saved
+   *        in the caller frame and the glue frame
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a VM_MethodReference
@@ -3116,8 +3116,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * CallStaticFloagMethod:  invoke a static method that returns a float value
    *                         arguments passed using the vararg ... style
-   * NOTE:  the vararg's are not visible in the method signature here; they are saved 
-   *        in the caller frame and the glue frame 
+   * NOTE:  the vararg's are not visible in the method signature here; they are saved
+   *        in the caller frame and the glue frame
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a VM_MethodReference
@@ -3185,8 +3185,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * CallStaticDoubleMethod:  invoke a static method that returns a double value
    *                          arguments passed using the vararg ... style
-   * NOTE:  the vararg's are not visible in the method signature here; they are saved 
-   *        in the caller frame and the glue frame 
+   * NOTE:  the vararg's are not visible in the method signature here; they are saved
+   *        in the caller frame and the glue frame
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID an id of a VM_MethodReference
@@ -3254,8 +3254,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * CallStaticVoidMethod:  invoke a static method that returns void
    *                       arguments passed using the vararg ... style
-   * NOTE:  the vararg's are not visible in the method signature here; they are saved 
-   *        in the caller frame and the glue frame 
+   * NOTE:  the vararg's are not visible in the method signature here; they are saved
+   *        in the caller frame and the glue frame
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a VM_MethodReference
@@ -3317,7 +3317,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param classJREF a JREF index for the VM_Class object
    * @param fieldNameAddress a raw address to a null-terminated string in C for the field name
    * @param descriptorAddress a raw address to a null-terminated string in C for the descriptor
-   * @return the offset of a static field given the class, field name 
+   * @return the offset of a static field given the class, field name
    *         and type. Return 0 if the field is not found
    * @exception NoSuchFieldError if the specified field cannot be found
    * @exception ExceptionInInitializerError if the class initializer fails
@@ -3539,7 +3539,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param env         A JREF index for the JNI environment object
    * @param classJREF   A JREF index for the {@link VM_Class} object
    * @param fieldID     The id for the {@link VM_Field} that describes this
-   *                    field 
+   *                    field
    * @param objectJREF  A JREF index of the value to assign
    */
   private static void SetStaticObjectField(VM_JNIEnvironment env, int classJREF, int fieldID, int objectJREF) {
@@ -3910,7 +3910,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * GetArrayLength: return array length
    * @param env A JREF index for the JNI environment object
-   * @param arrayJREF a JREF index for the source array 
+   * @param arrayJREF a JREF index for the source array
    * @return the array length, or -1 if it's not an array
    */
   private static int GetArrayLength(VM_JNIEnvironment env, int arrayJREF) {
@@ -3975,7 +3975,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * GetObjectArrayElement: retrieve an object from an object array
    * @param env A JREF index for the JNI environment object
-   * @param arrayJREF a JREF index for the source array 
+   * @param arrayJREF a JREF index for the source array
    * @param index the index for the targeted element
    * @return the object at the specified index
    * @exception ArrayIndexOutOfBoundsException if the index is out of range
@@ -4011,7 +4011,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * SetObjectArrayElement: store an object into an object array
    * @param env A JREF index for the JNI environment object
-   * @param arrayJREF a JREF index for the source array 
+   * @param arrayJREF a JREF index for the source array
    * @param index the index for the targeted element
    * @param objectJREF a JREF index for the object to store into the array
    * @exception ArrayStoreException if the element types do not match
@@ -4035,7 +4035,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param length the size of the new array
    * @return the new boolean array
-   * @exception OutOfMemoryError if the system runs out of memory   
+   * @exception OutOfMemoryError if the system runs out of memory
    */
   private static int NewBooleanArray(VM_JNIEnvironment env, int length) {
     if (traceJNI) VM.sysWrite("JNI called: NewBooleanArray  \n");
@@ -4055,7 +4055,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param length the size of the new array
    * @return the new byte array
-   * @exception OutOfMemoryError if the system runs out of memory   
+   * @exception OutOfMemoryError if the system runs out of memory
    */
   private static int NewByteArray(VM_JNIEnvironment env, int length) {
     if (traceJNI) VM.sysWrite("JNI called: NewByteArray  \n");
@@ -4075,7 +4075,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param length the size of the new array
    * @return the new char array
-   * @exception OutOfMemoryError if the system runs out of memory   
+   * @exception OutOfMemoryError if the system runs out of memory
    */
   private static int NewCharArray(VM_JNIEnvironment env, int length) {
     if (traceJNI) VM.sysWrite("JNI called: NewCharArray  \n");
@@ -4095,7 +4095,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param length the size of the new array
    * @return the new short array
-   * @exception OutOfMemoryError if the system runs out of memory   
+   * @exception OutOfMemoryError if the system runs out of memory
    */
   private static int NewShortArray(VM_JNIEnvironment env, int length) {
     if (traceJNI) VM.sysWrite("JNI called: NewShortArray  \n");
@@ -4115,7 +4115,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param length the size of the new array
    * @return the new integer array
-   * @exception OutOfMemoryError if the system runs out of memory   
+   * @exception OutOfMemoryError if the system runs out of memory
    */
   private static int NewIntArray(VM_JNIEnvironment env, int length) {
     if (traceJNI) VM.sysWrite("JNI called: NewIntArray  \n");
@@ -4135,7 +4135,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param length the size of the new array
    * @return the new long array
-   * @exception OutOfMemoryError if the system runs out of memory   
+   * @exception OutOfMemoryError if the system runs out of memory
    */
   private static int NewLongArray(VM_JNIEnvironment env, int length) {
     if (traceJNI) VM.sysWrite("JNI called: NewLongArray  \n");
@@ -4155,7 +4155,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param length the size of the new array
    * @return the new float array
-   * @exception OutOfMemoryError if the system runs out of memory   
+   * @exception OutOfMemoryError if the system runs out of memory
    */
   private static int NewFloatArray(VM_JNIEnvironment env, int length) {
     if (traceJNI) VM.sysWrite("JNI called: NewFloatArray  \n");
@@ -4175,7 +4175,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param length the size of the new array
    * @return the new long array
-   * @exception OutOfMemoryError if the system runs out of memory   
+   * @exception OutOfMemoryError if the system runs out of memory
    */
   private static int NewDoubleArray(VM_JNIEnvironment env, int length) {
     if (traceJNI) VM.sysWrite("JNI called: NewDoubleArray  \n");
@@ -4193,11 +4193,11 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * GetBooleanArrayElements: get all the elements of a boolean array
    * @param env A JREF index for the JNI environment object
-   * @param arrayJREF a JREF index for the source array 
+   * @param arrayJREF a JREF index for the source array
    * @param isCopyAddress address of a flag to indicate whether the returned array is a copy or a direct pointer
    * @return A pointer to the boolean array and the isCopy flag is set to true if it's a copy
    *         or false if it's a direct pointer
-   * @exception OutOfMemoryError if the system runs out of memory   
+   * @exception OutOfMemoryError if the system runs out of memory
    */
   private static Address GetBooleanArrayElements(VM_JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetBooleanArrayElements  \n");
@@ -4230,11 +4230,11 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * GetByteArrayElements: get all the elements of a byte array
    * @param env A JREF index for the JNI environment object
-   * @param arrayJREF a JREF index for the source array 
+   * @param arrayJREF a JREF index for the source array
    * @param isCopyAddress address of a flag to indicate whether the returned array is a copy or a direct pointer
    * @return A pointer to the byte array and the isCopy flag is set to true if it's a copy
    *         or false if it's a direct pointer
-   * @exception OutOfMemoryError if the system runs out of memory   
+   * @exception OutOfMemoryError if the system runs out of memory
    */
   private static Address GetByteArrayElements(VM_JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetByteArrayElements \n");
@@ -4274,11 +4274,11 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * GetCharArrayElements: get all the elements of a char array
    * @param env A JREF index for the JNI environment object
-   * @param arrayJREF a JREF index for the source array 
+   * @param arrayJREF a JREF index for the source array
    * @param isCopyAddress address of a flag to indicate whether the returned array is a copy or a direct pointer
    * @return A pointer to the char array and the isCopy flag is set to true if it's a copy
    *         or false if it's a direct pointer
-   * @exception OutOfMemoryError if the system runs out of memory   
+   * @exception OutOfMemoryError if the system runs out of memory
    */
   private static Address GetCharArrayElements(VM_JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetCharArrayElements  \n");
@@ -4316,11 +4316,11 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * GetShortArrayElements: get all the elements of a short array
    * @param env A JREF index for the JNI environment object
-   * @param arrayJREF a JREF index for the source array 
+   * @param arrayJREF a JREF index for the source array
    * @param isCopyAddress address of a flag to indicate whether the returned array is a copy or a direct pointer
    * @return A pointer to the short array and the isCopy flag is set to true if it's a copy
    *         or false if it's a direct pointer
-   * @exception OutOfMemoryError if the system runs out of memory   
+   * @exception OutOfMemoryError if the system runs out of memory
    */
   private static Address GetShortArrayElements(VM_JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetShortArrayElements  \n");
@@ -4358,11 +4358,11 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * GetIntArrayElements: get all the elements of an integer array
    * @param env A JREF index for the JNI environment object
-   * @param arrayJREF a JREF index for the source array 
+   * @param arrayJREF a JREF index for the source array
    * @param isCopyAddress address of a flag to indicate whether the returned array is a copy or a direct pointer
    * @return A pointer to the integer array and the isCopy flag is set to true if it's a copy
    *         or false if it's a direct pointer
-   * @exception OutOfMemoryError if the system runs out of memory   
+   * @exception OutOfMemoryError if the system runs out of memory
    */
   private static Address GetIntArrayElements(VM_JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetIntArrayElements  \n");
@@ -4399,11 +4399,11 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * GetLongArrayElements: get all the elements of a long array
    * @param env A JREF index for the JNI environment object
-   * @param arrayJREF a JREF index for the source array 
+   * @param arrayJREF a JREF index for the source array
    * @param isCopyAddress address of a flag to indicate whether the returned array is a copy or a direct pointer
    * @return A pointer to the long array and the isCopy flag is set to true if it's a copy
    *         or false if it's a direct pointer
-   * @exception OutOfMemoryError if the system runs out of memory   
+   * @exception OutOfMemoryError if the system runs out of memory
    */
   private static Address GetLongArrayElements(VM_JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetLongArrayElements  \n");
@@ -4440,11 +4440,11 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * GetFloatArrayElements: get all the elements of a float array
    * @param env A JREF index for the JNI environment object
-   * @param arrayJREF a JREF index for the source array 
+   * @param arrayJREF a JREF index for the source array
    * @param isCopyAddress address of a flag to indicate whether the returned array is a copy or a direct pointer
    * @return A pointer to the float array and the isCopy flag is set to true if it's a copy
    *         or false if it's a direct pointer
-   * @exception OutOfMemoryError if the system runs out of memory   
+   * @exception OutOfMemoryError if the system runs out of memory
    */
   private static Address GetFloatArrayElements(VM_JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetFloatArrayElements  \n");
@@ -4482,11 +4482,11 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * GetDoubleArrayElements: get all the elements of a double array
    * @param env A JREF index for the JNI environment object
-   * @param arrayJREF a JREF index for the source array 
+   * @param arrayJREF a JREF index for the source array
    * @param isCopyAddress address of a flag to indicate whether the returned array is a copy or a direct pointer
    * @return A pointer to the double array and the isCopy flag is set to true if it's a copy
    *         or false if it's a direct pointer
-   * @exception OutOfMemoryError if the system runs out of memory   
+   * @exception OutOfMemoryError if the system runs out of memory
    */
   private static Address GetDoubleArrayElements(VM_JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetDoubleArrayElements  \n");
@@ -4523,7 +4523,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * ReleaseBooleanArrayElements: free the native copy of the array, update changes to Java array as indicated
    * @param env A JREF index for the JNI environment object
-   * @param arrayJREF a JREF index for the source array 
+   * @param arrayJREF a JREF index for the source array
    * @param copyBufferAddress the address of the copy of the array
    * @param releaseMode one of 3 codes to indicate whether to copy back or free the array:
    *    releaseMode 0:  copy back and free the buffer
@@ -4574,7 +4574,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * ReleaseByteArrayElements: free the native copy of the array, update changes to Java array as indicated
    * @param env A JREF index for the JNI environment object
-   * @param arrayJREF a JREF index for the source array 
+   * @param arrayJREF a JREF index for the source array
    * @param copyBufferAddress the address of the copy of the array
    * @param releaseMode one of 3 codes to indicate whether to copy back or free the array:
    *    releaseMode 0:  copy back and free the buffer
@@ -4615,7 +4615,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * ReleaseCharArrayElements: free the native copy of the array, update changes to Java array as indicated
    * @param env A JREF index for the JNI environment object
-   * @param arrayJREF a JREF index for the source array 
+   * @param arrayJREF a JREF index for the source array
    * @param copyBufferAddress the address of the copy of the array
    * @param releaseMode one of 3 codes to indicate whether to copy back or free the array:
    *    releaseMode 0:  copy back and free the buffer
@@ -4652,7 +4652,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * ReleaseShortArrayElements: free the native copy of the array, update changes to Java array as indicated
    * @param env A JREF index for the JNI environment object
-   * @param arrayJREF a JREF index for the source array 
+   * @param arrayJREF a JREF index for the source array
    * @param copyBufferAddress the address of the copy of the array
    * @param releaseMode one of 3 codes to indicate whether to copy back or free the array:
    *    releaseMode 0:  copy back and free the buffer
@@ -4689,7 +4689,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * ReleaseIntArrayElements: free the native copy of the array, update changes to Java array as indicated
    * @param env A JREF index for the JNI environment object
-   * @param arrayJREF a JREF index for the source array 
+   * @param arrayJREF a JREF index for the source array
    * @param copyBufferAddress the address of the copy of the array
    * @param releaseMode one of 3 codes to indicate whether to copy back or free the array:
    *    releaseMode 0:  copy back and free the buffer
@@ -4726,7 +4726,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * ReleaseLongArrayElements: free the native copy of the array, update changes to Java array as indicated
    * @param env A JREF index for the JNI environment object
-   * @param arrayJREF a JREF index for the source array 
+   * @param arrayJREF a JREF index for the source array
    * @param copyBufferAddress the address of the copy of the array
    * @param releaseMode one of 3 codes to indicate whether to copy back or free the array:
    *    releaseMode 0:  copy back and free the buffer
@@ -4763,7 +4763,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * ReleaseFloatArrayElements: free the native copy of the array, update changes to Java array as indicated
    * @param env A JREF index for the JNI environment object
-   * @param arrayJREF a JREF index for the source array 
+   * @param arrayJREF a JREF index for the source array
    * @param copyBufferAddress the address of the copy of the array
    * @param releaseMode one of 3 codes to indicate whether to copy back or free the array:
    *    releaseMode 0:  copy back and free the buffer
@@ -4800,7 +4800,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * ReleaseDoubleArrayElements: free the native copy of the array, update changes to Java array as indicated
    * @param env A JREF index for the JNI environment object
-   * @param arrayJREF a JREF index for the source array 
+   * @param arrayJREF a JREF index for the source array
    * @param copyBufferAddress the address of the copy of the array
    * @param releaseMode one of 3 codes to indicate whether to copy back or free the array:
    *    releaseMode 0:  copy back and free the buffer
@@ -4837,7 +4837,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * GetBooleanArrayRegion: copy a region of the array into the native buffer
    * @param env A JREF index for the JNI environment object
-   * @param arrayJREF a JREF index for the source array 
+   * @param arrayJREF a JREF index for the source array
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the destination address in native to copy to
@@ -4864,7 +4864,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * GetByteArrayRegion: copy a region of the array into the native buffer
    * @param env A JREF index for the JNI environment object
-   * @param arrayJREF a JREF index for the source array 
+   * @param arrayJREF a JREF index for the source array
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the destination address in native to copy to
@@ -4892,7 +4892,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * GetCharArrayRegion: copy a region of the array into the native buffer
    * @param env A JREF index for the JNI environment object
-   * @param arrayJREF a JREF index for the source array 
+   * @param arrayJREF a JREF index for the source array
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the destination address in native to copy to
@@ -4922,7 +4922,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * GetShortArrayRegion: copy a region of the array into the native buffer
    * @param env A JREF index for the JNI environment object
-   * @param arrayJREF a JREF index for the source array 
+   * @param arrayJREF a JREF index for the source array
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the destination address in native to copy to
@@ -4952,7 +4952,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * GetIntArrayRegion: copy a region of the array into the native buffer
    * @param env A JREF index for the JNI environment object
-   * @param arrayJREF a JREF index for the source array 
+   * @param arrayJREF a JREF index for the source array
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the destination address in native to copy to
@@ -4982,7 +4982,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * GetLongArrayRegion: copy a region of the array into the native buffer
    * @param env A JREF index for the JNI environment object
-   * @param arrayJREF a JREF index for the source array 
+   * @param arrayJREF a JREF index for the source array
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the destination address in native to copy to
@@ -5012,7 +5012,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * GetFloatArrayRegion: copy a region of the array into the native buffer
    * @param env A JREF index for the JNI environment object
-   * @param arrayJREF a JREF index for the source array 
+   * @param arrayJREF a JREF index for the source array
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the destination address in native to copy to
@@ -5042,7 +5042,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * GetDoubleArrayRegion: copy a region of the array into the native buffer
    * @param env A JREF index for the JNI environment object
-   * @param arrayJREF a JREF index for the source array 
+   * @param arrayJREF a JREF index for the source array
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the destination address in native to copy to
@@ -5072,7 +5072,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * SetBooleanArrayRegion: copy a region of the native buffer into the array (1 byte element)
    * @param env A JREF index for the JNI environment object
-   * @param arrayJREF a JREF index for the destination array 
+   * @param arrayJREF a JREF index for the destination array
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the source address in native to copy from
@@ -5100,7 +5100,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * SetByteArrayRegion: copy a region of the native buffer into the array (1 byte element)
    * @param env A JREF index for the JNI environment object
-   * @param arrayJREF a JREF index for the destination array 
+   * @param arrayJREF a JREF index for the destination array
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the source address in native to copy from
@@ -5128,7 +5128,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * SetCharArrayRegion: copy a region of the native buffer into the array (2 byte element)
    * @param env A JREF index for the JNI environment object
-   * @param arrayJREF a JREF index for the destination array 
+   * @param arrayJREF a JREF index for the destination array
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the source address in native to copy from
@@ -5158,7 +5158,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * SetShortArrayRegion: copy a region of the native buffer into the array (2 byte element)
    * @param env A JREF index for the JNI environment object
-   * @param arrayJREF a JREF index for the destination array 
+   * @param arrayJREF a JREF index for the destination array
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the source address in native to copy from
@@ -5187,7 +5187,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * SetIntArrayRegion: copy a region of the native buffer into the array
    * @param env A JREF index for the JNI environment object
-   * @param arrayJREF a JREF index for the destination array 
+   * @param arrayJREF a JREF index for the destination array
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the source address in native to copy from
@@ -5217,7 +5217,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * SetLongArrayRegion: copy a region of the native buffer into the array
    * @param env A JREF index for the JNI environment object
-   * @param arrayJREF a JREF index for the destination array 
+   * @param arrayJREF a JREF index for the destination array
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the source address in native to copy from
@@ -5247,7 +5247,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * SetFloatArrayRegion: copy a region of the native buffer into the array
    * @param env A JREF index for the JNI environment object
-   * @param arrayJREF a JREF index for the destination array 
+   * @param arrayJREF a JREF index for the destination array
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the source address in native to copy from
@@ -5277,7 +5277,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   /**
    * SetDoubleArrayRegion: copy a region of the native buffer into the array
    * @param env A JREF index for the JNI environment object
-   * @param arrayJREF a JREF index for the destination array 
+   * @param arrayJREF a JREF index for the destination array
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the source address in native to copy from
@@ -5317,7 +5317,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
     if (traceJNI) VM.sysWrite("JNI called: RegisterNatives  \n");
 
     try {
-      // get the target class 
+      // get the target class
       Class<?> jcls = (Class<?>) env.getJNIRef(classJREF);
       VM_Type type = java.lang.JikesRVMSupport.getTypeForClass(jcls);
       if (!type.isClassType()) {
@@ -5378,7 +5378,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
     try {
 
-      // get the target class 
+      // get the target class
       Class<?> jcls = (Class<?>) env.getJNIRef(classJREF);
       VM_Type type = java.lang.JikesRVMSupport.getTypeForClass(jcls);
       if (!type.isClassType()) {
@@ -5497,14 +5497,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * ToReflectedMethod
    * @param env A JREF index for the JNI environment object
    * @param clsJREF The JREF index of the class from which methodID was
-   * derived. 
+   * derived.
    * @param methodID a jmethodID to turn into a reflected method
    * @param isStatic argument that is not specified in Sun's JNI 1.2 spec,
-   *            but IS present in the 1.4.2 JDK's implementation!  Our 
+   *            but IS present in the 1.4.2 JDK's implementation!  Our
    *            implementation will just ignore it, in any case.  This is a
-   *            good example of why the same entity 
+   *            good example of why the same entity
    *            shouldn't get to write both the spec and the reference
-   *            implementation. 
+   *            implementation.
    * @return a JREF index for the java.lang.reflect.Method or
    * java.lang.reflect.Constructor object associated with methodID.
    */
@@ -5526,16 +5526,16 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * ToReflectedField
    * @param env A JREF index for the JNI environment object
    * @param clsJREF The JREF index of the class from which fieldID was
-   * derived. 
+   * derived.
    * @param fieldID a jfieldID
    * @param isStatic argument that is not specified in Sun's JNI 1.2 spec,
-   *            but IS present in the 1.4.2 JDK's implementation!  Our 
+   *            but IS present in the 1.4.2 JDK's implementation!  Our
    *            implementation will just ignore it, in any case.  This is a
-   *            good example of why the same entity 
+   *            good example of why the same entity
    *            shouldn't get to write both the spec and the reference
-   *            implementation. 
+   *            implementation.
    * @return a JREF index for the java.lang.reflect.Field object associated
-   *         with fieldID. 
+   *         with fieldID.
    */
   private static int ToReflectedField(VM_JNIEnvironment env,
                                       int clsJREF, int fieldID,
@@ -5548,8 +5548,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
   /** Push a local frame for local references.
    * We could implement this more fancily, but it seems that we hardly need
-   * to, since we allow an unlimited number of local refs.  One could force 
-   * running out of memory in a long-running loop in JNI, of course. 
+   * to, since we allow an unlimited number of local refs.  One could force
+   * running out of memory in a long-running loop in JNI, of course.
    */
   private static int PushLocalFrame(VM_JNIEnvironment env, int capacity) {
     if (traceJNI) VM.sysWrite("JNI called: PushLocalFrame \n");
@@ -5558,7 +5558,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
   /** Push a local frame for local references.
    * We could implement this more fancily, but it seems that we hardly need
-   * to, since we allow an unlimited number of local refs.  One could force 
+   * to, since we allow an unlimited number of local refs.  One could force
    * running out of memory in a long-running loop in JNI, of course, and this
    * might save us from that.  Let's hold off until we need it.  TODO.
    *
@@ -5609,8 +5609,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *  @param start index to start reading characters from the string
    *  @param len how many characters to read
    *  @param buf the buffer to copy the region into
-   *  @exception StringIndexOutOfBoundsException if asked for an out-of-range 
-   *        region of the string.  
+   *  @exception StringIndexOutOfBoundsException if asked for an out-of-range
+   *        region of the string.
    */
   private static void GetStringRegion(VM_JNIEnvironment env, int strJREF,
                                       int start, int len, Address buf) {
@@ -5642,8 +5642,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    *  @param start index to start reading characters from the string
    *  @param len how many characters to read from the string
    *  @param buf the buffer to copy the region into -- assume it's big enough
-   *  @exception StringIndexOutOfBoundsException if asked for an out-of-range 
-   *        region of the string.  
+   *  @exception StringIndexOutOfBoundsException if asked for an out-of-range
+   *        region of the string.
    */
   private static void GetStringUTFRegion(VM_JNIEnvironment env, int strJREF,
                                          int start, int len, Address buf) {
@@ -5658,9 +5658,9 @@ public class VM_JNIFunctions implements VM_SizeConstants {
         env.recordException(new StringIndexOutOfBoundsException());
         return;
       }
-      /* XXX TODO This is pretty inefficient.  We create another String, 
+      /* XXX TODO This is pretty inefficient.  We create another String,
        * just to feed it to the UTF8 method, but I'm feeling lazy and
-       * don't want to go into writing another interface to 
+       * don't want to go into writing another interface to
        * VM_UTF8Convert.toUTF8() to handle ranges of char arrays. */
       String region = new String(strChars, strOffset + start, len);
       byte[] utfcontents = VM_UTF8Convert.toUTF8(region);
@@ -5673,8 +5673,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   }
 
   /**
-   * GetPrimitiveArrayCritical: return a direct pointer to the primitive array 
-   * and disable GC so that the array will not be moved.  This function 
+   * GetPrimitiveArrayCritical: return a direct pointer to the primitive array
+   * and disable GC so that the array will not be moved.  This function
    * is intended to be paired with the ReleasePrimitiveArrayCritical function
    * within a short time so that GC will be reenabled
    *
@@ -5712,15 +5712,15 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   }
 
   /**
-   * ReleasePrimitiveArrayCritical: this function is intended to be paired 
-   * with the GetPrimitiveArrayCritical function.  
+   * ReleasePrimitiveArrayCritical: this function is intended to be paired
+   * with the GetPrimitiveArrayCritical function.
    * Since the native code has direct access
    * to the array, no copyback update is necessary;  GC is simply reenabled.
    * @param env A JREF index for the JNI environment object
    * @param arrayJREF a JREF index for the primitive array in Java
    * @param arrayCopyAddress
-   * @param mode a flag indicating whether to update the Java array with the 
-   *            copy and whether to free the copy. For this implementation, 
+   * @param mode a flag indicating whether to update the Java array with the
+   *            copy and whether to free the copy. For this implementation,
    *            no copy was made so this flag has no effect.
    */
   private static void ReleasePrimitiveArrayCritical(VM_JNIEnvironment env,
@@ -5766,7 +5766,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * ReleaseStringCritical: this function is intended to be paired with the
    * GetStringCritical function.  Since the native code has direct access
    * to the string's backing array of characters, no copyback update is
-   * necessary;  GC is simply reenabled. 
+   * necessary;  GC is simply reenabled.
    *
    * @param env A JREF index for the JNI environment object
    * @param strJREF a JREF index for the string in Java (ignored)

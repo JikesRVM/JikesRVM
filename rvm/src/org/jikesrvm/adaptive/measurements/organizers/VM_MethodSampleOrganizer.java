@@ -20,24 +20,24 @@ import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
 import org.jikesrvm.scheduler.VM_Scheduler;
 
 /**
- * An organizer for method listener information. 
+ * An organizer for method listener information.
  * <p>
- * This organizer is designed to work well with non-decayed 
- * cumulative method samples.  The basic idea is that each time 
- * the sampling threshold is reached we update the accumulated method 
- * sample data with the new data and then notify the controller of all 
+ * This organizer is designed to work well with non-decayed
+ * cumulative method samples.  The basic idea is that each time
+ * the sampling threshold is reached we update the accumulated method
+ * sample data with the new data and then notify the controller of all
  * methods that were sampled in the current window.
  */
 public final class VM_MethodSampleOrganizer extends VM_Organizer {
 
   /**
-   *  Filter out all opt-compiled methods that were compiled 
+   *  Filter out all opt-compiled methods that were compiled
    * at this level or higher.
    */
   private int filterOptLevel;
 
   /**
-   * @param filterOptLevel   filter out all opt-compiled methods that 
+   * @param filterOptLevel   filter out all opt-compiled methods that
    *                         were compiled at this level or higher
    */
   public VM_MethodSampleOrganizer(int filterOptLevel) {
@@ -84,7 +84,7 @@ public final class VM_MethodSampleOrganizer extends VM_Organizer {
     //     NOTE: This is a dirty trick and may be ill-advised.
     //     Rather than copying the unique samples into a different buffer
     //     we treat samples as if it was a scratch buffer.
-    //     NOTE: This is worse case O(numSamples^2) but we expect a 
+    //     NOTE: This is worse case O(numSamples^2) but we expect a
     //     significant number of duplicates, so it's probably better than
     //     the other obvious alternative (sorting samples).
     int uniqueIdx = 1;
@@ -99,7 +99,7 @@ public final class VM_MethodSampleOrganizer extends VM_Organizer {
 
     // (3) For all samples in 0...uniqueIdx, if the method represented by
     //     the sample is compiled at an opt level below filterOptLevel
-    //     then report it to the controller. 
+    //     then report it to the controller.
     for (int i = 0; i < uniqueIdx; i++) {
       int cmid = samples[i];
       double ns = VM_Controller.methodSamples.getData(cmid);

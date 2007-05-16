@@ -42,7 +42,7 @@ public final class VM_LinkedList<T> implements List<T> {
   }
 
   /**
-   * Insert at the tail of the list 
+   * Insert at the tail of the list
    *
    * @param entry The entry to add.
    * @return true (as per java collections framework standard)

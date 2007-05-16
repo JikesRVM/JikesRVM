@@ -36,7 +36,7 @@ public final class VM_ThinLock implements VM_ThinLockConstants {
    * prologue of synchronized methods and for the
    * <code>monitorenter</code> bytecode.
    *
-   * @param o the object to be locked 
+   * @param o the object to be locked
    * @param lockOffset the offset of the thin lock word in the object.
    * @see org.jikesrvm.compilers.opt.OPT_ExpandRuntimeServices
    */
@@ -61,7 +61,7 @@ public final class VM_ThinLock implements VM_ThinLockConstants {
    * compiler for the epilogue of synchronized methods and for the
    * <code>monitorexit</code> bytecode.
    *
-   * @param o the object to be unlocked 
+   * @param o the object to be unlocked
    * @param lockOffset the offset of the thin lock word in the object.
    * @see org.jikesrvm.compilers.opt.OPT_ExpandRuntimeServices
    */
@@ -83,7 +83,7 @@ public final class VM_ThinLock implements VM_ThinLockConstants {
    * sequence for the prologue of synchronized methods and for the
    * <code>monitorenter</code> bytecode.
    *
-   * @param o the object to be locked 
+   * @param o the object to be locked
    * @param lockOffset the offset of the thin lock word in the object.
    */
   @NoInline
@@ -162,7 +162,7 @@ public final class VM_ThinLock implements VM_ThinLockConstants {
    * sequence for the epilogue of synchronized methods and for the
    * <code>monitorexit</code> bytecode.
    *
-   * @param o the object to be locked 
+   * @param o the object to be locked
    * @param lockOffset the offset of the thin lock word in the object.
    */
   @NoInline
@@ -210,7 +210,7 @@ public final class VM_ThinLock implements VM_ThinLockConstants {
    * or it may be unlocked.  If there is already a heavy-weight lock
    * on this object, that lock is returned.
    *
-   * @param o the object to get a heavy-weight lock 
+   * @param o the object to get a heavy-weight lock
    * @param lockOffset the offset of the thin lock word in the object.
    * @return the heavy-weight lock on this object
    */
@@ -265,7 +265,7 @@ public final class VM_ThinLock implements VM_ThinLockConstants {
    * thread, or it may be unlocked.  If there is already a
    * heavy-weight lock on this object, that lock is returned.
    *
-   * @param o the object to get a heavy-weight lock 
+   * @param o the object to get a heavy-weight lock
    * @param lockOffset the offset of the thin lock word in the object.
    * @return whether the object was successfully locked
    */

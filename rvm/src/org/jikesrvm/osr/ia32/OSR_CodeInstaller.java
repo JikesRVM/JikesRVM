@@ -27,7 +27,7 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * OSR_CodeInstaller generates a glue code which recovers registers and 
+ * OSR_CodeInstaller generates a glue code which recovers registers and
  * from the stack frames and branch to the newly compiled method instructions.
  * The glue code is installed right before returning to the threading method
  * by OSR_PostThreadSwitch
@@ -51,11 +51,11 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
     int SW_WIDTH = 4;
 
     // this offset is used to adjust SP to FP right after return
-    // from a call. 4 bytes for return address and 
+    // from a call. 4 bytes for return address and
     // 4 bytes for saved FP of tsfrom.
     Offset sp2fpOffset = fooFPOffset.minus(tsfromFPOffset).minus(2 * SW_WIDTH);
 
-    // should given an estimated length, and print the instructions 
+    // should given an estimated length, and print the instructions
     // for debugging
     VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(50, VM.TraceOnStackReplacement);
 
@@ -80,13 +80,13 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
       asm.emitMOV_Reg_RegDisp(EBX, SP, EBX_SAVE_OFFSET);
       // restore frame pointer
       asm.emitPOP_RegDisp(PR, VM_Entrypoints.framePointerField.getOffset());
-      // donot pop return address and parameters, 
+      // donot pop return address and parameters,
       // we make a faked call to newly compiled method
       asm.emitJMP_Reg(S0);
     } else if (cType == VM_CompiledMethod.OPT) {
       ///////////////////////////////////////////////////
       // recover saved registers from foo's stack frame
-      ///////////////////////////////////////////////////     
+      ///////////////////////////////////////////////////
       VM_OptCompiledMethod fooOpt = (VM_OptCompiledMethod) foo;
 
       // foo definitely not save volatile
@@ -95,7 +95,7 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
         VM._assert(!saveVolatile);
       }
 
-      // assume SP is on foo's stack frame, 
+      // assume SP is on foo's stack frame,
       int firstNonVolatile = fooOpt.getFirstNonVolatileGPR();
       int nonVolatiles = fooOpt.getNumberOfNonvolatileGPRs();
       int nonVolatileOffset = fooOpt.getUnsignedNonVolatileOffset();
@@ -108,7 +108,7 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
       }
       // adjust SP to frame pointer
       asm.emitADD_Reg_Imm(SP, sp2fpOffset.toInt());
-      // restore frame pointer 
+      // restore frame pointer
       asm.emitPOP_RegDisp(PR, VM_Entrypoints.framePointerField.getOffset());
 
       // we need a scratch registers here, using scratch register here

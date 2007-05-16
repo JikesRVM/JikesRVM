@@ -4,7 +4,7 @@
  * A copy of the license is included in the distribution, and is also
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
- * (C) Copyright 
+ * (C) Copyright
  * Department of Computer Science,
  * University of Texas at Austin 2005
  * All rights reserved.
@@ -38,9 +38,9 @@ import org.jikesrvm.classloader.VM_Atom;
  * <li><code>&lt;method></code> <i>string</i> The name of the method</li>
  * <li><code>&lt;signature></code> <i>string</i> The method signature</li>
  * <li><code>&lt;advice></code> <i>int</i> The compiler type to be used --
- * an integer value corresponding to the compiler enumeration in 
+ * an integer value corresponding to the compiler enumeration in
  VM_CompiledMethod</li>
- * <li><code>&lt;optLevel></code> <i>int</i> (Optional) The opt level to use 
+ * <li><code>&lt;optLevel></code> <i>int</i> (Optional) The opt level to use
  if compiler is optimizing compiler</li>
  * </ul>
  *
@@ -102,7 +102,7 @@ class VM_CompilerAdviceInfoReader {
    * from a single line of an input stream.  There are six elements
    * per line corresponding to each call site. First three are
    * strings, <i>class name</i>, <i>method name</i>, <i>method
-   * signature</i>, followed by one number, 
+   * signature</i>, followed by one number,
    * <i>compiler advice</i>.
    *
    * @param st an input stream

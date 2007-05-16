@@ -637,7 +637,7 @@ public class OPT_LICM extends OPT_CompilerPhase {
       //  if (me.isImplicitLoad() || me.isImplicitStore())
 //      def = _getRealDef(def, me)
 //        ;
-//        else if (me.isPEI()) 
+//        else if (me.isPEI())
 //      def = _getRealExceptionDef(def)
       //  ;
 
@@ -1068,7 +1068,7 @@ public class OPT_LICM extends OPT_CompilerPhase {
     OPT_Operand resOp = Phi.getResult(inst);
 
     if (!(resOp instanceof OPT_HeapOperand)) {
-      //VM.sysWrite (" no heap op result\n");      
+      //VM.sysWrite (" no heap op result\n");
       return false; // scalar phi
     }
 
@@ -1136,7 +1136,7 @@ public class OPT_LICM extends OPT_CompilerPhase {
         // check for access to volatile field
         OPT_LocationOperand loc = LocationCarrier.getLocation(y);
         if (loc == null || loc.mayBeVolatile()) {
-          //VM.sysWrite (" no loc or volatile field\n");          
+          //VM.sysWrite (" no loc or volatile field\n");
           return CL_COMPLEX;
         }
         for (OPT_HeapOperand<?> op : ssad.getHeapUses(y)) {
@@ -1194,7 +1194,7 @@ public class OPT_LICM extends OPT_CompilerPhase {
         // check for access to volatile field
         OPT_LocationOperand loc = LocationCarrier.getLocation(y);
         if (loc == null || loc.mayBeVolatile()) {
-          //VM.sysWrite (" no loc or volatile field\n");          
+          //VM.sysWrite (" no loc or volatile field\n");
           return CL_COMPLEX;
         }
         if (y.isImplicitStore()) {
@@ -1250,7 +1250,7 @@ public class OPT_LICM extends OPT_CompilerPhase {
 
   /**
    * In the consumers of `inst', replace uses of `inst's result
-   * with uses of `replacement' 
+   * with uses of `replacement'
    */
   private boolean replaceUses(OPT_Instruction inst,
                               OPT_HeapOperand<?> replacement,

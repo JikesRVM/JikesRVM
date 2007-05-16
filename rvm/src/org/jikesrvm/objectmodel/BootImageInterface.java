@@ -17,7 +17,7 @@ import org.vmmagic.unboxed.Word;
 public interface BootImageInterface {
 
   /**
-   * Allocate space in data portion of bootimage. Moral equivalent of 
+   * Allocate space in data portion of bootimage. Moral equivalent of
    * memory managers allocating raw storage at runtime.
    * @param size the number of bytes to allocate
    * @param align the alignment requested; must be a power of 2.
@@ -26,7 +26,7 @@ public interface BootImageInterface {
   Address allocateDataStorage(int size, int align, int offset);
 
   /**
-   * Allocate space in code portion of bootimage. Moral equivalent of 
+   * Allocate space in code portion of bootimage. Moral equivalent of
    * memory managers allocating raw storage at runtime.
    * @param size the number of bytes to allocate
    * @param align the alignment requested; must be a power of 2.

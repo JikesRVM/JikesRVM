@@ -57,7 +57,7 @@ public final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
   /**
    * Add a new exception type to an extant exception handler block.
    * Do filtering of duplicates internally for efficiency.
-   * NOTE: this routine is only intended to be called by 
+   * NOTE: this routine is only intended to be called by
    * {@link OPT_BC2IR}.
    *
    * @param et the exception type to be added
@@ -96,7 +96,7 @@ public final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
   }
 
   /**
-   * Return YES/NO/MAYBE values that answer the question is it guarenteed that 
+   * Return YES/NO/MAYBE values that answer the question is it guarenteed that
    * this handler block will catch an exception of type <code>cand</code>
    *
    * @param cand  the VM_TypeReference of the exception in question.
@@ -120,7 +120,7 @@ public final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
   /**
    * Return an Enumeration of the caught exception types.
    * Mainly intended for creation of exception tables during
-   * final assembly. Most other clients shouldn't care about this 
+   * final assembly. Most other clients shouldn't care about this
    * level of detail.
    */
   public Enumeration<OPT_TypeOperand> getExceptionTypes() {
@@ -177,7 +177,7 @@ public final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
 
   /**
    * Return a string representation of the basic block
-   * (augment {@link OPT_BasicBlock#toString} with 
+   * (augment {@link OPT_BasicBlock#toString} with
    * the exceptions caught by this handler block).
    *
    * @return a string representation of the block

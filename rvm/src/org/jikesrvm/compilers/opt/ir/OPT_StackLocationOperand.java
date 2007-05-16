@@ -35,7 +35,7 @@ public final class OPT_StackLocationOperand extends OPT_Operand {
 
   /**
    * @param fromTop is the offset from the top of bottom of the frame?
-   * @param offset  the offset of the stack location from the top/bottom 
+   * @param offset  the offset of the stack location from the top/bottom
    *                of the frame
    * @param size    Size (in bytes) of the stack location.
    */
@@ -47,7 +47,7 @@ public final class OPT_StackLocationOperand extends OPT_Operand {
 
   /**
    * @param fromTop is the offset from the top of bottom of the frame?
-   * @param offset  the offset of the stack location from the top/bottom 
+   * @param offset  the offset of the stack location from the top/bottom
    *                of the frame
    * @param size    Size (in bytes) of the stack location.
    */
@@ -67,7 +67,7 @@ public final class OPT_StackLocationOperand extends OPT_Operand {
   }
 
   /**
-   * @return the offset from the frame pointer (top of stack frame) 
+   * @return the offset from the frame pointer (top of stack frame)
    *         corresponding to this stack location.
    */
   public int getOffset() {

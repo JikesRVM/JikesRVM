@@ -56,7 +56,7 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
       VM_BaselineCompiler.initOptions();
       VM.sysWrite("VM_BootImageCompiler: init (opt compiler)\n");
 
-      // Writing a boot image is a little bit special.  We're not really 
+      // Writing a boot image is a little bit special.  We're not really
       // concerned about compile time, but we do care a lot about the quality
       // and stability of the generated code.  Set the options accordingly.
       OPT_Compiler.setBootOptions(masterOptions);
@@ -149,7 +149,7 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
     VM_CompiledMethod cm = VM_BaselineCompiler.compile(method);
     // Must estimate compilation time by using offline ratios.
     // It is tempting to time via System.currentTimeMillis()
-    // but 1 millisecond granularity isn't good enough because the 
+    // but 1 millisecond granularity isn't good enough because the
     // the baseline compiler is just too fast.
     double compileTime = method.getBytecodeLength() / VM_CompilerDNA.getBaselineCompilationRate();
     cm.setCompilationTime(compileTime);

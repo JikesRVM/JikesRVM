@@ -71,8 +71,8 @@ public abstract class OPT_DF_System {
   }
 
   /**
-   * Return a string representation of the system 
-   * @return a string representation of the system 
+   * Return a string representation of the system
+   * @return a string representation of the system
    */
   public String toString() {
     String result = "EQUATIONS:\n";
@@ -85,7 +85,7 @@ public abstract class OPT_DF_System {
 
   /**
    * Return an Enumeration over the equations in this system.
-   * @return an Enumeration over the equations in this system 
+   * @return an Enumeration over the equations in this system
    */
   public Enumeration<OPT_DF_Equation> getEquations() {
     return new OPT_FilterEnumerator<OPT_GraphNode, OPT_DF_Equation>(
@@ -115,7 +115,7 @@ public abstract class OPT_DF_System {
   }
 
   /**
-   * Add all new equations to the work list. 
+   * Add all new equations to the work list.
    */
   public void addNewEquationsToWorkList() {
     if (DEBUG) {
@@ -134,7 +134,7 @@ public abstract class OPT_DF_System {
   }
 
   /**
-   * Add all equations to the work list. 
+   * Add all equations to the work list.
    */
   public void addAllEquationsToWorkList() {
     for (Enumeration<OPT_DF_Equation> e = getEquations(); e.hasMoreElements();) {
@@ -144,7 +144,7 @@ public abstract class OPT_DF_System {
   }
 
   /**
-   * Call this method when the contents of a lattice cell 
+   * Call this method when the contents of a lattice cell
    * changes.  This routine adds all equations using this cell
    * to the set of new equations.
    * @param cell the lattice cell that has changed
@@ -399,8 +399,8 @@ public abstract class OPT_DF_System {
    *
    *  <p> PRECONDITION: Already called addGraphEdges()
    *
-   *  <p>Algorithm: 
-   *   <ul> 
+   *  <p>Algorithm:
+   *   <ul>
    *   <li>     1. create a DAG of SCCs
    *   <li>     2. number this DAG topologically
    *   <li>     3. walk through the DAG and number nodes as they are

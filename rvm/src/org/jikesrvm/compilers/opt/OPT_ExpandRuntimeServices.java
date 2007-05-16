@@ -55,9 +55,9 @@ import org.jikesrvm.runtime.VM_Entrypoints;
 /**
  * As part of the expansion of HIR into LIR, this compile phase
  * replaces all HIR operators that are implemented as calls to
- * VM service routines with CALLs to those routines.  
- * For some (common and performance critical) operators, we 
- * may optionally inline expand the call (depending on the 
+ * VM service routines with CALLs to those routines.
+ * For some (common and performance critical) operators, we
+ * may optionally inline expand the call (depending on the
  * the values of the relevant compiler options and/or VM_Controls).
  * This pass is also responsible for inserting write barriers
  * if we are using an allocator that requires them. Write barriers

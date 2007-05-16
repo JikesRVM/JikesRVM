@@ -12,10 +12,10 @@ import org.jikesrvm.classloader.VM_NormalMethod;
 
 /**
  * An instance of this class acts instructs the optimizing
- * compiler how to instrument a method to support the 
+ * compiler how to instrument a method to support the
  * gathering of runtime measurement information
  *
- * Currently empty, but will gradually add function here 
+ * Currently empty, but will gradually add function here
  * as the Adaptive Optimization Subsystem evolves.
  */
 public abstract class OPT_InstrumentationPlan {

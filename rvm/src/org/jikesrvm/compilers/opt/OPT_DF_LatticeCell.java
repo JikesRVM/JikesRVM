@@ -40,14 +40,14 @@ interface OPT_DF_LatticeCell extends OPT_GraphNode {
   String toString();
 
   /**
-   * Note that this variable appears on the RHS of an equation 
+   * Note that this variable appears on the RHS of an equation
    *
    * @param eq the equation
    */
   void addUse(OPT_DF_Equation eq);
 
   /**
-   * Note that this variable appears on the LHS of an equation 
+   * Note that this variable appears on the LHS of an equation
    *
    * @param eq the equation
    */

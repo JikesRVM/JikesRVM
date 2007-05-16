@@ -23,7 +23,7 @@ import org.jikesrvm.runtime.VM_Reflection;
  *    2. For all objects on finalize Q, run the finalize() method
  *    3. Go to 1
  *
- * This thread comes out of wait state via notify from the garbage collector  
+ * This thread comes out of wait state via notify from the garbage collector
  */
 public class VM_FinalizerThread extends VM_Thread {
 

@@ -37,7 +37,7 @@ import org.jikesrvm.compilers.opt.ir.Return;
  * NOTES:
  * <ul>
  * <li> This pass does not attempt to optimize all tail calls, just those
- *      that are directly recursive. 
+ *      that are directly recursive.
  * <li> Even the small optimization we are doing here destroys the ability
  *      to accurately support stack frame inspection.
  * <li> This phase assumes that is run before OPT_Yieldpoints and thus
@@ -122,7 +122,7 @@ public final class OPT_TailRecursionElimination extends OPT_CompilerPhase {
    *
    * @param call the call in question
    * @param ir the enclosing IR
-   * @return <code>true</code> if call is tail recursive and 
+   * @return <code>true</code> if call is tail recursive and
    *         <code>false</code> if it is not.
    */
   boolean isTailRecursion(OPT_Instruction call, OPT_IR ir) {
@@ -172,7 +172,7 @@ public final class OPT_TailRecursionElimination extends OPT_CompilerPhase {
                             OPT_Instruction prologue,
                             OPT_BasicBlock target,
                             OPT_IR ir) {
-    // (1) insert move instructions to assign fresh temporaries 
+    // (1) insert move instructions to assign fresh temporaries
     //     the actuals of the call.
     int numParams = Call.getNumberOfParams(call);
     OPT_RegisterOperand[] temps = new OPT_RegisterOperand[numParams];
@@ -197,7 +197,7 @@ public final class OPT_TailRecursionElimination extends OPT_CompilerPhase {
     }
 
     // (3) Blow away all instructions below the call in the basic block
-    //     (should only be moves and other housekeeping instructions 
+    //     (should only be moves and other housekeeping instructions
     //      skipped over in isTailRecursion loop above)
     OPT_BasicBlock myBlock = call.getBasicBlock();
     OPT_Instruction dead = myBlock.lastRealInstruction();

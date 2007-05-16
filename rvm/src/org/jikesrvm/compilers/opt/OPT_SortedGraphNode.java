@@ -12,7 +12,7 @@ import java.util.Enumeration;
 
 // For now, OPT_SortedGraphNode inherits from DoublyLinkedList only
 // for compatibility
-// with the current implementation of OPT_BasicBlock. 
+// with the current implementation of OPT_BasicBlock.
 // In the future, this inheritance will be removed.
 // Therefore, the user of this class should ignore that
 // this class extends DoublyLinkedList.
@@ -21,7 +21,7 @@ import java.util.Enumeration;
 public abstract class OPT_SortedGraphNode extends OPT_SpaceEffGraphNode {
 
   // Return enumerator for all the in nodes.
-  public abstract Enumeration<? extends OPT_SortedGraphNode> getInNodes();  // should be overridden 
+  public abstract Enumeration<? extends OPT_SortedGraphNode> getInNodes();  // should be overridden
   // by a subclass
 
   // Return enumerator for all the out nodes.
@@ -92,7 +92,7 @@ public abstract class OPT_SortedGraphNode extends OPT_SpaceEffGraphNode {
   }
 
   // Do we need this?
-  //  public int isForwardSorted(OPT_SortedGraphNode node) { 
+  //  public int isForwardSorted(OPT_SortedGraphNode node) {
   //    return forwardSortNumber - node.forwardSortNumber;
   //  }
   public static int getNewSortMarker(OPT_SortedGraphNode anchor) {

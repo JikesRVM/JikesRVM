@@ -4,7 +4,7 @@
  * A copy of the license is included in the distribution, and is also
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
- * (C) Copyright 
+ * (C) Copyright
  * Department of Computer Science,
  * University of Texas at Austin 2005
  * All rights reserved.
@@ -32,7 +32,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
  * <li><code>&lt;signature></code> <i>string</i> The method signature</li>
  * <li><code>&lt;advice></code> <i>in </i> The integer value for the
  * compiler, as given in VM_CompilerInfo</li>
- * <li><code>&lt;optLevel></code> <i>in </i> The optimization level when 
+ * <li><code>&lt;optLevel></code> <i>in </i> The optimization level when
  the Opt compiler is used
  * </ul>
  *
@@ -47,14 +47,14 @@ public class VM_CompilerAdviceAttribute {
   private static VM_CompilerAdviceAttribute tempAttr = null;
   private static boolean hasAdvice = false;
 
-  private VM_Atom className;  // The name of the class for the compiler site 
+  private VM_Atom className;  // The name of the class for the compiler site
   private VM_Atom methodName; // The name of the method for the compiler site
   private VM_Atom methodSig;  // The signature of the method
   private int compiler;   // The compiler to use for the method
   private int optLevel;   // The optimization level
 
   /**
-   * Initialization of key compiler advice data structure.  
+   * Initialization of key compiler advice data structure.
    */
   public static void postBoot() {
     attribMap = new HashMap<VM_CompilerAdviceAttribute, VM_CompilerAdviceAttribute>();

@@ -306,9 +306,9 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
   // being the same number of wrapper routines for all
   // compilers. Please talk to me (Dave G) before changing this. Thanks.
   // We could try a substantially more complex implementation
-  // (especially on the opt side) to avoid the wrapper routine, 
+  // (especially on the opt side) to avoid the wrapper routine,
   // for the baseline compiler, but I think this is the easiest way
-  // to handle all the cases at reasonable runtime-cost. 
+  // to handle all the cases at reasonable runtime-cost.
   /**
    * Yieldpoint taken in prologue
    */
@@ -548,7 +548,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
 
   /**
    * Suspend execution of current thread in favor of some other thread.
-   * @param q queue to put thread onto (must be processor-local, ie. 
+   * @param q queue to put thread onto (must be processor-local, ie.
    * not guarded with a lock)
    */
   @NoInline
@@ -575,8 +575,8 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
 
   /**
    * For timed wait, suspend execution of current thread in favor of some other thread.
-   * Put a proxy for the current thread 
-   *   on a queue waiting a notify, and 
+   * Put a proxy for the current thread
+   *   on a queue waiting a notify, and
    *   on a wakeup queue waiting for a timeout.
    *
    * @param q1 the {@link VM_ProxyWaitingQueue} upon which to wait for notification
@@ -639,7 +639,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
   //----------------------------------//
 
   /**
-   * Put this thread on ready queue for subsequent execution on a future 
+   * Put this thread on ready queue for subsequent execution on a future
    * timeslice.
    * Assumption: VM_Thread.contextRegisters are ready to pick up execution
    *             ie. return to a yield or begin thread startup code
@@ -705,7 +705,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
   }
 
   /**
-   * Terminate execution of current thread by abandoning all 
+   * Terminate execution of current thread by abandoning all
    * references to it and
    * resuming execution in some other (ready) thread.
    */
@@ -731,7 +731,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
     // allow java.lang.Thread.exit() to remove this thread from ThreadGroup
     myThread.exit();
 
-    synchronized (myThread) { // release anybody waiting on this thread - 
+    synchronized (myThread) { // release anybody waiting on this thread -
 
       // begin critical section
       //
@@ -790,7 +790,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
            * attempted to run the main thread.  (As of this writing, 24
            * January 2005, the Classpath libraries do not do such a thing, but
            * there is no reason why we should not support this.)   This was
-           * discussed on jikesrvm-researchers 
+           * discussed on jikesrvm-researchers
            * on 23 Jan 2005 and 24 Jan 2005. */
           System.exit(VM.EXIT_STATUS_MAIN_THREAD_COULD_NOT_LAUNCH);
         }
@@ -827,9 +827,9 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
   public final int getIndex() { return threadSlot; }
 
   /**
-   * Get this thread's id for use in lock ownership tests.  
+   * Get this thread's id for use in lock ownership tests.
    * This is just the thread's index as returned by {@link #getIndex()},
-   * shifted appropriately so it can be directly used in the ownership tests. 
+   * shifted appropriately so it can be directly used in the ownership tests.
    */
   public final int getLockingId() {
     return threadSlot << VM_ThinLockConstants.TL_THREAD_ID_SHIFT;
@@ -840,7 +840,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
   /**
    * Change the size of the currently executing thread's stack.
    * @param newSize    new size (in bytes)
-   * @param exceptionRegisters register state at which stack overflow trap 
+   * @param exceptionRegisters register state at which stack overflow trap
    * was encountered (null --> normal method call, not a trap)
    */
   @Interruptible
@@ -874,7 +874,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
     VM_Thread myThread = getCurrentThread();
     byte[] myStack = myThread.stack;
 
-    // initialize new stack with live portion of stack we're 
+    // initialize new stack with live portion of stack we're
     // currently running on
     //
     //  lo-mem                                        hi-mem
@@ -896,18 +896,18 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
     Offset myDepth = myTop.diff(myFP);
     Address newFP = newTop.minus(myDepth);
 
-    // The frame pointer addresses the top of the frame on powerpc and 
+    // The frame pointer addresses the top of the frame on powerpc and
     // the bottom
-    // on intel.  if we copy the stack up to the current 
+    // on intel.  if we copy the stack up to the current
     // frame pointer in here, the
-    // copy will miss the header of the intel frame.  Thus we make another 
+    // copy will miss the header of the intel frame.  Thus we make another
     // call
-    // to force the copy.  A more explicit way would be to up to the 
+    // to force the copy.  A more explicit way would be to up to the
     // frame pointer
     // and the header for intel.
     Offset delta = copyStack(newStack);
 
-    // fix up registers and save areas so they refer 
+    // fix up registers and save areas so they refer
     // to "newStack" rather than "myStack"
     //
     if (exceptionRegisters != null) {
@@ -923,7 +923,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
     VM_Processor.getCurrentProcessor().activeThreadStackLimit =
         myThread.stackLimit;
 
-    // return to caller, resuming execution on new stack 
+    // return to caller, resuming execution on new stack
     // (original stack now abandoned)
     //
     if (VM.BuildForPowerPC) {
@@ -1019,7 +1019,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
   }
 
   /**
-   * Initialize a new stack with the live portion of the stack 
+   * Initialize a new stack with the live portion of the stack
    * we're currently running on.
    *
    * <pre>
@@ -1061,7 +1061,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
    * Set the "isDaemon" status of this thread.
    * Although a java.lang.Thread can only have setDaemon invoked on it
    * before it is started, VM_Threads can become daemons at any time.
-   * Note: making the last non daemon a daemon will terminate the VM. 
+   * Note: making the last non daemon a daemon will terminate the VM.
    *
    * Note: This method might need to be uninterruptible so it is final,
    * which is why it isn't called setDaemon.
@@ -1109,7 +1109,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
     if (!VM.runningVM) { // create primordial thread (in boot image)
       VM_Scheduler.threads[threadSlot =
           VM_Scheduler.PRIMORDIAL_THREAD_INDEX] = this;
-      // note that VM_Scheduler.threadAllocationIndex (search hint) 
+      // note that VM_Scheduler.threadAllocationIndex (search hint)
       // is out of date
       VM_Scheduler.numActiveThreads += 1;
 
@@ -1204,7 +1204,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
   /**
    * Release this thread's threads[] slot.
    * Assumption: call is guarded by threadCreationMutex.
-   * Note that after a thread calls this method, it can no longer 
+   * Note that after a thread calls this method, it can no longer
    * make JNI calls.  This matters when exiting the VM, because it
    * implies that this method must be called after the exit callbacks
    * are invoked if they are to be able to do JNI.
@@ -1238,7 +1238,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
    * Dump this thread's identifying information, for debugging, via
    * {@link VM#sysWrite}.
    * We do not use any spacing or newline characters.  Callers are responsible
-   * for space-separating or newline-terminating output. 
+   * for space-separating or newline-terminating output.
    */
   public void dump() {
     dump(0);
@@ -1268,7 +1268,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
    * Dump this thread's identifying information, for debugging, via
    * {@link VM#sysWrite}.
    * We do not use any spacing or newline characters.  Callers are responsible
-   * for space-separating or newline-terminating output. 
+   * for space-separating or newline-terminating output.
    *
    *  This function avoids write barriers and allocation.
    *
@@ -1281,15 +1281,15 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
     releaseDumpBuffer();
   }
 
-  /** Dump this thread's info, for debugging.  
+  /** Dump this thread's info, for debugging.
    *  Copy the info about it into a destination char
-   *  array.  We do not use any spacing or newline characters. 
+   *  array.  We do not use any spacing or newline characters.
    *
    *  This function may be called during GC; it avoids write barriers and
-   *  allocation.   
+   *  allocation.
    *
    *  For this reason, we do not throw an
-   *  <code>IndexOutOfBoundsException</code>.  
+   *  <code>IndexOutOfBoundsException</code>.
    *
    * @param dest char array to copy the source info into.
    * @param offset Offset into <code>dest</code> where we start copying
@@ -1333,9 +1333,9 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
   }
 
   /**
-   *  Dump this thread's info, for debugging.  
+   *  Dump this thread's info, for debugging.
    *  Copy the info about it into a destination char
-   *  array.  We do not use any spacing or newline characters. 
+   *  array.  We do not use any spacing or newline characters.
    *
    *  This is identical to calling {@link #dump(char[],int)} with an
    *  <code>offset</code> of zero.
@@ -1345,7 +1345,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
   }
 
   /** Biggest buffer you would possibly need for {@link #dump(char[],int)}
-   *  Modify this if you modify that method.   
+   *  Modify this if you modify that method.
    */
   public static final int MAX_DUMP_LEN =
       10 /* for thread ID  */ + 7 + 5 + 5 + 11 + 5 + 10 + 13 + 17 + 10;
@@ -1426,7 +1426,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
    *
    *  The first character to be copied is at index <code>srcBegin</code>; the
    *  last character to be copied is at index <code>srcEnd-1</code>.  (This is
-   *  the same convention as followed by java.lang.String#getChars). 
+   *  the same convention as followed by java.lang.String#getChars).
    *
    * @param dest char array to copy into.
    * @param destOffset Offset into <code>dest</code> where we start copying
@@ -1532,7 +1532,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
   /**
    * How many characters we need to have in a buffer for building string
    * representations of <code>long</code>s, such as {@link #intBuffer}.  A <code>long</code> is a signed
-   * 64-bit integer in the range -2^63 to 
+   * 64-bit integer in the range -2^63 to
    * 2^63+1.  The number of digits in the decimal representation of
    * 2^63 is ceiling(log10(2^63)) == ceiling(63 * log10(2)) == 19.  An
    * extra character may be required for a minus sign (-).  So the
@@ -1555,7 +1555,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
 
   /**
    * Get exclusive access to {@link #intBuffer}, the buffer for building
-   * string representations of integers. 
+   * string representations of integers.
    */
   private static char[] grabIntBuffer() {
     if (!intBufferLockOffset.isMax()) {
@@ -1569,7 +1569,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
 
   /**
    * Release {@link #intBuffer}, the buffer for building string
-   * representations of integers. 
+   * representations of integers.
    */
   private static void releaseIntBuffer() {
     if (!intBufferLockOffset.isMax()) {
@@ -1579,7 +1579,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
   }
 
   /** Dump information for all threads, via {@link VM#sysWrite}.  Each
-   * thread's info is newline-terminated. 
+   * thread's info is newline-terminated.
    *
    * @param verbosity Ignored.
    */
@@ -1609,13 +1609,13 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
 
   /**
    * Index of this thread in {@link VM_Scheduler#threads}[].
-   * This value must be non-zero because it is shifted 
+   * This value must be non-zero because it is shifted
    * and used in {@link Object} lock ownership tests.
    */
   private int threadSlot;
 
   /**
-   * Proxywait/wakeup queue object.  
+   * Proxywait/wakeup queue object.
    */
   VM_Proxy proxy;
 
@@ -1649,7 +1649,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
   /**
    * Counts the depth of outstanding calls to {@link VM#disableGC}.  If this
    * is set, then we should also have {@link #disallowAllocationsByThisThread}
-   * set.  The converse also holds.  
+   * set.  The converse also holds.
    */
   public int disableGCDepth = 0;
 
@@ -1667,13 +1667,13 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
   public final VM_Registers contextRegisters;
 
   /**
-   * Place to save register state when C signal handler traps 
+   * Place to save register state when C signal handler traps
    * an exception while this thread is running.
    */
   public final VM_Registers hardwareExceptionRegisters;
 
   /**
-   * Place to save/restore this thread's monitor state during 
+   * Place to save/restore this thread's monitor state during
    * {@link Object#wait} and {@link Object#notify}.
    */
   Object waitObject;
@@ -1693,21 +1693,21 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
 
   /**
    * Scheduling priority for this thread.
-   * Note that: {@link java.lang.Thread#MIN_PRIORITY} <= priority 
-   * <= {@link java.lang.Thread#MAX_PRIORITY}. 
+   * Note that: {@link java.lang.Thread#MIN_PRIORITY} <= priority
+   * <= {@link java.lang.Thread#MAX_PRIORITY}.
    *
    * Public so that {@link java.lang.Thread} can set it.
    */
   public int priority;
 
   /**
-   * Virtual processor that this thread wants to run on 
+   * Virtual processor that this thread wants to run on
    * (null --> any processor is ok).
    */
   public VM_Processor processorAffinity;
 
   /**
-   * Is this thread's stack being "borrowed" by thread dispatcher 
+   * Is this thread's stack being "borrowed" by thread dispatcher
    * (ie. while choosing next thread to run)?
    */
   public boolean beingDispatched;
@@ -1722,7 +1722,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
   */
 
   /**
-   * A thread is "alive" if its start method has been called and the 
+   * A thread is "alive" if its start method has been called and the
    * thread has not yet terminated execution.
    * Set by:   {@link java.lang.Thread#start()}
    * Unset by: {@link VM_Thread#terminate()}
@@ -1736,12 +1736,12 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
   public boolean isBootThread;
 
   /** The Main Thread is the one created to run
-   * <code>static main(String[] args)</code> 
+   * <code>static main(String[] args)</code>
    */
   public boolean isMainThread;
 
   /**
-   * A thread is a "gc thread" if it's an instance of 
+   * A thread is a "gc thread" if it's an instance of
    * {@link org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread}
    */
   public boolean isGCThread;
@@ -1752,7 +1752,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
   boolean isIdleThread;
 
   /**
-   * The virtual machine terminates when the last non-daemon (user) 
+   * The virtual machine terminates when the last non-daemon (user)
    * thread terminates.
    */
   protected boolean isDaemon;
@@ -1765,13 +1765,13 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
   public VM_JNIEnvironment jniEnv;
 
   /**
-   * Value returned from {@link org.jikesrvm.runtime.VM_Time#cycles()} when this thread 
+   * Value returned from {@link org.jikesrvm.runtime.VM_Time#cycles()} when this thread
    * started running. If not currently running, then it has the value 0.
    */
   private long startCycle;
 
   /**
-   * Accumulated cycle count as measured by {@link org.jikesrvm.runtime.VM_Time#cycles()} 
+   * Accumulated cycle count as measured by {@link org.jikesrvm.runtime.VM_Time#cycles()}
    * used by this thread.
    */
   private long totalCycles;

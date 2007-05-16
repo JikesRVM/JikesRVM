@@ -58,9 +58,9 @@ public class OPT_Inliner {
         callSite.getBasicBlock().segregateInstruction(callSite, ir);
     OPT_BasicBlock in = bb.prevBasicBlockInCodeOrder();
     OPT_BasicBlock out = bb.nextBasicBlockInCodeOrder();
-    // Clear the sratch object of any register operands being 
+    // Clear the sratch object of any register operands being
     // passed as parameters.
-    // BC2IR uses this field for its own purposes, and will be confused 
+    // BC2IR uses this field for its own purposes, and will be confused
     // if the scratch object has been used by someone else and not cleared.
     for (int i = 0; i < Call.getNumberOfParams(callSite); i++) {
       OPT_Operand arg = Call.getParam(callSite, i);
@@ -99,11 +99,11 @@ public class OPT_Inliner {
   }
 
   /**
-   * Return a generation context that represents the 
+   * Return a generation context that represents the
    * execution of inlDec in the context <parent,ebag> for
    * the call instruction callSite.
    * <p> PRECONDITION: inlDec.isYes()
-   * <p> POSTCONDITIONS: 
+   * <p> POSTCONDITIONS:
    * Let gc be the returned generation context.
    * <ul>
    *  <li> gc.cfg.firstInCodeOrder is the entry to the inlined context
@@ -123,7 +123,7 @@ public class OPT_Inliner {
                                               OPT_ExceptionHandlerBasicBlockBag ebag,
                                               OPT_Instruction callSite) {
     if (inlDec.needsGuard()) {
-      //Step 1: create the synthetic generation context we'll 
+      //Step 1: create the synthetic generation context we'll
       // return to our caller.
       OPT_GenerationContext container =
           OPT_GenerationContext.createSynthetic(parent, ebag);
@@ -144,7 +144,7 @@ public class OPT_Inliner {
                       + " into " + callSite.position.getMethod()
                       + " at bytecode " + callSite.bcIndex + "\n");
         }
-        // (b) 
+        // (b)
         children[i] =
             OPT_GenerationContext.createChildContext(parent, ebag,
                                                      callee, callSite);
@@ -160,7 +160,7 @@ public class OPT_Inliner {
               OPT_Operand.meet(container.result, children[i].result, reg);
         }
         // Account for the non-predicted case as well...
-        // Most likely this means that we shouldn't even bother 
+        // Most likely this means that we shouldn't even bother
         // with the above meet operations
         // and simply pick up Call.getResult(callsite) directly.
         // SJF: However, it's good to keep this around; maybe
@@ -168,7 +168,7 @@ public class OPT_Inliner {
         container.result =
             OPT_Operand.meet(container.result, Call.getResult(callSite), reg);
       }
-      // Step 4: Create a block to contain a copy of the original call 
+      // Step 4: Create a block to contain a copy of the original call
       // in case all predictions fail. It falls through to container.epilogue
       OPT_BasicBlock testFailed =
           new OPT_BasicBlock(callSite.bcIndex, callSite.position, parent.cfg);
@@ -183,7 +183,7 @@ public class OPT_Inliner {
         // Get a dynamic count of how many times guards fail at runtime.
         // Need a name for the event to count.  In this example, a
         // separate counter for each method by using the method name
-        // as the event name.  You could also have used just the string 
+        // as the event name.  You could also have used just the string
         // "Guarded inline failed" to keep only one counter.
         String eventName =
             "Guarded inline failed: " + callSite.position.getMethod().toString();
@@ -206,11 +206,11 @@ public class OPT_Inliner {
       }
       testFailed.insertOut(container.epilogue);
       container.cfg.linkInCodeOrder(testFailed, container.epilogue);
-      // This is ugly....since we didn't call BC2IR to generate the 
-      // block with callSite we have to initialize the block's exception 
+      // This is ugly....since we didn't call BC2IR to generate the
+      // block with callSite we have to initialize the block's exception
       // behavior manually.
       // We can't call createSubBlock to do it because callSite may not
-      // be in a basic block yet (when execute is invoked from 
+      // be in a basic block yet (when execute is invoked from
       // BC2IR.maybeInlineMethod).
       if (ebag != null) {
         for (OPT_BasicBlockEnumeration e = ebag.enumerator();
@@ -224,8 +224,8 @@ public class OPT_Inliner {
       testFailed.setInfrequent();
       // Step 5: Patch together all the callees by generating guard blocks
       OPT_BasicBlock firstIfBlock = testFailed;
-      // Note: We know that receiver must be a register 
-      // operand (and not a string constant) because we are doing a 
+      // Note: We know that receiver must be a register
+      // operand (and not a string constant) because we are doing a
       // guarded inlining....if it was a string constant we'd have
       // been able to inline without a guard.
       OPT_Operand receiver = Call.getParam(callSite, 0);
@@ -237,7 +237,7 @@ public class OPT_Inliner {
           VM_Type interfaceType = mo.getTarget().getDeclaringClass();
           VM_TypeReference recTypeRef = receiver.getType();
           VM_Class recType = (VM_Class) recTypeRef.peekResolvedType();
-          // Attempt to avoid inserting the check by seeing if the 
+          // Attempt to avoid inserting the check by seeing if the
           // known static type of the receiver implements the interface.
           boolean requiresImplementsTest = true;
           if (recType != null && recType.isResolved() && !recType.isInterface()) {
@@ -279,16 +279,16 @@ public class OPT_Inliner {
             // interface before we attempt to side-step the usual invoke
             // interface sequence.
             // If we don't know at least this much, we can't do the inlining.
-            // We used online profile data to tell us that the target was a 
-            // frequently called method from this (interface invoke) 
+            // We used online profile data to tell us that the target was a
+            // frequently called method from this (interface invoke)
             // callSite, so it would be truly bizarre for us to not be able
             // to establish that callDeclClass is an interface now.
             // If we were using static heuristics to do guarded inlining
-            // of interface calls, then we'd probably need to do the 
+            // of interface calls, then we'd probably need to do the
             // "right" thing and detect this situation
             // before we generated all of the childCFG's and got them
             // entangled into the parent (due to exceptional control flow).
-            // This potential entanglement is what forces us to bail on 
+            // This potential entanglement is what forces us to bail on
             // the entire compilation.
             throw new OPT_OptimizingCompilerException(
                 "Attempted guarded inline of invoke interface when decl class of target method may not be an interface");
@@ -296,18 +296,18 @@ public class OPT_Inliner {
 
           // We potentially have to generate IR to perform two tests here:
           // (1) Does the receiver object implement callDeclClass?
-          // (2) Given that it does, is target the method that would 
+          // (2) Given that it does, is target the method that would
           //     be invoked for this receiver?
           // It is quite common to be able to answer (1) "YES" at compile
-          // time, in which case we only have to generate IR to establish 
+          // time, in which case we only have to generate IR to establish
           // (2) at runtime.
           byte doesImplement = OPT_ClassLoaderProxy.
               includesType(callDeclClass.getTypeRef(), target.getDeclaringClass().getTypeRef());
           if (doesImplement != OPT_Constants.YES) {
             // We can't be sure at compile time that the receiver implements
             // the interface. So, inject a test to make sure that it does.
-            // Unlike the above case, this can actually happen (when 
-            // the method is inherited but only the child actually 
+            // Unlike the above case, this can actually happen (when
+            // the method is inherited but only the child actually
             // implements the interface).
             if (parent.options.PRINT_INLINE_REPORT) {
               VM.sysWrite("\t\tRequired additional instanceof "

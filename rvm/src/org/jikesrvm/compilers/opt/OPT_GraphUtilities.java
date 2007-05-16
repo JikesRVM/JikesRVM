@@ -14,7 +14,7 @@ package org.jikesrvm.compilers.opt;
 class OPT_GraphUtilities {
 
   /**
-   * Return an enumeration of the nodes, or a subset of the nodes, in an 
+   * Return an enumeration of the nodes, or a subset of the nodes, in an
    * acyclic graph in topological order .
    *
    * Note: if G is cyclic, results are undefined

@@ -92,7 +92,7 @@ public abstract class OSR_BaselineExecStateExtractor
 
     VM_NormalMethod fooM = (VM_NormalMethod) fooCM.getMethod();
 
-    // get the next bc index 
+    // get the next bc index
     VM.disableGC();
     Address rowIP = VM_Magic.objectAsAddress(stack).loadAddress(methFPoff.plus(STACKFRAME_NEXT_INSTRUCTION_OFFSET));
     Offset ipOffset = fooCM.getInstructionOffset(rowIP);
@@ -120,7 +120,7 @@ public abstract class OSR_BaselineExecStateExtractor
     byte[] stackTypes = typer.getStackTypes();
 
     // consult GC reference map again since the type matcher does not complete
-    // the flow analysis, it can not distinguish reference or non-reference 
+    // the flow analysis, it can not distinguish reference or non-reference
     // type. We should remove non-reference type
     for (int i = 0, n = localTypes.length; i < n; i++) {
       // if typer reports a local is reference type, but the GC map says no
@@ -157,7 +157,7 @@ public abstract class OSR_BaselineExecStateExtractor
     // L0, L1, ..., S0, S1, ....
 
     // adjust local offset and stack offset
-    // NOTE: donot call VM_Compiler.getFirstLocalOffset(method)   
+    // NOTE: donot call VM_Compiler.getFirstLocalOffset(method)
     int bufCMID = VM_Magic.getIntAtOffset(stack, tsFromFPoff.plus(STACKFRAME_METHOD_ID_OFFSET));
     VM_CompiledMethod bufCM = VM_CompiledMethods.getCompiledMethod(bufCMID);
     int cType = bufCM.getCompilerType();
@@ -171,7 +171,7 @@ public abstract class OSR_BaselineExecStateExtractor
 
     VM.disableGC();
     // method fooCM is always baseline, otherwise we wouldn't be in this code.
-    // the threadswitchfrom... method on the other hand can be baseline or opt! 
+    // the threadswitchfrom... method on the other hand can be baseline or opt!
     if (cType == VM_CompiledMethod.BASELINE) {
       if (VM.VerifyAssertions) {
         VM._assert(bufCM.getMethod().hasBaselineSaveLSRegistersAnnotation());
@@ -191,7 +191,7 @@ public abstract class OSR_BaselineExecStateExtractor
         gprs.set(i, w);
       }
 
-    } else { //(cType == VM_CompiledMethod.OPT) 
+    } else { //(cType == VM_CompiledMethod.OPT)
       //KV: this code needs to be modified. We need the tsFrom methods to save all NON-VOLATILES in their prolog (as is the case for baseline)
       //This is because we don't know at compile time which registers might be in use and wich not by the caller method at runtime!!
       //For now we disallow tsFrom methods to be opt compiled when the caller is baseline compiled
@@ -434,7 +434,7 @@ public abstract class OSR_BaselineExecStateExtractor
         default:
           if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
           break;
-      } // switch 
+      } // switch
     } // for loop
   }
 
@@ -548,7 +548,7 @@ public abstract class OSR_BaselineExecStateExtractor
         default:
           if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
           break;
-      } // switch 
+      } // switch
     } // for loop
   }
 }

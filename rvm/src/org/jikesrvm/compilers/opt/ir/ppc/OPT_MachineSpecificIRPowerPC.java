@@ -105,7 +105,7 @@ public abstract class OPT_MachineSpecificIRPowerPC extends OPT_MachineSpecificIR
     }
   }
 
-  /* 
+  /*
   * Generic (32/64 neutral) PowerPC support
   */
 

@@ -34,11 +34,11 @@ import org.vmmagic.unboxed.Offset;
  *   <li> (2) It removes all validation registers from the IR
  * </ul>
  *
- * <p> Doing (1) more or less implies either (a) doing (2) or 
- * (b) making large changes to the MIR operator set such that 
+ * <p> Doing (1) more or less implies either (a) doing (2) or
+ * (b) making large changes to the MIR operator set such that
  * all load/stores produce validation results.
- * Although this would be possible, it would not be a trivial change. 
- * So, until we have an urgent need to preserve guard operands all 
+ * Although this would be possible, it would not be a trivial change.
+ * So, until we have an urgent need to preserve guard operands all
  * the way through the MIR, we'll take the easy way out.
  */
 public class OPT_NullCheckCombining extends OPT_CompilerPhase {
@@ -70,12 +70,12 @@ public class OPT_NullCheckCombining extends OPT_CompilerPhase {
 
         boolean combined;
         boolean remaining;
-        // (1) Combine null checks in bb into the first load/store in 
+        // (1) Combine null checks in bb into the first load/store in
         // bb they guard.
         // Restrict this to respect PEI ordering.
         // Only do locally, since we don't understand control flow here.
-        // We could be more aggressive about moving PEIs past stores 
-        // by determining which stores actually update global or 
+        // We could be more aggressive about moving PEIs past stores
+        // by determining which stores actually update global or
         // handler-visible state.
         do {
           combined = remaining = false;
@@ -103,7 +103,7 @@ public class OPT_NullCheckCombining extends OPT_CompilerPhase {
               activeNullCheck = instr;
             } else if (isExplicitStore(instr, op)) {
               if (instr.isPEI()) {
-                // can't reorder PEI's 
+                // can't reorder PEI's
                 // NOTE: don't mark remaining, since we'd hit the same problem instr again.
                 activeGuard = null;
               } else {
@@ -123,7 +123,7 @@ public class OPT_NullCheckCombining extends OPT_CompilerPhase {
                 activeGuard = null;
                 combined = true;
               } else if (instr.isPEI()) {
-                // can't reorder PEI's 
+                // can't reorder PEI's
                 // NOTE: don't mark remaining, since we'd hit the same problem instr again.
                 activeGuard = null;
               }

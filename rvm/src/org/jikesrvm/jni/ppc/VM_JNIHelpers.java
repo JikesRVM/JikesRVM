@@ -28,7 +28,7 @@ import org.vmmagic.unboxed.Word;
 
 /**
  * Platform dependent utility functions called from VM_JNIFunctions
- * (cannot be placed in VM_JNIFunctions because methods 
+ * (cannot be placed in VM_JNIFunctions because methods
  * there are specially compiled to be called from native).
  *
  * @see org.jikesrvm.jni.VM_JNIFunctions
@@ -66,7 +66,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
           if (VM.VerifyAssertions) VM._assert(VM.BuildForSVR4ABI);
           // pass in the frame pointer of glue stack frames
           // stack frame looks as following:
-          //      this method -> 
+          //      this method ->
           //
           //      native to java method ->
           //
@@ -96,7 +96,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    * (static method invocation)
    * @param methodID the method ID
    * @param expectReturnType the return type of the method to be invoked
-   * @return an object that may be the return object or a wrapper for the primitive return value 
+   * @return an object that may be the return object or a wrapper for the primitive return value
    */
   @NoInline
   public static Object invokeWithDotDotVarArg(int methodID,
@@ -119,12 +119,12 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
   /**
    * Common code shared by the JNI functions Call<type>Method
    * (virtual method invocation)
-   * @param obj the object instance 
+   * @param obj the object instance
    * @param methodID the method ID
    * @param expectReturnType the return type for checking purpose
    * @param skip4Args  true if the calling JNI Function takes 4 args before the vararg
    *                   false if the calling JNI Function takes 3 args before the vararg
-   * @return an object that may be the return object or a wrapper for the primitive return value 
+   * @return an object that may be the return object or a wrapper for the primitive return value
    */
   @NoInline
   public static Object invokeWithDotDotVarArg(Object obj, int methodID,
@@ -147,22 +147,22 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
   /**
    * This method supports var args passed from C
    *
-   * In the AIX C convention, the caller keeps the first 8 words in registers and 
+   * In the AIX C convention, the caller keeps the first 8 words in registers and
    * the rest in the spill area in the caller frame.  The callee will push the values
-   * in registers out to the spill area of the caller frame and use the beginning 
+   * in registers out to the spill area of the caller frame and use the beginning
    * address of this spill area as the var arg address
    *
    * For the JNI functions that takes var args, their prolog code will save the
-   * var arg in the glue frame because the values in the register may be lost by 
+   * var arg in the glue frame because the values in the register may be lost by
    * subsequent calls.
    *
    * This method copies the var arg values that were saved earlier in glue frame into
    * the spill area of the original caller, thereby doing the work that the callee
    * normally performs in the AIX C convention.
    *
-   * NOTE:  this method assumes that it is immediately above the 
-   * invokeWithDotDotVarArg frame, the JNI frame, the glue frame and 
-   * the C caller frame in the respective order.  
+   * NOTE:  this method assumes that it is immediately above the
+   * invokeWithDotDotVarArg frame, the JNI frame, the glue frame and
+   * the C caller frame in the respective order.
    * Therefore, this method will not work if called from anywhere else
    *
    *   |  fp  | <- VM_JNIEnvironment.pushVarArgToSpillArea
@@ -170,14 +170,14 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    *   | xxx  |
    *   |      |
    *   |      |
-   *   |------|   
+   *   |------|
    *   |  fp  | <- VM_JNIEnvironment.invokeWithDotDotVarArg frame
    *   | mid  |
    *   | xxx  |
    *   |      |
    *   |      |
    *   |      |
-   *   |------|   
+   *   |------|
    *   |  fp  | <- JNI method frame
    *   | mid  |
    *   | xxx  |
@@ -209,7 +209,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    *   | ...  |
    *   | fpr31|
    *   |topjav|   offset to preceding Java to C glue frame
-   *   |------|  
+   *   |------|
    *   | fp   | <- Native C caller frame
    *   | cr   |
    *   | lr   |
@@ -253,7 +253,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
       Offset varargGPROffset = Offset.fromIntSignExtend(VARARG_AREA_OFFSET + (skip4Args ? BYTES_IN_ADDRESS : 0));
       Offset varargFPROffset = varargGPROffset.plus(5 * BYTES_IN_ADDRESS);
 
-      // compute the offset into the spill area of the native caller frame, 
+      // compute the offset into the spill area of the native caller frame,
       // skipping the args which are not part of the arguments for the target method
       // For Call<type>Method functions, skip 3 args
       // For CallNonvirtual<type>Method functions, skip 4 args
@@ -264,7 +264,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
       // address to return pointing to the var arg list
       Address varargAddress = gluefp.plus(spillAreaOffset);
 
-      // VM.sysWrite("pushVarArgToSpillArea:  var arg at " + 
+      // VM.sysWrite("pushVarArgToSpillArea:  var arg at " +
       //             VM.intAsHexString(varargAddress) + "\n");
 
       VM_Method targetMethod = VM_MemberReference.getMemberRef(methodID).asMethodReference().resolve();
@@ -324,10 +324,10 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
       gluefp = gluefp.plus(ArchitectureSpecific.VM_ArchConstants.STACKFRAME_FRAME_POINTER_OFFSET).loadAddress();
       Address gluecallerfp =
           gluefp.plus(ArchitectureSpecific.VM_ArchConstants.STACKFRAME_FRAME_POINTER_OFFSET).loadAddress();
-      // compute the offset into the spill area of the native caller frame, 
+      // compute the offset into the spill area of the native caller frame,
       // skipping the args which are not part of the arguments for the target method
 
-      // VM.sysWrite("pushVarArgToSpillArea:  var arg at " + 
+      // VM.sysWrite("pushVarArgToSpillArea:  var arg at " +
       //             VM.intAsHexString(varargAddress) + "\n");
 
       VM_Method targetMethod = VM_MemberReference.getMemberRef(methodID).asMethodReference().resolve();
@@ -388,7 +388,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    * Common code shared by the JNI functions CallStatic<type>MethodV
    * @param methodID the method ID
    * @param argAddress a raw address for the variable argument list
-   * @return an object that may be the return object or a wrapper for the primitive return value 
+   * @return an object that may be the return object or a wrapper for the primitive return value
    */
   public static Object invokeWithVarArg(int methodID, Address argAddress,
                                         VM_TypeReference expectReturnType)
@@ -402,12 +402,12 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
 
   /**
    * Common code shared by the JNI functions Call<type>MethodV
-   * @param obj the object instance 
+   * @param obj the object instance
    * @param methodID the method ID
    * @param argAddress a raw address for the variable argument list
    * @param expectReturnType the return type for checking purpose
    * @param skip4Args received from the JNI function, passed on to VM_Reflection.invoke()
-   * @return an object that may be the return object or a wrapper for the primitive return value 
+   * @return an object that may be the return object or a wrapper for the primitive return value
    */
   public static Object invokeWithVarArg(Object obj, int methodID, Address argAddress,
                                         VM_TypeReference expectReturnType,
@@ -424,7 +424,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    * Common code shared by the JNI functions CallStatic<type>MethodA
    * @param methodID a VM_MemberReference id
    * @param argAddress a raw address for the argument array
-   * @return an object that may be the return object or a wrapper for the primitive return value 
+   * @return an object that may be the return object or a wrapper for the primitive return value
    */
   public static Object invokeWithJValue(int methodID, Address argAddress,
                                         VM_TypeReference expectReturnType)
@@ -434,12 +434,12 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
 
   /**
    * Common code shared by the JNI functions Call<type>MethodA
-   * @param obj the object instance 
+   * @param obj the object instance
    * @param methodID a VM_MemberReference id
    * @param argAddress a raw address for the argument array
    * @param expectReturnType the return type for checking purpose
    * @param skip4Args received from the JNI function, passed on to VM_Reflection.invoke()
-   * @return an object that may be the return object or a wrapper for the primitive return value 
+   * @return an object that may be the return object or a wrapper for the primitive return value
    */
   public static Object invokeWithJValue(Object obj, int methodID, Address argAddress,
                                         VM_TypeReference expectReturnType,
@@ -457,25 +457,25 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
 
   /**
    * Common code shared by invokeWithJValue, invokeWithVarArg and invokeWithDotDotVarArg
-   * @param obj the object instance 
+   * @param obj the object instance
    * @param methodID a VM_MemberReference id
    * @param argAddress a raw address for the argument array
    * @param expectReturnType the return type for checking purpose
-   * @param skip4Args This flag is received from the JNI function and passed directly to 
-   *                     VM_Reflection.invoke().  
+   * @param skip4Args This flag is received from the JNI function and passed directly to
+   *                     VM_Reflection.invoke().
    *                     It is true if the actual method is to be invoked, which could be
    *                     from the superclass.
-   *                     It is false if the method from the real class of the object 
+   *                     It is false if the method from the real class of the object
    *                     is to be invoked, which may not be the actual method specified by methodID
    * @param argtype  Type of argument to be packaged.
-   * @return an object that may be the return object or a wrapper for the primitive return value 
+   * @return an object that may be the return object or a wrapper for the primitive return value
    */
   public static Object packageAndInvoke(Object obj, int methodID, Address argAddress,
                                         VM_TypeReference expectReturnType,
                                         boolean skip4Args, int argtype)
       throws Exception {
 
-    // VM.sysWrite("JNI CallXXXMethod:  method ID " + methodID + " with args at " + 
+    // VM.sysWrite("JNI CallXXXMethod:  method ID " + methodID + " with args at " +
     //             VM.intAsHexString(argAddress) + "\n");
 
     VM_Method targetMethod = VM_MemberReference.getMemberRef(methodID).asMethodReference().resolve();
@@ -579,8 +579,8 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
       int gpr = (skip4Args) ? 7 : 6;       // r3 - env, r4 - cls, r5 - method id
       int fpr = 1;
 
-      // not set the starting gprs array address 
-      // and fpr starting array address, so we can use gpr and fpr to 
+      // not set the starting gprs array address
+      // and fpr starting array address, so we can use gpr and fpr to
       // calculate the right position to get values
       // GPR starts with r3;
       Address gprarray = regsavearea.plus(-3 * BYTES_IN_ADDRESS);
@@ -613,7 +613,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
   // The interpretation of data can be found in PowerPC Processor ABI Supplement
   //
   // The reg_save area lays out r3 - r10, f1 - f8
-  // 
+  //
   // I am not sure if GCC understand the ABI in a right way, it saves GPRs 1 - 10
   // in the area, while only gprs starting from r3 are used.
   //
@@ -647,8 +647,8 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
       gpr += 3;
       fpr += 1;
 
-      // not set the starting gprs array address 
-      // and fpr starting array address, so we can use gpr and fpr to 
+      // not set the starting gprs array address
+      // and fpr starting array address, so we can use gpr and fpr to
       // calculate the right position to get values
       // GPR starts with r3;
       Address gprarray = regsavearea.plus(-3 * BYTES_IN_ADDRESS);
@@ -850,7 +850,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    * Repackage the arguments passed as a variable argument list into an array of Object,
    * used by the JNI functions CallStatic<type>MethodV
    * @param targetMethod   The target {@link VM_Method}
-   * @param argAddress an address into the C space for the array of jvalue unions;  
+   * @param argAddress an address into the C space for the array of jvalue unions;
    *                   each element is 2-word and holds the argument of the appropriate type
    * @return an Object array holding the arguments wrapped at Objects
    */
@@ -868,7 +868,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     for (int i = 0; i < argCount; i++) {
       long hiword = VM.BuildFor64Addr ? addr.loadLong() : (long) addr.loadInt();
 
-      // VM.sysWrite("JNI packageParameterFromVarArg:  arg " + i + " = " + hiword + 
+      // VM.sysWrite("JNI packageParameterFromVarArg:  arg " + i + " = " + hiword +
       // " or " + VM.intAsHexString(hiword) + "\n");
 
       addr = addr.plus(BYTES_IN_ADDRESS);
@@ -905,7 +905,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
           argObjectArray[i] = VM_Reflection.wrapLong(hiword);
         }
       } else if (argTypes[i].isBooleanType()) {
-        // the 0/1 bit is stored in the high byte       
+        // the 0/1 bit is stored in the high byte
         argObjectArray[i] = VM_Reflection.wrapBoolean((int) hiword);
       } else if (argTypes[i].isByteType()) {
         // the target byte is stored in the high byte
@@ -932,7 +932,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    * Repackage the arguments passed as an array of jvalue into an array of Object,
    * used by the JNI functions CallStatic<type>MethodA
    * @param targetMethod the target {@link VM_Method}
-   * @param argAddress an address into the C space for the array of jvalue unions;  
+   * @param argAddress an address into the C space for the array of jvalue unions;
    *                   each element is 2-word and holds the argument of the appropriate type
    * @return an Object array holding the arguments wrapped at Objects
    */
@@ -950,7 +950,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
       Address addr = argAddress.plus(BYTES_IN_DOUBLE * i);
       long hiword = VM.BuildFor64Addr ? addr.loadLong() : (long) addr.loadInt();
 
-      // VM.sysWrite("JNI packageParameterFromJValue:  arg " + i + " = " + hiword + 
+      // VM.sysWrite("JNI packageParameterFromJValue:  arg " + i + " = " + hiword +
       //          " or " + VM.intAsHexString(hiword) + "\n");
 
       // convert and wrap the argument according to the expected type
@@ -975,7 +975,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
           argObjectArray[i] = VM_Reflection.wrapLong(hiword);
         }
       } else if (argTypes[i].isBooleanType()) {
-        // the 0/1 bit is stored in the high byte       
+        // the 0/1 bit is stored in the high byte
         argObjectArray[i] = VM_Reflection.wrapBoolean((int) (hiword >>> (BITS_IN_ADDRESS - BITS_IN_BOOLEAN)));
       } else if (argTypes[i].isByteType()) {
         // the target byte is stored in the high byte

@@ -18,11 +18,11 @@ import org.jikesrvm.util.VM_HashSet;
  *
  * <p> The overall design is very similar to that of the
  * InvalidationDatabase (see OPT_InvalidationDatabase.java)
- * In this database, the key is the VM_Method object of the source method 
+ * In this database, the key is the VM_Method object of the source method
  * and the value is a method set. The method set is a list of
  * specialized versions of the method pointed by the key. Specialized
  * versions are represented by using the OPT_SpecializedMethod class.
- * There is no provision for removing/deleting method versions as classes 
+ * There is no provision for removing/deleting method versions as classes
  * are never unloaded and the ClassLoader.compiledMethods[] is never cleaned.
  */
 public final class OPT_SpecializationDatabase {
@@ -45,8 +45,8 @@ public final class OPT_SpecializationDatabase {
         registerCompiledMethod(m);
       }
       deferredMethods.remove(m);
-      // since we modified the set, reset the iterator.  
-      // TODO: use a better abstraction 
+      // since we modified the set, reset the iterator.
+      // TODO: use a better abstraction
       // (ModifiableSetIterator of some kind?)
       methods = deferredMethods.iterator();
     }

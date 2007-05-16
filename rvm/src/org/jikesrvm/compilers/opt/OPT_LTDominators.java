@@ -31,7 +31,7 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
   static final boolean DEBUG = false;
 
   /*
-   * Indicates whether we perform the algorithm over the CFG or 
+   * Indicates whether we perform the algorithm over the CFG or
    *  the reverse CFG, i.e., whether we are computing dominators or
    *  post-dominators.
    */
@@ -72,7 +72,7 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
   }
 
   /**
-   * Compute approximate dominator/post dominator without unfactoring 
+   * Compute approximate dominator/post dominator without unfactoring
    * exception handlers.  Can only be used if what the client wants is
    * approximate domination (ie, if it doesn't actually have to be correct...)
    * @param ir the IR
@@ -374,7 +374,7 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
    *    any vertex, u != r such that                        otherwise
    *      r is the root of the tree containing block and
    *                                        *
-   *      semi(u) is minimum on the path  r -> v 
+   *      semi(u) is minimum on the path  r -> v
    *
    * See TOPLAS 1(1), July 1979, p 128 for details.
    *
@@ -475,27 +475,27 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
   //
 
   /**
-   * Returns the current dominator for the passed block 
+   * Returns the current dominator for the passed block
    * @param block
-   * @return the domiator for the passed block 
+   * @return the domiator for the passed block
    */
   private OPT_BasicBlock getDom(OPT_BasicBlock block) {
     return OPT_LTDominatorInfo.getInfo(block).getDominator();
   }
 
   /**
-   * Returns the parent for the passed block 
+   * Returns the parent for the passed block
    * @param block
-   * @return the parent for the passed block 
+   * @return the parent for the passed block
    */
   private OPT_BasicBlock getParent(OPT_BasicBlock block) {
     return OPT_LTDominatorInfo.getInfo(block).getParent();
   }
 
   /**
-   * Returns the ancestor for the passed block 
+   * Returns the ancestor for the passed block
    * @param block
-   * @return the ancestor for the passed block 
+   * @return the ancestor for the passed block
    */
   private OPT_BasicBlock getAncestor(OPT_BasicBlock block) {
     return OPT_LTDominatorInfo.getInfo(block).getAncestor();

@@ -43,7 +43,7 @@ public abstract class VM_MachineSpecificIA extends VM_MachineSpecific implements
     public static final EM64T singleton = new EM64T();
   }
 
-  /* 
+  /*
   * Generic (32/64 neutral) IA support
   */
 

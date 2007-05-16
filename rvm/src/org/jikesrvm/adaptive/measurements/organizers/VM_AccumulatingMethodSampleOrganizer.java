@@ -17,11 +17,11 @@ import org.jikesrvm.adaptive.util.VM_AOSLogging;
 import org.jikesrvm.scheduler.VM_Scheduler;
 
 /**
- * An organizer for method listener information that 
+ * An organizer for method listener information that
  * simply accumulates the samples into a private
  * VM_MethodCountData instance.
  *
- * This organizer is used to simply gather aggregate sample data and 
+ * This organizer is used to simply gather aggregate sample data and
  * report it.
  */
 public final class VM_AccumulatingMethodSampleOrganizer extends VM_Organizer {

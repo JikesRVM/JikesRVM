@@ -15,7 +15,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
 import org.jikesrvm.compilers.opt.ir.OsrPoint;
 
 /**
- * Variable map element (osr instruction, LinkedList MethodVariables) 
+ * Variable map element (osr instruction, LinkedList MethodVariables)
  */
 public class OSR_VariableMapElement {
   public OPT_Instruction osr;

@@ -39,7 +39,7 @@ import org.jikesrvm.compilers.opt.ir.TypeCheck;
  * <ul>
  * <li> 1.  If a checkcast is just before a nullcheck, invert them and
  * convert the checkcast into a checkcast_not_null
- * <li> 2.  If a checkcast is followed by a branch based on a null test of 
+ * <li> 2.  If a checkcast is followed by a branch based on a null test of
  * the same variable, then push the cast below the conditional on
  * the path where the obejct is known not to be null.  And convert
  * it to a checkcast_not_null
@@ -155,7 +155,7 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase {
           /*  We fall through on non-NULL values, so the
               checkcast must be on the not-taken path
               from the branch.  There are 3 cases:
-              1. n is the last instruction in its basic block, 
+              1. n is the last instruction in its basic block,
               in which case control falls through to the next
               block in code order.  This case is if the
               instruction after n is a BBEND
@@ -186,7 +186,7 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase {
             return false;
           }
         } else
-          /* We branch on not-NULL values, so the checkcast 
+          /* We branch on not-NULL values, so the checkcast
              must be spliced in before the branch target
           */ {
           patchBlock = n.getBranchTarget();

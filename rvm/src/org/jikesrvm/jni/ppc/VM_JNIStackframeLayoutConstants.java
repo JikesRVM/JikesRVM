@@ -86,7 +86,7 @@ public interface VM_JNIStackframeLayoutConstants extends VM_RegisterConstants,
                         + JNI_GLUE_FRAME_OTHERS,
                         STACKFRAME_ALIGNMENT);
 
-  // offset to caller, where to store offset to previous java frame 
+  // offset to caller, where to store offset to previous java frame
   int JNI_GLUE_OFFSET_TO_PREV_JFRAME = -JNI_GLUE_FRAME_OTHERS;
 
   // offset into the vararg save area within the native to Java glue frame

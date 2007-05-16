@@ -151,10 +151,10 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    * Return true if annotation present.
    *
    * This is provided as an alternative to isAnnotationPresent() as isAnnotationPresent()
-   * may require classloading and instantiation of annotations. Classloading would mean 
+   * may require classloading and instantiation of annotations. Classloading would mean
    * that it would not be @Uninterruptible. Instantiation is not desirtable as checking
    * of annotations occurs prior to the bootimage compiler being ready to instantiate
-   * objects. 
+   * objects.
    */
   @Uninterruptible
   final boolean isAnnotationDeclared(final VM_TypeReference annotationTypeRef) {

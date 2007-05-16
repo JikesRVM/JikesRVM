@@ -10,7 +10,7 @@
 package org.jikesrvm.osr;
 
 /**
- * BC_DoubleStore: dstore, dstore_<l> 
+ * BC_DoubleStore: dstore, dstore_<l>
  */
 
 public class BC_DoubleStore extends OSR_PseudoBytecode {

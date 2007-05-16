@@ -29,7 +29,7 @@ public final class OPT_LocationOperand extends OPT_Operand
    * of non-final classes, redesign this mess to have separate subclasses
    * of location operands for each type of memory access.
    * In the process, also switch to using synthetic VM_Fields
-   * for the various pieces of the object header 
+   * for the various pieces of the object header
    * (something like the following might work):
    *   (VM_Field) VM.getMember("[I", "length", "I");   .
    *      . . .                                        } all primitive types
@@ -250,7 +250,7 @@ public final class OPT_LocationOperand extends OPT_Operand
   /**
    * Returns true if operands op1 and op2 may be aliased.
    *
-   * @param op1 the first operand 
+   * @param op1 the first operand
    * @param op2 the second operand
    * @return <code>true</code> if the operands might be aliased or
    *         <code>false</code> if they are definitely not aliased
@@ -273,7 +273,7 @@ public final class OPT_LocationOperand extends OPT_Operand
    *
    * @param op other operand
    * @return   <code>true</code> if <code>this</code> and <code>op</code>
-   *           are semantically equivalent or <code>false</code> 
+   *           are semantically equivalent or <code>false</code>
    *           if they are not.
    */
   public boolean similar(OPT_Operand op) {

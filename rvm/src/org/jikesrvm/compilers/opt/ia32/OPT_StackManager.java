@@ -69,7 +69,7 @@ import org.jikesrvm.runtime.VM_Entrypoints;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * Class to manage the allocation of the "compiler-specific" portion of 
+ * Class to manage the allocation of the "compiler-specific" portion of
  * the stackframe.  This class holds only the architecture-specific
  * functions.
  * <p>
@@ -77,7 +77,7 @@ import org.vmmagic.unboxed.Offset;
 public abstract class OPT_StackManager extends OPT_GenericStackManager {
 
   /**
-   * A frame offset for 108 bytes of stack space to store the 
+   * A frame offset for 108 bytes of stack space to store the
    * floating point state in the SaveVolatile protocol.
    */
   private int fsaveLocation;
@@ -194,7 +194,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
   }
 
   /**
-   * Insert a load of a physical register from a spill location before 
+   * Insert a load of a physical register from a spill location before
    * instruction s.
    *
    * @param s the instruction before which the spill should occur
@@ -228,9 +228,9 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
    * Compute the number of stack words needed to hold nonvolatile
    * registers.
    *
-   * Side effects: 
+   * Side effects:
    * <ul>
-   * <li> updates the VM_OptCompiler structure 
+   * <li> updates the VM_OptCompiler structure
    * <li> updates the <code>frameSize</code> field of this object
    * <li> updates the <code>frameRequired</code> field of this object
    * </ul>
@@ -284,7 +284,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       ir.compiledMethod.setUnsignedNonVolatileOffset(gprOffset);
 
     } else {
-      // Count the number of nonvolatiles used. 
+      // Count the number of nonvolatiles used.
       int numGprNv = 0;
       int i = 0;
       for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRs();
@@ -425,10 +425,10 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
   }
 
   /**
-   * Insert the prologue for a normal method.  
+   * Insert the prologue for a normal method.
    *
    * Assume we are inserting the prologue for method B called from method
-   * A.  
+   * A.
    *    <ul>
    *    <li> Perform a stack overflow check.
    *    <li> Store a back pointer to A's frame
@@ -456,15 +456,15 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
 
     // I. Buy a stackframe (including overflow check)
     // NOTE: We play a little game here.  If the frame we are buying is
-    //       very small (less than 256) then we can be sloppy with the 
+    //       very small (less than 256) then we can be sloppy with the
     //       stackoverflow check and actually allocate the frame in the guard
     //       region.  We'll notice when this frame calls someone and take the
-    //       stackoverflow in the callee. We can't do this if the frame is too big, 
-    //       because growing the stack in the callee and/or handling a hardware trap 
+    //       stackoverflow in the callee. We can't do this if the frame is too big,
+    //       because growing the stack in the callee and/or handling a hardware trap
     //       in this frame will require most of the guard region to complete.
     //       See libvm.C.
     if (frameFixedSize >= 256) {
-      // 1. Insert Stack overflow check.  
+      // 1. Insert Stack overflow check.
       insertBigFrameStackOverflowCheck(plg);
 
       // 2. Save caller's frame pointer
@@ -487,7 +487,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       int cmid = ir.compiledMethod.getId();
       inst.insertBefore(MIR_UnaryNoRes.create(IA32_PUSH, IC(cmid)));
 
-      // 4. Insert Stack overflow check.  
+      // 4. Insert Stack overflow check.
       insertNormalStackOverflowCheck(plg);
     }
 
@@ -501,15 +501,15 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
 
   /**
    * Insert code into the prologue to save any used non-volatile
-   * registers.  
+   * registers.
    *
-   * @param inst the first instruction after the prologue.  
+   * @param inst the first instruction after the prologue.
    */
   private void saveNonVolatiles(OPT_Instruction inst) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     int nNonvolatileGPRS = ir.compiledMethod.getNumberOfNonvolatileGPRs();
 
-    // Save each non-volatile GPR used by this method. 
+    // Save each non-volatile GPR used by this method.
     int n = nNonvolatileGPRS - 1;
     for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRsBackwards();
          e.hasMoreElements() && n >= 0; n--) {
@@ -521,7 +521,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
   }
 
   /**
-   * Insert code before a return instruction to restore the nonvolatile 
+   * Insert code before a return instruction to restore the nonvolatile
    * registers.
    *
    * @param inst the return instruction
@@ -543,7 +543,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
   /**
    * Insert code into the prologue to save the floating point state.
    *
-   * @param inst the first instruction after the prologue.  
+   * @param inst the first instruction after the prologue.
    */
   private void saveFloatingPointState(OPT_Instruction inst) {
     OPT_Operand M = new OPT_StackLocationOperand(true, -fsaveLocation, 4);
@@ -553,7 +553,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
   /**
    * Insert code into the epilogue to restore the floating point state.
    *
-   * @param inst the return instruction after the epilogue.  
+   * @param inst the return instruction after the epilogue.
    */
   private void restoreFloatingPointState(OPT_Instruction inst) {
     OPT_Operand M = new OPT_StackLocationOperand(true, -fsaveLocation, 4);
@@ -562,14 +562,14 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
 
   /**
    * Insert code into the prologue to save all volatile
-   * registers.  
+   * registers.
    *
-   * @param inst the first instruction after the prologue.  
+   * @param inst the first instruction after the prologue.
    */
   private void saveVolatiles(OPT_Instruction inst) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
-    // Save each GPR. 
+    // Save each GPR.
     int i = 0;
     for (Enumeration<OPT_Register> e = phys.enumerateVolatileGPRs();
          e.hasMoreElements(); i++) {
@@ -581,7 +581,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
   }
 
   /**
-   * Insert code before a return instruction to restore the volatile 
+   * Insert code before a return instruction to restore the volatile
    * and volatile registers.
    *
    * @param inst the return instruction
@@ -627,7 +627,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
   }
 
   /**
-   * In instruction s, replace all appearances of a symbolic register 
+   * In instruction s, replace all appearances of a symbolic register
    * operand with uses of the appropriate spill location, as cached by the
    * register allocator.
    *
@@ -835,7 +835,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
 
       if (s.operator() == BBEND) {
         if (seenReturn) {
-          // at a return ESP will be at FrameFixedSize, 
+          // at a return ESP will be at FrameFixedSize,
           seenReturn = false;
           ESPOffset = 0;
         } else {
@@ -867,7 +867,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       }
 
       // pop computes the effective address of its operand after ESP
-      // is incremented.  Therefore update ESPOffset before rewriting 
+      // is incremented.  Therefore update ESPOffset before rewriting
       // stacklocation and memory operands.
       if (s.operator() == IA32_POP) {
         ESPOffset += 4;
@@ -898,7 +898,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       }
 
       // push computes the effective address of its operand after ESP
-      // is decremented.  Therefore update ESPOffset after rewriting 
+      // is decremented.  Therefore update ESPOffset after rewriting
       // stacklocation and memory operands.
       if (s.operator() == IA32_PUSH) {
         ESPOffset -= 4;
@@ -914,24 +914,24 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
    * routine.
    */
   private int FPOffset2SPOffset(int fpOffset) {
-    // Note that SP = FP - frameSize + WORDSIZE;  
+    // Note that SP = FP - frameSize + WORDSIZE;
     // So, FP + fpOffset = SP + frameSize - WORDSIZE
     // + fpOffset
     return frameSize + fpOffset - WORDSIZE;
   }
 
   /**
-   * Walk over the currently available scratch registers. 
+   * Walk over the currently available scratch registers.
    *
-   * <p>For any scratch register r which is def'ed by instruction s, 
-   * spill r before s and remove r from the pool of available scratch 
-   * registers.  
+   * <p>For any scratch register r which is def'ed by instruction s,
+   * spill r before s and remove r from the pool of available scratch
+   * registers.
    *
-   * <p>For any scratch register r which is used by instruction s, 
-   * restore r before s and remove r from the pool of available scratch 
-   * registers.  
+   * <p>For any scratch register r which is used by instruction s,
+   * restore r before s and remove r from the pool of available scratch
+   * registers.
    *
-   * <p>For any scratch register r which has current contents symb, and 
+   * <p>For any scratch register r which has current contents symb, and
    * symb is spilled to location M, and s defs M: the old value of symb is
    * dead.  Mark this.
    *
@@ -983,8 +983,8 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       if (usedIn(scratch.scratch, s) ||
           !isLegal(scratch.currentContents, scratch.scratch, s) ||
           (s.operator == IA32_FCLEAR && scratch.scratch.isFloatingPoint())) {
-        // first spill the currents contents of the scratch register to 
-        // memory 
+        // first spill the currents contents of the scratch register to
+        // memory
         if (!unloaded) {
           if (verboseDebug) {
             System.out.println("RESTORE : unload because used " + scratch);
@@ -1008,7 +1008,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
           }
 
         }
-        // s or some future instruction uses the scratch register, 
+        // s or some future instruction uses the scratch register,
         // so restore the correct contents.
         if (verboseDebug) {
           System.out.println("RESTORE : reload because used " + scratch);
@@ -1042,4 +1042,4 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
   public boolean isSysCall(OPT_Instruction s) {
     return s.operator == IA32_SYSCALL;
   }
-} 
+}

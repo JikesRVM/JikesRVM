@@ -16,7 +16,7 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * Class to provide synchronization methods where java language 
+ * Class to provide synchronization methods where java language
  * synchronization is insufficient and VM_Magic.prepare and VM_Magic.attempt
  * are at too low a level
  */

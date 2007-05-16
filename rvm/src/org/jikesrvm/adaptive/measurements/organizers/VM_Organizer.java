@@ -15,9 +15,9 @@ import org.jikesrvm.scheduler.VM_ThreadQueue;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
- * An VM_Organizer acts an an intermediary between the low level 
+ * An VM_Organizer acts an an intermediary between the low level
  * online measurements and the controller.  An organizer may perform
- * simple or complex tasks, but it is always simply following the 
+ * simple or complex tasks, but it is always simply following the
  * instructions given by the controller.
  */
 public abstract class VM_Organizer extends VM_Thread {
@@ -65,15 +65,15 @@ public abstract class VM_Organizer extends VM_Thread {
   abstract void thresholdReached();
 
   /**
-   * Organizer specific setup.  
+   * Organizer specific setup.
    * A good place to install and activate any listeners.
    */
   protected abstract void initialize();
 
   /*
-   * Can access the thread queue without locking because 
+   * Can access the thread queue without locking because
    * Only listener and organizer operate on the thread queue and the
-   * listener uses its own protocol to ensure that exactly 1 
+   * listener uses its own protocol to ensure that exactly 1
    * thread will attempt to activate the organizer.
    */
   @Uninterruptible

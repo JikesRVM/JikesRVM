@@ -69,7 +69,7 @@ public class VM_ThreadQueue
     tail = t;
   }
 
-  /** Remove a thread from the head of the queue. 
+  /** Remove a thread from the head of the queue.
    @return the thread (null --> queue is empty) */
   public VM_Thread dequeue() {
     VM_Thread t = head;
@@ -145,7 +145,7 @@ public class VM_ThreadQueue
   }
 
   public void dump() {
-    // We shall space-separate them, for compactness.  
+    // We shall space-separate them, for compactness.
     // I hope this is a good decision.
     boolean pastFirst = false;
     for (VM_Thread t = head; t != null; t = t.next) {

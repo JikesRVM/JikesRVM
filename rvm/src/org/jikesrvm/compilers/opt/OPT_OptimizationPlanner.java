@@ -36,9 +36,9 @@ public class OPT_OptimizationPlanner {
 
   /**
    * Generate a report of time spent in various phases of the opt compiler.
-   * <p> NB: This method may be called in a context where classloading and/or 
+   * <p> NB: This method may be called in a context where classloading and/or
    * GC cannot be allowed.
-   * Therefore we must use primitive sysWrites for output and avoid string 
+   * Therefore we must use primitive sysWrites for output and avoid string
    * appends and other allocations.
    *
    * @param explain Should an explanation of the metrics be generated?
@@ -76,7 +76,7 @@ public class OPT_OptimizationPlanner {
    * by selecting a subset of the elements in the masterPlan.
    *
    * @param options the OPT_Options to use
-   * @return an OPT_OptimizationPlanElement[] selected from 
+   * @return an OPT_OptimizationPlanElement[] selected from
    * the masterPlan based on options.
    */
   public static OPT_OptimizationPlanElement[] createOptimizationPlan(OPT_Options options) {
@@ -196,7 +196,7 @@ public class OPT_OptimizationPlanner {
         new OPT_BranchOptimizations(1, true, true),
     });
 
-    // Use the LST to insert yieldpoints and estimate 
+    // Use the LST to insert yieldpoints and estimate
     // basic block frequency from branch probabilities
     composeComponents(p, "CFG Structural Analysis", new Object[]{
         new OPT_BuildLST(),
@@ -220,7 +220,7 @@ public class OPT_OptimizationPlanner {
     addComponent(p, new OPT_LocalCopyProp());
     // Perform local constant propagation for a factored basic block.
     addComponent(p, new OPT_LocalConstantProp());
-    // Perform local common-subexpression elimination for a 
+    // Perform local common-subexpression elimination for a
     // factored basic block.
     addComponent(p, new OPT_LocalCSE(true));
     // Flow-insensitive field analysis

@@ -42,11 +42,11 @@ import org.jikesrvm.osr.OSR_MethodVariables;
 import org.jikesrvm.osr.OSR_VariableMap;
 
 /**
- * This class performs a flow-sensitive iterative live variable analysis. 
+ * This class performs a flow-sensitive iterative live variable analysis.
  * The result of this analysis is live ranges for each basic block.
  * (@see OPT_BasicBlock)
  * This class can also optionally construct GC maps. These GC maps
- * are later used to create the final gc map (see VM_OptReferenceMap.java). 
+ * are later used to create the final gc map (see VM_OptReferenceMap.java).
  *
  * The bottom of the file contains comments regarding imprecise exceptions.
  */
@@ -129,7 +129,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
    *
    * @param createGCMaps should we create GC maps?
    * @param skipLocal should we skip the (final) local propagation phase?
-   * @param storeLiveAtHandlers should we store liveness info at the 
+   * @param storeLiveAtHandlers should we store liveness info at the
    * top of each handler block?
    */
   public OPT_LiveAnalysis(boolean createGCMaps,
@@ -144,7 +144,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
    *
    * @param createGCMaps should we create GC maps?
    * @param skipLocal should we skip the (final) local propagation phase?
-   * @param storeLiveAtHandlers should we store liveness info at the 
+   * @param storeLiveAtHandlers should we store liveness info at the
    * top of each handler block?
    * @param skipGuards should we ignore validation registers?
    */
@@ -212,8 +212,8 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
     currentSet = new OPT_LiveSet();
     boolean reuseCurrentSet = false;
 
-    // make sure reverse top sort order is built            
-    // currentBlock is the first node in the list 
+    // make sure reverse top sort order is built
+    // currentBlock is the first node in the list
     OPT_BasicBlock currentBlock = (OPT_BasicBlock) ir.cfg.buildRevTopSort();
 
     // 2nd parm: true means forward analysis; false means backward analysis
@@ -234,7 +234,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
     }
     debugPostGlobal(ir);
 
-    // Now compute live ranges, using results from the fixed point computation 
+    // Now compute live ranges, using results from the fixed point computation
     // Also, optionally create GC maps
     // SSA doesn't need this part so we allow it to be optional.
     // However, if we don't perform it than the final maps and intervals aren't
@@ -253,7 +253,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
       if (dumpFinalLiveIntervals) {
         printFinalLiveIntervals(ir);
       }
-      // If we performed the local propagation, live interval information 
+      // If we performed the local propagation, live interval information
       // lives off of each basic block.
       // Thus, we no longer need bbLiveInfo (the fixed points results)
       // When we don't perform the local propagation, such as translating
@@ -365,9 +365,9 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
    * Compute summary (local) live variable analysis for a basic block, which
    * is basically Gen and Kill information.
    *
-   * @param bblock the basic block 
+   * @param bblock the basic block
    * @param ir the governing if
-   * @see "Efficient and Precise Modeling of Exceptions for the 
+   * @see "Efficient and Precise Modeling of Exceptions for the
    *      Analysis of Java Programs" by Choi, Grove, Hind, Sarkar
    *      in ACM PASTE99 workshop (available at
    *      www.research.ibm.com/jalapeno)"
@@ -380,10 +380,10 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
     // Tells whether we've seen the first PEI
     boolean seenFirstPEI = false;
     // Because control flow may emanate from a potentially excepting
-    // instruction (PEI) out of the basic block, care must be taken 
-    // when computing what can be killed by a basic block.  
+    // instruction (PEI) out of the basic block, care must be taken
+    // when computing what can be killed by a basic block.
     //
-    //  S1:  y = 
+    //  S1:  y =
     //  S2:  <exception-raising inst>
     //  S3:  x =
     // For example in the block above, live variables coming from
@@ -391,7 +391,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
     // by S1 or S3 (depending on the variable).  However, live variables
     // coming from the PEI edge (at S2) can only be killed by S1.
     // Thus, when a block contains PEIs, we need to distinguish the
-    // kill sets.  Namely, we need 
+    // kill sets.  Namely, we need
     //    Kill_tot  -  what can be killed anywhere in the block
     //    Kill_n    -  what can be killed from PEI_n on up
     //    Kill_n-1  -  what can be killed from PEI_n-1 on up
@@ -401,7 +401,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
     //
     //  In = Out_norm - Kill_tot   (all vars entering from bottom are eligible
     //                                to be killed)
-    //     U Out_n - Kill_n    
+    //     U Out_n - Kill_n
     //     U Out_n-1 - Kill_n-1
     //     ...
     //     U Out_1 - Kill_1
@@ -457,7 +457,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
     for (OPT_Instruction inst = bblock.lastInstruction(); inst != bblock.firstInstruction();
          inst = inst.prevInstructionInCodeOrder()) {
 
-      // traverse from defs to uses becauses uses happen after 
+      // traverse from defs to uses becauses uses happen after
       // (in a backward sense) defs
       OPT_OperandEnumeration defs = inst.getPureDefs();
       while (defs.hasMoreElements()) {
@@ -479,8 +479,8 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
             // if it is a DEF we place it is the BBKillSet and remove it from
             // the GEN set, (GEN should only contain upward-exposed uses,
             // i.e., uses that are NOT dominated by a DEF).
-            // We don't need to worry about PEIs here because 
-            // later instructions (traversing backwards like we are) 
+            // We don't need to worry about PEIs here because
+            // later instructions (traversing backwards like we are)
             // will always dominate earlier instructions *of this block*
             bbLiveInfo[bblock.getNumber()].BBKillSet().add(regOp);
             bbLiveInfo[bblock.getNumber()].getGen().remove(regOp);
@@ -514,8 +514,8 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
             VM_TypeReference regType = regOp.type;
 
             // Because the summary we compute is used to propagate to
-            // other basic blocks, if a register is block local, 
-            // we don't need to include it.  It will be picked up 
+            // other basic blocks, if a register is block local,
+            // we don't need to include it.  It will be picked up
             // later by local propagation phase.
             if (regOp.register.spansBasicBlock() && regType != null) {
               bbLiveInfo[bblock.getNumber()].getGen().add(regOp);
@@ -541,7 +541,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
   }
 
   /**
-   * The rvals of phi nodes are logically uses in the phi's predecessor 
+   * The rvals of phi nodes are logically uses in the phi's predecessor
    * blocks, so here we collect phi rvals from the current block's
    * successors into the gen set for this block, being careful to
    * collect only the appropriate rval
@@ -606,11 +606,11 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
     // The computation of the Kill set takes into consideration exception
     // semantics, i.e., that live information may flow into the middle
     // of a basic block due to implicit edges at exception points.
-    // We keep 2 kill sets. 
+    // We keep 2 kill sets.
     //     BBKillSet() contains variables that are killed if the block
     //              is exited in the normal fashion
-    //     firstPEIKillSet() contains variables that are definitely killed  
-    //              before the first PEI is executed. 
+    //     firstPEIKillSet() contains variables that are definitely killed
+    //              before the first PEI is executed.
     //       This set contains only variables that are definitely
     //       killed in this block despite the implicit exception edges.
     //
@@ -716,7 +716,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
     }
     Stack<MapElement> blockStack = null;
     if (createGCMaps) {
-      // We want to add GC map entries in IR instruction order. However, we are 
+      // We want to add GC map entries in IR instruction order. However, we are
       // visiting instructions in reverse order within a block. We solve this
       // by pushing all additions to a local stack and pop (and add)
       // the information to the GC map after the block has been processed.
@@ -778,7 +778,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
         if (inst.isPEI()) {
           local.add(exceptionBlockSummary);
 
-          // For each item in "exceptionBlockSummary", create live interval 
+          // For each item in "exceptionBlockSummary", create live interval
           // info for this block.
           OPT_LiveInterval.createEndLiveRange(exceptionBlockSummary, block,
                                               inst);
@@ -813,15 +813,15 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
 
         // GC Map Code:
         //
-        // Now that we have processed all of the defs, if any, we check 
-        // if the instruction is a potential GC point, insert it into 
-        // the map.   
+        // Now that we have processed all of the defs, if any, we check
+        // if the instruction is a potential GC point, insert it into
+        // the map.
         // We do this after processing the defs (remember, this is a backward
-        // analysis) because the GC will occur (at least in the case of calls) 
-        // after the uses have occurred (in the forward sense).  Thus, we 
+        // analysis) because the GC will occur (at least in the case of calls)
+        // after the uses have occurred (in the forward sense).  Thus, we
         // don't yet factor in the uses for this instruction.
-        // For a statement like "x = y", we are capturing the program point 
-        // "in the middle", i.e., during the execution, after the y has been 
+        // For a statement like "x = y", we are capturing the program point
+        // "in the middle", i.e., during the execution, after the y has been
         // fetched, but before the x has been defined.
 
         // Above observation is not true for an OSR instruction. The current
@@ -869,7 +869,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
         }     // uses
 
         if (createGCMaps && OsrPoint.conforms(inst)) {
-          // delayed gc map generation for Osr instruction, 
+          // delayed gc map generation for Osr instruction,
           // see comments before processing uses -- Feng, July 15, 2003
           List<OPT_RegSpillListElement> regList = map.createDU(local);
           blockStack.push(new MapElement(inst, regList));
@@ -920,7 +920,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
     // The old test would exclude all physical registers.  However,
     // register allocation needs to know about physical registers, except
     // for the ones listed below.  Such regs are inserted in the IR
-    // during call expansion. 
+    // during call expansion.
     return regOp.register.isExcludedLiveA() || (regOp.register.isValidation() && skipGuards);
   }
 
@@ -1034,7 +1034,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
   }
 
   /**
-   * Return the set of registers that are live on the control-flow edge 
+   * Return the set of registers that are live on the control-flow edge
    * basic block bb1 to basic block bb2
    */
   HashSet<OPT_Register> getLiveRegistersOnEdge(OPT_BasicBlock bb1,
@@ -1046,7 +1046,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
   }
 
   /**
-   * Return the set of registers that are live across a basic block, and who 
+   * Return the set of registers that are live across a basic block, and who
    * are live after the basic block exit.
    */
   HashSet<OPT_Register> getLiveRegistersOnExit(OPT_BasicBlock bb) {
@@ -1060,7 +1060,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
   }
 
   /**
-   * Return the set of registers that are live across a basic block, and who 
+   * Return the set of registers that are live across a basic block, and who
    * are live before the basic block entry.
    */
   HashSet<OPT_Register> getLiveRegistersOnEntry(OPT_BasicBlock bb) {
@@ -1198,7 +1198,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
 
     /**
      * returns the list
-     * @return the list 
+     * @return the list
      */
     public List<OPT_RegSpillListElement> getList() {
       return list;
@@ -1279,7 +1279,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
         }
       }
 
-      // create OSR_MethodVariables    
+      // create OSR_MethodVariables
       OSR_MethodVariables mvar =
           new OSR_MethodVariables(typeInfo.methodids[midx],
                                   typeInfo.bcindexes[midx],

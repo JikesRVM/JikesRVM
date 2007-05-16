@@ -16,23 +16,23 @@ import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
 import org.vmmagic.unboxed.Address;
 
 /**
- * An <code>OPT_Operand</code> identifies an operand for an 
- * {@link OPT_Instruction}. A single OPT_Operand object should 
+ * An <code>OPT_Operand</code> identifies an operand for an
+ * {@link OPT_Instruction}. A single OPT_Operand object should
  * not be shared between instructions (or even be used twice in
  * the same instruction).  Operands should not be shared between
- * instructions because we use the 
+ * instructions because we use the
  * {@link #instruction reference to the operand's containing instruction}
- * to construct use/def chains. We also store program-point specific 
+ * to construct use/def chains. We also store program-point specific
  * information about an {@link OPT_Register symbolic register}
- * in the {@link OPT_RegisterOperand OPT_RegisterOperands} that 
- * {@link OPT_RegisterOperand#register refer} to the 
+ * in the {@link OPT_RegisterOperand OPT_RegisterOperands} that
+ * {@link OPT_RegisterOperand#register refer} to the
  * <code>OPT_Register</code>.
  * <p>
  * Operands are divided into several primary categories
  * <ul>
  * <li> {@link OPT_RegisterOperand} represent symbolic and
  *      and physical registers.
- * <li> The subclasses of {@link OPT_ConstantOperand} 
+ * <li> The subclasses of {@link OPT_ConstantOperand}
  *      represent various kinds of constant operands.
  * <li> {@link OPT_MethodOperand} represents the targets of CALL instructions.
  * <li> {@link OPT_BranchOperand}, {@link OPT_BasicBlockOperand},
@@ -43,7 +43,7 @@ import org.vmmagic.unboxed.Address;
  *      trap instructions.
  * <li> {@link OPT_LocationOperand} represents the memory location
  *      accessed by a load or store operation.
- * <li> {@link OPT_TypeOperand} encodes a {@link org.jikesrvm.classloader.VM_Type} for use 
+ * <li> {@link OPT_TypeOperand} encodes a {@link org.jikesrvm.classloader.VM_Type} for use
  *      in instructions such as NEW or INSTANCEOF that operate on the
  *      type hierarchy.
  * </ul>
@@ -467,7 +467,7 @@ public abstract class OPT_Operand {
   /**
    * Does the operand represent a value of an int-like data type?
    *
-   * @return <code>true</code> if the data type of <code>this</code> 
+   * @return <code>true</code> if the data type of <code>this</code>
    *         is int-like as defined by {@link VM_TypeReference#isIntLikeType}
    *         or <code>false</code> if it is not.
    */
@@ -479,7 +479,7 @@ public abstract class OPT_Operand {
   /**
    * Does the operand represent a value of the int data type?
    *
-   * @return <code>true</code> if the data type of <code>this</code> 
+   * @return <code>true</code> if the data type of <code>this</code>
    *         is an int as defined by {@link VM_TypeReference#isIntType}
    *         or <code>false</code> if it is not.
    */
@@ -491,7 +491,7 @@ public abstract class OPT_Operand {
   /**
    * Does the operand represent a value of the long data type?
    *
-   * @return <code>true</code> if the data type of <code>this</code> 
+   * @return <code>true</code> if the data type of <code>this</code>
    *         is a long as defined by {@link VM_TypeReference#isLongType}
    *         or <code>false</code> if it is not.
    */
@@ -503,7 +503,7 @@ public abstract class OPT_Operand {
   /**
    * Does the operand represent a value of the float data type?
    *
-   * @return <code>true</code> if the data type of <code>this</code> 
+   * @return <code>true</code> if the data type of <code>this</code>
    *         is a float as defined by {@link VM_TypeReference#isFloatType}
    *         or <code>false</code> if it is not.
    */
@@ -515,7 +515,7 @@ public abstract class OPT_Operand {
   /**
    * Does the operand represent a value of the double data type?
    *
-   * @return <code>true</code> if the data type of <code>this</code> 
+   * @return <code>true</code> if the data type of <code>this</code>
    *         is a double as defined by {@link VM_TypeReference#isDoubleType}
    *         or <code>false</code> if it is not.
    */
@@ -527,7 +527,7 @@ public abstract class OPT_Operand {
   /**
    * Does the operand represent a value of the reference data type?
    *
-   * @return <code>true</code> if the data type of <code>this</code> 
+   * @return <code>true</code> if the data type of <code>this</code>
    *         is a reference as defined by {@link VM_TypeReference#isReferenceType}
    *         or <code>false</code> if it is not.
    */
@@ -539,7 +539,7 @@ public abstract class OPT_Operand {
   /**
    * Does the operand represent a value of the address data type?
    *
-   * @return <code>true</code> if the data type of <code>this</code> 
+   * @return <code>true</code> if the data type of <code>this</code>
    *         is an address as defined by {@link VM_TypeReference#isWordType}
    *         or <code>false</code> if it is not.
    */
@@ -571,7 +571,7 @@ public abstract class OPT_Operand {
    *
    * @param op other operand
    * @return   <code>true</code> if <code>this</code> and <code>op</code>
-   *           are semantically equivalent or <code>false</code> 
+   *           are semantically equivalent or <code>false</code>
    *           if they are not.
    */
   public abstract boolean similar(OPT_Operand op);
@@ -602,13 +602,13 @@ public abstract class OPT_Operand {
 
   /**
    * Compare two operands based on their positions in the operand lattice.
-   * For the purposes of doing dataflow analysis, OPT_Operands can be 
+   * For the purposes of doing dataflow analysis, OPT_Operands can be
    * thought of as forming a lattice.
-   * This function compares two operands and returns whether or 
+   * This function compares two operands and returns whether or
    * not op1 is a conservative approximation of op2.
    * Or in other words, if conservativelyApproximates(op1, op2)
    * then meet(op1, op2) = op1.
-   * Note that lattices are partial orders, so it is quite 
+   * Note that lattices are partial orders, so it is quite
    * possible for both conservativelyApproximates(op1, op2)
    * and conservativelyApproximates(op2, op1) to return false.
    *
@@ -661,7 +661,7 @@ public abstract class OPT_Operand {
     }
 
     // Step 3: op1 is a RegisterOperand
-    // This case is complicated by the need to ensure that the 
+    // This case is complicated by the need to ensure that the
     // various Flag bits are considered as well....
     if (op1.isRegister()) {
       OPT_RegisterOperand rop1 = op1.asRegister();
@@ -771,24 +771,24 @@ public abstract class OPT_Operand {
 
   /**
    * Meet two operands based on their positions in the operand lattice.
-   * For the purposes of doing dataflow analysis, OPT_Operands can be 
+   * For the purposes of doing dataflow analysis, OPT_Operands can be
    * thought of as forming a lattice.
    * This function takes two operands and returns their meet (glb).
-   * We use <code>null</code> to stand for bottom (the meet of 
+   * We use <code>null</code> to stand for bottom (the meet of
    * the two operands is an illegal value).  For exmaple,
    * meet(5.0, "hi") would evalaute to bottom.
    * Meet returns op1 iff conservativelyApproximates(op1, op2):
    * this is exploited in BC2IR to avoid doing redundant
-   * work.  
+   * work.
    * <p>
    * Unfortunately there is a fair amount of code duplication
-   * between {@link #conservativelyApproximates} and 
+   * between {@link #conservativelyApproximates} and
    * {@link #meet}, but factoring out the common control logic
-   * is a non-trivial task. 
+   * is a non-trivial task.
    *
    * @param op1  the first operand to meet
    * @param op2  the second operand to meet
-   * @param reg  the <code>OPT_Register</code> to use to 
+   * @param reg  the <code>OPT_Register</code> to use to
    *             create a new <code>OPT_RegisterOperand</code>
    *             if meeting op1 and op2 requires doing so.
    * @return the OPT_Operand that is the meet of op1 and op2.
@@ -836,12 +836,12 @@ public abstract class OPT_Operand {
       } else {
         /*
          * XXX Opt compiler guru please check :)
-         * 
+         *
          * Protect this code from crashing if op2 is DUMMY.  As I understand
          * the calling code this shouldn't happen, but the case for RegisterOperand
-         * handles it so I guess it's not too bad for a NullConstantOperand 
+         * handles it so I guess it's not too bad for a NullConstantOperand
          * to do so.
-         * 
+         *
          * -- Robin Garner 1 Feb 7
          */
         if (op2 instanceof OPT_BC2IR.ReturnAddressOperand ||
@@ -889,7 +889,7 @@ public abstract class OPT_Operand {
     }
 
     // Step 4: op1 is a register operand
-    // This case is complicated by the need to ensure that 
+    // This case is complicated by the need to ensure that
     // the various Flag bits are considered as well....
     if (op1.isRegister()) {
       OPT_RegisterOperand rop1 = op1.asRegister();
@@ -940,7 +940,7 @@ public abstract class OPT_Operand {
             OPT_RegisterOperand res =
                 new OPT_RegisterOperand(reg, type1, rop1.getFlags());
             res.meetInheritableFlags(rop2);
-            // even if both op1 & op2 are precise, 
+            // even if both op1 & op2 are precise,
             // op1.type != op2.type, so clear it on res
             res.clearPreciseType();
             if (rop1.scratchObject instanceof OPT_Operand &&

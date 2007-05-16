@@ -17,7 +17,7 @@ public class OPT_DF_Equation implements OPT_GraphNode {
 
   /**
    * Evaluate this equation, setting a new value for the
-   * left-hand side. 
+   * left-hand side.
    *
    * @return true if the lhs value changed. false otherwise
    */
@@ -43,8 +43,8 @@ public class OPT_DF_Equation implements OPT_GraphNode {
   }
 
   /**
-   * Return the operator for this equation 
-   * @return the operator for this equation 
+   * Return the operator for this equation
+   * @return the operator for this equation
    */
   OPT_DF_Operator getOperator() {
     return operator;
@@ -65,8 +65,8 @@ public class OPT_DF_Equation implements OPT_GraphNode {
   }
 
   /**
-   * Return a string representation of this object 
-   * @return a string representation of this object 
+   * Return a string representation of this object
+   * @return a string representation of this object
    */
   public String toString() {
     if (operands[0] == null) {
@@ -186,14 +186,14 @@ public class OPT_DF_Equation implements OPT_GraphNode {
   private int index;
 
   /**
-   * Implementation of OPT_GraphNode interface.  
+   * Implementation of OPT_GraphNode interface.
    */
   public void setIndex(int i) {
     index = i;
   }
 
   /**
-   * Implementation of OPT_GraphNode interface.  
+   * Implementation of OPT_GraphNode interface.
    */
   public int getIndex() {
     return index;

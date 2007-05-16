@@ -25,9 +25,9 @@ import org.vmmagic.unboxed.WordArray;
   public WordArray gprs; // word size general purpose registers (either 32 or 64 bit)
   public final double[] fprs; // 64-bit floating point registers
   public Address ip; // instruction address register
-  
+
   // The following are used by exception delivery.
-  // They are set by either VM_Runtime.athrow or the C hardware exception 
+  // They are set by either VM_Runtime.athrow or the C hardware exception
   // handler and restored by "VM_Magic.restoreHardwareExceptionState".
   // They are not used for context switching.
   //
@@ -35,7 +35,7 @@ import org.vmmagic.unboxed.WordArray;
   public boolean inuse; // do exception registers currently contain live values?
 
   static Address invalidIP = Address.max();
-  
+
   public VM_Registers() {
     gprs = WordArray.create(NUM_GPRS);
     fprs = new double[NUM_FPRS];
@@ -56,7 +56,7 @@ import org.vmmagic.unboxed.WordArray;
   }
 
   // update the machine state to unwind the deepest stackframe.
-  // 
+  //
   public final void unwindStackFrame() {
     ip = invalidIP; // if there was a valid value in ip, it ain't valid anymore
     gprs.set(FRAME_POINTER, VM_Magic.getCallerFramePointer(getInnermostFramePointer()).toWord());

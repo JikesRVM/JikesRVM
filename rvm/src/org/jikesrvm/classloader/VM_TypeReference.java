@@ -14,7 +14,7 @@ import org.jikesrvm.util.VM_HashSet;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
- * A class to represent the reference in a class file to some 
+ * A class to represent the reference in a class file to some
  * type (class, primitive or array).
  * A type reference is uniquely defined by
  * <ul>
@@ -25,7 +25,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * be an expensive operation.  Therefore we canonicalize
  * VM_TypeReference instances and cache the result of resolution.
  * <p>
- * It is officially illegal (as of July 31, 2003) 
+ * It is officially illegal (as of July 31, 2003)
  * to create a VM_TypeReference for a string that would not be syntactically
  * valid in a class file.   --Steven Augart
  */
@@ -161,7 +161,7 @@ public final class VM_TypeReference {
 
   public static final VM_TypeReference VM_Array = findOrCreate(org.jikesrvm.classloader.VM_Array.class);
 
-  // Synthetic types used by the opt compiler 
+  // Synthetic types used by the opt compiler
   public static final VM_TypeReference NULL_TYPE =
       (VM.BuildForOptCompiler) ? findOrCreate("Lorg/jikesrvm/classloader/VM_TypeReference$NULL;") : null;
   public static final VM_TypeReference VALIDATION_TYPE =
@@ -630,8 +630,8 @@ public final class VM_TypeReference {
   }
 
   /**
-   * Is <code>this</code> the type reference for an 
-   * int-like (1, 8, 16, or 32 bit integral) primitive type? 
+   * Is <code>this</code> the type reference for an
+   * int-like (1, 8, 16, or 32 bit integral) primitive type?
    */
   @Uninterruptible
   public boolean isIntLikeType() {
@@ -693,10 +693,10 @@ public final class VM_TypeReference {
    *
    * @return the VM_Type instance that this references resolves to.
    *
-   * @throws NoClassDefFoundError When it cannot resolve a class.  
+   * @throws NoClassDefFoundError When it cannot resolve a class.
    *        we go to the trouble of converting the class loader's
-   *        <code>ClassNotFoundException</code> into this error, 
-   *        since we need to be able to throw 
+   *        <code>ClassNotFoundException</code> into this error,
+   *        since we need to be able to throw
    *        <code>NoClassDefFoundError</code> for classes
    *        that we're loading whose existence was compile-time checked.
    *
@@ -751,14 +751,14 @@ public final class VM_TypeReference {
     } else if (isArrayType()) {
       if (isUnboxedArrayType()) {
         // Ensure that we only create one VM_Array object for each pair of
-        // names for this type. 
+        // names for this type.
         // Do this by resolving AddressArray to [Address
         setResolvedType(getArrayElementType().getArrayTypeForElementType().resolve());
       } else {
         VM_Type elementType = getArrayElementType().resolve();
         if (elementType.getClassLoader() != classloader) {
           // We aren't the canonical type reference because the element type
-          // was loaded using a different classloader. 
+          // was loaded using a different classloader.
           // Find the canonical type reference and ask it to resolve itself.
           VM_TypeReference canonical = VM_TypeReference.findOrCreate(elementType.getClassLoader(), name);
           setResolvedType(canonical.resolve());

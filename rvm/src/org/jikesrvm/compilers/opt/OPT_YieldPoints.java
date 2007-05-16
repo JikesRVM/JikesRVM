@@ -24,7 +24,7 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.YIELDPOINT_PROLOGUE;
 
 /**
  * This class inserts yield points in
- *  1) a method's prologue 
+ *  1) a method's prologue
  *  2) loop headers
  *  3) (optionally) method exits (epilogue, athrow)
  */
@@ -66,7 +66,7 @@ class OPT_YieldPoints extends OPT_CompilerPhase {
 
     // (1) Insert prologue yieldpoint unconditionally.
     //     As part of prologue/epilogue insertion we'll remove
-    //     the yieldpoints in trival methods that otherwise wouldn't need 
+    //     the yieldpoints in trival methods that otherwise wouldn't need
     //     a stackframe.
     prependYield(ir.cfg.entry(), YIELDPOINT_PROLOGUE, 0, ir.gc.inlineSequence);
 
@@ -104,7 +104,7 @@ class OPT_YieldPoints extends OPT_CompilerPhase {
   }
 
   /**
-   * Add a YIELD instruction to the appropriate place for the basic 
+   * Add a YIELD instruction to the appropriate place for the basic
    * block passed.
    *
    * @param bb the basic block

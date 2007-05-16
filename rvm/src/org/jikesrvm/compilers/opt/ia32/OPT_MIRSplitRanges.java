@@ -77,7 +77,7 @@ class OPT_MIRSplitRanges extends OPT_CompilerPhase
         // clear the cache of register assignments
         newMap.clear();
 
-        // Split live ranges at PEIs and a few special cases to 
+        // Split live ranges at PEIs and a few special cases to
         // make sure we can pin values that must be in registers.
         // NOTE: Any operator that is an IA32 special case that must have
         //       a particular operand in a register must be mentioned both

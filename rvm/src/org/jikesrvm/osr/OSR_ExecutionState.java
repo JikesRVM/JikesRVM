@@ -8,8 +8,8 @@
  */
 
 /**
- * VM scope descriptor (execution state) of a method activation. 
- * A descriptor has two parts: VM architecture-depend, and execution context. 
+ * VM scope descriptor (execution state) of a method activation.
+ * A descriptor has two parts: VM architecture-depend, and execution context.
  */
 
 package org.jikesrvm.osr;
@@ -132,7 +132,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants {
   private int rid;
 
   /**
-   * Goes through variable elements and produces specialized 
+   * Goes through variable elements and produces specialized
    * prologue using pseudo-bytecode.
    */
   public byte[] generatePrologue() {
@@ -158,7 +158,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants {
         VM._assert(var.isLocal() && (var.getNumber() == 0));
       }
     }
-    // restore other parameters, 
+    // restore other parameters,
     int paranum = this.meth.getParameterTypes().length;
     for (int i = 0; i < paranum; i++) {
       OSR_VariableElement var = varElms.get(elmcount);
@@ -174,7 +174,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants {
     tail.next = new BC_ParamInitEnd();
     tail = tail.next;
 
-    // restore other locals and stack slots, assuming stack element 
+    // restore other locals and stack slots, assuming stack element
     // were sorted
     for (; elmcount < size; elmcount++) {
       OSR_VariableElement var = varElms.get(elmcount);
@@ -194,7 +194,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants {
     // default situation
     int branchTarget = this.bcIndex;
 
-    /* when this method must start with a call of callee, 
+    /* when this method must start with a call of callee,
      * we are using invokeCompiledMethod,
      */
     if (callee_cmid != -1) {
@@ -202,7 +202,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants {
       tail.next = new BC_InvokeCompiledMethod(callee_cmid, this.bcIndex);
       tail = tail.next;
 
-      // if this method needs a call, than we must jump to 
+      // if this method needs a call, than we must jump to
       // the instruction after the call.
       VM_BytecodeStream bcodes = this.meth.getBytecodes();
       bcodes.reset(this.bcIndex);
@@ -234,7 +234,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants {
     // add goto statement, be careful, after goto
     // there may be several pop instructions
     int pops = computeStackHeight(head);
-    branchTarget += pops;  // preserve space 
+    branchTarget += pops;  // preserve space
     {
       BC_Goto togo = new BC_Goto(branchTarget);
       int osize = togo.getSize();
@@ -473,4 +473,4 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants {
 
     return new String(buf);
   }
-} 
+}

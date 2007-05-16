@@ -15,7 +15,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
 
 /**
- * Abstract parent class for events from organizers to the controller 
+ * Abstract parent class for events from organizers to the controller
  * used to communicate that a method should be considered as a candidate
  * for recompilation.
  */
@@ -57,7 +57,7 @@ public abstract class VM_HotMethodEvent {
   public final double getNumSamples() { return numSamples; }
 
   /**
-   * @param _cm the compiled method 
+   * @param _cm the compiled method
    * @param _numSamples the number of samples attributed to the method
    */
   VM_HotMethodEvent(VM_CompiledMethod _cm, double _numSamples) {
@@ -70,7 +70,7 @@ public abstract class VM_HotMethodEvent {
   }
 
   /**
-   * @param _cm the compiled method 
+   * @param _cm the compiled method
    * @param _numSamples the number of samples attributed to the method
    */
   VM_HotMethodEvent(VM_CompiledMethod _cm, int _numSamples) {

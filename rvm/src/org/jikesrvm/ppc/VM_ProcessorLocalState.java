@@ -20,7 +20,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * @see VM_Processor
  */
 @Uninterruptible public abstract class VM_ProcessorLocalState {
-  
+
   /**
    * The C bootstrap program has placed a pointer to the initial
    * VM_Processor in the processor register.  This is OK, so do nothing.
@@ -33,7 +33,7 @@ import org.vmmagic.pragma.Uninterruptible;
    * Return the current VM_Processor object
    */
   @Inline
-  public static VM_Processor getCurrentProcessor() { 
+  public static VM_Processor getCurrentProcessor() {
     return VM_Magic.getProcessorRegister();
   }
 
@@ -41,7 +41,7 @@ import org.vmmagic.pragma.Uninterruptible;
    * Set the current VM_Processor object
    */
   @Inline
-  public static void setCurrentProcessor(VM_Processor p) { 
+  public static void setCurrentProcessor(VM_Processor p) {
     VM_Magic.setProcessorRegister(p);
   }
 }

@@ -31,7 +31,7 @@ import org.vmmagic.unboxed.Word;
 import org.vmmagic.unboxed.WordArray;
 
 /**
- * OSR_OptExecStateExtractor is a subclass of OSR_ExecStateExtractor. 
+ * OSR_OptExecStateExtractor is a subclass of OSR_ExecStateExtractor.
  * It extracts the execution state of a optimized activation.
  */
 public abstract class OSR_OptExecStateExtractor
@@ -93,7 +93,7 @@ public abstract class OSR_OptExecStateExtractor
 
     /* Following code get the machine code offset to the
      * next instruction. All operation of the stack frame
-     * are kept in GC critical section. 
+     * are kept in GC critical section.
      * All code in the section should not cause any GC
      * activities, and avoid lazy compilation.
      */
@@ -129,7 +129,7 @@ public abstract class OSR_OptExecStateExtractor
 
     // return a list of states: from caller to callee
     // if the osr happens in an inlined method, the state is
-    // a chain of recoverd methods. 
+    // a chain of recoverd methods.
     OSR_ExecutionState state = getExecStateSequence(thread,
                                                     stack,
                                                     ipOffset,
@@ -166,7 +166,7 @@ public abstract class OSR_OptExecStateExtractor
   }
 
   /* VM_OptSaveVolatile has different stack layout from DynamicBridge
-   * Have to separately recover them now, but there should be unified 
+   * Have to separately recover them now, but there should be unified
    * later on. TODO:
    *
    * Current SaveVolatile stack frame:
@@ -241,7 +241,7 @@ public abstract class OSR_OptExecStateExtractor
       nvArea = nvArea.plus(BYTES_IN_DOUBLE);
     }
 
-    // convert addresses in registers to references 
+    // convert addresses in registers to references
     for (int i = 1; i < NUM_GPRS; i++) {
       if (OSR_EncodedOSRMap.registerIsSet(regmap, i)) {
         registers.objs[i] =
@@ -269,7 +269,7 @@ public abstract class OSR_OptExecStateExtractor
     // In the variable value list, we keep the order as follows:
     // L0, L1, ..., S0, S1, ....
 
-    /* go over osr map element, build list of OSR_VariableElement. 
+    /* go over osr map element, build list of OSR_VariableElement.
     * assuming iterator has ordered element as
     *     L0, L1, ..., S0, S1, ...
     *
@@ -453,7 +453,7 @@ public abstract class OSR_OptExecStateExtractor
         default:
           if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
           break;
-      } // switch 
+      } // switch
     } // for loop
 
     return state;

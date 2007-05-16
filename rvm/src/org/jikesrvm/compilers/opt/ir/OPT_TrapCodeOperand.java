@@ -96,7 +96,7 @@ public final class OPT_TrapCodeOperand extends OPT_Operand {
 
   /**
    * Does the operand represent a null pointer check?
-   * @return <code>true</code> if it does and <code>false</code> 
+   * @return <code>true</code> if it does and <code>false</code>
    *         if it does not
    */
   public boolean isNullPtr() {
@@ -105,7 +105,7 @@ public final class OPT_TrapCodeOperand extends OPT_Operand {
 
   /**
    * Does the operand represent an array bounds check ?
-   * @return <code>true</code> if it does and <code>false</code> 
+   * @return <code>true</code> if it does and <code>false</code>
    *         if it does not
    */
   public boolean isArrayBounds() {
@@ -114,7 +114,7 @@ public final class OPT_TrapCodeOperand extends OPT_Operand {
 
   /**
    * Does the operand represent a divide by zero check?
-   * @return <code>true</code> if it does and <code>false</code> 
+   * @return <code>true</code> if it does and <code>false</code>
    *         if it does not
    */
   public boolean isDivByZero() {
@@ -123,7 +123,7 @@ public final class OPT_TrapCodeOperand extends OPT_Operand {
 
   /**
    * Does the operand represent a stack overflow check?
-   * @return <code>true</code> if it does and <code>false</code> 
+   * @return <code>true</code> if it does and <code>false</code>
    *         if it does not
    */
   public boolean isStackOverflow() {
@@ -132,7 +132,7 @@ public final class OPT_TrapCodeOperand extends OPT_Operand {
 
   /**
    * Does the operand represent a check cast?
-   * @return <code>true</code> if it does and <code>false</code> 
+   * @return <code>true</code> if it does and <code>false</code>
    *         if it does not
    */
   public boolean isCheckCast() {
@@ -141,7 +141,7 @@ public final class OPT_TrapCodeOperand extends OPT_Operand {
 
   /**
    * Does the operand represent a must implement trap?
-   * @return <code>true</code> if it does and <code>false</code> 
+   * @return <code>true</code> if it does and <code>false</code>
    *         if it does not
    */
   public boolean isDoesImplement() {
@@ -150,7 +150,7 @@ public final class OPT_TrapCodeOperand extends OPT_Operand {
 
   /**
    * Does the operand represent an array store check?
-   * @return <code>true</code> if it does and <code>false</code> 
+   * @return <code>true</code> if it does and <code>false</code>
    *         if it does not
    */
   public boolean isStoreCheck() {
@@ -159,7 +159,7 @@ public final class OPT_TrapCodeOperand extends OPT_Operand {
 
   /**
    * Does the operand represent a regeneration trap?
-   * @return <code>true</code> if it does and <code>false</code> 
+   * @return <code>true</code> if it does and <code>false</code>
    *         if it does not
    */
   public boolean isRegenerate() {
@@ -180,7 +180,7 @@ public final class OPT_TrapCodeOperand extends OPT_Operand {
    *
    * @param op other operand
    * @return   <code>true</code> if <code>this</code> and <code>op</code>
-   *           are semantically equivalent or <code>false</code> 
+   *           are semantically equivalent or <code>false</code>
    *           if they are not.
    */
   public boolean similar(OPT_Operand op) {

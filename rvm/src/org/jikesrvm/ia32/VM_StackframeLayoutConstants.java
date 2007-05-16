@@ -12,14 +12,14 @@ import org.jikesrvm.VM_SizeConstants;
 import org.vmmagic.unboxed.Address;
 
 /**----------------------------------------------------------------------
- *                   Stackframe layout conventions - Intel version.  
+ *                   Stackframe layout conventions - Intel version.
  *-----------------------------------------------------------------------
  *
  * A stack is an array of "slots", declared formally as integers, each slot
  * containing either a primitive (byte, int, float, etc), an object pointer,
  * a machine code pointer (a return address pointer), or a pointer to another
- * slot in the same stack (a frame pointer). The interpretation of a slot's 
- * contents depends on the current value of IP, the machine instruction 
+ * slot in the same stack (a frame pointer). The interpretation of a slot's
+ * contents depends on the current value of IP, the machine instruction
  * address register.
  * Each machine code generator provides maps, for use by the garbage collector,
  * that tell how to interpret the stack slots at "safe points" in the
@@ -98,13 +98,13 @@ import org.vmmagic.unboxed.Address;
  *    |         |  Spill Area   |  <-- spills and other method-specific     |
  *    |         |     ...       |      compiler-managed storage             |
  *    |         +---------------+                                           |
- *    |         |   Saved FP    |     only SaveVolatile Frames              |   
+ *    |         |   Saved FP    |     only SaveVolatile Frames              |
  *    |         |    State      |                                           |
  *    |         +---------------+                                           |
  *    |         |  VolGPR[0]    |                                           |
- *    |         |     ...       |     only SaveVolatile Frames              |   
+ *    |         |     ...       |     only SaveVolatile Frames              |
  *    |         |  VolGPR[n]    |                                           |
- *    |         +---------------+                                           | 
+ *    |         +---------------+                                           |
  *   body       |  NVolGPR[k]   |  <-- info.getUnsignedNonVolatileOffset()  | frame
  *    |         |     ...       |   k == info.getFirstNonVolatileGPR()      |
  *    |         |  NVolGPR[n]   |                                           |

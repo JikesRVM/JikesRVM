@@ -15,7 +15,7 @@ public interface VM_TrapConstants {
   //--------------------------------------------------------------------------------------------//
   //                              Trap Conventions.                                             //
   //--------------------------------------------------------------------------------------------//
- 
+
   // Compilers should generate trap instructions that conform to the following
   // values in order for traps to be correctly recognized by the trap handler
   // in libvm.C

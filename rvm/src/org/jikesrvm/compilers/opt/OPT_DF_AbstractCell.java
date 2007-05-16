@@ -20,7 +20,7 @@ abstract class OPT_DF_AbstractCell
     implements OPT_DF_LatticeCell {
 
   /**
-   * Default Constructor 
+   * Default Constructor
    */
   OPT_DF_AbstractCell() {
     uses = new HashSet<OPT_DF_Equation>(1);
@@ -72,7 +72,7 @@ abstract class OPT_DF_AbstractCell
   }
 
   /**
-   * Note that this variable appears on the LHS of an equation. 
+   * Note that this variable appears on the LHS of an equation.
    *
    * @param eq the equation
    */
@@ -119,14 +119,14 @@ abstract class OPT_DF_AbstractCell
   private int index;
 
   /**
-   * Implementation of OPT_GraphNode interface.  
+   * Implementation of OPT_GraphNode interface.
    */
   public void setIndex(int i) {
     index = i;
   }
 
   /**
-   * Implementation of OPT_GraphNode interface.  
+   * Implementation of OPT_GraphNode interface.
    */
   public int getIndex() {
     return index;

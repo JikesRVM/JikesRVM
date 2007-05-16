@@ -373,7 +373,7 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools
   /**
    * Logic to select the appropriate guarding mechanism for the edge
    * from caller to callee according to the controlling {@link OPT_Options}.
-   * If we are using IG_CODE_PATCH, then this method also records 
+   * If we are using IG_CODE_PATCH, then this method also records
    * the required dependency.
    * Precondition: lock on {@link VM_Class#classLoadListener} is held.
    *

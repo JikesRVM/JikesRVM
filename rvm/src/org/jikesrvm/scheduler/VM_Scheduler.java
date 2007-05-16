@@ -138,7 +138,7 @@ public class VM_Scheduler implements VM_Constants {
   public static void init() {
     threadAllocationIndex = PRIMORDIAL_THREAD_INDEX;
 
-    // Enable us to dump a Java Stack from the C trap handler to aid in debugging things that 
+    // Enable us to dump a Java Stack from the C trap handler to aid in debugging things that
     // show up as recursive use of hardware exception registers (eg the long-standing lisp bug)
     VM_BootRecord.the_boot_record.dumpStackAndDieOffset = VM_Entrypoints.dumpStackAndDieMethod.getOffset();
 
@@ -231,7 +231,7 @@ public class VM_Scheduler implements VM_Constants {
       VM_Thread target = processors[i].idleQueue.dequeue();
 
       // Create a virtual cpu and wait for execution to enter the target's
-      // code/stack. 
+      // code/stack.
       // This is done with GC disabled to ensure that the garbage collector
       // doesn't move code or stack before the C startoff function has a
       // chance to transfer control into the VM image.
@@ -245,8 +245,8 @@ public class VM_Scheduler implements VM_Constants {
       target.registerThread(); // let scheduler know that thread is active.
       if (VM.BuildForPowerPC) {
         // NOTE: It is critical that we acquire the tocPointer explicitly
-        //       before we start the SysCall sequence. This prevents 
-        //       the opt compiler from generating code that passes the AIX 
+        //       before we start the SysCall sequence. This prevents
+        //       the opt compiler from generating code that passes the AIX
         //       sys toc instead of the RVM jtoc. --dave
         Address toc = VM_Magic.getTocPointer();
         sysCall.sysVirtualProcessorCreate(toc,
@@ -314,11 +314,11 @@ public class VM_Scheduler implements VM_Constants {
 
   /**
    * Terminate all the pthreads that belong to the VM
-   * This path is used when the VM is taken down by an external pthread via 
-   * the JNI call DestroyJavaVM.  All pthreads in the VM must eventually reach this 
-   * method from VM_Thread.terminate() for the termination to proceed and for control 
+   * This path is used when the VM is taken down by an external pthread via
+   * the JNI call DestroyJavaVM.  All pthreads in the VM must eventually reach this
+   * method from VM_Thread.terminate() for the termination to proceed and for control
    * to return to the pthread that calls DestroyJavaVM
-   * Going by the order in processor[], the pthread for each processor will join with 
+   * Going by the order in processor[], the pthread for each processor will join with
    * the next one, and the external pthread calling DestroyJavaVM will join with the
    * main pthread of the VM (see libjni.C)
    *
@@ -346,7 +346,7 @@ public class VM_Scheduler implements VM_Constants {
       }
     }
 
-    // each join with the expected pthread 
+    // each join with the expected pthread
     if (VPtoWaitFor != null) {
       sysCall.sysPthreadJoin(VPtoWaitFor.pthread_id);
     }
@@ -668,7 +668,7 @@ public class VM_Scheduler implements VM_Constants {
   }
 
   /**
-   * Show a method that we can't show (ie just a text description of the 
+   * Show a method that we can't show (ie just a text description of the
    * stack frame
    *
    * @param name
@@ -716,7 +716,7 @@ public class VM_Scheduler implements VM_Constants {
       dumpStack(fp);
       VM.sysExit(VM.EXIT_STATUS_DUMP_STACK_AND_DIE);
     } else {
-      // Another failure occured while attempting to exit cleanly.  
+      // Another failure occured while attempting to exit cleanly.
       // Get out quick and dirty to avoid hanging.
       sysCall.sysExit(VM.EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN);
     }
@@ -733,7 +733,7 @@ public class VM_Scheduler implements VM_Constants {
       processor.dumpProcessorState();
     }
 
-    // system queues    
+    // system queues
     VM.sysWrite("\n-- System Queues -- \n");
     VM.sysWrite(" wakeupQueue: ");
     wakeupQueue.dump();
@@ -848,7 +848,7 @@ public class VM_Scheduler implements VM_Constants {
   public static int toSyncProcessors;  // Used only if RVM_FOR_POWERPC is true
 
   /**
-   * synchronize object 
+   * synchronize object
    */
   public static Object syncObj = null; // Used only if RVM_FOR_POWERPC is true
 }

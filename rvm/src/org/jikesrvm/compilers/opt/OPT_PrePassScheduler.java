@@ -12,7 +12,7 @@ package org.jikesrvm.compilers.opt;
  * Pre-pass Instruction Scheduling Phase
  *
  * This class is declared as "final" which implies that all its methods
- * are "final" too.      
+ * are "final" too.
  */
 public final class OPT_PrePassScheduler extends OPT_CompilerPhase {
 
@@ -33,7 +33,7 @@ public final class OPT_PrePassScheduler extends OPT_CompilerPhase {
    * Perform instruction scheduling for a method.
    * This is an MIR to MIR transformation.
    *
-   * @param ir the IR in question 
+   * @param ir the IR in question
    */
   public void perform(org.jikesrvm.compilers.opt.ir.OPT_IR ir) {
     new OPT_Scheduler(OPT_Scheduler.PREPASS).perform(ir);

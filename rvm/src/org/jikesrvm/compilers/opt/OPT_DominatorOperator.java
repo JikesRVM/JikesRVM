@@ -12,13 +12,13 @@ import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
 import org.jikesrvm.compilers.opt.ir.OPT_IR;
 
 /**
- * This class implements the MEET operation for the 
+ * This class implements the MEET operation for the
  * dataflow equations for the dominator calculation.
  */
 class OPT_DominatorOperator extends OPT_DF_Operator {
 
   /**
-   * Evaluate an equation with the MEET operation 
+   * Evaluate an equation with the MEET operation
    * @param operands the lhs(operands[0]) and rhs(operands[1])
    *       of the equation.
    * @return true if the value of the lhs changes. false otherwise

@@ -28,7 +28,7 @@ public class OPT_InterfaceHierarchy {
       new VM_HashMap<VM_Class, VM_HashSet<VM_Class>>();
 
   /**
-   * Notify this dictionary that a new class has been initialized. 
+   * Notify this dictionary that a new class has been initialized.
    * This method updates the dictionary to record the interface
    * implementors.
    */

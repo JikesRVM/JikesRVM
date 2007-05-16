@@ -56,8 +56,8 @@ public class OPT_TreeNode {
   }
 
   /**
-   * returns the next node with the same parent as me 
-   * @return the next node with the same parent as me 
+   * returns the next node with the same parent as me
+   * @return the next node with the same parent as me
    */
   public OPT_TreeNode getRightSibling() {
     return rightSibling;

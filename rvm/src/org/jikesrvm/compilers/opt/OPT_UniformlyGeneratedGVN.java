@@ -21,7 +21,7 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_ADD;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_SUB;
 
 /**
- * This class implements index equivalence via global value numbering 
+ * This class implements index equivalence via global value numbering
  * and 'uniformly generated expressions'.  See EURO-PAR 01 paper for
  * more details.
  */
@@ -35,7 +35,7 @@ class OPT_UniformlyGeneratedGVN {
    * <p> PRECONDITIONS: SSA form, register lists computed, SSA bit
    * computed.
    *
-   * <p> POSTCONDITION: ir.HIRInfo.uniformlyGeneratedValueNumbers 
+   * <p> POSTCONDITION: ir.HIRInfo.uniformlyGeneratedValueNumbers
    * holds results of the analysis. Does not modify the IR in any other way.
    *
    * @param ir the governing IR
@@ -49,7 +49,7 @@ class OPT_UniformlyGeneratedGVN {
     // Merge classes related by a constant
     for (Enumeration<OPT_Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
       OPT_Instruction s = e.nextElement();
-      // Check if s is a fixed-point add/subtract instruction with 
+      // Check if s is a fixed-point add/subtract instruction with
       // a constant second operand
       if (s.operator == INT_ADD || s.operator == LONG_ADD ||
           s.operator == REF_ADD || s.operator == REF_SUB ||

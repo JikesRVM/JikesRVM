@@ -14,7 +14,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
 
 /**
  * Compiler phases all extend this abstract class.
- * All compiler phases must provide implementations of 
+ * All compiler phases must provide implementations of
  * two abstract methods:
  * <ul>
  *  <li> getName:  return a String that is the name of the phase
@@ -23,8 +23,8 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
  *
  * <p> By default, a new instance of the phase is created each time
  * shouldPerform is called.  This instance is discarded as soon
- * as shouldPerform completes. Therefore, it is allowable 
- * (and is suggested when necessary) for subclasses 
+ * as shouldPerform completes. Therefore, it is allowable
+ * (and is suggested when necessary) for subclasses
  * to use their instance fields to hold per-compilation state.
  * To be more concrete, the pattern of use is:
  * <pre>
@@ -33,7 +33,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
  * @see OPT_OptimizationPlanAtomicElement#perform
  *
  * <p> NOTE: compiler phases that do not need to use instance
- * fields to hold per-compilation state may override 
+ * fields to hold per-compilation state may override
  * <code> newExecution() </code> to return this.  Doing so may lead to
  * memory leaks and concurrent access problems, so this should be done
  * with great care!
@@ -182,7 +182,7 @@ public abstract class OPT_CompilerPhase {
   }
 
   /**
-   * Runs a phase by calling perform on the supplied IR surrounded by 
+   * Runs a phase by calling perform on the supplied IR surrounded by
    * printing/messaging/debugging glue.
    * @param ir the OPT_IR object on which to do the work of the phase.
    */
@@ -232,8 +232,8 @@ public abstract class OPT_CompilerPhase {
   }
 
   /**
-   * Verify the IR.  
-   * Written as a non-final virtual method to allow late stages in the 
+   * Verify the IR.
+   * Written as a non-final virtual method to allow late stages in the
    * compilation pipeline (eg ConvertMIR2MC) to skip verification.
    *
    * @param ir the IR to verify

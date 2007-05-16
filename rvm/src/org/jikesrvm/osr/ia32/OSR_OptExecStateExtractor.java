@@ -34,7 +34,7 @@ import org.vmmagic.unboxed.Word;
 import org.vmmagic.unboxed.WordArray;
 
 /**
- * OSR_OptExecStateExtractor is a subclass of OSR_ExecStateExtractor. 
+ * OSR_OptExecStateExtractor is a subclass of OSR_ExecStateExtractor.
  * It extracts the execution state from an optimized activation.
  */
 public abstract class OSR_OptExecStateExtractor
@@ -87,7 +87,7 @@ public abstract class OSR_OptExecStateExtractor
 
     /* Following code get the machine code offset to the
      * next instruction. All operation of the stack frame
-     * are kept in GC critical section. 
+     * are kept in GC critical section.
      * All code in the section should not cause any GC
      * activities, and avoid lazy compilation.
      */
@@ -126,7 +126,7 @@ public abstract class OSR_OptExecStateExtractor
 
     // return a list of states: from caller to callee
     // if the osr happens in an inlined method, the state is
-    // a chain of recoverd methods. 
+    // a chain of recoverd methods.
     OSR_ExecutionState state = getExecStateSequence(thread,
                                                     stack,
                                                     ipOffset,
@@ -217,7 +217,7 @@ public abstract class OSR_OptExecStateExtractor
       volatileOffset -= BYTES_IN_STACKSLOT;
     }
 
-    // currently, all FPRS are volatile on intel, 
+    // currently, all FPRS are volatile on intel,
     // DO nothing.
 
     // convert addresses in registers to references, starting from register 0
@@ -254,7 +254,7 @@ public abstract class OSR_OptExecStateExtractor
     // In the variable value list, we keep the order as follows:
     // L0, L1, ..., S0, S1, ....
 
-    /* go over osr map element, build list of OSR_VariableElement. 
+    /* go over osr map element, build list of OSR_VariableElement.
     * assuming iterator has ordered element as
     *     L0, L1, ..., S0, S1, ...
     *
@@ -445,7 +445,7 @@ public abstract class OSR_OptExecStateExtractor
         default:
           if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
           break;
-      } // switch 
+      } // switch
     } // for loop
 
     return state;

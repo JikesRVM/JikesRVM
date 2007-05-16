@@ -36,11 +36,11 @@ import org.jikesrvm.runtime.VM_Entrypoints;
 /**
  * This class contains IA32 calling conventions
  * The two public methods are:
- *  (1) expandCallingConventions(OPT_IR) which is called by the 
- *  register allocator immediately before allocation to make manifest the 
+ *  (1) expandCallingConventions(OPT_IR) which is called by the
+ *  register allocator immediately before allocation to make manifest the
  *  use of registers by the calling convention.
- *  (2) expandSysCall(OPT_Instruction, OPT_IR) which is called to expand 
- *  a SYSCALL HIR instruction into the appropriate sequence of 
+ *  (2) expandSysCall(OPT_Instruction, OPT_IR) which is called to expand
+ *  a SYSCALL HIR instruction into the appropriate sequence of
  *  LIR instructions.
  *
  * TODO: Much of this code could still be factored out as
@@ -163,7 +163,7 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
     ret.insertBefore(MIR_UnaryNoRes.create(IA32_FCLEAR, IC(nSave)));
 
     // Set the first 'Val' in the return instruction to hold an integer
-    // constant which is the number of words to pop from the stack while 
+    // constant which is the number of words to pop from the stack while
     // returning from this method.
     MIR_Return.setPopBytes(ret, IC(ir.incomingParameterBytes()));
   }
@@ -255,7 +255,7 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
           call.insertBefore(MIR_Move.create(IA32_FMOV, M, param));
         } else {
           // Pass the parameter in a register.
-          // Note that if k FPRs are passed in registers, 
+          // Note that if k FPRs are passed in registers,
           // the 1st goes in F(k-1),
           // the 2nd goes in F(k-2), etc...
           OPT_Register phy =
@@ -287,7 +287,7 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
   }
 
   /**
-   * Save and restore all nonvolatile registers around a syscall.  
+   * Save and restore all nonvolatile registers around a syscall.
    * We do this in case the sys call does not respect our
    * register conventions.
    *
@@ -307,7 +307,7 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
   }
 
   /**
-   * Save all nonvolatile registers before a syscall.  
+   * Save all nonvolatile registers before a syscall.
    * We do this in case the sys call does not respect our
    * register conventions.
    *
@@ -343,7 +343,7 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
   }
 
   /**
-   * Restore all nonvolatile registers after a syscall.  
+   * Restore all nonvolatile registers after a syscall.
    * We do this in case the sys call does not respect our
    * register conventions.
    *
@@ -432,14 +432,14 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
   public static void allocateSpaceForSysCall(OPT_IR ir) {
     OPT_StackManager sm = (OPT_StackManager) ir.stackManager;
 
-    // add one to account for the processor register.  
+    // add one to account for the processor register.
     int nToSave = OPT_PhysicalRegisterSet.getNumberOfNonvolatileGPRs() + 1;
 
     sm.allocateSpaceForSysCall(nToSave);
   }
 
   /**
-   * Calling convention to implement calls to native (C) routines 
+   * Calling convention to implement calls to native (C) routines
    * using the Linux linkage conventions.
    */
   public static void expandSysCall(OPT_Instruction s, OPT_IR ir) {
@@ -469,7 +469,7 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
    */
   private static int countFPRParams(OPT_Instruction call) {
     int result = 0;
-    // walk over the parameters 
+    // walk over the parameters
     int numParams = MIR_Call.getNumberOfParams(call);
     for (int i = 0; i < numParams; i++) {
       OPT_Operand param = MIR_Call.getParam(call, i);
@@ -488,7 +488,7 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
    */
   private static int countFPRParamsInPrologue(OPT_Instruction p) {
     int result = 0;
-    // walk over the parameters 
+    // walk over the parameters
     for (OPT_OperandEnumeration e = p.getDefs(); e.hasMoreElements();) {
       OPT_Operand param = e.nextElement();
       if (param.isRegister()) {
@@ -537,7 +537,7 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
         if (!useDU || symbOp.register.useList != null) {
           if (fprIndex < OPT_PhysicalRegisterSet.getNumberOfFPRParams()) {
             // insert a MOVE symbolic register = parameter
-            // Note that if k FPRs are passed in registers, 
+            // Note that if k FPRs are passed in registers,
             // the 1st goes in F(k-1),
             // the 2nd goes in F(k-2), etc...
             OPT_Register param =
@@ -559,7 +559,7 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
           if (gprIndex < OPT_PhysicalRegisterSet.getNumberOfGPRParams()) {
             // to give the register allocator more freedom, we
             // insert two move instructions to get the physical into
-            // the symbolic.  First a move from the physical to a fresh temp 
+            // the symbolic.  First a move from the physical to a fresh temp
             // before start and second a move from the temp to the
             // 'real' parameter symbolic after start.
             OPT_RegisterOperand tmp = ir.regpool.makeTemp(rType);

@@ -51,20 +51,20 @@ import org.vmmagic.pragma.NoInline;
 
 /**
  * An <code>OPT_IR</code> object (IR is short for Intermediate Representation)
- * contains all the per-compilation information associated with 
- * a method that is being compiled. 
+ * contains all the per-compilation information associated with
+ * a method that is being compiled.
  * <p>
- * <code>OPT_IR</code> objects are intended to be transitory. 
- * They are created to compile a particular method under a 
+ * <code>OPT_IR</code> objects are intended to be transitory.
+ * They are created to compile a particular method under a
  * given {@link OPT_CompilationPlan compilation plan}
  * and are discarded once the compilation plan has been completed.
  * <p>
- * The primary component of the IR is the 
+ * The primary component of the IR is the
  * {@link OPT_ControlFlowGraph <em>FCFG</em>} (factored control flow graph)
- * The FCFG contains 
+ * The FCFG contains
  * {@link OPT_Instruction intermediate language instructions}
  * grouped into {@link OPT_BasicBlock factored basic blocks}.
- * In addition to the FCFG, an <code>OPT_IR</code> object also 
+ * In addition to the FCFG, an <code>OPT_IR</code> object also
  * contains a variety of other supporting and derived data structures.
  * <p>
  *
@@ -80,21 +80,21 @@ public final class OPT_IR {
    * Control for (dynamic) IR invariant checking.
    * By default, SANITY_CHECK == {@link VM#VerifyAssertions}.
    * When SANITY_CHECK is <code>true</code>, critical invariants
-   * are checked by complex routines that depend on them, 
-   * and {@link #verify(String) verify} is invoked several times 
+   * are checked by complex routines that depend on them,
+   * and {@link #verify(String) verify} is invoked several times
    * during compilation.
    */
   public static final boolean SANITY_CHECK = VM.VerifyAssertions;
 
   /**
    * Control for (dynamic) IR invariant checking.
-   * By default PARANOID is <code>false</code>. 
+   * By default PARANOID is <code>false</code>.
    * PARANOID must not be true unless {@link VM#VerifyAssertions}
    * is also <code>true</code>.
    * When PARANOID is <code>true</code> many IR utility functions
-   * check the invariants on which they depend, and 
+   * check the invariants on which they depend, and
    * {@link #verify(String,boolean)} is invoked as each
-   * compilation phase is 
+   * compilation phase is
    * {@link OPT_CompilerPhase#performPhase(OPT_IR) performed}.
    */
   public static final boolean PARANOID = false && SANITY_CHECK;
@@ -109,17 +109,17 @@ public final class OPT_IR {
   public static final byte MIR = 3;
 
   /**
-   * The {@link VM_NormalMethod} object corresponding to the 
+   * The {@link VM_NormalMethod} object corresponding to the
    * method being compiled. Other methods may have been inlined into
-   * the IR during compilation, so method really only represents the 
+   * the IR during compilation, so method really only represents the
    * primary or outermost method being compiled.
    */
   public final VM_NormalMethod method;
 
   /**
-   * @return The {@link VM_NormalMethod} object corresponding to the 
+   * @return The {@link VM_NormalMethod} object corresponding to the
    * method being compiled. Other methods may have been inlined into
-   * the IR during compilation, so method really only represents the 
+   * the IR during compilation, so method really only represents the
    * primary or outermost method being compiled.
    */
   public VM_NormalMethod getMethod() {
@@ -172,12 +172,12 @@ public final class OPT_IR {
   public OPT_GenerationContext gc;
 
   /**
-   * The {@link OPT_InlineOracle inlining oracle} to be used for the 
-   * current compilation. 
-   * TODO: It would make more sense to have the inlining oracle be 
+   * The {@link OPT_InlineOracle inlining oracle} to be used for the
+   * current compilation.
+   * TODO: It would make more sense to have the inlining oracle be
    * a component of the generation context, but as things currently
-   * stand the IR is created before the generation context.  We might be 
-   * able to restructure things such that the generation context is 
+   * stand the IR is created before the generation context.  We might be
+   * able to restructure things such that the generation context is
    * created in the OPT_IR constructor and then eliminate this field,
    * replacing all uses with gc.inlinePlan instead.
    */
@@ -185,7 +185,7 @@ public final class OPT_IR {
 
   /**
    * Information specifying what instrumentation should be performed
-   * during compilation of this method.  
+   * during compilation of this method.
    */
   public final OPT_InstrumentationPlan instrumentationPlan;
 
@@ -218,7 +218,7 @@ public final class OPT_IR {
   private boolean handlerLivenessComputed = false;
 
   /**
-   * Pointer to the HIRInfo for this method.  
+   * Pointer to the HIRInfo for this method.
    * Valid only if {@link #IRStage}>=HIR
    */
   public OPT_HIRInfo HIRInfo;
@@ -230,7 +230,7 @@ public final class OPT_IR {
   public OPT_LIRInfo LIRInfo;
 
   /**
-   * Pointer to the MIRInfo for this method.  
+   * Pointer to the MIRInfo for this method.
    * Valid only if {@link #IRStage}>=MIR.
    */
   public OPT_MIRInfo MIRInfo;
@@ -295,7 +295,7 @@ public final class OPT_IR {
   }
 
   /**
-   * Return the first instruction with respect to 
+   * Return the first instruction with respect to
    * the current code linearization order.
    *
    * @return the first instruction in the code order
@@ -305,7 +305,7 @@ public final class OPT_IR {
   }
 
   /**
-   * Return the last instruction with respect to 
+   * Return the last instruction with respect to
    * the current code linearization order.
    *
    * @return the last instruction in the code order
@@ -315,7 +315,7 @@ public final class OPT_IR {
   }
 
   /**
-   * Return the first basic block with respect to 
+   * Return the first basic block with respect to
    * the current code linearization order.
    *
    * @return the first basic block in the code order
@@ -325,7 +325,7 @@ public final class OPT_IR {
   }
 
   /**
-   * Return the last basic block with respect to 
+   * Return the last basic block with respect to
    * the current code linearization order.
    *
    * @return the last basic block in the code order
@@ -335,7 +335,7 @@ public final class OPT_IR {
   }
 
   /**
-   * Forward (with respect to the current code linearization order) 
+   * Forward (with respect to the current code linearization order)
    * iteration over all the instructions in this IR.
    * The IR must <em>not</em> be modified during the iteration.
    *
@@ -347,7 +347,7 @@ public final class OPT_IR {
   }
 
   /**
-   * Reverse (with respect to the current code linearization order) 
+   * Reverse (with respect to the current code linearization order)
    * iteration over all the instructions in this IR.
    * The IR must <em>not</em> be modified during the iteration.
    *
@@ -433,7 +433,7 @@ public final class OPT_IR {
   /**
    * Recompute the basic block map, so can use getBasicBlock(int)
    * to index into the basic blocks quickly.
-   * TODO: think about possibly keeping the basic block map up-to-date 
+   * TODO: think about possibly keeping the basic block map up-to-date
    *       automatically (Use a hashtable, perhaps?).
    */
   public void resetBasicBlockMap() {
@@ -445,10 +445,10 @@ public final class OPT_IR {
   }
 
   /**
-   * Get the basic block with a given number. 
-   * PRECONDITION: {@link #resetBasicBlockMap} has been called 
-   * before calling this function, but after making any changes to 
-   * the set of basic blocks in the IR. 
+   * Get the basic block with a given number.
+   * PRECONDITION: {@link #resetBasicBlockMap} has been called
+   * before calling this function, but after making any changes to
+   * the set of basic blocks in the IR.
    *
    * @param number the number of the basic block to retrieve
    * @return that requested block
@@ -459,11 +459,11 @@ public final class OPT_IR {
   }
 
   /**
-   * Get an enumeration of all the basic blocks whose numbers 
+   * Get an enumeration of all the basic blocks whose numbers
    * appear in the given BitSet.
-   * PRECONDITION: {@link #resetBasicBlockMap} has been called 
-   * before calling this function, but after making any changes to 
-   * the set of basic blocks in the IR. 
+   * PRECONDITION: {@link #resetBasicBlockMap} has been called
+   * before calling this function, but after making any changes to
+   * the set of basic blocks in the IR.
    *
    * @param bits The BitSet that defines which basic blocks to
    *             enumerate.
@@ -498,13 +498,13 @@ public final class OPT_IR {
   }
 
   /**
-   * Densely number all the instructions currently in this IR 
+   * Densely number all the instructions currently in this IR
    * from 0...numInstr-1.
    * Returns the number of instructions in the IR.
    * Intended style of use:
    * <pre>
    *    passInfo = new passInfoObjects[ir.numberInstructions()];
-   *    ...do analysis using passInfo as a look aside 
+   *    ...do analysis using passInfo as a look aside
    *            array holding pass specific info...
    * </pre>
    *
@@ -521,7 +521,7 @@ public final class OPT_IR {
   }
 
   /**
-   * Set the scratch word on all instructions currently in this 
+   * Set the scratch word on all instructions currently in this
    * IR to a given value.
    *
    * @param value value to store in all instruction scratch words
@@ -535,7 +535,7 @@ public final class OPT_IR {
   }
 
   /**
-   * Clear (set to zero) the scratch word on all 
+   * Clear (set to zero) the scratch word on all
    * instructions currently in this IR.
    */
   public void clearInstructionScratchWord() {
@@ -543,7 +543,7 @@ public final class OPT_IR {
   }
 
   /**
-   * Clear (set to null) the scratch object on 
+   * Clear (set to null) the scratch object on
    * all instructions currently in this IR.
    */
   public void clearInstructionScratchObject() {
@@ -555,7 +555,7 @@ public final class OPT_IR {
   }
 
   /**
-   * Clear (set to null) the scratch object on 
+   * Clear (set to null) the scratch object on
    * all basic blocks currently in this IR.
    */
   public void clearBasicBlockScratchObject() {
@@ -574,7 +574,7 @@ public final class OPT_IR {
 
   /**
    * @return the largest basic block number assigned to
-   *         a block in the IR. Will return -1 if no 
+   *         a block in the IR. Will return -1 if no
    *         block numbers have been assigned.
    */
   public int getMaxBasicBlockNumber() {
@@ -601,7 +601,7 @@ public final class OPT_IR {
    * @return <code>true</code> if it is possible that the IR contains
    *         an exception handler, <code>false</code> if it is not.
    *         Note this method may conservatively return <code>true</code>
-   *         even if the IR does not actually contain a reachable 
+   *         even if the IR does not actually contain a reachable
    *         exception handler.
    */
   public boolean hasReachableExceptionHandlers() {
@@ -612,7 +612,7 @@ public final class OPT_IR {
    * Partially convert the FCFG into a more traditional
    * CFG by splitting all nodes that contain PEIs and that
    * have reachable exception handlers into multiple basic
-   * blocks such that the instructions in the block have 
+   * blocks such that the instructions in the block have
    * the expected post-dominance relationship. Note, we do
    * not bother to unfactor basic blocks that do not have reachable
    * exception handlers because the fact that the post-dominance
@@ -645,7 +645,7 @@ public final class OPT_IR {
 
   /**
    * Verify that the IR is well-formed.
-   * NB: this is expensive -- be sure to guard invocations with 
+   * NB: this is expensive -- be sure to guard invocations with
    * debugging flags.
    *
    * @param where phrase identifying invoking  compilation phase
@@ -656,8 +656,8 @@ public final class OPT_IR {
 
   /**
    * Verify that the IR is well-formed.
-   * NB: this is expensive -- be sure to guard invocations with 
-   * debugging flags. 
+   * NB: this is expensive -- be sure to guard invocations with
+   * debugging flags.
    *
    * @param where    phrase identifying invoking  compilation phase
    * @param checkCFG should the CFG invariants be checked
@@ -724,7 +724,7 @@ public final class OPT_IR {
                "Bblock " + cur + " has null end instruction");
       }
 
-      // cur has start and end instructions, 
+      // cur has start and end instructions,
       // make sure that they are locally ok.
       if (!s.isBbFirst()) {
         verror(where,
@@ -880,7 +880,7 @@ public final class OPT_IR {
       cur.scratch = inBBListMarker;
     }
 
-    // Check to make sure that all blocks connected 
+    // Check to make sure that all blocks connected
     // (via a CFG edge) to a block
     // that is in the bblist are also in the bblist
     for (OPT_BasicBlock cur = cfg.firstInCodeOrder();

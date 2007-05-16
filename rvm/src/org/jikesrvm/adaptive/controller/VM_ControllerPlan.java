@@ -45,7 +45,7 @@ public final class VM_ControllerPlan {
   // The compilation is still in progress
   public static final byte IN_PROGRESS = 3;
 
-  // The compilation completed, but a new plan for the same method also 
+  // The compilation completed, but a new plan for the same method also
   // completed, so this is not the most recent completed plan
   public static final byte OUTDATED = 4;
 
@@ -56,7 +56,7 @@ public final class VM_ControllerPlan {
   public static final byte UNKNOWN = 99;
 
   /**
-   *  The associate compilation plan 
+   *  The associate compilation plan
    */
   private OPT_CompilationPlan compPlan;
 
@@ -158,7 +158,7 @@ public final class VM_ControllerPlan {
 
   /**
    * This method will recompile the method designated by the controller plan
-   * {@link #getCompPlan}.  It also 
+   * {@link #getCompPlan}.  It also
    *  1) credits the samples associated with the old compiled method
    *     ID to the new method ID and clears the old value.
    *  2) clears inlining information
@@ -180,7 +180,7 @@ public final class VM_ControllerPlan {
 
     if (VM_Controller.options.sampling()) {
       // transfer the samples from the old CMID to the new CMID.
-      // scale the number of samples down by the expected speedup 
+      // scale the number of samples down by the expected speedup
       // in the newly compiled method.
       double expectedSpeedup = getExpectedSpeedup();
       double oldNumSamples = VM_Controller.methodSamples.getData(prevCMID);
@@ -239,7 +239,7 @@ public final class VM_ControllerPlan {
   public int getTimeCreated() { return timeCreated; }
 
   /**
-   * The time (according to the controller clock) compilation of this plan 
+   * The time (according to the controller clock) compilation of this plan
    * began.
    */
   public int getTimeInitiated() { return timeInitiated; }
@@ -247,7 +247,7 @@ public final class VM_ControllerPlan {
   public void setTimeInitiated(int t) { timeInitiated = t; }
 
   /**
-   * The time (according to the controller clock) compilation of this plan 
+   * The time (according to the controller clock) compilation of this plan
    * completed.
    */
   public int getTimeCompleted() { return timeCompleted; }
@@ -255,7 +255,7 @@ public final class VM_ControllerPlan {
   public void setTimeCompleted(int t) { timeCompleted = t; }
 
   /**
-   * CMID (compiled method id) associated with the code produced 
+   * CMID (compiled method id) associated with the code produced
    * by executing this plan
    */
   public int getCMID() { return CMID; }
@@ -263,7 +263,7 @@ public final class VM_ControllerPlan {
   public void setCMID(int x) { CMID = x; }
 
   /**
-   * CMID (compiled method id) associated with the *PREVIOUS* compiled 
+   * CMID (compiled method id) associated with the *PREVIOUS* compiled
    * version of this method
    */
   public int getPrevCMID() { return prevCMID; }

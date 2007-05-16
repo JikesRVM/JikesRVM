@@ -9,9 +9,9 @@
  *
  * This class has been created to work around a bug whereby the system seems to have gotten
  * confused by the relationship between:
- * 
+ *
  * VM_ForwardReference -> VM_ForwardReference.ShortBranch -> VM_Assembler.ShortBranch, and VM_Assembler
- * 
+ *
  * This problem does not exist under IA32 since there is no need for VM_Assembler.ShortBranch
  */
 package org.jikesrvm.compilers.common.assembler;

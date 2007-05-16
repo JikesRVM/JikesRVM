@@ -15,7 +15,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_Register;
 /**
  * This class represents a graph, where
  *    - the nodes are registers
- *    - the edge weights represent affinities between registers. 
+ *    - the edge weights represent affinities between registers.
  *
  * This graph is used to drive coalescing during register allocation.
  *

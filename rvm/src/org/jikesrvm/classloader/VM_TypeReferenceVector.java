@@ -30,7 +30,7 @@ final class VM_TypeReferenceVector {
   }
 
   // Add item if it is not already in the Vector.
-  // 
+  //
   public void addUniqueElement(VM_TypeReference item) {
     for (int i = 0; i < cnt; i++) {
       if (array[i] == item) return;

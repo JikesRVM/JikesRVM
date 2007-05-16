@@ -9,11 +9,11 @@
 package org.jikesrvm.ppc;
 
 /**
- * Structure for the D and XL forms, PowerPC instruction set 
+ * Structure for the D and XL forms, PowerPC instruction set
  *
  * @see VM_Disassembler
  */
-final class VM_OpcodeTab {  
+final class VM_OpcodeTab {
 
   int format;
   String mnemonic;

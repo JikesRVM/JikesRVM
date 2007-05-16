@@ -186,7 +186,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
   public static final class LinearScanState {
     /**
-     * The live interval information, a set of Basic Intervals 
+     * The live interval information, a set of Basic Intervals
      * sorted by increasing start point
      */
     public final ArrayList<BasicInterval> intervals =
@@ -383,7 +383,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
     /**
      * Does this interval start after dfn?
-     * @param dfn the depth first numbering to compare to 
+     * @param dfn the depth first numbering to compare to
      */
     final boolean startsAfter(int dfn) {
       return begin > dfn;
@@ -391,7 +391,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
     /**
      * Does this interval start before dfn?
-     * @param dfn the depth first numbering to compare to 
+     * @param dfn the depth first numbering to compare to
      */
     final boolean startsBefore(int dfn) {
       return begin < dfn;
@@ -399,7 +399,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
     /**
      * Does this interval contain a dfn?
-     * @param dfn the depth first numbering to compare to 
+     * @param dfn the depth first numbering to compare to
      */
     final boolean contains(int dfn) {
       return begin <= dfn && end >= dfn;
@@ -441,7 +441,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
     /**
      * Does this interval end before dfn
-     * @param dfn the depth first numbering to compare to 
+     * @param dfn the depth first numbering to compare to
      */
     final boolean endsBefore(int dfn) {
       return end < dfn;
@@ -449,7 +449,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
     /**
      * Does this interval end after dfn
-     * @param dfn the depth first numbering to compare to 
+     * @param dfn the depth first numbering to compare to
      */
     final boolean endsAfter(int dfn) {
       return end > dfn;
@@ -648,7 +648,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
           return last.getEnd() == dfnBegin;
         }
       } else {
-        // live.getBegin == null.  
+        // live.getBegin == null.
         // Merge if it is contiguous with the last interval.
         int dBegin = getDFN(bb.firstInstruction());
         return last.getEnd() + 1 >= dBegin;
@@ -737,7 +737,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     }
 
     /**
-     * Remove some basic intervals from this compound interval, and return 
+     * Remove some basic intervals from this compound interval, and return
      * the intervals actually removed.
      *
      * PRECONDITION: all basic intervals in i must appear in this compound
@@ -789,7 +789,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     /**
      * SJF: Apparently our java.util implementation of removeAll()
      * doesn't work.  Perhaps I've somehow screwed up the comparator with
-     * the "consistent with equals" property?  
+     * the "consistent with equals" property?
      * It breaks javalex on BaseOptMarkSweep on IA32
      * Hopefully this problem will go away if/when we switch to classpath.
      * Else, perhaps I'll ditch use of java.util Collections and write my
@@ -826,7 +826,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       if (isEmpty()) return false;
       if (i.isEmpty()) return false;
 
-      // Walk over the basic intervals of this interval and i.  
+      // Walk over the basic intervals of this interval and i.
       // Restrict the walking to intervals that might intersect.
       int lower = Math.max(getLowerBound(), i.getLowerBound());
       int upper = Math.min(getUpperBound(), i.getUpperBound());
@@ -967,11 +967,11 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     }
 
     /**
-     *  For each new basic interval, we scan the list of active basic 
-     *  intervals in order of increasing end point.  We remove any "expired" 
+     *  For each new basic interval, we scan the list of active basic
+     *  intervals in order of increasing end point.  We remove any "expired"
      *  intervals - those
-     *  intervals that no longer overlap the new interval because their 
-     *  end point precedes the new interval's start point - and makes the 
+     *  intervals that no longer overlap the new interval because their
+     *  end point precedes the new interval's start point - and makes the
      *  corresponding register available for allocation
      *
      *  @param newInterval the new interval
@@ -988,7 +988,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
         if (verboseDebug) System.out.println("Expire " + bi);
 
-        // note that the bi interval no longer is live 
+        // note that the bi interval no longer is live
         freeInterval(bi);
 
         // remove bi from the active set
@@ -1064,13 +1064,13 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
             phys.allocateRegister();
           } else {
             // The previous assignment is not OK, since the physical
-            // register is now in use elsewhere.  
+            // register is now in use elsewhere.
             if (debug) {
               System.out.println(
                   "Previously assigned, " + phys + " " + container);
             }
             // first look and see if there's another free register for
-            // container. 
+            // container.
             if (verboseDebug) System.out.println("Looking for free register");
             OPT_Register freeR = findAvailableRegister(container);
             if (verboseDebug) System.out.println("Free register? " + freeR);
@@ -1224,7 +1224,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     /**
      * Update the interval representing the allocations of a physical
      * register p to include a new compound interval c.  Include only
-     * those basic intervals in c up to and including basic interval stop. 
+     * those basic intervals in c up to and including basic interval stop.
      */
     private void updatePhysicalInterval(OPT_Register p,
                                         CompoundInterval c,
@@ -1451,7 +1451,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
           }
         }
       }
-      // OK, now find the highest preference. 
+      // OK, now find the highest preference.
       OPT_Register result = null;
       int weight = -1;
       for (Map.Entry<OPT_Register, Integer> entry : map.entrySet()) {
@@ -1466,7 +1466,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
     /**
      * Given the current state of the register allocator, compute the
-     * available physical register to which an interval has the highest 
+     * available physical register to which an interval has the highest
      * preference.
      *
      * @return the preferred register.  null if no preference found.
@@ -1538,7 +1538,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
           }
         }
       }
-      // OK, now find the highest preference. 
+      // OK, now find the highest preference.
       OPT_Register result = null;
       int weight = -1;
       for (Map.Entry<OPT_Register, Integer> entry : map.entrySet()) {
@@ -1581,7 +1581,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     }
 
     /**
-     * Check whether it's ok to allocate symbolic register to a physical 
+     * Check whether it's ok to allocate symbolic register to a physical
      * register p.  If so, return true; If not, return false.
      *
      * NOTE: This routine assumes we're processing the first interval of
@@ -1661,7 +1661,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
             (r.getType() == newR.getType() || (r.isNatural() && newR.isNatural())) &&
             !restrict.mustNotSpill(newR)) {
           // Found a potential spill interval. Check if the assignment
-          // works if we spill this interval.  
+          // works if we spill this interval.
           if (checkAssignmentIfSpilled(newInterval, i)) {
             double iCost = spillCost.getCost(newR);
             if (verboseDebug) {
@@ -1689,7 +1689,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
     /**
      * Check whether, if we spilled interval spill, we could then assign
-     * interval i to physical register spill.getRegister().  
+     * interval i to physical register spill.getRegister().
      *
      * @return true if the allocation would fit.  false otherwise
      */
@@ -1801,7 +1801,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       // give dfn values to each instruction
       assignDepthFirstNumbers(cfg);
 
-      // initialize registers 
+      // initialize registers
       initializeRegisters();
 
       int lastBeginSeen = -1;
@@ -1850,7 +1850,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      *  @param cfg the control flow graph
      */
     private void createTopAndReverseList(OPT_ControlFlowGraph cfg) {
-      // dfs: create a list of nodes (basic blocks) in a topological order 
+      // dfs: create a list of nodes (basic blocks) in a topological order
       cfg.clearDFS();
       listOfBlocks = cfg.entry();
       listOfBlocks.sortDFS();
@@ -1862,7 +1862,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
            bb = (OPT_BasicBlock) bb.nextSorted) {
 
         // put back pointers in the "prev" field
-        // set reverseTopFirst to be the more recent node we've seen, 
+        // set reverseTopFirst to be the more recent node we've seen,
         // it will be the front of the list when we are done
         bb.sortedPrev = reverseTopFirst;
         reverseTopFirst = bb;
@@ -1951,10 +1951,10 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
                                                             dfnend, reg);
         if (verboseDebug) System.out.println("created a new interval " + newInterval);
 
-        // associate the interval with the register 
+        // associate the interval with the register
         setInterval(reg, newInterval);
 
-        // add the new interval to the sorted set of intervals.  
+        // add the new interval to the sorted set of intervals.
         BasicInterval b = newInterval.first();
         ir.MIRInfo.linearScanState.intervals.add(b);
 
@@ -1995,7 +1995,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
     /**
      * Return a spill location that is valid to hold the contents of
-     * compound interval ci. 
+     * compound interval ci.
      */
     SpillLocationInterval findOrCreateSpillLocation(CompoundInterval ci) {
       SpillLocationInterval result = null;
@@ -2067,7 +2067,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      */
     SpillLocationInterval getSpillPreference(CompoundInterval ci,
                                              int spillSize) {
-      // a mapping from SpillLocationInterval to Integer 
+      // a mapping from SpillLocationInterval to Integer
       // (spill location to weight);
       HashMap<SpillLocationInterval, Integer> map =
           new HashMap<SpillLocationInterval, Integer>();
@@ -2129,7 +2129,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
         }
       }
 
-      // OK, now find the highest preference. 
+      // OK, now find the highest preference.
       SpillLocationInterval result = null;
       int weight = -1;
       for (Map.Entry<SpillLocationInterval, Integer> entry : map.entrySet()) {
@@ -2434,7 +2434,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
           }
           if (elem.isSpill()) {
             // check if the spilled value currently is cached in a scratch
-            // register     
+            // register
             OPT_Register r = elem.getSymbolicReg();
             OPT_Register scratch = scratchMap.getScratch(r, dfn);
             if (scratch != null) {
@@ -2692,7 +2692,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       int REG_MASK = 0x01F;
 
       // now it is not symbolic register anymore.
-      // is is really confusing that sometimes a sym reg is a phy, 
+      // is is really confusing that sometimes a sym reg is a phy,
       // and sometimes not.
       if (sym_reg.isAllocated()) {
         setTupleValue(tuple,

@@ -112,7 +112,7 @@ public class DebugUtil implements VM_Constants, Constants {
       if (Plan.isForwardedOrBeingForwarded(ref)) {
         // TODO: actually follow forwarding pointer
         // (need to bound recursion when things are broken!!)
-        return true; 
+        return true;
       }
       */
     }
@@ -196,4 +196,4 @@ public class DebugUtil implements VM_Constants, Constants {
     return (addr.GE(BOOT_IMAGE_DATA_START) && addr.LT(BOOT_IMAGE_DATA_END)) ||
            (addr.GE(BOOT_IMAGE_CODE_START) && addr.LT(BOOT_IMAGE_CODE_END));
   }
-} 
+}

@@ -13,11 +13,11 @@ import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
- * A queue to handle a set of  virtual processors  
+ * A queue to handle a set of  virtual processors
  *  For Example A Native Virtual Processor VM_Thread has terminated and
  *  can be reused.
- *    When a normal thread (VM_Thread) first does a call to native 
- *      a special virtual processor and pthread are created just for that 
+ *    When a normal thread (VM_Thread) first does a call to native
+ *      a special virtual processor and pthread are created just for that
  *      VM_Thread they run together as a pair until the VMThread terminates
  *      then the VP and pthread are enqueued onto a DeadVP queue
  *      until some subsequent VM_Thread first performs a calltonative

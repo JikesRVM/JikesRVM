@@ -22,7 +22,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_Register;
 class OPT_CoalesceMoves extends OPT_CompilerPhase {
 
   /**
-   *  verbose debugging flag 
+   *  verbose debugging flag
    */
   static final boolean DEBUG = false;
 

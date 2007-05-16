@@ -78,7 +78,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
    * Expand an instanceof instruction into the LIR sequence that implements
    * the dynamic type check.  Ref may contain a null ptr at runtime.
    *
-   * @param s an INSTANCEOF or INSTANCEOF_UNRESOLVED instruction to expand 
+   * @param s an INSTANCEOF or INSTANCEOF_UNRESOLVED instruction to expand
    * @param ir the enclosing OPT_IR
    * @return the last OPT_Instruction in the generated LIR sequence.
    */
@@ -91,12 +91,12 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
         IfCmp.getVal1(next) instanceof OPT_RegisterOperand &&
         result.similar(IfCmp.getVal1(next))) {
       // The result of instanceof is being consumed by a conditional branch.
-      // Optimize this case by generating a branching type check 
+      // Optimize this case by generating a branching type check
       // instead of producing a value.
-      // TODO: This is really not safe: suppose the if is NOT the 
-      // only use of the result of the instanceof.  
+      // TODO: This is really not safe: suppose the if is NOT the
+      // only use of the result of the instanceof.
       // The way to fix this is to add ifInstanceOf and ifNotInstanceOf
-      // operators to the IR and have OPT_Simple transform 
+      // operators to the IR and have OPT_Simple transform
       // instanceof, intIfCmp based on the U/D chains.
       // See defect 2114.
       OPT_Operand val2 = IfCmp.getVal2(next);
@@ -159,11 +159,11 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
   }
 
   /**
-   * Expand an instanceof instruction into the LIR sequence that implements 
-   * the dynamic type check.  Ref is known to never contain a null ptr at 
+   * Expand an instanceof instruction into the LIR sequence that implements
+   * the dynamic type check.  Ref is known to never contain a null ptr at
    * runtime.
    *
-   * @param s an INSTANCEOF_NOTNULL instruction to expand 
+   * @param s an INSTANCEOF_NOTNULL instruction to expand
    * @param ir the enclosing OPT_IR
    * @return the last OPT_Instruction in the generated LIR sequence.
    */
@@ -177,7 +177,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
         IfCmp.getVal1(next) instanceof OPT_RegisterOperand
         && result.similar(IfCmp.getVal1(next))) {
       // The result of instanceof is being consumed by a conditional branch.
-      // Optimize this case by generating a branching type 
+      // Optimize this case by generating a branching type
       // check instead of producing a value.
       OPT_Operand val2 = IfCmp.getVal2(next);
       if (VM.VerifyAssertions) {
@@ -211,11 +211,11 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
   }
 
   /**
-   * Expand a checkcast instruction into the LIR sequence that implements the 
-   * dynamic type check, raising a ClassCastException when the type check 
+   * Expand a checkcast instruction into the LIR sequence that implements the
+   * dynamic type check, raising a ClassCastException when the type check
    * fails. Ref may contain a null ptr at runtime.
    *
-   * @param s a CHECKCAST or CHECKCAST_UNRESOLVED instruction to expand 
+   * @param s a CHECKCAST or CHECKCAST_UNRESOLVED instruction to expand
    * @param ir the enclosing OPT_IR
    * @return the last OPT_Instruction in the generated LIR sequence.
    */
@@ -252,11 +252,11 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
   }
 
   /**
-   * Expand a checkcast instruction into the LIR sequence that implements the 
-   * dynamic type check, raising a ClassCastException when the type check 
+   * Expand a checkcast instruction into the LIR sequence that implements the
+   * dynamic type check, raising a ClassCastException when the type check
    * fails. Ref is known to never contain a null ptr at runtime.
    *
-   * @param s a CHECKCAST_NOTNULL instruction to expand 
+   * @param s a CHECKCAST_NOTNULL instruction to expand
    * @param ir the enclosing OPT_IR
    * @return the last OPT_Instruction in the generated LIR sequence.
    */
@@ -281,12 +281,12 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
   }
 
   /**
-   * Expand a checkcastInterface instruction into the LIR sequence that 
+   * Expand a checkcastInterface instruction into the LIR sequence that
    * implements the dynamic type check, raising an IncompataibleClassChangeError
-   * if the type check fails. 
+   * if the type check fails.
    * Ref is known to never contain a null ptr at runtime.
    *
-   * @param s a MUST_IMPLEMENT_INTERFACE instruction to expand 
+   * @param s a MUST_IMPLEMENT_INTERFACE instruction to expand
    * @param ir the enclosing OPT_IR
    * @return the last OPT_Instruction in the generated LIR sequence.
    */
@@ -341,10 +341,10 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
   }
 
   /**
-   * Expand an object array store check into the LIR sequence that 
+   * Expand an object array store check into the LIR sequence that
    * implements it.
    *
-   * @param s an OBJARRAY_STORE_CHECK instruction to expand 
+   * @param s an OBJARRAY_STORE_CHECK instruction to expand
    * @param ir the enclosing OPT_IR
    * @param couldBeNull is it possible that the element being stored is null?
    * @return the last OPT_Instruction in the generated LIR sequence.
@@ -392,17 +392,17 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 
     // Find out what we think the compile time type of the lhs is.
     // Based on this, we can do one of several things:
-    //  (1) If the compile time element type is a final proper class, then a 
-    //      TIB comparision of the runtime elemRef type and the 
+    //  (1) If the compile time element type is a final proper class, then a
+    //      TIB comparision of the runtime elemRef type and the
     //      compile time element type is definitive.
     //  (2) If the compile time type is known to be the declared type,
-    //      then inject a short-circuit test to see if the 
+    //      then inject a short-circuit test to see if the
     //      runtime lhs type is the same as the compile-time lhs type.
-    //  (3) If the compile time element type is a proper class other than 
-    //      java.lang.Object, then a subclass test of the runtime LHS elem type 
+    //  (3) If the compile time element type is a proper class other than
+    //      java.lang.Object, then a subclass test of the runtime LHS elem type
     //      and the runtime elemRef type is definitive.  Note: we must exclude
-    //      java.lang.Object because if the compile time element type is 
-    //      java.lang.Object, then the runtime-element type might actually be 
+    //      java.lang.Object because if the compile time element type is
+    //      java.lang.Object, then the runtime-element type might actually be
     //      an interface (ie not a proper class), and we won't be testing the right thing!
     // If we think the compile time type is JavaLangObjectType then
     // we lost type information due to unloaded classes causing
@@ -458,7 +458,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       curBlock.insertOut(contBlock);
       curBlock = advanceBlock(s.bcIndex, curBlock, ir);
 
-      // Optionally (3) from above 
+      // Optionally (3) from above
       if (compType.getDimensionality() == 1) {
         VM_Class etc = (VM_Class) compType.asArray().getElementType();
         if (etc.isResolved() && !etc.isInterface() && !etc.isJavaLangObjectType()) {
@@ -534,19 +534,19 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 
   /**
    * Generate a value-producing dynamic type check.
-   * This routine assumes that the CFG and code order are 
+   * This routine assumes that the CFG and code order are
    * already correctly established.
-   * This routine must either remove s or mutuate it.  
+   * This routine must either remove s or mutuate it.
    *
-   * @param s        The OPT_Instruction that is to be replaced by 
+   * @param s        The OPT_Instruction that is to be replaced by
    *                  a value producing type check
    * @param ir       The OPT_IR containing the instruction to be expanded.
    * @param RHSobj   The OPT_RegisterOperand containing the rhs object.
    * @param LHStype  The VM_Type to be tested against.
    * @param RHStib   The OPT_Operand containing the TIB of the rhs.
-   * @param result   The OPT_RegisterOperand that the result of dynamic 
+   * @param result   The OPT_RegisterOperand that the result of dynamic
    *                 type check is to be stored in.
-   * @return the opt instruction immediately before the 
+   * @return the opt instruction immediately before the
    *         instruction to continue expansion.
    */
   private static OPT_Instruction generateValueProducingTypeCheck(OPT_Instruction s,
@@ -559,7 +559,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
     if (LHStype.isClassType()) {
       VM_Class LHSclass = (VM_Class) LHStype.peekResolvedType();
       if (LHSclass != null && LHSclass.isResolved()) {
-        // Cases 4, 5, and 6 of VM_DynamicTypeCheck: LHSclass is a 
+        // Cases 4, 5, and 6 of VM_DynamicTypeCheck: LHSclass is a
         // resolved class or interface
         if (LHSclass.isInterface()) {
           // A resolved interface (case 4)
@@ -601,7 +601,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
         } else {
           // A resolved class (cases 5 and 6 in VM_DynamicTypeCheck)
           if (LHSclass.isFinal()) {
-            // For a final class, we can do a PTR compare of 
+            // For a final class, we can do a PTR compare of
             // rhsTIB and the TIB of the class
             OPT_Operand classTIB = getTIB(s, ir, LHSclass);
             BooleanCmp.mutate(s, BOOLEAN_CMP_ADDR, result, RHStib, classTIB,
@@ -646,7 +646,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
           }
         }
       } else {
-        // A non-resolved class or interface. 
+        // A non-resolved class or interface.
         // We expect these to be extremely uncommon in opt code in AOS.
         // Mutate s into a call to VM_Runtime.instanceOf
         VM_Method target = VM_Entrypoints.instanceOfMethod;
@@ -664,7 +664,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
         if (innermostElementType.isPrimitiveType() ||
             (innermostElementType.asClass().isResolved() &&
              innermostElementType.asClass().isFinal())) {
-          // [^k of primitive or [^k of final class. Just like final classes, 
+          // [^k of primitive or [^k of final class. Just like final classes,
           // a PTR compare of rhsTIB and the TIB of the class gives the answer.
           OPT_Operand classTIB = getTIB(s, ir, LHSArray);
           BooleanCmp.mutate(s, BOOLEAN_CMP_ADDR, result, RHStib, classTIB,
@@ -672,7 +672,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
           return s;
         }
       }
-      // We're going to have to branch anyways, so reduce to a branching case 
+      // We're going to have to branch anyways, so reduce to a branching case
       // and do the real work there.
       return convertToBranchingTypeCheck(s, ir, RHSobj, LHStype, RHStib, result);
     }
@@ -681,16 +681,16 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
   }
 
   /**
-   * Generate wrapper around branching type check to get a 
-   * value producing type check. 
-   * @param s        The OPT_Instruction that is to be replaced by 
+   * Generate wrapper around branching type check to get a
+   * value producing type check.
+   * @param s        The OPT_Instruction that is to be replaced by
    *                  a value producing type check
    * @param ir       The OPT_IR containing the instruction to be expanded.
    * @param RHSobj   The OPT_RegisterOperand containing the rhs object.
    * @param LHStype  The VM_TypeReference to be tested against.
    * @param RHStib   The OPT_Operand containing the TIB of the rhs.
-   * @param result   The OPT_RegisterOperand that the result of dynamic 
-   * @return the opt instruction immediately before the instruction to 
+   * @param result   The OPT_RegisterOperand that the result of dynamic
+   * @return the opt instruction immediately before the instruction to
    *         continue expansion.
    */
   private static OPT_Instruction convertToBranchingTypeCheck(OPT_Instruction s,
@@ -721,22 +721,22 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 
   /**
    * Generate a branching dynamic type check.
-   * This routine assumes that the CFG and code order are already 
+   * This routine assumes that the CFG and code order are already
    * correctly established.
-   * This routine must either remove s or mutuate it. 
+   * This routine must either remove s or mutuate it.
    *
-   * @param s          The OPT_Instruction that is to be replaced by a 
+   * @param s          The OPT_Instruction that is to be replaced by a
    *                   branching type check
    * @param ir         The OPT_IR containing the instruction to be expanded.
    * @param RHSobj     The OPT_RegisterOperand containing the rhs object.
    * @param LHStype    The VM_TypeReference to be tested against.
    * @param RHStib     The OPT_Operand containing the TIB of the rhs.
-   * @param trueBlock  The OPT_BasicBlock to continue at if the typecheck 
+   * @param trueBlock  The OPT_BasicBlock to continue at if the typecheck
    *                   evaluates to true
-   * @param falseBlock The OPT_BasicBlock to continue at if the typecheck 
+   * @param falseBlock The OPT_BasicBlock to continue at if the typecheck
    *                   evaluates to false.
    * @param falseProb   The probability that typecheck will branch to the falseBlock
-   * @return the opt instruction immediately before the instruction to 
+   * @return the opt instruction immediately before the instruction to
    *         continue expansion.
    */
   private static OPT_Instruction generateBranchingTypeCheck(OPT_Instruction s,
@@ -756,7 +756,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
     if (LHStype.isClassType()) {
       VM_Class LHSclass = (VM_Class) LHStype.peekResolvedType();
       if (LHSclass != null && LHSclass.isResolved()) {
-        // Cases 4, 5, and 6 of VM_DynamicTypeCheck: LHSclass is a resolved 
+        // Cases 4, 5, and 6 of VM_DynamicTypeCheck: LHSclass is a resolved
         // class or interface
         if (LHSclass.isInterface()) {
           // A resolved interface (case 4)
@@ -800,7 +800,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
         } else {
           // A resolved class (cases 5 and 6 in VM_DynamicTypeCheck)
           if (LHSclass.isFinal()) {
-            // For a final class, we can do a PTR compare of 
+            // For a final class, we can do a PTR compare of
             // rhsTIB and the TIB of the class
             OPT_Operand classTIB = getTIB(continueAt, ir, LHSclass);
             continueAt.insertBefore(IfCmp.create(INT_IFCMP, oldGuard,
@@ -849,7 +849,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
         }
       } else {
         // A non-resolved class or interface. Case 3 of VM_DynamicTypeCheck
-        // Branch on the result of a call to 
+        // Branch on the result of a call to
         // VM_Runtime.instance
         OPT_RegisterOperand result = ir.regpool.makeTempInt();
         VM_Method target = VM_Entrypoints.instanceOfMethod;
@@ -877,7 +877,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
         if (innermostElementType.isPrimitiveType() ||
             (innermostElementType.asClass().isResolved() &&
              innermostElementType.asClass().isFinal())) {
-          // [^k of primitive or [^k of final class. Just like final classes, 
+          // [^k of primitive or [^k of final class. Just like final classes,
           // a PTR compare of rhsTIB and the TIB of the class gives the answer.
           continueAt.insertBefore(IfCmp.create(REF_IFCMP, oldGuard,
                                                RHStib, classTIB,
@@ -919,7 +919,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
             oldGuard = oldGuard.copyD2D();
           }
           continueAt.insertBefore(dimTest);
-          //OPT_BasicBlock testBlock = 
+          //OPT_BasicBlock testBlock =
           mainBlock.splitNodeWithLinksAt(dimTest, ir);
           mainBlock.insertOut(trueBlock);
           mainBlock.insertOut(falseBlock);

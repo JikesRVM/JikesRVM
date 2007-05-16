@@ -107,7 +107,7 @@ public class VM extends VM_Properties
    * Uninterruptible because we are not setup to execute a yieldpoint
    * or stackoverflow check in the prologue this early in booting.
    *
-   * The following machine registers are set by "C" bootstrap program 
+   * The following machine registers are set by "C" bootstrap program
    * before calling this method:
    *    JTOC_POINTER        - required for accessing globals
    *    FRAME_POINTER       - required for accessing locals
@@ -156,13 +156,13 @@ public class VM extends VM_Properties
   private static void finishBooting() {
 
     // get pthread_id from OS and store into vm_processor field
-    // 
+    //
     sysCall.sysPthreadSetupSignalHandling();
     VM_Processor.getCurrentProcessor().pthread_id = sysCall.sysPthreadSelf();
 
     // Set up buffer locks used by VM_Thread for logging and status dumping.
     //    This can happen at any point before we start running
-    //    multi-threaded.  
+    //    multi-threaded.
     VM_Thread.boot();
 
     // Initialize memory manager.
@@ -178,9 +178,9 @@ public class VM extends VM_Properties
     if (verboseBoot >= 1) VM.sysWriteln("Stage one of booting VM_Time");
     VM_Time.bootStageOne();
 
-    // Reset the options for the baseline compiler to avoid carrying 
+    // Reset the options for the baseline compiler to avoid carrying
     // them over from bootimage writing time.
-    // 
+    //
     if (verboseBoot >= 1) VM.sysWriteln("Initializing baseline compiler options to defaults");
     VM_BaselineCompiler.initOptions();
 
@@ -211,12 +211,12 @@ public class VM extends VM_Properties
     if (verboseBoot >= 1) VM.sysWriteln("Stage two of booting VM_Time");
     VM_Time.bootStageTwo();
 
-    // Initialize statics that couldn't be placed in bootimage, either 
-    // because they refer to external state (open files), or because they 
-    // appear in fields that are unique to Jikes RVM implementation of 
+    // Initialize statics that couldn't be placed in bootimage, either
+    // because they refer to external state (open files), or because they
+    // appear in fields that are unique to Jikes RVM implementation of
     // standard class library (not part of standard jdk).
-    // We discover the latter by observing "host has no field" and 
-    // "object not part of bootimage" messages printed out by bootimage 
+    // We discover the latter by observing "host has no field" and
+    // "object not part of bootimage" messages printed out by bootimage
     // writer.
     //
     if (verboseBoot >= 1) VM.sysWriteln("Running various class initializers");
@@ -229,7 +229,7 @@ public class VM extends VM_Properties
     runClassInitializer("java.util.WeakHashMap"); // Need for ThreadLocal
     // Turn off security checks; about to hit EncodingManager.
     // Commented out because we haven't incorporated this into the CVS head
-    // yet. 
+    // yet.
     // java.security.JikesRVMSupport.turnOffChecks();
     runClassInitializer("java.lang.Thread");
     runClassInitializer("java.lang.ThreadGroup");
@@ -238,7 +238,7 @@ public class VM extends VM_Properties
        thread (running right now, as a VM_Thread) has to become a full-fledged
        Thread, since we're about to encounter a security check:
 
-       EncodingManager checks a system property, 
+       EncodingManager checks a system property,
         which means that the permissions checks have to be working,
         which means that VMAccessController will be invoked,
         which means that ThreadLocal.get() will be called,
@@ -294,7 +294,7 @@ public class VM extends VM_Properties
 
     // Enable multiprocessing.
     // Among other things, after this returns, GC and dynamic class loading are enabled.
-    // 
+    //
     if (verboseBoot >= 1) VM.sysWriteln("Booting scheduler");
     VM_Scheduler.boot();
     VM_DynamicLibrary.boot();
@@ -377,13 +377,13 @@ public class VM extends VM_Properties
     }
     // Turn on security checks again.
     // Commented out because we haven't incorporated this into the main CVS
-    // tree yet. 
+    // tree yet.
     // java.security.JikesRVMSupport.fullyBootedVM();
 
     runClassInitializer("java.lang.ClassLoader$StaticData");
 
     // Allow profile information to be read in from a file
-    // 
+    //
     VM_EdgeCounts.boot();
 
     if (VM.BuildForAdaptiveSystem) {
@@ -424,9 +424,9 @@ public class VM extends VM_Properties
   }
 
   /**
-   * Run <clinit> method of specified class, if that class appears 
+   * Run <clinit> method of specified class, if that class appears
    * in bootimage and actually has a clinit method (we are flexible to
-   * allow one list of classes to work with different bootimages and 
+   * allow one list of classes to work with different bootimages and
    * different version of classpath (eg 0.05 vs. cvs head).
    *
    * This method is called only while the VM boots.
@@ -483,7 +483,7 @@ public class VM extends VM_Properties
 
   /**
    * Verify a runtime assertion (die w/traceback if assertion fails).
-   * Note: code your assertion checks as 
+   * Note: code your assertion checks as
    * "if (VM.VerifyAssertions) VM._assert(xxx);"
    * @param b the assertion to verify
    */
@@ -492,8 +492,8 @@ public class VM extends VM_Properties
   }
 
   /**
-   * Verify a runtime assertion (die w/message and traceback if 
-   * assertion fails).   Note: code your assertion checks as 
+   * Verify a runtime assertion (die w/message and traceback if
+   * assertion fails).   Note: code your assertion checks as
    * "if (VM.VerifyAssertions) VM._assert(xxx,yyy);"
    * @param b the assertion to verify
    * @param message the message to print if the assertion is false
@@ -532,7 +532,7 @@ public class VM extends VM_Properties
 
   /**
    * Format a 32 bit number as "0x" followed by 8 hex digits.
-   * Do this without referencing Integer or Character classes, 
+   * Do this without referencing Integer or Character classes,
    * in order to avoid dynamic linking.
    * TODO: move this method to VM_Services.
    * @param number
@@ -554,7 +554,7 @@ public class VM extends VM_Properties
 
   /**
    * Format a 64 bit number as "0x" followed by 16 hex digits.
-   * Do this without referencing Long or Character classes, 
+   * Do this without referencing Long or Character classes,
    * in order to avoid dynamic linking.
    * TODO: move this method to VM_Services.
    * @param number
@@ -576,7 +576,7 @@ public class VM extends VM_Properties
 
   /**
    * Format a 32/64 bit number as "0x" followed by 8/16 hex digits.
-   * Do this without referencing Integer or Character classes, 
+   * Do this without referencing Integer or Character classes,
    * in order to avoid dynamic linking.
    * TODO: move this method to VM_Services.
    * @param addr  The 32/64 bit number to format.
@@ -891,11 +891,11 @@ public class VM extends VM_Properties
   }
 
   /**
-   * Low level print of the {@link VM_Atom} <code>s</code> to the console.  
+   * Low level print of the {@link VM_Atom} <code>s</code> to the console.
    * Left-fill with enough spaces to print at least <code>fieldWidth</code>
-   * characters  
+   * characters
    * @param fieldWidth  Minimum width to print.
-   * @param s       The {@link VM_Atom} to print.       
+   * @param s       The {@link VM_Atom} to print.
    */
   @NoInline
   /* don't waste code space inlining these --dave */
@@ -1998,10 +1998,10 @@ public class VM extends VM_Properties
   /**
    * Exit virtual machine due to internal failure of some sort.  This
    * two-argument form is  needed for us to call before the VM's Integer class
-   * is initialized.   
+   * is initialized.
    *
    * @param message  error message describing the problem
-   * @param number  an integer to append to <code>message</code>.  
+   * @param number  an integer to append to <code>message</code>.
    */
   @NoInline
   public static void sysFail(String message, int number) {
@@ -2118,7 +2118,7 @@ public class VM extends VM_Properties
    * @param message What message did it have?  null means this particular
    *    shutdown function  does not come with a message.
    * @param showNumber Print <code>number</code> following
-   *    <code>message</code>? 
+   *    <code>message</code>?
    * @param number Print this number, if <code>showNumber</code> is true. */
   private static void handlePossibleRecursiveExit(String called, int depth,
                                                   String message,
@@ -2191,10 +2191,10 @@ public class VM extends VM_Properties
   //----------------//
 
   /**
-   * Create class instances needed for boot image or initialize classes 
+   * Create class instances needed for boot image or initialize classes
    * needed by tools.
    * @param bootstrapClasspath places where vm implemention class reside
-   * @param bootCompilerArgs command line arguments to pass along to the 
+   * @param bootCompilerArgs command line arguments to pass along to the
    *                         boot compiler's init routine.
    */
   @Interruptible
@@ -2225,28 +2225,28 @@ public class VM extends VM_Properties
    * code that must deal with raw object addresses in a collection-safe manner
    * (ie. code that holds raw pointers across "gc-sites").
    *
-   * Authors of code running while gc is disabled must be certain not to 
-   * allocate objects explicitly via "new", or implicitly via methods that, 
-   * in turn, call "new" (such as string concatenation expressions that are 
-   * translated by the java compiler into String() and StringBuffer() 
-   * operations). Furthermore, to prevent deadlocks, code running with gc 
-   * disabled must not lock any objects. This means the code must not execute 
-   * any bytecodes that require runtime support (eg. via VM_Runtime) 
+   * Authors of code running while gc is disabled must be certain not to
+   * allocate objects explicitly via "new", or implicitly via methods that,
+   * in turn, call "new" (such as string concatenation expressions that are
+   * translated by the java compiler into String() and StringBuffer()
+   * operations). Furthermore, to prevent deadlocks, code running with gc
+   * disabled must not lock any objects. This means the code must not execute
+   * any bytecodes that require runtime support (eg. via VM_Runtime)
    * such as:
-   *   - calling methods or accessing fields of classes that haven't yet 
+   *   - calling methods or accessing fields of classes that haven't yet
    *     been loaded/resolved/instantiated
    *   - calling synchronized methods
    *   - entering synchronized blocks
    *   - allocating objects with "new"
-   *   - throwing exceptions 
+   *   - throwing exceptions
    *   - executing trap instructions (including stack-growing traps)
-   *   - storing into object arrays, except when runtime types of lhs & rhs 
+   *   - storing into object arrays, except when runtime types of lhs & rhs
    *     match exactly
-   *   - typecasting objects, except when runtime types of lhs & rhs 
+   *   - typecasting objects, except when runtime types of lhs & rhs
    *     match exactly
    *
-   * Recommendation: as a debugging aid, VM_Allocator implementations 
-   * should test "VM_Thread.disallowAllocationsByThisThread" to verify that 
+   * Recommendation: as a debugging aid, VM_Allocator implementations
+   * should test "VM_Thread.disallowAllocationsByThisThread" to verify that
    * they are never called while gc is disabled.
    */
   @Inline

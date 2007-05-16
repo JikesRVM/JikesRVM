@@ -43,12 +43,12 @@ public class OPT_RegSpillListElement {
   }
 
   /**
-   * Sets the real (i.e., physical) register component associated with 
+   * Sets the real (i.e., physical) register component associated with
    *  this object
    * @param reg the real (physical) register
    */
   public final void setRealReg(OPT_Register reg) {
-    // we store registers as non-positive numbers to distinguish them from 
+    // we store registers as non-positive numbers to distinguish them from
     // spills
     this.value = -reg.number;
   }

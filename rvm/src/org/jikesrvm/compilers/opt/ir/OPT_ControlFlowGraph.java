@@ -17,49 +17,49 @@ import org.jikesrvm.compilers.opt.OPT_SpaceEffGraphNode;
 import org.jikesrvm.compilers.opt.OPT_VCGNode;
 
 /**
- * The Factored Control Flow Graph (FCFG). 
+ * The Factored Control Flow Graph (FCFG).
  * <p>
  * Like a standard control flow graph (CFG), the FCFG is composed
  * of {@link OPT_BasicBlock basic blocks} which in turn contain
  * {@link OPT_Instruction instructions}. The critical difference between
  * a FCFG and a CFG is in the definition of basic blocks.  In the FCFG,
  * a Potentially Excepting Instruction (PEI) does not necessarily end its
- * basic block.  Therefore, although instructions within a FCFG basic block 
+ * basic block.  Therefore, although instructions within a FCFG basic block
  * have the expected dominance relationships, they do <em>not</em> have the
  * same post-dominance relationships as they would under the traditional
- * basic block formulation used in a CFG.  
+ * basic block formulation used in a CFG.
  * We chose to use an FCFG because doing so significantly reduces the
  * number of basic blocks and control flow graph edges, thus reducing
- * the time and space costs of representing the FCFG and also 
+ * the time and space costs of representing the FCFG and also
  * increasing the effectiveness of local (within a single basic block)
  * analysis.  However, using an FCFG does complicate flow-sensitive
  * global analaysis.  Many analyses can be easily extended to
  * work on the FCFG.  For those analyses that cannot, we provide utilities
  * ({@link OPT_IR#unfactor()}, {@link OPT_BasicBlock#unfactor(OPT_IR)})
- * to effectively convert the FCFG into a CFG.  
+ * to effectively convert the FCFG into a CFG.
  * For a more detailed description of the FCFG and its implications for
- * program analysis see the PASTE'99 paper by Choi et al. 
+ * program analysis see the PASTE'99 paper by Choi et al.
  *   <a href="http://www.research.ibm.com/jalapeno/publication.html#paste99">
  *   Efficient and Precise Modeling of Exceptions for the Analysis of Java Programs </a>
  * <p>
- * The nodes in the FCFG are components in two distinct 
- * orderings, the "main" one is the control flow relationship 
+ * The nodes in the FCFG are components in two distinct
+ * orderings, the "main" one is the control flow relationship
  * in which edges represent flow of control.
  * The secondary ordering is a linearization of the blocks
  * which represents the ordering of instructions in the generated code.
- * Both of these relationships are represented using the fields inherited 
+ * Both of these relationships are represented using the fields inherited
  * from {@link OPT_SpaceEffGraphNode}.
- * The control flow edges are the primary relationship and are encoded by 
- * <code>In</code> and <code>Out</code> relations of 
+ * The control flow edges are the primary relationship and are encoded by
+ * <code>In</code> and <code>Out</code> relations of
  * {@link OPT_SpaceEffGraphNode} and the {@link #entry()} and {@link #exit()}
- * functions of <code>OPT_ControlFlowGraph</code>.  
- * The linear order is secondary and is represented by the order of the 
- * nodes in the doubly linked list ({@link OPT_SpaceEffGraphNode#next} and 
+ * functions of <code>OPT_ControlFlowGraph</code>.
+ * The linear order is secondary and is represented by the order of the
+ * nodes in the doubly linked list ({@link OPT_SpaceEffGraphNode#next} and
  * {@link OPT_SpaceEffGraphNode#prev}) and the functions
  * ({@link #firstInCodeOrder()}, {@link #lastInCodeOrder()})
  * of <code>OPT_ControlFlowGraph<code>.
  * Utility functions are provided here and in {@link OPT_SpaceEffGraphNode}
- * to manipulate these orderings. 
+ * to manipulate these orderings.
  *
  * @see OPT_BasicBlock
  * @see OPT_IR
@@ -83,11 +83,11 @@ public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
 
   /**
    * Return the "exit" node of the FCFG.  In a perfect world,
-   * we'd have the invariant that all nodes that are reachable in a 
+   * we'd have the invariant that all nodes that are reachable in a
    * forward traversal from cfgEntry() are exactly the same set of nodes
    * as those that are reachable from cfgExit() via a reverse traversal,
    * but that's currently not the case.  Not all forward reachable nodes can
-   * be found by going backwards from exit.  The issue is infinite loops 
+   * be found by going backwards from exit.  The issue is infinite loops
    * (loops without normal exits).
    *
    * @return the exit node of the FCFG
@@ -97,7 +97,7 @@ public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
   }
 
   /**
-   * Return the first basic block with respect to 
+   * Return the first basic block with respect to
    * the current code linearization order.
    *
    * @return the first basic block in the code order
@@ -107,7 +107,7 @@ public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
   }
 
   /**
-   * Return the last basic block with respect to 
+   * Return the last basic block with respect to
    * the current code linearization order.
    *
    * @return the last basic block in the code order
@@ -118,9 +118,9 @@ public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
 
   /**
    * Return the node to start with for a topological traversal
-   * of the FCFG. 
-   * Override {@link OPT_SpaceEffGraph#startNode(boolean)} 
-   * to use entry and exit; we want topological traversals to be with 
+   * of the FCFG.
+   * Override {@link OPT_SpaceEffGraph#startNode(boolean)}
+   * to use entry and exit; we want topological traversals to be with
    * respect to FCFG edges not the code linearization order
    *
    * @param forward  true for forward traversal, false for reverse
@@ -136,7 +136,7 @@ public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
 
   /**
    * Densely number (0...n) all nodes in the FCFG.
-   * Override {@link OPT_SpaceEffGraph#compactNodeNumbering()} to also 
+   * Override {@link OPT_SpaceEffGraph#compactNodeNumbering()} to also
    * number the exit node.
    */
   public void compactNodeNumbering() {
@@ -225,7 +225,7 @@ public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
   }
 
   /**
-   * Remove a basic block from the code ordering, 
+   * Remove a basic block from the code ordering,
    * leaving the FCFG unchanged.
    *
    * @param bb the block to remove
@@ -242,7 +242,7 @@ public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
 
   /**
    * Insert a block 'toAdd' not currently in the code ordering after
-   * a block 'old' that is currently in the code ordering. 
+   * a block 'old' that is currently in the code ordering.
    * If necessary, _lastNode is updated.
    * No impact on FCFG edges.
    *
@@ -265,7 +265,7 @@ public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
 
   /**
    * Insert a block 'toAdd' not currently in the code ordering before
-   * a block 'old' that is currently in the code ordering. 
+   * a block 'old' that is currently in the code ordering.
    * If necessary, _firstNode is updated.
    * No impact on FCFG edges.
    *
@@ -287,7 +287,7 @@ public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
   }
 
   /**
-   * Add a block not currently in the code ordering to the end of the 
+   * Add a block not currently in the code ordering to the end of the
    * code ordring.
    * No impact on FCFG edges.
    *
@@ -339,7 +339,7 @@ public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
 
   /**
    * Clear the code ordering information for the CFG.
-   * NOTE: This method should only be called as part of a 
+   * NOTE: This method should only be called as part of a
    *       whole scale recomputation of the code order, for example
    *       by OPT_ReorderingPhase
    */

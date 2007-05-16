@@ -29,18 +29,18 @@ abstract class VM_RecompilationChoice {
 
   /**
    * What is the benefit of executing this recompilation choice, given
-   * the estimated future time for the method if nothing changes?  
+   * the estimated future time for the method if nothing changes?
    *
-   * @param prevCompiler The previous compiler 
+   * @param prevCompiler The previous compiler
    * @param futureExecutionTime The expected future execution time of
    *        the method if left running with the previous compiler.
-   * @return The expected future execution time if this choice were selected 
+   * @return The expected future execution time if this choice were selected
    */
   abstract double getFutureExecutionTime(int prevCompiler,
                                          double futureExecutionTime);
 
   /**
-   * Return a controller plan that will start this recompilation choice 
+   * Return a controller plan that will start this recompilation choice
    * in action
    *
    * @param cmpMethod The method in question

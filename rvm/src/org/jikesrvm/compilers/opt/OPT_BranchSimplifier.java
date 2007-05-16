@@ -34,9 +34,9 @@ import org.jikesrvm.compilers.opt.ir.TableSwitch;
 /**
  * Simplify and canonicalize conditional branches with constant operands.
  *
- * <p> This module performs no analysis, it simply attempts to 
- * simplify any branching instructions of a basic block that have constant 
- * operands. The intent is that analysis modules can call this 
+ * <p> This module performs no analysis, it simply attempts to
+ * simplify any branching instructions of a basic block that have constant
+ * operands. The intent is that analysis modules can call this
  * transformation engine, allowing us to share the
  * simplification code among multiple analysis modules.
  */
@@ -290,7 +290,7 @@ abstract class OPT_BranchSimplifier {
   }
 
   /**
-   * To maintain IR integrity, remove any branches that are after the 
+   * To maintain IR integrity, remove any branches that are after the
    * first GOTO in the basic block.
    */
   private static void removeBranchesAfterGotos(OPT_BasicBlock bb) {

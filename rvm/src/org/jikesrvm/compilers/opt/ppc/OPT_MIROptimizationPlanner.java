@@ -100,9 +100,9 @@ public abstract class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner
     // MIR OPTS(2) (after register allocation)
     // NOTE: GCMapping part 1 has created the GC maps already.
     //       From now until the end of compilation, we cannot change
-    //       the set of live references at a GC point 
+    //       the set of live references at a GC point
     //       without updating the GCMaps.
-    //       Effectively this means that we can only do the 
+    //       Effectively this means that we can only do the
     //       most trivial optimizations from
     //       here on out without having to some potentially complex bookkeeping.
     ////////////////////

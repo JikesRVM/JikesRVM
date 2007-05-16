@@ -155,7 +155,7 @@ public abstract class OSR_BaselineExecStateExtractor
     }
 
     // consult GC reference map again since the type matcher does not complete
-    // the flow analysis, it can not distinguish reference or non-reference 
+    // the flow analysis, it can not distinguish reference or non-reference
     // type. We should remove non-reference type
     for (int i = 0, n = localTypes.length; i < n; i++) {
       // if typer reports a local is reference type, but the GC map says no
@@ -175,7 +175,7 @@ public abstract class OSR_BaselineExecStateExtractor
     // L0, L1, ..., S0, S1, ....
 
     // adjust local offset and stack offset
-    // NOTE: donot call VM_Compiler.getFirstLocalOffset(method)     
+    // NOTE: donot call VM_Compiler.getFirstLocalOffset(method)
     Offset startLocalOffset = methFPoff.plus(VM_Compiler.locationToOffset(fooCM.getGeneralLocalLocation(0)));
 
     Offset stackOffset = methFPoff.plus(fooCM.getEmptyStackOffset());
@@ -322,7 +322,7 @@ public abstract class OSR_BaselineExecStateExtractor
         default:
           if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
           break;
-      } // switch 
+      } // switch
     } // for loop
   }
 }

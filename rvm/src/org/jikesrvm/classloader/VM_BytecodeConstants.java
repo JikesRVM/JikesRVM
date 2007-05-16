@@ -9,7 +9,7 @@
 package org.jikesrvm.classloader;
 
 /**
- * Information about java byte codes that appear in the "code" attribute 
+ * Information about java byte codes that appear in the "code" attribute
  * of a .class file.
  */
 public interface VM_BytecodeConstants {

@@ -11,7 +11,7 @@ package org.jikesrvm.compilers.opt;
 import java.util.Enumeration;
 
 /**
- * List of Graph nodes. 
+ * List of Graph nodes.
  *
  * comments: should a doubly linked list implement Enumeration?
  */

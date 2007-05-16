@@ -20,7 +20,7 @@ import org.vmmagic.pragma.Uninterruptible;
 @Uninterruptible public abstract class VM_CodeArray {
   private int [] data;
 
-  public VM_CodeArray (int size) { 
+  public VM_CodeArray (int size) {
     if (VM.runningVM) VM._assert(false);  // should be unreachable
     data = new int[size];
   }

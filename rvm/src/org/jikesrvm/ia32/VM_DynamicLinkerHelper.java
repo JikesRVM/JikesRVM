@@ -22,7 +22,7 @@ public abstract class VM_DynamicLinkerHelper {
 
   /**
    * Reach up two stack frames into a frame that is compiled
-   * with the DynamicBridge register protocol and grap 
+   * with the DynamicBridge register protocol and grap
    * the receiver object of the invoke (ie the first param).
    * NOTE: assumes that caller has disabled GC.
    */

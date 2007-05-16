@@ -73,7 +73,7 @@ public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElem
         // Stage 1: Reduce the LIR operator set to a core set of operators.
         new OPT_OptimizationPlanAtomicElement(new ReduceOperators()),
 
-        // Stage 2: Convert ALU operators 
+        // Stage 2: Convert ALU operators
         new OPT_OptimizationPlanAtomicElement(new OPT_ConvertALUOperators()),
 
         // Stage 3: Normalize usage of constants to simplify Stage 3.
@@ -82,11 +82,11 @@ public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElem
         // Stage 4a: Compute liveness information for DepGraph
         new OPT_OptimizationPlanAtomicElement(new DoLiveness()),
 
-        // Stage 4b: Block by block build DepGraph and do 
+        // Stage 4b: Block by block build DepGraph and do
         //           BURS based instruction selection.
         new OPT_OptimizationPlanAtomicElement(new DoBURS()),
 
-        // Stage 5: Handle complex operators 
+        // Stage 5: Handle complex operators
         //          (those that expand to multiple basic blocks of MIR).
         new OPT_OptimizationPlanAtomicElement(new ComplexOperators()),
 
@@ -320,7 +320,7 @@ public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElem
   }
 
   /**
-   * Stage 3: Block by block build DepGraph and do BURS based 
+   * Stage 3: Block by block build DepGraph and do BURS based
    * instruction selection.
    */
   private static final class DoBURS extends OPT_CompilerPhase {
@@ -398,7 +398,7 @@ public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElem
   }
 
   /**
-   * Stage 4: Handle complex operators 
+   * Stage 4: Handle complex operators
    * (those that expand to multiple basic blocks).
    */
   private static final class ComplexOperators extends OPT_CompilerPhase {

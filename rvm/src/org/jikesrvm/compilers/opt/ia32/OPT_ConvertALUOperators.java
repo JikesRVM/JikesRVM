@@ -33,9 +33,9 @@ import org.vmmagic.pragma.NoOptCompile;
 
 /**
  * <ul>
- * <li> Convert instructions with 3-operand binary ALU operators to use 
- *      2-operand ALU operators. 
- * <li> Convert instructions with 2-operand unary ALU operators to use 
+ * <li> Convert instructions with 3-operand binary ALU operators to use
+ *      2-operand ALU operators.
+ * <li> Convert instructions with 2-operand unary ALU operators to use
  *      1-operand ALU operators.
  * </ul>
  *
@@ -50,7 +50,7 @@ import org.vmmagic.pragma.NoOptCompile;
  *  op r100 = r100, r300      =====>    op   r100 <-- r300
  *
  *  op r100 = r200, r100      =====>    op   r100 <-- r200
- *  (if op is commutative) 
+ *  (if op is commutative)
  *
  * but, we must be careful in this case. If r100 spans a basic block,
  * then we are better doing the following (since it will break the
@@ -58,15 +58,15 @@ import org.vmmagic.pragma.NoOptCompile;
  *
  *  op r100 = r200, r100      =====>    move rtemp = r200
  *  (if op is non commutative)          op   rtemp <-- r100
- *                                      move r100  = rtemp 
+ *                                      move r100  = rtemp
  *
- * We also keep our eyes open for the special (somewhat common) case 
+ * We also keep our eyes open for the special (somewhat common) case
  * of one of the uses being the last use of a temporary.  When this happens
- * we can sometimes avoid inserting a move at all. When this happens, we 
+ * we can sometimes avoid inserting a move at all. When this happens, we
  * rewrite:
  *
  *  op r100 = r200, r300     =====>    op r200 <-- r300
- * and replace all uses of r100 with r200. 
+ * and replace all uses of r100 with r200.
  *
  * We aren't doing a full live analysis, but the following conditions
  * covers the cases where it is critical to get this right:
@@ -75,7 +75,7 @@ import org.vmmagic.pragma.NoOptCompile;
  *  (c) r200 does not span a basic block
  *  (d) this instruction is the last use of r200
  *  (e) r200 is ssa
- * These conditions are designed to be cheap to verify and 
+ * These conditions are designed to be cheap to verify and
  * cover those cases where it is advantegous from BURS's perspective to
  * coalesce the registers to avoid the move instruction.
  *
@@ -84,9 +84,9 @@ import org.vmmagic.pragma.NoOptCompile;
  *                                           move r100 = r200
  *  (1) r200 does not span a basic block
  *  (2) this instruction is the last use of r200
- * then we want the move instruction here (but after op), because 
- * merging registers r100 and r200 would force BURS to break its 
- * exprssion trep _before_ op since r200 would now span a basic block 
+ * then we want the move instruction here (but after op), because
+ * merging registers r100 and r200 would force BURS to break its
+ * exprssion trep _before_ op since r200 would now span a basic block
  * (since r100 spans a basic block).
  * We depend on the register allocator to later coalesce r100 and r200,
  * since they are not simultaneously live.
@@ -112,9 +112,9 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
   }
 
   public final void perform(OPT_IR ir) {
-    // Calling OPT_Simplifier.simplify ensures that the instruction is 
-    // in normalized form. This reduces the number of cases we have to 
-    // worry about (and does last minute constant folding on the off 
+    // Calling OPT_Simplifier.simplify ensures that the instruction is
+    // in normalized form. This reduces the number of cases we have to
+    // worry about (and does last minute constant folding on the off
     // chance we've missed an opportunity...)
     // BURS assumes that this has been done, so we must do it even if
     // OPTIMIZE is false.
@@ -360,7 +360,7 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
       }
 
       if (OPTIMIZE) {
-        // update liveness 
+        // update liveness
         for (OPT_OperandEnumeration defs = s.getPureDefs();
              defs.hasMoreElements();) {
           OPT_Operand op = defs.next();
@@ -612,7 +612,7 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
     }
   }
 
-  // Use the scratch field of the register to record 
+  // Use the scratch field of the register to record
   // dead/live for local live analysis.
   private static void markDead(OPT_Register r) {
     r.scratch = 0;

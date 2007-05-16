@@ -69,9 +69,9 @@ public abstract class OPT_Assembler implements OPT_Operators, VM_Constants, VM_A
   private static final int MAX_DISPL = MAX_24_BITS;     // max unconditional displacement
   private static final int MIN_DISPL = MIN_24_BITS;     // min unconditional displacement
 
-  private static final int SHORT14_MASK = 0x3FFF;       // for 14-bit integer; used as offset 
+  private static final int SHORT14_MASK = 0x3FFF;       // for 14-bit integer; used as offset
   // (DS field) in ld (load doubleword, etc.)
-  private static final int SIXBIT_MASK = 0x3F;          // for 6-bit integer; used to specify 
+  private static final int SIXBIT_MASK = 0x3F;          // for 6-bit integer; used to specify
   // shift and mask bits
 
   private static final int CFLIP_MASK = 0x14 << 21;     // used to flip BO by XOR
@@ -882,14 +882,14 @@ public abstract class OPT_Assembler implements OPT_Operators, VM_Constants, VM_A
             throw new OPT_OperationNotImplementedException(
                 "Support for long backwards conditional branch and link is incorrect.");          //--dave
             /*
-              -- we have to branch (and not link) around an 
-              unconditional branch and link. 
-              -- the code below generates a conditional branch and 
+              -- we have to branch (and not link) around an
+              unconditional branch and link.
+              -- the code below generates a conditional branch and
               link around an unconditional branch.
               if (DEBUG) VM.sysWrite("**** Backward Long Cond. Branch ****\n");
               // flip the condition and skip the following branch instruction
               machinecodes.set(mi++, inst | flipCondition(bo_bi<<16) | (2<<2));
-              if (DEBUG) printInstruction(mi-1, inst, 
+              if (DEBUG) printInstruction(mi-1, inst,
               flipCondition(bo_bi<<16), 2<<2);
               // make a long branch to the target
               machinecodes.set(mi++, Btemplate | ((targetOffset-4) & LI_MASK));
@@ -1193,7 +1193,7 @@ public abstract class OPT_Assembler implements OPT_Operators, VM_Constants, VM_A
             VM._assert(target.getOpcode() == LABEL_opcode);
           }
 
-          // resolve the target instruction, in LABEL_opcode, 
+          // resolve the target instruction, in LABEL_opcode,
           // add one case for IG_PATCH_POINT
           /* int targetOffset = */
           resolveBranch(p, target, mi);
@@ -1308,7 +1308,7 @@ public abstract class OPT_Assembler implements OPT_Operators, VM_Constants, VM_A
 
   /** Apply a patch.
    * The instruction at patchOffset should be a NOP instruction.
-   * It is replaced by a "B rel32" instruction. 
+   * It is replaced by a "B rel32" instruction.
    *
    * @param code        the code intructions to be patched
    * @param patchOffset the offset of the last byte of the patch point
@@ -1332,7 +1332,7 @@ public abstract class OPT_Assembler implements OPT_Operators, VM_Constants, VM_A
       VM._assert(rel32 <= (MAX_DISPL << LG_INSTRUCTION_WIDTH));
       VM._assert(rel32 >= (MIN_DISPL << LG_INSTRUCTION_WIDTH));
     }
-    /* the rel32 has to be in the range from -2^25 to 2^25-1, 
+    /* the rel32 has to be in the range from -2^25 to 2^25-1,
      * is is guaranteed when generating code for IG_PATCH_POINT.
      */
     // make a B IMM instruction

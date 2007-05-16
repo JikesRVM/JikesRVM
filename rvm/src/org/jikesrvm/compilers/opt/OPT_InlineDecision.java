@@ -56,7 +56,7 @@ public final class OPT_InlineDecision {
    * @param target the method to inline
    * @param guard  the type of guard to use
    * @param reason a rationale for inlining
-   * @return a decision YES to inline, but it is not always safe. 
+   * @return a decision YES to inline, but it is not always safe.
    */
   public static OPT_InlineDecision guardedYES(VM_Method target,
                                               byte guard,
@@ -74,7 +74,7 @@ public final class OPT_InlineDecision {
    * @param targets   The methods to inline
    * @param guards  the types of guard to use
    * @param reason   A rationale for inlining
-   * @return a decision YES to inline, but it is not always safe. 
+   * @return a decision YES to inline, but it is not always safe.
    */
   public static OPT_InlineDecision guardedYES(VM_Method[] targets,
                                               byte[] guards,

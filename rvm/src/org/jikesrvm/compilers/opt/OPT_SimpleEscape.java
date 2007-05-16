@@ -682,7 +682,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
 
   /**
    * If a method summary exists for a method, get it.
-   * Else, iff SIMPLE_ESCAPE_IPA, 
+   * Else, iff SIMPLE_ESCAPE_IPA,
    *   perform escape analysis, which will create the method
    *    summary as a side effect, and return the summary
    */

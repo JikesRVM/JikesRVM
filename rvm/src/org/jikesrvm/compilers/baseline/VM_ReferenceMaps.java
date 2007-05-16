@@ -36,7 +36,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants {
   private static final byte COPY = 3;
   private static final int BITS_PER_MAP_ELEMENT = 8;
 
-  public static final VM_ProcessorLock jsrLock = new VM_ProcessorLock();   // for serialization of JSR processing 
+  public static final VM_ProcessorLock jsrLock = new VM_ProcessorLock();   // for serialization of JSR processing
 
   private byte[] referenceMaps;
   private int[] MCSites;
@@ -267,7 +267,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants {
       }
     } else {
       // get bitnum and determine mapword to restart scan
-      bitnum = index;  // get the bit number from last time 
+      bitnum = index;  // get the bit number from last time
 
       // scan forward from current position to next ref
       if (VM.TraceStkMaps) {
@@ -857,7 +857,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants {
   }
 
   /**
-   * After code is generated, translate the bytecode indices 
+   * After code is generated, translate the bytecode indices
    * recorded in MCSites array into real machine code offsets.
    */
   public void translateByte2Machine(int[] b2m) {
@@ -1252,7 +1252,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants {
    * return address maps due to the invoker (since return addresses
    * are only due to the subroutine maps).
    *
-   * @param jsrBaseMapIndex The map index for the invoker 
+   * @param jsrBaseMapIndex The map index for the invoker
    * @param deltaMap The map for the invoked subroutine/s (all nested
    * subroutine maps are guaranteed to have been combined prior to
    * calling this)
@@ -1351,9 +1351,9 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants {
   }
 
   /**
-   * This routine is used to find an Unusual map with an index 
+   * This routine is used to find an Unusual map with an index
    * greater than 127
-   * it returns the index by doing a sequential scan and looking for the mapid 
+   * it returns the index by doing a sequential scan and looking for the mapid
    *  in the normal map directory
    */
   int findUnusualMap(int mapid) {
@@ -1505,7 +1505,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants {
     if (mapid >= 0) {
       // normal case
       bytenum = mapid * bytesPerMap();
-      bitnum = lidx + 1 + 1; // 1 for being 1 based +1 for jsr bit      
+      bitnum = lidx + 1 + 1; // 1 for being 1 based +1 for jsr bit
       maps = referenceMaps;
     } else {
       // in JSR

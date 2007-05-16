@@ -13,7 +13,7 @@ import org.jikesrvm.util.VM_PriorityQueue;
 
 /**
  * This class extends VM_PriorityQueue to safely
- * support multiple producers/consumers where 
+ * support multiple producers/consumers where
  * the consumers are blocked if no objects are available
  * to consume.
  */
@@ -49,7 +49,7 @@ public class VM_BlockingPriorityQueue extends VM_PriorityQueue {
    * Notify any sleeping consumer threads that an object
    * is available for consumption.
    *
-   * @param _priority  the priority to 
+   * @param _priority  the priority to
    * @param _data the object to insert
    */
   public final synchronized void insert(double _priority, Object _data) {

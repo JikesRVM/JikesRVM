@@ -20,7 +20,7 @@ class OPT_DFSenumerateByFinish extends OPT_Stack<OPT_GraphNode>
 
   /**
    *  Construct a depth-first enumerator across all the nodes of a
-   * graph. 
+   * graph.
    *
    * @param net the graph whose nodes to enumerate
    */
@@ -31,7 +31,7 @@ class OPT_DFSenumerateByFinish extends OPT_Stack<OPT_GraphNode>
   /**
    * Construct a depth-first enumerator across the (possibly
    * improper) subset of nodes reachable from the nodes in the given
-   * enumeration. 
+   * enumeration.
    *
    * @param net the graph whose nodes to enumerate
    * @param nodes the set of nodes from which to start searching
@@ -50,7 +50,7 @@ class OPT_DFSenumerateByFinish extends OPT_Stack<OPT_GraphNode>
    * While a depth-first enumeration is in progress, this field
    * holds the current root node, i.e. the current botton of the
    * search stack (assuming stacks grow upward).  This is used
-   * primarily when constructing strongly connected components. 
+   * primarily when constructing strongly connected components.
    */
   public OPT_GraphNode currentRoot;
 

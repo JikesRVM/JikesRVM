@@ -109,7 +109,7 @@ class OPT_DominatorSystem extends OPT_DF_System {
 
   /**
    * Get the OPT_DF_LatticeCell key corresponding to a basic block
-   * @param bb the basic block 
+   * @param bb the basic block
    * @return the key (just the block itself)
    */
   Object getKey(OPT_BasicBlock bb) {
@@ -118,7 +118,7 @@ class OPT_DominatorSystem extends OPT_DF_System {
 
   /**
    * Make a new OPT_DF_LatticeCell key corresponding to a basic block
-   * @param key the basic block 
+   * @param key the basic block
    * @return the new cell
    */
   protected OPT_DF_LatticeCell makeCell(Object key) {
@@ -126,7 +126,7 @@ class OPT_DominatorSystem extends OPT_DF_System {
   }
 
   /**
-   * Return a list of lattice cells corresponding to the 
+   * Return a list of lattice cells corresponding to the
    * predecessors of a basic block.
    * @param bb the basic block
    */
@@ -145,7 +145,7 @@ class OPT_DominatorSystem extends OPT_DF_System {
        s[s.length-1] = findOrCreateCell(getKey(ir.cfg.exit()));
        return s;
        }
-       else 
+       else
        ****/
       {
         if (OPT_Dominators.DEBUG) {

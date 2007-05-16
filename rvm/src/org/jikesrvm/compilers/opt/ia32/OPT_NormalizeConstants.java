@@ -38,8 +38,8 @@ import org.vmmagic.unboxed.Offset;
 public abstract class OPT_NormalizeConstants implements OPT_Operators {
 
   /**
-   * Only thing we do for IA32 is to restrict the usage of 
-   * String, Float, and Double constants.  The rules are prepared 
+   * Only thing we do for IA32 is to restrict the usage of
+   * String, Float, and Double constants.  The rules are prepared
    * to deal with everything else.
    *
    * @param ir IR to normalize
@@ -49,7 +49,7 @@ public abstract class OPT_NormalizeConstants implements OPT_Operators {
          s != null;
          s = s.nextInstructionInCodeOrder()) {
 
-      // Get 'large' constants into a form the the BURS rules are 
+      // Get 'large' constants into a form the the BURS rules are
       // prepared to deal with.
       // Constants can't appear as defs, so only scan the uses.
       //

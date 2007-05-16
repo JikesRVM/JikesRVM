@@ -56,7 +56,7 @@ public class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions
    * Add architecture-specific register restrictions for a basic block.
    * Override as needed.
    *
-   * @param bb the basic block 
+   * @param bb the basic block
    * @param symbolics the live intervals for symbolic registers on this
    * block
    */
@@ -82,7 +82,7 @@ public class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions
         }
       }
 
-      // handle special cases 
+      // handle special cases
       switch (s.getOpcode()) {
         case MIR_LOWTABLESWITCH_opcode: {
           OPT_RegisterOperand op = MIR_LowTableSwitch.getIndex(s);

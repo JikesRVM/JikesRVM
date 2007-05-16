@@ -62,8 +62,8 @@ import org.jikesrvm.scheduler.VM_Thread;
  *   machine code array and thus VM_CompiledMethod.numberOfInsturctions()
  *   is a close enough approximation of the number of machinecodes generated)
  * </ol>
- *   Note that even if 3. & 4. are inflated due to padding, the numbers will 
- *   still be an accurate measure of the space costs of the compile-only 
+ *   Note that even if 3. & 4. are inflated due to padding, the numbers will
+ *   still be an accurate measure of the space costs of the compile-only
  *   approach.
  */
 public class VM_RuntimeCompiler implements VM_Constants,
@@ -81,9 +81,9 @@ public class VM_RuntimeCompiler implements VM_Constants,
   private static int[] totalBCLength = {0, 0, 0};
   private static int[] totalMCLength = {0, 0, 0};
 
-  // running sum of the natural logs of the rates, 
+  // running sum of the natural logs of the rates,
   //  used for geometric mean, the product of rates is too big for doubles
-  //  so we use the principle of logs to help us 
+  //  so we use the principle of logs to help us
   // We compute  e ** ((log a + log b + ... + log n) / n )
   private static double[] totalLogOfRates = {0, 0, 0};
 
@@ -98,8 +98,8 @@ public class VM_RuntimeCompiler implements VM_Constants,
   // is opt compiler currently in use?
   // This flag is used to detect/avoid recursive opt compilation.
   // (ie when opt compilation causes a method to be compiled).
-  // We also make all public entrypoints static synchronized methods 
-  // because the opt compiler is not reentrant. 
+  // We also make all public entrypoints static synchronized methods
+  // because the opt compiler is not reentrant.
   // When we actually fix defect 2912, we'll have to implement a different
   // scheme that can distinguish between recursive opt compilation by the same
   // thread (always bad) and parallel opt compilation (currently bad, future ok).
@@ -195,8 +195,8 @@ public class VM_RuntimeCompiler implements VM_Constants,
 
       // need to be fully booted before calling log
       if (VM.fullyBooted) {
-        // we want the geometric mean, but the product of rates is too big 
-        //  for doubles, so we use the principle of logs to help us 
+        // we want the geometric mean, but the product of rates is too big
+        //  for doubles, so we use the principle of logs to help us
         // We compute  e ** ((log a + log b + ... + log n) / n )
         totalLogOfRates[compiler] += Math.log(rate);
         totalLogValueMethods[compiler]++;
@@ -224,8 +224,8 @@ public class VM_RuntimeCompiler implements VM_Constants,
         if (i == JNI_COMPILER) {
           VM.sysWrite("NA");
         } else {
-          // Bytecode bytes per millisecond, 
-          //  use unweighted geomean 
+          // Bytecode bytes per millisecond,
+          //  use unweighted geomean
           VM.sysWrite(Math.exp(totalLogOfRates[i] / totalLogValueMethods[i]), 2);
         }
         VM.sysWrite("\t");
@@ -334,7 +334,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
 
   /**
    * attempt to compile the passed method with the OPT_Compiler.
-   * Don't handle OPT_OptimizingCompilerExceptions 
+   * Don't handle OPT_OptimizingCompilerExceptions
    *   (leave it up to caller to decide what to do)
    * Precondition: compilationInProgress "lock" has been acquired
    * @param method the method to compile
@@ -373,7 +373,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
   // These methods are safe to invoke from VM_RuntimeCompiler.compile
 
   /**
-   * This method tries to compile the passed method with the OPT_Compiler, 
+   * This method tries to compile the passed method with the OPT_Compiler,
    * using the default compilation plan.  If
    * this fails we will use the quicker compiler (baseline for now)
    * The following is carefully crafted to avoid (infinte) recursive opt
@@ -434,7 +434,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
   }
 
   /**
-   * This real method that performs the opt compilation.  
+   * This real method that performs the opt compilation.
    * @param method the method to compile
    * @param plan the compilation plan to use
    */
@@ -483,7 +483,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
         // the compiler will check if isForOsrSpecialization of the method
         VM_CompiledMethod cm = optCompile(plan.method, plan);
 
-        // we donot replace the compiledMethod of original method, 
+        // we donot replace the compiledMethod of original method,
         // because it is temporary method
         return cm;
       } catch (OPT_OptimizingCompilerException e) {
@@ -510,11 +510,11 @@ public class VM_RuntimeCompiler implements VM_Constants,
   /**
    * This method tries to compile the passed method with the OPT_Compiler.
    * It will install the new compiled method in the VM, if sucessful.
-   * NOTE: the recompile method should never be invoked via 
+   * NOTE: the recompile method should never be invoked via
    *      VM_RuntimeCompiler.compile;
    *   it does not have sufficient guards against recursive recompilation.
    * @param plan the compilation plan to use
-   * @return the CMID of the new method if successful, -1 if the 
+   * @return the CMID of the new method if successful, -1 if the
    *    recompilation failed.
    *
    **/
@@ -651,7 +651,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
           if (VM_BaselineCompiler.options.PRELOAD_CLASS != null) {
             compilationInProgress = true;         // use baseline during preload
             // Other than when boot options are requested (processed during preloadSpecialClass
-            // It is hard to communicate options for these special compilations. Use the 
+            // It is hard to communicate options for these special compilations. Use the
             // default options and at least pick up the verbose if requested for base/irc
             OPT_Options tmpoptions = ((OPT_Options) options).dup();
             tmpoptions.PRELOAD_CLASS = VM_BaselineCompiler.options.PRELOAD_CLASS;
@@ -668,8 +668,8 @@ public class VM_RuntimeCompiler implements VM_Constants,
         if (VM_Controller.options.optIRC()) {
           if (// will only run once: don't bother optimizing
               method.isClassInitializer() ||
-              // exception in progress. can't use opt compiler: 
-              // it uses exceptions and runtime doesn't support 
+              // exception in progress. can't use opt compiler:
+              // it uses exceptions and runtime doesn't support
               // multiple pending (undelivered) exceptions [--DL]
               VM_Thread.getCurrentThread().hardwareExceptionRegisters.inuse) {
             // compile with baseline compiler
@@ -689,7 +689,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
                && (!VM_Controller.options.ENABLE_PRECOMPILE))
               ) {
             // must be an inital compilation: compile with baseline compiler
-            // or if recompilation with OSR. 
+            // or if recompilation with OSR.
             cm = baselineCompile(method);
             VM_ControllerMemory.incrementNumBase();
           } else {

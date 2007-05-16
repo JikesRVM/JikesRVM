@@ -17,7 +17,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
 public final class OPT_PostDominatorsPhase extends OPT_CompilerPhase {
 
   /**
-   * Should we unfactor the CFG? 
+   * Should we unfactor the CFG?
    */
   private boolean unfactor = false;
 
@@ -66,7 +66,7 @@ public final class OPT_PostDominatorsPhase extends OPT_CompilerPhase {
       // and it doesn't return normally
       ir.HIRInfo.postDominatorsAreComputed = false;
 
-      // compute post-dominators, 
+      // compute post-dominators,
       // leaves info in scratch object of basic blocks
       OPT_LTDominators.perform(ir, false, unfactor);
 

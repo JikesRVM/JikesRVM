@@ -139,7 +139,7 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
   }
 
   /**
-   * @return the VM_CodeArray to jump to to invoke this method (ie, 
+   * @return the VM_CodeArray to jump to to invoke this method (ie,
    *         code_array[0] contains the first instruction of the method's prologue).
    */
   @Uninterruptible
@@ -149,7 +149,7 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
   }
 
   /**
-   * @return the number of machine instructions for compiled method; 
+   * @return the number of machine instructions for compiled method;
    *         may be an overestimate if we have adding padding to machine code.
    */
   @Uninterruptible
@@ -353,35 +353,35 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
   public abstract String getCompilerName();
 
   /**
-   * Get handler to deal with stack unwinding and exception delivery for this 
+   * Get handler to deal with stack unwinding and exception delivery for this
    * compiled method's stackframes.
    */
   @Uninterruptible
   public abstract VM_ExceptionDeliverer getExceptionDeliverer();
 
   /**
-   * Find "catch" block for a machine instruction of 
-   * this method that might be guarded 
+   * Find "catch" block for a machine instruction of
+   * this method that might be guarded
    * against specified class of exceptions by a "try" block .
    *
    * @param instructionOffset offset of machine instruction from start of this method, in bytes
    * @param exceptionType type of exception being thrown - something like "NullPointerException"
-   * @return offset of machine instruction for catch block 
+   * @return offset of machine instruction for catch block
    * (-1 --> no catch block)
    *
-   * Notes: 
+   * Notes:
    * <ul>
-   * <li> The "instructionOffset" must point to the instruction 
+   * <li> The "instructionOffset" must point to the instruction
    * <em> following </em> the actual
-   * instruction whose catch block is sought. 
+   * instruction whose catch block is sought.
    * This allows us to properly handle the case where
-   * the only address we have to work with is a return address 
+   * the only address we have to work with is a return address
    * (ie. from a stackframe)
-   * or an exception address 
+   * or an exception address
    * (ie. from a null pointer dereference, array bounds check,
-   * or divide by zero) on a machine architecture with variable length 
+   * or divide by zero) on a machine architecture with variable length
    * instructions.
-   * In such situations we'd have no idea how far to back up the 
+   * In such situations we'd have no idea how far to back up the
    * instruction pointer
    * to point to the "call site" or "exception site".
    *
@@ -392,26 +392,26 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
   public abstract int findCatchBlockForInstruction(Offset instructionOffset, VM_Type exceptionType);
 
   /**
-   * Fetch symbolic reference to a method that's called by one of 
+   * Fetch symbolic reference to a method that's called by one of
    * this method's instructions.
    * @param dynamicLink place to put return information
-   * @param instructionOffset offset of machine instruction from start of 
+   * @param instructionOffset offset of machine instruction from start of
    * this method, in bytes
    *
-   * Notes: 
+   * Notes:
    * <ul>
    * <li> The "instructionOffset" must point to the instruction i
    * <em> following </em> the call
-   * instruction whose target method is sought. 
+   * instruction whose target method is sought.
    * This allows us to properly handle the case where
-   * the only address we have to work with is a return address 
+   * the only address we have to work with is a return address
    * (ie. from a stackframe)
    * on a machine architecture with variable length instructions.
-   * In such situations we'd have no idea how far to back up the 
+   * In such situations we'd have no idea how far to back up the
    * instruction pointer
    * to point to the "call site".
    *
-   * <li> The implementation must not cause any allocations, 
+   * <li> The implementation must not cause any allocations,
    * because it executes with
    * gc disabled when called by VM_GCMapIterator.
    * <ul>
@@ -447,7 +447,7 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
   }
 
   /**
-   * Print this compiled method's portion of a stack trace 
+   * Print this compiled method's portion of a stack trace
    * @param instructionOffset offset of machine instruction from start of method
    * @param out the VM_PrintLN to print the stack trace to.
    */
@@ -464,7 +464,7 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
   public boolean up(VM_StackBrowser browser) { return false; }
 
   /**
-   * Return the number of bytes used to encode the compiler-specific mapping 
+   * Return the number of bytes used to encode the compiler-specific mapping
    * information for this compiled method.
    * Used to gather stats on the space costs of mapping schemes.
    */

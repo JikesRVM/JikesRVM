@@ -33,7 +33,7 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * Emit a header file containing declarations required to access VM 
+ * Emit a header file containing declarations required to access VM
  * data structures from C++.
  * Posix version: AIX PPC, Linux PPC, Linux IA32
  */
@@ -395,7 +395,7 @@ public class GenerateInterfaceDeclarations {
         // java field "xxxIP" corresponds to C function "xxx"
         String functionName = fieldName.substring(0, suffixIndex);
         // e. g.,
-        //sysFOOIP = (int) sysFOO; 
+        //sysFOOIP = (int) sysFOO;
         p("  br->" + fieldName + " = (intptr_t)" + functionName + ";\n");
       } else if (fieldName.equals("sysJavaVM")) {
         p("  br->" + fieldName + " = (intptr_t)&" + fieldName + ";\n");

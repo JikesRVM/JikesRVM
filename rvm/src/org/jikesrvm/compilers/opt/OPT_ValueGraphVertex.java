@@ -12,7 +12,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_ConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
 
 /**
- * This class implements a vertex in the value graph used in global 
+ * This class implements a vertex in the value graph used in global
  * value numbering
  * ala Alpern, Wegman and Zadeck.  See Muchnick p.348 for a nice
  * discussion.

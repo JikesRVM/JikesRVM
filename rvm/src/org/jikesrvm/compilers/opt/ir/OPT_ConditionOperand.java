@@ -420,7 +420,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    *
    * @param op other operand
    * @return   <code>true</code> if <code>this</code> and <code>op</code>
-   *           are semantically equivalent or <code>false</code> 
+   *           are semantically equivalent or <code>false</code>
    *           if they are not.
    */
   public boolean similar(OPT_Operand op) {
@@ -437,8 +437,8 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    *
    * @param v1 first operand to condition
    * @param v2 second operand to condition
-   * @return <code>TRUE</code> if (v1 cond v2) or 
-   *         <code>FALSE</code> if !(v1 cond v2) or 
+   * @return <code>TRUE</code> if (v1 cond v2) or
+   *         <code>FALSE</code> if !(v1 cond v2) or
    *         <code>UNKNOWN</code>
    */
   public int evaluate(OPT_Operand v1, OPT_Operand v2) {
@@ -535,8 +535,8 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    *
    * @param v1 first operand to condition
    * @param v2 second operand to condition
-   * @return <code>TRUE</code> if (v1 cond v2) or 
-   *         <code>FALSE</code> if !(v1 cond v2) or 
+   * @return <code>TRUE</code> if (v1 cond v2) or
+   *         <code>FALSE</code> if !(v1 cond v2) or
    *         <code>UNKNOWN</code>
    */
   public int evaluate(int v1, int v2) {
@@ -596,8 +596,8 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    *
    * @param v1 first operand to condition
    * @param v2 second operand to condition
-   * @return <code>TRUE</code> if (v1 cond v2) or 
-   *         <code>FALSE</code> if !(v1 cond v2) or 
+   * @return <code>TRUE</code> if (v1 cond v2) or
+   *         <code>FALSE</code> if !(v1 cond v2) or
    *         <code>UNKNOWN</code>
    */
   public int evaluate(long v1, long v2) {
@@ -623,7 +623,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    *
    * @param v1 first operand to condition
    * @param v2 second operand to condition
-   * @return <code>true</code> if (v1 cond v2) or 
+   * @return <code>true</code> if (v1 cond v2) or
    *         <code>false</code> otherwise
    */
   public int evaluate(float v1, float v2) {
@@ -659,7 +659,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    *
    * @param v1 first operand to condition
    * @param v2 second operand to condition
-   * @return <code>true</code> if (v1 cond v2) or 
+   * @return <code>true</code> if (v1 cond v2) or
    *         <code>false</code> otherwise
    */
   public int evaluate(double v1, double v2) {
@@ -695,8 +695,8 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    *
    * @param v1 first operand to condition
    * @param v2 second operand to condition
-   * @return <code>TRUE</code> if (v1 cond v2) or 
-   *         <code>FALSE</code> if !(v1 cond v2) or 
+   * @return <code>TRUE</code> if (v1 cond v2) or
+   *         <code>FALSE</code> if !(v1 cond v2) or
    *         <code>UNKNOWN</code>
    */
   public int evaluate(Address v1, Address v2) {

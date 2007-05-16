@@ -60,7 +60,7 @@ final class OPT_GVCongruenceClass implements Iterable<OPT_ValueGraphVertex> {
   }
 
   /**
-   * Do any of the vertices in this set represent a parameter? 
+   * Do any of the vertices in this set represent a parameter?
    * <p> TODO: for efficiency, keep this information incrementally
    * @return true or false
    */

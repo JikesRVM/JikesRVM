@@ -22,11 +22,11 @@ import org.jikesrvm.runtime.VM_Runtime;
  *
  * We support five mechanisms:
  * <pre>
- *   IMT-based (Alpern, Cocchi, Fink, Grove, and Lieber OOPSLA'01). 
+ *   IMT-based (Alpern, Cocchi, Fink, Grove, and Lieber OOPSLA'01).
  *      - embedded directly in the TIB
  *      - indirectly accessed off the TIB
  *   ITable-based
- *     - directly indexed (by interface id) iTables. 
+ *     - directly indexed (by interface id) iTables.
  *     - searched (at dispatch time)
  *   Naive, class object is searched for matching method on every dispatch.
  * </pre>
@@ -106,9 +106,9 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
         }
       }
 
-      // Didn't find the itable, so we don't yet know if 
-      // the class implements the interface. :((( 
-      // Therefore, we need to establish that and then 
+      // Didn't find the itable, so we don't yet know if
+      // the class implements the interface. :(((
+      // Therefore, we need to establish that and then
       // look for the iTable again.
       VM_Class C = (VM_Class) tib[0];
       if (!VM_Runtime.isAssignableWith(I, C)) throw new IncompatibleClassChangeError();
@@ -141,16 +141,16 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
 
   /**
    * <code>mid</code> is the dictionary id of an interface method we are
-   * trying to invoke 
+   * trying to invoke
    * <code>RHStib</code> is the TIB of an object on which we are attempting to
-   * invoke it 
+   * invoke it
    * We were unable to resolve the member reference at compile time.
    * Therefore we must resolve it now and then call invokeinterfaceImplementsTest
    * with the right LHSclass.
    *
    * @param mid     Dictionary id of the {@link VM_MemberReference} for the
-   *            target interface method. 
-   * @param RHStib  The TIB of the object on which we are attempting to 
+   *            target interface method.
+   * @param RHStib  The TIB of the object on which we are attempting to
    *            invoke the interface method
    */
   public static void unresolvedInvokeinterfaceImplementsTest(int mid, Object[] RHStib)
@@ -170,7 +170,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
 
   /**
    * Main entrypoint called from VM_Class.instantiate to
-   * initialize the interface dispatching data structues for 
+   * initialize the interface dispatching data structues for
    * the given class.
    *
    * @param klass the VM_Class to initialize the disaptch structures for.
@@ -340,7 +340,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
   }
 
   /**
-   * If there is an an IMT or ITable entry that contains 
+   * If there is an an IMT or ITable entry that contains
    * compiled code for the argument method, then update it to
    * contain the current compiled code for the method.
    *

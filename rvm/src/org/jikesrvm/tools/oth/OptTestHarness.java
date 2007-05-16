@@ -37,14 +37,14 @@ import org.jikesrvm.runtime.VM_Time;
  * <p>
  * The role of this class is to allow the optimizing compiler
  * to be run as an "application" to enabling selective testing and
- * debugging of the optimizing compiler.  
+ * debugging of the optimizing compiler.
  * For example, the following command line:
  * <br>
- *   rvm -X:h=100 org.jikesrvm.tools.oth.OptTestHarness -oc:O2 -oc:phases=true 
+ *   rvm -X:h=100 org.jikesrvm.tools.oth.OptTestHarness -oc:O2 -oc:phases=true
  *      -class hanoi -er hanoi run  -
  * <br>
  * invokes the opt compiler at Opt level 2 and phases=true to compile
- * the class hanoi, it then executes the run method of class hanoi. 
+ * the class hanoi, it then executes the run method of class hanoi.
  * <p>
  * Any command that can be given to the optimizing compiler via -X:irc:<cmd>
  * can be given to the optimizing compiler by org.jikesrvm.tools.oth.OptTestHarness via -oc:<cmd>.
@@ -72,7 +72,7 @@ class OptTestHarness {
 
   static ClassLoader cl;
 
-  // Keep baseline and opt methods separate in list of methods 
+  // Keep baseline and opt methods separate in list of methods
   // to be compiled
   static Vector<VM_Method> optMethodVector = null;
   static Vector<OPT_Options> optOptionsVector = null;

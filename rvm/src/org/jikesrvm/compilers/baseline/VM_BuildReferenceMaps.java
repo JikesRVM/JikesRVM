@@ -23,10 +23,10 @@ import org.jikesrvm.classloader.VM_TypeReference;
  * This class builds the reference and non-reference maps for a given method.
  * The maps are recorded with VM_ReferenceMaps. This class works with the baseline
  * compiler, calculating the maps for local variables (including parameters),
- * and the java operand stack. Given the basic blocks mapped out by VM_BuildBB 
- * determine for each GC point (call sites and new's, etc) what the stack and 
- * variable maps are. Note that this class deals with reference maps (the term 
- * "stack maps" was not used as it is too ambiguous - does "stack" refer to the 
+ * and the java operand stack. Given the basic blocks mapped out by VM_BuildBB
+ * determine for each GC point (call sites and new's, etc) what the stack and
+ * variable maps are. Note that this class deals with reference maps (the term
+ * "stack maps" was not used as it is too ambiguous - does "stack" refer to the
  * java operand stack or a C-like stack?; when processing java bytecodes it
  * seemed best to use "stack" for java operand stack.)
  */
@@ -44,14 +44,14 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
 
   private static final boolean debug = false;
 
-  // These two variables are used and updated by more than one method in this class, 
+  // These two variables are used and updated by more than one method in this class,
   // therefore they need to be instance variables;
   int workStkTop;
   int JSRSubNext;
 
   /**
    * After the analysis of the blocks of a method, examine the byte codes again, to
-   * determine the reference maps for the gc points. Record the maps with 
+   * determine the reference maps for the gc points. Record the maps with
    * referenceMaps.
    */
   public void buildReferenceMaps(VM_NormalMethod method,
@@ -89,13 +89,13 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
     // Blocks that need to be processed are put on the workStk
     short[] workStk;
 
-    // Track whether a block has already been seen once. Any recording of maps done 
+    // Track whether a block has already been seen once. Any recording of maps done
     // within such a block will be processed as a "rerecording" instead of a new map.
     //
     boolean[] blockSeen;
 
-    // blocks that represent "catch" blocks need special processing. Catch blocks 
-    // also referred to as handlers 
+    // blocks that represent "catch" blocks need special processing. Catch blocks
+    // also referred to as handlers
     //
     VM_ExceptionHandlerMap exceptions;                // exception table class for method being processed
     int[] tryStartPC;              // array of try start indicesinto byte code table
@@ -116,13 +116,13 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
     short brBBNum;               // For processing branches, need block number of target
 
     // Note that the mapping done here is "double mapping" of parameters.
-    // Double mapping is when the parameters for a method are included in the map of 
-    // the method as well as in the map of the caller of the method. The original 
-    // intent was that with double mapping call sites that are tricks 
+    // Double mapping is when the parameters for a method are included in the map of
+    // the method as well as in the map of the caller of the method. The original
+    // intent was that with double mapping call sites that are tricks
     // (eg VM_Magic.callFunctionReturnVoid ) would at least be correctly mapped on one
     // of the two sides. However with more recent changes to the runtime stack frame
-    // layout, the parameters specified on the caller side occupy different 
-    // locations than the parameters on the callee side for the baseline compiler. 
+    // layout, the parameters specified on the caller side occupy different
+    // locations than the parameters on the callee side for the baseline compiler.
     // Thus both need to be described.
 
     //
@@ -192,7 +192,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
     currBBMap = new byte[method.getOperandWords() + currBBStkEmpty + 1];
 
     //
-    // Need to include the parameters of this method in the map 
+    // Need to include the parameters of this method in the map
     //
     VM_TypeReference[] parameterTypes = method.getParameterTypes();
     int paramStart;
@@ -237,7 +237,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
     blockStkTop[byteToBlockMap[0]] = currBBStkTop;
 
     // For all methods, record a map at the start of the method for the corresponding
-    // conditional call to "yield". 
+    // conditional call to "yield".
 
     referenceMaps.recordStkMap(0, currBBMap, currBBStkTop, false);
 
@@ -1731,15 +1731,15 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
       // if the work stack is empty, we must have processed the whole program
       // we can now process the try handlers if there are any.
       // If a handler doesn't have a starting map already, then the associated try
-      // has not been processed yet. The try and the handler must be in another 
+      // has not been processed yet. The try and the handler must be in another
       // handler, so that handler must be processed first.
-      // If one handler is in the try block associated with a second handler, then 
+      // If one handler is in the try block associated with a second handler, then
       // the second handler must not be processed until the first handler has been.
       //
       if ((workStkTop == -1) && !handlersAllDone) {
         int i;
         for (i = 0; i < tryHandlerLength; i++) {
-          // already processed this handler, or, haven't seen the 
+          // already processed this handler, or, haven't seen the
           // associated try block yet so no starting map is available,
           // the try block must be in one of the other handlers
           if (!handlerProcessed[i] && bbMaps[byteToBlockMap[tryHandlerPC[i]]] != null) break;
@@ -1760,10 +1760,10 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
               // I'm not entirely convinced this is right, but don't know what else we can do. --dave
               if (i == considerIndex) continue;
 
-              // For every handler that has not yet been processed, 
+              // For every handler that has not yet been processed,
               // but already has a known starting map,
               // make sure it is not in the try block part of the handler
-              // we are considering working on. 
+              // we are considering working on.
               if (!handlerProcessed[i] &&
                   tryStart <= tryHandlerPC[i] &&
                   tryHandlerPC[i] < tryEnd &&
@@ -1852,9 +1852,9 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
 
     } else {
       // If the destination block already has a map, then check if there are any
-      // new NONReference values. Note that a new Reference value, will not change an 
-      // existing NONReference value to Reference, as there must be a valid path where 
-      // the variable is not a reference (and not "null" - which is treated as a 
+      // new NONReference values. Note that a new Reference value, will not change an
+      // existing NONReference value to Reference, as there must be a valid path where
+      // the variable is not a reference (and not "null" - which is treated as a
       // reference) so the variable is unusable.
       //
       int mismatchAt = -1;
@@ -1892,7 +1892,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
     if (target.getType().isMagicType()) {
       boolean producesCall = VM_Compiler.checkForActualCall(target);
       if (producesCall) {
-        // register a map, but do NOT include any of the parameters to the call. 
+        // register a map, but do NOT include any of the parameters to the call.
         // Chances are what appear to be parameters are not parameters to
         // the routine that is actually called.
         // In any case, the callee routine will map its parameters
@@ -1909,7 +1909,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
     }
 
     if (!skipRecordingReferenceMap) {
-      // Register the reference map, including the arguments on the stack for this call 
+      // Register the reference map, including the arguments on the stack for this call
       // (unless it is a magic call whose params we have popped above).
       if (!inJSRSub) {
         referenceMaps.recordStkMap(byteindex, currBBMap, currBBStkTop, blockSeen);
@@ -1923,7 +1923,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
       VM_TypeReference[] parameterTypes = target.getParameterTypes();
       int pTypesLength = parameterTypes.length;
 
-      // Pop the arguments for this call off the stack; 
+      // Pop the arguments for this call off the stack;
       for (int i = 0; i < pTypesLength; i++) {
         currBBStkTop -= parameterTypes[i].getStackWords();
       }
@@ -1955,7 +1955,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
     short[] newworkStk = workStk;
 
     // If the destination block doesn't already have a map, then use this map to build
-    // the stack portion of the reference map and add the block to the work stack. 
+    // the stack portion of the reference map and add the block to the work stack.
     // The locals maps should be started with all zeros.
 
     if (bbMaps[brBBNum] == null) {
@@ -2049,15 +2049,15 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
 
   /**
    * For each of the reachable handlers (catch blocks) from the try block, track that
-   * the local variable given by the index with 1 or 2 words, has been set to a 
+   * the local variable given by the index with 1 or 2 words, has been set to a
    * non reference value (eg int, float, etc)
    *
    * @param localVariable             Variable index in the map
    * @param wordCount                 2 for doubles and longs, 1 otherwise
    * @param reachableHandlerBBNums    The array with all the block numbers of
-   *                                  reachable handlers 
-   * @param reachableHandlerCount     0 through <code>reachableHandlerCount 
-   *                                   - 1 </code> will all be valid   
+   *                                  reachable handlers
+   * @param reachableHandlerCount     0 through <code>reachableHandlerCount
+   *                                   - 1 </code> will all be valid
    *                                  array indices
    * @param inJSRSub                  TODO Document ME XXX
    * @param bbMaps                    TODO Document ME XXX
@@ -2084,23 +2084,23 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
   }
 
   /**
-   * For each of the reachable handlers (catch blocks) from the try block, 
+   * For each of the reachable handlers (catch blocks) from the try block,
    * track that
    * the local variable given by the index,  has been set to a reference value.
    * Only call this method if the try block is in a JSR subroutine.
-   * If a non-reference value becomes a reference value, 
+   * If a non-reference value becomes a reference value,
    * then it can not be used as
-   * as reference value within the handler 
+   * as reference value within the handler
    * (there is a path to the handler where the
-   * value is not a reference) so mark the local variable as 
+   * value is not a reference) so mark the local variable as
    * a non-reference if we
    * are tracking the difference maps (for a JSR subroutine).
    *
    * @param localVariable             Variable index in the map
    * @param reachableHandlerBBNums    The array with all the block numbers of
-   *                                  reachable handlers 
-   * @param reachableHandlerCount     0 through <code>reachableHandlerCount 
-   *                                   - 1 </code> will all be valid   
+   *                                  reachable handlers
+   * @param reachableHandlerCount     0 through <code>reachableHandlerCount
+   *                                   - 1 </code> will all be valid
    *                                  array indices
    * @param bbMaps                    TODO Document ME XXX
    */
@@ -2115,26 +2115,26 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
   }
 
   /**
-   * For each of the reachable handlers (catch blocks) 
+   * For each of the reachable handlers (catch blocks)
    * from the try block, track that
-   * the local variable given by the index, 
+   * the local variable given by the index,
    * has been set to a return address value.
    * Only call this routine within a JSR subroutine.
-   * If a non-reference, or reference value becomes a return address value, 
-   * then it 
-   * cannot be used as any of these values within the handler 
-   * (there is a path to 
-   * the handler where the value is not an internal reference, 
-   * and a path where it 
-   * is an internal reference) so mark the local variable as a 
+   * If a non-reference, or reference value becomes a return address value,
+   * then it
+   * cannot be used as any of these values within the handler
+   * (there is a path to
+   * the handler where the value is not an internal reference,
+   * and a path where it
+   * is an internal reference) so mark the local variable as a
    * non-reference if we
    * are tracking the difference maps (for a JSR subroutine).
    *
    * @param localVariable             variable index in the map
-   * @param reachableHandlerBBNums     the array with all the block numbers of 
+   * @param reachableHandlerBBNums     the array with all the block numbers of
    *                                  reachable handlers
-   * @param reachableHandlerCount     0 through <code>reachableHandlerCount 
-   *                                   - 1 </code> will all be valid   
+   * @param reachableHandlerCount     0 through <code>reachableHandlerCount
+   *                                   - 1 </code> will all be valid
    *                                  array indices
    * @param bbMaps                    TODO Document ME XXX
    */

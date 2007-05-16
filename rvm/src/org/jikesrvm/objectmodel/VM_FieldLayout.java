@@ -79,7 +79,7 @@ public abstract class VM_FieldLayout implements VM_SizeConstants {
       VM.sysWriteln("Laying out: ", klass.toString());
     }
 
-    /* 
+    /*
     * Layout reference fields first pre-pass - This can help some
     * GC schemes.
     */
@@ -94,7 +94,7 @@ public abstract class VM_FieldLayout implements VM_SizeConstants {
       }
     }
 
-    /* 
+    /*
     * Layout 8byte values first pre-pass - do this to avoid unecessary
     * holes for object layouts such as an int followed by a long
     */

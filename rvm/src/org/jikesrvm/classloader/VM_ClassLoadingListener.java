@@ -9,7 +9,7 @@
 package org.jikesrvm.classloader;
 
 /**
- * Interface for callbacks on classloading events. 
+ * Interface for callbacks on classloading events.
  * Just before a class is marked as INITIALIZED, VM_Class.initialize()
  * invokes listeners that implement this interface.
  */

@@ -19,24 +19,24 @@ import org.jikesrvm.scheduler.VM_Processor;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * A place to put hand written machine code typically invoked by VM_Magic 
+ * A place to put hand written machine code typically invoked by VM_Magic
  * methods.
  *
- * <p>Hand coding of small inline instruction sequences is typically handled by 
- * each compiler's implementation of VM_Magic methods.  
- * A few VM_Magic methods are so complex that their implementations require 
- * many instructions.  But our compilers do not inline 
- * arbitrary amounts of machine code. We therefore write such code blocks 
+ * <p>Hand coding of small inline instruction sequences is typically handled by
+ * each compiler's implementation of VM_Magic methods.
+ * A few VM_Magic methods are so complex that their implementations require
+ * many instructions.  But our compilers do not inline
+ * arbitrary amounts of machine code. We therefore write such code blocks
  * here, out of line.
  *
  * <p>These code blocks can be shared by all compilers. They can be branched to
  * via a jtoc offset (obtained from VM_Entrypoints.XXXInstructionsField).
  *
- * <p> 17 Mar 1999 Derek Lieber (adapted from powerPC version in 2000 
+ * <p> 17 Mar 1999 Derek Lieber (adapted from powerPC version in 2000
  * by somebody)
  *
- * <p> 15 Jun 2001 Dave Grove and Bowen Alpern (Derek believed that compilers 
- * could inline these methods if they wanted.  We do not believe this would 
+ * <p> 15 Jun 2001 Dave Grove and Bowen Alpern (Derek believed that compilers
+ * could inline these methods if they wanted.  We do not believe this would
  * be very easy since they return assuming the return address is on the stack.)
  */
 public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
@@ -151,7 +151,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     asm.emitPUSH_Imm(INVISIBLE_METHOD_ID);
     asm.emitADD_Reg_Imm(SP, STACKFRAME_BODY_OFFSET);
 
-    /* write parameters on stack 
+    /* write parameters on stack
     * move data from memory addressed by Paramaters array, the fourth
     * parameter to this, into the stack.
     * SP target address
@@ -233,7 +233,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
    *
    *  Side effects at runtime:
    *    S0, T1 destroyed
-   *    Thread state stored into VM_Registers object 
+   *    Thread state stored into VM_Registers object
    */
   private static ArchitectureSpecific.VM_CodeArray generateSaveThreadStateInstructions() {
     if (VM.VerifyAssertions) {
@@ -350,7 +350,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     // Push registers.ip to stack (now that SP has been restored)
     asm.emitPUSH_RegDisp(T0, VM_Entrypoints.registersIPField.getOffset());
 
-    // Restore the GPRs except for S0, PR, and SP 
+    // Restore the GPRs except for S0, PR, and SP
     // (restored above and then modified by pushing registers.ip!)
     Offset off = Offset.zero();
     for (byte i = 0; i < NUM_GPRS; i++, off = off.plus(WORDSIZE)) {
@@ -404,7 +404,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     // reload processor register from JNIEnvironment
     VM_ProcessorLocalState.emitLoadProcessor(asm, S0, VM_Entrypoints.JNIEnvSavedPRField.getOffset());
 
-    // reload JTOC from vitual processor 
+    // reload JTOC from vitual processor
     // NOTE: EDI saved in glue frame is just EDI (opt compiled code uses it as normal non-volatile)
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC,
                                               VM_Entrypoints.jtocField.getOffset());

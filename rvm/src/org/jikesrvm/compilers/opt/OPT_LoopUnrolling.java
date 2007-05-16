@@ -320,7 +320,7 @@ public class OPT_LoopUnrolling extends OPT_CompilerPhase {
       OPT_Operand def = defs.next();
       OPT_Instruction inst = def.instruction;
       OPT_BasicBlock block = inst.getBasicBlock();
-      //VM.sysWrite (""+block+": "+inst+"\n"); 
+      //VM.sysWrite (""+block+": "+inst+"\n");
       if (OPT_CFGTransformations.inLoop(block, nloop)) {
         if (iterator == null) {
           iterator = inst;
@@ -412,36 +412,36 @@ public class OPT_LoopUnrolling extends OPT_CompilerPhase {
 //                          guard0:
 //                           limit = b;
 //   if a > b goto Orig                                  if b > a goto Orig
-//                           else guard1                             
-//    
-// 
-//                          guard 1:                             
+//                           else guard1
+//
+//
+//                          guard 1:
 //   remainder = b - a;                                  remainder = a - b;
 // if cond == '<='                                    if cond == '>='
 //   remainder++;                                         remainder++;
-//                           remainder = remainder & 3                     
+//                           remainder = remainder & 3
 //   limit = a + remainder                               limit = a - remainder
 // if cond == '<='                                    if cond == '>='
 //   limit--;                                            limit++;
-//                           if remainder == 0 goto mllp 
-//                           goto Orig 
-//                                                                     
-//                          Orig:                                
-//                           LOOP;                              
-//                           if i CC limit goto Orig 
-//                           else guard2  
-//                                                
-//                          guard2: if i CC b goto mllp 
+//                           if remainder == 0 goto mllp
+//                           goto Orig
+//
+//                          Orig:
+//                           LOOP;
+//                           if i CC limit goto Orig
+//                           else guard2
+//
+//                          guard2: if i CC b goto mllp
 //                           else exit
-//                      
+//
 //                           mllp: // landing pad
 //                           goto ml
-//                
-//                          ml:                                  
-//                           LOOP;LOOP;LOOP;LOOP;                             
-//                           if i CC b goto ml 
+//
+//                          ml:
+//                           LOOP;LOOP;LOOP;LOOP;
+//                           if i CC b goto ml
 //                           else exit
-//                                                      
+//
 //                          exit:
 //--------------------------------------------------------------------------
     report("...transforming.\n");
@@ -727,9 +727,9 @@ public class OPT_LoopUnrolling extends OPT_CompilerPhase {
     // the following loop redirects backedges that start in the last
     // copy to point to the first copy instead and not to the original
     // header.
-    //                |                    |    
-    // Thus we get   [ ]     instead of   [ ]<-.   
-    //                |                    |   | 
+    //                |                    |
+    // Thus we get   [ ]     instead of   [ ]<-.
+    //                |                    |   |
     //               [ ]<-.               [ ]  |
     //                |   |                |   |
     //               [ ]  |               [ ]  |

@@ -15,7 +15,7 @@ import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
 
 /**
- * Constants for the JavaHeader. 
+ * Constants for the JavaHeader.
  *
  * @see VM_ObjectModel
  */
@@ -80,7 +80,7 @@ public interface VM_JavaHeaderConstants extends VM_SizeConstants {
   boolean FORWARDING_PTR_OVERLAYS_TIB = false;
 
   /**
-   * Does this object model place the hash for a hashed and moved object 
+   * Does this object model place the hash for a hashed and moved object
    * after the data (at a dynamic offset)
    */
   boolean DYNAMIC_HASH_OFFSET

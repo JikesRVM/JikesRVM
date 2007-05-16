@@ -16,15 +16,15 @@ import org.vmmagic.pragma.Uninterruptible;
 /**
  * Data structures and code for fast dynamic type checking.
  * <p>
- * As a convention, we convert all dynamic type checking 
+ * As a convention, we convert all dynamic type checking
  * operations into the following question: LHS :?= RHS
  * (i.e. can an instance of the RHS class be stored in a
  * variable of the LHS class or interface.)  This question
  * arises for four bytecodes: instanceof, checkcast, aastore
- * and invokeinterface and entry into catch blocks. 
- * This gives us a uniform terminology, but in some cases 
- * (instanceof) can be somewhat counter-intuitive since despite 
- * the fact that the Java source code is written as 
+ * and invokeinterface and entry into catch blocks.
+ * This gives us a uniform terminology, but in some cases
+ * (instanceof) can be somewhat counter-intuitive since despite
+ * the fact that the Java source code is written as
  * <code>x instanceof C</code>, for the purposes of dynamic type checking
  * <code>x</code> is the RHS and <code>C</code> is the LHS!
  * <p>
@@ -35,11 +35,11 @@ import org.vmmagic.pragma.Uninterruptible;
  * <p>
  * (1) Is the LHS unknown at compile time?  True only for aastore?
  *    If so, the following test will be fast in most instances:
- *    is the runtime type of the LHS array the same as compile-time 
+ *    is the runtime type of the LHS array the same as compile-time
  *    type of the variable that contains it?  If so, the Java-to-bytecode
- *    compiler (and the verifier) guarantees that the test passes.  
+ *    compiler (and the verifier) guarantees that the test passes.
  *    Unfortunately, this test can only be used in two of three cases:
- *    when the LHS variable is a field or a parameter.  When the LHS is 
+ *    when the LHS variable is a field or a parameter.  When the LHS is
  *    in a local variable the Java-to-bytecode compiler has thrown away
  *    the necessary type information.
  * <p>
@@ -61,13 +61,13 @@ import org.vmmagic.pragma.Uninterruptible;
  *    If so, fall back to calling VM_Runtime.instanceOf at runtime which will
  *    load/resolve the types and then call VM_DynamicTypeCheck.instanceOf.
  * <p>
- * (4) Otherwise, is the LHS an interface?  
- *    If so, query the doesImplement array of the RHS's TIB at the entry 
+ * (4) Otherwise, is the LHS an interface?
+ *    If so, query the doesImplement array of the RHS's TIB at the entry
  *    for the interface ID. If a class does not directly implement any
  *    interfaces then it inherits the doesImplement array from its superclass.
  * <p>
- * (5) Otherwise, is the depth of the LHS greater than 
- * MIN_SUPERCLASS_IDS_SIZE? If so, if LHS depth is greater that 
+ * (5) Otherwise, is the depth of the LHS greater than
+ * MIN_SUPERCLASS_IDS_SIZE? If so, if LHS depth is greater that
  * RHS's superclassIds.length, the test fails.  Else, see #6.
  * <p>
  * (6) Otherwise.  If the LHS depth component of the RHS's superclassIds
@@ -121,7 +121,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
       }
     }
     int id = t.getId();
-    if (VM.VerifyAssertions) VM._assert(id <= 0xFFFF); // when this fails, make superclassIds int[] 
+    if (VM.VerifyAssertions) VM._assert(id <= 0xFFFF); // when this fails, make superclassIds int[]
     tsi[depth] = (short) id;
     return tsi;
   }
@@ -200,7 +200,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
   }
 
   /**
-   * LHSclass is a fully loaded class or interface.  
+   * LHSclass is a fully loaded class or interface.
    *   Is rhsTIB the TIB of an instanceof LHSclass?
    *
    * @param LHSclass a fully loaded class or interface class
@@ -260,7 +260,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
    *
    * @param LHSType the left-hand-side type
    * @param RHSType the right-hand-size type
-   * @return <code>true</code> if we can store an object of 
+   * @return <code>true</code> if we can store an object of
    *         RHSType into a variable of type LSType
    *         or <code>false</code> if we cannot.
    */
@@ -276,7 +276,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
     if (LHSInnermostElementType == VM_Type.JavaLangObjectType) {
       if (RHSDimension < LHSDimension) return false;
       if (RHSDimension > LHSDimension) return true;
-      return RHSType.asArray().getInnermostElementType().isClassType(); // !primitive 
+      return RHSType.asArray().getInnermostElementType().isClassType(); // !primitive
     } else if (!LHSInnermostElementType.isPrimitiveType()) {
       if (RHSDimension == LHSDimension) {
         VM_Type RHSInnermostElementType = RHSType.asArray().getInnermostElementType();

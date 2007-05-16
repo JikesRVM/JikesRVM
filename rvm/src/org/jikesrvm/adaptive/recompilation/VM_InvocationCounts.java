@@ -24,7 +24,7 @@ import org.jikesrvm.compilers.opt.OPT_Options;
 import org.jikesrvm.runtime.VM_Magic;
 
 /**
- * Runtime system support for using invocation counters in baseline 
+ * Runtime system support for using invocation counters in baseline
  * compiled code to select methods for optimizing recompilation
  * by the adaptive system.  Bypasses the normal controller logic:
  * If an invocation counter trips, then the method is enqueued for
@@ -73,7 +73,7 @@ public final class VM_InvocationCounts {
   }
 
   /**
-   * Create the compilation plan according to the default set 
+   * Create the compilation plan according to the default set
    * of <optimization plan, options> pairs
    */
   public static OPT_CompilationPlan createCompilationPlan(VM_NormalMethod method) {
@@ -89,7 +89,7 @@ public final class VM_InvocationCounts {
    *
    *  Note: This uses the command line options to set up the
    *  optimization plans, so this must be run after the command line
-   *  options are available.  
+   *  options are available.
    */
   public static void init() {
     createOptimizationPlan();

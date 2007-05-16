@@ -25,7 +25,7 @@ import org.vmmagic.unboxed.Offset;
 @Uninterruptible
 public abstract class OSR_PostThreadSwitch implements VM_BaselineConstants {
 
-  /* This method must be inlined to keep the correctness 
+  /* This method must be inlined to keep the correctness
    * This method is called at the end of threadSwitch, the caller
    * is threadSwitchFrom<...>
    */

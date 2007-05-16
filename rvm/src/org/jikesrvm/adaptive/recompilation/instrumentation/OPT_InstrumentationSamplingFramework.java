@@ -152,7 +152,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
 
   }
 
-//  /** 
+//  /**
 //   * Initialization to perform before the transformation is applied
 //   */
 //  private static void initialize(OPT_IR ir) {
@@ -169,15 +169,15 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
     OPT_Simple simple = new OPT_Simple(-1, false, false);
     simple.perform(ir);
 
-    // Perform branch optimizations (level 0 is passed because if we 
+    // Perform branch optimizations (level 0 is passed because if we
     // always want to call it if we've used the sampling framework).
     OPT_BranchOptimizations branchOpt = new OPT_BranchOptimizations(0, true, true);
     branchOpt.perform(ir);
 
-    // Clear the static variables 
+    // Clear the static variables
     cbsReg = null;
 
-    // 
+    //
     //    OPT_RegisterInfo.computeRegisterList(ir);
     OPT_DefUse.recomputeSpansBasicBlock(ir);
     OPT_DefUse.recomputeSSA(ir);
@@ -270,7 +270,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
         }
 
         // Split entry node so the split instr isn't duplicated, but rest
-        // of block is.   
+        // of block is.
         OPT_BasicBlock blockTail =
             curBlock.splitNodeWithLinksAt(splitInstr, ir);
         curBlock.recomputeNormalOut(ir);
@@ -328,7 +328,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    * For now, checks are inserted at all yieldpoints (See comment at
    * top of file).
    *
-   * @param ir the governing IR 
+   * @param ir the governing IR
    */
   private void insertCBSChecks(OPT_IR ir,
                                HashMap<OPT_BasicBlock, OPT_BasicBlock> origToDupMap,
@@ -339,7 +339,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
       OPT_BasicBlock dup = origToDupMap.get(bb);
 
       if (dup == null) {
-        // Getting here means that for some reason the block was not duplicated.  
+        // Getting here means that for some reason the block was not duplicated.
         if (DEBUG) {
           VM.sysWrite("Debug: block " + bb + " was not duplicated\n");
         }
@@ -348,7 +348,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
 
       // If you have a yieldpoint, or if you are the predecessor of a
       // split exception handler when duplicating code) then insert a
-      // check 
+      // check
 
       if (getFirstInstWithYieldPoint(bb) != null ||   // contains yieldpoint
           exceptionHandlerBlocks.contains(bb)) { // is exception handler
@@ -363,7 +363,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
 
         // Make a new BB that contains the check itself (it needs to
         // be a basic block because the duplicated code branches back
-        // to it).  
+        // to it).
         checkBB = new OPT_BasicBlock(-1, null, ir.cfg);
 
         // Break the code to insert the check logic
@@ -395,7 +395,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    * @param checkBB The block to append the CBS check to.
    * @param noInstBB The basic block to jump to if the CBS check fails
    * @param instBB The basicBlock to jump to if the CBS check succeeds
-   * @param fallthroughToInstBB Should checkBB fallthrough to instBB 
+   * @param fallthroughToInstBB Should checkBB fallthrough to instBB
    *                            (otherwise it must fallthrough to noInstBB)
    */
   private void createCheck(OPT_BasicBlock checkBB,
@@ -462,7 +462,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
         // NOT IMPLEMENTED
       } else {
         // Phase is being used in LIR
-        // Insert the load instruction. 
+        // Insert the load instruction.
         load =
             Load.create(INT_LOAD, cbsReg.copyRO(),
                         OPT_IRTools.A(ir.regpool.getPhysicalRegisterSet().getPR()),
@@ -563,7 +563,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
 
   /**
    * Prepend the code to reset the global counter to the given basic
-   * block.  
+   * block.
    *
    * Warning:  Tested in LIR only!
    *
@@ -662,7 +662,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
   /**
    *  Is the given instruction a yieldpoint?
    *
-   *  For now we ignore epilogue yieldpoints since we are only concerned with 
+   *  For now we ignore epilogue yieldpoints since we are only concerned with
    *  method entries and backedges.
    */
   public static boolean isYieldpoint(OPT_Instruction i) {
@@ -675,7 +675,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
 
   /**
    * Go through all blocks in duplicated code and adjust the edges as
-   * follows: 
+   * follows:
    *
    * 1) All edges (in duplicated code) that go into a block with a
    * yieldpoint must jump to back to the original code.  This is
@@ -692,7 +692,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
     // Iterate over the original version of all duplicate blocks
     for (OPT_BasicBlock dupBlock : origToDupMap.values()) {
 
-      // Look at the successors of duplicated Block. 
+      // Look at the successors of duplicated Block.
       for (OPT_BasicBlockEnumeration out = dupBlock.getNormalOut();
            out.hasMoreElements();) {
         OPT_BasicBlock origSucc = out.next();
@@ -802,7 +802,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
           OPT_RegisterOperand ro = (OPT_RegisterOperand) op;
           if (ro.register.isTemp() &&
               !ro.register.spansBasicBlock()) {
-            // This register does not span multiple basic blocks, so 
+            // This register does not span multiple basic blocks, so
             // replace it with a temp.
             OPT_RegisterOperand newReg =
                 getOrCreateDupReg(ro, ir);
@@ -894,7 +894,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
            ie.hasMoreElements();) {
         OPT_Instruction i = ie.next();
 
-        // If it's an instrumentation operation, remember the instruction 
+        // If it's an instrumentation operation, remember the instruction
         if (isInstrumentationInstruction(i)) {
           instrumentationOperations.add(i);
         }
@@ -909,12 +909,12 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
   }
 
   /**
-   * Take an instrumentation operation (an instruction) and guard it 
+   * Take an instrumentation operation (an instruction) and guard it
    * with a counter-based check.
    *
    * 1) split the basic block before and after the i
    *    to get A -> B -> C
-   * 2) Add check to A, making it go to B if it succeeds, otherwise C   
+   * 2) Add check to A, making it go to B if it succeeds, otherwise C
    */
   private void
   conditionalizeInstrumentationOperation(OPT_IR ir,
@@ -949,7 +949,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
   /**
    * How to determine whether a given instruction is an
    * "instrumentation instruction".  In other words, it should be
-   * executed only when a sample is being taken.  
+   * executed only when a sample is being taken.
    */
   private static boolean isInstrumentationInstruction(OPT_Instruction i) {
 
@@ -961,7 +961,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
   }
 
   /**
-   * Temp debugging code 
+   * Temp debugging code
    */
   public static void dumpCFG(OPT_IR ir) {
 

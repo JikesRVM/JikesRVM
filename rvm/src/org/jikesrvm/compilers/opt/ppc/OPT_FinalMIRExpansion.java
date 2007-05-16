@@ -80,7 +80,7 @@ public abstract class OPT_FinalMIRExpansion extends OPT_IRTools {
 
   /**
    * @param ir the IR to expand
-   * @return upperbound on number of machine code instructions 
+   * @return upperbound on number of machine code instructions
    * that will be generated for this IR
    */
   public static int expand(OPT_IR ir) {
@@ -281,8 +281,8 @@ public abstract class OPT_FinalMIRExpansion extends OPT_IRTools {
       }
     }
 
-    // this is conservative but pretty close, especially for 
-    // reasonably sized methods 
+    // this is conservative but pretty close, especially for
+    // reasonably sized methods
     if ((instructionCount + conditionalBranchCount) > OPT_Assembler.MAX_COND_DISPL) {
       machinecodeLength = instructionCount + 2 * conditionalBranchCount;
     } else {
@@ -302,7 +302,7 @@ public abstract class OPT_FinalMIRExpansion extends OPT_IRTools {
    * Create a new basic block at the end of the code order if necessary.
    *
    * @param ir the governing IR
-   * @param whereFrom is this yieldpoint from the PROLOGUE, EPILOGUE, or a 
+   * @param whereFrom is this yieldpoint from the PROLOGUE, EPILOGUE, or a
    * BACKEDGE?
    */
   static OPT_BasicBlock findOrCreateYieldpointBlock(OPT_IR ir,

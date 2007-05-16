@@ -27,9 +27,9 @@ import org.vmmagic.unboxed.WordArray;
 
 /**
  * Iterator for stack frame  built by the Baseline compiler
- * An Instance of this class will iterate through a particular 
+ * An Instance of this class will iterate through a particular
  * reference map of a method returning the offsets of any refereces
- * that are part of the input parameters, local variables, and 
+ * that are part of the input parameters, local variables, and
  * java stack for the stack frame.
  */
 @Uninterruptible
@@ -245,7 +245,7 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator
         }
       } else {
         // remember that we are done with the map for future calls, and then
-        //   drop down to the code below 
+        //   drop down to the code below
         finishedWithRegularMap = true;
       }
     }

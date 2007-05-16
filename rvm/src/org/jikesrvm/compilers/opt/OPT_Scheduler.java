@@ -49,7 +49,7 @@ final class OPT_Scheduler {
   /**
    * A constant signifying post-pass scheduling phase.
    * WARNING: POSTPASS INSTRUCTION SCHEDULING (AFTER REGISTER ALLOCATION)
-   * Cannot be done safely due to failure to update GCMapping information. 
+   * Cannot be done safely due to failure to update GCMapping information.
    * --dave.
    */
   public static final int POSTPASS = 2;

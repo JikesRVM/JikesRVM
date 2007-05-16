@@ -27,7 +27,7 @@ import org.vmmagic.unboxed.Offset;
  * Description of a java "array" type. <p>
  *
  * This description is not read from a ".class" file, but rather
- * is manufactured by the vm as execution proceeds. 
+ * is manufactured by the vm as execution proceeds.
  *
  * @see VM_Type
  * @see VM_Class
@@ -84,7 +84,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   private final int alignment;
 
   /**
-   * Reference Count GC: is this type acyclic? 
+   * Reference Count GC: is this type acyclic?
    */
   private final boolean acyclic;
 
@@ -142,7 +142,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   }
 
   /**
-   * @return java Expression stack space requirement. 
+   * @return java Expression stack space requirement.
    */
   @Uninterruptible
   public int getStackWords() {
@@ -301,7 +301,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   }
 
   /**
-   * get number of superclasses to Object 
+   * get number of superclasses to Object
    * @return 1
    */
   @Uninterruptible
@@ -457,7 +457,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   }
 
   /**
-   * Resolve an array.  
+   * Resolve an array.
    * Also forces the resolution of the element type.
    */
   public synchronized void resolve() {
@@ -552,7 +552,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   //--------------------------------------------------------------------------------------------------//
 
   /**
-   * Perform an array copy for arrays of bytes. 
+   * Perform an array copy for arrays of bytes.
    *
    * @param src The source array
    * @param srcIdx The starting source index
@@ -594,7 +594,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   }
 
   /**
-   * Perform an array copy for arrays of booleans. 
+   * Perform an array copy for arrays of booleans.
    *
    * @param src The source array
    * @param srcIdx The starting source index
@@ -636,7 +636,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   }
 
   /**
-   * Perform an array copy for arrays of shorts. 
+   * Perform an array copy for arrays of shorts.
    *
    * @param src The source array
    * @param srcIdx The starting source index
@@ -678,7 +678,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   }
 
   /**
-   * Perform an array copy for arrays of chars. 
+   * Perform an array copy for arrays of chars.
    *
    * @param src The source array
    * @param srcIdx The starting source index
@@ -720,7 +720,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   }
 
   /**
-   * Perform an array copy for arrays of ints. 
+   * Perform an array copy for arrays of ints.
    *
    * @param src The source array
    * @param srcIdx The starting source index
@@ -762,7 +762,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   }
 
   /**
-   * Perform an array copy for arrays of floats. 
+   * Perform an array copy for arrays of floats.
    *
    * @param src The source array
    * @param srcIdx The starting source index
@@ -804,7 +804,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   }
 
   /**
-   * Perform an array copy for arrays of longs. 
+   * Perform an array copy for arrays of longs.
    *
    * @param src The source array
    * @param srcIdx The starting source index
@@ -846,7 +846,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   }
 
   /**
-   * Perform an array copy for arrays of doubles. 
+   * Perform an array copy for arrays of doubles.
    *
    * @param src The source array
    * @param srcIdx The starting source index

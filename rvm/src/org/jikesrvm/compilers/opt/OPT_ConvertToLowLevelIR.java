@@ -142,7 +142,7 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * Converts all remaining instructions with HIR-only operators into 
+ * Converts all remaining instructions with HIR-only operators into
  * an equivalent sequence of LIR operators.
  */
 public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
@@ -577,7 +577,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
   }
 
   /**
-   * Helper function to generate the binary search tree for 
+   * Helper function to generate the binary search tree for
    * a lookupswitch bytecode
    *
    * @param switchInstr the lookupswitch instruction
@@ -727,7 +727,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
    * @param s the instruction to expand
    * @param ir the containing IR
    * @param op the load operator to use
-   * @param logwidth the log base 2 of the element type's size 
+   * @param logwidth the log base 2 of the element type's size
    */
   public static void doArrayLoad(OPT_Instruction s, OPT_IR ir,
                                  OPT_Operator op,
@@ -757,7 +757,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
    * @param s the instruction to expand
    * @param ir the containing IR
    * @param op the store operator to use
-   * @param logwidth the log base 2 of the element type's size 
+   * @param logwidth the log base 2 of the element type's size
    */
   public static void doArrayStore(OPT_Instruction s, OPT_IR ir,
                                   OPT_Operator op,
@@ -999,7 +999,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
     OPT_BasicBlock resolveBB = predBB.createSubBlock(s.bcIndex, ir, bp.takenProbability);
     s.remove();
 
-    // Get the offset from the appropriate VM_ClassLoader array 
+    // Get the offset from the appropriate VM_ClassLoader array
     // and check to see if it is valid
     OPT_RegisterOperand offsetTable =
         getStatic(testBB.lastInstruction(), ir, VM_Entrypoints.memberOffsetsField);
@@ -1094,7 +1094,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
    * @param ir the containing IR
    * @param operator the operator to insert
    * @param type the type of the result
-   * @param offset the offset to load at 
+   * @param offset the offset to load at
    * @return the result operand of the inserted instruction
    */
   static OPT_RegisterOperand InsertLoadOffsetJTOC(OPT_Instruction s,
@@ -1112,7 +1112,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
    * @param ir the containing IR
    * @param operator the operator to insert
    * @param type the type of the result
-   * @param offset the offset to load at 
+   * @param offset the offset to load at
    * @return the result operand of the inserted instruction
    */
   static OPT_RegisterOperand InsertLoadOffsetJTOC(OPT_Instruction s,
@@ -1131,7 +1131,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
    * @param operator the operator to insert
    * @param type the type of the result
    * @param reg2 the base to load from
-   * @param offset the offset to load at 
+   * @param offset the offset to load at
    * @return the result operand of the inserted instruction
    */
   static OPT_RegisterOperand InsertLoadOffset(OPT_Instruction s, OPT_IR ir,
@@ -1149,7 +1149,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
    * @param operator the operator to insert
    * @param type the type of the result
    * @param reg2 the base to load from
-   * @param offset the offset to load at 
+   * @param offset the offset to load at
    * @param guard the guard operand
    * @return the result operand of the inserted instruction
    */
@@ -1169,7 +1169,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
    * @param operator the operator to insert
    * @param type the type of the result
    * @param reg2 the base to load from
-   * @param offset the offset to load at 
+   * @param offset the offset to load at
    * @param loc the location operand
    * @param guard the guard operand
    * @return the result operand of the inserted instruction
@@ -1191,7 +1191,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
    * @param operator the operator to insert
    * @param type the type of the result
    * @param reg2 the base to load from
-   * @param offset the offset to load at 
+   * @param offset the offset to load at
    * @param loc the location operand
    * @param guard the guard operand
    * @return the result operand of the inserted instruction
@@ -1303,7 +1303,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
    */
   static OPT_RegisterOperand getSpecialMethod(OPT_Instruction s, OPT_IR ir,
                                               int smid) {
-    //  First, get the pointer to the JTOC offset pointing to the 
+    //  First, get the pointer to the JTOC offset pointing to the
     //  specialized Method table
     OPT_RegisterOperand reg =
         InsertLoadOffsetJTOC(s, ir, REF_LOAD,

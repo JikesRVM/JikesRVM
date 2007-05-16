@@ -26,8 +26,8 @@ public final class OPT_LiveIntervalElement {
   private OPT_Register register;
 
   /**
-   * instruction where the live interval begins 
-   * (null if alive at basic block entry)  
+   * instruction where the live interval begins
+   * (null if alive at basic block entry)
    */
   private OPT_Instruction begin;
 

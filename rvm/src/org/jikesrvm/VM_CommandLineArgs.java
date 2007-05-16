@@ -211,7 +211,7 @@ public class VM_CommandLineArgs {
         }
         // Chop off the prefix (which we've already matched) and store the
         // value portion of the string (the unique part) in args[i].  Store
-        // information about the prefix itself in arg_types[i].   
+        // information about the prefix itself in arg_types[i].
         args[i] = arg.substring(length(v));
         if (DEBUG) {
           VM.sysWrite("length(v) = ");
@@ -573,12 +573,12 @@ public class VM_CommandLineArgs {
 
   /**
    * Stage2 processing of virtual machine directives appearing in argument list.
-   * This function is responsible for processing the few 
+   * This function is responsible for processing the few
    * command line arguments that need to be handled late in booting.
    * It also returns the application's command line arguments.
    *
    * @return application arguments (first is application class name)
-   * If no application arguments are specified on the command line, 
+   * If no application arguments are specified on the command line,
    * process commands anyway.
    */
   static String[] lateProcessCommandLineArguments() {
@@ -669,7 +669,7 @@ public class VM_CommandLineArgs {
    * Read the <code>argno</code>'th command line argument from the C argv
    * @param argno Number of argument sought
    * @param buf   Buffer to fill
-   * @return number of bytes placed in buffer. -1 means buffer too small 
+   * @return number of bytes placed in buffer. -1 means buffer too small
    *         for argument to fit)
    */
   private static int sysArg(int argno, byte[] buf) {
@@ -700,11 +700,11 @@ public class VM_CommandLineArgs {
   }
 
   /**
-   * Primitive parsing of memory sizes, with proper error handling, 
-   * and so on.  
+   * Primitive parsing of memory sizes, with proper error handling,
+   * and so on.
    * Works without needing Byte.parseByte or Integer.parseInt().
    *
-   * At the moment, we have a maximum limit of an unsigned integer.  If 
+   * At the moment, we have a maximum limit of an unsigned integer.  If
    *
    * @return Negative values on error.
    *      Otherwise, positive or zero values as bytes.
@@ -729,7 +729,7 @@ public class VM_CommandLineArgs {
     }
 
     /** Read argument # @param i
-     * Assume arguments are encoded in the platform's 
+     * Assume arguments are encoded in the platform's
      * "default character set". */
     @SuppressWarnings({"deprecation"})
     String getArg(int i) {

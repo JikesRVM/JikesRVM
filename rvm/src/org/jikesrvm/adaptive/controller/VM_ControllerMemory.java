@@ -25,7 +25,7 @@ import org.jikesrvm.util.VM_HashMap;
 public final class VM_ControllerMemory implements VM_Constants {
 
   /**
-   *  This is a hashtable of controller plans indexed by VM_Method.  
+   *  This is a hashtable of controller plans indexed by VM_Method.
    *  Each method can have a list of such plans associated with.
    */
   private static final VM_HashMap<VM_Method, LinkedList<VM_ControllerPlan>> table =
@@ -147,7 +147,7 @@ public final class VM_ControllerMemory implements VM_Constants {
    * Looks for a controller plan for the passed method
    *
    * @param method   The method to look for
-   * @return the list of controller plans for this method if one exists, 
+   * @return the list of controller plans for this method if one exists,
    *         otherwise, null
    */
   @SuppressWarnings("unchecked")
@@ -183,9 +183,9 @@ public final class VM_ControllerMemory implements VM_Constants {
 
   /**
    *  Determine if the passed method should be considered as a candidate
-   *  for _initial_ AOS recompilation. 
-   *  A method should not be reconsider for initial AOS recompilation if 
-   *  a plan already exists for the method whose status is IN_PROGRESS, 
+   *  for _initial_ AOS recompilation.
+   *  A method should not be reconsider for initial AOS recompilation if
+   *  a plan already exists for the method whose status is IN_PROGRESS,
    *  COMPLETED, OUTDATED, or ABORTED because of compilation error.
    *
    *  @param method the method of interest
@@ -197,7 +197,7 @@ public final class VM_ControllerMemory implements VM_Constants {
       return true;
     } else {
       // iterate over the planList until we find a plan whose status is
-      // inprogress, completed, 
+      // inprogress, completed,
       synchronized (planList) {
         for (VM_ControllerPlan curPlan : planList) {
           // exit when we find ourselves
@@ -246,19 +246,19 @@ public final class VM_ControllerMemory implements VM_Constants {
     // make sure that the cm in question is baseline-compiled
     if (cm.getCompilerType() != VM_CompiledMethod.BASELINE) return false;
 
-    // OK; now check for an OSR plan 
+    // OK; now check for an OSR plan
     VM_Method m = cm.getMethod();
     if (m == null) return false;
     return planWithStatus(m, VM_ControllerPlan.OSR_BASE_2_OPT);
   }
 
   /**
-   * Return true if there is a completed plan with the given opt level for 
+   * Return true if there is a completed plan with the given opt level for
    * the given method
    *
    * @param method the method of interest
    * @param optLevel the opt level of interest
-   * @return whether or not there is completed plan with that level 
+   * @return whether or not there is completed plan with that level
    *             for the method
    */
   static synchronized boolean completedPlanWithOptLevel(VM_Method method, int optLevel) {
@@ -282,7 +282,7 @@ public final class VM_ControllerMemory implements VM_Constants {
    * Looks for the last controller plan for the passed method
    *
    * @param  method   The method to look for
-   * @return The last controller plan for this method if it exists, 
+   * @return The last controller plan for this method if it exists,
    *         otherwise, null
    */
   public static synchronized VM_ControllerPlan findLatestPlan(VM_Method method) {
@@ -303,15 +303,15 @@ public final class VM_ControllerMemory implements VM_Constants {
     // We will traverse the hash table and for each method record its status as
     // one of the following
     //    B -> 0 -> 1 -> 2
-    //    B -> 0 -> 1 
-    //    B -> 0 
+    //    B -> 0 -> 1
+    //    B -> 0
     //    B      -> 1 -> 2
     //    B -> 0      -> 2
     //    B           -> 2
     //    B      -> 1
     //
     //  We encode these possibilities by turning on 1 of three bits for 0, 1, 2
-    //  Also, for all methods that eventually get to level 2, they can be 
+    //  Also, for all methods that eventually get to level 2, they can be
     //  recompiled an arbitrary amount of times.  We record this in in a counter.
 
     final int MAX_BIT_PATTERN = 7;
@@ -328,7 +328,7 @@ public final class VM_ControllerMemory implements VM_Constants {
 
       for (VM_ControllerPlan plan : planList) {
 
-        // only process plans that were completed or completed and outdated 
+        // only process plans that were completed or completed and outdated
         // by subsequent plans for this method
         byte status = plan.getStatus();
         if (status == VM_ControllerPlan.COMPLETED ||

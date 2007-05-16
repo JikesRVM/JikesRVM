@@ -43,7 +43,7 @@ public interface VM_BaselineConstants extends VM_Constants, VM_ArchConstants {
 
   // Constants describing baseline compiler conventions for
   // saving registers in stackframes.
-  // 
+  //
   int STACKFRAME_REG_SAVE_OFFSET = STACKFRAME_BODY_OFFSET;
   // offset from FP of the saved registers.
   // Some registers are saved in all baseline

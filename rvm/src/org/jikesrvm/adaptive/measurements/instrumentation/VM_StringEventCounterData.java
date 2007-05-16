@@ -42,7 +42,7 @@ public class VM_StringEventCounterData extends VM_ManagedCounterData
 
   /**
    * Given a string, find or create the counter associated and return
-   * and instruction to increment that counter.  
+   * and instruction to increment that counter.
    *
    * @param event The name of the event
    * @return An instruction to increment the count associated with the event.
@@ -53,7 +53,7 @@ public class VM_StringEventCounterData extends VM_ManagedCounterData
 
   /**
    * Given a string, find or create the counter associated and return
-   * and instruction to increment that counter.  
+   * and instruction to increment that counter.
    *
    * @param event The name of the event
    * @param incrementValue The value to add to counter
@@ -91,7 +91,7 @@ public class VM_StringEventCounterData extends VM_ManagedCounterData
    * Print a report at the end of execution
    */
   public void report() {
-    // Turn off future instrumentation to avoid hanging during 
+    // Turn off future instrumentation to avoid hanging during
     // iteration
     VM_Instrumentation.disableInstrumentation();
 
@@ -109,8 +109,8 @@ public class VM_StringEventCounterData extends VM_ManagedCounterData
 
   /**
    * For a given string, return the number of the counter associated
-   * with this string.  If this string doesn't already have a counter, 
-   * reserve one. 
+   * with this string.  If this string doesn't already have a counter,
+   * reserve one.
    *
    * @param str The string for which you want the counter number
    * @return The counter number for this string
@@ -135,7 +135,7 @@ public class VM_StringEventCounterData extends VM_ManagedCounterData
    * from the outside world, but for efficiency it is made public.
    *
    * @param str The string for which you want the counter number
-   * @return The counter number for this string, or -1 if the string has no 
+   * @return The counter number for this string, or -1 if the string has no
   counter associated with it.
    */
   public int getCounterIndexForString(String str) {

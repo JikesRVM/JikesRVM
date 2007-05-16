@@ -10,7 +10,7 @@
 package org.jikesrvm.osr;
 
 /**
- * BC_LoadDoubleConst: ldc2_w 
+ * BC_LoadDoubleConst: ldc2_w
  */
 public class BC_LoadDoubleConst extends OSR_PseudoBytecode {
   private static final int bsize = 10;

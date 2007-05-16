@@ -82,14 +82,14 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     // +    |arg 0     |        |arg 0     |    -> firstParameterOffset
     // +    |arg 1     |        |arg 1     |
     // +    |...       |        |...       |
-    // +8   |arg n-1   |        |arg n-1   |    
+    // +8   |arg n-1   |        |arg n-1   |
     // +4   |returnAddr|        |returnAddr|
     //  0   +          +        +saved FP  + <---- FP for glue frame
     // -4   |          |        |methodID  |
     // -8   |          |        |saved EDI |    -> STACKFRAME_BODY_OFFSET = -8
     // -C   |          |        |saved EBX |
     // -10  |          |        |saved EBP |
-    // -14  |          |        |returnAddr|  (return from OutOfLine to generated epilog)    
+    // -14  |          |        |returnAddr|  (return from OutOfLine to generated epilog)
     // -18  |          |        |saved ENV |  (VM_JNIEnvironment)
     // -1C  |          |        |arg n-1   |  reordered args to native method
     // -20  |          |        | ...      |  ...
@@ -97,9 +97,9 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     // -28  |          |        |arg 0     |  ...
     // -2C  |          |        |class/obj |  required second arg to native method
     // -30  |          |        |jniEnv    |  required first arg to native method
-    // -34  |          |        |          |    
-    //      |          |        |          |    
-    //      |          |        |          |    
+    // -34  |          |        |          |
+    //      |          |        |          |
+    //      |          |        |          |
     //       low address         low address
 
     // TODO:  check and resize stack once on the lowest Java to C transition
@@ -120,7 +120,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     // return here from VM_OutOfLineMachineCode upon return from native code
     // PR and RVM JTOC restored, T0,T1 contain return from native call
 
-    // If the return type is reference, look up the real value in the JNIref array 
+    // If the return type is reference, look up the real value in the JNIref array
 
     // S0 <- threads' VM_JNIEnvironment
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0,
@@ -134,7 +134,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
                               VM_Entrypoints.JNIRefsField.getOffset());      // T0 <- address of entry (not index)
       asm.emitMOV_Reg_RegInd(T0, T0);   // get the reference
     } else if (method.getReturnType().isLongType()) {
-      asm.emitPUSH_Reg(T1);    // need to use T1 in popJNIrefForEpilog and to swap order T0-T1  
+      asm.emitPUSH_Reg(T1);    // need to use T1 in popJNIrefForEpilog and to swap order T0-T1
     }
 
     // pop frame in JNIRefs array (assumes S0 holds VM_JNIEnvironment)
@@ -160,7 +160,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     VM_ForwardReference fr = asm.forwardJcc(VM_Assembler.EQ);            // Br if yes
 
     // if pending exception, discard the return value and current stack frame
-    // then jump to athrow 
+    // then jump to athrow
     asm.emitMOV_Reg_Reg(T0, EBX);
     asm.emitMOV_Reg_RegDisp(T1,
                             JTOC,
@@ -173,12 +173,12 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
 
     asm.emitPOP_RegDisp(PR, VM_Entrypoints.framePointerField.getOffset());
 
-    // don't use CALL since it will push on the stack frame the return address to here 
+    // don't use CALL since it will push on the stack frame the return address to here
     asm.emitJMP_Reg(T1); // jumps to VM_Runtime.athrow
 
-    fr.resolve(asm);  // branch to here if no exception 
+    fr.resolve(asm);  // branch to here if no exception
 
-    // no exception, proceed to return to caller    
+    // no exception, proceed to return to caller
     asm.emitMOV_Reg_Reg(SP, EBP);                           // discard current stack frame
 
     asm.emitMOV_Reg_RegDisp(JTOC, SP, EDI_SAVE_OFFSET);   // restore nonvolatile EDI register
@@ -187,7 +187,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
 
     asm.emitPOP_RegDisp(PR, VM_Entrypoints.framePointerField.getOffset());
 
-    // return to caller 
+    // return to caller
     // pop parameters from stack (Note that parameterWords does not include "this")
     if (method.isStatic()) {
       asm.emitRET_Imm(parameterWords << LG_WORDSIZE);
@@ -207,16 +207,16 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
    *       high address         high address
    *       |          |         |          | Caller frame
    *       |          |         |          |
-   *  +    |arg 0     |         |arg 0     |    
+   *  +    |arg 0     |         |arg 0     |
    *  +    |arg 1     |         |arg 1     |
    *  +    |...       |         |...       |
-   *  +8   |arg n-1   |         |arg n-1   |    
+   *  +8   |arg n-1   |         |arg n-1   |
    *  +4   |returnAddr|         |returnAddr|
    *   0   +          +         +saved FP  + <---- FP for glue frame
    *  -4   |          |         |methodID  |
-   *  -8   |          |         |saved EDI |  (EDI == JTOC - for baseline methods)  
-   *  -C   |          |         |saved EBX |    
-   *  -10  |          |         |          |    
+   *  -8   |          |         |saved EDI |  (EDI == JTOC - for baseline methods)
+   *  -C   |          |         |saved EBX |
+   *  -10  |          |         |          |
    *
    * </pre>
    */
@@ -240,7 +240,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
 
     asm.emitMOV_Reg_Reg(EBP, SP); // Establish EBP as the framepointer for use in the rest of the glue frame
 
-    // restore JTOC with the value saved in VM_Processor.jtoc for use in prolog 
+    // restore JTOC with the value saved in VM_Processor.jtoc for use in prolog
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC,
                                               VM_Entrypoints.jtocField.getOffset());
   }
@@ -258,27 +258,27 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
    *
    *       high address         high address
    *       |          |         |          | Caller frame
-   *       |          |         |          | 
+   *       |          |         |          |
    *  +    |arg 0     |         |arg 0     |    -> firstParameterOffset
-   *  +    |arg 1     |         |arg 1     | 
-   *  +    |...       |         |...       | 
-   *  +8   |arg n-1   |         |arg n-1   |    
-   *  +4   |returnAddr|         |returnAddr| 
+   *  +    |arg 1     |         |arg 1     |
+   *  +    |...       |         |...       |
+   *  +8   |arg n-1   |         |arg n-1   |
+   *  +4   |returnAddr|         |returnAddr|
    *   0   +saved FP  +         +saved FP  + <---- FP for glue frame
-   *  -4   |methodID  |         |methodID  | 
+   *  -4   |methodID  |         |methodID  |
    *  -8   |saved EDI |         |saved EDI |    -> STACKFRAME_BODY_OFFSET = -8
-   *  -C   |saved EBX |         |saved EBX |    
-   *       |          |         |align pad |  
-   *  -10  |          |         |returnAddr|  (return from OutOfLine to generated epilog)    
+   *  -C   |saved EBX |         |saved EBX |
+   *       |          |         |align pad |
+   *  -10  |          |         |returnAddr|  (return from OutOfLine to generated epilog)
    *  -14  |          |         |saved PR  |
    *  -18  |          |         |arg n-1   |  reordered args to native method (firstLocalOffset
    *  -1C  |          |         | ...      |  ...
    *  -20  |          |         |arg 1     |  ...
    *  -24  |          |         |arg 0     |  ...
-   *  -28  |          |         |class/obj |  required second arg 
+   *  -28  |          |         |class/obj |  required second arg
    *  -2C  |          |   SP -> |jniEnv    |  required first arg  (emptyStackOffset)
-   *  -30  |          |         |          |    
-   *       |          |         |          |    
+   *  -30  |          |         |          |
+   *       |          |         |          |
    *        low address          low address
    * </pre>
    */
@@ -309,7 +309,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
 
     // first push the parameters passed in registers back onto the caller frame
     // to free up the registers for use
-    // The number of registers holding parameter is 
+    // The number of registers holding parameter is
     // VM_RegisterConstants.NUM_PARAMETER_GPRS
     // Their indices are in VM_RegisterConstants.VOLATILE_GPRS[]
     int gpr = 0;
@@ -351,7 +351,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     // bump SP to set aside room for the args + 2 additional JNI args
     asm.emitADD_Reg_Imm(SP, emptyStackOffset.toInt());
 
-    // SP should now point to the bottom of the argument stack, 
+    // SP should now point to the bottom of the argument stack,
     // which is arg[n-1]
 
     // Prepare the side stack to hold new refs
@@ -377,7 +377,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     // >>>> HERE <<<<
     startJNIrefForProlog(asm, numRefArguments);
 
-    // Insert the JNIEnv* arg at the first entry:  
+    // Insert the JNIEnv* arg at the first entry:
     // This is an interior pointer to VM_JNIEnvironment, which is held in S0.
     asm.emitMOV_Reg_Reg(EBX, S0);
     asm.emitADD_Reg_Imm(EBX, VM_Entrypoints.JNIExternalFunctionsField.getOffset().toInt());
@@ -402,7 +402,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
       asm.emitMOV_Reg_RegDisp(EBX, EBP, firstParameterOffset.plus(WORDSIZE));
     }
 
-    // Generate the code to push this pointer in ebx on to the JNIRefs stack 
+    // Generate the code to push this pointer in ebx on to the JNIRefs stack
     // and use the JREF index in its place
     // Assume: S0 is the jniEnv pointer (left over from above)
     //         T0 contains the address to TOP of JNIRefs stack
@@ -411,7 +411,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     pushJNIref(asm);
     asm.emitMOV_RegDisp_Reg(EBP, emptyStackOffset.plus(WORDSIZE), EBX);  // store as 2nd arg
 
-    // Now fill in the rest:  copy parameters from caller frame into glue frame 
+    // Now fill in the rest:  copy parameters from caller frame into glue frame
     // in reverse order for C
     int i = parameterWords - 1;
     int fpr = numFloats - 1;
@@ -478,7 +478,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
    * <pre>
    * This includes the following steps:
    *   (1) start by calling startJNIrefForProlog()
-   *   (2) for each reference, put it in ebx and call pushJNIref() 
+   *   (2) for each reference, put it in ebx and call pushJNIref()
    *       to convert; the handler will be left in ebx
    *
    *   +-------+
@@ -503,22 +503,22 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
   /**
    * Start a new frame for this Java to C transition.
    * <pre>
-   * Expect: 
+   * Expect:
    *    -S0 contains a pointer to the VM_Thread.jniEnv
    * Perform these steps:
-   *    -push current SavedFP index 
+   *    -push current SavedFP index
    *    -set SaveFP index <- current TOP
    * Leave registers ready for more push onto the jniEnv.JNIRefs array
-   *    -S0 holds jniEnv so we can update jniEnv.JNIRefsTop and 
+   *    -S0 holds jniEnv so we can update jniEnv.JNIRefsTop and
    *    -T0 holds address of top =  starting address of jniEnv.JNIRefs array + jniEnv.JNIRefsTop
    *     T0 is to be incremented before each push
    *    S0              ebx                         T0
-   *  jniEnv        
+   *  jniEnv
    *    .         jniEnv.JNIRefs             jniEnv.JNIRefsTop
    *    .               .                    jniEnv.JNIRefsTop + 4
    *    .         jniEnv.JNIRefsSavedFP            .
    *    .               .                    jniEnv.JNIRefsTop
-   *    .               .                    address(JNIRefsTop)             
+   *    .               .                    address(JNIRefsTop)
    *    .
    * </pre>
    */
@@ -529,7 +529,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
 
     // get and check index of top for overflow
     asm.emitMOV_Reg_RegDisp(T0, S0, VM_Entrypoints.JNIRefsTopField.getOffset());  // T0 <- index of top
-    asm.emitADD_Reg_Imm(T0, numRefsExpected * WORDSIZE);                // increment index of top 
+    asm.emitADD_Reg_Imm(T0, numRefsExpected * WORDSIZE);                // increment index of top
     asm.emitCMP_Reg_RegDisp(T0,
                             S0,
                             VM_Entrypoints.JNIRefsMaxField.getOffset());   // check against JNIRefsMax for overflow
@@ -539,7 +539,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     asm.emitMOV_Reg_RegDisp(T0, S0, VM_Entrypoints.JNIRefsTopField.getOffset());  // T0 <- index of top
     asm.emitADD_Reg_Reg(T0, EBX);                                       // T0 <- address of top (not index)
 
-    // start new frame:  push current JNIRefsSavedFP onto stack and set it to the new top index    
+    // start new frame:  push current JNIRefsSavedFP onto stack and set it to the new top index
     asm.emitMOV_Reg_RegDisp(EBX, S0, VM_Entrypoints.JNIRefsSavedFPField.getOffset()); // ebx <- jniEnv.JNIRefsSavedFP
     asm.emitMOV_RegInd_Reg(T0, EBX);                                   // push (T0) <- ebx
     asm.emitMOV_Reg_RegDisp(T0, S0, VM_Entrypoints.JNIRefsTopField.getOffset());   // reload T0 <- index of top
@@ -561,9 +561,9 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
    *
    * <pre>
    * Expect:
-   *   -T0 pointing to the address of the valid top 
+   *   -T0 pointing to the address of the valid top
    *   -the pointer value in register ebx
-   *   -the space in the JNIRefs array has checked for overflow 
+   *   -the space in the JNIRefs array has checked for overflow
    *   by startJNIrefForProlog()
    * Perform these steps:
    *   -increment the JNIRefsTop index in ebx by 4
@@ -614,7 +614,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
    *
    * <pre>
    * NOTE:
-   *   -We need PR to access Java environment; we can get it from the 
+   *   -We need PR to access Java environment; we can get it from the
    *    JNIEnv* (which is an interior pointer to the VM_JNIEnvironment)
    *   -Unlike the powerPC scheme which has a special prolog preceding
    *    the normal Java prolog, the Intel scheme replaces the Java prolog
@@ -627,7 +627,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
    *            |  ...       |                   |  ...       |
    *            |            |                   |            |
    *            |arg n-1     |                   |arg n-1     |
-   * native     |  ...       |                   |  ...       |       
+   * native     |  ...       |                   |  ...       |
    * caller     |arg 0       |                   |arg 0       |
    *    ESP ->  |return addr |                   |return addr |
    *            |            |           EBP ->  |saved FP    |
@@ -651,7 +651,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     // set 2nd word of header = return address already pushed by CALL
     // NOTE: C calling convention is that EBP contains the caller's framepointer.
     //       Therefore our C to Java transition frames must follow this protocol,
-    //       not the RVM protocol in which the caller's framepointer is in 
+    //       not the RVM protocol in which the caller's framepointer is in
     //       pr.framePointer and EBP is a nonvolatile register.
     asm.emitPUSH_Reg(EBP);
 
@@ -700,11 +700,11 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     // to IN_JAVA, looping in a call to sysVirtualProcessorYield if BLOCKED_IN_NATIVE
     int retryLabel = asm.getMachineCodeIndex();     // backward branch label
 
-    // Restore PR from VM_JNIEnvironment 
+    // Restore PR from VM_JNIEnvironment
     asm.emitMOV_Reg_RegDisp(EBX, EBP, Offset.fromIntSignExtend(2 * WORDSIZE));   // pick up arg 0 (from callers frame)
     VM_ProcessorLocalState.emitLoadProcessor(asm, EBX, VM_Entrypoints.JNIEnvSavedPRField.getOffset());
 
-    // reload JTOC from vitual processor 
+    // reload JTOC from vitual processor
     // NOTE: EDI saved in glue frame is just EDI (opt compiled code uses it as normal non-volatile)
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC,
                                               VM_Entrypoints.jtocField.getOffset());
@@ -733,7 +733,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     // END of code sequence to change state from IN_NATIVE to IN_JAVA
 
     // status is now IN_JAVA. GC can not occur while we execute on a processor
-    // in this state, so it is safe to access fields of objects. 
+    // in this state, so it is safe to access fields of objects.
     // RVM JTOC and PR registers have been restored and EBX contains a pointer to
     // the thread's VM_JNIEnvironment.
 
@@ -742,7 +742,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     int numLocalVariables = method.getLocalWords() - method.getParameterWords();
     asm.emitSUB_Reg_Imm(SP, (numLocalVariables << LG_WORDSIZE));
 
-    // Retrieve -> preceeding "top" java FP from jniEnv and save in current 
+    // Retrieve -> preceeding "top" java FP from jniEnv and save in current
     // frame of JNIFunction
     asm.emitMOV_Reg_RegDisp(S0, EBX, VM_Entrypoints.JNITopJavaFPField.getOffset());
 
@@ -755,7 +755,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
                                               VM_Entrypoints.framePointerField.getOffset(),
                                               EBP);
 
-    // at this point: JTOC and PR have been restored & 
+    // at this point: JTOC and PR have been restored &
     // processor status = IN_JAVA,
     // arguments for the call have been setup, space on the stack for locals
     // has been acquired.
@@ -804,8 +804,8 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     asm.emitPOP_Reg(EBX);
     asm.emitPOP_Reg(JTOC);
 
-    // NOTE: C expects the framepointer to be restored to EBP, so 
-    //       the epilogue for the C to Java glue code must follow that 
+    // NOTE: C expects the framepointer to be restored to EBP, so
+    //       the epilogue for the C to Java glue code must follow that
     //       convention, not the RVM one!
     //       Also note that RVM treats EBP is a nonvolatile, so we don't
     //       explicitly save/restore it.

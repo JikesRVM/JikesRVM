@@ -259,7 +259,7 @@ public final class OPT_ScratchMap {
 
   /**
    * An object that represents an interval where a physical register's
-   * contents are evicted so that the physical register can be used as a 
+   * contents are evicted so that the physical register can be used as a
    * scratch.  Note that this interval must not span a basic block.
    */
   static final class PhysicalInterval extends Interval {

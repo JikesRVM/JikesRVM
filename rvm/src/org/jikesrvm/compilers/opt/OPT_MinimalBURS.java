@@ -34,9 +34,9 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 /**
  * This class contains code for quick and dirty instruction selection
  * by forcing each instruction to be a tree and generating the trees in
- * the same input as the input LIR instructions. 
+ * the same input as the input LIR instructions.
  * This results in poor code quality, but can be done very quickly.
- * The intended purpose is to reduce compile time by doing quick and 
+ * The intended purpose is to reduce compile time by doing quick and
  * dirty instruction selection for infrequntly executed basic blocks.
  *
  * @see OPT_BURS_STATE
@@ -71,14 +71,14 @@ final class OPT_MinimalBURS extends OPT_BURS {
   }
 
   ////////////////////////////////
-  // Implementation 
+  // Implementation
   ////////////////////////////////
 
   /**
    * Build a BURS Tree for each OPT_Instruction.
    * Complete BURS trees by adding leaf nodes as needed, and
    * creating tree edges by calling insertChild1() or insertChild2()
-   * This step is also where we introduce intermediate tree nodes for 
+   * This step is also where we introduce intermediate tree nodes for
    * any LIR instruction that has > 2 "real" operands e.g., a CALL.
    *
    * @param s The instruction for which a tree must be built
@@ -127,7 +127,7 @@ final class OPT_MinimalBURS extends OPT_BURS {
       }
     }
 
-    // patch for calls & return 
+    // patch for calls & return
     switch (s.getOpcode()) {
       case CALL_opcode:
       case SYSCALL_opcode:

@@ -13,7 +13,7 @@ import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * A class to represent the reference in a class file to a method of
- * that class or interface. 
+ * that class or interface.
  */
 public final class VM_MethodReference extends VM_MemberReference {
 
@@ -104,7 +104,7 @@ public final class VM_MethodReference extends VM_MemberReference {
   }
 
   /**
-   * Get the member this reference has been resolved to, if 
+   * Get the member this reference has been resolved to, if
    * it has already been resolved. Does NOT force resolution.
    */
   @Uninterruptible
@@ -315,7 +315,7 @@ public final class VM_MethodReference extends VM_MemberReference {
   /**
    * Find the VM_Method that this member reference refers to using
    * the search order specified in JVM spec 5.4.3.4.
-   * @return the VM_Method that this method ref resolved to 
+   * @return the VM_Method that this method ref resolved to
    */
   public VM_Method resolveInterfaceMethod()
       throws IncompatibleClassChangeError,

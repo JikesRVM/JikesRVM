@@ -23,13 +23,13 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.WordArray;
 
 /**
- * Maintains a collection of compiler specific VM_GCMapIterators that are used 
+ * Maintains a collection of compiler specific VM_GCMapIterators that are used
  * by collection threads when scanning thread stacks to locate object references
  * in those stacks. Each collector thread has its own VM_GCMapIteratorGroup.
  *
  * The group contains a VM_GCMapIterator for each type of stack frame that
  * may be found while scanning a stack during garbage collection, including
- * frames for baseline compiled methods, OPT compiled methods, and frames 
+ * frames for baseline compiled methods, OPT compiled methods, and frames
  * for transitions from Java into JNI native code. These iterators are
  * repsonsible for reporting the location of references in the stack or
  * register save areas.

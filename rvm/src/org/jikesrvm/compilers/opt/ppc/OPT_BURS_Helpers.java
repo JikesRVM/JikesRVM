@@ -442,7 +442,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       target = null;
       callOp = PPC_BCTRL;
     } else if (target instanceof OPT_BranchOperand) {
-      // Earlier analysis has tagged this call as recursive, 
+      // Earlier analysis has tagged this call as recursive,
       // set up for a direct call.
       callOp = PPC_BL;
     } else {
@@ -451,8 +451,8 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     }
 
     // Step 4: Mutate the Call to an MIR_Call.
-    // Note MIR_Call and Call have a different number of fixed 
-    // arguments, so some amount of copying is required. We'll hope the 
+    // Note MIR_Call and Call have a different number of fixed
+    // arguments, so some amount of copying is required. We'll hope the
     // opt compiler can manage to make this more efficient than it looks.
     OPT_Operand[] params = new OPT_Operand[numParams];
     for (int i = 0; i < numParams; i++) {
@@ -514,7 +514,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       target = null;
       callOp = PPC_BCTRL_SYS;
     } else if (target instanceof OPT_BranchOperand) {
-      // Earlier analysis has tagged this call as recursive, 
+      // Earlier analysis has tagged this call as recursive,
       // set up for a direct call.
       callOp = PPC_BL_SYS;
     } else {
@@ -523,8 +523,8 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     }
 
     // Step 4: Mutate the SysCall to an MIR_Call.
-    // Note MIR_Call and Call have a different number of fixed 
-    // arguments, so some amount of copying is required. We'll hope the 
+    // Note MIR_Call and Call have a different number of fixed
+    // arguments, so some amount of copying is required. We'll hope the
     // opt compiler can manage to make this more efficient than it looks.
     OPT_Operand[] params = new OPT_Operand[numParams];
     for (int i = 0; i < numParams; i++) {
@@ -747,7 +747,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   }
 
   /**
-   * Uses the record capability to avoid compare 
+   * Uses the record capability to avoid compare
    */
   protected final void CMP_ZERO(OPT_Instruction s, OPT_Operator op,
                                 OPT_RegisterOperand def, OPT_Operand left,
@@ -803,7 +803,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   }
 
   // boolean compare
-  // Support for boolean cmp 
+  // Support for boolean cmp
   private OPT_ConditionOperand cc;
   private OPT_Operand val1;
   private OPT_Operand val2;
@@ -874,7 +874,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   }
 
   /**
-   * taken from: The PowerPC Compiler Writer's Guide, pp. 199 
+   * taken from: The PowerPC Compiler Writer's Guide, pp. 199
    */
   protected final void BOOLEAN_CMP_INT_IMM(OPT_RegisterOperand def,
                                            OPT_ConditionOperand cmp,
@@ -1417,7 +1417,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   }
 
   /**
-   * taken from: The PowerPC Compiler Writer's Guide, pp. 83 
+   * taken from: The PowerPC Compiler Writer's Guide, pp. 83
    */
   protected final void INT_2DOUBLE(OPT_Instruction s,
                                    OPT_RegisterOperand def,
@@ -1607,8 +1607,8 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   }
 
   /**
-   * taken from "PowerPC Microprocessor Family, 
-   * The Programming Environment for 32-bit Microprocessors 
+   * taken from "PowerPC Microprocessor Family,
+   * The Programming Environment for 32-bit Microprocessors
    * */
   protected final void LONG_SHL(OPT_Instruction s,
                                 OPT_RegisterOperand def,
@@ -2043,7 +2043,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   }
 
   /**
-   * Expansion of LOWTABLESWITCH.  
+   * Expansion of LOWTABLESWITCH.
    *
    * @param s the instruction to expand
    */

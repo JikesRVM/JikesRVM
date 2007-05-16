@@ -20,31 +20,31 @@ import org.vmmagic.pragma.NoInline;
 /**
  * Instructions are the basic atomic unit of the IR.
  * An instruction contains an {@link OPT_Operator operator} and
- * (optionally) some {@link OPT_Operand operands}.  
+ * (optionally) some {@link OPT_Operand operands}.
  * In addition, an instruction may (or may not) have
  * valid {@link #bcIndex} and{@link #position} fields that
- * together encode a description of the bytecode that it came from. 
+ * together encode a description of the bytecode that it came from.
  * <p>
- * Although we use a single class, <code>OPT_Instruction</code>, 
- * to implement all IR instructions, there are logically a number 
- * of different kinds of instructions.  
+ * Although we use a single class, <code>OPT_Instruction</code>,
+ * to implement all IR instructions, there are logically a number
+ * of different kinds of instructions.
  * For example, binary operators, array loads, calls,
  * and null_checks all have different number of operands with differing
  * semantics.  To manage this in an abstract, somewhat object-oriented,
- * but still highly efficient fashion we have the notion of an 
+ * but still highly efficient fashion we have the notion of an
  * <em>Instruction Format</em>. An Instruction Format is a class
  * external to OPT_Instruction (defined in the instructionFormat package)
- * that provides static methods to create instructions and symbolically 
+ * that provides static methods to create instructions and symbolically
  * access their operands.  Every instance of <code>OPT_Operator</code>
  * is assigned to exactly one Instruction Format.  Thus, the instruction's
- * operator implies which Instruction Format class can be used to 
+ * operator implies which Instruction Format class can be used to
  * access the instruction's operands.
- * <p> 
+ * <p>
  * There are some common logical operands (eg Result, Location) that
  * appear in a large number of Instruction Formats.  In addition to the
- * basic Instruction Format classes, we provided additional classes 
+ * basic Instruction Format classes, we provided additional classes
  * (eg ResultCarrier, LocationCarrier) that allow manipulation of all
- * instructions that contain a common operands. 
+ * instructions that contain a common operands.
  * <p>
  * A configuration (OptOptVIFcopyingGC) is defined in which all methods of
  * all Instruction Format classes verify that the operator of the instruction
@@ -52,7 +52,7 @@ import org.vmmagic.pragma.NoInline;
  * This configuration is quite slow, but is an important sanity check to make
  * sure that Instruction Formats are being used in a consistent fashion.
  * <p>
- * The instruction's operator also has a number of traits.  Methods on 
+ * The instruction's operator also has a number of traits.  Methods on
  * <code>OPT_Instruction</code> are provided to query these operator traits.
  * In general, clients should use the methods of OPT_Instruction to query
  * traits, since a particular instruction may override the operator-provided
@@ -61,50 +61,50 @@ import org.vmmagic.pragma.NoInline;
  * <p>
  * Unfortunately, the combination of operators, operator traits, and
  * Instruction Formats often leads to a tricky decision of which of three
- * roughly equivalent idioms one should use when writing code that 
- * needs to manipulate instructions and their operands. 
+ * roughly equivalent idioms one should use when writing code that
+ * needs to manipulate instructions and their operands.
  * For example,
  * <pre>
  * if (Call.conforms(instr)) {
  *    return Call.getResult(instr);
  * }
  * </pre>
- * and 
+ * and
  * <pre>
  * if (instr.operator() == CALL) {
  *    return Call.getResult(instr);
  * }
  * </pre>
- * and 
+ * and
  * <pre>
  * if (instr.isCall()) {
  *    return ResultCarrier.getResult(instr);
- * } 
+ * }
  * </pre>
- * are more or less the same. 
- * In some cases, picking an idiom is simply a matter of taste, 
- * but in others making the wrong choice can lead to code that is less 
+ * are more or less the same.
+ * In some cases, picking an idiom is simply a matter of taste,
+ * but in others making the wrong choice can lead to code that is less
  * robust or maintainable as operators and/or instruction formats are added
- * and removed from the IR. One should always think carefully about which 
- * idiom is the most concise, maintainable, robust and efficient means of 
+ * and removed from the IR. One should always think carefully about which
+ * idiom is the most concise, maintainable, robust and efficient means of
  * accomplishing a given task.
  * Some general rules of thumb (or at least one person's opinion):
  * <ul>
  * <li> Tests against operator traits should be preferred
- *      to use of the conforms method of an Instruction Format class if 
- *      both are possible.  This is definitely true if the code in question 
- *      does not need to access specific operands of the instruction. 
- *      Things are murkier if the code needs to manipulate specific 
+ *      to use of the conforms method of an Instruction Format class if
+ *      both are possible.  This is definitely true if the code in question
+ *      does not need to access specific operands of the instruction.
+ *      Things are murkier if the code needs to manipulate specific
  *      (non-common) operands of the instruction.
  * <li> If you find yourself writing long if-then-else constructs using
  *      either Instruction Format conforms or operator traits then you ought to
- *      at least consider writing a switch statement on the opcode of the 
- *      operator.  It should be more efficient and, depending on what your  
+ *      at least consider writing a switch statement on the opcode of the
+ *      operator.  It should be more efficient and, depending on what your
  *      desired default behavior is, may be more robust/maintainable as well.
- * <li> Instruction Format classes are really intended to represent the 
+ * <li> Instruction Format classes are really intended to represent the
  *      "syntactic form" of an instruction, not the semantics of its operator.
  *      Using "conforms" when no specific operands are being manipulated
- *      is almost always not the right way to do things. 
+ *      is almost always not the right way to do things.
  * </ul>
  *
  * @see OPT_Operator
@@ -148,8 +148,8 @@ public final class OPT_Instruction
   public int bcIndex = UNKNOWN_BCI;
 
   /**
-   * A description of the tree of inlined methods that contains the bytecode 
-   * that this instruction came from. 
+   * A description of the tree of inlined methods that contains the bytecode
+   * that this instruction came from.
    * In combination with the {@link #bcIndex}, the position field
    * uniquely identifies the source postion of the bytecode that
    * this instruction came from.
@@ -161,9 +161,9 @@ public final class OPT_Instruction
   public OPT_InlineSequence position;
 
   /**
-   * A scratch word to be used as needed by analyses/optimizations to store 
-   * information during an optimization. 
-   * Cannot be used to comunicate information between compiler phases since 
+   * A scratch word to be used as needed by analyses/optimizations to store
+   * information during an optimization.
+   * Cannot be used to comunicate information between compiler phases since
    * any phase is allowed to mutate it.
    * Cannot safely be assumed to have a particular value at the start of
    * a phase.
@@ -173,9 +173,9 @@ public final class OPT_Instruction
   public int scratch;
 
   /**
-   * A scratch object to be used as needed by analyses/optimizations to store 
-   * information during an optimization. 
-   * Cannot be used to comunicate information between compiler phases since 
+   * A scratch object to be used as needed by analyses/optimizations to store
+   * information during an optimization.
+   * Cannot be used to comunicate information between compiler phases since
    * any phase is allowed to mutate it.
    * Cannot safely be assumed to have a particular value at the start of
    * a phase.
@@ -189,27 +189,27 @@ public final class OPT_Instruction
    * The operator for this instruction.
    * The prefered idiom is to use the {@link #operator()} accessor method
    * instead of accessing this field directly, but we are still in the process
-   * of updating old code. 
+   * of updating old code.
    * The same operator object can be shared by many instruction objects.
    * TODO: finish conversion and make this field private.
    */
   public OPT_Operator operator;
 
   /**
-   * The next instruction in the intra-basic-block list of instructions, 
+   * The next instruction in the intra-basic-block list of instructions,
    * will be null if no such instruction exists.
    */
   private OPT_Instruction next;
 
   /**
-   * The previous instruction in the intra-basic-block list of instructions, 
+   * The previous instruction in the intra-basic-block list of instructions,
    * will be null if no such instruction exists.
    */
   private OPT_Instruction prev;
 
   /**
    * Override and refine the operator-based trait (characteristic)
-   * information. 
+   * information.
    * @see OPT_Operator
    */
   private byte operatorInfo;
@@ -220,10 +220,10 @@ public final class OPT_Instruction
   private OPT_Operand[] ops;
 
   /**
-   * INTERNAL IR USE ONLY: create a new instruction with the specified number 
+   * INTERNAL IR USE ONLY: create a new instruction with the specified number
    * of operands.
-   * For internal use only -- general clients must use the appropriate 
-   * InstructionFormat class's create and mutate methods to create 
+   * For internal use only -- general clients must use the appropriate
+   * InstructionFormat class's create and mutate methods to create
    * instruction objects!!!  But, because we put the InstructionFormat
    * classes in their own package for name space control, we have to
    * make this constructor public.  What a crock!
@@ -259,7 +259,7 @@ public final class OPT_Instruction
   }
 
   /**
-   * Returns the string representation of this instruction 
+   * Returns the string representation of this instruction
    * (mainly intended for use when printing the IR).
    *
    * @return string representation of this instruction.
@@ -332,10 +332,10 @@ public final class OPT_Instruction
   }
 
   /**
-   * Return the next instruction with respect to the current 
+   * Return the next instruction with respect to the current
    * code linearization order.
    *
-   * @return the next insturction in the code order or 
+   * @return the next insturction in the code order or
    *         <code>null</code> if no such instruction exists
    */
   public OPT_Instruction nextInstructionInCodeOrder() {
@@ -353,10 +353,10 @@ public final class OPT_Instruction
   }
 
   /**
-   * Return the previous instruction with respect to the current 
+   * Return the previous instruction with respect to the current
    * code linearization order.
    *
-   * @return the previous insturction in the code order or 
+   * @return the previous insturction in the code order or
    *         <code>null</code> if no such instruction exists
    */
   public OPT_Instruction prevInstructionInCodeOrder() {
@@ -378,7 +378,7 @@ public final class OPT_Instruction
    * Note: this instruction takes O(1) time for LABEL and BBEND
    * instructions, but will take O(# of instrs in the block)
    * for all other instructions. Therefore, although it can be used
-   * on any instruction, care must be taken when using it to avoid 
+   * on any instruction, care must be taken when using it to avoid
    * doing silly O(N^2) work for what could be done in O(N) work.
    */
   public OPT_BasicBlock getBasicBlock() {
@@ -426,12 +426,12 @@ public final class OPT_Instruction
 
   /**
    * Get the offset into the machine code array (in bytes) that
-   * corresponds to the first byte after this instruction.  
+   * corresponds to the first byte after this instruction.
    * This method only returns a valid value after it has been set as a
    * side-effect of {@link org.jikesrvm.ArchitectureSpecific.OPT_Assembler#generateCode final assembly}.
    * To get the offset in INSTRUCTIONs you must shift by LG_INSTURUCTION_SIZE.
    *
-   * @return the offset (in bytes) of the machinecode instruction 
+   * @return the offset (in bytes) of the machinecode instruction
    *         generated for this IR instruction in the final machinecode
    */
   public int getmcOffset() {
@@ -579,7 +579,7 @@ public final class OPT_Instruction
   }
 
   /**
-   * Returns the number of operands that are uses 
+   * Returns the number of operands that are uses
    * (either combined def/uses or pure uses).
    * By convention, operands are ordered in instructions
    * such that all defs are first, followed by all
@@ -610,7 +610,7 @@ public final class OPT_Instruction
   }
 
   /**
-   * Replace any operands that are similar to the first operand 
+   * Replace any operands that are similar to the first operand
    * with a copy of the second operand.
    *
    * @param oldOp   The operand whose similar operands should be replaced
@@ -770,7 +770,7 @@ public final class OPT_Instruction
   */
 
   /**
-   * Does the instruction represent a simple move (the value is unchanged) 
+   * Does the instruction represent a simple move (the value is unchanged)
    * from one "register" location to another "register" location?
    *
    * @return <code>true</code> if the instruction is a simple move
@@ -806,7 +806,7 @@ public final class OPT_Instruction
    *
    * @return <code>true</code> if the instruction is an
    * interprocedural conditional branch with only two possible
-   * outcomes (taken or not taken).  
+   * outcomes (taken or not taken).
    */
   public boolean isTwoWayBranch() {
     // Is there a cleaner way to answer this question?
@@ -820,7 +820,7 @@ public final class OPT_Instruction
    * Is the instruction an unconditional intraprocedural branch?
    * We consider various forms of switches to be unconditional
    * intraprocedural branches, even though they are multi-way branches
-   * and we may not no exactly which target will be taken.  
+   * and we may not no exactly which target will be taken.
    * This turns out to be the right thing to do, since some
    * arm of the switch will always be taken (unlike conditional branches).
    *
@@ -833,7 +833,7 @@ public final class OPT_Instruction
 
   /**
    * Is the instruction a direct intraprocedural branch?
-   * In the HIR and LIR we consider switches to be direct branches, 
+   * In the HIR and LIR we consider switches to be direct branches,
    * because their targets are known precisely.
    *
    * @return <code>true</code> if the instruction is a direct
@@ -864,11 +864,11 @@ public final class OPT_Instruction
   }
 
   /**
-   * Is the instruction a conditional call? 
+   * Is the instruction a conditional call?
    * We only allow conditional calls in the MIR, since they
    * tend to only be directly implementable on some architecutres.
    *
-   * @return <code>true</code> if the instruction is a 
+   * @return <code>true</code> if the instruction is a
    *         conditional call or <code>false</code> if it is not.
    */
   public boolean isConditionalCall() {
@@ -997,7 +997,7 @@ public final class OPT_Instruction
   /**
    * Is the instruction a potential GC point?
    *
-   * @return <code>true</code> if the instruction is a potential 
+   * @return <code>true</code> if the instruction is a potential
    *         GC point or <code>false</code> if it is not.
    */
   public boolean isGCPoint() {
@@ -1012,7 +1012,7 @@ public final class OPT_Instruction
   /**
    * Is the instruction a potential thread switch point?
    *
-   * @return <code>true</code> if the instruction is a potential 
+   * @return <code>true</code> if the instruction is a potential
    *         thread switch point or <code>false</code> if it is not.
    */
   public boolean isTSPoint() {
@@ -1032,7 +1032,7 @@ public final class OPT_Instruction
   }
 
   /**
-   * Is the instruction an actual memory allocation instruction 
+   * Is the instruction an actual memory allocation instruction
    * (NEW, NEWARRAY, etc)?
    *
    * @return <code>true</code> if the instruction is an allocation
@@ -1073,7 +1073,7 @@ public final class OPT_Instruction
   }
 
   /**
-   * Could the instruction either directly or indirectly 
+   * Could the instruction either directly or indirectly
    * cause dynamic class loading?
    *
    * @return <code>true</code> if the instruction is a dynamic linking point
@@ -1094,7 +1094,7 @@ public final class OPT_Instruction
   }
 
   /**
-   * Record that this instruction is not a PEI. 
+   * Record that this instruction is not a PEI.
    * Leave GCPoint status (if any) unchanged.
    */
   public void markAsNonPEI() {
@@ -1195,7 +1195,7 @@ public final class OPT_Instruction
    * Return the probability (in the range 0.0 - 1.0) that this two-way
    * branch instruction is taken (as opposed to falling through).
    *
-   * @return The probability that the branch is taken.  
+   * @return The probability that the branch is taken.
    */
   public float getBranchProbability() {
     if (VM.VerifyAssertions) VM._assert(isTwoWayBranch());
@@ -1206,7 +1206,7 @@ public final class OPT_Instruction
    * Record the probability (in the range 0.0 - 1.0) that this two-way
    * branch instruction is taken (as opposed to falling through).
    *
-   * @param takenProbability    The probability that the branch is taken.  
+   * @param takenProbability    The probability that the branch is taken.
    */
   public void setBranchProbability(float takenProbability) {
     if (VM.VerifyAssertions) VM._assert(isTwoWayBranch());
@@ -1400,12 +1400,12 @@ public final class OPT_Instruction
   */
 
   /**
-   * Insertion: Insert newInstr immediately after this in the 
+   * Insertion: Insert newInstr immediately after this in the
    * instruction stream.
-   * Can't insert after a BBEND instruction, since it must be the last 
+   * Can't insert after a BBEND instruction, since it must be the last
    * instruction in its basic block.
    *
-   * @param newInstr the instruction to insert, must not be in an 
+   * @param newInstr the instruction to insert, must not be in an
    *                 instruction list already.
    */
   public void insertAfter(OPT_Instruction newInstr) {
@@ -1430,12 +1430,12 @@ public final class OPT_Instruction
   }
 
   /**
-   * Insertion: Insert newInstr immediately before this in the 
+   * Insertion: Insert newInstr immediately before this in the
    * instruction stream.
-   * Can't insert before a LABEL instruction, since it must be the last 
+   * Can't insert before a LABEL instruction, since it must be the last
    * instruction in its basic block.
    *
-   * @param newInstr the instruction to insert, must not be in 
+   * @param newInstr the instruction to insert, must not be in
    *                 an instruction list already.
    */
   public void insertBefore(OPT_Instruction newInstr) {
@@ -1465,8 +1465,8 @@ public final class OPT_Instruction
    * but it would be a fair amount of work to update everything, and probably
    * isn't useful, so we'll simply disallow it for now.
    *
-   * @param newInstr  the replacement instruction must not be in an 
-   *                  instruction list already and must not be a 
+   * @param newInstr  the replacement instruction must not be in an
+   *                  instruction list already and must not be a
    *                  LABEL or BBEND instruction.
    */
   public void replace(OPT_Instruction newInstr) {
@@ -1491,7 +1491,7 @@ public final class OPT_Instruction
   /**
    * Removal: Remove this from the instruction stream.
    *
-   *  We currently forbid the removal of LABEL instructions to avoid 
+   *  We currently forbid the removal of LABEL instructions to avoid
    *  problems updating branch instructions that reference the label.
    *  We also outlaw removal of BBEND instructions.
    *  <p>
@@ -1521,7 +1521,7 @@ public final class OPT_Instruction
 
   /*
    * Helper routines to verify instruction list invariants.
-   * Invocations to these functions are guarded by OPT_IR.PARANOID and thus 
+   * Invocations to these functions are guarded by OPT_IR.PARANOID and thus
    * the calls to VM.Assert don't need to be guarded by VM.VerifyAssertions.
    */
   private void isLinked() {
@@ -1765,7 +1765,7 @@ public final class OPT_Instruction
     if (op == null) {
       ops[i] = null;
     } else {
-      // TODO: Replace this silly copying code with an assertion that operands 
+      // TODO: Replace this silly copying code with an assertion that operands
       //       are not shared between instructions and force people to be
       //       more careful!
       if (op.instruction != null) {
@@ -1825,7 +1825,7 @@ public final class OPT_Instruction
 
   /**
    * For IR internal use only;   general clients should always use higer level
-   * mutation functions. 
+   * mutation functions.
    * Set the {@link #next} field of the instruction.
    *
    * @param n the new value for next
@@ -1846,7 +1846,7 @@ public final class OPT_Instruction
 
   /**
    * For IR internal use only;   general clients should always use higer level
-   * mutation functions. 
+   * mutation functions.
    * Set the {@link #prev} field of the instruction.
    *
    * @param p the new value for prev
@@ -1857,7 +1857,7 @@ public final class OPT_Instruction
 
   /**
    * For IR internal use only;   general clients should always use higer level
-   * mutation functions. 
+   * mutation functions.
    * Clear the {@link #prev} and {@link #next} fields of the instruction.
    */
   void clearLinks() {
@@ -1896,7 +1896,7 @@ public final class OPT_Instruction
 
   /**
    * For IR internal use only;   general clients should always use higer level
-   * mutation functions. 
+   * mutation functions.
    * Link this and other together by setting this's {@link #next} field to
    * point to other and other's {@link #prev} field to point to this.
    *
@@ -1917,11 +1917,11 @@ public final class OPT_Instruction
   }
 
   /**
-   * Might this instruction be a load from a field that is declared 
+   * Might this instruction be a load from a field that is declared
    * to be volatile?
    *
    * @return <code>true</code> if the instruction might be a load
-   *         from a volatile field or <code>false</code> if it 
+   *         from a volatile field or <code>false</code> if it
    *         cannot be a load from a volatile field
    */
   public boolean mayBeVolatileFieldLoad() {

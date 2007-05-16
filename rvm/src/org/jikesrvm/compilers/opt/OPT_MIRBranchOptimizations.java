@@ -25,7 +25,7 @@ public final class OPT_MIRBranchOptimizations
     extends OPT_BranchOptimizationDriver {
 
   /**
-   * @param level the minimum optimization level at which the branch 
+   * @param level the minimum optimization level at which the branch
    * optimizations should be performed.
    */
   public OPT_MIRBranchOptimizations(int level) {
@@ -58,16 +58,16 @@ public final class OPT_MIRBranchOptimizations
   /**
    * Perform optimizations for an unconditonal branch.
    *
-   * <p> Patterns: 
+   * <p> Patterns:
    * <pre>
    *    1)      GOTO A       replaced by  GOTO B
    *         A: GOTO B
    *
    *    2)   GOTO next instruction eliminated
    *    3)      GOTO A       replaced by  GOTO B
-   *         A: LABEL        
+   *         A: LABEL
    *            BBEND
-   *         B: 
+   *         B:
    * <pre>
    *
    * <p> Precondition: MIR_Branch.conforms(g)
@@ -102,26 +102,26 @@ public final class OPT_MIRBranchOptimizations
         // g: goto L
         // ...
         // L: goto L
-        // This happens in jByteMark.EmFloatPnt.denormalize() due to a while(true) {} 
+        // This happens in jByteMark.EmFloatPnt.denormalize() due to a while(true) {}
         return false;
       }
       OPT_BranchOperand top = (OPT_BranchOperand) MIR_Branch.getTarget(targetInst).copy();
       MIR_Branch.setTarget(g, top);
-      bb.recomputeNormalOut(ir); // fix the CFG 
+      bb.recomputeNormalOut(ir); // fix the CFG
       return true;
     }
     if (targetBlock.isEmpty()) {
       // GOTO an empty block.  Change target to the next block.
       OPT_BasicBlock nextBlock = targetBlock.getFallThroughBlock();
       MIR_Branch.setTarget(g, nextBlock.makeJumpTarget());
-      bb.recomputeNormalOut(ir); // fix the CFG 
+      bb.recomputeNormalOut(ir); // fix the CFG
       return true;
     }
     return false;
   }
 
   /**
-   * Perform optimizations for a conditional branch.  
+   * Perform optimizations for a conditional branch.
    *
    * <pre>
    * 1)   IF .. GOTO A          replaced by  IF .. GOTO B
@@ -132,9 +132,9 @@ public final class OPT_MIRBranchOptimizations
    *      GOTO B                           A: ...
    *   A: ...
    * 4)   IF .. GOTO A       replaced by  IF .. GOTO B
-   *   A: LABEL      
+   *   A: LABEL
    *      BBEND
-   *   B: 
+   *   B:
    * 5)  fallthrough to a goto: replicate goto to enable other optimizations.
    * </pre>
    *
@@ -169,7 +169,7 @@ public final class OPT_MIRBranchOptimizations
       if (nextI != null && MIR_Branch.conforms(nextI)) {
         // replicate Goto
         cb.insertAfter(nextI.copyWithoutLinks());
-        bb.recomputeNormalOut(ir); // fix the CFG 
+        bb.recomputeNormalOut(ir); // fix the CFG
         return true;
       }
     }
@@ -182,11 +182,11 @@ public final class OPT_MIRBranchOptimizations
         // g: if (...) goto L
         // ...
         // L: goto L
-        // This happens in VM_GCUtil in some systems due to a while(true) {} 
+        // This happens in VM_GCUtil in some systems due to a while(true) {}
         return false;
       }
       MIR_CondBranch.setTarget(cb, (OPT_BranchOperand) (MIR_Branch.getTarget(targetInst).copy()));
-      bb.recomputeNormalOut(ir); // fix the CFG 
+      bb.recomputeNormalOut(ir); // fix the CFG
       return true;
     }
     if (targetBlock.isEmpty()) {
@@ -194,19 +194,19 @@ public final class OPT_MIRBranchOptimizations
       OPT_BasicBlock nextBlock = targetBlock.getFallThroughBlock();
       OPT_BranchOperand newTarget = nextBlock.makeJumpTarget();
       MIR_CondBranch.setTarget(cb, newTarget);
-      bb.recomputeNormalOut(ir); // fix the CFG 
+      bb.recomputeNormalOut(ir); // fix the CFG
       return true;
     }
     if (isFlipCandidate(cb, targetInst)) {
       flipConditionalBranch(cb);
-      bb.recomputeNormalOut(ir); // fix the CFG 
+      bb.recomputeNormalOut(ir); // fix the CFG
       return true;
     }
     return false;
   }
 
   /**
-   * Perform optimizations for a two way conditional branch.  
+   * Perform optimizations for a two way conditional branch.
    *
    * <pre>
    * 1)   IF .. GOTO A          replaced by  IF .. GOTO B
@@ -214,9 +214,9 @@ public final class OPT_MIRBranchOptimizations
    *   A: GOTO B
    * 2)   conditional branch to next instruction eliminated
    * 3)   IF .. GOTO A       replaced by  IF .. GOTO B
-   *   A: LABEL      
+   *   A: LABEL
    *      BBEND
-   *   B: 
+   *   B:
    * 4)  fallthrough to a goto: replicate goto to enable other optimizations.
    * </pre>
    *
@@ -248,7 +248,7 @@ public final class OPT_MIRBranchOptimizations
         // branch to an empty block.  Change target to the next block.
         OPT_BasicBlock nextBlock = target1Block.getFallThroughBlock();
         MIR_CondBranch2.setTarget1(cb, nextBlock.makeJumpTarget());
-        bb.recomputeNormalOut(ir); // fix the CFG 
+        bb.recomputeNormalOut(ir); // fix the CFG
         return true;
       }
     }
@@ -265,7 +265,7 @@ public final class OPT_MIRBranchOptimizations
         return true;
       }
       if ((target2Label == nextLabel) && endsBlock) {
-        // found a conditional branch to the next instruction. 
+        // found a conditional branch to the next instruction.
         // Reduce to MIR_BranchCond
         OPT_Operators.helper.mutateMIRCondBranch(cb);
         return true;
@@ -275,7 +275,7 @@ public final class OPT_MIRBranchOptimizations
         // branch to an empty block.  Change target to the next block.
         OPT_BasicBlock nextBlock = target2Block.getFallThroughBlock();
         MIR_CondBranch2.setTarget2(cb, nextBlock.makeJumpTarget());
-        bb.recomputeNormalOut(ir); // fix the CFG 
+        bb.recomputeNormalOut(ir); // fix the CFG
         return true;
       }
     }
@@ -286,7 +286,7 @@ public final class OPT_MIRBranchOptimizations
       if (nextI != null && MIR_Branch.conforms(nextI)) {
         // replicate unconditional branch
         cb.insertAfter(nextI.copyWithoutLinks());
-        bb.recomputeNormalOut(ir); // fix the CFG 
+        bb.recomputeNormalOut(ir); // fix the CFG
         return true;
       }
     }
@@ -312,7 +312,7 @@ public final class OPT_MIRBranchOptimizations
     if (!MIR_Branch.conforms(next)) {
       return false;
     }
-    // condition 2: is the target of the conditional branch the 
+    // condition 2: is the target of the conditional branch the
     //  next instruction after the GOTO?
     next = firstRealInstructionFollowing(next);
     if (next != target) {

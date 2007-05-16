@@ -11,7 +11,7 @@ package org.jikesrvm.scheduler;
 
 /**
  * Constants specifying the state of a {@link VM_Thread} waiting
- * on a {@link VM_ThreadEventWaitQueue}. 
+ * on a {@link VM_ThreadEventWaitQueue}.
  *
  *
  * @see VM_ThreadEventWaitQueue

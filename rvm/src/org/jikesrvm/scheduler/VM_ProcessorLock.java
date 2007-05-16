@@ -29,7 +29,7 @@ import org.vmmagic.unboxed.Offset;
  * this processor lock's <code>latestContender</code> field.  If
  * <code>MCS_Locking</code> is set, the processors spin on processor
  * local data.  This is loosely based on an idea in Mellor-Crummey and
- * Scott's paper in ASPLOS-IV (1991).  
+ * Scott's paper in ASPLOS-IV (1991).
  * 1.  Possible project: determine those conditions under which MCS
  * locking performs better than spinning on a global address.
  *
@@ -192,7 +192,7 @@ public final class VM_ProcessorLock implements VM_Constants {
         q.awaitingProcessorLock = null; // q now owns the lock
         VM_Magic.sync(); // make sure the chain of waiting processors gets updated before another processor accesses the chain
         // other contenders can get at the lock:
-        VM_Magic.setObjectAtOffset(this, latestContenderOffset, q); // latestContender = q; 
+        VM_Magic.setObjectAtOffset(this, latestContenderOffset, q); // latestContender = q;
       } else { // more than one processor waiting for the lock
         p.contenderLink = q.contenderLink; // remove q from the chain
         q.awaitingProcessorLock = null; // q now owns the lock

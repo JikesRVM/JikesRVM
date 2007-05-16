@@ -15,9 +15,9 @@ package org.jikesrvm.runtime;
  * virtual machine will exit with status zero.
  */
 public interface VM_ExitStatus {
-  /* Exit statuses, pending a better location.       
+  /* Exit statuses, pending a better location.
 
-     <p>Please keep this list in numerical order.      
+     <p>Please keep this list in numerical order.
 
      <p>You might somewhere find uses of the explicit constant -1 as an exit
      status (it gets mapped to 255).  I think they're all dead, but it is

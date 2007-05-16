@@ -20,4 +20,4 @@ public interface VM_AssemblerConstants {
   int LE = 0x4 << 21 | 1 << 16;
   int NE = 0x4 << 21 | 2 << 16;
 
-}  
+}

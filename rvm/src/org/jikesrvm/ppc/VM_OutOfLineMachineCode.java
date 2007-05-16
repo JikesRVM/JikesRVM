@@ -20,13 +20,13 @@ import org.jikesrvm.scheduler.VM_Processor;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * A place to put hand written machine code typically invoked by VM_Magic 
+ * A place to put hand written machine code typically invoked by VM_Magic
  * methods.
  *
- * Hand coding of small inline instruction sequences is typically handled by 
+ * Hand coding of small inline instruction sequences is typically handled by
  * each compiler's implementation of VM_Magic methods.  A few VM_Magic methods
- * are so complex that their implementations require many instructions.  
- * But our compilers do not inline arbitrary amounts of machine code. 
+ * are so complex that their implementations require many instructions.
+ * But our compilers do not inline arbitrary amounts of machine code.
  * We therefore write such code blocks here, out of line.
  *
  * These code blocks can be shared by all compilers. They can be branched to
@@ -34,8 +34,8 @@ import org.vmmagic.unboxed.Offset;
  *
  * 17 Mar 1999 Derek Lieber
  *
- * 15 Jun 2001 Dave Grove and Bowen Alpern (Derek believed that compilers 
- * could inline these methods if they wanted.  We do not believe this would 
+ * 15 Jun 2001 Dave Grove and Bowen Alpern (Derek believed that compilers
+ * could inline these methods if they wanted.  We do not believe this would
  * be very easy since they return thru the LR.)
  */
 public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
@@ -59,7 +59,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
   private static ArchitectureSpecific.VM_CodeArray restoreHardwareExceptionStateInstructions;
   @SuppressWarnings("unused") // Accessed via VM_EntryPoints
   private static ArchitectureSpecific.VM_CodeArray invokeNativeFunctionInstructions;
-   
+
   // Machine code for reflective method invocation.
   // See also: "VM_Compiler.generateMethodInvocation".
   //
@@ -78,19 +78,19 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
   //
   private static ArchitectureSpecific.VM_CodeArray generateReflectiveMethodInvokerInstructions() {
     VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
-      
+
     //
     // free registers: 0, S0
     //
     asm.emitMFLR(0);                                         // save...
     asm.emitSTAddr (0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP); // ...return address
-      
+
     asm.emitMTCTR(T0);                          // CTR := start of method code
-      
+
     //
     // free registers: 0, S0, T0
     //
-      
+
     // create new frame
     //
     asm.emitMR    (S0,  FP);                  // S0 := old frame pointer
@@ -103,7 +103,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     asm.emitSTAddrU  (0,  -BYTES_IN_ADDRESS, FP);                  // put one word of spill area
     asm.emitB    (spillLoopLabel); // goto spillLoop:
     fr1.resolve(asm);
-      
+
     asm.emitSTAddrU  (S0, -STACKFRAME_HEADER_SIZE, FP);     // allocate frame header and save old fp
     asm.emitLVAL (T0, INVISIBLE_METHOD_ID);
     asm.emitSTWoffset (T0, FP, Offset.fromIntSignExtend(STACKFRAME_METHOD_ID_OFFSET)); // set method id
@@ -111,29 +111,29 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     //
     // free registers: 0, S0, T0, T3
     //
-      
+
     // load up fprs
     //
     VM_ForwardReference setupFPRLoader = asm.emitForwardBL();
 
     for (int i = LAST_VOLATILE_FPR; i >= FIRST_VOLATILE_FPR; --i)
       asm.emitLFDU(i, BYTES_IN_DOUBLE, T2);                 // FPRi := fprs[i]
-         
+
     //
     // free registers: 0, S0, T0, T2, T3
     //
-      
+
     // load up gprs
     //
     VM_ForwardReference setupGPRLoader = asm.emitForwardBL();
 
     for (int i = LAST_VOLATILE_GPR; i >= FIRST_VOLATILE_GPR; --i)
       asm.emitLAddrU  (i, BYTES_IN_ADDRESS, S0);                 // GPRi := gprs[i]
-      
+
     //
     // free registers: 0, S0
     //
-      
+
     // invoke method
     //
     asm.emitBCCTRL();                            // branch and link to method code
@@ -164,7 +164,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     asm.emitMTLR (T3);                          // LR := """
     asm.emitADDI  (S0, -BYTES_IN_ADDRESS, T1);   // predecrement gpr index (to prepare for update instruction)
     asm.emitBCLR  ();                            // branch to gpr loading instructions
-     
+
     return asm.makeMachineCode().getInstructions();
   }
 
@@ -183,7 +183,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
 
     // save return address
-    // 
+    //
     asm.emitMFLR  (T1);               // T1 = LR (return address)
     asm.emitSTAddrOffset(T1, T0, VM_Entrypoints.registersIPField.getOffset()); // registers.ip = return address
 
@@ -202,24 +202,24 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     // save fp
     //
     asm.emitSTAddr(FP, FP<<LOG_BYTES_IN_ADDRESS, T1);
-      
+
     // return to caller
     //
     asm.emitBCLR();
-     
+
     return asm.makeMachineCode().getInstructions();
   }
-      
+
   /**
    * Machine code to implement "VM_Magic.threadSwitch()".
-   * 
+   *
    *  Parameters taken at runtime:
    *    T0 == address of VM_Thread object for the current thread
    *    T1 == address of VM_Registers object for the new thread
-   * 
+   *
    *  Registers returned at runtime:
    *    none
-   * 
+   *
    *  Side effects at runtime:
    *    sets current Thread's beingDispatched field to false
    *    saves current Thread's nonvolatile hardware state in its VM_Registers object
@@ -277,8 +277,8 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
 
     return asm.makeMachineCode().getInstructions();
   }
-  
-      
+
+
   // Machine code to implement "VM_Magic.restoreHardwareExceptionState()".
   //
   // Registers taken at runtime:
@@ -303,7 +303,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     //
     asm.emitLAddrOffset(REGISTER_ZERO, T0, VM_Entrypoints.registersIPField.getOffset());
     asm.emitMTCTR(REGISTER_ZERO);
-      
+
     // restore fprs
     //
     asm.emitLAddrOffset(T1, T0, VM_Entrypoints.registersFPRsField.getOffset()); // T1 := registers.fprs[]
@@ -328,7 +328,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     //
     asm.emitLAddr(REGISTER_ZERO, REGISTER_ZERO<<LOG_BYTES_IN_ADDRESS, T1);
     asm.emitLAddr(FP, FP<<LOG_BYTES_IN_ADDRESS, T1);
-      
+
     // restore last gpr
     //
     asm.emitLAddr(T1, T1<<LOG_BYTES_IN_ADDRESS, T1);
@@ -348,7 +348,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
    *   S1 = IP address of native function to branch to
    *   Parameter regs R4-R10, FP1-FP6 loaded for call to native
    *   (R3 will be set here before branching to the native function)
-   * 
+   *
    *   GPR3 (T0), PR regs are available for scratch regs on entry
    *
    * on exit:
@@ -360,7 +360,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
 
     // move native code address to CTR reg;
     // do this early so that S1 will be available as a scratch.
-    asm.emitMTCTR (S1); 
+    asm.emitMTCTR (S1);
 
     //
     // store the return address to the Java to C glue prolog, which is now in LR
@@ -390,13 +390,13 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     //
     // change the vpstatus of the VP to IN_NATIVE
     //
-    asm.emitLAddrOffset(PROCESSOR_REGISTER, S0, VM_Entrypoints.JNIEnvSavedPRField.getOffset());   
+    asm.emitLAddrOffset(PROCESSOR_REGISTER, S0, VM_Entrypoints.JNIEnvSavedPRField.getOffset());
     asm.emitLVAL (S0,  VM_Processor.IN_NATIVE);
-    asm.emitSTWoffset(S0, PROCESSOR_REGISTER, VM_Entrypoints.vpStatusField.getOffset()); 
+    asm.emitSTWoffset(S0, PROCESSOR_REGISTER, VM_Entrypoints.vpStatusField.getOffset());
 
-    // 
+    //
     // CALL NATIVE METHOD
-    // 
+    //
     asm.emitBCCTRL();
 
     // save the return value in R3-R4 in the glue frame spill area since they may be overwritten

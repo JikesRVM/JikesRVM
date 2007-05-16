@@ -16,7 +16,7 @@ package org.jikesrvm.ppc;
  *
  * 31 Jul 1990 Derek Lieber.
  *      Borrowed from libdbx (opcode.c, decode.c).
- * 
+ *
  * 30 Jan 1998 Ton Ngo:
  *      adapted for Java debugger jdp
  *
@@ -28,16 +28,16 @@ package org.jikesrvm.ppc;
  *    opcode is bit 0-5 of the instruction
  *    extop is the extended opcode as listed in the manual
  *    key is extop plus additional bits for variation on an opcode (. or o)
- *    form is the instruction format: I, B, SC, D, DS, X, XL, XFX, XFL, XO, A, M 
- *    format is a local enumeration to specify how to print the instruction 
+ *    form is the instruction format: I, B, SC, D, DS, X, XL, XFX, XFL, XO, A, M
+ *    format is a local enumeration to specify how to print the instruction
  *    (this is specific to each decode_?? method).
- *  
+ *
  * 18 Dec 2000 Dave Grove:
- *    Changed the mnemonics for POWER instructions that have 
+ *    Changed the mnemonics for POWER instructions that have
  *    different names on the PowerPC to use the PowerPC mnemonic.
  *    (Applied changes from Appendix F of PPC Architecture book).
  *
- *  mnemonic    opcode  extop   key     form    format  Example  
+ *  mnemonic    opcode  extop   key     form    format  Example
  *  --------    ------  ---     ---     ----    ------  --------
  *  dcbf        31      86      172     X       6       7C0218AC
  *  dcbi        31      470     940     X       6       7C021BAC
@@ -68,7 +68,7 @@ package org.jikesrvm.ppc;
  *  subf.       31      40      81      XO      1       7C221851
  *  subfo       31      40      1104    XO      1       7C221C50
  *  subfo.      31      40      1105    XO      1       7C221C51
- *                                                          
+ *
  *  fadds       59      21      42      A       0       EC22182A
  *  fadds.      59      21      43      A       0       EC22182B
  *  fdivs       59      18      36      A       0       EC221824
@@ -85,27 +85,27 @@ package org.jikesrvm.ppc;
  *  fnmsubs.    59      30      61      A       2       EC22193D
  *  fsubs       59      20      40      A       0       EC221828
  *  fsubs.      59      20      41      A       0       EC221829
- *  mfear                                       
- *  mfpvw                                       
- *  mfsprg                                      
- *  mtear                                       
- *  mtsprg                                      
- *  mfdbatl             
- *  mfdbatu             
- *  mtdbatl             
- *  mtdbatu             
- *  mttb                
- *  mttbu               
- *  mftb                
- *  mftbu               
- *  mfibatl             
- *  mfibatu             
- *  mtibatl             
- *  mtibatu             
- *    
+ *  mfear
+ *  mfpvw
+ *  mfsprg
+ *  mtear
+ *  mtsprg
+ *  mfdbatl
+ *  mfdbatu
+ *  mtdbatl
+ *  mtdbatu
+ *  mttb
+ *  mttbu
+ *  mftb
+ *  mftbu
+ *  mfibatl
+ *  mfibatu
+ *  mtibatl
+ *  mtibatu
+ *
  * 23 Apr 2003 Kris Venstermans:
  *    Added instruction decoding for 64 bit architecture.
- *    Use of constant definitions instead of integers. 
+ *    Use of constant definitions instead of integers.
  *    Cleaned up some old power instructions.
  */
 
@@ -131,13 +131,13 @@ public class VM_Disassembler implements VM_ArchConstants {
     System.out.println("instr = "+intAsHexString(instr)+" addr = "+
        intAsHexString(addr));
     System.out.println("result --> "+disasm(instr, addr));
-    
+
   }
-  
+
   static int bits (int x, int n, int m) {
     return ((x >> (31-m)) & ((1 << (m-n+1)) - 1));
   }
-  
+
   static int signed (int x, int n, int m) {
     return ((x << n) >> 31-m+n);
   }
@@ -148,7 +148,7 @@ public class VM_Disassembler implements VM_ArchConstants {
       rvmName = GPR_NAMES[n];
     else if (n>=128 && n<=135)
       rvmName = FPR_NAMES[n-128];
-    else 
+    else
       switch (n) {
       case IAR:  rvmName = "IAR"; break;
       case MSR:  rvmName = "MSR"; break;
@@ -166,9 +166,9 @@ public class VM_Disassembler implements VM_ArchConstants {
     return rvmName;
   }
 
-  
+
   static final int INST_SZ = 4;
-  
+
   /* Special register fields */
   static final int SPR_MQ  = 0;
   static final int SPR_XER  = 1;
@@ -184,16 +184,16 @@ public class VM_Disassembler implements VM_ArchConstants {
   static final int SPR_SDR1 = 25;
   static final int SPR_SRR0 = 26;
   static final int SPR_SRR1 = 27;
-  
+
   /* Trap Options */
   static final int TO_LT=16;
   static final int TO_GT= 8;
   static final int TO_EQ= 4;
   static final int TO_LLT=   2;
   static final int TO_LGT= 1;
-  
+
   /* Different instruction formats */
-  
+
   static final int  D_FORM    = 0;
   static final int  B_FORM    = 1;
   static final int  I_FORM=     2;
@@ -212,15 +212,15 @@ public class VM_Disassembler implements VM_ArchConstants {
 
   static final int  EXTENDED  =11;
   static final int  INVALID_OP=12;
-  
+
   /* Condition register fields */
   static final int CR_LT=8;
   static final int CR_GT=4;
   static final int CR_EQ=2;
   static final int CR_SO=1;
-  
+
   static final int X=9; // place holder
-  
+
   /*
    * Instruction decoder.
    */
@@ -296,143 +296,143 @@ public class VM_Disassembler implements VM_ArchConstants {
     DS_FORM,    /* OPCODE 62 */
     EXTENDED    /* OPCODE 63 */
   };
-  
+
   static VM_OpcodeTab[] Dform = {
-    
+
     /* Table for the D instruction format */
-    
+
     /*   OPCD     EO                                format      mnemonic   */
     /*   ----     --                                ------      --------   */
     /*    0,      XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
     /*    1,      XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
     /*    2,      XXX,     */  new VM_OpcodeTab(      3,      "tdi"),
-    /*    3,      XXX,     */  new VM_OpcodeTab(      3,      "twi"     ), 
+    /*    3,      XXX,     */  new VM_OpcodeTab(      3,      "twi"     ),
     /*    4,      XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
-       
+
     /*    5,      XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
     /*    6,      XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
     /*    7,      XXX,     */  new VM_OpcodeTab(      0,      "mulli"   ),
     /*    8,      XXX,     */  new VM_OpcodeTab(      0,      "subfic"  ),
     /*    9,      XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
-    
+
     /*    10,     XXX,     */  new VM_OpcodeTab(      4,      "cmpli"   ),
     /*    11,     XXX,     */  new VM_OpcodeTab(      4,      "cmpi"    ),
     /*    12,     XXX,     */  new VM_OpcodeTab(      0,      "addic"   ),
     /*    13,     XXX,     */  new VM_OpcodeTab(      0,      "addic."  ),
     /*    14,     XXX,     */  new VM_OpcodeTab(      2,      "addi"    ),
-       
+
     /*    15,     XXX,     */  new VM_OpcodeTab(      0,      "addis"   ),
     /*    16,     XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
     /*    17,     XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
     /*    18,     XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
     /*    19,     XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
-    
+
     /*    20,     XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
     /*    21,     XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
     /*    22,     XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
     /*    23,     XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
     /*    24,     XXX,     */  new VM_OpcodeTab(      1,      "ori"     ),
-    
+
     /*    25,     XXX,     */  new VM_OpcodeTab(      1,      "oris"    ),
     /*    26,     XXX,     */  new VM_OpcodeTab(      1,      "xori"    ),
     /*    27,     XXX,     */  new VM_OpcodeTab(      1,      "xoris"   ),
     /*    28,     XXX,     */  new VM_OpcodeTab(      1,      "andi. "  ),
     /*    29,     XXX,     */  new VM_OpcodeTab(      1,      "andis."  ),
-    
+
     /*    30,     XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
     /*    31,     XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
     /*    32,     XXX,     */  new VM_OpcodeTab(      2,      "lwz"     ),
     /*    33,     XXX,     */  new VM_OpcodeTab(      2,      "lwzu"    ),
     /*    34,     XXX,     */  new VM_OpcodeTab(      2,      "lbz"     ),
-    
+
     /*    35,     XXX,     */  new VM_OpcodeTab(      2,      "lbzu"    ),
     /*    36,     XXX,     */  new VM_OpcodeTab(      2,      "stw"     ),
     /*    37,     XXX,     */  new VM_OpcodeTab(      2,      "stwu"    ),
     /*    38,     XXX,     */  new VM_OpcodeTab(      2,      "stb"     ),
     /*    39,     XXX,     */  new VM_OpcodeTab(      2,      "stbu"    ),
-    
+
     /*    40,     XXX,     */  new VM_OpcodeTab(      2,      "lhz"     ),
     /*    41,     XXX,     */  new VM_OpcodeTab(      2,      "lhzu"    ),
     /*    42,     XXX,     */  new VM_OpcodeTab(      2,      "lha"     ),
     /*    43,     XXX,     */  new VM_OpcodeTab(      2,      "lhau"    ),
     /*    44,     XXX,     */  new VM_OpcodeTab(      2,      "sth"     ),
-    
+
     /*    45,     XXX,     */  new VM_OpcodeTab(      2,      "sthu"    ),
     /*    46,     XXX,     */  new VM_OpcodeTab(      2,      "lmw"     ),
     /*    47,     XXX,     */  new VM_OpcodeTab(      2,      "stmw"    ),
     /*    48,     XXX,     */  new VM_OpcodeTab(      5,      "lfs"     ),
     /*    49,     XXX,     */  new VM_OpcodeTab(      5,      "lfsu"    ),
-    
+
     /*    50,     XXX,     */  new VM_OpcodeTab(      5,      "lfd"     ),
     /*    51,     XXX,     */  new VM_OpcodeTab(      5,      "lfdu"    ),
     /*    52,     XXX,     */  new VM_OpcodeTab(      5,      "stfs"    ),
     /*    53,     XXX,     */  new VM_OpcodeTab(      5,      "stfsu"   ),
     /*    54,     XXX,     */  new VM_OpcodeTab(      5,      "stfd"    ),
-    
+
     /*    55,     XXX,     */  new VM_OpcodeTab(      5,      "stfdu"   )
   };
-  
+
 
   static VM_OpcodeTab[] XLform = {
-    
+
     /* Table for the XL instruction format */
-    
+
     /*   OPCD      EO                            format     mnemonic      */
-    /*   ----      --                            ------     --------      */ 
+    /*   ----      --                            ------     --------      */
     /*    19,      0,      */  new VM_OpcodeTab(        2,        "mcrf"   ),
     /*    19,      16,     */  new VM_OpcodeTab(        1,        "bclr or bclrl"),
     /*    19,      33,     */  new VM_OpcodeTab(        3,        "crnor"   ),
     /*    19,      50,     */  new VM_OpcodeTab(        0,        "rfi"   ),
     /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
-    
+
     /*    19,      XXX,     */  new VM_OpcodeTab(        X,        "RESERVED"   ),
     /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
     /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
     /*    19,      129,    */  new VM_OpcodeTab(        3,        "crandc"   ),
     /*    19,      150,    */  new VM_OpcodeTab(        0,        "isync"   ),
-    
+
     /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
     /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
     /*    19,      193,    */  new VM_OpcodeTab(        3,        "crxor"   ),
     /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
     /*    19,      225,    */  new VM_OpcodeTab(        3,        "crnand"   ),
-    
+
     /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
     /*    19,      257,    */  new VM_OpcodeTab(        3,        "crand"   ),
     /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
     /*    19,      289,    */  new VM_OpcodeTab(        3,        "creqv"   ),
     /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
-    
+
     /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
     /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
     /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
     /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
     /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
-    
+
     /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
     /*    19,      417,    */  new VM_OpcodeTab(        3,        "crorc"   ),
     /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
     /*    19,      449,    */  new VM_OpcodeTab(        3,        "cror"   ),
     /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
-    
+
     /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
     /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
     /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
     /*    19,      528,    */  new VM_OpcodeTab(        1,        "bcctr or bcctrl")
   };
-  
-  
-  
+
+
+
   /**
-   *  Opcode 30 table: 
-   *  The key is bits 27 through 30 of the instruction. 
-   *  "Form" is the instruction format: 
+   *  Opcode 30 table:
+   *  The key is bits 27 through 30 of the instruction.
+   *  "Form" is the instruction format:
    *      I, B, SC, D, DS, X, XL, XFX, XFL, XO, A, M, MDS, MD
-   *  "format" is how the instruction should be printed (specific to the disassembler) 
+   *  "format" is how the instruction should be printed (specific to the disassembler)
    */
 
   static VM_OpcodeXX[] opcode30 = {
-    
+
     /*               key        form     format       mnemonic       */
     /*               ---        ----     ------       --------       */
     new VM_OpcodeXX(    0,         MD_FORM,        0,      "rldicl"  ),
@@ -447,21 +447,21 @@ public class VM_Disassembler implements VM_ArchConstants {
     new VM_OpcodeXX(    9,         MDS_FORM,       1,      "rldcr"   )
   };
 
-  
+
   /**
-   *  Opcode 31 table: 
-   *  The key is bits 21 through 31 of the instruction. 
-   *  "Form" is the instruction format: 
+   *  Opcode 31 table:
+   *  The key is bits 21 through 31 of the instruction.
+   *  "Form" is the instruction format:
    *      I, B, SC, D, DS, X, XL, XFX, XFL, XO, A, M
-   *  "format" is how the instruction should be printed (specific to the disassembler) 
+   *  "format" is how the instruction should be printed (specific to the disassembler)
    */
-  
-  
+
+
   static VM_OpcodeXX[] opcode31 = {
-    
+
     /*                  key        form     format       mnemonic       */
     /*                  ---        ----     ------       --------       */
-    new VM_OpcodeXX(        0,       X_FORM,     22,         "cmp"), 
+    new VM_OpcodeXX(        0,       X_FORM,     22,         "cmp"),
     new VM_OpcodeXX(        8,       X_FORM,     24,         "tw"),
     new VM_OpcodeXX(       16,      XO_FORM,      1,         "subfc"),
     new VM_OpcodeXX(       17,      XO_FORM,      1,         "subfc."),
@@ -556,7 +556,7 @@ public class VM_Disassembler implements VM_ArchConstants {
     new VM_OpcodeXX(     1425,      XO_FORM,      0,         "subfzeo."),
     new VM_OpcodeXX(     1428,      XO_FORM,      0,         "addzeo."),
     new VM_OpcodeXX(     1429,      XO_FORM,      0,         "addzeo."),
-    new VM_OpcodeXX(     1450,       X_FORM,     10,         "stswi"), 
+    new VM_OpcodeXX(     1450,       X_FORM,     10,         "stswi"),
     new VM_OpcodeXX(     1454,       X_FORM,     12,         "stfdx"),
     new VM_OpcodeXX(     1488,      XO_FORM,      0,         "subfmeo."),
     new VM_OpcodeXX(     1489,      XO_FORM,      0,         "subfmeo."),
@@ -578,32 +578,32 @@ public class VM_Disassembler implements VM_ArchConstants {
     new VM_OpcodeXX(     2028,       X_FORM,      6,         "dcbz"),
 
     // these are the addition for the PowerPC
-    new VM_OpcodeXX(       172,     X_FORM,        6,       "dcbf"),    
-    new VM_OpcodeXX(       940,     X_FORM,        6,       "dcbi"),    
-    new VM_OpcodeXX(       108,     X_FORM,        6,       "dcbst"),   
-    new VM_OpcodeXX(       556,     X_FORM,        6,       "dcbt"),    
-    new VM_OpcodeXX(       492,     X_FORM,        6,       "dcbtst"),  
-    new VM_OpcodeXX(       982,    XO_FORM,        1,       "divw"),   
-    new VM_OpcodeXX(       983,    XO_FORM,        1,       "divw."),   
-    new VM_OpcodeXX(       2006,   XO_FORM,        1,       "divwo"),   
-    new VM_OpcodeXX(       2007,   XO_FORM,        1,       "divwo."),  
-    new VM_OpcodeXX(       918,    XO_FORM,        1,       "divwu"),   
-    new VM_OpcodeXX(       919,    XO_FORM,        1,       "divwu."),  
-    new VM_OpcodeXX(       1942,   XO_FORM,        1,       "divwuo"),  
-    new VM_OpcodeXX(       1943,   XO_FORM,        1,       "divwuo."), 
-    new VM_OpcodeXX(       1708,    X_FORM,        1,       "eieio"),  
-    new VM_OpcodeXX(       1908,    X_FORM,        0,       "extsb"),  
-    new VM_OpcodeXX(       1909,    X_FORM,        0,       "extsb."),  
-    new VM_OpcodeXX(       1964,    X_FORM,        6,       "icbi"),    
-    new VM_OpcodeXX(       40,      X_FORM,        7,       "lwarx"),   
-    new VM_OpcodeXX(       150,    XO_FORM,        1,       "mulhw"),   
-    new VM_OpcodeXX(       151,    XO_FORM,        1,       "mulhw."),  
-    new VM_OpcodeXX(       22,     XO_FORM,        1,       "mulhwu"),  
-    new VM_OpcodeXX(       23,     XO_FORM,        1,       "mulhwu."), 
-    new VM_OpcodeXX(       301,     X_FORM,        7,       "stwcx."), 
-    new VM_OpcodeXX(       80,     XO_FORM,        1,       "subf"),  
-    new VM_OpcodeXX(       81,     XO_FORM,        1,       "subf."),  
-    new VM_OpcodeXX(       1104,   XO_FORM,        1,       "subfo"),   
+    new VM_OpcodeXX(       172,     X_FORM,        6,       "dcbf"),
+    new VM_OpcodeXX(       940,     X_FORM,        6,       "dcbi"),
+    new VM_OpcodeXX(       108,     X_FORM,        6,       "dcbst"),
+    new VM_OpcodeXX(       556,     X_FORM,        6,       "dcbt"),
+    new VM_OpcodeXX(       492,     X_FORM,        6,       "dcbtst"),
+    new VM_OpcodeXX(       982,    XO_FORM,        1,       "divw"),
+    new VM_OpcodeXX(       983,    XO_FORM,        1,       "divw."),
+    new VM_OpcodeXX(       2006,   XO_FORM,        1,       "divwo"),
+    new VM_OpcodeXX(       2007,   XO_FORM,        1,       "divwo."),
+    new VM_OpcodeXX(       918,    XO_FORM,        1,       "divwu"),
+    new VM_OpcodeXX(       919,    XO_FORM,        1,       "divwu."),
+    new VM_OpcodeXX(       1942,   XO_FORM,        1,       "divwuo"),
+    new VM_OpcodeXX(       1943,   XO_FORM,        1,       "divwuo."),
+    new VM_OpcodeXX(       1708,    X_FORM,        1,       "eieio"),
+    new VM_OpcodeXX(       1908,    X_FORM,        0,       "extsb"),
+    new VM_OpcodeXX(       1909,    X_FORM,        0,       "extsb."),
+    new VM_OpcodeXX(       1964,    X_FORM,        6,       "icbi"),
+    new VM_OpcodeXX(       40,      X_FORM,        7,       "lwarx"),
+    new VM_OpcodeXX(       150,    XO_FORM,        1,       "mulhw"),
+    new VM_OpcodeXX(       151,    XO_FORM,        1,       "mulhw."),
+    new VM_OpcodeXX(       22,     XO_FORM,        1,       "mulhwu"),
+    new VM_OpcodeXX(       23,     XO_FORM,        1,       "mulhwu."),
+    new VM_OpcodeXX(       301,     X_FORM,        7,       "stwcx."),
+    new VM_OpcodeXX(       80,     XO_FORM,        1,       "subf"),
+    new VM_OpcodeXX(       81,     XO_FORM,        1,       "subf."),
+    new VM_OpcodeXX(       1104,   XO_FORM,        1,       "subfo"),
     new VM_OpcodeXX(       1105,   XO_FORM,        1,       "subfo."),
 
 // these are only valid for 32 bit architecture
@@ -611,7 +611,7 @@ public class VM_Disassembler implements VM_ArchConstants {
     new VM_OpcodeXX(      484,       X_FORM,      7,         "mtsrin"),
     new VM_OpcodeXX(     1190,       X_FORM,     18,         "mfsr"),
     new VM_OpcodeXX(     1318,       X_FORM,      4,         "mfsrin"),
- 
+
 // these are the addition for the 64 bit specific instructions
     new VM_OpcodeXX(       18,      XO_FORM,      2,         "mulhdu"),
     new VM_OpcodeXX(       19,      XO_FORM,      2,         "mulhdu."),
@@ -624,12 +624,12 @@ public class VM_Disassembler implements VM_ArchConstants {
     new VM_OpcodeXX(      116,       X_FORM,      9,         "cntlzd"),
     new VM_OpcodeXX(      117,       X_FORM,      9,         "cntlzd."),
     new VM_OpcodeXX(      136,       X_FORM,     24,         "td"),
-    new VM_OpcodeXX(      146,      XO_FORM,      1,         "mulhd"),   
-    new VM_OpcodeXX(      151,      XO_FORM,      1,         "mulhd."),  
-    new VM_OpcodeXX(      168,       X_FORM,      7,         "ldarx"),   
+    new VM_OpcodeXX(      146,      XO_FORM,      1,         "mulhd"),
+    new VM_OpcodeXX(      151,      XO_FORM,      1,         "mulhd."),
+    new VM_OpcodeXX(      168,       X_FORM,      7,         "ldarx"),
     new VM_OpcodeXX(      298,       X_FORM,      7,         "stdx"),
     new VM_OpcodeXX(      362,       X_FORM,      7,         "stdux"),
-    new VM_OpcodeXX(      429,       X_FORM,      7,         "stdcx."), 
+    new VM_OpcodeXX(      429,       X_FORM,      7,         "stdcx."),
     new VM_OpcodeXX(      466,      XO_FORM,      1,         "mulld"),
     new VM_OpcodeXX(      467,      XO_FORM,      1,         "mulld."),
     new VM_OpcodeXX(      682,       X_FORM,      7,         "lwax"),
@@ -639,8 +639,8 @@ public class VM_Disassembler implements VM_ArchConstants {
     new VM_OpcodeXX(     1654,      XS_FORM,      0,         "sradi"),
     new VM_OpcodeXX(     1655,      XS_FORM,      0,         "sradi."),
     new VM_OpcodeXX(      868,       X_FORM,      6,         "slbie"),
-    new VM_OpcodeXX(      914,      XO_FORM,      1,         "divdu"),   
-    new VM_OpcodeXX(      915,      XO_FORM,      1,         "divdu."),  
+    new VM_OpcodeXX(      914,      XO_FORM,      1,         "divdu"),
+    new VM_OpcodeXX(      915,      XO_FORM,      1,         "divdu."),
     new VM_OpcodeXX(      978,      XO_FORM,      1,         "divd"),
     new VM_OpcodeXX(      979,      XO_FORM,      1,         "divd."),
     new VM_OpcodeXX(      996,       X_FORM,      1,         "slbia"),
@@ -651,10 +651,10 @@ public class VM_Disassembler implements VM_ArchConstants {
     new VM_OpcodeXX(     1972,       X_FORM,      9,         "extsw"),
     new VM_OpcodeXX(     1973,       X_FORM,      9,         "extsw.")
   };
-  
+
   static VM_OpcodeTab[] opcode58 = {
     /* Table for the instruction format of opcode 58*/
-    
+
     /*    EO                            format      mnemonic   */
     /*   ----                           ------      --------   */
     /*    0,    */  new VM_OpcodeTab(      0,      "ld"),
@@ -662,10 +662,10 @@ public class VM_Disassembler implements VM_ArchConstants {
     /*    2,    */  new VM_OpcodeTab(      0,      "lwa"),
     /*    3,    */  new VM_OpcodeTab(      X,      "RESERVED")
   };
-  
+
   static VM_OpcodeTab[] opcode62 = {
     /* Table for the instruction format of opcode 58*/
-    
+
     /*    EO                            format      mnemonic   */
     /*   ----                           ------      --------   */
     /*    0,    */  new VM_OpcodeTab(      1,      "std"),
@@ -673,8 +673,8 @@ public class VM_Disassembler implements VM_ArchConstants {
     /*    2,    */  new VM_OpcodeTab(      X,      "RESERVED"),
     /*    3,    */  new VM_OpcodeTab(      X,      "RESERVED")
   };
-  
-/*  Opcode 63 table: The key is computed by taking 
+
+/*  Opcode 63 table: The key is computed by taking
  *  bits 21 through 31 of the instruction. "Form" is
  *  the instruction format and "format" is how the
  *  instruction should be printed.  */
@@ -686,10 +686,10 @@ public class VM_Disassembler implements VM_ArchConstants {
     new VM_OpcodeXX(        0,       X_FORM,     19,         "fcmpu"),
     new VM_OpcodeXX(       24,       X_FORM,     21,         "frsp"),
     new VM_OpcodeXX(       25,       X_FORM,     21,         "frsp."),
-    new VM_OpcodeXX(       28,       X_FORM,     21,         "fctiw"),  
-    new VM_OpcodeXX(       29,       X_FORM,     21,         "fctiw."), 
-    new VM_OpcodeXX(       30,       X_FORM,     21,         "fctiwz"),  
-    new VM_OpcodeXX(       31,       X_FORM,     21,         "fctiwz."), 
+    new VM_OpcodeXX(       28,       X_FORM,     21,         "fctiw"),
+    new VM_OpcodeXX(       29,       X_FORM,     21,         "fctiw."),
+    new VM_OpcodeXX(       30,       X_FORM,     21,         "fctiwz"),
+    new VM_OpcodeXX(       31,       X_FORM,     21,         "fctiwz."),
     new VM_OpcodeXX(       64,       X_FORM,     19,         "fcmpo"),
     new VM_OpcodeXX(       76,       X_FORM,     16,         "mtfsb1"),
     new VM_OpcodeXX(       77,       X_FORM,     16,         "mtfsb1."),
@@ -721,40 +721,40 @@ public class VM_Disassembler implements VM_ArchConstants {
   };
 
   static VM_OpcodeXX[] opcode59 = {
-    
+
     /*  opcode59 table: These are the addition for the PowerPC set
-     *  Key is  bits 26 through 31 of the instruction. 
+     *  Key is  bits 26 through 31 of the instruction.
      *  "Form" is the instruction format and "format" is how the
-     *  instruction should be printed (the enumeration is specific 
+     *  instruction should be printed (the enumeration is specific
      *  to each decode method)
      */
-    
+
     /*                  key        form     format       mnemonic       */
     new VM_OpcodeXX(       42,      A_FORM,        0,      "fadds"),
     new VM_OpcodeXX(       43,      A_FORM,        0,      "fadds."),
-    new VM_OpcodeXX(       36,      A_FORM,        0,      "fdivs"),   
-    new VM_OpcodeXX(       37,      A_FORM,        0,      "fdivs."),  
-    new VM_OpcodeXX(       58,      A_FORM,        2,      "fmadds"),  
-    new VM_OpcodeXX(       59,      A_FORM,        2,      "fmadds."), 
-    new VM_OpcodeXX(       56,      A_FORM,        2,      "fmsubs"),  
-    new VM_OpcodeXX(       57,      A_FORM,        2,      "fmsubs."), 
-    new VM_OpcodeXX(       50,      A_FORM,        1,      "fmuls"),  
-    new VM_OpcodeXX(       51,      A_FORM,        1,      "fmuls."),  
-    new VM_OpcodeXX(       62,      A_FORM,        2,      "fnmadds"), 
+    new VM_OpcodeXX(       36,      A_FORM,        0,      "fdivs"),
+    new VM_OpcodeXX(       37,      A_FORM,        0,      "fdivs."),
+    new VM_OpcodeXX(       58,      A_FORM,        2,      "fmadds"),
+    new VM_OpcodeXX(       59,      A_FORM,        2,      "fmadds."),
+    new VM_OpcodeXX(       56,      A_FORM,        2,      "fmsubs"),
+    new VM_OpcodeXX(       57,      A_FORM,        2,      "fmsubs."),
+    new VM_OpcodeXX(       50,      A_FORM,        1,      "fmuls"),
+    new VM_OpcodeXX(       51,      A_FORM,        1,      "fmuls."),
+    new VM_OpcodeXX(       62,      A_FORM,        2,      "fnmadds"),
     new VM_OpcodeXX(       63,      A_FORM,        2,      "fnmadds."),
     new VM_OpcodeXX(       60,      A_FORM,        2,      "fnmsubs"),
     new VM_OpcodeXX(       61,      A_FORM,        2,      "fnmsubs."),
-    new VM_OpcodeXX(       40,      A_FORM,        0,      "fsubs"),  
-    new VM_OpcodeXX(       41,      A_FORM,        0,      "fsubs.")  
+    new VM_OpcodeXX(       40,      A_FORM,        0,      "fsubs"),
+    new VM_OpcodeXX(       41,      A_FORM,        0,      "fsubs.")
   };
 
   static VM_OpcodeXX[] Aform = {
-    
-    /*  Aform table: The key is computed by taking 
+
+    /*  Aform table: The key is computed by taking
      *  bits 26 through 31 of the instruction. "Form" is
      *  the instruction format and "format" is how the
      *  instruction should be printed.  */
-    
+
     /*                  key        form     format       mnemonic       */
     new VM_OpcodeXX(       36,      A_FORM,      0,         "fdiv"),
     new VM_OpcodeXX(       37,      A_FORM,      0,         "fdiv."),
@@ -773,9 +773,9 @@ public class VM_Disassembler implements VM_ArchConstants {
     new VM_OpcodeXX(       62,      A_FORM,      2,         "fnmadd"),
     new VM_OpcodeXX(       63,      A_FORM,      2,         "fnmadd.")
   };
-  
-  /* 
-   *  SPR_name - common special purpose register names options   
+
+  /*
+   *  SPR_name - common special purpose register names options
    */
   static String SPR_name(int SPR)
   {
@@ -797,9 +797,9 @@ public class VM_Disassembler implements VM_ArchConstants {
     default: return null;
     }
   }
-  
-  /* 
-   *  TO_ext - common trap options   
+
+  /*
+   *  TO_ext - common trap options
    */
   static String TO_ext(int TO)
   {
@@ -818,21 +818,21 @@ public class VM_Disassembler implements VM_ArchConstants {
     default:return null;
     }
   }
-  
+
   /*
    *  Translate an instruction from its
-   *  numeric form into something more 
+   *  numeric form into something more
    *  readable.
    */
-  
+
   public static String disasm(int inst, int addr)
   {
     int opcode;
     int form;
-    
+
     opcode = bits(inst,0,5);                /* Determine opcode */
     form = opcode_to_form[opcode];           /* Determine instruction format */
-    
+
     switch(form)     /* decode known instruction format */
       {
       case D_FORM:
@@ -868,16 +868,16 @@ public class VM_Disassembler implements VM_ArchConstants {
         return "    Invalid opcode";
       }
   }
-  
+
   /* Decode the D instruction format */
-  
+
   static String decode_Dform(int inst, int opcode)
   {
     int rt, RA, TO, BF, FRT,ufield;
     int sfield;
     VM_OpcodeTab opcode_info;
     String datafield, mnemonic, asm_mnemonic, common_opt;
-    
+
     rt = TO = FRT = bits(inst, 6, 10);
     RA = bits(inst, 11, 15);
     BF = bits(inst,6,8);
@@ -890,7 +890,7 @@ public class VM_Disassembler implements VM_ArchConstants {
     }
     opcode_info = Dform[opcode];
     mnemonic = opcode_info.mnemonic;
-    
+
     switch(opcode_info.format)
       {
       case 0:
@@ -943,20 +943,20 @@ public class VM_Disassembler implements VM_ArchConstants {
         return "    Invalid opcode";
       }
   }
-  
+
   /* Decode the DS instruction format */
-  
+
   static String decode_DSform(int inst, int opcode)
   {
-    int XO, RT, RA, sfield; 
+    int XO, RT, RA, sfield;
     String datafield, mnemonic;
-    
+
     XO = bits(inst,30,31);
     RT = bits(inst,6,10);
     RA = bits(inst,11,15);
     sfield = (((inst) & 0xfffc) << 16) >> 16;
     datafield = intAsHexString(sfield);
-         
+
     switch(opcode) {
       case 58:
         mnemonic = opcode58[XO].mnemonic;
@@ -971,17 +971,17 @@ public class VM_Disassembler implements VM_ArchConstants {
       default:
         return "    Invalid opcode";
     }
-  } 
-  
+  }
+
   /* Decode the B instruction format */
-  
+
   static String decode_Bform(int addr, int inst, int opcode)
   {
-    int AA, LK, BO, BI; 
+    int AA, LK, BO, BI;
     String mnemonic;
     int cr_field;
     int target;
-    
+
     AA = bits(inst,30,30);
     LK = bits(inst,31,31);
     BO = bits(inst,6,10);
@@ -1001,15 +1001,15 @@ public class VM_Disassembler implements VM_ArchConstants {
         "   " + Integer.toHexString(destination);
     }
   }
-  
+
   /* Decode the I instruction format */
-  
+
   static String decode_Iform(int addr, int inst, int opcode)
   {
     int target;
-    int AA, LK; 
+    int AA, LK;
     String mnemonic;
-    
+
     AA = bits(inst,30,30);
     LK = bits(inst,31,31);
     target = (((inst) & ~3) << 6) >> 6;
@@ -1022,13 +1022,13 @@ public class VM_Disassembler implements VM_ArchConstants {
     destination = target;
     return "        ".substring(mnemonic.length()) + mnemonic + "   " + Integer.toHexString(destination);
   }
-  
+
   /* Decode the SC instruction format */
-  
+
   static String decode_SCform(int inst, int opcode)
   {
-    int SA, LK, LEV, FL1, FL2, SV; 
-    
+    int SA, LK, LEV, FL1, FL2, SV;
+
     SA = bits(inst,30,30);
     LK = bits(inst,31,31);
     if (SA != 0)
@@ -1049,19 +1049,19 @@ public class VM_Disassembler implements VM_ArchConstants {
           intAsHexString(FL2);
       }
   }
-  
+
   /* Decode the XL instruction format */
-  
+
   static String decode_XLform(int inst, int opcode)
   {
     String mnemonic;
     int ext_opcode;
-    int LK, BO,  BI, BB; 
-    int BF, BFA, BT, BA; 
+    int LK, BO,  BI, BB;
+    int BF, BFA, BT, BA;
     VM_OpcodeTab opcode_info;
     int cr_field;
     String branch_name;
-    
+
     ext_opcode = bits(inst,21,30);
     opcode_info = XLform[ext_opcode >> 4]; /* shift to get XL table index */
     mnemonic = opcode_info.mnemonic;
@@ -1097,26 +1097,26 @@ public class VM_Disassembler implements VM_ArchConstants {
         return "    Invalid opcode";
       }
   }
-  
+
   static String[] Mforms  = { "rlimi", "rlimi.", "rlinm", "rlinm.",
       "rlmi", "rlmi.", "rlnm", "rlnm."};
-  
+
   /* Decode the M instruction format */
-  
+
   static String decode_Mform(int inst, int opcode)
   {
     int RS, RA;
     int MB, ME, Rc;
     int SH_RB;
     String asm_mnemonic;
-    
+
     RS = bits(inst,6,10);
     RA = bits(inst,11,15);
     SH_RB = bits(inst,16,20);
     MB = bits(inst,21,25);
     ME = bits(inst,26,30);
     Rc = inst & 1;
-    
+
     asm_mnemonic = Mforms[(opcode - 20) * 2 + Rc];
     if ((opcode < 20) || ((opcode >>> 23)!=0)) {
       return "    Invalid opcode";
@@ -1142,7 +1142,7 @@ public class VM_Disassembler implements VM_ArchConstants {
       }
     }
   }
-  
+
   static VM_OpcodeXX searchXX(int key, VM_OpcodeXX[] where) {
 
     for (VM_OpcodeXX opxx : where) {
@@ -1150,11 +1150,11 @@ public class VM_Disassembler implements VM_ArchConstants {
     }
 
     return null;
-    
+
   }
-  
+
   /* Decode opcode 30 and then the relevent format */
-  
+
   static String decode_opcode30(int inst)
   {
     VM_OpcodeXX search_results;
@@ -1162,14 +1162,14 @@ public class VM_Disassembler implements VM_ArchConstants {
 
     int testkey = bits(inst,27,30);
     search_results = searchXX(testkey, opcode30);
-    
+
     if (search_results == null) {
       return "    Invalid opcode";
     }
-    
+
     mnemonic = search_results.mnemonic;
 
-    switch(search_results.form) 
+    switch(search_results.form)
       {
       case MDS_FORM:
         return decode_MDSform(inst, mnemonic);
@@ -1179,12 +1179,12 @@ public class VM_Disassembler implements VM_ArchConstants {
         return "    Invalid opcode";
       }
   }
-         
+
   /* Decode the MD instruction format */
   static String decode_MDform(int inst, String mnemonic)
   {
     int RS, RA, SH, MB;
-    
+
     RS  = bits(inst,6,10);
     RA  = bits(inst,11,15);
     SH  = ((inst&0x2) >> 4) | bits(inst,16,20);
@@ -1192,12 +1192,12 @@ public class VM_Disassembler implements VM_ArchConstants {
     return "        ".substring(mnemonic.length()) + mnemonic +
         rname(RA) + ", " + rname(RS) + ", " + SH + ", " + MB;
   }
-  
+
   /* Decode the MDS instruction format */
   static String decode_MDSform(int inst, String mnemonic)
   {
     int RS, RA, RB, MB;
-    
+
     RS  = bits(inst,6,10);
     RA  = bits(inst,11,15);
     RB  = bits(inst,16,20);
@@ -1205,27 +1205,27 @@ public class VM_Disassembler implements VM_ArchConstants {
     return "        ".substring(mnemonic.length()) + mnemonic +
         rname(RA) + ", " + rname(RS) + ", " + rname(RB) + ", " + MB;
   }
-  
+
   /* Decode the A instruction format */
   /* Decode opcode 31 and then the relevent format */
-  
+
   static String decode_opcode31(int inst)
   {
     VM_OpcodeXX search_results;
     int format;
     String mnemonic;
-    
-    
+
+
     int testkey = bits(inst,21,31);
     search_results = searchXX(testkey, opcode31);
-    
+
     if (search_results == null) {
       return "    Invalid opcode";
     }
-    
+
     mnemonic = search_results.mnemonic;
     format = search_results.format;
-    switch(search_results.form) 
+    switch(search_results.form)
       {
       case X_FORM:
         return decode_Xform(inst,mnemonic,format,testkey);
@@ -1239,23 +1239,23 @@ public class VM_Disassembler implements VM_ArchConstants {
         return "    Invalid opcode";
       }
   }
-  
+
   /* Decode the X instruction format */
-  
+
   static String decode_Xform(int inst, String mnemonic, int format, int ext_op)
   {
     int rt,RA,RB,NB,SH,FRS,SPR,FRT;
     int BF,BFA,I,BT,SR,FRA,FRB,TO;
     String asm_mnemonic, common_opt;
-    
+
     FRS = FRT = TO = BT = rt = bits(inst,6,10);
     FRB = NB  = SH = RB = I = bits(inst,16,20);
     FRA = SPR = SR = RA = bits(inst,11,15);
     BFA = bits(inst,11,13);
     I = bits(inst,16,19);
     BF = bits(inst,6,8);
-    
-    switch(format) 
+
+    switch(format)
       {
       case 0:
         return "        ".substring(mnemonic.length()) + mnemonic +
@@ -1360,13 +1360,13 @@ public class VM_Disassembler implements VM_ArchConstants {
         return "    Invalid opcode";
       }
   }
-  
+
   /* Decode the XFX instruction format */
-  
+
   static String decode_XFXform(int inst)
   {
     int rt,FXM;
-    
+
     rt = bits(inst,6,10);
     FXM = bits(inst,12,19);
     if (FXM == 0xff) {
@@ -1375,13 +1375,13 @@ public class VM_Disassembler implements VM_ArchConstants {
       return "   mtcrf   "+intAsHexString(FXM)+","+rname(rt);
     }
   }
-  
+
   /* Decode the XO instruction format */
-  
+
   static String decode_XOform(int inst, String mnemonic, int format)
   {
     int rt,RA,RB;
-    
+
     rt = bits(inst,6,10);
     RA = bits(inst,11,15);
     switch(format)
@@ -1398,12 +1398,12 @@ public class VM_Disassembler implements VM_ArchConstants {
         return "    Invalid opcode";
       }
   }
-         
+
   /* Decode the XS instruction format */
   static String decode_XSform(int inst, String mnemonic, int format)
   {
     int RS, RA, SH;
-    
+
     RS  = bits(inst,6,10);
     RA  = bits(inst,11,15);
     SH  = ((inst&0x2) >> 4) | bits(inst,16,20);
@@ -1411,27 +1411,27 @@ public class VM_Disassembler implements VM_ArchConstants {
         rname(RA) + ", " + rname(RS) + ", " + SH ;
   }
 
-  
+
   /* Decode opcode 59 and then the relevent format */
-  
+
   static String decode_opcode59(int inst)
   {
     VM_OpcodeXX search_results;
     String mnemonic;
-    
+
     int testkey = bits(inst,26,31);
-    
+
     search_results = searchXX(testkey, opcode59);
 
     if (search_results == null) {
       return "    Invalid opcode";
     }
-    
+
     mnemonic = search_results.mnemonic;
     int format = search_results.format;
 
     // All opcode 59 are in A form
-    switch(search_results.form) 
+    switch(search_results.form)
       {
       case A_FORM:
         return decode_Aform(inst,mnemonic,format);
@@ -1441,29 +1441,29 @@ public class VM_Disassembler implements VM_ArchConstants {
     }
 
   /* Decode opcode 63 and then the relevent format */
-  
+
   static String decode_opcode63(int inst)
   {
     VM_OpcodeXX search_results;
     String mnemonic;
-    
+
     int testkey = bits(inst,21,31);
-    
+
     search_results = searchXX(testkey, opcode63);
-    
+
     if (search_results == null)
       {
         testkey = bits(inst,26,31);
         search_results = searchXX(testkey, Aform);
       }
-    
+
     if (search_results == null) {
       return "    Invalid opcode";
     }
-    
+
     mnemonic = search_results.mnemonic;
     int format = search_results.format;
-    switch(search_results.form) 
+    switch(search_results.form)
       {
       case X_FORM:
         return decode_Xform(inst,mnemonic,format,testkey);
@@ -1475,13 +1475,13 @@ public class VM_Disassembler implements VM_ArchConstants {
         return "    Invalid opcode";
       }
   }
-  
+
   /* Decode the XFL instruction format */
-  
+
   static String decode_XFLform(int inst)
   {
     int FLM, FRB, Rc;
-    
+
     Rc  = bits(inst,31,31);
     FLM = bits(inst,7,14);
     FRB = bits(inst,16,20);
@@ -1495,18 +1495,18 @@ public class VM_Disassembler implements VM_ArchConstants {
         "   "+intAsHexString(FLM)+",fr"+FRB;
     }
   }
-  
+
   /* Decode the A instruction format */
-  
+
   static String decode_Aform(int inst,String mnemonic,int format)
   {
     int FRT,FRA,FRB,FRC;
-    
+
     FRT = bits(inst, 6,10);
     FRA = bits(inst,11,15);
     FRB = bits(inst,16,20);
     FRC = bits(inst,21,25);
-    switch(format) 
+    switch(format)
       {
 
       case 0:
@@ -1522,7 +1522,7 @@ public class VM_Disassembler implements VM_ArchConstants {
         return "    Invalid opcode";
       }
   }
-  
+
   /* Construct an assembler-like branch instruction */
   static
   String build_branch_op(int br_opt, int cr_bit, int update_link, int absolute, int ext_op)
@@ -1532,21 +1532,21 @@ public class VM_Disassembler implements VM_ArchConstants {
     int pos_cond = 0;/* Branch if condition is positive */
     int ctr_zero = 0;/* Branch if count register = 0 */
     int dec_ctr = 0;/* Decrement count register */
-    
+
     c = "b";
     if ((br_opt & 4) != 0) {/* Don't decrement count register */
       if ((br_opt & 16) != 0) {
         uncond = 1;
       } else if ((br_opt & 8) != 0) {
         pos_cond = 1;
-      } 
+      }
     } else {/* Decrement count register */
       dec_ctr = 1;
       if ((br_opt & 2)!=0) {
         ctr_zero = 1;
       } else if ((br_opt & 8) != 0) {
         pos_cond = 1;
-      } 
+      }
     }
     if (dec_ctr!=0) {
       c += 'd';
@@ -1581,10 +1581,10 @@ public class VM_Disassembler implements VM_ArchConstants {
       c += "l";
     if (absolute!=0)
       c += "a";
-    
+
     return c;
   }
-  
+
   /*
    * Simply return whether an instruction is a branch_with_link
    */
@@ -1593,7 +1593,7 @@ public class VM_Disassembler implements VM_ArchConstants {
   {
     int opcode, ext_op;
     int link;
-    
+
     opcode = bits(inst,0,5);
     link = bits(inst,31,31);
     switch (opcode) {
@@ -1604,7 +1604,7 @@ public class VM_Disassembler implements VM_ArchConstants {
       ext_op = bits(inst,21,30);
       if ((ext_op != 16) && (ext_op != 528)) {
         link = 0;
-      } 
+      }
       break;
     default: /* definitely not a branch */
       link = 0;
@@ -1622,22 +1622,22 @@ public class VM_Disassembler implements VM_ArchConstants {
   {
     int opcode;
     int link;
-    
+
     opcode = bits(inst,0,5);
     link = bits(inst,31,31);
     switch (opcode) {
     case 16: /* unconditional branch */
       return link == 1;
     }
-    
+
     return false;
   }
-  
-  
+
+
   static String intAsHexString(int x) {
     return "0x"+Integer.toHexString(x);
   }
-  
+
 }
 
 

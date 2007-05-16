@@ -55,7 +55,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
   final boolean typeChecks;
 
   /**
-   * Should this phase be performed? 
+   * Should this phase be performed?
    * Only perform this when we are doing an SSA-based optimization
    * that can benefit from PI nodes.
    * @param options controlling compiler options
@@ -120,7 +120,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
 
   /**
    * Perform the transformation.
-   * @param ir the IR to optimize 
+   * @param ir the IR to optimize
    */
   public void perform(OPT_IR ir) {
     if (insertion) {
@@ -140,7 +140,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
 
   /**
    *  Insert PI nodes corresponding to compare operations.
-   *  Pi-nodes are represented as dummy assignments with a single 
+   *  Pi-nodes are represented as dummy assignments with a single
    *  argument inserted along each outedge of the conditional.
    *
    *  @param ir the governing IR
@@ -243,7 +243,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
   /**
    * Insert Pi nodes for boundchecks.
    *
-   * <p>Each boundcheck Arr, Index will be followed by 
+   * <p>Each boundcheck Arr, Index will be followed by
    * <pre> PI Index, Index </pre>
    *
    * @param ir the governing IR
@@ -291,7 +291,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
   /**
    * Insert Pi nodes for null check operations.
    *
-   * <p>Each checkcast obj will be followed by 
+   * <p>Each checkcast obj will be followed by
    * <pre> PI obj, obj </pre>
    *
    * @param ir the governing IR
@@ -325,7 +325,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
   /**
    * Insert Pi nodes for checkcast operations.
    *
-   * <p>Each checkcast obj will be followed by 
+   * <p>Each checkcast obj will be followed by
    * <pre> ref_move obj, obj </pre>
    *
    * @param ir the governing IR

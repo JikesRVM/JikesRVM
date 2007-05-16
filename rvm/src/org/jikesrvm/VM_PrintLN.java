@@ -87,7 +87,7 @@ the bottom of the loop. */
   public abstract void print(char c);
 
 //   /** Print the name of the class to which the argument belongs.
-//    * 
+//    *
 //    * @param o Print the name of the class to which o belongs. */
 //   public void printClassName(Object o) {
 

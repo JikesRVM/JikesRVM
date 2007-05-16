@@ -25,13 +25,13 @@ public abstract class VM_MachineCode {
 
   /**
    * Get the instructions comprising this block of machine code.
-   */ 
+   */
   public ArchitectureSpecific.VM_CodeArray getInstructions() {
     if (VM.VerifyAssertions) VM._assert(instructions != null); // must call "finish" first
     return instructions;
   }
 
-  /** 
+  /**
    * Get the bytecode-to-instruction map for this block of machine code.
    * @return an array co-indexed with bytecode array. Each entry is an offset
    * into the array of machine codes giving the first instruction that the
@@ -44,7 +44,7 @@ public abstract class VM_MachineCode {
 
   /**
    * Finish generation of assembler code.
-   */ 
+   */
   public void finish () {
     if (VM.VerifyAssertions) VM._assert(instructions == null); // finish must only be called once
 
@@ -97,7 +97,7 @@ public abstract class VM_MachineCode {
     int[] b = bundles.get(i);
     b[j] = instr;
   }
-  
+
   public void setBytecodeMap(int[] b2m) {
     bytecode_2_machine = b2m;
   }
@@ -107,7 +107,7 @@ public abstract class VM_MachineCode {
 
   /* Unfortunately, the number of instructions is not known in advance.
      This class implements a vector of instructions (ints).  It uses a
-     vector -- bundles -- whose elements are each int[size] arrays of 
+     vector -- bundles -- whose elements are each int[size] arrays of
      instructions.  size is assumed to be a power of two.
    */
 

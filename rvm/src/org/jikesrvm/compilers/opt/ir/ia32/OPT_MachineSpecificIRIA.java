@@ -119,7 +119,7 @@ public abstract class OPT_MachineSpecificIRIA extends OPT_MachineSpecificIR {
     }
   }
 
-  /* 
+  /*
   * Generic (32/64 neutral) IA support
   */
 
@@ -184,7 +184,7 @@ public abstract class OPT_MachineSpecificIRIA extends OPT_MachineSpecificIR {
     if (end != null && end.operator == IA32_FMOV) {
       if (dfnend == dfnbegin) {
         // if end, an FMOV, both begins and ends the live range,
-        // then end is dead.  Change it to a NOP and return null. 
+        // then end is dead.  Change it to a NOP and return null.
         Empty.mutate(end, NOP);
         return false;
       } else {
@@ -203,7 +203,7 @@ public abstract class OPT_MachineSpecificIRIA extends OPT_MachineSpecificIR {
 
   /**
    *  Rewrite floating point registers to reflect changes in stack
-   *  height induced by BURS. 
+   *  height induced by BURS.
    *
    *  Side effect: update the fpStackHeight in MIRInfo
    */

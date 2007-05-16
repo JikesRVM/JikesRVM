@@ -12,7 +12,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_ConditionOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_Operand;
 
 /**
- * Encodes the T0 field for trap operations 
+ * Encodes the T0 field for trap operations
  *
  * @see OPT_Operand
  */

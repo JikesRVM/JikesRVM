@@ -16,7 +16,7 @@ import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
- * Suppose the following inlining actions have been taken 
+ * Suppose the following inlining actions have been taken
  * <pre>
  * (&lt;callerMID, bcIndex, calleeMID&gt;):
  *

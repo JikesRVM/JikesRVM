@@ -19,7 +19,7 @@ import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * Information associated with artifical stackframe inserted by hardware 
+ * Information associated with artifical stackframe inserted by hardware
  * trap handler.
  */
 @SynchronizedObject

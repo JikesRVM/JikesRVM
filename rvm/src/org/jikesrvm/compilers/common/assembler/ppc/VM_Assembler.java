@@ -750,8 +750,8 @@ public abstract class VM_Assembler
 
   // LOAD/ STORE MULTIPLE
 
-  // TODO!! verify that D is sign extended 
-  // (the Assembler Language Reference seems ambiguous) 
+  // TODO!! verify that D is sign extended
+  // (the Assembler Language Reference seems ambiguous)
   //
 
   public final void emitLMW(int RT, int D, int RA) {
@@ -761,8 +761,8 @@ public abstract class VM_Assembler
     mc.addInstruction(mi);
   }
 
-  // TODO!! verify that D is sign extended 
-  // (the Assembler Language Reference seems ambiguous) 
+  // TODO!! verify that D is sign extended
+  // (the Assembler Language Reference seems ambiguous)
   //
   public final void emitSTMW(int RT, int D, int RA) {
     if (VM.VerifyAssertions) VM._assert(fits(D, 16));
@@ -2319,7 +2319,7 @@ public abstract class VM_Assembler
   }
 
   /**
-   * Emit the trap pattern (trap LLT 1) we use for nullchecks on reg; 
+   * Emit the trap pattern (trap LLT 1) we use for nullchecks on reg;
    * @param RA  The register number containing the ptr to null check
    */
   public void emitNullCheck(int RA) {
@@ -2355,7 +2355,7 @@ public abstract class VM_Assembler
     emitTAddrLT(S0, 0);                                    // trap if new frame below guard page
     VM_ForwardReference fr2 = emitForwardB();
 
-    // check for enough space for STACK_SIZE_JNINATIVE 
+    // check for enough space for STACK_SIZE_JNINATIVE
     fr1.resolve(this);
     emitLAddrOffset(0, S0, VM_Entrypoints.stackLimitField.getOffset());  // R0 := &stack guard page
     emitLVAL(S0, VM_StackframeLayoutConstants.STACK_SIZE_JNINATIVE);

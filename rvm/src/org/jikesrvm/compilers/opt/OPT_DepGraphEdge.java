@@ -166,7 +166,7 @@ final class OPT_DepGraphEdge extends OPT_SpaceEffGraphEdge
   }
 
   /**
-   * Constructor for dependence graph edge of a REG_TRUE dependence 
+   * Constructor for dependence graph edge of a REG_TRUE dependence
    * from sourceNode to destNode due to destOp
    * @param destOp destination operand
    * @param sourceNode source dependence graph node

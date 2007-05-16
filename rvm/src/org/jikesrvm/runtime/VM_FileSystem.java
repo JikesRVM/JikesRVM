@@ -95,7 +95,7 @@ public class VM_FileSystem {
    * @param fileName file name
    * @param kind     kind of info desired (one of STAT_XXX, above)
    * @return desired info (-1 -> error)
-   *    The boolean ones return 0 in case of non-true, 1 in case of 
+   *    The boolean ones return 0 in case of non-true, 1 in case of
    *    true status.
    */
   public static int stat(String fileName, int kind) {
@@ -401,7 +401,7 @@ public class VM_FileSystem {
     // The canonical write loop.  Try the write repeatedly until
     //   - it succeeds, or
     //   - it returns an error
-    // If the write would have blocked, put this thread on the 
+    // If the write would have blocked, put this thread on the
     // IO queue, then try again if it looks like the fd is ready.
 
     if (!blockingWriteHack(fd)) {

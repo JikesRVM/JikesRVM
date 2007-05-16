@@ -49,7 +49,7 @@ import org.jikesrvm.scheduler.VM_Thread;
  *
  * The current logging levels are:
  *   0  Do no logging
- *   1  Do minimal logging at startup and VM exit.  
+ *   1  Do minimal logging at startup and VM exit.
  *      If at all possible, do not log anything during program execution.
  *      This logging level is supposed to produce minimal performance pertubation.
  *   2  Log interesting AOS events and controller actions
@@ -303,10 +303,10 @@ public class VM_AOSLogging {
   }
 
   /**
-   * Call this method when the controller thread is exiting.  This can 
+   * Call this method when the controller thread is exiting.  This can
    * cause us lots and lots of trouble if we are exiting as part of handling
    * an OutOfMemoryError.  We resolve *that* problem by means of a test in
-   * VM_Runtime.deliverException(). 
+   * VM_Runtime.deliverException().
    */
   public static void controllerCompleted() {
     if (!booted) return; // fast exit
@@ -440,7 +440,7 @@ public class VM_AOSLogging {
    *  the other
    *  @param compiler1 the first compiler
    *  @param compiler2 the second compiler
-   *  @param rate the ratio of compiler1 compilation rate to 
+   *  @param rate the ratio of compiler1 compilation rate to
    *                compiler2 compilation rate
    */
   public static void reportCompileTimeRatio(int compiler1,
@@ -459,7 +459,7 @@ public class VM_AOSLogging {
   }
 
   /**
-   * prints the current recompilation and thread stats to the log file 
+   * prints the current recompilation and thread stats to the log file
    */
   public static void recordRecompAndThreadStats() {
     if (VM_Controller.options.LOGGING_LEVEL >= 1) {
@@ -515,7 +515,7 @@ public class VM_AOSLogging {
   }
 
   /**
-   * This method logs the successful completion of an adaptively 
+   * This method logs the successful completion of an adaptively
    * selected recompilation
    * @param plan the OPT_Compilation plan being executed.
    */
@@ -564,8 +564,8 @@ public class VM_AOSLogging {
   }
 
   /**
-   * this method logs the event when the controller discovers a method that has 
-   * been recompiled and the previous version is still regarded as hot, 
+   * this method logs the event when the controller discovers a method that has
+   * been recompiled and the previous version is still regarded as hot,
    * i.e., still on the stack and signficant.
    */
   public static void oldVersionStillHot(VM_HotMethodEvent hme) {
@@ -626,7 +626,7 @@ public class VM_AOSLogging {
   }
 
   /**
-   * This method logs that the controller is notified of a 
+   * This method logs that the controller is notified of a
    * candidate to be recompiled due to inlining opportunities;
    * i.e., the method has been inserted in the controller queue.
    * @param hotMethod   method to be recompiled,
@@ -647,7 +647,7 @@ public class VM_AOSLogging {
   }
 
   /**
-   * This method logs that the controller is notified of a 
+   * This method logs that the controller is notified of a
    * candidate to be recompiled due to hotness;
    * i.e., the method has been inserted in the controller queue.
    * @param hotMethod   method to be recompiled, and
@@ -774,7 +774,7 @@ public class VM_AOSLogging {
   ////////////////////////////////////////////////////////////////
 
   /**
-   * This method logs the successful completion of an adaptively 
+   * This method logs the successful completion of an adaptively
    * selected recompilation
    * @param plan the OPT_Compilation plan being executed.
    */

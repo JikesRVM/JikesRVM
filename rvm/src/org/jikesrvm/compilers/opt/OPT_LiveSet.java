@@ -12,7 +12,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_Register;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 
 /**
- * This file provides a sorted set (of registers) ADT with the 
+ * This file provides a sorted set (of registers) ADT with the
  *  following public operations:
  *
  *    clear()  - empties the set
@@ -184,7 +184,7 @@ public class OPT_LiveSet {
           newPtr = newPtr.getNext();
         }
       }
-      // while there is still more on the new list, add them 
+      // while there is still more on the new list, add them
       while (newPtr != null) {
         // When we add, the "prev" ptr will be updated
         curPrevPtr = createAndAddToCurrentList(newPtr.getRegisterOperand(),
@@ -334,7 +334,7 @@ public class OPT_LiveSet {
   }
 
   /**
-   * Copy the newElement into a new object and add it to the list 
+   * Copy the newElement into a new object and add it to the list
    * after prevElement.  If prevElement is null, update the "start"
    * data member by inserting at the begining.
    * @param  register the element to copy and insert

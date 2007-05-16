@@ -23,7 +23,7 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * Handle exception delivery and stack unwinding for methods compiled by 
+ * Handle exception delivery and stack unwinding for methods compiled by
  * baseline compiler.
  */
 public abstract class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
@@ -60,11 +60,11 @@ public abstract class VM_BaselineExceptionDeliverer extends VM_ExceptionDelivere
 
     registers.inuse = false;
 
-    // 'give back' the portion of the stack we borrowed to run 
+    // 'give back' the portion of the stack we borrowed to run
     // exception delivery code when invoked for a hardware trap.
-    // If this was a straight software trap (athrow) then setting 
+    // If this was a straight software trap (athrow) then setting
     // the stacklimit should be harmless, since the stacklimit should already have exactly
-    // the value we are setting it too. 
+    // the value we are setting it too.
     if (!myThread.hardwareExceptionRegisters.inuse) {
       myThread.stackLimit = VM_Magic.objectAsAddress(myThread.stack).plus(STACK_SIZE_GUARD);
       VM_Processor.getCurrentProcessor().activeThreadStackLimit = myThread.stackLimit;

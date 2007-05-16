@@ -20,7 +20,7 @@ import org.vmmagic.unboxed.Word;
 /**
  * Low level memory management functions.
  *
- * Note that this class is "uninterruptible" - calling its methods will never 
+ * Note that this class is "uninterruptible" - calling its methods will never
  * cause the current thread to yield the cpu to another thread (one that
  * might cause a gc, for example).
  */
@@ -475,7 +475,7 @@ public class VM_Memory implements VM_SizeConstants {
   ////////////////////////
 
   /**
-   * Synchronize a region of memory: force data in dcache to be written out to main 
+   * Synchronize a region of memory: force data in dcache to be written out to main
    * memory so that it will be seen by icache when instructions are fetched back.
    * @param address  Start of address range
    * @param size     Size of address range (bytes)
@@ -521,7 +521,7 @@ public class VM_Memory implements VM_SizeConstants {
   /**
    * Do generic mmap non-file memory mapping call
    * @param address  Start of address range (Address)
-   * @param size    Size of address range 
+   * @param size    Size of address range
    * @param prot    Protection (int)
    * @param flags (int)
    * @return Address (of region) if successful; errno (1 to 127) otherwise
@@ -536,7 +536,7 @@ public class VM_Memory implements VM_SizeConstants {
   /**
    * Do mmap demand zero fixed address memory mapping call
    * @param address  Start of address range
-   * @param size     Size of address range 
+   * @param size     Size of address range
    * @return Address (of region) if successful; errno (1 to 127) otherwise
    */
   public static Address dzmmap(Address address, Extent size) {
@@ -551,7 +551,7 @@ public class VM_Memory implements VM_SizeConstants {
   /**
    * Do mprotect system call
    * @param address Start of address range (Address)
-   * @param size Size of address range 
+   * @param size Size of address range
    * @param prot Protection (int)
    * @return true iff success
    */

@@ -34,27 +34,27 @@ import org.jikesrvm.runtime.VM_Entrypoints;
 import org.vmmagic.pragma.NoInline;
 
 /**
- * A basic block in the 
+ * A basic block in the
  * {@link OPT_ControlFlowGraph Factored Control Flow Graph (FCFG)}.
  * <p>
  * Just like in a standard control flow graph (CFG), a FCFG basic block
  * contains a linear sequence of instructions. However, in the FCFG,
  * a Potentially Excepting Instruction (PEI) does not necessarily end its
- * basic block.  Therefore, although instructions within a FCFG basic block 
+ * basic block.  Therefore, although instructions within a FCFG basic block
  * have the expected dominance relationships, they do <em>not</em> have the
  * same post-dominance relationships as they would under the traditional
- * basic block formulation used in a CFG.  
+ * basic block formulation used in a CFG.
  * We chose to use an FCFG because doing so significantly reduces the
  * number of basic blocks and control flow graph edges, thus reducing
- * the time and space costs of representing the FCFG and also 
+ * the time and space costs of representing the FCFG and also
  * increasing the effectiveness of local (within a single basic block)
  * analysis.  However, using an FCFG does complicate flow-sensitive
  * global analaysis.  Many analyses can be easily extended to
  * work on the FCFG.  For those analyses that cannot, we provide utilities
  * ({@link OPT_IR#unfactor()}, {@link #unfactor(OPT_IR)})
- * to effectively convert the FCFG into a CFG.  
+ * to effectively convert the FCFG into a CFG.
  * For a more detailed description of the FCFG and its implications for
- * program analysis see the PASTE'99 paper by Choi et al. 
+ * program analysis see the PASTE'99 paper by Choi et al.
  *   <a href="http://www.research.ibm.com/jalapeno/publication.html#paste99">
  *   Efficient and Precise Modeling of Exceptions for the Analysis of Java Programs </a>
  * <p>
@@ -64,11 +64,11 @@ import org.vmmagic.pragma.NoInline;
  * <li> Next come zero or more non-branch instructions.
  * <li> Next come zero or more conditional branches
  * <li> Next comes zero or one unconditional branch
- * <li> Finally the block ends with a <code>BBEND</code> 
+ * <li> Finally the block ends with a <code>BBEND</code>
  * </ul>
  * <code>CALL</code> instructions do not end their basic block.
  * <code>ATHROW</code> instructions do end their basic block.
- * Conventionally, we refer to the <em>real</em> instructions of 
+ * Conventionally, we refer to the <em>real</em> instructions of
  * the block as those that are between the LABEL and the BBEND.
  * We say that the block is empty if it contains no real instructions.
  * <p>
@@ -98,7 +98,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
   static final int LANDING_PAD = 0x80;
 
   /**
-   * Encodes exception handler info for this block.  
+   * Encodes exception handler info for this block.
    * May be shared if multiple blocks have exactly the same chain
    * of exception handlers.
    */
@@ -127,7 +127,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
 
   /**
    * Creates a new basic block at the specified location.
-   * It initially contains a single label instruction pointed to 
+   * It initially contains a single label instruction pointed to
    * by start and a BBEND instruction pointed to by end.
    *
    * @param i         bytecode index to create basic block at
@@ -142,12 +142,12 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
 
   /**
    * Creates a new basic block at the specified location with
-   * the given basic block number. 
-   * It initially contains a single label instruction pointed to 
+   * the given basic block number.
+   * It initially contains a single label instruction pointed to
    * by start and a BBEND instruction pointed to by end.
-   * WARNING: Don't call this constructor directly if the created basic 
+   * WARNING: Don't call this constructor directly if the created basic
    * block is going to be in some control flow graph, since it
-   * may not get assigned a unique number. 
+   * may not get assigned a unique number.
    *
    * @param i         bytecode index to create basic block at
    * @param position  the inline context for this basic block
@@ -332,7 +332,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    * May conservatively return true even if the block
    * does not contain a PEI.
    *
-   * @return <code>true</code> if the block might raise an 
+   * @return <code>true</code> if the block might raise an
    *         exception or <code>false</code> if it cannot
    */
   public final boolean canThrowExceptions() {
@@ -344,14 +344,14 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    * May conservatively return true even if the block
    * does not contain a PEI. When this is true it implies
    * that there is an implicit edge from this node to the
-   * exit node in the FCFG. 
+   * exit node in the FCFG.
    * <p>
    * NOTE: This method says nothing about the presence/absence
    * of an explicit throw of an uncaught exception, and thus does
    * not rule out the block having an <em>explicit</em>
    * edge to the exit node caused by a throw of an uncaught exception.
    *
-   * @return <code>true</code> if the block might raise an 
+   * @return <code>true</code> if the block might raise an
    *         exception uncaught or <code>false</code> if it cannot
    */
   public final boolean mayThrowUncaughtException() {
@@ -375,7 +375,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    * Has the block been marked as being reachable from an
    * exception handler?
    *
-   * @return <code>true</code> if the block is reachable from 
+   * @return <code>true</code> if the block is reachable from
    *         an exception hander or <code>false</code> if it is not
    */
   public final boolean isReachableFromExceptionHandler() {
@@ -383,7 +383,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
   }
 
   /**
-   * Compare the in scope exception handlers of two blocks. 
+   * Compare the in scope exception handlers of two blocks.
    *
    * @param other block to be compared to this.
    * @return <code>true</code> if this and other have equivalent in
@@ -391,8 +391,8 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    */
   public final boolean isExceptionHandlerEquivalent(OPT_BasicBlock other) {
     // We might be able to do something,
-    // by considering the (subset) of reachable exception handlers, 
-    // but it would be awfully tricky to get it right, 
+    // by considering the (subset) of reachable exception handlers,
+    // but it would be awfully tricky to get it right,
     // so just give up if they aren't equivalent.
     if (exceptionHandlers != other.exceptionHandlers) {
       // Even if not pointer ==, they still may be equivalent
@@ -521,7 +521,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
   }
 
   /**
-   * Clear the block is the first one in an exception handler 
+   * Clear the block is the first one in an exception handler
    * property of the block.
    */
   public final void clearExceptionHandlerBasicBlock() {
@@ -529,7 +529,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
   }
 
   /**
-   * Clear the block is reachable from an exception handler 
+   * Clear the block is reachable from an exception handler
    * property of the block.
    */
   public final void clearReachableFromExceptionHandler() {
@@ -607,7 +607,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
   }
 
   /**
-   * Make a branch operand with the label instruction 
+   * Make a branch operand with the label instruction
    * of this block.
    *
    * @return an OPT_BranchOperand holding this blocks label
@@ -617,7 +617,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
   }
 
   /**
-   * Make a GOTO instruction, branching to the first instruction of 
+   * Make a GOTO instruction, branching to the first instruction of
    * this basic block.
    *
    * @return a GOTO instruction that jumps to this block
@@ -634,7 +634,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
   }
 
   /**
-   * @return the first 'real' instruction of the basic block; 
+   * @return the first 'real' instruction of the basic block;
    *         null if the block is empty
    */
   public final OPT_Instruction firstRealInstruction() {
@@ -653,7 +653,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
   }
 
   /**
-   * @return the last 'real' instruction of the basic block; 
+   * @return the last 'real' instruction of the basic block;
    *         null if the block is empty
    */
   public final OPT_Instruction lastRealInstruction() {
@@ -756,7 +756,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
   }
 
   /**
-   * Does this basic block end in a GOTO instruction? 
+   * Does this basic block end in a GOTO instruction?
    *
    * @return <code>true</code> if the block ends in a GOTO
    *         or <code>false</code> if it does not
@@ -768,7 +768,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
   }
 
   /**
-   * Does this basic block end in a RETURN instruction? 
+   * Does this basic block end in a RETURN instruction?
    *
    * @return <code>true</code> if the block ends in a RETURN
    *         or <code>false</code> if it does not
@@ -780,7 +780,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
   }
 
   /**
-   * Does this basic block end in a SWITCH instruction? 
+   * Does this basic block end in a SWITCH instruction?
    *
    * @return <code>true</code> if the block ends in a SWITCH
    *         or <code>false</code> if it does not
@@ -794,10 +794,10 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
   }
 
   /**
-   * Does this basic block contain an explicit athrow instruction?  
+   * Does this basic block contain an explicit athrow instruction?
    *
    * @return <code>true</code> if the block ends in an explicit Athrow
-   *         instruction or <code>false</code> if it does not 
+   *         instruction or <code>false</code> if it does not
    */
   public final boolean hasAthrowInst() {
     if (isEmpty()) return false;
@@ -820,7 +820,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
   }
 
   /**
-   * Does this basic block end in an explicit trap?  
+   * Does this basic block end in an explicit trap?
    *
    * @return <code>true</code> if the block ends in a an explicit trap
    *         or <code>false</code> if it does not
@@ -860,10 +860,10 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
   }
 
   /**
-   * If there is a fallthrough FCFG successor of this node 
+   * If there is a fallthrough FCFG successor of this node
    * return it.
    *
-   * @return the fall-through successor of this node or 
+   * @return the fall-through successor of this node or
    *         <code>null</code> if none exists
    */
   public final OPT_BasicBlock getFallThroughBlock() {
@@ -916,7 +916,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    * Prepend instruction to this basic block but respect the prologue
    * instruction, which must come first.
    *
-   * @param i instruction to append 
+   * @param i instruction to append
    */
   public final void prependInstructionRespectingPrologue(OPT_Instruction i) {
     OPT_Instruction first = firstRealInstruction();
@@ -1002,10 +1002,10 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
   }
 
   /**
-   * Return the next basic block in with respect to the current 
+   * Return the next basic block in with respect to the current
    * code linearization order.
    *
-   * @return the next basic block in the code order or 
+   * @return the next basic block in the code order or
    *         <code>null</code> if no such block exists
    */
   public final OPT_BasicBlock nextBasicBlockInCodeOrder() {
@@ -1013,10 +1013,10 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
   }
 
   /**
-   * Return the previous basic block in with respect to the current 
+   * Return the previous basic block in with respect to the current
    * code linearization order.
    *
-   * @return the previous basic block in the code order or 
+   * @return the previous basic block in the code order or
    *         <code>null</code> if no such block exists
    */
   public final OPT_BasicBlock prevBasicBlockInCodeOrder() {
@@ -1093,7 +1093,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
   }
 
   // add all handler blocks in this's out set that might possibly catch
-  // an exception of static type throwException 
+  // an exception of static type throwException
   // (may dynamically be any subtype of thrownException)
   private void addTargets(ComputedBBEnum e, VM_TypeReference thrownException) {
     for (OPT_SpaceEffGraphEdge ed = _outEdgeStart; ed != null; ed = ed.getNextOut()) {
@@ -1110,7 +1110,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
 
   /**
    * An enumeration of the in scope exception handlers for this basic block.
-   * Note that this may be a superset of the exception handlers 
+   * Note that this may be a superset of the exception handlers
    * actually included in the out set of this basic block.
    *
    * @return an enumeration of all inscope exception handlers
@@ -1126,7 +1126,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
   /**
    * Is this block in the scope of at least exception handler?
    *
-   * @return <code>true</code> if there is at least one in scope 
+   * @return <code>true</code> if there is at least one in scope
    *         exception handler, <code>false</code> otherwise
    */
   public final boolean hasExceptionHandlers() {
@@ -1134,10 +1134,10 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
   }
 
   /**
-   * Returns an Enumeration of the in scope exception handlers that are 
-   * actually reachable from this basic block in the order that they are 
-   * applicable (which is semantically meaningful). 
-   * IE, this is those blocks in getExceptionalOut ordered as 
+   * Returns an Enumeration of the in scope exception handlers that are
+   * actually reachable from this basic block in the order that they are
+   * applicable (which is semantically meaningful).
+   * IE, this is those blocks in getExceptionalOut ordered as
    * in getExceptionHandlers.
    *
    * @return an enumeration of the reachable exception handlers
@@ -1184,7 +1184,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    * WARNING: Use this method with caution.  It does not update the
    * CFG edges correctly if the method contains certain instructions
    * such as throws and returns.  Incorrect liveness info and GC maps
-   * result, causing crashes during GC.  CMVC Defect 171189 
+   * result, causing crashes during GC.  CMVC Defect 171189
    */
   public final void recomputeNormalOut(OPT_IR ir) {
     deleteNormalOut();
@@ -1216,7 +1216,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
 
   /**
    * Ensure that the target instruction is the only real instruction
-   * in its basic block and that it has exactly one successor and 
+   * in its basic block and that it has exactly one successor and
    * one predecessor basic blocks that are linked to it by fall through edges.
    *
    * @param target the OPT_Instruction that must be placed in its own BB
@@ -1237,26 +1237,26 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
   }
 
   /**
-   * Splits a node at an instruction point.  All the instructions up to and 
+   * Splits a node at an instruction point.  All the instructions up to and
    * including the argument instruction remain in the original basic block.
    * All instructions in this basic block but after s in the instruction list
    * are moved to the new basic block.
    * <ul>
    * <li> does not establish control flow edge out of B1 -- caller responsibility
    * <li> does not establish control flow edge into B2 -- caller responsibility
-   * <li> Leaves a break in the code order -- caller responsibility 
-   *      to patch back together. If the original code order was 
-   *      BB_before -> BB1 -> BB_after 
-   *      then the new code order is 
+   * <li> Leaves a break in the code order -- caller responsibility
+   *      to patch back together. If the original code order was
+   *      BB_before -> BB1 -> BB_after
+   *      then the new code order is
    *      BB_before -> BB1 <break> BB2 -> BB_after.
-   *      Note that if BB_after == null, splitNodeAt does handle 
+   *      Note that if BB_after == null, splitNodeAt does handle
    *      updating ir.cfg._lastNode to point to BB2.
    * </ul>
    *
-   * @param last_instr_BB1 the instr that is to become the last instruction 
+   * @param last_instr_BB1 the instr that is to become the last instruction
    *                       in this basic block
    * @param ir             the containing IR object
-   * @return the newly created basic block which is the successor to this 
+   * @return the newly created basic block which is the successor to this
    */
   public final OPT_BasicBlock splitNodeAt(OPT_Instruction last_instr_BB1,
                                           OPT_IR ir) {
@@ -1312,19 +1312,19 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
   }
 
   /**
-   * Splits a node at an instruction point. All the instructions up to and 
-   * including the argument instruction remain in the original basic block 
+   * Splits a node at an instruction point. All the instructions up to and
+   * including the argument instruction remain in the original basic block
    * all instructions in this basic block but after s in the instruction list
    * are moved to the new basic block. The blocks are linked together in
    * the FCFG and the code order.
-   * The key difference between this function and 
+   * The key difference between this function and
    * {@link #splitNodeAt(OPT_Instruction,OPT_IR)} is that it does
    * establish the FCFG edges and code order such that B1 falls into B2.
    *
-   * @param last_instr_BB1 the instr that is to become 
+   * @param last_instr_BB1 the instr that is to become
    *                       the last instruction in this basic block
    * @param ir             the containing IR object
-   * @return the newly created basic block which is the successor to this 
+   * @return the newly created basic block which is the successor to this
    */
   public final OPT_BasicBlock splitNodeWithLinksAt(OPT_Instruction last_instr_BB1,
                                                    OPT_IR ir) {
@@ -1384,8 +1384,8 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    * make a copy of b, and set up the CFG so that this block has
    * normal out edges to the copies.
    *
-   * WARNING: Use this method with caution.  See comment on 
-   * BasicBlock.recomputeNormalOut() 
+   * WARNING: Use this method with caution.  See comment on
+   * BasicBlock.recomputeNormalOut()
    *
    * @param ir the containing IR
    */
@@ -1403,8 +1403,8 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    * make a copy of b, and set up the CFG so that this block has
    * normal out edges to the copy.
    *
-   * WARNING: Use this method with caution.  See comment on 
-   * BasicBlock.recomputeNormalOut() 
+   * WARNING: Use this method with caution.  See comment on
+   * BasicBlock.recomputeNormalOut()
    *
    * @param ir the governing IR
    * @param b the block to replicate
@@ -1418,8 +1418,8 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    * make a copy of b, and set up the CFG so that this block has
    * normal out edges to the copy.
    *
-   * WARNING: Use this method with caution.  See comment on 
-   * BasicBlock.recomputeNormalOut() 
+   * WARNING: Use this method with caution.  See comment on
+   * BasicBlock.recomputeNormalOut()
    *
    * @param ir the governing IR
    * @param b the block to replicate
@@ -1493,11 +1493,11 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    * This method also handles this.fallThrough, so `this' should still be in
    * the code order when this method is called.
    *
-   * WARNING: Use this method with caution.  See comment on 
-   * BasicBlock.recomputeNormalOut() 
+   * WARNING: Use this method with caution.  See comment on
+   * BasicBlock.recomputeNormalOut()
    *
    * @param b     the original target
-   * @param bCopy the future target   
+   * @param bCopy the future target
    */
   public final void redirectOuts(OPT_BasicBlock b, OPT_BasicBlock bCopy,
                                  OPT_IR ir) {
@@ -1529,27 +1529,27 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
   }
 
   /**
-   * Creates a new basic block that inherits its exception handling, 
-   * etc from 'this'. This method is intended to be used in conjunction 
-   * with splitNodeAt when splitting instructions in one original block 
+   * Creates a new basic block that inherits its exception handling,
+   * etc from 'this'. This method is intended to be used in conjunction
+   * with splitNodeAt when splitting instructions in one original block
    * into a sequence of sublocks
    *
    * @param bc the bytecode index to start the block
    * @param ir the containing IR
-   * @param wf the fraction of this's execution frequency that should be 
+   * @param wf the fraction of this's execution frequency that should be
    *           inherited by the new block. In the range [0.0, 1.0]
    * @return the new empty BBlock
    */
   public final OPT_BasicBlock createSubBlock(int bc, OPT_IR ir, float wf) {
     // For now, give the basic block the same inline context as the
-    // original block.  
+    // original block.
     // TODO: This won't always work. (In fact, in the presence of inlining
     //       it will be wrong quite often). --dave
     //       We really have to pass the position in if we except this to work.
     OPT_BasicBlock temp =
         new OPT_BasicBlock(bc, firstInstruction().position, ir.cfg);
 
-    // Conservatively transfer all exception handling behavior of the 
+    // Conservatively transfer all exception handling behavior of the
     // parent block  (this) to the new child block (temp)
     temp.exceptionHandlers = exceptionHandlers;
     temp.setCanThrowExceptions(canThrowExceptions());
@@ -1624,7 +1624,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
     this.end.getPrev().linkWithNext(succBB.start.getNext());
     succBB.end.getPrev().linkWithNext(this.end);
 
-    // Add succBB's CFG sucessors to this's CFG out edges 
+    // Add succBB's CFG sucessors to this's CFG out edges
     for (OutEdgeEnum e = succBB.getOut(); e.hasMoreElements();) {
       OPT_BasicBlock out = e.next();
       this.insertOut(out);
@@ -1644,11 +1644,11 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
   }
 
   /**
-   * Convert a block in the FCFG into the equivalent set of 
+   * Convert a block in the FCFG into the equivalent set of
    * CFG blocks by splitting the original block into sub-blocks
    * at each PEI that reaches at least one exception handelr.
    * NOTE: This is sufficient for intraprocedural analysis, since the
-   * only program point at which the "wrong" answers will 
+   * only program point at which the "wrong" answers will
    * be computed is the exit node, but is not good enough for
    * interprocedural analyses.  To do an interprocedural analysis,
    * either the analysis needs to deal with the FCFG or all nodes
@@ -1848,7 +1848,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
   /**
    * Get the number of out nodes that are to "normal" basic blocks
    *
-   * @return the number of out nodes that are not the start of 
+   * @return the number of out nodes that are not the start of
    *         exception handlers
    */
   public final int getNumberOfNormalOut() {
@@ -1881,7 +1881,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
   }
 
   /**
-   * Are there exceptinal handlers that are reachable via 
+   * Are there exceptinal handlers that are reachable via
    * exceptional control flow from this basic block?
    *
    * @return <code>true</code> if an exceptional handler

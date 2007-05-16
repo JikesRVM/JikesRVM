@@ -25,11 +25,11 @@ import org.vmmagic.unboxed.Offset;
 
 /**
  * An organizer to build a dynamic call graph from call graph edge
- * samples. 
+ * samples.
  * <p>
- * It communicates with an edge listener through a 
+ * It communicates with an edge listener through a
  * integer array, denoted buffer.  When this organizer is woken up
- * via threshold reached, it processes the sequence of triples 
+ * via threshold reached, it processes the sequence of triples
  * that are contained in buffer.
  * <p>
  * After processing the buffer and updating the dynamic call graph,
@@ -44,7 +44,7 @@ import org.vmmagic.unboxed.Offset;
  *       as hot.  Thus, the call graph may not contain some hot edges since they
  *       aren't viable inlining candidates. One may argue that this is not the right
  *       design.  Perhaps instead the edges should be present for profiling purposes,
- *       but not reported as inlining candidates to the 
+ *       but not reported as inlining candidates to the
  * <p>
  * EXPECTATION: buffer is filled all the way up with triples.
  */
@@ -59,8 +59,8 @@ public class VM_DynamicCallGraphOrganizer extends VM_Organizer {
    * the caller and callee are VM_CompiledMethodID's, and address identifies
    * the call site.
    * bufferSize is the number of triples contained in buffer.
-   * The edge listener adds triples.  
-   * At some point the listener deregisters itself and notifies the organizer 
+   * The edge listener adds triples.
+   * At some point the listener deregisters itself and notifies the organizer
    * by calling thresholdReached().
    */
   private int[] buffer;
@@ -105,7 +105,7 @@ public class VM_DynamicCallGraphOrganizer extends VM_Organizer {
 
   /**
    * Method that is called when the sampling threshold is reached.
-   * Process contents of buffer: 
+   * Process contents of buffer:
    *    add call graph edges and increment their weights.
    */
   void thresholdReached() {
@@ -149,9 +149,9 @@ public class VM_DynamicCallGraphOrganizer extends VM_Organizer {
           try {
             bytecodeIndex = mc_map.getBytecodeIndexForMCOffset(MCOffset);
             if (bytecodeIndex == -1) {
-              // this can happen we we sample a call 
-              // to a runtimeSerivce routine. 
-              // We aren't setup to inline such methods anyways, 
+              // this can happen we we sample a call
+              // to a runtimeSerivce routine.
+              // We aren't setup to inline such methods anyways,
               // so skip the sample.
               if (DEBUG) {
                 VM.sysWrite("  *** SKIP SAMPLE ", stackFrameCaller.toString());

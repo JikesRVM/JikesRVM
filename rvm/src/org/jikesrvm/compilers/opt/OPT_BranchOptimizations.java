@@ -86,7 +86,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
 
   /**
    * Are we allowed to duplication conditional branches?
-   * Restricted until backedge yieldpoints are inserted to 
+   * Restricted until backedge yieldpoints are inserted to
    * avoid creating irreducible control flow by duplicating
    * a conditional branch in a loop header into a block outside the
    * loop, thus creating two loop entry blocks.
@@ -94,7 +94,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
   private final boolean mayDuplicateCondBranches;
 
   /**
-   * @param level the minimum optimization level at which the branch 
+   * @param level the minimum optimization level at which the branch
    *              optimizations should be performed.
    * @param mayReorderCode are we allowed to change the code order?
    * @param mayDuplicateCondBranches are we allowed to duplicate conditional branches?
@@ -106,7 +106,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
   }
 
   /**
-   * @param level the minimum optimization level at which the branch 
+   * @param level the minimum optimization level at which the branch
    *              optimizations should be performed.
    * @param mayReorderCode are we allowed to change the code order?
    * @param mayDuplicateCondBranches are we allowed to duplicate conditional branches?
@@ -145,21 +145,21 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
   }
 
   /**
-   * Perform optimizations for a Goto.  
+   * Perform optimizations for a Goto.
    *
-   * <p> Patterns: 
+   * <p> Patterns:
    * <pre>
    *    1)      GOTO A       replaced by  GOTO B
    *         A: GOTO B
    *
    *    2)      GOTO A       replaced by  IF .. GOTO B
    *         A: IF .. GOTO B              GOTO C
-   *         C: ...                     
+   *         C: ...
    *    3)   GOTO next instruction eliminated
    *    4)      GOTO A       replaced by  GOTO B
-   *         A: LABEL        
+   *         A: LABEL
    *            BBEND
-   *         B: 
+   *         B:
    *    5)   GOTO BBn where BBn has exactly one in ede
    *         - move BBn immediately after the GOTO in the code order,
    *           so that pattern 3) will create a fallthrough
@@ -176,7 +176,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
                               OPT_BasicBlock bb) {
     OPT_BasicBlock targetBlock = g.getBranchTarget();
 
-    // don't optimize jumps to a code motion landing pad 
+    // don't optimize jumps to a code motion landing pad
     if (targetBlock.getLandingPad()) return false;
 
     OPT_Instruction targetLabel = targetBlock.firstInstruction();
@@ -202,11 +202,11 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
         // g: goto L
         // ...
         // L: goto L
-        // This happens in jByteMark.EmFloatPnt.denormalize() due to a while(true) {} 
+        // This happens in jByteMark.EmFloatPnt.denormalize() due to a while(true) {}
         return false;
       }
       Goto.setTarget(g, (OPT_BranchOperand) Goto.getTarget(targetInst).copy());
-      bb.recomputeNormalOut(ir); // fix the CFG 
+      bb.recomputeNormalOut(ir); // fix the CFG
       return true;
     }
     if (targetBlock.isEmpty()) {
@@ -214,17 +214,17 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
       // next block.
       OPT_BasicBlock nextBlock = targetBlock.getFallThroughBlock();
       Goto.setTarget(g, nextBlock.makeJumpTarget());
-      bb.recomputeNormalOut(ir); // fix the CFG 
+      bb.recomputeNormalOut(ir); // fix the CFG
       return true;
     }
     if (mayDuplicateCondBranches && IfCmp.conforms(targetInst)) {
       // unconditional branch to a conditional branch.
       // If the Goto is the only branch instruction in its basic block
       // and the IfCmp is the only non-GOTO branch instruction
-      // in its basic block then replace the goto with a copy of 
+      // in its basic block then replace the goto with a copy of
       // targetInst and append another GOTO to the not-taken
       // target of targetInst's block.
-      // We impose these additional restrictions to avoid getting 
+      // We impose these additional restrictions to avoid getting
       // multiple conditional branches in a single basic block.
       if (!g.prevInstructionInCodeOrder().isBranch() &&
           (targetInst.nextInstructionInCodeOrder().operator == BBEND ||
@@ -234,7 +234,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
         OPT_Instruction newGoto =
             targetInst.getBasicBlock().getNotTakenNextBlock().makeGOTO();
         copy.insertAfter(newGoto);
-        bb.recomputeNormalOut(ir); // fix the CFG 
+        bb.recomputeNormalOut(ir); // fix the CFG
         return true;
       }
     }
@@ -256,7 +256,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
   }
 
   /**
-   * Perform optimizations for a conditional branch.  
+   * Perform optimizations for a conditional branch.
    *
    * <pre>
    * 1)   IF .. GOTO A          replaced by  IF .. GOTO B
@@ -269,9 +269,9 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
    * 4) special case to generate Boolean compare opcode
    * 5) special case to generate conditional move sequence
    * 6)   IF .. GOTO A       replaced by  IF .. GOTO B
-   *   A: LABEL      
+   *   A: LABEL
    *      BBEND
-   *   B: 
+   *   B:
    * 7)  fallthrough to a goto: replicate goto to enable other optimizations.
    * </pre>
    *
@@ -287,7 +287,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
                                            OPT_BasicBlock bb) {
     OPT_BasicBlock targetBlock = cb.getBranchTarget();
 
-    // don't optimize jumps to a code motion landing pad 
+    // don't optimize jumps to a code motion landing pad
     if (targetBlock.getLandingPad()) return false;
 
     OPT_Instruction targetLabel = targetBlock.firstInstruction();
@@ -311,7 +311,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
       if (nextI != null && Goto.conforms(nextI)) {
         // replicate Goto
         cb.insertAfter(nextI.copyWithoutLinks());
-        bb.recomputeNormalOut(ir); // fix the CFG 
+        bb.recomputeNormalOut(ir); // fix the CFG
         return true;
       }
     }
@@ -348,30 +348,30 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
         // g: if (...) goto L
         // ...
         // L: goto L
-        // This happens in VM_GCUtil in some systems due to a while(true) {} 
+        // This happens in VM_GCUtil in some systems due to a while(true) {}
         return false;
       }
       IfCmp.setTarget(cb, (OPT_BranchOperand) Goto.getTarget(targetInst).copy());
-      bb.recomputeNormalOut(ir); // fix the CFG 
+      bb.recomputeNormalOut(ir); // fix the CFG
       return true;
     }
     if (targetBlock.isEmpty()) {
       // branch to an empty block.  Change target to the next block.
       OPT_BasicBlock nextBlock = targetBlock.getFallThroughBlock();
       IfCmp.setTarget(cb, nextBlock.makeJumpTarget());
-      bb.recomputeNormalOut(ir); // fix the CFG 
+      bb.recomputeNormalOut(ir); // fix the CFG
       return true;
     }
     if (isFlipCandidate(cb, targetInst)) {
       flipConditionalBranch(cb);
-      bb.recomputeNormalOut(ir); // fix the CFG 
+      bb.recomputeNormalOut(ir); // fix the CFG
       return true;
     }
     return false;
   }
 
   /**
-   * Perform optimizations for an inline guard.  
+   * Perform optimizations for an inline guard.
    *
    * <p> Precondition: InlineGuard.conforms(cb)
    *
@@ -404,7 +404,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
       if (nextI != null && Goto.conforms(nextI)) {
         // replicate Goto
         cb.insertAfter(nextI.copyWithoutLinks());
-        bb.recomputeNormalOut(ir); // fix the CFG 
+        bb.recomputeNormalOut(ir); // fix the CFG
         return true;
       }
     }
@@ -425,21 +425,21 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
       // conditional branch to unconditional branch.
       // change conditional branch target to latter's target
       InlineGuard.setTarget(cb, (OPT_BranchOperand) Goto.getTarget(targetInst).copy());
-      bb.recomputeNormalOut(ir); // fix the CFG 
+      bb.recomputeNormalOut(ir); // fix the CFG
       return true;
     }
     if (targetBlock.isEmpty()) {
       // branch to an empty block.  Change target to the next block.
       OPT_BasicBlock nextBlock = targetBlock.getFallThroughBlock();
       InlineGuard.setTarget(cb, nextBlock.makeJumpTarget());
-      bb.recomputeNormalOut(ir); // fix the CFG 
+      bb.recomputeNormalOut(ir); // fix the CFG
       return true;
     }
     return false;
   }
 
   /**
-   * Perform optimizations for a two way conditional branch.  
+   * Perform optimizations for a two way conditional branch.
    *
    * <p> Precondition: IfCmp2.conforms(cb)
    *
@@ -469,7 +469,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
         // branch to an empty block.  Change target to the next block.
         OPT_BasicBlock nextBlock = target1Block.getFallThroughBlock();
         IfCmp2.setTarget1(cb, nextBlock.makeJumpTarget());
-        bb.recomputeNormalOut(ir); // fix the CFG 
+        bb.recomputeNormalOut(ir); // fix the CFG
         return true;
       }
     }
@@ -499,7 +499,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
         // branch to an empty block.  Change target to the next block.
         OPT_BasicBlock nextBlock = target2Block.getFallThroughBlock();
         IfCmp2.setTarget2(cb, nextBlock.makeJumpTarget());
-        bb.recomputeNormalOut(ir); // fix the CFG 
+        bb.recomputeNormalOut(ir); // fix the CFG
         return true;
       }
     }
@@ -510,7 +510,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
       if (nextI != null && Goto.conforms(nextI)) {
         // replicate Goto
         cb.insertAfter(nextI.copyWithoutLinks());
-        bb.recomputeNormalOut(ir); // fix the CFG 
+        bb.recomputeNormalOut(ir); // fix the CFG
         return true;
       }
     }
@@ -536,7 +536,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
     if (!Goto.conforms(next)) {
       return false;
     }
-    // condition 2: is the target of the conditional branch the 
+    // condition 2: is the target of the conditional branch the
     //  next instruction after the GOTO?
     next = firstRealInstructionFollowing(next);
     if (next != target) {
@@ -637,16 +637,16 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
    * COND MOVE [if (t1 op t2) z := z  else z := t5];
    * </pre>
    *
-   * <p>Note that we rely on other optimizations (eg. copy propagation) to 
+   * <p>Note that we rely on other optimizations (eg. copy propagation) to
    * clean up some of this unnecessary mess.
    *
    * <p>Note that in this example, we've increased the shortest path by 2
-   * expression evaluations, 2 moves, and 3 cond moves, but eliminated one 
+   * expression evaluations, 2 moves, and 3 cond moves, but eliminated one
    * conditional branch.
    *
-   * <p>We apply a cost heuristic to guide this transformation: 
+   * <p>We apply a cost heuristic to guide this transformation:
    * We will eliminate a conditional branch iff it increases the shortest
-   * path by no more than 'k' operations.  Currently, we count each 
+   * path by no more than 'k' operations.  Currently, we count each
    * instruction (alu, move, or cond move) as 1 evaluation.
    * The parameter k is specified by OPT\_Options.COND_MOVE_CUTOFF.
    *
@@ -751,7 +751,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
    * instruction?
    */
   private boolean fpConditionOK(OPT_ConditionOperand c) {
-    // FCOMI sets ZF, PF, and CF as follows: 
+    // FCOMI sets ZF, PF, and CF as follows:
     // Compare Results      ZF     PF      CF
     // left > right          0      0       0
     // left < right          0      0       1
@@ -886,7 +886,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
   }
 
   /**
-   * Evaluate the cost of a basic block, in number of real instructions. 
+   * Evaluate the cost of a basic block, in number of real instructions.
    */
   private int evaluateCost(OPT_BasicBlock bb) {
     int result = 0;
@@ -899,7 +899,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
   }
 
   /**
-   * For each real non-branch instruction s in bb, 
+   * For each real non-branch instruction s in bb,
    * <ul>
    * <li> Copy s to s', and store s' in the returned array
    * <li> Insert the function s->s' in the map
@@ -985,7 +985,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
     OPT_BasicBlock taken = diamond.getTaken();
     OPT_BasicBlock notTaken = diamond.getNotTaken();
 
-    // for each non-branch instruction s in the diamond, 
+    // for each non-branch instruction s in the diamond,
     // copy s to a new instruction s'
     // and store a mapping from s to s'
     HashMap<OPT_Instruction, OPT_Instruction> takenInstructions =
@@ -1105,7 +1105,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
     }
 
     // Recompute the CFG.
-    diamond.getTop().recomputeNormalOut(ir); // fix the CFG 
+    diamond.getTop().recomputeNormalOut(ir); // fix the CFG
   }
 
   /**
@@ -1242,7 +1242,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
     // fixup CFG
     bb.deleteOut(tb);
     bb.deleteOut(fb);
-    bb.insertOut(jb);           // Note: if we processed returns, 
+    bb.insertOut(jb);           // Note: if we processed returns,
     // jb is the exit node.
     return true;
   }

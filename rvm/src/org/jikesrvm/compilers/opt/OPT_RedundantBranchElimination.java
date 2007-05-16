@@ -23,15 +23,15 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GUARD_MOVE;
 
 /**
  * Redundant branch elimination based on SSA form, global value numbers,
- * and dominance relationships. 
+ * and dominance relationships.
  * The following are sufficient conditions for a conditional branch cb1
  * to be eliminated as redundant
  * <ul>
- * <li> It is equivalent (has the same value number) as another 
+ * <li> It is equivalent (has the same value number) as another
  *      conditional branch cb2
- * <li> Either (a) the target of the taken branch of cb2 dominates cb1 
+ * <li> Either (a) the target of the taken branch of cb2 dominates cb1
  *      and said target block has exactly one in edge or (b)
- *      the not-taken continuation of cb2 dominates cb1 and 
+ *      the not-taken continuation of cb2 dominates cb1 and
  *      said continuation block has exactly one in edge.
  * </ul>
  * NOTE: the check for exactly one in edge is used to rule out
@@ -42,8 +42,8 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GUARD_MOVE;
  *  L2: x = x + 1;
  *      if (C) goto L3.            // cb1
  * </pre>
- * Here L2 (the target of cb2) dominates cb1, but it 
- * is not correct to eliminate cb1 because it is also 
+ * Here L2 (the target of cb2) dominates cb1, but it
+ * is not correct to eliminate cb1 because it is also
  * reachable (but not dominated) from the continutation
  * block of cb2!
  */
@@ -109,7 +109,7 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
     }
 
     /**
-     * Transform to eliminate redundant branches passed on 
+     * Transform to eliminate redundant branches passed on
      * GVNs and dominator information.
      *
      * @param ir   The IR on which to apply the phase
@@ -149,7 +149,7 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
         }
       }
       // (2) perform a Depth-first search of the control flow graph,
-      //     and remove any nodes we have made unreachable 
+      //     and remove any nodes we have made unreachable
       removeUnreachableCode(ir);
     }
 

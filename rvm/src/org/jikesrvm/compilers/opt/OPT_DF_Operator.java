@@ -17,7 +17,7 @@ abstract class OPT_DF_Operator {
 
   /**
    * Evaluate this equation, setting a new value for the
-   * left-hand side. 
+   * left-hand side.
    *
    * @param operands The operands for this operator.  operands[0]
    *                is the left-hand side.

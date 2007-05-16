@@ -17,7 +17,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_Operand;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 
 /**
- * This abstract class provides a set of useful architecture-independent 
+ * This abstract class provides a set of useful architecture-independent
  * methods for
  * manipulating physical registers for an IR.
  */

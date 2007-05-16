@@ -296,7 +296,7 @@ public final class VM_Lock implements VM_Constants {
   /**
    * Acquires this heavy-weight lock on the indicated object.
    *
-   * @param o the object to be locked 
+   * @param o the object to be locked
    * @return true, if the lock succeeds; false, otherwise
    */
   boolean lockHeavy(Object o) {
@@ -336,7 +336,7 @@ public final class VM_Lock implements VM_Constants {
   /**
    * Releases this heavy-weight lock on the indicated object.
    *
-   * @param o the object to be unlocked 
+   * @param o the object to be unlocked
    */
   void unlockHeavy(Object o) {
     boolean deflated = false;
@@ -395,7 +395,7 @@ public final class VM_Lock implements VM_Constants {
   ////////////////////////////////////////////////////////////////////////////
 
   // lock table implementation
-  // 
+  //
   boolean active;
   private VM_Lock nextFreeLock;
   int index;
@@ -550,7 +550,7 @@ public final class VM_Lock implements VM_Constants {
    * processor local one.
    *
    * Only used if RVM_WITH_FREE_LOCK_BALANCING preprocessor
-   * directive is set for the current build.  
+   * directive is set for the current build.
    */
   private static void localizeFreeLocks() {
     if (true) return; // TEMP

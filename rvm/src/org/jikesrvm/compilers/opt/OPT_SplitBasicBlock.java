@@ -36,7 +36,7 @@ public final class OPT_SplitBasicBlock extends OPT_CompilerPhase {
     }
   }
 
-  // Splits bb. 
+  // Splits bb.
   // Returns null if no splitting is done.
   // returns the second block if splitting is done.
   OPT_BasicBlock splitEachBlock(OPT_BasicBlock bb, OPT_IR ir) {

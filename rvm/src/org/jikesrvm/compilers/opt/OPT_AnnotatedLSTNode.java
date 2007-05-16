@@ -70,7 +70,7 @@ import org.jikesrvm.compilers.opt.ir.Unary;
  *   ...body2...
  * exit:
  *   if carriedLoopIterator condition terminalIteratorValue goto header
- * successor: 
+ * successor:
  * </listing>
  *
  * While loops (and implicitly for loops) aren't handled as they can
@@ -184,7 +184,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
    *   ...body2...
    * exit:
    *   if carriedLoopIterator condition ConstantTerminalIteratorValue goto header
-   * successor: 
+   * successor:
    * </listing>
    * ie. lots of constant fields so we can calculate the number of
    * loop iterations (handy for pre-scheduling).
@@ -215,7 +215,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
    *   ...body2...
    * exit:
    *   if carriedLoopIterator condition invariantTerminalIteratorValue goto header
-   * successor: 
+   * successor:
    * </listing>
    * ie. lots of constant fields so we can calculate the number of
    * loop iterations (handy for pre-scheduling).
@@ -274,7 +274,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
   /**
    * Is this operand related to the carried iterator of this loop?
    * @param op Operand to test
-   * @return whether related to iterator (carried)     
+   * @return whether related to iterator (carried)
    */
   boolean isCarriedLoopIterator(OPT_Operand op) {
     return op.similar(carriedLoopIterator);
@@ -466,7 +466,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
    * Test whether the operand is constant
    *
    * @param op Operand to determine whether it's constant
-   * @return Is the operand constant 
+   * @return Is the operand constant
    */
   static boolean isConstant(OPT_Operand op) {
     return op instanceof OPT_IntConstantOperand;
@@ -961,7 +961,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
     // The blocks (copy of) that branch to this block
     OPT_BasicBlockEnumeration head_inEdges = header.getIn();
     // Loop over blocks that branch to this one
-    // loop_over_header_in_edges: 
+    // loop_over_header_in_edges:
     while (head_inEdges.hasMoreElements()) {
       OPT_BasicBlock curEdgeBB = head_inEdges.next();
       // Is this block in the loop?

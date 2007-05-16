@@ -9,7 +9,7 @@
 package org.jikesrvm.ppc;
 
 /**
- * Structure for opcode 31 and 63, PowerPC instruction set: 
+ * Structure for opcode 31 and 63, PowerPC instruction set:
  * these include the X, XO, XFL, XFX and A form
  * @see VM_Disassembler
  */

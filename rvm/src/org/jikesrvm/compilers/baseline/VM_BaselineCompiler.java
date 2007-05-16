@@ -35,7 +35,7 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
   private static long encodingCycles;
 
   /**
-   * Options used during base compiler execution 
+   * Options used during base compiler execution
    */
   public static VM_BaselineOptions options;
 
@@ -86,14 +86,14 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
   }
 
   /**
-   * Now that VM is fully booted, enable options 
+   * Now that VM is fully booted, enable options
    * such as PRINT_MACHINE_CODE that require a fully booted VM.
    */
   public static void fullyBootedVM() {
-    // If the user has requested machine code dumps, then force a test 
-    // of method to print option so extra classes needed to process 
+    // If the user has requested machine code dumps, then force a test
+    // of method to print option so extra classes needed to process
     // matching will be loaded and compiled upfront. Thus avoiding getting
-    // stuck looping by just asking if we have a match in the middle of 
+    // stuck looping by just asking if we have a match in the middle of
     // compilation. Pick an obsure string for the check.
     if (options.hasMETHOD_TO_PRINT() && options.fuzzyMatchMETHOD_TO_PRINT("???")) {
       VM.sysWrite("??? is not a sensible string to specify for method name");
@@ -120,9 +120,9 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
 
   /**
    * Generate a report of time spent in various phases of the baseline compiler.
-   * <p> NB: This method may be called in a context where classloading and/or 
+   * <p> NB: This method may be called in a context where classloading and/or
    * GC cannot be allowed.
-   * Therefore we must use primitive sysWrites for output and avoid string 
+   * Therefore we must use primitive sysWrites for output and avoid string
    * appends and other allocations.
    *
    * @param explain Should an explanation of the metrics be generated?
@@ -188,7 +188,7 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
 
     /* reference map and stackheights were computed using original bytecodes
      * and possibly new operand words
-     * recompute the stack height, but keep the operand words of the code 
+     * recompute the stack height, but keep the operand words of the code
      * generation consistant with reference map
      * TODO: revist this code as part of OSR redesign
      */

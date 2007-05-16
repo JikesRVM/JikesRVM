@@ -29,7 +29,7 @@ import org.jikesrvm.runtime.VM_MagicNames;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * This class implements the machine-specific magics for the opt compiler. 
+ * This class implements the machine-specific magics for the opt compiler.
  *
  * @see org.jikesrvm.compilers.opt.ir.OPT_GenerateMagic for the machine-independent magics.
  */
@@ -41,7 +41,7 @@ public abstract class OPT_GenerateMachineSpecificMagic
    * Based on the methodName, generate a sequence of opt instructions
    * that implement the magic, updating the stack as necessary
    *
-   * @param bc2ir the bc2ir object that is generating the 
+   * @param bc2ir the bc2ir object that is generating the
    *              ir containing this magic
    * @param gc == bc2ir.gc
    * @param meth the VM_Method that is the magic method
@@ -136,7 +136,7 @@ public abstract class OPT_GenerateMachineSpecificMagic
       bc2ir.appendInstruction(CacheOp.create(ICBI, bc2ir.popInt()));
     } else {
       // Distinguish between magics that we know we don't implement
-      // (and never plan to implement) and those (usually new ones) 
+      // (and never plan to implement) and those (usually new ones)
       // that we want to be warned that we don't implement.
       String msg = "Magic method not implemented: " + meth;
       if (methodName == VM_MagicNames.returnToNewStack) {

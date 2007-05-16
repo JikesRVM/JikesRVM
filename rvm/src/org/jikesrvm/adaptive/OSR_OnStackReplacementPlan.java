@@ -31,7 +31,7 @@ import org.vmmagic.unboxed.Offset;
  * A OSR_ControllerOnStackReplacementPlan is scheduled by VM_ControllerThread,
  * and executed by the VM_RecompilationThread.
  *
- * It has the suspended thread whose activation being replaced, 
+ * It has the suspended thread whose activation being replaced,
  * and a compilation plan.
  *
  * The execution of this plan compiles the method, installs the new
@@ -105,7 +105,7 @@ public class OSR_OnStackReplacementPlan implements VM_Constants {
       boolean invalidate = true;
       if (cm.getCompilerType() == VM_CompiledMethod.BASELINE) {
         extractor = new OSR_BaselineExecStateExtractor();
-        // don't need to invalidate when transitioning from baseline 
+        // don't need to invalidate when transitioning from baseline
         invalidate = false;
       } else if (cm.getCompilerType() == VM_CompiledMethod.OPT) {
         extractor = new OSR_OptExecStateExtractor();
@@ -126,7 +126,7 @@ public class OSR_OnStackReplacementPlan implements VM_Constants {
         OSR_Profiler.notifyInvalidation(state);
       }
 
-      // compile from callee to caller 
+      // compile from callee to caller
       VM_CompiledMethod newCM = OSR_SpecialCompiler.recompileState(state, invalidate);
 
       cpThread.accumulateCycles();
@@ -138,8 +138,8 @@ public class OSR_OnStackReplacementPlan implements VM_Constants {
         VM_AOSLogging.logOsrEvent("OSR compilation failed!");
       } else {
         setStatus(VM_ControllerPlan.COMPLETED);
-        // now let OSR_CodeInstaller generate a code stub, 
-        // and OSR_PostThreadSwitch will install the stub to run.      
+        // now let OSR_CodeInstaller generate a code stub,
+        // and OSR_PostThreadSwitch will install the stub to run.
         OSR_CodeInstaller.install(state, newCM);
         VM_AOSLogging.logOsrEvent("OSR compilation succeded! " + compPlan.method);
       }

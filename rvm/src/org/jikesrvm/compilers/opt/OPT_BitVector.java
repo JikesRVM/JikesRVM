@@ -37,8 +37,8 @@ public final class OPT_BitVector implements Serializable {
    * @param nbits the size of the string
    */
   public OPT_BitVector(int nbits) {
-    // subscript(nbits) is the length of the array needed to 
-    // hold nbits 
+    // subscript(nbits) is the length of the array needed to
+    // hold nbits
     bits = new int[subscript(nbits) + 1];
     this.nbits = nbits;
   }

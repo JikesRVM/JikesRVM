@@ -9,8 +9,8 @@
 package org.jikesrvm.compilers.opt;
 
 /**
- * Use this exception when the opt compiler attempts to 
- * compile an unsupported magic.  
+ * Use this exception when the opt compiler attempts to
+ * compile an unsupported magic.
  * We define this to be a non-fatal OPT_OptimizingCompilerException.
  */
 public class OPT_MagicNotImplementedException extends OPT_OperationNotImplementedException {
@@ -18,7 +18,7 @@ public class OPT_MagicNotImplementedException extends OPT_OperationNotImplemente
   static final long serialVersionUID = -5731701797088209175L;
 
   /**
-   * A very few magics, we have no intention of ever implementing 
+   * A very few magics, we have no intention of ever implementing
    * in the opt compiler.  Supress warning messages for them
    * to avoid confusing users with "expected" error messages
    */

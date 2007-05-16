@@ -49,7 +49,7 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
   /**
    * Creates a new unconnected socket. If streaming is true,
    * create a stream socket, else a datagram socket.
-   * The deprecated datagram usage is not supported and will throw 
+   * The deprecated datagram usage is not supported and will throw
    * an exception.
    *
    * @param             streaming       true, if the socket is type streaming
@@ -63,8 +63,8 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
       if (ifd < 0) {
         throw new SocketException();
       } else {
-        // Note that the file descriptor creation hook 
-        // (in VM_FileSystem.java) will take care of setting 
+        // Note that the file descriptor creation hook
+        // (in VM_FileSystem.java) will take care of setting
         // the socket fd to nonblocking mode.
         VM_FileSystem.onCreateFileDescriptor(ifd, false);
         native_fd = ifd;
@@ -598,8 +598,8 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
   }
 
   /**
-   * In the IP stack, read at most <code>count</code> bytes off the socket 
-   * into the <code>buffer</code>, at the <code>offset</code>.  
+   * In the IP stack, read at most <code>count</code> bytes off the socket
+   * into the <code>buffer</code>, at the <code>offset</code>.
    * If the timeout is zero, block indefinitely waiting
    * for data, otherwise wait the specified period (in milliseconds).
    *

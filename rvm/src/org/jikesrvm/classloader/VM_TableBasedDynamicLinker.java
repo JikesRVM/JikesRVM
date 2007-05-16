@@ -18,18 +18,18 @@ import org.jikesrvm.runtime.VM_Runtime;
  * Dynamic linking via indirection tables. <p>
  *
  * The main idea for dynamic linking is that we maintain
- * arrays of member offsets indexed by the member's 
- * dynamic linking id. The generated code at a dynamically linked 
- * site will load the appropriate value from the offset table and 
- * check to see if the value is valid. If it is, then no dynamic linking 
+ * arrays of member offsets indexed by the member's
+ * dynamic linking id. The generated code at a dynamically linked
+ * site will load the appropriate value from the offset table and
+ * check to see if the value is valid. If it is, then no dynamic linking
  * is required.  If the value is invalid, then resolveDynamicLink
- * is invoked to perfrom any required dynamic class loading.  
- * After member resolution and class loading completes, we can 
- * store the offset value in the offset table.  
- * Thus when resolve method returns, execution can be restarted 
+ * is invoked to perfrom any required dynamic class loading.
+ * After member resolution and class loading completes, we can
+ * store the offset value in the offset table.
+ * Thus when resolve method returns, execution can be restarted
  * by reloading/indexing the offset table. <p>
  *
- * <p> NOTE: We believe that only use of invokespecial that could possibly 
+ * <p> NOTE: We believe that only use of invokespecial that could possibly
  * require dynamic linking is that of invoking an object initializer.
  */
 public class VM_TableBasedDynamicLinker implements VM_Constants {
@@ -70,8 +70,8 @@ public class VM_TableBasedDynamicLinker implements VM_Constants {
   }
 
   /**
-   * Method invoked from VM_MemberReference to 
-   * ensure that there is space in the dynamic linking table for 
+   * Method invoked from VM_MemberReference to
+   * ensure that there is space in the dynamic linking table for
    * the given member reference.
    */
   static synchronized void ensureCapacity(int id) {

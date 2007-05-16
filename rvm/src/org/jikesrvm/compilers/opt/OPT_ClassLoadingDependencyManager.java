@@ -20,11 +20,11 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 
 /**
- * This class acts as an intermediary between VM_ClassLoader and the 
- * optimizing compiler's dependency database.  Just before a class 
+ * This class acts as an intermediary between VM_ClassLoader and the
+ * optimizing compiler's dependency database.  Just before a class
  * is marked as INITIALIZED, VM_Class.initialize() invokes
  * OPT_ClassLoadingDependencyManager.classInitialized(), which is responsible
- * for identifying and performing all necessary invalidations of 
+ * for identifying and performing all necessary invalidations of
  * opt compiler code.
  */
 public final class OPT_ClassLoadingDependencyManager implements VM_ClassLoadingListener {
@@ -50,7 +50,7 @@ public final class OPT_ClassLoadingDependencyManager implements VM_ClassLoadingL
   /////////////////////////
 
   /**
-   * Record that the code currently being compiled (cm) must be 
+   * Record that the code currently being compiled (cm) must be
    * invalidated if source is overridden.
    */
   public synchronized void addNotOverriddenDependency(VM_Method source, VM_CompiledMethod cm) {
@@ -62,7 +62,7 @@ public final class OPT_ClassLoadingDependencyManager implements VM_ClassLoadingL
   }
 
   /**
-   * Record that the code currently being compiled (cm) must be 
+   * Record that the code currently being compiled (cm) must be
    * invalidated if source ever has a subclass.
    */
   public synchronized void addNoSubclassDependency(VM_Class source, VM_CompiledMethod cm) {
@@ -84,7 +84,7 @@ public final class OPT_ClassLoadingDependencyManager implements VM_ClassLoadingL
   private void handleOverriddenMethods(VM_Class c) {
     if (c.isJavaLangObjectType() || c.isInterface()) return; // nothing to do.
     VM_Class sc = c.getSuperClass();
-    // for each virtual method of sc, if it is overriden by 
+    // for each virtual method of sc, if it is overriden by
     // a virtual method declared by c, then handle any required invalidations.
     VM_Method[] sc_methods = sc.getVirtualMethods();
     VM_Method[] c_methods = c.getVirtualMethods();

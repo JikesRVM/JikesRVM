@@ -130,8 +130,8 @@ public abstract class OPT_GenericRegisterRestrictions {
         }
       }
 
-      // Before OSR points, we need to save all FPRs, 
-      // On OptExecStateExtractor, all GPRs have to be recovered, 
+      // Before OSR points, we need to save all FPRs,
+      // On OptExecStateExtractor, all GPRs have to be recovered,
       // but not FPRS.
       //
       if (s.operator == YIELDPOINT_OSR) {
@@ -153,7 +153,7 @@ public abstract class OPT_GenericRegisterRestrictions {
    * Add architecture-specific register restrictions for a basic block.
    * Override as needed.
    *
-   * @param bb the basic block 
+   * @param bb the basic block
    * @param symbolics the live intervals for symbolic registers on this
    * block
    */
@@ -218,7 +218,7 @@ public abstract class OPT_GenericRegisterRestrictions {
 
   /**
    * Record that it is illegal to assign a symbolic register symb to any
-   * volatile physical registers 
+   * volatile physical registers
    */
   final void forbidAllVolatiles(OPT_Register symb) {
     RestrictedRegisterSet r = hash.get(symb);
@@ -231,7 +231,7 @@ public abstract class OPT_GenericRegisterRestrictions {
 
   /**
    * Record that it is illegal to assign a symbolic register symb to any
-   * of a set of physical registers 
+   * of a set of physical registers
    */
   protected final void addRestrictions(OPT_Register symb, OPT_BitSet set) {
     RestrictedRegisterSet r = hash.get(symb);
@@ -300,7 +300,7 @@ public abstract class OPT_GenericRegisterRestrictions {
                                       OPT_Instruction s);
 
   /**
-   * An instance of this class represents restrictions on physical register 
+   * An instance of this class represents restrictions on physical register
    * assignment.
    */
   private static final class RestrictedRegisterSet {

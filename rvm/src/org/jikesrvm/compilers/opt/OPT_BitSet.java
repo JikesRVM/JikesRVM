@@ -14,7 +14,7 @@ import org.jikesrvm.VM;
  * OPT_BitSet.java
  *
  * A bit set is a set of elements, each of which corresponds to a unique
- * integer from [0,MAX].  
+ * integer from [0,MAX].
  */
 public final class OPT_BitSet {
 
@@ -24,7 +24,7 @@ public final class OPT_BitSet {
   private final OPT_BitVector vector;
 
   /**
-   * The bijection between integer to object. 
+   * The bijection between integer to object.
    */
   private final OPT_BitSetMapping map;
 

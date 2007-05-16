@@ -21,12 +21,12 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 class VM_RecompileOptChoice extends VM_RecompilationChoice {
 
   /**
-   * The opt level associated with this recompilation choice 
+   * The opt level associated with this recompilation choice
    */
   private int thisChoiceOptLevel;
 
   /**
-   * The "compiler" (see VM_CompilerDNA) that is associated with this choice 
+   * The "compiler" (see VM_CompilerDNA) that is associated with this choice
    */
   private int thisChoiceCompiler;
 
@@ -52,10 +52,10 @@ class VM_RecompileOptChoice extends VM_RecompilationChoice {
    * What is the benefit of executing this plan, given the estimated
    * future time for the method if nothing changes?
    *
-   * @param prevCompiler The previous compiler 
+   * @param prevCompiler The previous compiler
    * @param futureTimeForMethod The expected future execution time of
    *        the method if left running with the previous compiler.
-   * @return The expected future execution time if this choice were selected 
+   * @return The expected future execution time if this choice were selected
    */
   double getFutureExecutionTime(int prevCompiler,
                                 double futureTimeForMethod) {
@@ -73,7 +73,7 @@ class VM_RecompileOptChoice extends VM_RecompilationChoice {
    * @param prevCompiler The previous compiler
    * @param prevTimeForMethod The estimated future time had nothing been done
    * @param bestActionTime The estimated total time implementing this choice
-   * @param expectedCompilationTime The expected time for recompiling 
+   * @param expectedCompilationTime The expected time for recompiling
    * @return The controller plan implementing this recompilation choice
    */
   VM_ControllerPlan makeControllerPlan(VM_CompiledMethod cmpMethod,

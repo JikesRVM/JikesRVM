@@ -26,7 +26,7 @@ import org.jikesrvm.ppc.VM_RegisterConstants;
  *
  * <P> Implementation Notes:
  * <P> Due to some historical ugliness not yet cleaned up, the register
- * allocator depend on properties cached in the 
+ * allocator depend on properties cached in the
  * <code>next</code> field of OPT_Register.  The constructor sets the
  * following properties:
  * <ul>
@@ -43,9 +43,9 @@ import org.jikesrvm.ppc.VM_RegisterConstants;
  * </ul>
  * <P> The register allocator allocates registers according to the order
  * in these lists.  For volatile registers, it traverses the lists in
- * order, starting with getFirstVolatile() and traversing with getNext().  
+ * order, starting with getFirstVolatile() and traversing with getNext().
  * For non-volatiles, it traverses the lists
- * <STRONG> Backwards </STRONG>, starting with getLastNonvolatile() and 
+ * <STRONG> Backwards </STRONG>, starting with getLastNonvolatile() and
  * using getPrev().
  * <P> TODO; clean up all this and provide appropriate enumerators
  */
@@ -305,7 +305,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
   }
 
   /**
-   * @return the nth physical GPR 
+   * @return the nth physical GPR
    */
   public OPT_Register getGPR(int n) {
     return reg[FIRST_INT + n];
@@ -354,7 +354,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
   }
 
   /**
-   * @return the nth physical FPR 
+   * @return the nth physical FPR
    */
   public OPT_Register getFPR(int n) {
     return reg[FIRST_DOUBLE + n];
@@ -396,7 +396,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
   }
 
   /**
-   * @return the nth physical condition register 
+   * @return the nth physical condition register
    */
   public OPT_Register getConditionRegister(int n) {
     return reg[FIRST_CONDITION + n];
@@ -420,7 +420,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
   }
 
   /**
-   * @return the nth physical register in the pool. 
+   * @return the nth physical register in the pool.
    */
   public OPT_Register get(int n) {
     return reg[n];
@@ -599,7 +599,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
 
   /**
    * Enumerate all the volatile GPRs in this set.
-   * NOTE: This assumes the scratch GPRs are numbered immediately 
+   * NOTE: This assumes the scratch GPRs are numbered immediately
    * <em> after </em> the volatile GPRs
    */
   public Enumeration<OPT_Register> enumerateVolatileGPRs() {
@@ -644,7 +644,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
 
   /**
    * Enumerate all the volatile FPRs in this set.
-   * NOTE: This assumes the scratch FPRs are numbered immediately 
+   * NOTE: This assumes the scratch FPRs are numbered immediately
    * <em> before</em> the volatile FPRs
    */
   public Enumeration<OPT_Register> enumerateVolatileFPRs() {
@@ -788,7 +788,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
   }
 
   /**
-   * If r is used as the first half of a (long) register pair, return 
+   * If r is used as the first half of a (long) register pair, return
    * the second half of the pair.
    */
   public OPT_Register getSecondHalf(OPT_Register r) {

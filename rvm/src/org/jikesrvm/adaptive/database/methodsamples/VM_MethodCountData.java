@@ -166,10 +166,10 @@ public final class VM_MethodCountData implements VM_Reportable {
   public synchronized void reset(int cmid) {
     int index = findHeapIdx(cmid);
     if (index > 0) {
-      // Cmid does have a value in the heap. 
+      // Cmid does have a value in the heap.
       // (1) clear map[cmid].
-      // (2) shrink the heap by one slot.  
-      //     (a) If index is the last element in the heap we have nothing 
+      // (2) shrink the heap by one slot.
+      //     (a) If index is the last element in the heap we have nothing
       //         to do after we decrement nextIndex.
       //     (b) If index is not the last element in the heap, then move the
       //         last heap element to index and heapify.
@@ -211,7 +211,7 @@ public final class VM_MethodCountData implements VM_Reportable {
   /**
    * Enqueue events describing the "hot" methods on the organizer's event queue.
    *
-   * @param filterOptLevel filter out all methods already compiled at 
+   * @param filterOptLevel filter out all methods already compiled at
    *                       this opt level (or higher)
    * @param threshold hotness value above which the method is considered
    *                  to be hot. (0.0 to 1.0)
@@ -277,7 +277,7 @@ public final class VM_MethodCountData implements VM_Reportable {
    * Note threshold has been converted into a count value by my caller!
    *
    * @param index count array index
-   * @param filterOptLevel filter out all methods already compiled at 
+   * @param filterOptLevel filter out all methods already compiled at
    *                       this opt level (or higher)
    * @param threshold hotness value above which the method is considered
    *                  to be hot. (0.0 to 1.0)
@@ -295,7 +295,7 @@ public final class VM_MethodCountData implements VM_Reportable {
           insertHotMethodsInternal(index, filterOptLevel, threshold);
         } else {
           int compilerType = cm.getCompilerType();
-          // Enqueue it unless it's either a trap method or already 
+          // Enqueue it unless it's either a trap method or already
           // opt compiled at filterOptLevel or higher.
           if (!(compilerType == VM_CompiledMethod.TRAP ||
                 (compilerType == VM_CompiledMethod.OPT &&
@@ -316,8 +316,8 @@ public final class VM_MethodCountData implements VM_Reportable {
   }
 
   /**
-   * Recursive implementation of collectHotOptNMethods. 
-   * Exploit heap property. 
+   * Recursive implementation of collectHotOptNMethods.
+   * Exploit heap property.
    * Constraint: threshold has been converted into a count value by my caller!
    *
    * @param index count array index

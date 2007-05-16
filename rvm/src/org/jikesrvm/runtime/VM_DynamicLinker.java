@@ -78,7 +78,7 @@ public class VM_DynamicLinker implements VM_Constants {
     @NoInline
     static VM_DynamicLink resolveDynamicInvocation() {
 
-      // find call site 
+      // find call site
       //
       VM.disableGC();
       Address callingFrame = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());
@@ -98,7 +98,7 @@ public class VM_DynamicLinker implements VM_Constants {
     }
 
     /**
-     * Resolve method ref into appropriate VM_Method 
+     * Resolve method ref into appropriate VM_Method
      *
      * Taken:       VM_DynamicLink that describes call site.
      * Returned:    VM_Method that should be invoked.

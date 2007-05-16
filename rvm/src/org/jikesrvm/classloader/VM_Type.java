@@ -20,15 +20,15 @@ import org.vmmagic.unboxed.Offset;
 /**
  * A description of a java type.
  *
- * This class is the base of the java type system. 
+ * This class is the base of the java type system.
  * To the three kinds of java objects
- * (class-instances, array-instances, primitive-instances) 
+ * (class-instances, array-instances, primitive-instances)
  * there are three corresponding
  * subclasses of VM_Type: VM_Class, VM_Array, VM_Primitive.
  * <p>
  * A VM_Class is constructed in four phases:
  * <ul>
- * <li> A "load" phase reads the ".class" file but does not attempt to 
+ * <li> A "load" phase reads the ".class" file but does not attempt to
  *      examine any of the symbolic references present there. This is done
  *      by the VM_Class constructor as a result of a VM_TypeReference being
  *      resolved.
@@ -37,7 +37,7 @@ import org.vmmagic.unboxed.Offset;
  *   ancestry, to measure field sizes, and to allocate space in the jtoc
  *   for the class's static fields and methods.
  *
- * <li>  An "instantiate" phase initializes and 
+ * <li>  An "instantiate" phase initializes and
  * installs the type information block and static methods.
  *
  * <li> An "initialize" phase runs the class's static initializer.
@@ -45,7 +45,7 @@ import org.vmmagic.unboxed.Offset;
  *
  * VM_Array's are constructed in a similar fashion.
  *
- * VM_Primitive's are constructed ab initio. 
+ * VM_Primitive's are constructed ab initio.
  * Their "resolution", "instantiation", and "initialization" phases
  * are no-ops.
  */
@@ -150,7 +150,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
   protected final int tibOffset;
 
   /**
-   * instance of java.lang.Class corresponding to this type 
+   * instance of java.lang.Class corresponding to this type
    */
   private final Class<?> classForType;
 
@@ -191,7 +191,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
     this.classForType = classForType;
     this.dimension = dimension;
 
-    // install partial type information block (no method dispatch table) 
+    // install partial type information block (no method dispatch table)
     // for use in type checking.
     //
     if (VM.VerifyAssertions) VM._assert(VM_TIBLayoutConstants.TIB_TYPE_INDEX == 0);
@@ -216,7 +216,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
     this.classForType = createClassForType(this, typeRef);
     this.dimension = dimension;
 
-    // install partial type information block (no method dispatch table) 
+    // install partial type information block (no method dispatch table)
     // for use in type checking.
     //
     if (VM.VerifyAssertions) VM._assert(VM_TIBLayoutConstants.TIB_TYPE_INDEX == 0);
@@ -290,7 +290,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
   }
 
   /**
-   * get number of superclasses to Object 
+   * get number of superclasses to Object
    *   0 java.lang.Object, VM_Primitive, and VM_Classes that are interfaces
    *   1 for VM_Arrays and classes that extend Object directly
    */
@@ -581,8 +581,8 @@ public abstract class VM_Type extends VM_AnnotatedElement
   /**
    * Resolution status.
    * If the class/array has been "resolved", then size and offset information is
-   * available by which the compiler can generate code to access this 
-   * class/array's 
+   * available by which the compiler can generate code to access this
+   * class/array's
    * fields/methods via direct loads/stores/calls (rather than generating
    * code to access fields/methods symbolically, via dynamic linking stubs).
    * Primitives are always treated as "resolved".
@@ -592,7 +592,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
 
   /**
    * Instantiation status.
-   * If the class/array has been "instantiated", 
+   * If the class/array has been "instantiated",
    * then all its methods have been compiled
    * and its type information block has been placed in the jtoc.
    * Primitives are always treated as "instantiated".
@@ -602,9 +602,9 @@ public abstract class VM_Type extends VM_AnnotatedElement
 
   /**
    * Initialization status.
-   * If the class has been "initialized", 
+   * If the class has been "initialized",
    * then its <clinit> method has been executed.
-   * Arrays have no <clinit> methods so they become 
+   * Arrays have no <clinit> methods so they become
    * "initialized" immediately upon "instantiation".
    * Primitives are always treated as "initialized".
    */
@@ -656,7 +656,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
   public abstract boolean isReferenceType();
 
   /**
-   * Space required when this type is stored on the stack 
+   * Space required when this type is stored on the stack
    * (or as a field), in words.
    * Ie. 0, 1, or 2 words:
    * <ul>
@@ -683,7 +683,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
 
   /**
    * Cause instantiation to take place.
-   * This will cause the class's methods to be compiled and slots in the 
+   * This will cause the class's methods to be compiled and slots in the
    * jtoc to be filled-in.
    */
   public abstract void instantiate();
@@ -706,7 +706,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
   public abstract VM_Field[] getStaticFields();
 
   /**
-   * Non-static fields of this class/array type 
+   * Non-static fields of this class/array type
    * (composed with supertypes, if any).
    */
   public abstract VM_Field[] getInstanceFields();
@@ -717,7 +717,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
   public abstract VM_Method[] getStaticMethods();
 
   /**
-   * Virtually dispatched methods of this class/array type 
+   * Virtually dispatched methods of this class/array type
    * (composed with supertypes, if any).
    */
   public abstract VM_Method[] getVirtualMethods();

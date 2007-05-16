@@ -15,8 +15,8 @@ import org.jikesrvm.util.VM_HashSet;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
- * A class to represent the reference in a class file to some 
- * member (field or method). 
+ * A class to represent the reference in a class file to some
+ * member (field or method).
  * A member reference is uniquely defined by
  * <ul>
  * <li> a type reference
@@ -249,7 +249,7 @@ public abstract class VM_MemberReference {
   }
 
   /**
-   * Is dynamic linking code required to access "this" member when 
+   * Is dynamic linking code required to access "this" member when
    * referenced from "that" method?
    */
   public final boolean needsDynamicLink(VM_Method that) {
@@ -270,7 +270,7 @@ public abstract class VM_MemberReference {
 
     if (thisClass.isInitialized()) {
       // No dynamic linking code is required to access this member
-      // because its size and offset are known and its class's static 
+      // because its size and offset are known and its class's static
       // initializer has already run.
       return false;
     }
@@ -286,8 +286,8 @@ public abstract class VM_MemberReference {
 
     if (VM.writingBootImage && thisClass.isInBootImage()) {
       // Loads, stores, and calls within boot image are compiled without dynamic
-      // linking code because all boot image classes are explicitly 
-      // loaded/resolved/compiled and have had their static initializers 
+      // linking code because all boot image classes are explicitly
+      // loaded/resolved/compiled and have had their static initializers
       // run by the boot image writer.
       if (VM.VerifyAssertions) VM._assert(thisClass.isResolved());
       return false;

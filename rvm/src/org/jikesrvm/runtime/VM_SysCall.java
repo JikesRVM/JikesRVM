@@ -152,7 +152,7 @@ public abstract class VM_SysCall {
 
   /**
    * Start interrupt generator for thread timeslicing.
-   * The interrupt will be delivered to whatever virtual processor happens 
+   * The interrupt will be delivered to whatever virtual processor happens
    * to be running when the timer expires.
    */
   @SysCallTemplate
@@ -176,7 +176,7 @@ public abstract class VM_SysCall {
   @SysCallTemplate
   public abstract int sysStashVmProcessorInPthread(VM_Processor vmProcessor);
 
-  // arithmetic 
+  // arithmetic
   @SysCallTemplate
   public abstract long sysLongDivide(long x, long y);
 
@@ -206,7 +206,7 @@ public abstract class VM_SysCall {
 
   /**
    * Used to parse command line arguments that are
-   * doubles and floats early in booting before it 
+   * doubles and floats early in booting before it
    * is safe to call Float.valueOf or Double.valueOf.
    *
    * This aborts in case of errors, with an appropriate error message.
@@ -222,7 +222,7 @@ public abstract class VM_SysCall {
 
   /**
    * Used to parse command line arguments that are
-   * bytes and ints early in booting before it 
+   * bytes and ints early in booting before it
    * is safe to call Byte.parseByte or Integer.parseInt.
    *
    * This aborts in case of errors, with an appropriate error message.

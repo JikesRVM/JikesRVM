@@ -17,8 +17,8 @@ import org.vmmagic.pragma.Uninterruptible;
 /**
  * A VM_MethodListener defines a listener to collect method invocation samples.
  *
- * Samples are collected in a buffer.  
- * When sampleSize samples have been collected 
+ * Samples are collected in a buffer.
+ * When sampleSize samples have been collected
  * the listener's organizer is activated to process them.
  *
  * Defines update's interface to be a compiled method identifier, CMID.
@@ -27,7 +27,7 @@ import org.vmmagic.pragma.Uninterruptible;
 public final class VM_MethodListener extends VM_Listener {
 
   /**
-   * Number of samples to be gathered before they are processed 
+   * Number of samples to be gathered before they are processed
    */
   int sampleSize;
 
@@ -56,7 +56,7 @@ public final class VM_MethodListener extends VM_Listener {
    * which was executing at the time of the sample.  This method
    * bumps the counter and checks whether a threshold is reached.
    * <p>
-   * NOTE: There can be multiple threads executing this method at the 
+   * NOTE: There can be multiple threads executing this method at the
    *       same time. We attempt to ensure that the resulting race conditions
    *       are safely handled, but make no guarentee that every sample is
    *       actually recorded.
@@ -77,7 +77,7 @@ public final class VM_MethodListener extends VM_Listener {
           recordSample(callerCmid);
         } // nothing to insert
       } else {
-        // loop backedge or epilogue.  
+        // loop backedge or epilogue.
         recordSample(cmid);
       }
     } else {
@@ -116,7 +116,7 @@ public final class VM_MethodListener extends VM_Listener {
       samples[idx] = CMID;
     }
     if (idx + 1 == sampleSize) {
-      // The last sample. 
+      // The last sample.
       activateOrganizer();
     }
   }
@@ -136,9 +136,9 @@ public final class VM_MethodListener extends VM_Listener {
   public int[] getSamples() { return samples; }
 
   /**
-   * @return how many samples in the array returned by getSamples are valid 
+   * @return how many samples in the array returned by getSamples are valid
    */
   public int getNumSamples() {
     return (numSamples < sampleSize) ? numSamples : sampleSize;
   }
-} 
+}

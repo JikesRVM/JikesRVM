@@ -39,11 +39,11 @@ public class OPT_RegisterAllocatorState {
 
   /**
    * Special use of scratchObject field as "resurrect lists" for real registers
-   * TODO: use another field for safety; scratchObject is also used by 
+   * TODO: use another field for safety; scratchObject is also used by
    *  clan OPT_LinearScanLiveAnalysis
    */
   /*
-  static void putPhysicalRegResurrectList(OPT_Register r, 
+  static void putPhysicalRegResurrectList(OPT_Register r,
                                           OPT_LinearScanLiveInterval li) {
     if (VM.VerifyAssertions) VM._assert(r.isPhysical());
     r.scratchObject = li;
@@ -52,7 +52,7 @@ public class OPT_RegisterAllocatorState {
   /**
    *
    * Special use of scratchObject field as "resurrect lists" for real registers
-   * TODO: use another field for safety; scratchObject is also used by 
+   * TODO: use another field for safety; scratchObject is also used by
    *  clan OPT_LinearScanLiveAnalysis
    */
   /*

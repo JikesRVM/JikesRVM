@@ -31,7 +31,7 @@ import org.vmmagic.unboxed.Offset;
 public abstract class VM_InterfaceMethodConflictResolver implements VM_RegisterConstants {
 
   // Create a conflict resolution stub for the set of interface method signatures l.
-  // 
+  //
   public static ArchitectureSpecific.VM_CodeArray createStub(int[] sigIds, VM_Method[] targets) {
     int numEntries = sigIds.length;
     // (1) Create an assembler.

@@ -13,7 +13,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 
 /**
  * Event used by the Adaptive Inlining Organizer
- * to notify the controller that a call arc 
+ * to notify the controller that a call arc
  * originating in a hot method has become hot
  * and therefore recompilation of the method should
  * be considered to enable additional profile-directed inlining.
@@ -22,11 +22,11 @@ public final class VM_AINewHotEdgeEvent extends VM_HotMethodEvent
     implements VM_ControllerInputEvent {
 
   /**
-   * Estimate of the expected benefit if the method is 
+   * Estimate of the expected benefit if the method is
    * recompiled AT THE SAME OPT LEVEL with the newly
    * enabled profile-directed inlining.
    * <p>
-   * TODO: Think about reasonable ways to encode the expected 
+   * TODO: Think about reasonable ways to encode the expected
    * boost factor for recompiling at higher opt levels.
    * In the short run, this is academic, since we only plan to
    * create an instance of this event for methods already compiled

@@ -27,9 +27,9 @@ import org.vmmagic.unboxed.WordArray;
 
 /**
  * Iterator for stack frame  built by the Baseline compiler
- * An Instance of this class will iterate through a particular 
+ * An Instance of this class will iterate through a particular
  * reference map of a method returning the offsets of any refereces
- * that are part of the input parameters, local variables, and 
+ * that are part of the input parameters, local variables, and
  * java stack for the stack frame.
  */
 @Uninterruptible
@@ -42,7 +42,7 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator
   // Constructor //
   //-------------//
 
-  // 
+  //
   // Remember the location array for registers. This array needs to be updated
   // with the location of any saved registers.
   // This information is not used by this iterator but must be updated for the
@@ -185,7 +185,7 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator
     //for ia32: always offset, never registers
     if (index == 0) return 0; //invalid
 
-    // index is biased by 1, index 1 means local 0, this is at offset -BYTES_IN_ADDRESS from startLocalOffset 
+    // index is biased by 1, index 1 means local 0, this is at offset -BYTES_IN_ADDRESS from startLocalOffset
     int offset = VM_Compiler.locationToOffset(convertIndexToLocation(index)) - BYTES_IN_ADDRESS; // no jsrbit here
     if (VM.TraceStkMaps) {
       VM.sysWriteln("convertIndexToOffset- input index = ", index, "  offset = ", offset);
@@ -239,7 +239,7 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator
         }
       } else {
         // remember that we are done with the map for future calls, and then
-        //   drop down to the code below 
+        //   drop down to the code below
         finishedWithRegularMap = true;
       }
     }

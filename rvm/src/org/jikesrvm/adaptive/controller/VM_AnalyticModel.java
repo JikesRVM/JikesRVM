@@ -38,9 +38,9 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
 
   /**
    * Compute the set of optimization choices that should be
-   * considered by the cost-benefit model, given the previous compiler.  
+   * considered by the cost-benefit model, given the previous compiler.
    *
-   * @param prevCompiler The compiler compiler that was used to 
+   * @param prevCompiler The compiler compiler that was used to
    *                     comile cmpMethod
    * @param cmpMethod The compiled method being considered
    */
@@ -57,7 +57,7 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
    *
    *  NOTE: The call to super.init() uses the command line options to
    *  set up the optimization plans, so this must be run after the
-   *  command line options are available.  
+   *  command line options are available.
    */
   void init() {
     // Do the common initialization first
@@ -70,17 +70,17 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
 
   /**
    * This method is the main decision making loop for all
-   * recompilation strategies that use the analytic model.  
+   * recompilation strategies that use the analytic model.
    * <p>
-   * Given a HotMethodRecompilationEvent, this code will determine 
-   * IF the method should be recompiled, and if so, HOW to perform 
+   * Given a HotMethodRecompilationEvent, this code will determine
+   * IF the method should be recompiled, and if so, HOW to perform
    * the recompilation, i.e., what compilation plan should be used.
    * The method returns a controller plan, which contains the compilation
    * plan and other goodies.
    *
    * @param cmpMethod the compiled method of interest
    * @param hme       the VM_HotMethodRecompilationEvent
-   * @return the controller plan to be used or NULL, if no 
+   * @return the controller plan to be used or NULL, if no
    *                   compilation is to be performed.  */
   VM_ControllerPlan considerHotMethod(VM_CompiledMethod cmpMethod,
                                       VM_HotMethodEvent hme) {
@@ -99,14 +99,14 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
     if (!considerForRecompilation(hme, plan)) return null;
 
     // Now we know the compiler that generated the method (prevCompiler) and
-    // that the method is a potential candidate for additional recompilation. 
-    // So, next decide what, if anything, should be done now.  
-    // We consider doing nothing (ie leaving the method at the current 
-    // opt level, which incurs no  compilation cost), and recompiling the 
+    // that the method is a potential candidate for additional recompilation.
+    // So, next decide what, if anything, should be done now.
+    // We consider doing nothing (ie leaving the method at the current
+    // opt level, which incurs no  compilation cost), and recompiling the
     // method at each greater compilation level.
     double futureTimeForMethod = futureTimeForMethod(hme);
 
-    // initialize bestAction as doing nothing, which means we'll 
+    // initialize bestAction as doing nothing, which means we'll
     // spend just as much time in the method in the future as we have so far.
     VM_RecompilationChoice bestActionChoice = null;
     double bestActionTime = futureTimeForMethod;
@@ -205,7 +205,7 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
   }
 
   /**
-   * @param hme sample data for an outdated cmid 
+   * @param hme sample data for an outdated cmid
    * @return a plan representing recompilation with OSR, null if OSR not
    * justified.
    */
@@ -251,7 +251,7 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
    * VM_AINewHotEdgeEvent.  The basic idea is to use the model to
    * evaluate whether it would be better to do nothing or to recompile
    * at the same opt level, assuming there would be some "boost" after
-   * performing inlining.  
+   * performing inlining.
    */
   void considerHotCallEdge(VM_CompiledMethod cmpMethod,
                            VM_AINewHotEdgeEvent event) {
@@ -298,7 +298,7 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
   /**
    * How much time do we expect to spend in the method in the future if
    * we take no recompilation action?
-   * The key assumption is that we'll spend just as much time 
+   * The key assumption is that we'll spend just as much time
    * executing in the the method in the future as we have done so far
    * in the past.
    *

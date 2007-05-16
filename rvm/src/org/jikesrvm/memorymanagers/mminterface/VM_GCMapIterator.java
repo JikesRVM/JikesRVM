@@ -82,7 +82,7 @@ public abstract class VM_GCMapIterator {
   public abstract void reset();
 
   /**
-   * Iteration is complete, release any internal data structures including 
+   * Iteration is complete, release any internal data structures including
    * locks acquired during setupIterator for jsr maps.
    */
   public abstract void cleanupPointers();
@@ -90,7 +90,7 @@ public abstract class VM_GCMapIterator {
   /**
    * Get the type of this iterator (BASELINE, OPT, etc.).
    * Called from VM_GCMapIteratorGroup to select which iterator
-   * to use for a stackframe.  The possible types are specified 
+   * to use for a stackframe.  The possible types are specified
    * in VM_CompiledMethod.
    *
    * @return type code for this iterator

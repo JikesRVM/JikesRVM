@@ -15,7 +15,7 @@ import org.jikesrvm.ia32.VM_RegisterConstants;
  */
 public interface OPT_PhysicalRegisterConstants extends VM_RegisterConstants {
 
-  // Types of values stored in physical registers; 
+  // Types of values stored in physical registers;
   // These affect instruction selection for accessing
   // the data
   byte INT_VALUE = 0;

@@ -11,8 +11,8 @@ package org.jikesrvm.compilers.opt.ir;
 import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 
 /**
- * Represents a symbolic or physical register. 
- * OPT_Registers are shared among all OPT_Operands -- for a given register 
+ * Represents a symbolic or physical register.
+ * OPT_Registers are shared among all OPT_Operands -- for a given register
  * pool, there is only one instance of an OPT_Register with each number.
  *
  * @see OPT_RegisterOperand
@@ -201,7 +201,7 @@ public final class OPT_Register {
   public OPT_RegisterOperand defList, useList;
 
   /**
-   * This accessor is only valid when register lists are valid 
+   * This accessor is only valid when register lists are valid
    */
   public OPT_Instruction getFirstDef() {
     if (defList == null) {

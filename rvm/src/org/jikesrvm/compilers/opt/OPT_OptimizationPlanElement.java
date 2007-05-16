@@ -55,7 +55,7 @@ public abstract class OPT_OptimizationPlanElement {
 
   /**
    * Generate (to the sysWrite stream) a report of the
-   * time spent performing this element of the optimization plan. 
+   * time spent performing this element of the optimization plan.
    *
    * @param indent Number of spaces to indent report.
    * @param timeCol Column number of time portion of report.

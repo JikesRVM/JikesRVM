@@ -42,7 +42,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_Register;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 
 /**
- * Class to manage the allocation of the "compiler-independent" portion of 
+ * Class to manage the allocation of the "compiler-independent" portion of
  * the stackframe.
  * <p>
  */
@@ -56,7 +56,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
   /**
    * We will have to save and restore all non-volatile registers around
    * system calls, to protect ourselve from malicious native code that may
-   * bash these registers.  
+   * bash these registers.
    *
    * This field, when non-zero,  holds the stack-frame offset reserved to
    * hold this data.
@@ -72,7 +72,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
 
   /**
    * An array which holds the spill location number used to stash nonvolatile
-   * registers. 
+   * registers.
    */
   protected final int[] nonVolatileGPRLocation = new int[NUM_GPRS];
   protected final int[] nonVolatileFPRLocation = new int[NUM_FPRS];
@@ -131,9 +131,9 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * Compute the number of stack words needed to hold nonvolatile
    * registers.
    *
-   * Side effects: 
+   * Side effects:
    * <ul>
-   * <li> updates the VM_OptCompiler structure 
+   * <li> updates the VM_OptCompiler structure
    * <li> updates the <code>frameSize</code> field of this object
    * <li> updates the <code>frameRequired</code> field of this object
    * </ul>
@@ -141,22 +141,22 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
   public abstract void computeNonVolatileArea();
 
   /**
-   * Insert the prologue for a normal method.  
+   * Insert the prologue for a normal method.
    */
   public abstract void insertNormalPrologue();
 
   /**
-   * Walk over the currently available scratch registers. 
+   * Walk over the currently available scratch registers.
    *
-   * <p>For any scratch register r which is def'ed by instruction s, 
-   * spill r before s and remove r from the pool of available scratch 
-   * registers.  
+   * <p>For any scratch register r which is def'ed by instruction s,
+   * spill r before s and remove r from the pool of available scratch
+   * registers.
    *
-   * <p>For any scratch register r which is used by instruction s, 
-   * restore r before s and remove r from the pool of available scratch 
-   * registers.  
+   * <p>For any scratch register r which is used by instruction s,
+   * restore r before s and remove r from the pool of available scratch
+   * registers.
    *
-   * <p>For any scratch register r which has current contents symb, and 
+   * <p>For any scratch register r which has current contents symb, and
    * symb is spilled to location M, and s defs M: the old value of symb is
    * dead.  Mark this.
    *
@@ -165,7 +165,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
   public abstract void restoreScratchRegistersBefore(OPT_Instruction s);
 
   /**
-   * In instruction s, replace all appearances of a symbolic register 
+   * In instruction s, replace all appearances of a symbolic register
    * operand with uses of the appropriate spill location, as cached by the
    * register allocator.
    *
@@ -248,16 +248,16 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
   }
 
   /**
-   * Spill the contents of a scratch register to memory before 
-   * instruction s.  
+   * Spill the contents of a scratch register to memory before
+   * instruction s.
    */
   protected void unloadScratchRegisterBefore(OPT_Instruction s,
                                              ScratchRegister scratch) {
-    // if the scratch register is not dirty, don't need to write anything, 
+    // if the scratch register is not dirty, don't need to write anything,
     // since the stack holds the current value
     if (!scratch.isDirty()) return;
 
-    // spill the contents of the scratch register 
+    // spill the contents of the scratch register
     OPT_Register scratchContents = scratch.currentContents;
     if (scratchContents != null) {
       int location = OPT_RegisterAllocatorState.getSpill(scratchContents);
@@ -268,7 +268,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
   }
 
   /**
-   * Restore the contents of a scratch register before instruction s.  
+   * Restore the contents of a scratch register before instruction s.
    */
   protected void reloadScratchRegisterBefore(OPT_Instruction s,
                                              ScratchRegister scratch) {
@@ -332,7 +332,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
   }
 
   /**
-   * If register r is currently in use as a scratch register, 
+   * If register r is currently in use as a scratch register,
    * then return that scratch register.
    * Else return null.
    */
@@ -346,7 +346,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
   }
 
   /**
-   * Walk over the currently available scratch registers. 
+   * Walk over the currently available scratch registers.
    *
    * For any register which is dirty, note this in the scratch map for
    * instruction s.
@@ -360,10 +360,10 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
   }
 
   /**
-   * Walk over the currently available scratch registers, and spill their 
+   * Walk over the currently available scratch registers, and spill their
    * contents to memory before instruction s.  Also restore the correct live
-   * value for each scratch register. Normally, s should end a 
-   * basic block. 
+   * value for each scratch register. Normally, s should end a
+   * basic block.
    *
    * SPECIAL CASE: If s is a return instruction, only restore the scratch
    * registers that are used by s.  The others are dead.
@@ -372,7 +372,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     for (Iterator<ScratchRegister> i = scratchInUse.iterator(); i.hasNext();) {
       ScratchRegister scratch = i.next();
 
-      // SPECIAL CASE: If s is a return instruction, only restore the 
+      // SPECIAL CASE: If s is a return instruction, only restore the
       // scratch
       // registers that are used by s.  The others are dead.
       if (!s.isReturn() || usedIn(scratch.scratch, s)) {
@@ -423,7 +423,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    *
    * @param beCheap don't expend much effort optimizing scratch
    * assignments
-   * @return the physical scratch register that holds the value 
+   * @return the physical scratch register that holds the value
    *         after instruction s
    */
   private ScratchRegister holdInScratchAfter(OPT_Instruction s,
@@ -433,7 +433,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     // Get a scratch register.
     ScratchRegister sr = getScratchRegister(symb, s, beCheap);
 
-    // make the scratch register available to hold the new 
+    // make the scratch register available to hold the new
     // symbolic register
     OPT_Register current = sr.currentContents;
 
@@ -456,7 +456,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * in instruction s?
    */
   protected boolean isLegal(OPT_Register symb, OPT_Register phys, OPT_Instruction s) {
-    // If the physical scratch register already appears in s, so we can't 
+    // If the physical scratch register already appears in s, so we can't
     // use it as a scratch register for another value.
     if (appearsIn(phys, s)) return false;
 
@@ -603,7 +603,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     OPT_Register scratchContents = sr.currentContents;
     if (scratchContents != symb) {
       if (scratchContents != null) {
-        // the scratch register currently holds a different 
+        // the scratch register currently holds a different
         // symbolic register.
         // spill the contents of the scratch register to free it up.
         unloadScratchRegisterBefore(s, sr);
@@ -620,7 +620,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
 
     } else {
       // In this case the scratch register already holds the desired
-      // symbolic register.  So: do nothing. 
+      // symbolic register.  So: do nothing.
     }
 
     // Record the current contents of the scratch register
@@ -707,7 +707,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
   }
 
   /**
-   * Assuming instruction s uses the spill location for a given register, 
+   * Assuming instruction s uses the spill location for a given register,
    * return the symbolic register that embodies that use.
    */
   private OPT_Register spillLocationUse(OPT_Register r, OPT_Instruction s) {
@@ -861,7 +861,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
 
   /**
    * Return a GPR that does not appear in instruction s, and is dead
-   * before instruction s, to hold symbolic register r. 
+   * before instruction s, to hold symbolic register r.
    * Except, do NOT
    * return any register that is a member of the reserved set.
    *
@@ -908,7 +908,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
       return true;
     }
 
-    // Assume that all volatile registers 'appear' in all call 
+    // Assume that all volatile registers 'appear' in all call
     // instructions
     return s.isCall() && s.operator != CALL_SAVE_VOLATILE && r.isVolatile();
   }
@@ -1022,7 +1022,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
         // SJF: This is a bad hack which avoids bug 2642.  For some reason,
         // if we cache a reference value in ECX across the prologue_yieldpoint in
         // method java.Hashtable.put(), bad things happen and the program
-        // non-deterministically crashes with apparent bad GC Maps.  
+        // non-deterministically crashes with apparent bad GC Maps.
         // I have not figured out what's really going on, despite great
         // effort.  I'm giving up for now, and instead resorting to this
         // woeful hack to avoid the problem.
@@ -1034,7 +1034,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
         }
 
         // If s is a GC point, and scratch register r currently caches the
-        // value of symbolic symb, and r is dirty: Then update the GC map to 
+        // value of symbolic symb, and r is dirty: Then update the GC map to
         // account for the fact that symb's spill location does not
         // currently hold a valid reference.
         if (s.isGCPoint()) {
@@ -1159,7 +1159,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
   }
 
   /**
-   * Insert a load of a physical register from a spill location before 
+   * Insert a load of a physical register from a spill location before
    * instruction s.
    *
    * @param s the instruction before which the spill should occur
@@ -1172,7 +1172,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
                                            byte type, int location);
 
   /**
-   * Insert a load of a physical register from a spill location before 
+   * Insert a load of a physical register from a spill location before
    * instruction s.
    *
    * @param s the instruction before which the spill should occur
@@ -1201,7 +1201,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
   OPT_RegisterRestrictions getRestrictions() { return restrict; }
 
   /**
-   * Spill pointer (in bytes) relative to the beginning of the 
+   * Spill pointer (in bytes) relative to the beginning of the
    * stack frame (starts after the header).
    */
   protected int spillPointer = ArchitectureSpecific.VM_ArchConstants.STACKFRAME_HEADER_SIZE;
@@ -1298,7 +1298,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
 
   /**
    * Called as part of the register allocator startup.
-   * (1) examine the IR to determine whether or not we need to 
+   * (1) examine the IR to determine whether or not we need to
    *     allocate a stack frame
    * (2) given that decison, determine whether or not we need to have
    *     prologue/epilogue yieldpoints.  If we don't need them, remove them.
@@ -1309,10 +1309,10 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * @param ir the IR
    */
   public void prepare(OPT_IR ir) {
-    // (1) if we haven't yet committed to a stack frame we 
+    // (1) if we haven't yet committed to a stack frame we
     //     will look for operators that would require a stack frame
     //        - LOWTABLESWITCH
-    //        - a GC Point, except for YieldPoints or IR_PROLOGUE 
+    //        - a GC Point, except for YieldPoints or IR_PROLOGUE
     boolean preventYieldPointRemoval = false;
     if (!frameRequired) {
       for (OPT_Instruction s = ir.firstInstructionInCodeOrder();
@@ -1325,7 +1325,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
           break;
         } else if (s.isGCPoint() && !s.isYieldPoint() &&
                    s.operator() != IR_PROLOGUE) {
-          // frame required for GCpoints that are not yield points 
+          // frame required for GCpoints that are not yield points
           //  or IR_PROLOGUE, which is the stack overflow check
           frameRequired = true;
           preventYieldPointRemoval = true;
@@ -1334,28 +1334,28 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
       }
     }
 
-    // (2) 
-    // In non-adaptive configurations we can omit the yieldpoint if 
-    // the method contains exactly one basic block whose only successor 
-    // is the exit node. (The method may contain calls, but we believe that 
-    // in any program that isn't going to overflow its stack there must be 
-    // some invoked method that contains more than 1 basic block, and 
+    // (2)
+    // In non-adaptive configurations we can omit the yieldpoint if
+    // the method contains exactly one basic block whose only successor
+    // is the exit node. (The method may contain calls, but we believe that
+    // in any program that isn't going to overflow its stack there must be
+    // some invoked method that contains more than 1 basic block, and
     // we'll insert a yieldpoint in its prologue.)
-    // In adaptive configurations the only methods we eliminate yieldpoints 
+    // In adaptive configurations the only methods we eliminate yieldpoints
     // from are those in which the yieldpoints are the only reason we would
-    // have to allocate a stack frame for the method.  Having more yieldpoints 
-    // gets us better sampling behavior.  Thus, in the adaptive configuration 
-    // we only omit the yieldpoint in leaf methods with no PEIs that contain 
+    // have to allocate a stack frame for the method.  Having more yieldpoints
+    // gets us better sampling behavior.  Thus, in the adaptive configuration
+    // we only omit the yieldpoint in leaf methods with no PEIs that contain
     // exactly one basic block whose only successor is the exit node.
-    // TODO: We may want to force yieldpoints in "large" PEI-free 
+    // TODO: We may want to force yieldpoints in "large" PEI-free
     // single-block leaf methods (if any exist).
-    // TODO: This is a kludge. Removing the yieldpoint removes 
-    //       the adaptive system's ability to accurately sample program 
+    // TODO: This is a kludge. Removing the yieldpoint removes
+    //       the adaptive system's ability to accurately sample program
     //       behavior.  Even if the method is absolutely trivial
-    //       eg boolean foo() { return false; }, we may still want to 
-    //       sample it for the purposes of adaptive inlining. 
+    //       eg boolean foo() { return false; }, we may still want to
+    //       sample it for the purposes of adaptive inlining.
     //       On the other hand, the ability to do this inlining in some cases
-    //       may not be able to buy back having to create a stackframe 
+    //       may not be able to buy back having to create a stackframe
     //       for all methods.
     //
     // Future feature: always insert a pseudo yield point that when taken will
@@ -1366,7 +1366,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
                             firstBB.hasOneOut() && firstBB.pointsOut(ir.cfg.exit());
     boolean removeYieldpoints = isSingleBlock && !preventYieldPointRemoval;
 
-    // In adaptive systems if we require a frame, we don't remove 
+    // In adaptive systems if we require a frame, we don't remove
     //  any yield poits
     if (VM.BuildForAdaptiveSystem && frameRequired) {
       removeYieldpoints = false;
@@ -1378,7 +1378,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
            s = s.nextInstructionInCodeOrder()) {
         if (s.isYieldPoint()) {
           OPT_Instruction save = s;
-          // get previous instruction, so we can continue 
+          // get previous instruction, so we can continue
           // after we remove this instruction
           s = s.prevInstructionInCodeOrder();
           save.remove();
@@ -1391,7 +1391,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
       frameRequired = true;
     }
 
-    // (3) initialization 
+    // (3) initialization
     this.ir = ir;
     pref.initialize(ir);
     frameSize = spillPointer;

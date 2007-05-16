@@ -39,7 +39,7 @@ public final class OPT_AddressConstantOperand extends OPT_ConstantOperand {
    * Constructs a new address constant operand with the specified offset value.
    *
    * @param v value
-   * TODO: make a separte OPT_OffsetConstantOperand 
+   * TODO: make a separte OPT_OffsetConstantOperand
    */
   public OPT_AddressConstantOperand(Offset v) {
     this(v.toWord().toAddress());
@@ -77,7 +77,7 @@ public final class OPT_AddressConstantOperand extends OPT_ConstantOperand {
    *
    * @param op other operand
    * @return   <code>true</code> if <code>this</code> and <code>op</code>
-   *           are semantically equivalent or <code>false</code> 
+   *           are semantically equivalent or <code>false</code>
    *           if they are not.
    */
   public boolean similar(OPT_Operand op) {

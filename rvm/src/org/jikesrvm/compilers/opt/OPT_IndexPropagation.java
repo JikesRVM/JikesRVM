@@ -71,7 +71,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
    * <p> Pre-condition: The ir is in Array SSA form and global value numbers
    *    have been computed.
    *
-   * @param ir the IR to optimize 
+   * @param ir the IR to optimize
    */
   public void perform(OPT_IR ir) {
     if (ir.desiredSSAOptions.getAbort()) return;
@@ -91,9 +91,9 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
   }
 
   /**
-   * An ObjectCell is a lattice cell for the index propagation 
+   * An ObjectCell is a lattice cell for the index propagation
    * problem, used in redundant load elimination for fields.
-   * <p> An ObjectCell represents a set of value numbers, 
+   * <p> An ObjectCell represents a set of value numbers,
    * indicating that
    * the elements indexed by these value numbers are available for
    * a certain field type.
@@ -155,7 +155,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
     }
 
     /**
-     * Mark this cell as representing (or not) the TOP element in the 
+     * Mark this cell as representing (or not) the TOP element in the
      * dataflow lattice.
      * @param b should this cell contain TOP?
      */
@@ -238,7 +238,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
     }
 
     /**
-     * Return a deep copy of the value numbers in this cell.  
+     * Return a deep copy of the value numbers in this cell.
      * @return a deep copy of the value numbers in this cell, null to
      * represent empty set.
      */
@@ -256,8 +256,8 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
     }
 
     /**
-     * Return a string representation of this cell 
-     * @return a string representation of this cell 
+     * Return a string representation of this cell
+     * @return a string representation of this cell
      */
     public String toString() {
       StringBuilder s = new StringBuilder(key.toString());
@@ -274,7 +274,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
     }
 
     /**
-     * Do two sets of value numbers differ? 
+     * Do two sets of value numbers differ?
      * <p> SIDE EFFECT: sorts the sets
      *
      * @param set1 first set to compare
@@ -293,9 +293,9 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
   }
 
   /**
-   * An ArrayCell is a lattice cell for the index propagation 
+   * An ArrayCell is a lattice cell for the index propagation
    * problem, used in redundant load elimination for one-dimensional arrays.
-   * <p> An ArrayCell represents a set of value number pairs, 
+   * <p> An ArrayCell represents a set of value number pairs,
    * indicating that
    * the elements indexed by these value numbers are available for
    * a certain array type.
@@ -361,7 +361,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
     }
 
     /**
-     * Mark this cell as representing (or not) the TOP element in the 
+     * Mark this cell as representing (or not) the TOP element in the
      * dataflow lattice.
      * @param b should this cell contain TOP?
      */
@@ -452,7 +452,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
 
     /**
      * Return a deep copy of the value numbers in this cell
-     * @return a deep copy of the value numbers in this cell 
+     * @return a deep copy of the value numbers in this cell
      */
     OPT_ValueNumberPair[] copyValueNumbers() {
       if (isTOP()) {
@@ -469,8 +469,8 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
     }
 
     /**
-     * Return a string representation of this cell 
-     * @return a string representation of this cell 
+     * Return a string representation of this cell
+     * @return a string representation of this cell
      */
     public String toString() {
       StringBuilder s = new StringBuilder(key.toString());
@@ -487,7 +487,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
     }
 
     /**
-     * Do two sets of value number pairs differ? 
+     * Do two sets of value number pairs differ?
      * <p> SIDE EFFECT: sorts the sets
      *
      * @param set1 first set to compare

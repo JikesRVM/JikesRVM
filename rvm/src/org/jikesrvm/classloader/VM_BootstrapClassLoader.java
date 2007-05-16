@@ -41,7 +41,7 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
   /**
    * Set list of places to be searched for vm classes and resources.
    * @param bootstrapClasspath path specification in standard "classpath"
-   *    format 
+   *    format
    */
   public static void setBootstrapRepositories(String bootstrapClasspath) {
     VM_BootstrapClassLoader.bootstrapClasspath = bootstrapClasspath;
@@ -49,7 +49,7 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
 
   /**
    * @return List of places to be searched for VM classes and resources,
-   *      in standard "classpath" format 
+   *      in standard "classpath" format
    */
   public static String getBootstrapRepositories() {
     return bootstrapClasspath;
@@ -58,10 +58,10 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
   /**
    * Initialize for execution.
    * @param bootstrapClasspath names of directories containing the bootstrap
-   * .class files, and the names of any .zip/.jar files.  
+   * .class files, and the names of any .zip/.jar files.
    * These are the ones that implement the VM and its
    * standard runtime libraries.  This may contain several names separated
-   * with colons (':'), just 
+   * with colons (':'), just
    * as a classpath may.   (<code>null</code> ==> use the values specified by
    * {@link #setBootstrapRepositories} when the boot image was created.  This
    * feature is not actually used, but may be helpful in avoiding trouble.)
@@ -102,7 +102,7 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
 
   /**
    * Backdoor for use by VM_TypeReference.resolve when !VM.runningVM.
-   * As of this writing, it is not used by any other classes. 
+   * As of this writing, it is not used by any other classes.
    * @throws NoClassDefFoundError
    */
   synchronized VM_Type loadVMClass(String className) throws NoClassDefFoundError {

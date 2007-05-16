@@ -63,13 +63,13 @@ import org.vmmagic.unboxed.Offset;
  * It also does a number of forward flow-sensitive dataflow analyses and
  * optimistic optimizations in the process. There's lots of details in
  * John Whaley's master thesis from MIT.  However, one needs to be careful
- * because this code has substantial diverged from the system described in 
+ * because this code has substantial diverged from the system described in
  * his thesis.
  * Some optimizations/features described in Johns's thesis are not implemented
- * here. Some optimizations/features implemented here are not described 
+ * here. Some optimizations/features implemented here are not described
  * in John's thesis.
  * In particular this code takes a different approach to JSRs (inlining them),
- * and has more advanced and effective implementation of the inlining 
+ * and has more advanced and effective implementation of the inlining
  * transformation. <p>
  *
  *
@@ -93,9 +93,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
   /**
    * Generate HIR as specified by the argument OPT_GenerationContext.
-   * As a result of calling this method, the cfg field of the generation 
-   * context is populated with basic blocks and instructions.  
-   * Additionally, other fields of the generation context will be modified 
+   * As a result of calling this method, the cfg field of the generation
+   * context is populated with basic blocks and instructions.
+   * Additionally, other fields of the generation context will be modified
    * to summarize what happened during IR generation.
    * <p>
    * This is the only external entry point to BC2IR.
@@ -277,7 +277,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * Main generation loop.
    */
   private void generateHIR() {
-    // Constructor initialized generation state to start 
+    // Constructor initialized generation state to start
     // generating from bytecode 0, so get the ball rolling.
     if (DBG_BB || DBG_SELECTED) db("bbl: " + printBlocks());
     generateFrom(0);
@@ -299,7 +299,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       // Generate it!
       generateFrom(currentBBLE.low);
     }
-    // Construct initial code order, commit to recursive inlines, 
+    // Construct initial code order, commit to recursive inlines,
     // insert any synthetic blocks.
     if (DBG_BB || DBG_SELECTED) db("doing final pass over basic blocks: " + printBlocks());
     blocks.finalPass(inlinedSomething);
@@ -312,7 +312,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     OPT_RegisterOperand t = gc.temps.makeTemp(array);
     t.setPreciseType();
     markGuardlessNonNull(t);
-    // We can do early resolution of the array type if the element type 
+    // We can do early resolution of the array type if the element type
     // is already initialized.
     VM_Type arrayType = array.peekResolvedType();
     OPT_Operator op = NEWARRAY_UNRESOLVED;
@@ -355,8 +355,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     lastInstr = null;
     bcodes.reset(fromIndex);
     while (true) {
-      // Must keep currentBBLE.high up-to-date in case we try to jump into 
-      // the middle of the block we're currently generating.  Simply updating 
+      // Must keep currentBBLE.high up-to-date in case we try to jump into
+      // the middle of the block we're currently generating.  Simply updating
       // high once endsBasicBlock is true doesn't enable us to catch this case.
       currentBBLE.high = instrIndex = bcodes.index();
       int code = bcodes.nextInstruction();
@@ -1665,7 +1665,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
             Call.setGuard(s, getCurrentGuard());
 
             // Attempt to resolve the interface call to a particular virtual method.
-            // This is independent of whether or not the static type of the receiver is 
+            // This is independent of whether or not the static type of the receiver is
             // known to implement the interface and it is not that case that being able
             // to prove one implies the other.
             VM_Method vmeth = null;
@@ -1755,7 +1755,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
               }
             }
 
-            // Consider inlining it. 
+            // Consider inlining it.
             if (maybeInlineMethod(shouldInline(s, isExtant), s)) {
               return;
             }
@@ -1800,7 +1800,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           }
           Call.setGuard(s, getCurrentGuard());
 
-          // Consider inlining it. 
+          // Consider inlining it.
           if (maybeInlineMethod(shouldInline(s, false), s)) {
             return;
           }
@@ -1843,7 +1843,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
             Call.setAddress(s, new OPT_AddressConstantOperand(target.getOffset()));
           }
 
-          // Consider inlining it. 
+          // Consider inlining it.
           if (maybeInlineMethod(shouldInline(s, false), s)) {
             return;
           }
@@ -1889,13 +1889,13 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           // implements the interface.  This is necessary
           // because the verifier does not detect incompatible class changes.
           // Depending on the implementation of interface dispatching
-          // we are using, we may have to make this test explicit 
+          // we are using, we may have to make this test explicit
           // in the calling sequence if we can't prove at compile time
-          // that it is not needed. 
+          // that it is not needed.
           if (requiresImplementsTest) {
             if (resolvedMethod == null) {
               // Sigh.  Can't even resolve the reference to figure out what interface
-              // method we are trying to call. Therefore we must make generate a call 
+              // method we are trying to call. Therefore we must make generate a call
               // to an out-of-line typechecking routine to handle it at runtime.
               OPT_RegisterOperand tibPtr =
                   gc.temps.makeTemp(VM_TypeReference.JavaLangObjectArray);
@@ -1921,7 +1921,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
               rectifyStateWithErrorHandler(); // Can raise incompatible class change error.
             } else {
               // We know what interface method the program wants to invoke.
-              // Attempt to avoid inserting the type check by seeing if the 
+              // Attempt to avoid inserting the type check by seeing if the
               // known static type of the receiver implements the desired interface.
               VM_Type interfaceType = resolvedMethod.getDeclaringClass();
               if (receiverType != null && receiverType.isResolved() && !receiverType.isInterface()) {
@@ -1933,7 +1933,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           }
 
           // Attempt to resolve the interface call to a particular virtual method.
-          // This is independent of whether or not the static type of the receiver is 
+          // This is independent of whether or not the static type of the receiver is
           // known to implement the interface and it is not that case that being able
           // to prove one implies the other.
           VM_Method vmeth = null;
@@ -1945,7 +1945,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
             // We're going to virtualize the call.  Must inject the
             // DTC to ensure the receiver implements the interface if
             // requiresImplementsTest is still true.
-            // Note that at this point requiresImplementsTest => resolvedMethod != null 
+            // Note that at this point requiresImplementsTest => resolvedMethod != null
             if (requiresImplementsTest) {
               appendInstruction(TypeCheck.create(MUST_IMPLEMENT_INTERFACE,
                                                  receiver.copy(),
@@ -1973,7 +1973,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
               return;
             }
           } else {
-            // We can't virtualize the call; 
+            // We can't virtualize the call;
             // try to inline a predicted target for the interface invocation
             // inline code will include DTC to ensure receiver implements the interface.
             if (resolvedMethod != null && maybeInlineMethod(shouldInline(s, false), s)) {
@@ -2508,7 +2508,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         }
         if (fallThrough) {
           if (VM.VerifyAssertions) VM._assert(bcodes.index() < bcodes.length());
-          // Get/Create fallthrough BBLE and record it as 
+          // Get/Create fallthrough BBLE and record it as
           // currentBBLE's fallThrough.
           currentBBLE.fallThrough = getOrCreateBlock(bcodes.index());
           currentBBLE.block.insertOut(currentBBLE.fallThrough.block);
@@ -2671,7 +2671,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
   /**
    * Pop method parameters off the expression stack.
-   * If a non-void return, then create a result operand and push it 
+   * If a non-void return, then create a result operand and push it
    * on the stack.
    * Create the call instruction and initialize all its operands.
    */
@@ -2810,7 +2810,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
   /**
    * Fetch the value of the next operand, a constant, from the bytecode
-   * stream. 
+   * stream.
    * @return the value of a literal constant from the bytecode stream,
    * encoding as a constant IR operand
    */
@@ -3228,7 +3228,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    */
   OPT_Operand pop(VM_TypeReference type) {
     OPT_Operand r = pop();
-    // Can't assert the following due to approximations by 
+    // Can't assert the following due to approximations by
     // OPT_ClassLoaderProxy.findCommonSuperclass
     // if (VM.VerifyAssertions) assertIsType(r, type);
     // Avoid upcasts of magic types to regular j.l.Objects
@@ -3287,7 +3287,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   //// SUBROUTINES.
   private OPT_Instruction _jsrHelper(int offset) {
     // (1) notify the BBSet that we have reached a JSR bytecode.
-    //     This enables the more complex JSR-aware implementation of 
+    //     This enables the more complex JSR-aware implementation of
     //     BBSet.getOrCreateBlock.
     blocks.seenJSR();
 
@@ -3373,7 +3373,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         // but all word types are converted into addresses and thus the assertion fails. This should be fixed.
         VM._assert(parentType.isUnboxedType());
       } else {
-        // fudge to deal with conservative approximation 
+        // fudge to deal with conservative approximation
         // in OPT_ClassLoaderProxy.findCommonSuperclass
         if (childType != VM_TypeReference.JavaLangObject) {
           if (OPT_ClassLoaderProxy.includesType(parentType, childType) == NO) {
@@ -3540,7 +3540,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         }
         return false;
       }
-      // rop is possibly null, insert the null check, 
+      // rop is possibly null, insert the null check,
       // rectify with exception handler, update the guard state.
       OPT_RegisterOperand guard = gc.makeNullCheckGuard(rop.register);
       appendInstruction(NullCheck.create(NULL_CHECK, guard, ref.copy()));
@@ -3548,16 +3548,16 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       setCurrentGuard(guard);
       setGuard(rop, guard);
       if (DBG_ELIMNULL) db(rop + " is guarded by " + guard);
-      // Now, try to leverage this null check by updating 
+      // Now, try to leverage this null check by updating
       // other unguarded (and thus potentially null)
       // OPT_RegisterOperands representing the same OPT_Register.
       if (rop.register.isLocal()) {
         // We want to learn that downstream of this nullcheck, other
         // uses of this local variable will also be non-null.
         // BUT, we MUST NOT just directly set the guard of the appropriate
-        // element of our locals array (operands in the local array 
+        // element of our locals array (operands in the local array
         // may appear in previously generated instructions).
-        // Therefore we call getLocal (which internally makes a copy), 
+        // Therefore we call getLocal (which internally makes a copy),
         // mark the copy with the new guard
         // and finally store the copy back into the local state.
         int number = gc.getLocalNumberFor(rop.register, rop.type);
@@ -3572,12 +3572,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           setLocal(number, loc);
         }
       }
-      // At least within this basic block we know that all subsequent uses 
-      // of ref will be non null, since they are guarded by the null check 
-      // instruction we just inserted.  Update all RegisterOperands with 
+      // At least within this basic block we know that all subsequent uses
+      // of ref will be non null, since they are guarded by the null check
+      // instruction we just inserted.  Update all RegisterOperands with
       // this register currently on the expression stack appropriately.
-      // Stack rectification will ensure that we don't propagate this 
-      // non-nullness to a use that is not dominated by the null check in 
+      // Stack rectification will ensure that we don't propagate this
+      // non-nullness to a use that is not dominated by the null check in
       // the current basic block.
       for (int i = stack.getSize() - 1; i >= 0; --i) {
         OPT_Operand sop = stack.getFromTop(i);
@@ -3693,7 +3693,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       return false;     // Unsafely eliminate all store checks
     }
     if (CF_CHECKSTORE) {
-      // NOTE: BE WARY OF ADDITIONAL OPTIMZATIONS. 
+      // NOTE: BE WARY OF ADDITIONAL OPTIMZATIONS.
       // ARRAY SUBTYPING IS SUBTLE (see JLS 10.10) --dave
       if (elem.isDefinitelyNull()) {
         if (DBG_TYPE) db("skipping checkstore of null constant");
@@ -3756,7 +3756,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   //// GENERATE BRANCHING INSTRUCTIONS.
   /**
    * Get or create a block at the specified target.
-   * Rectifies current state with target state. 
+   * Rectifies current state with target state.
    * Instructions to rectify state are appended to currentBBLE.
    * If the target is between bcodes.index() and runoff, runoff is
    * updated to be target.
@@ -3857,7 +3857,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
             break;
           }
           OPT_RegisterOperand guard = null;
-          // Propagate types and non-nullness along the CFG edge where we 
+          // Propagate types and non-nullness along the CFG edge where we
           // know that refReg is an instanceof type2
           OPT_RegisterOperand refReg = (OPT_RegisterOperand) ref;
           VM_TypeReference type2 = InstanceOf.getType(lastInstr).getTypeRef();
@@ -3937,7 +3937,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           if (!(ref instanceof OPT_RegisterOperand)) {
             break;
           }
-          // Propagate types along the CFG edge where we know that 
+          // Propagate types along the CFG edge where we know that
           // refReg is an instanceof type2
           OPT_RegisterOperand refReg = (OPT_RegisterOperand) ref;
           VM_TypeReference type2 = InstanceOf.getType(lastInstr).getTypeRef();
@@ -4223,7 +4223,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   }
 
   //// REPLACE LOCALS ON STACK.
-  // Replaces copies of local <#index,type> with 
+  // Replaces copies of local <#index,type> with
   // newly-generated temporaries, and
   // generates the necessary move instructions.
   private void replaceLocalsOnStack(int index, VM_TypeReference type) {
@@ -4305,7 +4305,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     return rectifyStateWithExceptionHandler(et, linkToExitIfUncaught);
   }
 
-  // If exactly 1 catch block is guarenteed to catch the exception, 
+  // If exactly 1 catch block is guarenteed to catch the exception,
   // then we return it.
   // Returning null means that no such block was found.
   private OPT_BasicBlock rectifyStateWithExceptionHandler(VM_TypeReference exceptionType,
@@ -4344,11 +4344,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       }
     }
     // Now, consider the enclosing exception context.
-    // NOTE: Because the locals of the current method can't 
-    // possibly matter to the locals of the enclosing method, it is 
+    // NOTE: Because the locals of the current method can't
+    // possibly matter to the locals of the enclosing method, it is
     // sufficient to add a CFG edge (no need to rectify locals).
-    // It is the responsibility of the BC2IR object generating the 
-    // caller method to ensure that the exposed handler blocks are 
+    // It is the responsibility of the BC2IR object generating the
+    // caller method to ensure that the exposed handler blocks are
     // generated if they are reachable from a callee.
     // See maybeInlineMethod.
     if (gc.enclosingHandlers != null) {
@@ -4381,8 +4381,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         }
       }
     }
-    // If we get to here, then we didn't find a handler block that 
-    // is guarenteed to catch the exception. Therefore deal with the 
+    // If we get to here, then we didn't find a handler block that
+    // is guarenteed to catch the exception. Therefore deal with the
     // possibly uncaught exception.
     currentBBLE.block.setMayThrowUncaughtException();
     if (linkToExitIfUncaught) {
@@ -4399,7 +4399,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
   /*
    * Very similar to the above, but since we aren't told what might be thrown,
-   * we are forced to connect to every in scope handler and can't 
+   * we are forced to connect to every in scope handler and can't
    * identify a definite target.
    */
   private void rectifyStateWithExceptionHandlers(boolean linkToExitIfUncaught) {
@@ -4496,14 +4496,14 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     }
 
     // Execute the inline decision.
-    // NOTE: It is tempting to wrap the call to OPT_Inliner.execute in 
+    // NOTE: It is tempting to wrap the call to OPT_Inliner.execute in
     // a try/catch block that suppresses MagicNotImplemented failures
     // by "backing out" the attempted inlining of a method that contained
     // an unimplemented magic.  Unfortunately, this is somewhat hard to do
     // cleanly, since exceptional control flow can inject control flow graph
     // edges from inlinedContext to blocks in the enclosing caller CFG.
     // These are not easy to find and remove because inlinedContext is not
-    // well-formed (the exception was thrown while generating the IR, in 
+    // well-formed (the exception was thrown while generating the IR, in
     // particular before calling finalPass, therefore the inlined CFG
     // is not formed and finding all of its member blocks is somewhat awkward).
     // We could write code to deal with this, but since in practice the
@@ -4517,22 +4517,22 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
                             currentBBLE.block.exceptionHandlers, callSite);
 
     inlinedSomething = true;
-    // TODO: We're currently not keeping track if any of the 
-    // enclosing exception handlers are actually reachable from 
-    // this inlined callee.  
+    // TODO: We're currently not keeping track if any of the
+    // enclosing exception handlers are actually reachable from
+    // this inlined callee.
     // Therefore we simply force all of them to be generated wrt
     // the state of the local variables in currentBBLE.
-    // This can result in generating unreachable handlers 
-    // (if no PEI can reach them) and in generating suboptimal 
+    // This can result in generating unreachable handlers
+    // (if no PEI can reach them) and in generating suboptimal
     // catch blocks (by merging in currentBBLE's local state
     // into catch blocks that can't actually be reached from the inlined CFG).
     // I strongly suspect it's not worth worrying about this.....
-    // dead code elimination should zap the unreachable handlers, 
+    // dead code elimination should zap the unreachable handlers,
     // and we shouldn't care too  much about the
     // optimization possibilities lost by the extra local rectification.
-    // Especially since the odds of currentBBLE actually having 
+    // Especially since the odds of currentBBLE actually having
     // unreachable handler blocks is darn close to zero. --dave 9/21/99.
-    // NOTE: No need to add CFG edges (they were added as needed 
+    // NOTE: No need to add CFG edges (they were added as needed
     // during generation of the callee)
     if (currentBBLE.handlers != null) {
       for (HandlerBlockLE handler : currentBBLE.handlers) {
@@ -4547,17 +4547,17 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       BasicBlockLE epilogueBBLE = new BasicBlockLE();
       epilogueBBLE.block = inlinedContext.epilogue;
       if (inlinedContext.result != null) {
-        // If the call has a result, _callHelper allocated a new 
+        // If the call has a result, _callHelper allocated a new
         // temp for it and pushed it onto the expression stack.
-        // But, since we successfully inlined the call and 
+        // But, since we successfully inlined the call and
         // inlinedContext.epilogue != null,
-        // we can use inlinedContext.result to obtain better 
+        // we can use inlinedContext.result to obtain better
         // downstream information about the inlined callee's return value.
-        // Therefore we'll pop the old callSite.result off the stack 
+        // Therefore we'll pop the old callSite.result off the stack
         // and push result instead.
-        // NOTE: It's critical that we pop callSite.result 
+        // NOTE: It's critical that we pop callSite.result
         // _before_ we copy the stack state into epilogueBBLE!
-        // Otherwise we'll end up with bogus code in the inlined 
+        // Otherwise we'll end up with bogus code in the inlined
         // method's prologue due to stack saving!!!!
         VM_TypeReference resultType = Call.getResult(callSite).type;
         pop(resultType);        // throw away callSite.result
@@ -4783,12 +4783,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   /**
    * Creates an OSR point instruction with its dependent OsrBarrier
    * which provides type and variable information.
-   * The OsrPoint instruction is going to be refilled immediately 
+   * The OsrPoint instruction is going to be refilled immediately
    * after BC2IR, before any other optimizations.
    */
   public static OPT_Instruction _osrHelper(OPT_Instruction barrier) {
     OPT_Instruction inst = OsrPoint.create(YIELDPOINT_OSR,
-                                           null,  // currently unknown 
+                                           null,  // currently unknown
                                            0);    // currently unknown
     inst.scratchObject = barrier;
     return inst;
@@ -4854,7 +4854,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * the set of basic blocks that are being generated.
    * This class encapsulates that functionality.
    * The backing data store is a red/black tree, but there are a number of
-   * very specialized operations that are performed during search/insertion 
+   * very specialized operations that are performed during search/insertion
    * so we roll our own instead of using one from the standard library.
    */
   private static final class BBSet implements OPT_IRGenOptions {
@@ -4942,8 +4942,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     }
 
     /**
-     * Finds the next ungenerated block, starting at the argument 
-     * block and searching forward, wrapping around to the beginning. 
+     * Finds the next ungenerated block, starting at the argument
+     * block and searching forward, wrapping around to the beginning.
      * If all blocks are generated, it returns null.
      * @param start the basic block at which to start looking.
      */
@@ -5009,18 +5009,18 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     /**
      * Mark a previously generated block for regeneration.
      * We define this method here so that in the future
-     * we can implement a more efficient getNextEmptyBlock that 
-     * (1) avoids generating lots of blocks when a CFG predecessor has a 
+     * we can implement a more efficient getNextEmptyBlock that
+     * (1) avoids generating lots of blocks when a CFG predecessor has a
      * pending regeneration and (2) avoids the scan through all blocks when
      * there are no more blocks left to generate.
      */
     private void markBlockForRegeneration(BasicBlockLE p) {
       if (DBG_REGEN) db("marking " + p + " for regeneration");
       if (p.fallThrough != null && p.fallThrough instanceof InliningBlockLE) {
-        // if the fallthrough out edge of this block is an 
-        // InlineMethodBasicBlock, then the inlined method must also be 
-        // regenerated.  In preparation for this, we must delete all out 
-        // edges from the inlined method to the caller. 
+        // if the fallthrough out edge of this block is an
+        // InlineMethodBasicBlock, then the inlined method must also be
+        // regenerated.  In preparation for this, we must delete all out
+        // edges from the inlined method to the caller.
         // (These arise from thrown/caught exceptions.)
         InliningBlockLE imbb = (InliningBlockLE) p.fallThrough;
         imbb.deleteAllOutEdges();
@@ -5048,8 +5048,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     }
 
     /**
-     * Rectify the given stack state with the state contained in the given 
-     * BBLE, adding the necessary move instructions to the end of the given 
+     * Rectify the given stack state with the state contained in the given
+     * BBLE, adding the necessary move instructions to the end of the given
      * basic block to make register numbers agree and rectify mis-matched constants.
      * <p>
      * @param block basic block to append move instructions to
@@ -5071,10 +5071,10 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       boolean generated = p.isGenerated();
       // (1) Rectify the stacks.
       if (!p.isStackKnown()) {
-        // First time we reached p. Thus, its expression stack 
-        // is implicitly top and the meet degenerates to a copy operation 
+        // First time we reached p. Thus, its expression stack
+        // is implicitly top and the meet degenerates to a copy operation
         // with possibly some register renaming.
-        // (We need to ensure that non-local registers appear at 
+        // (We need to ensure that non-local registers appear at
         // most once on each expression stack).
         if (DBG_STACK || DBG_SELECTED) {
           db("First stack rectifiction for " + p + "(" +
@@ -5111,7 +5111,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         p.setStackKnown();
       } else {
         // A real rectification.
-        // We need to update mergedStack such that 
+        // We need to update mergedStack such that
         // mergedStack[i] = meet(mergedStack[i], stack[i]).
         if (DBG_STACK || DBG_SELECTED) db("rectifying stacks");
         try {
@@ -5137,9 +5137,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
             if (mop.similar(sop)) {
               continue; // constants are similar; so we don't have to do anything.
             }
-            // sigh. Non-similar constants. 
+            // sigh. Non-similar constants.
             if (mop.isConstant()) {
-              // Insert move instructions in all predecessor 
+              // Insert move instructions in all predecessor
               // blocks except 'block' to move mop into a register.
               OPT_RegisterOperand mopTmp = gc.temps.makeTemp(mop);
               if (DBG_STACK || DBG_SELECTED) db("Merged stack has constant operand " + mop);
@@ -5262,10 +5262,10 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     }
 
     /**
-     * Do a final pass over the generated basic blocks to create 
-     * the initial code ordering. All blocks generated for the method 
+     * Do a final pass over the generated basic blocks to create
+     * the initial code ordering. All blocks generated for the method
      * will be inserted after gc.prologue.
-     * NOTE: Only some CFG edges are created here..... 
+     * NOTE: Only some CFG edges are created here.....
      * we're mainly just patching together a code linearization.
      */
     void finalPass(boolean inlinedSomething) {
@@ -5275,7 +5275,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       BasicBlockLE next = null;
       top:
       while (true) {
-        // Step 0: If curr is the first block in a catch block, 
+        // Step 0: If curr is the first block in a catch block,
         // inject synthetic entry block too.
         if (curr instanceof HandlerBlockLE) {
           // tell our caller that we actually put a handler in the final CFG.
@@ -5300,8 +5300,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
             VM.sysWrite(bb + "\n");
           }
         }
-        // Step 1.1 Sometimes (rarely) there will be an inscope 
-        // exception handler that wasn't actually generated.  If this happens, 
+        // Step 1.1 Sometimes (rarely) there will be an inscope
+        // exception handler that wasn't actually generated.  If this happens,
         // make a new, filtered EHBBB to avoid later confusion.
         if (curr.handlers != null) {
           int notGenerated = 0;
@@ -5343,10 +5343,10 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           }
         }
         // Step 2: Identify the next basic block to add to the code order.
-        // curr wants to fallthrough to an inlined method.  
+        // curr wants to fallthrough to an inlined method.
         // Inject the entire inlined CFG in the code order.
-        // There's some fairly complicated coordination between this code, 
-        // OPT_GenerationContext, and maybeInlineMethod.  Sorry, but you'll 
+        // There's some fairly complicated coordination between this code,
+        // OPT_GenerationContext, and maybeInlineMethod.  Sorry, but you'll
         // have to take a close look at all of these to see how it
         // all fits together....--dave
         if (curr.fallThrough != null &&
@@ -5492,10 +5492,10 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
     /**
      * Initialize bble's handlers array based on startPCs/endPCs.
-     * In the process, new HandlerBlockLE's may be created 
+     * In the process, new HandlerBlockLE's may be created
      * (by the call to getOrCreateBlock). <p>
-     * PRECONDITION: bble.low and bble.max have already been correctly 
-     * set to reflect the invariant that a basic block is in exactly one 
+     * PRECONDITION: bble.low and bble.max have already been correctly
+     * set to reflect the invariant that a basic block is in exactly one
      * "handler range."
      * Also initializes bble.block.exceptionHandlers.
      */
@@ -5532,7 +5532,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     }
 
     /**
-     * Given a starting bytecode index, find the greatest bcIndex that 
+     * Given a starting bytecode index, find the greatest bcIndex that
      * is still has the same inscope exception handlers.
      * @param bcIndex the start bytecode index
      */
@@ -5556,15 +5556,15 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     /**
      * We specialize basic blocks with respect to the return addresses
      * they have on their expression stack and/or in their local variables
-     * on entry to the block. This has the effect of inlining the 
+     * on entry to the block. This has the effect of inlining the
      * subroutine body at all of the JSR sites that invoke it.
-     * This is the key routine: it determines whether or not the 
-     * argument simState (stack and locals) contains compatible 
+     * This is the key routine: it determines whether or not the
+     * argument simState (stack and locals) contains compatible
      * return addresses as the candidate BasicBlockLE.
      * <p>
-     * The main motivation for inlining away all JSR's is that it eliminates 
-     * the "JSR problem" for type accurate GC.  It is also simpler to 
-     * implement and arguably results in more efficient generated code 
+     * The main motivation for inlining away all JSR's is that it eliminates
+     * the "JSR problem" for type accurate GC.  It is also simpler to
+     * implement and arguably results in more efficient generated code
      * (assuming that we don't get horrific code bloat).
      * To deal with the code bloat, we detect excessive code duplication and
      * stop IR generation (bail out to the baseline compiler).
@@ -5758,14 +5758,14 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
     /**
      * Allocate a new BBLE at the given bcIndex.
-     * If bcIndex is the start of an handler block, 
+     * If bcIndex is the start of an handler block,
      * then a HandlerBlockLE is created.
      * After the BBLE is created, its handlers data structure is initialized
      * (which may cause other blocks to be created).
      * @param bcIndex the bytecode index at which the block should be created.
      * @param simLocals the localState to pass (via initializeExceptionHandler)to
      *                  to getOrCreateBlock if we need to create BBLEs for
-     *                  exception handlers.  This is only actually used if 
+     *                  exception handlers.  This is only actually used if
      *                  !noJSR.  We don't need the expression stack, since
      *                  the only thing on the expression stack on entry to
      *                  a handler block is the exception object (and thus
@@ -5805,10 +5805,10 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
       if (DBG_BBSET) db("Created " + newBBLE);
 
-      // Now, insert newBBLE into our backing Red/Black tree before we call 
-      // initializeExceptionHandlers.  
-      // We must do it in this order because initExHand may in turn call 
-      // _createBBLE to create new handler blocks, and our tree must contain 
+      // Now, insert newBBLE into our backing Red/Black tree before we call
+      // initializeExceptionHandlers.
+      // We must do it in this order because initExHand may in turn call
+      // _createBBLE to create new handler blocks, and our tree must contain
       // newBBLE before we can correctly insert another block.
       treeInsert(parent, newBBLE, left);
 
@@ -5871,7 +5871,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     }
 
     /**
-     * Performs tree fixup (restore Red/Black invariants) after adding a 
+     * Performs tree fixup (restore Red/Black invariants) after adding a
      * new node to the tree.
      * @param x node that was added.
      */
@@ -6166,7 +6166,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
     /**
      * The desired fallthrough (next in code order) BBLE (may be null).
-     * NOTE: we may not always end up actually falling through 
+     * NOTE: we may not always end up actually falling through
      * (see BBSet.finalPass).
      */
     BasicBlockLE fallThrough;
@@ -6258,7 +6258,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
      * Add an exception handler BBLE to the handlers array.
      * NOTE: this isn't incredibly efficient, but empirically the expected
      * number of handlers per basic block is 0, with an observed
-     * maximum across 10,000+ methods of 3.  
+     * maximum across 10,000+ methods of 3.
      * Until this changes, we just don't care.
      */
     final void addHandler(HandlerBlockLE handler) {
@@ -6286,7 +6286,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
      *
      * @param loc bytecode index
      * @param position the inline sequence
-     * @param cfg OPT_ControlFlowGraph into which the block 
+     * @param cfg OPT_ControlFlowGraph into which the block
      *            will eventually be inserted
      */
     BasicBlockLE(int loc, OPT_InlineSequence position,
@@ -6347,7 +6347,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
      * @param eType   exception type
      * @param temps the register pool to allocate exceptionObject from
      * @param exprStackSize max size of expression stack
-     * @param cfg OPT_ControlFlowGraph into which the block 
+     * @param cfg OPT_ControlFlowGraph into which the block
      *            will eventually be inserted
      */
     HandlerBlockLE(int loc, OPT_InlineSequence position,
@@ -6357,20 +6357,20 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       entryBlock =
           new OPT_ExceptionHandlerBasicBlock(SYNTH_CATCH_BCI, position, eType, cfg);
       block = new OPT_BasicBlock(loc, position, cfg);
-      // NOTE: We intentionally use throwable rather than eType to avoid 
-      // having the complexity of having to regenerate the handler when a 
+      // NOTE: We intentionally use throwable rather than eType to avoid
+      // having the complexity of having to regenerate the handler when a
       // new type of caught exception is added. Since we shouldn't care about
-      // the performance of code in exception handling blocks, this 
+      // the performance of code in exception handling blocks, this
       // should be the right tradeoff.
       exceptionObject = temps.makeTemp(VM_TypeReference.JavaLangThrowable);
-      setGuard(exceptionObject, new OPT_TrueGuardOperand());    // know not null 
+      setGuard(exceptionObject, new OPT_TrueGuardOperand());    // know not null
       low = loc;
       high = loc;
       // Set up expression stack on entry to have the caught exception operand.
       stackState = new OperandStack(exprStackSize);
       stackState.push(exceptionObject);
       setStackKnown();
-      // entry block contains instructions to transfer the caught 
+      // entry block contains instructions to transfer the caught
       // exception object to exceptionObject.
       OPT_Instruction s =
           Nullary.create(GET_CAUGHT_EXCEPTION, exceptionObject.copyD2D());
@@ -6409,17 +6409,17 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     }
 
     /**
-     * delete the outgoing CFG edges from all 
+     * delete the outgoing CFG edges from all
      * basic blocks in the callee (gc.cfg).
-     * This is used when the BBLE preceeding the inlined 
-     * method block needs to be regenerated, thus forcing 
+     * This is used when the BBLE preceeding the inlined
+     * method block needs to be regenerated, thus forcing
      * us to discard the callee IR (which may contains
      * control flow links to the caller IR because of exception handlers).
-     * <p> 
-     * TODO: One might be able to do this more efficiently by  
+     * <p>
+     * TODO: One might be able to do this more efficiently by
      * keeping track of the exposed edges in the generation context
      * and commiting them once the top level generation
-     * completes.  Probably not worth it, since we expect this 
+     * completes.  Probably not worth it, since we expect this
      * method to be called very infrequently.
      */
     void deleteAllOutEdges() {

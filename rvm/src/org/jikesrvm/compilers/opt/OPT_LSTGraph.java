@@ -18,9 +18,9 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
 /**
  * Identify natural loops and builds the LST (Loop Structure Tree)
  *
- * Note: throws an exception if an irreducible loop is found 
- * (which I believe could only happen in Java from modified bytecode, 
- *  because Java source code is structured enough to prevent 
+ * Note: throws an exception if an irreducible loop is found
+ * (which I believe could only happen in Java from modified bytecode,
+ *  because Java source code is structured enough to prevent
  *  irreducible loops.)
  *
  * @see OPT_DominatorsPhase
@@ -156,7 +156,7 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
     rootNode = lstheader;
     addGraphNode(lstheader);
 
-    // compute the natural loops for each back edge. 
+    // compute the natural loops for each back edge.
     // merge backedges with the same header
     for (OPT_BasicBlock node = (OPT_BasicBlock) entry.nextSorted;
          node != null;
@@ -307,14 +307,14 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
   }
 
   /**
-   * This routine implements part of the algorithm to compute natural loops 
+   * This routine implements part of the algorithm to compute natural loops
    *  as defined in Muchnick p 192.  See caller for more details.
    * @param edge the edge to process
    * @param loop bit vector to hold the results of the algorithm
    */
   private void findNaturalLoop(OPT_SpaceEffGraphEdge edge, OPT_BitVector loop) {
 
-    /* Algorithm to compute Natural Loops, Muchnick, pp. 192: 
+    /* Algorithm to compute Natural Loops, Muchnick, pp. 192:
        procedure Nat_Loop(m,n,Pred) return set of Node
        m, n: in Node
        Pred: in Node -> set of Node
@@ -336,7 +336,7 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
        if q belongs Loop then
        Loop U= {q}
        Stack += [q]
-       
+
        return Loop
        end
     */

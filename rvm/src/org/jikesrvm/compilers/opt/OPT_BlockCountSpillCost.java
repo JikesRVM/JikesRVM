@@ -19,7 +19,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.OPT_Register;
 
 /**
- * An object that returns an estimate of the relative cost of spilling a 
+ * An object that returns an estimate of the relative cost of spilling a
  * symbolic register, based on basic block frequencies.
  */
 class OPT_BlockCountSpillCost extends OPT_SpillCostEstimator {
@@ -29,7 +29,7 @@ class OPT_BlockCountSpillCost extends OPT_SpillCostEstimator {
   }
 
   /**
-   * Calculate the estimated cost for each register.  
+   * Calculate the estimated cost for each register.
    */
   void calculate(OPT_IR ir) {
     for (Enumeration<OPT_BasicBlock> blocks = ir.getBasicBlocks(); blocks.hasMoreElements();) {

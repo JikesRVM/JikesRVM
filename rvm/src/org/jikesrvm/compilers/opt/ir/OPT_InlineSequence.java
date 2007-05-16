@@ -156,7 +156,7 @@ public final class OPT_InlineSequence {
   }
 
   /**
-   * Return a hashcode for this object.  
+   * Return a hashcode for this object.
    *
    * TODO: Figure out a better hashcode.  Efficiency doesn't matter
    * for now.

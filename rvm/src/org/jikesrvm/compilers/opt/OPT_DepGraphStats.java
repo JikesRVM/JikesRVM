@@ -14,9 +14,9 @@ import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.NULL_CHECK;
 
 /**
- * Dependence Graph Statistics 
+ * Dependence Graph Statistics
  *
- * (This module will only be used for experimental measurements, so 
+ * (This module will only be used for experimental measurements, so
  * compile-time overhead is less of a concern.)
  *
  * @see OPT_DepGraph
@@ -80,7 +80,7 @@ class OPT_DepGraphStats {
           // Not found
           throw new OPT_OptimizingCompilerException(
               "OPT_DepGraphStats: dep graph is not topologically sorted ???");
-          // NOTE: I could not use OPT_SortedGraphIterator 
+          // NOTE: I could not use OPT_SortedGraphIterator
           // for top sort because OPT_DepGraphNode
           // is not a subclass of OPT_SortedGraphNode
         }

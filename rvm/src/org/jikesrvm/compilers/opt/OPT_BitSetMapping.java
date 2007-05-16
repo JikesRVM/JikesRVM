@@ -24,7 +24,7 @@ public interface OPT_BitSetMapping {
   int getMappedIndex(Object o);
 
   /**
-   * Return the size of the domain of the bijection. 
+   * Return the size of the domain of the bijection.
    */
   int getMappingSize();
 }

@@ -37,7 +37,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_UnreachableOperand;
 import org.jikesrvm.compilers.opt.ir.Phi;
 
 /**
- * This compiler phase translates out of SSA form.  
+ * This compiler phase translates out of SSA form.
  *
  * @see OPT_SSA
  * @see OPT_SSAOptions
@@ -46,7 +46,7 @@ import org.jikesrvm.compilers.opt.ir.Phi;
 public class OPT_LeaveSSA extends OPT_CompilerPhase {
 
   /**
-   *  verbose debugging flag 
+   *  verbose debugging flag
    */
   static final boolean DEBUG = false;
 
@@ -107,7 +107,7 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
     this.ir = ir;
     translateFromSSA(ir);
 
-    // reset ir.SSADictionary 
+    // reset ir.SSADictionary
     ir.HIRInfo.SSADictionary = null;
     // reset ssa options
     ir.actualSSAOptions = null;
@@ -126,7 +126,7 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
     static final long serialVersionUID = -5664504465082745314L;
 
     /**
-     * Get the name at the top of the stack for a particular register 
+     * Get the name at the top of the stack for a particular register
      * @param s the register in question
      * @return the name at the top of the stack for the register
      */
@@ -140,7 +140,7 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
     }
 
     /**
-     * Pop the name at the top of the stack for a particular register 
+     * Pop the name at the top of the stack for a particular register
      * @param s the register in question
      * @return the name at the top of the stack for the register
      */
@@ -155,7 +155,7 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
     }
 
     /**
-     * Push a name at the top of the stack for a particular register 
+     * Push a name at the top of the stack for a particular register
      * @param s the register in question
      * @param name the name to push on the stack
      */
@@ -299,7 +299,7 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
 
     // usedByAnother represents the set of registers that appear on the
     // left-hand side of subsequent phi nodes.  This is important, since
-    // we be careful to order copies if the same register appears as the 
+    // we be careful to order copies if the same register appears as the
     // source and dest of copies in the same basic block.
     HashSet<OPT_Register> usedByAnother = new HashSet<OPT_Register>(4);
 
@@ -308,7 +308,7 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
     HashMap<OPT_BasicBlock, OPT_BasicBlock> criticalBlocks =
         new HashMap<OPT_BasicBlock, OPT_BasicBlock>(4);
 
-    // For each critical basic block b in which we are inserting copies: return the 
+    // For each critical basic block b in which we are inserting copies: return the
     // mapping of registers to names implied by the copies that have
     // already been inserted into b.
     HashMap<OPT_BasicBlock, HashMap<OPT_Register, OPT_Register>> currentNames =
@@ -502,7 +502,7 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
       }
       // an empty work list with work remaining in the copy set
       // implies a cycle in the dependencies amongst copies.  deal
-      // with this: break the cycle by copying the destination 
+      // with this: break the cycle by copying the destination
       // of an arbitrary member of the copy set into a temporary.
       // this destination has thus been saved, and can now be
       // safely overwritten.  so, add that copy to the work list.

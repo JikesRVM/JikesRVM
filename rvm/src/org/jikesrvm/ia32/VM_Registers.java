@@ -29,7 +29,7 @@ public abstract class VM_Registers implements VM_RegisterConstants {
   public Address ip;     // instruction address register
   public Address fp;     // frame pointer
 
-  // set by C hardware exception handler and VM_Runtime.athrow 
+  // set by C hardware exception handler and VM_Runtime.athrow
   // and reset by each implementation of VM_ExceptionDeliverer.deliverException
   //
   public boolean inuse; // do exception registers currently contain live values?

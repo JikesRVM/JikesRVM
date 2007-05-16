@@ -65,7 +65,7 @@ public class VM_ClassLoader implements VM_Constants,
   }
 
   /**
-   * Get list of places currently being searched for application 
+   * Get list of places currently being searched for application
    * classes and resources.
    * @return names of directories, .zip files, and .jar files
    */
@@ -326,7 +326,7 @@ public class VM_ClassLoader implements VM_Constants,
     }
 
     //
-    // pass 2: post-process type constant pool entries 
+    // pass 2: post-process type constant pool entries
     // (we must do this in a second pass because of forward references)
     //
     for (int i = 1; i < constantPool.length; i++) {

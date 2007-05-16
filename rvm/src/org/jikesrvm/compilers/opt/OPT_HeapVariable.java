@@ -37,7 +37,7 @@ public class OPT_HeapVariable<T> {
    * @param type a VM_FieldReference or VM_TypeReference object, naming the type of this
    *              heap
    * @param number second part of the name of this heap variable
-   * @param ir the governing IR 
+   * @param ir the governing IR
    */
   public OPT_HeapVariable(T type, int number, OPT_IR ir) {
     this.type = type;

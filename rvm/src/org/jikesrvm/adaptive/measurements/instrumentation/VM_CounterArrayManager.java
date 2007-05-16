@@ -47,7 +47,7 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
    *  in the counter manager.  A handle or "ID" is returned for the
    *  data to identify its counter space.
    *
-   * @param countersNeeded The number of counters being requested 
+   * @param countersNeeded The number of counters being requested
    * @return The handle for this data's counter space.
    **/
   public synchronized int registerCounterSpace(int countersNeeded) {
@@ -71,7 +71,7 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
    *  a particular data.
    *
    * @param handle  The handle describing which the data to be resized
-   * @param countersNeeded The number of counters being requested 
+   * @param countersNeeded The number of counters being requested
    **/
   public synchronized void resizeCounterSpace(int handle, int countersNeeded) {
     // allocate the new array

@@ -187,7 +187,7 @@ public final class OPT_GlobalValueNumberState {
    * </ul>
    * <p> TODO: add more smarts
    * @param v1 first value number
-   * @param v2 second value number 
+   * @param v2 second value number
    * @return true iff the value numbers for two variables are definitely
    * different
    */
@@ -226,7 +226,7 @@ public final class OPT_GlobalValueNumberState {
         }
       }
     }
-    // assume parameters are not aliased? 
+    // assume parameters are not aliased?
     if (NO_PARAM_ALIAS) {
       if (v1 != v2) {
         if (class1.containsParameter()) {
@@ -465,8 +465,8 @@ public final class OPT_GlobalValueNumberState {
 
   /**
    * Does the current state of the algorithm optimistically assume
-   * that a vertex v is congruent to the vertices in a congruence 
-   * class? Note: this can return true even if 
+   * that a vertex v is congruent to the vertices in a congruence
+   * class? Note: this can return true even if
    * if the value numbers don't currently match.
    * @param v the vertex in question
    * @param c the congurence class to check

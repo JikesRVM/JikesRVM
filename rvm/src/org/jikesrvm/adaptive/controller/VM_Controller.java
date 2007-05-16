@@ -93,14 +93,14 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
   public static Vector<VM_Organizer> organizers = new Vector<VM_Organizer>();
 
   /**
-   * A blocking priority queue where organizers place events to 
+   * A blocking priority queue where organizers place events to
    * be processed by the controller
    * (an input to the controller thread)
    */
   public static VM_BlockingPriorityQueue controllerInputQueue;
 
   /**
-   * A blocking priority queue where the controller will place methods 
+   * A blocking priority queue where the controller will place methods
    * to be opt compiled
    * (an output of the controller thread)
    */
@@ -262,7 +262,7 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
    * if it does not already exist
    * <p>
    * NOTE: All command line argument processing should be handled via
-   * the automatically generated code in VM_AOSOptions.java.  
+   * the automatically generated code in VM_AOSOptions.java.
    * Don't even think of adding handwritten stuff here! --dave
    *
    * @param arg the command line argument to be processed

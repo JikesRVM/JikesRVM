@@ -18,7 +18,7 @@ import org.jikesrvm.VM;
  *  There need not be an explicit target, if the reference is used (by
  *  the compiler) within the machine-code for one bytecode.
  *
- *  There are three kinds of forward reference:  
+ *  There are three kinds of forward reference:
  *    1) unconditional branches
  *    2) conditional branches
  *    3) switch cases
@@ -48,7 +48,7 @@ public abstract class VM_ForwardReference {
     targetBytecodeIndex = btarget;
   }
 
-  /* no target; 
+  /* no target;
   * for use within cases of the main compiler loop
   */
   protected VM_ForwardReference(int source) {

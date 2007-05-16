@@ -75,18 +75,18 @@ final class OPT_NormalBURS extends OPT_BURS {
   }
 
   ////////////////////////////////
-  // Implementation 
+  // Implementation
   ////////////////////////////////
 
   /**
    * Stage 1: Complete the expression trees and identify tree roots.
    * Complete BURS trees by adding leaf nodes as needed, and
    * creating tree edges by calling insertChild1() or insertChild2()
-   * This step is also where we introduce intermediate tree nodes for 
+   * This step is also where we introduce intermediate tree nodes for
    * any LIR instruction that has > 2 "real" operands e.g., a CALL.
    * We also mark nodes that must be tree roots.
    *
-   * @param dg  The dependence graph. 
+   * @param dg  The dependence graph.
    */
   private void buildTrees(OPT_DepGraph dg) {
     OPT_DepGraphNode bbNodes = (OPT_DepGraphNode) dg.firstNode();
@@ -112,7 +112,7 @@ final class OPT_NormalBURS extends OPT_BURS {
           // ignore validation registers
           if (regOp.register.isValidation()) continue;
           OPT_DepGraphEdge e = OPT_DepGraphEdge.findInputEdge(n, op);
-          if (e == null) {        // operand is leaf        
+          if (e == null) {        // operand is leaf
             child = Register;
           } else {
             child = (OPT_BURS_TreeNode) e.fromNode().scratchObject;
@@ -148,7 +148,7 @@ final class OPT_NormalBURS extends OPT_BURS {
         }
       }         // for (uses = ...)
 
-      // patch for calls & return 
+      // patch for calls & return
       switch (instr.getOpcode()) {
         case CALL_opcode:
         case SYSCALL_opcode:
@@ -170,7 +170,7 @@ final class OPT_NormalBURS extends OPT_BURS {
   }
 
   /**
-   * Stage 1b: Do bookkeeping to make it easier to identify 
+   * Stage 1b: Do bookkeeping to make it easier to identify
    * harmless problem edges.
    */
   private void problemEdgePrep() {
@@ -196,12 +196,12 @@ final class OPT_NormalBURS extends OPT_BURS {
   }
 
   /**
-   * Stage 1c: Mark src node of some problem edges as tree roots to avoid 
+   * Stage 1c: Mark src node of some problem edges as tree roots to avoid
    * cyclic dependencies.
    */
   private void handleProblemEdges() {
     // Stage 1: Remove problem edges whose destination
-    //          is the root of their own tree; these edges 
+    //          is the root of their own tree; these edges
     //          are trivially redundant with reg-true edges.
     int remaining = 0;
     for (int i = 0; i < numProblemEdges; i++) {
@@ -306,9 +306,9 @@ final class OPT_NormalBURS extends OPT_BURS {
 
   /**
    * Stage 2: Construct topological ordering of tree roots based on the
-   * dependencies between nodes in the tree. 
+   * dependencies between nodes in the tree.
    *
-   * @param dg  The dependence graph. 
+   * @param dg  The dependence graph.
    */
   private void orderTrees(OPT_DepGraph dg) {
     // Initialize tree root field for all nodes
@@ -353,7 +353,7 @@ final class OPT_NormalBURS extends OPT_BURS {
   }
 
   /**
-   * Stage 4: Visit the tree roots in topological order and 
+   * Stage 4: Visit the tree roots in topological order and
    * emit MIR instructions by calling OPT_BURS_STATE.code on each
    * supernode in the tree.
    *
@@ -529,8 +529,8 @@ final class OPT_NormalBURS extends OPT_BURS {
 
   /**
    * Initialize nextSorted for nodes in tree rooted at t i.e.
-   * for all register true descendants of t up to but not including 
-   * any new tree roots. 
+   * for all register true descendants of t up to but not including
+   * any new tree roots.
    */
   private void initTreeRootNode(OPT_BURS_TreeNode t,
                                 OPT_SpaceEffGraphNode treeRoot) {
@@ -584,13 +584,13 @@ final class OPT_NormalBURS extends OPT_BURS {
   }
 
   /**
-   * A priority queue of ready tree nodes. 
-   * Used to keep track of the tree roots that are ready to be 
-   * emitted during code generation (since all of their 
-   * predecessors have been emitted already).  
+   * A priority queue of ready tree nodes.
+   * Used to keep track of the tree roots that are ready to be
+   * emitted during code generation (since all of their
+   * predecessors have been emitted already).
    * readySetRemove returns the node that uses the maximum
-   * number of registers.  This is a heuristic that tends to 
-   * reduce register pressure and enable coalescing by the 
+   * number of registers.  This is a heuristic that tends to
+   * reduce register pressure and enable coalescing by the
    * register allocator. (Goal is to end live ranges 'early').
    */
   private OPT_BURS_TreeNode[] heap = new OPT_BURS_TreeNode[16];
@@ -606,7 +606,7 @@ final class OPT_NormalBURS extends OPT_BURS {
         s.operator == GUARD_MOVE ||
         !ResultCarrier.conforms(s)) {
       // Adjust numRegisters to bias away from picking trees that
-      // are rooted in result carriers, since they start a new live 
+      // are rooted in result carriers, since they start a new live
       // range. We don't count guard operations as result carriers, since
       // guard operations get wiped out before register allocation anyways.
       node.setNumRegisters(node.numRegisters() + 2);

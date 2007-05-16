@@ -37,7 +37,7 @@ public final class OPT_InlinedOsrTypeInfoOperand extends OPT_Operand {
 
   public int validOps;
 
-  /* operands of OsrPoint is laid out as following: 
+  /* operands of OsrPoint is laid out as following:
      | locals 1 | stacks 1 | locals 2 | stacks 2 | ....
    */
 
@@ -66,7 +66,7 @@ public final class OPT_InlinedOsrTypeInfoOperand extends OPT_Operand {
    *
    * @param op other operand
    * @return   <code>true</code> if <code>this</code> and <code>op</code>
-   *           are semantically equivalent or <code>false</code> 
+   *           are semantically equivalent or <code>false</code>
    *           if they are not.
    */
   public boolean similar(OPT_Operand op) {

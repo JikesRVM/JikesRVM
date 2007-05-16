@@ -136,7 +136,7 @@ public abstract class OPT_GenerateMachineSpecificMagic implements OPT_Operators,
       bc2ir.appendInstruction(Empty.create(CLEAR_FLOATING_POINT_STATE));
     } else {
       // Distinguish between magics that we know we don't implement
-      // (and never plan to implement) and those (usually new ones) 
+      // (and never plan to implement) and those (usually new ones)
       // that we want to be warned that we don't implement.
       String msg = " Magic method not implemented: " + meth;
       if (methodName == VM_MagicNames.returnToNewStack) {

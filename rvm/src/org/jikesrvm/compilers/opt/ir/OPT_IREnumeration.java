@@ -27,7 +27,7 @@ import org.vmmagic.pragma.NoInline;
 public abstract class OPT_IREnumeration {
 
   /**
-   * Forward intra basic block instruction enumerations from 
+   * Forward intra basic block instruction enumerations from
    * from start...last inclusive.
    *
    * NB: start and last _must_ be in the same basic block
@@ -67,7 +67,7 @@ public abstract class OPT_IREnumeration {
   }
 
   /**
-   * Reverse intra basic block instruction enumerations from 
+   * Reverse intra basic block instruction enumerations from
    * from start...last inclusive.
    *
    * NB: start and last _must_ be in the same basic block
@@ -327,7 +327,7 @@ public abstract class OPT_IREnumeration {
     private final OPT_Instruction instr;
 
     /**
-     * Construct/initialize object    
+     * Construct/initialize object
      *
      * @param ir    Containing IR
      * @param instr Instruction to get definitions for
@@ -420,7 +420,7 @@ public abstract class OPT_IREnumeration {
     private final OPT_Instruction instr;
 
     /**
-     * Construct/initialize object    
+     * Construct/initialize object
      *
      * @param ir    Containing IR
      * @param instr Instruction to get uses for

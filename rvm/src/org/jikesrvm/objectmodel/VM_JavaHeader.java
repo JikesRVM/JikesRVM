@@ -31,27 +31,27 @@ import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
 
 /**
- * Defines the JavaHeader portion of the object header for the 
+ * Defines the JavaHeader portion of the object header for the
  * default JikesRVM object model.
  * The default object model uses a two word header. <p>
  *
  * One word holds a TIB pointer. <p>
  *
  * The other word ("status word") contains an inline thin lock,
- * either the hash code or hash code state, and a few unallocated 
- * bits that can be used for other purposes. 
- * If {@link VM_JavaHeaderConstants#ADDRESS_BASED_HASHING} is false, 
- * then to implement default hashcodes, Jikes RVM uses a 10 bit hash code 
- * that is completely stored in the status word, which is laid out as 
+ * either the hash code or hash code state, and a few unallocated
+ * bits that can be used for other purposes.
+ * If {@link VM_JavaHeaderConstants#ADDRESS_BASED_HASHING} is false,
+ * then to implement default hashcodes, Jikes RVM uses a 10 bit hash code
+ * that is completely stored in the status word, which is laid out as
  * shown below:
  * <pre>
  *      TTTT TTTT TTTT TTTT TTTT HHHH HHHH HHAA
  * T = thin lock bits
- * H = hash code 
+ * H = hash code
  * A = available for use by GCHeader and/or MiscHeader.
  * </pre>
  *
- * If {@link VM_JavaHeaderConstants#ADDRESS_BASED_HASHING ADDRESS_BASED_HASHING} is true, 
+ * If {@link VM_JavaHeaderConstants#ADDRESS_BASED_HASHING ADDRESS_BASED_HASHING} is true,
  * then Jikes RVM uses two bits of the status word to record the hash code state in
  * a typical three state scheme ({@link #HASH_STATE_UNHASHED}, {@link #HASH_STATE_HASHED},
  * and {@link #HASH_STATE_HASHED_AND_MOVED}). In this case, the status word is laid
@@ -100,7 +100,7 @@ public class VM_JavaHeader implements VM_JavaHeaderConstants {
   }
 
   /**
-   * Return the TIB offset. 
+   * Return the TIB offset.
    */
   public static Offset getTibOffset() {
     return TIB_OFFSET;
@@ -159,7 +159,7 @@ public class VM_JavaHeader implements VM_JavaHeaderConstants {
   }
 
   /**
-   * How small is the minimum object header size? 
+   * How small is the minimum object header size?
    * Can be used to pick chunk sizes for allocators.
    */
   public static int minimumObjectSize() {
@@ -342,7 +342,7 @@ public class VM_JavaHeader implements VM_JavaHeaderConstants {
   }
 
   /**
-   * Get the reference of an array when copied to the specified region. 
+   * Get the reference of an array when copied to the specified region.
    */
   @Inline
   public static Object getReferenceWhenCopiedTo(Object obj, Address to, VM_Array type) {
@@ -350,7 +350,7 @@ public class VM_JavaHeader implements VM_JavaHeaderConstants {
   }
 
   /**
-   * Get the reference of a scalar when copied to the specified region. 
+   * Get the reference of a scalar when copied to the specified region.
    */
   @Inline
   public static Object getReferenceWhenCopiedTo(Object obj, Address to, VM_Class type) {
@@ -456,7 +456,7 @@ public class VM_JavaHeader implements VM_JavaHeaderConstants {
       toAddress = VM_Magic.objectAsAddress(toObj).minus(OBJECT_REF_OFFSET);
     }
 
-    // Low memory word of source object 
+    // Low memory word of source object
     Address fromAddress = VM_Magic.objectAsAddress(fromObj).minus(objRefOffset);
 
     // Was the GC header stolen at allocation time? ok for arrays and scalars.
@@ -880,9 +880,9 @@ public class VM_JavaHeader implements VM_JavaHeaderConstants {
   }
 
   /**
-   * For low level debugging of GC subsystem. 
+   * For low level debugging of GC subsystem.
    * Dump the header word(s) of the given object reference.
-   * @param ref the object reference whose header should be dumped 
+   * @param ref the object reference whose header should be dumped
    */
   public static void dumpHeader(Object ref) {
     // TIB dumped in VM_ObjectModel

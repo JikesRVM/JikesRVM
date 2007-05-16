@@ -43,7 +43,7 @@ final class VM_OptExceptionTable extends VM_ExceptionTable {
     //   successors. Stop checking successors as soon as a non-match
     //   is found, or a block that doesn't have handlers is found.
     //   Successors that don't have any code associated with them can
-    //   be ignored. 
+    //   be ignored.
     //   If blocks were joined together then when adding the
     //   entries to the eTable it is important to not restrict the
     //   entries to reachable handlers; as the first block may only
@@ -94,7 +94,7 @@ final class VM_OptExceptionTable extends VM_ExceptionTable {
             }
           }
         }
-        // found all the matching followon blocks 
+        // found all the matching followon blocks
         // Now fill in the eTable with the handlers
         if (joinedBlocks) {
           e = bblock.getExceptionHandlers();

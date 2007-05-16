@@ -65,7 +65,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   // current offset of the sp from fp
   public int spTopOffset;
 
-  // If we're doing a short forward jump of less than 
+  // If we're doing a short forward jump of less than
   // this number of bytecodes, then we can always use a short-form
   // conditional branch (don't have to emit a nop & bc).
   private static final int SHORT_FORWARD_LIMIT = 500;
@@ -224,7 +224,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
         } else {
           localFixedLocations[localIndex] = nextFixedLocalRegister++;
         }
-      } else { // t is object 
+      } else { // t is object
         if (!use_nonvolatile_registers || (nextFixedLocalRegister > LAST_FIXED_LOCAL_REGISTER)) {
           localFixedLocations[localIndex] = offsetToLocation(localOffset(localIndex));
         } else {
@@ -275,8 +275,8 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
     firstFixedStackRegister = nextFixedLocalRegister;
     firstFloatStackRegister = nextFloatLocalRegister;
 
-    //define stack registers 
-    //KV: TODO 
+    //define stack registers
+    //KV: TODO
     lastFixedStackRegister = firstFixedStackRegister - 1;
     lastFloatStackRegister = firstFloatStackRegister - 1;
 
@@ -391,7 +391,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   }
 
   /**
-   * Emit the code to push an intlike (boolean, byte, char, short, int) value 
+   * Emit the code to push an intlike (boolean, byte, char, short, int) value
    * contained in 'reg' onto the expression stack
    * @param reg register containing the value to push
    */
@@ -401,7 +401,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   }
 
   /**
-   * Emit the code to push a float value 
+   * Emit the code to push a float value
    * contained in 'reg' onto the expression stack
    * @param reg register containing the value to push
    */
@@ -411,7 +411,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   }
 
   /**
-   * Emit the code to push a double value 
+   * Emit the code to push a double value
    * contained in 'reg' onto the expression stack
    * @param reg register containing the value to push
    */
@@ -421,7 +421,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   }
 
   /**
-   * Emit the code to push a double value 
+   * Emit the code to push a double value
    * contained in 'reg' onto the expression stack
    * @param reg register containing the value to push
    */
@@ -431,7 +431,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   }
 
   /**
-   * Emit the code to push a long value 
+   * Emit the code to push a long value
    * contained in 'reg1' and 'reg2' onto the expression stack
    * @param reg1 register containing,  the most significant 32 bits to push on 32bit arch (to lowest address), not used on 64bit
    * @param reg2 register containing,  the least significant 32 bits on 32bit arch (to highest address), the whole value on 64bit
@@ -447,7 +447,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   }
 
   /**
-   * Emit the code to push a long value 
+   * Emit the code to push a long value
    * contained in 'reg' onto the expression stack.
    * NOTE: in 32 bit mode, reg is actually a FP register and
    * we are treating the long value as if it were an FP value to do this in
@@ -460,7 +460,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   }
 
   /**
-   * Emit the code to push a reference/address value 
+   * Emit the code to push a reference/address value
    * contained in 'reg' onto the expression stack
    * @param reg register containing the value to push
    */
@@ -470,7 +470,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   }
 
   /**
-   * Emit the code to poke an address 
+   * Emit the code to poke an address
    * contained in 'reg' onto the expression stack on position idx.
    * @param reg register to peek the value into
    */
@@ -479,7 +479,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   }
 
   /**
-   * Emit the code to poke an int 
+   * Emit the code to poke an int
    * contained in 'reg' onto the expression stack on position idx.
    * @param reg register to peek the value into
    */
@@ -488,7 +488,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   }
 
   /**
-   * Emit the code to pop a char value from the expression stack into 
+   * Emit the code to pop a char value from the expression stack into
    * the register 'reg' as an int.
    * @param reg register to pop the value into
    */
@@ -498,7 +498,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   }
 
   /**
-   * Emit the code to pop a short value from the expression stack into 
+   * Emit the code to pop a short value from the expression stack into
    * the register 'reg' as an int.
    * @param reg register to pop the value into
    */
@@ -508,7 +508,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   }
 
   /**
-   * Emit the code to pop a byte value from the expression stack into 
+   * Emit the code to pop a byte value from the expression stack into
    * the register 'reg' as an int.
    * @param reg register to pop the value into
    */
@@ -519,7 +519,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   }
 
   /**
-   * Emit the code to pop an intlike (boolean, byte, char, short, int) value 
+   * Emit the code to pop an intlike (boolean, byte, char, short, int) value
    * from the expression stack into the register 'reg'. Sign extend on 64 bit platform.
    * @param reg register to pop the value into
    */
@@ -549,7 +549,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   }
 
   /**
-   * Emit the code to push a long value 
+   * Emit the code to push a long value
    * contained in 'reg1' and 'reg2' onto the expression stack
    * @param reg1 register to pop,  the most significant 32 bits on 32bit arch (lowest address), not used on 64bit
    * @param reg2 register to pop,  the least significant 32 bits on 32bit arch (highest address), the whole value on 64bit
@@ -588,7 +588,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   }
 
   /**
-   * Emit the code to peek an intlike (boolean, byte, char, short, int) value 
+   * Emit the code to peek an intlike (boolean, byte, char, short, int) value
    * from the expression stack into the register 'reg'.
    * @param reg register to peek the value into
    */
@@ -615,7 +615,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   }
 
   /**
-   * Emit the code to peek a long value 
+   * Emit the code to peek a long value
    * from the expression stack into 'reg1' and 'reg2'.
    * @param reg1 register to peek,  the most significant 32 bits on 32bit arch (lowest address), not used on 64bit
    * @param reg2 register to peek,  the least significant 32 bits on 32bit arch (highest address), the whole value on 64bit
@@ -716,7 +716,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   /**
    * Emit code to load a 32 bit constant
    * (which may be a reference and thus really 64 bits on 64 bit platform!)
-   * @param offset JTOC offset of the constant 
+   * @param offset JTOC offset of the constant
    * @param type the type of the constant
    */
   protected final void emit_ldc(Offset offset, byte type) {
@@ -731,7 +731,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
 
   /**
    * Emit code to load a 64 bit constant
-   * @param offset JTOC offset of the constant 
+   * @param offset JTOC offset of the constant
    * @param type the type of the constant
    */
   protected final void emit_ldc2(Offset offset, byte type) {
@@ -983,7 +983,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
     asm.emitLAddrToc(T0, VM_Entrypoints.checkstoreMethod.getOffset());
     asm.emitMTCTR(T0);
     peekAddr(T1, 0);    // T1 is value to store
-    peekAddr(T0, 2);    // T0 is array ref 
+    peekAddr(T0, 2);    // T0 is array ref
     asm.emitBCCTRL();   // checkstore(arrayref, value)
     popAddr(T2);        // T2 is value to store
     genBoundsCheck();
@@ -1645,7 +1645,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
     if (VM.BuildFor64Addr) {
       popInt(T0);               // TO is X  (an int)
       pushLong(T0, T0);
-      popDouble(F0);            // load long 
+      popDouble(F0);            // load long
       asm.emitFCFID(F0, F0);    // convert it
       pushFloat(F0);            // store the float
     } else {
@@ -1663,7 +1663,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       fr.resolve(asm);
       asm.emitLFDoffset(F1, PROCESSOR_REGISTER, VM_Entrypoints.scratchStorageField.getOffset()); // F1 is MAGIC + X
       asm.emitFSUB(F1, F1, F0);            // F1 is X
-      pushFloat(F1);                         // float(X) is on stack 
+      pushFloat(F1);                         // float(X) is on stack
     }
   }
 
@@ -1674,14 +1674,14 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
     if (VM.BuildFor64Addr) {
       popInt(T0);               //TO is X  (an int)
       pushLong(T0, T0);
-      popDouble(F0);              // load long 
+      popDouble(F0);              // load long
       asm.emitFCFID(F0, F0);      // convert it
       pushDouble(F0);  // store the float
     } else {
       popInt(T0);                               // T0 is X (an int)
       asm.emitLFDtoc(F0, VM_Entrypoints.IEEEmagicField.getOffset(), T1);  // F0 is MAGIC
       pushDouble(F0);               // MAGIC on stack
-      pokeInt(T0, 1);               // if 0 <= X, MAGIC + X 
+      pokeInt(T0, 1);               // if 0 <= X, MAGIC + X
       asm.emitCMPI(T0, 0);                   // is X < 0
       VM_ForwardReference fr = asm.emitForwardBC(GE); // ow, handle X < 0
       popInt(T0);               // T0 is top of MAGIC
@@ -2076,7 +2076,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   protected final void emit_if_acmpeq(int bTarget) {
     popAddr(T1);
     popAddr(T0);
-    asm.emitCMPLAddr(T0, T1);    // sets CR0  
+    asm.emitCMPLAddr(T0, T1);    // sets CR0
     genCondBranch(EQ, bTarget);
   }
 
@@ -2133,7 +2133,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
     int delta = 4;
     asm.emitMFLR(T1);           // LR +  0
     asm.emitADDI(T1, delta * INSTRUCTION_WIDTH, T1);   // LR +  4
-    pushAddr(T1);   // LR +  8 
+    pushAddr(T1);   // LR +  8
     asm.emitBL(bytecodeMap[bTarget], bTarget); // LR + 12
     int done = asm.getMachineCodeIndex();
     if (VM.VerifyAssertions) VM._assert((done - start) == delta);
@@ -2531,7 +2531,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
         asm.emitSTAddrX(T0, T2, T1);
       }
     } else if (fieldType.isWordType()) {
-      // 32/64bit word store      
+      // 32/64bit word store
       popAddr(T0);                // T0 = value
       popAddr(T2);                // T2 = object reference
       if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T2);
@@ -2581,7 +2581,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
       asm.emitSTAddrOffset(T0, T1, fieldOffset);
     } else if (fieldType.isWordType()) {
-      // 32/64bit word store      
+      // 32/64bit word store
       popAddr(T0);                // T0 = value
       popAddr(T1);                // T1 = object reference
       if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
@@ -2718,7 +2718,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
     VM_Method resolvedMethod = null;
     resolvedMethod = methodRef.peekInterfaceMethod();
 
-    // (1) Emit dynamic type checking sequence if required to 
+    // (1) Emit dynamic type checking sequence if required to
     // do so inline.
     if (VM.BuildForIMTInterfaceInvocation ||
         (VM.BuildForITableInterfaceInvocation &&
@@ -2798,7 +2798,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
         asm.emitBCCTRL();
       } else {
         // itable index is known at compile-time.
-        // call "findITable" to resolve object + interface id into 
+        // call "findITable" to resolve object + interface id into
         // itable address
         asm.emitLAddrToc(T0, VM_Entrypoints.findItableMethod.getOffset());
         asm.emitMTCTR(T0);
@@ -3239,7 +3239,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   // Does implicit null check and array bounds check.
   // Bounds check can always be implicit becuase array length is at negative offset from obj ptr.
   // Kills S0.
-  // on return: T0 => base, T1 => index. 
+  // on return: T0 => base, T1 => index.
   private void genBoundsCheck() {
     popInt(T1);      // T1 is array index
     popAddr(T0);     // T0 is array ref
@@ -3247,7 +3247,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
     asm.emitTWLLE(S0, T1);      // trap if index < 0 or index >= length
   }
 
-  // Emit code to buy a stackframe, store incoming parameters, 
+  // Emit code to buy a stackframe, store incoming parameters,
   // and acquire method synchronization lock.
   //
   private void genPrologue() {
@@ -3268,7 +3268,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
                     FP); // save old FP & buy new frame (trap if new frame below guard page) !!TODO: handle frames larger than 32k when addressing local variables, etc.
 
     // If this is a "dynamic bridge" method, then save all registers except GPR0, FPR0, JTOC, and FP.
-    // 
+    //
     if (klass.hasDynamicBridgeAnnotation()) {
       int offset = frameSize;
       for (int i = LAST_NONVOLATILE_FPR; i >= FIRST_VOLATILE_FPR; --i) {
@@ -3330,7 +3330,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
     if (VM.VerifyAssertions) VM._assert(method.isForOsrSpecialization());
     genThreadSwitchTest(VM_Thread.PROLOGUE);
 
-    /* donot generate sync for synced method because we are reenter 
+    /* donot generate sync for synced method because we are reenter
      * the method in the middle.
      */
     //  if (method.isSymchronized()) genSynchronizedMethodPrologue();
@@ -3429,7 +3429,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   }
 
   /**
-   * increment an edge counter.  
+   * increment an edge counter.
    * @param counters register containing base of counter array
    * @param scratch scratch register
    * @param counterIdx index of counter to increment
@@ -3700,7 +3700,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * Treat it like a resolved invoke static, but take care of
    * this object in the case.
    *
-   * I havenot thought about GCMaps for invoke_compiledmethod 
+   * I havenot thought about GCMaps for invoke_compiledmethod
    * TODO: Figure out what the above GCMaps comment means and fix it!
    */
   protected final void emit_invoke_compiledmethod(VM_CompiledMethod cm) {
@@ -3723,17 +3723,17 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   //*************************************************************************
 
   /*
-   *  Generate inline machine instructions for special methods that cannot be 
-   *  implemented in java bytecodes. These instructions are generated whenever  
-   *  we encounter an "invokestatic" bytecode that calls a method with a 
+   *  Generate inline machine instructions for special methods that cannot be
+   *  implemented in java bytecodes. These instructions are generated whenever
+   *  we encounter an "invokestatic" bytecode that calls a method with a
    *  signature of the form "static native VM_Magic.xxx(...)".
    *  23 Jan 1998 Derek Lieber
-   * 
-   * NOTE: when adding a new "methodName" to "generate()", be sure to also 
-   * consider how it affects the values on the stack and update 
+   *
+   * NOTE: when adding a new "methodName" to "generate()", be sure to also
+   * consider how it affects the values on the stack and update
    * "checkForActualCall()" accordingly.
-   * If no call is actually generated, the map will reflect the status of the 
-   * locals (including parameters) at the time of the call but nothing on the 
+   * If no call is actually generated, the map will reflect the status of the
+   * locals (including parameters) at the time of the call but nothing on the
    * operand stack for the call site will be mapped.
    *  7 Jul 1998 Janice Shepherd
    */
@@ -3772,7 +3772,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
             }
           } else {
             if (VM.BuildForLinux) {
-              /* NOTE: following adjustment is not stated in SVR4 ABI, but 
+              /* NOTE: following adjustment is not stated in SVR4 ABI, but
                * was implemented in GCC.
                */
               gp += (gp + 1) & 0x01; // if gpr is even, gpr += 1
@@ -3866,12 +3866,12 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
           methodName == VM_MagicNames.loadWord) {
 
         if (types.length == 0) {
-          popAddr(T0);                  // pop base 
+          popAddr(T0);                  // pop base
           asm.emitLAddr(T0, 0, T0);    // *(base)
           pushAddr(T0);                 // push *(base)
         } else {
           popInt(T1);                   // pop offset
-          popAddr(T0);                  // pop base 
+          popAddr(T0);                  // pop base
           asm.emitLAddrX(T0, T1, T0);   // *(base+offset)
           pushAddr(T0);                 // push *(base+offset)
         }
@@ -3883,12 +3883,12 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
         if (types.length == 0) {
           popAddr(T0);                  // pop base
           asm.emitLHZ(T0, 0, T0);       // load with zero extension.
-          pushInt(T0);                  // push *(base) 
+          pushInt(T0);                  // push *(base)
         } else {
           popInt(T1);                   // pop offset
           popAddr(T0);                  // pop base
           asm.emitLHZX(T0, T1, T0);     // load with zero extension.
-          pushInt(T0);                  // push *(base+offset) 
+          pushInt(T0);                  // push *(base+offset)
         }
         return true;
       }
@@ -3898,12 +3898,12 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
         if (types.length == 0) {
           popAddr(T0);                  // pop base
           asm.emitLHA(T0, 0, T0);       // load with sign extension.
-          pushInt(T0);                  // push *(base) 
+          pushInt(T0);                  // push *(base)
         } else {
           popInt(T1);                   // pop offset
           popAddr(T0);                  // pop base
           asm.emitLHAX(T0, T1, T0);     // load with sign extension.
-          pushInt(T0);                  // push *(base+offset) 
+          pushInt(T0);                  // push *(base+offset)
         }
         return true;
       }
@@ -3912,12 +3912,12 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
         if (types.length == 0) {
           popAddr(T0);                  // pop base
           asm.emitLBZ(T0, 0, T0);       // load with zero extension.
-          pushInt(T0);                  // push *(base) 
+          pushInt(T0);                  // push *(base)
         } else {
           popInt(T1);                   // pop offset
           popAddr(T0);                  // pop base
           asm.emitLBZX(T0, T1, T0);     // load with zero extension.
-          pushInt(T0);                  // push *(base+offset) 
+          pushInt(T0);                  // push *(base+offset)
         }
         return true;
       }
@@ -3926,12 +3926,12 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
           methodName == VM_MagicNames.loadFloat) {
 
         if (types.length == 0) {
-          popAddr(T0);                  // pop base 
+          popAddr(T0);                  // pop base
           asm.emitLInt(T0, 0, T0);     // *(base)
           pushInt(T0);                  // push *(base)
         } else {
           popInt(T1);                   // pop offset
-          popAddr(T0);                  // pop base 
+          popAddr(T0);                  // pop base
           asm.emitLIntX(T0, T1, T0);    // *(base+offset)
           pushInt(T0);                  // push *(base+offset)
         }
@@ -3942,12 +3942,12 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
           methodName == VM_MagicNames.loadLong) {
 
         if (types.length == 0) {
-          popAddr(T1);                  // pop base 
+          popAddr(T1);                  // pop base
           asm.emitLFD(F0, 0, T1);      // *(base)
           pushDouble(F0);               // push double
         } else {
-          popInt(T2);                   // pop offset 
-          popAddr(T1);                  // pop base 
+          popInt(T2);                   // pop offset
+          popAddr(T1);                  // pop base
           asm.emitLFDX(F0, T1, T2);    // *(base+offset)
           pushDouble(F0);               // push *(base+offset)
         }
@@ -3959,13 +3959,13 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
 
       if (methodName == VM_MagicNames.prepareInt) {
         if (types.length == 0) {
-          popAddr(T0);                             // pop base 
+          popAddr(T0);                             // pop base
           asm.emitLWARX(T0, 0, T0);                // *(base), setting reservation address
           // this Integer is not sign extended !!
           pushInt(T0);                             // push *(base+offset)
         } else {
           popInt(T1);                              // pop offset
-          popAddr(T0);                             // pop base 
+          popAddr(T0);                             // pop base
           asm.emitLWARX(T0, T1, T0);              // *(base+offset), setting reservation address
           // this Integer is not sign extended !!
           pushInt(T0);                             // push *(base+offset)
@@ -3979,7 +3979,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
         if (types.length == 0) {
           popAddr(T0);                             // pop base
           if (VM.BuildFor32Addr) {
-            asm.emitLWARX(T0, 0, T0);            // *(base+offset), setting 
+            asm.emitLWARX(T0, 0, T0);            // *(base+offset), setting
           } else {                               // reservation address
             asm.emitLDARX(T0, 0, T0);
           }
@@ -4003,9 +4003,9 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       if (methodName == VM_MagicNames.attempt &&
           types[0] == VM_TypeReference.Int) {
         if (types.length == 2) {
-          popInt(T2);                            // pop newValue                 
-          discardSlot();                         // ignore oldValue            
-          popAddr(T0);                           // pop base 
+          popInt(T2);                            // pop newValue
+          discardSlot();                         // ignore oldValue
+          popAddr(T0);                           // pop base
           asm.emitSTWCXr(T2, 0, T0);            // store new value and set CR0
           asm.emitLVAL(T0, 0);                  // T0 := false
           VM_ForwardReference fr = asm.emitForwardBC(NE);             // skip, if store failed
@@ -4014,9 +4014,9 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
           pushInt(T0);                           // push success of store
         } else {
           popInt(T1);                            // pop offset
-          popInt(T2);                            // pop newValue                 
-          discardSlot();                         // ignore oldValue            
-          popAddr(T0);                           // pop base 
+          popInt(T2);                            // pop newValue
+          discardSlot();                         // ignore oldValue
+          popAddr(T0);                           // pop base
           asm.emitSTWCXr(T2, T1, T0);           // store new value and set CR0
           asm.emitLVAL(T0, 0);                  // T0 := false
           VM_ForwardReference fr = asm.emitForwardBC(NE);             // skip, if store failed
@@ -4034,7 +4034,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
         if (types.length == 2) {
           popAddr(T2);                             // pop newValue
           discardSlot();                           // ignore oldValue
-          popAddr(T0);                             // pop base 
+          popAddr(T0);                             // pop base
           if (VM.BuildFor32Addr) {
             asm.emitSTWCXr(T2, 0, T0);          // store new value and set CR0
           } else {
@@ -4049,7 +4049,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
           popInt(T1);                              // pop offset
           popAddr(T2);                             // pop newValue
           discardSlot();                           // ignore oldValue
-          popAddr(T0);                             // pop base 
+          popAddr(T0);                             // pop base
           if (VM.BuildFor32Addr) {
             asm.emitSTWCXr(T2, T1, T0);         // store new value and set CR0
           } else {
@@ -4073,12 +4073,12 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
             types[0] == VM_TypeReference.Address) {
           if (types.length == 1) {
             popAddr(T1);                 // pop newvalue
-            popAddr(T0);                 // pop base 
+            popAddr(T0);                 // pop base
             asm.emitSTAddrX(T1, 0, T0);   // *(base) = newvalue
           } else {
             popInt(T1);                  // pop offset
             popAddr(T2);                 // pop newvalue
-            popAddr(T0);                 // pop base 
+            popAddr(T0);                 // pop base
             asm.emitSTAddrX(T2, T1, T0); // *(base+offset) = newvalue
           }
           return true;
@@ -4087,12 +4087,12 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
         if (types[0] == VM_TypeReference.Byte) {
           if (types.length == 1) {
             popInt(T1);                  // pop newvalue
-            popAddr(T0);                 // pop base 
+            popAddr(T0);                 // pop base
             asm.emitSTBX(T1, 0, T0);      // *(base) = newvalue
           } else {
             popInt(T1);                  // pop offset
             popInt(T2);                  // pop newvalue
-            popAddr(T0);                 // pop base 
+            popAddr(T0);                 // pop base
             asm.emitSTBX(T2, T1, T0);    // *(base+offset) = newvalue
           }
           return true;
@@ -4102,12 +4102,12 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
             types[0] == VM_TypeReference.Float) {
           if (types.length == 1) {
             popInt(T1);                  // pop newvalue
-            popAddr(T0);                 // pop base 
+            popAddr(T0);                 // pop base
             asm.emitSTWX(T1, 0, T0);      // *(base+offset) = newvalue
           } else {
             popInt(T1);                  // pop offset
             popInt(T2);                  // pop newvalue
-            popAddr(T0);                 // pop base 
+            popAddr(T0);                 // pop base
             asm.emitSTWX(T2, T1, T0);    // *(base+offset) = newvalue
           }
           return true;
@@ -4117,12 +4117,12 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
             types[0] == VM_TypeReference.Char) {
           if (types.length == 1) {
             popInt(T1);                  // pop newvalue
-            popAddr(T0);                 // pop base 
+            popAddr(T0);                 // pop base
             asm.emitSTHX(T1, 0, T0);      // *(base) = newvalue
           } else {
             popInt(T1);                  // pop offset
             popInt(T2);                  // pop newvalue
-            popAddr(T0);                 // pop base 
+            popAddr(T0);                 // pop base
             asm.emitSTHX(T2, T1, T0);    // *(base+offset) = newvalue
           }
           return true;
@@ -4132,23 +4132,23 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
             types[0] == VM_TypeReference.Long) {
           if (types.length == 1) {
             popLong(T2, T1);                      // pop newvalue low and high
-            popAddr(T0);                          // pop base 
+            popAddr(T0);                          // pop base
             if (VM.BuildFor32Addr) {
               asm.emitSTWX(T2, 0, T0);             // *(base) = newvalue low
               asm.emitSTWX(T1, BYTES_IN_INT, T0);  // *(base+4) = newvalue high
             } else {
-              asm.emitSTDX(T1, 0, T0);           // *(base) = newvalue 
+              asm.emitSTDX(T1, 0, T0);           // *(base) = newvalue
             }
           } else {
             popInt(T1);                           // pop offset
             popLong(T3, T2);                      // pop newvalue low and high
-            popAddr(T0);                          // pop base 
+            popAddr(T0);                          // pop base
             if (VM.BuildFor32Addr) {
               asm.emitSTWX(T3, T1, T0);           // *(base+offset) = newvalue low
               asm.emitADDI(T1, BYTES_IN_INT, T1); // offset += 4
               asm.emitSTWX(T2, T1, T0);           // *(base+offset) = newvalue high
             } else {
-              asm.emitSTDX(T2, T1, T0);           // *(base+offset) = newvalue 
+              asm.emitSTDX(T2, T1, T0);           // *(base+offset) = newvalue
             }
           }
           return true;
@@ -4169,7 +4169,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
     } else if (methodName == VM_MagicNames.getCompiledMethodID) {
       popAddr(T0);                           // pop  frame pointer of callee frame
       asm.emitLInt(T1, STACKFRAME_METHOD_ID_OFFSET, T0); // load compiled method id
-      pushInt(T1);                           // push method ID 
+      pushInt(T1);                           // push method ID
     } else if (methodName == VM_MagicNames.setCompiledMethodID) {
       popInt(T1); // value
       popAddr(T0); // fp
@@ -4262,23 +4262,23 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       popInt(T1);   // pop offset
       popAddr(T0);   // pop object
       asm.emitLBZX(T0, T1, T0);   // load byte with zero extension.
-      pushInt(T0);    // push *(object+offset) 
+      pushInt(T0);    // push *(object+offset)
     } else if (methodName == VM_MagicNames.getByteAtOffset) {
       popInt(T1);   // pop offset
       popAddr(T0);   // pop object
       asm.emitLBZX(T0, T1, T0);   // load byte with zero extension.
       asm.emitEXTSB(T0, T0); // sign extend
-      pushInt(T0);    // push *(object+offset) 
+      pushInt(T0);    // push *(object+offset)
     } else if (methodName == VM_MagicNames.getCharAtOffset) {
       popInt(T1);   // pop offset
       popAddr(T0);   // pop object
       asm.emitLHZX(T0, T1, T0);   // load char with zero extension.
-      pushInt(T0);    // push *(object+offset) 
+      pushInt(T0);    // push *(object+offset)
     } else if (methodName == VM_MagicNames.getShortAtOffset) {
       popInt(T1);   // pop offset
       popAddr(T0);   // pop object
       asm.emitLHAX(T0, T1, T0);   // load short with sign extension.
-      pushInt(T0);    // push *(object+offset) 
+      pushInt(T0);    // push *(object+offset)
     } else if (methodName == VM_MagicNames.setIntAtOffset) {
       popInt(T2); // pop newvalue
       popInt(T1); // pop offset
@@ -4319,7 +4319,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
         asm.emitADDI(T1, BYTES_IN_INT, T1); // offset += 4
         asm.emitSTWX(T2, T1, T0); // *(object+offset) = newvalue high
       } else {
-        asm.emitSTDX(T2, T1, T0); // *(object+offset) = newvalue 
+        asm.emitSTDX(T2, T1, T0); // *(object+offset) = newvalue
       }
     } else if (methodName == VM_MagicNames.getMemoryInt) {
       popAddr(T0); // address
@@ -4503,7 +4503,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
                methodName == VM_MagicNames.wordToExtent ||
                methodName == VM_MagicNames.wordToWord ||
                methodName == VM_MagicNames.codeArrayToAddress) {
-      // no-op   
+      // no-op
     } else if (methodName == VM_MagicNames.wordToLong) {
       asm.emitLVAL(T0, 0);
       pushAddr(T0);
@@ -4696,8 +4696,8 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
 
   /**
    * Generate call and return sequence to invoke a C function through the
-   * boot record field specificed by target. 
-   * Caller handles parameter passing and expression stack 
+   * boot record field specificed by target.
+   * Caller handles parameter passing and expression stack
    * (setting up args, pushing return, adjusting stack height).
    *
    * <pre>

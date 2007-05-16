@@ -59,7 +59,7 @@ public abstract class VM_JNIGCMapIterator extends VM_GCMapIterator
   //     --> |                |  <- callers FP
   //
   // The following constant is the offset from the callers FP to
-  // the GC flag at the beginning of this area.  
+  // the GC flag at the beginning of this area.
   //
 
   public static int verbose = 0;
@@ -95,8 +95,8 @@ public abstract class VM_JNIGCMapIterator extends VM_GCMapIterator
                             Offset instructionOffset,
                             Address framePtr) {
     this.framePtr = framePtr;
-    // processor reg (R16) was saved in reg save area at offset -72 
-    // from callers frameptr, and after GC will be used to set 
+    // processor reg (R16) was saved in reg save area at offset -72
+    // from callers frameptr, and after GC will be used to set
     // processor reg upon return to java.  it must be reported
     // so it will be relocated, if necessary
     //
@@ -118,7 +118,7 @@ public abstract class VM_JNIGCMapIterator extends VM_GCMapIterator
   }
 
   // return (address of) next ref in the current "frame" on the
-  // threads JNIEnvironment stack of refs         
+  // threads JNIEnvironment stack of refs
   // When at the end of the current frame, update register locations to point
   // to the non-volatile registers saved in the JNI transition frame.
   //

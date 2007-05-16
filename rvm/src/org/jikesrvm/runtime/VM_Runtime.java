@@ -36,28 +36,28 @@ import org.vmmagic.unboxed.Offset;
 /**
  * Entrypoints into the runtime of the virtual machine.
  *
- * <p> These are "helper functions" called from machine code 
+ * <p> These are "helper functions" called from machine code
  * emitted by VM_Compiler.
- * They implement functionality that cannot be mapped directly 
+ * They implement functionality that cannot be mapped directly
  * into a small inline
  * sequence of machine instructions. See also: VM_Linker.
  *
- * <p> Note #1: If you add, remove, or change the signature of 
+ * <p> Note #1: If you add, remove, or change the signature of
  * any of these methods you may need to change VM_Entrypoints to match.
  *
- * <p> Note #2: Code here must be carefully written to be gc-safe 
+ * <p> Note #2: Code here must be carefully written to be gc-safe
  * while manipulating
  * stackframe and instruction addresses.
  *
- * <p> Any time we are holding interior pointers to objects that 
+ * <p> Any time we are holding interior pointers to objects that
  * could be moved by a garbage
- * collection cycle we must either avoid passing through gc-sites 
+ * collection cycle we must either avoid passing through gc-sites
  * (by writing
- * straight line code with no "non-magic" method invocations) or we 
+ * straight line code with no "non-magic" method invocations) or we
  * must turn off the
- * collector (so that a gc request inititiated by another thread will 
+ * collector (so that a gc request inititiated by another thread will
  * not run until we're
- * done manipulating the bare pointers). Furthermore, while 
+ * done manipulating the bare pointers). Furthermore, while
  * the collector is turned off,
  * we must be careful not to make any allocation requests ("new").
  *
@@ -88,11 +88,11 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
   //---------------------------------------------------------------//
 
   /**
-   * Test if object is instance of target class/array or 
+   * Test if object is instance of target class/array or
    * implements target interface.
    * @param object object to be tested
    * @param targetID type reference id corresponding to target
-   *                 class/array/interface 
+   *                 class/array/interface
    * @return true iff is object instance of target type?
    */
   static boolean instanceOf(Object object, int targetID)
@@ -100,7 +100,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
 
     /*  Here, LHS and RHS refer to the way we would treat these if they were
         arguments to an assignment operator and we were testing for
-        assignment-compatibility.  In Java, "rhs instanceof lhs" means that 
+        assignment-compatibility.  In Java, "rhs instanceof lhs" means that
         the operation "lhs = rhs" would succeed.   This of course is backwards
         if one is looking at it from the point of view of the "instanceof"
         operator.  */
@@ -119,7 +119,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
     }
 
     VM_Type rhsType = VM_ObjectModel.getObjectType(object);
-    /* RHS must already be resolved, since we have a non-null object that is 
+    /* RHS must already be resolved, since we have a non-null object that is
        an instance of RHS  */
     if (VM.VerifyAssertions) VM._assert(rhsType.isResolved());
     if (VM.VerifyAssertions) VM._assert(lhsType.isResolved());
@@ -166,7 +166,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
   }
 
   /**
-   * Throw exception unless object is instance of target 
+   * Throw exception unless object is instance of target
    * class/array or implements target interface.
    * @param object object to be tested
    * @param id of type reference corresponding to target class/array/interface
@@ -277,7 +277,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * @param rhs type of value
    * @return true  --> assignment is legal
    *           false --> assignment is illegal
-   * <strong>Assumption</strong>: caller has already tested "trivial" case 
+   * <strong>Assumption</strong>: caller has already tested "trivial" case
    * (exact type match)
    *             so we need not repeat it here
    */
@@ -331,7 +331,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
 
   /**
    * Allocate something like "new Foo()".
-   * @param cls VM_Class of array to create 
+   * @param cls VM_Class of array to create
    * @return object with header installed and all fields set to zero/null
    *           (ready for initializer to be run on it)
    * See also: bytecode 0xbb ("new")
@@ -359,7 +359,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * @param allocator int that encodes which allocator should be used
    * @param align the alignment requested; must be a power of 2.
    * @param offset the offset at which the alignment is desired.
-   * @param site the site id of the calling allocation site 
+   * @param site the site id of the calling allocation site
    * @return object with header installed and all fields set to zero/null
    *           (ready for initializer to be run on it)
    * See also: bytecode 0xbb ("new")
@@ -395,7 +395,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * Allocate something like "new Foo[]".
    * @param numElements number of array elements
    * @param id id of type reference of array to create.
-   * @param site the site id of the calling allocation site 
+   * @param site the site id of the calling allocation site
    * @return array with header installed and all fields set to zero/null
    * See also: bytecode 0xbc ("anewarray")
    */
@@ -418,7 +418,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
   /**
    * Allocate something like "new Foo[]".
    * @param numElements number of array elements
-   * @param array VM_Array of array to create 
+   * @param array VM_Array of array to create
    * @return array with header installed and all fields set to zero/null
    * See also: bytecode 0xbc ("anewarray")
    */
@@ -449,7 +449,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * @param allocator int that encodes which allocator should be used
    * @param align the alignment requested; must be a power of 2.
    * @param offset the offset at which the alignment is desired.
-   * @return array object with header installed and all elements set 
+   * @return array object with header installed and all elements set
    *         to zero/null
    * See also: bytecode 0xbc ("newarray") and 0xbd ("anewarray")
    */
@@ -484,8 +484,8 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * called from java/lang/Object.clone()
    *
    * For simplicity, we just code this more or less in Java using
-   * internal reflective operations and some magic.  
-   * This is inefficient for large scalar objects, but until that 
+   * internal reflective operations and some magic.
+   * This is inefficient for large scalar objects, but until that
    * is proven to be a  performance problem, we won't worry about it.
    * By keeping this in Java instead of dropping into VM_Memory.copy,
    * we avoid having to add special case code to deal with write barriers,
@@ -560,7 +560,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
   /**
    * Get an object's "hashcode" value.
    *
-   * Side effect: hash value is generated and stored into object's 
+   * Side effect: hash value is generated and stored into object's
    * status word.
    *
    * @return object's hashcode.
@@ -575,7 +575,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
   //---------------------------------------------------------------//
 
   /**
-   * Prepare a class for use prior to first allocation, 
+   * Prepare a class for use prior to first allocation,
    * field access, or method invocation.
    * Made public so that it is accessible from java.lang.reflect.*.
    * @see VM_MemberReference#needsDynamicLink
@@ -599,7 +599,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
   //---------------------------------------------------------------//
 
   /**
-   * Report unexpected method call: interface method 
+   * Report unexpected method call: interface method
    * (virtual machine dispatching error, shouldn't happen).
    */
   static void unexpectedInterfaceMethodCall() {
@@ -628,9 +628,9 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
 
   /**
    * Deliver a software exception to current java thread.
-   * @param exceptionObject exception object to deliver 
+   * @param exceptionObject exception object to deliver
    * (null --> deliver NullPointerException).
-   * does not return 
+   * does not return
    * (stack is unwound and execution resumes in a catch block)
    *
    * This method is public so that it can be invoked by java.lang.VMClass.
@@ -646,27 +646,27 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
 
   /**
    * Deliver a hardware exception to current java thread.
-   * @param trapCode code indicating kind of exception that was trapped 
+   * @param trapCode code indicating kind of exception that was trapped
    * (see TRAP_xxx, above)
    * @param trapInfo array subscript (for array bounds trap, only)
-   * does not return 
+   * does not return
    * (stack is unwound, starting at trap site, and
    *           execution resumes in a catch block somewhere up the stack)
-   *     /or/  execution resumes at instruction following trap 
+   *     /or/  execution resumes at instruction following trap
    *     (for TRAP_STACK_OVERFLOW)
    *
-   * <p> Note:     Control reaches here by the actions of an 
+   * <p> Note:     Control reaches here by the actions of an
    *           external "C" signal handler
-   *           which saves the register state of the trap site into the 
-   *           "hardwareExceptionRegisters" field of the current 
-   *           VM_Thread object. 
+   *           which saves the register state of the trap site into the
+   *           "hardwareExceptionRegisters" field of the current
+   *           VM_Thread object.
    *           The signal handler also inserts a <hardware trap> frame
-   *           onto the stack immediately above this frame, for use by 
+   *           onto the stack immediately above this frame, for use by
    *           VM_HardwareTrapGCMapIterator during garbage collection.
    */
   // Force baseline compilation so calls to exception constructors aren't inlined,
   // since inlining confuses VM_StackTrace when it searches for the exception on the stack.
-  // TODO: Modify VM_StackTrace so it understands inlined calls 
+  // TODO: Modify VM_StackTrace so it understands inlined calls
   @NoOptCompile
   static void deliverHardwareException(int trapCode, int trapInfo) {
 
@@ -676,7 +676,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
     if ((trapCode == TRAP_STACK_OVERFLOW || trapCode == TRAP_JNI_STACK) &&
         myThread.stack.length < (STACK_SIZE_MAX >> LOG_BYTES_IN_ADDRESS) &&
         !myThread.hasNativeStackFrame()) {
-      // expand stack by the size appropriate for normal or native frame 
+      // expand stack by the size appropriate for normal or native frame
       // and resume execution at successor to trap instruction
       // (C trap handler has set register.ip to the instruction following the trap).
       if (trapCode == TRAP_JNI_STACK) {
@@ -732,10 +732,10 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
   }
 
   /**
-   * Unlock an object and then deliver a software exception 
+   * Unlock an object and then deliver a software exception
    * to current java thread.
-   * @param objToUnlock object to unlock 
-   * @param objToThrow exception object to deliver 
+   * @param objToUnlock object to unlock
+   * @param objToThrow exception object to deliver
    * (null --> deliver NullPointerException).
    * does not return (stack is unwound and execution resumes in a catch block)
    */
@@ -783,7 +783,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
   /**
    * Create and throw a java.lang.ArrayStoreException
    * Used in a few circumstances to reduce code space costs
-   * of inlining (see java.lang.System.arraycopy()). 
+   * of inlining (see java.lang.System.arraycopy()).
    */
   @NoInline
   public static void raiseArrayStoreException() {
@@ -825,7 +825,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
   //----------------//
 
   public static void init() {
-    // tell "RunBootImage.C" to pass control to 
+    // tell "RunBootImage.C" to pass control to
     // "VM_Runtime.deliverHardwareException()"
     // whenever the host operating system detects a hardware trap
     //
@@ -891,13 +891,13 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
 
   /**
    * Deliver an exception to current java thread.
-   * <STRONG> Precondition: </STRONG> VM.disableGC has already been called. 
+   * <STRONG> Precondition: </STRONG> VM.disableGC has already been called.
    * --dave
    *  <ol>
-   *   <li> exceptionRegisters may not match any reasonable stack 
+   *   <li> exceptionRegisters may not match any reasonable stack
    *          frame at this point.
    *   <li> we're going to be playing with raw addresses (fp, ip).
-   *  </ol> 
+   *  </ol>
    * @param exceptionObject exception object to deliver
    * @param exceptionRegisters register state corresponding to exception site
    * does not return
@@ -1008,15 +1008,15 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
   }
 
   /**
-   * The current frame is expected to be one of the JNI functions 
-   * called from C, 
+   * The current frame is expected to be one of the JNI functions
+   * called from C,
    * below which is one or more native stack frames
-   * Skip over all frames below with saved code pointers outside of heap 
-   * (C frames), 
-   * stopping at the native frame immediately preceding the glue frame which 
+   * Skip over all frames below with saved code pointers outside of heap
+   * (C frames),
+   * stopping at the native frame immediately preceding the glue frame which
    * contains
-   * the method ID of the native method 
-   * (this is necessary to allow retrieving the 
+   * the method ID of the native method
+   * (this is necessary to allow retrieving the
    * return address of the glue frame)
    * Ton Ngo 7/30/01
    */
@@ -1052,11 +1052,11 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
   }
 
   /**
-   * The current frame is expected to be one of the JNI functions 
-   * called from C, 
+   * The current frame is expected to be one of the JNI functions
+   * called from C,
    * below which is one or more native stack frames
    * Skip over all frames below which do not contain any object
-   * references. 
+   * references.
    */
   @Uninterruptible
   public static Address unwindNativeStackFrameForGC(Address currfp) {
@@ -1088,7 +1088,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    *        Does it clobber any non-volatiles?
    *        If so, how do we restore them?
    * (I don't think our current implementations of reflective method
-   *  invokers save/restore any nonvolatiles, so we're probably ok. 
+   *  invokers save/restore any nonvolatiles, so we're probably ok.
    *  --dave 6/29/01
    */
   private static void unwindInvisibleStackFrame(VM_Registers registers) {

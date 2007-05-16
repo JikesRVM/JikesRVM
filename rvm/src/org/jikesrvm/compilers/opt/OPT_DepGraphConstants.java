@@ -14,7 +14,7 @@ package org.jikesrvm.compilers.opt;
 public interface OPT_DepGraphConstants {
 
   // The dependence kind info is one of the above types
-  // WARNING: it can use only the lower 28 bits 
+  // WARNING: it can use only the lower 28 bits
   // (see OPT_SpaceEffGraphEdge.java)
   int REG_TRUE = 0x00001;
   int REG_ANTI = 0x00002;

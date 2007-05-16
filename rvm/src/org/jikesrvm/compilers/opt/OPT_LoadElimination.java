@@ -363,7 +363,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
   }
 
   /**
-   * Given a pair of value numbers, return the temporary register 
+   * Given a pair of value numbers, return the temporary register
    * allocated for that pair.  Create one if necessary.
    *
    * @param heapType a VM_TypeReference identifying the array SSA
@@ -469,7 +469,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
    * Do a quick pass over the IR, and return types that are candidates
    * for redundant load elimination.
    * Algorithm: return those types T where
-   *    1) there's a load L(i) of type T 
+   *    1) there's a load L(i) of type T
    *    2) there's another load or store M(j) of type T, M!=L and V(i) == V(j)
    *
    * The result contains objects of type VM_Field and VM_TypeReference, whose

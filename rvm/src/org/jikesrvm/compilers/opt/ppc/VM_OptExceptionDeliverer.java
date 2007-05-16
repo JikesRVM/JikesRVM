@@ -21,7 +21,7 @@ import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
 
 /**
- * Handle exception delivery and stack unwinding for 
+ * Handle exception delivery and stack unwinding for
  * opt compiled methods.
  */
 public abstract class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer

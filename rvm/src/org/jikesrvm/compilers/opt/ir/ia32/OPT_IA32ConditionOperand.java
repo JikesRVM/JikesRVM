@@ -20,7 +20,7 @@ public final class OPT_IA32ConditionOperand extends OPT_Operand
     implements VM_AssemblerConstants {
 
   /**
-   * Value of this operand (one of the ConditionCode constants operands 
+   * Value of this operand (one of the ConditionCode constants operands
    * defined in VM_AssemblerConstants)
    */
   public byte value;
@@ -102,7 +102,7 @@ public final class OPT_IA32ConditionOperand extends OPT_Operand
   }
 
   /**
-   * change the condition when operands are flipped 
+   * change the condition when operands are flipped
    * (return this mutated to change value)
    */
   public OPT_IA32ConditionOperand flipOperands() {
@@ -138,7 +138,7 @@ public final class OPT_IA32ConditionOperand extends OPT_Operand
   }
 
   /**
-   * Construct the IA32 Condition Operand that corresponds to the 
+   * Construct the IA32 Condition Operand that corresponds to the
    * argument ConditionOperand
    */
   public OPT_IA32ConditionOperand(OPT_ConditionOperand c) {

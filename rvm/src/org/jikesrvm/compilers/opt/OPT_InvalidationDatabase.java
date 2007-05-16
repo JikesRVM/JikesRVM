@@ -18,33 +18,33 @@ import org.jikesrvm.util.VM_HashSet;
  * This class holds the dependencies that define invalidation
  * requirements for the opt compiled methods.
  *
- * <p> Currently we only support 2 kinds of dependencies: 
- *   The set of compiled method id's that depend on a VM_Method 
+ * <p> Currently we only support 2 kinds of dependencies:
+ *   The set of compiled method id's that depend on a VM_Method
  *   not being overridden.
- *   The set of compiled method id's that depend on a VM_Class 
+ *   The set of compiled method id's that depend on a VM_Class
  *   having no subclasses
  *
  * <p> Note we track by compiled method ids instead of pointers to
- *     compiled methods because we don't have weak pointers. 
+ *     compiled methods because we don't have weak pointers.
  *     We don't want the invalidaton database to keep code alive!
  *     This would be an ideal use of weak references if we had them.
  *
- * <p> TODO: In the future, we should think about implementing a general 
- *       dependency mechanism.  
- *   See Chambers, Dean, Grove in ICSE-17 (1995) for one possible design 
+ * <p> TODO: In the future, we should think about implementing a general
+ *       dependency mechanism.
+ *   See Chambers, Dean, Grove in ICSE-17 (1995) for one possible design
  *   and pointers to related work.
  */
 public final class OPT_InvalidationDatabase {
 
-  ///////////////////// 
-  // (1) Dependency on a particular VM_Method not being overridden. 
+  /////////////////////
+  // (1) Dependency on a particular VM_Method not being overridden.
   /////////////////////
   /**
-   * Return an iteration of CMID's (compiled method ids) 
+   * Return an iteration of CMID's (compiled method ids)
    * that are dependent on the argument VM_Method not being overridden.
    * return null if no dependent methods.
    *
-   * <p> NOTE: returns null instead of OPT_EmptyIterator.EMPTY as part of 
+   * <p> NOTE: returns null instead of OPT_EmptyIterator.EMPTY as part of
    * a delicate * dance to avoid recursive classloading. --dave.
    */
   public Iterator<Integer> invalidatedByOverriddenMethod(VM_Method m) {
@@ -53,7 +53,7 @@ public final class OPT_InvalidationDatabase {
   }
 
   /**
-   * Record that if a particular VM_Method method is ever overridden, then 
+   * Record that if a particular VM_Method method is ever overridden, then
    * the VM_CompiledMethod encoded by the cmid must be invalidated.
    */
   public void addNotOverriddenDependency(VM_Method source,
@@ -63,7 +63,7 @@ public final class OPT_InvalidationDatabase {
   }
 
   /**
-   * Delete a NotOverriddenDependency. 
+   * Delete a NotOverriddenDependency.
    * No effect if the dependency doesn't exist..
    */
   public void removeNotOverriddenDependency(VM_Method source,
@@ -81,7 +81,7 @@ public final class OPT_InvalidationDatabase {
     nonOverriddenHash.remove(source);
   }
 
-  ///////////////////// 
+  /////////////////////
   // (2) Dependency on a particular VM_Class not having any subclasses.
   /////////////////////
   /**
@@ -89,7 +89,7 @@ public final class OPT_InvalidationDatabase {
    * on the argument VM_Class not having any subclasses.
    * return null if no dependent methods.
    *
-   * <p> NOTE: returns null instead of OPT_EmptyIterator.EMPTY as part of 
+   * <p> NOTE: returns null instead of OPT_EmptyIterator.EMPTY as part of
    * a delicate dance to avoid recursive classloading. --dave.
    */
   public Iterator<Integer> invalidatedBySubclass(VM_Class m) {
@@ -98,7 +98,7 @@ public final class OPT_InvalidationDatabase {
   }
 
   /**
-   * Record that if a particular VM_Class ever has a subclass, then 
+   * Record that if a particular VM_Class ever has a subclass, then
    * the VM_CompiledMethod encoded by the cmid must be invalidated.
    */
   public void addNoSubclassDependency(VM_Class source, int dependent_cmid) {

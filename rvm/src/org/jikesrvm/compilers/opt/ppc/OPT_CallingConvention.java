@@ -70,12 +70,12 @@ import org.vmmagic.unboxed.Offset;
 /**
  * This class contains PowerPC Calling conventions.
  * The two public methods are:
- * <ul> 
- *  <li> expandCallingConventions(OPT_IR) which is called by 
- *      the register allocator immediately before allocation to make 
+ * <ul>
+ *  <li> expandCallingConventions(OPT_IR) which is called by
+ *      the register allocator immediately before allocation to make
  *      manifest the use of registers by the calling convention.
- *  <li> expandSysCall(OPT_Instruction, OPT_IR) which is called to 
- *      expand a SYSCALL HIR instruction into the appropriate 
+ *  <li> expandSysCall(OPT_Instruction, OPT_IR) which is called to
+ *      expand a SYSCALL HIR instruction into the appropriate
  *      sequence of LIR instructions.
  *  </ul>
  */
@@ -98,7 +98,7 @@ public abstract class OPT_CallingConvention extends OPT_IRTools {
   }
 
   /**
-   * This is just called for instructions that were added by 
+   * This is just called for instructions that were added by
    * instrumentation during register allocation
    */
   public static void expandCallingConventionsForInstrumentation(OPT_IR ir,
@@ -117,7 +117,7 @@ public abstract class OPT_CallingConvention extends OPT_IRTools {
   }
 
   /**
-   * Calling convention to implement calls to 
+   * Calling convention to implement calls to
    * native (C) routines using the AIX linkage conventions
    */
   public static void expandSysCall(OPT_Instruction s, OPT_IR ir) {
@@ -168,8 +168,8 @@ public abstract class OPT_CallingConvention extends OPT_IRTools {
     // see PowerPC Compiler Writer's Guide, pp. 162
     ir.stackManager.allocateParameterSpace((6 + parameterWords) * BYTES_IN_ADDRESS);
     // IMPORTANT WARNING: as the callee C routine may destroy the cmid field
-    // (it is the saved CR field of the callee in C convention) 
-    // we are restoring the methodID after a sysCall. 
+    // (it is the saved CR field of the callee in C convention)
+    // we are restoring the methodID after a sysCall.
     OPT_Instruction s2 = Store.create(REF_STORE,
                                       ir.regpool.makeJTOCOp(ir, s),
                                       ir.regpool.makeFPOp(),
@@ -360,7 +360,7 @@ public abstract class OPT_CallingConvention extends OPT_IRTools {
         }
       } else {                    // IntType (or half of long) or reference
         if (VM.BuildForSVR4ABI) {
-          /* NOTE: following adjustment is not stated in SVR4 ABI, but 
+          /* NOTE: following adjustment is not stated in SVR4 ABI, but
            * was implemented in GCC.
            */
           if (isSysCall && Reg.type.isLongType()) {
@@ -400,8 +400,8 @@ public abstract class OPT_CallingConvention extends OPT_IRTools {
         }
       }
     }
-    // If we needed to pass arguments on the stack, 
-    // then make sure we have a big enough stack 
+    // If we needed to pass arguments on the stack,
+    // then make sure we have a big enough stack
     if (callSpillLoc != STACKFRAME_HEADER_SIZE) {
       ir.stackManager.allocateParameterSpace(callSpillLoc);
     }

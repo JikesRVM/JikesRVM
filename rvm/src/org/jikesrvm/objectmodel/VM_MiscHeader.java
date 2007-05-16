@@ -20,7 +20,7 @@ import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
 
 /**
- * Defines other header words not used for 
+ * Defines other header words not used for
  * core Java language support of memory allocation.
  * Typically these are extra header words used for various
  * kinds of instrumentation or profiling.
@@ -41,7 +41,7 @@ public final class VM_MiscHeader implements VM_Constants, VM_MiscHeaderConstants
 
   /////////////////////////
   // Support for YYY (an example of how to add a word to all objects)
-  /////////////////////////  
+  /////////////////////////
   // offset from object ref to yet-to-be-defined instrumentation word
   // static final int YYY_DATA_OFFSET_1 = (VM.YYY ? MISC_HEADER_START + GC_TRACING_HEADER_WORDS : 0);
   // static final int YYY_DATA_OFFSET_2 = (VM.YYY ? MISC_HEADER_START + GC_TRACING_HEADER_WORDS + 4 : 0);
@@ -197,9 +197,9 @@ public final class VM_MiscHeader implements VM_Constants, VM_MiscHeaderConstants
   }
 
   /**
-   * For low level debugging of GC subsystem. 
+   * For low level debugging of GC subsystem.
    * Dump the header word(s) of the given object reference.
-   * @param ref the object reference whose header should be dumped 
+   * @param ref the object reference whose header should be dumped
    */
   public static void dumpHeader(Object ref) {
     // by default nothing to do, unless the misc header is required

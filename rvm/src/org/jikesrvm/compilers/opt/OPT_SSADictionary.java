@@ -164,7 +164,7 @@ public final class OPT_SSADictionary {
 
   /**
    * A mapping from <code> OPT_BasicBlock </code> to <code> ArrayList
-   * </code> of <code> OPT_Instruction </code>.  
+   * </code> of <code> OPT_Instruction </code>.
    * This map holds the list of heap phi instructions stored as
    * lookaside for each basic block.
    */
@@ -179,7 +179,7 @@ public final class OPT_SSADictionary {
 
   /**
    * A mapping from <code> OPT_HeapVariable </code> to <code> HashSet
-   * </code> of <code> OPT_HeapOperand </code>.  
+   * </code> of <code> OPT_HeapOperand </code>.
    * This map holds the set of heap operands which use each heap
    * variable.
    */
@@ -187,7 +187,7 @@ public final class OPT_SSADictionary {
       new HashMap<OPT_HeapVariable<Object>, HashSet<OPT_HeapOperand<Object>>>(10);
 
   /**
-   * A mapping from <code> OPT_HeapVariable </code> to <code> OPT_HeapOperand </code>.  
+   * A mapping from <code> OPT_HeapVariable </code> to <code> OPT_HeapOperand </code>.
    * This map holds the set of heap operands which define each heap
    * variable.
    */
@@ -196,14 +196,14 @@ public final class OPT_SSADictionary {
 
   /**
    * The set of instructions which have been registered to potentially
-   * exit the procedure 
+   * exit the procedure
    */
   private final HashSet<OPT_Instruction> exits =
       new HashSet<OPT_Instruction>(10);
 
   /**
    * A mapping from a heap variable type to a <code> HashSet
-   * </code> of <code> OPT_Instruction </code>.  
+   * </code> of <code> OPT_Instruction </code>.
    * The set of all uses of a heap variable type
    * <em> before </em> we performed renaming for SSA.
    */
@@ -212,7 +212,7 @@ public final class OPT_SSADictionary {
 
   /**
    * A mapping from a heap variable type to a <code> HashSet
-   * </code> of <code> OPT_Instruction </code>.  
+   * </code> of <code> OPT_Instruction </code>.
    * The set of all definitions of a heap variable type
    * <em> before </em> we performed renaming for SSA.
    */
@@ -367,7 +367,7 @@ public final class OPT_SSADictionary {
       OPT_HeapOperand<Object>[] newH = new OPT_HeapOperand[oldH.length];
       // for each old heap variable ..
       for (int i = 0; i < oldH.length; i++) {
-        // create a new heap variable 
+        // create a new heap variable
         int number = getNextHeapVariableNumber(oldH[i].getHeapType());
         newH[i] = new OPT_HeapOperand<Object>(new OPT_HeapVariable<Object>(oldH[i].getHeapType(), number, ir));
         newH[i].setInstruction(s);
@@ -394,7 +394,7 @@ public final class OPT_SSADictionary {
   }
 
   /**
-   * Return an enumeration of the control-phi functions for 
+   * Return an enumeration of the control-phi functions for
    * <em> Heap </em> variables at the beginning of a basic block.
    *
    * @param bb the basic block in question
@@ -411,7 +411,7 @@ public final class OPT_SSADictionary {
 
   /**
    * Return an enumeration of all instructions for a basic block, including
-   * the control-PHI functions for <em> heap </em> variables stored 
+   * the control-PHI functions for <em> heap </em> variables stored
    * implicitly here.
    *
    * @param bb the basic block in question
@@ -448,7 +448,7 @@ public final class OPT_SSADictionary {
 
   /**
    * Return an enumeration of all the original uses of a heap variable.
-   * That is, return an iteration of all uses of the heap variable 
+   * That is, return an iteration of all uses of the heap variable
    * <em> before </em> we performed renaming for SSA.
    *
    * @param A the heap variable in question
@@ -465,7 +465,7 @@ public final class OPT_SSADictionary {
 
   /**
    * Return an enumeration of all the original definitions of a heap variable.
-   * That is, return an iteration of all defs of the heap variable 
+   * That is, return an iteration of all defs of the heap variable
    * <em> before </em> we performed renaming for SSA.
    *
    * @param A the heap variable in question
@@ -482,7 +482,7 @@ public final class OPT_SSADictionary {
 
   /**
    * Return a set of all the original uses of a heap variable.
-   * That is, return the set of all uses of the heap variable 
+   * That is, return the set of all uses of the heap variable
    * <em> before </em> we performed renaming for SSA.
    *
    * @param type   The heap variable in question
@@ -510,7 +510,7 @@ public final class OPT_SSADictionary {
 
   /**
    * Return a set of all the original definitions of a heap variable.
-   * That is, return the set of all uses of the heap variable 
+   * That is, return the set of all uses of the heap variable
    * <em> before </em> we performed renaming for SSA.
    *
    * @param type  the heap variable in question
@@ -635,7 +635,7 @@ public final class OPT_SSADictionary {
   /**
    * Delete an HeapOperand from the use chain of its heap variable
    *
-   * @param op the heap operand to be deleted 
+   * @param op the heap operand to be deleted
    */
   void deleteFromUseChain(OPT_HeapOperand<Object> op) {
     OPT_HeapVariable<Object> hv = op.getHeapVariable();
@@ -646,7 +646,7 @@ public final class OPT_SSADictionary {
   /**
    * Add an HeapOperand to the use chain of its heap variable
    *
-   * @param op the heap operand to be added 
+   * @param op the heap operand to be added
    */
   void addToUseChain(OPT_HeapOperand<Object> op) {
     OPT_HeapVariable<Object> hv = op.getHeapVariable();
@@ -713,7 +713,7 @@ public final class OPT_SSADictionary {
   @SuppressWarnings("unchecked")
   void registerExit(OPT_Instruction s, OPT_BasicBlock b) {
     // setup an array of all heap variables
-    // TODO: for efficiency, cache a copy of 'all' 
+    // TODO: for efficiency, cache a copy of 'all'
     Iterator<OPT_HeapVariable<Object>> vars = heapVariables.values().iterator();
     OPT_HeapOperand<Object>[] all = new OPT_HeapOperand[heapVariables.size()];
     for (int i = 0; i < all.length; i++) {
@@ -740,7 +740,7 @@ public final class OPT_SSADictionary {
   void registerUnknown(OPT_Instruction s, OPT_BasicBlock b) {
     if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
     // setup an array of all heap variables
-    // TODO: for efficiency, cache a copy of 'all' 
+    // TODO: for efficiency, cache a copy of 'all'
     Iterator vars = heapVariables.values().iterator();
     OPT_HeapOperand<Object>[] all = new OPT_HeapOperand[heapVariables.size()];
     for (int i = 0; i < all.length; i++) {
@@ -810,10 +810,10 @@ public final class OPT_SSADictionary {
         newArrayHelper(s, b);
         break;
       case NEWOBJMULTIARRAY_opcode:
-        /* SJF: after talking with Martin, I'm not sure what the 
+        /* SJF: after talking with Martin, I'm not sure what the
          correct Array SSA representation for an allocation should
          be.  Since we do not yet use these heap variables, do
-         nothing for now.  
+         nothing for now.
          Future: this should probably def the heap variable for every
          field of the object type allocated.
          // treat this opcode like a CALL
@@ -911,7 +911,7 @@ public final class OPT_SSADictionary {
   /**
    * Record the effects of a putfield instruction on the heap array
    * SSA form.  Register the heap variables that this instruction uses and
-   * defs.  
+   * defs.
    *
    * @param s the getfield instruction
    * @param b the basic block containing s
@@ -944,7 +944,7 @@ public final class OPT_SSADictionary {
   /**
    * Record the effects of a putstatic instruction on the heap array
    * SSA form.  Register the heap variables that this instruction uses and
-   * defs.  
+   * defs.
    *
    * @param s the putstatic instruction
    * @param b the basic block containing s
@@ -1028,7 +1028,7 @@ public final class OPT_SSADictionary {
   /**
    * Record the effects of an astore instruction on the heap array
    * SSA form.  Register the heap variables that this instruction uses and
-   * defs.  
+   * defs.
    *
    * @param s the astore instruction
    * @param b the basic block containing s
@@ -1089,7 +1089,7 @@ public final class OPT_SSADictionary {
     if (Htype instanceof VM_Type) {
       VM_Type t = (VM_Type)Htype;
       registerDef(s, b, t);
-    } 
+    }
     else if (Htype instanceof VM_Field) {
       VM_Field f = (VM_Field)Htype;
       registerDef(s, b, f);
@@ -1104,7 +1104,7 @@ public final class OPT_SSADictionary {
       if (Utype instanceof VM_Type) {
         VM_Type t = (VM_Type)Utype;
         registerUse(s, t);
-      } 
+      }
       else if (Utype instanceof VM_Field) {
         VM_Field f = (VM_Field)Utype;
         registerUse(s, f);
@@ -1233,7 +1233,7 @@ public final class OPT_SSADictionary {
   }
 
   /**
-   * Register that instruction <code>s</code> writes a heap variable for 
+   * Register that instruction <code>s</code> writes a heap variable for
    * a given field.
    *
    * @param s the instruction in question
@@ -1294,7 +1294,7 @@ public final class OPT_SSADictionary {
   }
 
   /**
-   * Register that the instruction <code>s</code> writes a heap variable for 
+   * Register that the instruction <code>s</code> writes a heap variable for
    * a given field.
    *
    * @param s the instruction in question
@@ -1461,12 +1461,12 @@ public final class OPT_SSADictionary {
   private static final class HeapKey<T> {
     /**
      * The number and type comprise the name of a heap variable in array SSA
-     * form 
+     * form
      */
     private final int number;
     /**
      * The number and type comprise the name of a heap variable in array SSA
-     * form 
+     * form
      */
     private final T type;
 
@@ -1510,8 +1510,8 @@ public final class OPT_SSADictionary {
   }
 
   /**
-   * This class implements an <code> Enumeration </code> over all 
-   * instructions for a basic block. This enumeration includes 
+   * This class implements an <code> Enumeration </code> over all
+   * instructions for a basic block. This enumeration includes
    * explicit instructions in the IR and implicit phi instructions
    * for heap variables, which are stored only in this lookaside
    * structure.

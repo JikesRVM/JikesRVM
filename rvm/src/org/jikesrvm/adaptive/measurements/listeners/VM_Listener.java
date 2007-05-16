@@ -13,7 +13,7 @@ import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
- * A VM_Listener object is invoked when online measurement information 
+ * A VM_Listener object is invoked when online measurement information
  * needs to be collected.
  *
  * This class does not define the update() method, the call back method from
@@ -22,11 +22,11 @@ import org.vmmagic.pragma.Uninterruptible;
  * the update() method from which classes may be further derived.
  *
  * CONSTRAINTS:
- * Classes that are derived from VM_Listener 
+ * Classes that are derived from VM_Listener
  * must be annotated as Uninterruptible to ensure that they
- * are not interrupted by a thread switch.  
- * Since thread switching is disabled, listeners are 
- * expected to complete execution quickly, and therefore, 
+ * are not interrupted by a thread switch.
+ * Since thread switching is disabled, listeners are
+ * expected to complete execution quickly, and therefore,
  * must do a minimal amount of work.
  */
 @Uninterruptible
@@ -49,7 +49,7 @@ public abstract class VM_Listener {
   public final void activate() { active = true; }
 
   /**
-   * Transition listener to passive state 
+   * Transition listener to passive state
    */
   public final void passivate() { active = false; }
 

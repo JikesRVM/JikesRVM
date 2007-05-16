@@ -22,7 +22,7 @@ import org.vmmagic.unboxed.WordArray;
  */
 public abstract class VM_MachineReflection implements VM_ArchConstants {
 
-  /** 
+  /**
    * Determine number/type of registers/spills required to call specified method.
    * See also: VM_Compiler.loadParameters()
    */
@@ -84,20 +84,20 @@ public abstract class VM_MachineReflection implements VM_ArchConstants {
     if (VM.BuildFor32Addr) {
       int frameSize  = (Spills << LOG_BYTES_IN_STACKSLOT) + STACKFRAME_HEADER_SIZE;
       frameSize = VM_Memory.alignUp(frameSize, STACKFRAME_ALIGNMENT);
-      Spills = (frameSize-STACKFRAME_HEADER_SIZE) >> LOG_BYTES_IN_STACKSLOT;        
+      Spills = (frameSize-STACKFRAME_HEADER_SIZE) >> LOG_BYTES_IN_STACKSLOT;
     }
 
     // hack to return triple
     return (Spills<<(VM_Constants.REFLECTION_FPRS_BITS+VM_Constants.REFLECTION_GPRS_BITS)) |
       (FPRs<<VM_Constants.REFLECTION_GPRS_BITS) | GPRs;
   }
- 
+
 
   /**
    * Collect parameters into arrays of registers/spills, as required to call specified method.
    */
-  public static void packageParameters(VM_Method method, Object thisArg, 
-                                Object[] otherArgs, WordArray GPRs, 
+  public static void packageParameters(VM_Method method, Object thisArg,
+                                Object[] otherArgs, WordArray GPRs,
                                 double[] FPRs, WordArray Spills) {
     int GPR   = GPRs.length();
     int FPR   = FPRs.length;

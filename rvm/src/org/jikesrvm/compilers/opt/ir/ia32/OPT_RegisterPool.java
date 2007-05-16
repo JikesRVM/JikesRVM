@@ -21,7 +21,7 @@ import org.vmmagic.unboxed.Address;
 /**
  * Pool of symbolic registers.
  * Intel specific implementation where JTOC is stored in the processor object
- * and accessed through the processor register.  
+ * and accessed through the processor register.
  *
  * @see OPT_Register
  */
