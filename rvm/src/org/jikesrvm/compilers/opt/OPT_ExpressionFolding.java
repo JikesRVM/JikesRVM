@@ -192,106 +192,106 @@ class OPT_ExpressionFolding {
   /**
    * Fold operations on ints
    */
-  private final static boolean FOLD_INTS = true;
+  private static final boolean FOLD_INTS = true;
   /**
    * Fold operations on word like things
    */
-  private final static boolean FOLD_REFS = true;
+  private static final boolean FOLD_REFS = true;
   /**
    * Fold operations on longs
    */
-  private final static boolean FOLD_LONGS = true;
+  private static final boolean FOLD_LONGS = true;
   /**
    * Fold operations on floats
    */
-  private final static boolean FOLD_FLOATS = true;
+  private static final boolean FOLD_FLOATS = true;
   /**
    * Fold operations on doubles
    */
-  private final static boolean FOLD_DOUBLES = true;
+  private static final boolean FOLD_DOUBLES = true;
 
   /**
    * Fold binary SUB operations
    */
-  private final static boolean FOLD_SUBS = true;
+  private static final boolean FOLD_SUBS = true;
 
   /**
    * Fold binary ADD operations
    */
-  private final static boolean FOLD_ADDS = true;
+  private static final boolean FOLD_ADDS = true;
 
   /**
    * Fold binary multiply operations
    */
-  private final static boolean FOLD_MULTS = true;
+  private static final boolean FOLD_MULTS = true;
 
   /**
    * Fold binary divide operations
    */
-  private final static boolean FOLD_DIVS = true;
+  private static final boolean FOLD_DIVS = true;
 
   /**
    * Fold binary shift left operations
    */
-  private final static boolean FOLD_SHIFTLS = true;
+  private static final boolean FOLD_SHIFTLS = true;
 
   /**
    * Fold binary shift right operations
    */
-  private final static boolean FOLD_SHIFTRS = true;
+  private static final boolean FOLD_SHIFTRS = true;
 
   /**
    * Fold binary CMP operations
    */
-  private final static boolean FOLD_CMPS = true;
+  private static final boolean FOLD_CMPS = true;
 
   /**
    * Fold binary XOR operations
    */
-  private final static boolean FOLD_XORS = true;
+  private static final boolean FOLD_XORS = true;
 
   /**
    * Fold binary OR operations
    */
-  private final static boolean FOLD_ORS = true;
+  private static final boolean FOLD_ORS = true;
 
   /**
    * Fold binary AND operations
    */
-  private final static boolean FOLD_ANDS = true;
+  private static final boolean FOLD_ANDS = true;
 
   /**
    * Fold unary NEG operations
    */
-  private final static boolean FOLD_NEGS = true;
+  private static final boolean FOLD_NEGS = true;
 
   /**
    * Fold unary NOT operations
    */
-  private final static boolean FOLD_NOTS = true;
+  private static final boolean FOLD_NOTS = true;
 
   /**
    * Fold operations that create a constant on the LHS? This may produce less
    * optimal code on 2 address architectures where the constant would need
    * loading into a register prior to the operation.
    */
-  private final static boolean FOLD_CONSTANTS_TO_LHS = true;
+  private static final boolean FOLD_CONSTANTS_TO_LHS = true;
 
   /**
    * Fold IFCMP operations
    */
-  private final static boolean FOLD_IFCMPS = true;
+  private static final boolean FOLD_IFCMPS = true;
 
   /**
    * Fold COND_MOVE operations
    */
-  private final static boolean FOLD_CONDMOVES = true;
+  private static final boolean FOLD_CONDMOVES = true;
 
   /**
    * Fold xxx_2xxx where the precision is increased then decreased achieving a
    * nop effect
    */
-  private final static boolean FOLD_2CONVERSION = true;
+  private static final boolean FOLD_2CONVERSION = true;
 
   /**
    * Perform the transformation.
@@ -1963,8 +1963,7 @@ class OPT_ExpressionFolding {
             }
 
             OPT_Operand val1 = Binary.getVal1(s);
-            if (s.operator.isCommutative() && val1.isConstant()
-                && !val1.isObjectConstant()) {
+            if (s.operator.isCommutative() && val1.isConstant() && !val1.isObjectConstant()) {
               Binary.setVal1(s, Binary.getClearVal2(s));
               Binary.setVal2(s, val1);
               return Binary.getResult(s).asRegister().register;
