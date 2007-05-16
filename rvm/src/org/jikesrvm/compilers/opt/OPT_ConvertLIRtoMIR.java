@@ -387,6 +387,8 @@ public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElem
           burs.invoke(dgraph);
         }
         catch (OPT_OptimizingCompilerException e) {
+          System.err.println("Exception occurred in OPT_ConvertLIRtoMIR");
+          e.printStackTrace();
           ir.printInstructions();
           throw e;
         }
