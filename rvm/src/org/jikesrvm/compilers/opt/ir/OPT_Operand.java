@@ -617,8 +617,7 @@ public abstract class OPT_Operand {
    * @return <code>true</code> if op1 conservatively approximates op2 or
    *         <code>false</code> if it does not.
    */
-  public static boolean conservativelyApproximates(OPT_Operand op1,
-                                                   OPT_Operand op2) {
+  public static boolean conservativelyApproximates(OPT_Operand op1, OPT_Operand op2) {
     // Step 1: Handle pointer equality and bottom
     if (op1 == op2) {
       if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
@@ -713,8 +712,7 @@ public abstract class OPT_Operand {
         }
       } else {
         // op2 is not a register
-        if (op2 instanceof OPT_BC2IR.ReturnAddressOperand ||
-            op2 == OPT_BC2IR.DUMMY) {
+        if (op2 instanceof OPT_BC2IR.ReturnAddressOperand || op2 == OPT_BC2IR.DUMMY) {
           if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
             VM.sysWrite("Operands are incompatibale values\n");
           }
@@ -797,9 +795,7 @@ public abstract class OPT_Operand {
    *         op1 when conservativelyApproximates(op1, op2)
    *         evaluates to <code>true</code>.
    */
-  public static OPT_Operand meet(OPT_Operand op1,
-                                 OPT_Operand op2,
-                                 OPT_Register reg) {
+  public static OPT_Operand meet(OPT_Operand op1, OPT_Operand op2, OPT_Register reg) {
     // Step 1: Handler pointer equality and bottom
     if (op1 == op2) {
       if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
@@ -844,8 +840,7 @@ public abstract class OPT_Operand {
          *
          * -- Robin Garner 1 Feb 7
          */
-        if (op2 instanceof OPT_BC2IR.ReturnAddressOperand ||
-            op2 == OPT_BC2IR.DUMMY) {
+        if (op2 instanceof OPT_BC2IR.ReturnAddressOperand || op2 == OPT_BC2IR.DUMMY) {
           if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
             VM.sysWrite("Incompatabily typed operands");
           }
@@ -874,9 +869,7 @@ public abstract class OPT_Operand {
         }
         return op1;
       } else {
-        VM_TypeReference superType =
-            OPT_ClassLoaderProxy.findCommonSuperclass(op1.getType(),
-                                                      op2.getType());
+        VM_TypeReference superType = OPT_ClassLoaderProxy.findCommonSuperclass(op1.getType(), op2.getType());
         if (superType == null) {
           if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
             VM.sysWrite("op1 and op2 have incompatible types\n");
@@ -905,8 +898,7 @@ public abstract class OPT_Operand {
             if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
               VM.sysWrite("mismatch\n");
             }
-            OPT_RegisterOperand res =
-                new OPT_RegisterOperand(reg, type1, rop1.getFlags());
+            OPT_RegisterOperand res = new OPT_RegisterOperand(reg, type1, rop1.getFlags());
             if (rop1.scratchObject instanceof OPT_Operand &&
                 rop2.scratchObject instanceof OPT_Operand &&
                 (((OPT_Operand) rop1.scratchObject).similar(((OPT_Operand) rop2.scratchObject)))) {
@@ -932,13 +924,11 @@ public abstract class OPT_Operand {
           if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
             VM.sysWrite("Compatabily typed register operands, checking flags...");
           }
-          if (rop1.isPreciseType() ||
-              rop1.hasLessConservativeFlags(rop2)) {
+          if (rop1.isPreciseType() || rop1.hasLessConservativeFlags(rop2)) {
             if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
               VM.sysWrite("mismatch\n");
             }
-            OPT_RegisterOperand res =
-                new OPT_RegisterOperand(reg, type1, rop1.getFlags());
+            OPT_RegisterOperand res = new OPT_RegisterOperand(reg, type1, rop1.getFlags());
             res.meetInheritableFlags(rop2);
             // even if both op1 & op2 are precise,
             // op1.type != op2.type, so clear it on res
@@ -975,8 +965,7 @@ public abstract class OPT_Operand {
             if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
               VM.sysWrite("found common supertype\n");
             }
-            OPT_RegisterOperand res =
-                new OPT_RegisterOperand(reg, resType, rop1.getFlags());
+            OPT_RegisterOperand res = new OPT_RegisterOperand(reg, resType, rop1.getFlags());
             res.meetInheritableFlags(rop2);
             res.clearPreciseType();     // invalid on res
             res.clearDeclaredType();    // invalid on res
@@ -990,8 +979,7 @@ public abstract class OPT_Operand {
           }
         }
       } else {
-        if (op2 instanceof OPT_BC2IR.ReturnAddressOperand ||
-            op2 == OPT_BC2IR.DUMMY) {
+        if (op2 instanceof OPT_BC2IR.ReturnAddressOperand || op2 == OPT_BC2IR.DUMMY) {
           if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
             VM.sysWrite("Incompatabily typed operands");
           }
@@ -1062,19 +1050,13 @@ public abstract class OPT_Operand {
   private static boolean compatiblePrimitives(VM_TypeReference type1, VM_TypeReference type2) {
     if (type1.isIntLikeType() && type2.isIntLikeType()) {
       if (type1.isIntType()) {
-        return type2.isBooleanType() ||
-               type2.isByteType() ||
-               type2.isShortType() ||
-               type2.isIntType();
+        return type2.isBooleanType() || type2.isByteType() || type2.isShortType() || type2.isIntType();
       }
       if (type1.isShortType()) {
-        return type2.isBooleanType() ||
-               type2.isByteType() ||
-               type2.isShortType();
+        return type2.isBooleanType() || type2.isByteType() || type2.isShortType();
       }
       if (type1.isByteType()) {
-        return type2.isBooleanType() ||
-               type2.isByteType();
+        return type2.isBooleanType() || type2.isByteType();
       }
       if (type1.isBooleanType()) {
         return type2.isBooleanType();

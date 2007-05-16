@@ -104,9 +104,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase {
     ir.gc.resync(); // resync generation context -- yuck...
 
     OPT_Instruction next;
-    for (OPT_Instruction inst = ir.firstInstructionInCodeOrder();
-         inst != null;
-         inst = next) {
+    for (OPT_Instruction inst = ir.firstInstructionInCodeOrder(); inst != null; inst = next) {
       next = inst.nextInstructionInCodeOrder();
       int opcode = inst.getOpcode();
 
@@ -129,7 +127,9 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase {
           }
           OPT_IntConstantOperand site = OPT_IRTools.IC(MM_Interface.getAllocationSite(true));
           VM_Method target = VM_Entrypoints.resolvedNewScalarMethod;
-          Call.mutate7(inst, CALL, New.getClearResult(inst),
+          Call.mutate7(inst,
+                       CALL,
+                       New.getClearResult(inst),
                        OPT_IRTools.AC(target.getOffset()),
                        OPT_MethodOperand.STATIC(target),
                        OPT_IRTools.IC(cls.getInstanceSize()),
@@ -153,7 +153,9 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase {
           int typeRefId = New.getType(inst).getTypeRef().getId();
           VM_Method target = VM_Entrypoints.unresolvedNewScalarMethod;
           OPT_IntConstantOperand site = OPT_IRTools.IC(MM_Interface.getAllocationSite(true));
-          Call.mutate2(inst, CALL, New.getClearResult(inst),
+          Call.mutate2(inst,
+                       CALL,
+                       New.getClearResult(inst),
                        OPT_IRTools.AC(target.getOffset()),
                        OPT_MethodOperand.STATIC(target),
                        OPT_IRTools.IC(typeRefId),
@@ -181,7 +183,9 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase {
           }
           OPT_IntConstantOperand site = OPT_IRTools.IC(MM_Interface.getAllocationSite(true));
           VM_Method target = VM_Entrypoints.resolvedNewArrayMethod;
-          Call.mutate8(inst, CALL, NewArray.getClearResult(inst),
+          Call.mutate8(inst,
+                       CALL,
+                       NewArray.getClearResult(inst),
                        OPT_IRTools.AC(target.getOffset()),
                        OPT_MethodOperand.STATIC(target),
                        numberElements,
@@ -207,7 +211,9 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase {
           OPT_Operand numberElements = NewArray.getClearSize(inst);
           VM_Method target = VM_Entrypoints.unresolvedNewArrayMethod;
           OPT_IntConstantOperand site = OPT_IRTools.IC(MM_Interface.getAllocationSite(true));
-          Call.mutate3(inst, CALL, NewArray.getClearResult(inst),
+          Call.mutate3(inst,
+                       CALL,
+                       NewArray.getClearResult(inst),
                        OPT_IRTools.AC(target.getOffset()),
                        OPT_MethodOperand.STATIC(target),
                        numberElements,
@@ -220,7 +226,9 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase {
           int typeRefId = NewArray.getType(inst).getTypeRef().getId();
           VM_Method target = VM_Entrypoints.optNewArrayArrayMethod;
           VM_Method callSite = inst.position.getMethod();
-          Call.mutate3(inst, CALL, NewArray.getClearResult(inst),
+          Call.mutate3(inst,
+                       CALL,
+                       NewArray.getClearResult(inst),
                        OPT_IRTools.AC(target.getOffset()),
                        OPT_MethodOperand.STATIC(target),
                        OPT_IRTools.IC(callSite.getId()),
@@ -233,8 +241,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase {
           VM_Method target = VM_Entrypoints.athrowMethod;
           OPT_MethodOperand methodOp = OPT_MethodOperand.STATIC(target);
           methodOp.setIsNonReturningCall(true);   // Record the fact that this is a non-returning call.
-          Call.mutate1(inst, CALL, null, OPT_IRTools.AC(target.getOffset()),
-                       methodOp, Athrow.getClearValue(inst));
+          Call.mutate1(inst, CALL, null, OPT_IRTools.AC(target.getOffset()), methodOp, Athrow.getClearValue(inst));
         }
         break;
 
@@ -246,7 +253,10 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase {
             VM_Type refType = ref.getType().peekResolvedType();
             if (refType != null && !refType.getThinLockOffset().isMax()) {
               VM_Method target = VM_Entrypoints.inlineLockMethod;
-              Call.mutate2(inst, CALL, null, OPT_IRTools.AC(target.getOffset()),
+              Call.mutate2(inst,
+                           CALL,
+                           null,
+                           OPT_IRTools.AC(target.getOffset()),
                            OPT_MethodOperand.STATIC(target),
                            MonitorOp.getClearGuard(inst),
                            ref,
@@ -258,7 +268,10 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase {
               }
             } else {
               VM_Method target = VM_Entrypoints.lockMethod;
-              Call.mutate1(inst, CALL, null, OPT_IRTools.AC(target.getOffset()),
+              Call.mutate1(inst,
+                           CALL,
+                           null,
+                           OPT_IRTools.AC(target.getOffset()),
                            OPT_MethodOperand.STATIC(target),
                            MonitorOp.getClearGuard(inst),
                            ref);
@@ -275,7 +288,10 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase {
             VM_Type refType = ref.getType().peekResolvedType();
             if (refType != null && !refType.getThinLockOffset().isMax()) {
               VM_Method target = VM_Entrypoints.inlineUnlockMethod;
-              Call.mutate2(inst, CALL, null, OPT_IRTools.AC(target.getOffset()),
+              Call.mutate2(inst,
+                           CALL,
+                           null,
+                           OPT_IRTools.AC(target.getOffset()),
                            OPT_MethodOperand.STATIC(target),
                            MonitorOp.getClearGuard(inst),
                            ref,
@@ -287,7 +303,10 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase {
               }
             } else {
               VM_Method target = VM_Entrypoints.unlockMethod;
-              Call.mutate1(inst, CALL, null, OPT_IRTools.AC(target.getOffset()),
+              Call.mutate1(inst,
+                           CALL,
+                           null,
+                           OPT_IRTools.AC(target.getOffset()),
                            OPT_MethodOperand.STATIC(target),
                            MonitorOp.getClearGuard(inst),
                            ref);
@@ -300,7 +319,9 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase {
           if (MM_Constants.NEEDS_WRITE_BARRIER) {
             VM_Method target = VM_Entrypoints.arrayStoreWriteBarrierMethod;
             OPT_Instruction wb =
-                Call.create3(CALL, null, OPT_IRTools.AC(target.getOffset()),
+                Call.create3(CALL,
+                             null,
+                             OPT_IRTools.AC(target.getOffset()),
                              OPT_MethodOperand.STATIC(target),
                              AStore.getArray(inst).copy(),
                              AStore.getIndex(inst).copy(),
@@ -323,7 +344,9 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase {
             if (!field.getFieldContentsType().isPrimitiveType()) {
               VM_Method target = VM_Entrypoints.putfieldWriteBarrierMethod;
               OPT_Instruction wb =
-                  Call.create4(CALL, null, OPT_IRTools.AC(target.getOffset()),
+                  Call.create4(CALL,
+                               null,
+                               OPT_IRTools.AC(target.getOffset()),
                                OPT_MethodOperand.STATIC(target),
                                PutField.getRef(inst).copy(),
                                PutField.getOffset(inst).copy(),
@@ -365,8 +388,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase {
   /**
    * Inline a call instruction
    */
-  private void inline(OPT_Instruction inst, OPT_IR ir,
-                      boolean noCalleeExceptions) {
+  private void inline(OPT_Instruction inst, OPT_IR ir, boolean noCalleeExceptions) {
     // Save and restore inlining control state.
     // Some options have told us to inline this runtime service,
     // so we have to be sure to inline it "all the way" not
@@ -379,8 +401,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase {
     ir.options.OSR_GUARDED_INLINING = false;
     try {
       OPT_InlineDecision inlDec =
-          OPT_InlineDecision.YES(Call.getMethod(inst).getTarget(),
-                                 "Expansion of runtime service");
+          OPT_InlineDecision.YES(Call.getMethod(inst).getTarget(), "Expansion of runtime service");
       OPT_Inliner.execute(inlDec, ir, inst);
     } finally {
       ir.options.INLINE = savedInliningOption;

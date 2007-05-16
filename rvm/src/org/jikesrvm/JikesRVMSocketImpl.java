@@ -82,8 +82,7 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
    *
    * @exception IOException If an error occurs
    */
-  protected synchronized void connect(String remoteHost, int remotePort)
-      throws IOException {
+  protected synchronized void connect(String remoteHost, int remotePort) throws IOException {
     if (VM.VerifyAssertions) VM._assert(streaming);
     InetAddress remoteAddr = InetAddress.getByName(remoteHost);
     connectInternal(remoteAddr, remotePort, 0);
@@ -96,14 +95,12 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
    * @param             remotePort      the remote port to connect to
    * @exception IOException     if an error occurs while connecting
    */
-  protected synchronized void connect(InetAddress remoteAddr, int remotePort)
-      throws IOException {
+  protected synchronized void connect(InetAddress remoteAddr, int remotePort) throws IOException {
     if (VM.VerifyAssertions) VM._assert(streaming);
     connectInternal(remoteAddr, remotePort, 0);
   }
 
-  public synchronized void connect(SocketAddress iaddress, int timeout)
-      throws IOException {
+  public synchronized void connect(SocketAddress iaddress, int timeout) throws IOException {
     InetSocketAddress address = (InetSocketAddress) iaddress;
     InetAddress remoteAddress = address.getAddress();
     int remotePort = address.getPort();
@@ -157,9 +154,7 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
     // compute total wait time (total number of seconds that
     // we are willing to wait before a connection arrives)
     boolean hasTimeout = (receiveTimeout > 0);
-    double totalWaitTime = hasTimeout
-                           ? ((double) receiveTimeout) / 1000.0
-                           : VM_ThreadEventConstants.WAIT_INFINITE;
+    double totalWaitTime = hasTimeout ? ((double) receiveTimeout) / 1000.0 : VM_ThreadEventConstants.WAIT_INFINITE;
 
     int connectionFd;
     double waitStartTime = hasTimeout ? now() : 0.0;
@@ -190,8 +185,7 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
             VM._assert(!hasTimeout || totalWaitTime >= 0.0);
           }
 
-          VM_ThreadIOWaitData waitData =
-              VM_Wait.ioWaitRead(native_fd, totalWaitTime);
+          VM_ThreadIOWaitData waitData = VM_Wait.ioWaitRead(native_fd, totalWaitTime);
 
           // Check for exceptions (including timeout)
           checkIoWaitRead(waitData);
@@ -488,8 +482,7 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
    * Utility method to check the result of an ioWaitRead()
    * for possible exceptions.
    */
-  private static void checkIoWaitRead(VM_ThreadIOWaitData waitData)
-      throws SocketException, SocketTimeoutException {
+  private static void checkIoWaitRead(VM_ThreadIOWaitData waitData) throws SocketException, SocketTimeoutException {
 
     // Did the wait return because it timed out?
     if (waitData.timedOut()) {
@@ -507,8 +500,7 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
    * Utility method to check the result of an ioWaitWrite()
    * for possible exceptions.
    */
-  private static void checkIoWaitWrite(VM_ThreadIOWaitData waitData)
-      throws SocketException, SocketTimeoutException {
+  private static void checkIoWaitWrite(VM_ThreadIOWaitData waitData) throws SocketException, SocketTimeoutException {
 
     // Did the wait return because it timed out?
     if (waitData.timedOut()) {
@@ -541,13 +533,11 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
    * @param    timeoutMillis               A timeout in milliseconds
    * @exception IOException     if an error occurs while connecting
    */
-  private void connectInternal(InetAddress remoteAddr, int remotePort,
-                               int timeoutMillis) throws IOException {
+  private void connectInternal(InetAddress remoteAddr, int remotePort, int timeoutMillis) throws IOException {
     int rc = -1;
 
-    double totalWaitTimeSeconds = (timeoutMillis > 0)
-                                  ? ((double) timeoutMillis) / 1000.0
-                                  : VM_ThreadEventConstants.WAIT_INFINITE;
+    double totalWaitTimeSeconds =
+        (timeoutMillis > 0) ? ((double) timeoutMillis) / 1000.0 : VM_ThreadEventConstants.WAIT_INFINITE;
 
     byte[] ip = remoteAddr.getAddress();
 
@@ -561,10 +551,7 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
 
     while (rc < 0) {
       VM_ThreadIOQueue.selectInProgressMutex.lock();
-      rc = sysCall.sysNetSocketConnect(native_fd,
-                                       family,
-                                       address,
-                                       remotePort);
+      rc = sysCall.sysNetSocketConnect(native_fd, family, address, remotePort);
       VM_ThreadIOQueue.selectInProgressMutex.unlock();
 
       switch (rc) {
@@ -578,8 +565,7 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
           break;
 
         case-2:  // operation would have blocked
-          VM_ThreadIOWaitData waitData =
-              VM_Wait.ioWaitWrite(native_fd, totalWaitTimeSeconds);
+          VM_ThreadIOWaitData waitData = VM_Wait.ioWaitWrite(native_fd, totalWaitTimeSeconds);
 
           checkIoWaitWrite(waitData);
           break;
@@ -612,9 +598,8 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
   synchronized int read(byte[] buffer, int offset, int count) throws IOException {
     if (count == 0) return 0;
 
-    double totalWaitTime = (receiveTimeout > 0)
-                           ? ((double) receiveTimeout) / 1000.0
-                           : VM_ThreadEventConstants.WAIT_INFINITE;
+    double totalWaitTime =
+        (receiveTimeout > 0) ? ((double) receiveTimeout) / 1000.0 : VM_ThreadEventConstants.WAIT_INFINITE;
 
     int rc;
     try {

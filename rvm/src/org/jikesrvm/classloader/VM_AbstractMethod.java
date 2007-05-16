@@ -28,13 +28,17 @@ public final class VM_AbstractMethod extends VM_Method {
    * @param parameterAnnotations array of runtime visible parameter annotations
    * @param annotationDefault value for this annotation that appears
    */
-  VM_AbstractMethod(VM_TypeReference declaringClass, VM_MemberReference memRef,
-                    short modifiers, VM_TypeReference[] exceptionTypes, VM_Atom signature,
-                    VM_Annotation[] annotations,
-                    VM_Annotation[] parameterAnnotations,
-                    Object annotationDefault) {
-    super(declaringClass, memRef, modifiers, exceptionTypes, signature,
-          annotations, parameterAnnotations, annotationDefault);
+  VM_AbstractMethod(VM_TypeReference declaringClass, VM_MemberReference memRef, short modifiers,
+                    VM_TypeReference[] exceptionTypes, VM_Atom signature, VM_Annotation[] annotations,
+                    VM_Annotation[] parameterAnnotations, Object annotationDefault) {
+    super(declaringClass,
+          memRef,
+          modifiers,
+          exceptionTypes,
+          signature,
+          annotations,
+          parameterAnnotations,
+          annotationDefault);
   }
 
   /**

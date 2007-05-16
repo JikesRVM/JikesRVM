@@ -12,9 +12,7 @@ class OPT_ReverseFilteredDFSenumerateByFinish extends OPT_ReverseDFSenumerateByF
 
   private final OPT_GraphEdgeFilter filter;
 
-  OPT_ReverseFilteredDFSenumerateByFinish(OPT_Graph net,
-                                          OPT_GraphNodeEnumeration nodes,
-                                          OPT_GraphEdgeFilter filter) {
+  OPT_ReverseFilteredDFSenumerateByFinish(OPT_Graph net, OPT_GraphNodeEnumeration nodes, OPT_GraphEdgeFilter filter) {
     super(net, nodes);
     this.filter = filter;
   }

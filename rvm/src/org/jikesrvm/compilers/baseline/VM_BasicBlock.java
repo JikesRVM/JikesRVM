@@ -73,8 +73,7 @@ public final class VM_BasicBlock {
   }
 
   // transfer predecessor blocks from one block to another
-  public static void
-  transferPredecessors(VM_BasicBlock fromBB, VM_BasicBlock toBB) {
+  public static void transferPredecessors(VM_BasicBlock fromBB, VM_BasicBlock toBB) {
     toBB.predcount = fromBB.predcount;
     toBB.pred1 = fromBB.pred1;
     toBB.pred2 = fromBB.pred2;
@@ -138,8 +137,7 @@ public final class VM_BasicBlock {
     return ((state & TRYHANDLERSTART) == TRYHANDLERSTART);
   }
 
-  public void
-  addPredecessor(VM_BasicBlock predbb) {
+  public void addPredecessor(VM_BasicBlock predbb) {
     predcount++;
     if (predcount == 1) {
       pred1 = (short) predbb.getBlockNumber();
@@ -166,8 +164,7 @@ public final class VM_BasicBlock {
   // This method first checks if a block is already on the predecessor
   // list. Used with try blocks being added to their catch block as
   // predecessors.
-  public void
-  addUniquePredecessor(VM_BasicBlock predbb) {
+  public void addUniquePredecessor(VM_BasicBlock predbb) {
     boolean dupFound = false, checkMade = false;
     short predbbNum = (short) predbb.getBlockNumber();
 

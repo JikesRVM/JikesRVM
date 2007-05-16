@@ -112,8 +112,7 @@ public final class VM_MethodSampleOrganizer extends VM_Organizer {
         if (!(compilerType == VM_CompiledMethod.TRAP ||
               (compilerType == VM_CompiledMethod.OPT &&
                (((VM_OptCompiledMethod) cm).getOptLevel() >= filterOptLevel)))) {
-          VM_HotMethodRecompilationEvent event =
-              new VM_HotMethodRecompilationEvent(cm, ns);
+          VM_HotMethodRecompilationEvent event = new VM_HotMethodRecompilationEvent(cm, ns);
           VM_Controller.controllerInputQueue.insert(ns, event);
           VM_AOSLogging.controllerNotifiedForHotness(cm, ns);
         }

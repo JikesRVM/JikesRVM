@@ -16,11 +16,10 @@ import org.jikesrvm.objectmodel.VM_ThinLockConstants;
  * Some of these constants are architecture-specific
  * and some are (at the moment) architecture-neutral.
  */
-public interface VM_Constants
-    extends VM_ThinLockConstants,         // architecture-neutral
-            VM_TIBLayoutConstants,        // architecture-neutral
-            VM_HeapLayoutConstants,       // architecture-neutral
-            VM_SizeConstants             // 'semi-'architecture-neutral
+public interface VM_Constants extends VM_ThinLockConstants,         // architecture-neutral
+                                      VM_TIBLayoutConstants,        // architecture-neutral
+                                      VM_HeapLayoutConstants,       // architecture-neutral
+                                      VM_SizeConstants             // 'semi-'architecture-neutral
 {
   /**
    * For assertion checking things that should never happen.

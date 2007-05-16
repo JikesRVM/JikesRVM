@@ -71,8 +71,7 @@ public final class OPT_BranchProfileOperand extends OPT_Operand {
    */
   public boolean similar(OPT_Operand op) {
     return (op instanceof OPT_BranchProfileOperand) &&
-           (takenProbability ==
-            ((OPT_BranchProfileOperand) op).takenProbability);
+           (takenProbability == ((OPT_BranchProfileOperand) op).takenProbability);
   }
 
   /**

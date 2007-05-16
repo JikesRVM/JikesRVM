@@ -424,8 +424,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
    *           if they are not.
    */
   public boolean similar(OPT_Operand op) {
-    return (op instanceof OPT_ConditionOperand) &&
-           (((OPT_ConditionOperand) op).value == value);
+    return (op instanceof OPT_ConditionOperand) && (((OPT_ConditionOperand) op).value == value);
   }
 
   public static final int FALSE = 0;
@@ -444,13 +443,11 @@ public final class OPT_ConditionOperand extends OPT_Operand {
   public int evaluate(OPT_Operand v1, OPT_Operand v2) {
     if (v1.isAddressConstant()) {
       if (v2.isAddressConstant()) {
-        return evaluate(v1.asAddressConstant().value,
-                        v2.asAddressConstant().value);
+        return evaluate(v1.asAddressConstant().value, v2.asAddressConstant().value);
       } else if (v2.isNullConstant()) {
         return evaluate(v1.asAddressConstant().value, Address.zero());
       } else if (v2.isIntConstant()) {
-        return evaluate(v1.asAddressConstant().value,
-                        Address.fromIntSignExtend(v2.asIntConstant().value));
+        return evaluate(v1.asAddressConstant().value, Address.fromIntSignExtend(v2.asIntConstant().value));
       }
     } else if (v1.isIntConstant()) {
       if (v2.isIntConstant()) {
@@ -458,23 +455,19 @@ public final class OPT_ConditionOperand extends OPT_Operand {
       } else if (v2.isNullConstant()) {
         return evaluate(v1.asIntConstant().value, 0);
       } else if (v2.isAddressConstant()) {
-        return evaluate(Address.fromIntSignExtend(v1.asIntConstant().value),
-                        v2.asAddressConstant().value);
+        return evaluate(Address.fromIntSignExtend(v1.asIntConstant().value), v2.asAddressConstant().value);
       }
     } else if (v1.isLongConstant()) {
       if (v2.isLongConstant()) {
-        return evaluate(v1.asLongConstant().value,
-                        v2.asLongConstant().value);
+        return evaluate(v1.asLongConstant().value, v2.asLongConstant().value);
       }
     } else if (v1.isFloatConstant()) {
       if (v2.isFloatConstant()) {
-        return evaluate(v1.asFloatConstant().value,
-                        v2.asFloatConstant().value);
+        return evaluate(v1.asFloatConstant().value, v2.asFloatConstant().value);
       }
     } else if (v1.isDoubleConstant()) {
       if (v2.isDoubleConstant()) {
-        return evaluate(v1.asDoubleConstant().value,
-                        v2.asDoubleConstant().value);
+        return evaluate(v1.asDoubleConstant().value, v2.asDoubleConstant().value);
       }
     } else if (v1.isObjectConstant()) {
       if (v2.isObjectConstant()) {
@@ -483,8 +476,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
         } else if (isNOT_EQUAL()) {
           return (v1.asObjectConstant().value != v2.asObjectConstant().value) ? TRUE : FALSE;
         }
-      } else if (v2.isNullConstant() ||
-                 (v2.isIntConstant() && v2.asIntConstant().value == 0)) {
+      } else if (v2.isNullConstant() || (v2.isIntConstant() && v2.asIntConstant().value == 0)) {
         if (isEQUAL()) {
           return FALSE;
         } else if (isNOT_EQUAL()) {

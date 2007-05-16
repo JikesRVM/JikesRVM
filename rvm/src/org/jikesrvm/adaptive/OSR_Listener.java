@@ -31,8 +31,7 @@ public class OSR_Listener {
     if (VM_Thread.getCurrentThread().isSystemThread()) return false;
 
     // check if there are pending osr request
-    if ((VM_Controller.osrOrganizer != null)
-        && (VM_Controller.osrOrganizer.osr_flag)) {
+    if ((VM_Controller.osrOrganizer != null) && (VM_Controller.osrOrganizer.osr_flag)) {
       VM_Controller.osrOrganizer.activate();
     }
 
@@ -48,8 +47,7 @@ public class OSR_Listener {
     fp = VM_Magic.getCallerFramePointer(fp);
     int ypTakenInCMID = VM_Magic.getCompiledMethodID(fp);
     VM_CompiledMethod ypTakenInCM = VM_CompiledMethods.getCompiledMethod(ypTakenInCMID);
-    if (ypTakenInCM.isOutdated() &&
-        ypTakenInCM.getCompilerType() == VM_CompiledMethod.BASELINE) {
+    if (ypTakenInCM.isOutdated() && ypTakenInCM.getCompilerType() == VM_CompiledMethod.BASELINE) {
 
       // get this frame pointer
       Address tsFP = VM_Magic.getFramePointer();
@@ -63,10 +61,7 @@ public class OSR_Listener {
       Offset tsFromFPoff = tsFromFP.diff(stackbeg);
       Offset realFPoff = realFP.diff(stackbeg);
 
-      OSR_OnStackReplacementTrigger.trigger(ypTakenInCMID,
-                                            tsFromFPoff,
-                                            realFPoff,
-                                            whereFrom);
+      OSR_OnStackReplacementTrigger.trigger(ypTakenInCMID, tsFromFPoff, realFPoff, whereFrom);
       return true;
     }
     return false;
@@ -86,9 +81,6 @@ public class OSR_Listener {
     Offset tsFromFPoff = tsFromFP.diff(stackbeg);
     Offset realFPoff = realFP.diff(stackbeg);
 
-    OSR_OnStackReplacementTrigger.trigger(ypTakenInCMID,
-                                          tsFromFPoff,
-                                          realFPoff,
-                                          VM_Thread.OSROPT);
+    OSR_OnStackReplacementTrigger.trigger(ypTakenInCMID, tsFromFPoff, realFPoff, VM_Thread.OSROPT);
   }
 }

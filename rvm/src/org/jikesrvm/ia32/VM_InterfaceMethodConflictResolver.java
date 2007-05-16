@@ -83,9 +83,8 @@ public abstract class VM_InterfaceMethodConflictResolver implements VM_RegisterC
   }
 
   // Generate a subtree covering from low to high inclusive.
-  private static void insertStubCase(VM_Assembler asm,
-                                     int[] sigIds, VM_Method[] targets,
-                                     int[] bcIndices, int low, int high) {
+  private static void insertStubCase(VM_Assembler asm, int[] sigIds, VM_Method[] targets, int[] bcIndices, int low,
+                                     int high) {
     int middle = (high + low) / 2;
     asm.resolveForwardReferences(bcIndices[middle]);
     if (low == middle && middle == high) {

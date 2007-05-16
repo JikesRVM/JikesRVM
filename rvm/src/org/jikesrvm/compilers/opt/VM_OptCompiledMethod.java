@@ -79,8 +79,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
    * Find "catch" block for a machine instruction of this method.
    */
   @Interruptible
-  public int findCatchBlockForInstruction(Offset instructionOffset,
-                                          VM_Type exceptionType) {
+  public int findCatchBlockForInstruction(Offset instructionOffset, VM_Type exceptionType) {
     if (eTable == null) {
       return -1;
     } else {
@@ -186,9 +185,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
     if (iei >= 0) {
       int[] inlineEncoding = map.inlineEncoding;
       int bci = map.getBytecodeIndexForMCOffset(instructionOffset);
-      for (int j = iei;
-           j >= 0;
-           j = VM_OptEncodedCallSiteTree.getParent(j, inlineEncoding)) {
+      for (int j = iei; j >= 0; j = VM_OptEncodedCallSiteTree.getParent(j, inlineEncoding)) {
         int mid = VM_OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
         VM_NormalMethod m =
             (VM_NormalMethod) VM_MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod();
@@ -457,9 +454,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
   public void createCodePatchMaps(OPT_IR ir) {
     // (1) count the patch points
     int patchPoints = 0;
-    for (OPT_Instruction s = ir.firstInstructionInCodeOrder();
-         s != null;
-         s = s.nextInstructionInCodeOrder()) {
+    for (OPT_Instruction s = ir.firstInstructionInCodeOrder(); s != null; s = s.nextInstructionInCodeOrder()) {
       if (s.operator() == IG_PATCH_POINT) {
         patchPoints++;
       }
@@ -468,9 +463,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
     if (patchPoints != 0) {
       patchMap = new int[patchPoints * 2];
       int idx = 0;
-      for (OPT_Instruction s = ir.firstInstructionInCodeOrder();
-           s != null;
-           s = s.nextInstructionInCodeOrder()) {
+      for (OPT_Instruction s = ir.firstInstructionInCodeOrder(); s != null; s = s.nextInstructionInCodeOrder()) {
         if (s.operator() == IG_PATCH_POINT) {
           int patchPoint = s.getmcOffset();
           int newTarget = InlineGuard.getTarget(s).target.getmcOffset();
@@ -485,10 +478,9 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
             /* since currently we use only one NOP scheme, the offset
             * is adjusted for one word
             */
+            patchMap[idx++] = (patchPoint >> ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH) - 1;
             patchMap[idx++] =
-                (patchPoint >> ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH) - 1;
-            patchMap[idx++] = (newTarget - patchPoint
-                               + (1 << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH));
+                (newTarget - patchPoint + (1 << ArchitectureSpecific.VM_RegisterConstants.LG_INSTRUCTION_WIDTH));
           } else if (VM.VerifyAssertions) {
             VM._assert(VM.NOT_REACHED);
           }

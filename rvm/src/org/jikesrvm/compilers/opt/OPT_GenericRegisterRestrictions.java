@@ -32,8 +32,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_Register;
 public abstract class OPT_GenericRegisterRestrictions {
   // for each symbolic register, the set of physical registers that are
   // illegal for assignment
-  private final HashMap<OPT_Register, RestrictedRegisterSet> hash =
-      new HashMap<OPT_Register, RestrictedRegisterSet>();
+  private final HashMap<OPT_Register, RestrictedRegisterSet> hash = new HashMap<OPT_Register, RestrictedRegisterSet>();
 
   // a set of symbolic registers that must not be spilled.
   private final HashSet<OPT_Register> noSpill = new HashSet<OPT_Register>();
@@ -86,10 +85,8 @@ public abstract class OPT_GenericRegisterRestrictions {
    * instruction is stored in its <code>scratch</code> field.
    */
   private void processBlock(OPT_BasicBlock bb) {
-    ArrayList<OPT_LiveIntervalElement> symbolic =
-        new ArrayList<OPT_LiveIntervalElement>(20);
-    ArrayList<OPT_LiveIntervalElement> physical =
-        new ArrayList<OPT_LiveIntervalElement>(20);
+    ArrayList<OPT_LiveIntervalElement> symbolic = new ArrayList<OPT_LiveIntervalElement>(20);
+    ArrayList<OPT_LiveIntervalElement> physical = new ArrayList<OPT_LiveIntervalElement>(20);
 
     // 1. walk through the live intervals and identify which correspond to
     // physical and symbolic registers
@@ -119,8 +116,7 @@ public abstract class OPT_GenericRegisterRestrictions {
     // 3. Volatile registers used by CALL instructions do not appear in
     // the liveness information.  Handle CALL instructions as a special
     // case.
-    for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator();
-         ie.hasMoreElements();) {
+    for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
       OPT_Instruction s = ie.next();
       if (s.operator.isCall() && s.operator != CALL_SAVE_VOLATILE) {
         for (OPT_LiveIntervalElement symb : symbolic) {
@@ -186,8 +182,7 @@ public abstract class OPT_GenericRegisterRestrictions {
    * increasing order before calling this.  The number for each
    * instruction is stored in its <code>scratch</code> field.
    */
-  private boolean overlaps(OPT_LiveIntervalElement li1,
-                           OPT_LiveIntervalElement li2) {
+  private boolean overlaps(OPT_LiveIntervalElement li1, OPT_LiveIntervalElement li2) {
     // Under the following conditions: the live ranges do NOT overlap:
     // 1. begin2 >= end1 > -1
     // 2. begin1 >= end2 > -1
@@ -296,8 +291,7 @@ public abstract class OPT_GenericRegisterRestrictions {
    * Is it forbidden to assign symbolic register symb to physical register r
    * in instruction s?
    */
-  public abstract boolean isForbidden(OPT_Register symb, OPT_Register r,
-                                      OPT_Instruction s);
+  public abstract boolean isForbidden(OPT_Register symb, OPT_Register r, OPT_Instruction s);
 
   /**
    * An instance of this class represents restrictions on physical register

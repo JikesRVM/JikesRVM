@@ -40,8 +40,7 @@ public final class OPT_UnsyncReplacer {
    * @param ir governing ir
    * @return the object, or null if illegal
    */
-  public static OPT_UnsyncReplacer getReplacer(OPT_Instruction inst,
-                                               OPT_IR ir) {
+  public static OPT_UnsyncReplacer getReplacer(OPT_Instruction inst, OPT_IR ir) {
     OPT_Register r = New.getResult(inst).register;
     return new OPT_UnsyncReplacer(r, ir.options);
   }
@@ -52,13 +51,11 @@ public final class OPT_UnsyncReplacer {
   public void transform() {
     synchronized (context) {
       // first change the defs
-      for (OPT_RegisterOperand def = reg.defList; def != null;
-           def = def.getNext()) {
+      for (OPT_RegisterOperand def = reg.defList; def != null; def = def.getNext()) {
         transform(def);
       }
       // now fix the uses
-      for (OPT_RegisterOperand use = reg.useList; use != null;
-           use = use.getNext()) {
+      for (OPT_RegisterOperand use = reg.useList; use != null; use = use.getNext()) {
         transform(use);
       }
     }
@@ -132,6 +129,5 @@ public final class OPT_UnsyncReplacer {
    * Singleton: a single context representing "specialize this method when
    * the invokee of this method is thread-local"
    */
-  private static final OPT_InvokeeThreadLocalContext context =
-      new OPT_InvokeeThreadLocalContext();
+  private static final OPT_InvokeeThreadLocalContext context = new OPT_InvokeeThreadLocalContext();
 }

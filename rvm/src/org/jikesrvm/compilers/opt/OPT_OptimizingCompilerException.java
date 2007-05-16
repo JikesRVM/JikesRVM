@@ -85,8 +85,7 @@ public class OPT_OptimizingCompilerException extends RuntimeException {
    * @param   err2 message describing reason for exception
    */
   public OPT_OptimizingCompilerException(String module, String err1, String err2) {
-    super("ERROR produced in module:" + module + "\n    " + err1 + " "
-          + err2 + "\n");
+    super("ERROR produced in module:" + module + "\n    " + err1 + " " + err2 + "\n");
   }
 
   /**
@@ -113,10 +112,8 @@ public class OPT_OptimizingCompilerException extends RuntimeException {
    * @param   err2 message describing reason for exception
    * @param   err3 message describing reason for exception
    */
-  public OPT_OptimizingCompilerException(String module, String err1, String err2,
-                                         String err3) {
-    super("ERROR produced in module:" + module + "\n    " + err1 + " "
-          + err2 + "\n" + err3 + "\n");
+  public OPT_OptimizingCompilerException(String module, String err1, String err2, String err3) {
+    super("ERROR produced in module:" + module + "\n    " + err1 + " " + err2 + "\n" + err3 + "\n");
   }
 
   /**
@@ -125,8 +122,7 @@ public class OPT_OptimizingCompilerException extends RuntimeException {
    * @param   err2 message describing reason for exception
    * @param   obj  object to print describing reason for exception
    */
-  public OPT_OptimizingCompilerException(String module, String err1, String err2,
-                                         Object obj) {
+  public OPT_OptimizingCompilerException(String module, String err1, String err2, Object obj) {
     this(module, err1, err2, obj.toString());
   }
 
@@ -136,8 +132,7 @@ public class OPT_OptimizingCompilerException extends RuntimeException {
    * @param   err2 message describing reason for exception
    * @param   val  integer to print describing reason for exception
    */
-  OPT_OptimizingCompilerException(String module, String err1, String err2,
-                                  int val) {
+  OPT_OptimizingCompilerException(String module, String err1, String err2, int val) {
     this(module, err1, err2, Integer.toString(val));
   }
 
@@ -157,8 +152,7 @@ public class OPT_OptimizingCompilerException extends RuntimeException {
    * @exception OPT_OptimizingCompilerException
    */
   public static void UNREACHABLE(String module) throws OPT_OptimizingCompilerException {
-    throw new OPT_OptimizingCompilerException(module,
-                                              "Executed UNREACHABLE code");
+    throw new OPT_OptimizingCompilerException(module, "Executed UNREACHABLE code");
   }
 
   /**
@@ -168,10 +162,8 @@ public class OPT_OptimizingCompilerException extends RuntimeException {
    * @param   err1 message describing reason for exception
    * @exception OPT_OptimizingCompilerException
    */
-  public static void UNREACHABLE(String module, String err1) throws
-                                                             OPT_OptimizingCompilerException {
-    throw new OPT_OptimizingCompilerException
-        (module, "Executed UNREACHABLE code", err1);
+  public static void UNREACHABLE(String module, String err1) throws OPT_OptimizingCompilerException {
+    throw new OPT_OptimizingCompilerException(module, "Executed UNREACHABLE code", err1);
   }
 
   /**
@@ -182,10 +174,8 @@ public class OPT_OptimizingCompilerException extends RuntimeException {
    * @param   err2 message describing reason for exception
    * @exception OPT_OptimizingCompilerException
    */
-  public static void UNREACHABLE(String module, String err1, String err2)
-      throws OPT_OptimizingCompilerException {
-    throw new OPT_OptimizingCompilerException(module,
-                                              "Executed UNREACHABLE code", err1, err2);
+  public static void UNREACHABLE(String module, String err1, String err2) throws OPT_OptimizingCompilerException {
+    throw new OPT_OptimizingCompilerException(module, "Executed UNREACHABLE code", err1, err2);
   }
 
   /**
@@ -193,8 +183,7 @@ public class OPT_OptimizingCompilerException extends RuntimeException {
    * @exception OPT_OptimizingCompilerException
    */
   public static void TODO() throws OPT_OptimizingCompilerException {
-    throw new
-        OPT_OptimizingCompilerException("Unsupported function in IA32 port");
+    throw new OPT_OptimizingCompilerException("Unsupported function in IA32 port");
   }
 
   /**
@@ -203,8 +192,7 @@ public class OPT_OptimizingCompilerException extends RuntimeException {
    * @exception OPT_OptimizingCompilerException
    */
   public static void TODO(String module) throws OPT_OptimizingCompilerException {
-    throw new OPT_OptimizingCompilerException(module,
-                                              "Unsupported function in IA32 port");
+    throw new OPT_OptimizingCompilerException(module, "Unsupported function in IA32 port");
   }
 
   /**

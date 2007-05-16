@@ -16,8 +16,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
  * "the invokee is thread local".
  * We use this context to remove unnecessary synchronizations.
  */
-public class OPT_InvokeeThreadLocalContext
-    implements OPT_SpecializationContext {
+public class OPT_InvokeeThreadLocalContext implements OPT_SpecializationContext {
 
   OPT_InvokeeThreadLocalContext() {
   }
@@ -29,8 +28,7 @@ public class OPT_InvokeeThreadLocalContext
   public OPT_SpecializedMethod findOrCreateSpecializedVersion(VM_NormalMethod source) {
     // first check if the specialization database contains
     // a specialized version from this context.
-    java.util.Iterator<OPT_SpecializedMethod> versions =
-        OPT_SpecializationDatabase.getSpecialVersions(source);
+    java.util.Iterator<OPT_SpecializedMethod> versions = OPT_SpecializationDatabase.getSpecialVersions(source);
     if (versions != null) {
       while (versions.hasNext()) {
         OPT_SpecializedMethod spMethod = versions.next();
@@ -62,10 +60,7 @@ public class OPT_InvokeeThreadLocalContext
    * @param source
    */
   public VM_CompiledMethod specialCompile(VM_NormalMethod source) {
-    OPT_CompilationPlan plan = new OPT_CompilationPlan(source,
-                                                       optimizationPlan,
-                                                       null,
-                                                       options);
+    OPT_CompilationPlan plan = new OPT_CompilationPlan(source, optimizationPlan, null, options);
     return OPT_Compiler.compile(plan);
   }
 

@@ -33,39 +33,42 @@ interface VM_ClassLoaderConstants {
   short ACC_ANNOTATION = 0x2000;  //   X      -      -
   short ACC_ENUM = 0x4000;  //   X      X      -
 
-  short APPLICABLE_TO_FIELDS = (ACC_PUBLIC |
-                                ACC_PRIVATE |
-                                ACC_PROTECTED |
-                                ACC_STATIC |
-                                ACC_FINAL |
-                                ACC_VOLATILE |
-                                ACC_TRANSIENT |
-                                ACC_SYNTHETIC |
-                                ACC_ENUM);
+  short APPLICABLE_TO_FIELDS =
+      (ACC_PUBLIC |
+       ACC_PRIVATE |
+       ACC_PROTECTED |
+       ACC_STATIC |
+       ACC_FINAL |
+       ACC_VOLATILE |
+       ACC_TRANSIENT |
+       ACC_SYNTHETIC |
+       ACC_ENUM);
 
-  short APPLICABLE_TO_METHODS = (ACC_PUBLIC |
-                                 ACC_PRIVATE |
-                                 ACC_PROTECTED |
-                                 ACC_STATIC |
-                                 ACC_FINAL |
-                                 ACC_SYNCHRONIZED |
-                                 BRIDGE |
-                                 VARARGS |
-                                 ACC_NATIVE |
-                                 ACC_ABSTRACT |
-                                 ACC_STRICT |
-                                 ACC_SYNTHETIC);
+  short APPLICABLE_TO_METHODS =
+      (ACC_PUBLIC |
+       ACC_PRIVATE |
+       ACC_PROTECTED |
+       ACC_STATIC |
+       ACC_FINAL |
+       ACC_SYNCHRONIZED |
+       BRIDGE |
+       VARARGS |
+       ACC_NATIVE |
+       ACC_ABSTRACT |
+       ACC_STRICT |
+       ACC_SYNTHETIC);
 
-  short APPLICABLE_TO_CLASSES = (ACC_PUBLIC |
-                                 ACC_PRIVATE |
-                                 ACC_STATIC |
-                                 ACC_FINAL |
-                                 ACC_SUPER |
-                                 ACC_INTERFACE |
-                                 ACC_ABSTRACT |
-                                 ACC_SYNTHETIC |
-                                 ACC_ANNOTATION |
-                                 ACC_ENUM);
+  short APPLICABLE_TO_CLASSES =
+      (ACC_PUBLIC |
+       ACC_PRIVATE |
+       ACC_STATIC |
+       ACC_FINAL |
+       ACC_SUPER |
+       ACC_INTERFACE |
+       ACC_ABSTRACT |
+       ACC_SYNTHETIC |
+       ACC_ANNOTATION |
+       ACC_ENUM);
 
   // Possible states of a class description.
   //

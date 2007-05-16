@@ -128,8 +128,7 @@ class OPT_DominanceFrontier extends OPT_CompilerPhase {
           System.out.println("Processing Z = " + Z);
         }
         // for each Y in DF(Z) do
-        for (OPT_BasicBlockEnumeration y =
-            zVertex.domFrontierEnumerator(ir); y.hasMoreElements();) {
+        for (OPT_BasicBlockEnumeration y = zVertex.domFrontierEnumerator(ir); y.hasMoreElements();) {
           OPT_BasicBlock Y = y.next();
           // if (idom(Y)!=X) then DF(X) <- DF(X) U Y
           if (OPT_LTDominatorInfo.getIdom(Y) != X) {
@@ -186,8 +185,7 @@ class OPT_DominanceFrontier extends OPT_CompilerPhase {
    * @return an {@link OPT_BitVector} representing the dominance frontier for
    *    the set
    */
-  public static OPT_BitVector getIteratedDominanceFrontier(OPT_IR ir,
-                                                           OPT_BitVector S) {
+  public static OPT_BitVector getIteratedDominanceFrontier(OPT_IR ir, OPT_BitVector S) {
     OPT_BitVector DFi = getDominanceFrontier(ir, S);
     while (true) {
       OPT_BitVector DFiplus1 = getDominanceFrontier(ir, DFi);

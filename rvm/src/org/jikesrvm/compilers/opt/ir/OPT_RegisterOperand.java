@@ -178,8 +178,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
    * @param op operand to compare against
    */
   public boolean similar(OPT_Operand op) {
-    return (op instanceof OPT_RegisterOperand) &&
-           (register == ((OPT_RegisterOperand) op).register);
+    return (op instanceof OPT_RegisterOperand) && (register == ((OPT_RegisterOperand) op).register);
   }
 
   /**

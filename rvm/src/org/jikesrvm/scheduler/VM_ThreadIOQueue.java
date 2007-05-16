@@ -113,9 +113,10 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
    * So, this method should generally never return true.
    */
   private static boolean isKilled(VM_Thread thread) {
-    return (thread.waitData.waitFlags & WAIT_NATIVE) != 0
-           && thread.externalInterrupt != null
-           && thread.throwInterruptWhenScheduled;
+    return (thread.waitData.waitFlags & WAIT_NATIVE) != 0 &&
+           thread.externalInterrupt != null &&
+           thread
+               .throwInterruptWhenScheduled;
   }
 
   /**
@@ -131,8 +132,7 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
    * @return the number of file descriptors which became ready
    *     or invalid
    */
-  private int updateStatus(int[] waitDataFds, int waitDataOffset,
-                           int[] selectFds, int setOffset) {
+  private int updateStatus(int[] waitDataFds, int waitDataOffset, int[] selectFds, int setOffset) {
 
     if (waitDataFds == null) {
       return 0;
@@ -204,18 +204,15 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
         // fds that we pass to select().
         if (waitData.readFds != null) {
           waitData.readOffset = readCount;
-          readCount += addFileDescriptors(
-              allFds, READ_OFFSET + readCount, waitData.readFds);
+          readCount += addFileDescriptors(allFds, READ_OFFSET + readCount, waitData.readFds);
         }
         if (waitData.writeFds != null) {
           waitData.writeOffset = writeCount;
-          writeCount += addFileDescriptors(
-              allFds, WRITE_OFFSET + writeCount, waitData.writeFds);
+          writeCount += addFileDescriptors(allFds, WRITE_OFFSET + writeCount, waitData.writeFds);
         }
         if (waitData.exceptFds != null) {
           waitData.exceptOffset = exceptCount;
-          exceptCount += addFileDescriptors(
-              allFds, EXCEPT_OFFSET + exceptCount, waitData.exceptFds);
+          exceptCount += addFileDescriptors(allFds, EXCEPT_OFFSET + exceptCount, waitData.exceptFds);
         }
       }
 
@@ -231,10 +228,7 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
     // Do the select()
     VM_Processor.getCurrentProcessor().isInSelect = true;
     selectInProgressMutex.lock();
-    int ret = sysCall.sysNetSelect(allFds,
-                                   readCount,
-                                   writeCount,
-                                   exceptCount);
+    int ret = sysCall.sysNetSelect(allFds, readCount, writeCount, exceptCount);
     selectInProgressMutex.unlock();
     VM_Processor.getCurrentProcessor().isInSelect = false;
 
@@ -265,12 +259,9 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
     // and set the FD_READY_BIT in any of them that are now ready.
     // Also, set FD_INVALID_BIT in any fds that are invalid.
     int numReady = 0;
-    numReady += updateStatus(
-        waitData.readFds, waitData.readOffset, allFds, READ_OFFSET);
-    numReady += updateStatus(
-        waitData.writeFds, waitData.writeOffset, allFds, WRITE_OFFSET);
-    numReady += updateStatus(
-        waitData.exceptFds, waitData.exceptOffset, allFds, EXCEPT_OFFSET);
+    numReady += updateStatus(waitData.readFds, waitData.readOffset, allFds, READ_OFFSET);
+    numReady += updateStatus(waitData.writeFds, waitData.writeOffset, allFds, WRITE_OFFSET);
+    numReady += updateStatus(waitData.exceptFds, waitData.exceptOffset, allFds, EXCEPT_OFFSET);
 
     // If any fds became ready, then this thread is a candidate for
     // being scheduled.

@@ -73,9 +73,8 @@ public class VM_JavaHeader implements VM_JavaHeaderConstants {
   protected static final int OBJECT_REF_OFFSET = ARRAY_HEADER_SIZE;  // from start to ref
   protected static final Offset TIB_OFFSET = JAVA_HEADER_OFFSET;
   protected static final Offset STATUS_OFFSET = TIB_OFFSET.plus(STATUS_BYTES);
-  protected static final Offset AVAILABLE_BITS_OFFSET = VM.LittleEndian
-                                                        ? (STATUS_OFFSET)
-                                                        : (STATUS_OFFSET.plus(STATUS_BYTES - 1));
+  protected static final Offset AVAILABLE_BITS_OFFSET =
+      VM.LittleEndian ? (STATUS_OFFSET) : (STATUS_OFFSET.plus(STATUS_BYTES - 1));
 
   /*
    * Used for 10 bit header hash code in header (!ADDRESS_BASED_HASHING)
@@ -192,8 +191,7 @@ public class VM_JavaHeader implements VM_JavaHeaderConstants {
    * Set the TIB for an object.
    */
   @Interruptible
-  public static void setTIB(BootImageInterface bootImage, Address refOffset,
-                            Address tibAddr, VM_Type type) {
+  public static void setTIB(BootImageInterface bootImage, Address refOffset, Address tibAddr, VM_Type type) {
     bootImage.setAddressWord(refOffset.plus(TIB_OFFSET), tibAddr.toWord(), false);
   }
 
@@ -327,8 +325,7 @@ public class VM_JavaHeader implements VM_JavaHeaderConstants {
    * Get the next scalar in the heap under contiguous
    * allocation. Handles alignment issues
    */
-  public static ObjectReference getNextObject(ObjectReference obj,
-                                              VM_Class type) {
+  public static ObjectReference getNextObject(ObjectReference obj, VM_Class type) {
     return getObjectFromStartAddress(getObjectEndAddress(obj.toObject(), type));
   }
 
@@ -336,8 +333,7 @@ public class VM_JavaHeader implements VM_JavaHeaderConstants {
    * Get the next array in the heap under contiguous
    * allocation. Handles alignment issues
    */
-  public static ObjectReference getNextObject(ObjectReference obj,
-                                              VM_Array type, int numElements) {
+  public static ObjectReference getNextObject(ObjectReference obj, VM_Array type, int numElements) {
     return getObjectFromStartAddress(getObjectEndAddress(obj.toObject(), type, numElements));
   }
 
@@ -374,9 +370,7 @@ public class VM_JavaHeader implements VM_JavaHeaderConstants {
    * Copy a scalar to the given raw storage address
    */
   @Inline
-  public static Object moveObject(Address toAddress, Object fromObj,
-                                  int numBytes, boolean noGCHeader,
-                                  VM_Class type) {
+  public static Object moveObject(Address toAddress, Object fromObj, int numBytes, boolean noGCHeader, VM_Class type) {
 
     // We copy arrays and scalars the same way
     return moveObject(toAddress, fromObj, null, numBytes, noGCHeader);
@@ -386,9 +380,7 @@ public class VM_JavaHeader implements VM_JavaHeaderConstants {
    * Copy an array to the given location.
    */
   @Inline
-  public static Object moveObject(Object fromObj, Object toObj,
-                                  int numBytes, boolean noGCHeader,
-                                  VM_Class type) {
+  public static Object moveObject(Object fromObj, Object toObj, int numBytes, boolean noGCHeader, VM_Class type) {
 
     // We copy arrays and scalars the same way
     return moveObject(Address.zero(), fromObj, toObj, numBytes, noGCHeader);
@@ -398,9 +390,7 @@ public class VM_JavaHeader implements VM_JavaHeaderConstants {
    * Copy an array to the given raw storage address
    */
   @Inline
-  public static Object moveObject(Address toAddress, Object fromObj,
-                                  int numBytes, boolean noGCHeader,
-                                  VM_Array type) {
+  public static Object moveObject(Address toAddress, Object fromObj, int numBytes, boolean noGCHeader, VM_Array type) {
 
     // We copy arrays and scalars the same way
     return moveObject(toAddress, fromObj, null, numBytes, noGCHeader);
@@ -410,9 +400,7 @@ public class VM_JavaHeader implements VM_JavaHeaderConstants {
    * Copy an array to the given location.
    */
   @Inline
-  public static Object moveObject(Object fromObj, Object toObj,
-                                  int numBytes, boolean noGCHeader,
-                                  VM_Array type) {
+  public static Object moveObject(Object fromObj, Object toObj, int numBytes, boolean noGCHeader, VM_Array type) {
 
     // We copy arrays and scalars the same way
     return moveObject(Address.zero(), fromObj, toObj, numBytes, noGCHeader);
@@ -422,9 +410,7 @@ public class VM_JavaHeader implements VM_JavaHeaderConstants {
    * Copy an object to the given raw storage address
    */
   @Inline
-  public static Object moveObject(Address toAddress, Object fromObj,
-                                  Object toObj, int numBytes,
-                                  boolean noGCHeader) {
+  public static Object moveObject(Address toAddress, Object fromObj, Object toObj, int numBytes, boolean noGCHeader) {
 
     // Default values
     int copyBytes = numBytes;
@@ -506,9 +492,9 @@ public class VM_JavaHeader implements VM_JavaHeaderConstants {
           if (DYNAMIC_HASH_OFFSET) {
             // Read the size of this object.
             VM_Type t = VM_Magic.getObjectType(o);
-            int offset = t.isArrayType()
-                         ? t.asArray().getInstanceSize(VM_Magic.getArrayLength(o)) - OBJECT_REF_OFFSET
-                         : t.asClass().getInstanceSize() - OBJECT_REF_OFFSET;
+            int offset =
+                t.isArrayType() ? t.asArray().getInstanceSize(VM_Magic.getArrayLength(o)) -
+                                  OBJECT_REF_OFFSET : t.asClass().getInstanceSize() - OBJECT_REF_OFFSET;
             return VM_Magic.getIntAtOffset(o, Offset.fromIntSignExtend(offset));
           } else {
             return (VM_Magic.getIntAtOffset(o, HASHCODE_OFFSET) >>> 1);
@@ -638,8 +624,7 @@ public class VM_JavaHeader implements VM_JavaHeaderConstants {
    * Non-atomic write of word containing available bits
    */
   @Interruptible
-  public static void writeAvailableBitsWord(BootImageInterface bootImage,
-                                            Address ref, Word val) {
+  public static void writeAvailableBitsWord(BootImageInterface bootImage, Address ref, Word val) {
     bootImage.setAddressWord(ref.plus(STATUS_OFFSET), val, false);
   }
 
@@ -691,8 +676,7 @@ public class VM_JavaHeader implements VM_JavaHeaderConstants {
   /**
    * An attempt on the word containing the available bits
    */
-  public static boolean attemptAvailableBits(Object o, Word oldVal,
-                                             Word newVal) {
+  public static boolean attemptAvailableBits(Object o, Word oldVal, Word newVal) {
     return VM_Magic.attemptWord(o, STATUS_OFFSET, oldVal, newVal);
   }
 
@@ -826,8 +810,7 @@ public class VM_JavaHeader implements VM_JavaHeaderConstants {
    * @param tib the TIB of the instance being created
    * @param size the number of bytes allocated by the GC system for this object.
    */
-  public static Object initializeScalarHeader(Address ptr, Object[] tib,
-                                              int size) {
+  public static Object initializeScalarHeader(Address ptr, Object[] tib, int size) {
     // (TIB set by VM_ObjectModel)
     Object ref = VM_Magic.addressAsObject(ptr.plus(OBJECT_REF_OFFSET));
     return ref;
@@ -841,9 +824,7 @@ public class VM_JavaHeader implements VM_JavaHeaderConstants {
    * @param size The number of bytes allocated by the GC system for this object.
    */
   @Interruptible
-  public static Address initializeScalarHeader(BootImageInterface bootImage,
-                                               Address ptr, Object[] tib,
-                                               int size) {
+  public static Address initializeScalarHeader(BootImageInterface bootImage, Address ptr, Object[] tib, int size) {
     Address ref = ptr.plus(OBJECT_REF_OFFSET);
     return ref;
   }
@@ -871,9 +852,7 @@ public class VM_JavaHeader implements VM_JavaHeaderConstants {
    * @return Document ME TODO XXX
    */
   @Interruptible
-  public static Address initializeArrayHeader(BootImageInterface bootImage,
-                                              Address ptr,
-                                              Object[] tib, int size) {
+  public static Address initializeArrayHeader(BootImageInterface bootImage, Address ptr, Object[] tib, int size) {
     Address ref = ptr.plus(OBJECT_REF_OFFSET);
     // (TIB set by BootImageWriter; array length set by VM_ObjectModel)
     return ref;
@@ -899,8 +878,7 @@ public class VM_JavaHeader implements VM_JavaHeaderConstants {
    * @param object the number of the register holding the object reference
    */
   @Interruptible
-  public static void baselineEmitLoadTIB(VM_Assembler asm, int dest,
-                                         int object) {
+  public static void baselineEmitLoadTIB(VM_Assembler asm, int dest, int object) {
     VM_Configuration.archHelper.baselineEmitLoadTIB(asm, dest, object, TIB_OFFSET);
   }
 }

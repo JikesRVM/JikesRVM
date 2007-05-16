@@ -117,28 +117,24 @@ public class VM_Statics implements VM_Constants {
    * Mapping from int like literals (ints and floats) to the jtoc slot
    * that contains them.
    */
-  private static final VM_HashMap<Integer, Integer> intSizeLiterals =
-      new VM_HashMap<Integer, Integer>();
+  private static final VM_HashMap<Integer, Integer> intSizeLiterals = new VM_HashMap<Integer, Integer>();
 
   /**
    * Mapping from long like literals (longs and doubles) to the jtoc
    * slot that contains them.
    */
-  private static final VM_HashMap<Long, Integer> longSizeLiterals =
-      new VM_HashMap<Long, Integer>();
+  private static final VM_HashMap<Long, Integer> longSizeLiterals = new VM_HashMap<Long, Integer>();
 
   /**
    * Mapping from object literals to the jtoc slot that contains them.
    */
-  private static final VM_HashMap<Object, Integer> objectLiterals =
-      new VM_HashMap<Object, Integer>();
+  private static final VM_HashMap<Object, Integer> objectLiterals = new VM_HashMap<Object, Integer>();
 
   /**
    * A special mapping from VM_Atom objects to the jtoc slot of String
    * objects that represent the same value.
    */
-  private static final VM_HashMap<VM_Atom, Integer> stringLiterals =
-      new VM_HashMap<VM_Atom, Integer>();
+  private static final VM_HashMap<VM_Atom, Integer> stringLiterals = new VM_HashMap<VM_Atom, Integer>();
 
   /**
    * Conversion from JTOC slot index to JTOC offset.
@@ -272,8 +268,7 @@ public class VM_Statics implements VM_Constants {
    * @return the offset of slot that was allocated
    */
   public static int findOrCreateClassLiteral(int typeReferenceID) {
-    Class<?> literalAsClass =
-        VM_TypeReference.getTypeRef(typeReferenceID).resolve().getClassForType();
+    Class<?> literalAsClass = VM_TypeReference.getTypeRef(typeReferenceID).resolve().getClassForType();
     Integer offAsInt;
     synchronized (objectLiterals) {
       offAsInt = objectLiterals.get(literalAsClass);

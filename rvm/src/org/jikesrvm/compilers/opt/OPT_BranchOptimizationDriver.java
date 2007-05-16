@@ -118,8 +118,7 @@ public abstract class OPT_BranchOptimizationDriver extends OPT_CompilerPhase {
    */
   private static boolean applySimplify(OPT_IR ir) {
     boolean didSomething = false;
-    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks();
-         e.hasMoreElements();) {
+    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
       OPT_BasicBlock bb = e.next();
       didSomething |= OPT_BranchSimplifier.simplify(bb, ir);
     }
@@ -134,12 +133,10 @@ public abstract class OPT_BranchOptimizationDriver extends OPT_CompilerPhase {
    */
   protected boolean applyPeepholeBranchOpts(OPT_IR ir) {
     boolean didSomething = false;
-    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks();
-         e.hasMoreElements();) {
+    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
       OPT_BasicBlock bb = e.next();
       if (!bb.isEmpty()) {
-        for (OPT_InstructionEnumeration ie = bb.enumerateBranchInstructions();
-             ie.hasMoreElements();) {
+        for (OPT_InstructionEnumeration ie = bb.enumerateBranchInstructions(); ie.hasMoreElements();) {
           OPT_Instruction s = ie.next();
           if (optimizeBranchInstruction(ir, s, bb)) {
             didSomething = true;
@@ -160,9 +157,7 @@ public abstract class OPT_BranchOptimizationDriver extends OPT_CompilerPhase {
    * @param bb the containing basic block
    * @return true if an optimization was applied, false otherwise
    */
-  protected abstract boolean optimizeBranchInstruction(OPT_IR ir,
-                                                       OPT_Instruction s,
-                                                       OPT_BasicBlock bb);
+  protected abstract boolean optimizeBranchInstruction(OPT_IR ir, OPT_Instruction s, OPT_BasicBlock bb);
 
   /**
    * Remove unreachable code
@@ -175,9 +170,7 @@ public abstract class OPT_BranchOptimizationDriver extends OPT_CompilerPhase {
 
     // (1) All code in a basic block after an unconditional
     //     trap instruction is dead.
-    for (OPT_Instruction s = ir.firstInstructionInCodeOrder();
-         s != null;
-         s = s.nextInstructionInCodeOrder()) {
+    for (OPT_Instruction s = ir.firstInstructionInCodeOrder(); s != null; s = s.nextInstructionInCodeOrder()) {
       if (Trap.conforms(s)) {
         OPT_Instruction p = s.nextInstructionInCodeOrder();
         if (p.operator() != BBEND) {
@@ -233,8 +226,7 @@ public abstract class OPT_BranchOptimizationDriver extends OPT_CompilerPhase {
    * following s.
    */
   protected final OPT_Instruction firstLabelFollowing(OPT_Instruction s) {
-    for (s = s.nextInstructionInCodeOrder(); s != null;
-         s = s.nextInstructionInCodeOrder()) {
+    for (s = s.nextInstructionInCodeOrder(); s != null; s = s.nextInstructionInCodeOrder()) {
       if (s.operator() == LABEL) {
         return s;
       }
@@ -247,9 +239,7 @@ public abstract class OPT_BranchOptimizationDriver extends OPT_CompilerPhase {
    * following s
    */
   protected final OPT_Instruction firstRealInstructionFollowing(OPT_Instruction s) {
-    for (s = s.nextInstructionInCodeOrder();
-         s != null;
-         s = s.nextInstructionInCodeOrder()) {
+    for (s = s.nextInstructionInCodeOrder(); s != null; s = s.nextInstructionInCodeOrder()) {
       if (s.operator() != LABEL && s.operator() != BBEND) {
         return s;
       }

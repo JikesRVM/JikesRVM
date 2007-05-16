@@ -246,8 +246,7 @@ public class VM_CompiledMethods implements VM_SizeConstants {
 
   // Expand an array.
   //
-  private static VM_CompiledMethod[] growArray(VM_CompiledMethod[] array,
-                                               int newLength) {
+  private static VM_CompiledMethod[] growArray(VM_CompiledMethod[] array, int newLength) {
     VM_CompiledMethod[] newarray = MM_Interface.newContiguousCompiledMethodArray(newLength);
     System.arraycopy(array, 0, newarray, 0, array.length);
     VM_Magic.sync();

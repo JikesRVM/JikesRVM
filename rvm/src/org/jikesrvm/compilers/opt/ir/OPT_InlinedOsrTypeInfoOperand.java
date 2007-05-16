@@ -41,8 +41,7 @@ public final class OPT_InlinedOsrTypeInfoOperand extends OPT_Operand {
      | locals 1 | stacks 1 | locals 2 | stacks 2 | ....
    */
 
-  public OPT_InlinedOsrTypeInfoOperand(int[] mids, int[] cpcs,
-                                       byte[][] ltypes, byte[][] stypes) {
+  public OPT_InlinedOsrTypeInfoOperand(int[] mids, int[] cpcs, byte[][] ltypes, byte[][] stypes) {
     this.methodids = mids;
     this.bcindexes = cpcs;
     this.localTypeCodes = ltypes;
@@ -55,10 +54,7 @@ public final class OPT_InlinedOsrTypeInfoOperand extends OPT_Operand {
    * @return a copy of <code>this</code>
    */
   public OPT_Operand copy() {
-    return new OPT_InlinedOsrTypeInfoOperand(methodids,
-                                             bcindexes,
-                                             localTypeCodes,
-                                             stackTypeCodes);
+    return new OPT_InlinedOsrTypeInfoOperand(methodids, bcindexes, localTypeCodes, stackTypeCodes);
   }
 
   /**
@@ -78,10 +74,11 @@ public final class OPT_InlinedOsrTypeInfoOperand extends OPT_Operand {
 
     OPT_InlinedOsrTypeInfoOperand other = (OPT_InlinedOsrTypeInfoOperand) op;
 
-    result = Arrays.equals(this.methodids, other.methodids)
-             && Arrays.equals(this.bcindexes, other.bcindexes)
-             && Arrays.equals(this.localTypeCodes, other.localTypeCodes)
-             && Arrays.equals(this.stackTypeCodes, other.stackTypeCodes);
+    result =
+        Arrays.equals(this.methodids, other.methodids) &&
+        Arrays.equals(this.bcindexes, other.bcindexes) &&
+        Arrays.equals(this.localTypeCodes, other.localTypeCodes) &&
+        Arrays.equals(this.stackTypeCodes, other.stackTypeCodes);
 
     return result;
   }

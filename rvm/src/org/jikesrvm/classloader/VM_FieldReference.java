@@ -65,8 +65,7 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
    */
   public boolean definitelyDifferent(VM_FieldReference that) {
     if (this == that) return false;
-    if (getName() != that.getName() ||
-        getDescriptor() != that.getDescriptor()) {
+    if (getName() != that.getName() || getDescriptor() != that.getDescriptor()) {
       return true;
     }
     VM_Field mine = peekResolvedField();
@@ -80,8 +79,7 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
    */
   public boolean definitelySame(VM_FieldReference that) {
     if (this == that) return true;
-    if (getName() != that.getName() ||
-        getDescriptor() != that.getDescriptor()) {
+    if (getName() != that.getName() || getDescriptor() != that.getDescriptor()) {
       return false;
     }
     VM_Field mine = peekResolvedField();

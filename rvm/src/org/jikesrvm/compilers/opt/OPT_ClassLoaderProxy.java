@@ -121,8 +121,7 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
         type = type.getArrayTypeForElementType();
       }
       if (OPT_IRGenOptions.DBG_TYPE) {
-        VM.sysWrite("differing dimensionalities for arrays, so supertype is "
-                    + type);
+        VM.sysWrite("differing dimensionalities for arrays, so supertype is " + type);
       }
       return type;
     }
@@ -237,8 +236,7 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
               int LHSDimension = parentType.getDimensionality();
               int RHSDimension = childType.getDimensionality();
               if ((RHSDimension > LHSDimension) ||
-                  (RHSDimension == LHSDimension &&
-                   childType.getInnermostElementType().isClassType())) {
+                  (RHSDimension == LHSDimension && childType.getInnermostElementType().isClassType())) {
                 return YES;
               } else {
                 return NO;
@@ -337,8 +335,7 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
    * Get the integer stored at a particular index of a class's constant
    * pool.
    */
-  public static OPT_IntConstantOperand getIntFromConstantPool(VM_Class klass,
-                                                              int index) {
+  public static OPT_IntConstantOperand getIntFromConstantPool(VM_Class klass, int index) {
     Offset offset = klass.getLiteralOffset(index);
     int val = VM_Statics.getSlotContentsAsInt(offset);
     return new OPT_IntConstantOperand(val);
@@ -348,8 +345,7 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
    * Get the double stored at a particular index of a class's constant
    * pool.
    */
-  public static OPT_DoubleConstantOperand getDoubleFromConstantPool(VM_Class klass,
-                                                                    int index) {
+  public static OPT_DoubleConstantOperand getDoubleFromConstantPool(VM_Class klass, int index) {
     Offset offset = klass.getLiteralOffset(index);
     long val_raw = VM_Statics.getSlotContentsAsLong(offset);
     double val = Double.longBitsToDouble(val_raw);
@@ -360,8 +356,7 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
    * Get the float stored at a particular index of a class's constant
    * pool.
    */
-  public static OPT_FloatConstantOperand getFloatFromConstantPool(VM_Class klass,
-                                                                  int index) {
+  public static OPT_FloatConstantOperand getFloatFromConstantPool(VM_Class klass, int index) {
     Offset offset = klass.getLiteralOffset(index);
     int val_raw = VM_Statics.getSlotContentsAsInt(offset);
     float val = Float.intBitsToFloat(val_raw);
@@ -372,8 +367,7 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
    * Get the long stored at a particular index of a class's constant
    * pool.
    */
-  public static OPT_LongConstantOperand getLongFromConstantPool(VM_Class klass,
-                                                                int index) {
+  public static OPT_LongConstantOperand getLongFromConstantPool(VM_Class klass, int index) {
     Offset offset = klass.getLiteralOffset(index);
     long val = VM_Statics.getSlotContentsAsLong(offset);
     return new OPT_LongConstantOperand(val, offset);

@@ -34,11 +34,8 @@ import org.vmmagic.unboxed.Word;
  * baseline compiler.
  */
 
-public abstract class OSR_BaselineExecStateExtractor
-    extends OSR_ExecStateExtractor implements VM_Constants,
-                                              VM_ArchConstants,
-                                              OSR_Constants,
-                                              OPT_PhysicalRegisterConstants {
+public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtractor
+    implements VM_Constants, VM_ArchConstants, OSR_Constants, OPT_PhysicalRegisterConstants {
 
   /**
    * Implements OSR_ExecStateExtractor.extractState.
@@ -50,10 +47,7 @@ public abstract class OSR_BaselineExecStateExtractor
    *
    * return a OSR_ExecStateExtractor object.
    */
-  public OSR_ExecutionState extractState(VM_Thread thread,
-                                         Offset osrFPoff,
-                                         Offset methFPoff,
-                                         int cmid) {
+  public OSR_ExecutionState extractState(VM_Thread thread, Offset osrFPoff, Offset methFPoff, int cmid) {
 
     /* performs architecture and compiler dependent operations here
     *
@@ -84,8 +78,7 @@ public abstract class OSR_BaselineExecStateExtractor
     byte[] stack = thread.stack;
 
     if (VM.VerifyAssertions) {
-      int fooCmid = VM_Magic.getIntAtOffset(stack,
-                                            methFPoff.plus(STACKFRAME_METHOD_ID_OFFSET));
+      int fooCmid = VM_Magic.getIntAtOffset(stack, methFPoff.plus(STACKFRAME_METHOD_ID_OFFSET));
 
       if (VM.TraceOnStackReplacement) {
         VM.sysWriteln("fooCmid = " + fooCmid);
@@ -95,8 +88,7 @@ public abstract class OSR_BaselineExecStateExtractor
       VM._assert(fooCmid == cmid);
     }
 
-    VM_BaselineCompiledMethod fooCM =
-        (VM_BaselineCompiledMethod) VM_CompiledMethods.getCompiledMethod(cmid);
+    VM_BaselineCompiledMethod fooCM = (VM_BaselineCompiledMethod) VM_CompiledMethods.getCompiledMethod(cmid);
 
     VM_NormalMethod fooM = (VM_NormalMethod) fooCM.getMethod();
 
@@ -127,11 +119,7 @@ public abstract class OSR_BaselineExecStateExtractor
     }
 
     // create execution state object
-    OSR_ExecutionState state = new OSR_ExecutionState(thread,
-                                                      methFPoff,
-                                                      cmid,
-                                                      bcIndex,
-                                                      osrFPoff);
+    OSR_ExecutionState state = new OSR_ExecutionState(thread, methFPoff, cmid, bcIndex, osrFPoff);
 
     /* extract values for local and stack, but first of all
      * we need to get type information for current PC.
@@ -181,20 +169,10 @@ public abstract class OSR_BaselineExecStateExtractor
     Offset stackOffset = methFPoff.plus(fooCM.getEmptyStackOffset());
 
     // for locals
-    getVariableValue(stack,
-                     startLocalOffset,
-                     localTypes,
-                     fooCM,
-                     LOCAL,
-                     state);
+    getVariableValue(stack, startLocalOffset, localTypes, fooCM, LOCAL, state);
 
     // for stacks
-    getVariableValue(stack,
-                     stackOffset,
-                     stackTypes,
-                     fooCM,
-                     STACK,
-                     state);
+    getVariableValue(stack, stackOffset, stackTypes, fooCM, STACK, state);
 
     if (VM.TraceOnStackReplacement) {
       state.printState();
@@ -207,12 +185,8 @@ public abstract class OSR_BaselineExecStateExtractor
   }
 
   /* go over local/stack array, and build OSR_VariableElement. */
-  private static void getVariableValue(byte[] stack,
-                                       Offset offset,
-                                       byte[] types,
-                                       VM_BaselineCompiledMethod compiledMethod,
-                                       int kind,
-                                       OSR_ExecutionState state) {
+  private static void getVariableValue(byte[] stack, Offset offset, byte[] types,
+                                       VM_BaselineCompiledMethod compiledMethod, int kind, OSR_ExecutionState state) {
     int size = types.length;
     Offset vOffset = offset;
     for (int i = 0; i < size; i++) {
@@ -238,10 +212,7 @@ public abstract class OSR_BaselineExecStateExtractor
 
           int tcode = (types[i] == FloatTypeCode) ? FLOAT : INT;
 
-          state.add(new OSR_VariableElement(kind,
-                                            i,
-                                            tcode,
-                                            value));
+          state.add(new OSR_VariableElement(kind, i, tcode, value));
           break;
         }
         case LongTypeCode:
@@ -254,10 +225,7 @@ public abstract class OSR_BaselineExecStateExtractor
 
           int tcode = (types[i] == LongTypeCode) ? LONG : DOUBLE;
 
-          state.add(new OSR_VariableElement(kind,
-                                            i,
-                                            tcode,
-                                            value));
+          state.add(new OSR_VariableElement(kind, i, tcode, value));
 
           if (kind == LOCAL) { //KV:VoidTypeCode is next
             vOffset = vOffset.minus(2 * BYTES_IN_STACKSLOT);
@@ -281,17 +249,13 @@ public abstract class OSR_BaselineExecStateExtractor
             VM.sysWrite("baseline ret_addr ip ", ipIndex, " --> ");
           }
 
-          int bcIndex =
-              compiledMethod.findBytecodeIndexForInstruction(ipOffset.plus(INSTRUCTION_WIDTH));
+          int bcIndex = compiledMethod.findBytecodeIndexForInstruction(ipOffset.plus(INSTRUCTION_WIDTH));
 
           if (VM.TraceOnStackReplacement) {
             VM.sysWrite(" bc " + bcIndex + "\n");
           }
 
-          state.add(new OSR_VariableElement(kind,
-                                            i,
-                                            RET_ADDR,
-                                            bcIndex));
+          state.add(new OSR_VariableElement(kind, i, RET_ADDR, bcIndex));
           break;
         }
 
@@ -303,20 +267,14 @@ public abstract class OSR_BaselineExecStateExtractor
 
           vOffset = vOffset.minus(BYTES_IN_STACKSLOT);
 
-          state.add(new OSR_VariableElement(kind,
-                                            i,
-                                            REF,
-                                            ref));
+          state.add(new OSR_VariableElement(kind, i, REF, ref));
           break;
         }
         case WordTypeCode: {
           Word value = VM_Magic.getWordAtOffset(stack, vOffset.minus(BYTES_IN_ADDRESS));
           vOffset = vOffset.minus(BYTES_IN_STACKSLOT);
 
-          state.add(new OSR_VariableElement(kind,
-                                            i,
-                                            WORD,
-                                            value));
+          state.add(new OSR_VariableElement(kind, i, WORD, value));
           break;
         }
         default:

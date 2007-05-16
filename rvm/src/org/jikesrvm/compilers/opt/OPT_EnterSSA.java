@@ -181,8 +181,7 @@ public class OPT_EnterSSA extends OPT_CompilerPhase {
     if (ir.options.PRINT_SSA) {
       OPT_SSA.printInstructions(ir);
     }
-    computeSSA(ir, scalarsOnly, backwards, heapTypes,
-               insertUsePhis, insertPEIDeps, excludeGuards);
+    computeSSA(ir, scalarsOnly, backwards, heapTypes, insertUsePhis, insertPEIDeps, excludeGuards);
     // reset the SSAOptions
     ir.actualSSAOptions = new OPT_SSAOptions();
     ir.actualSSAOptions.setScalarsOnly(scalarsOnly);
@@ -270,8 +269,7 @@ public class OPT_EnterSSA extends OPT_CompilerPhase {
           if (v != null) {
             OPT_Register orig = v.register;
             {
-              OPT_BasicBlockEnumeration out =
-                  block.getApplicableExceptionalOut(pei);
+              OPT_BasicBlockEnumeration out = block.getApplicableExceptionalOut(pei);
               while (out.hasMoreElements()) {
                 OPT_BasicBlock exp = out.next();
                 OPT_LiveSet explive = live.getLiveInfo(exp).in();
@@ -282,8 +280,7 @@ public class OPT_EnterSSA extends OPT_CompilerPhase {
               }
             }
             if (copyNeeded) {
-              OPT_BasicBlockEnumeration out =
-                  block.getApplicableExceptionalOut(pei);
+              OPT_BasicBlockEnumeration out = block.getApplicableExceptionalOut(pei);
               while (out.hasMoreElements()) {
                 OPT_BasicBlock exp = out.next();
                 needed.add(new OPT_Pair(exp, v));
@@ -301,13 +298,11 @@ public class OPT_EnterSSA extends OPT_CompilerPhase {
         VM_TypeReference type = registerOp.type;
         OPT_Register register = registerOp.register;
         OPT_Register temp = ir.regpool.getReg(register);
-        inBlock.prependInstruction(OPT_SSA.makeMoveInstruction(ir, register,
-                                                               temp, type));
+        inBlock.prependInstruction(OPT_SSA.makeMoveInstruction(ir, register, temp, type));
         OPT_BasicBlockEnumeration outBlocks = inBlock.getIn();
         while (outBlocks.hasMoreElements()) {
           OPT_BasicBlock outBlock = outBlocks.next();
-          OPT_Instruction x = OPT_SSA.makeMoveInstruction(ir, temp, register,
-                                                          type);
+          OPT_Instruction x = OPT_SSA.makeMoveInstruction(ir, temp, register, type);
           OPT_SSA.addAtEnd(ir, outBlock, x, true);
         }
       }
@@ -339,21 +334,16 @@ public class OPT_EnterSSA extends OPT_CompilerPhase {
    * code placement algorithms.
    * @param excludeGuards Should we exclude guard registers from SSA?
    */
-  private void computeSSA(OPT_IR ir, boolean scalarsOnly, boolean backwards,
-                          Set<Object> heapTypes, boolean insertUsePhis,
-                          boolean insertPEIDeps, boolean excludeGuards) {
+  private void computeSSA(OPT_IR ir, boolean scalarsOnly, boolean backwards, Set<Object> heapTypes,
+                          boolean insertUsePhis, boolean insertPEIDeps, boolean excludeGuards) {
     // if reads Kill.  model this with uphis.
     if (ir.options.READS_KILL) insertUsePhis = true;
 
     // reset Array SSA information
     if (!scalarsOnly) {
-      ir.HIRInfo.SSADictionary = new OPT_SSADictionary(heapTypes,
-                                                       insertUsePhis,
-                                                       insertPEIDeps, ir);
+      ir.HIRInfo.SSADictionary = new OPT_SSADictionary(heapTypes, insertUsePhis, insertPEIDeps, ir);
     } else {
-      ir.HIRInfo.SSADictionary = new OPT_SSADictionary(null,
-                                                       insertUsePhis,
-                                                       insertPEIDeps, ir);
+      ir.HIRInfo.SSADictionary = new OPT_SSADictionary(null, insertUsePhis, insertPEIDeps, ir);
     }
     if (DEBUG) System.out.println("Computing register lists...");
 
@@ -424,11 +414,9 @@ public class OPT_EnterSSA extends OPT_CompilerPhase {
    */
   private void registerExits(OPT_IR ir) {
     OPT_SSADictionary dictionary = ir.HIRInfo.SSADictionary;
-    for (OPT_BasicBlockEnumeration bbe = ir.getBasicBlocks();
-         bbe.hasMoreElements();) {
+    for (OPT_BasicBlockEnumeration bbe = ir.getBasicBlocks(); bbe.hasMoreElements();) {
       OPT_BasicBlock b = bbe.next();
-      for (OPT_InstructionEnumeration e = b.forwardInstrEnumerator();
-           e.hasMoreElements();) {
+      for (OPT_InstructionEnumeration e = b.forwardInstrEnumerator(); e.hasMoreElements();) {
         OPT_Instruction s = e.nextElement();
         // we already handled calls in a previous pass.
         if (Call.conforms(s)) {
@@ -451,17 +439,18 @@ public class OPT_EnterSSA extends OPT_CompilerPhase {
    */
   private void registerCalls(OPT_IR ir) {
     OPT_SSADictionary dictionary = ir.HIRInfo.SSADictionary;
-    for (OPT_BasicBlockEnumeration bbe = ir.getBasicBlocks();
-         bbe.hasMoreElements();) {
+    for (OPT_BasicBlockEnumeration bbe = ir.getBasicBlocks(); bbe.hasMoreElements();) {
       OPT_BasicBlock b = bbe.next();
-      for (OPT_InstructionEnumeration e = b.forwardInstrEnumerator();
-           e.hasMoreElements();) {
+      for (OPT_InstructionEnumeration e = b.forwardInstrEnumerator(); e.hasMoreElements();) {
         OPT_Instruction s = e.next();
         boolean isSynch = (s.operator() == READ_CEILING) || (s.operator() == WRITE_FLOOR);
-        if (isSynch || Call.conforms(s) ||
-            MonitorOp.conforms(s) || Prepare.conforms(s) || Attempt.conforms(s)
-            || CacheOp.conforms(s)
-            || s.isDynamicLinkingPoint()) {
+        if (isSynch ||
+            Call.conforms(s) ||
+            MonitorOp.conforms(s) ||
+            Prepare.conforms(s) ||
+            Attempt.conforms(s) ||
+            CacheOp.conforms(s) ||
+            s.isDynamicLinkingPoint()) {
           dictionary.registerUnknown(s, b);
         }
       }
@@ -476,17 +465,19 @@ public class OPT_EnterSSA extends OPT_CompilerPhase {
    */
   private void registerHeapVariables(OPT_IR ir) {
     OPT_SSADictionary dictionary = ir.HIRInfo.SSADictionary;
-    for (OPT_BasicBlockEnumeration bbe = ir.getBasicBlocks();
-         bbe.hasMoreElements();) {
+    for (OPT_BasicBlockEnumeration bbe = ir.getBasicBlocks(); bbe.hasMoreElements();) {
       OPT_BasicBlock b = bbe.next();
-      for (OPT_InstructionEnumeration e = b.forwardInstrEnumerator();
-           e.hasMoreElements();) {
+      for (OPT_InstructionEnumeration e = b.forwardInstrEnumerator(); e.hasMoreElements();) {
         OPT_Instruction s = e.next();
-        if (s.isImplicitLoad() || s.isImplicitStore() || s.isAllocation()
-            || Phi.conforms(s) || s.isPEI()
-            || Label.conforms(s) || BBend.conforms(s)
-            || s.operator.opcode == UNINT_BEGIN_opcode
-            || s.operator.opcode == UNINT_END_opcode) {
+        if (s.isImplicitLoad() ||
+            s.isImplicitStore() ||
+            s.isAllocation() ||
+            Phi.conforms(s) ||
+            s.isPEI() ||
+            Label.conforms(s) ||
+            BBend.conforms(s) ||
+            s.operator.opcode == UNINT_BEGIN_opcode ||
+            s.operator.opcode == UNINT_END_opcode) {
           dictionary.registerInstruction(s, b);
         }
       }
@@ -541,13 +532,11 @@ public class OPT_EnterSSA extends OPT_CompilerPhase {
     }
 
     // loop over each basic block
-    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks();
-         e.hasMoreElements();) {
+    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
       OPT_BasicBlock bb = e.next();
       int bbNumber = bb.getNumber();
       // visit each instruction in the basic block
-      for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator();
-           ie.hasMoreElements();) {
+      for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
         OPT_Instruction s = ie.next();
         // record each def in the instruction
         // skip SSA defs
@@ -581,9 +570,7 @@ public class OPT_EnterSSA extends OPT_CompilerPhase {
    *            symbolic register i.
    * @param symbolics symbolics[i] is symbolic register number i
    */
-  private void insertPhiFunctions(OPT_IR ir, OPT_BitVector[] defs,
-                                  OPT_Register[] symbolics,
-                                  boolean excludeGuards) {
+  private void insertPhiFunctions(OPT_IR ir, OPT_BitVector[] defs, OPT_Register[] symbolics, boolean excludeGuards) {
     for (int r = 0; r < defs.length; r++) {
       if (symbolics[r] == null) continue;
       if (symbolics[r].isSSA()) continue;
@@ -616,9 +603,7 @@ public class OPT_EnterSSA extends OPT_CompilerPhase {
    * @param ir the governing IR
    * @param defs set of nodes that define register r
    */
-  private void removePhisThatDominateAllDefs(OPT_BitVector needsPhi,
-                                             OPT_IR ir,
-                                             OPT_BitVector defs) {
+  private void removePhisThatDominateAllDefs(OPT_BitVector needsPhi, OPT_IR ir, OPT_BitVector defs) {
     for (int i = 0; i < needsPhi.length(); i++) {
       if (!needsPhi.get(i)) {
         continue;
@@ -673,8 +658,7 @@ public class OPT_EnterSSA extends OPT_CompilerPhase {
    */
   private OPT_Register[] getSymbolicRegisters() {
     OPT_Register[] map = new OPT_Register[ir.getNumberOfSymbolicRegisters()];
-    for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); reg != null;
-         reg = reg.getNext()) {
+    for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); reg != null; reg = reg.getNext()) {
       int number = reg.getNumber();
       map[number] = reg;
     }
@@ -755,8 +739,7 @@ public class OPT_EnterSSA extends OPT_CompilerPhase {
    */
   private void search(OPT_BasicBlock X, Stack<OPT_RegisterOperand>[] S) {
     if (DEBUG) System.out.println("SEARCH " + X);
-    for (OPT_InstructionEnumeration ie =
-        X.forwardInstrEnumerator(); ie.hasMoreElements();) {
+    for (OPT_InstructionEnumeration ie = X.forwardInstrEnumerator(); ie.hasMoreElements();) {
       OPT_Instruction A = ie.next();
       if (A.operator() != PHI) {
         // replace each use
@@ -828,15 +811,13 @@ public class OPT_EnterSSA extends OPT_CompilerPhase {
     } // end of second loop
 
     if (DEBUG) System.out.println("SEARCH (third loop) " + X);
-    for (Enumeration<OPT_TreeNode> c = ir.HIRInfo.dominatorTree.getChildren(X);
-         c.hasMoreElements();) {
+    for (Enumeration<OPT_TreeNode> c = ir.HIRInfo.dominatorTree.getChildren(X); c.hasMoreElements();) {
       OPT_DominatorTreeNode v = (OPT_DominatorTreeNode) c.nextElement();
       search(v.getBlock(), S);
     } // end of third loop
 
     if (DEBUG) System.out.println("SEARCH (fourth loop) " + X);
-    for (OPT_InstructionEnumeration a = X.forwardInstrEnumerator();
-         a.hasMoreElements();) {
+    for (OPT_InstructionEnumeration a = X.forwardInstrEnumerator(); a.hasMoreElements();) {
       OPT_Instruction A = a.next();
       // loop over each def
       for (int d = 0; d < A.getNumberOfDefs(); d++) {
@@ -871,12 +852,10 @@ public class OPT_EnterSSA extends OPT_CompilerPhase {
     // stacks implements a mapping from type to Stack.
     // Example: to get the stack of names for HEAP<int> variables,
     // use stacks.get(OPT_ClassLoaderProxy.IntType);
-    HashMap<Object, Stack<OPT_HeapOperand<Object>>> stacks =
-        new HashMap<Object, Stack<OPT_HeapOperand<Object>>>(n);
+    HashMap<Object, Stack<OPT_HeapOperand<Object>>> stacks = new HashMap<Object, Stack<OPT_HeapOperand<Object>>>(n);
     // populate the stacks variable with the initial heap variable
     // names, currently stored in the SSADictionary
-    for (Iterator<OPT_HeapVariable<Object>> e = ir.HIRInfo.SSADictionary.getHeapVariables();
-         e.hasNext();) {
+    for (Iterator<OPT_HeapVariable<Object>> e = ir.HIRInfo.SSADictionary.getHeapVariables(); e.hasNext();) {
       OPT_HeapVariable<Object> H = e.next();
       Stack<OPT_HeapOperand<Object>> S = new Stack<OPT_HeapOperand<Object>>();
       S.push(new OPT_HeapOperand<Object>(H));
@@ -899,8 +878,7 @@ public class OPT_EnterSSA extends OPT_CompilerPhase {
    * variable
    * used and defined by each instruction.
    */
-  private void search2(OPT_BasicBlock X,
-                       HashMap<Object, Stack<OPT_HeapOperand<Object>>> stacks) {
+  private void search2(OPT_BasicBlock X, HashMap<Object, Stack<OPT_HeapOperand<Object>>> stacks) {
     if (DEBUG) System.out.println("SEARCH2 " + X);
     OPT_SSADictionary dictionary = ir.HIRInfo.SSADictionary;
     for (Enumeration<OPT_Instruction> ie = dictionary.getAllInstructions(X); ie.hasMoreElements();) {
@@ -1024,11 +1002,9 @@ public class OPT_EnterSSA extends OPT_CompilerPhase {
   @SuppressWarnings("unused")
   private void copyHeapDefs(OPT_IR ir, HashMap<OPT_Instruction, OPT_HeapOperand<?>[]> store) {
     OPT_SSADictionary dictionary = ir.HIRInfo.SSADictionary;
-    for (OPT_BasicBlockEnumeration be = ir.forwardBlockEnumerator();
-         be.hasMoreElements();) {
+    for (OPT_BasicBlockEnumeration be = ir.forwardBlockEnumerator(); be.hasMoreElements();) {
       OPT_BasicBlock bb = be.next();
-      for (Enumeration<OPT_Instruction> e = dictionary.getAllInstructions(bb);
-           e.hasMoreElements();) {
+      for (Enumeration<OPT_Instruction> e = dictionary.getAllInstructions(bb); e.hasMoreElements();) {
         OPT_Instruction s = e.nextElement();
         store.put(s, ir.HIRInfo.SSADictionary.getHeapDefs(s));
       }

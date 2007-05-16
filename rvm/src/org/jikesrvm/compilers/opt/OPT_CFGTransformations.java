@@ -162,8 +162,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase {
       frequency += edgeFrequency(bb, n.header);
     }
     OPT_BasicBlock newPred;
-    newPred = n.header.createSubBlock(n.header.firstInstruction().bcIndex,
-                                      ir, 1f);
+    newPred = n.header.createSubBlock(n.header.firstInstruction().bcIndex, ir, 1f);
     newPred.setLandingPad();
     newPred.setExecutionFrequency(frequency);
 
@@ -174,8 +173,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase {
     ir.cfg.linkInCodeOrder(p, newPred);
     ir.cfg.linkInCodeOrder(newPred, n.header);
 
-    newPred.lastInstruction().insertBefore
-        (Goto.create(GOTO, n.header.makeJumpTarget()));
+    newPred.lastInstruction().insertBefore(Goto.create(GOTO, n.header.makeJumpTarget()));
     newPred.recomputeNormalOut(ir);
 
     for (OPT_BasicBlock bb : ps) {

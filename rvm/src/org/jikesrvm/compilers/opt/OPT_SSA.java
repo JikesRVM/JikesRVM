@@ -102,8 +102,7 @@ class OPT_SSA {
    * @param exp whether or not to respect exception control flow at the
    *            end of the block
    */
-  static void addAtEnd(OPT_IR ir, OPT_BasicBlock bb, OPT_Instruction c,
-                       boolean exp) {
+  static void addAtEnd(OPT_IR ir, OPT_BasicBlock bb, OPT_Instruction c, boolean exp) {
     if (exp) {
       bb.appendInstructionRespectingTerminalBranchOrPEI(c);
     } else {
@@ -122,8 +121,7 @@ class OPT_SSA {
         if (lhs.similar(op)) {
           if (aux == null) {
             aux = ir.regpool.makeTemp(lhs);
-            c.insertBefore(makeMoveInstruction(ir, aux.register, lhs.register,
-                                               lhs.type));
+            c.insertBefore(makeMoveInstruction(ir, aux.register, lhs.register, lhs.type));
           }
           op.asRegister().register = aux.register;
         }
@@ -143,8 +141,7 @@ class OPT_SSA {
     for (OPT_BasicBlockEnumeration be = ir.forwardBlockEnumerator(); be.hasMoreElements();) {
       OPT_BasicBlock bb = be.next();
       // print the explicit instructions for basic block bb
-      for (Enumeration<OPT_Instruction> e = dictionary.getAllInstructions(bb);
-           e.hasMoreElements();) {
+      for (Enumeration<OPT_Instruction> e = dictionary.getAllInstructions(bb); e.hasMoreElements();) {
         OPT_Instruction s = e.nextElement();
         System.out.print(s.bcIndex + "\t" + s);
         if (dictionary.defsHeapVariable(s) && s.operator != PHI) {
@@ -179,9 +176,7 @@ class OPT_SSA {
    * @param r2 the source
    * @param t the type of r1 and r2.
    */
-  static OPT_Instruction makeMoveInstruction(OPT_IR ir, OPT_Register r1,
-                                             OPT_Register r2,
-                                             VM_TypeReference t) {
+  static OPT_Instruction makeMoveInstruction(OPT_IR ir, OPT_Register r1, OPT_Register r2, VM_TypeReference t) {
     OPT_Operator mv = OPT_IRTools.getMoveOp(t);
     OPT_RegisterOperand o1 = new OPT_RegisterOperand(r1, t);
     OPT_RegisterOperand o2 = new OPT_RegisterOperand(r2, t);
@@ -200,8 +195,7 @@ class OPT_SSA {
    * @param r1 the destination
    * @param c the source
    */
-  static OPT_Instruction makeMoveInstruction(OPT_IR ir, OPT_Register r1,
-                                             OPT_ConstantOperand c) {
+  static OPT_Instruction makeMoveInstruction(OPT_IR ir, OPT_Register r1, OPT_ConstantOperand c) {
     OPT_Operator mv = OPT_IRTools.getMoveOp(c.getType());
     OPT_RegisterOperand o1 = new OPT_RegisterOperand(r1, c.getType());
     OPT_Operand o2 = c.copy();
@@ -220,10 +214,8 @@ class OPT_SSA {
    * @param source the source block to remove from PHIs in target
    * @param target the target block that may contain PHIs to update.
    */
-  static void purgeBlockFromPHIs(OPT_BasicBlock source,
-                                 OPT_BasicBlock target) {
-    for (OPT_InstructionEnumeration e = target.forwardRealInstrEnumerator();
-         e.hasMoreElements();) {
+  static void purgeBlockFromPHIs(OPT_BasicBlock source, OPT_BasicBlock target) {
+    for (OPT_InstructionEnumeration e = target.forwardRealInstrEnumerator(); e.hasMoreElements();) {
       OPT_Instruction s = e.next();
       if (s.operator() != PHI) return; // all done (assume PHIs are first!)
       int numPairs = Phi.getNumberOfPreds(s);
@@ -256,10 +248,8 @@ class OPT_SSA {
    * @param B1 the block to replace in the phi instructions
    * @param B2 the replacement block for B1
    */
-  static void replaceBlockInPhis(OPT_BasicBlock target,
-                                 OPT_BasicBlock B1, OPT_BasicBlock B2) {
-    for (OPT_InstructionEnumeration e = target.forwardRealInstrEnumerator();
-         e.hasMoreElements();) {
+  static void replaceBlockInPhis(OPT_BasicBlock target, OPT_BasicBlock B1, OPT_BasicBlock B2) {
+    for (OPT_InstructionEnumeration e = target.forwardRealInstrEnumerator(); e.hasMoreElements();) {
       OPT_Instruction s = e.next();
       if (s.operator() != PHI) return; // all done (assume PHIs are first!)
       int numPairs = Phi.getNumberOfPreds(s);

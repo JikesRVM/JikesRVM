@@ -108,9 +108,7 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
   public static int expand(OPT_IR ir) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
-    for (OPT_Instruction next, p = ir.firstInstructionInCodeOrder();
-         p != null;
-         p = next) {
+    for (OPT_Instruction next, p = ir.firstInstructionInCodeOrder(); p != null; p = next) {
       next = p.nextInstructionInCodeOrder();
       p.setmcOffset(-1);
       p.scratchObject = null;
@@ -126,9 +124,9 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
           // the base address of this table onto the stack
           int NumTargets = MIR_LowTableSwitch.getNumberOfTargets(p);
           for (int i = 0; i < NumTargets; i++) {
-            thisBlock.appendInstruction(MIR_CaseLabel.create
-                (IA32_OFFSET, IC(i),
-                 MIR_LowTableSwitch.getClearTarget(p, i)));
+            thisBlock.appendInstruction(MIR_CaseLabel.create(IA32_OFFSET,
+                                                             IC(i),
+                                                             MIR_LowTableSwitch.getClearTarget(p, i)));
           }
           // calculate address to which to jump, and store it
           // on the top of the stack
@@ -136,21 +134,27 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
           nextBlock.appendInstruction(MIR_BinaryAcc.create(IA32_SHL,
                                                            new OPT_RegisterOperand(regS, VM_TypeReference.Int),
                                                            IC(2)));
-          nextBlock.appendInstruction(MIR_BinaryAcc.create
-              (IA32_ADD, new OPT_RegisterOperand(regS, VM_TypeReference.Int),
-               OPT_MemoryOperand.I(new OPT_RegisterOperand(phys.getESP(), VM_TypeReference.Int),
-                                   (byte) 4, null, null)));
-          nextBlock.appendInstruction(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(regS, VM_TypeReference.Int),
-                                                      OPT_MemoryOperand.I
-                                                          (new OPT_RegisterOperand(regS, VM_TypeReference.Int),
-                                                           (byte) 4,
-                                                           null,
-                                                           null)));
-          nextBlock.appendInstruction(MIR_BinaryAcc.create
-              (IA32_ADD,
-               OPT_MemoryOperand.I(new OPT_RegisterOperand(phys.getESP(), VM_TypeReference.Int),
-                                   (byte) 4, null, null),
-               new OPT_RegisterOperand(regS, VM_TypeReference.Int)));
+          nextBlock.appendInstruction(MIR_BinaryAcc.create(IA32_ADD,
+                                                           new OPT_RegisterOperand(regS, VM_TypeReference.Int),
+                                                           OPT_MemoryOperand.I(new OPT_RegisterOperand(phys.getESP(),
+                                                                                                       VM_TypeReference.Int),
+                                                                               (byte) 4,
+                                                                               null,
+                                                                               null)));
+          nextBlock.appendInstruction(MIR_Move.create(IA32_MOV,
+                                                      new OPT_RegisterOperand(regS, VM_TypeReference.Int),
+                                                      OPT_MemoryOperand.I(new OPT_RegisterOperand(regS,
+                                                                                                  VM_TypeReference.Int),
+                                                                          (byte) 4,
+                                                                          null,
+                                                                          null)));
+          nextBlock.appendInstruction(MIR_BinaryAcc.create(IA32_ADD,
+                                                           OPT_MemoryOperand.I(new OPT_RegisterOperand(phys.getESP(),
+                                                                                                       VM_TypeReference.Int),
+                                                                               (byte) 4,
+                                                                               null,
+                                                                               null),
+                                                           new OPT_RegisterOperand(regS, VM_TypeReference.Int)));
           // ``return'' to mangled return address
           nextBlock.appendInstruction(MIR_Return.create(IA32_RET, IC(0), null, null));
 
@@ -173,7 +177,11 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
           // mutate this into a TRAPIF, and then fall through to the the
           // TRAP_IF case.
           OPT_Operand ref = NullCheck.getRef(p);
-          MIR_TrapIf.mutate(p, IA32_TRAPIF, null, ref.copy(), IC(0),
+          MIR_TrapIf.mutate(p,
+                            IA32_TRAPIF,
+                            null,
+                            ref.copy(),
+                            IC(0),
                             OPT_IA32ConditionOperand.EQ(),
                             OPT_TrapCodeOperand.NullPtr());
         }
@@ -189,9 +197,7 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
           p.remove();
           nextBlock.firstInstruction().setmcOffset(-1);
           // add code to thisBlock to conditionally jump to trap
-          OPT_Instruction cmp = MIR_Compare.create(IA32_CMP,
-                                                   MIR_TrapIf.getVal1(p),
-                                                   MIR_TrapIf.getVal2(p));
+          OPT_Instruction cmp = MIR_Compare.create(IA32_CMP, MIR_TrapIf.getVal1(p), MIR_TrapIf.getVal2(p));
           if (p.isMarkedAsPEI()) {
             // The trap if was explictly marked, which means that it has
             // a memory operand into which we've folded a null check.
@@ -201,9 +207,10 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
             ir.MIRInfo.gcIRMap.insertTwin(p, cmp);
           }
           thisBlock.appendInstruction(cmp);
-          thisBlock.appendInstruction(MIR_CondBranch.create
-              (IA32_JCC, MIR_TrapIf.getCond(p),
-               trap.makeJumpTarget(), null));
+          thisBlock.appendInstruction(MIR_CondBranch.create(IA32_JCC,
+                                                            MIR_TrapIf.getCond(p),
+                                                            trap.makeJumpTarget(),
+                                                            null));
 
           // add block at end to hold trap instruction, and
           // insert trap sequence
@@ -212,8 +219,7 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
             // attempt to store index expression in processor object for
             // C trap handler
             OPT_Operand index = MIR_TrapIf.getVal2(p);
-            if (!(index instanceof OPT_RegisterOperand ||
-                  index instanceof OPT_IntConstantOperand)) {
+            if (!(index instanceof OPT_RegisterOperand || index instanceof OPT_IntConstantOperand)) {
               index = IC(0xdeadbeef); // index was spilled, and
               // we can't get it back here.
             }
@@ -223,8 +229,7 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
                                      (byte) 4,
                                      null,
                                      null);
-            trap.appendInstruction(MIR_Move.create(IA32_MOV, mo,
-                                                   index.copy()));
+            trap.appendInstruction(MIR_Move.create(IA32_MOV, mo, index.copy()));
           }
           // NOTE: must make p the trap instruction: it is the GC point!
           // IMPORTANT: must also inform the GCMap that the instruction has
@@ -234,8 +239,7 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
 
           if (tc.isStackOverflow()) {
             // only stackoverflow traps resume at next instruction.
-            trap.appendInstruction(MIR_Branch.create
-                (IA32_JMP, nextBlock.makeJumpTarget()));
+            trap.appendInstruction(MIR_Branch.create(IA32_JMP, nextBlock.makeJumpTarget()));
           }
         }
         break;
@@ -279,11 +283,13 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
           break;
 
         case IA32_JCC2_opcode:
-          p.insertBefore(MIR_CondBranch.create
-              (IA32_JCC, MIR_CondBranch2.getCond1(p),
-               MIR_CondBranch2.getTarget1(p),
-               MIR_CondBranch2.getBranchProfile1(p)));
-          MIR_CondBranch.mutate(p, IA32_JCC, MIR_CondBranch2.getCond2(p),
+          p.insertBefore(MIR_CondBranch.create(IA32_JCC,
+                                               MIR_CondBranch2.getCond1(p),
+                                               MIR_CondBranch2.getTarget1(p),
+                                               MIR_CondBranch2.getBranchProfile1(p)));
+          MIR_CondBranch.mutate(p,
+                                IA32_JCC,
+                                MIR_CondBranch2.getCond2(p),
                                 MIR_CondBranch2.getTarget2(p),
                                 MIR_CondBranch2.getBranchProfile2(p));
           break;
@@ -298,18 +304,15 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
           break;
 
         case YIELDPOINT_PROLOGUE_opcode:
-          expandYieldpoint(p, ir, VM_Entrypoints.optThreadSwitchFromPrologueMethod,
-                           OPT_IA32ConditionOperand.NE());
+          expandYieldpoint(p, ir, VM_Entrypoints.optThreadSwitchFromPrologueMethod, OPT_IA32ConditionOperand.NE());
           break;
 
         case YIELDPOINT_EPILOGUE_opcode:
-          expandYieldpoint(p, ir, VM_Entrypoints.optThreadSwitchFromEpilogueMethod,
-                           OPT_IA32ConditionOperand.NE());
+          expandYieldpoint(p, ir, VM_Entrypoints.optThreadSwitchFromEpilogueMethod, OPT_IA32ConditionOperand.NE());
           break;
 
         case YIELDPOINT_BACKEDGE_opcode:
-          expandYieldpoint(p, ir, VM_Entrypoints.optThreadSwitchFromBackedgeMethod,
-                           OPT_IA32ConditionOperand.GT());
+          expandYieldpoint(p, ir, VM_Entrypoints.optThreadSwitchFromBackedgeMethod, OPT_IA32ConditionOperand.GT());
           break;
 
         case YIELDPOINT_OSR_opcode:
@@ -348,8 +351,7 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
    * @param s the instruction to expand
    * @param phys controlling physical register set
    */
-  private static void expandFmov(OPT_Instruction s,
-                                 OPT_PhysicalRegisterSet phys) {
+  private static void expandFmov(OPT_Instruction s, OPT_PhysicalRegisterSet phys) {
     OPT_Operand result = MIR_Move.getResult(s);
     OPT_Operand value = MIR_Move.getValue(s);
 
@@ -415,10 +417,7 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
     }
   }
 
-  private static void expandYieldpoint(OPT_Instruction s,
-                                       OPT_IR ir,
-                                       VM_Method meth,
-                                       OPT_IA32ConditionOperand ypCond) {
+  private static void expandYieldpoint(OPT_Instruction s, OPT_IR ir, VM_Method meth, OPT_IA32ConditionOperand ypCond) {
     // split the basic block after the yieldpoint, create a new
     // block at the end of the IR to hold the yieldpoint,
     // remove the yieldpoint (to prepare to out it in the new block at the end)
@@ -436,15 +435,12 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
     Offset offset = meth.getOffset();
     OPT_LocationOperand loc = new OPT_LocationOperand(offset);
     OPT_Operand guard = TG();
-    OPT_Operand target =
-        OPT_MemoryOperand.D(VM_Magic.getTocPointer().plus(offset), (byte) 4, loc, guard);
-    MIR_Call.mutate0(s, CALL_SAVE_VOLATILE, null, null, target,
-                     OPT_MethodOperand.STATIC(meth));
+    OPT_Operand target = OPT_MemoryOperand.D(VM_Magic.getTocPointer().plus(offset), (byte) 4, loc, guard);
+    MIR_Call.mutate0(s, CALL_SAVE_VOLATILE, null, null, target, OPT_MethodOperand.STATIC(meth));
     yieldpoint.appendInstruction(s);
     ir.MIRInfo.gcIRMap.moveToEnd(s);
 
-    yieldpoint.appendInstruction(MIR_Branch.create(IA32_JMP,
-                                                   nextBlock.makeJumpTarget()));
+    yieldpoint.appendInstruction(MIR_Branch.create(IA32_JMP, nextBlock.makeJumpTarget()));
 
     // Check to see if threadSwitch requested
     OPT_Register PR = ir.regpool.getPhysicalRegisterSet().getPR();
@@ -452,16 +448,15 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
     OPT_MemoryOperand M =
         OPT_MemoryOperand.BD(new OPT_RegisterOperand(PR, VM_TypeReference.Int), tsr, (byte) 4, null, null);
     thisBlock.appendInstruction(MIR_Compare.create(IA32_CMP, M, IC(0)));
-    thisBlock.appendInstruction(MIR_CondBranch.create(IA32_JCC, ypCond,
+    thisBlock.appendInstruction(MIR_CondBranch.create(IA32_JCC,
+                                                      ypCond,
                                                       yieldpoint.makeJumpTarget(),
                                                       OPT_BranchProfileOperand.never()));
   }
 
   /* generate yieldpoint without checking threadSwith request
    */
-  private static void expandUnconditionalYieldpoint(OPT_Instruction s,
-                                                    OPT_IR ir,
-                                                    VM_Method meth) {
+  private static void expandUnconditionalYieldpoint(OPT_Instruction s, OPT_IR ir, VM_Method meth) {
     // split the basic block after the yieldpoint, create a new
     // block at the end of the IR to hold the yieldpoint,
     // remove the yieldpoint (to prepare to out it in the new block at the end)
@@ -479,15 +474,12 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
     Offset offset = meth.getOffset();
     OPT_LocationOperand loc = new OPT_LocationOperand(offset);
     OPT_Operand guard = TG();
-    OPT_Operand target =
-        OPT_MemoryOperand.D(VM_Magic.getTocPointer().plus(offset), (byte) 4, loc, guard);
-    MIR_Call.mutate0(s, CALL_SAVE_VOLATILE, null, null, target,
-                     OPT_MethodOperand.STATIC(meth));
+    OPT_Operand target = OPT_MemoryOperand.D(VM_Magic.getTocPointer().plus(offset), (byte) 4, loc, guard);
+    MIR_Call.mutate0(s, CALL_SAVE_VOLATILE, null, null, target, OPT_MethodOperand.STATIC(meth));
     yieldpoint.appendInstruction(s);
     ir.MIRInfo.gcIRMap.moveToEnd(s);
 
-    yieldpoint.appendInstruction(MIR_Branch.create(IA32_JMP,
-                                                   nextBlock.makeJumpTarget()));
+    yieldpoint.appendInstruction(MIR_Branch.create(IA32_JMP, nextBlock.makeJumpTarget()));
 
     // make a jump to yield block
     thisBlock.appendInstruction(MIR_Branch.create(IA32_JMP, yieldpoint.makeJumpTarget()));

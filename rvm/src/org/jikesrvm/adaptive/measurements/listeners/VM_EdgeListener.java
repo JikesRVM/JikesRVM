@@ -34,8 +34,7 @@ import org.vmmagic.unboxed.Offset;
  * the callee, caller, and machine code offset of the call site
  */
 @Uninterruptible
-public class VM_EdgeListener extends VM_ContextListener
-    implements VM_StackframeLayoutConstants {
+public class VM_EdgeListener extends VM_ContextListener implements VM_StackframeLayoutConstants {
 
   protected static final boolean DEBUG = false;
 
@@ -120,9 +119,7 @@ public class VM_EdgeListener extends VM_ContextListener
       VM.sysWriteln("): enter ", samplesTaken);
     }
 
-    VM_Synchronization.fetchAndAdd(this,
-                                   VM_Entrypoints.edgeListenerUpdateCalledField.getOffset(),
-                                   1);
+    VM_Synchronization.fetchAndAdd(this, VM_Entrypoints.edgeListenerUpdateCalledField.getOffset(), 1);
 
     // don't take a sample for back edge yield points
     if (whereFrom == VM_Thread.BACKEDGE) return;
@@ -184,9 +181,8 @@ public class VM_EdgeListener extends VM_ContextListener
     }
 
     // Find out what sample we are.
-    int sampleNumber = VM_Synchronization.fetchAndAdd(this,
-                                                      VM_Entrypoints.edgeListenerSamplesTakenField.getOffset(),
-                                                      1);
+    int sampleNumber =
+        VM_Synchronization.fetchAndAdd(this, VM_Entrypoints.edgeListenerSamplesTakenField.getOffset(), 1);
     int idx = 3 * sampleNumber;
 
     // If we got buffer slots that are beyond the end of the buffer, that means

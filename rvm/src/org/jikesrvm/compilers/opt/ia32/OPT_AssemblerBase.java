@@ -95,10 +95,9 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @return true if op represents an immediate
    */
   boolean isImm(OPT_Operand op) {
-    return
-        (op instanceof OPT_IntConstantOperand) ||
-        (op instanceof OPT_TrapCodeOperand) ||
-        (op instanceof OPT_BranchOperand && op.asBranch().target.getmcOffset() >= 0);
+    return (op instanceof OPT_IntConstantOperand) ||
+           (op instanceof OPT_TrapCodeOperand) ||
+           (op instanceof OPT_BranchOperand && op.asBranch().target.getmcOffset() >= 0);
   }
 
   /**
@@ -273,10 +272,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
   boolean isRegDisp(OPT_Operand op) {
     if (op instanceof OPT_MemoryOperand) {
       OPT_MemoryOperand mop = (OPT_MemoryOperand) op;
-      return (mop.base != null) &&
-             (mop.index == null) &&
-             (!mop.disp.isZero()) &&
-             (mop.scale == 0);
+      return (mop.base != null) && (mop.index == null) && (!mop.disp.isZero()) && (mop.scale == 0);
     } else {
       return false;
     }
@@ -296,10 +292,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
   boolean isAbs(OPT_Operand op) {
     if (op instanceof OPT_MemoryOperand) {
       OPT_MemoryOperand mop = (OPT_MemoryOperand) op;
-      return (mop.base == null) &&
-             (mop.index == null) &&
-             (!mop.disp.isZero()) &&
-             (mop.scale == 0);
+      return (mop.base == null) && (mop.index == null) && (!mop.disp.isZero()) && (mop.scale == 0);
     } else {
       return false;
     }
@@ -320,10 +313,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
   boolean isRegInd(OPT_Operand op) {
     if (op instanceof OPT_MemoryOperand) {
       OPT_MemoryOperand mop = (OPT_MemoryOperand) op;
-      return (mop.base != null) &&
-             (mop.index == null) &&
-             (mop.disp.isZero()) &&
-             (mop.scale == 0);
+      return (mop.base != null) && (mop.index == null) && (mop.disp.isZero()) && (mop.scale == 0);
     } else {
       return false;
     }
@@ -344,8 +334,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
   boolean isRegOff(OPT_Operand op) {
     if (op instanceof OPT_MemoryOperand) {
       OPT_MemoryOperand mop = (OPT_MemoryOperand) op;
-      return (mop.base == null) &&
-             (mop.index != null);
+      return (mop.base == null) && (mop.index != null);
     } else {
       return false;
     }
@@ -436,8 +425,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @return true if it represents a branch requiring a label target
    */
   boolean isLabel(OPT_Operand op) {
-    return (op instanceof OPT_BranchOperand &&
-            op.asBranch().target.getmcOffset() < 0);
+    return (op instanceof OPT_BranchOperand && op.asBranch().target.getmcOffset() < 0);
   }
 
   /**
@@ -643,8 +631,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
         }
       default: {
         int size = 3; // 2 bytes opcode + 1 byte modr/m
-        for (OPT_OperandEnumeration opEnum = inst.getRootOperands();
-             opEnum.hasMoreElements();) {
+        for (OPT_OperandEnumeration opEnum = inst.getRootOperands(); opEnum.hasMoreElements();) {
           OPT_Operand op = opEnum.next();
           size += operandCost(op, false);
         }
@@ -818,13 +805,11 @@ abstract class OPT_AssemblerBase extends VM_Assembler
     int count = 0;
     OPT_Assembler asm = new OPT_Assembler(count, shouldPrint, ir);
 
-    for (OPT_Instruction p = ir.firstInstructionInCodeOrder();
-         p != null; p = p.nextInstructionInCodeOrder()) {
+    for (OPT_Instruction p = ir.firstInstructionInCodeOrder(); p != null; p = p.nextInstructionInCodeOrder()) {
       p.setmcOffset(-++count);
     }
 
-    for (OPT_Instruction p = ir.firstInstructionInCodeOrder();
-         p != null; p = p.nextInstructionInCodeOrder()) {
+    for (OPT_Instruction p = ir.firstInstructionInCodeOrder(); p != null; p = p.nextInstructionInCodeOrder()) {
       if (DEBUG_ESTIMATE) {
         int start = asm.getMachineCodeIndex();
         int estimate = asm.estimateSize(p);

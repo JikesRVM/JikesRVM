@@ -256,8 +256,7 @@ public final class OPT_MethodOperand extends OPT_Operand {
    * targets for an invokevirtual.
    */
   public void refine(VM_Type targetClass) {
-    this.target = targetClass.findVirtualMethod(memRef.getName(),
-                                                memRef.getDescriptor());
+    this.target = targetClass.findVirtualMethod(memRef.getName(), memRef.getDescriptor());
     setPreciseTarget();
   }
 
@@ -298,9 +297,7 @@ public final class OPT_MethodOperand extends OPT_Operand {
   public boolean similar(OPT_Operand op) {
     if (op instanceof OPT_MethodOperand) {
       OPT_MethodOperand mop = (OPT_MethodOperand) op;
-      return memRef == mop.memRef &&
-             target == mop.target &&
-             isPreciseTarget == mop.isPreciseTarget;
+      return memRef == mop.memRef && target == mop.target && isPreciseTarget == mop.isPreciseTarget;
     } else {
       return false;
     }

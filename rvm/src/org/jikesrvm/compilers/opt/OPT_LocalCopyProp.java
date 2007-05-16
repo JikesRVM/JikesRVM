@@ -62,11 +62,8 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase {
    */
   public void perform(OPT_IR ir) {
     // info is a mapping from OPT_Register to OPT_Register
-    HashMap<OPT_Register, OPT_Operand> info =
-        new HashMap<OPT_Register, OPT_Operand>();
-    for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder();
-         bb != null;
-         bb = bb.nextBasicBlockInCodeOrder()) {
+    HashMap<OPT_Register, OPT_Operand> info = new HashMap<OPT_Register, OPT_Operand>();
+    for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); bb != null; bb = bb.nextBasicBlockInCodeOrder()) {
       if (bb.isEmpty()) continue;
       container.counter2++;
       if (bb.getInfrequent()) {
@@ -75,9 +72,7 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase {
       }
       // iterate over all instructions in the basic block
       for (OPT_Instruction s = bb.firstRealInstruction(),
-          sentinel = bb.lastInstruction();
-           s != sentinel;
-           s = s.nextInstructionInCodeOrder()) {
+          sentinel = bb.lastInstruction(); s != sentinel; s = s.nextInstructionInCodeOrder()) {
 
         if (!info.isEmpty()) {
           // PROPAGATE COPIES
@@ -109,8 +104,7 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase {
           // I'm being lazy for now in the name of avoiding
           // premature optimization.
           if (killPhysicals) {
-            HashSet<OPT_Register> toRemove =
-                new HashSet<OPT_Register>();
+            HashSet<OPT_Register> toRemove = new HashSet<OPT_Register>();
             for (Map.Entry<OPT_Register, OPT_Operand> entry : info.entrySet()) {
               OPT_Register eR = entry.getValue().
                   asRegister().register;
@@ -137,8 +131,7 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase {
               // premature optimization.
               HashSet<OPT_Register> toRemove = new HashSet<OPT_Register>();
               for (Map.Entry<OPT_Register, OPT_Operand> entry : info.entrySet()) {
-                OPT_Register eR =
-                    ((OPT_RegisterOperand) entry.getValue()).register;
+                OPT_Register eR = ((OPT_RegisterOperand) entry.getValue()).register;
                 if (eR == r) {
                   // delay the removal to avoid ConcurrentModification
                   // with iterator.

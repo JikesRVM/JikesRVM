@@ -15,8 +15,7 @@ package org.jikesrvm.compilers.opt;
  * graph nodes to define the graph, but this behavior can be changed
  * by overriding the getConnected method.
  */
-class OPT_DFSenumerateByFinish extends OPT_Stack<OPT_GraphNode>
-    implements OPT_GraphNodeEnumeration {
+class OPT_DFSenumerateByFinish extends OPT_Stack<OPT_GraphNode> implements OPT_GraphNodeEnumeration {
 
   /**
    *  Construct a depth-first enumerator across all the nodes of a
@@ -60,8 +59,7 @@ class OPT_DFSenumerateByFinish extends OPT_Stack<OPT_GraphNode>
    * @return true if there nodes left to enumerate.
    */
   public boolean hasMoreElements() {
-    return (!empty() || (theNextElement != null && info[theNextElement.getIndex()]
-                                                   == null));
+    return (!empty() || (theNextElement != null && info[theNextElement.getIndex()] == null));
   }
 
   /**

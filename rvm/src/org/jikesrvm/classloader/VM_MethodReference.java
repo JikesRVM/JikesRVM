@@ -126,8 +126,7 @@ public final class VM_MethodReference extends VM_MemberReference {
    */
   public synchronized VM_Method resolveInvokeSpecial() {
     VM_Class thisClass = (VM_Class) type.peekResolvedType();
-    if (thisClass == null
-        && name != VM_ClassLoader.StandardObjectInitializerMethodName) {
+    if (thisClass == null && name != VM_ClassLoader.StandardObjectInitializerMethodName) {
       thisClass = (VM_Class) type.resolve();
       /* Can't fail to resolve thisClass; we're at compile time doing
          resolution of an invocation to a private method or super call.  We
@@ -148,8 +147,7 @@ public final class VM_MethodReference extends VM_MemberReference {
     }
 
     for (; cls != null; cls = cls.getSuperClass()) {
-      VM_Method found = cls.findDeclaredMethod(sought.getName(),
-                                               sought.getDescriptor());
+      VM_Method found = cls.findDeclaredMethod(sought.getName(), sought.getDescriptor());
       if (found != null) {
         return found; // new-style invokespecial semantics
       }
@@ -234,8 +232,7 @@ public final class VM_MethodReference extends VM_MemberReference {
    * SysCall annotated methods we don't know until they are resolved.
    */
   public boolean isMagic() {
-    return getType().isMagicType() ||
-           ((resolvedMember != null) && (resolvedMember.isSysCall()));
+    return getType().isMagicType() || ((resolvedMember != null) && (resolvedMember.isSysCall()));
   }
 
   /**
@@ -243,8 +240,7 @@ public final class VM_MethodReference extends VM_MemberReference {
    * SysCall annotated methods we don't know until they are resolved.
    */
   public boolean isSysCall() {
-    return (getType() == VM_TypeReference.SysCall) ||
-           ((resolvedMember != null) && (resolvedMember.isSysCall()));
+    return (getType() == VM_TypeReference.SysCall) || ((resolvedMember != null) && (resolvedMember.isSysCall()));
   }
 
   /**
@@ -264,15 +260,13 @@ public final class VM_MethodReference extends VM_MemberReference {
       VM_Method it = c.findDeclaredMethod(name, descriptor);
       if (it != null) {
         if (DBG) {
-          VM.sysWriteln("...found <" + name + "," + descriptor
-                        + "> in class " + c);
+          VM.sysWriteln("...found <" + name + "," + descriptor + "> in class " + c);
         }
         resolvedMember = it;
         return resolvedMember;
       }
       if (DBG) {
-        VM.sysWriteln("...NOT found <" + name + "," + descriptor
-                      + "> in class " + c);
+        VM.sysWriteln("...NOT found <" + name + "," + descriptor + "> in class " + c);
       }
     }
     if (!VM.fullyBooted) {
@@ -317,9 +311,7 @@ public final class VM_MethodReference extends VM_MemberReference {
    * the search order specified in JVM spec 5.4.3.4.
    * @return the VM_Method that this method ref resolved to
    */
-  public VM_Method resolveInterfaceMethod()
-      throws IncompatibleClassChangeError,
-             NoSuchMethodError {
+  public VM_Method resolveInterfaceMethod() throws IncompatibleClassChangeError, NoSuchMethodError {
     if (resolvedMember != null) return resolvedMember;
 
     // Hasn't been resolved yet. Do it now.

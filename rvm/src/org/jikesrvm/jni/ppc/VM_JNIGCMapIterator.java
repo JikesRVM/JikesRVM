@@ -37,8 +37,7 @@ import org.vmmagic.unboxed.WordArray;
  */
 @Uninterruptible
 public abstract class VM_JNIGCMapIterator extends VM_GCMapIterator
-    implements VM_BaselineConstants,
-               VM_JNIStackframeLayoutConstants {
+    implements VM_BaselineConstants, VM_JNIStackframeLayoutConstants {
 
   // non-volitile regs are saved at the end of the transition frame,
   // after the saved JTOC and SP, and preceeded by a GC flag.
@@ -91,9 +90,7 @@ public abstract class VM_JNIGCMapIterator extends VM_GCMapIterator
     }
   }
 
-  public void setupIterator(VM_CompiledMethod compiledMethod,
-                            Offset instructionOffset,
-                            Address framePtr) {
+  public void setupIterator(VM_CompiledMethod compiledMethod, Offset instructionOffset, Address framePtr) {
     this.framePtr = framePtr;
     // processor reg (R16) was saved in reg save area at offset -72
     // from callers frameptr, and after GC will be used to set

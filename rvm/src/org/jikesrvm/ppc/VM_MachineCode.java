@@ -45,26 +45,28 @@ public abstract class VM_MachineCode {
   /**
    * Finish generation of assembler code.
    */
-  public void finish () {
+  public void finish() {
     if (VM.VerifyAssertions) VM._assert(instructions == null); // finish must only be called once
 
     /* NOTE: MM_Interface.pickAllocator() depends on the name of this
        class and method to identify code allocation */
-    int n = (next_bundle-1)*size+next;
+    int n = (next_bundle - 1) * size + next;
     instructions = ArchitectureSpecific.VM_CodeArray.Factory.create(n, false);
     int k = 0;
-    for (int i=0; i<next_bundle; i++){
+    for (int i = 0; i < next_bundle; i++) {
       int[] b = bundles.get(i);
-      int m = (i == next_bundle-1 ? next : size);
-      for (int j=0; j<m; j++) {
+      int m = (i == next_bundle - 1 ? next : size);
+      for (int j = 0; j < m; j++) {
         instructions.set(k++, b[j]);
       }
     }
 
     // synchronize icache with generated machine code that was written through dcache
     //
-    if (VM.runningVM)
-      VM_Memory.sync(VM_Magic.objectAsAddress(instructions), instructions.length() << VM_RegisterConstants.LG_INSTRUCTION_WIDTH);
+    if (VM.runningVM) {
+      VM_Memory.sync(VM_Magic.objectAsAddress(instructions),
+                     instructions.length() << VM_RegisterConstants.LG_INSTRUCTION_WIDTH);
+    }
 
     // release work buffers
     //
@@ -72,7 +74,7 @@ public abstract class VM_MachineCode {
     current_bundle = null;
   }
 
-  public void addInstruction (int instr) {
+  public void addInstruction(int instr) {
     if (next < current_bundle.length) {
       current_bundle[next++] = instr;
     } else {
@@ -84,7 +86,7 @@ public abstract class VM_MachineCode {
     }
   }
 
-  public int getInstruction (int k) {
+  public int getInstruction(int k) {
     int i = k >> shift;
     int j = k & mask;
     int[] b = bundles.get(i);
@@ -102,7 +104,6 @@ public abstract class VM_MachineCode {
     bytecode_2_machine = b2m;
   }
 
-
   private int[] bytecode_2_machine;  // See setBytecodeMap/getBytecodeMap
 
   /* Unfortunately, the number of instructions is not known in advance.
@@ -111,17 +112,17 @@ public abstract class VM_MachineCode {
      instructions.  size is assumed to be a power of two.
    */
 
-  private static final int  mask = 0xFF;
-  private static final int  size = mask+1;
+  private static final int mask = 0xFF;
+  private static final int size = mask + 1;
   private static final int shift = 8;
 
   private ArchitectureSpecific.VM_CodeArray instructions;
   private ArrayList<int[]> bundles;
-  private int[]         current_bundle;
-  private int           next;
-  private int           next_bundle;
+  private int[] current_bundle;
+  private int next;
+  private int next_bundle;
 
-  public VM_MachineCode () {
+  public VM_MachineCode() {
     bundles = new ArrayList<int[]>();
     current_bundle = new int[size];
     bundles.add(current_bundle);

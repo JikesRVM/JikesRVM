@@ -84,8 +84,7 @@ class OptTestHarness {
   static Vector<VM_Method> reflectMethodVector;
   static Vector<Object[]> reflectMethodArgsVector;
 
-  static int parseMethodArgs(VM_TypeReference[] argDesc, String[] args, int i,
-                             Object[] methodArgs) {
+  static int parseMethodArgs(VM_TypeReference[] argDesc, String[] args, int i, Object[] methodArgs) {
     try {
       for (int argNum = 0; argNum < argDesc.length; ++argNum) {
         if (argDesc[argNum].isBooleanType()) {
@@ -116,8 +115,7 @@ class OptTestHarness {
             }
             methodArgs[argNum] = array;
           } else {// TODO
-            System.err.println("Parsing args of array of " + element +
-                               " not implemented");
+            System.err.println("Parsing args of array of " + element + " not implemented");
           }
         }
       }
@@ -129,25 +127,20 @@ class OptTestHarness {
 
   // if "methdesc" is "-", find the first method with "methname" in "klass",
   // otherwise, find the method whose signature matches "methdesc"
-  static VM_Method findDeclaredOrFirstMethod(VM_Class klass, String methname,
-                                             String methdesc) {
+  static VM_Method findDeclaredOrFirstMethod(VM_Class klass, String methname, String methdesc) {
     if (klass == null) return null;
     VM_Atom methodName = VM_Atom.findOrCreateAsciiAtom(methname);
-    VM_Atom methodDesc =
-        methdesc.equals("-") ? null : VM_Atom.findOrCreateAsciiAtom(methdesc);
+    VM_Atom methodDesc = methdesc.equals("-") ? null : VM_Atom.findOrCreateAsciiAtom(methdesc);
 
     for (VM_Method method : klass.getDeclaredMethods()) {
-      if (method.getName() == methodName &&
-          ((methodDesc == null) || (methodDesc == method.getDescriptor()))) {
+      if (method.getName() == methodName && ((methodDesc == null) || (methodDesc == method.getDescriptor()))) {
         return method;
       }
     }
     if (methodDesc == null) {
-      System.err.println("No method named " + methodName +
-                         " found in class " + klass);
+      System.err.println("No method named " + methodName + " found in class " + klass);
     } else {
-      System.err.println("No method matching " + methodName + " " + methodDesc +
-                         " found in class " + klass);
+      System.err.println("No method matching " + methodName + " " + methodDesc + " found in class " + klass);
     }
     return null;
   }
@@ -164,8 +157,7 @@ class OptTestHarness {
 
     s = s.replace('.', '/');
 
-    return (VM_Class)
-        java.lang.JikesRVMSupport.getTypeForClass(Class.forName(s, true, cl));
+    return (VM_Class) java.lang.JikesRVMSupport.getTypeForClass(Class.forName(s, true, cl));
   }
 
   static void printFormatString() {
@@ -186,8 +178,7 @@ class OptTestHarness {
     processMethod(method, opts, BASELINE);
   }
 
-  private static void processMethod(VM_Method method, OPT_Options opts,
-                                    boolean isBaseline) {
+  private static void processMethod(VM_Method method, OPT_Options opts, boolean isBaseline) {
     if (isBaseline) {
       // Method to be baseline compiled
       if (!baselineMethodVector.contains(method)) {
@@ -207,8 +198,7 @@ class OptTestHarness {
     for (int i = 0, n = args.length; i < n; i++) {
       try {
         String arg = args[i];
-        if (arg.startsWith("-oc:") &&
-            options.processAsOption("-X:irc:", arg.substring(4))) {
+        if (arg.startsWith("-oc:") && options.processAsOption("-X:irc:", arg.substring(4))) {
           // handled in processAsOption
         } else if (arg.equals("-useBootOptions")) {
           OPT_Compiler.setBootOptions(options);
@@ -242,8 +232,7 @@ class OptTestHarness {
           VM_Class klass = loadClass(args[++i]);
           processClass(klass, options);
           options = options.dup();
-        } else if (arg.equals("-method") ||
-                   arg.equals("-methodOpt") || arg.equals("-methodBase")) {
+        } else if (arg.equals("-method") || arg.equals("-methodOpt") || arg.equals("-methodBase")) {
           // Default for this method is determined by BASELINE var
           boolean isBaseline = BASELINE;
           // Unless specified by these options
@@ -266,8 +255,7 @@ class OptTestHarness {
           String desc = args[++i];
           VM_Method method = findDeclaredOrFirstMethod(klass, name, desc);
           if (method == null || method.isAbstract() || method.isNative()) {
-            System.err.println("WARNING: Skipping method " + args[i - 2] +
-                               "." + name);
+            System.err.println("WARNING: Skipping method " + args[i - 2] + "." + name);
           } else {
             processMethod(method, options, isBaseline);
           }
@@ -287,10 +275,7 @@ class OptTestHarness {
             cm = VM_BaselineCompiler.compile(method);
           } else {
             OPT_CompilationPlan cp =
-                new OPT_CompilationPlan(method,
-                                        OPT_OptimizationPlanner.createOptimizationPlan(options),
-                                        null,
-                                        options);
+                new OPT_CompilationPlan(method, OPT_OptimizationPlanner.createOptimizationPlan(options), null, options);
             try {
               cm = OPT_Compiler.compile(cp);
             } catch (Throwable e) {
@@ -344,10 +329,7 @@ class OptTestHarness {
       try {
         VM_CompiledMethod cm = null;
         OPT_CompilationPlan cp =
-            new OPT_CompilationPlan(method,
-                                    OPT_OptimizationPlanner.createOptimizationPlan(opts),
-                                    null,
-                                    opts);
+            new OPT_CompilationPlan(method, OPT_OptimizationPlanner.createOptimizationPlan(opts), null, opts);
         cm = OPT_Compiler.compile(cp);
         method.replaceCompiledMethod(cm);
       } catch (OPT_OptimizingCompilerException e) {
@@ -364,9 +346,7 @@ class OptTestHarness {
     }
   }
 
-  private static void executeCommand()
-      throws InvocationTargetException,
-             IllegalAccessException {
+  private static void executeCommand() throws InvocationTargetException, IllegalAccessException {
     compileMethodsInVector();
 
     if (EXECUTE_WITH_REFLECTION) {
@@ -392,10 +372,7 @@ class OptTestHarness {
     }
   }
 
-  public static void main(String[] args)
-      throws InvocationTargetException,
-             IOException,
-             IllegalAccessException {
+  public static void main(String[] args) throws InvocationTargetException, IOException, IllegalAccessException {
     cl = VM_ClassLoader.getApplicationClassLoader();
     optMethodVector = new Vector<VM_Method>(50);
     optOptionsVector = new Vector<OPT_Options>(50);

@@ -275,8 +275,7 @@ public abstract class VM_MemberReference {
       return false;
     }
 
-    if (isFieldReference() && thisClass.isResolved() &&
-        thisClass.getClassInitializerMethod() == null) {
+    if (isFieldReference() && thisClass.isResolved() && thisClass.getClassInitializerMethod() == null) {
       // No dynamic linking code is required to access this field
       // because its size and offset is known and its class has no static
       // initializer, therefore its value need not be specially initialized
@@ -306,8 +305,7 @@ public abstract class VM_MemberReference {
   public final boolean equals(Object other) {
     if (other instanceof VM_MemberReference) {
       VM_MemberReference that = (VM_MemberReference) other;
-      return type == that.type && name == that.name &&
-             descriptor == that.descriptor;
+      return type == that.type && name == that.name && descriptor == that.descriptor;
     } else {
       return false;
     }

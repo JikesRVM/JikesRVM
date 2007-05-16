@@ -94,8 +94,7 @@ public interface OPT_VCGNode extends OPT_VisNode {
    * To be used for implementing edges() for graphs that don't
    * have explicit edge representation.
    */
-  class DefaultEdge extends OPT_VisNode.DefaultEdge
-      implements OPT_VCGEdge {
+  class DefaultEdge extends OPT_VisNode.DefaultEdge implements OPT_VCGEdge {
     private boolean _backEdge;
 
     public DefaultEdge(OPT_VCGNode s, OPT_VCGNode t) { this(s, t, false); }

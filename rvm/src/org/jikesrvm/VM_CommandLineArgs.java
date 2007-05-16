@@ -114,45 +114,46 @@ public class VM_CommandLineArgs {
    * The type will be used to classify the prefix.  Multiple entries CAN
    * have the same type.
    */
-  private static final Prefix[] prefixes = {
-      new Prefix("-classpath ", CLASSPATH_ARG),  // Note: space is significant
-      new Prefix("-cp ", CLASSPATH_ARG),  // Note: space is significant
-      new Prefix("-jar ", JAR_ARG),  // Note: space is significant
-      new Prefix("-javaagent:", JAVAAGENT_ARG),
-      new Prefix("-D", ENVIRONMENT_ARG),
-      new Prefix("-verbose:class$", VERBOSE_CLS_ARG),
-      new Prefix("-verbose:jni$", VERBOSE_JNI_ARG),
-      new Prefix("-verbose$", VERBOSE_CLS_ARG),
-      new Prefix("-X:vmClasses=", BOOTSTRAP_CLASSES_ARG),
-      new Prefix("-X:cpuAffinity=", CPUAFFINITY_ARG),
-      new Prefix("-X:processors=", PROCESSORS_ARG),
-      new Prefix("-X:irc:help$", IRC_HELP_ARG),
-      new Prefix("-X:irc$", IRC_HELP_ARG),
-      new Prefix("-X:irc:", IRC_ARG),
-      new Prefix("-X:recomp:help$", RECOMP_HELP_ARG),
-      new Prefix("-X:recomp$", RECOMP_HELP_ARG),
-      new Prefix("-X:recomp", RECOMP_ARG),
-      new Prefix("-X:aos:help$", AOS_HELP_ARG),
-      new Prefix("-X:aos$", AOS_HELP_ARG),
-      new Prefix("-X:aos:", AOS_ARG),
-      new Prefix("-X:gc:help$", GC_HELP_ARG),
-      new Prefix("-X:gc$", GC_HELP_ARG),
-      new Prefix("-X:gc:", GC_ARG),
-      new Prefix("-X:base:help$", BASE_HELP_ARG),
-      new Prefix("-X:base$", BASE_HELP_ARG),
-      new Prefix("-X:base:", BASE_ARG),
-      new Prefix("-X:opt:help$", OPT_HELP_ARG),
-      new Prefix("-X:opt$", OPT_HELP_ARG),
-      new Prefix("-X:opt:", OPT_ARG),
-      new Prefix("-X:vm:help$", VM_HELP_ARG),
-      new Prefix("-X:vm$", VM_HELP_ARG),
-      new Prefix("-X:vm:", VM_ARG),
+  private static final Prefix[] prefixes = {new Prefix("-classpath ", CLASSPATH_ARG),
+                                            // Note: space is significant
+                                            new Prefix("-cp ", CLASSPATH_ARG),
+                                            // Note: space is significant
+                                            new Prefix("-jar ", JAR_ARG),
+                                            // Note: space is significant
+                                            new Prefix("-javaagent:", JAVAAGENT_ARG),
+                                            new Prefix("-D", ENVIRONMENT_ARG),
+                                            new Prefix("-verbose:class$", VERBOSE_CLS_ARG),
+                                            new Prefix("-verbose:jni$", VERBOSE_JNI_ARG),
+                                            new Prefix("-verbose$", VERBOSE_CLS_ARG),
+                                            new Prefix("-X:vmClasses=", BOOTSTRAP_CLASSES_ARG),
+                                            new Prefix("-X:cpuAffinity=", CPUAFFINITY_ARG),
+                                            new Prefix("-X:processors=", PROCESSORS_ARG),
+                                            new Prefix("-X:irc:help$", IRC_HELP_ARG),
+                                            new Prefix("-X:irc$", IRC_HELP_ARG),
+                                            new Prefix("-X:irc:", IRC_ARG),
+                                            new Prefix("-X:recomp:help$", RECOMP_HELP_ARG),
+                                            new Prefix("-X:recomp$", RECOMP_HELP_ARG),
+                                            new Prefix("-X:recomp", RECOMP_ARG),
+                                            new Prefix("-X:aos:help$", AOS_HELP_ARG),
+                                            new Prefix("-X:aos$", AOS_HELP_ARG),
+                                            new Prefix("-X:aos:", AOS_ARG),
+                                            new Prefix("-X:gc:help$", GC_HELP_ARG),
+                                            new Prefix("-X:gc$", GC_HELP_ARG),
+                                            new Prefix("-X:gc:", GC_ARG),
+                                            new Prefix("-X:base:help$", BASE_HELP_ARG),
+                                            new Prefix("-X:base$", BASE_HELP_ARG),
+                                            new Prefix("-X:base:", BASE_ARG),
+                                            new Prefix("-X:opt:help$", OPT_HELP_ARG),
+                                            new Prefix("-X:opt$", OPT_HELP_ARG),
+                                            new Prefix("-X:opt:", OPT_ARG),
+                                            new Prefix("-X:vm:help$", VM_HELP_ARG),
+                                            new Prefix("-X:vm$", VM_HELP_ARG),
+                                            new Prefix("-X:vm:", VM_ARG),
 
-      /* Silently ignored */
-      new Prefix("-Xverify", VERIFY_ARG),
+                                            /* Silently ignored */
+                                            new Prefix("-Xverify", VERIFY_ARG),
 
-      app_prefix
-  };
+                                            app_prefix};
 
   static {
     Arrays.sort(prefixes);
@@ -430,8 +431,7 @@ public class VM_CommandLineArgs {
           // -------------------------------------------------//
         case CPUAFFINITY_ARG:
           int cpuAffinity = -1;
-          try { cpuAffinity = primitiveParseInt(arg); }
-          catch (NumberFormatException e) {}
+          try { cpuAffinity = primitiveParseInt(arg); } catch (NumberFormatException e) {}
           if (cpuAffinity < 0) {
             VM.sysWriteln("vm: ", p.value, " needs a cpu number (0..N-1), but found '", arg, "'");
             VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
@@ -450,8 +450,7 @@ public class VM_CommandLineArgs {
           }
           if (nProcs < 1 || nProcs > (VM_Scheduler.MAX_PROCESSORS - 1)) {
             VM.sysWrite("vm: ", p.value, " needs an argument between 1 and ");
-            VM.sysWriteln(VM_Scheduler.MAX_PROCESSORS - 1,
-                          " (inclusive), but found ", arg);
+            VM.sysWriteln(VM_Scheduler.MAX_PROCESSORS - 1, " (inclusive), but found ", arg);
             VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
           }
           VM_Scheduler.numProcessors = nProcs;
@@ -615,8 +614,7 @@ public class VM_CommandLineArgs {
             java.util.jar.JarFile jf = new java.util.jar.JarFile(arg);
             mf = jf.getManifest();
           } catch (Exception e) {
-            VM.sysWriteln("vm: IO Exception opening JAR file ", arg,
-                          ": ", e.getMessage());
+            VM.sysWriteln("vm: IO Exception opening JAR file ", arg, ": ", e.getMessage());
             VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
           }
           if (mf == null) {
@@ -644,8 +642,7 @@ public class VM_CommandLineArgs {
           } else {
             jarPath = arg;
           }
-          String newClassPath = VM_ClassLoader.getApplicationRepositories() +
-                                File.pathSeparator + jarPath;
+          String newClassPath = VM_ClassLoader.getApplicationRepositories() + File.pathSeparator + jarPath;
           VM_ClassLoader.setApplicationRepositories(newClassPath);
           break;
       }
@@ -709,12 +706,14 @@ public class VM_CommandLineArgs {
    * @return Negative values on error.
    *      Otherwise, positive or zero values as bytes.
    * */
-  public static long parseMemorySize
-      (String sizeName, String sizeFlag, String defaultFactor, int roundTo,
-       String fullArg, String subArg) {
-    return sysCall.sysParseMemorySize
-        (s2b(sizeName), s2b(sizeFlag), s2b(defaultFactor),
-         roundTo, s2b(fullArg), s2b(subArg));
+  public static long parseMemorySize(String sizeName, String sizeFlag, String defaultFactor, int roundTo,
+                                     String fullArg, String subArg) {
+    return sysCall.sysParseMemorySize(s2b(sizeName),
+                                      s2b(sizeFlag),
+                                      s2b(defaultFactor),
+                                      roundTo,
+                                      s2b(fullArg),
+                                      s2b(subArg));
   }
 
   private static final class ArgReader {

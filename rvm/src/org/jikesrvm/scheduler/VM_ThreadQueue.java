@@ -15,8 +15,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * A queue of VM_Threads
  */
 @Uninterruptible
-public class VM_ThreadQueue
-    extends VM_AbstractThreadQueue {
+public class VM_ThreadQueue extends VM_AbstractThreadQueue {
 
   /**
    * First thread on list.

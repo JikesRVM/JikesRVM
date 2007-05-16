@@ -209,9 +209,7 @@ public class OPT_LICM extends OPT_CompilerPhase {
       while (e.hasMoreElements()) {
         OPT_BasicBlock b = e.next();
         if (b instanceof OPT_ExceptionHandlerBasicBlock) {
-          VM.sysWrite("] " + b + ": "
-                      + ((OPT_ExceptionHandlerBasicBlock) b).getLiveSet()
-                      + "\n");
+          VM.sysWrite("] " + b + ": " + ((OPT_ExceptionHandlerBasicBlock) b).getLiveSet() + "\n");
         }
       }
     }
@@ -278,17 +276,12 @@ public class OPT_LICM extends OPT_CompilerPhase {
    * @param ir
    */
   public static boolean shouldMove(OPT_Instruction inst, OPT_IR ir) {
-    if ((inst.isAllocation())
-        || inst.isDynamicLinkingPoint()
-        || inst.operator.opcode >= ARCH_INDEPENDENT_END_opcode) {
+    if ((inst.isAllocation()) || inst.isDynamicLinkingPoint() || inst.operator.opcode >= ARCH_INDEPENDENT_END_opcode) {
       return false;
     }
 
-    if (ir.IRStage != OPT_IR.HIR
-        && ((inst.isPEI())
-            || inst.isThrow()
-            || inst.isImplicitLoad()
-            || inst.isImplicitStore())) {
+    if (ir.IRStage != OPT_IR.HIR &&
+        ((inst.isPEI()) || inst.isThrow() || inst.isImplicitLoad() || inst.isImplicitStore())) {
       return false;
     }
 
@@ -457,8 +450,7 @@ public class OPT_LICM extends OPT_CompilerPhase {
       return inst;
     }
     // dependencies via scalar operands
-    _earlyPos = scheduleScalarDefsEarly(inst.getUses(),
-                                        ir.firstInstructionInCodeOrder(), inst);
+    _earlyPos = scheduleScalarDefsEarly(inst.getUses(), ir.firstInstructionInCodeOrder(), inst);
     if (VM.VerifyAssertions) VM._assert(_earlyPos != null);
 
     // memory dependencies
@@ -468,8 +460,7 @@ public class OPT_LICM extends OPT_CompilerPhase {
     }
 
     /* don't put memory stores or PEIs on speculative path */
-    if ((inst.isPEI() && !ir.options.LICM_IGNORE_PEI)
-        || inst.isImplicitStore()) {
+    if ((inst.isPEI() && !ir.options.LICM_IGNORE_PEI) || inst.isImplicitStore()) {
       while (!postDominates(getBlock(inst), getBlock(_earlyPos))) {
         _earlyPos = dominanceSuccessor(_earlyPos, inst);
       }
@@ -478,8 +469,7 @@ public class OPT_LICM extends OPT_CompilerPhase {
     setEarlyPos(inst, _earlyPos);
 
     if (DEBUG && getBlock(_earlyPos) != getBlock(inst)) {
-      VM.sysWrite("new earlyBlock: " + getBlock(_earlyPos) + " for "
-                  + getBlock(inst) + ": " + inst + "\n");
+      VM.sysWrite("new earlyBlock: " + getBlock(_earlyPos) + " for " + getBlock(inst) + ": " + inst + "\n");
     }
 
     setBlock(inst, getBlock(_earlyPos));
@@ -527,8 +517,7 @@ public class OPT_LICM extends OPT_CompilerPhase {
       inst.remove();
     } else {
       if (DEBUG && lateBlock != getOrigBlock(inst)) {
-        VM.sysWrite("new lateBlock: " + lateBlock + " for "
-                    + getOrigBlock(inst) + ": " + inst + "\n");
+        VM.sysWrite("new lateBlock: " + lateBlock + " for " + getOrigBlock(inst) + ": " + inst + "\n");
       }
 
       OPT_BasicBlock to = upto(getEarlyPos(inst), lateBlock, inst);
@@ -555,8 +544,7 @@ public class OPT_LICM extends OPT_CompilerPhase {
     OPT_BasicBlock bBlock = getBlock(b);
 
     if (VM.VerifyAssertions) {
-      VM._assert(aBlock != bBlock
-                 && dominator.dominates(aBlock, bBlock));
+      VM._assert(aBlock != bBlock && dominator.dominates(aBlock, bBlock));
     }
 
     OPT_BasicBlock last = null;
@@ -608,8 +596,7 @@ public class OPT_LICM extends OPT_CompilerPhase {
    * Schedule me as early as possible,
    * but behind the definitions in e and behind earlyPos
    */
-  private OPT_Instruction scheduleScalarDefsEarly(OPT_OperandEnumeration e,
-                                                  OPT_Instruction earlyPos,
+  private OPT_Instruction scheduleScalarDefsEarly(OPT_OperandEnumeration e, OPT_Instruction earlyPos,
                                                   OPT_Instruction inst) {
     while (e.hasMoreElements()) {
       OPT_Operand op = e.next();
@@ -774,8 +761,7 @@ public class OPT_LICM extends OPT_CompilerPhase {
    * their path in the dominator tree.
    * Return the block with the smallest execution costs.
    */
-  OPT_BasicBlock upto(OPT_Instruction earlyPos, OPT_BasicBlock lateBlock,
-                      OPT_Instruction inst) {
+  OPT_BasicBlock upto(OPT_Instruction earlyPos, OPT_BasicBlock lateBlock, OPT_Instruction inst) {
 
     OPT_BasicBlock _origBlock = getOrigBlock(inst);
     OPT_BasicBlock actBlock = lateBlock;
@@ -783,27 +769,27 @@ public class OPT_LICM extends OPT_CompilerPhase {
     OPT_BasicBlock earlyBlock = getBlock(earlyPos);
 
     if (VM.VerifyAssertions) {
-      if (!dominator.dominates(earlyBlock.getNumber(),
-                               _origBlock.getNumber())
-          || !dominator.dominates(earlyBlock.getNumber(),
-                                  lateBlock.getNumber())) {
+      if (!dominator.dominates(earlyBlock.getNumber(), _origBlock.getNumber()) ||
+          !dominator.dominates(earlyBlock.getNumber(), lateBlock.getNumber())) {
         OPT_SSA.printInstructions(ir);
-        VM.sysWrite("> " + earlyBlock.getNumber() + ", " + _origBlock.getNumber()
-                    + ", " + lateBlock.getNumber() + "\n");
+        VM.sysWrite("> " +
+                    earlyBlock.getNumber() +
+                    ", " +
+                    _origBlock.getNumber() +
+                    ", " +
+                    lateBlock.getNumber() +
+                    "\n");
         VM.sysWrite("" + inst + "\n");
       }
-      VM._assert(dominator.dominates(earlyBlock.getNumber(),
-                                     _origBlock.getNumber()));
-      VM._assert(dominator.dominates(earlyBlock.getNumber(),
-                                     lateBlock.getNumber()));
+      VM._assert(dominator.dominates(earlyBlock.getNumber(), _origBlock.getNumber()));
+      VM._assert(dominator.dominates(earlyBlock.getNumber(), lateBlock.getNumber()));
     }
     for (; ;) {
       /* is the actual block better (less frequent)
          than the so far best block? */
       if (frequency(actBlock) < frequency(bestBlock)) {
         if (DEBUG) {
-          VM.sysWrite("going from " + frequency(_origBlock) + " to "
-                      + frequency(actBlock) + "\n");
+          VM.sysWrite("going from " + frequency(_origBlock) + " to " + frequency(actBlock) + "\n");
         }
         bestBlock = actBlock;
       }
@@ -844,8 +830,7 @@ public class OPT_LICM extends OPT_CompilerPhase {
         cand = e.next();
         if (DEBUG) VM.sysWrite(cand.toString() + "\n");
         if ((!Label.conforms(cand)) // skip labels, phis, and yieldpoints
-            && !cand.isYieldPoint()
-            && !Phi.conforms(cand)) {
+            && !cand.isYieldPoint() && !Phi.conforms(cand)) {
           break;
         }
         last = cand;
@@ -857,8 +842,7 @@ public class OPT_LICM extends OPT_CompilerPhase {
       while (e.hasMoreElements()) {
         cand = e.next();
         if (DEBUG) VM.sysWrite(cand.toString() + "\n");
-        if ((!BBend.conforms(cand))
-            && !cand.isBranch() // skip branches and newly placed insts
+        if ((!BBend.conforms(cand)) && !cand.isBranch() // skip branches and newly placed insts
             && !relocated.contains(cand)) {
           break;
         }
@@ -868,13 +852,11 @@ public class OPT_LICM extends OPT_CompilerPhase {
     }
 
     if (DEBUG && moved.add(inst.operator)) {
-      VM.sysWrite("m(" + (ir.IRStage == OPT_IR.LIR ? "l" : "h") + ") " +
-                  inst.operator + "\n");
+      VM.sysWrite("m(" + (ir.IRStage == OPT_IR.LIR ? "l" : "h") + ") " + inst.operator + "\n");
     }
     if (verbose) {
       VM.sysWrite(ir.IRStage == OPT_IR.LIR ? "%" : "#");
-      VM.sysWrite(" moving " + inst + " from " + _origBlock +
-                  " to " + to + "\n" + "behind  " + cand + "\n");
+      VM.sysWrite(" moving " + inst + " from " + _origBlock + " to " + to + "\n" + "behind  " + cand + "\n");
 
     }
     inst.remove();
@@ -1055,8 +1037,7 @@ public class OPT_LICM extends OPT_CompilerPhase {
   private OPT_DominatorTree dominator;
   private OPT_IR ir;
   //  private OPT_FI_EscapeSummary escapeSummary; - unused
-  private final HashSet<OPT_Operator> moved =
-      DEBUG ? new HashSet<OPT_Operator>() : null;
+  private final HashSet<OPT_Operator> moved = DEBUG ? new HashSet<OPT_Operator>() : null;
 
   private boolean simplify(OPT_Instruction inst, OPT_BasicBlock block) {
     if (!Phi.conforms(inst)) return false;  // no phi
@@ -1077,8 +1058,7 @@ public class OPT_LICM extends OPT_CompilerPhase {
 
     for (int i = Phi.getNumberOfValues(inst) - 1; i >= 0; --i) {
       OPT_Instruction in = definingInstruction(Phi.getValue(inst, i));
-      if (getOrigBlock(in) != getOrigBlock(inst)
-          && dominator.dominates(getOrigBlock(in), getOrigBlock(inst))) {
+      if (getOrigBlock(in) != getOrigBlock(inst) && dominator.dominates(getOrigBlock(in), getOrigBlock(inst))) {
         if (xidx != -1) return false;
         xidx = i;
         x = in;
@@ -1088,8 +1068,7 @@ public class OPT_LICM extends OPT_CompilerPhase {
     }
     if (x == null) return false;
 
-    replaceUses(inst, (OPT_HeapOperand<?>) Phi.getValue(inst, xidx),
-                Phi.getPred(inst, xidx), true);
+    replaceUses(inst, (OPT_HeapOperand<?>) Phi.getValue(inst, xidx), Phi.getPred(inst, xidx), true);
 
     @SuppressWarnings("unchecked") // Cast to generic OPT_HeapOperand
         OPT_HeapOperand<Object> hop = (OPT_HeapOperand) resOp;
@@ -1102,8 +1081,7 @@ public class OPT_LICM extends OPT_CompilerPhase {
     */
     int type = checkLoop(inst, hop, xidx, block);
     if (type == CL_LOADS_ONLY || type == CL_STORES_ONLY || type == CL_NONE) {
-      replaceUses(inst, (OPT_HeapOperand<?>) Phi.getValue(inst, xidx),
-                  Phi.getPred(inst, xidx), false);
+      replaceUses(inst, (OPT_HeapOperand<?>) Phi.getValue(inst, xidx), Phi.getPred(inst, xidx), false);
     }
     return false;
   }
@@ -1156,8 +1134,7 @@ public class OPT_LICM extends OPT_CompilerPhase {
    * returns one of:
    * CL_LOADS_ONLY, CL_STORES_ONLY, CL_LOADS_AND_STORES, CL_COMPLEX
    */
-  private int checkLoop(OPT_Instruction inst, OPT_HeapOperand<Object> hop, int xidx,
-                        OPT_BasicBlock block) {
+  private int checkLoop(OPT_Instruction inst, OPT_HeapOperand<Object> hop, int xidx, OPT_BasicBlock block) {
     HashSet<OPT_Instruction> seen = new HashSet<OPT_Instruction>();
     OPT_Queue<OPT_Instruction> workList = new OPT_Queue<OPT_Instruction>();
     int _state = CL_NONE;
@@ -1185,10 +1162,7 @@ public class OPT_LICM extends OPT_CompilerPhase {
             workList.insert(z);
           }
         }
-      } else if ((y.isPEI())
-                 || !LocationCarrier.conforms(y)
-                 || y.operator.isAcquire()
-                 || y.operator.isRelease()) {
+      } else if ((y.isPEI()) || !LocationCarrier.conforms(y) || y.operator.isAcquire() || y.operator.isRelease()) {
         return CL_COMPLEX;
       } else {
         // check for access to volatile field
@@ -1217,23 +1191,20 @@ public class OPT_LICM extends OPT_CompilerPhase {
         }
       }
     }
-    if (_state == CL_STORES_ONLY
-        && ssad.getNumberOfUses(hop.value) != instUses) {
+    if (_state == CL_STORES_ONLY && ssad.getNumberOfUses(hop.value) != instUses) {
       return CL_COMPLEX;
     }
 
     return _state;
   }
 
-  private boolean inVariantLocation(OPT_Instruction inst,
-                                    OPT_BasicBlock block) {
+  private boolean inVariantLocation(OPT_Instruction inst, OPT_BasicBlock block) {
     if (PutStatic.conforms(inst)) return true;
     if (PutField.conforms(inst)) {
       return useDominates(PutField.getRef(inst), block);
     }
     if (AStore.conforms(inst)) {
-      return ((useDominates(AStore.getArray(inst), block))
-              && useDominates(AStore.getIndex(inst), block));
+      return ((useDominates(AStore.getArray(inst), block)) && useDominates(AStore.getIndex(inst), block));
     }
     if (VM.VerifyAssertions) {
       VM._assert(false, "inst: " + inst);
@@ -1252,10 +1223,8 @@ public class OPT_LICM extends OPT_CompilerPhase {
    * In the consumers of `inst', replace uses of `inst's result
    * with uses of `replacement'
    */
-  private boolean replaceUses(OPT_Instruction inst,
-                              OPT_HeapOperand<?> replacement,
-                              OPT_BasicBlockOperand replacementBlock,
-                              boolean onlyPEIs) {
+  private boolean replaceUses(OPT_Instruction inst, OPT_HeapOperand<?> replacement,
+                              OPT_BasicBlockOperand replacementBlock, boolean onlyPEIs) {
     if (VM.VerifyAssertions) VM._assert(Phi.conforms(inst));
 
     boolean changed = false;
@@ -1272,8 +1241,7 @@ public class OPT_LICM extends OPT_CompilerPhase {
         for (int i = 0; i < Phi.getNumberOfValues(user); i++) {
           if (Phi.getValue(user, i) == hop) {
             Phi.setValue(user, i, replacement.copy());
-            Phi.setPred(user, i,
-                        (OPT_BasicBlockOperand) replacementBlock.copy());
+            Phi.setPred(user, i, (OPT_BasicBlockOperand) replacementBlock.copy());
           }
         }
         changed |= replacement.value != H;
@@ -1288,8 +1256,7 @@ public class OPT_LICM extends OPT_CompilerPhase {
         }
       }
       if (DEBUG && changed) {
-        VM.sysWrite(" changing dependency of " + user + "\n"
-                    + "from " + H + " to " + replacement + "\n");
+        VM.sysWrite(" changing dependency of " + user + "\n" + "from " + H + " to " + replacement + "\n");
       }
     }
     if (!onlyPEIs) {

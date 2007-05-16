@@ -123,8 +123,7 @@ final class OPT_ResourceReservation {
    * @return true if the reservations conflict; false otherwise.
    */
   public boolean conflicts(OPT_ResourceReservation rsrv) {
-    return (rclass() == rsrv.rclass() && start < rsrv.start + rsrv.duration
-            && start + duration > rsrv.start);
+    return (rclass() == rsrv.rclass() && start < rsrv.start + rsrv.duration && start + duration > rsrv.start);
   }
 }
 

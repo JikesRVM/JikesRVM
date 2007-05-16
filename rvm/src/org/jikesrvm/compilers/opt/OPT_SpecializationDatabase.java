@@ -54,8 +54,7 @@ public final class OPT_SpecializationDatabase {
   }
 
   private static boolean specializationInProgress;
-  private static VM_HashSet<OPT_SpecializedMethod> deferredMethods =
-      new VM_HashSet<OPT_SpecializedMethod>();
+  private static VM_HashSet<OPT_SpecializedMethod> deferredMethods = new VM_HashSet<OPT_SpecializedMethod>();
 
   // write the new compiled method in the specialized method pool
   private static void registerCompiledMethod(OPT_SpecializedMethod m) {

@@ -23,8 +23,7 @@ import org.jikesrvm.compilers.opt.OPT_InstrumentedEventCounterManager;
  *
  *
  **/
-public final class VM_YieldpointCounterData extends VM_StringEventCounterData
-    implements VM_Reportable {
+public final class VM_YieldpointCounterData extends VM_StringEventCounterData implements VM_Reportable {
 
   static final boolean DEBUG = false;
 

@@ -115,8 +115,7 @@ class OPT_StaticSplitting extends OPT_CompilerPhase {
    * </ul>
    */
   private void simpleCandidateSearch(OPT_IR ir) {
-    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks();
-         e.hasMoreElements();) {
+    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
       OPT_BasicBlock cand = e.next();
       if (cand.isExceptionHandlerBasicBlock()) continue;
       OPT_Instruction candTest = getCandidateTest(cand);
@@ -168,8 +167,7 @@ class OPT_StaticSplitting extends OPT_CompilerPhase {
    */
   private OPT_Instruction getCandidateTest(OPT_BasicBlock bb) {
     OPT_Instruction test = null;
-    for (OPT_InstructionEnumeration e = bb.enumerateBranchInstructions();
-         e.hasMoreElements();) {
+    for (OPT_InstructionEnumeration e = bb.enumerateBranchInstructions(); e.hasMoreElements();) {
       OPT_Instruction branch = e.next();
       if (InlineGuard.conforms(branch)) {
         if (test != null) return null; // found multiple tests!
@@ -187,8 +185,7 @@ class OPT_StaticSplitting extends OPT_CompilerPhase {
    */
   private OPT_BasicBlock findColdPrev(OPT_BasicBlock bb) {
     OPT_BasicBlock cold = null;
-    for (java.util.Enumeration<OPT_BasicBlock> e = bb.getInNodes();
-         e.hasMoreElements();) {
+    for (java.util.Enumeration<OPT_BasicBlock> e = bb.getInNodes(); e.hasMoreElements();) {
       OPT_BasicBlock p = e.nextElement();
       if (p.getInfrequent()) {
         if (cold != null) return null;
@@ -202,8 +199,7 @@ class OPT_StaticSplitting extends OPT_CompilerPhase {
    * Return the off-trace successor of b
    * (on and off relative to the argument test)
    */
-  private OPT_BasicBlock findColdSucc(OPT_BasicBlock bb,
-                                      OPT_Instruction test) {
+  private OPT_BasicBlock findColdSucc(OPT_BasicBlock bb, OPT_Instruction test) {
     return test.getBranchTarget();
   }
 
@@ -215,8 +211,7 @@ class OPT_StaticSplitting extends OPT_CompilerPhase {
    */
   private boolean tooBig(OPT_BasicBlock bb) {
     int cost = 0;
-    for (OPT_InstructionEnumeration e = bb.forwardRealInstrEnumerator();
-         e.hasMoreElements();) {
+    for (OPT_InstructionEnumeration e = bb.forwardRealInstrEnumerator(); e.hasMoreElements();) {
       OPT_Instruction s = e.next();
       if (s.isCall()) {
         cost += 3;
@@ -242,9 +237,7 @@ class OPT_StaticSplitting extends OPT_CompilerPhase {
     final OPT_Instruction test;
     CandInfo next;
 
-    CandInfo(OPT_BasicBlock c, OPT_BasicBlock p,
-             OPT_BasicBlock s, OPT_Instruction t,
-             CandInfo n) {
+    CandInfo(OPT_BasicBlock c, OPT_BasicBlock p, OPT_BasicBlock s, OPT_Instruction t, CandInfo n) {
       candBB = c;
       prevBB = p;
       succBB = s;
@@ -253,10 +246,7 @@ class OPT_StaticSplitting extends OPT_CompilerPhase {
     }
   }
 
-  private void pushCandidate(OPT_BasicBlock cand,
-                             OPT_BasicBlock prev,
-                             OPT_BasicBlock succ,
-                             OPT_Instruction test) {
+  private void pushCandidate(OPT_BasicBlock cand, OPT_BasicBlock prev, OPT_BasicBlock succ, OPT_Instruction test) {
     cands = new CandInfo(cand, prev, succ, test, cands);
   }
 

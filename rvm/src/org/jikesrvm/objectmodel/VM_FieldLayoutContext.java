@@ -102,7 +102,6 @@ public abstract class VM_FieldLayoutContext implements VM_SizeConstants {
    * @param size The size occupied by data fields in the object.
    */
   protected void ensureObjectSize(int size) {
-    objectSize = size > objectSize ?
-                 VM_Memory.alignUp(size, OBJECT_SIZE_ALIGN) : objectSize;
+    objectSize = size > objectSize ? VM_Memory.alignUp(size, OBJECT_SIZE_ALIGN) : objectSize;
   }
 }

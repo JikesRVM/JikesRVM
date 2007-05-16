@@ -63,8 +63,7 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
       if (unfactor) {
         ir.unfactor();
       } else {
-        throw new OPT_OperationNotImplementedException(
-            "IR with exception handlers");
+        throw new OPT_OperationNotImplementedException("IR with exception handlers");
       }
     }
     OPT_LTDominators dom = new OPT_LTDominators(ir, forward);
@@ -98,8 +97,7 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
    */
   protected void analyze(OPT_IR ir) {
     if (DEBUG) {
-      System.out.println("   Here's the CFG for method: " + ir.method.getName()
-                         + "\n" + ir.cfg);
+      System.out.println("   Here's the CFG for method: " + ir.method.getName() + "\n" + ir.cfg);
     }
 
     // Step 1: Perform a DFS numbering
@@ -128,11 +126,12 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
   private void checkReachability(OPT_IR ir) {
     if (!forward) {
       if (DFSCounter != cfg.numberOfNodes()) {
-        VM.sysWrite(" *** Warning ***\n CFG for method " + ir.method.getName()
-                    + " in class " + ir.method.getDeclaringClass()
-                    + " has unreachable nodes.\n");
-        VM.sysWrite(" Assuming pessimistic results in dominators computation\n"
-                    + " for unreachable nodes.\n");
+        VM.sysWrite(" *** Warning ***\n CFG for method " +
+                    ir.method.getName() +
+                    " in class " +
+                    ir.method.getDeclaringClass() +
+                    " has unreachable nodes.\n");
+        VM.sysWrite(" Assuming pessimistic results in dominators computation\n" + " for unreachable nodes.\n");
       }
     }
   }
@@ -164,8 +163,7 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
     DFS();
 
     if (DEBUG) {
-      System.out.println("DFSCounter: " + DFSCounter + ", CFG Nodes: " +
-                         cfg.numberOfNodes());
+      System.out.println("DFSCounter: " + DFSCounter + ", CFG Nodes: " + cfg.numberOfNodes());
       printDFSNumbers();
     }
   }
@@ -346,8 +344,7 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
       LINK(blockInfo.getParent(), block);
 
       // foreach block2 in bucket(parent(block)) do
-      java.util.Iterator<OPT_BasicBlock> bucketEnum =
-          OPT_LTDominatorInfo.getInfo(getParent(block)).getBucketIterator();
+      java.util.Iterator<OPT_BasicBlock> bucketEnum = OPT_LTDominatorInfo.getInfo(getParent(block)).getBucketIterator();
       while (bucketEnum.hasNext()) {
         OPT_BasicBlock block2 = bucketEnum.next();
 
@@ -427,8 +424,7 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
     }
     OPT_BasicBlock s = block2;
     while (getSemi(getLabel(block2)) < getSemi(getLabel(getChild(s)))) {
-      if (getSize(s) + getSize(getChild(getChild(s)))
-          >= 2 * getSize(getChild(s))) {
+      if (getSize(s) + getSize(getChild(getChild(s))) >= 2 * getSize(getChild(s))) {
         OPT_LTDominatorInfo.getInfo(getChild(s)).setAncestor(s);
         OPT_LTDominatorInfo.getInfo(s).setChild(getChild(getChild(s)));
       } else {
@@ -438,8 +434,7 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
       }
     }
     OPT_LTDominatorInfo.getInfo(s).setLabel(getLabel(block2));
-    OPT_LTDominatorInfo.getInfo(block1).setSize(getSize(block1)
-                                                + getSize(block2));
+    OPT_LTDominatorInfo.getInfo(block1).setSize(getSize(block1) + getSize(block2));
     if (getSize(block1) < 2 * getSize(block2)) {
       OPT_BasicBlock tmp = s;
       s = getChild(block1);
@@ -552,14 +547,12 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
    */
   private void printResults(OPT_IR ir) {
     if (forward) {
-      System.out.println("Results of dominators computation for method " +
-                         ir.method.getName() + "\n");
+      System.out.println("Results of dominators computation for method " + ir.method.getName() + "\n");
       System.out.println("   Here's the CFG:");
       System.out.println(ir.cfg);
       System.out.println("\n\n  Here's the Dominator Info:");
     } else {
-      System.out.println("Results of Post-Dominators computation for method " +
-                         ir.method.getName() + "\n");
+      System.out.println("Results of Post-Dominators computation for method " + ir.method.getName() + "\n");
       System.out.println("   Here's the CFG:");
       System.out.println(ir.cfg);
       System.out.println("\n\n  Here's the Post-Dominator Info:");
@@ -569,8 +562,7 @@ class OPT_LTDominators extends OPT_Stack<OPT_BasicBlock> {
       OPT_BasicBlock block = bbEnum.nextElement();
       // We don't compute a result for the exit node for forward direction
       if (!forward || !block.isExit()) {
-        System.out.println("Dominators of " + block + ":"
-                           + OPT_LTDominatorInfo.getInfo(block).dominators(block, ir));
+        System.out.println("Dominators of " + block + ":" + OPT_LTDominatorInfo.getInfo(block).dominators(block, ir));
       }
     }
     System.out.println("\n");

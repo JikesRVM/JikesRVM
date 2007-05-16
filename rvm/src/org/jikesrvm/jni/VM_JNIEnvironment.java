@@ -220,8 +220,7 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
 
     if (JNIRefsTop >= JNIRefsMax) {
       JNIRefsMax *= 2;
-      AddressArray newrefs = AddressArray.create((JNIRefsMax >>> LOG_BYTES_IN_ADDRESS) +
-                                                 JNIREFS_FUDGE_LENGTH);
+      AddressArray newrefs = AddressArray.create((JNIRefsMax >>> LOG_BYTES_IN_ADDRESS) + JNIREFS_FUDGE_LENGTH);
       for (int i = 0; i < JNIRefs.length(); i++) {
         newrefs.set(i, JNIRefs.get(i));
       }

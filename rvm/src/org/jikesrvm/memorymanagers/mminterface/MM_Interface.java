@@ -165,8 +165,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * @param locationMetadata an int that encodes the source location being modified
    */
   @Inline
-  public static void putfieldWriteBarrier(Object ref, Offset offset, Object value,
-                                          int locationMetadata) {
+  public static void putfieldWriteBarrier(Object ref, Offset offset, Object value, int locationMetadata) {
     ObjectReference src = ObjectReference.fromObject(ref);
     Selected.Mutator.get().writeBarrier(src,
                                         src.toAddress().plus(offset),
@@ -204,15 +203,15 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * @param value the object that is the target of the new reference.
    */
   @Inline
-  public static void arrayStoreWriteBarrier(Object ref, int index,
-                                            Object value) {
+  public static void arrayStoreWriteBarrier(Object ref, int index, Object value) {
     ObjectReference array = ObjectReference.fromObject(ref);
     Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_ADDRESS);
     Selected.Mutator.get().writeBarrier(array,
                                         array.toAddress().plus(offset),
                                         ObjectReference.fromObject(value),
                                         offset,
-                                        0, // don't know metadata
+                                        0,
+                                        // don't know metadata
                                         AASTORE_WRITE_BARRIER);
   }
 
@@ -233,13 +232,12 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * left to the caller (always false in this case).
    */
   @Inline
-  public static boolean arrayCopyWriteBarrier(Object src, Offset srcOffset,
-                                              Object tgt, Offset tgtOffset,
-                                              int bytes) {
+  public static boolean arrayCopyWriteBarrier(Object src, Offset srcOffset, Object tgt, Offset tgtOffset, int bytes) {
     return Selected.Mutator.get().writeBarrier(ObjectReference.fromObject(src),
                                                srcOffset,
                                                ObjectReference.fromObject(tgt),
-                                               tgtOffset, bytes);
+                                               tgtOffset,
+                                               bytes);
   }
 
   /**
@@ -454,8 +452,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
       VM_Class cls = method.getDeclaringClass();
       byte[] clsBA = cls.getDescriptor().toByteArray();
       if (Selected.Constraints.get().withGCspy()) {
-        if (isPrefix("Lorg/mmtk/vm/gcspy/", clsBA) ||
-            isPrefix("[Lorg/mmtk/vm/gcspy/", clsBA)) {
+        if (isPrefix("Lorg/mmtk/vm/gcspy/", clsBA) || isPrefix("[Lorg/mmtk/vm/gcspy/", clsBA)) {
           return Plan.ALLOC_GCSPY;
         }
       }
@@ -484,8 +481,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
     }
     byte[] typeBA = type.getDescriptor().toByteArray();
     if (Selected.Constraints.get().withGCspy()) {
-      if (isPrefix("Lorg/mmtk/vm/gcspy/", typeBA) ||
-          isPrefix("[Lorg/mmtk/vm/gcspy/", typeBA)) {
+      if (isPrefix("Lorg/mmtk/vm/gcspy/", typeBA) || isPrefix("[Lorg/mmtk/vm/gcspy/", typeBA)) {
         allocator = Plan.ALLOC_GCSPY;
       }
     }
@@ -525,15 +521,12 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    */
   @Inline
   @Uninterruptible
-  public static Object allocateScalar(int size, Object[] tib, int allocator,
-                                      int align, int offset, int site) {
+  public static Object allocateScalar(int size, Object[] tib, int allocator, int align, int offset, int site) {
     Selected.Mutator mutator = Selected.Mutator.get();
-    allocator = mutator.checkAllocator(VM_Memory.alignUp(size, MIN_ALIGNMENT),
-                                       align, allocator);
+    allocator = mutator.checkAllocator(VM_Memory.alignUp(size, MIN_ALIGNMENT), align, allocator);
     Address region = allocateSpace(mutator, size, align, offset, allocator, site);
     Object result = VM_ObjectModel.initializeScalar(region, tib, size);
-    mutator.postAlloc(ObjectReference.fromObject(result),
-                      ObjectReference.fromObject(tib), size, allocator);
+    mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(tib), size, allocator);
     return result;
   }
 
@@ -554,9 +547,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    */
   @Inline
   @Uninterruptible
-  public static Object allocateArray(int numElements, int logElementSize,
-                                     int headerSize, Object[] tib,
-                                     int allocator,
+  public static Object allocateArray(int numElements, int logElementSize, int headerSize, Object[] tib, int allocator,
                                      int align, int offset, int site) {
     Selected.Mutator mutator = Selected.Mutator.get();
 
@@ -566,13 +557,10 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
       Assert.failWithOutOfMemoryErrorStatic();
     }
     int size = elemBytes + headerSize;
-    allocator = mutator.checkAllocator(VM_Memory.alignUp(size, MIN_ALIGNMENT),
-                                       align, allocator);
+    allocator = mutator.checkAllocator(VM_Memory.alignUp(size, MIN_ALIGNMENT), align, allocator);
     Address region = allocateSpace(mutator, size, align, offset, allocator, site);
-    Object result = VM_ObjectModel.initializeArray(region, tib, numElements,
-                                                   size);
-    mutator.postAlloc(ObjectReference.fromObject(result),
-                      ObjectReference.fromObject(tib), size, allocator);
+    Object result = VM_ObjectModel.initializeArray(region, tib, numElements, size);
+    mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(tib), size, allocator);
     return result;
   }
 
@@ -589,9 +577,8 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    */
   @Inline
   @Uninterruptible
-  private static Address allocateSpace(Selected.Mutator mutator,
-                                       int bytes, int align, int offset,
-                                       int allocator, int site) {
+  private static Address allocateSpace(Selected.Mutator mutator, int bytes, int align, int offset, int allocator,
+                                       int site) {
     // MMTk requests must be in multiples of MIN_ALIGNMENT
     bytes = VM_Memory.alignUp(bytes, MIN_ALIGNMENT);
 
@@ -620,9 +607,8 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    */
   @Inline
   @Uninterruptible
-  public static Address allocateSpace(Selected.Collector collector,
-                                      int bytes, int align, int offset,
-                                      int allocator, ObjectReference from) {
+  public static Address allocateSpace(Selected.Collector collector, int bytes, int align, int offset, int allocator,
+                                      ObjectReference from) {
     // MMTk requests must be in multiples of MIN_ALIGNMENT
     bytes = VM_Memory.alignUp(bytes, MIN_ALIGNMENT);
 
@@ -654,10 +640,8 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    */
   @Inline
   @Uninterruptible
-  public static Offset alignAllocation(Offset initialOffset, int align,
-                                       int offset) {
-    Address region = VM_Memory.alignUp(initialOffset.toWord().toAddress(),
-                                       MIN_ALIGNMENT);
+  public static Offset alignAllocation(Offset initialOffset, int align, int offset) {
+    Address region = VM_Memory.alignUp(initialOffset.toWord().toAddress(), MIN_ALIGNMENT);
     return Allocator.alignAllocationNoFill(region, align, offset).toWord().toOffset();
   }
 
@@ -679,9 +663,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
     Object[] tib = type.getTypeInformationBlock();
     int allocator = isHot ? Plan.ALLOC_HOT_CODE : Plan.ALLOC_COLD_CODE;
 
-    return (VM_CodeArray) allocateArray(numInstrs, width, headerSize, tib,
-                                        allocator, align, offset,
-                                        Plan.DEFAULT_SITE);
+    return (VM_CodeArray) allocateArray(numInstrs, width, headerSize, tib, allocator, align, offset, Plan.DEFAULT_SITE);
   }
 
   /**
@@ -703,9 +685,14 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
       int width = stackType.getLogElementSize();
       Object[] stackTib = stackType.getTypeInformationBlock();
 
-      return (byte[]) allocateArray(bytes, width, headerSize, stackTib,
+      return (byte[]) allocateArray(bytes,
+                                    width,
+                                    headerSize,
+                                    stackTib,
                                     (immortal ? Plan.ALLOC_IMMORTAL_STACK : Plan.ALLOC_STACK),
-                                    align, offset, Plan.DEFAULT_SITE);
+                                    align,
+                                    offset,
+                                    Plan.DEFAULT_SITE);
     }
   }
 
@@ -728,9 +715,14 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
     int width = arrayType.getLogElementSize();
     Object[] arrayTib = arrayType.getTypeInformationBlock();
 
-    return (int[]) allocateArray(size, width, headerSize, arrayTib,
+    return (int[]) allocateArray(size,
+                                 width,
+                                 headerSize,
+                                 arrayTib,
                                  (Selected.Constraints.get().needsImmortalTypeInfo() ? Plan.ALLOC_IMMORTAL : Plan.ALLOC_DEFAULT),
-                                 align, offset, Plan.DEFAULT_SITE);
+                                 align,
+                                 offset,
+                                 Plan.DEFAULT_SITE);
 
   }
 
@@ -752,9 +744,15 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
     Object[] objectArrayTib = objectArrayType.getTypeInformationBlock();
     int align = VM_ObjectModel.getAlignment(objectArrayType);
     int offset = VM_ObjectModel.getOffsetForAlignment(objectArrayType);
-    Object result = allocateArray(n, objectArrayType.getLogElementSize(),
-                                  VM_ObjectModel.computeArrayHeaderSize(objectArrayType),
-                                  objectArrayTib, Plan.ALLOC_IMMORTAL, align, offset, Plan.DEFAULT_SITE);
+    Object result =
+        allocateArray(n,
+                      objectArrayType.getLogElementSize(),
+                      VM_ObjectModel.computeArrayHeaderSize(objectArrayType),
+                      objectArrayTib,
+                      Plan.ALLOC_IMMORTAL,
+                      align,
+                      offset,
+                      Plan.DEFAULT_SITE);
     return (Object[]) result;
   }
 
@@ -887,16 +885,16 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
     if (vmType.isArrayType()) {
       /* A reference array */
       if (vmType.asArray().getElementType().isReferenceType()) {
-        type = MMType.createRefArray(vmType.isAcyclicReference(),
-                                     pickAllocatorForType(vmType));
+        type = MMType.createRefArray(vmType.isAcyclicReference(), pickAllocatorForType(vmType));
       } else {
         /* An array of primitive types */
         type = MMType.createPrimArray(pickAllocatorForType(vmType));
       }
     } else {
-      type = MMType.createScalar(vmType.isAcyclicReference(),
-                                 pickAllocatorForType(vmType),
-                                 vmType.asClass().getReferenceOffsets());
+      type =
+          MMType.createScalar(vmType.isAcyclicReference(),
+                              pickAllocatorForType(vmType),
+                              vmType.asClass().getReferenceOffsets());
     }
     vmType.setMMType(type);
   }
@@ -911,8 +909,10 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
   @Inline
   @Uninterruptible
   public static boolean mightBeTIB(ObjectReference obj) {
-    return !obj.isNull() && Space.isMappedObject(obj) && Space.isImmortal(obj)
-           && Space.isMappedObject(ObjectReference.fromObject(VM_ObjectModel.getTIB(obj)));
+    return !obj.isNull() &&
+           Space.isMappedObject(obj) &&
+           Space.isImmortal(obj) &&
+           Space.isMappedObject(ObjectReference.fromObject(VM_ObjectModel.getTIB(obj)));
   }
 
   /**
@@ -944,11 +944,10 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * BootImageInterface type.
    */
   @Interruptible
-  public static void initializeHeader(BootImageInterface bootImage, Address ref,
-                                      Object[] tib, int size, boolean isScalar) {
+  public static void initializeHeader(BootImageInterface bootImage, Address ref, Object[] tib, int size,
+                                      boolean isScalar) {
     //    int status = VM_JavaHeader.readAvailableBitsWord(bootImage, ref);
-    Word status = Selected.Plan.get().setBootTimeGCBits(ref,
-                                                        ObjectReference.fromObject(tib), size, Word.zero());
+    Word status = Selected.Plan.get().setBootTimeGCBits(ref, ObjectReference.fromObject(tib), size, Word.zero());
     VM_JavaHeader.writeAvailableBitsWord(bootImage, ref, status);
   }
 

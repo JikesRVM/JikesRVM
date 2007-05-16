@@ -12,8 +12,7 @@ package org.jikesrvm.compilers.opt;
  * An <code>OPT_EnumerationIterator</code> converts an <code>Enumeration</code>
  * into an <code>Iterator</code>.
  */
-public class OPT_EnumerationIterator<T>
-    implements java.util.Iterator<T> {
+public class OPT_EnumerationIterator<T> implements java.util.Iterator<T> {
   private final java.util.Enumeration<T> e;
 
   public OPT_EnumerationIterator(java.util.Enumeration<T> e) {

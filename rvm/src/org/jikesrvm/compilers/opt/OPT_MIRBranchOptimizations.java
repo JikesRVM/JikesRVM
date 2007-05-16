@@ -21,8 +21,7 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BBEND;
 /**
  * Perform simple peephole optimizations for MIR branches.
  */
-public final class OPT_MIRBranchOptimizations
-    extends OPT_BranchOptimizationDriver {
+public final class OPT_MIRBranchOptimizations extends OPT_BranchOptimizationDriver {
 
   /**
    * @param level the minimum optimization level at which the branch
@@ -41,9 +40,7 @@ public final class OPT_MIRBranchOptimizations
    * @param bb the containing basic block
    * @return true if an optimization was applied, false otherwise
    */
-  protected boolean optimizeBranchInstruction(OPT_IR ir,
-                                              OPT_Instruction s,
-                                              OPT_BasicBlock bb) {
+  protected boolean optimizeBranchInstruction(OPT_IR ir, OPT_Instruction s, OPT_BasicBlock bb) {
     if (MIR_Branch.conforms(s)) {
       return processGoto(ir, s, bb);
     } else if (MIR_CondBranch.conforms(s)) {
@@ -145,9 +142,7 @@ public final class OPT_MIRBranchOptimizations
    * @param bb the basic block holding if
    * @return true iff made a transformation
    */
-  private boolean processCondBranch(OPT_IR ir,
-                                    OPT_Instruction cb,
-                                    OPT_BasicBlock bb) {
+  private boolean processCondBranch(OPT_IR ir, OPT_Instruction cb, OPT_BasicBlock bb) {
     OPT_BasicBlock targetBlock = cb.getBranchTarget();
     OPT_Instruction targetLabel = targetBlock.firstInstruction();
     // get the first real instruction at the branch target
@@ -227,9 +222,7 @@ public final class OPT_MIRBranchOptimizations
    * @param bb the basic block holding if
    * @return true iff made a transformation
    */
-  private boolean processTwoTargetConditionalBranch(OPT_IR ir,
-                                                    OPT_Instruction cb,
-                                                    OPT_BasicBlock bb) {
+  private boolean processTwoTargetConditionalBranch(OPT_IR ir, OPT_Instruction cb, OPT_BasicBlock bb) {
     // First condition/target
     OPT_Instruction target1Label = MIR_CondBranch2.getTarget1(cb).target;
     OPT_Instruction target1Inst = firstRealInstructionFollowing(target1Label);
@@ -305,8 +298,7 @@ public final class OPT_MIRBranchOptimizations
    *               branch
    * @return boolean result
    */
-  private boolean isFlipCandidate(OPT_Instruction cb,
-                                  OPT_Instruction target) {
+  private boolean isFlipCandidate(OPT_Instruction cb, OPT_Instruction target) {
     // condition 1: is next instruction a GOTO?
     OPT_Instruction next = cb.nextInstructionInCodeOrder();
     if (!MIR_Branch.conforms(next)) {

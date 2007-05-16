@@ -331,8 +331,7 @@ public final class VM_ControllerMemory implements VM_Constants {
         // only process plans that were completed or completed and outdated
         // by subsequent plans for this method
         byte status = plan.getStatus();
-        if (status == VM_ControllerPlan.COMPLETED ||
-            status == VM_ControllerPlan.OUTDATED) {
+        if (status == VM_ControllerPlan.COMPLETED || status == VM_ControllerPlan.OUTDATED) {
           int optLevel = plan.getCompPlan().options.getOptLevel();
 
           // check for recomps at level 2
@@ -345,9 +344,7 @@ public final class VM_ControllerMemory implements VM_Constants {
       } // while
 
       if (VM_Controller.options.LOGGING_LEVEL >= 2) {
-        log.println("Method: " + meth
-                    + ", bitPattern: " + bitPattern
-                    + ", recompsAtLevel2: " + recompsAtLevel2);
+        log.println("Method: " + meth + ", bitPattern: " + bitPattern + ", recompsAtLevel2: " + recompsAtLevel2);
       }
 
       summaryArray[bitPattern]++;

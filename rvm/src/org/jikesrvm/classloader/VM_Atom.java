@@ -32,8 +32,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   /**
    * Used to canonicalize VM_Atoms: Key => VM_Atom
    */
-  private static final VM_HashMap<Key, VM_Atom> dictionary =
-      new VM_HashMap<Key, VM_Atom>();
+  private static final VM_HashMap<Key, VM_Atom> dictionary = new VM_HashMap<Key, VM_Atom>();
 
   /**
    * Dictionary of all VM_Atom instances.
@@ -181,8 +180,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   /**
    * Return printable representation of "this" atom.
    */
-  public String toUnicodeString()
-      throws java.io.UTFDataFormatException {
+  public String toUnicodeString() throws java.io.UTFDataFormatException {
     return VM_UTF8Convert.fromUTF8(val);
   }
 
@@ -339,9 +337,11 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
       default:
         if (VM.VerifyAssertions) {
           VM._assert(false,
-                     "Need a valid method descriptor; got \"" + this
-                     + "\"; can't parse the character '"
-                     + byteToString(val[i]) + "'");
+                     "Need a valid method descriptor; got \"" +
+                     this +
+                     "\"; can't parse the character '" +
+                     byteToString(val[i]) +
+                     "'");
         }
         return null;            // NOTREACHED
     }
@@ -404,10 +404,8 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
               VM._assert(i < val.length, "class descriptor missing a final ';'");
             }
           }
-          sigs.addElement(
-              VM_TypeReference
-                  .findOrCreate(cl,
-                                findOrCreate(val, off, i - off)));
+          sigs.addElement(VM_TypeReference
+              .findOrCreate(cl, findOrCreate(val, off, i - off)));
           continue;
         }
         case ArrayTypeCode: {
@@ -428,8 +426,12 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
         default:
           if (VM.VerifyAssertions) {
             VM._assert(false,
-                       "The class descriptor \"" + this + "\" contains the illegal"
-                       + " character '" + byteToString(val[i]) + "'");
+                       "The class descriptor \"" +
+                       this +
+                       "\" contains the illegal" +
+                       " character '" +
+                       byteToString(val[i]) +
+                       "'");
           }
       }
     }
@@ -469,8 +471,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
    *            CharTypeCode         'C'
    * </pre>
    */
-  public byte parseForTypeCode()
-      throws IllegalArgumentException {
+  public byte parseForTypeCode() throws IllegalArgumentException {
     if (VM.VerifyAssertions) {
       VM._assert(val.length > 0);
     }
@@ -548,18 +549,16 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
     return findOrCreate(val, 1, val.length - 1);
   }
 
-  private static final byte[][] bootstrapClassPrefixes
-      = {"Ljava/".getBytes(),
-         "Lorg/jikesrvm/".getBytes(),
-         "Lgnu/java/".getBytes(),
-         "Lgnu/classpath/".getBytes(),
-         "Lorg/vmmagic/".getBytes(),
-         "Lorg/mmtk/".getBytes()};
+  private static final byte[][] bootstrapClassPrefixes =
+      {"Ljava/".getBytes(),
+       "Lorg/jikesrvm/".getBytes(),
+       "Lgnu/java/".getBytes(),
+       "Lgnu/classpath/".getBytes(),
+       "Lorg/vmmagic/".getBytes(),
+       "Lorg/mmtk/".getBytes()};
 
-  private static final byte[][] rvmClassPrefixes
-      = {"Lorg/jikesrvm/".getBytes(),
-         "Lorg/vmmagic/".getBytes(),
-         "Lorg/mmtk/".getBytes()};
+  private static final byte[][] rvmClassPrefixes =
+      {"Lorg/jikesrvm/".getBytes(), "Lorg/vmmagic/".getBytes(), "Lorg/mmtk/".getBytes()};
 
   /**
    * @return true if this is a class descriptor of a bootstrap class

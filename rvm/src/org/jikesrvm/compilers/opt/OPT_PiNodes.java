@@ -68,8 +68,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
    * Constructor for this compiler phase
    */
   private static final Constructor<OPT_CompilerPhase> constructor =
-      getCompilerPhaseConstructor(OPT_PiNodes.class,
-                                  new Class[]{Boolean.TYPE, Boolean.TYPE});
+      getCompilerPhaseConstructor(OPT_PiNodes.class, new Class[]{Boolean.TYPE, Boolean.TYPE});
 
   /**
    * Get a constructor object for this compiler phase
@@ -146,12 +145,9 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
    *  @param ir the governing IR
    */
   private void insertPiIfNodes(OPT_IR ir) {
-    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator();
-         e.hasMoreElements(); /* nothing */
-        ) {
+    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements(); /* nothing */) {
       OPT_Instruction instr = e.next
-          /*Element*/
-          ();
+          /*Element*/();
       // TODO: what other compareops generate useful assertions?
       if (IfCmp.conforms(instr) || InlineGuard.conforms(instr)) {
 
@@ -181,20 +177,18 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
         OPT_Operand a = IfCmp.getVal1(instr);
         OPT_Operand b = IfCmp.getVal2(instr);
         // determine which block is "taken" on the branch
-        OPT_BasicBlock takenBlock =
-            IfCmp.getTarget(instr).target.getBasicBlock();
+        OPT_BasicBlock takenBlock = IfCmp.getTarget(instr).target.getBasicBlock();
         boolean new1IsTaken = false;
         if (takenBlock == new1) {
           new1IsTaken = true;
         }
 
         // insert the PI-node instructions for a and b
-        if (a.isRegister() && !a.asRegister().register.isPhysical() &&
+        if (a.isRegister() &&
+            !a.asRegister().register.isPhysical() &&
             (a.asRegister().register.isInteger() || a.asRegister().register.isAddress())) {
           // insert pi-nodes only for variables, not constants
-          OPT_Instruction s = GuardedUnary.create(
-              PI, (OPT_RegisterOperand) a.copy(),
-              a.copy(), null);
+          OPT_Instruction s = GuardedUnary.create(PI, (OPT_RegisterOperand) a.copy(), a.copy(), null);
           OPT_RegisterOperand sGuard = (OPT_RegisterOperand) ifGuard.copy();
           if (new1IsTaken) {
             sGuard.setTaken();
@@ -213,11 +207,10 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
           GuardedUnary.setGuard(s, sGuard);
           new2.prependInstruction(s);
         }
-        if (b.isRegister() && !b.asRegister().register.isPhysical() &&
+        if (b.isRegister() &&
+            !b.asRegister().register.isPhysical() &&
             (b.asRegister().register.isInteger() || b.asRegister().register.isAddress())) {
-          OPT_Instruction s = GuardedUnary.create(
-              PI, (OPT_RegisterOperand) b.copy(),
-              b.copy(), null);
+          OPT_Instruction s = GuardedUnary.create(PI, (OPT_RegisterOperand) b.copy(), b.copy(), null);
           OPT_RegisterOperand sGuard = (OPT_RegisterOperand) ifGuard.copy();
           if (new1IsTaken) {
             sGuard.setTaken();
@@ -251,8 +244,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
   private void insertPiBcNodes(OPT_IR ir) {
     OPT_Instruction nextInst = null;
     // for each instruction in the IR
-    for (OPT_Instruction instr = ir.firstInstructionInCodeOrder(); instr
-                                                                   != null; instr = nextInst) {
+    for (OPT_Instruction instr = ir.firstInstructionInCodeOrder(); instr != null; instr = nextInst) {
       // can't use iterator, since we modify instruction stream
       nextInst = instr.nextInstructionInCodeOrder();
       if (BoundsCheck.conforms(instr)) {
@@ -260,11 +252,8 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
         OPT_Operand index = BoundsCheck.getIndex(instr);
         // create the instruction and insert it
         if (index.isRegister() && !index.asRegister().register.isPhysical()) {
-          OPT_Instruction s = GuardedUnary.create(PI,
-                                                  (OPT_RegisterOperand) index.copy(),
-                                                  index.copy(), null);
-          OPT_RegisterOperand sGuard = (OPT_RegisterOperand)
-              BoundsCheck.getGuardResult(instr).copy();
+          OPT_Instruction s = GuardedUnary.create(PI, (OPT_RegisterOperand) index.copy(), index.copy(), null);
+          OPT_RegisterOperand sGuard = (OPT_RegisterOperand) BoundsCheck.getGuardResult(instr).copy();
           sGuard.setBoundsCheck();
           GuardedUnary.setGuard(s, sGuard);
           instr.insertAfter(s);
@@ -274,11 +263,8 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
           OPT_Operand array = BoundsCheck.getRef(instr);
           // create the instruction and insert it
           if (array.isRegister() && !array.asRegister().register.isPhysical()) {
-            OPT_Instruction s = GuardedUnary.create(PI,
-                                                    (OPT_RegisterOperand) array.copy(),
-                                                    array.copy(), null);
-            OPT_RegisterOperand sGuard = (OPT_RegisterOperand)
-                BoundsCheck.getGuardResult(instr).copy();
+            OPT_Instruction s = GuardedUnary.create(PI, (OPT_RegisterOperand) array.copy(), array.copy(), null);
+            OPT_RegisterOperand sGuard = (OPT_RegisterOperand) BoundsCheck.getGuardResult(instr).copy();
             sGuard.setBoundsCheck();
             GuardedUnary.setGuard(s, sGuard);
             instr.insertAfter(s);
@@ -300,8 +286,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
     if (!CHECK_REF_PI) return;
     OPT_Instruction nextInst = null;
     // for each instruction in the IR
-    for (OPT_Instruction instr = ir.firstInstructionInCodeOrder(); instr
-                                                                   != null; instr = nextInst) {
+    for (OPT_Instruction instr = ir.firstInstructionInCodeOrder(); instr != null; instr = nextInst) {
       // can't use iterator, since we modify instruction stream
       nextInst = instr.nextInstructionInCodeOrder();
       if (NullCheck.conforms(instr)) {
@@ -310,10 +295,8 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
         // create the instruction and insert it
         if (obj.isRegister()) {
           OPT_RegisterOperand lval = (OPT_RegisterOperand) obj.copy();
-          OPT_Instruction s = GuardedUnary.create(PI, lval, obj.copy(),
-                                                  null);
-          OPT_RegisterOperand sGuard = (OPT_RegisterOperand)
-              NullCheck.getGuardResult(instr).copy();
+          OPT_Instruction s = GuardedUnary.create(PI, lval, obj.copy(), null);
+          OPT_RegisterOperand sGuard = (OPT_RegisterOperand) NullCheck.getGuardResult(instr).copy();
           sGuard.setNullCheck();
           GuardedUnary.setGuard(s, sGuard);
           instr.insertAfter(s);
@@ -333,8 +316,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
   private void insertPiCheckCastNodes(OPT_IR ir) {
     OPT_Instruction nextInst = null;
     // for each instruction in the IR
-    for (OPT_Instruction instr = ir.firstInstructionInCodeOrder(); instr
-                                                                   != null; instr = nextInst) {
+    for (OPT_Instruction instr = ir.firstInstructionInCodeOrder(); instr != null; instr = nextInst) {
       // can't use iterator, since we modify instruction stream
       nextInst = instr.nextInstructionInCodeOrder();
       if (TypeCheck.conforms(instr)) {
@@ -345,8 +327,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
           OPT_RegisterOperand lval = (OPT_RegisterOperand) obj.copy();
           lval.type = TypeCheck.getType(instr).getTypeRef();
           lval.clearDeclaredType();
-          if (lval.type.isResolved() && lval.type.isClassType()
-              && lval.type.peekResolvedType().asClass().isFinal()) {
+          if (lval.type.isResolved() && lval.type.isClassType() && lval.type.peekResolvedType().asClass().isFinal()) {
             lval.setPreciseType();
           } else {
             lval.clearPreciseType();
@@ -372,8 +353,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
    * @param ir the governing IR
    */
   static void cleanUp(OPT_IR ir) {
-    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator();
-         e.hasMoreElements();) {
+    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
       OPT_Instruction s = e.next();
       if (s.operator == PI) {
         OPT_RegisterOperand result = GuardedUnary.getResult(s);
@@ -392,8 +372,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
    */
   public static OPT_Instruction getGenerator(OPT_Instruction def) {
     if (def.operator != PI) {
-      throw new OPT_OptimizingCompilerException(
-          "Not a PI Node!");
+      throw new OPT_OptimizingCompilerException("Not a PI Node!");
     }
     OPT_Operand g = GuardedUnary.getGuard(def);
     OPT_Instruction link = g.asRegister().register.defList.instruction;

@@ -45,9 +45,7 @@ public interface VM_ThinLockConstants extends VM_SizeConstants {
   Word TL_LOCK_ID_MASK =
       Word.fromIntSignExtend(-1).rshl(BITS_IN_ADDRESS - (NUM_BITS_RC + NUM_BITS_TID - 1)).lsh(TL_LOCK_ID_SHIFT);
   Word TL_FAT_LOCK_MASK = Word.one().lsh(VM_JavaHeader.THIN_LOCK_SHIFT + NUM_BITS_RC + NUM_BITS_TID - 1);
-  Word TL_UNLOCK_MASK =
-      Word.fromIntSignExtend(-1).rshl(BITS_IN_ADDRESS -
-                                      VM_JavaHeader
-                                          .NUM_THIN_LOCK_BITS).lsh(VM_JavaHeader.THIN_LOCK_SHIFT).not();
+  Word TL_UNLOCK_MASK = Word.fromIntSignExtend(-1).rshl(BITS_IN_ADDRESS - VM_JavaHeader
+      .NUM_THIN_LOCK_BITS).lsh(VM_JavaHeader.THIN_LOCK_SHIFT).not();
 }
 

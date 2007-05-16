@@ -58,8 +58,7 @@ public abstract class VM_Member extends VM_AnnotatedElement implements VM_Consta
    * @param signature generic type of this member
    * @param annotations array of runtime visible annotations
    */
-  protected VM_Member(VM_TypeReference declaringClass, VM_MemberReference memRef,
-                      short modifiers, VM_Atom signature,
+  protected VM_Member(VM_TypeReference declaringClass, VM_MemberReference memRef, short modifiers, VM_Atom signature,
                       VM_Annotation[] annotations) {
     super(annotations);
     this.declaringClass = declaringClass;

@@ -43,10 +43,14 @@ public class OPT_LowerInstrumentation extends OPT_CompilerPhase {
 
   public final boolean shouldPerform(OPT_Options options) {
     VM_AOSOptions opts = VM_Controller.options;
-    return opts.INSERT_INSTRUCTION_COUNTERS ||
-           opts.INSERT_METHOD_COUNTERS_OPT ||
-           opts.INSERT_DEBUGGING_COUNTERS ||
-           opts.INSERT_YIELDPOINT_COUNTERS;
+    return opts
+        .INSERT_INSTRUCTION_COUNTERS ||
+                                     opts
+                                         .INSERT_METHOD_COUNTERS_OPT ||
+                                                                     opts
+                                                                         .INSERT_DEBUGGING_COUNTERS ||
+                                                                                                    opts
+                                                                                                        .INSERT_YIELDPOINT_COUNTERS;
   }
 
   public final String getName() { return "LowerInstrumentation"; }
@@ -79,15 +83,13 @@ public class OPT_LowerInstrumentation extends OPT_CompilerPhase {
     }
     */
 
-    ArrayList<OPT_Instruction> instrumentedInstructions =
-        new ArrayList<OPT_Instruction>();
+    ArrayList<OPT_Instruction> instrumentedInstructions = new ArrayList<OPT_Instruction>();
 
     // Go through all instructions and find the instrumented ones.  We
     // put them in instrumentedInstructions and expand them later
     // because if we expanded them on the fly we mess up the
     // enumeration.
-    for (OPT_BasicBlockEnumeration bbe = ir.getBasicBlocks();
-         bbe.hasMoreElements();) {
+    for (OPT_BasicBlockEnumeration bbe = ir.getBasicBlocks(); bbe.hasMoreElements();) {
       OPT_BasicBlock bb = bbe.next();
 
       OPT_Instruction i = bb.firstInstruction();
@@ -108,8 +110,7 @@ public class OPT_LowerInstrumentation extends OPT_CompilerPhase {
       // manager.  Ideally it should be stored in the instruction,
       // (to allow multiple counter managers.  It would also make this
       // code independant of the adaptive system..)
-      OPT_InstrumentedEventCounterManager counterManager =
-          VM_Instrumentation.eventCounterManager;
+      OPT_InstrumentedEventCounterManager counterManager = VM_Instrumentation.eventCounterManager;
 
       counterManager.mutateOptEventCounterInstruction(i, ir);
     }

@@ -32,8 +32,7 @@ public final class OPT_ClassLoadingDependencyManager implements VM_ClassLoadingL
   ////////////////////////
   // Entrypoints from VM_Class
   ////////////////////////
-  public synchronized void classInitialized(VM_Class c,
-                                            boolean writingBootImage) {
+  public synchronized void classInitialized(VM_Class c, boolean writingBootImage) {
     // Process any dependencies on methods not being overridden.
     if (!writingBootImage) {
       if (DEBUG) {
@@ -103,8 +102,7 @@ public final class OPT_ClassLoadingDependencyManager implements VM_ClassLoadingL
   }
 
   private void processOverride(VM_Method overridden) {
-    Iterator<Integer> invalidatedMethods =
-        db.invalidatedByOverriddenMethod(overridden);
+    Iterator<Integer> invalidatedMethods = db.invalidatedByOverriddenMethod(overridden);
     if (invalidatedMethods != null) {
       while (invalidatedMethods.hasNext()) {
         int cmid = invalidatedMethods.next();

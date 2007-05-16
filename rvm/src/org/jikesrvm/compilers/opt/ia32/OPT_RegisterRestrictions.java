@@ -67,8 +67,7 @@ public class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions
     // catch block remain valid.  For now, we do this by forcing any
     // register used in such a PEI as not spilled.  TODO: relax this
     // restriction for better code.
-    for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator();
-         ie.hasMoreElements();) {
+    for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
       OPT_Instruction s = ie.next();
       if (s.isPEI() && s.operator != IR_PROLOGUE) {
         if (bb.hasApplicableExceptionalOut(s) || !SCRATCH_IN_PEI) {
@@ -110,8 +109,7 @@ public class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions
           break;
       }
     }
-    for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator();
-         ie.hasMoreElements();) {
+    for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
       OPT_Instruction s = ie.next();
       if (s.operator == IA32_FNINIT) {
         // No floating point register survives across an FNINIT
@@ -142,8 +140,7 @@ public class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions
    * Does instruction s contain an 8-bit memory operand?
    */
   final boolean has8BitMemoryOperand(OPT_Instruction s) {
-    for (OPT_OperandEnumeration me = s.getMemoryOperands();
-         me.hasMoreElements();) {
+    for (OPT_OperandEnumeration me = s.getMemoryOperands(); me.hasMoreElements();) {
       OPT_MemoryOperand mop = (OPT_MemoryOperand) me.next();
       if (mop.size == 1) {
         return true;
@@ -158,12 +155,10 @@ public class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions
    * @param s the instruction to restrict
    */
   final void handle8BitRestrictions(OPT_Instruction s) {
-    for (OPT_OperandEnumeration me = s.getMemoryOperands();
-         me.hasMoreElements();) {
+    for (OPT_OperandEnumeration me = s.getMemoryOperands(); me.hasMoreElements();) {
       OPT_MemoryOperand mop = (OPT_MemoryOperand) me.next();
       if (mop.size == 1) {
-        for (OPT_OperandEnumeration e2 = s.getRootOperands();
-             e2.hasMoreElements();) {
+        for (OPT_OperandEnumeration e2 = s.getRootOperands(); e2.hasMoreElements();) {
           OPT_Operand rootOp = e2.next();
           if (rootOp.isRegister()) {
             restrictTo8Bits(rootOp.asRegister().register);
@@ -285,8 +280,7 @@ public class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions
    * Is it forbidden to assign symbolic register symb to physical register r
    * in instruction s?
    */
-  public boolean isForbidden(OPT_Register symb, OPT_Register r,
-                             OPT_Instruction s) {
+  public boolean isForbidden(OPT_Register symb, OPT_Register r, OPT_Instruction s) {
 
     // Look at 8-bit restrictions.
     switch (s.operator.opcode) {

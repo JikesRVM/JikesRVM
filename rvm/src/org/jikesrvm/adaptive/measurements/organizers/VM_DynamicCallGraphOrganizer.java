@@ -136,8 +136,7 @@ public class VM_DynamicCallGraphOrganizer extends VM_Organizer {
           if (DEBUG) VM.sysWrite("Skipping sample with TRAP/JNI caller");
           continue;
         case VM_CompiledMethod.BASELINE: {
-          VM_BaselineCompiledMethod baseCompiledMethod =
-              (VM_BaselineCompiledMethod) compiledMethod;
+          VM_BaselineCompiledMethod baseCompiledMethod = (VM_BaselineCompiledMethod) compiledMethod;
           // note: the following call expects the offset in INSTRUCTIONS!
           bytecodeIndex = baseCompiledMethod.findBytecodeIndexForInstruction(MCOffset);
           caller = stackFrameCaller;
@@ -171,7 +170,10 @@ public class VM_DynamicCallGraphOrganizer extends VM_Organizer {
             continue;  // skip sample
           } catch (OPT_OptimizingCompilerException e) {
             VM.sysWrite("***Error: SKIP SAMPLE: can't find bytecode index in OPT compiled " +
-                        stackFrameCaller + "@" + compiledMethod + " at MC offset ", MCOff);
+                        stackFrameCaller +
+                        "@" +
+                        compiledMethod +
+                        " at MC offset ", MCOff);
             VM.sysWrite("!\n");
             if (VM.ErrorsFatal) VM.sysFail("Exception in AI organizer.");
             continue;  // skip sample
@@ -188,7 +190,10 @@ public class VM_DynamicCallGraphOrganizer extends VM_Organizer {
             continue;
           } catch (OPT_OptimizingCompilerException e) {
             VM.sysWrite("***Error: SKIP SAMPLE: can't find caller in OPT compiled " +
-                        stackFrameCaller + "@" + compiledMethod + " at MC offset ", MCOff);
+                        stackFrameCaller +
+                        "@" +
+                        compiledMethod +
+                        " at MC offset ", MCOff);
             VM.sysWrite("!\n");
             if (VM.ErrorsFatal) VM.sysFail("Exception in AI organizer.");
             continue;  // skip sample

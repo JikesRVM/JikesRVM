@@ -39,12 +39,9 @@ public abstract class OPT_PhysicalDefUse {
 
   public static final int maskCF_OF = maskCF | maskOF;
   public static final int maskCF_PF_ZF = maskCF | maskPF | maskZF;
-  public static final int maskCF_OF_PF_SF_ZF = maskCF | maskOF | maskPF | maskSF |
-                                               maskZF;
-  public static final int maskAF_OF_PF_SF_ZF = maskAF | maskOF | maskPF | maskSF |
-                                               maskZF;
-  public static final int maskAF_CF_OF_PF_SF_ZF = maskAF | maskCF | maskOF |
-                                                  maskPF | maskSF | maskZF;
+  public static final int maskCF_OF_PF_SF_ZF = maskCF | maskOF | maskPF | maskSF | maskZF;
+  public static final int maskAF_OF_PF_SF_ZF = maskAF | maskOF | maskPF | maskSF | maskZF;
+  public static final int maskAF_CF_OF_PF_SF_ZF = maskAF | maskCF | maskOF | maskPF | maskSF | maskZF;
   public static final int maskC0_C1_C2_C3 = maskC0 | maskC1 | maskC2 | maskC3;
   public static final int maskcallDefs = maskAF_CF_OF_PF_SF_ZF;
   public static final int maskcallUses = mask;

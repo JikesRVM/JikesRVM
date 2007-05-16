@@ -33,8 +33,7 @@ import org.vmmagic.unboxed.Offset;
  * instructions.
  */
 @SynchronizedObject
-public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
-    implements VM_BaselineConstants {
+public final class VM_BaselineCompiledMethod extends VM_CompiledMethod implements VM_BaselineConstants {
 
   /** Does the baseline compiled method have a counters array? */
   private boolean hasCounters;
@@ -304,8 +303,7 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
   //        bytecode-index to machine-instruction-index map for method
   //        number of instructions for method
   //
-  public void encodeMappingInfo(VM_ReferenceMaps referenceMaps,
-                                int[] bcMap, int numInstructions) {
+  public void encodeMappingInfo(VM_ReferenceMaps referenceMaps, int[] bcMap, int numInstructions) {
     int count = 0;
     int lastBC = 0, lastIns = 0;
     for (int i = 0; i < bcMap.length; i++) {

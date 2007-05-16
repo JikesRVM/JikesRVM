@@ -54,13 +54,11 @@ public class VM_CompilerDNA implements VM_Constants {
 
   static {
     if (VM.BuildForPowerPC) {
-      compilationRates = new double[]{
-          359.17,             // base
-          10.44, 4.69, 1.56}; // opt 0...2
+      compilationRates = new double[]{359.17,             // base
+                                      10.44, 4.69, 1.56}; // opt 0...2
     } else if (VM.BuildForIA32) {
-      compilationRates = new double[]{
-          696.58,             // base
-          18.19, 8.90, 3.90}; // opt 0...2
+      compilationRates = new double[]{696.58,             // base
+                                      18.19, 8.90, 3.90}; // opt 0...2
     } else {
       if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
       compilationRates = null;
@@ -76,13 +74,11 @@ public class VM_CompilerDNA implements VM_Constants {
 
   static {
     if (VM.BuildForPowerPC) {
-      speedupRates = new double[]{
-          1.00,               // base
-          4.73, 6.65, 7.39};  // opt 0...2
+      speedupRates = new double[]{1.00,               // base
+                                  4.73, 6.65, 7.39};  // opt 0...2
     } else if (VM.BuildForIA32) {
-      speedupRates = new double[]{
-          1.00,               // base
-          4.56, 7.13, 7.35};  // opt 0...2
+      speedupRates = new double[]{1.00,               // base
+                                  4.56, 7.13, 7.35};  // opt 0...2
     } else {
       if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
       speedupRates = null;
@@ -178,30 +174,20 @@ public class VM_CompilerDNA implements VM_Constants {
     }
 
     // fill in the upper triangular matrices
-    for (int prevCompiler = 0;
-         prevCompiler < numCompilers;
-         prevCompiler++) {
+    for (int prevCompiler = 0; prevCompiler < numCompilers; prevCompiler++) {
 
       benefitRatio[prevCompiler][prevCompiler] = 1.0;
       compileTimeRatio[prevCompiler][prevCompiler] = 1.0;
 
-      for (int nextCompiler = prevCompiler + 1;
-           nextCompiler < numCompilers;
-           nextCompiler++) {
-        benefitRatio[prevCompiler][nextCompiler] =
-            speedupRates[nextCompiler] / speedupRates[prevCompiler];
+      for (int nextCompiler = prevCompiler + 1; nextCompiler < numCompilers; nextCompiler++) {
+        benefitRatio[prevCompiler][nextCompiler] = speedupRates[nextCompiler] / speedupRates[prevCompiler];
 
         // Since compilation rates are not relative to the 1st compiler
         //  we invert the division.
-        compileTimeRatio[prevCompiler][nextCompiler] =
-            compilationRates[prevCompiler] / compilationRates[nextCompiler];
-        VM_AOSLogging.reportBenefitRatio(
-            prevCompiler, nextCompiler,
-            benefitRatio[prevCompiler][nextCompiler]);
+        compileTimeRatio[prevCompiler][nextCompiler] = compilationRates[prevCompiler] / compilationRates[nextCompiler];
+        VM_AOSLogging.reportBenefitRatio(prevCompiler, nextCompiler, benefitRatio[prevCompiler][nextCompiler]);
 
-        VM_AOSLogging.reportCompileTimeRatio(
-            prevCompiler, nextCompiler,
-            compileTimeRatio[prevCompiler][nextCompiler]);
+        VM_AOSLogging.reportCompileTimeRatio(prevCompiler, nextCompiler, compileTimeRatio[prevCompiler][nextCompiler]);
       }
     }
 
@@ -225,16 +211,14 @@ public class VM_CompilerDNA implements VM_Constants {
   private static void readDNA(String filename) {
     try {
 
-      LineNumberReader in =
-          new LineNumberReader(new FileReader(filename));
+      LineNumberReader in = new LineNumberReader(new FileReader(filename));
 
       // Expected Format
       //   CompilationRates  aaa.a  bbbb.b cccc.c dddd.d ....
       //   SpeedupRates      aaa.a  bbbb.b cccc.c dddd.d ....
       processOneLine(in, "CompilationRates", compilationRates);
       processOneLine(in, "SpeedupRates", speedupRates);
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       e.printStackTrace();
       VM.sysFail("Failed to open controller DNA file");
     }
@@ -246,8 +230,7 @@ public class VM_CompilerDNA implements VM_Constants {
    *  @param title the title string to look for
    *  @param valueHolder the array to hold the read values
    */
-  private static void processOneLine(LineNumberReader in, String title,
-                                     double[] valueHolder) throws IOException {
+  private static void processOneLine(LineNumberReader in, String title, double[] valueHolder) throws IOException {
 
     String s = in.readLine();
     if (VM.VerifyAssertions) VM._assert(s != null);
@@ -260,9 +243,7 @@ public class VM_CompilerDNA implements VM_Constants {
     if (VM.VerifyAssertions) VM._assert(token.equals(title));
 
     // walk through the array, making sure we still have tokens
-    for (int i = 0;
-         parser.hasMoreTokens() && i < valueHolder.length;
-         i++) {
+    for (int i = 0; parser.hasMoreTokens() && i < valueHolder.length; i++) {
 
       // get the available token
       token = parser.nextToken();

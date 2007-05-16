@@ -56,8 +56,7 @@ abstract class OPT_BranchSimplifier {
   public static boolean simplify(OPT_BasicBlock bb, OPT_IR ir) {
     boolean didSomething = false;
 
-    for (OPT_InstructionEnumeration branches =
-        bb.enumerateBranchInstructions(); branches.hasMoreElements();) {
+    for (OPT_InstructionEnumeration branches = bb.enumerateBranchInstructions(); branches.hasMoreElements();) {
       OPT_Instruction s = branches.next();
       if (Goto.conforms(s)) {
         // nothing to do, but a common case so test first
@@ -166,38 +165,45 @@ abstract class OPT_BranchSimplifier {
       insertTrueGuard(s, guard);
       Goto.mutate(s, GOTO, IfCmp2.getTarget1(s));
       removeBranchesAfterGotos(bb);
-    } else if ((cond1 == OPT_ConditionOperand.FALSE) &&
-               (cond2 == OPT_ConditionOperand.TRUE)) {
+    } else if ((cond1 == OPT_ConditionOperand.FALSE) && (cond2 == OPT_ConditionOperand.TRUE)) {
       // target 2 taken
       insertTrueGuard(s, guard);
       Goto.mutate(s, GOTO, IfCmp2.getTarget2(s));
       removeBranchesAfterGotos(bb);
-    } else if ((cond1 == OPT_ConditionOperand.FALSE) &&
-               (cond2 == OPT_ConditionOperand.FALSE)) {
+    } else if ((cond1 == OPT_ConditionOperand.FALSE) && (cond2 == OPT_ConditionOperand.FALSE)) {
       // not taken
       insertTrueGuard(s, guard);
       s.remove();
-    } else if ((cond1 == OPT_ConditionOperand.FALSE) &&
-               (cond2 == OPT_ConditionOperand.UNKNOWN)) {
+    } else if ((cond1 == OPT_ConditionOperand.FALSE) && (cond2 == OPT_ConditionOperand.UNKNOWN)) {
       // target 1 not taken, simplify test to ifcmp
-      IfCmp.mutate(s, INT_IFCMP, guard,
-                   val1, val2, IfCmp2.getCond2(s),
+      IfCmp.mutate(s,
+                   INT_IFCMP,
+                   guard,
+                   val1,
+                   val2,
+                   IfCmp2.getCond2(s),
                    IfCmp2.getTarget2(s),
                    IfCmp2.getBranchProfile2(s));
-    } else if ((cond1 == OPT_ConditionOperand.UNKNOWN) &&
-               (cond2 == OPT_ConditionOperand.FALSE)) {
+    } else if ((cond1 == OPT_ConditionOperand.UNKNOWN) && (cond2 == OPT_ConditionOperand.FALSE)) {
       // target 1 taken possibly, simplify test to ifcmp
-      IfCmp.mutate(s, INT_IFCMP, guard,
-                   val1, val2, IfCmp2.getCond1(s),
+      IfCmp.mutate(s,
+                   INT_IFCMP,
+                   guard,
+                   val1,
+                   val2,
+                   IfCmp2.getCond1(s),
                    IfCmp2.getTarget1(s),
                    IfCmp2.getBranchProfile1(s));
-    } else if ((cond1 == OPT_ConditionOperand.UNKNOWN) &&
-               (cond2 == OPT_ConditionOperand.TRUE)) {
+    } else if ((cond1 == OPT_ConditionOperand.UNKNOWN) && (cond2 == OPT_ConditionOperand.TRUE)) {
       // target 1 taken possibly, simplify first test to ifcmp and
       // insert goto after
       s.insertAfter(Goto.create(GOTO, IfCmp2.getTarget2(s)));
-      IfCmp.mutate(s, INT_IFCMP, guard,
-                   val1, val2, IfCmp2.getCond1(s),
+      IfCmp.mutate(s,
+                   INT_IFCMP,
+                   guard,
+                   val1,
+                   val2,
+                   IfCmp2.getCond1(s),
                    IfCmp2.getTarget1(s),
                    IfCmp2.getBranchProfile1(s));
       removeBranchesAfterGotos(bb);
@@ -236,8 +242,12 @@ abstract class OPT_BranchSimplifier {
     } else if (numMatches == 1) {
       // only 1 match, simplify to ifcmp
       OPT_BranchOperand defaultTarget = LookupSwitch.getDefault(s);
-      IfCmp.mutate(s, INT_IFCMP, ir.regpool.makeTempValidation(),
-                   val, LookupSwitch.getMatch(s, 0), OPT_ConditionOperand.EQUAL(),
+      IfCmp.mutate(s,
+                   INT_IFCMP,
+                   ir.regpool.makeTempValidation(),
+                   val,
+                   LookupSwitch.getMatch(s, 0),
+                   OPT_ConditionOperand.EQUAL(),
                    LookupSwitch.getTarget(s, 0),
                    LookupSwitch.getBranchProfile(s, 0));
       s.insertAfter(Goto.create(GOTO, defaultTarget));
@@ -263,8 +273,12 @@ abstract class OPT_BranchSimplifier {
     } else if (low == high) {
       // only 1 match, simplify to ifcmp
       OPT_BranchOperand defaultTarget = TableSwitch.getDefault(s);
-      IfCmp.mutate(s, INT_IFCMP, ir.regpool.makeTempValidation(),
-                   val, new OPT_IntConstantOperand(low), OPT_ConditionOperand.EQUAL(),
+      IfCmp.mutate(s,
+                   INT_IFCMP,
+                   ir.regpool.makeTempValidation(),
+                   val,
+                   new OPT_IntConstantOperand(low),
+                   OPT_ConditionOperand.EQUAL(),
                    TableSwitch.getTarget(s, 0),
                    TableSwitch.getBranchProfile(s, 0));
       s.insertAfter(Goto.create(GOTO, defaultTarget));
@@ -297,8 +311,7 @@ abstract class OPT_BranchSimplifier {
     // identify the first GOTO instruction in the basic block
     OPT_Instruction firstGoto = null;
     OPT_Instruction end = bb.lastRealInstruction();
-    for (OPT_InstructionEnumeration branches =
-        bb.enumerateBranchInstructions(); branches.hasMoreElements();) {
+    for (OPT_InstructionEnumeration branches = bb.enumerateBranchInstructions(); branches.hasMoreElements();) {
       OPT_Instruction s = branches.next();
       if (Goto.conforms(s)) {
         firstGoto = s;
@@ -307,8 +320,7 @@ abstract class OPT_BranchSimplifier {
     }
     // remove all instructions after the first GOTO instruction
     if (firstGoto != null) {
-      OPT_InstructionEnumeration ie =
-          OPT_IREnumeration.forwardIntraBlockIE(firstGoto, end);
+      OPT_InstructionEnumeration ie = OPT_IREnumeration.forwardIntraBlockIE(firstGoto, end);
       ie.next();
       while (ie.hasMoreElements()) {
         OPT_Instruction s = ie.next();
@@ -320,11 +332,9 @@ abstract class OPT_BranchSimplifier {
     }
   }
 
-  private static void insertTrueGuard(OPT_Instruction inst,
-                                      OPT_RegisterOperand guard) {
+  private static void insertTrueGuard(OPT_Instruction inst, OPT_RegisterOperand guard) {
     if (guard == null) return;  // Probably bad style but correct IR
-    OPT_Instruction trueGuard = Move.create(GUARD_MOVE, guard.copyD2D(),
-                                            new OPT_TrueGuardOperand());
+    OPT_Instruction trueGuard = Move.create(GUARD_MOVE, guard.copyD2D(), new OPT_TrueGuardOperand());
     trueGuard.position = inst.position;
     trueGuard.bcIndex = inst.bcIndex;
     inst.insertBefore(trueGuard);

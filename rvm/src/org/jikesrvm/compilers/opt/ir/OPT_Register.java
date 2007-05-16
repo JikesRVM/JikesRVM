@@ -347,8 +347,7 @@ public final class OPT_Register {
     return number;
   }
 
-  /* inlined behavior of DoublyLinkedListElement */
-  OPT_Register next, prev;
+  /* inlined behavior of DoublyLinkedListElement */ OPT_Register next, prev;
 
   public OPT_Register getNext() { return next; }
 

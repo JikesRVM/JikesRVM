@@ -25,16 +25,14 @@ public class OSR_TempRegisters implements VM_RegisterConstants {
   WordArray gprs;
   double[] fprs;
 
-  /* hold CR, XER, CTR */
-  int cr;
+  /* hold CR, XER, CTR */ int cr;
   int xer;
   Word ctr;
 
   /* if a GPR hold a reference to an object, we convert the raw memory
    * address to a reference. When objs[i] is null, the GPR[i] is not
    * holding a reference.
-   */
-  Object[] objs;
+   */ Object[] objs;
 
   public OSR_TempRegisters(VM_Registers contextRegisters) {
     gprs = WordArray.create(NUM_GPRS);
@@ -44,11 +42,7 @@ public class OSR_TempRegisters implements VM_RegisterConstants {
     for (int i = 0; i < NUM_GPRS; i++) {
       gprs.set(i, contextRegisters.gprs.get(i));
     }
-    System.arraycopy(contextRegisters.fprs,
-                     0,
-                     fprs,
-                     0,
-                     NUM_FPRS);
+    System.arraycopy(contextRegisters.fprs, 0, fprs, 0, NUM_FPRS);
     ip = contextRegisters.ip;
   }
 

@@ -64,13 +64,8 @@ public final class OPT_MemoryOperand extends OPT_Operand {
    */
   public byte size;
 
-  public OPT_MemoryOperand(OPT_RegisterOperand base,
-                           OPT_RegisterOperand index,
-                           byte scale,
-                           Offset disp,
-                           byte size,
-                           OPT_LocationOperand loc,
-                           OPT_Operand guard) {
+  public OPT_MemoryOperand(OPT_RegisterOperand base, OPT_RegisterOperand index, byte scale, Offset disp, byte size,
+                           OPT_LocationOperand loc, OPT_Operand guard) {
     this.loc = loc;
     this.guard = guard;
     this.base = base;
@@ -85,58 +80,35 @@ public final class OPT_MemoryOperand extends OPT_Operand {
   }
 
   // Shortcuts for some common addressing modes
-  public static OPT_MemoryOperand B(OPT_RegisterOperand base,
-                                    byte size,
-                                    OPT_LocationOperand loc,
-                                    OPT_Operand guard) {
+  public static OPT_MemoryOperand B(OPT_RegisterOperand base, byte size, OPT_LocationOperand loc, OPT_Operand guard) {
     return new OPT_MemoryOperand(base, null, (byte) 0, Offset.zero(), size, loc, guard);
   }
 
-  public static OPT_MemoryOperand BI(OPT_RegisterOperand base,
-                                     OPT_RegisterOperand index,
-                                     byte size,
-                                     OPT_LocationOperand loc,
-                                     OPT_Operand guard) {
+  public static OPT_MemoryOperand BI(OPT_RegisterOperand base, OPT_RegisterOperand index, byte size,
+                                     OPT_LocationOperand loc, OPT_Operand guard) {
     return new OPT_MemoryOperand(base, index, (byte) 0, Offset.zero(), size, loc, guard);
   }
 
-  public static OPT_MemoryOperand BD(OPT_RegisterOperand base,
-                                     Offset disp,
-                                     byte size,
-                                     OPT_LocationOperand loc,
+  public static OPT_MemoryOperand BD(OPT_RegisterOperand base, Offset disp, byte size, OPT_LocationOperand loc,
                                      OPT_Operand guard) {
     return new OPT_MemoryOperand(base, null, (byte) 0, disp, size, loc, guard);
   }
 
-  public static OPT_MemoryOperand BID(OPT_RegisterOperand base,
-                                      OPT_RegisterOperand index,
-                                      Offset disp,
-                                      byte size,
-                                      OPT_LocationOperand loc,
-                                      OPT_Operand guard) {
+  public static OPT_MemoryOperand BID(OPT_RegisterOperand base, OPT_RegisterOperand index, Offset disp, byte size,
+                                      OPT_LocationOperand loc, OPT_Operand guard) {
     return new OPT_MemoryOperand(base, index, (byte) 0, disp, size, loc, guard);
   }
 
-  public static OPT_MemoryOperand BIS(OPT_RegisterOperand base,
-                                      OPT_RegisterOperand index,
-                                      byte scale,
-                                      byte size,
-                                      OPT_LocationOperand loc,
-                                      OPT_Operand guard) {
+  public static OPT_MemoryOperand BIS(OPT_RegisterOperand base, OPT_RegisterOperand index, byte scale, byte size,
+                                      OPT_LocationOperand loc, OPT_Operand guard) {
     return new OPT_MemoryOperand(base, index, scale, Offset.zero(), size, loc, guard);
   }
 
-  public static OPT_MemoryOperand D(Address disp,
-                                    byte size,
-                                    OPT_LocationOperand loc,
-                                    OPT_Operand guard) {
+  public static OPT_MemoryOperand D(Address disp, byte size, OPT_LocationOperand loc, OPT_Operand guard) {
     return new OPT_MemoryOperand(null, null, (byte) 0, disp.toWord().toOffset(), size, loc, guard);
   }
 
-  public static OPT_MemoryOperand I(OPT_RegisterOperand base,
-                                    byte size,
-                                    OPT_LocationOperand loc,
-                                    OPT_Operand guard) {
+  public static OPT_MemoryOperand I(OPT_RegisterOperand base, byte size, OPT_LocationOperand loc, OPT_Operand guard) {
     return new OPT_MemoryOperand(base, null, (byte) 0, Offset.zero(), size, loc, guard);
   }
 
@@ -144,15 +116,11 @@ public final class OPT_MemoryOperand extends OPT_Operand {
    * Returns a copy of the current operand.
    */
   public OPT_Operand copy() {
-    OPT_RegisterOperand newBase =
-        (base != null) ? (OPT_RegisterOperand) base.copy() : null;
-    OPT_RegisterOperand newIndex =
-        (index != null) ? (OPT_RegisterOperand) index.copy() : null;
-    OPT_LocationOperand newLoc =
-        (loc != null) ? (OPT_LocationOperand) loc.copy() : null;
+    OPT_RegisterOperand newBase = (base != null) ? (OPT_RegisterOperand) base.copy() : null;
+    OPT_RegisterOperand newIndex = (index != null) ? (OPT_RegisterOperand) index.copy() : null;
+    OPT_LocationOperand newLoc = (loc != null) ? (OPT_LocationOperand) loc.copy() : null;
     OPT_Operand newGuard = (guard != null) ? guard.copy() : null;
-    return new OPT_MemoryOperand(newBase, newIndex, scale, disp, size,
-                                 newLoc, newGuard);
+    return new OPT_MemoryOperand(newBase, newIndex, scale, disp, size, newLoc, newGuard);
   }
 
   /**

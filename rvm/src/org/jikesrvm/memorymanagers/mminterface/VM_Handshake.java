@@ -152,7 +152,8 @@ public class VM_Handshake {
     }
     VM_Scheduler.collectorMutex.lock();
     if (VM_Scheduler.collectorQueue.length() != maxCollectorThreads) {
-      VM.sysWriteln("GC Error: Expected ", maxCollectorThreads,
+      VM.sysWriteln("GC Error: Expected ",
+                    maxCollectorThreads,
                     " GC threads.   Found ",
                     VM_Scheduler.collectorQueue.length());
     }

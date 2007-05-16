@@ -84,8 +84,7 @@ class OPT_LTDominatorInfo {
    *   @param master the potential dominating block
    *   @return whether master dominates block
    */
-  public static boolean isDominatedBy(OPT_BasicBlock block,
-                                      OPT_BasicBlock master) {
+  public static boolean isDominatedBy(OPT_BasicBlock block, OPT_BasicBlock master) {
     if (block == master) {
       return true;
     }
@@ -273,7 +272,6 @@ class OPT_LTDominatorInfo {
    * Prints a string version of objection
    */
   public String toString() {
-    return super.toString() + " [Parent: " + parent + " SDom: " + semiDominator
-           + " Dom: " + dominator + "]";
+    return super.toString() + " [Parent: " + parent + " SDom: " + semiDominator + " Dom: " + dominator + "]";
   }
 }

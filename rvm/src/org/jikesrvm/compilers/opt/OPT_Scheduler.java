@@ -57,9 +57,7 @@ final class OPT_Scheduler {
   /**
    * Names of various scheduling phases.
    */
-  public static final String[] PhaseName = new String[]{
-      "Invalid Phase!!!!!!!!", "pre-pass", "post-pass"
-  };
+  public static final String[] PhaseName = new String[]{"Invalid Phase!!!!!!!!", "pre-pass", "post-pass"};
 
   /**
    * Current phase (prepass/postpass).
@@ -72,8 +70,7 @@ final class OPT_Scheduler {
    * @return true if we should print depgraph, false otherwise
    */
   private boolean printDepgraph(OPT_Options options) {
-    return (phase == PREPASS && options.PRINT_DG_SCHED_PRE) ||
-           (phase == POSTPASS && options.PRINT_DG_SCHED_POST);
+    return (phase == PREPASS && options.PRINT_DG_SCHED_PRE) || (phase == POSTPASS && options.PRINT_DG_SCHED_POST);
   }
 
   /**
@@ -82,8 +79,7 @@ final class OPT_Scheduler {
    * @return true if we should visualize depgraph, false otherwise
    */
   private boolean vcgDepgraph(OPT_Options options) {
-    return (phase == PREPASS && options.VCG_DG_SCHED_PRE) ||
-           (phase == POSTPASS && options.VCG_DG_SCHED_POST);
+    return (phase == PREPASS && options.VCG_DG_SCHED_PRE) || (phase == POSTPASS && options.VCG_DG_SCHED_POST);
   }
 
   /**
@@ -97,9 +93,12 @@ final class OPT_Scheduler {
     // Remember the ir to schedule
     ir = _ir;
     if (verbose >= 1) {
-      debug("Scheduling " + ir.method.getDeclaringClass() + ' '
-            + ir.method.getName()
-            + ' ' + ir.method.getDescriptor());
+      debug("Scheduling " +
+            ir.method.getDeclaringClass() +
+            ' ' +
+            ir.method.getName() +
+            ' ' +
+            ir.method.getDescriptor());
     }
 
     // Performing live analysis may reduce dependences between PEIs and stores
@@ -110,13 +109,11 @@ final class OPT_Scheduler {
     // Create mapping for dependence graph
     i2gn = new OPT_DepGraphNode[ir.numberInstructions()];
     // Create scheduling info for each instruction
-    for (OPT_InstructionEnumeration instr = ir.forwardInstrEnumerator();
-         instr.hasMoreElements();) {
+    for (OPT_InstructionEnumeration instr = ir.forwardInstrEnumerator(); instr.hasMoreElements();) {
       OPT_SchedulingInfo.createInfo(instr.next());
     }
     // iterate over each basic block
-    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks();
-         e.hasMoreElements();) {
+    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
       bb = e.nextElement();
       if (bb.isEmpty()) {
         continue;
@@ -127,28 +124,23 @@ final class OPT_Scheduler {
         continue;
       }
       // Build Dependence graph
-      dg = new OPT_DepGraph(ir, bb.firstInstruction(),
-                            bb.lastRealInstruction(), bb);
+      dg = new OPT_DepGraph(ir, bb.firstInstruction(), bb.lastRealInstruction(), bb);
       if (printDepgraph(ir.options)) {
         // print dependence graph.
-        System.out.println("**** START OF " + PhaseName[phase].toUpperCase()
-                           + " DEPENDENCE GRAPH ****");
+        System.out.println("**** START OF " + PhaseName[phase].toUpperCase() + " DEPENDENCE GRAPH ****");
         dg.printDepGraph();
-        System.out.println("**** END   OF " + PhaseName[phase].toUpperCase()
-                           + " DEPENDENCE GRAPH ****");
+        System.out.println("**** END   OF " + PhaseName[phase].toUpperCase() + " DEPENDENCE GRAPH ****");
       }
       if (vcgDepgraph(ir.options)) {
         // output dependence graph in VCG format.
         // CAUTION: creates A LOT of files (one per BB)
-        OPT_VCG.printVCG("depgraph_sched_" + PhaseName[phase] + "_" +
-                         ir.method + "_" + bb + ".vcg", dg);
+        OPT_VCG.printVCG("depgraph_sched_" + PhaseName[phase] + "_" + ir.method + "_" + bb + ".vcg", dg);
       }
       scheduleBasicBlock();
     }
 
     // Remove scheduling info for each instruction
-    for (OPT_InstructionEnumeration instr = ir.forwardInstrEnumerator();
-         instr.hasMoreElements();) {
+    for (OPT_InstructionEnumeration instr = ir.forwardInstrEnumerator(); instr.hasMoreElements();) {
       OPT_SchedulingInfo.removeInfo(instr.next());
     }
     // Remove mapping for dependence graph
@@ -279,11 +271,9 @@ final class OPT_Scheduler {
       debug("opc=" + opc);
     }
     if (opc == null) {
-      throw new OPT_OptimizingCompilerException("Missing operator class "
-                                                + i.operator());
+      throw new OPT_OptimizingCompilerException("Missing operator class " + i.operator());
     }
-    for (OPT_GraphNodeEnumeration pred = n.inNodes();
-         pred.hasMoreElements();) {
+    for (OPT_GraphNodeEnumeration pred = n.inNodes(); pred.hasMoreElements();) {
       OPT_DepGraphNode np = (OPT_DepGraphNode) pred.next();
       OPT_Instruction j = np.instruction();
       int time = OPT_SchedulingInfo.getTime(j);
@@ -291,8 +281,7 @@ final class OPT_Scheduler {
         debug("Predecessor " + j + " scheduled at " + time);
       }
       if (time == -1) {
-        throw new OPT_OptimizingCompilerException(
-            "Instructions not in topological order: " + i + "; " + j);
+        throw new OPT_OptimizingCompilerException("Instructions not in topological order: " + i + "; " + j);
       }
       if (verbose >= 6) {
         debug("Retrieving latency from " + j);
@@ -302,8 +291,7 @@ final class OPT_Scheduler {
         debug("j's class=" + joc);
       }
       if (joc == null) {
-        throw new OPT_OptimizingCompilerException("Missing operator class " +
-                                                  j.operator());
+        throw new OPT_OptimizingCompilerException("Missing operator class " + j.operator());
       }
       int lat = joc.latency(opc);
       if (time + lat > etime) {
@@ -406,15 +394,14 @@ final class OPT_Scheduler {
     }
     if (verbose >= 4) {
       debug("**** START OF CURRENT BB BEFORE SCHEDULING ****");
-      for (OPT_InstructionEnumeration bi = bb.forwardInstrEnumerator();
-           bi.hasMoreElements();) {
+      for (OPT_InstructionEnumeration bi = bb.forwardInstrEnumerator(); bi.hasMoreElements();) {
         debug(bi.next().toString());
       }
       debug("**** END   OF CURRENT BB BEFORE SCHEDULING ****");
     }
     // Build mapping from instructions to graph nodes
-    for (OPT_DepGraphNode dgn = (OPT_DepGraphNode) dg.firstNode();
-         dgn != null; dgn = (OPT_DepGraphNode) dgn.getNext()) {
+    for (OPT_DepGraphNode dgn = (OPT_DepGraphNode) dg.firstNode(); dgn != null; dgn = (OPT_DepGraphNode) dgn.getNext())
+    {
       setGraphNode(dgn.instruction(), dgn);
       if (verbose >= 4) {
         debug("Added node for " + dgn.instruction());
@@ -428,8 +415,7 @@ final class OPT_Scheduler {
     }
     computeCriticalPath(getGraphNode(fi), 0);
     int cp = OPT_SchedulingInfo.getCriticalPath(fi);
-    for (OPT_InstructionEnumeration ie = bb.forwardRealInstrEnumerator();
-         ie.hasMoreElements();) {
+    for (OPT_InstructionEnumeration ie = bb.forwardRealInstrEnumerator(); ie.hasMoreElements();) {
       OPT_Instruction i = ie.next();
       if (verbose >= 5) {
         debug("Computing critical path for " + i);
@@ -443,8 +429,7 @@ final class OPT_Scheduler {
     }
     cp++;
     if (PRINT_CRITICAL_PATH_LENGTH) {
-      System.err.println("::: BL=" + bl + " CP=" + cp + " LOC=" + ir.method
-                         + ":" + bb);
+      System.err.println("::: BL=" + bl + " CP=" + cp + " LOC=" + ir.method + ":" + bb);
     }
     OPT_Priority ilist = new OPT_DefaultPriority(bb);
     int maxtime = 0;
@@ -476,8 +461,7 @@ final class OPT_Scheduler {
     }
     if (verbose >= 4) {
       debug("**** START OF CURRENT BB AFTER SCHEDULING ****");
-      for (OPT_InstructionEnumeration bi = bb.forwardInstrEnumerator();
-           bi.hasMoreElements();) {
+      for (OPT_InstructionEnumeration bi = bb.forwardInstrEnumerator(); bi.hasMoreElements();) {
         debug(bi.next().toString());
       }
       debug("**** END   OF CURRENT BB AFTER SCHEDULING ****");

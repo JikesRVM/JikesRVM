@@ -37,8 +37,7 @@ public abstract class VM_MultianewarrayHelper implements VM_Constants {
    * See also: bytecode 0xc5 ("multianewarray") in VM_Compiler
    */
   static Object newArrayArray(int methodId, int numDimensions, int id, int argOffset)
-    throws NegativeArraySizeException,
-           OutOfMemoryError {
+      throws NegativeArraySizeException, OutOfMemoryError {
     // fetch number of elements to be allocated for each array dimension
     //
     int[] numElements = new int[numDimensions];
@@ -52,8 +51,9 @@ public abstract class VM_MultianewarrayHelper implements VM_Constants {
 
     // validate arguments
     //
-    for (int i = 0; i < numDimensions; ++i)
+    for (int i = 0; i < numDimensions; ++i) {
       if (numElements[i] < 0) throw new NegativeArraySizeException();
+    }
 
     // create array
     //

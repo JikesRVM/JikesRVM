@@ -48,8 +48,7 @@ final class VM_OptExceptionTable extends VM_ExceptionTable {
     //   entries to the eTable it is important to not restrict the
     //   entries to reachable handlers; as the first block may only
     //   throw a subset of the exception types represented by the Bag
-    for (OPT_BasicBlock bblock = ir.firstBasicBlockInCodeOrder();
-         bblock != null;) {
+    for (OPT_BasicBlock bblock = ir.firstBasicBlockInCodeOrder(); bblock != null;) {
       // Iteration is explicit in loop
 
       int startOff = bblock.firstInstruction().getmcOffset();
@@ -76,16 +75,14 @@ final class VM_OptExceptionTable extends VM_ExceptionTable {
         currEndOff = endOff;
         joinedBlocks = false;
 
-        for (followonBB = bblock.nextBasicBlockInCodeOrder();
-             followonBB != null;
-             followonBB = followonBB.nextBasicBlockInCodeOrder()) {
+        for (followonBB = bblock.nextBasicBlockInCodeOrder(); followonBB != null; followonBB =
+            followonBB.nextBasicBlockInCodeOrder()) {
           int fStartOff = followonBB.firstInstruction().getmcOffset();
           int fEndOff = followonBB.lastInstruction().getmcOffset();
           // See if followon Block has any code
           if (fEndOff > fStartOff) {
             // See if followon Block has matching handler block bag
-            if (followonBB.hasExceptionHandlers() &&
-                bblock.isExceptionHandlerEquivalent(followonBB)) {
+            if (followonBB.hasExceptionHandlers() && bblock.isExceptionHandlerEquivalent(followonBB)) {
               currEndOff = fEndOff;
               joinedBlocks = true;
             } else {
@@ -103,10 +100,8 @@ final class VM_OptExceptionTable extends VM_ExceptionTable {
         }
 
         while (e.hasMoreElements()) {
-          OPT_ExceptionHandlerBasicBlock eBlock =
-              (OPT_ExceptionHandlerBasicBlock) e.nextElement();
-          for (java.util.Enumeration<OPT_TypeOperand> ets = eBlock.getExceptionTypes();
-               ets.hasMoreElements();) {
+          OPT_ExceptionHandlerBasicBlock eBlock = (OPT_ExceptionHandlerBasicBlock) e.nextElement();
+          for (java.util.Enumeration<OPT_TypeOperand> ets = eBlock.getExceptionTypes(); ets.hasMoreElements();) {
             OPT_TypeOperand type = ets.nextElement();
             int catchOffset = eBlock.firstInstruction().getmcOffset();
             eTable[index + TRY_START] = currStartOff;
@@ -155,14 +150,11 @@ final class VM_OptExceptionTable extends VM_ExceptionTable {
    */
   private static int countExceptionTableSize(OPT_IR ir) {
     int tSize = 0;
-    for (OPT_BasicBlock bblock = ir.firstBasicBlockInCodeOrder();
-         bblock != null;
-         bblock = bblock.nextBasicBlockInCodeOrder()) {
+    for (OPT_BasicBlock bblock = ir.firstBasicBlockInCodeOrder(); bblock != null; bblock =
+        bblock.nextBasicBlockInCodeOrder()) {
       if (bblock.hasExceptionHandlers()) {
-        for (OPT_BasicBlockEnumeration e =
-            bblock.getExceptionHandlers(); e.hasMoreElements();) {
-          OPT_ExceptionHandlerBasicBlock ebb =
-              (OPT_ExceptionHandlerBasicBlock) e.next();
+        for (OPT_BasicBlockEnumeration e = bblock.getExceptionHandlers(); e.hasMoreElements();) {
+          OPT_ExceptionHandlerBasicBlock ebb = (OPT_ExceptionHandlerBasicBlock) e.next();
           tSize += ebb.getNumberOfExceptionTableEntries();
         }
       }

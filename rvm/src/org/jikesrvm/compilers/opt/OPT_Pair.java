@@ -27,8 +27,7 @@ class OPT_Pair {
   }
 
   public boolean equals(Object o) {
-    return (o instanceof OPT_Pair) && first == ((OPT_Pair) o).first &&
-           second == ((OPT_Pair) o).second;
+    return (o instanceof OPT_Pair) && first == ((OPT_Pair) o).first && second == ((OPT_Pair) o).second;
   }
 }
 

@@ -33,8 +33,7 @@ import org.vmmagic.unboxed.WordArray;
  * java stack for the stack frame.
  */
 @Uninterruptible
-public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator
-    implements VM_BaselineConstants {
+public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator implements VM_BaselineConstants {
 
   // Iterator state for mapping any stackframe.
   //

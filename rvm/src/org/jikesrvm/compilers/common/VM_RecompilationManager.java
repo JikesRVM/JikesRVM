@@ -37,8 +37,7 @@ public final class VM_RecompilationManager {
       VM_CompiledMethod cpMeth = compiledMethods[cmid];
       if (cpMeth == null) {
         if (DEBUG) {
-          VM.sysWrite("Not recompiling method ID ", cmid,
-                      " because it has no compiledMethod\n");
+          VM.sysWrite("Not recompiling method ID ", cmid, " because it has no compiledMethod\n");
         }
       } else {
         VM_Method meth = cpMeth.getMethod();
@@ -65,8 +64,7 @@ public final class VM_RecompilationManager {
           if (meth.getDeclaringClass().isResolved()) {
             if (meth.getDeclaringClass().isInBootImage()) {
               if (DEBUG) {
-                VM.sysWrite("Not recompiling bootimage method " + meth +
-                            "(" + cmid + ")\n");
+                VM.sysWrite("Not recompiling bootimage method " + meth + "(" + cmid + ")\n");
               }
             } else {
               if (meth.isAbstract()) {

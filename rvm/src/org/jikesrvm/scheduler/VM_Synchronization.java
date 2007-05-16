@@ -116,8 +116,7 @@ public class VM_Synchronization {
   }
 
   @Inline
-  public static Address fetchAndAddAddressWithBound(Object base, Offset offset,
-                                                    int increment, Address bound) {
+  public static Address fetchAndAddAddressWithBound(Object base, Offset offset, int increment, Address bound) {
     Address oldValue, newValue;
     if (VM.VerifyAssertions) VM._assert(increment > 0);
     do {
@@ -129,8 +128,7 @@ public class VM_Synchronization {
   }
 
   @Inline
-  public static Address fetchAndSubAddressWithBound(Object base, Offset offset,
-                                                    int decrement, Address bound) {
+  public static Address fetchAndSubAddressWithBound(Object base, Offset offset, int decrement, Address bound) {
     Address oldValue, newValue;
     if (VM.VerifyAssertions) VM._assert(decrement > 0);
     do {

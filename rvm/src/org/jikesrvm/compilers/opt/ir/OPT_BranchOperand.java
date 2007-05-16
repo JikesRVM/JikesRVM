@@ -51,8 +51,7 @@ public final class OPT_BranchOperand extends OPT_Operand {
    *           if they are not.
    */
   public boolean similar(OPT_Operand op) {
-    return (op instanceof OPT_BranchOperand) &&
-           (target == ((OPT_BranchOperand) op).target);
+    return (op instanceof OPT_BranchOperand) && (target == ((OPT_BranchOperand) op).target);
   }
 
   /**

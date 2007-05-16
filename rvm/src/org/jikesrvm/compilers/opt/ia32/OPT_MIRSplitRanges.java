@@ -25,8 +25,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
  * This class splits live ranges for certain special cases to ensure
  * correctness during IA32 register allocation.
  */
-class OPT_MIRSplitRanges extends OPT_CompilerPhase
-    implements OPT_Operators {
+class OPT_MIRSplitRanges extends OPT_CompilerPhase implements OPT_Operators {
 
   /**
    * Return this instance of this phase. This phase contains no
@@ -65,13 +64,11 @@ class OPT_MIRSplitRanges extends OPT_CompilerPhase
    */
   public final void perform(OPT_IR ir) {
 
-    java.util.HashMap<OPT_Register, OPT_Register> newMap =
-        new java.util.HashMap<OPT_Register, OPT_Register>(5);
+    java.util.HashMap<OPT_Register, OPT_Register> newMap = new java.util.HashMap<OPT_Register, OPT_Register>(5);
 
     for (OPT_BasicBlockEnumeration be = ir.getBasicBlocks(); be.hasMoreElements();) {
       OPT_BasicBlock bb = be.nextElement();
-      for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator();
-           ie.hasMoreElements();) {
+      for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
         OPT_Instruction s = ie.next();
 
         // clear the cache of register assignments
@@ -83,8 +80,7 @@ class OPT_MIRSplitRanges extends OPT_CompilerPhase
         //       a particular operand in a register must be mentioned both
         //       here and in OPT_RegisterRestrictions!
         if (s.isPEI() && s.operator != IR_PROLOGUE) {
-          if (bb.hasApplicableExceptionalOut(s) ||
-              !OPT_RegisterRestrictions.SCRATCH_IN_PEI) {
+          if (bb.hasApplicableExceptionalOut(s) || !OPT_RegisterRestrictions.SCRATCH_IN_PEI) {
             splitAllLiveRanges(s, newMap, ir, false);
           }
         }
@@ -118,13 +114,10 @@ class OPT_MIRSplitRanges extends OPT_CompilerPhase
    * @param ir  the containing IR
    * @param rootOnly only consider root operands?
    */
-  private static void splitAllLiveRanges(OPT_Instruction s,
-                                         java.util.HashMap<OPT_Register, OPT_Register> newMap,
-                                         OPT_IR ir,
-                                         boolean rootOnly) {
+  private static void splitAllLiveRanges(OPT_Instruction s, java.util.HashMap<OPT_Register, OPT_Register> newMap,
+                                         OPT_IR ir, boolean rootOnly) {
     // walk over each USE
-    for (OPT_OperandEnumeration u = rootOnly ? s.getRootUses() : s.getUses();
-         u.hasMoreElements();) {
+    for (OPT_OperandEnumeration u = rootOnly ? s.getRootUses() : s.getUses(); u.hasMoreElements();) {
       OPT_Operand use = u.next();
       if (use.isRegister()) {
         OPT_RegisterOperand rUse = use.asRegister();
@@ -144,8 +137,7 @@ class OPT_MIRSplitRanges extends OPT_CompilerPhase
       }
     }
     // Now go back and replace the registers.
-    for (OPT_OperandEnumeration ops = rootOnly ? s.getRootOperands() : s.getOperands();
-         ops.hasMoreElements();) {
+    for (OPT_OperandEnumeration ops = rootOnly ? s.getRootOperands() : s.getOperands(); ops.hasMoreElements();) {
       OPT_Operand op = ops.next();
       if (op.isRegister()) {
         OPT_RegisterOperand rOp = op.asRegister();
@@ -166,8 +158,7 @@ class OPT_MIRSplitRanges extends OPT_CompilerPhase
    * @param ir the governing IR
    */
   private static OPT_RegisterOperand findOrCreateTemp(OPT_RegisterOperand rOp,
-                                                      java.util.HashMap<OPT_Register, OPT_Register> map,
-                                                      OPT_IR ir) {
+                                                      java.util.HashMap<OPT_Register, OPT_Register> map, OPT_IR ir) {
     OPT_Register tReg = map.get(rOp.register);
     if (tReg == null) {
       OPT_RegisterOperand tOp = ir.regpool.makeTemp(rOp.type);
@@ -181,9 +172,7 @@ class OPT_MIRSplitRanges extends OPT_CompilerPhase
   /**
    * Insert an instruction to move r1 into r2 before instruction s
    */
-  private static void insertMoveBefore(OPT_RegisterOperand r2,
-                                       OPT_RegisterOperand r1,
-                                       OPT_Instruction s) {
+  private static void insertMoveBefore(OPT_RegisterOperand r2, OPT_RegisterOperand r1, OPT_Instruction s) {
     OPT_Instruction m = OPT_PhysicalRegisterTools.makeMoveInstruction(r2, r1);
     s.insertBefore(m);
   }
@@ -191,9 +180,7 @@ class OPT_MIRSplitRanges extends OPT_CompilerPhase
   /**
    * Insert an instruction to move r1 into r2 after instruction s
    */
-  private static void insertMoveAfter(OPT_RegisterOperand r2,
-                                      OPT_RegisterOperand r1,
-                                      OPT_Instruction s) {
+  private static void insertMoveAfter(OPT_RegisterOperand r2, OPT_RegisterOperand r1, OPT_Instruction s) {
     OPT_Instruction m = OPT_PhysicalRegisterTools.makeMoveInstruction(r2, r1);
     s.insertAfter(m);
   }

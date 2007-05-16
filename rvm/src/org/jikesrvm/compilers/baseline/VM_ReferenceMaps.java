@@ -569,8 +569,8 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants {
    *                          recorded.
    */
   @Interruptible
-  public void recordJSRSubroutineMap(int byteindex, byte[] currReferenceMap, int BBLastPtr,
-                                     int returnAddrIndex, boolean replacemap) {
+  public void recordJSRSubroutineMap(int byteindex, byte[] currReferenceMap, int BBLastPtr, int returnAddrIndex,
+                                     boolean replacemap) {
     int mapNum = 0;
     int unusualMapIndex = 0;
     int internalReturnIndex;
@@ -646,8 +646,12 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants {
     // for new maps, setup maps in UnusualMap, for existing map replace them
 
     // setup Reference Map
-    int refindex = scanByteArray(currReferenceMap, BBLastPtr, VM_BuildReferenceMaps.SET_TO_REFERENCE,
-                                 jsrSiteMap.getReferenceMapIndex(), true);
+    int refindex =
+        scanByteArray(currReferenceMap,
+                      BBLastPtr,
+                      VM_BuildReferenceMaps.SET_TO_REFERENCE,
+                      jsrSiteMap.getReferenceMapIndex(),
+                      true);
     jsrSiteMap.setReferenceMapIndex(refindex);
 
     if (VM.TraceStkMaps) {
@@ -661,8 +665,12 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants {
     }
 
     // setup NONReference Map
-    int nonrefindex = scanByteArray(currReferenceMap, BBLastPtr, VM_BuildReferenceMaps.SET_TO_NONREFERENCE,
-                                    jsrSiteMap.getNonReferenceMapIndex(), true);
+    int nonrefindex =
+        scanByteArray(currReferenceMap,
+                      BBLastPtr,
+                      VM_BuildReferenceMaps.SET_TO_NONREFERENCE,
+                      jsrSiteMap.getNonReferenceMapIndex(),
+                      true);
     jsrSiteMap.setNonReferenceMapIndex(nonrefindex);
 
     if (VM.TraceStkMaps) {
@@ -676,8 +684,12 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants {
     }
 
     // setup returnAddress Map
-    int addrindex = scanByteArray(currReferenceMap, BBLastPtr, VM_BuildReferenceMaps.RETURN_ADDRESS,
-                                  jsrSiteMap.getReturnAddressMapIndex(), false);
+    int addrindex =
+        scanByteArray(currReferenceMap,
+                      BBLastPtr,
+                      VM_BuildReferenceMaps.RETURN_ADDRESS,
+                      jsrSiteMap.getReturnAddressMapIndex(),
+                      false);
     jsrSiteMap.setReturnAddressMapIndex(addrindex);
 
     if (VM.TraceStkMaps) {
@@ -1229,8 +1241,8 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants {
     }
     if (Op == OR) {
       for (i = 0; i < bytesPerMap(); i++) {
-        jsrInfo.unusualReferenceMaps[targetindex + i] = (byte) (jsrInfo.unusualReferenceMaps[targetindex + i]
-                                                                | jsrInfo.unusualReferenceMaps[deltaindex + i]);
+        jsrInfo.unusualReferenceMaps[targetindex + i] =
+            (byte) (jsrInfo.unusualReferenceMaps[targetindex + i] | jsrInfo.unusualReferenceMaps[deltaindex + i]);
       }
     }
     if (Op == NAND) {

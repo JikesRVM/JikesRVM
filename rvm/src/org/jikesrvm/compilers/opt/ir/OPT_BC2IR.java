@@ -77,11 +77,8 @@ import org.vmmagic.unboxed.Offset;
  * @see OPT_GenerationContext
  * @see OPT_ConvertBCtoHIR
  */
-public final class OPT_BC2IR implements OPT_IRGenOptions,
-                                        OPT_Operators,
-                                        VM_BytecodeConstants,
-                                        OPT_Constants,
-                                        OSR_Constants {
+public final class OPT_BC2IR
+    implements OPT_IRGenOptions, OPT_Operators, VM_BytecodeConstants, OPT_Constants, OSR_Constants {
   /**
    * Dummy slot.
    * Used to deal with the fact the longs/doubles take
@@ -226,8 +223,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     // To use the following you need to change the declarations
     // in OPT_IRGenOption.java
     if (DBG_SELECTIVE) {
-      if (gc.options.hasMETHOD_TO_PRINT() &&
-          gc.options.fuzzyMatchMETHOD_TO_PRINT(gc.method.toString())) {
+      if (gc.options.hasMETHOD_TO_PRINT() && gc.options.fuzzyMatchMETHOD_TO_PRINT(gc.method.toString())) {
         VM.sysWrite("Whoops! you need to uncomment the assignment to DBG_SELECTED");
         // DBG_SELECTED = true;
       } else {
@@ -251,12 +247,16 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       this.bciAdjustment = 0;
     }
 
-    this.osrGuardedInline = VM.runningVM &&
-                            context.options.OSR_GUARDED_INLINING &&
-                            !context.method.isForOsrSpecialization() &&
-                            OPT_Compiler.getAppStarted() &&
-                            (VM_Controller.options != null) &&
-                            VM_Controller.options.ENABLE_RECOMPILATION;
+    this.osrGuardedInline =
+        VM
+            .runningVM &&
+                       context.options
+                           .OSR_GUARDED_INLINING &&
+                                                 !context.method.isForOsrSpecialization() &&
+                                                 OPT_Compiler.getAppStarted() &&
+                                                 (VM_Controller.options != null) &&
+                                                 VM_Controller.options
+                                                     .ENABLE_RECOMPILATION;
   }
 
   private void finish(OPT_GenerationContext context) {
@@ -282,13 +282,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     if (DBG_BB || DBG_SELECTED) db("bbl: " + printBlocks());
     generateFrom(0);
     // While there are more blocks that need it, pick one and generate it.
-    for (currentBBLE = blocks.getNextEmptyBlock(currentBBLE);
-         currentBBLE != null;
-         currentBBLE = blocks.getNextEmptyBlock(currentBBLE)) {
+    for (currentBBLE = blocks.getNextEmptyBlock(currentBBLE); currentBBLE != null; currentBBLE =
+        blocks.getNextEmptyBlock(currentBBLE)) {
       // Found a block. Set the generation state appropriately.
       currentBBLE.clearSelfRegen();
-      runoff = Math.min(blocks.getNextBlockBytecodeIndex(currentBBLE),
-                        currentBBLE.max);
+      runoff = Math.min(blocks.getNextBlockBytecodeIndex(currentBBLE), currentBBLE.max);
       if (currentBBLE.stackState == null) {
         stack.clear();
       } else {
@@ -318,8 +316,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     OPT_Operator op = NEWARRAY_UNRESOLVED;
     OPT_TypeOperand arrayOp = makeTypeOperand(array);
     if (arrayType != null) {
-      if (!(arrayType.isInitialized() || arrayType.isInBootImage()) &&
-          VM_Type.JavaLangObjectType.isInstantiated()) {
+      if (!(arrayType.isInitialized() || arrayType.isInBootImage()) && VM_Type.JavaLangObjectType.isInstantiated()) {
         VM_Type elementType = elementTypeRef.peekResolvedType();
         if (elementType != null) {
           if (elementType.isInitialized() || elementType.isInBootImage()) {
@@ -361,7 +358,13 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       currentBBLE.high = instrIndex = bcodes.index();
       int code = bcodes.nextInstruction();
       if (DBG_BCPARSE) {
-        db("parsing " + instrIndex + " " + code + " : 0x" + Integer.toHexString(code) + " " +
+        db("parsing " +
+           instrIndex +
+           " " +
+           code +
+           " : 0x" +
+           Integer.toHexString(code) +
+           " " +
            ((code < JBC_name.length) ? JBC_name[code] : "unknown bytecode"));
       }
       OPT_Instruction s = null;
@@ -564,8 +567,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           }
           VM_TypeReference type = getArrayTypeOf(ref);
           if (VM.VerifyAssertions) {
-            VM._assert(type == VM_TypeReference.ByteArray ||
-                       type == VM_TypeReference.BooleanArray);
+            VM._assert(type == VM_TypeReference.ByteArray || type == VM_TypeReference.BooleanArray);
           }
           if (type == VM_TypeReference.ByteArray) {
             s = _aloadHelper(BYTE_ALOAD, ref, index, VM_TypeReference.Byte);
@@ -669,7 +671,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           if (VM.VerifyAssertions) {
             assertIsType(ref, VM_TypeReference.IntArray);
           }
-          s = AStore.create(INT_ASTORE, val, ref, index,
+          s =
+              AStore.create(INT_ASTORE,
+                            val,
+                            ref,
+                            index,
                             new OPT_LocationOperand(VM_TypeReference.Int),
                             getCurrentGuard());
         }
@@ -686,7 +692,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           if (VM.VerifyAssertions) {
             assertIsType(ref, VM_TypeReference.LongArray);
           }
-          s = AStore.create(LONG_ASTORE, val, ref, index,
+          s =
+              AStore.create(LONG_ASTORE,
+                            val,
+                            ref,
+                            index,
                             new OPT_LocationOperand(VM_TypeReference.Long),
                             getCurrentGuard());
         }
@@ -703,7 +713,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           if (VM.VerifyAssertions) {
             assertIsType(ref, VM_TypeReference.FloatArray);
           }
-          s = AStore.create(FLOAT_ASTORE, val, ref, index,
+          s =
+              AStore.create(FLOAT_ASTORE,
+                            val,
+                            ref,
+                            index,
                             new OPT_LocationOperand(VM_TypeReference.Float),
                             getCurrentGuard());
         }
@@ -720,7 +734,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           if (VM.VerifyAssertions) {
             assertIsType(ref, VM_TypeReference.DoubleArray);
           }
-          s = AStore.create(DOUBLE_ASTORE, val, ref, index,
+          s =
+              AStore.create(DOUBLE_ASTORE,
+                            val,
+                            ref,
+                            index,
                             new OPT_LocationOperand(VM_TypeReference.Double),
                             getCurrentGuard());
         }
@@ -739,10 +757,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           if (do_CheckStore(ref, val, type)) {
             break;
           }
-          s = AStore.create(REF_ASTORE,
-                            val, ref, index,
-                            new OPT_LocationOperand(type),
-                            getCurrentGuard());
+          s = AStore.create(REF_ASTORE, val, ref, index, new OPT_LocationOperand(type), getCurrentGuard());
         }
         break;
 
@@ -756,17 +771,14 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           }
           VM_TypeReference type = getArrayTypeOf(ref);
           if (VM.VerifyAssertions) {
-            VM._assert(type == VM_TypeReference.ByteArray ||
-                       type == VM_TypeReference.BooleanArray);
+            VM._assert(type == VM_TypeReference.ByteArray || type == VM_TypeReference.BooleanArray);
           }
           if (type == VM_TypeReference.ByteArray) {
             type = VM_TypeReference.Byte;
           } else {
             type = VM_TypeReference.Boolean;
           }
-          s = AStore.create(BYTE_ASTORE, val, ref, index,
-                            new OPT_LocationOperand(type),
-                            getCurrentGuard());
+          s = AStore.create(BYTE_ASTORE, val, ref, index, new OPT_LocationOperand(type), getCurrentGuard());
         }
         break;
 
@@ -781,7 +793,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           if (VM.VerifyAssertions) {
             assertIsType(ref, VM_TypeReference.CharArray);
           }
-          s = AStore.create(SHORT_ASTORE, val, ref, index,
+          s =
+              AStore.create(SHORT_ASTORE,
+                            val,
+                            ref,
+                            index,
                             new OPT_LocationOperand(VM_TypeReference.Char),
                             getCurrentGuard());
         }
@@ -798,7 +814,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           if (VM.VerifyAssertions) {
             assertIsType(ref, VM_TypeReference.ShortArray);
           }
-          s = AStore.create(SHORT_ASTORE, val, ref, index,
+          s =
+              AStore.create(SHORT_ASTORE,
+                            val,
+                            ref,
+                            index,
                             new OPT_LocationOperand(VM_TypeReference.Short),
                             getCurrentGuard());
         }
@@ -986,8 +1006,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           if (do_IntZeroCheck(op2)) {
             break;
           }
-          s = _guardedBinaryHelper(INT_DIV, op1, op2, getCurrentGuard(),
-                                   VM_TypeReference.Int);
+          s = _guardedBinaryHelper(INT_DIV, op1, op2, getCurrentGuard(), VM_TypeReference.Int);
         }
         break;
 
@@ -998,8 +1017,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           if (do_LongZeroCheck(op2)) {
             break;
           }
-          s = _guardedBinaryDualHelper(LONG_DIV, op1, op2, getCurrentGuard(),
-                                       VM_TypeReference.Long);
+          s = _guardedBinaryDualHelper(LONG_DIV, op1, op2, getCurrentGuard(), VM_TypeReference.Long);
         }
         break;
 
@@ -1024,8 +1042,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           if (do_IntZeroCheck(op2)) {
             break;
           }
-          s = _guardedBinaryHelper(INT_REM, op1, op2, getCurrentGuard(),
-                                   VM_TypeReference.Int);
+          s = _guardedBinaryHelper(INT_REM, op1, op2, getCurrentGuard(), VM_TypeReference.Int);
         }
         break;
 
@@ -1036,8 +1053,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           if (do_LongZeroCheck(op2)) {
             break;
           }
-          s = _guardedBinaryDualHelper(LONG_REM, op1, op2, getCurrentGuard(),
-                                       VM_TypeReference.Long);
+          s = _guardedBinaryDualHelper(LONG_REM, op1, op2, getCurrentGuard(), VM_TypeReference.Long);
         }
         break;
 
@@ -1347,7 +1363,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
             s = _gotoHelper(offset);
             break;
           }
-          s = TableSwitch.create(TABLESWITCH, op0, null, null,
+          s =
+              TableSwitch.create(TABLESWITCH,
+                                 op0,
+                                 null,
+                                 null,
                                  new OPT_IntConstantOperand(low),
                                  new OPT_IntConstantOperand(high),
                                  generateTarget(defaultoff),
@@ -1397,9 +1417,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           }
 
           // Construct switch
-          s = LookupSwitch.create(LOOKUPSWITCH, op0, null, null,
-                                  generateTarget(defaultoff),
-                                  null, numpairs * 3);
+          s = LookupSwitch.create(LOOKUPSWITCH, op0, null, null, generateTarget(defaultoff), null, numpairs * 3);
           for (int i = 0; i < numpairs; ++i) {
             LookupSwitch.setMatch(s, i, new OPT_IntConstantOperand(bcodes.getLookupSwitchValue(i)));
             LookupSwitch.setTarget(s, i, generateTarget(bcodes.getLookupSwitchOffset(i)));
@@ -1589,8 +1607,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
                   OPT_StaticFieldReader.getFieldValueAsConstant(field, op1.asObjectConstant().value);
               push(rhs, fieldType);
               break;
-            }
-            catch (NoSuchFieldException e) {
+            } catch (NoSuchFieldException e) {
               if (VM.runningVM) { // this is unexpected
                 throw new Error("Unexpected exception", e);
               } else {
@@ -1675,8 +1692,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
             if (vmeth != null) {
               VM_MethodReference vmethRef = vmeth.getMemberRef().asMethodReference();
               OPT_MethodOperand mop = OPT_MethodOperand.VIRTUAL(vmethRef, vmeth);
-              if (receiver.isConstant() ||
-                  (receiver.isRegister() && receiver.asRegister().isPreciseType())) {
+              if (receiver.isConstant() || (receiver.isRegister() && receiver.asRegister().isPreciseType())) {
                 mop.refine(vmeth, true);
               }
               Call.setMethod(s, mop);
@@ -1691,9 +1707,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
               }
 
               // Attempt to inline virtualized call.
-              if (maybeInlineMethod(shouldInline(s, receiver.isConstant() ||
-                                                    (receiver.isRegister() &&
-                                                     receiver.asRegister().isExtant())), s)) {
+              if (maybeInlineMethod(shouldInline(s,
+                                                 receiver.isConstant() ||
+                                                 (receiver.isRegister() && receiver.asRegister().isExtant())), s)) {
                 return;
               }
             }
@@ -1881,8 +1897,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           Call.setGuard(s, getCurrentGuard());
 
           boolean requiresImplementsTest =
-              VM.BuildForIMTInterfaceInvocation ||
-              (VM.BuildForITableInterfaceInvocation && VM.DirectlyIndexedITables);
+              VM.BuildForIMTInterfaceInvocation || (VM.BuildForITableInterfaceInvocation && VM.DirectlyIndexedITables);
 
           // Invokeinterface requires a dynamic type check
           // to ensure that the receiver object actually
@@ -1897,16 +1912,16 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
               // Sigh.  Can't even resolve the reference to figure out what interface
               // method we are trying to call. Therefore we must make generate a call
               // to an out-of-line typechecking routine to handle it at runtime.
-              OPT_RegisterOperand tibPtr =
-                  gc.temps.makeTemp(VM_TypeReference.JavaLangObjectArray);
-              OPT_Instruction getTib =
-                  GuardedUnary.create(GET_OBJ_TIB, tibPtr, receiver.copy(), getCurrentGuard());
+              OPT_RegisterOperand tibPtr = gc.temps.makeTemp(VM_TypeReference.JavaLangObjectArray);
+              OPT_Instruction getTib = GuardedUnary.create(GET_OBJ_TIB, tibPtr, receiver.copy(), getCurrentGuard());
               appendInstruction(getTib);
               getTib.bcIndex = RUNTIME_SERVICES_BCI;
 
               VM_Method target = VM_Entrypoints.unresolvedInvokeinterfaceImplementsTestMethod;
               OPT_Instruction callCheck =
-                  Call.create2(CALL, null, new OPT_AddressConstantOperand(target.getOffset()),
+                  Call.create2(CALL,
+                               null,
+                               new OPT_AddressConstantOperand(target.getOffset()),
                                OPT_MethodOperand.STATIC(target),
                                new OPT_IntConstantOperand(ref.getId()),
                                tibPtr.copyD2U());
@@ -2065,8 +2080,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
             appendInstruction(Empty.create(UNINT_END));
           }
           endOfBasicBlock = true;
-          OPT_BasicBlock definiteTarget =
-              rectifyStateWithExceptionHandler(type, true);
+          OPT_BasicBlock definiteTarget = rectifyStateWithExceptionHandler(type, true);
           if (definiteTarget != null) {
             appendInstruction(CacheOp.create(SET_CAUGHT_EXCEPTION, op0));
             s = Goto.create(GOTO, definiteTarget.makeJumpTarget());
@@ -2100,8 +2114,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
             if (OPT_ClassLoaderProxy.includesType(typeRef, type) == YES) {
               push(op2);
               if (DBG_CF) {
-                db("skipped gen of checkcast of " + op2 + " from "
-                   + typeRef + " to " + type);
+                db("skipped gen of checkcast of " + op2 + " from " + typeRef + " to " + type);
               }
               break;
             }
@@ -2141,8 +2154,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
               break;
             }
             VM_TypeReference type = getRefTypeOf(op2);                 // non-null
-            int answer =
-                OPT_ClassLoaderProxy.includesType(typeRef, type);
+            int answer = OPT_ClassLoaderProxy.includesType(typeRef, type);
             if (answer == YES && isNonNull(op2)) {
               push(new OPT_IntConstantOperand(1));
               if (DBG_CF) {
@@ -2274,22 +2286,22 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           OPT_RegisterOperand dimArray = gc.temps.makeTemp(VM_TypeReference.IntArray);
           markGuardlessNonNull(dimArray);
           dimArray.setPreciseType();
-          appendInstruction(NewArray.create(NEWARRAY, dimArray, dimArrayType,
-                                            new OPT_IntConstantOperand(dimensions)));
+          appendInstruction(NewArray.create(NEWARRAY, dimArray, dimArrayType, new OPT_IntConstantOperand(dimensions)));
           // Step 2: Assign the dimension values to dimArray
           for (int i = dimensions; i > 0; i--) {
             OPT_LocationOperand loc = new OPT_LocationOperand(VM_TypeReference.Int);
-            appendInstruction(AStore.create(INT_ASTORE, popInt(),
+            appendInstruction(AStore.create(INT_ASTORE,
+                                            popInt(),
                                             dimArray.copyD2U(),
                                             new OPT_IntConstantOperand(i - 1),
-                                            loc, new OPT_TrueGuardOperand()));
+                                            loc,
+                                            new OPT_TrueGuardOperand()));
           }
           // Step 3: Actually create the multiD array
           OPT_RegisterOperand result = gc.temps.makeTemp(arrayType);
           markGuardlessNonNull(result);
           result.setPreciseType();
-          appendInstruction(NewArray.create(NEWOBJMULTIARRAY, result,
-                                            typeOp, dimArray.copyD2U()));
+          appendInstruction(NewArray.create(NEWOBJMULTIARRAY, result, typeOp, dimArray.copyD2U()));
           push(result.copyD2U());
           rectifyStateWithErrorHandler();
           rectifyStateWithExceptionHandler(VM_TypeReference.JavaLangNegativeArraySizeException);
@@ -2449,7 +2461,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
               }
 
               /* the bcIndex should be adjusted to the original */
-              s = _callHelper(meth.getMemberRef().asMethodReference(),
+              s =
+                  _callHelper(meth.getMemberRef().asMethodReference(),
                               OPT_MethodOperand.COMPILED(meth, cm.getOsrJTOCoffset()));
 
               // adjust the bcindex of s to the original bytecode's index
@@ -2490,8 +2503,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       if (VM.VerifyAssertions) VM._assert(bcodes.index() <= runoff);
       if (!endOfBasicBlock && bcodes.index() == runoff) {
         if (DBG_BB || DBG_SELECTED) {
-          db("runoff occurred! current basic block: " + currentBBLE +
-             ", runoff = " + runoff);
+          db("runoff occurred! current basic block: " + currentBBLE + ", runoff = " + runoff);
         }
         endOfBasicBlock = fallThrough = true;
       }
@@ -2521,14 +2533,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   // OSR: TODO: What are these doing here???
   int param1, param2;
 
-  private OPT_Instruction _unaryHelper(OPT_Operator operator,
-                                       OPT_Operand val,
-                                       VM_TypeReference type) {
+  private OPT_Instruction _unaryHelper(OPT_Operator operator, OPT_Operand val, VM_TypeReference type) {
     OPT_RegisterOperand t = gc.temps.makeTemp(type);
     OPT_Instruction s = Unary.create(operator, t, val);
     OPT_Simplifier.DefUseEffect simp = OPT_Simplifier.simplify(gc.temps, s);
-    if ((simp == OPT_Simplifier.DefUseEffect.MOVE_FOLDED) ||
-        (simp == OPT_Simplifier.DefUseEffect.MOVE_REDUCED)) {
+    if ((simp == OPT_Simplifier.DefUseEffect.MOVE_FOLDED) || (simp == OPT_Simplifier.DefUseEffect.MOVE_REDUCED)) {
       gc.temps.release(t);
       push(Move.getClearVal(s));
       return null;
@@ -2538,14 +2547,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     }
   }
 
-  private OPT_Instruction _unaryDualHelper(OPT_Operator operator,
-                                           OPT_Operand val,
-                                           VM_TypeReference type) {
+  private OPT_Instruction _unaryDualHelper(OPT_Operator operator, OPT_Operand val, VM_TypeReference type) {
     OPT_RegisterOperand t = gc.temps.makeTemp(type);
     OPT_Instruction s = Unary.create(operator, t, val);
     OPT_Simplifier.DefUseEffect simp = OPT_Simplifier.simplify(gc.temps, s);
-    if ((simp == OPT_Simplifier.DefUseEffect.MOVE_FOLDED) ||
-        (simp == OPT_Simplifier.DefUseEffect.MOVE_REDUCED)) {
+    if ((simp == OPT_Simplifier.DefUseEffect.MOVE_FOLDED) || (simp == OPT_Simplifier.DefUseEffect.MOVE_REDUCED)) {
       gc.temps.release(t);
       pushDual(Move.getClearVal(s));
       return null;
@@ -2555,15 +2561,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     }
   }
 
-  private OPT_Instruction _binaryHelper(OPT_Operator operator,
-                                        OPT_Operand op1,
-                                        OPT_Operand op2,
+  private OPT_Instruction _binaryHelper(OPT_Operator operator, OPT_Operand op1, OPT_Operand op2,
                                         VM_TypeReference type) {
     OPT_RegisterOperand t = gc.temps.makeTemp(type);
     OPT_Instruction s = Binary.create(operator, t, op1, op2);
     OPT_Simplifier.DefUseEffect simp = OPT_Simplifier.simplify(gc.temps, s);
-    if ((simp == OPT_Simplifier.DefUseEffect.MOVE_FOLDED) ||
-        (simp == OPT_Simplifier.DefUseEffect.MOVE_REDUCED)) {
+    if ((simp == OPT_Simplifier.DefUseEffect.MOVE_FOLDED) || (simp == OPT_Simplifier.DefUseEffect.MOVE_REDUCED)) {
       gc.temps.release(t);
       push(Move.getClearVal(s));
       return null;
@@ -2573,16 +2576,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     }
   }
 
-  private OPT_Instruction _guardedBinaryHelper(OPT_Operator operator,
-                                               OPT_Operand op1,
-                                               OPT_Operand op2,
-                                               OPT_Operand guard,
-                                               VM_TypeReference type) {
+  private OPT_Instruction _guardedBinaryHelper(OPT_Operator operator, OPT_Operand op1, OPT_Operand op2,
+                                               OPT_Operand guard, VM_TypeReference type) {
     OPT_RegisterOperand t = gc.temps.makeTemp(type);
     OPT_Instruction s = GuardedBinary.create(operator, t, op1, op2, guard);
     OPT_Simplifier.DefUseEffect simp = OPT_Simplifier.simplify(gc.temps, s);
-    if ((simp == OPT_Simplifier.DefUseEffect.MOVE_FOLDED) ||
-        (simp == OPT_Simplifier.DefUseEffect.MOVE_REDUCED)) {
+    if ((simp == OPT_Simplifier.DefUseEffect.MOVE_FOLDED) || (simp == OPT_Simplifier.DefUseEffect.MOVE_REDUCED)) {
       gc.temps.release(t);
       push(Move.getClearVal(s));
       return null;
@@ -2592,15 +2591,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     }
   }
 
-  private OPT_Instruction _binaryDualHelper(OPT_Operator operator,
-                                            OPT_Operand op1,
-                                            OPT_Operand op2,
+  private OPT_Instruction _binaryDualHelper(OPT_Operator operator, OPT_Operand op1, OPT_Operand op2,
                                             VM_TypeReference type) {
     OPT_RegisterOperand t = gc.temps.makeTemp(type);
     OPT_Instruction s = Binary.create(operator, t, op1, op2);
     OPT_Simplifier.DefUseEffect simp = OPT_Simplifier.simplify(gc.temps, s);
-    if ((simp == OPT_Simplifier.DefUseEffect.MOVE_FOLDED) ||
-        (simp == OPT_Simplifier.DefUseEffect.MOVE_REDUCED)) {
+    if ((simp == OPT_Simplifier.DefUseEffect.MOVE_FOLDED) || (simp == OPT_Simplifier.DefUseEffect.MOVE_REDUCED)) {
       gc.temps.release(t);
       pushDual(Move.getClearVal(s));
       return null;
@@ -2610,16 +2606,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     }
   }
 
-  private OPT_Instruction _guardedBinaryDualHelper(OPT_Operator operator,
-                                                   OPT_Operand op1,
-                                                   OPT_Operand op2,
-                                                   OPT_Operand guard,
-                                                   VM_TypeReference type) {
+  private OPT_Instruction _guardedBinaryDualHelper(OPT_Operator operator, OPT_Operand op1, OPT_Operand op2,
+                                                   OPT_Operand guard, VM_TypeReference type) {
     OPT_RegisterOperand t = gc.temps.makeTemp(type);
     OPT_Instruction s = GuardedBinary.create(operator, t, op1, op2, guard);
     OPT_Simplifier.DefUseEffect simp = OPT_Simplifier.simplify(gc.temps, s);
-    if ((simp == OPT_Simplifier.DefUseEffect.MOVE_FOLDED) ||
-        (simp == OPT_Simplifier.DefUseEffect.MOVE_REDUCED)) {
+    if ((simp == OPT_Simplifier.DefUseEffect.MOVE_FOLDED) || (simp == OPT_Simplifier.DefUseEffect.MOVE_REDUCED)) {
       gc.temps.release(t);
       pushDual(Move.getClearVal(s));
       return null;
@@ -2629,9 +2621,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     }
   }
 
-  private OPT_Instruction _moveHelper(OPT_Operator operator,
-                                      OPT_Operand val,
-                                      VM_TypeReference type) {
+  private OPT_Instruction _moveHelper(OPT_Operator operator, OPT_Operand val, VM_TypeReference type) {
     OPT_RegisterOperand t = gc.temps.makeTemp(type);
     push(t.copyD2U());
     OPT_Instruction s = Move.create(operator, t, val);
@@ -2640,9 +2630,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     return s;
   }
 
-  private OPT_Instruction _moveDualHelper(OPT_Operator operator,
-                                          OPT_Operand val,
-                                          VM_TypeReference type) {
+  private OPT_Instruction _moveDualHelper(OPT_Operator operator, OPT_Operand val, VM_TypeReference type) {
     OPT_RegisterOperand t = gc.temps.makeTemp(type);
     pushDual(t.copyD2U());
     OPT_Instruction s = Move.create(operator, t, val);
@@ -2651,15 +2639,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     return s;
   }
 
-  public OPT_Instruction _aloadHelper(OPT_Operator operator,
-                                      OPT_Operand ref,
-                                      OPT_Operand index,
+  public OPT_Instruction _aloadHelper(OPT_Operator operator, OPT_Operand ref, OPT_Operand index,
                                       VM_TypeReference type) {
     OPT_RegisterOperand t = gc.temps.makeTemp(type);
     t.setDeclaredType();
     OPT_LocationOperand loc = new OPT_LocationOperand(type);
-    OPT_Instruction s = ALoad.create(operator, t, ref, index, loc,
-                                     getCurrentGuard());
+    OPT_Instruction s = ALoad.create(operator, t, ref, index, loc, getCurrentGuard());
     t = t.copyD2U();
     if (type.isLongType() || type.isDoubleType()) {
       pushDual(t);
@@ -2678,8 +2663,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   private OPT_Instruction _callHelper(VM_MethodReference meth, OPT_MethodOperand methOp) {
     int numHiddenParams = methOp.isStatic() ? 0 : 1;
     VM_TypeReference[] params = meth.getParameterTypes();
-    OPT_Instruction s = Call.create(CALL, null, null, null, null,
-                                    params.length + numHiddenParams);
+    OPT_Instruction s = Call.create(CALL, null, null, null, null, params.length + numHiddenParams);
     if (gc.options.NO_CALLEE_EXCEPTIONS) {
       s.markAsNonPEI();
     }
@@ -2687,8 +2671,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       try {
         Call.setParam(s, i + numHiddenParams, pop(params[i]));
       } catch (OPT_OptimizingCompilerException.IllegalUpcast e) {
-        throw new Error("Illegal upcast creating call to " + meth +
-                        " from " + gc.method + " argument " + i, e);
+        throw new Error("Illegal upcast creating call to " + meth + " from " + gc.method + " argument " + i, e);
       }
     }
     if (numHiddenParams != 0) {
@@ -2712,8 +2695,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   private void _returnHelper(OPT_Operator operator, OPT_Operand val) {
     if (gc.resultReg != null) {
       VM_TypeReference returnType = val.getType();
-      OPT_RegisterOperand ret =
-          new OPT_RegisterOperand(gc.resultReg, returnType);
+      OPT_RegisterOperand ret = new OPT_RegisterOperand(gc.resultReg, returnType);
       boolean returningRegister = false;
       if (val.isRegister()) {
         returningRegister = true;
@@ -2974,8 +2956,10 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       if (op1 instanceof OPT_RegisterOperand) {
         OPT_RegisterOperand rop1 = (OPT_RegisterOperand) op1;
         OPT_Register r1 = rop1.register;
-        if (lastInstr != null && ResultCarrier.conforms(lastInstr) &&
-            ResultCarrier.hasResult(lastInstr) && !r1.isLocal() &&
+        if (lastInstr != null &&
+            ResultCarrier.conforms(lastInstr) &&
+            ResultCarrier.hasResult(lastInstr) &&
+            !r1.isLocal() &&
             r1 == ResultCarrier.getResult(lastInstr).register) {
           if (DBG_ELIMCOPY) db("eliminated copy " + op1 + " to" + index);
           OPT_RegisterOperand newop0 = gc.makeLocal(index, rop1);
@@ -2990,9 +2974,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         }
       }
     }
-    OPT_RegisterOperand op0 = (op1 instanceof OPT_RegisterOperand) ?
-                              gc.makeLocal(index, (OPT_RegisterOperand) op1) :
-                              gc.makeLocal(index, type);
+    OPT_RegisterOperand op0 =
+        (op1 instanceof OPT_RegisterOperand) ? gc.makeLocal(index, (OPT_RegisterOperand) op1) : gc.makeLocal(index,
+                                                                                                             type);
     OPT_Operand set = op0;
     if (CP_IN_LOCALS) {
       set = (op1 instanceof OPT_RegisterOperand) ? op0 : op1;
@@ -3002,8 +2986,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     } else {
       setLocal(index, set);
     }
-    OPT_Instruction s =
-        Move.create(OPT_IRTools.getMoveOp(type), op0, op1);
+    OPT_Instruction s = Move.create(OPT_IRTools.getMoveOp(type), op0, op1);
     s.position = gc.inlineSequence;
     s.bcIndex = instrIndex;
     return s;
@@ -3022,8 +3005,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       return null;
     }
     boolean doConstantProp = false;
-    if ((op1 instanceof OPT_NullConstantOperand) ||
-        (op1 instanceof OPT_AddressConstantOperand)) {
+    if ((op1 instanceof OPT_NullConstantOperand) || (op1 instanceof OPT_AddressConstantOperand)) {
       doConstantProp = true;
     }
     VM_TypeReference type = op1.getType();
@@ -3034,8 +3016,10 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       if (op1 instanceof OPT_RegisterOperand) {
         OPT_RegisterOperand rop1 = (OPT_RegisterOperand) op1;
         OPT_Register r1 = rop1.register;
-        if (lastInstr != null && ResultCarrier.conforms(lastInstr) &&
-            ResultCarrier.hasResult(lastInstr) && !r1.isLocal() &&
+        if (lastInstr != null &&
+            ResultCarrier.conforms(lastInstr) &&
+            ResultCarrier.hasResult(lastInstr) &&
+            !r1.isLocal() &&
             r1 == ResultCarrier.getResult(lastInstr).register) {
           if (DBG_ELIMCOPY) {
             db("eliminated copy " + op1 + " to " + index);
@@ -3237,8 +3221,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     if (VM.VerifyAssertions) {
       if ((type == VM_TypeReference.JavaLangObject) &&
           (r.getType().isMagicType()) &&
-          !gc.method.getDeclaringClass().getTypeRef().isMagicType()
-          ) {
+          !gc.method.getDeclaringClass().getTypeRef().isMagicType()) {
         throw new OPT_OptimizingCompilerException.IllegalUpcast(r.getType());
       }
     }
@@ -3274,9 +3257,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         }
       }
     } else {
-      OPT_Instruction s = _binaryHelper(INT_AND, op,
-                                        new OPT_IntConstantOperand(longShift ? 0x3F : 0x1f),
-                                        VM_TypeReference.Int);
+      OPT_Instruction s =
+          _binaryHelper(INT_AND, op, new OPT_IntConstantOperand(longShift ? 0x3F : 0x1f), VM_TypeReference.Int);
       if (s != null && !currentBBLE.isSelfRegen()) {
         appendInstruction(s);
       }
@@ -3353,8 +3335,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       } else {
         VM_TypeReference type1 = op.getType();
         if (OPT_ClassLoaderProxy.includesType(type, type1) == NO) {
-          VM._assert(false, op + ": " + type + " is not assignable with "
-                            + type1);
+          VM._assert(false, op + ": " + type + " is not assignable with " + type1);
         }
       }
     }
@@ -3392,8 +3373,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * @param val string to print
    */
   private void db(String val) {
-    VM.sysWrite("IRGEN " + bcodes.getDeclaringClass() + "."
-                + gc.method.getName() + ":" + val + "\n");
+    VM.sysWrite("IRGEN " + bcodes.getDeclaringClass() + "." + gc.method.getName() + ":" + val + "\n");
   }
 
   /**
@@ -3433,8 +3413,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     return rop.scratchObject != null;
   }
 
-  public static boolean hasLessConservativeGuard(OPT_RegisterOperand rop1,
-                                                 OPT_RegisterOperand rop2) {
+  public static boolean hasLessConservativeGuard(OPT_RegisterOperand rop1, OPT_RegisterOperand rop2) {
     if (rop1.scratchObject == rop2.scratchObject) {
       return false;
     }
@@ -3468,8 +3447,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       OPT_RegisterOperand rop = (OPT_RegisterOperand) op;
       if (VM.VerifyAssertions) {
         VM._assert((rop.scratchObject == null) ||
-                   (rop.scratchObject instanceof OPT_RegisterOperand)
-                   || (rop.scratchObject instanceof OPT_TrueGuardOperand));
+                   (rop.scratchObject instanceof OPT_RegisterOperand) ||
+                   (rop.scratchObject instanceof OPT_TrueGuardOperand));
       }
       if (rop.scratchObject == null) {
         return null;
@@ -3494,8 +3473,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       }
       // shouldn't happen given current generation --dave.
       OPT_RegisterOperand combined = gc.temps.makeTempValidation();
-      appendInstruction(Binary.create(GUARD_COMBINE, combined,
-                                      getCurrentGuard(), guard.copy()));
+      appendInstruction(Binary.create(GUARD_COMBINE, combined, getCurrentGuard(), guard.copy()));
       currentGuard = combined;
     } else {
       currentGuard = guard;
@@ -3526,8 +3504,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       if (DBG_CF) db("generating definite exception: null_check of definitely null");
       endOfBasicBlock = true;
       rectifyStateWithNullPtrExceptionHandler();
-      appendInstruction(Trap.create(TRAP, gc.temps.makeTempValidation(),
-                                    OPT_TrapCodeOperand.NullPtr()));
+      appendInstruction(Trap.create(TRAP, gc.temps.makeTempValidation(), OPT_TrapCodeOperand.NullPtr()));
       return true;
     }
     if (ref instanceof OPT_RegisterOperand) {
@@ -3601,8 +3578,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     } else {
       // cannot be null becuase it's not in a register.
       if (DBG_ELIMNULL) {
-        db("skipped generation of a null-check instruction for non-register "
-           + ref);
+        db("skipped generation of a null-check instruction for non-register " + ref);
       }
       setCurrentGuard(new OPT_TrueGuardOperand());
       return false;
@@ -3619,8 +3595,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       return false;
     }
     OPT_RegisterOperand guard = gc.temps.makeTempValidation();
-    appendInstruction(BoundsCheck.create(BOUNDS_CHECK, guard, ref.copy(),
-                                         index.copy(), getCurrentGuard()));
+    appendInstruction(BoundsCheck.create(BOUNDS_CHECK, guard, ref.copy(), index.copy(), getCurrentGuard()));
     setCurrentGuard(guard);
     rectifyStateWithArrayBoundsExceptionHandler();
     return false;
@@ -3635,8 +3610,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       if (((OPT_IntConstantOperand) div).value == 0) {
         endOfBasicBlock = true;
         rectifyStateWithArithmeticExceptionHandler();
-        appendInstruction(Trap.create(TRAP, gc.temps.makeTempValidation(),
-                                      OPT_TrapCodeOperand.DivByZero()));
+        appendInstruction(Trap.create(TRAP, gc.temps.makeTempValidation(), OPT_TrapCodeOperand.DivByZero()));
         return true;
       } else {
         if (DBG_CF) {
@@ -3662,8 +3636,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       if (((OPT_LongConstantOperand) div).value == 0) {
         endOfBasicBlock = true;
         rectifyStateWithArithmeticExceptionHandler();
-        appendInstruction(Trap.create(TRAP, gc.temps.makeTempValidation(),
-                                      OPT_TrapCodeOperand.DivByZero()));
+        appendInstruction(Trap.create(TRAP, gc.temps.makeTempValidation(), OPT_TrapCodeOperand.DivByZero()));
         return true;
       } else {
         if (DBG_CF) {
@@ -3687,8 +3660,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * @param elemType the type of the array references elements
    * @return true if an unconditional throw is generated, false otherwise
    */
-  private boolean do_CheckStore(OPT_Operand ref, OPT_Operand elem,
-                                VM_TypeReference elemType) {
+  private boolean do_CheckStore(OPT_Operand ref, OPT_Operand elem, VM_TypeReference elemType) {
     if (gc.options.NO_CHECKSTORE) {
       return false;     // Unsafely eliminate all store checks
     }
@@ -3710,8 +3682,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
             VM_TypeReference myElemType = getRefTypeOf(elem);
             if (myElemType == elemType) {
               if (DBG_TYPE) {
-                db("eliminating checkstore to an array with a final element type "
-                   + elemType);
+                db("eliminating checkstore to an array with a final element type " + elemType);
               }
               return false;
             } else {
@@ -3725,8 +3696,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         if (et != null && ((VM_Class) et).isFinal()) {
           if (getRefTypeOf(elem) == elemType) {
             if (DBG_TYPE) {
-              db("eliminating checkstore to an array with a final element type "
-                 + elemType);
+              db("eliminating checkstore to an array with a final element type " + elemType);
             }
             return false;
           } else {
@@ -3740,13 +3710,13 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     if (isNonNull(elem)) {
       OPT_RegisterOperand newGuard = gc.temps.makeTempValidation();
       appendInstruction(Binary.create(GUARD_COMBINE, newGuard, getGuard(elem), getCurrentGuard()));
-      appendInstruction(StoreCheck.create(OBJARRAY_STORE_CHECK_NOTNULL, guard,
-                                          ref.copy(), elem.copy(),
+      appendInstruction(StoreCheck.create(OBJARRAY_STORE_CHECK_NOTNULL,
+                                          guard,
+                                          ref.copy(),
+                                          elem.copy(),
                                           newGuard.copy()));
     } else {
-      appendInstruction(StoreCheck.create(OBJARRAY_STORE_CHECK, guard,
-                                          ref.copy(), elem.copy(),
-                                          getCurrentGuard()));
+      appendInstruction(StoreCheck.create(OBJARRAY_STORE_CHECK, guard, ref.copy(), elem.copy(), getCurrentGuard()));
     }
     setCurrentGuard(guard);
     rectifyStateWithArrayStoreExceptionHandler();
@@ -3781,10 +3751,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * @param simStack stack state to rectify, or null
    * @param simLocals local state to rectify, or null
    */
-  private BasicBlockLE getOrCreateBlock(int target,
-                                        BasicBlockLE from,
-                                        OperandStack simStack,
-                                        OPT_Operand[] simLocals) {
+  private BasicBlockLE getOrCreateBlock(int target, BasicBlockLE from, OperandStack simStack, OPT_Operand[] simLocals) {
     if ((target > bcodes.index()) && (target < runoff)) {
       if (DBG_BB || DBG_SELECTED) db("updating runoff from " + runoff + " to " + target);
       runoff = target;
@@ -3818,14 +3785,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       int c = cond.evaluate(((OPT_IntConstantOperand) op0).value, 0);
       if (c == OPT_ConditionOperand.TRUE) {
         if (DBG_CF) {
-          db(cond + ": changed branch to goto because predicate (" + op0
-             + ") is constant true");
+          db(cond + ": changed branch to goto because predicate (" + op0 + ") is constant true");
         }
         return _gotoHelper(offset);
       } else if (c == OPT_ConditionOperand.FALSE) {
         if (DBG_CF) {
-          db(cond + ": eliminated branch because predicate (" + op0 +
-             ") is constant false");
+          db(cond + ": eliminated branch because predicate (" + op0 + ") is constant false");
         }
         return null;
       }
@@ -3834,9 +3799,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     if (!(op0 instanceof OPT_RegisterOperand)) {
       if (DBG_CF) db("generated int_ifcmp of " + op0 + " with 0");
       OPT_RegisterOperand guard = gc.temps.makeTempValidation();
-      return IfCmp.create(INT_IFCMP, guard, op0,
+      return IfCmp.create(INT_IFCMP,
+                          guard,
+                          op0,
                           new OPT_IntConstantOperand(0),
-                          cond, generateTarget(offset),
+                          cond,
+                          generateTarget(offset),
                           gc.getConditionalBranchProfileOperand(instrIndex - bciAdjustment, offset < 0));
     }
     OPT_RegisterOperand val = (OPT_RegisterOperand) op0;
@@ -3871,9 +3839,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
                 if (loc instanceof OPT_RegisterOperand) {
                   if (DBG_TYPE) {
                     db(val +
-                       " is from instanceof test, propagating new type of "
-                       + refReg + " (" + type2 + ") to basic block at "
-                       + offset);
+                       " is from instanceof test, propagating new type of " +
+                       refReg +
+                       " (" +
+                       type2 +
+                       ") to basic block at " +
+                       offset);
                   }
                   OPT_RegisterOperand locr = (OPT_RegisterOperand) loc;
                   OPT_RegisterOperand tlocr = locr.copyU2U();
@@ -3902,8 +3873,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
                 if (loc instanceof OPT_RegisterOperand) {
                   if (DBG_TYPE) {
                     db(val +
-                       " is from instanceof test, propagating new type of "
-                       + refReg + " (" + type2 + ") along fallthrough edge");
+                       " is from instanceof test, propagating new type of " +
+                       refReg +
+                       " (" +
+                       type2 +
+                       ") along fallthrough edge");
                   }
                   OPT_RegisterOperand locr = (OPT_RegisterOperand) loc;
                   guard = gc.makeNullCheckGuard(locr.register);
@@ -3918,9 +3892,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           if (guard == null) {
             guard = gc.temps.makeTempValidation();
           }
-          return IfCmp.create(INT_IFCMP, guard, val,
+          return IfCmp.create(INT_IFCMP,
+                              guard,
+                              val,
                               new OPT_IntConstantOperand(0),
-                              cond, branch,
+                              cond,
+                              branch,
                               gc.getConditionalBranchProfileOperand(instrIndex - bciAdjustment, offset < 0));
         }
         case INSTANCEOF_NOTNULL_opcode: {
@@ -3951,9 +3928,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
                 if (loc instanceof OPT_RegisterOperand) {
                   if (DBG_TYPE) {
                     db(val +
-                       " is from instanceof test, propagating new type of "
-                       + refReg + " (" + type2 + ") to basic block at "
-                       + offset);
+                       " is from instanceof test, propagating new type of " +
+                       refReg +
+                       " (" +
+                       type2 +
+                       ") to basic block at " +
+                       offset);
                   }
                   OPT_RegisterOperand locr = (OPT_RegisterOperand) loc;
                   OPT_RegisterOperand tlocr = locr.copyU2U();
@@ -3980,8 +3960,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
                 if (loc instanceof OPT_RegisterOperand) {
                   if (DBG_TYPE) {
                     db(val +
-                       " is from instanceof test, propagating new type of "
-                       + refReg + " (" + type2 + ") along fallthrough edge");
+                       " is from instanceof test, propagating new type of " +
+                       refReg +
+                       " (" +
+                       type2 +
+                       ") along fallthrough edge");
                   }
                   OPT_RegisterOperand locr = (OPT_RegisterOperand) loc;
                   locr.type = type2;
@@ -3992,9 +3975,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
             }
           }
           OPT_RegisterOperand guard = gc.temps.makeTempValidation();
-          return IfCmp.create(INT_IFCMP, guard, val,
+          return IfCmp.create(INT_IFCMP,
+                              guard,
+                              val,
                               new OPT_IntConstantOperand(0),
-                              cond, branch,
+                              cond,
+                              branch,
                               gc.getConditionalBranchProfileOperand(instrIndex - bciAdjustment, offset < 0));
         }
         case DOUBLE_CMPG_opcode:
@@ -4044,7 +4030,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           lastInstr = null;
           branch = generateTarget(offset);
           OPT_RegisterOperand guard = gc.temps.makeTempValidation();
-          return IfCmp.create(operator, guard, val1, val2, cond,
+          return IfCmp.create(operator,
+                              guard,
+                              val1,
+                              val2,
+                              cond,
                               branch,
                               gc.getConditionalBranchProfileOperand(instrIndex - bciAdjustment, offset < 0));
         }
@@ -4055,9 +4045,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     }
     branch = generateTarget(offset);
     OPT_RegisterOperand guard = gc.temps.makeTempValidation();
-    return IfCmp.create(INT_IFCMP, guard, val,
+    return IfCmp.create(INT_IFCMP,
+                        guard,
+                        val,
                         new OPT_IntConstantOperand(0),
-                        cond, branch,
+                        cond,
+                        branch,
                         gc.getConditionalBranchProfileOperand(instrIndex - bciAdjustment, offset < 0));
   }
 
@@ -4076,28 +4069,27 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       op1 = temp;
       cond = cond.flipOperands();
     }
-    if (CF_INTIFCMP &&
-        (op0 instanceof OPT_IntConstantOperand) &&
-        (op1 instanceof OPT_IntConstantOperand)) {
-      int c = cond.evaluate(((OPT_IntConstantOperand) op0).value,
-                            ((OPT_IntConstantOperand) op1).value);
+    if (CF_INTIFCMP && (op0 instanceof OPT_IntConstantOperand) && (op1 instanceof OPT_IntConstantOperand)) {
+      int c = cond.evaluate(((OPT_IntConstantOperand) op0).value, ((OPT_IntConstantOperand) op1).value);
       if (c == OPT_ConditionOperand.TRUE) {
         if (DBG_CF) {
-          db(cond + ": changed branch to goto because predicate (" + op0
-             + ", " + op1 + ") is constant true");
+          db(cond + ": changed branch to goto because predicate (" + op0 + ", " + op1 + ") is constant true");
         }
         return _gotoHelper(offset);
       } else if (c == OPT_ConditionOperand.FALSE) {
         if (DBG_CF) {
-          db(cond + ": eliminated branch because predicate (" + op0 +
-             "," + op1 + ") is constant false");
+          db(cond + ": eliminated branch because predicate (" + op0 + "," + op1 + ") is constant false");
         }
         return null;
       }
     }
     fallThrough = true;
     OPT_RegisterOperand guard = gc.temps.makeTempValidation();
-    return IfCmp.create(INT_IFCMP, guard, op0, op1, cond,
+    return IfCmp.create(INT_IFCMP,
+                        guard,
+                        op0,
+                        op1,
+                        cond,
                         generateTarget(offset),
                         gc.getConditionalBranchProfileOperand(instrIndex - bciAdjustment, offset < 0));
   }
@@ -4181,8 +4173,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     if (guard == null) {
       guard = gc.temps.makeTempValidation();
     }
-    return IfCmp.create(REF_IFCMP, guard, ref,
-                        new OPT_NullConstantOperand(), cond, branch,
+    return IfCmp.create(REF_IFCMP,
+                        guard,
+                        ref,
+                        new OPT_NullConstantOperand(),
+                        cond,
+                        branch,
                         gc.getConditionalBranchProfileOperand(instrIndex - bciAdjustment, offset < 0));
   }
 
@@ -4217,8 +4213,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     }
     fallThrough = true;
     OPT_RegisterOperand guard = gc.temps.makeTempValidation();
-    return IfCmp.create(REF_IFCMP, guard, op0, op1,
-                        cond, generateTarget(offset),
+    return IfCmp.create(REF_IFCMP,
+                        guard,
+                        op0,
+                        op1,
+                        cond,
+                        generateTarget(offset),
                         gc.getConditionalBranchProfileOperand(instrIndex - bciAdjustment, offset < 0));
   }
 
@@ -4234,8 +4234,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       if (gc.isLocal(op, index, type)) {
         OPT_RegisterOperand lop = (OPT_RegisterOperand) op;
         OPT_RegisterOperand t = gc.temps.makeTemp(lop);
-        OPT_Instruction s =
-            Move.create(OPT_IRTools.getMoveOp(t.type), t, op);
+        OPT_Instruction s = Move.create(OPT_IRTools.getMoveOp(t.type), t, op);
         stack.replaceFromTop(i, t.copyD2U());
         s.position = gc.inlineSequence;
         s.bcIndex = instrIndex;
@@ -4252,6 +4251,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
   //////////
   // Some common cases to make the code more readable...
+
   private OPT_BasicBlock rectifyStateWithNullPtrExceptionHandler() {
     return rectifyStateWithNullPtrExceptionHandler(false);
   }
@@ -4317,24 +4317,20 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       for (HandlerBlockLE xbble : currentBBLE.handlers) {
         if (DBG_EX) db("\texception block " + xbble.entryBlock);
         byte mustCatch = xbble.mustCatchException(exceptionType);
-        if (mustCatch != NO ||
-            xbble.mayCatchException(exceptionType) != NO) {
+        if (mustCatch != NO || xbble.mayCatchException(exceptionType) != NO) {
           if (DBG_EX) {
-            db("PEI of type " + exceptionType + " could be caught by "
-               + xbble + " rectifying locals");
+            db("PEI of type " + exceptionType + " could be caught by " + xbble + " rectifying locals");
           }
           catchTargets++;
           blocks.rectifyLocals(_localState, xbble);
           currentBBLE.block.insertOut(xbble.entryBlock);
           if (DBG_CFG || DBG_SELECTED) {
-            db("Added CFG edge from " + currentBBLE.block +
-               " to " + xbble.entryBlock);
+            db("Added CFG edge from " + currentBBLE.block + " to " + xbble.entryBlock);
           }
         }
         if (mustCatch == YES) {
           if (DBG_EX) {
-            db("\t" + xbble + " will defintely catch exceptions of type "
-               + exceptionType);
+            db("\t" + xbble + " will defintely catch exceptions of type " + exceptionType);
           }
           if (DBG_EX && catchTargets == 1) {
             db("\t  and it is the only target");
@@ -4352,16 +4348,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     // generated if they are reachable from a callee.
     // See maybeInlineMethod.
     if (gc.enclosingHandlers != null) {
-      for (OPT_BasicBlockEnumeration e = gc.enclosingHandlers.enumerator();
-           e.hasMoreElements();) {
-        OPT_ExceptionHandlerBasicBlock xbb =
-            (OPT_ExceptionHandlerBasicBlock) e.next();
+      for (OPT_BasicBlockEnumeration e = gc.enclosingHandlers.enumerator(); e.hasMoreElements();) {
+        OPT_ExceptionHandlerBasicBlock xbb = (OPT_ExceptionHandlerBasicBlock) e.next();
         byte mustCatch = xbb.mustCatchException(exceptionType);
-        if (mustCatch != NO ||
-            xbb.mayCatchException(exceptionType) != NO) {
+        if (mustCatch != NO || xbb.mayCatchException(exceptionType) != NO) {
           if (DBG_EX) {
-            db("PEI of type " + exceptionType +
-               " could be caught by enclosing handler " + xbb);
+            db("PEI of type " + exceptionType + " could be caught by enclosing handler " + xbb);
           }
           catchTargets++;
           currentBBLE.block.insertOut(xbb);
@@ -4371,8 +4363,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         }
         if (mustCatch == YES) {
           if (DBG_EX) {
-            db("\t" + xbb + " will defintely catch exceptions of type "
-               + exceptionType);
+            db("\t" + xbb + " will defintely catch exceptions of type " + exceptionType);
           }
           if (DBG_EX && catchTargets == 1) {
             db("\t  and it is the only target");
@@ -4407,8 +4398,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     currentBBLE.block.setMayThrowUncaughtException();
     if (linkToExitIfUncaught) {
       if (DBG_EX) {
-        db("PEI of unknown type caused edge from " + currentBBLE +
-           " to outermost exit");
+        db("PEI of unknown type caused edge from " + currentBBLE + " to outermost exit");
       }
       currentBBLE.block.insertOut(gc.exit);
       if (DBG_CFG || DBG_SELECTED) {
@@ -4418,8 +4408,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     if (currentBBLE.handlers != null) {
       for (HandlerBlockLE xbble : currentBBLE.handlers) {
         if (DBG_EX) {
-          db("PEI of unknown type could be caught by " + xbble +
-             " rectifying locals");
+          db("PEI of unknown type could be caught by " + xbble + " rectifying locals");
         }
         blocks.rectifyLocals(_localState, xbble);
         currentBBLE.block.insertOut(xbble.entryBlock);
@@ -4430,10 +4419,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     }
     // Now, consider the enclosing exception context; ditto NOTE above.
     if (gc.enclosingHandlers != null) {
-      for (OPT_BasicBlockEnumeration e = gc.enclosingHandlers.enumerator();
-           e.hasMoreElements();) {
-        OPT_ExceptionHandlerBasicBlock xbb =
-            (OPT_ExceptionHandlerBasicBlock) e.next();
+      for (OPT_BasicBlockEnumeration e = gc.enclosingHandlers.enumerator(); e.hasMoreElements();) {
+        OPT_ExceptionHandlerBasicBlock xbb = (OPT_ExceptionHandlerBasicBlock) e.next();
         if (DBG_EX) {
           db("PEI of unknown type could be caught by enclosing handler " + xbb);
         }
@@ -4454,13 +4441,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * @param call the call instruction being considered for inlining
    * @param isExtant is the receiver of a virtual method an extant object?
    */
-  private OPT_InlineDecision shouldInline(OPT_Instruction call,
-                                          boolean isExtant) {
+  private OPT_InlineDecision shouldInline(OPT_Instruction call, boolean isExtant) {
     if (Call.getMethod(call).getTarget() == null) {
       return OPT_InlineDecision.NO("Target method is null");
     }
-    OPT_CompilationState state =
-        new OPT_CompilationState(call, isExtant, gc.options, gc.original_cm);
+    OPT_CompilationState state = new OPT_CompilationState(call, isExtant, gc.options, gc.original_cm);
     OPT_InlineDecision d = gc.inlinePlan.shouldInline(state);
     return d;
   }
@@ -4479,8 +4464,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * @param callSite the call instruction we are attempting to inline
    * @return true if inlining succeeded, false otherwise
    */
-  private boolean maybeInlineMethod(OPT_InlineDecision inlDec,
-                                    OPT_Instruction callSite) {
+  private boolean maybeInlineMethod(OPT_InlineDecision inlDec, OPT_Instruction callSite) {
     if (inlDec.isNO()) {
       return false;
     }
@@ -4513,8 +4497,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     // prevent the opt compiler from inlining a method that contains an
     // unimplemented magic.
     OPT_GenerationContext inlinedContext =
-        OPT_Inliner.execute(inlDec, gc,
-                            currentBBLE.block.exceptionHandlers, callSite);
+        OPT_Inliner.execute(inlDec, gc, currentBBLE.block.exceptionHandlers, callSite);
 
     inlinedSomething = true;
     // TODO: We're currently not keeping track if any of the
@@ -4568,8 +4551,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         push(inlinedContext.result, resultType);
       }
       epilogueBBLE.copyIntoLocalState(_localState);
-      BasicBlockLE afterBBLE =
-          blocks.getOrCreateBlock(bcodes.index(), epilogueBBLE, stack, _localState);
+      BasicBlockLE afterBBLE = blocks.getOrCreateBlock(bcodes.index(), epilogueBBLE, stack, _localState);
       // Create the InliningBlockLE and initialize fallThrough links.
       InliningBlockLE inlinedCallee = new InliningBlockLE(inlinedContext);
       currentBBLE.fallThrough = inlinedCallee;
@@ -4593,8 +4575,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   /* create an OSR Barrier instruction at the current position.
    */
   private OPT_Instruction _createOsrBarrier() {
-    ArrayList<OPT_Operand> livevars =
-        new ArrayList<OPT_Operand>();
+    ArrayList<OPT_Operand> livevars = new ArrayList<OPT_Operand>();
 
     /* for local variables, we have to use helper to make a register. */
     /* ltypes and stypes should be the full length
@@ -4653,8 +4634,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           } else {
             /* for stack operand, reverse the order for long and double */
             byte tcode = typ.getName().parseForTypeCode();
-            if ((tcode == LongTypeCode)
-                || (tcode == DoubleTypeCode)) {
+            if ((tcode == LongTypeCode) || (tcode == DoubleTypeCode)) {
               stypes[i - 1] = tcode;
               stypes[i] = VoidTypeCode;
             } else {
@@ -4668,15 +4648,13 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       }
     }
 
-    OPT_Instruction barrier = OsrBarrier.create(OSR_BARRIER,
-                                                null, // temporarily
+    OPT_Instruction barrier = OsrBarrier.create(OSR_BARRIER, null, // temporarily
                                                 num_llocals + num_lstacks);
 
     for (int i = 0, n = livevars.size(); i < n; i++) {
       OPT_Operand op = livevars.get(i);
       if (op instanceof ReturnAddressOperand) {
-        int tgtpc = ((ReturnAddressOperand) op).retIndex
-                    - gc.method.getOsrPrologueLength();
+        int tgtpc = ((ReturnAddressOperand) op).retIndex - gc.method.getOsrPrologueLength();
         op = new OPT_IntConstantOperand(tgtpc);
       } else if (op instanceof OPT_LongConstantOperand) {
         op = _prepareLongConstant(op);
@@ -4690,8 +4668,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     }
 
     // patch type info operand
-    OPT_OsrTypeInfoOperand typeinfo =
-        new OPT_OsrTypeInfoOperand(ltypes, stypes);
+    OPT_OsrTypeInfoOperand typeinfo = new OPT_OsrTypeInfoOperand(ltypes, stypes);
 
     OsrBarrier.setTypeInfo(barrier, typeinfo);
 
@@ -4787,8 +4764,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * after BC2IR, before any other optimizations.
    */
   public static OPT_Instruction _osrHelper(OPT_Instruction barrier) {
-    OPT_Instruction inst = OsrPoint.create(YIELDPOINT_OSR,
-                                           null,  // currently unknown
+    OPT_Instruction inst = OsrPoint.create(YIELDPOINT_OSR, null,  // currently unknown
                                            0);    // currently unknown
     inst.scratchObject = barrier;
     return inst;
@@ -4897,9 +4873,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
      * @param localState the state of the local variables for the block
      *                   beginning at bytecode 0.
      */
-    BBSet(OPT_GenerationContext gc,
-          VM_BytecodeStream bcodes,
-          OPT_Operand[] localState) {
+    BBSet(OPT_GenerationContext gc, VM_BytecodeStream bcodes, OPT_Operand[] localState) {
       this.gc = gc;
       this.bcodes = bcodes;
 
@@ -4995,13 +4969,14 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
      * @param simStack stack state to rectify, or null
      * @param simLocals local state to rectify, or null
      */
-    BasicBlockLE getOrCreateBlock(int target,
-                                  BasicBlockLE from,
-                                  OperandStack simStack,
-                                  OPT_Operand[] simLocals) {
+    BasicBlockLE getOrCreateBlock(int target, BasicBlockLE from, OperandStack simStack, OPT_Operand[] simLocals) {
       if (DBG_BB || DBG_SELECTED) {
-        db("getting block " + target + ", match stack: " +
-           (simStack != null) + " match locals: " + (simLocals != null));
+        db("getting block " +
+           target +
+           ", match stack: " +
+           (simStack != null) +
+           " match locals: " +
+           (simLocals != null));
       }
       return getOrCreateBlock(root, true, target, from, simStack, simLocals);
     }
@@ -5056,8 +5031,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
      * @param stack stack to copy
      * @param p BBLE to copy stack state into
      */
-    void rectifyStacks(OPT_BasicBlock block, OperandStack stack,
-                       BasicBlockLE p) {
+    void rectifyStacks(OPT_BasicBlock block, OperandStack stack, BasicBlockLE p) {
       if (stack == null || stack.isEmpty()) {
         if (VM.VerifyAssertions) VM._assert(p.stackState == null);
         if (!p.isStackKnown()) {
@@ -5077,8 +5051,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         // (We need to ensure that non-local registers appear at
         // most once on each expression stack).
         if (DBG_STACK || DBG_SELECTED) {
-          db("First stack rectifiction for " + p + "(" +
-             p.block + ") simply saving");
+          db("First stack rectifiction for " + p + "(" + p.block + ") simply saving");
         }
         if (VM.VerifyAssertions) VM._assert(p.stackState == null);
         p.stackState = new OperandStack(stack.getCapacity());
@@ -5092,8 +5065,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
               OPT_RegisterOperand temp = gc.temps.makeTemp(rop);
               temp.setInheritableFlags(rop);
               setGuard(temp, getGuard(rop));
-              OPT_Instruction move =
-                  Move.create(OPT_IRTools.getMoveOp(rop.type), temp, rop.copyRO());
+              OPT_Instruction move = Move.create(OPT_IRTools.getMoveOp(rop.type), temp, rop.copyRO());
               move.bcIndex = RECTIFY_BCI;
               move.position = gc.inlineSequence;
               block.appendInstructionRespectingTerminalBranch(move);
@@ -5198,8 +5170,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     }
 
     private void injectMove(OPT_BasicBlock block, OPT_RegisterOperand res, OPT_Operand val) {
-      OPT_Instruction move =
-          Move.create(OPT_IRTools.getMoveOp(res.type), res, val);
+      OPT_Instruction move = Move.create(OPT_IRTools.getMoveOp(res.type), res, val);
       move.bcIndex = RECTIFY_BCI;
       move.position = gc.inlineSequence;
       block.appendInstructionRespectingTerminalBranch(move);
@@ -5238,17 +5209,13 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
             db("local states have the exact same operand " + pOP + " for local " + i);
           }
         } else {
-          boolean untyped =
-              (pOP == null || pOP == DUMMY || pOP instanceof ReturnAddressOperand);
-          OPT_Operand mOP =
-              OPT_Operand.meet(pOP, iOP,
-                               untyped ? null : gc.localReg(i, pOP.getType()));
+          boolean untyped = (pOP == null || pOP == DUMMY || pOP instanceof ReturnAddressOperand);
+          OPT_Operand mOP = OPT_Operand.meet(pOP, iOP, untyped ? null : gc.localReg(i, pOP.getType()));
           if (DBG_LOCAL || DBG_SELECTED) db("Meet of " + pOP + " and " + iOP + " is " + mOP);
           if (mOP != pOP) {
             if (generated) {
               if (DBG_LOCAL || DBG_SELECTED) {
-                db("\t...forced to regenerate " + p + " (" + p.block +
-                   ") because of this");
+                db("\t...forced to regenerate " + p + " (" + p.block + ") because of this");
               }
               markBlockForRegeneration(p);
               generated = false;
@@ -5282,8 +5249,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           gc.generatedExceptionHandlers = true;
           HandlerBlockLE hcurr = (HandlerBlockLE) curr;
           if (DBG_FLATTEN) {
-            db("injecting handler entry block " + hcurr.entryBlock +
-               " before " + hcurr);
+            db("injecting handler entry block " + hcurr.entryBlock + " before " + hcurr);
           }
           gc.cfg.insertAfterInCodeOrder(cop, hcurr.entryBlock);
           cop = hcurr.entryBlock;
@@ -5295,8 +5261,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         cop = curr.block;
         if (DBG_FLATTEN) {
           db("Current Code order for " + gc.method + "\n");
-          for (OPT_BasicBlock bb = gc.prologue; bb != null;
-               bb = (OPT_BasicBlock) bb.getNext()) {
+          for (OPT_BasicBlock bb = gc.prologue; bb != null; bb = (OPT_BasicBlock) bb.getNext()) {
             VM.sysWrite(bb + "\n");
           }
         }
@@ -5308,8 +5273,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           for (HandlerBlockLE handler : curr.handlers) {
             if (!handler.isGenerated()) {
               if (DBG_EX || DBG_FLATTEN) {
-                db("Will remove unreachable handler " + handler
-                   + " from " + curr);
+                db("Will remove unreachable handler " + handler + " from " + curr);
               }
               notGenerated++;
             }
@@ -5317,28 +5281,23 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           if (notGenerated > 0) {
             if (notGenerated == curr.handlers.length) {
               if (DBG_EX || DBG_FLATTEN) {
-                db("No (local) handlers were actually reachable for " +
-                   curr + "; setting to caller");
+                db("No (local) handlers were actually reachable for " + curr + "; setting to caller");
               }
-              curr.block.exceptionHandlers =
-                  curr.block.exceptionHandlers.getCaller();
+              curr.block.exceptionHandlers = curr.block.exceptionHandlers.getCaller();
             } else {
               OPT_ExceptionHandlerBasicBlock[] nlh =
-                  new OPT_ExceptionHandlerBasicBlock[curr.handlers.length -
-                                                     notGenerated];
+                  new OPT_ExceptionHandlerBasicBlock[curr.handlers.length - notGenerated];
               for (int i = 0, j = 0; i < curr.handlers.length; i++) {
                 if (curr.handlers[i].isGenerated()) {
                   nlh[j++] = curr.handlers[i].entryBlock;
                 } else {
                   if (VM.VerifyAssertions) {
-                    VM._assert(curr.handlers[i].entryBlock.hasZeroIn(),
-                               "Non-generated handler with CFG edges");
+                    VM._assert(curr.handlers[i].entryBlock.hasZeroIn(), "Non-generated handler with CFG edges");
                   }
                 }
               }
               curr.block.exceptionHandlers =
-                  new OPT_ExceptionHandlerBasicBlockBag(nlh,
-                                                        curr.block.exceptionHandlers.getCaller());
+                  new OPT_ExceptionHandlerBasicBlockBag(nlh, curr.block.exceptionHandlers.getCaller());
             }
           }
         }
@@ -5349,8 +5308,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         // OPT_GenerationContext, and maybeInlineMethod.  Sorry, but you'll
         // have to take a close look at all of these to see how it
         // all fits together....--dave
-        if (curr.fallThrough != null &&
-            curr.fallThrough instanceof InliningBlockLE) {
+        if (curr.fallThrough != null && curr.fallThrough instanceof InliningBlockLE) {
           InliningBlockLE icurr = (InliningBlockLE) curr.fallThrough;
           OPT_BasicBlock forw = cop.nextBasicBlockInCodeOrder();
           OPT_BasicBlock calleeEntry = icurr.gc.cfg.firstInCodeOrder();
@@ -5363,12 +5321,10 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           }
           if (icurr.epilogueBBLE != null) {
             if (DBG_FLATTEN) {
-              db("injected " + icurr + " between " + curr + " and " +
-                 icurr.epilogueBBLE.fallThrough);
+              db("injected " + icurr + " between " + curr + " and " + icurr.epilogueBBLE.fallThrough);
             }
             if (VM.VerifyAssertions) {
-              VM._assert(icurr.epilogueBBLE.block ==
-                         icurr.gc.cfg.lastInCodeOrder());
+              VM._assert(icurr.epilogueBBLE.block == icurr.gc.cfg.lastInCodeOrder());
             }
             curr = icurr.epilogueBBLE;
             cop = curr.block;
@@ -5447,9 +5403,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
       if (DBG_FLATTEN) {
         db("Current Code order for " + gc.method + "\n");
-        for (OPT_BasicBlock bb = gc.prologue;
-             bb != null;
-             bb = (OPT_BasicBlock) bb.getNext()) {
+        for (OPT_BasicBlock bb = gc.prologue; bb != null; bb = (OPT_BasicBlock) bb.getNext()) {
           bb.printExtended();
         }
       }
@@ -5468,8 +5422,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
      * @param val string to print
      */
     private void db(String val) {
-      VM.sysWrite("IRGEN " + bcodes.getDeclaringClass() + "."
-                  + gc.method.getName() + ":" + val + "\n");
+      VM.sysWrite("IRGEN " + bcodes.getDeclaringClass() + "." + gc.method.getName() + ":" + val + "\n");
     }
 
     /**
@@ -5499,19 +5452,14 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
      * "handler range."
      * Also initializes bble.block.exceptionHandlers.
      */
-    private void initializeExceptionHandlers(BasicBlockLE bble,
-                                             OPT_Operand[] simLocals) {
+    private void initializeExceptionHandlers(BasicBlockLE bble, OPT_Operand[] simLocals) {
       if (startPCs != null) {
-        HashSet<VM_TypeReference> caughtTypes =
-            new HashSet<VM_TypeReference>();
+        HashSet<VM_TypeReference> caughtTypes = new HashSet<VM_TypeReference>();
         for (int i = 0; i < startPCs.length; i++) {
           VM_TypeReference caughtType = exceptionTypes[i].getTypeRef();
-          if (bble.low >= startPCs[i] && bble.max <= endPCs[i] &&
-              !caughtTypes.contains(caughtType)) {
+          if (bble.low >= startPCs[i] && bble.max <= endPCs[i] && !caughtTypes.contains(caughtType)) {
             // bble's basic block is contained within this handler's range.
-            HandlerBlockLE eh =
-                (HandlerBlockLE) getOrCreateBlock(handlerPCs[i],
-                                                  bble, null, simLocals);
+            HandlerBlockLE eh = (HandlerBlockLE) getOrCreateBlock(handlerPCs[i], bble, null, simLocals);
             if (DBG_EX) db("Adding handler " + eh + " to " + bble);
             caughtTypes.add(caughtType);
             bble.addHandler(eh);
@@ -5519,13 +5467,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         }
       }
       if (bble.handlers != null) {
-        OPT_ExceptionHandlerBasicBlock[] ehbbs =
-            new OPT_ExceptionHandlerBasicBlock[bble.handlers.length];
+        OPT_ExceptionHandlerBasicBlock[] ehbbs = new OPT_ExceptionHandlerBasicBlock[bble.handlers.length];
         for (int i = 0; i < bble.handlers.length; i++) {
           ehbbs[i] = bble.handlers[i].entryBlock;
         }
-        bble.block.exceptionHandlers =
-            new OPT_ExceptionHandlerBasicBlockBag(ehbbs, gc.enclosingHandlers);
+        bble.block.exceptionHandlers = new OPT_ExceptionHandlerBasicBlockBag(ehbbs, gc.enclosingHandlers);
       } else {
         bble.block.exceptionHandlers = gc.enclosingHandlers;
       }
@@ -5573,9 +5519,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
      * @param simLocals The local variables to match
      * @param candBBLE  The candidate BaseicBlockLE
      */
-    private boolean matchingJSRcontext(OperandStack simStack,
-                                       OPT_Operand[] simLocals,
-                                       BasicBlockLE candBBLE) {
+    private boolean matchingJSRcontext(OperandStack simStack, OPT_Operand[] simLocals, BasicBlockLE candBBLE) {
       if (DBG_INLINE_JSR) {
         db("Matching JSR context of argument stack/locals against " + candBBLE);
       }
@@ -5639,20 +5583,14 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
      * @param simStack stack state to rectify, or null
      * @param simLocals local state to rectify, or null
      */
-    private BasicBlockLE getOrCreateBlock(BasicBlockLE x,
-                                          boolean shouldCreate,
-                                          int target,
-                                          BasicBlockLE from,
-                                          OperandStack simStack,
-                                          OPT_Operand[] simLocals) {
+    private BasicBlockLE getOrCreateBlock(BasicBlockLE x, boolean shouldCreate, int target, BasicBlockLE from,
+                                          OperandStack simStack, OPT_Operand[] simLocals) {
       if (target < x.low) {
         if (x.left == null) {
-          return condCreateAndInit(x, shouldCreate, target, from,
-                                   simStack, simLocals, true);
+          return condCreateAndInit(x, shouldCreate, target, from, simStack, simLocals, true);
         } else {
           if (DBG_BBSET) db("following left branch from " + x + " to " + x.left);
-          return getOrCreateBlock(x.left, shouldCreate, target,
-                                  from, simStack, simLocals);
+          return getOrCreateBlock(x.left, shouldCreate, target, from, simStack, simLocals);
         }
       } else if (target > x.low) {
         if ((x.low < target) && (target <= x.high)) {
@@ -5664,12 +5602,10 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           if (DBG_CFG || DBG_SELECTED) db("Deleted all out edges of " + x.block);
         }
         if (x.right == null) {
-          return condCreateAndInit(x, shouldCreate, target, from,
-                                   simStack, simLocals, false);
+          return condCreateAndInit(x, shouldCreate, target, from, simStack, simLocals, false);
         } else {
           if (DBG_BBSET) db("following right branch from " + x + " to " + x.right);
-          return getOrCreateBlock(x.right, shouldCreate, target,
-                                  from, simStack, simLocals);
+          return getOrCreateBlock(x.right, shouldCreate, target, from, simStack, simLocals);
         }
       } else {
         // found a basic block at the target bytecode index.
@@ -5682,37 +5618,31 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         if (DBG_BBSET) db("found block " + x + ", but JSR context didn't match");
         if (x.left == null) {
           if (x.right == null) {
-            return condCreateAndInit(x, shouldCreate, target, from,
-                                     simStack, simLocals, true);
+            return condCreateAndInit(x, shouldCreate, target, from, simStack, simLocals, true);
           } else {
             if (DBG_BBSET) {
               db(x + " has only right child, continuing down that branch");
             }
-            return getOrCreateBlock(x.right, shouldCreate, target, from,
-                                    simStack, simLocals);
+            return getOrCreateBlock(x.right, shouldCreate, target, from, simStack, simLocals);
           }
         } else {
           if (x.right == null) {
             if (DBG_BBSET) {
               db(x + " has only left child, continuing down that branch");
             }
-            return getOrCreateBlock(x.left, shouldCreate, target, from,
-                                    simStack, simLocals);
+            return getOrCreateBlock(x.left, shouldCreate, target, from, simStack, simLocals);
           } else {
             if (DBG_BBSET) {
               db(x + " has two children, searching left branch first");
             }
-            BasicBlockLE bble = getOrCreateBlock(x.left, false, target,
-                                                 from, simStack, simLocals);
+            BasicBlockLE bble = getOrCreateBlock(x.left, false, target, from, simStack, simLocals);
             if (bble != null) {
               return bble;
             } else {
               if (DBG_BBSET) {
-                db("didn't find " + target +
-                   " on left branch, continuing down right branch");
+                db("didn't find " + target + " on left branch, continuing down right branch");
               }
-              return getOrCreateBlock(x.right, shouldCreate, target, from,
-                                      simStack, simLocals);
+              return getOrCreateBlock(x.right, shouldCreate, target, from, simStack, simLocals);
             }
           }
         }
@@ -5736,13 +5666,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
      * @param left are we creating a left child of parent?
      * @return the newly create block, or null if !shouldCreate
      */
-    private BasicBlockLE condCreateAndInit(BasicBlockLE x,
-                                           boolean shouldCreate,
-                                           int target,
-                                           BasicBlockLE from,
-                                           OperandStack simStack,
-                                           OPT_Operand[] simLocals,
-                                           boolean left) {
+    private BasicBlockLE condCreateAndInit(BasicBlockLE x, boolean shouldCreate, int target, BasicBlockLE from,
+                                           OperandStack simStack, OPT_Operand[] simLocals, boolean left) {
       BasicBlockLE bble = null;
       if (shouldCreate) {
         bble = _createBBLE(target, simLocals, x, left);
@@ -5774,18 +5699,17 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
      * @param parent parent in Red/Black tree
      * @param left are we creating a left child of parent?
      */
-    private BasicBlockLE _createBBLE(int bcIndex,
-                                     OPT_Operand[] simLocals,
-                                     BasicBlockLE parent,
-                                     boolean left) {
+    private BasicBlockLE _createBBLE(int bcIndex, OPT_Operand[] simLocals, BasicBlockLE parent, boolean left) {
       BasicBlockLE newBBLE = null;
       if (handlerPCs != null) {
         for (int i = 0; i < handlerPCs.length; i++) {
           if (handlerPCs[i] == bcIndex) {
             if (newBBLE == null) {
               newBBLE =
-                  new HandlerBlockLE(bcIndex, gc.inlineSequence,
-                                     exceptionTypes[i], gc.temps,
+                  new HandlerBlockLE(bcIndex,
+                                     gc.inlineSequence,
+                                     exceptionTypes[i],
+                                     gc.temps,
                                      gc.method.getOperandWords(),
                                      gc.cfg);
               ((HandlerBlockLE) newBBLE).entryBlock.firstRealInstruction().
@@ -5847,9 +5771,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
      * @param newBBLE  the new child node
      * @param left   is the child the left or right child of parent?
      */
-    private void treeInsert(BasicBlockLE parent,
-                            BasicBlockLE newBBLE,
-                            boolean left) {
+    private void treeInsert(BasicBlockLE parent, BasicBlockLE newBBLE, boolean left) {
       if (parent == null) {
         if (VM.VerifyAssertions) VM._assert(root == null);
         root = newBBLE;
@@ -5863,8 +5785,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         }
         newBBLE.parent = parent;
         if (DBG_BBSET) {
-          db("inserted new block " + newBBLE + " as " +
-             (left ? "left" : "right") + " child of " + parent);
+          db("inserted new block " + newBBLE + " as " + (left ? "left" : "right") + " child of " + parent);
         }
         fixupBBSet(newBBLE);
       }
@@ -6008,8 +5929,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       return left;
     }
 
-    private static final class TreeEnumerator
-        implements Enumeration<BasicBlockLE> {
+    private static final class TreeEnumerator implements Enumeration<BasicBlockLE> {
       BasicBlockLE node;
 
       static TreeEnumerator enumFromRoot(BasicBlockLE root) {
@@ -6289,8 +6209,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
      * @param cfg OPT_ControlFlowGraph into which the block
      *            will eventually be inserted
      */
-    BasicBlockLE(int loc, OPT_InlineSequence position,
-                 OPT_ControlFlowGraph cfg) {
+    BasicBlockLE(int loc, OPT_InlineSequence position, OPT_ControlFlowGraph cfg) {
       block = new OPT_BasicBlock(loc, position, cfg);
       low = loc;
       high = loc;
@@ -6316,8 +6235,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
      * Returns a string representation of state that determines if the BBLE
      * is ready to be generated */
     public String genState() {
-      return "(sk=" + isStackKnown() + ", lk=" + isLocalKnown() +
-             ", gen=" + isGenerated() + ")";
+      return "(sk=" + isStackKnown() + ", lk=" + isLocalKnown() + ", gen=" + isGenerated() + ")";
     }
   }
 
@@ -6350,12 +6268,10 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
      * @param cfg OPT_ControlFlowGraph into which the block
      *            will eventually be inserted
      */
-    HandlerBlockLE(int loc, OPT_InlineSequence position,
-                   OPT_TypeOperand eType, OPT_RegisterPool temps,
+    HandlerBlockLE(int loc, OPT_InlineSequence position, OPT_TypeOperand eType, OPT_RegisterPool temps,
                    int exprStackSize, OPT_ControlFlowGraph cfg) {
       super();
-      entryBlock =
-          new OPT_ExceptionHandlerBasicBlock(SYNTH_CATCH_BCI, position, eType, cfg);
+      entryBlock = new OPT_ExceptionHandlerBasicBlock(SYNTH_CATCH_BCI, position, eType, cfg);
       block = new OPT_BasicBlock(loc, position, cfg);
       // NOTE: We intentionally use throwable rather than eType to avoid
       // having the complexity of having to regenerate the handler when a
@@ -6372,8 +6288,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       setStackKnown();
       // entry block contains instructions to transfer the caught
       // exception object to exceptionObject.
-      OPT_Instruction s =
-          Nullary.create(GET_CAUGHT_EXCEPTION, exceptionObject.copyD2D());
+      OPT_Instruction s = Nullary.create(GET_CAUGHT_EXCEPTION, exceptionObject.copyD2D());
       entryBlock.appendInstruction(s);
       s.bcIndex = SYNTH_CATCH_BCI;
       entryBlock.insertOut(block);
@@ -6423,8 +6338,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
      * method to be called very infrequently.
      */
     void deleteAllOutEdges() {
-      for (OPT_BasicBlock bb = gc.cfg.firstInCodeOrder(); bb != null;
-           bb = bb.nextBasicBlockInCodeOrder()) {
+      for (OPT_BasicBlock bb = gc.cfg.firstInCodeOrder(); bb != null; bb = bb.nextBasicBlockInCodeOrder()) {
         bb.deleteOut();
       }
     }
@@ -6454,8 +6368,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     public OPT_Operand copy() { return this; }
 
     public boolean similar(OPT_Operand op) {
-      return (op instanceof ReturnAddressOperand) &&
-             (retIndex == ((ReturnAddressOperand) op).retIndex);
+      return (op instanceof ReturnAddressOperand) && (retIndex == ((ReturnAddressOperand) op).retIndex);
     }
 
     public String toString() {

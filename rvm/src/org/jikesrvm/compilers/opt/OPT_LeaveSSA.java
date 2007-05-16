@@ -64,11 +64,9 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
 
   private boolean splitSomeBlock = false;
 
-  private final HashSet<OPT_Instruction> globalRenameTable =
-      new HashSet<OPT_Instruction>();
+  private final HashSet<OPT_Instruction> globalRenameTable = new HashSet<OPT_Instruction>();
 
-  private final HashSet<OPT_Register> globalRenamePhis =
-      new HashSet<OPT_Register>();
+  private final HashSet<OPT_Register> globalRenamePhis = new HashSet<OPT_Register>();
 
   /**
    * Should we perform this phase?
@@ -217,8 +215,7 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
           OPT_Operand r2 = s.peek(r1);
           if (r2 != null) {
             if (DEBUG) {
-              VM.sysWriteln("replace operand in " + i + "(" + r2 +
-                            " for " + o);
+              VM.sysWriteln("replace operand in " + i + "(" + r2 + " for " + o);
             }
             i.replaceOperand(o, r2.copy());
           }
@@ -290,8 +287,7 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
 
     // compute out liveness from information in LiveAnalysis
     OPT_LiveSet out = new OPT_LiveSet();
-    for (Enumeration<OPT_BasicBlock> outBlocks = bb.getOut();
-         outBlocks.hasMoreElements();) {
+    for (Enumeration<OPT_BasicBlock> outBlocks = bb.getOut(); outBlocks.hasMoreElements();) {
       OPT_BasicBlock ob = outBlocks.nextElement();
       OPT_LiveAnalysis.BBLiveElement le = live.getLiveInfo(ob);
       out.add(le.in());
@@ -305,8 +301,7 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
 
     // for each basic block successor b of bb, if we make a block on the
     // critical edge bb->b, then store this critical block.
-    HashMap<OPT_BasicBlock, OPT_BasicBlock> criticalBlocks =
-        new HashMap<OPT_BasicBlock, OPT_BasicBlock>(4);
+    HashMap<OPT_BasicBlock, OPT_BasicBlock> criticalBlocks = new HashMap<OPT_BasicBlock, OPT_BasicBlock>(4);
 
     // For each critical basic block b in which we are inserting copies: return the
     // mapping of registers to names implied by the copies that have
@@ -315,8 +310,7 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
         new HashMap<OPT_BasicBlock, HashMap<OPT_Register, OPT_Register>>(4);
 
     // Additionally store the current names for the current basic block bb.
-    HashMap<OPT_Register, OPT_Register> bbNames =
-        new HashMap<OPT_Register, OPT_Register>(4);
+    HashMap<OPT_Register, OPT_Register> bbNames = new HashMap<OPT_Register, OPT_Register>(4);
 
     // copySet is a linked-list of copies we need to insert in this block.
     final LinkedList<Copy> copySet = new LinkedList<Copy>();
@@ -384,8 +378,9 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
              (rr != null && usedBelowCopy(bb, rr) && SplitBlockForLocalLive));
 
         if (SplitBlockIntoInfrequent) {
-          if (!bb.getInfrequent() && c.phi.getBasicBlock().getInfrequent()
-              && !c.phi.getBasicBlock().isExceptionHandlerBasicBlock()) {
+          if (!bb.getInfrequent() &&
+              c.phi.getBasicBlock().getInfrequent() &&
+              !c.phi.getBasicBlock().isExceptionHandlerBasicBlock()) {
             shouldSplitBlock = true;
           }
         }
@@ -402,8 +397,7 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
             OPT_Register t = ir.regpool.getReg(r);
             OPT_Instruction save = OPT_SSA.makeMoveInstruction(ir, t, r, tt);
             if (DEBUG) {
-              VM.sysWriteln("Inserting " + save + " before " +
-                            c.phi + " in " + c.phi.getBasicBlock());
+              VM.sysWriteln("Inserting " + save + " before " + c.phi + " in " + c.phi.getBasicBlock());
             }
             c.phi.insertAfter(save);
             globalRenamePhis.add(r);
@@ -430,13 +424,11 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
               }
               splitSomeBlock = true;
               criticalBlocks.put(c.phi.getBasicBlock(), criticalBlock);
-              HashMap<OPT_Register, OPT_Register> newNames =
-                  new HashMap<OPT_Register, OPT_Register>(4);
+              HashMap<OPT_Register, OPT_Register> newNames = new HashMap<OPT_Register, OPT_Register>(4);
               currentNames.put(criticalBlock, newNames);
             }
             OPT_Register sr = c.source.asRegister().register;
-            HashMap<OPT_Register, OPT_Register> criticalBlockNames =
-                currentNames.get(criticalBlock);
+            HashMap<OPT_Register, OPT_Register> criticalBlockNames = currentNames.get(criticalBlock);
             OPT_Register nameForSR = criticalBlockNames.get(sr);
             if (nameForSR == null) {
               nameForSR = bbNames.get(sr);
@@ -461,8 +453,10 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
           // ugly hack: having already added ci; set ci to null to skip remaining code;
           ci = null;
         } else {
-          throw new OPT_OptimizingCompilerException("Unexpected phi operand "
-                                                    + c.source + " encountered during SSA teardown", true);
+          throw new OPT_OptimizingCompilerException("Unexpected phi operand " +
+                                                    c
+                                                        .source +
+                                                                " encountered during SSA teardown", true);
         }
         if (ci != null) {
           if (shouldSplitBlock) {
@@ -475,8 +469,7 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
               }
               splitSomeBlock = true;
               criticalBlocks.put(c.phi.getBasicBlock(), criticalBlock);
-              HashMap<OPT_Register, OPT_Register> newNames =
-                  new HashMap<OPT_Register, OPT_Register>(4);
+              HashMap<OPT_Register, OPT_Register> newNames = new HashMap<OPT_Register, OPT_Register>(4);
               currentNames.put(criticalBlock, newNames);
             }
             criticalBlock.appendInstructionRespectingTerminalBranch(ci);
@@ -509,8 +502,9 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
       if (!copySet.isEmpty()) {
         Copy c = copySet.remove(0);
         OPT_Register tt = ir.regpool.getReg(c.destination.register);
-        OPT_SSA.addAtEnd(ir, bb, OPT_SSA.makeMoveInstruction(ir, tt, c.destination.register,
-                                                             c.destination.type),
+        OPT_SSA.addAtEnd(ir,
+                         bb,
+                         OPT_SSA.makeMoveInstruction(ir, tt, c.destination.register, c.destination.type),
                          c.phi.getBasicBlock().isExceptionHandlerBasicBlock());
         bbNames.put(c.destination.register, tt);
         workList.add(0, c);
@@ -526,9 +520,7 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
    * @param dom a valid dominator tree for the IR
    * @param live valid liveness information for the IR
    */
-  private void insertCopies(OPT_BasicBlock bb,
-                            OPT_DominatorTree dom,
-                            OPT_LiveAnalysis live) {
+  private void insertCopies(OPT_BasicBlock bb, OPT_DominatorTree dom, OPT_LiveAnalysis live) {
     // add copies required in this block to remove phis.
     // (record renaming required by simultaneous liveness in global tables)
     scheduleCopies(bb, live);
@@ -558,12 +550,11 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
     if (ir.options.UNROLL_LOG == 0) normalizeSSA(ir);
 
     // 2. compute liveness
-    OPT_LiveAnalysis live =
-        new OPT_LiveAnalysis(false,  // don't create GC maps
-                             true,   // skip (final) local propagation step
-                             // of live analysis
-                             false,  // don't store information at handlers
-                             false); // dont skip guards
+    OPT_LiveAnalysis live = new OPT_LiveAnalysis(false,  // don't create GC maps
+                                                 true,   // skip (final) local propagation step
+                                                 // of live analysis
+                                                 false,  // don't store information at handlers
+                                                 false); // dont skip guards
 
     live.perform(ir);
     // 3. initialization
@@ -641,9 +632,7 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
         if (!(op instanceof OPT_RegisterOperand)) {
           if (op instanceof OPT_TrueGuardOperand) {
             OPT_BasicBlock bb = Phi.getPred(inst, i).block;
-            OPT_Instruction move = Move.create(GUARD_MOVE,
-                                               res.asRegister().copyD2D(),
-                                               new OPT_TrueGuardOperand());
+            OPT_Instruction move = Move.create(GUARD_MOVE, res.asRegister().copyD2D(), new OPT_TrueGuardOperand());
             move.position = ir.gc.inlineSequence;
             move.bcIndex = SSA_SYNTH_BCI;
             bb.appendInstructionRespectingTerminalBranchOrPEI(move);
@@ -678,8 +667,7 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
           guardUnion(op.asRegister().register, r);
         } else {
           if (VM.VerifyAssertions) {
-            VM._assert(op instanceof OPT_TrueGuardOperand ||
-                       op instanceof OPT_UnreachableOperand);
+            VM._assert(op instanceof OPT_TrueGuardOperand || op instanceof OPT_UnreachableOperand);
           }
         }
       }

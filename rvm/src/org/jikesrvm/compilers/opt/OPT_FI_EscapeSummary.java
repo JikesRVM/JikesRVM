@@ -64,15 +64,13 @@ class OPT_FI_EscapeSummary {
    * A mapping that holds the analysis result for thread-locality for each
    * OPT_Register.
    */
-  private final HashMap<OPT_Register, Object> hash =
-      new HashMap<OPT_Register, Object>();
+  private final HashMap<OPT_Register, Object> hash = new HashMap<OPT_Register, Object>();
 
   /**
    * A mapping that holds the analysis result for method-locality for each
    * OPT_Register.
    */
-  private final HashMap<OPT_Register, Object> hash2 =
-      new HashMap<OPT_Register, Object>();
+  private final HashMap<OPT_Register, Object> hash2 = new HashMap<OPT_Register, Object>();
 
   /**
    * Static object used to represent analysis result

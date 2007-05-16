@@ -75,11 +75,9 @@ public abstract class VM_UTF8Convert {
         byte nb = utf8[i++];
         if (b < -32) {  // < 0xe0 unsigned
           // '\000' or in the range '\200' to '\u07FF'
-          char c = result[result_index++] =
-              (char) (((b & 0x1f) << 6) | (nb & 0x3f));
+          char c = result[result_index++] = (char) (((b & 0x1f) << 6) | (nb & 0x3f));
           if (STRICTLY_CHECK_FORMAT) {
-            if (((b & 0xe0) != 0xc0) ||
-                ((nb & 0xc0) != 0x80)) {
+            if (((b & 0xe0) != 0xc0) || ((nb & 0xc0) != 0x80)) {
               throw new UTFDataFormatException("invalid marker bits for double byte char at location " + (i - 2));
             }
             if (c < '\200') {
@@ -95,14 +93,9 @@ public abstract class VM_UTF8Convert {
         } else {
           byte nnb = utf8[i++];
           // in the range '\u0800' to '\uFFFF'
-          char c = result[result_index++] =
-              (char) (((b & 0x0f) << 12) |
-                      ((nb & 0x3f) << 6) |
-                      (nnb & 0x3f));
+          char c = result[result_index++] = (char) (((b & 0x0f) << 12) | ((nb & 0x3f) << 6) | (nnb & 0x3f));
           if (STRICTLY_CHECK_FORMAT) {
-            if (((b & 0xf0) != 0xe0) ||
-                ((nb & 0xc0) != 0x80) ||
-                ((nnb & 0xc0) != 0x80)) {
+            if (((b & 0xf0) != 0xe0) || ((nb & 0xc0) != 0x80) || ((nnb & 0xc0) != 0x80)) {
               throw new UTFDataFormatException("invalid marker bits for triple byte char at location " + (i - 3));
             }
             if (c < '\u0800') {
@@ -187,8 +180,7 @@ public abstract class VM_UTF8Convert {
         if (b < -32) {  // < 0xe0 unsigned
           // '\000' or in the range '\200' to '\u07FF'
           char c = (char) (((b & 0x1f) << 6) | (nb & 0x3f));
-          if (((b & 0xe0) != 0xc0) ||
-              ((nb & 0xc0) != 0x80)) {
+          if (((b & 0xe0) != 0xc0) || ((nb & 0xc0) != 0x80)) {
             return false;
           }
           if (c < '\200') {
@@ -201,12 +193,8 @@ public abstract class VM_UTF8Convert {
         } else {
           byte nnb = bytes[i++];
           // in the range '\u0800' to '\uFFFF'
-          char c = (char) (((b & 0x0f) << 12) |
-                           ((nb & 0x3f) << 6) |
-                           (nnb & 0x3f));
-          if (((b & 0xf0) != 0xe0) ||
-              ((nb & 0xc0) != 0x80) ||
-              ((nnb & 0xc0) != 0x80)) {
+          char c = (char) (((b & 0x0f) << 12) | ((nb & 0x3f) << 6) | (nnb & 0x3f));
+          if (((b & 0xf0) != 0xe0) || ((nb & 0xc0) != 0x80) || ((nnb & 0xc0) != 0x80)) {
             return false;
           }
           if (c < '\u0800') {

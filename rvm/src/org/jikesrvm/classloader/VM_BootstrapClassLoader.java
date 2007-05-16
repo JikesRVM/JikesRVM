@@ -30,8 +30,7 @@ import org.jikesrvm.util.VM_HashMap;
  */
 public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
 
-  private final VM_HashMap<String, VM_Type> loaded =
-      new VM_HashMap<String, VM_Type>();
+  private final VM_HashMap<String, VM_Type> loaded = new VM_HashMap<String, VM_Type>();
 
   private static final boolean DBG = false;
 
@@ -93,8 +92,7 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
   }
 
   /* Interface */
-  private static final VM_BootstrapClassLoader bootstrapClassLoader =
-      new VM_BootstrapClassLoader();
+  private static final VM_BootstrapClassLoader bootstrapClassLoader = new VM_BootstrapClassLoader();
 
   public static VM_BootstrapClassLoader getBootstrapClassLoader() {
     return bootstrapClassLoader;
@@ -133,8 +131,7 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
     }
   }
 
-  public synchronized Class<?> loadClass(String className, boolean resolveClass)
-      throws ClassNotFoundException {
+  public synchronized Class<?> loadClass(String className, boolean resolveClass) throws ClassNotFoundException {
     if (className.startsWith("L") && className.endsWith(";")) {
       className = className.substring(1, className.length() - 2);
     }
@@ -160,9 +157,8 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
    */
   public Class<?> findClass(String className) throws ClassNotFoundException {
     if (className.startsWith("[")) {
-      VM_TypeReference typeRef = VM_TypeReference.findOrCreate(this,
-                                                               VM_Atom.findOrCreateAsciiAtom(className.replace('.',
-                                                                                                               '/')));
+      VM_TypeReference typeRef =
+          VM_TypeReference.findOrCreate(this, VM_Atom.findOrCreateAsciiAtom(className.replace('.', '/')));
       VM_Type ans = typeRef.resolve();
       loaded.put(className, ans);
       return ans.getClassForType();
@@ -198,8 +194,7 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
         throw e;
       } catch (Throwable e) {
         if (DBG) {
-          VM.sysWrite("About to throw ClassNotFoundException(", className,
-                      ") because we got this Throwable:");
+          VM.sysWrite("About to throw ClassNotFoundException(", className, ") because we got this Throwable:");
           e.printStackTrace();
         }
         // We didn't find the class, or it wasn't valid, etc.

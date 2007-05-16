@@ -54,14 +54,17 @@ public final class VM_NativeMethod extends VM_Method {
    * @param parameterAnnotations array of runtime visible parameter annotations
    * @param annotationDefault value for this annotation that appears
    */
-  VM_NativeMethod(VM_TypeReference declaringClass, VM_MemberReference memRef,
-                  short modifiers, VM_TypeReference[] exceptionTypes,
-                  VM_Atom signature,
-                  VM_Annotation[] annotations,
-                  VM_Annotation[] parameterAnnotations,
-                  Object annotationDefault) {
-    super(declaringClass, memRef, modifiers, exceptionTypes, signature,
-          annotations, parameterAnnotations, annotationDefault);
+  VM_NativeMethod(VM_TypeReference declaringClass, VM_MemberReference memRef, short modifiers,
+                  VM_TypeReference[] exceptionTypes, VM_Atom signature, VM_Annotation[] annotations,
+                  VM_Annotation[] parameterAnnotations, Object annotationDefault) {
+    super(declaringClass,
+          memRef,
+          modifiers,
+          exceptionTypes,
+          signature,
+          annotations,
+          parameterAnnotations,
+          annotationDefault);
   }
 
   /**
@@ -108,9 +111,7 @@ public final class VM_NativeMethod extends VM_Method {
   /**
    * replace a character in a string with a string
    */
-  private String replaceCharWithString(String originalString,
-                                       char targetChar,
-                                       String replaceString) {
+  private String replaceCharWithString(String originalString, char targetChar, String replaceString) {
     String returnString;
     int first = originalString.indexOf(targetChar);
     int next = originalString.indexOf(targetChar, first + 1);

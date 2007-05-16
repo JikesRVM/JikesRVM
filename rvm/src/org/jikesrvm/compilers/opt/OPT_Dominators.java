@@ -45,8 +45,7 @@ class OPT_Dominators {
    */
   public static void perform(OPT_IR ir) {
     if (ir.hasReachableExceptionHandlers()) {
-      throw new OPT_OperationNotImplementedException(
-          "IR with exception handlers");
+      throw new OPT_OperationNotImplementedException("IR with exception handlers");
     }
     OPT_DominatorSystem system = new OPT_DominatorSystem(ir);
     if (DEBUG) {
@@ -175,8 +174,7 @@ class OPT_Dominators {
    * @param ir the IR
    */
   public static void printDominators(OPT_IR ir) {
-    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks();
-         e.hasMoreElements();) {
+    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
       OPT_BasicBlock b = e.next();
       OPT_DominatorInfo i = (OPT_DominatorInfo) b.scratchObject;
       System.out.println("Dominators of " + b + ":" + i.dominators);

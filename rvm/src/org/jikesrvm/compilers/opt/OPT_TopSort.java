@@ -48,8 +48,7 @@ public final class OPT_TopSort extends OPT_Stack<OPT_SortedGraphNode> {
    *  This is the second version of the implementation
    *   (see CVS file for older one)
    */
-  public static OPT_SortedGraphNode
-  buildTopological(OPT_TopSortInterface graph, boolean forward) {
+  public static OPT_SortedGraphNode buildTopological(OPT_TopSortInterface graph, boolean forward) {
 
     OPT_SortedGraphNode start = graph.startNode(forward);
     OPT_TopSort sorter = new OPT_TopSort();

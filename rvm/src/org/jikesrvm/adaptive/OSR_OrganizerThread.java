@@ -81,8 +81,7 @@ public class OSR_OrganizerThread extends VM_Thread {
   private VM_ThreadQueue tq = new VM_ThreadQueue();
 
   private void passivate() {
-    boolean gainedLock = VM_Synchronization.testAndSet(this,
-                                                       VM_Entrypoints.osrOrganizerQueueLockField.getOffset(), 1);
+    boolean gainedLock = VM_Synchronization.testAndSet(this, VM_Entrypoints.osrOrganizerQueueLockField.getOffset(), 1);
     if (gainedLock) {
 
       // we cannot release lock before enqueue the organizer.
@@ -113,8 +112,7 @@ public class OSR_OrganizerThread extends VM_Thread {
    */
   @Uninterruptible
   public void activate() {
-    boolean gainedLock = VM_Synchronization.testAndSet(this,
-                                                       VM_Entrypoints.osrOrganizerQueueLockField.getOffset(), 1);
+    boolean gainedLock = VM_Synchronization.testAndSet(this, VM_Entrypoints.osrOrganizerQueueLockField.getOffset(), 1);
     if (gainedLock) {
       VM_Thread org = tq.dequeue();
       // release lock

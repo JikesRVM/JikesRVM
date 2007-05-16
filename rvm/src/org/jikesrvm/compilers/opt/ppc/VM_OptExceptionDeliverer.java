@@ -30,9 +30,7 @@ public abstract class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
   /**
    * Pass control to a catch block.
    */
-  public void deliverException(VM_CompiledMethod cm,
-                               Address catchBlockInstructionAddress,
-                               Throwable exceptionObject,
+  public void deliverException(VM_CompiledMethod cm, Address catchBlockInstructionAddress, Throwable exceptionObject,
                                VM_Registers registers) {
 
     // store exception object for later retrieval by catch block

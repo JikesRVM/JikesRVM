@@ -62,8 +62,7 @@ import org.vmmagic.unboxed.Word;
  *                          such as when out of memory)
  */
 @Uninterruptible
-public class VM extends VM_Properties
-    implements VM_Constants, VM_ExitStatus {
+public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
   //----------------------------------------------------------------------//
   //                          Initialization.                             //
   //----------------------------------------------------------------------//
@@ -74,8 +73,7 @@ public class VM extends VM_Properties
    * @param bootCompilerArgs command line arguments for the bootimage compiler
    */
   @Interruptible
-  public static void initForBootImageWriter(String classPath,
-                                            String[] bootCompilerArgs) {
+  public static void initForBootImageWriter(String classPath, String[] bootCompilerArgs) {
     if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
     if (VM.VerifyAssertions) VM._assert(!VM.runningTool);
     writingBootImage = true;
@@ -360,8 +358,7 @@ public class VM extends VM_Properties
     if (applicationArguments.length == 0) {
       pleaseSpecifyAClass();
     }
-    if (applicationArguments.length > 0 &&
-        !VM_TypeDescriptorParsing.isJavaClassName(applicationArguments[0])) {
+    if (applicationArguments.length > 0 && !VM_TypeDescriptorParsing.isJavaClassName(applicationArguments[0])) {
       VM.sysWrite("vm: \"");
       VM.sysWrite(applicationArguments[0]);
       VM.sysWrite("\" is not a legal Java class name.\n");
@@ -439,8 +436,7 @@ public class VM extends VM_Properties
       sysWrite("running class intializer for ");
       sysWriteln(className);
     }
-    VM_Atom classDescriptor =
-        VM_Atom.findOrCreateAsciiAtom(className.replace('.', '/')).descriptorFromClassName();
+    VM_Atom classDescriptor = VM_Atom.findOrCreateAsciiAtom(className.replace('.', '/')).descriptorFromClassName();
     VM_TypeReference tRef =
         VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), classDescriptor);
     VM_Class cls = (VM_Class) tRef.peekResolvedType();
@@ -462,9 +458,8 @@ public class VM extends VM_Properties
         } catch (Error e) {
           throw e;
         } catch (Throwable t) {
-          ExceptionInInitializerError eieio
-              = new ExceptionInInitializerError("Caught exception while invoking the class initializer for "
-                                                + className);
+          ExceptionInInitializerError eieio =
+              new ExceptionInInitializerError("Caught exception while invoking the class initializer for " + className);
           eieio.initCause(t);
           throw eieio;
         }
@@ -2037,8 +2032,7 @@ public class VM extends VM_Properties
       sysWriteln("entered VM.sysExit(", value, ")");
     }
     if (VM_Options.stackTraceAtExit) {
-      VM.sysWriteln("[Here is the context of the call to VM.sysExit(", value,
-                    ")...:");
+      VM.sysWriteln("[Here is the context of the call to VM.sysExit(", value, ")...:");
       VM.disableGC();
       VM_Scheduler.dumpStack();
       VM.enableGC();
@@ -2080,8 +2074,7 @@ public class VM extends VM_Properties
     handlePossibleRecursiveExit("sysFail", ++inSysFail, message);
   }
 
-  private static void handlePossibleRecursiveCallToSysFail(String message,
-                                                           int number) {
+  private static void handlePossibleRecursiveCallToSysFail(String message, int number) {
     handlePossibleRecursiveExit("sysFail", ++inSysFail, message, number);
   }
 
@@ -2102,13 +2095,11 @@ public class VM extends VM_Properties
     handlePossibleRecursiveExit(called, depth, null);
   }
 
-  private static void handlePossibleRecursiveExit(String called, int depth,
-                                                  String message) {
+  private static void handlePossibleRecursiveExit(String called, int depth, String message) {
     handlePossibleRecursiveExit(called, depth, message, false, -9999999);
   }
 
-  private static void handlePossibleRecursiveExit(String called, int depth,
-                                                  String message, int number) {
+  private static void handlePossibleRecursiveExit(String called, int depth, String message, int number) {
     handlePossibleRecursiveExit(called, depth, message, true, number);
   }
 
@@ -2120,9 +2111,7 @@ public class VM extends VM_Properties
    * @param showNumber Print <code>number</code> following
    *    <code>message</code>?
    * @param number Print this number, if <code>showNumber</code> is true. */
-  private static void handlePossibleRecursiveExit(String called, int depth,
-                                                  String message,
-                                                  boolean showNumber,
+  private static void handlePossibleRecursiveExit(String called, int depth, String message, boolean showNumber,
                                                   int number) {
     /* We adjust up by nProcessorAdjust since we do not want to prematurely
        abort.  Consider the case where VM_Scheduler.numProcessors is greater
@@ -2132,14 +2121,18 @@ public class VM extends VM_Properties
        "depth" variable a per-processor variable. */
     int nProcessors = VM_Scheduler.numProcessors;
     int nProcessorAdjust = nProcessors - 1;
-    if (depth > 1
-        && (depth <= maxSystemTroubleRecursionDepth
-                     + nProcessorAdjust
-                     + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite)) {
+    if (depth > 1 &&
+        (depth <=
+         maxSystemTroubleRecursionDepth + nProcessorAdjust + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite)) {
       if (showNumber) {
-        ptsysWriteln("VM.", called, "(): We're in a",
+        ptsysWriteln("VM.",
+                     called,
+                     "(): We're in a",
                      depth > nProcessors ? "n (unambiguously)" : " (likely)",
-                     " recursive call to VM.", called, "(), ", depth,
+                     " recursive call to VM.",
+                     called,
+                     "(), ",
+                     depth,
                      " deep\n",
                      message == null ? "" : "   ",
                      message == null ? "" : called,
@@ -2147,9 +2140,14 @@ public class VM extends VM_Properties
                      message == null ? "" : message,
                      number);
       } else {
-        ptsysWriteln("VM.", called, "(): We're in a",
+        ptsysWriteln("VM.",
+                     called,
+                     "(): We're in a",
                      depth > nProcessors ? "n (unambiguously)" : " (likely)",
-                     " recursive call to VM.", called, "(), ", depth,
+                     " recursive call to VM.",
+                     called,
+                     "(), ",
+                     depth,
                      " deep\n",
                      message == null ? "" : "   ",
                      message == null ? "" : called,
@@ -2290,12 +2288,10 @@ public class VM extends VM_Properties
     // 1.
     //
     if (VM_Magic.getFramePointer().minus(ArchitectureSpecific.VM_StackframeLayoutConstants.STACK_SIZE_GCDISABLED)
-        .LT(myThread.stackLimit)
-        && !myThread.hasNativeStackFrame()) {
+        .LT(myThread.stackLimit) && !myThread.hasNativeStackFrame()) {
       VM_Thread.resizeCurrentStack(myThread.stack
-          .length +
-                  ArchitectureSpecific.VM_StackframeLayoutConstants
-                      .STACK_SIZE_GCDISABLED, null);
+          .length + ArchitectureSpecific.VM_StackframeLayoutConstants
+          .STACK_SIZE_GCDISABLED, null);
     }
 
     // 2.

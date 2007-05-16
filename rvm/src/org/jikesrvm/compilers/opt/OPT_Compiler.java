@@ -81,8 +81,8 @@ public final class OPT_Compiler implements VM_Callbacks.StartupMonitor {
     } catch (Throwable e) {
       VM.sysWriteln(e.toString());
       throw new OPT_OptimizingCompilerException("OPT_Compiler",
-                                                "untrapped failure during init, "
-                                                + " Converting to OPT_OptimizingCompilerException");
+                                                "untrapped failure during init, " +
+                                                " Converting to OPT_OptimizingCompilerException");
     }
   }
 
@@ -131,19 +131,20 @@ public final class OPT_Compiler implements VM_Callbacks.StartupMonitor {
    * @param options compiler options for compiling the class
    */
   private static void loadSpecialClass(String klassName, OPT_Options options) {
-    VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                                                          VM_Atom.findOrCreateAsciiAtom(klassName));
+    VM_TypeReference tRef =
+        VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
+                                      VM_Atom.findOrCreateAsciiAtom(klassName));
     VM_Class klass = (VM_Class) tRef.peekResolvedType();
     for (VM_Method meth : klass.getDeclaredMethods()) {
       if (meth.isClassInitializer()) {
         continue;
       }
-      if (!meth.isCompiled() ||
-          meth.getCurrentCompiledMethod().getCompilerType() != VM_CompiledMethod.OPT) {
+      if (!meth.isCompiled() || meth.getCurrentCompiledMethod().getCompilerType() != VM_CompiledMethod.OPT) {
         OPT_CompilationPlan cp =
             new OPT_CompilationPlan((VM_NormalMethod) meth,
                                     OPT_OptimizationPlanner.createOptimizationPlan(options),
-                                    null, options);
+                                    null,
+                                    options);
         meth.replaceCompiledMethod(compile(cp));
       }
     }
@@ -291,12 +292,15 @@ public final class OPT_Compiler implements VM_Callbacks.StartupMonitor {
    * @param method
    * @param options
    */
-  private static void printMethodMessage(VM_NormalMethod method,
-                                         OPT_Options options) {
+  private static void printMethodMessage(VM_NormalMethod method, OPT_Options options) {
     if (options.PRINT_METHOD || options.PRINT_INLINE_REPORT) {
-      VM.sysWrite("-methodOpt " + method.getDeclaringClass() + ' '
-                  + method.getName() + ' '
-                  + method.getDescriptor() + " \n");
+      VM.sysWrite("-methodOpt " +
+                  method.getDeclaringClass() +
+                  ' ' +
+                  method.getName() +
+                  ' ' +
+                  method.getDescriptor() +
+                  " \n");
     }
   }
 
@@ -306,16 +310,13 @@ public final class OPT_Compiler implements VM_Callbacks.StartupMonitor {
    * @param method The method being compiled
    */
   private static void fail(Throwable e, VM_NormalMethod method) {
-    OPT_OptimizingCompilerException optExn = new OPT_OptimizingCompilerException("OPT_Compiler",
-                                                                                 "failure during compilation of",
-                                                                                 method.toString());
+    OPT_OptimizingCompilerException optExn =
+        new OPT_OptimizingCompilerException("OPT_Compiler", "failure during compilation of", method.toString());
     if (e instanceof OutOfMemoryError) {
-      VM.sysWriteln("OPT_Compiler ran out of memory during compilation of ",
-                    method.toString());
+      VM.sysWriteln("OPT_Compiler ran out of memory during compilation of ", method.toString());
       optExn.isFatal = false;
     } else {
-      VM.sysWriteln("OPT_Compiler failure during compilation of ",
-                    method.toString());
+      VM.sysWriteln("OPT_Compiler failure during compilation of ", method.toString());
       e.printStackTrace();
     }
     throw optExn;

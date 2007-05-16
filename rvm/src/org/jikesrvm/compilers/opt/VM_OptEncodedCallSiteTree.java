@@ -67,8 +67,7 @@ public abstract class VM_OptEncodedCallSiteTree {
   }
 
   @Interruptible
-  static int getEncoding(OPT_CallSiteTreeNode current, int offset, int parent,
-                         int[] encoding) {
+  static int getEncoding(OPT_CallSiteTreeNode current, int offset, int parent, int[] encoding) {
     int i = offset;
     if (parent != -1) {
       encoding[i++] = parent - offset;
@@ -86,8 +85,7 @@ public abstract class VM_OptEncodedCallSiteTree {
     int thisParent = i;
     while (x != null) {
       if (x.getLeftChild() != null) {
-        j = getEncoding((OPT_CallSiteTreeNode) x.getLeftChild(), j, thisParent,
-                        encoding);
+        j = getEncoding((OPT_CallSiteTreeNode) x.getLeftChild(), j, thisParent, encoding);
       }
       thisParent += 2;
       x = (OPT_CallSiteTreeNode) x.getRightSibling();

@@ -87,8 +87,7 @@ public final class OPT_GCIRMap implements Iterable<OPT_GCIRMapElement> {
       // add this register to the regList, if it is a reference
       //  and not a physcial register
       if (regOp.type.isReferenceType() && !regOp.register.isPhysical()) {
-        OPT_RegSpillListElement elem =
-            new OPT_RegSpillListElement(regOp.register);
+        OPT_RegSpillListElement elem = new OPT_RegSpillListElement(regOp.register);
         regList.add(elem);
       }
     }
@@ -128,7 +127,8 @@ public final class OPT_GCIRMap implements Iterable<OPT_GCIRMapElement> {
         return;
       }
     }
-    throw new OPT_OptimizingCompilerException("OPT_GCIRMap.delete(" + inst +
+    throw new OPT_OptimizingCompilerException("OPT_GCIRMap.delete(" +
+                                              inst +
                                               ") did not delete instruction from GC Map ");
   }
 
@@ -148,7 +148,8 @@ public final class OPT_GCIRMap implements Iterable<OPT_GCIRMapElement> {
         return;
       }
     }
-    throw new OPT_OptimizingCompilerException("OPT_GCIRMap.moveToEnd(" + inst +
+    throw new OPT_OptimizingCompilerException("OPT_GCIRMap.moveToEnd(" +
+                                              inst +
                                               ") did not delete instruction from GC Map ");
   }
 

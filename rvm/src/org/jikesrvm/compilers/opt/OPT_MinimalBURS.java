@@ -60,8 +60,7 @@ final class OPT_MinimalBURS extends OPT_BURS {
    */
   public void invoke(OPT_BasicBlock bb) {
     OPT_BURS_STATE burs = new OPT_BURS_STATE(this);
-    for (OPT_InstructionEnumeration e = bb.forwardRealInstrEnumerator();
-         e.hasMoreElements();) {
+    for (OPT_InstructionEnumeration e = bb.forwardRealInstrEnumerator(); e.hasMoreElements();) {
       OPT_Instruction s = e.next();
       OPT_BURS_TreeNode tn = buildTree(s);
       burs.label(tn);

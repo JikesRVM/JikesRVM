@@ -197,22 +197,16 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase {
 
       // new make InlinedOsrTypeInfoOperand
       OPT_InlinedOsrTypeInfoOperand typeInfo =
-          new OPT_InlinedOsrTypeInfoOperand(methodids, bcindexes,
-                                            localTypeCodes,
-                                            stackTypeCodes);
+          new OPT_InlinedOsrTypeInfoOperand(methodids, bcindexes, localTypeCodes, stackTypeCodes);
 
-      OsrPoint.mutate(osr, osr.operator(),
-                      typeInfo,
-                      totalOperands);
+      OsrPoint.mutate(osr, osr.operator(), typeInfo, totalOperands);
 
       // Step 3: second iteration, copy operands
       int opIndex = 0;
       for (int barIdx = 0, barSize = barriers.size(); barIdx < barSize; barIdx++) {
 
         OPT_Instruction bar = barriers.get(barIdx);
-        for (int elmIdx = 0, elmSize = OsrBarrier.getNumberOfElements(bar);
-             elmIdx < elmSize;
-             elmIdx++) {
+        for (int elmIdx = 0, elmSize = OsrBarrier.getNumberOfElements(bar); elmIdx < elmSize; elmIdx++) {
 
           OPT_Operand op = OsrBarrier.getElement(bar, elmIdx);
 
@@ -310,8 +304,7 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase {
 
   private int countNonVoidTypes(byte[] typeCodes) {
     int count = 0;
-    for (int idx = 0, size = typeCodes.length;
-         idx < size; idx++) {
+    for (int idx = 0, size = typeCodes.length; idx < size; idx++) {
       if (typeCodes[idx] != org.jikesrvm.osr.OSR_Constants.VoidTypeCode) {
         count++;
       }

@@ -78,15 +78,16 @@ public abstract class VM_MachineReflection implements VM_RegisterConstants {
 
     // hack to return triple
     return (parameters << (VM_Constants.REFLECTION_FPRS_BITS + VM_Constants.REFLECTION_GPRS_BITS)) |
-           (FPRs << VM_Constants.REFLECTION_GPRS_BITS) | GPRs;
+           (FPRs << VM_Constants.REFLECTION_GPRS_BITS) |
+           GPRs;
   }
 
   /**
    * Collect parameters into arrays of registers/spills, as required to
    * call specified method.
    */
-  public static void packageParameters(VM_Method method, Object thisArg, Object[] otherArgs,
-                                       WordArray GPRs, double[] FPRs, WordArray Parameters) {
+  public static void packageParameters(VM_Method method, Object thisArg, Object[] otherArgs, WordArray GPRs,
+                                       double[] FPRs, WordArray Parameters) {
     int GPR = 0;
     int FPR = FPRs.length;
     int parameter = 0;

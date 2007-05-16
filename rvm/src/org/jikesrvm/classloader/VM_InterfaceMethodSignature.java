@@ -23,8 +23,7 @@ public final class VM_InterfaceMethodSignature implements VM_TIBLayoutConstants,
   /**
    * Used to canonicalize VM_InterfaceMethodSignatures
    */
-  private static VM_HashSet<VM_InterfaceMethodSignature> dictionary =
-      new VM_HashSet<VM_InterfaceMethodSignature>();
+  private static VM_HashSet<VM_InterfaceMethodSignature> dictionary = new VM_HashSet<VM_InterfaceMethodSignature>();
 
   /**
    * Used to assign ids. Don't use id 0 to allow clients to use id 0 as a 'null'.
@@ -58,8 +57,7 @@ public final class VM_InterfaceMethodSignature implements VM_TIBLayoutConstants,
    * @return the interface method signature
    */
   public static synchronized VM_InterfaceMethodSignature findOrCreate(VM_MemberReference ref) {
-    VM_InterfaceMethodSignature key =
-        new VM_InterfaceMethodSignature(ref.getName(), ref.getDescriptor());
+    VM_InterfaceMethodSignature key = new VM_InterfaceMethodSignature(ref.getName(), ref.getDescriptor());
     VM_InterfaceMethodSignature val = dictionary.get(key);
     if (val != null) return val;
     key.id = nextId++;

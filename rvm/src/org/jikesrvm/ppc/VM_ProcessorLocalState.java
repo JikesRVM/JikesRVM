@@ -19,7 +19,8 @@ import org.vmmagic.pragma.Uninterruptible;
  *
  * @see VM_Processor
  */
-@Uninterruptible public abstract class VM_ProcessorLocalState {
+@Uninterruptible
+public abstract class VM_ProcessorLocalState {
 
   /**
    * The C bootstrap program has placed a pointer to the initial

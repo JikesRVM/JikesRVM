@@ -45,8 +45,7 @@ final class OPT_ExceptionHandlerBasicBlockBag {
    * @param l the local array of EHBBs
    * @param c the enclosing EHBBB
    */
-  OPT_ExceptionHandlerBasicBlockBag(OPT_ExceptionHandlerBasicBlock[] l,
-                                    OPT_ExceptionHandlerBasicBlockBag c) {
+  OPT_ExceptionHandlerBasicBlockBag(OPT_ExceptionHandlerBasicBlock[] l, OPT_ExceptionHandlerBasicBlockBag c) {
     local = l;
     caller = c;
   }
@@ -58,8 +57,7 @@ final class OPT_ExceptionHandlerBasicBlockBag {
   public void remove(OPT_BasicBlock bb) {
     for (int i = 0; i < local.length; i++) {
       if (bb == local[i]) {
-        OPT_ExceptionHandlerBasicBlock[] newLocal =
-            new OPT_ExceptionHandlerBasicBlock[local.length - 1];
+        OPT_ExceptionHandlerBasicBlock[] newLocal = new OPT_ExceptionHandlerBasicBlock[local.length - 1];
 
         for (int j = 0; j < i; j++) newLocal[j] = local[j];
 

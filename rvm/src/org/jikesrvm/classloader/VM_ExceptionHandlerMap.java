@@ -90,9 +90,7 @@ public final class VM_ExceptionHandlerMap {
    *
    * @return an exception handler map or null if none were present
    */
-  static VM_ExceptionHandlerMap readExceptionHandlerMap(DataInputStream input,
-                                                        int[] constantPool
-  ) throws IOException {
+  static VM_ExceptionHandlerMap readExceptionHandlerMap(DataInputStream input, int[] constantPool) throws IOException {
     int cnt = input.readUnsignedShort();
     if (cnt != 0) {
       int[] startPCs = new int[cnt];

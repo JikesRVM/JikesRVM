@@ -59,8 +59,7 @@ public class OPT_Stack<T> implements Iterable<T> {
     } else if (isEmpty() || s2.isEmpty()) {
       return false;
     }
-    for (T t1 = i1.next(), t2 = i2.next();
-         i1.hasNext() && i2.hasNext();) {
+    for (T t1 = i1.next(), t2 = i2.next(); i1.hasNext() && i2.hasNext();) {
       if (t1 != t2) {
         return false;
       }

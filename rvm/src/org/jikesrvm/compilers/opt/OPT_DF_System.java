@@ -88,14 +88,12 @@ public abstract class OPT_DF_System {
    * @return an Enumeration over the equations in this system
    */
   public Enumeration<OPT_DF_Equation> getEquations() {
-    return new OPT_FilterEnumerator<OPT_GraphNode, OPT_DF_Equation>(
-        equations.enumerateNodes(),
-        new OPT_FilterEnumerator.Filter<OPT_GraphNode, OPT_DF_Equation>() {
-          public boolean isElement(OPT_GraphNode x) {
-            return x instanceof OPT_DF_Equation;
-          }
-        }
-    );
+    return new OPT_FilterEnumerator<OPT_GraphNode, OPT_DF_Equation>(equations.enumerateNodes(),
+                                                                    new OPT_FilterEnumerator.Filter<OPT_GraphNode, OPT_DF_Equation>() {
+                                                                      public boolean isElement(OPT_GraphNode x) {
+                                                                        return x instanceof OPT_DF_Equation;
+                                                                      }
+                                                                    });
   }
 
   /**
@@ -177,8 +175,7 @@ public abstract class OPT_DF_System {
    * @param operator the equation operator
    * @param op1 first operand on the rhs
    */
-  void newEquation(OPT_DF_LatticeCell lhs, OPT_DF_Operator operator,
-                   OPT_DF_LatticeCell op1) {
+  void newEquation(OPT_DF_LatticeCell lhs, OPT_DF_Operator operator, OPT_DF_LatticeCell op1) {
     // add to the list of equations
     OPT_DF_Equation eq = new OPT_DF_Equation(lhs, operator, op1);
     equations.addGraphNode(eq);
@@ -201,8 +198,7 @@ public abstract class OPT_DF_System {
    * @param op1 first operand on the rhs
    * @param op2 second operand on the rhs
    */
-  void newEquation(OPT_DF_LatticeCell lhs, OPT_DF_Operator operator,
-                   OPT_DF_LatticeCell op1, OPT_DF_LatticeCell op2) {
+  void newEquation(OPT_DF_LatticeCell lhs, OPT_DF_Operator operator, OPT_DF_LatticeCell op1, OPT_DF_LatticeCell op2) {
     // add to the list of equations
     OPT_DF_Equation eq = new OPT_DF_Equation(lhs, operator, op1, op2);
     equations.addGraphNode(eq);
@@ -229,11 +225,10 @@ public abstract class OPT_DF_System {
    * @param op2 second operand on the rhs
    * @param op3 third operand on the rhs
    */
-  void newEquation(OPT_DF_LatticeCell lhs, OPT_DF_Operator operator,
-                   OPT_DF_LatticeCell op1, OPT_DF_LatticeCell op2, OPT_DF_LatticeCell op3) {
+  void newEquation(OPT_DF_LatticeCell lhs, OPT_DF_Operator operator, OPT_DF_LatticeCell op1, OPT_DF_LatticeCell op2,
+                   OPT_DF_LatticeCell op3) {
     // add to the list of equations
-    OPT_DF_Equation eq = new OPT_DF_Equation(lhs, operator, op1, op2,
-                                             op3);
+    OPT_DF_Equation eq = new OPT_DF_Equation(lhs, operator, op1, op2, op3);
     equations.addGraphNode(eq);
     equations.addGraphNode(lhs);
     equations.addGraphNode(op1);
@@ -260,8 +255,7 @@ public abstract class OPT_DF_System {
    * @param operator the equation operator
    * @param rhs the operands on the rhs
    */
-  void newEquation(OPT_DF_LatticeCell lhs, OPT_DF_Operator operator,
-                   OPT_DF_LatticeCell[] rhs) {
+  void newEquation(OPT_DF_LatticeCell lhs, OPT_DF_Operator operator, OPT_DF_LatticeCell[] rhs) {
     // add to the list of equations
     OPT_DF_Equation eq = new OPT_DF_Equation(lhs, operator, rhs);
     equations.addGraphNode(eq);
@@ -337,20 +331,18 @@ public abstract class OPT_DF_System {
    */
   final OPT_Graph equations = new OPT_DF_Graph();
 
-  private static final Comparator<OPT_DF_Equation> dfComparator =
-      new Comparator<OPT_DF_Equation>() {
-        public int compare(OPT_DF_Equation o1, OPT_DF_Equation o2) {
-          OPT_DF_Equation eq1 = o1;
-          OPT_DF_Equation eq2 = o2;
-          return (eq1.topologicalNumber - eq2.topologicalNumber);
-        }
-      };
+  private static final Comparator<OPT_DF_Equation> dfComparator = new Comparator<OPT_DF_Equation>() {
+    public int compare(OPT_DF_Equation o1, OPT_DF_Equation o2) {
+      OPT_DF_Equation eq1 = o1;
+      OPT_DF_Equation eq2 = o2;
+      return (eq1.topologicalNumber - eq2.topologicalNumber);
+    }
+  };
 
   /**
    * Set of equations pending evaluation
    */
-  protected final TreeSet<OPT_DF_Equation> workList =
-      new TreeSet<OPT_DF_Equation>(dfComparator);
+  protected final TreeSet<OPT_DF_Equation> workList = new TreeSet<OPT_DF_Equation>(dfComparator);
 
   /**
    * Set of equations considered "new"

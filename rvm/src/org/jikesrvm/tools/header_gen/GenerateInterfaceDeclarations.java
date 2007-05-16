@@ -219,8 +219,10 @@ public class GenerateInterfaceDeclarations {
 
     pln("#ifdef NEED_GNU_CLASSPATH_VERSION");
     // version of the classpath library from gnu.classpath.configuration
-    p("static const char*classpath_version                        = \""
-      + gnu.classpath.Configuration.CLASSPATH_VERSION + "\";\n");
+    p("static const char*classpath_version                        = \"" +
+      gnu.classpath.Configuration
+          .CLASSPATH_VERSION +
+                             "\";\n");
     pln("#endif /* NEED_GNU_CLASSPATH_VERSION */");
     pln();
 
@@ -296,7 +298,8 @@ public class GenerateInterfaceDeclarations {
       }
       if (!current.EQ(offset)) {
         System.err.printf("current (%d) and offset (%d) are neither identical nor differ by 4",
-                          current.toInt(), offset.toInt());
+                          current.toInt(),
+                          offset.toInt());
         System.exit(1);
       }
       if (t.isIntType()) {
@@ -412,138 +415,118 @@ public class GenerateInterfaceDeclarations {
 
     // load address for the boot image
     //
-    p("static const void *bootImageDataAddress                     = (void*)0x"
-      + Integer.toHexString(bootImageDataAddress) + ";\n");
-    p("static const void *bootImageCodeAddress                     = (void *)0x"
-      + Integer.toHexString(bootImageCodeAddress) + ";\n");
-    p("static const void *bootImageRMapAddress                     = (void *)0x"
-      + Integer.toHexString(bootImageRMapAddress) + ";\n");
+    p("static const void *bootImageDataAddress                     = (void*)0x" +
+      Integer.toHexString(bootImageDataAddress) +
+      ";\n");
+    p("static const void *bootImageCodeAddress                     = (void *)0x" +
+      Integer.toHexString(bootImageCodeAddress) +
+      ";\n");
+    p("static const void *bootImageRMapAddress                     = (void *)0x" +
+      Integer.toHexString(bootImageRMapAddress) +
+      ";\n");
 
     // values in VM_Constants, from VM_Configuration
     //
-    p("static const int VM_Constants_STACK_SIZE_GUARD          = "
-      + ArchitectureSpecific.VM_StackframeLayoutConstants.STACK_SIZE_GUARD + ";\n");
+    p("static const int VM_Constants_STACK_SIZE_GUARD          = " +
+      ArchitectureSpecific.VM_StackframeLayoutConstants
+          .STACK_SIZE_GUARD +
+                            ";\n");
 
-    p("static const int VM_Constants_INVISIBLE_METHOD_ID       = "
-      + ArchitectureSpecific.VM_StackframeLayoutConstants.INVISIBLE_METHOD_ID + ";\n");
-    p("static const int VM_ThinLockConstants_TL_THREAD_ID_SHIFT= "
-      + VM_ThinLockConstants.TL_THREAD_ID_SHIFT + ";\n");
-    p("static const int VM_Constants_STACKFRAME_HEADER_SIZE    = "
-      + ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_HEADER_SIZE + ";\n");
-    p("static const int VM_Constants_STACKFRAME_METHOD_ID_OFFSET = "
-      + ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET + ";\n");
-    p("static const int VM_Constants_STACKFRAME_FRAME_POINTER_OFFSET    = "
-      + ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_FRAME_POINTER_OFFSET + ";\n");
+    p("static const int VM_Constants_INVISIBLE_METHOD_ID       = " +
+      ArchitectureSpecific.VM_StackframeLayoutConstants
+          .INVISIBLE_METHOD_ID +
+                               ";\n");
+    p("static const int VM_ThinLockConstants_TL_THREAD_ID_SHIFT= " + VM_ThinLockConstants.TL_THREAD_ID_SHIFT + ";\n");
+    p("static const int VM_Constants_STACKFRAME_HEADER_SIZE    = " +
+      ArchitectureSpecific.VM_StackframeLayoutConstants
+          .STACKFRAME_HEADER_SIZE +
+                                  ";\n");
+    p("static const int VM_Constants_STACKFRAME_METHOD_ID_OFFSET = " +
+      ArchitectureSpecific.VM_StackframeLayoutConstants
+          .STACKFRAME_METHOD_ID_OFFSET +
+                                       ";\n");
+    p("static const int VM_Constants_STACKFRAME_FRAME_POINTER_OFFSET    = " +
+      ArchitectureSpecific.VM_StackframeLayoutConstants
+          .STACKFRAME_FRAME_POINTER_OFFSET +
+                                           ";\n");
     pln("VM_Constants_STACKFRAME_SENTINEL_FP             = ",
         ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP);
     p("\n");
 
     // values in VM_ObjectModel
     //
-    pln("VM_ObjectModel_ARRAY_LENGTH_OFFSET = ",
-        VM_ObjectModel.getArrayLengthOffset());
+    pln("VM_ObjectModel_ARRAY_LENGTH_OFFSET = ", VM_ObjectModel.getArrayLengthOffset());
     pln();
 
     // values in VM_Scheduler
     //
-    p("static const int VM_Scheduler_PRIMORDIAL_PROCESSOR_ID = "
-      + VM_Scheduler.PRIMORDIAL_PROCESSOR_ID + ";\n");
-    p("static const int VM_Scheduler_PRIMORDIAL_THREAD_INDEX = "
-      + VM_Scheduler.PRIMORDIAL_THREAD_INDEX + ";\n");
+    p("static const int VM_Scheduler_PRIMORDIAL_PROCESSOR_ID = " + VM_Scheduler.PRIMORDIAL_PROCESSOR_ID + ";\n");
+    p("static const int VM_Scheduler_PRIMORDIAL_THREAD_INDEX = " + VM_Scheduler.PRIMORDIAL_THREAD_INDEX + ";\n");
     p("\n");
 
     // values in VM_ThreadEventConstants
     //
-    p("static const double VM_ThreadEventConstants_WAIT_INFINITE = " +
-      VM_ThreadEventConstants.WAIT_INFINITE + ";\n");
+    p("static const double VM_ThreadEventConstants_WAIT_INFINITE = " + VM_ThreadEventConstants.WAIT_INFINITE + ";\n");
 
     // values in VM_ThreadIOQueue
     //
-    p("static const int VM_ThreadIOQueue_READ_OFFSET = " +
-      VM_ThreadIOQueue.READ_OFFSET + ";\n");
-    p("static const int VM_ThreadIOQueue_WRITE_OFFSET = " +
-      VM_ThreadIOQueue.WRITE_OFFSET + ";\n");
-    p("static const int VM_ThreadIOQueue_EXCEPT_OFFSET = " +
-      VM_ThreadIOQueue.EXCEPT_OFFSET + ";\n");
+    p("static const int VM_ThreadIOQueue_READ_OFFSET = " + VM_ThreadIOQueue.READ_OFFSET + ";\n");
+    p("static const int VM_ThreadIOQueue_WRITE_OFFSET = " + VM_ThreadIOQueue.WRITE_OFFSET + ";\n");
+    p("static const int VM_ThreadIOQueue_EXCEPT_OFFSET = " + VM_ThreadIOQueue.EXCEPT_OFFSET + ";\n");
     p("\n");
 
     // values in VM_ThreadIOConstants
     //
-    p("static const int VM_ThreadIOConstants_FD_READY = " +
-      VM_ThreadIOConstants.FD_READY + ";\n");
-    p("static const int VM_ThreadIOConstants_FD_READY_BIT = " +
-      VM_ThreadIOConstants.FD_READY_BIT + ";\n");
-    p("static const int VM_ThreadIOConstants_FD_INVALID = " +
-      VM_ThreadIOConstants.FD_INVALID + ";\n");
-    p("static const int VM_ThreadIOConstants_FD_INVALID_BIT = " +
-      VM_ThreadIOConstants.FD_INVALID_BIT + ";\n");
-    p("static const int VM_ThreadIOConstants_FD_MASK = " +
-      VM_ThreadIOConstants.FD_MASK + ";\n");
+    p("static const int VM_ThreadIOConstants_FD_READY = " + VM_ThreadIOConstants.FD_READY + ";\n");
+    p("static const int VM_ThreadIOConstants_FD_READY_BIT = " + VM_ThreadIOConstants.FD_READY_BIT + ";\n");
+    p("static const int VM_ThreadIOConstants_FD_INVALID = " + VM_ThreadIOConstants.FD_INVALID + ";\n");
+    p("static const int VM_ThreadIOConstants_FD_INVALID_BIT = " + VM_ThreadIOConstants.FD_INVALID_BIT + ";\n");
+    p("static const int VM_ThreadIOConstants_FD_MASK = " + VM_ThreadIOConstants.FD_MASK + ";\n");
     p("\n");
 
     // values in VM_ThreadProcessWaitQueue
     //
     p("static const int VM_ThreadProcessWaitQueue_PROCESS_FINISHED = " +
-      VM_ThreadProcessWaitQueue.PROCESS_FINISHED + ";\n");
+      VM_ThreadProcessWaitQueue
+          .PROCESS_FINISHED +
+                            ";\n");
 
     // values in VM_Runtime
     //
-    p("static const int VM_Runtime_TRAP_UNKNOWN        = "
-      + VM_Runtime.TRAP_UNKNOWN + ";\n");
-    p("static const int VM_Runtime_TRAP_NULL_POINTER   = "
-      + VM_Runtime.TRAP_NULL_POINTER + ";\n");
-    p("static const int VM_Runtime_TRAP_ARRAY_BOUNDS   = "
-      + VM_Runtime.TRAP_ARRAY_BOUNDS + ";\n");
-    p("static const int VM_Runtime_TRAP_DIVIDE_BY_ZERO = "
-      + VM_Runtime.TRAP_DIVIDE_BY_ZERO + ";\n");
-    p("static const int VM_Runtime_TRAP_STACK_OVERFLOW = "
-      + VM_Runtime.TRAP_STACK_OVERFLOW + ";\n");
-    p("static const int VM_Runtime_TRAP_CHECKCAST      = "
-      + VM_Runtime.TRAP_CHECKCAST + ";\n");
-    p("static const int VM_Runtime_TRAP_REGENERATE     = "
-      + VM_Runtime.TRAP_REGENERATE + ";\n");
-    p("static const int VM_Runtime_TRAP_JNI_STACK     = "
-      + VM_Runtime.TRAP_JNI_STACK + ";\n");
-    p("static const int VM_Runtime_TRAP_MUST_IMPLEMENT = "
-      + VM_Runtime.TRAP_MUST_IMPLEMENT + ";\n");
-    p("static const int VM_Runtime_TRAP_STORE_CHECK = "
-      + VM_Runtime.TRAP_STORE_CHECK + ";\n");
+    p("static const int VM_Runtime_TRAP_UNKNOWN        = " + VM_Runtime.TRAP_UNKNOWN + ";\n");
+    p("static const int VM_Runtime_TRAP_NULL_POINTER   = " + VM_Runtime.TRAP_NULL_POINTER + ";\n");
+    p("static const int VM_Runtime_TRAP_ARRAY_BOUNDS   = " + VM_Runtime.TRAP_ARRAY_BOUNDS + ";\n");
+    p("static const int VM_Runtime_TRAP_DIVIDE_BY_ZERO = " + VM_Runtime.TRAP_DIVIDE_BY_ZERO + ";\n");
+    p("static const int VM_Runtime_TRAP_STACK_OVERFLOW = " + VM_Runtime.TRAP_STACK_OVERFLOW + ";\n");
+    p("static const int VM_Runtime_TRAP_CHECKCAST      = " + VM_Runtime.TRAP_CHECKCAST + ";\n");
+    p("static const int VM_Runtime_TRAP_REGENERATE     = " + VM_Runtime.TRAP_REGENERATE + ";\n");
+    p("static const int VM_Runtime_TRAP_JNI_STACK     = " + VM_Runtime.TRAP_JNI_STACK + ";\n");
+    p("static const int VM_Runtime_TRAP_MUST_IMPLEMENT = " + VM_Runtime.TRAP_MUST_IMPLEMENT + ";\n");
+    p("static const int VM_Runtime_TRAP_STORE_CHECK = " + VM_Runtime.TRAP_STORE_CHECK + ";\n");
     pln();
 
     // values in VM_FileSystem
     //
-    p("static const int VM_FileSystem_OPEN_READ                 = "
-      + VM_FileSystem.OPEN_READ + ";\n");
-    p("static const int VM_FileSystem_OPEN_WRITE                 = "
-      + VM_FileSystem.OPEN_WRITE + ";\n");
-    p("static const int VM_FileSystem_OPEN_MODIFY                 = "
-      + VM_FileSystem.OPEN_MODIFY + ";\n");
-    p("static const int VM_FileSystem_OPEN_APPEND                 = "
-      + VM_FileSystem.OPEN_APPEND + ";\n");
-    p("static const int VM_FileSystem_SEEK_SET                 = "
-      + VM_FileSystem.SEEK_SET + ";\n");
-    p("static const int VM_FileSystem_SEEK_CUR                 = "
-      + VM_FileSystem.SEEK_CUR + ";\n");
-    p("static const int VM_FileSystem_SEEK_END                 = "
-      + VM_FileSystem.SEEK_END + ";\n");
-    p("static const int VM_FileSystem_STAT_EXISTS                 = "
-      + VM_FileSystem.STAT_EXISTS + ";\n");
-    p("static const int VM_FileSystem_STAT_IS_FILE                 = "
-      + VM_FileSystem.STAT_IS_FILE + ";\n");
-    p("static const int VM_FileSystem_STAT_IS_DIRECTORY                 = "
-      + VM_FileSystem.STAT_IS_DIRECTORY + ";\n");
-    p("static const int VM_FileSystem_STAT_IS_READABLE                 = "
-      + VM_FileSystem.STAT_IS_READABLE + ";\n");
-    p("static const int VM_FileSystem_STAT_IS_WRITABLE                 = "
-      + VM_FileSystem.STAT_IS_WRITABLE + ";\n");
-    p("static const int VM_FileSystem_STAT_LAST_MODIFIED                 = "
-      + VM_FileSystem.STAT_LAST_MODIFIED + ";\n");
-    p("static const int VM_FileSystem_STAT_LENGTH                 = "
-      + VM_FileSystem.STAT_LENGTH + ";\n");
+    p("static const int VM_FileSystem_OPEN_READ                 = " + VM_FileSystem.OPEN_READ + ";\n");
+    p("static const int VM_FileSystem_OPEN_WRITE                 = " + VM_FileSystem.OPEN_WRITE + ";\n");
+    p("static const int VM_FileSystem_OPEN_MODIFY                 = " + VM_FileSystem.OPEN_MODIFY + ";\n");
+    p("static const int VM_FileSystem_OPEN_APPEND                 = " + VM_FileSystem.OPEN_APPEND + ";\n");
+    p("static const int VM_FileSystem_SEEK_SET                 = " + VM_FileSystem.SEEK_SET + ";\n");
+    p("static const int VM_FileSystem_SEEK_CUR                 = " + VM_FileSystem.SEEK_CUR + ";\n");
+    p("static const int VM_FileSystem_SEEK_END                 = " + VM_FileSystem.SEEK_END + ";\n");
+    p("static const int VM_FileSystem_STAT_EXISTS                 = " + VM_FileSystem.STAT_EXISTS + ";\n");
+    p("static const int VM_FileSystem_STAT_IS_FILE                 = " + VM_FileSystem.STAT_IS_FILE + ";\n");
+    p("static const int VM_FileSystem_STAT_IS_DIRECTORY                 = " + VM_FileSystem.STAT_IS_DIRECTORY + ";\n");
+    p("static const int VM_FileSystem_STAT_IS_READABLE                 = " + VM_FileSystem.STAT_IS_READABLE + ";\n");
+    p("static const int VM_FileSystem_STAT_IS_WRITABLE                 = " + VM_FileSystem.STAT_IS_WRITABLE + ";\n");
+    p("static const int VM_FileSystem_STAT_LAST_MODIFIED                 = " +
+      VM_FileSystem
+          .STAT_LAST_MODIFIED +
+                              ";\n");
+    p("static const int VM_FileSystem_STAT_LENGTH                 = " + VM_FileSystem.STAT_LENGTH + ";\n");
 
     // Value in org.mmtk.vm.Constants:
-    p("static const int MMTk_Constants_BYTES_IN_PAGE            = "
-      + org.mmtk.utility.Constants.BYTES_IN_PAGE + ";\n");
+    p("static const int MMTk_Constants_BYTES_IN_PAGE            = " + org.mmtk.utility.Constants.BYTES_IN_PAGE + ";\n");
 
     // fields in VM_Processor
     //
@@ -618,30 +601,24 @@ public class GenerateInterfaceDeclarations {
   // Codes for exit(3).
   static void emitExitStatusCodes() {
     pln("/* Automatically generated from the exitStatus declarations in VM_ExitStatus.java */");
-    pln("const int EXIT_STATUS_EXECUTABLE_NOT_FOUND                 = "
-        + VM.EXIT_STATUS_EXECUTABLE_NOT_FOUND + ";");
-    pln("const int EXIT_STATUS_COULD_NOT_EXECUTE                    = "
-        + VM.EXIT_STATUS_COULD_NOT_EXECUTE + ";");
-    pln("const int EXIT_STATUS_MISC_TROUBLE                         = "
-        + VM.EXIT_STATUS_MISC_TROUBLE + ";");
-    pln("const int EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR    = "
-        + VM.EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR + ";");
-    pln("const int EXIT_STATUS_SYSCALL_TROUBLE                      = "
-        + VM.EXIT_STATUS_SYSCALL_TROUBLE + ";");
-    pln("const int EXIT_STATUS_TIMER_TROUBLE                        = "
-        + VM.EXIT_STATUS_TIMER_TROUBLE + ";");
-    pln("const int EXIT_STATUS_UNSUPPORTED_INTERNAL_OP              = "
-        + VM.EXIT_STATUS_UNSUPPORTED_INTERNAL_OP + ";");
-    pln("const int EXIT_STATUS_UNEXPECTED_CALL_TO_SYS               = "
-        + VM.EXIT_STATUS_UNEXPECTED_CALL_TO_SYS + ";");
-    pln("const int EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION        = "
-        + VM.EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION + ";");
-    pln("const int EXIT_STATUS_BOGUS_COMMAND_LINE_ARG               = "
-        + VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG + ";");
-    pln("const int EXIT_STATUS_JNI_TROUBLE                          = "
-        + VM.EXIT_STATUS_JNI_TROUBLE + ";");
-    pln("const int EXIT_STATUS_BAD_WORKING_DIR                      = "
-        + VM.EXIT_STATUS_BAD_WORKING_DIR + ";");
+    pln("const int EXIT_STATUS_EXECUTABLE_NOT_FOUND                 = " + VM.EXIT_STATUS_EXECUTABLE_NOT_FOUND + ";");
+    pln("const int EXIT_STATUS_COULD_NOT_EXECUTE                    = " + VM.EXIT_STATUS_COULD_NOT_EXECUTE + ";");
+    pln("const int EXIT_STATUS_MISC_TROUBLE                         = " + VM.EXIT_STATUS_MISC_TROUBLE + ";");
+    pln("const int EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR    = " +
+        VM
+            .EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR +
+                                                           ";");
+    pln("const int EXIT_STATUS_SYSCALL_TROUBLE                      = " + VM.EXIT_STATUS_SYSCALL_TROUBLE + ";");
+    pln("const int EXIT_STATUS_TIMER_TROUBLE                        = " + VM.EXIT_STATUS_TIMER_TROUBLE + ";");
+    pln("const int EXIT_STATUS_UNSUPPORTED_INTERNAL_OP              = " + VM.EXIT_STATUS_UNSUPPORTED_INTERNAL_OP + ";");
+    pln("const int EXIT_STATUS_UNEXPECTED_CALL_TO_SYS               = " + VM.EXIT_STATUS_UNEXPECTED_CALL_TO_SYS + ";");
+    pln("const int EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION        = " +
+        VM
+            .EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION +
+                                                       ";");
+    pln("const int EXIT_STATUS_BOGUS_COMMAND_LINE_ARG               = " + VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG + ";");
+    pln("const int EXIT_STATUS_JNI_TROUBLE                          = " + VM.EXIT_STATUS_JNI_TROUBLE + ";");
+    pln("const int EXIT_STATUS_BAD_WORKING_DIR                      = " + VM.EXIT_STATUS_BAD_WORKING_DIR + ";");
   }
 
   // Emit assembler constants.

@@ -64,8 +64,7 @@ public class OPT_InsertMethodInvocationCounter extends OPT_CompilerPhase {
 
     OPT_BasicBlock firstBB = ir.cfg.entry();
 
-    VM_MethodInvocationCounterData data =
-        VM_AOSDatabase.methodInvocationCounterData;
+    VM_MethodInvocationCounterData data = VM_AOSDatabase.methodInvocationCounterData;
 
     int cmid = ir.compiledMethod.getId();
 

@@ -60,8 +60,7 @@ public class BC_InvokeCompiledMethod extends OSR_PseudoBytecode {
     if (tcode == VoidTypeCode) {
       // do nothing
     } else {
-      if ((tcode == LongTypeCode) ||
-          (tcode == DoubleTypeCode)) {
+      if ((tcode == LongTypeCode) || (tcode == DoubleTypeCode)) {
         schanges++;
       }
       schanges++;

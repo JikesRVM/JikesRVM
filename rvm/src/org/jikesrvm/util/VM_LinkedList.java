@@ -232,8 +232,7 @@ public final class VM_LinkedList<T> implements List<T> {
    */
   public boolean remove(Object arg0) {
     Element<T> cursor = head;
-    while (cursor != null &&
-           !(arg0 == null ? cursor.entry == null : cursor.entry.equals(arg0))) {
+    while (cursor != null && !(arg0 == null ? cursor.entry == null : cursor.entry.equals(arg0))) {
       cursor = cursor.next;
     }
     if (cursor == null) {

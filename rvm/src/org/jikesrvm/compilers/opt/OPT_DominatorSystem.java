@@ -46,8 +46,7 @@ class OPT_DominatorSystem extends OPT_DF_System {
    */
   void setupEquations() {
     // loop through each basic block in the IR
-    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks();
-         e.hasMoreElements();) {
+    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
       OPT_BasicBlock bb = e.next();
       // add a data-flow equation for this basic block
       // DOM(n) = {n} MEET {pred(n)}
@@ -96,8 +95,7 @@ class OPT_DominatorSystem extends OPT_DF_System {
     if (OPT_Dominators.COMPUTE_POST_DOMINATORS) {
       // Add every equation to work list (to be safe)
       // WARNING: an "end node" may be part of a cycle
-      for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks();
-           e.hasMoreElements();) {
+      for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
         OPT_BasicBlock bb = e.next();
         addCellAppearancesToWorkList(getCell(bb));
       }

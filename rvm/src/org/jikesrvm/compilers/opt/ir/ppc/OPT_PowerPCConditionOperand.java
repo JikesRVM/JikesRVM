@@ -101,8 +101,7 @@ public final class OPT_PowerPCConditionOperand extends OPT_Operand {
   }
 
   public boolean similar(OPT_Operand op) {
-    return (op instanceof OPT_PowerPCConditionOperand)
-           && (((OPT_PowerPCConditionOperand) op).value == value);
+    return (op instanceof OPT_PowerPCConditionOperand) && (((OPT_PowerPCConditionOperand) op).value == value);
   }
 
   /**

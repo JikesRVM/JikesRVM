@@ -33,8 +33,7 @@ public abstract class VM_FieldLayout implements VM_SizeConstants {
   /** Lay out reference fields in a block */
   private final boolean clusterReferenceFields;
 
-  public VM_FieldLayout(boolean largeFieldsFirst,
-                        boolean clusterReferenceFields) {
+  public VM_FieldLayout(boolean largeFieldsFirst, boolean clusterReferenceFields) {
     this.largeFieldsFirst = largeFieldsFirst;
     this.clusterReferenceFields = clusterReferenceFields;
   }
@@ -151,13 +150,13 @@ public abstract class VM_FieldLayout implements VM_SizeConstants {
 
     Offset fieldOffset;
     if (offset >= 0) {
-      fieldOffset = Offset.fromIntSignExtend(
-          VM_JavaHeader.objectStartOffset(klass) +
-          VM_ObjectModel.computeScalarHeaderSize(klass) + offset);
+      fieldOffset =
+          Offset.fromIntSignExtend(VM_JavaHeader.objectStartOffset(klass) +
+                                   VM_ObjectModel.computeScalarHeaderSize(klass) +
+                                   offset);
     } else {
       /* Negative offsets go before the header */
-      fieldOffset = Offset.fromIntSignExtend(
-          VM_JavaHeader.objectStartOffset(klass) + offset);
+      fieldOffset = Offset.fromIntSignExtend(VM_JavaHeader.objectStartOffset(klass) + offset);
     }
     field.setOffset(fieldOffset);
     if (DEBUG) {
@@ -174,8 +173,7 @@ public abstract class VM_FieldLayout implements VM_SizeConstants {
    * @param field The field we are laying out.
    * @param fieldSize The size of the field.
    */
-  protected void layoutField(VM_FieldLayoutContext layout, VM_Class klass, VM_Field field,
-                             int fieldSize) {
+  protected void layoutField(VM_FieldLayoutContext layout, VM_Class klass, VM_Field field, int fieldSize) {
     boolean isRef = field.getType().isReferenceType();
     setOffset(klass, field, layout.nextOffset(fieldSize, isRef));
   }

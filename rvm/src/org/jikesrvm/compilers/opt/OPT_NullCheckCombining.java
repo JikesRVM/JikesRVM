@@ -63,8 +63,7 @@ public class OPT_NullCheckCombining extends OPT_CompilerPhase {
    * @param ir the IR to transform
    */
   public void perform(OPT_IR ir) {
-    for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder();
-         bb != null; bb = bb.nextBasicBlockInCodeOrder()) {
+    for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); bb != null; bb = bb.nextBasicBlockInCodeOrder()) {
       if (!bb.isEmpty()) {
         OPT_Instruction lastInstr = bb.lastInstruction();
 
@@ -82,19 +81,16 @@ public class OPT_NullCheckCombining extends OPT_CompilerPhase {
           OPT_Instruction activeNullCheck = null;
           OPT_Operand activeGuard = null;
           for (OPT_Instruction instr = bb.firstRealInstruction(),
-              nextInstr = null;
-               instr != lastInstr; instr = nextInstr) {
+              nextInstr = null; instr != lastInstr; instr = nextInstr) {
             nextInstr = instr.nextInstructionInCodeOrder();
             OPT_Operator op = instr.operator();
             if (op == GUARD_MOVE) {
-              if (activeGuard != null &&
-                  Move.getVal(instr).similar(activeGuard)) {
+              if (activeGuard != null && Move.getVal(instr).similar(activeGuard)) {
                 activeGuard = Move.getResult(instr);
               }
             } else if (op == GUARD_COMBINE) {
               if (activeGuard != null &&
-                  (Binary.getVal1(instr) == activeGuard ||
-                   Binary.getVal2(instr) == activeGuard)) {
+                  (Binary.getVal1(instr) == activeGuard || Binary.getVal2(instr) == activeGuard)) {
                 activeGuard = null;
               }
             } else if (op == NULL_CHECK) {
@@ -137,8 +133,8 @@ public class OPT_NullCheckCombining extends OPT_CompilerPhase {
         } while (combined & remaining);
 
         // (2) Blow away all validation registers in bb.
-        for (OPT_Instruction instr = bb.firstRealInstruction(), nextInstr = null;
-             instr != lastInstr; instr = nextInstr) {
+        for (OPT_Instruction instr = bb.firstRealInstruction(), nextInstr = null; instr != lastInstr; instr = nextInstr)
+        {
           nextInstr = instr.nextInstructionInCodeOrder();
           OPT_Operator op = instr.operator();
           if (op == GUARD_MOVE || op == GUARD_COMBINE) {
@@ -177,9 +173,7 @@ public class OPT_NullCheckCombining extends OPT_CompilerPhase {
   }
 
   private boolean canFold(OPT_Instruction s, OPT_Operand activeGuard, boolean isStore) {
-    if (GuardCarrier.conforms(s) &&
-        GuardCarrier.hasGuard(s) &&
-        activeGuard.similar(GuardCarrier.getGuard(s))) {
+    if (GuardCarrier.conforms(s) && GuardCarrier.hasGuard(s) && activeGuard.similar(GuardCarrier.getGuard(s))) {
       if (!VM.ExplicitlyGuardLowMemory) return true;
       // TODO: In theory, lowMemory is protected even on AIX.
       // However, enabling this causes a large number of failures.

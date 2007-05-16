@@ -31,8 +31,7 @@ import org.vmmagic.unboxed.Offset;
  * not extend the VM_HotMethodEvent.
  */
 
-public final class OSR_OnStackReplacementEvent
-    implements VM_ControllerInputEvent {
+public final class OSR_OnStackReplacementEvent implements VM_ControllerInputEvent {
 
   /* the suspended thread. */
   public VM_Thread suspendedThread;
@@ -76,11 +75,7 @@ public final class OSR_OnStackReplacementEvent
       optimizationPlan = (OPT_OptimizationPlanElement[]) VM_RuntimeCompiler.optimizationPlan;
     }
 
-    OPT_CompilationPlan compPlan =
-        new OPT_CompilationPlan(todoMethod,
-                                optimizationPlan,
-                                null,
-                                options);
+    OPT_CompilationPlan compPlan = new OPT_CompilationPlan(todoMethod, optimizationPlan, null, options);
 
     OSR_OnStackReplacementPlan plan =
         new OSR_OnStackReplacementPlan(this.suspendedThread,

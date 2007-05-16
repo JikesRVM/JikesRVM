@@ -65,16 +65,13 @@ public class OPT_InsertYieldpointCounters extends OPT_CompilerPhase {
       return;
     }
 
-    VM_YieldpointCounterData data =
-        VM_AOSDatabase.yieldpointCounterData;
+    VM_YieldpointCounterData data = VM_AOSDatabase.yieldpointCounterData;
 
     if (OPT_InsertYieldpointCounters.DEBUG) {
-      VM.sysWrite("OPT_InsertYieldpointCounters.perform() " +
-                  ir.method + "\n");
+      VM.sysWrite("OPT_InsertYieldpointCounters.perform() " + ir.method + "\n");
     }
     // For each yieldpoint, insert a counter.
-    for (OPT_BasicBlockEnumeration bbe = ir.getBasicBlocks();
-         bbe.hasMoreElements();) {
+    for (OPT_BasicBlockEnumeration bbe = ir.getBasicBlocks(); bbe.hasMoreElements();) {
       OPT_BasicBlock bb = bbe.next();
 
       if (OPT_InsertYieldpointCounters.DEBUG) {
@@ -105,8 +102,7 @@ public class OPT_InsertYieldpointCounters extends OPT_CompilerPhase {
           // maintains a separate counter for each method, and
           // separates between method entry and backedges.
           OPT_Instruction counterInst = data.
-              getCounterInstructionForEvent(prefix + ir.method.toString(),
-                                            incrementValue);
+              getCounterInstructionForEvent(prefix + ir.method.toString(), incrementValue);
 
           // Insert the new instruction into the code order
           i.insertAfter(counterInst);

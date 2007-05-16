@@ -20,8 +20,7 @@ package org.jikesrvm.compilers.opt;
  *
  * We define this to be a non-fatal OPT_OptimizingCompilerException.
  */
-public class OPT_OperationNotImplementedException extends
-                                                  OPT_OptimizingCompilerException {
+public class OPT_OperationNotImplementedException extends OPT_OptimizingCompilerException {
   /** Support for exception serialization */
   static final long serialVersionUID = -7215437494493545076L;
 

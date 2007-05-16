@@ -233,8 +233,7 @@ public abstract class OPT_IRTools {
    * @param dst the instruction to copy position information to
    * @return dest
    */
-  public static OPT_Instruction CPOS(OPT_Instruction src,
-                                     OPT_Instruction dst) {
+  public static OPT_Instruction CPOS(OPT_Instruction src, OPT_Instruction dst) {
     dst.copyPosition(src);
     return dst;
   }
@@ -373,9 +372,7 @@ public abstract class OPT_IRTools {
    * @param op operand to copy to a register
    * @return register operand that we copied into
    */
-  public static OPT_RegisterOperand moveIntoRegister(OPT_RegisterPool pool,
-                                                     OPT_Instruction s,
-                                                     OPT_Operand op) {
+  public static OPT_RegisterOperand moveIntoRegister(OPT_RegisterPool pool, OPT_Instruction s, OPT_Operand op) {
     if (op instanceof OPT_RegisterOperand) {
       return (OPT_RegisterOperand) op;
     }
@@ -395,11 +392,8 @@ public abstract class OPT_IRTools {
    * @param op operand to copy to a register
    * @return last use register operand that we copied into
    */
-  public static OPT_RegisterOperand moveIntoRegister(VM_TypeReference type,
-                                                     OPT_Operator move_op,
-                                                     OPT_RegisterPool pool,
-                                                     OPT_Instruction s,
-                                                     OPT_Operand op) {
+  public static OPT_RegisterOperand moveIntoRegister(VM_TypeReference type, OPT_Operator move_op, OPT_RegisterPool pool,
+                                                     OPT_Instruction s, OPT_Operand op) {
     OPT_RegisterOperand rop = pool.makeTemp(type);
     s.insertBefore(Move.create(move_op, rop, op));
     rop = rop.copyD2U();
@@ -424,8 +418,7 @@ public abstract class OPT_IRTools {
    * @param after instruction after where you want it inserted
    * @param temp basic block which contains the instructions to be inserted.
    */
-  public static void insertInstructionsAfter(OPT_Instruction after,
-                                             OPT_BasicBlock temp) {
+  public static void insertInstructionsAfter(OPT_Instruction after, OPT_BasicBlock temp) {
     if (temp.isEmpty()) return;
     OPT_Instruction after_after = after.getNext();
     after.linkWithNext(temp.firstRealInstruction());
@@ -452,9 +445,7 @@ public abstract class OPT_IRTools {
    * @param ir the governing IR
    * @return the new basic block bb
    */
-  public static OPT_BasicBlock makeBlockOnEdge(OPT_BasicBlock in,
-                                               OPT_BasicBlock out,
-                                               OPT_IR ir) {
+  public static OPT_BasicBlock makeBlockOnEdge(OPT_BasicBlock in, OPT_BasicBlock out, OPT_IR ir) {
     // 1. Create the new basic block
     OPT_BasicBlock bb = in.createSubBlock(out.firstInstruction().bcIndex, ir);
 
@@ -472,8 +463,7 @@ public abstract class OPT_IRTools {
     boolean foundGoto = false;
     OPT_BranchOperand target = bb.makeJumpTarget();
     OPT_BranchOperand outTarget = out.makeJumpTarget();
-    for (OPT_InstructionEnumeration e = in.reverseRealInstrEnumerator();
-         e.hasMoreElements();) {
+    for (OPT_InstructionEnumeration e = in.reverseRealInstrEnumerator(); e.hasMoreElements();) {
       OPT_Instruction s = e.next();
       if (IfCmp2.conforms(s)) {
         if (IfCmp2.getTarget1(s).similar(outTarget)) {
@@ -579,8 +569,7 @@ public abstract class OPT_IRTools {
    * to put effort into this now, as the whole scratch register
    * architecture has a questionable future.
    */
-  public static boolean useDoublesAsDef(OPT_Operand u,
-                                        OPT_Instruction s) {
+  public static boolean useDoublesAsDef(OPT_Operand u, OPT_Instruction s) {
     for (Enumeration<OPT_Operand> d = s.getDefs(); d.hasMoreElements();) {
       OPT_Operand def = d.nextElement();
       if (def != null) {
@@ -602,8 +591,7 @@ public abstract class OPT_IRTools {
    * to put effort into this now, as the whole scratch register
    * architecture has a questionable future.
    */
-  public static boolean defDoublesAsUse(OPT_Operand d,
-                                        OPT_Instruction s) {
+  public static boolean defDoublesAsUse(OPT_Operand d, OPT_Instruction s) {
     for (Enumeration<OPT_Operand> u = s.getUses(); u.hasMoreElements();) {
       OPT_Operand use = u.nextElement();
       if (use != null) {

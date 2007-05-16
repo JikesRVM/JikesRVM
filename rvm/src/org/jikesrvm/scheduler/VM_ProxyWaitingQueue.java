@@ -15,8 +15,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * See VM_Proxy
  */
 @Uninterruptible
-final class VM_ProxyWaitingQueue
-    extends VM_AbstractThreadQueue {
+final class VM_ProxyWaitingQueue extends VM_AbstractThreadQueue {
 
   private VM_Proxy tail;
   private VM_Proxy head;

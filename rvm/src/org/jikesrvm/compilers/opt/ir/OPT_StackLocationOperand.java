@@ -99,16 +99,13 @@ public final class OPT_StackLocationOperand extends OPT_Operand {
       default:
         OPT_OptimizingCompilerException.UNREACHABLE();
     }
-    return "<" + (isFromTop() ? "FrameTop" : "FrameBottom") +
-           (getOffset() < 0 ? "" : "+") + getOffset() + s;
+    return "<" + (isFromTop() ? "FrameTop" : "FrameBottom") + (getOffset() < 0 ? "" : "+") + getOffset() + s;
   }
 
   public boolean similar(OPT_Operand op) {
     if (op instanceof OPT_StackLocationOperand) {
       OPT_StackLocationOperand o2 = (OPT_StackLocationOperand) op;
-      return ((o2.isFromTop() == isFromTop()) &&
-              (o2.getOffset() == getOffset()) &&
-              (o2.getSize() == getSize()));
+      return ((o2.isFromTop() == isFromTop()) && (o2.getOffset() == getOffset()) && (o2.getSize() == getSize()));
     } else {
       return false;
     }

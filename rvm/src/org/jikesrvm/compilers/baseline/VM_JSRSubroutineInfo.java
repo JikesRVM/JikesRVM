@@ -30,8 +30,7 @@ public final class VM_JSRSubroutineInfo {
   private static int JSRRoutinesWithMismatch;
   private boolean hasMismatch;
 
-  public VM_JSRSubroutineInfo(int subroutineByteCodeStart, byte[] startReferenceMap,
-                              int localsTop) {
+  public VM_JSRSubroutineInfo(int subroutineByteCodeStart, byte[] startReferenceMap, int localsTop) {
     this.subroutineByteCodeStart = subroutineByteCodeStart;
     this.startReferenceMap = new byte[localsTop + 1];
     for (int i = 0; i <= localsTop; i++) {
@@ -44,8 +43,7 @@ public final class VM_JSRSubroutineInfo {
     }
   }
 
-  public void
-  newStartMaps(byte[] startReferenceMap) {
+  public void newStartMaps(byte[] startReferenceMap) {
     if (VM.ReferenceMapsStatistics) {
       for (int i = 0; i <= localsTop; i++) {
         if (this.startReferenceMap[i] != startReferenceMap[i]) {
@@ -64,9 +62,7 @@ public final class VM_JSRSubroutineInfo {
     }
   }
 
-  public void
-  newEndMaps(byte[] endReferenceMap,
-             int endReferenceTop) {
+  public void newEndMaps(byte[] endReferenceMap, int endReferenceTop) {
     this.endReferenceMap = new byte[endReferenceTop + 1];
     for (int i = 0; i <= endReferenceTop; i++) {
       this.endReferenceMap[i] = endReferenceMap[i];
@@ -74,8 +70,7 @@ public final class VM_JSRSubroutineInfo {
     this.endReferenceTop = endReferenceTop;
   }
 
-  public byte[]
-  computeResultingMaps(int mapLength) {
+  public byte[] computeResultingMaps(int mapLength) {
 
     byte[] newReferenceMap = new byte[mapLength];
 

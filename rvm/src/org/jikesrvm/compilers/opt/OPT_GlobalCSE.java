@@ -288,8 +288,7 @@ public final class OPT_GlobalCSE extends OPT_CompilerPhase {
           OPT_DefUse.transferUse(use, formerDef);
         }
         if (verbose) {
-          VM.sysWrite("using      " + former + "\n" + "instead of " +
-                      inst + "\n");
+          VM.sysWrite("using      " + former + "\n" + "instead of " + inst + "\n");
         }
         // remove the redundant instruction
         inst.remove();
@@ -353,11 +352,11 @@ public final class OPT_GlobalCSE extends OPT_CompilerPhase {
    */
   private boolean shouldCSE(OPT_Instruction inst) {
 
-    if ((inst.isAllocation())
-        || inst.isDynamicLinkingPoint()
-        || inst.isImplicitLoad()
-        || inst.isImplicitStore()
-        || inst.operator.opcode >= ARCH_INDEPENDENT_END_opcode) {
+    if ((inst.isAllocation()) ||
+        inst.isDynamicLinkingPoint() ||
+        inst.isImplicitLoad() ||
+        inst.isImplicitStore() ||
+        inst.operator.opcode >= ARCH_INDEPENDENT_END_opcode) {
       return false;
     }
 

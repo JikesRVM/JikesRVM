@@ -49,8 +49,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
    * @param mid id of the VM_MemberReference for the target interface method.
    * @return machine code corresponding to desired interface method
    */
-  public static VM_CodeArray invokeInterface(Object target, int mid)
-      throws IncompatibleClassChangeError {
+  public static VM_CodeArray invokeInterface(Object target, int mid) throws IncompatibleClassChangeError {
 
     VM_MethodReference mref = VM_MemberReference.getMemberRef(mid).asMethodReference();
     VM_Method sought = mref.resolveInterfaceMethod();
@@ -62,8 +61,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
       return (VM_CodeArray) iTable[getITableIndex(I, mref.getName(), mref.getDescriptor())];
     } else {
       if (!VM_Runtime.isAssignableWith(I, C)) throw new IncompatibleClassChangeError();
-      VM_Method found = C.findVirtualMethod(sought.getName(),
-                                            sought.getDescriptor());
+      VM_Method found = C.findVirtualMethod(sought.getName(), sought.getDescriptor());
       if (found == null) throw new IncompatibleClassChangeError();
       return found.getCurrentEntryCodeArray();
     }
@@ -79,8 +77,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
    * @return iTable for desired interface
    */
   public static Object[] findITable(Object[] tib, int id) throws IncompatibleClassChangeError {
-    Object[] iTables =
-        (Object[]) tib[TIB_ITABLES_TIB_INDEX];
+    Object[] iTables = (Object[]) tib[TIB_ITABLES_TIB_INDEX];
     if (VM.DirectlyIndexedITables) {
       // ITable is at fixed offset
       return (Object[]) iTables[id];

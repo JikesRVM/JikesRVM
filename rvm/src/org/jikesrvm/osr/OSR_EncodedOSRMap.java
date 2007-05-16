@@ -25,9 +25,7 @@ import org.vmmagic.unboxed.Offset;
  * all OSR map info for that method.
  */
 
-public class OSR_EncodedOSRMap
-    implements VM_OptGCMapIteratorConstants,
-               OSR_Constants {
+public class OSR_EncodedOSRMap implements VM_OptGCMapIteratorConstants, OSR_Constants {
 
   /* osr info entries */
   private long[] mapEntries;
@@ -147,9 +145,7 @@ if (VM.TraceOnStackReplacement) {
   // instruction's mc offset as the key, but since there are
   // in the order, we will use the current instruction's mc offset
   // as the key.
-  private static void quickSort(OSR_VariableMapElement[] array,
-                                int start,
-                                int end) {
+  private static void quickSort(OSR_VariableMapElement[] array, int start, int end) {
     if (start < end) {
       int pivot = partition(array, start, end);
       quickSort(array, start, pivot);
@@ -157,9 +153,7 @@ if (VM.TraceOnStackReplacement) {
     }
   }
 
-  private static int partition(OSR_VariableMapElement[] array,
-                               int start,
-                               int end) {
+  private static int partition(OSR_VariableMapElement[] array, int start, int end) {
     int left = start;
     int right = end;
     int pivot = start;
@@ -217,9 +211,7 @@ if (VM.TraceOnStackReplacement) {
   /* @param regMapIndex, used to patch the register map
    * @param mVar, the method variables
    */
-  private void _generateMapForOneMethodVariable(int regMapIndex,
-                                                OSR_MethodVariables mVar,
-                                                boolean lastMid) {
+  private void _generateMapForOneMethodVariable(int regMapIndex, OSR_MethodVariables mVar, boolean lastMid) {
     // Is this the last method in the inlined chain?
     int mid = lastMid ? mVar.methId : (mVar.methId | NEXT_BIT);
     addIntToOsrMap(mid);
@@ -239,12 +231,8 @@ if (VM.TraceOnStackReplacement) {
 
       processTuple(tuple, isLast);
       // mark the reg ref map
-      if (((tuple.typeCode == ClassTypeCode)
-           || (tuple.typeCode == ArrayTypeCode))
-          && (tuple.valueType == PHYREG)) {
-        osrMaps[regMapIndex] =
-            setRegister(osrMaps[regMapIndex],
-                        tuple.value.toInt());
+      if (((tuple.typeCode == ClassTypeCode) || (tuple.typeCode == ArrayTypeCode)) && (tuple.valueType == PHYREG)) {
+        osrMaps[regMapIndex] = setRegister(osrMaps[regMapIndex], tuple.value.toInt());
       }
     }
   }
@@ -255,8 +243,7 @@ if (VM.TraceOnStackReplacement) {
    * tuple, maps the local to register, spill
    * isLast, indicates to set NEXT_BIT
    */
-  private void processTuple(OSR_LocalRegPair tuple,
-                            boolean isLast) {
+  private void processTuple(OSR_LocalRegPair tuple, boolean isLast) {
 
     int first = (tuple.num << NUM_SHIFT) & NUM_MASK;
 
@@ -383,11 +370,7 @@ if (VM.TraceOnStackReplacement) {
 
     if (lastIndex < mapSize - 1) {
       int[] newMaps = new int[lastIndex];
-      System.arraycopy(osrMaps,
-                       0,
-                       newMaps,
-                       0,
-                       lastIndex);
+      System.arraycopy(osrMaps, 0, newMaps, 0, lastIndex);
       osrMaps = newMaps;
       mapSize = lastIndex;
     }
@@ -498,23 +481,19 @@ if (VM.TraceOnStackReplacement) {
   }
 
   private void setMCOffset(int entry, int offset) {
-    mapEntries[entry] = (mapEntries[entry] & ~OFFSET_MASK)
-                        | (((long) offset) << OFFSET_SHIFT);
+    mapEntries[entry] = (mapEntries[entry] & ~OFFSET_MASK) | (((long) offset) << OFFSET_SHIFT);
   }
 
   private void setOSRMapIndex(int entry, int index) {
-    mapEntries[entry] = (mapEntries[entry] & ~OSRI_MASK)
-                        | (((long) index) << OSRI_SHIFT);
+    mapEntries[entry] = (mapEntries[entry] & ~OSRI_MASK) | (((long) index) << OSRI_SHIFT);
   }
 
   private void setBCIndex(int entry, int index) {
-    mapEntries[entry] = (mapEntries[entry] & ~BCI_MASK)
-                        | (((long) index) << BCI_SHIFT);
+    mapEntries[entry] = (mapEntries[entry] & ~BCI_MASK) | (((long) index) << BCI_SHIFT);
   }
 
   private void setIEIndex(int entry, int index) {
-    mapEntries[entry] = (mapEntries[entry] & ~IEI_MASK)
-                        | (((long) index) << IEI_SHIFT);
+    mapEntries[entry] = (mapEntries[entry] & ~IEI_MASK) | (((long) index) << IEI_SHIFT);
   }
 
   /*
@@ -544,8 +523,7 @@ if (VM.TraceOnStackReplacement) {
       int regmap = osrMaps[mapIndex] & ~NEXT_BIT;
       VM.sysWrite("regmap: " + Integer.toBinaryString(regmap));
 
-      OSR_MapIterator iterator =
-          new OSR_MapIterator(osrMaps, mapIndex);
+      OSR_MapIterator iterator = new OSR_MapIterator(osrMaps, mapIndex);
 
       while (iterator.hasMore()) {
         VM.sysWrite("(" + iterator.getValueType() + "," + iterator.getValue() + ")");

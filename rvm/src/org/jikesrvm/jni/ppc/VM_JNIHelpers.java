@@ -33,8 +33,8 @@ import org.vmmagic.unboxed.Word;
  *
  * @see org.jikesrvm.jni.VM_JNIFunctions
  */
-public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_RegisterConstants,
-                                                                            VM_JNIStackframeLayoutConstants {
+public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers
+    implements VM_RegisterConstants, VM_JNIStackframeLayoutConstants {
 
   /**
    * Common code shared by the JNI functions NewObjectA, NewObjectV, NewObject
@@ -42,9 +42,8 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    * @param methodID the method ID for a constructor
    * @return a new object created by the specified constructor
    */
-  public static Object invokeInitializer(Class<?> cls, int methodID, Address argAddress,
-                                         boolean isJvalue, boolean isDotDotStyle)
-      throws Exception {
+  public static Object invokeInitializer(Class<?> cls, int methodID, Address argAddress, boolean isJvalue,
+                                         boolean isDotDotStyle) throws Exception {
 
     // get the parameter list as Java class
     VM_Method mth = VM_MemberReference.getMemberRef(methodID).asMethodReference().resolve();
@@ -99,9 +98,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    * @return an object that may be the return object or a wrapper for the primitive return value
    */
   @NoInline
-  public static Object invokeWithDotDotVarArg(int methodID,
-                                              VM_TypeReference expectReturnType)
-      throws Exception {
+  public static Object invokeWithDotDotVarArg(int methodID, VM_TypeReference expectReturnType) throws Exception {
 
     if (VM.BuildForPowerOpenABI) {
       Address varargAddress = pushVarArgToSpillArea(methodID, false);
@@ -127,9 +124,8 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    * @return an object that may be the return object or a wrapper for the primitive return value
    */
   @NoInline
-  public static Object invokeWithDotDotVarArg(Object obj, int methodID,
-                                              VM_TypeReference expectReturnType, boolean skip4Args)
-      throws Exception {
+  public static Object invokeWithDotDotVarArg(Object obj, int methodID, VM_TypeReference expectReturnType,
+                                              boolean skip4Args) throws Exception {
 
     if (VM.BuildForPowerOpenABI) {
       Address varargAddress = pushVarArgToSpillArea(methodID, skip4Args);
@@ -258,8 +254,10 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
       // For Call<type>Method functions, skip 3 args
       // For CallNonvirtual<type>Method functions, skip 4 args
       Offset spillAreaLimit = Offset.fromIntSignExtend(glueFrameSize + NATIVE_FRAME_HEADER_SIZE + 8 * BYTES_IN_ADDRESS);
-      Offset spillAreaOffset = Offset.fromIntSignExtend(glueFrameSize + NATIVE_FRAME_HEADER_SIZE +
-                                                        (skip4Args ? 4 * BYTES_IN_ADDRESS : 3 * BYTES_IN_ADDRESS));
+      Offset spillAreaOffset =
+          Offset.fromIntSignExtend(glueFrameSize +
+                                   NATIVE_FRAME_HEADER_SIZE +
+                                   (skip4Args ? 4 * BYTES_IN_ADDRESS : 3 * BYTES_IN_ADDRESS));
 
       // address to return pointing to the var arg list
       Address varargAddress = gluefp.plus(spillAreaOffset);
@@ -354,11 +352,9 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
       // class id, method id, object instance. These are *not* passed to
       // the Java method itself:
 
-      Address targetAddress = gluefp.plus(STACKFRAME_HEADER_SIZE +
-                                          ((skip4Args ? 4 : 3)) * BYTES_IN_ADDRESS);
+      Address targetAddress = gluefp.plus(STACKFRAME_HEADER_SIZE + ((skip4Args ? 4 : 3)) * BYTES_IN_ADDRESS);
 
-      int spillRequiredAtOffset = registerBlock -
-                                  ((skip4Args ? 4 : 3)) * BYTES_IN_ADDRESS;
+      int spillRequiredAtOffset = registerBlock - ((skip4Args ? 4 : 3)) * BYTES_IN_ADDRESS;
 
       if (argSize > spillRequiredAtOffset) {
         Word word;
@@ -370,9 +366,8 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
 
         Address srcAddress = gluecallerfp.plus(14 * BYTES_IN_ADDRESS);
 
-        for (targetOffset = spillRequiredAtOffset;
-             targetOffset <= argSize;
-             srcOffset += BYTES_IN_ADDRESS, targetOffset += BYTES_IN_ADDRESS) {
+        for (targetOffset = spillRequiredAtOffset; targetOffset <= argSize; srcOffset +=
+            BYTES_IN_ADDRESS, targetOffset += BYTES_IN_ADDRESS) {
           word = srcAddress.loadWord(Offset.fromIntZeroExtend(srcOffset));
           targetAddress.store(word, Offset.fromIntZeroExtend(targetOffset));
         }
@@ -390,8 +385,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    * @param argAddress a raw address for the variable argument list
    * @return an object that may be the return object or a wrapper for the primitive return value
    */
-  public static Object invokeWithVarArg(int methodID, Address argAddress,
-                                        VM_TypeReference expectReturnType)
+  public static Object invokeWithVarArg(int methodID, Address argAddress, VM_TypeReference expectReturnType)
       throws Exception {
     if (VM.BuildForPowerOpenABI) {
       return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, AIX_VARARG);
@@ -409,10 +403,8 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    * @param skip4Args received from the JNI function, passed on to VM_Reflection.invoke()
    * @return an object that may be the return object or a wrapper for the primitive return value
    */
-  public static Object invokeWithVarArg(Object obj, int methodID, Address argAddress,
-                                        VM_TypeReference expectReturnType,
-                                        boolean skip4Args)
-      throws Exception {
+  public static Object invokeWithVarArg(Object obj, int methodID, Address argAddress, VM_TypeReference expectReturnType,
+                                        boolean skip4Args) throws Exception {
     if (VM.BuildForPowerOpenABI) {
       return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, AIX_VARARG);
     } else {
@@ -426,8 +418,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    * @param argAddress a raw address for the argument array
    * @return an object that may be the return object or a wrapper for the primitive return value
    */
-  public static Object invokeWithJValue(int methodID, Address argAddress,
-                                        VM_TypeReference expectReturnType)
+  public static Object invokeWithJValue(int methodID, Address argAddress, VM_TypeReference expectReturnType)
       throws Exception {
     return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, JVALUE_ARG);
   }
@@ -441,10 +432,8 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    * @param skip4Args received from the JNI function, passed on to VM_Reflection.invoke()
    * @return an object that may be the return object or a wrapper for the primitive return value
    */
-  public static Object invokeWithJValue(Object obj, int methodID, Address argAddress,
-                                        VM_TypeReference expectReturnType,
-                                        boolean skip4Args)
-      throws Exception {
+  public static Object invokeWithJValue(Object obj, int methodID, Address argAddress, VM_TypeReference expectReturnType,
+                                        boolean skip4Args) throws Exception {
     return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, JVALUE_ARG);
   }
 
@@ -470,10 +459,8 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    * @param argtype  Type of argument to be packaged.
    * @return an object that may be the return object or a wrapper for the primitive return value
    */
-  public static Object packageAndInvoke(Object obj, int methodID, Address argAddress,
-                                        VM_TypeReference expectReturnType,
-                                        boolean skip4Args, int argtype)
-      throws Exception {
+  public static Object packageAndInvoke(Object obj, int methodID, Address argAddress, VM_TypeReference expectReturnType,
+                                        boolean skip4Args, int argtype) throws Exception {
 
     // VM.sysWrite("JNI CallXXXMethod:  method ID " + methodID + " with args at " +
     //             VM.intAsHexString(argAddress) + "\n");
@@ -490,8 +477,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
       }
     } else {    // for primitive return type
       if (returnType != expectReturnType) {
-        throw new Exception("Wrong return type for method: expect " + expectReturnType +
-                            " instead of " + returnType);
+        throw new Exception("Wrong return type for method: expect " + expectReturnType + " instead of " + returnType);
       }
     }
 
@@ -664,10 +650,8 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     }
   }
 
-  static void packageArgumentForSVR4(VM_TypeReference[] argTypes, Object[] argObjectArray,
-                                     Address gprarray, Address fprarray,
-                                     Address overflowarea, int gpr, int fpr,
-                                     VM_JNIEnvironment env) {
+  static void packageArgumentForSVR4(VM_TypeReference[] argTypes, Object[] argObjectArray, Address gprarray,
+                                     Address fprarray, Address overflowarea, int gpr, int fpr, VM_JNIEnvironment env) {
     if (VM.BuildForSVR4ABI) {
       // also make overflow offset, we may need to round it
       Offset overflowoffset = Offset.zero();
@@ -675,8 +659,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
 
       // now interpret values by types, see PPC ABI
       for (int i = 0; i < argCount; i++) {
-        if (argTypes[i].isFloatType()
-            || argTypes[i].isDoubleType()) {
+        if (argTypes[i].isFloatType() || argTypes[i].isDoubleType()) {
           int loword, hiword;
           if (fpr > LAST_OS_PARAMETER_FPR) {
             // overflow, OTHER
@@ -763,8 +746,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
       // now interpret values by types, see PPC ABI
       for (int i = 0; i < argCount; i++) {
         int regIncrementGpr = 1;
-        if (argTypes[i].isFloatType()
-            || argTypes[i].isDoubleType()) {
+        if (argTypes[i].isFloatType() || argTypes[i].isDoubleType()) {
           int loword, hiword;
           if (fpr > LAST_OS_PARAMETER_FPR) {
             // overflow, OTHER

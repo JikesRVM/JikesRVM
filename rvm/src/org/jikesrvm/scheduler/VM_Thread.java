@@ -430,8 +430,11 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
         VM_RuntimeMeasurements.takeTimerSample(whereFrom);
       }
 
-      if (threadSwitch && (VM_Processor.getCurrentProcessor().yieldForCBSMethod ||
-                           VM_Processor.getCurrentProcessor().yieldForCBSCall)) {
+      if (threadSwitch &&
+          (VM_Processor.getCurrentProcessor()
+              .yieldForCBSMethod ||
+                                 VM_Processor.getCurrentProcessor()
+                                     .yieldForCBSCall)) {
         // want to sample the current thread, not the next one to be scheduled
         // So, defer actual threadswitch until we take all of our samples
         VM_Processor.getCurrentProcessor().threadSwitchWhenCBSComplete = true;
@@ -658,14 +661,12 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
   private static void startoff() {
     VM_Thread currentThread = getCurrentThread();
     if (trace) {
-      VM.sysWriteln("VM_Thread.startoff(): about to call ",
-                    currentThread.toString(), ".run()");
+      VM.sysWriteln("VM_Thread.startoff(): about to call ", currentThread.toString(), ".run()");
     }
 
     currentThread.run();
     if (trace) {
-      VM.sysWriteln("VM_Thread.startoff(): finished ",
-                    currentThread.toString(), ".run()");
+      VM.sysWriteln("VM_Thread.startoff(): finished ", currentThread.toString(), ".run()");
     }
 
     terminate();
@@ -758,14 +759,10 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
       terminateSystem = true;
     }
     if (traceTermination) {
-      VM.sysWriteln("VM_Thread.terminate: myThread.isDaemon = ",
-                    myThread.isDaemon);
-      VM.sysWriteln("  VM_Scheduler.numActiveThreads = ",
-                    VM_Scheduler.numActiveThreads);
-      VM.sysWriteln("  VM_Scheduler.numDaemons = ",
-                    VM_Scheduler.numDaemons);
-      VM.sysWriteln("  terminateSystem = ",
-                    terminateSystem);
+      VM.sysWriteln("VM_Thread.terminate: myThread.isDaemon = ", myThread.isDaemon);
+      VM.sysWriteln("  VM_Scheduler.numActiveThreads = ", VM_Scheduler.numActiveThreads);
+      VM.sysWriteln("  VM_Scheduler.numDaemons = ", VM_Scheduler.numDaemons);
+      VM.sysWriteln("  terminateSystem = ", terminateSystem);
     }
 
     // end critical section
@@ -773,8 +770,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
     VM_Processor.getCurrentProcessor().enableThreadSwitching();
     VM_Scheduler.threadCreationMutex.unlock();
     if (VM.VerifyAssertions) {
-      VM._assert((!VM.fullyBooted && terminateSystem)
-                 || VM_Processor.getCurrentProcessor().threadSwitchingEnabled());
+      VM._assert((!VM.fullyBooted && terminateSystem) || VM_Processor.getCurrentProcessor().threadSwitchingEnabled());
     }
 
     if (terminateSystem) {
@@ -844,8 +840,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
    * was encountered (null --> normal method call, not a trap)
    */
   @Interruptible
-  public static void resizeCurrentStack(int newSize,
-                                        VM_Registers exceptionRegisters) {
+  public static void resizeCurrentStack(int newSize, VM_Registers exceptionRegisters) {
     if (traceAdjustments) VM.sysWrite("VM_Thread: resizeCurrentStack\n");
     if (MM_Interface.gcInProgress()) {
       VM.sysFail("system error: resizing stack while GC is in progress");
@@ -865,9 +860,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
   @NoInline
   @BaselineNoRegisters
   //this method does not a normal return and hence does not execute epilogue --> non-volatiles not restored!
-  private static void transferExecutionToNewStack(byte[] newStack,
-                                                  VM_Registers
-                                                      exceptionRegisters) {
+  private static void transferExecutionToNewStack(byte[] newStack, VM_Registers exceptionRegisters) {
     // prevent opt compiler from inlining a method that contains a magic
     // (returnToNewStack) that it does not implement.
 
@@ -918,10 +911,8 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
     // install new stack
     //
     myThread.stack = newStack;
-    myThread.stackLimit =
-        VM_Magic.objectAsAddress(newStack).plus(STACK_SIZE_GUARD);
-    VM_Processor.getCurrentProcessor().activeThreadStackLimit =
-        myThread.stackLimit;
+    myThread.stackLimit = VM_Magic.objectAsAddress(newStack).plus(STACK_SIZE_GUARD);
+    VM_Processor.getCurrentProcessor().activeThreadStackLimit = myThread.stackLimit;
 
     // return to caller, resuming execution on new stack
     // (original stack now abandoned)
@@ -984,8 +975,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
         VM_Configuration.archHelper.adjustESP(registers, delta, traceAdjustments);
       }
       if (traceAdjustments) {
-        VM_CompiledMethod compiledMethod =
-            VM_CompiledMethods.getCompiledMethod(compiledMethodId);
+        VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
         VM.sysWrite(" method=");
         VM.sysWrite(compiledMethod.getMethod());
         VM.sysWrite("\n");
@@ -1078,8 +1068,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
 
     if (VM_Scheduler.numDaemons == VM_Scheduler.numActiveThreads) {
       if (VM.TraceThreads) {
-        VM_Scheduler.trace("VM_Thread",
-                           "last non Daemon demonized");
+        VM_Scheduler.trace("VM_Thread", "last non Daemon demonized");
       }
       VM.sysExit(0);
       if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -1107,8 +1096,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
     //
 
     if (!VM.runningVM) { // create primordial thread (in boot image)
-      VM_Scheduler.threads[threadSlot =
-          VM_Scheduler.PRIMORDIAL_THREAD_INDEX] = this;
+      VM_Scheduler.threads[threadSlot = VM_Scheduler.PRIMORDIAL_THREAD_INDEX] = this;
       // note that VM_Scheduler.threadAllocationIndex (search hint)
       // is out of date
       VM_Scheduler.numActiveThreads += 1;
@@ -1190,11 +1178,11 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
           VM_Scheduler.threadHighWatermark = threadSlot;
         }
         if (MM_Constants.NEEDS_WRITE_BARRIER) {
-          MM_Interface.arrayStoreWriteBarrier(VM_Scheduler.threads,
-                                              threadSlot, this);
+          MM_Interface.arrayStoreWriteBarrier(VM_Scheduler.threads, threadSlot, this);
         }
         VM_Magic.setObjectAtOffset(VM_Scheduler.threads,
-                                   Offset.fromIntZeroExtend(threadSlot << VM_SizeConstants.LOG_BYTES_IN_ADDRESS), this);
+                                   Offset.fromIntZeroExtend(threadSlot << VM_SizeConstants.LOG_BYTES_IN_ADDRESS),
+                                   this);
         return;
       }
     }
@@ -1222,11 +1210,11 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
      *  store, but a reference counting collector sure does.
      */
     if (MM_Constants.NEEDS_WRITE_BARRIER) {
-      MM_Interface.arrayStoreWriteBarrier(VM_Scheduler.threads,
-                                          threadSlot, null);
+      MM_Interface.arrayStoreWriteBarrier(VM_Scheduler.threads, threadSlot, null);
     }
     VM_Magic.setObjectAtOffset(VM_Scheduler.threads,
-                               Offset.fromIntZeroExtend(threadSlot << VM_SizeConstants.LOG_BYTES_IN_ADDRESS), null);
+                               Offset.fromIntZeroExtend(threadSlot << VM_SizeConstants.LOG_BYTES_IN_ADDRESS),
+                               null);
     if (threadSlot < VM_Scheduler.threadAllocationIndex) {
       VM_Scheduler.threadAllocationIndex = threadSlot;
     }
@@ -1347,8 +1335,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
   /** Biggest buffer you would possibly need for {@link #dump(char[],int)}
    *  Modify this if you modify that method.
    */
-  public static final int MAX_DUMP_LEN =
-      10 /* for thread ID  */ + 7 + 5 + 5 + 11 + 5 + 10 + 13 + 17 + 10;
+  public static final int MAX_DUMP_LEN = 10 /* for thread ID  */ + 7 + 5 + 5 + 11 + 5 + 10 + 13 + 17 + 10;
 
   /** Pre-allocate the dump buffer, since dump() might get called inside GC. */
   private static char[] dumpBuffer = new char[MAX_DUMP_LEN];
@@ -1362,8 +1349,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
 
   public static char[] grabDumpBuffer() {
     if (!dumpBufferLockOffset.isMax()) {
-      while (!VM_Synchronization.testAndSet(VM_Magic.getJTOC(),
-                                            dumpBufferLockOffset, 1)) {
+      while (!VM_Synchronization.testAndSet(VM_Magic.getJTOC(), dumpBufferLockOffset, 1)) {
         ;
       }
     }
@@ -1372,8 +1358,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
 
   public static void releaseDumpBuffer() {
     if (!dumpBufferLockOffset.isMax()) {
-      VM_Synchronization.fetchAndStore(VM_Magic.getJTOC(),
-                                       dumpBufferLockOffset, 0);
+      VM_Synchronization.fetchAndStore(VM_Magic.getJTOC(), dumpBufferLockOffset, 0);
     }
   }
 
@@ -1434,8 +1419,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
    * @param srcStart index of the first character of <code>src</code> to copy.
    * @param srcEnd index after the last character of <code>src</code> to copy.
    */
-  public static int sprintf(char[] dest, int destOffset, char[] src,
-                            int srcStart, int srcEnd) {
+  public static int sprintf(char[] dest, int destOffset, char[] src, int srcStart, int srcEnd) {
     for (int i = srcStart; i < srcEnd; ++i) {
       char nextChar = Barriers.getArrayNoBarrierStatic(src, i);
       destOffset = sprintf(dest, destOffset, nextChar);
@@ -1491,19 +1475,13 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
     char[] intBuffer = grabIntBuffer();
 
     nextDigit = (int) (l % 10);
-    nextChar = Barriers.getArrayNoBarrierStatic(hexDigitCharacter,
-                                                negative
-                                                ? -nextDigit
-                                                : nextDigit);
+    nextChar = Barriers.getArrayNoBarrierStatic(hexDigitCharacter, negative ? -nextDigit : nextDigit);
     Barriers.setArrayNoBarrierStatic(intBuffer, index--, nextChar);
     l = l / 10;
 
     while (l != 0) {
       nextDigit = (int) (l % 10);
-      nextChar = Barriers.getArrayNoBarrierStatic(hexDigitCharacter,
-                                                  negative
-                                                  ? -nextDigit
-                                                  : nextDigit);
+      nextChar = Barriers.getArrayNoBarrierStatic(hexDigitCharacter, negative ? -nextDigit : nextDigit);
       Barriers.setArrayNoBarrierStatic(intBuffer, index--, nextChar);
       l = l / 10;
     }
@@ -1512,8 +1490,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
       Barriers.setArrayNoBarrierStatic(intBuffer, index--, '-');
     }
 
-    int newOffset =
-        sprintf(dest, offset, intBuffer, index + 1, INT_BUFFER_SIZE);
+    int newOffset = sprintf(dest, offset, intBuffer, index + 1, INT_BUFFER_SIZE);
     releaseIntBuffer();
     return newOffset;
   }
@@ -1526,8 +1503,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
    * this code out into a separate utility class.
    */
   private static final char[] hexDigitCharacter =
-      {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e',
-       'f'};
+      {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 
   /**
    * How many characters we need to have in a buffer for building string
@@ -1559,8 +1535,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
    */
   private static char[] grabIntBuffer() {
     if (!intBufferLockOffset.isMax()) {
-      while (!VM_Synchronization.testAndSet(VM_Magic.getJTOC(),
-                                            intBufferLockOffset, 1)) {
+      while (!VM_Synchronization.testAndSet(VM_Magic.getJTOC(), intBufferLockOffset, 1)) {
         ;
       }
     }
@@ -1573,8 +1548,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
    */
   private static void releaseIntBuffer() {
     if (!intBufferLockOffset.isMax()) {
-      VM_Synchronization.fetchAndStore(VM_Magic.getJTOC(),
-                                       intBufferLockOffset, 0);
+      VM_Synchronization.fetchAndStore(VM_Magic.getJTOC(), intBufferLockOffset, 0);
     }
   }
 

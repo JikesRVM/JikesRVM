@@ -132,7 +132,8 @@ public abstract class OPT_MachineSpecificIRIA extends OPT_MachineSpecificIR {
 
   @Override
   public void mutateMIRCondBranch(OPT_Instruction cb) {
-    MIR_CondBranch.mutate(cb, IA32_JCC,
+    MIR_CondBranch.mutate(cb,
+                          IA32_JCC,
                           MIR_CondBranch2.getCond1(cb),
                           MIR_CondBranch2.getTarget1(cb),
                           MIR_CondBranch2.getBranchProfile1(cb));
@@ -178,8 +179,7 @@ public abstract class OPT_MachineSpecificIRIA extends OPT_MachineSpecificIR {
    * @param dfnend The (adjusted) end for this interval
    */
   @Override
-  public boolean mutateFMOVs(OPT_LiveIntervalElement live, OPT_Register register,
-                             int dfnbegin, int dfnend) {
+  public boolean mutateFMOVs(OPT_LiveIntervalElement live, OPT_Register register, int dfnbegin, int dfnend) {
     OPT_Instruction end = live.getEnd();
     if (end != null && end.operator == IA32_FMOV) {
       if (dfnend == dfnbegin) {
@@ -216,32 +216,26 @@ public abstract class OPT_MachineSpecificIRIA extends OPT_MachineSpecificIR {
       // 'normal' position.
       int fpStackOffset = 0;
 
-      for (OPT_InstructionEnumeration inst = bb.forwardInstrEnumerator();
-           inst.hasMoreElements();) {
+      for (OPT_InstructionEnumeration inst = bb.forwardInstrEnumerator(); inst.hasMoreElements();) {
         OPT_Instruction s = inst.next();
-        for (OPT_OperandEnumeration ops = s.getOperands();
-             ops.hasMoreElements();) {
+        for (OPT_OperandEnumeration ops = s.getOperands(); ops.hasMoreElements();) {
           OPT_Operand op = ops.next();
           if (op.isRegister()) {
             OPT_RegisterOperand rop = op.asRegister();
             OPT_Register r = rop.register;
 
             // Update MIR state for every phyiscal FPR we see
-            if (r.isPhysical() && r.isFloatingPoint() &&
-                s.operator() != DUMMY_DEF &&
-                s.operator() != DUMMY_USE) {
+            if (r.isPhysical() && r.isFloatingPoint() && s.operator() != DUMMY_DEF && s.operator() != DUMMY_USE) {
               int n = OPT_PhysicalRegisterSet.getFPRIndex(r);
               if (fpStackOffset != 0) {
                 n += fpStackOffset;
                 rop.register = phys.getFPR(n);
               }
-              ir.MIRInfo.fpStackHeight =
-                  Math.max(ir.MIRInfo.fpStackHeight, n + 1);
+              ir.MIRInfo.fpStackHeight = Math.max(ir.MIRInfo.fpStackHeight, n + 1);
             }
           } else if (op instanceof OPT_BURSManagedFPROperand) {
             int regNum = ((OPT_BURSManagedFPROperand) op).regNum;
-            s.replaceOperand(op, new OPT_RegisterOperand(phys.getFPR(regNum),
-                                                         VM_TypeReference.Double));
+            s.replaceOperand(op, new OPT_RegisterOperand(phys.getFPR(regNum), VM_TypeReference.Double));
           }
         }
         // account for any effect s has on the floating point stack

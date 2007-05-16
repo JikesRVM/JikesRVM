@@ -43,8 +43,7 @@ class OPT_Coalesce {
    * @param r2
    * @return true if the transformation succeeded, false otherwise.
    */
-  public static boolean attempt(OPT_IR ir, OPT_LiveAnalysis live,
-                                OPT_Register r1, OPT_Register r2) {
+  public static boolean attempt(OPT_IR ir, OPT_LiveAnalysis live, OPT_Register r1, OPT_Register r2) {
 
     // make sure r1 and r2 are not simultaneously live
     if (isLiveAtDef(r2, r1, live)) return false;
@@ -60,16 +59,14 @@ class OPT_Coalesce {
     live.merge(r1, r2);
 
     // Merge the defs.
-    for (OPT_RegisterOperandEnumeration e = OPT_DefUse.defs(r2);
-         e.hasMoreElements();) {
+    for (OPT_RegisterOperandEnumeration e = OPT_DefUse.defs(r2); e.hasMoreElements();) {
       OPT_RegisterOperand def = e.nextElement();
       OPT_DefUse.removeDef(def);
       def.register = r1;
       OPT_DefUse.recordDef(def);
     }
     // Merge the uses.
-    for (OPT_RegisterOperandEnumeration e = OPT_DefUse.uses(r2);
-         e.hasMoreElements();) {
+    for (OPT_RegisterOperandEnumeration e = OPT_DefUse.uses(r2); e.hasMoreElements();) {
       OPT_RegisterOperand use = e.nextElement();
       OPT_DefUse.removeUse(use);
       use.register = r1;
@@ -88,16 +85,13 @@ class OPT_Coalesce {
    * <p> Note: this implementation is not efficient.  The liveness data
    * structures must be re-designed to support this efficiently.
    */
-  private static boolean isLiveAtDef(OPT_Register r1, OPT_Register r2,
-                                     OPT_LiveAnalysis live) {
+  private static boolean isLiveAtDef(OPT_Register r1, OPT_Register r2, OPT_LiveAnalysis live) {
 
     for (Iterator<OPT_LiveIntervalElement> e = live.iterateLiveIntervals(r1); e.hasNext();) {
       OPT_LiveIntervalElement elem = e.next();
       OPT_BasicBlock bb = elem.getBasicBlock();
-      OPT_Instruction begin = (elem.getBegin() == null) ?
-                              bb.firstInstruction() : elem.getBegin();
-      OPT_Instruction end = (elem.getEnd() == null) ?
-                            bb.lastInstruction() : elem.getEnd();
+      OPT_Instruction begin = (elem.getBegin() == null) ? bb.firstInstruction() : elem.getBegin();
+      OPT_Instruction end = (elem.getEnd() == null) ? bb.lastInstruction() : elem.getEnd();
       int low = begin.scratch;
       int high = end.scratch;
       for (OPT_RegisterOperandEnumeration defs = OPT_DefUse.defs(r2); defs.hasMoreElements();) {
@@ -117,8 +111,7 @@ class OPT_Coalesce {
    * Is there an instruction r1 = split r2 or r2 = split r1??
    */
   private static boolean split(OPT_Register r1, OPT_Register r2) {
-    for (OPT_RegisterOperandEnumeration e = OPT_DefUse.defs(r1);
-         e.hasMoreElements();) {
+    for (OPT_RegisterOperandEnumeration e = OPT_DefUse.defs(r1); e.hasMoreElements();) {
       OPT_RegisterOperand def = e.nextElement();
       OPT_Instruction s = def.instruction;
       if (s.operator == SPLIT) {
@@ -126,8 +119,7 @@ class OPT_Coalesce {
         if (rhs.similar(def)) return true;
       }
     }
-    for (OPT_RegisterOperandEnumeration e = OPT_DefUse.defs(r2);
-         e.hasMoreElements();) {
+    for (OPT_RegisterOperandEnumeration e = OPT_DefUse.defs(r2); e.hasMoreElements();) {
       OPT_RegisterOperand def = e.nextElement();
       OPT_Instruction s = def.instruction;
       if (s.operator == SPLIT) {

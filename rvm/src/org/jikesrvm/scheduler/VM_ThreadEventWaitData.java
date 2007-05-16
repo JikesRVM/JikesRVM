@@ -18,8 +18,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * {@link Uninterruptible} interface.
  */
 @Uninterruptible
-public abstract class VM_ThreadEventWaitData
-    implements VM_ThreadEventConstants {
+public abstract class VM_ThreadEventWaitData implements VM_ThreadEventConstants {
 
   /**
    * Timestamp at which time the thread should return from its

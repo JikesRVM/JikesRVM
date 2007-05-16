@@ -94,8 +94,7 @@ public class OPT_ObjectConstantOperand extends OPT_ConstantOperand {
    *           if they are not.
    */
   public boolean similar(OPT_Operand op) {
-    return (op instanceof OPT_ObjectConstantOperand) &&
-           value.equals(((OPT_ObjectConstantOperand) op).value);
+    return (op instanceof OPT_ObjectConstantOperand) && value.equals(((OPT_ObjectConstantOperand) op).value);
   }
 
   /**

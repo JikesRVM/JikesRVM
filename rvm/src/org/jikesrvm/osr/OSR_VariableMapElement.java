@@ -21,8 +21,7 @@ public class OSR_VariableMapElement {
   public OPT_Instruction osr;
   public LinkedList<OSR_MethodVariables> mvars;
 
-  public OSR_VariableMapElement(OPT_Instruction inst,
-                                LinkedList<OSR_MethodVariables> methVars) {
+  public OSR_VariableMapElement(OPT_Instruction inst, LinkedList<OSR_MethodVariables> methVars) {
     if (VM.VerifyAssertions) {
       VM._assert(OsrPoint.conforms(inst));
     }

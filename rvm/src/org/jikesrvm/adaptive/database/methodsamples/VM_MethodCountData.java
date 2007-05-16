@@ -216,8 +216,7 @@ public final class VM_MethodCountData implements VM_Reportable {
    * @param threshold hotness value above which the method is considered
    *                  to be hot. (0.0 to 1.0)
    */
-  public synchronized void insertHotMethods(int filterOptLevel,
-                                            double threshold) {
+  public synchronized void insertHotMethods(int filterOptLevel, double threshold) {
     if (DEBUG) validityCheck();
     insertHotMethodsInternal(1, filterOptLevel, hotnessToCounts(threshold));
   }
@@ -231,11 +230,9 @@ public final class VM_MethodCountData implements VM_Reportable {
    * @return a VM_MethodCountSet containing an
    *            array of compiled methods and an array of their counts.
    */
-  public synchronized VM_MethodCountSet collectHotMethods(int optLevel,
-                                                          double threshold) {
+  public synchronized VM_MethodCountSet collectHotMethods(int optLevel, double threshold) {
     if (DEBUG) validityCheck();
-    ArrayList<VM_HotMethodRecompilationEvent> collect =
-        new ArrayList<VM_HotMethodRecompilationEvent>();
+    ArrayList<VM_HotMethodRecompilationEvent> collect = new ArrayList<VM_HotMethodRecompilationEvent>();
     collectHotOptMethodsInternal(1, collect, hotnessToCounts(threshold), optLevel);
 
     // now package the data into the form the caller expects.
@@ -282,9 +279,7 @@ public final class VM_MethodCountData implements VM_Reportable {
    * @param threshold hotness value above which the method is considered
    *                  to be hot. (0.0 to 1.0)
    */
-  private void insertHotMethodsInternal(int index,
-                                        int filterOptLevel,
-                                        double threshold) {
+  private void insertHotMethodsInternal(int index, int filterOptLevel, double threshold) {
     if (index < nextIndex) {
       if (counts[index] > threshold) {
         int cmid = cmids[index];
@@ -301,8 +296,7 @@ public final class VM_MethodCountData implements VM_Reportable {
                 (compilerType == VM_CompiledMethod.OPT &&
                  (((VM_OptCompiledMethod) cm).getOptLevel() >= filterOptLevel)))) {
             double ns = counts[index];
-            VM_HotMethodRecompilationEvent event =
-                new VM_HotMethodRecompilationEvent(cm, ns);
+            VM_HotMethodRecompilationEvent event = new VM_HotMethodRecompilationEvent(cm, ns);
             VM_Controller.controllerInputQueue.insert(ns, event);
             VM_AOSLogging.controllerNotifiedForHotness(cm, ns);
           }
@@ -326,9 +320,7 @@ public final class VM_MethodCountData implements VM_Reportable {
    *                  to be hot. (0.0 to 1.0)
    * @param optLevel target opt level to look for.
    */
-  private void collectHotOptMethodsInternal(int index,
-                                            List<VM_HotMethodRecompilationEvent> collect,
-                                            double threshold,
+  private void collectHotOptMethodsInternal(int index, List<VM_HotMethodRecompilationEvent> collect, double threshold,
                                             int optLevel) {
     if (index < nextIndex) {
       if (counts[index] > threshold) {
@@ -340,8 +332,7 @@ public final class VM_MethodCountData implements VM_Reportable {
           collectHotOptMethodsInternal(index, collect, threshold, optLevel);
         } else {
           int compilerType = cm.getCompilerType();
-          if (compilerType == VM_CompiledMethod.OPT &&
-              ((VM_OptCompiledMethod) cm).getOptLevel() == optLevel) {
+          if (compilerType == VM_CompiledMethod.OPT && ((VM_OptCompiledMethod) cm).getOptLevel() == optLevel) {
             double ns = counts[index];
             collect.add(new VM_HotMethodRecompilationEvent(cm, ns));
           }
@@ -448,8 +439,7 @@ public final class VM_MethodCountData implements VM_Reportable {
     int child1 = current * 2;
     while (child1 < nextIndex) {
       int child2 = current * 2 + 1;
-      int larger =
-          (child2 < nextIndex && counts[child2] > counts[child1]) ? child2 : child1;
+      int larger = (child2 < nextIndex && counts[child2] > counts[child1]) ? child2 : child1;
       if (counts[current] >= counts[larger]) break; // done
       swap(current, larger);
       current = larger;

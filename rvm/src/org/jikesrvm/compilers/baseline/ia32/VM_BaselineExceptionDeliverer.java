@@ -26,16 +26,13 @@ import org.vmmagic.unboxed.Offset;
  * Handle exception delivery and stack unwinding for methods compiled by
  * baseline compiler.
  */
-public abstract class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
-    implements VM_BaselineConstants {
+public abstract class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer implements VM_BaselineConstants {
 
   /**
    * Pass control to a catch block.
    */
-  public void deliverException(VM_CompiledMethod compiledMethod,
-                               Address catchBlockInstructionAddress,
-                               Throwable exceptionObject,
-                               ArchitectureSpecific.VM_Registers registers) {
+  public void deliverException(VM_CompiledMethod compiledMethod, Address catchBlockInstructionAddress,
+                               Throwable exceptionObject, ArchitectureSpecific.VM_Registers registers) {
     Address fp = registers.getInnermostFramePointer();
     VM_NormalMethod method = (VM_NormalMethod) compiledMethod.getMethod();
     VM_Thread myThread = VM_Thread.getCurrentThread();

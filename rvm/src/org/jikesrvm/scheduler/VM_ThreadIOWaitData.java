@@ -19,9 +19,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * @see VM_ThreadEventWaitData
  */
 @Uninterruptible
-public class VM_ThreadIOWaitData
-    extends VM_ThreadEventWaitData
-    implements VM_ThreadIOConstants {
+public class VM_ThreadIOWaitData extends VM_ThreadEventWaitData implements VM_ThreadIOConstants {
 
   public int[] readFds;
   public int[] writeFds;

@@ -33,8 +33,7 @@ import org.vmmagic.unboxed.Offset;
  *
  * @see org.jikesrvm.compilers.opt.ir.OPT_GenerateMagic for the machine-independent magics.
  */
-public abstract class OPT_GenerateMachineSpecificMagic
-    implements OPT_Operators, VM_StackframeLayoutConstants {
+public abstract class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_StackframeLayoutConstants {
 
   /**
    * "Semantic inlining" of methods of the VM_Magic class
@@ -46,9 +45,7 @@ public abstract class OPT_GenerateMachineSpecificMagic
    * @param gc == bc2ir.gc
    * @param meth the VM_Method that is the magic method
    */
-  public static boolean generateMagic(OPT_BC2IR bc2ir,
-                                      OPT_GenerationContext gc,
-                                      VM_MethodReference meth)
+  public static boolean generateMagic(OPT_BC2IR bc2ir, OPT_GenerationContext gc, VM_MethodReference meth)
       throws OPT_MagicNotImplementedException {
     VM_Atom methodName = meth.getName();
     if (methodName == VM_MagicNames.getFramePointer) {
@@ -61,7 +58,8 @@ public abstract class OPT_GenerateMachineSpecificMagic
     } else if (methodName == VM_MagicNames.getCallerFramePointer) {
       OPT_Operand fp = bc2ir.popAddress();
       OPT_RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Address);
-      bc2ir.appendInstruction(Load.create(REF_LOAD, val,
+      bc2ir.appendInstruction(Load.create(REF_LOAD,
+                                          val,
                                           fp,
                                           new OPT_AddressConstantOperand(Offset.fromIntSignExtend(
                                               STACKFRAME_FRAME_POINTER_OFFSET)),
@@ -70,7 +68,8 @@ public abstract class OPT_GenerateMachineSpecificMagic
     } else if (methodName == VM_MagicNames.setCallerFramePointer) {
       OPT_Operand val = bc2ir.popAddress();
       OPT_Operand fp = bc2ir.popAddress();
-      bc2ir.appendInstruction(Store.create(REF_STORE, val,
+      bc2ir.appendInstruction(Store.create(REF_STORE,
+                                           val,
                                            fp,
                                            new OPT_AddressConstantOperand(Offset.fromIntSignExtend(
                                                STACKFRAME_FRAME_POINTER_OFFSET)),
@@ -78,7 +77,8 @@ public abstract class OPT_GenerateMachineSpecificMagic
     } else if (methodName == VM_MagicNames.getCompiledMethodID) {
       OPT_Operand fp = bc2ir.popAddress();
       OPT_RegisterOperand val = gc.temps.makeTempInt();
-      bc2ir.appendInstruction(Load.create(INT_LOAD, val,
+      bc2ir.appendInstruction(Load.create(INT_LOAD,
+                                          val,
                                           fp,
                                           new OPT_AddressConstantOperand(Offset.fromIntSignExtend(
                                               STACKFRAME_METHOD_ID_OFFSET)),
@@ -87,7 +87,8 @@ public abstract class OPT_GenerateMachineSpecificMagic
     } else if (methodName == VM_MagicNames.setCompiledMethodID) {
       OPT_Operand val = bc2ir.popInt();
       OPT_Operand fp = bc2ir.popAddress();
-      bc2ir.appendInstruction(Store.create(INT_STORE, val,
+      bc2ir.appendInstruction(Store.create(INT_STORE,
+                                           val,
                                            fp,
                                            new OPT_AddressConstantOperand(Offset.fromIntSignExtend(
                                                STACKFRAME_METHOD_ID_OFFSET)),
@@ -95,7 +96,8 @@ public abstract class OPT_GenerateMachineSpecificMagic
     } else if (methodName == VM_MagicNames.getNextInstructionAddress) {
       OPT_Operand fp = bc2ir.popAddress();
       OPT_RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Address);
-      bc2ir.appendInstruction(Load.create(REF_LOAD, val,
+      bc2ir.appendInstruction(Load.create(REF_LOAD,
+                                          val,
                                           fp,
                                           new OPT_AddressConstantOperand(Offset.fromIntSignExtend(
                                               STACKFRAME_NEXT_INSTRUCTION_OFFSET)),
@@ -105,12 +107,14 @@ public abstract class OPT_GenerateMachineSpecificMagic
       OPT_Operand fp = bc2ir.popAddress();
       OPT_RegisterOperand callerFP = gc.temps.makeTemp(VM_TypeReference.Address);
       OPT_RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Address);
-      bc2ir.appendInstruction(Load.create(REF_LOAD, callerFP,
+      bc2ir.appendInstruction(Load.create(REF_LOAD,
+                                          callerFP,
                                           fp,
                                           new OPT_AddressConstantOperand(Offset.fromIntSignExtend(
                                               STACKFRAME_FRAME_POINTER_OFFSET)),
                                           null));
-      bc2ir.appendInstruction(Binary.create(REF_ADD, val,
+      bc2ir.appendInstruction(Binary.create(REF_ADD,
+                                            val,
                                             callerFP.copyRO(),
                                             new OPT_IntConstantOperand(STACKFRAME_NEXT_INSTRUCTION_OFFSET)));
       bc2ir.push(val.copyD2U());

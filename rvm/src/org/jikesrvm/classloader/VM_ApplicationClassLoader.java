@@ -94,12 +94,10 @@ public class VM_ApplicationClassLoader extends URLClassLoader {
   public static final String myName = "SystemAppCL";
 
   public String toString() {
-    return myName
-           + (createdAtBootImageWritingTime ? "-createdAtBootImageWritingTime" : "")
-           + (createdWithRunningVM ? "" : "-NOTcreatedWithRunningVM")
-           + (DBG
-              ? "@" + VM.addressAsHexString(VM_Magic.objectAsAddress(this))
-              : "");
+    return myName +
+           (createdAtBootImageWritingTime ? "-createdAtBootImageWritingTime" : "") +
+           (createdWithRunningVM ? "" : "-NOTcreatedWithRunningVM") +
+           (DBG ? "@" + VM.addressAsHexString(VM_Magic.objectAsAddress(this)) : "");
   }
 
   protected String findLibrary(String libName) {

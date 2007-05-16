@@ -21,8 +21,7 @@ import org.vmmagic.unboxed.Offset;
  *
  * @see OPT_Operand
  */
-public final class OPT_LocationOperand extends OPT_Operand
-    implements org.jikesrvm.compilers.opt.OPT_Constants {
+public final class OPT_LocationOperand extends OPT_Operand implements org.jikesrvm.compilers.opt.OPT_Constants {
 
   /*
    * TODO: Now that we don't pay a large penalty for dynamic type checks
@@ -240,8 +239,7 @@ public final class OPT_LocationOperand extends OPT_Operand
   }
 
   // NOTE: not checking for (t1==null xor t2==null) for efficiency
-  private static boolean arrayMayBeAliased(VM_TypeReference t1,
-                                           VM_TypeReference t2) {
+  private static boolean arrayMayBeAliased(VM_TypeReference t1, VM_TypeReference t2) {
     return ((t1 == t2) ||
             (OPT_ClassLoaderProxy.includesType(t1, t2) != NO) ||
             (OPT_ClassLoaderProxy.includesType(t2, t1) != NO));
@@ -255,8 +253,7 @@ public final class OPT_LocationOperand extends OPT_Operand
    * @return <code>true</code> if the operands might be aliased or
    *         <code>false</code> if they are definitely not aliased
    */
-  public static boolean mayBeAliased(OPT_LocationOperand op1,
-                                     OPT_LocationOperand op2) {
+  public static boolean mayBeAliased(OPT_LocationOperand op1, OPT_LocationOperand op2) {
     if (op1 == null || op2 == null) return true;        // be conservative
     if (op1.type != op2.type) return false;
     if (op1.fieldRef != null) {
@@ -277,8 +274,7 @@ public final class OPT_LocationOperand extends OPT_Operand
    *           if they are not.
    */
   public boolean similar(OPT_Operand op) {
-    return (op instanceof OPT_LocationOperand) &&
-           mayBeAliased(this, (OPT_LocationOperand) op);
+    return (op instanceof OPT_LocationOperand) && mayBeAliased(this, (OPT_LocationOperand) op);
   }
 
   /**

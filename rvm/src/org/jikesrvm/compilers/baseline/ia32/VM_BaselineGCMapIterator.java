@@ -33,8 +33,7 @@ import org.vmmagic.unboxed.WordArray;
  * java stack for the stack frame.
  */
 @Uninterruptible
-public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator
-    implements VM_BaselineConstants {
+public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator implements VM_BaselineConstants {
   private static final boolean TRACE_ALL = false;
   private static final boolean TRACE_DL = false; // dynamic link frames
 
@@ -142,8 +141,7 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator
         bridgeSpilledParamInitialOffset = 4; // return addr
       }
       bridgeSpilledParamInitialOffset += (4 * bridgeTarget.getParameterWords());
-      bridgeSpilledParameterMappingRequired =
-          callingCompiledMethod.getCompilerType() != VM_CompiledMethod.BASELINE;
+      bridgeSpilledParameterMappingRequired = callingCompiledMethod.getCompilerType() != VM_CompiledMethod.BASELINE;
     }
 
     reset();

@@ -37,8 +37,7 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
    * then examining the bytecodes to see what field/method was being
    * referenced, then calling VM_TableBasedDynamicLinker to do the real work.
    */
-  public static void resolveDynamicLink(VM_OptCompiledMethod cm, Offset offset)
-      throws NoClassDefFoundError {
+  public static void resolveDynamicLink(VM_OptCompiledMethod cm, Offset offset) throws NoClassDefFoundError {
     VM_OptMachineCodeMap map = cm.getMCMap();
     int bci = map.getBytecodeIndexForMCOffset(offset);
     VM_NormalMethod realMethod = map.getMethodForMCOffset(offset);
@@ -63,8 +62,7 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
       case JBC_invokeinterface:
       default:
         if (VM.VerifyAssertions) {
-          VM._assert(VM.NOT_REACHED,
-                     "Unexpected case in VM_OptLinker.resolveDynamicLink");
+          VM._assert(VM.NOT_REACHED, "Unexpected case in VM_OptLinker.resolveDynamicLink");
         }
         break;
     }
@@ -74,9 +72,7 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
    * Method referenced from VM_Entrypoints
    */
   public static Object newArrayArray(int methodId, int[] dimensions, int typeId)
-      throws NoClassDefFoundError,
-             NegativeArraySizeException,
-             OutOfMemoryError {
+      throws NoClassDefFoundError, NegativeArraySizeException, OutOfMemoryError {
     // validate arguments
     for (int dimension : dimensions) {
       if (dimension < 0) throw new NegativeArraySizeException();

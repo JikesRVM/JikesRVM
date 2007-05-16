@@ -24,8 +24,7 @@ import org.jikesrvm.ia32.VM_RegisterConstants;
  * This class represents a set of OPT_Registers corresponding to the
  * IA32 register set.
  */
-public abstract class OPT_PhysicalRegisterSet
-    extends OPT_GenericPhysicalRegisterSet
+public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSet
     implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
 
   /**
@@ -408,8 +407,7 @@ public abstract class OPT_PhysicalRegisterSet
     } else if (r.isFloatingPoint()) {
       return DOUBLE_REG;
     } else {
-      throw new OPT_OptimizingCompilerException("getPhysicalRegisterType "
-                                                + " unexpected " + r);
+      throw new OPT_OptimizingCompilerException("getPhysicalRegisterType " + " unexpected " + r);
     }
   }
 
@@ -449,8 +447,7 @@ public abstract class OPT_PhysicalRegisterSet
    */
   public static int getSpillSize(int type) {
     if (VM.VerifyAssertions) {
-      VM._assert((type == INT_REG) || (type == DOUBLE_REG) ||
-                 (type == SPECIAL_REG));
+      VM._assert((type == INT_REG) || (type == DOUBLE_REG) || (type == SPECIAL_REG));
     }
     if (type == DOUBLE_REG) {
       return 8;
@@ -465,8 +462,7 @@ public abstract class OPT_PhysicalRegisterSet
    */
   public static int getSpillAlignment(int type) {
     if (VM.VerifyAssertions) {
-      VM._assert((type == INT_REG) || (type == DOUBLE_REG) ||
-                 (type == SPECIAL_REG));
+      VM._assert((type == INT_REG) || (type == DOUBLE_REG) || (type == SPECIAL_REG));
     }
     if (type == DOUBLE_REG) {
       return 8;
@@ -600,8 +596,7 @@ public abstract class OPT_PhysicalRegisterSet
       case SPECIAL_REG:
         return OPT_EmptyEnumerator.emptyEnumeration();
       default:
-        throw new OPT_OptimizingCompilerException
-            ("Unsupported non-volatile type");
+        throw new OPT_OptimizingCompilerException("Unsupported non-volatile type");
     }
   }
 

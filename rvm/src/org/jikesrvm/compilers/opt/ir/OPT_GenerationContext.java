@@ -36,9 +36,7 @@ import org.vmmagic.unboxed.Offset;
  * a method's bytecodes and populate targetIR with instructions.
  *
  **/
-public final class OPT_GenerationContext
-    implements org.jikesrvm.compilers.opt.OPT_Constants,
-               OPT_Operators {
+public final class OPT_GenerationContext implements org.jikesrvm.compilers.opt.OPT_Constants, OPT_Operators {
 
   //////////
   // These fields are used to communicate information from its
@@ -185,10 +183,7 @@ public final class OPT_GenerationContext
    * @param opts The OPT_Options to be used for the generation
    * @param ip   The OPT_InlineOracle to be used for the generation
    */
-  OPT_GenerationContext(VM_NormalMethod meth,
-                        VM_CompiledMethod cm,
-                        OPT_Options opts,
-                        OPT_InlineOracle ip) {
+  OPT_GenerationContext(VM_NormalMethod meth, VM_CompiledMethod cm, OPT_Options opts, OPT_InlineOracle ip) {
     original_method = meth;
     original_cm = cm;
     method = meth;
@@ -218,8 +213,7 @@ public final class OPT_GenerationContext
     int localNum = 0;
     arguments = new OPT_Operand[method.isStatic() ? numParams : numParams + 1];
     // Insert IR_PROLOGUE instruction.  Loop below will fill in its operands
-    OPT_Instruction prologueInstr =
-        Prologue.create(IR_PROLOGUE, arguments.length);
+    OPT_Instruction prologueInstr = Prologue.create(IR_PROLOGUE, arguments.length);
     appendInstruction(prologue, prologueInstr, PROLOGUE_BCI);
 
     if (!method.isStatic()) {
@@ -228,10 +222,7 @@ public final class OPT_GenerationContext
       // The this param of a virtual method is by definition non null
       OPT_RegisterOperand guard = makeNullCheckGuard(thisOp.register);
       OPT_BC2IR.setGuard(thisOp, guard);
-      appendInstruction(prologue,
-                        Move.create(GUARD_MOVE, guard.copyRO(),
-                                    new OPT_TrueGuardOperand()),
-                        PROLOGUE_BCI);
+      appendInstruction(prologue, Move.create(GUARD_MOVE, guard.copyRO(), new OPT_TrueGuardOperand()), PROLOGUE_BCI);
       thisOp.setDeclaredType();
       thisOp.setExtant();
       arguments[0] = thisOp;
@@ -278,10 +269,8 @@ public final class OPT_GenerationContext
    * @param callSite the Call instruction to be inlined.
    * @return the child context
    */
-  static OPT_GenerationContext createChildContext(OPT_GenerationContext parent,
-                                                  OPT_ExceptionHandlerBasicBlockBag ebag,
-                                                  VM_NormalMethod callee,
-                                                  OPT_Instruction callSite) {
+  static OPT_GenerationContext createChildContext(OPT_GenerationContext parent, OPT_ExceptionHandlerBasicBlockBag ebag,
+                                                  VM_NormalMethod callee, OPT_Instruction callSite) {
     OPT_GenerationContext child = new OPT_GenerationContext();
     child.method = callee;
     if (parent.options.frequencyCounters() || parent.options.inverseFrequencyCounters()) {
@@ -298,9 +287,7 @@ public final class OPT_GenerationContext
     child.inlinePlan = parent.inlinePlan;
 
     // Now inherit state based on callSite
-    child.inlineSequence = new OPT_InlineSequence(child.method,
-                                                  callSite.position,
-                                                  callSite);
+    child.inlineSequence = new OPT_InlineSequence(child.method, callSite.position, callSite);
     child.enclosingHandlers = ebag;
     child.arguments = new OPT_Operand[Call.getNumberOfParams(callSite)];
     for (int i = 0; i < child.arguments.length; i++) {
@@ -314,11 +301,9 @@ public final class OPT_GenerationContext
 
     // Initialize the child CFG, prologue, and epilogue blocks
     child.cfg = new OPT_ControlFlowGraph(parent.cfg.numberOfNodes());
-    child.prologue = new OPT_BasicBlock(PROLOGUE_BCI,
-                                        child.inlineSequence, child.cfg);
+    child.prologue = new OPT_BasicBlock(PROLOGUE_BCI, child.inlineSequence, child.cfg);
     child.prologue.exceptionHandlers = ebag;
-    child.epilogue = new OPT_BasicBlock(EPILOGUE_BCI,
-                                        child.inlineSequence, child.cfg);
+    child.epilogue = new OPT_BasicBlock(EPILOGUE_BCI, child.inlineSequence, child.cfg);
     child.epilogue.exceptionHandlers = ebag;
     child.cfg.addLastInCodeOrder(child.prologue);
     child.cfg.addLastInCodeOrder(child.epilogue);
@@ -351,9 +336,7 @@ public final class OPT_GenerationContext
         // Constants trivially non-null
         OPT_RegisterOperand guard = child.makeNullCheckGuard(local.register);
         OPT_BC2IR.setGuard(local, guard);
-        child.prologue.appendInstruction(Move.create(GUARD_MOVE,
-                                                     guard.copyRO(),
-                                                     new OPT_TrueGuardOperand()));
+        child.prologue.appendInstruction(Move.create(GUARD_MOVE, guard.copyRO(), new OPT_TrueGuardOperand()));
       } else {
         OPT_OptimizingCompilerException.UNREACHABLE("Unexpected receiver operand");
       }
@@ -381,8 +364,7 @@ public final class OPT_GenerationContext
       } else {
         formal = child.makeLocal(localNum++, argType);
       }
-      OPT_Instruction s =
-          Move.create(OPT_IRTools.getMoveOp(argType), formal, actual);
+      OPT_Instruction s = Move.create(OPT_IRTools.getMoveOp(argType), formal, actual);
       s.bcIndex = PROLOGUE_BCI;
       s.position = callSite.position;
       child.prologue.appendInstruction(s);
@@ -407,8 +389,7 @@ public final class OPT_GenerationContext
    * @param ebag the enclosing exception handlers (null if none)
    * @return the synthetic context
    */
-  static OPT_GenerationContext createSynthetic(OPT_GenerationContext parent,
-                                               OPT_ExceptionHandlerBasicBlockBag ebag) {
+  static OPT_GenerationContext createSynthetic(OPT_GenerationContext parent, OPT_ExceptionHandlerBasicBlockBag ebag) {
     // Create the CFG. Initially contains prologue and epilogue
     OPT_GenerationContext child = new OPT_GenerationContext();
 
@@ -420,11 +401,9 @@ public final class OPT_GenerationContext
     // targets, so in the cases that I've observed where the prologue
     // and epilogue don't disappear, it was correct to have the
     // parent's position. -- Matt
-    child.prologue = new OPT_BasicBlock(PROLOGUE_BCI, parent.inlineSequence,
-                                        parent.cfg);
+    child.prologue = new OPT_BasicBlock(PROLOGUE_BCI, parent.inlineSequence, parent.cfg);
     child.prologue.exceptionHandlers = ebag;
-    child.epilogue = new OPT_BasicBlock(EPILOGUE_BCI, parent.inlineSequence,
-                                        parent.cfg);
+    child.epilogue = new OPT_BasicBlock(EPILOGUE_BCI, parent.inlineSequence, parent.cfg);
     child.epilogue.exceptionHandlers = ebag;
     child.cfg.addLastInCodeOrder(child.prologue);
     child.cfg.addLastInCodeOrder(child.epilogue);
@@ -448,8 +427,7 @@ public final class OPT_GenerationContext
    * @param parent the parent context that will receive the state
    * @param child  the child context from which the state will be taken
    */
-  public static void transferState(OPT_GenerationContext parent,
-                                   OPT_GenerationContext child) {
+  public static void transferState(OPT_GenerationContext parent, OPT_GenerationContext child) {
     parent.cfg.setNumberOfNodes(child.cfg.numberOfNodes());
     if (child.generatedExceptionHandlers) {
       parent.generatedExceptionHandlers = true;
@@ -634,11 +612,9 @@ public final class OPT_GenerationContext
     // since it's the second time reenter
     if (method.isForOsrSpecialization()) {
       // do nothing
-    } else if (method.isSynchronized() && !options.MONITOR_NOP
-               && !options.INVOKEE_THREAD_LOCAL) {
+    } else if (method.isSynchronized() && !options.MONITOR_NOP && !options.INVOKEE_THREAD_LOCAL) {
       OPT_Operand lockObject = getLockObject();
-      OPT_Instruction s =
-          MonitorOp.create(MONITORENTER, lockObject, new OPT_TrueGuardOperand());
+      OPT_Instruction s = MonitorOp.create(MONITORENTER, lockObject, new OPT_TrueGuardOperand());
       appendInstruction(prologue, s, SYNCHRONIZED_MONITORENTER_BCI);
     }
   }
@@ -649,8 +625,7 @@ public final class OPT_GenerationContext
    */
   private void completeEpilogue(boolean isOutermost) {
     // Deal with implicit monitorexit for synchronized methods.
-    if (method.isSynchronized() && !options.MONITOR_NOP
-        && !options.INVOKEE_THREAD_LOCAL) {
+    if (method.isSynchronized() && !options.MONITOR_NOP && !options.INVOKEE_THREAD_LOCAL) {
       OPT_Operand lockObject = getLockObject();
       OPT_Instruction s = MonitorOp.create(MONITOREXIT, lockObject, new OPT_TrueGuardOperand());
       appendInstruction(epilogue, s, SYNCHRONIZED_MONITOREXIT_BCI);
@@ -664,8 +639,7 @@ public final class OPT_GenerationContext
 
     if (isOutermost) {
       VM_TypeReference returnType = method.getReturnType();
-      OPT_Operand retVal = returnType.isVoidType() ? null :
-                           new OPT_RegisterOperand(resultReg, returnType);
+      OPT_Operand retVal = returnType.isVoidType() ? null : new OPT_RegisterOperand(resultReg, returnType);
       OPT_Instruction s = Return.create(RETURN, retVal);
       appendInstruction(epilogue, s, EPILOGUE_BCI);
     }
@@ -679,8 +653,10 @@ public final class OPT_GenerationContext
   private void completeExceptionHandlers(boolean isOutermost) {
     if (method.isSynchronized() && !options.MONITOR_NOP) {
       OPT_ExceptionHandlerBasicBlock rethrow =
-          new OPT_ExceptionHandlerBasicBlock(SYNTH_CATCH_BCI, inlineSequence,
-                                             new OPT_TypeOperand(VM_Type.JavaLangThrowableType), cfg);
+          new OPT_ExceptionHandlerBasicBlock(SYNTH_CATCH_BCI,
+                                             inlineSequence,
+                                             new OPT_TypeOperand(VM_Type.JavaLangThrowableType),
+                                             cfg);
       rethrow.exceptionHandlers = enclosingHandlers;
       OPT_RegisterOperand ceo = temps.makeTemp(VM_TypeReference.JavaLangThrowable);
       OPT_Instruction s = Nullary.create(GET_CAUGHT_EXCEPTION, ceo);
@@ -690,8 +666,13 @@ public final class OPT_GenerationContext
       VM_Method target = VM_Entrypoints.unlockAndThrowMethod;
       OPT_MethodOperand methodOp = OPT_MethodOperand.STATIC(target);
       methodOp.setIsNonReturningCall(true); // Used to keep cfg correct
-      s = Call.create2(CALL, null, new OPT_AddressConstantOperand(target.getOffset()),
-                       methodOp, lockObject, ceo.copyD2U());
+      s =
+          Call.create2(CALL,
+                       null,
+                       new OPT_AddressConstantOperand(target.getOffset()),
+                       methodOp,
+                       lockObject,
+                       ceo.copyD2U());
       appendInstruction(rethrow, s, RUNTIME_SERVICES_BCI);
 
       cfg.insertBeforeInCodeOrder(epilogue, rethrow);
@@ -699,8 +680,7 @@ public final class OPT_GenerationContext
       // May be overly conservative
       // (if enclosed by another catch of Throwable...)
       if (enclosingHandlers != null) {
-        for (OPT_BasicBlockEnumeration e = enclosingHandlers.enumerator();
-             e.hasMoreElements();) {
+        for (OPT_BasicBlockEnumeration e = enclosingHandlers.enumerator(); e.hasMoreElements();) {
           OPT_BasicBlock eh = e.next();
           rethrow.insertOut(eh);
         }
@@ -712,11 +692,9 @@ public final class OPT_GenerationContext
       // save a reference to this block so we can discard it if unused.
       unlockAndRethrow = rethrow;
 
-      OPT_ExceptionHandlerBasicBlock[] sh =
-          new OPT_ExceptionHandlerBasicBlock[1];
+      OPT_ExceptionHandlerBasicBlock[] sh = new OPT_ExceptionHandlerBasicBlock[1];
       sh[0] = rethrow;
-      enclosingHandlers =
-          new OPT_ExceptionHandlerBasicBlockBag(sh, enclosingHandlers);
+      enclosingHandlers = new OPT_ExceptionHandlerBasicBlockBag(sh, enclosingHandlers);
       generatedExceptionHandlers = true;
     }
   }
@@ -735,9 +713,7 @@ public final class OPT_GenerationContext
     }
   }
 
-  private void appendInstruction(OPT_BasicBlock b,
-                                 OPT_Instruction s,
-                                 int bcIndex) {
+  private void appendInstruction(OPT_BasicBlock b, OPT_Instruction s, int bcIndex) {
     s.position = inlineSequence;
     s.bcIndex = bcIndex;
     b.appendInstruction(s);
@@ -748,9 +724,7 @@ public final class OPT_GenerationContext
 
     // supress redundant markers by detecting when we're inlining
     // one Uninterruptible method into another one.
-    for (OPT_InlineSequence p = inlineSequence.getCaller();
-         p != null;
-         p = p.getCaller()) {
+    for (OPT_InlineSequence p = inlineSequence.getCaller(); p != null; p = p.getCaller()) {
       if (!p.getMethod().isInterruptible()) return false;
     }
 
@@ -774,8 +748,7 @@ public final class OPT_GenerationContext
   private void resync_ncGuards() {
     HashSet<OPT_Register> regPool = new HashSet<OPT_Register>();
 
-    for (OPT_Register r = temps.getFirstSymbolicRegister();
-         r != null; r = r.next) {
+    for (OPT_Register r = temps.getFirstSymbolicRegister(); r != null; r = r.next) {
       regPool.add(r);
     }
 

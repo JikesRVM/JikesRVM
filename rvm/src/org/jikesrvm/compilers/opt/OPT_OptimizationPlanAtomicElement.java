@@ -24,8 +24,7 @@ import org.jikesrvm.scheduler.VM_Thread;
  *       state to be stored in an instance field of
  *       one of these objects.
  */
-public final class OPT_OptimizationPlanAtomicElement extends
-                                                     OPT_OptimizationPlanElement {
+public final class OPT_OptimizationPlanAtomicElement extends OPT_OptimizationPlanElement {
   /**
    * The phase to be performed.
    */

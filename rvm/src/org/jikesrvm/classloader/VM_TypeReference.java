@@ -240,8 +240,7 @@ public final class VM_TypeReference {
    * @param tn type name
    */
   public static VM_TypeReference findOrCreate(String tn) {
-    return findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                        VM_Atom.findOrCreateAsciiAtom(tn));
+    return findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), VM_Atom.findOrCreateAsciiAtom(tn));
   }
 
   /**
@@ -635,8 +634,7 @@ public final class VM_TypeReference {
    */
   @Uninterruptible
   public boolean isIntLikeType() {
-    return isBooleanType() || isByteType() || isCharType()
-           || isShortType() || isIntType();
+    return isBooleanType() || isByteType() || isCharType() || isShortType() || isIntType();
   }
 
   /**
@@ -705,8 +703,7 @@ public final class VM_TypeReference {
    *        validate them as soon as we insert them into a VM_TypeReference.
    *        This stinks. XXX)
    */
-  public VM_Type resolve() throws NoClassDefFoundError,
-                                  IllegalArgumentException {
+  public VM_Type resolve() throws NoClassDefFoundError, IllegalArgumentException {
     /*
     * Lock the classloader instead of this to avoid conflicting locking order.
     * Suppose we locked this, then one thread could call resolve(), locking this,
@@ -719,8 +716,7 @@ public final class VM_TypeReference {
     }
   }
 
-  private VM_Type resolveInternal() throws NoClassDefFoundError,
-                                           IllegalArgumentException {
+  private VM_Type resolveInternal() throws NoClassDefFoundError, IllegalArgumentException {
     if (resolvedType != null) return resolvedType;
     if (isClassType()) {
       VM_Type ans;
@@ -730,8 +726,8 @@ public final class VM_TypeReference {
         try {
           klass = classloader.loadClass(myName);
         } catch (ClassNotFoundException cnf) {
-          NoClassDefFoundError ncdfe
-              = new NoClassDefFoundError("Could not find the class " + myName + ":\n\t" + cnf.getMessage());
+          NoClassDefFoundError ncdfe =
+              new NoClassDefFoundError("Could not find the class " + myName + ":\n\t" + cnf.getMessage());
           ncdfe.initCause(cnf); // in dubious taste, but helps us debug Jikes
           // RVM
           throw ncdfe;

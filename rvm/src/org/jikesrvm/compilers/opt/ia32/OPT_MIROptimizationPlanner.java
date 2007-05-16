@@ -66,8 +66,7 @@ public class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner {
           public boolean shouldPerform(OPT_Options options) {
             return options.PRINT_MIR;
           }
-        }
-    });
+        }});
   }
 
   /**
@@ -78,19 +77,17 @@ public class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner {
    */
   private static void MIROptimizations(ArrayList<OPT_OptimizationPlanElement> p) {
     // Register Allocation
-    composeComponents(p, "Register Mapping", new Object[]{
-        new OPT_MIRSplitRanges(),
-        // MANDATORY: Expand calling convention
-        new OPT_ExpandCallingConvention(),
-        // MANDATORY: Insert defs/uses due to floating-point stack
-        new OPT_ExpandFPRStackConvention(),
-        // MANDATORY: Perform Live analysis and create GC maps
-        new OPT_LiveAnalysis(true, false),
-        // MANDATORY: Perform register allocation
-        new OPT_RegisterAllocator(),
-        // MANDATORY: Add prologue and epilogue
-        new OPT_PrologueEpilogueCreator(),
-    });
+    composeComponents(p, "Register Mapping", new Object[]{new OPT_MIRSplitRanges(),
+                                                          // MANDATORY: Expand calling convention
+                                                          new OPT_ExpandCallingConvention(),
+                                                          // MANDATORY: Insert defs/uses due to floating-point stack
+                                                          new OPT_ExpandFPRStackConvention(),
+                                                          // MANDATORY: Perform Live analysis and create GC maps
+                                                          new OPT_LiveAnalysis(true, false),
+                                                          // MANDATORY: Perform register allocation
+                                                          new OPT_RegisterAllocator(),
+                                                          // MANDATORY: Add prologue and epilogue
+                                                          new OPT_PrologueEpilogueCreator(),});
     // Peephole branch optimizations
     addComponent(p, new OPT_MIRBranchOptimizations(1));
   }

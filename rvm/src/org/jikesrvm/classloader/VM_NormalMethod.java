@@ -18,9 +18,7 @@ import org.vmmagic.pragma.Uninterruptible;
 /**
  * A method of a java class that has bytecodes.
  */
-public final class VM_NormalMethod
-    extends VM_Method
-    implements VM_BytecodeConstants {
+public final class VM_NormalMethod extends VM_Method implements VM_BytecodeConstants {
 
   /* As we read the bytecodes for the method, we compute
    * a simple summary of some interesting properties of the method.
@@ -146,13 +144,9 @@ public final class VM_NormalMethod
    * @param parameterAnnotations array of runtime visible paramter annotations
    * @param ad annotation default value for that appears in annotation classes
    */
-  VM_NormalMethod(VM_TypeReference dc, VM_MemberReference mr,
-                  short mo, VM_TypeReference[] et, short lw, short ow, byte[] bc,
-                  VM_ExceptionHandlerMap eMap, int[] lm,
-                  int[] constantPool, VM_Atom sig,
-                  VM_Annotation[] annotations,
-                  VM_Annotation[] parameterAnnotations,
-                  Object ad) {
+  VM_NormalMethod(VM_TypeReference dc, VM_MemberReference mr, short mo, VM_TypeReference[] et, short lw, short ow,
+                  byte[] bc, VM_ExceptionHandlerMap eMap, int[] lm, int[] constantPool, VM_Atom sig,
+                  VM_Annotation[] annotations, VM_Annotation[] parameterAnnotations, Object ad) {
     super(dc, mr, mo, et, sig, annotations, parameterAnnotations, ad);
     localWords = lw;
     operandWords = ow;
@@ -215,8 +209,8 @@ public final class VM_NormalMethod
     if (VM.VerifyAssertions) VM._assert(bcIndex + 2 < bytecodes.length);
     int bytecode = bytecodes[bcIndex] & 0xFF;
     if (VM.VerifyAssertions) {
-      VM._assert((VM_BytecodeConstants.JBC_invokevirtual <= bytecode)
-                 && (bytecode <= VM_BytecodeConstants.JBC_invokeinterface));
+      VM._assert((VM_BytecodeConstants.JBC_invokevirtual <= bytecode) &&
+                 (bytecode <= VM_BytecodeConstants.JBC_invokeinterface));
     }
     int constantPoolIndex = ((bytecodes[bcIndex + 1] & 0xFF) << BITS_IN_BYTE) | (bytecodes[bcIndex + 2] & 0xFF);
     dynamicLink.set(getDeclaringClass().getMethodRef(constantPoolIndex), bytecode);

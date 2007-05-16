@@ -66,8 +66,7 @@ import org.jikesrvm.scheduler.VM_Thread;
  *   still be an accurate measure of the space costs of the compile-only
  *   approach.
  */
-public class VM_RuntimeCompiler implements VM_Constants,
-                                           VM_Callbacks.ExitMonitor {
+public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonitor {
 
   // Use these to encode the compiler for record()
   public static final byte JNI_COMPILER = 0;
@@ -130,11 +129,10 @@ public class VM_RuntimeCompiler implements VM_Constants,
    * @param method the resulting VM_Method
    * @param compiledMethod the resulting compiled method
    */
-  public static void record(byte compiler,
-                            VM_NormalMethod method,
-                            VM_CompiledMethod compiledMethod) {
+  public static void record(byte compiler, VM_NormalMethod method, VM_CompiledMethod compiledMethod) {
 
-    recordCompilation(compiler, method.getBytecodeLength(),
+    recordCompilation(compiler,
+                      method.getBytecodeLength(),
                       compiledMethod.numberOfInstructions(),
                       compiledMethod.getCompilationTime());
 
@@ -162,14 +160,10 @@ public class VM_RuntimeCompiler implements VM_Constants,
    * @param method the resulting VM_Method
    * @param compiledMethod the resulting compiled method
    */
-  public static void record(byte compiler,
-                            VM_NativeMethod method,
-                            VM_CompiledMethod compiledMethod) {
+  public static void record(byte compiler, VM_NativeMethod method, VM_CompiledMethod compiledMethod) {
 
-    recordCompilation(compiler,
-                      0, // don't have any bytecode info, its native
-                      compiledMethod.numberOfInstructions(),
-                      compiledMethod.getCompilationTime());
+    recordCompilation(compiler, 0, // don't have any bytecode info, its native
+                      compiledMethod.numberOfInstructions(), compiledMethod.getCompilationTime());
   }
 
   /**
@@ -179,10 +173,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
    * @param MCLength the length of the generated machine code
    * @param compTime the compilation time in ms
    */
-  private static void recordCompilation(byte compiler,
-                                        int BCLength,
-                                        int MCLength,
-                                        double compTime) {
+  private static void recordCompilation(byte compiler, int BCLength, int MCLength, double compTime) {
 
     totalMethods[compiler]++;
     totalMCLength[compiler] += MCLength;
@@ -340,8 +331,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
    * @param method the method to compile
    * @param plan the plan to use for compiling the method
    */
-  private static VM_CompiledMethod optCompile(VM_NormalMethod method,
-                                              OPT_CompilationPlan plan)
+  private static VM_CompiledMethod optCompile(VM_NormalMethod method, OPT_CompilationPlan plan)
       throws OPT_OptimizingCompilerException {
     if (VM.BuildForOptCompiler) {
       if (VM.VerifyAssertions) {
@@ -438,8 +428,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
    * @param method the method to compile
    * @param plan the compilation plan to use
    */
-  private static VM_CompiledMethod optCompileWithFallBackInternal(VM_NormalMethod method,
-                                                                  OPT_CompilationPlan plan) {
+  private static VM_CompiledMethod optCompileWithFallBackInternal(VM_NormalMethod method, OPT_CompilationPlan plan) {
     if (VM.BuildForOptCompiler) {
       if (method.hasNoOptCompileAnnotation()) return fallback(method);
       try {
@@ -488,9 +477,15 @@ public class VM_RuntimeCompiler implements VM_Constants,
         return cm;
       } catch (OPT_OptimizingCompilerException e) {
         e.printStackTrace();
-        String msg = "Optimizing compiler "
-                     + "(via recompileWithOptOnStackSpecialization): "
-                     + "can't optimize \"" + plan.method + "\" (error was: " + e + ")\n";
+        String msg =
+            "Optimizing compiler " +
+            "(via recompileWithOptOnStackSpecialization): " +
+            "can't optimize \"" +
+            plan
+                .method +
+                        "\" (error was: " +
+                        e +
+                        ")\n";
 
         if (e.isFatal && VM.ErrorsFatal) {
           VM.sysFail(msg);
@@ -529,13 +524,8 @@ public class VM_RuntimeCompiler implements VM_Constants,
           try {
             plan.method.replaceCompiledMethod(cm);
           } catch (Throwable e) {
-            String msg =
-                "Failure in VM_Method.replaceCompiledMethod (via recompileWithOpt): while replacing \"" +
-                plan
-                    .method +
-                            "\" (error was: " +
-                            e +
-                            ")\n";
+            String msg = "Failure in VM_Method.replaceCompiledMethod (via recompileWithOpt): while replacing \"" + plan
+                .method + "\" (error was: " + e + ")\n";
             if (VM.ErrorsFatal) {
               e.printStackTrace();
               VM.sysFail(msg);
@@ -546,13 +536,8 @@ public class VM_RuntimeCompiler implements VM_Constants,
           }
           return cm.getId();
         } catch (OPT_OptimizingCompilerException e) {
-          String msg =
-              "Optimizing compiler (via recompileWithOpt): can't optimize \"" +
-              plan
-                  .method +
-                          "\" (error was: " +
-                          e +
-                          ")\n";
+          String msg = "Optimizing compiler (via recompileWithOpt): can't optimize \"" + plan
+              .method + "\" (error was: " + e + ")\n";
           if (e.isFatal && VM.ErrorsFatal) {
             e.printStackTrace();
             VM.sysFail(msg);
@@ -577,10 +562,11 @@ public class VM_RuntimeCompiler implements VM_Constants,
    */
   public static int recompileWithOpt(VM_NormalMethod method) {
     if (VM.BuildForOptCompiler) {
-      OPT_CompilationPlan plan = new OPT_CompilationPlan(method,
-                                                         (OPT_OptimizationPlanElement[]) optimizationPlan,
-                                                         null,
-                                                         (OPT_Options) options);
+      OPT_CompilationPlan plan =
+          new OPT_CompilationPlan(method,
+                                  (OPT_OptimizationPlanElement[]) optimizationPlan,
+                                  null,
+                                  (OPT_Options) options);
       return recompileWithOpt(plan);
     } else {
       if (VM.VerifyAssertions) VM._assert(false);
@@ -679,23 +665,24 @@ public class VM_RuntimeCompiler implements VM_Constants,
             VM_AOSInstrumentationPlan instrumentationPlan =
                 new VM_AOSInstrumentationPlan(VM_Controller.options, method);
             OPT_CompilationPlan compPlan =
-                new OPT_CompilationPlan(method, (OPT_OptimizationPlanElement[]) optimizationPlan,
-                                        instrumentationPlan, (OPT_Options) options);
+                new OPT_CompilationPlan(method,
+                                        (OPT_OptimizationPlanElement[]) optimizationPlan,
+                                        instrumentationPlan,
+                                        (OPT_Options) options);
             cm = optCompileWithFallBack(method, compPlan);
           }
         } else {
-          if ((VM_Controller.options.BACKGROUND_RECOMPILATION
-               && (!VM_Controller.options.ENABLE_REPLAY_COMPILE)
-               && (!VM_Controller.options.ENABLE_PRECOMPILE))
-              ) {
+          if ((VM_Controller.options
+              .BACKGROUND_RECOMPILATION &&
+                                        (!VM_Controller.options.ENABLE_REPLAY_COMPILE) &&
+                                        (!VM_Controller.options.ENABLE_PRECOMPILE))) {
             // must be an inital compilation: compile with baseline compiler
             // or if recompilation with OSR.
             cm = baselineCompile(method);
             VM_ControllerMemory.incrementNumBase();
           } else {
             if (VM_CompilerAdviceAttribute.hasAdvice()) {
-              VM_CompilerAdviceAttribute attr =
-                  VM_CompilerAdviceAttribute.getCompilerAdviceInfo(method);
+              VM_CompilerAdviceAttribute attr = VM_CompilerAdviceAttribute.getCompilerAdviceInfo(method);
               if (attr.getCompiler() != VM_CompiledMethod.OPT) {
                 cm = fallback(method);
                 VM_AOSLogging.recordCompileTime(cm, 0.0);
@@ -741,9 +728,10 @@ public class VM_RuntimeCompiler implements VM_Constants,
           }
         }
       }
-      if ((VM_Controller.options.ENABLE_ADVICE_GENERATION)
-          && (cm.getCompilerType() == VM_CompiledMethod.BASELINE)
-          && VM_Controller.enabled) {
+      if ((VM_Controller.options.ENABLE_ADVICE_GENERATION) &&
+          (cm.getCompilerType() == VM_CompiledMethod.BASELINE) &&
+          VM_Controller
+              .enabled) {
         VM_AOSGenerator.baseCompilationCompleted(cm);
       }
       VM_AOSLogging.recordCompileTime(cm, 0.0);
@@ -768,8 +756,11 @@ public class VM_RuntimeCompiler implements VM_Constants,
     VM_CompiledMethod cm = VM_JNICompiler.compile(method);
     if (VM.verboseJNI) {
       VM.sysWriteln("[Dynamic-linking native method " +
-                    method.getDeclaringClass() + "." + method.getName() +
-                    " " + method.getDescriptor());
+                    method.getDeclaringClass() +
+                    "." +
+                    method.getName() +
+                    " " +
+                    method.getDescriptor());
     }
 
     if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {

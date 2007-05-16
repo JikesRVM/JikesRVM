@@ -421,8 +421,10 @@ public final class VM_Lock implements VM_Constants {
     if (VM.VerifyAssertions) // check that each potential lock is addressable
     {
       VM._assert((VM_Scheduler.locks.length - 1 <=
-                  VM_ThinLockConstants.TL_LOCK_ID_MASK.rshl(VM_ThinLockConstants.TL_LOCK_ID_SHIFT).toInt())
-                 || VM_ThinLockConstants.TL_LOCK_ID_MASK.EQ(Word.fromIntSignExtend(-1)));
+                  VM_ThinLockConstants.TL_LOCK_ID_MASK.rshl(VM_ThinLockConstants.TL_LOCK_ID_SHIFT).toInt()) ||
+                                                                                                            VM_ThinLockConstants.TL_LOCK_ID_MASK.EQ(
+                                                                                                                Word.fromIntSignExtend(
+                                                                                                                    -1)));
     }
   }
 

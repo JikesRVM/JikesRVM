@@ -112,8 +112,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
    */
   public final void perform(OPT_IR ir) {
     // iterate over each basic block
-    for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); bb != null;
-         bb = bb.nextBasicBlockInCodeOrder()) {
+    for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); bb != null; bb = bb.nextBasicBlockInCodeOrder()) {
       if (bb.isEmpty()) continue;
       container.counter2++;
       if (bb.getInfrequent()) {
@@ -139,9 +138,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
     // iterate over all instructions in the basic block
     for (OPT_Instruction inst = bb.firstRealInstruction(),
         sentinel = bb.lastInstruction(),
-        nextInstr = null;
-         inst != sentinel;
-         inst = nextInstr) {
+        nextInstr = null; inst != sentinel; inst = nextInstr) {
       nextInstr = inst.nextInstructionInCodeOrder(); // cache before we
       // mutate prev/next links
       // 1. try and replace this instruction according to
@@ -163,8 +160,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
       // instruction kills
       cache.eliminate(inst);
       // CALL instructions and synchronizations KILL all memory locations!
-      if (Call.conforms(inst) || isSynchronizing(inst)
-          || inst.isDynamicLinkingPoint()) {
+      if (Call.conforms(inst) || isSynchronizing(inst) || inst.isDynamicLinkingPoint()) {
         cache.invalidateAllLoads();
       }
     }
@@ -181,9 +177,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
     // iterate over all instructions in the basic block
     for (OPT_Instruction inst = bb.firstRealInstruction(),
         sentinel = bb.lastInstruction(),
-        nextInstr = null;
-         inst != sentinel;
-         inst = nextInstr) {
+        nextInstr = null; inst != sentinel; inst = nextInstr) {
       nextInstr = inst.nextInstructionInCodeOrder(); // cache before we
       // mutate prev/next links
       // 1. try and replace this instruction according to
@@ -267,8 +261,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
    * @param cache the cache of available expressions
    * @param inst the instruction begin processed
    */
-  private void loadHelper(OPT_IR ir, AvExCache cache,
-                          OPT_Instruction inst) {
+  private void loadHelper(OPT_IR ir, AvExCache cache, OPT_Instruction inst) {
     OPT_LocationOperand loc = LocationCarrier.getLocation(inst);
     if (loc.mayBeVolatile()) return; // don't optimize volatile fields
 
@@ -339,8 +332,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
    * @param cache the cache of available expressions
    * @param inst the instruction begin processed
    */
-  private void expressionHelper(OPT_IR ir, AvExCache cache,
-                                OPT_Instruction inst) {
+  private void expressionHelper(OPT_IR ir, AvExCache cache, OPT_Instruction inst) {
     // look up the expression in the cache
     AvailableExpression ae = cache.find(inst);
     if (ae != null) {
@@ -374,8 +366,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
    * @param cache the cache of available expressions
    * @param inst the instruction begin processed
    */
-  private void checkHelper(OPT_IR ir, AvExCache cache,
-                           OPT_Instruction inst) {
+  private void checkHelper(OPT_IR ir, AvExCache cache, OPT_Instruction inst) {
     // look up the check in the cache
     AvailableExpression ae = cache.find(inst);
     if (ae != null) {
@@ -410,8 +401,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
    * @param cache  The cache of available expressions.
    * @param inst   The instruction being processed
    */
-  private void typeCheckHelper(OPT_IR ir, AvExCache cache,
-                               OPT_Instruction inst) {
+  private void typeCheckHelper(OPT_IR ir, AvExCache cache, OPT_Instruction inst) {
     // look up the check in the cache
     AvailableExpression ae = cache.find(inst);
     if (ae != null) {
@@ -449,8 +439,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
    */
   protected static final class AvExCache {
     /** Implementation of the cache */
-    private final ArrayList<AvailableExpression> cache =
-        new ArrayList<AvailableExpression>(3);
+    private final ArrayList<AvailableExpression> cache = new ArrayList<AvailableExpression>(3);
 
     private final OPT_Options options;
     private final boolean doMemory;
@@ -532,12 +521,10 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
           op2 = InstanceOf.getType(inst);
           break;
         default:
-          throw new OPT_OptimizingCompilerException("Unsupported type " +
-                                                    inst);
+          throw new OPT_OptimizingCompilerException("Unsupported type " + inst);
       }
 
-      AvailableExpression ae =
-          new AvailableExpression(inst, opr, op1, op2, op3, location, null);
+      AvailableExpression ae = new AvailableExpression(inst, opr, op1, op2, op3, location, null);
       int index = cache.indexOf(ae);
       if (index == -1) {
         return null;
@@ -617,13 +604,10 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
           op2 = InstanceOf.getType(inst);
           break;
         default:
-          throw new OPT_OptimizingCompilerException("Unsupported type " +
-                                                    inst);
+          throw new OPT_OptimizingCompilerException("Unsupported type " + inst);
       }
 
-      AvailableExpression ae =
-          new AvailableExpression(inst, opr,
-                                  op1, op2, op3, location, null);
+      AvailableExpression ae = new AvailableExpression(inst, opr, op1, op2, op3, location, null);
       cache.add(ae);
     }
 
@@ -637,20 +621,17 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
       while (i < cache.size()) {
         AvailableExpression ae = cache.get(i);
         OPT_Operand opx = ae.op1;
-        if (opx instanceof OPT_RegisterOperand &&
-            ((OPT_RegisterOperand) opx).register == op.register) {
+        if (opx instanceof OPT_RegisterOperand && ((OPT_RegisterOperand) opx).register == op.register) {
           cache.remove(i);
           continue;               // don't increment i, since we removed
         }
         opx = ae.op2;
-        if (opx instanceof OPT_RegisterOperand &&
-            ((OPT_RegisterOperand) opx).register == op.register) {
+        if (opx instanceof OPT_RegisterOperand && ((OPT_RegisterOperand) opx).register == op.register) {
           cache.remove(i);
           continue;               // don't increment i, since we removed
         }
         opx = ae.op3;
-        if (opx instanceof OPT_RegisterOperand &&
-            ((OPT_RegisterOperand) opx).register == op.register) {
+        if (opx instanceof OPT_RegisterOperand && ((OPT_RegisterOperand) opx).register == op.register) {
           cache.remove(i);
           continue;               // don't increment i, since we removed
         }
@@ -675,8 +656,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
       }
       if (doMemory) {
         // eliminate all memory locations killed by stores
-        if (OPT_LocalCSE.isStoreInstruction(s) ||
-            (options.READS_KILL && OPT_LocalCSE.isLoadInstruction(s))) {
+        if (OPT_LocalCSE.isStoreInstruction(s) || (options.READS_KILL && OPT_LocalCSE.isLoadInstruction(s))) {
           // sLocation holds the location killed by this instruction
           OPT_LocationOperand sLocation = LocationCarrier.getLocation(s);
           // walk through the cache and invalidate any killed locations
@@ -764,8 +744,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
      * @param t temporary register holding the result of the available
      * expression
      */
-    AvailableExpression(OPT_Instruction i, OPT_Operator op, OPT_Operand o1,
-                        OPT_Operand o2, OPT_Operand o3,
+    AvailableExpression(OPT_Instruction i, OPT_Operator op, OPT_Operand o1, OPT_Operand o2, OPT_Operand o3,
                         OPT_LocationOperand loc, OPT_Register t) {
       inst = i;
       opr = op;
@@ -823,8 +802,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
         if (op2.similar(ae.op2)) {
           return true;
         }
-        if (op2 instanceof OPT_IntConstantOperand &&
-            ae.op2 instanceof OPT_IntConstantOperand) {
+        if (op2 instanceof OPT_IntConstantOperand && ae.op2 instanceof OPT_IntConstantOperand) {
           int C1 = ((OPT_IntConstantOperand) op2).value;
           int C2 = ((OPT_IntConstantOperand) ae.op2).value;
           return C1 > 0 && C2 >= 0 && C1 > C2;
@@ -866,8 +844,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
      * Does this expression represent the result of a load or store?
      */
     public boolean isLoadOrStore() {
-      return GetField.conforms(opr) || GetStatic.conforms(opr) ||
-             PutField.conforms(opr) || PutStatic.conforms(opr);
+      return GetField.conforms(opr) || GetStatic.conforms(opr) || PutField.conforms(opr) || PutStatic.conforms(opr);
     }
 
     /**
@@ -888,8 +865,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase {
      * Does this expression represent the result of a bounds check?
      */
     public boolean isBoundsCheck() {
-      return BoundsCheck.conforms(opr)
-             || (TrapIf.conforms(opr) && ((OPT_TrapCodeOperand) op3).isArrayBounds());
+      return BoundsCheck.conforms(opr) || (TrapIf.conforms(opr) && ((OPT_TrapCodeOperand) op3).isArrayBounds());
     }
 
     /**

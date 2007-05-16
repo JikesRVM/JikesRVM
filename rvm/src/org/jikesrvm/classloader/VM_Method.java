@@ -65,11 +65,9 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * @param parameterAnnotations array of runtime visible parameter annotations
    * @param annotationDefault value for this annotation that appears
    */
-  protected VM_Method(VM_TypeReference declaringClass, VM_MemberReference memRef,
-                      short modifiers, VM_TypeReference[] exceptionTypes, VM_Atom signature,
-                      VM_Annotation[] annotations,
-                      VM_Annotation[] parameterAnnotations,
-                      Object annotationDefault) {
+  protected VM_Method(VM_TypeReference declaringClass, VM_MemberReference memRef, short modifiers,
+                      VM_TypeReference[] exceptionTypes, VM_Atom signature, VM_Annotation[] annotations,
+                      VM_Annotation[] parameterAnnotations, Object annotationDefault) {
     super(declaringClass, memRef, (short) (modifiers & APPLICABLE_TO_METHODS), signature, annotations);
     this.parameterAnnotations = parameterAnnotations;
     this.annotationDefault = annotationDefault;
@@ -147,16 +145,14 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
       } else if (attName == VM_ClassLoader.signatureAttributeName) {
         tmp_signature = VM_Class.getUtf(constantPool, input.readUnsignedShort());
       } else if (attName == VM_ClassLoader.runtimeVisibleAnnotationsAttributeName) {
-        annotations = VM_AnnotatedElement.readAnnotations(constantPool, input, 2,
-                                                          declaringClass.getClassLoader());
+        annotations = VM_AnnotatedElement.readAnnotations(constantPool, input, 2, declaringClass.getClassLoader());
       } else if (attName == VM_ClassLoader.runtimeVisibleParameterAnnotationsAttributeName) {
-        parameterAnnotations = VM_AnnotatedElement.readAnnotations(constantPool, input, 1,
-                                                                   declaringClass.getClassLoader());
+        parameterAnnotations =
+            VM_AnnotatedElement.readAnnotations(constantPool, input, 1, declaringClass.getClassLoader());
       } else if (attName == VM_ClassLoader.annotationDefaultAttributeName) {
         try {
           tmp_annotationDefault = VM_Annotation.readValue(constantPool, input, declaringClass.getClassLoader());
-        }
-        catch (ClassNotFoundException e) {
+        } catch (ClassNotFoundException e) {
           throw new Error(e);
         }
       } else {
@@ -166,18 +162,42 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     }
     VM_Method method;
     if ((modifiers & ACC_NATIVE) != 0) {
-      method = new VM_NativeMethod(declaringClass, memRef, modifiers, tmp_exceptionTypes, tmp_signature,
-                                   annotations, parameterAnnotations, tmp_annotationDefault);
+      method =
+          new VM_NativeMethod(declaringClass,
+                              memRef,
+                              modifiers,
+                              tmp_exceptionTypes,
+                              tmp_signature,
+                              annotations,
+                              parameterAnnotations,
+                              tmp_annotationDefault);
     } else if ((modifiers & ACC_ABSTRACT) != 0) {
-      method = new VM_AbstractMethod(declaringClass, memRef, modifiers, tmp_exceptionTypes, tmp_signature,
-                                     annotations, parameterAnnotations, tmp_annotationDefault);
+      method =
+          new VM_AbstractMethod(declaringClass,
+                                memRef,
+                                modifiers,
+                                tmp_exceptionTypes,
+                                tmp_signature,
+                                annotations,
+                                parameterAnnotations,
+                                tmp_annotationDefault);
 
     } else {
-      method = new VM_NormalMethod(declaringClass, memRef, modifiers, tmp_exceptionTypes,
-                                   tmp_localWords, tmp_operandWords, tmp_bytecodes,
-                                   tmp_exceptionHandlerMap, tmp_lineNumberMap,
-                                   constantPool, tmp_signature,
-                                   annotations, parameterAnnotations, tmp_annotationDefault);
+      method =
+          new VM_NormalMethod(declaringClass,
+                              memRef,
+                              modifiers,
+                              tmp_exceptionTypes,
+                              tmp_localWords,
+                              tmp_operandWords,
+                              tmp_bytecodes,
+                              tmp_exceptionHandlerMap,
+                              tmp_lineNumberMap,
+                              constantPool,
+                              tmp_signature,
+                              annotations,
+                              parameterAnnotations,
+                              tmp_annotationDefault);
     }
     return method;
   }
@@ -197,21 +217,25 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * @return the created method
    */
   static VM_Method createAnnotationMethod(VM_TypeReference annotationClass, int[] constantPool,
-                                          VM_MemberReference memRef, VM_Method interfaceMethod,
-                                          int constantPoolIndex) {
-    byte[] bytecodes = new byte[]{
-        (byte) JBC_aload_0,
-        (byte) JBC_getfield,
-        (byte) (constantPoolIndex >>> 8),
-        (byte) constantPoolIndex,
-        // Xreturn
-        (byte) typeRefToReturnBytecode(interfaceMethod.getReturnType())
-    };
-    return new VM_NormalMethod(annotationClass, memRef, (short) (ACC_PUBLIC | ACC_FINAL | ACC_SYNTHETIC), null,
-                               (short) 1, (short) 2, bytecodes,
-                               null, null,
+                                          VM_MemberReference memRef, VM_Method interfaceMethod, int constantPoolIndex) {
+    byte[] bytecodes =
+        new byte[]{(byte) JBC_aload_0, (byte) JBC_getfield, (byte) (constantPoolIndex >>> 8), (byte) constantPoolIndex,
+                   // Xreturn
+                   (byte) typeRefToReturnBytecode(interfaceMethod.getReturnType())};
+    return new VM_NormalMethod(annotationClass,
+                               memRef,
+                               (short) (ACC_PUBLIC | ACC_FINAL | ACC_SYNTHETIC),
+                               null,
+                               (short) 1,
+                               (short) 2,
+                               bytecodes,
+                               null,
+                               null,
                                constantPool,
-                               null, null, null, null);
+                               null,
+                               null,
+                               null,
+                               null);
   }
 
   /**
@@ -226,9 +250,8 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * @param aMethods
    * @return the created method
    */
-  static VM_Method createAnnotationInit(VM_TypeReference aClass, int[] constantPool,
-                                        VM_MemberReference memRef, int objectInitIndex,
-                                        VM_Field[] aFields, VM_Method[] aMethods,
+  static VM_Method createAnnotationInit(VM_TypeReference aClass, int[] constantPool, VM_MemberReference memRef,
+                                        int objectInitIndex, VM_Field[] aFields, VM_Method[] aMethods,
                                         int[] defaultConstants) {
     byte[] bytecode = new byte[6 + (defaultConstants.length * 7)];
     bytecode[0] = (byte) JBC_aload_0; // stack[0] = this
@@ -253,11 +276,20 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
       }
     }
     bytecode[bytecode.length - 1] = (byte) JBC_return;
-    return new VM_NormalMethod(aClass, memRef, (short) (ACC_PUBLIC | ACC_FINAL | ACC_SYNTHETIC), null,
-                               (short) 2, (short) 3, bytecode,
-                               null, null,
+    return new VM_NormalMethod(aClass,
+                               memRef,
+                               (short) (ACC_PUBLIC | ACC_FINAL | ACC_SYNTHETIC),
+                               null,
+                               (short) 2,
+                               (short) 3,
+                               bytecode,
+                               null,
+                               null,
                                constantPool,
-                               null, null, null, null);
+                               null,
+                               null,
+                               null,
+                               null);
   }
 
   /**
@@ -269,8 +301,11 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
       return JBC_areturn;
     } else {
       VM_Primitive pt = (VM_Primitive) tr.peekResolvedType();
-      if ((pt == VM_Type.BooleanType) || (pt == VM_Type.ByteType) || (pt == VM_Type.ShortType) ||
-          (pt == VM_Type.CharType) || (pt == VM_Type.IntType)) {
+      if ((pt == VM_Type.BooleanType) ||
+          (pt == VM_Type.ByteType) ||
+          (pt == VM_Type.ShortType) ||
+          (pt == VM_Type.CharType) ||
+          (pt == VM_Type.IntType)) {
         return JBC_ireturn;
       } else if (pt == VM_Type.LongType) {
         return JBC_lreturn;

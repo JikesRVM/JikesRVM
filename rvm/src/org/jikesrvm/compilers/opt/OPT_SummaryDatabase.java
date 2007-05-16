@@ -40,6 +40,5 @@ public class OPT_SummaryDatabase {
   }
 
   /** Implementation */
-  private static final VM_HashMap<VM_Method, OPT_MethodSummary> hash =
-      new VM_HashMap<VM_Method, OPT_MethodSummary>();
+  private static final VM_HashMap<VM_Method, OPT_MethodSummary> hash = new VM_HashMap<VM_Method, OPT_MethodSummary>();
 }

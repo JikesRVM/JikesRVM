@@ -176,8 +176,7 @@ public class VM_ManagedCounterData {
    * @param incrementValue The value to add to the given counter
    * @return The instruction that will update the given counter
    */
-  OPT_Instruction createEventCounterInstruction(int counterNumber,
-                                                double incrementValue) {
+  OPT_Instruction createEventCounterInstruction(int counterNumber, double incrementValue) {
     // Confirm that counters have been initialized
     if (VM.VerifyAssertions) {
       VM._assert(handle != -1);
@@ -193,9 +192,7 @@ public class VM_ManagedCounterData {
         // Should we put a warning here?? Not sure.
       }
     }
-    return getCounterManager().createEventCounterInstruction(getHandle(),
-                                                             counterNumber,
-                                                             incrementValue);
+    return getCounterManager().createEventCounterInstruction(getHandle(), counterNumber, incrementValue);
   }
 
   /**

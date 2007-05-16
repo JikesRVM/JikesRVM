@@ -114,9 +114,7 @@ public interface OPT_VCGGraph extends OPT_VisGraph {
      * @return graph layout parameters
      */
     public String getLayoutParameters() {
-      return "   layout_algorithm:minbackward\n" +
-             "   layout_nearfactor:1\n" +
-             "   layout_downfactor:100\n";
+      return "   layout_algorithm:minbackward\n" + "   layout_nearfactor:1\n" + "   layout_downfactor:100\n";
     }
   }
 }

@@ -34,16 +34,14 @@ import org.vmmagic.unboxed.Offset;
  */
 public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
 
-  public static boolean install(OSR_ExecutionState state,
-                                VM_CompiledMethod cm) {
+  public static boolean install(OSR_ExecutionState state, VM_CompiledMethod cm) {
     VM_Thread thread = state.getThread();
     byte[] stack = thread.stack;
 
     Offset tsfromFPOffset = state.getTSFPOffset();
     Offset fooFPOffset = state.getFPOffset();
 
-    int foomid = VM_Magic.getIntAtOffset(stack,
-                                         fooFPOffset.plus(STACKFRAME_METHOD_ID_OFFSET));
+    int foomid = VM_Magic.getIntAtOffset(stack, fooFPOffset.plus(STACKFRAME_METHOD_ID_OFFSET));
 
     VM_CompiledMethod foo = VM_CompiledMethods.getCompiledMethod(foomid);
     int cType = foo.getCompilerType();
@@ -100,9 +98,7 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
       int nonVolatiles = fooOpt.getNumberOfNonvolatileGPRs();
       int nonVolatileOffset = fooOpt.getUnsignedNonVolatileOffset();
 
-      for (int i = firstNonVolatile;
-           i < firstNonVolatile + nonVolatiles;
-           i++) {
+      for (int i = firstNonVolatile; i < firstNonVolatile + nonVolatiles; i++) {
         asm.emitMOV_Reg_RegDisp(NONVOLATILE_GPRS[i], SP, sp2fpOffset.minus(nonVolatileOffset));
         nonVolatileOffset += SW_WIDTH;
       }
@@ -142,11 +138,9 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
     thread.fooFPOffset = fooFPOffset;
     thread.tsFPOffset = tsfromFPOffset;
 
-    Address bridgeaddr =
-        VM_Magic.objectAsAddress(thread.bridgeInstructions);
+    Address bridgeaddr = VM_Magic.objectAsAddress(thread.bridgeInstructions);
 
-    VM_Memory.sync(bridgeaddr,
-                   thread.bridgeInstructions.length() << LG_INSTRUCTION_WIDTH);
+    VM_Memory.sync(bridgeaddr, thread.bridgeInstructions.length() << LG_INSTRUCTION_WIDTH);
 
     VM_AOSLogging.logOsrEvent("OSR code installation succeeded");
 

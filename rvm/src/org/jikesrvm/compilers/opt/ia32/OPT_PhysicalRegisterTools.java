@@ -32,8 +32,7 @@ public abstract class OPT_PhysicalRegisterTools extends OPT_GenericPhysicalRegis
   /**
    * Create an MIR instruction to move rhs into lhs
    */
-  public static OPT_Instruction makeMoveInstruction(OPT_RegisterOperand lhs,
-                                                    OPT_RegisterOperand rhs) {
+  public static OPT_Instruction makeMoveInstruction(OPT_RegisterOperand lhs, OPT_RegisterOperand rhs) {
     if (rhs.register.isInteger() || rhs.register.isLong() || rhs.register.isAddress()) {
       if (VM.VerifyAssertions) {
         VM._assert(lhs.register.isInteger() || lhs.register.isLong() || lhs.register.isAddress());

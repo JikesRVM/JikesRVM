@@ -144,8 +144,7 @@ public class VM_Wait {
    * @param fromNative true if this select is being called
    *   from native code
    */
-  public static void ioWaitSelect(int[] readFds, int[] writeFds,
-                                  int[] exceptFds, double totalWaitTime,
+  public static void ioWaitSelect(int[] readFds, int[] writeFds, int[] exceptFds, double totalWaitTime,
                                   boolean fromNative) {
 
     // Create wait data to represent the event that the thread is
@@ -177,15 +176,13 @@ public class VM_Wait {
    * @return the <code>VM_ThreadProcessWaitData</code> representing
    *   the state of the process
    */
-  public static VM_ThreadProcessWaitData processWait(VM_Process process,
-                                                     double totalWaitTime)
+  public static VM_ThreadProcessWaitData processWait(VM_Process process, double totalWaitTime)
       throws InterruptedException {
 
     // Create wait data to represent the event the thread is
     // waiting for
     long maxWaitCycle = getMaxWaitCycle(totalWaitTime);
-    VM_ThreadProcessWaitData waitData =
-        new VM_ThreadProcessWaitData(process.getPid(), maxWaitCycle);
+    VM_ThreadProcessWaitData waitData = new VM_ThreadProcessWaitData(process.getPid(), maxWaitCycle);
 
     // Put the thread on the processWaitQueue
     VM_Thread.processWaitImpl(waitData, process);

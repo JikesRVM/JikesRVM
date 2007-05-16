@@ -89,26 +89,21 @@ public abstract class OPT_FinalMIRExpansion extends OPT_IRTools {
     int machinecodeLength = 0;
 
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    for (OPT_Instruction p = ir.firstInstructionInCodeOrder();
-         p != null;
-         p = p.nextInstructionInCodeOrder()) {
+    for (OPT_Instruction p = ir.firstInstructionInCodeOrder(); p != null; p = p.nextInstructionInCodeOrder()) {
       p.setmcOffset(-1);
       p.scratchObject = null;
       switch (p.getOpcode()) {
         case MIR_LOWTABLESWITCH_opcode: {
 
           OPT_BasicBlock tableBlock = p.getBasicBlock();
-          OPT_BasicBlock nextBlock =
-              tableBlock.splitNodeWithLinksAt(p.prevInstructionInCodeOrder(), ir);
+          OPT_BasicBlock nextBlock = tableBlock.splitNodeWithLinksAt(p.prevInstructionInCodeOrder(), ir);
           nextBlock.firstInstruction().setmcOffset(-1);
           OPT_Register regI = MIR_LowTableSwitch.getIndex(p).register;
           int NumTargets = MIR_LowTableSwitch.getNumberOfTargets(p);
-          tableBlock.appendInstruction(MIR_Call.create0(PPC_BL, null, null,
-                                                        nextBlock.makeJumpTarget()));
+          tableBlock.appendInstruction(MIR_Call.create0(PPC_BL, null, null, nextBlock.makeJumpTarget()));
 
           for (int i = 0; i < NumTargets; i++) {
-            tableBlock.appendInstruction(MIR_DataLabel.create(PPC_DATA_LABEL,
-                                                              MIR_LowTableSwitch.getClearTarget(p, i)));
+            tableBlock.appendInstruction(MIR_DataLabel.create(PPC_DATA_LABEL, MIR_LowTableSwitch.getClearTarget(p, i)));
           }
           OPT_Register temp = phys.getGPR(0);
           p.insertBefore(MIR_Move.create(PPC_MFSPR, A(temp), A(phys.getLR())));
@@ -122,11 +117,14 @@ public abstract class OPT_FinalMIRExpansion extends OPT_IRTools {
         break;
         case PPC_BCOND2_opcode: {
           OPT_RegisterOperand cond = MIR_CondBranch2.getClearValue(p);
-          p.insertAfter(MIR_CondBranch.create(PPC_BCOND, cond.copyU2U(),
+          p.insertAfter(MIR_CondBranch.create(PPC_BCOND,
+                                              cond.copyU2U(),
                                               MIR_CondBranch2.getClearCond2(p),
                                               MIR_CondBranch2.getClearTarget2(p),
                                               MIR_CondBranch2.getClearBranchProfile2(p)));
-          MIR_CondBranch.mutate(p, PPC_BCOND, cond,
+          MIR_CondBranch.mutate(p,
+                                PPC_BCOND,
+                                cond,
                                 MIR_CondBranch2.getClearCond1(p),
                                 MIR_CondBranch2.getClearTarget1(p),
                                 MIR_CondBranch2.getClearBranchProfile1(p));
@@ -145,17 +143,17 @@ public abstract class OPT_FinalMIRExpansion extends OPT_IRTools {
                 int signatureId = sig.getId();
                 OPT_Instruction s;
                 if (OPT_Bits.fits(signatureId, 16)) {
-                  s = MIR_Unary.create(PPC_LDI,
-                                       I(phys.getGPR(LAST_SCRATCH_GPR)),
-                                       IC(signatureId));
+                  s = MIR_Unary.create(PPC_LDI, I(phys.getGPR(LAST_SCRATCH_GPR)), IC(signatureId));
                   p.insertBefore(s);
                   instructionCount++;
                 } else {
-                  s = MIR_Unary.create(PPC_LDIS,
+                  s =
+                      MIR_Unary.create(PPC_LDIS,
                                        I(phys.getGPR(LAST_SCRATCH_GPR)),
                                        IC(OPT_Bits.PPCMaskUpper16(signatureId)));
                   p.insertBefore(s);
-                  s = MIR_Binary.create(PPC_ADDI,
+                  s =
+                      MIR_Binary.create(PPC_ADDI,
                                         I(phys.getGPR(LAST_SCRATCH_GPR)),
                                         I(phys.getGPR(LAST_SCRATCH_GPR)),
                                         IC(OPT_Bits.PPCMaskLower16(signatureId)));
@@ -186,8 +184,7 @@ public abstract class OPT_FinalMIRExpansion extends OPT_IRTools {
             p.insertBefore(MIR_Load.create(PPC_LAddr, A(zero), A(JTOC), IC(OPT_Bits.PPCMaskLower16(offset))));
           } else {
             if (VM.VerifyAssertions) VM._assert(OPT_Bits.fits(offset, 32)); //not implemented
-            p.insertBefore(MIR_Binary.create(PPC_ADDIS, A(zero), A(JTOC),
-                                             IC(OPT_Bits.PPCMaskUpper16(offset))));
+            p.insertBefore(MIR_Binary.create(PPC_ADDIS, A(zero), A(JTOC), IC(OPT_Bits.PPCMaskUpper16(offset))));
             p.insertBefore(MIR_Load.create(PPC_LAddr, A(zero), A(zero), IC(OPT_Bits.PPCMaskLower16(offset))));
             instructionCount += 1;
           }
@@ -201,12 +198,15 @@ public abstract class OPT_FinalMIRExpansion extends OPT_IRTools {
         }
         case YIELDPOINT_PROLOGUE_opcode: {
           OPT_Register TSR = phys.getTSR();
-          OPT_BasicBlock yieldpoint = findOrCreateYieldpointBlock(ir,
-                                                                  VM_Thread.PROLOGUE);
+          OPT_BasicBlock yieldpoint = findOrCreateYieldpointBlock(ir, VM_Thread.PROLOGUE);
           // Because the GC Map code holds a reference to the original
           // instruction, it is important that we mutate the last instruction
           // because this will be the GC point.
-          MIR_CondCall.mutate0(p, PPC_BCL, null, null, I(TSR),
+          MIR_CondCall.mutate0(p,
+                               PPC_BCL,
+                               null,
+                               null,
+                               I(TSR),
                                OPT_PowerPCConditionOperand.NOT_EQUAL(),
                                yieldpoint.makeJumpTarget());
           p.getBasicBlock().insertOut(yieldpoint);
@@ -214,21 +214,23 @@ public abstract class OPT_FinalMIRExpansion extends OPT_IRTools {
         }
         break;
         case YIELDPOINT_BACKEDGE_opcode: {
-          OPT_BasicBlock yieldpoint = findOrCreateYieldpointBlock(ir,
-                                                                  VM_Thread.BACKEDGE);
+          OPT_BasicBlock yieldpoint = findOrCreateYieldpointBlock(ir, VM_Thread.BACKEDGE);
           OPT_Register zero = phys.getGPR(0);
           OPT_Register TSR = phys.getTSR();
           OPT_Register PR = phys.getPR();
           Offset offset = VM_Entrypoints.takeYieldpointField.getOffset();
           if (VM.VerifyAssertions) VM._assert(OPT_Bits.fits(offset, 16));
-          p.insertBefore(MIR_Load.create(PPC_LInt, I(zero), A(PR),
-                                         IC(OPT_Bits.PPCMaskLower16(offset))));
+          p.insertBefore(MIR_Load.create(PPC_LInt, I(zero), A(PR), IC(OPT_Bits.PPCMaskLower16(offset))));
           p.insertBefore(MIR_Binary.create(PPC_CMPI, I(TSR), I(zero), IC(0)));
           instructionCount += 2;
           // Because the GC Map code holds a reference to the original
           // instruction, it is important that we mutate the last instruction
           // because this will be the GC point.
-          MIR_CondCall.mutate0(p, PPC_BCL, null, null, I(TSR),
+          MIR_CondCall.mutate0(p,
+                               PPC_BCL,
+                               null,
+                               null,
+                               I(TSR),
                                OPT_PowerPCConditionOperand.GREATER(),
                                yieldpoint.makeJumpTarget());
           p.getBasicBlock().insertOut(yieldpoint);
@@ -236,21 +238,23 @@ public abstract class OPT_FinalMIRExpansion extends OPT_IRTools {
         }
         break;
         case YIELDPOINT_EPILOGUE_opcode: {
-          OPT_BasicBlock yieldpoint = findOrCreateYieldpointBlock(ir,
-                                                                  VM_Thread.EPILOGUE);
+          OPT_BasicBlock yieldpoint = findOrCreateYieldpointBlock(ir, VM_Thread.EPILOGUE);
           OPT_Register zero = phys.getGPR(0);
           OPT_Register TSR = phys.getTSR();
           OPT_Register PR = phys.getPR();
           Offset offset = VM_Entrypoints.takeYieldpointField.getOffset();
           if (VM.VerifyAssertions) VM._assert(OPT_Bits.fits(offset, 16));
-          p.insertBefore(MIR_Load.create(PPC_LInt, I(zero), A(PR),
-                                         IC(OPT_Bits.PPCMaskLower16(offset))));
+          p.insertBefore(MIR_Load.create(PPC_LInt, I(zero), A(PR), IC(OPT_Bits.PPCMaskLower16(offset))));
           p.insertBefore(MIR_Binary.create(PPC_CMPI, I(TSR), I(zero), IC(0)));
           instructionCount += 2;
           // Because the GC Map code holds a reference to the original
           // instruction, it is important that we mutate the last instruction
           // because this will be the GC point.
-          MIR_CondCall.mutate0(p, PPC_BCL, null, null, I(TSR),
+          MIR_CondCall.mutate0(p,
+                               PPC_BCL,
+                               null,
+                               null,
+                               I(TSR),
                                OPT_PowerPCConditionOperand.NOT_EQUAL(),
                                yieldpoint.makeJumpTarget());
           p.getBasicBlock().insertOut(yieldpoint);
@@ -259,13 +263,11 @@ public abstract class OPT_FinalMIRExpansion extends OPT_IRTools {
         break;
         case YIELDPOINT_OSR_opcode: {
           // unconditionally branch to yield point.
-          OPT_BasicBlock yieldpoint = findOrCreateYieldpointBlock(ir,
-                                                                  VM_Thread.OSROPT);
+          OPT_BasicBlock yieldpoint = findOrCreateYieldpointBlock(ir, VM_Thread.OSROPT);
           // Because the GC Map code holds a reference to the original
           // instruction, it is important that we mutate the last instruction
           // because this will be the GC point.
-          MIR_Call.mutate0(p, PPC_BL, null, null,
-                           yieldpoint.makeJumpTarget());
+          MIR_Call.mutate0(p, PPC_BL, null, null, yieldpoint.makeJumpTarget());
           p.getBasicBlock().insertOut(yieldpoint);
         }
         instructionCount++;
@@ -290,9 +292,7 @@ public abstract class OPT_FinalMIRExpansion extends OPT_IRTools {
     }
 
     if ((machinecodeLength & ~OPT_Assembler.MAX_24_BITS) != 0) {
-      throw new OPT_OptimizingCompilerException("CodeGen",
-                                                "method too large to compile:",
-                                                OPT_Assembler.MAX_24_BITS);
+      throw new OPT_OptimizingCompilerException("CodeGen", "method too large to compile:", OPT_Assembler.MAX_24_BITS);
     }
     return machinecodeLength;
   }
@@ -305,8 +305,7 @@ public abstract class OPT_FinalMIRExpansion extends OPT_IRTools {
    * @param whereFrom is this yieldpoint from the PROLOGUE, EPILOGUE, or a
    * BACKEDGE?
    */
-  static OPT_BasicBlock findOrCreateYieldpointBlock(OPT_IR ir,
-                                                    int whereFrom) {
+  static OPT_BasicBlock findOrCreateYieldpointBlock(OPT_IR ir, int whereFrom) {
     VM_Method meth = null;
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     OPT_Register zero = phys.getGPR(0);
@@ -350,8 +349,7 @@ public abstract class OPT_FinalMIRExpansion extends OPT_IRTools {
       result.appendInstruction(MIR_Load.create(PPC_LAddr, A(zero), A(JTOC), IC(OPT_Bits.PPCMaskLower16(offset))));
     } else {
       if (VM.VerifyAssertions) VM._assert(OPT_Bits.fits(offset, 32)); //not implemented
-      result.appendInstruction(MIR_Binary.create(PPC_ADDIS, A(zero), A(JTOC),
-                                                 IC(OPT_Bits.PPCMaskUpper16(offset))));
+      result.appendInstruction(MIR_Binary.create(PPC_ADDIS, A(zero), A(JTOC), IC(OPT_Bits.PPCMaskUpper16(offset))));
       result.appendInstruction(MIR_Load.create(PPC_LAddr, A(zero), A(zero), IC(OPT_Bits.PPCMaskLower16(offset))));
     }
     result.appendInstruction(MIR_Move.create(PPC_MTSPR, A(CTR), A(zero)));

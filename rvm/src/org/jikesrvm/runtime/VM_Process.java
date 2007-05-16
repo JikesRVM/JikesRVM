@@ -140,8 +140,7 @@ public class VM_Process extends java.lang.Process {
     int code;
     try {
       code = waitForInternal();
-    }
-    catch (InterruptedException e) {
+    } catch (InterruptedException e) {
       // We were interrupted, so end the wait
       synchronized (exitStatusLock) {
         waiting = false;
@@ -216,8 +215,7 @@ public class VM_Process extends java.lang.Process {
         exitStatus = waitData.exitStatus;
       }
       return finished;
-    }
-    catch (InterruptedException e) {
+    } catch (InterruptedException e) {
       // The thread can get interrupted while
       // on the process wait queue.  However,
       // this is not a blocking call,
@@ -236,8 +234,7 @@ public class VM_Process extends java.lang.Process {
    * do only a single <code>waitpid()</code> for the same process).
    */
   private int waitForInternal() throws InterruptedException {
-    VM_ThreadProcessWaitData waitData =
-        VM_Wait.processWait(this, VM_ThreadEventConstants.WAIT_INFINITE);
+    VM_ThreadProcessWaitData waitData = VM_Wait.processWait(this, VM_ThreadEventConstants.WAIT_INFINITE);
     // InterruptedException may be thrown,
     // in which case we definitely did NOT do the waitpid()
 

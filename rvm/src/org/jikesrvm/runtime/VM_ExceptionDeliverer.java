@@ -55,10 +55,8 @@ public abstract class VM_ExceptionDeliverer {
    * @param registers registers to be loaded before passing control to
    * catch block
    */
-  public abstract void deliverException(VM_CompiledMethod compiledMethod,
-                                        Address catchBlockInstructionAddress,
-                                        Throwable exceptionObject,
-                                        VM_Registers registers);
+  public abstract void deliverException(VM_CompiledMethod compiledMethod, Address catchBlockInstructionAddress,
+                                        Throwable exceptionObject, VM_Registers registers);
 
   /**
    * Stackframe's method has no "catch" block for exception being thrown
@@ -80,6 +78,5 @@ public abstract class VM_ExceptionDeliverer {
    * @param registers thread state to be updated by restoring non-volatiles
    *                  and unwinding the stackframe
    */
-  public abstract void unwindStackFrame(VM_CompiledMethod compiledMethod,
-                                        VM_Registers registers);
+  public abstract void unwindStackFrame(VM_CompiledMethod compiledMethod, VM_Registers registers);
 }

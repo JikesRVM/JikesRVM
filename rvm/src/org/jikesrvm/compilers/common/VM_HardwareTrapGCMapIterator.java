@@ -29,8 +29,7 @@ public final class VM_HardwareTrapGCMapIterator extends VM_GCMapIterator impleme
     this.registerLocations = registerLocations;
   }
 
-  public void setupIterator(VM_CompiledMethod compiledMethod, Offset instructionOffset,
-                            Address framePtr) {
+  public void setupIterator(VM_CompiledMethod compiledMethod, Offset instructionOffset, Address framePtr) {
     this.framePtr = framePtr;
   }
 

@@ -15,8 +15,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
  * Dependence graph edges: connect operands of different instructions
  * represented by dependence graph nodes.
  */
-final class OPT_DepGraphEdge extends OPT_SpaceEffGraphEdge
-    implements OPT_DepGraphConstants {
+final class OPT_DepGraphEdge extends OPT_SpaceEffGraphEdge implements OPT_DepGraphConstants {
   /**
    * Does this edge represent a register true dependence?
    * @return true if yes, false otherwise
@@ -159,9 +158,7 @@ final class OPT_DepGraphEdge extends OPT_SpaceEffGraphEdge
    * @param destNode destination dependence graph node
    * @param depKind the type of the dependence edge
    */
-  OPT_DepGraphEdge(OPT_DepGraphNode sourceNode,
-                   OPT_DepGraphNode destNode,
-                   int depKind) {
+  OPT_DepGraphEdge(OPT_DepGraphNode sourceNode, OPT_DepGraphNode destNode, int depKind) {
     this(null, sourceNode, destNode, depKind);
   }
 
@@ -173,9 +170,7 @@ final class OPT_DepGraphEdge extends OPT_SpaceEffGraphEdge
    * @param destNode destination dependence graph node
    * @param depKind the type of the dependence edge
    */
-  OPT_DepGraphEdge(OPT_RegisterOperand destOp,
-                   OPT_DepGraphNode sourceNode, OPT_DepGraphNode destNode,
-                   int depKind) {
+  OPT_DepGraphEdge(OPT_RegisterOperand destOp, OPT_DepGraphNode sourceNode, OPT_DepGraphNode destNode, int depKind) {
     _destOperand = destOp;
     _fromNode = sourceNode;
     _toNode = destNode;
@@ -298,11 +293,9 @@ final class OPT_DepGraphEdge extends OPT_SpaceEffGraphEdge
    * @param op destination operand
    * @return input edge or null if not found
    */
-  public static OPT_DepGraphEdge findInputEdge(OPT_DepGraphNode n,
-                                               OPT_Operand op) {
-    for (OPT_DepGraphEdge inEdge = (OPT_DepGraphEdge) n.firstInEdge();
-         inEdge != null;
-         inEdge = (OPT_DepGraphEdge) inEdge.getNextIn()) {
+  public static OPT_DepGraphEdge findInputEdge(OPT_DepGraphNode n, OPT_Operand op) {
+    for (OPT_DepGraphEdge inEdge = (OPT_DepGraphEdge) n.firstInEdge(); inEdge != null; inEdge =
+        (OPT_DepGraphEdge) inEdge.getNextIn()) {
       if (inEdge.destOperand() == op) {
         return inEdge;
       }

@@ -40,18 +40,21 @@ public final class VM_Instrumentation {
 
     // If the system may perform any instrumentation that uses managed
     // event counters, initialize a counter manager here.
-    if (options.INSERT_INSTRUCTION_COUNTERS ||
-        options.INSERT_METHOD_COUNTERS_OPT ||
-        options.INSERT_YIELDPOINT_COUNTERS ||
-        options.INSERT_DEBUGGING_COUNTERS) {
+    if (options
+        .INSERT_INSTRUCTION_COUNTERS ||
+                                     options
+                                         .INSERT_METHOD_COUNTERS_OPT ||
+                                                                     options
+                                                                         .INSERT_YIELDPOINT_COUNTERS ||
+                                                                                                     options
+                                                                                                         .INSERT_DEBUGGING_COUNTERS) {
       eventCounterManager = new VM_CounterArrayManager();
     }
 
     // If inserting method counters, initialize the counter space for
     // the invocation counters, using the eventCounterManager from above.
     if (options.INSERT_METHOD_COUNTERS_OPT) {
-      VM_AOSDatabase.methodInvocationCounterData =
-          new VM_MethodInvocationCounterData(eventCounterManager);
+      VM_AOSDatabase.methodInvocationCounterData = new VM_MethodInvocationCounterData(eventCounterManager);
 
       // Method Counters have only one array of counters for the whole
       // program, so initialize it here. Make it automitacally double
@@ -71,8 +74,7 @@ public final class VM_Instrumentation {
     if (options.INSERT_YIELDPOINT_COUNTERS) {
       // Create it here, because we need only one array of numbers,
       // not one per method.
-      VM_AOSDatabase.yieldpointCounterData =
-          new VM_YieldpointCounterData(eventCounterManager);
+      VM_AOSDatabase.yieldpointCounterData = new VM_YieldpointCounterData(eventCounterManager);
 
       // We want to report everything at the end.
       VM_RuntimeMeasurements.
@@ -85,9 +87,7 @@ public final class VM_Instrumentation {
      * data here.
      **/
     if (options.INSERT_INSTRUCTION_COUNTERS) {
-      VM_AOSDatabase.instructionCounterData =
-          new VM_StringEventCounterData(eventCounterManager,
-                                        "Instruction Counter");
+      VM_AOSDatabase.instructionCounterData = new VM_StringEventCounterData(eventCounterManager, "Instruction Counter");
       VM_AOSDatabase.instructionCounterData.automaticallyGrowCounters(true);
 
       // We want to report everything at the end.
@@ -100,9 +100,7 @@ public final class VM_Instrumentation {
      * data here.
      **/
     if (options.INSERT_DEBUGGING_COUNTERS) {
-      VM_AOSDatabase.debuggingCounterData =
-          new VM_StringEventCounterData(eventCounterManager,
-                                        "Debugging Counters");
+      VM_AOSDatabase.debuggingCounterData = new VM_StringEventCounterData(eventCounterManager, "Debugging Counters");
       VM_AOSDatabase.debuggingCounterData.automaticallyGrowCounters(true);
 
       // We want to report everything at the end.

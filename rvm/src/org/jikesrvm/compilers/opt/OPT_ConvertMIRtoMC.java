@@ -30,8 +30,7 @@ public final class OPT_ConvertMIRtoMC extends OPT_OptimizationPlanCompositeEleme
         // Step 1: Final MIR Expansion
         new OPT_OptimizationPlanAtomicElement(new FinalMIRExpansionDriver()),
         // Step 2: Assembly and map generation.
-        new OPT_OptimizationPlanAtomicElement(new AssemblerDriver())
-    });
+        new OPT_OptimizationPlanAtomicElement(new AssemblerDriver())});
   }
 
   /**
@@ -63,8 +62,7 @@ public final class OPT_ConvertMIRtoMC extends OPT_OptimizationPlanCompositeEleme
   /**
    * A compiler phase that generates machine code instructions and maps.
    */
-  private static final class AssemblerDriver extends OPT_CompilerPhase
-      implements VM_Constants {
+  private static final class AssemblerDriver extends OPT_CompilerPhase implements VM_Constants {
 
     public String getName() {
       return "Assembler Driver";
@@ -84,8 +82,7 @@ public final class OPT_ConvertMIRtoMC extends OPT_OptimizationPlanCompositeEleme
       OPT_Options options = ir.options;
       boolean shouldPrint =
           (options.PRINT_MACHINECODE) &&
-          (!ir.options.hasMETHOD_TO_PRINT() ||
-           ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString()));
+          (!ir.options.hasMETHOD_TO_PRINT() || ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString()));
 
       if (OPT_IR.SANITY_CHECK) {
         ir.verify("right before machine codegen", true);

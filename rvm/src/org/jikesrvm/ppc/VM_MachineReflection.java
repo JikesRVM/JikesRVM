@@ -27,14 +27,18 @@ public abstract class VM_MachineReflection implements VM_ArchConstants {
    * See also: VM_Compiler.loadParameters()
    */
   public static int countParameters(VM_Method method) {
-    int GPRs   = 0;
-    int FPRs   = 0;
+    int GPRs = 0;
+    int FPRs = 0;
     int Spills = 0;
     int gp = FIRST_VOLATILE_GPR;
     int fp = FIRST_VOLATILE_FPR;
     if (!method.isStatic()) {
-      if (gp > LAST_VOLATILE_GPR) Spills++;
-      else {GPRs++; gp++;}
+      if (gp > LAST_VOLATILE_GPR) {
+        Spills++;
+      } else {
+        GPRs++;
+        gp++;
+      }
     }
     for (VM_TypeReference t : method.getParameterTypes()) {
       if (t.isLongType()) {
@@ -60,20 +64,23 @@ public abstract class VM_MachineReflection implements VM_ArchConstants {
           }
         }
       } else if (t.isFloatType()) {
-        if (fp > LAST_VOLATILE_FPR) Spills++;
-        else {
+        if (fp > LAST_VOLATILE_FPR) {
+          Spills++;
+        } else {
           FPRs++;
           fp++;
         }
       } else if (t.isDoubleType()) {
-        if (fp > LAST_VOLATILE_FPR) Spills += VM.BuildFor64Addr ? 1 : 2;
-        else {
+        if (fp > LAST_VOLATILE_FPR) {
+          Spills += VM.BuildFor64Addr ? 1 : 2;
+        } else {
           FPRs++;
           fp++;
         }
       } else { // t is object, int, short, char, byte, or boolean
-        if (gp > LAST_VOLATILE_GPR) Spills++;
-        else {
+        if (gp > LAST_VOLATILE_GPR) {
+          Spills++;
+        } else {
           GPRs++;
           gp++;
         }
@@ -82,38 +89,37 @@ public abstract class VM_MachineReflection implements VM_ArchConstants {
 
     // spills[] carries burden of doubleword aligning stack frame
     if (VM.BuildFor32Addr) {
-      int frameSize  = (Spills << LOG_BYTES_IN_STACKSLOT) + STACKFRAME_HEADER_SIZE;
+      int frameSize = (Spills << LOG_BYTES_IN_STACKSLOT) + STACKFRAME_HEADER_SIZE;
       frameSize = VM_Memory.alignUp(frameSize, STACKFRAME_ALIGNMENT);
-      Spills = (frameSize-STACKFRAME_HEADER_SIZE) >> LOG_BYTES_IN_STACKSLOT;
+      Spills = (frameSize - STACKFRAME_HEADER_SIZE) >> LOG_BYTES_IN_STACKSLOT;
     }
 
     // hack to return triple
-    return (Spills<<(VM_Constants.REFLECTION_FPRS_BITS+VM_Constants.REFLECTION_GPRS_BITS)) |
-      (FPRs<<VM_Constants.REFLECTION_GPRS_BITS) | GPRs;
+    return (Spills << (VM_Constants.REFLECTION_FPRS_BITS + VM_Constants.REFLECTION_GPRS_BITS)) |
+           (FPRs << VM_Constants.REFLECTION_GPRS_BITS) |
+           GPRs;
   }
-
 
   /**
    * Collect parameters into arrays of registers/spills, as required to call specified method.
    */
-  public static void packageParameters(VM_Method method, Object thisArg,
-                                Object[] otherArgs, WordArray GPRs,
-                                double[] FPRs, WordArray Spills) {
-    int GPR   = GPRs.length();
-    int FPR   = FPRs.length;
+  public static void packageParameters(VM_Method method, Object thisArg, Object[] otherArgs, WordArray GPRs,
+                                       double[] FPRs, WordArray Spills) {
+    int GPR = GPRs.length();
+    int FPR = FPRs.length;
     int Spill = Spills.length();
     int gp = FIRST_VOLATILE_GPR;
     int fp = FIRST_VOLATILE_FPR;
     if (!method.isStatic()) {
-      if (gp > LAST_VOLATILE_GPR)
+      if (gp > LAST_VOLATILE_GPR) {
         Spills.set(--Spill, VM_Reflection.unwrapObject(thisArg).toWord());
-      else {
+      } else {
         gp++;
         GPRs.set(--GPR, VM_Reflection.unwrapObject(thisArg).toWord());
       }
     }
-    VM_TypeReference [] types = method.getParameterTypes();
-    for (int i=0; i<types.length; i++) {
+    VM_TypeReference[] types = method.getParameterTypes();
+    for (int i = 0; i < types.length; i++) {
       VM_TypeReference t = types[i];
       if (t.isLongType()) {
         long l = VM_Reflection.unwrapLong(otherArgs[i]);
@@ -125,8 +131,8 @@ public abstract class VM_MachineReflection implements VM_ArchConstants {
             GPRs.set(--GPR, Word.fromLong(l));
           }
         } else {
-          Word hi = Word.fromIntZeroExtend((int)(l>>>32));
-          Word lo = Word.fromIntZeroExtend((int)l);
+          Word hi = Word.fromIntZeroExtend((int) (l >>> 32));
+          Word lo = Word.fromIntZeroExtend((int) l);
           if (gp > LAST_VOLATILE_GPR) {
             Spills.set(--Spill, hi);
             Spills.set(--Spill, lo);
@@ -156,8 +162,8 @@ public abstract class VM_MachineReflection implements VM_ArchConstants {
           if (VM.BuildFor64Addr) {
             Spills.set(--Spill, Word.fromLong(l));
           } else {
-            Spills.set(--Spill, Word.fromIntZeroExtend((int)(l>>>32)));
-            Spills.set(--Spill, Word.fromIntZeroExtend((int)l));
+            Spills.set(--Spill, Word.fromIntZeroExtend((int) (l >>> 32)));
+            Spills.set(--Spill, Word.fromIntZeroExtend((int) l));
           }
         } else {
           fp++;
@@ -211,7 +217,7 @@ public abstract class VM_MachineReflection implements VM_ArchConstants {
           gp++;
           GPRs.set(--GPR, val);
         }
-      } else  {
+      } else {
         if (VM.VerifyAssertions) VM._assert(VM_Constants.NOT_REACHED);
       }
     }

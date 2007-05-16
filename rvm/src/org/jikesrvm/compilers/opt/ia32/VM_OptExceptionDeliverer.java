@@ -33,10 +33,8 @@ public abstract class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
   /**
    * Pass control to a catch block.
    */
-  public void deliverException(VM_CompiledMethod compiledMethod,
-                               Address catchBlockInstructionAddress,
-                               Throwable exceptionObject,
-                               VM_Registers registers) {
+  public void deliverException(VM_CompiledMethod compiledMethod, Address catchBlockInstructionAddress,
+                               Throwable exceptionObject, VM_Registers registers) {
     VM_OptCompiledMethod optMethod = (VM_OptCompiledMethod) compiledMethod;
     Address fp = registers.getInnermostFramePointer();
     VM_Thread myThread = VM_Thread.getCurrentThread();
@@ -115,8 +113,7 @@ public abstract class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
   /**
    * Unwind a stackframe.
    */
-  public void unwindStackFrame(VM_CompiledMethod compiledMethod,
-                               VM_Registers registers) {
+  public void unwindStackFrame(VM_CompiledMethod compiledMethod, VM_Registers registers) {
     Address fp = registers.getInnermostFramePointer();
     VM_OptCompiledMethod optMethod = (VM_OptCompiledMethod) compiledMethod;
 
@@ -134,9 +131,7 @@ public abstract class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
 
     // restore non-volatile registers
     int frameOffset = optMethod.getUnsignedNonVolatileOffset();
-    for (int i = optMethod.getFirstNonVolatileGPR();
-         i < NUM_NONVOLATILE_GPRS;
-         i++, frameOffset += 4) {
+    for (int i = optMethod.getFirstNonVolatileGPR(); i < NUM_NONVOLATILE_GPRS; i++, frameOffset += 4) {
       registers.gprs.set(NONVOLATILE_GPRS[i], fp.minus(frameOffset).loadWord());
     }
     if (VM.VerifyAssertions) VM._assert(NUM_NONVOLATILE_FPRS == 0);

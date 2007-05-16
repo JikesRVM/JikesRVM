@@ -44,8 +44,7 @@ public class BC_Goto extends OSR_PseudoBytecode {
   }
 
   private void adjustFields() {
-    if ((offset >= -32768)
-        && (offset <= 32767)) {
+    if ((offset >= -32768) && (offset <= 32767)) {
       bsize = 3;
       codes = new byte[3];
       codes[0] = (byte) JBC_goto;

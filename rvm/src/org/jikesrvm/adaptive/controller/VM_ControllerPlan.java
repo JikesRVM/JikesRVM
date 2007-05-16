@@ -120,12 +120,8 @@ public final class VM_ControllerPlan {
    * @param expectedCompilationTime     Expected recompilation cost
    * @param priority     How important is executing this plan?
    */
-  public VM_ControllerPlan(OPT_CompilationPlan compPlan,
-                           int timeCreated,
-                           int prevCMID,
-                           double expectedSpeedup,
-                           double expectedCompilationTime,
-                           double priority) {
+  public VM_ControllerPlan(OPT_CompilationPlan compPlan, int timeCreated, int prevCMID, double expectedSpeedup,
+                           double expectedCompilationTime, double priority) {
     this.compPlan = compPlan;
     this.timeCreated = timeCreated;
     this.prevCMID = prevCMID;
@@ -145,8 +141,9 @@ public final class VM_ControllerPlan {
     setStatus(VM_ControllerPlan.IN_PROGRESS);
     VM_ControllerMemory.insert(this);
 
-    if (VM_Controller.options.BACKGROUND_RECOMPILATION ||
-        getCompPlan().getMethod().getDeclaringClass().isInBootImage()) {
+    if (VM_Controller.options
+        .BACKGROUND_RECOMPILATION ||
+                                  getCompPlan().getMethod().getDeclaringClass().isInBootImage()) {
       VM_Controller.compilationQueue.insert(getPriority(), this);
       VM_AOSLogging.recompilationScheduled(getCompPlan(), getPriority());
       return true;

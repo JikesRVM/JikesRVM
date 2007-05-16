@@ -35,9 +35,8 @@ import org.vmmagic.unboxed.Offset;
  *       Problem: can't risk doing that until we get OSX working again,
  *                so we can actually test that the refactors are correct.
  */
-public abstract class VM_JNICompiler implements VM_BaselineConstants,
-                                                VM_AssemblerConstants,
-                                                VM_JNIStackframeLayoutConstants {
+public abstract class VM_JNICompiler
+    implements VM_BaselineConstants, VM_AssemblerConstants, VM_JNIStackframeLayoutConstants {
 
   /**
    * This method creates the stub to link native method.  It will be called
@@ -221,8 +220,8 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
     // save the RVM nonvolatile registers, to be scanned by GC stack mapper
     // remember to skip past the saved JTOC  by starting with offset = JNI_RVM_NONVOLATILE_OFFSET
     //
-    for (int i = LAST_NONVOLATILE_GPR, offset = JNI_RVM_NONVOLATILE_OFFSET;
-         i >= FIRST_NONVOLATILE_GPR; --i, offset += BYTES_IN_STACKSLOT) {
+    for (int i = LAST_NONVOLATILE_GPR, offset = JNI_RVM_NONVOLATILE_OFFSET; i >= FIRST_NONVOLATILE_GPR; --i, offset +=
+        BYTES_IN_STACKSLOT) {
       asm.emitSTAddr(i, frameSize - offset, FP);
     }
 
@@ -267,8 +266,8 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
     asm.emitLWZ(T2, frameSize - JNI_GC_FLAG_OFFSET, FP);
     asm.emitCMPI(T2, 0);
     VM_ForwardReference fr1 = asm.emitForwardBC(EQ);
-    for (int i = LAST_NONVOLATILE_GPR, offset = JNI_RVM_NONVOLATILE_OFFSET;
-         i >= FIRST_NONVOLATILE_GPR; --i, offset += BYTES_IN_STACKSLOT) {
+    for (int i = LAST_NONVOLATILE_GPR, offset = JNI_RVM_NONVOLATILE_OFFSET; i >= FIRST_NONVOLATILE_GPR; --i, offset +=
+        BYTES_IN_STACKSLOT) {
       asm.emitLAddr(i, frameSize - offset, FP);
     }
     fr1.resolve(asm);
@@ -357,8 +356,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
     if (argSpace < 32) {
       argSpace = 32;
     }
-    int size = NATIVE_FRAME_HEADER_SIZE + argSpace +
-               JNI_SAVE_AREA_SIZE;
+    int size = NATIVE_FRAME_HEADER_SIZE + argSpace + JNI_SAVE_AREA_SIZE;
     if (VM.BuildFor32Addr) {
       size = VM_Memory.alignUp(size, STACKFRAME_ALIGNMENT);
     }
@@ -373,8 +371,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
    * -the frame has been created, FP points to the new callee frame
    * Also update the JNIRefs array
    */
-  private static void storeParameters(VM_Assembler asm, int frameSize,
-                                      VM_Method method, VM_Class klass) {
+  private static void storeParameters(VM_Assembler asm, int frameSize, VM_Method method, VM_Class klass) {
 
     int nextOSArgReg, nextOSArgFloatReg, nextVMArgReg, nextVMArgFloatReg;
 
@@ -398,9 +395,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
     // PR <- JREFS array base
     asm.emitLAddrOffset(PROCESSOR_REGISTER, S0, VM_Entrypoints.JNIRefsField.getOffset());
     // TI <- JREFS current top
-    asm.emitLIntOffset(KLUDGE_TI_REG,
-                       S0,
-                       VM_Entrypoints.JNIRefsTopField.getOffset());   // JREFS offset for current TOP
+    asm.emitLIntOffset(KLUDGE_TI_REG, S0, VM_Entrypoints.JNIRefsTopField.getOffset());   // JREFS offset for current TOP
     asm.emitADD(KLUDGE_TI_REG, PROCESSOR_REGISTER, KLUDGE_TI_REG);                // convert into address
 
     // TODO - count number of refs
@@ -458,10 +453,14 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
     if (VM.VerifyAssertions) VM._assert(FIRST_OS_PARAMETER_GPR == FIRST_VOLATILE_GPR);
     if (VM.VerifyAssertions) VM._assert(LAST_OS_PARAMETER_GPR <= LAST_VOLATILE_GPR);
 
-    generateParameterPassingCode(asm, types,
-                                 nextVMArgReg, nextVMArgFloatReg, spillOffsetVM,
-                                 nextOSArgReg, nextOSArgFloatReg, spillOffsetOS
-    );
+    generateParameterPassingCode(asm,
+                                 types,
+                                 nextVMArgReg,
+                                 nextVMArgFloatReg,
+                                 spillOffsetVM,
+                                 nextOSArgReg,
+                                 nextOSArgFloatReg,
+                                 spillOffsetOS);
 
     // Now add the 2 JNI parameters:  JNI environment and Class or "this" object
 
@@ -506,23 +505,28 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
    *                           the last parameter FPR is defined as LAST_OS_PARAMETER_FPR.
    * @param spillOffsetOS  The spill offset (related to FP) in OS convention
    */
-  private static void generateParameterPassingCode(VM_Assembler asm,
-                                                   VM_TypeReference[] types,
-                                                   int nextVMArgReg,
-                                                   int nextVMArgFloatReg,
-                                                   int spillOffsetVM,
-                                                   int nextOSArgReg,
-                                                   int nextOSArgFloatReg,
-                                                   int spillOffsetOS) {
+  private static void generateParameterPassingCode(VM_Assembler asm, VM_TypeReference[] types, int nextVMArgReg,
+                                                   int nextVMArgFloatReg, int spillOffsetVM, int nextOSArgReg,
+                                                   int nextOSArgFloatReg, int spillOffsetOS) {
     // TODO: The callee methods are prime candidates for being moved to ABI-specific subclasses.
     if (VM.BuildForSVR4ABI || VM.BuildForMachOABI) {
-      genSVR4orMachOParameterPassingCode(asm, types, nextVMArgReg, nextVMArgFloatReg,
-                                         spillOffsetVM, nextOSArgReg, nextOSArgFloatReg,
+      genSVR4orMachOParameterPassingCode(asm,
+                                         types,
+                                         nextVMArgReg,
+                                         nextVMArgFloatReg,
+                                         spillOffsetVM,
+                                         nextOSArgReg,
+                                         nextOSArgFloatReg,
                                          spillOffsetOS);
     } else {
       if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerOpenABI);
-      genPowerOpenParameterPassingCode(asm, types, nextVMArgReg, nextVMArgFloatReg,
-                                       spillOffsetVM, nextOSArgReg, nextOSArgFloatReg,
+      genPowerOpenParameterPassingCode(asm,
+                                       types,
+                                       nextVMArgReg,
+                                       nextVMArgFloatReg,
+                                       spillOffsetVM,
+                                       nextOSArgReg,
+                                       nextOSArgFloatReg,
                                        spillOffsetOS);
     }
   }
@@ -542,14 +546,9 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
    *                           the last parameter FPR is defined as LAST_OS_PARAMETER_FPR.
    * @param spillOffsetOS  The spill offset (related to FP) in OS convention
    */
-  private static void genSVR4orMachOParameterPassingCode(VM_Assembler asm,
-                                                         VM_TypeReference[] types,
-                                                         int nextVMArgReg,
-                                                         int nextVMArgFloatReg,
-                                                         int spillOffsetVM,
-                                                         int nextOSArgReg,
-                                                         int nextOSArgFloatReg,
-                                                         int spillOffsetOS) {
+  private static void genSVR4orMachOParameterPassingCode(VM_Assembler asm, VM_TypeReference[] types, int nextVMArgReg,
+                                                         int nextVMArgFloatReg, int spillOffsetVM, int nextOSArgReg,
+                                                         int nextOSArgFloatReg, int spillOffsetOS) {
     if (VM.BuildForSVR4ABI || VM.BuildForMachOABI) {
       // create one VM_Assembler object for each argument
       // This is needed for the following reason:
@@ -882,14 +881,9 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
    *                           the last parameter FPR is defined as LAST_OS_PARAMETER_FPR.
    * @param spillOffsetOS  The spill offset (related to FP) in OS convention
    */
-  private static void genPowerOpenParameterPassingCode(VM_Assembler asm,
-                                                       VM_TypeReference[] types,
-                                                       int nextVMArgReg,
-                                                       int nextVMArgFloatReg,
-                                                       int spillOffsetVM,
-                                                       int nextOSArgReg,
-                                                       int nextOSArgFloatReg,
-                                                       int spillOffsetOS) {
+  private static void genPowerOpenParameterPassingCode(VM_Assembler asm, VM_TypeReference[] types, int nextVMArgReg,
+                                                       int nextVMArgFloatReg, int spillOffsetVM, int nextOSArgReg,
+                                                       int nextOSArgFloatReg, int spillOffsetOS) {
     if (VM.BuildForPowerOpenABI) {
       // create one VM_Assembler object for each argument
       // This is needed for the following reason:
@@ -1007,8 +1001,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
             asmArg.emitMR(nextOSArgReg, nextVMArgReg);      // so it doesn't overwritten
             nextOSArgReg += 2;
             nextVMArgReg += 2;
-          } else if (nextOSArgReg == LAST_OS_PARAMETER_GPR &&
-                     nextVMArgReg <= LAST_VOLATILE_GPR - 1) {
+          } else if (nextOSArgReg == LAST_OS_PARAMETER_GPR && nextVMArgReg <= LAST_VOLATILE_GPR - 1) {
             // (1b) fit in VM register but straddle across OS register/spill
             asmArg.emitSTW(nextVMArgReg + 1,
                            spillOffsetOS - BYTES_IN_STACKSLOT,
@@ -1016,8 +1009,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
             asmArg.emitMR(nextOSArgReg, nextVMArgReg);
             nextOSArgReg += 2;
             nextVMArgReg += 2;
-          } else if (nextOSArgReg > LAST_OS_PARAMETER_GPR &&
-                     nextVMArgReg <= LAST_VOLATILE_GPR - 1) {
+          } else if (nextOSArgReg > LAST_OS_PARAMETER_GPR && nextVMArgReg <= LAST_VOLATILE_GPR - 1) {
             // (1c) fit in VM register, spill in OS without straddling register/spill
             asmArg.emitSTW(nextVMArgReg++, spillOffsetOS - 2 * BYTES_IN_STACKSLOT, FP);
             asmArg.emitSTW(nextVMArgReg++, spillOffsetOS - BYTES_IN_STACKSLOT, FP);
@@ -1377,9 +1369,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants,
     asm.emitLAddrOffset(T2,
                         PROCESSOR_REGISTER,
                         VM_Entrypoints.activeThreadField.getOffset());   // T2 <- activeThread of PR
-    asm.emitLAddrOffset(T2,
-                        T2,
-                        VM_Entrypoints.jniEnvField.getOffset());                         // T2 <- JNIEnvironment
+    asm.emitLAddrOffset(T2, T2, VM_Entrypoints.jniEnvField.getOffset());                         // T2 <- JNIEnvironment
 
     // before returning to C, set pointer to top java frame in JNIEnv, using offset
     // saved in this glue frame during transition from C to Java.  GC will use this saved

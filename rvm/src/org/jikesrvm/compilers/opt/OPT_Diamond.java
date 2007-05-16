@@ -61,8 +61,7 @@ final class OPT_Diamond {
    */
   OPT_BasicBlock getNotTaken() { return notTaken; }
 
-  OPT_Diamond(OPT_BasicBlock top, OPT_BasicBlock taken,
-              OPT_BasicBlock notTaken, OPT_BasicBlock bottom) {
+  OPT_Diamond(OPT_BasicBlock top, OPT_BasicBlock taken, OPT_BasicBlock notTaken, OPT_BasicBlock bottom) {
     this.top = top;
     this.taken = taken;
     this.notTaken = notTaken;
@@ -88,8 +87,7 @@ final class OPT_Diamond {
 
     if (out1In == 1 && out2In == 1) {
       // look for the case where the diamond has four non-empty blocks.
-      if (out1.getNumberOfNormalOut() == 1 &&
-          out2.getNumberOfNormalOut() == 1) {
+      if (out1.getNumberOfNormalOut() == 1 && out2.getNumberOfNormalOut() == 1) {
         OPT_BasicBlock b1 = out1.getNormalOut().nextElement();
         OPT_BasicBlock b2 = out2.getNormalOut().nextElement();
         if (b1 == b2) {
@@ -120,9 +118,7 @@ final class OPT_Diamond {
   /**
    * Given that four blocks form a diamond, return the correct structure.
    */
-  private static OPT_Diamond fourElementDiamond(OPT_BasicBlock top,
-                                                OPT_BasicBlock left,
-                                                OPT_BasicBlock right,
+  private static OPT_Diamond fourElementDiamond(OPT_BasicBlock top, OPT_BasicBlock left, OPT_BasicBlock right,
                                                 OPT_BasicBlock bottom) {
 
     OPT_Instruction cb = top.firstBranchInstruction();
@@ -140,9 +136,7 @@ final class OPT_Diamond {
   /**
    * Given that three blocks form a diamond, return the correct structure.
    */
-  private static OPT_Diamond threeElementDiamond(OPT_BasicBlock top,
-                                                 OPT_BasicBlock side,
-                                                 OPT_BasicBlock bottom) {
+  private static OPT_Diamond threeElementDiamond(OPT_BasicBlock top, OPT_BasicBlock side, OPT_BasicBlock bottom) {
 
     OPT_Instruction cb = top.firstBranchInstruction();
     // for now we only support IfCmp diamonds.

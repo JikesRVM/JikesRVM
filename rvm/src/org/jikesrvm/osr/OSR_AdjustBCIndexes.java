@@ -45,8 +45,7 @@ public class OSR_AdjustBCIndexes extends OPT_CompilerPhase {
     if (!ir.method.isForOsrSpecialization()) return;
     int offset = ir.method.getOsrPrologueLength();
 
-    for (OPT_InstructionEnumeration ie = ir.forwardInstrEnumerator();
-         ie.hasMoreElements();) {
+    for (OPT_InstructionEnumeration ie = ir.forwardInstrEnumerator(); ie.hasMoreElements();) {
       OPT_Instruction s = ie.next();
 
       if ((s.position != null) && (s.position.method != ir.method)) {

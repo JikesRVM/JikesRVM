@@ -34,21 +34,19 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
    * Then execute the transformations.
    */
   OPT_GCP() {
-    super("Global Code Placement",
-          new OPT_OptimizationPlanElement[]{
-              // 1. Set up IR state to control SSA translation as needed
-              new OPT_OptimizationPlanAtomicElement(new GCPPreparation()),
-              // 2. Get the desired SSA form
-              new OPT_OptimizationPlanAtomicElement(new OPT_EnterSSA()),
-              // 3. Perform global CSE
-              new OPT_OptimizationPlanAtomicElement(new OPT_GlobalCSE()),
-              // 4. Repair SSA
-              new OPT_OptimizationPlanAtomicElement(new OPT_EnterSSA()),
-              // 5. Perform Loop Invariant Code Motion
-              new OPT_OptimizationPlanAtomicElement(new OPT_LICM()),
-              // 6. Finalize GCP
-              new OPT_OptimizationPlanAtomicElement(new GCPFinalization())
-          });
+    super("Global Code Placement", new OPT_OptimizationPlanElement[]{
+        // 1. Set up IR state to control SSA translation as needed
+        new OPT_OptimizationPlanAtomicElement(new GCPPreparation()),
+        // 2. Get the desired SSA form
+        new OPT_OptimizationPlanAtomicElement(new OPT_EnterSSA()),
+        // 3. Perform global CSE
+        new OPT_OptimizationPlanAtomicElement(new OPT_GlobalCSE()),
+        // 4. Repair SSA
+        new OPT_OptimizationPlanAtomicElement(new OPT_EnterSSA()),
+        // 5. Perform Loop Invariant Code Motion
+        new OPT_OptimizationPlanAtomicElement(new OPT_LICM()),
+        // 6. Finalize GCP
+        new OPT_OptimizationPlanAtomicElement(new GCPFinalization())});
   }
 
   /**
@@ -175,9 +173,7 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
       ir.options.SSA = true;
       //VM.sysWrite("< " + ir.method + "\n");
       // register in the IR the SSA properties GCP preserves
-      if (ir != null && !OPT_GCP.tooBig(ir)
-          && !ir.hasReachableExceptionHandlers()
-          && ir.actualSSAOptions != null) {
+      if (ir != null && !OPT_GCP.tooBig(ir) && !ir.hasReachableExceptionHandlers() && ir.actualSSAOptions != null) {
         if (ir.IRStage == OPT_IR.LIR) {
           ir.actualSSAOptions.setScalarsOnly(true);
           ir.actualSSAOptions.setBackwards(false);
@@ -201,8 +197,7 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
     for (int i = inst.getNumberOfOperands() - 1; i >= 0; --i) {
       OPT_Operand op = inst.getOperand(i);
       if (op instanceof OPT_RegisterOperand) {
-        if (op.asRegister().type.isWordType() ||
-            op.asRegister().register.isPhysical()) {
+        if (op.asRegister().type.isWordType() || op.asRegister().register.isPhysical()) {
           return true;
         }
       }

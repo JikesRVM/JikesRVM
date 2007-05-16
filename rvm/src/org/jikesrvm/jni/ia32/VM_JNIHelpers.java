@@ -38,8 +38,8 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * @param methodID the method ID for a constructor
    * @return a new object created by the specified constructor
    */
-  public static Object invokeInitializer(Class<?> cls, int methodID, Address argAddress,
-                                         boolean isJvalue, boolean isDotDotStyle) throws Exception {
+  public static Object invokeInitializer(Class<?> cls, int methodID, Address argAddress, boolean isJvalue,
+                                         boolean isDotDotStyle) throws Exception {
 
     // get the parameter list as Java class
     VM_Method mth = VM_MemberReference.getMemberRef(methodID).asMethodReference().resolve();
@@ -79,8 +79,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
   @NoInline
   @NoOptCompile
   // expect a certain stack frame structure
-  public static Object invokeWithDotDotVarArg(int methodID, VM_TypeReference expectReturnType)
-      throws Exception {
+  public static Object invokeWithDotDotVarArg(int methodID, VM_TypeReference expectReturnType) throws Exception {
     Address varargAddress = getVarArgAddress(false);
     return packageAndInvoke(null, methodID, varargAddress, expectReturnType, false, true);
   }
@@ -98,10 +97,8 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
   @NoInline
   @NoOptCompile
   // expect a certain stack frame structure
-  public static Object invokeWithDotDotVarArg(Object obj, int methodID,
-                                              VM_TypeReference expectReturnType,
-                                              boolean skip4Args)
-      throws Exception {
+  public static Object invokeWithDotDotVarArg(Object obj, int methodID, VM_TypeReference expectReturnType,
+                                              boolean skip4Args) throws Exception {
 
     Address varargAddress = getVarArgAddress(skip4Args);
     return packageAndInvoke(obj, methodID, varargAddress, expectReturnType, skip4Args, true);
@@ -206,9 +203,8 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * @param skip4Args received from the JNI function, passed on to VM_Reflection.invoke()
    * @return an object that may be the return object or a wrapper for the primitive return value
    */
-  public static Object invokeWithVarArg(Object obj, int methodID, Address argAddress,
-                                        VM_TypeReference expectReturnType, boolean skip4Args)
-      throws Exception {
+  public static Object invokeWithVarArg(Object obj, int methodID, Address argAddress, VM_TypeReference expectReturnType,
+                                        boolean skip4Args) throws Exception {
     return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, true);
   }
 
@@ -218,8 +214,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * @param argAddress a raw address for the argument array
    * @return an object that may be the return object or a wrapper for the primitive return value
    */
-  public static Object invokeWithJValue(int methodID, Address argAddress,
-                                        VM_TypeReference expectReturnType)
+  public static Object invokeWithJValue(int methodID, Address argAddress, VM_TypeReference expectReturnType)
       throws Exception {
     return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, false);
   }
@@ -233,9 +228,8 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * @param skip4Args received from the JNI function, passed on to VM_Reflection.invoke()
    * @return an object that may be the return object or a wrapper for the primitive return value
    */
-  public static Object invokeWithJValue(Object obj, int methodID, Address argAddress,
-                                        VM_TypeReference expectReturnType, boolean skip4Args)
-      throws Exception {
+  public static Object invokeWithJValue(Object obj, int methodID, Address argAddress, VM_TypeReference expectReturnType,
+                                        boolean skip4Args) throws Exception {
     return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, false);
   }
 
@@ -258,19 +252,20 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
   @NoInline
   @NoOptCompile
   // expect a certain stack frame structure
-  static Object packageAndInvoke(Object obj, int methodID, Address argAddress,
-                                 VM_TypeReference expectReturnType, boolean skip4Args,
-                                 boolean isVarArg)
-      throws Exception {
+  static Object packageAndInvoke(Object obj, int methodID, Address argAddress, VM_TypeReference expectReturnType,
+                                 boolean skip4Args, boolean isVarArg) throws Exception {
 
     VM_Method targetMethod = VM_MemberReference.getMemberRef(methodID).asMethodReference().resolve();
     VM_TypeReference returnType = targetMethod.getReturnType();
 
     if (VM_JNIFunctions.traceJNI) {
-      VM.sysWrite("JNI CallXXXMethod:  (mid " + methodID + ") " +
+      VM.sysWrite("JNI CallXXXMethod:  (mid " +
+                  methodID +
+                  ") " +
                   targetMethod.getDeclaringClass().toString() +
                   "." +
-                  targetMethod.getName().toString() + "\n");
+                  targetMethod.getName().toString() +
+                  "\n");
     }
 
     if (expectReturnType == null) {   // for reference return type
@@ -279,8 +274,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
       }
     } else {    // for primitive return type
       if (!returnType.definitelySame(expectReturnType)) {
-        throw new Exception("Wrong return type for method: expect " + expectReturnType +
-                            " instead of " + returnType);
+        throw new Exception("Wrong return type for method: expect " + expectReturnType + " instead of " + returnType);
       }
     }
 

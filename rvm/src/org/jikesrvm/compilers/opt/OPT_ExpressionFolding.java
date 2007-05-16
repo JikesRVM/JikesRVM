@@ -458,8 +458,7 @@ class OPT_ExpressionFolding {
    *          op c2
    * @return the new instruction to replace s;
    */
-  private static OPT_Instruction transform(OPT_Instruction s,
-                                           OPT_Instruction def) {
+  private static OPT_Instruction transform(OPT_Instruction s, OPT_Instruction def) {
     // x = a op1 c1
     // y = x op2 c2
     OPT_RegisterOperand a;
@@ -470,8 +469,7 @@ class OPT_ExpressionFolding {
       a = GuardedBinary.getVal1(def).asRegister();
     } else if (Unary.conforms(def)) {
       a = Unary.getVal(def).asRegister();
-    } else if (BooleanCmp.conforms(def) || IfCmp.conforms(def) ||
-               IfCmp2.conforms(def) || CondMove.conforms(def)) {
+    } else if (BooleanCmp.conforms(def) || IfCmp.conforms(def) || IfCmp2.conforms(def) || CondMove.conforms(def)) {
       // we don't fold in case of a Boolean/IfCmp/CondMove coming before
       // the instruction to be folded
       return null;
@@ -816,8 +814,7 @@ class OPT_ExpressionFolding {
             int c1 = getIntValue(Binary.getVal2(def));
             if (c1 == c2) {
               // x = a >> c1; y = x << c1
-              return Binary.create(INT_AND, y.copyRO(), a.copyRO(),
-                                   IC(-1 << c1));
+              return Binary.create(INT_AND, y.copyRO(), a.copyRO(), IC(-1 << c1));
             }
           }
         }
@@ -834,7 +831,9 @@ class OPT_ExpressionFolding {
             int c1 = getIntValue(Binary.getVal2(def));
             if (c1 == c2) {
               // x = a >> c1; y = x << c1
-              return Binary.create(REF_AND, y.copyRO(), a.copyRO(),
+              return Binary.create(REF_AND,
+                                   y.copyRO(),
+                                   a.copyRO(),
                                    AC(Word.zero().minus(Word.one()).lsh(c1).toAddress()));
             }
           }
@@ -852,8 +851,7 @@ class OPT_ExpressionFolding {
             int c1 = getIntValue(Binary.getVal2(def));
             if (c1 == c2) {
               // x = a >> c1; y = x << c1
-              return Binary.create(LONG_AND, y.copyRO(), a.copyRO(),
-                                   LC(-1L << c1));
+              return Binary.create(LONG_AND, y.copyRO(), a.copyRO(), LC(-1L << c1));
             }
           }
         }
@@ -914,8 +912,7 @@ class OPT_ExpressionFolding {
             int c1 = getIntValue(Binary.getVal2(def));
             if (c1 == c2) {
               // x = a << c1; y = x >>> c1
-              return Binary.create(INT_AND, y.copyRO(), a.copyRO(),
-                                   IC(-1 >>> c1));
+              return Binary.create(INT_AND, y.copyRO(), a.copyRO(), IC(-1 >>> c1));
             }
           }
         }
@@ -932,7 +929,9 @@ class OPT_ExpressionFolding {
             int c1 = getIntValue(Binary.getVal2(def));
             if (c1 == c2) {
               // x = a << c1; y = x >>> c1
-              return Binary.create(REF_AND, y.copyRO(), a.copyRO(),
+              return Binary.create(REF_AND,
+                                   y.copyRO(),
+                                   a.copyRO(),
                                    AC(Word.zero().minus(Word.one()).rshl(c1).toAddress()));
             }
           }
@@ -950,8 +949,7 @@ class OPT_ExpressionFolding {
             int c1 = getIntValue(Binary.getVal2(def));
             if (c1 == c2) {
               // x = a << c1; y = x >>> c1
-              return Binary.create(LONG_AND, y.copyRO(), a.copyRO(),
-                                   LC(-1L >>> c1));
+              return Binary.create(LONG_AND, y.copyRO(), a.copyRO(), LC(-1L >>> c1));
             }
           }
         }
@@ -1469,18 +1467,41 @@ class OPT_ExpressionFolding {
           if (def.operator == INT_ADD) {
             int c1 = getIntValue(Binary.getVal2(def));
             // x = a + c1; y = x cmp c2
-            return IfCmp2.create(INT_IFCMP2, y.copyRO(), a.copyRO(), IC(c2 - c1),
-                                 cond1, target1, prof1, cond2, target2, prof2);
+            return IfCmp2.create(INT_IFCMP2,
+                                 y.copyRO(),
+                                 a.copyRO(),
+                                 IC(c2 - c1),
+                                 cond1,
+                                 target1,
+                                 prof1,
+                                 cond2,
+                                 target2,
+                                 prof2);
           } else if (def.operator == INT_SUB) {
             int c1 = getIntValue(Binary.getVal2(def));
             // x = a - c1; y = x cmp c2
-            return IfCmp2.create(INT_IFCMP2, y.copyRO(), a.copyRO(), IC(c1 + c2),
-                                 cond1, target1, prof1, cond2, target2, prof2);
+            return IfCmp2.create(INT_IFCMP2,
+                                 y.copyRO(),
+                                 a.copyRO(),
+                                 IC(c1 + c2),
+                                 cond1,
+                                 target1,
+                                 prof1,
+                                 cond2,
+                                 target2,
+                                 prof2);
           } else if (def.operator == INT_NEG) {
             // x = -a; y = x cmp c2
-            return IfCmp2.create(INT_IFCMP2, y.copyRO(), a.copyRO(), IC(-c2),
-                                 cond1.flipOperands(), target1, prof1,
-                                 cond2.flipOperands(), target2, prof2);
+            return IfCmp2.create(INT_IFCMP2,
+                                 y.copyRO(),
+                                 a.copyRO(),
+                                 IC(-c2),
+                                 cond1.flipOperands(),
+                                 target1,
+                                 prof1,
+                                 cond2.flipOperands(),
+                                 target2,
+                                 prof2);
           }
         }
         return null;
@@ -1501,15 +1522,13 @@ class OPT_ExpressionFolding {
               int c1 = getIntValue(Binary.getVal2(def));
               int c2 = getIntValue(CondMove.getVal2(s));
               // x = a + c1; y = x cmp c2 ? trueValue : falseValue
-              return CondMove.create(s.operator(), y.copyRO(), a.copyRO(), IC(c2 - c1),
-                                     cond, trueValue, falseValue);
+              return CondMove.create(s.operator(), y.copyRO(), a.copyRO(), IC(c2 - c1), cond, trueValue, falseValue);
             }
             case LONG_ADD_opcode: {
               long c1 = getLongValue(Binary.getVal2(def));
               long c2 = getLongValue(CondMove.getVal2(s));
               // x = a + c1; y = x cmp c2 ? trueValue : falseValue
-              return CondMove.create(s.operator(), y.copyRO(), a.copyRO(), LC(c2 - c1),
-                                     cond, trueValue, falseValue);
+              return CondMove.create(s.operator(), y.copyRO(), a.copyRO(), LC(c2 - c1), cond, trueValue, falseValue);
             }
             case REF_ADD_opcode: {
               Address c1 = getAddressValue(Binary.getVal2(def));
@@ -1527,29 +1546,25 @@ class OPT_ExpressionFolding {
               float c1 = getFloatValue(Binary.getVal2(def));
               float c2 = getFloatValue(CondMove.getVal2(s));
               // x = a + c1; y = x cmp c2 ? trueValue : falseValue
-              return CondMove.create(s.operator(), y.copyRO(), a.copyRO(), FC(c2 - c1),
-                                     cond, trueValue, falseValue);
+              return CondMove.create(s.operator(), y.copyRO(), a.copyRO(), FC(c2 - c1), cond, trueValue, falseValue);
             }
             case DOUBLE_ADD_opcode: {
               double c1 = getDoubleValue(Binary.getVal2(def));
               double c2 = getDoubleValue(CondMove.getVal2(s));
               // x = a + c1; y = x cmp c2 ? trueValue : falseValue
-              return CondMove.create(s.operator(), y.copyRO(), a.copyRO(), DC(c2 - c1),
-                                     cond, trueValue, falseValue);
+              return CondMove.create(s.operator(), y.copyRO(), a.copyRO(), DC(c2 - c1), cond, trueValue, falseValue);
             }
             case INT_SUB_opcode: {
               int c1 = getIntValue(Binary.getVal2(def));
               int c2 = getIntValue(CondMove.getVal2(s));
               // x = a - c1; y = x cmp c2 ? trueValue : falseValue
-              return CondMove.create(s.operator(), y.copyRO(), a.copyRO(), IC(c1 + c2),
-                                     cond, trueValue, falseValue);
+              return CondMove.create(s.operator(), y.copyRO(), a.copyRO(), IC(c1 + c2), cond, trueValue, falseValue);
             }
             case LONG_SUB_opcode: {
               long c1 = getLongValue(Binary.getVal2(def));
               long c2 = getLongValue(CondMove.getVal2(s));
               // x = a - c1; y = x cmp c2 ? trueValue : falseValue
-              return CondMove.create(s.operator(), y.copyRO(), a.copyRO(), LC(c1 + c2),
-                                     cond, trueValue, falseValue);
+              return CondMove.create(s.operator(), y.copyRO(), a.copyRO(), LC(c1 + c2), cond, trueValue, falseValue);
             }
             case REF_SUB_opcode: {
               Address c1 = getAddressValue(Binary.getVal2(def));
@@ -1567,27 +1582,35 @@ class OPT_ExpressionFolding {
               float c1 = getFloatValue(Binary.getVal2(def));
               float c2 = getFloatValue(CondMove.getVal2(s));
               // x = a - c1; y = x cmp c2 ? trueValue : falseValue
-              return CondMove.create(s.operator(), y.copyRO(), a.copyRO(), FC(c1 + c2),
-                                     cond, trueValue, falseValue);
+              return CondMove.create(s.operator(), y.copyRO(), a.copyRO(), FC(c1 + c2), cond, trueValue, falseValue);
             }
             case DOUBLE_SUB_opcode: {
               double c1 = getDoubleValue(Binary.getVal2(def));
               double c2 = getDoubleValue(CondMove.getVal2(s));
               // x = a - c1; y = x cmp c2 ? trueValue : falseValue
-              return CondMove.create(s.operator(), y.copyRO(), a.copyRO(), DC(c1 + c2),
-                                     cond, trueValue, falseValue);
+              return CondMove.create(s.operator(), y.copyRO(), a.copyRO(), DC(c1 + c2), cond, trueValue, falseValue);
             }
             case INT_NEG_opcode: {
               int c2 = getIntValue(CondMove.getVal2(s));
               // x = -a; y = x cmp c2 ? trueValue : falseValue
-              return CondMove.create(s.operator(), y.copyRO(), a.copyRO(), IC(-c2),
-                                     cond.flipOperands(), trueValue, falseValue);
+              return CondMove.create(s.operator(),
+                                     y.copyRO(),
+                                     a.copyRO(),
+                                     IC(-c2),
+                                     cond.flipOperands(),
+                                     trueValue,
+                                     falseValue);
             }
             case LONG_NEG_opcode: {
               long c2 = getLongValue(CondMove.getVal2(s));
               // x = -a; y = x cmp c2 ? trueValue : falseValue
-              return CondMove.create(s.operator(), y.copyRO(), a.copyRO(), LC(-c2),
-                                     cond.flipOperands(), trueValue, falseValue);
+              return CondMove.create(s.operator(),
+                                     y.copyRO(),
+                                     a.copyRO(),
+                                     LC(-c2),
+                                     cond.flipOperands(),
+                                     trueValue,
+                                     falseValue);
             }
             case REF_NEG_opcode: {
               Address c2 = getAddressValue(CondMove.getVal2(s));
@@ -1603,14 +1626,24 @@ class OPT_ExpressionFolding {
             case FLOAT_NEG_opcode: {
               float c2 = getFloatValue(CondMove.getVal2(s));
               // x = -a; y = x cmp c2 ? trueValue : falseValue
-              return CondMove.create(s.operator(), y.copyRO(), a.copyRO(), FC(-c2),
-                                     cond.flipOperands(), trueValue, falseValue);
+              return CondMove.create(s.operator(),
+                                     y.copyRO(),
+                                     a.copyRO(),
+                                     FC(-c2),
+                                     cond.flipOperands(),
+                                     trueValue,
+                                     falseValue);
             }
             case DOUBLE_NEG_opcode: {
               double c2 = getDoubleValue(CondMove.getVal2(s));
               // x = -a; y = x cmp c2 ? trueValue : falseValue
-              return CondMove.create(s.operator(), y.copyRO(), a.copyRO(), DC(-c2),
-                                     cond.flipOperands(), trueValue, falseValue);
+              return CondMove.create(s.operator(),
+                                     y.copyRO(),
+                                     a.copyRO(),
+                                     DC(-c2),
+                                     cond.flipOperands(),
+                                     trueValue,
+                                     falseValue);
             }
             default:
           }
@@ -1749,8 +1782,10 @@ class OPT_ExpressionFolding {
             return Move.create(INT_MOVE, y.copyRO(), Unary.getVal(def).copy());
           } else if (BooleanCmp.conforms(def)) {
             // x = a cmp b; y = !x
-            return BooleanCmp.create(def.operator, y.copyRO(),
-                                     BooleanCmp.getVal1(def).copy(), BooleanCmp.getVal2(def).copy(),
+            return BooleanCmp.create(def.operator,
+                                     y.copyRO(),
+                                     BooleanCmp.getVal1(def).copy(),
+                                     BooleanCmp.getVal2(def).copy(),
                                      ((OPT_ConditionOperand) BooleanCmp.getCond(def).copy()).flipCode(),
                                      ((OPT_BranchProfileOperand) BooleanCmp.getBranchProfile(def).copy()));
           }
@@ -1790,8 +1825,7 @@ class OPT_ExpressionFolding {
 
       case INT_2BYTE_opcode: {
         if (FOLD_INTS && FOLD_2CONVERSION) {
-          if ((def.operator == INT_2BYTE) ||
-              (def.operator == INT_2SHORT)) {
+          if ((def.operator == INT_2BYTE) || (def.operator == INT_2SHORT)) {
             // x = (short)z; y = (byte)x;
             return Unary.create(INT_2BYTE, y.copyRO(), Unary.getVal(def).copy());
           } else if (def.operator == INT_2USHORT) {
@@ -1818,8 +1852,7 @@ class OPT_ExpressionFolding {
       }
       case INT_2USHORT_opcode: {
         if (FOLD_INTS && FOLD_2CONVERSION) {
-          if ((def.operator == INT_2SHORT) ||
-              (def.operator == INT_2USHORT)) {
+          if ((def.operator == INT_2SHORT) || (def.operator == INT_2USHORT)) {
             // x = (short)z; y = (char)x;
             return Unary.create(INT_2USHORT, y.copyRO(), Unary.getVal(def).copy());
           }
@@ -2119,32 +2152,28 @@ class OPT_ExpressionFolding {
     if (op instanceof OPT_IntConstantOperand) {
       return op.asIntConstant().value;
     }
-    throw new OPT_OptimizingCompilerException(
-        "Cannot getLongValue from this operand " + op);
+    throw new OPT_OptimizingCompilerException("Cannot getLongValue from this operand " + op);
   }
 
   private static long getLongValue(OPT_Operand op) {
     if (op instanceof OPT_LongConstantOperand) {
       return op.asLongConstant().value;
     }
-    throw new OPT_OptimizingCompilerException(
-        "Cannot getLongValue from this operand " + op);
+    throw new OPT_OptimizingCompilerException("Cannot getLongValue from this operand " + op);
   }
 
   private static float getFloatValue(OPT_Operand op) {
     if (op instanceof OPT_FloatConstantOperand) {
       return op.asFloatConstant().value;
     }
-    throw new OPT_OptimizingCompilerException(
-        "Cannot getFloatValue from this operand " + op);
+    throw new OPT_OptimizingCompilerException("Cannot getFloatValue from this operand " + op);
   }
 
   private static double getDoubleValue(OPT_Operand op) {
     if (op instanceof OPT_DoubleConstantOperand) {
       return op.asDoubleConstant().value;
     }
-    throw new OPT_OptimizingCompilerException(
-        "Cannot getDoubleValue from this operand " + op);
+    throw new OPT_OptimizingCompilerException("Cannot getDoubleValue from this operand " + op);
   }
 
   private static Address getAddressValue(OPT_Operand op) {
@@ -2160,7 +2189,6 @@ class OPT_ExpressionFolding {
     if (VM.BuildFor64Addr && op instanceof OPT_LongConstantOperand) {
       return Address.fromLong(op.asLongConstant().value);
     }
-    throw new OPT_OptimizingCompilerException(
-        "Cannot getWordValue from this operand " + op);
+    throw new OPT_OptimizingCompilerException("Cannot getWordValue from this operand " + op);
   }
 }

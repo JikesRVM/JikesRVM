@@ -62,9 +62,7 @@ public class VM_DynamicCallFileInfoReader {
       return;
     }
     try {
-      fileIn = new BufferedReader(new
-          InputStreamReader(new FileInputStream(file),
-                            "UTF-8"));
+      fileIn = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"));
       try {
         for (String s = fileIn.readLine(); s != null; s = fileIn.readLine()) {
           StringTokenizer parser = new StringTokenizer(s, " \n,");
@@ -76,11 +74,9 @@ public class VM_DynamicCallFileInfoReader {
       }
       fileIn.close();
     } catch (java.io.FileNotFoundException e) {
-      System.out.println("IO: Couldn't read compiler advice attribute file: "
-                         + file + e);
+      System.out.println("IO: Couldn't read compiler advice attribute file: " + file + e);
     } catch (java.io.UnsupportedEncodingException e) {
-      System.out.println("IO: UTF-16 is not supported: "
-                         + e);
+      System.out.println("IO: UTF-16 is not supported: " + e);
     } catch (IOException e) {
       VM.sysFail("Error closing input dynamic call graph file" + file);
     }

@@ -46,8 +46,7 @@ public class VM_MainThread extends Thread {
     this.vmdata.isMainThread = true;
     this.vmdata.isSystemThread = false;
     if (dbg) {
-      VM.sysWriteln("VM_MainThread(args.length == ", args.length,
-                    "): constructor done");
+      VM.sysWriteln("VM_MainThread(args.length == ", args.length, "): constructor done");
     }
 
   }
@@ -87,8 +86,7 @@ public class VM_MainThread extends Thread {
       JarFile jf = new JarFile(agentJar);
       mf = jf.getManifest();
     } catch (Exception e) {
-      VM.sysWriteln("vm: IO Exception opening JAR file ", agentJar,
-                    ": ", e.getMessage());
+      VM.sysWriteln("vm: IO Exception opening JAR file ", agentJar, ": ", e.getMessage());
       VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
     if (mf == null) {

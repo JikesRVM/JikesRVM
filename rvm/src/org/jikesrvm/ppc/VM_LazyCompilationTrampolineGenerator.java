@@ -26,11 +26,11 @@ public abstract class VM_LazyCompilationTrampolineGenerator implements VM_Baseli
   /**
    * Generate a new lazy compilation trampoline.
    */
-  public static ArchitectureSpecific.VM_CodeArray getTrampoline () {
+  public static ArchitectureSpecific.VM_CodeArray getTrampoline() {
     VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
-    asm.emitLAddrToc (S0, VM_Entrypoints.lazyMethodInvokerMethod.getOffset());
+    asm.emitLAddrToc(S0, VM_Entrypoints.lazyMethodInvokerMethod.getOffset());
     asm.emitMTCTR(S0);
-    asm.emitBCCTR ();
+    asm.emitBCCTR();
     return asm.makeMachineCode().getInstructions();
   }
 }

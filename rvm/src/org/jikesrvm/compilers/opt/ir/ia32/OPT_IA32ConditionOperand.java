@@ -16,8 +16,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_Operand;
 /**
  * An IA32 condition operand
  */
-public final class OPT_IA32ConditionOperand extends OPT_Operand
-    implements VM_AssemblerConstants {
+public final class OPT_IA32ConditionOperand extends OPT_Operand implements VM_AssemblerConstants {
 
   /**
    * Value of this operand (one of the ConditionCode constants operands
@@ -38,8 +37,7 @@ public final class OPT_IA32ConditionOperand extends OPT_Operand
    * @param op other operand
    */
   public boolean similar(OPT_Operand op) {
-    return (op instanceof OPT_IA32ConditionOperand) &&
-           ((OPT_IA32ConditionOperand) op).value == value;
+    return (op instanceof OPT_IA32ConditionOperand) && ((OPT_IA32ConditionOperand) op).value == value;
   }
 
   /**

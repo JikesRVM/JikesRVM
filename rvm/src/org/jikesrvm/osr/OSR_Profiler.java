@@ -61,8 +61,7 @@ public class OSR_Profiler implements VM_Callbacks.ExitMonitor {
   private static synchronized void invalidateState(OSR_ExecutionState state) {
     // step 1: invalidate the compiled method with this OSR assumption
     //         how does this affect the performance?
-    VM_CompiledMethod mostRecentlyCompiledMethod =
-        VM_CompiledMethods.getCompiledMethod(state.cmid);
+    VM_CompiledMethod mostRecentlyCompiledMethod = VM_CompiledMethods.getCompiledMethod(state.cmid);
 
     if (VM.VerifyAssertions) {
       VM._assert(mostRecentlyCompiledMethod.getMethod() == state.meth);
@@ -86,8 +85,7 @@ public class OSR_Profiler implements VM_Callbacks.ExitMonitor {
 
     // a list of state from callee -> caller
     if (VM.TraceOnStackReplacement) {
-      VM.sysWriteln("OSR " + OSR_Profiler.invalidations + " : "
-                    + state.bcIndex + "@" + state.meth);
+      VM.sysWriteln("OSR " + OSR_Profiler.invalidations + " : " + state.bcIndex + "@" + state.meth);
     }
 
     // simply reset the compiled method to null is not good
@@ -98,11 +96,9 @@ public class OSR_Profiler implements VM_Callbacks.ExitMonitor {
     boolean recmplsucc = false;
     if (VM_Controller.enabled) {
       OPT_CompilationPlan cmplplan = null;
-      if ((VM_Controller.options.ENABLE_REPLAY_COMPILE
-           || VM_Controller.options.ENABLE_PRECOMPILE)
-          && VM_CompilerAdviceAttribute.hasAdvice()) {
-        VM_CompilerAdviceAttribute attr =
-            VM_CompilerAdviceAttribute.getCompilerAdviceInfo(state.meth);
+      if ((VM_Controller.options.ENABLE_REPLAY_COMPILE || VM_Controller.options.ENABLE_PRECOMPILE) &&
+          VM_CompilerAdviceAttribute.hasAdvice()) {
+        VM_CompilerAdviceAttribute attr = VM_CompilerAdviceAttribute.getCompilerAdviceInfo(state.meth);
         if (VM.VerifyAssertions) {
           VM._assert(attr.getCompiler() == VM_CompiledMethod.OPT);
         }
@@ -142,8 +138,7 @@ public class OSR_Profiler implements VM_Callbacks.ExitMonitor {
 
           recmplsucc = true;
           if (VM.TraceOnStackReplacement) {
-            VM.sysWriteln("  recompile " + state.meth
-                          + " at -O" + cmplplan.options.getOptLevel());
+            VM.sysWriteln("  recompile " + state.meth + " at -O" + cmplplan.options.getOptLevel());
           }
         }
       }

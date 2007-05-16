@@ -25,8 +25,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
 
   // Cache objects needed to cons up compilation plans
-  private final Vector<OPT_OptimizationPlanElement[]> optimizationPlans =
-      new Vector<OPT_OptimizationPlanElement[]>();
+  private final Vector<OPT_OptimizationPlanElement[]> optimizationPlans = new Vector<OPT_OptimizationPlanElement[]>();
   private final Vector<Boolean> optimizationPlanLocks = new Vector<Boolean>();
   private final Vector<OPT_Options> options = new Vector<OPT_Options>();
   private final OPT_Options masterOptions = new OPT_Options();

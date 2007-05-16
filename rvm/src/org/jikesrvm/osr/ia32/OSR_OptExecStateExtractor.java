@@ -37,14 +37,10 @@ import org.vmmagic.unboxed.WordArray;
  * OSR_OptExecStateExtractor is a subclass of OSR_ExecStateExtractor.
  * It extracts the execution state from an optimized activation.
  */
-public abstract class OSR_OptExecStateExtractor
-    extends OSR_ExecStateExtractor
+public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
     implements VM_Constants, VM_ArchConstants, OSR_Constants, OPT_PhysicalRegisterConstants {
 
-  public OSR_ExecutionState extractState(VM_Thread thread,
-                                         Offset osrFPoff,
-                                         Offset methFPoff,
-                                         int cmid) {
+  public OSR_ExecutionState extractState(VM_Thread thread, Offset osrFPoff, Offset methFPoff, int cmid) {
 
     /* perform machine and compiler dependent operations here
     * osrFPoff is the fp offset of
@@ -66,12 +62,10 @@ public abstract class OSR_OptExecStateExtractor
     byte[] stack = thread.stack;
 
     // get registers for the caller ( real method )
-    OSR_TempRegisters registers =
-        new OSR_TempRegisters(thread.contextRegisters);
+    OSR_TempRegisters registers = new OSR_TempRegisters(thread.contextRegisters);
 
     if (VM.VerifyAssertions) {
-      int foocmid = VM_Magic.getIntAtOffset(stack,
-                                            methFPoff.plus(STACKFRAME_METHOD_ID_OFFSET));
+      int foocmid = VM_Magic.getIntAtOffset(stack, methFPoff.plus(STACKFRAME_METHOD_ID_OFFSET));
       if (foocmid != cmid) {
         VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
         VM.sysWriteln("unmatch method, it should be " + cm.getMethod());
@@ -82,8 +76,7 @@ public abstract class OSR_OptExecStateExtractor
       VM._assert(foocmid == cmid);
     }
 
-    VM_OptCompiledMethod fooCM =
-        (VM_OptCompiledMethod) VM_CompiledMethods.getCompiledMethod(cmid);
+    VM_OptCompiledMethod fooCM = (VM_OptCompiledMethod) VM_CompiledMethods.getCompiledMethod(cmid);
 
     /* Following code get the machine code offset to the
      * next instruction. All operation of the stack frame
@@ -113,10 +106,8 @@ public abstract class OSR_OptExecStateExtractor
     int regmap = fooOSRMap.getRegisterMapForMCOffset(ipOffset);
 
     {
-      int bufCMID = VM_Magic.getIntAtOffset(stack,
-                                            osrFPoff.plus(STACKFRAME_METHOD_ID_OFFSET));
-      VM_CompiledMethod bufCM =
-          VM_CompiledMethods.getCompiledMethod(bufCMID);
+      int bufCMID = VM_Magic.getIntAtOffset(stack, osrFPoff.plus(STACKFRAME_METHOD_ID_OFFSET));
+      VM_CompiledMethod bufCM = VM_CompiledMethods.getCompiledMethod(bufCMID);
 
       // offset in bytes, convert it to stack words from fpIndex
       // OPT_SaveVolatile can only be compiled by OPT compiler
@@ -127,14 +118,8 @@ public abstract class OSR_OptExecStateExtractor
     // return a list of states: from caller to callee
     // if the osr happens in an inlined method, the state is
     // a chain of recoverd methods.
-    OSR_ExecutionState state = getExecStateSequence(thread,
-                                                    stack,
-                                                    ipOffset,
-                                                    methFPoff,
-                                                    cmid,
-                                                    osrFPoff,
-                                                    registers,
-                                                    fooOSRMap);
+    OSR_ExecutionState state =
+        getExecStateSequence(thread, stack, ipOffset, methFPoff, cmid, osrFPoff, registers, fooOSRMap);
 
     // reverse callerState points, it becomes callee -> caller
     OSR_ExecutionState prevState = null;
@@ -175,10 +160,7 @@ public abstract class OSR_OptExecStateExtractor
     *    |FPR states|
     *    |__________|  ___ FP
   */
-  private void restoreValuesFromOptSaveVolatile(byte[] stack,
-                                                Offset osrFPoff,
-                                                OSR_TempRegisters registers,
-                                                int regmap,
+  private void restoreValuesFromOptSaveVolatile(byte[] stack, Offset osrFPoff, OSR_TempRegisters registers, int regmap,
                                                 VM_CompiledMethod cm) {
 
     VM_OptCompiledMethod tsfromCM = (VM_OptCompiledMethod) cm;
@@ -199,21 +181,15 @@ public abstract class OSR_OptExecStateExtractor
     VM.disableGC();
 
     // recover nonvolatile GPRs
-    for (int i = firstNonVolatile + nonVolatiles - 1;
-         i >= firstNonVolatile;
-         i--) {
-      gprs.set(NONVOLATILE_GPRS[i],
-               VM_Magic.objectAsAddress(stack).loadWord(osrFPoff.minus(nonVolatileOffset)));
+    for (int i = firstNonVolatile + nonVolatiles - 1; i >= firstNonVolatile; i--) {
+      gprs.set(NONVOLATILE_GPRS[i], VM_Magic.objectAsAddress(stack).loadWord(osrFPoff.minus(nonVolatileOffset)));
       nonVolatileOffset -= BYTES_IN_STACKSLOT;
     }
 
     // restore with VOLATILES yet
     int volatileOffset = nonVolatileOffset;
-    for (int i = NUM_VOLATILE_GPRS - 1;
-         i >= 0;
-         i--) {
-      gprs.set(VOLATILE_GPRS[i],
-               VM_Magic.objectAsAddress(stack).loadWord(osrFPoff.minus(volatileOffset)));
+    for (int i = NUM_VOLATILE_GPRS - 1; i >= 0; i--) {
+      gprs.set(VOLATILE_GPRS[i], VM_Magic.objectAsAddress(stack).loadWord(osrFPoff.minus(volatileOffset)));
       volatileOffset -= BYTES_IN_STACKSLOT;
     }
 
@@ -224,8 +200,7 @@ public abstract class OSR_OptExecStateExtractor
     // powerPC starts from register 1
     for (int i = 0; i < NUM_GPRS; i++) {
       if (OSR_EncodedOSRMap.registerIsSet(regmap, i)) {
-        registers.objs[i] =
-            VM_Magic.addressAsObject(registers.gprs.get(i).toAddress());
+        registers.objs[i] = VM_Magic.addressAsObject(registers.gprs.get(i).toAddress());
       }
     }
 
@@ -241,13 +216,8 @@ public abstract class OSR_OptExecStateExtractor
     }
   }
 
-  private OSR_ExecutionState getExecStateSequence(VM_Thread thread,
-                                                  byte[] stack,
-                                                  Offset ipOffset,
-                                                  Offset fpOffset,
-                                                  int cmid,
-                                                  Offset tsFPOffset,
-                                                  OSR_TempRegisters registers,
+  private OSR_ExecutionState getExecStateSequence(VM_Thread thread, byte[] stack, Offset ipOffset, Offset fpOffset,
+                                                  int cmid, Offset tsFPOffset, OSR_TempRegisters registers,
                                                   OSR_EncodedOSRMap osrmap) {
 
     // go through the stack frame and extract values
@@ -275,15 +245,10 @@ public abstract class OSR_OptExecStateExtractor
     int lpart_one = 0;
 
     // now recover execution states
-    OSR_MapIterator iterator =
-        osrmap.getOsrMapIteratorForMCOffset(ipOffset);
+    OSR_MapIterator iterator = osrmap.getOsrMapIteratorForMCOffset(ipOffset);
     if (VM.VerifyAssertions) VM._assert(iterator != null);
 
-    OSR_ExecutionState state = new OSR_ExecutionState(thread,
-                                                      fpOffset,
-                                                      cmid,
-                                                      iterator.getBcIndex(),
-                                                      tsFPOffset);
+    OSR_ExecutionState state = new OSR_ExecutionState(thread, fpOffset, cmid, iterator.getBcIndex(), tsFPOffset);
     VM_MethodReference mref = VM_MemberReference.getMemberRef(iterator.getMethodId()).asMethodReference();
     state.setMethod((VM_NormalMethod) mref.peekResolvedMethod());
     // this is not caller, but the callee, reverse it when outside
@@ -297,11 +262,7 @@ public abstract class OSR_OptExecStateExtractor
     while (iterator.hasMore()) {
 
       if (iterator.getMethodId() != state.meth.getId()) {
-        OSR_ExecutionState newstate = new OSR_ExecutionState(thread,
-                                                             fpOffset,
-                                                             cmid,
-                                                             iterator.getBcIndex(),
-                                                             tsFPOffset);
+        OSR_ExecutionState newstate = new OSR_ExecutionState(thread, fpOffset, cmid, iterator.getBcIndex(), tsFPOffset);
         mref = VM_MemberReference.getMemberRef(iterator.getMethodId()).asMethodReference();
         newstate.setMethod((VM_NormalMethod) mref.peekResolvedMethod());
         // this is not caller, but the callee, reverse it when outside
@@ -344,28 +305,14 @@ public abstract class OSR_OptExecStateExtractor
 
       switch (tcode) {
         case INT: {
-          int ibits = getIntBitsFrom(vtype,
-                                     value,
-                                     stack,
-                                     fpOffset,
-                                     registers);
-          state.add(new OSR_VariableElement(kind,
-                                            num,
-                                            tcode,
-                                            ibits));
+          int ibits = getIntBitsFrom(vtype, value, stack, fpOffset, registers);
+          state.add(new OSR_VariableElement(kind, num, tcode, ibits));
           break;
         }
         case FLOAT: {
-          float fv = (float) getDoubleFrom(vtype,
-                                           value,
-                                           stack,
-                                           fpOffset,
-                                           registers);
+          float fv = (float) getDoubleFrom(vtype, value, stack, fpOffset, registers);
           int ibits = VM_Magic.floatAsIntBits(fv);
-          state.add(new OSR_VariableElement(kind,
-                                            num,
-                                            tcode,
-                                            ibits));
+          state.add(new OSR_VariableElement(kind, num, tcode, ibits));
           break;
         }
         case HIGH_64BIT: {
@@ -373,73 +320,37 @@ public abstract class OSR_OptExecStateExtractor
           break;
         }
         case LONG: {
-          long lbits = getLongBitsFrom(vtype,
-                                       lpart_one,
-                                       value,
-                                       stack,
-                                       fpOffset,
-                                       registers);
+          long lbits = getLongBitsFrom(vtype, lpart_one, value, stack, fpOffset, registers);
           lpart_one = 0;
-          state.add(new OSR_VariableElement(kind,
-                                            num,
-                                            LONG,
-                                            lbits));
+          state.add(new OSR_VariableElement(kind, num, LONG, lbits));
 
           break;
         }
         case DOUBLE: {
-          double dv = getDoubleFrom(vtype,
-                                    value,
-                                    stack,
-                                    fpOffset,
-                                    registers);
+          double dv = getDoubleFrom(vtype, value, stack, fpOffset, registers);
           long lbits = VM_Magic.doubleAsLongBits(dv);
-          state.add(new OSR_VariableElement(kind,
-                                            num,
-                                            tcode,
-                                            lbits));
+          state.add(new OSR_VariableElement(kind, num, tcode, lbits));
           break;
         }
         // I believe I did not handle return address correctly because
         // the opt compiler did inlining of JSR/RET.
         // To be VERIFIED.
         case RET_ADDR: {
-          int bcIndex = getIntBitsFrom(vtype,
-                                       value,
-                                       stack,
-                                       fpOffset,
-                                       registers);
-          state.add(new OSR_VariableElement(kind,
-                                            num,
-                                            tcode,
-                                            bcIndex));
+          int bcIndex = getIntBitsFrom(vtype, value, stack, fpOffset, registers);
+          state.add(new OSR_VariableElement(kind, num, tcode, bcIndex));
           break;
         }
         case WORD: { //KV:TODO
           if (VM.BuildFor64Addr) VM._assert(VM.NOT_REACHED);
-          int word = getIntBitsFrom(vtype,
-                                    value,
-                                    stack,
-                                    fpOffset,
-                                    registers);
+          int word = getIntBitsFrom(vtype, value, stack, fpOffset, registers);
 
-          state.add(new OSR_VariableElement(kind,
-                                            num,
-                                            tcode,
-                                            word));
+          state.add(new OSR_VariableElement(kind, num, tcode, word));
           break;
         }
         case REF: {
-          Object ref = getObjectFrom(vtype,
-                                     value,
-                                     stack,
-                                     fpOffset,
-                                     registers);
+          Object ref = getObjectFrom(vtype, value, stack, fpOffset, registers);
 
-          state.add(new OSR_VariableElement(kind,
-                                            num,
-                                            tcode,
-                                            ref));
+          state.add(new OSR_VariableElement(kind, num, tcode, ref));
           break;
         }
         default:
@@ -453,11 +364,7 @@ public abstract class OSR_OptExecStateExtractor
 
   /* auxillary functions to get value from different places.
   */
-  private static int getIntBitsFrom(int vtype,
-                                    int value,
-                                    byte[] stack,
-                                    Offset fpOffset,
-                                    OSR_TempRegisters registers) {
+  private static int getIntBitsFrom(int vtype, int value, byte[] stack, Offset fpOffset, OSR_TempRegisters registers) {
     // for INT_CONST type, the value is the value
     if (vtype == ICONST || vtype == ACONST) {
       return value;
@@ -481,11 +388,7 @@ public abstract class OSR_OptExecStateExtractor
     }
   }
 
-  private static long getLongBitsFrom(int vtype,
-                                      int valueHigh,
-                                      int valueLow,
-                                      byte[] stack,
-                                      Offset fpOffset,
+  private static long getLongBitsFrom(int vtype, int valueHigh, int valueLow, byte[] stack, Offset fpOffset,
                                       OSR_TempRegisters registers) {
 
     // for LCONST type, the value is the value
@@ -526,10 +429,7 @@ public abstract class OSR_OptExecStateExtractor
     return -1L;
   }
 
-  private static double getDoubleFrom(int vtype,
-                                      int value,
-                                      byte[] stack,
-                                      Offset fpOffset,
+  private static double getDoubleFrom(int vtype, int value, byte[] stack, Offset fpOffset,
                                       OSR_TempRegisters registers) {
     if (vtype == PHYREG) {
       return registers.fprs[value - FIRST_DOUBLE];
@@ -546,10 +446,7 @@ public abstract class OSR_OptExecStateExtractor
     }
   }
 
-  private static Object getObjectFrom(int vtype,
-                                      int value,
-                                      byte[] stack,
-                                      Offset fpOffset,
+  private static Object getObjectFrom(int vtype, int value, byte[] stack, Offset fpOffset,
                                       OSR_TempRegisters registers) {
     if (vtype == ICONST) { //kv:todo : to become ACONST
       // the only constant object is NULL, I believe.
@@ -572,8 +469,7 @@ public abstract class OSR_OptExecStateExtractor
   @SuppressWarnings("unused")
   private static void dumpStackContent(byte[] stack, Offset fpOffset) {
     int cmid = VM_Magic.getIntAtOffset(stack, fpOffset.plus(STACKFRAME_METHOD_ID_OFFSET));
-    VM_OptCompiledMethod cm =
-        (VM_OptCompiledMethod) VM_CompiledMethods.getCompiledMethod(cmid);
+    VM_OptCompiledMethod cm = (VM_OptCompiledMethod) VM_CompiledMethods.getCompiledMethod(cmid);
 
     int firstNonVolatile = cm.getFirstNonVolatileGPR();
     int nonVolatiles = cm.getNumberOfNonvolatileGPRs();

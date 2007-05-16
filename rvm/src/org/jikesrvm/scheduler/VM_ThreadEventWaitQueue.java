@@ -31,8 +31,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * @see VM_ThreadEventConstants
  */
 @Uninterruptible
-abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue
-    implements VM_ThreadEventConstants {
+abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue implements VM_ThreadEventConstants {
 
   protected VM_Thread head, tail;
 
@@ -164,8 +163,7 @@ abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue
    */
   public void enqueue(VM_Thread thread) {
     if (VM.VerifyAssertions) {
-      VM._assert(thread.waitData.waitFlags == WAIT_PENDING ||
-                 thread.waitData.waitFlags == WAIT_NATIVE);
+      VM._assert(thread.waitData.waitFlags == WAIT_PENDING || thread.waitData.waitFlags == WAIT_NATIVE);
       VM._assert(thread.next == null);
     }
 

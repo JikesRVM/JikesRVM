@@ -48,11 +48,8 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    * have 1.
    * @return an array of read annotations
    */
-  protected static VM_Annotation[] readAnnotations(int[] constantPool,
-                                                   DataInputStream input,
-                                                   int numAnnotationBytes,
-                                                   ClassLoader classLoader)
-      throws IOException {
+  protected static VM_Annotation[] readAnnotations(int[] constantPool, DataInputStream input, int numAnnotationBytes,
+                                                   ClassLoader classLoader) throws IOException {
     try {
       int numAnnotations;
       if (numAnnotationBytes == 2) {
@@ -66,8 +63,7 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
         annotations[j] = VM_Annotation.readAnnotation(constantPool, input, classLoader);
       }
       return annotations;
-    }
-    catch (ClassNotFoundException e) {
+    } catch (ClassNotFoundException e) {
       throw new Error(e);
     }
   }

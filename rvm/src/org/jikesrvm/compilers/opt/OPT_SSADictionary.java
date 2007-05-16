@@ -159,8 +159,7 @@ public final class OPT_SSADictionary {
    * This structure holds the next number to assign when creating
    * a new heap variable name for a given type
    */
-  private HashMap<Object, Integer> nextNumber =
-      new HashMap<Object, Integer>();
+  private HashMap<Object, Integer> nextNumber = new HashMap<Object, Integer>();
 
   /**
    * A mapping from <code> OPT_BasicBlock </code> to <code> ArrayList
@@ -174,8 +173,7 @@ public final class OPT_SSADictionary {
   /**
    * An empty vector, used for utility.
    */
-  private static final ArrayList<OPT_Instruction> emptyArrayList =
-      new ArrayList<OPT_Instruction>(0);
+  private static final ArrayList<OPT_Instruction> emptyArrayList = new ArrayList<OPT_Instruction>(0);
 
   /**
    * A mapping from <code> OPT_HeapVariable </code> to <code> HashSet
@@ -198,8 +196,7 @@ public final class OPT_SSADictionary {
    * The set of instructions which have been registered to potentially
    * exit the procedure
    */
-  private final HashSet<OPT_Instruction> exits =
-      new HashSet<OPT_Instruction>(10);
+  private final HashSet<OPT_Instruction> exits = new HashSet<OPT_Instruction>(10);
 
   /**
    * A mapping from a heap variable type to a <code> HashSet
@@ -249,8 +246,7 @@ public final class OPT_SSADictionary {
    * @param uphi Should we use uphi functions? (ie. loads create a new
    *                             name for heap arrays)
    */
-  OPT_SSADictionary(Set<Object> heapTypes, boolean uphi, boolean insertPEIDeps,
-                    OPT_IR ir) {
+  OPT_SSADictionary(Set<Object> heapTypes, boolean uphi, boolean insertPEIDeps, OPT_IR ir) {
     this.heapTypes = heapTypes;
     this.uphi = uphi;
     this.insertPEIDeps = insertPEIDeps;
@@ -763,14 +759,16 @@ public final class OPT_SSADictionary {
    * @param b the basic block containing s
    */
   void registerInstruction(OPT_Instruction s, OPT_BasicBlock b) {
-    if (!s.isImplicitLoad() && !s.isImplicitStore() && !s.isAllocation()
-        && s.operator() != PHI
-        && !(insertPEIDeps
-             && (s.isPEI()
-                 || Label.conforms(s)
-                 || BBend.conforms(s)
-                 || s.operator.opcode == UNINT_BEGIN_opcode
-                 || s.operator.opcode == UNINT_END_opcode))) {
+    if (!s.isImplicitLoad() &&
+        !s.isImplicitStore() &&
+        !s.isAllocation() &&
+        s.operator() != PHI &&
+        !(insertPEIDeps &&
+          (s.isPEI() ||
+           Label.conforms(s) ||
+           BBend.conforms(s) ||
+           s.operator.opcode == UNINT_BEGIN_opcode ||
+           s.operator.opcode == UNINT_END_opcode))) {
       return;
     }
     // handled by registerUnknown
@@ -877,11 +875,9 @@ public final class OPT_SSADictionary {
         phiHelper(s, b);
         break;
       default:
-        if (!OPT_Operators.helper.isHandledByRegisterUnknown(s.getOpcode()) &&
-            !s.isPEI()) {
+        if (!OPT_Operators.helper.isHandledByRegisterUnknown(s.getOpcode()) && !s.isPEI()) {
           System.out.println("SSA dictionary failed on " + s.toString());
-          throw new OPT_OperationNotImplementedException(
-              "OPT_SSADictionary: Unsupported opcode " + s);
+          throw new OPT_OperationNotImplementedException("OPT_SSADictionary: Unsupported opcode " + s);
         }
     }           // switch
     if (insertPEIDeps) {
@@ -1179,9 +1175,7 @@ public final class OPT_SSADictionary {
    * @param b s's basic block
    * @param t the type of the heap variable the instruction modifies
    */
-  private void registerDef(OPT_Instruction s,
-                           OPT_BasicBlock b,
-                           VM_TypeReference t) {
+  private void registerDef(OPT_Instruction s, OPT_BasicBlock b, VM_TypeReference t) {
     if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
     // if the heapTypes set is defined, then we only build Array
     // SSA for these types.  So, ignore uses of types that are
@@ -1240,8 +1234,7 @@ public final class OPT_SSADictionary {
    * @param b  <code>s</code>'s basic block
    * @param fr the field heap variable the instruction modifies
    */
-  private void registerDef(OPT_Instruction s, OPT_BasicBlock b,
-                           VM_FieldReference fr) {
+  private void registerDef(OPT_Instruction s, OPT_BasicBlock b, VM_FieldReference fr) {
     if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
     VM_Field f = fr.peekResolvedField();
     OPT_HeapOperand<Object> H;
@@ -1437,8 +1430,7 @@ public final class OPT_SSADictionary {
    * instruction
    * @return the instruction <code> H = phi H,H,..,H </code>
    */
-  private static OPT_Instruction makePhiInstruction(OPT_HeapVariable<Object> H,
-                                                    OPT_BasicBlock bb) {
+  private static OPT_Instruction makePhiInstruction(OPT_HeapVariable<Object> H, OPT_BasicBlock bb) {
     int n = bb.getNumberOfIn();
     OPT_BasicBlockEnumeration in = bb.getIn();
     OPT_HeapOperand<Object> lhs = new OPT_HeapOperand<Object>(H);
@@ -1516,8 +1508,7 @@ public final class OPT_SSADictionary {
    * for heap variables, which are stored only in this lookaside
    * structure.
    */
-  static final class AllInstructionEnumeration
-      implements Enumeration<OPT_Instruction> {
+  static final class AllInstructionEnumeration implements Enumeration<OPT_Instruction> {
     /**
      * An enumeration of the explicit instructions in the IR for a basic
      * block
@@ -1554,8 +1545,7 @@ public final class OPT_SSADictionary {
      * @return true or false
      */
     public boolean hasMoreElements() {
-      return (implicitInstructions.hasNext()
-              || explicitInstructions.hasMoreElements());
+      return (implicitInstructions.hasNext() || explicitInstructions.hasMoreElements());
     }
 
     /**

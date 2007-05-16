@@ -14,8 +14,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 /**
  * Dependence graph node: there is one for each instruction in a basic block.
  */
-public final class OPT_DepGraphNode extends OPT_SpaceEffGraphNode
-    implements OPT_DepGraphConstants {
+public final class OPT_DepGraphNode extends OPT_SpaceEffGraphNode implements OPT_DepGraphConstants {
 
   /**
    * Instruction that this node represents.
@@ -66,9 +65,8 @@ public final class OPT_DepGraphNode extends OPT_SpaceEffGraphNode
   public void insertOutEdge(OPT_DepGraphNode node, int type) {
     if (COMPACT) {
       int numTries = 0; // bound to avoid quadratic blowup.
-      for (OPT_DepGraphEdge oe = (OPT_DepGraphEdge) firstOutEdge();
-           oe != null && numTries < 4;
-           oe = (OPT_DepGraphEdge) oe.getNextOut(), numTries++) {
+      for (OPT_DepGraphEdge oe = (OPT_DepGraphEdge) firstOutEdge(); oe != null && numTries < 4; oe =
+          (OPT_DepGraphEdge) oe.getNextOut(), numTries++) {
         if (oe.toNode() == node) {
           oe.addDepType(type);
           return;
@@ -86,8 +84,7 @@ public final class OPT_DepGraphNode extends OPT_SpaceEffGraphNode
    * @param node destination node for the edge
    * @param op   the operand of node that is defined by this edge
    */
-  public void insertRegTrueOutEdge(OPT_DepGraphNode node,
-                                   OPT_RegisterOperand op) {
+  public void insertRegTrueOutEdge(OPT_DepGraphNode node, OPT_RegisterOperand op) {
     OPT_DepGraphEdge e = new OPT_DepGraphEdge(op, this, node, REG_TRUE);
     this.appendOutEdge(e);
     node.appendInEdge(e);

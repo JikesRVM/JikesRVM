@@ -58,9 +58,7 @@ public final class OPT_InlineDecision {
    * @param reason a rationale for inlining
    * @return a decision YES to inline, but it is not always safe.
    */
-  public static OPT_InlineDecision guardedYES(VM_Method target,
-                                              byte guard,
-                                              String reason) {
+  public static OPT_InlineDecision guardedYES(VM_Method target, byte guard, String reason) {
     VM_Method[] targets = new VM_Method[1];
     byte[] guards = new byte[1];
     targets[0] = target;
@@ -76,9 +74,7 @@ public final class OPT_InlineDecision {
    * @param reason   A rationale for inlining
    * @return a decision YES to inline, but it is not always safe.
    */
-  public static OPT_InlineDecision guardedYES(VM_Method[] targets,
-                                              byte[] guards,
-                                              String reason) {
+  public static OPT_InlineDecision guardedYES(VM_Method[] targets, byte[] guards, String reason) {
     return new OPT_InlineDecision(targets, guards, GUARDED_YES, reason);
   }
 
@@ -171,8 +167,7 @@ public final class OPT_InlineDecision {
    * @param code the decision code
    * @param reason a string rationale
    */
-  private OPT_InlineDecision(VM_Method[] targets, byte[] guards,
-                             short code, String reason) {
+  private OPT_InlineDecision(VM_Method[] targets, byte[] guards, short code, String reason) {
     this(code, reason);
     this.targets = targets;
     this.guards = guards;

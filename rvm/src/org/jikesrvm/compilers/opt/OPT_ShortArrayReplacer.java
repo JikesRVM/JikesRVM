@@ -68,8 +68,7 @@ public final class OPT_ShortArrayReplacer implements OPT_AggregateReplacer {
    * @param ir
    * @return the object, or null if illegal
    */
-  public static OPT_ShortArrayReplacer getReplacer(OPT_Instruction inst,
-                                                   OPT_IR ir) {
+  public static OPT_ShortArrayReplacer getReplacer(OPT_Instruction inst, OPT_IR ir) {
     if (inst.operator != NEWARRAY) {
       return null;
     }
@@ -113,8 +112,7 @@ public final class OPT_ShortArrayReplacer implements OPT_AggregateReplacer {
     }
     OPT_DefUse.removeInstructionAndUpdateDU(defI);
     // now handle the uses
-    for (OPT_RegisterOperand use = reg.useList; use != null;
-         use = use.getNext()) {
+    for (OPT_RegisterOperand use = reg.useList; use != null; use = use.getNext()) {
       scalarReplace(use, scalars);
     }
   }
@@ -156,8 +154,7 @@ public final class OPT_ShortArrayReplacer implements OPT_AggregateReplacer {
    * @param scalars an array of scalar register operands to replace
    *                  the array with
    */
-  private void scalarReplace(OPT_RegisterOperand use,
-                             OPT_RegisterOperand[] scalars) {
+  private void scalarReplace(OPT_RegisterOperand use, OPT_RegisterOperand[] scalars) {
     OPT_Instruction inst = use.instruction;
     VM_Type type = vmArray.getElementType();
     OPT_Operator moveOp = OPT_IRTools.getMoveOp(type.getTypeRef());
@@ -172,8 +169,7 @@ public final class OPT_ShortArrayReplacer implements OPT_AggregateReplacer {
       case SHORT_ALOAD_opcode:
       case REF_ALOAD_opcode: {
         int index = ALoad.getIndex(inst).asIntConstant().value;
-        OPT_Instruction i = Move.create(moveOp, ALoad.getClearResult(inst),
-                                        scalars[index].copyRO());
+        OPT_Instruction i = Move.create(moveOp, ALoad.getClearResult(inst), scalars[index].copyRO());
         inst.insertBefore(i);
         OPT_DefUse.removeInstructionAndUpdateDU(inst);
         OPT_DefUse.updateDUForNewInstruction(i);
@@ -187,8 +183,7 @@ public final class OPT_ShortArrayReplacer implements OPT_AggregateReplacer {
       case SHORT_ASTORE_opcode:
       case REF_ASTORE_opcode: {
         int index = AStore.getIndex(inst).asIntConstant().value;
-        OPT_Instruction i2 = Move.create(moveOp, scalars[index].copyRO(),
-                                         AStore.getClearValue(inst));
+        OPT_Instruction i2 = Move.create(moveOp, scalars[index].copyRO(), AStore.getClearValue(inst));
         inst.insertBefore(i2);
         OPT_DefUse.removeInstructionAndUpdateDU(inst);
         OPT_DefUse.updateDUForNewInstruction(i2);
@@ -198,8 +193,7 @@ public final class OPT_ShortArrayReplacer implements OPT_AggregateReplacer {
         OPT_DefUse.removeInstructionAndUpdateDU(inst);
         break;
       default:
-        throw new OPT_OptimizingCompilerException("Unexpected instruction: "
-                                                  + inst);
+        throw new OPT_OptimizingCompilerException("Unexpected instruction: " + inst);
     }
   }
 
@@ -210,10 +204,8 @@ public final class OPT_ShortArrayReplacer implements OPT_AggregateReplacer {
    * @param reg the register in question
    * @param size the size of the array to scalar replace.
    */
-  private static boolean containsUnsupportedUse(OPT_IR ir, OPT_Register reg,
-                                                int size) {
-    for (OPT_RegisterOperand use = reg.useList; use != null;
-         use = use.getNext()) {
+  private static boolean containsUnsupportedUse(OPT_IR ir, OPT_Register reg, int size) {
+    for (OPT_RegisterOperand use = reg.useList; use != null; use = use.getNext()) {
       switch (use.instruction.getOpcode()) {
         case NEWOBJMULTIARRAY_opcode:
         case OBJARRAY_STORE_CHECK_opcode:

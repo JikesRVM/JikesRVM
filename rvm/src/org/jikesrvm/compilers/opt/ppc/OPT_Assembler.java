@@ -98,9 +98,7 @@ public abstract class OPT_Assembler implements OPT_Operators, VM_Constants, VM_A
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     boolean unsafeCondDispl = machinecodes.length() > MAX_COND_DISPL;
     //boolean unsafeDispl = machinecodes.length() > MAX_DISPL;
-    for (OPT_Instruction p = ir.firstInstructionInCodeOrder();
-         p != null;
-         p = p.nextInstructionInCodeOrder()) {
+    for (OPT_Instruction p = ir.firstInstructionInCodeOrder(); p != null; p = p.nextInstructionInCodeOrder()) {
       int inst = p.operator().instTemplate;
       switch (p.getOpcode()) {
         case LABEL_opcode:
@@ -108,9 +106,7 @@ public abstract class OPT_Assembler implements OPT_Operators, VM_Constants, VM_A
           // The Label instructions scratchObject holds the head of a
           // linked list of the (forward) branch instructions with this
           // label as their target.
-          for (BranchSrcElement bSrc = (BranchSrcElement) p.scratchObject;
-               bSrc != null;
-               bSrc = bSrc.next) {
+          for (BranchSrcElement bSrc = (BranchSrcElement) p.scratchObject; bSrc != null; bSrc = bSrc.next) {
             OPT_Instruction branchStmt = bSrc.source;
             int bo = branchStmt.getmcOffset() - (1 << LG_INSTRUCTION_WIDTH);
             int bi = bo >> LG_INSTRUCTION_WIDTH;
@@ -118,9 +114,7 @@ public abstract class OPT_Assembler implements OPT_Operators, VM_Constants, VM_A
             boolean setLink = false;
 
             if (targetOffset > MAX_DISPL << LG_INSTRUCTION_WIDTH) {
-              throw new OPT_OptimizingCompilerException("CodeGen",
-                                                        "Branch positive offset too large: ",
-                                                        targetOffset);
+              throw new OPT_OptimizingCompilerException("CodeGen", "Branch positive offset too large: ", targetOffset);
             }
 
             switch (branchStmt.getOpcode()) {
@@ -150,8 +144,7 @@ public abstract class OPT_Assembler implements OPT_Operators, VM_Constants, VM_A
                   // we're moving the "real" branch ahead 1 instruction
                   // if it's a GC point (eg BCL for yieldpoint) then we must
                   // make sure the GCMap is generated at the correct mc offset.
-                  branchStmt.setmcOffset(branchStmt.getmcOffset() +
-                                         (1 << LG_INSTRUCTION_WIDTH));
+                  branchStmt.setmcOffset(branchStmt.getmcOffset() + (1 << LG_INSTRUCTION_WIDTH));
                   // flip the condition and skip the next branch instruction
                   machinecodes.set(bi, flipCondition(machinecodes.get(bi)));
                   machinecodes.set(bi, machinecodes.get(bi) | (2 << LG_INSTRUCTION_WIDTH));
@@ -738,8 +731,7 @@ public abstract class OPT_Assembler implements OPT_Operators, VM_Constants, VM_A
           int op0 = MIR_RotateAndMask.getResult(p).register.number & REG_MASK;
           int op0f = MIR_RotateAndMask.getSource(p).register.number & REG_MASK;
           if (op0 != op0f) {
-            throw new OPT_OptimizingCompilerException("CodeGen",
-                                                      "format for RLWIMI is incorrect");
+            throw new OPT_OptimizingCompilerException("CodeGen", "format for RLWIMI is incorrect");
           }
           int op1 = MIR_RotateAndMask.getValue(p).register.number & REG_MASK;
           int op2 = MIR_RotateAndMask.getShift(p).asIntConstant().value & REG_MASK;
@@ -994,8 +986,7 @@ public abstract class OPT_Assembler implements OPT_Operators, VM_Constants, VM_A
         case PPC_FCMPU_opcode: {
           int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
-          int op2 = MIR_Binary.getValue2(p).asRegister().register.number
-                    & REG_MASK;
+          int op2 = MIR_Binary.getValue2(p).asRegister().register.number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 23) | (op1 << 16) | (op2 << 11)));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
@@ -1210,14 +1201,11 @@ public abstract class OPT_Assembler implements OPT_Operators, VM_Constants, VM_A
         }
         break;
         default:
-          throw new OPT_OptimizingCompilerException("CodeGen",
-                                                    "OPCODE not implemented:",
-                                                    p);
+          throw new OPT_OptimizingCompilerException("CodeGen", "OPCODE not implemented:", p);
       }
     }
     if (unresolvedBranches != 0) {
-      throw new OPT_OptimizingCompilerException("CodeGen",
-                                                " !!! Unresolved Branch Targets Exist!!! \n");
+      throw new OPT_OptimizingCompilerException("CodeGen", " !!! Unresolved Branch Targets Exist!!! \n");
     }
 
     if (shouldPrint) {
@@ -1253,25 +1241,20 @@ public abstract class OPT_Assembler implements OPT_Operators, VM_Constants, VM_A
    * @param tgt
    * @param mi
    */
-  private int resolveBranch(OPT_Instruction src,
-                            OPT_Instruction tgt,
-                            int mi) {
+  private int resolveBranch(OPT_Instruction src, OPT_Instruction tgt, int mi) {
     if (tgt.getmcOffset() < 0) {
       unresolvedBranches++;
       // forward branch target, which has not been fixed yet.
       // Unresolved forward branch stmts will form a linked list
       // via the scratchObject of the label instruction.
       // These branch stmts will be back-patched as part of assembly of LABEL
-      tgt.scratchObject =
-          new BranchSrcElement(src, (BranchSrcElement) tgt.scratchObject);
+      tgt.scratchObject = new BranchSrcElement(src, (BranchSrcElement) tgt.scratchObject);
       return 0;
     } else {
       // backward branch target, which has been fixed.
       int targetOffset = tgt.getmcOffset() - (mi << LG_INSTRUCTION_WIDTH);
       if (targetOffset < (MIN_DISPL << LG_INSTRUCTION_WIDTH)) {
-        throw new OPT_OptimizingCompilerException("CodeGen",
-                                                  " Branch negative offset too large: ",
-                                                  targetOffset);
+        throw new OPT_OptimizingCompilerException("CodeGen", " Branch negative offset too large: ", targetOffset);
       }
       return targetOffset;
     }
@@ -1314,9 +1297,7 @@ public abstract class OPT_Assembler implements OPT_Operators, VM_Constants, VM_A
    * @param patchOffset the offset of the last byte of the patch point
    * @param rel32       the new immediate to use in the branch instruction
    */
-  public static void patchCode(VM_CodeArray code,
-                               int patchOffset,
-                               int rel32) {
+  public static void patchCode(VM_CodeArray code, int patchOffset, int rel32) {
 
     /* The expecting instruction at patchOffset should be a NOP.
      */

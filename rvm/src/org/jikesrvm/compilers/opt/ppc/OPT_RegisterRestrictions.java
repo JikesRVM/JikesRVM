@@ -29,8 +29,7 @@ public abstract class OPT_RegisterRestrictions extends OPT_GenericRegisterRestri
    * Is it forbidden to assign symbolic register symb to physical register r
    * in instruction s?
    */
-  public boolean isForbidden(OPT_Register symb, OPT_Register r,
-                             OPT_Instruction s) {
+  public boolean isForbidden(OPT_Register symb, OPT_Register r, OPT_Instruction s) {
     return false;
   }
 

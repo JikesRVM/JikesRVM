@@ -16,8 +16,7 @@ import org.jikesrvm.compilers.opt.ir.ppc.OPT_PhysicalRegisterSet;
  * This abstract class provides a set of useful methods for
  * manipulating physical registers for an IR.
  */
-public abstract class OPT_PhysicalRegisterTools extends
-                                                OPT_GenericPhysicalRegisterTools {
+public abstract class OPT_PhysicalRegisterTools extends OPT_GenericPhysicalRegisterTools {
 
   /**
    * Create a condition register operand for a given register number.

@@ -34,8 +34,7 @@ public class OSR_SpecialCompiler {
    * @param invalidate Is this an invalidation?
    * @return the compiled method for the root state
    */
-  public static VM_CompiledMethod recompileState(OSR_ExecutionState state,
-                                                 boolean invalidate) {
+  public static VM_CompiledMethod recompileState(OSR_ExecutionState state, boolean invalidate) {
 
     // compile from callee to caller
     VM_CompiledMethod newCM = null;
@@ -47,8 +46,7 @@ public class OSR_SpecialCompiler {
       }
 
       if (VM.TraceOnStackReplacement) {
-        VM.sysWriteln("new CMID 0x" + Integer.toHexString(newCM.getId())
-                      + " for " + newCM.getMethod());
+        VM.sysWriteln("new CMID 0x" + Integer.toHexString(newCM.getId()) + " for " + newCM.getMethod());
       }
 
       if (state.callerState == null) break;
@@ -96,8 +94,7 @@ public class OSR_SpecialCompiler {
     * because the compiler will generate maps after compilation.
     * Any necessary adjustment should be made during the compilation
     */
-    VM_CompiledMethod newCompiledMethod =
-        VM_Compiler.compile(method);
+    VM_CompiledMethod newCompiledMethod = VM_Compiler.compile(method);
 
     // compiled method was already set by VM_Compiler.compile
     // the call here does nothing
@@ -109,8 +106,7 @@ public class OSR_SpecialCompiler {
     if (VM.TraceOnStackReplacement) {
 //        ((VM_BaselineCompiledMethod)newCompiledMethod).printCodeMapEntries();
       VM.sysWriteln("BASE : done, CMID 0x" +
-                    Integer.toHexString(newCompiledMethod.getId())
-                    +
+                    Integer.toHexString(newCompiledMethod.getId()) +
                     " JTOC offset " +
                     VM.addressAsHexString(newCompiledMethod.getOsrJTOCoffset().toWord().toAddress()));
     }
@@ -146,8 +142,10 @@ public class OSR_SpecialCompiler {
     _options.OSR_GUARDED_INLINING = false;
 
     OPT_CompilationPlan compPlan =
-        new OPT_CompilationPlan(method, (OPT_OptimizationPlanElement[]) VM_RuntimeCompiler.optimizationPlan,
-                                null, _options);
+        new OPT_CompilationPlan(method,
+                                (OPT_OptimizationPlanElement[]) VM_RuntimeCompiler.optimizationPlan,
+                                null,
+                                _options);
 
     // it is also necessary to recompile the current method
     // without OSR.
@@ -196,8 +194,7 @@ public class OSR_SpecialCompiler {
       }
     }
 
-    VM_CompiledMethod newCompiledMethod =
-        VM_RuntimeCompiler.recompileWithOptOnStackSpecialization(compPlan);
+    VM_CompiledMethod newCompiledMethod = VM_RuntimeCompiler.recompileWithOptOnStackSpecialization(compPlan);
 
     // restore original bytecode, exception table, and line number table
     method.finalizeOsrSpecialization();
@@ -216,8 +213,7 @@ public class OSR_SpecialCompiler {
     // reverse back to the baseline
     if (newCompiledMethod == null) {
       if (VM.TraceOnStackReplacement) {
-        VM.sysWriteln("OPT : fialed, because compilation in progress, "
-                      + "fall back to baseline");
+        VM.sysWriteln("OPT : fialed, because compilation in progress, " + "fall back to baseline");
       }
       return baselineCompile(state);
     }

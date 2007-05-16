@@ -22,8 +22,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
  * which, given a string, returns a counter instruction that
  * increments the corresponding counter for that string.
  */
-public class VM_StringEventCounterData extends VM_ManagedCounterData
-    implements VM_Reportable {
+public class VM_StringEventCounterData extends VM_ManagedCounterData implements VM_Reportable {
 
   static final boolean DEBUG = false;
 
@@ -32,8 +31,7 @@ public class VM_StringEventCounterData extends VM_ManagedCounterData
    *
    * @param manager The manager that will provide the counter space
    **/
-  VM_StringEventCounterData(OPT_InstrumentedEventCounterManager manager,
-                            String name) {
+  VM_StringEventCounterData(OPT_InstrumentedEventCounterManager manager, String name) {
     // Call superclass constructor
     super(manager);
 
@@ -59,8 +57,7 @@ public class VM_StringEventCounterData extends VM_ManagedCounterData
    * @param incrementValue The value to add to counter
    * @return An instruction that will update the count associated with the event.
    */
-  public OPT_Instruction getCounterInstructionForEvent(String event,
-                                                       double incrementValue) {
+  public OPT_Instruction getCounterInstructionForEvent(String event, double incrementValue) {
 
     // Get (or create) the counter for this string and return it.
     int counterIdx = getOrCreateCounterIndexForString(event);
@@ -162,8 +159,7 @@ public class VM_StringEventCounterData extends VM_ManagedCounterData
   /**
    *  Map strings to a counter location
    */
-  protected final Hashtable<String, Integer> stringToCounterMap =
-      new Hashtable<String, Integer>();
+  protected final Hashtable<String, Integer> stringToCounterMap = new Hashtable<String, Integer>();
 
   /**
    * A string description of this data;

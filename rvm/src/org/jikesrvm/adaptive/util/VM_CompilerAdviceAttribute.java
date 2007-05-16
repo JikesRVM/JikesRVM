@@ -63,12 +63,8 @@ public class VM_CompilerAdviceAttribute {
     // *unless* they appear in the advice file. If defaultAttr is set to
     // null, then methods will be compiled in the default way for the
     // current build configuration *unless* they appear in the advice file.
-    defaultAttr =
-        new VM_CompilerAdviceAttribute(null, null, null,
-                                       VM_CompiledMethod.BASELINE);
-    tempAttr =
-        new VM_CompilerAdviceAttribute(null, null, null,
-                                       VM_CompiledMethod.BASELINE);
+    defaultAttr = new VM_CompilerAdviceAttribute(null, null, null, VM_CompiledMethod.BASELINE);
+    tempAttr = new VM_CompilerAdviceAttribute(null, null, null, VM_CompiledMethod.BASELINE);
   }
 
   /**
@@ -116,8 +112,7 @@ public class VM_CompilerAdviceAttribute {
    *
    * @see VM_CompilerAdviceInfoReader
    */
-  public VM_CompilerAdviceAttribute(VM_Atom className, VM_Atom methodName,
-                                    VM_Atom methodSig, int compiler) {
+  public VM_CompilerAdviceAttribute(VM_Atom className, VM_Atom methodName, VM_Atom methodSig, int compiler) {
     this.className = className;
     this.methodName = methodName;
     this.methodSig = methodSig;
@@ -136,8 +131,7 @@ public class VM_CompilerAdviceAttribute {
    *
    * @see VM_CompilerAdviceInfoReader
    */
-  public VM_CompilerAdviceAttribute(VM_Atom className, VM_Atom methodName,
-                                    VM_Atom methodSig, int compiler,
+  public VM_CompilerAdviceAttribute(VM_Atom className, VM_Atom methodName, VM_Atom methodSig, int compiler,
                                     int optLevel) {
     this.className = className;
     this.methodName = methodName;
@@ -152,8 +146,17 @@ public class VM_CompilerAdviceAttribute {
    * @return The state of this instance expressed as a string
    */
   public String toString() {
-    return ("Compiler advice: " + className + " " + methodName + " "
-            + methodSig + " " + compiler + "(" + optLevel + ")");
+    return ("Compiler advice: " +
+            className +
+            " " +
+            methodName +
+            " " +
+            methodSig +
+            " " +
+            compiler +
+            "(" +
+            optLevel +
+            ")");
   }
 
   /**
@@ -164,8 +167,7 @@ public class VM_CompilerAdviceAttribute {
    * @param compilerAdviceList A list of compiler advice attributes
    * @see #getCompilerAdviceInfo
    */
-  public static void registerCompilerAdvice(
-      List<VM_CompilerAdviceAttribute> compilerAdviceList) {
+  public static void registerCompilerAdvice(List<VM_CompilerAdviceAttribute> compilerAdviceList) {
     // do nothing for empty list
     if (compilerAdviceList == null) return;
 
@@ -192,8 +194,7 @@ public class VM_CompilerAdviceAttribute {
     tempAttr.className = method.getDeclaringClass().getDescriptor();
     tempAttr.methodName = method.getName();
     tempAttr.methodSig = method.getDescriptor();
-    VM_CompilerAdviceAttribute value =
-        attribMap.get(tempAttr);
+    VM_CompilerAdviceAttribute value = attribMap.get(tempAttr);
 
     if (value == null) {
       return defaultAttr;
@@ -217,9 +218,7 @@ public class VM_CompilerAdviceAttribute {
 
     if (obj instanceof VM_CompilerAdviceAttribute) {
       VM_CompilerAdviceAttribute attr = (VM_CompilerAdviceAttribute) obj;
-      if (attr.className == className &&
-          attr.methodName == methodName &&
-          attr.methodSig == methodSig) {
+      if (attr.className == className && attr.methodName == methodName && attr.methodSig == methodSig) {
         return true;
       }
     }
@@ -227,7 +226,6 @@ public class VM_CompilerAdviceAttribute {
   }
 
   public int hashCode() {
-    return className.hashCode() ^ methodName.hashCode()
-           ^ methodSig.hashCode();
+    return className.hashCode() ^ methodName.hashCode() ^ methodSig.hashCode();
   }
 }

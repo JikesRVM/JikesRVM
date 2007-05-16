@@ -134,9 +134,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    * @param position  the inline context for this basic block
    * @param cfg       the FCFG that will contain the basic block
    */
-  public OPT_BasicBlock(int i,
-                        OPT_InlineSequence position,
-                        OPT_ControlFlowGraph cfg) {
+  public OPT_BasicBlock(int i, OPT_InlineSequence position, OPT_ControlFlowGraph cfg) {
     this(i, position, cfg.allocateNodeNumber());
   }
 
@@ -153,9 +151,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    * @param position  the inline context for this basic block
    * @param num       the number to assign the basic block
    */
-  protected OPT_BasicBlock(int i,
-                           OPT_InlineSequence position,
-                           int num) {
+  protected OPT_BasicBlock(int i, OPT_InlineSequence position, int num) {
     setNumber(num);
     start = Label.create(LABEL, new OPT_BasicBlockOperand(this));
     start.bcIndex = i;
@@ -300,8 +296,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    * block.
    */
   public final OPT_LiveIntervalEnumeration enumerateLiveIntervals() {
-    return new
-        OPT_LiveIntervalEnumeration((OPT_LiveIntervalElement) scratchObject);
+    return new OPT_LiveIntervalEnumeration((OPT_LiveIntervalElement) scratchObject);
   }
 
   /**
@@ -707,8 +702,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    * @return a forward enumeration of the block's instructons.
    */
   public final OPT_InstructionEnumeration forwardInstrEnumerator() {
-    return OPT_IREnumeration.forwardIntraBlockIE(firstInstruction(),
-                                                 lastInstruction());
+    return OPT_IREnumeration.forwardIntraBlockIE(firstInstruction(), lastInstruction());
   }
 
   /**
@@ -716,8 +710,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    * @return a reverse enumeration of the block's instructons.
    */
   public final OPT_InstructionEnumeration reverseInstrEnumerator() {
-    return OPT_IREnumeration.reverseIntraBlockIE(lastInstruction(),
-                                                 firstInstruction());
+    return OPT_IREnumeration.reverseIntraBlockIE(lastInstruction(), firstInstruction());
   }
 
   /**
@@ -725,8 +718,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    * @return a forward enumeration of the block's real instructons.
    */
   public final OPT_InstructionEnumeration forwardRealInstrEnumerator() {
-    return OPT_IREnumeration.forwardIntraBlockIE(firstRealInstruction(),
-                                                 lastRealInstruction());
+    return OPT_IREnumeration.forwardIntraBlockIE(firstRealInstruction(), lastRealInstruction());
   }
 
   /**
@@ -734,8 +726,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    * @return a reverse enumeration of the block's real instructons.
    */
   public final OPT_InstructionEnumeration reverseRealInstrEnumerator() {
-    return OPT_IREnumeration.reverseIntraBlockIE(lastRealInstruction(),
-                                                 firstRealInstruction());
+    return OPT_IREnumeration.reverseIntraBlockIE(lastRealInstruction(), firstRealInstruction());
   }
 
   /**
@@ -747,8 +738,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    */
   public int getNumberOfRealInstructions() {
     int count = 0;
-    for (OPT_InstructionEnumeration e = forwardRealInstrEnumerator();
-         e.hasMoreElements(); e.next()) {
+    for (OPT_InstructionEnumeration e = forwardRealInstrEnumerator(); e.hasMoreElements(); e.next()) {
       count++;
     }
 
@@ -763,8 +753,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    */
   public final boolean hasGoto() {
     if (isEmpty()) return false;
-    return Goto.conforms(lastRealInstruction())
-           || MIR_Branch.conforms(lastRealInstruction());
+    return Goto.conforms(lastRealInstruction()) || MIR_Branch.conforms(lastRealInstruction());
   }
 
   /**
@@ -775,8 +764,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    */
   public final boolean hasReturn() {
     if (isEmpty()) return false;
-    return Return.conforms(lastRealInstruction())
-           || MIR_Return.conforms(lastRealInstruction());
+    return Return.conforms(lastRealInstruction()) || MIR_Return.conforms(lastRealInstruction());
   }
 
   /**
@@ -788,9 +776,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
   public final boolean hasSwitch() {
     if (isEmpty()) return false;
     OPT_Instruction s = lastRealInstruction();
-    return TableSwitch.conforms(s) ||
-           LowTableSwitch.conforms(s) ||
-           LookupSwitch.conforms(s);
+    return TableSwitch.conforms(s) || LowTableSwitch.conforms(s) || LookupSwitch.conforms(s);
   }
 
   /**
@@ -897,8 +883,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
   public void killFallThrough() {
     OPT_BasicBlock fallThrough = getFallThroughBlock();
     if (fallThrough != null) {
-      lastInstruction().insertBefore
-          (Goto.create(GOTO, fallThrough.makeJumpTarget()));
+      lastInstruction().insertBefore(Goto.create(GOTO, fallThrough.makeJumpTarget()));
     }
   }
 
@@ -920,8 +905,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    */
   public final void prependInstructionRespectingPrologue(OPT_Instruction i) {
     OPT_Instruction first = firstRealInstruction();
-    if ((first != null) &&
-        (first.getOpcode() == IR_PROLOGUE_opcode)) {
+    if ((first != null) && (first.getOpcode() == IR_PROLOGUE_opcode)) {
       first.insertAfter(i);
     } else {
       start.insertAfter(i);
@@ -967,8 +951,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
     OPT_Instruction s = end;
     while (s.getPrev().operator().isBranch() ||
            s.getPrev().operator().isThrow() ||
-           (s.getPrev().isPEI() &&
-            getApplicableExceptionalOut(s.getPrev()).hasMoreElements())) {
+           (s.getPrev().isPEI() && getApplicableExceptionalOut(s.getPrev()).hasMoreElements())) {
       s = s.getPrev();
     }
     s.insertBefore(i);
@@ -1051,8 +1034,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    * @param instr the instruction in question
    * @return an enumeration of the exceptional out edges applicable to instr
    */
-  public final OPT_BasicBlockEnumeration getApplicableExceptionalOut
-      (OPT_Instruction instr) {
+  public final OPT_BasicBlockEnumeration getApplicableExceptionalOut(OPT_Instruction instr) {
     if (instr.isPEI()) {
       int numPossible = getNumberOfExceptionalOut();
       if (numPossible == 0) return OPT_BasicBlockEnumeration.Empty;
@@ -1099,8 +1081,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
     for (OPT_SpaceEffGraphEdge ed = _outEdgeStart; ed != null; ed = ed.getNextOut()) {
       OPT_BasicBlock bb = (OPT_BasicBlock) ed.toNode();
       if (bb.isExceptionHandlerBasicBlock()) {
-        OPT_ExceptionHandlerBasicBlock eblock =
-            (OPT_ExceptionHandlerBasicBlock) bb;
+        OPT_ExceptionHandlerBasicBlock eblock = (OPT_ExceptionHandlerBasicBlock) bb;
         if (eblock.mayCatchException(thrownException) != NO) {
           e.addPossiblyDuplicateElement(eblock);
         }
@@ -1145,16 +1126,13 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
   public final OPT_BasicBlockEnumeration getReachableExceptionHandlers() {
     if (hasExceptionHandlers()) {
       int count = 0;
-      for (OPT_BasicBlockEnumeration inScope = getExceptionHandlers();
-           inScope.hasMoreElements();
-           inScope.next()) {
+      for (OPT_BasicBlockEnumeration inScope = getExceptionHandlers(); inScope.hasMoreElements(); inScope.next()) {
         count++;
       }
 
       ComputedBBEnum ans = new ComputedBBEnum(count);
 
-      for (OPT_BasicBlockEnumeration inScope = getExceptionHandlers();
-           inScope.hasMoreElements();) {
+      for (OPT_BasicBlockEnumeration inScope = getExceptionHandlers(); inScope.hasMoreElements();) {
         OPT_BasicBlock cand = inScope.next();
         if (pointsOut(cand)) ans.addPossiblyDuplicateElement(cand);
       }
@@ -1188,8 +1166,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    */
   public final void recomputeNormalOut(OPT_IR ir) {
     deleteNormalOut();
-    for (OPT_InstructionEnumeration e = enumerateBranchInstructions();
-         e.hasMoreElements();) {
+    for (OPT_InstructionEnumeration e = enumerateBranchInstructions(); e.hasMoreElements();) {
       OPT_Instruction branch = e.next();
       OPT_BasicBlockEnumeration targets = branch.getBranchTargets();
       while (targets.hasMoreElements()) {
@@ -1223,8 +1200,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    * @param ir the containing OPT_IR object
    * @return the OPT_BasicBlock containing target
    */
-  public final OPT_BasicBlock segregateInstruction(OPT_Instruction target,
-                                                   OPT_IR ir) {
+  public final OPT_BasicBlock segregateInstruction(OPT_Instruction target, OPT_IR ir) {
     if (OPT_IR.PARANOID) VM._assert(this == target.getBasicBlock());
 
     OPT_BasicBlock BB1 = splitNodeAt(target.getPrev(), ir);
@@ -1258,14 +1234,11 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    * @param ir             the containing IR object
    * @return the newly created basic block which is the successor to this
    */
-  public final OPT_BasicBlock splitNodeAt(OPT_Instruction last_instr_BB1,
-                                          OPT_IR ir) {
+  public final OPT_BasicBlock splitNodeAt(OPT_Instruction last_instr_BB1, OPT_IR ir) {
     if (OPT_IR.PARANOID) VM._assert(this == last_instr_BB1.getBasicBlock());
 
     OPT_BasicBlock BB1 = this;
-    OPT_BasicBlock BB2 = new OPT_BasicBlock(last_instr_BB1.bcIndex,
-                                            last_instr_BB1.position,
-                                            ir.cfg);
+    OPT_BasicBlock BB2 = new OPT_BasicBlock(last_instr_BB1.bcIndex, last_instr_BB1.position, ir.cfg);
     OPT_BasicBlock BB3 = (OPT_BasicBlock) BB1.next;
 
     // move last_instr_BB1 ... BB1.end.prev into BB2
@@ -1326,8 +1299,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    * @param ir             the containing IR object
    * @return the newly created basic block which is the successor to this
    */
-  public final OPT_BasicBlock splitNodeWithLinksAt(OPT_Instruction last_instr_BB1,
-                                                   OPT_IR ir) {
+  public final OPT_BasicBlock splitNodeWithLinksAt(OPT_Instruction last_instr_BB1, OPT_IR ir) {
 
     if (OPT_IR.PARANOID) VM._assert(this == last_instr_BB1.getBasicBlock());
 
@@ -1367,9 +1339,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
     OPT_BasicBlock newBlock = createSubBlock(bytecodeIndex, ir, 1f);
 
     // copy each instruction from the original block.
-    for (OPT_Instruction s = firstInstruction().getNext();
-         s != lastInstruction();
-         s = s.getNext()) {
+    for (OPT_Instruction s = firstInstruction().getNext(); s != lastInstruction(); s = s.getNext()) {
       newBlock.appendInstruction(s.copyWithoutLinks());
     }
 
@@ -1391,8 +1361,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    */
   public final void replicateNormalOut(OPT_IR ir) {
     // for each normal out successor (b) of 'this' ....
-    for (OPT_BasicBlockEnumeration e = getNormalOut();
-         e.hasMoreElements();) {
+    for (OPT_BasicBlockEnumeration e = getNormalOut(); e.hasMoreElements();) {
       OPT_BasicBlock b = e.next();
       replicateThisOut(ir, b);
     }
@@ -1425,8 +1394,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    * @param b the block to replicate
    * @param pred code order predecessor for new block
    */
-  public final OPT_BasicBlock replicateThisOut(OPT_IR ir, OPT_BasicBlock b,
-                                               OPT_BasicBlock pred) {
+  public final OPT_BasicBlock replicateThisOut(OPT_IR ir, OPT_BasicBlock b, OPT_BasicBlock pred) {
     // don't replicate the exit node
     if (b.isExit()) return null;
 
@@ -1499,13 +1467,11 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    * @param b     the original target
    * @param bCopy the future target
    */
-  public final void redirectOuts(OPT_BasicBlock b, OPT_BasicBlock bCopy,
-                                 OPT_IR ir) {
+  public final void redirectOuts(OPT_BasicBlock b, OPT_BasicBlock bCopy, OPT_IR ir) {
     OPT_BranchOperand copyTarget = bCopy.makeJumpTarget();
     OPT_BranchOperand bTarget = b.makeJumpTarget();
     // 1. update the branch instructions in 'this' to point to bCopy
-    for (OPT_InstructionEnumeration ie = enumerateBranchInstructions();
-         ie.hasMoreElements();) {
+    for (OPT_InstructionEnumeration ie = enumerateBranchInstructions(); ie.hasMoreElements();) {
       OPT_Instruction s = ie.next();
       s.replaceSimilarOperands(bTarget, copyTarget);
     }
@@ -1546,8 +1512,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
     // TODO: This won't always work. (In fact, in the presence of inlining
     //       it will be wrong quite often). --dave
     //       We really have to pass the position in if we except this to work.
-    OPT_BasicBlock temp =
-        new OPT_BasicBlock(bc, firstInstruction().position, ir.cfg);
+    OPT_BasicBlock temp = new OPT_BasicBlock(bc, firstInstruction().position, ir.cfg);
 
     // Conservatively transfer all exception handling behavior of the
     // parent block  (this) to the new child block (temp)
@@ -1589,8 +1554,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
       // get the successor from the CFG rather than the code order (case (b))
       succBB = getNormalOut().next();
       if (succBB.isExit()) return false;
-      if (succBB.lastRealInstruction() == null ||
-          !succBB.lastRealInstruction().isUnconditionalBranch()) {
+      if (succBB.lastRealInstruction() == null || !succBB.lastRealInstruction().isUnconditionalBranch()) {
         return false;
       }
     }
@@ -1606,8 +1570,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
     // Remove them as well.
     // Branch instructions to blocks other than succBB are errors.
     if (VM.VerifyAssertions) {
-      for (OPT_InstructionEnumeration e = enumerateBranchInstructions();
-           e.hasMoreElements();) {
+      for (OPT_InstructionEnumeration e = enumerateBranchInstructions(); e.hasMoreElements();) {
         OPT_BasicBlockEnumeration targets = e.next().getBranchTargets();
         while (targets.hasMoreElements()) {
           VM._assert(targets.next() == succBB);
@@ -1635,8 +1598,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
 
     // Merge misc BB state
     setCanThrowExceptions(canThrowExceptions() || succBB.canThrowExceptions());
-    setMayThrowUncaughtException(mayThrowUncaughtException() ||
-                                 succBB.mayThrowUncaughtException());
+    setMayThrowUncaughtException(mayThrowUncaughtException() || succBB.mayThrowUncaughtException());
     setUnsafeToSchedule(isUnsafeToSchedule() || succBB.isUnsafeToSchedule());
     if (succBB.getInfrequent()) setInfrequent();
 
@@ -1657,8 +1619,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
    * @param ir the containing IR object
    */
   final void unfactor(OPT_IR ir) {
-    for (OPT_InstructionEnumeration e = forwardRealInstrEnumerator();
-         e.hasMoreElements();) {
+    for (OPT_InstructionEnumeration e = forwardRealInstrEnumerator(); e.hasMoreElements();) {
       OPT_Instruction s = e.next();
       OPT_BasicBlockEnumeration expOuts = getApplicableExceptionalOut(s);
       if (expOuts.hasMoreElements() && e.hasMoreElements()) {
@@ -1691,8 +1652,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode {
       deleteExceptionalOut();
 
       for (int i = 0; handlers.hasMoreElements(); i++) {
-        OPT_ExceptionHandlerBasicBlock b =
-            (OPT_ExceptionHandlerBasicBlock) handlers.next();
+        OPT_ExceptionHandlerBasicBlock b = (OPT_ExceptionHandlerBasicBlock) handlers.next();
         insertOut(b);
       }
     }

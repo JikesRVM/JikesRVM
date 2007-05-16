@@ -39,8 +39,7 @@ public class OPT_OptimizationPlanCompositeElement extends OPT_OptimizationPlanEl
    * @param   n     The name for this phase
    * @param   e     The elements to compose
    */
-  public OPT_OptimizationPlanCompositeElement(String n,
-                                              OPT_OptimizationPlanElement[] e) {
+  public OPT_OptimizationPlanCompositeElement(String n, OPT_OptimizationPlanElement[] e) {
     myName = n;
     myElements = e;
   }
@@ -52,8 +51,7 @@ public class OPT_OptimizationPlanCompositeElement extends OPT_OptimizationPlanEl
    * @param   n     The name for this phase
    * @param   e     The elements to compose
    */
-  public OPT_OptimizationPlanCompositeElement(String n,
-                                              Object[] e) {
+  public OPT_OptimizationPlanCompositeElement(String n, Object[] e) {
     myName = n;
     myElements = new OPT_OptimizationPlanElement[e.length];
     for (int i = 0; i < e.length; i++) {
@@ -88,8 +86,7 @@ public class OPT_OptimizationPlanCompositeElement extends OPT_OptimizationPlanEl
    * @return an OPT_OptimizationPlanCompositeElement that
    *         represents the composition.
    */
-  public static OPT_OptimizationPlanCompositeElement compose(String name,
-                                                             Object[] elems) {
+  public static OPT_OptimizationPlanCompositeElement compose(String name, Object[] elems) {
     return new OPT_OptimizationPlanCompositeElement(name, elems);
   }
 
@@ -130,8 +127,7 @@ public class OPT_OptimizationPlanCompositeElement extends OPT_OptimizationPlanEl
    */
   public final void perform(OPT_IR ir) {
     if (printingEnabled(ir.options, true)) {
-      if (!ir.options.hasMETHOD_TO_PRINT() ||
-          ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
+      if (!ir.options.hasMETHOD_TO_PRINT() || ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
         OPT_CompilerPhase.dumpIR(ir, "Before " + getName());
       }
     }
@@ -143,8 +139,7 @@ public class OPT_OptimizationPlanCompositeElement extends OPT_OptimizationPlanEl
     }
 
     if (printingEnabled(ir.options, false)) {
-      if (!ir.options.hasMETHOD_TO_PRINT() ||
-          ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
+      if (!ir.options.hasMETHOD_TO_PRINT() || ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
         OPT_CompilerPhase.dumpIR(ir, "After " + getName());
       }
     }

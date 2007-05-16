@@ -87,8 +87,7 @@ public class OPT_DF_Equation implements OPT_GraphNode {
    * @param operator the equation operator
    * @param op1 the first operand on the rhs
    */
-  OPT_DF_Equation(OPT_DF_LatticeCell lhs, OPT_DF_Operator operator,
-                  OPT_DF_LatticeCell op1) {
+  OPT_DF_Equation(OPT_DF_LatticeCell lhs, OPT_DF_Operator operator, OPT_DF_LatticeCell op1) {
     this.operator = operator;
     operands = new OPT_DF_LatticeCell[2];
     operands[0] = lhs;
@@ -103,9 +102,7 @@ public class OPT_DF_Equation implements OPT_GraphNode {
    * @param op1 the first operand on the rhs
    * @param op2 the second operand on the rhs
    */
-  OPT_DF_Equation(OPT_DF_LatticeCell lhs, OPT_DF_Operator operator,
-                  OPT_DF_LatticeCell op1,
-                  OPT_DF_LatticeCell op2) {
+  OPT_DF_Equation(OPT_DF_LatticeCell lhs, OPT_DF_Operator operator, OPT_DF_LatticeCell op1, OPT_DF_LatticeCell op2) {
     this.operator = operator;
     operands = new OPT_DF_LatticeCell[3];
     operands[0] = lhs;
@@ -122,9 +119,8 @@ public class OPT_DF_Equation implements OPT_GraphNode {
    * @param op2 the second operand on the rhs
    * @param op3 the third operand on the rhs
    */
-  OPT_DF_Equation(OPT_DF_LatticeCell lhs, OPT_DF_Operator operator,
-                  OPT_DF_LatticeCell op1,
-                  OPT_DF_LatticeCell op2, OPT_DF_LatticeCell op3) {
+  OPT_DF_Equation(OPT_DF_LatticeCell lhs, OPT_DF_Operator operator, OPT_DF_LatticeCell op1, OPT_DF_LatticeCell op2,
+                  OPT_DF_LatticeCell op3) {
     this.operator = operator;
     operands = new OPT_DF_LatticeCell[4];
     operands[0] = lhs;
@@ -140,8 +136,7 @@ public class OPT_DF_Equation implements OPT_GraphNode {
    * @param operator the equation operator
    * @param rhs the operands of the right-hand side in order
    */
-  OPT_DF_Equation(OPT_DF_LatticeCell lhs, OPT_DF_Operator operator,
-                  OPT_DF_LatticeCell[] rhs) {
+  OPT_DF_Equation(OPT_DF_LatticeCell lhs, OPT_DF_Operator operator, OPT_DF_LatticeCell[] rhs) {
     this.operator = operator;
     operands = new OPT_DF_LatticeCell[rhs.length + 1];
     operands[0] = lhs;

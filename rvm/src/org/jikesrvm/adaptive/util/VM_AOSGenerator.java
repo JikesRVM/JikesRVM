@@ -58,8 +58,7 @@ public class VM_AOSGenerator {
     VM.sysWrite("AOS generation booted\n");
     try {
       log = new PrintStream(new FileOutputStream(VM_Controller.options.COMPILATION_ADVICE_FILE_OUTPUT));
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       VM.sysWrite("IOException caught in VM_AOSGenerator.java while trying to create and start log file.\n");
       VM.sysWrite("Please check for file permission problems\n");
     }
@@ -79,12 +78,14 @@ public class VM_AOSGenerator {
   public static void reCompilationWithOpt(OPT_CompilationPlan plan) {
     if (!booted) return;
     synchronized (log) {
-      log.println(plan.method.getDeclaringClass().getDescriptor() + " " +
-                  plan.method.getName() + " " +
+      log.println(plan.method.getDeclaringClass().getDescriptor() +
+                  " " +
+                  plan.method.getName() +
+                  " " +
                   plan.method.getDescriptor() +
-                  " 3 " + /*it's always OPT_compiler*/
-                  plan.options.getOptLevel()
-      );
+                  " 3 " +
+                  /*it's always OPT_compiler*/
+                  plan.options.getOptLevel());
     }
   }
 
@@ -92,12 +93,16 @@ public class VM_AOSGenerator {
     if (recording || (!booted)) return;
     synchronized (log) {
       recording = true;
-      log.println(cm.getMethod().getDeclaringClass().getDescriptor() + " " +
-                  cm.getMethod().getName() + " " +
-                  cm.getMethod().getDescriptor() + " " +
-                  cm.getCompilerType() + " " + /*it's always baseline compiler*/
-                  "-1"
-      );
+      log.println(cm.getMethod().getDeclaringClass().getDescriptor() +
+                  " " +
+                  cm.getMethod().getName() +
+                  " " +
+                  cm.getMethod().getDescriptor() +
+                  " " +
+                  cm.getCompilerType() +
+                  " " +
+                  /*it's always baseline compiler*/
+                  "-1");
       recording = false;
     }
   }

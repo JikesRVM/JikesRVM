@@ -84,8 +84,7 @@ public class OPT_OptimizationPlanner {
       initializeMasterPlan();
     }
 
-    ArrayList<OPT_OptimizationPlanElement> temp =
-        new ArrayList<OPT_OptimizationPlanElement>();
+    ArrayList<OPT_OptimizationPlanElement> temp = new ArrayList<OPT_OptimizationPlanElement>();
     for (OPT_OptimizationPlanElement element : masterPlan) {
       if (element.shouldPerform(options)) {
         temp.add(element);
@@ -112,8 +111,7 @@ public class OPT_OptimizationPlanner {
    * that will normally execute.
    */
   private static void initializeMasterPlan() {
-    ArrayList<OPT_OptimizationPlanElement> temp =
-        new ArrayList<OPT_OptimizationPlanElement>();
+    ArrayList<OPT_OptimizationPlanElement> temp = new ArrayList<OPT_OptimizationPlanElement>();
     BC2HIR(temp);
     HIROptimizations(temp);
     HIR2LIR(temp);
@@ -143,8 +141,7 @@ public class OPT_OptimizationPlanner {
         // Generate HIR from bytecodes
         new OPT_ConvertBCtoHIR(),
 
-        new OSR_AdjustBCIndexes(),
-        new OSR_OsrPointConstructor(),
+        new OSR_AdjustBCIndexes(), new OSR_OsrPointConstructor(),
 
         // Always do initial wave of peephole branch optimizations
         new OPT_BranchOptimizations(0, true, false),
@@ -159,8 +156,7 @@ public class OPT_OptimizationPlanner {
           public boolean shouldPerform(OPT_Options options) {
             return options.PRINT_HIGH;
           }
-        }
-    });
+        }});
   }
 
   /**
@@ -178,11 +174,8 @@ public class OPT_OptimizationPlanner {
         // Estimate block frequencies if doing any of
         // static splitting, cfg transformations, or loop unrolling.
         // Assumption: none of these are active at O0.
-        new OPT_OptimizationPlanCompositeElement
-            ("Basic Block Frequency Estimation", new Object[]{
-                new OPT_BuildLST(),
-                new OPT_EstimateBlockFrequencies()
-            }) {
+        new OPT_OptimizationPlanCompositeElement("Basic Block Frequency Estimation",
+                                                 new Object[]{new OPT_BuildLST(), new OPT_EstimateBlockFrequencies()}) {
           public boolean shouldPerform(OPT_Options options) {
             return options.getOptLevel() >= 1;
           }
@@ -192,17 +185,13 @@ public class OPT_OptimizationPlanner {
         // restructure loops
         new OPT_CFGTransformations(),
         // Loop unrolling
-        new OPT_LoopUnrolling(),
-        new OPT_BranchOptimizations(1, true, true),
-    });
+        new OPT_LoopUnrolling(), new OPT_BranchOptimizations(1, true, true),});
 
     // Use the LST to insert yieldpoints and estimate
     // basic block frequency from branch probabilities
-    composeComponents(p, "CFG Structural Analysis", new Object[]{
-        new OPT_BuildLST(),
-        new OPT_YieldPoints(),
-        new OPT_EstimateBlockFrequencies()
-    });
+    composeComponents(p,
+                      "CFG Structural Analysis",
+                      new Object[]{new OPT_BuildLST(), new OPT_YieldPoints(), new OPT_EstimateBlockFrequencies()});
 
     // Simple flow-insensitive optimizations
     addComponent(p, new OPT_Simple(1, true, true));
@@ -243,80 +232,70 @@ public class OPT_OptimizationPlanner {
    * @param p the plan under construction
    */
   private static void SSAinHIR(ArrayList<OPT_OptimizationPlanElement> p) {
-    composeComponents
-        (p, "SSA", new Object[]{
-            // Use the LST to estimate basic block frequency from branch probabilities
-            new OPT_OptimizationPlanCompositeElement
-                ("Basic Block Frequency Estimation", new Object[]{
-                    new OPT_BuildLST(),
-                    new OPT_EstimateBlockFrequencies()
-                }) {
-              public boolean shouldPerform(OPT_Options options) {
-                return options.getOptLevel() >= 2;
-              }
-            },
+    composeComponents(p, "SSA", new Object[]{
+        // Use the LST to estimate basic block frequency from branch probabilities
+        new OPT_OptimizationPlanCompositeElement("Basic Block Frequency Estimation",
+                                                 new Object[]{new OPT_BuildLST(), new OPT_EstimateBlockFrequencies()}) {
+          public boolean shouldPerform(OPT_Options options) {
+            return options.getOptLevel() >= 2;
+          }
+        },
 
-            new OPT_OptimizationPlanCompositeElement
-                ("HIR SSA transformations",
-                 new Object[]{
-                     // Local copy propagation
-                     new OPT_LocalCopyProp(),
-                     // Local constant propagation
-                     new OPT_LocalConstantProp(),
-                     // Insert PI Nodes
-                     new OPT_PiNodes(true),
-                     // branch optimization
-                     new OPT_BranchOptimizations(2, true, true),
-                     // Compute dominators
-                     new OPT_DominatorsPhase(true),
-                     // compute dominance frontier
-                     new OPT_DominanceFrontier(),
-                     // load elimination
-                     new OPT_LoadElimination(1),
-                     // load elimination
-                     new OPT_LoadElimination(2),
-                     // load elimination
-                     new OPT_LoadElimination(3),
-                     // load elimination
-                     new OPT_LoadElimination(4),
-                     // load elimination
-                     new OPT_LoadElimination(5),
-                     // eliminate redundant conditional branches
-                     new OPT_RedundantBranchElimination(),
-                     // path sensitive constant propagation
-                     new OPT_SSATuneUp(),
-                     // clean up Pi Nodes
-                     new OPT_PiNodes(false),
-                     // Simple SSA optimizations,
-                     new OPT_SSATuneUp(),
-                     // Global Code Placement,
-                     new OPT_GCP(),
-                     // Loop versioning
-                     new OPT_LoopVersioning(),
-                     // Leave SSA
-                     new OPT_LeaveSSA()}) {
-              public boolean shouldPerform(OPT_Options options) {
-                return options.getOptLevel() >= 2;
-              }
-            },
-            // Coalesce moves
-            new OPT_CoalesceMoves(),
+        new OPT_OptimizationPlanCompositeElement("HIR SSA transformations", new Object[]{
+            // Local copy propagation
+            new OPT_LocalCopyProp(),
+            // Local constant propagation
+            new OPT_LocalConstantProp(),
+            // Insert PI Nodes
+            new OPT_PiNodes(true),
+            // branch optimization
+            new OPT_BranchOptimizations(2, true, true),
+            // Compute dominators
+            new OPT_DominatorsPhase(true),
+            // compute dominance frontier
+            new OPT_DominanceFrontier(),
+            // load elimination
+            new OPT_LoadElimination(1),
+            // load elimination
+            new OPT_LoadElimination(2),
+            // load elimination
+            new OPT_LoadElimination(3),
+            // load elimination
+            new OPT_LoadElimination(4),
+            // load elimination
+            new OPT_LoadElimination(5),
+            // eliminate redundant conditional branches
+            new OPT_RedundantBranchElimination(),
+            // path sensitive constant propagation
+            new OPT_SSATuneUp(),
+            // clean up Pi Nodes
+            new OPT_PiNodes(false),
+            // Simple SSA optimizations,
+            new OPT_SSATuneUp(),
+            // Global Code Placement,
+            new OPT_GCP(),
+            // Loop versioning
+            new OPT_LoopVersioning(),
+            // Leave SSA
+            new OPT_LeaveSSA()}) {
+          public boolean shouldPerform(OPT_Options options) {
+            return options.getOptLevel() >= 2;
+          }
+        },
+        // Coalesce moves
+        new OPT_CoalesceMoves(),
 
-            // SSA reveals new opportunites for the following
-            new OPT_OptimizationPlanCompositeElement
-                ("Post SSA cleanup", new Object[]{
-                    new OPT_LocalCopyProp(),
-                    new OPT_LocalConstantProp(),
-                    new OPT_Simple(2, true, true),
-                    new OPT_EscapeTransformations(),
-                    new OPT_BranchOptimizations(2, true, true)
-                }) {
-              public boolean shouldPerform(OPT_Options options) {
-                return options.getOptLevel() >= 2;
-              }
-            }
-        }
-        );
+        // SSA reveals new opportunites for the following
+        new OPT_OptimizationPlanCompositeElement("Post SSA cleanup",
+                                                 new Object[]{new OPT_LocalCopyProp(),
+                                                              new OPT_LocalConstantProp(),
+                                                              new OPT_Simple(2, true, true),
+                                                              new OPT_EscapeTransformations(),
+                                                              new OPT_BranchOptimizations(2, true, true)}) {
+          public boolean shouldPerform(OPT_Options options) {
+            return options.getOptLevel() >= 2;
+          }
+        }});
   }
 
   /**
@@ -328,31 +307,24 @@ public class OPT_OptimizationPlanner {
   private static void SSAinLIR(ArrayList<OPT_OptimizationPlanElement> p) {
     composeComponents(p, "SSA", new Object[]{
         // Use the LST to estimate basic block frequency from branch probabilities
-        new OPT_OptimizationPlanCompositeElement
-            ("Basic Block Frequency Estimation", new Object[]{
-                new OPT_BuildLST(),
-                new OPT_EstimateBlockFrequencies()
-            }) {
+        new OPT_OptimizationPlanCompositeElement("Basic Block Frequency Estimation",
+                                                 new Object[]{new OPT_BuildLST(), new OPT_EstimateBlockFrequencies()}) {
           public boolean shouldPerform(OPT_Options options) {
             return options.getOptLevel() >= 2;
           }
         },
 
-        new OPT_OptimizationPlanCompositeElement
-            ("LIR SSA transformations",
-             new Object[]{
-                 // restructure loops
-                 new OPT_CFGTransformations(),
-                 // Compute dominators
-                 new OPT_DominatorsPhase(true),
-                 // compute dominance frontier
-                 new OPT_DominanceFrontier(),
-                 // Global Code Placement,
-                 new OPT_GCP(),
-                 // Leave SSA
-                 new OPT_LeaveSSA()
-             }
-            ) {
+        new OPT_OptimizationPlanCompositeElement("LIR SSA transformations", new Object[]{
+            // restructure loops
+            new OPT_CFGTransformations(),
+            // Compute dominators
+            new OPT_DominatorsPhase(true),
+            // compute dominance frontier
+            new OPT_DominanceFrontier(),
+            // Global Code Placement,
+            new OPT_GCP(),
+            // Leave SSA
+            new OPT_LeaveSSA()}) {
           public boolean shouldPerform(OPT_Options options) {
             return options.getOptLevel() >= 2;
           }
@@ -364,19 +336,15 @@ public class OPT_OptimizationPlanner {
         new OPT_CoalesceMoves(),
 
         // SSA reveals new opportunites for the following
-        new OPT_OptimizationPlanCompositeElement
-            ("Post SSA cleanup",
-             new Object[]{
-                 new OPT_LocalCopyProp(),
-                 new OPT_LocalConstantProp(),
-                 new OPT_Simple(2, true, true),
-                 new OPT_BranchOptimizations(2, true, true)
-             }) {
+        new OPT_OptimizationPlanCompositeElement("Post SSA cleanup",
+                                                 new Object[]{new OPT_LocalCopyProp(),
+                                                              new OPT_LocalConstantProp(),
+                                                              new OPT_Simple(2, true, true),
+                                                              new OPT_BranchOptimizations(2, true, true)}) {
           public boolean shouldPerform(OPT_Options options) {
             return options.getOptLevel() >= 2;
           }
-        }
-    });
+        }});
   }
 
   /**
@@ -412,8 +380,7 @@ public class OPT_OptimizationPlanner {
           public boolean shouldPerform(OPT_Options options) {
             return options.PRINT_LOW;
           }
-        }
-    });
+        }});
   }
 
   /**
@@ -435,10 +402,10 @@ public class OPT_OptimizationPlanner {
     addComponent(p, new OPT_Simple(0, false, false));
 
     // Use the LST to estimate basic block frequency
-    addComponent(p, new OPT_OptimizationPlanCompositeElement
-        ("Basic Block Frequency Estimation", new Object[]{
-            new OPT_BuildLST(),
-            new OPT_EstimateBlockFrequencies()}));
+    addComponent(p,
+                 new OPT_OptimizationPlanCompositeElement("Basic Block Frequency Estimation",
+                                                          new Object[]{new OPT_BuildLST(),
+                                                                       new OPT_EstimateBlockFrequencies()}));
 
     // Perform basic block reordering
     addComponent(p, new OPT_ReorderingPhase());
@@ -455,16 +422,14 @@ public class OPT_OptimizationPlanner {
   }
 
   // Helper functions for constructing the masterPlan.
-  protected static void addComponent(ArrayList<OPT_OptimizationPlanElement> p,
-                                     OPT_CompilerPhase e) {
+  protected static void addComponent(ArrayList<OPT_OptimizationPlanElement> p, OPT_CompilerPhase e) {
     addComponent(p, new OPT_OptimizationPlanAtomicElement(e));
   }
 
   /**
    * Add an optimization plan element to a vector.
    */
-  protected static void addComponent(ArrayList<OPT_OptimizationPlanElement> p,
-                                     OPT_OptimizationPlanElement e) {
+  protected static void addComponent(ArrayList<OPT_OptimizationPlanElement> p, OPT_OptimizationPlanElement e) {
     p.add(e);
   }
 
@@ -474,8 +439,7 @@ public class OPT_OptimizationPlanner {
    * @param name the name for this composition
    * @param es   the array of composed elements
    */
-  protected static void composeComponents(ArrayList<OPT_OptimizationPlanElement> p,
-                                          String name, Object[] es) {
+  protected static void composeComponents(ArrayList<OPT_OptimizationPlanElement> p, String name, Object[] es) {
     p.add(OPT_OptimizationPlanCompositeElement.compose(name, es));
   }
 }

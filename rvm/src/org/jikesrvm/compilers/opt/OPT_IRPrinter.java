@@ -37,8 +37,7 @@ public class OPT_IRPrinter extends OPT_CompilerPhase {
       return;
     }
 
-    if (!ir.options.hasMETHOD_TO_PRINT() ||
-        ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
+    if (!ir.options.hasMETHOD_TO_PRINT() || ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
       dumpIR(ir, msg);
     }
   }

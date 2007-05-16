@@ -28,8 +28,7 @@ public final class VM_PrintContainer {
   private VM_PrintContainer() {}
 
   /** Print via PrintWriter */
-  private static class WithPrintWriter
-      extends VM_PrintLN {
+  private static class WithPrintWriter extends VM_PrintLN {
     private PrintWriter out;
 
     WithPrintWriter(PrintWriter out) {
@@ -57,8 +56,7 @@ public final class VM_PrintContainer {
   }
 
   /** Print via PrintStream */
-  private static class WithPrintStream
-      extends VM_PrintLN {
+  private static class WithPrintStream extends VM_PrintLN {
     private PrintStream out;
 
     WithPrintStream(PrintStream out) {
@@ -101,8 +99,7 @@ public final class VM_PrintContainer {
   public static final VM_PrintLN readyPrinter = new WithSysWrite();
 
   /** This (nested) class does printing via {@link VM#sysWrite} */
-  private static class WithSysWrite
-      extends VM_PrintLN {
+  private static class WithSysWrite extends VM_PrintLN {
     /** This doesn't carry any state, but we have a constructor so that we can
      * pass an instance of this to something expecting a {@link VM_PrintLN} . */
     WithSysWrite() {}

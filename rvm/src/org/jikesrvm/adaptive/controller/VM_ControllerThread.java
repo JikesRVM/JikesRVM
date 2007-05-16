@@ -90,8 +90,7 @@ public class VM_ControllerThread extends VM_Thread {
       return; // controller thread exits.
     }
 
-    if ((VM_Controller.options.ENABLE_REPLAY_COMPILE)
-        || (VM_Controller.options.ENABLE_PRECOMPILE)) {
+    if ((VM_Controller.options.ENABLE_REPLAY_COMPILE) || (VM_Controller.options.ENABLE_PRECOMPILE)) {
       // if we want to do precompile, we need to initial optimization plans
       // just allow the advice to be the max opt level 2
       VM_Controller.options.MAX_OPT_LEVEL = 2;
@@ -113,8 +112,7 @@ public class VM_ControllerThread extends VM_Thread {
       createOrganizerThreads();
       VM.sysWriteln("AOS: In replay mode; controller thread only runs for OSR inlining.");
       while (true) {
-        if (VM_Controller.options.EARLY_EXIT &&
-            VM_Controller.options.EARLY_EXIT_TIME < VM_Controller.controllerClock) {
+        if (VM_Controller.options.EARLY_EXIT && VM_Controller.options.EARLY_EXIT_TIME < VM_Controller.controllerClock) {
           VM_Controller.stop();
         }
         Object event = VM_Controller.controllerInputQueue.deleteMin();
@@ -150,8 +148,7 @@ public class VM_ControllerThread extends VM_Thread {
     // block until an event is available.
     // Repeat forever.
     while (true) {
-      if (VM_Controller.options.EARLY_EXIT &&
-          VM_Controller.options.EARLY_EXIT_TIME < VM_Controller.controllerClock) {
+      if (VM_Controller.options.EARLY_EXIT && VM_Controller.options.EARLY_EXIT_TIME < VM_Controller.controllerClock) {
         VM_Controller.stop();
       }
       Object event = VM_Controller.controllerInputQueue.deleteMin();
@@ -162,8 +159,7 @@ public class VM_ControllerThread extends VM_Thread {
   // Now that we're done initializing, Schedule all the organizer threads
   // and signal the sentinel object.
   private void controllerInitDone() {
-    for (Enumeration<VM_Organizer> e = VM_Controller.organizers.elements();
-         e.hasMoreElements();) {
+    for (Enumeration<VM_Organizer> e = VM_Controller.organizers.elements(); e.hasMoreElements();) {
       VM_Organizer o = e.nextElement();
       o.start();
     }
@@ -246,15 +242,13 @@ public class VM_ControllerThread extends VM_Thread {
       VM_Controller.organizers.addElement(new VM_MethodSampleOrganizer(opts.FILTER_OPT_LEVEL));
       // Additional set up for feedback directed inlining
       if (opts.ADAPTIVE_INLINING) {
-        VM_Organizer decayOrganizer =
-            new VM_DecayOrganizer(new VM_YieldCounterListener(opts.DECAY_FREQUENCY));
+        VM_Organizer decayOrganizer = new VM_DecayOrganizer(new VM_YieldCounterListener(opts.DECAY_FREQUENCY));
         VM_Controller.organizers.addElement(decayOrganizer);
         createDynamicCallGraphOrganizer();
       }
     }
 
-    if ((!VM_Controller.options.ENABLE_REPLAY_COMPILE)
-        && (!VM_Controller.options.ENABLE_PRECOMPILE)) {
+    if ((!VM_Controller.options.ENABLE_REPLAY_COMPILE) && (!VM_Controller.options.ENABLE_PRECOMPILE)) {
       VM_Controller.osrOrganizer = new OSR_OrganizerThread();
       VM_Controller.osrOrganizer.start();
     }

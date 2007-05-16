@@ -66,8 +66,7 @@ public abstract class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner
           public boolean shouldPerform(OPT_Options options) {
             return options.PRINT_MIR;
           }
-        }
-    });
+        }});
   }
 
   /**
@@ -94,8 +93,7 @@ public abstract class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner
         // MANDATORY: Perform register allocation
         new OPT_RegisterAllocator(),
         // MANDATORY: Add prologue and epilogue
-        new OPT_PrologueEpilogueCreator(),
-    });
+        new OPT_PrologueEpilogueCreator(),});
     ////////////////////
     // MIR OPTS(2) (after register allocation)
     // NOTE: GCMapping part 1 has created the GC maps already.

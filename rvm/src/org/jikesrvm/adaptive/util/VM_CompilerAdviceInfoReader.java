@@ -58,15 +58,13 @@ class VM_CompilerAdviceInfoReader {
    * @return A list of compileration advice attributes
    */
   public static List<VM_CompilerAdviceAttribute> readCompilerAdviceFile(String file) {
-    List<VM_CompilerAdviceAttribute> compilerAdviceInfo =
-        new ArrayList<VM_CompilerAdviceAttribute>();
+    List<VM_CompilerAdviceAttribute> compilerAdviceInfo = new ArrayList<VM_CompilerAdviceAttribute>();
     BufferedReader fileIn = null;
 
     if (file == null) return null;
 
     try {
-      fileIn = new BufferedReader(new
-          InputStreamReader(new FileInputStream(file), "UTF-8"));
+      fileIn = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"));
 
       try {
         for (String s = fileIn.readLine(); s != null; s = fileIn.readLine()) {
@@ -81,16 +79,13 @@ class VM_CompilerAdviceInfoReader {
 
       fileIn.close();
     } catch (java.io.FileNotFoundException e) {
-      System.out.println("IO: Couldn't read compiler advice attribute file: "
-                         + file + e);
+      System.out.println("IO: Couldn't read compiler advice attribute file: " + file + e);
       return null;
     } catch (java.io.UnsupportedEncodingException e) {
-      System.out.println("IO: UTF-8 is not supported: "
-                         + e);
+      System.out.println("IO: UTF-8 is not supported: " + e);
       return null;
     } catch (java.io.IOException e) {
-      System.out.println("IO: Couldn't close compiler advice attribute file: "
-                         + file + e);
+      System.out.println("IO: Couldn't close compiler advice attribute file: " + file + e);
       return null;
     }
 
@@ -121,11 +116,9 @@ class VM_CompilerAdviceInfoReader {
       VM_CompilerAdviceAttribute newAttrib;
 
       if (optLevel >= 0) {
-        newAttrib =
-            new VM_CompilerAdviceAttribute(cls, mth, sig, compiler, optLevel);
+        newAttrib = new VM_CompilerAdviceAttribute(cls, mth, sig, compiler, optLevel);
       } else {
-        newAttrib =
-            new VM_CompilerAdviceAttribute(cls, mth, sig, compiler);
+        newAttrib = new VM_CompilerAdviceAttribute(cls, mth, sig, compiler);
       }
 
       return newAttrib;

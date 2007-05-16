@@ -211,8 +211,7 @@ public final class OPT_VCG implements OPT_VCGConstants {
    * @param VCGOutput the string to write
    * @param append should the string be appended to the end?
    */
-  private static void writeToVCGFile(String filename, String VCGOutput,
-                                     boolean append) {
+  private static void writeToVCGFile(String filename, String VCGOutput, boolean append) {
     try {
       PrintWriter out = new PrintWriter(new FileOutputStream(filename, append));
       out.println(VCGOutput);
@@ -222,14 +221,7 @@ public final class OPT_VCG implements OPT_VCGConstants {
     }
   }
 
-  private static String[] indents = {
-      "",
-      "   ",
-      "      ",
-      "         ",
-      "            ",
-      "               ",
-  };
+  private static String[] indents = {"", "   ", "      ", "         ", "            ", "               ",};
 
   // Creates an {indent}value string
   // For internal use only.

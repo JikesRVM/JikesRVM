@@ -31,8 +31,7 @@ public final class OPT_GCIRMapElement {
    * @param regSpillList the list of references either symbolic (before regalloc)
    *                or physical/spill location (after regalloc)
    */
-  public OPT_GCIRMapElement(OPT_Instruction inst,
-                            List<OPT_RegSpillListElement> regSpillList) {
+  public OPT_GCIRMapElement(OPT_Instruction inst, List<OPT_RegSpillListElement> regSpillList) {
     this.inst = inst;
     this.regSpillList = regSpillList;
   }

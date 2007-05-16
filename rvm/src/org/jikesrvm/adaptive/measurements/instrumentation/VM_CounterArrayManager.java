@@ -37,8 +37,7 @@ import org.vmmagic.unboxed.Offset;
  * NOTE: Much of this class was stolen from VM_CounterArray.java, which
  * is now gone.
  */
-final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
-    implements OPT_Operators, OPT_Constants {
+final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager implements OPT_Operators, OPT_Constants {
 
   static final boolean DEBUG = false;
 
@@ -118,15 +117,13 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
    * @param incrementValue The value to add to the counter
    * @return The counter instruction
    **/
-  public OPT_Instruction createEventCounterInstruction(int handle, int index,
-                                                       double incrementValue) {
+  public OPT_Instruction createEventCounterInstruction(int handle, int index, double incrementValue) {
     // Now create the instruction to be returned.
     OPT_Instruction c =
         InstrumentedCounter.create(INSTRUMENTED_EVENT_COUNTER,
                                    new OPT_IntConstantOperand(handle),
                                    new OPT_IntConstantOperand(index),
-                                   new OPT_DoubleConstantOperand(incrementValue,
-                                                                 Offset.zero()));
+                                   new OPT_DoubleConstantOperand(incrementValue, Offset.zero()));
     c.bcIndex = INSTRUMENTATION_BCI;
 
     return c;
@@ -141,14 +138,12 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
    * @param counterInst   The counter instruction to mutate
    * @param ir            The governing IR
    **/
-  public void mutateOptEventCounterInstruction(OPT_Instruction counterInst,
-                                               OPT_IR ir) {
+  public void mutateOptEventCounterInstruction(OPT_Instruction counterInst, OPT_IR ir) {
     if (VM.VerifyAssertions) {
       VM._assert(InstrumentedCounter.conforms(counterInst));
     }
 
-    OPT_IntConstantOperand intOp =
-        InstrumentedCounter.getData(counterInst);
+    OPT_IntConstantOperand intOp = InstrumentedCounter.getData(counterInst);
     int handle = intOp.value;
     intOp = InstrumentedCounter.getIndex(counterInst);
     int index = intOp.value;
@@ -159,33 +154,29 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
 
     // load counterArrays[handle]
     OPT_RegisterOperand array2 =
-        InsertALoadOffset(counterInst,
-                          ir, REF_ALOAD,
-                          VM_TypeReference.JavaLangObject,
-                          counterArray, handle);
+        InsertALoadOffset(counterInst, ir, REF_ALOAD, VM_TypeReference.JavaLangObject, counterArray, handle);
     OPT_ConvertToLowLevelIR.
         doArrayLoad(counterInst.prevInstructionInCodeOrder(), ir, INT_LOAD, 2);
 
     // load counterArrays[handle][index]
     OPT_RegisterOperand origVal =
-        InsertALoadOffset(counterInst,
-                          ir, DOUBLE_ALOAD,
-                          VM_TypeReference.Double,
-                          array2, index);
+        InsertALoadOffset(counterInst, ir, DOUBLE_ALOAD, VM_TypeReference.Double, array2, index);
     OPT_ConvertToLowLevelIR.
         doArrayLoad(counterInst.prevInstructionInCodeOrder(), ir, DOUBLE_LOAD, 3);
 
     OPT_Operand incOperand = InstrumentedCounter.getIncrement(counterInst);
     // Insert increment instruction
     OPT_RegisterOperand newValue =
-        OPT_ConvertToLowLevelIR.InsertBinary(counterInst, ir, DOUBLE_ADD,
-                                             VM_TypeReference.Double, origVal,
+        OPT_ConvertToLowLevelIR.InsertBinary(counterInst,
+                                             ir,
+                                             DOUBLE_ADD,
+                                             VM_TypeReference.Double,
+                                             origVal,
                                              incOperand.copy());
 
     // Store it
-    OPT_Instruction store = AStore.mutate(counterInst, DOUBLE_ASTORE,
-                                          newValue, array2.copyU2D(),
-                                          OPT_IRTools.IC(index), null, null);
+    OPT_Instruction store =
+        AStore.mutate(counterInst, DOUBLE_ASTORE, newValue, array2.copyU2D(), OPT_IRTools.IC(index), null, null);
     OPT_ConvertToLowLevelIR.doArrayStore(store, ir, DOUBLE_STORE, 3);
 
   }
@@ -200,15 +191,10 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
    * @param offset the offset to load at
    * @return the result operand of the inserted instruction
    */
-  static OPT_RegisterOperand InsertALoadOffset(OPT_Instruction s, OPT_IR ir,
-                                               OPT_Operator operator,
-                                               VM_TypeReference type,
-                                               OPT_Operand reg2,
-                                               int offset) {
+  static OPT_RegisterOperand InsertALoadOffset(OPT_Instruction s, OPT_IR ir, OPT_Operator operator,
+                                               VM_TypeReference type, OPT_Operand reg2, int offset) {
     OPT_RegisterOperand regTarget = ir.regpool.makeTemp(type);
-    OPT_Instruction s2 = ALoad.create(operator, regTarget, reg2,
-                                      OPT_IRTools.IC(offset),
-                                      null, null);
+    OPT_Instruction s2 = ALoad.create(operator, regTarget, reg2, OPT_IRTools.IC(offset), null, null);
     s.insertBefore(s2);
     return regTarget.copyD2U();
   }

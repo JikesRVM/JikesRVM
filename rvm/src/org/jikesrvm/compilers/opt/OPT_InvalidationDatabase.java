@@ -56,8 +56,7 @@ public final class OPT_InvalidationDatabase {
    * Record that if a particular VM_Method method is ever overridden, then
    * the VM_CompiledMethod encoded by the cmid must be invalidated.
    */
-  public void addNotOverriddenDependency(VM_Method source,
-                                         int dependent_cmid) {
+  public void addNotOverriddenDependency(VM_Method source, int dependent_cmid) {
     MethodSet s = findOrCreateMethodSet(nonOverriddenHash, source);
     s.add(dependent_cmid);
   }
@@ -66,8 +65,7 @@ public final class OPT_InvalidationDatabase {
    * Delete a NotOverriddenDependency.
    * No effect if the dependency doesn't exist..
    */
-  public void removeNotOverriddenDependency(VM_Method source,
-                                            int dependent_cmid) {
+  public void removeNotOverriddenDependency(VM_Method source, int dependent_cmid) {
     MethodSet s = nonOverriddenHash.get(source);
     if (s != null) {
       s.remove(dependent_cmid);
@@ -127,15 +125,13 @@ public final class OPT_InvalidationDatabase {
    * A mapping from VM_Method to MethodSet: holds the set of methods which
    * depend on a particular method being "final"
    */
-  private VM_HashMap<VM_Method, MethodSet> nonOverriddenHash =
-      new VM_HashMap<VM_Method, MethodSet>();
+  private VM_HashMap<VM_Method, MethodSet> nonOverriddenHash = new VM_HashMap<VM_Method, MethodSet>();
 
   /**
    * A mapping from VM_Class to MethodSet: holds the set of methods which
    * depend on a particular class being "final"
    */
-  private VM_HashMap<VM_Class, MethodSet> noSubclassHash =
-      new VM_HashMap<VM_Class, MethodSet>();
+  private VM_HashMap<VM_Class, MethodSet> noSubclassHash = new VM_HashMap<VM_Class, MethodSet>();
 
   /**
    * Look up the MethodSet corresponding to a given key in the database.

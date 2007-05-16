@@ -51,10 +51,7 @@ import org.vmmagic.unboxed.Offset;
  * VM_Compiler is the baseline compiler class for powerPC architectures.
  */
 public abstract class VM_Compiler extends VM_BaselineCompiler
-    implements VM_BaselineConstants,
-               VM_JNIStackframeLayoutConstants,
-               VM_BBConstants,
-               VM_AssemblerConstants {
+    implements VM_BaselineConstants, VM_JNIStackframeLayoutConstants, VM_BBConstants, VM_AssemblerConstants {
 
   // stackframe pseudo-constants //
   private int frameSize;
@@ -2720,9 +2717,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
 
     // (1) Emit dynamic type checking sequence if required to
     // do so inline.
-    if (VM.BuildForIMTInterfaceInvocation ||
-        (VM.BuildForITableInterfaceInvocation &&
-         VM.DirectlyIndexedITables)) {
+    if (VM.BuildForIMTInterfaceInvocation || (VM.BuildForITableInterfaceInvocation && VM.DirectlyIndexedITables)) {
       if (methodRef.isMiranda()) {
         // TODO: It's not entirely clear that we can just assume that
         //       the class actually implements the interface.
@@ -2765,9 +2760,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       asm.emitMTCTR(S0);
       asm.emitLVAL(S1, sig.getId());      // pass "hidden" parameter in S1 scratch  register
       asm.emitBCCTRL();
-    } else if (VM.BuildForITableInterfaceInvocation &&
-               VM.DirectlyIndexedITables &&
-               resolvedMethod != null) {
+    } else if (VM.BuildForITableInterfaceInvocation && VM.DirectlyIndexedITables && resolvedMethod != null) {
       VM_Class I = resolvedMethod.getDeclaringClass();
       genMoveParametersToRegisters(true, methodRef);        //T0 is "this"
       VM_ObjectModel.baselineEmitLoadTIB(asm, S0, T0);
@@ -2781,8 +2774,10 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       int itableIndex = -1;
       if (VM.BuildForITableInterfaceInvocation && resolvedMethod != null) {
         // get the index of the method in the Itable
-        itableIndex = VM_InterfaceInvocation.getITableIndex(resolvedMethod.getDeclaringClass(),
-                                                            methodRef.getName(), methodRef.getDescriptor());
+        itableIndex =
+            VM_InterfaceInvocation.getITableIndex(resolvedMethod.getDeclaringClass(),
+                                                  methodRef.getName(),
+                                                  methodRef.getDescriptor());
       }
       if (itableIndex == -1) {
         // itable index is not known at compile-time.
@@ -3922,8 +3917,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
         return true;
       }
 
-      if (methodName == VM_MagicNames.loadInt ||
-          methodName == VM_MagicNames.loadFloat) {
+      if (methodName == VM_MagicNames.loadInt || methodName == VM_MagicNames.loadFloat) {
 
         if (types.length == 0) {
           popAddr(T0);                  // pop base
@@ -3938,8 +3932,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
         return true;
       }
 
-      if (methodName == VM_MagicNames.loadDouble ||
-          methodName == VM_MagicNames.loadLong) {
+      if (methodName == VM_MagicNames.loadDouble || methodName == VM_MagicNames.loadLong) {
 
         if (types.length == 0) {
           popAddr(T1);                  // pop base
@@ -4000,8 +3993,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       // Attempts all take the form:
       // ..., Address, OldVal, NewVal, [Offset] -> ..., Success?
 
-      if (methodName == VM_MagicNames.attempt &&
-          types[0] == VM_TypeReference.Int) {
+      if (methodName == VM_MagicNames.attempt && types[0] == VM_TypeReference.Int) {
         if (types.length == 2) {
           popInt(T2);                            // pop newValue
           discardSlot();                         // ignore oldValue
@@ -4028,8 +4020,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       }
 
       if (methodName == VM_MagicNames.attempt &&
-          (types[0] == VM_TypeReference.Address ||
-           types[0] == VM_TypeReference.Word)) {
+          (types[0] == VM_TypeReference.Address || types[0] == VM_TypeReference.Word)) {
 
         if (types.length == 2) {
           popAddr(T2);                             // pop newValue
@@ -4098,8 +4089,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
           return true;
         }
 
-        if (types[0] == VM_TypeReference.Int ||
-            types[0] == VM_TypeReference.Float) {
+        if (types[0] == VM_TypeReference.Int || types[0] == VM_TypeReference.Float) {
           if (types.length == 1) {
             popInt(T1);                  // pop newvalue
             popAddr(T0);                 // pop base
@@ -4113,8 +4103,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
           return true;
         }
 
-        if (types[0] == VM_TypeReference.Short ||
-            types[0] == VM_TypeReference.Char) {
+        if (types[0] == VM_TypeReference.Short || types[0] == VM_TypeReference.Char) {
           if (types.length == 1) {
             popInt(T1);                  // pop newvalue
             popAddr(T0);                 // pop base
@@ -4128,8 +4117,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
           return true;
         }
 
-        if (types[0] == VM_TypeReference.Double ||
-            types[0] == VM_TypeReference.Long) {
+        if (types[0] == VM_TypeReference.Double || types[0] == VM_TypeReference.Long) {
           if (types.length == 1) {
             popLong(T2, T1);                      // pop newvalue low and high
             popAddr(T0);                          // pop base
@@ -4183,8 +4171,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       asm.emitLAddr(T1, STACKFRAME_FRAME_POINTER_OFFSET, T0);    // load frame pointer of caller frame
       asm.emitADDI(T2, STACKFRAME_NEXT_INSTRUCTION_OFFSET, T1); // get location containing ret addr
       pushAddr(T2);                                  // push frame pointer of caller frame
-    } else if (methodName == VM_MagicNames.getTocPointer ||
-               methodName == VM_MagicNames.getJTOC) {
+    } else if (methodName == VM_MagicNames.getTocPointer || methodName == VM_MagicNames.getJTOC) {
       pushAddr(JTOC);
     } else if (methodName == VM_MagicNames.getProcessorRegister) {
       pushAddr(PROCESSOR_REGISTER);
@@ -4284,8 +4271,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       popInt(T1); // pop offset
       popAddr(T0); // pop object
       asm.emitSTWX(T2, T1, T0); // *(object+offset) = newvalue
-    } else if (methodName == VM_MagicNames.setObjectAtOffset ||
-               methodName == VM_MagicNames.setWordAtOffset) {
+    } else if (methodName == VM_MagicNames.setObjectAtOffset || methodName == VM_MagicNames.setWordAtOffset) {
       if (methodToBeCalled.getParameterTypes().length == 4) {
         discardSlot(); // discard locationMetadata parameter
       }
@@ -4303,14 +4289,12 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       popInt(T1); // pop offset
       popAddr(T0); // pop object
       asm.emitSTHX(T2, T1, T0); // *(object+offset) = newvalue
-    } else if (methodName == VM_MagicNames.getLongAtOffset ||
-               methodName == VM_MagicNames.getDoubleAtOffset) {
+    } else if (methodName == VM_MagicNames.getLongAtOffset || methodName == VM_MagicNames.getDoubleAtOffset) {
       popInt(T2); // pop offset
       popAddr(T1); // pop object
       asm.emitLFDX(F0, T1, T2);
       pushDouble(F0);
-    } else if ((methodName == VM_MagicNames.setLongAtOffset)
-               || (methodName == VM_MagicNames.setDoubleAtOffset)) {
+    } else if ((methodName == VM_MagicNames.setLongAtOffset) || (methodName == VM_MagicNames.setDoubleAtOffset)) {
       popLong(T3, T2);
       popInt(T1); // pop offset
       popAddr(T0); // pop object
@@ -4325,8 +4309,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       popAddr(T0); // address
       asm.emitLInt(T0, 0, T0); // *address
       pushInt(T0); // *sp := *address
-    } else if (methodName == VM_MagicNames.getMemoryWord ||
-               methodName == VM_MagicNames.getMemoryAddress) {
+    } else if (methodName == VM_MagicNames.getMemoryWord || methodName == VM_MagicNames.getMemoryAddress) {
       popAddr(T0); // address
       asm.emitLAddr(T0, 0, T0); // *address
       pushAddr(T0); // *sp := *address
@@ -4507,8 +4490,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
     } else if (methodName == VM_MagicNames.wordToLong) {
       asm.emitLVAL(T0, 0);
       pushAddr(T0);
-    } else if (methodName == VM_MagicNames.wordFromInt ||
-               methodName == VM_MagicNames.wordFromIntSignExtend) {
+    } else if (methodName == VM_MagicNames.wordFromInt || methodName == VM_MagicNames.wordFromIntSignExtend) {
       if (VM.BuildFor64Addr) {
         popInt(T0);
         pushAddr(T0);
@@ -4529,8 +4511,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       popAddr(T1);
       asm.emitADD(T2, T1, T0);
       pushAddr(T2);
-    } else if (methodName == VM_MagicNames.wordMinus ||
-               methodName == VM_MagicNames.wordDiff) {
+    } else if (methodName == VM_MagicNames.wordMinus || methodName == VM_MagicNames.wordDiff) {
       if (VM.BuildFor64Addr && (methodToBeCalled.getParameterTypes()[0] == VM_TypeReference.Int)) {
         popInt(T0);
       } else {
@@ -4559,8 +4540,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       generateAddrComparison(true, GT);
     } else if (methodName == VM_MagicNames.wordsGE) {
       generateAddrComparison(true, GE);
-    } else if (methodName == VM_MagicNames.wordIsZero ||
-               methodName == VM_MagicNames.wordIsNull) {
+    } else if (methodName == VM_MagicNames.wordIsZero || methodName == VM_MagicNames.wordIsNull) {
       // unsigned comparison generating a boolean
       asm.emitLVAL(T0, 0);
       pushAddr(T0);
@@ -4570,8 +4550,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       asm.emitLVAL(T0, -1);
       pushAddr(T0);
       generateAddrComparison(false, EQ);
-    } else if (methodName == VM_MagicNames.wordZero ||
-               methodName == VM_MagicNames.wordNull) {
+    } else if (methodName == VM_MagicNames.wordZero || methodName == VM_MagicNames.wordNull) {
       asm.emitLVAL(T0, 0);
       pushAddr(T0);
     } else if (methodName == VM_MagicNames.wordOne) {
@@ -4646,15 +4625,14 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    */
   public static boolean checkForActualCall(VM_MethodReference methodToBeCalled) {
     VM_Atom methodName = methodToBeCalled.getName();
-    return
-        methodName == VM_MagicNames.invokeClassInitializer ||
-        methodName == VM_MagicNames.invokeMethodReturningVoid ||
-        methodName == VM_MagicNames.invokeMethodReturningInt ||
-        methodName == VM_MagicNames.invokeMethodReturningLong ||
-        methodName == VM_MagicNames.invokeMethodReturningFloat ||
-        methodName == VM_MagicNames.invokeMethodReturningDouble ||
-        methodName == VM_MagicNames.invokeMethodReturningObject ||
-        methodName == VM_MagicNames.addressArrayCreate;
+    return methodName == VM_MagicNames.invokeClassInitializer ||
+           methodName == VM_MagicNames.invokeMethodReturningVoid ||
+           methodName == VM_MagicNames.invokeMethodReturningInt ||
+           methodName == VM_MagicNames.invokeMethodReturningLong ||
+           methodName == VM_MagicNames.invokeMethodReturningFloat ||
+           methodName == VM_MagicNames.invokeMethodReturningDouble ||
+           methodName == VM_MagicNames.invokeMethodReturningObject ||
+           methodName == VM_MagicNames.addressArrayCreate;
   }
 
   //----------------//

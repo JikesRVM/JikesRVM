@@ -17,16 +17,14 @@ import org.jikesrvm.compilers.opt.ir.OPT_Operand;
 import org.jikesrvm.compilers.opt.ir.OPT_Operators;
 import org.jikesrvm.compilers.opt.ir.OPT_Register;
 
-public class OPT_RegisterPreferences extends OPT_GenericRegisterPreferences
-    implements OPT_Operators {
+public class OPT_RegisterPreferences extends OPT_GenericRegisterPreferences implements OPT_Operators {
 
   /**
    * Set up register preferences based on instructions in an IR.
    */
   public void initialize(OPT_IR ir) {
 
-    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator();
-         e.hasMoreElements();) {
+    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
       OPT_Instruction s = e.nextElement();
       switch (s.operator.opcode) {
         case IA32_MOV_opcode:

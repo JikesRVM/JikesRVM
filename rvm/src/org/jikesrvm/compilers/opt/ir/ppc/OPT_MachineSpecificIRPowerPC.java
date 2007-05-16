@@ -118,7 +118,8 @@ public abstract class OPT_MachineSpecificIRPowerPC extends OPT_MachineSpecificIR
 
   @Override
   public final void mutateMIRCondBranch(OPT_Instruction cb) {
-    MIR_CondBranch.mutate(cb, PPC_BCOND,
+    MIR_CondBranch.mutate(cb,
+                          PPC_BCOND,
                           MIR_CondBranch2.getValue(cb),
                           MIR_CondBranch2.getCond1(cb),
                           MIR_CondBranch2.getTarget1(cb),

@@ -43,10 +43,7 @@ public final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
    * @param type  The exception type
    * @param cfg   The OPT_ControlFlowGraph that will contain the basic block
    */
-  OPT_ExceptionHandlerBasicBlock(int loc,
-                                 OPT_InlineSequence position,
-                                 OPT_TypeOperand type,
-                                 OPT_ControlFlowGraph cfg) {
+  OPT_ExceptionHandlerBasicBlock(int loc, OPT_InlineSequence position, OPT_TypeOperand type, OPT_ControlFlowGraph cfg) {
     super(loc, position, cfg);
     exceptionTypes = new OPT_TypeOperand[1];
     exceptionTypes[0] = type;

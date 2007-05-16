@@ -54,8 +54,7 @@ public class VM_FinalizerThread extends VM_Thread {
         // places objects on the finalizer queue and notifies.
 
         VM_Scheduler.finalizerMutex.lock();
-        VM_Thread.yield(VM_Scheduler.finalizerQueue,
-                        VM_Scheduler.finalizerMutex);
+        VM_Thread.yield(VM_Scheduler.finalizerQueue, VM_Scheduler.finalizerMutex);
 
         if (verbose >= 1) {
           VM.sysWriteln("VM_FinalizerThread starting finalization");
@@ -74,20 +73,17 @@ public class VM_FinalizerThread extends VM_Thread {
             VM_Method method = VM_Magic.getObjectType(o).asClass().getFinalizer();
             if (VM.VerifyAssertions) VM._assert(method != null);
             VM_Reflection.invoke(method, o, none);
-          }
-          catch (Exception e) {
+          } catch (Exception e) {
             if (verbose >= 1) VM.sysWriteln("Throwable exception caught for finalize call");
           }
           if (verbose >= 2) {
-            VM.sysWriteln("VM_FinalizerThread done with object at ",
-                          VM_Magic.objectAsAddress(o));
+            VM.sysWriteln("VM_FinalizerThread done with object at ", VM_Magic.objectAsAddress(o));
           }
         }
         if (verbose >= 1) VM.sysWriteln("VM_FinalizerThread finished finalization");
 
       }          // while (true)
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       VM.sysWriteln("Unexpected exception thrown in finalizer thread: ", e.toString());
       e.printStackTrace();
     }

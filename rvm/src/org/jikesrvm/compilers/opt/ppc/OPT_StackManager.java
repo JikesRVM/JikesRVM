@@ -143,8 +143,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
         case PPC_MOVE_opcode:
         case PPC_FMR_opcode:
           // remove frivolous moves
-          if (MIR_Move.getResult(inst).register.number ==
-              MIR_Move.getValue(inst).register.number) {
+          if (MIR_Move.getResult(inst).register.number == MIR_Move.getValue(inst).register.number) {
             inst = inst.remove();
           }
           break;
@@ -160,8 +159,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
         case PPC_LAddr_opcode:
           // the following to handle spilled parameters
           // SJF: this is ugly.  clean it up someday.
-          if (MIR_Load.getAddress(inst).register ==
-              ir.regpool.getPhysicalRegisterSet().getFP()) {
+          if (MIR_Load.getAddress(inst).register == ir.regpool.getPhysicalRegisterSet().getFP()) {
             OPT_Operand one = MIR_Load.getOffset(inst);
             if (one instanceof OPT_IntConstantOperand) {
               int offset = ((OPT_IntConstantOperand) one).value;
@@ -189,41 +187,32 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
    *                    CONDITION_VALUE
    * @param location the spill location
    */
-  public final void insertSpillBefore(OPT_Instruction s, OPT_Register r,
-                                      byte type, int location) {
+  public final void insertSpillBefore(OPT_Instruction s, OPT_Register r, byte type, int location) {
 
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     OPT_Register FP = phys.getFP();
     if (type == FLOAT_VALUE) {
-      s.insertBefore(MIR_Store.create(PPC_STFS, F(r), A(FP),
-                                      IC(location + BYTES_IN_ADDRESS - BYTES_IN_FLOAT)));
+      s.insertBefore(MIR_Store.create(PPC_STFS, F(r), A(FP), IC(location + BYTES_IN_ADDRESS - BYTES_IN_FLOAT)));
     } else if (type == DOUBLE_VALUE) {
-      s.insertBefore(MIR_Store.create(PPC_STFD, D(r), A(FP),
-                                      IC(location)));
+      s.insertBefore(MIR_Store.create(PPC_STFD, D(r), A(FP), IC(location)));
     } else if (type == INT_VALUE) {      // integer or half of long
-      s.insertBefore(MIR_Store.create(PPC_STAddr, A(r), A(FP),
-                                      IC(location)));
+      s.insertBefore(MIR_Store.create(PPC_STAddr, A(r), A(FP), IC(location)));
     } else {
-      throw new OPT_OptimizingCompilerException("insertSpillBefore",
-                                                "unsupported type " +
-                                                type);
+      throw new OPT_OptimizingCompilerException("insertSpillBefore", "unsupported type " + type);
     }
   }
 
   /**
    * Create an MIR instruction to move rhs into lhs
    */
-  final OPT_Instruction makeMoveInstruction(OPT_Register lhs,
-                                            OPT_Register rhs) {
+  final OPT_Instruction makeMoveInstruction(OPT_Register lhs, OPT_Register rhs) {
     if (rhs.isFloatingPoint() && lhs.isFloatingPoint()) {
       return MIR_Move.create(PPC_FMR, D(lhs), D(rhs));
       //} else if (rhs.isInteger() && lhs.isInteger()) { // integer
     } else if (rhs.isAddress() && lhs.isAddress()) { // integer
       return MIR_Move.create(PPC_MOVE, A(lhs), A(rhs));
     } else {
-      throw new OPT_OptimizingCompilerException("RegAlloc",
-                                                "unknown register:",
-                                                lhs.toString());
+      throw new OPT_OptimizingCompilerException("RegAlloc", "unknown register:", lhs.toString());
     }
   }
 
@@ -237,15 +226,13 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
    *                    CONDITION_VALUE
    * @param location the spill location
    */
-  public final void insertUnspillBefore(OPT_Instruction s, OPT_Register r,
-                                        byte type, int location) {
+  public final void insertUnspillBefore(OPT_Instruction s, OPT_Register r, byte type, int location) {
 
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     OPT_Register FP = phys.getFP();
     if (type == CONDITION_VALUE) {
       OPT_Register temp = phys.getTemp();
-      s.insertBefore(MIR_Load.create(PPC_LWZ, I(temp), A(FP),
-                                     IC(location + BYTES_IN_ADDRESS - BYTES_IN_INT)));
+      s.insertBefore(MIR_Load.create(PPC_LWZ, I(temp), A(FP), IC(location + BYTES_IN_ADDRESS - BYTES_IN_INT)));
     } else if (type == DOUBLE_VALUE) {
       s.insertBefore(MIR_Load.create(PPC_LFD, D(r), A(FP), IC(location)));
     } else if (type == FLOAT_VALUE) {
@@ -253,8 +240,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
     } else if (type == INT_VALUE) { // integer or half of long
       s.insertBefore(MIR_Load.create(PPC_LAddr, A(r), A(FP), IC(location)));
     } else {
-      throw new OPT_OptimizingCompilerException("insertUnspillBefore",
-                                                "unknown type:" + type);
+      throw new OPT_OptimizingCompilerException("insertUnspillBefore", "unknown type:" + type);
     }
   }
 
@@ -275,12 +261,10 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     OPT_Register temp = phys.getTemp();
     OPT_Register FP = phys.getFP();
-    ret.insertBefore(MIR_Load.create(PPC_LAddr, A(temp), A(FP),
-                                     IC(STACKFRAME_NEXT_INSTRUCTION_OFFSET + frameSize)));
+    ret.insertBefore(MIR_Load.create(PPC_LAddr, A(temp), A(FP), IC(STACKFRAME_NEXT_INSTRUCTION_OFFSET + frameSize)));
 
     // 3. Load return address into LR
-    ret.insertBefore(MIR_Move.create(PPC_MTSPR, A(phys.getLR()),
-                                     A(phys.getTemp())));
+    ret.insertBefore(MIR_Move.create(PPC_MTSPR, A(phys.getLR()), A(phys.getTemp())));
 
     // 4. Restore old FP
     ret.insertBefore(MIR_Binary.create(PPC_ADDI, A(FP), A(FP), IC(frameSize)));
@@ -299,16 +283,14 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
     // 1. save the volatile GPRs
     OPT_Register FP = phys.getFP();
     int i = 0;
-    for (Enumeration<OPT_Register> e = phys.enumerateVolatileGPRs();
-         e.hasMoreElements(); i++) {
+    for (Enumeration<OPT_Register> e = phys.enumerateVolatileGPRs(); e.hasMoreElements(); i++) {
       OPT_Register r = e.nextElement();
       int location = saveVolatileGPRLocation[i];
       inst.insertBefore(MIR_Store.create(PPC_STAddr, A(r), A(FP), IC(location)));
     }
     // 2. save the volatile FPRs
     i = 0;
-    for (Enumeration<OPT_Register> e = phys.enumerateVolatileFPRs();
-         e.hasMoreElements(); i++) {
+    for (Enumeration<OPT_Register> e = phys.enumerateVolatileFPRs(); e.hasMoreElements(); i++) {
       OPT_Register r = e.nextElement();
       int location = saveVolatileFPRLocation[i];
       inst.insertBefore(MIR_Store.create(PPC_STFD, D(r), A(FP), IC(location)));
@@ -345,8 +327,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
     if (VM.BuildFor32Addr && n > MULTIPLE_CUTOFF) {
       // use a stm
       OPT_Register nv = null;
-      for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRsBackwards();
-           e.hasMoreElements() && n >= 0; n--) {
+      for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRsBackwards(); e.hasMoreElements() && n >= 0; n--) {
         nv = e.nextElement();
       }
       n++;
@@ -356,8 +337,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       inst.insertBefore(MIR_Store.create(PPC_STMW, range, A(FP), IC(offset)));
     } else {
       // use a sequence of load instructions
-      for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRsBackwards();
-           e.hasMoreElements() && n >= 0; n--) {
+      for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRsBackwards(); e.hasMoreElements() && n >= 0; n--) {
         OPT_Register nv = e.nextElement();
         int offset = getNonvolatileGPROffset(n);
         inst.insertBefore(MIR_Store.create(PPC_STAddr, A(nv), A(FP), IC(offset)));
@@ -373,8 +353,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       int nNonvolatileFPRS = ir.compiledMethod.getNumberOfNonvolatileFPRs();
       n = nNonvolatileFPRS - 1;
       // use a sequence of load instructions
-      for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileFPRsBackwards();
-           e.hasMoreElements() && n >= 0; n--) {
+      for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileFPRsBackwards(); e.hasMoreElements() && n >= 0; n--) {
         OPT_Register nv = e.nextElement();
         int offset = getNonvolatileFPROffset(n);
         inst.insertBefore(MIR_Store.create(PPC_STFD, D(nv), A(FP), IC(offset)));
@@ -398,8 +377,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
     if (VM.BuildFor32Addr && n > MULTIPLE_CUTOFF) {
       // use an lm
       OPT_Register nv = null;
-      for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRsBackwards();
-           e.hasMoreElements() && n >= 0; n--) {
+      for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRsBackwards(); e.hasMoreElements() && n >= 0; n--) {
         nv = e.nextElement();
       }
       n++;
@@ -408,8 +386,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       int offset = getNonvolatileGPROffset(n);
       inst.insertBefore(MIR_Load.create(PPC_LMW, range, A(FP), IC(offset)));
     } else {
-      for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRsBackwards();
-           e.hasMoreElements() && n >= 0; n--) {
+      for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRsBackwards(); e.hasMoreElements() && n >= 0; n--) {
         OPT_Register nv = e.nextElement();
         int offset = getNonvolatileGPROffset(n);
         inst.insertBefore(MIR_Load.create(PPC_LAddr, A(nv), A(FP), IC(offset)));
@@ -421,8 +398,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       int nNonvolatileFPRS = ir.compiledMethod.getNumberOfNonvolatileFPRs();
       n = nNonvolatileFPRS - 1;
       // use a sequence of load instructions
-      for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileFPRsBackwards();
-           e.hasMoreElements() && n >= 0; n--) {
+      for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileFPRsBackwards(); e.hasMoreElements() && n >= 0; n--) {
         OPT_Register nv = e.nextElement();
         int offset = getNonvolatileFPROffset(n);
         inst.insertBefore(MIR_Load.create(PPC_LFD, D(nv), A(FP), IC(offset)));
@@ -442,16 +418,14 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
     // 1. restore the volatile GPRs
     OPT_Register FP = phys.getFP();
     int i = 0;
-    for (Enumeration<OPT_Register> e = phys.enumerateVolatileGPRs();
-         e.hasMoreElements(); i++) {
+    for (Enumeration<OPT_Register> e = phys.enumerateVolatileGPRs(); e.hasMoreElements(); i++) {
       OPT_Register r = e.nextElement();
       int location = saveVolatileGPRLocation[i];
       inst.insertBefore(MIR_Load.create(PPC_LAddr, A(r), A(FP), IC(location)));
     }
     // 2. restore the volatile FPRs
     i = 0;
-    for (Enumeration<OPT_Register> e = phys.enumerateVolatileFPRs();
-         e.hasMoreElements(); i++) {
+    for (Enumeration<OPT_Register> e = phys.enumerateVolatileFPRs(); e.hasMoreElements(); i++) {
       OPT_Register r = e.nextElement();
       int location = saveVolatileFPRLocation[i];
       inst.insertBefore(MIR_Load.create(PPC_LFD, D(r), A(FP), IC(location)));
@@ -459,13 +433,10 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
     // 3. Restore some special registers
     OPT_Register temp = phys.getTemp();
     inst.insertBefore(MIR_Load.create(PPC_LInt, I(temp), A(FP), IC(saveXERLocation)));
-    inst.insertBefore(MIR_Move.create(PPC_MTSPR,
-                                      I(phys.getXER()), I(temp)));
+    inst.insertBefore(MIR_Move.create(PPC_MTSPR, I(phys.getXER()), I(temp)));
 
-    inst.insertBefore(MIR_Load.create(PPC_LAddr, A(temp), A(FP),
-                                      IC(saveCTRLocation)));
-    inst.insertBefore(MIR_Move.create(PPC_MTSPR,
-                                      A(phys.getCTR()), A(temp)));
+    inst.insertBefore(MIR_Load.create(PPC_LAddr, A(temp), A(FP), IC(saveCTRLocation)));
+    inst.insertBefore(MIR_Move.create(PPC_MTSPR, A(phys.getCTR()), A(temp)));
   }
 
   /*
@@ -522,24 +493,20 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
     OPT_Instruction ptr = ir.firstInstructionInCodeOrder().nextInstructionInCodeOrder();
     if (VM.VerifyAssertions) VM._assert(ptr.getOpcode() == IR_PROLOGUE_opcode);
 
-    ptr.insertBefore(MIR_Move.create(PPC_MFSPR, A(R0),
-                                     A(phys.getLR()))); // 1
+    ptr.insertBefore(MIR_Move.create(PPC_MFSPR, A(R0), A(phys.getLR()))); // 1
 
     if (yp) {
       Offset offset = VM_Entrypoints.takeYieldpointField.getOffset();
       if (VM.VerifyAssertions) VM._assert(OPT_Bits.fits(offset, 16));
-      ptr.insertBefore(MIR_Load.create(PPC_LInt, I(S1), A(PR),
-                                       IC(OPT_Bits.PPCMaskLower16(offset)))); // 2
+      ptr.insertBefore(MIR_Load.create(PPC_LInt, I(S1), A(PR), IC(OPT_Bits.PPCMaskLower16(offset)))); // 2
     }
 
-    ptr.insertBefore(MIR_StoreUpdate.create(PPC_STAddrU, A(FP), A(FP),
-                                            IC(-frameSize))); // 3
+    ptr.insertBefore(MIR_StoreUpdate.create(PPC_STAddrU, A(FP), A(FP), IC(-frameSize))); // 3
 
     if (stackOverflow) {
       Offset offset = VM_Entrypoints.activeThreadStackLimitField.getOffset();
       if (VM.VerifyAssertions) VM._assert(OPT_Bits.fits(offset, 16));
-      ptr.insertBefore(MIR_Load.create(PPC_LAddr, A(S0), A(phys.getPR()),
-                                       IC(OPT_Bits.PPCMaskLower16(offset)))); // 4
+      ptr.insertBefore(MIR_Load.create(PPC_LAddr, A(S0), A(phys.getPR()), IC(OPT_Bits.PPCMaskLower16(offset)))); // 4
     }
 
     // Now add any instructions to save the volatiles and nonvolatiles (5)
@@ -553,17 +520,21 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       ptr.insertBefore(MIR_Unary.create(PPC_LDI, I(S1), IC(cmid))); // 7
     } else {
       ptr.insertBefore(MIR_Unary.create(PPC_LDIS, I(S1), IC(cmid >>> 16))); // 7 (a)
-      ptr.insertBefore(MIR_Binary.create(PPC_ORI, I(S1), I(S1),
-                                         IC(cmid & 0xffff))); // 7 (b)
+      ptr.insertBefore(MIR_Binary.create(PPC_ORI, I(S1), I(S1), IC(cmid & 0xffff))); // 7 (b)
     }
-    ptr.insertBefore(MIR_Store.create(PPC_STAddr, A(R0), A(FP),
+    ptr.insertBefore(MIR_Store.create(PPC_STAddr,
+                                      A(R0),
+                                      A(FP),
                                       IC(frameSize + STACKFRAME_NEXT_INSTRUCTION_OFFSET))); // 8
-    ptr.insertBefore(MIR_Store.create(PPC_STW, I(S1), A(FP),
-                                      IC(STACKFRAME_METHOD_ID_OFFSET))); // 9
+    ptr.insertBefore(MIR_Store.create(PPC_STW, I(S1), A(FP), IC(STACKFRAME_METHOD_ID_OFFSET))); // 9
 
     if (stackOverflow) {
       // Mutate the Prologue instruction into the trap
-      MIR_Trap.mutate(ptr, PPC_TAddr, OPT_PowerPCTrapOperand.GREATER(), A(S0), A(FP),
+      MIR_Trap.mutate(ptr,
+                      PPC_TAddr,
+                      OPT_PowerPCTrapOperand.GREATER(),
+                      A(S0),
+                      A(FP),
                       OPT_TrapCodeOperand.StackOverflow()); // 10
     } else {
       // no stack overflow test, so we remove the IR_Prologue instruction
@@ -578,8 +549,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
    */
   final void insertExceptionalPrologue() {
     if (VM.VerifyAssertions) {
-      VM._assert((frameSize & (STACKFRAME_ALIGNMENT - 1)) == 0,
-                 "Stack frame alignment error");
+      VM._assert((frameSize & (STACKFRAME_ALIGNMENT - 1)) == 0, "Stack frame alignment error");
     }
     if (frameSize >= 0x7ff0) {
       throw new OPT_OptimizingCompilerException("Stackframe size exceeded!");
@@ -603,20 +573,15 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       // R0 is fairly useless (can't be operand 1 of an addi or the base ptr
       // of a load) so, free up S1 for use by briefly saving its contents in the
       // return address slot of my caller's frame
-      ptr.insertBefore(MIR_Store.create(PPC_STAddr, A(S1), A(FP),
-                                        IC(STACKFRAME_NEXT_INSTRUCTION_OFFSET)));
+      ptr.insertBefore(MIR_Store.create(PPC_STAddr, A(S1), A(FP), IC(STACKFRAME_NEXT_INSTRUCTION_OFFSET)));
       Offset offset = VM_Entrypoints.activeThreadStackLimitField.getOffset();
       if (VM.VerifyAssertions) VM._assert(OPT_Bits.fits(offset, 16));
-      ptr.insertBefore(MIR_Load.create(PPC_LAddr, A(S1), A(phys.getPR()),
-                                       IC(OPT_Bits.PPCMaskLower16(offset))));
-      ptr.insertBefore(MIR_Binary.create(PPC_ADDI, A(R0), A(S1),
-                                         IC(frameSize)));
-      ptr.insertBefore(MIR_Load.create(PPC_LAddr, A(S1), A(FP),
-                                       IC(STACKFRAME_NEXT_INSTRUCTION_OFFSET)));
+      ptr.insertBefore(MIR_Load.create(PPC_LAddr, A(S1), A(phys.getPR()), IC(OPT_Bits.PPCMaskLower16(offset))));
+      ptr.insertBefore(MIR_Binary.create(PPC_ADDI, A(R0), A(S1), IC(frameSize)));
+      ptr.insertBefore(MIR_Load.create(PPC_LAddr, A(S1), A(FP), IC(STACKFRAME_NEXT_INSTRUCTION_OFFSET)));
 
       // Mutate the Prologue holder instruction into the trap
-      MIR_Trap.mutate(ptr, PPC_TAddr, OPT_PowerPCTrapOperand.LESS(), A(FP), A(R0),
-                      OPT_TrapCodeOperand.StackOverflow());
+      MIR_Trap.mutate(ptr, PPC_TAddr, OPT_PowerPCTrapOperand.LESS(), A(FP), A(R0), OPT_TrapCodeOperand.StackOverflow());
 
       // advance ptr because we want the remaining instructions to come after
       // the trap
@@ -630,12 +595,9 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
     }
 
     // Buy stack frame, save LR, caller's FP
-    ptr.insertBefore(MIR_Move.create(PPC_MFSPR, A(R0),
-                                     A(phys.getLR())));
-    ptr.insertBefore(MIR_StoreUpdate.create(PPC_STAddrU, A(FP), A(FP),
-                                            IC(-frameSize)));
-    ptr.insertBefore(MIR_Store.create(PPC_STAddr, A(R0), A(FP),
-                                      IC(frameSize + STACKFRAME_NEXT_INSTRUCTION_OFFSET)));
+    ptr.insertBefore(MIR_Move.create(PPC_MFSPR, A(R0), A(phys.getLR())));
+    ptr.insertBefore(MIR_StoreUpdate.create(PPC_STAddrU, A(FP), A(FP), IC(-frameSize)));
+    ptr.insertBefore(MIR_Store.create(PPC_STAddr, A(R0), A(FP), IC(frameSize + STACKFRAME_NEXT_INSTRUCTION_OFFSET)));
 
     // Store cmid
     int cmid = ir.compiledMethod.getId();
@@ -645,8 +607,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       ptr.insertBefore(MIR_Unary.create(PPC_LDIS, I(R0), IC(cmid >>> 16)));
       ptr.insertBefore(MIR_Binary.create(PPC_ORI, I(R0), I(R0), IC(cmid & 0xffff)));
     }
-    ptr.insertBefore(MIR_Store.create(PPC_STW, I(R0), A(FP),
-                                      IC(STACKFRAME_METHOD_ID_OFFSET)));
+    ptr.insertBefore(MIR_Store.create(PPC_STW, I(R0), A(FP), IC(STACKFRAME_METHOD_ID_OFFSET)));
 
     // Now save the volatile/nonvolatile registers
     if (ir.compiledMethod.isSaveVolatile()) {
@@ -658,8 +619,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
     if (yp) {
       Offset offset = VM_Entrypoints.takeYieldpointField.getOffset();
       if (VM.VerifyAssertions) VM._assert(OPT_Bits.fits(offset, 16));
-      ptr.insertBefore(MIR_Load.create(PPC_LInt, I(R0), A(PR),
-                                       IC(OPT_Bits.PPCMaskLower16(offset))));
+      ptr.insertBefore(MIR_Load.create(PPC_LInt, I(R0), A(PR), IC(OPT_Bits.PPCMaskLower16(offset))));
       ptr.insertBefore(MIR_Binary.create(PPC_CMPI, I(TSR), I(R0), IC(0)));
     }
   }
@@ -695,8 +655,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
 
       // Map each volatile GPR to a spill location.
       int i = 0;
-      for (Enumeration<OPT_Register> e = phys.enumerateVolatileGPRs();
-           e.hasMoreElements(); i++) {
+      for (Enumeration<OPT_Register> e = phys.enumerateVolatileGPRs(); e.hasMoreElements(); i++) {
         e.nextElement();
         // Note that as a side effect, the following call bumps up the
         // frame size.
@@ -705,8 +664,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
 
       // Map each non-volatile GPR register to a spill location.
       i = 0;
-      for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRs();
-           e.hasMoreElements(); i++) {
+      for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRs(); e.hasMoreElements(); i++) {
         e.nextElement();
         // Note that as a side effect, the following call bumps up the
         // frame size.
@@ -718,8 +676,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       saveCTRLocation = allocateNewSpillLocation(INT_REG);
       i = 0;
 
-      for (Enumeration<OPT_Register> e = phys.enumerateVolatileFPRs();
-           e.hasMoreElements(); i++) {
+      for (Enumeration<OPT_Register> e = phys.enumerateVolatileFPRs(); e.hasMoreElements(); i++) {
         e.nextElement();
         // Note that as a side effect, the following call bumps up the
         // frame size.
@@ -733,8 +690,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       // Count the number of nonvolatiles used.
       int numGprNv = 0;
       int i = 0;
-      for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRs();
-           e.hasMoreElements();) {
+      for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRs(); e.hasMoreElements();) {
         OPT_Register r = e.nextElement();
         if (r.isTouched()) {
           // Note that as a side effect, the following call bumps up the
@@ -745,8 +701,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       }
       i = 0;
       int numFprNv = 0;
-      for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileFPRs();
-           e.hasMoreElements();) {
+      for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileFPRs(); e.hasMoreElements();) {
         OPT_Register r = e.nextElement();
         if (r.isTouched()) {
           // Note that as a side effect, the following call bumps up the
@@ -797,9 +752,8 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       }
       boolean removed = false;
       boolean unloaded = false;
-      if (definedIn(scratch.scratch, s)
-          || (s.isCall() && s.operator != CALL_SAVE_VOLATILE
-              && scratch.scratch.isVolatile())) {
+      if (definedIn(scratch.scratch, s) ||
+          (s.isCall() && s.operator != CALL_SAVE_VOLATILE && scratch.scratch.isVolatile())) {
         // s defines the scratch register, so save its contents before they
         // are killed.
         if (verboseDebug) {
@@ -809,16 +763,13 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
 
         // update mapping information
         if (verboseDebug) {
-          System.out.println("RSRB: End scratch interval " +
-                             scratch.scratch + " " + s);
+          System.out.println("RSRB: End scratch interval " + scratch.scratch + " " + s);
         }
         scratchMap.endScratchInterval(scratch.scratch, s);
         OPT_Register scratchContents = scratch.currentContents;
         if (scratchContents != null) {
           if (verboseDebug) {
-            System.out.println("RSRB: End symbolic interval " +
-                               scratch.currentContents + " "
-                               + s);
+            System.out.println("RSRB: End symbolic interval " + scratch.currentContents + " " + s);
           }
           scratchMap.endSymbolicInterval(scratch.currentContents, s);
         }
@@ -828,8 +779,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
         unloaded = true;
       }
 
-      if (usedIn(scratch.scratch, s) ||
-          !isLegal(scratch.currentContents, scratch.scratch, s)) {
+      if (usedIn(scratch.scratch, s) || !isLegal(scratch.currentContents, scratch.scratch, s)) {
         // first spill the currents contents of the scratch register to
         // memory
         if (!unloaded) {
@@ -840,16 +790,13 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
 
           // update mapping information
           if (verboseDebug) {
-            System.out.println("RSRB2: End scratch interval " +
-                               scratch.scratch + " " + s);
+            System.out.println("RSRB2: End scratch interval " + scratch.scratch + " " + s);
           }
           scratchMap.endScratchInterval(scratch.scratch, s);
           OPT_Register scratchContents = scratch.currentContents;
           if (scratchContents != null) {
             if (verboseDebug) {
-              System.out.println("RSRB2: End symbolic interval " +
-                                 scratch.currentContents + " "
-                                 + s);
+              System.out.println("RSRB2: End symbolic interval " + scratch.currentContents + " " + s);
             }
             scratchMap.endSymbolicInterval(scratch.currentContents, s);
           }
@@ -908,8 +855,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
    * @param s the instruction to mutate.
    * @param symb the symbolic register operand to replace
    */
-  public void replaceOperandWithSpillLocation(OPT_Instruction s,
-                                              OPT_RegisterOperand symb) {
+  public void replaceOperandWithSpillLocation(OPT_Instruction s, OPT_RegisterOperand symb) {
     // PowerPC does not support memory operands.
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
   }

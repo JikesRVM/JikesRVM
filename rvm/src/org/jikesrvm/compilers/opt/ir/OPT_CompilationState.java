@@ -29,10 +29,7 @@ public final class OPT_CompilationState {
    * @param options controlling compiler options
    * @param cm compiled method of the IR object being compiled
    */
-  public OPT_CompilationState(OPT_Instruction call,
-                              boolean isExtant,
-                              OPT_Options options,
-                              VM_CompiledMethod cm) {
+  public OPT_CompilationState(OPT_Instruction call, boolean isExtant, OPT_Options options, VM_CompiledMethod cm) {
     this.call = call;
     this.isExtant = isExtant;
     this.options = options;

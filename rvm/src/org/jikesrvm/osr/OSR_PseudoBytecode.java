@@ -17,8 +17,7 @@ import org.vmmagic.unboxed.Word;
  * OSR_PseudoBytecode is super class of all pseudo instructions.
  */
 
-public abstract class OSR_PseudoBytecode
-    implements VM_BytecodeConstants, OSR_Constants, VM_SizeConstants {
+public abstract class OSR_PseudoBytecode implements VM_BytecodeConstants, OSR_Constants, VM_SizeConstants {
 
   public OSR_PseudoBytecode next;
 

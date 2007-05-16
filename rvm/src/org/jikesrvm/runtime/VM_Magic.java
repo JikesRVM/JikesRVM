@@ -402,8 +402,7 @@ public final class VM_Magic {
    * Returns true if successful.
    * Ends conditional critical section.
    */
-  public static boolean attemptWord(Object object, Offset offset,
-                                    Word oldValue, Word newValue) {
+  public static boolean attemptWord(Object object, Offset offset, Word oldValue, Word newValue) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return false;
   }
@@ -660,8 +659,7 @@ public final class VM_Magic {
    * @param restoreRegs   registers from which we should restore
    *                      the saved hardware state of another thread.
    */
-  public static void threadSwitch(VM_Thread currentThread,
-                                  VM_Registers restoreRegs) {
+  public static void threadSwitch(VM_Thread currentThread, VM_Registers restoreRegs) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
@@ -709,54 +707,36 @@ public final class VM_Magic {
   }
 
   /** Call arbitrary method with argument list. */
-  public static void invokeMethodReturningVoid(VM_CodeArray code,
-                                               WordArray gprs,
-                                               double[] fprs,
-                                               WordArray spills) {
+  public static void invokeMethodReturningVoid(VM_CodeArray code, WordArray gprs, double[] fprs, WordArray spills) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   /** Call arbitrary method with argument list. */
-  public static int invokeMethodReturningInt(VM_CodeArray code,
-                                             WordArray gprs,
-                                             double[] fprs,
-                                             WordArray spills) {
+  public static int invokeMethodReturningInt(VM_CodeArray code, WordArray gprs, double[] fprs, WordArray spills) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
 
   /** Call arbitrary method with argument list. */
-  public static long invokeMethodReturningLong(VM_CodeArray code,
-                                               WordArray gprs,
-                                               double[] fprs,
-                                               WordArray spills) {
+  public static long invokeMethodReturningLong(VM_CodeArray code, WordArray gprs, double[] fprs, WordArray spills) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
 
   /** Call arbitrary method with argument list. */
-  public static float invokeMethodReturningFloat(VM_CodeArray code,
-                                                 WordArray gprs,
-                                                 double[] fprs,
-                                                 WordArray spills) {
+  public static float invokeMethodReturningFloat(VM_CodeArray code, WordArray gprs, double[] fprs, WordArray spills) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
 
   /** Call arbitrary method with argument list. */
-  public static double invokeMethodReturningDouble(VM_CodeArray code,
-                                                   WordArray gprs,
-                                                   double[] fprs,
-                                                   WordArray spills) {
+  public static double invokeMethodReturningDouble(VM_CodeArray code, WordArray gprs, double[] fprs, WordArray spills) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
 
   /** Call arbitrary method with argument list. */
-  public static Object invokeMethodReturningObject(VM_CodeArray code,
-                                                   WordArray gprs,
-                                                   double[] fprs,
-                                                   WordArray spills) {
+  public static Object invokeMethodReturningObject(VM_CodeArray code, WordArray gprs, double[] fprs, WordArray spills) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }

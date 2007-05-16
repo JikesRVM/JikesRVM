@@ -75,11 +75,9 @@ public interface VM_TIBLayoutConstants {
 
   // Number of slots reserved for interface method pointers.
   //
-  int IMT_METHOD_SLOTS =
-      VM.BuildForIMTInterfaceInvocation ? 29 : 0;
+  int IMT_METHOD_SLOTS = VM.BuildForIMTInterfaceInvocation ? 29 : 0;
 
-  int TIB_INTERFACE_METHOD_SLOTS =
-      VM.BuildForEmbeddedIMT ? IMT_METHOD_SLOTS : 0;
+  int TIB_INTERFACE_METHOD_SLOTS = VM.BuildForEmbeddedIMT ? IMT_METHOD_SLOTS : 0;
 
   // First slot of tib points to VM_Type (slot 0 in above diagram).
   //
@@ -103,13 +101,11 @@ public interface VM_TIBLayoutConstants {
 
   // If VM.ITableInterfaceInvocation then allocate 1 TIB entry to hold
   // an array of ITABLES
-  int TIB_ITABLES_TIB_INDEX =
-      TIB_DOES_IMPLEMENT_INDEX + (VM.BuildForITableInterfaceInvocation ? 1 : 0);
+  int TIB_ITABLES_TIB_INDEX = TIB_DOES_IMPLEMENT_INDEX + (VM.BuildForITableInterfaceInvocation ? 1 : 0);
 
   // If VM.BuildForIndirectIMT then allocate 1 TIB entry to hold a
   // pointer to the IMT
-  int TIB_IMT_TIB_INDEX =
-      TIB_ITABLES_TIB_INDEX + (VM.BuildForIndirectIMT ? 1 : 0);
+  int TIB_IMT_TIB_INDEX = TIB_ITABLES_TIB_INDEX + (VM.BuildForIndirectIMT ? 1 : 0);
 
   // Next group of slots point to interface method code blocks
   // (slots 1..K in above diagram).
@@ -117,8 +113,7 @@ public interface VM_TIBLayoutConstants {
 
   // Next group of slots point to virtual method code blocks
   // (slots K+1..K+N in above diagram).
-  int TIB_FIRST_VIRTUAL_METHOD_INDEX =
-      TIB_FIRST_INTERFACE_METHOD_INDEX + TIB_INTERFACE_METHOD_SLOTS;
+  int TIB_FIRST_VIRTUAL_METHOD_INDEX = TIB_FIRST_INTERFACE_METHOD_INDEX + TIB_INTERFACE_METHOD_SLOTS;
 
   /**
    * Special value returned by VM_ClassLoader.getFieldOffset() or

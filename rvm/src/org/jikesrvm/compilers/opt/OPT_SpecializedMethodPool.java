@@ -18,8 +18,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 public class OPT_SpecializedMethodPool {
   private static final int SPECIALIZED_METHOD_COUNT = 1024;
   static int specializedMethodCount = 0;
-  static VM_CodeArray[] specializedMethods =
-      new VM_CodeArray[SPECIALIZED_METHOD_COUNT];
+  static VM_CodeArray[] specializedMethods = new VM_CodeArray[SPECIALIZED_METHOD_COUNT];
 
   /**
    * Return the number of specialized methods

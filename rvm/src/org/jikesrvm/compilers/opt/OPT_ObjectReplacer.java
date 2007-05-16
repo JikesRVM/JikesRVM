@@ -60,8 +60,7 @@ public final class OPT_ObjectReplacer implements OPT_AggregateReplacer {
    * @param ir
    * @return the object, or null if illegal
    */
-  public static OPT_ObjectReplacer getReplacer(OPT_Instruction inst,
-                                               OPT_IR ir) {
+  public static OPT_ObjectReplacer getReplacer(OPT_Instruction inst, OPT_IR ir) {
     OPT_Register r = New.getResult(inst).register;
     // TODO :handle these cases
     if (containsUnsupportedUse(ir, r)) {
@@ -94,8 +93,7 @@ public final class OPT_ObjectReplacer implements OPT_AggregateReplacer {
     }
     OPT_DefUse.removeInstructionAndUpdateDU(defI);
     // now handle the uses
-    for (OPT_RegisterOperand use = reg.useList; use != null;
-         use = use.getNext()) {
+    for (OPT_RegisterOperand use = reg.useList; use != null; use = use.getNext()) {
       scalarReplace(use, scalars, fields);
     }
   }
@@ -143,9 +141,7 @@ public final class OPT_ObjectReplacer implements OPT_AggregateReplacer {
    * @param scalars an array of scalar register operands to replace
    *                  the object's fields with
    */
-  private void scalarReplace(OPT_RegisterOperand use,
-                             OPT_RegisterOperand[] scalars,
-                             ArrayList<VM_Field> fields) {
+  private void scalarReplace(OPT_RegisterOperand use, OPT_RegisterOperand[] scalars, ArrayList<VM_Field> fields) {
     OPT_Instruction inst = use.instruction;
     switch (inst.getOpcode()) {
       case PUTFIELD_opcode: {
@@ -155,8 +151,7 @@ public final class OPT_ObjectReplacer implements OPT_AggregateReplacer {
         int index = fields.indexOf(f);
         VM_TypeReference type = scalars[index].type;
         OPT_Operator moveOp = OPT_IRTools.getMoveOp(type);
-        OPT_Instruction i = Move.create(moveOp, scalars[index].copyRO(),
-                                        PutField.getClearValue(inst));
+        OPT_Instruction i = Move.create(moveOp, scalars[index].copyRO(), PutField.getClearValue(inst));
         inst.insertBefore(i);
         OPT_DefUse.removeInstructionAndUpdateDU(inst);
         OPT_DefUse.updateDUForNewInstruction(i);
@@ -169,8 +164,7 @@ public final class OPT_ObjectReplacer implements OPT_AggregateReplacer {
         int index = fields.indexOf(f);
         VM_TypeReference type = scalars[index].type;
         OPT_Operator moveOp = OPT_IRTools.getMoveOp(type);
-        OPT_Instruction i = Move.create(moveOp, GetField.getClearResult(inst),
-                                        scalars[index].copyRO());
+        OPT_Instruction i = Move.create(moveOp, GetField.getClearResult(inst), scalars[index].copyRO());
         inst.insertBefore(i);
         OPT_DefUse.removeInstructionAndUpdateDU(inst);
         OPT_DefUse.updateDUForNewInstruction(i);
@@ -198,9 +192,7 @@ public final class OPT_ObjectReplacer implements OPT_AggregateReplacer {
         OPT_DefUse.removeInstructionAndUpdateDU(inst);
         break;
       default:
-        throw new OPT_OptimizingCompilerException(
-            "OPT_ObjectReplacer: unexpected use "
-            + inst);
+        throw new OPT_OptimizingCompilerException("OPT_ObjectReplacer: unexpected use " + inst);
     }
   }
 
@@ -208,8 +200,7 @@ public final class OPT_ObjectReplacer implements OPT_AggregateReplacer {
    * Some cases we don't handle yet. TODO: handle them.
    */
   private static boolean containsUnsupportedUse(OPT_IR ir, OPT_Register reg) {
-    for (OPT_RegisterOperand use = reg.useList; use != null;
-         use = use.getNext()) {
+    for (OPT_RegisterOperand use = reg.useList; use != null; use = use.getNext()) {
       switch (use.instruction.getOpcode()) {
         case CHECKCAST_opcode:
         case CHECKCAST_UNRESOLVED_opcode:

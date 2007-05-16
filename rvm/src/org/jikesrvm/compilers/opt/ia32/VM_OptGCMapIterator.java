@@ -25,8 +25,7 @@ import org.vmmagic.unboxed.WordArray;
  * This version is for IA32
  */
 @Uninterruptible
-public abstract class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
-    implements VM_SizeConstants {
+public abstract class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator implements VM_SizeConstants {
 
   private static final boolean DEBUG = false;
 

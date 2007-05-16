@@ -136,8 +136,7 @@ public final class OPT_GlobalValueNumberState {
    */
   void mergeClasses(OPT_ValueGraphVertex v1, OPT_ValueGraphVertex v2) {
     if (DEBUG) {
-      System.out.println("@@@@ mergeClasses called with v1 = " + v1 +
-                         " ; v2 = " + v2);
+      System.out.println("@@@@ mergeClasses called with v1 = " + v1 + " ; v2 = " + v2);
     }
 
     int val1 = v1.getValueNumber();
@@ -152,8 +151,7 @@ public final class OPT_GlobalValueNumberState {
       if (!i.hasNext()) break;
       OPT_ValueGraphVertex v = i.next();
       if (DEBUG) {
-        System.out.println("@@@@ moving vertex " + v + " from class " + val2
-                           + " to class " + val1);
+        System.out.println("@@@@ moving vertex " + v + " from class " + val2 + " to class " + val1);
       }
       class1.addVertex(v);
       class2.removeVertex(v);
@@ -299,8 +297,7 @@ public final class OPT_GlobalValueNumberState {
    */
   private void initialize() {
     // store a map from label -> congruenceClass
-    HashMap<Object, OPT_GVCongruenceClass> labelMap =
-        new HashMap<Object, OPT_GVCongruenceClass>(10);
+    HashMap<Object, OPT_GVCongruenceClass> labelMap = new HashMap<Object, OPT_GVCongruenceClass>(10);
     for (Enumeration<OPT_GraphNode> e = valueGraph.enumerateVertices(); e.hasMoreElements();) {
       OPT_ValueGraphVertex v = (OPT_ValueGraphVertex) e.nextElement();
       Object label = v.getLabel();
@@ -378,12 +375,10 @@ public final class OPT_GlobalValueNumberState {
     // as a representative for this class
     Iterator<OPT_ValueGraphVertex> i = partition.iterator();
     OPT_ValueGraphVertex first = i.next();
-    ArrayList<OPT_GVCongruenceClass> newClasses =
-        new ArrayList<OPT_GVCongruenceClass>();
+    ArrayList<OPT_GVCongruenceClass> newClasses = new ArrayList<OPT_GVCongruenceClass>();
     // now check each other node in c, to see if it matches the
     // representative
-    ArrayList<OPT_ValueGraphVertex> toRemove =
-        new ArrayList<OPT_ValueGraphVertex>();
+    ArrayList<OPT_ValueGraphVertex> toRemove = new ArrayList<OPT_ValueGraphVertex>();
     while (i.hasNext()) {
       OPT_ValueGraphVertex v = i.next();
       if (!checkCongruence(first, v)) {
@@ -472,8 +467,7 @@ public final class OPT_GlobalValueNumberState {
    * @param c the congurence class to check
    * @return true or false
    */
-  private boolean checkCongruence(OPT_ValueGraphVertex v,
-                                  OPT_GVCongruenceClass c) {
+  private boolean checkCongruence(OPT_ValueGraphVertex v, OPT_GVCongruenceClass c) {
     OPT_ValueGraphVertex r = c.getRepresentative();
     boolean result = checkCongruence(r, v);
     return result;
@@ -486,8 +480,7 @@ public final class OPT_GlobalValueNumberState {
    * @param v1 first vertex
    * @param v2 second vertex
    */
-  private boolean checkCongruence(OPT_ValueGraphVertex v1,
-                                  OPT_ValueGraphVertex v2) {
+  private boolean checkCongruence(OPT_ValueGraphVertex v1, OPT_ValueGraphVertex v2) {
     if (v1 == v2) {
       return true;
     }

@@ -39,8 +39,7 @@ public abstract class VM_ForwardReference {
   int sourceMachinecodeIndex;
   int targetBytecodeIndex;     // optional
 
-  /* support for priority queue of forward references */
-  VM_ForwardReference next;  // has next larger targetBytecodeIndex
+  /* support for priority queue of forward references */ VM_ForwardReference next;  // has next larger targetBytecodeIndex
   VM_ForwardReference other; // has the same    targetBytecodeIndex
 
   protected VM_ForwardReference(int source, int btarget) {

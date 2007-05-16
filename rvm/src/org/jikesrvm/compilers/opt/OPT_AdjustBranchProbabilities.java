@@ -49,22 +49,18 @@ class OPT_AdjustBranchProbabilities extends OPT_CompilerPhase {
    * @param ir the governing IR
    */
   public final void perform(OPT_IR ir) {
-    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks();
-         e.hasMoreElements();) {
+    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
       OPT_BasicBlock target = e.next();
       if (findInfrequentInstruction(target)) {
         blockLoop:
-        for (OPT_BasicBlockEnumeration sources = target.getIn();
-             sources.hasMoreElements();) {
+        for (OPT_BasicBlockEnumeration sources = target.getIn(); sources.hasMoreElements();) {
           OPT_BasicBlock source = sources.next();
           // Found an edge to an infrequent block.
           // Look to see if there is a conditional branch that we need to adjust
           OPT_Instruction condBranch = null;
-          for (OPT_InstructionEnumeration ie = source.enumerateBranchInstructions();
-               ie.hasMoreElements();) {
+          for (OPT_InstructionEnumeration ie = source.enumerateBranchInstructions(); ie.hasMoreElements();) {
             OPT_Instruction s = ie.next();
-            if (IfCmp.conforms(s) &&
-                IfCmp.getBranchProfile(s).takenProbability == 0.5f) {
+            if (IfCmp.conforms(s) && IfCmp.getBranchProfile(s).takenProbability == 0.5f) {
               if (condBranch == null) {
                 condBranch = s;
               } else {
@@ -88,8 +84,7 @@ class OPT_AdjustBranchProbabilities extends OPT_CompilerPhase {
   }
 
   private boolean findInfrequentInstruction(OPT_BasicBlock bb) {
-    for (OPT_InstructionEnumeration e2 = bb.forwardRealInstrEnumerator();
-         e2.hasMoreElements();) {
+    for (OPT_InstructionEnumeration e2 = bb.forwardRealInstrEnumerator(); e2.hasMoreElements();) {
       OPT_Instruction s = e2.next();
       if (Call.conforms(s)) {
         OPT_MethodOperand op = Call.getMethod(s);

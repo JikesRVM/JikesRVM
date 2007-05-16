@@ -154,8 +154,7 @@ public class VM_CollectorThread extends VM_Thread {
    * @param processorAffinity The processor with which this thread is
    * associated.
    */
-  VM_CollectorThread(byte[] stack, boolean isActive,
-                     VM_Processor processorAffinity) {
+  VM_CollectorThread(byte[] stack, boolean isActive, VM_Processor processorAffinity) {
     super(stack, null, myName);
     makeDaemon(true); // this is redundant, but harmless
     this.isActive = isActive;
@@ -202,8 +201,7 @@ public class VM_CollectorThread extends VM_Thread {
    * @return a new non-particpating collector thread
    */
   @Interruptible
-  static VM_CollectorThread createPassiveCollectorThread(byte[] stack,
-                                                         VM_Processor processorAffinity) {
+  static VM_CollectorThread createPassiveCollectorThread(byte[] stack, VM_Processor processorAffinity) {
     return new VM_CollectorThread(stack, false, processorAffinity);
   }
 
@@ -304,8 +302,7 @@ public class VM_CollectorThread extends VM_Thread {
       if (count > 0) { // resume normal scheduling
         VM_Processor.getCurrentProcessor().enableThreadSwitching();
       }
-      VM_Thread.yield(VM_Scheduler.collectorQueue,
-                      VM_Scheduler.collectorMutex);
+      VM_Thread.yield(VM_Scheduler.collectorQueue, VM_Scheduler.collectorMutex);
 
       /* block mutators from running on the current processor */
       VM_Processor.getCurrentProcessor().disableThreadSwitching();
@@ -334,8 +331,7 @@ public class VM_CollectorThread extends VM_Thread {
         HeapGrowthManager.recordGCTime(VM_Time.cyclesToMillis(elapsedCycles));
       }
       if (gcOrdinal == 1 && Selected.Plan.get().isLastGCFull()) {
-        if (Options.variableSizeHeap.getValue() &&
-            handshake.gcTrigger != Collection.EXTERNAL_GC_TRIGGER) {
+        if (Options.variableSizeHeap.getValue() && handshake.gcTrigger != Collection.EXTERNAL_GC_TRIGGER) {
           // Don't consider changing the heap size if gc was forced by System.gc()
           HeapGrowthManager.considerHeapSize();
         }

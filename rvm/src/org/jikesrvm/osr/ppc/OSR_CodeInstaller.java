@@ -37,8 +37,7 @@ import org.vmmagic.unboxed.Offset;
 public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
 
   /* install the newly compiled instructions. */
-  public static boolean install(OSR_ExecutionState state,
-                                VM_CompiledMethod cm) {
+  public static boolean install(OSR_ExecutionState state, VM_CompiledMethod cm) {
 
     VM_Thread thread = state.getThread();
     byte[] stack = thread.stack;
@@ -82,9 +81,7 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
       // recover nonvolatile GPRs
       int firstGPR = fooOpt.getFirstNonVolatileGPR();
       if (firstGPR != -1) {
-        for (int i = firstGPR;
-             i <= LAST_NONVOLATILE_GPR;
-             i++) {
+        for (int i = firstGPR; i <= LAST_NONVOLATILE_GPR; i++) {
           asm.emitLAddr(i, offset, FP);
           offset += BYTES_IN_STACKSLOT;
         }
@@ -93,9 +90,7 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
       // recover nonvolatile FPRs
       int firstFPR = fooOpt.getFirstNonVolatileFPR();
       if (firstFPR != -1) {
-        for (int i = firstFPR;
-             i <= LAST_NONVOLATILE_FPR;
-             i++) {
+        for (int i = firstFPR; i <= LAST_NONVOLATILE_FPR; i++) {
           asm.emitLFD(i, offset, FP);
           offset += BYTES_IN_DOUBLE;
         }
@@ -127,11 +122,9 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
     thread.bridgeInstructions = mc.getInstructions();
     thread.fooFPOffset = fooFPOffset;
 
-    Address bridgeaddr =
-        VM_Magic.objectAsAddress(thread.bridgeInstructions);
+    Address bridgeaddr = VM_Magic.objectAsAddress(thread.bridgeInstructions);
 
-    VM_Memory.sync(bridgeaddr,
-                   thread.bridgeInstructions.length() << LG_INSTRUCTION_WIDTH);
+    VM_Memory.sync(bridgeaddr, thread.bridgeInstructions.length() << LG_INSTRUCTION_WIDTH);
 
     VM_AOSLogging.logOsrEvent("OSR code installation succeeded");
 

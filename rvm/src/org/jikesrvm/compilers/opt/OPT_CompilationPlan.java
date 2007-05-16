@@ -60,8 +60,8 @@ public final class OPT_CompilationPlan {
    * @param mp   The instrumentation plan to be executed on m
    * @param opts The OPT_Options to be used for compiling m
    */
-  public OPT_CompilationPlan(VM_NormalMethod m, OPT_OptimizationPlanElement[] op,
-                             OPT_InstrumentationPlan mp, OPT_Options opts) {
+  public OPT_CompilationPlan(VM_NormalMethod m, OPT_OptimizationPlanElement[] op, OPT_InstrumentationPlan mp,
+                             OPT_Options opts) {
     method = m;
     inlinePlan = new OPT_DefaultInlineOracle();
     optimizationPlan = op;
@@ -76,8 +76,8 @@ public final class OPT_CompilationPlan {
    * @param mp   The instrumentation plan to be executed on m
    * @param opts The OPT_Options to be used for compiling m
    */
-  public OPT_CompilationPlan(VM_NormalMethod m, OPT_OptimizationPlanElement op,
-                             OPT_InstrumentationPlan mp, OPT_Options opts) {
+  public OPT_CompilationPlan(VM_NormalMethod m, OPT_OptimizationPlanElement op, OPT_InstrumentationPlan mp,
+                             OPT_Options opts) {
     this(m, new OPT_OptimizationPlanElement[]{op}, mp, opts);
   }
 

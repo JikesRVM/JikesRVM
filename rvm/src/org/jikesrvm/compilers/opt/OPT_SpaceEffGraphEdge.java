@@ -104,8 +104,7 @@ public class OPT_SpaceEffGraphEdge implements OPT_GraphEdge, OPT_VCGEdge {
    * @param fromNode start node
    * @param toNode end node
    */
-  OPT_SpaceEffGraphEdge(OPT_SpaceEffGraphNode fromNode,
-                        OPT_SpaceEffGraphNode toNode) {
+  OPT_SpaceEffGraphEdge(OPT_SpaceEffGraphNode fromNode, OPT_SpaceEffGraphNode toNode) {
     _toNode = toNode;
     _fromNode = fromNode;
   }

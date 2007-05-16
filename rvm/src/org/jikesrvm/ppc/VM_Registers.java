@@ -18,7 +18,8 @@ import org.vmmagic.unboxed.WordArray;
 /**
  * The machine state comprising a thread's execution context.
  */
-@Uninterruptible public abstract class VM_Registers implements VM_ArchConstants {
+@Uninterruptible
+public abstract class VM_Registers implements VM_ArchConstants {
   // The following are used both for thread context switching
   // and for hardware exception reporting/delivery.
   //
@@ -44,13 +45,13 @@ import org.vmmagic.unboxed.WordArray;
 
   // Return framepointer for the deepest stackframe
   //
-  public final Address getInnermostFramePointer () {
+  public final Address getInnermostFramePointer() {
     return gprs.get(FRAME_POINTER).toAddress();
   }
 
   // Return next instruction address for the deepest stackframe
   //
-  public final Address getInnermostInstructionAddress () {
+  public final Address getInnermostInstructionAddress() {
     if (ip.NE(invalidIP)) return ip; // ip set by hardware exception handler or VM_Magic.threadSwitch
     return VM_Magic.getNextInstructionAddress(getInnermostFramePointer()); // ip set to -1 because we're unwinding
   }
@@ -66,7 +67,7 @@ import org.vmmagic.unboxed.WordArray;
   // the stack during GC will start, for ex., the top java frame for
   // a thread that is blocked in native code during GC.
   //
-  public final void setInnermost( Address newip, Address newfp ) {
+  public final void setInnermost(Address newip, Address newfp) {
     ip = newip;
     gprs.set(FRAME_POINTER, newfp.toWord());
   }

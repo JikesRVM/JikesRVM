@@ -95,8 +95,7 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
    * @param end instruction to end computation at
    * @param currentBlock the basic block that the instructions are living in
    */
-  OPT_DepGraph(OPT_IR ir, OPT_Instruction start, OPT_Instruction end,
-               OPT_BasicBlock currentBlock) {
+  OPT_DepGraph(OPT_IR ir, OPT_Instruction start, OPT_Instruction end, OPT_BasicBlock currentBlock) {
     this.currentBlock = currentBlock;
     this.ir = ir;
     handlerLiveSet = new OPT_LiveSet();
@@ -112,12 +111,10 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
    * block that is reachable from currentBlock
    */
   private void computeHandlerLiveSet() {
-    if (ir.getHandlerLivenessComputed() &&
-        currentBlock.hasExceptionHandlers()) {
+    if (ir.getHandlerLivenessComputed() && currentBlock.hasExceptionHandlers()) {
       OPT_BasicBlockEnumeration e = currentBlock.getExceptionalOut();
       while (e.hasMoreElements()) {
-        OPT_ExceptionHandlerBasicBlock handlerBlock =
-            (OPT_ExceptionHandlerBasicBlock) e.next();
+        OPT_ExceptionHandlerBasicBlock handlerBlock = (OPT_ExceptionHandlerBasicBlock) e.next();
         handlerLiveSet.add(handlerBlock.getLiveSet());
       }
     }
@@ -140,8 +137,7 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
    * Compute flow and output dependences by doing a forward
    * traversal of the instructions from start to end.
    */
-  private void computeForwardDependences(OPT_Instruction start,
-                                         OPT_Instruction end) {
+  private void computeForwardDependences(OPT_Instruction start, OPT_Instruction end) {
     boolean readsKill = ir.options.READS_KILL;
     OPT_DepGraphNode lastStoreNode = null;
     OPT_DepGraphNode lastExceptionNode = null;
@@ -149,9 +145,8 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
 
     clearRegisters(start, end);
 
-    for (OPT_DepGraphNode pnode = (OPT_DepGraphNode) firstNode();
-         pnode != null;
-         pnode = (OPT_DepGraphNode) pnode.getNext()) {
+    for (OPT_DepGraphNode pnode = (OPT_DepGraphNode) firstNode(); pnode != null; pnode =
+        (OPT_DepGraphNode) pnode.getNext()) {
       OPT_Instruction p = pnode.instruction();
 
       // (1) Add edges due to registers
@@ -161,21 +156,19 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
         useMask |= OPT_PhysicalDefUse.maskTSPUses;
         defMask |= OPT_PhysicalDefUse.maskTSPDefs;
       }
-      for (OPT_OperandEnumeration uses = p.getUses();
-           uses.hasMoreElements();) {
+      for (OPT_OperandEnumeration uses = p.getUses(); uses.hasMoreElements();) {
         computeForwardDependencesUse(uses.next(), pnode, lastExceptionNode);
       }
-      for (OPT_PhysicalDefUse.PDUEnumeration uses = OPT_PhysicalDefUse.enumerate(useMask, ir);
-           uses.hasMoreElements();) {
+      for (OPT_PhysicalDefUse.PDUEnumeration uses = OPT_PhysicalDefUse.enumerate(useMask, ir); uses.hasMoreElements();)
+      {
         OPT_Register r = uses.nextElement();
         computeImplicitForwardDependencesUse(r, pnode);
       }
-      for (OPT_OperandEnumeration defs = p.getDefs();
-           defs.hasMoreElements();) {
+      for (OPT_OperandEnumeration defs = p.getDefs(); defs.hasMoreElements();) {
         computeForwardDependencesDef(defs.next(), pnode, lastExceptionNode);
       }
-      for (OPT_PhysicalDefUse.PDUEnumeration defs = OPT_PhysicalDefUse.enumerate(defMask, ir);
-           defs.hasMoreElements();) {
+      for (OPT_PhysicalDefUse.PDUEnumeration defs = OPT_PhysicalDefUse.enumerate(defMask, ir); defs.hasMoreElements();)
+      {
         OPT_Register r = defs.nextElement();
         computeImplicitForwardDependencesDef(r, pnode);
       }
@@ -188,12 +181,9 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
         // NOTE: In general alias relationships are not transitive and therefore
         //       we cannot exit this loop early.
         if (readsKill && isLoad) {
-          for (OPT_DepGraphNode lnode = lastLoadNode;
-               lnode != null;
-               lnode = (OPT_DepGraphNode) lnode.getPrev()) {
+          for (OPT_DepGraphNode lnode = lastLoadNode; lnode != null; lnode = (OPT_DepGraphNode) lnode.getPrev()) {
             if (lnode.instruction().isImplicitLoad() &&
-                OPT_LocationOperand.mayBeAliased(getLocation(p),
-                                                 getLocation(lnode.instruction()))) {
+                OPT_LocationOperand.mayBeAliased(getLocation(p), getLocation(lnode.instruction()))) {
               lnode.insertOutEdge(pnode, MEM_READS_KILL);
             }
           }
@@ -202,12 +192,9 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
         // Add output/flow memory dependence from prior potentially aliased stores.
         // NOTE: In general alias relationships are not transitive and therefore
         //       we cannot exit this loop early.
-        for (OPT_DepGraphNode snode = lastStoreNode;
-             snode != null;
-             snode = (OPT_DepGraphNode) snode.getPrev()) {
+        for (OPT_DepGraphNode snode = lastStoreNode; snode != null; snode = (OPT_DepGraphNode) snode.getPrev()) {
           if (snode.instruction().isImplicitStore() &&
-              OPT_LocationOperand.mayBeAliased(getLocation(p),
-                                               getLocation(snode.instruction()))) {
+              OPT_LocationOperand.mayBeAliased(getLocation(p), getLocation(snode.instruction()))) {
             snode.insertOutEdge(pnode, isStore ? MEM_OUTPUT : MEM_TRUE);
           }
         }
@@ -233,15 +220,13 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
    * Compute anti dependences by doing a backwards
    * traversal of the instructions from start to end.
    */
-  private void computeBackwardDependences(OPT_Instruction start,
-                                          OPT_Instruction end) {
+  private void computeBackwardDependences(OPT_Instruction start, OPT_Instruction end) {
     clearRegisters(start, end);
 
     OPT_DepGraphNode lastStoreNode = null;
     OPT_DepGraphNode lastExceptionNode = null;
-    for (OPT_DepGraphNode pnode = (OPT_DepGraphNode) lastNode();
-         pnode != null;
-         pnode = (OPT_DepGraphNode) pnode.getPrev()) {
+    for (OPT_DepGraphNode pnode = (OPT_DepGraphNode) lastNode(); pnode != null; pnode =
+        (OPT_DepGraphNode) pnode.getPrev()) {
       OPT_Instruction p = pnode.instruction();
 
       // (1) Add edges due to registers
@@ -251,21 +236,19 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
         useMask |= OPT_PhysicalDefUse.maskTSPUses;
         defMask |= OPT_PhysicalDefUse.maskTSPDefs;
       }
-      for (OPT_OperandEnumeration uses = p.getUses();
-           uses.hasMoreElements();) {
+      for (OPT_OperandEnumeration uses = p.getUses(); uses.hasMoreElements();) {
         computeBackwardDependencesUse(uses.next(), pnode, lastExceptionNode);
       }
-      for (OPT_PhysicalDefUse.PDUEnumeration uses = OPT_PhysicalDefUse.enumerate(useMask, ir);
-           uses.hasMoreElements();) {
+      for (OPT_PhysicalDefUse.PDUEnumeration uses = OPT_PhysicalDefUse.enumerate(useMask, ir); uses.hasMoreElements();)
+      {
         OPT_Register r = uses.nextElement();
         computeImplicitBackwardDependencesUse(r, pnode);
       }
-      for (OPT_OperandEnumeration defs = p.getDefs();
-           defs.hasMoreElements();) {
+      for (OPT_OperandEnumeration defs = p.getDefs(); defs.hasMoreElements();) {
         computeBackwardDependencesDef(defs.next(), pnode, lastExceptionNode);
       }
-      for (OPT_PhysicalDefUse.PDUEnumeration defs = OPT_PhysicalDefUse.enumerate(defMask, ir);
-           defs.hasMoreElements();) {
+      for (OPT_PhysicalDefUse.PDUEnumeration defs = OPT_PhysicalDefUse.enumerate(defMask, ir); defs.hasMoreElements();)
+      {
         OPT_Register r = defs.nextElement();
         computeImplicitBackwardDependencesDef(r, pnode);
       }
@@ -281,12 +264,9 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
       } else if (isLoad) {
         // NOTE: In general alias relationships are not transitive and therefore
         //       we cannot exit this loop early.
-        for (OPT_DepGraphNode snode = lastStoreNode;
-             snode != null;
-             snode = (OPT_DepGraphNode) snode.getNext()) {
+        for (OPT_DepGraphNode snode = lastStoreNode; snode != null; snode = (OPT_DepGraphNode) snode.getNext()) {
           if (snode.instruction().isImplicitStore() &&
-              OPT_LocationOperand.mayBeAliased(getLocation(p),
-                                               getLocation(snode.instruction()))) {
+              OPT_LocationOperand.mayBeAliased(getLocation(p), getLocation(snode.instruction()))) {
             pnode.insertOutEdge(snode, MEM_ANTI);
           }
         }
@@ -303,8 +283,7 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
    * in two passes (one forward, one reverse over the instructions
    * from start to end.
    */
-  private void computeControlAndBarrierDependences(OPT_Instruction start,
-                                                   OPT_Instruction end) {
+  private void computeControlAndBarrierDependences(OPT_Instruction start, OPT_Instruction end) {
     // (1) In a forward pass, we add the following dependences:
     //    a) No load instruction may rise above an acquire
     //    b) No instruction may rise above an UNINT_BEGIN (conservative),
@@ -314,9 +293,8 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
     OPT_DepGraphNode lastTotalBarrier = null;
     OPT_DepGraphNode lastGCBarrier = null;
     OPT_DepGraphNode lastAcquire = null;
-    for (OPT_DepGraphNode pnode = (OPT_DepGraphNode) firstNode();
-         pnode != null;
-         pnode = (OPT_DepGraphNode) pnode.getNext()) {
+    for (OPT_DepGraphNode pnode = (OPT_DepGraphNode) firstNode(); pnode != null; pnode =
+        (OPT_DepGraphNode) pnode.getNext()) {
       OPT_Instruction p = pnode.instruction();
       if (lastTotalBarrier != null) {
         lastTotalBarrier.insertOutEdge(pnode, CONTROL);
@@ -328,8 +306,7 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
         lastAcquire.insertOutEdge(pnode, CONTROL);
       }
       OPT_Operator pop = p.operator();
-      if (p.isYieldPoint() || pop == IR_PROLOGUE ||
-          pop == UNINT_BEGIN || pop == GET_TIME_BASE) {
+      if (p.isYieldPoint() || pop == IR_PROLOGUE || pop == UNINT_BEGIN || pop == GET_TIME_BASE) {
         lastTotalBarrier = pnode;
       }
       if (pop == UNINT_END) {
@@ -348,9 +325,8 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
     lastTotalBarrier = null;
     lastGCBarrier = null;
     OPT_DepGraphNode lastRelease = null;
-    for (OPT_DepGraphNode pnode = (OPT_DepGraphNode) lastNode();
-         pnode != null;
-         pnode = (OPT_DepGraphNode) pnode.getPrev()) {
+    for (OPT_DepGraphNode pnode = (OPT_DepGraphNode) lastNode(); pnode != null; pnode =
+        (OPT_DepGraphNode) pnode.getPrev()) {
       OPT_Instruction p = pnode.instruction();
       if (lastTotalBarrier != null) {
         pnode.insertOutEdge(lastTotalBarrier, CONTROL);
@@ -362,8 +338,7 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
         pnode.insertOutEdge(lastRelease, CONTROL);
       }
       OPT_Operator pop = p.operator();
-      if (p.isBranch() || p.isReturn() || p.isYieldPoint() ||
-          pop == UNINT_END || pop == GET_TIME_BASE) {
+      if (p.isBranch() || p.isReturn() || p.isYieldPoint() || pop == UNINT_END || pop == GET_TIME_BASE) {
         lastTotalBarrier = pnode;
       }
       if (pop == UNINT_BEGIN) {
@@ -381,8 +356,7 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
    * @param destNode destination node
    * @param lastExceptionNode node representing the last PEI
    */
-  private void computeForwardDependencesUse(OPT_Operand op,
-                                            OPT_DepGraphNode destNode,
+  private void computeForwardDependencesUse(OPT_Operand op, OPT_DepGraphNode destNode,
                                             OPT_DepGraphNode lastExceptionNode) {
     if (!(op instanceof OPT_RegisterOperand)) return;
     OPT_RegisterOperand regOp = (OPT_RegisterOperand) op;
@@ -394,8 +368,8 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
       if (regOp.register.isValidation()) {
         sourceNode.insertOutEdge(destNode, GUARD_TRUE);
       } else {
-        for (OPT_PhysicalDefUse.PDUEnumeration e = OPT_PhysicalDefUse.enumerate(OPT_PhysicalDefUse.maskTSPDefs, ir);
-             e.hasMoreElements();) {
+        for (OPT_PhysicalDefUse.PDUEnumeration e =
+            OPT_PhysicalDefUse.enumerate(OPT_PhysicalDefUse.maskTSPDefs, ir); e.hasMoreElements();) {
           OPT_Register r = e.nextElement();
           if (regOp.register == r) {
             sourceNode.insertOutEdge(destNode, REG_MAY_DEF);
@@ -413,8 +387,7 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
    * @param destNode destination node
    * @param lastExceptionNode node representing the last PEI
    */
-  private void computeForwardDependencesDef(OPT_Operand op,
-                                            OPT_DepGraphNode destNode,
+  private void computeForwardDependencesDef(OPT_Operand op, OPT_DepGraphNode destNode,
                                             OPT_DepGraphNode lastExceptionNode) {
     if (!(op instanceof OPT_RegisterOperand)) return;
     OPT_RegisterOperand regOp = (OPT_RegisterOperand) op;
@@ -427,11 +400,8 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
 
       // pin the def below the previous exception node if the register
       // being defined may be live in some reachable catch block
-      if (lastExceptionNode != null &&
-          regOp.register.spansBasicBlock() &&
-          currentBlock.hasExceptionHandlers()) {
-        if (!ir.getHandlerLivenessComputed() ||
-            handlerLiveSet.contains(regOp.register)) {
+      if (lastExceptionNode != null && regOp.register.spansBasicBlock() && currentBlock.hasExceptionHandlers()) {
+        if (!ir.getHandlerLivenessComputed() || handlerLiveSet.contains(regOp.register)) {
           lastExceptionNode.insertOutEdge(destNode, EXCEPTION_R);
         }
       }
@@ -446,8 +416,7 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
    * @param destNode destination node
    * @param lastExceptionNode node representing the last PEI
    */
-  private void computeBackwardDependencesUse(OPT_Operand op,
-                                             OPT_DepGraphNode destNode,
+  private void computeBackwardDependencesUse(OPT_Operand op, OPT_DepGraphNode destNode,
                                              OPT_DepGraphNode lastExceptionNode) {
     if (!(op instanceof OPT_RegisterOperand)) return;
     OPT_RegisterOperand regOp = (OPT_RegisterOperand) op;
@@ -466,19 +435,15 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
    * @param destNode destination node
    * @param lastExceptionNode node representing the last PEI
    */
-  private void computeBackwardDependencesDef(OPT_Operand op,
-                                             OPT_DepGraphNode destNode,
+  private void computeBackwardDependencesDef(OPT_Operand op, OPT_DepGraphNode destNode,
                                              OPT_DepGraphNode lastExceptionNode) {
     if (!(op instanceof OPT_RegisterOperand)) return;
     OPT_RegisterOperand regOp = (OPT_RegisterOperand) op;
 
     // pin the def above the next exception node if the register
     // being defined may be live in some reachable catch block
-    if (lastExceptionNode != null &&
-        regOp.register.spansBasicBlock() &&
-        currentBlock.hasExceptionHandlers()) {
-      if (!ir.getHandlerLivenessComputed() ||
-          handlerLiveSet.contains(regOp.register)) {
+    if (lastExceptionNode != null && regOp.register.spansBasicBlock() && currentBlock.hasExceptionHandlers()) {
+      if (!ir.getHandlerLivenessComputed() || handlerLiveSet.contains(regOp.register)) {
         destNode.insertOutEdge(lastExceptionNode, EXCEPTION_R);
       }
     }
@@ -491,12 +456,11 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
    * @param r source register
    * @param destNode destination node
    */
-  private void computeImplicitForwardDependencesUse(OPT_Register r,
-                                                    OPT_DepGraphNode destNode) {
+  private void computeImplicitForwardDependencesUse(OPT_Register r, OPT_DepGraphNode destNode) {
     OPT_DepGraphNode sourceNode = r.dNode();
     if (sourceNode != null) {
-      for (OPT_PhysicalDefUse.PDUEnumeration e = OPT_PhysicalDefUse.enumerate(OPT_PhysicalDefUse.maskTSPDefs, ir);
-           e.hasMoreElements();) {
+      for (OPT_PhysicalDefUse.PDUEnumeration e =
+          OPT_PhysicalDefUse.enumerate(OPT_PhysicalDefUse.maskTSPDefs, ir); e.hasMoreElements();) {
         OPT_Register r2 = e.nextElement();
         if (r == r2) {
           sourceNode.insertOutEdge(destNode, REG_MAY_DEF);
@@ -513,8 +477,7 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
    * @param r source register
    * @param destNode destination node
    */
-  private void computeImplicitForwardDependencesDef(OPT_Register r,
-                                                    OPT_DepGraphNode destNode) {
+  private void computeImplicitForwardDependencesDef(OPT_Register r, OPT_DepGraphNode destNode) {
     OPT_DepGraphNode sourceNode = r.dNode();
     if (sourceNode != null) {
       sourceNode.insertOutEdge(destNode, REG_OUTPUT);
@@ -528,8 +491,7 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
    * @param r source register
    * @param destNode destination node
    */
-  private void computeImplicitBackwardDependencesUse(OPT_Register r,
-                                                     OPT_DepGraphNode destNode) {
+  private void computeImplicitBackwardDependencesUse(OPT_Register r, OPT_DepGraphNode destNode) {
     OPT_DepGraphNode sourceNode = r.dNode();
     if (sourceNode != null) {
       // create antidependence edge.
@@ -544,8 +506,7 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
    * @param r source register
    * @param destNode destination node
    */
-  private void computeImplicitBackwardDependencesDef(OPT_Register r,
-                                                     OPT_DepGraphNode destNode) {
+  private void computeImplicitBackwardDependencesDef(OPT_Register r, OPT_DepGraphNode destNode) {
     r.setdNode(destNode);
   }
 
@@ -569,8 +530,7 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
    */
   private void clearRegisters(OPT_Instruction start, OPT_Instruction end) {
     for (OPT_Instruction p = start; ; p = p.nextInstructionInCodeOrder()) {
-      for (OPT_OperandEnumeration ops = p.getOperands();
-           ops.hasMoreElements();) {
+      for (OPT_OperandEnumeration ops = p.getOperands(); ops.hasMoreElements();) {
         OPT_Operand op = ops.next();
         if (op instanceof OPT_RegisterOperand) {
           OPT_RegisterOperand rOp = (OPT_RegisterOperand) op;
@@ -579,8 +539,8 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
       }
       if (p == end) break;
     }
-    for (OPT_PhysicalDefUse.PDUEnumeration e = OPT_PhysicalDefUse.enumerateAllImplicitDefUses(ir);
-         e.hasMoreElements();) {
+    for (OPT_PhysicalDefUse.PDUEnumeration e = OPT_PhysicalDefUse.enumerateAllImplicitDefUses(ir); e.hasMoreElements();)
+    {
       OPT_Register r = e.nextElement();
       r.setdNode(null);
     }

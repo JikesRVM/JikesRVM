@@ -48,8 +48,7 @@ class OPT_DepGraphStats {
     // First pass -- compute numNodes
     int _numNodes = 0;
     boolean containsLoadOrStore = false;
-    for (OPT_DepGraphNode n = (OPT_DepGraphNode) dg.firstNode();
-         n != null; n = (OPT_DepGraphNode) n.getNext()) {
+    for (OPT_DepGraphNode n = (OPT_DepGraphNode) dg.firstNode(); n != null; n = (OPT_DepGraphNode) n.getNext()) {
       _numNodes++;
       OPT_Instruction instr = n.instruction();
       if (instr.isImplicitStore() || instr.isImplicitLoad()) {
@@ -62,12 +61,10 @@ class OPT_DepGraphStats {
     int _critPathLength = 0;
     // Second pass -- compute times
     int i = 0;
-    for (OPT_DepGraphNode n = (OPT_DepGraphNode) dg.firstNode(); n != null;
-         n = (OPT_DepGraphNode) n.getNext()) {
+    for (OPT_DepGraphNode n = (OPT_DepGraphNode) dg.firstNode(); n != null; n = (OPT_DepGraphNode) n.getNext()) {
       nodes[i] = n;
       ECT[i] = 0;
-      for (OPT_DepGraphEdge e = (OPT_DepGraphEdge) n.firstInEdge(); e !=
-                                                                    null; e = (OPT_DepGraphEdge) e.getNextIn()) {
+      for (OPT_DepGraphEdge e = (OPT_DepGraphEdge) n.firstInEdge(); e != null; e = (OPT_DepGraphEdge) e.getNextIn()) {
         OPT_DepGraphNode pred = (OPT_DepGraphNode) e.fromNode();
         // Look for pred in nodes[]
         int j;
@@ -78,8 +75,7 @@ class OPT_DepGraphStats {
         }
         if (j == i) {
           // Not found
-          throw new OPT_OptimizingCompilerException(
-              "OPT_DepGraphStats: dep graph is not topologically sorted ???");
+          throw new OPT_OptimizingCompilerException("OPT_DepGraphStats: dep graph is not topologically sorted ???");
           // NOTE: I could not use OPT_SortedGraphIterator
           // for top sort because OPT_DepGraphNode
           // is not a subclass of OPT_SortedGraphNode
@@ -94,10 +90,14 @@ class OPT_DepGraphStats {
       _critPathLength = Math.max(_critPathLength, ECT[i]);
       i++;
     }           // for ( n = ... )
-    System.out.println("@@@@ BB " + bbName + "; totalTime = " + _totalTime
-                       + "; containsLoadOrStore = " + containsLoadOrStore +
-                       "; critPathLength = "
-                       + _critPathLength);
+    System.out.println("@@@@ BB " +
+                       bbName +
+                       "; totalTime = " +
+                       _totalTime +
+                       "; containsLoadOrStore = " +
+                       containsLoadOrStore +
+                       "; critPathLength = " +
+                       _critPathLength);
   }
 
   /**
@@ -106,8 +106,7 @@ class OPT_DepGraphStats {
    */
   static void printBasicBlockStatistics(OPT_IR ir) {
     System.out.println();
-    System.out.println("**** START OF printBasicBlockStatistics() for method "
-                       + ir.method + " ****");
+    System.out.println("**** START OF printBasicBlockStatistics() for method " + ir.method + " ****");
     if (debug) {
       ir.printInstructions();
     }
@@ -117,11 +116,9 @@ class OPT_DepGraphStats {
       new OPT_LiveAnalysis(false, false, true).perform(ir);
     }
 
-    for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder();
-         bb != null; bb = bb.nextBasicBlockInCodeOrder()) {
+    for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); bb != null; bb = bb.nextBasicBlockInCodeOrder()) {
       //OPT_DepGraph dg =
-      new OPT_DepGraph(ir, bb.firstRealInstruction(),
-                       bb.lastRealInstruction(), bb);
+      new OPT_DepGraph(ir, bb.firstRealInstruction(), bb.lastRealInstruction(), bb);
     }
     System.out.println("**** END OF printBasicBlockStatistics() ****");
   }

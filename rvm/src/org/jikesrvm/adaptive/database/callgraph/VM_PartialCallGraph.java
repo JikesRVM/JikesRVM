@@ -29,8 +29,7 @@ import org.jikesrvm.classloader.VM_MethodReference;
  * A partial call graph (PCG) is a partial mapping from callsites
  * to weighted targets.
  */
-public final class VM_PartialCallGraph implements VM_Decayable,
-                                                  VM_Reportable {
+public final class VM_PartialCallGraph implements VM_Decayable, VM_Reportable {
 
   /**
    * The dynamic call graph, which is a mapping from
@@ -189,10 +188,7 @@ public final class VM_PartialCallGraph implements VM_Decayable,
    * @param callee   method called
    * @param weight   the frequency of this calling edge
    */
-  private void augmentEdge(VM_Method caller,
-                           int bcIndex,
-                           VM_Method callee,
-                           double weight) {
+  private void augmentEdge(VM_Method caller, int bcIndex, VM_Method callee, double weight) {
     VM_CallSite callSite = new VM_CallSite(caller, bcIndex);
     VM_WeightedCallTargets targets = callGraph.get(callSite);
     if (targets == null) {
@@ -213,8 +209,7 @@ public final class VM_PartialCallGraph implements VM_Decayable,
    */
   public synchronized void report() {
     System.out.println("Partial Call Graph");
-    System.out.println("  Number of callsites " + callGraph.size() +
-                       ", total weight: " + totalEdgeWeights);
+    System.out.println("  Number of callsites " + callGraph.size() + ", total weight: " + totalEdgeWeights);
     System.out.println();
 
     TreeSet<VM_CallSite> tmp = new TreeSet<VM_CallSite>(new OrderByTotalWeight());
@@ -245,8 +240,7 @@ public final class VM_PartialCallGraph implements VM_Decayable,
   public synchronized void dumpGraph(String fn) {
     final BufferedWriter f;
     try {
-      f = new BufferedWriter(new
-          OutputStreamWriter(new FileOutputStream(fn), "ISO-8859-1"));
+      f = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fn), "ISO-8859-1"));
     } catch (IOException e) {
       VM.sysWrite("\n\nVM_PartialCallGraph.dumpGraph: Error opening output file!!\n\n");
       return;
@@ -262,11 +256,18 @@ public final class VM_PartialCallGraph implements VM_Decayable,
           VM_CodeArray calleeArray = callee.getCurrentEntryCodeArray();
           try {
             f.write("CallSite " +
-                    cs.getMethod().getMemberRef() + " " +
-                    callerArray.length() + " " +
-                    +cs.getBytecodeIndex() + " " +
-                    callee.getMemberRef() + " " +
-                    +calleeArray.length() + " weight: " + weight + "\n");
+                    cs.getMethod().getMemberRef() +
+                    " " +
+                    callerArray.length() +
+                    " " +
+                    +cs.getBytecodeIndex() +
+                    " " +
+                    callee.getMemberRef() +
+                    " " +
+                    +calleeArray.length() +
+                    " weight: " +
+                    weight +
+                    "\n");
             f.flush();
           } catch (IOException exc) {
             System.err.println("I/O error writing to dynamic call graph profile.");

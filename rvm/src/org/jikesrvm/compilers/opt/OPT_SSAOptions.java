@@ -107,8 +107,7 @@ public class OPT_SSAOptions {
    * Set up instructions for an form of heap Array SSA, or turn it
    * off
    */
-  OPT_SSAOptions(boolean scalarsOnly, boolean backwards, boolean insertUsePhis,
-                 java.util.Set<Object> heapTypes) {
+  OPT_SSAOptions(boolean scalarsOnly, boolean backwards, boolean insertUsePhis, java.util.Set<Object> heapTypes) {
     this.scalarsOnly = scalarsOnly;
     this.backwards = backwards;
     this.insertUsePhis = insertUsePhis;

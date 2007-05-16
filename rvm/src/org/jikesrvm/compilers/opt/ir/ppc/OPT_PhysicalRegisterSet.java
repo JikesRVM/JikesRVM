@@ -161,18 +161,15 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
     reg[JTOC_POINTER].setSpansBasicBlock();
 
     // 8. set up the volatile FPRs
-    for (int i = FIRST_DOUBLE + FIRST_VOLATILE_FPR; i < FIRST_DOUBLE +
-                                                        LAST_VOLATILE_FPR; i++) {
+    for (int i = FIRST_DOUBLE + FIRST_VOLATILE_FPR; i < FIRST_DOUBLE + LAST_VOLATILE_FPR; i++) {
       OPT_Register r = reg[i];
       r.setVolatile();
       r.linkWithNext(reg[i + 1]);
     }
-    reg[FIRST_DOUBLE + LAST_VOLATILE_FPR].linkWithNext(reg[FIRST_DOUBLE
-                                                           + FIRST_SCRATCH_FPR]);
+    reg[FIRST_DOUBLE + LAST_VOLATILE_FPR].linkWithNext(reg[FIRST_DOUBLE + FIRST_SCRATCH_FPR]);
     reg[FIRST_DOUBLE + LAST_VOLATILE_FPR].setVolatile();
     if (FIRST_SCRATCH_FPR != LAST_SCRATCH_FPR) {
-      for (int i = FIRST_DOUBLE + FIRST_SCRATCH_FPR; i < FIRST_DOUBLE +
-                                                         LAST_SCRATCH_FPR; i++) {
+      for (int i = FIRST_DOUBLE + FIRST_SCRATCH_FPR; i < FIRST_DOUBLE + LAST_SCRATCH_FPR; i++) {
         OPT_Register r = reg[i];
         r.setVolatile();
         r.linkWithNext(reg[i + 1]);
@@ -181,8 +178,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
     reg[FIRST_DOUBLE + LAST_SCRATCH_FPR].setVolatile();
 
     // 9. set up the non-volatile FPRs
-    for (int i = FIRST_DOUBLE + FIRST_NONVOLATILE_FPR; i < FIRST_DOUBLE
-                                                           + LAST_NONVOLATILE_FPR; i++) {
+    for (int i = FIRST_DOUBLE + FIRST_NONVOLATILE_FPR; i < FIRST_DOUBLE + LAST_NONVOLATILE_FPR; i++) {
       OPT_Register r = reg[i];
       r.setNonVolatile();
       r.linkWithNext(reg[i + 1]);
@@ -480,8 +476,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
     } else if (r.isCondition()) {
       return CONDITION_REG;
     } else {
-      throw new OPT_OptimizingCompilerException("getPhysicalRegisterType "
-                                                + " unexpected " + r);
+      throw new OPT_OptimizingCompilerException("getPhysicalRegisterType " + " unexpected " + r);
     }
   }
 
@@ -557,8 +552,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
    */
   public static int getSpillSize(int type) {
     if (VM.VerifyAssertions) {
-      VM._assert((type == INT_REG) || (type == DOUBLE_REG) ||
-                 (type == CONDITION_REG) || (type == SPECIAL_REG));
+      VM._assert((type == INT_REG) || (type == DOUBLE_REG) || (type == CONDITION_REG) || (type == SPECIAL_REG));
     }
     if (type == DOUBLE_REG) {
       return BYTES_IN_DOUBLE;
@@ -573,8 +567,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
    */
   public static int getSpillAlignment(int type) {
     if (VM.VerifyAssertions) {
-      VM._assert((type == INT_REG) || (type == DOUBLE_REG) ||
-                 (type == CONDITION_REG) || (type == SPECIAL_REG));
+      VM._assert((type == INT_REG) || (type == DOUBLE_REG) || (type == CONDITION_REG) || (type == SPECIAL_REG));
     }
     if (type == DOUBLE_REG) {
       return BYTES_IN_DOUBLE;
@@ -603,8 +596,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
    * <em> after </em> the volatile GPRs
    */
   public Enumeration<OPT_Register> enumerateVolatileGPRs() {
-    return new PhysicalRegisterEnumeration(FIRST_INT + FIRST_VOLATILE_GPR,
-                                           FIRST_INT + LAST_SCRATCH_GPR);
+    return new PhysicalRegisterEnumeration(FIRST_INT + FIRST_VOLATILE_GPR, FIRST_INT + LAST_SCRATCH_GPR);
   }
 
   static {
@@ -622,17 +614,14 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
     if (VM.VerifyAssertions) {
       VM._assert(n <= NUMBER_INT_PARAM);
     }
-    return new PhysicalRegisterEnumeration(FIRST_INT_PARAM,
-                                           FIRST_INT_PARAM + n - 1);
+    return new PhysicalRegisterEnumeration(FIRST_INT_PARAM, FIRST_INT_PARAM + n - 1);
   }
 
   /**
    * Enumerate all the nonvolatile GPRs in this set.
    */
   public Enumeration<OPT_Register> enumerateNonvolatileGPRs() {
-    return new
-        PhysicalRegisterEnumeration(FIRST_INT + FIRST_NONVOLATILE_GPR,
-                                    FIRST_INT + LAST_NONVOLATILE_GPR);
+    return new PhysicalRegisterEnumeration(FIRST_INT + FIRST_NONVOLATILE_GPR, FIRST_INT + LAST_NONVOLATILE_GPR);
   }
 
   /**
@@ -648,8 +637,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
    * <em> before</em> the volatile FPRs
    */
   public Enumeration<OPT_Register> enumerateVolatileFPRs() {
-    return new PhysicalRegisterEnumeration(FIRST_DOUBLE + FIRST_SCRATCH_FPR,
-                                           FIRST_DOUBLE + LAST_VOLATILE_FPR);
+    return new PhysicalRegisterEnumeration(FIRST_DOUBLE + FIRST_SCRATCH_FPR, FIRST_DOUBLE + LAST_VOLATILE_FPR);
   }
 
   /**
@@ -659,17 +647,14 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
     if (VM.VerifyAssertions) {
       VM._assert(n <= NUMBER_DOUBLE_PARAM);
     }
-    return new PhysicalRegisterEnumeration(FIRST_DOUBLE_PARAM,
-                                           FIRST_DOUBLE_PARAM + n - 1);
+    return new PhysicalRegisterEnumeration(FIRST_DOUBLE_PARAM, FIRST_DOUBLE_PARAM + n - 1);
   }
 
   /**
    * Enumerate all the nonvolatile FPRs in this set.
    */
   public Enumeration<OPT_Register> enumerateNonvolatileFPRs() {
-    return new
-        PhysicalRegisterEnumeration(FIRST_DOUBLE + FIRST_NONVOLATILE_FPR,
-                                    FIRST_DOUBLE + LAST_NONVOLATILE_FPR);
+    return new PhysicalRegisterEnumeration(FIRST_DOUBLE + FIRST_NONVOLATILE_FPR, FIRST_DOUBLE + LAST_NONVOLATILE_FPR);
   }
 
   /**
@@ -724,8 +709,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
     Enumeration<OPT_Register> e1 = enumerateVolatileGPRs();
     Enumeration<OPT_Register> e2 = enumerateVolatileFPRs();
     Enumeration<OPT_Register> e3 = enumerateVolatileConditionRegisters();
-    return new OPT_CompoundEnumerator<OPT_Register>(e1, new
-        OPT_CompoundEnumerator<OPT_Register>(e2, e3));
+    return new OPT_CompoundEnumerator<OPT_Register>(e1, new OPT_CompoundEnumerator<OPT_Register>(e2, e3));
   }
 
   /**
@@ -750,8 +734,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
       case SPECIAL_REG:
         return OPT_EmptyEnumerator.emptyEnumeration();
       default:
-        throw new OPT_OptimizingCompilerException
-            ("Unsupported non-volatile type");
+        throw new OPT_OptimizingCompilerException("Unsupported non-volatile type");
     }
   }
 

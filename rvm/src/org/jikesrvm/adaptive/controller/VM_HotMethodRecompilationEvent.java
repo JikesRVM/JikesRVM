@@ -14,8 +14,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
  * Event used by the basic recompilation organizer
  * to notify the controller that a method is hot.
  */
-public final class VM_HotMethodRecompilationEvent extends VM_HotMethodEvent
-    implements VM_ControllerInputEvent {
+public final class VM_HotMethodRecompilationEvent extends VM_HotMethodEvent implements VM_ControllerInputEvent {
 
   /**
    * @param _cm the compiled method
@@ -43,8 +42,7 @@ public final class VM_HotMethodRecompilationEvent extends VM_HotMethodEvent
    * recompilation strategy.
    */
   public void process() {
-    VM_ControllerPlan plan =
-        VM_Controller.recompilationStrategy.considerHotMethod(getCompiledMethod(), this);
+    VM_ControllerPlan plan = VM_Controller.recompilationStrategy.considerHotMethod(getCompiledMethod(), this);
 
     VM_ControllerMemory.incrementNumMethodsConsidered();
 

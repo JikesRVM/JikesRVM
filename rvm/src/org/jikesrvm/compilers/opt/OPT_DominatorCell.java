@@ -70,8 +70,7 @@ class OPT_DominatorCell extends OPT_DF_AbstractCell {
    * @param ir the governing ir
    */
   public void setTOP(OPT_IR ir) {
-    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks();
-         e.hasMoreElements();) {
+    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
       OPT_BasicBlock b = e.next();
       dominators.set(b.getNumber());
     }

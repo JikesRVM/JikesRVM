@@ -31,8 +31,7 @@ import org.vmmagic.unboxed.WordArray;
  * @see VM_JNICompiler
  */
 @Uninterruptible
-public abstract class VM_JNIGCMapIterator extends VM_GCMapIterator
-    implements VM_BaselineConstants {
+public abstract class VM_JNIGCMapIterator extends VM_GCMapIterator implements VM_BaselineConstants {
 
   // Java to Native C transition frame...(see VM_JNICompiler)
   //

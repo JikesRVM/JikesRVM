@@ -58,8 +58,7 @@ class OPT_CoalesceMoves extends OPT_CompilerPhase {
    */
   public final void perform(OPT_IR ir) {
     // Compute liveness.
-    OPT_LiveAnalysis live = new OPT_LiveAnalysis(false /* GC Maps */,
-                                                 false /* don't skip local
+    OPT_LiveAnalysis live = new OPT_LiveAnalysis(false /* GC Maps */, false /* don't skip local
                                                          propagation */);
     live.perform(ir);
 

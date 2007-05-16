@@ -339,9 +339,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
 
     // Set PR.framePointer to be registers.fp
     asm.emitMOV_Reg_RegDisp(S0, T0, VM_Entrypoints.registersFPField.getOffset());
-    VM_ProcessorLocalState.emitMoveRegToField(asm,
-                                              VM_Entrypoints.framePointerField.getOffset(),
-                                              S0);
+    VM_ProcessorLocalState.emitMoveRegToField(asm, VM_Entrypoints.framePointerField.getOffset(), S0);
 
     // Restore SP
     asm.emitMOV_Reg_RegDisp(S0, T0, VM_Entrypoints.registersGPRsField.getOffset());
@@ -382,8 +380,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     asm.emitPOP_RegDisp(EBP, VM_JNICompiler.JNI_RETURN_ADDRESS_OFFSET);
 
     // change processor status to IN_NATIVE
-    VM_ProcessorLocalState.emitMoveImmToField(asm, VM_Entrypoints.vpStatusField.getOffset(),
-                                              VM_Processor.IN_NATIVE);
+    VM_ProcessorLocalState.emitMoveImmToField(asm, VM_Entrypoints.vpStatusField.getOffset(), VM_Processor.IN_NATIVE);
 
     // make the call...
     asm.emitCALL_Reg(S0);
@@ -406,12 +403,10 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
 
     // reload JTOC from vitual processor
     // NOTE: EDI saved in glue frame is just EDI (opt compiled code uses it as normal non-volatile)
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC,
-                                              VM_Entrypoints.jtocField.getOffset());
+    VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
 
     // T0 gets PR.statusField
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, T0,
-                                              VM_Entrypoints.vpStatusField.getOffset());
+    VM_ProcessorLocalState.emitMoveFieldToReg(asm, T0, VM_Entrypoints.vpStatusField.getOffset());
 
     asm.emitCMP_Reg_Imm(T0, VM_Processor.IN_NATIVE);      // still IN_NATIVE?
     VM_ForwardReference fr = asm.forwardJcc(VM_Assembler.EQ);       // if so, skip over call to pthread yield

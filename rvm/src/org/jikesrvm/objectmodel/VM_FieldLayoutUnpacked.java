@@ -53,8 +53,7 @@ public class VM_FieldLayoutUnpacked extends VM_FieldLayout implements VM_SizeCon
     }
   }
 
-  public VM_FieldLayoutUnpacked(boolean largeFieldsFirst,
-                                boolean clusterReferenceFields) {
+  public VM_FieldLayoutUnpacked(boolean largeFieldsFirst, boolean clusterReferenceFields) {
     super(largeFieldsFirst, clusterReferenceFields);
   }
 
@@ -64,7 +63,6 @@ public class VM_FieldLayoutUnpacked extends VM_FieldLayout implements VM_SizeCon
    */
   @Override
   protected VM_FieldLayoutContext getLayoutContext(VM_Class klass) {
-    return new LayoutContext((byte) klass.getAlignment(),
-                             (LayoutContext) klass.getFieldLayoutContext());
+    return new LayoutContext((byte) klass.getAlignment(), (LayoutContext) klass.getFieldLayoutContext());
   }
 }

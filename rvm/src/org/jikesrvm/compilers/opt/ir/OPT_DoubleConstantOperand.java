@@ -95,8 +95,7 @@ public final class OPT_DoubleConstantOperand extends OPT_ConstantOperand impleme
    *           if they are not.
    */
   public boolean similar(OPT_Operand op) {
-    return (op instanceof OPT_DoubleConstantOperand) &&
-           (value == ((OPT_DoubleConstantOperand) op).value);
+    return (op instanceof OPT_DoubleConstantOperand) && (value == ((OPT_DoubleConstantOperand) op).value);
   }
 
   /**

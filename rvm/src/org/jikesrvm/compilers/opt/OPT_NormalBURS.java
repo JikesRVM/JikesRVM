@@ -90,17 +90,14 @@ final class OPT_NormalBURS extends OPT_BURS {
    */
   private void buildTrees(OPT_DepGraph dg) {
     OPT_DepGraphNode bbNodes = (OPT_DepGraphNode) dg.firstNode();
-    for (OPT_DepGraphNode n = bbNodes;
-         n != null;
-         n = (OPT_DepGraphNode) n.getNext()) {
+    for (OPT_DepGraphNode n = bbNodes; n != null; n = (OPT_DepGraphNode) n.getNext()) {
       // Initialize n.treeNode
       OPT_BURS_TreeNode cur_parent = new OPT_BURS_TreeNode(n);
       n.scratchObject = cur_parent;
       OPT_Instruction instr = n.instruction();
       // cur_parent = current parent node for var length IR instructions
       // loop for USES of an instruction
-      for (OPT_OperandEnumeration uses = instr.getUses();
-           uses.hasMoreElements();) {
+      for (OPT_OperandEnumeration uses = instr.getUses(); uses.hasMoreElements();) {
         // Create tree edge for next use.
         OPT_Operand op = uses.next();
         if (op == null) continue;
@@ -231,8 +228,7 @@ final class OPT_NormalBURS extends OPT_BURS {
         // potential for intra-tree cycle
         if (!trueEdgeRedundant(src, dst, srcRoot)) {
           if (DEBUG) {
-            VM.sysWrite("Potential intra-tree cycle with edge " + e +
-                        " forcing " + n + " to be a tree root\n");
+            VM.sysWrite("Potential intra-tree cycle with edge " + e + " forcing " + n + " to be a tree root\n");
           }
           makeTreeRoot(n);
           problemEdgePrep(n, n.dg_node);
@@ -241,8 +237,7 @@ final class OPT_NormalBURS extends OPT_BURS {
         // potential for inter-tree cycle
         if (reachableRoot(dstRoot, srcRoot, ++searchnum)) {
           if (DEBUG) {
-            VM.sysWrite("Potential inter-tree cycle with edge " + e +
-                        " forcing " + n + " to be a tree root\n");
+            VM.sysWrite("Potential inter-tree cycle with edge " + e + " forcing " + n + " to be a tree root\n");
           }
           makeTreeRoot(n);
           problemEdgePrep(n, n.dg_node);
@@ -254,16 +249,12 @@ final class OPT_NormalBURS extends OPT_BURS {
   // routine to identify harmless intra-tree edges.
   // if the edge is redundant wrt regTrue edges, then it
   // can be ignored.
-  private boolean trueEdgeRedundant(OPT_SpaceEffGraphNode current,
-                                    OPT_SpaceEffGraphNode goal,
+  private boolean trueEdgeRedundant(OPT_SpaceEffGraphNode current, OPT_SpaceEffGraphNode goal,
                                     OPT_SpaceEffGraphNode root) {
     if (current == goal) return true;
     if (current.nextSorted != root) return false; // don't cross tree boundaries
-    for (OPT_SpaceEffGraphEdge out = current.firstOutEdge();
-         out != null;
-         out = out.getNextOut()) {
-      if (OPT_DepGraphEdge.isRegTrue(out) &&
-          trueEdgeRedundant(out.toNode(), goal, root)) {
+    for (OPT_SpaceEffGraphEdge out = current.firstOutEdge(); out != null; out = out.getNextOut()) {
+      if (OPT_DepGraphEdge.isRegTrue(out) && trueEdgeRedundant(out.toNode(), goal, root)) {
         return true;
       }
     }
@@ -272,9 +263,7 @@ final class OPT_NormalBURS extends OPT_BURS {
 
   // routine to identify harmless inter-tree edges.
   // Is goal reachable via any edge in the current tree?
-  private boolean reachableRoot(OPT_SpaceEffGraphNode current,
-                                OPT_SpaceEffGraphNode goal,
-                                int searchnum) {
+  private boolean reachableRoot(OPT_SpaceEffGraphNode current, OPT_SpaceEffGraphNode goal, int searchnum) {
     if (current == goal) return true;
     if (current.scratch == searchnum) return false;
     current.scratch = searchnum;
@@ -282,23 +271,17 @@ final class OPT_NormalBURS extends OPT_BURS {
     return reachableChild(root, goal, searchnum);
   }
 
-  private boolean reachableChild(OPT_BURS_TreeNode n,
-                                 OPT_SpaceEffGraphNode goal,
-                                 int searchnum) {
+  private boolean reachableChild(OPT_BURS_TreeNode n, OPT_SpaceEffGraphNode goal, int searchnum) {
     OPT_SpaceEffGraphNode dgn = n.dg_node;
     if (dgn != null) {
-      for (OPT_SpaceEffGraphEdge out = dgn.firstOutEdge();
-           out != null;
-           out = out.getNextOut()) {
+      for (OPT_SpaceEffGraphEdge out = dgn.firstOutEdge(); out != null; out = out.getNextOut()) {
         if (reachableRoot(out.toNode().nextSorted, goal, searchnum)) return true;
       }
     }
-    if (n.child1 != null && !n.child1.isTreeRoot() &&
-        reachableChild(n.child1, goal, searchnum)) {
+    if (n.child1 != null && !n.child1.isTreeRoot() && reachableChild(n.child1, goal, searchnum)) {
       return true;
     }
-    if (n.child2 != null && !n.child2.isTreeRoot() &&
-        reachableChild(n.child2, goal, searchnum)) {
+    if (n.child2 != null && !n.child2.isTreeRoot() && reachableChild(n.child2, goal, searchnum)) {
       return true;
     }
     return false;
@@ -319,13 +302,9 @@ final class OPT_NormalBURS extends OPT_BURS {
     }
 
     // Initialize predCount[*]
-    for (OPT_SpaceEffGraphNode node = dg.firstNode();
-         node != null;
-         node = node.getNext()) {
+    for (OPT_SpaceEffGraphNode node = dg.firstNode(); node != null; node = node.getNext()) {
       OPT_SpaceEffGraphNode n_treeRoot = node.nextSorted;
-      for (OPT_SpaceEffGraphEdge in = node.firstInEdge();
-           in != null;
-           in = in.getNextIn()) {
+      for (OPT_SpaceEffGraphEdge in = node.firstInEdge(); in != null; in = in.getNextIn()) {
         OPT_SpaceEffGraphNode source_treeRoot = in.fromNode().nextSorted;
         if (source_treeRoot != n_treeRoot) {
           n_treeRoot.scratch++;
@@ -381,8 +360,7 @@ final class OPT_NormalBURS extends OPT_BURS {
       generateTree(k, burs);
     }
     if (numTreeRoots != 0) {
-      throw new OPT_OptimizingCompilerException("BURS",
-                                                "Not all tree roots were processed");
+      throw new OPT_OptimizingCompilerException("BURS", "Not all tree roots were processed");
     }
   }
 
@@ -438,9 +416,7 @@ final class OPT_NormalBURS extends OPT_BURS {
     OPT_DepGraphNode dgnode = k.dg_node;
     if (dgnode != null) {
       OPT_SpaceEffGraphNode source = dgnode.nextSorted;
-      for (OPT_SpaceEffGraphEdge out = dgnode.firstOutEdge();
-           out != null;
-           out = out.getNextOut()) {
+      for (OPT_SpaceEffGraphEdge out = dgnode.firstOutEdge(); out != null; out = out.getNextOut()) {
         OPT_SpaceEffGraphNode dest = out.toNode().nextSorted;
         if (source != dest) {
           int count = --dest.scratch;
@@ -464,9 +440,7 @@ final class OPT_NormalBURS extends OPT_BURS {
     // A "fan-out" node must be a root of a BURS tree.
     // (A fan-out node is a node with > 1 outgoing register-true dependences)
     OPT_SpaceEffGraphEdge trueDepEdge = null;
-    for (OPT_SpaceEffGraphEdge out = n.firstOutEdge();
-         out != null;
-         out = out.getNextOut()) {
+    for (OPT_SpaceEffGraphEdge out = n.firstOutEdge(); out != null; out = out.getNextOut()) {
       if (OPT_DepGraphEdge.isRegTrue(out)) {
         if (trueDepEdge != null) return true;
         trueDepEdge = out;
@@ -489,14 +463,10 @@ final class OPT_NormalBURS extends OPT_BURS {
       // other out edges (ignoring trueDepEdge)
       // then we don't have to worry about creating cycles
       // by not forcing n to be a tree root.
-      for (OPT_SpaceEffGraphEdge out = n.firstOutEdge();
-           out != null;
-           out = out.getNextOut()) {
+      for (OPT_SpaceEffGraphEdge out = n.firstOutEdge(); out != null; out = out.getNextOut()) {
         if (out != trueDepEdge) {
           boolean match = false;
-          for (OPT_SpaceEffGraphEdge out2 = parent.firstOutEdge();
-               out2 != null;
-               out2 = out2.getNextOut()) {
+          for (OPT_SpaceEffGraphEdge out2 = parent.firstOutEdge(); out2 != null; out2 = out2.getNextOut()) {
             if (out2.toNode() == out.toNode()) {
               match = true;
               break;
@@ -516,9 +486,7 @@ final class OPT_NormalBURS extends OPT_BURS {
   //       an expression tree and is not the tree root).
   @SuppressWarnings("unused")
   private OPT_SpaceEffGraphNode regTrueParent(OPT_SpaceEffGraphNode n) {
-    for (OPT_SpaceEffGraphEdge out = n.firstOutEdge();
-         out != null;
-         out = out.getNextOut()) {
+    for (OPT_SpaceEffGraphEdge out = n.firstOutEdge(); out != null; out = out.getNextOut()) {
       if (OPT_DepGraphEdge.isRegTrue(out)) {
         return out.toNode();
       }
@@ -532,8 +500,7 @@ final class OPT_NormalBURS extends OPT_BURS {
    * for all register true descendants of t up to but not including
    * any new tree roots.
    */
-  private void initTreeRootNode(OPT_BURS_TreeNode t,
-                                OPT_SpaceEffGraphNode treeRoot) {
+  private void initTreeRootNode(OPT_BURS_TreeNode t, OPT_SpaceEffGraphNode treeRoot) {
     // Recurse
     if (t.child1 != null) {
       if (t.child1.isTreeRoot()) {
@@ -624,9 +591,8 @@ final class OPT_NormalBURS extends OPT_BURS {
     // restore heap property
     int current = numElements;
     heap[current] = node;
-    for (int parent = current / 2;
-         current > 1 && heap[current].numRegisters() > heap[parent].numRegisters();
-         current = parent, parent = current / 2) {
+    for (int parent = current / 2; current > 1 && heap[current].numRegisters() > heap[parent].numRegisters(); current =
+        parent, parent = current / 2) {
       swap(current, parent);
     }
   }
@@ -652,12 +618,10 @@ final class OPT_NormalBURS extends OPT_BURS {
     int l = p * 2;
     int r = l + 1;
     int max = p;
-    if (l <= numElements &&
-        heap[l].numRegisters() > heap[max].numRegisters()) {
+    if (l <= numElements && heap[l].numRegisters() > heap[max].numRegisters()) {
       max = l;
     }
-    if (r <= numElements &&
-        heap[r].numRegisters() > heap[max].numRegisters()) {
+    if (r <= numElements && heap[r].numRegisters() > heap[max].numRegisters()) {
       max = r;
     }
     if (max != p) {

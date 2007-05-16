@@ -75,8 +75,7 @@ public class OPT_RegSpillListElement {
    */
   public final int getRealRegNumber() {
     if (VM.VerifyAssertions) {
-      VM._assert(!isSpill(),
-                 "OPT_RegSpillListElement asked for a Real Reg, when it had a spill");
+      VM._assert(!isSpill(), "OPT_RegSpillListElement asked for a Real Reg, when it had a spill");
     }
 
     // real regs are stored as non-positive values
@@ -89,8 +88,7 @@ public class OPT_RegSpillListElement {
    */
   public final int getSpill() {
     if (VM.VerifyAssertions) {
-      VM._assert(isSpill(),
-                 "OPT_RegSpillListElement asked for a spill, when it had a real register");
+      VM._assert(isSpill(), "OPT_RegSpillListElement asked for a spill, when it had a real register");
     }
 
     return value;

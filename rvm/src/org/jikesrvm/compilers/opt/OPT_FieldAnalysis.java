@@ -112,8 +112,7 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
     // walk over each instructions.  For each putfield or putstatic,
     // record the concrete type assigned to a field; or, record
     // BOTTOM if the concrete type is unknown.
-    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator();
-         e.hasMoreElements();) {
+    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
       OPT_Instruction s = e.next();
       if (PutField.conforms(s)) {
         OPT_LocationOperand l = PutField.getLocation(s);

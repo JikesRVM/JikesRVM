@@ -45,9 +45,7 @@ public abstract class OPT_NormalizeConstants implements OPT_Operators {
    * @param ir IR to normalize
    */
   public static void perform(OPT_IR ir) {
-    for (OPT_Instruction s = ir.firstInstructionInCodeOrder();
-         s != null;
-         s = s.nextInstructionInCodeOrder()) {
+    for (OPT_Instruction s = ir.firstInstructionInCodeOrder(); s != null; s = s.nextInstructionInCodeOrder()) {
 
       // Get 'large' constants into a form the the BURS rules are
       // prepared to deal with.
@@ -124,9 +122,7 @@ public abstract class OPT_NormalizeConstants implements OPT_Operators {
   /**
    * IA32 supports 32 bit int immediates, so nothing to do.
    */
-  static OPT_Operand asImmediateOrReg(OPT_Operand addr,
-                                      OPT_Instruction s,
-                                      OPT_IR ir) {
+  static OPT_Operand asImmediateOrReg(OPT_Operand addr, OPT_Instruction s, OPT_IR ir) {
     return addr;
   }
 

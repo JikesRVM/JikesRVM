@@ -53,8 +53,7 @@ public final class VM_Annotation {
     baseAnnotationInitMethod =
         VM_MemberReference.findOrCreate(VM_TypeReference.VM_BaseAnnotation,
                                         VM_Atom.findOrCreateAsciiAtom("<init>"),
-                                        VM_Atom.findOrCreateAsciiAtom("(Lorg/jikesrvm/classloader/VM_Annotation;)V")
-        ).asMethodReference();
+                                        VM_Atom.findOrCreateAsciiAtom("(Lorg/jikesrvm/classloader/VM_Annotation;)V")).asMethodReference();
     if (baseAnnotationInitMethod == null) {
       throw new Error("Error creating reference to base annotation");
     }
@@ -80,8 +79,8 @@ public final class VM_Annotation {
    * @param constantPool from constant pool being loaded
    * @param input the data being rea
    */
-  static VM_Annotation readAnnotation(int[] constantPool, DataInputStream input,
-                                      ClassLoader classLoader) throws IOException, ClassNotFoundException {
+  static VM_Annotation readAnnotation(int[] constantPool, DataInputStream input, ClassLoader classLoader)
+      throws IOException, ClassNotFoundException {
     VM_Atom type;
     // Read type
     int typeIndex = input.readUnsignedShort();
@@ -171,8 +170,8 @@ public final class VM_Annotation {
    * @param input stream to read from
    * @return object representing the value read
    */
-  static Object readValue(int[] constantPool, DataInputStream input,
-                          ClassLoader classLoader) throws IOException, ClassNotFoundException {
+  static Object readValue(int[] constantPool, DataInputStream input, ClassLoader classLoader)
+      throws IOException, ClassNotFoundException {
     // Read element value's tag and decode
     byte elementValue_tag = input.readByte();
     Object value;
@@ -225,10 +224,9 @@ public final class VM_Annotation {
       }
       case'e': {
         int typeNameIndex = input.readUnsignedShort();
-        @SuppressWarnings("unchecked")
-        Class enumType = VM_TypeReference.findOrCreate(classLoader,
-                                                       VM_Class.getUtf(constantPool, typeNameIndex)
-        ).resolve().getClassForType();
+        @SuppressWarnings("unchecked") Class enumType =
+            VM_TypeReference.findOrCreate(classLoader,
+                                          VM_Class.getUtf(constantPool, typeNameIndex)).resolve().getClassForType();
         int constNameIndex = input.readUnsignedShort();
 
         //noinspection unchecked
@@ -253,8 +251,7 @@ public final class VM_Annotation {
         break;
       }
       default:
-        throw new ClassFormatError("Unknown element_value tag '" +
-                                   (char) elementValue_tag + "'");
+        throw new ClassFormatError("Unknown element_value tag '" + (char) elementValue_tag + "'");
     }
     return value;
   }
@@ -282,8 +279,7 @@ public final class VM_Annotation {
    * bytecode for this method, rather than using reflection, the
    * performance should be better.
    */
-  static boolean equals(BaseAnnotation a, VM_Annotation vmA,
-                        BaseAnnotation b, VM_Annotation vmB) {
+  static boolean equals(BaseAnnotation a, VM_Annotation vmA, BaseAnnotation b, VM_Annotation vmB) {
     if (vmA.type != vmB.type) {
       return false;
     } else {
@@ -388,8 +384,7 @@ public final class VM_Annotation {
           return true;
         } else {
           BaseAnnotation b = (BaseAnnotation) o;
-          return VM_Annotation.equals(this, this.vmAnnotation,
-                                      b, b.vmAnnotation);
+          return VM_Annotation.equals(this, this.vmAnnotation, b, b.vmAnnotation);
         }
       } else {
         return false;
@@ -434,8 +429,8 @@ public final class VM_Annotation {
      * @param classLoader the class loader being used to load this annotation
      * @return a newly created annotation member
      */
-    static AnnotationMember readAnnotationMember(int[] constantPool, DataInputStream input,
-                                                 ClassLoader classLoader) throws IOException, ClassNotFoundException {
+    static AnnotationMember readAnnotationMember(int[] constantPool, DataInputStream input, ClassLoader classLoader)
+        throws IOException, ClassNotFoundException {
       // Read name of pair
       int elemNameIndex = input.readUnsignedShort();
       VM_Atom name = VM_Class.getUtf(constantPool, elemNameIndex);

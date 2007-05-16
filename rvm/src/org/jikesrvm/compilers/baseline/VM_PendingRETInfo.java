@@ -37,8 +37,7 @@ public final class VM_PendingRETInfo {
 
   // --------------------- Constructors ----------------------------
 
-  public VM_PendingRETInfo(int JSRSubStartByteIndex, int JSRBBNum,
-                           int returnAddressLocation, short JSRNextBBNum) {
+  public VM_PendingRETInfo(int JSRSubStartByteIndex, int JSRBBNum, int returnAddressLocation, short JSRNextBBNum) {
     this.JSRSubStartByteIndex = JSRSubStartByteIndex;
     this.JSRBBNum = JSRBBNum;
     this.returnAddressLocation = returnAddressLocation;

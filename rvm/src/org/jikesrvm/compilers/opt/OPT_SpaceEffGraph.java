@@ -17,9 +17,7 @@ import java.util.Enumeration;
  * OPT_SpaceEffGraph is a generic graph.  Extend to implement specific
  * graph types.
  */
-public class OPT_SpaceEffGraph implements OPT_Graph,
-                                          OPT_VCGGraph,
-                                          OPT_TopSortInterface {
+public class OPT_SpaceEffGraph implements OPT_Graph, OPT_VCGGraph, OPT_TopSortInterface {
   /**
    * First node
    */
@@ -284,8 +282,7 @@ public class OPT_SpaceEffGraph implements OPT_Graph,
   }
 
   private void dfs(OPT_SpaceEffGraphNode node) {
-    for (OPT_SpaceEffGraphEdge edge = node.firstOutEdge(); edge != null;
-         edge = edge.getNextOut()) {
+    for (OPT_SpaceEffGraphEdge edge = node.firstOutEdge(); edge != null; edge = edge.getNextOut()) {
       OPT_SpaceEffGraphNode succ = edge.toNode();
       if (!succ.dfsVisited()) {
         succ.setDfsVisited();
@@ -296,8 +293,7 @@ public class OPT_SpaceEffGraph implements OPT_Graph,
       }
     }
     node.clearOnStack();
-    for (OPT_SpaceEffGraphEdge edge = node.firstOutEdge(); edge != null;
-         edge = edge.getNextOut()) {
+    for (OPT_SpaceEffGraphEdge edge = node.firstOutEdge(); edge != null; edge = edge.getNextOut()) {
       OPT_SpaceEffGraphNode succ = edge.toNode();
       if (!succ.topVisited() && !edge.backEdge()) {
         addTopSortNode(succ);
@@ -315,8 +311,7 @@ public class OPT_SpaceEffGraph implements OPT_Graph,
     for (OPT_SpaceEffGraphNode n = firstNode(); n != null; n = n.getNext()) {
       res.append("\nNode: ").append(n).append("\n");
       res.append("In nodes:\n");
-      for (OPT_SpaceEffGraphEdge inEdge = n.firstInEdge(); inEdge != null;
-           inEdge = inEdge.getNextIn()) {
+      for (OPT_SpaceEffGraphEdge inEdge = n.firstInEdge(); inEdge != null; inEdge = inEdge.getNextIn()) {
         res.append(inEdge.getTypeString());
         res.append(" ");
         res.append(inEdge.fromNode());
@@ -324,8 +319,7 @@ public class OPT_SpaceEffGraph implements OPT_Graph,
       }
       res.append("\n");
       res.append("Out nodes:\n");
-      for (OPT_SpaceEffGraphEdge out = n.firstOutEdge(); out != null;
-           out = out.getNextOut()) {
+      for (OPT_SpaceEffGraphEdge out = n.firstOutEdge(); out != null; out = out.getNextOut()) {
         res.append(out.getTypeString());
         res.append(" ");
         res.append(out.toNode());
@@ -366,8 +360,7 @@ public class OPT_SpaceEffGraph implements OPT_Graph,
     }
   }
 
-  private static final class NodeEnumeration
-      implements OPT_GraphNodeEnumeration {
+  private static final class NodeEnumeration implements OPT_GraphNodeEnumeration {
     private OPT_SpaceEffGraphNode _node;
 
     public NodeEnumeration(OPT_SpaceEffGraphNode n) { _node = n; }
@@ -383,8 +376,7 @@ public class OPT_SpaceEffGraph implements OPT_Graph,
     }
   }
 
-  protected static final class VCGNodeEnumeration
-      implements Enumeration<OPT_VCGNode> {
+  protected static final class VCGNodeEnumeration implements Enumeration<OPT_VCGNode> {
     private OPT_SpaceEffGraphNode _node;
 
     public VCGNodeEnumeration(OPT_SpaceEffGraphNode n) { _node = n; }

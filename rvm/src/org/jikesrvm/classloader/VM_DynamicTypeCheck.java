@@ -269,8 +269,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
     int RHSDimension = RHSType.getDimensionality();
     if (LHSDimension < 0 || RHSDimension < 0) return false;
     if (LHSDimension == 0) {
-      return instanceOfNonArray(LHSType.asClass(),
-                                RHSType.getTypeInformationBlock());
+      return instanceOfNonArray(LHSType.asClass(), RHSType.getTypeInformationBlock());
     }
     VM_Type LHSInnermostElementType = LHSType.asArray().getInnermostElementType();
     if (LHSInnermostElementType == VM_Type.JavaLangObjectType) {
@@ -281,8 +280,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
       if (RHSDimension == LHSDimension) {
         VM_Type RHSInnermostElementType = RHSType.asArray().getInnermostElementType();
         if (RHSInnermostElementType.isPrimitiveType()) return false;
-        return instanceOfNonArray(LHSInnermostElementType.asClass(),
-                                  RHSInnermostElementType.getTypeInformationBlock());
+        return instanceOfNonArray(LHSInnermostElementType.asClass(), RHSInnermostElementType.getTypeInformationBlock());
       } else {
         // All array types implicitly implement java.lang.Cloneable and java.io.Serializable
         // so if LHS is if lesser dimensionality then this check must succeed if its innermost

@@ -73,9 +73,7 @@ public class OPT_LoopUnrolling extends OPT_CompilerPhase {
   }
 
   public boolean shouldPerform(OPT_Options options) {
-    return ((options.getOptLevel() >= 2) &&
-            (options.UNROLL_LOG >= 1) &&
-            (!options.LOOP_VERSIONING));
+    return ((options.getOptLevel() >= 2) && (options.UNROLL_LOG >= 1) && (!options.LOOP_VERSIONING));
   }
 
   /**
@@ -269,8 +267,7 @@ public class OPT_LoopUnrolling extends OPT_CompilerPhase {
     // examine operands:
     OPT_Operand op1 = follow(IfCmp.getVal1(origBranch));
     OPT_Operand op2 = follow(IfCmp.getVal2(origBranch));
-    OPT_ConditionOperand
-        cond = (OPT_ConditionOperand) IfCmp.getCond(origBranch).copy();
+    OPT_ConditionOperand cond = (OPT_ConditionOperand) IfCmp.getCond(origBranch).copy();
     OPT_RegisterOperand ifcmpGuard = IfCmp.getGuardResult(origBranch);
     float backBranchProbability = IfCmp.getBranchProfile(origBranch).takenProbability;
     if (!loopInvariant(op2, nloop, 4)) {
@@ -289,8 +286,7 @@ public class OPT_LoopUnrolling extends OPT_CompilerPhase {
         return true;
       }
     }
-    OPT_BasicBlock
-        target = Label.getBlock(IfCmp.getTarget(origBranch).target).block;
+    OPT_BasicBlock target = Label.getBlock(IfCmp.getTarget(origBranch).target).block;
 
     if (!(op1 instanceof OPT_RegisterOperand)) {
       report("9 op1 of ifcmp isn't a register\n");
@@ -360,18 +356,15 @@ public class OPT_LoopUnrolling extends OPT_CompilerPhase {
       return true;
     }
 
-    if ((stride == 1
-         && ((cond.value != OPT_ConditionOperand.LESS)
-             && cond.value != OPT_ConditionOperand.LESS_EQUAL
-             && cond.value != OPT_ConditionOperand.NOT_EQUAL
-    ))
-        || (stride == -1
-            && ((cond.value != OPT_ConditionOperand.GREATER)
-                && cond.value != OPT_ConditionOperand.GREATER_EQUAL
-                && cond.value != OPT_ConditionOperand.NOT_EQUAL
-    ))) {
-      report("19 unexpected condition: " + cond + "\n" + iterator + "\n"
-             + origBranch + "\n\n");
+    if ((stride == 1 &&
+         ((cond.value != OPT_ConditionOperand.LESS) &&
+          cond.value != OPT_ConditionOperand.LESS_EQUAL &&
+          cond.value != OPT_ConditionOperand.NOT_EQUAL)) ||
+                                                         (stride == -1 &&
+                                                          ((cond.value != OPT_ConditionOperand.GREATER) &&
+                                                           cond.value != OPT_ConditionOperand.GREATER_EQUAL &&
+                                                           cond.value != OPT_ConditionOperand.NOT_EQUAL))) {
+      report("19 unexpected condition: " + cond + "\n" + iterator + "\n" + origBranch + "\n\n");
       return true;
     }
 
@@ -445,29 +438,24 @@ public class OPT_LoopUnrolling extends OPT_CompilerPhase {
 //                          exit:
 //--------------------------------------------------------------------------
     report("...transforming.\n");
-    if (DEBUG && ir.options.hasMETHOD_TO_PRINT()
-        && ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
+    if (DEBUG && ir.options.hasMETHOD_TO_PRINT() && ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
       dumpIR(ir, "before unroll");
     }
 
     OPT_CFGTransformations.killFallThroughs(ir, nloop);
-    OPT_BasicBlock[] handles = makeSomeCopies(unrollFactor, ir, nloop, blocks,
-                                              header, exitBlock, exitBlock);
+    OPT_BasicBlock[] handles = makeSomeCopies(unrollFactor, ir, nloop, blocks, header, exitBlock, exitBlock);
     OPT_BasicBlock mainHeader = handles[0];
     OPT_BasicBlock mainExit = handles[1];
 
     // test block for well formed bounds
-    OPT_BasicBlock guardBlock0
-        = header.createSubBlock(header.firstInstruction().bcIndex, ir);
+    OPT_BasicBlock guardBlock0 = header.createSubBlock(header.firstInstruction().bcIndex, ir);
     predBlock.redirectOuts(header, guardBlock0, ir);
 
     // test block for iteration alignemnt
-    OPT_BasicBlock guardBlock1
-        = header.createSubBlock(header.firstInstruction().bcIndex, ir);
+    OPT_BasicBlock guardBlock1 = header.createSubBlock(header.firstInstruction().bcIndex, ir);
 
     // landing pad for orig loop
-    OPT_BasicBlock olp
-        = header.createSubBlock(header.firstInstruction().bcIndex, ir);
+    OPT_BasicBlock olp = header.createSubBlock(header.firstInstruction().bcIndex, ir);
     olp.setLandingPad();
 
     OPT_BasicBlock predSucc = predBlock.nextBasicBlockInCodeOrder();
@@ -480,12 +468,10 @@ public class OPT_LoopUnrolling extends OPT_CompilerPhase {
     ir.cfg.linkInCodeOrder(guardBlock1, olp);
 
     // guard block for main loop
-    OPT_BasicBlock guardBlock2
-        = header.createSubBlock(header.firstInstruction().bcIndex, ir);
+    OPT_BasicBlock guardBlock2 = header.createSubBlock(header.firstInstruction().bcIndex, ir);
 
     // landing pad for main loop
-    OPT_BasicBlock landingPad
-        = header.createSubBlock(header.firstInstruction().bcIndex, ir);
+    OPT_BasicBlock landingPad = header.createSubBlock(header.firstInstruction().bcIndex, ir);
     landingPad.setLandingPad();
 
     OPT_BasicBlock mainLoop = exitBlock.nextBasicBlockInCodeOrder();
@@ -504,60 +490,48 @@ public class OPT_LoopUnrolling extends OPT_CompilerPhase {
     OPT_ConditionOperand g0cond = OPT_ConditionOperand.GREATER_EQUAL();
     if (stride == -1) g0cond = OPT_ConditionOperand.LESS_EQUAL();
 
-    tmp.insertBefore
-        (IfCmp.create(INT_IFCMP, outerGuard.copyD2D(), rop1.copyD2U(),
-                      op2.copy(), g0cond, olp.makeJumpTarget(),
-                      OPT_BranchProfileOperand.unlikely()));
+    tmp.insertBefore(IfCmp.create(INT_IFCMP,
+                                  outerGuard.copyD2D(),
+                                  rop1.copyD2U(),
+                                  op2.copy(),
+                                  g0cond,
+                                  olp.makeJumpTarget(),
+                                  OPT_BranchProfileOperand.unlikely()));
     tmp.insertBefore(Goto.create(GOTO, guardBlock1.makeJumpTarget()));
 
     // align the loop iterations
     tmp = guardBlock1.lastInstruction();
     if (stride == 1) {
-      tmp.insertBefore
-          (Binary.create(INT_SUB, remainder, op2.copy(), rop1.copyD2U()));
+      tmp.insertBefore(Binary.create(INT_SUB, remainder, op2.copy(), rop1.copyD2U()));
     } else {
-      tmp.insertBefore
-          (Binary.create(INT_SUB, remainder, rop1.copyD2U(), op2.copy()));
+      tmp.insertBefore(Binary.create(INT_SUB, remainder, rop1.copyD2U(), op2.copy()));
     }
 
     if (cond.isGREATER_EQUAL() || cond.isLESS_EQUAL()) {
-      tmp.insertBefore
-          (Binary.create(INT_ADD, remainder.copyD2D(), remainder.copyD2U(),
-                         new OPT_IntConstantOperand(1)));
+      tmp.insertBefore(Binary.create(INT_ADD, remainder.copyD2D(), remainder.copyD2U(), new OPT_IntConstantOperand(1)));
     }
 
-    tmp.insertBefore
-        (Binary.create(INT_ADD, remainder.copyD2D(), remainder.copyD2U(),
-                       new OPT_IntConstantOperand(-1)));
+    tmp.insertBefore(Binary.create(INT_ADD, remainder.copyD2D(), remainder.copyD2U(), new OPT_IntConstantOperand(-1)));
 
-    tmp.insertBefore
-        (Binary.create(INT_AND, remainder.copyD2D(), remainder.copyD2U(),
-                       new OPT_IntConstantOperand(unrollFactor - 1)));
+    tmp.insertBefore(Binary.create(INT_AND,
+                                   remainder.copyD2D(),
+                                   remainder.copyD2U(),
+                                   new OPT_IntConstantOperand(unrollFactor - 1)));
 
-    tmp.insertBefore
-        (Binary.create(INT_ADD, remainder.copyD2D(), remainder.copyD2U(),
-                       new OPT_IntConstantOperand(1)));
+    tmp.insertBefore(Binary.create(INT_ADD, remainder.copyD2D(), remainder.copyD2U(), new OPT_IntConstantOperand(1)));
 
     if (stride == 1) {
-      tmp.insertBefore
-          (Binary.create(INT_ADD, limit.copyD2U(), op1.copy(),
-                         remainder.copyD2U()));
+      tmp.insertBefore(Binary.create(INT_ADD, limit.copyD2U(), op1.copy(), remainder.copyD2U()));
     } else {
-      tmp.insertBefore
-          (Binary.create(INT_SUB, limit.copyD2U(), op1.copy(),
-                         remainder.copyD2U()));
+      tmp.insertBefore(Binary.create(INT_SUB, limit.copyD2U(), op1.copy(), remainder.copyD2U()));
     }
 
     if (cond.isLESS_EQUAL()) {
-      tmp.insertBefore
-          (Binary.create(INT_ADD, limit.copyD2D(), limit.copyD2U(),
-                         new OPT_IntConstantOperand(-1)));
+      tmp.insertBefore(Binary.create(INT_ADD, limit.copyD2D(), limit.copyD2U(), new OPT_IntConstantOperand(-1)));
     }
 
     if (cond.isGREATER_EQUAL()) {
-      tmp.insertBefore
-          (Binary.create(INT_ADD, limit.copyD2D(), limit.copyD2U(),
-                         new OPT_IntConstantOperand(1)));
+      tmp.insertBefore(Binary.create(INT_ADD, limit.copyD2D(), limit.copyD2U(), new OPT_IntConstantOperand(1)));
     }
 
     tmp.insertBefore(Goto.create(GOTO, olp.makeJumpTarget()));
@@ -569,23 +543,24 @@ public class OPT_LoopUnrolling extends OPT_CompilerPhase {
     // change the back branch in the original loop
     deleteBranches(exitBlock);
     tmp = exitBlock.lastInstruction();
-    tmp.insertBefore
-        (IfCmp.create(INT_IFCMP, outerGuard.copyD2D(),
-                      rop1.copyU2U(), limit.copyD2U(),
-                      (OPT_ConditionOperand) cond.copy(),
-                      header.makeJumpTarget(),
-                      new OPT_BranchProfileOperand(1.0f - 1.0f / ((float) (unrollFactor / 2)))));
-    tmp.insertBefore
-        (Goto.create(GOTO, guardBlock2.makeJumpTarget()));
+    tmp.insertBefore(IfCmp.create(INT_IFCMP,
+                                  outerGuard.copyD2D(),
+                                  rop1.copyU2U(),
+                                  limit.copyD2U(),
+                                  (OPT_ConditionOperand) cond.copy(),
+                                  header.makeJumpTarget(),
+                                  new OPT_BranchProfileOperand(1.0f - 1.0f / ((float) (unrollFactor / 2)))));
+    tmp.insertBefore(Goto.create(GOTO, guardBlock2.makeJumpTarget()));
 
     // only enter main loop if iterations left
     tmp = guardBlock2.lastInstruction();
-    tmp.insertBefore
-        (IfCmp.create(INT_IFCMP, outerGuard.copyD2D(),
-                      rop1.copyU2U(), op2.copy(),
-                      (OPT_ConditionOperand) cond.copy(),
-                      landingPad.makeJumpTarget(),
-                      new OPT_BranchProfileOperand(backBranchProbability)));
+    tmp.insertBefore(IfCmp.create(INT_IFCMP,
+                                  outerGuard.copyD2D(),
+                                  rop1.copyU2U(),
+                                  op2.copy(),
+                                  (OPT_ConditionOperand) cond.copy(),
+                                  landingPad.makeJumpTarget(),
+                                  new OPT_BranchProfileOperand(backBranchProbability)));
     tmp.insertBefore(Goto.create(GOTO, succBlock.makeJumpTarget()));
 
     // landing pad jumps to mainHeader
@@ -596,19 +571,16 @@ public class OPT_LoopUnrolling extends OPT_CompilerPhase {
     if (VM.VerifyAssertions) VM._assert(mainExit != null);
     tmp = mainExit.lastInstruction();
     if (VM.VerifyAssertions) {
-      VM._assert((mainExit.lastRealInstruction() == null)
-                 || !mainExit.lastRealInstruction().isBranch());
+      VM._assert((mainExit.lastRealInstruction() == null) || !mainExit.lastRealInstruction().isBranch());
     }
-    tmp.insertBefore
-        (IfCmp.create(INT_IFCMP, ifcmpGuard.copyU2U(),
-                      rop1.copyU2U(), op2.copy(),
-                      (OPT_ConditionOperand) cond.copy(),
-                      mainHeader.makeJumpTarget(),
-                      new OPT_BranchProfileOperand(1.0f
-                                                   - (1.0f - backBranchProbability)
-                                                     * unrollFactor)));
-    tmp.insertBefore
-        (Goto.create(GOTO, succBlock.makeJumpTarget()));
+    tmp.insertBefore(IfCmp.create(INT_IFCMP,
+                                  ifcmpGuard.copyU2U(),
+                                  rop1.copyU2U(),
+                                  op2.copy(),
+                                  (OPT_ConditionOperand) cond.copy(),
+                                  mainHeader.makeJumpTarget(),
+                                  new OPT_BranchProfileOperand(1.0f - (1.0f - backBranchProbability) * unrollFactor)));
+    tmp.insertBefore(Goto.create(GOTO, succBlock.makeJumpTarget()));
 
     // recompute normal outs
     guardBlock0.recomputeNormalOut(ir);
@@ -618,8 +590,7 @@ public class OPT_LoopUnrolling extends OPT_CompilerPhase {
     exitBlock.recomputeNormalOut(ir);
     landingPad.recomputeNormalOut(ir);
     mainExit.recomputeNormalOut(ir);
-    if (DEBUG && ir.options.hasMETHOD_TO_PRINT()
-        && ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
+    if (DEBUG && ir.options.hasMETHOD_TO_PRINT() && ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
       dumpIR(ir, "after unroll");
     }
     return false;
@@ -770,8 +741,7 @@ public class OPT_LoopUnrolling extends OPT_CompilerPhase {
     while (true) {
       if (!(use instanceof OPT_RegisterOperand)) return use;
       OPT_RegisterOperand rop = (OPT_RegisterOperand) use;
-      OPT_RegisterOperandEnumeration
-          defs = OPT_DefUse.defs(rop.register);
+      OPT_RegisterOperandEnumeration defs = OPT_DefUse.defs(rop.register);
       if (!defs.hasMoreElements()) {return use;}
       OPT_Instruction def = defs.next().instruction;
       if (!Move.conforms(def)) return use;
@@ -786,16 +756,14 @@ public class OPT_LoopUnrolling extends OPT_CompilerPhase {
 
   private static OPT_Instruction definingInstruction(OPT_Operand op) {
     if (!(op instanceof OPT_RegisterOperand)) return op.instruction;
-    OPT_RegisterOperandEnumeration
-        defs = OPT_DefUse.defs(((OPT_RegisterOperand) op).register);
+    OPT_RegisterOperandEnumeration defs = OPT_DefUse.defs(((OPT_RegisterOperand) op).register);
     if (!defs.hasMoreElements()) {return op.instruction;}
     OPT_Instruction def = defs.next().instruction;
     if (defs.hasMoreElements()) {return op.instruction;}
     return def;
   }
 
-  private static boolean loopInvariant(OPT_Operand op, OPT_BitVector nloop,
-                                       int depth) {
+  private static boolean loopInvariant(OPT_Operand op, OPT_BitVector nloop, int depth) {
     if (depth <= 0) {
       return false;
     } else if (op instanceof OPT_ConstantOperand) {
@@ -814,8 +782,7 @@ public class OPT_LoopUnrolling extends OPT_CompilerPhase {
     }
   }
 
-  private static boolean printDefs(OPT_Operand op, OPT_BitVector nloop,
-                                   int depth) {
+  private static boolean printDefs(OPT_Operand op, OPT_BitVector nloop, int depth) {
     if (depth <= 0) return false;
     if (op instanceof OPT_ConstantOperand) {
       VM.sysWrite(">> " + op + "\n");
@@ -886,12 +853,8 @@ public class OPT_LoopUnrolling extends OPT_CompilerPhase {
   }
 
   // inserts unrollFactor copies of the loop after seqStart
-  static OPT_BasicBlock[] makeSomeCopies(int unrollFactor, OPT_IR ir,
-                                         OPT_BitVector nloop,
-                                         int blocks,
-                                         OPT_BasicBlock header,
-                                         OPT_BasicBlock exitBlock,
-                                         OPT_BasicBlock seqStart) {
+  static OPT_BasicBlock[] makeSomeCopies(int unrollFactor, OPT_IR ir, OPT_BitVector nloop, int blocks,
+                                         OPT_BasicBlock header, OPT_BasicBlock exitBlock, OPT_BasicBlock seqStart) {
     // make some copies of the original loop
 
     // first, capture the blocks in the loop body.
@@ -973,9 +936,7 @@ public class OPT_LoopUnrolling extends OPT_CompilerPhase {
     return handles;
   }
 
-  static OPT_BasicBlock copyAndLinkBlock(OPT_IR ir,
-                                         OPT_BasicBlock seqLast,
-                                         OPT_BasicBlock block) {
+  static OPT_BasicBlock copyAndLinkBlock(OPT_IR ir, OPT_BasicBlock seqLast, OPT_BasicBlock block) {
     OPT_BasicBlock copy = block.copyWithoutLinks(ir);
     ir.cfg.linkInCodeOrder(seqLast, copy);
     block.scratchObject = copy;
@@ -1040,9 +1001,7 @@ public class OPT_LoopUnrolling extends OPT_CompilerPhase {
 
     public boolean hasMoreElements() {
 
-      return use != null
-             || (others != null && others.hasMoreElements())
-             || (defs != null && defs.hasMoreElements());
+      return use != null || (others != null && others.hasMoreElements()) || (defs != null && defs.hasMoreElements());
     }
 
     public OPT_Operand nextElement() {

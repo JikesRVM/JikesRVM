@@ -184,8 +184,7 @@ public final class OPT_TrapCodeOperand extends OPT_Operand {
    *           if they are not.
    */
   public boolean similar(OPT_Operand op) {
-    return op instanceof OPT_TrapCodeOperand &&
-           ((OPT_TrapCodeOperand) op).trapCode == trapCode;
+    return op instanceof OPT_TrapCodeOperand && ((OPT_TrapCodeOperand) op).trapCode == trapCode;
   }
 
   /**

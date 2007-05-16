@@ -41,8 +41,7 @@ public final class OPT_WeightedBranchTargets {
     max = 0;
 
     float prob = 1f;
-    for (OPT_InstructionEnumeration ie = bb.enumerateBranchInstructions();
-         ie.hasMoreElements();) {
+    for (OPT_InstructionEnumeration ie = bb.enumerateBranchInstructions(); ie.hasMoreElements();) {
       OPT_Instruction s = ie.next();
       if (IfCmp.conforms(s)) {
         OPT_BasicBlock target = IfCmp.getTarget(s).target.getBasicBlock();

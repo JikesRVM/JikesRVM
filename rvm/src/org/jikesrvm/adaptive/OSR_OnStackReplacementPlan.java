@@ -54,13 +54,8 @@ public class OSR_OnStackReplacementPlan implements VM_Constants {
   private int timeInitiated = -1;
   private int timeCompleted = -1;
 
-  public OSR_OnStackReplacementPlan(VM_Thread thread,
-                                    OPT_CompilationPlan cp,
-                                    int cmid,
-                                    int source,
-                                    Offset tsoff,
-                                    Offset ypoff,
-                                    double priority) {
+  public OSR_OnStackReplacementPlan(VM_Thread thread, OPT_CompilationPlan cp, int cmid, int source, Offset tsoff,
+                                    Offset ypoff, double priority) {
     this.suspendedThread = thread;
     this.compPlan = cp;
     this.CMID = cmid;
@@ -116,10 +111,7 @@ public class OSR_OnStackReplacementPlan implements VM_Constants {
 
       ////////
       // states is a list of state: callee -> caller -> caller
-      OSR_ExecutionState state = extractor.extractState(suspendedThread,
-                                                        this.tsFromFPoff,
-                                                        this.ypTakenFPoff,
-                                                        CMID);
+      OSR_ExecutionState state = extractor.extractState(suspendedThread, this.tsFromFPoff, this.ypTakenFPoff, CMID);
 
       if (invalidate) {
         VM_AOSLogging.debug("Invalidate cmid " + CMID);

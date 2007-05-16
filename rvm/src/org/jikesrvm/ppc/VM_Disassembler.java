@@ -126,100 +126,123 @@ public class VM_Disassembler implements VM_ArchConstants {
   // for testing purposes
   public static void main(String[] args) {
 
-    int instr = Integer.parseInt(args[0],16);
-    int addr =  Integer.parseInt(args[1],16);
-    System.out.println("instr = "+intAsHexString(instr)+" addr = "+
-       intAsHexString(addr));
-    System.out.println("result --> "+disasm(instr, addr));
+    int instr = Integer.parseInt(args[0], 16);
+    int addr = Integer.parseInt(args[1], 16);
+    System.out.println("instr = " + intAsHexString(instr) + " addr = " + intAsHexString(addr));
+    System.out.println("result --> " + disasm(instr, addr));
 
   }
 
-  static int bits (int x, int n, int m) {
-    return ((x >> (31-m)) & ((1 << (m-n+1)) - 1));
+  static int bits(int x, int n, int m) {
+    return ((x >> (31 - m)) & ((1 << (m - n + 1)) - 1));
   }
 
-  static int signed (int x, int n, int m) {
-    return ((x << n) >> 31-m+n);
+  static int signed(int x, int n, int m) {
+    return ((x << n) >> 31 - m + n);
   }
 
   static String rname(int n) {
     String rvmName;
-    if (n>=0 && n<=31)
+    if (n >= 0 && n <= 31) {
       rvmName = GPR_NAMES[n];
-    else if (n>=128 && n<=135)
-      rvmName = FPR_NAMES[n-128];
-    else
+    } else if (n >= 128 && n <= 135) {
+      rvmName = FPR_NAMES[n - 128];
+    } else {
       switch (n) {
-      case IAR:  rvmName = "IAR"; break;
-      case MSR:  rvmName = "MSR"; break;
-      case CR:   rvmName = "CR"; break;
-      case LR:   rvmName = "LR"; break;
-      case CTR:  rvmName = "CTR"; break;
-      case XER:  rvmName = "XER"; break;
-      case MQ:   rvmName = "MQ"; break;
-      case TID:  rvmName = "TID"; break;
-      case FPSCR:   rvmName = "FPSCR"; break;
-      case FPINFO:  rvmName = "FPINFO"; break;
-      case FPSCRX:  rvmName = "FPSCRX"; break;
-      default: rvmName = "r" + n; break;
+        case IAR:
+          rvmName = "IAR";
+          break;
+        case MSR:
+          rvmName = "MSR";
+          break;
+        case CR:
+          rvmName = "CR";
+          break;
+        case LR:
+          rvmName = "LR";
+          break;
+        case CTR:
+          rvmName = "CTR";
+          break;
+        case XER:
+          rvmName = "XER";
+          break;
+        case MQ:
+          rvmName = "MQ";
+          break;
+        case TID:
+          rvmName = "TID";
+          break;
+        case FPSCR:
+          rvmName = "FPSCR";
+          break;
+        case FPINFO:
+          rvmName = "FPINFO";
+          break;
+        case FPSCRX:
+          rvmName = "FPSCRX";
+          break;
+        default:
+          rvmName = "r" + n;
+          break;
       }
+    }
     return rvmName;
   }
-
 
   static final int INST_SZ = 4;
 
   /* Special register fields */
-  static final int SPR_MQ  = 0;
-  static final int SPR_XER  = 1;
-  static final int SPR_LR  = 8;
-  static final int SPR_CTR  = 9;
-  static final int SPR_TID  = 17;
-  static final int SPR_DSISR= 18;
-  static final int SPR_DAR  = 19;
+  static final int SPR_MQ = 0;
+  static final int SPR_XER = 1;
+  static final int SPR_LR = 8;
+  static final int SPR_CTR = 9;
+  static final int SPR_TID = 17;
+  static final int SPR_DSISR = 18;
+  static final int SPR_DAR = 19;
   static final int SPR_RTCU = 20;
   static final int SPR_RTCL = 21;
-  static final int SPR_DEC  = 22;
+  static final int SPR_DEC = 22;
   static final int SPR_SDR0 = 24;
   static final int SPR_SDR1 = 25;
   static final int SPR_SRR0 = 26;
   static final int SPR_SRR1 = 27;
 
   /* Trap Options */
-  static final int TO_LT=16;
-  static final int TO_GT= 8;
-  static final int TO_EQ= 4;
-  static final int TO_LLT=   2;
-  static final int TO_LGT= 1;
+  static final int TO_LT = 16;
+  static final int TO_GT = 8;
+  static final int TO_EQ = 4;
+  static final int TO_LLT = 2;
+  static final int TO_LGT = 1;
 
   /* Different instruction formats */
 
-  static final int  D_FORM    = 0;
-  static final int  B_FORM    = 1;
-  static final int  I_FORM=     2;
-  static final int  SC_FORM =   3;
-  static final int  X_FORM   =  4;
-  static final int  XL_FORM   = 5;
-  static final int  XFX_FORM  = 6;
-  static final int  XFL_FORM  = 7;
-  static final int  XO_FORM   = 8;
-  static final int  A_FORM    = 9;
-  static final int  M_FORM    =10;
-  static final int  DS_FORM   =30;
-  static final int  XS_FORM   =31;
-  static final int  MD_FORM   =32;
-  static final int  MDS_FORM  =33;
+  static final int D_FORM = 0;
+  static final int B_FORM = 1;
+  static final int I_FORM = 2;
+  static final int SC_FORM = 3;
+  static final int X_FORM = 4;
+  static final int XL_FORM = 5;
+  static final int XFX_FORM = 6;
+  static final int XFL_FORM = 7;
+  static final int XO_FORM = 8;
+  static final int A_FORM = 9;
+  static final int M_FORM = 10;
+  static final int DS_FORM = 30;
+  static final int XS_FORM = 31;
+  static final int MD_FORM = 32;
+  static final int MDS_FORM = 33;
 
-  static final int  EXTENDED  =11;
-  static final int  INVALID_OP=12;
+  static final int EXTENDED = 11;
+  static final int INVALID_OP = 12;
 
   /* Condition register fields */
-  static final int CR_LT=8;
-  static final int CR_GT=4;
-  static final int CR_EQ=2;
-  static final int CR_SO=1;
+  static final int CR_LT = 8;
+  static final int CR_GT = 4;
+  static final int CR_EQ = 2;
+  static final int CR_SO = 1;
 
-  static final int X=9; // place holder
+  static final int X = 9; // place holder
 
   /*
    * Instruction decoder.
@@ -227,201 +250,195 @@ public class VM_Disassembler implements VM_ArchConstants {
   static int destination;
 
   static int[] opcode_to_form = {
-    /* table to convert opcode into */
-    /* instruction formats          */
+      /* table to convert opcode into */
+      /* instruction formats          */
 
-    /* FORM */
-    INVALID_OP, /* OPCODE 00 */
-    INVALID_OP, /* OPCODE 01 */
-    D_FORM,     /* OPCODE 02 */
-    D_FORM,     /* OPCODE 03 */
-    D_FORM,     /* OPCODE 04 */
-    D_FORM,     /* OPCODE 05 */
-    D_FORM,     /* OPCODE 06 */
-    D_FORM,     /* OPCODE 07 */
-    D_FORM,     /* OPCODE 08 */
-    D_FORM,     /* OPCODE 09 */
-    D_FORM,     /* OPCODE 10 */
-    D_FORM,     /* OPCODE 11 */
-    D_FORM,     /* OPCODE 12 */
-    D_FORM,     /* OPCODE 13 */
-    D_FORM,     /* OPCODE 14 */
-    D_FORM,     /* OPCODE 15 */
-    B_FORM,     /* OPCODE 16 */
-    SC_FORM,    /* OPCODE 17 */
-    I_FORM,     /* OPCODE 18 */
-    XL_FORM,    /* OPCODE 19 */
-    M_FORM,     /* OPCODE 20 */
-    M_FORM,     /* OPCODE 21 */
-    M_FORM,     /* OPCODE 22 */
-    M_FORM,     /* OPCODE 23 */
-    D_FORM,     /* OPCODE 24 */
-    D_FORM,     /* OPCODE 25 */
-    D_FORM,     /* OPCODE 26 */
-    D_FORM,     /* OPCODE 27 */
-    D_FORM,     /* OPCODE 28 */
-    D_FORM,     /* OPCODE 29 */
-    EXTENDED,   /* OPCODE 30 */
-    EXTENDED,   /* OPCODE 31 */
-    D_FORM,     /* OPCODE 32 */
-    D_FORM,     /* OPCODE 33 */
-    D_FORM,     /* OPCODE 34 */
-    D_FORM,     /* OPCODE 35 */
-    D_FORM,     /* OPCODE 36 */
-    D_FORM,     /* OPCODE 37 */
-    D_FORM,     /* OPCODE 38 */
-    D_FORM,     /* OPCODE 39 */
-    D_FORM,     /* OPCODE 40 */
-    D_FORM,     /* OPCODE 41 */
-    D_FORM,     /* OPCODE 42 */
-    D_FORM,     /* OPCODE 43 */
-    D_FORM,     /* OPCODE 44 */
-    D_FORM,     /* OPCODE 45 */
-    D_FORM,     /* OPCODE 46 */
-    D_FORM,     /* OPCODE 47 */
-    D_FORM,     /* OPCODE 48 */
-    D_FORM,     /* OPCODE 49 */
-    D_FORM,     /* OPCODE 50 */
-    D_FORM,     /* OPCODE 51 */
-    D_FORM,     /* OPCODE 52 */
-    D_FORM,     /* OPCODE 53 */
-    D_FORM,     /* OPCODE 54 */
-    D_FORM,     /* OPCODE 55 */
-    INVALID_OP, /* OPCODE 56 */
-    INVALID_OP, /* OPCODE 57 */
-    DS_FORM,    /* OPCODE 58 */
-    A_FORM,     /* OPCODE 59 */
-    INVALID_OP, /* OPCODE 60 */
-    INVALID_OP, /* OPCODE 61 */
-    DS_FORM,    /* OPCODE 62 */
-    EXTENDED    /* OPCODE 63 */
-  };
+      /* FORM */
+      INVALID_OP, /* OPCODE 00 */
+      INVALID_OP, /* OPCODE 01 */
+      D_FORM,     /* OPCODE 02 */
+      D_FORM,     /* OPCODE 03 */
+      D_FORM,     /* OPCODE 04 */
+      D_FORM,     /* OPCODE 05 */
+      D_FORM,     /* OPCODE 06 */
+      D_FORM,     /* OPCODE 07 */
+      D_FORM,     /* OPCODE 08 */
+      D_FORM,     /* OPCODE 09 */
+      D_FORM,     /* OPCODE 10 */
+      D_FORM,     /* OPCODE 11 */
+      D_FORM,     /* OPCODE 12 */
+      D_FORM,     /* OPCODE 13 */
+      D_FORM,     /* OPCODE 14 */
+      D_FORM,     /* OPCODE 15 */
+      B_FORM,     /* OPCODE 16 */
+      SC_FORM,    /* OPCODE 17 */
+      I_FORM,     /* OPCODE 18 */
+      XL_FORM,    /* OPCODE 19 */
+      M_FORM,     /* OPCODE 20 */
+      M_FORM,     /* OPCODE 21 */
+      M_FORM,     /* OPCODE 22 */
+      M_FORM,     /* OPCODE 23 */
+      D_FORM,     /* OPCODE 24 */
+      D_FORM,     /* OPCODE 25 */
+      D_FORM,     /* OPCODE 26 */
+      D_FORM,     /* OPCODE 27 */
+      D_FORM,     /* OPCODE 28 */
+      D_FORM,     /* OPCODE 29 */
+      EXTENDED,   /* OPCODE 30 */
+      EXTENDED,   /* OPCODE 31 */
+      D_FORM,     /* OPCODE 32 */
+      D_FORM,     /* OPCODE 33 */
+      D_FORM,     /* OPCODE 34 */
+      D_FORM,     /* OPCODE 35 */
+      D_FORM,     /* OPCODE 36 */
+      D_FORM,     /* OPCODE 37 */
+      D_FORM,     /* OPCODE 38 */
+      D_FORM,     /* OPCODE 39 */
+      D_FORM,     /* OPCODE 40 */
+      D_FORM,     /* OPCODE 41 */
+      D_FORM,     /* OPCODE 42 */
+      D_FORM,     /* OPCODE 43 */
+      D_FORM,     /* OPCODE 44 */
+      D_FORM,     /* OPCODE 45 */
+      D_FORM,     /* OPCODE 46 */
+      D_FORM,     /* OPCODE 47 */
+      D_FORM,     /* OPCODE 48 */
+      D_FORM,     /* OPCODE 49 */
+      D_FORM,     /* OPCODE 50 */
+      D_FORM,     /* OPCODE 51 */
+      D_FORM,     /* OPCODE 52 */
+      D_FORM,     /* OPCODE 53 */
+      D_FORM,     /* OPCODE 54 */
+      D_FORM,     /* OPCODE 55 */
+      INVALID_OP, /* OPCODE 56 */
+      INVALID_OP, /* OPCODE 57 */
+      DS_FORM,    /* OPCODE 58 */
+      A_FORM,     /* OPCODE 59 */
+      INVALID_OP, /* OPCODE 60 */
+      INVALID_OP, /* OPCODE 61 */
+      DS_FORM,    /* OPCODE 62 */
+      EXTENDED    /* OPCODE 63 */};
 
   static VM_OpcodeTab[] Dform = {
 
-    /* Table for the D instruction format */
+      /* Table for the D instruction format */
 
-    /*   OPCD     EO                                format      mnemonic   */
-    /*   ----     --                                ------      --------   */
-    /*    0,      XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
-    /*    1,      XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
-    /*    2,      XXX,     */  new VM_OpcodeTab(      3,      "tdi"),
-    /*    3,      XXX,     */  new VM_OpcodeTab(      3,      "twi"     ),
-    /*    4,      XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
+      /*   OPCD     EO                                format      mnemonic   */
+      /*   ----     --                                ------      --------   */
+      /*    0,      XXX,     */  new VM_OpcodeTab(X, "RESERVED"),
+      /*    1,      XXX,     */  new VM_OpcodeTab(X, "RESERVED"),
+      /*    2,      XXX,     */  new VM_OpcodeTab(3, "tdi"),
+      /*    3,      XXX,     */  new VM_OpcodeTab(3, "twi"),
+      /*    4,      XXX,     */  new VM_OpcodeTab(X, "RESERVED"),
 
-    /*    5,      XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
-    /*    6,      XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
-    /*    7,      XXX,     */  new VM_OpcodeTab(      0,      "mulli"   ),
-    /*    8,      XXX,     */  new VM_OpcodeTab(      0,      "subfic"  ),
-    /*    9,      XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
+      /*    5,      XXX,     */  new VM_OpcodeTab(X, "RESERVED"),
+      /*    6,      XXX,     */  new VM_OpcodeTab(X, "RESERVED"),
+      /*    7,      XXX,     */  new VM_OpcodeTab(0, "mulli"),
+      /*    8,      XXX,     */  new VM_OpcodeTab(0, "subfic"),
+      /*    9,      XXX,     */  new VM_OpcodeTab(X, "RESERVED"),
 
-    /*    10,     XXX,     */  new VM_OpcodeTab(      4,      "cmpli"   ),
-    /*    11,     XXX,     */  new VM_OpcodeTab(      4,      "cmpi"    ),
-    /*    12,     XXX,     */  new VM_OpcodeTab(      0,      "addic"   ),
-    /*    13,     XXX,     */  new VM_OpcodeTab(      0,      "addic."  ),
-    /*    14,     XXX,     */  new VM_OpcodeTab(      2,      "addi"    ),
+      /*    10,     XXX,     */  new VM_OpcodeTab(4, "cmpli"),
+      /*    11,     XXX,     */  new VM_OpcodeTab(4, "cmpi"),
+      /*    12,     XXX,     */  new VM_OpcodeTab(0, "addic"),
+      /*    13,     XXX,     */  new VM_OpcodeTab(0, "addic."),
+      /*    14,     XXX,     */  new VM_OpcodeTab(2, "addi"),
 
-    /*    15,     XXX,     */  new VM_OpcodeTab(      0,      "addis"   ),
-    /*    16,     XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
-    /*    17,     XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
-    /*    18,     XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
-    /*    19,     XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
+      /*    15,     XXX,     */  new VM_OpcodeTab(0, "addis"),
+      /*    16,     XXX,     */  new VM_OpcodeTab(X, "RESERVED"),
+      /*    17,     XXX,     */  new VM_OpcodeTab(X, "RESERVED"),
+      /*    18,     XXX,     */  new VM_OpcodeTab(X, "RESERVED"),
+      /*    19,     XXX,     */  new VM_OpcodeTab(X, "RESERVED"),
 
-    /*    20,     XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
-    /*    21,     XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
-    /*    22,     XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
-    /*    23,     XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
-    /*    24,     XXX,     */  new VM_OpcodeTab(      1,      "ori"     ),
+      /*    20,     XXX,     */  new VM_OpcodeTab(X, "RESERVED"),
+      /*    21,     XXX,     */  new VM_OpcodeTab(X, "RESERVED"),
+      /*    22,     XXX,     */  new VM_OpcodeTab(X, "RESERVED"),
+      /*    23,     XXX,     */  new VM_OpcodeTab(X, "RESERVED"),
+      /*    24,     XXX,     */  new VM_OpcodeTab(1, "ori"),
 
-    /*    25,     XXX,     */  new VM_OpcodeTab(      1,      "oris"    ),
-    /*    26,     XXX,     */  new VM_OpcodeTab(      1,      "xori"    ),
-    /*    27,     XXX,     */  new VM_OpcodeTab(      1,      "xoris"   ),
-    /*    28,     XXX,     */  new VM_OpcodeTab(      1,      "andi. "  ),
-    /*    29,     XXX,     */  new VM_OpcodeTab(      1,      "andis."  ),
+      /*    25,     XXX,     */  new VM_OpcodeTab(1, "oris"),
+      /*    26,     XXX,     */  new VM_OpcodeTab(1, "xori"),
+      /*    27,     XXX,     */  new VM_OpcodeTab(1, "xoris"),
+      /*    28,     XXX,     */  new VM_OpcodeTab(1, "andi. "),
+      /*    29,     XXX,     */  new VM_OpcodeTab(1, "andis."),
 
-    /*    30,     XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
-    /*    31,     XXX,     */  new VM_OpcodeTab(      X,      "RESERVED"),
-    /*    32,     XXX,     */  new VM_OpcodeTab(      2,      "lwz"     ),
-    /*    33,     XXX,     */  new VM_OpcodeTab(      2,      "lwzu"    ),
-    /*    34,     XXX,     */  new VM_OpcodeTab(      2,      "lbz"     ),
+      /*    30,     XXX,     */  new VM_OpcodeTab(X, "RESERVED"),
+      /*    31,     XXX,     */  new VM_OpcodeTab(X, "RESERVED"),
+      /*    32,     XXX,     */  new VM_OpcodeTab(2, "lwz"),
+      /*    33,     XXX,     */  new VM_OpcodeTab(2, "lwzu"),
+      /*    34,     XXX,     */  new VM_OpcodeTab(2, "lbz"),
 
-    /*    35,     XXX,     */  new VM_OpcodeTab(      2,      "lbzu"    ),
-    /*    36,     XXX,     */  new VM_OpcodeTab(      2,      "stw"     ),
-    /*    37,     XXX,     */  new VM_OpcodeTab(      2,      "stwu"    ),
-    /*    38,     XXX,     */  new VM_OpcodeTab(      2,      "stb"     ),
-    /*    39,     XXX,     */  new VM_OpcodeTab(      2,      "stbu"    ),
+      /*    35,     XXX,     */  new VM_OpcodeTab(2, "lbzu"),
+      /*    36,     XXX,     */  new VM_OpcodeTab(2, "stw"),
+      /*    37,     XXX,     */  new VM_OpcodeTab(2, "stwu"),
+      /*    38,     XXX,     */  new VM_OpcodeTab(2, "stb"),
+      /*    39,     XXX,     */  new VM_OpcodeTab(2, "stbu"),
 
-    /*    40,     XXX,     */  new VM_OpcodeTab(      2,      "lhz"     ),
-    /*    41,     XXX,     */  new VM_OpcodeTab(      2,      "lhzu"    ),
-    /*    42,     XXX,     */  new VM_OpcodeTab(      2,      "lha"     ),
-    /*    43,     XXX,     */  new VM_OpcodeTab(      2,      "lhau"    ),
-    /*    44,     XXX,     */  new VM_OpcodeTab(      2,      "sth"     ),
+      /*    40,     XXX,     */  new VM_OpcodeTab(2, "lhz"),
+      /*    41,     XXX,     */  new VM_OpcodeTab(2, "lhzu"),
+      /*    42,     XXX,     */  new VM_OpcodeTab(2, "lha"),
+      /*    43,     XXX,     */  new VM_OpcodeTab(2, "lhau"),
+      /*    44,     XXX,     */  new VM_OpcodeTab(2, "sth"),
 
-    /*    45,     XXX,     */  new VM_OpcodeTab(      2,      "sthu"    ),
-    /*    46,     XXX,     */  new VM_OpcodeTab(      2,      "lmw"     ),
-    /*    47,     XXX,     */  new VM_OpcodeTab(      2,      "stmw"    ),
-    /*    48,     XXX,     */  new VM_OpcodeTab(      5,      "lfs"     ),
-    /*    49,     XXX,     */  new VM_OpcodeTab(      5,      "lfsu"    ),
+      /*    45,     XXX,     */  new VM_OpcodeTab(2, "sthu"),
+      /*    46,     XXX,     */  new VM_OpcodeTab(2, "lmw"),
+      /*    47,     XXX,     */  new VM_OpcodeTab(2, "stmw"),
+      /*    48,     XXX,     */  new VM_OpcodeTab(5, "lfs"),
+      /*    49,     XXX,     */  new VM_OpcodeTab(5, "lfsu"),
 
-    /*    50,     XXX,     */  new VM_OpcodeTab(      5,      "lfd"     ),
-    /*    51,     XXX,     */  new VM_OpcodeTab(      5,      "lfdu"    ),
-    /*    52,     XXX,     */  new VM_OpcodeTab(      5,      "stfs"    ),
-    /*    53,     XXX,     */  new VM_OpcodeTab(      5,      "stfsu"   ),
-    /*    54,     XXX,     */  new VM_OpcodeTab(      5,      "stfd"    ),
+      /*    50,     XXX,     */  new VM_OpcodeTab(5, "lfd"),
+      /*    51,     XXX,     */  new VM_OpcodeTab(5, "lfdu"),
+      /*    52,     XXX,     */  new VM_OpcodeTab(5, "stfs"),
+      /*    53,     XXX,     */  new VM_OpcodeTab(5, "stfsu"),
+      /*    54,     XXX,     */  new VM_OpcodeTab(5, "stfd"),
 
-    /*    55,     XXX,     */  new VM_OpcodeTab(      5,      "stfdu"   )
-  };
-
+      /*    55,     XXX,     */  new VM_OpcodeTab(5, "stfdu")};
 
   static VM_OpcodeTab[] XLform = {
 
-    /* Table for the XL instruction format */
+      /* Table for the XL instruction format */
 
-    /*   OPCD      EO                            format     mnemonic      */
-    /*   ----      --                            ------     --------      */
-    /*    19,      0,      */  new VM_OpcodeTab(        2,        "mcrf"   ),
-    /*    19,      16,     */  new VM_OpcodeTab(        1,        "bclr or bclrl"),
-    /*    19,      33,     */  new VM_OpcodeTab(        3,        "crnor"   ),
-    /*    19,      50,     */  new VM_OpcodeTab(        0,        "rfi"   ),
-    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
+      /*   OPCD      EO                            format     mnemonic      */
+      /*   ----      --                            ------     --------      */
+      /*    19,      0,      */  new VM_OpcodeTab(2, "mcrf"),
+      /*    19,      16,     */  new VM_OpcodeTab(1, "bclr or bclrl"),
+      /*    19,      33,     */  new VM_OpcodeTab(3, "crnor"),
+      /*    19,      50,     */  new VM_OpcodeTab(0, "rfi"),
+      /*    19,      XXX,    */  new VM_OpcodeTab(X, "RESERVED"),
 
-    /*    19,      XXX,     */  new VM_OpcodeTab(        X,        "RESERVED"   ),
-    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
-    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
-    /*    19,      129,    */  new VM_OpcodeTab(        3,        "crandc"   ),
-    /*    19,      150,    */  new VM_OpcodeTab(        0,        "isync"   ),
+      /*    19,      XXX,     */  new VM_OpcodeTab(X, "RESERVED"),
+      /*    19,      XXX,    */  new VM_OpcodeTab(X, "RESERVED"),
+      /*    19,      XXX,    */  new VM_OpcodeTab(X, "RESERVED"),
+      /*    19,      129,    */  new VM_OpcodeTab(3, "crandc"),
+      /*    19,      150,    */  new VM_OpcodeTab(0, "isync"),
 
-    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
-    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
-    /*    19,      193,    */  new VM_OpcodeTab(        3,        "crxor"   ),
-    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
-    /*    19,      225,    */  new VM_OpcodeTab(        3,        "crnand"   ),
+      /*    19,      XXX,    */  new VM_OpcodeTab(X, "RESERVED"),
+      /*    19,      XXX,    */  new VM_OpcodeTab(X, "RESERVED"),
+      /*    19,      193,    */  new VM_OpcodeTab(3, "crxor"),
+      /*    19,      XXX,    */  new VM_OpcodeTab(X, "RESERVED"),
+      /*    19,      225,    */  new VM_OpcodeTab(3, "crnand"),
 
-    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
-    /*    19,      257,    */  new VM_OpcodeTab(        3,        "crand"   ),
-    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
-    /*    19,      289,    */  new VM_OpcodeTab(        3,        "creqv"   ),
-    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
+      /*    19,      XXX,    */  new VM_OpcodeTab(X, "RESERVED"),
+      /*    19,      257,    */  new VM_OpcodeTab(3, "crand"),
+      /*    19,      XXX,    */  new VM_OpcodeTab(X, "RESERVED"),
+      /*    19,      289,    */  new VM_OpcodeTab(3, "creqv"),
+      /*    19,      XXX,    */  new VM_OpcodeTab(X, "RESERVED"),
 
-    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
-    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
-    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
-    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
-    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
+      /*    19,      XXX,    */  new VM_OpcodeTab(X, "RESERVED"),
+      /*    19,      XXX,    */  new VM_OpcodeTab(X, "RESERVED"),
+      /*    19,      XXX,    */  new VM_OpcodeTab(X, "RESERVED"),
+      /*    19,      XXX,    */  new VM_OpcodeTab(X, "RESERVED"),
+      /*    19,      XXX,    */  new VM_OpcodeTab(X, "RESERVED"),
 
-    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
-    /*    19,      417,    */  new VM_OpcodeTab(        3,        "crorc"   ),
-    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
-    /*    19,      449,    */  new VM_OpcodeTab(        3,        "cror"   ),
-    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
+      /*    19,      XXX,    */  new VM_OpcodeTab(X, "RESERVED"),
+      /*    19,      417,    */  new VM_OpcodeTab(3, "crorc"),
+      /*    19,      XXX,    */  new VM_OpcodeTab(X, "RESERVED"),
+      /*    19,      449,    */  new VM_OpcodeTab(3, "cror"),
+      /*    19,      XXX,    */  new VM_OpcodeTab(X, "RESERVED"),
 
-    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
-    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
-    /*    19,      XXX,    */  new VM_OpcodeTab(        X,        "RESERVED"   ),
-    /*    19,      528,    */  new VM_OpcodeTab(        1,        "bcctr or bcctrl")
-  };
-
-
+      /*    19,      XXX,    */  new VM_OpcodeTab(X, "RESERVED"),
+      /*    19,      XXX,    */  new VM_OpcodeTab(X, "RESERVED"),
+      /*    19,      XXX,    */  new VM_OpcodeTab(X, "RESERVED"),
+      /*    19,      528,    */  new VM_OpcodeTab(1, "bcctr or bcctrl")};
 
   /**
    *  Opcode 30 table:
@@ -433,20 +450,18 @@ public class VM_Disassembler implements VM_ArchConstants {
 
   static VM_OpcodeXX[] opcode30 = {
 
-    /*               key        form     format       mnemonic       */
-    /*               ---        ----     ------       --------       */
-    new VM_OpcodeXX(    0,         MD_FORM,        0,      "rldicl"  ),
-    new VM_OpcodeXX(    1,         MD_FORM,        0,      "rldicl"  ),
-    new VM_OpcodeXX(    2,         MD_FORM,        1,      "rldicr"  ),
-    new VM_OpcodeXX(    3,         MD_FORM,        1,      "rldicr"  ),
-    new VM_OpcodeXX(    4,         MD_FORM,        0,      "rldic"   ),
-    new VM_OpcodeXX(    5,         MD_FORM,        0,      "rldic"   ),
-    new VM_OpcodeXX(    6,         MD_FORM,        0,      "rldimi"  ),
-    new VM_OpcodeXX(    7,         MD_FORM,        0,      "rldimi"  ),
-    new VM_OpcodeXX(    8,         MDS_FORM,       0,      "rldcl"   ),
-    new VM_OpcodeXX(    9,         MDS_FORM,       1,      "rldcr"   )
-  };
-
+      /*               key        form     format       mnemonic       */
+      /*               ---        ----     ------       --------       */
+      new VM_OpcodeXX(0, MD_FORM, 0, "rldicl"),
+      new VM_OpcodeXX(1, MD_FORM, 0, "rldicl"),
+      new VM_OpcodeXX(2, MD_FORM, 1, "rldicr"),
+      new VM_OpcodeXX(3, MD_FORM, 1, "rldicr"),
+      new VM_OpcodeXX(4, MD_FORM, 0, "rldic"),
+      new VM_OpcodeXX(5, MD_FORM, 0, "rldic"),
+      new VM_OpcodeXX(6, MD_FORM, 0, "rldimi"),
+      new VM_OpcodeXX(7, MD_FORM, 0, "rldimi"),
+      new VM_OpcodeXX(8, MDS_FORM, 0, "rldcl"),
+      new VM_OpcodeXX(9, MDS_FORM, 1, "rldcr")};
 
   /**
    *  Opcode 31 table:
@@ -456,223 +471,219 @@ public class VM_Disassembler implements VM_ArchConstants {
    *  "format" is how the instruction should be printed (specific to the disassembler)
    */
 
-
   static VM_OpcodeXX[] opcode31 = {
 
-    /*                  key        form     format       mnemonic       */
-    /*                  ---        ----     ------       --------       */
-    new VM_OpcodeXX(        0,       X_FORM,     22,         "cmp"),
-    new VM_OpcodeXX(        8,       X_FORM,     24,         "tw"),
-    new VM_OpcodeXX(       16,      XO_FORM,      1,         "subfc"),
-    new VM_OpcodeXX(       17,      XO_FORM,      1,         "subfc."),
-    new VM_OpcodeXX(       20,      XO_FORM,      1,         "addc"),
-    new VM_OpcodeXX(       21,      XO_FORM,      1,         "addc."),
-    new VM_OpcodeXX(       38,       X_FORM,      2,         "mfcr"),
-    new VM_OpcodeXX(       46,       X_FORM,      7,         "lwzx"),
-    new VM_OpcodeXX(       48,       X_FORM,      8,         "slw"),
-    new VM_OpcodeXX(       49,       X_FORM,      8,         "slw."),
-    new VM_OpcodeXX(       52,       X_FORM,      9,         "cntlzw"),
-    new VM_OpcodeXX(       53,       X_FORM,      9,         "cntlzw."),
-    new VM_OpcodeXX(       56,       X_FORM,      8,         "and"),
-    new VM_OpcodeXX(       57,       X_FORM,      8,         "and."),
-    new VM_OpcodeXX(       64,       X_FORM,     22,         "cmpl"),
-    new VM_OpcodeXX(      110,       X_FORM,      7,         "lwzux"),
-    new VM_OpcodeXX(      120,       X_FORM,      8,         "andc"),
-    new VM_OpcodeXX(      121,       X_FORM,      8,         "andc."),
-    new VM_OpcodeXX(      166,       X_FORM,      2,         "mfmsr"),
-    new VM_OpcodeXX(      174,       X_FORM,      7,         "lbzx"),
-    new VM_OpcodeXX(      208,      XO_FORM,      0,         "neg"),
-    new VM_OpcodeXX(      209,      XO_FORM,      0,         "neg."),
-    new VM_OpcodeXX(      238,       X_FORM,      7,         "lbzux"),
-    new VM_OpcodeXX(      248,       X_FORM,      8,         "nor"),
-    new VM_OpcodeXX(      249,       X_FORM,      8,         "nor."),
-    new VM_OpcodeXX(      272,      XO_FORM,      1,         "subfe"),
-    new VM_OpcodeXX(      273,      XO_FORM,      1,         "subfe."),
-    new VM_OpcodeXX(      276,      XO_FORM,      1,         "adde"),
-    new VM_OpcodeXX(      277,      XO_FORM,      1,         "adde."),
-    new VM_OpcodeXX(      288,     XFX_FORM,      9,         "mtcrf"),
-    new VM_OpcodeXX(      292,       X_FORM,      2,         "mtmsr"),
-    new VM_OpcodeXX(      302,       X_FORM,      7,         "stwx"),
-    new VM_OpcodeXX(      366,       X_FORM,      7,         "stwux"),
-    new VM_OpcodeXX(      400,      XO_FORM,      0,         "subfze"),
-    new VM_OpcodeXX(      401,      XO_FORM,      0,         "subfze."),
-    new VM_OpcodeXX(      404,      XO_FORM,      0,         "addze"),
-    new VM_OpcodeXX(      405,      XO_FORM,      0,         "addze."),
-    new VM_OpcodeXX(      430,       X_FORM,      7,         "stbx"),
-    new VM_OpcodeXX(      464,      XO_FORM,      0,         "subfme"),
-    new VM_OpcodeXX(      465,      XO_FORM,      0,         "subfme."),
-    new VM_OpcodeXX(      468,      XO_FORM,      0,         "addme"),
-    new VM_OpcodeXX(      469,      XO_FORM,      0,         "addme."),
-    new VM_OpcodeXX(      470,      XO_FORM,      1,         "mullw"),
-    new VM_OpcodeXX(      471,      XO_FORM,      1,         "mullw."),
-    new VM_OpcodeXX(      494,       X_FORM,      7,         "stbux"),
-    new VM_OpcodeXX(      532,      XO_FORM,      1,         "add"),
-    new VM_OpcodeXX(      533,      XO_FORM,      1,         "add."),
-    new VM_OpcodeXX(      558,       X_FORM,      7,         "lhzx"),
-    new VM_OpcodeXX(      568,       X_FORM,      8,         "eqv"),
-    new VM_OpcodeXX(      569,       X_FORM,      8,         "eqv."),
-    new VM_OpcodeXX(      612,       X_FORM,      6,         "tlbie"),
-    new VM_OpcodeXX(      622,       X_FORM,      7,         "lhzux"),
-    new VM_OpcodeXX(      632,       X_FORM,      8,         "xor"),
-    new VM_OpcodeXX(      633,       X_FORM,      8,         "xor."),
-    new VM_OpcodeXX(      678,       X_FORM,      3,         "mfspr"),
-    new VM_OpcodeXX(      686,       X_FORM,      7,         "lhax"),
-    new VM_OpcodeXX(      750,       X_FORM,      7,         "lhaux"),
-    new VM_OpcodeXX(      814,       X_FORM,      7,         "sthx"),
-    new VM_OpcodeXX(      824,       X_FORM,      8,         "orc"),
-    new VM_OpcodeXX(      825,       X_FORM,      8,         "orc."),
-    new VM_OpcodeXX(      878,       X_FORM,      7,         "sthux"),
-    new VM_OpcodeXX(      888,       X_FORM,      8,         "or"),
-    new VM_OpcodeXX(      889,       X_FORM,      8,         "or."),
-    new VM_OpcodeXX(      934,       X_FORM,      3,         "mtspr"),
-    new VM_OpcodeXX(      952,       X_FORM,      8,         "nand"),
-    new VM_OpcodeXX(      953,       X_FORM,      8,         "nand."),
-    new VM_OpcodeXX(     1024,       X_FORM,     23,         "mcrxr"),
-    new VM_OpcodeXX(     1040,      XO_FORM,      1,         "subfco"),
-    new VM_OpcodeXX(     1041,      XO_FORM,      1,         "subfco."),
-    new VM_OpcodeXX(     1044,      XO_FORM,      1,         "addco"),
-    new VM_OpcodeXX(     1045,      XO_FORM,      1,         "addco."),
-    new VM_OpcodeXX(     1066,       X_FORM,      7,         "lswx"),
-    new VM_OpcodeXX(     1068,       X_FORM,      7,         "lwbrx"),
-    new VM_OpcodeXX(     1070,       X_FORM,     12,         "lfsx"),
-    new VM_OpcodeXX(     1072,       X_FORM,      8,         "srw"),
-    new VM_OpcodeXX(     1073,       X_FORM,      8,         "srw."),
-    new VM_OpcodeXX(     1134,       X_FORM,     12,         "lfsux"),
-    new VM_OpcodeXX(     1194,       X_FORM,     10,         "lswi"),
-    new VM_OpcodeXX(     1196,       X_FORM,      1,         "sync"),
-    new VM_OpcodeXX(     1198,       X_FORM,     12,         "lfdx"),
-    new VM_OpcodeXX(     1262,       X_FORM,     12,         "lfdux"),
-    new VM_OpcodeXX(     1232,      XO_FORM,      0,         "nego"),
-    new VM_OpcodeXX(     1233,      XO_FORM,      0,         "nego."),
-    new VM_OpcodeXX(     1296,      XO_FORM,      1,         "subfeo"),
-    new VM_OpcodeXX(     1297,      XO_FORM,      1,         "subfeo."),
-    new VM_OpcodeXX(     1300,      XO_FORM,      1,         "addeo"),
-    new VM_OpcodeXX(     1301,      XO_FORM,      1,         "addeo."),
-    new VM_OpcodeXX(     1322,       X_FORM,      7,         "stswx"),
-    new VM_OpcodeXX(     1324,       X_FORM,      7,         "stwbrx"),
-    new VM_OpcodeXX(     1326,       X_FORM,     12,         "stfsx"),
-    new VM_OpcodeXX(     1390,       X_FORM,     12,         "stfsux"),
-    new VM_OpcodeXX(     1424,      XO_FORM,      0,         "subfzeo"),
-    new VM_OpcodeXX(     1425,      XO_FORM,      0,         "subfzeo."),
-    new VM_OpcodeXX(     1428,      XO_FORM,      0,         "addzeo."),
-    new VM_OpcodeXX(     1429,      XO_FORM,      0,         "addzeo."),
-    new VM_OpcodeXX(     1450,       X_FORM,     10,         "stswi"),
-    new VM_OpcodeXX(     1454,       X_FORM,     12,         "stfdx"),
-    new VM_OpcodeXX(     1488,      XO_FORM,      0,         "subfmeo."),
-    new VM_OpcodeXX(     1489,      XO_FORM,      0,         "subfmeo."),
-    new VM_OpcodeXX(     1492,      XO_FORM,      0,         "addmeo"),
-    new VM_OpcodeXX(     1493,      XO_FORM,      0,         "addmeo."),
-    new VM_OpcodeXX(     1494,      XO_FORM,      1,         "mullwo."),
-    new VM_OpcodeXX(     1495,      XO_FORM,      1,         "mullwo."),
-    new VM_OpcodeXX(     1518,       X_FORM,     12,         "stfdux"),
-    new VM_OpcodeXX(     1556,      XO_FORM,      1,         "addo"),
-    new VM_OpcodeXX(     1557,      XO_FORM,      1,         "addo."),
-    new VM_OpcodeXX(     1580,       X_FORM,      7,         "lhbrx"),
-    new VM_OpcodeXX(     1584,       X_FORM,      8,         "sraw"),
-    new VM_OpcodeXX(     1585,       X_FORM,      8,         "sraw."),
-    new VM_OpcodeXX(     1648,       X_FORM,     11,         "srawi"),
-    new VM_OpcodeXX(     1649,       X_FORM,     11,         "srawi."),
-    new VM_OpcodeXX(     1836,       X_FORM,      7,         "sthbrx"),
-    new VM_OpcodeXX(     1844,       X_FORM,      9,         "extsh"),
-    new VM_OpcodeXX(     1845,       X_FORM,      9,         "extsh."),
-    new VM_OpcodeXX(     2028,       X_FORM,      6,         "dcbz"),
+      /*                  key        form     format       mnemonic       */
+      /*                  ---        ----     ------       --------       */
+      new VM_OpcodeXX(0, X_FORM, 22, "cmp"),
+      new VM_OpcodeXX(8, X_FORM, 24, "tw"),
+      new VM_OpcodeXX(16, XO_FORM, 1, "subfc"),
+      new VM_OpcodeXX(17, XO_FORM, 1, "subfc."),
+      new VM_OpcodeXX(20, XO_FORM, 1, "addc"),
+      new VM_OpcodeXX(21, XO_FORM, 1, "addc."),
+      new VM_OpcodeXX(38, X_FORM, 2, "mfcr"),
+      new VM_OpcodeXX(46, X_FORM, 7, "lwzx"),
+      new VM_OpcodeXX(48, X_FORM, 8, "slw"),
+      new VM_OpcodeXX(49, X_FORM, 8, "slw."),
+      new VM_OpcodeXX(52, X_FORM, 9, "cntlzw"),
+      new VM_OpcodeXX(53, X_FORM, 9, "cntlzw."),
+      new VM_OpcodeXX(56, X_FORM, 8, "and"),
+      new VM_OpcodeXX(57, X_FORM, 8, "and."),
+      new VM_OpcodeXX(64, X_FORM, 22, "cmpl"),
+      new VM_OpcodeXX(110, X_FORM, 7, "lwzux"),
+      new VM_OpcodeXX(120, X_FORM, 8, "andc"),
+      new VM_OpcodeXX(121, X_FORM, 8, "andc."),
+      new VM_OpcodeXX(166, X_FORM, 2, "mfmsr"),
+      new VM_OpcodeXX(174, X_FORM, 7, "lbzx"),
+      new VM_OpcodeXX(208, XO_FORM, 0, "neg"),
+      new VM_OpcodeXX(209, XO_FORM, 0, "neg."),
+      new VM_OpcodeXX(238, X_FORM, 7, "lbzux"),
+      new VM_OpcodeXX(248, X_FORM, 8, "nor"),
+      new VM_OpcodeXX(249, X_FORM, 8, "nor."),
+      new VM_OpcodeXX(272, XO_FORM, 1, "subfe"),
+      new VM_OpcodeXX(273, XO_FORM, 1, "subfe."),
+      new VM_OpcodeXX(276, XO_FORM, 1, "adde"),
+      new VM_OpcodeXX(277, XO_FORM, 1, "adde."),
+      new VM_OpcodeXX(288, XFX_FORM, 9, "mtcrf"),
+      new VM_OpcodeXX(292, X_FORM, 2, "mtmsr"),
+      new VM_OpcodeXX(302, X_FORM, 7, "stwx"),
+      new VM_OpcodeXX(366, X_FORM, 7, "stwux"),
+      new VM_OpcodeXX(400, XO_FORM, 0, "subfze"),
+      new VM_OpcodeXX(401, XO_FORM, 0, "subfze."),
+      new VM_OpcodeXX(404, XO_FORM, 0, "addze"),
+      new VM_OpcodeXX(405, XO_FORM, 0, "addze."),
+      new VM_OpcodeXX(430, X_FORM, 7, "stbx"),
+      new VM_OpcodeXX(464, XO_FORM, 0, "subfme"),
+      new VM_OpcodeXX(465, XO_FORM, 0, "subfme."),
+      new VM_OpcodeXX(468, XO_FORM, 0, "addme"),
+      new VM_OpcodeXX(469, XO_FORM, 0, "addme."),
+      new VM_OpcodeXX(470, XO_FORM, 1, "mullw"),
+      new VM_OpcodeXX(471, XO_FORM, 1, "mullw."),
+      new VM_OpcodeXX(494, X_FORM, 7, "stbux"),
+      new VM_OpcodeXX(532, XO_FORM, 1, "add"),
+      new VM_OpcodeXX(533, XO_FORM, 1, "add."),
+      new VM_OpcodeXX(558, X_FORM, 7, "lhzx"),
+      new VM_OpcodeXX(568, X_FORM, 8, "eqv"),
+      new VM_OpcodeXX(569, X_FORM, 8, "eqv."),
+      new VM_OpcodeXX(612, X_FORM, 6, "tlbie"),
+      new VM_OpcodeXX(622, X_FORM, 7, "lhzux"),
+      new VM_OpcodeXX(632, X_FORM, 8, "xor"),
+      new VM_OpcodeXX(633, X_FORM, 8, "xor."),
+      new VM_OpcodeXX(678, X_FORM, 3, "mfspr"),
+      new VM_OpcodeXX(686, X_FORM, 7, "lhax"),
+      new VM_OpcodeXX(750, X_FORM, 7, "lhaux"),
+      new VM_OpcodeXX(814, X_FORM, 7, "sthx"),
+      new VM_OpcodeXX(824, X_FORM, 8, "orc"),
+      new VM_OpcodeXX(825, X_FORM, 8, "orc."),
+      new VM_OpcodeXX(878, X_FORM, 7, "sthux"),
+      new VM_OpcodeXX(888, X_FORM, 8, "or"),
+      new VM_OpcodeXX(889, X_FORM, 8, "or."),
+      new VM_OpcodeXX(934, X_FORM, 3, "mtspr"),
+      new VM_OpcodeXX(952, X_FORM, 8, "nand"),
+      new VM_OpcodeXX(953, X_FORM, 8, "nand."),
+      new VM_OpcodeXX(1024, X_FORM, 23, "mcrxr"),
+      new VM_OpcodeXX(1040, XO_FORM, 1, "subfco"),
+      new VM_OpcodeXX(1041, XO_FORM, 1, "subfco."),
+      new VM_OpcodeXX(1044, XO_FORM, 1, "addco"),
+      new VM_OpcodeXX(1045, XO_FORM, 1, "addco."),
+      new VM_OpcodeXX(1066, X_FORM, 7, "lswx"),
+      new VM_OpcodeXX(1068, X_FORM, 7, "lwbrx"),
+      new VM_OpcodeXX(1070, X_FORM, 12, "lfsx"),
+      new VM_OpcodeXX(1072, X_FORM, 8, "srw"),
+      new VM_OpcodeXX(1073, X_FORM, 8, "srw."),
+      new VM_OpcodeXX(1134, X_FORM, 12, "lfsux"),
+      new VM_OpcodeXX(1194, X_FORM, 10, "lswi"),
+      new VM_OpcodeXX(1196, X_FORM, 1, "sync"),
+      new VM_OpcodeXX(1198, X_FORM, 12, "lfdx"),
+      new VM_OpcodeXX(1262, X_FORM, 12, "lfdux"),
+      new VM_OpcodeXX(1232, XO_FORM, 0, "nego"),
+      new VM_OpcodeXX(1233, XO_FORM, 0, "nego."),
+      new VM_OpcodeXX(1296, XO_FORM, 1, "subfeo"),
+      new VM_OpcodeXX(1297, XO_FORM, 1, "subfeo."),
+      new VM_OpcodeXX(1300, XO_FORM, 1, "addeo"),
+      new VM_OpcodeXX(1301, XO_FORM, 1, "addeo."),
+      new VM_OpcodeXX(1322, X_FORM, 7, "stswx"),
+      new VM_OpcodeXX(1324, X_FORM, 7, "stwbrx"),
+      new VM_OpcodeXX(1326, X_FORM, 12, "stfsx"),
+      new VM_OpcodeXX(1390, X_FORM, 12, "stfsux"),
+      new VM_OpcodeXX(1424, XO_FORM, 0, "subfzeo"),
+      new VM_OpcodeXX(1425, XO_FORM, 0, "subfzeo."),
+      new VM_OpcodeXX(1428, XO_FORM, 0, "addzeo."),
+      new VM_OpcodeXX(1429, XO_FORM, 0, "addzeo."),
+      new VM_OpcodeXX(1450, X_FORM, 10, "stswi"),
+      new VM_OpcodeXX(1454, X_FORM, 12, "stfdx"),
+      new VM_OpcodeXX(1488, XO_FORM, 0, "subfmeo."),
+      new VM_OpcodeXX(1489, XO_FORM, 0, "subfmeo."),
+      new VM_OpcodeXX(1492, XO_FORM, 0, "addmeo"),
+      new VM_OpcodeXX(1493, XO_FORM, 0, "addmeo."),
+      new VM_OpcodeXX(1494, XO_FORM, 1, "mullwo."),
+      new VM_OpcodeXX(1495, XO_FORM, 1, "mullwo."),
+      new VM_OpcodeXX(1518, X_FORM, 12, "stfdux"),
+      new VM_OpcodeXX(1556, XO_FORM, 1, "addo"),
+      new VM_OpcodeXX(1557, XO_FORM, 1, "addo."),
+      new VM_OpcodeXX(1580, X_FORM, 7, "lhbrx"),
+      new VM_OpcodeXX(1584, X_FORM, 8, "sraw"),
+      new VM_OpcodeXX(1585, X_FORM, 8, "sraw."),
+      new VM_OpcodeXX(1648, X_FORM, 11, "srawi"),
+      new VM_OpcodeXX(1649, X_FORM, 11, "srawi."),
+      new VM_OpcodeXX(1836, X_FORM, 7, "sthbrx"),
+      new VM_OpcodeXX(1844, X_FORM, 9, "extsh"),
+      new VM_OpcodeXX(1845, X_FORM, 9, "extsh."),
+      new VM_OpcodeXX(2028, X_FORM, 6, "dcbz"),
 
-    // these are the addition for the PowerPC
-    new VM_OpcodeXX(       172,     X_FORM,        6,       "dcbf"),
-    new VM_OpcodeXX(       940,     X_FORM,        6,       "dcbi"),
-    new VM_OpcodeXX(       108,     X_FORM,        6,       "dcbst"),
-    new VM_OpcodeXX(       556,     X_FORM,        6,       "dcbt"),
-    new VM_OpcodeXX(       492,     X_FORM,        6,       "dcbtst"),
-    new VM_OpcodeXX(       982,    XO_FORM,        1,       "divw"),
-    new VM_OpcodeXX(       983,    XO_FORM,        1,       "divw."),
-    new VM_OpcodeXX(       2006,   XO_FORM,        1,       "divwo"),
-    new VM_OpcodeXX(       2007,   XO_FORM,        1,       "divwo."),
-    new VM_OpcodeXX(       918,    XO_FORM,        1,       "divwu"),
-    new VM_OpcodeXX(       919,    XO_FORM,        1,       "divwu."),
-    new VM_OpcodeXX(       1942,   XO_FORM,        1,       "divwuo"),
-    new VM_OpcodeXX(       1943,   XO_FORM,        1,       "divwuo."),
-    new VM_OpcodeXX(       1708,    X_FORM,        1,       "eieio"),
-    new VM_OpcodeXX(       1908,    X_FORM,        0,       "extsb"),
-    new VM_OpcodeXX(       1909,    X_FORM,        0,       "extsb."),
-    new VM_OpcodeXX(       1964,    X_FORM,        6,       "icbi"),
-    new VM_OpcodeXX(       40,      X_FORM,        7,       "lwarx"),
-    new VM_OpcodeXX(       150,    XO_FORM,        1,       "mulhw"),
-    new VM_OpcodeXX(       151,    XO_FORM,        1,       "mulhw."),
-    new VM_OpcodeXX(       22,     XO_FORM,        1,       "mulhwu"),
-    new VM_OpcodeXX(       23,     XO_FORM,        1,       "mulhwu."),
-    new VM_OpcodeXX(       301,     X_FORM,        7,       "stwcx."),
-    new VM_OpcodeXX(       80,     XO_FORM,        1,       "subf"),
-    new VM_OpcodeXX(       81,     XO_FORM,        1,       "subf."),
-    new VM_OpcodeXX(       1104,   XO_FORM,        1,       "subfo"),
-    new VM_OpcodeXX(       1105,   XO_FORM,        1,       "subfo."),
+      // these are the addition for the PowerPC
+      new VM_OpcodeXX(172, X_FORM, 6, "dcbf"),
+      new VM_OpcodeXX(940, X_FORM, 6, "dcbi"),
+      new VM_OpcodeXX(108, X_FORM, 6, "dcbst"),
+      new VM_OpcodeXX(556, X_FORM, 6, "dcbt"),
+      new VM_OpcodeXX(492, X_FORM, 6, "dcbtst"),
+      new VM_OpcodeXX(982, XO_FORM, 1, "divw"),
+      new VM_OpcodeXX(983, XO_FORM, 1, "divw."),
+      new VM_OpcodeXX(2006, XO_FORM, 1, "divwo"),
+      new VM_OpcodeXX(2007, XO_FORM, 1, "divwo."),
+      new VM_OpcodeXX(918, XO_FORM, 1, "divwu"),
+      new VM_OpcodeXX(919, XO_FORM, 1, "divwu."),
+      new VM_OpcodeXX(1942, XO_FORM, 1, "divwuo"),
+      new VM_OpcodeXX(1943, XO_FORM, 1, "divwuo."),
+      new VM_OpcodeXX(1708, X_FORM, 1, "eieio"),
+      new VM_OpcodeXX(1908, X_FORM, 0, "extsb"),
+      new VM_OpcodeXX(1909, X_FORM, 0, "extsb."),
+      new VM_OpcodeXX(1964, X_FORM, 6, "icbi"),
+      new VM_OpcodeXX(40, X_FORM, 7, "lwarx"),
+      new VM_OpcodeXX(150, XO_FORM, 1, "mulhw"),
+      new VM_OpcodeXX(151, XO_FORM, 1, "mulhw."),
+      new VM_OpcodeXX(22, XO_FORM, 1, "mulhwu"),
+      new VM_OpcodeXX(23, XO_FORM, 1, "mulhwu."),
+      new VM_OpcodeXX(301, X_FORM, 7, "stwcx."),
+      new VM_OpcodeXX(80, XO_FORM, 1, "subf"),
+      new VM_OpcodeXX(81, XO_FORM, 1, "subf."),
+      new VM_OpcodeXX(1104, XO_FORM, 1, "subfo"),
+      new VM_OpcodeXX(1105, XO_FORM, 1, "subfo."),
 
 // these are only valid for 32 bit architecture
-    new VM_OpcodeXX(      420,       X_FORM,     17,         "mtsr"),
-    new VM_OpcodeXX(      484,       X_FORM,      7,         "mtsrin"),
-    new VM_OpcodeXX(     1190,       X_FORM,     18,         "mfsr"),
-    new VM_OpcodeXX(     1318,       X_FORM,      4,         "mfsrin"),
+new VM_OpcodeXX(420, X_FORM, 17, "mtsr"),
+new VM_OpcodeXX(484, X_FORM, 7, "mtsrin"),
+new VM_OpcodeXX(1190, X_FORM, 18, "mfsr"),
+new VM_OpcodeXX(1318, X_FORM, 4, "mfsrin"),
 
 // these are the addition for the 64 bit specific instructions
-    new VM_OpcodeXX(       18,      XO_FORM,      2,         "mulhdu"),
-    new VM_OpcodeXX(       19,      XO_FORM,      2,         "mulhdu."),
-    new VM_OpcodeXX(       42,       X_FORM,      7,         "ldx"),
-    new VM_OpcodeXX(       43,       X_FORM,      7,         "ldx."),
-    new VM_OpcodeXX(       54,       X_FORM,      8,         "sld"),
-    new VM_OpcodeXX(       55,       X_FORM,      8,         "sld."),
-    new VM_OpcodeXX(      106,       X_FORM,      7,         "ldux"),
-    new VM_OpcodeXX(      107,       X_FORM,      7,         "ldux."),
-    new VM_OpcodeXX(      116,       X_FORM,      9,         "cntlzd"),
-    new VM_OpcodeXX(      117,       X_FORM,      9,         "cntlzd."),
-    new VM_OpcodeXX(      136,       X_FORM,     24,         "td"),
-    new VM_OpcodeXX(      146,      XO_FORM,      1,         "mulhd"),
-    new VM_OpcodeXX(      151,      XO_FORM,      1,         "mulhd."),
-    new VM_OpcodeXX(      168,       X_FORM,      7,         "ldarx"),
-    new VM_OpcodeXX(      298,       X_FORM,      7,         "stdx"),
-    new VM_OpcodeXX(      362,       X_FORM,      7,         "stdux"),
-    new VM_OpcodeXX(      429,       X_FORM,      7,         "stdcx."),
-    new VM_OpcodeXX(      466,      XO_FORM,      1,         "mulld"),
-    new VM_OpcodeXX(      467,      XO_FORM,      1,         "mulld."),
-    new VM_OpcodeXX(      682,       X_FORM,      7,         "lwax"),
-    new VM_OpcodeXX(      746,       X_FORM,      7,         "lwaux"),
-    new VM_OpcodeXX(     1652,      XS_FORM,      0,         "sradi"),
-    new VM_OpcodeXX(     1653,      XS_FORM,      0,         "sradi."),
-    new VM_OpcodeXX(     1654,      XS_FORM,      0,         "sradi"),
-    new VM_OpcodeXX(     1655,      XS_FORM,      0,         "sradi."),
-    new VM_OpcodeXX(      868,       X_FORM,      6,         "slbie"),
-    new VM_OpcodeXX(      914,      XO_FORM,      1,         "divdu"),
-    new VM_OpcodeXX(      915,      XO_FORM,      1,         "divdu."),
-    new VM_OpcodeXX(      978,      XO_FORM,      1,         "divd"),
-    new VM_OpcodeXX(      979,      XO_FORM,      1,         "divd."),
-    new VM_OpcodeXX(      996,       X_FORM,      1,         "slbia"),
-    new VM_OpcodeXX(     1078,       X_FORM,      8,         "srd"),
-    new VM_OpcodeXX(     1079,       X_FORM,      8,         "srd."),
-    new VM_OpcodeXX(     1588,       X_FORM,      8,         "srad"),
-    new VM_OpcodeXX(     1589,       X_FORM,      8,         "srad."),
-    new VM_OpcodeXX(     1972,       X_FORM,      9,         "extsw"),
-    new VM_OpcodeXX(     1973,       X_FORM,      9,         "extsw.")
-  };
+new VM_OpcodeXX(18, XO_FORM, 2, "mulhdu"),
+new VM_OpcodeXX(19, XO_FORM, 2, "mulhdu."),
+new VM_OpcodeXX(42, X_FORM, 7, "ldx"),
+new VM_OpcodeXX(43, X_FORM, 7, "ldx."),
+new VM_OpcodeXX(54, X_FORM, 8, "sld"),
+new VM_OpcodeXX(55, X_FORM, 8, "sld."),
+new VM_OpcodeXX(106, X_FORM, 7, "ldux"),
+new VM_OpcodeXX(107, X_FORM, 7, "ldux."),
+new VM_OpcodeXX(116, X_FORM, 9, "cntlzd"),
+new VM_OpcodeXX(117, X_FORM, 9, "cntlzd."),
+new VM_OpcodeXX(136, X_FORM, 24, "td"),
+new VM_OpcodeXX(146, XO_FORM, 1, "mulhd"),
+new VM_OpcodeXX(151, XO_FORM, 1, "mulhd."),
+new VM_OpcodeXX(168, X_FORM, 7, "ldarx"),
+new VM_OpcodeXX(298, X_FORM, 7, "stdx"),
+new VM_OpcodeXX(362, X_FORM, 7, "stdux"),
+new VM_OpcodeXX(429, X_FORM, 7, "stdcx."),
+new VM_OpcodeXX(466, XO_FORM, 1, "mulld"),
+new VM_OpcodeXX(467, XO_FORM, 1, "mulld."),
+new VM_OpcodeXX(682, X_FORM, 7, "lwax"),
+new VM_OpcodeXX(746, X_FORM, 7, "lwaux"),
+new VM_OpcodeXX(1652, XS_FORM, 0, "sradi"),
+new VM_OpcodeXX(1653, XS_FORM, 0, "sradi."),
+new VM_OpcodeXX(1654, XS_FORM, 0, "sradi"),
+new VM_OpcodeXX(1655, XS_FORM, 0, "sradi."),
+new VM_OpcodeXX(868, X_FORM, 6, "slbie"),
+new VM_OpcodeXX(914, XO_FORM, 1, "divdu"),
+new VM_OpcodeXX(915, XO_FORM, 1, "divdu."),
+new VM_OpcodeXX(978, XO_FORM, 1, "divd"),
+new VM_OpcodeXX(979, XO_FORM, 1, "divd."),
+new VM_OpcodeXX(996, X_FORM, 1, "slbia"),
+new VM_OpcodeXX(1078, X_FORM, 8, "srd"),
+new VM_OpcodeXX(1079, X_FORM, 8, "srd."),
+new VM_OpcodeXX(1588, X_FORM, 8, "srad"),
+new VM_OpcodeXX(1589, X_FORM, 8, "srad."),
+new VM_OpcodeXX(1972, X_FORM, 9, "extsw"),
+new VM_OpcodeXX(1973, X_FORM, 9, "extsw.")};
 
   static VM_OpcodeTab[] opcode58 = {
-    /* Table for the instruction format of opcode 58*/
+      /* Table for the instruction format of opcode 58*/
 
-    /*    EO                            format      mnemonic   */
-    /*   ----                           ------      --------   */
-    /*    0,    */  new VM_OpcodeTab(      0,      "ld"),
-    /*    1,    */  new VM_OpcodeTab(      0,      "ldu"),
-    /*    2,    */  new VM_OpcodeTab(      0,      "lwa"),
-    /*    3,    */  new VM_OpcodeTab(      X,      "RESERVED")
-  };
+      /*    EO                            format      mnemonic   */
+      /*   ----                           ------      --------   */
+      /*    0,    */  new VM_OpcodeTab(0, "ld"),
+      /*    1,    */  new VM_OpcodeTab(0, "ldu"),
+      /*    2,    */  new VM_OpcodeTab(0, "lwa"),
+      /*    3,    */  new VM_OpcodeTab(X, "RESERVED")};
 
   static VM_OpcodeTab[] opcode62 = {
-    /* Table for the instruction format of opcode 58*/
+      /* Table for the instruction format of opcode 58*/
 
-    /*    EO                            format      mnemonic   */
-    /*   ----                           ------      --------   */
-    /*    0,    */  new VM_OpcodeTab(      1,      "std"),
-    /*    1,    */  new VM_OpcodeTab(      1,      "stdu"),
-    /*    2,    */  new VM_OpcodeTab(      X,      "RESERVED"),
-    /*    3,    */  new VM_OpcodeTab(      X,      "RESERVED")
-  };
+      /*    EO                            format      mnemonic   */
+      /*   ----                           ------      --------   */
+      /*    0,    */  new VM_OpcodeTab(1, "std"),
+      /*    1,    */  new VM_OpcodeTab(1, "stdu"),
+      /*    2,    */  new VM_OpcodeTab(X, "RESERVED"),
+      /*    3,    */  new VM_OpcodeTab(X, "RESERVED")};
 
 /*  Opcode 63 table: The key is computed by taking
  *  bits 21 through 31 of the instruction. "Form" is
@@ -681,141 +692,163 @@ public class VM_Disassembler implements VM_ArchConstants {
 
   static VM_OpcodeXX[] opcode63 = {
 
-    /*                  key        form     format       mnemonic       */
-    /*                  ---        ----     ------       --------       */
-    new VM_OpcodeXX(        0,       X_FORM,     19,         "fcmpu"),
-    new VM_OpcodeXX(       24,       X_FORM,     21,         "frsp"),
-    new VM_OpcodeXX(       25,       X_FORM,     21,         "frsp."),
-    new VM_OpcodeXX(       28,       X_FORM,     21,         "fctiw"),
-    new VM_OpcodeXX(       29,       X_FORM,     21,         "fctiw."),
-    new VM_OpcodeXX(       30,       X_FORM,     21,         "fctiwz"),
-    new VM_OpcodeXX(       31,       X_FORM,     21,         "fctiwz."),
-    new VM_OpcodeXX(       64,       X_FORM,     19,         "fcmpo"),
-    new VM_OpcodeXX(       76,       X_FORM,     16,         "mtfsb1"),
-    new VM_OpcodeXX(       77,       X_FORM,     16,         "mtfsb1."),
-    new VM_OpcodeXX(       80,       X_FORM,     21,         "fneg"),
-    new VM_OpcodeXX(       81,       X_FORM,     21,         "fneg."),
-    new VM_OpcodeXX(      128,       X_FORM,     14,         "mcrfs"),
-    new VM_OpcodeXX(      140,       X_FORM,     16,         "mtfsb0"),
-    new VM_OpcodeXX(      141,       X_FORM,     16,         "mtfsb0."),
-    new VM_OpcodeXX(      144,       X_FORM,     21,         "fmr"),
-    new VM_OpcodeXX(      145,       X_FORM,     21,         "fmr."),
-    new VM_OpcodeXX(      268,       X_FORM,     15,         "mtfsfi"),
-    new VM_OpcodeXX(      269,       X_FORM,     15,         "mtfsfi."),
-    new VM_OpcodeXX(      272,       X_FORM,     21,         "fnabs"),
-    new VM_OpcodeXX(      273,       X_FORM,     21,         "fnabs."),
-    new VM_OpcodeXX(      528,       X_FORM,     21,         "fabs"),
-    new VM_OpcodeXX(      529,       X_FORM,     21,         "fabs."),
-    new VM_OpcodeXX(     1166,       X_FORM,     13,         "mffs"),
-    new VM_OpcodeXX(     1167,       X_FORM,     13,         "mffs."),
-    new VM_OpcodeXX(     1422,     XFL_FORM,      9,         "mtfsf"),
-    new VM_OpcodeXX(     1423,     XFL_FORM,      9,         "mtfsf."),
+      /*                  key        form     format       mnemonic       */
+      /*                  ---        ----     ------       --------       */
+      new VM_OpcodeXX(0, X_FORM, 19, "fcmpu"),
+      new VM_OpcodeXX(24, X_FORM, 21, "frsp"),
+      new VM_OpcodeXX(25, X_FORM, 21, "frsp."),
+      new VM_OpcodeXX(28, X_FORM, 21, "fctiw"),
+      new VM_OpcodeXX(29, X_FORM, 21, "fctiw."),
+      new VM_OpcodeXX(30, X_FORM, 21, "fctiwz"),
+      new VM_OpcodeXX(31, X_FORM, 21, "fctiwz."),
+      new VM_OpcodeXX(64, X_FORM, 19, "fcmpo"),
+      new VM_OpcodeXX(76, X_FORM, 16, "mtfsb1"),
+      new VM_OpcodeXX(77, X_FORM, 16, "mtfsb1."),
+      new VM_OpcodeXX(80, X_FORM, 21, "fneg"),
+      new VM_OpcodeXX(81, X_FORM, 21, "fneg."),
+      new VM_OpcodeXX(128, X_FORM, 14, "mcrfs"),
+      new VM_OpcodeXX(140, X_FORM, 16, "mtfsb0"),
+      new VM_OpcodeXX(141, X_FORM, 16, "mtfsb0."),
+      new VM_OpcodeXX(144, X_FORM, 21, "fmr"),
+      new VM_OpcodeXX(145, X_FORM, 21, "fmr."),
+      new VM_OpcodeXX(268, X_FORM, 15, "mtfsfi"),
+      new VM_OpcodeXX(269, X_FORM, 15, "mtfsfi."),
+      new VM_OpcodeXX(272, X_FORM, 21, "fnabs"),
+      new VM_OpcodeXX(273, X_FORM, 21, "fnabs."),
+      new VM_OpcodeXX(528, X_FORM, 21, "fabs"),
+      new VM_OpcodeXX(529, X_FORM, 21, "fabs."),
+      new VM_OpcodeXX(1166, X_FORM, 13, "mffs"),
+      new VM_OpcodeXX(1167, X_FORM, 13, "mffs."),
+      new VM_OpcodeXX(1422, XFL_FORM, 9, "mtfsf"),
+      new VM_OpcodeXX(1423, XFL_FORM, 9, "mtfsf."),
 
-  // these are only valid for 32 bit architecture
-    new VM_OpcodeXX(     1628,       X_FORM,     21,         "fctid"),
-    new VM_OpcodeXX(     1629,       X_FORM,     21,         "fctid."),
-    new VM_OpcodeXX(     1630,       X_FORM,     21,         "fctidz"),
-    new VM_OpcodeXX(     1631,       X_FORM,     21,         "fctidz."),
-    new VM_OpcodeXX(     1692,       X_FORM,     21,         "fcfid"),
-    new VM_OpcodeXX(     1693,       X_FORM,     21,         "fcfid.")
-  };
+      // these are only valid for 32 bit architecture
+      new VM_OpcodeXX(1628, X_FORM, 21, "fctid"),
+      new VM_OpcodeXX(1629, X_FORM, 21, "fctid."),
+      new VM_OpcodeXX(1630, X_FORM, 21, "fctidz"),
+      new VM_OpcodeXX(1631, X_FORM, 21, "fctidz."),
+      new VM_OpcodeXX(1692, X_FORM, 21, "fcfid"),
+      new VM_OpcodeXX(1693, X_FORM, 21, "fcfid.")};
 
   static VM_OpcodeXX[] opcode59 = {
 
-    /*  opcode59 table: These are the addition for the PowerPC set
-     *  Key is  bits 26 through 31 of the instruction.
-     *  "Form" is the instruction format and "format" is how the
-     *  instruction should be printed (the enumeration is specific
-     *  to each decode method)
-     */
+      /*  opcode59 table: These are the addition for the PowerPC set
+      *  Key is  bits 26 through 31 of the instruction.
+      *  "Form" is the instruction format and "format" is how the
+      *  instruction should be printed (the enumeration is specific
+      *  to each decode method)
+      */
 
-    /*                  key        form     format       mnemonic       */
-    new VM_OpcodeXX(       42,      A_FORM,        0,      "fadds"),
-    new VM_OpcodeXX(       43,      A_FORM,        0,      "fadds."),
-    new VM_OpcodeXX(       36,      A_FORM,        0,      "fdivs"),
-    new VM_OpcodeXX(       37,      A_FORM,        0,      "fdivs."),
-    new VM_OpcodeXX(       58,      A_FORM,        2,      "fmadds"),
-    new VM_OpcodeXX(       59,      A_FORM,        2,      "fmadds."),
-    new VM_OpcodeXX(       56,      A_FORM,        2,      "fmsubs"),
-    new VM_OpcodeXX(       57,      A_FORM,        2,      "fmsubs."),
-    new VM_OpcodeXX(       50,      A_FORM,        1,      "fmuls"),
-    new VM_OpcodeXX(       51,      A_FORM,        1,      "fmuls."),
-    new VM_OpcodeXX(       62,      A_FORM,        2,      "fnmadds"),
-    new VM_OpcodeXX(       63,      A_FORM,        2,      "fnmadds."),
-    new VM_OpcodeXX(       60,      A_FORM,        2,      "fnmsubs"),
-    new VM_OpcodeXX(       61,      A_FORM,        2,      "fnmsubs."),
-    new VM_OpcodeXX(       40,      A_FORM,        0,      "fsubs"),
-    new VM_OpcodeXX(       41,      A_FORM,        0,      "fsubs.")
-  };
+      /*                  key        form     format       mnemonic       */
+      new VM_OpcodeXX(42, A_FORM, 0, "fadds"),
+      new VM_OpcodeXX(43, A_FORM, 0, "fadds."),
+      new VM_OpcodeXX(36, A_FORM, 0, "fdivs"),
+      new VM_OpcodeXX(37, A_FORM, 0, "fdivs."),
+      new VM_OpcodeXX(58, A_FORM, 2, "fmadds"),
+      new VM_OpcodeXX(59, A_FORM, 2, "fmadds."),
+      new VM_OpcodeXX(56, A_FORM, 2, "fmsubs"),
+      new VM_OpcodeXX(57, A_FORM, 2, "fmsubs."),
+      new VM_OpcodeXX(50, A_FORM, 1, "fmuls"),
+      new VM_OpcodeXX(51, A_FORM, 1, "fmuls."),
+      new VM_OpcodeXX(62, A_FORM, 2, "fnmadds"),
+      new VM_OpcodeXX(63, A_FORM, 2, "fnmadds."),
+      new VM_OpcodeXX(60, A_FORM, 2, "fnmsubs"),
+      new VM_OpcodeXX(61, A_FORM, 2, "fnmsubs."),
+      new VM_OpcodeXX(40, A_FORM, 0, "fsubs"),
+      new VM_OpcodeXX(41, A_FORM, 0, "fsubs.")};
 
   static VM_OpcodeXX[] Aform = {
 
-    /*  Aform table: The key is computed by taking
-     *  bits 26 through 31 of the instruction. "Form" is
-     *  the instruction format and "format" is how the
-     *  instruction should be printed.  */
+      /*  Aform table: The key is computed by taking
+*  bits 26 through 31 of the instruction. "Form" is
+*  the instruction format and "format" is how the
+*  instruction should be printed.  */
 
-    /*                  key        form     format       mnemonic       */
-    new VM_OpcodeXX(       36,      A_FORM,      0,         "fdiv"),
-    new VM_OpcodeXX(       37,      A_FORM,      0,         "fdiv."),
-    new VM_OpcodeXX(       40,      A_FORM,      0,         "fsub"),
-    new VM_OpcodeXX(       41,      A_FORM,      0,         "fsub."),
-    new VM_OpcodeXX(       42,      A_FORM,      0,         "fadd"),
-    new VM_OpcodeXX(       43,      A_FORM,      0,         "fadd."),
-    new VM_OpcodeXX(       50,      A_FORM,      1,         "fm"),
-    new VM_OpcodeXX(       51,      A_FORM,      1,         "fm."),
-    new VM_OpcodeXX(       56,      A_FORM,      2,         "fmsub"),
-    new VM_OpcodeXX(       57,      A_FORM,      2,         "fmsub."),
-    new VM_OpcodeXX(       58,      A_FORM,      2,         "fmadd"),
-    new VM_OpcodeXX(       59,      A_FORM,      2,         "fmadd."),
-    new VM_OpcodeXX(       60,      A_FORM,      2,         "fnmsub"),
-    new VM_OpcodeXX(       61,      A_FORM,      2,         "fnmsub."),
-    new VM_OpcodeXX(       62,      A_FORM,      2,         "fnmadd"),
-    new VM_OpcodeXX(       63,      A_FORM,      2,         "fnmadd.")
-  };
+      /*                  key        form     format       mnemonic       */
+      new VM_OpcodeXX(36, A_FORM, 0, "fdiv"),
+      new VM_OpcodeXX(37, A_FORM, 0, "fdiv."),
+      new VM_OpcodeXX(40, A_FORM, 0, "fsub"),
+      new VM_OpcodeXX(41, A_FORM, 0, "fsub."),
+      new VM_OpcodeXX(42, A_FORM, 0, "fadd"),
+      new VM_OpcodeXX(43, A_FORM, 0, "fadd."),
+      new VM_OpcodeXX(50, A_FORM, 1, "fm"),
+      new VM_OpcodeXX(51, A_FORM, 1, "fm."),
+      new VM_OpcodeXX(56, A_FORM, 2, "fmsub"),
+      new VM_OpcodeXX(57, A_FORM, 2, "fmsub."),
+      new VM_OpcodeXX(58, A_FORM, 2, "fmadd"),
+      new VM_OpcodeXX(59, A_FORM, 2, "fmadd."),
+      new VM_OpcodeXX(60, A_FORM, 2, "fnmsub"),
+      new VM_OpcodeXX(61, A_FORM, 2, "fnmsub."),
+      new VM_OpcodeXX(62, A_FORM, 2, "fnmadd"),
+      new VM_OpcodeXX(63, A_FORM, 2, "fnmadd.")};
 
   /*
    *  SPR_name - common special purpose register names options
    */
-  static String SPR_name(int SPR)
-  {
+  static String SPR_name(int SPR) {
     switch (SPR) {
-    case SPR_MQ:      return("mq");
-    case SPR_XER:     return("xer");
-    case SPR_LR:      return("lr");
-    case SPR_CTR:     return("ctr");
-    case SPR_TID:     return("tid");
-    case SPR_DSISR:   return("dsisr");
-    case SPR_DAR:     return("dar");
-    case SPR_RTCU:    return("rtcu");
-    case SPR_RTCL:    return("rtcu");
-    case SPR_DEC:     return("dec");
-    case SPR_SDR0:    return("sdr0");
-    case SPR_SDR1:    return("sdr1");
-    case SPR_SRR0:    return("srr0");
-    case SPR_SRR1:    return("srr1");
-    default: return null;
+      case SPR_MQ:
+        return ("mq");
+      case SPR_XER:
+        return ("xer");
+      case SPR_LR:
+        return ("lr");
+      case SPR_CTR:
+        return ("ctr");
+      case SPR_TID:
+        return ("tid");
+      case SPR_DSISR:
+        return ("dsisr");
+      case SPR_DAR:
+        return ("dar");
+      case SPR_RTCU:
+        return ("rtcu");
+      case SPR_RTCL:
+        return ("rtcu");
+      case SPR_DEC:
+        return ("dec");
+      case SPR_SDR0:
+        return ("sdr0");
+      case SPR_SDR1:
+        return ("sdr1");
+      case SPR_SRR0:
+        return ("srr0");
+      case SPR_SRR1:
+        return ("srr1");
+      default:
+        return null;
     }
   }
 
   /*
    *  TO_ext - common trap options
    */
-  static String TO_ext(int TO)
-  {
+  static String TO_ext(int TO) {
     switch (TO) {
-    case TO_LT:             return("lt");
-    case (TO_LT | TO_EQ):   return("le");
-    case (TO_LT | TO_GT):   return("ne");
-    case TO_GT:             return("gt");
-    case (TO_GT | TO_EQ):   return("ge");
-    case TO_LLT:            return("llt");
-    case (TO_LLT | TO_EQ):  return("lle");
-    case (TO_LLT | TO_LGT): return("lne");
-    case TO_LGT:            return("lgt");
-    case (TO_LGT | TO_EQ):  return("lge");
-    case TO_EQ:             return("eq");
-    default:return null;
+      case TO_LT:
+        return ("lt");
+      case(TO_LT | TO_EQ):
+        return ("le");
+      case(TO_LT | TO_GT):
+        return ("ne");
+      case TO_GT:
+        return ("gt");
+      case(TO_GT | TO_EQ):
+        return ("ge");
+      case TO_LLT:
+        return ("llt");
+      case(TO_LLT | TO_EQ):
+        return ("lle");
+      case(TO_LLT | TO_LGT):
+        return ("lne");
+      case TO_LGT:
+        return ("lgt");
+      case(TO_LGT | TO_EQ):
+        return ("lge");
+      case TO_EQ:
+        return ("eq");
+      default:
+        return null;
     }
   }
 
@@ -825,16 +858,14 @@ public class VM_Disassembler implements VM_ArchConstants {
    *  readable.
    */
 
-  public static String disasm(int inst, int addr)
-  {
+  public static String disasm(int inst, int addr) {
     int opcode;
     int form;
 
-    opcode = bits(inst,0,5);                /* Determine opcode */
+    opcode = bits(inst, 0, 5);                /* Determine opcode */
     form = opcode_to_form[opcode];           /* Determine instruction format */
 
-    switch(form)     /* decode known instruction format */
-      {
+    switch (form)     /* decode known instruction format */ {
       case D_FORM:
         return decode_Dform(inst, opcode);
       case DS_FORM:
@@ -842,7 +873,7 @@ public class VM_Disassembler implements VM_ArchConstants {
       case B_FORM:
         return decode_Bform(addr, inst, opcode);
       case I_FORM:
-        return decode_Iform(addr,inst, opcode);
+        return decode_Iform(addr, inst, opcode);
       case SC_FORM:
         return decode_SCform(inst, opcode);
       case XL_FORM:
@@ -852,8 +883,7 @@ public class VM_Disassembler implements VM_ArchConstants {
       case A_FORM:
         return decode_opcode59(inst);
       case EXTENDED:      /* More work to do... */
-        switch(opcode)   /* Switch off of opcode and process from there */
-          {
+        switch (opcode)   /* Switch off of opcode and process from there */ {
           case 30:
             return decode_opcode30(inst);
           case 31:
@@ -862,112 +892,157 @@ public class VM_Disassembler implements VM_ArchConstants {
             return decode_opcode63(inst);
           default:
             return "    Invalid opcode";
-          }
+        }
       case INVALID_OP:      /* More work to do... */
       default:
         return "    Invalid opcode";
-      }
+    }
   }
 
   /* Decode the D instruction format */
 
-  static String decode_Dform(int inst, int opcode)
-  {
-    int rt, RA, TO, BF, FRT,ufield;
+  static String decode_Dform(int inst, int opcode) {
+    int rt, RA, TO, BF, FRT, ufield;
     int sfield;
     VM_OpcodeTab opcode_info;
     String datafield, mnemonic, asm_mnemonic, common_opt;
 
     rt = TO = FRT = bits(inst, 6, 10);
     RA = bits(inst, 11, 15);
-    BF = bits(inst,6,8);
+    BF = bits(inst, 6, 8);
     ufield = inst & 0xffff;
     sfield = (inst << 16) >> 16;
     if (sfield < 0) {
-      datafield = ""+sfield;
+      datafield = "" + sfield;
     } else {
       datafield = intAsHexString(sfield);
     }
     opcode_info = Dform[opcode];
     mnemonic = opcode_info.mnemonic;
 
-    switch(opcode_info.format)
-      {
+    switch (opcode_info.format) {
       case 0:
         if (opcode != 15) {
-          return "        ".substring(mnemonic.length()) + mnemonic +
-            "   "+rname(rt)+","+rname(RA)+","+datafield;
+          return "        ".substring(mnemonic.length()) +
+                 mnemonic +
+                 "   " +
+                 rname(rt) +
+                 "," +
+                 rname(RA) +
+                 "," +
+                 datafield;
         } else {
           if (RA != 0) {
-            return "        ".substring(mnemonic.length()) + mnemonic +
-              "   "+rname(rt)+","+rname(RA)+","+intAsHexString(ufield);
+            return "        ".substring(mnemonic.length()) +
+                   mnemonic +
+                   "   " +
+                   rname(rt) +
+                   "," +
+                   rname(RA) +
+                   "," +
+                   intAsHexString(ufield);
           } else {
-            return "     liu   "+
-              rname(rt)+","+intAsHexString(ufield);
+            return "     liu   " + rname(rt) + "," + intAsHexString(ufield);
           }
         }
       case 1:
-        return "        ".substring(mnemonic.length()) + mnemonic +
-          "   "+rname(RA)+","+rname(rt)+","+intAsHexString(ufield);
+        return "        ".substring(mnemonic.length()) +
+               mnemonic +
+               "   " +
+               rname(RA) +
+               "," +
+               rname(rt) +
+               "," +
+               intAsHexString(ufield);
       case 2:
         if ((opcode == 14) && (RA == 0)) {
-          return "     lil" +
-            "   "+rname(rt)+","+datafield;
+          return "     lil" + "   " + rname(rt) + "," + datafield;
         } else {
-          return "        ".substring(mnemonic.length()) + mnemonic +
-            "   "+rname(rt)+","+datafield+"("+rname(RA)+")";
+          return "        ".substring(mnemonic.length()) +
+                 mnemonic +
+                 "   " +
+                 rname(rt) +
+                 "," +
+                 datafield +
+                 "(" +
+                 rname(RA) +
+                 ")";
         }
       case 3: /* Trap immediate */
         common_opt = TO_ext(TO);
-        asm_mnemonic = ((opcode == 2) ? "td" : "tw")+common_opt+"i";
-        if (common_opt!=null) {
-          return "        ".substring(asm_mnemonic.length()) + asm_mnemonic +
-            "   "+rname(RA)+","+datafield;
+        asm_mnemonic = ((opcode == 2) ? "td" : "tw") + common_opt + "i";
+        if (common_opt != null) {
+          return "        ".substring(asm_mnemonic.length()) + asm_mnemonic + "   " + rname(RA) + "," + datafield;
         } else {
-          return "        ".substring(mnemonic.length()) + mnemonic +
-            "   "+TO+","+rname(RA)+","+datafield;
+          return "        ".substring(mnemonic.length()) + mnemonic + "   " + TO + "," + rname(RA) + "," + datafield;
         }
       case 4:
         int L = inst & 0x00200000;
         if (opcode == 11) {
-          return "       ".substring(mnemonic.length()) + mnemonic + ((L==0)?"W":"D") +
-            "   cr"+BF+","+rname(RA)+","+datafield;
+          return "       ".substring(mnemonic.length()) +
+                 mnemonic +
+                 ((L == 0) ? "W" : "D") +
+                 "   cr" +
+                 BF +
+                 "," +
+                 rname(RA) +
+                 "," +
+                 datafield;
         } else {
-          return "       ".substring(mnemonic.length()) + mnemonic + ((L==0)?"W":"D") +
-            "   cr"+BF+","+rname(RA)+","+ufield;
+          return "       ".substring(mnemonic.length()) +
+                 mnemonic +
+                 ((L == 0) ? "W" : "D") +
+                 "   cr" +
+                 BF +
+                 "," +
+                 rname(RA) +
+                 "," +
+                 ufield;
         }
       case 5:
-        return "        ".substring(mnemonic.length()) + mnemonic +
-          "   fr"+FRT+","+rname(RA)+","+datafield;
+        return "        ".substring(mnemonic.length()) + mnemonic + "   fr" + FRT + "," + rname(RA) + "," + datafield;
       default:
         return "    Invalid opcode";
-      }
+    }
   }
 
   /* Decode the DS instruction format */
 
-  static String decode_DSform(int inst, int opcode)
-  {
+  static String decode_DSform(int inst, int opcode) {
     int XO, RT, RA, sfield;
     String datafield, mnemonic;
 
-    XO = bits(inst,30,31);
-    RT = bits(inst,6,10);
-    RA = bits(inst,11,15);
+    XO = bits(inst, 30, 31);
+    RT = bits(inst, 6, 10);
+    RA = bits(inst, 11, 15);
     sfield = (((inst) & 0xfffc) << 16) >> 16;
     datafield = intAsHexString(sfield);
 
-    switch(opcode) {
+    switch (opcode) {
       case 58:
         mnemonic = opcode58[XO].mnemonic;
         if (mnemonic == "RESERVED") return "    Invalid opcode";
-        return "        ".substring(mnemonic.length()) + mnemonic +
-          "   " + rname(RT)+ ", "+ datafield + "(" + rname(RA) + ")";
+        return "        ".substring(mnemonic.length()) +
+               mnemonic +
+               "   " +
+               rname(RT) +
+               ", " +
+               datafield +
+               "(" +
+               rname(RA) +
+               ")";
       case 62:
         mnemonic = opcode62[XO].mnemonic;
         if (mnemonic == "RESERVED") return "    Invalid opcode";
-        return "        ".substring(mnemonic.length()) + mnemonic +
-          "   " + rname(RT)+ ", "+ datafield + "(" + rname(RA) + ")";
+        return "        ".substring(mnemonic.length()) +
+               mnemonic +
+               "   " +
+               rname(RT) +
+               ", " +
+               datafield +
+               "(" +
+               rname(RA) +
+               ")";
       default:
         return "    Invalid opcode";
     }
@@ -975,49 +1050,49 @@ public class VM_Disassembler implements VM_ArchConstants {
 
   /* Decode the B instruction format */
 
-  static String decode_Bform(int addr, int inst, int opcode)
-  {
+  static String decode_Bform(int addr, int inst, int opcode) {
     int AA, LK, BO, BI;
     String mnemonic;
     int cr_field;
     int target;
 
-    AA = bits(inst,30,30);
-    LK = bits(inst,31,31);
-    BO = bits(inst,6,10);
-    BI = bits(inst,11,15);
+    AA = bits(inst, 30, 30);
+    LK = bits(inst, 31, 31);
+    BO = bits(inst, 6, 10);
+    BI = bits(inst, 11, 15);
     target = (((inst) & 0xfffc) << 16) >> 16;
-    if (AA == 0)
-      target += addr;
-    mnemonic = build_branch_op(BO,1 << (3 - (BI&3)),LK,AA,0);
+    if (AA == 0) target += addr;
+    mnemonic = build_branch_op(BO, 1 << (3 - (BI & 3)), LK, AA, 0);
     destination = target;
-    cr_field = (BI>>2);
+    cr_field = (BI >> 2);
     /* Build disassembly without target, added on later... */
     if (cr_field != 0) {/* Not CR 0 ? */
-      return "        ".substring(mnemonic.length()) + mnemonic +
-        "   "+cr_field + " " + Integer.toHexString(destination);
+      return "        ".substring(mnemonic.length()) +
+             mnemonic +
+             "   " +
+             cr_field +
+             " " +
+             Integer.toHexString(destination);
     } else {
-      return "        ".substring(mnemonic.length()) + mnemonic +
-        "   " + Integer.toHexString(destination);
+      return "        ".substring(mnemonic.length()) + mnemonic + "   " + Integer.toHexString(destination);
     }
   }
 
   /* Decode the I instruction format */
 
-  static String decode_Iform(int addr, int inst, int opcode)
-  {
+  static String decode_Iform(int addr, int inst, int opcode) {
     int target;
     int AA, LK;
     String mnemonic;
 
-    AA = bits(inst,30,30);
-    LK = bits(inst,31,31);
+    AA = bits(inst, 30, 30);
+    LK = bits(inst, 31, 31);
     target = (((inst) & ~3) << 6) >> 6;
-    if (AA!=0) {
-      mnemonic = (LK!=0) ? "bla" : "ba";
+    if (AA != 0) {
+      mnemonic = (LK != 0) ? "bla" : "ba";
     } else {
       target += addr;
-      mnemonic = (LK!=0) ? "bl" : "b";
+      mnemonic = (LK != 0) ? "bl" : "b";
     }
     destination = target;
     return "        ".substring(mnemonic.length()) + mnemonic + "   " + Integer.toHexString(destination);
@@ -1025,120 +1100,149 @@ public class VM_Disassembler implements VM_ArchConstants {
 
   /* Decode the SC instruction format */
 
-  static String decode_SCform(int inst, int opcode)
-  {
+  static String decode_SCform(int inst, int opcode) {
     int SA, LK, LEV, FL1, FL2, SV;
 
-    SA = bits(inst,30,30);
-    LK = bits(inst,31,31);
-    if (SA != 0)
-      {
-        SV = bits(inst,16,29);
-        String mnemonic = (LK!=0) ? "svcla" : "svca";
-        return "        ".substring(mnemonic.length()) + mnemonic +
-          "   "+intAsHexString(SV);
-      }
-    else
-      {
-        LEV = bits(inst,20,26);
-        FL1 = bits(inst,16,19);
-        FL2 = bits(inst,27,29);
-        String mnemonic = (LK!=0) ? "svcl" : "svc";
-        return "        ".substring(mnemonic.length()) + mnemonic +
-          "   "+intAsHexString(LEV)+","+intAsHexString(FL1)+","+
-          intAsHexString(FL2);
-      }
+    SA = bits(inst, 30, 30);
+    LK = bits(inst, 31, 31);
+    if (SA != 0) {
+      SV = bits(inst, 16, 29);
+      String mnemonic = (LK != 0) ? "svcla" : "svca";
+      return "        ".substring(mnemonic.length()) + mnemonic + "   " + intAsHexString(SV);
+    } else {
+      LEV = bits(inst, 20, 26);
+      FL1 = bits(inst, 16, 19);
+      FL2 = bits(inst, 27, 29);
+      String mnemonic = (LK != 0) ? "svcl" : "svc";
+      return "        ".substring(mnemonic.length()) +
+             mnemonic +
+             "   " +
+             intAsHexString(LEV) +
+             "," +
+             intAsHexString(FL1) +
+             "," +
+             intAsHexString(FL2);
+    }
   }
 
   /* Decode the XL instruction format */
 
-  static String decode_XLform(int inst, int opcode)
-  {
+  static String decode_XLform(int inst, int opcode) {
     String mnemonic;
     int ext_opcode;
-    int LK, BO,  BI, BB;
+    int LK, BO, BI, BB;
     int BF, BFA, BT, BA;
     VM_OpcodeTab opcode_info;
     int cr_field;
     String branch_name;
 
-    ext_opcode = bits(inst,21,30);
+    ext_opcode = bits(inst, 21, 30);
     opcode_info = XLform[ext_opcode >> 4]; /* shift to get XL table index */
     mnemonic = opcode_info.mnemonic;
-    switch(opcode_info.format)
-      {
+    switch (opcode_info.format) {
       case 0:
         return "        ".substring(mnemonic.length()) + mnemonic;
       case 1:
-        BO = bits(inst,6,10);
-        BI = bits(inst,11,15);
-        LK = bits(inst,31,31);
-        cr_field = (byte) (BI>>2);
-        branch_name = build_branch_op(BO,1 << (3 - (BI&3)),LK,0,ext_opcode);
-        if (cr_field!=0) {/* Not CR 0 ? */
-          return "        ".substring(branch_name.length()) + branch_name +
-            "   "+cr_field;
+        BO = bits(inst, 6, 10);
+        BI = bits(inst, 11, 15);
+        LK = bits(inst, 31, 31);
+        cr_field = (byte) (BI >> 2);
+        branch_name = build_branch_op(BO, 1 << (3 - (BI & 3)), LK, 0, ext_opcode);
+        if (cr_field != 0) {/* Not CR 0 ? */
+          return "        ".substring(branch_name.length()) + branch_name + "   " + cr_field;
         } else {
           return "        ".substring(branch_name.length()) + branch_name;
         }
       case 2:
-        BF  = bits(inst,6,10);
-        BFA = bits(inst,11,13);
-        return "        ".substring(mnemonic.length()) + mnemonic +
-          "   cr"+BF+","+intAsHexString(BFA);
+        BF = bits(inst, 6, 10);
+        BFA = bits(inst, 11, 13);
+        return "        ".substring(mnemonic.length()) + mnemonic + "   cr" + BF + "," + intAsHexString(BFA);
       case 3:
-        BT = bits(inst,6,10);
-        BA = bits(inst,11,15);
-        BB = bits(inst,16,20);
-        return "        ".substring(mnemonic.length()) + mnemonic +
-          "   "+intAsHexString(BT)+","+intAsHexString(BA)+","+
-          intAsHexString(BB);
+        BT = bits(inst, 6, 10);
+        BA = bits(inst, 11, 15);
+        BB = bits(inst, 16, 20);
+        return "        ".substring(mnemonic.length()) +
+               mnemonic +
+               "   " +
+               intAsHexString(BT) +
+               "," +
+               intAsHexString(BA) +
+               "," +
+               intAsHexString(BB);
       default:
         return "    Invalid opcode";
-      }
+    }
   }
 
-  static String[] Mforms  = { "rlimi", "rlimi.", "rlinm", "rlinm.",
-      "rlmi", "rlmi.", "rlnm", "rlnm."};
+  static String[] Mforms = {"rlimi", "rlimi.", "rlinm", "rlinm.", "rlmi", "rlmi.", "rlnm", "rlnm."};
 
   /* Decode the M instruction format */
 
-  static String decode_Mform(int inst, int opcode)
-  {
+  static String decode_Mform(int inst, int opcode) {
     int RS, RA;
     int MB, ME, Rc;
     int SH_RB;
     String asm_mnemonic;
 
-    RS = bits(inst,6,10);
-    RA = bits(inst,11,15);
-    SH_RB = bits(inst,16,20);
-    MB = bits(inst,21,25);
-    ME = bits(inst,26,30);
+    RS = bits(inst, 6, 10);
+    RA = bits(inst, 11, 15);
+    SH_RB = bits(inst, 16, 20);
+    MB = bits(inst, 21, 25);
+    ME = bits(inst, 26, 30);
     Rc = inst & 1;
 
     asm_mnemonic = Mforms[(opcode - 20) * 2 + Rc];
-    if ((opcode < 20) || ((opcode >>> 23)!=0)) {
+    if ((opcode < 20) || ((opcode >>> 23) != 0)) {
       return "    Invalid opcode";
     } else {
       if (opcode == 21) { /* sri and sli are special forms of rlmni */
-        if ((ME == 32) && (MB == (31-SH_RB))) {
-          String mnemonic = (Rc!=0) ? "sri." : "sri";
-          return "        ".substring(mnemonic.length()) + mnemonic +
-            "   "+rname(RA)+","+rname(RS)+","+intAsHexString(MB);
-        } else if ((MB == 0) && (SH_RB == (31-ME))) {
-          String mnemonic = (Rc!=0) ? "sli." : "sli";
-          return "        ".substring(mnemonic.length()) + mnemonic +
-            "   "+rname(RA)+","+rname(RS)+","+intAsHexString(SH_RB);
+        if ((ME == 32) && (MB == (31 - SH_RB))) {
+          String mnemonic = (Rc != 0) ? "sri." : "sri";
+          return "        ".substring(mnemonic.length()) +
+                 mnemonic +
+                 "   " +
+                 rname(RA) +
+                 "," +
+                 rname(RS) +
+                 "," +
+                 intAsHexString(MB);
+        } else if ((MB == 0) && (SH_RB == (31 - ME))) {
+          String mnemonic = (Rc != 0) ? "sli." : "sli";
+          return "        ".substring(mnemonic.length()) +
+                 mnemonic +
+                 "   " +
+                 rname(RA) +
+                 "," +
+                 rname(RS) +
+                 "," +
+                 intAsHexString(SH_RB);
         } else {
-          return "        ".substring(asm_mnemonic.length()) + asm_mnemonic +
-            "   "+rname(RA)+","+rname(RS)+","+intAsHexString(SH_RB)+","+
-            intAsHexString(MB)+","+intAsHexString(ME) ;
+          return "        ".substring(asm_mnemonic.length()) +
+                 asm_mnemonic +
+                 "   " +
+                 rname(RA) +
+                 "," +
+                 rname(RS) +
+                 "," +
+                 intAsHexString(SH_RB) +
+                 "," +
+                 intAsHexString(MB) +
+                 "," +
+                 intAsHexString(ME);
         }
       } else {
-        return "        ".substring(asm_mnemonic.length()) + asm_mnemonic +
-          "   "+rname(RA)+","+rname(RS)+","+intAsHexString(SH_RB)+","+
-          intAsHexString(MB)+","+intAsHexString(ME) ;
+        return "        ".substring(asm_mnemonic.length()) +
+               asm_mnemonic +
+               "   " +
+               rname(RA) +
+               "," +
+               rname(RS) +
+               "," +
+               intAsHexString(SH_RB) +
+               "," +
+               intAsHexString(MB) +
+               "," +
+               intAsHexString(ME);
       }
     }
   }
@@ -1155,12 +1259,11 @@ public class VM_Disassembler implements VM_ArchConstants {
 
   /* Decode opcode 30 and then the relevent format */
 
-  static String decode_opcode30(int inst)
-  {
+  static String decode_opcode30(int inst) {
     VM_OpcodeXX search_results;
     String mnemonic;
 
-    int testkey = bits(inst,27,30);
+    int testkey = bits(inst, 27, 30);
     search_results = searchXX(testkey, opcode30);
 
     if (search_results == null) {
@@ -1169,54 +1272,55 @@ public class VM_Disassembler implements VM_ArchConstants {
 
     mnemonic = search_results.mnemonic;
 
-    switch(search_results.form)
-      {
+    switch (search_results.form) {
       case MDS_FORM:
         return decode_MDSform(inst, mnemonic);
       case MD_FORM:
         return decode_MDform(inst, mnemonic);
       default:
         return "    Invalid opcode";
-      }
+    }
   }
 
   /* Decode the MD instruction format */
-  static String decode_MDform(int inst, String mnemonic)
-  {
+  static String decode_MDform(int inst, String mnemonic) {
     int RS, RA, SH, MB;
 
-    RS  = bits(inst,6,10);
-    RA  = bits(inst,11,15);
-    SH  = ((inst&0x2) >> 4) | bits(inst,16,20);
-    MB  = (inst&0x20) | bits(inst,21,25);
-    return "        ".substring(mnemonic.length()) + mnemonic +
-        rname(RA) + ", " + rname(RS) + ", " + SH + ", " + MB;
+    RS = bits(inst, 6, 10);
+    RA = bits(inst, 11, 15);
+    SH = ((inst & 0x2) >> 4) | bits(inst, 16, 20);
+    MB = (inst & 0x20) | bits(inst, 21, 25);
+    return "        ".substring(mnemonic.length()) + mnemonic + rname(RA) + ", " + rname(RS) + ", " + SH + ", " + MB;
   }
 
   /* Decode the MDS instruction format */
-  static String decode_MDSform(int inst, String mnemonic)
-  {
+  static String decode_MDSform(int inst, String mnemonic) {
     int RS, RA, RB, MB;
 
-    RS  = bits(inst,6,10);
-    RA  = bits(inst,11,15);
-    RB  = bits(inst,16,20);
-    MB  = (inst&0x20) | bits(inst,21,25);
-    return "        ".substring(mnemonic.length()) + mnemonic +
-        rname(RA) + ", " + rname(RS) + ", " + rname(RB) + ", " + MB;
+    RS = bits(inst, 6, 10);
+    RA = bits(inst, 11, 15);
+    RB = bits(inst, 16, 20);
+    MB = (inst & 0x20) | bits(inst, 21, 25);
+    return "        ".substring(mnemonic.length()) +
+           mnemonic +
+           rname(RA) +
+           ", " +
+           rname(RS) +
+           ", " +
+           rname(RB) +
+           ", " +
+           MB;
   }
 
   /* Decode the A instruction format */
   /* Decode opcode 31 and then the relevent format */
 
-  static String decode_opcode31(int inst)
-  {
+  static String decode_opcode31(int inst) {
     VM_OpcodeXX search_results;
     int format;
     String mnemonic;
 
-
-    int testkey = bits(inst,21,31);
+    int testkey = bits(inst, 21, 31);
     search_results = searchXX(testkey, opcode31);
 
     if (search_results == null) {
@@ -1225,201 +1329,211 @@ public class VM_Disassembler implements VM_ArchConstants {
 
     mnemonic = search_results.mnemonic;
     format = search_results.format;
-    switch(search_results.form)
-      {
+    switch (search_results.form) {
       case X_FORM:
-        return decode_Xform(inst,mnemonic,format,testkey);
+        return decode_Xform(inst, mnemonic, format, testkey);
       case XFX_FORM:
         return decode_XFXform(inst);
       case XO_FORM:
-        return decode_XOform(inst,mnemonic,format);
+        return decode_XOform(inst, mnemonic, format);
       case XS_FORM:
-        return decode_XSform(inst,mnemonic,format);
+        return decode_XSform(inst, mnemonic, format);
       default:
         return "    Invalid opcode";
-      }
+    }
   }
 
   /* Decode the X instruction format */
 
-  static String decode_Xform(int inst, String mnemonic, int format, int ext_op)
-  {
-    int rt,RA,RB,NB,SH,FRS,SPR,FRT;
-    int BF,BFA,I,BT,SR,FRA,FRB,TO;
+  static String decode_Xform(int inst, String mnemonic, int format, int ext_op) {
+    int rt, RA, RB, NB, SH, FRS, SPR, FRT;
+    int BF, BFA, I, BT, SR, FRA, FRB, TO;
     String asm_mnemonic, common_opt;
 
-    FRS = FRT = TO = BT = rt = bits(inst,6,10);
-    FRB = NB  = SH = RB = I = bits(inst,16,20);
-    FRA = SPR = SR = RA = bits(inst,11,15);
-    BFA = bits(inst,11,13);
-    I = bits(inst,16,19);
-    BF = bits(inst,6,8);
+    FRS = FRT = TO = BT = rt = bits(inst, 6, 10);
+    FRB = NB = SH = RB = I = bits(inst, 16, 20);
+    FRA = SPR = SR = RA = bits(inst, 11, 15);
+    BFA = bits(inst, 11, 13);
+    I = bits(inst, 16, 19);
+    BF = bits(inst, 6, 8);
 
-    switch(format)
-      {
+    switch (format) {
       case 0:
-        return "        ".substring(mnemonic.length()) + mnemonic +
-          "   "+rname(RA)+","+rname(rt);
+        return "        ".substring(mnemonic.length()) + mnemonic + "   " + rname(RA) + "," + rname(rt);
       case 1:
         return "        ".substring(mnemonic.length()) + mnemonic;
       case 2:
-        return "        ".substring(mnemonic.length()) + mnemonic +
-          "   "+rname(rt);
+        return "        ".substring(mnemonic.length()) + mnemonic + "   " + rname(rt);
       case 3:
         common_opt = SPR_name(SPR);
         if (common_opt != null) {
           asm_mnemonic = mnemonic.substring(0, 2) + common_opt;
-          return "        ".substring(asm_mnemonic.length()) + asm_mnemonic +
-            "   "+rname(rt);
+          return "        ".substring(asm_mnemonic.length()) + asm_mnemonic + "   " + rname(rt);
         } else {/* reserved register? */
-          return "        ".substring(mnemonic.length()) + mnemonic +
-            "   "+intAsHexString(SPR)+","+rname(rt);
+          return "        ".substring(mnemonic.length()) + mnemonic + "   " + intAsHexString(SPR) + "," + rname(rt);
         }
       case 4:
-        return "        ".substring(mnemonic.length()) + mnemonic +
-          "   "+rname(rt)+","+rname(RB);
+        return "        ".substring(mnemonic.length()) + mnemonic + "   " + rname(rt) + "," + rname(RB);
       case 5:
-        return "        ".substring(mnemonic.length()) + mnemonic +
-          "   "+rname(rt)+","+rname(RA);
+        return "        ".substring(mnemonic.length()) + mnemonic + "   " + rname(rt) + "," + rname(RA);
       case 6:
-        return "        ".substring(mnemonic.length()) + mnemonic +
-          "   "+rname(RA)+","+rname(RB);
+        return "        ".substring(mnemonic.length()) + mnemonic + "   " + rname(RA) + "," + rname(RB);
       case 7:
-        return "        ".substring(mnemonic.length()) + mnemonic +
-          "   "+rname(rt)+","+rname(RA)+","+rname(RB);
+        return "        ".substring(mnemonic.length()) +
+               mnemonic +
+               "   " +
+               rname(rt) +
+               "," +
+               rname(RA) +
+               "," +
+               rname(RB);
       case 8:
         if ((ext_op == 888) || (ext_op == 889)) {
           if (rt == RB) {
             String mne = (ext_op == 889) ? "mr." : "mr";
-            return "        ".substring(mne.length()) + mne +
-              "   "+rname(RA)+","+rname(rt);
+            return "        ".substring(mne.length()) + mne + "   " + rname(RA) + "," + rname(rt);
           }
         }
-        return "        ".substring(mnemonic.length()) + mnemonic +
-          "   "+rname(RA)+","+rname(rt)+","+rname(RB);
+        return "        ".substring(mnemonic.length()) +
+               mnemonic +
+               "   " +
+               rname(RA) +
+               "," +
+               rname(rt) +
+               "," +
+               rname(RB);
       case 9:
-        return "        ".substring(mnemonic.length()) + mnemonic +
-          "   "+rname(RA)+","+rname(rt);
+        return "        ".substring(mnemonic.length()) + mnemonic + "   " + rname(RA) + "," + rname(rt);
       case 10:
-        return "        ".substring(mnemonic.length()) + mnemonic +
-          "   "+rname(rt)+","+rname(RA)+","+intAsHexString(NB);
+        return "        ".substring(mnemonic.length()) +
+               mnemonic +
+               "   " +
+               rname(rt) +
+               "," +
+               rname(RA) +
+               "," +
+               intAsHexString(NB);
       case 11:
-        return "        ".substring(mnemonic.length()) + mnemonic +
-          "   "+rname(RA)+","+rname(rt)+","+intAsHexString(SH);
+        return "        ".substring(mnemonic.length()) +
+               mnemonic +
+               "   " +
+               rname(RA) +
+               "," +
+               rname(rt) +
+               "," +
+               intAsHexString(SH);
       case 12:
-        return "        ".substring(mnemonic.length()) + mnemonic +
-          "   fr"+FRS+","+rname(RA)+","+rname(RB);
+        return "        ".substring(mnemonic.length()) + mnemonic + "   fr" + FRS + "," + rname(RA) + "," + rname(RB);
       case 13:
-        return "        ".substring(mnemonic.length()) + mnemonic +
-          "   fr"+FRT;
+        return "        ".substring(mnemonic.length()) + mnemonic + "   fr" + FRT;
       case 14:
-        return "        ".substring(mnemonic.length()) + mnemonic +
-          "   cr"+BF+","+intAsHexString(BFA);
+        return "        ".substring(mnemonic.length()) + mnemonic + "   cr" + BF + "," + intAsHexString(BFA);
       case 15:
-        return "        ".substring(mnemonic.length()) + mnemonic +
-          "   cr"+BF+","+intAsHexString(I);
+        return "        ".substring(mnemonic.length()) + mnemonic + "   cr" + BF + "," + intAsHexString(I);
       case 16:
-        return "        ".substring(mnemonic.length()) + mnemonic +
-          "   "+intAsHexString(BT);
+        return "        ".substring(mnemonic.length()) + mnemonic + "   " + intAsHexString(BT);
       case 17:
-        return "        ".substring(mnemonic.length()) + mnemonic +
-          "   "+intAsHexString(SR)+","+rname(rt);
+        return "        ".substring(mnemonic.length()) + mnemonic + "   " + intAsHexString(SR) + "," + rname(rt);
       case 18:
-        return "        ".substring(mnemonic.length()) + mnemonic +
-          "   "+rname(rt)+","+intAsHexString(SR);
+        return "        ".substring(mnemonic.length()) + mnemonic + "   " + rname(rt) + "," + intAsHexString(SR);
       case 19:
-        return "        ".substring(mnemonic.length()) + mnemonic +
-          "   cr"+BF+",fr"+FRA+",fr"+FRB;
+        return "        ".substring(mnemonic.length()) + mnemonic + "   cr" + BF + ",fr" + FRA + ",fr" + FRB;
       case 20:
-        return "        ".substring(mnemonic.length()) + mnemonic +
-          "   cr"+BF+",fr"+FRB;
+        return "        ".substring(mnemonic.length()) + mnemonic + "   cr" + BF + ",fr" + FRB;
       case 21:
-        return "        ".substring(mnemonic.length()) + mnemonic +
-          "   fr"+FRT+",fr"+FRB;
+        return "        ".substring(mnemonic.length()) + mnemonic + "   fr" + FRT + ",fr" + FRB;
       case 22:
         int L = inst & 0x00200000;
-        return "       ".substring(mnemonic.length()) + mnemonic + ((L==0)?"W":"D") +
-          "   cr"+BF+","+rname(RA)+","+rname(RB);
+        return "       ".substring(mnemonic.length()) +
+               mnemonic +
+               ((L == 0) ? "W" : "D") +
+               "   cr" +
+               BF +
+               "," +
+               rname(RA) +
+               "," +
+               rname(RB);
       case 23:
-        return "        ".substring(mnemonic.length()) + mnemonic +
-          "   cr"+BF;
+        return "        ".substring(mnemonic.length()) + mnemonic + "   cr" + BF;
       case 24:
         common_opt = TO_ext(TO);
         if (common_opt != null) {
           asm_mnemonic = "td" + common_opt;
-          return "        ".substring(asm_mnemonic.length()) + asm_mnemonic +
-            "   "+rname(RA)+","+rname(RB);
+          return "        ".substring(asm_mnemonic.length()) + asm_mnemonic + "   " + rname(RA) + "," + rname(RB);
         } else {
-          return "        ".substring(mnemonic.length()) + mnemonic +
-            "   "+TO+","+rname(RA)+","+rname(RB);
+          return "        ".substring(mnemonic.length()) + mnemonic + "   " + TO + "," + rname(RA) + "," + rname(RB);
         }
       case 25:
-        return "        ".substring(mnemonic.length()) + mnemonic +
-          "   "+rname(rt)+","+rname(RA)+","+rname(RB);
+        return "        ".substring(mnemonic.length()) +
+               mnemonic +
+               "   " +
+               rname(rt) +
+               "," +
+               rname(RA) +
+               "," +
+               rname(RB);
       default:
         return "    Invalid opcode";
-      }
+    }
   }
 
   /* Decode the XFX instruction format */
 
-  static String decode_XFXform(int inst)
-  {
-    int rt,FXM;
+  static String decode_XFXform(int inst) {
+    int rt, FXM;
 
-    rt = bits(inst,6,10);
-    FXM = bits(inst,12,19);
+    rt = bits(inst, 6, 10);
+    FXM = bits(inst, 12, 19);
     if (FXM == 0xff) {
-      return "    mtcr   "+rname(rt);
+      return "    mtcr   " + rname(rt);
     } else {
-      return "   mtcrf   "+intAsHexString(FXM)+","+rname(rt);
+      return "   mtcrf   " + intAsHexString(FXM) + "," + rname(rt);
     }
   }
 
   /* Decode the XO instruction format */
 
-  static String decode_XOform(int inst, String mnemonic, int format)
-  {
-    int rt,RA,RB;
+  static String decode_XOform(int inst, String mnemonic, int format) {
+    int rt, RA, RB;
 
-    rt = bits(inst,6,10);
-    RA = bits(inst,11,15);
-    switch(format)
-      {
+    rt = bits(inst, 6, 10);
+    RA = bits(inst, 11, 15);
+    switch (format) {
       case 0:
-        return "        ".substring(mnemonic.length()) + mnemonic +
-          "   "+rname(rt)+","+rname(RA);
+        return "        ".substring(mnemonic.length()) + mnemonic + "   " + rname(rt) + "," + rname(RA);
       case 1:
       case 2:
-        RB = bits(inst,16,20);
-        return "        ".substring(mnemonic.length()) + mnemonic +
-          "   "+rname(rt)+","+rname(RA)+","+rname(RB);
+        RB = bits(inst, 16, 20);
+        return "        ".substring(mnemonic.length()) +
+               mnemonic +
+               "   " +
+               rname(rt) +
+               "," +
+               rname(RA) +
+               "," +
+               rname(RB);
       default:
         return "    Invalid opcode";
-      }
+    }
   }
 
   /* Decode the XS instruction format */
-  static String decode_XSform(int inst, String mnemonic, int format)
-  {
+  static String decode_XSform(int inst, String mnemonic, int format) {
     int RS, RA, SH;
 
-    RS  = bits(inst,6,10);
-    RA  = bits(inst,11,15);
-    SH  = ((inst&0x2) >> 4) | bits(inst,16,20);
-    return "        ".substring(mnemonic.length()) + mnemonic +
-        rname(RA) + ", " + rname(RS) + ", " + SH ;
+    RS = bits(inst, 6, 10);
+    RA = bits(inst, 11, 15);
+    SH = ((inst & 0x2) >> 4) | bits(inst, 16, 20);
+    return "        ".substring(mnemonic.length()) + mnemonic + rname(RA) + ", " + rname(RS) + ", " + SH;
   }
-
 
   /* Decode opcode 59 and then the relevent format */
 
-  static String decode_opcode59(int inst)
-  {
+  static String decode_opcode59(int inst) {
     VM_OpcodeXX search_results;
     String mnemonic;
 
-    int testkey = bits(inst,26,31);
+    int testkey = bits(inst, 26, 31);
 
     search_results = searchXX(testkey, opcode59);
 
@@ -1431,31 +1545,28 @@ public class VM_Disassembler implements VM_ArchConstants {
     int format = search_results.format;
 
     // All opcode 59 are in A form
-    switch(search_results.form)
-      {
+    switch (search_results.form) {
       case A_FORM:
-        return decode_Aform(inst,mnemonic,format);
+        return decode_Aform(inst, mnemonic, format);
       default:
         return "    Invalid opcode";
-      }
     }
+  }
 
   /* Decode opcode 63 and then the relevent format */
 
-  static String decode_opcode63(int inst)
-  {
+  static String decode_opcode63(int inst) {
     VM_OpcodeXX search_results;
     String mnemonic;
 
-    int testkey = bits(inst,21,31);
+    int testkey = bits(inst, 21, 31);
 
     search_results = searchXX(testkey, opcode63);
 
-    if (search_results == null)
-      {
-        testkey = bits(inst,26,31);
-        search_results = searchXX(testkey, Aform);
-      }
+    if (search_results == null) {
+      testkey = bits(inst, 26, 31);
+      search_results = searchXX(testkey, Aform);
+    }
 
     if (search_results == null) {
       return "    Invalid opcode";
@@ -1463,70 +1574,68 @@ public class VM_Disassembler implements VM_ArchConstants {
 
     mnemonic = search_results.mnemonic;
     int format = search_results.format;
-    switch(search_results.form)
-      {
+    switch (search_results.form) {
       case X_FORM:
-        return decode_Xform(inst,mnemonic,format,testkey);
+        return decode_Xform(inst, mnemonic, format, testkey);
       case XFL_FORM:
         return decode_XFLform(inst);
       case A_FORM:
-        return decode_Aform(inst,mnemonic,format);
+        return decode_Aform(inst, mnemonic, format);
       default:
         return "    Invalid opcode";
-      }
+    }
   }
 
   /* Decode the XFL instruction format */
 
-  static String decode_XFLform(int inst)
-  {
+  static String decode_XFLform(int inst) {
     int FLM, FRB, Rc;
 
-    Rc  = bits(inst,31,31);
-    FLM = bits(inst,7,14);
-    FRB = bits(inst,16,20);
+    Rc = bits(inst, 31, 31);
+    FLM = bits(inst, 7, 14);
+    FRB = bits(inst, 16, 20);
     if (FLM == 0xff) {
-      String mnemonic = (Rc!=0) ? "mtfs." : "mtfs";
-      return "        ".substring(mnemonic.length()) + mnemonic +
-        "   fr"+FRB;
+      String mnemonic = (Rc != 0) ? "mtfs." : "mtfs";
+      return "        ".substring(mnemonic.length()) + mnemonic + "   fr" + FRB;
     } else {
-      String mnemonic = (Rc!=0) ? "mtfsf." : "mtfsf";
-      return "        ".substring(mnemonic.length()) + mnemonic +
-        "   "+intAsHexString(FLM)+",fr"+FRB;
+      String mnemonic = (Rc != 0) ? "mtfsf." : "mtfsf";
+      return "        ".substring(mnemonic.length()) + mnemonic + "   " + intAsHexString(FLM) + ",fr" + FRB;
     }
   }
 
   /* Decode the A instruction format */
 
-  static String decode_Aform(int inst,String mnemonic,int format)
-  {
-    int FRT,FRA,FRB,FRC;
+  static String decode_Aform(int inst, String mnemonic, int format) {
+    int FRT, FRA, FRB, FRC;
 
-    FRT = bits(inst, 6,10);
-    FRA = bits(inst,11,15);
-    FRB = bits(inst,16,20);
-    FRC = bits(inst,21,25);
-    switch(format)
-      {
+    FRT = bits(inst, 6, 10);
+    FRA = bits(inst, 11, 15);
+    FRB = bits(inst, 16, 20);
+    FRC = bits(inst, 21, 25);
+    switch (format) {
 
       case 0:
-        return "        ".substring(mnemonic.length()) + mnemonic +
-          "   fr"+FRT+",fr"+FRA+",fr"+FRB;
+        return "        ".substring(mnemonic.length()) + mnemonic + "   fr" + FRT + ",fr" + FRA + ",fr" + FRB;
       case 1:
-        return "        ".substring(mnemonic.length()) + mnemonic +
-          "   fr"+FRT+",fr"+FRA+",fr"+FRC;
+        return "        ".substring(mnemonic.length()) + mnemonic + "   fr" + FRT + ",fr" + FRA + ",fr" + FRC;
       case 2:
-        return "        ".substring(mnemonic.length()) + mnemonic +
-          "   fr"+FRT+",fr"+FRA+",fr"+FRC+",fr"+FRB;
+        return "        ".substring(mnemonic.length()) +
+               mnemonic +
+               "   fr" +
+               FRT +
+               ",fr" +
+               FRA +
+               ",fr" +
+               FRC +
+               ",fr" +
+               FRB;
       default:
         return "    Invalid opcode";
-      }
+    }
   }
 
   /* Construct an assembler-like branch instruction */
-  static
-  String build_branch_op(int br_opt, int cr_bit, int update_link, int absolute, int ext_op)
-  {
+  static String build_branch_op(int br_opt, int cr_bit, int update_link, int absolute, int ext_op) {
     String c;
     int uncond = 0;/* Unconditional br to count reg */
     int pos_cond = 0;/* Branch if condition is positive */
@@ -1542,45 +1651,59 @@ public class VM_Disassembler implements VM_ArchConstants {
       }
     } else {/* Decrement count register */
       dec_ctr = 1;
-      if ((br_opt & 2)!=0) {
+      if ((br_opt & 2) != 0) {
         ctr_zero = 1;
       } else if ((br_opt & 8) != 0) {
         pos_cond = 1;
       }
     }
-    if (dec_ctr!=0) {
+    if (dec_ctr != 0) {
       c += 'd';
-      c += (ctr_zero!=0)?'z' : 'n';
+      c += (ctr_zero != 0) ? 'z' : 'n';
     }
-    if (uncond==0) {
-      if (pos_cond!=0) {
-        switch(cr_bit) {
-        case CR_LT:  c += "lt"; break;
-        case CR_GT:  c += "gt"; break;
-        case CR_EQ:  c += "eq"; break;
-        case CR_SO:  c += "so"; break;
+    if (uncond == 0) {
+      if (pos_cond != 0) {
+        switch (cr_bit) {
+          case CR_LT:
+            c += "lt";
+            break;
+          case CR_GT:
+            c += "gt";
+            break;
+          case CR_EQ:
+            c += "eq";
+            break;
+          case CR_SO:
+            c += "so";
+            break;
         }
       } else {
-        switch(cr_bit) {
-        case CR_LT:  c += "ge"; break;
-        case CR_GT:  c += "le"; break;
-        case CR_EQ:  c += "ne"; break;
-        case CR_SO:  c += "ns"; break;
+        switch (cr_bit) {
+          case CR_LT:
+            c += "ge";
+            break;
+          case CR_GT:
+            c += "le";
+            break;
+          case CR_EQ:
+            c += "ne";
+            break;
+          case CR_SO:
+            c += "ns";
+            break;
         }
       }
     }
     if (ext_op == 16) {
       c += 'r';
-    } else if (ext_op == 528)  {
+    } else if (ext_op == 528) {
       c += 'c';
-      if (uncond!=0) {/* Can't confuse with br conditional */
+      if (uncond != 0) {/* Can't confuse with br conditional */
         c += "tr";
       }
     }
-    if (update_link!=0)
-      c += "l";
-    if (absolute!=0)
-      c += "a";
+    if (update_link != 0) c += "l";
+    if (absolute != 0) c += "a";
 
     return c;
   }
@@ -1589,25 +1712,24 @@ public class VM_Disassembler implements VM_ArchConstants {
    * Simply return whether an instruction is a branch_with_link
    */
   /* static int branch_link(inst) */
-  public static boolean isBranchAndLink(int inst)
-  {
+  public static boolean isBranchAndLink(int inst) {
     int opcode, ext_op;
     int link;
 
-    opcode = bits(inst,0,5);
-    link = bits(inst,31,31);
+    opcode = bits(inst, 0, 5);
+    link = bits(inst, 31, 31);
     switch (opcode) {
-    case 16: /* unconditional branch */
-    case 18: /* conditional branch */
-      break;
-    case 19: /* possibly branch register */
-      ext_op = bits(inst,21,30);
-      if ((ext_op != 16) && (ext_op != 528)) {
+      case 16: /* unconditional branch */
+      case 18: /* conditional branch */
+        break;
+      case 19: /* possibly branch register */
+        ext_op = bits(inst, 21, 30);
+        if ((ext_op != 16) && (ext_op != 528)) {
+          link = 0;
+        }
+        break;
+      default: /* definitely not a branch */
         link = 0;
-      }
-      break;
-    default: /* definitely not a branch */
-      link = 0;
     }
 
     return link != 0;
@@ -1618,24 +1740,22 @@ public class VM_Disassembler implements VM_ArchConstants {
    *  used by OPT compiler
    */
   /* static int branch_for_yieldpoint(inst) */
-  public static boolean isBranchForYieldpoint(int inst)
-  {
+  public static boolean isBranchForYieldpoint(int inst) {
     int opcode;
     int link;
 
-    opcode = bits(inst,0,5);
-    link = bits(inst,31,31);
+    opcode = bits(inst, 0, 5);
+    link = bits(inst, 31, 31);
     switch (opcode) {
-    case 16: /* unconditional branch */
-      return link == 1;
+      case 16: /* unconditional branch */
+        return link == 1;
     }
 
     return false;
   }
 
-
   static String intAsHexString(int x) {
-    return "0x"+Integer.toHexString(x);
+    return "0x" + Integer.toHexString(x);
   }
 
 }

@@ -592,23 +592,18 @@ public class VM_Scheduler implements VM_Constants {
         showMethod("invisible method", fp);
       } else {
         // normal java frame(s)
-        VM_CompiledMethod compiledMethod =
-            VM_CompiledMethods.getCompiledMethod(compiledMethodId);
+        VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
         if (compiledMethod == null) {
           showMethod(compiledMethodId, fp);
         } else if (compiledMethod.getCompilerType() == VM_CompiledMethod.TRAP) {
           showMethod("hardware trap", fp);
         } else {
           VM_Method method = compiledMethod.getMethod();
-          Offset instructionOffset =
-              compiledMethod.getInstructionOffset(ip);
-          int lineNumber =
-              compiledMethod.findLineNumberForInstruction(instructionOffset);
+          Offset instructionOffset = compiledMethod.getInstructionOffset(ip);
+          int lineNumber = compiledMethod.findLineNumberForInstruction(instructionOffset);
 
-          if (VM.BuildForOptCompiler &&
-              compiledMethod.getCompilerType() == VM_CompiledMethod.OPT) {
-            VM_OptCompiledMethod optInfo =
-                (VM_OptCompiledMethod) compiledMethod;
+          if (VM.BuildForOptCompiler && compiledMethod.getCompilerType() == VM_CompiledMethod.OPT) {
+            VM_OptCompiledMethod optInfo = (VM_OptCompiledMethod) compiledMethod;
             // Opt stack frames may contain multiple inlined methods.
             VM_OptMachineCodeMap map = optInfo.getMCMap();
             int iei = map.getInlineEncodingForMCOffset(instructionOffset);
@@ -664,7 +659,8 @@ public class VM_Scheduler implements VM_Constants {
   private static void showMethod(int compiledMethodId, Address fp) {
     showPrologue(fp);
     VM.sysWrite("<unprintable normal Java frame: VM_CompiledMethods.getCompiledMethod(",
-                compiledMethodId, ") returned null>\n");
+                compiledMethodId,
+                ") returned null>\n");
   }
 
   /**

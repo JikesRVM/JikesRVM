@@ -41,8 +41,7 @@ public class VM_Reflection implements VM_Constants {
     return invoke(method, thisArg, otherArgs, false);
   }
 
-  public static Object invoke(VM_Method method, Object thisArg,
-                              Object[] otherArgs, boolean isNonvirtual) {
+  public static Object invoke(VM_Method method, Object thisArg, Object[] otherArgs, boolean isNonvirtual) {
 
     // the class must be initialized before we can invoke a method
     //
@@ -114,8 +113,7 @@ public class VM_Reflection implements VM_Constants {
     VM_Processor.getCurrentProcessor().disableThreadSwitching();
 
     VM_CodeArray code = cm.getEntryCodeArray();
-    VM_MachineReflection.packageParameters(method, thisArg, otherArgs, GPRs,
-                                           FPRs, Spills);
+    VM_MachineReflection.packageParameters(method, thisArg, otherArgs, GPRs, FPRs, Spills);
 
     // critical: no threadswitch/GCpoints between here and the invoke of code!
     //           We may have references hidden in the GPRs and Spills arrays!!!

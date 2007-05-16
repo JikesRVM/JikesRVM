@@ -120,8 +120,7 @@ import org.vmmagic.unboxed.Word;
  * @see MM_Interface
  */
 @Uninterruptible
-public class VM_ObjectModel implements VM_JavaHeaderConstants,
-                                       VM_SizeConstants {
+public class VM_ObjectModel implements VM_JavaHeaderConstants, VM_SizeConstants {
 
   /** Should we gather stats on hash code state transitions for address-based hashing? */
   public static final boolean HASH_STATS = false;
@@ -203,8 +202,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
    * Set the TIB for an object.
    */
   @Interruptible
-  public static void setTIB(BootImageInterface bootImage, Address refAddress,
-                            Address tibAddr, VM_Type type) {
+  public static void setTIB(BootImageInterface bootImage, Address refAddress, Address tibAddr, VM_Type type) {
     VM_JavaHeader.setTIB(bootImage, refAddress, tibAddr, type);
   }
 
@@ -274,16 +272,14 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
   /**
    * Get the next object after this scalar under contiguous allocation.
    */
-  public static ObjectReference getNextObject(ObjectReference obj,
-                                              VM_Class type) {
+  public static ObjectReference getNextObject(ObjectReference obj, VM_Class type) {
     return VM_JavaHeader.getNextObject(obj, type);
   }
 
   /**
    * Get the next object after this array under contiguous allocation.
    */
-  public static ObjectReference getNextObject(ObjectReference obj,
-                                              VM_Array type, int numElements) {
+  public static ObjectReference getNextObject(ObjectReference obj, VM_Array type, int numElements) {
     return VM_JavaHeader.getNextObject(obj, type, numElements);
   }
 
@@ -382,32 +378,28 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
   /**
    * Copy a scalar object to the given raw storage address
    */
-  public static Object moveObject(Object fromObj, Object toObj,
-                                  int numBytes, boolean noGCHeader, VM_Class type) {
+  public static Object moveObject(Object fromObj, Object toObj, int numBytes, boolean noGCHeader, VM_Class type) {
     return VM_JavaHeader.moveObject(fromObj, toObj, numBytes, noGCHeader, type);
   }
 
   /**
    * Copy an array object to the given raw storage address
    */
-  public static Object moveObject(Object fromObj, Object toObj,
-                                  int numBytes, boolean noGCHeader, VM_Array type) {
+  public static Object moveObject(Object fromObj, Object toObj, int numBytes, boolean noGCHeader, VM_Array type) {
     return VM_JavaHeader.moveObject(fromObj, toObj, numBytes, noGCHeader, type);
   }
 
   /**
    * Copy a scalar object to the given raw storage address
    */
-  public static Object moveObject(Address toAddress, Object fromObj,
-                                  int numBytes, boolean noGCHeader, VM_Class type) {
+  public static Object moveObject(Address toAddress, Object fromObj, int numBytes, boolean noGCHeader, VM_Class type) {
     return VM_JavaHeader.moveObject(toAddress, fromObj, numBytes, noGCHeader, type);
   }
 
   /**
    * Copy an array object to the given raw storage address
    */
-  public static Object moveObject(Address toAddress, Object fromObj,
-                                  int numBytes, boolean noGCHeader, VM_Array type) {
+  public static Object moveObject(Address toAddress, Object fromObj, int numBytes, boolean noGCHeader, VM_Array type) {
     return VM_JavaHeader.moveObject(toAddress, fromObj, numBytes, noGCHeader, type);
   }
 
@@ -559,8 +551,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
   /**
    * An attempt on the word containing the available bits
    */
-  public static boolean attemptAvailableBits(Object o, Word oldVal,
-                                             Word newVal) {
+  public static boolean attemptAvailableBits(Object o, Word oldVal, Word newVal) {
     return VM_JavaHeader.attemptAvailableBits(o, oldVal, newVal);
   }
 
@@ -740,8 +731,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
    * @return the offset of object in bootimage (in bytes)
    */
   @Interruptible
-  public static Address allocateScalar(BootImageInterface bootImage,
-                                       VM_Class klass) {
+  public static Address allocateScalar(BootImageInterface bootImage, VM_Class klass) {
     Object[] tib = klass.getTypeInformationBlock();
     int size = klass.getInstanceSize();
     int align = getAlignment(klass);
@@ -757,8 +747,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
    * Fill an alignment gap with the alignment value
    */
   @Interruptible
-  public static void fillAlignmentGap(BootImageInterface bootImage,
-                                      Address address, Extent size) {
+  public static void fillAlignmentGap(BootImageInterface bootImage, Address address, Extent size) {
     while (size.GT(Extent.zero())) {
       bootImage.setFullWord(address, VM_JavaHeader.ALIGNMENT_VALUE);
       address = address.plus(BYTES_IN_INT);
@@ -796,9 +785,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
    * @return Address of object in bootimage (in bytes)
    */
   @Interruptible
-  public static Address allocateArray(BootImageInterface bootImage,
-                                      VM_Array array,
-                                      int numElements) {
+  public static Address allocateArray(BootImageInterface bootImage, VM_Array array, int numElements) {
     Object[] tib = array.getTypeInformationBlock();
     int size = array.getInstanceSize(numElements);
     int align = getAlignment(array);
@@ -822,9 +809,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants,
    * @return Address of object in bootimage
    */
   @Interruptible
-  public static Address allocateCode(BootImageInterface bootImage,
-                                     VM_Array array,
-                                     int numElements) {
+  public static Address allocateCode(BootImageInterface bootImage, VM_Array array, int numElements) {
     Object[] tib = array.getTypeInformationBlock();
     int size = array.getInstanceSize(numElements);
     int align = getAlignment(array);

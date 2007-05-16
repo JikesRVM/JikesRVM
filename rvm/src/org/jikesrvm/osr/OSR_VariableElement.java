@@ -93,10 +93,7 @@ public class OSR_VariableElement implements OSR_Constants {
 
   /* for 32-bit value */
 
-  public OSR_VariableElement(int what_kind,
-                             int which_num,
-                             int type,
-                             int ibits) {
+  public OSR_VariableElement(int what_kind, int which_num, int type, int ibits) {
     if (VM.VerifyAssertions) {
       VM._assert(isIBitsType(type));
     }
@@ -108,10 +105,7 @@ public class OSR_VariableElement implements OSR_Constants {
   }
 
   /* for 64-bit value */
-  public OSR_VariableElement(int what_kind,
-                             int which_num,
-                             int type,
-                             long lbits) {
+  public OSR_VariableElement(int what_kind, int which_num, int type, long lbits) {
     if (VM.VerifyAssertions) {
       VM._assert(isLBitsType(type));
     }
@@ -123,10 +117,7 @@ public class OSR_VariableElement implements OSR_Constants {
   }
 
   /* for reference type */
-  public OSR_VariableElement(int what_kind,
-                             int which_num,
-                             int type,
-                             Object ref) {
+  public OSR_VariableElement(int what_kind, int which_num, int type, Object ref) {
     if (VM.VerifyAssertions) {
       VM._assert(isRefType(type));
     }
@@ -138,10 +129,7 @@ public class OSR_VariableElement implements OSR_Constants {
   }
 
   /* for word type */
-  public OSR_VariableElement(int what_kind,
-                             int which_num,
-                             int type,
-                             Word word) {
+  public OSR_VariableElement(int what_kind, int which_num, int type, Word word) {
     if (VM.VerifyAssertions) {
       VM._assert(isWordType(type));
     }

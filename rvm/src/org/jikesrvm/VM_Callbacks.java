@@ -217,8 +217,7 @@ public final class VM_Callbacks {
         VM.sysWrite(getClass(cb));
         VM.sysWrite("\n");
       }
-      classInstantiatedCallbacks = new CallbackList(cb,
-                                                    classInstantiatedCallbacks);
+      classInstantiatedCallbacks = new CallbackList(cb, classInstantiatedCallbacks);
     }
   }
 
@@ -278,8 +277,7 @@ public final class VM_Callbacks {
         VM.sysWrite(getClass(cb));
         VM.sysWrite("\n");
       }
-      classInitializedCallbacks = new CallbackList(cb,
-                                                   classInitializedCallbacks);
+      classInitializedCallbacks = new CallbackList(cb, classInitializedCallbacks);
     }
   }
 

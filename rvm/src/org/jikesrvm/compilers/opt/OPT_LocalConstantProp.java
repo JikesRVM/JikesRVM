@@ -58,12 +58,9 @@ public class OPT_LocalConstantProp extends OPT_CompilerPhase {
    */
   public void perform(OPT_IR ir) {
     // info is a mapping from OPT_Register to OPT_ConstantOperand.
-    HashMap<OPT_Register, OPT_ConstantOperand> info =
-        new HashMap<OPT_Register, OPT_ConstantOperand>();
+    HashMap<OPT_Register, OPT_ConstantOperand> info = new HashMap<OPT_Register, OPT_ConstantOperand>();
     boolean runBranchOpts = false;
-    for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder();
-         bb != null;
-         bb = bb.nextBasicBlockInCodeOrder()) {
+    for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); bb != null; bb = bb.nextBasicBlockInCodeOrder()) {
       if (bb.isEmpty()) continue;
       container.counter2++;
       if (bb.getInfrequent()) {
@@ -72,9 +69,7 @@ public class OPT_LocalConstantProp extends OPT_CompilerPhase {
       }
       // iterate over all instructions in the basic block
       for (OPT_Instruction s = bb.firstRealInstruction(),
-          sentinel = bb.lastInstruction();
-           s != sentinel;
-           s = s.nextInstructionInCodeOrder()) {
+          sentinel = bb.lastInstruction(); s != sentinel; s = s.nextInstructionInCodeOrder()) {
 
         if (!info.isEmpty()) {
           // PROPAGATE CONSTANTS
@@ -96,8 +91,7 @@ public class OPT_LocalConstantProp extends OPT_CompilerPhase {
             if (didSomething) OPT_Simplifier.simplify(ir.regpool, s);
           }
           // KILL
-          for (OPT_OperandEnumeration e = s.getDefs();
-               e.hasMoreElements();) {
+          for (OPT_OperandEnumeration e = s.getDefs(); e.hasMoreElements();) {
             OPT_Operand def = e.next();
             if (def != null) {
               info.remove(((OPT_RegisterOperand) def).register);

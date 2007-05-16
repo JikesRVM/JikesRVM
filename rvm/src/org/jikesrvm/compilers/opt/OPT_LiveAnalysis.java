@@ -132,9 +132,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
    * @param storeLiveAtHandlers should we store liveness info at the
    * top of each handler block?
    */
-  public OPT_LiveAnalysis(boolean createGCMaps,
-                          boolean skipLocal,
-                          boolean storeLiveAtHandlers) {
+  public OPT_LiveAnalysis(boolean createGCMaps, boolean skipLocal, boolean storeLiveAtHandlers) {
     this(createGCMaps, skipLocal, storeLiveAtHandlers, true);
   }
 
@@ -148,10 +146,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
    * top of each handler block?
    * @param skipGuards should we ignore validation registers?
    */
-  public OPT_LiveAnalysis(boolean createGCMaps,
-                          boolean skipLocal,
-                          boolean storeLiveAtHandlers,
-                          boolean skipGuards) {
+  public OPT_LiveAnalysis(boolean createGCMaps, boolean skipLocal, boolean storeLiveAtHandlers, boolean skipGuards) {
     super(new Object[]{createGCMaps, skipLocal, storeLiveAtHandlers, skipGuards});
     this.createGCMaps = createGCMaps;
     this.skipLocal = skipLocal;
@@ -217,19 +212,16 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
     OPT_BasicBlock currentBlock = (OPT_BasicBlock) ir.cfg.buildRevTopSort();
 
     // 2nd parm: true means forward analysis; false means backward analysis
-    OPT_SortedGraphIterator bbIter = new OPT_SortedGraphIterator(currentBlock,
-                                                                 false);
+    OPT_SortedGraphIterator bbIter = new OPT_SortedGraphIterator(currentBlock, false);
     while (currentBlock != null) {
       boolean changed = processBlock(currentBlock, reuseCurrentSet, ir);
 
       // mark this block as processed and get the next one
-      OPT_BasicBlock nextBlock =
-          (OPT_BasicBlock) bbIter.markAndGetNextTopSort(changed);
+      OPT_BasicBlock nextBlock = (OPT_BasicBlock) bbIter.markAndGetNextTopSort(changed);
 
       // check to see if nextBlock has only one successor, currentBlock.
       // If so, we can reuse the current set and avoid performing a meet.
-      reuseCurrentSet = nextBlock != null &&
-                        bbIter.isSinglePredecessor(currentBlock, nextBlock);
+      reuseCurrentSet = nextBlock != null && bbIter.isSinglePredecessor(currentBlock, nextBlock);
       currentBlock = nextBlock;
     }
     debugPostGlobal(ir);
@@ -243,8 +235,10 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
       performLocalPropagation(ir, createGCMaps);
 
       if (createGCMaps && dumpFinalMaps) {
-        System.out.println("**** START OF IR for method: " + ir.method.getName()
-                           + " in class: " + ir.method.getDeclaringClass());
+        System.out.println("**** START OF IR for method: " +
+                           ir.method.getName() +
+                           " in class: " +
+                           ir.method.getDeclaringClass());
         ir.printInstructions();
         System.out.println("**** END   OF IR INSTRUCTION DUMP ****");
 
@@ -300,8 +294,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
    * are now intervals for r1.
    */
   public void merge(OPT_Register r1, OPT_Register r2) {
-    ArrayList<OPT_LiveIntervalElement> toRemove =
-        new ArrayList<OPT_LiveIntervalElement>(5);
+    ArrayList<OPT_LiveIntervalElement> toRemove = new ArrayList<OPT_LiveIntervalElement>(5);
 
     for (Iterator<OPT_LiveIntervalElement> i = iterateLiveIntervals(r2); i.hasNext();) {
       OPT_LiveIntervalElement interval = i.next();
@@ -353,8 +346,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
   /**
    * Remove the live interval element i from the map for register r.
    */
-  private void removeFromRegisterMap(OPT_Register r,
-                                     OPT_LiveIntervalElement i) {
+  private void removeFromRegisterMap(OPT_Register r, OPT_LiveIntervalElement i) {
     ArrayList<OPT_LiveIntervalElement> set = registerMap[r.getNumber()];
     if (set != null) {
       set.remove(i);
@@ -437,10 +429,9 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
 
     OPT_Instruction firstPEI = null;
     if (bblock.canThrowExceptions()) {
-      for (OPT_Instruction inst = bblock.firstInstruction();
-           inst != bblock.lastInstruction(); inst = inst.nextInstructionInCodeOrder()) {
-        if (inst.isPEI() &&
-            bblock.getApplicableExceptionalOut(inst).hasMoreElements()) {
+      for (OPT_Instruction inst = bblock.firstInstruction(); inst != bblock.lastInstruction(); inst =
+          inst.nextInstructionInCodeOrder()) {
+        if (inst.isPEI() && bblock.getApplicableExceptionalOut(inst).hasMoreElements()) {
           firstPEI = inst;
           // remember that this block has a PEI with a handler for use
           //  later in "processBlock"
@@ -454,8 +445,8 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
     getUsesFromPhis(bblock);
 
     // Traverse instructions in reverse order within the basic block.
-    for (OPT_Instruction inst = bblock.lastInstruction(); inst != bblock.firstInstruction();
-         inst = inst.prevInstructionInCodeOrder()) {
+    for (OPT_Instruction inst = bblock.lastInstruction(); inst != bblock.firstInstruction(); inst =
+        inst.prevInstructionInCodeOrder()) {
 
       // traverse from defs to uses becauses uses happen after
       // (in a backward sense) defs
@@ -500,8 +491,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
 
       // Now process the uses, unless this is a PHI operator
       if (inst.operator() != PHI) {
-        for (OPT_OperandEnumeration uses = inst.getUses();
-             uses.hasMoreElements();) {
+        for (OPT_OperandEnumeration uses = inst.getUses(); uses.hasMoreElements();) {
           OPT_Operand use = uses.next();
           if (use instanceof OPT_RegisterOperand) {
             OPT_RegisterOperand regOp = (OPT_RegisterOperand) use;
@@ -532,10 +522,8 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
     }           // foreach instruction in block
     if (verbose) {
       System.out.println("  Gen: " + bbLiveInfo[bblock.getNumber()].getGen());
-      System.out.println("  Kill: "
-                         + bbLiveInfo[bblock.getNumber()].BBKillSet());
-      System.out.println("  1st PEI Kill: "
-                         + bbLiveInfo[bblock.getNumber()].firstPEIKillSet());
+      System.out.println("  Kill: " + bbLiveInfo[bblock.getNumber()].BBKillSet());
+      System.out.println("  1st PEI Kill: " + bbLiveInfo[bblock.getNumber()].firstPEIKillSet());
       System.out.println(" ---> Done computing Gen/Kill for block");
     }
   }
@@ -559,9 +547,8 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
         continue;
       }
 
-      for (OPT_Instruction phi = sb.firstInstruction();
-           phi != sb.lastInstruction();
-           phi = phi.nextInstructionInCodeOrder()) {
+      for (OPT_Instruction phi = sb.firstInstruction(); phi != sb.lastInstruction(); phi =
+          phi.nextInstructionInCodeOrder()) {
         if (phi.operator() == PHI) {
           for (int j = 0; j < Phi.getNumberOfValues(phi); j++) {
             OPT_BasicBlockOperand bbop = Phi.getPred(phi, j);
@@ -588,11 +575,9 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
    *                         clear it out and recompute the meet of our succs
    *  @param ir the governing ir
    */
-  private boolean processBlock(OPT_BasicBlock block, boolean reuseCurrentSet,
-                               OPT_IR ir) {
+  private boolean processBlock(OPT_BasicBlock block, boolean reuseCurrentSet, OPT_IR ir) {
     if (verbose) {
-      System.out.println(" *** processing block " + block + " # out edges: "
-                         + block.getNumberOfOut());
+      System.out.println(" *** processing block " + block + " # out edges: " + block.getNumberOfOut());
       block.printExtended();
     }
 
@@ -600,8 +585,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
     // exception handlers for the block
     OPT_LiveSet exceptionBlockSummary = new OPT_LiveSet();
 
-    boolean blockHasHandlers =
-        bbLiveInfo[block.getNumber()].getContainsPEIWithHandler();
+    boolean blockHasHandlers = bbLiveInfo[block.getNumber()].getContainsPEIWithHandler();
 
     // The computation of the Kill set takes into consideration exception
     // semantics, i.e., that live information may flow into the middle
@@ -620,8 +604,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
       // visit each successor, if it is a regular successor, add
       // it to "currentSet".  If it is a handler block, add it to
       // ExceptionBlockSummary.
-      for (OPT_BasicBlockEnumeration bbEnum = block.getOut();
-           bbEnum.hasMoreElements();) {
+      for (OPT_BasicBlockEnumeration bbEnum = block.getOut(); bbEnum.hasMoreElements();) {
         OPT_BasicBlock succ = bbEnum.next();
 
         // sometimes we may have a CFG edge to a handler, but no longer a
@@ -680,14 +663,12 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
     // a change and return true, otherwise return false.
     if (bbLiveInfo[block.getNumber()].getIn().add(currentSet)) {
       if (verbose) {
-        System.out.println(" *** processBlock returning true, currentSet: "
-                           + currentSet);
+        System.out.println(" *** processBlock returning true, currentSet: " + currentSet);
       }
       return true;
     } else {
       if (verbose) {
-        System.out.println(" *** processBlock returning false, currentSet: "
-                           + currentSet);
+        System.out.println(" *** processBlock returning false, currentSet: " + currentSet);
       }
       return false;
     }
@@ -722,12 +703,10 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
       // the information to the GC map after the block has been processed.
       blockStack = new Stack<MapElement>();
     }
-    for (OPT_BasicBlock block = ir.firstBasicBlockInCodeOrder();
-         block != null;
-         block = block.nextBasicBlockInCodeOrder()) {
+    for (OPT_BasicBlock block = ir.firstBasicBlockInCodeOrder(); block != null; block =
+        block.nextBasicBlockInCodeOrder()) {
       if (verbose) {
-        System.out.print(" ....   processing block # " + block.getNumber()
-                         + " ...");
+        System.out.print(" ....   processing block # " + block.getNumber() + " ...");
       }
 
       // This set will hold the live variables for the current
@@ -743,8 +722,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
       // During this processing we should NOT include exception-catching
       // blocks, but instead remember them for use at exception-raising
       // statements in this block
-      for (OPT_BasicBlockEnumeration bbEnum = block.getOut();
-           bbEnum.hasMoreElements();) {
+      for (OPT_BasicBlockEnumeration bbEnum = block.getOut(); bbEnum.hasMoreElements();) {
         OPT_BasicBlock succ = bbEnum.next();
         if (succ.isExceptionHandlerBasicBlock()) {
           exceptionBlockSummary.add(bbLiveInfo[succ.getNumber()].getIn());
@@ -753,8 +731,10 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
         }
       }
       if (verbose) {
-        System.out.println(" Completed succ walk. exceptionBlockSummary: "
-                           + exceptionBlockSummary + "\n local: " + local);
+        System.out.println(" Completed succ walk. exceptionBlockSummary: " +
+                           exceptionBlockSummary +
+                           "\n local: " +
+                           local);
       }
 
       // initialize live range for this block
@@ -764,8 +744,8 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
       OPT_LiveInterval.createEndLiveRange(local, block, null);
 
       // Process the block, an instruction at a time.
-      for (OPT_Instruction inst = block.lastInstruction(); inst != block.firstInstruction();
-           inst = inst.prevInstructionInCodeOrder()) {
+      for (OPT_Instruction inst = block.lastInstruction(); inst != block.firstInstruction(); inst =
+          inst.prevInstructionInCodeOrder()) {
         if (verbose) {
           System.out.println("Processing: " + inst);
         }
@@ -780,15 +760,13 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
 
           // For each item in "exceptionBlockSummary", create live interval
           // info for this block.
-          OPT_LiveInterval.createEndLiveRange(exceptionBlockSummary, block,
-                                              inst);
+          OPT_LiveInterval.createEndLiveRange(exceptionBlockSummary, block, inst);
         }
 
         // compute In set for this instruction & GC point info
         // traverse from defs to uses, do "kill" then "gen" (backwards analysis)
         // Def loop
-        for (OPT_OperandEnumeration defs = inst.getPureDefs();
-             defs.hasMoreElements();) {
+        for (OPT_OperandEnumeration defs = inst.getPureDefs(); defs.hasMoreElements();) {
           OPT_Operand op = defs.next();
           if (op instanceof OPT_RegisterOperand) {
             OPT_RegisterOperand regOp = (OPT_RegisterOperand) op;
@@ -801,8 +779,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
               // process the def as a kill
               local.remove(regOp);
               if (verbose) {
-                System.out.println("  Killing: " + regOp + "\n local: "
-                                   + local);
+                System.out.println("  Killing: " + regOp + "\n local: " + local);
               }
 
               // mark this instruction as the start of the live range for reg
@@ -843,8 +820,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
         }       // is GC instruction, and map not already made
 
         // now process the uses
-        for (OPT_OperandEnumeration uses = inst.getUses();
-             uses.hasMoreElements();) {
+        for (OPT_OperandEnumeration uses = inst.getUses(); uses.hasMoreElements();) {
           OPT_Operand op = uses.next();
           if (op instanceof OPT_RegisterOperand) {
             OPT_RegisterOperand regOp = (OPT_RegisterOperand) op;
@@ -862,8 +838,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
                 System.out.println("local: " + local);
               }
               // mark this instruction as the end of the live range for reg
-              OPT_LiveInterval.createEndLiveRange(regOp.register, block,
-                                                  inst);
+              OPT_LiveInterval.createEndLiveRange(regOp.register, block, inst);
             }
           }     // if operand is a Register
         }     // uses
@@ -891,8 +866,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
       }
 
       if (storeLiveAtHandlers && block.isExceptionHandlerBasicBlock()) {
-        OPT_ExceptionHandlerBasicBlock handlerBlock =
-            (OPT_ExceptionHandlerBasicBlock) block;
+        OPT_ExceptionHandlerBasicBlock handlerBlock = (OPT_ExceptionHandlerBasicBlock) block;
 
         // use local because we need to get a fresh one anyway.
         handlerBlock.setLiveSet(local);
@@ -931,20 +905,19 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
    * @param createGCMaps are we creating GC maps?
    */
   private void debugBegining(OPT_IR ir, boolean createGCMaps) {
-    if (debug || dumpFixedPointResults
-        || dumpFinalMaps || dumpFinalLiveIntervals) {
+    if (debug || dumpFixedPointResults || dumpFinalMaps || dumpFinalLiveIntervals) {
       System.out.print("\n ====>  Performing liveness analysis ");
       if (createGCMaps) {
         System.out.print("and GC Maps ");
       }
-      System.out.println("for method: " + ir.method.getName() + " in class: "
-                         + ir.method.getDeclaringClass() + "\n");
-      System.out.println("  method has "
-                         + ir.cfg.numberOfNodes() + " basic blocks");
+      System.out.println("for method: " + ir.method.getName() + " in class: " + ir.method.getDeclaringClass() + "\n");
+      System.out.println("  method has " + ir.cfg.numberOfNodes() + " basic blocks");
     }
     if (debug || dumpFinalMaps) {
-      System.out.println("**** START OF IR for method: " + ir.method.getName()
-                         + " in class: " + ir.method.getDeclaringClass());
+      System.out.println("**** START OF IR for method: " +
+                         ir.method.getName() +
+                         " in class: " +
+                         ir.method.getDeclaringClass());
       ir.printInstructions();
       System.out.println("**** END   OF IR INSTRUCTION DUMP ****");
     }
@@ -979,8 +952,10 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
    *  @param ir the IR
    */
   private void printFixedPointResults(OPT_IR ir) {
-    System.out.println("\n  ***** Fixed point results for IR-based GC Maps for "
-                       + ir.method.getDeclaringClass() + "." + ir.method.getName());
+    System.out.println("\n  ***** Fixed point results for IR-based GC Maps for " +
+                       ir.method.getDeclaringClass() +
+                       "." +
+                       ir.method.getName());
     int length = bbLiveInfo.length;
     for (int i = 0; i < length; i++) {
       System.out.println("Live Info for Block #" + i);
@@ -994,7 +969,9 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
    */
   private void printFinalMaps(OPT_IR ir) {
     System.out.println("\n  =-=-=-=-=- Final IR-based GC Maps for " +
-                       ir.method.getDeclaringClass() + "." + ir.method.getName());
+                       ir.method.getDeclaringClass() +
+                       "." +
+                       ir.method.getName());
     map.dump();
     System.out.println("  =-=-=-=-=- End Final IR-based GC Maps\n");
   }
@@ -1015,10 +992,12 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
    */
   private void printFinalLiveIntervals(OPT_IR ir) {
     ir.printInstructions();
-    System.out.println("\n  *+*+*+*+*+ Final Live Intervals for "
-                       + ir.method.getDeclaringClass() + "." + ir.method.getName());
-    for (OPT_BasicBlock block = ir.firstBasicBlockInCodeOrder(); block
-                                                                 != null; block = block.nextBasicBlockInCodeOrder()) {
+    System.out.println("\n  *+*+*+*+*+ Final Live Intervals for " +
+                       ir.method.getDeclaringClass() +
+                       "." +
+                       ir.method.getName());
+    for (OPT_BasicBlock block = ir.firstBasicBlockInCodeOrder(); block != null; block =
+        block.nextBasicBlockInCodeOrder()) {
       OPT_LiveInterval.printLiveIntervalList(block);
     }
     System.out.println("  *+*+*+*+*+ End Final Live Intervals\n");
@@ -1037,8 +1016,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
    * Return the set of registers that are live on the control-flow edge
    * basic block bb1 to basic block bb2
    */
-  HashSet<OPT_Register> getLiveRegistersOnEdge(OPT_BasicBlock bb1,
-                                               OPT_BasicBlock bb2) {
+  HashSet<OPT_Register> getLiveRegistersOnEdge(OPT_BasicBlock bb1, OPT_BasicBlock bb2) {
     HashSet<OPT_Register> s1 = getLiveRegistersOnExit(bb1);
     HashSet<OPT_Register> s2 = getLiveRegistersOnEntry(bb2);
     s1.retainAll(s2);
@@ -1211,12 +1189,10 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
   /* collect osr info according to live information */
   private void collectOsrInfo(OPT_Instruction inst, OPT_LiveSet lives) {
     // create an entry to the OSRIRMap, order: callee => caller
-    LinkedList<OSR_MethodVariables> mvarList =
-        new LinkedList<OSR_MethodVariables>();
+    LinkedList<OSR_MethodVariables> mvarList = new LinkedList<OSR_MethodVariables>();
 
     // get the type info for locals and stacks
-    OPT_InlinedOsrTypeInfoOperand typeInfo =
-        OsrPoint.getInlinedTypeInfo(inst);
+    OPT_InlinedOsrTypeInfoOperand typeInfo = OsrPoint.getInlinedTypeInfo(inst);
 
     /* iterator over type info and create LocalRegTuple
     * for each variable.
@@ -1232,8 +1208,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
     int snd_long_idx = typeInfo.validOps;
     for (int midx = 0; midx < nummeth; midx++) {
 
-      LinkedList<OSR_LocalRegPair> tupleList =
-          new LinkedList<OSR_LocalRegPair>();
+      LinkedList<OSR_LocalRegPair> tupleList = new LinkedList<OSR_LocalRegPair>();
 
       byte[] ls = ltypes[midx];
       byte[] ss = stypes[midx];
@@ -1243,16 +1218,14 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
         if (ls[i] != VoidTypeCode) {
           // check liveness
           OPT_Operand op = OsrPoint.getElement(inst, elm_idx++);
-          OSR_LocalRegPair tuple =
-              new OSR_LocalRegPair(OSR_Constants.LOCAL, i, ls[i], op);
+          OSR_LocalRegPair tuple = new OSR_LocalRegPair(OSR_Constants.LOCAL, i, ls[i], op);
           // put it in the list
           tupleList.add(tuple);
 
           // get another half of a long type operand
           if (VM.BuildFor32Addr && (ls[i] == LongTypeCode)) {
             OPT_Operand other_op = OsrPoint.getElement(inst, snd_long_idx++);
-            tuple._otherHalf =
-                new OSR_LocalRegPair(OSR_Constants.LOCAL, i, ls[i], other_op);
+            tuple._otherHalf = new OSR_LocalRegPair(OSR_Constants.LOCAL, i, ls[i], other_op);
 
           }
         }
@@ -1262,28 +1235,19 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
       for (int i = 0, n = ss.length; i < n; i++) {
         if (ss[i] != VoidTypeCode) {
           OSR_LocalRegPair tuple =
-              new OSR_LocalRegPair(OSR_Constants.STACK,
-                                   i,
-                                   ss[i],
-                                   OsrPoint.getElement(inst, elm_idx++));
+              new OSR_LocalRegPair(OSR_Constants.STACK, i, ss[i], OsrPoint.getElement(inst, elm_idx++));
 
           tupleList.add(tuple);
 
           if (VM.BuildFor32Addr && (ss[i] == LongTypeCode)) {
             tuple._otherHalf =
-                new OSR_LocalRegPair(OSR_Constants.STACK,
-                                     i,
-                                     ss[i],
-                                     OsrPoint.getElement(inst, snd_long_idx++));
+                new OSR_LocalRegPair(OSR_Constants.STACK, i, ss[i], OsrPoint.getElement(inst, snd_long_idx++));
           }
         }
       }
 
       // create OSR_MethodVariables
-      OSR_MethodVariables mvar =
-          new OSR_MethodVariables(typeInfo.methodids[midx],
-                                  typeInfo.bcindexes[midx],
-                                  tupleList);
+      OSR_MethodVariables mvar = new OSR_MethodVariables(typeInfo.methodids[midx], typeInfo.bcindexes[midx], tupleList);
       mvarList.add(mvar);
     }
 

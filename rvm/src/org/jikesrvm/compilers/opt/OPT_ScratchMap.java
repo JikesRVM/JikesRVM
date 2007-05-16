@@ -25,15 +25,13 @@ public final class OPT_ScratchMap {
   /**
    * For each register, the set of intervals describing the register.
    */
-  private final HashMap<OPT_Register, ArrayList<Interval>> map =
-      new HashMap<OPT_Register, ArrayList<Interval>>();
+  private final HashMap<OPT_Register, ArrayList<Interval>> map = new HashMap<OPT_Register, ArrayList<Interval>>();
 
   /**
    * For each register, a pending (incomplete) interval under
    * construction.
    */
-  private final HashMap<OPT_Register, Interval> pending =
-      new HashMap<OPT_Register, Interval>();
+  private final HashMap<OPT_Register, Interval> pending = new HashMap<OPT_Register, Interval>();
 
   /**
    * For each GC Point s, a set of symbolic registers that are cached in
@@ -50,11 +48,9 @@ public final class OPT_ScratchMap {
    * @param begin the instruction before which the physical register is
    * vacated.
    */
-  void beginSymbolicInterval(OPT_Register r, OPT_Register scratch,
-                             OPT_Instruction begin) {
+  void beginSymbolicInterval(OPT_Register r, OPT_Register scratch, OPT_Instruction begin) {
     if (DEBUG) {
-      System.out.println("beginSymbolicInterval " + r + " " + scratch +
-                         " " + begin.scratch);
+      System.out.println("beginSymbolicInterval " + r + " " + scratch + " " + begin.scratch);
     }
 
     SymbolicInterval i = new SymbolicInterval(r, scratch);
@@ -252,8 +248,7 @@ public final class OPT_ScratchMap {
      * OPT_Instruction identifies an instruction.
      */
     public String toString() {
-      return "SI: " + symbolic + " " + scratch + " [" +
-             begin.scratch + "," + end.scratch + "]";
+      return "SI: " + symbolic + " " + scratch + " [" + begin.scratch + "," + end.scratch + "]";
     }
   }
 
@@ -272,8 +267,7 @@ public final class OPT_ScratchMap {
      * OPT_Instruction identifies an instruction.
      */
     public String toString() {
-      return "PI: " + scratch + " [" +
-             begin.scratch + "," + end.scratch + "]";
+      return "PI: " + scratch + " [" + begin.scratch + "," + end.scratch + "]";
     }
   }
 }

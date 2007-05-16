@@ -15,8 +15,7 @@ import java.util.Enumeration;
  *
  * comments: should a doubly linked list implement Enumeration?
  */
-class OPT_SpaceEffGraphNodeList
-    implements Enumeration<OPT_SpaceEffGraphNodeList> {
+class OPT_SpaceEffGraphNodeList implements Enumeration<OPT_SpaceEffGraphNodeList> {
   OPT_SpaceEffGraphNode _node;
   OPT_SpaceEffGraphNodeList _next;
   OPT_SpaceEffGraphNodeList _prev;

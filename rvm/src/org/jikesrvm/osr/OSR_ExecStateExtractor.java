@@ -44,10 +44,7 @@ public abstract class OSR_ExecStateExtractor implements VM_Constants {
    *                      yield point was taken. tsFrom is the callee of ypTaken
    * @param cmid the compiled method id of ypTaken
    */
-  public abstract OSR_ExecutionState extractState(VM_Thread thread,
-                                                  Offset tsFromFPoff,
-                                                  Offset ypTakenFPoff,
-                                                  int cmid);
+  public abstract OSR_ExecutionState extractState(VM_Thread thread, Offset tsFromFPoff, Offset ypTakenFPoff, int cmid);
 
   public static void printStackTraces(int[] stack, Offset osrFPoff) {
 

@@ -102,8 +102,7 @@ public final class OPT_LongConstantOperand extends OPT_ConstantOperand {
    *           if they are not.
    */
   public boolean similar(OPT_Operand op) {
-    return (op instanceof OPT_LongConstantOperand) &&
-           (value == ((OPT_LongConstantOperand) op).value);
+    return (op instanceof OPT_LongConstantOperand) && (value == ((OPT_LongConstantOperand) op).value);
   }
 
   /**

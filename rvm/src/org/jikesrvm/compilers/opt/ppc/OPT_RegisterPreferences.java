@@ -21,8 +21,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_Register;
  * An instance of this class provides a mapping from symbolic register to
  * physical register, representing a preferred register assignment.
  */
-public abstract class OPT_RegisterPreferences extends OPT_GenericRegisterPreferences
-    implements OPT_Operators {
+public abstract class OPT_RegisterPreferences extends OPT_GenericRegisterPreferences implements OPT_Operators {
 
   /**
    * If the following is set, we use a heuristic optimization as follows:
@@ -43,8 +42,7 @@ public abstract class OPT_RegisterPreferences extends OPT_GenericRegisterPrefere
    * Set up register preferences based on instructions in an IR.
    */
   public void initialize(OPT_IR ir) {
-    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator();
-         e.hasMoreElements();) {
+    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
       OPT_Instruction s = e.nextElement();
       switch (s.operator.opcode) {
         case PPC_MOVE_opcode:
@@ -58,8 +56,7 @@ public abstract class OPT_RegisterPreferences extends OPT_GenericRegisterPrefere
 
             // double the affinities if using the heuristic described
             // above.
-            if (SYMBOLIC_SYMBOLIC_HEURISTIC && r1.isSymbolic() &&
-                r2.isSymbolic()) {
+            if (SYMBOLIC_SYMBOLIC_HEURISTIC && r1.isSymbolic() && r2.isSymbolic()) {
               addAffinity(1, r2, r1);
             }
           }

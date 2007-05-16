@@ -60,8 +60,7 @@ import org.vmmagic.unboxed.Offset;
  *         2) methods called at GC time (no allocation allowed!)
  */
 @Uninterruptible
-public final class VM_OptMachineCodeMap
-    implements VM_Constants, OPT_Constants {
+public final class VM_OptMachineCodeMap implements VM_Constants, OPT_Constants {
 
   /**
    * Private constructor, object should be created via create
@@ -104,9 +103,7 @@ public final class VM_OptMachineCodeMap
     if (DUMP_MAPS) {
       VM.sysWrite("Final Machine code information:\n");
       map.dumpMCInformation();
-      for (OPT_Instruction i = ir.firstInstructionInCodeOrder();
-           i != null;
-           i = i.nextInstructionInCodeOrder()) {
+      for (OPT_Instruction i = ir.firstInstructionInCodeOrder(); i != null; i = i.nextInstructionInCodeOrder()) {
         VM.sysWriteln(i.getmcOffset() + "\t" + i);
       }
     }
@@ -322,8 +319,7 @@ public final class VM_OptMachineCodeMap
       OPT_Instruction instr = irMapElem.getInstruction();
       if (instr.position == null && instr.bcIndex != INSTRUMENTATION_BCI) {
         if (MIR_Call.conforms(instr) && MIR_Call.hasMethod(instr)) {
-          throw new OPT_OptimizingCompilerException("position required for all call instructions "
-                                                    + instr);
+          throw new OPT_OptimizingCompilerException("position required for all call instructions " + instr);
         }
       } else {
         inliningMap.addLocation(instr.position);
@@ -377,10 +373,7 @@ public final class VM_OptMachineCodeMap
       }
 
       // Encode this entry into MCInformation
-      if (bci < INVALID_BCI &&
-          iei < INVALID_IEI &&
-          gci < INVALID_GCI &&
-          mco < (OFFSET_MASK >>> OFFSET_SHIFT)) {
+      if (bci < INVALID_BCI && iei < INVALID_IEI && gci < INVALID_GCI && mco < (OFFSET_MASK >>> OFFSET_SHIFT)) {
         // use a small entry
         if (bci == -1) bci = INVALID_BCI;
         if (iei == -1) iei = INVALID_IEI;
@@ -651,18 +644,21 @@ public final class VM_OptMachineCodeMap
    * @param machineCodeSize
    */
   @Interruptible
-  private void recordStats(VM_Method method, int mapSize,
-                           int machineCodeSize) {
+  private void recordStats(VM_Method method, int mapSize, int machineCodeSize) {
     if (DUMP_MAP_SIZES) {
       double mapMCPercent = (double) mapSize / machineCodeSize;
       VM.sysWrite(method);
-      VM.sysWrite(" map is " + (int) (mapMCPercent * 100) + "% ("
-                  + mapSize + "/" + machineCodeSize + ") of MC.\n");
+      VM.sysWrite(" map is " + (int) (mapMCPercent * 100) + "% (" + mapSize + "/" + machineCodeSize + ") of MC.\n");
       totalMCSize += machineCodeSize;
       totalMapSize += mapSize;
       double MCPct = (double) totalMapSize / totalMCSize;
-      VM.sysWrite("  Cumulative maps are now " + (int) (MCPct * 100) +
-                  "% (" + totalMapSize + "/" + totalMCSize + ") of MC.\n");
+      VM.sysWrite("  Cumulative maps are now " +
+                  (int) (MCPct * 100) +
+                  "% (" +
+                  totalMapSize +
+                  "/" +
+                  totalMCSize +
+                  ") of MC.\n");
     }
   }
 

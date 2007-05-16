@@ -100,8 +100,7 @@ public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElem
             ir.IRStage = OPT_IR.MIR;
             ir.MIRInfo = new OPT_MIRInfo(ir);
           }
-        })
-    });
+        })});
   }
 
   /**
@@ -118,12 +117,13 @@ public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElem
     }
 
     public void perform(OPT_IR ir) {
-      for (OPT_Instruction s = ir.firstInstructionInCodeOrder(); s !=
-                                                                 null; s = s.nextInstructionInCodeOrder()) {
+      for (OPT_Instruction s = ir.firstInstructionInCodeOrder(); s != null; s = s.nextInstructionInCodeOrder()) {
         switch (s.getOpcode()) {
           case ARRAYLENGTH_opcode: {
             // array_ref[VM_ObjectModel.getArrayLengthOffset()] contains the length
-            Load.mutate(s, INT_LOAD, GuardedUnary.getClearResult(s),
+            Load.mutate(s,
+                        INT_LOAD,
+                        GuardedUnary.getClearResult(s),
                         GuardedUnary.getClearVal(s),
                         OPT_IRTools.AC(VM_ObjectModel.getArrayLengthOffset()),
                         new OPT_LocationOperand(),
@@ -134,25 +134,35 @@ public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElem
           case GET_OBJ_TIB_opcode:
             // TODO: valid location operand.
             OPT_Operand address = GuardedUnary.getClearVal(s);
-            Load.mutate(s, OPT_Operators.REF_LOAD, GuardedUnary.getClearResult(s),
-                        address, new OPT_AddressConstantOperand(VM_JavaHeader.getTibOffset()),
-                        null, GuardedUnary.getClearGuard(s));
+            Load.mutate(s,
+                        OPT_Operators.REF_LOAD,
+                        GuardedUnary.getClearResult(s),
+                        address,
+                        new OPT_AddressConstantOperand(VM_JavaHeader.getTibOffset()),
+                        null,
+                        GuardedUnary.getClearGuard(s));
             break;
 
           case GET_CLASS_TIB_opcode: {
             VM_Type type = ((OPT_TypeOperand) Unary.getVal(s)).getVMType();
             Offset offset = type.getTibOffset();
-            Load.mutate(s, REF_LOAD, Unary.getClearResult(s),
+            Load.mutate(s,
+                        REF_LOAD,
+                        Unary.getClearResult(s),
                         ir.regpool.makeJTOCOp(ir, s),
-                        OPT_IRTools.AC(offset), new OPT_LocationOperand(offset));
+                        OPT_IRTools.AC(offset),
+                        new OPT_LocationOperand(offset));
           }
           break;
 
           case GET_TYPE_FROM_TIB_opcode: {
             // TODO: Valid location operand?
-            Load.mutate(s, REF_LOAD, Unary.getClearResult(s),
+            Load.mutate(s,
+                        REF_LOAD,
+                        Unary.getClearResult(s),
                         Unary.getClearVal(s),
-                        OPT_IRTools.AC(Offset.fromIntZeroExtend(TIB_TYPE_INDEX << LOG_BYTES_IN_ADDRESS)), null);
+                        OPT_IRTools.AC(Offset.fromIntZeroExtend(TIB_TYPE_INDEX << LOG_BYTES_IN_ADDRESS)),
+                        null);
           }
           break;
 
@@ -191,8 +201,10 @@ public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElem
 
           case LONG_DIV_opcode: {
             if (VM.BuildForPowerPC && VM.BuildFor64Addr) break; // don't reduce operator -- leave for BURS
-            Call.mutate2(s, SYSCALL,
-                         GuardedBinary.getClearResult(s), null,
+            Call.mutate2(s,
+                         SYSCALL,
+                         GuardedBinary.getClearResult(s),
+                         null,
                          OPT_MethodOperand.STATIC(VM_Entrypoints.sysLongDivideIPField),
                          GuardedBinary.getClearVal1(s),
                          GuardedBinary.getClearVal2(s));
@@ -203,8 +215,10 @@ public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElem
 
           case LONG_REM_opcode: {
             if (VM.BuildForPowerPC && VM.BuildFor64Addr) break; // don't reduce operator -- leave for BURS
-            Call.mutate2(s, SYSCALL,
-                         GuardedBinary.getClearResult(s), null,
+            Call.mutate2(s,
+                         SYSCALL,
+                         GuardedBinary.getClearResult(s),
+                         null,
                          OPT_MethodOperand.STATIC(VM_Entrypoints.sysLongRemainderIPField),
                          GuardedBinary.getClearVal1(s),
                          GuardedBinary.getClearVal2(s));
@@ -216,8 +230,10 @@ public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElem
           case FLOAT_REM_opcode:
           case DOUBLE_REM_opcode: {
             if (VM.BuildForPowerPC) {
-              Call.mutate2(s, SYSCALL,
-                           Binary.getClearResult(s), null,
+              Call.mutate2(s,
+                           SYSCALL,
+                           Binary.getClearResult(s),
+                           null,
                            OPT_MethodOperand.STATIC(VM_Entrypoints.sysDoubleRemainderIPField),
                            Binary.getClearVal1(s),
                            Binary.getClearVal2(s));
@@ -229,8 +245,10 @@ public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElem
 
           case LONG_2FLOAT_opcode: {
             if (VM.BuildForPowerPC) {
-              Call.mutate1(s, SYSCALL,
-                           Unary.getClearResult(s), null,
+              Call.mutate1(s,
+                           SYSCALL,
+                           Unary.getClearResult(s),
+                           null,
                            OPT_MethodOperand.STATIC(VM_Entrypoints.sysLongToFloatIPField),
                            Unary.getClearVal(s));
               OPT_ConvertToLowLevelIR.expandSysCallTarget(s, ir);
@@ -241,7 +259,8 @@ public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElem
 
           case LONG_2DOUBLE_opcode: {
             if (VM.BuildForPowerPC) {
-              Call.mutate1(s, SYSCALL,
+              Call.mutate1(s,
+                           SYSCALL,
                            Unary.getClearResult(s),
                            null,
                            OPT_MethodOperand.STATIC(VM_Entrypoints.sysLongToDoubleIPField),
@@ -254,7 +273,8 @@ public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElem
 
           case FLOAT_2LONG_opcode: {
             if (VM.BuildForPowerPC && VM.BuildFor64Addr) break; // don't reduce operator -- leave for BURS
-            Call.mutate1(s, SYSCALL,
+            Call.mutate1(s,
+                         SYSCALL,
                          Unary.getClearResult(s),
                          null,
                          OPT_MethodOperand.STATIC(VM_Entrypoints.sysFloatToLongIPField),
@@ -266,7 +286,8 @@ public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElem
 
           case DOUBLE_2LONG_opcode: {
             if (VM.BuildForPowerPC && VM.BuildFor64Addr) break; // don't reduce operator -- leave for BURS
-            Call.mutate1(s, SYSCALL,
+            Call.mutate1(s,
+                         SYSCALL,
                          Unary.getClearResult(s),
                          null,
                          OPT_MethodOperand.STATIC(VM_Entrypoints.sysDoubleToLongIPField),
@@ -348,9 +369,7 @@ public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElem
       OPT_DefUse.recomputeSpansBasicBlock(ir);
       OPT_MinimalBURS mburs = new OPT_MinimalBURS(ir);
       OPT_NormalBURS burs = new OPT_NormalBURS(ir);
-      for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder();
-           bb != null;
-           bb = bb.nextBasicBlockInCodeOrder()) {
+      for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); bb != null; bb = bb.nextBasicBlockInCodeOrder()) {
         if (bb.isEmpty()) continue;
         container.counter2++;
         if (bb.getInfrequent()) {
@@ -366,10 +385,7 @@ public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElem
         // Use Normal instruction selection.
         burs.prepareForBlock(bb);
         // I. Build Dependence graph for the basic block
-        OPT_DepGraph dgraph = new OPT_DepGraph(ir,
-                                               bb.firstRealInstruction(),
-                                               bb.lastRealInstruction(),
-                                               bb);
+        OPT_DepGraph dgraph = new OPT_DepGraph(ir, bb.firstRealInstruction(), bb.lastRealInstruction(), bb);
         if (options.PRINT_DG_BURS) {
           // print dependence graph.
           OPT_Compiler.header("DepGraph", ir.method);
@@ -379,14 +395,12 @@ public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElem
         if (options.VCG_DG_BURS) {
           // output dependence graph in VCG format.
           // CAUTION: creates A LOT of files (one per BB)
-          OPT_VCG.printVCG("depgraph_BURS_" + ir.method + "_" + bb +
-                           ".vcg", dgraph);
+          OPT_VCG.printVCG("depgraph_BURS_" + ir.method + "_" + bb + ".vcg", dgraph);
         }
         // II. Invoke BURS and rewrite block from LIR to MIR
         try {
           burs.invoke(dgraph);
-        }
-        catch (OPT_OptimizingCompilerException e) {
+        } catch (OPT_OptimizingCompilerException e) {
           System.err.println("Exception occurred in OPT_ConvertLIRtoMIR");
           e.printStackTrace();
           ir.printInstructions();

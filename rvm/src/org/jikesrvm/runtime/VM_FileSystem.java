@@ -260,8 +260,7 @@ public class VM_FileSystem {
   public static int readBytes(int fd, byte[] buf, int off, int cnt) {
     try {
       return readBytes(fd, buf, off, cnt, VM_ThreadEventConstants.WAIT_INFINITE);
-    }
-    catch (VM_TimeoutException e) {
+    } catch (VM_TimeoutException e) {
       if (VM.VerifyAssertions) VM._assert(false); // impossible
       return -2;
     }
@@ -279,8 +278,7 @@ public class VM_FileSystem {
    * @return number of bytes read (-2: error)
    * @throws VM_TimeoutException if the read times out
    */
-  public static int readBytes(int fd, byte[] buf, int off, int cnt, double totalWaitTime)
-      throws VM_TimeoutException {
+  public static int readBytes(int fd, byte[] buf, int off, int cnt, double totalWaitTime) throws VM_TimeoutException {
 
     if (off < 0) {
       throw new IndexOutOfBoundsException();
@@ -311,9 +309,7 @@ public class VM_FileSystem {
 
     int read = 0;
     for (; ;) {
-      int rc = sysCall.sysReadBytes(fd,
-                                    VM_Magic.objectAsAddress(buf).plus(off),
-                                    cnt);
+      int rc = sysCall.sysReadBytes(fd, VM_Magic.objectAsAddress(buf).plus(off), cnt);
 
       if (rc == 0) {
         // EOF
@@ -410,9 +406,7 @@ public class VM_FileSystem {
 
     int written = 0;
     for (; ;) {
-      int rc = sysCall.sysWriteBytes(fd,
-                                     VM_Magic.objectAsAddress(buf).plus(off),
-                                     cnt);
+      int rc = sysCall.sysWriteBytes(fd, VM_Magic.objectAsAddress(buf).plus(off), cnt);
       if (rc >= 0) {
         // Write succeeded, perhaps partially
         written += rc;
@@ -492,8 +486,7 @@ public class VM_FileSystem {
     if (!shared) {
       rc = sysCall.sysSetFdCloseOnExec(fd);
       if (rc < 0) {
-        VM.sysWrite("VM: warning: could not set close-on-exec flag " +
-                    "for fd " + fd);
+        VM.sysWrite("VM: warning: could not set close-on-exec flag " + "for fd " + fd);
       }
     }
   }

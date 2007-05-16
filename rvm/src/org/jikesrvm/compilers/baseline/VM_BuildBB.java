@@ -20,8 +20,7 @@ import org.jikesrvm.classloader.VM_NormalMethod;
  * method.
  */
 
-public final class VM_BuildBB
-    implements VM_BytecodeConstants, VM_BBConstants {
+public final class VM_BuildBB implements VM_BytecodeConstants, VM_BBConstants {
 
   // ---------------- Static Class Fields --------------------
 
@@ -99,8 +98,7 @@ public final class VM_BuildBB
     //
     //  Set up the EXIT basic block
     //
-    basicBlocks[VM_BasicBlock.EXITBLOCK] =
-        new VM_BasicBlock(bytelength, bytelength, VM_BasicBlock.EXITBLOCK);
+    basicBlocks[VM_BasicBlock.EXITBLOCK] = new VM_BasicBlock(bytelength, bytelength, VM_BasicBlock.EXITBLOCK);
 
     //
     // Get the first basic block

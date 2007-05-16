@@ -156,8 +156,7 @@ final class OPT_SchedulingInfo {
    * @return string representation of scheduling info
    */
   public String toString() {
-    return "time=" + time + "; alt=" + alt + "; eTime=" + etime + "; cp="
-           + cp;
+    return "time=" + time + "; alt=" + alt + "; eTime=" + etime + "; cp=" + cp;
   }
 }
 

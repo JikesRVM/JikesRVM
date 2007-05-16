@@ -26,12 +26,10 @@ import org.jikesrvm.classloader.VM_TypeReference;
 public class VM_Entrypoints implements VM_Constants {
 
   public static final String arch = VM.BuildForIA32 ? "ia32" : "ppc";
-  public static final VM_NormalMethod bootMethod =
-      getMethod("Lorg/jikesrvm/VM;", "boot", "()V");
+  public static final VM_NormalMethod bootMethod = getMethod("Lorg/jikesrvm/VM;", "boot", "()V");
 
   public static final VM_Method java_lang_reflect_Method_invokeMethod =
-      getMethod("Ljava/lang/reflect/Method;", "invoke",
-                "(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
+      getMethod("Ljava/lang/reflect/Method;", "invoke", "(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
 
   public static final VM_Field magicObjectRemapperField =
       getField("Lorg/jikesrvm/runtime/VM_Magic;",
@@ -529,8 +527,7 @@ public class VM_Entrypoints implements VM_Constants {
    * @param memberDescriptor member descriptor - something like "()V"
    * @return corresponding VM_Member object
    */
-  private static VM_Member getMember(String classDescriptor, String memberName,
-                                     String memberDescriptor) {
+  private static VM_Member getMember(String classDescriptor, String memberName, String memberDescriptor) {
     VM_Atom clsDescriptor = VM_Atom.findOrCreateAsciiAtom(classDescriptor);
     VM_Atom memName = VM_Atom.findOrCreateAsciiAtom(memberName);
     VM_Atom memDescriptor = VM_Atom.findOrCreateAsciiAtom(memberDescriptor);
@@ -562,8 +559,13 @@ public class VM_Entrypoints implements VM_Constants {
       VM._assert(NOT_REACHED);
     } catch (Exception e) {
       e.printStackTrace();
-      VM.sysWrite("VM_Entrypoints.getMember: can't resolve class=" + classDescriptor +
-                  " member=" + memberName + " desc=" + memberDescriptor + "\n");
+      VM.sysWrite("VM_Entrypoints.getMember: can't resolve class=" +
+                  classDescriptor +
+                  " member=" +
+                  memberName +
+                  " desc=" +
+                  memberDescriptor +
+                  "\n");
       VM._assert(NOT_REACHED);
     }
     return null; // placate jikes
@@ -580,9 +582,7 @@ public class VM_Entrypoints implements VM_Constants {
   }
 
   public static VM_Field getSysCallField(String name) {
-    return (VM_Field) getMember("Lorg/jikesrvm/VM_BootRecord;",
-                                name + "IP",
-                                "Lorg/vmmagic/unboxed/Address;");
+    return (VM_Field) getMember("Lorg/jikesrvm/VM_BootRecord;", name + "IP", "Lorg/vmmagic/unboxed/Address;");
   }
 
 }

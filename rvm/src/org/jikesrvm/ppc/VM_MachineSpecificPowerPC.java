@@ -36,12 +36,12 @@ public abstract class VM_MachineSpecificPowerPC extends VM_MachineSpecific imple
     public static final PPC64 singleton = new PPC64();
   }
 
-
   /*
-   * Generic (32/64 neutral) PowerPC support
-   */
+  * Generic (32/64 neutral) PowerPC support
+  */
 
   /* common to all ISAs */
+
   /**
    * The following method will emit code that moves a reference to an
    * object's TIB into a destination register.
@@ -68,7 +68,7 @@ public abstract class VM_MachineSpecificPowerPC extends VM_MachineSpecific imple
   @Uninterruptible
   public final void initializeStack(VM_Registers contextRegisters, Address ip, Address sp) {
     Address fp;
-   // align stack frame
+    // align stack frame
     int INITIAL_FRAME_SIZE = STACKFRAME_HEADER_SIZE;
     fp = VM_Memory.alignDown(sp.minus(INITIAL_FRAME_SIZE), STACKFRAME_ALIGNMENT);
     fp.plus(STACKFRAME_FRAME_POINTER_OFFSET).store(STACKFRAME_SENTINEL_FP);
@@ -76,8 +76,8 @@ public abstract class VM_MachineSpecificPowerPC extends VM_MachineSpecific imple
     fp.plus(STACKFRAME_METHOD_ID_OFFSET).store(INVISIBLE_METHOD_ID);
 
     contextRegisters.gprs.set(FRAME_POINTER, fp.toWord());
-    contextRegisters.ip  = ip;
+    contextRegisters.ip = ip;
   }
-    /* unique to PowerPC */
+  /* unique to PowerPC */
 
 }

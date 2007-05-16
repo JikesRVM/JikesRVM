@@ -33,8 +33,7 @@ import org.vmmagic.unboxed.Offset;
  * @see VM_Class
  * @see VM_Primitive
  */
-public final class VM_Array extends VM_Type implements VM_Constants,
-                                                       VM_ClassLoaderConstants {
+public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoaderConstants {
 
   /*
    * We hold on to a number of commonly used arrays for easy access.
@@ -563,9 +562,13 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   public static void arraycopy(byte[] src, int srcIdx, byte[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
-    if (srcIdx >= 0 && dstIdx >= 0 && len >= 0 &&
-        (srcIdx + len) >= 0 && (srcIdx + len) <= src.length &&
-        (dstIdx + len) >= 0 && (dstIdx + len) <= dst.length) {
+    if (srcIdx >= 0 &&
+        dstIdx >= 0 &&
+        len >= 0 &&
+        (srcIdx + len) >= 0 &&
+        (srcIdx + len) <= src.length &&
+        (dstIdx + len) >= 0 &&
+        (dstIdx + len) <= dst.length) {
       if (src != dst || srcIdx >= (dstIdx + BYTES_IN_ADDRESS)) {
         VM_Memory.arraycopy8Bit(src, srcIdx, dst, dstIdx, len);
       } else {
@@ -605,9 +608,13 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   public static void arraycopy(boolean[] src, int srcIdx, boolean[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
-    if (srcIdx >= 0 && dstIdx >= 0 && len >= 0 &&
-        (srcIdx + len) >= 0 && (srcIdx + len) <= src.length &&
-        (dstIdx + len) >= 0 && (dstIdx + len) <= dst.length) {
+    if (srcIdx >= 0 &&
+        dstIdx >= 0 &&
+        len >= 0 &&
+        (srcIdx + len) >= 0 &&
+        (srcIdx + len) <= src.length &&
+        (dstIdx + len) >= 0 &&
+        (dstIdx + len) <= dst.length) {
       if (src != dst || srcIdx >= (dstIdx + BYTES_IN_ADDRESS / BYTES_IN_BOOLEAN)) {
         VM_Memory.arraycopy8Bit(src, srcIdx, dst, dstIdx, len);
       } else {
@@ -647,9 +654,13 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   public static void arraycopy(short[] src, int srcIdx, short[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
-    if (srcIdx >= 0 && dstIdx >= 0 && len >= 0 &&
-        (srcIdx + len) >= 0 && (srcIdx + len) <= src.length &&
-        (dstIdx + len) >= 0 && (dstIdx + len) <= dst.length) {
+    if (srcIdx >= 0 &&
+        dstIdx >= 0 &&
+        len >= 0 &&
+        (srcIdx + len) >= 0 &&
+        (srcIdx + len) <= src.length &&
+        (dstIdx + len) >= 0 &&
+        (dstIdx + len) <= dst.length) {
       if (src != dst || srcIdx >= (dstIdx + BYTES_IN_ADDRESS / BYTES_IN_SHORT)) {
         VM_Memory.arraycopy16Bit(src, srcIdx, dst, dstIdx, len);
       } else {
@@ -689,9 +700,13 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   public static void arraycopy(char[] src, int srcIdx, char[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
-    if (srcIdx >= 0 && dstIdx >= 0 && len >= 0 &&
-        (srcIdx + len) >= 0 && (srcIdx + len) <= src.length &&
-        (dstIdx + len) >= 0 && (dstIdx + len) <= dst.length) {
+    if (srcIdx >= 0 &&
+        dstIdx >= 0 &&
+        len >= 0 &&
+        (srcIdx + len) >= 0 &&
+        (srcIdx + len) <= src.length &&
+        (dstIdx + len) >= 0 &&
+        (dstIdx + len) <= dst.length) {
       if (src != dst || srcIdx >= (dstIdx + BYTES_IN_ADDRESS / BYTES_IN_CHAR)) {
         VM_Memory.arraycopy16Bit(src, srcIdx, dst, dstIdx, len);
       } else {
@@ -731,9 +746,13 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   public static void arraycopy(int[] src, int srcIdx, int[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
-    if (srcIdx >= 0 && dstIdx >= 0 && len >= 0 &&
-        (srcIdx + len) >= 0 && (srcIdx + len) <= src.length &&
-        (dstIdx + len) >= 0 && (dstIdx + len) <= dst.length) {
+    if (srcIdx >= 0 &&
+        dstIdx >= 0 &&
+        len >= 0 &&
+        (srcIdx + len) >= 0 &&
+        (srcIdx + len) <= src.length &&
+        (dstIdx + len) >= 0 &&
+        (dstIdx + len) <= dst.length) {
       if (src != dst || srcIdx >= dstIdx) {
         VM_Memory.arraycopy32Bit(src, srcIdx, dst, dstIdx, len);
       } else {
@@ -773,9 +792,13 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   public static void arraycopy(float[] src, int srcIdx, float[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
-    if (srcIdx >= 0 && dstIdx >= 0 && len >= 0 &&
-        (srcIdx + len) >= 0 && (srcIdx + len) <= src.length &&
-        (dstIdx + len) >= 0 && (dstIdx + len) <= dst.length) {
+    if (srcIdx >= 0 &&
+        dstIdx >= 0 &&
+        len >= 0 &&
+        (srcIdx + len) >= 0 &&
+        (srcIdx + len) <= src.length &&
+        (dstIdx + len) >= 0 &&
+        (dstIdx + len) <= dst.length) {
       if (src != dst || srcIdx > dstIdx) {
         VM_Memory.arraycopy32Bit(src, srcIdx, dst, dstIdx, len);
       } else {
@@ -815,9 +838,13 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   public static void arraycopy(long[] src, int srcIdx, long[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
-    if (srcIdx >= 0 && dstIdx >= 0 && len >= 0 &&
-        (srcIdx + len) >= 0 && (srcIdx + len) <= src.length &&
-        (dstIdx + len) >= 0 && (dstIdx + len) <= dst.length) {
+    if (srcIdx >= 0 &&
+        dstIdx >= 0 &&
+        len >= 0 &&
+        (srcIdx + len) >= 0 &&
+        (srcIdx + len) <= src.length &&
+        (dstIdx + len) >= 0 &&
+        (dstIdx + len) <= dst.length) {
       if (src != dst || srcIdx > dstIdx) {
         VM_Memory.arraycopy64Bit(src, srcIdx, dst, dstIdx, len);
       } else {
@@ -857,9 +884,13 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   public static void arraycopy(double[] src, int srcIdx, double[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
-    if (srcIdx >= 0 && dstIdx >= 0 && len >= 0 &&
-        (srcIdx + len) >= 0 && (srcIdx + len) <= src.length &&
-        (dstIdx + len) >= 0 && (dstIdx + len) <= dst.length) {
+    if (srcIdx >= 0 &&
+        dstIdx >= 0 &&
+        len >= 0 &&
+        (srcIdx + len) >= 0 &&
+        (srcIdx + len) <= src.length &&
+        (dstIdx + len) >= 0 &&
+        (dstIdx + len) <= dst.length) {
       if (src != dst || srcIdx > dstIdx) {
         VM_Memory.arraycopy64Bit(src, srcIdx, dst, dstIdx, len);
       } else {
@@ -898,16 +929,18 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * @param dstIdx The starting destination index
    * @param len The number of array elements to be copied
    */
-  public static void arraycopy(Object[] src, int srcIdx, Object[] dst,
-                               int dstIdx, int len) {
+  public static void arraycopy(Object[] src, int srcIdx, Object[] dst, int dstIdx, int len) {
     // Check offsets and lengths before doing anything
-    if (srcIdx >= 0 && dstIdx >= 0 && len >= 0 &&
-        (srcIdx + len) >= 0 && (srcIdx + len) <= src.length &&
-        (dstIdx + len) >= 0 && (dstIdx + len) <= dst.length) {
+    if (srcIdx >= 0 &&
+        dstIdx >= 0 &&
+        len >= 0 &&
+        (srcIdx + len) >= 0 &&
+        (srcIdx + len) <= src.length &&
+        (dstIdx + len) >= 0 &&
+        (dstIdx + len) <= dst.length) {
       VM_Type lhs = VM_Magic.getObjectType(dst).asArray().getElementType();
       VM_Type rhs = VM_Magic.getObjectType(src).asArray().getElementType();
-      if ((lhs == rhs) || (lhs == VM_Type.JavaLangObjectType)
-          || VM_Runtime.isAssignableWith(lhs, rhs)) {
+      if ((lhs == rhs) || (lhs == VM_Type.JavaLangObjectType) || VM_Runtime.isAssignableWith(lhs, rhs)) {
         fastArrayCopy(src, srcIdx, dst, dstIdx, len);
       } else {
         slowArrayCopy(src, srcIdx, dst, dstIdx, len);
@@ -931,8 +964,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * @param dstIdx The starting destination index
    * @param len The number of array elements to be copied
    */
-  private static void fastArrayCopy(Object[] src, int srcIdx, Object[] dst,
-                                    int dstIdx, int len) {
+  private static void fastArrayCopy(Object[] src, int srcIdx, Object[] dst, int dstIdx, int len) {
 
     boolean loToHi = (srcIdx > dstIdx);  // direction of copy
     Offset srcOffset = Offset.fromIntZeroExtend(srcIdx << LOG_BYTES_IN_ADDRESS);
@@ -941,8 +973,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
 
     if ((src != dst) || loToHi) {
       if (!MM_Constants.NEEDS_WRITE_BARRIER ||
-          !MM_Interface.arrayCopyWriteBarrier(src, srcOffset, dst, dstOffset,
-                                              bytes)) {
+          !MM_Interface.arrayCopyWriteBarrier(src, srcOffset, dst, dstOffset, bytes)) {
         VM_Memory.alignedWordCopy(VM_Magic.objectAsAddress(dst).plus(dstOffset),
                                   VM_Magic.objectAsAddress(src).plus(srcOffset),
                                   bytes);
@@ -986,8 +1017,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * @param dstIdx The starting destination index
    * @param len The number of array elements to be copied
    */
-  private static void slowArrayCopy(Object[] src, int srcIdx, Object[] dst,
-                                    int dstIdx, int len) {
+  private static void slowArrayCopy(Object[] src, int srcIdx, Object[] dst, int dstIdx, int len) {
     // must perform copy in correct order
     if ((src != dst) || srcIdx > dstIdx) {
       // non-overlapping case: straightforward

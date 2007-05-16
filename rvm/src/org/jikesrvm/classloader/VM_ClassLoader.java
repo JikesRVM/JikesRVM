@@ -19,8 +19,7 @@ import org.jikesrvm.VM_Properties;
 /**
  * Manufacture type descriptions as needed by the running virtual machine. <p>
  */
-public class VM_ClassLoader implements VM_Constants,
-                                       VM_ClassLoaderConstants {
+public class VM_ClassLoader implements VM_Constants, VM_ClassLoaderConstants {
 
   private static final boolean DBG_APP_CL = false;
 
@@ -35,8 +34,7 @@ public class VM_ClassLoader implements VM_Constants,
    */
   public static void stashApplicationRepositories(String classpath) {
     if (DBG_APP_CL) {
-      VM.sysWriteln("VM_ClassLoader.stashApplicationRepositories: "
-                    + "applicationRepositories = ", classpath);
+      VM.sysWriteln("VM_ClassLoader.stashApplicationRepositories: " + "applicationRepositories = ", classpath);
     }
     /* If mis-initialized, trash it. */
     if (appCL != null && !classpath.equals(applicationRepositories)) {
@@ -220,17 +218,13 @@ public class VM_ClassLoader implements VM_Constants,
     VM_BootstrapClassLoader.boot(bootstrapClasspath);
   }
 
-  public static VM_Type defineClassInternal(String className,
-                                            byte[] classRep,
-                                            int offset,
-                                            int length,
+  public static VM_Type defineClassInternal(String className, byte[] classRep, int offset, int length,
                                             ClassLoader classloader) throws ClassFormatError {
     return defineClassInternal(className, new ByteArrayInputStream(classRep, offset, length), classloader);
   }
 
-  public static VM_Type defineClassInternal(String className,
-                                            InputStream is,
-                                            ClassLoader classloader) throws ClassFormatError {
+  public static VM_Type defineClassInternal(String className, InputStream is, ClassLoader classloader)
+      throws ClassFormatError {
     VM_TypeReference tRef;
     if (className == null) {
       // NUTS: Our caller hasn't bothered to tell us what this class is supposed

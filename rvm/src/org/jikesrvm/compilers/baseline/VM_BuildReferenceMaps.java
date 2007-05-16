@@ -54,11 +54,8 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
    * determine the reference maps for the gc points. Record the maps with
    * referenceMaps.
    */
-  public void buildReferenceMaps(VM_NormalMethod method,
-                                 int[] stackHeights,
-                                 byte[] localTypes,
-                                 VM_ReferenceMaps referenceMaps,
-                                 VM_BuildBB buildBB) {
+  public void buildReferenceMaps(VM_NormalMethod method, int[] stackHeights, byte[] localTypes,
+                                 VM_ReferenceMaps referenceMaps, VM_BuildBB buildBB) {
 
     //****************************************************************//
     //                                                                //
@@ -295,8 +292,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
         reachableHandlersCount = 0;
         for (int i = 0; i < tryHandlerLength; i++) {
           if (start <= tryEndPC[i] && end >= tryStartPC[i]) {
-            reachableHandlerBBNums[reachableHandlersCount] =
-                byteToBlockMap[tryHandlerPC[i]];
+            reachableHandlerBBNums[reachableHandlersCount] = byteToBlockMap[tryHandlerPC[i]];
             reachableHandlersCount++;
             int handlerBBNum = byteToBlockMap[tryHandlerPC[i]];
             if (bbMaps[handlerBBNum] == null) {
@@ -458,8 +454,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
               currBBMap[index] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(index, ONEWORD, reachableHandlerBBNums,
-                                    reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(index, ONEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop--;
             localTypes[index] |= INT_TYPE;
@@ -474,8 +469,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
               currBBMap[index] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(index, ONEWORD, reachableHandlerBBNums,
-                                    reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(index, ONEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop--;
             localTypes[index] |= FLOAT_TYPE;
@@ -493,8 +487,12 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
             }
 
             if (inTryBlock) {
-              setHandlersMapsNonRef(index, DOUBLEWORD, reachableHandlerBBNums,
-                                    reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(index,
+                                    DOUBLEWORD,
+                                    reachableHandlerBBNums,
+                                    reachableHandlersCount,
+                                    inJSRSub,
+                                    bbMaps);
             }
             currBBStkTop = currBBStkTop - 2;
             localTypes[index] |= LONG_TYPE;
@@ -512,8 +510,12 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
             }
 
             if (inTryBlock) {
-              setHandlersMapsNonRef(index, DOUBLEWORD, reachableHandlerBBNums,
-                                    reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(index,
+                                    DOUBLEWORD,
+                                    reachableHandlerBBNums,
+                                    reachableHandlersCount,
+                                    inJSRSub,
+                                    bbMaps);
             }
             currBBStkTop = currBBStkTop - 2;
             localTypes[index] |= DOUBLE_TYPE;
@@ -529,11 +531,9 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
               }
               if (inTryBlock) {
                 if (currBBMap[index] == REFERENCE) {
-                  setHandlersMapsRef(index, reachableHandlerBBNums,
-                                     reachableHandlersCount, bbMaps);
+                  setHandlersMapsRef(index, reachableHandlerBBNums, reachableHandlersCount, bbMaps);
                 } else {
-                  setHandlersMapsReturnAddress(index, reachableHandlerBBNums,
-                                               reachableHandlersCount, bbMaps);
+                  setHandlersMapsReturnAddress(index, reachableHandlerBBNums, reachableHandlersCount, bbMaps);
                 }
               }
             }
@@ -549,8 +549,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
               currBBMap[0] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(0, ONEWORD, reachableHandlerBBNums,
-                                    reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(0, ONEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop--;
             localTypes[0] |= INT_TYPE;
@@ -564,8 +563,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
               currBBMap[0] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(0, ONEWORD, reachableHandlerBBNums,
-                                    reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(0, ONEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop--;
             localTypes[0] |= FLOAT_TYPE;
@@ -579,8 +577,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
               currBBMap[1] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(1, ONEWORD, reachableHandlerBBNums,
-                                    reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(1, ONEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop--;
             localTypes[1] |= INT_TYPE;
@@ -594,8 +591,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
               currBBMap[1] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(1, ONEWORD, reachableHandlerBBNums,
-                                    reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(1, ONEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop--;
             localTypes[1] |= FLOAT_TYPE;
@@ -609,8 +605,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
               currBBMap[2] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(2, ONEWORD, reachableHandlerBBNums,
-                                    reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(2, ONEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop--;
             localTypes[2] |= INT_TYPE;
@@ -624,8 +619,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
               currBBMap[2] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(2, ONEWORD, reachableHandlerBBNums,
-                                    reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(2, ONEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop--;
             localTypes[2] |= FLOAT_TYPE;
@@ -639,8 +633,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
               currBBMap[3] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(3, ONEWORD, reachableHandlerBBNums,
-                                    reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(3, ONEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop--;
             localTypes[3] |= INT_TYPE;
@@ -654,8 +647,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
               currBBMap[3] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(3, ONEWORD, reachableHandlerBBNums,
-                                    reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(3, ONEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop--;
             localTypes[3] |= FLOAT_TYPE;
@@ -671,8 +663,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
               currBBMap[1] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(0, DOUBLEWORD, reachableHandlerBBNums,
-                                    reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(0, DOUBLEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop = currBBStkTop - 2;
             localTypes[0] |= LONG_TYPE;
@@ -687,8 +678,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
               currBBMap[1] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(0, DOUBLEWORD, reachableHandlerBBNums,
-                                    reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(0, DOUBLEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop = currBBStkTop - 2;
             localTypes[0] |= DOUBLE_TYPE;
@@ -704,8 +694,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
               currBBMap[2] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(1, DOUBLEWORD, reachableHandlerBBNums,
-                                    reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(1, DOUBLEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop = currBBStkTop - 2;
             localTypes[1] |= LONG_TYPE;
@@ -721,8 +710,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
               currBBMap[2] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(1, DOUBLEWORD, reachableHandlerBBNums,
-                                    reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(1, DOUBLEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop = currBBStkTop - 2;
             localTypes[1] |= DOUBLE_TYPE;
@@ -738,8 +726,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
               currBBMap[3] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(2, DOUBLEWORD, reachableHandlerBBNums,
-                                    reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(2, DOUBLEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop = currBBStkTop - 2;
             localTypes[2] |= LONG_TYPE;
@@ -755,8 +742,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
               currBBMap[3] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(2, DOUBLEWORD, reachableHandlerBBNums,
-                                    reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(2, DOUBLEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop = currBBStkTop - 2;
             localTypes[2] |= DOUBLE_TYPE;
@@ -772,8 +758,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
               currBBMap[4] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(3, DOUBLEWORD, reachableHandlerBBNums,
-                                    reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(3, DOUBLEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop = currBBStkTop - 2;
             localTypes[3] |= LONG_TYPE;
@@ -789,8 +774,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
               currBBMap[4] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(3, DOUBLEWORD, reachableHandlerBBNums,
-                                    reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(3, DOUBLEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop = currBBStkTop - 2;
             localTypes[3] |= DOUBLE_TYPE;
@@ -805,11 +789,9 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
               }
               if (inTryBlock) {
                 if (currBBMap[0] == REFERENCE) {
-                  setHandlersMapsRef(0, reachableHandlerBBNums, reachableHandlersCount,
-                                     bbMaps);
+                  setHandlersMapsRef(0, reachableHandlerBBNums, reachableHandlersCount, bbMaps);
                 } else {
-                  setHandlersMapsReturnAddress(0, reachableHandlerBBNums,
-                                               reachableHandlersCount, bbMaps);
+                  setHandlersMapsReturnAddress(0, reachableHandlerBBNums, reachableHandlersCount, bbMaps);
                 }
               }
             }
@@ -826,11 +808,9 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
               }
               if (inTryBlock) {
                 if (currBBMap[1] == REFERENCE) {
-                  setHandlersMapsRef(1, reachableHandlerBBNums, reachableHandlersCount,
-                                     bbMaps);
+                  setHandlersMapsRef(1, reachableHandlerBBNums, reachableHandlersCount, bbMaps);
                 } else {
-                  setHandlersMapsReturnAddress(1, reachableHandlerBBNums,
-                                               reachableHandlersCount, bbMaps);
+                  setHandlersMapsReturnAddress(1, reachableHandlerBBNums, reachableHandlersCount, bbMaps);
                 }
               }
             }
@@ -847,11 +827,9 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
               }
               if (inTryBlock) {
                 if (currBBMap[2] == REFERENCE) {
-                  setHandlersMapsRef(2, reachableHandlerBBNums, reachableHandlersCount,
-                                     bbMaps);
+                  setHandlersMapsRef(2, reachableHandlerBBNums, reachableHandlersCount, bbMaps);
                 } else {
-                  setHandlersMapsReturnAddress(2, reachableHandlerBBNums,
-                                               reachableHandlersCount, bbMaps);
+                  setHandlersMapsReturnAddress(2, reachableHandlerBBNums, reachableHandlersCount, bbMaps);
                 }
               }
             }
@@ -867,11 +845,9 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
               }
               if (inTryBlock) {
                 if (currBBMap[3] == REFERENCE) {
-                  setHandlersMapsRef(3, reachableHandlerBBNums, reachableHandlersCount,
-                                     bbMaps);
+                  setHandlersMapsRef(3, reachableHandlerBBNums, reachableHandlersCount, bbMaps);
                 } else {
-                  setHandlersMapsReturnAddress(3, reachableHandlerBBNums,
-                                               reachableHandlersCount, bbMaps);
+                  setHandlersMapsReturnAddress(3, reachableHandlerBBNums, reachableHandlersCount, bbMaps);
                 }
               }
             }
@@ -965,10 +941,11 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
           case JBC_idiv: {
             currBBStkTop = currBBStkTop - 2; // record map after 2 integers popped off stack
             if (!inJSRSub) {
-              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop,
-                                         blockSeen[currBBNum]);
+              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop, blockSeen[currBBNum]);
             } else {
-              referenceMaps.recordJSRSubroutineMap(biStart, currBBMap, currBBStkTop,
+              referenceMaps.recordJSRSubroutineMap(biStart,
+                                                   currBBMap,
+                                                   currBBStkTop,
                                                    currPendingRET.returnAddressLocation,
                                                    blockSeen[currBBNum]);
             }
@@ -994,10 +971,11 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
           case JBC_ldiv: {
             currBBStkTop = currBBStkTop - 4; // record map after 2 longs popped off stack
             if (!inJSRSub) {
-              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop,
-                                         blockSeen[currBBNum]);
+              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop, blockSeen[currBBNum]);
             } else {
-              referenceMaps.recordJSRSubroutineMap(biStart, currBBMap, currBBStkTop,
+              referenceMaps.recordJSRSubroutineMap(biStart,
+                                                   currBBMap,
+                                                   currBBStkTop,
                                                    currPendingRET.returnAddressLocation,
                                                    blockSeen[currBBNum]);
             }
@@ -1039,12 +1017,13 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
               // Register the reference map
 
               if (!inJSRSub) {
-                referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop,
-                                           blockSeen[currBBNum]);
+                referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop, blockSeen[currBBNum]);
               } else
               // in a jsr subroutine
               {
-                referenceMaps.recordJSRSubroutineMap(biStart, currBBMap, currBBStkTop,
+                referenceMaps.recordJSRSubroutineMap(biStart,
+                                                     currBBMap,
+                                                     currBBStkTop,
                                                      currPendingRET.returnAddressLocation,
                                                      blockSeen[currBBNum]);
               }
@@ -1054,15 +1033,31 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
             currBBStkTop--;
             if (offset < 0) {
               short fallThruBBNum = byteToBlockMap[biStart + 3];
-              workStk = processBranchBB(fallThruBBNum, currBBStkTop, currBBMap,
-                                        currBBStkEmpty, inJSRSub, bbMaps, blockStkTop,
-                                        currPendingRET, bbPendingRETs, workStk);
+              workStk =
+                  processBranchBB(fallThruBBNum,
+                                  currBBStkTop,
+                                  currBBMap,
+                                  currBBStkEmpty,
+                                  inJSRSub,
+                                  bbMaps,
+                                  blockStkTop,
+                                  currPendingRET,
+                                  bbPendingRETs,
+                                  workStk);
               processNextBlock = false;
             }
             brBBNum = byteToBlockMap[biStart + offset];
-            workStk = processBranchBB(brBBNum, currBBStkTop, currBBMap, currBBStkEmpty,
-                                      inJSRSub, bbMaps, blockStkTop, currPendingRET,
-                                      bbPendingRETs, workStk);
+            workStk =
+                processBranchBB(brBBNum,
+                                currBBStkTop,
+                                currBBMap,
+                                currBBStkEmpty,
+                                inJSRSub,
+                                bbMaps,
+                                blockStkTop,
+                                currPendingRET,
+                                bbPendingRETs,
+                                workStk);
             break;
           }
 
@@ -1080,12 +1075,13 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
               // Register the reference map
 
               if (!inJSRSub) {
-                referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop,
-                                           blockSeen[currBBNum]);
+                referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop, blockSeen[currBBNum]);
               } else
               // in a jsr subroutine
               {
-                referenceMaps.recordJSRSubroutineMap(biStart, currBBMap, currBBStkTop,
+                referenceMaps.recordJSRSubroutineMap(biStart,
+                                                     currBBMap,
+                                                     currBBStkTop,
                                                      currPendingRET.returnAddressLocation,
                                                      blockSeen[currBBNum]);
               }
@@ -1095,15 +1091,31 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
             currBBStkTop = currBBStkTop - 2;
             if (offset < 0) {
               short fallThruBBNum = byteToBlockMap[biStart + 3];
-              workStk = processBranchBB(fallThruBBNum, currBBStkTop, currBBMap, currBBStkEmpty,
-                                        inJSRSub, bbMaps, blockStkTop, currPendingRET,
-                                        bbPendingRETs, workStk);
+              workStk =
+                  processBranchBB(fallThruBBNum,
+                                  currBBStkTop,
+                                  currBBMap,
+                                  currBBStkEmpty,
+                                  inJSRSub,
+                                  bbMaps,
+                                  blockStkTop,
+                                  currPendingRET,
+                                  bbPendingRETs,
+                                  workStk);
               processNextBlock = false;
             }
             brBBNum = byteToBlockMap[biStart + offset];
-            workStk = processBranchBB(brBBNum, currBBStkTop, currBBMap, currBBStkEmpty,
-                                      inJSRSub, bbMaps, blockStkTop, currPendingRET,
-                                      bbPendingRETs, workStk);
+            workStk =
+                processBranchBB(brBBNum,
+                                currBBStkTop,
+                                currBBMap,
+                                currBBStkEmpty,
+                                inJSRSub,
+                                bbMaps,
+                                blockStkTop,
+                                currPendingRET,
+                                bbPendingRETs,
+                                workStk);
             break;
           }
 
@@ -1115,12 +1127,13 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
               // Register the reference map
 
               if (!inJSRSub) {
-                referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop,
-                                           blockSeen[currBBNum]);
+                referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop, blockSeen[currBBNum]);
               } else
               // in a jsr subroutine
               {
-                referenceMaps.recordJSRSubroutineMap(biStart, currBBMap, currBBStkTop,
+                referenceMaps.recordJSRSubroutineMap(biStart,
+                                                     currBBMap,
+                                                     currBBStkTop,
                                                      currPendingRET.returnAddressLocation,
                                                      blockSeen[currBBNum]);
               }
@@ -1130,15 +1143,31 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
             currBBStkTop--;
             if (offset < 0) {
               short fallThruBBNum = byteToBlockMap[biStart + 3];
-              workStk = processBranchBB(fallThruBBNum, currBBStkTop, currBBMap,
-                                        currBBStkEmpty, inJSRSub, bbMaps, blockStkTop,
-                                        currPendingRET, bbPendingRETs, workStk);
+              workStk =
+                  processBranchBB(fallThruBBNum,
+                                  currBBStkTop,
+                                  currBBMap,
+                                  currBBStkEmpty,
+                                  inJSRSub,
+                                  bbMaps,
+                                  blockStkTop,
+                                  currPendingRET,
+                                  bbPendingRETs,
+                                  workStk);
               processNextBlock = false;
             }
             brBBNum = byteToBlockMap[biStart + offset];
-            workStk = processBranchBB(brBBNum, currBBStkTop, currBBMap, currBBStkEmpty,
-                                      inJSRSub, bbMaps, blockStkTop, currPendingRET,
-                                      bbPendingRETs, workStk);
+            workStk =
+                processBranchBB(brBBNum,
+                                currBBStkTop,
+                                currBBMap,
+                                currBBStkEmpty,
+                                inJSRSub,
+                                bbMaps,
+                                blockStkTop,
+                                currPendingRET,
+                                bbPendingRETs,
+                                workStk);
             break;
           }
 
@@ -1148,12 +1177,13 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
               // backward branch-generate reference map
               // Register the reference map
               if (!inJSRSub) {
-                referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop,
-                                           blockSeen[currBBNum]);
+                referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop, blockSeen[currBBNum]);
               } else
               // in a jsr subroutine
               {
-                referenceMaps.recordJSRSubroutineMap(biStart, currBBMap, currBBStkTop,
+                referenceMaps.recordJSRSubroutineMap(biStart,
+                                                     currBBMap,
+                                                     currBBStkTop,
                                                      currPendingRET.returnAddressLocation,
                                                      blockSeen[currBBNum]);
               }
@@ -1161,9 +1191,17 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
 
             //  process the basic block logic
             brBBNum = byteToBlockMap[biStart + offset];
-            workStk = processBranchBB(brBBNum, currBBStkTop, currBBMap, currBBStkEmpty,
-                                      inJSRSub, bbMaps, blockStkTop, currPendingRET,
-                                      bbPendingRETs, workStk);
+            workStk =
+                processBranchBB(brBBNum,
+                                currBBStkTop,
+                                currBBMap,
+                                currBBStkEmpty,
+                                inJSRSub,
+                                bbMaps,
+                                blockStkTop,
+                                currPendingRET,
+                                bbPendingRETs,
+                                workStk);
             processNextBlock = false;
             break;
           }
@@ -1174,12 +1212,13 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
               // Register the reference map
 
               if (!inJSRSub) {
-                referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop,
-                                           blockSeen[currBBNum]);
+                referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop, blockSeen[currBBNum]);
               } else
               // in a jsr subroutine
               {
-                referenceMaps.recordJSRSubroutineMap(biStart, currBBMap, currBBStkTop,
+                referenceMaps.recordJSRSubroutineMap(biStart,
+                                                     currBBMap,
+                                                     currBBStkTop,
                                                      currPendingRET.returnAddressLocation,
                                                      blockSeen[currBBNum]);
               }
@@ -1187,9 +1226,17 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
 
             //process basic block structures
             brBBNum = byteToBlockMap[biStart + offset];
-            workStk = processBranchBB(brBBNum, currBBStkTop, currBBMap, currBBStkEmpty,
-                                      inJSRSub, bbMaps, blockStkTop, currPendingRET,
-                                      bbPendingRETs, workStk);
+            workStk =
+                processBranchBB(brBBNum,
+                                currBBStkTop,
+                                currBBMap,
+                                currBBStkEmpty,
+                                inJSRSub,
+                                bbMaps,
+                                blockStkTop,
+                                currPendingRET,
+                                bbPendingRETs,
+                                workStk);
             processNextBlock = false;
             break;
           }
@@ -1198,9 +1245,17 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
             bcodes.alignSwitch();
             // get default offset and process branch to default branch point
             int def = bcodes.getDefaultSwitchOffset();
-            workStk = processBranchBB(byteToBlockMap[biStart + def], currBBStkTop, currBBMap,
-                                      currBBStkEmpty, inJSRSub, bbMaps, blockStkTop,
-                                      currPendingRET, bbPendingRETs, workStk);
+            workStk =
+                processBranchBB(byteToBlockMap[biStart + def],
+                                currBBStkTop,
+                                currBBMap,
+                                currBBStkEmpty,
+                                inJSRSub,
+                                bbMaps,
+                                blockStkTop,
+                                currPendingRET,
+                                bbPendingRETs,
+                                workStk);
 
             int low = bcodes.getLowSwitchValue();
             int high = bcodes.getHighSwitchValue();
@@ -1208,9 +1263,17 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
             // generate labels for offsets
             for (int k = 0; k < n; k++) {
               int offset = bcodes.getTableSwitchOffset(k);
-              workStk = processBranchBB(byteToBlockMap[biStart + offset], currBBStkTop, currBBMap,
-                                        currBBStkEmpty, inJSRSub, bbMaps, blockStkTop,
-                                        currPendingRET, bbPendingRETs, workStk);
+              workStk =
+                  processBranchBB(byteToBlockMap[biStart + offset],
+                                  currBBStkTop,
+                                  currBBMap,
+                                  currBBStkEmpty,
+                                  inJSRSub,
+                                  bbMaps,
+                                  blockStkTop,
+                                  currPendingRET,
+                                  bbPendingRETs,
+                                  workStk);
             }
             bcodes.skipTableSwitchOffsets(n);
             processNextBlock = false;
@@ -1221,18 +1284,34 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
             bcodes.alignSwitch();
             // get default offset and process branch to default branch point
             int def = bcodes.getDefaultSwitchOffset();
-            workStk = processBranchBB(byteToBlockMap[biStart + def], currBBStkTop, currBBMap,
-                                      currBBStkEmpty, inJSRSub, bbMaps, blockStkTop,
-                                      currPendingRET, bbPendingRETs, workStk);
+            workStk =
+                processBranchBB(byteToBlockMap[biStart + def],
+                                currBBStkTop,
+                                currBBMap,
+                                currBBStkEmpty,
+                                inJSRSub,
+                                bbMaps,
+                                blockStkTop,
+                                currPendingRET,
+                                bbPendingRETs,
+                                workStk);
 
             int npairs = bcodes.getSwitchLength();
 
             // generate label for each offset in table
             for (int k = 0; k < npairs; k++) {
               int offset = bcodes.getLookupSwitchOffset(k);
-              workStk = processBranchBB(byteToBlockMap[biStart + offset], currBBStkTop, currBBMap,
-                                        currBBStkEmpty, inJSRSub, bbMaps, blockStkTop,
-                                        currPendingRET, bbPendingRETs, workStk);
+              workStk =
+                  processBranchBB(byteToBlockMap[biStart + offset],
+                                  currBBStkTop,
+                                  currBBMap,
+                                  currBBStkEmpty,
+                                  inJSRSub,
+                                  bbMaps,
+                                  blockStkTop,
+                                  currPendingRET,
+                                  bbPendingRETs,
+                                  workStk);
             }
             bcodes.skipLookupSwitchPairs(npairs);
             processNextBlock = false;
@@ -1243,38 +1322,60 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
             processNextBlock = false;
             int offset = bcodes.getBranchOffset();
             if (!inJSRSub) {
-              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkEmpty,
-                                         blockSeen[currBBNum]);
+              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkEmpty, blockSeen[currBBNum]);
             } else {
-              referenceMaps.recordJSRSubroutineMap(biStart, currBBMap, currBBStkEmpty,
+              referenceMaps.recordJSRSubroutineMap(biStart,
+                                                   currBBMap,
+                                                   currBBStkEmpty,
                                                    currPendingRET.returnAddressLocation,
                                                    blockSeen[currBBNum]);
             }
             currBBStkTop++;
             currBBMap[currBBStkTop] = RETURN_ADDRESS;
-            workStk = processJSR(byteToBlockMap[biStart], biStart + offset, byteToBlockMap[biStart + offset],
-                                 byteToBlockMap[biStart + 3], bbMaps, currBBStkTop, currBBMap,
-                                 currBBStkEmpty, blockStkTop, bbPendingRETs,
-                                 currPendingRET, JSRSubs, workStk);
+            workStk =
+                processJSR(byteToBlockMap[biStart],
+                           biStart + offset,
+                           byteToBlockMap[biStart + offset],
+                           byteToBlockMap[biStart + 3],
+                           bbMaps,
+                           currBBStkTop,
+                           currBBMap,
+                           currBBStkEmpty,
+                           blockStkTop,
+                           bbPendingRETs,
+                           currPendingRET,
+                           JSRSubs,
+                           workStk);
             break;
           }
           case JBC_jsr_w: {
             processNextBlock = false;
             int offset = bcodes.getWideBranchOffset();
             if (!inJSRSub) {
-              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkEmpty,
-                                         blockSeen[currBBNum]);
+              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkEmpty, blockSeen[currBBNum]);
             } else {
-              referenceMaps.recordJSRSubroutineMap(biStart, currBBMap, currBBStkEmpty,
+              referenceMaps.recordJSRSubroutineMap(biStart,
+                                                   currBBMap,
+                                                   currBBStkEmpty,
                                                    currPendingRET.returnAddressLocation,
                                                    blockSeen[currBBNum]);
             }
             currBBStkTop++;
             currBBMap[currBBStkTop] = RETURN_ADDRESS;
-            workStk = processJSR(byteToBlockMap[biStart], biStart + offset, byteToBlockMap[biStart + offset],
-                                 byteToBlockMap[biStart + 5], bbMaps, currBBStkTop, currBBMap,
-                                 currBBStkEmpty, blockStkTop, bbPendingRETs,
-                                 currPendingRET, JSRSubs, workStk);
+            workStk =
+                processJSR(byteToBlockMap[biStart],
+                           biStart + offset,
+                           byteToBlockMap[biStart + offset],
+                           byteToBlockMap[biStart + 5],
+                           bbMaps,
+                           currBBStkTop,
+                           currBBMap,
+                           currBBStkEmpty,
+                           blockStkTop,
+                           bbPendingRETs,
+                           currPendingRET,
+                           JSRSubs,
+                           workStk);
             break;
           }
           case JBC_ret: {
@@ -1294,9 +1395,16 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
             }
 
             boolean JSRisinJSRSub = bbPendingRETs[currPendingRET.JSRBBNum] != null;
-            workStk = computeJSRNextMaps(currPendingRET.JSRNextBBNum, currBBMap.length,
-                                         k, JSRisinJSRSub, bbMaps, blockStkTop, JSRSubs,
-                                         currBBStkEmpty, workStk);
+            workStk =
+                computeJSRNextMaps(currPendingRET.JSRNextBBNum,
+                                   currBBMap.length,
+                                   k,
+                                   JSRisinJSRSub,
+                                   bbMaps,
+                                   blockStkTop,
+                                   JSRSubs,
+                                   currBBStkEmpty,
+                                   workStk);
             if (JSRisinJSRSub && bbPendingRETs[currPendingRET.JSRNextBBNum] == null) {
               bbPendingRETs[currPendingRET.JSRNextBBNum] =
                   new VM_PendingRETInfo(bbPendingRETs[currPendingRET.JSRBBNum]);
@@ -1306,24 +1414,48 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
           case JBC_invokevirtual:
           case JBC_invokespecial: {
             VM_MethodReference target = bcodes.getMethodReference();
-            currBBStkTop = processInvoke(target, biStart, currBBStkTop, currBBMap, false,
-                                         inJSRSub, referenceMaps, currPendingRET,
-                                         blockSeen[currBBNum], currBBStkEmpty);
+            currBBStkTop =
+                processInvoke(target,
+                              biStart,
+                              currBBStkTop,
+                              currBBMap,
+                              false,
+                              inJSRSub,
+                              referenceMaps,
+                              currPendingRET,
+                              blockSeen[currBBNum],
+                              currBBStkEmpty);
             break;
           }
           case JBC_invokeinterface: {
             VM_MethodReference target = bcodes.getMethodReference();
             bcodes.alignInvokeInterface();
-            currBBStkTop = processInvoke(target, biStart, currBBStkTop, currBBMap, false,
-                                         inJSRSub, referenceMaps, currPendingRET,
-                                         blockSeen[currBBNum], currBBStkEmpty);
+            currBBStkTop =
+                processInvoke(target,
+                              biStart,
+                              currBBStkTop,
+                              currBBMap,
+                              false,
+                              inJSRSub,
+                              referenceMaps,
+                              currPendingRET,
+                              blockSeen[currBBNum],
+                              currBBStkEmpty);
             break;
           }
           case JBC_invokestatic: {
             VM_MethodReference target = bcodes.getMethodReference();
-            currBBStkTop = processInvoke(target, biStart, currBBStkTop, currBBMap, true,
-                                         inJSRSub, referenceMaps, currPendingRET,
-                                         blockSeen[currBBNum], currBBStkEmpty);
+            currBBStkTop =
+                processInvoke(target,
+                              biStart,
+                              currBBStkTop,
+                              currBBMap,
+                              true,
+                              inJSRSub,
+                              referenceMaps,
+                              currPendingRET,
+                              blockSeen[currBBNum],
+                              currBBStkEmpty);
             break;
           }
 
@@ -1334,8 +1466,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
           case JBC_areturn:
           case JBC_return: {
             if (VM.UseEpilogueYieldPoints || method.isSynchronized()) {
-              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop,
-                                         blockSeen[currBBNum]);
+              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop, blockSeen[currBBNum]);
             }
             processNextBlock = false;
             break;
@@ -1344,10 +1475,11 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
           case JBC_getstatic: {
             // Register the reference map (could cause dynamic linking)
             if (!inJSRSub) {
-              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop,
-                                         blockSeen[currBBNum]);
+              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop, blockSeen[currBBNum]);
             } else {
-              referenceMaps.recordJSRSubroutineMap(biStart, currBBMap, currBBStkTop,
+              referenceMaps.recordJSRSubroutineMap(biStart,
+                                                   currBBMap,
+                                                   currBBStkTop,
                                                    currPendingRET.returnAddressLocation,
                                                    blockSeen[currBBNum]);
             }
@@ -1362,10 +1494,11 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
           case JBC_putstatic: {
             // Register the reference map (could cause dynamic linking)
             if (!inJSRSub) {
-              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop,
-                                         blockSeen[currBBNum]);
+              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop, blockSeen[currBBNum]);
             } else {
-              referenceMaps.recordJSRSubroutineMap(biStart, currBBMap, currBBStkTop,
+              referenceMaps.recordJSRSubroutineMap(biStart,
+                                                   currBBMap,
+                                                   currBBStkTop,
                                                    currPendingRET.returnAddressLocation,
                                                    blockSeen[currBBNum]);
             }
@@ -1380,10 +1513,11 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
             VM_TypeReference fieldType = bcodes.getFieldReference().getFieldContentsType();
             // Register the reference map, minus the object pointer on the stack
             if (!inJSRSub) {
-              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop,
-                                         blockSeen[currBBNum]);
+              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop, blockSeen[currBBNum]);
             } else {
-              referenceMaps.recordJSRSubroutineMap(biStart, currBBMap, currBBStkTop,
+              referenceMaps.recordJSRSubroutineMap(biStart,
+                                                   currBBMap,
+                                                   currBBStkTop,
                                                    currPendingRET.returnAddressLocation,
                                                    blockSeen[currBBNum]);
             }
@@ -1399,10 +1533,11 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
             // Register the reference map with the values still on the stack
             //  note: putfield could result in a call to the classloader
             if (!inJSRSub) {
-              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop,
-                                         blockSeen[currBBNum]);
+              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop, blockSeen[currBBNum]);
             } else {
-              referenceMaps.recordJSRSubroutineMap(biStart, currBBMap, currBBStkTop,
+              referenceMaps.recordJSRSubroutineMap(biStart,
+                                                   currBBMap,
+                                                   currBBStkTop,
                                                    currPendingRET.returnAddressLocation,
                                                    blockSeen[currBBNum]);
             }
@@ -1414,10 +1549,11 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
           }
           case JBC_checkcast: {
             if (!inJSRSub) {
-              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop,
-                                         blockSeen[currBBNum]);
+              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop, blockSeen[currBBNum]);
             } else {
-              referenceMaps.recordJSRSubroutineMap(biStart, currBBMap, currBBStkTop,
+              referenceMaps.recordJSRSubroutineMap(biStart,
+                                                   currBBMap,
+                                                   currBBStkTop,
                                                    currPendingRET.returnAddressLocation,
                                                    blockSeen[currBBNum]);
             }
@@ -1426,10 +1562,11 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
           }
           case JBC_instanceof: {
             if (!inJSRSub) {
-              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop,
-                                         blockSeen[currBBNum]);
+              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop, blockSeen[currBBNum]);
             } else {
-              referenceMaps.recordJSRSubroutineMap(biStart, currBBMap, currBBStkTop,
+              referenceMaps.recordJSRSubroutineMap(biStart,
+                                                   currBBMap,
+                                                   currBBStkTop,
                                                    currPendingRET.returnAddressLocation,
                                                    blockSeen[currBBNum]);
             }
@@ -1439,10 +1576,11 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
           }
           case JBC_new: {
             if (!inJSRSub) {
-              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop,
-                                         blockSeen[currBBNum]);
+              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop, blockSeen[currBBNum]);
             } else {
-              referenceMaps.recordJSRSubroutineMap(biStart, currBBMap, currBBStkTop,
+              referenceMaps.recordJSRSubroutineMap(biStart,
+                                                   currBBMap,
+                                                   currBBStkTop,
                                                    currPendingRET.returnAddressLocation,
                                                    blockSeen[currBBNum]);
             }
@@ -1461,10 +1599,11 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
           case JBC_caload:
           case JBC_saload: {
             if (!inJSRSub) {
-              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop,
-                                         blockSeen[currBBNum]);
+              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop, blockSeen[currBBNum]);
             } else {
-              referenceMaps.recordJSRSubroutineMap(biStart, currBBMap, currBBStkTop,
+              referenceMaps.recordJSRSubroutineMap(biStart,
+                                                   currBBMap,
+                                                   currBBStkTop,
                                                    currPendingRET.returnAddressLocation,
                                                    blockSeen[currBBNum]);
             }
@@ -1475,10 +1614,11 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
           case JBC_laload:
           case JBC_daload: {
             if (!inJSRSub) {
-              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop,
-                                         blockSeen[currBBNum]);
+              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop, blockSeen[currBBNum]);
             } else {
-              referenceMaps.recordJSRSubroutineMap(biStart, currBBMap, currBBStkTop,
+              referenceMaps.recordJSRSubroutineMap(biStart,
+                                                   currBBMap,
+                                                   currBBStkTop,
                                                    currPendingRET.returnAddressLocation,
                                                    blockSeen[currBBNum]);
             }
@@ -1488,10 +1628,11 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
 
           case JBC_aaload: {
             if (!inJSRSub) {
-              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop,
-                                         blockSeen[currBBNum]);
+              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop, blockSeen[currBBNum]);
             } else {
-              referenceMaps.recordJSRSubroutineMap(biStart, currBBMap, currBBStkTop,
+              referenceMaps.recordJSRSubroutineMap(biStart,
+                                                   currBBMap,
+                                                   currBBStkTop,
                                                    currPendingRET.returnAddressLocation,
                                                    blockSeen[currBBNum]);
             }
@@ -1509,10 +1650,11 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
           case JBC_castore:
           case JBC_sastore: {
             if (!inJSRSub) {
-              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop,
-                                         blockSeen[currBBNum]);
+              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop, blockSeen[currBBNum]);
             } else {
-              referenceMaps.recordJSRSubroutineMap(biStart, currBBMap, currBBStkTop,
+              referenceMaps.recordJSRSubroutineMap(biStart,
+                                                   currBBMap,
+                                                   currBBStkTop,
                                                    currPendingRET.returnAddressLocation,
                                                    blockSeen[currBBNum]);
             }
@@ -1522,10 +1664,11 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
           case JBC_lastore:
           case JBC_dastore: {
             if (!inJSRSub) {
-              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop,
-                                         blockSeen[currBBNum]);
+              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop, blockSeen[currBBNum]);
             } else {
-              referenceMaps.recordJSRSubroutineMap(biStart, currBBMap, currBBStkTop,
+              referenceMaps.recordJSRSubroutineMap(biStart,
+                                                   currBBMap,
+                                                   currBBStkTop,
                                                    currPendingRET.returnAddressLocation,
                                                    blockSeen[currBBNum]);
             }
@@ -1536,10 +1679,11 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
           case JBC_newarray:
           case JBC_anewarray: {
             if (!inJSRSub) {
-              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop,
-                                         blockSeen[currBBNum]);
+              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop, blockSeen[currBBNum]);
             } else {
-              referenceMaps.recordJSRSubroutineMap(biStart, currBBMap, currBBStkTop,
+              referenceMaps.recordJSRSubroutineMap(biStart,
+                                                   currBBMap,
+                                                   currBBStkTop,
                                                    currPendingRET.returnAddressLocation,
                                                    blockSeen[currBBNum]);
             }
@@ -1552,10 +1696,11 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
             bcodes.getTypeReference();
             int dim = bcodes.getArrayDimension();
             if (!inJSRSub) {
-              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop,
-                                         blockSeen[currBBNum]);
+              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop, blockSeen[currBBNum]);
             } else {
-              referenceMaps.recordJSRSubroutineMap(biStart, currBBMap, currBBStkTop,
+              referenceMaps.recordJSRSubroutineMap(biStart,
+                                                   currBBMap,
+                                                   currBBStkTop,
                                                    currPendingRET.returnAddressLocation,
                                                    blockSeen[currBBNum]);
             }
@@ -1569,10 +1714,11 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
           }
           case JBC_athrow: {
             if (!inJSRSub) {
-              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop,
-                                         blockSeen[currBBNum]);
+              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop, blockSeen[currBBNum]);
             } else {
-              referenceMaps.recordJSRSubroutineMap(biStart, currBBMap, currBBStkTop,
+              referenceMaps.recordJSRSubroutineMap(biStart,
+                                                   currBBMap,
+                                                   currBBStkTop,
                                                    currPendingRET.returnAddressLocation,
                                                    blockSeen[currBBNum]);
             }
@@ -1585,10 +1731,11 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
           case JBC_monitorexit: {
             currBBStkTop--;
             if (!inJSRSub) {
-              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop,
-                                         blockSeen[currBBNum]);
+              referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop, blockSeen[currBBNum]);
             } else {
-              referenceMaps.recordJSRSubroutineMap(biStart, currBBMap, currBBStkTop,
+              referenceMaps.recordJSRSubroutineMap(biStart,
+                                                   currBBMap,
+                                                   currBBStkTop,
                                                    currPendingRET.returnAddressLocation,
                                                    blockSeen[currBBNum]);
             }
@@ -1695,9 +1842,16 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
                 }
 
                 boolean JSRisinJSRSub = bbPendingRETs[currPendingRET.JSRBBNum] != null;
-                workStk = computeJSRNextMaps(currPendingRET.JSRNextBBNum, currBBMap.length,
-                                             k, JSRisinJSRSub, bbMaps, blockStkTop, JSRSubs,
-                                             currBBStkEmpty, workStk);
+                workStk =
+                    computeJSRNextMaps(currPendingRET.JSRNextBBNum,
+                                       currBBMap.length,
+                                       k,
+                                       JSRisinJSRSub,
+                                       bbMaps,
+                                       blockStkTop,
+                                       JSRSubs,
+                                       currBBStkEmpty,
+                                       workStk);
                 if (JSRisinJSRSub && bbPendingRETs[currPendingRET.JSRNextBBNum] == null) {
                   bbPendingRETs[currPendingRET.JSRNextBBNum] =
                       new VM_PendingRETInfo(bbPendingRETs[currPendingRET.JSRBBNum]);
@@ -1722,9 +1876,17 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
 
       if (processNextBlock) {
         short fallThruBBNum = byteToBlockMap[bcodes.index()];
-        workStk = processBranchBB(fallThruBBNum, currBBStkTop, currBBMap,
-                                  currBBStkEmpty, inJSRSub, bbMaps, blockStkTop,
-                                  currPendingRET, bbPendingRETs, workStk);
+        workStk =
+            processBranchBB(fallThruBBNum,
+                            currBBStkTop,
+                            currBBMap,
+                            currBBStkEmpty,
+                            inJSRSub,
+                            bbMaps,
+                            blockStkTop,
+                            currPendingRET,
+                            bbPendingRETs,
+                            workStk);
 
       }
 
@@ -1829,10 +1991,10 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
     return workStk;
   }
 
-  private short[] processBranchBB(short brBBNum, int currBBStkTop, byte[] currBBMap,
-                                  int currBBStkEmpty, boolean inJSRSub, byte[][] bbMaps,
-                                  int[] blockStkTop, VM_PendingRETInfo currPendingRET,
-                                  VM_PendingRETInfo[] bbPendingRETs, short[] workStk) {
+  private short[] processBranchBB(short brBBNum, int currBBStkTop, byte[] currBBMap, int currBBStkEmpty,
+                                  boolean inJSRSub, byte[][] bbMaps, int[] blockStkTop,
+                                  VM_PendingRETInfo currPendingRET, VM_PendingRETInfo[] bbPendingRETs,
+                                  short[] workStk) {
 
     short[] newworkStk = workStk;
 
@@ -1873,8 +2035,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
           if (!inJSRSub) {
             blockMap[i] = (blockMap[i] == currBBMap[i]) ? blockMap[i] : NON_REFERENCE;
           } else {
-            blockMap[i] = (blockMap[i] == currBBMap[i]) ?
-                          blockMap[i] : SET_TO_NONREFERENCE;
+            blockMap[i] = (blockMap[i] == currBBMap[i]) ? blockMap[i] : SET_TO_NONREFERENCE;
           }
         }
       }
@@ -1882,10 +2043,9 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
     return newworkStk;
   }
 
-  private int processInvoke(VM_MethodReference target, int byteindex, int currBBStkTop,
-                            byte[] currBBMap, boolean isStatic, boolean inJSRSub,
-                            VM_ReferenceMaps referenceMaps, VM_PendingRETInfo currPendingRET,
-                            boolean blockSeen, int currBBStkEmpty) {
+  private int processInvoke(VM_MethodReference target, int byteindex, int currBBStkTop, byte[] currBBMap,
+                            boolean isStatic, boolean inJSRSub, VM_ReferenceMaps referenceMaps,
+                            VM_PendingRETInfo currPendingRET, boolean blockSeen, int currBBStkEmpty) {
     boolean skipRecordingReferenceMap = false;
     boolean popParams = true;
 
@@ -1914,8 +2074,11 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
       if (!inJSRSub) {
         referenceMaps.recordStkMap(byteindex, currBBMap, currBBStkTop, blockSeen);
       } else {
-        referenceMaps.recordJSRSubroutineMap(byteindex, currBBMap, currBBStkTop,
-                                             currPendingRET.returnAddressLocation, blockSeen);
+        referenceMaps.recordJSRSubroutineMap(byteindex,
+                                             currBBMap,
+                                             currBBStkTop,
+                                             currPendingRET.returnAddressLocation,
+                                             blockSeen);
       }
     }
 
@@ -1947,11 +2110,10 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
     return currBBStkTop;
   }
 
-  private short[] processJSR(int JSRBBNum, int JSRSubStartIndex, short brBBNum, short nextBBNum,
-                             byte[][] bbMaps, int currBBStkTop, byte[] currBBMap, int currBBStkEmpty,
-                             int[] blockStkTop, VM_PendingRETInfo[] bbPendingRETs,
-                             VM_PendingRETInfo currPendingRET, VM_JSRSubroutineInfo[] JSRSubs,
-                             short[] workStk) {
+  private short[] processJSR(int JSRBBNum, int JSRSubStartIndex, short brBBNum, short nextBBNum, byte[][] bbMaps,
+                             int currBBStkTop, byte[] currBBMap, int currBBStkEmpty, int[] blockStkTop,
+                             VM_PendingRETInfo[] bbPendingRETs, VM_PendingRETInfo currPendingRET,
+                             VM_JSRSubroutineInfo[] JSRSubs, short[] workStk) {
     short[] newworkStk = workStk;
 
     // If the destination block doesn't already have a map, then use this map to build
@@ -1966,10 +2128,8 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
       blockStkTop[brBBNum] = currBBStkTop;
       newworkStk = addToWorkStk(brBBNum, workStk);
 
-      bbPendingRETs[brBBNum] = new VM_PendingRETInfo(JSRSubStartIndex, JSRBBNum,
-                                                     currBBStkTop, nextBBNum);
-      JSRSubs[JSRSubNext++] = new VM_JSRSubroutineInfo(JSRSubStartIndex, currBBMap,
-                                                       currBBStkEmpty);
+      bbPendingRETs[brBBNum] = new VM_PendingRETInfo(JSRSubStartIndex, JSRBBNum, currBBStkTop, nextBBNum);
+      JSRSubs[JSRSubNext++] = new VM_JSRSubroutineInfo(JSRSubStartIndex, currBBMap, currBBStkEmpty);
     } else {
       // If the JSR subroutine block already has a map, then locate the ending map
       // and use that to determine the map of the next block. No need to reprocess
@@ -1983,9 +2143,16 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
       }
 
       boolean JSRisinJSRSub = (currPendingRET != null);
-      newworkStk = computeJSRNextMaps(nextBBNum, currBBMap.length, matchingJSRStart,
-                                      JSRisinJSRSub, bbMaps, blockStkTop, JSRSubs,
-                                      currBBStkEmpty, workStk);
+      newworkStk =
+          computeJSRNextMaps(nextBBNum,
+                             currBBMap.length,
+                             matchingJSRStart,
+                             JSRisinJSRSub,
+                             bbMaps,
+                             blockStkTop,
+                             JSRSubs,
+                             currBBStkEmpty,
+                             workStk);
       if (JSRisinJSRSub && bbPendingRETs[nextBBNum] == null) {
         bbPendingRETs[nextBBNum] = new VM_PendingRETInfo(currPendingRET);
       }
@@ -1994,10 +2161,9 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
     return newworkStk;
   }
 
-  private short[] computeJSRNextMaps(short nextBBNum, int maplength, int JSRSubIndex,
-                                     boolean JSRisinJSRSub, byte[][] bbMaps, int[] blockStkTop,
-                                     VM_JSRSubroutineInfo[] JSRSubs, int currBBStkEmpty,
-                                     short[] workStk) {
+  private short[] computeJSRNextMaps(short nextBBNum, int maplength, int JSRSubIndex, boolean JSRisinJSRSub,
+                                     byte[][] bbMaps, int[] blockStkTop, VM_JSRSubroutineInfo[] JSRSubs,
+                                     int currBBStkEmpty, short[] workStk) {
     short[] newworkStk = workStk;
 
     // Calculate the new map for the block starting at the instruction after the
@@ -2038,8 +2204,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
           if (!JSRisinJSRSub) {
             blockMap[i] = (blockMap[i] == refMap[i]) ? blockMap[i] : NON_REFERENCE;
           } else {
-            blockMap[i] = (blockMap[i] == refMap[i]) ?
-                          blockMap[i] : SET_TO_NONREFERENCE;
+            blockMap[i] = (blockMap[i] == refMap[i]) ? blockMap[i] : SET_TO_NONREFERENCE;
           }
         }
       }
@@ -2062,9 +2227,8 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
    * @param inJSRSub                  TODO Document ME XXX
    * @param bbMaps                    TODO Document ME XXX
    */
-  private void setHandlersMapsNonRef(int localVariable, int wordCount,
-                                     int[] reachableHandlerBBNums, int reachableHandlerCount,
-                                     boolean inJSRSub, byte[][] bbMaps) {
+  private void setHandlersMapsNonRef(int localVariable, int wordCount, int[] reachableHandlerBBNums,
+                                     int reachableHandlerCount, boolean inJSRSub, byte[][] bbMaps) {
     if (!inJSRSub) {
       for (int i = 0; i < reachableHandlerCount; i++) {
         bbMaps[reachableHandlerBBNums[i]][localVariable] = NON_REFERENCE;
@@ -2104,9 +2268,8 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
    *                                  array indices
    * @param bbMaps                    TODO Document ME XXX
    */
-  private void setHandlersMapsRef(int localVariable,
-                                  int[] reachableHandlerBBNums,
-                                  int reachableHandlerCount, byte[][] bbMaps) {
+  private void setHandlersMapsRef(int localVariable, int[] reachableHandlerBBNums, int reachableHandlerCount,
+                                  byte[][] bbMaps) {
     for (int i = 0; i < reachableHandlerCount; i++) {
       if (bbMaps[reachableHandlerBBNums[i]][localVariable] != REFERENCE) {
         bbMaps[reachableHandlerBBNums[i]][localVariable] = SET_TO_NONREFERENCE;
@@ -2138,9 +2301,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
    *                                  array indices
    * @param bbMaps                    TODO Document ME XXX
    */
-  private void setHandlersMapsReturnAddress(int localVariable,
-                                            int[] reachableHandlerBBNums,
-                                            int reachableHandlerCount,
+  private void setHandlersMapsReturnAddress(int localVariable, int[] reachableHandlerBBNums, int reachableHandlerCount,
                                             byte[][] bbMaps) {
     for (int i = 0; i < reachableHandlerCount; i++) {
       if (bbMaps[reachableHandlerBBNums[i]][localVariable] != RETURN_ADDRESS) {

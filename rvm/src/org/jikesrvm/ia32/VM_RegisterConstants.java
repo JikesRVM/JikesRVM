@@ -33,9 +33,7 @@ public interface VM_RegisterConstants {
   byte EDI = 0x7;
 
   // Mnemonics corresponding to the above constants.
-  String[] GPR_NAMES = {
-      "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi"
-  };
+  String[] GPR_NAMES = {"eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi"};
 
   byte FP0 = 0x0;
   byte FP1 = 0x1;
@@ -46,9 +44,7 @@ public interface VM_RegisterConstants {
   byte FP6 = 0x6;
   byte FP7 = 0x7;
 
-  String[] FPR_NAMES = {
-      "FP0", "FP1", "FP2", "FP3", "FP4", "FP5", "FP6", "FP7"
-  };
+  String[] FPR_NAMES = {"FP0", "FP1", "FP2", "FP3", "FP4", "FP5", "FP6", "FP7"};
 
   // Register sets (``range'' is a misnomer for the alphabet soup of
   // of intel registers)
@@ -78,8 +74,7 @@ public interface VM_RegisterConstants {
    * to pass parameters in registers.  They are defined to mean that
    * the first n registers in the corresponding set of volatile
    * registers are used to pass parameters.
-   */
-  int NUM_PARAMETER_GPRS = 2;
+   */ int NUM_PARAMETER_GPRS = 2;
   int NUM_PARAMETER_FPRS = 4;
   int NUM_RETURN_GPRS = 2;
   int NUM_RETURN_FPRS = 1;

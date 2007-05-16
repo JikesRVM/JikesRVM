@@ -73,8 +73,7 @@ public final class OPT_CodeConstantOperand extends OPT_ConstantOperand {
    *           if they are not.
    */
   public boolean similar(OPT_Operand op) {
-    return (op instanceof OPT_CodeConstantOperand) &&
-           value == ((OPT_CodeConstantOperand) op).value;
+    return (op instanceof OPT_CodeConstantOperand) && value == ((OPT_CodeConstantOperand) op).value;
   }
 
   /**

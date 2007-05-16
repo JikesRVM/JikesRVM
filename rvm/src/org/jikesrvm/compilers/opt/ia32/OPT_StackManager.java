@@ -171,8 +171,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
    * @param location the spill location, as an offset from the frame
    * pointer
    */
-  public final void insertSpillBefore(OPT_Instruction s, OPT_Register r,
-                                      byte type, int location) {
+  public final void insertSpillBefore(OPT_Instruction s, OPT_Register r, byte type, int location) {
 
     OPT_Operator move = getMoveOperator(type);
     byte size = getSizeOfType(type);
@@ -188,8 +187,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
         rOp = new OPT_RegisterOperand(r, VM_TypeReference.Int);
         break;
     }
-    OPT_StackLocationOperand spill =
-        new OPT_StackLocationOperand(true, -location, size);
+    OPT_StackLocationOperand spill = new OPT_StackLocationOperand(true, -location, size);
     s.insertBefore(MIR_Move.create(move, spill, rOp));
   }
 
@@ -203,8 +201,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
    *                    CONDITION_VALUE
    * @param location the spill location
    */
-  public final void insertUnspillBefore(OPT_Instruction s, OPT_Register r,
-                                        byte type, int location) {
+  public final void insertUnspillBefore(OPT_Instruction s, OPT_Register r, byte type, int location) {
     OPT_Operator move = getMoveOperator(type);
     byte size = getSizeOfType(type);
     OPT_RegisterOperand rOp;
@@ -219,8 +216,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
         rOp = new OPT_RegisterOperand(r, VM_TypeReference.Int);
         break;
     }
-    OPT_StackLocationOperand spill =
-        new OPT_StackLocationOperand(true, -location, size);
+    OPT_StackLocationOperand spill = new OPT_StackLocationOperand(true, -location, size);
     s.insertBefore(MIR_Move.create(move, rOp, spill));
   }
 
@@ -261,8 +257,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
 
       // Map each volatile register to a spill location.
       int i = 0;
-      for (Enumeration<OPT_Register> e = phys.enumerateVolatileGPRs();
-           e.hasMoreElements(); i++) {
+      for (Enumeration<OPT_Register> e = phys.enumerateVolatileGPRs(); e.hasMoreElements(); i++) {
         e.nextElement();
         // Note that as a side effect, the following call bumps up the
         // frame size.
@@ -271,8 +266,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
 
       // Map each non-volatile register to a spill location.
       i = 0;
-      for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRs();
-           e.hasMoreElements(); i++) {
+      for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRs(); e.hasMoreElements(); i++) {
         e.nextElement();
         // Note that as a side effect, the following call bumps up the
         // frame size.
@@ -287,8 +281,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       // Count the number of nonvolatiles used.
       int numGprNv = 0;
       int i = 0;
-      for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRs();
-           e.hasMoreElements();) {
+      for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRs(); e.hasMoreElements();) {
         OPT_Register r = e.nextElement();
         if (r.isTouched()) {
           // Note that as a side effect, the following call bumps up the
@@ -374,11 +367,17 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
     OPT_MemoryOperand M =
         OPT_MemoryOperand.BD(new OPT_RegisterOperand(PR, VM_TypeReference.Int),
                              VM_Entrypoints.activeThreadStackLimitField.getOffset(),
-                             (byte) WORDSIZE, null, null);
+                             (byte) WORDSIZE,
+                             null,
+                             null);
 
     //    Trap if ESP <= active Thread Stack Limit
-    MIR_TrapIf.mutate(plg, IA32_TRAPIF, null, new OPT_RegisterOperand(ESP, VM_TypeReference.Int),
-                      M, OPT_IA32ConditionOperand.LE(),
+    MIR_TrapIf.mutate(plg,
+                      IA32_TRAPIF,
+                      null,
+                      new OPT_RegisterOperand(ESP, VM_TypeReference.Int),
+                      M,
+                      OPT_IA32ConditionOperand.LE(),
                       OPT_TrapCodeOperand.StackOverflow());
   }
 
@@ -409,15 +408,18 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
     OPT_MemoryOperand M =
         OPT_MemoryOperand.BD(new OPT_RegisterOperand(PR, VM_TypeReference.Int),
                              VM_Entrypoints.activeThreadStackLimitField.getOffset(),
-                             (byte) WORDSIZE, null, null);
+                             (byte) WORDSIZE,
+                             null,
+                             null);
     plg.insertBefore(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand((ECX), VM_TypeReference.Int), M));
 
     //    ECX += frame Size
     int frameSize = getFrameFixedSize();
-    plg.insertBefore(MIR_BinaryAcc.create(IA32_ADD, new OPT_RegisterOperand(ECX, VM_TypeReference.Int),
-                                          IC(frameSize)));
+    plg.insertBefore(MIR_BinaryAcc.create(IA32_ADD, new OPT_RegisterOperand(ECX, VM_TypeReference.Int), IC(frameSize)));
     //    Trap if ESP <= ECX
-    MIR_TrapIf.mutate(plg, IA32_TRAPIF, null,
+    MIR_TrapIf.mutate(plg,
+                      IA32_TRAPIF,
+                      null,
                       new OPT_RegisterOperand(ESP, VM_TypeReference.Int),
                       new OPT_RegisterOperand(ECX, VM_TypeReference.Int),
                       OPT_IA32ConditionOperand.LE(),
@@ -444,7 +446,9 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
     OPT_MemoryOperand fpHome =
         OPT_MemoryOperand.BD(new OPT_RegisterOperand(PR, VM_TypeReference.Int),
                              VM_Entrypoints.framePointerField.getOffset(),
-                             (byte) WORDSIZE, null, null);
+                             (byte) WORDSIZE,
+                             null,
+                             null);
 
     // inst is the instruction immediately after the IR_PROLOGUE
     // instruction
@@ -511,8 +515,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
 
     // Save each non-volatile GPR used by this method.
     int n = nNonvolatileGPRS - 1;
-    for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRsBackwards();
-         e.hasMoreElements() && n >= 0; n--) {
+    for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRsBackwards(); e.hasMoreElements() && n >= 0; n--) {
       OPT_Register nv = e.nextElement();
       int offset = getNonvolatileGPROffset(n);
       OPT_Operand M = new OPT_StackLocationOperand(true, -offset, 4);
@@ -531,8 +534,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
     int nNonvolatileGPRS = ir.compiledMethod.getNumberOfNonvolatileGPRs();
 
     int n = nNonvolatileGPRS - 1;
-    for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRsBackwards();
-         e.hasMoreElements() && n >= 0; n--) {
+    for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRsBackwards(); e.hasMoreElements() && n >= 0; n--) {
       OPT_Register nv = e.nextElement();
       int offset = getNonvolatileGPROffset(n);
       OPT_Operand M = new OPT_StackLocationOperand(true, -offset, 4);
@@ -571,8 +573,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
 
     // Save each GPR.
     int i = 0;
-    for (Enumeration<OPT_Register> e = phys.enumerateVolatileGPRs();
-         e.hasMoreElements(); i++) {
+    for (Enumeration<OPT_Register> e = phys.enumerateVolatileGPRs(); e.hasMoreElements(); i++) {
       OPT_Register r = e.nextElement();
       int location = saveVolatileGPRLocation[i];
       OPT_Operand M = new OPT_StackLocationOperand(true, -location, 4);
@@ -591,8 +592,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
 
     // Restore every GPR
     int i = 0;
-    for (Enumeration<OPT_Register> e = phys.enumerateVolatileGPRs();
-         e.hasMoreElements(); i++) {
+    for (Enumeration<OPT_Register> e = phys.enumerateVolatileGPRs(); e.hasMoreElements(); i++) {
       OPT_Register r = e.nextElement();
       int location = saveVolatileGPRLocation[i];
       OPT_Operand M = new OPT_StackLocationOperand(true, -location, 4);
@@ -622,7 +622,9 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
     OPT_MemoryOperand fpHome =
         OPT_MemoryOperand.BD(new OPT_RegisterOperand(PR, VM_TypeReference.Int),
                              VM_Entrypoints.framePointerField.getOffset(),
-                             (byte) WORDSIZE, null, null);
+                             (byte) WORDSIZE,
+                             null,
+                             null);
     ret.insertBefore(MIR_Nullary.create(IA32_POP, fpHome));
   }
 
@@ -634,8 +636,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
    * @param s the instruction to mutate.
    * @param symb the symbolic register operand to replace
    */
-  public void replaceOperandWithSpillLocation(OPT_Instruction s,
-                                              OPT_RegisterOperand symb) {
+  public void replaceOperandWithSpillLocation(OPT_Instruction s, OPT_RegisterOperand symb) {
 
     // Get the spill location previously assigned to the symbolic
     // register.
@@ -741,7 +742,10 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       } else {
         OPT_MemoryOperand M =
             OPT_MemoryOperand.BD(new OPT_RegisterOperand(ESP, VM_TypeReference.Int),
-                                 Offset.fromIntSignExtend(delta), (byte) 4, null, null);
+                                 Offset.fromIntSignExtend(delta),
+                                 (byte) 4,
+                                 null,
+                                 null);
         s.insertBefore(MIR_Lea.create(IA32_LEA, new OPT_RegisterOperand(ESP, VM_TypeReference.Int), M));
       }
       ESPOffset = desiredOffset;
@@ -788,8 +792,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
     OPT_Operand result = MIR_Move.getResult(s);
     OPT_Operand val = MIR_Move.getValue(s);
     if (result instanceof OPT_StackLocationOperand) {
-      if (val instanceof OPT_MemoryOperand ||
-          val instanceof OPT_StackLocationOperand) {
+      if (val instanceof OPT_MemoryOperand || val instanceof OPT_StackLocationOperand) {
         int offset = ((OPT_StackLocationOperand) result).getOffset();
         byte size = ((OPT_StackLocationOperand) result).getSize();
         offset = FPOffset2SPOffset(offset) + size;
@@ -818,8 +821,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
     OPT_Register ESP = ir.regpool.getPhysicalRegisterSet().getESP();
 
     boolean seenReturn = false;
-    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator();
-         e.hasMoreElements();) {
+    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
       OPT_Instruction s = e.next();
 
       if (s.isReturn()) {
@@ -886,12 +888,13 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
           OPT_MemoryOperand M =
               OPT_MemoryOperand.BD(new OPT_RegisterOperand(ESP, VM_TypeReference.Int),
                                    Offset.fromIntSignExtend(offset),
-                                   size, null, null);
+                                   size,
+                                   null,
+                                   null);
           s.replaceOperand(op, M);
         } else if (op instanceof OPT_MemoryOperand) {
           OPT_MemoryOperand M = op.asMemory();
-          if ((M.base != null && M.base.register == ESP) ||
-              (M.index != null && M.index.register == ESP)) {
+          if ((M.base != null && M.base.register == ESP) || (M.index != null && M.index.register == ESP)) {
             M.disp = M.disp.minus(ESPOffset);
           }
         }
@@ -947,11 +950,10 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       }
       boolean removed = false;
       boolean unloaded = false;
-      if (definedIn(scratch.scratch, s)
-          || (s.isCall() && s.operator != CALL_SAVE_VOLATILE
-              && scratch.scratch.isVolatile())
-          || (s.operator == IA32_FNINIT && scratch.scratch.isFloatingPoint())
-          || (s.operator == IA32_FCLEAR && scratch.scratch.isFloatingPoint())) {
+      if (definedIn(scratch.scratch, s) ||
+          (s.isCall() && s.operator != CALL_SAVE_VOLATILE && scratch.scratch.isVolatile()) ||
+          (s.operator == IA32_FNINIT && scratch.scratch.isFloatingPoint()) ||
+          (s.operator == IA32_FCLEAR && scratch.scratch.isFloatingPoint())) {
         // s defines the scratch register, so save its contents before they
         // are killed.
         if (verboseDebug) {
@@ -961,16 +963,13 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
 
         // update mapping information
         if (verboseDebug) {
-          System.out.println("RSRB: End scratch interval " +
-                             scratch.scratch + " " + s);
+          System.out.println("RSRB: End scratch interval " + scratch.scratch + " " + s);
         }
         scratchMap.endScratchInterval(scratch.scratch, s);
         OPT_Register scratchContents = scratch.currentContents;
         if (scratchContents != null) {
           if (verboseDebug) {
-            System.out.println("RSRB: End symbolic interval " +
-                               scratch.currentContents + " "
-                               + s);
+            System.out.println("RSRB: End symbolic interval " + scratch.currentContents + " " + s);
           }
           scratchMap.endSymbolicInterval(scratch.currentContents, s);
         }
@@ -993,16 +992,13 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
 
           // update mapping information
           if (verboseDebug) {
-            System.out.println("RSRB2: End scratch interval " +
-                               scratch.scratch + " " + s);
+            System.out.println("RSRB2: End scratch interval " + scratch.scratch + " " + s);
           }
           scratchMap.endScratchInterval(scratch.scratch, s);
           OPT_Register scratchContents = scratch.currentContents;
           if (scratchContents != null) {
             if (verboseDebug) {
-              System.out.println("RSRB2: End symbolic interval " +
-                                 scratch.currentContents + " "
-                                 + s);
+              System.out.println("RSRB2: End symbolic interval " + scratch.currentContents + " " + s);
             }
             scratchMap.endSymbolicInterval(scratch.currentContents, s);
           }

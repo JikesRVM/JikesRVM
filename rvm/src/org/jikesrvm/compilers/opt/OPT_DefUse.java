@@ -39,15 +39,13 @@ public final class OPT_DefUse {
    * @param ir the IR in question
    */
   public static void clearDU(OPT_IR ir) {
-    for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister();
-         reg != null; reg = reg.getNext()) {
+    for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); reg != null; reg = reg.getNext()) {
       reg.defList = null;
       reg.useList = null;
       reg.scratch = -1;
       reg.clearSeenUse();
     }
-    for (Enumeration<OPT_Register> e = ir.regpool.getPhysicalRegisterSet().enumerateAll();
-         e.hasMoreElements();) {
+    for (Enumeration<OPT_Register> e = ir.regpool.getPhysicalRegisterSet().enumerateAll(); e.hasMoreElements();) {
       OPT_Register reg = e.nextElement();
       reg.defList = null;
       reg.useList = null;
@@ -70,8 +68,8 @@ public final class OPT_DefUse {
     // Clear old register list (if any)
     clearDU(ir);
     // Create register defList and useList
-    for (OPT_Instruction instr = ir.firstInstructionInCodeOrder();
-         instr != null; instr = instr.nextInstructionInCodeOrder()) {
+    for (OPT_Instruction instr = ir.firstInstructionInCodeOrder(); instr != null; instr =
+        instr.nextInstructionInCodeOrder()) {
 
       OPT_OperandEnumeration defs = instr.getPureDefs();
       OPT_OperandEnumeration uses = instr.getUses();
@@ -95,8 +93,7 @@ public final class OPT_DefUse {
     // Remove any symbloic registers with no uses/defs from
     // the register pool.  We'll waste analysis time keeping them around.
     OPT_Register next;
-    for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); reg != null;
-         reg = next) {
+    for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); reg != null; reg = next) {
       next = reg.getNext();
       if (reg.defList == null && reg.useList == null) {
         if (DEBUG) {
@@ -202,15 +199,13 @@ public final class OPT_DefUse {
    *  @param origRegOp the register operand to change
    *  @param newRegOp the register operand to use for the change
    */
-  static void transferUse(OPT_RegisterOperand origRegOp,
-                          OPT_RegisterOperand newRegOp) {
+  static void transferUse(OPT_RegisterOperand origRegOp, OPT_RegisterOperand newRegOp) {
     if (VM.VerifyAssertions) {
       VM._assert(origRegOp.register.getType() == newRegOp.register.getType());
     }
     OPT_Instruction inst = origRegOp.instruction;
     if (DEBUG) {
-      VM.sysWrite("Transfering a use of " + origRegOp + " in " + inst +
-                  " to " + newRegOp + "\n");
+      VM.sysWrite("Transfering a use of " + origRegOp + " in " + inst + " to " + newRegOp + "\n");
     }
     removeUse(origRegOp);
     // check to see if the regOp type is NOT a ref, but the newRegOp type
@@ -272,8 +267,7 @@ public final class OPT_DefUse {
   /**
    * Replace an instruction and update register lists.
    */
-  static void replaceInstructionAndUpdateDU(OPT_Instruction oldI,
-                                            OPT_Instruction newI) {
+  static void replaceInstructionAndUpdateDU(OPT_Instruction oldI, OPT_Instruction newI) {
     oldI.insertBefore(newI);
     removeInstructionAndUpdateDU(oldI);
     updateDUForNewInstruction(newI);
@@ -331,8 +325,7 @@ public final class OPT_DefUse {
    */
   public static void recomputeSSA(OPT_IR ir) {
     // Use register /ist to enumerate register objects (FAST)
-    for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister();
-         reg != null; reg = reg.getNext()) {
+    for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); reg != null; reg = reg.getNext()) {
       // Set isSSA = true iff reg has exactly one static definition.
       reg.putSSA((reg.defList != null && reg.defList.getNext() == null));
     }
@@ -356,8 +349,7 @@ public final class OPT_DefUse {
     }
     // first loop through defs of reg2 (currently, there will only be one def)
     lastOperand = null;
-    for (OPT_RegisterOperand def = reg2.defList; def != null; lastOperand = def,
-        def = def.getNext()) {
+    for (OPT_RegisterOperand def = reg2.defList; def != null; lastOperand = def, def = def.getNext()) {
       // Change def to refer to reg1 instead
       def.register = reg1;
       // Track lastOperand
@@ -370,8 +362,7 @@ public final class OPT_DefUse {
     }
     // now loop through uses
     lastOperand = null;
-    for (OPT_RegisterOperand use = reg2.useList; use != null;
-         use = use.getNext()) {
+    for (OPT_RegisterOperand use = reg2.useList; use != null; use = use.getNext()) {
       // Change use to refer to reg1 instead
       use.register = reg1;
       // Track lastOperand
@@ -398,22 +389,18 @@ public final class OPT_DefUse {
    */
   public static void recomputeSpansBasicBlock(OPT_IR ir) {
     // clear fields
-    for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister();
-         reg != null; reg = reg.getNext()) {
+    for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); reg != null; reg = reg.getNext()) {
       reg.scratch = -1;
       reg.clearSpansBasicBlock();
     }
     // iterate over the basic blocks
-    for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); bb != null;
-         bb = bb.nextBasicBlockInCodeOrder()) {
+    for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); bb != null; bb = bb.nextBasicBlockInCodeOrder()) {
       int bbNum = bb.getNumber();
       // enumerate the instructions in the basic block
-      for (OPT_InstructionEnumeration e = bb.forwardRealInstrEnumerator();
-           e.hasMoreElements();) {
+      for (OPT_InstructionEnumeration e = bb.forwardRealInstrEnumerator(); e.hasMoreElements();) {
         OPT_Instruction inst = e.next();
         // check each Operand in the instruction
-        for (OPT_OperandEnumeration ops = inst.getOperands();
-             ops.hasMoreElements();) {
+        for (OPT_OperandEnumeration ops = inst.getOperands(); ops.hasMoreElements();) {
           OPT_Operand op = ops.next();
           if (op instanceof OPT_RegisterOperand) {
             OPT_Register reg = ((OPT_RegisterOperand) op).register;
@@ -463,8 +450,7 @@ public final class OPT_DefUse {
   /**
    * Utility class to encapsulate walking a use/def list.
    */
-  private static final class RegOpListWalker
-      implements OPT_RegisterOperandEnumeration {
+  private static final class RegOpListWalker implements OPT_RegisterOperandEnumeration {
 
     private OPT_RegisterOperand current;
 

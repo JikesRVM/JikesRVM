@@ -28,8 +28,7 @@ class OPT_CoalesceGraph extends OPT_SpaceEffGraph {
   /**
    * Mapping register -> Node
    */
-  final HashMap<OPT_Register, Node> nodeMap =
-      new HashMap<OPT_Register, Node>();
+  final HashMap<OPT_Register, Node> nodeMap = new HashMap<OPT_Register, Node>();
 
   /**
    * find or create a node in the graph corresponding to a register.

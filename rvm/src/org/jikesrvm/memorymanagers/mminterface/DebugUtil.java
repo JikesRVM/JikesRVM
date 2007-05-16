@@ -58,9 +58,7 @@ public class DebugUtil implements VM_Constants, Constants {
 
     // check if types tib is one of three possible values
     Object[] typeTib = VM_ObjectModel.getTIB(typeAddress);
-    return ((typeTib == tibForClassType) ||
-            (typeTib == tibForArrayType) ||
-            (typeTib == tibForPrimitiveType));
+    return ((typeTib == tibForClassType) || (typeTib == tibForArrayType) || (typeTib == tibForPrimitiveType));
   }
 
   /**
@@ -71,8 +69,7 @@ public class DebugUtil implements VM_Constants, Constants {
   public static void dumpAllThreadStacks() {
     Address ip, fp;
     VM_Thread t;
-    VM_Scheduler.trace("\ndumpAllThreadStacks",
-                       "dumping stacks for all threads");
+    VM_Scheduler.trace("\ndumpAllThreadStacks", "dumping stacks for all threads");
     for (VM_Thread thread : VM_Scheduler.threads) {
       t = thread;
       if (t == null) continue;

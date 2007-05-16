@@ -28,10 +28,7 @@ public class OSR_OnStackReplacementTrigger {
    */
   @NoInline
   @Uninterruptible
-  public static void trigger(int ypTakenInCMID,
-                             Offset tsFromFPoff,
-                             Offset ypTakenFPoff,
-                             int whereFrom) {
+  public static void trigger(int ypTakenInCMID, Offset tsFromFPoff, Offset ypTakenFPoff, int whereFrom) {
 
     VM_Thread thread = VM_Thread.getCurrentThread();
     VM_CompiledMethod ypTakenInCM = VM_CompiledMethods.getCompiledMethod(ypTakenInCMID);

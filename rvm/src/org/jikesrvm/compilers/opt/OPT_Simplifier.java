@@ -668,17 +668,19 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       switch (result) {
         case MOVE_FOLDED:
           // Check move has constant RHS
-          VM._assert(Move.conforms(s) &&
-                     (Move.getVal(s) instanceof OPT_ConstantOperand),
-                     "RHS of move " + s + " should be constant during simplification of "
-                     + OPT_OperatorNames.operatorName[opcode]);
+          VM._assert(Move.conforms(s) && (Move.getVal(s) instanceof OPT_ConstantOperand),
+                     "RHS of move " +
+                     s +
+                     " should be constant during simplification of " +
+                     OPT_OperatorNames.operatorName[opcode]);
           break;
         case MOVE_REDUCED:
           // Check move has non-constant RHS
-          VM._assert(Move.conforms(s) &&
-                     !(Move.getVal(s) instanceof OPT_ConstantOperand),
-                     "RHS of move " + s + " shouldn't be constant during simplification of "
-                     + OPT_OperatorNames.operatorName[opcode]);
+          VM._assert(Move.conforms(s) && !(Move.getVal(s) instanceof OPT_ConstantOperand),
+                     "RHS of move " +
+                     s +
+                     " shouldn't be constant during simplification of " +
+                     OPT_OperatorNames.operatorName[opcode]);
           break;
         default:
           // Nothing to check
@@ -716,8 +718,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         if (op2.isConstant()) {
           int willTrap = TrapIf.getCond(s).evaluate(op1, op2);
           if (willTrap == OPT_ConditionOperand.TRUE) {
-            Trap.mutate(s, TRAP, TrapIf.getClearGuardResult(s),
-                        TrapIf.getClearTCode(s));
+            Trap.mutate(s, TRAP, TrapIf.getClearGuardResult(s), TrapIf.getClearTCode(s));
             return DefUseEffect.TRAP_REDUCED;
           } else if (willTrap == OPT_ConditionOperand.FALSE) {
             Move.mutate(s, GUARD_MOVE, TrapIf.getClearGuardResult(s), TG());
@@ -725,7 +726,9 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
           }
         } else {
           // canonicalize
-          TrapIf.mutate(s, TRAP_IF, TrapIf.getClearGuardResult(s),
+          TrapIf.mutate(s,
+                        TRAP_IF,
+                        TrapIf.getClearGuardResult(s),
                         TrapIf.getClearVal2(s),
                         TrapIf.getClearVal1(s),
                         TrapIf.getClearCond(s).flipOperands(),
@@ -738,10 +741,8 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
 
   private static DefUseEffect nullCheck(OPT_Instruction s) {
     OPT_Operand ref = NullCheck.getRef(s);
-    if (ref.isNullConstant() ||
-        (ref.isAddressConstant() && ref.asAddressConstant().value.isZero())) {
-      Trap.mutate(s, TRAP, NullCheck.getClearGuardResult(s),
-                  OPT_TrapCodeOperand.NullPtr());
+    if (ref.isNullConstant() || (ref.isAddressConstant() && ref.asAddressConstant().value.isZero())) {
+      Trap.mutate(s, TRAP, NullCheck.getClearGuardResult(s), OPT_TrapCodeOperand.NullPtr());
       return DefUseEffect.TRAP_REDUCED;
     } else if (ref.isConstant()) {
       // object, string, class or non-null address constant
@@ -762,8 +763,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       if (op.isIntConstant()) {
         int val = op.asIntConstant().value;
         if (val == 0) {
-          Trap.mutate(s, TRAP, ZeroCheck.getClearGuardResult(s),
-                      OPT_TrapCodeOperand.DivByZero());
+          Trap.mutate(s, TRAP, ZeroCheck.getClearGuardResult(s), OPT_TrapCodeOperand.DivByZero());
           return DefUseEffect.TRAP_REDUCED;
         } else {
           Move.mutate(s, GUARD_MOVE, ZeroCheck.getClearGuardResult(s), TG());
@@ -780,8 +780,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       if (op.isLongConstant()) {
         long val = op.asLongConstant().value;
         if (val == 0L) {
-          Trap.mutate(s, TRAP, ZeroCheck.getClearGuardResult(s),
-                      OPT_TrapCodeOperand.DivByZero());
+          Trap.mutate(s, TRAP, ZeroCheck.getClearGuardResult(s), OPT_TrapCodeOperand.DivByZero());
           return DefUseEffect.TRAP_REDUCED;
         } else {
           Move.mutate(s, GUARD_MOVE, ZeroCheck.getClearGuardResult(s), TG());
@@ -897,21 +896,17 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       VM_Type typeOfIMElem = arrayTypeRef.getInnermostElementType().peekResolvedType();
       if (typeOfIMElem != null) {
         VM_Type typeOfVal = val.getType().peekResolvedType();
-        if ((typeOfIMElem == typeOfVal) &&
-            (typeOfIMElem.isPrimitiveType() ||
-             typeOfIMElem.asClass().isFinal())) {
+        if ((typeOfIMElem == typeOfVal) && (typeOfIMElem.isPrimitiveType() || typeOfIMElem.asClass().isFinal())) {
           // Writing something of a final type to an array of that
           // final type is safe
-          Move.mutate(s, GUARD_MOVE, StoreCheck.getClearGuardResult(s),
-                      StoreCheck.getClearGuard(s));
+          Move.mutate(s, GUARD_MOVE, StoreCheck.getClearGuardResult(s), StoreCheck.getClearGuard(s));
           return DefUseEffect.MOVE_REDUCED;
         }
       }
       if (ref.isConstant() && (arrayTypeRef == VM_TypeReference.JavaLangObjectArray)) {
         // We know this to be an array of objects so any store must
         // be safe
-        Move.mutate(s, GUARD_MOVE, StoreCheck.getClearGuardResult(s),
-                    StoreCheck.getClearGuard(s));
+        Move.mutate(s, GUARD_MOVE, StoreCheck.getClearGuardResult(s), StoreCheck.getClearGuard(s));
         return DefUseEffect.MOVE_REDUCED;
       }
       if (val.isConstant() && ref.isConstant()) {
@@ -938,9 +933,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
     VM_Type typeOfIMElem = arrayTypeRef.getInnermostElementType().peekResolvedType();
     if (typeOfIMElem != null) {
       VM_Type typeOfVal = val.getType().peekResolvedType();
-      if ((typeOfIMElem == typeOfVal) &&
-          (typeOfIMElem.isPrimitiveType() ||
-           typeOfIMElem.asClass().isFinal())) {
+      if ((typeOfIMElem == typeOfVal) && (typeOfIMElem.isPrimitiveType() || typeOfIMElem.asClass().isFinal())) {
         // Writing something of a final type to an array of that
         // final type is safe
         Move.mutate(s, GUARD_MOVE, StoreCheck.getClearGuardResult(s), StoreCheck.getClearGuard(s));
@@ -950,8 +943,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
     if (ref.isConstant() && (arrayTypeRef == VM_TypeReference.JavaLangObjectArray)) {
       // We know this to be an array of objects so any store must
       // be safe
-      Move.mutate(s, GUARD_MOVE, StoreCheck.getClearGuardResult(s),
-                  StoreCheck.getClearGuard(s));
+      Move.mutate(s, GUARD_MOVE, StoreCheck.getClearGuardResult(s), StoreCheck.getClearGuard(s));
       return DefUseEffect.MOVE_REDUCED;
     }
     if (val.isConstant() && ref.isConstant()) {
@@ -975,8 +967,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
     if (ref.isNullConstant()) {
       // Possible sitatution from constant propagation. This operation
       // is really a nop as a null_check should have happened already
-      Trap.mutate(s, TRAP, null,
-                  OPT_TrapCodeOperand.NullPtr());
+      Trap.mutate(s, TRAP, null, OPT_TrapCodeOperand.NullPtr());
       return DefUseEffect.TRAP_REDUCED;
     } else {
       VM_TypeReference lhsType = TypeCheck.getType(s).getTypeRef(); // the interface that must be implemented
@@ -1005,8 +996,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       if (cond != OPT_ConditionOperand.UNKNOWN) {
         // BOTH CONSTANTS OR SIMILAR: FOLD
         OPT_Operand val =
-            (cond == OPT_ConditionOperand.TRUE) ? CondMove.getClearTrueValue(s)
-            : CondMove.getClearFalseValue(s);
+            (cond == OPT_ConditionOperand.TRUE) ? CondMove.getClearTrueValue(s) : CondMove.getClearFalseValue(s);
         Move.mutate(s, INT_MOVE, CondMove.getClearResult(s), val);
         return val.isConstant() ? DefUseEffect.MOVE_FOLDED : DefUseEffect.MOVE_REDUCED;
       }
@@ -1037,15 +1027,23 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
           op = BOOLEAN_CMP_INT;
         }
         if (itv == 1 && ifv == 0) {
-          BooleanCmp.mutate(s, op, CondMove.getClearResult(s),
-                            CondMove.getClearVal1(s), CondMove.getClearVal2(s),
-                            CondMove.getClearCond(s), new OPT_BranchProfileOperand());
+          BooleanCmp.mutate(s,
+                            op,
+                            CondMove.getClearResult(s),
+                            CondMove.getClearVal1(s),
+                            CondMove.getClearVal2(s),
+                            CondMove.getClearCond(s),
+                            new OPT_BranchProfileOperand());
           return DefUseEffect.REDUCED;
         }
         if (itv == 0 && ifv == 1) {
-          BooleanCmp.mutate(s, op, CondMove.getClearResult(s),
-                            CondMove.getClearVal1(s), CondMove.getClearVal2(s),
-                            CondMove.getClearCond(s).flipCode(), new OPT_BranchProfileOperand());
+          BooleanCmp.mutate(s,
+                            op,
+                            CondMove.getClearResult(s),
+                            CondMove.getClearVal1(s),
+                            CondMove.getClearVal2(s),
+                            CondMove.getClearCond(s).flipCode(),
+                            new OPT_BranchProfileOperand());
           return DefUseEffect.REDUCED;
         }
       }
@@ -1061,8 +1059,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       if (cond != OPT_ConditionOperand.UNKNOWN) {
         // BOTH CONSTANTS OR SIMILAR: FOLD
         OPT_Operand val =
-            (cond == OPT_ConditionOperand.TRUE) ? CondMove.getClearTrueValue(s)
-            : CondMove.getClearFalseValue(s);
+            (cond == OPT_ConditionOperand.TRUE) ? CondMove.getClearTrueValue(s) : CondMove.getClearFalseValue(s);
         Move.mutate(s, LONG_MOVE, CondMove.getClearResult(s), val);
         return val.isConstant() ? DefUseEffect.MOVE_FOLDED : DefUseEffect.MOVE_REDUCED;
       }
@@ -1093,15 +1090,23 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
           op = BOOLEAN_CMP_INT;
         }
         if (itv == 1 && ifv == 0) {
-          BooleanCmp.mutate(s, op, CondMove.getClearResult(s),
-                            CondMove.getClearVal1(s), CondMove.getClearVal2(s),
-                            CondMove.getClearCond(s), new OPT_BranchProfileOperand());
+          BooleanCmp.mutate(s,
+                            op,
+                            CondMove.getClearResult(s),
+                            CondMove.getClearVal1(s),
+                            CondMove.getClearVal2(s),
+                            CondMove.getClearCond(s),
+                            new OPT_BranchProfileOperand());
           return DefUseEffect.REDUCED;
         }
         if (itv == 0 && ifv == 1) {
-          BooleanCmp.mutate(s, op, CondMove.getClearResult(s),
-                            CondMove.getClearVal1(s), CondMove.getClearVal2(s),
-                            CondMove.getClearCond(s).flipCode(), new OPT_BranchProfileOperand());
+          BooleanCmp.mutate(s,
+                            op,
+                            CondMove.getClearResult(s),
+                            CondMove.getClearVal1(s),
+                            CondMove.getClearVal2(s),
+                            CondMove.getClearCond(s).flipCode(),
+                            new OPT_BranchProfileOperand());
           return DefUseEffect.REDUCED;
         }
       }
@@ -1117,8 +1122,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       if (cond != OPT_ConditionOperand.UNKNOWN) {
         // BOTH CONSTANTS OR SIMILAR: FOLD
         OPT_Operand val =
-            (cond == OPT_ConditionOperand.TRUE) ? CondMove.getClearTrueValue(s)
-            : CondMove.getClearFalseValue(s);
+            (cond == OPT_ConditionOperand.TRUE) ? CondMove.getClearTrueValue(s) : CondMove.getClearFalseValue(s);
         Move.mutate(s, FLOAT_MOVE, CondMove.getClearResult(s), val);
         return val.isConstant() ? DefUseEffect.MOVE_FOLDED : DefUseEffect.MOVE_REDUCED;
       }
@@ -1147,8 +1151,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       if (cond != OPT_ConditionOperand.UNKNOWN) {
         // BOTH CONSTANTS OR SIMILAR: FOLD
         OPT_Operand val =
-            (cond == OPT_ConditionOperand.TRUE) ? CondMove.getClearTrueValue(s)
-            : CondMove.getClearFalseValue(s);
+            (cond == OPT_ConditionOperand.TRUE) ? CondMove.getClearTrueValue(s) : CondMove.getClearFalseValue(s);
         Move.mutate(s, DOUBLE_MOVE, CondMove.getClearResult(s), val);
         return val.isConstant() ? DefUseEffect.MOVE_FOLDED : DefUseEffect.MOVE_REDUCED;
       }
@@ -1179,8 +1182,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
           int cond = CondMove.getCond(s).evaluate(val1, val2);
           if (cond != OPT_ConditionOperand.UNKNOWN) {
             OPT_Operand val =
-                (cond == OPT_ConditionOperand.TRUE) ? CondMove.getClearTrueValue(s)
-                : CondMove.getClearFalseValue(s);
+                (cond == OPT_ConditionOperand.TRUE) ? CondMove.getClearTrueValue(s) : CondMove.getClearFalseValue(s);
             Move.mutate(s, REF_MOVE, CondMove.getClearResult(s), val);
             return val.isConstant() ? DefUseEffect.MOVE_FOLDED : DefUseEffect.MOVE_REDUCED;
           }
@@ -1211,8 +1213,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
           int cond = CondMove.getCond(s).evaluate(val1, val2);
           if (cond == OPT_ConditionOperand.UNKNOWN) {
             OPT_Operand val =
-                (cond == OPT_ConditionOperand.TRUE) ? CondMove.getClearTrueValue(s)
-                : CondMove.getClearFalseValue(s);
+                (cond == OPT_ConditionOperand.TRUE) ? CondMove.getClearTrueValue(s) : CondMove.getClearFalseValue(s);
             Move.mutate(s, GUARD_MOVE, CondMove.getClearResult(s), val);
             return val.isConstant() ? DefUseEffect.MOVE_FOLDED : DefUseEffect.MOVE_REDUCED;
           }
@@ -1259,8 +1260,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
           // BOTH CONSTANTS: FOLD
           int cond = BooleanCmp.getCond(s).evaluate(op1, op2);
           if (cond != OPT_ConditionOperand.UNKNOWN) {
-            Move.mutate(s, INT_MOVE, BooleanCmp.getResult(s),
-                        (cond == OPT_ConditionOperand.TRUE) ? IC(1) : IC(0));
+            Move.mutate(s, INT_MOVE, BooleanCmp.getResult(s), (cond == OPT_ConditionOperand.TRUE) ? IC(1) : IC(0));
             return DefUseEffect.MOVE_FOLDED;
           }
         } else {
@@ -1278,12 +1278,10 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       if (op1.getType().isBooleanType() && op2.isConstant()) {
         OPT_ConditionOperand cond = BooleanCmp.getCond(s);
         int op2value = op2.asIntConstant().value;
-        if ((cond.isNOT_EQUAL() && (op2value == 0)) ||
-            (cond.isEQUAL() && (op2value == 1))) {
+        if ((cond.isNOT_EQUAL() && (op2value == 0)) || (cond.isEQUAL() && (op2value == 1))) {
           Move.mutate(s, INT_MOVE, BooleanCmp.getResult(s), op1);
           return DefUseEffect.MOVE_REDUCED;
-        } else if ((cond.isEQUAL() && (op2value == 0)) ||
-                   (cond.isNOT_EQUAL() && (op2value == 1))) {
+        } else if ((cond.isEQUAL() && (op2value == 0)) || (cond.isNOT_EQUAL() && (op2value == 1))) {
           Unary.mutate(s, BOOLEAN_NOT, BooleanCmp.getResult(s), op1);
           return DefUseEffect.REDUCED;
         }
@@ -1301,8 +1299,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
           // BOTH CONSTANTS: FOLD
           int cond = BooleanCmp.getCond(s).evaluate(op1, op2);
           if (cond != OPT_ConditionOperand.UNKNOWN) {
-            Move.mutate(s, REF_MOVE, BooleanCmp.getResult(s),
-                        (cond == OPT_ConditionOperand.TRUE) ? IC(1) : IC(0));
+            Move.mutate(s, REF_MOVE, BooleanCmp.getResult(s), (cond == OPT_ConditionOperand.TRUE) ? IC(1) : IC(0));
             return DefUseEffect.MOVE_FOLDED;
           }
         } else {
@@ -1332,8 +1329,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         } else {
           // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
           if (val2 == 0) {
-            Move.mutate(s, INT_MOVE, Binary.getClearResult(s),
-                        Binary.getClearVal1(s));
+            Move.mutate(s, INT_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
         }
@@ -1349,8 +1345,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       OPT_Operand op2 = Binary.getVal2(s);
       if (op1.similar(op2)) {
         // THE SAME OPERAND: x & x == x
-        Move.mutate(s, INT_MOVE, Binary.getClearResult(s),
-                    Binary.getClearVal1(s));
+        Move.mutate(s, INT_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
         return op1.isConstant() ? DefUseEffect.MOVE_FOLDED : DefUseEffect.MOVE_REDUCED;
       }
       if (op2.isIntConstant()) {
@@ -1367,8 +1362,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
             return DefUseEffect.MOVE_FOLDED;
           }
           if (val2 == -1) {                 // x & -1 == x & 0xffffffff == x
-            Move.mutate(s, INT_MOVE, Binary.getClearResult(s),
-                        Binary.getClearVal1(s));
+            Move.mutate(s, INT_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
         }
@@ -1383,8 +1377,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       OPT_Operand op2 = GuardedBinary.getVal2(s);
       if (op1.similar(op2)) {
         // THE SAME OPERAND: x / x == 1
-        Move.mutate(s, INT_MOVE, GuardedBinary.getClearResult(s),
-                    IC(1));
+        Move.mutate(s, INT_MOVE, GuardedBinary.getClearResult(s), IC(1));
         return DefUseEffect.MOVE_FOLDED;
       }
       if (op2.isIntConstant()) {
@@ -1400,21 +1393,18 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         if (op1.isIntConstant()) {
           // BOTH CONSTANTS: FOLD
           int val1 = op1.asIntConstant().value;
-          Move.mutate(s, INT_MOVE, GuardedBinary.getClearResult(s),
-                      IC(val1 / val2));
+          Move.mutate(s, INT_MOVE, GuardedBinary.getClearResult(s), IC(val1 / val2));
           return DefUseEffect.MOVE_FOLDED;
         } else {
           // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
           if (val2 == 1) {                  // x / 1 == x;
-            Move.mutate(s, INT_MOVE, GuardedBinary.getClearResult(s),
-                        GuardedBinary.getClearVal1(s));
+            Move.mutate(s, INT_MOVE, GuardedBinary.getClearResult(s), GuardedBinary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
           // x / c == x >> (log c) if c is power of 2
           int power = PowerOf2(val2);
           if (power != -1) {
-            Binary.mutate(s, INT_SHR, GuardedBinary.getClearResult(s),
-                          GuardedBinary.getClearVal1(s), IC(power));
+            Binary.mutate(s, INT_SHR, GuardedBinary.getClearResult(s), GuardedBinary.getClearVal1(s), IC(power));
             return DefUseEffect.REDUCED;
           }
         }
@@ -1438,8 +1428,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         } else {
           // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
           if (val2 == -1) {                 // x * -1 == -x
-            Unary.mutate(s, INT_NEG, Binary.getClearResult(s),
-                         Binary.getClearVal1(s));
+            Unary.mutate(s, INT_NEG, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.REDUCED;
           }
           if (val2 == 0) {                  // x * 0 == 0
@@ -1447,8 +1436,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
             return DefUseEffect.MOVE_FOLDED;
           }
           if (val2 == 1) {                  // x * 1 == x
-            Move.mutate(s, INT_MOVE, Binary.getClearResult(s),
-                        Binary.getClearVal1(s));
+            Move.mutate(s, INT_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
           // try to reduce x*c into shift and adds, but only if cost is cheap
@@ -1479,18 +1467,11 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
               for (int i = 1; i < BITS_IN_INT; i++) {
                 if ((val2 & (1 << i)) != 0) {
                   OPT_RegisterOperand tempInt = regpool.makeTempInt();
-                  OPT_Instruction shift = Binary.create(INT_SHL,
-                                                        tempInt,
-                                                        val1Operand.copyRO(),
-                                                        IC(i)
-                  );
+                  OPT_Instruction shift = Binary.create(INT_SHL, tempInt, val1Operand.copyRO(), IC(i));
                   shift.copyPosition(s);
                   s.insertBefore(shift);
-                  OPT_Instruction add = Binary.create(INT_ADD,
-                                                      resultOperand.copyRO(),
-                                                      resultOperand.copyRO(),
-                                                      tempInt.copyRO()
-                  );
+                  OPT_Instruction add =
+                      Binary.create(INT_ADD, resultOperand.copyRO(), resultOperand.copyRO(), tempInt.copyRO());
                   add.copyPosition(s);
                   s.insertBefore(add);
                 }
@@ -1538,8 +1519,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       OPT_Operand op2 = Binary.getVal2(s);
       if (op1.similar(op2)) {
         // THE SAME OPERAND: x | x == x
-        Move.mutate(s, INT_MOVE, Binary.getClearResult(s),
-                    Binary.getClearVal1(s));
+        Move.mutate(s, INT_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
         return op1.isConstant() ? DefUseEffect.MOVE_FOLDED : DefUseEffect.MOVE_REDUCED;
       }
       if (op2.isIntConstant()) {
@@ -1547,8 +1527,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         if (op1.isIntConstant()) {
           // BOTH CONSTANTS: FOLD
           int val1 = op1.asIntConstant().value;
-          Move.mutate(s, INT_MOVE, Binary.getClearResult(s),
-                      IC(val1 | val2));
+          Move.mutate(s, INT_MOVE, Binary.getClearResult(s), IC(val1 | val2));
           return DefUseEffect.MOVE_FOLDED;
         } else {
           // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
@@ -1557,8 +1536,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
             return DefUseEffect.MOVE_FOLDED;
           }
           if (val2 == 0) {                  // x | 0 == x
-            Move.mutate(s, INT_MOVE, Binary.getClearResult(s),
-                        Binary.getClearVal1(s));
+            Move.mutate(s, INT_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
         }
@@ -1573,8 +1551,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       OPT_Operand op2 = GuardedBinary.getVal2(s);
       if (op1.similar(op2)) {
         // THE SAME OPERAND: x % x == 0
-        Move.mutate(s, INT_MOVE, GuardedBinary.getClearResult(s),
-                    IC(0));
+        Move.mutate(s, INT_MOVE, GuardedBinary.getClearResult(s), IC(0));
         return DefUseEffect.MOVE_FOLDED;
       }
       if (op2.isIntConstant()) {
@@ -1590,14 +1567,12 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         if (op1.isIntConstant()) {
           // BOTH CONSTANTS: FOLD
           int val1 = op1.asIntConstant().value;
-          Move.mutate(s, INT_MOVE, GuardedBinary.getClearResult(s),
-                      IC(val1 % val2));
+          Move.mutate(s, INT_MOVE, GuardedBinary.getClearResult(s), IC(val1 % val2));
           return DefUseEffect.MOVE_FOLDED;
         } else {
           // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
           if ((val2 == 1) || (val2 == -1)) {             // x % 1 == 0
-            Move.mutate(s, INT_MOVE, GuardedBinary.getClearResult(s),
-                        IC(0));
+            Move.mutate(s, INT_MOVE, GuardedBinary.getClearResult(s), IC(0));
             return DefUseEffect.MOVE_FOLDED;
           }
         }
@@ -1615,19 +1590,16 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         if (op1.isIntConstant()) {
           // BOTH CONSTANTS: FOLD
           int val1 = op1.asIntConstant().value;
-          Move.mutate(s, INT_MOVE, Binary.getClearResult(s),
-                      IC(val1 << val2));
+          Move.mutate(s, INT_MOVE, Binary.getClearResult(s), IC(val1 << val2));
           return DefUseEffect.MOVE_FOLDED;
         } else {
           // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
           if (val2 == 0) {                  // x << 0 == x
-            Move.mutate(s, INT_MOVE, Binary.getClearResult(s),
-                        Binary.getClearVal1(s));
+            Move.mutate(s, INT_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
           if ((val2 >= BITS_IN_INT) || (val2 < 0)) {  // x << 32 == 0
-            Move.mutate(s, INT_MOVE, Binary.getClearResult(s),
-                        IC(0));
+            Move.mutate(s, INT_MOVE, Binary.getClearResult(s), IC(0));
             return DefUseEffect.MOVE_FOLDED;
           }
         }
@@ -1652,14 +1624,12 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         if (op1.isIntConstant()) {
           // BOTH CONSTANTS: FOLD
           int val1 = op1.asIntConstant().value;
-          Move.mutate(s, INT_MOVE, Binary.getClearResult(s),
-                      IC(val1 >> val2));
+          Move.mutate(s, INT_MOVE, Binary.getClearResult(s), IC(val1 >> val2));
           return DefUseEffect.MOVE_FOLDED;
         } else {
           // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
           if (val2 == 0) {                  // x >> 0 == x
-            Move.mutate(s, INT_MOVE, Binary.getClearResult(s),
-                        Binary.getClearVal1(s));
+            Move.mutate(s, INT_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
           if ((val2 >= BITS_IN_INT) || (val2 < 0)) { // x >> 32 == x >> 31
@@ -1685,8 +1655,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       OPT_Operand op2 = Binary.getVal2(s);
       if (op1.similar(op2)) {
         // THE SAME OPERAND: x - x == 0
-        Move.mutate(s, INT_MOVE, Binary.getClearResult(s),
-                    IC(0));
+        Move.mutate(s, INT_MOVE, Binary.getClearResult(s), IC(0));
         return DefUseEffect.MOVE_FOLDED;
       }
       if (op2.isIntConstant()) {
@@ -1699,19 +1668,16 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         } else {
           // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
           if (val2 == 0) {                  // x - 0 == x
-            Move.mutate(s, INT_MOVE, Binary.getClearResult(s),
-                        Binary.getClearVal1(s));
+            Move.mutate(s, INT_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
           // x - c = x + -c
           // prefer adds, since some architectures have addi but not subi
-          Binary.mutate(s, INT_ADD, Binary.getClearResult(s),
-                        Binary.getClearVal1(s), IC(-val2));
+          Binary.mutate(s, INT_ADD, Binary.getClearResult(s), Binary.getClearVal1(s), IC(-val2));
           return DefUseEffect.REDUCED;
         }
       } else if (op1.isIntConstant() && (op1.asIntConstant().value == 0)) {
-        Unary.mutate(s, INT_NEG, Binary.getClearResult(s),
-                     Binary.getClearVal2(s));
+        Unary.mutate(s, INT_NEG, Binary.getClearResult(s), Binary.getClearVal2(s));
         return DefUseEffect.REDUCED;
       }
     }
@@ -1727,19 +1693,16 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         if (op1.isIntConstant()) {
           // BOTH CONSTANTS: FOLD
           int val1 = op1.asIntConstant().value;
-          Move.mutate(s, INT_MOVE, Binary.getClearResult(s),
-                      IC(val1 >>> val2));
+          Move.mutate(s, INT_MOVE, Binary.getClearResult(s), IC(val1 >>> val2));
           return DefUseEffect.MOVE_FOLDED;
         } else {
           // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
           if (val2 == 0) {                  // x >>> 0 == x
-            Move.mutate(s, INT_MOVE, Binary.getClearResult(s),
-                        Binary.getClearVal1(s));
+            Move.mutate(s, INT_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
           if ((val2 >= BITS_IN_INT) || (val2 < 0)) { // x >>> 32 == 0
-            Move.mutate(s, INT_MOVE, Binary.getClearResult(s),
-                        IC(0));
+            Move.mutate(s, INT_MOVE, Binary.getClearResult(s), IC(0));
             return DefUseEffect.MOVE_FOLDED;
           }
         }
@@ -1762,8 +1725,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       OPT_Operand op2 = Binary.getVal2(s);
       if (op1.similar(op2)) {
         // THE SAME OPERAND: x ^ x == 0
-        Move.mutate(s, INT_MOVE, Binary.getClearResult(s),
-                    IC(0));
+        Move.mutate(s, INT_MOVE, Binary.getClearResult(s), IC(0));
         return DefUseEffect.MOVE_FOLDED;
       }
       if (op2.isIntConstant()) {
@@ -1772,19 +1734,16 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         if (op1.isIntConstant()) {
           // BOTH CONSTANTS: FOLD
           int val1 = op1.asIntConstant().value;
-          Move.mutate(s, INT_MOVE, Binary.getClearResult(s),
-                      IC(val1 ^ val2));
+          Move.mutate(s, INT_MOVE, Binary.getClearResult(s), IC(val1 ^ val2));
           return DefUseEffect.MOVE_FOLDED;
         } else {
           // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
           if (val2 == -1) {                 // x ^ -1 == x ^ 0xffffffff = ~x
-            Unary.mutate(s, INT_NOT, Binary.getClearResult(s),
-                         Binary.getClearVal1(s));
+            Unary.mutate(s, INT_NOT, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.REDUCED;
           }
           if (val2 == 0) {                  // x ^ 0 == x
-            Move.mutate(s, INT_MOVE, Binary.getClearResult(s),
-                        Binary.getClearVal1(s));
+            Move.mutate(s, INT_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
         }
@@ -1829,8 +1788,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       OPT_Operand op2 = Binary.getVal2(s);
       if (op1.similar(op2)) {
         // THE SAME OPERAND: x & x == x
-        Move.mutate(s, REF_MOVE, Binary.getClearResult(s),
-                    Binary.getClearVal1(s));
+        Move.mutate(s, REF_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
         return op1.isConstant() ? DefUseEffect.MOVE_FOLDED : DefUseEffect.MOVE_REDUCED;
       }
       if (op2.isAddressConstant()) {
@@ -1847,8 +1805,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
             return DefUseEffect.MOVE_FOLDED;
           }
           if (val2.isMax()) {                 // x & -1 == x & 0xffffffff == x
-            Move.mutate(s, REF_MOVE, Binary.getClearResult(s),
-                        Binary.getClearVal1(s));
+            Move.mutate(s, REF_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
         }
@@ -1866,19 +1823,16 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         if (op1.isAddressConstant()) {
           // BOTH CONSTANTS: FOLD
           Word val1 = op1.asAddressConstant().value.toWord();
-          Move.mutate(s, REF_MOVE, Binary.getClearResult(s),
-                      AC(val1.lsh(val2).toAddress()));
+          Move.mutate(s, REF_MOVE, Binary.getClearResult(s), AC(val1.lsh(val2).toAddress()));
           return DefUseEffect.MOVE_FOLDED;
         } else {
           // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
           if (val2 == 0) {                  // x << 0 == x
-            Move.mutate(s, REF_MOVE, Binary.getClearResult(s),
-                        Binary.getClearVal1(s));
+            Move.mutate(s, REF_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
           if ((val2 >= BITS_IN_ADDRESS) || (val2 < 0)) { // x << 32 == 0
-            Move.mutate(s, REF_MOVE, Binary.getClearResult(s),
-                        IC(0));
+            Move.mutate(s, REF_MOVE, Binary.getClearResult(s), IC(0));
             return DefUseEffect.MOVE_FOLDED;
           }
         }
@@ -1903,14 +1857,12 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         if (op1.isAddressConstant()) {
           // BOTH CONSTANTS: FOLD
           Word val1 = op1.asAddressConstant().value.toWord();
-          Move.mutate(s, REF_MOVE, Binary.getClearResult(s),
-                      AC(val1.rsha(val2).toAddress()));
+          Move.mutate(s, REF_MOVE, Binary.getClearResult(s), AC(val1.rsha(val2).toAddress()));
           return DefUseEffect.MOVE_FOLDED;
         } else {
           // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
           if (val2 == 0) {                  // x >> 0 == x
-            Move.mutate(s, REF_MOVE, Binary.getClearResult(s),
-                        Binary.getClearVal1(s));
+            Move.mutate(s, REF_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
           if ((val2 >= BITS_IN_ADDRESS) || (val2 < 0)) { // x >> 32 == x >> 31
@@ -1951,8 +1903,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       OPT_Operand op2 = Binary.getVal2(s);
       if (op1.similar(op2)) {
         // THE SAME OPERAND: x | x == x
-        Move.mutate(s, REF_MOVE, Binary.getClearResult(s),
-                    Binary.getClearVal1(s));
+        Move.mutate(s, REF_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
         return op1.isConstant() ? DefUseEffect.MOVE_FOLDED : DefUseEffect.MOVE_REDUCED;
       }
       if (op2.isAddressConstant()) {
@@ -1960,8 +1911,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         if (op1.isAddressConstant()) {
           // BOTH CONSTANTS: FOLD
           Word val1 = op1.asAddressConstant().value.toWord();
-          Move.mutate(s, REF_MOVE, Binary.getClearResult(s),
-                      AC(val1.or(val2).toAddress()));
+          Move.mutate(s, REF_MOVE, Binary.getClearResult(s), AC(val1.or(val2).toAddress()));
           return DefUseEffect.MOVE_FOLDED;
         } else {
           // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
@@ -1970,8 +1920,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
             return DefUseEffect.MOVE_FOLDED;
           }
           if (val2.isZero()) {                  // x | 0 == x
-            Move.mutate(s, REF_MOVE, Binary.getClearResult(s),
-                        Binary.getClearVal1(s));
+            Move.mutate(s, REF_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
         }
@@ -1986,8 +1935,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       OPT_Operand op2 = Binary.getVal2(s);
       if (op1.similar(op2)) {
         // THE SAME OPERAND: x - x == 0
-        Move.mutate(s, REF_MOVE, Binary.getClearResult(s),
-                    IC(0));
+        Move.mutate(s, REF_MOVE, Binary.getClearResult(s), IC(0));
         return DefUseEffect.MOVE_FOLDED;
       }
       if (op2.isConstant() && !op2.isObjectConstant()) {
@@ -2010,15 +1958,17 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
           }
           // x - c = x + -c
           // prefer adds, since some architectures have addi but not subi
-          Binary.mutate(s, REF_ADD, Binary.getClearResult(s),
-                        Binary.getClearVal1(s), AC(Address.zero().minus(val2.toWord().toOffset())));
+          Binary.mutate(s,
+                        REF_ADD,
+                        Binary.getClearResult(s),
+                        Binary.getClearVal1(s),
+                        AC(Address.zero().minus(val2.toWord().toOffset())));
           return DefUseEffect.REDUCED;
         }
       } else if (op1.isConstant() && !op1.isObjectConstant()) {
         Address val1 = getAddressValue(op1);
         if (val1.EQ(Address.zero())) {
-          Unary.mutate(s, REF_NEG, Binary.getClearResult(s),
-                       Binary.getClearVal2(s));
+          Unary.mutate(s, REF_NEG, Binary.getClearResult(s), Binary.getClearVal2(s));
           return DefUseEffect.REDUCED;
         }
       }
@@ -2035,19 +1985,16 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         if (op1.isAddressConstant()) {
           // BOTH CONSTANTS: FOLD
           Word val1 = op1.asAddressConstant().value.toWord();
-          Move.mutate(s, REF_MOVE, Binary.getClearResult(s),
-                      AC(val1.rshl(val2).toAddress()));
+          Move.mutate(s, REF_MOVE, Binary.getClearResult(s), AC(val1.rshl(val2).toAddress()));
           return DefUseEffect.MOVE_FOLDED;
         } else {
           // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
           if (val2 == 0) {                  // x >>> 0 == x
-            Move.mutate(s, REF_MOVE, Binary.getClearResult(s),
-                        Binary.getClearVal1(s));
+            Move.mutate(s, REF_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
           if ((val2 >= BITS_IN_ADDRESS) || (val2 < 0)) { // x >>> 32 == 0
-            Move.mutate(s, REF_MOVE, Binary.getClearResult(s),
-                        IC(0));
+            Move.mutate(s, REF_MOVE, Binary.getClearResult(s), IC(0));
             return DefUseEffect.MOVE_FOLDED;
           }
         }
@@ -2070,8 +2017,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       OPT_Operand op2 = Binary.getVal2(s);
       if (op1.similar(op2)) {
         // THE SAME OPERAND: x ^ x == 0
-        Move.mutate(s, REF_MOVE, Binary.getClearResult(s),
-                    IC(0));
+        Move.mutate(s, REF_MOVE, Binary.getClearResult(s), IC(0));
         return DefUseEffect.MOVE_FOLDED;
       }
       if (op2.isAddressConstant()) {
@@ -2079,19 +2025,16 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         if (op1.isAddressConstant()) {
           // BOTH CONSTANTS: FOLD
           Word val1 = op1.asAddressConstant().value.toWord();
-          Move.mutate(s, REF_MOVE, Binary.getClearResult(s),
-                      AC(val1.xor(val2).toAddress()));
+          Move.mutate(s, REF_MOVE, Binary.getClearResult(s), AC(val1.xor(val2).toAddress()));
           return DefUseEffect.MOVE_FOLDED;
         } else {
           // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
           if (val2.isMax()) {                 // x ^ -1 == x ^ 0xffffffff = ~x
-            Unary.mutate(s, REF_NOT, Binary.getClearResult(s),
-                         Binary.getClearVal1(s));
+            Unary.mutate(s, REF_NOT, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.REDUCED;
           }
           if (val2.isZero()) {                  // x ^ 0 == x
-            Move.mutate(s, REF_MOVE, Binary.getClearResult(s),
-                        Binary.getClearVal1(s));
+            Move.mutate(s, REF_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
         }
@@ -2115,8 +2058,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         } else {
           // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
           if (val2 == 0L) {                 // x + 0 == x
-            Move.mutate(s, LONG_MOVE, Binary.getClearResult(s),
-                        Binary.getClearVal1(s));
+            Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
         }
@@ -2132,8 +2074,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       OPT_Operand op2 = Binary.getVal2(s);
       if (op1.similar(op2)) {
         // THE SAME OPERAND: x & x == x
-        Move.mutate(s, LONG_MOVE, Binary.getClearResult(s),
-                    Binary.getClearVal1(s));
+        Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
         return op1.isConstant() ? DefUseEffect.MOVE_FOLDED : DefUseEffect.MOVE_REDUCED;
       }
       if (op2.isLongConstant()) {
@@ -2141,8 +2082,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         if (op1.isLongConstant()) {
           // BOTH CONSTANTS: FOLD
           long val1 = op1.asLongConstant().value;
-          Move.mutate(s, LONG_MOVE, Binary.getClearResult(s),
-                      LC(val1 & val2));
+          Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), LC(val1 & val2));
           return DefUseEffect.MOVE_FOLDED;
         } else {
           // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
@@ -2151,8 +2091,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
             return DefUseEffect.MOVE_FOLDED;
           }
           if (val2 == -1) {                 // x & -1L == x & 0xff...ff == x
-            Move.mutate(s, LONG_MOVE, Binary.getClearResult(s),
-                        Binary.getClearVal1(s));
+            Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
         }
@@ -2167,8 +2106,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       OPT_Operand op2 = Binary.getVal2(s);
       if (op1.similar(op2)) {
         // THE SAME OPERAND: op1 == op2
-        Move.mutate(s, INT_MOVE, Binary.getClearResult(s),
-                    IC(0));
+        Move.mutate(s, INT_MOVE, Binary.getClearResult(s), IC(0));
         return DefUseEffect.MOVE_FOLDED;
       }
       if (op2.isLongConstant()) {
@@ -2191,8 +2129,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       OPT_Operand op2 = GuardedBinary.getVal2(s);
       if (op1.similar(op2)) {
         // THE SAME OPERAND: x / x == 1
-        Move.mutate(s, LONG_MOVE, GuardedBinary.getClearResult(s),
-                    LC(1));
+        Move.mutate(s, LONG_MOVE, GuardedBinary.getClearResult(s), LC(1));
         return DefUseEffect.MOVE_FOLDED;
       }
       if (op2.isLongConstant()) {
@@ -2208,14 +2145,12 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         if (op1.isLongConstant()) {
           // BOTH CONSTANTS: FOLD
           long val1 = op1.asLongConstant().value;
-          Move.mutate(s, LONG_MOVE, GuardedBinary.getClearResult(s),
-                      LC(val1 / val2));
+          Move.mutate(s, LONG_MOVE, GuardedBinary.getClearResult(s), LC(val1 / val2));
           return DefUseEffect.MOVE_FOLDED;
         } else {
           // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
           if (val2 == 1L) {                 // x / 1L == x
-            Move.mutate(s, LONG_MOVE, GuardedBinary.getClearResult(s),
-                        GuardedBinary.getClearVal1(s));
+            Move.mutate(s, LONG_MOVE, GuardedBinary.getClearResult(s), GuardedBinary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
         }
@@ -2234,14 +2169,12 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         if (op1.isLongConstant()) {
           // BOTH CONSTANTS: FOLD
           long val1 = op1.asLongConstant().value;
-          Move.mutate(s, LONG_MOVE, Binary.getClearResult(s),
-                      LC(val1 * val2));
+          Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), LC(val1 * val2));
           return DefUseEffect.MOVE_FOLDED;
         } else {
           // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
           if (val2 == -1L) {                // x * -1 == -x
-            Move.mutate(s, LONG_NEG, Binary.getClearResult(s),
-                        Binary.getClearVal1(s));
+            Move.mutate(s, LONG_NEG, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.REDUCED;
           }
           if (val2 == 0L) {                 // x * 0L == 0L
@@ -2249,8 +2182,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
             return DefUseEffect.MOVE_FOLDED;
           }
           if (val2 == 1L) {                 // x * 1L == x
-            Move.mutate(s, LONG_MOVE, Binary.getClearResult(s),
-                        Binary.getClearVal1(s));
+            Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
         }
@@ -2292,8 +2224,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       OPT_Operand op2 = Binary.getVal2(s);
       if (op1.similar(op2)) {
         // THE SAME OPERAND: x | x == x
-        Move.mutate(s, LONG_MOVE, Binary.getClearResult(s),
-                    Binary.getClearVal1(s));
+        Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
         return op1.isConstant() ? DefUseEffect.MOVE_FOLDED : DefUseEffect.MOVE_REDUCED;
       }
       if (op2.isLongConstant()) {
@@ -2301,14 +2232,12 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         if (op1.isLongConstant()) {
           // BOTH CONSTANTS: FOLD
           long val1 = op1.asLongConstant().value;
-          Move.mutate(s, LONG_MOVE, Binary.getClearResult(s),
-                      LC(val1 | val2));
+          Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), LC(val1 | val2));
           return DefUseEffect.MOVE_FOLDED;
         } else {
           // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
           if (val2 == 0L) {                 // x | 0L == x
-            Move.mutate(s, LONG_MOVE, Binary.getClearResult(s),
-                        Binary.getClearVal1(s));
+            Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
           if (val2 == -1L) { // x | -1L == x | 0xff..ff == 0xff..ff == -1L
@@ -2327,8 +2256,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       OPT_Operand op2 = GuardedBinary.getVal2(s);
       if (op1.similar(op2)) {
         // THE SAME OPERAND: x % x == 0
-        Move.mutate(s, LONG_MOVE, GuardedBinary.getClearResult(s),
-                    LC(0));
+        Move.mutate(s, LONG_MOVE, GuardedBinary.getClearResult(s), LC(0));
         return DefUseEffect.MOVE_FOLDED;
       }
       if (op2.isLongConstant()) {
@@ -2344,14 +2272,12 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         if (op1.isLongConstant()) {
           // BOTH CONSTANTS: FOLD
           long val1 = op1.asLongConstant().value;
-          Move.mutate(s, LONG_MOVE, GuardedBinary.getClearResult(s),
-                      LC(val1 % val2));
+          Move.mutate(s, LONG_MOVE, GuardedBinary.getClearResult(s), LC(val1 % val2));
           return DefUseEffect.MOVE_FOLDED;
         } else {
           // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
           if (val2 == 1L) {                 // x % 1L == 0
-            Move.mutate(s, LONG_MOVE, GuardedBinary.getClearResult(s),
-                        LC(0));
+            Move.mutate(s, LONG_MOVE, GuardedBinary.getClearResult(s), LC(0));
             return DefUseEffect.MOVE_FOLDED;
           }
         }
@@ -2369,19 +2295,16 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         if (op1.isLongConstant()) {
           // BOTH CONSTANTS: FOLD
           long val1 = op1.asLongConstant().value;
-          Move.mutate(s, LONG_MOVE, Binary.getClearResult(s),
-                      LC(val1 << val2));
+          Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), LC(val1 << val2));
           return DefUseEffect.MOVE_FOLDED;
         } else {
           // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
           if (val2 == 0) {                  // x << 0 == x
-            Move.mutate(s, LONG_MOVE, Binary.getClearResult(s),
-                        Binary.getClearVal1(s));
+            Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
           if ((val2 >= BITS_IN_LONG) || (val2 < 0)) { // x << 64 == 0
-            Move.mutate(s, INT_MOVE, Binary.getClearResult(s),
-                        LC(0));
+            Move.mutate(s, INT_MOVE, Binary.getClearResult(s), LC(0));
             return DefUseEffect.MOVE_FOLDED;
           }
         }
@@ -2406,14 +2329,12 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         if (op1.isLongConstant()) {
           // BOTH CONSTANTS: FOLD
           long val1 = op1.asLongConstant().value;
-          Move.mutate(s, LONG_MOVE, Binary.getClearResult(s),
-                      LC(val1 >> val2));
+          Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), LC(val1 >> val2));
           return DefUseEffect.MOVE_FOLDED;
         } else {
           // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
           if (val2 == 0) {                  // x >> 0L == x
-            Move.mutate(s, LONG_MOVE, Binary.getClearResult(s),
-                        Binary.getClearVal1(s));
+            Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
           if ((val2 >= BITS_IN_LONG) || (val2 < 0)) { // x >> 64 == x >> 63
@@ -2439,8 +2360,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       OPT_Operand op2 = Binary.getVal2(s);
       if (op1.similar(op2)) {
         // THE SAME OPERAND: x - x == 0
-        Move.mutate(s, LONG_MOVE, Binary.getClearResult(s),
-                    LC(0));
+        Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), LC(0));
         return DefUseEffect.MOVE_FOLDED;
       }
       if (op2.isLongConstant()) {
@@ -2453,21 +2373,18 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         } else {
           // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
           if (val2 == 0L) {                 // x - 0 == x
-            Move.mutate(s, LONG_MOVE, Binary.getClearResult(s),
-                        Binary.getClearVal1(s));
+            Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
           if (VM.BuildFor64Addr) {
             // x - c = x + -c
             // prefer adds, since some architectures have addi but not subi
-            Binary.mutate(s, LONG_ADD, Binary.getClearResult(s),
-                          Binary.getClearVal1(s), LC(-val2));
+            Binary.mutate(s, LONG_ADD, Binary.getClearResult(s), Binary.getClearVal1(s), LC(-val2));
             return DefUseEffect.REDUCED;
           }
         }
       } else if (op1.isLongConstant() && (op1.asLongConstant().value == 0)) {
-        Unary.mutate(s, LONG_NEG, Binary.getClearResult(s),
-                     Binary.getClearVal2(s));
+        Unary.mutate(s, LONG_NEG, Binary.getClearResult(s), Binary.getClearVal2(s));
         return DefUseEffect.REDUCED;
       }
     }
@@ -2483,19 +2400,16 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         if (op1.isLongConstant()) {
           // BOTH CONSTANTS: FOLD
           long val1 = op1.asLongConstant().value;
-          Move.mutate(s, LONG_MOVE, Binary.getClearResult(s),
-                      LC(val1 >>> val2));
+          Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), LC(val1 >>> val2));
           return DefUseEffect.MOVE_FOLDED;
         } else {
           // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
           if (val2 == 0) {                  // x >>> 0L == x
-            Move.mutate(s, LONG_MOVE, Binary.getClearResult(s),
-                        Binary.getClearVal1(s));
+            Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
           if ((val2 >= BITS_IN_LONG) || (val2 < 0)) {  // x >>> 64 == 0
-            Move.mutate(s, LONG_MOVE, Binary.getClearResult(s),
-                        LC(0));
+            Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), LC(0));
             return DefUseEffect.MOVE_FOLDED;
           }
         }
@@ -2518,8 +2432,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       OPT_Operand op2 = Binary.getVal2(s);
       if (op1.similar(op2)) {
         // THE SAME OPERAND: x ^ x == 0
-        Move.mutate(s, LONG_MOVE, Binary.getClearResult(s),
-                    LC(0));
+        Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), LC(0));
         return DefUseEffect.MOVE_FOLDED;
       }
       if (op2.isLongConstant()) {
@@ -2527,19 +2440,16 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         if (op1.isLongConstant()) {
           // BOTH CONSTANTS: FOLD
           long val1 = op1.asLongConstant().value;
-          Move.mutate(s, LONG_MOVE, Binary.getClearResult(s),
-                      LC(val1 ^ val2));
+          Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), LC(val1 ^ val2));
           return DefUseEffect.MOVE_FOLDED;
         } else {
           // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
           if (val2 == -1L) {                // x ^ -1L == x ^ 0xff..ff = ~x
-            Unary.mutate(s, LONG_NOT, Binary.getClearResult(s),
-                         Binary.getClearVal1(s));
+            Unary.mutate(s, LONG_NOT, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.REDUCED;
           }
           if (val2 == 0L) {                 // x ^ 0L == x
-            Move.mutate(s, LONG_MOVE, Binary.getClearResult(s),
-                        Binary.getClearVal1(s));
+            Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
         }
@@ -2558,14 +2468,12 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         if (op1.isFloatConstant()) {
           // BOTH CONSTANTS: FOLD
           float val1 = op1.asFloatConstant().value;
-          Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s),
-                      FC(val1 + val2));
+          Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s), FC(val1 + val2));
           return DefUseEffect.MOVE_FOLDED;
         }
         if (val2 == 0.0f) {
           // x + 0.0 is x (even is x is a Nan).
-          Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s),
-                      Binary.getClearVal1(s));
+          Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
           return DefUseEffect.MOVE_REDUCED;
         }
       }
@@ -2618,8 +2526,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
           // BOTH CONSTANTS: FOLD
           float val1 = op1.asFloatConstant().value;
           float val2 = op2.asFloatConstant().value;
-          Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s),
-                      FC(val1 / val2));
+          Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s), FC(val1 / val2));
           return DefUseEffect.MOVE_FOLDED;
         }
       }
@@ -2637,14 +2544,12 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         if (op1.isFloatConstant()) {
           // BOTH CONSTANTS: FOLD
           float val1 = op1.asFloatConstant().value;
-          Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s),
-                      FC(val1 * val2));
+          Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s), FC(val1 * val2));
           return DefUseEffect.MOVE_FOLDED;
         }
         if (val2 == 1.0f) {
           // x * 1.0 is x, even if x is a NaN
-          Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s),
-                      Binary.getClearVal1(s));
+          Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
           return DefUseEffect.MOVE_REDUCED;
         }
       }
@@ -2674,8 +2579,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
           // BOTH CONSTANTS: FOLD
           float val1 = op1.asFloatConstant().value;
           float val2 = op2.asFloatConstant().value;
-          Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s),
-                      FC(val1 % val2));
+          Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s), FC(val1 % val2));
           return DefUseEffect.MOVE_FOLDED;
         }
       }
@@ -2692,19 +2596,16 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         if (op1.isFloatConstant()) {
           // BOTH CONSTANTS: FOLD
           float val1 = op1.asFloatConstant().value;
-          Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s),
-                      FC(val1 - val2));
+          Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s), FC(val1 - val2));
           return DefUseEffect.MOVE_FOLDED;
         }
         if (val2 == 0.0f) {
           // x - 0.0 is x, even if x is a NaN
-          Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s),
-                      Binary.getClearVal1(s));
+          Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
           return DefUseEffect.MOVE_REDUCED;
         }
       } else if (op1.isFloatConstant() && (op1.asFloatConstant().value == 0.0f)) {
-        Unary.mutate(s, FLOAT_NEG, Binary.getClearResult(s),
-                     Binary.getClearVal2(s));
+        Unary.mutate(s, FLOAT_NEG, Binary.getClearResult(s), Binary.getClearVal2(s));
         return DefUseEffect.REDUCED;
       }
     }
@@ -2721,14 +2622,12 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         if (op1.isDoubleConstant()) {
           // BOTH CONSTANTS: FOLD
           double val1 = op1.asDoubleConstant().value;
-          Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s),
-                      DC(val1 + val2));
+          Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s), DC(val1 + val2));
           return DefUseEffect.MOVE_FOLDED;
         }
         if (val2 == 0.0) {
           // x + 0.0 is x, even if x is a NaN
-          Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s),
-                      Binary.getClearVal1(s));
+          Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
           return DefUseEffect.MOVE_REDUCED;
         }
       }
@@ -2781,8 +2680,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
           // BOTH CONSTANTS: FOLD
           double val1 = op1.asDoubleConstant().value;
           double val2 = op2.asDoubleConstant().value;
-          Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s),
-                      DC(val1 / val2));
+          Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s), DC(val1 / val2));
           return DefUseEffect.MOVE_FOLDED;
         }
       }
@@ -2800,14 +2698,12 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         if (op1.isDoubleConstant()) {
           // BOTH CONSTANTS: FOLD
           double val1 = op1.asDoubleConstant().value;
-          Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s),
-                      DC(val1 * val2));
+          Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s), DC(val1 * val2));
           return DefUseEffect.MOVE_FOLDED;
         }
         if (val2 == 1.0) {
           // x * 1.0 is x even if x is a NaN
-          Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s),
-                      Binary.getClearVal1(s));
+          Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
           return DefUseEffect.MOVE_REDUCED;
         }
       }
@@ -2837,8 +2733,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
           // BOTH CONSTANTS: FOLD
           double val1 = op1.asDoubleConstant().value;
           double val2 = op2.asDoubleConstant().value;
-          Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s),
-                      DC(val1 % val2));
+          Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s), DC(val1 % val2));
           return DefUseEffect.MOVE_FOLDED;
         }
       }
@@ -2855,19 +2750,16 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         if (op1.isDoubleConstant()) {
           // BOTH CONSTANTS: FOLD
           double val1 = op1.asDoubleConstant().value;
-          Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s),
-                      DC(val1 - val2));
+          Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s), DC(val1 - val2));
           return DefUseEffect.MOVE_FOLDED;
         }
         if (val2 == 0.0) {
           // x - 0.0 is x, even if x is a NaN
-          Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s),
-                      Binary.getClearVal1(s));
+          Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
           return DefUseEffect.MOVE_REDUCED;
         }
       } else if (op1.isDoubleConstant() && (op1.asDoubleConstant().value == 0.0)) {
-        Unary.mutate(s, DOUBLE_NEG, Binary.getClearResult(s),
-                     Binary.getClearVal2(s));
+        Unary.mutate(s, DOUBLE_NEG, Binary.getClearResult(s), Binary.getClearVal2(s));
         return DefUseEffect.REDUCED;
       }
     }
@@ -2919,8 +2811,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       if (op.isDoubleConstant()) {
         // CONSTANT: FOLD
         double val = op.asDoubleConstant().value;
-        Move.mutate(s, LONG_MOVE, Unary.getClearResult(s),
-                    LC(Double.doubleToLongBits(val)));
+        Move.mutate(s, LONG_MOVE, Unary.getClearResult(s), LC(Double.doubleToLongBits(val)));
         return DefUseEffect.MOVE_FOLDED;
       }
     }
@@ -2933,8 +2824,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       if (op.isIntConstant()) {
         // CONSTANT: FOLD
         int val = op.asIntConstant().value;
-        Move.mutate(s, DOUBLE_MOVE, Unary.getClearResult(s),
-                    DC((double) val));
+        Move.mutate(s, DOUBLE_MOVE, Unary.getClearResult(s), DC((double) val));
         return DefUseEffect.MOVE_FOLDED;
       }
     }
@@ -3051,8 +2941,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       if (op.isIntConstant()) {
         // CONSTANT: FOLD
         int val = op.asIntConstant().value;
-        Move.mutate(s, FLOAT_MOVE, Unary.getClearResult(s),
-                    FC(Float.intBitsToFloat(val)));
+        Move.mutate(s, FLOAT_MOVE, Unary.getClearResult(s), FC(Float.intBitsToFloat(val)));
         return DefUseEffect.MOVE_FOLDED;
       }
     }
@@ -3091,8 +2980,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       if (op.isFloatConstant()) {
         // CONSTANT: FOLD
         float val = op.asFloatConstant().value;
-        Move.mutate(s, DOUBLE_MOVE, Unary.getClearResult(s),
-                    DC((double) val));
+        Move.mutate(s, DOUBLE_MOVE, Unary.getClearResult(s), DC((double) val));
         return DefUseEffect.MOVE_FOLDED;
       }
     }
@@ -3131,8 +3019,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       if (op.isFloatConstant()) {
         // CONSTANT: FOLD
         float val = op.asFloatConstant().value;
-        Move.mutate(s, INT_MOVE, Unary.getClearResult(s),
-                    IC(Float.floatToIntBits(val)));
+        Move.mutate(s, INT_MOVE, Unary.getClearResult(s), IC(Float.floatToIntBits(val)));
         return DefUseEffect.MOVE_FOLDED;
       }
     }
@@ -3171,8 +3058,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       if (op.isLongConstant()) {
         // CONSTANT: FOLD
         long val = op.asLongConstant().value;
-        Move.mutate(s, DOUBLE_MOVE, Unary.getClearResult(s),
-                    DC((double) val));
+        Move.mutate(s, DOUBLE_MOVE, Unary.getClearResult(s), DC((double) val));
         return DefUseEffect.MOVE_FOLDED;
       }
     }
@@ -3185,8 +3071,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       if (op.isLongConstant()) {
         // CONSTANT: FOLD
         long val = op.asLongConstant().value;
-        Move.mutate(s, DOUBLE_MOVE, Unary.getClearResult(s),
-                    DC(Double.longBitsToDouble(val)));
+        Move.mutate(s, DOUBLE_MOVE, Unary.getClearResult(s), DC(Double.longBitsToDouble(val)));
         return DefUseEffect.MOVE_FOLDED;
       }
     }
@@ -3198,8 +3083,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       OPT_Operand op = GuardedUnary.getVal(s);
       if (op.isObjectConstant()) {
         int length = Array.getLength(op.asObjectConstant().value);
-        Move.mutate(s, INT_MOVE, GuardedUnary.getClearResult(s),
-                    IC(length));
+        Move.mutate(s, INT_MOVE, GuardedUnary.getClearResult(s), IC(length));
         return DefUseEffect.MOVE_FOLDED;
       } else if (op.isNullConstant()) {
         // TODO: this arraylength operation is junk so destroy
@@ -3214,8 +3098,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       OPT_Operand ref = BoundsCheck.getRef(s);
       OPT_Operand index = BoundsCheck.getIndex(s);
       if (ref.isNullConstant()) {
-        Trap.mutate(s, TRAP, NullCheck.getClearGuardResult(s),
-                    OPT_TrapCodeOperand.NullPtr());
+        Trap.mutate(s, TRAP, NullCheck.getClearGuardResult(s), OPT_TrapCodeOperand.NullPtr());
         return DefUseEffect.TRAP_REDUCED;
       } else if (index.isIntConstant()) {
         int indexAsInt = index.asIntConstant().value;
@@ -3226,8 +3109,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
           if (ref.isObjectConstant()) {
             int refLength = Array.getLength(ref.asObjectConstant().value);
             if (indexAsInt < refLength) {
-              Move.mutate(s, GUARD_MOVE, BoundsCheck.getClearGuardResult(s),
-                          BoundsCheck.getClearGuard(s));
+              Move.mutate(s, GUARD_MOVE, BoundsCheck.getClearGuardResult(s), BoundsCheck.getClearGuard(s));
               return Move.getVal(s).isConstant() ? DefUseEffect.MOVE_FOLDED : DefUseEffect.MOVE_REDUCED;
             } else {
               Trap.mutate(s, TRAP, BoundsCheck.getClearGuardResult(s), OPT_TrapCodeOperand.ArrayBounds());
@@ -3246,8 +3128,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       if ((methOp != null) && methOp.isVirtual() && !methOp.hasPreciseTarget()) {
         OPT_Operand calleeThis = Call.getParam(s, 0);
         if (calleeThis.isNullConstant()) {
-          Trap.mutate(s, TRAP, NullCheck.getClearGuardResult(s),
-                      OPT_TrapCodeOperand.NullPtr());
+          Trap.mutate(s, TRAP, NullCheck.getClearGuardResult(s), OPT_TrapCodeOperand.NullPtr());
           return DefUseEffect.TRAP_REDUCED;
         } else if (calleeThis.isConstant() || calleeThis.asRegister().isPreciseType()) {
           VM_TypeReference calleeClass = calleeThis.getType();
@@ -3268,8 +3149,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         // Simplify to an unreachable operand, this instruction is dead code
         // guarded by a nullcheck that should already have been simplified
         OPT_RegisterOperand result = GetField.getClearResult(s);
-        Move.mutate(s, OPT_IRTools.getMoveOp(result.getType()), result,
-                    new OPT_UnreachableOperand());
+        Move.mutate(s, OPT_IRTools.getMoveOp(result.getType()), result, new OPT_UnreachableOperand());
         return DefUseEffect.MOVE_FOLDED;
       } else if (ref.isObjectConstant()) {
         // A constant object references this field which is
@@ -3282,8 +3162,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
             OPT_ConstantOperand op = OPT_StaticFieldReader.getFieldValueAsConstant(field, ref.asObjectConstant().value);
             Move.mutate(s, OPT_IRTools.getMoveOp(field.getType()), GetField.getClearResult(s), op);
             return DefUseEffect.MOVE_FOLDED;
-          }
-          catch (NoSuchFieldException e) {
+          } catch (NoSuchFieldException e) {
             if (VM.runningVM) {
               // this is unexpected
               throw new Error("Unexpected exception", e);
@@ -3305,16 +3184,14 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         // Simplify to an unreachable operand, this instruction is dead code
         // guarded by a nullcheck that should already have been simplified
         OPT_RegisterOperand result = GetField.getClearResult(s);
-        Move.mutate(s, OPT_IRTools.getMoveOp(result.getType()), result,
-                    new OPT_UnreachableOperand());
+        Move.mutate(s, OPT_IRTools.getMoveOp(result.getType()), result, new OPT_UnreachableOperand());
         return DefUseEffect.MOVE_FOLDED;
       } else if (op.isConstant()) {
         try {
           // NB as the operand is final it must already have been
           // resolved.
           VM_Type type = op.getType().resolve();
-          Move.mutate(s, REF_MOVE, GuardedUnary.getClearResult(s),
-                      new OPT_TIBConstantOperand(type));
+          Move.mutate(s, REF_MOVE, GuardedUnary.getClearResult(s), new OPT_TIBConstantOperand(type));
           return DefUseEffect.MOVE_FOLDED;
         } catch (NoClassDefFoundError e) {
           if (VM.runningVM) {
@@ -3330,7 +3207,9 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         OPT_RegisterOperand rop = op.asRegister();
         VM_TypeReference typeRef = rop.getType();
         if (typeRef.isResolved() && rop.isPreciseType()) {
-          Move.mutate(s, REF_MOVE, GuardedUnary.getClearResult(s),
+          Move.mutate(s,
+                      REF_MOVE,
+                      GuardedUnary.getClearResult(s),
                       new OPT_TIBConstantOperand(typeRef.peekResolvedType()));
           return DefUseEffect.MOVE_FOLDED;
         }
@@ -3343,7 +3222,8 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
     if (CF_TIB) {
       OPT_TypeOperand typeOp = Unary.getVal(s).asType();
       if (typeOp.getTypeRef().isResolved()) {
-        Move.mutate(s, REF_MOVE,
+        Move.mutate(s,
+                    REF_MOVE,
                     Unary.getClearResult(s),
                     new OPT_TIBConstantOperand(typeOp.getTypeRef().peekResolvedType()));
         return DefUseEffect.MOVE_FOLDED;
@@ -3357,9 +3237,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       OPT_Operand tibOp = Unary.getVal(s);
       if (tibOp.isTIBConstant()) {
         OPT_TIBConstantOperand tib = tibOp.asTIBConstant();
-        Move.mutate(s, REF_MOVE,
-                    Unary.getClearResult(s),
-                    new OPT_ObjectConstantOperand(tib.value, Offset.zero()));
+        Move.mutate(s, REF_MOVE, Unary.getClearResult(s), new OPT_ObjectConstantOperand(tib.value, Offset.zero()));
         return DefUseEffect.MOVE_FOLDED;
       }
     }
@@ -3371,7 +3249,8 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       OPT_Operand tibOp = Unary.getVal(s);
       if (tibOp.isTIBConstant()) {
         OPT_TIBConstantOperand tib = tibOp.asTIBConstant();
-        Move.mutate(s, REF_MOVE,
+        Move.mutate(s,
+                    REF_MOVE,
                     Unary.getClearResult(s),
                     new OPT_TIBConstantOperand(tib.value.asArray().getElementType()));
         return DefUseEffect.MOVE_FOLDED;
@@ -3385,7 +3264,8 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       OPT_Operand tibOp = Unary.getVal(s);
       if (tibOp.isTIBConstant()) {
         OPT_TIBConstantOperand tib = tibOp.asTIBConstant();
-        Move.mutate(s, REF_MOVE,
+        Move.mutate(s,
+                    REF_MOVE,
                     Load.getClearResult(s),
                     new OPT_ObjectConstantOperand(tib.value.getSuperclassIds(), Offset.zero()));
         return DefUseEffect.MOVE_FOLDED;
@@ -3399,7 +3279,8 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       OPT_Operand tibOp = Unary.getVal(s);
       if (tibOp.isTIBConstant()) {
         OPT_TIBConstantOperand tib = tibOp.asTIBConstant();
-        Move.mutate(s, REF_MOVE,
+        Move.mutate(s,
+                    REF_MOVE,
                     Load.getClearResult(s),
                     new OPT_ObjectConstantOperand(tib.value.getDoesImplement(), Offset.zero()));
         return DefUseEffect.MOVE_FOLDED;
@@ -3444,13 +3325,10 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
             if (tibArray[intSlot] == null) {
               result = new OPT_NullConstantOperand();
             } else {
-              result = new OPT_ObjectConstantOperand(tibArray[intSlot],
-                                                     Offset.zero());
+              result = new OPT_ObjectConstantOperand(tibArray[intSlot], Offset.zero());
             }
           }
-          Move.mutate(s, REF_MOVE,
-                      Load.getClearResult(s),
-                      result);
+          Move.mutate(s, REF_MOVE, Load.getClearResult(s), result);
           return DefUseEffect.MOVE_FOLDED;
         }
       }

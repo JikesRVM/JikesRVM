@@ -58,8 +58,7 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
         new OPT_OptimizationPlanAtomicElement(new OPT_DominanceFrontier()),
         new OPT_OptimizationPlanAtomicElement(new RenamePreparation()),
         new OPT_OptimizationPlanAtomicElement(new OPT_EnterSSA()),
-        new OPT_OptimizationPlanAtomicElement(new OPT_LeaveSSA())
-    });
+        new OPT_OptimizationPlanAtomicElement(new OPT_LeaveSSA())});
   }
 
   private static class LiveRangeSplitting extends OPT_CompilerPhase {
@@ -99,18 +98,16 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
       // scratchObject field of the Basic Blocks.  Thus, liveness must be
       // computed AFTER the dominators, since the dominator phase also uses
       // the scratchObject field.
-      OPT_LiveAnalysis live =
-          new OPT_LiveAnalysis(false,  // don't create GC maps
-                               false,  // don't skip (final) local
-                               // propagation step of live analysis
-                               false,  // don't store information at handlers
-                               true);  // skip guards
+      OPT_LiveAnalysis live = new OPT_LiveAnalysis(false,  // don't create GC maps
+                                                   false,  // don't skip (final) local
+                                                   // propagation step of live analysis
+                                                   false,  // don't store information at handlers
+                                                   true);  // skip guards
       live.perform(ir);
 
       // 3. Perform the analysis
       OPT_DefUse.computeDU(ir);
-      HashMap<BasicBlockPair, HashSet<OPT_Register>> result =
-          findSplitPoints(ir, live, lst);
+      HashMap<BasicBlockPair, HashSet<OPT_Register>> result = findSplitPoints(ir, live, lst);
 
       // 4. Perform the transformation.
       transform(ir, result);
@@ -130,12 +127,10 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
      * @param lst a valid loop structure tree
      * @return the result as a mapping from BasicBlockPair to a set of registers
      */
-    private static HashMap<BasicBlockPair, HashSet<OPT_Register>> findSplitPoints(OPT_IR ir,
-                                                                                  OPT_LiveAnalysis live,
+    private static HashMap<BasicBlockPair, HashSet<OPT_Register>> findSplitPoints(OPT_IR ir, OPT_LiveAnalysis live,
                                                                                   OPT_LSTGraph lst) {
 
-      HashMap<BasicBlockPair, HashSet<OPT_Register>> result =
-          new HashMap<BasicBlockPair, HashSet<OPT_Register>>(10);
+      HashMap<BasicBlockPair, HashSet<OPT_Register>> result = new HashMap<BasicBlockPair, HashSet<OPT_Register>>(10);
       for (Enumeration<OPT_GraphNode> e = lst.enumerateNodes(); e.hasMoreElements();) {
         OPT_LSTNode node = (OPT_LSTNode) e.nextElement();
         OPT_BasicBlock header = node.getHeader();
@@ -146,8 +141,7 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
         for (Enumeration<OPT_BasicBlock> in = header.getIn(); in.hasMoreElements();) {
           OPT_BasicBlock bb = in.nextElement();
           if (loop.get(bb.getNumber())) continue;
-          HashSet<OPT_Register> liveRegisters =
-              live.getLiveRegistersOnEdge(bb, header);
+          HashSet<OPT_Register> liveRegisters = live.getLiveRegistersOnEdge(bb, header);
           for (OPT_Register r : liveRegisters) {
             if (r.isSymbolic()) {
               HashSet<OPT_Register> s = findOrCreateSplitSet(result, bb, header);
@@ -219,8 +213,7 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
      * @param b2 the second basic block in the pair
      */
     private static HashSet<OPT_Register> findOrCreateSplitSet(HashMap<BasicBlockPair, HashSet<OPT_Register>> map,
-                                                              OPT_BasicBlock b1,
-                                                              OPT_BasicBlock b2) {
+                                                              OPT_BasicBlock b1, OPT_BasicBlock b2) {
       BasicBlockPair pair = new BasicBlockPair(b1, b2);
       HashSet<OPT_Register> set = map.get(pair);
       if (set == null) {
@@ -237,15 +230,13 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
      * @param xform a mapping from BasicBlockPair to the set of registers
      * to split
      */
-    private static void transform(OPT_IR ir,
-                                  HashMap<BasicBlockPair, HashSet<OPT_Register>> xform) {
+    private static void transform(OPT_IR ir, HashMap<BasicBlockPair, HashSet<OPT_Register>> xform) {
       for (BasicBlockPair bbp : xform.keySet()) {
         HashSet<OPT_Register> toSplit = xform.get(bbp);
 
         // we go ahead and split all edges, instead of just critical ones.
         // we'll clean up the mess later after SSA.
-        OPT_BasicBlock target = OPT_IRTools.makeBlockOnEdge(bbp.src,
-                                                            bbp.dest, ir);
+        OPT_BasicBlock target = OPT_IRTools.makeBlockOnEdge(bbp.src, bbp.dest, ir);
         OPT_SSA.replaceBlockInPhis(bbp.dest, bbp.src, target);
 
         for (OPT_Register r : toSplit) {

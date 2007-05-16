@@ -72,8 +72,7 @@ class OPT_YieldPoints extends OPT_CompilerPhase {
 
     // (2) If using epilogue yieldpoints scan basic blocks, looking for returns or throws
     if (VM.UseEpilogueYieldPoints) {
-      for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks();
-           e.hasMoreElements();) {
+      for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
         OPT_BasicBlock block = e.next();
         if (block.hasReturn() || block.hasAthrowInst()) {
           prependYield(block, YIELDPOINT_EPILOGUE, INSTRUMENTATION_BCI, ir.gc.inlineSequence);
@@ -112,10 +111,7 @@ class OPT_YieldPoints extends OPT_CompilerPhase {
    * @param bcIndex the bcIndex of the yieldpoint
    * @param position the source position of the yieldpoint
    */
-  private void prependYield(OPT_BasicBlock bb,
-                            OPT_Operator yp,
-                            int bcIndex,
-                            OPT_InlineSequence position) {
+  private void prependYield(OPT_BasicBlock bb, OPT_Operator yp, int bcIndex, OPT_InlineSequence position) {
     OPT_Instruction insertionPoint = null;
 
     if (bb.isEmpty()) {
@@ -126,13 +122,11 @@ class OPT_YieldPoints extends OPT_CompilerPhase {
 
     if (yp == YIELDPOINT_PROLOGUE) {
       if (VM.VerifyAssertions) {
-        VM._assert((insertionPoint != null) &&
-                   (insertionPoint.getOpcode() == IR_PROLOGUE_opcode));
+        VM._assert((insertionPoint != null) && (insertionPoint.getOpcode() == IR_PROLOGUE_opcode));
       }
       // put it after the prologue
       insertionPoint = insertionPoint.nextInstructionInCodeOrder();
-    } else if (VM.UseEpilogueYieldPoints &&
-               yp == YIELDPOINT_EPILOGUE) {
+    } else if (VM.UseEpilogueYieldPoints && yp == YIELDPOINT_EPILOGUE) {
       // epilogues go before the return or athrow (at end of block)
       insertionPoint = bb.lastRealInstruction();
     }

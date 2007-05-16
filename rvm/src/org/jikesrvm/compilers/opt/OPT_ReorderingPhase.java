@@ -91,8 +91,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
     //     Also count how many blocks there are.
     int numBlocks = 0;
     boolean foundSome = false;
-    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks();
-         e.hasMoreElements();) {
+    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
       OPT_BasicBlock bb = e.next();
       numBlocks++;
       foundSome |= bb.getInfrequent();
@@ -104,17 +103,13 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
     OPT_BasicBlock[] newOrdering = new OPT_BasicBlock[numBlocks];
     int idx = 0;
     // First append frequent blocks to newOrdering
-    for (OPT_BasicBlock bb = ir.cfg.firstInCodeOrder();
-         bb != null;
-         bb = bb.nextBasicBlockInCodeOrder()) {
+    for (OPT_BasicBlock bb = ir.cfg.firstInCodeOrder(); bb != null; bb = bb.nextBasicBlockInCodeOrder()) {
       if (!bb.getInfrequent()) {
         newOrdering[idx++] = bb;
       }
     }
     // Next append infrequent blocks to newOrdering
-    for (OPT_BasicBlock bb = ir.cfg.firstInCodeOrder();
-         bb != null;
-         bb = bb.nextBasicBlockInCodeOrder()) {
+    for (OPT_BasicBlock bb = ir.cfg.firstInCodeOrder(); bb != null; bb = bb.nextBasicBlockInCodeOrder()) {
       if (bb.getInfrequent()) {
         newOrdering[idx++] = bb;
       }
@@ -174,9 +169,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
     OPT_BasicBlock entry = ir.cfg.entry();
     if (VM.VerifyAssertions) VM._assert(ir.cfg.entry() == ir.cfg.firstInCodeOrder());
 
-    for (OPT_BasicBlock bb = entry;
-         bb != null;
-         bb = bb.nextBasicBlockInCodeOrder()) {
+    for (OPT_BasicBlock bb = entry; bb != null; bb = bb.nextBasicBlockInCodeOrder()) {
       numBlocks++;
       chainHeads.add(bb);
       bb.scratchObject = bb;
@@ -185,8 +178,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
         bb.appendInstruction(Goto.create(GOTO, ft.makeJumpTarget()));
       }
       float bw = bb.getExecutionFrequency();
-      for (OPT_WeightedBranchTargets wbt = new OPT_WeightedBranchTargets(bb);
-           wbt.hasMoreElements(); wbt.advance()) {
+      for (OPT_WeightedBranchTargets wbt = new OPT_WeightedBranchTargets(bb); wbt.hasMoreElements(); wbt.advance()) {
         edges.add(new Edge(bb, wbt.curBlock(), wbt.curWeight() * bw));
       }
     }
@@ -222,9 +214,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
       // Yuck....we should really use near-linear time union find here
       // Doing this crappy thing makes us O(N^2) in the worst case.
       OPT_BasicBlock newChain = (OPT_BasicBlock) e.source.scratchObject;
-      for (OPT_BasicBlock ptr = e.target;
-           ptr != null;
-           ptr = ptr.nextBasicBlockInCodeOrder()) {
+      for (OPT_BasicBlock ptr = e.target; ptr != null; ptr = ptr.nextBasicBlockInCodeOrder()) {
         ptr.scratchObject = newChain;
       }
     }
@@ -273,9 +263,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
       if (DEBUG) VM.sysWriteln("Placing chain " + nextChoice);
       // Append nextChoice to the previous chain
       if (lastNode != null) ir.cfg.linkInCodeOrder(lastNode, nextChoice.head);
-      for (OPT_BasicBlock ptr = nextChoice.head;
-           ptr != null;
-           ptr = ptr.nextBasicBlockInCodeOrder()) {
+      for (OPT_BasicBlock ptr = nextChoice.head; ptr != null; ptr = ptr.nextBasicBlockInCodeOrder()) {
         numPlaced++;
         lastNode = ptr;
       }
@@ -300,8 +288,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
             if (DEBUG) VM.sysWriteln("First reachable candidate " + cand);
             nextChoice = cand;
           } else if (cand.inWeight > nextChoice.inWeight ||
-                     (cand.inWeight == nextChoice.inWeight &&
-                      cand.placedWeight > nextChoice.placedWeight)) {
+                     (cand.inWeight == nextChoice.inWeight && cand.placedWeight > nextChoice.placedWeight)) {
             if (DEBUG) VM.sysWriteln(cand + " is a better choice than " + nextChoice);
             nextChoice = cand;
           }
@@ -328,9 +315,8 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase {
 
   private void dumpChain(OPT_BasicBlock head) {
     VM.sysWrite("{" + head);
-    for (OPT_BasicBlock next = head.nextBasicBlockInCodeOrder();
-         next != null;
-         next = next.nextBasicBlockInCodeOrder()) {
+    for (OPT_BasicBlock next = head.nextBasicBlockInCodeOrder(); next != null; next = next.nextBasicBlockInCodeOrder())
+    {
       VM.sysWrite(", " + next);
     }
     VM.sysWriteln("}");

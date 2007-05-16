@@ -83,8 +83,7 @@ import org.vmmagic.pragma.Interruptible;
 
  */
 
-public abstract class VM_TypeDescriptorParsing
-    implements VM_ClassLoaderConstants // gets us constants that we use in
+public abstract class VM_TypeDescriptorParsing implements VM_ClassLoaderConstants // gets us constants that we use in
     // isJavaPrimitive
 {
   /** Is the string <code>s</code> a legal name for a Java class or interface?
@@ -187,8 +186,7 @@ public abstract class VM_TypeDescriptorParsing
    * instead of the "." separating components?)
    * Takes a character array (i.e., an exploded string) and the indices of the
    * first and last characters of the array that are to be checked. */
-  public static boolean isJavaClassNameInternalForm(
-      char[] val, int first, int last) {
+  public static boolean isJavaClassNameInternalForm(char[] val, int first, int last) {
     if (val[first++] != ClassTypeCode) // the L
     {
       return false;
@@ -243,14 +241,12 @@ public abstract class VM_TypeDescriptorParsing
   }
 
   @Interruptible
-  public static void validateAsTypeDescriptor(VM_Atom a)
-      throws IllegalArgumentException {
+  public static void validateAsTypeDescriptor(VM_Atom a) throws IllegalArgumentException {
     try {
       // Atoms are always utf-8.
       a.toUnicodeString();
     } catch (java.io.UTFDataFormatException udfe) {
-      IllegalArgumentException iae
-          =
+      IllegalArgumentException iae =
           new IllegalArgumentException(
               "The atom in question does not represent a valid UTF8 string, so it's not a type descriptor.");
       iae.initCause(udfe);
@@ -262,8 +258,7 @@ public abstract class VM_TypeDescriptorParsing
    @throws IllegalArgumentException if it isn't.
    */
   @Interruptible
-  public static void validateAsTypeDescriptor(String s)
-      throws IllegalArgumentException {
+  public static void validateAsTypeDescriptor(String s) throws IllegalArgumentException {
     char[] val = s.toCharArray();
 
     int i = 0;
@@ -291,8 +286,7 @@ public abstract class VM_TypeDescriptorParsing
       if (i != val.length - 1)
       // if this isn't the last character, scream.
       {
-        malformed("nothing should follow the primitive typecode '"
-                  + Character.toString(val[i]) + "'", s);
+        malformed("nothing should follow the primitive typecode '" + Character.toString(val[i]) + "'", s);
       }
       return;                   // otherwise all is well.
     }
@@ -303,8 +297,7 @@ public abstract class VM_TypeDescriptorParsing
     }
     // All that's left is ClassTypeCode
     if (val[i] != ClassTypeCode) {
-      malformed("unknown character '"
-                + Character.toString(val[i]) + "'", s);
+      malformed("unknown character '" + Character.toString(val[i]) + "'", s);
     }
     if (!isJavaClassNameInternalForm(val, i, val.length - 1)) {
       malformed("doesn't end with a valid class name in internal form", s);
@@ -338,10 +331,12 @@ public abstract class VM_TypeDescriptorParsing
 
   /** Gripe and throw <code>IllegalArgumentException</code> if we get a
    * malformed type name. */
-  private static void malformed(String msg, String typeName)
-      throws IllegalArgumentException {
-    throw new IllegalArgumentException("Malformed type name"
-                                       + ((msg == null) ? "" : ": " + msg) + ": \"" + typeName + "\"");
+  private static void malformed(String msg, String typeName) throws IllegalArgumentException {
+    throw new IllegalArgumentException("Malformed type name" +
+                                       ((msg == null) ? "" : ": " + msg) +
+                                       ": \"" +
+                                       typeName +
+                                       "\"");
   }
 
   // These are test routines you can use to do unit testing on the methods in

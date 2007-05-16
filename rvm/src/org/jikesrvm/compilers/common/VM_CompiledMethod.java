@@ -417,8 +417,7 @@ public abstract class VM_CompiledMethod implements VM_SizeConstants {
    * <ul>
    */
   @Uninterruptible
-  public abstract void getDynamicLink(VM_DynamicLink dynamicLink,
-                                      Offset instructionOffset);
+  public abstract void getDynamicLink(VM_DynamicLink dynamicLink, Offset instructionOffset);
 
   /**
    * Find source line number corresponding to one of this method's

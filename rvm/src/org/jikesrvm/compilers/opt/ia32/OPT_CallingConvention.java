@@ -47,8 +47,7 @@ import org.jikesrvm.runtime.VM_Entrypoints;
  * architecture-independent.
  */
 public abstract class OPT_CallingConvention extends OPT_IRTools
-    implements OPT_Operators,
-               OPT_PhysicalRegisterConstants {
+    implements OPT_Operators, OPT_PhysicalRegisterConstants {
 
   /**
    * Size of a word, in bytes
@@ -61,8 +60,8 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
    */
   public static void expandCallingConventions(OPT_IR ir) {
     // expand each call and return instruction
-    for (OPT_Instruction inst = ir.firstInstructionInCodeOrder();
-         inst != null; inst = inst.nextInstructionInCodeOrder()) {
+    for (OPT_Instruction inst = ir.firstInstructionInCodeOrder(); inst != null; inst =
+        inst.nextInstructionInCodeOrder()) {
       if (inst.isCall()) {
         callExpand(inst, ir);
       } else if (inst.isReturn()) {
@@ -82,16 +81,13 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
     boolean isSysCall = call.operator() == IA32_SYSCALL;
 
     // 0. Handle the parameters
-    int parameterBytes = isSysCall ? expandParametersToSysCall(call, ir) :
-                         expandParametersToCall(call, ir);
+    int parameterBytes = isSysCall ? expandParametersToSysCall(call, ir) : expandParametersToCall(call, ir);
 
     // 1. Clear the floating-point stack if dirty.
     if (call.operator != CALL_SAVE_VOLATILE) {
       int FPRRegisterParams = countFPRParams(call);
-      FPRRegisterParams = Math.min(FPRRegisterParams,
-                                   OPT_PhysicalRegisterSet.getNumberOfFPRParams());
-      call.insertBefore(MIR_UnaryNoRes.create(IA32_FCLEAR,
-                                              IC(FPRRegisterParams)));
+      FPRRegisterParams = Math.min(FPRRegisterParams, OPT_PhysicalRegisterSet.getNumberOfFPRParams());
+      call.insertBefore(MIR_UnaryNoRes.create(IA32_FCLEAR, IC(FPRRegisterParams)));
     }
 
     // 2. Move the return value into a register
@@ -104,9 +100,12 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
         OPT_MethodOperand mo = MIR_Call.getMethod(call);
         if (mo.isInterface()) {
           VM_InterfaceMethodSignature sig = VM_InterfaceMethodSignature.findOrCreate(mo.getMemberRef());
-          OPT_MemoryOperand M = OPT_MemoryOperand.BD(new OPT_RegisterOperand(phys.getPR(), VM_TypeReference.Int),
-                                                     VM_Entrypoints.hiddenSignatureIdField.getOffset(),
-                                                     (byte) WORDSIZE, null, null);
+          OPT_MemoryOperand M =
+              OPT_MemoryOperand.BD(new OPT_RegisterOperand(phys.getPR(), VM_TypeReference.Int),
+                                   VM_Entrypoints.hiddenSignatureIdField.getOffset(),
+                                   (byte) WORDSIZE,
+                                   null,
+                                   null);
           call.insertBefore(MIR_Move.create(IA32_MOV, M, IC(sig.getId())));
         }
       }
@@ -182,16 +181,14 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
       MIR_Call.setResult(call, null);
       if (result1.type.isFloatType() || result1.type.isDoubleType()) {
         OPT_Register r = phys.getReturnFPR();
-        OPT_RegisterOperand physical =
-            new OPT_RegisterOperand(r, result1.type);
+        OPT_RegisterOperand physical = new OPT_RegisterOperand(r, result1.type);
         OPT_Instruction tmp = MIR_Move.create(IA32_FMOV, result1, physical);
         call.insertAfter(tmp);
         MIR_Call.setResult(call, null);
       } else {
         // first GPR result register
         OPT_Register r = phys.getFirstReturnGPR();
-        OPT_RegisterOperand physical =
-            new OPT_RegisterOperand(r, result1.type);
+        OPT_RegisterOperand physical = new OPT_RegisterOperand(r, result1.type);
         OPT_Instruction tmp = MIR_Move.create(IA32_MOV, result1, physical);
         call.insertAfter(tmp);
         MIR_Call.setResult(call, null);
@@ -204,8 +201,7 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
       MIR_Call.setResult2(call, null);
       // second GPR result register
       OPT_Register r = phys.getSecondReturnGPR();
-      OPT_RegisterOperand physical =
-          new OPT_RegisterOperand(r, result2.type);
+      OPT_RegisterOperand physical = new OPT_RegisterOperand(r, result2.type);
       OPT_Instruction tmp = MIR_Move.create(IA32_MOV, result2, physical);
       call.insertAfter(tmp);
       MIR_Call.setResult2(call, null);
@@ -226,8 +222,7 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     // count the number FPR parameters in a pre-pass
     int FPRRegisterParams = countFPRParams(call);
-    FPRRegisterParams = Math.min(FPRRegisterParams,
-                                 OPT_PhysicalRegisterSet.getNumberOfFPRParams());
+    FPRRegisterParams = Math.min(FPRRegisterParams, OPT_PhysicalRegisterSet.getNumberOfFPRParams());
 
     // offset, in bytes, from the SP, for the next parameter slot on the
     // stack
@@ -250,16 +245,14 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
         parameterBytes -= size;
         if (nFPRParams > OPT_PhysicalRegisterSet.getNumberOfFPRParams()) {
           // pass the FP parameter on the stack
-          OPT_Operand M =
-              new OPT_StackLocationOperand(false, parameterBytes, size);
+          OPT_Operand M = new OPT_StackLocationOperand(false, parameterBytes, size);
           call.insertBefore(MIR_Move.create(IA32_FMOV, M, param));
         } else {
           // Pass the parameter in a register.
           // Note that if k FPRs are passed in registers,
           // the 1st goes in F(k-1),
           // the 2nd goes in F(k-2), etc...
-          OPT_Register phy =
-              phys.getFPRParam(FPRRegisterParams - nFPRParams);
+          OPT_Register phy = phys.getFPRParam(FPRRegisterParams - nFPRParams);
           OPT_RegisterOperand real = new OPT_RegisterOperand(phy, paramType);
           call.insertBefore(MIR_Move.create(IA32_FMOV, real, param));
           // Record that the call now has a use of the real register.
@@ -326,19 +319,16 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
     int location = sm.getOffsetForSysCall();
 
     // save each non-volatile
-    for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRs();
-         e.hasMoreElements();) {
+    for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRs(); e.hasMoreElements();) {
       OPT_Register r = e.nextElement();
-      OPT_Operand M =
-          new OPT_StackLocationOperand(true, -location, (byte) WORDSIZE);
+      OPT_Operand M = new OPT_StackLocationOperand(true, -location, (byte) WORDSIZE);
       call.insertBefore(MIR_Move.create(IA32_MOV, M, new OPT_RegisterOperand(r, VM_TypeReference.Int)));
       location += WORDSIZE;
     }
 
     // save the processor register
     OPT_Register PR = phys.getPR();
-    OPT_Operand M =
-        new OPT_StackLocationOperand(true, -location, (byte) WORDSIZE);
+    OPT_Operand M = new OPT_StackLocationOperand(true, -location, (byte) WORDSIZE);
     call.insertBefore(MIR_Move.create(IA32_MOV, M, new OPT_RegisterOperand(PR, VM_TypeReference.Int)));
   }
 
@@ -353,8 +343,7 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
    *
    * @param call the sys call
    */
-  static void restoreNonvolatilesAfterSysCall(OPT_Instruction call,
-                                              OPT_IR ir) {
+  static void restoreNonvolatilesAfterSysCall(OPT_Instruction call, OPT_IR ir) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     OPT_StackManager sm = (OPT_StackManager) ir.stackManager;
 
@@ -363,19 +352,16 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
     int location = sm.getOffsetForSysCall();
 
     // restore each non-volatile
-    for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRs();
-         e.hasMoreElements();) {
+    for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRs(); e.hasMoreElements();) {
       OPT_Register r = e.nextElement();
-      OPT_Operand M =
-          new OPT_StackLocationOperand(true, -location, (byte) WORDSIZE);
+      OPT_Operand M = new OPT_StackLocationOperand(true, -location, (byte) WORDSIZE);
       call.insertAfter(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(r, VM_TypeReference.Int), M));
       location += WORDSIZE;
     }
 
     // restore the processor register
     OPT_Register PR = phys.getPR();
-    OPT_Operand M =
-        new OPT_StackLocationOperand(true, -location, (byte) WORDSIZE);
+    OPT_Operand M = new OPT_StackLocationOperand(true, -location, (byte) WORDSIZE);
     call.insertAfter(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(PR, VM_TypeReference.Int), M));
   }
 
@@ -407,8 +393,7 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
         nFPRParams++;
         int size = paramType.isFloatType() ? 4 : 8;
         parameterBytes -= size;
-        OPT_Operand M =
-            new OPT_StackLocationOperand(false, parameterBytes, size);
+        OPT_Operand M = new OPT_StackLocationOperand(false, parameterBytes, size);
         call.insertBefore(MIR_Move.create(IA32_FMOV, M, param));
       } else {
         nGPRParams++;
@@ -540,13 +525,10 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
             // Note that if k FPRs are passed in registers,
             // the 1st goes in F(k-1),
             // the 2nd goes in F(k-2), etc...
-            OPT_Register param =
-                phys.getFPRParam(FPRRegisterParams - fprIndex - 1);
-            start.insertBefore(MIR_Move.create(IA32_FMOV, symbOp.copyRO(),
-                                               D(param)));
+            OPT_Register param = phys.getFPRParam(FPRRegisterParams - fprIndex - 1);
+            start.insertBefore(MIR_Move.create(IA32_FMOV, symbOp.copyRO(), D(param)));
           } else {
-            OPT_Operand M =
-                new OPT_StackLocationOperand(true, paramByteOffset, size);
+            OPT_Operand M = new OPT_StackLocationOperand(true, paramByteOffset, size);
             start.insertBefore(MIR_Move.create(IA32_FMOV, symbOp.copyRO(), M));
           }
         }
@@ -570,8 +552,7 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
             start.insertBefore(m2);
             start = m2;
           } else {
-            OPT_Operand M =
-                new OPT_StackLocationOperand(true, paramByteOffset, 4);
+            OPT_Operand M = new OPT_StackLocationOperand(true, paramByteOffset, 4);
             start.insertBefore(MIR_Move.create(IA32_MOV, symbOp.copyRO(), M));
           }
         }

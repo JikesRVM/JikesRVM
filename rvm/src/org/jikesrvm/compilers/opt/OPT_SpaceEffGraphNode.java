@@ -235,8 +235,7 @@ public class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
       }
       // if not found, there's an error
       if (pred == null) {
-        throw new OPT_OptimizingCompilerException
-            ("OPT_SpaceEffGraphNode.replaceInEdge: called incorrectly");
+        throw new OPT_OptimizingCompilerException("OPT_SpaceEffGraphNode.replaceInEdge: called incorrectly");
       }
       pred.nextIn = e2;
     }
@@ -256,28 +255,24 @@ public class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
 
   public final boolean hasOneIn(OPT_SpaceEffGraphNode inNode) {
     OPT_SpaceEffGraphEdge first = _inEdgeStart;
-    return (first != null) && (first.nextIn == null) &&
-           (first.fromNode() == inNode);
+    return (first != null) && (first.nextIn == null) && (first.fromNode() == inNode);
   }
 
   public final boolean hasOneOut(OPT_SpaceEffGraphNode outNode) {
     OPT_SpaceEffGraphEdge first = _outEdgeStart;
-    return (first != null) && (first.nextOut == null) &&
-           (first.toNode() == outNode);
+    return (first != null) && (first.nextOut == null) && (first.toNode() == outNode);
   }
 
   /* replaces an oldnode with a new node */
 
-  public final void replaceOut(OPT_SpaceEffGraphNode oldOut,
-                               OPT_SpaceEffGraphNode newOut) {
+  public final void replaceOut(OPT_SpaceEffGraphNode oldOut, OPT_SpaceEffGraphNode newOut) {
     deleteOut(oldOut);
     insertOut(newOut);
   }
 
   /* inserts an outgoing edge to a node 'to' */
 
-  public final void insertOut(OPT_SpaceEffGraphNode to,
-                              OPT_SpaceEffGraphEdge e) {
+  public final void insertOut(OPT_SpaceEffGraphNode to, OPT_SpaceEffGraphEdge e) {
     this.appendOutEdge(e);
     to.appendInEdge(e);
   }
@@ -358,8 +353,7 @@ public class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
 
   public final void clearOutFlags() {
     clearFlags();
-    for (OPT_SpaceEffGraphEdge e = firstOutEdge(); e != null;
-         e = e.getNextOut()) {
+    for (OPT_SpaceEffGraphEdge e = firstOutEdge(); e != null; e = e.getNextOut()) {
       OPT_SpaceEffGraphNode succ = e.toNode();
       e.clearVisited();
       if (succ.flagsOn()) {
@@ -370,8 +364,7 @@ public class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
 
   public final void clearInFlags() {
     clearFlags();
-    for (OPT_SpaceEffGraphEdge e = firstInEdge(); e != null;
-         e = e.getNextIn()) {
+    for (OPT_SpaceEffGraphEdge e = firstInEdge(); e != null; e = e.getNextIn()) {
       OPT_SpaceEffGraphNode succ = e.fromNode();
       e.clearVisited();
       if (succ.flagsOn()) {
@@ -390,8 +383,7 @@ public class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
   }
 
   protected final OPT_SpaceEffGraphNode _sortTop(OPT_SpaceEffGraphNode tail) {
-    for (OPT_SpaceEffGraphEdge e = firstOutEdge(); e != null;
-         e = e.getNextOut()) {
+    for (OPT_SpaceEffGraphEdge e = firstOutEdge(); e != null; e = e.getNextOut()) {
       OPT_SpaceEffGraphNode succ = e.toNode();
       if (!succ.dfsVisited()) {
         succ.setDfsVisitedOnStack();
@@ -401,8 +393,7 @@ public class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
       }
     }
     clearOnStack();
-    for (OPT_SpaceEffGraphEdge e = firstOutEdge(); e != null;
-         e = e.getNextOut()) {
+    for (OPT_SpaceEffGraphEdge e = firstOutEdge(); e != null; e = e.getNextOut()) {
       OPT_SpaceEffGraphNode succ = e.toNode();
       if (!succ.topVisited() && !e.visited()) {
         succ.nextSorted = tail;
@@ -423,8 +414,7 @@ public class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
   }
 
   protected final OPT_SpaceEffGraphNode _sortRevTop(OPT_SpaceEffGraphNode tail) {
-    for (OPT_SpaceEffGraphEdge e = firstInEdge(); e != null;
-         e = e.getNextIn()) {
+    for (OPT_SpaceEffGraphEdge e = firstInEdge(); e != null; e = e.getNextIn()) {
       OPT_SpaceEffGraphNode succ = e.fromNode();
       if (!succ.dfsVisited()) {
         succ.setDfsVisitedOnStack();
@@ -434,8 +424,7 @@ public class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
       }
     }
     clearOnStack();
-    for (OPT_SpaceEffGraphEdge e = firstInEdge(); e != null;
-         e = e.getNextIn()) {
+    for (OPT_SpaceEffGraphEdge e = firstInEdge(); e != null; e = e.getNextIn()) {
       OPT_SpaceEffGraphNode succ = e.fromNode();
       if (!succ.topVisited() && !e.visited()) {
         succ.nextSorted = tail;
@@ -496,29 +485,25 @@ public class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
   /* print utilities */
 
   public void printInEdges() {
-    for (OPT_SpaceEffGraphEdge in = firstInEdge(); in != null;
-         in = in.getNextIn()) {
+    for (OPT_SpaceEffGraphEdge in = firstInEdge(); in != null; in = in.getNextIn()) {
       System.out.println(in.fromNodeString());
     }
   }
 
   public void printOutEdges() {
-    for (OPT_SpaceEffGraphEdge out = firstOutEdge(); out != null;
-         out = out.getNextOut()) {
+    for (OPT_SpaceEffGraphEdge out = firstOutEdge(); out != null; out = out.getNextOut()) {
       System.out.println(out.toNodeString());
     }
   }
 
   public void printInNodes() {
-    for (OPT_SpaceEffGraphEdge in = firstInEdge(); in != null;
-         in = in.getNextIn()) {
+    for (OPT_SpaceEffGraphEdge in = firstInEdge(); in != null; in = in.getNextIn()) {
       System.out.println(in.fromNode());
     }
   }
 
   public void printOutNodes() {
-    for (OPT_SpaceEffGraphEdge out = firstOutEdge(); out != null;
-         out = out.getNextOut()) {
+    for (OPT_SpaceEffGraphEdge out = firstOutEdge(); out != null; out = out.getNextOut()) {
       System.out.println(out.toNode());
     }
   }
@@ -569,8 +554,7 @@ public class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
 
   protected final void removeIn(OPT_SpaceEffGraphEdge InEdge) {
     OPT_SpaceEffGraphEdge prev = null;
-    for (OPT_SpaceEffGraphEdge edge = _inEdgeStart; edge != null;
-         prev = edge, edge = edge.nextIn) {
+    for (OPT_SpaceEffGraphEdge edge = _inEdgeStart; edge != null; prev = edge, edge = edge.nextIn) {
       if (edge == InEdge) {
         OPT_SpaceEffGraphEdge next = edge.nextIn;
         if (prev == null) {

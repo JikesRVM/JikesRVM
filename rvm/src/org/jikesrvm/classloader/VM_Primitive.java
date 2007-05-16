@@ -33,8 +33,7 @@ import org.vmmagic.unboxed.Offset;
  * @see VM_Array
  */
 @SynchronizedObject
-public final class VM_Primitive extends VM_Type implements VM_Constants,
-                                                           VM_ClassLoaderConstants {
+public final class VM_Primitive extends VM_Type implements VM_Constants, VM_ClassLoaderConstants {
   /**
    * The pretty (external) name for this primitive.
    * For example, for a long the name is 'long'
@@ -69,8 +68,7 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
    * @param stackWords The stack slots used by this primitive
    * @param memoryBytes The bytes in memory used by this primitive
    */
-  private VM_Primitive(VM_TypeReference tr, Class<?> classForType,
-                       VM_Atom name, int stackWords, int memoryBytes) {
+  private VM_Primitive(VM_TypeReference tr, Class<?> classForType, VM_Atom name, int stackWords, int memoryBytes) {
     super(tr,    // type reference
           classForType, // j.l.Class representation
           -1,    // dimensionality

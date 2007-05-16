@@ -30,8 +30,7 @@ import org.jikesrvm.scheduler.VM_Thread;
  *  (2) At O1 and greater use a mix of profile information and static heuristics
  *      to inline larger methods and methods that require guards.
  */
-public final class OPT_DefaultInlineOracle extends OPT_InlineTools
-    implements OPT_InlineOracle {
+public final class OPT_DefaultInlineOracle extends OPT_InlineTools implements OPT_InlineOracle {
 
   /**
    * Should we inline a particular call site?
@@ -151,8 +150,8 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools
             while (true) {
               VM_Class[] subClasses = klass.getSubClasses();
               if (subClasses.length != 1) break; // multiple subclasses => multiple targets
-              VM_Method singleImpl = subClasses[0].findDeclaredMethod(staticCallee.getName(),
-                                                                      staticCallee.getDescriptor());
+              VM_Method singleImpl =
+                  subClasses[0].findDeclaredMethod(staticCallee.getName(), staticCallee.getDescriptor());
               if (singleImpl != null && !singleImpl.isAbstract()) {
                 // found something
                 if (verbose) VM.sysWriteln("\tsingle impl of abstract method");
@@ -185,8 +184,13 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools
         public void visit(VM_Method callee, double weight) {
           if (hasBody(callee)) {
             if (verbose) {
-              VM.sysWriteln("\tEvaluating target " + callee + " with " + weight +
-                            " samples (" + (100 * VM_AdaptiveInlining.adjustedWeight(weight)) + "%)");
+              VM.sysWriteln("\tEvaluating target " +
+                            callee +
+                            " with " +
+                            weight +
+                            " samples (" +
+                            (100 * VM_AdaptiveInlining.adjustedWeight(weight)) +
+                            "%)");
             }
             // Don't inline recursively and respect no inline pragmas
             OPT_InlineSequence seq = state.getSequence();
@@ -206,8 +210,7 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools
               return;
             }
             boolean currentlyFinal =
-                (goosc || (staticCallee == callee)) && isCurrentlyFinal(callee,
-                                                                        !opts.guardWithClassTest());
+                (goosc || (staticCallee == callee)) && isCurrentlyFinal(callee, !opts.guardWithClassTest());
             boolean preEx = needsGuard && state.getIsExtant() && opts.PREEX_INLINE && currentlyFinal;
             if (needsGuard && !preEx) {
               if (!opts.GUARDED_INLINE) {
@@ -294,8 +297,7 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools
               methodsToInline.add(callee);
               if (preEx) {
                 OPT_ClassLoadingDependencyManager cldm = (OPT_ClassLoadingDependencyManager) VM_Class.classLoadListener;
-                if (OPT_ClassLoadingDependencyManager.TRACE ||
-                    OPT_ClassLoadingDependencyManager.DEBUG) {
+                if (OPT_ClassLoadingDependencyManager.TRACE || OPT_ClassLoadingDependencyManager.DEBUG) {
                   cldm.report("PREEX_INLINE: Inlined " + callee + " into " + caller + "\n");
                 }
                 cldm.addNotOverriddenDependency(callee, state.getCompiledMethod());
@@ -322,25 +324,25 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools
         if (needsGuard) {
           if ((guardOverrideOnStaticCallee || target == staticCallee) &&
               isCurrentlyFinal(target, !opts.guardWithClassTest())) {
-            OPT_InlineDecision d = OPT_InlineDecision.guardedYES(target,
-                                                                 chooseGuard(caller, target, staticCallee, state, true),
-                                                                 "Guarded inline of single static target");
-            if (opts.OSR_GUARDED_INLINING &&
-                OPT_Compiler.getAppStarted() &&
-                VM_Controller.options.ENABLE_RECOMPILATION) {
+            OPT_InlineDecision d =
+                OPT_InlineDecision.guardedYES(target,
+                                              chooseGuard(caller, target, staticCallee, state, true),
+                                              "Guarded inline of single static target");
+            if (opts
+                .OSR_GUARDED_INLINING &&
+                                      OPT_Compiler.getAppStarted() &&
+                                      VM_Controller.options
+                                          .ENABLE_RECOMPILATION) {
               // note that we will OSR the failed case.
               d.setOSRTestFailed();
             }
             if (verbose) VM.sysWriteln("\tDecide: " + d);
             return d;
           } else {
-            OPT_InlineDecision d = OPT_InlineDecision.guardedYES(target,
-                                                                 chooseGuard(caller,
-                                                                             target,
-                                                                             staticCallee,
-                                                                             state,
-                                                                             false),
-                                                                 "Guarded inlining of one potential target");
+            OPT_InlineDecision d =
+                OPT_InlineDecision.guardedYES(target,
+                                              chooseGuard(caller, target, staticCallee, state, false),
+                                              "Guarded inlining of one potential target");
             if (verbose) VM.sysWriteln("\tDecide: " + d);
             return d;
           }
@@ -381,21 +383,16 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools
    * @param callee The callee method
    * @param codePatchSupported   Can we use code patching at this call site?
    */
-  private byte chooseGuard(VM_Method caller,
-                           VM_Method singleImpl,
-                           VM_Method callee,
-                           OPT_CompilationState state,
+  private byte chooseGuard(VM_Method caller, VM_Method singleImpl, VM_Method callee, OPT_CompilationState state,
                            boolean codePatchSupported) {
     byte guard = state.getOptions().INLINING_GUARD;
     if (codePatchSupported) {
       if (VM.VerifyAssertions && VM.runningVM) {
-        VM._assert(VM_ObjectModel.holdsLock(VM_Class.classLoadListener,
-                                            VM_Thread.getCurrentThread()));
+        VM._assert(VM_ObjectModel.holdsLock(VM_Class.classLoadListener, VM_Thread.getCurrentThread()));
       }
       if (guard == OPT_Options.IG_CODE_PATCH) {
         OPT_ClassLoadingDependencyManager cldm = (OPT_ClassLoadingDependencyManager) VM_Class.classLoadListener;
-        if (OPT_ClassLoadingDependencyManager.TRACE ||
-            OPT_ClassLoadingDependencyManager.DEBUG) {
+        if (OPT_ClassLoadingDependencyManager.TRACE || OPT_ClassLoadingDependencyManager.DEBUG) {
           cldm.report("CODE PATCH: Inlined " + singleImpl + " into " + caller + "\n");
         }
         cldm.addNotOverriddenDependency(callee, state.getCompiledMethod());
@@ -404,8 +401,7 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools
       guard = OPT_Options.IG_METHOD_TEST;
     }
 
-    if (guard == OPT_Options.IG_METHOD_TEST &&
-        singleImpl.getDeclaringClass().isFinal()) {
+    if (guard == OPT_Options.IG_METHOD_TEST && singleImpl.getDeclaringClass().isFinal()) {
       // class test is more efficient and just as effective
       guard = OPT_Options.IG_CLASS_TEST;
     }
@@ -422,10 +418,7 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools
    * @param opts       controlling options object
    * @return the estimated cost of the inlining action
    */
-  private int inliningActionCost(int inlinedBodyEstimate,
-                                 boolean needsGuard,
-                                 boolean preEx,
-                                 OPT_Options opts) {
+  private int inliningActionCost(int inlinedBodyEstimate, boolean needsGuard, boolean preEx, OPT_Options opts) {
     int guardCost = 0;
     if (needsGuard & !preEx) {
       guardCost += VM_NormalMethod.CALL_COST;

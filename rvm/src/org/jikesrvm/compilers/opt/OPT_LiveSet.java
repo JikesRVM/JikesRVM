@@ -77,8 +77,7 @@ public class OPT_LiveSet {
    */
   public void add(OPT_RegisterOperand item) {
     if (debug) {
-      System.out.println("\t OPT_LiveSet.add (item) called with reg " +
-                         item);
+      System.out.println("\t OPT_LiveSet.add (item) called with reg " + item);
       System.out.println("\t before add:" + this);
     }
     // for each item in OPT_LiveSet add it to this.set
@@ -167,8 +166,7 @@ public class OPT_LiveSet {
         if (newPtr.getRegister().number < curPtr.getRegister().number) {
           // found one in new list that is not in current list
           // When we add, the "prev" ptr will be updated
-          curPrevPtr = createAndAddToCurrentList(newPtr.getRegisterOperand(),
-                                                 curPrevPtr);
+          curPrevPtr = createAndAddToCurrentList(newPtr.getRegisterOperand(), curPrevPtr);
           // don't forget to update curPtr
           curPtr = getNextPtr(curPrevPtr);
           newPtr = newPtr.getNext();
@@ -187,8 +185,7 @@ public class OPT_LiveSet {
       // while there is still more on the new list, add them
       while (newPtr != null) {
         // When we add, the "prev" ptr will be updated
-        curPrevPtr = createAndAddToCurrentList(newPtr.getRegisterOperand(),
-                                               curPrevPtr);
+        curPrevPtr = createAndAddToCurrentList(newPtr.getRegisterOperand(), curPrevPtr);
         // don't forget to update curPtr
         curPtr = getNextPtr(curPrevPtr);
         newPtr = newPtr.getNext();
@@ -274,8 +271,7 @@ public class OPT_LiveSet {
    */
   void remove(OPT_RegisterOperand item) {
     if (debug) {
-      System.out.println("\tOPT_LiveSet.remove (item) called with reg "
-                         + item);
+      System.out.println("\tOPT_LiveSet.remove (item) called with reg " + item);
     }
     // only something to do if the set is non-empty
     if (first != null) {
@@ -342,9 +338,7 @@ public class OPT_LiveSet {
    *                     or null, indicating insert at the front
    * @return the element that is prior to the newly inserted element
    */
-  private OPT_LiveSetElement createAndAddToCurrentList(
-      OPT_RegisterOperand register,
-      OPT_LiveSetElement prevElement) {
+  private OPT_LiveSetElement createAndAddToCurrentList(OPT_RegisterOperand register, OPT_LiveSetElement prevElement) {
     OPT_LiveSetElement newElement = new OPT_LiveSetElement(register);
     if (prevElement == null) {
       // insert at front of list

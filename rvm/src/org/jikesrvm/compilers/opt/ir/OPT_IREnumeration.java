@@ -40,8 +40,7 @@ public abstract class OPT_IREnumeration {
    * @param end   the instruction to end with
    * @return an enumeration of the instructions from start to end
    */
-  public static OPT_InstructionEnumeration forwardIntraBlockIE(final OPT_Instruction start,
-                                                               final OPT_Instruction end) {
+  public static OPT_InstructionEnumeration forwardIntraBlockIE(final OPT_Instruction start, final OPT_Instruction end) {
     return new OPT_InstructionEnumeration() {
       private OPT_Instruction current = start;
       private final OPT_Instruction last = end;
@@ -80,8 +79,7 @@ public abstract class OPT_IREnumeration {
    * @param end   the instruction to end with
    * @return an enumeration of the instructions from start to end
    */
-  public static OPT_InstructionEnumeration reverseIntraBlockIE(final OPT_Instruction start,
-                                                               final OPT_Instruction end) {
+  public static OPT_InstructionEnumeration reverseIntraBlockIE(final OPT_Instruction start, final OPT_Instruction end) {
     return new OPT_InstructionEnumeration() {
       private OPT_Instruction current = start;
       private final OPT_Instruction last = end;
@@ -355,8 +353,7 @@ public abstract class OPT_IREnumeration {
     public boolean hasMoreElements() {
       return ((instructionOperands.hasMoreElements()) ||
               ((heapOperands != null) && (curHeapOperand < heapOperands.length)) ||
-              ((implicitDefs != null) && (implicitDefs.hasMoreElements()))
-      );
+              ((implicitDefs != null) && (implicitDefs.hasMoreElements())));
     }
 
     /**
@@ -448,8 +445,7 @@ public abstract class OPT_IREnumeration {
     public boolean hasMoreElements() {
       return ((instructionOperands.hasMoreElements()) ||
               ((heapOperands != null) && (curHeapOperand < heapOperands.length)) ||
-              ((implicitUses != null) && (implicitUses.hasMoreElements()))
-      );
+              ((implicitUses != null) && (implicitUses.hasMoreElements())));
     }
 
     /**

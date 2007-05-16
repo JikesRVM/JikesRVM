@@ -224,8 +224,7 @@ public abstract class OPT_AbstractRegisterPool {
     }
   }
 
-  private final HashMap<OPT_Register, OPT_Register> _regPairs =
-      new HashMap<OPT_Register, OPT_Register>();
+  private final HashMap<OPT_Register, OPT_Register> _regPairs = new HashMap<OPT_Register, OPT_Register>();
 
   /**
    * MIR: Get the other half of the register pair that is
@@ -267,8 +266,7 @@ public abstract class OPT_AbstractRegisterPool {
    * @return the new temp
    */
   public OPT_RegisterOperand makeTemp(OPT_RegisterOperand template) {
-    OPT_RegisterOperand temp =
-        new OPT_RegisterOperand(getReg(template), template.type);
+    OPT_RegisterOperand temp = new OPT_RegisterOperand(getReg(template), template.type);
     temp.addFlags(template.getFlags());
     return temp;
   }

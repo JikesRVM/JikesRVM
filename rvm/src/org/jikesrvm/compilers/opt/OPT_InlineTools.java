@@ -70,8 +70,7 @@ public abstract class OPT_InlineTools implements OPT_Constants {
    * Note that this says nothing about whether or not the method will
    * be overriden by future dynamically loaded classes.
    */
-  public static boolean isCurrentlyFinal(VM_Method callee,
-                                         boolean searchSubclasses) {
+  public static boolean isCurrentlyFinal(VM_Method callee, boolean searchSubclasses) {
     VM_Class klass = callee.getDeclaringClass();
     if (klass.isInterface()) {
       // interface methods are not final.
@@ -89,8 +88,7 @@ public abstract class OPT_InlineTools implements OPT_Constants {
       }
       while (!s.isEmpty()) {
         VM_Class subClass = s.pop();
-        if (subClass.findDeclaredMethod(callee.getName(),
-                                        callee.getDescriptor()) != null) {
+        if (subClass.findDeclaredMethod(callee.getName(), callee.getDescriptor()) != null) {
           return false;        // found an overridding method
         }
         subClasses = subClass.getSubClasses();
@@ -112,8 +110,7 @@ public abstract class OPT_InlineTools implements OPT_Constants {
    *              is to be inlined
    * @return an inlined size estimate (number of machine code instructions)
    */
-  public static int inlinedSizeEstimate(VM_NormalMethod callee,
-                                        OPT_CompilationState state) {
+  public static int inlinedSizeEstimate(VM_NormalMethod callee, OPT_CompilationState state) {
     int sizeEstimate = callee.inlinedSizeEstimate();
     // Adjust size estimate downward to account for optimizations enabled
     // by constant parameters.
@@ -155,8 +152,7 @@ public abstract class OPT_InlineTools implements OPT_Constants {
    * @param state the compilation state of the caller.
    * @return whether or not the callee should be unconditionally inlined.
    */
-  public static boolean hasInlinePragma(VM_Method callee,
-                                        OPT_CompilationState state) {
+  public static boolean hasInlinePragma(VM_Method callee, OPT_CompilationState state) {
     if (callee.hasInlineAnnotation()) return true;
     // If we know what kind of array "src" (argument 0) is
     // then we always want to inline java.lang.System.arraycopy.
@@ -172,8 +168,8 @@ public abstract class OPT_InlineTools implements OPT_Constants {
     if (callee.getDeclaringClass().getTypeRef() == VM_TypeReference.VM_Array &&
         callee.getName() == arraycopyName &&
         callee.getDescriptor() != objectArrayCopyDescriptor) {
-      return Call.getParam(state.getCallInstruction(), 1).isConstant()
-             && Call.getParam(state.getCallInstruction(), 3).isConstant();
+      return Call.getParam(state.getCallInstruction(), 1).isConstant() &&
+             Call.getParam(state.getCallInstruction(), 3).isConstant();
     }
     return false;
   }
@@ -190,8 +186,7 @@ public abstract class OPT_InlineTools implements OPT_Constants {
    * @return whether or not the callee should be unconditionally barred
    *         from being inlined.
    */
-  public static boolean hasNoInlinePragma(VM_Method callee,
-                                          OPT_CompilationState state) {
+  public static boolean hasNoInlinePragma(VM_Method callee, OPT_CompilationState state) {
     return callee.hasNoInlinePragma();
   }
 
@@ -213,8 +208,7 @@ public abstract class OPT_InlineTools implements OPT_Constants {
    *         the callee into the caller.
    */
   public static boolean isForbiddenSpeculation(VM_Method caller, VM_Method callee) {
-    return caller.getDeclaringClass().isInBootImage() &&
-           !callee.getDeclaringClass().getDescriptor().isRVMDescriptor();
+    return caller.getDeclaringClass().isInBootImage() && !callee.getDeclaringClass().getDescriptor().isRVMDescriptor();
   }
 }
 

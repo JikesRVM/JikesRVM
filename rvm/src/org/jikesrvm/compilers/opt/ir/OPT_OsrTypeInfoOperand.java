@@ -57,10 +57,9 @@ public final class OPT_OsrTypeInfoOperand extends OPT_Operand {
 
     OPT_OsrTypeInfoOperand other = (OPT_OsrTypeInfoOperand) op;
 
-    result = Arrays.equals(this.localTypeCodes,
-                           other.localTypeCodes)
-             && Arrays.equals(this.stackTypeCodes,
-                              other.stackTypeCodes);
+    result =
+        Arrays.equals(this.localTypeCodes, other.localTypeCodes) &&
+        Arrays.equals(this.stackTypeCodes, other.stackTypeCodes);
 
     return result;
   }

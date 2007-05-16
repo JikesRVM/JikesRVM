@@ -112,12 +112,10 @@ public abstract class VM_SysCall {
 
   // mmap - memory mapping
   @SysCallTemplate
-  public abstract Address sysMMap(Address start, Extent length, int protection,
-                                  int flags, int fd, Offset offset);
+  public abstract Address sysMMap(Address start, Extent length, int protection, int flags, int fd, Offset offset);
 
   @SysCallTemplate
-  public abstract Address sysMMapErrno(Address start, Extent length, int protection,
-                                       int flags, int fd, Offset offset);
+  public abstract Address sysMMapErrno(Address start, Extent length, int protection, int flags, int fd, Offset offset);
 
   @SysCallTemplate
   public abstract int sysMProtect(Address start, Extent length, int prot);
@@ -237,8 +235,7 @@ public abstract class VM_SysCall {
   /** Parse memory sizes passed as command-line arguments.
    */
   @SysCallTemplate
-  public abstract long sysParseMemorySize(byte[] sizeName, byte[] sizeFlag,
-                                          byte[] defaultFactor, int roundTo,
+  public abstract long sysParseMemorySize(byte[] sizeName, byte[] sizeFlag, byte[] defaultFactor, int roundTo,
                                           byte[] argToken, byte[] subArg);
 
   // time
@@ -272,12 +269,10 @@ public abstract class VM_SysCall {
   public abstract int sysNetSocketLocalAddress(int fd);
 
   @SysCallTemplate
-  public abstract int sysNetSocketBind(int fd, int family, int localAddress,
-                                       int localPort);
+  public abstract int sysNetSocketBind(int fd, int family, int localAddress, int localPort);
 
   @SysCallTemplate
-  public abstract int sysNetSocketConnect(int fd, int family, int remoteAddress,
-                                          int remotePort);
+  public abstract int sysNetSocketConnect(int fd, int family, int remoteAddress, int remotePort);
 
   @SysCallTemplate
   public abstract int sysNetSocketListen(int fd, int backlog);
@@ -305,8 +300,7 @@ public abstract class VM_SysCall {
 
   // process management
   @SysCallTemplate
-  public abstract void sysWaitPids(Address pidArray, Address exitStatusArray,
-                                   int numPids);
+  public abstract void sysWaitPids(Address pidArray, Address exitStatusArray, int numPids);
 
   // system startup pthread sync. primitives
   @SysCallTemplate
@@ -328,9 +322,8 @@ public abstract class VM_SysCall {
   public abstract void gcspyDriverEndOutput(Address driver);
 
   @SysCallTemplate
-  public abstract void gcspyDriverInit(
-      Address driver, int id, Address serverName, Address driverName,
-      Address title, Address blockInfo, int tileNum, Address unused, int mainSpace);
+  public abstract void gcspyDriverInit(Address driver, int id, Address serverName, Address driverName, Address title,
+                                       Address blockInfo, int tileNum, Address unused, int mainSpace);
 
   @SysCallTemplate
   public abstract void gcspyDriverInitOutput(Address driver);
@@ -402,10 +395,9 @@ public abstract class VM_SysCall {
   public abstract void gcspyStartserver(Address server, int wait, Address serverOuterLoop);
 
   @SysCallTemplate
-  public abstract void gcspyStreamInit(Address stream, int id, int dataType, Address name,
-                                       int minValue, int maxValue, int zeroValue, int defaultValue,
-                                       Address pre, Address post, int presentation, int paintStyle,
-                                       int maxStreamIndex, int red, int green, int blue);
+  public abstract void gcspyStreamInit(Address stream, int id, int dataType, Address name, int minValue, int maxValue,
+                                       int zeroValue, int defaultValue, Address pre, Address post, int presentation,
+                                       int paintStyle, int maxStreamIndex, int red, int green, int blue);
 
   @SysCallTemplate
   public abstract void gcspyFormatSize(Address buffer, int size);

@@ -12,9 +12,8 @@ package org.jikesrvm.compilers.common.assembler.ia32;
  * Constants exported by the assembler
  */
 public interface VM_AssemblerConstants {
-  String[] CONDITION = {
-      "O", "NO", "LLT", "LGE", "EQ", "NE", "LLE", "LGT", "S", "NS", "PE", "PO", "LT", "GE", "LE", "GT"
-  };
+  String[] CONDITION =
+      {"O", "NO", "LLT", "LGE", "EQ", "NE", "LLE", "LGT", "S", "NS", "PE", "PO", "LT", "GE", "LE", "GT"};
 
   byte O = 0x0; // OF == 1 - overflow
   byte NO = 0x1; // OF == 0 - not overflow

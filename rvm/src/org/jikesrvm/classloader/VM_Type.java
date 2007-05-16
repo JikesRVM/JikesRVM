@@ -180,10 +180,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
    * @param dimension The dimensionality
    * @param annotations array of runtime visible annotations
    */
-  protected VM_Type(VM_TypeReference typeRef,
-                    Class<?> classForType,
-                    int dimension,
-                    VM_Annotation[] annotations) {
+  protected VM_Type(VM_TypeReference typeRef, Class<?> classForType, int dimension, VM_Annotation[] annotations) {
     super(annotations);
     this.typeRef = typeRef;
     this.tibOffset = VM_Statics.allocateReferenceSlot().toInt();
@@ -206,9 +203,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
    * @param dimension The dimensionality
    * @param annotations array of runtime visible annotations
    */
-  protected VM_Type(VM_TypeReference typeRef,
-                    int dimension,
-                    VM_Annotation[] annotations) {
+  protected VM_Type(VM_TypeReference typeRef, int dimension, VM_Annotation[] annotations) {
     super(annotations);
     this.typeRef = typeRef;
     this.tibOffset = VM_Statics.allocateReferenceSlot().toInt();
@@ -396,8 +391,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
    */
   @Uninterruptible
   public final boolean isIntLikeType() {
-    return isBooleanType() || isByteType() ||
-           isShortType() || isIntType() || isCharType();
+    return isBooleanType() || isByteType() || isShortType() || isIntType() || isCharType();
   }
 
   /** @return is this type the class Object? */
@@ -495,8 +489,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
    * Utility to create a java.lang.Class for the given type using the
    * given type reference
    */
-  protected static Class<?> createClassForType(VM_Type type,
-                                               VM_TypeReference typeRef) {
+  protected static Class<?> createClassForType(VM_Type type, VM_TypeReference typeRef) {
     if (VM.runningVM) {
       return java.lang.JikesRVMSupport.createClass(type);
     } else {
@@ -504,16 +497,13 @@ public abstract class VM_Type extends VM_AnnotatedElement
       try {
         VM_Atom className = typeRef.getName();
         if (className.isAnnotationClass()) {
-          return Class.forName(className.annotationClassToAnnotationInterface(),
-                               false, VM_Type.class.getClassLoader());
+          return Class.forName(className.annotationClassToAnnotationInterface(), false, VM_Type.class.getClassLoader());
         } else if (className.isClassDescriptor()) {
           return Class.forName(className.classNameFromDescriptor(), false, VM_Type.class.getClassLoader());
         } else {
           return Class.forName(className.toString().replace('/', '.'), false, VM_Type.class.getClassLoader());
         }
-      }
-      catch (ClassNotFoundException e) { x = e; }
-      catch (SecurityException e) { x = e; }
+      } catch (ClassNotFoundException e) { x = e; } catch (SecurityException e) { x = e; }
       if (typeRef.isArrayType() && typeRef.getArrayElementType().isCodeType()) {
         // ignore - we expect not to have a concrete version of the code class
         return null;
@@ -535,14 +525,12 @@ public abstract class VM_Type extends VM_AnnotatedElement
    * @param memberDescriptor method descriptor - something like "I" or "()I"
    * @return method description (null --> not found)
    */
-  public final VM_Method findVirtualMethod(VM_Atom memberName,
-                                           VM_Atom memberDescriptor) {
+  public final VM_Method findVirtualMethod(VM_Atom memberName, VM_Atom memberDescriptor) {
     if (VM.VerifyAssertions) VM._assert(isResolved());
     VM_Method[] methods = getVirtualMethods();
     for (int i = 0, n = methods.length; i < n; ++i) {
       VM_Method method = methods[i];
-      if (method.getName() == memberName &&
-          method.getDescriptor() == memberDescriptor) {
+      if (method.getName() == memberName && method.getDescriptor() == memberDescriptor) {
         return method;
       }
     }

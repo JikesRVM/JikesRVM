@@ -35,8 +35,7 @@ public final class OPT_BURSManagedFPROperand extends OPT_Operand {
    * @param op other operand
    */
   public boolean similar(OPT_Operand op) {
-    return (op instanceof OPT_BURSManagedFPROperand) &&
-           ((OPT_BURSManagedFPROperand) op).regNum == regNum;
+    return (op instanceof OPT_BURSManagedFPROperand) && ((OPT_BURSManagedFPROperand) op).regNum == regNum;
   }
 
   // Returns the string representation of this operand.

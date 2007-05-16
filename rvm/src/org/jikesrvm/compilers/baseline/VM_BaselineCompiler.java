@@ -63,10 +63,10 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
    */
   protected VM_BaselineCompiler(VM_BaselineCompiledMethod cm) {
     super(cm);
-    shouldPrint = (!VM.runningTool &&
-                   (options.PRINT_MACHINECODE) &&
-                   (!options.hasMETHOD_TO_PRINT() ||
-                    options.fuzzyMatchMETHOD_TO_PRINT(method.toString())));
+    shouldPrint =
+        (!VM.runningTool &&
+         (options.PRINT_MACHINECODE) &&
+         (!options.hasMETHOD_TO_PRINT() || options.fuzzyMatchMETHOD_TO_PRINT(method.toString())));
     if (!VM.runningTool && options.PRINT_METHOD) printMethodMessage();
     if (shouldPrint && VM.runningVM && !fullyBootedVM) {
       shouldPrint = false;
@@ -198,7 +198,9 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
     if (VM.BuildForAdaptiveSystem && method.isForOsrSpecialization()) {
       options.EDGE_COUNTERS = false;
       // we already allocated enough space for stackHeights, shift it back first
-      System.arraycopy(stackHeights, 0, stackHeights,
+      System.arraycopy(stackHeights,
+                       0,
+                       stackHeights,
                        method.getOsrPrologueLength(),
                        method.getBytecodeLength());   // NB: getBytecodeLength returns back the length of original bytecodes
 
@@ -214,9 +216,10 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
     if (VM.MeasureCompilation) start = VM_Thread.getCurrentThread().accumulateCycles();
 
     // determine if we are going to insert edge counters for this method
-    if (options.EDGE_COUNTERS &&
-        !method.getDeclaringClass().hasBridgeFromNativeAnnotation() &&
-        (method.hasCondBranch() || method.hasSwitch())) {
+    if (options
+        .EDGE_COUNTERS &&
+                       !method.getDeclaringClass().hasBridgeFromNativeAnnotation() &&
+                       (method.hasCondBranch() || method.hasSwitch())) {
       ((VM_BaselineCompiledMethod) compiledMethod).setHasCounterArray(); // yes, we will inject counters for this method.
     }
 
@@ -239,11 +242,7 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
     if (VM.MeasureCompilation) start = VM_Thread.getCurrentThread().accumulateCycles();
     if (VM.BuildForAdaptiveSystem && method.isForOsrSpecialization()) {
       int[] newmap = new int[bcMap.length - method.getOsrPrologueLength()];
-      System.arraycopy(bcMap,
-                       method.getOsrPrologueLength(),
-                       newmap,
-                       0,
-                       newmap.length);
+      System.arraycopy(bcMap, method.getOsrPrologueLength(), newmap, 0, newmap.length);
       machineCode.setBytecodeMap(newmap);
       bcMap = newmap;
       // switch back to original state

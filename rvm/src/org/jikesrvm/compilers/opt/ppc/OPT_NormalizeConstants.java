@@ -187,9 +187,7 @@ public abstract class OPT_NormalizeConstants extends OPT_IRTools {
     if (!(OPT_Simplifier.CF_INT && OPT_Simplifier.CF_LONG && OPT_Simplifier.CF_ADDR)) {
       throw new OPT_OptimizingCompilerException("Unexpected config!");
     }
-    for (OPT_Instruction s = ir.firstInstructionInCodeOrder();
-         s != null;
-         s = s.nextInstructionInCodeOrder()) {
+    for (OPT_Instruction s = ir.firstInstructionInCodeOrder(); s != null; s = s.nextInstructionInCodeOrder()) {
 
       // STEP ONE: Get 'large' constants into a form that the PPC BURS rules
       //           are prepared to deal with.
@@ -677,9 +675,7 @@ public abstract class OPT_NormalizeConstants extends OPT_IRTools {
     }
   }
 
-  static OPT_Operand asImmediateOrRegInt(OPT_Operand addr,
-                                         OPT_Instruction s,
-                                         OPT_IR ir, boolean signed) {
+  static OPT_Operand asImmediateOrRegInt(OPT_Operand addr, OPT_Instruction s, OPT_IR ir, boolean signed) {
     if (addr instanceof OPT_IntConstantOperand) {
       if (!canBeImmediate(((OPT_IntConstantOperand) addr).value, signed)) {
         OPT_RegisterOperand rop = ir.regpool.makeTempInt();
@@ -693,9 +689,7 @@ public abstract class OPT_NormalizeConstants extends OPT_IRTools {
     return addr;
   }
 
-  static OPT_Operand asImmediateOrRegOffset(OPT_Operand addr,
-                                            OPT_Instruction s,
-                                            OPT_IR ir, boolean signed) {
+  static OPT_Operand asImmediateOrRegOffset(OPT_Operand addr, OPT_Instruction s, OPT_IR ir, boolean signed) {
     if (addr instanceof OPT_AddressConstantOperand) {
       if (!canBeImmediate(((OPT_AddressConstantOperand) addr).value, signed)) {
         OPT_RegisterOperand rop = ir.regpool.makeTempOffset();
@@ -711,9 +705,7 @@ public abstract class OPT_NormalizeConstants extends OPT_IRTools {
     return addr;
   }
 
-  static OPT_Operand asImmediateOrRegLong(OPT_Operand addr,
-                                          OPT_Instruction s,
-                                          OPT_IR ir, boolean signed) {
+  static OPT_Operand asImmediateOrRegLong(OPT_Operand addr, OPT_Instruction s, OPT_IR ir, boolean signed) {
     if (VM.BuildFor64Addr && (addr instanceof OPT_LongConstantOperand)) {
       if (!canBeImmediate(((OPT_LongConstantOperand) addr).value, signed)) {
         OPT_RegisterOperand rop = ir.regpool.makeTempLong();
@@ -730,9 +722,7 @@ public abstract class OPT_NormalizeConstants extends OPT_IRTools {
     return addr;
   }
 
-  static OPT_Operand asImmediateOrRegPolymorphic(OPT_Operand addr,
-                                                 OPT_Instruction s,
-                                                 OPT_IR ir, boolean signed) {
+  static OPT_Operand asImmediateOrRegPolymorphic(OPT_Operand addr, OPT_Instruction s, OPT_IR ir, boolean signed) {
     if (addr instanceof OPT_IntConstantOperand) {
       if (!canBeImmediate(((OPT_IntConstantOperand) addr).value, signed)) {
         OPT_RegisterOperand rop = ir.regpool.makeTempInt();
@@ -767,9 +757,7 @@ public abstract class OPT_NormalizeConstants extends OPT_IRTools {
    * @param s
    * @param ir
    */
-  static OPT_Operand asRegInt(OPT_Operand addr,
-                              OPT_Instruction s,
-                              OPT_IR ir) {
+  static OPT_Operand asRegInt(OPT_Operand addr, OPT_Instruction s, OPT_IR ir) {
     if (addr instanceof OPT_IntConstantOperand) {
       OPT_RegisterOperand rop = ir.regpool.makeTempInt();
       s.insertBefore(Move.create(REF_MOVE, rop, addr));
@@ -781,9 +769,7 @@ public abstract class OPT_NormalizeConstants extends OPT_IRTools {
     return addr;
   }
 
-  static OPT_Operand asRegLong(OPT_Operand addr,
-                               OPT_Instruction s,
-                               OPT_IR ir) {
+  static OPT_Operand asRegLong(OPT_Operand addr, OPT_Instruction s, OPT_IR ir) {
     if (VM.BuildFor64Addr && (addr instanceof OPT_LongConstantOperand)) {
       OPT_RegisterOperand rop = ir.regpool.makeTempLong();
       s.insertBefore(Move.create(REF_MOVE, rop, addr));
@@ -795,9 +781,7 @@ public abstract class OPT_NormalizeConstants extends OPT_IRTools {
     return addr;
   }
 
-  static OPT_Operand asRegAddress(OPT_Operand addr,
-                                  OPT_Instruction s,
-                                  OPT_IR ir) {
+  static OPT_Operand asRegAddress(OPT_Operand addr, OPT_Instruction s, OPT_IR ir) {
     if (addr instanceof OPT_AddressConstantOperand) {
       OPT_RegisterOperand rop = ir.regpool.makeTempAddress();
       s.insertBefore(Move.create(REF_MOVE, rop, addr));
@@ -809,9 +793,7 @@ public abstract class OPT_NormalizeConstants extends OPT_IRTools {
     return addr;
   }
 
-  static OPT_Operand asRegOffset(OPT_Operand addr,
-                                 OPT_Instruction s,
-                                 OPT_IR ir) {
+  static OPT_Operand asRegOffset(OPT_Operand addr, OPT_Instruction s, OPT_IR ir) {
     if (addr instanceof OPT_AddressConstantOperand) {
       OPT_RegisterOperand rop = ir.regpool.makeTempOffset();
       s.insertBefore(Move.create(REF_MOVE, rop, addr));
@@ -823,9 +805,7 @@ public abstract class OPT_NormalizeConstants extends OPT_IRTools {
     return addr;
   }
 
-  static OPT_Operand asRegPolymorphic(OPT_Operand addr,
-                                      OPT_Instruction s,
-                                      OPT_IR ir) {
+  static OPT_Operand asRegPolymorphic(OPT_Operand addr, OPT_Instruction s, OPT_IR ir) {
     if (addr instanceof OPT_IntConstantOperand) {
       OPT_RegisterOperand rop = ir.regpool.makeTempInt();
       s.insertBefore(Move.create(REF_MOVE, rop, addr));

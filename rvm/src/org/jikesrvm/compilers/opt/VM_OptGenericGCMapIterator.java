@@ -90,9 +90,7 @@ public abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    * @param instructionOffset The place in the method where we currently are
    * @param framePtr          The current frame pointer
    */
-  public final void setupIterator(VM_CompiledMethod cm,
-                                  Offset instructionOffset,
-                                  Address framePtr) {
+  public final void setupIterator(VM_CompiledMethod cm, Offset instructionOffset, Address framePtr) {
     if (DEBUG) {
       VM.sysWrite("\n\t   ==========================\n");
       VM.sysWrite("Reference map request made");
@@ -117,9 +115,8 @@ public abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
                       instructionOffset);
       } else {
         Offset possibleLen =
-            Offset.fromIntZeroExtend(cm.numberOfInstructions() <<
-                                     ArchitectureSpecific.VM_RegisterConstants
-                                         .LG_INSTRUCTION_WIDTH);
+            Offset.fromIntZeroExtend(cm.numberOfInstructions() << ArchitectureSpecific.VM_RegisterConstants
+                .LG_INSTRUCTION_WIDTH);
         if (possibleLen.sLT(instructionOffset)) {
           VM.sysWriteln("VM_OptGenericGCMapIterator.setupIterator called with too big of an instructionOffset");
           VM.sysWriteln("offset is", instructionOffset);
@@ -200,8 +197,7 @@ public abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
     // Have we gone through all the registers yet?
     if (currentRegisterIsValid()) {
       // See if there are any more
-      while (currentRegisterIsValid() &&
-             !map.registerIsSet(mapIndex, getCurrentRegister())) {
+      while (currentRegisterIsValid() && !map.registerIsSet(mapIndex, getCurrentRegister())) {
         if (lookForMissedReferencesInRegs) {
           // inspect the register we are skipping
           checkCurrentRegisterForMissedReferences();
@@ -259,8 +255,7 @@ public abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
     } else {
       // Determine the spill location given the frame ptr and spill offset.
       // (The location of spills varies among architectures.)
-      Address newSpillLoc = getStackLocation(framePtr,
-                                             map.gcMapInformation(mapIndex));
+      Address newSpillLoc = getStackLocation(framePtr, map.gcMapInformation(mapIndex));
 
       if (DEBUG) {
         VM.sysWrite(" *** Ref found in Spill Loc: ");

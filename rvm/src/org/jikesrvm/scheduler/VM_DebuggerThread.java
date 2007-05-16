@@ -97,9 +97,9 @@ public class VM_DebuggerThread extends VM_Thread {
 
           VM.sysWrite(thread.getIndex() + " " + thread + " " + getThreadState(thread) + "\n");
 
-          Address fp = (thread == VM_Thread.getCurrentThread())
-                       ? VM_Magic.getFramePointer()
-                       : thread.contextRegisters.getInnermostFramePointer();
+          Address fp =
+              (thread ==
+               VM_Thread.getCurrentThread()) ? VM_Magic.getFramePointer() : thread.contextRegisters.getInnermostFramePointer();
 
           VM_Processor.getCurrentProcessor().disableThreadSwitching();
           VM_Scheduler.dumpStack(fp);
@@ -176,8 +176,7 @@ public class VM_DebuggerThread extends VM_Thread {
 
   // Figure out what a thread is doing.
   //
-  private static String
-  getThreadState(VM_Thread t) {
+  private static String getThreadState(VM_Thread t) {
     // scan per-processor queues
     //
     for (int i = 0; i < VM_Scheduler.processors.length; ++i) {
@@ -269,8 +268,7 @@ public class VM_DebuggerThread extends VM_Thread {
   }
 
   private static boolean isLetter(char ch) {
-    return ('a' <= ch && ch <= 'z') ||
-           ('A' <= ch && ch <= 'Z');
+    return ('a' <= ch && ch <= 'z') || ('A' <= ch && ch <= 'Z');
   }
 
   private static String leftJustify(String s, int width) {

@@ -198,8 +198,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
     OPT_DefUse.computeDU(ir);
     OPT_DefUse.recomputeSSA(ir);
     // pass through registers, and mark escape information
-    for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister();
-         reg != null; reg = reg.getNext()) {
+    for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); reg != null; reg = reg.getNext()) {
       // skip the following types of registers:
       if (reg.isFloatingPoint()) {
         continue;
@@ -233,9 +232,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
     // update the method summary database to note whether
     // parameters may escape
     int numParam = 0;
-    for (OPT_OperandEnumeration e = ir.getParameters();
-         e.hasMoreElements();
-         numParam++) {
+    for (OPT_OperandEnumeration e = ir.getParameters(); e.hasMoreElements(); numParam++) {
       OPT_Register p = ((OPT_RegisterOperand) e.next()).register;
       if (result.isThreadLocal(p)) {
         summ.setParameterMayEscapeThread(numParam, false);
@@ -289,8 +286,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
     AnalysisResult result = new AnalysisResult();
     result.threadLocal = true;
     result.methodLocal = true;
-    for (OPT_RegisterOperand use = reg.useList; use != null;
-         use = use.getNext()) {
+    for (OPT_RegisterOperand use = reg.useList; use != null; use = use.getNext()) {
 
       if (VM.VerifyAssertions && use.type == null) {
         ir.printInstructions();
@@ -311,8 +307,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
         result.methodLocal = false;
       }
     }
-    for (OPT_RegisterOperand def = reg.defList; def != null;
-         def = def.getNext()) {
+    for (OPT_RegisterOperand def = reg.defList; def != null; def = def.getNext()) {
 
       if (VM.VerifyAssertions && def.type == null) {
         ir.printInstructions();
@@ -344,8 +339,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
    * @param ir the governing IR
    * @return true if it may escape, false otherwise
    */
-  private static boolean checkEscapesThread(OPT_RegisterOperand use,
-                                            OPT_IR ir) {
+  private static boolean checkEscapesThread(OPT_RegisterOperand use, OPT_IR ir) {
     OPT_Instruction inst = use.instruction;
     switch (inst.getOpcode()) {
       case INT_ASTORE_opcode:
@@ -520,8 +514,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
    * @param ir the governing IR
    * @return true if it may escape, false otherwise
    */
-  private static boolean checkEscapesMethod(OPT_RegisterOperand use,
-                                            OPT_IR ir) {
+  private static boolean checkEscapesMethod(OPT_RegisterOperand use, OPT_IR ir) {
     OPT_Instruction inst = use.instruction;
     switch (inst.getOpcode()) {
       case INT_ASTORE_opcode:
@@ -676,8 +669,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
         return i;
       }
     }
-    throw new OPT_OptimizingCompilerException("Parameter not found" +
-                                              op + s);
+    throw new OPT_OptimizingCompilerException("Parameter not found" + op + s);
   }
 
   /**
@@ -686,8 +678,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
    *   perform escape analysis, which will create the method
    *    summary as a side effect, and return the summary
    */
-  private static OPT_MethodSummary findOrCreateMethodSummary(VM_Method m,
-                                                             OPT_Options options) {
+  private static OPT_MethodSummary findOrCreateMethodSummary(VM_Method m, OPT_Options options) {
     OPT_MethodSummary summ = OPT_SummaryDatabase.findMethodSummary(m);
     if (summ == null) {
       if (options.SIMPLE_ESCAPE_IPA) {
@@ -703,8 +694,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
   /**
    * Perform the simple escape analysis for a method.
    */
-  private static void performSimpleEscapeAnalysis(VM_Method m,
-                                                  OPT_Options options) {
+  private static void performSimpleEscapeAnalysis(VM_Method m, OPT_Options options) {
     if (!options.SIMPLE_ESCAPE_IPA) {
       return;
     }
@@ -716,9 +706,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
         return;
       }
     }
-    OPT_CompilationPlan plan =
-        new OPT_CompilationPlan((VM_NormalMethod) m, escapePlan,
-                                null, options);
+    OPT_CompilationPlan plan = new OPT_CompilationPlan((VM_NormalMethod) m, escapePlan, null, options);
     plan.analyzeOnly = true;
     try {
       OPT_Compiler.compile(plan);
@@ -733,10 +721,9 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
    */
   private static OPT_OptimizationPlanElement initEscapePlan() {
     return OPT_OptimizationPlanCompositeElement.compose("Escape Analysis",
-                                                        new Object[]{
-                                                            new OPT_ConvertBCtoHIR(), new OPT_Simple(true, true),
-                                                            new OPT_SimpleEscape()
-                                                        });
+                                                        new Object[]{new OPT_ConvertBCtoHIR(),
+                                                                     new OPT_Simple(true, true),
+                                                                     new OPT_SimpleEscape()});
   }
 
   /**
@@ -747,8 +734,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
    */
   private static Iterator<OPT_Operand> iterateReturnValues(OPT_IR ir) {
     ArrayList<OPT_Operand> returnValues = new ArrayList<OPT_Operand>();
-    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator();
-         e.hasMoreElements();) {
+    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
       OPT_Instruction s = e.next();
       if (Return.conforms(s)) {
         returnValues.add(Return.getVal(s));

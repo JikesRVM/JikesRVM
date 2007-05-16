@@ -42,9 +42,7 @@ import org.vmmagic.unboxed.Word;
  *
  * Machine code generators:
  */
-public abstract class VM_Assembler
-    extends VM_AbstractAssembler
-    implements VM_BaselineConstants, VM_AssemblerConstants {
+public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_BaselineConstants, VM_AssemblerConstants {
 
   /** Machine code being assembled */
   private final VM_MachineCode mc;
@@ -125,8 +123,7 @@ public abstract class VM_Assembler
   }
 
   @NoInline
-  public void noteBranchBytecode(int i, String bcode, int off,
-                                 int bt) {
+  public void noteBranchBytecode(int i, String bcode, int off, int bt) {
     noteBytecode(i, bcode + " " + off + " [" + bt + "] ");
   }
 

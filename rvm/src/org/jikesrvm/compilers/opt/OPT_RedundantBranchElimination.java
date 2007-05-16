@@ -65,8 +65,7 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
         new OPT_OptimizationPlanAtomicElement(new OPT_GlobalValueNumber()),
 
         // Stage3: Do the optimization
-        new OPT_OptimizationPlanAtomicElement(new RBE()),
-    });
+        new OPT_OptimizationPlanAtomicElement(new RBE()),});
   }
 
   private static final class EnsureSSA extends OPT_CompilerPhase {
@@ -118,8 +117,7 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
       // (1) Remove redundant conditional branches and locally fix the PHIs
       OPT_GlobalValueNumberState gvns = ir.HIRInfo.valueNumbers;
       OPT_DominatorTree dt = ir.HIRInfo.dominatorTree;
-      for (OPT_BasicBlockEnumeration bbs = ir.getBasicBlocks();
-           bbs.hasMoreElements();) {
+      for (OPT_BasicBlockEnumeration bbs = ir.getBasicBlocks(); bbs.hasMoreElements();) {
         OPT_BasicBlock candBB = bbs.next();
         OPT_Instruction candTest = candBB.firstBranchInstruction();
         if (candTest == null) continue;
@@ -167,8 +165,7 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
         // save it now before removeFromCFGAndCodeOrder nulls it out!!!
         OPT_BasicBlock nextNode = (OPT_BasicBlock) node.getNext();
         if (!node.dfsVisited()) {
-          for (OPT_BasicBlockEnumeration e = node.getOut();
-               e.hasMoreElements();) {
+          for (OPT_BasicBlockEnumeration e = node.getOut(); e.hasMoreElements();) {
             OPT_BasicBlock target = e.next();
             if (target != node && !target.isExit() && target.dfsVisited()) {
               OPT_SSA.purgeBlockFromPHIs(node, target);
@@ -204,10 +201,7 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
      * @param ir containing IR
      * @param di branch that dominates cb
      */
-    private void removeCondBranch(OPT_BasicBlock source,
-                                  OPT_Instruction cb,
-                                  OPT_IR ir,
-                                  OPT_Instruction di) {
+    private void removeCondBranch(OPT_BasicBlock source, OPT_Instruction cb, OPT_IR ir, OPT_Instruction di) {
       if (DEBUG) VM.sysWrite("Eliminating definitely not-taken branch " + cb + "\n");
       if (IfCmp.conforms(cb) && IfCmp.hasGuardResult(cb)) {
         cb.insertBefore(Move.create(GUARD_MOVE, IfCmp.getGuardResult(cb), IfCmp.getGuardResult(di).copy()));
@@ -225,9 +219,7 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
     /**
      * Transform cb into a GOTO, updating PHI nodes to maintain SSA form.
      */
-    private void takeCondBranch(OPT_BasicBlock source,
-                                OPT_Instruction cb,
-                                OPT_IR ir) {
+    private void takeCondBranch(OPT_BasicBlock source, OPT_Instruction cb, OPT_IR ir) {
       if (DEBUG) VM.sysWrite("Eliminating definitely taken branch " + cb + "\n");
       OPT_BasicBlock deadBB = source.nextBasicBlockInCodeOrder();
       OPT_Instruction next = cb.nextInstructionInCodeOrder();

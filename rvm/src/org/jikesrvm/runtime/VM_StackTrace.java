@@ -64,8 +64,8 @@ public class VM_StackTrace {
   public boolean isVerbose() {
     return /* If we're printing verbose stack traces... */
         (VM.VerboseStackTracePeriod > 0)
-        /* AND this particular trace meets the periodicity requirements */
-        && (((traceIndex - 1) % VM.VerboseStackTracePeriod) == 0);
+        /* AND this particular trace meets the periodicity requirements */ &&
+        (((traceIndex - 1) % VM.VerboseStackTracePeriod) == 0);
   }
 
   /**
@@ -242,25 +242,20 @@ public class VM_StackTrace {
     boolean printed = false;
     try {
       if (announceWhenPrintingStackTrace) {
-        VM.sysWriteln("VM_StackTrace.print(): Printing Stack Trace # ",
-                      traceIndex);
+        VM.sysWriteln("VM_StackTrace.print(): Printing Stack Trace # ", traceIndex);
       }
       if (alsoPrintToSysWrite) {
         if (!out.isSysWrite()) {
-          VM.sysWriteln("[ VM_StackTrace.print(#", traceIndex,
-                        "): Here's the copy to sysWrite:");
+          VM.sysWriteln("[ VM_StackTrace.print(#", traceIndex, "): Here's the copy to sysWrite:");
           print(VM_PrintContainer.readyPrinter, trigger, effect, depth);
-          VM.sysWriteln("... END VM_StackTrace.print():"
-                        + " sysWrote Stack Trace # ", traceIndex, "]");
+          VM.sysWriteln("... END VM_StackTrace.print():" + " sysWrote Stack Trace # ", traceIndex, "]");
         }
       }
       if (showPrintingContext) {
         VM.disableGC();
-        VM.sysWriteln("[Here is the context of the attempt"
-                      + " to print stack trace #:", traceIndex);
+        VM.sysWriteln("[Here is the context of the attempt" + " to print stack trace #:", traceIndex);
         VM_Scheduler.dumpStack();
-        VM.sysWriteln("... END context of the attempt"
-                      + " to print Stack Trace # ", traceIndex, "]");
+        VM.sysWriteln("... END context of the attempt" + " to print Stack Trace # ", traceIndex, "]");
         VM.enableGC();
       }
 
@@ -281,8 +276,7 @@ public class VM_StackTrace {
         if (out.isSysWrite()) {
           VM.sysWriteln("[ Aborting stack trace # ", traceIndex, " ; already was printing with sysWrite()]");
         } else {
-          VM.sysWriteln("[ Retrying printing stack trace # ", traceIndex,
-                        "; using sysWrite(), this time ]");
+          VM.sysWriteln("[ Retrying printing stack trace # ", traceIndex, "; using sysWrite(), this time ]");
           print4Real(VM_PrintContainer.readyPrinter, trigger, depth);
         }
       }
@@ -370,8 +364,7 @@ public class VM_StackTrace {
         } else {
           cm.printStackTrace(Offset.fromIntSignExtend(offsets[i]), out);
         }
-      }
-      catch (OutOfMemoryError e) {
+      } catch (OutOfMemoryError e) {
         trigger.tallyOutOfMemoryError();
 
         if (out.isSysWrite()) {
@@ -471,8 +464,7 @@ public class VM_StackTrace {
     // at compiledMethods[foundTriggerAt +1].
     // Happens when the exception object being thrown is created via
     // reflection (which is how JNI does it).
-    while (foundTriggerAt + 2 < compiledMethods.length &&
-           compiledMethods[foundTriggerAt + 1] == null) {
+    while (foundTriggerAt + 2 < compiledMethods.length && compiledMethods[foundTriggerAt + 1] == null) {
       foundTriggerAt++;
     }
 

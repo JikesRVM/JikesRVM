@@ -167,9 +167,7 @@ public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
 
       int sortMarker = firstNode.getSortMarker();
       int sortNumber = firstNode.getBackwardSortNumber() - 1;
-      for (OPT_BasicBlock block = firstInCodeOrder();
-           block != null;
-           block = block.nextBasicBlockInCodeOrder()) {
+      for (OPT_BasicBlock block = firstInCodeOrder(); block != null; block = block.nextBasicBlockInCodeOrder()) {
 
         if (block.getSortMarker() != sortMarker) {
           // found a block that wasn't on the Reverse Top List, add it.

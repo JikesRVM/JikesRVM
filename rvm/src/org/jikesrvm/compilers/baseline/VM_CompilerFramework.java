@@ -39,8 +39,8 @@ import org.vmmagic.unboxed.Offset;
  * one that generates code as each bytecode in the class file is
  * seen. It is the common base class of the base compiler.
  */
-public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_SizeConstants,
-                                                      VM_StackframeLayoutConstants {
+public abstract class VM_CompilerFramework
+    implements VM_BytecodeConstants, VM_SizeConstants, VM_StackframeLayoutConstants {
 
   /**
    * has fullyBootedVM been called by VM.boot?
@@ -1578,15 +1578,20 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
           if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new ", arrayRef);
 
           if (VM.VerifyAssertions && elementTypeRef.isUnboxedType()) {
-            VM._assert(false, "During compilation of " + method
-                              + " found an anewarray of " + elementTypeRef + "\n"
-                              + "You must use the 'create' function to create an array of this type");
+            VM._assert(false,
+                       "During compilation of " +
+                       method +
+                       " found an anewarray of " +
+                       elementTypeRef +
+                       "\n" +
+                       "You must use the 'create' function to create an array of this type");
           }
 
           // We can do early resolution of the array type if the element type
           // is already initialized.
           VM_Array array = (VM_Array) arrayRef.peekResolvedType();
-          if (array != null && !(array.isInitialized() || array.isInBootImage()) &&
+          if (array != null &&
+              !(array.isInitialized() || array.isInBootImage()) &&
               VM_Type.JavaLangObjectType.isInstantiated()) {
             VM_Type elementType = elementTypeRef.peekResolvedType();
             if (elementType != null && (elementType.isInitialized() || elementType.isInBootImage())) {
@@ -1631,8 +1636,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
               } // else fall through to emit_checkcast
             } else if (type.isArrayType()) {
               VM_Type elemType = type.asArray().getElementType();
-              if (elemType.isPrimitiveType() ||
-                  (elemType.isClassType() && elemType.asClass().isFinal())) {
+              if (elemType.isPrimitiveType() || (elemType.isClassType() && elemType.asClass().isFinal())) {
                 emit_checkcast_final(type);
                 break;
               } // else fall through to emit_checkcast
@@ -1662,8 +1666,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
               }
             } else if (type.isArrayType()) {
               VM_Type elemType = type.asArray().getElementType();
-              if (elemType.isPrimitiveType() ||
-                  (elemType.isClassType() && elemType.asClass().isFinal())) {
+              if (elemType.isPrimitiveType() || (elemType.isClassType() && elemType.asClass().isFinal())) {
                 emit_instanceof_final(type);
                 break;
               }
@@ -1938,8 +1941,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
               }
               default:
                 if (VM.TraceOnStackReplacement) {
-                  VM.sysWrite("Unexpected PSEUDO code "
-                              + VM.intAsHexString(pseudo_opcode) + "\n");
+                  VM.sysWrite("Unexpected PSEUDO code " + VM.intAsHexString(pseudo_opcode) + "\n");
                 }
                 if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
                 break;

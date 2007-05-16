@@ -50,8 +50,7 @@ class VM_MultiLevelAdaptiveModel extends VM_AnalyticModel {
     // will be considered.  For each opt-level, create a recompilation
     // choice for that opt-level and record it indexed by opt-level
     for (int optLevel = 0; optLevel <= maxOptLevel; optLevel++) {
-      allOptLevelChoices[optLevel] =
-          new VM_RecompileOptChoice(optLevel);
+      allOptLevelChoices[optLevel] = new VM_RecompileOptChoice(optLevel);
     }
 
     // Given the above choices, create lookup table so that the
@@ -69,8 +68,7 @@ class VM_MultiLevelAdaptiveModel extends VM_AnalyticModel {
    *                     comile cmpMethod
    * @param cmpMethod The compiled method being considered
    */
-  VM_RecompilationChoice[] getViableRecompilationChoices(int prevCompiler,
-                                                         VM_CompiledMethod cmpMethod) {
+  VM_RecompilationChoice[] getViableRecompilationChoices(int prevCompiler, VM_CompiledMethod cmpMethod) {
     // Return the precomputed set of choices given the previous compiler
     return viableChoices[prevCompiler];
   }
@@ -87,9 +85,7 @@ class VM_MultiLevelAdaptiveModel extends VM_AnalyticModel {
     VM_RecompilationChoice[] temp = new VM_RecompilationChoice[maxCompiler];
 
     // For each potential value of the previous compiler
-    for (int prevCompiler = VM_CompilerDNA.BASELINE;
-         prevCompiler < maxCompiler;
-         prevCompiler++) {
+    for (int prevCompiler = VM_CompilerDNA.BASELINE; prevCompiler < maxCompiler; prevCompiler++) {
 
       // Consider each choice in the list of all choices.
       // If it is greater than cur compiler, add it.

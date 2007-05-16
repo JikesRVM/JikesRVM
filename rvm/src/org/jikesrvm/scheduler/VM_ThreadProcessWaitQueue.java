@@ -47,8 +47,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * @see org.jikesrvm.runtime.VM_Process
  */
 @Uninterruptible
-public class VM_ThreadProcessWaitQueue extends VM_ThreadEventWaitQueue
-    implements VM_ThreadEventConstants {
+public class VM_ThreadProcessWaitQueue extends VM_ThreadEventWaitQueue implements VM_ThreadEventConstants {
 
   /**
    * Class to safely downcast from <code>VM_ThreadEventWaitData</code>
@@ -168,9 +167,7 @@ public class VM_ThreadProcessWaitQueue extends VM_ThreadEventWaitQueue
     waitPidLock.lock();
 
     // Call sysWaitPids() to see which (if any) have finished
-    sysCall.sysWaitPids(VM_Magic.objectAsAddress(pidArray),
-                        VM_Magic.objectAsAddress(exitStatusArray),
-                        numPids);
+    sysCall.sysWaitPids(VM_Magic.objectAsAddress(pidArray), VM_Magic.objectAsAddress(exitStatusArray), numPids);
 
     waitPidLock.unlock();
 

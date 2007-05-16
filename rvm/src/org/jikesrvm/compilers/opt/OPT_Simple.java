@@ -218,8 +218,7 @@ public final class OPT_Simple extends OPT_CompilerPhase {
     boolean reiterate = true;
     while (reiterate) {         // /MT/ better think about proper ordering.
       reiterate = false;
-      for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister();
-           reg != null; reg = elemNext) {
+      for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); reg != null; reg = elemNext) {
         elemNext = reg.getNext(); // we may remove reg, so get elemNext up front
         if (reg.useList == null ||   // Copy propagation not possible if reg
             // has no uses
@@ -327,8 +326,7 @@ public final class OPT_Simple extends OPT_CompilerPhase {
   static void typePropagation(OPT_IR ir) {
     // Use register list to enumerate register objects (FAST)
     OPT_Register elemNext;
-    for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); reg != null;
-         reg = elemNext) {
+    for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); reg != null; reg = elemNext) {
       elemNext = reg.getNext();
       // Type propagation not possible if reg has no uses
       if (reg.useList == null) {
@@ -360,8 +358,7 @@ public final class OPT_Simple extends OPT_CompilerPhase {
       lhs.copyType(rhs);
 
       // Now propagate lhs into all uses; substitute rhs.type for lhs.type
-      for (OPT_RegisterOperand use = reg.useList; use != null;
-           use = use.getNext()) {
+      for (OPT_RegisterOperand use = reg.useList; use != null; use = use.getNext()) {
         // if rhs.type is a supertype of use.type, don't do it
         // because use.type has more detailed information
         if (OPT_ClassLoaderProxy.includesType(rhs.type, use.type) == YES) {
@@ -389,8 +386,7 @@ public final class OPT_Simple extends OPT_CompilerPhase {
   static void arrayPropagation(OPT_IR ir) {
     // Use register list to enumerate register objects (FAST)
     OPT_Register elemNext;
-    for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); reg != null;
-         reg = elemNext) {
+    for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); reg != null; reg = elemNext) {
       elemNext = reg.getNext();
       if (reg.useList == null) {
         continue;
@@ -424,17 +420,15 @@ public final class OPT_Simple extends OPT_CompilerPhase {
         }
       }
       // Now propagate
-      for (OPT_RegisterOperand use = reg.useList; use != null;
-           use = use.getNext()) {
+      for (OPT_RegisterOperand use = reg.useList; use != null; use = use.getNext()) {
         OPT_Instruction i = use.instruction;
         // bounds-check elimination
         if (boundsCheckOK && i.getOpcode() == BOUNDS_CHECK_opcode) {
           OPT_Operand indexOp = BoundsCheck.getIndex(i);
           if (indexOp instanceof OPT_IntConstantOperand) {
             if (((OPT_IntConstantOperand) indexOp).value <= size) {
-              OPT_Instruction s = Move.create(GUARD_MOVE,
-                                              BoundsCheck.getGuardResult(i).copyD2D(),
-                                              new OPT_TrueGuardOperand());
+              OPT_Instruction s =
+                  Move.create(GUARD_MOVE, BoundsCheck.getGuardResult(i).copyD2D(), new OPT_TrueGuardOperand());
               s.position = i.position;
               s.bcIndex = i.bcIndex;
               i.insertAfter(s);
@@ -444,8 +438,7 @@ public final class OPT_Simple extends OPT_CompilerPhase {
           }
         } else if (arraylengthOK && i.getOpcode() == ARRAYLENGTH_opcode) {
           OPT_Operand newSizeOp = sizeOp.copy();
-          OPT_RegisterOperand result = (OPT_RegisterOperand)
-              GuardedUnary.getResult(i).copy();
+          OPT_RegisterOperand result = (OPT_RegisterOperand) GuardedUnary.getResult(i).copy();
           OPT_Instruction s = Move.create(INT_MOVE, result, newSizeOp);
           s.position = i.position;
           s.bcIndex = i.bcIndex;
@@ -489,21 +482,17 @@ public final class OPT_Simple extends OPT_CompilerPhase {
    * @param preserveImplicitSSA if this is true, do not eliminate dead
    * instructions that have implicit operands for heap array SSA form
    */
-  static void eliminateDeadInstructions(OPT_IR ir,
-                                        boolean preserveImplicitSSA) {
+  static void eliminateDeadInstructions(OPT_IR ir, boolean preserveImplicitSSA) {
     // (USE BACKWARDS PASS FOR INCREASED EFFECTIVENESS)
     for (OPT_Instruction instr = ir.lastInstructionInCodeOrder(),
-        prevInstr = null;
-         instr != null; instr = prevInstr) {
+        prevInstr = null; instr != null; instr = prevInstr) {
       prevInstr = instr.prevInstructionInCodeOrder(); // cache because
       // remove nulls next/prev fields
       // if instr is a PEI, store, branch, or call, then it's not dead ...
-      if (instr.isPEI() || instr.isImplicitStore() || instr.isBranch()
-          || instr.isCall()) {
+      if (instr.isPEI() || instr.isImplicitStore() || instr.isBranch() || instr.isCall()) {
         continue;
       }
-      if (preserveImplicitSSA && (instr.isImplicitLoad() || instr.isAllocation()
-                                  || instr.operator() == PHI)) {
+      if (preserveImplicitSSA && (instr.isImplicitLoad() || instr.isAllocation() || instr.operator() == PHI)) {
         continue;
       }
 
@@ -536,8 +525,7 @@ public final class OPT_Simple extends OPT_CompilerPhase {
       // there is at least 1 def.
       boolean isDead = true;
       boolean foundRegisterDef = false;
-      for (OPT_OperandEnumeration defs = instr.getDefs();
-           defs.hasMoreElements();) {
+      for (OPT_OperandEnumeration defs = instr.getDefs(); defs.hasMoreElements();) {
         OPT_Operand def = defs.nextElement();
         if (!def.isRegister()) {
           isDead = false;
@@ -573,16 +561,16 @@ public final class OPT_Simple extends OPT_CompilerPhase {
    */
   void foldConstants(OPT_IR ir) {
     boolean recomputeRegList = false;
-    for (OPT_Instruction s = ir.firstInstructionInCodeOrder(); s != null;
-         s = s.nextInstructionInCodeOrder()) {
+    for (OPT_Instruction s = ir.firstInstructionInCodeOrder(); s != null; s = s.nextInstructionInCodeOrder()) {
       OPT_Simplifier.DefUseEffect code = OPT_Simplifier.simplify(ir.regpool, s);
       // If something was reduced (as opposed to folded) then its uses may
       // be different. This happens so infrequently that it's cheaper to
       // handle it by  recomputing the DU from
       // scratch rather than trying to do the incremental bookkeeping.
-      recomputeRegList |= (code == OPT_Simplifier.DefUseEffect.MOVE_REDUCED ||
-                           code == OPT_Simplifier.DefUseEffect.TRAP_REDUCED ||
-                           code == OPT_Simplifier.DefUseEffect.REDUCED);
+      recomputeRegList |=
+          (code == OPT_Simplifier.DefUseEffect.MOVE_REDUCED ||
+           code == OPT_Simplifier.DefUseEffect.TRAP_REDUCED ||
+           code == OPT_Simplifier.DefUseEffect.REDUCED);
     }
     if (recomputeRegList) {
       OPT_DefUse.computeDU(ir);
@@ -600,8 +588,7 @@ public final class OPT_Simple extends OPT_CompilerPhase {
    */
   void simplifyConstantBranches(OPT_IR ir) {
     boolean didSomething = false;
-    for (OPT_BasicBlockEnumeration e = ir.forwardBlockEnumerator();
-         e.hasMoreElements();) {
+    for (OPT_BasicBlockEnumeration e = ir.forwardBlockEnumerator(); e.hasMoreElements();) {
       OPT_BasicBlock bb = e.next();
       didSomething |= OPT_BranchSimplifier.simplify(bb, ir);
     }

@@ -58,8 +58,7 @@ import org.jikesrvm.compilers.opt.ir.ia32.OPT_PhysicalRegisterSet;
  * beginning of each catch block.
  */
 
-final class OPT_ExpandFPRStackConvention extends OPT_CompilerPhase
-    implements OPT_Operators {
+final class OPT_ExpandFPRStackConvention extends OPT_CompilerPhase implements OPT_Operators {
 
   /**
    * The number of FPRs available for allocation.
@@ -98,10 +97,8 @@ final class OPT_ExpandFPRStackConvention extends OPT_CompilerPhase
         // clear all floating-point state at the entry to a catch block
         for (int i = 0; i < NUM_ALLOCATABLE_FPR; i++) {
           OPT_Register fpr = phys.getFPR(i);
-          bb.prependInstruction(MIR_UnaryNoRes.create(DUMMY_USE,
-                                                      OPT_IRTools.D(fpr)));
-          bb.prependInstruction(MIR_Nullary.create(DUMMY_DEF,
-                                                   OPT_IRTools.D(fpr)));
+          bb.prependInstruction(MIR_UnaryNoRes.create(DUMMY_USE, OPT_IRTools.D(fpr)));
+          bb.prependInstruction(MIR_Nullary.create(DUMMY_DEF, OPT_IRTools.D(fpr)));
         }
       }
 
@@ -109,8 +106,7 @@ final class OPT_ExpandFPRStackConvention extends OPT_CompilerPhase
       // 'normal' position.
       int fpStackOffset = 0;
 
-      for (OPT_InstructionEnumeration inst = bb.forwardInstrEnumerator();
-           inst.hasMoreElements();) {
+      for (OPT_InstructionEnumeration inst = bb.forwardInstrEnumerator(); inst.hasMoreElements();) {
         OPT_Instruction s = inst.nextElement();
         if (s.operator().isFpPop()) {
           // A pop instruction 'ends' a dummy live range.
@@ -124,8 +120,7 @@ final class OPT_ExpandFPRStackConvention extends OPT_CompilerPhase
         }
         if (VM.VerifyAssertions) VM._assert(fpStackOffset >= 0);
         if (VM.VerifyAssertions) {
-          VM._assert(fpStackOffset <
-                     NUM_ALLOCATABLE_FPR);
+          VM._assert(fpStackOffset < NUM_ALLOCATABLE_FPR);
         }
       }
     }

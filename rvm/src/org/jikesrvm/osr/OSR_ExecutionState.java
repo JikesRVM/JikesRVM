@@ -59,10 +59,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants {
   //////////////////////////////
   // initializer
   /////////////////////////////
-  public OSR_ExecutionState(VM_Thread whichThread,
-                            Offset framePointerOffset,
-                            int compiledMethodID,
-                            int pc,
+  public OSR_ExecutionState(VM_Thread whichThread, Offset framePointerOffset, int compiledMethodID, int pc,
                             Offset tsFPOffset) {
     this.thread = whichThread;
     this.fpOffset = framePointerOffset;
@@ -223,8 +220,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants {
         default: {
           if (VM.VerifyAssertions) {
             VM._assert(VM.NOT_REACHED,
-                       "OSR_ExecutionState: unknown bytecode " + code
-                       + " at " + this.bcIndex + "@" + this.meth);
+                       "OSR_ExecutionState: unknown bytecode " + code + " at " + this.bcIndex + "@" + this.meth);
           }
           break;
         }
@@ -261,9 +257,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants {
     return prologue;
   }// end of method
 
-  private OSR_PseudoBytecode processElement(OSR_VariableElement var,
-                                            OSR_PseudoBytecode tail,
-                                            int i) {
+  private OSR_PseudoBytecode processElement(OSR_VariableElement var, OSR_PseudoBytecode tail, int i) {
     switch (var.getTypeCode()) {
       case INT: {
         tail.next = new BC_LoadIntConst(var.getIntBits());
@@ -430,8 +424,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants {
   /* generating binary code from pseudo code, the size and the code
    * list are padded and well calculated.
    */
-  private static byte[] generateBinaries(OSR_PseudoBytecode bhead,
-                                         int bsize) {
+  private static byte[] generateBinaries(OSR_PseudoBytecode bhead, int bsize) {
 
     /* patch the LoalAddrConst instruction, and generate codes. */
     byte[] codes = new byte[bsize];
@@ -462,9 +455,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants {
   }
 
   public String toString() {
-    StringBuffer buf = new StringBuffer("Execution state "
-                                        + this.bcIndex + "@" + this.meth
-                                        + " " + this.thread);
+    StringBuffer buf = new StringBuffer("Execution state " + this.bcIndex + "@" + this.meth + " " + this.thread);
     for (int i = 0, n = varElms.size(); i < n; i++) {
       OSR_VariableElement var = varElms.get(i);
       buf.append("\n  ");

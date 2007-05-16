@@ -111,10 +111,7 @@ import org.vmmagic.pragma.NoInline;
  * @see OPT_Operand
  * @see OPT_BasicBlock
  */
-public final class OPT_Instruction
-    implements VM_Constants,
-               OPT_Operators,
-               OPT_Constants {
+public final class OPT_Instruction implements VM_Constants, OPT_Operators, OPT_Constants {
 
   /**
    * BITFIELD used to encode {@link #operatorInfo}.
@@ -340,8 +337,7 @@ public final class OPT_Instruction
    */
   public OPT_Instruction nextInstructionInCodeOrder() {
     if (next == null) {
-      OPT_BasicBlock nBlock =
-          BBend.getBlock(this).block.nextBasicBlockInCodeOrder();
+      OPT_BasicBlock nBlock = BBend.getBlock(this).block.nextBasicBlockInCodeOrder();
       if (nBlock == null) {
         return null;
       } else {
@@ -361,8 +357,7 @@ public final class OPT_Instruction
    */
   public OPT_Instruction prevInstructionInCodeOrder() {
     if (prev == null) {
-      OPT_BasicBlock nBlock =
-          Label.getBlock(this).block.prevBasicBlockInCodeOrder();
+      OPT_BasicBlock nBlock = Label.getBlock(this).block.prevBasicBlockInCodeOrder();
       if (nBlock == null) {
         return null;
       } else {
@@ -655,8 +650,7 @@ public final class OPT_Instruction
   public boolean hasMemoryOperand() {
     for (int i = 0; i < ops.length; i++) {
       OPT_Operand op = getOperand(i);
-      if (op instanceof OPT_MemoryOperand ||
-          op instanceof OPT_StackLocationOperand) {
+      if (op instanceof OPT_MemoryOperand || op instanceof OPT_StackLocationOperand) {
         return true;
       }
     }
@@ -740,8 +734,7 @@ public final class OPT_Instruction
   @Inline
   public OPT_OperandEnumeration getUses() {
     int numOps = getNumberOfOperands() - 1;
-    int defsEnd =
-        operator.hasVarDefs() ? numOps : operator.getNumberOfPureDefs() - 1;
+    int defsEnd = operator.hasVarDefs() ? numOps : operator.getNumberOfPureDefs() - 1;
     return new OE(this, 0, numOps, defsEnd);
   }
 
@@ -751,8 +744,7 @@ public final class OPT_Instruction
    * @return an enumeration of the instruction's uses.
    */
   public OPT_OperandEnumeration getRootUses() {
-    return new ROE(this, getNumberOfPureDefs(),
-                   getNumberOfOperands() - 1);
+    return new ROE(this, getNumberOfPureDefs(), getNumberOfOperands() - 1);
   }
 
   /*
@@ -810,10 +802,7 @@ public final class OPT_Instruction
    */
   public boolean isTwoWayBranch() {
     // Is there a cleaner way to answer this question?
-    return (isConditionalBranch() &&
-            !IfCmp2.conforms(this)
-            && !MIR_CondBranch2.conforms(this)
-    );
+    return (isConditionalBranch() && !IfCmp2.conforms(this) && !MIR_CondBranch2.conforms(this));
   }
 
   /**
@@ -1210,8 +1199,7 @@ public final class OPT_Instruction
    */
   public void setBranchProbability(float takenProbability) {
     if (VM.VerifyAssertions) VM._assert(isTwoWayBranch());
-    BranchProfileCarrier.getBranchProfile(this).takenProbability =
-        takenProbability;
+    BranchProfileCarrier.getBranchProfile(this).takenProbability = takenProbability;
   }
 
   /**
@@ -1506,8 +1494,7 @@ public final class OPT_Instruction
   public OPT_Instruction remove() {
     if (OPT_IR.PARANOID) {
       isLinked();
-      VM._assert(!isBbFirst() && !isBbLast(),
-                 "Removal of first/last instructions in block not supported");
+      VM._assert(!isBbFirst() && !isBbLast(), "Removal of first/last instructions in block not supported");
     }
 
     // Splice this out of instr list
@@ -1532,14 +1519,12 @@ public final class OPT_Instruction
   private void isBackwardLinked() {
     VM._assert(prev.next == this, "is_backward_linked: failure (1)");
     // OK if next is null (IR under construction)
-    VM._assert(next == null || next.prev == this,
-               "is_backward_linked: failure (2)");
+    VM._assert(next == null || next.prev == this, "is_backward_linked: failure (2)");
   }
 
   private void isForwardLinked() {
     // OK if prev is null (IR under construction)
-    VM._assert(prev == null || prev.next == this,
-               "is_forward_linked: failure (1)");
+    VM._assert(prev == null || prev.next == this, "is_forward_linked: failure (1)");
     VM._assert(next.prev == this, "is_forward_linked (2)");
   }
 
@@ -1594,9 +1579,14 @@ public final class OPT_Instruction
       super(instr, start, end);
       this.defEnd = defEnd;
       if (DEBUG) {
-        System.out.println(" --> OE called with inst\n" + instr
-                           + "\n start: " + start + ", end: " + end
-                           + ", defEnd: " + defEnd);
+        System.out.println(" --> OE called with inst\n" +
+                           instr +
+                           "\n start: " +
+                           start +
+                           ", end: " +
+                           end +
+                           ", defEnd: " +
+                           defEnd);
       }
       advance();
     }
@@ -1641,8 +1631,7 @@ public final class OPT_Instruction
     public OEDefsOnly(OPT_Instruction instr, int start, int end) {
       super(instr, start, end);
       if (DEBUG) {
-        System.out.println(" --> OEDefsOnly called with inst\n" + instr
-                           + "\n start: " + start + ", end: " + end);
+        System.out.println(" --> OEDefsOnly called with inst\n" + instr + "\n start: " + start + ", end: " + end);
       }
       advance();
     }
@@ -1667,8 +1656,7 @@ public final class OPT_Instruction
     public MOE(OPT_Instruction instr, int start, int end) {
       super(instr, start, end);
       if (DEBUG) {
-        System.out.println(" --> MOE called with inst\n" + instr
-                           + "\n start: " + start + ", end: " + end);
+        System.out.println(" --> MOE called with inst\n" + instr + "\n start: " + start + ", end: " + end);
       }
       advance();
     }
@@ -1693,8 +1681,7 @@ public final class OPT_Instruction
     public ROE(OPT_Instruction instr, int start, int end) {
       super(instr, start, end);
       if (DEBUG) {
-        System.out.println(" --> ROE called with inst\n" + instr
-                           + "\n start: " + start + ", end: " + end);
+        System.out.println(" --> ROE called with inst\n" + instr + "\n start: " + start + ", end: " + end);
       }
       advance();
     }

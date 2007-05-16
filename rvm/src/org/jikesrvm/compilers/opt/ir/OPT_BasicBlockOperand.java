@@ -47,8 +47,7 @@ public final class OPT_BasicBlockOperand extends OPT_Operand {
    *           if they are not.
    */
   public boolean similar(OPT_Operand op) {
-    return (op instanceof OPT_BasicBlockOperand) &&
-           (block == ((OPT_BasicBlockOperand) op).block);
+    return (op instanceof OPT_BasicBlockOperand) && (block == ((OPT_BasicBlockOperand) op).block);
   }
 
   /**

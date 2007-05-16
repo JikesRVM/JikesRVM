@@ -18,8 +18,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
  * and therefore recompilation of the method should
  * be considered to enable additional profile-directed inlining.
  */
-public final class VM_AINewHotEdgeEvent extends VM_HotMethodEvent
-    implements VM_ControllerInputEvent {
+public final class VM_AINewHotEdgeEvent extends VM_HotMethodEvent implements VM_ControllerInputEvent {
 
   /**
    * Estimate of the expected benefit if the method is
@@ -60,8 +59,7 @@ public final class VM_AINewHotEdgeEvent extends VM_HotMethodEvent
   }
 
   public String toString() {
-    return "NewHotEdgeEvent: " + super.toString() +
-           ", boost factor = " + getBoostFactor();
+    return "NewHotEdgeEvent: " + super.toString() + ", boost factor = " + getBoostFactor();
   }
 
   /**

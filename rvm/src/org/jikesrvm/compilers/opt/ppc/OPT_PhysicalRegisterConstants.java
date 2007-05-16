@@ -44,19 +44,15 @@ public interface OPT_PhysicalRegisterConstants extends VM_RegisterConstants {
   int FIRST_SPECIAL = NUM_GPRS + NUM_FPRS + NUM_CRS;
 
   // Derived constants for use by the register pool.
-  int NUMBER_INT_NONVOLAT = LAST_NONVOLATILE_GPR
-                            - FIRST_NONVOLATILE_GPR + 1;
-  int NUMBER_DOUBLE_NONVOLAT = LAST_NONVOLATILE_FPR
-                               - FIRST_NONVOLATILE_FPR + 1;
+  int NUMBER_INT_NONVOLAT = LAST_NONVOLATILE_GPR - FIRST_NONVOLATILE_GPR + 1;
+  int NUMBER_DOUBLE_NONVOLAT = LAST_NONVOLATILE_FPR - FIRST_NONVOLATILE_FPR + 1;
 
   // Derived constants for use by the register pool.
   // These constants give the register pool numbers for parameters
   int FIRST_INT_PARAM = FIRST_VOLATILE_GPR + FIRST_INT;
-  int NUMBER_INT_PARAM = LAST_VOLATILE_GPR - FIRST_VOLATILE_GPR
-                         + 1;
+  int NUMBER_INT_PARAM = LAST_VOLATILE_GPR - FIRST_VOLATILE_GPR + 1;
   int FIRST_DOUBLE_PARAM = FIRST_VOLATILE_FPR + FIRST_DOUBLE;
-  int NUMBER_DOUBLE_PARAM = LAST_VOLATILE_FPR - FIRST_VOLATILE_FPR
-                            + 1;
+  int NUMBER_DOUBLE_PARAM = LAST_VOLATILE_FPR - FIRST_VOLATILE_FPR + 1;
 
   // Derived constants for use by the register pool.
   // These constants give the register pool numbers for caller saved registers

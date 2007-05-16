@@ -81,8 +81,7 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants {
    */
   @Interruptible
   public int[] finish() {
-    if ((gcMapInformation != null) &&
-        (lastGCMapEntry < gcMapInformation.length - 1)) {
+    if ((gcMapInformation != null) && (lastGCMapEntry < gcMapInformation.length - 1)) {
       resizeMapInformation(lastGCMapEntry + 1);
     }
     return gcMapInformation;
@@ -179,13 +178,9 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants {
    * @param  registerNumber   the register number
    * @param  gcMap            the encoded GCMap
    */
-  public static boolean registerIsSet(int entry,
-                                      int registerNumber,
-                                      int[] gcMap) {
+  public static boolean registerIsSet(int entry, int registerNumber, int[] gcMap) {
     if (VM.VerifyAssertions) {
-      VM._assert(registerNumber >= FIRST_GCMAP_REG &&
-                 registerNumber <= LAST_GCMAP_REG,
-                 "Bad registerNumber");
+      VM._assert(registerNumber >= FIRST_GCMAP_REG && registerNumber <= LAST_GCMAP_REG, "Bad registerNumber");
     }
 
     // Get the bit position for the register number
@@ -245,9 +240,7 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants {
     VM.sysWrite("Regs [");
     // Inspect the register bit map for the entry passed and print
     // those bit map entries that are true
-    for (int registerNumber = FIRST_GCMAP_REG;
-         registerNumber <= LAST_GCMAP_REG;
-         registerNumber++) {
+    for (int registerNumber = FIRST_GCMAP_REG; registerNumber <= LAST_GCMAP_REG; registerNumber++) {
       if (registerIsSet(entry, registerNumber, gcMap)) {
         VM.sysWrite(registerNumber, " ");
       }
@@ -355,7 +348,9 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants {
 
     if (DEBUG) {
       System.out.println("\nendCurrentMap called with firstIndex: " +
-                         firstIndex + ", lastGCMapEntry: " + lastGCMapEntry);
+                         firstIndex +
+                         ", lastGCMapEntry: " +
+                         lastGCMapEntry);
       System.out.println("gc map array before reuse checking");
       for (int i = 0; i <= lastGCMapEntry; i++) {
         System.out.println(i + ": " + gcMapInformation[i]);
@@ -372,8 +367,7 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants {
       int cur = gcMapInformation[curIndex++];
       if (old != cur) {
         if (DEBUG) {
-          System.out.println("entries at " + (candidateIndex - 1)
-                             + " and " + (curIndex - 1) + " don't match");
+          System.out.println("entries at " + (candidateIndex - 1) + " and " + (curIndex - 1) + " don't match");
         }
         // this entry won't work, advance to candidateIndex to GC map entry
         //  and reset curIndex
@@ -389,9 +383,15 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants {
         //  a winner to reuse
 
         if (DEBUG) {
-          System.out.println("found a matching map: [" + candidateBeginningIndex
-                             + ", " + (candidateIndex - 1) + "] == [" +
-                             firstIndex + ", " + lastGCMapEntry + "]");
+          System.out.println("found a matching map: [" +
+                             candidateBeginningIndex +
+                             ", " +
+                             (candidateIndex - 1) +
+                             "] == [" +
+                             firstIndex +
+                             ", " +
+                             lastGCMapEntry +
+                             "]");
         }
 
         lastGCMapEntry = firstIndex - 1;

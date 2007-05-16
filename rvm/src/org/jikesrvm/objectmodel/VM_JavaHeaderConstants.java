@@ -35,9 +35,7 @@ public interface VM_JavaHeaderConstants extends VM_SizeConstants {
    * for the length on a 64 bit architecture as this makes the other
    * words 8-byte aligned, and the header has to be 8-byte aligned.
    */
-  int ARRAY_LENGTH_BYTES = VM.BuildFor64Addr
-                           ? BYTES_IN_ADDRESS
-                           : BYTES_IN_INT;
+  int ARRAY_LENGTH_BYTES = VM.BuildFor64Addr ? BYTES_IN_ADDRESS : BYTES_IN_INT;
 
   /** Number of bytes used by the Java Header */
   int JAVA_HEADER_BYTES = TIB_BYTES + STATUS_BYTES;
@@ -83,8 +81,7 @@ public interface VM_JavaHeaderConstants extends VM_SizeConstants {
    * Does this object model place the hash for a hashed and moved object
    * after the data (at a dynamic offset)
    */
-  boolean DYNAMIC_HASH_OFFSET
-      = ADDRESS_BASED_HASHING && MM_Constants.NEEDS_LINEAR_SCAN;
+  boolean DYNAMIC_HASH_OFFSET = ADDRESS_BASED_HASHING && MM_Constants.NEEDS_LINEAR_SCAN;
 
   /**
    * Can we perform a linear scan?
@@ -98,8 +95,7 @@ public interface VM_JavaHeaderConstants extends VM_SizeConstants {
 
   /*
    * Stuff for address based hashing
-   */
-  Word HASH_STATE_UNHASHED = Word.zero();
+   */ Word HASH_STATE_UNHASHED = Word.zero();
   Word HASH_STATE_HASHED = Word.one().lsh(8); //0x00000100
   Word HASH_STATE_HASHED_AND_MOVED = Word.fromIntZeroExtend(3).lsh(8); //0x0000300
   Word HASH_STATE_MASK = HASH_STATE_UNHASHED.or(HASH_STATE_HASHED).or(HASH_STATE_HASHED_AND_MOVED);

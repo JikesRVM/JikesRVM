@@ -50,8 +50,7 @@ import org.jikesrvm.runtime.VM_Entrypoints;
  *      the summary of local types. Thus, after analysis, local
  *      types are same for all PCs.
  */
-public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
-                                              OSR_Constants {
+public class OSR_BytecodeTraverser implements VM_BytecodeConstants, OSR_Constants {
 
   /////// COMMON
   /* to handle ret address which is not produced by JSR, we need a
@@ -134,8 +133,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
       for (int i = 0, n = ptypes.length; i < n; i++) {
         byte tcode = ptypes[i].getName().parseForTypeCode();
         ltypes[lidx++] = tcode;
-        if ((tcode == LongTypeCode)
-            || (tcode == DoubleTypeCode)) {
+        if ((tcode == LongTypeCode) || (tcode == DoubleTypeCode)) {
           ltypes[lidx++] = VoidTypeCode;
         }
       }
@@ -152,8 +150,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
           simstacks.clear();
           simstacks.push(ClassTypeCode);
           int startpc = handlerPCs[i];
-          found = scanBlocks(method, bytecodes, true, bcpoint, ltypes, stypes,
-                             startpc, simstacks, null);
+          found = scanBlocks(method, bytecodes, true, bcpoint, ltypes, stypes, startpc, simstacks, null);
           if (found) {
             break;
           }
@@ -190,9 +187,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
   //////////////////////////
   // COMPUTE STACK HEIGHTS
   //////////////////////////
-  public void computeStackHeights(VM_NormalMethod method,
-                                  VM_BytecodeStream bcodes,
-                                  int[] stackHeights,
+  public void computeStackHeights(VM_NormalMethod method, VM_BytecodeStream bcodes, int[] stackHeights,
                                   boolean adjustExptable) {
     if (VM.TraceOnStackReplacement) {
       VM.sysWriteln("computing stack heights of method " + method.toString());
@@ -383,8 +378,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
           break;
         case JBC_ldc:
         case JBC_ldc_w: {
-          int cpoolidx = (bcode == JBC_ldc) ?
-                         bytecodes.getConstantIndex() : bytecodes.getWideConstantIndex();
+          int cpoolidx = (bcode == JBC_ldc) ? bytecodes.getConstantIndex() : bytecodes.getWideConstantIndex();
           byte tdesc = declaringClass.getLiteralDescription(cpoolidx);
           switch (tdesc) {
             case VM_Class.CP_INT:
@@ -861,8 +855,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
             byte[] newstypes = new byte[stypes.length];
             System.arraycopy(ltypes, 0, newltypes, 0, ltypes.length);
             System.arraycopy(stypes, 0, newstypes, 0, stypes.length);
-            found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes,
-                               nextpc, new OSR_TypeStack(S), null);
+            found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes, nextpc, new OSR_TypeStack(S), null);
             if (found) {
               // copy back the ltypes and stypes
               System.arraycopy(newltypes, 0, ltypes, 0, ltypes.length);
@@ -896,8 +889,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
             byte[] newstypes = new byte[stypes.length];
             System.arraycopy(ltypes, 0, newltypes, 0, ltypes.length);
             System.arraycopy(stypes, 0, newstypes, 0, stypes.length);
-            found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes,
-                               nextpc, new OSR_TypeStack(S), null);
+            found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes, nextpc, new OSR_TypeStack(S), null);
             if (found) {
               // copy back the ltypes and stypes
               System.arraycopy(newltypes, 0, ltypes, 0, ltypes.length);
@@ -930,8 +922,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
         case JBC_jsr_w: {
           // flow through firs
           int nextpc = pc + ((bcode == JBC_jsr) ? 3 : 5);
-          int target = pc + ((bcode == JBC_jsr) ? bytecodes.getBranchOffset() :
-                             bytecodes.getWideBranchOffset());
+          int target = pc + ((bcode == JBC_jsr) ? bytecodes.getBranchOffset() : bytecodes.getWideBranchOffset());
 
           if (doDFS) {
             // make a copy of ltypes, stypes to pass in
@@ -939,8 +930,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
             byte[] newstypes = new byte[stypes.length];
             System.arraycopy(ltypes, 0, newltypes, 0, ltypes.length);
             System.arraycopy(stypes, 0, newstypes, 0, stypes.length);
-            found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes,
-                               nextpc, new OSR_TypeStack(S), null);
+            found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes, nextpc, new OSR_TypeStack(S), null);
             if (found) {
               // copy back the ltypes and stypes
               System.arraycopy(newltypes, 0, ltypes, 0, ltypes.length);
@@ -1001,18 +991,13 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
               byte[] newltypes = new byte[ltypes.length];
               byte[] newstypes = new byte[stypes.length];
 
-              System.arraycopy(ltypes, 0, newltypes, 0,
-                               ltypes.length);
-              System.arraycopy(stypes, 0, newstypes, 0,
-                               stypes.length);
-              found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes,
-                                 tgtpc, new OSR_TypeStack(S), null);
+              System.arraycopy(ltypes, 0, newltypes, 0, ltypes.length);
+              System.arraycopy(stypes, 0, newstypes, 0, stypes.length);
+              found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes, tgtpc, new OSR_TypeStack(S), null);
               if (found) {
                 // copy back the ltypes and stypes
-                System.arraycopy(newltypes, 0, ltypes, 0,
-                                 ltypes.length);
-                System.arraycopy(newstypes, 0, stypes, 0,
-                                 stypes.length);
+                System.arraycopy(newltypes, 0, ltypes, 0, ltypes.length);
+                System.arraycopy(newstypes, 0, stypes, 0, stypes.length);
 
                 return true;
               }
@@ -1029,18 +1014,13 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
               // make a copy of ltypes, stypes to pass in
               byte[] newltypes = new byte[ltypes.length];
               byte[] newstypes = new byte[stypes.length];
-              System.arraycopy(ltypes, 0, newltypes, 0,
-                               ltypes.length);
-              System.arraycopy(stypes, 0, newstypes, 0,
-                               stypes.length);
-              found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes,
-                                 tgtpc, new OSR_TypeStack(S), null);
+              System.arraycopy(ltypes, 0, newltypes, 0, ltypes.length);
+              System.arraycopy(stypes, 0, newstypes, 0, stypes.length);
+              found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes, tgtpc, new OSR_TypeStack(S), null);
               if (found) {
                 // copy back the ltypes and stypes
-                System.arraycopy(newltypes, 0, ltypes, 0,
-                                 ltypes.length);
-                System.arraycopy(newstypes, 0, stypes, 0,
-                                 stypes.length);
+                System.arraycopy(newltypes, 0, ltypes, 0, ltypes.length);
+                System.arraycopy(newstypes, 0, stypes, 0, stypes.length);
               }
             } else {
               found = scanBlocks(method, bytecodes, false, -1, null, null, tgtpc, new OSR_TypeStack(S), stackHeights);
@@ -1072,18 +1052,13 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
               byte[] newltypes = new byte[ltypes.length];
               byte[] newstypes = new byte[stypes.length];
 
-              System.arraycopy(ltypes, 0, newltypes, 0,
-                               ltypes.length);
-              System.arraycopy(stypes, 0, newstypes, 0,
-                               stypes.length);
-              found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes,
-                                 tgtpc, new OSR_TypeStack(S), null);
+              System.arraycopy(ltypes, 0, newltypes, 0, ltypes.length);
+              System.arraycopy(stypes, 0, newstypes, 0, stypes.length);
+              found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes, tgtpc, new OSR_TypeStack(S), null);
               if (found) {
                 // copy back the ltypes and stypes
-                System.arraycopy(newltypes, 0, ltypes, 0,
-                                 ltypes.length);
-                System.arraycopy(newstypes, 0, stypes, 0,
-                                 stypes.length);
+                System.arraycopy(newltypes, 0, ltypes, 0, ltypes.length);
+                System.arraycopy(newstypes, 0, stypes, 0, stypes.length);
 
                 return true;
               }
@@ -1101,18 +1076,13 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
               byte[] newltypes = new byte[ltypes.length];
               byte[] newstypes = new byte[stypes.length];
 
-              System.arraycopy(ltypes, 0, newltypes, 0,
-                               ltypes.length);
-              System.arraycopy(stypes, 0, newstypes, 0,
-                               stypes.length);
-              found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes,
-                                 tgtpc, new OSR_TypeStack(S), null);
+              System.arraycopy(ltypes, 0, newltypes, 0, ltypes.length);
+              System.arraycopy(stypes, 0, newstypes, 0, stypes.length);
+              found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes, tgtpc, new OSR_TypeStack(S), null);
               if (found) {
                 // copy back the ltypes and stypes
-                System.arraycopy(newltypes, 0, ltypes, 0,
-                                 ltypes.length);
-                System.arraycopy(newstypes, 0, stypes, 0,
-                                 stypes.length);
+                System.arraycopy(newltypes, 0, ltypes, 0, ltypes.length);
+                System.arraycopy(newstypes, 0, stypes, 0, stypes.length);
               }
             } else {
               found = scanBlocks(method, bytecodes, false, -1, null, null, tgtpc, new OSR_TypeStack(S), stackHeights);
@@ -1192,8 +1162,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
           if (tcode == VoidTypeCode) {
             // nothing to do with void return type
           } else {
-            if ((tcode == LongTypeCode)
-                || (tcode == DoubleTypeCode)) {
+            if ((tcode == LongTypeCode) || (tcode == DoubleTypeCode)) {
               S.push(VoidTypeCode);
             }
             S.push(tcode);
@@ -1375,8 +1344,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
               if (tcode == VoidTypeCode) {
                 // nothing to do with void return type
               } else {
-                if ((tcode == LongTypeCode)
-                    || (tcode == DoubleTypeCode)) {
+                if ((tcode == LongTypeCode) || (tcode == DoubleTypeCode)) {
                   S.push(VoidTypeCode);
                 }
                 S.push(tcode);
@@ -1407,8 +1375,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
               if (tcode == VoidTypeCode) {
                 // nothing to do with void return type
               } else {
-                if ((tcode == LongTypeCode)
-                    || (tcode == DoubleTypeCode)) {
+                if ((tcode == LongTypeCode) || (tcode == DoubleTypeCode)) {
                   S.push(VoidTypeCode);
                 }
                 S.push(tcode);
@@ -1418,8 +1385,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
               break;
             default:
               if (VM.VerifyAssertions) {
-                VM.sysWrite(" Error, no such pseudo code : "
-                            + pseudo_opcode + "\n");
+                VM.sysWrite(" Error, no such pseudo code : " + pseudo_opcode + "\n");
                 VM._assert(VM.NOT_REACHED);
               }
               return false;

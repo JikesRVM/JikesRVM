@@ -73,8 +73,7 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase {
    */
   public void perform(OPT_IR ir) {
     // loop over all basic blocks ...
-    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks();
-         e.hasMoreElements();) {
+    for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
       OPT_BasicBlock bb = e.next();
       if (bb.isEmpty()) continue;
       container.counter2++;
@@ -83,11 +82,9 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase {
         if (ir.options.FREQ_FOCUS_EFFORT) continue;
       }
       // visit each instruction in the basic block
-      for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator();
-           ie.hasMoreElements();) {
+      for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
         OPT_Instruction s = ie.next();
-        if (TypeCheck.conforms(s) && (invertNullAndTypeChecks(s) ||
-                                      pushTypeCheckBelowIf(s, ir)))
+        if (TypeCheck.conforms(s) && (invertNullAndTypeChecks(s) || pushTypeCheckBelowIf(s, ir)))
         // hack: we may have modified the instructions; start over
         {
           ie = bb.forwardInstrEnumerator();
@@ -107,17 +104,20 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase {
     if (s.operator() == CHECKCAST) {
       OPT_Register r = TypeCheck.getRef(s).asRegister().register;
       OPT_Instruction n = s.nextInstructionInCodeOrder();
-      while (n.operator() == REF_MOVE && Move.getVal(n)
-          instanceof OPT_RegisterOperand
-             && Move.getVal(n).asRegister().register == r) {
+      while (n.operator() == REF_MOVE &&
+             Move.getVal(n) instanceof OPT_RegisterOperand &&
+             Move.getVal(n).asRegister().register == r) {
         r = Move.getResult(n).asRegister().register;
         n = n.nextInstructionInCodeOrder();
       }
-      if (n.operator() == NULL_CHECK && TypeCheck.getRef(s).asRegister().register ==
-                                        NullCheck.getRef(n).asRegister().register) {
+      if (n.operator() == NULL_CHECK &&
+          TypeCheck.getRef(s).asRegister().register == NullCheck.getRef(n).asRegister().register) {
         s.remove();
-        TypeCheck.mutate(s, CHECKCAST_NOTNULL, TypeCheck.getClearRef(s),
-                         TypeCheck.getClearType(s), NullCheck.getGuardResult(n).copy());
+        TypeCheck.mutate(s,
+                         CHECKCAST_NOTNULL,
+                         TypeCheck.getClearRef(s),
+                         TypeCheck.getClearType(s),
+                         NullCheck.getGuardResult(n).copy());
         n.insertAfter(s);
         return true;
       }
@@ -138,9 +138,9 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase {
          optimize cases where the checked value is moved before
          it is used
       */
-      while (n.operator() == REF_MOVE && Move.getVal(n)
-          instanceof OPT_RegisterOperand
-             && Move.getVal(n).asRegister().register == r) {
+      while (n.operator() == REF_MOVE &&
+             Move.getVal(n) instanceof OPT_RegisterOperand &&
+             Move.getVal(n).asRegister().register == r) {
         r = Move.getResult(n).asRegister().register;
         n = n.nextInstructionInCodeOrder();
       }
@@ -197,8 +197,11 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase {
 
         /* put check in new block */
         s.remove();
-        TypeCheck.mutate(s, CHECKCAST_NOTNULL, TypeCheck.getClearRef(s),
-                         TypeCheck.getClearType(s), IfCmp.getGuardResult(n).copyRO());
+        TypeCheck.mutate(s,
+                         CHECKCAST_NOTNULL,
+                         TypeCheck.getClearRef(s),
+                         TypeCheck.getClearType(s),
+                         IfCmp.getGuardResult(n).copyRO());
         newBlock.prependInstruction(s);
         return true;
       }

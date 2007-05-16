@@ -37,12 +37,8 @@ public final class VM_Field extends VM_Member {
    * @param constantValueIndex constant pool index of constant value
    * @param annotations array of runtime visible annotations
    */
-  private VM_Field(VM_TypeReference declaringClass,
-                   VM_MemberReference memRef,
-                   short modifiers,
-                   VM_Atom signature,
-                   int constantValueIndex,
-                   VM_Annotation[] annotations) {
+  private VM_Field(VM_TypeReference declaringClass, VM_MemberReference memRef, short modifiers, VM_Atom signature,
+                   int constantValueIndex, VM_Annotation[] annotations) {
     super(declaringClass, memRef, modifiers, signature, annotations);
     this.constantValueIndex = constantValueIndex;
     memRef.asFieldReference().setResolvedMember(this);
@@ -59,8 +55,7 @@ public final class VM_Field extends VM_Member {
    * @param modifiers modifiers associated with this member.
    * @param input the DataInputStream to read the field's attributed from
    */
-  static VM_Field readField(VM_TypeReference declaringClass,
-                            int[] constantPool, VM_MemberReference memRef,
+  static VM_Field readField(VM_TypeReference declaringClass, int[] constantPool, VM_MemberReference memRef,
                             short modifiers, DataInputStream input) throws IOException {
     // Read the attributes, processing the "non-boring" ones
     int cvi = 0;
@@ -76,8 +71,7 @@ public final class VM_Field extends VM_Member {
       } else if (attName == VM_ClassLoader.signatureAttributeName) {
         signature = VM_Class.getUtf(constantPool, input.readUnsignedShort());
       } else if (attName == VM_ClassLoader.runtimeVisibleAnnotationsAttributeName) {
-        annotations = VM_AnnotatedElement.readAnnotations(constantPool, input, 2,
-                                                          declaringClass.getClassLoader());
+        annotations = VM_AnnotatedElement.readAnnotations(constantPool, input, 2, declaringClass.getClassLoader());
       } else {
         // all other attributes are boring...
         input.skipBytes(attLength);
@@ -94,8 +88,7 @@ public final class VM_Field extends VM_Member {
   /**
    * Create a field for a synthetic annotation class
    */
-  static VM_Field createAnnotationField(VM_TypeReference annotationClass,
-                                        VM_MemberReference memRef) {
+  static VM_Field createAnnotationField(VM_TypeReference annotationClass, VM_MemberReference memRef) {
     return new VM_Field(annotationClass, memRef, (short) (ACC_PRIVATE | ACC_SYNTHETIC), null, 0, null);
   }
 

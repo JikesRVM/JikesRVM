@@ -16,8 +16,7 @@ import java.util.Iterator;
  *
  * Represents a single lattice cell in a dataflow system.
  */
-abstract class OPT_DF_AbstractCell
-    implements OPT_DF_LatticeCell {
+abstract class OPT_DF_AbstractCell implements OPT_DF_LatticeCell {
 
   /**
    * Default Constructor

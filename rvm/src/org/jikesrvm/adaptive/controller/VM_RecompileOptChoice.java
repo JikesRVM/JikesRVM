@@ -57,10 +57,8 @@ class VM_RecompileOptChoice extends VM_RecompilationChoice {
    *        the method if left running with the previous compiler.
    * @return The expected future execution time if this choice were selected
    */
-  double getFutureExecutionTime(int prevCompiler,
-                                double futureTimeForMethod) {
-    double rtFactor =
-        VM_CompilerDNA.getBenefitRatio(prevCompiler, getCompiler());
+  double getFutureExecutionTime(int prevCompiler, double futureTimeForMethod) {
+    double rtFactor = VM_CompilerDNA.getBenefitRatio(prevCompiler, getCompiler());
     return futureTimeForMethod / rtFactor;
   }
 
@@ -76,17 +74,16 @@ class VM_RecompileOptChoice extends VM_RecompilationChoice {
    * @param expectedCompilationTime The expected time for recompiling
    * @return The controller plan implementing this recompilation choice
    */
-  VM_ControllerPlan makeControllerPlan(VM_CompiledMethod cmpMethod,
-                                       int prevCompiler,
-                                       double prevTimeForMethod,
-                                       double bestActionTime,
-                                       double expectedCompilationTime) {
-    double speedup =
-        VM_CompilerDNA.getBenefitRatio(prevCompiler, getCompiler());
+  VM_ControllerPlan makeControllerPlan(VM_CompiledMethod cmpMethod, int prevCompiler, double prevTimeForMethod,
+                                       double bestActionTime, double expectedCompilationTime) {
+    double speedup = VM_CompilerDNA.getBenefitRatio(prevCompiler, getCompiler());
     double priority = prevTimeForMethod - bestActionTime;
     return VM_Controller.recompilationStrategy.
-        createControllerPlan(cmpMethod.getMethod(), thisChoiceOptLevel,
-                             null, cmpMethod.getId(), speedup,
+        createControllerPlan(cmpMethod.getMethod(),
+                             thisChoiceOptLevel,
+                             null,
+                             cmpMethod.getId(),
+                             speedup,
                              expectedCompilationTime,
                              priority);
   }

@@ -43,8 +43,7 @@ public interface OSR_Constants extends VM_SizeConstants {
 
   /*
    * signifies there is no map entry for this machine code offset
-   */
-  int NO_OSR_ENTRY = (int) (OSRI_MASK >>> OSRI_SHIFT);
+   */ int NO_OSR_ENTRY = (int) (OSRI_MASK >>> OSRI_SHIFT);
   int INVALID_BCI = (int) (BCI_MASK >>> BCI_SHIFT);
   int INVALID_IEI = (int) (IEI_MASK >>> IEI_SHIFT);
 
@@ -74,28 +73,22 @@ public interface OSR_Constants extends VM_SizeConstants {
   /* bit pattern for the "Next" bit in the OSR maps array
   */
   int NEXT_BIT = 0x80000000;
-  /* kind of element */
-  int KIND_MASK = 0x00400000;
+  /* kind of element */ int KIND_MASK = 0x00400000;
   int KIND_SHIFT = 22;
-  /* type code */
-  int TCODE_MASK = 0x00380000;
+  /* type code */ int TCODE_MASK = 0x00380000;
   int TCODE_SHIFT = 19;
-  /* number */
-  int NUM_MASK = 0x0007fff8;
+  /* number */ int NUM_MASK = 0x0007fff8;
   int NUM_SHIFT = 3;
-  /* value type */
-  int VTYPE_MASK = 0x00000007;
+  /* value type */ int VTYPE_MASK = 0x00000007;
   int VTYPE_SHIFT = 0;
 
   ////////////////////////////////////////////
   //  Part II  constants used when extract VM scope descriptor
   ////////////////////////////////////////////
-  /* the kind of element */
-  int LOCAL = 0;
+  /* the kind of element */ int LOCAL = 0;
   int STACK = 1;
 
-  /* the type code of the element, used in osr map encoding. */
-  int INT = 0;
+  /* the type code of the element, used in osr map encoding. */ int INT = 0;
   int HIGH_64BIT = 1; //used to store the high bits of a 64-bit value
   int LONG = 2;
   int FLOAT = 3;
@@ -104,8 +97,7 @@ public interface OSR_Constants extends VM_SizeConstants {
   int REF = 6;
   int WORD = 7;
 
-  /* value type */
-  int ICONST = 0;
+  /* value type */ int ICONST = 0;
   int ACONST = 3;
   int LCONST = 4;
   int PHYREG = 1;
@@ -152,14 +144,12 @@ public interface OSR_Constants extends VM_SizeConstants {
   int PSEUDO_InvokeStatic = 7;
   int PSEUDO_CheckCast = 8;
 
-  /* followed by compiled method ID */
-  int PSEUDO_InvokeCompiledMethod = 9;
+  /* followed by compiled method ID */ int PSEUDO_InvokeCompiledMethod = 9;
 
-  /* indicate local initialization ends, for baselike compiler */
-  int PSEUDO_ParamInitEnd = 10;
+  /* indicate local initialization ends, for baselike compiler */ int PSEUDO_ParamInitEnd = 10;
 
-  /* special method id for PSEUDO_InvokeStatic, target must be listed here */
-  int GETREFAT = 0;  // OSR_ObjectHolder.getRefAt
+  /* special method id for PSEUDO_InvokeStatic, target must be listed here */ int GETREFAT =
+      0;  // OSR_ObjectHolder.getRefAt
   int CLEANREFS = 1;  // OSR_ObjectHolder.cleanRefAt
 
   byte ClassTypeCode = (byte) 'L';

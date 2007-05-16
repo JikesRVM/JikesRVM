@@ -186,8 +186,7 @@ final class OPT_ValueGraph {
    * @param ir the governing IR
    */
   private void addRegisterNodes(OPT_IR ir) {
-    for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister();
-         reg != null; reg = reg.getNext()) {
+    for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); reg != null; reg = reg.getNext()) {
       findOrCreateVertex(reg);
     }
   }
@@ -587,8 +586,7 @@ final class OPT_ValueGraph {
    */
   private void processPrologue(OPT_Instruction s) {
     int numArgs = 0;
-    for (OPT_OperandEnumeration e = s.getDefs(); e.hasMoreElements();
-         numArgs++) {
+    for (OPT_OperandEnumeration e = s.getDefs(); e.hasMoreElements(); numArgs++) {
       OPT_Register formal = ((OPT_RegisterOperand) e.next()).register;
       OPT_ValueGraphVertex v = findOrCreateVertex(formal);
       v.setLabel(new OPT_ValueGraphParamLabel(numArgs), 0);
@@ -628,9 +626,7 @@ final class OPT_ValueGraph {
     } else if (var instanceof OPT_ConditionOperand) {
       return findOrCreateVertex((OPT_ConditionOperand) var);
     } else {
-      throw new OPT_OptimizingCompilerException(
-          "OPT_ValueGraph.findOrCreateVertex: unexpected type "
-          + var.getClass());
+      throw new OPT_OptimizingCompilerException("OPT_ValueGraph.findOrCreateVertex: unexpected type " + var.getClass());
     }
   }
 
@@ -662,9 +658,7 @@ final class OPT_ValueGraph {
   private OPT_ValueGraphVertex findOrCreateVertex(OPT_ConstantOperand op) {
     Object name;
     if (op.isAddressConstant()) {
-      name = (VM.BuildFor32Addr) ?
-             op.asAddressConstant().value.toInt() :
-             op.asAddressConstant().value.toLong();
+      name = (VM.BuildFor32Addr) ? op.asAddressConstant().value.toInt() : op.asAddressConstant().value.toLong();
     } else if (op.isIntConstant()) {
       name = op.asIntConstant().value;
     } else if (op.isFloatConstant()) {
@@ -684,8 +678,8 @@ final class OPT_ValueGraph {
     } else if (op instanceof OPT_UnreachableOperand) {
       name = op;
     } else {
-      throw new OPT_OptimizingCompilerException(
-          "OPT_ValueGraph.findOrCreateVertex: unexpected constant operand: " + op);
+      throw new OPT_OptimizingCompilerException("OPT_ValueGraph.findOrCreateVertex: unexpected constant operand: " +
+                                                op);
     }
     OPT_ValueGraphVertex v = getVertex(name);
     if (v == null) {
@@ -766,8 +760,7 @@ final class OPT_ValueGraph {
    * @param target the use
    * @param pos the position of target in the set of uses
    */
-  private void link(OPT_ValueGraphVertex src, OPT_ValueGraphVertex target,
-                    int pos) {
+  private void link(OPT_ValueGraphVertex src, OPT_ValueGraphVertex target, int pos) {
     OPT_ValueGraphEdge e = new OPT_ValueGraphEdge(src, target);
     src.addTarget(target, pos);
     graph.addGraphEdge(e);

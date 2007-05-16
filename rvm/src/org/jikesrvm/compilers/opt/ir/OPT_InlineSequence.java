@@ -79,9 +79,7 @@ public final class OPT_InlineSequence {
    * @param caller caller info
    * @param bcIndex bytecode index of call site
    */
-  OPT_InlineSequence(VM_NormalMethod method,
-                     OPT_InlineSequence caller,
-                     int bcIndex) {
+  OPT_InlineSequence(VM_NormalMethod method, OPT_InlineSequence caller, int bcIndex) {
     this.method = method;
     this.caller = caller;
     this.callSite = null;
@@ -95,9 +93,7 @@ public final class OPT_InlineSequence {
    * @param caller caller info
    * @param callsite the call site instruction of this callee
    */
-  OPT_InlineSequence(VM_NormalMethod method,
-                     OPT_InlineSequence caller,
-                     OPT_Instruction callsite) {
+  OPT_InlineSequence(VM_NormalMethod method, OPT_InlineSequence caller, OPT_Instruction callsite) {
     this.method = method;
     this.caller = caller;
     this.callSite = callsite;

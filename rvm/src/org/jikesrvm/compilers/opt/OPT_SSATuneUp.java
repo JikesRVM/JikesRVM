@@ -29,8 +29,7 @@ final class OPT_SSATuneUp extends OPT_OptimizationPlanCompositeElement {
         // 3. Perform simple optimizations
         new OPT_OptimizationPlanAtomicElement(new OPT_Simple(true, true, false)),
         // 4. Perform expression simplification
-        new OPT_OptimizationPlanAtomicElement(new FoldingDriver())
-    });
+        new OPT_OptimizationPlanAtomicElement(new FoldingDriver())});
   }
 
   public boolean shouldPerform(OPT_Options options) {

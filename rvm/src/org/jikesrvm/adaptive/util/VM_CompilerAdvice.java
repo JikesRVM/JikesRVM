@@ -41,8 +41,7 @@ public class VM_CompilerAdvice {
       VM.sysWrite("Compiler advice file name ");
       VM.sysWriteln(compilerAdviceFileName);
       List<VM_CompilerAdviceAttribute> compilerAdviceInfoList =
-          VM_CompilerAdviceInfoReader.readCompilerAdviceFile(
-              compilerAdviceFileName);
+          VM_CompilerAdviceInfoReader.readCompilerAdviceFile(compilerAdviceFileName);
       // register these sites so that when a compilation is done,
       // these sites use compiler advice
       VM_CompilerAdviceAttribute.registerCompilerAdvice(compilerAdviceInfoList);
@@ -52,8 +51,7 @@ public class VM_CompilerAdvice {
       VM.sysWrite("Dynamic call file name ");
       VM.sysWriteln(dynamicCallFileName);
       //List dynamicCallInfoList =
-      VM_DynamicCallFileInfoReader.readDynamicCallFile(
-          dynamicCallFileName, false);
+      VM_DynamicCallFileInfoReader.readDynamicCallFile(dynamicCallFileName, false);
       // register these sites so that when a compilation is done,
       // these sites use compiler advice
     }

@@ -95,8 +95,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    *                 class/array/interface
    * @return true iff is object instance of target type?
    */
-  static boolean instanceOf(Object object, int targetID)
-      throws NoClassDefFoundError {
+  static boolean instanceOf(Object object, int targetID) throws NoClassDefFoundError {
 
     /*  Here, LHS and RHS refer to the way we would treat these if they were
         arguments to an assignment operator and we were testing for
@@ -171,9 +170,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * @param object object to be tested
    * @param id of type reference corresponding to target class/array/interface
    */
-  static void checkcast(Object object, int id)
-      throws ClassCastException,
-             NoClassDefFoundError {
+  static void checkcast(Object object, int id) throws ClassCastException, NoClassDefFoundError {
     if (object == null) {
       return; // null may be cast to any type
     }
@@ -304,9 +301,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    *           (ready for initializer to be run on it)
    * See also: bytecode 0xbb ("new")
    */
-  static Object unresolvedNewScalar(int id, int site)
-      throws NoClassDefFoundError,
-             OutOfMemoryError {
+  static Object unresolvedNewScalar(int id, int site) throws NoClassDefFoundError, OutOfMemoryError {
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
     VM_Type t = tRef.peekResolvedType();
     if (t == null) {
@@ -364,14 +359,8 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    *           (ready for initializer to be run on it)
    * See also: bytecode 0xbb ("new")
    */
-  public static Object resolvedNewScalar(int size,
-                                         Object[] tib,
-                                         boolean hasFinalizer,
-                                         int allocator,
-                                         int align,
-                                         int offset,
-                                         int site)
-      throws OutOfMemoryError {
+  public static Object resolvedNewScalar(int size, Object[] tib, boolean hasFinalizer, int allocator, int align,
+                                         int offset, int site) throws OutOfMemoryError {
 
     // GC stress testing
     if (VM.ForceFrequentGC && VM_Scheduler.allProcessorsInitialized) {
@@ -453,14 +442,8 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    *         to zero/null
    * See also: bytecode 0xbc ("newarray") and 0xbd ("anewarray")
    */
-  public static Object resolvedNewArray(int numElements,
-                                        int logElementSize,
-                                        int headerSize,
-                                        Object[] tib,
-                                        int allocator,
-                                        int align,
-                                        int offset,
-                                        int site)
+  public static Object resolvedNewArray(int numElements, int logElementSize, int headerSize, Object[] tib,
+                                        int allocator, int align, int offset, int site)
       throws OutOfMemoryError, NegativeArraySizeException {
 
     if (numElements < 0) raiseNegativeArraySizeException();
@@ -475,8 +458,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
     }
 
     // Allocate the array and initialize its header
-    return MM_Interface.allocateArray(numElements, logElementSize,
-                                      headerSize, tib, allocator, align, offset, site);
+    return MM_Interface.allocateArray(numElements, logElementSize, headerSize, tib, allocator, align, offset, site);
   }
 
   /**
@@ -494,8 +476,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * @param obj the object to clone
    * @return the cloned object
    */
-  public static Object clone(Object obj)
-      throws OutOfMemoryError, CloneNotSupportedException {
+  public static Object clone(Object obj) throws OutOfMemoryError, CloneNotSupportedException {
     VM_Type type = VM_Magic.getObjectType(obj);
     if (type.isArrayType()) {
       VM_Array ary = type.asArray();
@@ -552,8 +533,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * Keep out of line to mitigate code space when quickNewArray is inlined.
    */
   @NoInline
-  private static void raiseNegativeArraySizeException()
-      throws NegativeArraySizeException {
+  private static void raiseNegativeArraySizeException() throws NegativeArraySizeException {
     throw new NegativeArraySizeException();
   }
 
@@ -829,16 +809,14 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
     // "VM_Runtime.deliverHardwareException()"
     // whenever the host operating system detects a hardware trap
     //
-    VM_BootRecord.the_boot_record.hardwareTrapMethodId =
-        VM_CompiledMethods.createHardwareTrapCompiledMethod().getId();
+    VM_BootRecord.the_boot_record.hardwareTrapMethodId = VM_CompiledMethods.createHardwareTrapCompiledMethod().getId();
     VM_BootRecord.the_boot_record.deliverHardwareExceptionOffset =
         VM_Entrypoints.deliverHardwareExceptionMethod.getOffset();
 
     // tell "RunBootImage.C" to set "VM_Scheduler.debugRequested" flag
     // whenever the host operating system detects a debug request signal
     //
-    VM_BootRecord.the_boot_record.debugRequestedOffset =
-        VM_Entrypoints.debugRequestedField.getOffset();
+    VM_BootRecord.the_boot_record.debugRequestedOffset = VM_Entrypoints.debugRequestedField.getOffset();
   }
 
   /**
@@ -848,9 +826,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * @param arrayType type of array that will result
    * @return array object
    */
-  public static Object buildMultiDimensionalArray(int methodId,
-                                                  int[] numElements,
-                                                  VM_Array arrayType) {
+  public static Object buildMultiDimensionalArray(int methodId, int[] numElements, VM_Array arrayType) {
     VM_Method method = VM_MemberReference.getMemberRef(methodId).asMethodReference().peekResolvedMethod();
     if (VM.VerifyAssertions) VM._assert(method != null);
     return buildMDAHelper(method, numElements, 0, arrayType);
@@ -862,10 +838,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * @param dimIndex Current dimension to build
    * @param arrayType type of array that will result
    */
-  public static Object buildMDAHelper(VM_Method method,
-                                      int[] numElements,
-                                      int dimIndex,
-                                      VM_Array arrayType) {
+  public static Object buildMDAHelper(VM_Method method, int[] numElements, int dimIndex, VM_Array arrayType) {
 
     if (!arrayType.isInstantiated()) {
       arrayType.resolve();
@@ -906,8 +879,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    *  <li> <em> or </em> current thread is terminated if no catch block is found
    * </ul>
    */
-  private static void deliverException(Throwable exceptionObject,
-                                       VM_Registers exceptionRegisters) {
+  private static void deliverException(Throwable exceptionObject, VM_Registers exceptionRegisters) {
     if (VM.debugOOM) {
       VM.sysWriteln("VM_Runtime.deliverException() entered; just got an exception object.");
     }
@@ -937,10 +909,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
             VM.sysWriteln("found one; delivering.");
           }
           Address catchBlockStart = compiledMethod.getInstructionAddress(Offset.fromIntSignExtend(catchBlockOffset));
-          exceptionDeliverer.deliverException(compiledMethod,
-                                              catchBlockStart,
-                                              exceptionObject,
-                                              exceptionRegisters);
+          exceptionDeliverer.deliverException(compiledMethod, catchBlockStart, exceptionObject, exceptionRegisters);
           if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
         }
 
@@ -973,8 +942,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
     VM_Thread vmThr = VM_Thread.getCurrentThread();
     Thread thr = vmThr.peekJavaLangThread();
     if (thr == null) {
-      VM.sysWrite("Exception in the primordial thread \"", vmThr.toString(),
-                  "\" while booting: ");
+      VM.sysWrite("Exception in the primordial thread \"", vmThr.toString(), "\" while booting: ");
     } else {
       // This is output like that of the Sun JDK.
       VM.sysWrite("Exception in thread \"", thr.getName(), "\": ");
@@ -989,8 +957,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
   /** Handle the case of exception handling triggering new exceptions. */
   private static void handlePossibleRecursiveException() {
     ++handlingUncaughtException;
-    if (handlingUncaughtException > 1
-        &&
+    if (handlingUncaughtException > 1 &&
         handlingUncaughtException <=
         VM.maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite) {
       VM.sysWrite("We got an uncaught exception while (recursively) handling ");

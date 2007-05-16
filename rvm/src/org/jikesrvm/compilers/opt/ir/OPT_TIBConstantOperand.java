@@ -76,8 +76,7 @@ public final class OPT_TIBConstantOperand extends OPT_ConstantOperand {
    *           if they are not.
    */
   public boolean similar(OPT_Operand op) {
-    return (op instanceof OPT_TIBConstantOperand) &&
-           value == ((OPT_TIBConstantOperand) op).value;
+    return (op instanceof OPT_TIBConstantOperand) && value == ((OPT_TIBConstantOperand) op).value;
   }
 
   /**

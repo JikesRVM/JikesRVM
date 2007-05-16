@@ -129,12 +129,11 @@ public abstract class OPT_CompilerPhase {
       try {
         return (OPT_CompilerPhase) cons.newInstance(initargs);
       } catch (Exception e) {
-        throw new Error("Failed to create phase " + this.getClass() +
-                        " with constructor " + cons,
-                        e);
+        throw new Error("Failed to create phase " + this.getClass() + " with constructor " + cons, e);
       }
     } else {
-      throw new Error("Error, no constructor found in phase " + this.getClass() +
+      throw new Error("Error, no constructor found in phase " +
+                      this.getClass() +
                       " make sure a public constructor is declared");
     }
   }
@@ -168,8 +167,7 @@ public abstract class OPT_CompilerPhase {
           Constructor<OPT_CompilerPhase> constructor =
           (Constructor<OPT_CompilerPhase>) phaseType.getConstructor(initTypes);
       return constructor;
-    }
-    catch (NoSuchMethodException e) {
+    } catch (NoSuchMethodException e) {
       throw new Error("Constructor not found in " + phaseType.getName() + " compiler phase", e);
     }
   }
@@ -188,8 +186,7 @@ public abstract class OPT_CompilerPhase {
    */
   public final void performPhase(OPT_IR ir) {
     if (printingEnabled(ir.options, true)) {
-      if (!ir.options.hasMETHOD_TO_PRINT() ||
-          ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
+      if (!ir.options.hasMETHOD_TO_PRINT() || ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
         // only print above centain opt level.
         //if (ir.options.getOptLevel() >= ir.options.IR_PRINT_LEVEL) {
         dumpIR(ir, "Before " + getName());
@@ -202,8 +199,7 @@ public abstract class OPT_CompilerPhase {
 
     if (ir.options.PRINT_PHASES) VM.sysWrite(" done\n");
     if (ir.options.PRINT_ALL_IR || printingEnabled(ir.options, false)) {
-      if (!ir.options.hasMETHOD_TO_PRINT() ||
-          ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
+      if (!ir.options.hasMETHOD_TO_PRINT() || ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
         // only print when above certain opt level
         if (ir.options.getOptLevel() >= ir.options.IR_PRINT_LEVEL) {
           dumpIR(ir, "After " + getName());
@@ -221,14 +217,12 @@ public abstract class OPT_CompilerPhase {
    * @param tag a String to use in the start/end message of the IR dump
    */
   public static void dumpIR(OPT_IR ir, String tag) {
-    System.out.println("********* START OF IR DUMP  " + tag + "   FOR "
-                       + ir.method);
+    System.out.println("********* START OF IR DUMP  " + tag + "   FOR " + ir.method);
     ir.printInstructions();
     if (ir.options.PRINT_CFG) {
       ir.cfg.printDepthFirst();
     }
-    System.out.println("*********   END OF IR DUMP  " + tag + "   FOR "
-                       + ir.method);
+    System.out.println("*********   END OF IR DUMP  " + tag + "   FOR " + ir.method);
   }
 
   /**

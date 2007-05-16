@@ -67,8 +67,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * For each physical register, holds a ScratchRegister which records
    * the current scratch assignment for the physical register.
    */
-  protected final ArrayList<ScratchRegister> scratchInUse =
-      new ArrayList<ScratchRegister>(20);
+  protected final ArrayList<ScratchRegister> scratchInUse = new ArrayList<ScratchRegister>(20);
 
   /**
    * An array which holds the spill location number used to stash nonvolatile
@@ -172,8 +171,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * @param s the instruction to mutate.
    * @param symb the symbolic register operand to replace
    */
-  public abstract void replaceOperandWithSpillLocation(OPT_Instruction s,
-                                                       OPT_RegisterOperand symb);
+  public abstract void replaceOperandWithSpillLocation(OPT_Instruction s, OPT_RegisterOperand symb);
 
   // Get the spill location previously assigned to the symbolic
   /**
@@ -196,8 +194,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * Also, for any register r3 that is spilled to the same location as
    * r1, replace r3 with r2.
    */
-  private void replaceRegisterWithScratch(OPT_Instruction s,
-                                          OPT_Register r1, OPT_Register r2) {
+  private void replaceRegisterWithScratch(OPT_Instruction s, OPT_Register r1, OPT_Register r2) {
     int spill1 = OPT_RegisterAllocatorState.getSpill(r1);
     for (Enumeration<OPT_Operand> e = s.getOperands(); e.hasMoreElements();) {
       OPT_Operand op = e.nextElement();
@@ -251,8 +248,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * Spill the contents of a scratch register to memory before
    * instruction s.
    */
-  protected void unloadScratchRegisterBefore(OPT_Instruction s,
-                                             ScratchRegister scratch) {
+  protected void unloadScratchRegisterBefore(OPT_Instruction s, ScratchRegister scratch) {
     // if the scratch register is not dirty, don't need to write anything,
     // since the stack holds the current value
     if (!scratch.isDirty()) return;
@@ -261,8 +257,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     OPT_Register scratchContents = scratch.currentContents;
     if (scratchContents != null) {
       int location = OPT_RegisterAllocatorState.getSpill(scratchContents);
-      insertSpillBefore(s, scratch.scratch, getValueType(scratchContents),
-                        location);
+      insertSpillBefore(s, scratch.scratch, getValueType(scratchContents), location);
     }
 
   }
@@ -270,13 +265,11 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
   /**
    * Restore the contents of a scratch register before instruction s.
    */
-  protected void reloadScratchRegisterBefore(OPT_Instruction s,
-                                             ScratchRegister scratch) {
+  protected void reloadScratchRegisterBefore(OPT_Instruction s, ScratchRegister scratch) {
     if (scratch.hadToSpill()) {
       // Restore the live contents into the scratch register.
       int location = OPT_RegisterAllocatorState.getSpill(scratch.scratch);
-      insertUnspillBefore(s, scratch.scratch, getValueType(scratch.scratch),
-                          location);
+      insertUnspillBefore(s, scratch.scratch, getValueType(scratch.scratch), location);
     }
   }
 
@@ -382,16 +375,14 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
       // update the scratch maps, even if the scratch registers are now
       // dead.
       if (verboseDebug) {
-        System.out.println("RALL: End scratch interval " +
-                           scratch.scratch + " " + s);
+        System.out.println("RALL: End scratch interval " + scratch.scratch + " " + s);
       }
       i.remove();
       scratchMap.endScratchInterval(scratch.scratch, s);
       OPT_Register scratchContents = scratch.currentContents;
       if (scratchContents != null) {
         if (verboseDebug) {
-          System.out.println("RALL: End symbolic interval " +
-                             scratchContents + " " + s);
+          System.out.println("RALL: End symbolic interval " + scratchContents + " " + s);
         }
         scratchMap.endSymbolicInterval(scratchContents, s);
       }
@@ -426,9 +417,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * @return the physical scratch register that holds the value
    *         after instruction s
    */
-  private ScratchRegister holdInScratchAfter(OPT_Instruction s,
-                                             OPT_Register symb,
-                                             boolean beCheap) {
+  private ScratchRegister holdInScratchAfter(OPT_Instruction s, OPT_Register symb, boolean beCheap) {
 
     // Get a scratch register.
     ScratchRegister sr = getScratchRegister(symb, s, beCheap);
@@ -490,9 +479,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    *
    * @param beCheap don't expend too much effort
    */
-  private ScratchRegister getScratchRegister(OPT_Register symb,
-                                             OPT_Instruction s,
-                                             boolean beCheap) {
+  private ScratchRegister getScratchRegister(OPT_Register symb, OPT_Instruction s, boolean beCheap) {
 
     ScratchRegister r = getCurrentScratchRegister(symb, s);
     if (r != null) {
@@ -504,16 +491,12 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
           // update the mapping information.
           if (r.currentContents != null) {
             if (verboseDebug) {
-              System.out.println("GSR: End symbolic interval " +
-                                 r.currentContents + " "
-                                 + s);
+              System.out.println("GSR: End symbolic interval " + r.currentContents + " " + s);
             }
             scratchMap.endSymbolicInterval(r.currentContents, s);
           }
           if (verboseDebug) {
-            System.out.println("GSR: Begin symbolic interval " +
-                               symb + " " + r.scratch +
-                               " " + s);
+            System.out.println("GSR: Begin symbolic interval " + symb + " " + r.scratch + " " + s);
           }
           scratchMap.beginSymbolicInterval(symb, r.scratch, s);
         }
@@ -542,8 +525,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * <p> Insert spills if necessary to ensure that the returned scratch
    * register is free for use.
    */
-  private ScratchRegister getScratchRegisterUsingIntervals(OPT_Register r,
-                                                           OPT_Instruction s) {
+  private ScratchRegister getScratchRegisterUsingIntervals(OPT_Register r, OPT_Instruction s) {
     ArrayList<OPT_Register> reservedScratch = getReservedScratchRegisters(s);
 
     OPT_Register phys = null;
@@ -571,8 +553,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * <p> Insert spills if necessary to ensure that the returned scratch
    * register is free for use.
    */
-  private ScratchRegister getFirstAvailableScratchRegister(OPT_Register r,
-                                                           OPT_Instruction s) {
+  private ScratchRegister getFirstAvailableScratchRegister(OPT_Register r, OPT_Instruction s) {
     ArrayList<OPT_Register> reservedScratch = getReservedScratchRegisters(s);
 
     OPT_Register phys = null;
@@ -594,9 +575,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * @return the physical register used to hold the value when it is
    * loaded from the spill location
    */
-  private ScratchRegister moveToScratchBefore(OPT_Instruction s,
-                                              OPT_Register symb,
-                                              boolean beCheap) {
+  private ScratchRegister moveToScratchBefore(OPT_Instruction s, OPT_Register symb, boolean beCheap) {
 
     ScratchRegister sr = getScratchRegister(symb, s, beCheap);
 
@@ -634,9 +613,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    * before instruction s.  In instruction s, r will hold the value of
    * register symb.
    */
-  private ScratchRegister createScratchBefore(OPT_Instruction s,
-                                              OPT_Register r,
-                                              OPT_Register symb) {
+  private ScratchRegister createScratchBefore(OPT_Instruction s, OPT_Register r, OPT_Register symb) {
     int type = OPT_PhysicalRegisterSet.getPhysicalRegisterType(r);
     int spillLocation = OPT_RegisterAllocatorState.getSpill(r);
     if (spillLocation <= 0) {
@@ -664,18 +641,13 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     } else {
       // update mapping information
       if (verboseDebug) {
-        System.out.println("CSB: " +
-                           " End scratch interval " +
-                           sr.scratch + " " + s);
+        System.out.println("CSB: " + " End scratch interval " + sr.scratch + " " + s);
       }
       scratchMap.endScratchInterval(sr.scratch, s);
       OPT_Register scratchContents = sr.currentContents;
       if (scratchContents != null) {
         if (verboseDebug) {
-          System.out.println("CSB: " +
-                             " End symbolic interval " +
-                             sr.currentContents + " "
-                             + s);
+          System.out.println("CSB: " + " End symbolic interval " + sr.currentContents + " " + s);
         }
         scratchMap.endSymbolicInterval(sr.currentContents, s);
       }
@@ -683,15 +655,12 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
 
     // update mapping information
     if (verboseDebug) {
-      System.out.println("CSB: Begin scratch interval " + r +
-                         " " + s);
+      System.out.println("CSB: Begin scratch interval " + r + " " + s);
     }
     scratchMap.beginScratchInterval(r, s);
 
     if (verboseDebug) {
-      System.out.println("CSB: Begin symbolic interval " +
-                         symb + " " + r +
-                         " " + s);
+      System.out.println("CSB: Begin symbolic interval " + symb + " " + r + " " + s);
     }
     scratchMap.beginSymbolicInterval(symb, r, s);
 
@@ -782,16 +751,13 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    *
    * Throw an exception if none found.
    */
-  private OPT_Register getFirstFPRNotUsedIn(OPT_Register r,
-                                            OPT_Instruction s,
-                                            ArrayList<OPT_Register> reserved) {
+  private OPT_Register getFirstFPRNotUsedIn(OPT_Register r, OPT_Instruction s, ArrayList<OPT_Register> reserved) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
     // first try the volatiles
     for (Enumeration<OPT_Register> e = phys.enumerateVolatileFPRs(); e.hasMoreElements();) {
       OPT_Register p = e.nextElement();
-      if (!appearsIn(p, s) && !p.isPinned() &&
-          !reserved.contains(p) && isLegal(r, p, s)) {
+      if (!appearsIn(p, s) && !p.isPinned() && !reserved.contains(p) && isLegal(r, p, s)) {
         return p;
       }
     }
@@ -808,9 +774,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    *
    * Return null if none found
    */
-  private OPT_Register getFirstDeadFPRNotUsedIn(OPT_Register r,
-                                                OPT_Instruction s,
-                                                ArrayList<OPT_Register> reserved) {
+  private OPT_Register getFirstDeadFPRNotUsedIn(OPT_Register r, OPT_Instruction s, ArrayList<OPT_Register> reserved) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
     // first try the volatiles
@@ -832,30 +796,23 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    *
    * Throw an exception if none found.
    */
-  private OPT_Register getFirstGPRNotUsedIn(OPT_Register r,
-                                            OPT_Instruction s,
-                                            ArrayList<OPT_Register> reserved) {
+  private OPT_Register getFirstGPRNotUsedIn(OPT_Register r, OPT_Instruction s, ArrayList<OPT_Register> reserved) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     // first try the volatiles
-    for (Enumeration<OPT_Register> e = phys.enumerateVolatileGPRs();
-         e.hasMoreElements();) {
+    for (Enumeration<OPT_Register> e = phys.enumerateVolatileGPRs(); e.hasMoreElements();) {
       OPT_Register p = e.nextElement();
-      if (!appearsIn(p, s) && !p.isPinned() && !reserved.contains(p)
-          && isLegal(r, p, s)) {
+      if (!appearsIn(p, s) && !p.isPinned() && !reserved.contains(p) && isLegal(r, p, s)) {
         return p;
       }
     }
     // next try the non-volatiles. We allocate the nonvolatiles backwards
-    for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRsBackwards();
-         e.hasMoreElements();) {
+    for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRsBackwards(); e.hasMoreElements();) {
       OPT_Register p = e.nextElement();
-      if (!appearsIn(p, s) && !p.isPinned() && !reserved.contains(p) &&
-          isLegal(r, p, s)) {
+      if (!appearsIn(p, s) && !p.isPinned() && !reserved.contains(p) && isLegal(r, p, s)) {
         return p;
       }
     }
-    OPT_OptimizingCompilerException.TODO(
-        "Could not find a free GPR in spill situation");
+    OPT_OptimizingCompilerException.TODO("Could not find a free GPR in spill situation");
     return null;
   }
 
@@ -867,21 +824,17 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    *
    * return null if none found
    */
-  private OPT_Register getFirstDeadGPRNotUsedIn(OPT_Register r,
-                                                OPT_Instruction s,
-                                                ArrayList<OPT_Register> reserved) {
+  private OPT_Register getFirstDeadGPRNotUsedIn(OPT_Register r, OPT_Instruction s, ArrayList<OPT_Register> reserved) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     // first try the volatiles
-    for (Enumeration<OPT_Register> e = phys.enumerateVolatileGPRs();
-         e.hasMoreElements();) {
+    for (Enumeration<OPT_Register> e = phys.enumerateVolatileGPRs(); e.hasMoreElements();) {
       OPT_Register p = e.nextElement();
       if (!appearsIn(p, s) && !p.isPinned() && !reserved.contains(p)) {
         if (isDeadBefore(p, s) && isLegal(r, p, s)) return p;
       }
     }
     // next try the non-volatiles. We allocate the nonvolatiles backwards
-    for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRsBackwards();
-         e.hasMoreElements();) {
+    for (Enumeration<OPT_Register> e = phys.enumerateNonvolatileGPRsBackwards(); e.hasMoreElements();) {
       OPT_Register p = e.nextElement();
       if (!appearsIn(p, s) && !p.isPinned() && !reserved.contains(p)) {
         if (isDeadBefore(p, s) && isLegal(r, p, s)) return p;
@@ -902,9 +855,10 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
         }
       }
     }
-    if (VM.BuildForIA32 && r.isFloatingPoint() &&
-        (OPT_Operators.helper.isFNInit(s.operator) ||
-         OPT_Operators.helper.isFClear(s.operator))) {
+    if (VM
+        .BuildForIA32 &&
+                      r.isFloatingPoint() &&
+                      (OPT_Operators.helper.isFNInit(s.operator) || OPT_Operators.helper.isFClear(s.operator))) {
       return true;
     }
 
@@ -1080,14 +1034,12 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
                       OPT_Register r2 = spillLocationUse(r, s);
                       scratch = moveToScratchBefore(s, r2, beCheap);
                       if (verboseDebug) {
-                        System.out.println("MOVED TO SCRATCH BEFORE " + r2 +
-                                           " " + scratch);
+                        System.out.println("MOVED TO SCRATCH BEFORE " + r2 + " " + scratch);
                       }
                     } else {
                       scratch = moveToScratchBefore(s, r, beCheap);
                       if (verboseDebug) {
-                        System.out.println("MOVED TO SCRATCH BEFORE " + r +
-                                           " " + scratch);
+                        System.out.println("MOVED TO SCRATCH BEFORE " + r + " " + scratch);
                       }
                     }
                   }
@@ -1095,8 +1047,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
                     scratch = holdInScratchAfter(s, r, beCheap);
                     scratch.setDirty(true);
                     if (verboseDebug) {
-                      System.out.println("HELD IN SCRATCH AFTER" + r +
-                                         " " + scratch);
+                      System.out.println("HELD IN SCRATCH AFTER" + r + " " + scratch);
                     }
                   }
                   // replace the register in the target instruction.
@@ -1141,8 +1092,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    *                    CONDITION_VALUE
    * @param location the spill location
    */
-  public abstract void insertSpillBefore(OPT_Instruction s, OPT_Register r,
-                                         byte type, int location);
+  public abstract void insertSpillBefore(OPT_Instruction s, OPT_Register r, byte type, int location);
 
   /**
    * Insert a spill of a physical register after instruction s.
@@ -1153,8 +1103,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    *                    CONDITION_VALUE
    * @param location the spill location
    */
-  public final void insertSpillAfter(OPT_Instruction s, OPT_Register r,
-                                     byte type, int location) {
+  public final void insertSpillAfter(OPT_Instruction s, OPT_Register r, byte type, int location) {
     insertSpillBefore(s.nextInstructionInCodeOrder(), r, type, location);
   }
 
@@ -1168,8 +1117,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    *                    CONDITION_VALUE
    * @param location the spill location
    */
-  public abstract void insertUnspillBefore(OPT_Instruction s, OPT_Register r,
-                                           byte type, int location);
+  public abstract void insertUnspillBefore(OPT_Instruction s, OPT_Register r, byte type, int location);
 
   /**
    * Insert a load of a physical register from a spill location before
@@ -1181,8 +1129,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
    *                    CONDITION_VALUE
    * @param location the spill location
    */
-  public final void insertUnspillAfter(OPT_Instruction s, OPT_Register r,
-                                       byte type, int location) {
+  public final void insertUnspillAfter(OPT_Instruction s, OPT_Register r, byte type, int location) {
     insertUnspillBefore(s.nextInstructionInCodeOrder(), r, type, location);
   }
 
@@ -1315,16 +1262,13 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     //        - a GC Point, except for YieldPoints or IR_PROLOGUE
     boolean preventYieldPointRemoval = false;
     if (!frameRequired) {
-      for (OPT_Instruction s = ir.firstInstructionInCodeOrder();
-           s != null;
-           s = s.nextInstructionInCodeOrder()) {
+      for (OPT_Instruction s = ir.firstInstructionInCodeOrder(); s != null; s = s.nextInstructionInCodeOrder()) {
         if (s.operator() == LOWTABLESWITCH) {
           // uses BL to get pc relative addressing.
           frameRequired = true;
           preventYieldPointRemoval = true;
           break;
-        } else if (s.isGCPoint() && !s.isYieldPoint() &&
-                   s.operator() != IR_PROLOGUE) {
+        } else if (s.isGCPoint() && !s.isYieldPoint() && s.operator() != IR_PROLOGUE) {
           // frame required for GCpoints that are not yield points
           //  or IR_PROLOGUE, which is the stack overflow check
           frameRequired = true;
@@ -1362,8 +1306,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     //    create the stack frame on demand.
 
     OPT_BasicBlock firstBB = ir.cfg.entry();
-    boolean isSingleBlock = firstBB.hasZeroIn() &&
-                            firstBB.hasOneOut() && firstBB.pointsOut(ir.cfg.exit());
+    boolean isSingleBlock = firstBB.hasZeroIn() && firstBB.hasOneOut() && firstBB.pointsOut(ir.cfg.exit());
     boolean removeYieldpoints = isSingleBlock && !preventYieldPointRemoval;
 
     // In adaptive systems if we require a frame, we don't remove
@@ -1373,9 +1316,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     }
 
     if (removeYieldpoints) {
-      for (OPT_Instruction s = ir.firstInstructionInCodeOrder();
-           s != null;
-           s = s.nextInstructionInCodeOrder()) {
+      for (OPT_Instruction s = ir.firstInstructionInCodeOrder(); s != null; s = s.nextInstructionInCodeOrder()) {
         if (s.isYieldPoint()) {
           OPT_Instruction save = s;
           // get previous instruction, so we can continue
@@ -1425,8 +1366,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
     int physType = OPT_PhysicalRegisterSet.getPhysicalRegisterType(symbReg);
-    for (Enumeration<OPT_Register> e = phys.enumerateVolatiles(physType);
-         e.hasMoreElements();) {
+    for (Enumeration<OPT_Register> e = phys.enumerateVolatiles(physType); e.hasMoreElements();) {
       OPT_Register realReg = e.nextElement();
       if (realReg.isAvailable()) {
         realReg.allocateToRegister(symbReg);
@@ -1454,8 +1394,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     } else if (r.isFloat()) {
       return FLOAT_VALUE;
     } else {
-      throw new OPT_OptimizingCompilerException("getValueType: unsupported "
-                                                + r);
+      throw new OPT_OptimizingCompilerException("getValueType: unsupported " + r);
     }
   }
 
@@ -1476,8 +1415,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
   public final OPT_Register allocateNonVolatileRegister(OPT_Register symbReg) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     int physType = OPT_PhysicalRegisterSet.getPhysicalRegisterType(symbReg);
-    for (Enumeration<OPT_Register> e = phys.enumerateNonvolatilesBackwards(physType);
-         e.hasMoreElements();) {
+    for (Enumeration<OPT_Register> e = phys.enumerateNonvolatilesBackwards(physType); e.hasMoreElements();) {
       OPT_Register realReg = e.nextElement();
       if (realReg.isAvailable()) {
         realReg.allocateToRegister(symbReg);
@@ -1528,8 +1466,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
 
     public String toString() {
       String dirtyString = dirty ? "D" : "C";
-      return "SCRATCH<" + scratch + "," + currentContents + "," +
-             dirtyString + ">";
+      return "SCRATCH<" + scratch + "," + currentContents + "," + dirtyString + ">";
     }
   }
 }

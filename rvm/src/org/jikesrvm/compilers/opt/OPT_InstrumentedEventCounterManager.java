@@ -66,8 +66,7 @@ public abstract class OPT_InstrumentedEventCounterManager {
    * @param incrementValue The value to add to the counter
    * @return The instruction to increment the given counter
    */
-  public abstract OPT_Instruction createEventCounterInstruction(int handle,
-                                                                int location, double incrementValue);
+  public abstract OPT_Instruction createEventCounterInstruction(int handle, int location, double incrementValue);
 
   /**
    *  Take an event counter instruction and mutate it into IR instructions that

@@ -128,8 +128,7 @@ public abstract class OPT_BURS_Common_Helpers extends OPT_PhysicalRegisterTools 
   // helper functions for condition operands
   protected final boolean EQ_NE(OPT_ConditionOperand c) {
     int cond = c.value;
-    return ((cond == OPT_ConditionOperand.EQUAL) ||
-            (cond == OPT_ConditionOperand.NOT_EQUAL));
+    return ((cond == OPT_ConditionOperand.EQUAL) || (cond == OPT_ConditionOperand.NOT_EQUAL));
   }
 
   protected final boolean EQ_LT_LE(OPT_ConditionOperand c) {

@@ -17,8 +17,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_InstructionEnumeration;
  *
  * @see OPT_Scheduler
  */
-abstract class OPT_Priority
-    implements OPT_InstructionEnumeration {
+abstract class OPT_Priority implements OPT_InstructionEnumeration {
 
   /**
    * Resets the enumeration to the first instruction in sequence

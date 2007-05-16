@@ -28,16 +28,11 @@ public abstract class OPT_BURS {
 
   public static final boolean DEBUG = false;
 
-  protected final OPT_BURS_TreeNode NullTreeNode =
-      new OPT_BURS_TreeNode(NULL_opcode);
-  protected final OPT_BURS_TreeNode LongConstant =
-      new OPT_BURS_TreeNode(LONG_CONSTANT_opcode);
-  protected final OPT_BURS_TreeNode AddressConstant =
-      new OPT_BURS_TreeNode(ADDRESS_CONSTANT_opcode);
-  protected final OPT_BURS_TreeNode Register =
-      new OPT_BURS_TreeNode(REGISTER_opcode);
-  protected final OPT_BURS_TreeNode BranchTarget =
-      new OPT_BURS_TreeNode(BRANCH_TARGET_opcode);
+  protected final OPT_BURS_TreeNode NullTreeNode = new OPT_BURS_TreeNode(NULL_opcode);
+  protected final OPT_BURS_TreeNode LongConstant = new OPT_BURS_TreeNode(LONG_CONSTANT_opcode);
+  protected final OPT_BURS_TreeNode AddressConstant = new OPT_BURS_TreeNode(ADDRESS_CONSTANT_opcode);
+  protected final OPT_BURS_TreeNode Register = new OPT_BURS_TreeNode(REGISTER_opcode);
+  protected final OPT_BURS_TreeNode BranchTarget = new OPT_BURS_TreeNode(BRANCH_TARGET_opcode);
 
   // initialize scratch field for expression tree labeling.
   OPT_BURS(OPT_IR ir) {

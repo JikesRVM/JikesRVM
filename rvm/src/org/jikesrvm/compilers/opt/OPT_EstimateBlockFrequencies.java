@@ -98,9 +98,7 @@ public class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
     ir.cfg.buildTopSort();
     topOrder = new OPT_BasicBlock[ir.cfg.numberOfNodes()];
     int idx = 0;
-    for (OPT_BasicBlock ptr = ir.cfg.entry();
-         ptr != null;
-         ptr = (OPT_BasicBlock) ptr.getForwardSortedNext()) {
+    for (OPT_BasicBlock ptr = ir.cfg.entry(); ptr != null; ptr = (OPT_BasicBlock) ptr.getForwardSortedNext()) {
       topOrder[idx++] = ptr;
       ptr.setExecutionFrequency(0f);
       ptr.clearScratchFlag();
@@ -112,8 +110,7 @@ public class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
     // Compute loop multipliers
     if (lst != null) {
       computeLoopMultipliers(lst.getRoot());
-      for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks();
-           e.hasMoreElements();) {
+      for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
         OPT_BasicBlock bb = e.next();
         bb.setExecutionFrequency(0f);
         bb.clearScratchFlag();
@@ -237,18 +234,13 @@ public class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
       numNodes--;
       cur.setScratchFlag();
       float weight = cur.getExecutionFrequency();
-      for (OPT_WeightedBranchTargets wbt = new OPT_WeightedBranchTargets(cur);
-           wbt.hasMoreElements(); wbt.advance()) {
+      for (OPT_WeightedBranchTargets wbt = new OPT_WeightedBranchTargets(cur); wbt.hasMoreElements(); wbt.advance()) {
         processEdge(n, cur, wbt.curBlock(), wbt.curWeight(), weight);
       }
     }
   }
 
-  private void processEdge(OPT_LSTNode n,
-                           OPT_BasicBlock source,
-                           OPT_BasicBlock target,
-                           float prob,
-                           float weight) {
+  private void processEdge(OPT_LSTNode n, OPT_BasicBlock source, OPT_BasicBlock target, float prob, float weight) {
     if (target.getScratchFlag()) return; // ignore backedge
     if (n.loop.get(target.getNumber())) {
       OPT_LSTNode other = lst.getLoop(target);
@@ -296,8 +288,7 @@ public class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
       float weight = cur.getExecutionFrequency();
       cur.setScratchFlag();
 
-      for (OPT_WeightedBranchTargets wbt = new OPT_WeightedBranchTargets(cur);
-           wbt.hasMoreElements(); wbt.advance()) {
+      for (OPT_WeightedBranchTargets wbt = new OPT_WeightedBranchTargets(cur); wbt.hasMoreElements(); wbt.advance()) {
         OPT_BasicBlock target = wbt.curBlock();
         if (!target.getScratchFlag()) {
           target.augmentExecutionFrequency(wbt.curWeight() * weight);

@@ -65,8 +65,7 @@ public class OPT_SortedGraphIterator {
    * @param current the node to start the iteration at
    * @param forward the direction we are processing the graph
    */
-  public OPT_SortedGraphIterator(OPT_SortedGraphNode current,
-                                 boolean forward) {
+  public OPT_SortedGraphIterator(OPT_SortedGraphNode current, boolean forward) {
     currentNode = current;
     barrier = current.getSortedNext(forward);
     this.forward = forward;
@@ -128,8 +127,7 @@ public class OPT_SortedGraphIterator {
     // Return the first one with changeMark before barrier or
     // barrier itself.
     currentNode = currentNode.getSortedNext(forward);
-    for (; currentNode != barrier; currentNode =
-        currentNode.getSortedNext(forward)) {
+    for (; currentNode != barrier; currentNode = currentNode.getSortedNext(forward)) {
       if (currentNode.getSortMarker() == changeMark) {
         advanceBarrier();
         return currentNode;
@@ -152,8 +150,7 @@ public class OPT_SortedGraphIterator {
    * @param nextNode the node of interest
    * @return if first parameter is the only predecessor of the 2nd parameter
    */
-  public boolean isSingleSuccessor(OPT_SortedGraphNode currentNode,
-                                   OPT_SortedGraphNode nextNode) {
+  public boolean isSingleSuccessor(OPT_SortedGraphNode currentNode, OPT_SortedGraphNode nextNode) {
     // check that next node has only 1 predecessor
     if (!nextNode.hasOneIn()) return false;
     // now check that the predecessor is current node
@@ -172,8 +169,7 @@ public class OPT_SortedGraphIterator {
    * @param nextNode the node of interest
    * @return if first parameter is the only succesor of the 2nd parameter
    */
-  public boolean isSinglePredecessor(OPT_SortedGraphNode currentNode,
-                                     OPT_SortedGraphNode nextNode) {
+  public boolean isSinglePredecessor(OPT_SortedGraphNode currentNode, OPT_SortedGraphNode nextNode) {
     // check that next node has only 1 successor
     if (!nextNode.hasOneOut()) return false;
     // now check that the successor is current node

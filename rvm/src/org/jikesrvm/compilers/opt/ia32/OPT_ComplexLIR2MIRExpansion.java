@@ -58,8 +58,7 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
    */
   public static void convert(OPT_IR ir) {
     OPT_Instruction nextInstr;
-    for (OPT_Instruction s = ir.firstInstructionInCodeOrder();
-         s != null; s = nextInstr) {
+    for (OPT_Instruction s = ir.firstInstructionInCodeOrder(); s != null; s = nextInstr) {
       switch (s.getOpcode()) {
         case LONG_IFCMP_opcode: {
           OPT_Operand val2 = IfCmp.getVal2(s);
@@ -110,77 +109,100 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
       OPT_Register tl = ir.regpool.getInteger();
       if (high == 0) {
         if (low == 0) { // 0,0
-          s.insertBefore(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(th, VM_TypeReference.Int),
+          s.insertBefore(MIR_Move.create(IA32_MOV,
+                                         new OPT_RegisterOperand(th, VM_TypeReference.Int),
                                          new OPT_RegisterOperand(xh, VM_TypeReference.Int)));
-          s.insertBefore(MIR_BinaryAcc.create(IA32_OR, new OPT_RegisterOperand(th, VM_TypeReference.Int),
+          s.insertBefore(MIR_BinaryAcc.create(IA32_OR,
+                                              new OPT_RegisterOperand(th, VM_TypeReference.Int),
                                               new OPT_RegisterOperand(xl, VM_TypeReference.Int)));
         } else if (low == -1) { // 0,-1
-          s.insertBefore(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(tl, VM_TypeReference.Int),
+          s.insertBefore(MIR_Move.create(IA32_MOV,
+                                         new OPT_RegisterOperand(tl, VM_TypeReference.Int),
                                          new OPT_RegisterOperand(xl, VM_TypeReference.Int)));
           s.insertBefore(MIR_UnaryAcc.create(IA32_NOT, new OPT_RegisterOperand(tl, VM_TypeReference.Int)));
-          s.insertBefore(MIR_BinaryAcc.create(IA32_OR, new OPT_RegisterOperand(tl, VM_TypeReference.Int),
+          s.insertBefore(MIR_BinaryAcc.create(IA32_OR,
+                                              new OPT_RegisterOperand(tl, VM_TypeReference.Int),
                                               new OPT_RegisterOperand(xh, VM_TypeReference.Int)));
         } else { // 0,*
-          s.insertBefore(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(tl, VM_TypeReference.Int),
+          s.insertBefore(MIR_Move.create(IA32_MOV,
+                                         new OPT_RegisterOperand(tl, VM_TypeReference.Int),
                                          new OPT_RegisterOperand(xl, VM_TypeReference.Int)));
           s.insertBefore(MIR_BinaryAcc.create(IA32_XOR, new OPT_RegisterOperand(tl, VM_TypeReference.Int), yl));
-          s.insertBefore(MIR_BinaryAcc.create(IA32_OR, new OPT_RegisterOperand(tl, VM_TypeReference.Int),
+          s.insertBefore(MIR_BinaryAcc.create(IA32_OR,
+                                              new OPT_RegisterOperand(tl, VM_TypeReference.Int),
                                               new OPT_RegisterOperand(xh, VM_TypeReference.Int)));
         }
       } else if (high == -1) {
         if (low == 0) { // -1,0
-          s.insertBefore(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(th, VM_TypeReference.Int),
+          s.insertBefore(MIR_Move.create(IA32_MOV,
+                                         new OPT_RegisterOperand(th, VM_TypeReference.Int),
                                          new OPT_RegisterOperand(xh, VM_TypeReference.Int)));
           s.insertBefore(MIR_UnaryAcc.create(IA32_NOT, new OPT_RegisterOperand(th, VM_TypeReference.Int)));
-          s.insertBefore(MIR_BinaryAcc.create(IA32_OR, new OPT_RegisterOperand(th, VM_TypeReference.Int),
+          s.insertBefore(MIR_BinaryAcc.create(IA32_OR,
+                                              new OPT_RegisterOperand(th, VM_TypeReference.Int),
                                               new OPT_RegisterOperand(xl, VM_TypeReference.Int)));
         } else if (low == -1) { // -1,-1
-          s.insertBefore(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(th, VM_TypeReference.Int),
+          s.insertBefore(MIR_Move.create(IA32_MOV,
+                                         new OPT_RegisterOperand(th, VM_TypeReference.Int),
                                          new OPT_RegisterOperand(xh, VM_TypeReference.Int)));
           s.insertBefore(MIR_UnaryAcc.create(IA32_NOT, new OPT_RegisterOperand(th, VM_TypeReference.Int)));
-          s.insertBefore(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(tl, VM_TypeReference.Int),
+          s.insertBefore(MIR_Move.create(IA32_MOV,
+                                         new OPT_RegisterOperand(tl, VM_TypeReference.Int),
                                          new OPT_RegisterOperand(xl, VM_TypeReference.Int)));
           s.insertBefore(MIR_UnaryAcc.create(IA32_NOT, new OPT_RegisterOperand(tl, VM_TypeReference.Int)));
-          s.insertBefore(MIR_BinaryAcc.create(IA32_OR, new OPT_RegisterOperand(th, VM_TypeReference.Int),
+          s.insertBefore(MIR_BinaryAcc.create(IA32_OR,
+                                              new OPT_RegisterOperand(th, VM_TypeReference.Int),
                                               new OPT_RegisterOperand(tl, VM_TypeReference.Int)));
         } else { // -1,*
-          s.insertBefore(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(th, VM_TypeReference.Int),
+          s.insertBefore(MIR_Move.create(IA32_MOV,
+                                         new OPT_RegisterOperand(th, VM_TypeReference.Int),
                                          new OPT_RegisterOperand(xh, VM_TypeReference.Int)));
           s.insertBefore(MIR_UnaryAcc.create(IA32_NOT, new OPT_RegisterOperand(th, VM_TypeReference.Int)));
-          s.insertBefore(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(tl, VM_TypeReference.Int),
+          s.insertBefore(MIR_Move.create(IA32_MOV,
+                                         new OPT_RegisterOperand(tl, VM_TypeReference.Int),
                                          new OPT_RegisterOperand(xl, VM_TypeReference.Int)));
           s.insertBefore(MIR_BinaryAcc.create(IA32_XOR, new OPT_RegisterOperand(tl, VM_TypeReference.Int), yl));
-          s.insertBefore(MIR_BinaryAcc.create(IA32_OR, new OPT_RegisterOperand(th, VM_TypeReference.Int),
+          s.insertBefore(MIR_BinaryAcc.create(IA32_OR,
+                                              new OPT_RegisterOperand(th, VM_TypeReference.Int),
                                               new OPT_RegisterOperand(tl, VM_TypeReference.Int)));
         }
       } else {
         if (low == 0) { // *,0
-          s.insertBefore(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(th, VM_TypeReference.Int),
+          s.insertBefore(MIR_Move.create(IA32_MOV,
+                                         new OPT_RegisterOperand(th, VM_TypeReference.Int),
                                          new OPT_RegisterOperand(xh, VM_TypeReference.Int)));
           s.insertBefore(MIR_BinaryAcc.create(IA32_XOR, new OPT_RegisterOperand(th, VM_TypeReference.Int), yh));
-          s.insertBefore(MIR_BinaryAcc.create(IA32_OR, new OPT_RegisterOperand(th, VM_TypeReference.Int),
+          s.insertBefore(MIR_BinaryAcc.create(IA32_OR,
+                                              new OPT_RegisterOperand(th, VM_TypeReference.Int),
                                               new OPT_RegisterOperand(xl, VM_TypeReference.Int)));
         } else if (low == -1) { // *,-1
-          s.insertBefore(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(th, VM_TypeReference.Int),
+          s.insertBefore(MIR_Move.create(IA32_MOV,
+                                         new OPT_RegisterOperand(th, VM_TypeReference.Int),
                                          new OPT_RegisterOperand(xh, VM_TypeReference.Int)));
           s.insertBefore(MIR_BinaryAcc.create(IA32_XOR, new OPT_RegisterOperand(th, VM_TypeReference.Int), yh));
-          s.insertBefore(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(tl, VM_TypeReference.Int),
+          s.insertBefore(MIR_Move.create(IA32_MOV,
+                                         new OPT_RegisterOperand(tl, VM_TypeReference.Int),
                                          new OPT_RegisterOperand(xl, VM_TypeReference.Int)));
           s.insertBefore(MIR_UnaryAcc.create(IA32_NOT, new OPT_RegisterOperand(tl, VM_TypeReference.Int)));
-          s.insertBefore(MIR_BinaryAcc.create(IA32_OR, new OPT_RegisterOperand(th, VM_TypeReference.Int),
+          s.insertBefore(MIR_BinaryAcc.create(IA32_OR,
+                                              new OPT_RegisterOperand(th, VM_TypeReference.Int),
                                               new OPT_RegisterOperand(tl, VM_TypeReference.Int)));
         } else { // neither high nor low is special
-          s.insertBefore(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(th, VM_TypeReference.Int),
+          s.insertBefore(MIR_Move.create(IA32_MOV,
+                                         new OPT_RegisterOperand(th, VM_TypeReference.Int),
                                          new OPT_RegisterOperand(xh, VM_TypeReference.Int)));
           s.insertBefore(MIR_BinaryAcc.create(IA32_XOR, new OPT_RegisterOperand(th, VM_TypeReference.Int), yh));
-          s.insertBefore(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(tl, VM_TypeReference.Int),
+          s.insertBefore(MIR_Move.create(IA32_MOV,
+                                         new OPT_RegisterOperand(tl, VM_TypeReference.Int),
                                          new OPT_RegisterOperand(xl, VM_TypeReference.Int)));
           s.insertBefore(MIR_BinaryAcc.create(IA32_XOR, new OPT_RegisterOperand(tl, VM_TypeReference.Int), yl));
-          s.insertBefore(MIR_BinaryAcc.create(IA32_OR, new OPT_RegisterOperand(th, VM_TypeReference.Int),
+          s.insertBefore(MIR_BinaryAcc.create(IA32_OR,
+                                              new OPT_RegisterOperand(th, VM_TypeReference.Int),
                                               new OPT_RegisterOperand(tl, VM_TypeReference.Int)));
         }
       }
-      MIR_CondBranch.mutate(s, IA32_JCC,
+      MIR_CondBranch.mutate(s,
+                            IA32_JCC,
                             new OPT_IA32ConditionOperand(cond),
                             IfCmp.getTarget(s),
                             IfCmp.getBranchProfile(s));
@@ -191,14 +213,16 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
         if (cond.isLESS()) {
           // xh < 0 implies true
           s.insertBefore(MIR_Compare.create(IA32_CMP, new OPT_RegisterOperand(xh, VM_TypeReference.Int), IC(0)));
-          MIR_CondBranch.mutate(s, IA32_JCC,
+          MIR_CondBranch.mutate(s,
+                                IA32_JCC,
                                 OPT_IA32ConditionOperand.LT(),
                                 IfCmp.getTarget(s),
                                 IfCmp.getBranchProfile(s));
           return nextInstr;
         } else if (cond.isGREATER_EQUAL()) {
           s.insertBefore(MIR_Compare.create(IA32_CMP, new OPT_RegisterOperand(xh, VM_TypeReference.Int), IC(0)));
-          MIR_CondBranch.mutate(s, IA32_JCC,
+          MIR_CondBranch.mutate(s,
+                                IA32_JCC,
                                 OPT_IA32ConditionOperand.GE(),
                                 IfCmp.getTarget(s),
                                 IfCmp.getBranchProfile(s));
@@ -207,14 +231,16 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
       } else if (rhs.value == -1L) {
         if (cond.isLESS_EQUAL()) {
           s.insertBefore(MIR_Compare.create(IA32_CMP, new OPT_RegisterOperand(xh, VM_TypeReference.Int), IC(-1)));
-          MIR_CondBranch.mutate(s, IA32_JCC,
+          MIR_CondBranch.mutate(s,
+                                IA32_JCC,
                                 OPT_IA32ConditionOperand.LE(),
                                 IfCmp.getTarget(s),
                                 IfCmp.getBranchProfile(s));
           return nextInstr;
         } else if (cond.isGREATER()) {
           s.insertBefore(MIR_Compare.create(IA32_CMP, new OPT_RegisterOperand(xh, VM_TypeReference.Int), IC(0)));
-          MIR_CondBranch.mutate(s, IA32_JCC,
+          MIR_CondBranch.mutate(s,
+                                IA32_JCC,
                                 OPT_IA32ConditionOperand.GE(),
                                 IfCmp.getTarget(s),
                                 IfCmp.getBranchProfile(s));
@@ -227,12 +253,8 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     }
   }
 
-  private static void basic_long_ifcmp(OPT_Instruction s, OPT_IR ir,
-                                       OPT_ConditionOperand cond,
-                                       OPT_Register xh,
-                                       OPT_Register xl,
-                                       OPT_Operand yh,
-                                       OPT_Operand yl) {
+  private static void basic_long_ifcmp(OPT_Instruction s, OPT_IR ir, OPT_ConditionOperand cond, OPT_Register xh,
+                                       OPT_Register xl, OPT_Operand yh, OPT_Operand yl) {
     if (cond.isEQUAL() || cond.isNOT_EQUAL()) {
       OPT_RegisterOperand th = ir.regpool.makeTempInt();
       OPT_RegisterOperand tl = ir.regpool.makeTempInt();
@@ -242,7 +264,8 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
       s.insertBefore(MIR_Move.create(IA32_MOV, tl, new OPT_RegisterOperand(xl, VM_TypeReference.Int)));
       s.insertBefore(MIR_BinaryAcc.create(IA32_XOR, tl.copyD2D(), yl));
       s.insertBefore(MIR_BinaryAcc.create(IA32_OR, th.copyD2D(), tl.copyD2U()));
-      MIR_CondBranch.mutate(s, IA32_JCC,
+      MIR_CondBranch.mutate(s,
+                            IA32_JCC,
                             new OPT_IA32ConditionOperand(cond),
                             IfCmp.getTarget(s),
                             IfCmp.getBranchProfile(s));
@@ -353,55 +376,55 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
         // Check whether val1 and val2 operands are the same
         if (!val1.similar(val2)) {
           s.insertBefore(MIR_CondBranch2.create(IA32_JCC2,
-                                                OPT_IA32ConditionOperand.PE(),  // PF == 1
+                                                OPT_IA32ConditionOperand.PE(),
+                                                // PF == 1
                                                 testFailed,
                                                 new OPT_BranchProfileOperand(0f),
-                                                OPT_IA32ConditionOperand.EQ(),  // ZF == 1
+                                                OPT_IA32ConditionOperand.EQ(),
+                                                // ZF == 1
                                                 target,
                                                 branchProfile));
           s.insertBefore(MIR_Branch.create(IA32_JMP, (OPT_BranchOperand) (testFailed.copy())));
         } else {
           // As val1 == val2 result of compare must be == or UNORDERED
-          s.insertBefore(MIR_CondBranch.create(IA32_JCC,
-                                               OPT_IA32ConditionOperand.PO(),  // PF == 0
-                                               target,
-                                               branchProfile));
+          s.insertBefore(MIR_CondBranch.create(IA32_JCC, OPT_IA32ConditionOperand.PO(),  // PF == 0
+                                               target, branchProfile));
           s.insertBefore(MIR_Branch.create(IA32_JMP, testFailed));
         }
         break;
       case OPT_ConditionOperand.CMPL_GREATER:
         if (VM.VerifyAssertions) VM._assert(!c.branchIfUnordered());
-        s.insertBefore(MIR_CondBranch.create(IA32_JCC,
-                                             OPT_IA32ConditionOperand.LGT(), // CF == 0 and ZF == 0
-                                             target,
-                                             branchProfile));
+        s.insertBefore(MIR_CondBranch.create(IA32_JCC, OPT_IA32ConditionOperand.LGT(), // CF == 0 and ZF == 0
+                                             target, branchProfile));
         s.insertBefore(MIR_Branch.create(IA32_JMP, testFailed));
         break;
       case OPT_ConditionOperand.CMPG_LESS:
         if (VM.VerifyAssertions) VM._assert(!c.branchIfUnordered());
         s.insertBefore(MIR_CondBranch2.create(IA32_JCC2,
-                                              OPT_IA32ConditionOperand.PE(),  // PF == 1
+                                              OPT_IA32ConditionOperand.PE(),
+                                              // PF == 1
                                               testFailed,
                                               new OPT_BranchProfileOperand(0f),
-                                              OPT_IA32ConditionOperand.LLT(), // CF == 1
+                                              OPT_IA32ConditionOperand.LLT(),
+                                              // CF == 1
                                               target,
                                               branchProfile));
         s.insertBefore(MIR_Branch.create(IA32_JMP, (OPT_BranchOperand) (testFailed.copy())));
         break;
       case OPT_ConditionOperand.CMPL_GREATER_EQUAL:
         if (VM.VerifyAssertions) VM._assert(!c.branchIfUnordered());
-        s.insertBefore(MIR_CondBranch.create(IA32_JCC,
-                                             OPT_IA32ConditionOperand.LGE(), // CF == 0
-                                             target,
-                                             branchProfile));
+        s.insertBefore(MIR_CondBranch.create(IA32_JCC, OPT_IA32ConditionOperand.LGE(), // CF == 0
+                                             target, branchProfile));
         s.insertBefore(MIR_Branch.create(IA32_JMP, testFailed));
         break;
       case OPT_ConditionOperand.CMPG_LESS_EQUAL:
         s.insertBefore(MIR_CondBranch2.create(IA32_JCC2,
-                                              OPT_IA32ConditionOperand.PE(),  // PF == 1
+                                              OPT_IA32ConditionOperand.PE(),
+                                              // PF == 1
                                               testFailed,
                                               new OPT_BranchProfileOperand(0f),
-                                              OPT_IA32ConditionOperand.LGT(), // ZF == 0 and CF == 0
+                                              OPT_IA32ConditionOperand.LGT(),
+                                              // ZF == 0 and CF == 0
                                               (OPT_BranchOperand) (testFailed.copy()),
                                               branchProfile));
         s.insertBefore(MIR_Branch.create(IA32_JMP, target));
@@ -413,37 +436,37 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
         // Check whether val1 and val2 operands are the same
         if (!val1.similar(val2)) {
           s.insertBefore(MIR_CondBranch2.create(IA32_JCC2,
-                                                OPT_IA32ConditionOperand.PE(),  // PF == 1
+                                                OPT_IA32ConditionOperand.PE(),
+                                                // PF == 1
                                                 target,
                                                 new OPT_BranchProfileOperand(0f),
-                                                OPT_IA32ConditionOperand.NE(),  // ZF == 0
+                                                OPT_IA32ConditionOperand.NE(),
+                                                // ZF == 0
                                                 (OPT_BranchOperand) (target.copy()),
                                                 branchProfile));
           s.insertBefore(MIR_Branch.create(IA32_JMP, testFailed));
         } else {
           // As val1 == val2 result of compare must be == or UNORDERED
-          s.insertBefore(MIR_CondBranch.create(IA32_JCC,
-                                               OPT_IA32ConditionOperand.PE(),  // PF == 1
-                                               target,
-                                               branchProfile));
+          s.insertBefore(MIR_CondBranch.create(IA32_JCC, OPT_IA32ConditionOperand.PE(),  // PF == 1
+                                               target, branchProfile));
           s.insertBefore(MIR_Branch.create(IA32_JMP, testFailed));
         }
         break;
       case OPT_ConditionOperand.CMPL_LESS:
         if (VM.VerifyAssertions) VM._assert(c.branchIfUnordered());
-        s.insertBefore(MIR_CondBranch.create(IA32_JCC,
-                                             OPT_IA32ConditionOperand.LLT(),   // CF == 1
-                                             target,
-                                             branchProfile));
+        s.insertBefore(MIR_CondBranch.create(IA32_JCC, OPT_IA32ConditionOperand.LLT(),   // CF == 1
+                                             target, branchProfile));
         s.insertBefore(MIR_Branch.create(IA32_JMP, testFailed));
         break;
       case OPT_ConditionOperand.CMPG_GREATER_EQUAL:
         if (VM.VerifyAssertions) VM._assert(c.branchIfUnordered());
         s.insertBefore(MIR_CondBranch2.create(IA32_JCC2,
-                                              OPT_IA32ConditionOperand.PE(),  // PF == 1
+                                              OPT_IA32ConditionOperand.PE(),
+                                              // PF == 1
                                               target,
                                               new OPT_BranchProfileOperand(0f),
-                                              OPT_IA32ConditionOperand.LLT(), // CF == 1
+                                              OPT_IA32ConditionOperand.LLT(),
+                                              // CF == 1
                                               testFailed,
                                               branchProfile));
         s.insertBefore(MIR_Branch.create(IA32_JMP, (OPT_BranchOperand) (target.copy())));
@@ -451,20 +474,20 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
       case OPT_ConditionOperand.CMPG_GREATER:
         if (VM.VerifyAssertions) VM._assert(c.branchIfUnordered());
         s.insertBefore(MIR_CondBranch2.create(IA32_JCC2,
-                                              OPT_IA32ConditionOperand.PE(),  // PF == 1
+                                              OPT_IA32ConditionOperand.PE(),
+                                              // PF == 1
                                               target,
                                               new OPT_BranchProfileOperand(0f),
-                                              OPT_IA32ConditionOperand.LGT(), // ZF == 0 and CF == 0
+                                              OPT_IA32ConditionOperand.LGT(),
+                                              // ZF == 0 and CF == 0
                                               (OPT_BranchOperand) (target.copy()),
                                               branchProfile));
         s.insertBefore(MIR_Branch.create(IA32_JMP, testFailed));
         break;
       case OPT_ConditionOperand.CMPL_LESS_EQUAL:
         if (VM.VerifyAssertions) VM._assert(c.branchIfUnordered());
-        s.insertBefore(MIR_CondBranch.create(IA32_JCC,
-                                             OPT_IA32ConditionOperand.LLE(), // CF == 1 or ZF == 1
-                                             target,
-                                             branchProfile));
+        s.insertBefore(MIR_CondBranch.create(IA32_JCC, OPT_IA32ConditionOperand.LLE(), // CF == 1 or ZF == 1
+                                             target, branchProfile));
         s.insertBefore(MIR_Branch.create(IA32_JMP, testFailed));
         break;
       default:

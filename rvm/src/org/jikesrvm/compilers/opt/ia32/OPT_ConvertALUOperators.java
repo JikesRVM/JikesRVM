@@ -94,8 +94,7 @@ import org.vmmagic.pragma.NoOptCompile;
  *
  * </pre>
  */
-public class OPT_ConvertALUOperators extends OPT_CompilerPhase
-    implements OPT_Operators {
+public class OPT_ConvertALUOperators extends OPT_CompilerPhase implements OPT_Operators {
 
   private static final boolean OPTIMIZE = true;
 
@@ -118,8 +117,7 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
     // chance we've missed an opportunity...)
     // BURS assumes that this has been done, so we must do it even if
     // OPTIMIZE is false.
-    for (OPT_InstructionEnumeration instrs = ir.forwardInstrEnumerator();
-         instrs.hasMoreElements();) {
+    for (OPT_InstructionEnumeration instrs = ir.forwardInstrEnumerator(); instrs.hasMoreElements();) {
       OPT_Instruction s = instrs.next();
       OPT_Simplifier.simplify(ir.regpool, s);
     }
@@ -130,17 +128,13 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
       OPT_DefUse.computeDU(ir);
       OPT_DefUse.recomputeSSA(ir);
       OPT_DefUse.recomputeSpansBasicBlock(ir);
-      for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister();
-           reg != null;
-           reg = reg.getNext()) {
+      for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); reg != null; reg = reg.getNext()) {
         markDead(reg);
       }
     }
 
     // Reverse pass over instructions supports simple live analysis.
-    for (OPT_Instruction next, s = ir.lastInstructionInCodeOrder();
-         s != null;
-         s = next) {
+    for (OPT_Instruction next, s = ir.lastInstructionInCodeOrder(); s != null; s = next) {
       next = s.prevInstructionInCodeOrder();
 
       switch (s.getOpcode()) {
@@ -361,8 +355,7 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
 
       if (OPTIMIZE) {
         // update liveness
-        for (OPT_OperandEnumeration defs = s.getPureDefs();
-             defs.hasMoreElements();) {
+        for (OPT_OperandEnumeration defs = s.getPureDefs(); defs.hasMoreElements();) {
           OPT_Operand op = defs.next();
           if (op.isRegister()) {
             markDead(op.asRegister().register);
@@ -405,8 +398,7 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
       if (op1.isRegister()) {
         OPT_RegisterOperand rop1 = op1.asRegister();
         if (!rop1.register.spansBasicBlock() && isDead(rop1.register)) {
-          if (result.register.isSSA() && !result.register.spansBasicBlock() &&
-              rop1.register.isSSA()) {
+          if (result.register.isSSA() && !result.register.spansBasicBlock() && rop1.register.isSSA()) {
             OPT_DefUse.removeDef(result);
             OPT_DefUse.removeUse(rop1);
             OPT_DefUse.recordDefUse(rop1);
@@ -419,8 +411,7 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
             OPT_DefUse.removeUse(rop1);
             OPT_DefUse.recordDefUse(rop1);
             BinaryAcc.mutate(s, opCode, rop1, op2);
-            OPT_Instruction move =
-                Move.create(getMoveOp(result.type), result, rop1.copy());
+            OPT_Instruction move = Move.create(getMoveOp(result.type), result, rop1.copy());
             OPT_DefUse.updateDUForNewInstruction(move);
             s.insertAfter(move);
             return;
@@ -430,8 +421,7 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
       if (op2.isRegister()) {
         OPT_RegisterOperand rop2 = op2.asRegister();
         if (!rop2.register.spansBasicBlock() && isDead(rop2.register)) {
-          if (result.register.isSSA() && !result.register.spansBasicBlock() &&
-              rop2.register.isSSA()) {
+          if (result.register.isSSA() && !result.register.spansBasicBlock() && rop2.register.isSSA()) {
             OPT_DefUse.removeUse(rop2);
             OPT_DefUse.removeDef(result);
             OPT_DefUse.recordDefUse(rop2);
@@ -444,8 +434,7 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
             OPT_DefUse.removeUse(rop2);
             OPT_DefUse.recordDefUse(rop2);
             BinaryAcc.mutate(s, opCode, rop2, op1);
-            OPT_Instruction move =
-                Move.create(getMoveOp(result.type), result, rop2.copy());
+            OPT_Instruction move = Move.create(getMoveOp(result.type), result, rop2.copy());
             OPT_DefUse.updateDUForNewInstruction(move);
             s.insertAfter(move);
             return;
@@ -455,8 +444,7 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
     }
 
     // Sigh, need some kind of move instruction
-    OPT_Instruction move =
-        Move.create(getMoveOp(result.type), result.copyRO(), op1.copy());
+    OPT_Instruction move = Move.create(getMoveOp(result.type), result.copyRO(), op1.copy());
     OPT_DefUse.updateDUForNewInstruction(move);
     s.insertBefore(move);
     OPT_DefUse.removeDef(result);
@@ -467,8 +455,7 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
     BinaryAcc.mutate(s, opCode, result, op2);
   }
 
-  private void noncommutative(OPT_Instruction s, OPT_Operator opCode,
-                              OPT_IR ir) {
+  private void noncommutative(OPT_Instruction s, OPT_Operator opCode, OPT_IR ir) {
     OPT_RegisterOperand result = Binary.getClearResult(s);
     OPT_Operand op1 = Binary.getClearVal1(s);
     OPT_Operand op2 = Binary.getClearVal2(s);
@@ -487,8 +474,7 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
       if (op1.isRegister()) {
         OPT_RegisterOperand rop1 = op1.asRegister();
         if (!rop1.register.spansBasicBlock() && isDead(rop1.register)) {
-          if (result.register.isSSA() && !result.register.spansBasicBlock() &&
-              rop1.register.isSSA()) {
+          if (result.register.isSSA() && !result.register.spansBasicBlock() && rop1.register.isSSA()) {
             OPT_DefUse.removeUse(rop1);
             OPT_DefUse.removeDef(result);
             OPT_DefUse.recordDefUse(rop1);
@@ -501,8 +487,7 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
             OPT_DefUse.removeUse(rop1);
             OPT_DefUse.recordDefUse(rop1);
             BinaryAcc.mutate(s, opCode, rop1, op2);
-            OPT_Instruction move =
-                Move.create(getMoveOp(result.type), result, rop1.copy());
+            OPT_Instruction move = Move.create(getMoveOp(result.type), result, rop1.copy());
             OPT_DefUse.updateDUForNewInstruction(move);
             s.insertAfter(move);
             return;
@@ -515,8 +500,7 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
     if (result.similar(op2)) {
       similarNonCommutative(s, opCode, ir, result, op1, op2);
     } else {
-      OPT_Instruction move =
-          Move.create(getMoveOp(result.type), result.copyRO(), op1.copy());
+      OPT_Instruction move = Move.create(getMoveOp(result.type), result.copyRO(), op1.copy());
       OPT_DefUse.updateDUForNewInstruction(move);
       s.insertBefore(move);
       OPT_DefUse.removeDef(result);
@@ -533,8 +517,7 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
   private void similarNonCommutative(OPT_Instruction s, OPT_Operator opCode, OPT_IR ir, OPT_RegisterOperand result,
                                      OPT_Operand op1, OPT_Operand op2) {
     OPT_RegisterOperand tmp = ir.regpool.makeTemp(op1);
-    OPT_Instruction move =
-        Move.create(getMoveOp(tmp.type), tmp.copyRO(), op1.copy());
+    OPT_Instruction move = Move.create(getMoveOp(tmp.type), tmp.copyRO(), op1.copy());
     s.insertBefore(move);
     OPT_DefUse.updateDUForNewInstruction(move);
     OPT_DefUse.removeDef(result);
@@ -566,8 +549,7 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
       if (op1.isRegister()) {
         OPT_RegisterOperand rop1 = op1.asRegister();
         if (!rop1.register.spansBasicBlock() && isDead(rop1.register)) {
-          if (result.register.isSSA() && !result.register.spansBasicBlock() &&
-              rop1.register.isSSA()) {
+          if (result.register.isSSA() && !result.register.spansBasicBlock() && rop1.register.isSSA()) {
             OPT_DefUse.removeUse(rop1);
             OPT_DefUse.removeDef(result);
             OPT_DefUse.recordDefUse(rop1);
@@ -580,8 +562,7 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
             OPT_DefUse.removeUse(rop1);
             OPT_DefUse.recordDefUse(rop1);
             UnaryAcc.mutate(s, opCode, rop1);
-            OPT_Instruction move =
-                Move.create(getMoveOp(result.type), result, rop1.copy());
+            OPT_Instruction move = Move.create(getMoveOp(result.type), result, rop1.copy());
             OPT_DefUse.updateDUForNewInstruction(move);
             s.insertAfter(move);
             return;
@@ -591,8 +572,7 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase
     }
 
     // Sigh, need the move instruction before op.
-    OPT_Instruction move =
-        Move.create(getMoveOp(result.type), result.copyRO(), op1.copy());
+    OPT_Instruction move = Move.create(getMoveOp(result.type), result.copyRO(), op1.copy());
     OPT_DefUse.updateDUForNewInstruction(move);
     s.insertBefore(move);
     OPT_DefUse.removeDef(result);

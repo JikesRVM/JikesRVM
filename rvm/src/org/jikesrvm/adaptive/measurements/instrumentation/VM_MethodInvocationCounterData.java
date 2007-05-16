@@ -18,8 +18,7 @@ import org.jikesrvm.compilers.opt.OPT_InstrumentedEventCounterManager;
  * OPT_InsertMethodInvocationCounter.java inserts instrumentation that
  * writes into this data.
  */
-public final class VM_MethodInvocationCounterData extends VM_ManagedCounterData
-    implements VM_Reportable {
+public final class VM_MethodInvocationCounterData extends VM_ManagedCounterData implements VM_Reportable {
 
   /**
    * @param manager The manager that will provide the counter space

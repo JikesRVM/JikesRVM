@@ -45,8 +45,7 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants {
   public static OPT_ConstantOperand getFieldValueAsConstant(VM_Field field, Object obj) throws NoSuchFieldException {
     if (VM.VerifyAssertions) VM._assert(field.isFinal(), "Error reading field " + field);
     if (VM.VerifyAssertions) {
-      VM._assert(field.getDeclaringClass().isInitialized() ||
-                 field.getDeclaringClass().isInBootImage(),
+      VM._assert(field.getDeclaringClass().isInitialized() || field.getDeclaringClass().isInBootImage(),
                  "Error reading field " + field);
     }
 
@@ -133,13 +132,11 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants {
    * @param field the static field whose current value we want to read
    * @return a constant operand representing the current value of the field.
    */
-  public static OPT_ConstantOperand getStaticFieldValue(VM_Field field)
-      throws NoSuchFieldException {
+  public static OPT_ConstantOperand getStaticFieldValue(VM_Field field) throws NoSuchFieldException {
     if (VM.VerifyAssertions) VM._assert(field.isFinal(), "Error reading field " + field);
     if (VM.VerifyAssertions) VM._assert(field.isStatic(), "Error reading field " + field);
     if (VM.VerifyAssertions) {
-      VM._assert(field.getDeclaringClass().isInitialized() ||
-                 field.getDeclaringClass().isInBootImage(),
+      VM._assert(field.getDeclaringClass().isInitialized() || field.getDeclaringClass().isInBootImage(),
                  "Error reading field " + field);
     }
 
@@ -191,8 +188,7 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants {
    * @param field a static field
    * @return the current value of the field
    */
-  public static int getIntStaticFieldValue(VM_Field field)
-      throws NoSuchFieldException {
+  public static int getIntStaticFieldValue(VM_Field field) throws NoSuchFieldException {
     if (VM.runningVM) {
       return VM_Statics.getSlotContentsAsInt(field.getOffset());
     } else {
@@ -227,8 +223,7 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants {
    * @param field a static field
    * @return the current value of the field
    */
-  public static float getFloatStaticFieldValue(VM_Field field)
-      throws NoSuchFieldException {
+  public static float getFloatStaticFieldValue(VM_Field field) throws NoSuchFieldException {
     if (VM.runningVM) {
       int bits = VM_Statics.getSlotContentsAsInt(field.getOffset());
       return VM_Magic.intBitsAsFloat(bits);
@@ -249,8 +244,7 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants {
    * @param field a static field
    * @return the current value of the field
    */
-  public static long getLongStaticFieldValue(VM_Field field)
-      throws NoSuchFieldException {
+  public static long getLongStaticFieldValue(VM_Field field) throws NoSuchFieldException {
     if (VM.runningVM) {
       return VM_Statics.getSlotContentsAsLong(field.getOffset());
     } else {
@@ -270,8 +264,7 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants {
    * @param field a static field
    * @return the current value of the field
    */
-  public static double getDoubleStaticFieldValue(VM_Field field)
-      throws NoSuchFieldException {
+  public static double getDoubleStaticFieldValue(VM_Field field) throws NoSuchFieldException {
     if (VM.runningVM) {
       long bits = VM_Statics.getSlotContentsAsLong(field.getOffset());
       return VM_Magic.longBitsAsDouble(bits);
@@ -292,8 +285,7 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants {
    * @param field a static field
    * @return the current value of the field
    */
-  public static Object getObjectStaticFieldValue(VM_Field field)
-      throws NoSuchFieldException {
+  public static Object getObjectStaticFieldValue(VM_Field field) throws NoSuchFieldException {
     if (VM.runningVM) {
       return VM_Statics.getSlotContentsAsObject(field.getOffset());
     } else {
@@ -313,8 +305,7 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants {
    * @param field a static field
    * @return the current value of the field
    */
-  public static Address getAddressStaticFieldValue(VM_Field field)
-      throws NoSuchFieldException {
+  public static Address getAddressStaticFieldValue(VM_Field field) throws NoSuchFieldException {
     if (VM.runningVM) {
       return VM_Statics.getSlotContentsAsAddress(field.getOffset());
     } else {
@@ -346,8 +337,7 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants {
    * @param field a static field
    * @return true if the field contains null, false otherwise
    */
-  public static boolean isStaticFieldNull(VM_Field field)
-      throws NoSuchFieldException {
+  public static boolean isStaticFieldNull(VM_Field field) throws NoSuchFieldException {
     return getObjectStaticFieldValue(field) == null;
   }
 
@@ -357,8 +347,7 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants {
    * @param field a static field
    * @return type of value contained in the field
    */
-  public static VM_TypeReference getTypeFromStaticField(VM_Field field)
-      throws NoSuchFieldException {
+  public static VM_TypeReference getTypeFromStaticField(VM_Field field) throws NoSuchFieldException {
     Object o = getObjectStaticFieldValue(field);
     if (o == null) return VM_TypeReference.NULL_TYPE;
     if (VM.runningVM) {
@@ -371,8 +360,7 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants {
   /**
    * Utilitiy to convert a VM_Field to a java.lang.reflect.Field
    */
-  private static Field getJDKField(VM_Field field)
-      throws NoSuchFieldException {
+  private static Field getJDKField(VM_Field field) throws NoSuchFieldException {
     try {
       String cn = field.getDeclaringClass().toString();
       Field f = Class.forName(cn).getDeclaredField(field.getName().toString());
