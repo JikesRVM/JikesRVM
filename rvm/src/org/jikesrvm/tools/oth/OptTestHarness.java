@@ -369,7 +369,7 @@ class OptTestHarness {
              IllegalAccessException {
     compileMethodsInVector();
 
-    if (EXECUTE_WITH_REFLECTION == true) {
+    if (EXECUTE_WITH_REFLECTION) {
 
       if (DISABLE_CLASS_LOADING) {
         VM_Class.classLoadingDisabled = true;

@@ -165,7 +165,7 @@ public final class SynchronizationBarrier {
     VM_Thread ct = vp.transferQueue.dequeueGCThread(null);
     vp.transferMutex.unlock();
     if (VM.VerifyAssertions) {
-      VM._assert(ct != null && ct.isGCThread == true);
+      VM._assert(ct != null && ct.isGCThread);
     }
 
     // put it back on the global collector thread queue

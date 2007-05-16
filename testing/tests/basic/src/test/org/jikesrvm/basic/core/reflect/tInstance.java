@@ -133,7 +133,7 @@ class tInstance {
       System.out.println("================= READY TO CALL: " + bmethod);
       methodargs[0] = Boolean.TRUE;
       boolean bresult = (Boolean) bmethod.invoke(myInstance, methodargs);
-      if (bresult != true) {
+      if (!bresult) {
         System.out.println("Wrong answer from buserFunction");
         System.exit(1);
       }

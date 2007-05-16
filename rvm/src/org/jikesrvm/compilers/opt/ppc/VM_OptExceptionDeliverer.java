@@ -50,7 +50,7 @@ public abstract class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
     registers.ip = catchBlockInstructionAddress;
     VM.enableGC(); // disabled right before VM_Runtime.deliverException was called
 
-    if (VM.VerifyAssertions) VM._assert(registers.inuse == true);
+    if (VM.VerifyAssertions) VM._assert(registers.inuse);
     registers.inuse = false;
 
     // "branches" to catchBlockInstructionAddress

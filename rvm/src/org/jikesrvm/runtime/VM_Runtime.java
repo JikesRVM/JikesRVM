@@ -684,7 +684,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
       } else {
         VM_Thread.resizeCurrentStack(myThread.stack.length + STACK_SIZE_GROW, exceptionRegisters);
       }
-      if (VM.VerifyAssertions) VM._assert(exceptionRegisters.inuse == true);
+      if (VM.VerifyAssertions) VM._assert(exceptionRegisters.inuse);
       exceptionRegisters.inuse = false;
       VM_Magic.restoreHardwareExceptionState(exceptionRegisters);
 

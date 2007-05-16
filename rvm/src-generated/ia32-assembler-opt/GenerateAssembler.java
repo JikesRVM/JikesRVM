@@ -957,7 +957,7 @@ public class GenerateAssembler {
                     System.err.println("split of " + opcode + "[" + rec.argument + "] for " + encoding[rec.test]);
                 }
 
-                if (testsPerformed[rec.argument][rec.test] == true) {
+                if (testsPerformed[rec.argument][rec.test]) {
                     System.err.println("repeated split of " + opcode + "[" + rec.argument + "] for " + encoding[rec.test]);
                     System.err.println( this );
                     System.exit(1);

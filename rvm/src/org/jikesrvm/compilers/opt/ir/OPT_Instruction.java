@@ -1885,7 +1885,7 @@ public final class OPT_Instruction
           if ((op1 == null) && (op2 == null)) {
             return true;
           }
-          if (op1.similar(op2) == false) {
+          if (!op1.similar(op2)) {
             return false;
           }
         }

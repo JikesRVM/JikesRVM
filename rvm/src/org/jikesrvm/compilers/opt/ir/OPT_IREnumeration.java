@@ -363,7 +363,7 @@ public abstract class OPT_IREnumeration {
      * Next element in the enumeration
      */
     public OPT_Operand next() {
-      if (instructionOperands.hasMoreElements() == true) {
+      if (instructionOperands.hasMoreElements()) {
         return instructionOperands.next();
       } else {
         if ((implicitDefs != null) && implicitDefs.hasMoreElements()) {
@@ -456,7 +456,7 @@ public abstract class OPT_IREnumeration {
      * Next element in the enumeration
      */
     public OPT_Operand next() {
-      if (instructionOperands.hasMoreElements() == true) {
+      if (instructionOperands.hasMoreElements()) {
         return instructionOperands.next();
       } else {
         if ((implicitUses != null) && implicitUses.hasMoreElements()) {

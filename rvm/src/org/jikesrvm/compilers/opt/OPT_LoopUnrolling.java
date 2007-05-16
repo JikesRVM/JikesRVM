@@ -75,7 +75,7 @@ public class OPT_LoopUnrolling extends OPT_CompilerPhase {
   public boolean shouldPerform(OPT_Options options) {
     return ((options.getOptLevel() >= 2) &&
             (options.UNROLL_LOG >= 1) &&
-            (options.LOOP_VERSIONING == false));
+            (!options.LOOP_VERSIONING));
   }
 
   /**

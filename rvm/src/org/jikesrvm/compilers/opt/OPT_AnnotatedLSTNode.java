@@ -194,11 +194,11 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
   boolean isCountableLoop() {
     return
         (initialIteratorValue != null) &&
-        (isConstant(initialIteratorValue) == true) &&
+        isConstant(initialIteratorValue) &&
         (terminalIteratorValue != null) &&
-        (isConstant(terminalIteratorValue) == true) &&
+        isConstant(terminalIteratorValue) &&
         (strideValue != null) &&
-        (isConstant(strideValue) == true) &&
+        isConstant(strideValue) &&
         (iteratorInstr != null) &&
         ((iteratorInstr.operator.opcode == INT_ADD_opcode) || (iteratorInstr.operator.opcode == INT_SUB_opcode));
   }
@@ -225,11 +225,11 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
   boolean isAffineLoop() {
     return
         (initialIteratorValue != null) &&
-        (isLoopInvariant(initialIteratorValue, loop, header) == true) &&
+        isLoopInvariant(initialIteratorValue, loop, header) &&
         (terminalIteratorValue != null) &&
-        (isLoopInvariant(terminalIteratorValue, loop, header) == true) &&
+        isLoopInvariant(terminalIteratorValue, loop, header) &&
         (strideValue != null) &&
-        (isLoopInvariant(strideValue, loop, header) == true) &&
+        isLoopInvariant(strideValue, loop, header) &&
         (iteratorInstr != null) &&
         ((iteratorInstr.operator.opcode == INT_ADD_opcode) || (iteratorInstr.operator.opcode == INT_SUB_opcode));
   }
@@ -240,7 +240,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
    * @return Whether this is a non-regular loop
    */
   boolean isNonRegularLoop() {
-    return isAffineLoop() == false;
+    return !isAffineLoop();
   }
 
   /**
@@ -306,7 +306,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
    * Is the loop iterator a monotonic increasing value
    */
   boolean isMonotonicIncreasing() {
-    if ((isMonotonic() == false) ||
+    if ((!isMonotonic()) ||
         condition.isGREATER() ||
         condition.isGREATER_EQUAL() ||
         condition.isHIGHER() ||
@@ -321,7 +321,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
    * Is the loop iterator a monotonic decreasing value
    */
   boolean isMonotonicDecreasing() {
-    if ((isMonotonic() == false) ||
+    if ((!isMonotonic()) ||
         condition.isLESS() ||
         condition.isLESS_EQUAL() ||
         condition.isLOWER() ||
@@ -545,7 +545,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
     } else if (op.isRegister()) {
       OPT_Instruction instr = definingInstruction(op);
       // Is the instruction that defined this register in the loop?
-      if (OPT_CFGTransformations.inLoop(instr.getBasicBlock(), loop) == false) {
+      if (!OPT_CFGTransformations.inLoop(instr.getBasicBlock(), loop)) {
         // No => the value is invariant in the loop
         result = true;
       } else {
@@ -682,7 +682,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
    */
   OPT_Operand generateLoopInvariantOperand(OPT_BasicBlock block, OPT_Operand op) {
     OPT_Instruction instr = definingInstruction(op);
-    if (op.isConstant() || OPT_CFGTransformations.inLoop(instr.getBasicBlock(), loop) == false) {
+    if (op.isConstant() || !OPT_CFGTransformations.inLoop(instr.getBasicBlock(), loop)) {
       // the operand is already invariant
       return op;
     } else {
@@ -762,7 +762,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
   public static OPT_Operand follow(OPT_Operand use) {
     while (true) {
       // Are we still looking at a register operand?
-      if (use.isRegister() == false) {
+      if (!use.isRegister()) {
         // No - we're no longer filtering out moves then
         break;
       }
@@ -770,7 +770,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
       OPT_RegisterOperand rop = use.asRegister();
       OPT_RegisterOperandEnumeration defs = OPT_DefUse.defs(rop.register);
       // Does register have definitions?
-      if (defs.hasMoreElements() == false) {
+      if (!defs.hasMoreElements()) {
         // No - Register musn't be defined in this block
         break;
       }
@@ -778,7 +778,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
       use = defs.next();
       OPT_Instruction def = use.instruction;
       // Was the instruction that defined this register a move?
-      if (Move.conforms(def) == false) {
+      if (!Move.conforms(def)) {
         // No - return the register operand from the defining instruction
         break;
       }
@@ -882,7 +882,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
     while (block_outEdges.hasMoreElements()) {
       OPT_BasicBlock curEdgeBB = block_outEdges.next();
       // Is this block in the loop?
-      if ((isInLoop(curEdgeBB) == false) && (block != exit)) {
+      if ((!isInLoop(curEdgeBB)) && (block != exit)) {
         // Block wasn't in the loop
         throw new NonRegularLoopException(
             "Parallelization giving up: edge out of block in loop to a block outside of the loop, and the block wasn't the loop exit" +
@@ -904,7 +904,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
     while (block_inEdges.hasMoreElements()) {
       OPT_BasicBlock curEdgeBB = block_inEdges.next();
       // Is this block in the loop?
-      if ((isInLoop(curEdgeBB) == false) && (block != header)) {
+      if ((!isInLoop(curEdgeBB)) && (block != header)) {
         // Block wasn't in the loop
         throw new NonRegularLoopException(
             "Parallelization giving up: edge into a block in the loop from a block outside of the loop, and the block wasn't the loop header" +
@@ -949,7 +949,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
       // Make sure this loop looks non-regular
       initialIteratorValue = null;
     }
-    if (DEBUG && (isNonRegularLoop() == false)) {
+    if (DEBUG && (!isNonRegularLoop())) {
       dump();
     }
   }
@@ -1017,7 +1017,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
         }
       }
     } // end of check_exit_block_exits
-    if (exits == false) {
+    if (!exits) {
       throw new NonRegularLoopException(
           "Exit block (containing back edge to header) doesn't have an out of loop out edge.");
     } else {
@@ -1103,10 +1103,10 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
           // Does this iterator instruction use the same register as it defines
           OPT_Operand iteratorUse = follow(Binary.getVal1(iteratorInstr));
           // The iterator should be using a phi node of the initial and generated value
-          if (carriedLoopIterator.similar(iteratorUse) == false) {
+          if (!carriedLoopIterator.similar(iteratorUse)) {
             // SSA ok so far, read PHI node
             OPT_Instruction phiInstr = iteratorUse.instruction;
-            if (Phi.conforms(phiInstr) == false) {
+            if (!Phi.conforms(phiInstr)) {
               // We didn't find a PHI instruction
               throw new NonRegularLoopException("Iterator (" + iteratorUse +
                                                 ") not using a phi instruction but " + phiInstr);
@@ -1130,12 +1130,12 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
                                               iteratorUse + " and is therefore not in SSA form.");
           }
           // Check the initialIteratorValue was defined outside of (before) the loop header or is constant
-          if (isLoopInvariant(initialIteratorValue, loop, header) == false) {
+          if (!isLoopInvariant(initialIteratorValue, loop, header)) {
             throw new NonRegularLoopException("Initial iterator not constant or defined outside the loop - " +
                                               initialIteratorValue);
           }
           // Check the stride value constant
-          else if ((strideValue instanceof OPT_ConstantOperand) == false) {
+          else if (!(strideValue instanceof OPT_ConstantOperand)) {
             throw new NonRegularLoopException("Stride not constant - " + strideValue);
           }
         }

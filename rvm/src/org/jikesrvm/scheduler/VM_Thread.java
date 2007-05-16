@@ -613,7 +613,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
         VM.sysWriteln(" with addr ", VM_Magic.objectAsAddress(VM_Processor.getCurrentProcessor()));
       }
       VM._assert(VM_Processor.getCurrentProcessor().threadSwitchingEnabled(), "thread switching not enabled");
-      VM._assert(myThread.beingDispatched == true, "morph: not beingDispatched");
+      VM._assert(myThread.beingDispatched, "morph: not beingDispatched");
     }
     // become another thread
     //

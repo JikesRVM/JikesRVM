@@ -66,7 +66,7 @@ public class VM_DebuggerThread extends VM_Thread {
 
       case'*': // repeat previous command once per second, until SIGQUIT is received
         if (previousTokens != null) {
-          for (VM_Scheduler.debugRequested = false; VM_Scheduler.debugRequested == false;) {
+          for (VM_Scheduler.debugRequested = false; !VM_Scheduler.debugRequested;) {
             VM.sysWrite("\033[H\033[2J");
             eval(previousTokens);
             VM_Wait.sleep(1000);

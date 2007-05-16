@@ -40,7 +40,7 @@ class OPT_FI_EscapeSummary {
    * MUST (or may) escape this thread
    */
   void setThreadLocal(OPT_Register r, boolean b) {
-    if (b == true) {
+    if (b) {
       hash.put(r, THREAD_LOCAL);
     } else {
       hash.put(r, MAY_ESCAPE_THREAD);
@@ -52,7 +52,7 @@ class OPT_FI_EscapeSummary {
    * MUST (or may) escape this method
    */
   void setMethodLocal(OPT_Register r, boolean b) {
-    if (b == true) {
+    if (b) {
       hash2.put(r, METHOD_LOCAL);
     } else {
       hash2.put(r, MAY_ESCAPE_METHOD);

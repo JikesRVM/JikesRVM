@@ -358,7 +358,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
     }
 
     // Check loop annotation has been performed
-    if ((ir.HIRInfo.LoopStructureTree instanceof OPT_AnnotatedLSTGraph) == false) {
+    if (!(ir.HIRInfo.LoopStructureTree instanceof OPT_AnnotatedLSTGraph)) {
       report("Optimisation of " + ir.getMethod() + " failed as LST wasn't annotated\n");
     } else {
       loopRegisterSet = new HashSet<OPT_Register>();
@@ -369,7 +369,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
         OPT_SSA.printInstructions(ir);
       }
 
-      while (findLoopToOptimise((OPT_AnnotatedLSTNode) ir.HIRInfo.LoopStructureTree.getRoot()) == true) {
+      while (findLoopToOptimise((OPT_AnnotatedLSTNode) ir.HIRInfo.LoopStructureTree.getRoot())) {
         if (DEBUG) {
           VM.sysWriteln("Successful optimisation of " + ir.getMethod());
           OPT_SSA.printInstructions(ir);
@@ -431,7 +431,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
     while (innerLoops.hasMoreElements()) {
       OPT_AnnotatedLSTNode nestedLoop = (OPT_AnnotatedLSTNode) innerLoops.nextElement();
       // Try to optimise inner loops first
-      if (findLoopToOptimise(nestedLoop) == true) {
+      if (findLoopToOptimise(nestedLoop)) {
         // Exit early if inner loop optimisation succeeded
         return true;
       }
@@ -1037,7 +1037,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
               break;
             }
           }
-          if (alreadyChecked == false) {
+          if (!alreadyChecked) {
             // no - generate tests
             OPT_Operand index = BoundsCheck.getIndex(instr);
             int distance = loop.getFixedDistanceFromPhiIterator(index);
@@ -1417,7 +1417,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
                 OPT_Register origRegPhiRval = rval.asRegister().register;
                 OPT_Register subOptRegPhiRval;
                 OPT_Register optRegPhiRval;
-                if (subOptimalRegMap.containsKey(origRegPhiRval) == false) {
+                if (!subOptimalRegMap.containsKey(origRegPhiRval)) {
                   // Register comes from loop exit but it wasn't defined in the loop
                   subOptRegPhiRval = origRegPhiRval;
                   optRegPhiRval = origRegPhiRval;
@@ -1498,7 +1498,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
     ir.cfg.removeFromCFGAndCodeOrder(block);
     while (blocks.hasMoreElements()) {
       block = unoptimizedLoopMap.get(blocks.next());
-      if (loop.contains(block) == false) {
+      if (!loop.contains(block)) {
         report("removing block " + block);
         ir.cfg.removeFromCFGAndCodeOrder(block);
       } else {

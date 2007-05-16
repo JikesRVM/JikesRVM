@@ -699,7 +699,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
       ir.desiredSSAOptions.setInsertUsePhis(true);
       ir.desiredSSAOptions.setHeapTypes(OPT_LoadElimination.getCandidates(ir));
       ir.desiredSSAOptions.setAbort((round > ir.options.LOAD_ELIMINATION_ROUNDS)
-                                    || (ir.HIRInfo.loadEliminationDidSomething == false));
+                                    || (!ir.HIRInfo.loadEliminationDidSomething));
     }
   }
 
@@ -748,7 +748,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
       ir.desiredSSAOptions.setBackwards(false);
       ir.desiredSSAOptions.setInsertUsePhis(false);
       ir.desiredSSAOptions.setAbort((round > ir.options.LOAD_ELIMINATION_ROUNDS)
-                                    || (ir.HIRInfo.loadEliminationDidSomething == false));
+                                    || (!ir.HIRInfo.loadEliminationDidSomething));
     }
   }
 }

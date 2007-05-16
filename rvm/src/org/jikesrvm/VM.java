@@ -2306,7 +2306,7 @@ public class VM extends VM_Properties
     //
     if (VM.VerifyAssertions) {
       if (!recursiveOK) {
-        VM._assert(myThread.disallowAllocationsByThisThread == false); // recursion not allowed
+        VM._assert(!myThread.disallowAllocationsByThisThread); // recursion not allowed
       }
       myThread.disallowAllocationsByThisThread = true;
     }
@@ -2331,7 +2331,7 @@ public class VM extends VM_Properties
     VM_Thread myThread = VM_Thread.getCurrentThread();
     if (VM.VerifyAssertions) {
       VM._assert(myThread.disableGCDepth >= 1);
-      VM._assert(myThread.disallowAllocationsByThisThread == true);
+      VM._assert(myThread.disallowAllocationsByThisThread);
     }
     --myThread.disableGCDepth;
     if (myThread.disableGCDepth > 0) {

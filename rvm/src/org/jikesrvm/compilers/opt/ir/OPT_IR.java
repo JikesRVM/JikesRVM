@@ -966,7 +966,7 @@ public final class OPT_IR {
         }
         // Perform (2)
         // test for starting instructions
-        if (startingInstructionsPassed == false) {
+        if (!startingInstructionsPassed) {
           if (Label.conforms(instruction)) {
             continue;
           }
@@ -993,17 +993,16 @@ public final class OPT_IR {
           case DOUBLE_IFCMP_opcode:
           case REF_IFCMP_opcode:
             instruction = instructions.next();
-            if ((Goto.conforms(instruction) == false) &&
-                (BBend.conforms(instruction) == false) &&
-                (MIR_Branch.conforms(instruction) == false)
-                ) {
+            if (!Goto.conforms(instruction) &&
+                !BBend.conforms(instruction) &&
+                !MIR_Branch.conforms(instruction)) {
               verror(where, "Unexpected instruction after IFCMP " + instruction);
             }
             if (Goto.conforms(instruction) ||
                 MIR_Branch.conforms(instruction)
                 ) {
               instruction = instructions.next();
-              if (BBend.conforms(instruction) == false) {
+              if (!BBend.conforms(instruction)) {
                 verror(where, "Unexpected instruction after GOTO/MIR_BRANCH " + instruction);
               }
             }
@@ -1024,7 +1023,7 @@ public final class OPT_IR {
             //case TRAP_opcode:
           case GOTO_opcode:
             OPT_Instruction next = instructions.next();
-            if (BBend.conforms(next) == false) {
+            if (!BBend.conforms(next)) {
               verror(where, "Unexpected instruction after " + instruction + "\n" + next);
             }
             if (instructions.hasMoreElements()) {
@@ -1063,8 +1062,8 @@ public final class OPT_IR {
     boolean hasUnreachableBlocks = false;
     StringBuffer unreachablesString = new StringBuffer();
     for (int j = 0; j < cfg.numberOfNodes(); j++) {
-      if ((reachableNormalBlocks.get(j) == false) &&
-          (reachableExceptionBlocks.get(j) == false)) {
+      if (!reachableNormalBlocks.get(j) &&
+          !reachableExceptionBlocks.get(j)) {
         hasUnreachableBlocks = true;
         if (basicBlockMap[j] != null) {
           basicBlockMap[j].printExtended();
@@ -1108,17 +1107,17 @@ public final class OPT_IR {
     OPT_BasicBlockEnumeration outBlocks = curBB.getNormalOut();
     while (outBlocks.hasMoreElements()) {
       OPT_BasicBlock out = outBlocks.next();
-      if (visitedNormalBBs.get(out.getNumber()) == false) {
+      if (!visitedNormalBBs.get(out.getNumber())) {
         verifyAllBlocksAreReachable(where, out, visitedNormalBBs, visitedExceptionalBBs, false);
       }
     }
     outBlocks = curBB.getExceptionalOut();
     while (outBlocks.hasMoreElements()) {
       OPT_BasicBlock out = outBlocks.next();
-      if (visitedExceptionalBBs.get(out.getNumber()) == false) {
+      if (!visitedExceptionalBBs.get(out.getNumber())) {
         verifyAllBlocksAreReachable(where, out, visitedNormalBBs, visitedExceptionalBBs, true);
       }
-      if (visitedNormalBBs.get(out.getNumber()) == true) {
+      if (visitedNormalBBs.get(out.getNumber())) {
         curBB.printExtended();
         out.printExtended();
         verror(where, "Basic block " + curBB + " reaches " + out +
@@ -1240,7 +1239,7 @@ public final class OPT_IR {
             // This predecessor has been visited on this path so the
             // variable should be defined
             Object variable = getVariableUse(where, Phi.getValue(instruction, i));
-            if ((variable != null) && (definedVariables.contains(variable) == false)) {
+            if ((variable != null) && (!definedVariables.contains(variable))) {
               StringBuffer pathString = new StringBuffer();
               for (int j = 0; j < path.size(); j++) {
                 pathString.append(path.get(j).getNumber());
@@ -1258,7 +1257,7 @@ public final class OPT_IR {
         OPT_IREnumeration.AllUsesEnum useOperands = new OPT_IREnumeration.AllUsesEnum(this, instruction);
         while (useOperands.hasMoreElements()) {
           Object variable = getVariableUse(where, useOperands.next());
-          if ((variable != null) && (definedVariables.contains(variable) == false)) {
+          if ((variable != null) && (!definedVariables.contains(variable))) {
             StringBuffer pathString = new StringBuffer();
             for (int i = 0; i < path.size(); i++) {
               pathString.append(path.get(i).getNumber());
@@ -1295,7 +1294,7 @@ public final class OPT_IR {
     }
     while (outBlocks.hasMoreElements()) {
       OPT_BasicBlock out = outBlocks.next();
-      if (visitedBBs.get(out.getNumber()) == false) {
+      if (!visitedBBs.get(out.getNumber())) {
         verifyUseFollowsDef(where, new HashSet<Object>(definedVariables), out,
                             new OPT_BitVector(visitedBBs),
                             new ArrayList<OPT_BasicBlock>(path),
@@ -1344,7 +1343,7 @@ public final class OPT_IR {
       verror(where, "Basic block not found in CFG for BasicBlockOperand: " + operand);
       return null; // keep jikes quiet
     } else if (operand instanceof OPT_HeapOperand) {
-      if (actualSSAOptions.getHeapValid() == false) {
+      if (!actualSSAOptions.getHeapValid()) {
         return null;
       }
       OPT_HeapVariable<?> variable = ((OPT_HeapOperand<?>) operand).getHeapVariable();
@@ -1373,7 +1372,7 @@ public final class OPT_IR {
       // ignore physical registers
       return (register.isPhysical()) ? null : register;
     } else if (operand instanceof OPT_HeapOperand) {
-      if (actualSSAOptions.getHeapValid() == false) {
+      if (!actualSSAOptions.getHeapValid()) {
         return null;
       }
       return ((OPT_HeapOperand<?>) operand).getHeapVariable();

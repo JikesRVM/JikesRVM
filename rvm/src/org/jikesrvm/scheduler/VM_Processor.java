@@ -252,9 +252,8 @@ public final class VM_Processor extends MM_ProcessorContext
           VM_Scheduler.trace("VM_Processor", "getRunnableThread: ioQueue (early)", t.getIndex());
         }
         if (VM.VerifyAssertions) {
-          VM._assert(t.beingDispatched == false ||
-                     t ==
-                     VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
+          VM._assert(!t.beingDispatched ||
+                     t == VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
         }
         return t;
       }
@@ -271,9 +270,8 @@ public final class VM_Processor extends MM_ProcessorContext
       if (processWaitQueue.isReady()) {
         VM_Thread t = processWaitQueue.dequeue();
         if (VM.VerifyAssertions) {
-          VM._assert(t.beingDispatched == false ||
-                     t ==
-                     VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
+          VM._assert(!t.beingDispatched ||
+                     t == VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
         }
         result = t;
       }
@@ -289,9 +287,8 @@ public final class VM_Processor extends MM_ProcessorContext
         VM_Scheduler.trace("VM_Processor", "getRunnableThread: readyQueue", t.getIndex());
       }
       if (VM.VerifyAssertions) {
-        VM._assert(t.beingDispatched == false ||
-                   t ==
-                   VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
+        VM._assert(!t.beingDispatched||
+                   t == VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
       }
       return t;
     }
@@ -300,9 +297,8 @@ public final class VM_Processor extends MM_ProcessorContext
       VM_Thread t = ioQueue.dequeue();
       if (VM.TraceThreadScheduling > 1) VM_Scheduler.trace("VM_Processor", "getRunnableThread: ioQueue", t.getIndex());
       if (VM.VerifyAssertions) {
-        VM._assert(t.beingDispatched == false ||
-                   t ==
-                   VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
+        VM._assert(!t.beingDispatched ||
+                   t == VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
       }
       return t;
     }
@@ -313,9 +309,8 @@ public final class VM_Processor extends MM_ProcessorContext
         VM_Scheduler.trace("VM_Processor", "getRunnableThread: idleQueue", t.getIndex());
       }
       if (VM.VerifyAssertions) {
-        VM._assert(t.beingDispatched == false ||
-                   t ==
-                   VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
+        VM._assert(!t.beingDispatched ||
+                   t == VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
       }
       return t;
     }

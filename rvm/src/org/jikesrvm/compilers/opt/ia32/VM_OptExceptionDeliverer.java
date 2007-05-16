@@ -94,7 +94,7 @@ public abstract class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
 
     VM.enableGC(); // disabled right before VM_Runtime.deliverException was called
 
-    if (VM.VerifyAssertions) VM._assert(registers.inuse == true);
+    if (VM.VerifyAssertions) VM._assert(registers.inuse);
     registers.inuse = false;
 
     // 'give back' the portion of the stack we borrowed to run
