@@ -51,7 +51,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 /**
  * Class that performs scalar replacement of short arrays
  */
-public class OPT_ShortArrayReplacer implements OPT_AggregateReplacer {
+public final class OPT_ShortArrayReplacer implements OPT_AggregateReplacer {
   private static final boolean DEBUG = false;
 
   /**

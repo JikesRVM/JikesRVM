@@ -57,7 +57,7 @@ import org.vmmagic.unboxed.Word;
  * research virtual machine.
  */
 @Uninterruptible
-public class MM_Interface implements VM_HeapLayoutConstants, Constants {
+public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
 
   /***********************************************************************
    *

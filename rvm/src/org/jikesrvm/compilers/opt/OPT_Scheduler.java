@@ -321,7 +321,7 @@ final class OPT_Scheduler {
    * A class representing sorted list of instructions.
    * The instructions are sorted by their position on the critical path.
    */
-  private static class InstructionBucket {
+  private static final class InstructionBucket {
     /**
      * The instruction in the current slot.
      */

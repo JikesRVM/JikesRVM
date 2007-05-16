@@ -15,7 +15,7 @@ import java.util.Enumeration;
  * March 14, 1998
  * Builds topological sort of a graph consisting of OPT_SortedGraphNode.
  */
-public class OPT_TopSort extends OPT_Stack<OPT_SortedGraphNode> {
+public final class OPT_TopSort extends OPT_Stack<OPT_SortedGraphNode> {
 
   /**
    * the "visited" marker to use

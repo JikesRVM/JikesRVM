@@ -13,7 +13,7 @@ package org.jikesrvm.compilers.opt;
  * compile an unsupported magic.
  * We define this to be a non-fatal OPT_OptimizingCompilerException.
  */
-public class OPT_MagicNotImplementedException extends OPT_OperationNotImplementedException {
+public final class OPT_MagicNotImplementedException extends OPT_OperationNotImplementedException {
   /** Support for exception serialization */
   static final long serialVersionUID = -5731701797088209175L;
 

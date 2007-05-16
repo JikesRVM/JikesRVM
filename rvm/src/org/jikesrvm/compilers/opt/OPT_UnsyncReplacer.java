@@ -29,7 +29,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
  * Replace calls to synchronized methods to calls specialized to be
  * unsynchronized.
  */
-public class OPT_UnsyncReplacer {
+public final class OPT_UnsyncReplacer {
   private static final boolean DEBUG = false;
 
   /**
