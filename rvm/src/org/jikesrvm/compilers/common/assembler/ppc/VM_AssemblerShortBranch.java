@@ -15,7 +15,7 @@ package org.jikesrvm.compilers.common.assembler.ppc;
 import org.jikesrvm.compilers.common.assembler.VM_AbstractAssembler;
 import org.jikesrvm.compilers.common.assembler.VM_ForwardReference;
 
-/** 
+/**
  * This class was formerly a private static inner class of VM_Assembler, but has
  * been pulled out to work around a bug whereby the system seems to have gotten
  * confused by the relationship between:
