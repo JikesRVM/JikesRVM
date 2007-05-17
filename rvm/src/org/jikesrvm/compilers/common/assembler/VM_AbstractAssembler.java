@@ -1,21 +1,25 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2007
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
  *
+ *      http://www.opensource.org/licenses/cpl1.0.php
  *
- * This class has been created to work around a bug whereby the system seems to have gotten
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
+ */
+package org.jikesrvm.compilers.common.assembler;
+
+/**
+ *  This class has been created to work around a bug whereby the system seems to have gotten
  * confused by the relationship between:
  *
  * VM_ForwardReference -> VM_ForwardReference.ShortBranch -> VM_Assembler.ShortBranch, and VM_Assembler
  *
  * This problem does not exist under IA32 since there is no need for VM_Assembler.ShortBranch
  */
-package org.jikesrvm.compilers.common.assembler;
-
 public abstract class VM_AbstractAssembler {
   public abstract void patchShortBranch(int sourceMachinecodeIndex);
 

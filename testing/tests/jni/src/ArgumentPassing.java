@@ -1,26 +1,14 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
- */
-/**
- * Test argument passing by the Java to C native interface
- * Register used for arguments
- *      Jalepeno        AIX
- * GPR  3-12            3-10
- * FPR  1-15            1-13
- * In AIX, the first 2 registers will be used for JNIEnv and class/object pointer
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
  *
- * The tests cover these dimensions:
- *  -static or virtual methods
- *  -integer, float, double, long, reference types
- *  -mix of these types
- *  -fit in register or spilled
- *  -for double and long (2 words), whether the words are straddle between 
- *       register/spill
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 class ArgumentPassing
 {

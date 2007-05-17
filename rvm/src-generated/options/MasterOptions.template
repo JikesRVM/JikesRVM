@@ -1,11 +1,14 @@
-/* -*-java-*-
+/*
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
  *
- * (C) Copyright IBM Corp. 2001
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
    // Begin template-specified options
 $$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
@@ -28,8 +31,8 @@ $$$$ FOREACH OPTION VDATFILE
      $$$$ LET PRETTY_NAME @PAD(FULL_NAME,37-@LENGTH("TYPE")," ")
    public TYPE PRETTY_NAME= DEFAULT_VALUE; // OPTION.DESCRIP
      $$$$ END LET PRETTY_NAME
-       $$$$ END IF 
-     $$$$ END SPLIT  
+       $$$$ END IF
+     $$$$ END SPLIT
 $$$$ END FOREACH
 $$$$ END LOOP
    // End template-specified options
@@ -42,7 +45,7 @@ $$$$ FOREACH OPTION VDATFILE
    // FULL_NAME
           $$$$ LOOP CONSTNAME OPTION.ENUMS
                $$$$ SPLIT "CONSTNAME" " " ITEM_NAME QUERRY_NAME CMD_NAME
-   public static final TYPE ITEM_NAME = CONSTNAME.INDEX; 
+   public static final TYPE ITEM_NAME = CONSTNAME.INDEX;
    public final boolean QUERRY_NAME() { return FULL_NAME == ITEM_NAME; }
                $$$$ END SPLIT CONSTNAME
           $$$$ END LOOP
@@ -60,15 +63,15 @@ $$$$ FOREACH OPTION VDATFILE
      $$$$ IF TAG == S
    // FULL_NAME
    public boolean isFULL_NAME(TYPE q) { return FULL_NAME != null && FULL_NAME.contains(q); }
-   public boolean fuzzyMatchFULL_NAME(TYPE q) { 
+   public boolean fuzzyMatchFULL_NAME(TYPE q) {
      if (FULL_NAME == null) return false;
      for (final String s : FULL_NAME) {
        if (q.indexOf(s) > -1) return true;
      }
      return false;
-   }	
+   }
    public boolean hasFULL_NAME() { return !(FULL_NAME == null || FULL_NAME.isEmpty()); }
-   public java.util.Iterator<String> getFULL_NAMEs() { 
+   public java.util.Iterator<String> getFULL_NAMEs() {
      if (FULL_NAME == null) {
        return new java.util.Iterator<String>() {
          public boolean hasNext() { return false; }
@@ -76,7 +79,7 @@ $$$$ FOREACH OPTION VDATFILE
  	 public void remove() {}
        };
      } else {
-       return FULL_NAME.iterator(); 
+       return FULL_NAME.iterator();
      }
    }
       $$$$ END IF TAG == S
@@ -96,8 +99,8 @@ $$$$ FOREACH OPTION VDATFILE
      if (FULL_NAME != null) {
        clone.FULL_NAME = (java.util.HashSet)this.FULL_NAME.clone();
      }
-     $$$$ END IF 
-     $$$$ END SPLIT  
+     $$$$ END IF
+     $$$$ END SPLIT
 $$$$ END FOREACH
 $$$$ END LOOP
      return clone;
@@ -117,7 +120,7 @@ $$$$ END LOOP
 
   /**
    * Take a string (most likely a command-line argument) and try to proccess it
-   * as an option command.  Return true if the string was understood, false 
+   * as an option command.  Return true if the string was understood, false
    * otherwise.
    *
    * @param prefix a Sring to use as a command prefix when printing help.
@@ -141,9 +144,9 @@ $$$$ END LOOP
       return true;
     }
     // Make sure only process O? option if initial runtime compiler!
-    if ((prefix.indexOf("irc")!=-1 || 
+    if ((prefix.indexOf("irc")!=-1 ||
 	 prefix.indexOf("bc")!=-1 ||
-         prefix.indexOf("eoc")!=-1) && 
+         prefix.indexOf("eoc")!=-1) &&
 	instanceProcessAsOption(arg)) {
       return true;
     }
@@ -173,7 +176,7 @@ $$$$ FOREACH OPTION BDATFILE
       } else if (value.equals("false")) {
   	FULL_NAME = false;
         return true;
-      } else 
+      } else
         return false;
     }
      $$$$ END LET
@@ -209,14 +212,14 @@ $$$$ FOREACH OPTION VDATFILE
           $$$$ END IF
        return true;
      }
-     $$$$ ELSE 
+     $$$$ ELSE
        $$$$ IF TAG == E
             $$$$ LOOP CONSTNAME OPTION.ENUMS
                  $$$$ SPLIT "CONSTNAME" " " ITEM_NAME QUERRY_NAME CMD_NAME
        if (value.equals("CMD_NAME")) {
          FULL_NAME = ITEM_NAME;
          return true;
-       }         
+       }
                  $$$$ END SPLIT CONSTNAME
             $$$$ END LOOP
        return false;
@@ -320,14 +323,14 @@ $$$$ END LOOP
     instancePrintHelpFooter(prefix);
 
     VM.sysExit(VM.EXIT_STATUS_PRINTED_HELP_MESSAGE);
-  }    
+  }
 
   // print the options values
   @org.vmmagic.pragma.NoOptCompile
   public String toString() {
     StringBuilder result = new StringBuilder();
 
-    // Begin generated option value printing 
+    // Begin generated option value printing
 $$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
 $$$$ FOREACH OPTION BDATFILE
      $$$$ SPLIT "OPTION.DECL" " " FULL_NAME OPT_LEVEL DEFAULT_VALUE SHORT_NAME
@@ -386,7 +389,7 @@ $$$$ END LOOP
   public void printOptions() {
     printOptionsHeader();
 
-    // Begin generated option value printing 
+    // Begin generated option value printing
 $$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
 $$$$ FOREACH OPTION BDATFILE
      $$$$ SPLIT "OPTION.DECL" " " FULL_NAME OPT_LEVEL DEFAULT_VALUE SHORT_NAME
@@ -437,5 +440,5 @@ $$$$ FOREACH OPTION VDATFILE
      $$$$ END SPLIT OPTION.DECL
 $$$$ END FOREACH
 $$$$ END LOOP
-    //End generated option value printing 
+    //End generated option value printing
   }

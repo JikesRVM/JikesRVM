@@ -1,47 +1,15 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-/**
- *  Method invocation in JNI:  test the following JNI functions
- *    CallStaticBooleanMethodA    CallStaticBooleanMethodV  CallStaticBooleanMethod 
- *    CallStaticByteMethodA       CallStaticByteMethodV     CallStaticByteMethod    
- *    CallStaticCharMethodA       CallStaticCharMethodV     CallStaticCharMethod    
- *    CallStaticShortMethodA      CallStaticShortMethodV    CallStaticShortMethod   
- *    CallStaticIntMethodA        CallStaticIntMethodV      CallStaticIntMethod     
- *    CallStaticLongMethodA       CallStaticLongMethodV     CallStaticLongMethod    
- *    CallStaticFloatMethodA      CallStaticFloatMethodV    CallStaticFloatMethod   
- *    CallStaticDoubleMethodA     CallStaticDoubleMethodV   CallStaticDoubleMethod  
- *    CallStaticVoidMethodA       CallStaticVoidMethodV     CallStaticVoidMethod    
- *    CallStaticObjectMethodA     CallStaticObjectMethodV   CallStaticObjectMethod
- *
- *    CallBooleanMethodA          CallBooleanMethodV        CallBooleanMethod 
- *    CallByteMethodA             CallByteMethodV           CallByteMethod    
- *    CallCharMethodA             CallCharMethodV           CallCharMethod    
- *    CallShortMethodA            CallShortMethodV          CallShortMethod   
- *    CallIntMethodA              CallIntMethodV            CallIntMethod     
- *    CallLongMethodA             CallLongMethodV           CallLongMethod    
- *    CallFloatMethodA            CallFloatMethodV          CallFloatMethod   
- *    CallDoubleMethodA           CallDoubleMethodV         CallDoubleMethod  
- *    CallVoidMethodA             CallVoidMethodV           CallVoidMethod    
- *    CallObjectMethodA           CallObjectMethodV         CallObjectMethod
- *
- *    CallNonvirtualBooleanMethodA   CallNonvirtualBooleanMethodV   CallNonvirtualBooleanMethod 
- *    CallNonvirtualByteMethodA      CallNonvirtualByteMethodV      CallNonvirtualByteMethod    
- *    CallNonvirtualCharMethodA      CallNonvirtualCharMethodV      CallNonvirtualCharMethod    
- *    CallNonvirtualShortMethodA     CallNonvirtualShortMethodV     CallNonvirtualShortMethod   
- *    CallNonvirtualIntMethodA       CallNonvirtualIntMethodV       CallNonvirtualIntMethod     
- *    CallNonvirtualLongMethodA      CallNonvirtualLongMethodV      CallNonvirtualLongMethod    
- *    CallNonvirtualFloatMethodA     CallNonvirtualFloatMethodV     CallNonvirtualFloatMethod   
- *    CallNonvirtualDoubleMethodA    CallNonvirtualDoubleMethodV    CallNonvirtualDoubleMethod  
- *    CallNonvirtualVoidMethodA      CallNonvirtualVoidMethodV      CallNonvirtualVoidMethod    
- *    CallNonvirtualObjectMethodA    CallNonvirtualObjectMethodV    CallNonvirtualObjectMethod
- */
-
 class MethodInvocation {
 
   static boolean verbose = true;         // set to true to get messages for each test

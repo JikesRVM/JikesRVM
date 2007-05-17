@@ -1,3 +1,15 @@
+/*
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ *
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
+ */
 package org.jikesrvm.memorymanagers.mminterface;
 
 import org.jikesrvm.scheduler.VM_Processor;
@@ -6,40 +18,40 @@ import org.vmmagic.pragma.*;
 
 public class Selected {
   @Uninterruptible
-  public static final class Plan extends @_PLAN_@ 
+  public static final class Plan extends @_PLAN_@
   {
-    private static final Plan plan = new Plan(); 
-    
+    private static final Plan plan = new Plan();
+
     @Inline
-    public static Plan get() { return plan; } 
+    public static Plan get() { return plan; }
   }
 
   @Uninterruptible
   public static final class Constraints extends @_PLAN_@Constraints
   {
     private static final Constraints constraints = new Constraints();
-    
+
     @Inline
-    public static Constraints get() { return constraints; } 
+    public static Constraints get() { return constraints; }
   }
 
   @Uninterruptible
-  public static class Collector extends @_PLAN_@Collector  
+  public static class Collector extends @_PLAN_@Collector
   {
     private VM_Processor processor;
     public Collector(VM_Processor parent) { processor = parent; }
     @Inline
-    public final VM_Processor getProcessor() { return processor; } 
+    public final VM_Processor getProcessor() { return processor; }
     @Inline
-    public static Collector get() { return VM_Processor.getCurrentProcessor().collectorContext; } 
+    public static Collector get() { return VM_Processor.getCurrentProcessor().collectorContext; }
   }
 
   @Uninterruptible
-  public static class Mutator extends @_PLAN_@Mutator 
+  public static class Mutator extends @_PLAN_@Mutator
   {
     @Inline
-    public final VM_Processor getProcessor() { return (VM_Processor) this; } 
+    public final VM_Processor getProcessor() { return (VM_Processor) this; }
     @Inline
-    public static Mutator get() { return VM_Processor.getCurrentProcessor(); } 
-  } 
+    public static Mutator get() { return VM_Processor.getCurrentProcessor(); }
+  }
 }

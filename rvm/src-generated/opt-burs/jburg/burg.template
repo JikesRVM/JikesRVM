@@ -1,7 +1,15 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ *
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-
 package org.jikesrvm.compilers.opt.@_ARCH_@;
 
 import org.jikesrvm.compilers.opt.ir.@_ARCH_@.*;
@@ -21,7 +29,7 @@ import org.vmmagic.unboxed.*;
  * Machine-specific instruction selection rules.  Program generated.
  *
  * Note: some of the functions have been taken and modified
- * from the file gen.c, from the LCC compiler.  
+ * from the file gen.c, from the LCC compiler.
  * See $RVM_ROOT/rvm/src-generated/opt-burs/jburg/COPYRIGHT file for copyright restrictions.
  *
  * @see OPT_BURS
@@ -29,7 +37,7 @@ import org.vmmagic.unboxed.*;
  * NOTE: Program generated file, do not edit!
  */
 @SuppressWarnings("unused") // Machine generated code is hard to get perfect
-public class OPT_BURS_STATE extends OPT_BURS_Helpers 
+public class OPT_BURS_STATE extends OPT_BURS_Helpers
    implements OPT_Operators, OPT_BURS_Definitions {
 
           static final byte NOFLAGS           = 0x00;

@@ -1,21 +1,15 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-/**
- * Generates DeBruijn sequences of arbitrary length.
- *
- * Tests a conjecture that I have about DeBruijn sequences:
- * You can always construct a DeBruijn sequence by simply adding a 1 when it
- * will not give you a subsequence that you have already encountered.
- *
- * I'm not sure how to prove this -- any suggestions ?
- */
-
 class DeBruijn {
   static boolean run() {
     String str = calc(5);

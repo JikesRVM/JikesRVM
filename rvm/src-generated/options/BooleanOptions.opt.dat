@@ -1,14 +1,18 @@
 #
-# This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
-# The Jikes RVM project is distributed under the Common Public License (CPL).
-# A copy of the license is included in the distribution, and is also
-# available at http://www.opensource.org/licenses/cpl1.0.php
+#  This file is part of the Jikes RVM project (http://jikesrvm.org).
 #
-# (C) Copyright IBM Corp. 2001
+#  This file is licensed to You under the Common Public License (CPL);
+#  You may not use this file except in compliance with the License. You
+#  may obtain a copy of the License at
 #
-DECL 
+#      http://www.opensource.org/licenses/cpl1.0.php
+#
+#  See the COPYRIGHT.txt file distributed with this work for information
+#  regarding copyright ownership.
+#
+DECL
 # Structure of DECL FULL_NAME OPT_LEVEL DEFAULT_VALUE {SHORT_NAME}
-DESCRIP  
+DESCRIP
 
 ##########
 # First all the non-printing, non-debugging options
@@ -25,7 +29,7 @@ Perform local common subexpression elimination
 
 # ABCD is currently incomplete; it doesn't check lower bounds
 GLOBAL_BOUNDS_CHECK -1 false global_bounds
-Perform global Array Bound Check elimination on Demand 
+Perform global Array Bound Check elimination on Demand
 
 MONITOR_REMOVAL 1 true
 Try to remove unnecessary monitor operations
@@ -51,10 +55,10 @@ Reorder basic blocks for improved locality and branch prediction
 REORDER_CODE_PH 1 true
 Reorder basic blocks using Pettis and Hansen Algo2
 
-INLINE_NEW 0 true 
+INLINE_NEW 0 true
 Inline allocation of scalars and arrays
 
-INLINE_WRITE_BARRIER 1 true 
+INLINE_WRITE_BARRIER 1 true
 Inline write barriers for generational collectors
 
 INLINE 0 true
@@ -155,7 +159,7 @@ When performing inst. sampling, should it be done without duplicating code?
 
 PROCESSOR_SPECIFIC_COUNTER -1 true
 Should there be one CBS counter per processor for SMP performance?
-			      
+
 REMOVE_YP_FROM_CHECKING -1 false
 Should yieldpoints be removed from the checking code (requires finite sample interval)
 
@@ -231,18 +235,18 @@ PRINT_SCHEDULE_POST -1 false
 Print IR after postpass scheduling
 
 PRINT_REGALLOC -1 false regalloc
-Print IR before and after register allocation 
+Print IR before and after register allocation
 
-PRINT_CALLING_CONVENTIONS -1 false 
+PRINT_CALLING_CONVENTIONS -1 false
 Print IR after expanding calling conventions
 
-VCG_DG_BURS -1 false 
+VCG_DG_BURS -1 false
 Dump dependence graph before BURS in vcg form
 
-VCG_DG_SCHED_PRE -1 false 
+VCG_DG_SCHED_PRE -1 false
 Dump dependence graph before prepass scheduling in vcg form
 
-VCG_DG_SCHED_POST -1 false 
+VCG_DG_SCHED_POST -1 false
 Dump dependence graph before postpass scheduling in vcg form
 
 ##########
@@ -259,10 +263,10 @@ DEBUG_INSTRU_SAMPLING_DETAIL -1 false
 Enable detailed debugging statements for instrumentation sampling
 
 ###########
-# OnStackReplacement options, use this when guarded_inlining 
+# OnStackReplacement options, use this when guarded_inlining
 # is enabled
 ###########
-OSR_GUARDED_INLINING 1 true 
+OSR_GUARDED_INLINING 1 true
 Insert OSR point at off branch of guarded inlining?
 
 OSR_INLINE_POLICY 1 true

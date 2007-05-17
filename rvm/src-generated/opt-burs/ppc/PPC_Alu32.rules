@@ -1,14 +1,16 @@
 #
-# This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
-# The Jikes RVM project is distributed under the Common Public License (CPL).
-# A copy of the license is included in the distribution, and is also
-# available at http://www.opensource.org/licenses/cpl1.0.php
+#  This file is part of the Jikes RVM project (http://jikesrvm.org).
 #
-# (C) Copyright IBM Corp. 2001,2002
+#  This file is licensed to You under the Common Public License (CPL);
+#  You may not use this file except in compliance with the License. You
+#  may obtain a copy of the License at
 #
+#      http://www.opensource.org/licenses/cpl1.0.php
 #
+#  See the COPYRIGHT.txt file distributed with this work for information
+#  regarding copyright ownership.
 #
-# BURS rules for long ALU operations 
+# BURS rules for long ALU operations
 # that are specific to PPC with 32 bit GPRs
 #
 # See PPC_Common.rules for the format of this file
@@ -21,7 +23,7 @@ EMIT_INSTRUCTION
 PROLOGUE(P(p));
 
 ##################################
-# Basic Long ALU operations 
+# Basic Long ALU operations
 ##################################
 #####
 # LONG_ADD
@@ -132,7 +134,7 @@ LONG_NOT(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p))));
 r:	INT_2LONG(r)
 20
 EMIT_INSTRUCTION
-INT_2LONG(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p)))); 
+INT_2LONG(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p))));
 
 #####
 # LONG_2INT
@@ -221,7 +223,7 @@ EMIT_INSTRUCTION
 }
 
 #Do not put these in PPC_Common, because the REF_operations are 64-bit operations on 64-bit.
-#So the condition flags are set concerning 64-bit values instead of 32-bit value as we'd expect. 
+#So the condition flags are set concerning 64-bit values instead of 32-bit value as we'd expect.
 stm:	INT_IFCMP(REF_NEG(r),INT_CONSTANT)
 (!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
 EMIT_INSTRUCTION

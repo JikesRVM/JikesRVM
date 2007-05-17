@@ -1,22 +1,26 @@
 #
-# This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
-# The Jikes RVM project is distributed under the Common Public License (CPL).
-# A copy of the license is included in the distribution, and is also
-# available at http://www.opensource.org/licenses/cpl1.0.php
+#  This file is part of the Jikes RVM project (http://jikesrvm.org).
 #
-# (C) Copyright IBM Corp. 2001
+#  This file is licensed to You under the Common Public License (CPL);
+#  You may not use this file except in compliance with the License. You
+#  may obtain a copy of the License at
 #
-DECL 
+#      http://www.opensource.org/licenses/cpl1.0.php
+#
+#  See the COPYRIGHT.txt file distributed with this work for information
+#  regarding copyright ownership.
+#
+DECL
 # Structure of DECL FULL_NAME OPT_LEVEL DEFAULT_VALUE {SHORT_NAME}
 # NOTE: OPT_LEVEL is a bogus short term kludge as we work on unifying
 # the template files. --dave
-DESCRIP  
+DESCRIP
 
 ENABLE_RECOMPILATION -1 true
 Should the adaptive system recompile hot methods?
 
 ENABLE_ADVICE_GENERATION -1 false
-Do we need to generate advice file? 
+Do we need to generate advice file?
 
 ENABLE_PRECOMPILE -1 false
 Should the adaptive system precompile all methods given in the advice file before the user thread is started?
@@ -42,7 +46,7 @@ Should recompilation be done on a background thread or on next invocation?
 INSERT_YIELDPOINT_COUNTERS -1 false
 Insert instrumentation in opt recompiled code to count yieldpoints executed?
 
-INSERT_METHOD_COUNTERS_OPT -1 false 
+INSERT_METHOD_COUNTERS_OPT -1 false
 Insert intrusive method counters in opt recompiled code?
 
 INSERT_INSTRUCTION_COUNTERS -1 false
@@ -55,5 +59,5 @@ REPORT_INTERRUPT_STATS -1 false
 Report stats related to timer interrupts and AOS listeners on exit
 
 DISABLE_RECOMPILE_ALL_METHODS -1 false
-Disable the ability for an app to request all methods to be recompiled 
+Disable the ability for an app to request all methods to be recompiled
 

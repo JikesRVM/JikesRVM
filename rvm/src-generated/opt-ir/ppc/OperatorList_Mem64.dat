@@ -1,17 +1,19 @@
 #
-# This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
-# The Jikes RVM project is distributed under the Common Public License (CPL).
-# A copy of the license is included in the distribution, and is also
-# available at http://www.opensource.org/licenses/cpl1.0.php
+#  This file is part of the Jikes RVM project (http://jikesrvm.org).
 #
-# (C) Copyright IBM Corp. 2001
+#  This file is licensed to You under the Common Public License (CPL);
+#  You may not use this file except in compliance with the License. You
+#  may obtain a copy of the License at
 #
-#//OperatorList.dat
+#      http://www.opensource.org/licenses/cpl1.0.php
+#
+#  See the COPYRIGHT.txt file distributed with this work for information
+#  regarding copyright ownership.
 #
 ###################
 PPC64_LWA
 MIR_Load
-load 
+load
 
 
 (58<<26 | 2)
@@ -20,7 +22,7 @@ load
 #synonym for PPC64_LWA on 64-bit and for PPC_LWZ on 32-bit; difference with PPC_LWZ is Sign Extension on 64-bit
 PPC_LInt
 MIR_Load
-load 
+load
 
 
 (58<<26 | 2)
@@ -53,7 +55,7 @@ load
 #synonym for PPC64_LD on 64-bit and for PPC_LWZ on 32-bit
 PPC_LAddr
 MIR_Load
-load 
+load
 
 
 (58<<26)
@@ -94,7 +96,7 @@ memAsLoad | memAsStore | load | acquire
 #synonym for PPC64_STD on 64-bit and for PPC_STW on 32-bit
 PPC_STAddr
 MIR_Store
-store 
+store
 
 
 (62<<26)

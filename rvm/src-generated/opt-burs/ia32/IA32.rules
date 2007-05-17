@@ -1,12 +1,14 @@
 #
-# This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
-# The Jikes RVM project is distributed under the Common Public License (CPL).
-# A copy of the license is included in the distribution, and is also
-# available at http://www.opensource.org/licenses/cpl1.0.php
+#  This file is part of the Jikes RVM project (http://jikesrvm.org).
 #
-# (C) Copyright IBM Corp. 2001,2002
+#  This file is licensed to You under the Common Public License (CPL);
+#  You may not use this file except in compliance with the License. You
+#  may obtain a copy of the License at
 #
+#      http://www.opensource.org/licenses/cpl1.0.php
 #
+#  See the COPYRIGHT.txt file distributed with this work for information
+#  regarding copyright ownership.
 #
 # BURS rules for IA32
 #
@@ -122,7 +124,7 @@ NOFLAGS
 // No code emitted
 
 ##################################
-# Allow Load/Store instructions to be recognized as potential memory operands 
+# Allow Load/Store instructions to be recognized as potential memory operands
 ##################################
 sload8:	BYTE_LOAD(riv, riv)
 0
@@ -416,7 +418,7 @@ EMIT_INSTRUCTION
 EMIT(P(p));
 
 ##################################
-# 
+#
 ##################################
 stm:	LOWTABLESWITCH(r)
 10
@@ -460,7 +462,7 @@ EMIT(P(p));
 stm:	NULL_CHECK(riv)
 11
 EMIT_INSTRUCTION
-EMIT(P(p)); 
+EMIT(P(p));
 
 #####
 # IR_PROLOGUE:
@@ -539,7 +541,7 @@ EMIT(MIR_TrapIf.mutate(P(p), IA32_TRAPIF, \
 		       TrapIf.getTCode(P(p))));
 
 ##################################
-# Basic Boolean ALU operations 
+# Basic Boolean ALU operations
 ##################################
 #####
 # BOOLEAN_NOT_ACC
@@ -590,13 +592,13 @@ EMIT(MIR_Test.create(IA32_TEST, BooleanCmp.getVal1(P(p)), BooleanCmp.getVal1(P(p
 
 r:	BOOLEAN_CMP_INT(cz, INT_CONSTANT)
 isZERO(VR(p), 26)
-EMIT_INSTRUCTION 
+EMIT_INSTRUCTION
 BOOLEAN_CMP_INT(P(p), BooleanCmp.getResult(P(p)), BooleanCmp.getCond(P(p)));
 
 boolcmp: BOOLEAN_CMP_INT(cz, INT_CONSTANT)
 isZERO(VR(p), 0)
-EMIT_INSTRUCTION 
-pushCOND(BooleanCmp.getCond(P(p))); 
+EMIT_INSTRUCTION
+pushCOND(BooleanCmp.getCond(P(p)));
 
 r:	BOOLEAN_CMP_INT(szp, INT_CONSTANT)
 VR(p) == 0 && EQ_NE(BooleanCmp.getCond(P(p)))?26:INFINITE
@@ -661,7 +663,7 @@ boolcmp: BOOLEAN_CMP_INT(load32,riv)
 15
 EMIT_INSTRUCTION
 pushCOND(BooleanCmp.getCond(P(p))); \
-EMIT(MIR_Compare.mutate(PL(p), IA32_CMP, consumeMO(), BooleanCmp.getVal2(P(p)))); 
+EMIT(MIR_Compare.mutate(PL(p), IA32_CMP, consumeMO(), BooleanCmp.getVal2(P(p))));
 
 r:	BOOLEAN_CMP_INT(r,load32)
 41
@@ -973,7 +975,7 @@ LCMP_CMOV(P(p), CondMove.getResult(P(p)), CondMove.getVal1(P(p)), CondMove.getVa
           CondMove.getCond(P(p)), CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
 
 ##################################
-# Basic Integer ALU operations 
+# Basic Integer ALU operations
 ##################################
 #####
 # INT_ADD_ACC
@@ -1093,7 +1095,7 @@ EMIT_INSTRUCTION
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_IMUL2, BinaryAcc.getResult(P(p)),         \
 			  BinaryAcc.getValue(P(p))));
 
-### Memory operands ### 
+### Memory operands ###
 # TODO: consider adding rules for memory operands for INT_MUL_ACC
 #####
 # INT_DIV
@@ -1104,7 +1106,7 @@ EMIT_INSTRUCTION
 INT_DIVIDES(P(p), GuardedBinary.getResult(P(p)), GuardedBinary.getVal1(P(p)), \
 	                GuardedBinary.getVal2(P(p)), true);
 
-### Memory operands ### 
+### Memory operands ###
 # TODO: consider adding rules for memory operands INT_DIV
 #####
 # INT_REM
@@ -1115,7 +1117,7 @@ EMIT_INSTRUCTION
 INT_DIVIDES(P(p), GuardedBinary.getResult(P(p)), GuardedBinary.getVal1(P(p)), \
 	                GuardedBinary.getVal2(P(p)), false);
 
-### Memory operands ### 
+### Memory operands ###
 # TODO: consider adding rules for memory operands for INT_REM
 #####
 # INT_NEG_ACC
@@ -1125,7 +1127,7 @@ szpr:	INT_NEG_ACC(r)
 EMIT_INSTRUCTION
 EMIT(MIR_UnaryAcc.mutate(P(p), IA32_NEG, UnaryAcc.getResult(P(p))));
 
-### Memory operands ### 
+### Memory operands ###
 stm:	INT_STORE(INT_NEG_ACC(INT_LOAD(riv,riv)),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 17)
 EMIT_INSTRUCTION
@@ -1172,7 +1174,7 @@ EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(PLL(p), IA32_MOV, BinaryAcc.getResult(P(p)), BinaryAcc.getResult(PLL(p)))); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_AND, BinaryAcc.getResult(P(p)), new OPT_IntConstantOperand(0xffffffff << VR(p))));
 
-### Memory operands ### 
+### Memory operands ###
 stm:	INT_STORE(INT_SHL_ACC(INT_LOAD(riv,riv),INT_AND_ACC(r,INT_CONSTANT)),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 27)
 EMIT_INSTRUCTION
@@ -1200,7 +1202,7 @@ if (VM.VerifyAssertions) VM._assert((VLR(p) & 0x7FFFFFFF) <= 31); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHL, MO_AS(P(p), DW_S, DW), BinaryAcc.getValue(PL(p))));
 
 #####
-# INT_SHR_ACC: 
+# INT_SHR_ACC:
 #####
 szpr:	INT_SHR_ACC(r, INT_AND_ACC(r, INT_CONSTANT))
 23
@@ -1228,7 +1230,7 @@ EMIT_INSTRUCTION
 if (VM.VerifyAssertions) VM._assert((VR(p) & 0x7FFFFFFF) <= 31); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SAR, BinaryAcc.getResult(P(p)), BinaryAcc.getValue(P(p))));
 
-### Memory operands ### 
+### Memory operands ###
 stm:	INT_STORE(INT_SHR_ACC(INT_LOAD(riv,riv),INT_AND_ACC(r, INT_CONSTANT)),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 27)
 EMIT_INSTRUCTION
@@ -1284,7 +1286,7 @@ EMIT_INSTRUCTION
 if (VM.VerifyAssertions) VM._assert((VR(p) & 0x7FFFFFFF) <= 31); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHR, BinaryAcc.getResult(P(p)), BinaryAcc.getValue(P(p))));
 
-### Memory operands ### 
+### Memory operands ###
 stm:	INT_STORE(INT_USHR_ACC(INT_LOAD(riv,riv),INT_AND_ACC(r,INT_CONSTANT)),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 27)
 EMIT_INSTRUCTION
@@ -1325,7 +1327,7 @@ szp:	INT_AND_ACC(r, r)
 EMIT_INSTRUCTION
 EMIT(MIR_Test.mutate(P(p), IA32_TEST, BinaryAcc.getResult(P(p)), BinaryAcc.getValue(P(p))));
 
-### Memory operands ### 
+### Memory operands ###
 szpr:	INT_AND_ACC(r, load32)
 15
 EMIT_INSTRUCTION
@@ -1360,7 +1362,7 @@ EMIT_INSTRUCTION
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_OR, BinaryAcc.getResult(P(p)),         \
 			  BinaryAcc.getValue(P(p))));
 
-### Memory operands ### 
+### Memory operands ###
 szpr:	INT_OR_ACC(r, load32)
 15
 EMIT_INSTRUCTION
@@ -1385,7 +1387,7 @@ EMIT_INSTRUCTION
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_XOR, BinaryAcc.getResult(P(p)),         \
 			  BinaryAcc.getValue(P(p))));
 
-### Memory operands ### 
+### Memory operands ###
 szpr:	INT_XOR_ACC(r, load32)
 15
 EMIT_INSTRUCTION
@@ -1409,7 +1411,7 @@ r:	INT_NOT_ACC(r)
 EMIT_INSTRUCTION
 EMIT(MIR_UnaryAcc.mutate(P(p), IA32_NOT, UnaryAcc.getResult(P(p))));
 
-### Memory operands ### 
+### Memory operands ###
 stm:	INT_STORE(INT_NOT_ACC(INT_LOAD(riv,riv)),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 17)
 EMIT_INSTRUCTION
@@ -1421,7 +1423,7 @@ EMIT_INSTRUCTION
 EMIT(MIR_UnaryAcc.mutate(P(p), IA32_NOT, MO_AS(P(p), DW_S, DW)));
 
 ##################################
-# Basic Floating-Point ALU operations 
+# Basic Floating-Point ALU operations
 ##################################
 #####
 # FP_ADD (handles both float and double; both are 80 bit anyways...)
@@ -1536,7 +1538,7 @@ EMIT(MIR_UnaryAcc.create(IA32_FCHS, D(getFPR(0)))); \
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, Unary.getResult(P(p)), D(getFPR(0))));
 
 ##################################
-# Basic Long ALU operations 
+# Basic Long ALU operations
 ##################################
 #####
 # LONG_ADD_ACC
@@ -1759,7 +1761,7 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), W_S, W), Unary.getVal(PL(p))));
 r:	INT_2LONG(r)
 33
 EMIT_INSTRUCTION
-INT_2LONG(P(p), Unary.getResult(P(p)), Unary.getVal(P(p))); 
+INT_2LONG(P(p), Unary.getResult(P(p)), Unary.getVal(P(p)));
 
 r:	INT_2LONG(load32)
 33
@@ -2566,7 +2568,7 @@ stm:	BYTE_STORE(riv, OTHER_OPERAND(riv, riv))
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), B), Store.getValue(P(p))));
 
-# Can avoid sign/zero extension when we are just doing a transfer of bits 
+# Can avoid sign/zero extension when we are just doing a transfer of bits
 # from one memory location to another.
 stm:	BYTE_STORE(load8, OTHER_OPERAND(riv, riv))
 25
@@ -2583,7 +2585,7 @@ stm:	BYTE_ASTORE(riv, OTHER_OPERAND(r, riv))
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), B_S, B), AStore.getValue(P(p))));
 
-# Can avoid sign/zero extension when we are just doing a transfer of bits 
+# Can avoid sign/zero extension when we are just doing a transfer of bits
 # from one memory location to another.
 stm:	BYTE_ASTORE(load8, OTHER_OPERAND(r, riv))
 25
@@ -2600,7 +2602,7 @@ stm:	SHORT_STORE(riv, OTHER_OPERAND(riv, riv))
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), W), Store.getValue(P(p))));
 
-# Can avoid sign/zero extension when we are just doing a transfer of bits 
+# Can avoid sign/zero extension when we are just doing a transfer of bits
 # from one memory location to another.
 stm:	SHORT_STORE(load16, OTHER_OPERAND(riv, riv))
 25
@@ -2617,7 +2619,7 @@ stm:	SHORT_ASTORE(riv, OTHER_OPERAND(r, riv))
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), W_S, W), AStore.getValue(P(p))));
 
-# Can avoid sign/zero extension when we are just doing a transfer of bits 
+# Can avoid sign/zero extension when we are just doing a transfer of bits
 # from one memory location to another.
 stm:	SHORT_ASTORE(load16, OTHER_OPERAND(r, riv))
 25
@@ -2790,7 +2792,7 @@ stm:	INT_IFCMP(r, uload8)
 EMIT_INSTRUCTION
 IFCMP(P(p), IfCmp.getGuardResult(P(p)), IfCmp.getVal1(P(p)), consumeMO(), IfCmp.getCond(P(p)));
 
-stm:	INT_IFCMP(sload16, INT_CONSTANT) 
+stm:	INT_IFCMP(sload16, INT_CONSTANT)
 FITS(IfCmp.getVal2(P(p)), 8, 28)
 EMIT_INSTRUCTION
 IFCMP(P(p), IfCmp.getGuardResult(P(p)), consumeMO(), IfCmp.getVal2(P(p)), IfCmp.getCond(P(p)));
@@ -3007,7 +3009,7 @@ if (ret.type.isLongType()) {                                 \
   ret.type = VM_TypeReference.Int;                           \
   ret2 = new OPT_RegisterOperand(regpool.getSecondReg(ret.register), VM_TypeReference.Int); \
 }                                                            \
-EMIT(MIR_Return.mutate(P(p), IA32_RET, null, ret, ret2)); 
+EMIT(MIR_Return.mutate(P(p), IA32_RET, null, ret, ret2));
 
 stm:	RETURN(LONG_CONSTANT)
 11

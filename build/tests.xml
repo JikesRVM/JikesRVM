@@ -1,35 +1,15 @@
 <!--
-
-  The test infrastructure relies on the definition of properties with well known names when executing,
-  analyzing and recording each individual test. It was implemented this way as ants properties can only
-  be assigned once and passing all the parameters around in macros is unwieldy.
-
-  Every test has a "tag" that uniquely identifies it. Usually the tag is the name of class file
-  optionally appended with a "selector". The tag identifies a particular run of a test.
-
-  The following properties are either derived from input parameters or set from defaults.
-   - test.@{tag}.tag                      (Name of the test)
-   - test.@{tag}.class                    (Name of class to run)
-   - test.@{tag}.args                     (Arguments passed to class)
-   - test.@{tag}.class.path               (Classpath test run with)
-   - test.@{tag}.initial.heapsize         (Initial heap size)
-   - test.@{tag}.max.heapsize             (Maximum heap size)
-   - test.@{tag}.processors               (Processor count or 'all')
-   - test.@{tag}.time.limit               (Time limit)
-   - test.@{tag}.extra,args               (Any extra test-specific args to rvm)
-   - test.@{tag}.rvm.args                 (The complete set of args passed to rvm)
-   - test.@{tag}.command                  (The complete command line to execute the test)
-   - test.@{tag}.dir                      (The working directory for test)
-  The following properties contain the output results of running the rvm.
-   - test.@{tag}.exit.code                (The exit code from rvm)
-   - test.@{tag}.output.file              (The name of the file containing output from execution)
-   - test.@{tag}.sanitized.output.file    (The name of the file containing output from execution after it was cleaned)
-  The following properties contain the results of running the analysis.
-   - test.@{tag}.result                   (One of SUCCESS, FAILURE, ERROR or NOTRUN)
-   - test.@{tag}.result.explanation       (The reason for result if not SUCCESS)
-   - test.@{tag}.statistic.@{key}         (For every statistic extracted from output there is one equiv property)
-
--->
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Common Public License (CPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/cpl1.0.php
+ ~
+ ~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
 <project name="tests">
 
   <property name="jikesrvm.dir" location="${basedir}/../../.."/>

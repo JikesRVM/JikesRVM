@@ -1,12 +1,14 @@
 #
-# This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
-# The Jikes RVM project is distributed under the Common Public License (CPL).
-# A copy of the license is included in the distribution, and is also
-# available at http://www.opensource.org/licenses/cpl1.0.php
+#  This file is part of the Jikes RVM project (http://jikesrvm.org).
 #
-# (C) Copyright IBM Corp. 2001
+#  This file is licensed to You under the Common Public License (CPL);
+#  You may not use this file except in compliance with the License. You
+#  may obtain a copy of the License at
 #
-#//OperatorClassList.dat
+#      http://www.opensource.org/licenses/cpl1.0.php
+#
+#  See the COPYRIGHT.txt file distributed with this work for information
+#  regarding copyright ownership.
 #
 NAME
 OPERATORS_Common
@@ -177,7 +179,7 @@ PPC_FDIV PPC_FDIVS
 
 
 fixed_load
-PPC_LWZ PPC_LWZX PPC_LWZU PPC_LWZUX PPC_LHZ PPC_LHZX PPC_LHA PPC_LHAX PPC_LBZ PPC_LBZX PPC_LBZUX PPC_LInt PPC_LIntX PPC_LIntUX PPC_LAddr PPC_LAddrX PPC_LAddrU PPC_LAddrUX 
+PPC_LWZ PPC_LWZX PPC_LWZU PPC_LWZUX PPC_LHZ PPC_LHZX PPC_LHA PPC_LHAX PPC_LBZ PPC_LBZX PPC_LBZUX PPC_LInt PPC_LIntX PPC_LIntUX PPC_LAddr PPC_LAddrX PPC_LAddrU PPC_LAddrUX
 PPC64_LWA PPC64_LWAX PPC64_LD PPC64_LDX
 "ISSUE, 1" "LDST, 1"
 "FXU_insn, 2" "any_insn, 2"

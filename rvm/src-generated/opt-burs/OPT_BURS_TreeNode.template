@@ -1,12 +1,15 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-
 package org.jikesrvm.compilers.opt.@_ARCH_@;
 
 import org.jikesrvm.*;
@@ -14,10 +17,10 @@ import org.jikesrvm.compilers.opt.ir.*;
 import org.jikesrvm.compilers.opt.OPT_DepGraphNode;
 
 /**
- * An OPT_BURS_TreeNode is a node in a binary tree that is fed 
+ * An OPT_BURS_TreeNode is a node in a binary tree that is fed
  * as input to BURS.
  * Machine-generated, do not edit.
- * 
+ *
  * @see org.jikesrvm.compilers.opt.OPT_BURS
  * @see OPT_BURS_STATE
  */
@@ -26,12 +29,12 @@ public class OPT_BURS_TreeNode implements OPT_BURS_Definitions {
   public ArchitectureSpecific.OPT_BURS_TreeNode child1;
   public ArchitectureSpecific.OPT_BURS_TreeNode child2;
 
-  /** 
-   * Dependence graph node corresponding to 
+  /**
+   * Dependence graph node corresponding to
    * interior node in BURS tree (set to null for
    * leaf node or for OTHER_OPERAND node).
-   */  
-  public final OPT_DepGraphNode dg_node; 
+   */
+  public final OPT_DepGraphNode dg_node;
 
   /**
    * Opcode of instruction
@@ -96,7 +99,7 @@ public class OPT_BURS_TreeNode implements OPT_BURS_Definitions {
     dg_node = n;
     opcode = instr.getOpcode();
   }
- 
+
   /**
    * Constructor for leaf/auxiliary node.
    */

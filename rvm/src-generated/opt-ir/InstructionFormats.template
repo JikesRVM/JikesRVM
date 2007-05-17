@@ -1,10 +1,14 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 
 NOTE: We currently only support a subset of cases of variable operands.
@@ -12,14 +16,14 @@ NOTE: We currently only support a subset of cases of variable operands.
   (2) instructions with 0+ defs and variable# of defs.
 Variable number of def/uses and variable number of defs with non-zero
 number of def/uses or uses are not supported (and will generate java code
-for the instruction format that doesn't compile).  Fully general support would 
+for the instruction format that doesn't compile).  Fully general support would
 be a pain in the butt and since it currently isn't required, we don't do it.
 
 ##NEW_FILE_STARTS_HERE OPT_InstructionFormat.java##
 
 /*
  * THIS FILE IS MACHINE_GENERATED. DO NOT EDIT.
- * See InstructionFormats.template, InstructionFormatList.dat, 
+ * See InstructionFormats.template, InstructionFormatList.dat,
  * OperatorList.dat, etc.
  */
 
@@ -30,16 +34,16 @@ import org.jikesrvm.VM;
 
 /**
  * Abstract parent class of all InstructionFormat classes.
- * 
- * The header comment for {@link OPT_Instruction} contains 
+ *
+ * The header comment for {@link OPT_Instruction} contains
  * an explanation of the role of InstructionFormats in the
  * opt compiler's IR.
  */
 public abstract class OPT_InstructionFormat {
 
-  /** 
-   * Make all operand arrays created via the InstructionFormat constructors 
-   * at least this big to reduce the chance of having to resize the array 
+  /**
+   * Make all operand arrays created via the InstructionFormat constructors
+   * at least this big to reduce the chance of having to resize the array
    * if the instruction is mutated.
    */
 $$$$ LET MINOPERANDS 5
@@ -75,7 +79,7 @@ $$$$ IF OPTYPE.NAME != "ARCH_INDEPENDENT_INSTR_FORMAT_END"
   public static final int OPTYPE.NAME_traits = OPT_Operator.none;
         $$$$ ELSE
   Improperly defined instruction format OPTYPE.NAME. Has bad "vardoru" field
-        $$$$ END IF   
+        $$$$ END IF
       $$$$ END IF
     $$$$ END IF
 $$$$ END IF
@@ -88,9 +92,9 @@ $$$$ END LOOP
    * when it is detected that an InstructionFormat method
    * was invoked on an instruction/operator that does not
    * conform to that format.
-   * @param i the instruction that failed to conform to the 
+   * @param i the instruction that failed to conform to the
    *          expected format.
-   * @param name the name of the instruction format that the 
+   * @param name the name of the instruction format that the
    *             instruction was expected to conform to.
    */
   protected static void fail(OPT_Instruction i, String name) {
@@ -103,9 +107,9 @@ $$$$ END LOOP
    * when it is detected that an InstructionFormat method
    * was invoked on an operator that does not
    * conform to that format.
-   * @param op the operator that failed to conform to the 
+   * @param op the operator that failed to conform to the
    *          expected format.
-   * @param name the name of the instruction format that the 
+   * @param name the name of the instruction format that the
    *             operator was expected to conform to.
    */
   protected static void fail(OPT_Operator op, String name) {
@@ -123,7 +127,7 @@ $$$$ LET NUMFIXEDOPS NUMDEFS+NUMDEFUSES+NUMUSES
 
 /*
  * THIS FILE IS MACHINE_GENERATED. DO NOT EDIT.
- * See InstructionFormats.template, InstructionFormatList.dat, 
+ * See InstructionFormats.template, InstructionFormatList.dat,
  * OperatorList.dat, etc.
  */
 
@@ -140,8 +144,8 @@ $$$$ END IF
 
 /**
  * The OPTYPE.NAME InstructionFormat class.
- * 
- * The header comment for {@link OPT_Instruction} contains 
+ *
+ * The header comment for {@link OPT_Instruction} contains
  * an explanation of the role of InstructionFormats in the
  * opt compiler's IR.
  */
@@ -171,7 +175,7 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
   $$$$ LOOP PARAM OPTYPE.SIG
   $$$$ SPLIT "PARAM" " " USDF NAME TYPE
   /**
-   * Get the operand called NAME from the 
+   * Get the operand called NAME from the
    * argument instruction. Note that the returned operand
    * will still point to its containing instruction.
    * @param i the instruction to fetch the operand from
@@ -188,8 +192,8 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
     $$$$ END IF
   }
   /**
-   * Get the operand called NAME from the argument 
-   * instruction clearing its instruction pointer. The returned 
+   * Get the operand called NAME from the argument
+   * instruction clearing its instruction pointer. The returned
    * operand will not point to any containing instruction.
    * @param i the instruction to fetch the operand from
    * @return the operand called NAME
@@ -205,9 +209,9 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
     $$$$ END IF
   }
   /**
-   * Set the operand called NAME in the argument 
+   * Set the operand called NAME in the argument
    * instruction to the argument operand. The operand will
-   * now point to the argument instruction as its containing 
+   * now point to the argument instruction as its containing
    * instruction.
    * @param i the instruction in which to store the operand
    * @param NAME the operand to store
@@ -223,10 +227,10 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
     $$$$ END IF
   }
   /**
-   * Return the index of the operand called NAME 
+   * Return the index of the operand called NAME
    * in the argument instruction.
    * @param i the instruction to access.
-   * @return the index of the operand called NAME 
+   * @return the index of the operand called NAME
    *         in the argument instruction
    */
   public static int indexOfNAME(OPT_Instruction i) {
@@ -240,10 +244,10 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
     $$$$ END IF
   }
   /**
-   * Does the argument instruction have a non-null 
+   * Does the argument instruction have a non-null
    * operand named NAME?
    * @param i the instruction to access.
-   * @return <code>true</code> if the instruction has an non-null 
+   * @return <code>true</code> if the instruction has an non-null
    *         operand named NAME or <code>false</code>
    *         if it does not.
    */
@@ -264,11 +268,11 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
   $$$$ LOOP PARAM OPTYPE.VARSIG
   $$$$ SPLIT "PARAM" " " NAME TYPE PLURAL
   /**
-   * Get the k'th operand called NAME from the 
+   * Get the k'th operand called NAME from the
    * argument instruction. Note that the returned operand
    * will still point to its containing instruction.
    * @param i the instruction to fetch the operand from
-   * @param k the index of the operand 
+   * @param k the index of the operand
    * @return the k'th operand called NAME
    */
   public static TYPE getNAME(OPT_Instruction i, int k) {
@@ -280,11 +284,11 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
     $$$$ END IF
   }
   /**
-   * Get the k'th operand called NAME from the argument 
-   * instruction clearing its instruction pointer. The returned 
+   * Get the k'th operand called NAME from the argument
+   * instruction clearing its instruction pointer. The returned
    * operand will not point to any containing instruction.
    * @param i the instruction to fetch the operand from
-   * @param k the index of the operand 
+   * @param k the index of the operand
    * @return the k'th operand called NAME
    */
   public static TYPE getClearNAME(OPT_Instruction i, int k) {
@@ -296,12 +300,12 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
     $$$$ END IF
   }
   /**
-   * Set the k'th operand called NAME in the argument 
+   * Set the k'th operand called NAME in the argument
    * instruction to the argument operand. The operand will
-   * now point to the argument instruction as its containing 
+   * now point to the argument instruction as its containing
    * instruction.
    * @param i the instruction in which to store the operand
-   * @param k the index of the operand 
+   * @param k the index of the operand
    * @param o the operand to store
    */
   public static void setNAME(OPT_Instruction i, int k, TYPE o) {
@@ -313,11 +317,11 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
     $$$$ END IF
   }
   /**
-   * Return the index of the k'th operand called NAME 
+   * Return the index of the k'th operand called NAME
    * in the argument instruction.
    * @param i the instruction to access.
    * @param k the index of the operand.
-   * @return the index of the k'th operand called NAME 
+   * @return the index of the k'th operand called NAME
    *         in the argument instruction
    */
   public static int indexOfNAME(OPT_Instruction i, int k) {
@@ -329,11 +333,11 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
     $$$$ END IF
   }
   /**
-   * Does the argument instruction have a non-null 
+   * Does the argument instruction have a non-null
    * k'th operand named NAME?
    * @param i the instruction to access.
    * @param k the index of the operand.
-   * @return <code>true</code> if the instruction has an non-null 
+   * @return <code>true</code> if the instruction has an non-null
    *         k'th operand named NAME or <code>false</code>
    *         if it does not.
    */
@@ -358,10 +362,10 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
   public static int indexOfPLURAL(OPT_Instruction i)
     $$$$ ELSE
   /**
-   * Return the index of the first operand called NAME 
+   * Return the index of the first operand called NAME
    * in the argument instruction.
    * @param i the instruction to access.
-   * @return the index of the first operand called NAME 
+   * @return the index of the first operand called NAME
    *         in the argument instruction
    */
   public static int indexOfNAMEs(OPT_Instruction i)
@@ -375,7 +379,7 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
    * Does the argument instruction have any PLURAL
    * operands?
    * @param i the instruction to access.
-   * @return <code>true</code> if the instruction has 
+   * @return <code>true</code> if the instruction has
    *         PLURAL operands or <code>false</code>
    *         if it does not.
    */
@@ -444,13 +448,13 @@ public final class OPTYPE.NAME extends OPT_InstructionFormat {
   {
     if (VM_Configuration.ExtremeAssertions && !conforms(i)) fail(i, "OPTYPE.NAME");
     $$$$ IF "NUMVAR" eq 1
-  if (NUMFIXEDOPS+numVarOps>MIN_OPERAND_ARRAY_LENGTH) 
+  if (NUMFIXEDOPS+numVarOps>MIN_OPERAND_ARRAY_LENGTH)
     i.resizeNumberOfOperands(NUMFIXEDOPS+numVarOps);
   else
     for (int j = NUMFIXEDOPS+numVarOps; j < MIN_OPERAND_ARRAY_LENGTH; j++)
       i.putOperand(j, null);
     $$$$ ELSE
-  if (NUMFIXEDOPS+numVarOps*NUMVAR>MIN_OPERAND_ARRAY_LENGTH) 
+  if (NUMFIXEDOPS+numVarOps*NUMVAR>MIN_OPERAND_ARRAY_LENGTH)
     i.resizeNumberOfOperands(NUMFIXEDOPS+numVarOps*NUMVAR);
   else
     for (int j = NUMFIXEDOPS+numVarOps*NUMVAR; j < MIN_OPERAND_ARRAY_LENGTH; j++)
@@ -587,7 +591,7 @@ $$$$ LET DOLLARS "$$$$"
   }
   $$$$ END LOOP
   $$$$ END IF
-        
+
   /**
    * Mutate the argument instruction into an instruction of the
    * OPTYPE.NAME instruction format having the specified
@@ -623,10 +627,10 @@ $$$$ LET DOLLARS "$$$$"
     if (VM_Configuration.ExtremeAssertions && !conforms(o)) fail(o, "OPTYPE.NAME");
   $$$$ IF "VARDORU" != ""
     $$$$ IF "NUMVAR" eq 1
-    if (NUMFIXEDOPS+numVarOps>MIN_OPERAND_ARRAY_LENGTH) 
+    if (NUMFIXEDOPS+numVarOps>MIN_OPERAND_ARRAY_LENGTH)
       i.resizeNumberOfOperands(NUMFIXEDOPS+numVarOps);
     $$$$ ELSE
-    if (NUMFIXEDOPS+numVarOps*NUMVAR>MIN_OPERAND_ARRAY_LENGTH) 
+    if (NUMFIXEDOPS+numVarOps*NUMVAR>MIN_OPERAND_ARRAY_LENGTH)
       i.resizeNumberOfOperands(NUMFIXEDOPS+numVarOps*NUMVAR);
     $$$$ END IF
 
@@ -775,7 +779,7 @@ public final class CNAMECarrier extends OPT_InstructionFormat {
    * has an operand called CNAME?
    * @param i the instruction to test
    * @return <code>true</code> if the instruction's instruction
-   *         format has an operand called CNAME and 
+   *         format has an operand called CNAME and
    *         <code>false</code> if it does not.
    */
   public static boolean conforms(OPT_Instruction i) {
@@ -786,7 +790,7 @@ public final class CNAMECarrier extends OPT_InstructionFormat {
    * has an operand called CNAME?
    * @param o the operator to test
    * @return <code>true</code> if the instruction's instruction
-   *         format has an operand called CNAME and 
+   *         format has an operand called CNAME and
    *         <code>false</code> if it does not.
    */
   public static boolean conforms(OPT_Operator o) {
@@ -794,7 +798,7 @@ public final class CNAMECarrier extends OPT_InstructionFormat {
   }
 
   /**
-   * Get the operand called CNAME from the 
+   * Get the operand called CNAME from the
    * argument instruction. Note that the returned operand
    * will still point to its containing instruction.
    * @param i the instruction to fetch the operand from
@@ -806,8 +810,8 @@ public final class CNAMECarrier extends OPT_InstructionFormat {
     return (CTYPE) i.getOperand(index);
   }
   /**
-   * Get the operand called CNAME from the argument 
-   * instruction clearing its instruction pointer. The returned 
+   * Get the operand called CNAME from the argument
+   * instruction clearing its instruction pointer. The returned
    * operand will not point to any containing instruction.
    * @param i the instruction to fetch the operand from
    * @return the operand called CNAME
@@ -818,9 +822,9 @@ public final class CNAMECarrier extends OPT_InstructionFormat {
     return (CTYPE) i.getClearOperand(index);
   }
   /**
-   * Set the operand called CNAME in the argument 
+   * Set the operand called CNAME in the argument
    * instruction to the argument operand. The operand will
-   * now point to the argument instruction as its containing 
+   * now point to the argument instruction as its containing
    * instruction.
    * @param i the instruction in which to store the operand
    * @param op the operand to store
@@ -834,7 +838,7 @@ public final class CNAMECarrier extends OPT_InstructionFormat {
    * Return the index of the operand called CNAME
    * in the argument instruction.
    * @param i the instruction to access.
-   * @return the index of the operand called CNAME 
+   * @return the index of the operand called CNAME
    *         in the argument instruction
    */
   public static int indexOfCNAME(OPT_Instruction i) {
@@ -842,10 +846,10 @@ public final class CNAMECarrier extends OPT_InstructionFormat {
     return _index[i.operator.format];
   }
   /**
-   * Does the argument instruction have a non-null 
+   * Does the argument instruction have a non-null
    * operand named CNAME?
    * @param i the instruction to access.
-   * @return <code>true</code> if the instruction has an non-null 
+   * @return <code>true</code> if the instruction has an non-null
    *         operand named CNAME or <code>false</code>
    *         if it does not.
    */

@@ -1,11 +1,16 @@
-//
-// This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
-// The Jikes RVM project is distributed under the Common Public License (CPL).
-// A copy of the license is included in the distribution, and is also
-// available at http://www.opensource.org/licenses/cpl1.0.php
-//
-// (C) Copyright IBM Corp. 2001
-//
+/*
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ *
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
+ */
+
 /*
  * Called as: bootThread(int ip, int jtoc, int pr, int rvm_sp)
  *
@@ -19,12 +24,12 @@
 #include "InterfaceDeclarations.h"
 
 #ifdef __linux__
-       .text    
+       .text
        .align 4
        .globl   bootThread   # external visibility
        bootThread:
 #else
-	.text    
+	.text
 	.align 4
 	.globl	_bootThread
        _bootThread:
@@ -34,7 +39,7 @@
 	 * sp stack pointer on C stack
          */
 
-	/* 
+	/*
          * save the C stack frame pointer and stack pointer on
 	 * the C stack
 	 */
@@ -50,7 +55,7 @@
         movl 12(%ebp),JTOC	// JTOC register <- parameter jtoc value
         movl  8(%ebp),%eax	// eax <- parameter RVM ip
 
-	/* 
+	/*
 	 * save the old stack address on the new stack
 	 */
 	pushl %ebp		// new_stack[new_esp--] <- ebp

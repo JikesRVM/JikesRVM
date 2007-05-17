@@ -1,12 +1,14 @@
 #
-# This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
-# The Jikes RVM project is distributed under the Common Public License (CPL).
-# A copy of the license is included in the distribution, and is also
-# available at http://www.opensource.org/licenses/cpl1.0.php
+#  This file is part of the Jikes RVM project (http://jikesrvm.org).
 #
-# (C) Copyright IBM Corp. 2001
+#  This file is licensed to You under the Common Public License (CPL);
+#  You may not use this file except in compliance with the License. You
+#  may obtain a copy of the License at
 #
-#//OperatorList.dat
+#      http://www.opensource.org/licenses/cpl1.0.php
+#
+#  See the COPYRIGHT.txt file distributed with this work for information
+#  regarding copyright ownership.
 #
 # This file defines the HIR and LIR subsets of the Operators.
 # See <ARCH>/OperatorList.dat for the MIR subset
@@ -50,7 +52,7 @@ alloc | immedPEI
 
 
 
-# Allocate a new object. At compile time this class was not ready to go, 
+# Allocate a new object. At compile time this class was not ready to go,
 # therefore this instruction may cause dynamic linking to happen.
 NEW_UNRESOLVED
 New
@@ -58,7 +60,7 @@ alloc | immedPEI | dynLink
 
 
 
-# Allocate a new array. Could cause a NegativeArraySizeException, 
+# Allocate a new array. Could cause a NegativeArraySizeException,
 # therefore is an immedPEI
 NEWARRAY
 NewArray
@@ -66,9 +68,9 @@ alloc | immedPEI
 
 
 
-# Allocate a new array. Could cause a NegativeArraySizeException, 
+# Allocate a new array. Could cause a NegativeArraySizeException,
 # therefore is an immedPEI.
-# At compile time the array was not ready to go, 
+# At compile time the array was not ready to go,
 # therefore this instruction may cause dynamic linking to happen.
 NEWARRAY_UNRESOLVED
 NewArray
@@ -173,7 +175,7 @@ alloc | immedPEI | dynLink
 
 
 
-# load a static field from a ready-to-go class. 
+# load a static field from a ready-to-go class.
 GETSTATIC
 GetStatic
 load
@@ -477,7 +479,7 @@ none
 # Memory barrier.  No load instructions may rise above this instruction.
 READ_CEILING
 Empty
-memAsLoad | memAsStore | acquire 
+memAsLoad | memAsStore | acquire
 
 
 
@@ -516,7 +518,7 @@ none
 
 
 
-# Move an integer value from one (register/constant) operand 
+# Move an integer value from one (register/constant) operand
 # to a register operand.  Value is unchanged.
 INT_MOVE
 Move
@@ -524,7 +526,7 @@ move
 
 
 
-# Move a long value from one (register/constant) operand 
+# Move a long value from one (register/constant) operand
 # to a register operand.  Value is unchanged.
 LONG_MOVE
 Move
@@ -532,7 +534,7 @@ move
 
 
 
-# Move a float value from one (register/constant) operand 
+# Move a float value from one (register/constant) operand
 # to a register operand.  Value is unchanged.
 FLOAT_MOVE
 Move
@@ -540,7 +542,7 @@ move
 
 
 
-# Move a double value from one (register/constant) operand 
+# Move a double value from one (register/constant) operand
 # to a register operand.  Value is unchanged.
 DOUBLE_MOVE
 Move
@@ -548,7 +550,7 @@ move
 
 
 
-# Move a reference value from one (register/constant) operand 
+# Move a reference value from one (register/constant) operand
 # to a register operand.  Value is unchanged.
 REF_MOVE
 Move
@@ -556,7 +558,7 @@ move
 
 
 
-# Move a guard value from one (register) operand 
+# Move a guard value from one (register) operand
 # to a register operand.  Value is unchanged.
 GUARD_MOVE
 Move
@@ -564,7 +566,7 @@ move
 
 
 
-# Conditionally move an integer value from one (register/constant) operand 
+# Conditionally move an integer value from one (register/constant) operand
 # to a register operand.  Value is unchanged.
 INT_COND_MOVE
 CondMove
@@ -572,7 +574,7 @@ compare
 
 
 
-# Move a long value from one (register/constant) operand 
+# Move a long value from one (register/constant) operand
 # to a register operand.  Value is unchanged.
 LONG_COND_MOVE
 CondMove
@@ -580,7 +582,7 @@ compare
 
 
 
-# Move a float value from one (register/constant) operand 
+# Move a float value from one (register/constant) operand
 # to a register operand.  Value is unchanged.
 FLOAT_COND_MOVE
 CondMove
@@ -588,7 +590,7 @@ compare
 
 
 
-# Move a double value from one (register/constant) operand 
+# Move a double value from one (register/constant) operand
 # to a register operand.  Value is unchanged.
 DOUBLE_COND_MOVE
 CondMove
@@ -596,7 +598,7 @@ compare
 
 
 
-# Move a reference value from one (register/constant) operand 
+# Move a reference value from one (register/constant) operand
 # to a register operand.  Value is unchanged.
 REF_COND_MOVE
 CondMove
@@ -604,7 +606,7 @@ compare
 
 
 
-# Move a guard value from one (register) operand 
+# Move a guard value from one (register) operand
 # to a register operand.  Value is unchanged.
 GUARD_COND_MOVE
 CondMove
@@ -734,7 +736,7 @@ commutative
 # Divide two (register/constant) integer operands putting
 # the result in a register operand.
 # NOTE: Because we always generate an INT_ZERO_CHECK instruction
-# preceeding an INT_DIV, it is impossible for this instruction to 
+# preceeding an INT_DIV, it is impossible for this instruction to
 # raise an ArithmeticException. Therefore it is not an immedPEI
 INT_DIV
 GuardedBinary
@@ -745,7 +747,7 @@ none
 # Divide two (register/constant) long operands putting
 # the result in a register operand.
 # NOTE: Because we always generate a LONG_ZERO_CHECK instruction
-# preceeding a LONG_DIV, it is impossible for this instruction to 
+# preceeding a LONG_DIV, it is impossible for this instruction to
 # raise an ArithmeticException. Therefore it is not an immedPEI
 LONG_DIV
 GuardedBinary
@@ -860,7 +862,7 @@ none
 # operand by the amount specified by its second (register/constant) int operand
 # putting the result in a register operand.
 # NB This shift doesn't correspond to that in the JVM bytecode spec where the
-#    shift amount is masked with 0x1F. We differ so that shifts may be folded. 
+#    shift amount is masked with 0x1F. We differ so that shifts may be folded.
 INT_SHL
 Binary
 none
@@ -871,7 +873,7 @@ none
 # operand by the amount specified by its second (register/constant) long operand
 # putting the result in a register operand.
 # NB This shift doesn't correspond to that in the JVM bytecode spec where the
-#    shift amount is masked with 0x3F. We differ so that shifts may be folded. 
+#    shift amount is masked with 0x3F. We differ so that shifts may be folded.
 LONG_SHL
 Binary
 none
@@ -891,7 +893,7 @@ none
 # operand by the amount specified by its second (register/constant) int operand
 # putting the result in a register operand.
 # NB This shift doesn't correspond to that in the JVM bytecode spec where the
-#    shift amount is masked with 0x1F. We differ so that shifts may be folded. 
+#    shift amount is masked with 0x1F. We differ so that shifts may be folded.
 INT_SHR
 Binary
 none
@@ -902,7 +904,7 @@ none
 # operand by the amount specified by its second (register/constant) long operand
 # putting the result in a register operand.
 # NB This shift doesn't correspond to that in the JVM bytecode spec where the
-#    shift amount is masked with 0x3F. We differ so that shifts may be folded. 
+#    shift amount is masked with 0x3F. We differ so that shifts may be folded.
 LONG_SHR
 Binary
 none
@@ -922,7 +924,7 @@ none
 # operand by the amount specified by its second (register/constant) int operand
 # putting the result in a register operand.
 # NB This shift doesn't correspond to that in the JVM bytecode spec where the
-#    shift amount is masked with 0x1F. We differ so that shifts may be folded. 
+#    shift amount is masked with 0x1F. We differ so that shifts may be folded.
 INT_USHR
 Binary
 none
@@ -933,7 +935,7 @@ none
 # operand by the amount specified by its second (register/constant) long operand
 # putting the result in a register operand.
 # NB This shift doesn't correspond to that in the JVM bytecode spec where the
-#    shift amount is masked with 0x3F. We differ so that shifts may be folded. 
+#    shift amount is masked with 0x3F. We differ so that shifts may be folded.
 LONG_USHR
 Binary
 none
@@ -1433,7 +1435,7 @@ load | acquire
 # way in the HIR/LIR that the attempt instruction can except.
 ATTEMPT_INT
 Attempt
-load | store | compare | release 
+load | store | compare | release
 
 
 
@@ -1443,7 +1445,7 @@ load | store | compare | release
 # way in the HIR/LIR that the attempt instruction can except.
 ATTEMPT_ADDR
 Attempt
-load | store | compare | release 
+load | store | compare | release
 
 
 
@@ -1501,7 +1503,7 @@ none
 # a pseudo instruction to represent the prologue
 IR_PROLOGUE
 Prologue
-immedPEI 
+immedPEI
 
 
 
@@ -1513,7 +1515,7 @@ tsp | dynLink | immedPEI
 
 
 
-# HIR operator for field/methodresolution. 
+# HIR operator for field/methodresolution.
 # Represents the operation of forcing class loading (if necessary)
 # and retreiving the offset of the argument member.
 RESOLVE_MEMBER
@@ -1589,7 +1591,7 @@ none
 ##########
 # 'Unary' operators for manipulating the Jikes RVM object model
 ##########
-# Get the TIB ptr of an object 
+# Get the TIB ptr of an object
 GET_OBJ_TIB
 GuardedUnary
 none
