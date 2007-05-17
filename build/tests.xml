@@ -15,6 +15,14 @@
   <property name="jikesrvm.dir" location="${basedir}/../../.."/>
   <!-- configuration data -->
   <property file="${test.rvm.dir}/constants.properties"/>
+  <if>
+    <conditions>
+      <isset property="test-run.file"/>
+    </conditions>
+    <sequential>
+      <property file="${test-run.file}"/>
+    </sequential>
+  </if>
 
   <import file="${jikesrvm.dir}/build/base.xml"/>
   <import file="${jikesrvm.dir}/build/tasks.xml"/>
@@ -280,6 +288,40 @@
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
+  <!-- *                   Macros for extractin proeprty for test                 * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <macrodef name="setIfPresent">
+    <attribute name="name"/>
+    <attribute name="key"/>
+    <sequential>
+      <condition property="@{name}" value="${@{key}}">
+        <isset property="@{key}"/>
+      </condition>
+    </sequential>
+  </macrodef>
+
+  <macrodef name="getTestProperty">
+    <attribute name="name"/>
+    <attribute name="config" default="${config.name}"/>
+    <attribute name="group" default="${test.group.name}"/>
+    <attribute name="tag"/>
+    <attribute name="key"/>
+    <attribute name="default"/>
+    <sequential>
+      <setIfPresent name="@{name}" key="test.config.@{config}.@{group}.@{tag}.@{key}"/>
+      <setIfPresent name="@{name}" key="test.config.@{config}.@{group}.@{key}"/>
+      <setIfPresent name="@{name}" key="test.config.@{config}.@{key}"/>
+      <setIfPresent name="@{name}" key="test.config.@{group}.@{tag}.@{key}"/>
+      <setIfPresent name="@{name}" key="test.config.@{group}.@{key}"/>
+      <setIfPresent name="@{name}" key="test.config.@{key}"/>
+      <property name="@{name}" value="@{default}"/>
+    </sequential>
+  </macrodef>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
   <!-- *                         Macros for executing tests                       * -->
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
@@ -332,26 +374,7 @@
       <property name="test.@{tag}.output.file" value="${output.dir}/@{tag}-output.txt"/>
       <property name="test.@{tag}.sanitized.output.file" value="${output.dir}/@{tag}.txt"/>
 
-      <condition property="test.@{tag}.exclude" value="true" else="false">
-        <or>
-          <!-- check whether we have disabled test altogether, in configuration, target or configuration+target -->
-          <isset property="exclude.test.${test.group.name}.@{tag}"/>
-          <isset property="exclude.test.${config.name}.${test.group.name}.@{tag}"/>
-          <isset property="exclude.test.${target.name}.${test.group.name}.@{tag}"/>
-          <isset property="exclude.test.${config.name}.${target.name}.${test.group.name}.@{tag}"/>
-
-          <!-- check whether we have disabled suite altogether, in configuration, target or configuration+target -->
-          <isset property="exclude.group.${test.group.name}"/>
-          <isset property="exclude.group.${config.name}.${test.group.name}"/>
-          <isset property="exclude.group.${target.name}.${test.group.name}"/>
-          <isset property="exclude.group.${config.name}.${target.name}.${test.group.name}"/>
-
-          <!-- check whether we have disabled testing altogether, in configuration, target or configuration+target -->
-          <isset property="exclude.${config.name}"/>
-          <isset property="exclude.${target.name}"/>
-          <isset property="exclude.${config.name}.${target.name}"/>
-        </or>
-      </condition>
+      <getTestProperty name="test.@{tag}.exclude" tag="@{tag}" key="exclude" default="false"/>
 
       <property name="test.@{tag}.command"
                 value='${rvm.exe} ${test.@{tag}.rvm.args} -classpath "${test.@{tag}.class.path}" ${test.@{tag}.class} ${test.@{tag}.args}'/>
@@ -369,7 +392,9 @@
       <timer property="test.@{tag}.time"/>
       <if>
         <conditions>
-          <equals arg1="${test.@{tag}.exclude}" arg2="false"/>
+          <not>
+            <equals arg1="${test.@{tag}.exclude}" arg2="true"/>
+          </not>
         </conditions>
         <sequential>
           <texec executable="${rvm.exe}"
