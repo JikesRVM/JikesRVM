@@ -1358,7 +1358,7 @@ target.jni-suffix=${target.jni-suffix}
 
     <style in="${build.dir}/checkstyle/report.xml"
            out="${build.dir}/checkstyle/report.html"
-           style="${checkstyle.dir}/contrib/checkstyle-frames.xsl"/>
+           style="${checkstyle.dir}/contrib/checkstyle-simple.xsl"/>
   </target>
 
   <!-- **************************************************************************** -->
