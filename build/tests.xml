@@ -302,21 +302,20 @@
     </sequential>
   </macrodef>
 
-  <macrodef name="getTestProperty">
-    <attribute name="name"/>
+  <macrodef name="setTestProperty">
     <attribute name="config" default="${config.name}"/>
     <attribute name="group" default="${test.group.name}"/>
     <attribute name="tag"/>
     <attribute name="key"/>
     <attribute name="default"/>
     <sequential>
-      <setIfPresent name="@{name}" key="test.config.@{config}.@{group}.@{tag}.@{key}"/>
-      <setIfPresent name="@{name}" key="test.config.@{config}.@{group}.@{key}"/>
-      <setIfPresent name="@{name}" key="test.config.@{config}.@{key}"/>
-      <setIfPresent name="@{name}" key="test.config.@{group}.@{tag}.@{key}"/>
-      <setIfPresent name="@{name}" key="test.config.@{group}.@{key}"/>
-      <setIfPresent name="@{name}" key="test.config.@{key}"/>
-      <property name="@{name}" value="@{default}"/>
+      <setIfPresent name="test.@{tag}.@{key}" key="test.config.@{config}.@{group}.@{tag}.@{key}"/>
+      <setIfPresent name="test.@{tag}.@{key}" key="test.config.@{config}.@{group}.@{key}"/>
+      <setIfPresent name="test.@{tag}.@{key}" key="test.config.@{config}.@{key}"/>
+      <setIfPresent name="test.@{tag}.@{key}" key="test.config.@{group}.@{tag}.@{key}"/>
+      <setIfPresent name="test.@{tag}.@{key}" key="test.config.@{group}.@{key}"/>
+      <setIfPresent name="test.@{tag}.@{key}" key="test.config.@{key}"/>
+      <property name="test.@{tag}.@{key}" value="@{default}"/>
     </sequential>
   </macrodef>
 
@@ -335,7 +334,7 @@
     <attribute name="class"/>
     <attribute name="args" default=""/>
     <attribute name="classpath" default=""/>
-    <attribute name="processors" default="1"/>
+    <attribute name="processors" default=""/>
     <attribute name="initialHeapSize" default=""/>
     <attribute name="maxHeapSize" default=""/>
     <attribute name="rvmArgs" default=""/>
@@ -344,25 +343,33 @@
     <attribute name="exitCode" default="0"/>
     <attribute name="dir" default="${build.tests.dir}"/>
     <sequential>
-      <condition property="test.@{tag}.max.heapsize" value="${test.max.heapsize}" else="@{maxHeapSize}">
-        <equals arg1="@{maxHeapSize}" arg2=""/>
-      </condition>
-      <condition property="test.@{tag}.initial.heapsize" value="${test.initial.heapsize}" else="@{initialHeapSize}">
-        <equals arg1="@{initialHeapSize}" arg2=""/>
-      </condition>
-      <condition property="test.@{tag}.time.limit" value="${test.time.limit}" else="@{timeLimit}">
-        <equals arg1="@{timeLimit}" arg2=""/>
-      </condition>
-      <condition property="test.@{tag}.class.path" value="${test.class.path}" else="@{classpath}">
+      <condition property="default.test.@{tag}.classpath" value="${test.class.path}" else="@{classpath}">
         <equals arg1="@{classpath}" arg2=""/>
       </condition>
-      <property name="test.@{tag}.extra.args" value="@{rvmArgs}"/>
-      <condition property="test.@{tag}.processors" value="${test.processors}" else="@{processors}">
+      <condition property="default.test.@{tag}.processors" value="${test.processors}" else="@{processors}">
         <equals arg1="@{processors}" arg2=""/>
       </condition>
-      <condition property="test.@{tag}.max.opt.level" value="${test.max.opt.level}" else="@{maxOptLevel}">
+      <condition property="default.test.@{tag}.initialHeapSize" value="${test.initial.heapsize}" else="@{initialHeapSize}">
+        <equals arg1="@{initialHeapSize}" arg2=""/>
+      </condition>
+      <condition property="default.test.@{tag}.maxHeapSize" value="${test.max.heapsize}" else="@{maxHeapSize}">
+        <equals arg1="@{maxHeapSize}" arg2=""/>
+      </condition>
+      <condition property="default.test.@{tag}.timeLimit" value="${test.time.limit}" else="@{timeLimit}">
+        <equals arg1="@{timeLimit}" arg2=""/>
+      </condition>
+      <condition property="default.test.@{tag}.maxOptLevel" value="${test.max.opt.level}" else="@{maxOptLevel}">
         <equals arg1="@{maxOptLevel}" arg2=""/>
       </condition>
+
+      <setTestProperty tag="@{tag}" key="extra.args" default="@{rvmArgs}"/>
+      <setTestProperty tag="@{tag}" key="class.path" default="${default.test.@{tag}.classpath}"/>
+      <setTestProperty tag="@{tag}" key="time.limit" default="${default.test.@{tag}.timeLimit}"/>
+      <setTestProperty tag="@{tag}" key="initial.heapsize" default="${default.test.@{tag}.initialHeapSize}"/>
+      <setTestProperty tag="@{tag}" key="max.heapsize" default="${default.test.@{tag}.maxHeapSize}"/>
+      <setTestProperty tag="@{tag}" key="processors" default="${default.test.@{tag}.processors}"/>
+      <setTestProperty tag="@{tag}" key="max.opt.level" default="${default.test.@{tag}.maxOptLevel}"/>
+      <setTestProperty tag="@{tag}" key="exclude" default="false"/>
 
       <property name="test.@{tag}.rvm.args"
                 value="-X:vm:errorsFatal=true -X:processors=${test.@{tag}.processors} -Xms${test.@{tag}.initial.heapsize}M -Xmx${test.@{tag}.max.heapsize}M ${test.@{tag}.extra.args} ${test.rvm.extra.args} -X:aos:max_opt_level=${test.@{tag}.max.opt.level}"/>
@@ -373,8 +380,6 @@
 
       <property name="test.@{tag}.output.file" value="${output.dir}/@{tag}-output.txt"/>
       <property name="test.@{tag}.sanitized.output.file" value="${output.dir}/@{tag}.txt"/>
-
-      <getTestProperty name="test.@{tag}.exclude" tag="@{tag}" key="exclude" default="false"/>
 
       <property name="test.@{tag}.command"
                 value='${rvm.exe} ${test.@{tag}.rvm.args} -classpath "${test.@{tag}.class.path}" ${test.@{tag}.class} ${test.@{tag}.args}'/>
