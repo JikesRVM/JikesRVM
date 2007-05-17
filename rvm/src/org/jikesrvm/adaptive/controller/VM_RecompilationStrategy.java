@@ -227,7 +227,7 @@ public abstract class VM_RecompilationStrategy {
    * What is the maximum opt level that is vallid according to this strategy?
    */
   int getMaxOptLevel() {
-    return VM_Controller.options.MAX_OPT_LEVEL;
+    return VM_Controller.options.DERIVED_MAX_OPT_LEVEL;
   }
 
   private OPT_OptimizationPlanElement[][] _optPlans;

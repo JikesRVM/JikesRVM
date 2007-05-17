@@ -97,7 +97,7 @@ public class VM_ControllerThread extends VM_Thread {
     if ((VM_Controller.options.ENABLE_REPLAY_COMPILE) || (VM_Controller.options.ENABLE_PRECOMPILE)) {
       // if we want to do precompile, we need to initial optimization plans
       // just allow the advice to be the max opt level 2
-      VM_Controller.options.MAX_OPT_LEVEL = 2;
+      VM_Controller.options.DERIVED_MAX_OPT_LEVEL = 2;
       if (VM_Controller.options.sampling()) {
         // Create our set of standard optimization plans.
         VM_Controller.recompilationStrategy.init();
@@ -243,7 +243,7 @@ public class VM_ControllerThread extends VM_Thread {
       VM_Controller.methodSamples = new VM_MethodCountData();
 
       // Install organizer to drive method recompilation
-      VM_Controller.organizers.addElement(new VM_MethodSampleOrganizer(opts.FILTER_OPT_LEVEL));
+      VM_Controller.organizers.addElement(new VM_MethodSampleOrganizer(opts.DERIVED_FILTER_OPT_LEVEL));
       // Additional set up for feedback directed inlining
       if (opts.ADAPTIVE_INLINING) {
         VM_Organizer decayOrganizer = new VM_DecayOrganizer(new VM_YieldCounterListener(opts.DECAY_FREQUENCY));

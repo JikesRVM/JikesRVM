@@ -18,8 +18,7 @@ package org.jikesrvm.adaptive.util;
  * which is machine generated from the various .dat files.
  */
 public final class VM_AOSOptions extends VM_AOSExternalOptions {
-  public int MAX_OPT_LEVEL;
+  public int DERIVED_MAX_OPT_LEVEL;
 
-  public int FILTER_OPT_LEVEL;
-
+  public int DERIVED_FILTER_OPT_LEVEL;
 }

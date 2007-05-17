@@ -10,7 +10,7 @@
 #  See the COPYRIGHT.txt file distributed with this work for information
 #  regarding copyright ownership.
 #
-DECL 
+DECL
 # Structure of DECL TAG FULL_NAME TYPE DEFAULT_VALUE {SHORT_NAME}
 # TAG: E = Enumeration, V = Value, B = BitMask (TODO).
 # TYPE: byte, int, String
@@ -140,4 +140,8 @@ How many CBS method samples (any yieldpoint) should we take per time tick
 
 V CBSMethodSampleStride int 3
 Stride between each CBS method sample (any yieldpoint) within a sampling window
+
+
+V MAX_OPT_LEVEL int 2
+The maximum optimization level to enable.
 

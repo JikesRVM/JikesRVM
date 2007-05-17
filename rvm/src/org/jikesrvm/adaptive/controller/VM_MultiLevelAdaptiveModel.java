@@ -46,7 +46,7 @@ class VM_MultiLevelAdaptiveModel extends VM_AnalyticModel {
    * they do not need to be recomputed to answer queries.
    */
   void populateRecompilationChoices() {
-    int maxOptLevel = VM_Controller.options.MAX_OPT_LEVEL;
+    int maxOptLevel = VM_Controller.options.DERIVED_MAX_OPT_LEVEL;
     int maxCompiler = VM_CompilerDNA.getCompilerConstant(maxOptLevel);
     allOptLevelChoices = new VM_RecompileOptChoice[maxOptLevel + 1];
 
