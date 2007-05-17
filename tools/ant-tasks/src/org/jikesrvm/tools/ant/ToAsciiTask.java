@@ -20,7 +20,7 @@ import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
 
 /**
- * Task for copying a task from one file to another thile replacing non-ascii 
+ * Task for copying a task from one file to another thile replacing non-ascii
  * chars with ? ensuring it is an ascii value.
  */
 public class ToAsciiTask
@@ -42,12 +42,12 @@ public class ToAsciiTask
     FileOutputStream outputStream = null;
     try {
       if( dest.exists() ) dest.delete();
-      
+
       inputStream = new FileInputStream(src);
       outputStream = new FileOutputStream(dest);
       while (inputStream.available() > 0) {
         final int value = inputStream.read();
-        final int output = (value > 127) ? '?' : value;
+        final int output = (!Character.isISOControl(value) || Character.isWhitespace(value)) ? value : '?';
         outputStream.write(output);
       }
     } catch (IOException ioe) {
