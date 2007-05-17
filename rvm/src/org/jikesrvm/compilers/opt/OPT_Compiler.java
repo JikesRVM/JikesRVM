@@ -114,9 +114,6 @@ public final class OPT_Compiler implements VM_Callbacks.StartupMonitor {
    * @param options the options to set
    */
   public static void setBootOptions(OPT_Options options) {
-    // Pick an optimization level
-    options.setOptLevel(2);
-
     // Only do guarded inlining if we can use code patches.
     // Early speculation with method test/class test can result in
     // bad code that we can't recover from later.
