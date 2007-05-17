@@ -47,7 +47,7 @@ public class ToAsciiTask
       outputStream = new FileOutputStream(dest);
       while (inputStream.available() > 0) {
         final int value = inputStream.read();
-        final int output = (!Character.isISOControl(value) || Character.isWhitespace(value)) ? value : '?';
+        final int output = isPrintable(value) ? value : '?';
         outputStream.write(output);
       }
     } catch (IOException ioe) {
@@ -68,6 +68,10 @@ public class ToAsciiTask
         }
       }
     }
+  }
+
+  private boolean isPrintable(final int value) {
+    return !(value < 32 || value > 126) || Character.isWhitespace(value);
   }
 
   private void validate() {
