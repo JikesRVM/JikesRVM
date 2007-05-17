@@ -26,6 +26,7 @@
   <property name="test.time.limit" value="1000"/>
   <property name="test.rvm.extra.args" value=""/>
   <property name="test.processors" value="all"/>
+  <property name="test.max.opt.level" value="2"/>
   <property name="test.initial.heapsize" value="${config.default-heapsize.initial}"/>
   <property name="test.max.heapsize" value="${config.default-heapsize.maximum}"/>
 
@@ -137,6 +138,7 @@
     <parameter key="time.limit" value="${test.@{tag}.time.limit}"/>
     <parameter key="extra.args" value='${test.@{tag}.extra.args}'/>
     <parameter key="processors" value='${test.@{tag}.processors}'/>
+    <parameter key="max.opt.level" value='${test.@{tag}.max.opt.level}'/>
   </rvm-parameters>
   <exit-code>${test.@{tag}.exit.code}</exit-code>
   <time>${test.@{tag}.time.duration}</time>
@@ -296,6 +298,7 @@
     <attribute name="maxHeapSize" default=""/>
     <attribute name="rvmArgs" default=""/>
     <attribute name="timeLimit" default=""/>
+    <attribute name="maxOptLevel" default=""/>
     <attribute name="exitCode" default="0"/>
     <attribute name="dir" default="${build.tests.dir}"/>
     <sequential>
@@ -315,8 +318,12 @@
       <condition property="test.@{tag}.processors" value="${test.processors}" else="@{processors}">
         <equals arg1="@{processors}" arg2=""/>
       </condition>
+      <condition property="test.@{tag}.max.opt.level" value="${test.max.opt.level}" else="@{maxOptLevel}">
+        <equals arg1="@{maxOptLevel}" arg2=""/>
+      </condition>
+
       <property name="test.@{tag}.rvm.args"
-                value="-X:vm:errorsFatal=true -X:processors=${test.@{tag}.processors} -Xms${test.@{tag}.initial.heapsize}M -Xmx${test.@{tag}.max.heapsize}M ${test.@{tag}.extra.args} ${test.rvm.extra.args}"/>
+                value="-X:vm:errorsFatal=true -X:processors=${test.@{tag}.processors} -Xms${test.@{tag}.initial.heapsize}M -Xmx${test.@{tag}.max.heapsize}M ${test.@{tag}.extra.args} ${test.rvm.extra.args} -X:aos:max_opt_level=${test.@{tag}.max.opt.level}"/>
       <property name="test.@{tag}.tag" value="@{tag}"/>
       <property name="test.@{tag}.class" value="@{class}"/>
       <property name="test.@{tag}.args" value="@{args}"/>
