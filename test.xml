@@ -57,7 +57,6 @@
       <property name="test.config.@{tag}.rvm.dir" location="${dist.dir}/${test.config.@{tag}.build.name}"/>
       <property name="test.config.@{tag}.name" value=""/>
       <property name="test.config.@{tag}.mode" value=""/>
-      <property name="test.config.@{tag}.extra.args" value=""/>
     </sequential>
   </macrodef>
 
@@ -153,7 +152,6 @@
             <echo message="    Tests:          ${test.config.@{tag}.tests}"/>
             <echo message="    Run Name:       ${test.config.@{tag}.name}"/>
             <echo message="    Mode:           ${test.config.@{tag}.mode}"/>
-            <echo message="    Extra Flags?:   ${test.config.@{tag}.extra.args}"/>
             <forEach list="${test.config.@{tag}.tests}" property="test">
               <sequential>
                 <subant target="test" failonerror="false" output="${driver.scratch.dir}/Test-@{tag}-@{test}.txt">
@@ -164,7 +162,6 @@
                   <property name="test.build.dir" value="${test.build.dir}/@{tag}"/>
                   <property name="test.rvm.dir" location="${test.config.@{tag}.rvm.dir}"/>
                   <property name="test.mode" value="${test.config.@{tag}.mode}"/>
-                  <property name="test.rvm.extra.args" value="${test.config.@{tag}.extra.args}"/>
                   <property name="test.group.name" value="@{test}"/>
                   <propertyset>
                     <propertyref prefix="exclude."/>
