@@ -19,22 +19,35 @@
 #
 /\/rvm\/src-generated\/opt-burs\/jburg\// { next }
 
-/doc\/userguide\// { next }
 /MMTk\/doc\// { next }
 
+# Test results
 /testing\/tests\/javalex\/qb1.lex.ref/ {next}
 /testing\/tests\/SPECjbb2000\/SPECjbb./ {next}
 /testing\/tests\/SPECjbb2005\/SPECjbb./ {next}
 /testing\/tests\/pseudojbb\/pseudojbb/ {next}
 /testing\/tests\/pseudojbb\/props/ {next}
+/\.expected/ { next }
+/testing\/tests\/basic\/src\/test\/org\/jikesrvm\/basic\/core\/serialization\/SerializationData\.dat/ {next}
 
+# Users custom settings
+/\.ant.properties/ { next }
+
+# Eclipses project files
 /\.classpath/ { next }
 /\.project/ { next }
 
-/COPYRIGHT.txt/ { next }
-/LICENSE.txt/ { next }
-/NEWS.txt/ { next }
-/README.txt/ { next }
+# IDEAs project files
+/\.iml/ { next }
+
+/COPYRIGHT\.txt/ { next }
+/LICENSE\.txt/ { next }
+/NEWS\.txt/ { next }
+/README\.txt/ { next }
+
+# Non-text media
+/\.gif/ { next }
+/\.ico/ { next }
 
 # print everything else
 { print; }

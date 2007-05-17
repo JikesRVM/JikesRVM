@@ -14,8 +14,7 @@
 
 export BIN_DIR="`dirname "$0"`"
 
-export MATCH="$BIN_DIR/findMatchedFiles.pl"
 export FILTER="awk -f $BIN_DIR/headerExceptionsFilter.awk"
 
 echo "Missing License Header"
-find . -name .svn -prune -o -name generated -prune -o -name target -prune -o -name dist -prune -o -name results -prune -o -type f ! -print -exec egrep -c "This file is licensed to You under the Common Public License \(CPL\)" {} \; | $MATCH| $FILTER
+find . -name .svn -prune -o -name generated -prune -o -name target -prune -o -name dist -prune -o -name results -prune -o -type f ! -exec grep -L "This file is licensed to You under the Common Public License" {} \; | $FILTER  
