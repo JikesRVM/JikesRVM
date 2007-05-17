@@ -230,10 +230,10 @@
       <res><![CDATA[<result>${test.@{tag}.result}</result>]]></res>
       <res><![CDATA[<result-explanation>${test.@{tag}.result.explanation}</result-explanation>]]></res>
       <res><![CDATA[<output><]]>![CDATA[</res>
-      <toAscii src="${test.@{tag}.output.file}" dest="${build.tests.dir}/deleteme.ascii"/>
-      <replace file="${build.tests.dir}/deleteme.ascii" token="]]&gt;" value="]]&gt;]]&lt;![CDATA[&gt;"/>
+      <copy file="${test.@{tag}.output.file}" tofile="${build.tests.dir}/deleteme.txt"/>
+      <replace file="${build.tests.dir}/deleteme.txt" token="]]&gt;" value="]]&gt;]]&lt;![CDATA[&gt;"/>
       <concat destfile="${results.file}" append="true">
-        <path path="${build.tests.dir}/deleteme.ascii"/>
+        <path path="${build.tests.dir}/deleteme.txt"/>
       </concat>
       <res>]]<![CDATA[></output>]]></res>
     </sequential>
@@ -278,11 +278,13 @@
     <attribute name="file"/>
     <attribute name="tofile"/>
     <sequential>
+      <toAscii src="@{file}" dest="${build.tests.dir}/deleteme.ascii"/>
       <!-- TODO: can be replaced by line filtering copy in ant 1.7 -->
-      <exec executable="${awk.exe}" failonerror="true" input="@{file}" output="@{tofile}">
+      <exec executable="${awk.exe}" failonerror="true" input="${build.tests.dir}/deleteme.ascii" output="@{tofile}">
         <arg value="-f"/>
         <arg value="${jikesrvm.dir}/testing/harness/RVMJunkFilter.awk"/>
       </exec>
+
     </sequential>
   </macrodef>
 
@@ -384,6 +386,7 @@
 
       <property name="test.@{tag}.output.file" value="${output.dir}/@{tag}-output.txt"/>
       <property name="test.@{tag}.sanitized.output.file" value="${output.dir}/@{tag}.txt"/>
+
 
       <property name="test.@{tag}.command"
                 value='${rvm.exe} ${test.@{tag}.rvm.args} -classpath "${test.@{tag}.class.path}" ${test.@{tag}.class} ${test.@{tag}.args}'/>
