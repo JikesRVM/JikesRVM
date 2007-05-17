@@ -224,9 +224,8 @@ public final class OPT_Simple extends OPT_CompilerPhase {
             // has no uses
             reg.defList == null ||   // Copy propagation not possible if reg
             // has no defs
-            !reg.isSSA())            // Flow-insensitive copy prop only possible
-        // for SSA registers.
-        {
+            !reg.isSSA()) {           // Flow-insensitive copy prop only possible
+          // for SSA registers.
           continue;
         }
         // isSSA => reg has exactly one definition, reg.defList.

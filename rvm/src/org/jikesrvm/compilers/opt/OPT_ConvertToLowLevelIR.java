@@ -682,8 +682,8 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
         // considered only if the first fails.
         float secondIfProb = 0.0f;
         sum = equalProb + greaterProb;
-        if (sum > 0) // if divide by zero, leave as is
-        {
+        if (sum > 0) {
+          // if divide by zero, leave as is
           secondIfProb = equalProb / sum;
         }
 

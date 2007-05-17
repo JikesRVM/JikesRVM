@@ -77,9 +77,9 @@ final class OPT_ResourceReservation {
     if (rclass() != r.rclass()) {
       return rclass() - r.rclass();
     }
-    if (rclass != r.rclass)                     // if either of them is global
-    {
-      return r.rclass - rclass;                // global goes first
+    if (rclass != r.rclass) {
+      // if either of them is global then global goes first
+      return r.rclass - rclass;
     }
     if (start != r.start) {
       return start - r.start;

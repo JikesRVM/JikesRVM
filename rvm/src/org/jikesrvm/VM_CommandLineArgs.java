@@ -182,8 +182,8 @@ public class VM_CommandLineArgs {
    * Fetch arguments from program command line.
    */
   static void fetchCommandLineArguments() {
-    if (args != null)           // if already been here...
-    {
+    if (args != null) {
+      // if already been here...
       return;
     }
     ArgReader argRdr = new ArgReader();

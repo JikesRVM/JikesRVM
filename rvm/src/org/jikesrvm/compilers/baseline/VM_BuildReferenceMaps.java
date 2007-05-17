@@ -1018,9 +1018,8 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
 
               if (!inJSRSub) {
                 referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop, blockSeen[currBBNum]);
-              } else
-              // in a jsr subroutine
-              {
+              } else {
+                // in a jsr subroutine
                 referenceMaps.recordJSRSubroutineMap(biStart,
                                                      currBBMap,
                                                      currBBStkTop,
@@ -1076,9 +1075,8 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
 
               if (!inJSRSub) {
                 referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop, blockSeen[currBBNum]);
-              } else
-              // in a jsr subroutine
-              {
+              } else {
+                // in a jsr subroutine
                 referenceMaps.recordJSRSubroutineMap(biStart,
                                                      currBBMap,
                                                      currBBStkTop,
@@ -1128,9 +1126,8 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
 
               if (!inJSRSub) {
                 referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop, blockSeen[currBBNum]);
-              } else
-              // in a jsr subroutine
-              {
+              } else {
+                // in a jsr subroutine
                 referenceMaps.recordJSRSubroutineMap(biStart,
                                                      currBBMap,
                                                      currBBStkTop,
@@ -1178,9 +1175,8 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
               // Register the reference map
               if (!inJSRSub) {
                 referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop, blockSeen[currBBNum]);
-              } else
-              // in a jsr subroutine
-              {
+              } else {
+                // in a jsr subroutine
                 referenceMaps.recordJSRSubroutineMap(biStart,
                                                      currBBMap,
                                                      currBBStkTop,
@@ -1213,9 +1209,8 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
 
               if (!inJSRSub) {
                 referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop, blockSeen[currBBNum]);
-              } else
-              // in a jsr subroutine
-              {
+              } else {
+                // in a jsr subroutine
                 referenceMaps.recordJSRSubroutineMap(biStart,
                                                      currBBMap,
                                                      currBBStkTop,

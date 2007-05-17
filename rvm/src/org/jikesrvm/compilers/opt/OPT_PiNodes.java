@@ -145,9 +145,9 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
    *  @param ir the governing IR
    */
   private void insertPiIfNodes(OPT_IR ir) {
-    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements(); /* nothing */) {
-      OPT_Instruction instr = e.next
-          /*Element*/();
+    OPT_InstructionEnumeration e = ir.forwardInstrEnumerator();
+    while(e.hasMoreElements()) {
+      OPT_Instruction instr = e.next();
       // TODO: what other compareops generate useful assertions?
       if (IfCmp.conforms(instr) || InlineGuard.conforms(instr)) {
 

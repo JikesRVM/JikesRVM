@@ -100,7 +100,7 @@ import org.vmmagic.unboxed.Word;
 @NativeBridge
 public class VM_JNIFunctions implements VM_SizeConstants {
   // one message for each JNI function called from native
-  public static final boolean traceJNI = VM_Properties.verboseJNI && true;
+  public static final boolean traceJNI = VM_Properties.verboseJNI;
 
   // number of JNI function entries
   public static final int FUNCTIONCOUNT = 232; // JNI 1.4

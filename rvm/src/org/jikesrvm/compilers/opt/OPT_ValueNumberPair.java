@@ -51,15 +51,13 @@ class OPT_ValueNumberPair implements Comparable<OPT_ValueNumberPair> {
       return 1;
     } else if (v1 < p.v1) {
       return -1;
-    }
-    // v1 == p.v1
-    else if (v2 > p.v2) {
+    } else if (v2 > p.v2) {
+      // v1 == p.v1
       return 1;
     } else if (v2 < p.v2) {
       return -1;
-    }
-    // v2 == p.v2
-    else {
+    } else {
+      // v2 == p.v2
       return 0;
     }
   }

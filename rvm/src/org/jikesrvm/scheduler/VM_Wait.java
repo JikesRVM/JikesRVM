@@ -78,9 +78,8 @@ public class VM_Wait {
 
     if (noIoWait) {
       waitData.markAllAsReady();
-    } else
-    // Put the thread on the ioQueue
-    {
+    } else {
+      // Put the thread on the ioQueue
       VM_Thread.ioWaitImpl(waitData);
     }
 
@@ -111,9 +110,8 @@ public class VM_Wait {
 
     if (noIoWait) {
       waitData.markAllAsReady();
-    } else
-    // Put the thread on the ioQueue
-    {
+    } else {
+      // Put the thread on the ioQueue
       VM_Thread.ioWaitImpl(waitData);
     }
 

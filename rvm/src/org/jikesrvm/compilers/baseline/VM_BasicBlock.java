@@ -210,8 +210,8 @@ public final class VM_BasicBlock {
           predcount++;
           restPredecessors[predcount - 3] = predbbNum;
         }
-      }  // predcount must be 1
-      else {
+      } else {
+        // predcount must be 1
         predcount++;
         pred2 = predbbNum;
       }

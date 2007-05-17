@@ -83,9 +83,7 @@ import org.vmmagic.pragma.Interruptible;
 
  */
 
-public abstract class VM_TypeDescriptorParsing implements VM_ClassLoaderConstants // gets us constants that we use in
-    // isJavaPrimitive
-{
+public abstract class VM_TypeDescriptorParsing implements VM_ClassLoaderConstants {
   /** Is the string <code>s</code> a legal name for a Java class or interface?
    * This will take either fully-qualified names or names that are not fully
    * qualified.
@@ -187,13 +185,12 @@ public abstract class VM_TypeDescriptorParsing implements VM_ClassLoaderConstant
    * Takes a character array (i.e., an exploded string) and the indices of the
    * first and last characters of the array that are to be checked. */
   public static boolean isJavaClassNameInternalForm(char[] val, int first, int last) {
-    if (val[first++] != ClassTypeCode) // the L
-    {
+    if (val[first++] != ClassTypeCode) {
+      // the L
       return false;
     }
-    if (val[last--] != ';')
-    // malformed("a class ('L') must end in a ';'");
-    {
+    if (val[last--] != ';') {
+      // malformed("a class ('L') must end in a ';'");
       return false;
     }
 
@@ -272,8 +269,8 @@ public abstract class VM_TypeDescriptorParsing implements VM_ClassLoaderConstant
         malformed("has just '[' chars", s);
       }
     }
-    if (VM.VerifyAssertions)     // logically impossible:
-    {
+    if (VM.VerifyAssertions) {
+      // logically impossible:
       VM._assert(i < val.length);
     }
 
@@ -283,9 +280,8 @@ public abstract class VM_TypeDescriptorParsing implements VM_ClassLoaderConstant
 
     if (isJavaPrimitive(val[i])) {
       // A primitive should be just 1 char long
-      if (i != val.length - 1)
-      // if this isn't the last character, scream.
-      {
+      if (i != val.length - 1) {
+        // if this isn't the last character, scream.
         malformed("nothing should follow the primitive typecode '" + Character.toString(val[i]) + "'", s);
       }
       return;                   // otherwise all is well.

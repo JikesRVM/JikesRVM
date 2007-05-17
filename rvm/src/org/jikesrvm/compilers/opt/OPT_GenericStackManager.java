@@ -399,10 +399,9 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     // s.
     if (bi == null) {
       return true;
-    }
-    // If the basic interval begins at s, then r is dead before
-    // s.
-    else {
+    } else {
+      // If the basic interval begins at s, then r is dead before
+      // s.
       return bi.getBegin() == OPT_LinearScan.getDFN(s);
     }
   }

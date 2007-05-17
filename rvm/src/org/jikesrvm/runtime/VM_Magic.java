@@ -697,11 +697,8 @@ public final class VM_Magic {
   }
 
   /** Call "<clinit>" method with no argument list. */
-  public static void invokeClassInitializer(VM_CodeArray clinit)
-      throws Exception            // Since the real method passes exceptions
-  // up.  Constructor might throw an arbitrary
-  // exception.
-  {
+  public static void invokeClassInitializer(VM_CodeArray clinit) throws Exception {
+    // Since the real method passes exceptions up. Constructor might throw an arbitrary exception.
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     throw new Exception("UNREACHED");
   }

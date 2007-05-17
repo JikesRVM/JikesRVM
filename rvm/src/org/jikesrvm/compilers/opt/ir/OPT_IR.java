@@ -1237,9 +1237,8 @@ public final class OPT_IR {
             }
           }
         }
-      }
-      // General use follows def test
-      else {
+      } else {
+        // General use follows def test
         OPT_IREnumeration.AllUsesEnum useOperands = new OPT_IREnumeration.AllUsesEnum(this, instruction);
         while (useOperands.hasMoreElements()) {
           Object variable = getVariableUse(where, useOperands.next());

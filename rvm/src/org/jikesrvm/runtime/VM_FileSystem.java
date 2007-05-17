@@ -195,22 +195,19 @@ public class VM_FileSystem {
 
     for (; ;) {
       int b = sysCall.sysReadByte(fd);
-      if (b >= -1)
-      // Either a valid read, or we reached EOF
-      {
+      if (b >= -1) {
+        // Either a valid read, or we reached EOF
         return b;
       } else if (b == -2) {
         // Operation would have blocked
         VM_ThreadIOWaitData waitData = VM_Wait.ioWaitRead(fd);
-        if (!isFdReady(waitData.readFds[0]))
-        // Hmm, the wait returned, but the fd is not ready.
-        // Assume an error was detected (such as the fd becoming invalid).
-        {
+        if (!isFdReady(waitData.readFds[0])) {
+          // Hmm, the wait returned, but the fd is not ready.
+          // Assume an error was detected (such as the fd becoming invalid).
           return -2;
         }
-      } else
-      // Read returned with a genuine error
-      {
+      } else {
+        // Read returned with a genuine error
         return -2;
       }
     }
@@ -238,15 +235,13 @@ public class VM_FileSystem {
       } else if (rc == -2) {
         // Write would have blocked.
         VM_ThreadIOWaitData waitData = VM_Wait.ioWaitWrite(fd);
-        if (!isFdReady(waitData.writeFds[0]))
-        // Looks like an error occurred.
-        {
+        if (!isFdReady(waitData.writeFds[0])) {
+          // Looks like an error occurred.
           return -1;
         }
         // Fd looks like it's ready, so retry the write
-      } else
-      // The write returned with an error.
-      {
+      } else {
+        // The write returned with an error.
         return -1;
       }
     }
@@ -339,9 +334,8 @@ public class VM_FileSystem {
         }
 
         // Did the file descriptor become ready?
-        if (!isFdReady(waitData.readFds[0]))
-        // Fd not ready; presumably an error was detected while on the IO queue
-        {
+        if (!isFdReady(waitData.readFds[0])) {
+          // Fd not ready; presumably an error was detected while on the IO queue
           return -2;
         } else {
           // Fd appears to be ready, so update the wait time (if necessary)
@@ -355,9 +349,8 @@ public class VM_FileSystem {
             lastWaitTime = now;
           }
         }
-      } else
-      // Read returned an error
-      {
+      } else {
+        // Read returned an error
         return -2;
       }
     }
@@ -416,15 +409,13 @@ public class VM_FileSystem {
       } else if (rc == -1) {
         // Write would have blocked
         VM_ThreadIOWaitData waitData = VM_Wait.ioWaitWrite(fd);
-        if (!isFdReady(waitData.writeFds[0]))
-        // Fd is not ready, so presumably an error occurred while on IO queue
-        {
+        if (!isFdReady(waitData.writeFds[0])) {
+          // Fd is not ready, so presumably an error occurred while on IO queue
           return -2;
         }
         // Fd apprears to be ready, so try write again
-      } else
-      // Write returned with an error
-      {
+      } else {
+        // Write returned with an error
         return -2;
       }
     }

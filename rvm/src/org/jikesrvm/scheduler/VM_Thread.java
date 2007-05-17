@@ -1428,8 +1428,8 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
   }
 
   public static int sprintf(char[] dest, int destOffset, char c) {
-    if (destOffset < 0)             // bounds check
-    {
+    if (destOffset < 0) {
+      // bounds check
       return -1;
     }
 

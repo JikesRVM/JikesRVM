@@ -66,7 +66,7 @@ public interface VM_JavaHeaderConstants extends VM_SizeConstants {
    *     In a copying collector, this forces us to add a word
    *     to copied objects that have had their hashcode taken.
    */
-  boolean ADDRESS_BASED_HASHING = true && !MM_Constants.GENERATE_GC_TRACE;
+  boolean ADDRESS_BASED_HASHING = !MM_Constants.GENERATE_GC_TRACE;
 
   /** How many bits in the header are available for the GC and MISC headers? */
   int NUM_AVAILABLE_BITS = ADDRESS_BASED_HASHING ? 8 : 2;

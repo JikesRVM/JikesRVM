@@ -109,20 +109,20 @@ public abstract class VM_JNIGenericHelpers {
     int temp = boolPtr.loadInt();
     int intval;
     if (VM.LittleEndian) {
-      if (val)                  // set to true.
-      {
+      if (val) {
+        // set to true.
         intval = (temp & 0xffffff00) | 0x00000001;
-      } else                      // set to false
-      {
+      } else {
+        // set to false
         intval = (temp & 0xffffff00);
       }
     } else {
       /* Big Endian */
-      if (val)                  // set to true
-      {
+      if (val) {
+        // set to true
         intval = (temp & 0x00ffffff) | 0x01000000;
-      } else                      // set to false
-      {
+      } else {
+        // set to false
         intval = temp & 0x00ffffff;
       }
     }

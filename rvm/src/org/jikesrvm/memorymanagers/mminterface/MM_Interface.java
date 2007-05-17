@@ -123,8 +123,8 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
   @Interruptible
   public static void postBoot() {
     Selected.Plan.get().postBoot();
-    if (VM.BuildWithGCSpy) // start the GCSpy interpreter server
-    {
+    if (VM.BuildWithGCSpy) {
+      // start the GCSpy interpreter server
       MM_Interface.startGCspyServer();
     }
 

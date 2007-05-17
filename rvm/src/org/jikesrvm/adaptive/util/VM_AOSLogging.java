@@ -141,6 +141,8 @@ public class VM_AOSLogging {
     try {
       if (VM_Controller.options.LOGGING_LEVEL >= 1) {
         synchronized (log) {
+          final String threadType = t.isIdleThread() ? "i" : t.isGCThread() ? "g" : t.isDaemonThread() ? "d" : "";
+          final String status = threadType + (!t.isAlive() ? "!" : "");
           log.println(getTime() +
                       " ThreadIndex: " +
                       t.getIndex() +
@@ -150,14 +152,8 @@ public class VM_AOSLogging {
                       " Time: " +
                       (t.getCPUTimeMillis() / 1000) +
                       " status(" +
-                      (t.isIdleThread() ? "i"         // idle daemon
-                       : t.isGCThread() ? "g"       // gc daemon
-                         : t.isDaemonThread() ? "d"       // user daemon
-                           : "") +
-                                 (!t.isAlive() ? "!" : "")
-                                 // dead/alive
-                                 +
-                                 ")");
+                      status +
+                      ")");
         }
       }
     } catch (NullPointerException e) {
@@ -279,23 +275,17 @@ public class VM_AOSLogging {
                   "\n\t Opt Level 0: " +
                   numOpt0 +
                   " (" +
-                  ((int) ((float) numOpt0 / numMethodsScheduledForRecomp * 100))
-
-                  +
+                  ((int) ((float) numOpt0 / numMethodsScheduledForRecomp * 100)) +
                   "%)\n\t Opt Level 1: " +
                   numOpt1 +
                   " (" +
                   ((int) ((float) numOpt1 / numMethodsScheduledForRecomp * 100)) +
-                  "%)\n"
-
-                  +
+                  "%)\n" +
                   "\t Opt Level 2: " +
                   numOpt2 +
                   " (" +
                   ((int) ((float) numOpt2 / numMethodsScheduledForRecomp * 100)) +
-                  "%)\n"
-
-                  +
+                  "%)\n" +
                   "\t Opt Level 3: " +
                   numOpt3 +
                   " (" +
@@ -493,15 +483,8 @@ public class VM_AOSLogging {
   public static void recompilationScheduled(OPT_CompilationPlan plan, double priority) {
     if (VM_Controller.options.LOGGING_LEVEL >= 2) {
       synchronized (log) {
-        log.println(getTime() +
-                    " Scheduling level " +
-                    plan.options.getOptLevel() +
-                    " recompilation of " +
-                    plan
-                        .method +
-                                " (plan has priority " +
-                                priority +
-                                ")");
+        log.println(getTime() + " Scheduling level " + plan.options.getOptLevel() + " recompilation of " + plan
+            .method + " (plan has priority " + priority + ")");
       }
     }
   }
@@ -789,13 +772,8 @@ public class VM_AOSLogging {
     OPT_CompilationPlan cplan = plan.getCompPlan();
     if (VM_Controller.options.LOGGING_LEVEL >= 1) {
       synchronized (log) {
-        log.println(getTime() +
-                    " recompile with OSR " +
-                    "( at level " +
-                    cplan.options.getOptLevel() +
-                    " ) " +
-                    cplan
-                        .method);
+        log.println(getTime() + " recompile with OSR " + "( at level " + cplan.options.getOptLevel() + " ) " + cplan
+            .method);
       }
     }
   }

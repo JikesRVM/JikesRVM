@@ -206,9 +206,7 @@ public class OPT_OptimizingCompilerException extends RuntimeException {
     printStackTrace(pw);
     int count = 0, i = 0;
     StringBuffer sb = sw.getBuffer();
-    for (; i < sb.length() && count < level + 1; i++)
-
-    {
+    for (; i < sb.length() && count < level + 1; i++) {
       if (sb.charAt(i) == '\n') {
         count++;
       }

@@ -92,7 +92,7 @@ public class GenerateInterfaceDeclarations {
   static int bootImageRMapAddress = 0;
   static String outFileName;
 
-  public static void main(String args[]) throws Exception {
+  public static void main(String[] args) throws Exception {
 
     // Process command line directives.
     //

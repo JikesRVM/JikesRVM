@@ -54,15 +54,11 @@ public abstract class OPT_InlineTools implements OPT_Constants {
    * @param callee the callee method
    */
   public static boolean needsGuard(VM_Method callee) {
-    if (callee.isFinal() ||
-        callee.getDeclaringClass().isFinal() ||
-        callee.isPrivate() ||
-        callee.isObjectInitializer() ||
-        callee.isStatic()) {
-      return false;
-    } else {
-      return true;
-    }
+    return !(callee.isFinal() ||
+             callee.getDeclaringClass().isFinal() ||
+             callee.isPrivate() ||
+             callee.isObjectInitializer() ||
+             callee.isStatic());
   }
 
   /**

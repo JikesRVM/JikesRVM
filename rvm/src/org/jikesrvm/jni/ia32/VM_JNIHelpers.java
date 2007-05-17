@@ -50,9 +50,8 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
 
     // Package the parameters for the constructor
     Address varargAddress;
-    if (isDotDotStyle)
-    // flag is false because this JNI function has 3 args before the var args
-    {
+    if (isDotDotStyle) {
+      // flag is false because this JNI function has 3 args before the var args
       varargAddress = getVarArgAddress(false);
     } else {
       varargAddress = argAddress;

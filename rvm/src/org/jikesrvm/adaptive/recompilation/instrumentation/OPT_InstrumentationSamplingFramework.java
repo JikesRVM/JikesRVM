@@ -77,10 +77,7 @@ import org.jikesrvm.runtime.VM_Entrypoints;
  *  code are handled by the same catch block, however the check at the
  *  top of the catch block ensures that the hander code has the
  *  opportunity to be sampled.
- *
- *
- * */
-
+ */
 public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhase {
 
   /**
@@ -236,8 +233,8 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
     boolean done = false;
     OPT_BasicBlock curBlock = ir.cfg.firstInCodeOrder();
     while (!done && curBlock != null) {
-      if (curBlock == origLastBlock)  // Stop after this iteration
-      {
+      if (curBlock == origLastBlock) {
+        // Stop after this iteration
         done = true;
       }
 

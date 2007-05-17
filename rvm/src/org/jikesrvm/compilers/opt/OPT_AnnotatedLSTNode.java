@@ -1135,15 +1135,13 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
         if (iteratorInstr == null) {
           // No => error
           throw new NonRegularLoopException("No iterator definition found.");
-        }
-        // Is it an instruction we recognise?
-        // TODO: support more iterator instructions
-        else
+        } else
         if ((iteratorInstr.operator.opcode != INT_ADD_opcode) && (iteratorInstr.operator.opcode != INT_SUB_opcode)) {
+          // Is it an instruction we recognise?
+          // TODO: support more iterator instructions
           throw new NonRegularLoopException("Unrecognized iterator operator " + iteratorInstr.operator);
-        }
-        // only carry on further analysis if we think we can understand the loop
-        else {
+        } else {
+          // only carry on further analysis if we think we can understand the loop
           // Does this iterator instruction use the same register as it defines
           OPT_Operand iteratorUse = follow(Binary.getVal1(iteratorInstr));
           // The iterator should be using a phi node of the initial and generated value
@@ -1180,9 +1178,8 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode {
           if (!isLoopInvariant(initialIteratorValue, loop, header)) {
             throw new NonRegularLoopException("Initial iterator not constant or defined outside the loop - " +
                                               initialIteratorValue);
-          }
-          // Check the stride value constant
-          else if (!(strideValue instanceof OPT_ConstantOperand)) {
+          } else if (!(strideValue instanceof OPT_ConstantOperand)) {
+            // Check the stride value constant
             throw new NonRegularLoopException("Stride not constant - " + strideValue);
           }
         }

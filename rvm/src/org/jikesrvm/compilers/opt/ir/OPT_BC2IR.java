@@ -1330,8 +1330,8 @@ public final class OPT_BC2IR
 
         case JBC_goto: {
           int offset = bcodes.getBranchOffset();
-          if (offset != 3)   // skip generating frivolous goto's
-          {
+          if (offset != 3) {
+            // skip generating frivolous goto's
             s = _gotoHelper(offset);
           }
         }
@@ -2318,8 +2318,8 @@ public final class OPT_BC2IR
 
         case JBC_goto_w: {
           int offset = bcodes.getWideBranchOffset();
-          if (offset != 5)         // skip generating frivolous goto's
-          {
+          if (offset != 5) {
+            // skip generating frivolous goto's
             s = _gotoHelper(offset);
           }
         }
@@ -5996,8 +5996,8 @@ public final class OPT_BC2IR
     OperandStack copy() {
       OperandStack newss = new OperandStack(stack.length);
       newss.top = top;
-      for (int i = 0; i < top; i++)           // deep copy of stack
-      {
+      for (int i = 0; i < top; i++) {
+        // deep copy of stack
         newss.stack[i] = stack[i].copy();
       }
       return newss;

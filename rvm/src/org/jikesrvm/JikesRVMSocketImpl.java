@@ -168,9 +168,8 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
       connectionFd = sysCall.sysNetSocketAccept(native_fd, newSocket);
       VM_ThreadIOQueue.selectInProgressMutex.unlock();
 
-      if (connectionFd >= 0)
-      // Got a connection
-      {
+      if (connectionFd >= 0) {
+        // Got a connection
         break;
       }
 

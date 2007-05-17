@@ -235,7 +235,6 @@ public abstract class OPT_CallingConvention extends OPT_IRTools {
         // SJF: This optimization current breaks the paranoid sanity test.
         // Why? TODO: figure this out and remove the 'true' case below
         if (true || !useDU || symParam.useList != null) {
-
           if (double_index < NUMBER_DOUBLE_PARAM) {
             OPT_Register param = phys.get(FIRST_DOUBLE_PARAM + (double_index));
             start.insertBefore(MIR_Move.create(PPC_FMR, F(symParam), F(param)));

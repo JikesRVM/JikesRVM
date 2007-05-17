@@ -832,9 +832,8 @@ public abstract class VM_JNICompiler
             } else {
               asmArg.emitMR(nextOSArgReg, nextVMArgReg++);
             }
-          }
-          // (1b) spill OS register, but still fit in VM register
-          else if (nextVMArgReg <= LAST_VOLATILE_GPR) {
+          } else if (nextVMArgReg <= LAST_VOLATILE_GPR) {
+            // (1b) spill OS register, but still fit in VM register
             asmArg.emitSTAddr(nextVMArgReg++, spillOffsetOS, FP);
             if (VM.BuildForSVR4ABI) {
               spillOffsetOS += BYTES_IN_ADDRESS;
@@ -1107,10 +1106,8 @@ public abstract class VM_JNICompiler
           // (1a) fit in OS register, move the register
           if (nextOSArgReg <= LAST_OS_PARAMETER_GPR) {
             asmArg.emitMR(nextOSArgReg++, nextVMArgReg++);
-          }
-
-          // (1b) spill OS register, but still fit in VM register
-          else if (nextVMArgReg <= LAST_VOLATILE_GPR) {
+          } else if (nextVMArgReg <= LAST_VOLATILE_GPR) {
+            // (1b) spill OS register, but still fit in VM register
             asmArg.emitSTAddr(nextVMArgReg++, spillOffsetOS - BYTES_IN_ADDRESS, FP);
           } else {
             // (1c) spill VM register

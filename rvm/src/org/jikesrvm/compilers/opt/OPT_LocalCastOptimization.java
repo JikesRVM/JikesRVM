@@ -84,9 +84,8 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase {
       // visit each instruction in the basic block
       for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
         OPT_Instruction s = ie.next();
-        if (TypeCheck.conforms(s) && (invertNullAndTypeChecks(s) || pushTypeCheckBelowIf(s, ir)))
-        // hack: we may have modified the instructions; start over
-        {
+        if (TypeCheck.conforms(s) && (invertNullAndTypeChecks(s) || pushTypeCheckBelowIf(s, ir))) {
+          // hack: we may have modified the instructions; start over
           ie = bb.forwardInstrEnumerator();
         }
       }
@@ -162,27 +161,23 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase {
           */ {
           if (after.operator() == BBEND) {
             patchBlock = myBlock.nextBasicBlockInCodeOrder();
-          }
-          /* 2. n is followed by an unconditional goto.  In
-             this case control jumps to the target of the
-             goto.
-          */
-          else if (after.operator() == GOTO) {
+          } else if (after.operator() == GOTO) {
+            /* 2. n is followed by an unconditional goto.  In
+               this case control jumps to the target of the
+               goto.
+            */
             patchBlock = after.getBranchTarget();
-          }
-          /* 3. n is followed by another conditional branch. In
-             this case, we will split the basic block to make
-             n the last instruction in the block, and then
-             we have the fall through case again.
-          */
-          else if (after.operator() == REF_IFCMP) {
+          } else if (after.operator() == REF_IFCMP) {
+            /* 3. n is followed by another conditional branch. In
+               this case, we will split the basic block to make
+               n the last instruction in the block, and then
+               we have the fall through case again.
+            */
             patchBlock = myBlock.splitNodeAt(n, ir);
             myBlock.insertOut(patchBlock);
             ir.cfg.linkInCodeOrder(myBlock, patchBlock);
-          }
-
-          /* this is a bad thing */
-          else {
+          } else {
+            /* this is a bad thing */
             return false;
           }
         } else

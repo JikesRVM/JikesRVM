@@ -126,11 +126,9 @@ final class VM_OptExceptionTable extends VM_ExceptionTable {
             index += 4;
           }
         }
-
         bblock = followonBB;
-
-      } else // No code in bblock
-      {
+      } else {
+        // No code in bblock
         bblock = bblock.nextBasicBlockInCodeOrder();
       }
     }

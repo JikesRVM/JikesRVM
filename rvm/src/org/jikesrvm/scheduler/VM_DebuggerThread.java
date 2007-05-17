@@ -52,10 +52,7 @@ public class VM_DebuggerThread extends VM_Thread {
   // Evaluate an expression.
   //
   private static void eval(String[] tokens) throws Exception {
-    char command = tokens == null ? EOF  // end of file
-                   : tokens.length == 0 ? ' '  // empty line
-                     : tokens[0].charAt(0);         // first letter of first token
-
+    char command = tokens == null ? EOF : tokens.length == 0 ? ' ' : tokens[0].charAt(0);
     VM.sysWriteln("COMMAND IS '" + command + "'");
     switch (command) {
       case' ': // repeat previous command once

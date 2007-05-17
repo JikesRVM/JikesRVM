@@ -1240,9 +1240,7 @@ public final class OPT_Instruction implements VM_Constants, OPT_Operators, OPT_C
           return MIR_Branch.getTarget(this).target.getBasicBlock();
         } else if (MIR_CondBranch.conforms(this)) {
           return MIR_CondBranch.getTarget(this).target.getBasicBlock();
-        } else
-
-        {
+        } else {
           throw new OPT_OptimizingCompilerException("getBranchTarget()",
                                                     "operator not implemented",
                                                     operator.toString());
@@ -1324,9 +1322,7 @@ public final class OPT_Instruction implements VM_Constants, OPT_Operators, OPT_C
           throw new OPT_OptimizingCompilerException("getBranchTargets()",
                                                     "operator not implemented",
                                                     operator().toString());
-        } else
-
-        {
+        } else {
           throw new OPT_OptimizingCompilerException("getBranchTargets()",
                                                     "operator not implemented",
                                                     operator().toString());

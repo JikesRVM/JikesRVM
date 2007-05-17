@@ -48,9 +48,8 @@ final class OPT_SpaceEffGraphNodeListHeader {
       return true;
     }
     while (p != null) {
-      if (p._node == node)
-      // node already in list.
-      {
+      if (p._node == node) {
+        // node already in list.
         return false;
       }
       prev = p;

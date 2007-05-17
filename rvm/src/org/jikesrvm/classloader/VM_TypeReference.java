@@ -203,9 +203,7 @@ public final class VM_TypeReference {
    * @throws IllegalArgumentException Needs to throw some kind of error in
    *  the case of a VM_Atom that does not represent a type name.
    */
-  public static synchronized VM_TypeReference findOrCreate(ClassLoader cl, VM_Atom tn)
-      throws IllegalArgumentException // does not need to be declared
-  {
+  public static synchronized VM_TypeReference findOrCreate(ClassLoader cl, VM_Atom tn) throws IllegalArgumentException {
     VM_TypeDescriptorParsing.validateAsTypeDescriptor(tn);
     // Primitives, arrays of primitives, system classes and arrays of system
     // classes must use the bootstrap classloader.  Force that here so we don't

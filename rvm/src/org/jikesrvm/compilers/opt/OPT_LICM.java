@@ -829,8 +829,8 @@ public class OPT_LICM extends OPT_CompilerPhase {
       while (e.hasMoreElements()) {
         cand = e.next();
         if (DEBUG) VM.sysWrite(cand.toString() + "\n");
-        if ((!Label.conforms(cand)) // skip labels, phis, and yieldpoints
-            && !cand.isYieldPoint() && !Phi.conforms(cand)) {
+        // skip labels, phis, and yieldpoints
+        if (!Label.conforms(cand) && !cand.isYieldPoint() && !Phi.conforms(cand)) {
           break;
         }
         last = cand;
@@ -842,8 +842,8 @@ public class OPT_LICM extends OPT_CompilerPhase {
       while (e.hasMoreElements()) {
         cand = e.next();
         if (DEBUG) VM.sysWrite(cand.toString() + "\n");
-        if ((!BBend.conforms(cand)) && !cand.isBranch() // skip branches and newly placed insts
-            && !relocated.contains(cand)) {
+        // skip branches and newly placed insts
+        if (!BBend.conforms(cand) && !cand.isBranch() && !relocated.contains(cand)) {
           break;
         }
       }
