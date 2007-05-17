@@ -132,7 +132,7 @@ static const TABLE PTRsize[] = {
 /* segment register names                                                   */
 /****************************************************************************/
 static const TABLE segreg[] =  {
-    TinitShort("es"),  
+    TinitShort("es"),
     TinitShort("cs"),
     TinitShort("ss"),
     TinitShort("ds"),
@@ -601,356 +601,356 @@ static const TABLE mnemstr[] =  {
 } ;
 // defines for the indexes to the mnemonic array
 #define ILLEGAL       0  // Any illegal opcode
-#define AAA           1  
-#define AAD           2  
-#define AAM           3  
-#define AAS           4  
-#define ADC           5  
-#define ADD           6  
-#define AND           7  
-#define ARPL          8  
-#define BOUND         9  
-#define BSF          10  
-#define BSR          11  
-#define BSWAP        12  
-#define BT           13  
-#define BTC          14  
-#define BTR          15  
-#define BTS          16  
-#define CALL         17  
-#define CBW          18  
-#define CDQ          19  
-#define CLC          20  
-#define CLD          21  
-#define CLI          22  
-#define CLTS         23  
-#define CMC          24  
-#define CMOVA        25  
-#define CMOVAE       26  
-#define CMOVB        27  
-#define CMOVBE       28  
-#define CMOVE        29  
-#define CMOVG        30  
-#define CMOVGE       31  
-#define CMOVL        32  
-#define CMOVLE       33  
-#define CMOVNE       34  
-#define CMOVNO       35  
-#define CMOVNS       36  
-#define CMOVO        37  
-#define CMOVPE       38  
-#define CMOVPO       39  
-#define CMOVS        40  
-#define CMP          41  
-#define CMPSB        42  
-#define CMPSD        43  
-#define CMPSW        44  
-#define CMPXCHG8B    45  
-#define CMPXCHG      46  
-#define CPUID        47  
-#define CWD          48  
-#define CWDE         49  
-#define DAA          50  
-#define DAS          51  
-#define DEC          52  
-#define DIV          53  
-#define EMMS         54  
-#define ENTER        55  
-#define ESC          56  
-#define F2XM1        57  
-#define FABS         58  
-#define FADD         59  
-#define FADDP        60  
-#define FBLD         61  
-#define FBSTP        62  
-#define FCHS         63  
-#define FCLEX        64  
-#define FCMOVB       65  
-#define FCMOVBE      66  
-#define FCMOVE       67  
-#define FCMOVNB      68  
-#define FCMOVNBE     69  
-#define FCMOVNE      70  
-#define FCMOVNU      71  
-#define FCMOVU       72  
-#define FCOM         73  
-#define FCOMI        74  
-#define FCOMIP       75  
-#define FCOMP        76  
-#define FCOMPP       77  
-#define FCOS         78  
-#define FDECSTP      79  
-#define FDISI        80  
-#define FDIV         81  
-#define FDIVP        82  
-#define FDIVR        83  
-#define FDIVRP       84  
-#define FENI         85  
-#define FFREE        86  
-#define FFREEP       87  
-#define FIADD        88  
-#define FICOM        89  
-#define FICOMP       90  
-#define FIDIV        91  
-#define FIDIVR       92  
-#define FILD         93  
-#define FIMUL        94  
-#define FINCSTP      95  
-#define FINIT        96  
-#define FIST         97  
-#define FISTP        98  
-#define FISUB        99  
-#define FISUBR      100  
-#define FLD         101  
-#define FLD1        102  
-#define FLDCW       103  
-#define FLDENV      104  
-#define FLDL2E      105  
-#define FLDL2T      106  
-#define FLDLG2      107  
-#define FLDLN2      108  
-#define FLDPI       109  
-#define FLDZ        110  
-#define FMUL        111  
-#define FMULP       112  
-#define FNCLEX      113  
-#define FNDISI      114  
-#define FNENI       115  
-#define FNINIT      116  
-#define FNOP        117  
-#define FNSAVE      118  
-#define FNSTCW      119  
-#define FNSTENV     120  
-#define FNSTSW      121  
-#define FPATAN      122  
-#define FPREM       123  
-#define FPREM1      124  
-#define FPTAN       125  
-#define FRNDINT     126  
+#define AAA           1
+#define AAD           2
+#define AAM           3
+#define AAS           4
+#define ADC           5
+#define ADD           6
+#define AND           7
+#define ARPL          8
+#define BOUND         9
+#define BSF          10
+#define BSR          11
+#define BSWAP        12
+#define BT           13
+#define BTC          14
+#define BTR          15
+#define BTS          16
+#define CALL         17
+#define CBW          18
+#define CDQ          19
+#define CLC          20
+#define CLD          21
+#define CLI          22
+#define CLTS         23
+#define CMC          24
+#define CMOVA        25
+#define CMOVAE       26
+#define CMOVB        27
+#define CMOVBE       28
+#define CMOVE        29
+#define CMOVG        30
+#define CMOVGE       31
+#define CMOVL        32
+#define CMOVLE       33
+#define CMOVNE       34
+#define CMOVNO       35
+#define CMOVNS       36
+#define CMOVO        37
+#define CMOVPE       38
+#define CMOVPO       39
+#define CMOVS        40
+#define CMP          41
+#define CMPSB        42
+#define CMPSD        43
+#define CMPSW        44
+#define CMPXCHG8B    45
+#define CMPXCHG      46
+#define CPUID        47
+#define CWD          48
+#define CWDE         49
+#define DAA          50
+#define DAS          51
+#define DEC          52
+#define DIV          53
+#define EMMS         54
+#define ENTER        55
+#define ESC          56
+#define F2XM1        57
+#define FABS         58
+#define FADD         59
+#define FADDP        60
+#define FBLD         61
+#define FBSTP        62
+#define FCHS         63
+#define FCLEX        64
+#define FCMOVB       65
+#define FCMOVBE      66
+#define FCMOVE       67
+#define FCMOVNB      68
+#define FCMOVNBE     69
+#define FCMOVNE      70
+#define FCMOVNU      71
+#define FCMOVU       72
+#define FCOM         73
+#define FCOMI        74
+#define FCOMIP       75
+#define FCOMP        76
+#define FCOMPP       77
+#define FCOS         78
+#define FDECSTP      79
+#define FDISI        80
+#define FDIV         81
+#define FDIVP        82
+#define FDIVR        83
+#define FDIVRP       84
+#define FENI         85
+#define FFREE        86
+#define FFREEP       87
+#define FIADD        88
+#define FICOM        89
+#define FICOMP       90
+#define FIDIV        91
+#define FIDIVR       92
+#define FILD         93
+#define FIMUL        94
+#define FINCSTP      95
+#define FINIT        96
+#define FIST         97
+#define FISTP        98
+#define FISUB        99
+#define FISUBR      100
+#define FLD         101
+#define FLD1        102
+#define FLDCW       103
+#define FLDENV      104
+#define FLDL2E      105
+#define FLDL2T      106
+#define FLDLG2      107
+#define FLDLN2      108
+#define FLDPI       109
+#define FLDZ        110
+#define FMUL        111
+#define FMULP       112
+#define FNCLEX      113
+#define FNDISI      114
+#define FNENI       115
+#define FNINIT      116
+#define FNOP        117
+#define FNSAVE      118
+#define FNSTCW      119
+#define FNSTENV     120
+#define FNSTSW      121
+#define FPATAN      122
+#define FPREM       123
+#define FPREM1      124
+#define FPTAN       125
+#define FRNDINT     126
 #define FRSTOR      127
-#define FSAVE       128  
-#define FSCALE      129  
-#define FSETPM      130  
-#define FSIN        131  
-#define FSINCOS     132  
-#define FSQRT       133  
-#define FST         134  
-#define FSTCW       135  
-#define FSTENV      136  
-#define FSTP        137  
-#define FSTSW       138  
-#define FSUB        139  
-#define FSUBP       140  
-#define FSUBR       141  
-#define FSUBRP      142  
-#define FTST        143  
-#define FUCOM       144  
-#define FUCOMI      145  
-#define FUCOMIP     146  
-#define FUCOMP      147  
-#define FUCOMPP     148  
-#define FXAM        149  
-#define FXCH        150  
-#define FXTRACT     151  
-#define FYL2X       152  
-#define FYL2XP1     153  
-#define HLT         154  
-#define IDIV        155  
-#define IMUL        156  
-#define IN          157  
-#define INC         158  
-#define INSB        159  
-#define INSD        160  
-#define INSW        161  
-#define INT         162  
-#define INTO        163  
-#define INVD        164  
-#define INVLPG      165  
-#define IRET        166  
-#define IRETD       167  
-#define JA          168  
-#define JB          169  
-#define JCXZ        170  
-#define JECXZ       171  
-#define JG          172  
-#define JL          173  
-#define JMP         174  
-#define JNA         175  
-#define JNB         176  
-#define JNG         177  
-#define JNL         178  
-#define JNO         179  
-#define JNS         180  
-#define JNZ         181  
-#define JO          182  
-#define JPE         183  
-#define JPO         184  
-#define JS          185  
-#define JZ          186  
-#define LAHF        187  
-#define LAR         188  
-#define LDS         189  
-#define LEA         190  
-#define LEAVE       191  
-#define LES         192  
-#define LFS         193  
-#define LGDT        194  
-#define LGS         195  
-#define LIDT        196  
-#define LLDT        197  
-#define LMSW        198  
-#define LOCK        199  
-#define LODSB       200  
-#define LODSD       201  
-#define LODSW       202  
-#define LOOP        203  
-#define LOOPNZ      204  
-#define LOOPZ       205  
-#define LSL         206  
-#define LSS         207  
-#define LTR         208  
-#define MOV         209  
+#define FSAVE       128
+#define FSCALE      129
+#define FSETPM      130
+#define FSIN        131
+#define FSINCOS     132
+#define FSQRT       133
+#define FST         134
+#define FSTCW       135
+#define FSTENV      136
+#define FSTP        137
+#define FSTSW       138
+#define FSUB        139
+#define FSUBP       140
+#define FSUBR       141
+#define FSUBRP      142
+#define FTST        143
+#define FUCOM       144
+#define FUCOMI      145
+#define FUCOMIP     146
+#define FUCOMP      147
+#define FUCOMPP     148
+#define FXAM        149
+#define FXCH        150
+#define FXTRACT     151
+#define FYL2X       152
+#define FYL2XP1     153
+#define HLT         154
+#define IDIV        155
+#define IMUL        156
+#define IN          157
+#define INC         158
+#define INSB        159
+#define INSD        160
+#define INSW        161
+#define INT         162
+#define INTO        163
+#define INVD        164
+#define INVLPG      165
+#define IRET        166
+#define IRETD       167
+#define JA          168
+#define JB          169
+#define JCXZ        170
+#define JECXZ       171
+#define JG          172
+#define JL          173
+#define JMP         174
+#define JNA         175
+#define JNB         176
+#define JNG         177
+#define JNL         178
+#define JNO         179
+#define JNS         180
+#define JNZ         181
+#define JO          182
+#define JPE         183
+#define JPO         184
+#define JS          185
+#define JZ          186
+#define LAHF        187
+#define LAR         188
+#define LDS         189
+#define LEA         190
+#define LEAVE       191
+#define LES         192
+#define LFS         193
+#define LGDT        194
+#define LGS         195
+#define LIDT        196
+#define LLDT        197
+#define LMSW        198
+#define LOCK        199
+#define LODSB       200
+#define LODSD       201
+#define LODSW       202
+#define LOOP        203
+#define LOOPNZ      204
+#define LOOPZ       205
+#define LSL         206
+#define LSS         207
+#define LTR         208
+#define MOV         209
 #define MOVB        210
-#define MOVD        211  
-#define MOVQ        212  
-#define MOVSB       213  
-#define MOVSD       214  
-#define MOVSW       215  
-#define MOVSX       216  
-#define MOVZX       217  
-#define MUL         218  
-#define NEG         219  
-#define NOP         220  
-#define NOT         221  
-#define OR          222  
-#define OUT         223  
-#define OUTSB       224  
-#define OUTSD       225  
-#define OUTSW       226  
-#define PACKSSDW    227  
-#define PACKSSWB    228  
-#define PACKUSWB    229  
-#define PADDB       230  
-#define PADDD       231  
-#define PADDSB      232  
-#define PADDSW      233  
-#define PADDUSB     234  
-#define PADDUSW     235  
-#define PADDW       236  
-#define PAND        237  
-#define PANDN       238  
-#define PCMPEQB     239  
-#define PCMPEQD     240  
-#define PCMPEQW     241  
-#define PCMPGTB     242  
-#define PCMPGTD     243  
-#define PCMPGTW     244  
-#define PMADDWD     245  
-#define PMULHW      246  
-#define PMULLW      247  
-#define POP         248  
-#define POPA        249  
-#define POPAD       250  
-#define POPF        251  
-#define POPFD       252  
-#define POR         253  
-#define PSLLD       254  
-#define PSLLQ       255  
-#define PSLLW       256  
-#define PSRAD       257  
-#define PSRAW       258  
-#define PSRLD       259  
-#define PSRLQ       260  
-#define PSRLW       261  
-#define PSUBB       262  
-#define PSUBD       263  
-#define PSUBSB      264  
-#define PSUBSW      265  
-#define PSUBUSB     266  
-#define PSUBUSW     267  
-#define PSUBW       268  
-#define PUNPCKHBW   269  
-#define PUNPCKHDQ   270  
-#define PUNPCKHWD   271  
-#define PUNPCKLBW   272  
-#define PUNPCKLDQ   273  
-#define PUNPCKLWD   274  
-#define PUSH        275  
-#define PUSHA       276  
-#define PUSHAD      277  
-#define PUSHF       278  
-#define PUSHFD      279  
-#define PUSHI       280  
-#define PXOR        281  
-#define RCL         282  
-#define RCR         283  
-#define RDMSR       284  
-#define RDPMC       285  
-#define RDTSC       286  
-#define REP         287  
-#define REPNZ       288  
-#define REPZ        289  
-#define RETF        290  
-#define RETN        291  
-#define ROL         292  
-#define ROR         293  
-#define RSM         294  
-#define SAHF        295  
-#define SAL         296  
-#define SAR         297  
-#define SBB         298  
-#define SCASB       299  
-#define SCASD       300  
-#define SCASW       301  
-#define SEG         302  
-#define SETA        303  
-#define SETAE       304  
-#define SETB        305  
-#define SETBE       306  
-#define SETG        307  
-#define SETGE       308  
-#define SETL        309  
-#define SETLE       310  
-#define SETNO       311  
-#define SETNS       312  
-#define SETNZ       313  
-#define SETO        314  
-#define SETPE       315  
-#define SETPO       316  
-#define SETS        317  
-#define SETZ        318  
-#define SGDT        319  
-#define SHL         320  
-#define SHLD        321  
-#define SHR         322  
-#define SHRD        323  
-#define SIDT        324  
-#define SLDT        325  
-#define SMSW        326  
-#define STC         327  
-#define STD         328  
-#define STI         329  
-#define STOSB       330  
-#define STOSD       331  
-#define STOSW       332  
-#define STR         333  
-#define SUB         334  
-#define TEST        335  
-#define UD2         336  
-#define VERR        337  
-#define VERW        338  
-#define WAIT        339  
-#define WBINVD      340  
-#define WRMSR       341  
-#define XADD        342  
-#define XCHG        343  
-#define XLATB       344  
+#define MOVD        211
+#define MOVQ        212
+#define MOVSB       213
+#define MOVSD       214
+#define MOVSW       215
+#define MOVSX       216
+#define MOVZX       217
+#define MUL         218
+#define NEG         219
+#define NOP         220
+#define NOT         221
+#define OR          222
+#define OUT         223
+#define OUTSB       224
+#define OUTSD       225
+#define OUTSW       226
+#define PACKSSDW    227
+#define PACKSSWB    228
+#define PACKUSWB    229
+#define PADDB       230
+#define PADDD       231
+#define PADDSB      232
+#define PADDSW      233
+#define PADDUSB     234
+#define PADDUSW     235
+#define PADDW       236
+#define PAND        237
+#define PANDN       238
+#define PCMPEQB     239
+#define PCMPEQD     240
+#define PCMPEQW     241
+#define PCMPGTB     242
+#define PCMPGTD     243
+#define PCMPGTW     244
+#define PMADDWD     245
+#define PMULHW      246
+#define PMULLW      247
+#define POP         248
+#define POPA        249
+#define POPAD       250
+#define POPF        251
+#define POPFD       252
+#define POR         253
+#define PSLLD       254
+#define PSLLQ       255
+#define PSLLW       256
+#define PSRAD       257
+#define PSRAW       258
+#define PSRLD       259
+#define PSRLQ       260
+#define PSRLW       261
+#define PSUBB       262
+#define PSUBD       263
+#define PSUBSB      264
+#define PSUBSW      265
+#define PSUBUSB     266
+#define PSUBUSW     267
+#define PSUBW       268
+#define PUNPCKHBW   269
+#define PUNPCKHDQ   270
+#define PUNPCKHWD   271
+#define PUNPCKLBW   272
+#define PUNPCKLDQ   273
+#define PUNPCKLWD   274
+#define PUSH        275
+#define PUSHA       276
+#define PUSHAD      277
+#define PUSHF       278
+#define PUSHFD      279
+#define PUSHI       280
+#define PXOR        281
+#define RCL         282
+#define RCR         283
+#define RDMSR       284
+#define RDPMC       285
+#define RDTSC       286
+#define REP         287
+#define REPNZ       288
+#define REPZ        289
+#define RETF        290
+#define RETN        291
+#define ROL         292
+#define ROR         293
+#define RSM         294
+#define SAHF        295
+#define SAL         296
+#define SAR         297
+#define SBB         298
+#define SCASB       299
+#define SCASD       300
+#define SCASW       301
+#define SEG         302
+#define SETA        303
+#define SETAE       304
+#define SETB        305
+#define SETBE       306
+#define SETG        307
+#define SETGE       308
+#define SETL        309
+#define SETLE       310
+#define SETNO       311
+#define SETNS       312
+#define SETNZ       313
+#define SETO        314
+#define SETPE       315
+#define SETPO       316
+#define SETS        317
+#define SETZ        318
+#define SGDT        319
+#define SHL         320
+#define SHLD        321
+#define SHR         322
+#define SHRD        323
+#define SIDT        324
+#define SLDT        325
+#define SMSW        326
+#define STC         327
+#define STD         328
+#define STI         329
+#define STOSB       330
+#define STOSD       331
+#define STOSW       332
+#define STR         333
+#define SUB         334
+#define TEST        335
+#define UD2         336
+#define VERR        337
+#define VERW        338
+#define WAIT        339
+#define WBINVD      340
+#define WRMSR       341
+#define XADD        342
+#define XCHG        343
+#define XLATB       344
 #define XOR         345
-               
+
 /* mnemonic number to cause special action to be taken, */
 /* usually because there are several mnemonics matching */
 /* the opcode                                           */
-#define odd         0xFFFF          
+#define odd         0xFFFF
 
 /***************************************************************************/
 /*                         Control flags structure                         */
@@ -960,9 +960,9 @@ typedef struct {
        #define DBit_RegToMem  0         // register is second operand
        #define DBit_MemToReg  1         // register is first operand
        #define DBit_Mem1op    2         // only 1 (memory) operand
-   int Wbit:1;          // holds "w" bit from instruction    
+   int Wbit:1;          // holds "w" bit from instruction
                             //    0 => 8 bit,
-                            //    1 => 16 or 32 bit            
+                            //    1 => 16 or 32 bit
    int disppres:1;      // a displacement is present in this instruction
    int addrover:1;      // an address override prefix has been found
    int addroverUsed:1;  // address override has been used
@@ -970,8 +970,8 @@ typedef struct {
    int opsizeover:1;    // an operand size override prefix has been found
    int opsize32:1;      // operand size is 32-bit
    int prefix:1;        // prefix instruction - rerun opcode decoding
-   int waitOp:1;        // a wait opcode that can be incorporated 
-                        // into an NPX instruction was found 
+   int waitOp:1;        // a wait opcode that can be incorporated
+                        // into an NPX instruction was found
    unsigned int replock:2;       // rep or lock prefix
        #define replockNone  0  // no prefix
        #define replockREPZ  1  // REPZ prefix
@@ -1010,22 +1010,22 @@ static int ihnpdsm_debug = 0;
 /****************************************************************************/
 static const USHORT mnem_16[256] = {
 //0      1       2       3       4       5       6       7       8       9       A       B       C       D       E       F
- ADD   , ADD   , ADD   , ADD   , ADD   , ADD   , PUSH  , POP   , OR    , OR    , OR    , OR    , OR    , OR    , PUSH  , odd   , // 0 
- ADC   , ADC   , ADC   , ADC   , ADC   , ADC   , PUSH  , POP   , SBB   , SBB   , SBB   , SBB   , SBB   , SBB   , PUSH  , POP   , // 1 
- AND   , AND   , AND   , AND   , AND   , AND   , odd   , DAA   , SUB   , SUB   , SUB   , SUB   , SUB   , SUB   , odd   , DAS   , // 2 
- XOR   , XOR   , XOR   , XOR   , XOR   , XOR   , odd   , AAA   , CMP   , CMP   , CMP   , CMP   , CMP   , CMP   , odd   , AAS   , // 3 
- INC   , INC   , INC   , INC   , INC   , INC   , INC   , INC   , DEC   , DEC   , DEC   , DEC   , DEC   , DEC   , DEC   , DEC   , // 4 
- PUSH  , PUSH  , PUSH  , PUSH  , PUSH  , PUSH  , PUSH  , PUSH  , POP   , POP   , POP   , POP   , POP   , POP   , POP   , POP   , // 5 
- PUSHA , POPA  , BOUND , ARPL  , odd   , odd   , odd   , odd   , PUSH  , IMUL  , PUSH  , IMUL  , INSB  , INSW  , OUTSB , OUTSW , // 6 
- JO    , JNO   , JB    , JNB   , JZ    , JNZ   , JNA   , JA    , JS    , JNS   , JPE   , JPO   , JL    , JNL   , JNG   , JG    , // 7 
+ ADD   , ADD   , ADD   , ADD   , ADD   , ADD   , PUSH  , POP   , OR    , OR    , OR    , OR    , OR    , OR    , PUSH  , odd   , // 0
+ ADC   , ADC   , ADC   , ADC   , ADC   , ADC   , PUSH  , POP   , SBB   , SBB   , SBB   , SBB   , SBB   , SBB   , PUSH  , POP   , // 1
+ AND   , AND   , AND   , AND   , AND   , AND   , odd   , DAA   , SUB   , SUB   , SUB   , SUB   , SUB   , SUB   , odd   , DAS   , // 2
+ XOR   , XOR   , XOR   , XOR   , XOR   , XOR   , odd   , AAA   , CMP   , CMP   , CMP   , CMP   , CMP   , CMP   , odd   , AAS   , // 3
+ INC   , INC   , INC   , INC   , INC   , INC   , INC   , INC   , DEC   , DEC   , DEC   , DEC   , DEC   , DEC   , DEC   , DEC   , // 4
+ PUSH  , PUSH  , PUSH  , PUSH  , PUSH  , PUSH  , PUSH  , PUSH  , POP   , POP   , POP   , POP   , POP   , POP   , POP   , POP   , // 5
+ PUSHA , POPA  , BOUND , ARPL  , odd   , odd   , odd   , odd   , PUSH  , IMUL  , PUSH  , IMUL  , INSB  , INSW  , OUTSB , OUTSW , // 6
+ JO    , JNO   , JB    , JNB   , JZ    , JNZ   , JNA   , JA    , JS    , JNS   , JPE   , JPO   , JL    , JNL   , JNG   , JG    , // 7
  odd   , odd   , MOVB  , odd   , TEST  , TEST  , XCHG  , XCHG  , MOV   , MOV   , MOV   , MOV   , MOV   , LEA   , MOV   , POP   , // 8
- NOP   , XCHG  , XCHG  , XCHG  , XCHG  , XCHG  , XCHG  , XCHG  , CBW   , CWD   , CALL  , WAIT  , PUSHF , POPF  , SAHF  , LAHF  , // 9 
- MOV   , MOV   , MOV   , MOV   , MOVSB , MOVSW , CMPSB , CMPSW , TEST  , TEST  , STOSB , STOSW , LODSB , LODSW , SCASB , SCASW , // A 
- MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , // B 
+ NOP   , XCHG  , XCHG  , XCHG  , XCHG  , XCHG  , XCHG  , XCHG  , CBW   , CWD   , CALL  , WAIT  , PUSHF , POPF  , SAHF  , LAHF  , // 9
+ MOV   , MOV   , MOV   , MOV   , MOVSB , MOVSW , CMPSB , CMPSW , TEST  , TEST  , STOSB , STOSW , LODSB , LODSW , SCASB , SCASW , // A
+ MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , MOV   , // B
  odd   , odd   , RETN  , RETN  , LES   , LDS   , MOV   , MOV   , ENTER , LEAVE , RETF  , RETF  , INT   , INT   , INTO  , IRET  , // C
  odd   , odd   , odd   , odd   , AAM   , AAD   , odd   , XLATB , odd   , odd   , odd   , odd   , odd   , odd   , odd   , odd   , // D
- LOOPNZ, LOOPZ , LOOP  , JCXZ  , IN    , IN    , OUT   , OUT   , CALL  , JMP   , JMP   , JMP   , IN    , IN    , OUT   , OUT   , // E 
- LOCK  , odd   , odd   , odd   , HLT   , CMC   , odd   , odd   , CLC   , STC   , CLI   , STI   , CLD   , STD   , odd   , odd     // F 
+ LOOPNZ, LOOPZ , LOOP  , JCXZ  , IN    , IN    , OUT   , OUT   , CALL  , JMP   , JMP   , JMP   , IN    , IN    , OUT   , OUT   , // E
+ LOCK  , odd   , odd   , odd   , HLT   , CMC   , odd   , odd   , CLC   , STC   , CLI   , STI   , CLD   , STD   , odd   , odd     // F
 };
 static const USHORT mnem_32[256] =  {
 //0      1       2       3       4       5       6       7       8       9       A       B       C       D       E       F
@@ -1046,7 +1046,7 @@ static const USHORT mnem_32[256] =  {
  LOOPNZ, LOOPZ , LOOP  , JECXZ , IN    , IN    , OUT   , OUT   , CALL  , JMP   , JMP   , JMP   , IN    , IN    , OUT   , OUT   , // E
  LOCK  , odd   , odd   , odd   , HLT   , CMC   , odd   , odd   , CLC   , STC   , CLI   , STI   , CLD   , STD   , odd   , odd     // F
 } ;
-                                    
+
 
 /****************************************************************************/
 /*  mnemonic numbers for shift instructions                                 */
@@ -1059,7 +1059,7 @@ static const USHORT shiftmnem[8] =  {
 
 typedef struct state {
     const USHORT *mnemnum;      //mnemonic number table pointer (set to either
-                                //mnem_16 or mnem_32) 
+                                //mnem_16 or mnem_32)
     UCHAR *startiptr;           // instruction stream pointer
     char *hbuff;                // hex output buffer pointer
     ssize_t hbuff_sz;
@@ -1074,15 +1074,15 @@ typedef struct state {
     ssize_t ibuff_sz;
 
     UCHAR instr;            // holds the current instruction
-    UCHAR ovseg;            // non-zero if there is a current segment 
-                                // override instr pending 
+    UCHAR ovseg;            // non-zero if there is a current segment
+                                // override instr pending
     UCHAR defseg;           // default segment for operands (1-based)
     UCHAR basereg;          // index into register names of the base
-                                // register, 0 if none 
+                                // register, 0 if none
     UCHAR indexreg;         // index into register names of the index
-                                // register, 0 if none 
+                                // register, 0 if none
     UCHAR scalefactor;      // scale factor, possible values are: 0 =>
-                                // none 1 => *2 2 => *4 3 => *8 
+                                // none 1 => *2 2 => *4 3 => *8
     long opdisp;            // operand displacement from instr
     PARLIST *parm;          // pointer to the parameter block
 } STATE;
@@ -1094,23 +1094,23 @@ typedef struct state {
 static UCHAR getNextByte(STATE &s);
 static USHORT getNextWord(STATE &s);
 static ULONG getNextDword(STATE &s);
-inline long 
+inline long
 getDisplacement(STATE &s, FLAGS & flags)
 {
   // get next 2 or 4 byte quantity based on address size and sign extend if required
   flags.addroverUsed = 1;
   return (flags.addr32) ? getNextDword(s) : ((short)getNextWord(s));
-} 
-inline ULONG 
+}
+inline ULONG
 getNextOperand(STATE &s, FLAGS flags)
-{ 
+{
   // get next 2 or 4 byte quantity based on operand size
   return (flags.opsize32) ? getNextDword(s) : getNextWord(s);
-} 
+}
 static long getSignedImmediate(STATE &s, FLAGS flags);
 static ULONG getImmediate(STATE &s, FLAGS flags);
 static FLAGS getMemop(STATE &s, FLAGS flags);
-static void getNormalMemop(STATE &s, FLAGS & flags);   
+static void getNormalMemop(STATE &s, FLAGS & flags);
 
 /****************************************************************************/
 /* Put values into the operand output                                       */
@@ -1124,9 +1124,9 @@ static void mbuff_gets(STATE &s, const char *memptr, size_t len);
 static void operandHex(STATE &s, ULONG val, const char *suffix = 0);
 static void operandSignedHex(STATE &s, long val, const char *suffix = 0);
 static void operandDecimal(STATE &s, long val, const char *suffix = 0);
-static void operandTableItem(STATE &s, ULONG item,const TABLE *ptr, const char *suffix = 0); 
+static void operandTableItem(STATE &s, ULONG item,const TABLE *ptr, const char *suffix = 0);
 static void operandString(STATE &s, const char *str);
-static void operandRegister(STATE &s, UCHAR regnum, FLAGS flags, const char *suffix = 0); 
+static void operandRegister(STATE &s, UCHAR regnum, FLAGS flags, const char *suffix = 0);
 static void operandMemop(STATE &s, FLAGS & flags);
 inline void
 operandChar(STATE &s, char c)
@@ -1134,18 +1134,18 @@ operandChar(STATE &s, char c)
    // output a single character
     ibuff_gets(s, c);
 }
-inline void 
+inline void
 operandMMXreg(STATE &s, UCHAR regf, const char *suffix = NULL)
 {
    // output an MMX register
    operandTableItem(s, regf, regMMX, suffix);
 }
-inline void 
+inline void
 operandSegRegister(STATE &s, UCHAR regnum, const char *suffix = 0)
 {
    // output a segment register
    operandTableItem(s, regnum, segreg, suffix);
-} 
+}
 static void operandRel(STATE &s, long disp);
 
 /****************************************************************************/
@@ -1256,7 +1256,7 @@ static opcodeFunction op_0FC8;
 static void initialize(STATE &s, FLAGS & flags, int print);
 
 static void setdw(STATE &s, FLAGS & flags);
-inline void 
+inline void
 setw(STATE &s, FLAGS & flags)
 {
   flags.Wbit = s.instr & 1;      // set 8/16/32 bit marker: 0 => 8 bit, 1 => 16/32 bit.
@@ -1289,7 +1289,7 @@ public:
 /*              none                                                        */
 /*                                                                          */
 /****************************************************************************/
-void 
+void
 p__DisAsm(PARLIST *parmptr,int print)
 {
   // Table of functions used for each opcode
@@ -1347,21 +1347,21 @@ p__DisAsm(PARLIST *parmptr,int print)
          if (flags.opsize32)
            s.parm->retbits |= 1;
          if (flags.addr32)
-           s.parm->retbits |= 2;         
+           s.parm->retbits |= 2;
        #endif
 
        // determine which opcode table is to be used
        s.mnemnum = (flags.opsize32) ? mnem_32 : mnem_16;
 
        s.instr = getNextByte(s);                     // get next byte of instruction
-   
+
        // in many cases we can print the instruction mnemonic now
        mnemonicStd(s, flags,s.mnemnum[s.instr]);
-   
+
        // call according to the instruction opcode
        opcodeTable[s.instr](s, flags);
      }  while (flags.prefix);              // enddo
-   
+
      // check if overrides were used if they were present
      if (s.ovseg || (flags.addrover && !flags.addroverUsed)) {
         /****************************************************/
@@ -1369,29 +1369,29 @@ p__DisAsm(PARLIST *parmptr,int print)
         /* backtrack, and reply with an illegal instruction */
         /****************************************************/
         initialize(s, flags,print);
-        op_IL(s, flags);    
-     } 
+        op_IL(s, flags);
+     }
   } /* end try */
   catch ( const IllegalOp x ) {
      // there is something wrong with the instruction
      initialize(s, flags,print);
-     op_IL(s, flags);           
+     op_IL(s, flags);
   } /* end catch */
 
   /**************************************************************************/
   /* update the returned buffers and instruction length                     */
   /**************************************************************************/
   s.parm->retleng = s.parm->iptr - s.startiptr;
-  if (s.hbuff && s.hbuff_sz-- > 0) 
+  if (s.hbuff && s.hbuff_sz-- > 0)
      *s.hbuff = 0;
-  if (s.ibuff && s.ibuff_sz-- > 0) 
+  if (s.ibuff && s.ibuff_sz-- > 0)
      *s.ibuff = 0;
   s.parm->retregop = flags.regf;
   s.parm->retmod = flags.mod;
   s.parm->retrm = flags.rm;
   /* printf("ihnpdsm: mod=%x, reg/op=%x, r/m=%x\n", s.parm->retmod, s.parm->retregop, s.parm->retrm);  */
 
-} 
+}
 
 /****************************************************************************/
 /**************************** operandRel ************************************/
@@ -1407,7 +1407,7 @@ p__DisAsm(PARLIST *parmptr,int print)
 /*              none                                                        */
 /*                                                                          */
 /****************************************************************************/
-static void 
+static void
 operandRel(STATE &s, long disp)
 {
    disp += s.parm->iptr - s.startiptr;
@@ -1436,7 +1436,7 @@ operandRel(STATE &s, long disp)
 /*              none                                                        */
 /*                                                                          */
 /****************************************************************************/
-static void 
+static void
 operandSignedHex(STATE &s, long val, const char *suffix)
 {
    if (s.ibuff) {
@@ -1466,12 +1466,12 @@ operandSignedHex(STATE &s, long val, const char *suffix)
 /*                                                                          */
 /****************************************************************************/
 
-/* rotate dword left logical 4 bits*/ 
+/* rotate dword left logical 4 bits*/
 
 ULONG _lrotl4(ULONG val)
 {
     if (ihnpdsm_debug)
-        printf("Calling _lrotl4: 0x%08lx\n", val);  
+        printf("Calling _lrotl4: 0x%08lx\n", val);
 
     ULONG tmp = (val >> 28) & 0x0f;
     return ((val << 4) | tmp);
@@ -1479,8 +1479,8 @@ ULONG _lrotl4(ULONG val)
 
 
 
-static void 
-operandHex(STATE &s, ULONG val, const char *suffix) 
+static void
+operandHex(STATE &s, ULONG val, const char *suffix)
 {
    if (ihnpdsm_debug)
       printf("Calling operandHex: 0x%08lx\n", val);
@@ -1499,7 +1499,7 @@ operandHex(STATE &s, ULONG val, const char *suffix)
                   ibuff_gets(s,  '0');      // leading zero required
                ibuff_gets(s,  hexConvVal[val & 0x0f]);
                for (; ++i < 8 ;  ) {
-                   /* val = _lrotl(val,4); */ 
+                   /* val = _lrotl(val,4); */
                   val = _lrotl4(val);
                   ibuff_gets(s,  hexConvVal[val & 0x0f]);
                } // endfor
@@ -1507,7 +1507,7 @@ operandHex(STATE &s, ULONG val, const char *suffix)
                   // hex number
                   ibuff_gets(s,  'H');
                } // endif
-            } 
+            }
          } // endfor
       } // endif
 
@@ -1516,7 +1516,7 @@ operandHex(STATE &s, ULONG val, const char *suffix)
             ibuff_gets(s,  *suffix++);
          } // endwhile
    } // endif
-} 
+}
 
 
 /****************************************************************************/
@@ -1534,13 +1534,13 @@ operandHex(STATE &s, ULONG val, const char *suffix)
 /*              none                                                        */
 /*                                                                          */
 /****************************************************************************/
-static void 
-operandDecimal(STATE &s, long val, const char *suffix) 
+static void
+operandDecimal(STATE &s, long val, const char *suffix)
 {
    if (s.ibuff) {
       s.ibuff += snprintf(s.ibuff, s.ibuff_sz, "%ld%s",val, suffix ? suffix : "");
    } // endif
-} 
+}
 
 /****************************************************************************/
 /**************************** operandTableItem ******************************/
@@ -1559,17 +1559,17 @@ operandDecimal(STATE &s, long val, const char *suffix)
 /*              none                                                        */
 /*                                                                          */
 /****************************************************************************/
-static void 
-operandTableItem(STATE &s, ULONG item,const TABLE *ptr, const char *suffix) 
+static void
+operandTableItem(STATE &s, ULONG item,const TABLE *ptr, const char *suffix)
 {
    if (s.ibuff) {
       ibuff_gets(s, ptr[item].string, ptr[item].length);
-      if (suffix) 
+      if (suffix)
          while (*suffix) {
             ibuff_gets(s,  *suffix++);
          } // endwhile
    } // endif
-} 
+}
 
 /****************************************************************************/
 /**************************** mnemonicStd ***********************************/
@@ -1586,12 +1586,12 @@ operandTableItem(STATE &s, ULONG item,const TABLE *ptr, const char *suffix)
 /*              none                                                        */
 /*                                                                          */
 /****************************************************************************/
-static void 
+static void
 mnemonicStd(STATE &s, FLAGS & flags, USHORT mnem_num)
 {
    if (s.mbuff && mnem_num != odd) {
       // if this is the illegal opcode - ignore the REP/LOCK prefixes
-      if (mnem_num == ILLEGAL) 
+      if (mnem_num == ILLEGAL)
          flags.replock = replockNone;
 
       switch (flags.replock) {
@@ -1681,7 +1681,7 @@ mnemonicStd(STATE &s, FLAGS & flags, USHORT mnem_num)
             mbuff_gets(s, ' ');
             mbuff_gets(s, mnemstr[mnem_num].string, mnemstr[mnem_num].length);
             break;
-         default: 
+         default:
             // LOCK not valid on other instructions
             throw IllegalOp(s);
             break;
@@ -1691,7 +1691,7 @@ mnemonicStd(STATE &s, FLAGS & flags, USHORT mnem_num)
          mbuff_gets(s, mnemstr[mnem_num].string, mnemstr[mnem_num].length);
       } /* endswitch */
    } // endif
-} 
+}
 
 
 /****************************************************************************/
@@ -1711,7 +1711,7 @@ mnemonicStd(STATE &s, FLAGS & flags, USHORT mnem_num)
 /*              none                                                        */
 /*                                                                          */
 /****************************************************************************/
-static void 
+static void
 operandRegister(STATE &s, UCHAR regnum, FLAGS flags, const char * suffix)
 {
   if (s.ibuff) {
@@ -1723,7 +1723,7 @@ operandRegister(STATE &s, UCHAR regnum, FLAGS flags, const char * suffix)
       operandTableItem(s, regnum, reg16, suffix );
     }
   } // endif
-} 
+}
 
 /****************************************************************************/
 /****************************** getNextByte *********************************/
@@ -1733,7 +1733,7 @@ operandRegister(STATE &s, UCHAR regnum, FLAGS flags, const char * suffix)
 /*              set ic to next byte of the instruction, and print it in hex */
 /*                                                                          */
 /****************************************************************************/
-static UCHAR 
+static UCHAR
 getNextByte(STATE &s)
 {
   UCHAR ic = *(s.parm->iptr)++;
@@ -1744,7 +1744,7 @@ getNextByte(STATE &s)
                                 // s.hbuff contain something? --Steve Augart
       printf("getNextByte:  %s\n", s.hbuff);
   return ic;
-} 
+}
 
 /****************************************************************************/
 /****************************** getNextWord *********************************/
@@ -1761,8 +1761,8 @@ getNextByte(STATE &s)
 /*              the data retrieved (as a USHORT)                            */
 /*                                                                          */
 /****************************************************************************/
-static USHORT 
-getNextWord(STATE &s) 
+static USHORT
+getNextWord(STATE &s)
 {
   USHORT Dword1 = *(USHORT *)(s.parm->iptr);
   s.parm->iptr += sizeof(USHORT);
@@ -1772,11 +1772,11 @@ getNextWord(STATE &s)
        hbuff_gets(s, hexConvVal[( x >> 4)&0x0F]);
        hbuff_gets(s, hexConvVal[x & 0x0F]);
     } // endfor
-  } 
+  }
   if (ihnpdsm_debug)
       printf("getNextWord:  %s\n", s.hbuff);
   return Dword1;
-} 
+}
 
 /****************************************************************************/
 /****************************** getNextDword ********************************/
@@ -1794,8 +1794,8 @@ getNextWord(STATE &s)
 /*                                                                          */
 /*                                                                          */
 /****************************************************************************/
-static ULONG 
-getNextDword(STATE &s) 
+static ULONG
+getNextDword(STATE &s)
 {
     ULONG Dword1 = *(ULONG *)(s.parm->iptr);
     s.parm->iptr += sizeof(ULONG);
@@ -1805,11 +1805,11 @@ getNextDword(STATE &s)
             hbuff_gets(s, hexConvVal[( x >> 4)&0x0F]);
             hbuff_gets(s, hexConvVal[x & 0x0F]);
         } // endfor
-    } 
+    }
     if (ihnpdsm_debug)
         printf("getNextDword:  0x%08lx\n", Dword1);
     return Dword1;
-} 
+}
 
 
 /****************************************************************************/
@@ -1828,17 +1828,17 @@ getNextDword(STATE &s)
 /*              the data retrieved (as a ULONG)                             */
 /*                                                                          */
 /****************************************************************************/
-static ULONG 
-getImmediate(STATE &s, FLAGS flags) 
+static ULONG
+getImmediate(STATE &s, FLAGS flags)
 {
-    if (flags.Wbit == 0) { 
+    if (flags.Wbit == 0) {
         // a byte operand
         return getNextByte(s);
     } else {
         // a 16 or 32 bit ooerand depending on instruction setting
         return getNextOperand(s, flags);
-    } 
-} 
+    }
+}
 
 /****************************************************************************/
 /****************************** getSignedImmediate **************************/
@@ -1856,17 +1856,17 @@ getImmediate(STATE &s, FLAGS flags)
 /*              the data retrieved (sign extended to a long)                */
 /*                                                                          */
 /****************************************************************************/
-static long 
-getSignedImmediate(STATE &s, FLAGS flags) 
+static long
+getSignedImmediate(STATE &s, FLAGS flags)
 {
-    if (flags.Wbit == 0) { 
+    if (flags.Wbit == 0) {
         return (signed char)getNextByte(s);  // sign extended byte operand
     } else if (flags.opsize32) {
         return getNextDword(s);
     } else {
         return (short)getNextWord(s);        // sign extended word operand
-    } 
-} 
+    }
+}
 
 /****************************************************************************/
 /****************************** operandString *******************************/
@@ -1883,15 +1883,15 @@ getSignedImmediate(STATE &s, FLAGS flags)
 /*              none                                                        */
 /*                                                                          */
 /****************************************************************************/
-static void 
-operandString(STATE &s, const char *str) 
+static void
+operandString(STATE &s, const char *str)
 {
     if (s.ibuff) {
         for (;*str ; ) {
             ibuff_gets(s,  *str++);
         } // endfor
     } // endif
-} 
+}
 
 /****************************************************************************/
 /****************************** initialize **********************************/
@@ -1908,8 +1908,8 @@ operandString(STATE &s, const char *str)
 /*              none                                                        */
 /*                                                                          */
 /****************************************************************************/
-static void 
-initialize(STATE &s, FLAGS & flags, int print) 
+static void
+initialize(STATE &s, FLAGS & flags, int print)
 {
     if (!print) {
         s.hbuff = 0;
@@ -1939,9 +1939,9 @@ initialize(STATE &s, FLAGS & flags, int print)
     s.parm->retbase = 255;
     s.parm->retindex = 255;
 #endif
-} 
+}
 
-static void 
+static void
 hbuff_gets(STATE &s, char c)
 {
     if (s.hbuff && s.hbuff_sz-- > 0) {
@@ -1949,7 +1949,7 @@ hbuff_gets(STATE &s, char c)
     }
 }
 
-static void 
+static void
 ibuff_gets(STATE &s, char c)
 {
     if (s.ibuff && s.ibuff_sz-- > 0) {
@@ -1957,7 +1957,7 @@ ibuff_gets(STATE &s, char c)
     }
 }
 
-static void 
+static void
 ibuff_gets(STATE &s, const char *memptr, size_t len)
 {
     while (len-- > 0) {
@@ -1965,7 +1965,7 @@ ibuff_gets(STATE &s, const char *memptr, size_t len)
     }
 }
 
-static void 
+static void
 mbuff_gets(STATE &s, char c)
 {
     if (s.mbuff && s.mbuff_sz-- > 0) {
@@ -1973,7 +1973,7 @@ mbuff_gets(STATE &s, char c)
     }
 }
 
-static void 
+static void
 mbuff_gets(STATE &s, const char *memptr, size_t len)
 {
     while (len-- > 0) {
@@ -1997,15 +1997,15 @@ mbuff_gets(STATE &s, const char *memptr, size_t len)
 /*              none                                                        */
 /*                                                                          */
 /****************************************************************************/
-static void 
-setdw(STATE &s, FLAGS & flags) 
+static void
+setdw(STATE &s, FLAGS & flags)
 {
     // set 8/16/32 bit marker: 0 => 8 bit, 1 => 16 or 32 bit
     setw(s, flags);
 
     // set direction bit: 2 => mem->reg 0 => reg->mem
     flags.Dbit = (s.instr & 2) ? DBit_MemToReg : DBit_RegToMem;
-} 
+}
 
 /****************************************************************************/
 /****************************** getMod_rm_dw ********************************/
@@ -2021,8 +2021,8 @@ setdw(STATE &s, FLAGS & flags)
 /*              none                                                        */
 /*                                                                          */
 /****************************************************************************/
-static void 
-getMod_rm_dw(STATE &s, FLAGS & flags) 
+static void
+getMod_rm_dw(STATE &s, FLAGS & flags)
 {
     setdw(s, flags);
     UCHAR ic = getNextByte(s);
@@ -2043,30 +2043,30 @@ getMod_rm_dw(STATE &s, FLAGS & flags)
                 s.basereg = (ic & 0x07) + 1;
                 s.indexreg = ((ic >> 3) & 0x07 ) + 1;
                 s.scalefactor = (ic >> 6) & 0x03;
-  
+
                 if (s.indexreg == 5) {          // index=4 -> no index
                     s.indexreg = 0;
                     if (s.scalefactor != 0) {
                         // scale factor must be zero
                         throw IllegalOp(s);
                     } // endif
-                } 
+                }
                 if (flags.mod == 0 && s.basereg == 6) {  // a special case, no base
                     s.basereg = 0;
                     flags.disppres = 1;          // remember what we have done
-                } 
+                }
             } else if (flags.mod == 0 && flags.rm == 5)
                 s.basereg = 0;
         }
         if (s.basereg == (1 + EBP) || s.basereg == (1 + ESP))  // EBP or ESP
             s.defseg = SS+1;                      // SS
-    } 
+    }
     else {                               // interpret this as a 16-bit s.instr
         // vectors to convert 16-bit format mod-r/m bytes to base and index register forms
         static const UCHAR basereg16[8] =  { BX, BX, BP, BP, SI, DI, BP, BX };
         static const UCHAR indexreg16[8] =  { SI + 1, DI + 1, SI + 1, DI + 1, 0, 0, 0, 0 } ;
-    
-        if (flags.mod != 3) 
+
+        if (flags.mod != 3)
             flags.addroverUsed = 1;      // we made use of the address override
         s.basereg = 1 + basereg16[flags.rm];
         s.indexreg = indexreg16[flags.rm];
@@ -2075,8 +2075,8 @@ getMod_rm_dw(STATE &s, FLAGS & flags)
         else if (s.basereg == (1 + BP))      // BP
             s.defseg = SS+1;                      // SS
         s.scalefactor = 0;
-    } 
-} 
+    }
+}
 
 /****************************************************************************/
 /****************************** op_IL   *************************************/
@@ -2092,8 +2092,8 @@ getMod_rm_dw(STATE &s, FLAGS & flags)
 /*              none                                                        */
 /*                                                                          */
 /****************************************************************************/
-static void 
-op_IL(STATE &s, FLAGS UNUSED & flags ) 
+static void
+op_IL(STATE &s, FLAGS UNUSED & flags )
 {
     s.parm->iptr = s.startiptr + 1;
     if (s.mbuff) {
@@ -2101,9 +2101,9 @@ op_IL(STATE &s, FLAGS UNUSED & flags )
         /* put the hexcode of the first byte of the instruction into s.mbuff   */
         /*********************************************************************/
         snprintf(s.mbuff, s.mbuff_sz, "%s%2.2X", mnemstr[ILLEGAL].string, *s.startiptr);
-    } 
+    }
     s.parm->rettype = illegtype;
-} 
+}
 
 
 /****************************************************************************/
@@ -2121,13 +2121,13 @@ op_IL(STATE &s, FLAGS UNUSED & flags )
 /*              none                                                        */
 /*                                                                          */
 /****************************************************************************/
-static void 
-operandMemop(STATE &s, FLAGS & flags) 
+static void
+operandMemop(STATE &s, FLAGS & flags)
 {
     if (flags.Dbit == DBit_MemToReg) {
-        if (flags.MMXop) 
+        if (flags.MMXop)
             operandMMXreg(s, flags.regf, ",");
-        else 
+        else
             operandRegister(s, flags.regf,flags, ",");
     }
 
@@ -2135,7 +2135,7 @@ operandMemop(STATE &s, FLAGS & flags)
 
     if (flags.mod == 3) {                    // operand is a register
         // it is illegal for a LOCK prefix to be present if there is no memory op
-        if (flags.replock == replockLOCK) 
+        if (flags.replock == replockLOCK)
             throw IllegalOp(s);
 
         if (s.ibuff) {
@@ -2156,13 +2156,13 @@ operandMemop(STATE &s, FLAGS & flags)
         } else {
             operandTableItem(s, PTRbyte,PTRsize);
         }
- 
+
         // must show displacement if base and index are not present,
         // even if the displacement is 0
-        int mustShowDisp = !s.basereg && !s.indexreg;  
+        int mustShowDisp = !s.basereg && !s.indexreg;
 
         char paren = '[';
- 
+
         if (s.ovseg) {                      // override segment present
             operandSegRegister(s, s.ovseg-1, ":");
             s.ovseg = 0;                      // delete it - used
@@ -2170,8 +2170,8 @@ operandMemop(STATE &s, FLAGS & flags)
             // need to explicitly show the segment register if displacement only
             operandSegRegister(s, s.defseg-1, ":");
         }
- 
-        if (s.basereg) {                   
+
+        if (s.basereg) {
             // there is a base register
             ibuff_gets(s, paren);
             paren = '+';
@@ -2179,9 +2179,9 @@ operandMemop(STATE &s, FLAGS & flags)
                 operandTableItem(s, s.basereg-1, reg32);
             else
                 operandTableItem(s, s.basereg-1, reg16);
-        } 
- 
-        if (s.indexreg) {             
+        }
+
+        if (s.indexreg) {
             // there is an index register
             ibuff_gets(s, paren);
             paren = '+';
@@ -2189,21 +2189,21 @@ operandMemop(STATE &s, FLAGS & flags)
                 operandTableItem(s, s.indexreg-1, reg32);
             else
                 operandTableItem(s, s.indexreg-1, reg16);
- 
+
             switch (s.scalefactor) {
             case 1 :
                 operandString(s, "*2");
                 break;
             case 2 :
-                operandString(s, "*4"); 
+                operandString(s, "*4");
                 break;
             case 3 :
-                operandString(s, "*8"); 
+                operandString(s, "*8");
                 break;
             } // endswitch
-        } 
- 
-        if (s.opdisp || mustShowDisp) {   
+        }
+
+        if (s.opdisp || mustShowDisp) {
             // put out a paren if we have not done so yet
             if (paren == '[') {
                 ibuff_gets(s, '[');
@@ -2211,7 +2211,7 @@ operandMemop(STATE &s, FLAGS & flags)
 
             operandSignedHex(s, s.opdisp);
         } // endif
- 
+
         // we have output a left parenthesis - output a right parenthesis to match
         ibuff_gets(s, ']');
 
@@ -2222,12 +2222,12 @@ operandMemop(STATE &s, FLAGS & flags)
         /* register is second operand - print register name                     */
         /************************************************************************/
         operandChar(s, ',');
-        if (flags.MMXop) 
+        if (flags.MMXop)
             operandMMXreg(s, flags.regf);
-        else 
+        else
             operandRegister(s, flags.regf,flags);
     } // endif
-} 
+}
 
 
 /****************************************************************************/
@@ -2245,13 +2245,13 @@ operandMemop(STATE &s, FLAGS & flags)
 /*              none                                                        */
 /*                                                                          */
 /****************************************************************************/
-static void 
-getNormalMemop(STATE &s, FLAGS & flags) 
-{ 
+static void
+getNormalMemop(STATE &s, FLAGS & flags)
+{
     flags = getMemop(s, flags);
     operandMemop(s, flags);
 }
-   
+
 /****************************************************************************/
 /****************************** getMemop ************************************/
 /****************************************************************************/
@@ -2266,8 +2266,8 @@ getNormalMemop(STATE &s, FLAGS & flags)
 /*              none                                                        */
 /*                                                                          */
 /****************************************************************************/
-static FLAGS 
-getMemop(STATE &s, FLAGS flags) 
+static FLAGS
+getMemop(STATE &s, FLAGS flags)
 {
     UCHAR ic;
     s.opdisp = 0;
@@ -2316,8 +2316,8 @@ getMemop(STATE &s, FLAGS flags)
 /*              none                                                        */
 /*                                                                          */
 /****************************************************************************/
-static void 
-memopSetParms(STATE &s, FLAGS flags) 
+static void
+memopSetParms(STATE &s, FLAGS flags)
 {
     if (flags.mod != 3) {
         if (flags.disppres)
@@ -2327,7 +2327,7 @@ memopSetParms(STATE &s, FLAGS flags)
                 s.parm->rettype = membtype;
             else
                 s.parm->rettype = memwtype;
-        } 
+        }
 #if RETPARMS
         if (s.basereg != 0) {
             s.parm->retbase = (UCHAR)(s.basereg-1);
@@ -2346,7 +2346,7 @@ memopSetParms(STATE &s, FLAGS flags)
             s.parm->retreg = s.ovseg;
         }
 #endif
-    } 
+    }
 }
 
 /***************************************************************************/
@@ -2400,7 +2400,7 @@ memopSetParms(STATE &s, FLAGS flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_NL(STATE UNUSED &s, FLAGS UNUSED & flags)
 {
 }
@@ -2435,7 +2435,7 @@ op_00(STATE &s, FLAGS & flags)
 {
     getMod_rm_dw(s, flags);
     getNormalMemop(s, flags);
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -2456,12 +2456,12 @@ op_00(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
-op_04(STATE &s, FLAGS & flags) 
+static void
+op_04(STATE &s, FLAGS & flags)
 {
     setw(s, flags);
 
-    if (flags.replock == replockLOCK) 
+    if (flags.replock == replockLOCK)
         throw IllegalOp(s);
 
     flags.regf = 0;                            // the register is EAX/AX/AL
@@ -2479,7 +2479,7 @@ op_04(STATE &s, FLAGS & flags)
         s.parm->retreg += 8;
     s.parm->retimmed = Dword1;
 #endif
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -2504,7 +2504,7 @@ op_0C(STATE &s, FLAGS & flags)
 {
     setw(s, flags);
 
-    if (flags.replock == replockLOCK) 
+    if (flags.replock == replockLOCK)
         throw IllegalOp(s);
 
     flags.regf = 0;                            // the register is EAX/AX/AL
@@ -2521,7 +2521,7 @@ op_0C(STATE &s, FLAGS & flags)
         s.parm->retreg += 8;
     s.parm->retimmed = Dword1;
 #endif
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -2543,12 +2543,12 @@ op_0C(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
-op_06(STATE &s, FLAGS UNUSED & flags) 
+static void
+op_06(STATE &s, FLAGS UNUSED & flags)
 {
     int Dword1 = (s.instr & 0x18) >> 3;   // get register number
     operandSegRegister(s, Dword1);
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -2565,34 +2565,34 @@ op_06(STATE &s, FLAGS UNUSED & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
-op_0F(STATE &s, FLAGS & flags) 
+static void
+op_0F(STATE &s, FLAGS & flags)
 {
     static opcodeFunction *const opcode0FTable[] =  {
         //  0        1        2        3        4        5        6        7        8        9        A        B        C        D        E        F    */
-        op_0F00, op_0F01, op_0F02, op_0F02, op_IL  , op_IL  , op_NL  , op_IL  , op_NL  , op_NL  , op_IL  , op_NL  , op_IL  , op_IL  , op_IL  , op_IL  ,  // 0 
-        op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  ,  // 1 
+        op_0F00, op_0F01, op_0F02, op_0F02, op_IL  , op_IL  , op_NL  , op_IL  , op_NL  , op_NL  , op_IL  , op_NL  , op_IL  , op_IL  , op_IL  , op_IL  ,  // 0
+        op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  ,  // 1
         op_0F20, op_0F20, op_0F20, op_0F20, op_0F24, op_IL  , op_0F24, op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  ,  // 2
-        op_NL  , op_NL  , op_NL  , op_NL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  ,  // 3 
-        op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40,  // 4 
-        op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  ,  // 5 
-        op_0F60, op_0F60, op_0F60, op_0F64, op_0F64, op_0F64, op_0F64, op_0F64, op_0F64, op_0F64, op_0F64, op_0F64, op_IL  , op_IL  , op_0F6E, op_0F6F,  // 6 
-        op_IL  , op_0F71, op_0F71, op_0F71, op_0F64, op_0F64, op_0F64, op_NL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_0F6E, op_0F6F,  // 7 
-        op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80,  // 8 
-        op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90,  // 9 
+        op_NL  , op_NL  , op_NL  , op_NL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  ,  // 3
+        op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40,  // 4
+        op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  ,  // 5
+        op_0F60, op_0F60, op_0F60, op_0F64, op_0F64, op_0F64, op_0F64, op_0F64, op_0F64, op_0F64, op_0F64, op_0F64, op_IL  , op_IL  , op_0F6E, op_0F6F,  // 6
+        op_IL  , op_0F71, op_0F71, op_0F71, op_0F64, op_0F64, op_0F64, op_NL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_0F6E, op_0F6F,  // 7
+        op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80,  // 8
+        op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90,  // 9
         op_0FA0, op_0FA0, op_NL  , op_0FBB, op_0FA4, op_0FA4, op_0FA6, op_0FA6, op_0FA8, op_0FA8, op_NL  , op_0FBB, op_0FA4, op_0FA4, op_IL  , op_0FAF,  // A
-        op_0FB0, op_0FB0, op_0FB2, op_0FBB, op_0FB2, op_0FB2, op_0FB6, op_0FB7, op_IL  , op_IL  , op_0FBA, op_0FBB, op_0FAF, op_0FAF, op_0FB6, op_0FB7,  // B 
+        op_0FB0, op_0FB0, op_0FB2, op_0FBB, op_0FB2, op_0FB2, op_0FB6, op_0FB7, op_IL  , op_IL  , op_0FBA, op_0FBB, op_0FAF, op_0FAF, op_0FB6, op_0FB7,  // B
         op_0FC0, op_0FC0, op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_0FC7, op_0FC8, op_0FC8, op_0FC8, op_0FC8, op_0FC8, op_0FC8, op_0FC8, op_0FC8,  // C
-        op_IL  , op_0F64, op_0F64, op_0F64, op_IL  , op_0F64, op_IL  , op_IL  , op_0F64, op_0F64, op_IL  , op_0F64, op_0F64, op_0F64, op_IL  , op_0F64,  // D 
-        op_IL  , op_0F64, op_0F64, op_IL  , op_IL  , op_0F64, op_IL  , op_IL  , op_0F64, op_0F64, op_IL  , op_0F64, op_0F64, op_0F64, op_IL  , op_0F64,  // E 
-        op_IL  , op_0F64, op_0F64, op_0F64, op_IL  , op_0F64, op_IL  , op_IL  , op_0F64, op_0F64, op_0F64, op_IL  , op_0F64, op_0F64, op_0F64, op_IL     // F 
+        op_IL  , op_0F64, op_0F64, op_0F64, op_IL  , op_0F64, op_IL  , op_IL  , op_0F64, op_0F64, op_IL  , op_0F64, op_0F64, op_0F64, op_IL  , op_0F64,  // D
+        op_IL  , op_0F64, op_0F64, op_IL  , op_IL  , op_0F64, op_IL  , op_IL  , op_0F64, op_0F64, op_IL  , op_0F64, op_0F64, op_0F64, op_IL  , op_0F64,  // E
+        op_IL  , op_0F64, op_0F64, op_0F64, op_IL  , op_0F64, op_IL  , op_IL  , op_0F64, op_0F64, op_0F64, op_IL  , op_0F64, op_0F64, op_0F64, op_IL     // F
     } ;
 
     /**************************************************************************/
     /* mnemonic numbers for 0F orders                                         */
     /**************************************************************************/
     static const USHORT mnem0F[256] =  {
-        //0         1          2          3         4        5        6        7         8          9          A          B         C        D        E       F     
+        //0         1          2          3         4        5        6        7         8          9          A          B         C        D        E       F
         odd      , odd      , LAR      , LSL     , ILLEGAL, ILLEGAL, CLTS   , ILLEGAL , INVD     , WBINVD   , ILLEGAL  , UD2     , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL, // 0
         ILLEGAL  , ILLEGAL  , ILLEGAL  , ILLEGAL , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL , ILLEGAL  , ILLEGAL  , ILLEGAL  , ILLEGAL , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL, // 1
         MOV      , MOV      , MOV      , MOV     , MOV    , ILLEGAL, MOV    , ILLEGAL , ILLEGAL  , ILLEGAL  , ILLEGAL  , ILLEGAL , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL, // 2
@@ -2636,10 +2636,10 @@ op_0F(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
-op_26(STATE &s, FLAGS & flags) 
+static void
+op_26(STATE &s, FLAGS & flags)
 {
-    if (s.ovseg) 
+    if (s.ovseg)
         throw IllegalOp(s);             // two segment overrides indicates a problem
 
     switch (s.instr) {
@@ -2663,7 +2663,7 @@ op_26(STATE &s, FLAGS & flags)
         break;
     } /* endswitch */
     flags.prefix = 1;
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -2682,17 +2682,17 @@ op_26(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
-op_40(STATE &s, FLAGS & flags) 
+static void
+op_40(STATE &s, FLAGS & flags)
 {
-    if (flags.replock == replockLOCK) 
+    if (flags.replock == replockLOCK)
         throw IllegalOp(s);
 
     flags.regf = s.instr & 0x07;                 // get register number
     flags.Wbit = 1;                      // force 16 or 32 bit register
-  
+
     operandRegister(s, flags.regf,flags);
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -2706,19 +2706,19 @@ op_40(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
-op_62(STATE &s, FLAGS & flags) 
+static void
+op_62(STATE &s, FLAGS & flags)
 {
     getMod_rm_dw(s, flags);
     if (flags.mod == 3)
-        throw IllegalOp(s);   // illegal if second operand would be a register 
+        throw IllegalOp(s);   // illegal if second operand would be a register
 
     flags.Dbit = DBit_MemToReg;       // register is first operand
     flags.Wbit = 1;                   // word operation
-    flags.sizePrefix = (flags.opsize32) ? sizeQword : sizeDword;       
+    flags.sizePrefix = (flags.opsize32) ? sizeQword : sizeDword;
     s.parm->rettype = BOUNDtype;
     getNormalMemop(s, flags);
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -2732,10 +2732,10 @@ op_62(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_63(STATE &s, FLAGS & flags)
 {
-    if (flags.opsizeover) 
+    if (flags.opsizeover)
         throw IllegalOp(s);
 
     getMod_rm_dw(s, flags);
@@ -2748,7 +2748,7 @@ op_63(STATE &s, FLAGS & flags)
 #endif
 
     getNormalMemop(s, flags);
-} 
+}
 
 
 /***************************************************************************/
@@ -2763,15 +2763,15 @@ op_63(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_66(STATE &s, FLAGS & flags)
 {
-  if (flags.opsizeover) 
+  if (flags.opsizeover)
     throw IllegalOp(s);       // two opsize overrides indicates a problem
 
   flags.opsizeover = 1;                      // note we have had this
   flags.prefix = 1;
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -2785,15 +2785,15 @@ op_66(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_67(STATE &s, FLAGS & flags)
 {
-  if (flags.addrover) 
+  if (flags.addrover)
     throw IllegalOp(s); // two address size overrides indicates a problem
 
   flags.addrover = 1;                       // note we have had this
   flags.prefix = 1;
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -2809,13 +2809,13 @@ op_67(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_68(STATE &s, FLAGS & flags)
 {
   flags.Wbit = 1;                     // always a word operation
   ULONG Dword1 = getImmediate(s, flags);
   operandHex(s, Dword1);
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -2834,7 +2834,7 @@ op_68(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_69(STATE &s, FLAGS & flags)
 {
   getMod_rm_dw(s, flags);
@@ -2845,13 +2845,13 @@ op_69(STATE &s, FLAGS & flags)
      flags.Dbit = DBit_MemToReg;   // register is first operand
      getNormalMemop(s, flags);
   } // endif
-  if (s.instr == 0x6B) 
+  if (s.instr == 0x6B)
      flags.Wbit = 0;    // force a byte operation
 
   long Dword1 = getSignedImmediate(s, flags);  // 8, 16 or 32 bit
   operandChar(s, ',');
   operandSignedHex(s, Dword1);
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -2867,13 +2867,13 @@ op_69(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_6A(STATE &s, FLAGS & flags)
 {
   flags.Wbit = 0;                     // always a byte operation
   long Dword1 = getSignedImmediate(s, flags);
   operandHex(s, Dword1);
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -2893,7 +2893,7 @@ op_6A(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_70(STATE &s, FLAGS UNUSED & flags)
 {
 
@@ -2901,7 +2901,7 @@ op_70(STATE &s, FLAGS UNUSED & flags)
   operandRel(s, ic);
   s.parm->rettype = jreltype;
   s.parm->retoffset = ic;
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -2930,7 +2930,7 @@ op_70(STATE &s, FLAGS UNUSED & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_80(STATE &s, FLAGS UNUSED & flags)
 {
   long Dword2;
@@ -2962,11 +2962,11 @@ op_80(STATE &s, FLAGS UNUSED & flags)
      // arithmetic
      operandSignedHex(s, Dword2);
      break;
-  default: 
+  default:
      // logical
      operandHex(s, Dword2 & immmask);
   } // endswitch
-} 
+}
 
 #if OP82
    /***************************************************************************/
@@ -2985,12 +2985,12 @@ op_80(STATE &s, FLAGS UNUSED & flags)
    /***************************************************************************/
    static void op_82(FLAGS & flags) {
      flags.Wbit = 0;  // force immediate data to be a byte
-   
+
      long Dword2 = getSignedImmediate(s, flags);
      operandRegister(s, AL,flags, ",");
      long Dword2 = getSignedImmediate(s, flags);
      operandSignedHex(s, Dword2);
-   } 
+   }
 #endif
 
 /***************************************************************************/
@@ -3009,7 +3009,7 @@ op_80(STATE &s, FLAGS UNUSED & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_8C(STATE &s, FLAGS & flags)
 {
   getMod_rm_dw(s, flags);
@@ -3021,7 +3021,7 @@ op_8C(STATE &s, FLAGS & flags)
   #if RETPARMS
     s.parm->retbits &= 0xFE;           // clear 32-bit address marker
   #endif
-   
+
   if (s.instr & 2) {
      operandSegRegister(s, flags.regf, ",");
      getNormalMemop(s, flags);
@@ -3030,7 +3030,7 @@ op_8C(STATE &s, FLAGS & flags)
      operandChar(s, ',');
      operandSegRegister(s, flags.regf);
   } // endif
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -3044,7 +3044,7 @@ op_8C(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_8D(STATE &s, FLAGS & flags)
 {
   getMod_rm_dw(s, flags);
@@ -3055,7 +3055,7 @@ op_8D(STATE &s, FLAGS & flags)
   flags.Wbit = 1;                 // force a word operation
   s.parm->rettype = LEAtype;
   getNormalMemop(s, flags);
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -3071,18 +3071,18 @@ op_8D(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_8F(STATE &s, FLAGS & flags)
 {
-  
+
   getMod_rm_dw(s, flags);
-  if (flags.regf != 0) 
+  if (flags.regf != 0)
     throw IllegalOp(s);
 
   flags.Dbit = DBit_Mem1op;           // no register operand
   flags.Wbit = 1;                     // force a word operation
   getNormalMemop(s, flags);
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -3096,10 +3096,10 @@ op_8F(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_91(STATE &s, FLAGS & flags)
 {
-  if (flags.replock == replockLOCK) 
+  if (flags.replock == replockLOCK)
      throw IllegalOp(s);
   if (flags.opsize32) {
     operandTableItem(s, EAX, reg32, ",");
@@ -3109,7 +3109,7 @@ op_91(STATE &s, FLAGS & flags)
   flags.regf = (UCHAR)(s.instr&0x07);          // get register number
   flags.Wbit = 1;                            // force 16 or 32 bit register
   operandRegister(s, flags.regf,flags);
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -3126,7 +3126,7 @@ op_91(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_9A(STATE &s, FLAGS & flags)
 {
   s.parm->rettype = (s.instr == 0x9A) ? cfarimmtype : jfarimmtype;
@@ -3139,7 +3139,7 @@ op_9A(STATE &s, FLAGS & flags)
   #if RETPARMS
     s.parm->retseg = (USHORT)Dword1;
   #endif
-} 
+}
 
 
 /***************************************************************************/
@@ -3156,18 +3156,18 @@ op_9A(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_9B(STATE &s, FLAGS & flags)
 {
    // check to see if the next instruction is an NPX instruction
    UCHAR ic1 = *(s.parm->iptr);
-   if (ic1 < 0xD8 || ic1 > 0xDF ) 
+   if (ic1 < 0xD8 || ic1 > 0xDF )
       return;   // just a WAIT
 
    // we have a WAIT-modified NPX instruction
    flags.waitOp = 1;
    flags.prefix = 1;
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -3183,11 +3183,11 @@ op_9B(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_A0(STATE &s, FLAGS & flags)
 {
   setdw(s, flags);
-  // flip the state of the dbit 
+  // flip the state of the dbit
   flags.Dbit = (flags.Dbit == DBit_MemToReg) ? DBit_RegToMem : DBit_MemToReg;
   s.opdisp = getDisplacement(s, flags);
   flags.regf = 0;
@@ -3198,7 +3198,7 @@ op_A0(STATE &s, FLAGS & flags)
   s.scalefactor = 0;
   flags.disppres = 1;
   operandMemop(s, flags);
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -3219,7 +3219,7 @@ op_A0(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_A4(STATE &s, FLAGS & flags)
 {
   #if RETPARMS
@@ -3239,7 +3239,7 @@ op_A4(STATE &s, FLAGS & flags)
   else
     s.parm->rettype = strwtype;
 
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -3258,7 +3258,7 @@ op_A4(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_AA(STATE &s, FLAGS & flags)
 {
   #if RETPARMS
@@ -3279,7 +3279,7 @@ op_AA(STATE &s, FLAGS & flags)
   else
     s.parm->rettype = strwtype;
 
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -3295,7 +3295,7 @@ op_AA(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_B0(STATE &s, FLAGS & flags)
 {
   flags.Wbit = 0;          // 8 bit operation marker
@@ -3308,7 +3308,7 @@ op_B0(STATE &s, FLAGS & flags)
     s.parm->retreg = flags.regf + 16;
     s.parm->retimmed = ic;
   #endif
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -3324,7 +3324,7 @@ op_B0(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_B8(STATE &s, FLAGS & flags)
 {
   flags.Wbit = 1;                             // 8/16 bit operation marker
@@ -3339,7 +3339,7 @@ op_B8(STATE &s, FLAGS & flags)
         s.parm->retreg += 8;
     s.parm->retimmed = Dword1;
   #endif
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -3365,14 +3365,14 @@ op_B8(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_C0(STATE &s, FLAGS & flags)
 {
   getMod_rm_dw(s, flags);
-  if (flags.regf == 6) 
+  if (flags.regf == 6)
     throw IllegalOp(s);
 
-  flags.Dbit = DBit_Mem1op; 
+  flags.Dbit = DBit_Mem1op;
   ULONG Dword2 = flags.regf;
   mnemonicStd(s, flags,shiftmnem[Dword2]);
   getNormalMemop(s, flags);
@@ -3380,7 +3380,7 @@ op_C0(STATE &s, FLAGS & flags)
   ULONG Dword1 = getImmediate(s, flags);
   operandChar(s, ',');
   operandDecimal(s, Dword1);
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -3395,7 +3395,7 @@ op_C0(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_C2(STATE &s, FLAGS UNUSED & flags)
 {
   USHORT Dword1 = getNextWord(s);
@@ -3405,7 +3405,7 @@ op_C2(STATE &s, FLAGS UNUSED & flags)
     s.parm->rettype = retneartype;
   else                                 // assume s.instr = 0xCA - RETF/RET
     s.parm->rettype = retfartype;
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -3419,12 +3419,12 @@ op_C2(STATE &s, FLAGS UNUSED & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_C3(STATE &s, FLAGS UNUSED & flags)
 {
   s.parm->rettype = retneartype;
   s.parm->retoffset = 0;                 // it is RET 0
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -3439,7 +3439,7 @@ op_C3(STATE &s, FLAGS UNUSED & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_C4(STATE &s, FLAGS & flags)
 {
   getMod_rm_dw(s, flags);
@@ -3450,7 +3450,7 @@ op_C4(STATE &s, FLAGS & flags)
   flags.Wbit = 1;                 // force a word operation
   s.parm->rettype = memwwtype;
   getNormalMemop(s, flags);
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -3466,11 +3466,11 @@ op_C4(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_C6(STATE &s, FLAGS & flags)
 {
   getMod_rm_dw(s, flags);
-  if (flags.regf != 0) 
+  if (flags.regf != 0)
     throw IllegalOp(s);
 
   flags.Dbit = DBit_Mem1op;         // immediate operand
@@ -3478,7 +3478,7 @@ op_C6(STATE &s, FLAGS & flags)
   ULONG Dword1 = getImmediate(s, flags);
   operandChar(s, ',');
   operandHex(s, Dword1);
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -3492,10 +3492,10 @@ op_C6(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_C8(STATE &s, FLAGS & flags)
 {
-  if (flags.opsizeover) 
+  if (flags.opsizeover)
      throw IllegalOp(s);
 
   flags.Wbit = 1;                     // a word immediate operand
@@ -3505,7 +3505,7 @@ op_C8(STATE &s, FLAGS & flags)
   flags.Wbit = 0;                     // then a byte immediate operand
   Dword1 = getImmediate(s, flags);
   operandDecimal(s, Dword1);
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -3519,12 +3519,12 @@ op_C8(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_CB(STATE &s, FLAGS UNUSED & flags)
 {
   s.parm->rettype = retfartype;
   s.parm->retoffset = 0;                 // it is RETF 0
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -3538,14 +3538,14 @@ op_CB(STATE &s, FLAGS UNUSED & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_CC(STATE &s, FLAGS UNUSED & flags)
 {
   UCHAR ic = 3;
   operandHex(s, ic);
   s.parm->retoffset = ic;
   s.parm->rettype = intntype;
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -3559,14 +3559,14 @@ op_CC(STATE &s, FLAGS UNUSED & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_CD(STATE &s, FLAGS UNUSED & flags)
 {
   UCHAR ic = getNextByte(s);                       // get next byte of instruction
   operandHex(s, ic);
   s.parm->retoffset = ic;
   s.parm->rettype = intntype;
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -3580,13 +3580,13 @@ op_CD(STATE &s, FLAGS UNUSED & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_CE(STATE &s, FLAGS UNUSED & flags)
 {
   UCHAR ic = 4;
   s.parm->retoffset = ic;
   s.parm->rettype = intntype;
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -3600,12 +3600,12 @@ op_CE(STATE &s, FLAGS UNUSED & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_CF(STATE &s, FLAGS UNUSED & flags)
 {
   s.parm->rettype = intrettype;
   s.parm->retoffset = 0;
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -3631,15 +3631,15 @@ op_CF(STATE &s, FLAGS UNUSED & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_D0(STATE &s, FLAGS & flags)
 {
   getMod_rm_dw(s, flags);
-  if (flags.regf == 6) 
+  if (flags.regf == 6)
     throw IllegalOp(s);
 
   int shift1 = (flags.Dbit == DBit_RegToMem);
-  flags.Dbit = DBit_Mem1op;                 
+  flags.Dbit = DBit_Mem1op;
   ULONG Dword2 = flags.regf;
   mnemonicStd(s, flags,shiftmnem[Dword2]);
   getNormalMemop(s, flags);
@@ -3649,7 +3649,7 @@ op_D0(STATE &s, FLAGS & flags)
      operandChar(s, ',');
      operandTableItem(s, CL, reg8);
   } // endif
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -3664,13 +3664,13 @@ op_D0(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_D4(STATE &s, FLAGS UNUSED & flags)
 {
   UCHAR ic = getNextByte(s);
-  if (ic != 0x0A) 
+  if (ic != 0x0A)
     throw IllegalOp(s);
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -3684,7 +3684,7 @@ op_D4(STATE &s, FLAGS UNUSED & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_D7(STATE &s, FLAGS & flags)
 {
   #if RETPARMS
@@ -3699,7 +3699,7 @@ op_D7(STATE &s, FLAGS & flags)
       s.parm->retbase = BX;                 // BX
   #endif
   s.parm->rettype = xlattype;
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -3729,7 +3729,7 @@ op_D7(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_D8(STATE &s, FLAGS & flags)
 {
   /*************************************************************************/
@@ -3742,22 +3742,22 @@ op_D8(STATE &s, FLAGS & flags)
     F2XM1, FYL2X,   FPTAN,  FPATAN,  FXTRACT, FPREM1, FDECSTP, FINCSTP,
     FPREM, FYL2XP1, FSQRT,  FSINCOS, FRNDINT, FSCALE, FSIN,    FCOS
   } ;
-  
+
   /**************************************************************************/
   /* the following table is the mnemonic table for memory access 387        */
   /* instructions not preceeded by a "WAIT" opcode                          */
   /**************************************************************************/
   static const USHORT m387mem[64] =  {
-    FADD , FMUL   , FCOM , FCOMP , FSUB   , FSUBR  , FDIV   , FDIVR , // 00  0 (D8)  
-    FLD  , ILLEGAL, FST  , FSTP  , FLDENV , FLDCW  , FNSTENV, FNSTCW, // 08  8 (D9)  
-    FIADD, FIMUL  , FICOM, FICOMP, FISUB  , FISUBR , FIDIV  , FIDIVR, // 10 16 (DA)  
-    FILD , ILLEGAL, FIST , FISTP , ILLEGAL, FLD    , ILLEGAL, FSTP  , // 18 24 (DB)  
-    FADD , FMUL   , FCOM , FCOMP , FSUB   , FSUBR  , FDIV   , FDIVR , // 20 32 (DC)  
+    FADD , FMUL   , FCOM , FCOMP , FSUB   , FSUBR  , FDIV   , FDIVR , // 00  0 (D8)
+    FLD  , ILLEGAL, FST  , FSTP  , FLDENV , FLDCW  , FNSTENV, FNSTCW, // 08  8 (D9)
+    FIADD, FIMUL  , FICOM, FICOMP, FISUB  , FISUBR , FIDIV  , FIDIVR, // 10 16 (DA)
+    FILD , ILLEGAL, FIST , FISTP , ILLEGAL, FLD    , ILLEGAL, FSTP  , // 18 24 (DB)
+    FADD , FMUL   , FCOM , FCOMP , FSUB   , FSUBR  , FDIV   , FDIVR , // 20 32 (DC)
     FLD  , ILLEGAL, FST  , FSTP  , FRSTOR , ILLEGAL, FNSAVE , FNSTSW, // 28 40 (DD)
-    FIADD, FIMUL  , FICOM, FICOMP, FISUB  , FISUBR , FIDIV  , FIDIVR, // 30 48 (DE)  
+    FIADD, FIMUL  , FICOM, FICOMP, FISUB  , FISUBR , FIDIV  , FIDIVR, // 30 48 (DE)
     FILD , ILLEGAL, FIST , FISTP , FBLD   , FILD   , FBSTP  , FISTP   // 38 56 (DF)
   } ;
-  
+
   /**************************************************************************/
   /* the following table is the mnemonic table for memory access 387        */
   /* instructions preceeded by a "WAIT" opcode                              */
@@ -3772,7 +3772,7 @@ op_D8(STATE &s, FLAGS & flags)
     FIADD, FIMUL  , FICOM, FICOMP, FISUB  , FISUBR , FIDIV  , FIDIVR, // 30 48 (DE)
     FILD , ILLEGAL, FIST , FISTP , FBLD   , FILD   , FBSTP  , FISTP   // 38 56 (DF)
   } ;
-  
+
   /**************************************************************************/
   /* the following table is the mnemonic table for 387 instructions with a  */
   /* reg field                                                              */
@@ -3799,7 +3799,7 @@ op_D8(STATE &s, FLAGS & flags)
 
   UCHAR ESCinstr;
 
-  if (flags.opsizeover) 
+  if (flags.opsizeover)
      throw IllegalOp(s);
 
   getMod_rm_dw(s, flags);
@@ -3809,13 +3809,13 @@ op_D8(STATE &s, FLAGS & flags)
     #if RETPARMS
       s.parm->retescape = (USHORT)(((((s.instr & 0x07) << 3) + flags.regf) << 3)+flags.rm);
     #endif
-  } 
+  }
   else {
     s.parm->rettype = escmemtype;
     #if RETPARMS
       s.parm->retescape = (USHORT)(((s.instr&0x07) << 3)+flags.regf);
     #endif
-  } 
+  }
   if ((s.parm->flagbits & N387mask) == 0) {// do not perform 287/387 decode
     mnemonicStd(s, flags,ESC);    // ESCAPE/ESC
     flags.Dbit = DBit_Mem1op;      // a special case
@@ -3829,7 +3829,7 @@ op_D8(STATE &s, FLAGS & flags)
       operandMemop(s, flags);
     } else
       operandHex(s, ((((s.instr&0x07) << 3)+flags.regf) << 3)+flags.rm);
-  } else {  
+  } else {
     // we are to perform 287/387 decode
 
     ESCinstr = (UCHAR)(((s.instr&7) << 3)+flags.regf);
@@ -3842,21 +3842,21 @@ op_D8(STATE &s, FLAGS & flags)
       /*********************************************************************/
       /* operand size table                                                */
       /*********************************************************************/
-      static const char sizecode[64] = { 
-      //     0          1          2          3          4          5          6          7          
-         sizeDword, sizeDword, sizeDword, sizeDword, sizeDword, sizeDword, sizeDword, sizeDword,  // D8 
+      static const char sizecode[64] = {
+      //     0          1          2          3          4          5          6          7
+         sizeDword, sizeDword, sizeDword, sizeDword, sizeDword, sizeDword, sizeDword, sizeDword,  // D8
          sizeDword, sizeNone,  sizeDword, sizeDword, sizeNone,  sizeWord,  sizeNone,  sizeWord,   // D9
-         sizeDword, sizeDword, sizeDword, sizeDword, sizeDword, sizeDword, sizeDword, sizeDword,  // DA 
-         sizeDword, sizeNone,  sizeDword, sizeDword, sizeNone,  sizeTbyte, sizeNone,  sizeTbyte,  // DB 
-         sizeQword, sizeQword, sizeQword, sizeQword, sizeQword, sizeQword, sizeQword, sizeQword,  // DC 
+         sizeDword, sizeDword, sizeDword, sizeDword, sizeDword, sizeDword, sizeDword, sizeDword,  // DA
+         sizeDword, sizeNone,  sizeDword, sizeDword, sizeNone,  sizeTbyte, sizeNone,  sizeTbyte,  // DB
+         sizeQword, sizeQword, sizeQword, sizeQword, sizeQword, sizeQword, sizeQword, sizeQword,  // DC
          sizeQword, sizeNone,  sizeQword, sizeQword, sizeNone,  sizeNone,  sizeNone,  sizeWord,   // DD
-         sizeWord,  sizeWord,  sizeWord,  sizeWord,  sizeWord,  sizeWord,  sizeWord,  sizeWord,   // DE 
-         sizeWord,  sizeNone,  sizeWord,  sizeWord,  sizeTbyte, sizeQword, sizeTbyte, sizeQword}; // DF 
+         sizeWord,  sizeWord,  sizeWord,  sizeWord,  sizeWord,  sizeWord,  sizeWord,  sizeWord,   // DE
+         sizeWord,  sizeNone,  sizeWord,  sizeWord,  sizeTbyte, sizeQword, sizeTbyte, sizeQword}; // DF
 
       flags.sizePrefix = sizecode[ESCinstr];  // set operand size
       flags.Dbit = DBit_Mem1op;               // only 1 memory operand
       getNormalMemop(s, flags);
-    } else {      
+    } else {
       // it is a non-memory operation - switch on Escape opcode
 
 //      int ct = 0;
@@ -3901,7 +3901,7 @@ op_D8(STATE &s, FLAGS & flags)
         case 5:                      // FXAM D9 E5
            mnemonicStd(s, flags,mnemD94[flags.rm]);
            break;
-        default: 
+        default:
            throw IllegalOp(s);
         } // endswitch
         break;
@@ -3917,7 +3917,7 @@ op_D8(STATE &s, FLAGS & flags)
         case 6:                      // FLDZ   D9 EE
            mnemonicStd(s, flags,mnemD94[8 + flags.rm]);
            break;
-        default: 
+        default:
            throw IllegalOp(s);
         } // endswitch
         break;
@@ -3930,7 +3930,7 @@ op_D8(STATE &s, FLAGS & flags)
                                      // FPREM1  D9 F5
                                      // FDECSTP D9 F6
                                      // FINCSTP D9 F7
-        mnemonicStd(s, flags,mnemD94[16 + flags.rm]); 
+        mnemonicStd(s, flags,mnemD94[16 + flags.rm]);
         break;
 
       case 15 :                      // FPREM    D9 F8
@@ -3941,20 +3941,20 @@ op_D8(STATE &s, FLAGS & flags)
                                      // FSCALE   D9 FD
                                      // FSIN     D9 FE
                                      // FCOS     D9 FF
-        mnemonicStd(s, flags,mnemD94[24 + flags.rm]); 
+        mnemonicStd(s, flags,mnemD94[24 + flags.rm]);
         break;
 
       case 21 :                      // FUCOMPP DA E9
-        if (flags.rm != 1) 
+        if (flags.rm != 1)
           throw IllegalOp(s);
         mnemonicStd(s, flags,FUCOMPP);
         break;
 
-      case 28 :                     
+      case 28 :
         switch (flags.rm) {
         case 2:                      // FCLEX / FNCLEX  DB E2
         case 3:                      // FINIT / FNINIT  DB E3
-           mnemonicStd(s, flags,mnemDB4[flags.rm + (flags.waitOp ? 8 : 0)]); 
+           mnemonicStd(s, flags,mnemDB4[flags.rm + (flags.waitOp ? 8 : 0)]);
            break;
         case 0:                      // FENI / FNENI    DB E0 - 8087 instruction only
         case 1:                      // FDISI / FNDISI  DB E1 - 8087 instruction only
@@ -3983,7 +3983,7 @@ op_D8(STATE &s, FLAGS & flags)
         operandString(s, "ST(");
         operandDecimal(s, flags.rm, "),ST"); // print register number
         break;
-                                                                                                                                                                                                                                                            
+
       case 2 :                       // FCOM   D8 D0/D7
       case 3 :                       // FCOMP  D8 D8/DF
       case 8 :                       // FLD    D9 C0/C7
@@ -4002,13 +4002,13 @@ op_D8(STATE &s, FLAGS & flags)
         break;
 
       case 51 :                      // FCOMPP DE D9
-        if (flags.rm != 1) 
+        if (flags.rm != 1)
           throw IllegalOp(s);
         mnemonicStd(s, flags,FCOMPP);
         break;
 
       case 60 :                      // FSTSW AX  DF E0
-        if (flags.rm != 0) 
+        if (flags.rm != 0)
           throw IllegalOp(s);
 
         // check the wait flag
@@ -4016,27 +4016,27 @@ op_D8(STATE &s, FLAGS & flags)
         operandTableItem(s, AX, reg16);
         break;
 
-      case 11 :                     
-      case 20 :                      
-      case 22 :                      
-      case 23 :                      
-      case 31 :                     
+      case 11 :
+      case 20 :
+      case 22 :
+      case 23 :
+      case 31 :
       case 34 :
-      case 35 :                     
+      case 35 :
       case 41 :
       case 46 :
-      case 47 :                     
-      case 50 :                     
+      case 47 :
+      case 50 :
       case 56 :
       case 57 :
       case 58 :
-      case 59 :                     
-      case 63 :                     
+      case 59 :
+      case 63 :
         throw IllegalOp(s);
       } // endswitch
     } // endif
   } // endif
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -4054,7 +4054,7 @@ op_D8(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_E0(STATE &s, FLAGS & flags)
 {
    flags.addroverUsed = 1;  // the address override, if present, was used.
@@ -4063,7 +4063,7 @@ op_E0(STATE &s, FLAGS & flags)
    operandRel(s, ic);
    s.parm->rettype = jreltype;
    s.parm->retoffset = ic;
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -4079,7 +4079,7 @@ op_E0(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_E3(STATE &s, FLAGS & flags)
 {
    // The following looks decidedly odd, but the Intel processors actually
@@ -4093,7 +4093,7 @@ op_E3(STATE &s, FLAGS & flags)
 
    // otherwise this behaves like a LOOP instruction
    op_E0(s, flags);
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -4108,7 +4108,7 @@ op_E3(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_E4(STATE &s, FLAGS & flags)
 {
   UCHAR ic = getNextByte(s);
@@ -4119,8 +4119,8 @@ op_E4(STATE &s, FLAGS & flags)
   } else {
     operandHex(s, ic, ",");
     operandRegister(s, 0,flags);
-  } 
-} 
+  }
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -4137,7 +4137,7 @@ op_E4(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_E8(STATE &s, FLAGS & flags)
 {
   s.parm->rettype = (s.instr == 0xE8) ? creltype : jreltype;
@@ -4148,7 +4148,7 @@ op_E8(STATE &s, FLAGS & flags)
 
   operandRel(s, Dword2);
   s.parm->retoffset = Dword1;
-} 
+}
 
 
 /***************************************************************************/
@@ -4166,7 +4166,7 @@ op_E8(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_EC(STATE &s, FLAGS & flags)
 {
   setdw(s, flags);
@@ -4179,7 +4179,7 @@ op_EC(STATE &s, FLAGS & flags)
     operandRegister(s, AX, flags);
   }
 
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -4195,7 +4195,7 @@ op_EC(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_F0(STATE &s, FLAGS & flags)
 {
   if (flags.replock != replockNone)
@@ -4204,7 +4204,7 @@ op_F0(STATE &s, FLAGS & flags)
 
   flags.replock = replockLOCK;
   flags.prefix = 1;
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -4221,7 +4221,7 @@ op_F0(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_F2(STATE &s, FLAGS & flags)
 {
   if (flags.replock != replockNone)
@@ -4231,7 +4231,7 @@ op_F2(STATE &s, FLAGS & flags)
 
   flags.replock = replockREPNZ;
   flags.prefix = 1;
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -4248,7 +4248,7 @@ op_F2(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_F3(STATE &s, FLAGS & flags)
 {
   if (flags.replock != replockNone)
@@ -4257,7 +4257,7 @@ op_F3(STATE &s, FLAGS & flags)
 
   flags.replock = replockREPZ;
   flags.prefix = 1;
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -4284,15 +4284,15 @@ op_F3(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_F6(STATE &s, FLAGS & flags)
 {
   /*************************************************************************/
   /*  mnemonic numbers for F6, F7 orders                                   */
   /*************************************************************************/
-  static const USHORT mnemF6F7[8] = { 
+  static const USHORT mnemF6F7[8] = {
      TEST, ILLEGAL, NOT, NEG, MUL, IMUL, DIV, IDIV } ;
-  
+
   ULONG Dword1;
 
   getMod_rm_dw(s, flags);
@@ -4347,13 +4347,13 @@ op_F6(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_FE(STATE &s, FLAGS & flags)
 {
   static const USHORT mnemFF[7] =  { INC, DEC, CALL, CALL, JMP, JMP, PUSH } ;
 
   getMod_rm_dw(s, flags);
-  if (flags.regf > 1 && s.instr == 0xFE) 
+  if (flags.regf > 1 && s.instr == 0xFE)
      throw IllegalOp(s);
 
   flags.Dbit = DBit_Mem1op;     // single operand
@@ -4369,7 +4369,7 @@ op_FE(STATE &s, FLAGS & flags)
      s.parm->rettype = flags.mod ? cnearregtype : cnearmemtype;
      break;
   case 3: // CALL far indirect
-     if (flags.mod == 3) 
+     if (flags.mod == 3)
         throw IllegalOp(s);
      flags.Wbit = 1;            // force a word operation
      flags.sizePrefix = flags.opsize32 ? sizeFword : sizeDword;
@@ -4380,7 +4380,7 @@ op_FE(STATE &s, FLAGS & flags)
      s.parm->rettype = flags.mod ? jnearregtype : jnearmemtype;
      break;
   case 5: // JMP far indirect
-     if (flags.mod == 3) 
+     if (flags.mod == 3)
         throw IllegalOp(s);
      flags.Wbit = 1;            // force a word operation
      flags.sizePrefix = flags.opsize32 ? sizeFword : sizeDword;
@@ -4389,12 +4389,12 @@ op_FE(STATE &s, FLAGS & flags)
   case 6: // PUSH
      flags.Wbit = 1;            // force a word operation
      break;
-  default: 
+  default:
      throw IllegalOp(s);
   } // endswitch
 
   getNormalMemop(s, flags);
-} 
+}
 
 
 /***************************************************************************/
@@ -4419,19 +4419,19 @@ op_FE(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_0F00(STATE &s, FLAGS & flags)
 {
-  /*************************************************************************/ 
+  /*************************************************************************/
   /* mnemonic numbers for 0F 00 orders                                     */
   /*************************************************************************/
   static const USHORT mnem0F00[6] =  { SLDT, STR, LLDT, LTR, VERR, VERW } ;
 
-  if (flags.opsizeover) 
+  if (flags.opsizeover)
      throw IllegalOp(s);
-  
+
   getMod_rm_dw(s, flags);
-  if (flags.regf > 5) 
+  if (flags.regf > 5)
     throw IllegalOp(s);
 
   flags.Dbit = DBit_Mem1op;           // no register operand
@@ -4442,7 +4442,7 @@ op_0F00(STATE &s, FLAGS & flags)
   #endif
   mnemonicStd(s, flags,mnem0F00[flags.regf]);
   getNormalMemop(s, flags);
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -4466,7 +4466,7 @@ op_0F00(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_0F01(STATE &s, FLAGS & flags)
 {
   /*************************************************************************/
@@ -4487,7 +4487,7 @@ op_0F01(STATE &s, FLAGS & flags)
      if (flags.mod == 3)            // memory operation only
         throw IllegalOp(s);
      break;
-  case 7:         // INVLPG         
+  case 7:         // INVLPG
      flags.sizePrefix = sizeDword;
      if (flags.mod == 3)            // memory operation only
         throw IllegalOp(s);
@@ -4496,7 +4496,7 @@ op_0F01(STATE &s, FLAGS & flags)
      if (flags.mod == 3)            // memory operation only
         throw IllegalOp(s);
      break;
-  case 5:          
+  case 5:
      throw IllegalOp(s);
   case 4:          // SMSW
   case 6:          // LMSW
@@ -4512,7 +4512,7 @@ op_0F01(STATE &s, FLAGS & flags)
   flags.Wbit = 1;                            // word operation
   mnemonicStd(s, flags,mnem0F01[flags.regf]);
   getNormalMemop(s, flags);
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -4527,14 +4527,14 @@ op_0F01(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_0F02(STATE &s, FLAGS & flags)
 {
   getMod_rm_dw(s, flags);
   flags.Dbit = DBit_MemToReg;         // register is first operand
   flags.Wbit = 1;                     // word operation
   getNormalMemop(s, flags);              // and the source
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -4555,7 +4555,7 @@ op_0F02(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_0F20(STATE &s, FLAGS & flags)
 {
   // CRn register names
@@ -4580,18 +4580,18 @@ op_0F20(STATE &s, FLAGS & flags)
      } ;
   #endif
 
-  if (flags.opsizeover) 
+  if (flags.opsizeover)
      throw IllegalOp(s);
 
   getMod_rm_dw(s, flags);
-  if (flags.mod != 3) 
+  if (flags.mod != 3)
      throw IllegalOp(s);
 
   flags.Wbit = 1;         // always a wide operation
   switch (s.instr) {
   case 0x20:
      // control register is second operand
-     if (flags.regf != 1 && flags.regf < 5) {  
+     if (flags.regf != 1 && flags.regf < 5) {
        // Control registers 0,2,3,4 permitted
        operandTableItem(s, flags.rm, reg32, ",");
        operandTableItem(s, flags.regf, controlreg);
@@ -4605,7 +4605,7 @@ op_0F20(STATE &s, FLAGS & flags)
      return;
   case 0x22:
      // control register is first operand
-     if (flags.regf != 1 && flags.regf < 5) {  
+     if (flags.regf != 1 && flags.regf < 5) {
        // Control registers 0,2,3,4 permitted
        operandTableItem(s, flags.regf, controlreg, ",");
        operandTableItem(s, flags.rm, reg32);
@@ -4621,7 +4621,7 @@ op_0F20(STATE &s, FLAGS & flags)
   #if OP0F24
      case 0x24:
         // test register is second operand
-        if (flags.regf < 6) { 
+        if (flags.regf < 6) {
           // Test regs 6 & 7 don't exist
           operandTableItem(s, flags.rm, reg32, ",");
           operandTableItem(s, flags.regf, testreg);
@@ -4630,7 +4630,7 @@ op_0F20(STATE &s, FLAGS & flags)
         break;
      case 0x26:
         // test register is first operand
-        if (flags.regf <= 6) { 
+        if (flags.regf <= 6) {
           // Test regs 6 & 7 don't exist
           operandTableItem(s, flags.regf, testreg, ", ");
           operandTableItem(s, flags.rm, reg32);
@@ -4639,8 +4639,8 @@ op_0F20(STATE &s, FLAGS & flags)
         break;
   #endif
 
-  } // endswitch 
-} 
+  } // endswitch
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -4656,7 +4656,7 @@ op_0F20(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_0F40(STATE &s, FLAGS & flags)
 {
   getMod_rm_dw(s, flags);
@@ -4681,9 +4681,9 @@ op_0F40(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_0F60(STATE &s, FLAGS & flags)
-{  
+{
   getMod_rm_dw(s, flags);
   flags.Dbit = DBit_MemToReg;       // always a mem to Reg operation
   flags.sizePrefix = sizeDword;     // memory operands are Dwords
@@ -4745,7 +4745,7 @@ op_0F60(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_0F64(STATE &s, FLAGS & flags)
 {
   getMod_rm_dw(s, flags);
@@ -4770,7 +4770,7 @@ op_0F64(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_0F6E(STATE &s, FLAGS & flags)
 {
   getMod_rm_dw(s, flags);
@@ -4779,7 +4779,7 @@ op_0F6E(STATE &s, FLAGS & flags)
   flags.Wbit = 1;              // always a word op
   flags.opsize32 = 1;          // force the use of 32 bit operands
 
-  if (s.instr == 0x6E) 
+  if (s.instr == 0x6E)
      operandMMXreg(s, flags.regf, ",");
 
   getNormalMemop(s, flags);
@@ -4788,7 +4788,7 @@ op_0F6E(STATE &s, FLAGS & flags)
      operandChar(s, ',');
      operandMMXreg(s, flags.regf);
   } /* endif */
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -4803,7 +4803,7 @@ op_0F6E(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_0F6F(STATE &s, FLAGS & flags)
 {
   getMod_rm_dw(s, flags);
@@ -4811,7 +4811,7 @@ op_0F6F(STATE &s, FLAGS & flags)
   flags.sizePrefix = sizeQword;     // memory operands are Qwords
   flags.MMXop = 1;
   getNormalMemop(s, flags);
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -4835,7 +4835,7 @@ op_0F6F(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_0F71(STATE &s, FLAGS & flags)
 {
    static const USHORT mnem[3][8] =  {
@@ -4850,7 +4850,7 @@ op_0F71(STATE &s, FLAGS & flags)
 //   const USHORT * optbl;
    getMod_rm_dw(s, flags);
    int m = mnem[s.instr-0x71][flags.regf];
-                 
+
    if (ILLEGAL == m)
       throw IllegalOp(s);
 
@@ -4858,7 +4858,7 @@ op_0F71(STATE &s, FLAGS & flags)
    operandMMXreg(s, flags.rm, ",");
    int ic = getNextByte(s);
    operandDecimal(s, ic);
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -4889,19 +4889,19 @@ op_0F71(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_0F80(STATE &s, FLAGS & flags)
 {
   long Dword1 = getNextOperand(s, flags);
 
-  if (!flags.opsize32) {   
+  if (!flags.opsize32) {
     // it is a 2-byte operand - sign extend the lower 16 bits
     Dword1 = (short)Dword1;
-  } 
+  }
   operandRel(s, Dword1);
   s.parm->rettype = jreltype;
   s.parm->retoffset = Dword1;
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -4932,14 +4932,14 @@ op_0F80(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_0F90(STATE &s, FLAGS & flags)
 {
   getMod_rm_dw(s, flags);
   flags.Dbit = DBit_Mem1op;           // there is only 1 operand
   flags.Wbit = 0;                     // these are always byte operands
   getNormalMemop(s, flags);
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -4954,11 +4954,11 @@ op_0F90(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_0FA0(STATE &s, FLAGS UNUSED & flags)
 {
   operandSegRegister(s, FS);
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -4975,7 +4975,7 @@ op_0FA0(STATE &s, FLAGS UNUSED & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_0FA4(STATE &s, FLAGS & flags)
 {
   int post = s.instr & 1;
@@ -4993,7 +4993,7 @@ op_0FA4(STATE &s, FLAGS & flags)
      // second (or third) operand is "CL" (for shifts)
      operandTableItem(s, CL, reg8);
   } // endif
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -5008,8 +5008,8 @@ op_0FA4(STATE &s, FLAGS & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
-op_0FA8(STATE &s, FLAGS UNUSED & flags) 
+static void
+op_0FA8(STATE &s, FLAGS UNUSED & flags)
 {
     operandSegRegister(s, GS);
 }
@@ -5028,14 +5028,14 @@ op_0FA8(STATE &s, FLAGS UNUSED & flags)
 /*              none                                                       */
 /*                                                                         */
 /***************************************************************************/
-static void 
+static void
 op_0FAF(STATE &s, FLAGS & flags)
-{ 
+{
     getMod_rm_dw(s, flags);
     flags.Dbit = DBit_MemToReg; // register is first operand
     flags.Wbit = 1;             // word operation
     getNormalMemop(s, flags);
-} 
+}
 
 
 /***************************************************************************/
@@ -5059,7 +5059,7 @@ op_0FB0(STATE &s, FLAGS & flags)
     getMod_rm_dw(s, flags);
     flags.Dbit = DBit_RegToMem;
     getNormalMemop(s, flags);
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -5080,13 +5080,13 @@ op_0FB2(STATE &s, FLAGS & flags)
 {
     getMod_rm_dw(s, flags);
     if (flags.mod == 3)              // memory operand required
-        throw IllegalOp(s); 
+        throw IllegalOp(s);
 
     flags.Dbit = DBit_MemToReg;      // register is first operand
     flags.Wbit = 1;                  // force a word operation
     s.parm->rettype = LEAtype;
     getNormalMemop(s, flags);
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -5113,9 +5113,9 @@ op_0FB6(STATE &s, FLAGS & flags)
     s.parm->retbits &= 0xFE;          // clear 32 bit address marker
 #endif
     flags.Wbit = 0;                   // always has an 8 bit second operand
-    flags.Dbit = DBit_Mem1op;   
+    flags.Dbit = DBit_Mem1op;
     getNormalMemop(s, flags);
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -5143,9 +5143,9 @@ op_0FB7(STATE &s, FLAGS & flags)
     s.parm->retbits &= 0xFE;         // clear 32 bit address marker
 #endif
     flags.opsize32 = 0;              // always has 16-bit size second operand
-    flags.Dbit = DBit_Mem1op;   
+    flags.Dbit = DBit_Mem1op;
     getNormalMemop(s, flags);
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -5172,8 +5172,8 @@ op_0FBA(STATE &s, FLAGS & flags)
     getMod_rm_dw(s, flags);
     flags.Dbit = DBit_Mem1op;           // always an 8-bit immediate operand
     flags.Wbit = 1;                     // always a word/dword operation
-    if (flags.regf < 4)  
-        throw IllegalOp(s); 
+    if (flags.regf < 4)
+        throw IllegalOp(s);
 
     mnemonicStd(s, flags,mnem0FBA[flags.regf]);
     getNormalMemop(s, flags);
@@ -5181,7 +5181,7 @@ op_0FBA(STATE &s, FLAGS & flags)
     operandChar(s, ',');
     ULONG Dword1 = getImmediate(s, flags);
     operandDecimal(s, Dword1);
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -5205,7 +5205,7 @@ op_0FBB(STATE &s, FLAGS & flags)
     flags.Dbit = DBit_RegToMem;
     flags.Wbit = 1;
     getNormalMemop(s, flags);
-} 
+}
 
 
 /***************************************************************************/
@@ -5227,7 +5227,7 @@ op_0FC0(STATE &s, FLAGS & flags)
     getMod_rm_dw(s, flags);
     flags.Dbit = DBit_RegToMem;
     getNormalMemop(s, flags);
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -5257,10 +5257,10 @@ op_0FC7(STATE &s, FLAGS & flags)
     getMod_rm_dw(s, flags);
     flags.Dbit = DBit_Mem1op;          // no register operand
     flags.Wbit = 1;                    // word operation
-    if (flags.regf != 1 || flags.mod == 3) 
+    if (flags.regf != 1 || flags.mod == 3)
         // Group 9 can only have CMPXCHG8B
         // This can only access memory
-        throw IllegalOp(s); 
+        throw IllegalOp(s);
 
 #if RETPARMS
     s.parm->retbits &= 0xFE;   // clear 32 bit address marker
@@ -5268,7 +5268,7 @@ op_0FC7(STATE &s, FLAGS & flags)
     mnemonicStd(s, flags,CMPXCHG8B);
     flags.sizePrefix=sizeQword;   // takes a QWORD
     getNormalMemop(s, flags);
-} 
+}
 
 /***************************************************************************/
 /*  Opcodes handled by this function:                                      */
@@ -5292,11 +5292,11 @@ op_0FC7(STATE &s, FLAGS & flags)
 static void
 op_0FC8(STATE &s, FLAGS & flags)
 {
-    if (flags.opsizeover) 
+    if (flags.opsizeover)
         throw IllegalOp(s);
 
     flags.regf = s.instr & 0x07;         // get register number
     flags.Wbit = 1;                    // force 32 bit register
     flags.opsize32 = 1;
     operandRegister(s, flags.regf, flags);
-} 
+}

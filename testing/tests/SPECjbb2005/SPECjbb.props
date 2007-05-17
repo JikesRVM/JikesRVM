@@ -28,7 +28,7 @@
 # input.sequence_of_number_of_warehouses, which allows specification of
 # an arbitrary list of positive integers in increasing order.
 
-# For a publishable result the warehouse sequence must begin at 1, 
+# For a publishable result the warehouse sequence must begin at 1,
 # increment by 1 and go to at least 8 warehouses
 # The expected_peak_warehouses defaults to the result of the runtime call
 # Runtime.getRuntime.availableProcessors()
@@ -50,7 +50,7 @@ input.increment_number_warehouses=1
 # in the final report but may be useful when analyzing a JVMs behavior.
 # When running a large number of warehouses (i.e. on a system with a
 # lot of CPUs), changing this to true will results in very large
-# raw files. For submissions to SPEC, it is recommended that this 
+# raw files. For submissions to SPEC, it is recommended that this
 # attribute be set to false.
 #
 input.show_warehouse_detail=false
@@ -60,7 +60,7 @@ input.show_warehouse_detail=false
 # systems where the file separator is \, use \\ as the file separator
 # here.
 
-# 
+#
 # Examples:
 #        input.include_file=SPECjbb_config.props
 #        input.include_file=/path/to/SPECjbb_config.props
@@ -70,9 +70,9 @@ input.show_warehouse_detail=false
 input.include_file=SPECjbb_config.props
 
 #
-# directory to store output files. On systems where the file separator 
+# directory to store output files. On systems where the file separator
 # is \, use \\ as the file separator here.
-# 
+#
 
 # Examples:
 #        input.include_file=results

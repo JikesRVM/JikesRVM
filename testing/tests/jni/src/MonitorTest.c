@@ -6,8 +6,8 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-/* Test field access from native code 
- * Implement native methods from FieldAccess.java 
+/* Test field access from native code
+ * Implement native methods from FieldAccess.java
  */
 
 #include <stdio.h>
@@ -36,7 +36,7 @@ JNIEXPORT void JNICALL Java_MonitorTest_setVerboseOff
  */
 JNIEXPORT jint JNICALL Java_MonitorTest_accessMonitorFromNative
   (JNIEnv *env, jclass cls, jobject lockObj) {
-  
+
   jmethodID methodID;
   jint rc;
   int incrementCount = 50;
@@ -58,28 +58,28 @@ JNIEXPORT jint JNICALL Java_MonitorTest_accessMonitorFromNative
     /* Call the Java method to increment the count */
     /* Then unlock */
     if (withLock) {
-      rc = (*env) -> MonitorEnter(env, lockObj);        
+      rc = (*env) -> MonitorEnter(env, lockObj);
       if (rc!=0) break;
     }
-    (*env) -> CallStaticVoidMethod(env, cls, methodID, 20);        
-    if (withLock) {      
+    (*env) -> CallStaticVoidMethod(env, cls, methodID, 20);
+    if (withLock) {
       rc = (*env) -> MonitorExit(env, lockObj);
       if (rc!=0) break;
     }
 
     /* try again with nested MonitorEnter */
     if (withLock) {
-      rc = (*env) -> MonitorEnter(env, lockObj);        
+      rc = (*env) -> MonitorEnter(env, lockObj);
       if (rc!=0) break;
-      rc = (*env) -> MonitorEnter(env, lockObj);        
+      rc = (*env) -> MonitorEnter(env, lockObj);
       if (rc!=0) break;
     }
-    (*env) -> CallStaticVoidMethod(env, cls, methodID, -20);        
+    (*env) -> CallStaticVoidMethod(env, cls, methodID, -20);
     if (withLock) {
       rc = (*env) -> MonitorExit(env, lockObj);
-      if (rc!=0) break;    
+      if (rc!=0) break;
       rc = (*env) -> MonitorExit(env, lockObj);
-      if (rc!=0) break;    
+      if (rc!=0) break;
     }
   }
 

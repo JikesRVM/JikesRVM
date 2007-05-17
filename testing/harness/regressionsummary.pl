@@ -157,12 +157,12 @@ sub printrevisions {
     print $out "Checkout at: $checkout<br>\n";
   } else {
     print $out "Checkout at: $checkout\n";
-  } 
+  }
   if ($html) {
     print $out "Revisions covered by this sanity run: \n";
   } else {
     print $out "Revisions covered by this sanity run: ";
-  } 
+  }
   while ($rev <= $latestrev) {
     if ($html) {
       print $out  "<a href=\"$SVNURL$rev\">$rev<\/a>";
@@ -272,9 +272,9 @@ sub printjavadoc {
 sub printweeklyoverview {
   my ($out, $html, $today, $allperf, $bestperf, $allsanity) = @_;
   my $str = "Day-by-day overview";
-  if ($html) { 
+  if ($html) {
     print $out "<h2>$str</h2>\n";
-    printtablehdr($out, "result"); 
+    printtablehdr($out, "result");
   } else {
     print $out "$str\n";
   }
@@ -300,7 +300,7 @@ sub printperfoverview {
     my $day = ($today + $d) % 7;
     my $score = ${$allperf}{"$day:$bmkey"};
     my $textcolor = "";
-    if ($score == "") { 
+    if ($score == "") {
       $score = "-";
     } else {
       my $best = ${$bestperf}{$bmkey};
@@ -392,7 +392,7 @@ sub printfailuresummary {
          $href = "$reporturl/$regressionhost/$datestring.html$href";
        }
      }
-     if ($bm eq "") { 
+     if ($bm eq "") {
        $bm = "All benchmarks";
        if ($html) {
           $bm = "<b>$bm</b>";
@@ -537,8 +537,8 @@ sub printonesanitytable {
         my $bad = ${$daytargetinsane}{"$day:$target"};
         my $ratio = ($good == 0) ? 0 : $good/($good+$bad);
         my $str = "";
-        if ($good == 0) { 
-          $str = "-"; 
+        if ($good == 0) {
+          $str = "-";
         } else {
           if ($short) {
             $str = sprintf("%d\%", int(100*$ratio));
@@ -547,7 +547,7 @@ sub printonesanitytable {
           }
         }
         if ($html) {
-          my $style = getcolorstyle($ratio); 
+          my $style = getcolorstyle($ratio);
           $style .= ($day == $today) ? "border-left: 1px solid white;" : "";
           print $out "\t<td align=\"center\" $width style=\"$style\">$str\n";
         } else {
@@ -585,7 +585,7 @@ sub getdata {
     my $day = ($today - $d) % 7;
     if ($xml) {
       my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime ($checkouttime - ($d*$DAYSECS));
-      my $datestr = sprintf("%04d%02d%02d", $year+1900, $mon+1, $mday); 
+      my $datestr = sprintf("%04d%02d%02d", $year+1900, $mon+1, $mday);
       $archivefile = "$archivepath/$datestr.xml.gz";
       $source = "$nightlyreport -x $archivefile |";
     } else {
@@ -639,7 +639,7 @@ sub getdatestringfromcheckout {
   for ($month = 0; ($month < 12) && ($mon ne $SHORTMONTHS[$month]); $month++) {};
   return sprintf("%04d%02d%02d", $year, $month+1, $mday);
 }
-  
+
 
 #
 # dig out the day number (perl convention) from the svn timestamp in today's log
@@ -679,7 +679,7 @@ sub getdaydata {
   my $fail = 0;
   open (IN, "$source");
   while (<IN>) {
-    if ($day == -1 && 
+    if ($day == -1 &&
 	((($value) = /Checkout at:<td>(.+)<\/tr>/) ||
 	 (($value) = /<time>([A-Z][a-z]+\s.+\s\d+)<\/time>/))) {
       ${$checkout} = $value;
@@ -801,7 +801,7 @@ sub printhtmlhdr {
   print $html "tr\n{\n\tfont-size:          x-small;\n\tfont-family:        verdana, arial, helvetica, sans-serif;\n\tfont-weight:        normal;\n\tcolor:              #000000;\n}\n";
   print $html "td\n{\n\tfont-size:          x-small;\n\tfont-family:        verdana, arial, helvetica, sans-serif;\n\tfont-weight:        normal;\n\tcolor:              #000000;\n}\n";
   print $html "</style>\n";
-  print $html "<body>\n";  
+  print $html "<body>\n";
 }
 
 #

@@ -6,8 +6,8 @@
  *
  * (C) Copyright IBM Corp. 2001, 2004
  */
-/* Test method invocation from native code 
- * Implement native methods from JNI12.java 
+/* Test method invocation from native code
+ * Implement native methods from JNI12.java
  */
 
 #include <stdio.h>
@@ -26,7 +26,7 @@ int verbose=1;
  * Method:    setVerboseOff
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_JNI12_setVerboseOff (JNIEnv *env, jclass cls) 
+JNIEXPORT void JNICALL Java_JNI12_setVerboseOff (JNIEnv *env, jclass cls)
 {
     verbose=0;
 }
@@ -40,8 +40,8 @@ jobject heldGlobal = NULL;
  * Method:    testReflectedMethods
  * Signature: (Ljava/lang/Class;Ljava/lang/reflect/Method;)Ljava/lang/reflect/Method;
  */
-jobject JNICALL 
-Java_JNI12_testReflectedMethods(JNIEnv *env, jclass mine, jclass cls, jobject oldMethObj) 
+jobject JNICALL
+Java_JNI12_testReflectedMethods(JNIEnv *env, jclass mine, jclass cls, jobject oldMethObj)
 {
     jmethodID methID;
     jobject newMethObj;
@@ -54,7 +54,7 @@ Java_JNI12_testReflectedMethods(JNIEnv *env, jclass mine, jclass cls, jobject ol
         fprintf(stderr, "FromReflectedMethod failed!\n");
         return NULL;
     }
-    newMethObj = 
+    newMethObj =
         (*env)->ToReflectedMethod(env, cls, methID, JNI_FALSE);
 
     if (TRACE)
@@ -63,13 +63,13 @@ Java_JNI12_testReflectedMethods(JNIEnv *env, jclass mine, jclass cls, jobject ol
 }
 
 
-jobject JNICALL 
-Java_JNI12_testGlobalCreationAndReturn(JNIEnv *env, jclass mine, jobject methObj) 
+jobject JNICALL
+Java_JNI12_testGlobalCreationAndReturn(JNIEnv *env, jclass mine, jobject methObj)
 {
     if (TRACE)
         fprintf(stderr, "Trying NewGlobalRef\n");
     heldGlobal = (*env)->NewGlobalRef(env, methObj);
-    if (TRACE) 
+    if (TRACE)
         fprintf(stderr, "methObj = %p ==> heldGlobal = %p \n", methObj, heldGlobal);
     if (RETURNING_GLOBALS_AND_WEAKS_BROKEN)
         return (*env)->NewLocalRef(env, heldGlobal);
@@ -78,13 +78,13 @@ Java_JNI12_testGlobalCreationAndReturn(JNIEnv *env, jclass mine, jobject methObj
 }
 
 
-jobject JNICALL 
-Java_JNI12_testWeakCreationAndReturn(JNIEnv *env, jclass mine, jobject methObj) 
+jobject JNICALL
+Java_JNI12_testWeakCreationAndReturn(JNIEnv *env, jclass mine, jobject methObj)
 {
     if (TRACE)
         fprintf(stderr, "Trying NewWeakGlobalRef\n");
     heldWeak = (*env)->NewWeakGlobalRef(env, methObj);
-    if (TRACE) 
+    if (TRACE)
         fprintf(stderr, "methObj = %p ==> heldWeak = %p \n", methObj, heldWeak);
     if (RETURNING_GLOBALS_AND_WEAKS_BROKEN)
         return (*env)->NewLocalRef(env, heldWeak);
@@ -94,32 +94,32 @@ Java_JNI12_testWeakCreationAndReturn(JNIEnv *env, jclass mine, jobject methObj)
 
 
 /** 0 on success, nonzero on failure. */
-jint JNICALL  
-Java_JNI12_testGlobalPersistenceAndDestruction(JNIEnv *env, jclass mine, jobject passedNewMethObj) 
+jint JNICALL
+Java_JNI12_testGlobalPersistenceAndDestruction(JNIEnv *env, jclass mine, jobject passedNewMethObj)
 {
-    if (TRACE) 
+    if (TRACE)
         fprintf(stderr, "methObj = %p ==> heldGlobal = %p \n", passedNewMethObj, heldGlobal);
     if (! (*env)->IsSameObject(env, heldGlobal, passedNewMethObj)) {
         fprintf(stderr, "IsSameObject failed on retained global ref!\n");
         return -1;
     }
-    
+
     (*env)->DeleteGlobalRef(env, heldGlobal);
     heldGlobal = NULL;
     return 0;                   /* OK */
 }
 
 /** 0 on success, nonzero on failure. */
-jint JNICALL 
-Java_JNI12_testWeakPersistenceAndDestruction(JNIEnv *env, jclass mine, jobject passedNewMethObj) 
+jint JNICALL
+Java_JNI12_testWeakPersistenceAndDestruction(JNIEnv *env, jclass mine, jobject passedNewMethObj)
 {
-    if (TRACE) 
+    if (TRACE)
         fprintf(stderr, "methObj = %p ==> heldWeak = %p \n", passedNewMethObj, heldWeak);
     if (! (*env)->IsSameObject(env, heldWeak, passedNewMethObj)) {
         fprintf(stderr, "IsSameObject failed on retained weak ref!\n");
         return -1;
     }
-    
+
     (*env)->DeleteWeakGlobalRef(env, heldWeak);
     heldWeak = NULL;
     return 0;                   /* OK */
@@ -133,8 +133,8 @@ Java_JNI12_testWeakPersistenceAndDestruction(JNIEnv *env, jclass mine, jobject p
  * Signature: (Ljava/lang/Class;Ljava/lang/reflect/Field;)Ljava/lang/reflect/Field;
  *  Also tests NewLocalRef.
  */
-jobject JNICALL 
-Java_JNI12_testReflectedFields(JNIEnv *env, jclass myClass, 
+jobject JNICALL
+Java_JNI12_testReflectedFields(JNIEnv *env, jclass myClass,
                                jclass cls, jobject oldFldObj)
 {
     jfieldID fldID;

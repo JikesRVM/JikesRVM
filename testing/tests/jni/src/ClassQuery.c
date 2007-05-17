@@ -6,8 +6,8 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-/* Test miscellaneous query JNI Functions 
- * Implement native methods from ClassQuery.java 
+/* Test miscellaneous query JNI Functions
+ * Implement native methods from ClassQuery.java
  */
 
 #include <stdio.h>

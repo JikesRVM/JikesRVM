@@ -1,5 +1,5 @@
 # Must be one of ia32 or ppc
-target.arch= 
+target.arch=
 # Must be one of AIX, Linux or OSX
 target.os=
 # Must be 32 or 64

@@ -71,7 +71,7 @@ extern "C"     int sigaltstack(const struct sigaltstack *ss, struct sigaltstack 
 # if (defined HAS_DLCOMPAT)
 # include <dlfcn.h>
 # endif
-#define MAP_ANONYMOUS MAP_ANON 
+#define MAP_ANONYMOUS MAP_ANON
 #include <sched.h>
 
 
@@ -103,7 +103,7 @@ extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_
 
 #ifdef RVM_FOR_LINUX
 # include "syswrap.h"
-#endif 
+#endif
 
 // #define DEBUG_SYS
 #define VERBOSE_PTHREAD lib_verbose
@@ -191,7 +191,7 @@ sysConsoleWriteDouble(double value,  int postDecimalDigits)
 pthread_mutex_t DeathLock = PTHREAD_MUTEX_INITIALIZER;
 
 static bool systemExiting = false;
-    
+
 extern "C" void
 sysExit(int value)
 {
@@ -252,7 +252,7 @@ sysArg(int argno, char *buf, int buflen)
               LIMIT, the size of BUF
 
     Returned: See the convention documented in loadResultBuf().
-         
+
          0: A return value of 0 indicates that the envar was set with a
          zero-length value.   (Distinguised from unset, see below)
 
@@ -265,32 +265,32 @@ sysGetenv(const char *varName, char *buf, int limit)
     return loadResultBuf(buf, limit, getenv(varName));
 }
 
-         
-         
+
+
 /* Copy SRC, a null-terminated string or a NULL pointer, into DEST, a buffer
  * with LIMIT characters capacity.   This is a helper function used by
  * sysGetEnv() and, later on, to be used by other functions returning strings
  * to Java.
  *
  * Handle the error handling for running out of space in BUF, in accordance
- * with the C '99 specification for snprintf() -- see sysGetEnv().   
+ * with the C '99 specification for snprintf() -- see sysGetEnv().
  *
- * Returned:  -2 if SRC is a NULL pointer.  
+ * Returned:  -2 if SRC is a NULL pointer.
  * Returned:  If enough space, the number of bytes copied to DEST.
- * 
+ *
  *            If there is not enough space, we write what we can and return
  *            the # of characters that WOULD have been written to the final
  *            string BUF if enough space had been available, excluding any
  *            trailing '\0'.  This error handling is consistent with the C '99
  *            standard's behavior for the snprintf() system library function.
- *            
+ *
  *            Note that this is NOT consistent with the behavior of most of
  *            the functions in this file that return strings to Java.
- * 
+ *
  *            That should change with time.
- * 
+ *
  *            This function will append a trailing '\0', if there is enough
- *            space, even though our caller does not need it nor use it.  
+ *            space, even though our caller does not need it nor use it.
  */
 static int
 loadResultBuf(char * dest, int limit, const char *src)
@@ -299,7 +299,7 @@ loadResultBuf(char * dest, int limit, const char *src)
    return -2;      // Tell caller it was unset.
 
     for (int i = 0;; ++i) {
-   if ( i < limit ) // If there's room for the next char of the value ... 
+   if ( i < limit ) // If there's room for the next char of the value ...
        dest[i] = src[i];   // ... write it into the destination buffer.
    if (src[i] == '\0')
        return i;      // done, return # of chars needed for SRC
@@ -331,19 +331,19 @@ sysStat(char *name, int kind)
         return -1; // does not exist, or other trouble
 
     switch (kind) {
-    case VM_FileSystem_STAT_EXISTS:        
+    case VM_FileSystem_STAT_EXISTS:
         return 1;                              // exists
-    case VM_FileSystem_STAT_IS_FILE:       
+    case VM_FileSystem_STAT_IS_FILE:
         return S_ISREG(info.st_mode) != 0; // is file
-    case VM_FileSystem_STAT_IS_DIRECTORY:  
+    case VM_FileSystem_STAT_IS_DIRECTORY:
         return S_ISDIR(info.st_mode) != 0; // is directory
-    case VM_FileSystem_STAT_IS_READABLE:   
+    case VM_FileSystem_STAT_IS_READABLE:
         return (info.st_mode & S_IREAD) != 0; // is readable by owner
     case VM_FileSystem_STAT_IS_WRITABLE:
         return (info.st_mode & S_IWRITE) != 0; // is writable by owner
-    case VM_FileSystem_STAT_LAST_MODIFIED: 
+    case VM_FileSystem_STAT_LAST_MODIFIED:
         return info.st_mtime;   // time of last modification
-    case VM_FileSystem_STAT_LENGTH:        
+    case VM_FileSystem_STAT_LENGTH:
         return info.st_size;    // length
     }
     return -1; // unrecognized request
@@ -471,7 +471,7 @@ again:
     }
     else if (err == EINTR)
         goto again; // interrupted by signal; try again
-    fprintf(SysTraceFile, "%s: read error %d (%s) on %d\n", Me, 
+    fprintf(SysTraceFile, "%s: read error %d (%s) on %d\n", Me,
             err, strerror(err), fd);
     return -2;
 }
@@ -591,14 +591,14 @@ timeSlicerThreadMain(void *arg)
 extern "C" void processTimerTick(void) {
 
     VM_Address VmToc = (VM_Address) getJTOC();
-    
+
     /*
      * Increment VM_Processor.timerTicks
      */
     int* ttp = (int *) ((char *) VmToc + VM_Processor_timerTicks_offset);
     *ttp = *ttp + 1;
 
-    /* 
+    /*
      * Check to see if a gc is in progress.
      * If it is then simply return (ignore timer tick).
      */
@@ -614,8 +614,8 @@ extern "C" void processTimerTick(void) {
     /*
      * Turn on thread-switch flag in each virtual processor.
      * Note that "jtoc" is not necessarily valid, because we might have
-     * interrupted C-library code, so we use boot image 
-     * jtoc address (== VmToc) instead. 
+     * interrupted C-library code, so we use boot image
+     * jtoc address (== VmToc) instead.
      */
     VM_Address *processors = *(VM_Address **) ((char *) VmToc + getProcessorsOffset());
     unsigned cnt = getArrayLength(processors);
@@ -625,16 +625,16 @@ extern "C" void processTimerTick(void) {
         // See how many ticks this VP has ignored, if too many have passed we will issue a warning below
         *(int *)((char *)processors[i] + VM_Processor_takeYieldpoint_offset) = 1;
         int val = (*(int *)((char *)processors[i] + VM_Processor_timeSliceExpired_offset))--;
-        
+
         if (longest_stuck_ticks < (unsigned) -val)
             longest_stuck_ticks = -val;
     }
-    
+
 #ifndef RVM_WITH_GCSPY
-    /* 
+    /*
      * After 500 timer intervals (often == 10 seconds), print a message
      * every 100 timer intervals (often == 2 second), so we don't
-     * just appear to be hung. 
+     * just appear to be hung.
      */
 #ifndef RVM_FOR_GCTRACE
     if (longest_stuck_ticks > 5001) {
@@ -653,7 +653,7 @@ extern "C" void processTimerTick(void) {
        * a lot of problems to tracing, we elide the warning.
        */
 #ifndef RVM_FOR_GCTRACE
-        fprintf(stderr, "%s: WARNING: Virtual processor has ignored timer interrupt for %d ms.\n", 
+        fprintf(stderr, "%s: WARNING: Virtual processor has ignored timer interrupt for %d ms.\n",
                 Me, getTimeSlice_msec() * longest_stuck_ticks);
         fprintf(stderr, "This may indicate that a blocking system call has occured and the VM is deadlocked\n");
 #endif
@@ -783,7 +783,7 @@ sysNanosleep(long long howLongNanos)
 
         fprintf(SysErrorFile, "%s: nanosleep(<tv_sec=%ld,tv_nsec=%ld>) failed:"
                 " %s (errno=%d)\n"
-                "  That should never happen; please report it as a bug.\n", 
+                "  That should never happen; please report it as a bug.\n",
                 Me, req.tv_sec, req.tv_nsec,
                 strerror( errno ), errno);
     }
@@ -792,7 +792,7 @@ sysNanosleep(long long howLongNanos)
 
 
 
-    
+
 
 //-----------------------//
 // Processor operations. //
@@ -846,13 +846,13 @@ sysNumProcessors()
         };
     }
 #endif
-    
+
 #if defined(_SC_NPROCESSORS_ONLN)
     if (numCpus < 0) {
-        /* This alternative is probably the same as 
+        /* This alternative is probably the same as
          *  _system_configuration.ncpus.  This one says how many CPUs are
          *  actually on line.  It seems to be supported on AIX, at least; I
-         *  yanked this out of sysVirtualProcessorBind. 
+         *  yanked this out of sysVirtualProcessorBind.
          */
         numCpus = sysconf(_SC_NPROCESSORS_ONLN); // does not set errno
         if (numCpus < 0) {
@@ -1093,7 +1093,7 @@ sysPthreadSelf()
 }
 
 /* Perform some initialization related to
-  per-thread signal handling for that thread. (Block SIGCONT, set up a special 
+  per-thread signal handling for that thread. (Block SIGCONT, set up a special
   signal handling stack for the thread.)
 
   This is only called once, at thread startup time. */
@@ -1147,7 +1147,7 @@ sysPthreadSetupSignalHandling()
         perror(NULL);
         sysExit(EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR);
     }
-    
+
 }
 
 
@@ -1158,7 +1158,7 @@ sysPthreadSignal(int pthread)
 {
     pthread_t thread;
     thread = (pthread_t)pthread;
-    
+
     pthread_kill(thread, SIGCONT);
     return 0;
 }
@@ -1190,7 +1190,7 @@ sysPthreadExit()
 extern "C" void
 sysVirtualProcessorYield()
 {
-    /** According to the Linux manpage, sched_yield()'s presence can be 
+    /** According to the Linux manpage, sched_yield()'s presence can be
      *  tested for by using the #define _POSIX_PRIORITY_SCHEDULING, and if
      *  that is not present to use the sysconf feature, searching against
      *  _SC_PRIORITY_SCHEDULING.  However, I don't really trust it, since
@@ -1207,7 +1207,7 @@ sysVirtualProcessorYield()
 // Release the lockout word by storing the value in it
 // and wait for a signal.
 extern "C" int
-sysPthreadSigWait( int * lockwordAddress, 
+sysPthreadSigWait( int * lockwordAddress,
                    int  lockReleaseValue )
 {
     sigset_t input_set, output_set;
@@ -1220,7 +1220,7 @@ sysPthreadSigWait( int * lockwordAddress,
     sigaddset(&input_set, SIGCONT);
 #ifndef RVM_FOR_AIX
     rc = pthread_sigmask(SIG_BLOCK, NULL, &output_set);
-#else 
+#else
     rc = sigthreadmask(SIG_BLOCK, NULL, &output_set);
 #endif
     if (rc) {
@@ -1228,7 +1228,7 @@ sysPthreadSigWait( int * lockwordAddress,
         perror(NULL);
         sysExit(EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR);
     }
-    
+
     rc = sigwait(&input_set, &sig);
     if (rc) {
         fprintf (SysErrorFile, "sigwait failed (errno=%d): ", errno);
@@ -1426,12 +1426,12 @@ sysPrimitiveParseInt(const char * buf)
     return ret;
 }
 
-/** Parse memory sizes.  
+/** Parse memory sizes.
     @return negative values to indicate errors. */
 extern "C" jlong
 sysParseMemorySize(const char *sizeName, /*  "initial heap" or "maximum heap"
-                                            or "initial stack" or 
-                                            "maximum stack" */ 
+                                            or "initial stack" or
+                                            "maximum stack" */
                    const char *sizeFlag, // e.g., "ms" or "mx" or "ss" or "sg" or "sx"
                    const char *defaultFactor, // "M" or "K" are used
                    int roundTo,  // Round to PAGE_SIZE_BYTES or to 4.
@@ -1440,7 +1440,7 @@ sysParseMemorySize(const char *sizeName, /*  "initial heap" or "maximum heap"
 {
     bool fastExit = false;
     unsigned ret_uns=  parse_memory_size(sizeName, sizeFlag, defaultFactor,
-                                         (unsigned) roundTo, token, subtoken, 
+                                         (unsigned) roundTo, token, subtoken,
                                          &fastExit);
     if (fastExit)
         return -1;
@@ -1568,7 +1568,7 @@ sysSyncCache(void UNUSED *address, size_t UNUSED  size)
     fprintf(SysTraceFile, "%s: sync 0x%08x %d\n", Me, (unsigned)address, size);
 #endif
 
-#ifdef RVM_FOR_POWERPC 
+#ifdef RVM_FOR_POWERPC
   #ifdef RVM_FOR_AIX
     _sync_cache_range((caddr_t) address, size);
   #else
@@ -1638,7 +1638,7 @@ sysMMapErrno(char *start , size_t length ,
 #else
     fprintf(stderr, "mmap (%llx, %u, %d, %d, -1, 0) failed with %d: ",
        (VM_Address) start, (unsigned) length, protection, flags, errno);
-#endif          
+#endif
     return (void *) errno;
   }else{
 #ifdef DEBUG_SYS
@@ -1685,9 +1685,9 @@ findMappable()
         int fail = (result == (void *) -1);
 #if RVM_FOR_32_ADDR
         printf("0x%x: ", (VM_Address) start);
-#else   
+#else
         printf("0x%llx: ", (VM_Address) start);
-#endif  
+#endif
         if (fail) {
             printf("FAILED with errno %d: %s\n", errno, strerror(errno));
         } else {
@@ -1787,7 +1787,7 @@ sysNetSocketCreate(int isStream)
 
     fd = socket(AF_INET, isStream ? SOCK_STREAM : SOCK_DGRAM, 0);
     if (fd == -1) {
-        fprintf(SysErrorFile, "%s: socket create failed: %s (errno=%d)\n", 
+        fprintf(SysErrorFile, "%s: socket create failed: %s (errno=%d)\n",
                 Me, strerror(errno), errno);
         return -1;
     }
@@ -1816,7 +1816,7 @@ sysNetSocketPort(int fd)
     len = sizeof info;
     if (getsockname(fd, (sockaddr *)&info, &len) == -1)
     {
-        fprintf(SysErrorFile, "%s: getsockname on %d failed: %s (errno=%d)\n", 
+        fprintf(SysErrorFile, "%s: getsockname on %d failed: %s (errno=%d)\n",
                 Me, fd, strerror(errno), errno);
         return -1;
     }
@@ -1841,7 +1841,7 @@ sysNetSocketSndBuf(int fd)
     len = sizeof(int);
     if (getsockopt(fd, SOL_SOCKET, SO_SNDBUF, &val, &len) == -1)
     {
-        fprintf(SysErrorFile, "%s: getsockopt on %d failed: %s (errno=%d)\n", 
+        fprintf(SysErrorFile, "%s: getsockopt on %d failed: %s (errno=%d)\n",
                 Me, fd, strerror(errno), errno);
         return -1;
     }
@@ -1952,16 +1952,16 @@ sysNetSocketBind(int fd,
     address.sin_port        = MANGLE16(localPort);
 
     if (bind(fd, (sockaddr *)&address, sizeof address) == -1) {
-        fprintf(SysErrorFile, 
-                "%s: socket bind on %d for port %d failed: %s (errno=%d)\n", 
+        fprintf(SysErrorFile,
+                "%s: socket bind on %d for port %d failed: %s (errno=%d)\n",
                 Me, fd, localPort, strerror( errno ), errno);
         return -1;
     }
 
 #ifdef DEBUG_NET
-    fprintf(SysTraceFile, "%s: bind %d to %d.%d.%d.%d:%d\n", Me, fd, 
-            (localAddress >> 24) & 0xff, (localAddress >> 16) & 0xff, 
-            (localAddress >> 8) & 0xff, (localAddress >> 0) & 0xff, 
+    fprintf(SysTraceFile, "%s: bind %d to %d.%d.%d.%d:%d\n", Me, fd,
+            (localAddress >> 24) & 0xff, (localAddress >> 16) & 0xff,
+            (localAddress >> 8) & 0xff, (localAddress >> 0) & 0xff,
             localPort & 0x0000ffff);
 #endif
 
@@ -1994,14 +1994,14 @@ sysNetSocketConnect(int fd, int family, int remoteAddress, int remotePort)
 
         if (connect(fd, (sockaddr *)&address, sizeof address) == -1) {
             if (errno == EINTR) {
-                fprintf(SysTraceFile, 
+                fprintf(SysTraceFile,
                         "%s: connect on %d interrupted, retrying\n", Me, fd);
                 connectInterrupts++;
                 interruptsThisTime++;
                 continue;
             } else if (errno == EINPROGRESS) {
 #ifdef DEBUG_NET
-                fprintf(SysTraceFile, "%s: connect on %d failed: %s \n", 
+                fprintf(SysTraceFile, "%s: connect on %d failed: %s \n",
                         Me, fd, strerror(errno ));
 #endif
                 return -2;
@@ -2009,21 +2009,21 @@ sysNetSocketConnect(int fd, int family, int remoteAddress, int remotePort)
                 // connection was "in progress" due to previous call.
                 // This (retry) call has succeeded.
 #ifdef DEBUG_NET
-                fprintf(SysTraceFile, "%s: connect on %d: %s\n", 
+                fprintf(SysTraceFile, "%s: connect on %d: %s\n",
                         Me, fd, strerror( errno ));
 #endif
                 goto ok;
             } else if (errno == ECONNREFUSED) {
-                fprintf(SysTraceFile, "%s: connect on %d failed: %s \n", 
+                fprintf(SysTraceFile, "%s: connect on %d failed: %s \n",
                         Me, fd, strerror( errno ));
                 return -4;
             } else if (errno == EHOSTUNREACH) {
-                fprintf(SysTraceFile, "%s: connect on %d failed: %s \n", 
+                fprintf(SysTraceFile, "%s: connect on %d failed: %s \n",
                         Me, fd, strerror( errno ));
                 return -5;
             } else {
-                fprintf(SysErrorFile, 
-                        "%s: socket connect on %d failed: %s (errno=%d)\n", 
+                fprintf(SysErrorFile,
+                        "%s: socket connect on %d failed: %s (errno=%d)\n",
                         Me, fd, strerror(errno), errno);
                 return -3;
             }
@@ -2032,14 +2032,14 @@ sysNetSocketConnect(int fd, int family, int remoteAddress, int remotePort)
     ok:
         if (interruptsThisTime > maxConnectInterrupts) {
             maxConnectInterrupts = interruptsThisTime;
-            fprintf(SysErrorFile, "maxSelectInterrupts is now %d\n", 
+            fprintf(SysErrorFile, "maxSelectInterrupts is now %d\n",
                     interruptsThisTime);
         }
 
 #ifdef DEBUG_NET
-        fprintf(SysTraceFile, "%s: connect %d to %d.%d.%d.%d:%d\n", 
-                Me, fd, (remoteAddress >> 24) & 0xff, (remoteAddress >> 16) & 0xff, 
-                (remoteAddress >> 8) & 0xff, (remoteAddress >> 0) & 0xff, 
+        fprintf(SysTraceFile, "%s: connect %d to %d.%d.%d.%d:%d\n",
+                Me, fd, (remoteAddress >> 24) & 0xff, (remoteAddress >> 16) & 0xff,
+                (remoteAddress >> 8) & 0xff, (remoteAddress >> 0) & 0xff,
                 remotePort & 0x0000ffff);
 #endif
         return 0;
@@ -2086,14 +2086,14 @@ sysNetSocketAccept(int fd, void *connectionObject)
             } else if (errno == EAGAIN) {
 #ifdef DEBUG_NET
                 fprintf(SysTraceFile,
-                        "%s: accept on %d would have blocked: needs retry\n", 
+                        "%s: accept on %d would have blocked: needs retry\n",
                         Me, fd);
 #endif
                 return -2;
             } else {
 #ifdef DEBUG_NET
-                fprintf(SysTraceFile, 
-                        "%s: socket accept on %d failed: %s (errno=%d)\n", 
+                fprintf(SysTraceFile,
+                        "%s: socket accept on %d failed: %s (errno=%d)\n",
                         Me, fd, strerror( errno ), errno);
 #endif
                 return -3;
@@ -2102,7 +2102,7 @@ sysNetSocketAccept(int fd, void *connectionObject)
     }
 
 #ifdef DEBUG_NET
-    fprintf(SysTraceFile, "accepted %d for socket %d, 0x%x\n", 
+    fprintf(SysTraceFile, "accepted %d for socket %d, 0x%x\n",
             connectionFd, fd, connectionObject);
 #endif
 
@@ -2111,10 +2111,10 @@ sysNetSocketAccept(int fd, void *connectionObject)
     int remotePort    = MANGLE16(info.sin_port);
 
 #ifdef DEBUG_NET
-    fprintf(SysTraceFile, "%s: %d accept %d from %d.%d.%d.%d:%d\n", 
-            Me, fd, connectionFd, 
-            (remoteAddress >> 24) & 0xff, (remoteAddress >> 16) & 0xff, 
-            (remoteAddress >> 8) & 0xff, (remoteAddress >> 0) & 0xff, 
+    fprintf(SysTraceFile, "%s: %d accept %d from %d.%d.%d.%d:%d\n",
+            Me, fd, connectionFd,
+            (remoteAddress >> 24) & 0xff, (remoteAddress >> 16) & 0xff,
+            (remoteAddress >> 8) & 0xff, (remoteAddress >> 0) & 0xff,
             remotePort & 0x0000ffff);
 #endif
 
@@ -2129,7 +2129,7 @@ sysNetSocketAccept(int fd, void *connectionObject)
 
     if (interruptsThisTime > maxAcceptInterrupts) {
         maxAcceptInterrupts = interruptsThisTime;
-        fprintf(SysErrorFile, "maxSelectInterrupts is now %d\n", 
+        fprintf(SysErrorFile, "maxSelectInterrupts is now %d\n",
                 interruptsThisTime);
     }
 
@@ -2152,7 +2152,7 @@ sysNetSocketLinger(int fd, int enable, int timeout)
 {
 
 #ifdef DEBUG_NET
-    fprintf(SysTraceFile, "%s: linger socket=%d enable=%d timeout=%d\n", 
+    fprintf(SysTraceFile, "%s: linger socket=%d enable=%d timeout=%d\n",
             Me, fd, enable, timeout);
 #endif
 
@@ -2161,8 +2161,8 @@ sysNetSocketLinger(int fd, int enable, int timeout)
     info.l_linger = timeout;
 
     int rc = setsockopt(fd, SOL_SOCKET, SO_LINGER, &info, sizeof info);
-    if (rc == -1) fprintf(SysErrorFile, 
-                          "%s: socket linger on %d failed: %s (errno=%d)\n", 
+    if (rc == -1) fprintf(SysErrorFile,
+                          "%s: socket linger on %d failed: %s (errno=%d)\n",
                           Me, fd, strerror(errno), errno);
     return rc;
 }
@@ -2186,7 +2186,7 @@ sysNetSocketNoDelay(int fd, int enable)
 
     int rc = setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &value, sizeof value);
     if (rc == -1)
-        fprintf(SysErrorFile, "%s: TCP_NODELAY on %d failed: %s (errno=%d)\n", 
+        fprintf(SysErrorFile, "%s: TCP_NODELAY on %d failed: %s (errno=%d)\n",
                 Me, fd, strerror(errno), errno);
 
     return rc;
@@ -2211,7 +2211,7 @@ sysNetSocketNoBlock(int fd, int enable)
 
     int rc = ioctl(fd, FIONBIO, &value);
     if (rc == -1) {
-        fprintf(SysErrorFile, "%s: FIONBIO on %d failed: %s (errno=%d)\n", 
+        fprintf(SysErrorFile, "%s: FIONBIO on %d failed: %s (errno=%d)\n",
                 Me, fd, strerror(errno), errno);
         return -1;
     }
@@ -2236,12 +2236,12 @@ sysNetSocketClose(int fd)
 
     int rc = shutdown(fd, 2);
 
-    if (rc == 0) { 
+    if (rc == 0) {
         // shutdown succeeded
         return sysClose(fd);
     }
 
-    if (errno == ENOTCONN) { 
+    if (errno == ENOTCONN) {
         // socket wasn't connected so shutdown error is meaningless
         return sysClose(fd);
     }
@@ -2629,7 +2629,7 @@ static int stream_len;
 extern "C" gcspy_gc_stream_t *
 gcspyDriverAddStream (gcspy_gc_driver_t *driver, int id) {
 #if GCSPY_TRACE
-  fprintf(SysTraceFile, "gcspyDriverAddStream: driver=%x(%s), id=%d...", 
+  fprintf(SysTraceFile, "gcspyDriverAddStream: driver=%x(%s), id=%d...",
           driver, driver->name, id);
 #endif
   gcspy_gc_stream_t *stream = gcspy_driverAddStream(driver, id);
@@ -2642,8 +2642,8 @@ gcspyDriverAddStream (gcspy_gc_driver_t *driver, int id) {
 extern "C" void
 gcspyDriverEndOutput (gcspy_gc_driver_t *driver) {
   int len;
-#if GCSPY_TRACE 
-  fprintf(SysTraceFile, "gcspyDriverEndOutput: driver=%x(%s), len=%d, written=%d\n", 
+#if GCSPY_TRACE
+  fprintf(SysTraceFile, "gcspyDriverEndOutput: driver=%x(%s), len=%d, written=%d\n",
                         driver, driver->name, stream_len, stream_count);
   stream_count = 0;
   /*??*/
@@ -2659,14 +2659,14 @@ extern "C" void
 gcspyDriverInit (gcspy_gc_driver_t *driver, int id, char *serverName, char *driverName,
                  char *title, char *blockInfo, int tileNum,
                  char *unused, int mainSpace) {
-               
+
 #if GCSPY_TRACE
-  fprintf(SysTraceFile, "gcspyDriverInit: driver=%x, id=%d, serverName=%s, driverName=%s, title=%s, blockInfo=%s, %d tiles, used=%s, mainSpace=%d\n", 
-                   driver, id, serverName, driverName, 
+  fprintf(SysTraceFile, "gcspyDriverInit: driver=%x, id=%d, serverName=%s, driverName=%s, title=%s, blockInfo=%s, %d tiles, used=%s, mainSpace=%d\n",
+                   driver, id, serverName, driverName,
                    title, blockInfo, tileNum,
                    unused, mainSpace);
 #endif
-  gcspy_driverInit(driver, id, serverName, driverName, 
+  gcspy_driverInit(driver, id, serverName, driverName,
                    title, blockInfo, tileNum,
                    unused, mainSpace);
 }
@@ -2674,7 +2674,7 @@ gcspyDriverInit (gcspy_gc_driver_t *driver, int id, char *serverName, char *driv
 extern "C" void
 gcspyDriverInitOutput (gcspy_gc_driver_t *driver) {
 #if GCSPY_TRACE
-  fprintf(SysTraceFile, "gcspyDriverInitOutput: driver=%x(s)\n", 
+  fprintf(SysTraceFile, "gcspyDriverInitOutput: driver=%x(s)\n",
           driver, driver->name);
 #endif
   gcspy_driverInitOutput(driver);
@@ -2683,7 +2683,7 @@ gcspyDriverInitOutput (gcspy_gc_driver_t *driver) {
 extern "C" void
 gcspyDriverResize (gcspy_gc_driver_t *driver, int size) {
 #if GCSPY_TRACE
-  fprintf(SysTraceFile, "gcspyDriverResize: driver=%x(%s), size %d\n", 
+  fprintf(SysTraceFile, "gcspyDriverResize: driver=%x(%s), size %d\n",
           driver, driver->name, size);
 #endif
   gcspy_driverResize(driver, size);
@@ -2705,14 +2705,14 @@ gcspyDriverSetTileNameRange (gcspy_gc_driver_t *driver, int tile, VM_Address sta
 #ifndef RVM_FOR_32_ADDR
   snprintf(name, sizeof name, "   [%016llx-%016llx)", start, end);
 #else
-  snprintf(name, sizeof name, "   [%08x-%08x)", start, end); 
+  snprintf(name, sizeof name, "   [%08x-%08x)", start, end);
 #endif
   gcspyDriverSetTileName(driver, tile, name, 0);
 }
 
 extern "C" void
 gcspyDriverSpaceInfo (gcspy_gc_driver_t *driver, char *spaceInfo) {
-#if GCSPY_TRACE 
+#if GCSPY_TRACE
   fprintf(SysTraceFile, "gcspyDriverSpaceInfo: driver=%x(%s), spaceInfo = +%s+(%x)\n", driver, driver->name, spaceInfo, spaceInfo);
 #endif
   gcspy_driverSpaceInfo(driver, spaceInfo);
@@ -2728,8 +2728,8 @@ gcspyDriverStartComm (gcspy_gc_driver_t *driver) {
 
 extern "C" void
 gcspyDriverStream (gcspy_gc_driver_t *driver, int id, int len) {
-#if GCSPY_TRACE 
-  fprintf(SysTraceFile, "gcspyDriverStream: driver=%x(%s), id=%d(%s), len=%d\n", 
+#if GCSPY_TRACE
+  fprintf(SysTraceFile, "gcspyDriverStream: driver=%x(%s), id=%d(%s), len=%d\n",
           driver, driver->name, id, driver->streams[id].name, len);
   stream_count = 0;
   stream_len = len;
@@ -2761,7 +2761,7 @@ gcspyDriverStreamShortValue (gcspy_gc_driver_t *driver, short val) {
 
 extern "C" void
 gcspyDriverStreamIntValue (gcspy_gc_driver_t *driver, int val) {
-#if (GCSPY_TRACE > 1) 
+#if (GCSPY_TRACE > 1)
   fprintf(SysTraceFile, "gcspyDriverStreamIntValue: driver=%x, val=%d\n", driver, val);
 #endif
 #if GCSPY_TRACE
@@ -2772,8 +2772,8 @@ gcspyDriverStreamIntValue (gcspy_gc_driver_t *driver, int val) {
 
 extern "C" void
 gcspyDriverSummary (gcspy_gc_driver_t *driver, int id, int len) {
-#if GCSPY_TRACE 
-  fprintf(SysTraceFile, "gcspyDriverSummary: driver=%x(%s), id=%d(%s), len=%d\n", 
+#if GCSPY_TRACE
+  fprintf(SysTraceFile, "gcspyDriverSummary: driver=%x(%s), id=%d(%s), len=%d\n",
           driver, driver->name, id, driver->streams[id].name, len);
   stream_count = 0;
   stream_len = len;
@@ -2783,10 +2783,10 @@ gcspyDriverSummary (gcspy_gc_driver_t *driver, int id, int len) {
 
 extern "C" void
 gcspyDriverSummaryValue (gcspy_gc_driver_t *driver, int val) {
-#if (GCSPY_TRACE > 1) 
+#if (GCSPY_TRACE > 1)
   fprintf(SysTraceFile, "gcspyDriverSummaryValue: driver=%x, val=%d\n", driver, val);
 #endif
-#if GCSPY_TRACE 
+#if GCSPY_TRACE
   stream_count++;
 #endif
   gcspy_driverSummaryValue(driver, val);
@@ -2795,7 +2795,7 @@ gcspyDriverSummaryValue (gcspy_gc_driver_t *driver, int val) {
 /* Note: passed driver but uses driver->interpreter */
 extern "C" void
 gcspyIntWriteControl (gcspy_gc_driver_t *driver, int id, int len) {
-#if GCSPY_TRACE 
+#if GCSPY_TRACE
   fprintf(SysTraceFile, "gcspyIntWriteControl: driver=%x(%s), interpreter=%x, id=%d, len=%d\n", driver, driver->name, driver->interpreter, id, len);
   stream_count = 0;
   stream_len = len;
@@ -2897,7 +2897,7 @@ gcspyStartserver (gcspy_main_server_t *server, int wait, void *loop) {
   fprintf(SysTraceFile, "gcspyStartserver: starting thread, wait=%d\n", wait);
 #endif
   pthread_t tid;
-  int res = pthread_create(&tid, NULL, 
+  int res = pthread_create(&tid, NULL,
                           (pthread_start_routine_t) loop,  server);
   if (res != 0) {
       fprintf(SysErrorFile,"Couldn't create thread.\n");
@@ -2913,7 +2913,7 @@ gcspyStartserver (gcspy_main_server_t *server, int wait, void *loop) {
 }
 
 extern "C" void
-gcspyStreamInit (gcspy_gc_stream_t *stream, int id, int dataType, char *streamName, 
+gcspyStreamInit (gcspy_gc_stream_t *stream, int id, int dataType, char *streamName,
                  int minValue, int maxValue, int zeroValue, int defaultValue,
                  char *stringPre, char *stringPost, int presentation, int paintStyle,
                  int indexMaxStream, int red, int green, int blue) {
@@ -2922,7 +2922,7 @@ gcspyStreamInit (gcspy_gc_stream_t *stream, int id, int dataType, char *streamNa
   colour.green = (unsigned char) green;
   colour.blue = (unsigned char) blue;
 #if GCSPY_TRACE
-  fprintf(SysTraceFile, "gcspyStreamInit: stream=%x, id=%d, dataType=%d, streamName=\"%s\", min=%d, max=%d, zero=%d, default=%d, pre=\"%s\", post=\"%s\", presentation=%d, style=%d, maxIndex=%d, colour=%x<%d,%d,%d>\n", 
+  fprintf(SysTraceFile, "gcspyStreamInit: stream=%x, id=%d, dataType=%d, streamName=\"%s\", min=%d, max=%d, zero=%d, default=%d, pre=\"%s\", post=\"%s\", presentation=%d, style=%d, maxIndex=%d, colour=%x<%d,%d,%d>\n",
                    stream, id, dataType, streamName,
                    minValue, maxValue, zeroValue, defaultValue,
 		   stringPre, stringPost, presentation, paintStyle,
@@ -2957,7 +2957,7 @@ gcspySprintf(char *str, const char *format, char *arg) {
   return res;
 }
 
-  
+
 #endif
 
 

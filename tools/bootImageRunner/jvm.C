@@ -65,8 +65,8 @@ getJniEnvFromVmProcessor(void *vmProcessorPtr)
  * TODO: Implement.
  */
 static
-jint 
-DestroyJavaVM(JavaVM UNUSED * vm) 
+jint
+DestroyJavaVM(JavaVM UNUSED * vm)
 {
     fprintf(stderr, "JikesRVM: Unimplemented JNI call DestroyJavaVM\n");
     return JNI_ERR;
@@ -80,8 +80,8 @@ DestroyJavaVM(JavaVM UNUSED * vm)
  * TODO: Implement for actually attaching unattached threads.
  */
 static
-jint 
-AttachCurrentThread(JavaVM UNUSED * vm, /* JNIEnv */ void ** penv, /* JavaVMAttachArgs */ void *args) 
+jint
+AttachCurrentThread(JavaVM UNUSED * vm, /* JNIEnv */ void ** penv, /* JavaVMAttachArgs */ void *args)
 {
     JavaVMAttachArgs *aargs = (JavaVMAttachArgs *) args;
     jint version;
@@ -96,7 +96,7 @@ AttachCurrentThread(JavaVM UNUSED * vm, /* JNIEnv */ void ** penv, /* JavaVMAtta
     // printing an error message further along in this function.
     if (version > JNI_VERSION_1_4)
         return JNI_EVERSION;
-    
+
     /* If we're already attached, we're gold. */
     register jint retval = GetEnv(vm, penv, version);
     if (retval == JNI_OK)
@@ -114,16 +114,16 @@ AttachCurrentThread(JavaVM UNUSED * vm, /* JNIEnv */ void ** penv, /* JavaVMAtta
 
 /* TODO: Implement */
 static
-jint 
-DetachCurrentThread(JavaVM UNUSED *vm) 
+jint
+DetachCurrentThread(JavaVM UNUSED *vm)
 {
     fprintf(stderr, "UNIMPLEMENTED JNI call DetachCurrentThread\n");
     return JNI_ERR;
 }
- 
-jint 
-GetEnv(JavaVM UNUSED *vm, void **penv, jint version) 
-{ 
+
+jint
+GetEnv(JavaVM UNUSED *vm, void **penv, jint version)
+{
     if (version > JNI_VERSION_1_4)
         return JNI_EVERSION;
 
@@ -137,7 +137,7 @@ GetEnv(JavaVM UNUSED *vm, void **penv, jint version)
     void *vmProcessor = pthread_getspecific(VmProcessorKey);
     // Get the JNIEnv from the VM_Processor object
     JNIEnv *env = getJniEnvFromVmProcessor(vmProcessor);
- 
+
     *penv = env;
 
     return JNI_OK;
@@ -146,8 +146,8 @@ GetEnv(JavaVM UNUSED *vm, void **penv, jint version)
 /** JNI 1.4 */
 /* TODO: Implement */
 static
-jint 
-AttachCurrentThreadAsDaemon(JavaVM UNUSED * vm, /* JNIEnv */ void UNUSED ** penv, /* JavaVMAttachArgs */ void UNUSED *args) 
+jint
+AttachCurrentThreadAsDaemon(JavaVM UNUSED * vm, /* JNIEnv */ void UNUSED ** penv, /* JavaVMAttachArgs */ void UNUSED *args)
 {
     fprintf(stderr, "Unimplemented JNI call AttachCurrentThreadAsDaemon\n");
     return JNI_ERR;

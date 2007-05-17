@@ -19,7 +19,7 @@ JNIEXPORT jint JNICALL Java_TestDeadVPQueueWorker_nativeFoo
   int localval = value + 15;
   jintArray myArray;
 
-  printf("Java_TestDeadVPQueueWorker_nativeFoo: reached native code with 0x%X 0x%X %d \n", env, cls, value); 
+  printf("Java_TestDeadVPQueueWorker_nativeFoo: reached native code with 0x%X 0x%X %d \n", env, cls, value);
 
   myArray = (*env) -> NewIntArray(env, 11);
   printf("Java_TestDeadVPQueueWorker_nativeFoo: JNI call returns 0x%X\n", myArray);

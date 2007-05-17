@@ -52,13 +52,13 @@
   <rule ref="rulesets/controversial.xml/CallSuperInConstructor"/>
   <rule ref="rulesets/controversial.xml/UnnecessaryParentheses"/>
 -->
-  
+
   <rule ref="rulesets/finalizers.xml/EmptyFinalizer"/>
   <rule ref="rulesets/finalizers.xml/FinalizeOnlyCallsSuperFinalize"/>
   <rule ref="rulesets/finalizers.xml/FinalizeOverloaded"/>
   <rule ref="rulesets/finalizers.xml/FinalizeDoesNotCallSuperFinalize"/>
   <rule ref="rulesets/finalizers.xml/FinalizeShouldBeProtected"/>
   <rule ref="rulesets/finalizers.xml/AvoidCallingFinalize"/>
-  
+
 </ruleset>
 

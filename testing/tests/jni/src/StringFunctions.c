@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 /* Test JNI Functions related to Strings
- * Implement native methods from StringFunctions.java 
+ * Implement native methods from StringFunctions.java
  */
 
 #include <stdio.h>
@@ -41,7 +41,7 @@ JNIEXPORT jstring JNICALL Java_StringFunctions_accessNewString
   unsigned short unicode_short[5];
   jstring returnString;
 
-  for (i=0; i<5; i++) 
+  for (i=0; i<5; i++)
     unicode_short[i] = (short) unicode_chars[i];
 
   returnString = (*env) -> NewString(env, unicode_short, 5);

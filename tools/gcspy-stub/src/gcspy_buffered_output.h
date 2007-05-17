@@ -20,7 +20,7 @@
 
 typedef void gcspy_buffered_output_t;
 
-#define gcspy_bufferedOutputGetLen(driver)  1 
+#define gcspy_bufferedOutputGetLen(driver)  1
 
 #endif // _GCSPY_BUFFERED_OUTPUT_H_
 

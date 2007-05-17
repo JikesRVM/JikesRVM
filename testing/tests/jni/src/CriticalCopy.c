@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 /* Test JNI Functions that access Java internal data directly
- * Implement native methods from CriticalCopy.java 
+ * Implement native methods from CriticalCopy.java
  */
 
 #include "CriticalCopy.h"
@@ -62,7 +62,7 @@ JNIEXPORT jint JNICALL Java_CriticalCopy_primitiveIntegerArray
   }
 
   (*env) -> ReleasePrimitiveArrayCritical(env, sourceArray, nativeArray, 0);
-  
+
   return 0;
 
 }

@@ -217,7 +217,7 @@ stringf(const char *fmt, ...)
     assert(nwrote < sizeof buf);
     va_end(ap);
     return strcpy(alloc(nwrote + 1), buf);
-}       
+}
 
 struct entry {
     union {
@@ -346,7 +346,7 @@ tree(const char *id, Tree left, Tree right)
 }
 
 /* rule - create & initialize a rule with the given fields */
-Rule 
+Rule
 rule(const char *id, Tree pattern, const char *template, const char *code)
 {
     Rule r = alloc(sizeof *r), *q;
@@ -423,7 +423,7 @@ print(const char *fmt, ...)
                     putc('\t', outfp);
                 break;
             }
-            default: putc(*fmt, outfp); break;                  
+            default: putc(*fmt, outfp); break;
             }
         else
             putc(*fmt, outfp);
@@ -466,10 +466,10 @@ emitcase(Term p)
     if (p->arity == -1) return;
     print("private void label_%S(OPT_BURS_TreeNode p) {\n", p);
     print("%1p.word0 = 0;\n");
-    print("%1p.initCost();\n"); 
+    print("%1p.initCost();\n");
 
     switch (p->arity) {
-    case 0: 
+    case 0:
         break;
     case 1:
         print("%1OPT_BURS_TreeNode lchild;\n");
@@ -480,7 +480,7 @@ emitcase(Term p)
     case 2:
         print("%1OPT_BURS_TreeNode lchild, rchild;\n");
         print("%1lchild = p.child1;\n");
-        print("%1rchild = p.child2;\n"); 
+        print("%1rchild = p.child2;\n");
         print("%1label(lchild);\n");
         print("%1label(rchild);\n");
         print("%1int c;\n");
@@ -508,16 +508,16 @@ emitcase(Term p)
                 print("%1// %R\n", r);
             if (r->pattern->nterms == 2
                 && r->pattern->left
-                &&  r->pattern->right == NULL) 
+                &&  r->pattern->right == NULL)
             {
                 emitrecalc(indent, r->pattern->op, r->pattern->left->op);
             }
-            
+
             print("%sc = ", indent);
             emitcost(r->pattern->left, "lchild");
             /* The next line triggers a bogus "will never be executed" warning
                in GCC 3.3 and GCC 3.3.1, with optimization level 1 or higher
-               set. */ 
+               set. */
             print("%s;\n", r->code);
             emitrecord(indent, r, "c", 0);
             if (indent[1])
@@ -548,7 +548,7 @@ emitcase(Term p)
 }
 
 /* emitclosure - emit the closure functions */
-static void 
+static void
 emitclosure(Nonterm nts_)
 {
     Nonterm p;
@@ -657,9 +657,9 @@ computeMarkkids(Tree t, const char *v, char *bp, size_t *bufszp, int *ip)
             ret = snprintf(bp, *bufszp, "\t\tmark(%s, ntsrule[%d]);\n", v, *ip);
         verify_chars(ret, *bufszp);
         nwrote = ret;
-        
+
         ++*ip;
-        
+
         bp += nwrote;
         *bufszp -= nwrote;
     } else if (p->arity > 0) {
@@ -764,7 +764,7 @@ emitlabel(Term terms_)
 
     /* Emit master case statement */
     print("public void label(OPT_BURS_TreeNode p) {\n");
-    print("%1p.initCost();\n"); 
+    print("%1p.initCost();\n");
     print("%1switch (p.getOpcode()) {\n");
     for (p = terms_; p; p = p->link) {
         if (p->arity != -1) {
@@ -785,13 +785,13 @@ computents(Tree t, char *bp, size_t *bufszp)
         if (p->kind == NONTERMINAL) {
             int ret = snprintf(bp, *bufszp, "%s_NT, ", p->name);
             size_t nwrote;
-            
+
             verify_chars(ret, *bufszp);
             nwrote = ret;
             bp += nwrote;
             *bufszp -= nwrote;
         } else {
-            bp = computents(t->left,  bp, bufszp),          
+            bp = computents(t->left,  bp, bufszp),
             bp = computents(t->right, bp, bufszp);
         }
     }
@@ -866,7 +866,7 @@ emitrecord(const char *pre, Rule r, const char *c, int cost)
         if (cost != 0)
             print("%s%1p.cost_%S = (%s + %d);\n",pre,r->lhs,c,cost);
         else
-            print("%s%1p.cost_%S = (%s);\n",pre,r->lhs,c);  
+            print("%s%1p.cost_%S = (%s);\n",pre,r->lhs,c);
 
     } else
         if (cost != 0)
@@ -901,9 +901,9 @@ emitrule(Nonterm nts_)
             print("},\n");
         }
         print("};\n\n");
-    } 
-    
-        
+    }
+
+
 #if 0
     print("static short rule(OPT_BURS_TreeNode state, byte goalnt) {\n");
 /* no need: Java has null pointer and array bounds exception
@@ -916,7 +916,7 @@ emitrule(Nonterm nts_)
       print("%1switch (goalnt) {\n");
       for (p = nts_; p; p = p->link) {
       print("%1case %S_NT: \tstatent = state.%S; \tbreak;\n",p,p);
-      } 
+      }
       print("%1default:\n");
       print("%2throw new OPT_OptimizingCompilerException(\"Bad nonterminal \"+goalnt);\n");
     */
@@ -939,10 +939,10 @@ emitstring(Rule rules_)
     Rule r;
 //    int k;
 //    Term p;
- 
+
     print("package org.jikesrvm.compilers.opt.%s; \n", arch);
     print("public class OPT_BURS_Debug {\n");
- 
+
 #if 0
     print("static final String opname[] = {\n");
     for (k = 0, p = terms; p; p = p->link) {
@@ -980,7 +980,7 @@ emitstring(Rule rules_)
 static void
 emitstruct(Nonterm nts_)
 {
-    Nonterm ntsc; 
+    Nonterm ntsc;
     int bit_offset, word_number, i;
     print("// program generated file, do not edit\n\n");
     print("%1// cost for each non-terminal\n");
@@ -1004,13 +1004,13 @@ emitstruct(Nonterm nts_)
     for (ntsc=nts_ ; ntsc; ntsc = ntsc->link) {
         int n = 1, m = ntsc->lhscount; //, k;
         while ((m >>= 1) != 0)
-            n++;                
+            n++;
         ntsc->number_bits = n;
         if ((bit_offset/32) != ((bit_offset+n)/32)) {
             word_number++;
             print("%1public int word%d;\n",word_number);
             bit_offset  = 0;
-        } 
+        }
         ntsc->word_number= word_number;
         ntsc->bit_offset = bit_offset;
         bit_offset += n;
@@ -1020,7 +1020,7 @@ emitstruct(Nonterm nts_)
           else
           print("%1byte ");
         */
-        print("%1   // %S; word:%d offset:%d, bits:%d, %d rules);\n", 
+        print("%1   // %S; word:%d offset:%d, bits:%d, %d rules);\n",
               ntsc,ntsc->word_number,ntsc->bit_offset,ntsc->number_bits,ntsc->lhscount);
     }
     if (oneterminal)
@@ -1072,7 +1072,7 @@ emitstruct(Nonterm nts_)
             if (ntsc->link)
                 print("%2case %S_NT:  statement= ",ntsc);
             else
-                print("%2default:     statement= ",ntsc);  
+                print("%2default:     statement= ",ntsc);
             readPacked(ntsc);
             print("; break;// %S\n",ntsc);
         }
@@ -1097,7 +1097,7 @@ emitterms(Term terms_)
        for ( ; k < p->esn; k++) ;
        print("static final char _%S = (char)%d;\n", p, k++);
        }
-       print("\n");        
+       print("\n");
     */
 
     print("/*static final byte arity[] = {\n");
@@ -1106,7 +1106,7 @@ emitterms(Term terms_)
             print("%10,%1// %d\n", k);
         /*
           print("%1%d,%1// %d=%S\n", p->arity < 0 ? 0 : p->arity, k++, p);
-        */ 
+        */
         print("%1%d,%1// %d=%S\n", p->arity, k++, p);
     }
     print("};*/\n\n");
@@ -1140,7 +1140,7 @@ xstrdup(const char *src)
 
 
 
-        
+
 static void
 verify_chars(int ret, size_t bufsz)
 {
@@ -1152,8 +1152,8 @@ verify_chars(int ret, size_t bufsz)
        We still have platforms (AIX 5.1, to be precise) which don't appear to
        support %z.  How ugly; we have to work around this. */
     if (nwrote >= bufsz) {
-//      fprintf(stderr, "Needed %d chars of space; had only %zu\n", 
-        fprintf(stderr, "Needed %d chars of space; had only %lu\n", 
+//      fprintf(stderr, "Needed %d chars of space; had only %zu\n",
+        fprintf(stderr, "Needed %d chars of space; had only %lu\n",
                 ret + 1, (unsigned long) nwrote);
         /* skip on */
     }

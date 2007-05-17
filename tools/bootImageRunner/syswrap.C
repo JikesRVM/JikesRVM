@@ -57,7 +57,7 @@ static PollFunc_t libcPoll;
 // symbolName - name of symbol
 // pPtr - address of pointer variable in which to store
 //        the address of the symbol
-static void 
+static void
 getRealSymbol(const char *symbolName, void **pPtr)
 {
     static void *libcHandle;
@@ -72,7 +72,7 @@ getRealSymbol(const char *symbolName, void **pPtr)
 
 // Arbitrarily consider anything longer than 1 millisecond a "long" wait.
 // We may want to adjust this so any non-zero wait is considered long.
-static bool 
+static bool
 isLongWait(struct timeval *timeout)
 {
     return timeout == 0 || timeout->tv_sec > 0 || timeout->tv_usec > 1000;
@@ -80,7 +80,7 @@ isLongWait(struct timeval *timeout)
 
 // Return the number of file descriptors which are set in given
 // fd_set.
-static int 
+static int
 countFileDescriptors(fd_set *fdSet, int maxFd)
 {
     int count = 0;
@@ -92,7 +92,7 @@ countFileDescriptors(fd_set *fdSet, int maxFd)
 }
 
 // Transfer file descriptors from an fd_set to a Java array of integer.
-static void 
+static void
 addFileDescriptors(jint *elements, fd_set *fdSet, int maxFd)
 {
     int count = 0;
@@ -104,7 +104,7 @@ addFileDescriptors(jint *elements, fd_set *fdSet, int maxFd)
 
 // Convert an fd_set into a Java array of integer containing the
 // file descriptors which are set in the fd_set.
-static jintArray 
+static jintArray
 fdSetToIntArray(JNIEnv *env, fd_set *fdSet, int maxFd)
 {
     jintArray arr = 0;
@@ -125,7 +125,7 @@ fdSetToIntArray(JNIEnv *env, fd_set *fdSet, int maxFd)
 // Returns: count of file descriptors marked as ready
 //
 // TODO: check for FD_INVALID_BIT
-static int 
+static int
 updateStatus(JNIEnv *env, fd_set *fdSet, jintArray fdArray)
 {
     int readyCount = 0;
@@ -157,7 +157,7 @@ updateStatus(JNIEnv *env, fd_set *fdSet, jintArray fdArray)
 //
 // Returned:
 // Pointer to select() function in C library.
-SelectFunc_t 
+SelectFunc_t
 getLibcSelect(void)
 {
     getRealSymbol("select", (void**) &libcSelect);
@@ -184,7 +184,7 @@ getLibcSelect(void)
 // -1: on error (errno should be set)
 //  0: if no file descriptors became ready prior to timeout
 // >0: number of file descriptors that are ready
-extern "C" int 
+extern "C" int
 select(int maxFd, fd_set *readFdSet, fd_set *writeFdSet,
        fd_set *exceptFdSet, struct timeval *timeout)
 {
@@ -236,7 +236,7 @@ select(int maxFd, fd_set *readFdSet, fd_set *writeFdSet,
 
 // Wrapper for the poll() system call, which we re-implement using select
 //
-// Note: we are taking on faith the claim in the select_tut(2) man page 
+// Note: we are taking on faith the claim in the select_tut(2) man page
 // that exceptfds in select is really used for out-of-band data and not
 // for exceptions.  See select_tut(2) for details.
 //
@@ -247,7 +247,7 @@ select(int maxFd, fd_set *readFdSet, fd_set *writeFdSet,
 // --Steve Augart
 //
 extern "C" int
-poll(struct pollfd *ufds, long unsigned int nfds, int timeout) 
+poll(struct pollfd *ufds, long unsigned int nfds, int timeout)
 {
     if (VERBOSE_WRAPPERS)
 	fprintf(stderr, "Calling poll wrapper\n");
@@ -268,7 +268,7 @@ poll(struct pollfd *ufds, long unsigned int nfds, int timeout)
     FD_ZERO( &writefds );
     FD_ZERO( &exceptfds );
 
-    if (timeout < 0) 
+    if (timeout < 0)
         tv_ptr = NULL;
     else {
         tv.tv_sec = timeout / 1000;
@@ -294,7 +294,7 @@ poll(struct pollfd *ufds, long unsigned int nfds, int timeout)
     }
 
     ready = select(max_fd, &readfds, &writefds, &exceptfds, tv_ptr);
-    
+
     for (unsigned i = 0; i < nfds; i++) {
 
         if (ufds[i].events&POLLIN && FD_ISSET( ufds[i].fd, &readfds ))
@@ -326,7 +326,7 @@ int pthread_mutex_lock(pthread_mutex_t *mutex)
       jclass thread_class;
       jmethodID thread_yield_mth;
       thread_class = env->FindClass ("java/lang/Thread");
-      thread_yield_mth = env->GetStaticMethodID (thread_class, "yield", "()V");    
+      thread_yield_mth = env->GetStaticMethodID (thread_class, "yield", "()V");
       do {
         env->CallStaticVoidMethod (thread_class,
                                    thread_yield_mth);
@@ -357,8 +357,8 @@ int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex)
   timeout.tv_sec = now.tv_sec + 1;
   timeout.tv_nsec = now.tv_usec * 1000;
 
-  err = pthread_cond_timedwait(cond, mutex, &timeout); 
-  if (err == ETIMEDOUT) { /* timeout */ 
+  err = pthread_cond_timedwait(cond, mutex, &timeout);
+  if (err == ETIMEDOUT) { /* timeout */
     JNIEnv *env;
     GetEnv(NULL, (void**) &env, JNI_VERSION_1_1);
     // Check env has been initialised (ie VM has started)
@@ -366,7 +366,7 @@ int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex)
       jclass thread_class;
       jmethodID thread_yield_mth;
       thread_class = env->FindClass ("java/lang/Thread");
-      thread_yield_mth = env->GetStaticMethodID (thread_class, "yield", "()V");    
+      thread_yield_mth = env->GetStaticMethodID (thread_class, "yield", "()V");
       do {
         env->CallStaticVoidMethod (thread_class,
                                    thread_yield_mth);
@@ -374,12 +374,12 @@ int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex)
         gettimeofday(&now, NULL);
         timeout.tv_sec = now.tv_sec + 1;
         timeout.tv_nsec = now.tv_usec * 1000;
-        err = pthread_cond_timedwait(cond, mutex, &timeout); 
+        err = pthread_cond_timedwait(cond, mutex, &timeout);
       } while(err == ETIMEDOUT);
     }
     else {
       do {
-        err = pthread_cond_timedwait(cond, mutex, &timeout); 
+        err = pthread_cond_timedwait(cond, mutex, &timeout);
       } while(err == ETIMEDOUT);
     }
   }

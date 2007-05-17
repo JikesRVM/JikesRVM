@@ -15,7 +15,7 @@
   <property name="main.java" location="${basedir}/src"/>
 
   <property name="build.classes" location="${build.tests.dir}/classes"/>
- 
+
   <property name="test.class.path" value="${build.classes}"/>
 
   <!-- **************************************************************************** -->

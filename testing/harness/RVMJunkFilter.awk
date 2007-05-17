@@ -8,12 +8,12 @@
 #
 #
 #
-BEGIN { 
+BEGIN {
     yes = "yes"
     no = "no"
     counts = no
     gc_mess = no
-    report_crap = no 
+    report_crap = no
     kill_next = no
     boot_image_junk = no
     verbose_trap = no
@@ -134,8 +134,8 @@ verbose_trap==yes { next }
 /vm: normal trap/ && verbose_trap==normal { next }
 /failing instruction : / && verbose_trap==normal { next }
 /Trap code is 0x[0-9a-fA-F]*/ && verbose_trap==normal { next }
-/Set vmr_fp to 0x[0-9a-f]*/ && verbose_trap==normal { 
-  verbose_trap = no; next 
+/Set vmr_fp to 0x[0-9a-f]*/ && verbose_trap==normal {
+  verbose_trap = no; next
 }
 
 #

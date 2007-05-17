@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2004
  *
  * Test that NULL is assigned JNI id 0.
- * Implement native methods from NullIdentity.java 
+ * Implement native methods from NullIdentity.java
  */
 
 #include <stdio.h>

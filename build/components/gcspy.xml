@@ -94,7 +94,7 @@
     <mkdir dir="${gcspy.package.dir}/${target.name}/server"/>
     <copy todir="${gcspy.package.dir}/${target.name}/server">
       <fileset dir="${gcspy.dir}/src/src/c/lib">
-        <include name="*${target.jni-suffix}"/>        
+        <include name="*${target.jni-suffix}"/>
       </fileset>
       <fileset dir="${gcspy.dir}/src/src/c">
         <include name="include/*"/>

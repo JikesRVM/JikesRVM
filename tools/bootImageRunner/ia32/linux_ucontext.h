@@ -36,7 +36,7 @@
 #define IA32_STMM(context, reg, n) (IA32_FPREGS(context)->_st[reg].significand[n])
 #define IA32_STMMEXP(context, reg) (IA32_FPREGS(context)->_st[reg].exponent)
 
-/* Currently unused 
+/* Currently unused
 #define IA32_XMM(context, reg, n) \
 */
 

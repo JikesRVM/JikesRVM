@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 /****
- * Test loading a library and looking up a symbol 
+ * Test loading a library and looking up a symbol
  */
 
 #include <stdio.h>
@@ -21,7 +21,7 @@ main(int argc, char **argv) {
   char *symbolName;
   void *libHandler;
   void *symbolAddress;
-  
+
   switch (argc) {
   case 3:
     libName = argv[1];
@@ -46,37 +46,37 @@ main(int argc, char **argv) {
     else {
       switch (errno) {
       case EACCES:
-        printf("Error loading library, cannot access because not an ordinary file, or permission denied\n"); 
+        printf("Error loading library, cannot access because not an ordinary file, or permission denied\n");
         return 0;
       case EINVAL:
-        printf("Error loading library, incorrect file header for the host machine\n"); 
+        printf("Error loading library, incorrect file header for the host machine\n");
         return 0;
       case ELOOP:
-        printf("Error loading library, too many symbolic links in path name\n"); 
+        printf("Error loading library, too many symbolic links in path name\n");
         return 0;
       case ENOEXEC:
-        printf("Error loading library, problem in loading or resolving symbols, possibly invalid XCOFF header\n"); 
+        printf("Error loading library, problem in loading or resolving symbols, possibly invalid XCOFF header\n");
         return 0;
       case ENOMEM:
-        printf("Error loading library, not enough memory\n"); 
+        printf("Error loading library, not enough memory\n");
         return 0;
       case ETXTBSY:
-        printf("Error loading library, file currently open for writing by others\n"); 
+        printf("Error loading library, file currently open for writing by others\n");
         return 0;
       case ENAMETOOLONG:
-        printf("Error loading library, path exceeded 1023 characters\n"); 
+        printf("Error loading library, path exceeded 1023 characters\n");
         return 0;
       case ENOENT:
-        printf("Error loading library, bad library path\n"); 
+        printf("Error loading library, bad library path\n");
         return 0;
       case ENOTDIR:
-        printf("Error loading library, library path not a directory\n"); 
+        printf("Error loading library, library path not a directory\n");
         return 0;
       case ESTALE:
-        printf("Error loading library, file system unmounted\n"); 
+        printf("Error loading library, file system unmounted\n");
         return 0;
       }
-      
+
     }
 
   } else {
@@ -84,11 +84,11 @@ main(int argc, char **argv) {
 
     /* Look up the symbol */
     symbolAddress = dlsym((void *) libHandler, symbolName);
-    
+
     if (symbolAddress==0)
       printf("Symbol %s NOT found in library\n", symbolName);
-    else 
+    else
       printf("Symbol %s found at address 0x%8X\n", symbolName, symbolAddress);
   }
-  
-}  
+
+}

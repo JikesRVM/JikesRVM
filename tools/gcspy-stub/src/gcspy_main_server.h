@@ -23,7 +23,7 @@ typedef struct {
 } gcspy_main_server_t;
 
 
-#define gcspy_mainServerAddDriver(server)  NULL 
+#define gcspy_mainServerAddDriver(server)  NULL
 #define gcspy_mainServerAddEvent(server,event,name)
 /*define gcspy_mainServerInit(server,port,len,name,verbose) NULL*/
 #define gcspy_mainServerIsConnected(server,event) 1

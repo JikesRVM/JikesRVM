@@ -16,7 +16,7 @@
 
 
 #
-# Given input in the form of 
+# Given input in the form of
 #	value
 #	filename
 # list files that have a value of zero.
@@ -37,7 +37,7 @@ for ($i=0; $i < @inputs; $i+=2) {
    unless (defined($inputs[$i + 1])) {
        die "Internal error in execution of findDeviantFiles; ODD # of input lines to findMatchedFiles.perl: \$inputs[$i + 1] is undefined. \@inputs is", scalar @inputs, "\n\t\$file is $file\n";
    }
-   chomp($value =$inputs[($i+1)]);	
+   chomp($value =$inputs[($i+1)]);
    if ($debug>=1) {print "$i: line is '$file:$value'\n";}
    if ($value eq 0) {
       if($debug>=1){print "found file $file with no matches";}

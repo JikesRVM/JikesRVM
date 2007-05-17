@@ -40,10 +40,10 @@ while(<in_file>){
 
     if ($processingCompRate eq true) {
 	# this code is used to process the 1st half of the file, the comp rate data
-	
+
 	# sample string
 	# "======= _200_check Finished in 1.392 secs"
-	
+
 	# This says match ("m/") the following
 	#   \S+ 1 or more any non-white space
 	#   ()  give it a name, $1, $2, etc
@@ -52,7 +52,7 @@ while(<in_file>){
 	    # remember the benchmarks as we see them
 	    $benchmarks{$numBench} = $benchmark;
 	}
-	
+
 	# Base	310	65	505.80	5.36	172.0	32.1
 	if ($run==0) {
 	    if (m/Base\s+(\S+)\s+(\S+)\s+(\S+)/) {
@@ -170,7 +170,7 @@ sub pad_with_tab {
     } else {
 	print $string;
     }
-    
+
 }
 
 

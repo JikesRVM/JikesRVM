@@ -6,8 +6,8 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-/* Test field access from native code 
- * Implement native methods from FieldAccess.java 
+/* Test field access from native code
+ * Implement native methods from FieldAccess.java
  */
 
 #include <stdio.h>
@@ -44,10 +44,10 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticIntField
 
   fid = (*env) -> GetStaticFieldID(env, cls, "staticInt", "I");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> accessStaticField: fail to get field ID for staticInt\n");
     return 1;
-  } 
+  }
 
 
   si = (*env) -> GetStaticIntField(env, cls, fid);
@@ -75,7 +75,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticBooleanField
 
   fid = (*env) -> GetStaticFieldID(env, cls, "staticBoolean", "Z");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> accessStaticBooleanField: fail to get field ID for staticBoolean\n");
     return 1;
   }
@@ -106,7 +106,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticByteField
 
   fid = (*env) -> GetStaticFieldID(env, cls, "staticByte", "B");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> accessStaticByteField: fail to get field ID for staticByte\n");
     return 1;
   }
@@ -136,7 +136,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticCharField
 
   fid = (*env) -> GetStaticFieldID(env, cls, "staticChar", "C");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> accessStaticCharField: fail to get field ID for staticChar\n");
     return 1;
   }
@@ -166,7 +166,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticShortField
 
   fid = (*env) -> GetStaticFieldID(env, cls, "staticShort", "S");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> accessStaticShortField: fail to get field ID for staticShort\n");
     return 1;
   }
@@ -196,7 +196,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticLongField
 
   fid = (*env) -> GetStaticFieldID(env, cls, "staticLong", "J");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> accessStaticLongField: fail to get field ID for staticLong\n");
     return 1;
   }
@@ -226,7 +226,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticFloatField
 
   fid = (*env) -> GetStaticFieldID(env, cls, "staticFloat", "F");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> accessStaticFloatField: fail to get field ID for staticFloat\n");
     return 1;
   }
@@ -257,7 +257,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticDoubleField
 
   fid = (*env) -> GetStaticFieldID(env, cls, "staticDouble", "D");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("accessStaticDoubleField: fail to get field ID for staticDouble\n");
     return 1;
   }
@@ -289,7 +289,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticObjectField
 
   fid = (*env) -> GetStaticFieldID(env, cls, "staticObject", "LFieldAccess;");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> accessStaticObjectField: fail to get field ID for staticObject\n");
     return 1;
   }
@@ -304,7 +304,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticObjectField
   objClass = (*env) -> FindClass(env, "FieldAccess");
   if (verbose) {
     printf("> accessStaticObjectField: jnienv = %p, jclass = %p \n", env, cls);
-    printf("> accessStaticObjectField: class ref = %p \n", objClass);  
+    printf("> accessStaticObjectField: class ref = %p \n", objClass);
   }
   matchClass = (*env) -> IsInstanceOf(env, obj, objClass);
   if (matchClass)
@@ -332,7 +332,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessIntField
 
   fid = (*env) -> GetFieldID(env, cls, "instanceInt", "I");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> accessIntField: fail to get field ID for instanceInt\n");
     return 1;
   }
@@ -361,7 +361,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessBooleanField
 
   fid = (*env) -> GetFieldID(env, cls, "instanceBoolean", "Z");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> accessBooleanField: fail to get field ID for instanceBoolean\n");
     return 1;
   }
@@ -391,7 +391,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessByteField
 
   fid = (*env) -> GetFieldID(env, cls, "instanceByte", "B");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> accessByteField: fail to get field ID for instanceByte\n");
     return 1;
   }
@@ -422,7 +422,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessCharField
 
   fid = (*env) -> GetFieldID(env, cls, "instanceChar", "C");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> accessCharField: fail to get field ID for instanceChar\n");
     return 1;
   }
@@ -453,7 +453,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessShortField
 
   fid = (*env) -> GetFieldID(env, cls, "instanceShort", "S");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> accessShortField: fail to get field ID for instanceShort\n");
     return 1;
   }
@@ -484,7 +484,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessLongField
 
   fid = (*env) -> GetFieldID(env, cls, "instanceLong", "J");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> accessLongField: fail to get field ID for instanceLong\n");
     return 1;
   }
@@ -515,7 +515,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessFloatField
 
   fid = (*env) -> GetFieldID(env, cls, "instanceFloat", "F");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> accessIntField: fail to get field ID for instanceFloat\n");
     return 1;
   }
@@ -546,7 +546,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessDoubleField
 
   fid = (*env) -> GetFieldID(env, cls, "instanceDouble", "D");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> accessDoubleField: fail to get field ID for instanceDouble\n");
     return 1;
   }
@@ -580,7 +580,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessObjectField
 
   fid = (*env) -> GetFieldID(env, cls, "instanceObject", "LFieldAccess;");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> accessObjectField: fail to get field ID for instanceObject\n");
     return 1;
   }
@@ -595,7 +595,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessObjectField
   objClass = (*env) -> FindClass(env, "FieldAccess");
   /*  printf("> accessObjectField: jnienv = %d, jclass = %d \n", env, cls); */
   if (verbose) {
-    printf("> accessObjectField: class ref = %p \n", objClass);  
+    printf("> accessObjectField: class ref = %p \n", objClass);
   }
   matchClass = (*env) -> IsInstanceOf(env, fieldObj, objClass);
   if (matchClass)
@@ -617,10 +617,10 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setStaticIntField
 
   fid = (*env) -> GetStaticFieldID(env, cls, "staticInt", "I");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> setStaticIntField: fail to get field ID for staticInt\n");
     return 1;
-  } 
+  }
 
 
   (*env) -> SetStaticIntField(env, cls, fid, 456);
@@ -644,7 +644,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setStaticBooleanField
 
   fid = (*env) -> GetStaticFieldID(env, cls, "staticBoolean", "Z");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> setStaticBooleanField: fail to get field ID for staticBoolean\n");
     return 1;
   }
@@ -671,7 +671,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setStaticByteField
 
   fid = (*env) -> GetStaticFieldID(env, cls, "staticByte", "B");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> setStaticByteField: fail to get field ID for staticByte\n");
     return 1;
   }
@@ -682,7 +682,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setStaticByteField
   }
 
   return 0;
-  
+
 }
 
 
@@ -698,7 +698,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setStaticCharField
 
   fid = (*env) -> GetStaticFieldID(env, cls, "staticChar", "C");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> setStaticCharField: fail to get field ID for staticChar\n");
     return 1;
   }
@@ -725,7 +725,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setStaticShortField
 
   fid = (*env) -> GetStaticFieldID(env, cls, "staticShort", "S");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> setStaticShortField: fail to get field ID for staticShort\n");
     return 1;
   }
@@ -736,7 +736,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setStaticShortField
   }
 
   return 0;
-  
+
 }
 
 
@@ -752,7 +752,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setStaticLongField
 
   fid = (*env) -> GetStaticFieldID(env, cls, "staticLong", "J");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> setStaticLongField: fail to get field ID for staticLong\n");
     return 1;
   }
@@ -779,7 +779,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setStaticFloatField
 
   fid = (*env) -> GetStaticFieldID(env, cls, "staticFloat", "F");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> setStaticFloatField: fail to get field ID for staticFloat\n");
     return 1;
   }
@@ -807,7 +807,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setStaticDoubleField
 
   fid = (*env) -> GetStaticFieldID(env, cls, "staticDouble", "D");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("setStaticDoubleField: fail to get field ID for staticDouble\n");
     return 1;
   }
@@ -834,7 +834,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setStaticObjectField
 
   fid = (*env) -> GetStaticFieldID(env, cls, "staticObject", "LFieldAccess;");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> setStaticObjectField: fail to get field ID for staticObject\n");
     return 1;
   }
@@ -862,7 +862,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setIntField
 
   fid = (*env) -> GetFieldID(env, cls, "instanceInt", "I");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> setIntField: fail to get field ID for instanceInt\n");
     return 1;
   }
@@ -889,7 +889,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setBooleanField
 
   fid = (*env) -> GetFieldID(env, cls, "instanceBoolean", "Z");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> setBooleanField: fail to get field ID for instanceBoolean\n");
     return 1;
   }
@@ -916,7 +916,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setByteField
 
   fid = (*env) -> GetFieldID(env, cls, "instanceByte", "B");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> setByteField: fail to get field ID for instanceByte\n");
     return 1;
   }
@@ -943,7 +943,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setCharField
 
   fid = (*env) -> GetFieldID(env, cls, "instanceChar", "C");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> setCharField: fail to get field ID for instanceChar\n");
     return 1;
   }
@@ -970,7 +970,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setShortField
 
   fid = (*env) -> GetFieldID(env, cls, "instanceShort", "S");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> setShortField: fail to get field ID for instanceShort\n");
     return 1;
   }
@@ -997,7 +997,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setLongField
 
   fid = (*env) -> GetFieldID(env, cls, "instanceLong", "J");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> setLongField: fail to get field ID for instanceLong\n");
     return 1;
   }
@@ -1024,7 +1024,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setFloatField
 
   fid = (*env) -> GetFieldID(env, cls, "instanceFloat", "F");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> setIntField: fail to get field ID for instanceFloat\n");
     return 1;
   }
@@ -1051,7 +1051,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setDoubleField
 
   fid = (*env) -> GetFieldID(env, cls, "instanceDouble", "D");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> setDoubleField: fail to get field ID for instanceDouble\n");
     return 1;
   }
@@ -1078,7 +1078,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setObjectField
 
   fid = (*env) -> GetFieldID(env, cls, "instanceObject", "LFieldAccess;");
   if (fid == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> setObjectField: fail to get field ID for instanceObject\n");
     return 1;
   }

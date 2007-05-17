@@ -52,7 +52,7 @@ input.forcegc=true
 #
 # 'include_file' is the name for the descriptive properties file.
 # On systems where the file separator is \, use \\ as the file separator here
-# 
+#
 # Examples:
 #        input.include_file=SPECjbb_config.props
 #        input.include_file=/path/to/SPECjbb_config.props
@@ -64,7 +64,7 @@ input.include_file=SPECjbb_config.props
 #
 # directory to store output files
 # On systems where the file separator is \, use \\ as the file separator here
-# 
+#
 # Examples:
 #        input.include_file=results
 #        input.include_file=/path/to/results

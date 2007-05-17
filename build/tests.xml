@@ -23,7 +23,7 @@
   The following properties contain the output results of running the rvm.
    - test.@{tag}.exit.code                (The exit code from rvm)
    - test.@{tag}.output.file              (The name of the file containing output from execution)
-   - test.@{tag}.sanitized.output.file    (The name of the file containing output from execution after it was cleaned)        
+   - test.@{tag}.sanitized.output.file    (The name of the file containing output from execution after it was cleaned)
   The following properties contain the results of running the analysis.
    - test.@{tag}.result                   (One of SUCCESS, FAILURE, ERROR or NOTRUN)
    - test.@{tag}.result.explanation       (The reason for result if not SUCCESS)
@@ -38,7 +38,7 @@
 
   <import file="${jikesrvm.dir}/build/base.xml"/>
   <import file="${jikesrvm.dir}/build/tasks.xml"/>
-  
+
   <property name="rvm.exe" location="${test.rvm.dir}/rvm"/>
 
   <!-- Default values -->

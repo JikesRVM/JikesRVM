@@ -21,7 +21,7 @@
 typedef struct {
 } gcspy_gc_driver_t;
 
-#define gcspy_driverAddStream(driver,id)  NULL 
+#define gcspy_driverAddStream(driver,id)  NULL
 #define gcspy_driverEndOutput(driver)
 #define gcspy_driverInit(driver,id,serverName,driverName,title,blockInfo,tileNum,unused,mainSpace)
 #define gcspy_driverInitOutput(driver)

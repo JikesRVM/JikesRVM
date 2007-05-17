@@ -11,11 +11,11 @@
 // Definitions of constants for handling C command-line arguments
 // These are actually only included by one caller, RunBootImage.C
 
-#ifndef CMDLINE_H 
+#ifndef CMDLINE_H
 #define CMDLINE_H
 
 /* These definitions must remain in sync with nonStandardArgs, the array
- * immediately below. */ 
+ * immediately below. */
 static const int HELP_INDEX                    = 0;
 static const int VERBOSE_INDEX                 = HELP_INDEX+1;
 static const int VERBOSE_BOOT_INDEX            = VERBOSE_INDEX+1;
@@ -39,7 +39,7 @@ static const int PROCESSORS_INDEX              = CPUAFFINITY_INDEX+1;
 static const int numNonstandardArgs      = PROCESSORS_INDEX+1;
 
 static const char* nonStandardArgs[numNonstandardArgs] = {
-   "-X", 
+   "-X",
    "-X:verbose",
    "-X:verboseBoot=",
    "-Xms",
@@ -62,7 +62,7 @@ static const char* nonStandardArgs[numNonstandardArgs] = {
 
 // a NULL-terminated list.
 static const char* nonStandardUsage[] = {
-   "    -X                       Print usage on nonstandard options", 
+   "    -X                       Print usage on nonstandard options",
    "    -X:verbose               Print out additional lowlevel information",
    "    -X:verboseBoot=<number>  Print out messages while booting VM",
    "    -Xms<number><unit>       Initial size of heap",

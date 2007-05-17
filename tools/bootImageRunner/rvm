@@ -25,8 +25,8 @@ echo -n "set args" > $TMP_GDB_COMMANDS
 echo $BASE_ARGS | tr ' ' '\n' | awk '{print "\"" $1 "\"" }' | tr '\n' ' ' >> $TMP_GDB_COMMANDS
 #echo $* | tr ' ' '\n' | awk '{print "\"" $1 "\"" }' >> $TMP_GDB_COMMANDS
 for arg in "$@"; do
-    echo -n " \"$arg\"" >> $TMP_GDB_COMMANDS 
-done 
+    echo -n " \"$arg\"" >> $TMP_GDB_COMMANDS
+done
 echo "" >> $TMP_GDB_COMMANDS
 
 # Tell gdb to completely ignore some signals that Jikes RVM uses
@@ -37,5 +37,5 @@ echo "handle SIGSEGV nostop noprint pass" >> $TMP_GDB_COMMANDS
 # Set an initial breakpoint right before we start the jump into VM.boot
 echo "break bootThread" >> $TMP_GDB_COMMANDS
 
-@PRELOAD@ gdb "${gdb_args[@]}" "$RVM_HOME/JikesRVM" "--command=$TMP_GDB_COMMANDS" 
+@PRELOAD@ gdb "${gdb_args[@]}" "$RVM_HOME/JikesRVM" "--command=$TMP_GDB_COMMANDS"
 fi

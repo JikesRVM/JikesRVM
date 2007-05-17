@@ -63,7 +63,7 @@ JNIEXPORT jint JNICALL Java_Mangled_1Name_1s_1_overload__
 JNIEXPORT jint JNICALL Java_Mangled_1Name_1s_1_overload__I
   (JNIEnv *env, jclass cls, jint myInt) {
   return 0;
-} 
+}
 
 /*
  * Class:     Mangled_1Name_1s_1

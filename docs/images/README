@@ -39,7 +39,7 @@ I then read the manpage for "ppmtowinicon".   That page says:
        A Windows icon contains 1 or  more  images,  at  different
        resolutions and color depths.
 
-       Microsoft recommends including at least the following for­
+       Microsoft recommends including at least the following for?
        mats in each icon.
 
        16 x 16 - 4 bpp
@@ -56,7 +56,7 @@ ppmtowinicon -output jalapeno-pepper-combined.winicon		\
         <(ppmquant 16 fat-jalapeno-pepper-cropped-32x32.gif )	\
         <(ppmquant 16 fat-jalapeno-pepper-cropped-16x16.gif )
 
-jalapeno-pepper-combined.winicon became web/pages/favicon.ico.   
+jalapeno-pepper-combined.winicon became web/pages/favicon.ico.
 
 Back at the step where I made fat-jalapeno-opepper-cropped-16x16.gif,
 I also used the GIMP to write out fat-jalapeno-pepper-16x16.png.

@@ -27,7 +27,7 @@
   <property name="mail.host" value="localhost"/>
   <property name="mail.port" value="25"/>
   <property name="reporting.host.name" value="Unknown"/>
-  
+
   <!-- properties defining where to upload -->
   <property name="upload.location" value=""/>
 

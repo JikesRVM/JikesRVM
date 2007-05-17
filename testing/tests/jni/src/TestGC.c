@@ -40,30 +40,30 @@ JNIEXPORT jobject JNICALL Java_TestGC_testgc
 
   systemClass = (*env) -> FindClass(env, "java/lang/System");
   if (systemClass == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> FindClass: fail to get class for java/lang/System\n");
     return NULL;
-  } 
+  }
 
   methodID = (*env) -> GetStaticMethodID(env, systemClass, "gc", "()V");
   if (methodID == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> GetStaticMethodID: fail to get method ID for static method System.gc\n");
     return NULL;
-  } 
+  }
 
-  if (verbose) 
+  if (verbose)
     printf("about to do System.gc\n");
 
   (*env) -> CallStaticVoidMethodA(env, systemClass, methodID, NULL);
 
-  if (verbose) 
+  if (verbose)
     printf("back from System.gc\n");
 
 
   /* Do a few operations on the moved object to see if it's still valid */
   if (verbose) printf("Calling FindClass\n");
-  expectCls = (*env) -> FindClass(env, "java/lang/String");  
+  expectCls = (*env) -> FindClass(env, "java/lang/String");
   if (verbose) printf("Calling IsInstanceOf\n");
   matchClass = (*env) -> IsInstanceOf(env, obj1, expectCls);
   if (!matchClass)

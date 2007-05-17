@@ -30,12 +30,12 @@ JNIEXPORT jint JNICALL Java_tNativeThreads_nativeFoo
 
   /*
   myArray = (*env) -> NewIntArray(env, 11);
-  printf("Java_tTango_nativeFoo: JNI call returns 0x%X\n", myArray);  
+  printf("Java_tTango_nativeFoo: JNI call returns 0x%X\n", myArray);
   */
 
 
-  /*  printf("tNativeThreads.c: input = %d \n", cnt); */ 
-  printf("******** %d ******\n",cnt); 
+  /*  printf("tNativeThreads.c: input = %d \n", cnt); */
+  printf("******** %d ******\n",cnt);
   /*sleep(10000000); */
 
   /***********
@@ -58,7 +58,7 @@ JNIEXPORT jint JNICALL Java_tNativeThreads_nativeFoo
 
   /*  printf("tNativeThreads.c: after loops: sum1 = %d , sum2 = %d \n", sum1,sum2); */
 
-  printf("!!!!!!!! %d !!!!!!\n", cnt);  
+  printf("!!!!!!!! %d !!!!!!\n", cnt);
 
   return cnt;
 }

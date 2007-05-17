@@ -175,7 +175,7 @@ static int
 closePipe(int descriptors[])
 {
   errno = 0;
-  while (close(descriptors[INPUT]) < 0 
+  while (close(descriptors[INPUT]) < 0
          && errno == EINTR)
     ;
   while (close(descriptors[OUTPUT]) < 0
@@ -193,14 +193,14 @@ closePipe(int descriptors[])
  * Method:    exec4
  * Signature: (Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;Ljava/lang/String;)I
  */
-JNIEXPORT jint JNICALL 
+JNIEXPORT jint JNICALL
 Java_org_jikesrvm_runtime_VM_1Process_exec4
-  (JNIEnv *env, 
-   jobject self, 
+  (JNIEnv *env,
+   jobject self,
    jstring programName,
    jobjectArray argvArguments,
    jobjectArray environment,
-   jstring dirPathStr) 
+   jstring dirPathStr)
 {
 
   // Get the program name
@@ -252,21 +252,21 @@ Java_org_jikesrvm_runtime_VM_1Process_exec4
 
   jclass ProcessClassID = env->FindClass( "org/jikesrvm/runtime/VM_Process" );
   assert(ProcessClassID);
-  int inputPipe[2], outputPipe[2], errorPipe[2]; 
+  int inputPipe[2], outputPipe[2], errorPipe[2];
   pid_t fid = -1;
-  int ret = createPipe(inputPipe, env, ProcessClassID, self, 
+  int ret = createPipe(inputPipe, env, ProcessClassID, self,
                        "inputDescriptor", OUTPUT);
   if (ret)
     goto fail;
-  ret = createPipe(outputPipe, env, ProcessClassID, self, 
+  ret = createPipe(outputPipe, env, ProcessClassID, self,
                    "outputDescriptor", INPUT);
   if (ret)
     goto close_inputPipe_and_fail;
-  ret = createPipe(errorPipe, env, ProcessClassID, self, 
+  ret = createPipe(errorPipe, env, ProcessClassID, self,
                    "errorDescriptor", INPUT);
   if (ret)
     goto close_outputPipe_and_fail;
-    
+
   // do the exec
   fid = fork();
   if (fid == 0) {
@@ -299,7 +299,7 @@ Java_org_jikesrvm_runtime_VM_1Process_exec4
     /* Attach pipes to stdin, stdout, stderr
        These absolutely should never fail. */
     SHOULD_NEVER_FAIL(dup2(inputPipe[INPUT], 0));
-    SHOULD_NEVER_FAIL(dup2(outputPipe[OUTPUT], 1));       
+    SHOULD_NEVER_FAIL(dup2(outputPipe[OUTPUT], 1));
     SHOULD_NEVER_FAIL(dup2(errorPipe[OUTPUT], 2));
 
     /* Close the original file descriptors returned by pipe().  Since they're
@@ -328,7 +328,7 @@ Java_org_jikesrvm_runtime_VM_1Process_exec4
     // int err = execvp(programString.get(), argv.get());
     (void) execvp(programString.get(), argv.get());
     // We get here only if an error occurred.
-    
+
 #ifdef DEBUG
     fprintf(stderr, "execvp() failed: %s\n", strerror(errno));
 #endif
@@ -352,7 +352,7 @@ Java_org_jikesrvm_runtime_VM_1Process_exec4
     if (errno == ENOENT || errno == ENOTDIR)
         exit(EXIT_STATUS_EXECUTABLE_NOT_FOUND);
     exit(EXIT_STATUS_COULD_NOT_EXECUTE); // couldn't be executed for some
-                                         // other reason. 
+                                         // other reason.
   } else if (fid > 0) {
     // parent
 
@@ -369,7 +369,7 @@ Java_org_jikesrvm_runtime_VM_1Process_exec4
     // input side of child's stdin:
     SHOULD_NEVER_FAIL(close(inputPipe[INPUT]));
     // output side of child's stdout:
-    SHOULD_NEVER_FAIL(close(outputPipe[OUTPUT])); 
+    SHOULD_NEVER_FAIL(close(outputPipe[OUTPUT]));
     // output side of child's stderr
     SHOULD_NEVER_FAIL(close(errorPipe[OUTPUT]));
 

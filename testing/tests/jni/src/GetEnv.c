@@ -7,8 +7,8 @@
  * (C) Copyright IBM Corp. 2002
  */
 
-/* Test the JavaVM and GetEnv JNI functionality 
- * Implement native methods from GetEnv.java 
+/* Test the JavaVM and GetEnv JNI functionality
+ * Implement native methods from GetEnv.java
  */
 
 #include "GetEnv.h"
@@ -37,4 +37,4 @@ void JNICALL Java_GetEnv_nativeCall(JNIEnv *env, jclass cls) {
     fprintf(stderr, "GetEnv return bad environment\n");
 }
 
-  
+

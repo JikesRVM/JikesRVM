@@ -7,7 +7,7 @@
  * (C) Copyright IBM Corp. 2001, 2005
  */
 
-/** 
+/**
  */
 #include <stdlib.h>
 #include <string.h>

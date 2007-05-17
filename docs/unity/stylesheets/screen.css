@@ -1,5 +1,5 @@
 /**********************************
- * TITLE: Gila Screen Stylesheet  * 
+ * TITLE: Gila Screen Stylesheet  *
  * URI  : gila/gila-screen.css    *
  * MODIF: 2003-Apr-30 19:09 +0800 *
  **********************************/
@@ -80,7 +80,7 @@ acronym, .titleTip {
 
 .subHeader p {
   margin: 0;
-  padding: 0;  
+  padding: 0;
 }
 
 .subHeader a {
@@ -246,7 +246,7 @@ acronym, .titleTip {
 }
 
 #main-copy h1.page-title {
-  border-top: none; 
+  border-top: none;
   padding-top: 0;
 }
 

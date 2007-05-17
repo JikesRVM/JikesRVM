@@ -11,8 +11,8 @@
  * C runtime support for virtual machine.
  *
  * This file deals with loading of the vm boot image into a memory segment,
- * basic processing of command line arguments, and branching to VM.boot. 
- * 
+ * basic processing of command line arguments, and branching to VM.boot.
+ *
  * The file "sys.C" contains the o/s support services to match
  * the entrypoints declared by VM_SysCall.java
  *
@@ -23,7 +23,7 @@
  *             standardize command line arguments with JDK 1.3.
  *             Eliminate order dependence on command line arguments
  *      Cleaned up memory management.  Made the handling of numeric args
- *      robust. 
+ *      robust.
  */
 #include <stdio.h>
 #include <assert.h>             // assert()
@@ -47,7 +47,7 @@
 // extern "C" char *sys_siglist[];
 #endif
 #include "RunBootImage.h"       // Automatically generated for us by
-                                // jbuild.linkBooter 
+                                // jbuild.linkBooter
 #include "bootImageRunner.h"    // In tools/bootImageRunner
 #include "cmdLine.h"            // Command line args.
 
@@ -76,8 +76,8 @@ static bool strnequal(const char *s1, const char *s2, size_t n);
 /*
  * What standard command line arguments are supported?
  */
-static void 
-usage(void) 
+static void
+usage(void)
 {
     fprintf(SysTraceFile,"Usage: %s [-options] class [args...]\n", Me);
     fprintf(SysTraceFile,"          (to execute a class)\n");
@@ -108,8 +108,8 @@ usage(void)
 /*
  * What nonstandard command line arguments are supported?
  */
-static void 
-nonstandard_usage() 
+static void
+nonstandard_usage()
 {
     fprintf(SysTraceFile,"Usage: %s [options] class [args...]\n",Me);
     fprintf(SysTraceFile,"          (to execute a class)\n");
@@ -148,7 +148,7 @@ fullVersion()
  *   Any informational messages (e.g. -help).
  *
  * Input an array of command line arguments.
- * Return an array containing application arguments and VM arguments that 
+ * Return an array containing application arguments and VM arguments that
  *        are not processed here.
  * Side Effect  global varable JavaArgc is set.
  *
@@ -162,8 +162,8 @@ fullVersion()
  * In case of trouble, we set fastExit.  We call exit(0) if no trouble, but
  * still want to exit.
  */
-static const char ** 
-processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit) 
+static const char **
+processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
 {
     int n_JCLAs = 0;
     bool startApplicationOptions = false;
@@ -215,17 +215,17 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
                 fprintf(SysTraceFile, "%s: \"%s\": too big a number to represent internally\n", Me, token);
                 *fastExit = true; break;
             } else if (*endp) {
-                fprintf(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a number\n", Me, token, subtoken);               
+                fprintf(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a number\n", Me, token, subtoken);
                 *fastExit = true; break;
             }
-            
+
             verboseBoot = vb;
             continue;
         }
         /*  Args that don't apply to us (from the Sun JVM); skip 'em. */
         if (strequal(token, "-server"))
             continue;
-        if (strequal(token, "-client")) 
+        if (strequal(token, "-client"))
             continue;
         if (strequal(token, "-version")) {
             shortVersion();
@@ -259,18 +259,18 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
                 subtoken = token + 12;
                 errno = 0;
                 char *endp;
-                level = strtol(subtoken, &endp, 0); 
+                level = strtol(subtoken, &endp, 0);
                 while (*endp && isspace(*endp)) // gobble trailing spaces
                     ++endp;
 
                 if (level < 0) {
                     fprintf(SysTraceFile, "%s: \"%s\": You may not specify a negative GC verbose value\n", Me, token);
-                    *fastExit = true; 
+                    *fastExit = true;
                 } else if (errno == ERANGE || level > INT_MAX ) {
                     fprintf(SysTraceFile, "%s: \"%s\": too big a number to represent internally\n", Me, token);
                     *fastExit = true;
                 } else if (*endp) {
-                    fprintf(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a number\n", Me, token, subtoken);           
+                    fprintf(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a number\n", Me, token, subtoken);
                     *fastExit = true;
                 }
                 if (*fastExit) {
@@ -281,7 +281,7 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
             /* Canonicalize the argument, and pass it on to the heavy-weight
              * Java code that parses -X:gc:verbose */
             const size_t bufsiz = 20;
-            char *buf = (char *) malloc(bufsiz); 
+            char *buf = (char *) malloc(bufsiz);
             int ret = snprintf(buf, bufsiz, "-X:gc:verbose=%ld", level);
             if (ret < 0) {
                 fprintf(stderr, "%s: Internal error processing the argument"
@@ -294,14 +294,14 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
                 *fastExit = true;
                 break;
             }
-            
+
             CLAs[n_JCLAs++]=buf; // Leave buf allocated!
             continue;
         }
 
         if (strnequal(token, nonStandardArgs[MS_INDEX], 4)) {
             subtoken = token + 4;
-            initialHeapSize 
+            initialHeapSize
                 = parse_memory_size("initial heap size", "ms", "", BYTES_IN_PAGE,
                                     token, subtoken, fastExit);
             if (*fastExit)
@@ -311,7 +311,7 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
 
         if (strnequal(token, nonStandardArgs[MX_INDEX], 4)) {
             subtoken = token + 4;
-            maximumHeapSize 
+            maximumHeapSize
                 = parse_memory_size("maximum heap size", "mx", "", BYTES_IN_PAGE,
                                     token, subtoken, fastExit);
             if (*fastExit)
@@ -352,22 +352,22 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
         //
 
         // All VM directives that take one token
-        if (strnequal(token, "-D", 2) 
-            || strnequal(token, nonStandardArgs[VM_INDEX], 5) 
-            || strnequal(token, nonStandardArgs[GC_INDEX], 5) 
-            || strnequal(token, nonStandardArgs[AOS_INDEX],6) 
-            || strnequal(token, nonStandardArgs[IRC_INDEX], 6) 
-            || strnequal(token, nonStandardArgs[RECOMP_INDEX], 9) 
-            || strnequal(token, nonStandardArgs[BASE_INDEX],7)  
-            || strnequal(token, nonStandardArgs[OPT_INDEX], 6) 
+        if (strnequal(token, "-D", 2)
+            || strnequal(token, nonStandardArgs[VM_INDEX], 5)
+            || strnequal(token, nonStandardArgs[GC_INDEX], 5)
+            || strnequal(token, nonStandardArgs[AOS_INDEX],6)
+            || strnequal(token, nonStandardArgs[IRC_INDEX], 6)
+            || strnequal(token, nonStandardArgs[RECOMP_INDEX], 9)
+            || strnequal(token, nonStandardArgs[BASE_INDEX],7)
+            || strnequal(token, nonStandardArgs[OPT_INDEX], 6)
             || strequal(token, "-verbose")
             || strequal(token, "-verbose:class")
-            || strequal(token, "-verbose:gc") 
-            || strequal(token, "-verbose:jni") 
+            || strequal(token, "-verbose:gc")
+            || strequal(token, "-verbose:jni")
             || strnequal(token, "-javaagent:", 11)
-            || strnequal(token, nonStandardArgs[VMCLASSES_INDEX], 13)  
-            || strnequal(token, nonStandardArgs[CPUAFFINITY_INDEX], 15) 
-            || strnequal(token, nonStandardArgs[PROCESSORS_INDEX], 14)) 
+            || strnequal(token, nonStandardArgs[VMCLASSES_INDEX], 13)
+            || strnequal(token, nonStandardArgs[CPUAFFINITY_INDEX], 15)
+            || strnequal(token, nonStandardArgs[PROCESSORS_INDEX], 14))
         {
             CLAs[n_JCLAs++]=token;
             continue;
@@ -391,8 +391,8 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
 }
 
 /*
- * Parse command line arguments to find those arguments that 
- *   1) affect the starting of the VM, 
+ * Parse command line arguments to find those arguments that
+ *   1) affect the starting of the VM,
  *   2) can be handled without starting the VM, or
  *   3) contain quotes
  * then call createVM().
@@ -414,7 +414,7 @@ main(int argc, const char **argv)
             printf("\targv[%d] is \"%s\"\n",j, argv[j]);
         }
     }
-  
+
     // call processCommandLineArguments().
     bool fastBreak = false;
     // Sets JavaArgc
@@ -429,8 +429,8 @@ main(int argc, const char **argv)
             printf("\tJavaArgs[%d] is \"%s\"\n", j, JavaArgs[j]);
         }
     }
-  
-            
+
+
     /* Verify heap sizes for sanity. */
     if (initialHeapSize == heap_default_initial_size &&
         maximumHeapSize != heap_default_maximum_size &&
@@ -445,8 +445,8 @@ main(int argc, const char **argv)
     }
 
     if (maximumHeapSize < initialHeapSize) {
-        fprintf(SysTraceFile, "%s: maximum heap size %lu MiB is less than initial heap size %lu MiB\n", 
-                Me, (unsigned long) maximumHeapSize/(1024*1024), 
+        fprintf(SysTraceFile, "%s: maximum heap size %lu MiB is less than initial heap size %lu MiB\n",
+                Me, (unsigned long) maximumHeapSize/(1024*1024),
                 (unsigned long) initialHeapSize/(1024*1024));
         return EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
     }
@@ -457,8 +457,8 @@ main(int argc, const char **argv)
                "bootCodeFileName |%s|\nbootDataFileName |%s|\n"
                "bootRmapFileName |%s|\n"
                "lib_verbose %d\n",
-               (unsigned long) initialHeapSize, 
-               (unsigned long) maximumHeapSize, 
+               (unsigned long) initialHeapSize,
+               (unsigned long) maximumHeapSize,
                bootCodeFilename, bootDataFilename, bootRMapFilename,
                lib_verbose);
     }
@@ -480,20 +480,20 @@ main(int argc, const char **argv)
 
     int ret = createVM(0);
     assert(ret == 1);           // must be 1 (error status for this func.)
-    
+
     fprintf(SysErrorFile, "%s: Could not create the virtual machine; goodbye\n", Me);
     exit(EXIT_STATUS_MISC_TROUBLE);
 }
 
 
-static bool 
+static bool
 strequal(const char *s1, const char *s2)
 {
     return strcmp(s1, s2) == 0;
 }
 
 
-static bool 
+static bool
 strnequal(const char *s1, const char *s2, size_t n)
 {
     return strncmp(s1, s2, n) == 0;
@@ -505,15 +505,15 @@ strnequal(const char *s1, const char *s2, size_t n)
  *
  * NOTE: Given the context, we treat "MB" as having its
  * historic meaning of "MiB" (2^20), rather than its 1994 ISO
- * meaning, which would be a factor of 10^7. 
+ * meaning, which would be a factor of 10^7.
  */
 extern "C"
 unsigned int
 parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
-                                            "initial stack" or "maximum stack" 
-                                        */ 
+                                            "initial stack" or "maximum stack"
+                                        */
                   const char *sizeFlag, // "-Xms" or "-Xmx" or
-                                        // "-Xss" or "-Xsg" or "-Xsx" 
+                                        // "-Xss" or "-Xsg" or "-Xsx"
                   const char *defaultFactor, // We now always default to bytes ("")
                   unsigned roundTo,  // Round to PAGE_SIZE_BYTES or to 4.
                   const char *token /* e.g., "-Xms200M" or "-Xms200" */,
@@ -532,7 +532,7 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
         fprintf(SysTraceFile, "%s: \"%s\": -X%s must be followed by a number.\n", Me, token, sizeFlag);
         *fastExit = true;
     }
-    
+
     // First, set the factor appropriately, and make sure there aren't extra
     // characters at the end of the line.
     const char *factorStr = defaultFactor;
@@ -540,7 +540,7 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
 
     if (*endp == '\0') {
         /* no suffix.  Along with the Sun JVM, we now assume Bytes by
-           default. (This is a change from  previous Jikes RVM behaviour.)  */  
+           default. (This is a change from  previous Jikes RVM behaviour.)  */
         factor = 1.0;
     } else if (strequal(endp, "pages") ) {
         factor = BYTES_IN_PAGE;
@@ -549,7 +549,7 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
         factorStr = endp;
     } else {
         fprintf(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a"
-                " unit of memory size\n", Me, token, endp);          
+                " unit of memory size\n", Me, token, endp);
         *fastExit = true;
     }
 
@@ -561,7 +561,7 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
         else if (e == '\0') factor = 1.0;
         else {
             fprintf(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a"
-                    " unit of memory size\n", Me, token, factorStr);          
+                    " unit of memory size\n", Me, token, factorStr);
             *fastExit = true;
         }
     }
@@ -569,16 +569,16 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
     // Note: on underflow, strtod() returns 0.
     if (!*fastExit) {
         if (userNum <= 0.0) {
-            fprintf(SysTraceFile, 
-                    "%s: You may not specify a %s %s;\n", 
+            fprintf(SysTraceFile,
+                    "%s: You may not specify a %s %s;\n",
                     Me, userNum < 0.0 ? "negative" : "zero", sizeName);
             fprintf(SysTraceFile, "\tit just doesn't make any sense.\n");
             *fastExit = true;
         }
-    } 
+    }
 
     if (!*fastExit) {
-        if ( errno == ERANGE || userNum > (((long double) (UINT_MAX - roundTo))/factor) ) 
+        if ( errno == ERANGE || userNum > (((long double) (UINT_MAX - roundTo))/factor) )
         {
             fprintf(SysTraceFile, "%s: \"%s\": out of range to represent internally\n", Me, subtoken);
             *fastExit = true;
@@ -601,17 +601,17 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
             fprintf(SysTraceFile, "%u\n", roundTo);
         }
         return 0U;              // Distinguished value meaning trouble.
-    } 
+    }
     long double tot_d = userNum * factor;
     assert(tot_d <= (UINT_MAX - roundTo));
     assert(tot_d >= 1);
-    
+
     unsigned tot = (unsigned) tot_d;
     if (tot % roundTo) {
         unsigned newTot = tot + roundTo - (tot % roundTo);
-        fprintf(SysTraceFile, 
+        fprintf(SysTraceFile,
                 "%s: Rounding up %s size from %u bytes to %u,\n"
-                "\tthe next multiple of %u bytes%s\n", 
+                "\tthe next multiple of %u bytes%s\n",
                 Me, sizeName, tot, newTot, roundTo,
                 roundTo == BYTES_IN_PAGE ?
                            ", the virtual memory page size" : "");

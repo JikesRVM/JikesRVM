@@ -14,7 +14,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif    
+#endif
 
 #include "cAttributePortability.h"
 #include "../../include/jni.h"
@@ -28,7 +28,7 @@ extern "C" {
 extern FILE *SysErrorFile;    // sink for serious error messages
 extern FILE *SysErrorFile;	// libvm.C
 // extern int SysErrorFd;	// in IA32 libvm.C, not in powerpc.
- 
+
 // Sink for trace messages produced by VM.sysWrite().
 extern FILE *SysTraceFile;	// libvm.C
 extern int   SysTraceFd;	// libvm.C
@@ -56,7 +56,7 @@ extern uint64_t maximumHeapSize;
 
 /* Defined in RunBootImage.C */
 unsigned int parse_memory_size(
-    const char *sizeName, const char *sizeFlag, 
+    const char *sizeName, const char *sizeFlag,
     const char *defaultFactor, unsigned roundTo,
     const char *token, const char *subtoken, bool *fastExit);
 
@@ -94,4 +94,4 @@ extern void processTimerTick(void);
 
 #ifdef __cplusplus
 }
-#endif    
+#endif

@@ -56,7 +56,7 @@ input.forcegc=false
 #
 # 'include_file' is the name for the descriptive properties file.
 # On systems where the file separator is \, use \\ as the file separator here
-# 
+#
 # Examples:
 #        input.include_file=pseudojbb_config.props
 #        input.include_file=/path/to/pseudojbb_config.props
@@ -68,7 +68,7 @@ input.include_file=pseudojbb_config.props
 #
 # directory to store output files
 # On systems where the file separator is \, use \\ as the file separator here
-# 
+#
 # Examples:
 #        input.include_file=results
 #        input.include_file=/path/to/results
@@ -106,10 +106,10 @@ input.ramp_up_seconds=0
 #DS# warehouses.
 #DS# On 1.4GHz Athlon with IBMJava2-13 we are seeing a throughput of about
 #DS# 7000 btps for SPECjbb2000.
-#DS# Thus if we want pseudojbb to run in steady state 
+#DS# Thus if we want pseudojbb to run in steady state
 #DS# for about 10s, regardless of the number of
 #DS# warehouses, we should set the # of transactions to 70000.
-#DS# In addition, there is an overhead for building data of about 
+#DS# In addition, there is an overhead for building data of about
 #DS# (1.3*(#warehouses) + 3) seconds.
 input.ramp_up_seconds=30
 input.measurement_seconds=40000

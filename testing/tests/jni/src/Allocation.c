@@ -6,8 +6,8 @@
  *
  * (C) Copyright IBM Corp. 2001
  */
-/* Test method invocation from native code 
- * Implement native methods from Allocation.java 
+/* Test method invocation from native code
+ * Implement native methods from Allocation.java
  */
 
 #include <stdio.h>

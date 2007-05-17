@@ -8,7 +8,7 @@
  */
 
 /*
- * Segregate the code to initialize the boot record, 
+ * Segregate the code to initialize the boot record,
  * because the machine generated cruft in InterfaceDeclarations.h
  * causes gcc 3.2 to complain bitterly...
  */

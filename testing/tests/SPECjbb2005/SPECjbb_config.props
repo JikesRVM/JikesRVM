@@ -89,7 +89,7 @@ config.sw.JVM=Phobic Java 1.2.2
 # to the public
 config.sw.JVMavailable=Jan-2000
 
-# How many megabytes used by the JVM heap.  "Unlimited" or "dynamic" are 
+# How many megabytes used by the JVM heap.  "Unlimited" or "dynamic" are
 # allowable values for JVMs that adjust automatically
 config.sw.JVMheapInitial=256
 config.sw.JVMheapMax=1024
@@ -109,7 +109,7 @@ config.sw.OS=Phobos DOS V33.333 patch-level 78
 # public
 config.sw.OSavailable=May-2000
 
-# Free text description of what sort of tuning one has to do to either 
+# Free text description of what sort of tuning one has to do to either
 # the OS or the JVM to get these results.  This is where kernel tunables
 # belong.  Use HTML list tags, if you want a list on the report page
 

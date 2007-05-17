@@ -14,7 +14,7 @@
 #if defined __GNUC__ && (__GNUC__ >= 3) && ! defined UNUSED
   #define UNUSED __attribute__((unused))
   #define NONNULL(idx) __attribute__((nonnull(idx)))
-#else 
+#else
   #define UNUSED
   #define NONNULL(idx)
 #endif

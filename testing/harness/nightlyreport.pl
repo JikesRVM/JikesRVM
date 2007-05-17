@@ -141,7 +141,7 @@ sub gensummary {
   my $rsz = sprintf("%.2fMB", ${$imagesize}{"rmap"}/1024);
   my $tsz = sprintf("%.2fMB", (${$imagesize}{"code"}+${$imagesize}{"data"}+${$imagesize}{"rmap"})/1024);
   print $html "<tr><td align=\"right\">Image size:<td><b>$tsz</b> (code: $csz, data: $dsz, rmap: $rsz)</tr>\n";
-  
+
   my $svnurl = "http://svn.sourceforge.net/viewvc/jikesrvm?view=rev&revision=$svnrevision";
   print $html "<tr><td align=\"right\">Revision:<td><b><a href=\"$svnurl\">$svnrevision</a></b></tr>\n";
   print $html "<tr><td align=\"right\">Checkout at:<td>$svnstamp</tr>\n";
@@ -263,7 +263,7 @@ sub genbuildfailures {
   if ($errnum > 0) {
     print $html "<table columns=\"3\" style=\"border-collapse:collapse;font-weight:normal;\">\n";
     print $html "<tr><td><th>Build</th><th>Synopsis</th></tr>";
-    $errnum = 0;  
+    $errnum = 0;
     for($s = 0; $s <= $#{$sanity}; $s++) {
       my $error = ${$errors}[$s];
       if ($error =~ /FAILED to build/) {
@@ -388,13 +388,13 @@ sub genstacks {
       if (${$stackid}[$err] == $s) {
         my $build = "";
         my $test = "";
-        ($build,$test) = split(/:/, ${$sanity}[$err]);      
+        ($build,$test) = split(/:/, ${$sanity}[$err]);
         print $html "<tr><td><td>$build $test</tr>\n";
       }
     }
     my $stack = ${$stacks}[$s];
     print $html "<tr><td colspan=\"2\"><i>Stack trace:</i></tr>\n";
-    print $html "<tr><td width=\"40\"><td>$stack\n</tr>\n";    
+    print $html "<tr><td width=\"40\"><td>$stack\n</tr>\n";
   }
   print $html "</table>\n";
 }
@@ -532,8 +532,8 @@ sub getxml {
 	    ${$perf}{"jvm98-bottomline"} = $value;
 	  }
 	} else {
-	  if ($metric eq "time") { 
-	    $time = $value; 
+	  if ($metric eq "time") {
+	    $time = $value;
 	  } elsif ($metric eq "ratio") {
 	    $ratio = $value;
 	  }
@@ -672,7 +672,7 @@ sub getxmlerrmsg {
   return $error;
 }
 #
-# Dig out the error message and stack trace (if any) for a given 
+# Dig out the error message and stack trace (if any) for a given
 # regression failure
 #
 sub geterrmsg {
@@ -688,7 +688,7 @@ sub geterrmsg {
 }
 
 #
-# Dig out the error message and stack trace (if any) for a given 
+# Dig out the error message and stack trace (if any) for a given
 # build failure
 #
 sub getbuilderr {
@@ -875,7 +875,7 @@ sub printhtmlhdr {
   print $htmlstream "tr\n{\n\tfont-size:          x-small;\n\tfont-family:        verdana, arial, helvetica, sans-serif;\n\tfont-weight:        normal;\n\tcolor:              #000000;\n}\n";
   print $htmlstream "td\n{\n\tfont-size:          x-small;\n\tfont-family:        verdana, arial, helvetica, sans-serif;\n\tfont-weight:        normal;\n\tcolor:              #000000;\n}\n";
   print $htmlstream "</style>\n";
-  print $htmlstream "<body>\n";  
+  print $htmlstream "<body>\n";
 }
 
 #
@@ -885,4 +885,4 @@ sub printhtmlftr {
   my ($htmlstream) = @_;
   print $htmlstream "</body>\n";
 }
- 
+

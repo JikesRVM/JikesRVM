@@ -9,7 +9,7 @@
   <property name="classpath.component.dir" location="${components.dir}/classpath"/>
   <property name="classpath.package.dir" value="${classpath.component.dir}/${classpath.version}"/>
   <property name="classpath.dir" value="${classpath.package.dir}/classpath"/>
-  
+
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
   <!-- *               Downloading and installing Classpath component             * -->
@@ -114,7 +114,7 @@
         </exec>
       </sequential>
     </if>
-    
+
     <exec executable="${classpath.dir}/configure" failonerror="true" dir="${classpath.dir}">
       <!-- need to pass thru compiler settings so if we are building on
       64 bit system the libraries are created appropriately -->
