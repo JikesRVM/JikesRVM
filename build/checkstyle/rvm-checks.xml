@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <!--
  ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
  ~
@@ -10,6 +11,9 @@
  ~  See the COPYRIGHT.txt file distributed with this work for information
  ~  regarding copyright ownership.
  -->
+<!DOCTYPE module PUBLIC
+    "-//Puppy Crawl//DTD Check Configuration 1.2//EN"
+    "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
 <module name="Checker">
 
   <!-- Checks that a package.html file exists for each package.     -->
@@ -47,11 +51,9 @@
 
     <!-- Checks for Headers                                -->
     <!-- See http://checkstyle.sf.net/config_header.html   -->
-    <!--
-        <module name="Header">
-          <property name="headerFile" value="${basedir}/build/checkstyle/License-Header.txt"/>
-        </module>
-    -->
+    <module name="Header">
+      <property name="headerFile" value="${basedir}/build/checkstyle/License-Header.txt"/>
+    </module>
 
     <!-- Checks for imports                              -->
     <!-- See http://checkstyle.sf.net/config_imports.html -->
