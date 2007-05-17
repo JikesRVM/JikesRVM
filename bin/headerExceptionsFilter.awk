@@ -11,11 +11,6 @@
 #  regarding copyright ownership.
 #
 
-## Auxiliary AWK program to help out /bin/findDeviantFiles.  You should
-## never run this directly; to discourage people from doing so, this is not an
-## executable file.
-
-#
 # The following is a list of patterns to match files
 # that are expempted from project-wide standards on
 # header infromation.  This list should be kept as
@@ -23,14 +18,6 @@
 # approved by the steering committee.
 #
 /\/rvm\/src-generated\/opt-burs\/jburg\// { next }
-
-# Avoid reporting a gazillion bogus violations when
-# this script is run from night-sanity-run
-/results\// { next }
-/dist\// { next }
-/generated\// { next }
-/target\// { next }
-/doc\/api\// { next }
 
 /doc\/userguide\// { next }
 /MMTk\/doc\// { next }
@@ -40,23 +27,15 @@
 /testing\/tests\/SPECjbb2005\/SPECjbb./ {next}
 /testing\/tests\/pseudojbb\/pseudojbb/ {next}
 /testing\/tests\/pseudojbb\/props/ {next}
-/testing\/tests\/mauve\/mauve-jikesrvm/ {next}
 
-# actually has the right headers, but utf8 characters break the checkers
-/testing\/tests\/utf8\/src\/utf8test.java/ {next}
+/\.classpath/ { next }
+/\.project/ { next }
 
-/tools\/bootImageRunner\/org_jikesrvm_VM_0005fProcess.h/ { next }
-/tools\/bootImageWriter\/rvm.security/ { next }
+/COPYRIGHT.txt/ { next }
+/LICENSE.txt/ { next }
+/NEWS.txt/ { next }
+/README.txt/ { next }
 
-/LICENSE/ { next }
-/NEWS/ { next }
-
-/.properties$/ { next }
-/.properties\.sample$/ { next }
-/README$/ { next }
-
-#
 # print everything else
-#
 { print; }
 
