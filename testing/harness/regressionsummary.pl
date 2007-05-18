@@ -46,6 +46,12 @@ my $BOLDFONT = "font-weight:bold;";
 my $MIMEBOUNDARY = "======".time()."======";
 my $SVNURL = "http://svn.sourceforge.net/viewvc/jikesrvm?view=rev&revision=";
 my $SENDMAIL = "/usr/sbin/sendmail";
+my $NEWFAILURESSTR = "failures new to this week";
+my $NEWSUCCESSSTR = "successes new to this week";
+my $TRANSIENTSTR = "transient failures";
+my $PERSISTENTSTR = "persistent failures";
+my $ALLSUCCESSSTR = "all successes";
+my $ALLFAILURESTR = "all failures";
 my $html = 1;
 my $short = 1;
 
@@ -188,8 +194,8 @@ sub printfailures {
   my %weeklyinsane = ();
   aggregatesanity("day", \%allsanity, \%weeklysane, \%weeklyinsane);
 
-  my @allfailures = getfailures($today, "all failures", $allsanity, \%weeklysane, \%weeklyinsane);
-  my @allsuccesses = getfailures($today, "all successes", $allsanity, \%weeklysane, \%weeklyinsane);
+  my @allfailures = getfailures($today, $ALLFAILURESTR, $allsanity, \%weeklysane, \%weeklyinsane);
+  my @allsuccesses = getfailures($today, $ALLSUCCESSSTR, $allsanity, \%weeklysane, \%weeklyinsane);
   my $pass = $#allsuccesses + 1;
   my $fail = $#allfailures + 1;
   my $run = $pass+$fail;
@@ -206,12 +212,12 @@ sub printfailures {
   } else {
     print $out "$str\n";
   }
-  printfailuresummary($out, $html, $today, $datestring, $RED, "failures new to this week", $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
+  printfailuresummary($out, $html, $today, $datestring, $RED, $NEWFAILURESSTR, $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
   if ($summary) {
-    printfailuresummary($out, $html, $today, $datestring, $GREEN, "successes new to this week", $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
+    printfailuresummary($out, $html, $today, $datestring, $GREEN, $NEWSUCCESSSTR, $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
   } else {
-    printfailuresummary($out, $html, $today, $datestring, $BLACK, "transient failures", $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
-    printfailuresummary($out, $html, $today, $datestring, $BLACK, "persistent failures", $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
+    printfailuresummary($out, $html, $today, $datestring, $BLACK, $TRANSIENTSTR, $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
+    printfailuresummary($out, $html, $today, $datestring, $BLACK, $PERSISTENTSTR, $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
   }
 }
 
@@ -436,20 +442,20 @@ sub getfailures {
     if ($kday eq $day) {
       if (${$allsanity}{$key} == -1) {
         $fail++;
-        if ($type eq "new failures" && ${$insane}{"$kbuild:$kbm"} == 1) {
+        if ($type eq $NEWFAILURESSTR && ${$insane}{"$kbuild:$kbm"} == 1) {
           push (@failures, "$kbm:$kbuild");
-        } elsif ($type eq "transient failures" && ${$sane}{"$kbuild:$kbm"} > 1) {
+        } elsif ($type eq $TRANSIENTSTR && ${$sane}{"$kbuild:$kbm"} > 1) {
           push (@failures, "$kbm:$kbuild");
-        } elsif ($type eq "persistent failures" && ${$insane}{"$kbuild:$kbm"} == 7) {
+        } elsif ($type eq $PERSISTENTSTR && ${$insane}{"$kbuild:$kbm"} == 7) {
           push (@failures, "$kbm:$kbuild");
-        } elsif ($type eq "all failures") {
+        } elsif ($type eq $ALLFAILURESTR) {
           push (@failures, "$kbm:$kbuild");
         }
       } else {
         $pass++;
-        if ($type eq "new successes" && ${$sane}{"$kbuild:$kbm"} == 1) {
+        if ($type eq $NEWSUCCESSSTR && ${$sane}{"$kbuild:$kbm"} == 1) {
           push (@failures, "$kbm:$kbuild");
-        } elsif ($type eq "all successes") {
+        } elsif ($type eq $ALLSUCCESSSTR) {
           push (@failures, "$kbm:$kbuild");
         }
       }
