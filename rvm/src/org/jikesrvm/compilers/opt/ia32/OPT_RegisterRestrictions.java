@@ -107,14 +107,6 @@ public class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions
           }
         }
         break;
-        case IA32_TEST_opcode:
-        { 
-          if (MIR_Test.getVal1(s).isRegister()) {
-            OPT_RegisterOperand op = MIR_Test.getVal1(s).asRegister();
-            restrictTo8Bits(op.register);
-          }
-        }
-        break;
 
         default:
           handle8BitRestrictions(s);
