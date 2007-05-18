@@ -13,10 +13,10 @@
 package org.jikesrvm.compilers.opt.ia32;
 
 import org.jikesrvm.ArchitectureSpecific.OPT_Assembler;
+import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
 import org.jikesrvm.compilers.common.assembler.VM_ForwardReference;
-import org.jikesrvm.compilers.common.assembler.ia32.VM_Assembler;
 import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.MIR_BinaryAcc;
 import org.jikesrvm.compilers.opt.ir.MIR_Branch;
