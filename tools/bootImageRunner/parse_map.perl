@@ -12,6 +12,7 @@
 #  regarding copyright ownership.
 #
 
+
 # Extract all method names
 # and entry points from RVM.map file.
 # Output these to stdout as stabs
