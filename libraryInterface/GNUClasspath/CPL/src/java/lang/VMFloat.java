@@ -37,4 +37,12 @@ final class VMFloat {
   static float intBitsToFloat(int bits) {
     return VM_Magic.intBitsAsFloat(bits);
   }
+
+  static String toString(float f) {
+    return VMDouble.toString((double) f, true);
+  }
+
+  static float parseFloat(String str) {
+    return (float) VMDouble.parseDouble(str);
+  }
 }
