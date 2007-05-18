@@ -41,6 +41,7 @@ my $COLORS = 16;
 my $RED = "#FF0000";
 my $GREEN = "#00FF00";
 my $BLACK = "#000000";
+my $AMBER = "#FF8c00";
 my $NORMALFONT = "font-weight:normal;";
 my $BOLDFONT = "font-weight:bold;";
 my $MIMEBOUNDARY = "======".time()."======";
@@ -48,10 +49,12 @@ my $SVNURL = "http://svn.sourceforge.net/viewvc/jikesrvm?view=rev&revision=";
 my $SENDMAIL = "/usr/sbin/sendmail";
 my $NEWFAILURESSTR = "failures new to this week";
 my $NEWSUCCESSSTR = "successes new to this week";
+my $NEWSKIPSTR = "skipped tests";
 my $TRANSIENTSTR = "transient failures";
 my $PERSISTENTSTR = "persistent failures";
 my $ALLSUCCESSSTR = "all successes";
 my $ALLFAILURESTR = "all failures";
+my $SKIPPED = "skipped";
 my $html = 1;
 my $short = 1;
 
@@ -213,6 +216,7 @@ sub printfailures {
     print $out "$str\n";
   }
   printfailuresummary($out, $html, $today, $datestring, $RED, $NEWFAILURESSTR, $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
+  printfailuresummary($out, $html, $today, $datestring, $AMBER, $NEWSKIPSTR, $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
   if ($summary) {
     printfailuresummary($out, $html, $today, $datestring, $GREEN, $NEWSUCCESSSTR, $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
   } else {
@@ -437,6 +441,7 @@ sub getfailures {
   my @failures = ();
   my $pass = 0;
   my $fail = 0;
+  my $skip = 0;
   foreach $key (keys %{$allsanity}) {
     ($kday,$kbuild,$kbm) = split(/:/, $key);
     if ($kday eq $day) {
@@ -459,9 +464,13 @@ sub getfailures {
           push (@failures, "$kbm:$kbuild");
         }
       }
+    } elsif ($type eq $NEWSKIPSTR && ${$allsanity}{"$day:$kbuild:$kbm"} eq "") {
+      $skip++;
+      ${$allsanity}{"$day:$kbuild:$kbm"} = $SKIPPED;
+      push (@failures, "$kbm:$kbuild");
     }
   }
-#  print "==> pass: $day $pass fail: $fail\n";
+#  print "==> $day pass: $pass fail: $fail skip: $skip\n";
   return @failures;
 }
 
@@ -490,18 +499,20 @@ sub printsanitytable {
   my ($out, $html, $truncate, $type, $short, $allsanity) = @_;
   my %sane = ();
   my %insane = ();
-  aggregatesanity($type, $allsanity, \%sane, \%insane);
-  printonesanitytable($out, $html, $truncate, $type, $short, \%sane, \%insane);
+  my %skipped = ();
+  aggregatesanity($type, $allsanity, \%sane, \%insane, \%skipped);
+  printonesanitytable($out, $html, $truncate, $type, $short, \%sane, \%insane, \%skipped);
 }
 
 #
 # print sanity table
 #
 sub printonesanitytable {
-  my ($out, $html, $truncate, $label, $short, $daytargetsane, $daytargetinsane) = @_;
+  my ($out, $html, $truncate, $label, $short, $daytargetsane, $daytargetinsane, $daytargetskipped) = @_;
   my %all = ();
   my %allsane = ();
   my %allinsane = ();
+  my %allskipped = ();
 
   # aggregate results
   foreach $key (keys %{$daytargetsane}) {
@@ -514,6 +525,11 @@ sub printonesanitytable {
     $all{$tgt} = 1;
     $allinsane{$tgt} = $allinsane{$tgt} + ${$daytargetinsane}{$key};
   }
+  foreach $key (keys %{$daytargetskipped}) {
+    ($day,$tgt) = split(/:/, $key);
+    $all{$tgt} = 1;
+    $allskipped{$tgt} = $allskipped{$tgt} + ${$daytargetskipped}{$key};
+  }
 
   if ($html) {
     print $out "<h2>Sanity regression: by $label</h2>\n";
@@ -521,20 +537,21 @@ sub printonesanitytable {
   }
 
   my $target;
-  foreach $target (sort { ($allsane{$a}/($allsane{$a}+$allinsane{$a})) <=> ($allsane{$b}/($allsane{$b}+$allinsane{$b}))} keys %all) {
-    my $skip = 0;
+  foreach $target (sort { ($allsane{$a}/($allsane{$a}+$allinsane{$a}+$allskipped{$a})) <=> ($allsane{$b}/($allsane{$b}+$allinsane{$b}+$allskipped{$b}))} keys %all) {
+    my $print = 1;
     if ($truncate) {
-	  $skip = 1;
-	  for ($d = 1; $d <= 7; $d++) {
+      $print = 0;
+      for ($d = 1; $d <= 7; $d++) {
         my $day = ($today + $d) % 7;
         my $good = ${$daytargetsane}{"$day:$target"};
         my $bad = ${$daytargetinsane}{"$day:$target"};
-	    if ($good == 0 || $bad > 0) {
-	      $skip = 0;
-	    }
-	  }
+        my $skipped = ${$daytargetskipped}{"$day:$target"};
+	if ($good == 0 || $bad > 0 || $skipped > 0) {
+	  $print = 1;
+	}
+      }
     }
-    if (!$skip) {
+    if ($print) {
       if ($html) {
         print $out "<tr>\n";
         print $out "\t<td align=\"right\" $width>$target\n";
@@ -545,7 +562,8 @@ sub printonesanitytable {
         my $day = ($today + $d) % 7;
         my $good = ${$daytargetsane}{"$day:$target"};
         my $bad = ${$daytargetinsane}{"$day:$target"};
-        my $ratio = ($good == 0) ? 0 : $good/($good+$bad);
+	my $skipped = ${$daytargetskipped}{"$day:$target"};
+        my $ratio = ($good == 0) ? 0 : $good/($good+$bad+$skipped);
         my $str = "";
         if ($good == 0) {
           $str = "-";
@@ -557,7 +575,7 @@ sub printonesanitytable {
           }
         }
         if ($html) {
-          my $style = getcolorstyle($ratio);
+          my $style = getcolorstyle($ratio, ($skipped > 0));
           $style .= ($day == $today) ? "border-left: 1px solid white;" : "";
           print $out "\t<td align=\"center\" $width style=\"$style\">$str\n";
         } else {
@@ -760,7 +778,7 @@ sub getdaydata {
 # aggregate sanity stats for one day, either by build or benchmark
 #
 sub aggregatesanity {
-  my ($aggregateby, $allsanity, $sane, $insane) = @_;
+  my ($aggregateby, $allsanity, $sane, $insane, $skipped) = @_;
   foreach $key (keys %{$allsanity}) {
     ($day,$build,$bm) = split(/:/, $key);
     my $newkey;
@@ -774,8 +792,10 @@ sub aggregatesanity {
     if ($newkey ne "$day:") {
       if (${$allsanity}{$key} == 1) {
         ${$sane}{$newkey} = ${$sane}{$newkey} + 1;
-      } else {
+      } elsif (${$allsanity}{$key} ne $SKIPPED) {
         ${$insane}{$newkey} = ${$insane}{$newkey} + 1;
+      } else {
+        ${$skipped}{$newkey} = ${$skipped}{$newkey} + 1;
       }
     }
   }
@@ -843,11 +863,14 @@ sub printtablehdr {
 # produce a color style statement given a success ratio
 #
 sub getcolorstyle {
-  my ($ratio) = @_;
+  my ($ratio, $skipped) = @_;
   my $green;
   my $red;
-
-  if ($ratio > 0.5) {
+  
+  if ($skipped) {
+    $green = 165;
+    $red = 255;
+  } elsif ($ratio > 0.5) {
     $green = (256/($COLORS/2))*int(($COLORS/2) * $ratio);
     if ($green != 0) { $green = $green - 1; }
     $red = (255-$green)/2;
