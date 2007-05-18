@@ -456,7 +456,7 @@ sub getfailures {
         } elsif ($type eq $ALLFAILURESTR) {
           push (@failures, "$kbm:$kbuild");
         }
-      } else {
+      } elsif (${$allsanity}{$key} ne $SKIPPED) {
         $pass++;
         if ($type eq $NEWSUCCESSSTR && ${$sane}{"$kbuild:$kbm"} == 1) {
           push (@failures, "$kbm:$kbuild");
@@ -464,7 +464,7 @@ sub getfailures {
           push (@failures, "$kbm:$kbuild");
         }
       }
-    } elsif ($type eq $NEWSKIPSTR && ${$allsanity}{"$day:$kbuild:$kbm"} eq "") {
+    } elsif ($type eq $NEWSKIPSTR && ${$allsanity}{"$day:$kbuild:$kbm"} eq "" && ${$allsanity}{$key} ne $SKIPPED) {
       $skip++;
       ${$allsanity}{"$day:$kbuild:$kbm"} = $SKIPPED;
       push (@failures, "$kbm:$kbuild");
