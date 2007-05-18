@@ -1212,6 +1212,23 @@ Check to make sure all required properties are specified. This includes properti
       <arg value="-ldl"/>
       <arg value="-lrvm"/>
     </exec>
+
+    <antcall target="build-debug-symbols"/>
+  </target>
+
+  <target name="build-debug-symbols" if="rvm.debug-symbols">
+    <exec executable="${perl.exe}" failonerror="true">
+      <arg value="${basedir}/tools/bootImageRunner/parse_map.perl"/>
+      <arg value="${build.base}/RVM.map"/>
+      <arg value="${build.base}/JikesRVM-symbols.s"/>
+    </exec>
+ 
+    <exec executable="${c++.exe}" failonerror="true">
+      <arg value="-c"/>
+      <arg value="-o"/>
+      <arg value="${build.base}/JikesRVM-symbols.o"/>
+      <arg value="${build.base}/JikesRVM-symbols.s"/>
+    </exec>
   </target>
 
   <!-- **************************************************************************** -->
@@ -1226,12 +1243,13 @@ Check to make sure all required properties are specified. This includes properti
     <copy todir="${dist.base}">
       <fileset dir="${build.base}">
         <include name="RVM.*.image"/>
+        <include name="RVM.map"/>
       </fileset>
     </copy>
     <copy file="${basedir}/tools/bootImageRunner/rvm" todir="${dist.base}">
       <filterset>
         <filter token="PRELOAD" 
-                value="LD_PRELOAD=&quot;$$LD_PRELOAD $$RVM_HOME/${target.dll-prefix}syswrap${target.dll-ext}&quot;"/>
+                value="${target.dll-prefix}syswrap${target.dll-ext}"/>
       </filterset>
     </copy>
     <chmod file="${dist.base}/rvm" perm="ugo+rx"/>
@@ -1278,6 +1296,7 @@ target.jni-suffix=${target.jni-suffix}
         <include name="*${target.dll-ext}"/>
         <include name="*${target.jni-suffix}"/>        
         <include name="JikesRVM"/>
+        <include name="JikesRVM-symbols.o"/>
       </fileset>
     </copy>
     <chmod perm="ugo+rx">

@@ -20,15 +20,17 @@ export BASE_ARGS="-X:ic=$RVM_HOME/RVM.code.image -X:id=$RVM_HOME/RVM.data.image 
 export LD_LIBRARY_PATH=$RVM_HOME:$LD_LIBRARY_PATH
 
 if (( $# == 0 )) || ((( $# >= 1 )) && [[ $1 != -gdb ]] ); then
-@PRELOAD@ exec "$RVM_HOME/JikesRVM" $BASE_ARGS "$@"
-else
+  LD_PRELOAD="$LD_PRELOAD $RVM_HOME/@PRELOAD@" exec "$RVM_HOME/JikesRVM" $BASE_ARGS "$@"
+  exit
+fi
+
 # Remove -gdb arg
 shift
 
 export GDB_ARGS=
 if (( $# >= 1 )) && [[ $1 == -fullname ]]; then
-    GDB_ARGS="$1";
-    shift
+  GDB_ARGS="$1";
+  shift
 fi
 
 export TMP_GDB_COMMANDS=$RVM_HOME/gdb.commandlineArgs
@@ -46,8 +48,14 @@ echo "" >> $TMP_GDB_COMMANDS
 # SIGSEGV is a null pointer exception
 echo "handle SIGSEGV nostop noprint pass" >> $TMP_GDB_COMMANDS
 
+echo "set env LD_PRELOAD = $LD_PRELOAD $RVM_HOME/@PRELOAD@" >> $TMP_GDB_COMMANDS
+
+# Include symbols if available
+if [[ -e $RVM_HOME/JikesRVM-symbols.o ]]; then
+  echo "add-symbol-file $RVM_HOME/JikesRVM-symbols.o 0x0" >> $TMP_GDB_COMMANDS
+fi
+
 # Set an initial breakpoint right before we start the jump into VM.boot
 echo "break bootThread" >> $TMP_GDB_COMMANDS
 
-@PRELOAD@ gdb "${gdb_args[@]}" "$RVM_HOME/JikesRVM" "--command=$TMP_GDB_COMMANDS"
-fi
+gdb "${gdb_args[@]}" "$RVM_HOME/JikesRVM" "--command=$TMP_GDB_COMMANDS"
