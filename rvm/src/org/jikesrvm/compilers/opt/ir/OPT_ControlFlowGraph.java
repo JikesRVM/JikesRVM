@@ -130,6 +130,7 @@ public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
    * @param forward  true for forward traversal, false for reverse
    * @return the node to use as the start of a topological traversal
    */
+  @Override
   public OPT_SortedGraphNode startNode(boolean forward) {
     if (forward) {
       return entry();
@@ -143,6 +144,7 @@ public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
    * Override {@link OPT_SpaceEffGraph#compactNodeNumbering()} to also
    * number the exit node.
    */
+  @Override
   public void compactNodeNumbering() {
     super.compactNodeNumbering();
     exit().setNumber(numberOfNodes++);
@@ -155,6 +157,7 @@ public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
    *
    * @return the first node in the reverse topological ordering
    */
+  @Override
   public OPT_SortedGraphNode buildRevTopSort() {
     OPT_SortedGraphNode firstNode = super.buildRevTopSort();
     if (firstNode != null) {
@@ -308,8 +311,8 @@ public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
   }
 
   /**
-   * Make BB1 follow BB2 in the code ordering.
-   * If _lastNode == BB1, then update BB1 appropriately
+   * Make BB2 follow BB1 in the code ordering.
+   * If _lastNode == BB1, then update _lastNode appropriately
    * No impact on FCFG edges.
    *
    * @param bb1 a basic block
@@ -385,6 +388,7 @@ public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
   }
 
   // implements OPT_VCGGraph
+  @Override
   public Enumeration<OPT_VCGNode> nodes() { return new NodeEnumeration<OPT_VCGNode>(this); }
 
   // implements OPT_VCGGraph
