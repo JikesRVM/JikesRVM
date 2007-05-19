@@ -17,14 +17,12 @@
 # based on their extensions.
 #
 
-cd $RVM_ROOT
-
 # Source code files should have the following properties set:
 #   svn:eol-style : native
 #   svn:mime-type : text/plain
 for extension in .java .c .h .C; do
-    find . -name "*$extension" -exec svn propset svn:eol-style native {} \;
-    find . -name "*$extension" -exec svn propset svn:mime-type text/plain {} \;
+    find . -name "*$extension" -print | xargs svn propset svn:eol-style native
+    find . -name "*$extension" -print | xargs svn propset svn:mime-type text/plain
 done
 
 
