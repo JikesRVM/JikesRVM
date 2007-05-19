@@ -59,7 +59,7 @@ XML
 FileTypes = {
   'properties' => {:header => HASH_HEADER, :start_match => /^[^#]/},
   'xml' => {:header => XML_HEADER, :start_match => /^\<[a-zA-Z]/},
-  'java' => {:header => JAVA_HEADER, :start_match => /^package|^import|class |interface /}
+  'java' => {:header => JAVA_HEADER, :start_match => /^package |^import |(public (final))(class|interface) /}
 }
 
 def add_header(filename,params)
@@ -86,7 +86,7 @@ def check_files(files, dry_run)
     # Checking for the header in the 5 first lines
     match = false
     5.times do
-      match ||= (/This file is licensed to You under the Common Public License \(CPL\)/ =~ f.readline) rescue nil
+      match ||= (/This file is licensed to You under the Common Public License/ =~ f.readline) rescue nil
     end
     f.close
     unless match
