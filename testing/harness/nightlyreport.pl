@@ -429,7 +429,7 @@ sub getxml {
   } else {
     open(XML, "$reportfilename") or die "Could not open $reportfilename";
   }
-  my ($intest, $inbuild, $thistest, $thisbuild, $test, $result, $output, $command, $time, $configuration, $name, $optlevel);
+  my ($intest, $inbuild, $thistest, $thisbuild, $test, $result, $output, $command, $time, $configuration, $testConfiguration, $name, $optlevel);
   $intest = $inbuild = $thistest = $thisbuild = $time = 0;
   while (<XML>) {
     if (/<revision>/) {
@@ -452,20 +452,31 @@ sub getxml {
       $thisbuild++;
       $inbuild = 0;
     } elsif (/<configuration>/) {
-      $intest = 0;
-      ($configuration) = /<configuration>(.+)<\/configuration/;
+#      $intest = 0;
+#      ($configuration) = /<configuration>(.+)<\/configuration/;
+      $_ = <XML>;
+      while (!/<id>/ && !/<parameters>/) { $_ = <XML>; }
+      ($configuration) = /<id>(.+)<\/id>/;
+#      print "<configuration $configuration/>\n";
+    } elsif (/<test-configuration>/) {
+      $_ = <XML>;
+      while (!/<id>/ && !/<parameters>/) { $_ = <XML>; }
+      ($testConfiguration) = /<id>(.+)<\/id>/;
+#      print "<test-configuration $configuration/>\n";
     } elsif (/<name>/) {
       ($name) =  /<name>(.+)<\/name/;
       ($optlevel) =  /<name>Measure_Compilation_Opt_(.+)<\/name/;
-    } elsif (/<test-configuration>/) {
-      $_ = <XML>;
-      while (!/<id>/) { $_ = <XML>; }
-      ($configuration) = /<id>(.+)<\/id>/;
     } elsif (/<test>/) {
       ${$stackidx}[$thistest] = -1;
       $intest = 1;
+      $_ = <XML>;
+#      print "TEST ===> $_";
+#      while (!/<id>/ && !/<parameters>/) { $_ = <XML>; }
+      ($test) = /<id>(.+)<\/id>/;
+#      print "<test $test />\n";
     } elsif (/<\/test>/) {
-      ${$sanity}[$thistest] = "$configuration:$test";
+#      print "---> completed $testConfiguration:$test\n";
+      ${$sanity}[$thistest] = "$testConfiguration:$test";
       ${$ran}++;
       if ($result ne "EXCLUDED") {
 	${$cmd}[${$ran}] = $command;
@@ -476,22 +487,20 @@ sub getxml {
 	  my $errmsg = getxmlerrmsg($result, $time, $output, \$stackid, $stacks);
 	  ${$error}[$thistest] = $errmsg;
 	  ${$stackidx}[$thistest] = $stackid;
-#	  print "$test $configuration $result $errmsg $stackid\n";
+#	  print "$test $testConfiguration $result $errmsg $stackid\n";
 	}
       } else {
 	${$error}[$thistest] = $result;
       }
       $intest = 0;
       $thistest++;
-    } elsif (/<id>/ && $intest) {
-      ($test) = /<id>(.+)<\/id>/;
     } elsif (/<command>/ && $intest) {
       ($command) = /<command>(.+)<\/command>/;
     } elsif (/<time>/ && $intest) {
       ($time) = /<time>(.+)<\/time>/;
     } elsif (/<result>/ && ($intest || $inbuild)) {
       ($result) = /<result>(.+)<\/result>/;
- #     print "$test $configuration $result\n";
+ #     print "$test $testConfiguration $result\n";
     } elsif (/<output>/ && ($optlevel ne "")) {
       while (!(/Compilation Subsystem Report/) && !(/<\/output>/)) {
 	$_ = <XML>;
@@ -503,26 +512,31 @@ sub getxml {
     } elsif (/<output>/ && ($intest || $inbuild)) {
       ($output) = /<output>(.+)$/;
       $output .= "\n";
-      $_ = <XML>;
-      while (!(/<\/output>/)) {
-	$output .= "$_\n";
+      if (!(/<\/output>/)) {
 	$_ = <XML>;
+	while (!(/<\/output>/)) {
+	  $output .= "$_\n";
+	  $_ = <XML>;
+	}
       }
-    } elsif ($test eq "ImageSizes" && $configuration eq "production" && /<statistics>/) {
-      $_ = <XML>;
-      while (!(/<\/statistics>/)) {
-	my ($part, $value) = /<statistic key=\"(.+).size\" value=\"(.+)\"/;
-	${$imagesize}{$part} = $value/1024;
+    } elsif ($test eq "ImageSizes") {
+#      print "--->$test $testConfiguration\n";
+      if ($testConfiguration eq "production" && /<statistics>/) {
 	$_ = <XML>;
+	while (!(/<\/statistics>/)) {
+	  my ($part, $value) = /<statistic key=\"(.+).size\" value=\"(.+)\"/;
+	  ${$imagesize}{$part} = $value/1024;
+	  $_ = <XML>;
+	}
       }
-    } elsif ($test eq "SPECjbb2000" && $configuration eq "production" && /<statistics>/) {
+    } elsif ($test eq "SPECjbb2000" && $testConfiguration eq "production" && /<statistics>/) {
       $_ = <XML>;
       while (!(/<\/statistics>/)) {
 	my ($value) = /<statistic key="score" value="(.+)"/;
 	${$perf}{"jbb2000"} = $value;
 	$_ = <XML>;
       }
-    } elsif ($test eq "SPECjvm98" && $configuration eq "production_performance" && /<statistics>/) {
+    } elsif ($test eq "SPECjvm98" && $testConfiguration eq "production_performance" && /<statistics>/) {
      my ($score, $time, $ratio, $bm, $count);
       $_ = <XML>;
       $ratio = $time = -1;
