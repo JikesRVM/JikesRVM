@@ -89,7 +89,6 @@
   </build-parameters>
   <test-parameters>
     <parameter key="mode" value="${test.mode}"/>
-    <parameter key="extra.args" value="${test.rvm.extra.args}"/>
   </test-parameters>
 ]]></res>
     </sequential>
