@@ -55,6 +55,11 @@ my $PERSISTENTSTR = "persistent failures";
 my $ALLSUCCESSSTR = "all successes";
 my $ALLFAILURESTR = "all failures";
 my $SKIPPED = "skipped";
+my $SUCCESS_LIST_LIMIT = 30;
+my $FAILURE_LIST_LIMIT = 30;
+my $SKIPPED_LIST_LIMIT = 30;
+my $DEFAULT_LIST_LIMIT = 30;
+my $REVISIONS_LIST_LIMIT = 50;
 my $html = 1;
 my $short = 1;
 
@@ -165,7 +170,16 @@ sub printsummary {
 sub printrevisions {
   my ($out, $html, $today, $checkout, $allrevisions) = @_;
   my $latestrev = ${$allrevisions}[$today];
-  my $rev = ${$allrevisions}[(($today - 1) % 7)] + 1;
+  my $rev = 0;
+  # find the last revision for which there was a test
+  for ($d=1; $d < 7; $d++) {
+    $tmprev= ${$allrevisions}[(($today + $d) % 7)];
+    if ($tmprev > $rev) {
+      $rev = $tmprev;
+    }
+  }
+  $rev++;
+
   if ($html) {
     print $out "Checkout at: $checkout<br>\n";
   } else {
@@ -183,6 +197,10 @@ sub printrevisions {
     } else {
       print $out $rev;
       print $out (($rev != $latestrev) ? ", " : "\n");
+    }
+    if ($rev < $latestrev - $REVISIONS_LIST_LIMIT) {
+      print $out " [truncated] ";
+      $rev = $latestrev - $REVISIONS_LIST_LIMIT;
     }
     $rev++;
   }
@@ -215,13 +233,13 @@ sub printfailures {
   } else {
     print $out "$str\n";
   }
-  printfailuresummary($out, $html, $today, $datestring, $RED, $NEWFAILURESSTR, $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
-  printfailuresummary($out, $html, $today, $datestring, $AMBER, $NEWSKIPSTR, $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
+  printfailuresummary($out, $html, $today, $datestring, $RED, $NEWFAILURESSTR, $FAILURE_LIST_LIMIT, $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
+  printfailuresummary($out, $html, $today, $datestring, $AMBER, $NEWSKIPSTR, $SKIPPED_LIST_LIMIT, $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
   if ($summary) {
-    printfailuresummary($out, $html, $today, $datestring, $GREEN, $NEWSUCCESSSTR, $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
+    printfailuresummary($out, $html, $today, $datestring, $GREEN, $NEWSUCCESSSTR, $SUCCESS_LIST_LIMIT, $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
   } else {
-    printfailuresummary($out, $html, $today, $datestring, $BLACK, $TRANSIENTSTR, $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
-    printfailuresummary($out, $html, $today, $datestring, $BLACK, $PERSISTENTSTR, $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
+    printfailuresummary($out, $html, $today, $datestring, $BLACK, $TRANSIENTSTR, $DEFAULT_LIST_LIMIT, $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
+    printfailuresummary($out, $html, $today, $datestring, $BLACK, $PERSISTENTSTR, $DEFAULT_LIST_LIMIT, $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
   }
 }
 
@@ -384,7 +402,7 @@ sub printsanityoverview {
 # print a summary list of passes/fails for a given criteria
 #
 sub printfailuresummary {
-  my ($out, $html, $today, $datestring, $color, $type, $allsanity, $allerrors, $weeklysane, $weeklyinsane) = @_;
+  my ($out, $html, $today, $datestring, $color, $type, $listlimit, $allsanity, $allerrors, $weeklysane, $weeklyinsane) = @_;
   my @list = getfailures($today, $type, $allsanity, $weeklysane, $weeklyinsane);
   my $str = ($#list + 1)." $type";
   if ($html) {
@@ -395,6 +413,7 @@ sub printfailuresummary {
   if ($html) {
     print $out "<table columns=\"3\" style=\"border-collapse:collapse;font-weight:normal;\">\n";
   }
+  my $outputlines = 0;
   foreach $fail (sort @list) {
      ($bm,$build) = split(/:/, $fail);
      my $href = "";
@@ -426,6 +445,17 @@ sub printfailuresummary {
        print $out "</tr>\n";
      } else {
        print $out "$build $bm $error\n";
+     }
+     $outputlines++;
+     if ($outputlines >= $listlimit) {
+       if ($html) {
+	 print $out "<tr><td align=\"right\" style=\"font-style:italic\">";
+       }
+       print $out "[Truncated: See ".($html ? "<a href=\"$reporturl/$regressionhost/$datestring.html\">":"")."report".($html ? "</a>":"")." for full details.]";
+       if ($html) {
+	 print $out "</tr>\n";
+       }
+       last;
      }
   }
   if ($html) {
