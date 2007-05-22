@@ -32,7 +32,7 @@ public class OPT_LoopAnalysis extends OPT_CompilerPhase {
    * Should the optimisation be performed
    */
   public boolean shouldPerform(OPT_Options options) {
-    return options.getOptLevel() >= 2;
+    return options.getOptLevel() >= 3;
   }
 
   /**

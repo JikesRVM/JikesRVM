@@ -73,31 +73,31 @@ Speculatively inline non-final interface calls
 STATIC_SPLITTING 1 true
 CFG splitting to create hot traces based on static heuristics
 
-REDUNDANT_BRANCH_ELIMINATION 2 true
+REDUNDANT_BRANCH_ELIMINATION 3 true
 Eliminate redundant conditional branches
 
 PREEX_INLINE 0 true
 Pre-existence based inlining
 
-SSA 2 false
+SSA 3 false
 Should SSA form be constructed on the HIR?
 
-LOAD_ELIMINATION 2 false
+LOAD_ELIMINATION 3 false
 Should we perform redundant load elimination during SSA pass?
 
-COALESCE_AFTER_SSA 2 false
+COALESCE_AFTER_SSA 3 false
 Should we coalesce move instructions after leaving SSA?
 
-EXPRESSION_FOLDING 2 false
+EXPRESSION_FOLDING 3 false
 Should we try to fold expressions with constants in SSA form?
 
 LIVE_RANGE_SPLITTING -1 false
 Split live ranges using LIR SSA pass?
 
-GCP 2 false gcp
+GCP 3 false gcp
 Perform global code placement
 
-GCSE 2 false  gcse
+GCSE 3 false  gcse
 Perform global code placement
 
 VERBOSE_GCP -1 false verbose_gcp
@@ -106,13 +106,13 @@ Perform noisy global code placement
 LICM_IGNORE_PEI -1 false licm_ignore_pei
 Asume PEIs do not throw or state is not observable
 
-TURN_WHILES_INTO_UNTILS 2 false unwhile
+TURN_WHILES_INTO_UNTILS 3 false unwhile
 Turn whiles into untils
 
 LOOP_VERSIONING -1 false loop_versioning
 Loop versioning
 
-HANDLER_LIVENESS 2 false
+HANDLER_LIVENESS 3 false
 Store liveness for handlers to improve dependence graph at PEIs
 
 SCHEDULE_PREPASS -1 false

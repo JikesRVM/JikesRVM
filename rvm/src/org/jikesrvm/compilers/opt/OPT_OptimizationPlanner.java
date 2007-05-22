@@ -241,7 +241,7 @@ public class OPT_OptimizationPlanner {
         new OPT_OptimizationPlanCompositeElement("Basic Block Frequency Estimation",
                                                  new Object[]{new OPT_BuildLST(), new OPT_EstimateBlockFrequencies()}) {
           public boolean shouldPerform(OPT_Options options) {
-            return options.getOptLevel() >= 2;
+            return options.getOptLevel() >= 3;
           }
         },
 
@@ -253,7 +253,7 @@ public class OPT_OptimizationPlanner {
             // Insert PI Nodes
             new OPT_PiNodes(true),
             // branch optimization
-            new OPT_BranchOptimizations(2, true, true),
+            new OPT_BranchOptimizations(3, true, true),
             // Compute dominators
             new OPT_DominatorsPhase(true),
             // compute dominance frontier
@@ -283,7 +283,7 @@ public class OPT_OptimizationPlanner {
             // Leave SSA
             new OPT_LeaveSSA()}) {
           public boolean shouldPerform(OPT_Options options) {
-            return options.getOptLevel() >= 2;
+            return options.getOptLevel() >= 3;
           }
         },
         // Coalesce moves
@@ -293,11 +293,11 @@ public class OPT_OptimizationPlanner {
         new OPT_OptimizationPlanCompositeElement("Post SSA cleanup",
                                                  new Object[]{new OPT_LocalCopyProp(),
                                                               new OPT_LocalConstantProp(),
-                                                              new OPT_Simple(2, true, true),
+                                                              new OPT_Simple(3, true, true),
                                                               new OPT_EscapeTransformations(),
-                                                              new OPT_BranchOptimizations(2, true, true)}) {
+                                                              new OPT_BranchOptimizations(3, true, true)}) {
           public boolean shouldPerform(OPT_Options options) {
-            return options.getOptLevel() >= 2;
+            return options.getOptLevel() >= 3;
           }
         }});
   }
@@ -314,7 +314,7 @@ public class OPT_OptimizationPlanner {
         new OPT_OptimizationPlanCompositeElement("Basic Block Frequency Estimation",
                                                  new Object[]{new OPT_BuildLST(), new OPT_EstimateBlockFrequencies()}) {
           public boolean shouldPerform(OPT_Options options) {
-            return options.getOptLevel() >= 2;
+            return options.getOptLevel() >= 3;
           }
         },
 
@@ -330,7 +330,7 @@ public class OPT_OptimizationPlanner {
             // Leave SSA
             new OPT_LeaveSSA()}) {
           public boolean shouldPerform(OPT_Options options) {
-            return options.getOptLevel() >= 2;
+            return options.getOptLevel() >= 3;
           }
         },
         // Live range splitting
@@ -343,10 +343,10 @@ public class OPT_OptimizationPlanner {
         new OPT_OptimizationPlanCompositeElement("Post SSA cleanup",
                                                  new Object[]{new OPT_LocalCopyProp(),
                                                               new OPT_LocalConstantProp(),
-                                                              new OPT_Simple(2, true, true),
-                                                              new OPT_BranchOptimizations(2, true, true)}) {
+                                                              new OPT_Simple(3, true, true),
+                                                              new OPT_BranchOptimizations(3, true, true)}) {
           public boolean shouldPerform(OPT_Options options) {
-            return options.getOptLevel() >= 2;
+            return options.getOptLevel() >= 3;
           }
         }});
   }
