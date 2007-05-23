@@ -15,6 +15,7 @@ package org.jikesrvm.compilers.opt.ia32;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.compilers.opt.ir.BBend;
 import org.jikesrvm.compilers.opt.ir.MIR_BinaryAcc;
 import org.jikesrvm.compilers.opt.ir.MIR_Branch;
 import org.jikesrvm.compilers.opt.ir.MIR_Call;
@@ -67,12 +68,14 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_JMP;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_LOCK;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_LOCK_CMPXCHG_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOV;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOV_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_OFFSET;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_RET;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_SHL;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_TEST_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_TRAPIF;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_TRAPIF_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_XOR;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.MIR_LOWTABLESWITCH_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.NULL_CHECK_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REQUIRE_ESP_opcode;
@@ -85,6 +88,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_TrapCodeOperand;
 import org.jikesrvm.compilers.opt.ir.ia32.OPT_IA32ConditionOperand;
 import org.jikesrvm.compilers.opt.ir.ia32.OPT_PhysicalRegisterSet;
+import org.jikesrvm.compilers.opt.ir.ia32.OPT_PhysicalDefUse;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.unboxed.Offset;
@@ -248,7 +252,7 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
         }
         break;
 
-        case IA32_FMOV_ENDING_LIVE_RANGE_opcode:
+        case IA32_FMOV_ENDING_LIVE_RANGE_opcode: {
           OPT_Operand result = MIR_Move.getResult(p);
           OPT_Operand value = MIR_Move.getValue(p);
           if (result.isRegister() && value.isRegister()) {
@@ -270,6 +274,7 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
             expandFmov(p, phys);
           }
           break;
+        }
 
         case DUMMY_DEF_opcode:
         case DUMMY_USE_opcode:
@@ -280,6 +285,27 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
 
         case IA32_FMOV_opcode:
           expandFmov(p, phys);
+          break;
+
+        case IA32_MOV_opcode:
+          // Replace result = IA32_MOV 0 with result = IA32_XOR result, result
+          if (MIR_Move.getResult(p).isRegister() &&
+              MIR_Move.getValue(p).isIntConstant() &&
+              MIR_Move.getValue(p).asIntConstant().value == 0) {
+            // Calculate what flags are defined in coming instructions before a use of a flag or BBend
+            OPT_Instruction x = next;
+            int futureDefs = 0;
+            while(!BBend.conforms(x) && !OPT_PhysicalDefUse.usesEFLAGS(x.operator)) {
+              futureDefs |= x.operator.implicitDefs;
+              x = x.nextInstructionInCodeOrder();
+            }
+            // If the flags will be destroyed prior to use or we reached the end of the basic block
+            if (BBend.conforms(x) ||
+                (futureDefs & OPT_PhysicalDefUse.maskAF_CF_OF_PF_SF_ZF) == OPT_PhysicalDefUse.maskAF_CF_OF_PF_SF_ZF) {
+              OPT_Operand result = MIR_Move.getClearResult(p);
+              MIR_BinaryAcc.mutate(p, IA32_XOR, result, result.copy());
+            }
+          }
           break;
 
         case IA32_FCLEAR_opcode:
