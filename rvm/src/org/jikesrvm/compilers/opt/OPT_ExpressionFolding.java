@@ -2153,31 +2153,35 @@ class OPT_ExpressionFolding {
   }
 
   private static int getIntValue(OPT_Operand op) {
-    if (op instanceof OPT_IntConstantOperand) {
+    if (op instanceof OPT_IntConstantOperand)
       return op.asIntConstant().value;
-    }
-    throw new OPT_OptimizingCompilerException("Cannot getLongValue from this operand " + op);
+    throw new OPT_OptimizingCompilerException(
+        "Cannot getIntValue from this operand " + op +
+        " of instruction " + op.instruction);
   }
 
   private static long getLongValue(OPT_Operand op) {
-    if (op instanceof OPT_LongConstantOperand) {
+    if (op instanceof OPT_LongConstantOperand)
       return op.asLongConstant().value;
-    }
-    throw new OPT_OptimizingCompilerException("Cannot getLongValue from this operand " + op);
+    throw new OPT_OptimizingCompilerException(
+        "Cannot getLongValue from this operand " + op +
+        " of instruction " + op.instruction);
   }
 
   private static float getFloatValue(OPT_Operand op) {
-    if (op instanceof OPT_FloatConstantOperand) {
+    if (op instanceof OPT_FloatConstantOperand)
       return op.asFloatConstant().value;
-    }
-    throw new OPT_OptimizingCompilerException("Cannot getFloatValue from this operand " + op);
+    throw new OPT_OptimizingCompilerException(
+        "Cannot getFloatValue from this operand " + op +
+        " of instruction " + op.instruction);
   }
 
   private static double getDoubleValue(OPT_Operand op) {
-    if (op instanceof OPT_DoubleConstantOperand) {
+    if (op instanceof OPT_DoubleConstantOperand)
       return op.asDoubleConstant().value;
-    }
-    throw new OPT_OptimizingCompilerException("Cannot getDoubleValue from this operand " + op);
+    throw new OPT_OptimizingCompilerException(
+        "Cannot getDoubleValue from this operand " + op +
+        " of instruction " + op.instruction);
   }
 
   private static Address getAddressValue(OPT_Operand op) {
@@ -2193,6 +2197,8 @@ class OPT_ExpressionFolding {
     if (VM.BuildFor64Addr && op instanceof OPT_LongConstantOperand) {
       return Address.fromLong(op.asLongConstant().value);
     }
-    throw new OPT_OptimizingCompilerException("Cannot getWordValue from this operand " + op);
+    throw new OPT_OptimizingCompilerException(
+        "Cannot getAddressValue from this operand " + op +
+        " of instruction " + op.instruction);
   }
 }
