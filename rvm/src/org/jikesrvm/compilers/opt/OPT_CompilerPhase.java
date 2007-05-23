@@ -197,7 +197,7 @@ public abstract class OPT_CompilerPhase {
         //}
       }
     }
-    if (ir.options.PRINT_PHASES) VM.sysWrite(getName());
+    if (ir.options.PRINT_PHASES) VM.sysWrite(getName() + " (" + ir.method.toString()+ ")");
 
     perform(ir);                // DOIT!!
 
