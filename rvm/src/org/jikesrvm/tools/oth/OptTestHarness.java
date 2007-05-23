@@ -14,7 +14,6 @@ package org.jikesrvm.tools.oth;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.StringTokenizer;
@@ -34,6 +33,7 @@ import org.jikesrvm.compilers.opt.OPT_Compiler;
 import org.jikesrvm.compilers.opt.OPT_OptimizationPlanner;
 import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.OPT_Options;
+import org.jikesrvm.runtime.VM_Reflection;
 import org.jikesrvm.runtime.VM_Time;
 
 /**
@@ -68,6 +68,7 @@ import org.jikesrvm.runtime.VM_Time;
 class OptTestHarness {
   static boolean DISABLE_CLASS_LOADING = false;
   static boolean EXECUTE_WITH_REFLECTION = false;
+  static boolean EXECUTE_MAIN = false;
   // Default value for for compiling opt/baseline
   static boolean BASELINE = false;
 
@@ -88,6 +89,9 @@ class OptTestHarness {
   static Vector<VM_Method> reflectMethodVector;
   static Vector<Object[]> reflectMethodArgsVector;
 
+  static VM_Class mainClass;
+  static String[] mainArgs;
+  
   static int parseMethodArgs(VM_TypeReference[] argDesc, String[] args, int i, Object[] methodArgs) {
     try {
       for (int argNum = 0; argNum < argDesc.length; ++argNum) {
@@ -252,7 +256,6 @@ class OptTestHarness {
             klass = loadClass(args[++i]);
           } catch (Exception e) {
             System.err.println("WARNING: Skipping method from " + args[i - 1]);
-            klass = null;
           }
           if (klass == null) continue;
           String name = args[++i];
@@ -295,6 +298,16 @@ class OptTestHarness {
           reflectMethodVector.addElement(method);
           reflectMethodArgsVector.addElement(reflectMethodArgs);
           options = options.dup();
+        } else if (arg.equals("-main")) {
+          EXECUTE_MAIN = true;
+          i++;
+          mainClass = loadClass(args[i]);
+          i++;
+          mainArgs = new String[args.length - i];
+          for (int j = 0, z = mainArgs.length; j < z; j++) {
+            mainArgs[j] = args[i+j];
+          }
+          break;
         } else {
           System.err.println("Unrecognized argument: " + arg + " - ignored");
         }
@@ -374,9 +387,21 @@ class OptTestHarness {
       }
       EXECUTE_WITH_REFLECTION = false;
     }
+    
+    if (EXECUTE_MAIN) {
+      VM_Method mainMethod = mainClass.findMainMethod();
+      if (mainMethod == null) {
+        // no such method
+        System.err.println(mainClass + " doesn't have a \"public static void main(String[])\" method to execute\n");
+        return;
+      }
+      VM.sysWrite("**** START OF EXECUTION of " + mainMethod + " ****.\n");      
+      VM_Reflection.invoke(mainMethod, null, new Object[]{mainArgs}, false);
+      VM.sysWrite("**** END OF EXECUTION of " + mainMethod + " ****.\n");
+    }
   }
 
-  public static void main(String[] args) throws InvocationTargetException, IOException, IllegalAccessException {
+  public static void main(String[] args) throws InvocationTargetException, IllegalAccessException {
     cl = VM_ClassLoader.getApplicationClassLoader();
     optMethodVector = new Vector<VM_Method>(50);
     optOptionsVector = new Vector<OPT_Options>(50);
