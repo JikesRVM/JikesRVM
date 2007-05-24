@@ -1,0 +1,10 @@
+Index: native/jni/java-nio/gnu_java_nio_VMChannel.c
+===================================================================
+RCS file:
+/sources/classpath/classpath/native/jni/java-nio/gnu_java_nio_VMChannel.c,v
+retrieving revision 1.17
+diff -r1.17 gnu_java_nio_VMChannel.c
+1630c1630
+<               ((nmode == O_RDWR || nmode == O_WRONLY) ? O_TRUNC : 0))
+---
+>               ((nmode == O_WRONLY) ? O_TRUNC : 0))
