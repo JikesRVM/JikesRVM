@@ -258,6 +258,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
    * Return a string name for this phase.
    * @return "Loop Versioning"
    */
+  @Override
   public String getName() {
     return "Loop Versioning";
   }
@@ -307,6 +308,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
    * Get a constructor object for this compiler phase
    * @return compiler phase constructor
    */
+  @Override
   public Constructor<OPT_CompilerPhase> getClassConstructor() {
     return constructor;
   }
@@ -327,6 +329,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
   /**
    * Should the optimisation be performed
    */
+  @Override
   public boolean shouldPerform(OPT_Options options) {
     return options.LOOP_VERSIONING;
   }
@@ -336,6 +339,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
    *
    * @param _ir the IR to process
    */
+  @Override
   public void perform(OPT_IR _ir) {
     ir = _ir;
 
@@ -555,8 +559,8 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase {
       // 10) Compact node numbering so that CFG number of nodes
       // reflects that some basic blocks may have been deleted
       ir.cfg.compactNodeNumbering();
+      return true;
     }
-    return true;
   }
 
   /**
