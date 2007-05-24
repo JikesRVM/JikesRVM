@@ -83,8 +83,19 @@
 
   <target name="fetch" depends="get-classpath-from-web,get-classpath-from-cvs"/>
 
+  <!-- patch classpath -->
+  <target name="patch-classpath-cvs" depends="fetch" if="classpath.from-cvs">
+    <patch patchfile="${components.patch.dir}/classpath-cvs.R1722506.patch"
+	   dir="${classpath.package.dir}/classpath/" strip="0"/>
+  </target>
+  <target name="patch-classpath-web" depends="fetch" if="classpath.from-web">
+    <patch patchfile="${components.patch.dir}/classpath-web.R1722506.patch"
+	   dir="${classpath.package.dir}/classpath/" strip="0"/>
+  </target>
+  <target name="patch" depends="patch-classpath-web,patch-classpath-cvs"/>
+
   <!-- build classpath in classpath.dir -->
-  <target name="build" depends="fetch" description="Download Classpath and build.">
+  <target name="build" depends="fetch,patch" description="Download Classpath and build.">
     <test-file name="ecj.dir" location="${components.file}"/>
     <test-file name="make.exe" location="${host.file}"/>
 

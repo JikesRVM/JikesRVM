@@ -26,6 +26,9 @@
   <property name="components.dir" location="${jikesrvm.dir}/components"/>
   <property name="components.file" location="${components.dir}/components.properties"/>
 
+  <!-- location of patches against components -->
+  <property name="components.patch.dir" location="${jikesrvm.dir}/build/components/patches"/>
+
   <!-- location of intermediate directory -->
   <property name="build.dir" location="${jikesrvm.dir}/target"/>
 
