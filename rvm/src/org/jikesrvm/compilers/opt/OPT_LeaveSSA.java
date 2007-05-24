@@ -551,7 +551,7 @@ public class OPT_LeaveSSA extends OPT_CompilerPhase {
     OPT_DominatorTree dom = new OPT_DominatorTree(ir, true);
 
     // 1.5 Perform Sreedhar's naive translation from TSSA to CSSA
-    if (ir.options.UNROLL_LOG == 0) normalizeSSA(ir);
+    //if (ir.options.UNROLL_LOG == 0) normalizeSSA(ir);
 
     // 2. compute liveness
     OPT_LiveAnalysis live = new OPT_LiveAnalysis(false,  // don't create GC maps
