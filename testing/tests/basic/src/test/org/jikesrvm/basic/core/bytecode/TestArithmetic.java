@@ -19,6 +19,8 @@ class TestArithmetic {
   private static int int5 = 5;
   private static int int33 = 33;
   private static int int65 = 65;
+  private static long long_1 = -1;
+  private static long long0 = 0;
   private static long long2 = 2;
   private static long long10000000000 = 10000000000L;
   private static long long0x0110000000000011 = 0x0110000000000011L;
@@ -161,7 +163,68 @@ class TestArithmetic {
     System.out.print("Expected: 1229482698272145681 Actual: ");
     System.out.println(a | b);  // lor
     System.out.print("Expected: 1224979098644775184 Actual: ");
-    System.out.println(a ^ b);  // lxor
+    System.out.println(a ^ b);  // lxor    
+
+    // bit patterns that can be optimized for certain operators if converting
+    // long operators into int operators
+    long long0x00000000FFFFFFFF = 0x00000000FFFFFFFFL; 
+    long long0xFFFFFFFF00000000 = 0xFFFFFFFF00000000L; 
+    long long0x00000001FFFFFFFF = 0x00000001FFFFFFFFL; 
+    long long0xFFFFFFFF00000001 = 0xFFFFFFFF00000001L; 
+    long long0x0000000100000000 = 0x0000000100000000L; 
+    long long0x0000000100000001 = 0x0000000100000001L; 
+
+    a = long_1;
+
+    System.out.print("Expected: -4294967295 Actual: ");
+    System.out.println(a * long0x00000000FFFFFFFF);
+    System.out.print("Expected: 4294967296 Actual: ");
+    System.out.println(a * long0xFFFFFFFF00000000);
+    System.out.print("Expected: -8589934591 Actual: ");
+    System.out.println(a * long0x00000001FFFFFFFF);
+    System.out.print("Expected: 4294967295 Actual: ");
+    System.out.println(a * long0xFFFFFFFF00000001);
+    System.out.print("Expected: -4294967296 Actual: ");
+    System.out.println(a * long0x0000000100000000);
+    System.out.print("Expected: -4294967297 Actual: ");
+    System.out.println(a * long0x0000000100000001);
+
+    System.out.print("Expected: 4294967295 Actual: ");
+    System.out.println(a & long0x00000000FFFFFFFF);
+    System.out.print("Expected: -4294967296 Actual: ");
+    System.out.println(a & long0xFFFFFFFF00000000);
+    System.out.print("Expected: 8589934591 Actual: ");
+    System.out.println(a & long0x00000001FFFFFFFF);
+    System.out.print("Expected: -4294967295 Actual: ");
+    System.out.println(a & long0xFFFFFFFF00000001);
+    System.out.print("Expected: 4294967296 Actual: ");
+    System.out.println(a & long0x0000000100000000);
+    System.out.print("Expected: 4294967297 Actual: ");
+    System.out.println(a & long0x0000000100000001);
+
+    a = long0;
+
+    System.out.print("Expected: 4294967295 Actual: ");
+    System.out.println(a | long0x00000000FFFFFFFF);
+    System.out.print("Expected: -4294967296 Actual: ");
+    System.out.println(a | long0xFFFFFFFF00000000);
+    System.out.print("Expected: 8589934591 Actual: ");
+    System.out.println(a | long0x00000001FFFFFFFF);
+    System.out.print("Expected: -4294967295 Actual: ");
+    System.out.println(a | long0xFFFFFFFF00000001);
+    System.out.print("Expected: 4294967297 Actual: ");
+    System.out.println(a | long0x0000000100000001);
+
+    System.out.print("Expected: 4294967295 Actual: ");
+    System.out.println(a ^ long0x00000000FFFFFFFF);
+    System.out.print("Expected: -4294967296 Actual: ");
+    System.out.println(a ^ long0xFFFFFFFF00000000);
+    System.out.print("Expected: 8589934591 Actual: ");
+    System.out.println(a ^ long0x00000001FFFFFFFF);
+    System.out.print("Expected: -4294967295 Actual: ");
+    System.out.println(a ^ long0xFFFFFFFF00000001);
+    System.out.print("Expected: 4294967297 Actual: ");
+    System.out.println(a ^ long0x0000000100000001);
 
     a = long0xBEEFBEEFCAFEBABE;
 
@@ -199,6 +262,8 @@ class TestArithmetic {
     System.out.println(a << 64);
     System.out.print("Expected: 9070106573795063164 Actual: ");
     System.out.println(a << 65);
+    System.out.print("Expected: 9070106573795063164 Actual: ");
+    System.out.println(a << int65);
 
     System.out.print("Expected: -2344159374978622113 Actual: ");
     System.out.println(a >> 1);  // lshr
@@ -234,6 +299,8 @@ class TestArithmetic {
     System.out.println(a >> 64);
     System.out.print("Expected: -2344159374978622113 Actual: ");
     System.out.println(a >> 65);
+    System.out.print("Expected: -2344159374978622113 Actual: ");
+    System.out.println(a >> int65);
 
     System.out.print("Expected: 6879212661876153695 Actual: ");
     System.out.println(a >>> 1);  // lushr
@@ -269,6 +336,8 @@ class TestArithmetic {
     System.out.println(a >>> 64);
     System.out.print("Expected: 6879212661876153695 Actual: ");
     System.out.println(a >>> 65);
+    System.out.print("Expected: 6879212661876153695 Actual: ");
+    System.out.println(a >>> int65);
   }
 
   private static void ftest() {
