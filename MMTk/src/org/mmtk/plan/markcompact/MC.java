@@ -15,6 +15,7 @@ package org.mmtk.plan.markcompact;
 import org.mmtk.plan.*;
 import org.mmtk.policy.MarkCompactSpace;
 import org.mmtk.policy.Space;
+import org.mmtk.utility.Conversions;
 import org.mmtk.vm.Collection;
 import org.mmtk.vm.VM;
 
@@ -152,10 +153,11 @@ import org.vmmagic.pragma.*;
     if (getCollectionsInitiated() > 0 || !isInitialized() || space == metaDataSpace) {
       return false;
     }
+    boolean spaceFull = space.reservedPages() >= Conversions.bytesToPages(space.getExtent());
     mustCollect |= stressTestGCRequired();
     boolean heapFull = getPagesReserved() > getTotalPages();
 
-    if (mustCollect || heapFull) {
+    if (mustCollect || spaceFull || heapFull) {
       required = space.reservedPages() - space.committedPages();
       VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;

@@ -16,6 +16,7 @@ import org.mmtk.plan.*;
 import org.mmtk.policy.MarkSweepSpace;
 import org.mmtk.policy.MarkSweepLocal;
 import org.mmtk.policy.Space;
+import org.mmtk.utility.Conversions;
 import org.mmtk.vm.Collection;
 import org.mmtk.vm.VM;
 
@@ -138,11 +139,12 @@ import org.vmmagic.unboxed.*;
     if (getCollectionsInitiated() > 0 || !isInitialized() || space == metaDataSpace) {
       return false;
     }
+    boolean spaceFull = space.reservedPages() >= Conversions.bytesToPages(space.getExtent());
     mustCollect |= stressTestGCRequired() || MarkSweepLocal.mustCollect();
     availablePreGC = getTotalPages() - getPagesReserved();
     int reserve = (space == msSpace) ? msReservedPages : 0;
 
-    if (mustCollect || availablePreGC <= reserve) {
+    if (mustCollect || spaceFull || availablePreGC <= reserve) {
       required = space.reservedPages() - space.committedPages();
       VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;

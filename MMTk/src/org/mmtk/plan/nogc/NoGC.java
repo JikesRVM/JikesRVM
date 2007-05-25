@@ -16,6 +16,7 @@ import org.mmtk.plan.Plan;
 import org.mmtk.plan.Trace;
 import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.policy.Space;
+import org.mmtk.utility.Conversions;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -75,7 +76,8 @@ import org.vmmagic.pragma.*;
    * @return True if a collection is required.
    */
   public final boolean poll(boolean mustCollect, Space space) {
-    if (getPagesReserved() > getTotalPages()) {
+    boolean spaceFull = space.reservedPages() >= Conversions.bytesToPages(space.getExtent());
+    if (spaceFull || getPagesReserved() > getTotalPages()) {
       VM.assertions.fail("GC Triggered in NoGC Plan due to memory exhaustion.");
     }
     return false;
