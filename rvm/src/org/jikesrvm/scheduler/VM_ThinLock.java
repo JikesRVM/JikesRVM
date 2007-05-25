@@ -248,18 +248,6 @@ public final class VM_ThinLock implements VM_ThinLockConstants {
     return rtn;
   }
 
-  static void deflate(Object o, Offset lockOffset, VM_Lock l) {
-    if (VM.VerifyAssertions) {
-      Word old = VM_Magic.getWordAtOffset(o, lockOffset);
-      VM._assert(!(old.and(TL_FAT_LOCK_MASK).isZero()));
-      VM._assert(l == VM_Scheduler.locks[getLockIndex(old)]);
-    }
-    Word old;
-    do {
-      old = VM_Magic.prepareWord(o, lockOffset);
-    } while (!VM_Magic.attemptWord(o, lockOffset, old, old.and(TL_UNLOCK_MASK)));
-  }
-
   /**
    * Promotes a light-weight lock to a heavy-weight lock and locks it.
    * Note: the object in question will normally be locked by another
@@ -278,7 +266,7 @@ public final class VM_ThinLock implements VM_ThinLockConstants {
       l.mutex.lock();
       if (l.lockedObject != o) {
         l.mutex.unlock();
-        return false;
+        return false;  /* lock must have been deflated while we've been trying */
       }
       l = rtn;
     }
@@ -320,12 +308,6 @@ public final class VM_ThinLock implements VM_ThinLockConstants {
         VM_Lock.free(l);
         l.mutex.unlock();
         l = VM_Scheduler.locks[getLockIndex(old)];
-	if (VM.VerifyAssertions) VM._assert(l.lockedObject == o);
-	/*
-        l.mutex.lock();
-        if (l.lockedObject == o) break;  // l is heavy lock for o
-        l.mutex.unlock();
-	 */
         return l;
       }
       Word locked = TL_FAT_LOCK_MASK.or(Word.fromIntZeroExtend(l.index).lsh(TL_LOCK_ID_SHIFT));
@@ -341,6 +323,18 @@ public final class VM_ThinLock implements VM_ThinLockConstants {
       }
       // contention detected, try again
     } while (true);
+  }
+
+  static void deflate(Object o, Offset lockOffset, VM_Lock l) {
+    if (VM.VerifyAssertions) {
+      Word old = VM_Magic.getWordAtOffset(o, lockOffset);
+      VM._assert(!(old.and(TL_FAT_LOCK_MASK).isZero()));
+      VM._assert(l == VM_Scheduler.locks[getLockIndex(old)]);
+    }
+    Word old;
+    do {
+      old = VM_Magic.prepareWord(o, lockOffset);
+    } while (!VM_Magic.attemptWord(o, lockOffset, old, old.and(TL_UNLOCK_MASK)));
   }
 
   /**
