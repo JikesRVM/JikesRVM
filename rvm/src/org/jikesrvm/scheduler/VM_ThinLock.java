@@ -35,6 +35,25 @@ public final class VM_ThinLock implements VM_ThinLockConstants {
   ////////////////////////////////////////
 
   /**
+   * Return the lock index for a given lock word.  Assert valid index
+   * ranges, that the fat lock bit is set, and that the lock entry
+   * exists.
+   *
+   * @param lockWord The lock word whose lock index is being established
+   * @return the lock index corresponding to the lock workd.
+   */
+  @Inline
+  private static int getLockIndex(Word lockWord) {
+    int index = lockWord.and(TL_LOCK_ID_MASK).rshl(TL_LOCK_ID_SHIFT).toInt();
+    if (VM.VerifyAssertions) {
+      VM._assert(index > 0 && index < VM_Scheduler.locks.length);  // index is in range
+      VM._assert(!lockWord.and(TL_FAT_LOCK_MASK).isZero());        // fat lock bit is set
+      VM._assert(VM_Scheduler.locks[index] != null);               // the lock is actually there
+    }
+    return index;
+  }
+
+  /**
    * Obtains a lock on the indicated object.  Abreviated light-weight
    * locking sequence inlined by the optimizing compiler for the
    * prologue of synchronized methods and for the
@@ -126,10 +145,7 @@ public final class VM_ThinLock implements VM_ThinLockConstants {
         }
 
         if (!(old.and(TL_FAT_LOCK_MASK).isZero())) { // o has a heavy lock
-          int index = old.and(TL_LOCK_ID_MASK).rshl(TL_LOCK_ID_SHIFT).toInt();
-          while (index >= VM_Scheduler.locks.length) {
-            VM_Lock.growLocks();
-          }
+          int index = getLockIndex(old);
           if (VM_Scheduler.locks[index].lockHeavy(o)) {
             break major; // lock succeeds (note that lockHeavy has issued an isync)
           }
@@ -178,8 +194,7 @@ public final class VM_ThinLock implements VM_ThinLockConstants {
       Word threadId = Word.fromIntZeroExtend(VM_Processor.getCurrentProcessor().threadId);
       if (id.NE(threadId)) { // not normal case
         if (!(old.and(TL_FAT_LOCK_MASK).isZero())) { // o has a heavy lock
-          int index = old.and(TL_LOCK_ID_MASK).rshl(TL_LOCK_ID_SHIFT).toInt();
-          VM_Scheduler.locks[index].unlockHeavy(o);
+          VM_Scheduler.locks[getLockIndex(old)].unlockHeavy(o);
           // note that unlockHeavy has issued a sync
           return;
         }
@@ -219,43 +234,25 @@ public final class VM_ThinLock implements VM_ThinLockConstants {
    * @return the heavy-weight lock on this object
    */
   private static VM_Lock inflate(Object o, Offset lockOffset) {
-    Word old;
-    Word changed;
+    if (VM.VerifyAssertions) { 
+      VM._assert(holdsLock(o, lockOffset, VM_Thread.getCurrentThread()));
+      VM._assert((VM_Magic.getWordAtOffset(o, lockOffset).and(TL_FAT_LOCK_MASK).isZero()));
+    }
     VM_Lock l = VM_Lock.allocate();
     if (VM.VerifyAssertions) {
       VM._assert(l != null); // inflate called by wait (or notify) which shouldn't be called during GC
     }
-    Word locked = TL_FAT_LOCK_MASK.or(Word.fromIntZeroExtend(l.index).lsh(TL_LOCK_ID_SHIFT));
-    l.mutex.lock();
-    do {
-      old = VM_Magic.prepareWord(o, lockOffset);
-      // check to see if another thread has already created a fat lock
-      if (!(old.and(TL_FAT_LOCK_MASK).isZero())) { // already a fat lock in place
-        int index = old.and(TL_LOCK_ID_MASK).rshl(TL_LOCK_ID_SHIFT).toInt();
-        VM_Lock.free(l);
-        l.mutex.unlock();
-        l = VM_Scheduler.locks[index];
-        return l;
-      }
-      changed = locked.or(old.and(TL_UNLOCK_MASK));
-      if (VM_Magic.attemptWord(o, lockOffset, old, changed)) {
-        l.lockedObject = o;
-        l.ownerId = old.and(TL_THREAD_ID_MASK).toInt();
-        if (l.ownerId != 0) {
-          l.recursionCount = old.and(TL_LOCK_COUNT_MASK).rshl(TL_LOCK_COUNT_SHIFT).toInt() + 1;
-        }
-        l.mutex.unlock();
-        return l;      // VM_Lock in place
-      }
-      // contention detected, try again
-    } while (true);
+    VM_Lock rtn = attemptToInflate(o, lockOffset, l);
+    if (rtn == l)
+      l.mutex.unlock();
+    return rtn;
   }
 
   static void deflate(Object o, Offset lockOffset, VM_Lock l) {
     if (VM.VerifyAssertions) {
       Word old = VM_Magic.getWordAtOffset(o, lockOffset);
       VM._assert(!(old.and(TL_FAT_LOCK_MASK).isZero()));
-      VM._assert(l == VM_Scheduler.locks[old.and(TL_LOCK_ID_MASK).rshl(TL_LOCK_ID_SHIFT).toInt()]);
+      VM._assert(l == VM_Scheduler.locks[getLockIndex(old)]);
     }
     Word old;
     do {
@@ -274,36 +271,17 @@ public final class VM_ThinLock implements VM_ThinLockConstants {
    * @return whether the object was successfully locked
    */
   private static boolean inflateAndLock(Object o, Offset lockOffset) {
-    Word old;
-    Word changed;
     VM_Lock l = VM_Lock.allocate();
     if (l == null) return false; // can't allocate locks during GC
-    Word locked = TL_FAT_LOCK_MASK.or(Word.fromIntZeroExtend(l.index).lsh(TL_LOCK_ID_SHIFT));
-    l.mutex.lock();
-    do {
-      old = VM_Magic.prepareWord(o, lockOffset);
-      // check to see if another thread has already created a fat lock
-      if (!(old.and(TL_FAT_LOCK_MASK).isZero())) { // already a fat lock in place
-        VM_Lock.free(l);
-        l.mutex.unlock();
-        int index = old.and(TL_LOCK_ID_MASK).rshl(TL_LOCK_ID_SHIFT).toInt();
-        l = VM_Scheduler.locks[index];
-        l.mutex.lock();
-        if (l.lockedObject == o) break;  // l is heavy lock for o
+    VM_Lock rtn = attemptToInflate(o, lockOffset, l);
+    if (l != rtn) {
+      l.mutex.lock();
+      if (l.lockedObject != o) {
         l.mutex.unlock();
         return false;
       }
-      changed = locked.or(old.and(TL_UNLOCK_MASK));
-      if (VM_Magic.attemptWord(o, lockOffset, old, changed)) {
-        l.lockedObject = o;
-        l.ownerId = old.and(TL_THREAD_ID_MASK).toInt();
-        if (l.ownerId != 0) {
-          l.recursionCount = old.and(TL_LOCK_COUNT_MASK).rshl(TL_LOCK_COUNT_SHIFT).toInt() + 1;
-        }
-        break;  // l is heavy lock for o
-      }
-      // contention detected, try again
-    } while (true);
+      l = rtn;
+    }
     int threadId = VM_Processor.getCurrentProcessor().threadId;
     if (l.ownerId == 0) {
       l.ownerId = threadId;
@@ -326,6 +304,46 @@ public final class VM_ThinLock implements VM_ThinLockConstants {
   }
 
   /**
+   * Promotes a light-weight lock to a heavy-weight lock.
+   *
+   * @param o the object to get a heavy-weight lock
+   * @param lockOffset the offset of the thin lock word in the object.
+   * @return whether the object was successfully locked
+   */
+  private static VM_Lock attemptToInflate(Object o, Offset lockOffset, VM_Lock l) {
+    Word old;
+    l.mutex.lock();
+    do {
+      old = VM_Magic.prepareWord(o, lockOffset);
+      // check to see if another thread has already created a fat lock
+      if (!(old.and(TL_FAT_LOCK_MASK).isZero())) { // already a fat lock in place
+        VM_Lock.free(l);
+        l.mutex.unlock();
+        l = VM_Scheduler.locks[getLockIndex(old)];
+	if (VM.VerifyAssertions) VM._assert(l.lockedObject == o);
+	/*
+        l.mutex.lock();
+        if (l.lockedObject == o) break;  // l is heavy lock for o
+        l.mutex.unlock();
+	 */
+        return l;
+      }
+      Word locked = TL_FAT_LOCK_MASK.or(Word.fromIntZeroExtend(l.index).lsh(TL_LOCK_ID_SHIFT));
+      Word changed = locked.or(old.and(TL_UNLOCK_MASK));
+      if (VM.VerifyAssertions) VM._assert(getLockIndex(changed) == l.index);
+      if (VM_Magic.attemptWord(o, lockOffset, old, changed)) {
+        l.lockedObject = o;
+        l.ownerId = old.and(TL_THREAD_ID_MASK).toInt();
+        if (l.ownerId != 0) {
+          l.recursionCount = old.and(TL_LOCK_COUNT_MASK).rshl(TL_LOCK_COUNT_SHIFT).toInt() + 1;
+        }
+        return l;
+      }
+      // contention detected, try again
+    } while (true);
+  }
+
+  /**
    * @param obj an object
    * @param lockOffset the offset of the thin lock word in the object.
    * @param thread a thread
@@ -340,7 +358,7 @@ public final class VM_ThinLock implements VM_ThinLockConstants {
       return (bits.and(VM_ThinLockConstants.TL_THREAD_ID_MASK).toInt() == tid);
     } else {
       // if locked, then it is locked with a fat lock
-      int index = bits.and(TL_LOCK_ID_MASK).rshl(TL_LOCK_ID_SHIFT).toInt();
+      int index = getLockIndex(bits);
       VM_Lock l = VM_Scheduler.locks[index];
       return l != null && l.ownerId == tid;
     }
@@ -363,8 +381,7 @@ public final class VM_ThinLock implements VM_ThinLockConstants {
   public static VM_Lock getHeavyLock(Object o, Offset lockOffset, boolean create) {
     Word old = VM_Magic.getWordAtOffset(o, lockOffset);
     if (!(old.and(TL_FAT_LOCK_MASK).isZero())) { // already a fat lock in place
-      int index = old.and(TL_LOCK_ID_MASK).rshl(TL_LOCK_ID_SHIFT).toInt();
-      return VM_Scheduler.locks[index];
+      return VM_Scheduler.locks[getLockIndex(old)];
     } else if (create) {
       return inflate(o, lockOffset);
     } else {
