@@ -16,13 +16,19 @@ import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.OPT_DefUse;
 import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.ir.Binary;
+import org.jikesrvm.compilers.opt.ir.Label;
+import org.jikesrvm.compilers.opt.ir.BBend;
 import org.jikesrvm.compilers.opt.ir.IfCmp;
 import org.jikesrvm.compilers.opt.ir.MIR_BinaryAcc;
 import org.jikesrvm.compilers.opt.ir.MIR_Branch;
 import org.jikesrvm.compilers.opt.ir.MIR_Compare;
 import org.jikesrvm.compilers.opt.ir.MIR_CondBranch;
 import org.jikesrvm.compilers.opt.ir.MIR_CondBranch2;
+import org.jikesrvm.compilers.opt.ir.MIR_DoubleShift;
 import org.jikesrvm.compilers.opt.ir.MIR_Move;
+import org.jikesrvm.compilers.opt.ir.MIR_Multiply;
+import org.jikesrvm.compilers.opt.ir.MIR_Test;
 import org.jikesrvm.compilers.opt.ir.MIR_UnaryAcc;
 import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
 import org.jikesrvm.compilers.opt.ir.OPT_BranchOperand;
@@ -36,15 +42,28 @@ import org.jikesrvm.compilers.opt.ir.OPT_LongConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_Operand;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_IFCMP_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_IFCMP_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_IFCMP_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_MUL_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_SHL_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_SHR_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_USHR_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_ADD;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_IMUL2;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MUL;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_CMP;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_JCC;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_JCC2;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_JMP;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOV;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_NOT;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_SAR;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_SHL;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_SHLD;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_SHR;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_SHRD;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_TEST;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_OR;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_XOR;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_IFCMP_opcode;
 import org.jikesrvm.compilers.opt.ir.OPT_Register;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.ia32.OPT_IA32ConditionOperand;
@@ -64,6 +83,18 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     OPT_Instruction nextInstr;
     for (OPT_Instruction s = ir.firstInstructionInCodeOrder(); s != null; s = nextInstr) {
       switch (s.getOpcode()) {
+        case LONG_MUL_opcode:
+          nextInstr = long_mul(s, ir);
+          break;
+        case LONG_SHL_opcode:
+          nextInstr = long_shl(s, ir);
+          break;
+        case LONG_SHR_opcode:
+          nextInstr = long_shr(s, ir);
+          break;
+        case LONG_USHR_opcode:
+          nextInstr = long_ushr(s, ir);
+          break;
         case LONG_IFCMP_opcode: {
           OPT_Operand val2 = IfCmp.getVal2(s);
           if (val2 instanceof OPT_RegisterOperand) {
@@ -71,11 +102,11 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
           } else {
             nextInstr = long_ifcmp_imm(s, ir);
           }
+          break;
         }
-        break;
         case FLOAT_IFCMP_opcode:
         case DOUBLE_IFCMP_opcode:
-          nextInstr = fp_ifcmp(s, ir);
+          nextInstr = fp_ifcmp(s);
           break;
         default:
           nextInstr = s.nextInstructionInCodeOrder();
@@ -85,6 +116,416 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     OPT_DefUse.recomputeSpansBasicBlock(ir);
   }
 
+  private static OPT_Instruction long_shl(OPT_Instruction s, OPT_IR ir) {
+    OPT_Instruction nextInstr = s.nextInstructionInCodeOrder();
+    while(Label.conforms(nextInstr)||BBend.conforms(nextInstr)) {
+      nextInstr = nextInstr.nextInstructionInCodeOrder();
+    }
+    // we need 4 basic blocks
+    // 1: the current block that does a test if the shift is > 32
+    // 2: a block to perform a shift in the range 32 to 63
+    // 3: a block to perform a shift in the range 0 to 31
+    // 4: the next basic block
+    OPT_BasicBlock testBB = s.getBasicBlock();
+    OPT_BasicBlock nextBB = testBB.splitNodeAt(s,ir);
+    ir.cfg.linkInCodeOrder(testBB, nextBB);
+    OPT_BasicBlock shift32BB = testBB.splitNodeAt(s,ir);
+    ir.cfg.linkInCodeOrder(testBB, shift32BB);
+    OPT_BasicBlock shift64BB = testBB.splitNodeAt(s,ir);
+    ir.cfg.linkInCodeOrder(testBB, shift64BB);
+
+    // Source registers
+    OPT_Register lhsReg = Binary.getResult(s).register;
+    OPT_Register lowlhsReg = ir.regpool.getSecondReg(lhsReg);
+    OPT_Operand val1 = Binary.getVal1(s);
+    OPT_Register rhsReg;
+    OPT_Register lowrhsReg;
+    if (val1.isRegister()) {
+      rhsReg = val1.asRegister().register;
+      lowrhsReg = ir.regpool.getSecondReg(rhsReg);
+    } else {
+      // shift is of a constant so set up registers
+      int low = val1.asLongConstant().lower32();
+      int high = val1.asLongConstant().upper32();
+      
+      testBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+          new OPT_RegisterOperand(lowlhsReg, VM_TypeReference.Int),
+          IC(low))));
+      testBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+          new OPT_RegisterOperand(lhsReg, VM_TypeReference.Int),
+          IC(high))));
+      rhsReg = lhsReg;
+      lowrhsReg = lowlhsReg;
+    }
+
+    // ecx = shift amount
+    OPT_Register ecx = ir.regpool.getPhysicalRegisterSet().getECX();
+    testBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+        new OPT_RegisterOperand(ecx, VM_TypeReference.Int),
+        Binary.getVal2(s))));
+
+    // Determine shift of 32 to 63 or 0 to 31
+    testBB.appendInstruction(CPOS(s, MIR_Test.create(IA32_TEST,
+        new OPT_RegisterOperand(ecx, VM_TypeReference.Int),
+        IC(32))));
+
+    // if (ecx & 32 == 0) goto shift32BB
+    testBB.appendInstruction(CPOS(s, MIR_CondBranch.create(IA32_JCC,
+        OPT_IA32ConditionOperand.EQ(),
+        shift32BB.makeJumpTarget(),
+        OPT_BranchProfileOperand.likely())));
+
+    testBB.insertOut(shift32BB);
+    testBB.insertOut(shift64BB); // fall-through
+
+    // Perform shift in the range 32 to 63
+    shift64BB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+        new OPT_RegisterOperand(lhsReg, VM_TypeReference.Int),
+        new OPT_RegisterOperand(lowrhsReg, VM_TypeReference.Int))));
+    shift64BB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_SHL,
+        new OPT_RegisterOperand(lhsReg, VM_TypeReference.Int),
+        new OPT_RegisterOperand(ecx, VM_TypeReference.Int))));
+    shift64BB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+        new OPT_RegisterOperand(lowlhsReg, VM_TypeReference.Int),
+        IC(0))));
+    
+    shift64BB.appendInstruction(CPOS(s, MIR_Branch.create(IA32_JMP,
+        nextBB.makeJumpTarget())));
+    shift64BB.insertOut(nextBB);
+
+    // Perform shift in the range 0 to 31
+    if (lhsReg != rhsReg) {
+      shift32BB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+          new OPT_RegisterOperand(lhsReg, VM_TypeReference.Int),
+          new OPT_RegisterOperand(rhsReg, VM_TypeReference.Int))));
+      shift32BB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+          new OPT_RegisterOperand(lowlhsReg, VM_TypeReference.Int),
+          new OPT_RegisterOperand(lowrhsReg, VM_TypeReference.Int))));
+    }
+    shift32BB.appendInstruction(CPOS(s, MIR_DoubleShift.create(IA32_SHLD,
+        new OPT_RegisterOperand(lhsReg, VM_TypeReference.Int),
+        new OPT_RegisterOperand(lowlhsReg, VM_TypeReference.Int),
+        new OPT_RegisterOperand(ecx, VM_TypeReference.Int))));
+    shift32BB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_SHL,
+        new OPT_RegisterOperand(lowlhsReg, VM_TypeReference.Int),
+        new OPT_RegisterOperand(ecx, VM_TypeReference.Int))));
+
+    shift32BB.insertOut(nextBB);
+
+    s.remove();
+    return nextInstr;
+  }
+
+  private static OPT_Instruction long_shr(OPT_Instruction s, OPT_IR ir) {
+    OPT_Instruction nextInstr = s.nextInstructionInCodeOrder();
+    while(Label.conforms(nextInstr)||BBend.conforms(nextInstr)) {
+      nextInstr = nextInstr.nextInstructionInCodeOrder();
+    }
+    // we need 4 basic blocks
+    // 1: the current block that does a test if the shift is > 32
+    // 2: a block to perform a shift in the range 32 to 63
+    // 3: a block to perform a shift in the range 0 to 31
+    // 4: the next basic block
+    OPT_BasicBlock testBB = s.getBasicBlock();
+    OPT_BasicBlock nextBB = testBB.splitNodeAt(s,ir);
+    ir.cfg.linkInCodeOrder(testBB, nextBB);
+    OPT_BasicBlock shift32BB = testBB.splitNodeAt(s,ir);
+    ir.cfg.linkInCodeOrder(testBB, shift32BB);
+    OPT_BasicBlock shift64BB = testBB.splitNodeAt(s,ir);
+    ir.cfg.linkInCodeOrder(testBB, shift64BB);
+
+    // Source registers
+    OPT_Register lhsReg = Binary.getResult(s).register;
+    OPT_Register lowlhsReg = ir.regpool.getSecondReg(lhsReg);
+    OPT_Operand val1 = Binary.getVal1(s);
+    OPT_Register rhsReg;
+    OPT_Register lowrhsReg;
+    if (val1.isRegister()) {
+      rhsReg = val1.asRegister().register;
+      lowrhsReg = ir.regpool.getSecondReg(rhsReg);
+    } else {
+      // shift is of a constant so set up registers
+      int low = val1.asLongConstant().lower32();
+      int high = val1.asLongConstant().upper32();
+      
+      testBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+          new OPT_RegisterOperand(lowlhsReg, VM_TypeReference.Int),
+          IC(low))));
+      testBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+          new OPT_RegisterOperand(lhsReg, VM_TypeReference.Int),
+          IC(high))));
+      rhsReg = lhsReg;
+      lowrhsReg = lowlhsReg;
+    }
+
+    // ecx = shift amount
+    OPT_Register ecx = ir.regpool.getPhysicalRegisterSet().getECX();
+    testBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+        new OPT_RegisterOperand(ecx, VM_TypeReference.Int),
+        Binary.getVal2(s))));
+
+    // Determine shift of 32 to 63 or 0 to 31
+    testBB.appendInstruction(CPOS(s, MIR_Test.create(IA32_TEST,
+        new OPT_RegisterOperand(ecx, VM_TypeReference.Int),
+        IC(32))));
+
+    // if (ecx & 32 == 0) goto shift32BB
+    testBB.appendInstruction(CPOS(s, MIR_CondBranch.create(IA32_JCC,
+        OPT_IA32ConditionOperand.EQ(),
+        shift32BB.makeJumpTarget(),
+        OPT_BranchProfileOperand.likely())));
+
+    testBB.insertOut(shift32BB);
+    testBB.insertOut(shift64BB); // fall-through
+
+    // Perform shift in the range 32 to 63
+    shift64BB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+        new OPT_RegisterOperand(lowlhsReg, VM_TypeReference.Int),
+        new OPT_RegisterOperand(rhsReg, VM_TypeReference.Int))));
+    if (lhsReg != rhsReg) {
+      shift64BB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+          new OPT_RegisterOperand(lhsReg, VM_TypeReference.Int),
+          new OPT_RegisterOperand(rhsReg, VM_TypeReference.Int))));
+    }
+    shift64BB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_SAR,
+        new OPT_RegisterOperand(lowlhsReg, VM_TypeReference.Int),
+        new OPT_RegisterOperand(ecx, VM_TypeReference.Int))));
+    shift64BB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_SAR,
+        new OPT_RegisterOperand(lhsReg, VM_TypeReference.Int),
+        IC(31))));
+    
+    shift64BB.appendInstruction(CPOS(s, MIR_Branch.create(IA32_JMP,
+        nextBB.makeJumpTarget())));
+    shift64BB.insertOut(nextBB);
+
+    // Perform shift in the range 0 to 31
+    if (lhsReg != rhsReg) {
+      shift32BB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+          new OPT_RegisterOperand(lhsReg, VM_TypeReference.Int),
+          new OPT_RegisterOperand(rhsReg, VM_TypeReference.Int))));
+      shift32BB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+          new OPT_RegisterOperand(lowlhsReg, VM_TypeReference.Int),
+          new OPT_RegisterOperand(lowrhsReg, VM_TypeReference.Int))));
+    }
+    shift32BB.appendInstruction(CPOS(s, MIR_DoubleShift.create(IA32_SHRD,
+        new OPT_RegisterOperand(lowlhsReg, VM_TypeReference.Int),
+        new OPT_RegisterOperand(lhsReg, VM_TypeReference.Int),
+        new OPT_RegisterOperand(ecx, VM_TypeReference.Int))));
+    shift32BB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_SAR,
+        new OPT_RegisterOperand(lhsReg, VM_TypeReference.Int),
+        new OPT_RegisterOperand(ecx, VM_TypeReference.Int))));
+
+    shift32BB.insertOut(nextBB);
+
+    s.remove();
+    return nextInstr;
+  }
+
+  private static OPT_Instruction long_ushr(OPT_Instruction s, OPT_IR ir) {
+    OPT_Instruction nextInstr = s.nextInstructionInCodeOrder();
+    while(Label.conforms(nextInstr)||BBend.conforms(nextInstr)) {
+      nextInstr = nextInstr.nextInstructionInCodeOrder();
+    }
+    // we need 4 basic blocks
+    // 1: the current block that does a test if the shift is > 32
+    // 2: a block to perform a shift in the range 32 to 63
+    // 3: a block to perform a shift in the range 0 to 31
+    // 4: the next basic block
+    OPT_BasicBlock testBB = s.getBasicBlock();
+    OPT_BasicBlock nextBB = testBB.splitNodeAt(s,ir);
+    ir.cfg.linkInCodeOrder(testBB, nextBB);
+    OPT_BasicBlock shift32BB = testBB.splitNodeAt(s,ir);
+    ir.cfg.linkInCodeOrder(testBB, shift32BB);
+    OPT_BasicBlock shift64BB = testBB.splitNodeAt(s,ir);
+    ir.cfg.linkInCodeOrder(testBB, shift64BB);
+
+    // Source registers
+    OPT_Register lhsReg = Binary.getResult(s).register;
+    OPT_Register lowlhsReg = ir.regpool.getSecondReg(lhsReg);
+    OPT_Operand val1 = Binary.getVal1(s);
+    OPT_Register rhsReg;
+    OPT_Register lowrhsReg;
+    if (val1.isRegister()) {
+      rhsReg = val1.asRegister().register;
+      lowrhsReg = ir.regpool.getSecondReg(rhsReg);
+    } else {
+      // shift is of a constant so set up registers
+      int low = val1.asLongConstant().lower32();
+      int high = val1.asLongConstant().upper32();
+      
+      testBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+          new OPT_RegisterOperand(lowlhsReg, VM_TypeReference.Int),
+          IC(low))));
+      testBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+          new OPT_RegisterOperand(lhsReg, VM_TypeReference.Int),
+          IC(high))));
+      rhsReg = lhsReg;
+      lowrhsReg = lowlhsReg;
+    }
+
+    // ecx = shift amount
+    OPT_Register ecx = ir.regpool.getPhysicalRegisterSet().getECX();
+    testBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+        new OPT_RegisterOperand(ecx, VM_TypeReference.Int),
+        Binary.getVal2(s))));
+
+    // Determine shift of 32 to 63 or 0 to 31
+    testBB.appendInstruction(CPOS(s, MIR_Test.create(IA32_TEST,
+        new OPT_RegisterOperand(ecx, VM_TypeReference.Int),
+        IC(32))));
+
+    // if (ecx & 32 == 0) goto shift32BB
+    testBB.appendInstruction(CPOS(s, MIR_CondBranch.create(IA32_JCC,
+        OPT_IA32ConditionOperand.EQ(),
+        shift32BB.makeJumpTarget(),
+        OPT_BranchProfileOperand.likely())));
+
+    testBB.insertOut(shift32BB);
+    testBB.insertOut(shift64BB); // fall-through
+
+    // Perform shift in the range 32 to 63
+    shift64BB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+        new OPT_RegisterOperand(lowlhsReg, VM_TypeReference.Int),
+        new OPT_RegisterOperand(rhsReg, VM_TypeReference.Int))));
+    shift64BB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_SHR,
+        new OPT_RegisterOperand(lowlhsReg, VM_TypeReference.Int),
+        new OPT_RegisterOperand(ecx, VM_TypeReference.Int))));
+    shift64BB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+        new OPT_RegisterOperand(lhsReg, VM_TypeReference.Int),
+        IC(0))));
+    
+    shift64BB.appendInstruction(CPOS(s, MIR_Branch.create(IA32_JMP,
+        nextBB.makeJumpTarget())));
+    shift64BB.insertOut(nextBB);
+
+    // Perform shift in the range 0 to 31
+    if (lhsReg != rhsReg) {
+      shift32BB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+          new OPT_RegisterOperand(lhsReg, VM_TypeReference.Int),
+          new OPT_RegisterOperand(rhsReg, VM_TypeReference.Int))));
+      shift32BB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+          new OPT_RegisterOperand(lowlhsReg, VM_TypeReference.Int),
+          new OPT_RegisterOperand(lowrhsReg, VM_TypeReference.Int))));
+    }
+    shift32BB.appendInstruction(CPOS(s, MIR_DoubleShift.create(IA32_SHRD,
+        new OPT_RegisterOperand(lowlhsReg, VM_TypeReference.Int),
+        new OPT_RegisterOperand(lhsReg, VM_TypeReference.Int),
+        new OPT_RegisterOperand(ecx, VM_TypeReference.Int))));
+    shift32BB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_SHR,
+        new OPT_RegisterOperand(lhsReg, VM_TypeReference.Int),
+        new OPT_RegisterOperand(ecx, VM_TypeReference.Int))));
+
+    shift32BB.insertOut(nextBB);
+
+    s.remove();
+    return nextInstr;
+  }
+
+  private static OPT_Instruction long_mul(OPT_Instruction s, OPT_IR ir) {
+    OPT_Instruction nextInstr = s.nextInstructionInCodeOrder();
+    while(Label.conforms(nextInstr)||BBend.conforms(nextInstr)) {
+      nextInstr = s.nextInstructionInCodeOrder();
+    }
+    // we need 4 basic blocks
+    // 1: the current block and a test for 32bit or 64bit multiply
+    // 2: 32bit multiply block
+    // 3: 64bit multiply block
+    // 4: the next basic block
+    OPT_BasicBlock testBB = s.getBasicBlock();
+    OPT_BasicBlock nextBB = testBB.splitNodeAt(s,ir);
+    ir.cfg.linkInCodeOrder(testBB, nextBB);
+    OPT_BasicBlock mul64BB = testBB.splitNodeAt(s,ir);
+    ir.cfg.linkInCodeOrder(testBB, mul64BB);
+    OPT_BasicBlock mul32BB = testBB.splitNodeAt(s,ir);
+    ir.cfg.linkInCodeOrder(testBB, mul32BB);
+    
+    // Source registers
+    OPT_Register lhsReg = Binary.getResult(s).register;
+    OPT_Register lowlhsReg = ir.regpool.getSecondReg(lhsReg);
+    OPT_Register rhsReg1 = Binary.getVal1(s).asRegister().register;
+    OPT_Register lowrhsReg1 = ir.regpool.getSecondReg(rhsReg1);
+    OPT_Register rhsReg2 = Binary.getVal2(s).asRegister().register;
+    OPT_Register lowrhsReg2 = ir.regpool.getSecondReg(rhsReg2);
+
+    // Working registers
+    OPT_Register edx = ir.regpool.getPhysicalRegisterSet().getEDX();
+    OPT_Register eax = ir.regpool.getPhysicalRegisterSet().getEAX();
+    OPT_Register tmp = ir.regpool.getInteger();
+
+    // The general form of the multiply is
+    // (a,b) * (c,d) = (l(a imul d)+l(b imul c)+u(b mul d), l(b mul d))
+
+    // Determine whether we need a 32bit or 64bit multiply
+    // edx, flags = a | c
+    // edx = d
+    // eax = b
+    // if ((a | c) != 0) goto mul64BB
+    testBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+        new OPT_RegisterOperand(edx, VM_TypeReference.Int),
+        new OPT_RegisterOperand(rhsReg2, VM_TypeReference.Int))));
+    testBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+        new OPT_RegisterOperand(tmp, VM_TypeReference.Int),
+        new OPT_RegisterOperand(rhsReg1, VM_TypeReference.Int))));
+    testBB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_OR,
+        new OPT_RegisterOperand(edx, VM_TypeReference.Int),
+        new OPT_RegisterOperand(tmp, VM_TypeReference.Int))));
+    testBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+        new OPT_RegisterOperand(edx, VM_TypeReference.Int),
+        new OPT_RegisterOperand(lowrhsReg1, VM_TypeReference.Int))));            
+    testBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+        new OPT_RegisterOperand(eax, VM_TypeReference.Int),
+        new OPT_RegisterOperand(lowrhsReg2, VM_TypeReference.Int))));            
+    testBB.appendInstruction(CPOS(s, MIR_CondBranch.create(IA32_JCC,
+        OPT_IA32ConditionOperand.NE(),
+        mul64BB.makeJumpTarget(),
+        OPT_BranchProfileOperand.unlikely())));
+    testBB.insertOut(mul64BB);
+    testBB.insertOut(mul32BB);
+
+    // multiply 32: on entry EAX = d, EDX = b, tmp = a 
+    // edx:eax = b * d
+    mul32BB.appendInstruction(CPOS(s, MIR_Multiply.create(IA32_MUL,
+        new OPT_RegisterOperand(edx, VM_TypeReference.Int),
+        new OPT_RegisterOperand(eax, VM_TypeReference.Int),
+        new OPT_RegisterOperand(edx, VM_TypeReference.Int))));
+    mul32BB.appendInstruction(MIR_Branch.create(IA32_JMP, nextBB.makeJumpTarget()));
+    mul32BB.insertOut(nextBB);
+    
+    // multiply 64: on entry EAX = d, EDX = b, tmp = a
+    // edx = b imul c
+    // tmp = a imul d
+    // tmp1 = (a imul d) + (b imul c)
+    // edx:eax = b * d
+    // edx = u(b mul d) + l(a imul d) + l(b imul c)
+    mul64BB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_IMUL2,
+        new OPT_RegisterOperand(edx, VM_TypeReference.Int),
+        new OPT_RegisterOperand(rhsReg2, VM_TypeReference.Int))));
+    mul64BB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_IMUL2,
+        new OPT_RegisterOperand(tmp, VM_TypeReference.Int),
+        new OPT_RegisterOperand(eax, VM_TypeReference.Int))));
+    mul64BB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_ADD,
+        new OPT_RegisterOperand(tmp, VM_TypeReference.Int),
+        new OPT_RegisterOperand(edx, VM_TypeReference.Int))));
+    mul64BB.appendInstruction(CPOS(s, MIR_Multiply.create(IA32_MUL,
+        new OPT_RegisterOperand(edx, VM_TypeReference.Int),
+        new OPT_RegisterOperand(eax, VM_TypeReference.Int),
+        new OPT_RegisterOperand(lowrhsReg1, VM_TypeReference.Int))));
+    mul64BB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_ADD,
+        new OPT_RegisterOperand(edx, VM_TypeReference.Int),
+        new OPT_RegisterOperand(tmp, VM_TypeReference.Int))));
+    mul64BB.insertOut(nextBB);
+
+    // move result from edx:eax to lhsReg:lowlhsReg
+    nextInstr.insertBefore(CPOS(s, MIR_Move.create(IA32_MOV,
+        new OPT_RegisterOperand(lhsReg, VM_TypeReference.Int),
+        new OPT_RegisterOperand(edx, VM_TypeReference.Int))));
+    nextInstr.insertBefore(CPOS(s, MIR_Move.create(IA32_MOV,
+        new OPT_RegisterOperand(lowlhsReg, VM_TypeReference.Int),
+        new OPT_RegisterOperand(eax, VM_TypeReference.Int))));
+    s.remove();
+    return nextInstr;
+  }
+  
   private static OPT_Instruction long_ifcmp(OPT_Instruction s, OPT_IR ir) {
     OPT_Instruction nextInstr = s.nextInstructionInCodeOrder();
     OPT_ConditionOperand cond = IfCmp.getCond(s);
@@ -317,19 +758,19 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
 
       s.remove();
 
-      myBlock.appendInstruction(MIR_Compare.create(IA32_CMP, new OPT_RegisterOperand(xh, VM_TypeReference.Int), yh));
-      myBlock.appendInstruction(MIR_CondBranch2.create(IA32_JCC2,
+      myBlock.appendInstruction(CPOS(s, MIR_Compare.create(IA32_CMP, new OPT_RegisterOperand(xh, VM_TypeReference.Int), yh)));
+      myBlock.appendInstruction(CPOS(s, MIR_CondBranch2.create(IA32_JCC2,
                                                        cond1,
                                                        trueBlock.makeJumpTarget(),
                                                        new OPT_BranchProfileOperand(),
                                                        cond2,
                                                        falseBlock.makeJumpTarget(),
-                                                       new OPT_BranchProfileOperand()));
-      test2Block.appendInstruction(MIR_Compare.create(IA32_CMP, new OPT_RegisterOperand(xl, VM_TypeReference.Int), yl));
-      test2Block.appendInstruction(MIR_CondBranch.create(IA32_JCC,
+                                                       new OPT_BranchProfileOperand())));
+      test2Block.appendInstruction(CPOS(s, MIR_Compare.create(IA32_CMP, new OPT_RegisterOperand(xl, VM_TypeReference.Int), yl)));
+      test2Block.appendInstruction(CPOS(s, MIR_CondBranch.create(IA32_JCC,
                                                          cond3,
                                                          trueBlock.makeJumpTarget(),
-                                                         new OPT_BranchProfileOperand()));
+                                                         new OPT_BranchProfileOperand())));
     }
   }
 
@@ -337,7 +778,7 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
   // we do the rest of the expansion here because in some
   // cases we must remove a trailing goto, and we
   // can't do that in burs!
-  private static OPT_Instruction fp_ifcmp(OPT_Instruction s, OPT_IR ir) {
+  private static OPT_Instruction fp_ifcmp(OPT_Instruction s) {
     OPT_Instruction nextInstr = s.nextInstructionInCodeOrder();
     OPT_BranchOperand testFailed;
     OPT_BasicBlock bb = s.getBasicBlock();
