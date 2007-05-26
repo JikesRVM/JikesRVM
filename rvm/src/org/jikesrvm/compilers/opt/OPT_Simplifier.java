@@ -160,6 +160,7 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_NOT;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_NOT_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_OR_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_REM_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_SHL;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_SHL_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_SHR_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_SUB_opcode;
@@ -181,6 +182,7 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_NEG;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_NOT;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_NOT_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_OR_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_SHL;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_SHL_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_SHR_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_SUB_opcode;
@@ -330,16 +332,16 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         result = longZeroCheck(s);
         break;
       case CHECKCAST_opcode:
-        result = checkcast(regpool, s);
+        result = checkcast(s);
         break;
       case CHECKCAST_UNRESOLVED_opcode:
-        result = checkcast(regpool, s);
+        result = checkcast(s);
         break;
       case CHECKCAST_NOTNULL_opcode:
         result = checkcastNotNull(s);
         break;
       case INSTANCEOF_opcode:
-        result = instanceOf(regpool, s);
+        result = instanceOf(s);
         break;
       case INSTANCEOF_NOTNULL_opcode:
         result = instanceOfNotNull(s);
@@ -471,7 +473,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         result = longDiv(s);
         break;
       case LONG_MUL_opcode:
-        result = longMul(s);
+        result = longMul(regpool, s);
         break;
       case LONG_NEG_opcode:
         result = longNeg(s);
@@ -794,8 +796,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
     }
     return DefUseEffect.UNCHANGED;
   }
-
-  private static DefUseEffect checkcast(OPT_AbstractRegisterPool regpool, OPT_Instruction s) {
+  private static DefUseEffect checkcast(OPT_Instruction s) {
     OPT_Operand ref = TypeCheck.getRef(s);
     if (ref.isNullConstant()) {
       Empty.mutate(s, NOP);
@@ -838,8 +839,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       return DefUseEffect.UNCHANGED;
     }
   }
-
-  private static DefUseEffect instanceOf(OPT_AbstractRegisterPool regpool, OPT_Instruction s) {
+  private static DefUseEffect instanceOf(OPT_Instruction s) {
     OPT_Operand ref = InstanceOf.getRef(s);
     if (ref.isNullConstant()) {
       Move.mutate(s, INT_MOVE, InstanceOf.getClearResult(s), IC(0));
@@ -1337,6 +1337,14 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
             return DefUseEffect.MOVE_REDUCED;
           }
         }
+      } else {
+        OPT_Operand op1 = Binary.getVal1(s);
+        if (op1.similar(op2)) {
+          // Adding something to itself is the same as a multiply by 2 so
+          // canonicalize as a shift left
+          Binary.mutate(s, INT_SHL, Binary.getClearResult(s), op1, IC(1));
+          return DefUseEffect.UNCHANGED;
+        }
       }
     }
     return DefUseEffect.UNCHANGED;
@@ -1461,21 +1469,21 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
               OPT_Instruction move;
               if ((val2 & 1) == 1) {
                 // result = val1 * 1
-                move = Move.create(INT_MOVE, resultOperand, val1Operand);
+                move = CPOS(s, Move.create(INT_MOVE, resultOperand, val1Operand));
               } else {
                 // result = 0
-                move = Move.create(INT_MOVE, resultOperand, IC(0));
+                move = CPOS(s, Move.create(INT_MOVE, resultOperand, IC(0)));
               }
               move.copyPosition(s);
               s.insertBefore(move);
               for (int i = 1; i < BITS_IN_INT; i++) {
                 if ((val2 & (1 << i)) != 0) {
                   OPT_RegisterOperand tempInt = regpool.makeTempInt();
-                  OPT_Instruction shift = Binary.create(INT_SHL, tempInt, val1Operand.copyRO(), IC(i));
+                  OPT_Instruction shift = CPOS(s, Binary.create(INT_SHL, tempInt, val1Operand.copyRO(), IC(i)));
                   shift.copyPosition(s);
                   s.insertBefore(shift);
                   OPT_Instruction add =
-                      Binary.create(INT_ADD, resultOperand.copyRO(), resultOperand.copyRO(), tempInt.copyRO());
+                      CPOS(s, Binary.create(INT_ADD, resultOperand.copyRO(), resultOperand.copyRO(), tempInt.copyRO()));
                   add.copyPosition(s);
                   s.insertBefore(add);
                 }
@@ -1676,7 +1684,9 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
             return DefUseEffect.MOVE_REDUCED;
           }
           // x - c = x + -c
-          // prefer adds, since some architectures have addi but not subi
+          // prefer adds, since some architectures have addi but not subi, also
+          // add is commutative and gives greater flexibility to LIR/MIR phases
+          // without possibly introducing temporary variables
           Binary.mutate(s, INT_ADD, Binary.getClearResult(s), Binary.getClearVal1(s), IC(-val2));
           return DefUseEffect.REDUCED;
         }
@@ -1779,6 +1789,14 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
               return op1.isConstant() ? DefUseEffect.MOVE_FOLDED : DefUseEffect.MOVE_REDUCED;
             }
           }
+        }
+      } else {
+        OPT_Operand op1 = Binary.getVal1(s);
+        if (op1.similar(op2)) {
+          // Adding something to itself is the same as a multiply by 2 so
+          // canonicalize as a shift left
+          Binary.mutate(s, REF_SHL, Binary.getClearResult(s), op1, IC(1));
+          return DefUseEffect.UNCHANGED;
         }
       }
     }
@@ -2066,6 +2084,14 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
             return DefUseEffect.MOVE_REDUCED;
           }
         }
+      } else {
+        OPT_Operand op1 = Binary.getVal1(s);
+        if (op1.similar(op2)) {
+          // Adding something to itself is the same as a multiply by 2 so
+          // canonicalize as a shift left
+          Binary.mutate(s, LONG_SHL, Binary.getClearResult(s), op1, IC(1));
+          return DefUseEffect.UNCHANGED;
+        }
       }
     }
     return DefUseEffect.UNCHANGED;
@@ -2162,8 +2188,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
     }
     return DefUseEffect.UNCHANGED;
   }
-
-  private static DefUseEffect longMul(OPT_Instruction s) {
+  private static DefUseEffect longMul(OPT_AbstractRegisterPool regpool, OPT_Instruction s) {
     if (CF_LONG) {
       canonicalizeCommutativeOperator(s);
       OPT_Operand op2 = Binary.getVal2(s);
@@ -2188,6 +2213,54 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
           if (val2 == 1L) {                 // x * 1L == x
             Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
+          }
+          // try to reduce x*c into shift and adds, but only if cost is cheap
+          if (s.getPrev() != null) {
+            // don't attempt to reduce if this instruction isn't
+            // part of a well-formed sequence
+            int cost = 0;
+            for(int i=1; i < BITS_IN_LONG; i++) {
+              if((val2 & (1L << i)) != 0) {
+                // each 1 requires a shift and add
+                cost++;
+              }
+            }
+            if ((VM.BuildFor64Addr && (cost < 5)) || (cost < 3)) {
+              // generate shift and adds
+              OPT_RegisterOperand val1Operand = Binary.getClearVal1(s).asRegister();
+              OPT_RegisterOperand resultOperand = regpool.makeTempLong();
+              OPT_Instruction move;
+              if ((val2 & 1) == 1) {
+                // result = val1 * 1
+                move = CPOS(s, Move.create(LONG_MOVE, resultOperand, val1Operand));
+              } else {
+                // result = 0
+                move = CPOS(s, Move.create(LONG_MOVE, resultOperand, LC(0)));
+              }
+              move.copyPosition(s);
+              s.insertBefore(move);
+              for(int i=1; i < BITS_IN_LONG; i++) {
+                if((val2 & (1L << i)) != 0) {
+                  OPT_RegisterOperand tempLong = regpool.makeTempLong();
+                  OPT_Instruction shift = CPOS(s, Binary.create(LONG_SHL,
+                                                        tempLong,
+                                                        val1Operand.copyRO(),
+                                                        IC(i)
+                                                        ));
+                  shift.copyPosition(s);
+                  s.insertBefore(shift);
+                  OPT_Instruction add = CPOS(s, Binary.create(LONG_ADD,
+                                                      resultOperand.copyRO(),
+                                                      resultOperand.copyRO(),
+                                                      tempLong.copyRO()
+                                                      ));
+                  add.copyPosition(s);
+                  s.insertBefore(add);
+                }
+              }
+              Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), resultOperand.copyRO());
+              return DefUseEffect.REDUCED;
+            }
           }
         }
       }
@@ -2380,12 +2453,13 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
             Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), Binary.getClearVal1(s));
             return DefUseEffect.MOVE_REDUCED;
           }
-          if (VM.BuildFor64Addr) {
-            // x - c = x + -c
-            // prefer adds, since some architectures have addi but not subi
-            Binary.mutate(s, LONG_ADD, Binary.getClearResult(s), Binary.getClearVal1(s), LC(-val2));
-            return DefUseEffect.REDUCED;
-          }
+          // x - c = x + -c
+          // prefer adds, since some architectures have addi but not subi, also
+          // add is commutative and gives greater flexibility to LIR/MIR phases
+          // without possibly introducing temporary variables
+          Binary.mutate(s, LONG_ADD, Binary.getClearResult(s),
+              Binary.getClearVal1(s), LC(-val2));
+          return DefUseEffect.REDUCED;
         }
       } else if (op1.isLongConstant() && (op1.asLongConstant().value == 0)) {
         Unary.mutate(s, LONG_NEG, Binary.getClearResult(s), Binary.getClearVal2(s));
