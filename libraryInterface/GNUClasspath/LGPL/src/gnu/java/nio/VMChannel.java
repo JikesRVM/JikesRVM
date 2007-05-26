@@ -1,15 +1,39 @@
-/*
- *  This file is part of the Jikes RVM project (http://jikesrvm.org).
- *
- *  This file is licensed to You under the Common Public License (CPL);
- *  You may not use this file except in compliance with the License. You
- *  may obtain a copy of the License at
- *
- *      http://www.opensource.org/licenses/cpl1.0.php
- *
- *  See the COPYRIGHT.txt file distributed with this work for information
- *  regarding copyright ownership.
- */
+/* VMChannel.java -- Native interface suppling channel operations.
+   Copyright (C) 2006 Free Software Foundation, Inc.
+
+The original of this file is part of GNU Classpath.
+
+GNU Classpath is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2, or (at your option)
+any later version.
+
+GNU Classpath is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Classpath; see the file COPYING.  If not, write to the
+Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+02110-1301 USA.
+
+Linking this library statically or dynamically with other modules is
+making a combined work based on this library.  Thus, the terms and
+conditions of the GNU General Public License cover the whole
+combination.
+
+As a special exception, the copyright holders of this library give you
+permission to link this library with independent modules to produce an
+executable, regardless of the license terms of these independent
+modules, and to copy and distribute the resulting executable under
+terms of your choice, provided that you also meet, for each linked
+independent module, the terms and conditions of the license of that
+module.  An independent module is a module which is not derived from
+or based on this library.  If you modify this library, you may extend
+this exception to your version of the library, but you are not
+obligated to do so.  If you do not wish to do so, delete this
+exception statement from your version. */
 package gnu.java.nio;
 
 import gnu.classpath.Configuration;
@@ -31,14 +55,14 @@ import org.jikesrvm.runtime.VM_FileSystem;
 /**
  * Native interface to support configuring of channel to run in a non-blocking
  * manner and support scatter/gather io operations.
- * 
+ *
  * JikesRVM-specific implementation by Robin Garner.
  */
 public final class VMChannel
 {
   /**
    * Our reference implementation uses an integer to store the native
-   * file descriptor. 
+   * file descriptor.
    */
   private final State nfd;
 
@@ -55,10 +79,10 @@ public final class VMChannel
   /**
    * This constructor is used by the POSIX reference implementation;
    * other virtual machines need not support it.
-   * 
+   *
    * <strong>Important:</strong> do not call this in library code that is
    * not specific to Classpath's reference implementation.
-   * 
+   *
    * @param native_fd The native file descriptor integer.
    * @throws IOException
    */
@@ -76,18 +100,18 @@ public final class VMChannel
   /**
    * Don't do fast I/O for the standard file descriptors - these are used
    * for throwing exceptions, so may not be able to allocate.
-   * 
+   *
    * Cache the max of the IDs to avoid gratuitous native calls.
    */
   private static int MAX_STANDARD_FD;
-  
+
   private static int max(int[] values) {
     int result = values[0];
     for (int i : values)
       if (i > result) result = i;
     return result;
   }
-  
+
   static
   {
     // load the shared library needed for native methods.
@@ -117,12 +141,12 @@ public final class VMChannel
   private static native int stdin_fd();
   private static native int stdout_fd();
   private static native int stderr_fd();
-  
+
 
   /**
    * Set the file descriptor to have the required blocking
    * setting.
-   * 
+   *
    * @param blocking The blocking flag to set.
    */
   public void setBlocking(boolean blocking) throws IOException
@@ -176,7 +200,7 @@ public final class VMChannel
 
   /**
    * Read the specified byte buffer.
-   * 
+   *
    * @param dst
    * @return
    * @throws IOException
@@ -188,10 +212,10 @@ public final class VMChannel
   /**
    * Read a byte buffer, given a starting position and length.
    * Looks at the type of buffer and decides which is the fastest way
-   * to perform the write.  If the buffer is backed by a byte array, use 
+   * to perform the write.  If the buffer is backed by a byte array, use
    * the internal method, otherwise push it out to classpath's native function
    * (the slow way).
-   * 
+   *
    * @param dst
    * @param pos
    * @param len
@@ -220,21 +244,21 @@ public final class VMChannel
 
   /**
    * Reads a byte array directly.  Performs optimal buffering.
-   * 
+   *
    * If the target buffer is pinned, use it directly.  Otherwise
    * allocate one of the thread-local buffers, perform the IO to
    * that, and copy the result to the target array.
-   * 
+   *
    * @param dst Byte array to read to
    * @return Number of bytes read.
-   * @throws IOException If an error occurs or dst is not a direct buffers. 
+   * @throws IOException If an error occurs or dst is not a direct buffers.
    */
   private int read(byte[] dst, int pos, int len) throws IOException {
     if (MM_Interface.objectCanMove(dst)) {
       byte[] buffer;
       // Rebuffer the IO in a thread-local byte array
       buffer = localByteArray.get(len);
-      
+
       /* perform the read */
       int bytes = read(nfd.getNativeFD(),buffer,0,len);
       if (bytes > 0)
@@ -247,7 +271,7 @@ public final class VMChannel
 
   /**
    * Use JikesRVM's internal read function - the fast way.
-   * 
+   *
    * @param fd File descriptor
    * @param dst Destination buffer
    * @param position Starting offset in the buffer
@@ -267,14 +291,14 @@ public final class VMChannel
 
   /**
    * Classpath's native read method.  Slow, due to the amount of JNI processing.
-   * 
+   *
    * @param fd
    * @param dst
    * @return
    * @throws IOException
    */
   private static native int read(int fd, ByteBuffer dst) throws IOException;
-  
+
   /**
    * Read a single byte.
    *
@@ -292,12 +316,12 @@ public final class VMChannel
    * Reads into byte buffers directly using the supplied file descriptor.
    * Assumes that the buffer list contains DirectBuffers.  Will perform a
    * scattering read.
-   * 
+   *
    * @param dsts An array direct byte buffers.
    * @param offset Index of the first buffer to read to.
    * @param length The number of buffers to read to.
    * @return Number of bytes read.
-   * @throws IOException If an error occurs or the dsts are not direct buffers. 
+   * @throws IOException If an error occurs or the dsts are not direct buffers.
    */
   public long readScattering(ByteBuffer[] dsts, int offset, int length)
   throws IOException
@@ -320,7 +344,7 @@ public final class VMChannel
    * @return The host address that sent the datagram.
    * @throws IOException
    */
-  public SocketAddress receive(ByteBuffer dst) throws IOException 
+  public SocketAddress receive(ByteBuffer dst) throws IOException
   {
     if (kind != Kind.SOCK_DGRAM)
       throw new SocketException("not a datagram socket");
@@ -360,7 +384,7 @@ public final class VMChannel
   /**
    * Writes from a direct byte bufer using the supplied file descriptor.
    * Assumes the buffer is a DirectBuffer.
-   * 
+   *
    * @param src The source buffer.
    * @return Number of bytes written.
    * @throws IOException
@@ -407,7 +431,7 @@ public final class VMChannel
 
   /**
    * Use JikesRVM's internal read function - the fast way.
-   * 
+   *
    * @param fd File descriptor
    * @param src SOurce buffer
    * @param position Starting offset in the buffer
@@ -424,7 +448,7 @@ public final class VMChannel
 
   /**
    * Classpath's native write method.  Slow, due to the amount of JNI processing.
-   * 
+   *
    * @param fd
    * @param src
    * @return
@@ -436,7 +460,7 @@ public final class VMChannel
    * Writes from byte buffers directly using the supplied file descriptor.
    * Assumes the that buffer list constains DirectBuffers.  Will perform
    * as gathering write.
-   * 
+   *
    * @param fd
    * @param srcs
    * @param offset
@@ -699,9 +723,9 @@ public final class VMChannel
   /**
    * Open a file at PATH, initializing the native state to operate on
    * that open file.
-   * 
+   *
    * @param path The absolute file path.
-   * @throws IOException If the file cannot be opened, or if this 
+   * @throws IOException If the file cannot be opened, or if this
    *  channel was previously initialized.
    */
   public void openFile(String path, int mode) throws IOException
@@ -812,7 +836,7 @@ public final class VMChannel
   /**
    * <p>Provides a simple mean for the JNI code to find out whether the
    * current thread was interrupted by a call to Thread.interrupt().</p>
-   * 
+   *
    * @return
    */
   static boolean isThreadInterrupted()
@@ -824,12 +848,12 @@ public final class VMChannel
 
   /**
    * A wrapper for a native file descriptor integer. This tracks the state
-   * of an open file descriptor, and ensures that 
-   * 
+   * of an open file descriptor, and ensures that
+   *
    * This class need not be fully supported by virtual machines; if a
    * virtual machine does not use integer file descriptors, or does and
    * wishes to hide that, then the methods of this class may be stubbed out.
-   * 
+   *
    * System-specific classes that depend on access to native file descriptor
    * integers SHOULD declare this fact.
    */
