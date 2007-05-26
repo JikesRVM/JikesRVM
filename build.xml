@@ -515,10 +515,14 @@ Check to make sure all required properties are specified. This includes properti
       <filelist dir="${build.burs.dir}/ppc" files="PPC_Common.rules,PPC_Alu64.rules,PPC_Mem64.rules"/>
     </concat>
 
+    <concat destfile="${generated.dir}/IA32_RulesList.dat">
+      <filelist dir="${build.burs.dir}/ia32" files="IA32.rules,IA32_x87.rules"/>
+    </concat>
+
     <generate-ir arch="ia32"
                  addressSize="32"
                  operatorList="${build.ir.dir}/ia32/OperatorList.dat"
-                 rulesList="${build.burs.dir}/ia32/IA32.rules"/>
+                 rulesList="${generated.dir}/IA32_RulesList.dat"/>
     <generate-ir arch="ppc"
                  addressSize="32"
                  operatorList="${generated.dir}/PPC-32bit_OperatorList.dat"
