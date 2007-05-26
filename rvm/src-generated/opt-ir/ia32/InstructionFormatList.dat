@@ -21,18 +21,6 @@ SIG
 #                                use PLURAL if NAME"s" is not plural for NAME
 VARSIG
 
-# Accumulating Binary: result = result op value
-BinaryAcc
-0 1 1
-"DU Result OPT_RegisterOperand" "U Value OPT_Operand"
-
-
-# Accumulating Unary: result = op result
-UnaryAcc
-0 1 0
-"DU Result OPT_RegisterOperand"
-
-
 # backend support for tableswitch
 MIR_LowTableSwitch
 0 1 0 2 U -1

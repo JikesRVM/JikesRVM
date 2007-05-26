@@ -18,7 +18,6 @@ import org.jikesrvm.compilers.opt.OPT_DefUse;
 import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.OPT_Simplifier;
 import org.jikesrvm.compilers.opt.ir.Binary;
-import org.jikesrvm.compilers.opt.ir.BinaryAcc;
 import org.jikesrvm.compilers.opt.ir.CondMove;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.OPT_IR;
@@ -32,7 +31,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Operators;
 import org.jikesrvm.compilers.opt.ir.OPT_Register;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.Unary;
-import org.jikesrvm.compilers.opt.ir.UnaryAcc;
 import org.vmmagic.pragma.NoOptCompile;
 
 /**
@@ -102,6 +100,7 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase implements OPT_Op
 
   private static final boolean OPTIMIZE = true;
 
+  @Override
   public final String getName() { return "ConvertALUOps"; }
 
   /**
@@ -110,10 +109,12 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase implements OPT_Op
    * @param ir not used
    * @return this
    */
+  @Override
   public OPT_CompilerPhase newExecution(OPT_IR ir) {
     return this;
   }
 
+  @Override
   public final void perform(OPT_IR ir) {
     // Calling OPT_Simplifier.simplify ensures that the instruction is
     // in normalized form. This reduces the number of cases we have to
@@ -140,108 +141,47 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase implements OPT_Op
     // Reverse pass over instructions supports simple live analysis.
     for (OPT_Instruction next, s = ir.lastInstructionInCodeOrder(); s != null; s = next) {
       next = s.prevInstructionInCodeOrder();
+      
+      switch(s.getOpcode()) {
+      case BOOLEAN_NOT_opcode: break;
+      case REF_NOT_opcode: s.operator = INT_NOT; break;
+      case INT_NOT_opcode: break;
+      case LONG_NOT_opcode: break;
 
-      switch (s.getOpcode()) {
-        case BOOLEAN_NOT_opcode:
-          unary(s, BOOLEAN_NOT_ACC, ir);
-          break;
+      case REF_ADD_opcode: s.operator = INT_ADD; break;
+      case INT_ADD_opcode: break;
+      case REF_SUB_opcode: s.operator = INT_SUB; break;
+      case INT_SUB_opcode: break;
+      case REF_NEG_opcode: s.operator = INT_NEG; break;
+      case INT_NEG_opcode: break;
+      case LONG_NEG_opcode: break;
+      case REF_AND_opcode: s.operator = INT_AND; break;
+      case INT_AND_opcode: break;
+      case REF_OR_opcode: s.operator = INT_OR; break;
+      case INT_OR_opcode: break;
+      case REF_XOR_opcode: s.operator = INT_XOR; break;
+      case INT_XOR_opcode: break;
+      case LONG_AND_opcode: break;
+      case LONG_OR_opcode: break;
+      case LONG_XOR_opcode: break;
 
-        case REF_ADD_opcode:
-          commutative(s, INT_ADD_ACC, ir);
-          break;
-        case INT_ADD_opcode:
-          commutative(s, INT_ADD_ACC, ir);
-          break;
-        case REF_SUB_opcode:
-          noncommutative(s, INT_SUB_ACC, ir);
-          break;
-        case INT_SUB_opcode:
-          noncommutative(s, INT_SUB_ACC, ir);
-          break;
-        case INT_MUL_opcode:
-          commutative(s, INT_MUL_ACC, ir);
-          break;
-        case REF_SHL_opcode:
-          noncommutative(s, INT_SHL_ACC, ir);
-          break;
-        case INT_SHL_opcode:
-          noncommutative(s, INT_SHL_ACC, ir);
-          break;
-        case REF_SHR_opcode:
-          noncommutative(s, INT_SHR_ACC, ir);
-          break;
-        case INT_SHR_opcode:
-          noncommutative(s, INT_SHR_ACC, ir);
-          break;
-        case REF_USHR_opcode:
-          noncommutative(s, INT_USHR_ACC, ir);
-          break;
-        case INT_USHR_opcode:
-          noncommutative(s, INT_USHR_ACC, ir);
-          break;
-        case REF_AND_opcode:
-          commutative(s, INT_AND_ACC, ir);
-          break;
-        case INT_AND_opcode:
-          commutative(s, INT_AND_ACC, ir);
-          break;
-        case REF_OR_opcode:
-          commutative(s, INT_OR_ACC, ir);
-          break;
-        case INT_OR_opcode:
-          commutative(s, INT_OR_ACC, ir);
-          break;
-        case REF_XOR_opcode:
-          commutative(s, INT_XOR_ACC, ir);
-          break;
-        case INT_XOR_opcode:
-          commutative(s, INT_XOR_ACC, ir);
-          break;
-        case INT_NEG_opcode:
-          unary(s, INT_NEG_ACC, ir);
-          break;
-        case REF_NEG_opcode:
-          unary(s, INT_NEG_ACC, ir);
-          break;
-        case REF_NOT_opcode:
-          unary(s, INT_NOT_ACC, ir);
-          break;
-        case INT_NOT_opcode:
-          unary(s, INT_NOT_ACC, ir);
-          break;
+
+      case REF_SHL_opcode: s.operator = INT_SHL; break;
+      case INT_SHL_opcode: break;
+      case REF_SHR_opcode: s.operator = INT_SHR; break;
+      case INT_SHR_opcode: break;
+      case REF_USHR_opcode: s.operator = INT_USHR; break;
+      case INT_USHR_opcode: break;
+
+      case LONG_SHL_opcode: break;
+      case LONG_SHR_opcode: break;
+      case LONG_USHR_opcode: break;
 
         case LONG_ADD_opcode:
-          commutative(s, LONG_ADD_ACC, ir);
           break;
         case LONG_SUB_opcode:
-          noncommutative(s, LONG_SUB_ACC, ir);
           break;
         case LONG_MUL_opcode:
-          commutative(s, LONG_MUL_ACC, ir);
-          break;
-        case LONG_SHL_opcode:
-          noncommutative(s, LONG_SHL_ACC, ir);
-          break;
-        case LONG_SHR_opcode:
-          noncommutative(s, LONG_SHR_ACC, ir);
-          break;
-        case LONG_USHR_opcode:
-          noncommutative(s, LONG_USHR_ACC, ir);
-          break;
-        case LONG_AND_opcode:
-          commutative(s, LONG_AND_ACC, ir);
-          break;
-        case LONG_OR_opcode:
-          commutative(s, LONG_OR_ACC, ir);
-          break;
-        case LONG_XOR_opcode:
-          commutative(s, LONG_XOR_ACC, ir);
-          break;
-        case LONG_NEG_opcode:
-          unary(s, LONG_NEG_ACC, ir);
-          break;
-        case LONG_NOT_opcode:
-          unary(s, LONG_NOT_ACC, ir);
           break;
 
           // BURS doesn't really care, so consolidate to reduce rule space
@@ -376,226 +316,6 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase implements OPT_Op
     }
   }
 
-  private void commutative(OPT_Instruction s, OPT_Operator opCode, OPT_IR ir) {
-    OPT_RegisterOperand result = Binary.getClearResult(s);
-    OPT_Operand op1 = Binary.getClearVal1(s);
-    OPT_Operand op2 = Binary.getClearVal2(s);
-
-    // Handle the easy cases of avoiding useless moves.
-    if (result.similar(op1)) {
-      OPT_DefUse.removeUse(op1.asRegister());
-      OPT_DefUse.removeDef(result);
-      OPT_DefUse.recordDefUse(result);
-      BinaryAcc.mutate(s, opCode, result, op2);
-      return;
-    }
-    if (result.similar(op2)) {
-      OPT_DefUse.removeUse(op2.asRegister());
-      OPT_DefUse.removeDef(result);
-      OPT_DefUse.recordDefUse(result);
-      BinaryAcc.mutate(s, opCode, result, op1);
-      return;
-    }
-
-    // attempt to detect additional cases using simple liveness and DU info
-    if (OPTIMIZE) {
-      if (op1.isRegister()) {
-        OPT_RegisterOperand rop1 = op1.asRegister();
-        if (!rop1.register.spansBasicBlock() && isDead(rop1.register)) {
-          if (result.register.isSSA() && !result.register.spansBasicBlock() && rop1.register.isSSA()) {
-            OPT_DefUse.removeDef(result);
-            OPT_DefUse.removeUse(rop1);
-            OPT_DefUse.recordDefUse(rop1);
-            OPT_DefUse.mergeRegisters(ir, rop1.register, result.register);
-            rop1.register.putSSA(false);
-            BinaryAcc.mutate(s, opCode, rop1, op2);
-            return;
-          } else {
-            OPT_DefUse.removeDef(result);
-            OPT_DefUse.removeUse(rop1);
-            OPT_DefUse.recordDefUse(rop1);
-            BinaryAcc.mutate(s, opCode, rop1, op2);
-            OPT_Instruction move = Move.create(getMoveOp(result.type), result, rop1.copy());
-            OPT_DefUse.updateDUForNewInstruction(move);
-            s.insertAfter(move);
-            return;
-          }
-        }
-      }
-      if (op2.isRegister()) {
-        OPT_RegisterOperand rop2 = op2.asRegister();
-        if (!rop2.register.spansBasicBlock() && isDead(rop2.register)) {
-          if (result.register.isSSA() && !result.register.spansBasicBlock() && rop2.register.isSSA()) {
-            OPT_DefUse.removeUse(rop2);
-            OPT_DefUse.removeDef(result);
-            OPT_DefUse.recordDefUse(rop2);
-            OPT_DefUse.mergeRegisters(ir, rop2.register, result.register);
-            rop2.register.putSSA(false);
-            BinaryAcc.mutate(s, opCode, rop2, op1);
-            return;
-          } else {
-            OPT_DefUse.removeDef(result);
-            OPT_DefUse.removeUse(rop2);
-            OPT_DefUse.recordDefUse(rop2);
-            BinaryAcc.mutate(s, opCode, rop2, op1);
-            OPT_Instruction move = Move.create(getMoveOp(result.type), result, rop2.copy());
-            OPT_DefUse.updateDUForNewInstruction(move);
-            s.insertAfter(move);
-            return;
-          }
-        }
-      }
-    }
-
-    // Sigh, need some kind of move instruction
-    OPT_Instruction move = Move.create(getMoveOp(result.type), result.copyRO(), op1.copy());
-    OPT_DefUse.updateDUForNewInstruction(move);
-    s.insertBefore(move);
-    OPT_DefUse.removeDef(result);
-    OPT_DefUse.recordDefUse(result);
-    if (op1.isRegister()) {
-      OPT_DefUse.removeUse(op1.asRegister());
-    }
-    BinaryAcc.mutate(s, opCode, result, op2);
-  }
-
-  private void noncommutative(OPT_Instruction s, OPT_Operator opCode, OPT_IR ir) {
-    OPT_RegisterOperand result = Binary.getClearResult(s);
-    OPT_Operand op1 = Binary.getClearVal1(s);
-    OPT_Operand op2 = Binary.getClearVal2(s);
-
-    // Handle the easy cases of avoiding useless moves.
-    if (result.similar(op1)) {
-      OPT_DefUse.removeUse(op1.asRegister());
-      OPT_DefUse.removeDef(result);
-      OPT_DefUse.recordDefUse(result);
-      BinaryAcc.mutate(s, opCode, result, op2);
-      return;
-    }
-
-    // attempt to detect additional cases using simple liveness and DU info
-    if (OPTIMIZE) {
-      if (op1.isRegister()) {
-        OPT_RegisterOperand rop1 = op1.asRegister();
-        if (!rop1.register.spansBasicBlock() && isDead(rop1.register)) {
-          if (result.register.isSSA() && !result.register.spansBasicBlock() && rop1.register.isSSA()) {
-            OPT_DefUse.removeUse(rop1);
-            OPT_DefUse.removeDef(result);
-            OPT_DefUse.recordDefUse(rop1);
-            OPT_DefUse.mergeRegisters(ir, rop1.register, result.register);
-            rop1.register.putSSA(false);
-            BinaryAcc.mutate(s, opCode, rop1, op2);
-            return;
-          } else {
-            OPT_DefUse.removeDef(result);
-            OPT_DefUse.removeUse(rop1);
-            OPT_DefUse.recordDefUse(rop1);
-            BinaryAcc.mutate(s, opCode, rop1, op2);
-            OPT_Instruction move = Move.create(getMoveOp(result.type), result, rop1.copy());
-            OPT_DefUse.updateDUForNewInstruction(move);
-            s.insertAfter(move);
-            return;
-          }
-        }
-      }
-    }
-
-    // Sigh need some move instructions after all.
-    if (result.similar(op2)) {
-      similarNonCommutative(s, opCode, ir, result, op1, op2);
-    } else {
-      OPT_Instruction move = Move.create(getMoveOp(result.type), result.copyRO(), op1.copy());
-      OPT_DefUse.updateDUForNewInstruction(move);
-      s.insertBefore(move);
-      OPT_DefUse.removeDef(result);
-      OPT_DefUse.recordDefUse(result);
-      if (op1.isRegister()) {
-        OPT_DefUse.removeUse(op1.asRegister());
-      }
-      BinaryAcc.mutate(s, opCode, result, op2);
-    }
-  }
-
-  @NoOptCompile
-  // this code is pulled out and baseline compiled to work around a bug (see bug track 1626523)
-  private void similarNonCommutative(OPT_Instruction s, OPT_Operator opCode, OPT_IR ir, OPT_RegisterOperand result,
-                                     OPT_Operand op1, OPT_Operand op2) {
-    OPT_RegisterOperand tmp = ir.regpool.makeTemp(op1);
-    OPT_Instruction move = Move.create(getMoveOp(tmp.type), tmp.copyRO(), op1.copy());
-    s.insertBefore(move);
-    OPT_DefUse.updateDUForNewInstruction(move);
-    OPT_DefUse.removeDef(result);
-    OPT_DefUse.recordDefUse(tmp);
-    if (op1.isRegister()) {
-      OPT_DefUse.removeUse(op1.asRegister());
-    }
-    BinaryAcc.mutate(s, opCode, tmp, op2);
-    move = Move.create(getMoveOp(tmp.type), result.copyRO(), tmp.copyRO());
-    s.insertAfter(move);
-    OPT_DefUse.updateDUForNewInstruction(move);
-  }
-
-  private void unary(OPT_Instruction s, OPT_Operator opCode, OPT_IR ir) {
-    OPT_RegisterOperand result = Unary.getClearResult(s);
-    OPT_Operand op1 = Unary.getClearVal(s);
-
-    // Handle the easy cases of avoiding useless moves.
-    if (result.similar(op1)) {
-      OPT_DefUse.removeUse(op1.asRegister());
-      OPT_DefUse.removeDef(result);
-      OPT_DefUse.recordDefUse(result);
-      UnaryAcc.mutate(s, opCode, result);
-      return;
-    }
-
-    // attempt to detect additional cases using simple liveness and DU info
-    if (OPTIMIZE) {
-      if (op1.isRegister()) {
-        OPT_RegisterOperand rop1 = op1.asRegister();
-        if (!rop1.register.spansBasicBlock() && isDead(rop1.register)) {
-          if (result.register.isSSA() && !result.register.spansBasicBlock() && rop1.register.isSSA()) {
-            OPT_DefUse.removeUse(rop1);
-            OPT_DefUse.removeDef(result);
-            OPT_DefUse.recordDefUse(rop1);
-            OPT_DefUse.mergeRegisters(ir, rop1.register, result.register);
-            rop1.register.putSSA(false);
-            UnaryAcc.mutate(s, opCode, rop1);
-            return;
-          } else {
-            OPT_DefUse.removeDef(result);
-            OPT_DefUse.removeUse(rop1);
-            OPT_DefUse.recordDefUse(rop1);
-            UnaryAcc.mutate(s, opCode, rop1);
-            OPT_Instruction move = Move.create(getMoveOp(result.type), result, rop1.copy());
-            OPT_DefUse.updateDUForNewInstruction(move);
-            s.insertAfter(move);
-            return;
-          }
-        }
-      }
-    }
-
-    // Sigh, need the move instruction before op.
-    OPT_Instruction move = Move.create(getMoveOp(result.type), result.copyRO(), op1.copy());
-    OPT_DefUse.updateDUForNewInstruction(move);
-    s.insertBefore(move);
-    OPT_DefUse.removeDef(result);
-    OPT_DefUse.recordDefUse(result);
-    if (op1.isRegister()) {
-      OPT_DefUse.removeUse(op1.asRegister());
-    }
-    UnaryAcc.mutate(s, opCode, result);
-  }
-
-  private static OPT_Operator getMoveOp(VM_TypeReference t) {
-    OPT_Operator op = OPT_IRTools.getMoveOp(t);
-    if (op == REF_MOVE) {
-      return INT_MOVE;
-    } else {
-      return op;
-    }
-  }
-
   // Use the scratch field of the register to record
   // dead/live for local live analysis.
   private static void markDead(OPT_Register r) {
@@ -604,10 +324,6 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase implements OPT_Op
 
   private static void markLive(OPT_Register r) {
     r.scratch = 1;
-  }
-
-  private static boolean isDead(OPT_Register r) {
-    return r.scratch == 0;
   }
 
   @SuppressWarnings("unused")
