@@ -616,12 +616,10 @@ public abstract class VM_Type extends VM_AnnotatedElement
 
   /**
    * Get the offset in instances of this type assigned to the thin lock word.
-   * -1 if instances of this type do not have thin lock words.
+   * Offset.max() if instances of this type do not have thin lock words.
    */
   @Uninterruptible
   public abstract Offset getThinLockOffset();
-
-  public abstract void setThinLockOffset(Offset offset);
 
   /**
    * @return whether or not this is an instance of VM_Class?

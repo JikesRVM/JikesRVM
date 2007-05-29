@@ -241,21 +241,14 @@ public final class VM_Primitive extends VM_Type implements VM_Constants, VM_Clas
 
   /**
    * Get the offset in instances of this type assigned to the thin
-   * lock word.  -1 if instances of this type do not have thin lock
+   * lock word.  Offset.max() if instances of this type do not have thin lock
    * words.
-   * @return -1
+   * @return Offset.max();
    */
   @Uninterruptible
   public Offset getThinLockOffset() {
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
-    return Offset.fromIntSignExtend(-1);
-  }
-
-  /**
-   * Set the thin lock offset for instances of this type
-   */
-  public void setThinLockOffset(Offset offset) {
-    if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
+    return Offset.max();
   }
 
   /**

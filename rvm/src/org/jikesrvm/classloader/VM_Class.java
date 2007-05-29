@@ -1468,7 +1468,8 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
     if (isInterface()) {
       if (VM.VerifyAssertions) VM._assert(superClass == null);
       depth = 1;
-    } else if (superClass == null) {
+	  thinLockOffset = Offset.max();
+	} else if (superClass == null) {
       if (VM.VerifyAssertions) VM._assert(isJavaLangObjectType());
       instanceSize = VM_ObjectModel.computeScalarHeaderSize(this);
       alignment = BYTES_IN_ADDRESS;
@@ -2314,18 +2315,23 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
 
   /**
    * Get the offset in instances of this type assigned to the thin lock word.
-   * -1 if instances of this type do not have thin lock words.
+   * Offset.max() if instances of this type do not have thin lock words.
+   * Is only known after class has been resolved.
    */
   @Uninterruptible
   public Offset getThinLockOffset() {
+	if (VM.VerifyAssertions) VM._assert(isResolved());
     return thinLockOffset;
   }
 
-  /**
-   * Set the thin lock offset for instances of this type
+ /**
+   * Set the thin lock offset for instances of this type. Can be called at most once.
+   * and is invoked from VM_ObjectModel.allocateThinLock (in object models which
+   * do not allocate thin locks for all scalar object types).
    */
   public void setThinLockOffset(Offset offset) {
     if (VM.VerifyAssertions) VM._assert(thinLockOffset.isMax());
+    if (VM.VerifyAssertions) VM._assert(!offset.isMax());
     thinLockOffset = offset;
   }
 

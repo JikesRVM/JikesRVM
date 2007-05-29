@@ -107,13 +107,6 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
   private boolean inBootImage;
 
   /**
-   * At what offset is the thin lock word to be found in instances of
-   * objects of this type?  A value of -1 indicates that the instances of
-   * this type do not have inline thin locks.
-   */
-  private Offset thinLockOffset;
-
-  /**
    * The memory manager's notion of this type created after the
    * resolving
    */
@@ -372,19 +365,11 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
 
   /**
    * Get the offset in instances of this type assigned to the thin lock word.
-   * -1 if instances of this type do not have thin lock words.
+   * Offset.max() if instances of this type do not have thin lock words.
    */
   @Uninterruptible
   public Offset getThinLockOffset() {
-    return thinLockOffset;
-  }
-
-  /**
-   * Set the thin lock offset for instances of this type
-   */
-  public void setThinLockOffset(Offset offset) {
-    if (VM.VerifyAssertions) VM._assert(thinLockOffset.isMax());
-    thinLockOffset = offset;
+	return VM_ObjectModel.defaultThinLockOffset();
   }
 
   /**
@@ -431,7 +416,6 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
     super(typeRef, typeRef.getDimensionality(), null);
     this.elementType = elementType;
     this.logElementSize = computeLogElementSize();
-    thinLockOffset = VM_ObjectModel.defaultThinLockOffset();
     depth = 1;
 
     if (elementType.isArrayType()) {
