@@ -140,11 +140,15 @@ class TestArithmetic {
     System.out.println(((1 << int1) & int3) != 0);
     System.out.print("Expected: false Actual: ");
     System.out.println(((1 << int1) & int3) == 0);
+    System.out.print("Expected: true Actual: ");
+    System.out.println(((1 << int33) & int3) != 0);
     
     System.out.print("Expected: true Actual: ");
     System.out.println((int3 & (1 << int1)) != 0);
     System.out.print("Expected: false Actual: ");
     System.out.println((int3 & (1 << int1)) == 0);
+    System.out.print("Expected: true Actual: ");
+    System.out.println((int3 & (1 << int33)) != 0);
     System.out.print("Expected: taken Actual: ");
     if (((1 << int1) & int3) != 0) {
       System.out.println("taken");
@@ -158,6 +162,8 @@ class TestArithmetic {
     System.out.println(((int3 >> int1) & 1) != 0);
     System.out.print("Expected: false Actual: ");
     System.out.println(((int3 >> int1) & 1) == 0);
+    System.out.print("Expected: true Actual: ");
+    System.out.println(((int3 >> int33) & 1) == 1);
     System.out.print("Expected: taken Actual: ");
     if (((int3 >> int1) & 1) != 0) {
       System.out.println("taken");
@@ -171,6 +177,8 @@ class TestArithmetic {
     System.out.println(((int3 >>> int1) & 1) != 0);
     System.out.print("Expected: false Actual: ");
     System.out.println(((int3 >>> int1) & 1) == 0);
+    System.out.print("Expected: true Actual: ");
+    System.out.println(((int3 >>> int33) & 1) == 1);
     System.out.print("Expected: taken Actual: ");
     if (((int3 >>> int1) & 1) == 1) {
       System.out.println("taken");
