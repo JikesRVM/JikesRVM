@@ -134,6 +134,47 @@ class TestArithmetic {
     System.out.println(a >>> -33);    
     System.out.print("Expected: 2147483646 Actual: ");
     System.out.println(-4 >>> int33);
+    
+    // IA32 bit test patterns
+    System.out.print("Expected: true Actual: ");
+    System.out.println(((1 << int1) & int3) != 0);
+    System.out.print("Expected: false Actual: ");
+    System.out.println(((1 << int1) & int3) == 0);
+    
+    System.out.print("Expected: true Actual: ");
+    System.out.println((int3 & (1 << int1)) != 0);
+    System.out.print("Expected: false Actual: ");
+    System.out.println((int3 & (1 << int1)) == 0);
+    System.out.print("Expected: taken Actual: ");
+    if (((1 << int1) & int3) != 0) {
+      System.out.println("taken");
+    }
+
+    System.out.print("Expected: true Actual: ");
+    System.out.println(((int3 >> int1) & 1) == 1);
+    System.out.print("Expected: false Actual: ");
+    System.out.println(((int3 >> int1) & 1) != 1);
+    System.out.print("Expected: true Actual: ");
+    System.out.println(((int3 >> int1) & 1) != 0);
+    System.out.print("Expected: false Actual: ");
+    System.out.println(((int3 >> int1) & 1) == 0);
+    System.out.print("Expected: taken Actual: ");
+    if (((int3 >> int1) & 1) != 0) {
+      System.out.println("taken");
+    }
+
+    System.out.print("Expected: true Actual: ");
+    System.out.println(((int3 >>> int1) & 1) == 1);
+    System.out.print("Expected: false Actual: ");
+    System.out.println(((int3 >>> int1) & 1) != 1);
+    System.out.print("Expected: true Actual: ");
+    System.out.println(((int3 >>> int1) & 1) != 0);
+    System.out.print("Expected: false Actual: ");
+    System.out.println(((int3 >>> int1) & 1) == 0);
+    System.out.print("Expected: taken Actual: ");
+    if (((int3 >>> int1) & 1) == 1) {
+      System.out.println("taken");
+    }
   }
 
   private static void ltest() {

@@ -34,6 +34,21 @@ Expected: 0 Actual: 0
 Expected: 1 Actual: 1
 Expected: 0 Actual: 0
 Expected: 2147483646 Actual: 2147483646
+Expected: true Actual: true
+Expected: false Actual: false
+Expected: true Actual: true
+Expected: false Actual: false
+Expected: taken Actual: taken
+Expected: true Actual: true
+Expected: false Actual: false
+Expected: true Actual: true
+Expected: false Actual: false
+Expected: taken Actual: taken
+Expected: true Actual: true
+Expected: false Actual: false
+Expected: true Actual: true
+Expected: false Actual: false
+Expected: taken Actual: taken
 
 -- ltest --
 Expected: 10000000002 Actual: 10000000002
