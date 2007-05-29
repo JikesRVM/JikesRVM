@@ -35,6 +35,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_Operand;
 import org.jikesrvm.compilers.opt.ir.OPT_OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.OPT_Operator;
+import static org.jikesrvm.compilers.opt.ir.OPT_IRTools.CPOS;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BBEND;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_ADDR;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_INT;
@@ -162,7 +163,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
    *         A: LABEL
    *            BBEND
    *         B:
-   *    5)   GOTO BBn where BBn has exactly one in ede
+   *    5)   GOTO BBn where BBn has exactly one in edge
    *         - move BBn immediately after the GOTO in the code order,
    *           so that pattern 3) will create a fallthrough
    * <pre>
@@ -244,7 +245,7 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
       OPT_BasicBlock ftBlock = targetBlock.getFallThroughBlock();
       if (ftBlock != null) {
         OPT_BranchOperand ftTarget = ftBlock.makeJumpTarget();
-        targetBlock.appendInstruction(Goto.create(GOTO, ftTarget));
+        targetBlock.appendInstruction(CPOS(g,Goto.create(GOTO, ftTarget)));
       }
 
       ir.cfg.removeFromCodeOrder(targetBlock);
