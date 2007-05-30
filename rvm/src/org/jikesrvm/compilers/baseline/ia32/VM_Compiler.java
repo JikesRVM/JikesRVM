@@ -60,6 +60,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   private static final Offset ONE_SLOT = NO_SLOT.plus(WORDSIZE);
   private static final Offset TWO_SLOTS = ONE_SLOT.plus(WORDSIZE);
   private static final Offset THREE_SLOTS = TWO_SLOTS.plus(WORDSIZE);
+  private static final Offset MINUS_ONE_SLOT = NO_SLOT.minus(WORDSIZE);
 
   /**
    * Create a VM_Compiler object for the compilation of method.
@@ -860,41 +861,51 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the lmul bytecode
    */
   protected final void emit_lmul() {
-    // 0: JTOC is used as scratch registers (see 14)
-    // 1: load value1.low temp0, i.e., save value1.low
-    // 2: eax <- temp0 eax is value1.low
-    // 3: edx:eax <- eax * value2.low (product of the two low halves)
-    // 4: store eax which is  result.low into place --> value1.low is destroyed
-    // 5: temp1 <- edx which is the carry of the product of the low halves
-    // aex and edx now free of results
-    // 6: aex <- temp0 which is still value1.low
-    // 7: pop into aex aex <- value2.low  --> value2.low is sort of destroyed
-    // 8: edx:eax <- eax * value1.hi  (value2.low * value1.hi)
-    // 9: temp1 += aex
-    // 10: pop into eax; eax <- value2.hi -> value2.hi is sort of destroyed
-    // 11: edx:eax <- eax * temp0 (value2.hi * value1.low)
-    // 12: temp1 += eax  temp1 is now result.hi
-    // 13: store result.hi
-    // 14: restore JTOC
+    // stack: value1.high = mulitplier
+    //        value1.low
+    //        value2.high = multiplicand
+    //        value2.low  <-- ESP
     if (VM.VerifyAssertions) VM._assert(S0 != EAX);
     if (VM.VerifyAssertions) VM._assert(S0 != EDX);
-    asm.emitMOV_Reg_RegDisp(JTOC, SP, TWO_SLOTS);          // step 1: JTOC is temp0
-    asm.emitMOV_Reg_Reg(EAX, JTOC);            // step 2
-    asm.emitMUL_Reg_RegInd(EAX, SP);    // step 3
-    asm.emitMOV_RegDisp_Reg(SP, TWO_SLOTS, EAX);           // step 4
-    asm.emitMOV_Reg_Reg(S0, EDX);              // step 5: S0 is temp1
-    asm.emitMOV_Reg_Reg(EAX, JTOC);            // step 6
-    asm.emitPOP_Reg(EAX);                  // step 7: SP changed!
-    asm.emitIMUL1_Reg_RegDisp(EAX, SP, TWO_SLOTS);// step 8
-    asm.emitADD_Reg_Reg(S0, EAX);      // step 9
-    asm.emitPOP_Reg(EAX);                  // step 10: SP changed!
-    asm.emitIMUL1_Reg_Reg(EAX, JTOC);    // step 11
-    asm.emitADD_Reg_Reg(S0, EAX);      // step 12
-    asm.emitMOV_RegDisp_Reg(SP, ONE_SLOT, S0);            // step 13
-    // restore JTOC register
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
+    // EAX = multiplicand low; SP changed!
+    asm.emitPOP_Reg(EAX);      
+    // EDX = multiplicand high
+    asm.emitPOP_Reg(EDX);
+    // stack: value1.high = mulitplier
+    //        value1.low  <-- ESP
+    //        value2.high = multiplicand
+    //        value2.low
+    // S0 = multiplier high
+    asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT);
+    // is one operand > 2^32 ?
+    asm.emitOR_Reg_Reg(EDX, S0);
+    // EDX = multiplier low
+    asm.emitMOV_Reg_RegInd(EDX, SP);
+    // Jump if we need a 64bit multiply
+    VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.NE);
+    // EDX:EAX = 32bit multiply of multiplier and multiplicand low
+    asm.emitMUL_Reg_Reg(EAX, EDX);
+    // Jump over 64bit multiply
+    VM_ForwardReference fr2 = asm.forwardJMP();
+    // Start of 64bit multiply
+    fr1.resolve(asm);
+    // EDX = multiplicand high * multiplier low
+    asm.emitIMUL2_Reg_RegDisp(EDX, SP, MINUS_ONE_SLOT);
+    // S0 = multiplier high * multiplicand low
+    asm.emitIMUL2_Reg_Reg(S0, EAX);
+    // S0 = S0 + EDX
+    asm.emitADD_Reg_Reg(S0, EDX);
+    // EDX:EAX = 32bit multiply of multiplier and multiplicand low    
+    asm.emitMUL_Reg_RegInd(EAX, SP);
+    // EDX = EDX + S0
+    asm.emitADD_Reg_Reg(EDX, S0);
+    // Finish up
+    fr2.resolve(asm);
+    // store EDX:EAX to stack
+    asm.emitMOV_RegDisp_Reg(SP, ONE_SLOT, EDX);
+    asm.emitMOV_RegInd_Reg(SP, EAX);
   }
-
+  
   /**
    * Emit code to implement the ldiv bytecode
    */
@@ -984,20 +995,21 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   protected final void emit_lshl() {
     if (VM.VerifyAssertions) VM._assert(ECX != T0); // ECX is constrained to be the shift count
     if (VM.VerifyAssertions) VM._assert(ECX != T1);
-    if (VM.VerifyAssertions) VM._assert(ECX != JTOC);
     asm.emitPOP_Reg(ECX);                  // shift amount (6 bits)
     asm.emitPOP_Reg(T0);                   // pop low half
     asm.emitPOP_Reg(T1);                   // pop high half
-    asm.emitXOR_Reg_Reg(JTOC, JTOC);       // JTOC = 0
+    asm.emitTEST_Reg_Imm(ECX, 32);
+    VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.NE);
     asm.emitSHLD_Reg_Reg_Reg(T1, T0, ECX);  // shift high half
-    asm.emitSHL_Reg_Reg(T0, ECX);          // shift low half
-    asm.emitAND_Reg_Imm(ECX, 32);          // shift > 32bits ?
-    asm.emitCMOV_Cond_Reg_Reg(VM_Assembler.NE, T1, T0);   // T1 <- (shift > 32) ? T0 : T1
-    asm.emitCMOV_Cond_Reg_Reg(VM_Assembler.NE, T0, JTOC); // T0 <- (shift > 32) ? JTOC : T0
+    asm.emitSHL_Reg_Reg(T0, ECX);           // shift low half
+    VM_ForwardReference fr2 = asm.forwardJMP();
+    fr1.resolve(asm);
+    asm.emitMOV_Reg_Reg(T1, T0);  // shift high half
+    asm.emitSHL_Reg_Reg(T1, ECX);
+    asm.emitXOR_Reg_Reg(T0, T0);  // low half == 0
+    fr2.resolve(asm);
     asm.emitPUSH_Reg(T1);                   // push high half
     asm.emitPUSH_Reg(T0);                   // push low half
-    // restore JTOC
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
   }
 
   /**
@@ -1006,21 +1018,21 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   protected final void emit_lshr() {
     if (VM.VerifyAssertions) VM._assert(ECX != T0); // ECX is constrained to be the shift count
     if (VM.VerifyAssertions) VM._assert(ECX != T1);
-    if (VM.VerifyAssertions) VM._assert(ECX != JTOC);
     asm.emitPOP_Reg(ECX);                  // shift amount (6 bits)
     asm.emitPOP_Reg(T0);                   // pop low half
     asm.emitPOP_Reg(T1);                   // pop high half
-    asm.emitMOV_Reg_Reg(JTOC, T1);
-    asm.emitSAR_Reg_Imm(JTOC, 31);         // JTOC = (high half) >> 31
+    asm.emitTEST_Reg_Imm(ECX, 32);
+    VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.NE);
     asm.emitSHRD_Reg_Reg_Reg(T0, T1, ECX);  // shift high half
-    asm.emitSAR_Reg_Reg(T1, ECX);          // shift low half
-    asm.emitAND_Reg_Imm(ECX, 32);          // shift > 32bits ?
-    asm.emitCMOV_Cond_Reg_Reg(VM_Assembler.NE, T0, T1);   // T0 <- (shift > 32) ? T1 : T0
-    asm.emitCMOV_Cond_Reg_Reg(VM_Assembler.NE, T1, JTOC); // T1 <- (shift > 32) ? JTOC : T1
+    asm.emitSAR_Reg_Reg(T1, ECX);           // shift low half
+    VM_ForwardReference fr2 = asm.forwardJMP();
+    fr1.resolve(asm);
+    asm.emitMOV_Reg_Reg(T0, T1);  // low half = high half
+    asm.emitSAR_Reg_Imm(T1, 31);  // high half = high half >> 31
+    asm.emitSAR_Reg_Reg(T0, ECX); // low half = high half >> ecx
+    fr2.resolve(asm);
     asm.emitPUSH_Reg(T1);                   // push high half
     asm.emitPUSH_Reg(T0);                   // push low half
-    // restore JTOC
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
   }
 
   /**
@@ -1029,20 +1041,21 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   protected final void emit_lushr() {
     if (VM.VerifyAssertions) VM._assert(ECX != T0); // ECX is constrained to be the shift count
     if (VM.VerifyAssertions) VM._assert(ECX != T1);
-    if (VM.VerifyAssertions) VM._assert(ECX != JTOC);
     asm.emitPOP_Reg(ECX);                  // shift amount (6 bits)
     asm.emitPOP_Reg(T0);                   // pop low half
     asm.emitPOP_Reg(T1);                   // pop high half
-    asm.emitXOR_Reg_Reg(JTOC, JTOC);       // JTOC = 0
+    asm.emitTEST_Reg_Imm(ECX, 32);
+    VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.NE);
     asm.emitSHRD_Reg_Reg_Reg(T0, T1, ECX);  // shift high half
-    asm.emitSHR_Reg_Reg(T1, ECX);          // shift low half
-    asm.emitAND_Reg_Imm(ECX, 32);          // shift > 32bits ?
-    asm.emitCMOV_Cond_Reg_Reg(VM_Assembler.NE, T0, T1);   // T0 <- (shift > 32) ? T1 : T0
-    asm.emitCMOV_Cond_Reg_Reg(VM_Assembler.NE, T1, JTOC); // T1 <- (shift > 32) ? JTOC : T1
+    asm.emitSHR_Reg_Reg(T1, ECX);           // shift low half
+    VM_ForwardReference fr2 = asm.forwardJMP();
+    fr1.resolve(asm);
+    asm.emitMOV_Reg_Reg(T0, T1);  // low half = high half
+    asm.emitXOR_Reg_Reg(T1, T1);  // high half = 0
+    asm.emitSHR_Reg_Reg(T0, ECX); // low half = high half >>> ecx
+    fr2.resolve(asm);
     asm.emitPUSH_Reg(T1);                   // push high half
     asm.emitPUSH_Reg(T0);                   // push low half
-    // restore JTOC
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
   }
 
   /**
@@ -2764,17 +2777,23 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   private void incEdgeCounter(byte scratch, int counterIdx) {
     if (VM.VerifyAssertions) VM._assert(((VM_BaselineCompiledMethod) compiledMethod).hasCounterArray());
     asm.emitMOV_Reg_RegDisp(scratch, EBX, Offset.fromIntZeroExtend(counterIdx << 2));
-    asm.emitINC_Reg(scratch);
-    asm.emitAND_Reg_Imm(scratch, 0x7fffffff); // saturate at max int;
+    asm.emitADD_Reg_Imm(scratch, 1);
+    // Don't write back result if it would make the counter negative (ie
+    // saturate at 0x7FFFFFFF)
+    VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.S);
     asm.emitMOV_RegDisp_Reg(EBX, Offset.fromIntSignExtend(counterIdx << 2), scratch);
+    fr1.resolve(asm);
   }
 
   private void incEdgeCounterIdx(byte scratch, byte idx, int counterIdx) {
     if (VM.VerifyAssertions) VM._assert(((VM_BaselineCompiledMethod) compiledMethod).hasCounterArray());
     asm.emitMOV_Reg_RegIdx(scratch, EBX, idx, VM_Assembler.WORD, Offset.fromIntZeroExtend(counterIdx << 2));
-    asm.emitINC_Reg(scratch);
-    asm.emitAND_Reg_Imm(scratch, 0x7fffffff); // saturate at max int;
+    asm.emitADD_Reg_Imm(scratch, 1);
+    // Don't write back result if it would make the counter negative (ie
+    // saturate at 0x7FFFFFFF)
+    VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.S);
     asm.emitMOV_RegIdx_Reg(EBX, idx, VM_Assembler.WORD, Offset.fromIntSignExtend(counterIdx << 2), scratch);
+    fr1.resolve(asm);
   }
 
   /**
