@@ -13,6 +13,7 @@
 package org.jikesrvm.compilers.opt;
 
 import java.util.Enumeration;
+import java.util.HashSet;
 
 /**
  * OPT_SpaceEffGraph package implements a generic directed graph that can
@@ -313,21 +314,46 @@ public class OPT_SpaceEffGraph implements OPT_Graph, OPT_VCGGraph, OPT_TopSortIn
   public String toString() {
     StringBuilder res = new StringBuilder();
     for (OPT_SpaceEffGraphNode n = firstNode(); n != null; n = n.getNext()) {
+      HashSet<OPT_SpaceEffGraphEdge> visitedNodes = new HashSet<OPT_SpaceEffGraphEdge>();
+      int duplicatedNodes = 0;
       res.append("\nNode: ").append(n).append("\n");
       res.append("In nodes:\n");
       for (OPT_SpaceEffGraphEdge inEdge = n.firstInEdge(); inEdge != null; inEdge = inEdge.getNextIn()) {
-        res.append(inEdge.getTypeString());
-        res.append(" ");
-        res.append(inEdge.fromNode());
-        res.append("\n");
+        if (visitedNodes.contains(inEdge)) {
+          duplicatedNodes ++;
+          res.append ("(Duplicated edge " + inEdge.toNodeString() + ")");
+          if (duplicatedNodes > 5) {
+            break;
+          }
+        } else {
+          visitedNodes.add(inEdge);
+          res.append(inEdge.getTypeString());
+          res.append(" ");
+          res.append(inEdge.fromNode());
+          res.append("\n");
+        }
       }
       res.append("\n");
+      visitedNodes.clear();
+      duplicatedNodes=0;
       res.append("Out nodes:\n");
       for (OPT_SpaceEffGraphEdge out = n.firstOutEdge(); out != null; out = out.getNextOut()) {
-        res.append(out.getTypeString());
-        res.append(" ");
-        res.append(out.toNode());
-        res.append("\n");
+        if (visitedNodes.contains(out)) {
+          duplicatedNodes ++;
+          res.append ("(Duplicated edge " + out.toNodeString() + ")");
+          if (duplicatedNodes > 5) {
+            break;
+          }
+        } else {
+          res.append(out.getTypeString());
+          res.append(" ");
+          res.append(out.toNode());
+          res.append("\n");
+        }
+      }
+      if (res.length() > 50000) {
+        res.append("....(giving up too long)\n");
+        break;
       }
     }
     return res.toString();
