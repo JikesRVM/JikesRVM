@@ -243,6 +243,24 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
   }
 
   /**
+   * Convert the given comparison with a boolean (int) value into a condition
+   * suitable for the carry flag
+   * @param x the value 1 (true) or 0 (false)
+   * @param cond either equal or not equal
+   * @return lower or higher equal
+   */
+  protected static OPT_ConditionOperand BIT_TEST(int x, OPT_ConditionOperand cond) {
+    if (VM.VerifyAssertions) VM._assert((x==0)||(x==1));
+    if (VM.VerifyAssertions) VM._assert(EQ_NE(cond));
+    if ((x == 1 && cond.isEQUAL())||
+        (x == 0 && cond.isNOT_EQUAL())) {
+      return OPT_ConditionOperand.LOWER();
+    } else {
+      return OPT_ConditionOperand.HIGHER_EQUAL();
+    }
+  }
+
+  /**
    * Follow a chain of Move operations filtering back to a def
    *
    * @param use the place to start from
@@ -2496,54 +2514,70 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
    */
   protected final void BOOLEAN_CMP_LONG(OPT_Instruction s, OPT_RegisterOperand res, OPT_Operand val1, OPT_Operand val2,
                                         OPT_ConditionOperand cond) {
-    // Long comparison is a subtraction:
-    // <, >= : easy to compute as SF !=/== OF
-    // >, <= : flipOperands and treat as a </>=
-    // ==/!= : do subtract then OR 2 32-bit quantities test for zero/non-zero
-    if (cond.isGREATER() || cond.isLESS_EQUAL()) {
-      OPT_Operand swap_temp;
-      cond.flipOperands();
-      swap_temp = val1;
-      val1 = val2;
-      val2 = swap_temp;
-    }
-    if (VM.VerifyAssertions) {
-      VM._assert(cond.isEQUAL() || cond.isNOT_EQUAL() || cond.isLESS() || cond.isGREATER_EQUAL());
-    }
-    OPT_RegisterOperand one = regpool.makeTempInt();
-    OPT_RegisterOperand lone = regpool.makeTempInt();
-    OPT_Operand two, ltwo;
-    if (val1 instanceof OPT_RegisterOperand) {
+    // Can we simplify to a shift?
+    if (cond.isLESS() && val2.isLongConstant() && val2.asLongConstant().value == 0 && val1.isRegister()) {
+      // Put the most significant bit of val1 into res
       OPT_Register val1_reg = val1.asRegister().register;
-      EMIT(CPOS(s, MIR_Move.create(IA32_MOV, one, new OPT_RegisterOperand(val1_reg, VM_TypeReference.Int))));
-      EMIT(CPOS(s,
-                MIR_Move.create(IA32_MOV,
-                                lone,
-                                new OPT_RegisterOperand(regpool.getSecondReg(val1_reg), VM_TypeReference.Int))));
-    } else {
-      OPT_LongConstantOperand tmp = (OPT_LongConstantOperand) val1;
-      EMIT(CPOS(s, MIR_Move.create(IA32_MOV, one, IC(tmp.upper32()))));
-      EMIT(CPOS(s, MIR_Move.create(IA32_MOV, lone, IC(tmp.lower32()))));
+      EMIT(MIR_Move.create(IA32_MOV, res.copyRO(), new OPT_RegisterOperand(val1_reg, VM_TypeReference.Int)));      
+      EMIT(MIR_BinaryAcc.mutate(s, IA32_SHR, res, IC(31)));      
     }
-    if (val2 instanceof OPT_RegisterOperand) {
-      two = val2;
-      ltwo = L(burs.ir.regpool.getSecondReg(val2.asRegister().register));
-    } else {
-      OPT_LongConstantOperand tmp = (OPT_LongConstantOperand) val2;
-      two = IC(tmp.upper32());
-      ltwo = IC(tmp.lower32());
+    else if (cond.isGREATER_EQUAL() && val2.isLongConstant() && val2.asLongConstant().value == 0 && val1.isRegister()) {
+      // Put the most significant bit of val1 into res and invert
+      OPT_Register val1_reg = val1.asRegister().register;
+      EMIT(MIR_Move.create(IA32_MOV, res.copyRO(), new OPT_RegisterOperand(val1_reg, VM_TypeReference.Int)));      
+      EMIT(MIR_BinaryAcc.mutate(s, IA32_SHR, res, IC(31))); 
+      EMIT(MIR_BinaryAcc.create(IA32_XOR, res.copyRO(), IC(1))); 
+    } 
+    else {
+      // Long comparison is a subtraction:
+      // <, >= : easy to compute as SF !=/== OF
+      // >, <= : flipOperands and treat as a </>=
+      // ==/!= : do subtract then OR 2 32-bit quantities test for zero/non-zero
+      if (cond.isGREATER() || cond.isLESS_EQUAL()) {
+        OPT_Operand swap_temp;
+        cond.flipOperands();
+        swap_temp = val1;
+        val1 = val2;
+        val2 = swap_temp;
+      }
+      if (VM.VerifyAssertions) {
+        VM._assert(cond.isEQUAL() || cond.isNOT_EQUAL() || cond.isLESS() || cond.isGREATER_EQUAL());
+      }
+      OPT_RegisterOperand one = regpool.makeTempInt();
+      OPT_RegisterOperand lone = regpool.makeTempInt();
+      OPT_Operand two, ltwo;
+      if (val1 instanceof OPT_RegisterOperand) {
+        OPT_Register val1_reg = val1.asRegister().register;
+        EMIT(CPOS(s, MIR_Move.create(IA32_MOV, one, new OPT_RegisterOperand(val1_reg, VM_TypeReference.Int))));
+        EMIT(CPOS(s,
+            MIR_Move.create(IA32_MOV,
+                lone,
+                new OPT_RegisterOperand(regpool.getSecondReg(val1_reg), VM_TypeReference.Int))));
+      } else {
+        OPT_LongConstantOperand tmp = (OPT_LongConstantOperand) val1;
+        EMIT(CPOS(s, MIR_Move.create(IA32_MOV, one, IC(tmp.upper32()))));
+        EMIT(CPOS(s, MIR_Move.create(IA32_MOV, lone, IC(tmp.lower32()))));
+      }
+      if (val2 instanceof OPT_RegisterOperand) {
+        two = val2;
+        ltwo = L(burs.ir.regpool.getSecondReg(val2.asRegister().register));
+      } else {
+        OPT_LongConstantOperand tmp = (OPT_LongConstantOperand) val2;
+        two = IC(tmp.upper32());
+        ltwo = IC(tmp.lower32());
+      }
+      if (cond.isEQUAL() || cond.isNOT_EQUAL()) {
+        EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_SUB, lone.copyRO(), ltwo)));
+        EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_SBB, one.copyRO(), two)));
+        EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_OR, one.copyRO(), lone.copyRO())));
+      } else {
+        EMIT(CPOS(s, MIR_Compare.create(IA32_CMP, lone.copyRO(), ltwo)));
+        EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_SBB, one.copyRO(), two)));
+      }
+      OPT_RegisterOperand temp = regpool.makeTemp(VM_TypeReference.Boolean);
+      EMIT(CPOS(s, MIR_Set.create(IA32_SET__B, temp, COND(cond))));
+      EMIT(MIR_Unary.mutate(s, IA32_MOVZX__B, res, temp.copyRO()));
     }
-    if (cond.isEQUAL() || cond.isNOT_EQUAL()) {
-      EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_SUB, lone.copyRO(), ltwo)));
-      EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_SBB, one.copyRO(), two)));
-      EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_OR, one.copyRO(), lone.copyRO())));
-    } else {
-      EMIT(CPOS(s, MIR_Compare.create(IA32_CMP, lone.copyRO(), ltwo)));
-      EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_SBB, one.copyRO(), two)));
-    }
-    OPT_RegisterOperand temp = regpool.makeTemp(VM_TypeReference.Boolean);
-    EMIT(CPOS(s, MIR_Set.create(IA32_SET__B, temp, COND(cond))));
-    EMIT(MIR_Unary.mutate(s, IA32_MOVZX__B, res, temp.copyRO()));
   }
 
   /**

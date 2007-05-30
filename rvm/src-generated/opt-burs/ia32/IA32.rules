@@ -558,8 +558,8 @@ r:	BOOLEAN_CMP_INT(r,riv)
 39
 EMIT_INSTRUCTION
 BOOLEAN_CMP_INT(P(p), BooleanCmp.getResult(P(p)), \
-            BooleanCmp.getVal1(P(p)), BooleanCmp.getVal2(P(p)), \
-	    BooleanCmp.getCond(P(p)));
+   BooleanCmp.getVal1(P(p)), BooleanCmp.getVal2(P(p)), \
+   BooleanCmp.getCond(P(p)));
 
 boolcmp: BOOLEAN_CMP_INT(r,riv)
 13
@@ -578,6 +578,31 @@ VR(p) == 0 && EQ_NE(BooleanCmp.getCond(P(p)))?11:INFINITE
 EMIT_INSTRUCTION
 pushCOND(BooleanCmp.getCond(P(p))); \
 EMIT(CPOS(P(p),MIR_Test.create(IA32_TEST, BooleanCmp.getVal1(P(p)), BooleanCmp.getVal1(P(p)).copy())));
+
+# Special case where a boolean_cmp can become a shift
+r:	BOOLEAN_CMP_INT(r,INT_CONSTANT)
+VR(p) == 0 && BooleanCmp.getCond(P(p)).isLESS() ? 11 : INFINITE
+EMIT_INSTRUCTION
+EMIT_Commutative(IA32_SHR, P(p), BooleanCmp.getResult(P(p)), BooleanCmp.getVal1(P(p)), IC(31));
+
+r:	BOOLEAN_CMP_INT(load32,INT_CONSTANT)
+VR(p) == 0 && BooleanCmp.getCond(P(p)).isLESS() ? 16 : INFINITE
+EMIT_INSTRUCTION
+EMIT_Commutative(IA32_SHR, P(p), BooleanCmp.getResult(P(p)), consumeMO(), IC(31));
+
+r:	BOOLEAN_CMP_INT(r,INT_CONSTANT)
+VR(p) == 0 && BooleanCmp.getCond(P(p)).isGREATER_EQUAL() ? 22 : INFINITE
+EMIT_INSTRUCTION
+OPT_RegisterOperand result = BooleanCmp.getResult(P(p)); \
+EMIT_Commutative(IA32_SHR, P(p), result, BooleanCmp.getVal1(P(p)), IC(31)); \
+EMIT(CPOS(P(p),MIR_BinaryAcc.create(IA32_XOR, result.copyRO(), IC(1))));
+
+r:	BOOLEAN_CMP_INT(load32,INT_CONSTANT)
+VR(p) == 0 && BooleanCmp.getCond(P(p)).isGREATER_EQUAL() ? 27 : INFINITE
+EMIT_INSTRUCTION
+OPT_RegisterOperand result = BooleanCmp.getResult(P(p)); \
+EMIT_Commutative(IA32_SHR, P(p), result, consumeMO(), IC(31)); \
+EMIT(CPOS(P(p),MIR_BinaryAcc.create(IA32_XOR, result.copyRO(), IC(1))));
 
 r:	BOOLEAN_CMP_INT(cz, INT_CONSTANT)
 isZERO(VR(p), 26)
@@ -599,44 +624,39 @@ VR(p) == 0 && EQ_NE(BooleanCmp.getCond(P(p)))?0:INFINITE
 EMIT_INSTRUCTION
 pushCOND(BooleanCmp.getCond(P(p)));
 
+## bit tests
+r:	BOOLEAN_CMP_INT(bittest, INT_CONSTANT)
+(VR(p) == 0 || VR(p) == 1) && EQ_NE(BooleanCmp.getCond(P(p))) ? 26 : INFINITE
+EMIT_INSTRUCTION
+BOOLEAN_CMP_INT(P(p), BooleanCmp.getResult(P(p)), BIT_TEST(VR(p),BooleanCmp.getCond(P(p))));
+
+boolcmp:	BOOLEAN_CMP_INT(bittest, INT_CONSTANT)
+(VR(p) == 0 || VR(p) == 1) && EQ_NE(BooleanCmp.getCond(P(p))) ? 0 : INFINITE
+EMIT_INSTRUCTION
+pushCOND(BIT_TEST(VR(p),BooleanCmp.getCond(P(p))));
+
 ## chaining of boolcmps
 r:	BOOLEAN_CMP_INT(boolcmp, INT_CONSTANT)
-VR(p) == 1 && BooleanCmp.getCond(P(p)).isEQUAL()?26:INFINITE
+(VR(p) == 0 && BooleanCmp.getCond(P(p)).isNOT_EQUAL()) || \
+(VR(p) == 1 && BooleanCmp.getCond(P(p)).isEQUAL()) ? 26 : INFINITE
 EMIT_INSTRUCTION
 BOOLEAN_CMP_INT(P(p), BooleanCmp.getResult(P(p)), consumeCOND());
 
 boolcmp:	BOOLEAN_CMP_INT(boolcmp, INT_CONSTANT)
-VR(p) == 1 && BooleanCmp.getCond(P(p)).isEQUAL()?0:INFINITE
+(VR(p) == 0 && BooleanCmp.getCond(P(p)).isNOT_EQUAL()) || \
+(VR(p) == 1 && BooleanCmp.getCond(P(p)).isEQUAL()) ? 0 : INFINITE
 NOFLAGS
 // use already pushed condition
 
 r:	BOOLEAN_CMP_INT(boolcmp, INT_CONSTANT)
-VR(p) == 1 && BooleanCmp.getCond(P(p)).isNOT_EQUAL()?26:INFINITE
+(VR(p) == 1 && BooleanCmp.getCond(P(p)).isNOT_EQUAL()) || \
+(VR(p) == 0 && BooleanCmp.getCond(P(p)).isEQUAL()) ? 26 : INFINITE
 EMIT_INSTRUCTION
 BOOLEAN_CMP_INT(P(p), BooleanCmp.getResult(P(p)), consumeCOND().flipCode());
 
 boolcmp:	BOOLEAN_CMP_INT(boolcmp, INT_CONSTANT)
-VR(p) == 1 && BooleanCmp.getCond(P(p)).isNOT_EQUAL()?0:INFINITE
-EMIT_INSTRUCTION
-pushCOND(consumeCOND().flipCode()); // invert already pushed condition
-
-r:	BOOLEAN_CMP_INT(boolcmp, INT_CONSTANT)
-VR(p) == 0 && BooleanCmp.getCond(P(p)).isNOT_EQUAL()?26:INFINITE
-EMIT_INSTRUCTION
-BOOLEAN_CMP_INT(P(p), BooleanCmp.getResult(P(p)), consumeCOND());
-
-boolcmp:	BOOLEAN_CMP_INT(boolcmp, INT_CONSTANT)
-VR(p) == 0 && BooleanCmp.getCond(P(p)).isNOT_EQUAL()?0:INFINITE
-NOFLAGS
-// use already pushed condition
-
-r:	BOOLEAN_CMP_INT(boolcmp, INT_CONSTANT)
-VR(p) == 0 && BooleanCmp.getCond(P(p)).isEQUAL()?26:INFINITE
-EMIT_INSTRUCTION
-BOOLEAN_CMP_INT(P(p), BooleanCmp.getResult(P(p)), consumeCOND().flipCode());
-
-boolcmp: BOOLEAN_CMP_INT(boolcmp, INT_CONSTANT)
-VR(p) == 0 && BooleanCmp.getCond(P(p)).isEQUAL()?0:INFINITE
+(VR(p) == 1 && BooleanCmp.getCond(P(p)).isNOT_EQUAL()) || \
+(VR(p) == 0 && BooleanCmp.getCond(P(p)).isEQUAL()) ? 0 : INFINITE
 EMIT_INSTRUCTION
 pushCOND(consumeCOND().flipCode()); // invert already pushed condition
 
@@ -709,6 +729,35 @@ EMIT(CPOS(P(p), MIR_Test.create(IA32_TEST, CondMove.getVal1(P(p)), CondMove.getV
 CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \
          CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
 
+# Special case where a conditional move can become a shift
+r: CMP_CMOV(r, OTHER_OPERAND(INT_CONSTANT, OTHER_OPERAND(INT_CONSTANT, INT_CONSTANT)))
+(VRL(p) == 0 && CondMove.getCond(P(p)).isLESS() && VRRL(p) == -1 && VRRR(p) == 0) || \
+(VRL(p) == 0 && CondMove.getCond(P(p)).isGREATER_EQUAL() && VRRL(p) == 0 && VRRR(p) == -1) ? 13 : INFINITE
+EMIT_INSTRUCTION
+EMIT_Commutative(IA32_SAR, P(p), CondMove.getResult(P(p)), CondMove.getVal1(P(p)), IC(31));
+
+r: CMP_CMOV(load32, OTHER_OPERAND(INT_CONSTANT, OTHER_OPERAND(INT_CONSTANT, INT_CONSTANT)))
+(VRL(p) == 0 && CondMove.getCond(P(p)).isLESS() && VRRL(p) == -1 && VRRR(p) == 0) || \
+(VRL(p) == 0 && CondMove.getCond(P(p)).isGREATER_EQUAL() && VRRL(p) == 0 && VRRR(p) == -1) ? 18 : INFINITE
+EMIT_INSTRUCTION
+EMIT_Commutative(IA32_SAR, P(p), CondMove.getResult(P(p)), consumeMO(), IC(31));
+
+r: CMP_CMOV(r, OTHER_OPERAND(INT_CONSTANT, OTHER_OPERAND(INT_CONSTANT, INT_CONSTANT)))
+(VRL(p) == 0 && CondMove.getCond(P(p)).isLESS() && VRRL(p) == 0 && VRRR(p) == -1) || \
+(VRL(p) == 0 && CondMove.getCond(P(p)).isGREATER_EQUAL() && VRRL(p) == -1 && VRRR(p) == 0) ? 26 : INFINITE
+EMIT_INSTRUCTION
+OPT_RegisterOperand result = CondMove.getResult(P(p)); \
+EMIT_Commutative(IA32_SAR, P(p), result, CondMove.getVal1(P(p)), IC(31)); \
+EMIT(CPOS(P(p),MIR_UnaryAcc.create(IA32_NOT, result.copyRO())));
+
+r: CMP_CMOV(load32, OTHER_OPERAND(INT_CONSTANT, OTHER_OPERAND(INT_CONSTANT, INT_CONSTANT)))
+(VRL(p) == 0 && CondMove.getCond(P(p)).isLESS() && VRRL(p) == 0 && VRRR(p) == -1) || \
+(VRL(p) == 0 && CondMove.getCond(P(p)).isGREATER_EQUAL() && VRRL(p) == -1 && VRRR(p) == 0) ? 31 : INFINITE
+EMIT_INSTRUCTION
+OPT_RegisterOperand result = CondMove.getResult(P(p)); \
+EMIT_Commutative(IA32_SAR, P(p), result, consumeMO(), IC(31)); \
+EMIT(CPOS(P(p),MIR_UnaryAcc.create(IA32_NOT, result.copyRO())));
+
 # Because uload is only used for booleans (0/1) we can get away
 # with this for both signed and unsigned loads.
 r: CMP_CMOV(load8, OTHER_OPERAND(INT_CONSTANT, any))
@@ -759,27 +808,24 @@ CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \
 
 # CMP_CMOV((boolcmp, 0/1), tv, fv)
 r: CMP_CMOV(boolcmp, OTHER_OPERAND(INT_CONSTANT, any))
-VRL(p) == 0 && (CondMove.getCond(P(p)).isNOT_EQUAL())?(0 + 30):INFINITE
+(VRL(p) == 0 && CondMove.getCond(P(p)).isNOT_EQUAL()) || \
+(VRL(p) == 1 && CondMove.getCond(P(p)).isEQUAL()) ? 30 : INFINITE
 EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
 CMOV_MOV(P(p), CondMove.getResult(P(p)), consumeCOND(), \
          CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
 
 r: CMP_CMOV(boolcmp, OTHER_OPERAND(INT_CONSTANT, any))
-VRL(p) == 0 && (CondMove.getCond(P(p)).isEQUAL())?(0 + 30):INFINITE
+(VRL(p) == 1 && CondMove.getCond(P(p)).isNOT_EQUAL()) || \
+(VRL(p) == 0 && CondMove.getCond(P(p)).isEQUAL()) ? 30 : INFINITE
 EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
 CMOV_MOV(P(p), CondMove.getResult(P(p)), consumeCOND().flipCode(), \
          CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
 
-r: CMP_CMOV(boolcmp, OTHER_OPERAND(INT_CONSTANT, any))
-VRL(p) == 1 && (CondMove.getCond(P(p)).isEQUAL())?(0 + 30):INFINITE
+# CMP_CMOV((bittest, 0/1), tv, fv)
+r: CMP_CMOV(bittest, OTHER_OPERAND(INT_CONSTANT, any))
+(VRL(p) == 0 || VRL(p) == 1) && EQ_NE(CondMove.getCond(P(p))) ? 30 : INFINITE
 EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-CMOV_MOV(P(p), CondMove.getResult(P(p)), consumeCOND(), \
-         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
-
-r: CMP_CMOV(boolcmp, OTHER_OPERAND(INT_CONSTANT, any))
-VRL(p) == 1 && (CondMove.getCond(P(p)).isNOT_EQUAL())?(0 + 30):INFINITE
-EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
-CMOV_MOV(P(p), CondMove.getResult(P(p)), consumeCOND().flipCode(), \
+CMOV_MOV(P(p), CondMove.getResult(P(p)), BIT_TEST(VRL(p), CondMove.getCond(P(p))), \
          CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
 
 # CMOV((cz, 0), tv ,fv); condition code already set
@@ -2242,24 +2288,15 @@ IFCMP(P(p), IfCmp.getGuardResult(P(p)), IfCmp.getVal1(P(p)), consumeMO(), IfCmp.
 
 # IfCmp(boolcmp, 0/1)
 stm:	INT_IFCMP(boolcmp, INT_CONSTANT)
-VR(p) == 0 && IfCmp.getCond(P(p)).isNOT_EQUAL()?13:INFINITE
+(VR(p) == 0 && IfCmp.getCond(P(p)).isNOT_EQUAL()) || \
+(VR(p) == 1 && IfCmp.getCond(P(p)).isEQUAL()) ? 13:INFINITE
 EMIT_INSTRUCTION
 EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new OPT_TrueGuardOperand()))); \
 EMIT(MIR_CondBranch.mutate(P(p), IA32_JCC, COND(consumeCOND()), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p))));
 
 stm:	INT_IFCMP(boolcmp, INT_CONSTANT)
-VR(p) == 0 && IfCmp.getCond(P(p)).isEQUAL()?13:INFINITE
-EMIT_INSTRUCTION
-EMIT(MIR_CondBranch.mutate(P(p), IA32_JCC, COND(consumeCOND().flipCode()), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p))));
-
-stm:	INT_IFCMP(boolcmp, INT_CONSTANT)
-VR(p) == 1 && IfCmp.getCond(P(p)).isEQUAL()?13:INFINITE
-EMIT_INSTRUCTION
-EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new OPT_TrueGuardOperand()))); \
-EMIT(MIR_CondBranch.mutate(P(p), IA32_JCC, COND(consumeCOND()), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p))));
-
-stm:	INT_IFCMP(boolcmp, INT_CONSTANT)
-VR(p) == 1 && (IfCmp.getCond(P(p)).isNOT_EQUAL())?26:INFINITE
+(VR(p) == 0 && IfCmp.getCond(P(p)).isEQUAL()) || \
+(VR(p) == 1 && IfCmp.getCond(P(p)).isNOT_EQUAL()) ? 13:INFINITE
 EMIT_INSTRUCTION
 EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new OPT_TrueGuardOperand()))); \
 EMIT(MIR_CondBranch.mutate(P(p), IA32_JCC, COND(consumeCOND().flipCode()), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p))));
@@ -2277,6 +2314,13 @@ VR(p) == 0 && EQ_NE(IfCmp.getCond(P(p)))?11:INFINITE
 EMIT_INSTRUCTION
 EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new OPT_TrueGuardOperand()))); \
 EMIT(MIR_CondBranch.mutate(P(p), IA32_JCC, COND(IfCmp.getCond(P(p))), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p))));
+
+# IfCmp(bittest, 0/1); condition code already set
+stm:	INT_IFCMP(bittest, INT_CONSTANT)
+(VR(p) == 0 || VR(p) == 1) && EQ_NE(IfCmp.getCond(P(p))) ? 11 : INFINITE
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new OPT_TrueGuardOperand()))); \
+EMIT(MIR_CondBranch.mutate(P(p), IA32_JCC, COND(BIT_TEST(VR(p), IfCmp.getCond(P(p)))), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p))));
 
 #####
 # INT_IFCMP2: TODO interesting rules
@@ -2439,3 +2483,94 @@ stm:	YIELDPOINT_OSR(any, any)
 10
 EMIT_INSTRUCTION
 OSR(burs, P(p));
+
+########
+# bit test instructions
+########
+# (base >>>/>> offset) & 1
+# int_and
+#    int_ushr              L
+#       register           LL <-- base
+#       int_and            LR <-- offset (if int constant)
+#          register        LRL <-- offset
+#          INT_CONSTANT 31 LRR
+#    INT_CONSTANT 1        R
+bittest:	INT_AND(INT_USHR(r,INT_AND(r,INT_CONSTANT)),INT_CONSTANT)
+(VR(p) == 1) && (VLRR(p) == 31) ? 13:INFINITE
+EMIT_INSTRUCTION
+EMIT(MIR_Test.mutate(P(p), IA32_BT, Binary.getVal1(PL(p)).copy(), Binary.getVal1(PLR(p)).copy()));
+
+bittest:	INT_AND(INT_USHR(load32,INT_AND(r,INT_CONSTANT)),INT_CONSTANT)
+VR(p) == 1 ? 31:INFINITE
+EMIT_INSTRUCTION
+OPT_Register tmp = regpool.getInteger(); \
+if (VM.VerifyAssertions) VM._assert((VLRR(p) & 0x7FFFFFFF) <= 31); \
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(tmp, VM_TypeReference.Int), Binary.getVal1(PLR(p))))); \
+EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_AND, new OPT_RegisterOperand(tmp, VM_TypeReference.Int), IC(VLRR(p))))); \
+EMIT(MIR_Test.mutate(P(p), IA32_BT, consumeMO(), new OPT_RegisterOperand(tmp, VM_TypeReference.Int)));
+
+bittest:	INT_AND(INT_USHR(r,INT_CONSTANT),INT_CONSTANT)
+(VR(p) == 1) && (VLR(p) <= 31) ? 13:INFINITE
+EMIT_INSTRUCTION
+EMIT(MIR_Test.mutate(P(p), IA32_BT, Binary.getVal1(PL(p)).copy(), IC(VLR(p))));
+
+bittest:	INT_AND(INT_SHR(r,INT_AND(r,INT_CONSTANT)),INT_CONSTANT)
+(VR(p) == 1) && (VLRR(p) == 31) ? 13:INFINITE
+EMIT_INSTRUCTION
+EMIT(MIR_Test.mutate(P(p), IA32_BT, Binary.getVal1(PL(p)).copy(), Binary.getVal1(PLR(p)).copy()));
+
+bittest:	INT_AND(INT_SHR(load32,INT_AND(r,INT_CONSTANT)),INT_CONSTANT)
+VR(p) == 1 ? 31:INFINITE
+EMIT_INSTRUCTION
+OPT_Register tmp = regpool.getInteger(); \
+if (VM.VerifyAssertions) VM._assert((VLRR(p) & 0x7FFFFFFF) <= 31); \
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(tmp, VM_TypeReference.Int), Binary.getVal1(PLR(p))))); \
+EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_AND, new OPT_RegisterOperand(tmp, VM_TypeReference.Int), IC(VLRR(p))))); \
+EMIT(MIR_Test.mutate(P(p), IA32_BT, consumeMO(), new OPT_RegisterOperand(tmp, VM_TypeReference.Int)));
+
+bittest:	INT_AND(INT_SHR(r,INT_CONSTANT),INT_CONSTANT)
+(VR(p) == 1) && (VLR(p) <= 31) ? 13:INFINITE
+EMIT_INSTRUCTION
+EMIT(MIR_Test.mutate(P(p), IA32_BT, Binary.getVal1(PL(p)).copy(), IC(VLR(p))));
+
+# int_and
+#    int_shl               L
+#       INT_CONSTANT 1     LL
+#       int_and            LR
+#          register        LRL <-- offset
+#          INT_CONSTANT 31 LRR
+#    register              R <-- base
+bittest:	INT_AND(INT_SHL(INT_CONSTANT,INT_AND(riv,INT_CONSTANT)),r)
+(VLL(p) == 1) && (VLRR(p) == 31)? 13:INFINITE
+EMIT_INSTRUCTION
+EMIT(MIR_Test.mutate(P(p), IA32_BT, Binary.getVal2(P(p)), Binary.getVal1(PLR(p)).copy()));
+
+bittest:	INT_AND(INT_SHL(INT_CONSTANT,INT_AND(r, INT_CONSTANT)),load32)
+VLL(p) == 1 ? 31:INFINITE
+EMIT_INSTRUCTION
+OPT_Register tmp = regpool.getInteger(); \
+if (VM.VerifyAssertions) VM._assert((VLRR(p) & 0x7FFFFFFF) <= 31); \
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(tmp, VM_TypeReference.Int), Binary.getVal1(PLR(p))))); \
+EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_AND, new OPT_RegisterOperand(tmp, VM_TypeReference.Int), IC(VLRR(p))))); \
+EMIT(MIR_Test.mutate(P(p), IA32_BT, consumeMO(), new OPT_RegisterOperand(tmp, VM_TypeReference.Int)));
+
+# int_and
+#    register              L <-- base
+#    int_shl               R
+#       INT_CONSTANT 1     RL
+#       int_and            RR
+#          register        RRL <-- offset
+#          INT_CONSTANT 31 RRR
+bittest:	INT_AND(r,INT_SHL(INT_CONSTANT,INT_AND(r, INT_CONSTANT)))
+(VRL(p) == 1) && (VRRR(p) == 31) ? 13:INFINITE
+EMIT_INSTRUCTION
+EMIT(MIR_Test.mutate(P(p), IA32_BT, Binary.getVal1(P(p)), Binary.getVal1(PRR(p)).copy()));
+
+bittest:	INT_AND(load32,INT_SHL(INT_CONSTANT,INT_AND(r, INT_CONSTANT)))
+VRL(p) == 1 ? 31:INFINITE
+EMIT_INSTRUCTION
+OPT_Register tmp = regpool.getInteger(); \
+if (VM.VerifyAssertions) VM._assert((VRRR(p) & 0x7FFFFFFF) <= 31); \
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(tmp, VM_TypeReference.Int), Binary.getVal1(PRR(p))))); \
+EMIT(CPOS(P(p), MIR_BinaryAcc.create(IA32_AND, new OPT_RegisterOperand(tmp, VM_TypeReference.Int), IC(VRRR(p))))); \
+EMIT(MIR_Test.mutate(P(p), IA32_BT, consumeMO(), new OPT_RegisterOperand(tmp, VM_TypeReference.Int)));
