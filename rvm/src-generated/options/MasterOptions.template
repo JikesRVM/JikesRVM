@@ -76,7 +76,7 @@ $$$$ FOREACH OPTION VDATFILE
        return new java.util.Iterator<String>() {
          public boolean hasNext() { return false; }
          public String next() { return null; }
- 	 public void remove() {}
+          public void remove() {}
        };
      } else {
        return FULL_NAME.iterator();
@@ -145,9 +145,9 @@ $$$$ END LOOP
     }
     // Make sure only process O? option if initial runtime compiler!
     if ((prefix.indexOf("irc")!=-1 ||
-	 prefix.indexOf("bc")!=-1 ||
+         prefix.indexOf("bc")!=-1 ||
          prefix.indexOf("eoc")!=-1) &&
-	instanceProcessAsOption(arg)) {
+        instanceProcessAsOption(arg)) {
       return true;
     }
 
@@ -157,7 +157,7 @@ $$$$ END LOOP
     if (split == -1) {
       if (!(arg.equals("O0") || arg.equals("O1") || arg.equals("O2") || arg.equals("O3"))) {
         VM.sysWrite("  Illegal option specification!\n  \""+arg+
-	  	    "\" must be specified as a name-value pair in the form of option=value\n");
+                      "\" must be specified as a name-value pair in the form of option=value\n");
       }
       return false;
     }
@@ -172,9 +172,9 @@ $$$$ FOREACH OPTION BDATFILE
     if (name.equals("CMD_NAME")) {
       if (value.equals("true")) {
         FULL_NAME = true;
-	return true;
+        return true;
       } else if (value.equals("false")) {
-  	FULL_NAME = false;
+          FULL_NAME = false;
         return true;
       } else
         return false;
@@ -295,7 +295,7 @@ $$$$ FOREACH OPTION VDATFILE
      $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
      $$$$ IF TAG == E
     VM.sysWrite("\t\tOPTION.DESCRIP\n");
-	  $$$$ LET MAIN_CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, @LOWER("FULL_NAME"), "SHORT_NAME"), 30, " ")
+          $$$$ LET MAIN_CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, @LOWER("FULL_NAME"), "SHORT_NAME"), 30, " ")
     VM.sysWrite("MAIN_CMD_NAME");
             $$$$ LOOP CONSTNAME OPTION.ENUMS
                  $$$$ SPLIT "CONSTNAME" " " ITEM_NAME QUERRY_NAME CMD_NAME

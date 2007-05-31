@@ -48,9 +48,9 @@ public final class VM_ThinLock implements VM_ThinLockConstants {
     if (VM.VerifyAssertions) {
       if (!(index > 0 && index < VM_Scheduler.locks.length)) {
         VM.sysWrite("Lock index out of range! Word: "); VM.sysWrite(lockWord);
-	VM.sysWrite(" index: "); VM.sysWrite(index);
-	VM.sysWrite(" locks: "); VM.sysWrite(VM_Scheduler.locks.length);
-	VM.sysWriteln();
+        VM.sysWrite(" index: "); VM.sysWrite(index);
+        VM.sysWrite(" locks: "); VM.sysWrite(VM_Scheduler.locks.length);
+        VM.sysWriteln();
       }
       VM._assert(index > 0 && index < VM_Scheduler.locks.length);  // index is in range
       VM._assert(!lockWord.and(TL_FAT_LOCK_MASK).isZero());        // fat lock bit is set

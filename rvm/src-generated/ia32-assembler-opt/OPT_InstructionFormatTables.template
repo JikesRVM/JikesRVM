@@ -12,7 +12,7 @@
  */
 
 /**
- *  Static tables describing the format of each low-level instruction
+ * Static tables describing the format of each low-level instruction
  * that opt compiler understands.  For each instruction, there are two
  * static arrays:
  * <UL>
@@ -24,27 +24,27 @@ class OPT_InstructionFormatTables {
 
 $$$$ FOREACH OPTYPE FORMAT_FILE
 
-    /**
-     * The parameter names of OPTYPE.NAME
-     */
-    static final String[] OPTYPE.NAMEParameterNames = new String[]{
-	$$$$ LOOP PARAM OPTYPE.SIG
-	$$$$ SPLIT "PARAM" " " USEORDEF NAME TYPE
-	"NAME",
-	$$$$ END SPLIT
-	$$$$ END LOOP
-    };
+  /**
+   * The parameter names of OPTYPE.NAME
+   */
+  static final String[] OPTYPE.NAMEParameterNames = new String[]{
+    $$$$ LOOP PARAM OPTYPE.SIG
+    $$$$ SPLIT "PARAM" " " USEORDEF NAME TYPE
+    "NAME",
+    $$$$ END SPLIT
+    $$$$ END LOOP
+  };
 
-    /**
-     * The parameter types of OPTYPE.NAME
-     */
-    static final String[] OPTYPE.NAMEParameterTypes = new String[]{
-	$$$$ LOOP PARAM OPTYPE.SIG
-	$$$$ SPLIT "PARAM" " " USEORDEF NAME TYPE
-	"TYPE",
-	$$$$ END SPLIT
-	$$$$ END LOOP
-    };
+  /**
+   * The parameter types of OPTYPE.NAME
+   */
+  static final String[] OPTYPE.NAMEParameterTypes = new String[]{
+    $$$$ LOOP PARAM OPTYPE.SIG
+    $$$$ SPLIT "PARAM" " " USEORDEF NAME TYPE
+    "TYPE",
+    $$$$ END SPLIT
+    $$$$ END LOOP
+  };
 
 $$$$ END FOREACH
 }

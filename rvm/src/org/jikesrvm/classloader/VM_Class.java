@@ -1468,8 +1468,8 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
     if (isInterface()) {
       if (VM.VerifyAssertions) VM._assert(superClass == null);
       depth = 1;
-	  thinLockOffset = Offset.max();
-	} else if (superClass == null) {
+      thinLockOffset = Offset.max();
+    } else if (superClass == null) {
       if (VM.VerifyAssertions) VM._assert(isJavaLangObjectType());
       instanceSize = VM_ObjectModel.computeScalarHeaderSize(this);
       alignment = BYTES_IN_ADDRESS;
@@ -2320,7 +2320,7 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
    */
   @Uninterruptible
   public Offset getThinLockOffset() {
-	if (VM.VerifyAssertions) VM._assert(isResolved());
+    if (VM.VerifyAssertions) VM._assert(isResolved());
     return thinLockOffset;
   }
 

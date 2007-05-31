@@ -754,7 +754,7 @@ import org.jikesrvm.VM_Configuration;
  */
 public final class CNAMECarrier extends OPT_InstructionFormat {
   private static final int[] _index = {
-           -1	// Unassigned
+           -1    // Unassigned
   $$$$ LOOP INSTR_FORMAT_FILE InstructionFormatList.dat ARCH_IF_LIST
   $$$$ FOREACH OPTYPE INSTR_FORMAT_FILE
   $$$$ IF OPTYPE.NAME != "ARCH_INDEPENDENT_INSTR_FORMAT_END"
@@ -762,11 +762,11 @@ public final class CNAMECarrier extends OPT_InstructionFormat {
     $$$$ IF "ALLSIGS" =~ " CNAME CTYPE"
       $$$$ LOOP PARAM OPTYPE.SIG
         $$$$ IF " PARAM" =~ " CNAME CTYPE"
-           , PARAM.INDEX	// OPTYPE.NAME
+           , PARAM.INDEX    // OPTYPE.NAME
         $$$$ END IF
       $$$$ END LOOP
     $$$$ ELSE
-           , -1	// OPTYPE.NAME
+           , -1    // OPTYPE.NAME
     $$$$ END IF
     $$$$ END JOIN
   $$$$ END IF

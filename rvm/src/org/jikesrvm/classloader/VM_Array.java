@@ -369,7 +369,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
    */
   @Uninterruptible
   public Offset getThinLockOffset() {
-	return VM_ObjectModel.defaultThinLockOffset();
+    return VM_ObjectModel.defaultThinLockOffset();
   }
 
   /**
