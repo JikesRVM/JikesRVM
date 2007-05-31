@@ -538,11 +538,7 @@ public class VM_Statics implements VM_Constants {
   @Uninterruptible
   public static Object getSlotContentsAsObject(Offset offset) {
     if (VM.runningVM) {
-      if (VM.BuildFor32Addr) {
-        return VM_Magic.addressAsObject(Address.fromIntSignExtend(getSlotContentsAsInt(offset)));
-      } else {
-        return VM_Magic.addressAsObject(Address.fromLong(getSlotContentsAsLong(offset)));
-      }
+      return VM_Magic.getObjectAtOffset(slots, offset.plus(middleOfTable << LOG_BYTES_IN_INT));
     } else {
       return objectSlots[offsetAsSlot(offset)];
     }
