@@ -3436,16 +3436,22 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   private void incEdgeCounter(int counters, int scratch, int counterIdx) {
     asm.emitLInt(scratch, counterIdx << 2, counters);
     asm.emitADDI(scratch, 1, scratch);
-    asm.emitRLWINM(scratch, scratch, 0, 1, 31);
+    // Branch around store if we overflowed: want count to saturate at maxint.
+    asm.emitCMPI(scratch, 0);
+    VM_ForwardReference fr = asm.emitForwardBC(VM_Assembler.LT);
     asm.emitSTW(scratch, counterIdx << 2, counters);
+    fr.resolve(asm);
   }
 
   private void incEdgeCounterIdx(int counters, int scratch, int base, int counterIdx) {
     asm.emitADDI(counters, base << 2, counters);
     asm.emitLIntX(scratch, counterIdx, counters);
     asm.emitADDI(scratch, 1, scratch);
-    asm.emitRLWINM(scratch, scratch, 0, 1, 31);
+    // Branch around store if we overflowed: want count to saturate at maxint.
+    asm.emitCMPI(scratch, 0);
+    VM_ForwardReference fr = asm.emitForwardBC(VM_Assembler.LT);
     asm.emitSTWX(scratch, counterIdx, counters);
+    fr.resolve(asm);
   }
 
   /**
