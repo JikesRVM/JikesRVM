@@ -45,9 +45,9 @@ $$$$ END LET USE_OPT_LEVELS
   private boolean instanceProcessAsOption(String arg) {
     if (arg.startsWith("O")) {
       try {
-	setOptLevel(Integer.parseInt(arg.substring(1)));
+        setOptLevel(Integer.parseInt(arg.substring(1)));
       } catch (NumberFormatException e) {
-	return false;
+        return false;
       }
       return true;
     }

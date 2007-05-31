@@ -104,7 +104,7 @@ $$$$ END LOOP
     int split = arg.indexOf('=');
     if (split == -1) {
       VM.sysWrite("  Illegal option specification!\n  \""+arg+
-		  "\" must be specified as a name-value pair in the form of option=value\n");
+                  "\" must be specified as a name-value pair in the form of option=value\n");
       return false;
     }
     String name = arg.substring(0,split);
@@ -118,9 +118,9 @@ $$$$ FOREACH OPTION BDATFILE
     if (name.equals("CMD_NAME")) {
       if (value.equals("true")) {
         FULL_NAME = true;
-	return true;
+        return true;
       } else if (value.equals("false")) {
-  	FULL_NAME = false;
+          FULL_NAME = false;
         return true;
       } else
         return false;
@@ -225,7 +225,7 @@ $$$$ FOREACH OPTION VDATFILE
      $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
      $$$$ IF TAG == E
     VM.sysWrite("\t\tOPTION.DESCRIP\n");
-	  $$$$ LET MAIN_CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
+          $$$$ LET MAIN_CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
     VM.sysWrite("MAIN_CMD_NAME");
             $$$$ LOOP CONSTNAME OPTION.ENUMS
                  $$$$ SPLIT "CONSTNAME" " " ITEM_NAME QUERRY_NAME CMD_NAME
