@@ -13,6 +13,7 @@
 package org.vmmagic.unboxed;
 
 import org.vmmagic.Unboxed;
+import org.vmmagic.pragma.RawStorage;
 
 /**
  * <b>Stub</b> implementation of an Address type, intended only to
@@ -27,6 +28,7 @@ import org.vmmagic.Unboxed;
  * operations (Java does not have unsigned int types).
  */
 @Unboxed
+@RawStorage(lengthInWords = true, length = 1)
 public final class Address {
 
   /****************************************************************************

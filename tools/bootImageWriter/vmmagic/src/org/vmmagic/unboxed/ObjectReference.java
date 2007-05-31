@@ -56,6 +56,13 @@ import org.jikesrvm.VM_SizeConstants;
   public Address toAddress() {
     return null;
   }
+  
+  /**
+   * Get the object this reference represents. 
+   */
+  public Object toObject() {
+    return null;
+  }
 
   /**
    * Is this a null reference?

@@ -26,6 +26,12 @@ import org.vmmagic.Unboxed;
 public final class ObjectReference {
 
   /**
+   * The object field.
+   */
+  @SuppressWarnings("unused")
+  private Object data;
+  
+  /**
    * Convert from an object to a reference.
    * @param obj The object 
    * @return The corresponding reference

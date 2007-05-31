@@ -13,12 +13,14 @@
 package org.vmmagic.unboxed;
 
 import org.vmmagic.Unboxed;
+import org.vmmagic.pragma.RawStorage;
 
 /**
  * (Mistakes in) comments by Robin Garner
  * @see Address
  */
 @Unboxed
+@RawStorage(lengthInWords = true, length = 1)
 public final class Word {
 
   /**

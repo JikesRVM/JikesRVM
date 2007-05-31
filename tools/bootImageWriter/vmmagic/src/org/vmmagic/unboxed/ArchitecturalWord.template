@@ -16,8 +16,11 @@ package org.vmmagic.unboxed;
 
 import org.jikesrvm.VM;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.RawStorage;
 
-@Uninterruptible abstract class ArchitecturalWord {
+@RawStorage(lengthInWords = true, length = 1)
+@Uninterruptible
+abstract class ArchitecturalWord {
 
  @32MASK@protected int value;
  @64MASK@protected long value;

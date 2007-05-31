@@ -13,8 +13,10 @@
 package org.vmmagic.unboxed;
 
 import org.vmmagic.Unboxed;
+import org.vmmagic.pragma.RawStorage;
 
 @Unboxed
+@RawStorage(lengthInWords = true, length = 1)
 public final class Extent {
   public static Extent fromIntSignExtend(int address) {
     return null;

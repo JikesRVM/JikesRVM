@@ -13,11 +13,13 @@
 package org.vmmagic.unboxed;
 
 import org.vmmagic.Unboxed;
+import org.vmmagic.pragma.RawStorage;
 
 /**
  * To be commented
  */
 @Unboxed
+@RawStorage(lengthInWords = true, length = 1)
 public final class Offset {
 
   public static Offset fromIntSignExtend(int address) {
