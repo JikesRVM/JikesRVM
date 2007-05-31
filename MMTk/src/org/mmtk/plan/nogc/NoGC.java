@@ -71,11 +71,11 @@ import org.vmmagic.pragma.*;
   /**
    * Poll for a collection
    * 
-   * @param mustCollect Force a collection.
+   * @param vmExhausted Virtual Memory range for space is exhausted.
    * @param space The space that caused the poll.
    * @return True if a collection is required.
    */
-  public final boolean poll(boolean mustCollect, Space space) {
+  public final boolean poll(boolean vmExhausted, Space space) {
     boolean spaceFull = space.reservedPages() >= Conversions.bytesToPages(space.getExtent());
     if (spaceFull || getPagesReserved() > getTotalPages()) {
       VM.assertions.fail("GC Triggered in NoGC Plan due to memory exhaustion.");

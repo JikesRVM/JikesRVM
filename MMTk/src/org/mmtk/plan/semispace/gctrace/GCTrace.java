@@ -148,26 +148,25 @@ import org.vmmagic.pragma.*;
    * values must be reloaded.
    * 
    * @see org.mmtk.policy.Space#acquire(int)
-   * @param mustCollect if <code>true</code> then a collection is
-   * required and must be triggered.  Otherwise a collection is only
-   * triggered if we deem it necessary.
+   * @param vmExhausted Virtual Memory range for space is exhausted.
    * @param space the space that triggered the polling (i.e. the space
    * into which an allocation is about to occur).
    * @return True if a collection has been triggered
    */
   @LogicallyUninterruptible
-  public boolean poll(boolean mustCollect, Space space) { 
+  public boolean poll(boolean vmExhausted, Space space) { 
     if (getCollectionsInitiated() > 0 || !isInitialized() || space == metaDataSpace || space == traceSpace)
       return false;
 
-    mustCollect |= stressTestGCRequired();
+    vmExhausted |= stressTestGCRequired();
 
     boolean heapFull = getPagesReserved() > getTotalPages();
-    if (mustCollect || heapFull) {
-      required = space.reservedPages() - space.committedPages();
+    if (vmExhausted || heapFull) {
+      int required = space.reservedPages() - space.committedPages();
       if (space == copySpace0 || space == copySpace1)
         required = required << 1; // must account for copy reserve
       traceInducedGC = false;
+      addRequired(required);
       VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
     }

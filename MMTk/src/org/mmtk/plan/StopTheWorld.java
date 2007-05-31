@@ -226,6 +226,7 @@ import org.vmmagic.pragma.*;
     }
 
     if (phaseId == COMPLETE) {
+      resetRequired();
       Plan.setGCStatus(NOT_IN_GC);
       if (Stats.gatheringStats()) {
         Stats.endGC();

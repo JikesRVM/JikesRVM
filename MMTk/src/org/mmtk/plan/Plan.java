@@ -27,6 +27,7 @@ import org.mmtk.utility.sanitychecker.SanityChecker;
 import org.mmtk.utility.statistics.Timer;
 import org.mmtk.utility.statistics.Stats;
 
+import org.mmtk.vm.Lock;
 import org.mmtk.vm.VM;
 import org.mmtk.vm.Collection;
 
@@ -324,7 +325,8 @@ import org.vmmagic.unboxed.*;
    * GC State
    */
 
-  protected static int required = 0;
+  private volatile static int required = 0;
+  private static Lock requiredLock = VM.newLock("RequiredPages");
   protected static boolean progress = true;
 
   private static boolean awaitingCollection = false;
@@ -332,6 +334,27 @@ import org.vmmagic.unboxed.*;
   private static int collectionsInitiated = 0;
   private static int gcStatus = NOT_IN_GC; // shared variable
   private static int exceptionReserve = 0;
+
+  /**
+   * Add a request for n required pages
+   * @param pages The number of pages required 
+   */
+  @Interruptible
+  protected static void addRequired(int pages) {
+    requiredLock.acquire();
+    required += pages;
+    requiredLock.release();
+  }
+
+  /** @return The required page count */
+  protected static int getRequired() {
+    return required;
+  }
+  
+  /** Reset the required page count */
+  protected static void resetRequired() {
+    required = 0;
+  }
 
   /** @return Is the memory management system initialized? */
   public static boolean isInitialized() {
@@ -659,11 +682,11 @@ import org.vmmagic.unboxed.*;
    * (by default, each time a page is consumed), and provides the
    * collector with an opportunity to collect.
    *
-   * @param mustCollect Should a collection be forced.
+   * @param vmExhausted Virtual Memory range for space is exhausted.
    * @param space The space that triggered the poll.
    * @return true if a collection is required.
    */
-  public abstract boolean poll(boolean mustCollect, Space space);
+  public abstract boolean poll(boolean vmExhausted, Space space);
 
   /**
    * Start GCspy server.

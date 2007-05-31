@@ -112,17 +112,15 @@ import org.vmmagic.unboxed.*;
    * values must be reloaded.
    *
    * @see org.mmtk.policy.Space#acquire(int)
-   * @param mustCollect if <code>true</code> then a collection is
-   * required and must be triggered.  Otherwise a collection is only
-   * triggered if we deem it necessary.
+   * @param vmExhausted Virtual Memory range for space is exhausted.
    * @param space the space that triggered the polling (i.e. the space
    * into which an allocation is about to occur).
    * @return True if a collection has been triggered
    */
   @LogicallyUninterruptible
-  public boolean poll(boolean mustCollect, Space space) { 
+  public boolean poll(boolean vmExhausted, Space space) { 
     if (getCollectionsInitiated() > 0 || !isInitialized()) return false;
-    mustCollect |= stressTestGCRequired();
+    vmExhausted |= stressTestGCRequired();
     boolean heapFull = getPagesReserved() > getTotalPages();
     boolean nurseryFull = nurserySpace.reservedPages() >
                           Options.nurserySize.getMaxNursery();
@@ -130,15 +128,16 @@ import org.vmmagic.unboxed.*;
                            META_DATA_FULL_THRESHOLD;
     int newMetaDataPages = metaDataSpace.committedPages() - 
                            previousMetaDataPages;
-    if (mustCollect || heapFull || nurseryFull || metaDataFull ||
+    if (vmExhausted || heapFull || nurseryFull || metaDataFull ||
         (progress && (newMetaDataPages > Options.metaDataLimit.getPages()))) {
       if (space == metaDataSpace) {
         setAwaitingCollection();
         return false;
       }
-      required = space.reservedPages() - space.committedPages();
+      int required = space.reservedPages() - space.committedPages();
       // account for copy reserve
       if (space == nurserySpace) required = required<<1;
+      addRequired(required);
       VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
     }

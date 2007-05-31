@@ -169,7 +169,7 @@ import org.vmmagic.unboxed.*;
       }
       lastCommittedPLOSpages = ploSpace.committedPages();
       nextGCFullHeap = (getPagesAvail() < Options.nurserySize.getMinNursery());
-      progress = (getPagesReserved() + required) < getTotalPages();
+      progress = (getPagesReserved() + getRequired()) < getTotalPages();
       return;
     }
 
@@ -179,26 +179,26 @@ import org.vmmagic.unboxed.*;
   /**
    * Poll for a collection
    * 
-   * @param mustCollect Force a collection.
+   * @param vmExhausted Virtual Memory range for space is exhausted.
    * @param space The space that caused the poll.
    * @return True if a collection is required.
    */
   @LogicallyUninterruptible
-  public final boolean poll(boolean mustCollect, Space space) {
+  public final boolean poll(boolean vmExhausted, Space space) {
     if (getCollectionsInitiated() > 0 || !isInitialized())
       return false;
 
-    if (stressTestGCRequired()) {
-      mustCollect = true;
-      nextGCFullHeap = true;
+    boolean stressForceGC = stressTestGCRequired(); 
+
+    if (stressForceGC) { 
+      nextGCFullHeap = true; 
     }
-    boolean spaceFull = space.reservedPages() >= Conversions.bytesToPages(space.getExtent());
+
     boolean heapFull = getPagesReserved() > getTotalPages();
-    boolean nurseryFull = nurserySpace.reservedPages() >
-                          Options.nurserySize.getMaxNursery();
-    boolean metaDataFull = metaDataSpace.reservedPages() >
-                           META_DATA_FULL_THRESHOLD;
-    if (mustCollect || heapFull || nurseryFull || metaDataFull || spaceFull) {
+    boolean nurseryFull = nurserySpace.reservedPages() > Options.nurserySize.getMaxNursery();
+    boolean metaDataFull = metaDataSpace.reservedPages() > META_DATA_FULL_THRESHOLD;
+    
+    if (stressForceGC || vmExhausted || heapFull || nurseryFull || metaDataFull) {
       if (space == metaDataSpace) {
         /* In general we must not trigger a GC on metadata allocation since 
          * this is not, in general, in a GC safe point.  Instead we initiate
@@ -208,14 +208,37 @@ import org.vmmagic.unboxed.*;
         setAwaitingCollection();
         return false;
       }
-      required = space.reservedPages() - space.committedPages();
-      if (space == nurserySpace ||
-          (copyMature() && (space == activeMatureSpace())))
-        required = required << 1; // must account for copy reserve
-      int plosNurseryPages = ploSpace.committedPages() - lastCommittedPLOSpages;
-      int nurseryYield = (int)(((nurserySpace.committedPages() * 2) + plosNurseryPages) * SURVIVAL_ESTIMATE);
-      nextGCFullHeap |= nurseryYield < required || !(space == nurserySpace || space == ploSpace );
+      int required = space.reservedPages() - space.committedPages();
+      if (space == nurserySpace || (copyMature() && (space == activeMatureSpace()))) {
+        // must account for copy reserve
+        required = required << 1; 
+      }
+      
+      if (!nextGCFullHeap) {
+        if (space == nurserySpace || space == ploSpace) {
+          // This is a nursery space
+          int plosNurseryPages = ploSpace.committedPages() - lastCommittedPLOSpages;
+          int smallNurseryPages = nurserySpace.committedPages();
+          int smallNurseryYield = (int)((smallNurseryPages * 2) * SURVIVAL_ESTIMATE);
+          int plosYield = (int)(plosNurseryPages * SURVIVAL_ESTIMATE);
+          
+          if ((plosYield + smallNurseryYield) < required) {
+            // We need to perform a full heap GC as we dont expect to recover enough pages. 
+            nextGCFullHeap = true;
+          } else if (vmExhausted) {
+            // We need to recover pages specifically from 'space', check we expect to
+            if (((space == ploSpace) && (plosYield < required)) ||
+                ((space == nurserySpace) && (smallNurseryYield < required))) {
+              nextGCFullHeap = true;
+            }
+          }
+        } else {
+          // This is another space, we need to full heap collect.
+          nextGCFullHeap = true;
+        }
+      }
       logPoll(space,"Collection requested");
+      addRequired(required);
       VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
     }

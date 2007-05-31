@@ -141,23 +141,24 @@ import org.vmmagic.pragma.*;
   /**
    * Poll for a collection
    * 
-   * @param mustCollect Force a collection.
+   * @param vmExhausted Virtual Memory range for space is exhausted.
    * @param space The space that caused the poll.
    * @return True if a collection is required.
    */
   @LogicallyUninterruptible
-  public final boolean poll(boolean mustCollect, Space space) { 
+  public final boolean poll(boolean vmExhausted, Space space) { 
     if (getCollectionsInitiated() > 0 || !isInitialized() || 
         space == metaDataSpace)
       return false;
-    mustCollect |= stressTestGCRequired();
+    vmExhausted |= stressTestGCRequired();
     boolean heapFull = getPagesReserved() > getTotalPages();
     boolean nurseryFull = nurserySpace.reservedPages() > 
                           Options.nurserySize.getMaxNursery();
-    if (mustCollect || heapFull || nurseryFull) {
-      required = space.reservedPages() - space.committedPages();
+    if (vmExhausted || heapFull || nurseryFull) {
+      int required = space.reservedPages() - space.committedPages();
       // account for copy reserve
-      if (space == nurserySpace) required = required<<1;  
+      if (space == nurserySpace) required = required<<1;
+      addRequired(required);
       VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
     }
