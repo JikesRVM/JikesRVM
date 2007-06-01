@@ -29,8 +29,9 @@
   <macrodef name="dacapo">
     <attribute name="name"/>
     <attribute name="timeLimit" default=""/>
+    <attribute name="requires-display" default="false"/>
     <sequential>
-      <rvm tag="@{name}" class="Harness" args="@{name}" timeLimit="@{timeLimit}"/>
+      <rvm tag="@{name}" class="Harness" requires-display="@{requires-display}" args="@{name}" timeLimit="@{timeLimit}"/>
       <outputSingleStatisticResults tag="@{name}" key="time" pattern="===== DaCapo @{name} PASSED in (.*) msec ====="/>
     </sequential>
   </macrodef>
@@ -49,7 +50,7 @@
 
     <dacapo name="antlr"/>
     <dacapo name="bloat"/>
-    <dacapo name="chart"/>
+    <dacapo name="chart" requires-display="true"/>
     <dacapo name="fop"/>
     <dacapo name="hsqldb"/>
     <dacapo name="jython"/>

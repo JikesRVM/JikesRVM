@@ -56,7 +56,7 @@
   <target name="test" depends="prepare-dirs">
 
     <startResults/>
-    <rvm tag="SPECjbb2000" class="spec.jbb.JBBmain" args="-propfile SPECjbb.${spec.props}.props"/>
+    <rvm tag="SPECjbb2000" class="spec.jbb.JBBmain" args="-propfile SPECjbb.${spec.props}.props" requires-display="true"/>
 
     <outputTestStart tag="SPECjbb2000"/>
     <outputStatisticStart/>

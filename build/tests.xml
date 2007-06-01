@@ -343,6 +343,7 @@
     <attribute name="maxOptLevel" default=""/>
     <attribute name="exitCode" default="0"/>
     <attribute name="dir" default="${build.tests.dir}"/>
+    <attribute name="requires-display" default="false"/>
     <sequential>
       <condition property="default.test.@{tag}.classpath" value="${test.class.path}" else="@{classpath}">
         <equals arg1="@{classpath}" arg2=""/>
@@ -386,6 +387,22 @@
       <property name="test.@{tag}.output.file" value="${output.dir}/@{tag}-output.txt"/>
       <property name="test.@{tag}.sanitized.output.file" value="${output.dir}/@{tag}.txt"/>
 
+      <!-- Do we need a display wrapper ? -->
+      <if>
+        <conditions>
+          <and>
+            <equals arg1="@{requires-display}" arg2="true"/>
+            <isset property="display-wrapper.exe"/>
+	  </and>
+        </conditions>
+        <sequential>
+          <property name="test.@{tag}.rvm-wrapper.exe" value="${display-wrapper.exe}"/>
+          <property name="test.@{tag}.rvm.wrapped-args" value="${rvm.exe} ${test.@{tag}.rvm.args}"/>
+	</sequential>
+      </if>
+      <!-- Defaults -->
+      <property name="test.@{tag}.rvm-wrapper.exe" value="${rvm.exe}"/>
+      <property name="test.@{tag}.rvm.wrapped-args" value="${test.@{tag}.rvm.args}"/>
 
       <property name="test.@{tag}.command"
                 value='${rvm.exe} ${test.@{tag}.rvm.args} -classpath "${test.@{tag}.class.path}" ${test.@{tag}.class} ${test.@{tag}.args}'/>
@@ -408,14 +425,14 @@
           </not>
         </conditions>
         <sequential>
-          <texec executable="${rvm.exe}"
+          <texec executable="${test.@{tag}.rvm-wrapper.exe}"
                  failonerror="false"
                  dir="@{dir}"
                  timeout="${test.@{tag}.time.limit}000"
                  timeoutProperty="test.@{tag}.timeout"
                  output="${test.@{tag}.output.file}"
                  resultproperty="test.@{tag}.exit.code">
-            <arg line="${test.@{tag}.rvm.args}"/>
+            <arg line="${test.@{tag}.rvm.wrapped-args}"/>
             <arg value="-classpath"/>
             <arg value="${test.@{tag}.class.path}"/>
             <arg line="${test.@{tag}.class} ${test.@{tag}.args}"/>
