@@ -53,6 +53,14 @@ Expected: true Actual: true
 Expected: false Actual: false
 Expected: true Actual: true
 Expected: taken Actual: taken
+Expected: 10 Actual: 10
+Expected: 10 Actual: 10
+Expected: -2147483646 Actual: -2147483646
+Expected: -2147483646 Actual: -2147483646
+Expected: 10 Actual: 10
+Expected: 10 Actual: 10
+Expected: -2147483646 Actual: -2147483646
+Expected: -2147483646 Actual: -2147483646
 
 -- ltest --
 Expected: 10000000002 Actual: 10000000002

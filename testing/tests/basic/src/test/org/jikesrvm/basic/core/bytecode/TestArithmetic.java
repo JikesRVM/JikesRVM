@@ -183,6 +183,24 @@ class TestArithmetic {
     if (((int3 >>> int1) & 1) == 1) {
       System.out.println("taken");
     }
+
+    // Rotate tests
+    System.out.print("Expected: 10 Actual: ");
+    System.out.println((int5 << 1)|(int5 >>> -1)); // Rotate left by 1
+    System.out.print("Expected: 10 Actual: ");
+    System.out.println((int5 >>> -1)|(int5 << 1)); // Rotate left by 1
+    System.out.print("Expected: -2147483646 Actual: ");
+    System.out.println((int5 << -1)|(int5 >>> 1)); // Rotate right by 1
+    System.out.print("Expected: -2147483646 Actual: ");
+    System.out.println((int5 >>> 1)|(int5 << -1)); // Rotate right by 1
+    System.out.print("Expected: 10 Actual: ");
+    System.out.println((int5 << int1)|(int5 >>> -int1)); // Rotate left by 1
+    System.out.print("Expected: 10 Actual: ");
+    System.out.println((int5 >>> -int1)|(int5 << int1)); // Rotate left by 1
+    System.out.print("Expected: -2147483646 Actual: ");
+    System.out.println((int5 << -int1)|(int5 >>> int1)); // Rotate right by 1
+    System.out.print("Expected: -2147483646 Actual: ");
+    System.out.println((int5 >>> int1)|(int5 << -int1)); // Rotate right by 1
   }
 
   private static void ltest() {
