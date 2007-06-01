@@ -28,7 +28,7 @@ my $platform = $opt_p;
 die "Need to specify a regression host -h" unless ($opt_h ne "");
 my $regressionhost = $opt_h;
 my $reportdir = $regressionhost;
-if ($opt_d) {
+if ($opt_d ne "") {
   $reportdir = $opt_d;
 } 
 die "Need to specify a report (for today) -r" unless ($opt_r ne "");
