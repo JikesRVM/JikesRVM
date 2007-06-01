@@ -207,6 +207,10 @@ public abstract class OPT_BURS_Common_Helpers extends OPT_PhysicalRegisterTools 
     return p.child1.child2.getInstruction();
   }
 
+  protected static OPT_Instruction PLRL(OPT_BURS_TreeNode p) {
+    return p.child1.child2.child1.getInstruction();
+  }
+
   protected static OPT_Instruction PLRR(OPT_BURS_TreeNode p) {
     return p.child1.child2.child2.getInstruction();
   }
