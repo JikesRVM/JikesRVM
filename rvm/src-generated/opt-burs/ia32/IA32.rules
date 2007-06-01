@@ -1488,12 +1488,40 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), W_S, W), Unary.getVal(PL(p))));
 r:	INT_2LONG(r)
 33
 EMIT_INSTRUCTION
-INT_2LONG(P(p), Unary.getResult(P(p)), Unary.getVal(P(p)));
+INT_2LONG(P(p), Unary.getResult(P(p)), Unary.getVal(P(p)), true);
 
 r:	INT_2LONG(load32)
-33
+38
 EMIT_INSTRUCTION
-INT_2LONG(P(p), Unary.getResult(P(p)), consumeMO());
+INT_2LONG(P(p), Unary.getResult(P(p)), consumeMO(), true);
+
+r:      LONG_AND(INT_2LONG(r), LONG_CONSTANT)
+(Binary.getVal2(P(p)).asLongConstant().upper32() == 0) && \
+(Binary.getVal2(P(p)).asLongConstant().lower32() == -1)? 23 : INFINITE
+EMIT_INSTRUCTION
+INT_2LONG(P(p), Binary.getResult(P(p)), Unary.getVal(PL(p)), false);
+
+r:      LONG_AND(INT_2LONG(load32), LONG_CONSTANT)
+(Binary.getVal2(P(p)).asLongConstant().upper32() == 0) && \
+(Binary.getVal2(P(p)).asLongConstant().lower32() == -1)? 28 : INFINITE
+EMIT_INSTRUCTION
+INT_2LONG(P(p), Binary.getResult(P(p)), consumeMO(), false);
+
+r:      LONG_SHL(INT_2LONG(r), INT_CONSTANT)
+VR(p) == 32 ? 23 : INFINITE
+EMIT_INSTRUCTION
+OPT_Register hr = Binary.getResult(P(p)).register; \
+OPT_Register lr = regpool.getSecondReg(hr); \
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, new OPT_RegisterOperand(hr, VM_TypeReference.Int), Unary.getVal(PL(p)).copy())); \
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(lr, VM_TypeReference.Int), IC(0))));
+
+r:      LONG_SHL(INT_2LONG(load64), INT_CONSTANT)
+VR(p) == 32 ? 23 : INFINITE
+EMIT_INSTRUCTION
+OPT_Register hr = Binary.getResult(P(p)).register; \
+OPT_Register lr = regpool.getSecondReg(hr); \
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, new OPT_RegisterOperand(hr, VM_TypeReference.Int), setSize(consumeMO(),4))); \
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(lr, VM_TypeReference.Int), IC(0))));
 
 #####
 # LONG_2INT
@@ -1520,6 +1548,51 @@ r:	LONG_2INT(load64)
 15
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), consumeMO()));
+
+#load32:      LONG_2INT(load64)
+#0
+#EMIT_INSTRUCTION
+#pushMO(setSize(consumeMO(),4));
+#
+r:	LONG_2INT(LONG_USHR(r, INT_CONSTANT))
+VLR(p) == 32 ? 13 : INFINITE
+EMIT_INSTRUCTION
+OPT_Register uh = Binary.getVal1(PL(p)).asRegister().register; \
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), new OPT_RegisterOperand(uh, VM_TypeReference.Int)));
+
+r:      LONG_2INT(LONG_SHR(r, INT_CONSTANT))
+VLR(p) == 32 ? 13 : INFINITE
+EMIT_INSTRUCTION
+OPT_Register uh = Binary.getVal1(PL(p)).asRegister().register; \
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), new OPT_RegisterOperand(uh, VM_TypeReference.Int)));
+
+r:      LONG_2INT(LONG_USHR(load64, INT_CONSTANT))
+VLR(p) == 32 ? 15 : INFINITE
+EMIT_INSTRUCTION
+OPT_MemoryOperand mo = consumeMO(); \
+mo.disp = mo.disp.plus(4); \
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), mo));
+
+r:      LONG_2INT(LONG_SHR(load64, INT_CONSTANT))
+VLR(p) == 32 ? 15 : INFINITE
+EMIT_INSTRUCTION
+OPT_MemoryOperand mo = consumeMO(); \
+mo.disp = mo.disp.plus(4); \
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), mo));
+
+load32:      LONG_2INT(LONG_USHR(load64, INT_CONSTANT))
+VLR(p) == 32 ? 0 : INFINITE
+EMIT_INSTRUCTION
+OPT_MemoryOperand mo = consumeMO(); \
+mo.disp = mo.disp.plus(4); \
+pushMO(mo);
+
+load32:      LONG_2INT(LONG_SHR(load64, INT_CONSTANT))
+VLR(p) == 32 ? 0 : INFINITE
+EMIT_INSTRUCTION
+OPT_MemoryOperand mo = consumeMO(); \
+mo.disp = mo.disp.plus(4); \
+pushMO(mo);
 
 ##################################
 # Moves (register to register moves)

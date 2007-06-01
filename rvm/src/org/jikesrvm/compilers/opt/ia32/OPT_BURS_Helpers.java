@@ -601,15 +601,25 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
    * @param s the instruction to expand
    * @param result the result operand
    * @param value the second operand
+   * @param signExtend should the value be sign or zero extended?
    */
-  protected final void INT_2LONG(OPT_Instruction s, OPT_RegisterOperand result, OPT_Operand value) {
+  protected final void INT_2LONG(OPT_Instruction s, OPT_RegisterOperand result,
+OPT_Operand value, boolean signExtend) {
     OPT_Register hr = result.register;
     OPT_Register lr = regpool.getSecondReg(hr);
     EMIT(CPOS(s, MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(lr, VM_TypeReference.Int), value)));
-    EMIT(CPOS(s, MIR_Move.create(IA32_MOV,
-                         new OPT_RegisterOperand(hr, VM_TypeReference.Int),
-                         new OPT_RegisterOperand(lr, VM_TypeReference.Int))));
-    EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_SAR, new OPT_RegisterOperand(hr, VM_TypeReference.Int), IC(31))));
+    if (signExtend) {
+      EMIT(CPOS(s, MIR_Move.create(IA32_MOV,
+          new OPT_RegisterOperand(hr, VM_TypeReference.Int),
+          new OPT_RegisterOperand(lr, VM_TypeReference.Int))));
+      EMIT(MIR_BinaryAcc.mutate(s,IA32_SAR,
+          new OPT_RegisterOperand(hr, VM_TypeReference.Int),
+          IC(31)));
+    } else {
+      EMIT(MIR_Move.mutate(s, IA32_MOV,
+          new OPT_RegisterOperand(hr, VM_TypeReference.Int),
+          IC(0)));
+    }
   }
 
   /**
