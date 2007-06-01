@@ -17,7 +17,7 @@
 use Time::Local;
 
 require "getopts.pl";
-&Getopts('a:e:p:r:s:h:o:');
+&Getopts('a:e:p:r:s:h:o:d:');
 die "Need to specify either an email address with -e or an output file with -o" unless (($opt_e eq "") xor ($opt_o eq ""));
 my $reportrecipient = $opt_e;
 my $outputfile = $opt_o;
@@ -27,6 +27,10 @@ die "Need to specify a platform with -p" unless ($opt_p ne "");
 my $platform = $opt_p;
 die "Need to specify a regression host -h" unless ($opt_h ne "");
 my $regressionhost = $opt_h;
+my $reportdir = $regressionhost;
+if ($opt_d) {
+  $reportdir = $opt_d;
+} 
 die "Need to specify a report (for today) -r" unless ($opt_r ne "");
 my $report = $opt_r;
 die "Need to specify an xml to html conversion script -s" unless (!($report =~ /xml.gz/) || $opt_s ne "");
@@ -130,7 +134,7 @@ sub printmimehdr {
   my ($out) = @_;
   print $out "MIME-Version: 1.0\n";
 #  print $out "Content-type: multipart/mixed; boundary=\"$MIMEBOUNDARY\"\n";
-#  print $out "Content-Base: $reporturl/$regressionhost/\n";
+#  print $out "Content-Base: $reporturl/$reportdir/\n";
 #  print $out "\n--$MIMEBOUNDARY\n";
 #  print $out "Content-Type: text/plain; charset=\"iso-8859-1\"\n";
 #  print $out "Content-Transfer-Encoding: quoted-printable\n\n";
@@ -157,7 +161,7 @@ sub printsummary {
   my ($out, $html, $checkout, $datestring) = @_;
   if ($html) {
     print $out "<h2>Regression summary for $regressionhost, $checkout</h2>\n";
-    print $out "Details are available <a href=\"$reporturl/$regressionhost/$datestring.html\">here</a><br>\n";
+    print $out "Details are available <a href=\"$reporturl/$reportdir/$datestring.html\">here</a><br>\n";
   } else {
     print $out "Regression summary for $regressionhost, $checkout\n";
     print $out "Details are available at: $datestring.html\n";
@@ -288,7 +292,7 @@ sub getbestperf {
 sub printjavadoc {
   my ($out, $html, $javadocerrors, $datestring) = @_;
   my $str = "$javadocerrors Javadoc errors";
-  my $jdurl = "$reporturl/$regressionhost/$datestring.html\#javadoc";
+  my $jdurl = "$reporturl/$reportdir/$datestring.html\#javadoc";
   if ($html) {
     print $out "<h2>$str</h2>\n";
     print $out "Details <a href=\"$jdurl\">here</a><br>\n";
@@ -422,7 +426,7 @@ sub printfailuresummary {
        $err = ${$allerrors}{"$today:$build:$bm"};
        ($href,$error) = split(/:/, $err, 2);
        if ($href) {
-         $href = "$reporturl/$regressionhost/$datestring.html$href";
+         $href = "$reporturl/$reportdir/$datestring.html$href";
        }
      }
      if ($bm eq "") {
@@ -451,7 +455,7 @@ sub printfailuresummary {
        if ($html) {
 	 print $out "<tr><td align=\"right\" style=\"font-style:italic\">";
        }
-       print $out "[Truncated: See ".($html ? "<a href=\"$reporturl/$regressionhost/$datestring.html\">":"")."report".($html ? "</a>":"")." for full details.]";
+       print $out "[Truncated: See ".($html ? "<a href=\"$reporturl/$reportdir/$datestring.html\">":"")."report".($html ? "</a>":"")." for full details.]";
        if ($html) {
 	 print $out "</tr>\n";
        }

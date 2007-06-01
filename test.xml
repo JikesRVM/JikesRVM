@@ -44,6 +44,7 @@
 
   <!-- properties defining where to upload -->
   <property name="upload.location" value=""/>
+  <property name="web.directory" value=""/>
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
@@ -326,7 +327,11 @@
     </xslt>
 
     <condition property="upload-opt" value="" else="-s ${upload.location}">
-      <equals arg1="upload.location" arg2=""/>
+      <equals arg1="${upload.location}" arg2=""/>
+    </condition>
+
+    <condition property="webdir-opt" value="" else="-d ${web.directory}">
+      <equals arg1="${web.directory}" arg2=""/>
     </condition>
 
     <exec executable="${perl.exe}" failonerror="true">
@@ -336,6 +341,7 @@
       <arg value="-o"/>
       <arg value="${test.results.dir}/ReportNG.html"/>
       <arg line="${upload-opt}"/>
+      <arg line="${webdir-opt}"/>
     </exec>
     <exec executable="${perl.exe}" failonerror="true">
       <arg value="${jikesrvm.dir}/testing/harness/regressionsummary.pl"/>
