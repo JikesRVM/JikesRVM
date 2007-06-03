@@ -827,6 +827,20 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               // x = a >> c1; y = x << c1
               return Binary.create(INT_AND, y.copyRO(), a.copyRO(), IC(-1 << c1));
             }
+          } else if (def.operator == INT_AND) {
+            int c1 = getIntValue(Binary.getVal2(def));
+            // x = a & c1; y = << c2
+            if ((c1 << c2) == (-1 << c2)) {
+              // the first mask is redundant
+              return Binary.create(INT_SHL, y.copyRO(), a.copyRO(), IC(c2));
+            }
+          } else if ((def.operator == INT_OR)||(def.operator == INT_XOR)) {
+            int c1 = getIntValue(Binary.getVal2(def));
+            // x = a | c1; y = << c2
+            if ((c1 << c2) == 0) {
+              // the first mask is redundant
+              return Binary.create(INT_SHL, y.copyRO(), a.copyRO(), IC(c2));
+            }
           }
         }
         return null;
@@ -847,6 +861,20 @@ class OPT_ExpressionFolding extends OPT_IRTools {
                                    a.copyRO(),
                                    AC(Word.zero().minus(Word.one()).lsh(c1).toAddress()));
             }
+          } else if (def.operator == REF_AND) {
+            Address c1 = getAddressValue(Binary.getVal2(def));
+            // x = a & c1; y = << c2
+            if (c1.toWord().lsh(c2).EQ(Word.fromIntSignExtend(-1).lsh(c2))) {
+              // the first mask is redundant
+              return Binary.create(REF_SHL, y.copyRO(), a.copyRO(), IC(c2));
+            }
+          } else if ((def.operator == REF_OR)||(def.operator == REF_XOR)) {
+            Address c1 = getAddressValue(Binary.getVal2(def));
+            // x = a | c1; y = << c2
+            if (c1.toWord().lsh(c2).EQ(Word.zero())) {
+              // the first mask is redundant
+              return Binary.create(REF_SHL, y.copyRO(), a.copyRO(), IC(c2));
+            }
           }
         }
         return null;
@@ -863,6 +891,20 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             if (c1 == c2) {
               // x = a >> c1; y = x << c1
               return Binary.create(LONG_AND, y.copyRO(), a.copyRO(), LC(-1L << c1));
+            }
+          } else if (def.operator == LONG_AND) {
+            long c1 = getLongValue(Binary.getVal2(def));
+            // x = a & c1; y = << c2
+            if ((c1 << c2) == (-1L << c2)) {
+              // the first mask is redundant
+              return Binary.create(LONG_SHL, y.copyRO(), a.copyRO(), IC(c2));
+            }
+          } else if ((def.operator == LONG_OR)||(def.operator == LONG_XOR)) {
+            long c1 = getLongValue(Binary.getVal2(def));
+            // x = a | c1; y = << c2
+            if ((c1 << c2) == 0L) {
+              // the first mask is redundant
+              return Binary.create(LONG_SHL, y.copyRO(), a.copyRO(), IC(c2));
             }
           }
         }
@@ -886,6 +928,20 @@ class OPT_ExpressionFolding extends OPT_IRTools {
                 return Unary.create(INT_2SHORT, y.copyRO(), a.copyRO());
               }
             }
+          } else if (def.operator == INT_AND) {
+            int c1 = getIntValue(Binary.getVal2(def));
+            // x = a & c1; y = >> c2
+            if ((c1 >> c2) == -1) {
+              // the first mask is redundant
+              return Binary.create(INT_SHR, y.copyRO(), a.copyRO(), IC(c2));
+            }
+          } else if ((def.operator == INT_OR)||(def.operator == INT_XOR)) {
+            int c1 = getIntValue(Binary.getVal2(def));
+            // x = a | c1; y = >> c2
+            if ((c1 >>> c2) == 0) {
+              // the first mask is redundant
+              return Binary.create(INT_SHR, y.copyRO(), a.copyRO(), IC(c2));
+            }
           }
         }
         return null;
@@ -897,6 +953,20 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             int c1 = getIntValue(Binary.getVal2(def));
             // x = a >> c1; y = x >> c2
             return Binary.create(REF_SHR, y.copyRO(), a.copyRO(), IC(c1 + c2));
+          } else if (def.operator == REF_AND) {
+            Address c1 = getAddressValue(Binary.getVal2(def));
+            // x = a & c1; y = >> c2
+            if (c1.toWord().rsha(c2).EQ(Word.zero().minus(Word.one()))) {
+              // the first mask is redundant
+              return Binary.create(REF_SHR, y.copyRO(), a.copyRO(), IC(c2));
+            }
+          } else if ((def.operator == REF_OR)||(def.operator == REF_XOR)) {
+            Address c1 = getAddressValue(Binary.getVal2(def));
+            // x = a | c1; y = >> c2
+            if (c1.toWord().rshl(c2).EQ(Word.zero())) {
+              // the first mask is redundant
+              return Binary.create(REF_SHR, y.copyRO(), a.copyRO(), IC(c2));
+            }
           }
         }
         return null;
@@ -908,6 +978,20 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             int c1 = getIntValue(Binary.getVal2(def));
             // x = a >> c1; y = x >> c2
             return Binary.create(LONG_SHR, y.copyRO(), a.copyRO(), IC(c1 + c2));
+          } else if (def.operator == LONG_AND) {
+            long c1 = getLongValue(Binary.getVal2(def));
+            // x = a & c1; y = >> c2
+            if ((c1 >> c2) == -1L) {
+              // the first mask is redundant
+              return Binary.create(LONG_SHR, y.copyRO(), a.copyRO(), IC(c2));
+            }
+          } else if ((def.operator == LONG_OR)||(def.operator == LONG_XOR)) {
+            long c1 = getLongValue(Binary.getVal2(def));
+            // x = a & c1; y = >> c2
+            if ((c1 >>> c2) == 0L) {
+              // the first mask is redundant
+              return Binary.create(LONG_SHR, y.copyRO(), a.copyRO(), IC(c2));
+            }
           }
         }
         return null;
@@ -924,6 +1008,20 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             if (c1 == c2) {
               // x = a << c1; y = x >>> c1
               return Binary.create(INT_AND, y.copyRO(), a.copyRO(), IC(-1 >>> c1));
+            }
+          } else if (def.operator == INT_AND) {
+            int c1 = getIntValue(Binary.getVal2(def));
+            // x = a & c1; y = >>> c2
+            if ((c1 >> c2) == -1L) {
+              // the first mask is redundant
+              return Binary.create(INT_USHR, y.copyRO(), a.copyRO(), IC(c2));
+            }
+          } else if ((def.operator == INT_OR)||(def.operator == INT_XOR)) {
+            int c1 = getIntValue(Binary.getVal2(def));
+            // x = a | c1; y = >>> c2
+            if ((c1 >>> c2) == 0) {
+              // the first mask is redundant
+              return Binary.create(INT_USHR, y.copyRO(), a.copyRO(), IC(c2));
             }
           }
         }
@@ -945,6 +1043,20 @@ class OPT_ExpressionFolding extends OPT_IRTools {
                                    a.copyRO(),
                                    AC(Word.zero().minus(Word.one()).rshl(c1).toAddress()));
             }
+          } else if (def.operator == REF_AND) {
+            Address c1 = getAddressValue(Binary.getVal2(def));
+            // x = a & c1; y = >>> c2
+            if (c1.toWord().rsha(c2).EQ(Word.zero().minus(Word.one()))) {
+              // the first mask is redundant
+              return Binary.create(REF_USHR, y.copyRO(), a.copyRO(), IC(c2));
+            }
+          } else if ((def.operator == REF_OR)||(def.operator == REF_XOR)) {
+            Address c1 = getAddressValue(Binary.getVal2(def));
+            // x = a | c1; y = >>> c2
+            if (c1.toWord().rshl(c2).EQ(Word.zero())) {
+              // the first mask is redundant
+              return Binary.create(REF_USHR, y.copyRO(), a.copyRO(), IC(c2));
+            }
           }
         }
         return null;
@@ -961,6 +1073,20 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             if (c1 == c2) {
               // x = a << c1; y = x >>> c1
               return Binary.create(LONG_AND, y.copyRO(), a.copyRO(), LC(-1L >>> c1));
+            }
+          } else if (def.operator == LONG_AND) {
+            long c1 = getLongValue(Binary.getVal2(def));
+            // x = a & c1; y = >>> c2
+            if ((c1 >> c2) == -1L) {
+              // the first mask is redundant
+              return Binary.create(LONG_USHR, y.copyRO(), a.copyRO(), IC(c2));
+            }
+          } else if ((def.operator == LONG_OR)||(def.operator == LONG_XOR)) {
+            long c1 = getLongValue(Binary.getVal2(def));
+            // x = a & c1; y = >>> c2
+            if ((c1 >>> c2) == 0L) {
+              // the first mask is redundant
+              return Binary.create(LONG_USHR, y.copyRO(), a.copyRO(), IC(c2));
             }
           }
         }
