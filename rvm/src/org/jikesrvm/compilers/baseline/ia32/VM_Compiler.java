@@ -1442,13 +1442,18 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     asm.emitPOP_Reg(T0);                // (T0:..) = (high half of value1 : ..)
     // NB pop does not alter the carry register
     asm.emitSBB_Reg_Reg(T0, S0);        // T0 = T0 - S0 - CF
-    asm.emitSET_Cond_Reg_Byte(VM_Assembler.LT, S0); // S0 = (result -ve) ? 1 : 0
+    VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LT);
     asm.emitOR_Reg_Reg(T0, T1);         // T0 = T0 | T1
-    asm.emitSET_Cond_Reg_Byte(VM_Assembler.NE, T0); // T0 = (result zero) ? 0 : 1
-    asm.emitNEG_Reg(S0);                // S0 = (result -ve) ? -1 : 0
-    asm.emitOR_Reg_Reg(S0, T0);         // S0 = S0 | T0
-    asm.emitMOVSX_Reg_Reg_Byte(S0, S0); // Sign extend S0
-    asm.emitPUSH_Reg(S0);               // push result on stack
+    VM_ForwardReference fr2 = asm.forwardJcc(VM_Assembler.NE);
+    asm.emitPUSH_Imm(0);                // push result on stack
+    VM_ForwardReference fr3 = asm.forwardJMP();
+    fr2.resolve(asm);
+    asm.emitPUSH_Imm(1);                // push result on stack
+    VM_ForwardReference fr4 = asm.forwardJMP();
+    fr1.resolve(asm);
+    asm.emitPUSH_Imm(-1);                // push result on stack
+    fr3.resolve(asm);
+    fr4.resolve(asm);
   }
 
   /**
@@ -1457,16 +1462,20 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   protected final void emit_fcmpl() {
     asm.emitFLD_Reg_RegInd(FP0, SP);                     // Setup value2 into FP1,
     asm.emitFLD_Reg_RegDisp(FP0, SP, ONE_SLOT);          // value1 into FP0
-    asm.emitADD_Reg_Imm(SP, 2 * WORDSIZE);                 // popping the stack
-    asm.emitXOR_Reg_Reg(T0, T0);                         // T0 <- 0
+    asm.emitADD_Reg_Imm(SP, 2 * WORDSIZE);               // popping the stack
     asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                   // compare and pop FPU *1
-    asm.emitSET_Cond_Reg_Byte(VM_Assembler.LGT, S0);     // S0 = (value1 > value2) ? 1 : 0
-    asm.emitSBB_Reg_Reg(T0,
-                        T0);                         // T0 = 0 - 0 - CF (i.e. (value1 < value2) || unordered  ? -1 : 0)
-    asm.emitOR_Reg_Reg(S0, T0);                          // S0 <- S0 | T0
-    asm.emitMOVSX_Reg_Reg_Byte(S0, S0);                  // Sign extend S0
+    VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LLT);
+    VM_ForwardReference fr2 = asm.forwardJcc(VM_Assembler.LGT);
+    asm.emitPUSH_Imm(0);                                // push result on stack
+    VM_ForwardReference fr3 = asm.forwardJMP();
+    fr2.resolve(asm);
+    asm.emitPUSH_Imm(1);                                // push result on stack
+    VM_ForwardReference fr4 = asm.forwardJMP();
+    fr1.resolve(asm);
+    asm.emitPUSH_Imm(-1);                               // push result on stack
+    fr3.resolve(asm);
+    fr4.resolve(asm);
     asm.emitFSTP_Reg_Reg(FP0, FP0);                      // pop FPU*1
-    asm.emitPUSH_Reg(S0);                                // push result on stack
   }
 
   /**
@@ -1475,17 +1484,22 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   protected final void emit_fcmpg() {
     asm.emitFLD_Reg_RegInd(FP0, SP);                     // Setup value2 into FP1,
     asm.emitFLD_Reg_RegDisp(FP0, SP, ONE_SLOT);          // value1 into FP0
-    asm.emitADD_Reg_Imm(SP, 2 * WORDSIZE);                 // popping the stack
+    asm.emitADD_Reg_Imm(SP, 2 * WORDSIZE);               // popping the stack
     asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                   // compare and pop FPU *1
-    asm.emitSET_Cond_Reg_Byte(VM_Assembler.PE, S0);      // S0 = (value1 unordered value2) ? 1 : 0 (PF == 1)
-    asm.emitSET_Cond_Reg_Byte(VM_Assembler.LGT, T0);     // T0 = (value1 > value2) ? 1 : 0  (CF == 0 && ZF == 0)
-    asm.emitMOV_Reg_Reg(T1, S0);                         // T1 <- S0
-    asm.emitSBB_Reg_Imm(S0, 0);                          // S0 = 0/1 - 0 - CF  (i.e. value1 < value2 ? -1 : 0)
-    asm.emitOR_Reg_Reg(T0, T1);                          // T0 <- T0 | T1
-    asm.emitOR_Reg_Reg(T0, S0);                          // T0 <- T0 | S0
-    asm.emitMOVSX_Reg_Reg_Byte(T0, T0);                  // Sign extend T0
+    VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LGT);
+    VM_ForwardReference fr2 = asm.forwardJcc(VM_Assembler.PE);
+    VM_ForwardReference fr3 = asm.forwardJcc(VM_Assembler.LLT);
+    asm.emitPUSH_Imm(0);                                // push result on stack
+    VM_ForwardReference fr4 = asm.forwardJMP();
+    fr1.resolve(asm);
+    fr2.resolve(asm);
+    asm.emitPUSH_Imm(1);                                // push result on stack
+    VM_ForwardReference fr5 = asm.forwardJMP();
+    fr3.resolve(asm);
+    asm.emitPUSH_Imm(-1);                               // push result on stack
+    fr4.resolve(asm);
+    fr5.resolve(asm);
     asm.emitFSTP_Reg_Reg(FP0, FP0);                      // pop FPU*1
-    asm.emitPUSH_Reg(T0);                                // push result on stack
   }
 
   /**
@@ -1495,15 +1509,19 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     asm.emitFLD_Reg_RegInd_Quad(FP0, SP);                // Setup value2 into FP1,
     asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS);    // value1 into FP0
     asm.emitADD_Reg_Imm(SP, 4 * WORDSIZE);                 // popping the stack
-    asm.emitXOR_Reg_Reg(T0, T0);                         // T0 <- 0
     asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                   // compare and pop FPU *1
-    asm.emitSET_Cond_Reg_Byte(VM_Assembler.LGT, S0);     // S0 = (value1 > value2) ? 1 : 0
-    asm.emitSBB_Reg_Reg(T0,
-                        T0);                         // T0 = 0 - 0 - CF (i.e. (value1 < value2) || unordered  ? -1 : 0)
-    asm.emitOR_Reg_Reg(S0, T0);                          // S0 <- S0 | T0
-    asm.emitMOVSX_Reg_Reg_Byte(S0, S0);                  // Sign extend S0
+    VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LLT);
+    VM_ForwardReference fr2 = asm.forwardJcc(VM_Assembler.LGT);
+    asm.emitPUSH_Imm(0);                                // push result on stack
+    VM_ForwardReference fr3 = asm.forwardJMP();
+    fr2.resolve(asm);
+    asm.emitPUSH_Imm(1);                                // push result on stack
+    VM_ForwardReference fr4 = asm.forwardJMP();
+    fr1.resolve(asm);
+    asm.emitPUSH_Imm(-1);                               // push result on stack
+    fr3.resolve(asm);
+    fr4.resolve(asm);
     asm.emitFSTP_Reg_Reg(FP0, FP0);                      // pop FPU*1
-    asm.emitPUSH_Reg(S0);                                // push result on stack
   }
 
   /**
@@ -1514,15 +1532,20 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS);    // value1 into FP0
     asm.emitADD_Reg_Imm(SP, 4 * WORDSIZE);                 // popping the stack
     asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                   // compare and pop FPU *1
-    asm.emitSET_Cond_Reg_Byte(VM_Assembler.PE, S0);      // S0 = (value1 unordered value2) ? 1 : 0 (PF == 1)
-    asm.emitSET_Cond_Reg_Byte(VM_Assembler.LGT, T0);     // T0 = (value1 > value2) ? 1 : 0  (CF == 0 && ZF == 0)
-    asm.emitMOV_Reg_Reg(T1, S0);                         // T1 <- S0
-    asm.emitSBB_Reg_Imm(S0, 0);                          // S0 = 0/1 - 0 - CF  (i.e. value1 < value2 ? -1 : 0)
-    asm.emitOR_Reg_Reg(T0, T1);                          // T0 <- T0 | T1
-    asm.emitOR_Reg_Reg(T0, S0);                          // T0 <- T0 | S0
-    asm.emitMOVSX_Reg_Reg_Byte(T0, T0);                  // Sign extend T0
+    VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LGT);
+    VM_ForwardReference fr2 = asm.forwardJcc(VM_Assembler.PE);
+    VM_ForwardReference fr3 = asm.forwardJcc(VM_Assembler.LLT);
+    asm.emitPUSH_Imm(0);                                // push result on stack
+    VM_ForwardReference fr4 = asm.forwardJMP();
+    fr1.resolve(asm);
+    fr2.resolve(asm);
+    asm.emitPUSH_Imm(1);                                // push result on stack
+    VM_ForwardReference fr5 = asm.forwardJMP();
+    fr3.resolve(asm);
+    asm.emitPUSH_Imm(-1);                               // push result on stack
+    fr4.resolve(asm);
+    fr5.resolve(asm);
     asm.emitFSTP_Reg_Reg(FP0, FP0);                      // pop FPU*1
-    asm.emitPUSH_Reg(T0);                                // push result on stack
   }
 
   /*
@@ -3937,9 +3960,12 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     asm.emitPOP_Reg(S0);
     asm.emitPOP_Reg(T0);
     asm.emitCMP_Reg_Reg(T0, S0);
-    asm.emitSET_Cond_Reg_Byte(comparator, T0);
-    asm.emitMOVZX_Reg_Reg_Byte(T0, T0);   // Clear upper 3 bytes
-    asm.emitPUSH_Reg(T0);
+    VM_ForwardReference fr1 = asm.forwardJcc(comparator);
+    asm.emitPUSH_Imm(0);
+    VM_ForwardReference fr2 = asm.forwardJMP();
+    fr1.resolve(asm);
+    asm.emitPUSH_Imm(1);
+    fr2.resolve(asm);
   }
 
   // Offset of Java local variable (off stack pointer)
