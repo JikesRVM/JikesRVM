@@ -827,7 +827,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
   private long readLong() {
     int msb = readSignedInt();
     int lsb = readSignedInt();
-    return (((long)msb) << 32) | lsb;
+    return (((long)msb) << 32) | (lsb & 0xFFFFFFFFL);
   }
 
   //// READ BYTECODES
