@@ -1349,6 +1349,28 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               // Fold away redundany boolean_cmp
               return BooleanCmp.create(BOOLEAN_CMP_DOUBLE, y.copyRO(), a.copyRO(), DC(c1), cond2.flipCode(), prof);
             }
+          } else if (def.operator == LONG_CMP) {
+            long c1 = getLongValue(Binary.getVal2(def));
+            // x = a lcmp c1; y = y = x cmp c2 ? true : false
+            if (cond.isEQUAL() && c2 == 0) {
+              return BooleanCmp.create(BOOLEAN_CMP_LONG, y.copyRO(), a.copyRO(), LC(c1),
+                  OPT_ConditionOperand.EQUAL(), prof);              
+            } else if (cond.isNOT_EQUAL() && c2 == 0) {
+                return BooleanCmp.create(BOOLEAN_CMP_LONG, y.copyRO(), a.copyRO(), LC(c1),
+                    OPT_ConditionOperand.NOT_EQUAL(), prof);              
+            } else if ((cond.isEQUAL() && c2 == 1)||(cond.isGREATER() && c2 == 0)){
+              return BooleanCmp.create(BOOLEAN_CMP_LONG, y.copyRO(), a.copyRO(), LC(c1),
+                  OPT_ConditionOperand.GREATER(), prof);              
+            } else if (cond.isGREATER_EQUAL() && c2 == 0){
+              return BooleanCmp.create(BOOLEAN_CMP_LONG, y.copyRO(), a.copyRO(), LC(c1),
+                  OPT_ConditionOperand.GREATER_EQUAL(), prof);              
+            } else if ((cond.isEQUAL() && c2 == -1)||(cond.isLESS() && c2 == 0)) {
+              return BooleanCmp.create(BOOLEAN_CMP_LONG, y.copyRO(), a.copyRO(), LC(c1),
+                  OPT_ConditionOperand.LESS(), prof);
+            } else if (cond.isLESS_EQUAL() && c2 == 0) {
+              return BooleanCmp.create(BOOLEAN_CMP_LONG, y.copyRO(), a.copyRO(), LC(c1),
+                  OPT_ConditionOperand.LESS_EQUAL(), prof);
+            }
           }
         }
         return null;
@@ -1489,6 +1511,28 @@ class OPT_ExpressionFolding extends OPT_IRTools {
                 (cond.isNOT_EQUAL() && c2 == 1)) {
               // Fold away redundany boolean_cmp
               return IfCmp.create(REF_IFCMP, y.copyRO(), a.copyRO(), DC(c1), cond2.flipCode(), target, prof);
+            }
+          } else if (def.operator == LONG_CMP) {
+            long c1 = getLongValue(Binary.getVal2(def));
+            // x = a lcmp c1; y = y = x cmp c2
+            if (cond.isEQUAL() && c2 == 0) {
+              return IfCmp.create(LONG_IFCMP, y.copyRO(), a.copyRO(), LC(c1),
+                  OPT_ConditionOperand.EQUAL(), target, prof);
+            } else if (cond.isNOT_EQUAL() && c2 == 0) {
+              return IfCmp.create(LONG_IFCMP, y.copyRO(), a.copyRO(), LC(c1),
+                  OPT_ConditionOperand.NOT_EQUAL(), target, prof);
+            } else if ((cond.isEQUAL() && c2 == 1)||(cond.isGREATER() && c2 == 0)){
+              return IfCmp.create(LONG_IFCMP, y.copyRO(), a.copyRO(), LC(c1),
+                  OPT_ConditionOperand.GREATER(), target, prof);
+            } else if (cond.isGREATER_EQUAL() && c2 == 0){
+              return IfCmp.create(LONG_IFCMP, y.copyRO(), a.copyRO(), LC(c1),
+                  OPT_ConditionOperand.GREATER_EQUAL(), target, prof);
+            } else if ((cond.isEQUAL() && c2 == -1)||(cond.isLESS() && c2 == 0)) {
+              return IfCmp.create(LONG_IFCMP, y.copyRO(), a.copyRO(), LC(c1),
+                  OPT_ConditionOperand.LESS(), target, prof);
+            } else if (cond.isLESS_EQUAL() && c2 == 0) {
+              return IfCmp.create(LONG_IFCMP, y.copyRO(), a.copyRO(), LC(c1),
+                  OPT_ConditionOperand.LESS_EQUAL(), target, prof);
             }
           }
         }
@@ -1910,6 +1954,62 @@ class OPT_ExpressionFolding extends OPT_IRTools {
                     a.copyRO(),
                     FC(c1),
                     BooleanCmp.getCond(def).copy().asCondition().flipCode(),
+                    trueValue,
+                    falseValue);
+              } else {
+                return null;
+              }
+            }
+            case LONG_CMP_opcode: {
+              long c1 = getLongValue(Binary.getVal2(def));
+              int c2 = getIntValue(CondMove.getVal2(s));
+              // x = a lcmp c1; y = y = x cmp c2 ? trueValue : falseValue
+              if (cond.isEQUAL() && c2 == 0) {
+                return CondMove.create(LONG_COND_MOVE,
+                    y.copyRO(),
+                    a.copyRO(),
+                    LC(c1),
+                    OPT_ConditionOperand.EQUAL(),
+                    trueValue,
+                    falseValue);
+              } else if (cond.isNOT_EQUAL() && c2 == 0) {
+                return CondMove.create(LONG_COND_MOVE,
+                    y.copyRO(),
+                    a.copyRO(),
+                    LC(c1),
+                    OPT_ConditionOperand.NOT_EQUAL(),
+                    trueValue,
+                    falseValue);
+              } else if ((cond.isEQUAL() && c2 == 1)||(cond.isGREATER() && c2 == 0)){
+                return CondMove.create(LONG_COND_MOVE,
+                    y.copyRO(),
+                    a.copyRO(),
+                    LC(c1),
+                    OPT_ConditionOperand.GREATER(),
+                    trueValue,
+                    falseValue);
+              } else if (cond.isGREATER_EQUAL() && c2 == 0){
+                return CondMove.create(LONG_COND_MOVE,
+                    y.copyRO(),
+                    a.copyRO(),
+                    LC(c1),
+                    OPT_ConditionOperand.GREATER_EQUAL(),
+                    trueValue,
+                    falseValue);
+              } else if ((cond.isEQUAL() && c2 == -1)||(cond.isLESS() && c2 == 0)) {
+                return CondMove.create(LONG_COND_MOVE,
+                    y.copyRO(),
+                    a.copyRO(),
+                    LC(c1),
+                    OPT_ConditionOperand.LESS(),
+                    trueValue,
+                    falseValue);
+              } else if (cond.isLESS_EQUAL() && c2 == 0) {
+                return CondMove.create(LONG_COND_MOVE,
+                    y.copyRO(),
+                    a.copyRO(),
+                    LC(c1),
+                    OPT_ConditionOperand.LESS_EQUAL(),
                     trueValue,
                     falseValue);
               } else {
