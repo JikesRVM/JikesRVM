@@ -825,15 +825,9 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
   }
 
   private long readLong() {
-    long l = ((long) bcodes[bcIndex++] & 0x0FF) << (7 * BITS_IN_BYTE);
-    l |= ((long) bcodes[bcIndex++] & 0x0FF) << (6 * BITS_IN_BYTE);
-    l |= ((long) bcodes[bcIndex++] & 0x0FF) << (5 * BITS_IN_BYTE);
-    l |= ((long) bcodes[bcIndex++] & 0x0FF) << (4 * BITS_IN_BYTE);
-    l |= ((long) bcodes[bcIndex++] & 0x0FF) << (3 * BITS_IN_BYTE);
-    l |= ((long) bcodes[bcIndex++] & 0x0FF) << (2 * BITS_IN_BYTE);
-    l |= ((long) bcodes[bcIndex++] & 0x0FF) << BITS_IN_BYTE;
-    l |= ((long) bcodes[bcIndex++] & 0x0FF);
-    return l;
+    int msb = readSignedInt();
+    int lsb = readSignedInt();
+    return (((long)msb) << 32) | lsb;
   }
 
   //// READ BYTECODES
