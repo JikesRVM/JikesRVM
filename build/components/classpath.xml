@@ -85,8 +85,7 @@
 
   <!-- patch classpath -->
   <target name="patch-classpath-cvs" depends="fetch" if="classpath.from-cvs">
-    <patch patchfile="${components.patch.dir}/classpath-cvs.R1728742.patch"
-	   dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <!-- currently no patches required -->
   </target>
   <target name="patch-classpath-web" depends="fetch" if="classpath.from-web">
     <patch patchfile="${components.patch.dir}/classpath-web.R1722506.patch"
