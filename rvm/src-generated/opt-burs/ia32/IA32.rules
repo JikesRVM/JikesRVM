@@ -274,11 +274,6 @@ address1reg:	INT_ADD(r, INT_CONSTANT)
 EMIT_INSTRUCTION
 pushAddress(R(Binary.getVal1(P(p))), null, B_S, Offset.fromIntSignExtend(VR(p)));
 
-address1reg:	INT_ADD(INT_CONSTANT, r)
-0
-EMIT_INSTRUCTION
-pushAddress(R(Binary.getVal2(P(p))), null, B_S, Offset.fromIntSignExtend(VL(p)));
-
 address1reg:	INT_MOVE(r)
 0
 EMIT_INSTRUCTION
@@ -314,11 +309,6 @@ address:	INT_ADD(address1scaledreg, INT_CONSTANT)
 EMIT_INSTRUCTION
 augmentAddress(Binary.getVal2(P(p)));
 
-address:	INT_ADD(INT_CONSTANT, address1scaledreg)
-0
-EMIT_INSTRUCTION
-augmentAddress(Binary.getVal1(P(p)));
-
 address:	INT_ADD(address1scaledreg, address1reg)
 0
 EMIT_INSTRUCTION
@@ -333,45 +323,49 @@ combineAddresses();
 # Some cases where an LEA can replace several add/shift operations
 ##################################
 r:	INT_ADD(address1scaledreg, r)
-20
+11
 EMIT_INSTRUCTION
 augmentAddress(Binary.getVal2(P(p))); \
 EMIT(MIR_Lea.mutate(P(p), IA32_LEA, Binary.getResult(P(p)), consumeAddress(DW, null, null)));
 
 r:	INT_ADD(r, address1scaledreg)
-20
+11
 EMIT_INSTRUCTION
 augmentAddress(Binary.getVal1(P(p))); \
 EMIT(MIR_Lea.mutate(P(p), IA32_LEA, Binary.getResult(P(p)), consumeAddress(DW, null, null)));
 
 r:	INT_ADD(address1scaledreg, address1reg)
-20
+11
 EMIT_INSTRUCTION
 combineAddresses(); \
 EMIT(MIR_Lea.mutate(P(p), IA32_LEA, Binary.getResult(P(p)), consumeAddress(DW, null, null)));
 
 r:	INT_ADD(address1reg, address1scaledreg)
-20
+11
 EMIT_INSTRUCTION
 combineAddresses(); \
 EMIT(MIR_Lea.mutate(P(p), IA32_LEA, Binary.getResult(P(p)), consumeAddress(DW, null, null)));
 
 r:	INT_ADD(address, INT_CONSTANT)
-20
+11
 EMIT_INSTRUCTION
 augmentAddress(Binary.getVal2(P(p))); \
-EMIT(MIR_Lea.mutate(P(p), IA32_LEA, Binary.getResult(P(p)), consumeAddress(DW, null, null)));
-
-r:	INT_ADD(INT_CONSTANT, address)
-20
-EMIT_INSTRUCTION
-augmentAddress(Binary.getVal1(P(p))); \
-EMIT(MIR_Lea.mutate(P(p), IA32_LEA, Binary.getResult(P(p)), consumeAddress(DW, null, null)));
+OPT_MemoryOperand mo=consumeAddress(DW, null, null); \
+if ((mo.index == null) && Binary.getResult(P(p)).similar(mo.base)) { \
+ EMIT_Commutative(IA32_ADD, P(p), mo.base.copyRO(), mo.base, IC(mo.disp.toInt())); \
+} else { \
+ EMIT(MIR_Lea.mutate(P(p), IA32_LEA, Binary.getResult(P(p)), mo)); \
+}
 
 r:	INT_MOVE(address)
 20
 EMIT_INSTRUCTION
-EMIT(MIR_Lea.mutate(P(p), IA32_LEA, Move.getResult(P(p)), consumeAddress(DW, null, null)));
+OPT_MemoryOperand mo=consumeAddress(DW, null, null); \
+if ((mo.index == null) && Move.getResult(P(p)).similar(mo.base)) { \
+ EMIT_Commutative(IA32_ADD, P(p), Move.getResult(P(p)), mo.base, IC(mo.disp.toInt())); \
+} else { \
+ EMIT(MIR_Lea.mutate(P(p), IA32_LEA, Move.getResult(P(p)), mo)); \
+}
 
 ##################################
 # A few operators are passed through unchanged
@@ -857,10 +851,21 @@ LCMP_CMOV(P(p), CondMove.getResult(P(p)), CondMove.getVal1(P(p)), CondMove.getVa
 #####
 # INT_ADD
 #####
-czr:	INT_ADD(riv, riv)
+czr:	INT_ADD(r, riv)
 13
 EMIT_INSTRUCTION
 EMIT_Commutative(IA32_ADD, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
+
+r:	INT_ADD(r, riv)
+!Binary.getResult(P(p)).similar(Binary.getVal1(P(p))) && \
+!Binary.getResult(P(p)).similar(Binary.getVal2(P(p))) ? 11 : INFINITE
+EMIT_INSTRUCTION
+if (Binary.getVal2(P(p)).isIntConstant()) { \
+ pushAddress(R(Binary.getVal1(P(p))), null, B_S, Offset.fromIntSignExtend(VR(p))); \
+} else { \
+ pushAddress(R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))), B_S, Offset.zero()); \
+} \
+EMIT(MIR_Lea.mutate(P(p), IA32_LEA, Binary.getResult(P(p)), consumeAddress(DW, null, null)));
 
 ### Memory operands ###
 czr:	INT_ADD(riv, load32)
@@ -1018,11 +1023,22 @@ EMIT_INSTRUCTION
 EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int), Binary.getVal2(P(p))))); \
 EMIT_NonCommutative(IA32_SHL, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), new OPT_RegisterOperand(getECX(), VM_TypeReference.Int));
 
-szpr:	INT_SHL(riv, INT_CONSTANT)
+szpr:	INT_SHL(r, INT_CONSTANT)
 13
 EMIT_INSTRUCTION
 if (VM.VerifyAssertions) VM._assert((VR(p) & 0x7FFFFFFF) <= 31); \
-EMIT_NonCommutative(IA32_SHL, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
+if(Binary.getVal2(P(p)).asIntConstant().value == 1) { \
+ EMIT_NonCommutative(IA32_ADD, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal1(P(p)).copy()); \
+} else { \
+ EMIT_NonCommutative(IA32_SHL, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p))); \
+}
+
+r:	INT_SHL(r, INT_CONSTANT)
+!Binary.getResult(P(p)).similar(Binary.getVal1(P(p))) && \
+(Binary.getVal2(P(p)).asIntConstant().value & 0x1f) <= 3 ? 11 : INFINITE
+EMIT_INSTRUCTION
+pushAddress(null, Binary.getVal1(P(p)).asRegister(), LEA_SHIFT(Binary.getVal2(P(p))), Offset.zero()); \
+EMIT(MIR_Lea.mutate(P(p), IA32_LEA, Binary.getResult(P(p)), consumeAddress(DW, null, null)));
 
 # Are shifts being used to mask out lower bits?
 szpr:	INT_SHL(INT_SHR(r, INT_CONSTANT), INT_CONSTANT)
@@ -1215,11 +1231,6 @@ szp:	INT_AND(r, riv)
 11
 EMIT_INSTRUCTION
 EMIT(MIR_Test.mutate(P(p), IA32_TEST, Binary.getVal1(P(p)), Binary.getVal2(P(p))));
-
-szp:	INT_AND(INT_CONSTANT, r)
-11
-EMIT_INSTRUCTION
-EMIT(MIR_Test.mutate(P(p), IA32_TEST, Binary.getVal2(P(p)), Binary.getVal1(P(p))));
 
 ### Memory operands ###
 szpr:	INT_AND(riv, load32)
@@ -1825,10 +1836,10 @@ VR(p) == 0xff ? 0 : INFINITE
 EMIT_INSTRUCTION
 pushMO(setSize(consumeMO(),1));
 
-uload8:	INT_AND(INT_CONSTANT, load8_16_32)
-VL(p) == 0xff ? 0 : INFINITE
+r:	INT_AND(load8_16_32, INT_CONSTANT)
+VR(p) == 0xff ? 15 : INFINITE
 EMIT_INSTRUCTION
-pushMO(setSize(consumeMO(),1));
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVZX__B, Binary.getResult(P(p)), setSize(consumeMO(),1)));
 
 # int2byte(load8_16_32)
 r:	INT_2BYTE(load8_16_32)
@@ -1880,11 +1891,6 @@ EMIT(MIR_Unary.mutate(P(p), IA32_MOVZX__W, ALoad.getResult(P(p)), MO_AL(P(p), W_
 # load16_32 & 0xffff ===> uload16
 r:	INT_AND(load16_32, INT_CONSTANT)
 VR(p) == 0xffff ? 15 : INFINITE
-EMIT_INSTRUCTION
-EMIT(MIR_Unary.mutate(P(p), IA32_MOVZX__W, Binary.getResult(P(p)), setSize(consumeMO(),2)));
-
-r:	INT_AND(INT_CONSTANT, load16_32)
-VL(p) == 0xffff ? 15 : INFINITE
 EMIT_INSTRUCTION
 EMIT(MIR_Unary.mutate(P(p), IA32_MOVZX__W, Binary.getResult(P(p)), setSize(consumeMO(),2)));
 

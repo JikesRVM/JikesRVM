@@ -206,7 +206,7 @@ static char *
 stringf(const char *fmt, ...)
 {
     va_list ap;
-    char buf[512];
+    char buf[1024];
     int r;
     size_t nwrote;
 
