@@ -1462,7 +1462,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
                 cost++;
               }
             }
-            if (cost < 5) {
+            if (cost < 3) {
               // generate shift and adds
               OPT_RegisterOperand val1Operand = Binary.getClearVal1(s).asRegister();
               OPT_RegisterOperand resultOperand = regpool.makeTempInt();
@@ -2225,7 +2225,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
                 cost++;
               }
             }
-            if ((VM.BuildFor64Addr && (cost < 5)) || (cost < 3)) {
+            if (cost < 3) {
               // generate shift and adds
               OPT_RegisterOperand val1Operand = Binary.getClearVal1(s).asRegister();
               OPT_RegisterOperand resultOperand = regpool.makeTempLong();
