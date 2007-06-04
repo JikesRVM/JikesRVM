@@ -35,7 +35,7 @@ public class HostnameTask extends Task {
 
   private String getHostname() {
     try {
-      return InetAddress.getLocalHost().getHostName();
+      return InetAddress.getLocalHost().getCanonicalHostName();
     } catch (final UnknownHostException uhe) {
       return "Unknown";
     }
