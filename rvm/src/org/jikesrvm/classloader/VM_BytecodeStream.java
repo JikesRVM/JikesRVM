@@ -16,6 +16,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.runtime.VM_Statics;
 import org.vmmagic.unboxed.Offset;
+import org.vmmagic.pragma.Inline;
 
 /**
  * Provides minimal abstraction layer to a stream of bytecodes
@@ -824,28 +825,40 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
     return readLong();
   }
 
+  @Inline
   private long readLong() {
-    int msb = readSignedInt();
-    int lsb = readSignedInt();
+    if (VM.VerifyAssertions) VM._assert(bcIndex <= bcLength);
+    int msb = bcodes[bcIndex++] << (3 * BITS_IN_BYTE);
+    msb |= (bcodes[bcIndex++] & 0xFF) << (2 * BITS_IN_BYTE);
+    msb |= (bcodes[bcIndex++] & 0xFF) << BITS_IN_BYTE;
+    msb |= (bcodes[bcIndex++] & 0xFF);
+    int lsb = bcodes[bcIndex++] << (3 * BITS_IN_BYTE);
+    lsb |= (bcodes[bcIndex++] & 0xFF) << (2 * BITS_IN_BYTE);
+    lsb |= (bcodes[bcIndex++] & 0xFF) << BITS_IN_BYTE;
+    lsb |= (bcodes[bcIndex++] & 0xFF);
     return (((long)msb) << 32) | (lsb & 0xFFFFFFFFL);
   }
 
   //// READ BYTECODES
+  @Inline
   private byte readSignedByte() {
     if (VM.VerifyAssertions) VM._assert(bcIndex <= bcLength);
     return bcodes[bcIndex++];
   }
 
+  @Inline
   private int readUnsignedByte() {
     if (VM.VerifyAssertions) VM._assert(bcIndex <= bcLength);
     return bcodes[bcIndex++] & 0xFF;
   }
 
+  @Inline
   private int getUnsignedByte(int index) {
     if (VM.VerifyAssertions) VM._assert(index <= bcLength);
     return bcodes[index] & 0xFF;
   }
 
+  @Inline
   private int readSignedShort() {
     if (VM.VerifyAssertions) VM._assert(bcIndex <= bcLength);
     int i = bcodes[bcIndex++] << BITS_IN_BYTE;
@@ -853,6 +866,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
     return i;
   }
 
+  @Inline
   private int readUnsignedShort() {
     if (VM.VerifyAssertions) VM._assert(bcIndex <= bcLength);
     int i = (bcodes[bcIndex++] & 0xFF) << BITS_IN_BYTE;
@@ -860,6 +874,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
     return i;
   }
 
+  @Inline
   private int readSignedInt() {
     if (VM.VerifyAssertions) VM._assert(bcIndex <= bcLength);
     int i = bcodes[bcIndex++] << (3 * BITS_IN_BYTE);
@@ -869,6 +884,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
     return i;
   }
 
+  @Inline
   private int getSignedInt(int index) {
     if (VM.VerifyAssertions) VM._assert(index <= bcLength);
     int i = bcodes[index++] << (3 * BITS_IN_BYTE);
