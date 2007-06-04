@@ -203,12 +203,28 @@ public abstract class OPT_BURS_Common_Helpers extends OPT_PhysicalRegisterTools 
     return p.child1.child1.child2.child1.getInstruction();
   }
 
+  protected static OPT_Instruction PLLRLL(OPT_BURS_TreeNode p) {
+    return p.child1.child1.child2.child1.child1.getInstruction();
+  }
+
+  protected static OPT_Instruction PLLRLLR(OPT_BURS_TreeNode p) {
+    return p.child1.child1.child2.child1.child1.child2.getInstruction();
+  }
+
   protected static OPT_Instruction PLR(OPT_BURS_TreeNode p) {
     return p.child1.child2.getInstruction();
   }
 
   protected static OPT_Instruction PLRL(OPT_BURS_TreeNode p) {
     return p.child1.child2.child1.getInstruction();
+  }
+
+  protected static OPT_Instruction PLRLL(OPT_BURS_TreeNode p) {
+    return p.child1.child2.child1.child1.getInstruction();
+  }
+
+  protected static OPT_Instruction PLRLLRL(OPT_BURS_TreeNode p) {
+    return p.child1.child2.child1.child1.child2.child1.getInstruction();
   }
 
   protected static OPT_Instruction PLRR(OPT_BURS_TreeNode p) {
@@ -233,6 +249,10 @@ public abstract class OPT_BURS_Common_Helpers extends OPT_PhysicalRegisterTools 
 
   protected static OPT_Instruction PRLLLL(OPT_BURS_TreeNode p) {
     return p.child2.child1.child1.child1.child1.getInstruction();
+  }
+
+  protected static OPT_Instruction PRLLR(OPT_BURS_TreeNode p) {
+    return p.child2.child1.child1.child2.getInstruction();
   }
 
   protected static OPT_Instruction PRLLRLLL(OPT_BURS_TreeNode p) {
@@ -315,6 +335,10 @@ public abstract class OPT_BURS_Common_Helpers extends OPT_PhysicalRegisterTools 
     return ((OPT_BURS_IntConstantTreeNode) p.child1.child1.child2).value;
   }
 
+  protected static int VLLRLLRR(OPT_BURS_TreeNode p) {
+    return ((OPT_BURS_IntConstantTreeNode) p.child1.child1.child2.child1.child1.child2.child2).value;
+  }
+
   protected static int VLLRLR(OPT_BURS_TreeNode p) {
     return ((OPT_BURS_IntConstantTreeNode) p.child1.child1.child2.child1.child2).value;
   }
@@ -349,6 +373,10 @@ public abstract class OPT_BURS_Common_Helpers extends OPT_PhysicalRegisterTools 
 
   protected static int VLRLL(OPT_BURS_TreeNode p) {
     return ((OPT_BURS_IntConstantTreeNode) p.child1.child2.child1.child1).value;
+  }
+
+  protected static int VLRLLRR(OPT_BURS_TreeNode p) {
+    return ((OPT_BURS_IntConstantTreeNode) p.child1.child2.child1.child1.child2.child2).value;
   }
 
   protected static int VLRRR(OPT_BURS_TreeNode p) {
