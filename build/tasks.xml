@@ -38,6 +38,8 @@
     <taskdef name="erant" classname="org.jikesrvm.tools.ant.ErrorRecordingAntTask" classpath="${tasks.classes}"/>
     <!-- Task that copys a file while replacing non-ascii chars with ? -->
     <taskdef name="toAscii" classname="org.jikesrvm.tools.ant.ToAsciiTask" classpath="${tasks.classes}"/>
+    <!-- Task to get hostname -->
+    <taskdef name="hostname" classname="org.jikesrvm.tools.ant.HostnameTask" classpath="${tasks.classes}"/>
   </target>
 
 </project>
