@@ -46,6 +46,10 @@
   <property name="upload.location" value=""/>
   <property name="web.directory" value=""/>
 
+  <property name="cattrack.upload.account" value="regression@jikesrvm.anu.edu.au"/>
+  <property name="cattrack.upload.incoming.dir" value="/home/regression/incoming"/>
+
+
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
   <!-- *                      Macro for setup test properties                     * -->
@@ -300,12 +304,13 @@
   <!-- **************************************************************************** -->
 
   <target name="archive" depends="gen-xml-report">
-    <tstamp prefix="report"/>
     <mkdir dir="${results.archive}"/>
-<!--
-    <gzip src="${test.results.dir}/Report.xml"
-          destfile="${results.archive}/${test-run.name}_r${svn.revision}_${target.name}_Report.xml.gz"/>
--->
+
+    <hostname property="local.hostname"/>
+    <property name="archive.filename" value="${local.hostname}_${test-run.name}_r${svn.revision}_${target.name}_Report.xml"/>
+    <gzip src="${test.results.dir}/Report.xml" destfile="${results.archive}/${archive.filename}.gz"/>
+
+    <tstamp prefix="report"/>
     <gzip src="${test.results.dir}/Report.xml" destfile="${results.archive}/${report.DSTAMP}.xml.gz"/>
   </target>
 
@@ -341,7 +346,6 @@
       <arg value="-o"/>
       <arg value="${test.results.dir}/ReportNG.html"/>
       <arg line="${upload-opt}"/>
-      <arg line="${webdir-opt}"/>
     </exec>
     <exec executable="${perl.exe}" failonerror="true">
       <arg value="${jikesrvm.dir}/testing/harness/regressionsummary.pl"/>
@@ -357,6 +361,39 @@
       <arg value="${jikesrvm.dir}/testing/harness/nightlyreport.pl"/>
       <arg value="-o"/>
       <arg value="${test.results.dir}/ReportSummary.html"/>
+      <arg line="${webdir-opt}"/>
+    </exec>
+  </target>
+
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                  Target for uploading results to cattrack.               * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="upload-results" depends="archive" if="upload.results">
+    <exec executable="ssh" failonerror="true">
+      <arg value="${cattrack.upload.account}"/>
+      <arg value="mkdir"/>
+      <arg value="-p"/>
+      <arg value="${cattrack.upload.incoming.dir}/${local.hostname}"/>
+    </exec>
+    <exec executable="scp" failonerror="true">
+      <arg value="${results.archive}/${archive.filename}.gz"/>
+      <arg value="${cattrack.upload.account}:${cattrack.upload.incoming.dir}/${local.hostname}/${archive.filename}.gz_tmp"/>
+    </exec>
+    <exec executable="ssh" failonerror="true">
+      <arg value="${cattrack.upload.account}"/>
+      <arg value="chmod"/>
+      <arg value="go+rw"/>
+      <arg value="${cattrack.upload.incoming.dir}/${local.hostname}/${archive.filename}.gz_tmp"/>
+    </exec>
+    <exec executable="ssh" failonerror="true">
+      <arg value="${cattrack.upload.account}"/>
+      <arg value="mv"/>
+      <arg value="${cattrack.upload.incoming.dir}/${local.hostname}/${archive.filename}.gz_tmp"/>
+      <arg value="${cattrack.upload.incoming.dir}/${local.hostname}/${archive.filename}.gz"/>
     </exec>
   </target>
 
@@ -391,6 +428,6 @@
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="report" depends="test,send-report"/>
+  <target name="report" depends="test,upload-results,send-report"/>
 
 </project>
