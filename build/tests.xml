@@ -230,6 +230,8 @@
       <res><![CDATA[<result-explanation>${test.@{tag}.result.explanation}</result-explanation>]]></res>
       <res><![CDATA[<output><]]>![CDATA[</res>
       <toAscii src="${test.@{tag}.output.file}" dest="${build.tests.dir}/deleteme.txt"/>
+      <!-- truncate output to 400K -->
+      <truncate file="${build.tests.dir}/deleteme.txt" size="409600"/>
       <replace file="${build.tests.dir}/deleteme.txt" token="]]&gt;" value="]]&gt;]]&lt;![CDATA[&gt;"/>
       <concat destfile="${results.file}" append="true">
         <path path="${build.tests.dir}/deleteme.txt"/>
