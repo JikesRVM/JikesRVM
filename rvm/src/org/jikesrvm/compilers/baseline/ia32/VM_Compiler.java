@@ -1096,61 +1096,96 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the fadd bytecode
    */
   protected final void emit_fadd() {
-    asm.emitFLD_Reg_RegInd(FP0, SP);        // FPU reg. stack <- value2
-    asm.emitFADD_Reg_RegDisp(FP0, SP, ONE_SLOT); // FPU reg. stack += value1
-    asm.emitPOP_Reg(T0);           // discard
-    asm.emitFSTP_RegInd_Reg(SP, FP0);        // POP FPU reg. stack onto stack
+    if (SSE2_OPS) {
+      asm.emitMOVSS_Reg_RegInd(XMM0, SP);            // XMM0 = value2
+      asm.emitADDSS_Reg_RegDisp(XMM0, SP, ONE_SLOT); // XMM0 += value1
+      asm.emitPOP_Reg(T0);                           // discard
+      asm.emitMOVSS_RegInd_Reg(SP, XMM0);            // set result on stack
+    } else {
+      asm.emitFLD_Reg_RegInd(FP0, SP);               // FPU reg. stack <- value2
+      asm.emitFADD_Reg_RegDisp(FP0, SP, ONE_SLOT);   // FPU reg. stack += value1
+      asm.emitPOP_Reg(T0);                           // discard
+      asm.emitFSTP_RegInd_Reg(SP, FP0);              // POP FPU reg. stack onto stack
+    }
   }
 
   /**
    * Emit code to implement the fsub bytecode
    */
   protected final void emit_fsub() {
-    asm.emitFLD_Reg_RegDisp(FP0, SP, ONE_SLOT); // FPU reg. stack <- value1
-    asm.emitFSUB_Reg_RegDisp(FP0, SP, NO_SLOT);        // FPU reg. stack -= value2
-    asm.emitPOP_Reg(T0);           // discard
-    asm.emitFSTP_RegInd_Reg(SP, FP0);        // POP FPU reg. stack onto stack
+    if (SSE2_OPS) { 
+      asm.emitMOVSS_Reg_RegDisp(XMM0, SP, ONE_SLOT); // XMM0 = value1
+      asm.emitSUBSS_Reg_RegInd(XMM0, SP);            // XMM0 -= value2
+      asm.emitPOP_Reg(T0);                           // discard
+      asm.emitMOVSS_RegInd_Reg(SP, XMM0);            // set result on stack
+    } else {
+      asm.emitFLD_Reg_RegDisp(FP0, SP, ONE_SLOT);    // FPU reg. stack <- value1
+      asm.emitFSUB_Reg_RegDisp(FP0, SP, NO_SLOT);    // FPU reg. stack -= value2
+      asm.emitPOP_Reg(T0);                           // discard
+      asm.emitFSTP_RegInd_Reg(SP, FP0);              // POP FPU reg. stack onto stack
+    }
   }
 
   /**
    * Emit code to implement the fmul bytecode
    */
   protected final void emit_fmul() {
-    asm.emitFLD_Reg_RegInd(FP0, SP);        // FPU reg. stack <- value2
-    asm.emitFMUL_Reg_RegDisp(FP0, SP, ONE_SLOT); // FPU reg. stack *= value1
-    asm.emitPOP_Reg(T0);           // discard
-    asm.emitFSTP_RegInd_Reg(SP, FP0);        // POP FPU reg. stack onto stack
+    if (SSE2_OPS) {
+      asm.emitMOVSS_Reg_RegInd(XMM0, SP);            // XMM0 = value2
+      asm.emitMULSS_Reg_RegDisp(XMM0, SP, ONE_SLOT); // XMM0 *= value1
+      asm.emitPOP_Reg(T0);                           // discard
+      asm.emitMOVSS_RegInd_Reg(SP, XMM0);            // set result on stack
+    } else {
+      asm.emitFLD_Reg_RegInd(FP0, SP);               // FPU reg. stack <- value2
+      asm.emitFMUL_Reg_RegDisp(FP0, SP, ONE_SLOT);   // FPU reg. stack *= value1
+      asm.emitPOP_Reg(T0);                           // discard
+      asm.emitFSTP_RegInd_Reg(SP, FP0);              // POP FPU reg. stack onto stack
+    }
   }
 
   /**
    * Emit code to implement the fdiv bytecode
    */
   protected final void emit_fdiv() {
-    asm.emitFLD_Reg_RegDisp(FP0, SP, ONE_SLOT); // FPU reg. stack <- value1
-    asm.emitFDIV_Reg_RegDisp(FP0, SP, NO_SLOT);        // FPU reg. stack /= value2
-    asm.emitPOP_Reg(T0);           // discard
-    asm.emitFSTP_RegInd_Reg(SP, FP0);        // POP FPU reg. stack onto stack
+    if (SSE2_OPS) {
+      asm.emitMOVSS_Reg_RegDisp(XMM0, SP, ONE_SLOT); // XMM0 = value1
+      asm.emitDIVSS_Reg_RegInd(XMM0, SP);            // XMM0 /= value2
+      asm.emitPOP_Reg(T0);                           // discard
+      asm.emitMOVSS_RegInd_Reg(SP, XMM0);            // set result on stack
+    } else {
+      asm.emitFLD_Reg_RegDisp(FP0, SP, ONE_SLOT);    // FPU reg. stack <- value1
+      asm.emitFDIV_Reg_RegDisp(FP0, SP, NO_SLOT);    // FPU reg. stack /= value2
+      asm.emitPOP_Reg(T0);                           // discard
+      asm.emitFSTP_RegInd_Reg(SP, FP0);              // POP FPU reg. stack onto stack
+    }
   }
 
   /**
    * Emit code to implement the frem bytecode
    */
   protected final void emit_frem() {
-    asm.emitFLD_Reg_RegInd(FP0, SP);        // FPU reg. stack <- value2, or a
-    asm.emitFLD_Reg_RegDisp(FP0, SP, ONE_SLOT); // FPU reg. stack <- value1, or b
-    asm.emitFPREM();             // FPU reg. stack <- a%b
-    asm.emitFSTP_RegDisp_Reg(SP, ONE_SLOT, FP0); // POP FPU reg. stack (results) onto java stack
-    asm.emitFSTP_RegInd_Reg(SP, FP0);        // POP FPU reg. stack onto java stack
-    asm.emitPOP_Reg(T0);           // shrink the stack (T0 discarded)
+    // TODO: Something else when SSE2_OPS? 
+    asm.emitFLD_Reg_RegInd(FP0, SP);                 // FPU reg. stack <- value2, or a
+    asm.emitFLD_Reg_RegDisp(FP0, SP, ONE_SLOT);      // FPU reg. stack <- value1, or b
+    asm.emitFPREM();                                 // FPU reg. stack <- a%b
+    asm.emitFSTP_RegDisp_Reg(SP, ONE_SLOT, FP0);     // POP FPU reg. stack (results) onto java stack
+    asm.emitFSTP_RegInd_Reg(SP, FP0);                // POP FPU reg. stack onto java stack
+    asm.emitPOP_Reg(T0);                             // shrink the stack (T0 discarded)
   }
 
   /**
    * Emit code to implement the fneg bytecode
    */
   protected final void emit_fneg() {
-    asm.emitFLD_Reg_RegInd(FP0, SP); // FPU reg. stack <- value1
-    asm.emitFCHS();      // change sign to stop of FPU stack
-    asm.emitFSTP_RegInd_Reg(SP, FP0); // POP FPU reg. stack onto stack
+    if (SSE2_OPS) {
+      asm.emitXORPS_Reg_Reg(XMM0, XMM0);             // XMM0 = 0
+      asm.emitSUBSS_Reg_RegInd(XMM0, SP);            // XMM0 -= value
+      asm.emitMOVSS_RegInd_Reg(SP, XMM0);            // set result on stack
+    } else {
+      asm.emitFLD_Reg_RegInd(FP0, SP);               // FPU reg. stack <- value1
+      asm.emitFCHS();                                // change sign to stop of FPU stack
+      asm.emitFSTP_RegInd_Reg(SP, FP0);              // POP FPU reg. stack onto stack
+    }
   }
 
   /*
@@ -1161,61 +1196,96 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the dadd bytecode
    */
   protected final void emit_dadd() {
-    asm.emitFLD_Reg_RegInd_Quad(FP0, SP);        // FPU reg. stack <- value2
-    asm.emitFADD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS);        // FPU reg. stack += value1
-    asm.emitADD_Reg_Imm(SP, 2 * WORDSIZE);  // shrink the stack
-    asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);        // POP FPU reg. stack onto stack
+    if (SSE2_OPS) {
+      asm.emitMOVSD_Reg_RegInd(XMM0, SP);                // XMM0 = value2
+      asm.emitADDSD_Reg_RegDisp(XMM0, SP, TWO_SLOTS);    // XMM0 += value1
+      asm.emitADD_Reg_Imm(SP, 2 * WORDSIZE);             // discard
+      asm.emitMOVSD_RegInd_Reg(SP, XMM0);                // set result on stack
+    } else {
+      asm.emitFLD_Reg_RegInd_Quad(FP0, SP);              // FPU reg. stack <- value2
+      asm.emitFADD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS); // FPU reg. stack += value1
+      asm.emitADD_Reg_Imm(SP, 2 * WORDSIZE);             // shrink the stack
+      asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);             // POP FPU reg. stack onto stack
+    }
   }
 
   /**
    * Emit code to implement the dsub bytecode
    */
   protected final void emit_dsub() {
-    asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS);          // FPU reg. stack <- value1
-    asm.emitFSUB_Reg_RegDisp_Quad(FP0, SP, NO_SLOT);          // FPU reg. stack -= value2
-    asm.emitADD_Reg_Imm(SP, 2 * WORDSIZE); // shrink the stack
-    asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);          // POP FPU reg. stack onto stack
+    if (SSE2_OPS) {
+      asm.emitMOVSD_Reg_RegDisp(XMM0, SP, TWO_SLOTS);    // XMM0 = value1
+      asm.emitSUBSD_Reg_RegInd(XMM0, SP);                // XMM0 -= value2
+      asm.emitADD_Reg_Imm(SP, 2 * WORDSIZE);             // discard
+      asm.emitMOVSD_RegInd_Reg(SP, XMM0);                // set result on stack
+    } else {
+      asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS);  // FPU reg. stack <- value1
+      asm.emitFSUB_Reg_RegDisp_Quad(FP0, SP, NO_SLOT);   // FPU reg. stack -= value2
+      asm.emitADD_Reg_Imm(SP, 2 * WORDSIZE);             // shrink the stack
+      asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);             // POP FPU reg. stack onto stack
+    }
   }
 
   /**
    * Emit code to implement the dmul bytecode
    */
   protected final void emit_dmul() {
-    asm.emitFLD_Reg_RegInd_Quad(FP0, SP);          // FPU reg. stack <- value2
-    asm.emitFMUL_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS);          // FPU reg. stack *= value1
-    asm.emitADD_Reg_Imm(SP, 2 * WORDSIZE); // shrink the stack
-    asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);          // POP FPU reg. stack onto stack
+    if (SSE2_OPS) {
+      asm.emitMOVSD_Reg_RegInd(XMM0, SP);                // XMM0 = value2
+      asm.emitMULSD_Reg_RegDisp(XMM0, SP, TWO_SLOTS);    // XMM0 *= value1
+      asm.emitADD_Reg_Imm(SP, 2 * WORDSIZE);             // discard
+      asm.emitMOVSD_RegInd_Reg(SP, XMM0);                // set result on stack
+    } else {
+      asm.emitFLD_Reg_RegInd_Quad(FP0, SP);              // FPU reg. stack <- value2
+      asm.emitFMUL_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS); // FPU reg. stack *= value1
+      asm.emitADD_Reg_Imm(SP, 2 * WORDSIZE);             // shrink the stack
+      asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);             // POP FPU reg. stack onto stack
+    }
   }
 
   /**
    * Emit code to implement the ddiv bytecode
    */
   protected final void emit_ddiv() {
-    asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS);          // FPU reg. stack <- value1
-    asm.emitFDIV_Reg_RegInd_Quad(FP0, SP);          // FPU reg. stack /= value2
-    asm.emitADD_Reg_Imm(SP, 2 * WORDSIZE); // shrink the stack
-    asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);          // POP FPU reg. stack onto stack
+    if (SSE2_OPS) {
+      asm.emitMOVSD_Reg_RegDisp(XMM0, SP, TWO_SLOTS);    // XMM0 = value1
+      asm.emitDIVSD_Reg_RegInd(XMM0, SP);                // XMM0 /= value2
+      asm.emitADD_Reg_Imm(SP, 2 * WORDSIZE);             // discard
+      asm.emitMOVSD_RegInd_Reg(SP, XMM0);                // set result on stack
+    } else {
+      asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS);  // FPU reg. stack <- value1
+      asm.emitFDIV_Reg_RegInd_Quad(FP0, SP);             // FPU reg. stack /= value2
+      asm.emitADD_Reg_Imm(SP, 2 * WORDSIZE);             // shrink the stack
+      asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);             // POP FPU reg. stack onto stack
+    }
   }
 
   /**
    * Emit code to implement the drem bytecode
    */
   protected final void emit_drem() {
-    asm.emitFLD_Reg_RegInd_Quad(FP0, SP);          // FPU reg. stack <- value2, or a
-    asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS); // FPU reg. stack <- value1, or b
-    asm.emitFPREM();               // FPU reg. stack <- a%b
-    asm.emitFSTP_RegDisp_Reg_Quad(SP, TWO_SLOTS, FP0); // POP FPU reg. stack (result) onto java stack
-    asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);         // POP FPU reg. stack onto java stack
-    asm.emitADD_Reg_Imm(SP, 2 * WORDSIZE); // shrink the stack
+    // TODO: Something else when SSE2_OPS? 
+    asm.emitFLD_Reg_RegInd_Quad(FP0, SP);                // FPU reg. stack <- value2, or a
+    asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS);    // FPU reg. stack <- value1, or b
+    asm.emitFPREM();                                     // FPU reg. stack <- a%b
+    asm.emitFSTP_RegDisp_Reg_Quad(SP, TWO_SLOTS, FP0);   // POP FPU reg. stack (result) onto java stack
+    asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);               // POP FPU reg. stack onto java stack
+    asm.emitADD_Reg_Imm(SP, 2 * WORDSIZE);               // shrink the stack
   }
 
   /**
    * Emit code to implement the dneg bytecode
    */
   protected final void emit_dneg() {
-    asm.emitFLD_Reg_RegInd_Quad(FP0, SP); // FPU reg. stack <- value1
-    asm.emitFCHS();      // change sign to stop of FPU stack
-    asm.emitFSTP_RegInd_Reg_Quad(SP, FP0); // POP FPU reg. stack onto stack
+    if (SSE2_OPS) {
+      asm.emitXORPD_Reg_Reg(XMM0, XMM0);                 // XMM0 = 0
+      asm.emitSUBSD_Reg_RegInd(XMM0, SP);                // XMM0 -= value
+      asm.emitMOVSD_RegInd_Reg(SP, XMM0);                // set result on stack
+    } else {
+      asm.emitFLD_Reg_RegInd_Quad(FP0, SP);              // FPU reg. stack <- value1
+      asm.emitFCHS();                                    // change sign to stop of FPU stack
+      asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);             // POP FPU reg. stack onto stack
+    }
   }
 
   /*
@@ -1236,17 +1306,28 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the i2f bytecode
    */
   protected final void emit_i2f() {
-    asm.emitFILD_Reg_RegInd(FP0, SP);
-    asm.emitFSTP_RegInd_Reg(SP, FP0);
+    if (SSE2_OPS) {
+      asm.emitCVTSI2SS_Reg_RegInd(XMM0, SP);
+      asm.emitMOVSS_RegInd_Reg(SP, XMM0);
+    } else {
+      asm.emitFILD_Reg_RegInd(FP0, SP);
+      asm.emitFSTP_RegInd_Reg(SP, FP0);
+    }
   }
 
   /**
    * Emit code to implement the i2d bytecode
    */
   protected final void emit_i2d() {
-    asm.emitFILD_Reg_RegInd(FP0, SP);
-    asm.emitPUSH_Reg(T0);             // grow the stack
-    asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);
+    if (SSE2_OPS) {
+      asm.emitCVTSI2SD_Reg_RegInd(XMM0, SP);
+      asm.emitSUB_Reg_Imm(SP, WORDSIZE); // grow the stack
+      asm.emitMOVSD_RegInd_Reg(SP, XMM0);
+    } else {
+      asm.emitFILD_Reg_RegInd(FP0, SP);
+      asm.emitPUSH_Reg(T0);             // grow the stack
+      asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);
+    }
   }
 
   /**
@@ -1263,7 +1344,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    */
   protected final void emit_l2f() {
     asm.emitFILD_Reg_RegInd_Quad(FP0, SP);
-    asm.emitADD_Reg_Imm(SP, WORDSIZE);                // shrink the stack
+    asm.emitADD_Reg_Imm(SP, WORDSIZE); // shrink the stack
     asm.emitFSTP_RegInd_Reg(SP, FP0);
   }
 
@@ -1330,9 +1411,15 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the f2d bytecode
    */
   protected final void emit_f2d() {
-    asm.emitFLD_Reg_RegInd(FP0, SP);
-    asm.emitSUB_Reg_Imm(SP, WORDSIZE);                // grow the stack
-    asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);
+    if (SSE2_OPS) {
+      asm.emitCVTSS2SD_Reg_RegInd(XMM0, SP);
+      asm.emitSUB_Reg_Imm(SP, WORDSIZE); // grow the stack
+      asm.emitMOVSD_RegInd_Reg(SP, XMM0);
+    } else {
+      asm.emitFLD_Reg_RegInd(FP0, SP);
+      asm.emitSUB_Reg_Imm(SP, WORDSIZE); // grow the stack
+      asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);
+    }
   }
 
   /**
@@ -1343,7 +1430,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     int numNonVols = NONVOLATILE_GPRS.length;
     Offset off = Offset.fromIntSignExtend(numNonVols * WORDSIZE);
     for (int i = 0; i < numNonVols; i++) {
-      asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
+     asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
     }
     // (2) Push args to C function (reversed)
     asm.emitPUSH_RegDisp(SP, off.plus(4));
@@ -1395,9 +1482,15 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the d2f bytecode
    */
   protected final void emit_d2f() {
-    asm.emitFLD_Reg_RegInd_Quad(FP0, SP);
-    asm.emitADD_Reg_Imm(SP, WORDSIZE);                // shrink the stack
-    asm.emitFSTP_RegInd_Reg(SP, FP0);
+    if (SSE2_OPS) {
+      asm.emitCVTSD2SS_Reg_RegInd(XMM0, SP);
+      asm.emitADD_Reg_Imm(SP, WORDSIZE); // shrink the stack
+      asm.emitMOVSS_RegInd_Reg(SP, XMM0);
+    } else {
+      asm.emitFLD_Reg_RegInd_Quad(FP0, SP);
+      asm.emitADD_Reg_Imm(SP, WORDSIZE); // shrink the stack
+      asm.emitFSTP_RegInd_Reg(SP, FP0);
+    }
   }
 
   /**
@@ -1460,92 +1553,165 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the fcmpl bytecode
    */
   protected final void emit_fcmpl() {
-    asm.emitFLD_Reg_RegInd(FP0, SP);                     // Setup value2 into FP1,
-    asm.emitFLD_Reg_RegDisp(FP0, SP, ONE_SLOT);          // value1 into FP0
-    asm.emitADD_Reg_Imm(SP, 2 * WORDSIZE);               // popping the stack
-    asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                   // compare and pop FPU *1
-    VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LLT);
-    VM_ForwardReference fr2 = asm.forwardJcc(VM_Assembler.LGT);
-    asm.emitPUSH_Imm(0);                                // push result on stack
-    VM_ForwardReference fr3 = asm.forwardJMP();
-    fr2.resolve(asm);
-    asm.emitPUSH_Imm(1);                                // push result on stack
-    VM_ForwardReference fr4 = asm.forwardJMP();
-    fr1.resolve(asm);
-    asm.emitPUSH_Imm(-1);                               // push result on stack
-    fr3.resolve(asm);
-    fr4.resolve(asm);
-    asm.emitFSTP_Reg_Reg(FP0, FP0);                      // pop FPU*1
+    if (SSE2_OPS) {
+      // TODO: Is this optimal?
+      // Comparison 1: S0 = value1 < value2 (true if unordered)
+      asm.emitMOVSS_Reg_RegInd(XMM0, SP);               // XMM0 = value2
+      asm.emitCMPNLESS_Reg_RegDisp(XMM0, SP, ONE_SLOT); // XMM0 = (value1 < value2 || unordered ? -1 : 0)
+      asm.emitMOVD_Reg_Reg(S0, XMM0);                   // S0  = XMM0
+      
+      // Comparison 2: T0 = value1 > value2 (false if unordered)
+      asm.emitMOVSS_Reg_RegInd(XMM0, SP);               // XMM0 = value2
+      asm.emitCMPLTSS_Reg_RegDisp(XMM0, SP, ONE_SLOT);  // XMM0 = (value1 > value2 ? -1 : 0)
+      asm.emitMOVD_Reg_Reg(T0, XMM0);                   // T0  = XMM0
+      
+      asm.emitADD_Reg_Imm(SP, 2 * WORDSIZE);            // popping the stack
+  
+      asm.emitSUB_Reg_Reg(S0, T0);                      // S0 = S0 - T0
+      asm.emitPUSH_Reg(S0);                             // push result on stack
+    } else {
+      asm.emitFLD_Reg_RegInd(FP0, SP);                  // Setup value2 into FP1,
+      asm.emitFLD_Reg_RegDisp(FP0, SP, ONE_SLOT);       // value1 into FP0
+      asm.emitADD_Reg_Imm(SP, 2 * WORDSIZE);            // popping the stack
+      asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                // compare and pop FPU *1
+      VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LLT);
+      VM_ForwardReference fr2 = asm.forwardJcc(VM_Assembler.LGT);
+      asm.emitPUSH_Imm(0);                              // push result on stack
+      VM_ForwardReference fr3 = asm.forwardJMP();
+      fr2.resolve(asm);
+      asm.emitPUSH_Imm(1);                              // push result on stack
+      VM_ForwardReference fr4 = asm.forwardJMP();
+      fr1.resolve(asm);
+      asm.emitPUSH_Imm(-1);                             // push result on stack
+      fr3.resolve(asm);
+      fr4.resolve(asm);
+      asm.emitFSTP_Reg_Reg(FP0, FP0);                   // pop FPU*1
+    }
   }
 
   /**
    * Emit code to implement the fcmpg bytecode
    */
   protected final void emit_fcmpg() {
-    asm.emitFLD_Reg_RegInd(FP0, SP);                     // Setup value2 into FP1,
-    asm.emitFLD_Reg_RegDisp(FP0, SP, ONE_SLOT);          // value1 into FP0
-    asm.emitADD_Reg_Imm(SP, 2 * WORDSIZE);               // popping the stack
-    asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                   // compare and pop FPU *1
-    VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LGT);
-    VM_ForwardReference fr2 = asm.forwardJcc(VM_Assembler.PE);
-    VM_ForwardReference fr3 = asm.forwardJcc(VM_Assembler.LLT);
-    asm.emitPUSH_Imm(0);                                // push result on stack
-    VM_ForwardReference fr4 = asm.forwardJMP();
-    fr1.resolve(asm);
-    fr2.resolve(asm);
-    asm.emitPUSH_Imm(1);                                // push result on stack
-    VM_ForwardReference fr5 = asm.forwardJMP();
-    fr3.resolve(asm);
-    asm.emitPUSH_Imm(-1);                               // push result on stack
-    fr4.resolve(asm);
-    fr5.resolve(asm);
-    asm.emitFSTP_Reg_Reg(FP0, FP0);                      // pop FPU*1
+    if (SSE2_OPS) {
+      // TODO: Is this optimal?
+      // Comparison 1: S0 = value1 < value2 (false if unordered)
+      asm.emitMOVSS_Reg_RegDisp(XMM0, SP, ONE_SLOT);    // XMM0 = value1
+      asm.emitCMPLTSS_Reg_RegInd(XMM0, SP);             // XMM0 = (value1 < value2 ? -1 : 0)
+      asm.emitMOVD_Reg_Reg(S0, XMM0);                   // T0  = XMM0
+
+      // Comparison 2: T0 = value1 > value2 (true if unordered)
+      asm.emitMOVSS_Reg_RegDisp(XMM0, SP, ONE_SLOT);    // XMM0 = value1
+      asm.emitCMPNLESS_Reg_RegInd(XMM0, SP);            // XMM0 = (value1 > value2 || unordered ? -1 : 0)
+      asm.emitMOVD_Reg_Reg(T0, XMM0);                   // T0  = XMM0
+
+      asm.emitADD_Reg_Imm(SP, 2 * WORDSIZE);            // popping the stack
+
+      asm.emitSUB_Reg_Reg(S0, T0);                      // S0 = S0 - T0
+      asm.emitPUSH_Reg(S0);                             // push result on stack
+    } else {
+      asm.emitFLD_Reg_RegInd(FP0, SP);                  // Setup value2 into FP1,
+      asm.emitFLD_Reg_RegDisp(FP0, SP, ONE_SLOT);       // value1 into FP0
+      asm.emitADD_Reg_Imm(SP, 2 * WORDSIZE);            // popping the stack
+      asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                // compare and pop FPU *1
+      VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LGT);
+      VM_ForwardReference fr2 = asm.forwardJcc(VM_Assembler.PE);
+      VM_ForwardReference fr3 = asm.forwardJcc(VM_Assembler.LLT);
+      asm.emitPUSH_Imm(0);                              // push result on stack
+      VM_ForwardReference fr4 = asm.forwardJMP();
+      fr1.resolve(asm);
+      fr2.resolve(asm);
+      asm.emitPUSH_Imm(1);                              // push result on stack
+      VM_ForwardReference fr5 = asm.forwardJMP();
+      fr3.resolve(asm);
+      asm.emitPUSH_Imm(-1);                             // push result on stack
+      fr4.resolve(asm);
+      fr5.resolve(asm);
+      asm.emitFSTP_Reg_Reg(FP0, FP0);                   // pop FPU*1
+    } 
   }
+    
 
   /**
    * Emit code to implement the dcmpl bytecode
    */
   protected final void emit_dcmpl() {
-    asm.emitFLD_Reg_RegInd_Quad(FP0, SP);                // Setup value2 into FP1,
-    asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS);    // value1 into FP0
-    asm.emitADD_Reg_Imm(SP, 4 * WORDSIZE);                 // popping the stack
-    asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                   // compare and pop FPU *1
-    VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LLT);
-    VM_ForwardReference fr2 = asm.forwardJcc(VM_Assembler.LGT);
-    asm.emitPUSH_Imm(0);                                // push result on stack
-    VM_ForwardReference fr3 = asm.forwardJMP();
-    fr2.resolve(asm);
-    asm.emitPUSH_Imm(1);                                // push result on stack
-    VM_ForwardReference fr4 = asm.forwardJMP();
-    fr1.resolve(asm);
-    asm.emitPUSH_Imm(-1);                               // push result on stack
-    fr3.resolve(asm);
-    fr4.resolve(asm);
-    asm.emitFSTP_Reg_Reg(FP0, FP0);                      // pop FPU*1
+    if (SSE2_OPS) {
+      // TODO: Is this optimal?
+      // Comparison 1: S0 = value1 < value2 (true if unordered)
+      asm.emitMOVSD_Reg_RegInd(XMM0, SP);               // XMM0 = value2
+      asm.emitCMPNLESD_Reg_RegDisp(XMM0, SP, TWO_SLOTS);// XMM0 = (value1 < value2 || unordered ? -1 : 0)
+      asm.emitMOVD_Reg_Reg(S0, XMM0);                   // S0  = XMM0
+
+      // Comparison 2: T0 = value1 > value2 (false if unordered)
+      asm.emitMOVSD_Reg_RegInd(XMM0, SP);               // XMM0 = value2
+      asm.emitCMPLTSD_Reg_RegDisp(XMM0, SP, TWO_SLOTS); // XMM0 = (value1 > value2 ? -1 : 0)
+      asm.emitMOVD_Reg_Reg(T0, XMM0);                   // T0  = XMM0
+
+      asm.emitADD_Reg_Imm(SP, 4 * WORDSIZE);            // popping the stack
+
+      asm.emitSUB_Reg_Reg(S0, T0);                      // S0 = S0 - T0
+      asm.emitPUSH_Reg(S0);                             // push result on stack
+    } else {
+      asm.emitFLD_Reg_RegInd_Quad(FP0, SP);             // Setup value2 into FP1,
+      asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS); // value1 into FP0
+      asm.emitADD_Reg_Imm(SP, 4 * WORDSIZE);            // popping the stack
+      asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                // compare and pop FPU *1
+      VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LLT);
+      VM_ForwardReference fr2 = asm.forwardJcc(VM_Assembler.LGT);
+      asm.emitPUSH_Imm(0);                              // push result on stack
+      VM_ForwardReference fr3 = asm.forwardJMP();
+      fr2.resolve(asm);
+      asm.emitPUSH_Imm(1);                              // push result on stack
+      VM_ForwardReference fr4 = asm.forwardJMP();
+      fr1.resolve(asm);
+      asm.emitPUSH_Imm(-1);                             // push result on stack
+      fr3.resolve(asm);
+      fr4.resolve(asm);
+      asm.emitFSTP_Reg_Reg(FP0, FP0);                   // pop FPU*1
+    }
   }
 
   /**
    * Emit code to implement the dcmpg bytecode
    */
   protected final void emit_dcmpg() {
-    asm.emitFLD_Reg_RegInd_Quad(FP0, SP);                // Setup value2 into FP1,
-    asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS);    // value1 into FP0
-    asm.emitADD_Reg_Imm(SP, 4 * WORDSIZE);                 // popping the stack
-    asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                   // compare and pop FPU *1
-    VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LGT);
-    VM_ForwardReference fr2 = asm.forwardJcc(VM_Assembler.PE);
-    VM_ForwardReference fr3 = asm.forwardJcc(VM_Assembler.LLT);
-    asm.emitPUSH_Imm(0);                                // push result on stack
-    VM_ForwardReference fr4 = asm.forwardJMP();
-    fr1.resolve(asm);
-    fr2.resolve(asm);
-    asm.emitPUSH_Imm(1);                                // push result on stack
-    VM_ForwardReference fr5 = asm.forwardJMP();
-    fr3.resolve(asm);
-    asm.emitPUSH_Imm(-1);                               // push result on stack
-    fr4.resolve(asm);
-    fr5.resolve(asm);
-    asm.emitFSTP_Reg_Reg(FP0, FP0);                      // pop FPU*1
+    if (SSE2_OPS) {
+      // TODO: Is this optimal?
+      // Comparison 1: S0 = value1 < value2 (false if unordered)
+      asm.emitMOVSD_Reg_RegDisp(XMM0, SP, TWO_SLOTS);   // XMM0 = value1
+      asm.emitCMPLTSD_Reg_RegInd(XMM0, SP);             // XMM0 = (value1 < value2 ? -1 : 0)
+      asm.emitMOVD_Reg_Reg(S0, XMM0);                   // T0  = XMM0
+
+      // Comparison 2: T0 = value1 > value2 (true if unordered)
+      asm.emitMOVSD_Reg_RegDisp(XMM0, SP, TWO_SLOTS);   // XMM0 = value1
+      asm.emitCMPNLESD_Reg_RegInd(XMM0, SP);            // XMM0 = (value1 > value2 || unordered ? -1 : 0)
+      asm.emitMOVD_Reg_Reg(T0, XMM0);                   // T0  = XMM0
+
+      asm.emitADD_Reg_Imm(SP, 4 * WORDSIZE);            // popping the stack
+
+      asm.emitSUB_Reg_Reg(S0, T0);                      // S0 = S0 - T0
+      asm.emitPUSH_Reg(S0);                             // push result on stack
+    } else {
+      asm.emitFLD_Reg_RegInd_Quad(FP0, SP);             // Setup value2 into FP1,
+      asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS); // value1 into FP0
+      asm.emitADD_Reg_Imm(SP, 4 * WORDSIZE);            // popping the stack
+      asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                // compare and pop FPU *1
+      VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LGT);
+      VM_ForwardReference fr2 = asm.forwardJcc(VM_Assembler.PE);
+      VM_ForwardReference fr3 = asm.forwardJcc(VM_Assembler.LLT);
+      asm.emitPUSH_Imm(0);                              // push result on stack
+      VM_ForwardReference fr4 = asm.forwardJMP();
+      fr1.resolve(asm);
+      fr2.resolve(asm);
+      asm.emitPUSH_Imm(1);                              // push result on stack
+      VM_ForwardReference fr5 = asm.forwardJMP();
+      fr3.resolve(asm);
+      asm.emitPUSH_Imm(-1);                             // push result on stack
+      fr4.resolve(asm);
+      fr5.resolve(asm);
+      asm.emitFSTP_Reg_Reg(FP0, FP0);                   // pop FPU*1
+    }
   }
 
   /*
@@ -2004,8 +2170,14 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       // as a slightly optimized Intel memory copy using the FPU
       asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT);  // S0 is object reference
       asm.emitSUB_Reg_Imm(SP, WORDSIZE); // adjust stack down one word to hold 64bit value
-      asm.emitFLD_Reg_RegIdx_Quad(FP0, S0, T0, VM_Assembler.BYTE, NO_SLOT); // FP0 is field value
-      asm.emitFSTP_RegInd_Reg_Quad(SP, FP0); // replace reference with value on stack
+      if (SSE2_OPS) {
+        // TODO: Is this better than using x87?
+        asm.emitMOVQ_Reg_RegIdx(XMM0, S0, T0, VM_Assembler.BYTE, NO_SLOT); // XMM0 is field value
+        asm.emitMOVQ_RegInd_Reg(SP, XMM0); // replace reference with value on stack
+      } else {
+        asm.emitFLD_Reg_RegIdx_Quad(FP0, S0, T0, VM_Assembler.BYTE, NO_SLOT); // FP0 is field value
+        asm.emitFSTP_RegInd_Reg_Quad(SP, FP0); // replace reference with value on stack
+      }
     }
   }
 
@@ -2053,8 +2225,14 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       // as a slightly optimized Intel memory copy using the FPU
       asm.emitMOV_Reg_RegDisp(S0, SP, NO_SLOT);  // S0 is object reference
       asm.emitSUB_Reg_Imm(SP, WORDSIZE); // adjust stack down one word to hold 64bit value
-      asm.emitFLD_Reg_RegDisp_Quad(FP0, S0, fieldOffset); // FP0 is field value
-      asm.emitFSTP_RegInd_Reg_Quad(SP, FP0); // replace reference with value on stack
+      if (SSE2_OPS) {
+        // TODO: Is this better than using x87?
+        asm.emitMOVQ_Reg_RegDisp(XMM0, S0, fieldOffset); // XMM0 is field value
+        asm.emitMOVQ_RegInd_Reg(SP, XMM0); // replace reference with value on stack
+      } else {
+        asm.emitFLD_Reg_RegDisp_Quad(FP0, S0, fieldOffset); // FP0 is field value
+        asm.emitFSTP_RegInd_Reg_Quad(SP, FP0); // replace reference with value on stack
+      }
     }
   }
 
@@ -2101,9 +2279,15 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       // NB this is a 64bit copy from the stack to memory so implement
       // as a slightly optimized Intel memory copy using the FPU
       asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS); // S0 is the object reference
-      asm.emitFLD_Reg_RegInd_Quad(FP0, SP); // FP0 is the value to be stored
+      if (SSE2_OPS) {
+        // TODO: Is this better than using x87?
+        asm.emitMOVQ_Reg_RegInd(XMM0, SP); // XMM0 is the value to be stored
+        asm.emitMOVQ_RegIdx_Reg(S0, T0, VM_Assembler.BYTE, NO_SLOT, XMM0); // [S0+T0] <- XMM0
+      } else {
+        asm.emitFLD_Reg_RegInd_Quad(FP0, SP); // FP0 is the value to be stored
+        asm.emitFSTP_RegIdx_Reg_Quad(S0, T0, VM_Assembler.BYTE, NO_SLOT, FP0); // [S0+T0] <- FP0
+      }
       asm.emitADD_Reg_Imm(SP, WORDSIZE * 3); // complete popping the values and reference
-      asm.emitFSTP_RegIdx_Reg_Quad(S0, T0, VM_Assembler.BYTE, NO_SLOT, FP0); // [S0+T0] <- FP0
     }
   }
 
@@ -2156,10 +2340,14 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       // NB this is a 64bit copy from the stack to memory so implement
       // as a slightly optimized Intel memory copy using the FPU
       asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS); // S0 is the object reference
-      asm.emitFLD_Reg_RegInd_Quad(FP0, SP); // FP0 is the value to be stored
+      if (SSE2_OPS) {
+        asm.emitMOVQ_Reg_RegInd(XMM0, SP); // XMM0 is the value to be stored
+        asm.emitMOVQ_RegDisp_Reg(S0, fieldOffset, XMM0); // [S0+fieldOffset] <- XMM0
+      } else {
+        asm.emitFLD_Reg_RegInd_Quad(FP0, SP); // FP0 is the value to be stored
+        asm.emitFSTP_RegDisp_Reg_Quad(S0, fieldOffset, FP0);
+      }
       asm.emitADD_Reg_Imm(SP, WORDSIZE * 3); // complete popping the values and reference
-      // [S0+fieldOffset] <- FP0
-      asm.emitFSTP_RegDisp_Reg_Quad(S0, fieldOffset, FP0);
     }
   }
 

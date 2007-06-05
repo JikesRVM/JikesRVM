@@ -25,6 +25,7 @@ public abstract class VM_Configuration {
 
   public static final boolean BuildForPowerPC = @_RVM_FOR_POWERPC_@;
   public static final boolean BuildForIA32 = !BuildForPowerPC;
+  public static final boolean BuildForSSE2 = @_RVM_FOR_SSE2_@;
 
   public static final boolean BuildFor32Addr = @_RVM_FOR_32_ADDR_@;
   public static final boolean BuildFor64Addr = !BuildFor32Addr;

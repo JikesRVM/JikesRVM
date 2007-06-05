@@ -1406,6 +1406,232 @@ EOF
 emitStackOp POP pop -= 0x58 0x8F 0x0 none none
 emitStackOp PUSH push += 0x50 0xFF 0x6 0x6A 0x68
 
+# SSE/2 instructions
+emitSSE2Op() {
+  prefix=$1
+  prefix2=$2
+  acronym=$3
+  opCode=$4
+  opCode2=$5
+  condByte=$6
+  
+  # Pairs of opcodes, both optional. 
+  # opCode is for going *into* XMMs and between XMMs
+  # opCode2 is for going *out* of XMMs
+  # Reg_Reg defaults to opCode, but created for opCode2 if opCode none or missing
+  # an example is MOVD_Reg_Reg(EAX, XMM1)
+  # TODO: Reg_Reg (see above) is potentially confusing.
+  # TODO: Check for bad/missed ops.
+  
+  if [ x$opCode2 == x ]; then
+    opCode2=none;
+  fi
+  
+  condLine=
+  if [ x$condByte != x ]; then
+    condLine="
+    setMachineCodes(mi++, (byte) ${condByte});"
+  fi
+  
+  if [ x$opCode == xnone ]; then 
+    cat >> $FILENAME <<EOF
+  
+  // dstReg ${opStr}= $code srcReg
+  public final void emit${acronym}_Reg_Reg(byte dstReg, byte srcReg) {
+    int miStart = mi;
+    setMachineCodes(mi++, (byte) ${prefix2});
+    setMachineCodes(mi++, (byte) 0x0F);
+    setMachineCodes(mi++, (byte) ${opCode2});
+    emitRegRegOperands(dstReg, srcReg);$condLine
+    if (lister != null) lister.RR(miStart, "${acronym}", dstReg, srcReg);
+  }
+EOF
+
+  else
+  cat >> $FILENAME <<EOF
+  
+  // dstReg ${opStr}= $code srcReg
+  public final void emit${acronym}_Reg_Reg(byte dstReg, byte srcReg) {
+    int miStart = mi;
+    setMachineCodes(mi++, (byte) ${prefix});
+    setMachineCodes(mi++, (byte) 0x0F);
+    setMachineCodes(mi++, (byte) ${opCode});
+    emitRegRegOperands(dstReg, srcReg);$condLine
+    if (lister != null) lister.RR(miStart, "${acronym}", dstReg, srcReg);
+  }
+
+  // dstReg ${opStr}= $code [srcReg + srcDisp]
+  public final void emit${acronym}_Reg_RegDisp(byte dstReg, byte srcReg, Offset disp) {
+    int miStart = mi;
+    setMachineCodes(mi++, (byte) ${prefix});
+    setMachineCodes(mi++, (byte) 0x0F);
+    setMachineCodes(mi++, (byte) ${opCode});
+    emitRegDispRegOperands(srcReg, disp, dstReg);$condLine
+    if (lister != null) lister.RRD(miStart, "${acronym}", dstReg, srcReg, disp);
+  }
+
+  // dstReg ${opStr}= $code [srcIndex<<scale + srcDisp]
+  public final void emit${acronym}_Reg_RegOff(byte dstReg, byte srcIndex, short scale, Offset srcDisp) {
+    int miStart = mi;
+    setMachineCodes(mi++, (byte) ${prefix});
+    setMachineCodes(mi++, (byte) 0x0F);
+    setMachineCodes(mi++, (byte) ${opCode});
+    emitRegOffRegOperands(srcIndex, scale, srcDisp, dstReg);$condLine
+    if (lister != null) lister.RRFD(miStart, "${acronym}", dstReg, srcIndex, scale, srcDisp);
+  }
+
+  // dstReg ${opStr}= $code [srcDisp]
+  public final void emit${acronym}_Reg_Abs(byte dstReg, Offset srcDisp) {
+    int miStart = mi;
+    setMachineCodes(mi++, (byte) ${prefix});
+    setMachineCodes(mi++, (byte) 0x0F);
+    setMachineCodes(mi++, (byte) ${opCode});
+    emitAbsRegOperands(srcDisp, dstReg);$condLine
+    if (lister != null) lister.RRA(miStart, "${acronym}", dstReg, srcDisp);
+  }
+
+  // dstReg ${opStr}= $code [srcBase + srcIndex<<scale + srcDisp]
+  public final void emit${acronym}_Reg_RegIdx(byte dstReg, byte srcBase, byte srcIndex, short scale, Offset srcDisp) {
+    int miStart = mi;
+    setMachineCodes(mi++, (byte) ${prefix});
+    setMachineCodes(mi++, (byte) 0x0F);
+    setMachineCodes(mi++, (byte) ${opCode});
+    emitSIBRegOperands(srcBase, srcIndex, scale, srcDisp, dstReg);$condLine
+    if (lister != null) lister.RRXD(miStart, "${acronym}", dstReg, srcBase, srcIndex, scale, srcDisp);
+  }
+
+  // dstReg ${opStr}= $code [srcReg]
+  public final void emit${acronym}_Reg_RegInd(byte dstReg, byte srcReg) {
+    int miStart = mi;
+    setMachineCodes(mi++, (byte) ${prefix});
+    setMachineCodes(mi++, (byte) 0x0F);
+    setMachineCodes(mi++, (byte) ${opCode});
+    emitRegIndirectRegOperands(srcReg, dstReg);$condLine
+    if (lister != null) lister.RRN(miStart, "${acronym}", dstReg, srcReg);
+  }
+  
+EOF
+  fi
+  
+  if [ x$opCode2 != xnone ]; then
+    cat >> $FILENAME <<EOF
+
+  /**
+   * Generate a register--register ${acronym}. That is,
+   * <PRE>
+   * [dstReg] ${opStr}= ${code} srcReg
+   * </PRE>
+   *
+   * @param dstReg the destination register
+   * @param srcReg the source register
+   */
+  public final void emit${acronym}_RegInd_Reg(byte dstReg, byte srcReg) {
+    int miStart = mi;
+    setMachineCodes(mi++, (byte) ${prefix2});
+    setMachineCodes(mi++, (byte) 0x0F);
+    setMachineCodes(mi++, (byte) ${opCode2});
+    emitRegIndirectRegOperands(dstReg, srcReg);
+    if (lister != null) lister.RNR(miStart, "${acronym}", dstReg, srcReg);
+  }
+
+  /**
+   * Generate a register-offset--register ${acronym}. That is,
+   * <PRE>
+   * [dstReg<<dstScale + dstDisp] ${opStr}= ${code} srcReg
+   * </PRE>
+   *
+   * @param dstIndex the destination index register
+   * @param dstScale the destination shift amount
+   * @param dstDisp the destination displacement
+   * @param srcReg the source register
+   */
+  public final void emit${acronym}_RegOff_Reg${ext}(byte dstIndex, short dstScale, Offset dstDisp, byte srcReg) {
+    int miStart = mi;
+    setMachineCodes(mi++, (byte) ${prefix2});
+    setMachineCodes(mi++, (byte) 0x0F);
+    setMachineCodes(mi++, (byte) ${opCode2});
+    emitRegOffRegOperands(dstIndex, dstScale, dstDisp, srcReg);
+    if (lister != null) lister.RFDR(miStart, "${acronym}", dstIndex, dstScale, dstDisp, srcReg);
+  }
+
+  // [dstDisp] ${opStr}= $code srcReg
+  public final void emit${acronym}_Abs_Reg${ext}(Offset dstDisp, byte srcReg) {
+    int miStart = mi;
+    setMachineCodes(mi++, (byte) ${prefix2});
+    setMachineCodes(mi++, (byte) 0x0F);
+    setMachineCodes(mi++, (byte) ${opCode2});
+    emitAbsRegOperands(dstDisp, srcReg);
+    if (lister != null) lister.RAR(miStart, "${acronym}", dstDisp, srcReg);
+  }
+
+  // [dstBase + dstIndex<<scale + dstDisp] ${opStr}= $code srcReg
+  public final void emit${acronym}_RegIdx_Reg${ext}(byte dstBase, byte dstIndex, short scale, Offset dstDisp, byte srcReg) {
+    int miStart = mi;
+    setMachineCodes(mi++, (byte) ${prefix2});
+    setMachineCodes(mi++, (byte) 0x0F);
+    setMachineCodes(mi++, (byte) ${opCode2});
+    emitSIBRegOperands(dstBase, dstIndex, scale, dstDisp, srcReg);
+    if (lister != null) lister.RXDR(miStart, "${acronym}", dstBase, dstIndex, scale, dstDisp, srcReg);
+  }
+
+  // [dstReg + dstDisp] ${opStr}= $code srcReg
+  public final void emit${acronym}_RegDisp_Reg${ext}(byte dstReg, Offset disp, byte srcReg) {
+    int miStart = mi;
+    setMachineCodes(mi++, (byte) ${prefix2});
+    setMachineCodes(mi++, (byte) 0x0F);
+    setMachineCodes(mi++, (byte) ${opCode2});
+    emitRegDispRegOperands(dstReg, disp, srcReg);
+    if (lister != null) lister.RDR(miStart, "${acronym}", dstReg, disp, srcReg);
+  }
+
+EOF
+  fi
+}
+
+# Single precision FP ops.
+emitSSE2Op 0xF3 none ADDSS 0x58 none
+emitSSE2Op 0xF3 none SUBSS 0x5C none
+emitSSE2Op 0xF3 none MULSS 0x59 none
+emitSSE2Op 0xF3 none DIVSS 0x5E none
+emitSSE2Op 0xF3 0xF3 MOVSS 0x10 0x11
+emitSSE2Op 0xF3 none CVTSI2SS 0x2A none
+emitSSE2Op 0xF3 none CVTSS2SD 0x5A none
+emitSSE2Op 0xF3 none CVTSS2SI 0x2D none
+
+# Single precision FP comparisons.
+emitSSE2Op 0xF3 none CMPEQSS 0xC2 none 0
+emitSSE2Op 0xF3 none CMPLTSS 0xC2 none 1
+emitSSE2Op 0xF3 none CMPLESS 0xC2 none 2
+emitSSE2Op 0xF3 none CMPUNORDSS 0xC2 none 3
+emitSSE2Op 0xF3 none CMPNESS 0xC2 none 4
+emitSSE2Op 0xF3 none CMPNLTSS 0xC2 none 5
+emitSSE2Op 0xF3 none CMPNLESS 0xC2 none 6
+emitSSE2Op 0xF3 none CMPORDSS 0xC2 none 7
+
+# Generic data move ops.
+emitSSE2Op none 0x66 MOVD none 0x7E
+emitSSE2Op 0xF3 0x66 MOVQ 0x7E 0xD6
+
+# Double precision FP ops.
+emitSSE2Op 0xF2 none ADDSD 0x58 none
+emitSSE2Op 0xF2 none SUBSD 0x5C none
+emitSSE2Op 0xF2 none MULSD 0x59 none
+emitSSE2Op 0xF2 none DIVSD 0x5E none
+emitSSE2Op 0xF2 0xF2 MOVSD 0x10 0x11
+emitSSE2Op 0xF2 none CVTSI2SD 0x2A none
+emitSSE2Op 0xF2 none CVTSD2SS 0x5A none
+emitSSE2Op 0xF2 none CVTSD2SI 0x2D none
+
+# Double precision comparison ops.
+emitSSE2Op 0xF2 none CMPEQSD 0xC2 none 0
+emitSSE2Op 0xF2 none CMPLTSD 0xC2 none 1
+emitSSE2Op 0xF2 none CMPLESD 0xC2 none 2
+emitSSE2Op 0xF2 none CMPUNORDSD 0xC2 none 3
+emitSSE2Op 0xF2 none CMPNESD 0xC2 none 4
+emitSSE2Op 0xF2 none CMPNLTSD 0xC2 none 5
+emitSSE2Op 0xF2 none CMPNLESD 0xC2 none 6
+emitSSE2Op 0xF2 none CMPORDSD 0xC2 none 7
+
 emitFloatMemAcc() {
     local acronym=$1
     local op=$2

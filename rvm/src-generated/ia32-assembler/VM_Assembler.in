@@ -1678,6 +1678,23 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
     // list it
     if (lister != null) lister.R(miStart, "FXCH", nonZeroReg);
   }
+  
+  public final void emitXORPS_Reg_Reg(byte dstReg, byte srcReg) {
+    int miStart = mi;
+    setMachineCodes(mi++, (byte) 0x0F);
+    setMachineCodes(mi++, (byte) 0x57);
+    emitRegRegOperands(dstReg, srcReg);
+    if (lister != null) lister.RR(miStart, "XORPS", dstReg, srcReg);
+  }
+  
+    public final void emitXORPD_Reg_Reg(byte dstReg, byte srcReg) {
+    int miStart = mi;
+    setMachineCodes(mi++, (byte) 0x66);
+    setMachineCodes(mi++, (byte) 0x0F);
+    setMachineCodes(mi++, (byte) 0x57);
+    emitRegRegOperands(dstReg, srcReg);
+    if (lister != null) lister.RR(miStart, "XORPD", dstReg, srcReg);
+  }
 
   /*
    * BELOW HERE ARE AUTOMATICALLY-GENERATED INSTRUCTIONS.  DO NOT EDIT.

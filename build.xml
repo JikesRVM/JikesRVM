@@ -669,6 +669,9 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="pp_RVM_FOR_LINUX" value="true" else="false">
       <equals arg1="${target.os}" arg2="Linux"/>
     </condition>
+    <condition property="pp_RVM_FOR_SSE2" value="true" else="false">
+      <equals arg1="${target.arch.sse2}" arg2="true"/>
+    </condition>
     <condition property="pp_RVM_WITH_ASSERTIONS" value="true" else="false">
       <not>
         <equals arg1="${config.assertions}" arg2="none"/>
@@ -696,6 +699,7 @@ Check to make sure all required properties are specified. This includes properti
         <filter token="_RVM_FOR_32_ADDR_" value="${pp_RVM_FOR_32_ADDR}"/>
         <filter token="_RVM_FOR_AIX_" value="${pp_RVM_FOR_AIX}"/>
         <filter token="_RVM_FOR_LINUX_" value="${pp_RVM_FOR_LINUX}"/>
+        <filter token="_RVM_FOR_SSE2_" value="${pp_RVM_FOR_SSE2}"/>
         <filter token="_RVM_WITH_ALL_CLASSES_" value="${config.include.all-classes}"/>
         <filter token="_RVM_WITH_ASSERTIONS_" value="${pp_RVM_WITH_ASSERTIONS}"/>
         <filter token="_RVM_WITH_EXTREME_ASSERTIONS_" value="${pp_RVM_WITH_EXTREME_ASSERTIONS}"/>
