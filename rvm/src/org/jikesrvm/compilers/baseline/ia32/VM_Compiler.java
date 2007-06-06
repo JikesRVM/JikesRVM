@@ -1532,37 +1532,28 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    */
   protected final void emit_fcmpl() {
     if (SSE2_OPS) {
-      // TODO: Is this optimal?
-      // Comparison 1: S0 = value1 < value2 (true if unordered)
       asm.emitMOVSS_Reg_RegInd(XMM0, SP);               // XMM0 = value2
-      asm.emitCMPNLESS_Reg_RegDisp(XMM0, SP, ONE_SLOT); // XMM0 = (value1 < value2 || unordered ? -1 : 0)
-      asm.emitMOVD_Reg_Reg(S0, XMM0);                   // S0  = XMM0
-      
-      // Comparison 2: T0 = value1 > value2 (false if unordered)
-      asm.emitMOVSS_Reg_RegInd(XMM0, SP);               // XMM0 = value2
-      asm.emitCMPLTSS_Reg_RegDisp(XMM0, SP, ONE_SLOT);  // XMM0 = (value1 > value2 ? -1 : 0)
-      asm.emitMOVD_Reg_Reg(T0, XMM0);                   // T0  = XMM0
-      
+      asm.emitMOVSS_Reg_RegDisp(XMM1, SP, ONE_SLOT);    // XMM1 = value1
       asm.emitADD_Reg_Imm(SP, 2 * WORDSIZE);            // popping the stack
-  
-      asm.emitSUB_Reg_Reg(S0, T0);                      // S0 = S0 - T0
-      asm.emitPUSH_Reg(S0);                             // push result on stack
+      asm.emitCOMISS_Reg_Reg(XMM0, XMM1);               // compare value1 and value2
     } else {
       asm.emitFLD_Reg_RegInd(FP0, SP);                  // Setup value2 into FP1,
       asm.emitFLD_Reg_RegDisp(FP0, SP, ONE_SLOT);       // value1 into FP0
       asm.emitADD_Reg_Imm(SP, 2 * WORDSIZE);            // popping the stack
       asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                // compare and pop FPU *1
-      VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LLT);
-      VM_ForwardReference fr2 = asm.forwardJcc(VM_Assembler.LGT);
-      asm.emitPUSH_Imm(0);                              // push result on stack
-      VM_ForwardReference fr3 = asm.forwardJMP();
-      fr2.resolve(asm);
-      asm.emitPUSH_Imm(1);                              // push result on stack
-      VM_ForwardReference fr4 = asm.forwardJMP();
-      fr1.resolve(asm);
-      asm.emitPUSH_Imm(-1);                             // push result on stack
-      fr3.resolve(asm);
-      fr4.resolve(asm);
+    }
+    VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LLT);
+    VM_ForwardReference fr2 = asm.forwardJcc(VM_Assembler.LGT);
+    asm.emitPUSH_Imm(0);                              // push result on stack
+    VM_ForwardReference fr3 = asm.forwardJMP();
+    fr2.resolve(asm);
+    asm.emitPUSH_Imm(1);                              // push result on stack
+    VM_ForwardReference fr4 = asm.forwardJMP();
+    fr1.resolve(asm);
+    asm.emitPUSH_Imm(-1);                             // push result on stack
+    fr3.resolve(asm);
+    fr4.resolve(asm);
+    if (!SSE2_OPS) {
       asm.emitFSTP_Reg_Reg(FP0, FP0);                   // pop FPU*1
     }
   }
@@ -1572,80 +1563,62 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    */
   protected final void emit_fcmpg() {
     if (SSE2_OPS) {
-      // TODO: Is this optimal?
-      // Comparison 1: S0 = value1 < value2 (false if unordered)
-      asm.emitMOVSS_Reg_RegDisp(XMM0, SP, ONE_SLOT);    // XMM0 = value1
-      asm.emitCMPLTSS_Reg_RegInd(XMM0, SP);             // XMM0 = (value1 < value2 ? -1 : 0)
-      asm.emitMOVD_Reg_Reg(S0, XMM0);                   // T0  = XMM0
-
-      // Comparison 2: T0 = value1 > value2 (true if unordered)
-      asm.emitMOVSS_Reg_RegDisp(XMM0, SP, ONE_SLOT);    // XMM0 = value1
-      asm.emitCMPNLESS_Reg_RegInd(XMM0, SP);            // XMM0 = (value1 > value2 || unordered ? -1 : 0)
-      asm.emitMOVD_Reg_Reg(T0, XMM0);                   // T0  = XMM0
-
+      asm.emitMOVSS_Reg_RegInd(XMM0, SP);               // XMM0 = value2
+      asm.emitMOVSS_Reg_RegDisp(XMM1, SP, ONE_SLOT);    // XMM1 = value1
       asm.emitADD_Reg_Imm(SP, 2 * WORDSIZE);            // popping the stack
-
-      asm.emitSUB_Reg_Reg(S0, T0);                      // S0 = S0 - T0
-      asm.emitPUSH_Reg(S0);                             // push result on stack
+      asm.emitCOMISS_Reg_Reg(XMM0, XMM1);               // compare value1 and value2
     } else {
       asm.emitFLD_Reg_RegInd(FP0, SP);                  // Setup value2 into FP1,
       asm.emitFLD_Reg_RegDisp(FP0, SP, ONE_SLOT);       // value1 into FP0
       asm.emitADD_Reg_Imm(SP, 2 * WORDSIZE);            // popping the stack
       asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                // compare and pop FPU *1
-      VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LGT);
-      VM_ForwardReference fr2 = asm.forwardJcc(VM_Assembler.PE);
-      VM_ForwardReference fr3 = asm.forwardJcc(VM_Assembler.LLT);
-      asm.emitPUSH_Imm(0);                              // push result on stack
-      VM_ForwardReference fr4 = asm.forwardJMP();
-      fr1.resolve(asm);
-      fr2.resolve(asm);
-      asm.emitPUSH_Imm(1);                              // push result on stack
-      VM_ForwardReference fr5 = asm.forwardJMP();
-      fr3.resolve(asm);
-      asm.emitPUSH_Imm(-1);                             // push result on stack
-      fr4.resolve(asm);
-      fr5.resolve(asm);
+    }
+    // TODO: It's bad to have 2 conditional jumps within 16bytes of each other
+    VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LGT); // if > goto push 1
+    VM_ForwardReference fr3 = asm.forwardJcc(VM_Assembler.NE);  // if < goto push -1
+    VM_ForwardReference fr2 = asm.forwardJcc(VM_Assembler.PE);  // if unordered goto push 1
+    asm.emitPUSH_Imm(0);                              // push result of 0 on stack
+    VM_ForwardReference fr4 = asm.forwardJMP();
+    fr1.resolve(asm);
+    fr2.resolve(asm);
+    asm.emitPUSH_Imm(1);                              // push result of 1 on stack
+    VM_ForwardReference fr5 = asm.forwardJMP();
+    fr3.resolve(asm);
+    asm.emitPUSH_Imm(-1);                             // push result of -1 on stack
+    fr4.resolve(asm);
+    fr5.resolve(asm);
+    if (!SSE2_OPS) {
       asm.emitFSTP_Reg_Reg(FP0, FP0);                   // pop FPU*1
     } 
   }
-    
 
   /**
    * Emit code to implement the dcmpl bytecode
    */
   protected final void emit_dcmpl() {
     if (SSE2_OPS) {
-      // TODO: Is this optimal?
-      // Comparison 1: S0 = value1 < value2 (true if unordered)
       asm.emitMOVSD_Reg_RegInd(XMM0, SP);               // XMM0 = value2
-      asm.emitCMPNLESD_Reg_RegDisp(XMM0, SP, TWO_SLOTS);// XMM0 = (value1 < value2 || unordered ? -1 : 0)
-      asm.emitMOVD_Reg_Reg(S0, XMM0);                   // S0  = XMM0
-
-      // Comparison 2: T0 = value1 > value2 (false if unordered)
-      asm.emitMOVSD_Reg_RegInd(XMM0, SP);               // XMM0 = value2
-      asm.emitCMPLTSD_Reg_RegDisp(XMM0, SP, TWO_SLOTS); // XMM0 = (value1 > value2 ? -1 : 0)
-      asm.emitMOVD_Reg_Reg(T0, XMM0);                   // T0  = XMM0
-
+      asm.emitMOVSD_Reg_RegDisp(XMM1, SP, TWO_SLOTS);   // XMM1 = value1
       asm.emitADD_Reg_Imm(SP, 4 * WORDSIZE);            // popping the stack
-
-      asm.emitSUB_Reg_Reg(S0, T0);                      // S0 = S0 - T0
-      asm.emitPUSH_Reg(S0);                             // push result on stack
+      asm.emitCOMISD_Reg_Reg(XMM0, XMM1);               // compare value1 and value2
     } else {
       asm.emitFLD_Reg_RegInd_Quad(FP0, SP);             // Setup value2 into FP1,
       asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS); // value1 into FP0
       asm.emitADD_Reg_Imm(SP, 4 * WORDSIZE);            // popping the stack
       asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                // compare and pop FPU *1
-      VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LLT);
-      VM_ForwardReference fr2 = asm.forwardJcc(VM_Assembler.LGT);
-      asm.emitPUSH_Imm(0);                              // push result on stack
-      VM_ForwardReference fr3 = asm.forwardJMP();
-      fr2.resolve(asm);
-      asm.emitPUSH_Imm(1);                              // push result on stack
-      VM_ForwardReference fr4 = asm.forwardJMP();
-      fr1.resolve(asm);
-      asm.emitPUSH_Imm(-1);                             // push result on stack
-      fr3.resolve(asm);
-      fr4.resolve(asm);
+    }
+    VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LLT);
+    VM_ForwardReference fr2 = asm.forwardJcc(VM_Assembler.LGT);
+    asm.emitPUSH_Imm(0);                              // push result on stack
+    VM_ForwardReference fr3 = asm.forwardJMP();
+    fr2.resolve(asm);
+    asm.emitPUSH_Imm(1);                              // push result on stack
+    VM_ForwardReference fr4 = asm.forwardJMP();
+    fr1.resolve(asm);
+    asm.emitPUSH_Imm(-1);                             // push result on stack
+    fr3.resolve(asm);
+    fr4.resolve(asm);
+    if (!SSE2_OPS) {
       asm.emitFSTP_Reg_Reg(FP0, FP0);                   // pop FPU*1
     }
   }
@@ -1655,43 +1628,35 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    */
   protected final void emit_dcmpg() {
     if (SSE2_OPS) {
-      // TODO: Is this optimal?
-      // Comparison 1: S0 = value1 < value2 (false if unordered)
-      asm.emitMOVSD_Reg_RegDisp(XMM0, SP, TWO_SLOTS);   // XMM0 = value1
-      asm.emitCMPLTSD_Reg_RegInd(XMM0, SP);             // XMM0 = (value1 < value2 ? -1 : 0)
-      asm.emitMOVD_Reg_Reg(S0, XMM0);                   // T0  = XMM0
-
-      // Comparison 2: T0 = value1 > value2 (true if unordered)
-      asm.emitMOVSD_Reg_RegDisp(XMM0, SP, TWO_SLOTS);   // XMM0 = value1
-      asm.emitCMPNLESD_Reg_RegInd(XMM0, SP);            // XMM0 = (value1 > value2 || unordered ? -1 : 0)
-      asm.emitMOVD_Reg_Reg(T0, XMM0);                   // T0  = XMM0
-
+      asm.emitMOVSD_Reg_RegInd(XMM0, SP);               // XMM0 = value2
+      asm.emitMOVSD_Reg_RegDisp(XMM1, SP, TWO_SLOTS);   // XMM1 = value1
       asm.emitADD_Reg_Imm(SP, 4 * WORDSIZE);            // popping the stack
-
-      asm.emitSUB_Reg_Reg(S0, T0);                      // S0 = S0 - T0
-      asm.emitPUSH_Reg(S0);                             // push result on stack
+      asm.emitCOMISD_Reg_Reg(XMM0, XMM1);               // compare value1 and value2
     } else {
       asm.emitFLD_Reg_RegInd_Quad(FP0, SP);             // Setup value2 into FP1,
       asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS); // value1 into FP0
       asm.emitADD_Reg_Imm(SP, 4 * WORDSIZE);            // popping the stack
       asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                // compare and pop FPU *1
-      VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LGT);
-      VM_ForwardReference fr2 = asm.forwardJcc(VM_Assembler.PE);
-      VM_ForwardReference fr3 = asm.forwardJcc(VM_Assembler.LLT);
-      asm.emitPUSH_Imm(0);                              // push result on stack
-      VM_ForwardReference fr4 = asm.forwardJMP();
-      fr1.resolve(asm);
-      fr2.resolve(asm);
-      asm.emitPUSH_Imm(1);                              // push result on stack
-      VM_ForwardReference fr5 = asm.forwardJMP();
-      fr3.resolve(asm);
-      asm.emitPUSH_Imm(-1);                             // push result on stack
-      fr4.resolve(asm);
-      fr5.resolve(asm);
-      asm.emitFSTP_Reg_Reg(FP0, FP0);                   // pop FPU*1
     }
+    // TODO: It's bad to have 2 conditional jumps within 16bytes of each other
+    VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LGT); // if > goto push1
+    VM_ForwardReference fr3 = asm.forwardJcc(VM_Assembler.NE);  // if < goto push -1
+    VM_ForwardReference fr2 = asm.forwardJcc(VM_Assembler.PE);  // if unordered goto push 1
+    asm.emitPUSH_Imm(0);                              // push result of 0 on stack
+    VM_ForwardReference fr4 = asm.forwardJMP();
+    fr1.resolve(asm);
+    fr2.resolve(asm);
+    asm.emitPUSH_Imm(1);                              // push result of 1 on stack
+    VM_ForwardReference fr5 = asm.forwardJMP();
+    fr3.resolve(asm);
+    asm.emitPUSH_Imm(-1);                             // push result of -1 on stack
+    fr4.resolve(asm);
+    fr5.resolve(asm);
+    if (!SSE2_OPS) {
+      asm.emitFSTP_Reg_Reg(FP0, FP0);                   // pop FPU*1
+    } 
   }
-
+  
   /*
   * branching
   */
