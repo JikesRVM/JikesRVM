@@ -132,7 +132,7 @@
     <attribute name="name" default=""/>
     <attribute name="tag"/>
     <sequential>
-            <res><![CDATA[
+      <res><![CDATA[
 <test>
   <tag>@{tag}</tag>
   <class>${test.@{tag}.class}</class>
@@ -249,7 +249,8 @@
   <macrodef name="displayTestResults">
     <attribute name="tag"/>
     <sequential>
-      <echo message="Test Result for [${config.name}|${test.group.name}] @{tag} : ${test.@{tag}.result} ${test.@{tag}.result.explanation}"/>
+      <echo
+          message="Test Result for [${config.name}|${test.group.name}] @{tag} : ${test.@{tag}.result} ${test.@{tag}.result.explanation}"/>
     </sequential>
   </macrodef>
 
@@ -353,7 +354,8 @@
       <condition property="default.test.@{tag}.processors" value="${test.processors}" else="@{processors}">
         <equals arg1="@{processors}" arg2=""/>
       </condition>
-      <condition property="default.test.@{tag}.initialHeapSize" value="${test.initial.heapsize}" else="@{initialHeapSize}">
+      <condition property="default.test.@{tag}.initialHeapSize" value="${test.initial.heapsize}"
+                 else="@{initialHeapSize}">
         <equals arg1="@{initialHeapSize}" arg2=""/>
       </condition>
       <condition property="default.test.@{tag}.maxHeapSize" value="${test.max.heapsize}" else="@{maxHeapSize}">
@@ -375,7 +377,8 @@
       <setTestProperty tag="@{tag}" key="max.opt.level" default="${default.test.@{tag}.maxOptLevel}"/>
       <setTestProperty tag="@{tag}" key="exclude" default="false"/>
 
-      <condition property="test.@{tag}.maxOptLevel-arg" value="" else="-X:aos:max_opt_level=${test.@{tag}.max.opt.level}">
+      <condition property="test.@{tag}.maxOptLevel-arg" value=""
+                 else="-X:aos:max_opt_level=${test.@{tag}.max.opt.level}">
         <equals arg1="${test.@{tag}.max.opt.level}" arg2=""/>
       </condition>
 
@@ -395,12 +398,12 @@
           <and>
             <equals arg1="@{requires-display}" arg2="true"/>
             <isset property="display-wrapper.exe"/>
-	  </and>
+          </and>
         </conditions>
         <sequential>
           <property name="test.@{tag}.rvm-wrapper.exe" value="${display-wrapper.exe}"/>
           <property name="test.@{tag}.rvm.wrapped-args" value="${rvm.exe} ${test.@{tag}.rvm.args}"/>
-	</sequential>
+        </sequential>
       </if>
       <!-- Defaults -->
       <property name="test.@{tag}.rvm-wrapper.exe" value="${rvm.exe}"/>
@@ -413,7 +416,7 @@
           <equals arg1="${test.@{tag}.exclude}" arg2="true"/>
         </conditions>
         <sequential>
-        <!-- If excluded then record result -->
+          <!-- If excluded then record result -->
           <property name="test.@{tag}.result" value="EXCLUDED"/>
           <explainResult tag="@{tag}" message="Test excluded."/>
           <touch file="${test.@{tag}.output.file}"/>
