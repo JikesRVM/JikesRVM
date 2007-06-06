@@ -913,6 +913,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     // (1) zero check
     asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);
     asm.emitOR_Reg_RegDisp(T0, SP, ONE_SLOT);
+    asm.emitBranchLikelyNextInstruction();
     VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.NE);
     asm.emitINT_Imm(VM_Runtime.TRAP_DIVIDE_BY_ZERO + RVM_TRAP_BASE);    // trap if divisor is 0
     fr1.resolve(asm);
@@ -950,6 +951,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     // (1) zero check
     asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);
     asm.emitOR_Reg_RegDisp(T0, SP, ONE_SLOT);
+    asm.emitBranchLikelyNextInstruction();
     VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.NE);
     asm.emitINT_Imm(VM_Runtime.TRAP_DIVIDE_BY_ZERO + RVM_TRAP_BASE);    // trap if divisor is 0
     fr1.resolve(asm);
@@ -2810,6 +2812,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
 
         asm.emitSUB_Reg_Reg(S0, SP);                                           // space left
         asm.emitADD_Reg_Imm(S0, method.getOperandWords() << LG_WORDSIZE);      // space left after this expression stack
+        asm.emitBranchLikelyNextInstruction();
         VM_ForwardReference fr = asm.forwardJcc(VM_Assembler.LT);        // Jmp around trap if OK
         asm.emitINT_Imm(VM_Runtime.TRAP_STACK_OVERFLOW + RVM_TRAP_BASE);     // trap
         fr.resolve(asm);
@@ -2832,6 +2835,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0, VM_Entrypoints.activeThreadStackLimitField.getOffset());
       asm.emitSUB_Reg_Reg(S0, SP);                                       // spa
       asm.emitADD_Reg_Imm(S0, method.getOperandWords() << LG_WORDSIZE);  // spa
+      asm.emitBranchLikelyNextInstruction();
       VM_ForwardReference fr = asm.forwardJcc(VM_Assembler.LT);    // Jmp around trap if
       asm.emitINT_Imm(VM_Runtime.TRAP_STACK_OVERFLOW + RVM_TRAP_BASE); // tra
       fr.resolve(asm);
@@ -2889,16 +2893,26 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.unlockMethod.getOffset());
   }
 
-  private void genBoundsCheck(VM_Assembler asm, byte indexReg, byte arrayRefReg) {
+  /**
+   * Generate an array bounds check trapping if the array bound check fails,
+   * otherwise falling through.
+   * @param asm the assembler to generate into
+   * @param indexReg the register containing the index
+   * @param arrayRefReg the register containing the array reference
+   */
+  private static void genBoundsCheck(VM_Assembler asm, byte indexReg, byte arrayRefReg) {
+    // compare index to array length
     asm.emitCMP_RegDisp_Reg(arrayRefReg,
                             VM_ObjectModel.getArrayLengthOffset(),
-                            indexReg);  // compare index to array length
-    VM_ForwardReference fr = asm.forwardJcc(VM_Assembler.LGT);                     // Jmp around trap if index is OK
-
+                            indexReg);
+    // Jmp around trap if index is OK
+    asm.emitBranchLikelyNextInstruction();
+    VM_ForwardReference fr = asm.forwardJcc(VM_Assembler.LGT);
     // "pass" index param to C trap handler
-    VM_ProcessorLocalState.emitMoveRegToField(asm, VM_Entrypoints.arrayIndexTrapParamField.getOffset(), indexReg);
-
-    asm.emitINT_Imm(VM_Runtime.TRAP_ARRAY_BOUNDS + RVM_TRAP_BASE);       // trap
+    VM_ProcessorLocalState.emitMoveRegToField(asm,
+        VM_Entrypoints.arrayIndexTrapParamField.getOffset(), indexReg);
+    // trap
+    asm.emitINT_Imm(VM_Runtime.TRAP_ARRAY_BOUNDS + RVM_TRAP_BASE);
     fr.resolve(asm);
   }
 
@@ -3423,12 +3437,13 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
           // No offset
           asm.emitMOV_Reg_RegInd(S0, SP);  // S0 = base
         }
-
+        asm.emitXOR_Reg_Reg(T0, T0);
         asm.emitLockNextInstruction();
         asm.emitCMPXCHG_RegInd_Reg(S0, T1);   // atomic compare-and-exchange
-        asm.emitMOV_RegInd_Imm(SP, 0);        // 'push' false (overwriting base)
-        VM_ForwardReference fr = asm.forwardJcc(VM_Assembler.NE); // skip if compare fails
         asm.emitMOV_RegInd_Imm(SP, 1);        // 'push' true (overwriting base)
+        asm.emitBranchLikelyNextInstruction();
+        VM_ForwardReference fr = asm.forwardJcc(VM_Assembler.EQ); // skip if compare fails
+        asm.emitMOV_RegInd_Imm(SP, 0);        // 'push' false (overwriting base)
         fr.resolve(asm);
         return true;
       }
@@ -3448,9 +3463,10 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       asm.emitADD_Reg_RegInd(S0, SP);  // S0 += base
       asm.emitLockNextInstruction();
       asm.emitCMPXCHG_RegInd_Reg(S0, T1);   // atomic compare-and-exchange
-      asm.emitMOV_RegInd_Imm(SP, 0);        // 'push' false (overwriting base)
-      VM_ForwardReference fr = asm.forwardJcc(VM_Assembler.NE); // skip if compare fails
       asm.emitMOV_RegInd_Imm(SP, 1);        // 'push' true (overwriting base)
+      asm.emitBranchLikelyNextInstruction();
+      VM_ForwardReference fr = asm.forwardJcc(VM_Assembler.EQ); // skip if compare fails
+      asm.emitMOV_RegInd_Imm(SP, 0);        // 'push' false (overwriting base)
       fr.resolve(asm);
       return true;
     }

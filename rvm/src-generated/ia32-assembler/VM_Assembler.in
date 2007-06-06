@@ -761,6 +761,22 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
   }
 
   /**
+   * Generate a branch likely prefix into the generated code.
+   */
+  public final void emitBranchLikelyNextInstruction() {
+    setMachineCodes(mi++, (byte) 0x3E);
+    if (lister != null) lister.lockPrefix();
+  }
+
+  /**
+   * Generate a branch unlikely prefix into the generated code.
+   */
+  public final void emitBranchUnlikelyNextInstruction() {
+    setMachineCodes(mi++, (byte) 0x2E);
+    if (lister != null) lister.lockPrefix();
+  }
+
+  /**
    * Generate a patch point into the generated code.
    * (1) force patch point to be 16 bit aligned by optionally
    *   generating a nop.
