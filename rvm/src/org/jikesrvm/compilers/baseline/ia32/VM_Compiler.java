@@ -61,6 +61,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   private static final Offset TWO_SLOTS = ONE_SLOT.plus(WORDSIZE);
   private static final Offset THREE_SLOTS = TWO_SLOTS.plus(WORDSIZE);
   private static final Offset MINUS_ONE_SLOT = NO_SLOT.minus(WORDSIZE);
+  private static final Offset MINUS_TWO_SLOTS = MINUS_ONE_SLOT.minus(WORDSIZE);
 
   /**
    * Create a VM_Compiler object for the compilation of method.
@@ -253,8 +254,14 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * @param type the type of the constant
    */
   protected final void emit_ldc2(Offset offset, byte type) {
-    asm.emitPUSH_RegDisp(JTOC, offset.plus(4)); // high 32 bits
-    asm.emitPUSH_RegDisp(JTOC, offset);   // low 32 bits
+    if (SSE2_OPS) {
+      asm.emitMOVQ_Reg_RegDisp(XMM0, JTOC, offset); // XMM0 is constant value
+      asm.emitADD_Reg_Imm(SP, -8);        // adjust stack
+      asm.emitMOVQ_RegInd_Reg(SP, XMM0);  // place value on stack
+    } else {
+      asm.emitPUSH_RegDisp(JTOC, offset.plus(4)); // high 32 bits
+      asm.emitPUSH_RegDisp(JTOC, offset);   // low 32 bits
+    }
   }
 
   /*
@@ -271,32 +278,13 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   }
 
   /**
-   * Emit code to load a long local variable
-   * @param index the local index to load
-   */
-  protected final void emit_lload(int index) {
-    Offset offset = localOffset(index);
-    asm.emitPUSH_RegDisp(ESP, offset); // high part
-    asm.emitPUSH_RegDisp(ESP, offset); // low part (ESP has moved by 4!!)
-  }
-
-  /**
    * Emit code to local a float local variable
    * @param index the local index to load
    */
   protected final void emit_fload(int index) {
+    // identical to iload - code replicated for BaseBase compiler performance
     Offset offset = localOffset(index);
     asm.emitPUSH_RegDisp(ESP, offset);
-  }
-
-  /**
-   * Emit code to load a double local variable
-   * @param index the local index to load
-   */
-  protected final void emit_dload(int index) {
-    Offset offset = localOffset(index);
-    asm.emitPUSH_RegDisp(ESP, offset); // high part
-    asm.emitPUSH_RegDisp(ESP, offset); // low part (ESP has moved by 4!!)
   }
 
   /**
@@ -304,8 +292,42 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * @param index the local index to load
    */
   protected final void emit_aload(int index) {
+    // identical to iload - code replicated for BaseBase compiler performance
     Offset offset = localOffset(index);
     asm.emitPUSH_RegDisp(ESP, offset);
+  }
+
+  /**
+   * Emit code to load a long local variable
+   * @param index the local index to load
+   */
+  protected final void emit_lload(int index) {
+    Offset offset = localOffset(index);
+    if (SSE2_OPS) {
+      asm.emitMOVQ_Reg_RegDisp(XMM0, SP, offset.minus(4)); // XMM0 is local value
+      asm.emitADD_Reg_Imm(SP, -8);        // adjust stack
+      asm.emitMOVQ_RegInd_Reg(SP, XMM0);  // place value on stack
+    } else {
+      asm.emitPUSH_RegDisp(ESP, offset); // high part
+      asm.emitPUSH_RegDisp(ESP, offset); // low part (ESP has moved by 4!!)
+    }
+  }
+
+  /**
+   * Emit code to load a double local variable
+   * @param index the local index to load
+   */
+  protected final void emit_dload(int index) {
+    // identical to lload - code replicated for BaseBase compiler performance
+    Offset offset = localOffset(index);
+    if (SSE2_OPS) {
+      asm.emitMOVQ_Reg_RegDisp(XMM0, SP, offset.minus(4)); // XMM0 is local value
+      asm.emitADD_Reg_Imm(SP, -8);        // adjust stack
+      asm.emitMOVQ_RegInd_Reg(SP, XMM0);  // place value on stack
+    } else {
+      asm.emitPUSH_RegDisp(ESP, offset); // high part
+      asm.emitPUSH_RegDisp(ESP, offset); // low part (ESP has moved by 4!!)
+    }
   }
 
   /*
@@ -322,32 +344,13 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   }
 
   /**
-   * Emit code to store a long to a local variable
-   * @param index the local index to load
-   */
-  protected final void emit_lstore(int index) {
-    Offset offset = localOffset(index + 1).minus(4); // pop computes EA after ESP has moved by 4!
-    asm.emitPOP_RegDisp(ESP, offset); // high part
-    asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
-  }
-
-  /**
    * Emit code to store a float to a local variable
    * @param index the local index to load
    */
   protected final void emit_fstore(int index) {
+    // identical to istore - code replicated for BaseBase compiler performance
     Offset offset = localOffset(index).minus(4); // pop computes EA after ESP has moved by 4!
     asm.emitPOP_RegDisp(ESP, offset);
-  }
-
-  /**
-   * Emit code to store an double  to a local variable
-   * @param index the local index to load
-   */
-  protected final void emit_dstore(int index) {
-    Offset offset = localOffset(index + 1).minus(4); // pop computes EA after ESP has moved by 4!
-    asm.emitPOP_RegDisp(ESP, offset); // high part
-    asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
   }
 
   /**
@@ -355,8 +358,46 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * @param index the local index to load
    */
   protected final void emit_astore(int index) {
+    // identical to istore - code replicated for BaseBase compiler performance
     Offset offset = localOffset(index).minus(4); // pop computes EA after ESP has moved by 4!
     asm.emitPOP_RegDisp(ESP, offset);
+  }
+
+  /**
+   * Emit code to store a long to a local variable
+   * @param index the local index to load
+   */
+  protected final void emit_lstore(int index) {
+    if (SSE2_OPS) {
+      Offset offset = localOffset(index).minus(4);
+      asm.emitMOVQ_Reg_RegInd(XMM0, SP);  // XMM0 is stack value
+      asm.emitMOVQ_RegDisp_Reg(SP, offset, XMM0);  // place value in local
+      asm.emitADD_Reg_Imm(SP, 8);
+    } else {
+      // pop computes EA after ESP has moved by 4!
+      Offset offset = localOffset(index + 1).minus(4);
+      asm.emitPOP_RegDisp(ESP, offset); // high part
+      asm.emitPOP_RegDisp(ESP, offset); // low part (ESP has moved by 4!!)
+    }
+  }
+
+  /**
+   * Emit code to store an double  to a local variable
+   * @param index the local index to load
+   */
+  protected final void emit_dstore(int index) {
+    // identical to lstore - code replicated for BaseBase compiler performance
+    if (SSE2_OPS) {
+      Offset offset = localOffset(index).minus(4);
+      asm.emitMOVQ_Reg_RegInd(XMM0, SP);  // XMM0 is stack value
+      asm.emitMOVQ_RegDisp_Reg(SP, offset, XMM0);  // place value in local
+      asm.emitADD_Reg_Imm(SP, 8);
+    } else {
+      // pop computes EA after ESP has moved by 4!
+      Offset offset = localOffset(index + 1).minus(4);
+      asm.emitPOP_RegDisp(ESP, offset); // high part
+      asm.emitPOP_RegDisp(ESP, offset); // low part (ESP has moved by 4!!)
+    }
   }
 
   /*
