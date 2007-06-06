@@ -1453,7 +1453,13 @@ EOF
   // dstReg ${opStr}= $code srcReg
   public final void emit${acronym}_Reg_Reg(byte dstReg, byte srcReg) {
     int miStart = mi;
+EOF
+    if [ x$prefix != xnone ]; then 
+    cat >> $FILENAME <<EOF
     setMachineCodes(mi++, (byte) ${prefix});
+EOF
+    fi
+    cat >> $FILENAME <<EOF
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) ${opCode});
     emitRegRegOperands(dstReg, srcReg);$condLine
@@ -1463,7 +1469,13 @@ EOF
   // dstReg ${opStr}= $code [srcReg + srcDisp]
   public final void emit${acronym}_Reg_RegDisp(byte dstReg, byte srcReg, Offset disp) {
     int miStart = mi;
+EOF
+    if [ x$prefix != xnone ]; then 
+    cat >> $FILENAME <<EOF
     setMachineCodes(mi++, (byte) ${prefix});
+EOF
+    fi
+    cat >> $FILENAME <<EOF
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) ${opCode});
     emitRegDispRegOperands(srcReg, disp, dstReg);$condLine
@@ -1473,7 +1485,13 @@ EOF
   // dstReg ${opStr}= $code [srcIndex<<scale + srcDisp]
   public final void emit${acronym}_Reg_RegOff(byte dstReg, byte srcIndex, short scale, Offset srcDisp) {
     int miStart = mi;
+EOF
+    if [ x$prefix != xnone ]; then 
+    cat >> $FILENAME <<EOF
     setMachineCodes(mi++, (byte) ${prefix});
+EOF
+    fi
+    cat >> $FILENAME <<EOF
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) ${opCode});
     emitRegOffRegOperands(srcIndex, scale, srcDisp, dstReg);$condLine
@@ -1483,7 +1501,13 @@ EOF
   // dstReg ${opStr}= $code [srcDisp]
   public final void emit${acronym}_Reg_Abs(byte dstReg, Offset srcDisp) {
     int miStart = mi;
+EOF
+    if [ x$prefix != xnone ]; then 
+    cat >> $FILENAME <<EOF
     setMachineCodes(mi++, (byte) ${prefix});
+EOF
+    fi
+    cat >> $FILENAME <<EOF
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) ${opCode});
     emitAbsRegOperands(srcDisp, dstReg);$condLine
@@ -1493,7 +1517,13 @@ EOF
   // dstReg ${opStr}= $code [srcBase + srcIndex<<scale + srcDisp]
   public final void emit${acronym}_Reg_RegIdx(byte dstReg, byte srcBase, byte srcIndex, short scale, Offset srcDisp) {
     int miStart = mi;
+EOF
+    if [ x$prefix != xnone ]; then 
+    cat >> $FILENAME <<EOF
     setMachineCodes(mi++, (byte) ${prefix});
+EOF
+    fi
+    cat >> $FILENAME <<EOF
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) ${opCode});
     emitSIBRegOperands(srcBase, srcIndex, scale, srcDisp, dstReg);$condLine
@@ -1503,7 +1533,13 @@ EOF
   // dstReg ${opStr}= $code [srcReg]
   public final void emit${acronym}_Reg_RegInd(byte dstReg, byte srcReg) {
     int miStart = mi;
+EOF
+    if [ x$prefix != xnone ]; then 
+    cat >> $FILENAME <<EOF
     setMachineCodes(mi++, (byte) ${prefix});
+EOF
+    fi
+    cat >> $FILENAME <<EOF
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) ${opCode});
     emitRegIndirectRegOperands(srcReg, dstReg);$condLine
@@ -1597,8 +1633,10 @@ emitSSE2Op 0xF3 0xF3 MOVSS 0x10 0x11
 emitSSE2Op 0xF3 none CVTSI2SS 0x2A none
 emitSSE2Op 0xF3 none CVTSS2SD 0x5A none
 emitSSE2Op 0xF3 none CVTSS2SI 0x2D none
+emitSSE2Op 0xF3 none CVTTSS2SI 0x2C none
 
 # Single precision FP comparisons.
+emitSSE2Op none none COMISS 0x2F none
 emitSSE2Op 0xF3 none CMPEQSS 0xC2 none 0
 emitSSE2Op 0xF3 none CMPLTSS 0xC2 none 1
 emitSSE2Op 0xF3 none CMPLESS 0xC2 none 2
@@ -1621,8 +1659,10 @@ emitSSE2Op 0xF2 0xF2 MOVSD 0x10 0x11
 emitSSE2Op 0xF2 none CVTSI2SD 0x2A none
 emitSSE2Op 0xF2 none CVTSD2SS 0x5A none
 emitSSE2Op 0xF2 none CVTSD2SI 0x2D none
+emitSSE2Op 0xF2 none CVTTSD2SI 0x2C none
 
 # Double precision comparison ops.
+emitSSE2Op 0x66 none COMISD 0x2F none
 emitSSE2Op 0xF2 none CMPEQSD 0xC2 none 0
 emitSSE2Op 0xF2 none CMPLTSD 0xC2 none 1
 emitSSE2Op 0xF2 none CMPLESD 0xC2 none 2

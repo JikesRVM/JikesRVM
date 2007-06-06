@@ -1132,6 +1132,20 @@ none
 
 
 ####################
+IA32_COMISS
+MIR_Move
+none
+
+
+
+####################
+IA32_COMISD
+MIR_Move
+none
+
+
+
+####################
 IA32_CMPEQSS
 MIR_Move
 none
@@ -1293,6 +1307,13 @@ move
 
 
 ####################
+IA32_CVTTSS2SI
+MIR_Move
+move
+
+
+
+####################
 IA32_CVTSI2SD
 MIR_Move
 move
@@ -1308,6 +1329,13 @@ move
 
 ####################
 IA32_CVTSD2SI
+MIR_Move
+move
+
+
+
+####################
+IA32_CVTTSD2SI
 MIR_Move
 move
 

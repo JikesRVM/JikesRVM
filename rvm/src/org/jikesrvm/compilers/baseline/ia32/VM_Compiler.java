@@ -1296,10 +1296,8 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the i2l bytecode
    */
   protected final void emit_i2l() {
-    asm.emitPOP_Reg(EAX);
-    asm.emitCDQ();
-    asm.emitPUSH_Reg(EDX);
-    asm.emitPUSH_Reg(EAX);
+    asm.emitPUSH_RegInd(SP);                   // duplicate int on stack
+    asm.emitSAR_RegDisp_Imm(SP, ONE_SLOT, 31); // sign extend as high word of long
   }
 
   /**
@@ -1321,11 +1319,11 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   protected final void emit_i2d() {
     if (SSE2_OPS) {
       asm.emitCVTSI2SD_Reg_RegInd(XMM0, SP);
-      asm.emitSUB_Reg_Imm(SP, WORDSIZE); // grow the stack
+      asm.emitADD_Reg_Imm(SP, -WORDSIZE); // grow the stack
       asm.emitMOVSD_RegInd_Reg(SP, XMM0);
     } else {
       asm.emitFILD_Reg_RegInd(FP0, SP);
-      asm.emitPUSH_Reg(T0);             // grow the stack
+      asm.emitADD_Reg_Imm(SP, -WORDSIZE); // grow the stack
       asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);
     }
   }
@@ -1334,9 +1332,9 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the l2i bytecode
    */
   protected final void emit_l2i() {
-    asm.emitPOP_Reg(T0); // low half of the long
-    asm.emitPOP_Reg(S0); // high half of the long
-    asm.emitPUSH_Reg(T0);
+    asm.emitMOV_Reg_RegInd(T0, SP);    // low half of the long
+    asm.emitADD_Reg_Imm(SP, WORDSIZE); // throw away high half of the long
+    asm.emitMOV_RegInd_Reg(SP, T0);
   }
 
   /**
@@ -1360,51 +1358,43 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the f2i bytecode
    */
   protected final void emit_f2i() {
-    // (1) save RVM nonvolatiles
-    int numNonVols = NONVOLATILE_GPRS.length;
-    Offset off = Offset.fromIntSignExtend(numNonVols * WORDSIZE);
-    for (int i = 0; i < numNonVols; i++) {
-      asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
+    if (SSE2_OPS) {
+      asm.emitCVTTSS2SI_Reg_RegInd(T0, SP);
+      asm.emitMOV_RegInd_Reg(SP, T0);
+    } else {
+      // Normally the status and control word rounds numbers, but for conversion
+      // to an integer/long value we want truncation. We therefore save the FPSCW,
+      // set it to truncation perform operation then restore
+      asm.emitFLD_Reg_RegInd(FP0, SP);                         // FP0 = value
+      asm.emitFSTCW_RegDisp(SP, MINUS_ONE_SLOT);               // [SP-4] = fpscw
+      asm.emitMOVZX_Reg_RegDisp_Word(T0, SP, MINUS_ONE_SLOT);  // EAX = fpscw
+      asm.emitOR_Reg_Imm(T0, 0xC00);                           // EAX = FPSCW in truncate mode
+      asm.emitMOV_RegInd_Reg(SP, T0);                          // [SP] = new fpscw value
+      asm.emitFLDCW_RegInd(SP);                                // Set FPSCW
+      asm.emitFISTP_RegInd_Reg(SP, FP0);                       // Store 32bit long
+      asm.emitFLDCW_RegDisp(SP, MINUS_ONE_SLOT);               // Restore FPSCW
     }
-    // (2) Push arg to C function
-    asm.emitPUSH_RegDisp(SP, off);
-    // (3) invoke C function through bootrecord
-    asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
-    asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysFloatToIntIPField.getOffset());
-    // (4) pop argument;
-    asm.emitPOP_Reg(S0);
-    // (5) restore RVM nonvolatiles
-    for (int i = numNonVols - 1; i >= 0; i--) {
-      asm.emitPOP_Reg(NONVOLATILE_GPRS[i]);
-    }
-    // (6) put result on expression stack
-    asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T0);
   }
 
   /**
    * Emit code to implement the f2l bytecode
    */
   protected final void emit_f2l() {
-    // (1) save RVM nonvolatiles
-    int numNonVols = NONVOLATILE_GPRS.length;
-    Offset off = Offset.fromIntSignExtend(numNonVols * WORDSIZE);
-    for (int i = 0; i < numNonVols; i++) {
-      asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
-    }
-    // (2) Push arg to C function
-    asm.emitPUSH_RegDisp(SP, off);
-    // (3) invoke C function through bootrecord
-    asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
-    asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysFloatToLongIPField.getOffset());
-    // (4) pop argument;
-    asm.emitPOP_Reg(S0);
-    // (5) restore RVM nonvolatiles
-    for (int i = numNonVols - 1; i >= 0; i--) {
-      asm.emitPOP_Reg(NONVOLATILE_GPRS[i]);
-    }
-    // (6) put result on expression stack
-    asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T1);
-    asm.emitPUSH_Reg(T0);
+    // TODO: SSE3 has a FISTTP instruction that stores the value with truncation
+    // meaning the FPSCW can be left alone
+
+    // Normally the status and control word rounds numbers, but for conversion
+    // to an integer/long value we want truncation. We therefore save the FPSCW,
+    // set it to truncation perform operation then restore
+    asm.emitFLD_Reg_RegInd(FP0, SP);                         // FP0 = value
+    asm.emitADD_Reg_Imm(SP, -WORDSIZE);                      // Grow the stack    
+    asm.emitFSTCW_RegDisp(SP, MINUS_ONE_SLOT);               // [SP-4] = fpscw
+    asm.emitMOVZX_Reg_RegDisp_Word(T0, SP, MINUS_ONE_SLOT);  // EAX = fpscw
+    asm.emitOR_Reg_Imm(T0, 0xC00);                           // EAX = FPSCW in truncate mode
+    asm.emitMOV_RegInd_Reg(SP, T0);                          // [SP] = new fpscw value
+    asm.emitFLDCW_RegInd(SP);                                // Set FPSCW
+    asm.emitFISTP_RegInd_Reg_Quad(SP, FP0);                  // Store 64bit long
+    asm.emitFLDCW_RegDisp(SP, MINUS_ONE_SLOT);               // Restore FPSCW
   }
 
   /**
@@ -1413,11 +1403,11 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   protected final void emit_f2d() {
     if (SSE2_OPS) {
       asm.emitCVTSS2SD_Reg_RegInd(XMM0, SP);
-      asm.emitSUB_Reg_Imm(SP, WORDSIZE); // grow the stack
+      asm.emitADD_Reg_Imm(SP, -WORDSIZE); // grow the stack
       asm.emitMOVSD_RegInd_Reg(SP, XMM0);
     } else {
       asm.emitFLD_Reg_RegInd(FP0, SP);
-      asm.emitSUB_Reg_Imm(SP, WORDSIZE); // grow the stack
+      asm.emitADD_Reg_Imm(SP, -WORDSIZE); // grow the stack
       asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);
     }
   }
@@ -1426,56 +1416,44 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the d2i bytecode
    */
   protected final void emit_d2i() {
-    // (1) save RVM nonvolatiles
-    int numNonVols = NONVOLATILE_GPRS.length;
-    Offset off = Offset.fromIntSignExtend(numNonVols * WORDSIZE);
-    for (int i = 0; i < numNonVols; i++) {
-     asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
+    if (SSE2_OPS) {
+      asm.emitCVTTSD2SI_Reg_RegInd(T0, SP);
+      asm.emitADD_Reg_Imm(SP, WORDSIZE); // shrink the stack
+      asm.emitMOV_RegInd_Reg(SP, T0);
+    } else {
+      // Normally the status and control word rounds numbers, but for conversion
+      // to an integer/long value we want truncation. We therefore save the FPSCW,
+      // set it to truncation perform operation then restore
+      asm.emitFLD_Reg_RegInd_Quad(FP0, SP);                    // FP0 = value
+      asm.emitADD_Reg_Imm(SP, WORDSIZE);                       // Shrink the stack
+      asm.emitFSTCW_RegDisp(SP, MINUS_ONE_SLOT);               // [SP-4] = fpscw
+      asm.emitMOVZX_Reg_RegDisp_Word(T0, SP, MINUS_ONE_SLOT);  // EAX = fpscw
+      asm.emitOR_Reg_Imm(T0, 0xC00);                           // EAX = FPSCW in truncate mode
+      asm.emitMOV_RegInd_Reg(SP, T0);                          // [SP] = new fpscw value
+      asm.emitFLDCW_RegInd(SP);                                // Set FPSCW
+      asm.emitFISTP_RegInd_Reg(SP, FP0);                       // Store 32bit int
+      asm.emitFLDCW_RegDisp(SP, MINUS_ONE_SLOT);               // Restore FPSCW
     }
-    // (2) Push args to C function (reversed)
-    asm.emitPUSH_RegDisp(SP, off.plus(4));
-    asm.emitPUSH_RegDisp(SP, off.plus(4));
-    // (3) invoke C function through bootrecord
-    asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
-    asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysDoubleToIntIPField.getOffset());
-    // (4) pop arguments
-    asm.emitPOP_Reg(S0);
-    asm.emitPOP_Reg(S0);
-    // (5) restore RVM nonvolatiles
-    for (int i = numNonVols - 1; i >= 0; i--) {
-      asm.emitPOP_Reg(NONVOLATILE_GPRS[i]);
-    }
-    // (6) put result on expression stack
-    asm.emitPOP_Reg(S0); // shrink stack by 1 word
-    asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T0);
   }
 
   /**
    * Emit code to implement the d2l bytecode
    */
   protected final void emit_d2l() {
-    // (1) save RVM nonvolatiles
-    int numNonVols = NONVOLATILE_GPRS.length;
-    Offset off = Offset.fromIntSignExtend(numNonVols * WORDSIZE);
-    for (int i = 0; i < numNonVols; i++) {
-      asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
-    }
-    // (2) Push args to C function (reversed)
-    asm.emitPUSH_RegDisp(SP, off.plus(4));
-    asm.emitPUSH_RegDisp(SP, off.plus(4));
-    // (3) invoke C function through bootrecord
-    asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
-    asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysDoubleToLongIPField.getOffset());
-    // (4) pop arguments
-    asm.emitPOP_Reg(S0);
-    asm.emitPOP_Reg(S0);
-    // (5) restore RVM nonvolatiles
-    for (int i = numNonVols - 1; i >= 0; i--) {
-      asm.emitPOP_Reg(NONVOLATILE_GPRS[i]);
-    }
-    // (6) put result on expression stack
-    asm.emitMOV_RegDisp_Reg(SP, ONE_SLOT, T1);
-    asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T0);
+    // TODO: SSE3 has a FISTTP instruction that stores the value with truncation
+    // meaning the FPSCW can be left alone
+
+    // Normally the status and control word rounds numbers, but for conversion
+    // to an integer/long value we want truncation. We therefore save the FPSCW,
+    // set it to truncation perform operation then restore
+    asm.emitFLD_Reg_RegInd_Quad(FP0, SP);                    // FP0 = value
+    asm.emitFSTCW_RegDisp(SP, MINUS_ONE_SLOT);               // [SP-4] = fpscw
+    asm.emitMOVZX_Reg_RegDisp_Word(T0, SP, MINUS_ONE_SLOT);  // EAX = fpscw
+    asm.emitOR_Reg_Imm(T0, 0xC00);                           // EAX = FPSCW in truncate mode
+    asm.emitMOV_RegInd_Reg(SP, T0);                          // [SP] = new fpscw value
+    asm.emitFLDCW_RegInd(SP);                                // Set FPSCW
+    asm.emitFISTP_RegInd_Reg_Quad(SP, FP0);                  // Store 64bit long
+    asm.emitFLDCW_RegDisp(SP, MINUS_ONE_SLOT);               // Restore FPSCW
   }
 
   /**
@@ -1497,27 +1475,27 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the i2b bytecode
    */
   protected final void emit_i2b() {
-    asm.emitPOP_Reg(T0);
-    asm.emitMOVSX_Reg_Reg_Byte(T0, T0);
-    asm.emitPUSH_Reg(T0);
+    asm.emitMOVSX_Reg_RegInd_Byte(T0, SP);
+    asm.emitMOV_RegInd_Reg(SP, T0);
   }
 
   /**
    * Emit code to implement the i2c bytecode
    */
   protected final void emit_i2c() {
-    asm.emitPOP_Reg(T0);
-    asm.emitMOVZX_Reg_Reg_Word(T0, T0);
-    asm.emitPUSH_Reg(T0);
+    // Alternative: zero high 16bits on stack
+    asm.emitMOV_RegDisp_Imm_Word(SP, Offset.fromIntSignExtend(2), 0);
+    // The previous form may inhibit store/load forwarding so this form may be better:
+    // asm.emitMOVZX_Reg_RegInd_Word(T0, SP);
+    // asm.emitMOV_RegInd_Reg(SP, T0);
   }
 
   /**
    * Emit code to implement the i2s bytecode
    */
   protected final void emit_i2s() {
-    asm.emitPOP_Reg(T0);
-    asm.emitMOVSX_Reg_Reg_Word(T0, T0);
-    asm.emitPUSH_Reg(T0);
+    asm.emitMOVSX_Reg_RegInd_Word(T0, SP);
+    asm.emitMOV_RegInd_Reg(SP, T0);
   }
 
   /*
