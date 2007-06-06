@@ -24,4 +24,3 @@ config.default-heapsize.initial=20
 config.default-heapsize.maximum=100
 config.bootimage.compiler.args=
 config.stress-gc-interval=0
-target.arch.sse2=false
