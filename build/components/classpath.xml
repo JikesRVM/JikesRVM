@@ -68,7 +68,19 @@
   <!-- download classpath from web -->
   <target name="get-classpath-from-web" depends="init-classpath-properties" if="classpath.from-web">
     <test-file name="tar.exe" location="${host.file}"/>
-    <property name="classpath.web-archive" value="classpath-0.${classpath.version}-generics.tar.gz"/>
+    <if>
+      <conditions>
+        <or>
+          <equals arg1="${classpath.version}" arg2="93"/>
+        </or>
+      </conditions>
+      <sequential>
+        <property name="generics-extension" value="-generics"/>
+      </sequential>
+    </if>
+    <property name="generics-extension" value=""/>
+
+    <property name="classpath.web-archive" value="classpath-0.${classpath.version}${generics-extension}.tar.gz"/>
     <mkdir dir="${classpath.package.dir}"/>
     <get src="http://ftp.gnu.org/gnu/classpath/${classpath.web-archive}"
          dest="${classpath.package.dir}/${classpath.web-archive}"/>
@@ -77,7 +89,7 @@
       <arg value="xzf"/>
       <arg value="${classpath.web-archive}"/>
     </exec>
-    <move file="${classpath.package.dir}/classpath-0.${classpath.version}-generics"
+    <move file="${classpath.package.dir}/classpath-0.${classpath.version}${generics-extension}"
           tofile="${classpath.package.dir}/classpath"/>
   </target>
 
