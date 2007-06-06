@@ -47,3 +47,6 @@ config.bootimage.compiler.args=
 
 # Set to number of allocations between gcs to stress test the GC subsystem, 0 to disable. Defaults to 0.
 config.stress-gc-interval=
+
+# Control whether SSE2 instructions are enabled on ia32
+target.arch.sse2=
