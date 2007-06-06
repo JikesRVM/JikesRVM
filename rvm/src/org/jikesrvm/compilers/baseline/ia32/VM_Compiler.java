@@ -408,101 +408,116 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to load from an int array
    */
   protected final void emit_iaload() {
-    asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);       // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT);       // S0 is the array ref
-    genBoundsCheck(asm, T0, S0);              // T0 is index, S0 is address of array
-    asm.emitADD_Reg_Imm(SP, WORDSIZE * 2);      // complete popping the 2 args
-    asm.emitPUSH_RegIdx(S0, T0, VM_Assembler.WORD, NO_SLOT); // push desired int array element
-  }
-
-  /**
-   * Emit code to load from a long array
-   */
-  protected final void emit_laload() {
-    asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);              // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT);              // S0 is the array ref
-    genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
-    asm.emitADD_Reg_Imm(SP, WORDSIZE * 2);             // complete popping the 2 args
-    asm.emitPUSH_RegIdx(S0, T0, VM_Assembler.LONG, ONE_SLOT); // load high part of desired long array element
-    asm.emitPUSH_RegIdx(S0, T0, VM_Assembler.LONG, NO_SLOT);        // load low part of desired long array element
+    asm.emitMOV_Reg_RegInd(T0, SP);            // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is array ref
+    asm.emitADD_Reg_Imm(SP, WORDSIZE * 2);     // complete popping the 2 args
+    genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
+    // push [S0+T0<<2]
+    asm.emitPUSH_RegIdx(S0, T0, VM_Assembler.WORD, NO_SLOT);
   }
 
   /**
    * Emit code to load from a float array
    */
   protected final void emit_faload() {
-    asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);       // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT);       // S0 is the array ref
-    genBoundsCheck(asm, T0, S0);              // T0 is index, S0 is address of array
-    asm.emitADD_Reg_Imm(SP, WORDSIZE * 2);      // complete popping the 2 args
-    asm.emitPUSH_RegIdx(S0, T0, VM_Assembler.WORD, NO_SLOT); // push desired float array element
-  }
-
-  /**
-   * Emit code to load from a double array
-   */
-  protected final void emit_daload() {
-    asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);              // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT);              // S0 is the array ref
-    genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
-    asm.emitADD_Reg_Imm(SP, WORDSIZE * 2);             // complete popping the 2 args
-    asm.emitPUSH_RegIdx(S0, T0, VM_Assembler.LONG, ONE_SLOT); // load high part of double
-    asm.emitPUSH_RegIdx(S0, T0, VM_Assembler.LONG, NO_SLOT);        // load low part of double
+    // identical to iaload - code replicated for BaseBase compiler performance
+    asm.emitMOV_Reg_RegInd(T0, SP);            // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is array ref
+    asm.emitADD_Reg_Imm(SP, WORDSIZE * 2);     // complete popping the 2 args
+    genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
+    // push [S0+T0<<2]
+    asm.emitPUSH_RegIdx(S0, T0, VM_Assembler.WORD, NO_SLOT);
   }
 
   /**
    * Emit code to load from a reference array
    */
   protected final void emit_aaload() {
-    asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);       // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT);       // S0 is the array ref
-    genBoundsCheck(asm, T0, S0);              // T0 is index, S0 is address of array
-    asm.emitADD_Reg_Imm(SP, WORDSIZE * 2);      // complete popping the 2 args
-    asm.emitPUSH_RegIdx(S0, T0, VM_Assembler.WORD, NO_SLOT); // push desired object array element
-  }
-
-  /**
-   * Emit code to load from a byte/boolean array
-   */
-  protected final void emit_baload() {
-    asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);                     // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT);                     // S0 is the array ref
-    genBoundsCheck(asm, T0, S0);                            // T0 is index, S0 is address of array
-    asm.emitADD_Reg_Imm(SP, WORDSIZE * 2);                    // complete popping the 2 args
-    asm.emitMOVSX_Reg_RegIdx_Byte(T1, S0, T0, VM_Assembler.BYTE, NO_SLOT); // load byte and sign extend to a 32 bit word
-    asm.emitPUSH_Reg(T1);                                   // push sign extended byte onto stack
+    // identical to iaload - code replicated for BaseBase compiler performance
+    asm.emitMOV_Reg_RegInd(T0, SP);            // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is array ref
+    asm.emitADD_Reg_Imm(SP, WORDSIZE * 2);     // complete popping the 2 args
+    genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
+    // push [S0+T0<<2]
+    asm.emitPUSH_RegIdx(S0, T0, VM_Assembler.WORD, NO_SLOT);
   }
 
   /**
    * Emit code to load from a char array
    */
   protected final void emit_caload() {
-    asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);                      // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT);                      // S0 is the array ref
-    genBoundsCheck(asm, T0, S0);                             // T0 is index, S0 is address of array
-    asm.emitADD_Reg_Imm(SP, WORDSIZE * 2);                     // complete popping the 2 args
-    asm.emitMOVZX_Reg_RegIdx_Word(T1,
-                                  S0,
-                                  T0,
-                                  VM_Assembler.SHORT,
-                                  NO_SLOT); // load halfword without sign extend to a 32 bit word
-    asm.emitPUSH_Reg(T1);                                    // push char onto stack
+    asm.emitMOV_Reg_RegInd(T0, SP);            // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is array ref
+    asm.emitADD_Reg_Imm(SP, WORDSIZE * 2);     // complete popping the 2 args
+    genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
+    // T1 = (int)[S0+T0<<1]
+    asm.emitMOVZX_Reg_RegIdx_Word(T1, S0, T0, VM_Assembler.SHORT, NO_SLOT);
+    asm.emitPUSH_Reg(T1);        // push short onto stack
   }
 
   /**
    * Emit code to load from a short array
    */
   protected final void emit_saload() {
-    asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);                      // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT);                      // S0 is the array ref
-    genBoundsCheck(asm, T0, S0);                             // T0 is index, S0 is address of array
-    asm.emitADD_Reg_Imm(SP, WORDSIZE * 2);                     // complete popping the 2 args
-    asm.emitMOVSX_Reg_RegIdx_Word(T1,
-                                  S0,
-                                  T0,
-                                  VM_Assembler.SHORT,
-                                  NO_SLOT); // load halfword sign extend to a 32 bit word
-    asm.emitPUSH_Reg(T1);                                    // push sign extended short onto stack
+    asm.emitMOV_Reg_RegInd(T0, SP);            // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is array ref
+    asm.emitADD_Reg_Imm(SP, WORDSIZE * 2);     // complete popping the 2 args
+    genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
+    // T1 = (int)[S0+T0<<1]
+    asm.emitMOVSX_Reg_RegIdx_Word(T1, S0, T0, VM_Assembler.SHORT, NO_SLOT);
+    asm.emitPUSH_Reg(T1);        // push short onto stack
+  }
+
+  /**
+   * Emit code to load from a byte/boolean array
+   */
+  protected final void emit_baload() {
+    asm.emitMOV_Reg_RegInd(T0, SP);            // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // S0 is array ref
+    asm.emitADD_Reg_Imm(SP, WORDSIZE * 2);     // complete popping the 2 args
+    genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
+    // T1 = (int)[S0+T0<<1]
+    asm.emitMOVSX_Reg_RegIdx_Byte(T1, S0, T0, VM_Assembler.BYTE, NO_SLOT);
+    asm.emitPUSH_Reg(T1);        // push short onto stack
+  }
+
+  /**
+   * Emit code to load from a long array
+   */
+  protected final void emit_laload() {
+    asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);    // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT);   // S0 is the array ref
+    if (!SSE2_OPS) {
+      asm.emitADD_Reg_Imm(SP, WORDSIZE * 2);     // complete popping the 2 args
+    }
+    genBoundsCheck(asm, T0, S0);                 // T0 is index, S0 is address of array
+    if (SSE2_OPS) {
+      asm.emitMOVQ_Reg_RegIdx(XMM0, S0, T0, VM_Assembler.LONG, NO_SLOT);
+      asm.emitMOVQ_RegInd_Reg(SP, XMM0);
+    } else {
+      asm.emitPUSH_RegIdx(S0, T0, VM_Assembler.LONG, ONE_SLOT); // load high part of desired long array element
+      asm.emitPUSH_RegIdx(S0, T0, VM_Assembler.LONG, NO_SLOT);  // load low part of desired long array element
+    }
+  }
+
+  /**
+   * Emit code to load from a double array
+   */
+  protected final void emit_daload() {
+    // identical to laload - code replicated for BaseBase compiler performance
+    asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);    // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT);   // S0 is the array ref
+    if (!SSE2_OPS) {
+      asm.emitADD_Reg_Imm(SP, WORDSIZE * 2);     // complete popping the 2 args
+    }
+    genBoundsCheck(asm, T0, S0);                 // T0 is index, S0 is address of array
+    if (SSE2_OPS) {
+      asm.emitMOVQ_Reg_RegIdx(XMM0, S0, T0, VM_Assembler.LONG, NO_SLOT);
+      asm.emitMOVQ_RegInd_Reg(SP, XMM0);
+    } else {
+      asm.emitPUSH_RegIdx(S0, T0, VM_Assembler.LONG, ONE_SLOT); // load high part of desired long array element
+      asm.emitPUSH_RegIdx(S0, T0, VM_Assembler.LONG, NO_SLOT);  // load low part of desired long array element
+    }
   }
 
   /*
@@ -514,105 +529,50 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    */
   protected final void emit_iastore() {
     VM_Barriers.compileModifyCheck(asm, 8);
-    asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);              // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS);              // S0 is the array ref
-    genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
-    asm.emitMOV_Reg_RegDisp(T1, SP, NO_SLOT);              // T1 is the int value
+    asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);  // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS); // S0 is array ref
+    asm.emitMOV_Reg_RegInd(T1, SP);             // T1 is the byte value
+    asm.emitADD_Reg_Imm(SP, 3*WORDSIZE);        // Shrink stack
+    genBoundsCheck(asm, T0, S0);                // T0 is index, S0 is address of array
     asm.emitMOV_RegIdx_Reg(S0, T0, VM_Assembler.WORD, NO_SLOT, T1); // [S0 + T0<<2] <- T1
-    asm.emitADD_Reg_Imm(SP, WORDSIZE * 3);             // complete popping the 3 args
-  }
-
-  /**
-   * Emit code to store to a long array
-   */
-  protected final void emit_lastore() {
-    VM_Barriers.compileModifyCheck(asm, 12);
-    asm.emitMOV_Reg_RegDisp(T0, SP, TWO_SLOTS);                     // T0 is the array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, THREE_SLOTS);                    // S0 is the array ref
-    genBoundsCheck(asm, T0, S0);                            // T0 is index, S0 is address of array
-    asm.emitPOP_Reg(T1);                                    // low part of long value
-    asm.emitMOV_RegIdx_Reg(S0,
-                           T0,
-                           VM_Assembler.LONG,
-                           NO_SLOT,
-                           T1);        // [S0 + T0<<3 + 0] <- T1 store low part into array i.e.
-    asm.emitPOP_Reg(T1);                                    // high part of long value
-    asm.emitMOV_RegIdx_Reg(S0,
-                           T0,
-                           VM_Assembler.LONG,
-                           ONE_SLOT,
-                           T1); // [S0 + T0<<3 + 4] <- T1 store high part into array i.e.
-    asm.emitADD_Reg_Imm(SP, WORDSIZE * 2);                    // remove index and ref from the stack
   }
 
   /**
    * Emit code to store to a float array
    */
   protected final void emit_fastore() {
+    // identical to iastore - code replicated for BaseBase compiler performance
     VM_Barriers.compileModifyCheck(asm, 8);
-    asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);              // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS);              // S0 is the array ref
-    genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
-    asm.emitMOV_Reg_RegDisp(T1, SP, NO_SLOT);              // T1 is the float value
+    asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);  // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS); // S0 is array ref
+    asm.emitMOV_Reg_RegInd(T1, SP);             // T1 is the byte value
+    asm.emitADD_Reg_Imm(SP, 3*WORDSIZE);        // Shrink stack
+    genBoundsCheck(asm, T0, S0);                // T0 is index, S0 is address of array
     asm.emitMOV_RegIdx_Reg(S0, T0, VM_Assembler.WORD, NO_SLOT, T1); // [S0 + T0<<2] <- T1
-    asm.emitADD_Reg_Imm(SP, WORDSIZE * 3);             // complete popping the 3 args
   }
 
-  /**
-   * Emit code to store to a double array
-   */
-  protected final void emit_dastore() {
-    VM_Barriers.compileModifyCheck(asm, 12);
-    asm.emitMOV_Reg_RegDisp(T0, SP, TWO_SLOTS);                     // T0 is the array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, THREE_SLOTS);                    // S0 is the array ref
-    genBoundsCheck(asm, T0, S0);                            // T0 is index, S0 is address of array
-    asm.emitPOP_Reg(T1);                                    // low part of double value
-    asm.emitMOV_RegIdx_Reg(S0,
-                           T0,
-                           VM_Assembler.LONG,
-                           NO_SLOT,
-                           T1);        // [S0 + T0<<3 + 0] <- T1 store low part into array i.e.
-    asm.emitPOP_Reg(T1);                                    // high part of double value
-    asm.emitMOV_RegIdx_Reg(S0,
-                           T0,
-                           VM_Assembler.LONG,
-                           ONE_SLOT,
-                           T1); // [S0 + T0<<3 + 4] <- T1 store high part into array i.e.
-    asm.emitADD_Reg_Imm(SP, WORDSIZE * 2);                    // remove index and ref from the stack
-  }
 
   /**
    * Emit code to store to a reference array
    */
   protected final void emit_aastore() {
     VM_Barriers.compileModifyCheck(asm, 8);
-    asm.emitPUSH_RegDisp(SP, TWO_SLOTS);        // duplicate array ref
-    asm.emitPUSH_RegDisp(SP, ONE_SLOT);        // duplicate object value
-    genParameterRegisterLoad(2);                     // pass 2 parameter
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.checkstoreMethod.getOffset()); // checkstore(array ref, value)
-    asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);              // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS);              // S0 is the array ref
-    genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
+    asm.emitPUSH_RegDisp(SP, TWO_SLOTS); // duplicate array ref
+    asm.emitPUSH_RegDisp(SP, ONE_SLOT);  // duplicate object value
+    genParameterRegisterLoad(2);         // pass 2 parameter
+    // call checkstore(array ref, value)
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.checkstoreMethod.getOffset());
+    asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);  // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS); // S0 is the array ref
+    genBoundsCheck(asm, T0, S0);        // T0 is index, S0 is address of array
     if (MM_Constants.NEEDS_WRITE_BARRIER) {
       VM_Barriers.compileArrayStoreBarrier(asm);
+      asm.emitADD_Reg_Imm(SP, WORDSIZE * 3); // complete popping the 3 args
     } else {
-      asm.emitMOV_Reg_RegDisp(T1, SP, NO_SLOT);              // T1 is the object value
+      asm.emitMOV_Reg_RegDisp(T1, SP, NO_SLOT); // T1 is the object value
+      asm.emitADD_Reg_Imm(SP, WORDSIZE * 3); // complete popping the 3 args
       asm.emitMOV_RegIdx_Reg(S0, T0, VM_Assembler.WORD, NO_SLOT, T1); // [S0 + T0<<2] <- T1
     }
-    asm.emitADD_Reg_Imm(SP, WORDSIZE * 3);             // complete popping the 3 args
-  }
-
-  /**
-   * Emit code to store to a byte/boolean array
-   */
-  protected final void emit_bastore() {
-    VM_Barriers.compileModifyCheck(asm, 8);
-    asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);                   // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS);                   // S0 is the array ref
-    genBoundsCheck(asm, T0, S0);                          // T0 is index, S0 is address of array
-    asm.emitMOV_Reg_RegDisp(T1, SP, NO_SLOT);                   // T1 is the byte value
-    asm.emitMOV_RegIdx_Reg_Byte(S0, T0, VM_Assembler.BYTE, NO_SLOT, T1); // [S0 + T0<<2] <- T1
-    asm.emitADD_Reg_Imm(SP, WORDSIZE * 3);                  // complete popping the 3 args
   }
 
   /**
@@ -620,33 +580,94 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    */
   protected final void emit_castore() {
     VM_Barriers.compileModifyCheck(asm, 8);
-    asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);                   // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS);                   // S0 is the array ref
-    genBoundsCheck(asm, T0, S0);                          // T0 is index, S0 is address of array
-    asm.emitMOV_Reg_RegDisp(T1, SP, NO_SLOT);                   // T1 is the char value
-    asm.emitMOV_RegIdx_Reg_Word(S0,
-                                T0,
-                                VM_Assembler.SHORT,
-                                NO_SLOT,
-                                T1);// store halfword element into array i.e. [S0 +T0] <- T1 (halfword)
-    asm.emitADD_Reg_Imm(SP, WORDSIZE * 3);                  // complete popping the 3 args
+    asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);  // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS); // S0 is array ref
+    asm.emitMOV_Reg_RegInd(T1, SP);             // T1 is the char value
+    asm.emitADD_Reg_Imm(SP, 3*WORDSIZE);        // Shrink stack
+    genBoundsCheck(asm, T0, S0);        // T0 is index, S0 is address of array
+    // store halfword element into array i.e. [S0 +T0] <- T1 (halfword)
+    asm.emitMOV_RegIdx_Reg_Word(S0, T0, VM_Assembler.SHORT, NO_SLOT, T1);
   }
 
   /**
    * Emit code to store to a short array
    */
   protected final void emit_sastore() {
+    // identical to castore - code replicated for BaseBase compiler performance
     VM_Barriers.compileModifyCheck(asm, 8);
-    asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);                   // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS);                   // S0 is the array ref
-    genBoundsCheck(asm, T0, S0);                          // T0 is index, S0 is address of array
-    asm.emitMOV_Reg_RegDisp(T1, SP, NO_SLOT);                   // T1 is the short value
-    asm.emitMOV_RegIdx_Reg_Word(S0,
-                                T0,
-                                VM_Assembler.SHORT,
-                                NO_SLOT,
-                                T1);// store halfword element into array i.e. [S0 +T0] <- T1 (halfword)
-    asm.emitADD_Reg_Imm(SP, WORDSIZE * 3);                  // complete popping the 3 args
+    asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);  // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS); // S0 is array ref
+    asm.emitMOV_Reg_RegInd(T1, SP);             // T1 is the char value
+    asm.emitADD_Reg_Imm(SP, 3*WORDSIZE);        // Shrink stack
+    genBoundsCheck(asm, T0, S0);        // T0 is index, S0 is address of array
+    // store halfword element into array i.e. [S0 +T0] <- T1 (halfword)
+    asm.emitMOV_RegIdx_Reg_Word(S0, T0, VM_Assembler.SHORT, NO_SLOT, T1);
+  }
+
+  /**
+   * Emit code to store to a byte/boolean array
+   */
+  protected final void emit_bastore() {
+    VM_Barriers.compileModifyCheck(asm, 8);
+    asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);  // T0 is array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS); // S0 is array ref
+    asm.emitMOV_Reg_RegInd(T1, SP);             // T1 is the byte value
+    asm.emitADD_Reg_Imm(SP, 3*WORDSIZE);        // Shrink stack
+    genBoundsCheck(asm, T0, S0);         // T0 is index, S0 is address of array
+    asm.emitMOV_RegIdx_Reg_Byte(S0, T0, VM_Assembler.BYTE, NO_SLOT, T1); // [S0 + T0<<2] <- T1
+  }
+
+  /**
+   * Emit code to store to a long array
+   */
+  protected final void emit_lastore() {
+    VM_Barriers.compileModifyCheck(asm, 12);
+    asm.emitMOV_Reg_RegDisp(T0, SP, TWO_SLOTS);    // T0 is the array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, THREE_SLOTS);  // S0 is the array ref
+    if (SSE2_OPS) {
+      asm.emitMOVQ_Reg_RegInd(XMM0,SP);            // XMM0 is the value
+      asm.emitADD_Reg_Imm(SP, WORDSIZE * 4);       // remove index and ref from the stack
+    } else {
+      asm.emitMOV_Reg_RegInd(T1, SP);              // low part of long value      
+    }
+    genBoundsCheck(asm, T0, S0);                   // T0 is index, S0 is address of array
+    if (SSE2_OPS) {
+      asm.emitMOVQ_RegIdx_Reg(S0, T0, VM_Assembler.LONG, NO_SLOT, XMM0); // [S0+T0<<<3] <- XMM0
+    } else {
+      // [S0 + T0<<3 + 0] <- T1 store low part into array
+      asm.emitMOV_RegIdx_Reg(S0, T0, VM_Assembler.LONG, NO_SLOT, T1);        
+      asm.emitMOV_Reg_RegDisp(T1, SP, ONE_SLOT); // high part of long value
+      // [S0 + T0<<3 + 4] <- T1 store high part into array
+      asm.emitADD_Reg_Imm(SP, WORDSIZE * 4);      // remove index and ref from the stack
+      asm.emitMOV_RegIdx_Reg(S0, T0, VM_Assembler.LONG, ONE_SLOT, T1); 
+    }
+  }
+
+  /**
+   * Emit code to store to a double array
+   */
+  protected final void emit_dastore() {
+    // identical to lastore - code replicated for BaseBase compiler performance
+    VM_Barriers.compileModifyCheck(asm, 12);
+    asm.emitMOV_Reg_RegDisp(T0, SP, TWO_SLOTS);    // T0 is the array index
+    asm.emitMOV_Reg_RegDisp(S0, SP, THREE_SLOTS);  // S0 is the array ref
+    if (SSE2_OPS) {
+      asm.emitMOVQ_Reg_RegInd(XMM0,SP);            // XMM0 is the value
+      asm.emitADD_Reg_Imm(SP, WORDSIZE * 4);       // remove index and ref from the stack
+    } else {
+      asm.emitMOV_Reg_RegInd(T1, SP);              // low part of long value      
+    }
+    genBoundsCheck(asm, T0, S0);                   // T0 is index, S0 is address of array
+    if (SSE2_OPS) {
+      asm.emitMOVQ_RegIdx_Reg(S0, T0, VM_Assembler.LONG, NO_SLOT, XMM0); // [S0+T0<<<3] <- XMM0
+    } else {
+      // [S0 + T0<<3 + 0] <- T1 store low part into array
+      asm.emitMOV_RegIdx_Reg(S0, T0, VM_Assembler.LONG, NO_SLOT, T1);        
+      asm.emitMOV_Reg_RegDisp(T1, SP, ONE_SLOT); // high part of long value
+      // [S0 + T0<<3 + 4] <- T1 store high part into array
+      asm.emitADD_Reg_Imm(SP, WORDSIZE * 4);      // remove index and ref from the stack
+      asm.emitMOV_RegIdx_Reg(S0, T0, VM_Assembler.LONG, ONE_SLOT, T1); 
+    }
   }
 
   /*
