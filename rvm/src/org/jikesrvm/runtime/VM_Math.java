@@ -34,9 +34,12 @@ public class VM_Math {
   static final float two32 = java.lang.Float.intBitsToFloat(0x4f800000);
   static final double billionth = 1e-9;
 
-  // largest double that can be rounded to an int
+  /** largest double that can be rounded to an int */
   static final double maxint = 0.5D + 0x7FFFFFFF;
+  /** largest float that can be rounded to an int */
+  static final float maxintF = 0.5F + 0x7FFFFFFF;
 
   // smallest double that can be rounded to an int
   static final double minint = (double) Integer.MIN_VALUE;
+
 }

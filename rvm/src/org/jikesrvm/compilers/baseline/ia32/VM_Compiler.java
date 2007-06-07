@@ -1423,12 +1423,28 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    */
   protected final void emit_f2i() {
     if (SSE2_OPS) {
-      asm.emitCVTTSS2SI_Reg_RegInd(T0, SP);
+      // Set up max int in XMM0
+      asm.emitMOVSS_Reg_RegDisp(XMM0, JTOC, VM_Entrypoints.maxintFloatField.getOffset());
+      // Set up value in XMM1
+      asm.emitMOVSS_Reg_RegInd(XMM1, SP);
+      // if value > maxint or NaN goto fr1; FP0 = value
+      asm.emitCOMISS_Reg_Reg(XMM1, XMM0);
+      VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LLT);
+      asm.emitCVTTSS2SI_Reg_Reg(XMM1, T0);
       asm.emitMOV_RegInd_Reg(SP, T0);
+      VM_ForwardReference fr2 = asm.forwardJMP();
+      fr1.resolve(asm);
+      VM_ForwardReference fr3 = asm.forwardJcc(VM_Assembler.PE); // if value == NaN goto fr3
+      asm.emitMOV_RegInd_Imm(SP, 0x7FFFFFFF);
+      VM_ForwardReference fr4 = asm.forwardJMP();
+      fr3.resolve(asm);
+      asm.emitMOV_RegInd_Imm(SP, 0);
+      fr2.resolve(asm);
+      fr4.resolve(asm);
     } else {
       asm.emitFLD_Reg_RegInd(FP0, SP);                  // Setup value into FP1
       // Setup maxint into FP0
-      asm.emitFLD_Reg_RegDisp_Quad(FP0, JTOC, VM_Entrypoints.maxintField.getOffset());
+      asm.emitFLD_Reg_RegDisp(FP0, JTOC, VM_Entrypoints.maxintFloatField.getOffset());
       // if value > maxint or NaN goto fr1; FP0 = value
       asm.emitFUCOMIP_Reg_Reg(FP0, FP1);
       VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LLT);
@@ -1464,7 +1480,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
 
     asm.emitFLD_Reg_RegInd(FP0, SP);                  // Setup value into FP1
     // Setup maxint into FP0
-    asm.emitFLD_Reg_RegDisp_Quad(FP0, JTOC, VM_Entrypoints.maxintField.getOffset());
+    asm.emitFLD_Reg_RegDisp(FP0, JTOC, VM_Entrypoints.maxintFloatField.getOffset());
     // if value > maxint or NaN goto fr1; FP0 = value
     asm.emitFUCOMIP_Reg_Reg(FP0, FP1);
     VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LLT);
@@ -1513,9 +1529,25 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    */
   protected final void emit_d2i() {
     if (SSE2_OPS) {
-      asm.emitCVTTSD2SI_Reg_RegInd(T0, SP);
+      // Set up max int in XMM0
+      asm.emitMOVSD_Reg_RegDisp(XMM0, JTOC, VM_Entrypoints.maxintField.getOffset());
+      // Set up value in XMM1
+      asm.emitMOVSD_Reg_RegInd(XMM1, SP);
       asm.emitADD_Reg_Imm(SP, WORDSIZE); // shrink the stack
+      // if value > maxint or NaN goto fr1; FP0 = value
+      asm.emitCOMISD_Reg_Reg(XMM1, XMM0);
+      VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LLT);
+      asm.emitCVTTSD2SI_Reg_Reg(XMM1, T0);
       asm.emitMOV_RegInd_Reg(SP, T0);
+      VM_ForwardReference fr2 = asm.forwardJMP();
+      fr1.resolve(asm);
+      VM_ForwardReference fr3 = asm.forwardJcc(VM_Assembler.PE); // if value == NaN goto fr3
+      asm.emitMOV_RegInd_Imm(SP, 0x7FFFFFFF);
+      VM_ForwardReference fr4 = asm.forwardJMP();
+      fr3.resolve(asm);
+      asm.emitMOV_RegInd_Imm(SP, 0);
+      fr2.resolve(asm);
+      fr4.resolve(asm);
     } else {
       asm.emitFLD_Reg_RegInd_Quad(FP0, SP);             // Setup value into FP1
       // Setup maxint into FP0

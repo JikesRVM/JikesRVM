@@ -162,6 +162,9 @@ public class VM_Entrypoints implements VM_Constants {
       getField("Lorg/jikesrvm/runtime/VM_Math;", "maxint", "D");   //  largest double that can be rounded to an int
   public static final VM_Field minintField =
       getField("Lorg/jikesrvm/runtime/VM_Math;", "minint", "D");   //  smallest double that can be rounded to an int
+  /** largest float that can be rounded to an int */
+  public static final VM_Field maxintFloatField =
+    getField("Lorg/jikesrvm/runtime/VM_Math;", "maxintF", "F");
   public static final VM_Field IEEEmagicField =
       getField("Lorg/jikesrvm/runtime/VM_Math;", "IEEEmagic", "D");//  IEEEmagic constant
   public static final VM_Field I2DconstantField =
