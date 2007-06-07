@@ -1444,7 +1444,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     } else {
       asm.emitFLD_Reg_RegInd(FP0, SP);                  // Setup value into FP1
       // Setup maxint into FP0
-      asm.emitFLD_Reg_RegDisp(FP0, JTOC, VM_Entrypoints.maxintFloatField.getOffset());
+      asm.emitFLD_Reg_RegDisp_Quad(FP0, JTOC, VM_Entrypoints.maxintField.getOffset());
       // if value > maxint or NaN goto fr1; FP0 = value
       asm.emitFUCOMIP_Reg_Reg(FP0, FP1);
       VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LLT);
@@ -1480,7 +1480,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
 
     asm.emitFLD_Reg_RegInd(FP0, SP);                  // Setup value into FP1
     // Setup maxint into FP0
-    asm.emitFLD_Reg_RegDisp(FP0, JTOC, VM_Entrypoints.maxintFloatField.getOffset());
+    asm.emitFLD_Reg_RegDisp_Quad(FP0, JTOC, VM_Entrypoints.maxintField.getOffset());
     // if value > maxint or NaN goto fr1; FP0 = value
     asm.emitFUCOMIP_Reg_Reg(FP0, FP1);
     VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LLT);
