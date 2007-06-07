@@ -69,7 +69,7 @@ my $short = 1;
 
 # these will need to change
 my $regressiondomain = "anu.edu.au";
-my $reporturl = "http://cs.anu.edu.au/people/Steve.Blackburn/jikesrvm";
+my $reporturl = "http://jikesrvm.anu.edu.au/~regression";
 
 # initialize things
 
