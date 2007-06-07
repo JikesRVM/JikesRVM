@@ -15,8 +15,8 @@
   <import file="base.xml"/>
   <property file="${components.file}"/>
 
-  <property name="classpath.version" value="93"/>
-  <property name="classpath.description" value="GNU Classpath (Generics Branch)"/>
+  <property name="classpath.version" value="95"/>
+  <property name="classpath.description" value="GNU Classpath"/>
 
   <property name="classpath.component.dir" location="${components.dir}/classpath"/>
   <property name="classpath.package.dir" value="${classpath.component.dir}/${classpath.version}"/>
@@ -51,7 +51,7 @@
 
   <!-- download classpath from cvs -->
   <target name="get-classpath-from-cvs" depends="init-classpath-properties" if="classpath.from-cvs">
-    <property name="classpath.tag" value="generics-0_${classpath.version}-release"/>
+    <property name="classpath.tag" value="0_${classpath.version}-release"/>
     <test-file name="cvs.exe" location="${host.file}"/>
     <mkdir dir="${classpath.package.dir}"/>
     <delete dir="${classpath.package.dir}/classpath"/>
@@ -98,11 +98,15 @@
   <!-- patch classpath -->
   <target name="patch-classpath-cvs" depends="fetch" if="classpath.from-cvs">
     <!-- currently no patches required -->
+    <patch patchfile="${components.patch.dir}/classpath-web.classpath30275.patch"
+	   dir="${classpath.package.dir}/classpath/" strip="0"/>
   </target>
   <target name="patch-classpath-web" depends="fetch" if="classpath.from-web">
     <patch patchfile="${components.patch.dir}/classpath-web.R1722506.patch"
 	   dir="${classpath.package.dir}/classpath/" strip="0"/>
     <patch patchfile="${components.patch.dir}/classpath-web.R1728742.patch"
+	   dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <patch patchfile="${components.patch.dir}/classpath-web.classpath30275.patch"
 	   dir="${classpath.package.dir}/classpath/" strip="0"/>
   </target>
   <target name="patch" depends="patch-classpath-web,patch-classpath-cvs"/>
@@ -132,12 +136,16 @@
       <equals arg1="${target.name}" arg2="x86_64-linux"/>
     </condition>
 
-    <condition property="cp.cppflags" value=" CPPFLAGS='-D_POSIX_SOURCE -D_ALL_SOURCE'" else="">
+    <condition property="cp.cppflags" value=" CPPFLAGS='-D_POSIX_SOURCE -D_ALL_SOURCE -D_LINUX_SOURCE_COMPAT'" else="">
       <equals arg1="${target.os}" arg2="AIX"/>
     </condition>
 
-    <condition property="cp.objectmode" value="32_64" else="">
-      <equals arg1="${target.name}" arg2="ppc64-aix"/>
+    <!-- horrible hackery to get assembler object mode set properly on AIX. 
+         implicit here is the assumption that only AIX as/ld actually look at the 
+         value of OBJECT_MODE environment variable, so we can set it to 32 by default
+         and non-AIX platforms won't care. -->
+    <condition property="cp.objectmode" value="32_64" else="32">
+        <equals arg1="${target.name}" arg2="ppc64-aix"/>
     </condition>
 
     <if>
@@ -157,10 +165,6 @@
       <env key="CXX" value="${c++.exe} ${c++.args}"/>
       <env key="CC" value="${c.exe} ${c.args}"/>
       <env key="OBJECT_MODE" value="${cp.objectmode}" />
-      <!--<env key="FIND" value=""/>-->
-      <!--<env key="ZIP" value=""/>-->
-      <!--<env key="AR" value=""/>-->
-      <!--<env key="AR_FLAGS" value=""/> -->
       <arg value="--enable-jni"/>
       <arg value="--with-ecj=${ecj.dir}/ecj"/>
       <arg value="--disable-plugin"/>
