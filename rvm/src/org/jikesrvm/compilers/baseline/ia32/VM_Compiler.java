@@ -1426,10 +1426,15 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       asm.emitCVTTSS2SI_Reg_RegInd(T0, SP);
       asm.emitMOV_RegInd_Reg(SP, T0);
     } else {
+      asm.emitFLD_Reg_RegInd(FP0, SP);                  // Setup value into FP1
+      // Setup maxint into FP0
+      asm.emitFLD_Reg_RegDisp_Quad(FP0, JTOC, VM_Entrypoints.maxintField.getOffset());
+      // if value > maxint or NaN goto fr1; FP0 = value
+      asm.emitFUCOMIP_Reg_Reg(FP0, FP1);
+      VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LLT);
       // Normally the status and control word rounds numbers, but for conversion
       // to an integer/long value we want truncation. We therefore save the FPSCW,
       // set it to truncation perform operation then restore
-      asm.emitFLD_Reg_RegInd(FP0, SP);                         // FP0 = value
       asm.emitFSTCW_RegDisp(SP, MINUS_ONE_SLOT);               // [SP-4] = fpscw
       asm.emitMOVZX_Reg_RegDisp_Word(T0, SP, MINUS_ONE_SLOT);  // EAX = fpscw
       asm.emitOR_Reg_Imm(T0, 0xC00);                           // EAX = FPSCW in truncate mode
@@ -1437,6 +1442,16 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       asm.emitFLDCW_RegInd(SP);                                // Set FPSCW
       asm.emitFISTP_RegInd_Reg(SP, FP0);                       // Store 32bit long
       asm.emitFLDCW_RegDisp(SP, MINUS_ONE_SLOT);               // Restore FPSCW
+      VM_ForwardReference fr2 = asm.forwardJMP();
+      fr1.resolve(asm);
+      asm.emitFSTP_Reg_Reg(FP0, FP0);                   // pop FPU*1
+      VM_ForwardReference fr3 = asm.forwardJcc(VM_Assembler.PE); // if value == NaN goto fr3
+      asm.emitMOV_RegInd_Imm(SP, 0x7FFFFFFF);
+      VM_ForwardReference fr4 = asm.forwardJMP();
+      fr3.resolve(asm);
+      asm.emitMOV_RegInd_Imm(SP, 0);
+      fr2.resolve(asm);
+      fr4.resolve(asm);
     }
   }
 
@@ -1447,10 +1462,15 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     // TODO: SSE3 has a FISTTP instruction that stores the value with truncation
     // meaning the FPSCW can be left alone
 
+    asm.emitFLD_Reg_RegInd(FP0, SP);                  // Setup value into FP1
+    // Setup maxint into FP0
+    asm.emitFLD_Reg_RegDisp_Quad(FP0, JTOC, VM_Entrypoints.maxintField.getOffset());
+    // if value > maxint or NaN goto fr1; FP0 = value
+    asm.emitFUCOMIP_Reg_Reg(FP0, FP1);
+    VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LLT);
     // Normally the status and control word rounds numbers, but for conversion
     // to an integer/long value we want truncation. We therefore save the FPSCW,
     // set it to truncation perform operation then restore
-    asm.emitFLD_Reg_RegInd(FP0, SP);                         // FP0 = value
     asm.emitADD_Reg_Imm(SP, -WORDSIZE);                      // Grow the stack    
     asm.emitFSTCW_RegDisp(SP, MINUS_ONE_SLOT);               // [SP-4] = fpscw
     asm.emitMOVZX_Reg_RegDisp_Word(T0, SP, MINUS_ONE_SLOT);  // EAX = fpscw
@@ -1459,6 +1479,18 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     asm.emitFLDCW_RegInd(SP);                                // Set FPSCW
     asm.emitFISTP_RegInd_Reg_Quad(SP, FP0);                  // Store 64bit long
     asm.emitFLDCW_RegDisp(SP, MINUS_ONE_SLOT);               // Restore FPSCW
+    VM_ForwardReference fr2 = asm.forwardJMP();
+    fr1.resolve(asm);
+    asm.emitFSTP_Reg_Reg(FP0, FP0);                          // pop FPU*1
+    VM_ForwardReference fr3 = asm.forwardJcc(VM_Assembler.PE); // if value == NaN goto fr3
+    asm.emitMOV_RegInd_Imm(SP, 0x7FFFFFFF);
+    asm.emitPUSH_Imm(-1);
+    VM_ForwardReference fr4 = asm.forwardJMP();
+    fr3.resolve(asm);
+    asm.emitMOV_RegInd_Imm(SP, 0);
+    asm.emitPUSH_Imm(0);
+    fr2.resolve(asm);
+    fr4.resolve(asm);
   }
 
   /**
@@ -1485,11 +1517,16 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       asm.emitADD_Reg_Imm(SP, WORDSIZE); // shrink the stack
       asm.emitMOV_RegInd_Reg(SP, T0);
     } else {
+      asm.emitFLD_Reg_RegInd_Quad(FP0, SP);             // Setup value into FP1
+      // Setup maxint into FP0
+      asm.emitFLD_Reg_RegDisp_Quad(FP0, JTOC, VM_Entrypoints.maxintField.getOffset());
+      asm.emitADD_Reg_Imm(SP, WORDSIZE);                // Shrink the stack
+      // if value > maxint or NaN goto fr1; FP0 = value
+      asm.emitFUCOMIP_Reg_Reg(FP0, FP1);      
+      VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LLT);
       // Normally the status and control word rounds numbers, but for conversion
       // to an integer/long value we want truncation. We therefore save the FPSCW,
-      // set it to truncation perform operation then restore
-      asm.emitFLD_Reg_RegInd_Quad(FP0, SP);                    // FP0 = value
-      asm.emitADD_Reg_Imm(SP, WORDSIZE);                       // Shrink the stack
+      // set it to truncaDtion perform operation then restore
       asm.emitFSTCW_RegDisp(SP, MINUS_ONE_SLOT);               // [SP-4] = fpscw
       asm.emitMOVZX_Reg_RegDisp_Word(T0, SP, MINUS_ONE_SLOT);  // EAX = fpscw
       asm.emitOR_Reg_Imm(T0, 0xC00);                           // EAX = FPSCW in truncate mode
@@ -1497,6 +1534,16 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       asm.emitFLDCW_RegInd(SP);                                // Set FPSCW
       asm.emitFISTP_RegInd_Reg(SP, FP0);                       // Store 32bit int
       asm.emitFLDCW_RegDisp(SP, MINUS_ONE_SLOT);               // Restore FPSCW
+      VM_ForwardReference fr2 = asm.forwardJMP();
+      fr1.resolve(asm);
+      asm.emitFSTP_Reg_Reg(FP0, FP0);                            // pop FPU*1
+      VM_ForwardReference fr3 = asm.forwardJcc(VM_Assembler.PE); // if value == NaN goto fr3
+      asm.emitMOV_RegInd_Imm(SP, 0x7FFFFFFF);
+      VM_ForwardReference fr4 = asm.forwardJMP();
+      fr3.resolve(asm);
+      asm.emitMOV_RegInd_Imm(SP, 0);
+      fr2.resolve(asm);
+      fr4.resolve(asm);
     }
   }
 
@@ -1507,6 +1554,12 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     // TODO: SSE3 has a FISTTP instruction that stores the value with truncation
     // meaning the FPSCW can be left alone
 
+    asm.emitFLD_Reg_RegInd_Quad(FP0, SP);             // Setup value into FP1
+    // Setup maxint into FP0
+    asm.emitFLD_Reg_RegDisp_Quad(FP0, JTOC, VM_Entrypoints.maxintField.getOffset());
+    // if value > maxint or NaN goto fr1; FP0 = value
+    asm.emitFUCOMIP_Reg_Reg(FP0, FP1);      
+    VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LLT);
     // Normally the status and control word rounds numbers, but for conversion
     // to an integer/long value we want truncation. We therefore save the FPSCW,
     // set it to truncation perform operation then restore
@@ -1518,6 +1571,18 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     asm.emitFLDCW_RegInd(SP);                                // Set FPSCW
     asm.emitFISTP_RegInd_Reg_Quad(SP, FP0);                  // Store 64bit long
     asm.emitFLDCW_RegDisp(SP, MINUS_ONE_SLOT);               // Restore FPSCW
+    VM_ForwardReference fr2 = asm.forwardJMP();
+    fr1.resolve(asm);
+    asm.emitFSTP_Reg_Reg(FP0, FP0);                            // pop FPU*1
+    VM_ForwardReference fr3 = asm.forwardJcc(VM_Assembler.PE); // if value == NaN goto fr3
+    asm.emitMOV_RegInd_Imm(SP, -1);
+    asm.emitMOV_RegDisp_Imm(SP, ONE_SLOT, 0x7FFFFFFF);
+    VM_ForwardReference fr4 = asm.forwardJMP();
+    fr3.resolve(asm);
+    asm.emitMOV_RegInd_Imm(SP, 0);
+    asm.emitMOV_RegDisp_Imm(SP, ONE_SLOT, 0);
+    fr2.resolve(asm);
+    fr4.resolve(asm);
   }
 
   /**
