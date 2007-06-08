@@ -1422,13 +1422,13 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the f2i bytecode
    */
   protected final void emit_f2i() {
-    if (SSE2_OPS) {
+    if (false /*SSE2_OPS*/) {
       // Set up max int in XMM0
-      asm.emitMOVSS_Reg_RegDisp(XMM0, JTOC, VM_Entrypoints.maxintFloatField.getOffset());
+      asm.emitMOVSD_Reg_RegDisp(XMM0, JTOC, VM_Entrypoints.maxintField.getOffset());
       // Set up value in XMM1
-      asm.emitMOVSS_Reg_RegInd(XMM1, SP);
+      asm.emitCVTSS2SD_Reg_RegInd(XMM1, SP);
       // if value > maxint or NaN goto fr1; FP0 = value
-      asm.emitCOMISS_Reg_Reg(XMM1, XMM0);
+      asm.emitCOMISD_Reg_Reg(XMM1, XMM0);
       VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LLT);
       asm.emitCVTTSS2SI_Reg_Reg(XMM1, T0);
       asm.emitMOV_RegInd_Reg(SP, T0);
@@ -1528,7 +1528,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the d2i bytecode
    */
   protected final void emit_d2i() {
-    if (SSE2_OPS) {
+    if (false /*SSE2_OPS*/) {
       // Set up max int in XMM0
       asm.emitMOVSD_Reg_RegDisp(XMM0, JTOC, VM_Entrypoints.maxintField.getOffset());
       // Set up value in XMM1
