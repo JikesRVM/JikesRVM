@@ -1365,6 +1365,15 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   }
 
   /**
+   * Emit code to implement the l2i bytecode
+   */
+  protected final void emit_l2i() {
+    asm.emitMOV_Reg_RegInd(T0, SP);    // low half of the long
+    asm.emitADD_Reg_Imm(SP, WORDSIZE); // throw away high half of the long
+    asm.emitMOV_RegInd_Reg(SP, T0);
+  }
+
+  /**
    * Emit code to implement the i2f bytecode
    */
   protected final void emit_i2f() {
@@ -1393,15 +1402,6 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   }
 
   /**
-   * Emit code to implement the l2i bytecode
-   */
-  protected final void emit_l2i() {
-    asm.emitMOV_Reg_RegInd(T0, SP);    // low half of the long
-    asm.emitADD_Reg_Imm(SP, WORDSIZE); // throw away high half of the long
-    asm.emitMOV_RegInd_Reg(SP, T0);
-  }
-
-  /**
    * Emit code to implement the l2f bytecode
    */
   protected final void emit_l2f() {
@@ -1419,9 +1419,42 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   }
 
   /**
+   * Emit code to implement the f2d bytecode
+   */
+  protected final void emit_f2d() {
+    if (SSE2_OPS) {
+      asm.emitCVTSS2SD_Reg_RegInd(XMM0, SP);
+      asm.emitADD_Reg_Imm(SP, -WORDSIZE); // grow the stack
+      asm.emitMOVSD_RegInd_Reg(SP, XMM0);
+    } else {
+      asm.emitFLD_Reg_RegInd(FP0, SP);
+      asm.emitADD_Reg_Imm(SP, -WORDSIZE); // grow the stack
+      asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);
+    }
+  }
+
+  /**
+   * Emit code to implement the d2f bytecode
+   */
+  protected final void emit_d2f() {
+    if (SSE2_OPS) {
+      asm.emitCVTSD2SS_Reg_RegInd(XMM0, SP);
+      asm.emitADD_Reg_Imm(SP, WORDSIZE); // shrink the stack
+      asm.emitMOVSS_RegInd_Reg(SP, XMM0);
+    } else {
+      asm.emitFLD_Reg_RegInd_Quad(FP0, SP);
+      asm.emitADD_Reg_Imm(SP, WORDSIZE); // shrink the stack
+      asm.emitFSTP_RegInd_Reg(SP, FP0);
+    }
+  }
+
+  /**
    * Emit code to implement the f2i bytecode
    */
   protected final void emit_f2i() {
+    // TODO: use SSE/x87 operations to do this conversion inline taking care of
+    // the boundary cases that differ between x87 and Java
+    
     // (1) save RVM nonvolatiles
     int numNonVols = NONVOLATILE_GPRS.length;
     Offset off = Offset.fromIntSignExtend(numNonVols * WORDSIZE);
@@ -1447,6 +1480,9 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the f2l bytecode
    */
   protected final void emit_f2l() {
+    // TODO: use SSE/x87 operations to do this conversion inline taking care of
+    // the boundary cases that differ between x87 and Java
+
     // (1) save RVM nonvolatiles
     int numNonVols = NONVOLATILE_GPRS.length;
     Offset off = Offset.fromIntSignExtend(numNonVols * WORDSIZE);
@@ -1470,24 +1506,12 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   }
 
   /**
-   * Emit code to implement the f2d bytecode
-   */
-  protected final void emit_f2d() {
-    if (SSE2_OPS) {
-      asm.emitCVTSS2SD_Reg_RegInd(XMM0, SP);
-      asm.emitADD_Reg_Imm(SP, -WORDSIZE); // grow the stack
-      asm.emitMOVSD_RegInd_Reg(SP, XMM0);
-    } else {
-      asm.emitFLD_Reg_RegInd(FP0, SP);
-      asm.emitADD_Reg_Imm(SP, -WORDSIZE); // grow the stack
-      asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);
-    }
-  }
-
-  /**
    * Emit code to implement the d2i bytecode
    */
   protected final void emit_d2i() {
+    // TODO: use SSE/x87 operations to do this conversion inline taking care of
+    // the boundary cases that differ between x87 and Java
+
     // (1) save RVM nonvolatiles
     int numNonVols = NONVOLATILE_GPRS.length;
     Offset off = Offset.fromIntSignExtend(numNonVols * WORDSIZE);
@@ -1516,6 +1540,9 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the d2l bytecode
    */
   protected final void emit_d2l() {
+    // TODO: use SSE/x87 operations to do this conversion inline taking care of
+    // the boundary cases that differ between x87 and Java
+
     // (1) save RVM nonvolatiles
     int numNonVols = NONVOLATILE_GPRS.length;
     Offset off = Offset.fromIntSignExtend(numNonVols * WORDSIZE);
@@ -1538,21 +1565,6 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     // (6) put result on expression stack
     asm.emitMOV_RegDisp_Reg(SP, ONE_SLOT, T1);
     asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T0);
-  }
-
-  /**
-   * Emit code to implement the d2f bytecode
-   */
-  protected final void emit_d2f() {
-    if (SSE2_OPS) {
-      asm.emitCVTSD2SS_Reg_RegInd(XMM0, SP);
-      asm.emitADD_Reg_Imm(SP, WORDSIZE); // shrink the stack
-      asm.emitMOVSS_RegInd_Reg(SP, XMM0);
-    } else {
-      asm.emitFLD_Reg_RegInd_Quad(FP0, SP);
-      asm.emitADD_Reg_Imm(SP, WORDSIZE); // shrink the stack
-      asm.emitFSTP_RegInd_Reg(SP, FP0);
-    }
   }
 
   /**
