@@ -685,6 +685,10 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the pop2 bytecode
    */
   protected final void emit_pop2() {
+    // This could be encoded as the single 3 byte instruction
+    // asm.emitADD_Reg_Imm(SP, 8);
+    // or as the following 2 1 byte instructions. There doesn't appear to be any
+    // performance difference.
     asm.emitPOP_Reg(T0);
     asm.emitPOP_Reg(T0);
   }
@@ -693,8 +697,11 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the dup bytecode
    */
   protected final void emit_dup() {
-    asm.emitMOV_Reg_RegInd(T0, SP);
-    asm.emitPUSH_Reg(T0);
+    // This could be encoded as the 2 instructions totalling 4 bytes:
+    // asm.emitMOV_Reg_RegInd(T0, SP);
+    // asm.emitPUSH_Reg(T0);
+    // However, there doesn't seem to be any performance difference to:
+    asm.emitPUSH_RegInd(SP);
   }
 
   /**
@@ -767,6 +774,12 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the swap bytecode
    */
   protected final void emit_swap() {
+    // This could be encoded as the 4 instructions totalling 14 bytes:
+    // asm.emitMOV_Reg_RegInd(T0, SP);
+    // asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT);
+    // asm.emitMOV_RegDisp_Reg(SP, ONE_SLOT, T0);
+    // asm.emitMOV_RegInd_Reg(SP, S0);
+    // But the following is 4bytes:
     asm.emitPOP_Reg(T0);
     asm.emitPOP_Reg(S0);
     asm.emitPUSH_Reg(T0);
@@ -1571,27 +1584,45 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the i2b bytecode
    */
   protected final void emit_i2b() {
-    asm.emitMOVSX_Reg_RegInd_Byte(T0, SP);
-    asm.emitMOV_RegInd_Reg(SP, T0);
+    // This could be coded as 2 instructions as follows: 
+    // asm.emitMOVSX_Reg_RegInd_Byte(T0, SP);
+    // asm.emitMOV_RegInd_Reg(SP, T0);
+    // Indirection via ESP requires an extra byte for the indirection, so the
+    // total code size is 6 bytes. The 3 instruction version below is only 4
+    // bytes long and faster on Pentium 4 benchmarks.
+    asm.emitPOP_Reg(T0);
+    asm.emitMOVSX_Reg_Reg_Byte(T0, T0);
+    asm.emitPUSH_Reg(T0);
   }
 
   /**
    * Emit code to implement the i2c bytecode
    */
   protected final void emit_i2c() {
-    // Alternative: zero high 16bits on stack
-    asm.emitMOV_RegDisp_Imm_Word(SP, Offset.fromIntSignExtend(2), 0);
-    // The previous form may inhibit store/load forwarding so this form may be better:
+    // This could be coded as zeroing the high 16bits on stack:
+    // asm.emitMOV_RegDisp_Imm_Word(SP, Offset.fromIntSignExtend(2), 0);
+    // or as 2 instructions:
     // asm.emitMOVZX_Reg_RegInd_Word(T0, SP);
     // asm.emitMOV_RegInd_Reg(SP, T0);
+    // Benchmarks show the following sequence to be more optimal on a Pentium 4
+    asm.emitPOP_Reg(T0);
+    asm.emitMOVZX_Reg_Reg_Word(T0, T0);
+    asm.emitPUSH_Reg(T0);
   }
 
   /**
    * Emit code to implement the i2s bytecode
    */
   protected final void emit_i2s() {
-    asm.emitMOVSX_Reg_RegInd_Word(T0, SP);
-    asm.emitMOV_RegInd_Reg(SP, T0);
+    // This could be coded as 2 instructions as follows: 
+    // asm.emitMOVSX_Reg_RegInd_Word(T0, SP);
+    // asm.emitMOV_RegInd_Reg(SP, T0);
+    // Indirection via ESP requires an extra byte for the indirection, so the
+    // total code size is 6 bytes. The 3 instruction version below is only 4
+    // bytes long and faster on Pentium 4 benchmarks.
+    asm.emitPOP_Reg(T0);
+    asm.emitMOVSX_Reg_Reg_Word(T0, T0);
+    asm.emitPUSH_Reg(T0);
   }
 
   /*
