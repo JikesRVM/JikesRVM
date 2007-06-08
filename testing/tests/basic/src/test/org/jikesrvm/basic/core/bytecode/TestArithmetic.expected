@@ -151,6 +151,34 @@ Expected: 6879212661876153695 Actual: 6879212661876153695
 Expected: 6879212661876153695 Actual: 6879212661876153695
 
 -- ftest --
+Expected: 0 Actual: 0
+Expected: 1 Actual: 1
+Expected: 0 Actual: 0
+Expected: 1 Actual: 1
+Expected: 0 Actual: 0
+Expected: 0 Actual: 0
+Expected: 0 Actual: 0
+Expected: 0 Actual: 0
+Expected: 2147483647 Actual: 2147483647
+Expected: -2147483648 Actual: -2147483648
+Expected: 2147483647 Actual: 2147483647
+Expected: -2147483648 Actual: -2147483648
+Expected: 2147483647 Actual: 2147483647
+Expected: -2147483648 Actual: -2147483648
+Expected: 0 Actual: 0
+Expected: 1 Actual: 1
+Expected: 0 Actual: 0
+Expected: 1 Actual: 1
+Expected: 0 Actual: 0
+Expected: 0 Actual: 0
+Expected: 0 Actual: 0
+Expected: 0 Actual: 0
+Expected: 9223372036854775807 Actual: 9223372036854775807
+Expected: -9223372036854775808 Actual: -9223372036854775808
+Expected: 9223372036854775807 Actual: 9223372036854775807
+Expected: -9223372036854775808 Actual: -9223372036854775808
+Expected: 9223372036854775807 Actual: 9223372036854775807
+Expected: -9223372036854775808 Actual: -9223372036854775808
 Expected: 40400000 Actual: 40400000
 Expected: bf800000 Actual: bf800000
 Expected: 40000000 Actual: 40000000

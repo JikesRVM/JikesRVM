@@ -407,7 +407,79 @@ class TestArithmetic {
     System.out.println(a >>> int65);
   }
 
+  private static float float1 = 1.0f;
+  private static float float0 = 0.0f;
+  private static float float_maxint = (float)Integer.MAX_VALUE;
+  private static float float_minint = (float)Integer.MIN_VALUE;
+  private static double double1 = 1.0f;
+  private static double double0 = 0.0f;
+  private static double double_maxint = (double)Integer.MAX_VALUE;
+  private static double double_minint = (double)Integer.MIN_VALUE;
+  private static float float_maxlong = (float)Long.MAX_VALUE;
+  private static float float_minlong = (float)Long.MIN_VALUE;
+  private static double double_maxlong = (double)Long.MAX_VALUE;
+  private static double double_minlong = (double)Long.MIN_VALUE;
+
   private static void ftest() {
+    // f2i, d2i, f2l and d2l tests
+    System.out.print("Expected: 0 Actual: ");
+    System.out.println((int)float0);
+    System.out.print("Expected: 1 Actual: ");
+    System.out.println((int)float1);
+    System.out.print("Expected: 0 Actual: ");
+    System.out.println((int)double0);
+    System.out.print("Expected: 1 Actual: ");
+    System.out.println((int)double1);
+    System.out.print("Expected: 0 Actual: ");
+    System.out.println((int)Float.NaN);
+    System.out.print("Expected: 0 Actual: ");
+    System.out.println((int)-Float.NaN);
+    System.out.print("Expected: 0 Actual: ");
+    System.out.println((int)Double.NaN);
+    System.out.print("Expected: 0 Actual: ");
+    System.out.println((int)-Double.NaN);
+    System.out.print("Expected: 2147483647 Actual: ");
+    System.out.println((int)Float.POSITIVE_INFINITY);
+    System.out.print("Expected: -2147483648 Actual: ");
+    System.out.println((int)Float.NEGATIVE_INFINITY);
+    System.out.print("Expected: 2147483647 Actual: ");
+    System.out.println((int)float_maxint);
+    System.out.print("Expected: -2147483648 Actual: ");
+    System.out.println((int)float_minint);
+    System.out.print("Expected: 2147483647 Actual: ");
+    System.out.println((int)double_maxint);
+    System.out.print("Expected: -2147483648 Actual: ");
+    System.out.println((int)double_minint);
+
+    System.out.print("Expected: 0 Actual: ");
+    System.out.println((long)float0);
+    System.out.print("Expected: 1 Actual: ");
+    System.out.println((long)float1);
+    System.out.print("Expected: 0 Actual: ");
+    System.out.println((long)double0);
+    System.out.print("Expected: 1 Actual: ");
+    System.out.println((long)double1);
+    System.out.print("Expected: 0 Actual: ");
+    System.out.println((long)Float.NaN);
+    System.out.print("Expected: 0 Actual: ");
+    System.out.println((long)-Float.NaN);
+    System.out.print("Expected: 0 Actual: ");
+    System.out.println((long)Double.NaN);
+    System.out.print("Expected: 0 Actual: ");
+    System.out.println((long)-Double.NaN);
+    System.out.print("Expected: 9223372036854775807 Actual: ");
+    System.out.println((long)Float.POSITIVE_INFINITY);
+    System.out.print("Expected: -9223372036854775808 Actual: ");
+    System.out.println((long)Float.NEGATIVE_INFINITY);
+    System.out.print("Expected: 9223372036854775807 Actual: ");
+    System.out.println((long)float_maxlong);
+    System.out.print("Expected: -9223372036854775808 Actual: ");
+    System.out.println((long)float_minlong);
+    System.out.print("Expected: 9223372036854775807 Actual: ");
+    System.out.println((long)double_maxlong);
+    System.out.print("Expected: -9223372036854775808 Actual: ");
+    System.out.println((long)double_minlong);
+
     float a = 1;
     float b = 2;
 
