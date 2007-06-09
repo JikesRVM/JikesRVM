@@ -2184,7 +2184,7 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
       VM_MemberReference newFieldRef =
           VM_MemberReference.findOrCreate(annotationClass, newFieldName, newFieldDescriptor);
       annotationFields[i] = VM_Field.createAnnotationField(annotationClass, newFieldRef);
-      constantPool[i] = packCPEntry(CP_UTF, newFieldRef.getId());
+      constantPool[i] = packCPEntry(CP_MEMBER, newFieldRef.getId());
     }
 
     // Create copy of methods from the annotation
