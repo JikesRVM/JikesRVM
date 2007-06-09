@@ -1532,6 +1532,12 @@ public final class OPT_BC2IR
                   }
                 }
               }
+              else if (field.isRuntimeFinal()) {
+                if (VM.VerifyAssertions) VM._assert(fieldType.isBooleanType());
+                boolean rhsBool = field.getRuntimeFinalValue();
+                push(new OPT_IntConstantOperand(rhsBool? 1 : 0));
+                break;
+              }
             }
           }
 

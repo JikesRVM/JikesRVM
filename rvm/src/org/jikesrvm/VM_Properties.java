@@ -12,6 +12,8 @@
  */
 package org.jikesrvm;
 
+import org.vmmagic.pragma.RuntimeFinal;
+
 /**
  * Flags that control the behavior of our virtual machine.
  *
@@ -31,18 +33,22 @@ public class VM_Properties extends VM_Options {
   /**
    * use classes for boot image generation? (see BootImageWriter)
    */
+  @RuntimeFinal(false)
   public static boolean writingBootImage;
   /**
    * use classes for generic java programming?
    */
+  @RuntimeFinal(false)
   public static boolean runningTool;
   /**
    * use classes for running actual VM?
    */
+  @RuntimeFinal(true)
   public static boolean runningVM;
   /**
    * are we in the boot-image-writing portion of boot-image-creation
    */
+  @RuntimeFinal(false)
   public static boolean writingImage = false;
   /**
    * is the running VM fully booted?
@@ -57,10 +63,11 @@ public class VM_Properties extends VM_Options {
   public static boolean safeToAllocateJavaThread = false;
 
   /**
-   * If true, don't exit from the process.  As of July, 2003, this has not
-   * worked in a couple of years, nor has there been much interest in using it.
-   * If it is resurrected, we need to check the code that calls dieAbruptlyRecursiveSystemTrouble(), to make
-   * sure that instead we just kill the proper threads.
+   * If true, don't exit from the process. As of July, 2003, this has not worked
+   * in a couple of years, nor has there been much interest in using it. If it
+   * is resurrected, we need to check the code that calls
+   * dieAbruptlyRecursiveSystemTrouble(), to make sure that instead we just kill
+   * the proper threads.
    */
   public static boolean runningAsSubsystem = false;
 

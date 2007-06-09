@@ -153,6 +153,8 @@ public final class VM_TypeReference {
       VM.BuildForIA32 ? null : findOrCreate(org.vmmagic.pragma.BaselineNoRegisters.class);
   public static final VM_TypeReference BaselineSaveLSRegisters =
       VM.BuildForIA32 ? null : findOrCreate(org.vmmagic.pragma.BaselineSaveLSRegisters.class);
+  public static final VM_TypeReference Pure = findOrCreate(org.vmmagic.pragma.Pure.class);
+  public static final VM_TypeReference RuntimeFinal = findOrCreate(org.vmmagic.pragma.RuntimeFinal.class);
 
   public static final VM_TypeReference VM_BaseAnnotation =
       findOrCreate(org.jikesrvm.classloader.VM_Annotation.BaseAnnotation.class);

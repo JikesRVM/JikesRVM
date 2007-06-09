@@ -256,4 +256,20 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
   public final boolean hasBaselineSaveLSRegistersAnnotation() {
     return isAnnotationDeclared(VM_TypeReference.BaselineSaveLSRegisters);
   }
+
+  /**
+   * Return true if this element has a Pure annotation.
+   * @see org.vmmagic.pragma.Pure
+   */
+  public final boolean hasPureAnnotation() {
+    return isAnnotationDeclared(VM_TypeReference.Pure);
+  }
+  
+  /**
+   * Return true if this element has a RuntimeFinal annotation.
+   * @see org.vmmagic.pragma.RuntimeFinal
+   */
+  public final boolean hasRuntimeFinalAnnotation() {
+    return isAnnotationDeclared(VM_TypeReference.RuntimeFinal);
+  }
 }

@@ -221,11 +221,14 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * @return the created method
    */
   static VM_Method createAnnotationMethod(VM_TypeReference annotationClass, int[] constantPool,
-                                          VM_MemberReference memRef, VM_Method interfaceMethod, int constantPoolIndex) {
+                                          VM_MemberReference memRef, VM_Method interfaceMethod,
+                                          int constantPoolIndex) {
     byte[] bytecodes =
-        new byte[]{(byte) JBC_aload_0, (byte) JBC_getfield, (byte) (constantPoolIndex >>> 8), (byte) constantPoolIndex,
-                   // Xreturn
-                   (byte) typeRefToReturnBytecode(interfaceMethod.getReturnType())};
+        new byte[]{
+        (byte) JBC_aload_0,
+        (byte) JBC_getfield, (byte) (constantPoolIndex >>> 8), (byte) constantPoolIndex,
+        // Xreturn
+        (byte) typeRefToReturnBytecode(interfaceMethod.getReturnType())};
     return new VM_NormalMethod(annotationClass,
                                memRef,
                                (short) (ACC_PUBLIC | ACC_FINAL | ACC_SYNTHETIC),
@@ -520,6 +523,15 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     return getDeclaringClass().hasUninterruptibleAnnotation();
   }
 
+  /**
+   * Is the method Pure? That is would it, without any side effects, return the
+   * same value given the same arguments?
+   * 
+   * @return whether the method has a pure annotation
+   */
+  public final boolean isPure() {
+   return hasPureAnnotation();
+  }
   /**
    * Has this method been marked as forbidden to inline?
    * ie., it is marked with the <CODE>NoInline</CODE> annotation or

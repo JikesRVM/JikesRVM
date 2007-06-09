@@ -13,6 +13,8 @@
 package org.jikesrvm.compilers.opt;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.Method;
+import java.lang.reflect.InvocationTargetException;
 import org.jikesrvm.VM;
 import static org.jikesrvm.VM_SizeConstants.BITS_IN_ADDRESS;
 import static org.jikesrvm.VM_SizeConstants.BITS_IN_INT;
@@ -204,6 +206,7 @@ import org.jikesrvm.compilers.opt.ir.TypeCheck;
 import org.jikesrvm.compilers.opt.ir.Unary;
 import org.jikesrvm.compilers.opt.ir.ZeroCheck;
 import org.jikesrvm.objectmodel.VM_TIBLayoutConstants;
+import org.jikesrvm.runtime.VM_Reflection;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
@@ -3216,10 +3219,136 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
           }
         }
       }
+      // Look for a precise method call to a pure method with all constant arguments
+      if ((methOp != null) && methOp.hasPreciseTarget() && methOp.getTarget().isPure()) {
+        VM_Method method = methOp.getTarget();
+        int n = Call.getNumberOfParams(s);
+        for(int i=0; i < n; i++) {
+          if (!Call.getParam(s,i).isConstant()) {
+            return DefUseEffect.UNCHANGED;
+          }
+        }
+        // Pure method with all constant arguments. Perform reflective method call
+        Object thisArg = null;
+        VM_TypeReference[] paramTypes = method.getParameterTypes();
+        Object[] otherArgs;
+        Object result = null;
+        if (methOp.isVirtual()) {
+          thisArg = boxConstantOperand((OPT_ConstantOperand)Call.getParam(s,0), paramTypes[0]);
+          n--;
+          otherArgs = new Object[n];
+          for(int i=0; i < n; i++) {
+            otherArgs[i] = boxConstantOperand((OPT_ConstantOperand)Call.getParam(s,i),paramTypes[i+1]);
+          }
+        } else {
+          otherArgs = new Object[n];
+          for(int i=0; i < n; i++) {
+            otherArgs[i] = boxConstantOperand((OPT_ConstantOperand)Call.getParam(s,i),paramTypes[i]);
+          }
+        }
+        Throwable t = null;
+        try {
+          if (VM.runningVM) {
+            result = VM_Reflection.invoke(method, thisArg, otherArgs, !methOp.isVirtual());
+          } else {
+            Class<?>[] argTypes = new Class<?>[n];
+            for(int i=0; i < n; i++) {
+              argTypes[i] = Call.getParam(s,i).getType().resolve().getClassForType();
+            }
+            Method m = method.getDeclaringClass().getClassForType().getDeclaredMethod(method.getName().toString(), argTypes);
+            result = m.invoke(thisArg, otherArgs);
+          }
+        }
+        catch (Throwable e) { t = e;}
+        if (t != null) {
+          // Call threw exception so leave in to generate at execution time
+          return DefUseEffect.UNCHANGED;            
+        }
+        if(method.getReturnType().isVoidType()) {
+          Empty.mutate(s, NOP);
+          return DefUseEffect.REDUCED;
+        } else {
+          OPT_Operator moveOp = OPT_IRTools.getMoveOp(method.getReturnType());
+          Move.mutate(s,moveOp, Call.getClearResult(s),
+              boxConstantObjectAsOperand(result, method.getReturnType()));
+          return DefUseEffect.MOVE_FOLDED;
+        }
+      }
     }
     return DefUseEffect.UNCHANGED;
   }
-
+  /**
+   * Package up a constant operand as an object
+   * @param op the constant operand to package
+   * @param t the type of the object (needed to differentiate primitive from numeric types..)
+   * @return the object
+   */
+  private static Object boxConstantOperand(OPT_ConstantOperand op, VM_TypeReference t){
+    if (op.isObjectConstant()) {
+      return op.asObjectConstant().value;
+    }
+    else if (op.isLongConstant()) {
+      return op.asLongConstant().value;
+    }
+    else if (op.isFloatConstant()) {
+      return op.asFloatConstant().value;
+    }
+    else if (op.isDoubleConstant()) {
+      return op.asDoubleConstant().value;
+    }
+    else if (t.isIntType()) {
+      return op.asIntConstant().value;
+    }
+    else if (t.isBooleanType()) {
+      return op.asIntConstant().value == 1;
+    }
+    else if (t.isByteType()) {
+      return (byte)op.asIntConstant().value;
+    }
+    else if (t.isCharType()) {
+      return (char)op.asIntConstant().value;
+    }
+    else if (t.isShortType()) {
+      return (short)op.asIntConstant().value;
+    }
+    else {
+      throw new OPT_OptimizingCompilerException("Trying to box an VM magic unboxed type for a pure method call is not possible");
+    }
+  }
+  /**
+   * Package up an object as a constant operand
+   * @param x the object to package
+   * @param t the type of the object (needed to differentiate primitive from numeric types..)
+   * @return the constant operand
+   */
+  private static OPT_ConstantOperand boxConstantObjectAsOperand(Object x, VM_TypeReference t){
+    if (VM.VerifyAssertions) VM._assert(!t.isUnboxedType());
+    if (t.isIntLikeType()) {
+      return IC((Integer)x);
+    }
+    else if (t.isLongType()) {
+      return LC((Long)x);
+    }
+    else if (t.isFloatType()) {
+      return FC((Float)x);
+    }
+    else if (t.isDoubleType()) {
+      return DC((Double)x);
+    }
+    else if(x instanceof String) {
+      // Handle as object constant but make sure to use interned String
+      x = ((String)x).intern();
+      return new OPT_ObjectConstantOperand(x, Offset.zero());
+    }
+    else if(x instanceof Class) {
+      // Handle as object constant
+      return new OPT_ObjectConstantOperand(x, Offset.zero());
+    }
+    else {
+      return new OPT_ObjectConstantOperand(x, Offset.zero());
+    }
+  }
+  
   private static DefUseEffect getField(OPT_Instruction s) {
     if (CF_FIELDS) {
       OPT_Operand ref = GetField.getRef(s);

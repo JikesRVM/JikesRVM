@@ -16,6 +16,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Statics;
 import org.vmmagic.pragma.Uninterruptible;
@@ -162,6 +163,34 @@ public final class VM_Field extends VM_Member {
    */
   public boolean isEnumConstant() {
     return (modifiers & ACC_ENUM) != 0;
+  }
+
+  /**
+   * Is the field RuntimeFinal? That is can the annotation value be used in
+   * place a reading the field.
+   * @return whether the method has a pure annotation
+   */
+  public final boolean isRuntimeFinal() {
+   return hasRuntimeFinalAnnotation();
+  }
+
+  /**
+   * Get the value from the runtime final field
+   * @return whether the method has a pure annotation
+   */
+  public final boolean getRuntimeFinalValue() {
+    org.vmmagic.pragma.RuntimeFinal ann;
+    if (VM.runningVM) {
+      ann = getAnnotation(org.vmmagic.pragma.RuntimeFinal.class);
+    } else {
+      try {
+      ann = getDeclaringClass().getClassForType().getField(getName().toString())
+      .getAnnotation(org.vmmagic.pragma.RuntimeFinal.class);
+      } catch (NoSuchFieldException e) {
+        throw new Error(e);
+      }
+    }
+    return ann.value();
   }
 
   /**
