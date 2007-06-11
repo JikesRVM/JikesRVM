@@ -3860,42 +3860,21 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
 
     if (methodName == VM_MagicNames.prepareLong ||
         methodName == VM_MagicNames.getLongAtOffset || methodName == VM_MagicNames.getDoubleAtOffset) {
-      asm.emitMOV_Reg_RegInd(T0, SP);     // object ref
-      asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // offset
-      if (SSE2_OPS) {
-        // XMM0 <- [T0+S0<<<3]
-        asm.emitMOVQ_Reg_RegIdx(XMM0, S0, T0, VM_Assembler.LONG, NO_SLOT);
-        asm.emitMOVQ_RegInd_Reg(SP, XMM0);
-      } else {
-        // T1 <- [T0+S0<<<3]
-        asm.emitMOV_Reg_RegIdx(T1, S0, T0, VM_Assembler.LONG, NO_SLOT);
-        // [SP] <- T1
-        asm.emitMOV_RegInd_Reg(SP, T1);
-        // T1 <- [S0+T0<<<3+4]
-        asm.emitMOV_Reg_RegIdx(T1, S0, T0, VM_Assembler.LONG, ONE_SLOT);      
-        // [SP+4] <- T1
-        asm.emitMOV_RegDisp_Reg(SP, ONE_SLOT, T1);
-      }
+      asm.emitPOP_Reg(T0);                  // object ref
+      asm.emitPOP_Reg(S0);                  // offset
+      asm.emitPUSH_RegIdx(T0, S0, VM_Assembler.BYTE, ONE_SLOT); // pushes [T0+S0+4]
+      asm.emitPUSH_RegIdx(T0, S0, VM_Assembler.BYTE, NO_SLOT); // pushes [T0+S0]
       return true;
     }
 
     if (methodName == VM_MagicNames.setLongAtOffset || methodName == VM_MagicNames.setDoubleAtOffset) {
-      if (SSE2_OPS) {
-        asm.emitMOVQ_Reg_RegInd(XMM0, SP); // XMM0 = value
-        asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS);     // S0 = offset
-        asm.emitMOV_Reg_RegDisp(T1, SP, THREE_SLOTS);   // T1 = obj ref
-        asm.emitADD_Reg_Imm(SP, WORDSIZE * 4);          // pop stack locations
-        // [S0+T1] <- XMM0
-        asm.emitMOVQ_RegIdx_Reg(T1, S0, VM_Assembler.BYTE, NO_SLOT, XMM0);
-      } else {
-        asm.emitMOV_Reg_RegInd(T0, SP);               // T0 = value high
-        asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS);   // S0 = offset
-        asm.emitMOV_Reg_RegDisp(T1, SP, THREE_SLOTS); // T1 = obj ref
-        asm.emitMOV_RegIdx_Reg(T1, S0, VM_Assembler.BYTE, NO_SLOT, T0); // [T1+S0] <- T0
-        asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);     // value low
-        asm.emitADD_Reg_Imm(SP, WORDSIZE * 4);         // pop stack locations
-        asm.emitMOV_RegIdx_Reg(T1, S0, VM_Assembler.BYTE, ONE_SLOT, T0); // [T1+S0+4] <- T0
-      }
+      asm.emitMOV_Reg_RegInd(T0, SP);          // value high
+      asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS);     // offset
+      asm.emitMOV_Reg_RegDisp(T1, SP, THREE_SLOTS);     // obj ref
+      asm.emitMOV_RegIdx_Reg(T1, S0, VM_Assembler.BYTE, NO_SLOT, T0); // [T1+S0] <- T0
+      asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);     // value low
+      asm.emitMOV_RegIdx_Reg(T1, S0, VM_Assembler.BYTE, ONE_SLOT, T0); // [T1+S0+4] <- T0
+      asm.emitADD_Reg_Imm(SP, WORDSIZE * 4); // pop stack locations
       return true;
     }
 
