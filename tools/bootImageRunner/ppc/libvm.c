@@ -39,7 +39,6 @@
 #define SIGNAL_STACKSIZE (16 * 1024)    // in bytes
 
 #ifdef RVM_FOR_LINUX
-#include <asm/cache.h>
 #define HAVE_SA_SIGACTION       /* Set this if a "struct sigaction" contains
                                  * a member named "sa_sigaction". */
 #endif
