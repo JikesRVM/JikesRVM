@@ -86,9 +86,19 @@ MIR_Compare
 # Compare OldValue to [MemAddr] and set flags.
 #   If equal, set [MemAddr] = NewValue.
 #   If not equal set OldValue to [MemAddr]
+# OldValue should always be held in EAX
 MIR_CompareExchange
 0 2 1
 "DU OldValue OPT_RegisterOperand" "DU MemAddr OPT_MemoryOperand" "U NewValue OPT_RegisterOperand"
+
+
+# Compare OldValue to [MemAddr] and set flags.  
+#   If equal, set [MemAddr] = NewValue.
+#   If not equal set OldValue to [MemAddr]
+# OldValue should always be held in EDX:EAX, NewValue in ECX:EBX
+MIR_CompareExchange8B
+0 3 2
+"DU OldValueHigh OPT_RegisterOperand" "DU OldValueLow OPT_RegisterOperand" "DU MemAddr OPT_MemoryOperand" "U NewValueHigh OPT_RegisterOperand" "U NewValueLow OPT_RegisterOperand"
 
 
 # Trap

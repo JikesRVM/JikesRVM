@@ -1712,6 +1712,62 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
     if (lister != null) lister.RR(miStart, "XORPD", dstReg, srcReg);
   }
 
+  /**
+   * Compare and exchange 8 bytes
+   * <PRE>
+   * cmpxchg8b [dst + disp]
+   * </PRE>
+   */
+  public final void emitCMPXCHG8B_RegDisp(byte dst, Offset disp) {
+      int miStart = mi;
+      setMachineCodes(mi++, (byte) 0x0F);
+      setMachineCodes(mi++, (byte) 0xC7);
+      emitRegDispRegOperands(dst, disp, (byte)1);
+      if (lister != null) lister.RD(miStart, "CMPXCHG8B" , dst, disp);
+  }
+
+  /**
+   * Compare and exchange 8 bytes
+   * <PRE>
+   * cmpxchg8b [dst]
+   * </PRE>
+   */
+  public final void emitCMPXCHG8B_RegInd(byte dst) {
+      int miStart = mi;
+      setMachineCodes(mi++, (byte) 0x0F);
+      setMachineCodes(mi++, (byte) 0xC7);
+      emitRegIndirectRegOperands(dst, (byte)1);
+      if (lister != null) lister.R(miStart, "CMPXCHG8B" , dst);
+  }
+
+  /**
+   * Compare and exchange 8 bytes
+   * <PRE>
+   * cmpxchg8b [index2<<scale2 + disp2]
+   * </PRE>
+   */
+  public final void emitCMPXCHG8B_RegOff(byte index2, short scale2, Offset disp2) {
+      int miStart = mi;
+      setMachineCodes(mi++, (byte) 0x0F);
+      setMachineCodes(mi++, (byte) 0xC7);
+      emitRegOffRegOperands(index2, scale2, disp2, (byte)1);
+      if (lister != null) lister.RFD(miStart, "CMPXCHG8B", index2, scale2, disp2);
+  }
+
+  /**
+   * Compare and exchange 8 bytes
+   * <PRE>
+   * cmpxchg8b [base + index2<<scale2 + disp2]
+   * </PRE>
+   */
+  public final void emitCMPXCHG8B_RegIdx(byte base2, byte index2, short scale2, Offset disp2) {
+      int miStart = mi;
+      setMachineCodes(mi++, (byte) 0x0F);
+      setMachineCodes(mi++, (byte) 0xC7);
+      emitSIBRegOperands(base2, index2, scale2, disp2, (byte)0);
+      if (lister != null) lister.RXD(miStart, "CMPXCHG8B", base2, index2, scale2, disp2);
+  }
+
   /*
    * BELOW HERE ARE AUTOMATICALLY-GENERATED INSTRUCTIONS.  DO NOT EDIT.
    *
