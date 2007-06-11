@@ -1667,10 +1667,23 @@ EMIT(MIR_Load.mutate(P(p), PPC_LWARX, Prepare.getResult(P(p)),   \
                               Prepare.getLocation(P(p)),                  \
                               Prepare.getGuard(P(p))));
 
+r:      PREPARE_LONG(r, r)
+11
+EMIT_INSTRUCTION
+EMIT(MIR_Load.mutate(P(p), PPC_LAddrARX, Prepare.getResult(P(p)),   \
+                              R(Prepare.getAddress(P(p))), Prepare.getOffset(P(p)),           \
+                              Prepare.getLocation(P(p)),                  \
+                              Prepare.getGuard(P(p))));
+
 #####
 # ATTEMPT (atomic compare-exchange)
 #####
 r:      ATTEMPT_INT(r, r)
+11
+EMIT_INSTRUCTION
+EMIT(P(p));  // Leave for OPT_ComplexLIR2MIRExpansion
+
+r:      ATTEMPT_LONG(r, r)
 11
 EMIT_INSTRUCTION
 EMIT(P(p));  // Leave for OPT_ComplexLIR2MIRExpansion

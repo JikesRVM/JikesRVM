@@ -92,12 +92,14 @@ public class VM_MagicNames {
   public static final VM_Atom prepareObjectReference = VM_Atom.findOrCreateAsciiAtom("prepareObjectReference");
   public static final VM_Atom prepareAddress = VM_Atom.findOrCreateAsciiAtom("prepareAddress");
   public static final VM_Atom prepareWord = VM_Atom.findOrCreateAsciiAtom("prepareWord");
+  public static final VM_Atom prepareLong = VM_Atom.findOrCreateAsciiAtom("prepareLong");
   public static final VM_Atom attempt = VM_Atom.findOrCreateAsciiAtom("attempt");
   public static final VM_Atom attemptInt = VM_Atom.findOrCreateAsciiAtom("attemptInt");
   public static final VM_Atom attemptObject = VM_Atom.findOrCreateAsciiAtom("attemptObject");
   public static final VM_Atom attemptObjectReference = VM_Atom.findOrCreateAsciiAtom("attemptObjectReference");
   public static final VM_Atom attemptAddress = VM_Atom.findOrCreateAsciiAtom("attemptAddress");
   public static final VM_Atom attemptWord = VM_Atom.findOrCreateAsciiAtom("attemptWord");
+  public static final VM_Atom attemptLong = VM_Atom.findOrCreateAsciiAtom("attemptLong");
 
   public static final VM_Atom saveThreadState = VM_Atom.findOrCreateAsciiAtom("saveThreadState");
   public static final VM_Atom threadSwitch = VM_Atom.findOrCreateAsciiAtom("threadSwitch");

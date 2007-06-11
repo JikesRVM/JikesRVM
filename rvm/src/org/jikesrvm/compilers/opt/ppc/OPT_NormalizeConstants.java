@@ -45,6 +45,7 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.ADDR_2INT_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.ADDR_2LONG_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.ATTEMPT_ADDR_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.ATTEMPT_INT_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.ATTEMPT_LONG_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_ADDR_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_INT_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BYTE_LOAD_opcode;
@@ -118,6 +119,7 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_XOR_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.NULL_CHECK_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PREPARE_ADDR_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PREPARE_INT_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PREPARE_LONG_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_ADD;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_ADD_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_AND;
@@ -342,6 +344,7 @@ public abstract class OPT_NormalizeConstants extends OPT_IRTools {
           break;
 
         case ATTEMPT_INT_opcode:
+        case ATTEMPT_LONG_opcode:
         case ATTEMPT_ADDR_opcode:
           // On PowerPC, the value being stored must be in a register
           Attempt.setNewValue(s, asRegPolymorphic(Attempt.getClearNewValue(s), s, ir));
@@ -352,6 +355,7 @@ public abstract class OPT_NormalizeConstants extends OPT_IRTools {
           break;
 
         case PREPARE_INT_opcode:
+        case PREPARE_LONG_opcode:
         case PREPARE_ADDR_opcode:
           // Supported addressing modes are quite limited.
           Prepare.setAddress(s, asRegAddress(Prepare.getAddress(s), s, ir));

@@ -60,8 +60,9 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   private static final Offset ONE_SLOT = NO_SLOT.plus(WORDSIZE);
   private static final Offset TWO_SLOTS = ONE_SLOT.plus(WORDSIZE);
   private static final Offset THREE_SLOTS = TWO_SLOTS.plus(WORDSIZE);
+  private static final Offset FOUR_SLOTS = THREE_SLOTS.plus(WORDSIZE);
+  private static final Offset FIVE_SLOTS = FOUR_SLOTS.plus(WORDSIZE);
   private static final Offset MINUS_ONE_SLOT = NO_SLOT.minus(WORDSIZE);
-  private static final Offset MINUS_TWO_SLOTS = MINUS_ONE_SLOT.minus(WORDSIZE);
 
   /**
    * Create a VM_Compiler object for the compilation of method.
@@ -2568,11 +2569,9 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
 
       // squirrel away signature ID
       VM_ProcessorLocalState.emitMoveImmToField(asm, VM_Entrypoints.hiddenSignatureIdField.getOffset(), sig.getId());
-
-      asm.emitMOV_Reg_RegDisp(T1,
-                              SP,
-                              Offset.fromIntZeroExtend((count - 1) <<
-                                                       2));                                  // "this" object
+      // T1 = "this" object
+      asm.emitMOV_Reg_RegDisp(T1, SP,
+          Offset.fromIntZeroExtend((count - 1) << 2));
       VM_ObjectModel.baselineEmitLoadTIB(asm, S0, T1);
       if (VM.BuildForIndirectIMT) {
         // Load the IMT Base into S0
@@ -2582,17 +2581,14 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       asm.emitCALL_RegDisp(S0, sig.getIMTOffset());                                             // the interface call
     } else if (VM.BuildForITableInterfaceInvocation && VM.DirectlyIndexedITables && resolvedMethod != null) {
       VM_Class I = resolvedMethod.getDeclaringClass();
-      asm.emitMOV_Reg_RegDisp(T1,
-                              SP,
-                              Offset.fromIntZeroExtend((count - 1) <<
-                                                       2));                                 // "this" object
+      // T1 = "this" object
+      asm.emitMOV_Reg_RegDisp(T1, SP,
+          Offset.fromIntZeroExtend((count - 1) << 2));
       VM_ObjectModel.baselineEmitLoadTIB(asm, S0, T1);
-      asm.emitMOV_Reg_RegDisp(S0,
-                              S0,
-                              Offset.fromIntZeroExtend(TIB_ITABLES_TIB_INDEX << 2));                     // iTables
-      asm.emitMOV_Reg_RegDisp(S0,
-                              S0,
-                              Offset.fromIntZeroExtend(I.getInterfaceId() << 2));                        // iTable
+      // S0 = iTables
+      asm.emitMOV_Reg_RegDisp(S0, S0, Offset.fromIntZeroExtend(TIB_ITABLES_TIB_INDEX << 2));
+      // S0 = iTable
+      asm.emitMOV_Reg_RegDisp(S0, S0, Offset.fromIntZeroExtend(I.getInterfaceId() << 2));
       genParameterRegisterLoad(methodRef, true);
       int idx = VM_InterfaceInvocation.getITableIndex(I, methodRef.getName(), methodRef.getDescriptor());
       asm.emitCALL_RegDisp(S0, Offset.fromIntZeroExtend(idx << 2)); // the interface call
@@ -2610,19 +2606,22 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
         // call "invokeInterface" to resolve object + method id into
         // method address
         int methodRefId = methodRef.getId();
-        asm.emitPUSH_RegDisp(SP, Offset.fromIntZeroExtend((count - 1) << LG_WORDSIZE));  // "this" parameter is obj
-        asm.emitPUSH_Imm(methodRefId);                 // id of method to call
+        // "this" parameter is obj
+        asm.emitPUSH_RegDisp(SP, Offset.fromIntZeroExtend((count - 1) << LG_WORDSIZE));
+        asm.emitPUSH_Imm(methodRefId);             // id of method to call
         genParameterRegisterLoad(2);               // pass 2 parameter words
+        // invokeinterface(obj, id) returns address to call
         asm.emitCALL_RegDisp(JTOC,
-                             VM_Entrypoints.invokeInterfaceMethod.getOffset()); // invokeinterface(obj, id) returns address to call
-        asm.emitMOV_Reg_Reg(S0, T0);                      // S0 has address of method
+                             VM_Entrypoints.invokeInterfaceMethod.getOffset());
+        asm.emitMOV_Reg_Reg(S0, T0);               // S0 has address of method
         genParameterRegisterLoad(methodRef, true);
-        asm.emitCALL_Reg(S0);                          // the interface method (its parameters are on stack)
+        asm.emitCALL_Reg(S0);                     // the interface method (its parameters are on stack)
       } else {
         // itable index is known at compile-time.
         // call "findITable" to resolve object + interface id into
         // itable address
-        asm.emitMOV_Reg_RegDisp(T0, SP, Offset.fromIntZeroExtend((count - 1) << 2));             // "this" object
+        // T0 = "this" object
+        asm.emitMOV_Reg_RegDisp(T0, SP, Offset.fromIntZeroExtend((count - 1) << 2));
         VM_ObjectModel.baselineEmitLoadTIB(asm, S0, T0);
         asm.emitPUSH_Reg(S0);
         asm.emitPUSH_Imm(resolvedMethod.getDeclaringClass().getInterfaceId()); // interface id
@@ -2631,7 +2630,8 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
                              VM_Entrypoints.findItableMethod.getOffset()); // findItableOffset(tib, id) returns iTable
         asm.emitMOV_Reg_Reg(S0, T0);                             // S0 has iTable
         genParameterRegisterLoad(methodRef, true);
-        asm.emitCALL_RegDisp(S0, Offset.fromIntZeroExtend(itableIndex << 2));               // the interface call
+        // the interface call
+        asm.emitCALL_RegDisp(S0, Offset.fromIntZeroExtend(itableIndex << 2));
       }
     }
     genResultRegisterUnload(methodRef);
@@ -2739,7 +2739,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     for (int i = 0; i < dimensions; i++) {
       asm.emitPOP_Reg(S0); // clear stack of dimensions (todo use and add immediate to do this)
     }
-    asm.emitPUSH_Reg(T0);                              // push array ref on stack
+    asm.emitPUSH_Reg(T0);                       // push array ref on stack
   }
 
   /**
@@ -3455,7 +3455,9 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
         return true;
       }
 
-      if (methodName == VM_MagicNames.loadLong || methodName == VM_MagicNames.loadDouble) {
+      if (methodName == VM_MagicNames.prepareLong
+					|| methodName == VM_MagicNames.loadLong
+					|| methodName == VM_MagicNames.loadDouble) {
 
         if (types.length == 0) {
           // No offset
@@ -3593,6 +3595,34 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       VM_ForwardReference fr = asm.forwardJcc(VM_Assembler.EQ); // skip if compare fails
       asm.emitMOV_RegInd_Imm(SP, 0);        // 'push' false (overwriting base)
       fr.resolve(asm);
+      return true;
+    }
+
+    if (methodName == VM_MagicNames.attemptLong) {
+      // attempt gets called with four arguments: base, offset, oldVal, newVal
+      // returns ([base+offset] == oldVal)
+      // if ([base+offset] == oldVal) [base+offset] := newVal
+      // (operation on memory is atomic)
+      //t1:t0 with s0:ebx
+      asm.emitMOV_Reg_RegDisp(T1, SP, THREE_SLOTS);
+      asm.emitMOV_Reg_RegDisp(T0, SP, TWO_SLOTS);   // T1:T0 (EDX:EAX) -> oldVal
+      asm.emitMOV_RegDisp_Reg(SP, THREE_SLOTS, EBX);  // Save EBX
+      asm.emitMOV_RegDisp_Reg(SP, TWO_SLOTS, ESI);    // Save ESI
+      asm.emitMOV_Reg_RegInd(EBX, SP);
+      asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT);   // S0:EBX (ECX:EBX) -> newVal
+      asm.emitMOV_Reg_RegDisp(ESI, SP, FIVE_SLOTS); // ESI := base
+      asm.emitADD_Reg_RegDisp(ESI, SP, FOUR_SLOTS); // ESI += offset
+      asm.emitLockNextInstruction();
+      asm.emitCMPXCHG8B_RegInd (ESI);        // atomic compare-and-exchange
+      VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.NE); // skip if compare fails
+      asm.emitMOV_RegDisp_Imm (SP, FIVE_SLOTS, 1);        // 'push' true (overwriting base)
+      VM_ForwardReference fr2 = asm.forwardJMP(); // skip if compare fails      
+      fr1.resolve(asm);
+      asm.emitMOV_RegDisp_Imm (SP, FIVE_SLOTS, 0);        // 'push' false (overwriting base)
+      fr2.resolve(asm);
+      asm.emitMOV_Reg_RegDisp(EBX, SP, THREE_SLOTS);  // Restore EBX
+      asm.emitMOV_Reg_RegDisp(ESI, SP, TWO_SLOTS);  // Restore ESI
+      asm.emitADD_Reg_Imm(SP, WORDSIZE*5);      // adjust SP popping the 4 args (6 slots) and pushing the result 
       return true;
     }
 
@@ -3828,22 +3858,44 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       return true;
     }
 
-    if (methodName == VM_MagicNames.getLongAtOffset || methodName == VM_MagicNames.getDoubleAtOffset) {
-      asm.emitPOP_Reg(T0);                  // object ref
-      asm.emitPOP_Reg(S0);                  // offset
-      asm.emitPUSH_RegIdx(T0, S0, VM_Assembler.BYTE, ONE_SLOT); // pushes [T0+S0+4]
-      asm.emitPUSH_RegIdx(T0, S0, VM_Assembler.BYTE, NO_SLOT); // pushes [T0+S0]
+    if (methodName == VM_MagicNames.prepareLong ||
+        methodName == VM_MagicNames.getLongAtOffset || methodName == VM_MagicNames.getDoubleAtOffset) {
+      asm.emitMOV_Reg_RegInd(T0, SP);     // object ref
+      asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT); // offset
+      if (SSE2_OPS) {
+        // XMM0 <- [T0+S0<<<3]
+        asm.emitMOVQ_Reg_RegIdx(XMM0, S0, T0, VM_Assembler.LONG, NO_SLOT);
+        asm.emitMOVQ_RegInd_Reg(SP, XMM0);
+      } else {
+        // T1 <- [T0+S0<<<3]
+        asm.emitMOV_Reg_RegIdx(T1, S0, T0, VM_Assembler.LONG, NO_SLOT);
+        // [SP] <- T1
+        asm.emitMOV_RegInd_Reg(SP, T1);
+        // T1 <- [S0+T0<<<3+4]
+        asm.emitMOV_Reg_RegIdx(T1, S0, T0, VM_Assembler.LONG, ONE_SLOT);      
+        // [SP+4] <- T1
+        asm.emitMOV_RegDisp_Reg(SP, ONE_SLOT, T1);
+      }
       return true;
     }
 
     if (methodName == VM_MagicNames.setLongAtOffset || methodName == VM_MagicNames.setDoubleAtOffset) {
-      asm.emitMOV_Reg_RegInd(T0, SP);          // value high
-      asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS);     // offset
-      asm.emitMOV_Reg_RegDisp(T1, SP, THREE_SLOTS);     // obj ref
-      asm.emitMOV_RegIdx_Reg(T1, S0, VM_Assembler.BYTE, NO_SLOT, T0); // [T1+S0] <- T0
-      asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);     // value low
-      asm.emitMOV_RegIdx_Reg(T1, S0, VM_Assembler.BYTE, ONE_SLOT, T0); // [T1+S0+4] <- T0
-      asm.emitADD_Reg_Imm(SP, WORDSIZE * 4); // pop stack locations
+      if (SSE2_OPS) {
+        asm.emitMOVQ_Reg_RegInd(XMM0, SP); // XMM0 = value
+        asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS);     // S0 = offset
+        asm.emitMOV_Reg_RegDisp(T1, SP, THREE_SLOTS);   // T1 = obj ref
+        asm.emitADD_Reg_Imm(SP, WORDSIZE * 4);          // pop stack locations
+        // [S0+T1] <- XMM0
+        asm.emitMOVQ_RegIdx_Reg(T1, S0, VM_Assembler.BYTE, NO_SLOT, XMM0);
+      } else {
+        asm.emitMOV_Reg_RegInd(T0, SP);               // T0 = value high
+        asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS);   // S0 = offset
+        asm.emitMOV_Reg_RegDisp(T1, SP, THREE_SLOTS); // T1 = obj ref
+        asm.emitMOV_RegIdx_Reg(T1, S0, VM_Assembler.BYTE, NO_SLOT, T0); // [T1+S0] <- T0
+        asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);     // value low
+        asm.emitADD_Reg_Imm(SP, WORDSIZE * 4);         // pop stack locations
+        asm.emitMOV_RegIdx_Reg(T1, S0, VM_Assembler.BYTE, ONE_SLOT, T0); // [T1+S0+4] <- T0
+      }
       return true;
     }
 

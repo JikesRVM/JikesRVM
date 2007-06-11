@@ -3960,7 +3960,10 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       // Prepares all take the form:
       // ..., Address, [Offset] -> ..., Value
 
-      if (methodName == VM_MagicNames.prepareInt) {
+      if ((methodName == VM_MagicNames.prepareInt)||
+          (VM.BuildFor32Addr && (methodName == VM_MagicNames.prepareWord)) ||
+          (VM.BuildFor32Addr && (methodName == VM_MagicNames.prepareObjectReference)) ||
+          (VM.BuildFor32Addr && (methodName == VM_MagicNames.prepareAddress))) {
         if (types.length == 0) {
           popAddr(T0);                             // pop base
           asm.emitLWARX(T0, 0, T0);                // *(base), setting reservation address
@@ -3976,26 +3979,21 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
         return true;
       }
 
-      if (methodName == VM_MagicNames.prepareWord ||
-          methodName == VM_MagicNames.prepareObjectReference ||
-          methodName == VM_MagicNames.prepareAddress) {
+      if ((methodName == VM_MagicNames.prepareLong)||
+          (VM.BuildFor64Addr && (methodName == VM_MagicNames.prepareWord)) ||
+          (VM.BuildFor64Addr && (methodName == VM_MagicNames.prepareObjectReference)) ||
+          (VM.BuildFor64Addr && (methodName == VM_MagicNames.prepareAddress))) {
         if (types.length == 0) {
           popAddr(T0);                             // pop base
-          if (VM.BuildFor32Addr) {
-            asm.emitLWARX(T0, 0, T0);            // *(base+offset), setting
-          } else {                               // reservation address
-            asm.emitLDARX(T0, 0, T0);
-          }
-          pushAddr(T0);                            // push *(base+offset)
+          asm.emitLDARX(T0, 0, T0);                // *(base), setting reservation address
+          // this Integer is not sign extended !!
+          pushInt(T0);                             // push *(base+offset)
         } else {
           popInt(T1);                              // pop offset
           popAddr(T0);                             // pop base
-          if (VM.BuildFor32Addr) {
-            asm.emitLWARX(T0, T1, T0);          // *(base+offset), setting
-          } else {                               // reservation address
-            asm.emitLDARX(T0, T1, T0);
-          }
-          pushAddr(T0);                            // push *(base+offset)
+          asm.emitLDARX(T0, T1, T0);              // *(base+offset), setting reservation address
+          // this Integer is not sign extended !!
+          pushInt(T0);                             // push *(base+offset)
         }
         return true;
       }
@@ -4003,7 +4001,10 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       // Attempts all take the form:
       // ..., Address, OldVal, NewVal, [Offset] -> ..., Success?
 
-      if (methodName == VM_MagicNames.attempt && types[0] == VM_TypeReference.Int) {
+      if (methodName == VM_MagicNames.attempt &&
+          ((types[0] == VM_TypeReference.Int) ||
+           (VM.BuildFor32Addr && (types[0] == VM_TypeReference.Address)) ||
+           (VM.BuildFor32Addr && (types[0] == VM_TypeReference.Word)))) {
         if (types.length == 2) {
           popInt(T2);                            // pop newValue
           discardSlot();                         // ignore oldValue
@@ -4030,17 +4031,14 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       }
 
       if (methodName == VM_MagicNames.attempt &&
-          (types[0] == VM_TypeReference.Address || types[0] == VM_TypeReference.Word)) {
-
+          ((types[0] == VM_TypeReference.Long) ||
+           (VM.BuildFor64Addr && (types[0] == VM_TypeReference.Address)) ||
+           (VM.BuildFor64Addr && (types[0] == VM_TypeReference.Word)))) {
         if (types.length == 2) {
           popAddr(T2);                             // pop newValue
           discardSlot();                           // ignore oldValue
           popAddr(T0);                             // pop base
-          if (VM.BuildFor32Addr) {
-            asm.emitSTWCXr(T2, 0, T0);          // store new value and set CR0
-          } else {
-            asm.emitSTDCXr(T2, 0, T0);          // store new value and set CR0
-          }
+          asm.emitSTDCXr(T2, 0, T0);             // store new value and set CR0
           asm.emitLVAL(T0, 0);                   // T0 := false
           VM_ForwardReference fr = asm.emitForwardBC(NE);  // skip, if store failed
           asm.emitLVAL(T0, 1);                   // T0 := true
@@ -4051,11 +4049,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
           popAddr(T2);                             // pop newValue
           discardSlot();                           // ignore oldValue
           popAddr(T0);                             // pop base
-          if (VM.BuildFor32Addr) {
-            asm.emitSTWCXr(T2, T1, T0);         // store new value and set CR0
-          } else {
-            asm.emitSTDCXr(T2, T1, T0);         // store new value and set CR0
-          }
+          asm.emitSTDCXr(T2, T1, T0);            // store new value and set CR0
           asm.emitLVAL(T0, 0);                   // T0 := false
           VM_ForwardReference fr = asm.emitForwardBC(NE);             // skip, if store failed
           asm.emitLVAL(T0, 1);                   // T0 := true
@@ -4334,24 +4328,28 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       popAddr(T1); // value
       popAddr(T0); // address
       asm.emitSTAddr(T1, 0, T0); // *address := value
-    } else if (methodName == VM_MagicNames.prepareInt) {
+    } else if ((methodName == VM_MagicNames.prepareInt) ||
+        (VM.BuildFor32Addr && (methodName == VM_MagicNames.prepareObject)) ||
+        (VM.BuildFor32Addr && (methodName == VM_MagicNames.prepareAddress)) ||
+        (VM.BuildFor32Addr && (methodName == VM_MagicNames.prepareWord))) {
       popInt(T1); // pop offset
       popAddr(T0); // pop object
       asm.emitLWARX(T0, T1, T0); // *(object+offset), setting processor's reservation address
       // this Integer is not sign extended !!
       pushInt(T0); // push *(object+offset)
-    } else if (methodName == VM_MagicNames.prepareObject ||
-               methodName == VM_MagicNames.prepareAddress ||
-               methodName == VM_MagicNames.prepareWord) {
+    } else if ((methodName == VM_MagicNames.prepareLong) ||
+        (VM.BuildFor64Addr && (methodName == VM_MagicNames.prepareObject)) ||
+        (VM.BuildFor64Addr && (methodName == VM_MagicNames.prepareAddress)) ||
+        (VM.BuildFor64Addr && (methodName == VM_MagicNames.prepareWord))) {
       popInt(T1); // pop offset
       popAddr(T0); // pop object
-      if (VM.BuildFor32Addr) {
-        asm.emitLWARX(T0, T1, T0); // *(object+offset), setting processor's reservation address
-      } else {
-        asm.emitLDARX(T0, T1, T0);
-      }
+      asm.emitLDARX(T0, T1, T0); // *(object+offset), setting processor's reservation address
       pushAddr(T0); // push *(object+offset)
-    } else if (methodName == VM_MagicNames.attemptInt) {
+    } else if ((methodName == VM_MagicNames.attemptInt) ||
+        (VM.BuildFor32Addr && (methodName == VM_MagicNames.attemptObject)) ||
+        (VM.BuildFor32Addr && (methodName == VM_MagicNames.attemptObjectReference)) ||
+        (VM.BuildFor32Addr && (methodName == VM_MagicNames.attemptAddress)) ||
+        (VM.BuildFor32Addr && (methodName == VM_MagicNames.attemptWord))) {
       popInt(T2);  // pop newValue
       discardSlot(); // ignore oldValue
       popInt(T1);  // pop offset
@@ -4362,19 +4360,16 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       asm.emitLVAL(T0, 1);   // T0 := true
       fr.resolve(asm);
       pushInt(T0);  // push success of conditional store
-    } else if (methodName == VM_MagicNames.attemptObject ||
-               methodName == VM_MagicNames.attemptAddress ||
-               methodName == VM_MagicNames.attemptObjectReference ||
-               methodName == VM_MagicNames.attemptWord) {
+    } else if ((methodName == VM_MagicNames.attemptLong) ||
+        (VM.BuildFor64Addr && (methodName == VM_MagicNames.attemptObject)) ||
+        (VM.BuildFor64Addr && (methodName == VM_MagicNames.attemptObjectReference)) ||
+        (VM.BuildFor64Addr && (methodName == VM_MagicNames.attemptAddress)) ||
+        (VM.BuildFor64Addr && (methodName == VM_MagicNames.attemptWord))) {
       popAddr(T2);  // pop newValue
       discardSlot(); // ignore oldValue
       popInt(T1);  // pop offset
       popAddr(T0);  // pop object
-      if (VM.BuildFor32Addr) {
-        asm.emitSTWCXr(T2, T1, T0); // store new value and set CR0
-      } else {
-        asm.emitSTDCXr(T2, T1, T0); // store new value and set CR0
-      }
+      asm.emitSTDCXr(T2, T1, T0); // store new value and set CR0
       asm.emitLVAL(T0, 0);  // T0 := false
       VM_ForwardReference fr = asm.emitForwardBC(NE); // skip, if store failed
       asm.emitLVAL(T0, 1);   // T0 := true

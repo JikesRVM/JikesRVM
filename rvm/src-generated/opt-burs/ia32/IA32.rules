@@ -2038,11 +2038,22 @@ augmentAddress(Prepare.getAddress(P(p))); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, Prepare.getResult(P(p)), \
 	             consumeAddress(DW, Prepare.getLocation(P(p)), Prepare.getGuard(P(p)))));
 
+#####
+# PREPARE_LONG (just a normal load on IA32)
+#####
+r:	PREPARE_LONG(riv, riv)
+30
+EMIT_INSTRUCTION
+OPT_RegisterOperand hres = Load.getResult(P(p)); \
+OPT_RegisterOperand lres = new OPT_RegisterOperand(regpool.getSecondReg(hres.register), VM_TypeReference.Int); \
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, hres, MO_L(P(p), DW, DW).copy()))); \
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, lres, MO_L(P(p), DW)));
+
 ##################################
 # Stores (register to memory moves)
 ##################################
 #####
-# Attempt (atomic compare-exchange)
+# ATTEMPT_INT (atomic compare-exchange)
 #####
 r:	ATTEMPT_INT(riv, OTHER_OPERAND(riv, OTHER_OPERAND(riv, riv)))
 67
@@ -2208,6 +2219,16 @@ augmentAddress(Attempt.getAddress(PL(p))); \
 ATTEMPT_IFCMP(consumeAddress(DW, Attempt.getLocation(PL(p)), Attempt.getGuard(PL(p))), \
 	            Attempt.getOldValue(PL(p)), Attempt.getNewValue(PL(p)), \
 		    IfCmp.getCond(P(p)), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p)));
+
+#####
+# ATTEMPT_LONG (atomic compare-exchange)
+#####
+r:	ATTEMPT_LONG(riv, OTHER_OPERAND(riv, OTHER_OPERAND(rlv, rlv)))
+67
+EMIT_INSTRUCTION
+ATTEMPT_LONG(Attempt.getResult(P(p)), \
+              MO(Attempt.getAddress(P(p)), Attempt.getOffset(P(p)), DW, Attempt.getLocation(P(p)), Attempt.getGuard(P(p))), \
+              Attempt.getOldValue(P(p)), Attempt.getNewValue(P(p)));
 
 #####
 # BYTE_STORE

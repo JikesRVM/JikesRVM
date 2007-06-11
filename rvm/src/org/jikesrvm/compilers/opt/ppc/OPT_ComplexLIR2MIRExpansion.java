@@ -39,6 +39,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_Operand;
 import org.jikesrvm.compilers.opt.ir.OPT_Operator;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.ATTEMPT_ADDR_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.ATTEMPT_INT_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.ATTEMPT_LONG_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_ADDR_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_INT_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_2INT_opcode;
@@ -151,10 +152,13 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
           get_time_base(s, ir);
           break;
         case ATTEMPT_INT_opcode:
-          attempt(s, ir, false);
+          attempt(s, ir, false, false);
+          break;          
+        case ATTEMPT_LONG_opcode:
+          attempt(s, ir, false, true);
           break;
         case ATTEMPT_ADDR_opcode:
-          attempt(s, ir, true);
+          attempt(s, ir, true, false);
           break;
       }
     }
@@ -550,7 +554,7 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     }
   }
 
-  private static void attempt(OPT_Instruction s, OPT_IR ir, boolean isAddress) {
+  private static void attempt(OPT_Instruction s, OPT_IR ir, boolean isAddress, boolean isLong) {
     OPT_BasicBlock BB1 = s.getBasicBlock();
     OPT_BasicBlock BB4 = BB1.splitNodeAt(s, ir);
     OPT_BasicBlock BB2 = BB1.createSubBlock(0, ir);
@@ -570,7 +574,8 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     OPT_LocationOperand location = Attempt.getLocation(s);
     OPT_Operand guard = Attempt.getGuard(s);
     OPT_RegisterOperand result = Attempt.getResult(s);
-    MIR_Store.mutate(s, (isAddress ? PPC_STAddrCXr : PPC_STWCXr), newValue, address, offset, location, guard);
+    MIR_Store.mutate(s, (isAddress || isLong ? PPC_STAddrCXr : PPC_STWCXr),
+        newValue, address, offset, location, guard);
 
     // Branch to BB3 iff the STWXC succeeds (CR(0) is EQUAL)
     // Else fall through to BB2

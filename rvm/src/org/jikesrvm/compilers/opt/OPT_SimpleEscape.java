@@ -33,6 +33,7 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.ARRAYLENGTH_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.ATHROW_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.ATTEMPT_ADDR_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.ATTEMPT_INT_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.ATTEMPT_LONG_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_ADDR_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_INT_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOUNDS_CHECK_opcode;
@@ -104,6 +105,7 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.OBJARRAY_STORE_CHECK_o
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PHI_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PREPARE_ADDR_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PREPARE_INT_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PREPARE_LONG_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PUTFIELD_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PUTSTATIC_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_ADD_opcode;
@@ -463,6 +465,8 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
       case ATHROW_opcode:
       case PREPARE_INT_opcode:
       case PREPARE_ADDR_opcode:
+      case PREPARE_LONG_opcode:
+      case ATTEMPT_LONG_opcode:
       case ATTEMPT_INT_opcode:
       case ATTEMPT_ADDR_opcode:
       case INT_MOVE_opcode:
@@ -619,6 +623,8 @@ class OPT_SimpleEscape extends OPT_CompilerPhase {
       case PREPARE_ADDR_opcode:
       case ATTEMPT_INT_opcode:
       case ATTEMPT_ADDR_opcode:
+      case PREPARE_LONG_opcode:
+      case ATTEMPT_LONG_opcode:
       case INT_MOVE_opcode:
       case INT_ADD_opcode:
       case REF_ADD_opcode:
