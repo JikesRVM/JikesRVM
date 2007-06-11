@@ -68,6 +68,7 @@ public class VM_Reflection implements VM_Constants {
     WordArray GPRs = WordArray.create(gprs);
     int fprs = (triple >> REFLECTION_GPRS_BITS) & 0x1F;
     double[] FPRs = new double[fprs];
+    byte[] FPRmeta = new byte[fprs];
 
     int spillCount = triple >> (REFLECTION_GPRS_BITS + REFLECTION_FPRS_BITS);
 
@@ -117,55 +118,55 @@ public class VM_Reflection implements VM_Constants {
     VM_Processor.getCurrentProcessor().disableThreadSwitching();
 
     VM_CodeArray code = cm.getEntryCodeArray();
-    VM_MachineReflection.packageParameters(method, thisArg, otherArgs, GPRs, FPRs, Spills);
+    VM_MachineReflection.packageParameters(method, thisArg, otherArgs, GPRs, FPRs, FPRmeta, Spills);
 
     // critical: no threadswitch/GCpoints between here and the invoke of code!
     //           We may have references hidden in the GPRs and Spills arrays!!!
     VM_Processor.getCurrentProcessor().enableThreadSwitching();
 
     if (!returnIsPrimitive) {
-      return VM_Magic.invokeMethodReturningObject(code, GPRs, FPRs, Spills);
+      return VM_Magic.invokeMethodReturningObject(code, GPRs, FPRs, FPRmeta, Spills);
     }
 
     if (returnType.isVoidType()) {
-      VM_Magic.invokeMethodReturningVoid(code, GPRs, FPRs, Spills);
+      VM_Magic.invokeMethodReturningVoid(code, GPRs, FPRs, FPRmeta, Spills);
       return null;
     }
 
     if (returnType.isBooleanType()) {
-      int x = VM_Magic.invokeMethodReturningInt(code, GPRs, FPRs, Spills);
+      int x = VM_Magic.invokeMethodReturningInt(code, GPRs, FPRs, FPRmeta, Spills);
       return x == 1;
     }
 
     if (returnType.isByteType()) {
-      int x = VM_Magic.invokeMethodReturningInt(code, GPRs, FPRs, Spills);
+      int x = VM_Magic.invokeMethodReturningInt(code, GPRs, FPRs, FPRmeta, Spills);
       return (byte) x;
     }
 
     if (returnType.isShortType()) {
-      int x = VM_Magic.invokeMethodReturningInt(code, GPRs, FPRs, Spills);
+      int x = VM_Magic.invokeMethodReturningInt(code, GPRs, FPRs, FPRmeta, Spills);
       return (short) x;
     }
 
     if (returnType.isCharType()) {
-      int x = VM_Magic.invokeMethodReturningInt(code, GPRs, FPRs, Spills);
+      int x = VM_Magic.invokeMethodReturningInt(code, GPRs, FPRs, FPRmeta, Spills);
       return (char) x;
     }
 
     if (returnType.isIntType()) {
-      return VM_Magic.invokeMethodReturningInt(code, GPRs, FPRs, Spills);
+      return VM_Magic.invokeMethodReturningInt(code, GPRs, FPRs, FPRmeta, Spills);
     }
 
     if (returnType.isLongType()) {
-      return VM_Magic.invokeMethodReturningLong(code, GPRs, FPRs, Spills);
+      return VM_Magic.invokeMethodReturningLong(code, GPRs, FPRs, FPRmeta, Spills);
     }
 
     if (returnType.isFloatType()) {
-      return VM_Magic.invokeMethodReturningFloat(code, GPRs, FPRs, Spills);
+      return VM_Magic.invokeMethodReturningFloat(code, GPRs, FPRs, FPRmeta, Spills);
     }
 
     if (returnType.isDoubleType()) {
-      return VM_Magic.invokeMethodReturningDouble(code, GPRs, FPRs, Spills);
+      return VM_Magic.invokeMethodReturningDouble(code, GPRs, FPRs, FPRmeta, Spills);
     }
 
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);

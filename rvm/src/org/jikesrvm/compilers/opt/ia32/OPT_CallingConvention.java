@@ -26,6 +26,7 @@ import org.jikesrvm.compilers.opt.ir.MIR_UnaryNoRes;
 import org.jikesrvm.compilers.opt.ir.OPT_IR;
 import org.jikesrvm.compilers.opt.ir.OPT_IRTools;
 import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
+import org.jikesrvm.compilers.opt.ir.OPT_LocationOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_MemoryOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_MethodOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_Operand;
@@ -35,6 +36,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_Register;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_StackLocationOperand;
 import org.jikesrvm.compilers.opt.ir.Prologue;
+import org.jikesrvm.ia32.VM_ArchConstants;
 import org.jikesrvm.runtime.VM_Entrypoints;
 
 /**
@@ -88,14 +90,16 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
     int parameterBytes = isSysCall ? expandParametersToSysCall(call, ir) : expandParametersToCall(call, ir);
 
     // 1. Clear the floating-point stack if dirty.
-    if (call.operator != CALL_SAVE_VOLATILE) {
-      int FPRRegisterParams = countFPRParams(call);
-      FPRRegisterParams = Math.min(FPRRegisterParams, OPT_PhysicalRegisterSet.getNumberOfFPRParams());
-      call.insertBefore(MIR_UnaryNoRes.create(IA32_FCLEAR, IC(FPRRegisterParams)));
+    if (!VM_ArchConstants.SSE2_FULL) {
+      if (call.operator != CALL_SAVE_VOLATILE) {
+        int FPRRegisterParams = countFPRParams(call);
+        FPRRegisterParams = Math.min(FPRRegisterParams, OPT_PhysicalRegisterSet.getNumberOfFPRParams());
+        call.insertBefore(MIR_UnaryNoRes.create(IA32_FCLEAR, IC(FPRRegisterParams)));
+      }
     }
 
     // 2. Move the return value into a register
-    expandResultOfCall(call, ir);
+    expandResultOfCall(call, isSysCall, ir);
 
     // 3. If this is an interface invocation, set up the hidden parameter
     //    in the processor object to hold the interface signature id.
@@ -134,7 +138,15 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
       if (type.isFloatType() || type.isDoubleType()) {
         OPT_Register r = phys.getReturnFPR();
         OPT_RegisterOperand rOp = new OPT_RegisterOperand(r, type);
-        ret.insertBefore(MIR_Move.create(IA32_FMOV, rOp, symb1));
+        if (VM_ArchConstants.SSE2_FULL) {
+          if (type.isFloatType()) {
+            ret.insertBefore(MIR_Move.create(IA32_MOVSS, rOp, symb1));
+          } else {          
+            ret.insertBefore(MIR_Move.create(IA32_MOVSD, rOp, symb1));
+          }
+        } else {
+          ret.insertBefore(MIR_Move.create(IA32_FMOV, rOp, symb1));
+        }
         MIR_Return.setVal(ret, rOp.copyD2U());
       } else {
         OPT_Register r = phys.getFirstReturnGPR();
@@ -155,16 +167,18 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
     }
 
     // Clear the floating-point stack if dirty.
-    int nSave = 0;
-    if (MIR_Return.hasVal(ret)) {
-      OPT_Operand symb1 = MIR_Return.getClearVal(ret);
-      VM_TypeReference type = symb1.getType();
-      if (type.isFloatType() || type.isDoubleType()) {
-        nSave = 1;
+    if (!VM_ArchConstants.SSE2_FULL) {
+      int nSave = 0;
+      if (MIR_Return.hasVal(ret)) {
+        OPT_Operand symb1 = MIR_Return.getClearVal(ret);
+        VM_TypeReference type = symb1.getType();
+        if (type.isFloatType() || type.isDoubleType()) {
+          nSave = 1;
+        }
       }
+      ret.insertBefore(MIR_UnaryNoRes.create(IA32_FCLEAR, IC(nSave)));
     }
-    ret.insertBefore(MIR_UnaryNoRes.create(IA32_FCLEAR, IC(nSave)));
-
+    
     // Set the first 'Val' in the return instruction to hold an integer
     // constant which is the number of words to pop from the stack while
     // returning from this method.
@@ -176,7 +190,7 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
    * register to the appropriate symbolic register,
    * as defined by the calling convention.
    */
-  private static void expandResultOfCall(OPT_Instruction call, OPT_IR ir) {
+  private static void expandResultOfCall(OPT_Instruction call, boolean isSysCall, OPT_IR ir) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
     // copy the first result parameter
@@ -184,10 +198,34 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
       OPT_RegisterOperand result1 = MIR_Call.getClearResult(call);
       MIR_Call.setResult(call, null);
       if (result1.type.isFloatType() || result1.type.isDoubleType()) {
-        OPT_Register r = phys.getReturnFPR();
-        OPT_RegisterOperand physical = new OPT_RegisterOperand(r, result1.type);
-        OPT_Instruction tmp = MIR_Move.create(IA32_FMOV, result1, physical);
-        call.insertAfter(tmp);
+        if (VM_ArchConstants.SSE2_FULL && isSysCall) {
+          byte size = (byte)(result1.type.isFloatType() ? 4 : 8);
+          OPT_RegisterOperand st0 = new OPT_RegisterOperand(phys.getST0(), result1.type);
+          OPT_RegisterOperand pr = new OPT_RegisterOperand(phys.getPR(), VM_TypeReference.Int);
+          OPT_MemoryOperand scratch = new OPT_MemoryOperand(pr, null, (byte)0, VM_Entrypoints.scratchStorageField.getOffset(), size, new OPT_LocationOperand(VM_Entrypoints.scratchStorageField), null);
+
+          OPT_Instruction pop = MIR_Move.create(IA32_FSTP, scratch, st0);
+          call.insertAfter(pop);
+          if (result1.type.isFloatType()) {
+            pop.insertAfter(MIR_Move.create(IA32_MOVSS, result1, scratch.copy()));
+          } else /* if (result1.type.isDoubleType()) */ {
+            pop.insertAfter(MIR_Move.create(IA32_MOVSD, result1, scratch.copy()));
+          }
+        } else {
+          OPT_Register r = phys.getReturnFPR();
+          OPT_RegisterOperand physical = new OPT_RegisterOperand(r, result1.type);
+          OPT_Instruction tmp;
+          if (VM_ArchConstants.SSE2_FULL) {
+            if (result1.type.isFloatType()) {
+              tmp = MIR_Move.create(IA32_MOVSS, result1, physical);
+            } else {
+              tmp = MIR_Move.create(IA32_MOVSD, result1, physical);
+            }
+          } else {
+            tmp = MIR_Move.create(IA32_FMOV, result1, physical);
+          }
+          call.insertAfter(tmp);
+        }
         MIR_Call.setResult(call, null);
       } else {
         // first GPR result register
@@ -250,15 +288,32 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
         if (nFPRParams > OPT_PhysicalRegisterSet.getNumberOfFPRParams()) {
           // pass the FP parameter on the stack
           OPT_Operand M = new OPT_StackLocationOperand(false, parameterBytes, size);
-          call.insertBefore(MIR_Move.create(IA32_FMOV, M, param));
+          if (VM_ArchConstants.SSE2_FULL) {
+            if (paramType.isFloatType()) {
+              call.insertBefore(MIR_Move.create(IA32_MOVSS, M, param));
+            } else {
+              call.insertBefore(MIR_Move.create(IA32_MOVSD, M, param));
+            }
+          } else {
+            call.insertBefore(MIR_Move.create(IA32_FMOV, M, param));
+          }
         } else {
           // Pass the parameter in a register.
-          // Note that if k FPRs are passed in registers,
-          // the 1st goes in F(k-1),
-          // the 2nd goes in F(k-2), etc...
-          OPT_Register phy = phys.getFPRParam(FPRRegisterParams - nFPRParams);
-          OPT_RegisterOperand real = new OPT_RegisterOperand(phy, paramType);
-          call.insertBefore(MIR_Move.create(IA32_FMOV, real, param));
+          OPT_RegisterOperand real;
+          if (VM_ArchConstants.SSE2_FULL) {
+            real = new OPT_RegisterOperand(phys.getFPRParam(nFPRParams-1), paramType);
+            if (paramType.isFloatType()) {
+              call.insertBefore(MIR_Move.create(IA32_MOVSS, real, param));
+            } else {
+              call.insertBefore(MIR_Move.create(IA32_MOVSD, real, param));
+            }
+          } else {
+            // Note that if k FPRs are passed in registers,
+            // the 1st goes in F(k-1),
+            // the 2nd goes in F(k-2), etc...
+            real = new OPT_RegisterOperand(phys.getFPRParam(FPRRegisterParams - nFPRParams), paramType);
+            call.insertBefore(MIR_Move.create(IA32_FMOV, real, param));
+          }
           // Record that the call now has a use of the real register.
           MIR_Call.setParam(call, nParamsInRegisters++, real.copy());
         }
@@ -398,7 +453,15 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
         int size = paramType.isFloatType() ? 4 : 8;
         parameterBytes -= size;
         OPT_Operand M = new OPT_StackLocationOperand(false, parameterBytes, size);
-        call.insertBefore(MIR_Move.create(IA32_FMOV, M, param));
+        if (VM_ArchConstants.SSE2_FULL) {
+          if (paramType.isFloatType()) {
+            call.insertBefore(MIR_Move.create(IA32_MOVSS, M, param));
+          } else {
+            call.insertBefore(MIR_Move.create(IA32_MOVSD, M, param));
+          }
+        } else {
+          call.insertBefore(MIR_Move.create(IA32_FMOV, M, param));
+        }
       } else {
         nGPRParams++;
         parameterBytes -= 4;
@@ -529,11 +592,28 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
             // Note that if k FPRs are passed in registers,
             // the 1st goes in F(k-1),
             // the 2nd goes in F(k-2), etc...
-            OPT_Register param = phys.getFPRParam(FPRRegisterParams - fprIndex - 1);
-            start.insertBefore(MIR_Move.create(IA32_FMOV, symbOp.copyRO(), D(param)));
+            if (VM_ArchConstants.SSE2_FULL) {
+              OPT_Register param = phys.getFPRParam(fprIndex);
+              if (rType.isFloatType()) {
+                start.insertBefore(MIR_Move.create(IA32_MOVSS, symbOp.copyRO(), F(param)));
+              } else {
+                start.insertBefore(MIR_Move.create(IA32_MOVSD, symbOp.copyRO(), D(param)));
+              }
+            } else {
+              OPT_Register param = phys.getFPRParam(FPRRegisterParams - fprIndex - 1);
+              start.insertBefore(MIR_Move.create(IA32_FMOV, symbOp.copyRO(), D(param)));
+            }
           } else {
             OPT_Operand M = new OPT_StackLocationOperand(true, paramByteOffset, size);
-            start.insertBefore(MIR_Move.create(IA32_FMOV, symbOp.copyRO(), M));
+            if (VM_ArchConstants.SSE2_FULL) {
+              if (rType.isFloatType()) {
+                start.insertBefore(MIR_Move.create(IA32_MOVSS, symbOp.copyRO(), M));
+              } else {
+                start.insertBefore(MIR_Move.create(IA32_MOVSD, symbOp.copyRO(), M));
+              }
+            } else {
+              start.insertBefore(MIR_Move.create(IA32_FMOV, symbOp.copyRO(), M));
+            }
           }
         }
         fprIndex++;

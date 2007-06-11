@@ -26,6 +26,7 @@ import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterConstants;
 import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 import org.jikesrvm.ArchitectureSpecific.OPT_RegisterRestrictions;
 import org.jikesrvm.ArchitectureSpecific.OPT_StackManager;
+import org.jikesrvm.ArchitectureSpecific.VM_ArchConstants;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.ir.OPT_AddressConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
@@ -2449,7 +2450,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
         //      stackMan.insertSpillCode();
       }
 
-      if (VM.BuildForIA32) {
+      if (VM.BuildForIA32 && !VM.BuildForSSE2Full) {
         OPT_Operators.helper.rewriteFPStack(ir);
       }
     }

@@ -13,6 +13,7 @@
 package org.jikesrvm.compilers.opt.ir.ia32;
 
 import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.compilers.opt.ir.OPT_AddressConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_GenericRegisterPool;
 import org.jikesrvm.compilers.opt.ir.OPT_IR;
 import org.jikesrvm.compilers.opt.ir.OPT_Instruction;

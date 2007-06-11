@@ -33,6 +33,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_Operators;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_TrueGuardOperand;
 import org.jikesrvm.compilers.opt.ir.Store;
+import org.jikesrvm.ia32.VM_ArchConstants;
 import org.jikesrvm.ia32.VM_StackframeLayoutConstants;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
@@ -139,7 +140,9 @@ public abstract class OPT_GenerateMachineSpecificMagic implements OPT_Operators,
                                             new OPT_IntConstantOperand(STACKFRAME_RETURN_ADDRESS_OFFSET)));
       bc2ir.push(val.copyD2U());
     } else if (methodName == VM_MagicNames.clearFloatingPointState) {
-      bc2ir.appendInstruction(Empty.create(CLEAR_FLOATING_POINT_STATE));
+      if (!VM_ArchConstants.SSE2_FULL) {
+        bc2ir.appendInstruction(Empty.create(CLEAR_FLOATING_POINT_STATE));
+      }
     } else {
       // Distinguish between magics that we know we don't implement
       // (and never plan to implement) and those (usually new ones)

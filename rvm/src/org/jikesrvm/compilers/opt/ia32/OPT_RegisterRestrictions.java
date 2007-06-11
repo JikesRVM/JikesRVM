@@ -193,6 +193,34 @@ public class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions
    */
   public static boolean mustBeInRegister(OPT_Register r, OPT_Instruction s) {
     switch (s.getOpcode()) {
+      case IA32_ADDSS_opcode:
+      case IA32_DIVSS_opcode:
+      case IA32_MULSS_opcode:
+      case IA32_SUBSS_opcode:
+      case IA32_XORPS_opcode:
+      case IA32_ADDSD_opcode:
+      case IA32_DIVSD_opcode:
+      case IA32_MULSD_opcode:
+      case IA32_SUBSD_opcode:
+      case IA32_XORPD_opcode: 
+      case IA32_CVTSD2SI_opcode:
+      case IA32_CVTSD2SS_opcode:
+      case IA32_CVTSI2SD_opcode:
+      case IA32_CVTSS2SD_opcode:
+      case IA32_CVTSS2SI_opcode:
+      case IA32_CVTSI2SS_opcode: {
+        OPT_RegisterOperand op = MIR_BinaryAcc.getResult(s).asRegister();
+        if (op.asRegister().register == r) return true;
+      }
+      break;
+      
+      case IA32_UCOMISD_opcode:
+      case IA32_UCOMISS_opcode: {
+        OPT_RegisterOperand op = MIR_Compare.getVal1(s).asRegister();
+        if (op.asRegister().register == r) return true;
+      }
+      break;
+          
       case IA32_SHRD_opcode:
       case IA32_SHLD_opcode: {
         OPT_RegisterOperand op = MIR_DoubleShift.getSource(s);

@@ -44,7 +44,7 @@ public interface OPT_PhysicalRegisterConstants extends VM_RegisterConstants {
   int FIRST_SPECIAL = NUM_GPRS + NUM_FPRS;
 
   // special intel registers or register sub-fields.
-  int NUM_SPECIALS = 10;
+  int NUM_SPECIALS = 11;
   int AF = FIRST_SPECIAL + 0;      // AF bit of EFLAGS
   int CF = FIRST_SPECIAL + 1;      // CF bit of EFLAGS
   int OF = FIRST_SPECIAL + 2;      // OF bit of EFLAGS
@@ -55,4 +55,5 @@ public interface OPT_PhysicalRegisterConstants extends VM_RegisterConstants {
   int C1 = FIRST_SPECIAL + 7;      // FP status bit
   int C2 = FIRST_SPECIAL + 8;      // FP status bit
   int C3 = FIRST_SPECIAL + 9;      // FP status bit
+  int ST0 = FIRST_SPECIAL + 10;    // TOP OF FP STACK (for SSE2)
 }

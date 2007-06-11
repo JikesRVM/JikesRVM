@@ -22,6 +22,7 @@ import org.jikesrvm.compilers.opt.OPT_ReverseEnumerator;
 import org.jikesrvm.compilers.opt.ia32.OPT_PhysicalRegisterConstants;
 import org.jikesrvm.compilers.opt.ir.OPT_GenericPhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.OPT_Register;
+import org.jikesrvm.ia32.VM_ArchConstants;
 import org.jikesrvm.ia32.VM_RegisterConstants;
 
 /**
@@ -158,6 +159,9 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
     reg[C2].setSpansBasicBlock();
     reg[C3].setSpansBasicBlock();
     reg[PROCESSOR_REGISTER].setSpansBasicBlock();
+
+    // For SSE2
+    reg[ST0].isDouble();
 
     // 7. set up the volatile FPRs
     for (Enumeration<OPT_Register> e = enumerateVolatileFPRs(); e.hasMoreElements();) {
@@ -368,6 +372,14 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
     return getEDX();
   }
 
+  /**
+   * @return the FPR register used to hold a return value
+   */
+  public OPT_Register getST0() {
+    if (VM.VerifyAssertions) VM._assert(NUM_RETURN_FPRS == 1);
+    if (VM.VerifyAssertions) VM._assert(VM_ArchConstants.SSE2_FULL);
+    return reg[ST0];
+  }
   /**
    * @return the FPR register used to hold a return value
    */

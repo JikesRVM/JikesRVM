@@ -4662,19 +4662,22 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
     //            +-------------------------+     |- java operand stack
     //            |         fprs[]          |     |
     //            +-------------------------+     |
+    //            |         fprMeta[]       |     |
+    //            +-------------------------+     |
     //            |         spills[]        |     |
     //            +-------------------------+    /
 
     // fetch parameters and generate call to method invoker
     //
     asm.emitLAddrToc(S0, VM_Entrypoints.reflectiveMethodInvokerInstructionsField.getOffset());
-    peekAddr(T0, 3);        // t0 := code
+    peekAddr(T0, 4);        // t0 := code
     asm.emitMTCTR(S0);
-    peekAddr(T1, 2);        // t1 := gprs
-    peekAddr(T2, 1);        // t2 := fprs
-    peekAddr(T3, 0);        // t3 := spills
+    peekAddr(T1, 3);        // t1 := gprs
+    peekAddr(T2, 2);        // t2 := fprs
+    peekAddr(T3, 1);        // t3 := fprMeta
+    peekAddr(T4, 0);        // t4 := spills
     asm.emitBCCTRL();
-    discardSlots(4);       // pop parameters
+    discardSlots(5);       // pop parameters
   }
 
   /**

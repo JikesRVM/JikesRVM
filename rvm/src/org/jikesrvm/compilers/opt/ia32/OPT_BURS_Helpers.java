@@ -103,6 +103,8 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_LEA;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_LOCK_CMPXCHG;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_LOCK_CMPXCHG8B;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOV;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOVSD;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOVSS;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOVSX__B;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOVZX__B;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MUL;
@@ -499,6 +501,10 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
   protected final OPT_Operand myFP1() {
     return new OPT_BURSManagedFPROperand(1);
   }
+  
+  protected final OPT_Register getST0() {
+    return getIR().regpool.getPhysicalRegisterSet().getST0();
+  }
 
   /**
    * Move op into a register operand if it isn't one already.
@@ -800,7 +806,198 @@ OPT_Operand value, boolean signExtend) {
     EMIT(CPOS(s, MIR_Move.create(IA32_MOV, sl2, i2)));
     EMIT(MIR_Move.mutate(s, IA32_FMOV, Unary.getResult(s), sl));
   }
+  
+  /**
+   * Returns the appropriate move operator based on the type of operand.
+   */
+  protected final OPT_Operator SSE2_MOVE(OPT_Operand o) {
+    return o.isFloat() ? IA32_MOVSS : IA32_MOVSD;
+  }
+  
+  /**
+   * Returns the size based on the type of operand.
+   */
+  protected final byte SSE2_SIZE(OPT_Operand o) {
+    return o.isFloat() ? DW : QW;
+  }
+  
+  /**
+   * Performs a long -> double/float conversion using x87 and marshalls back to XMMs.
+   */
+  protected final void SSE2_X87_FROMLONG(OPT_Instruction s) {
+    OPT_Operand result = Unary.getResult(s);
+    STORE_LONG_FOR_CONV(Unary.getVal(s));
+    // conversion space allocated, contains the long to load.
+    int offset = -burs.ir.stackManager.allocateSpaceForConversion();
+    OPT_StackLocationOperand sl = new OPT_StackLocationOperand(true, offset, SSE2_SIZE(result));
+    OPT_RegisterOperand st0 = new OPT_RegisterOperand(getST0(), result.getType());
+    EMIT(CPOS(s, MIR_Move.create(IA32_FILD, st0, sl)));
+    EMIT(CPOS(s, MIR_Move.create(IA32_FSTP, sl.copy(), st0.copyD2U())));
+    EMIT(CPOS(s, MIR_Move.mutate(s, SSE2_MOVE(result), result, sl.copy())));
+  }
+  
+  /**
+   * Performs a long -> double/float conversion using x87 and marshalls between to XMMs.
+   */
+  protected final void SSE2_X87_REM(OPT_Instruction s) {
+    OPT_Operand result = Move.getClearResult(s);
+    OPT_RegisterOperand st0 = new OPT_RegisterOperand(getST0(), result.getType());
+    int offset = -burs.ir.stackManager.allocateSpaceForConversion();
+    OPT_StackLocationOperand sl = new OPT_StackLocationOperand(true, offset, SSE2_SIZE(result));
+    EMIT(CPOS(s, MIR_Move.create(SSE2_MOVE(result), sl, Binary.getVal2(s))));
+    EMIT(CPOS(s, MIR_Move.create(IA32_FLD, st0, sl.copy())));
+    EMIT(CPOS(s, MIR_Move.create(SSE2_MOVE(result), sl.copy(), Binary.getVal1(s))));
+    EMIT(CPOS(s, MIR_Move.create(IA32_FLD, st0.copy(), sl.copy())));
+    EMIT(CPOS(s, MIR_Nullary.create(IA32_FPREM, st0.copy())));
+    EMIT(CPOS(s, MIR_Move.create(IA32_FSTP, sl.copy(), st0.copy())));
+    EMIT(MIR_Move.mutate(s, SSE2_MOVE(result), result, sl.copy()));
+  }
+  
+  /**
+   * Emit code to move 64 bits from SSE2 FPRs to GPRs
+   */
+  protected final void SSE2_FPR2GPR_64(OPT_Instruction s) {
+    int offset = -burs.ir.stackManager.allocateSpaceForConversion();
+    OPT_StackLocationOperand sl = new OPT_StackLocationOperand(true, offset, QW);
+    OPT_StackLocationOperand sl1 = new OPT_StackLocationOperand(true, offset + 4, DW);
+    OPT_StackLocationOperand sl2 = new OPT_StackLocationOperand(true, offset, DW);
+    EMIT(CPOS(s, MIR_Move.create(IA32_MOVSD, sl, Unary.getVal(s))));
+    OPT_RegisterOperand i1 = Unary.getResult(s);
+    OPT_RegisterOperand i2 = new OPT_RegisterOperand(regpool
+        .getSecondReg(i1.register), VM_TypeReference.Int);
+    EMIT(CPOS(s, MIR_Move.create(IA32_MOV, i1, sl1)));
+    EMIT(MIR_Move.mutate(s, IA32_MOV, i2, sl2));
+  }
 
+  /**
+   * Emit code to move 64 bits from GPRs to SSE2 FPRs
+   */
+  protected final void SSE2_GPR2FPR_64(OPT_Instruction s) {
+    int offset = -burs.ir.stackManager.allocateSpaceForConversion();
+    OPT_StackLocationOperand sl = new OPT_StackLocationOperand(true, offset, QW);
+    OPT_StackLocationOperand sl1 = new OPT_StackLocationOperand(true, offset + 4, DW);
+    OPT_StackLocationOperand sl2 = new OPT_StackLocationOperand(true, offset, DW);
+    OPT_Operand i1, i2;
+    OPT_Operand val = Unary.getVal(s);
+    if (val instanceof OPT_RegisterOperand) {
+      OPT_RegisterOperand rval = (OPT_RegisterOperand) val;
+      i1 = val;
+      i2 = new OPT_RegisterOperand(regpool.getSecondReg(rval.register), VM_TypeReference.Int);
+    } else {
+      OPT_LongConstantOperand rhs = (OPT_LongConstantOperand) val;
+      i1 = IC(rhs.upper32());
+      i2 = IC(rhs.lower32());
+    }
+    EMIT(CPOS(s, MIR_Move.create(IA32_MOV, sl1, i1)));
+    EMIT(CPOS(s, MIR_Move.create(IA32_MOV, sl2, i2)));
+    EMIT(MIR_Move.mutate(s, IA32_MOVSD, Unary.getResult(s), sl));
+  }
+  
+  /**
+   * Emit code to move 32 bits from FPRs to GPRs
+   */
+  protected final void SSE2_FPR2GPR_32(OPT_Instruction s) {
+    int offset = -burs.ir.stackManager.allocateSpaceForConversion();
+    OPT_StackLocationOperand sl = new OPT_StackLocationOperand(true, offset, DW);
+    EMIT(CPOS(s, MIR_Move.create(IA32_MOVSS, sl, Unary.getVal(s))));
+    EMIT(MIR_Move.mutate(s, IA32_MOV, Unary.getResult(s), sl.copy()));
+  }
+
+  /**
+   * Emit code to move 32 bits from GPRs to FPRs
+   */
+  protected final void SSE2_GPR2FPR_32(OPT_Instruction s) {
+    int offset = -burs.ir.stackManager.allocateSpaceForConversion();
+    OPT_StackLocationOperand sl = new OPT_StackLocationOperand(true, offset, DW);
+    EMIT(CPOS(s, MIR_Move.create(IA32_MOV, sl, Unary.getVal(s))));
+    EMIT(MIR_Move.mutate(s, IA32_MOVSS, Unary.getResult(s), sl.copy()));
+  }
+  
+  /**
+   * BURS expansion of a commutative SSE2 operation.
+   */
+  protected void SSE2_COP(OPT_Operator operator, OPT_Instruction s, OPT_Operand result, OPT_Operand val1, OPT_Operand val2) {
+    if(VM.VerifyAssertions) VM._assert(result.isRegister());
+    // Swap operands to reduce chance of generating a move or to normalize
+    // constants into val2
+    if (val2.similar(result)) {
+      OPT_Operand temp = val1;
+      val1 = val2;
+      val2 = temp;
+    }
+    // Do we need to move prior to the operator - result = val1
+    if (!result.similar(val1)) {
+      EMIT(CPOS(s, MIR_Move.create(SSE2_MOVE(result), result.copy(), val1)));
+    }   
+    EMIT(MIR_BinaryAcc.mutate(s, operator, result, val2));
+  }
+  
+  /**
+   * BURS expansion of a non commutative SSE2 operation.
+   */
+  protected void SSE2_NCOP(OPT_Operator operator, OPT_Instruction s, OPT_Operand result, OPT_Operand val1, OPT_Operand val2) {
+    if(VM.VerifyAssertions) VM._assert(result.isRegister());
+    if (result.similar(val1)) {
+      // Straight forward case where instruction is already in accumulate form
+      EMIT(MIR_BinaryAcc.mutate(s, operator, result, val2));
+    }
+    else if (!result.similar(val2)) {
+      // Move first operand to result and perform operator on result, if
+      // possible redundant moves should be remove by register allocator
+      EMIT(CPOS(s, MIR_Move.create(SSE2_MOVE(result), result.copy(), val1)));
+      EMIT(MIR_BinaryAcc.mutate(s, operator, result, val2));
+    }
+    else {
+      // Potential to clobber second operand during move to result. Use a
+      // temporary register to perform the operation and rely on register
+      // allocator to remove redundant moves
+      OPT_RegisterOperand temp = regpool.makeTemp(result);
+      EMIT(CPOS(s, MIR_Move.create(SSE2_MOVE(result), temp, val1)));
+      EMIT(MIR_BinaryAcc.mutate(s, operator, temp.copyRO(), val2));      
+      EMIT(CPOS(s, MIR_Move.create(SSE2_MOVE(result), result, temp.copyRO())));
+    }
+  }
+  
+  /**
+   * Expansion of SSE2 negation ops
+   */
+  protected final void SSE2_NEG(OPT_Operator xorOp, OPT_Operator subOp, OPT_Instruction s, OPT_Operand result, OPT_Operand value) {
+    if(VM.VerifyAssertions) VM._assert(result.isRegister());
+    if (!result.similar(value)) {
+      EMIT(CPOS(s, MIR_BinaryAcc.create(xorOp, result.copy(), result.copy())));
+      EMIT(MIR_BinaryAcc.mutate(s, subOp, result, value));
+    } else {
+      OPT_RegisterOperand temp = regpool.makeTemp(value.getType());
+      EMIT(CPOS(s, MIR_Move.create(xorOp, temp.copyRO(), temp)));
+      EMIT(MIR_BinaryAcc.mutate(s, subOp, temp.copyRO(), value));
+      EMIT(CPOS(s, MIR_Move.create(SSE2_MOVE(result), result, temp.copyRO())));
+    }
+  }
+  
+  /**
+   * Expansion of SSE2 conversions double <-> float
+   */
+  protected final void SSE2_CONV(OPT_Operator op, OPT_Instruction s, OPT_Operand result, OPT_Operand value) {
+    if(VM.VerifyAssertions) VM._assert(result.isRegister());
+    if(VM.VerifyAssertions) VM._assert(value.isRegister());
+    EMIT(MIR_Unary.mutate(s, op, result, value));
+  }
+
+  /**
+   * Expansion of SSE2 comparison operations
+   */
+  protected final void SSE2_IFCMP(OPT_Operator op, OPT_Instruction s, OPT_Operand val1, OPT_Operand val2) {
+    EMIT(CPOS(s, MIR_Compare.create(op, val1, val2)));
+    EMIT(s); // OPT_ComplexLIR2MIRExpansion will handle rest of the work.
+  }
+  
+  /**
+   * Expansion of SSE2 floating point constant loads
+   */
+  protected final void SSE2_FPCONSTANT(OPT_Instruction s) {
+    EMIT(MIR_Move.mutate(s, SSE2_MOVE(Unary.getResult(s)), Binary.getResult(s), MO_MC(s)));
+  }
+  
   /**
    * Expansion of ROUND_TO_ZERO.
    *

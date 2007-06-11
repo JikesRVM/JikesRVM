@@ -91,9 +91,9 @@ public abstract class VM_MachineReflection implements VM_RegisterConstants {
    * call specified method.
    */
   public static void packageParameters(VM_Method method, Object thisArg, Object[] otherArgs, WordArray GPRs,
-                                       double[] FPRs, WordArray Parameters) {
+                                       double[] FPRs, byte[] FPRmeta, WordArray Parameters) {
     int GPR = 0;
-    int FPR = FPRs.length;
+    int FPR = VM_ArchConstants.SSE2_FULL ? 0 : FPRs.length;
     int parameter = 0;
 
     int gp = NUM_PARAMETER_GPRS; // 0, 1, 2
@@ -128,7 +128,13 @@ public abstract class VM_MachineReflection implements VM_RegisterConstants {
       } else if (t.isFloatType()) {
         if (fp > 0) {
           fp--;
-          FPRs[--FPR] = VM_Reflection.unwrapFloat(otherArgs[i]);
+          if (VM_ArchConstants.SSE2_FULL) {
+            FPRs[FPR] = VM_Reflection.unwrapFloat(otherArgs[i]);
+            FPRmeta[FPR] = 0x0;
+            FPR++;
+          } else {
+            FPRs[--FPR] = VM_Reflection.unwrapFloat(otherArgs[i]);
+          }
         }
         float f = VM_Reflection.unwrapFloat(otherArgs[i]);
         Parameters.set(parameter++, Word.fromIntZeroExtend(Float.floatToIntBits(f)));
@@ -136,7 +142,13 @@ public abstract class VM_MachineReflection implements VM_RegisterConstants {
       } else if (t.isDoubleType()) {
         if (fp > 0) {
           fp--;
-          FPRs[--FPR] = VM_Reflection.unwrapDouble(otherArgs[i]);
+          if (VM_ArchConstants.SSE2_FULL) {
+            FPRs[FPR] = VM_Reflection.unwrapDouble(otherArgs[i]);
+            FPRmeta[FPR] = 0x1;
+            FPR++;
+          } else {
+            FPRs[--FPR] = VM_Reflection.unwrapDouble(otherArgs[i]);
+          }
         }
         double d = VM_Reflection.unwrapDouble(otherArgs[i]);
         long l = Double.doubleToLongBits(d);

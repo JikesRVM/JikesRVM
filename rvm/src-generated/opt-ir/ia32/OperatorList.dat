@@ -1077,196 +1077,196 @@ CF_OF
 
 ####################
 IA32_ADDSS
-MIR_Move
+MIR_BinaryAcc
 none
 
 
 
 ####################
 IA32_SUBSS
-MIR_Move
+MIR_BinaryAcc
 none
 
 
 
 ####################
 IA32_MULSS
-MIR_Move
+MIR_BinaryAcc
 none
 
 
 
 ####################
 IA32_DIVSS
-MIR_Move
+MIR_BinaryAcc
 none
 
 
 
 ####################
 IA32_ADDSD
-MIR_Move
+MIR_BinaryAcc
 none
 
 
 
 ####################
 IA32_SUBSD
-MIR_Move
+MIR_BinaryAcc
 none
 
 
 
 ####################
 IA32_MULSD
-MIR_Move
+MIR_BinaryAcc
 none
 
 
 
 ####################
 IA32_DIVSD
-MIR_Move
+MIR_BinaryAcc
 none
 
 
 
 ####################
 IA32_XORPS
-MIR_Move
+MIR_BinaryAcc
 none
 
 
 
 ####################
 IA32_XORPD
-MIR_Move
+MIR_BinaryAcc
 none
 
 
 
 ####################
-IA32_COMISS
-MIR_Move
-none
-
+IA32_UCOMISS
+MIR_Compare
+compare
+CF_PF_ZF
 
 
 ####################
-IA32_COMISD
-MIR_Move
-none
-
+IA32_UCOMISD
+MIR_Compare
+compare
+CF_PF_ZF
 
 
 ####################
 IA32_CMPEQSS
-MIR_Move
+MIR_BinaryAcc
 none
 
 
 
 ####################
 IA32_CMPLTSS
-MIR_Move
+MIR_BinaryAcc
 none
 
 
 
 ####################
 IA32_CMPLESS
-MIR_Move
+MIR_BinaryAcc
 none
 
 
 
 ####################
 IA32_CMPUNORDSS
-MIR_Move
+MIR_BinaryAcc
 none
 
 
 
 ####################
 IA32_CMPNESS
-MIR_Move
+MIR_BinaryAcc
 none
 
 
 
 ####################
 IA32_CMPNLTSS
-MIR_Move
+MIR_BinaryAcc
 none
 
 
 
 ####################
 IA32_CMPNLESS
-MIR_Move
+MIR_BinaryAcc
 none
 
 
 
 ####################
 IA32_CMPORDSS
-MIR_Move
+MIR_BinaryAcc
 none
 
 
 
 ####################
 IA32_CMPEQSD
-MIR_Move
+MIR_BinaryAcc
 none
 
 
 
 ####################
 IA32_CMPLTSD
-MIR_Move
+MIR_BinaryAcc
 none
 
 
 
 ####################
 IA32_CMPLESD
-MIR_Move
+MIR_BinaryAcc
 none
 
 
 
 ####################
 IA32_CMPUNORDSD
-MIR_Move
+MIR_BinaryAcc
 none
 
 
 
 ####################
 IA32_CMPNESD
-MIR_Move
+MIR_BinaryAcc
 none
 
 
 
 ####################
 IA32_CMPNLTSD
-MIR_Move
+MIR_BinaryAcc
 none
 
 
 
 ####################
 IA32_CMPNLESD
-MIR_Move
+MIR_BinaryAcc
 none
 
 
 
 ####################
 IA32_CMPORDSD
-MIR_Move
+MIR_BinaryAcc
 none
 
 

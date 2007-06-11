@@ -19,8 +19,11 @@ import org.jikesrvm.compilers.opt.ir.MIR_Move;
 import org.jikesrvm.compilers.opt.ir.OPT_IR;
 import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_FMOV;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOVSS;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOVSD;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOV;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
+import org.jikesrvm.ia32.VM_ArchConstants;
 
 /**
  * This abstract class provides a set of useful methods for
@@ -46,7 +49,15 @@ public abstract class OPT_PhysicalRegisterTools extends OPT_GenericPhysicalRegis
       if (VM.VerifyAssertions) {
         VM._assert(lhs.register.isFloatingPoint());
       }
-      return MIR_Move.create(IA32_FMOV, lhs, rhs);
+      if (VM_ArchConstants.SSE2_FULL) {
+        if (rhs.register.isFloat()) {
+          return MIR_Move.create(IA32_MOVSS, lhs, rhs);
+        } else {
+          return MIR_Move.create(IA32_MOVSD, lhs, rhs);
+        }
+      } else {
+        return MIR_Move.create(IA32_FMOV, lhs, rhs);
+      }
     } else {
       OPT_OptimizingCompilerException.TODO("OPT_PhysicalRegisterTools.makeMoveInstruction");
       return null;

@@ -226,31 +226,6 @@ load64:	LONG_ALOAD(r, riv)
 EMIT_INSTRUCTION
 pushMO(MO_AL(P(p), QW_S, QW));
 
-fpload:	FLOAT_LOAD(riv, riv)
-0
-EMIT_INSTRUCTION
-pushMO(MO_L(P(p), DW));
-
-fpload:	FLOAT_ALOAD(r, riv)
-0
-EMIT_INSTRUCTION
-pushMO(MO_AL(P(p), DW_S, DW));
-
-fpload:	DOUBLE_LOAD(riv, riv)
-0
-EMIT_INSTRUCTION
-pushMO(MO_L(P(p), QW));
-
-fpload:	DOUBLE_ALOAD(r, riv)
-0
-EMIT_INSTRUCTION
-pushMO(MO_AL(P(p), QW_S, QW));
-
-fpload:	MATERIALIZE_FP_CONSTANT(riv)
-0
-EMIT_INSTRUCTION
-pushMO(MO_MC(P(p)));
-
 ##################################
 # Various integer computations for pointer arithmetic
 ##################################

@@ -27,6 +27,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.OPT_Operators;
 import org.jikesrvm.compilers.opt.ir.OPT_Register;
 import org.jikesrvm.compilers.opt.ir.ia32.OPT_PhysicalRegisterSet;
+import org.jikesrvm.ia32.VM_ArchConstants;
 
 /**
  * At the beginning of each basic block, the register allocator expects
@@ -92,6 +93,9 @@ final class OPT_ExpandFPRStackConvention extends OPT_CompilerPhase implements OP
    * Insert the needed dummy defs and uses.
    */
   public void perform(OPT_IR ir) {
+    if (VM_ArchConstants.SSE2_FULL) {
+      return;
+    }
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
     for (OPT_BasicBlockEnumeration b = ir.getBasicBlocks(); b.hasMoreElements();) {

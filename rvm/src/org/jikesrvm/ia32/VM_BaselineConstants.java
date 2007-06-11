@@ -52,7 +52,7 @@ public interface VM_BaselineConstants extends VM_Constants, VM_ArchConstants {
   // dynamic bridge frames.
   int STACKFRAME_FIRST_PARAMETER_OFFSET = STACKFRAME_REG_SAVE_OFFSET - 8;
   // bridge frames save 3 additional GPRs
-  int BRIDGE_FRAME_EXTRA_SIZE = FPU_STATE_SIZE + 8;
+  int BRIDGE_FRAME_EXTRA_SIZE = (SSE2_FULL ? XMM_STATE_SIZE : FPU_STATE_SIZE) + 8;
 
   int SAVED_GPRS = 2; // EDI(JTOC) and EBX are nonvolatile registers used by baseline compiler
   Offset JTOC_SAVE_OFFSET = Offset.fromIntSignExtend(STACKFRAME_REG_SAVE_OFFSET);
@@ -60,6 +60,7 @@ public interface VM_BaselineConstants extends VM_Constants, VM_ArchConstants {
   Offset T0_SAVE_OFFSET = Offset.fromIntSignExtend(STACKFRAME_FIRST_PARAMETER_OFFSET);
   Offset T1_SAVE_OFFSET = Offset.fromIntSignExtend(STACKFRAME_FIRST_PARAMETER_OFFSET).minus(4);
   Offset FPU_SAVE_OFFSET = T1_SAVE_OFFSET.minus(FPU_STATE_SIZE);
+  Offset XMM_SAVE_OFFSET = T1_SAVE_OFFSET.minus(XMM_STATE_SIZE);
 
 }
 

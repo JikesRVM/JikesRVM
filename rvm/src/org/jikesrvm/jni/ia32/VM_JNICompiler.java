@@ -190,6 +190,17 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
 
     asm.emitPOP_RegDisp(PR, VM_Entrypoints.framePointerField.getOffset());
 
+    if (SSE2_FULL) {
+      // Marshall from FP0 to XMM0
+      if (method.getReturnType().isFloatType()) {
+        asm.emitFSTP_RegDisp_Reg(PR, VM_Entrypoints.scratchStorageField.getOffset(), FP0);
+        asm.emitMOVSS_Reg_RegDisp(XMM0, PR, VM_Entrypoints.scratchStorageField.getOffset());
+      } else if  (method.getReturnType().isDoubleType()) {
+        asm.emitFSTP_RegDisp_Reg_Quad(PR, VM_Entrypoints.scratchStorageField.getOffset(), FP0);
+        asm.emitMOVSD_Reg_RegDisp(XMM0, PR, VM_Entrypoints.scratchStorageField.getOffset());
+      }
+    }
+    
     // return to caller
     // pop parameters from stack (Note that parameterWords does not include "this")
     if (method.isStatic()) {
@@ -429,7 +440,11 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
       } else if (types[argIndex].isDoubleType()) {
         if (fpr < NUM_PARAMETER_FPRS) {
           // pop this 2-word arg from the FPU stack
-          asm.emitFSTP_RegDisp_Reg_Quad(EBP, emptyStackOffset.plus(WORDSIZE * (2 + i - 1)), FP0);
+          if (SSE2_FULL) {
+            asm.emitMOVSD_RegDisp_Reg(EBP, emptyStackOffset.plus(WORDSIZE * (2 + i - 1)), (byte)fpr);
+          } else {
+            asm.emitFSTP_RegDisp_Reg_Quad(EBP, emptyStackOffset.plus(WORDSIZE * (2 + i - 1)), FP0);
+          }
         } else {
           // copy this 2-word arg from the caller frame
           asm.emitMOV_Reg_RegDisp(EBX, EBP, firstParameterOffset.minus(i * WORDSIZE));
@@ -442,7 +457,11 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
       } else if (types[argIndex].isFloatType()) {
         if (fpr < NUM_PARAMETER_FPRS) {
           // pop this 1-word arg from the FPU stack
-          asm.emitFSTP_RegDisp_Reg(EBP, emptyStackOffset.plus(WORDSIZE * (2 + i)), FP0);
+          if (SSE2_FULL) {
+            asm.emitMOVSS_RegDisp_Reg(EBP, emptyStackOffset.plus(WORDSIZE * (2 + i)), (byte)fpr);
+          } else {
+            asm.emitFSTP_RegDisp_Reg(EBP, emptyStackOffset.plus(WORDSIZE * (2 + i)), FP0);
+          }
         } else {
           // copy this 1-word arg from the caller frame
           asm.emitMOV_Reg_RegDisp(EBX, EBP, firstParameterOffset.minus(i * WORDSIZE));
@@ -769,6 +788,17 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
       asm.emitPUSH_Reg(T1);
       asm.emitMOV_Reg_Reg(T1, T0);
       asm.emitPOP_Reg(T0);
+    } else {
+      if (SSE2_FULL) {
+        // Marshall from XMM0 -> FP0
+        if (method.getReturnType().isDoubleType()) {
+          asm.emitMOVSD_RegDisp_Reg(PR, VM_Entrypoints.scratchStorageField.getOffset(), XMM0);
+          asm.emitFLD_Reg_RegDisp_Quad(FP0, PR, VM_Entrypoints.scratchStorageField.getOffset());
+        } else if (method.getReturnType().isFloatType()) {
+          asm.emitMOVSS_RegDisp_Reg(PR, VM_Entrypoints.scratchStorageField.getOffset(), XMM0);
+          asm.emitFLD_Reg_RegDisp(FP0, PR, VM_Entrypoints.scratchStorageField.getOffset());
+        }
+      }
     }
 
     // current processor status is IN_JAVA, so we only GC at yieldpoints

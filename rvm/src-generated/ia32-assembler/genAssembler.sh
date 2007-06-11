@@ -1442,7 +1442,7 @@ emitSSE2Op() {
     setMachineCodes(mi++, (byte) ${prefix2});
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) ${opCode2});
-    emitRegRegOperands(dstReg, srcReg);$condLine
+    emitRegRegOperands(srcReg, dstReg);$condLine
     if (lister != null) lister.RR(miStart, "${acronym}", dstReg, srcReg);
   }
 EOF
@@ -1462,7 +1462,7 @@ EOF
     cat >> $FILENAME <<EOF
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++, (byte) ${opCode});
-    emitRegRegOperands(dstReg, srcReg);$condLine
+    emitRegRegOperands(srcReg, dstReg);$condLine
     if (lister != null) lister.RR(miStart, "${acronym}", dstReg, srcReg);
   }
 
@@ -1636,7 +1636,7 @@ emitSSE2Op 0xF3 none CVTSS2SI 0x2D none
 emitSSE2Op 0xF3 none CVTTSS2SI 0x2C none
 
 # Single precision FP comparisons.
-emitSSE2Op none none COMISS 0x2F none
+emitSSE2Op none none UCOMISS 0x2E none
 emitSSE2Op 0xF3 none CMPEQSS 0xC2 none 0
 emitSSE2Op 0xF3 none CMPLTSS 0xC2 none 1
 emitSSE2Op 0xF3 none CMPLESS 0xC2 none 2
@@ -1662,7 +1662,7 @@ emitSSE2Op 0xF2 none CVTSD2SI 0x2D none
 emitSSE2Op 0xF2 none CVTTSD2SI 0x2C none
 
 # Double precision comparison ops.
-emitSSE2Op 0x66 none COMISD 0x2F none
+emitSSE2Op 0x66 none UCOMISD 0x2E none
 emitSSE2Op 0xF2 none CMPEQSD 0xC2 none 0
 emitSSE2Op 0xF2 none CMPLTSD 0xC2 none 1
 emitSSE2Op 0xF2 none CMPLESD 0xC2 none 2

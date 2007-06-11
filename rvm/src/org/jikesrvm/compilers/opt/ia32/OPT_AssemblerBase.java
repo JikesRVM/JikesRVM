@@ -159,6 +159,9 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @return the 3 bit machine-level encoding of reg
    */
   private byte getMachineRegister(OPT_Register reg) {
+    if (reg.number == ST0) {
+      return (byte)0;
+    }
     int type = OPT_PhysicalRegisterSet.getPhysicalRegisterType(reg);
     if (type == INT_REG) {
       return (byte) (reg.number - FIRST_INT);

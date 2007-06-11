@@ -75,7 +75,7 @@ public abstract class VM_OutOfLineMachineCode
   //   T0 == address of method entrypoint to be called
   //   T1 == address of gpr registers to be loaded
   //   T2 == address of fpr registers to be loaded
-  //   T3 == address of spill area in calling frame
+  //   T4 == address of spill area in calling frame
   //
   // Registers returned at runtime:
   //   standard return value conventions used
@@ -102,12 +102,12 @@ public abstract class VM_OutOfLineMachineCode
     // create new frame
     //
     asm.emitMR(S0, FP);                  // S0 := old frame pointer
-    asm.emitLIntOffset(T0, T3, VM_ObjectModel.getArrayLengthOffset()); // T0 := number of spill words
-    asm.emitADDI(T3, -BYTES_IN_ADDRESS, T3);                  // T3 -= 4 (predecrement, ie. T3 + 4 is &spill[0] )
+    asm.emitLIntOffset(T0, T4, VM_ObjectModel.getArrayLengthOffset()); // T0 := number of spill words
+    asm.emitADDI(T4, -BYTES_IN_ADDRESS, T4);                  // T4 -= 4 (predecrement, ie. T4 + 4 is &spill[0] )
     int spillLoopLabel = asm.getMachineCodeIndex();
     asm.emitADDICr(T0, T0, -1);                  // T0 -= 1 (and set CR)
     VM_ForwardReference fr1 = asm.emitForwardBC(LT); // if T0 < 0 then break
-    asm.emitLAddrU(0, BYTES_IN_ADDRESS, T3);                  // R0 := *(T3 += 4)
+    asm.emitLAddrU(0, BYTES_IN_ADDRESS, T4);                  // R0 := *(T4 += 4)
     asm.emitSTAddrU(0, -BYTES_IN_ADDRESS, FP);                  // put one word of spill area
     asm.emitB(spillLoopLabel); // goto spillLoop:
     fr1.resolve(asm);
@@ -117,7 +117,7 @@ public abstract class VM_OutOfLineMachineCode
     asm.emitSTWoffset(T0, FP, Offset.fromIntSignExtend(STACKFRAME_METHOD_ID_OFFSET)); // set method id
 
     //
-    // free registers: 0, S0, T0, T3
+    // free registers: 0, S0, T0, T4
     //
 
     // load up fprs
@@ -129,7 +129,7 @@ public abstract class VM_OutOfLineMachineCode
     }
 
     //
-    // free registers: 0, S0, T0, T2, T3
+    // free registers: 0, S0, T0, T2, T4
     //
 
     // load up gprs
@@ -156,26 +156,26 @@ public abstract class VM_OutOfLineMachineCode
     asm.emitBCLR();                                                // return to caller
 
     setupFPRLoader.resolve(asm);
-    asm.emitMFLR(T3);                          // T3 := address of first fpr load instruction
+    asm.emitMFLR(T4);                          // T4 := address of first fpr load instruction
     asm.emitLIntOffset(T0, T2, VM_ObjectModel.getArrayLengthOffset()); // T0 := number of fprs to be loaded
-    asm.emitADDI(T3,
+    asm.emitADDI(T4,
                  VOLATILE_FPRS << LG_INSTRUCTION_WIDTH,
-                 T3); // T3 := address of first instruction following fpr loads
+                 T4); // T4 := address of first instruction following fpr loads
     asm.emitSLWI(T0, T0, LG_INSTRUCTION_WIDTH); // T0 := number of bytes of fpr load instructions
-    asm.emitSUBFC(T3, T0, T3);                // T3 := address of instruction for highest numbered fpr to be loaded
-    asm.emitMTLR(T3);                           // LR := """
+    asm.emitSUBFC(T4, T0, T4);                // T4 := address of instruction for highest numbered fpr to be loaded
+    asm.emitMTLR(T4);                           // LR := """
     asm.emitADDI(T2, -BYTES_IN_DOUBLE, T2);    // predecrement fpr index (to prepare for update instruction)
     asm.emitBCLR();                            // branch to fpr loading instructions
 
     setupGPRLoader.resolve(asm);
-    asm.emitMFLR(T3);                          // T3 := address of first gpr load instruction
+    asm.emitMFLR(T4);                          // T4 := address of first gpr load instruction
     asm.emitLIntOffset(T0, T1, VM_ObjectModel.getArrayLengthOffset()); // T0 := number of gprs to be loaded
-    asm.emitADDI(T3,
+    asm.emitADDI(T4,
                  VOLATILE_GPRS << LG_INSTRUCTION_WIDTH,
-                 T3); // T3 := address of first instruction following gpr loads
+                 T4); // T4 := address of first instruction following gpr loads
     asm.emitSLWI(T0, T0, LG_INSTRUCTION_WIDTH); // T0 := number of bytes of gpr load instructions
-    asm.emitSUBFC(T3, T0, T3);                  // T3 := address of instruction for highest numbered gpr to be loaded
-    asm.emitMTLR(T3);                          // LR := """
+    asm.emitSUBFC(T4, T0, T4);                  // T4 := address of instruction for highest numbered gpr to be loaded
+    asm.emitMTLR(T4);                          // LR := """
     asm.emitADDI(S0, -BYTES_IN_ADDRESS, T1);   // predecrement gpr index (to prepare for update instruction)
     asm.emitBCLR();                            // branch to gpr loading instructions
 

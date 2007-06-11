@@ -77,9 +77,10 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   private static ArchitectureSpecific.VM_CodeArray invokeNativeFunctionInstructions;
 
   private static final Offset PARAMS_FP_OFFSET = Offset.fromIntSignExtend(WORDSIZE * 2);
-  private static final Offset FPRS_FP_OFFSET = Offset.fromIntSignExtend(WORDSIZE * 3);
-  private static final Offset GPRS_FP_OFFSET = Offset.fromIntSignExtend(WORDSIZE * 4);
-  private static final Offset CODE_FP_OFFSET = Offset.fromIntSignExtend(WORDSIZE * 5);
+  private static final Offset FPRMETA_FP_OFFSET = Offset.fromIntSignExtend(WORDSIZE * 3);
+  private static final Offset FPRS_FP_OFFSET = Offset.fromIntSignExtend(WORDSIZE * 4);
+  private static final Offset GPRS_FP_OFFSET = Offset.fromIntSignExtend(WORDSIZE * 5);
+  private static final Offset CODE_FP_OFFSET = Offset.fromIntSignExtend(WORDSIZE * 6);
 
   /**
    * Machine code for reflective method invocation.
@@ -136,7 +137,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     Offset fpOffset = VM_Entrypoints.framePointerField.getOffset();
     byte T = T0;
     gprs = NUM_PARAMETER_GPRS;
-    Offset offset = Offset.fromIntZeroExtend(4 << LG_WORDSIZE);              // we have exactly 4 paramaters
+    Offset offset = Offset.fromIntZeroExtend(5 << LG_WORDSIZE);              // we have exactly 5 paramaters
     if (gprs > 0) {
       gprs--;
       asm.emitMOV_RegDisp_Reg(SP, offset, T);
@@ -178,22 +179,72 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
 
     fr1.resolve(asm);                                   // end of the loop
 
-    /* write fprs onto fprs registers */
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0, fpOffset);
-    asm.emitMOV_Reg_RegDisp(S0, S0, FPRS_FP_OFFSET);   // S0 <- FPRs
-    asm.emitMOV_Reg_RegDisp(T1, S0, VM_ObjectModel.getArrayLengthOffset());    // T1 <- FPRs.length()
-    asm.emitSHL_Reg_Imm(T1, LG_WORDSIZE + 1);         // length in bytes
-    asm.emitADD_Reg_Reg(S0, T1);                       // S0 <- last FPR + 8
-    asm.emitCMP_Reg_Imm(T1, 0);                        // length == 0 ?
+    if (SSE2_FULL) {
+      /* write fprs onto fprs registers */
+      VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0, fpOffset);
+      asm.emitMOV_Reg_RegDisp(T0, S0, FPRS_FP_OFFSET);    // T0 <- FPRs
+      asm.emitMOV_Reg_RegDisp(T1, T0, VM_ObjectModel.getArrayLengthOffset());    // T1 <- FPRs.length()
+      asm.emitMOV_Reg_RegDisp(S0, S0, FPRMETA_FP_OFFSET); // S0 <- FPRmeta
 
-    int fprsLoopLabel = asm.getMachineCodeIndex();
-    VM_ForwardReference fr2 = asm.forwardJcc(VM_Assembler.EQ);   // done? --> branch to end
-    asm.emitSUB_Reg_Imm(S0, 2 * WORDSIZE);            // i--
-    asm.emitFLD_Reg_RegInd_Quad(FP0, S0);              // frp[fpr_sp++] <-FPRs[i]
-    asm.emitSUB_Reg_Imm(T1, 2 * WORDSIZE);              // length--
-    asm.emitJMP_Imm(fprsLoopLabel);
+      if (VM.VerifyAssertions) VM._assert(NUM_PARAMETER_FPRS <= 4);
+      
+      VM_ForwardReference fr_next;
+ 
+      asm.emitCMP_Reg_Imm(T1, 0);                         // length == 0 ?
+      VM_ForwardReference fpr_r1 = asm.forwardJcc(VM_Assembler.EQ);
+      asm.emitMOVSD_Reg_RegInd(XMM0, T0);
+      asm.emitCMP_RegInd_Imm_Byte(S0, 0);
+      fr_next = asm.forwardJcc(VM_Assembler.NE);
+      asm.emitCVTSD2SS_Reg_Reg(XMM0, XMM0);
+      fr_next.resolve(asm);
 
-    fr2.resolve(asm);                                   // end of the loop
+      asm.emitSUB_Reg_Imm(T1, 1);                         // length == 0 ?
+      VM_ForwardReference fpr_r2 = asm.forwardJcc(VM_Assembler.EQ);
+      asm.emitMOVSD_Reg_RegDisp(XMM1, T0, Offset.fromIntZeroExtend(WORDSIZE*2));
+      asm.emitCMP_RegDisp_Imm_Byte(S0, Offset.fromIntZeroExtend(1), 0);
+      fr_next = asm.forwardJcc(VM_Assembler.NE);
+      asm.emitCVTSD2SS_Reg_Reg(XMM1, XMM1);
+      fr_next.resolve(asm);
+
+      asm.emitSUB_Reg_Imm(T1, 1);                         // length == 0 ?
+      VM_ForwardReference fpr_r3 = asm.forwardJcc(VM_Assembler.EQ);
+      asm.emitMOVSD_Reg_RegDisp(XMM2, T0, Offset.fromIntZeroExtend(WORDSIZE*4));
+      asm.emitCMP_RegDisp_Imm_Byte(S0, Offset.fromIntZeroExtend(2), 0);
+      fr_next = asm.forwardJcc(VM_Assembler.NE);
+      asm.emitCVTSD2SS_Reg_Reg(XMM2, XMM2);
+      fr_next.resolve(asm);
+
+      asm.emitSUB_Reg_Imm(T1, 1);                         // length == 0 ?
+      VM_ForwardReference fpr_r4 = asm.forwardJcc(VM_Assembler.EQ);
+      asm.emitMOVSD_Reg_RegDisp(XMM3, T0, Offset.fromIntZeroExtend(WORDSIZE*6));
+      asm.emitCMP_RegDisp_Imm_Byte(S0, Offset.fromIntZeroExtend(3), 0);
+      fr_next = asm.forwardJcc(VM_Assembler.NE);
+      asm.emitCVTSD2SS_Reg_Reg(XMM3, XMM3);
+      fr_next.resolve(asm);
+
+      fpr_r1.resolve(asm);
+      fpr_r2.resolve(asm);
+      fpr_r3.resolve(asm);
+      fpr_r4.resolve(asm);
+
+    } else {
+      /* write fprs onto fprs registers */
+      VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0, fpOffset);
+      asm.emitMOV_Reg_RegDisp(S0, S0, FPRS_FP_OFFSET);   // S0 <- FPRs
+      asm.emitMOV_Reg_RegDisp(T1, S0, VM_ObjectModel.getArrayLengthOffset());    // T1 <- FPRs.length()
+      asm.emitSHL_Reg_Imm(T1, LG_WORDSIZE + 1);         // length in bytes
+      asm.emitADD_Reg_Reg(S0, T1);                       // S0 <- last FPR + 8
+      asm.emitCMP_Reg_Imm(T1, 0);                        // length == 0 ?
+
+      int fprsLoopLabel = asm.getMachineCodeIndex();
+      VM_ForwardReference fr2 = asm.forwardJcc(VM_Assembler.EQ);   // done? --> branch to end
+      asm.emitSUB_Reg_Imm(S0, 2 * WORDSIZE);            // i--
+      asm.emitFLD_Reg_RegInd_Quad(FP0, S0);              // frp[fpr_sp++] <-FPRs[i]
+      asm.emitSUB_Reg_Imm(T1, 2 * WORDSIZE);              // length--
+      asm.emitJMP_Imm(fprsLoopLabel);
+
+      fr2.resolve(asm);                                   // end of the loop
+    }
 
     /* write gprs: S0 = Base address of GPRs[], T1 = GPRs.length */
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0, fpOffset);
@@ -221,7 +272,7 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     asm.emitADD_Reg_Imm(SP, -STACKFRAME_BODY_OFFSET + 4);
     asm.emitPOP_RegDisp(PR, fpOffset);
 
-    asm.emitRET_Imm(4 << LG_WORDSIZE);                  // again, exactly 4 parameters
+    asm.emitRET_Imm(5 << LG_WORDSIZE);                  // again, exactly 5 parameters
 
     return asm.getMachineCodes();
   }

@@ -795,7 +795,7 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
       testFailed = bb.nextBasicBlockInCodeOrder().makeJumpTarget();
     }
 
-    // Translate condition operand respecting IA32 FCOMI
+    // Translate condition operand respecting IA32 FCOMI/COMISS/COMISD
     OPT_Instruction fcomi = s.prevInstructionInCodeOrder();
     OPT_Operand val1 = MIR_Compare.getVal1(fcomi);
     OPT_Operand val2 = MIR_Compare.getVal2(fcomi);

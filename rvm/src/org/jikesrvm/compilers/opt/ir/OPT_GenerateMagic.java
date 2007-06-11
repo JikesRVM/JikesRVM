@@ -507,6 +507,7 @@ public class OPT_GenerateMagic {
                (methodName == VM_MagicNames.invokeMethodReturningFloat) ||
                (methodName == VM_MagicNames.invokeMethodReturningInt)) {
       OPT_Operand spills = bc2ir.popRef();
+      OPT_Operand fprmeta = bc2ir.popRef();
       OPT_Operand fprs = bc2ir.popRef();
       OPT_Operand gprs = bc2ir.popRef();
       OPT_Operand code = bc2ir.popRef();
@@ -530,7 +531,7 @@ public class OPT_GenerateMagic {
       VM_Field target = VM_Entrypoints.reflectiveMethodInvokerInstructionsField;
       OPT_MethodOperand met = OPT_MethodOperand.STATIC(target);
       OPT_Instruction s =
-          Call.create4(CALL, res, new OPT_AddressConstantOperand(target.getOffset()), met, code, gprs, fprs, spills);
+          Call.create5(CALL, res, new OPT_AddressConstantOperand(target.getOffset()), met, code, gprs, fprs, fprmeta, spills);
       bc2ir.appendInstruction(s);
     } else if (methodName == VM_MagicNames.saveThreadState) {
       OPT_Operand p1 = bc2ir.popRef();

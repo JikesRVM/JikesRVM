@@ -18,5 +18,6 @@ import org.jikesrvm.VM_Configuration;
  * Architecture specific constants.
  */
 public interface VM_ArchConstants extends VM_StackframeLayoutConstants, VM_RegisterConstants, VM_TrapConstants {
-  static final boolean SSE2_OPS = VM_Configuration.BuildForSSE2;
+  boolean SSE2_BASE = VM_Configuration.BuildForSSE2;
+  boolean SSE2_FULL = VM_Configuration.BuildForSSE2Full;
 }

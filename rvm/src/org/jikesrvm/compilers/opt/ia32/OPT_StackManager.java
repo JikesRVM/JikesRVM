@@ -21,6 +21,7 @@ import org.jikesrvm.compilers.opt.OPT_RegisterAllocatorState;
 import static org.jikesrvm.compilers.opt.ia32.OPT_PhysicalRegisterConstants.DOUBLE_VALUE;
 import static org.jikesrvm.compilers.opt.ia32.OPT_PhysicalRegisterConstants.FLOAT_VALUE;
 import static org.jikesrvm.compilers.opt.ia32.OPT_PhysicalRegisterConstants.INT_REG;
+import static org.jikesrvm.compilers.opt.ia32.OPT_PhysicalRegisterConstants.DOUBLE_REG;
 import static org.jikesrvm.compilers.opt.ia32.OPT_PhysicalRegisterConstants.INT_VALUE;
 import org.jikesrvm.compilers.opt.ir.Empty;
 import org.jikesrvm.compilers.opt.ir.MIR_BinaryAcc;
@@ -47,9 +48,14 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_FMOV_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_FNINIT;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_FNSAVE;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_FRSTOR;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOVQ;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_LEA;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOV;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOV_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOVSD;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOVSD_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOVSS;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOVSS_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_POP;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_PUSH;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_RET_opcode;
@@ -68,6 +74,8 @@ import org.jikesrvm.compilers.opt.ir.OPT_TrapCodeOperand;
 import org.jikesrvm.compilers.opt.ir.ia32.OPT_IA32ConditionOperand;
 import org.jikesrvm.compilers.opt.ir.ia32.OPT_PhysicalDefUse;
 import org.jikesrvm.compilers.opt.ir.ia32.OPT_PhysicalRegisterSet;
+import org.jikesrvm.ia32.VM_ArchConstants;
+
 import static org.jikesrvm.ia32.VM_StackframeLayoutConstants.STACKFRAME_ALIGNMENT;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.vmmagic.unboxed.Offset;
@@ -121,6 +129,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       case INT_VALUE:
         return (byte) (WORDSIZE);
       case FLOAT_VALUE:
+        if (VM_ArchConstants.SSE2_FULL) return (byte) WORDSIZE;
       case DOUBLE_VALUE:
         return (byte) (2 * WORDSIZE);
       default:
@@ -139,7 +148,9 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       case INT_VALUE:
         return IA32_MOV;
       case DOUBLE_VALUE:
+        if (VM_ArchConstants.SSE2_FULL) return IA32_MOVSD;
       case FLOAT_VALUE:
+        if (VM_ArchConstants.SSE2_FULL) return IA32_MOVSS;
         return IA32_FMOV;
       default:
         OPT_OptimizingCompilerException.TODO("getMoveOperator: unsupported");
@@ -253,10 +264,16 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
       // Record that we need a stack frame.
       setFrameRequired();
 
-      // Grab 108 bytes (same as 27 4-byte spills) in the stack
-      // frame, as a place to store the floating-point state with FSAVE
-      for (int i = 0; i < 27; i++) {
-        fsaveLocation = allocateNewSpillLocation(INT_REG);
+      if (VM_ArchConstants.SSE2_FULL) {
+        for(int i=0; i < 8; i++) {
+          fsaveLocation = allocateNewSpillLocation(DOUBLE_REG);  
+        }
+      } else {
+        // Grab 108 bytes (same as 27 4-byte spills) in the stack
+        // frame, as a place to store the floating-point state with FSAVE
+        for (int i = 0; i < 27; i++) {
+          fsaveLocation = allocateNewSpillLocation(INT_REG);
+        }
       }
 
       // Map each volatile register to a spill location.
@@ -328,6 +345,8 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
           }
           break;
         case IA32_FMOV_opcode:
+        case IA32_MOVSS_opcode:
+        case IA32_MOVSD_opcode:
           // remove frivolous moves
           result = MIR_Move.getResult(inst);
           val = MIR_Move.getValue(inst);
@@ -552,8 +571,18 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
    * @param inst the first instruction after the prologue.
    */
   private void saveFloatingPointState(OPT_Instruction inst) {
-    OPT_Operand M = new OPT_StackLocationOperand(true, -fsaveLocation, 4);
-    inst.insertBefore(MIR_FSave.create(IA32_FNSAVE, M));
+    
+    if (VM_ArchConstants.SSE2_FULL) {
+      OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+      for (int i=0; i < 8; i++) {
+        inst.insertBefore(MIR_Move.create(IA32_MOVQ, 
+            new OPT_StackLocationOperand(true, -fsaveLocation + (i * 8), 8), 
+            new OPT_RegisterOperand(phys.getFPR(i), VM_TypeReference.Long)));
+      }
+    } else {
+      OPT_Operand M = new OPT_StackLocationOperand(true, -fsaveLocation, 4);
+      inst.insertBefore(MIR_FSave.create(IA32_FNSAVE, M));
+    }
   }
 
   /**
@@ -562,8 +591,17 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
    * @param inst the return instruction after the epilogue.
    */
   private void restoreFloatingPointState(OPT_Instruction inst) {
-    OPT_Operand M = new OPT_StackLocationOperand(true, -fsaveLocation, 4);
-    inst.insertBefore(MIR_FSave.create(IA32_FRSTOR, M));
+    if (VM_ArchConstants.SSE2_FULL) {
+      OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+      for (int i=0; i < 8; i++) {
+        inst.insertBefore(MIR_Move.create(IA32_MOVQ, 
+            new OPT_RegisterOperand(phys.getFPR(i), VM_TypeReference.Long),
+            new OPT_StackLocationOperand(true, -fsaveLocation + (i * 8), 8)));
+      }
+    } else {
+      OPT_Operand M = new OPT_StackLocationOperand(true, -fsaveLocation, 4);
+      inst.insertBefore(MIR_FSave.create(IA32_FRSTOR, M));
+    }
   }
 
   /**

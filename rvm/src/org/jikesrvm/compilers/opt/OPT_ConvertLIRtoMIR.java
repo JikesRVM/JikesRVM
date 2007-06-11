@@ -16,6 +16,7 @@ import org.jikesrvm.ArchitectureSpecific.OPT_CallingConvention;
 import org.jikesrvm.ArchitectureSpecific.OPT_ComplexLIR2MIRExpansion;
 import org.jikesrvm.ArchitectureSpecific.OPT_ConvertALUOperators;
 import org.jikesrvm.ArchitectureSpecific.OPT_NormalizeConstants;
+import org.jikesrvm.ArchitectureSpecific.VM_ArchConstants;
 import org.jikesrvm.VM;
 import static org.jikesrvm.VM_SizeConstants.LOG_BYTES_IN_ADDRESS;
 import org.jikesrvm.classloader.VM_Type;
@@ -35,8 +36,10 @@ import org.jikesrvm.compilers.opt.ir.OPT_MethodOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_Operand;
 import org.jikesrvm.compilers.opt.ir.OPT_Operators;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.ARRAYLENGTH_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_2INT_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_2LONG_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_REM_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_2INT_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_2LONG_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_REM_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_ARRAY_ELEMENT_TIB_FROM_TIB_opcode;
@@ -301,6 +304,35 @@ public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElem
           }
           break;
 
+          case FLOAT_2INT_opcode: {
+            if (VM.BuildForIA32 && VM.BuildForSSE2Full) {
+              // TODO: Work out an efficient SSE2 conversion
+              Call.mutate1(s,
+                           SYSCALL,
+                           Unary.getClearResult(s),
+                           null,
+                           OPT_MethodOperand.STATIC(VM_Entrypoints.sysFloatToIntIPField),
+                           Unary.getClearVal(s));
+              OPT_ConvertToLowLevelIR.expandSysCallTarget(s, ir);
+              OPT_CallingConvention.expandSysCall(s, ir);
+            }
+          }
+          break;
+
+          case DOUBLE_2INT_opcode: {
+            if (VM.BuildForIA32 && VM.BuildForSSE2Full) {
+              // TODO: Work out an efficient SSE2 conversion
+              Call.mutate1(s,
+                           SYSCALL,
+                           Unary.getClearResult(s),
+                           null,
+                           OPT_MethodOperand.STATIC(VM_Entrypoints.sysDoubleToIntIPField),
+                           Unary.getClearVal(s));
+              OPT_ConvertToLowLevelIR.expandSysCallTarget(s, ir);
+              OPT_CallingConvention.expandSysCall(s, ir);
+            }
+          }
+          break;
           case SYSCALL_opcode:
             OPT_CallingConvention.expandSysCall(s, ir);
             break;

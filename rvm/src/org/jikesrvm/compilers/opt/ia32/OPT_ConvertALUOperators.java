@@ -31,6 +31,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_Operators;
 import org.jikesrvm.compilers.opt.ir.OPT_Register;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.Unary;
+import org.jikesrvm.ia32.VM_ArchConstants;
 import org.vmmagic.pragma.NoOptCompile;
 
 /**
@@ -96,7 +97,7 @@ import org.vmmagic.pragma.NoOptCompile;
  *
  * </pre>
  */
-public class OPT_ConvertALUOperators extends OPT_CompilerPhase implements OPT_Operators {
+public class OPT_ConvertALUOperators extends OPT_CompilerPhase implements OPT_Operators, VM_ArchConstants {
 
   private static final boolean OPTIMIZE = true;
 
@@ -191,40 +192,40 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase implements OPT_Op
 
           // BURS doesn't really care, so consolidate to reduce rule space
         case FLOAT_ADD_opcode:
-          s.operator = FP_ADD;
+          if (!SSE2_FULL) s.operator = FP_ADD;
           break;
         case DOUBLE_ADD_opcode:
-          s.operator = FP_ADD;
+          if (!SSE2_FULL) s.operator = FP_ADD;
           break;
         case FLOAT_SUB_opcode:
-          s.operator = FP_SUB;
+          if (!SSE2_FULL) s.operator = FP_SUB;
           break;
         case DOUBLE_SUB_opcode:
-          s.operator = FP_SUB;
+          if (!SSE2_FULL) s.operator = FP_SUB;
           break;
         case FLOAT_MUL_opcode:
-          s.operator = FP_MUL;
+          if (!SSE2_FULL) s.operator = FP_MUL;
           break;
         case DOUBLE_MUL_opcode:
-          s.operator = FP_MUL;
+          if (!SSE2_FULL) s.operator = FP_MUL;
           break;
         case FLOAT_DIV_opcode:
-          s.operator = FP_DIV;
+          if (!SSE2_FULL) s.operator = FP_DIV;
           break;
         case DOUBLE_DIV_opcode:
-          s.operator = FP_DIV;
+          if (!SSE2_FULL) s.operator = FP_DIV;
           break;
         case FLOAT_REM_opcode:
-          s.operator = FP_REM;
+          if (!SSE2_FULL) s.operator = FP_REM;
           break;
         case DOUBLE_REM_opcode:
-          s.operator = FP_REM;
+          if (!SSE2_FULL) s.operator = FP_REM;
           break;
         case FLOAT_NEG_opcode:
-          s.operator = FP_NEG;
+          if (!SSE2_FULL) s.operator = FP_NEG;
           break;
         case DOUBLE_NEG_opcode:
-          s.operator = FP_NEG;
+          if (!SSE2_FULL) s.operator = FP_NEG;
           break;
 
           // BURS doesn't really care, so consolidate to reduce rule space
@@ -246,16 +247,16 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase implements OPT_Op
 
           // BURS doesn't really care, so consolidate to reduce rule space
         case INT_2FLOAT_opcode:
-          s.operator = INT_2FP;
+          if (!SSE2_FULL) s.operator = INT_2FP;
           break;
         case INT_2DOUBLE_opcode:
-          s.operator = INT_2FP;
+          if (!SSE2_FULL) s.operator = INT_2FP;
           break;
         case LONG_2FLOAT_opcode:
-          s.operator = LONG_2FP;
+          if (!SSE2_FULL) s.operator = LONG_2FP;
           break;
         case LONG_2DOUBLE_opcode:
-          s.operator = LONG_2FP;
+          if (!SSE2_FULL) s.operator = LONG_2FP;
           break;
 
           // BURS doesn't really care, so consolidate to reduce rule space

@@ -515,8 +515,19 @@ Check to make sure all required properties are specified. This includes properti
       <filelist dir="${build.burs.dir}/ppc" files="PPC_Common.rules,PPC_Alu64.rules,PPC_Mem64.rules"/>
     </concat>
 
+    <if>
+      <conditions>
+        <equals arg1="${target.arch.sse2}" arg2="full"/>
+      </conditions>
+      <sequential>
+        <property name="ia32-fp-rules" value="IA32_SSE2.rules"/>
+      </sequential>
+    </if>
+
+    <property name="ia32-fp-rules" value="IA32_x87.rules"/>
+
     <concat destfile="${generated.dir}/IA32_RulesList.dat">
-      <filelist dir="${build.burs.dir}/ia32" files="IA32.rules,IA32_x87.rules"/>
+      <filelist dir="${build.burs.dir}/ia32" files="IA32.rules,${ia32-fp-rules}"/>
     </concat>
 
     <generate-ir arch="ia32"
@@ -670,7 +681,16 @@ Check to make sure all required properties are specified. This includes properti
       <equals arg1="${target.os}" arg2="Linux"/>
     </condition>
     <condition property="pp_RVM_FOR_SSE2" value="true" else="false">
-      <equals arg1="${target.arch.sse2}" arg2="true"/>
+      <or>
+        <equals arg1="${target.arch.sse2}" arg2="true"/>
+        <equals arg1="${target.arch.sse2}" arg2="base"/>
+        <equals arg1="${target.arch.sse2}" arg2="full"/>
+      </or>
+    </condition>
+    <condition property="pp_RVM_FOR_SSE2_FULL" value="true" else="false">
+      <or>
+        <equals arg1="${target.arch.sse2}" arg2="full"/>
+      </or>
     </condition>
     <condition property="pp_RVM_WITH_ASSERTIONS" value="true" else="false">
       <not>
@@ -700,6 +720,7 @@ Check to make sure all required properties are specified. This includes properti
         <filter token="_RVM_FOR_AIX_" value="${pp_RVM_FOR_AIX}"/>
         <filter token="_RVM_FOR_LINUX_" value="${pp_RVM_FOR_LINUX}"/>
         <filter token="_RVM_FOR_SSE2_" value="${pp_RVM_FOR_SSE2}"/>
+        <filter token="_RVM_FOR_SSE2_FULL_" value="${pp_RVM_FOR_SSE2_FULL}"/>
         <filter token="_RVM_WITH_ALL_CLASSES_" value="${config.include.all-classes}"/>
         <filter token="_RVM_WITH_ASSERTIONS_" value="${pp_RVM_WITH_ASSERTIONS}"/>
         <filter token="_RVM_WITH_EXTREME_ASSERTIONS_" value="${pp_RVM_WITH_EXTREME_ASSERTIONS}"/>

@@ -108,7 +108,7 @@ public abstract class VM_MachineReflection implements VM_ArchConstants {
    * Collect parameters into arrays of registers/spills, as required to call specified method.
    */
   public static void packageParameters(VM_Method method, Object thisArg, Object[] otherArgs, WordArray GPRs,
-                                       double[] FPRs, WordArray Spills) {
+                                       double[] FPRs, byte[] FPRmeta, WordArray Spills) {
     int GPR = GPRs.length();
     int FPR = FPRs.length;
     int Spill = Spills.length();

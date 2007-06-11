@@ -60,7 +60,6 @@ public interface VM_RegisterConstants {
   byte XMM6 = 0x6;
   byte XMM7 = 0x7;
 
-  
   // Register sets (``range'' is a misnomer for the alphabet soup of
   // of intel registers)
   //

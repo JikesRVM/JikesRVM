@@ -75,6 +75,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_Register;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.Return;
 import org.jikesrvm.compilers.opt.ir.Unary;
+import org.jikesrvm.ia32.VM_ArchConstants;
 
 /**
  * Perform simple peephole optimizations for branches.
@@ -690,6 +691,10 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
     // if we must generate FCMP, make sure the condition code is OK
     OPT_ConditionOperand cond = IfCmp.getCond(cb);
     if (cond.isFLOATINGPOINT()) {
+      if (VM.BuildForSSE2Full) {
+        // No conditional FP moves with SSE2
+        return false;
+      }
       if (!fpConditionOK(cond)) {
         // Condition not OK, but maybe if we flip the operands
         if (!fpConditionOK(cond.flipOperands())) {
