@@ -3987,13 +3987,17 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
           popAddr(T0);                             // pop base
           asm.emitLDARX(T0, 0, T0);                // *(base), setting reservation address
           // this Integer is not sign extended !!
-          pushInt(T0);                             // push *(base+offset)
+          pushAddr(T0);                             // push *(base+offset)
         } else {
           popInt(T1);                              // pop offset
           popAddr(T0);                             // pop base
-          asm.emitLDARX(T0, T1, T0);              // *(base+offset), setting reservation address
+          if (VM.BuildFor64Addr) {
+            asm.emitLDARX(T0, T1, T0);              // *(base+offset), setting reservation address
+          } else {
+            // TODO: handle 64bit prepares in 32bit environment
+          }
           // this Integer is not sign extended !!
-          pushInt(T0);                             // push *(base+offset)
+          pushAddr(T0);                             // push *(base+offset)
         }
         return true;
       }
@@ -4049,7 +4053,11 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
           popAddr(T2);                             // pop newValue
           discardSlot();                           // ignore oldValue
           popAddr(T0);                             // pop base
-          asm.emitSTDCXr(T2, T1, T0);            // store new value and set CR0
+          if (VM.BuildFor64Addr) {
+            asm.emitSTDCXr(T2, T1, T0);            // store new value and set CR0
+          } else {
+            // TODO: handle 64bit attempts in 32bit environment
+          }
           asm.emitLVAL(T0, 0);                   // T0 := false
           VM_ForwardReference fr = asm.emitForwardBC(NE);             // skip, if store failed
           asm.emitLVAL(T0, 1);                   // T0 := true
@@ -4343,7 +4351,11 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
         (VM.BuildFor64Addr && (methodName == VM_MagicNames.prepareWord))) {
       popInt(T1); // pop offset
       popAddr(T0); // pop object
-      asm.emitLDARX(T0, T1, T0); // *(object+offset), setting processor's reservation address
+      if (VM.BuildFor64Addr) {
+        asm.emitLDARX(T0, T1, T0); // *(object+offset), setting processor's reservation address
+      } else {
+        // TODO: handle 64bit prepares in 32bit environment
+      }
       pushAddr(T0); // push *(object+offset)
     } else if ((methodName == VM_MagicNames.attemptInt) ||
         (VM.BuildFor32Addr && (methodName == VM_MagicNames.attemptObject)) ||
@@ -4369,7 +4381,11 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       discardSlot(); // ignore oldValue
       popInt(T1);  // pop offset
       popAddr(T0);  // pop object
-      asm.emitSTDCXr(T2, T1, T0); // store new value and set CR0
+      if (VM.BuildFor64Addr) {
+        asm.emitSTDCXr(T2, T1, T0); // store new value and set CR0
+      } else {
+        // TODO: handle 64bit attempts in 32bit environment
+      }
       asm.emitLVAL(T0, 0);  // T0 := false
       VM_ForwardReference fr = asm.emitForwardBC(NE); // skip, if store failed
       asm.emitLVAL(T0, 1);   // T0 := true
