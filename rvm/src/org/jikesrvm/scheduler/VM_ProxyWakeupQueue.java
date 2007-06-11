@@ -54,9 +54,10 @@ final class VM_ProxyWakeupQueue extends VM_AbstractThreadQueue {
     p.wakeupNext = current;
   }
 
-  // Remove a thread from the queue if there's one ready to wake up "now".
-  // Returned: the thread (null --> nobody ready to wake up)
-  //
+  /**
+   * Remove a thread from the queue if there's one ready to wake up "now".
+   * Returned: the thread (null --> nobody ready to wake up)
+   */
   VM_Thread dequeue() {
     long currentCycle = VM_Time.cycles();
     while (head != null) {
@@ -70,8 +71,10 @@ final class VM_ProxyWakeupQueue extends VM_AbstractThreadQueue {
     return null;
   }
 
-  // Number of items on queue (an estimate: queue is not locked during the scan).
-  //
+  /**
+   * Number of items on queue (an estimate: queue is not locked during the
+   * scan).
+   */
   int length() {
     if (head == null) return 0;
     int length = 1;
