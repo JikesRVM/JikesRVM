@@ -54,13 +54,10 @@ import org.vmmagic.pragma.Uninterruptible;
  * enqueue.
  */
 
-public class OSR_OrganizerThread extends VM_Thread {
-
-  public String toString() {
-    return "OSR_Organizer";
-  }
-
+public final class OSR_OrganizerThread extends VM_Thread {
+  /** Constructor */
   public OSR_OrganizerThread() {
+    super(null, "OSR_Organizer");    
     makeDaemon(true);
   }
 
@@ -81,7 +78,7 @@ public class OSR_OrganizerThread extends VM_Thread {
   @SuppressWarnings("unused")
   // Accessed via VM_EntryPoints
   private int queueLock = 0;
-  private VM_ThreadQueue tq = new VM_ThreadQueue();
+  private final VM_ThreadQueue tq = new VM_ThreadQueue();
 
   private void passivate() {
     boolean gainedLock = VM_Synchronization.testAndSet(this, VM_Entrypoints.osrOrganizerQueueLockField.getOffset(), 1);

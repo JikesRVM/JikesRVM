@@ -804,6 +804,7 @@ Check to make sure all required properties are specified. This includes properti
       <sequential>
         <property name="classlib.library-interface.cpl.java" location="libraryInterface/GNUClasspath/CPL/src"/>
         <property name="classlib.library-interface.non-cpl.java" location="libraryInterface/GNUClasspath/LGPL/src"/>
+        <property name="classlib.library-interface.non-cpl2.java" location="libraryInterface/GNUClasspath/PD/src"/>
       </sequential>
     </if>  
   </target>
@@ -826,7 +827,7 @@ Check to make sure all required properties are specified. This includes properti
            debugLevel="lines,source"
            source="1.5"
            target="1.5"
-           srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.cpl.java}:${classlib.library-interface.non-cpl.java}:${mmtk-rvm.java}"
+           srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.cpl.java}:${classlib.library-interface.non-cpl.java}:${classlib.library-interface.non-cpl2.java}:${mmtk-rvm.java}"
            sourcepath="${mmtk.java}:${generated.java}:${generated.config.java}:${generated.arch.java}:${main.java}:${mmtk-rvm.java}">
       <bootclasspath>
         <pathelement location="${classpath.lib.dir}/classpath.jar"/>
@@ -837,6 +838,7 @@ Check to make sure all required properties are specified. This includes properti
       <include name="Dummy.java"/>
       <include name="OptDummy.java"/>
       <include name="gnu/**/*.java"/>
+      <include name="sun/**/*.java"/>
       <include name="java/**/*.java"/>
       <include name="org/jikesrvm/mm/mmtk/**/*.java"/>
       <include name="org/jikesrvm/tools/oth/OptTestHarness.java"/>
@@ -889,11 +891,13 @@ Check to make sure all required properties are specified. This includes properti
     <copy file="${classpath.lib.dir}/classpath.jar" tofile="${build.rt.jar}"/>
     <zip destfile="${build.rt.jar}" update="true" basedir="${build.classes}">
       <include name="java/**"/>
+      <include name="sun/**"/>
       <include name="gnu/**"/>
     </zip>
     <jar destfile="${build.vm.jar}" update="true">
       <fileset dir="${build.classes}">
         <exclude name="java/**"/>
+	<exclude name="sun/**"/>
         <exclude name="gnu/**"/>
       </fileset>
       <fileset dir="${build.vmmagic-stub.classes}">
@@ -1484,6 +1488,7 @@ target.jni-suffix=${target.jni-suffix}
       <src path="${classlib.library-interface.common.java}"/>
       <src path="${classlib.library-interface.cpl.java}"/>
       <src path="${classlib.library-interface.non-cpl.java}"/>
+      <src path="${classlib.library-interface.non-cpl2.java}"/>
       <src path="${vmmagic-stub.java}"/>
       <src path="${mmtk.java}"/>
       <src path="${mmtk-rvm.java}"/>
@@ -1525,6 +1530,7 @@ target.jni-suffix=${target.jni-suffix}
       <packageset dir="${classlib.library-interface.common.java}" defaultexcludes="yes" includes="gnu/**"/>
       <packageset dir="${classlib.library-interface.cpl.java}" defaultexcludes="yes" includes="gnu/**"/>
       <packageset dir="${classlib.library-interface.non-cpl.java}" defaultexcludes="yes" includes="gnu/**"/>
+      <packageset dir="${classlib.library-interface.non-cpl2.java}" defaultexcludes="yes" includes="gnu/**"/>
       
       <packageset dir="${vmmagic-stub.java}" defaultexcludes="yes" includes="org/**"/>
       <packageset dir="${mmtk.java}" defaultexcludes="yes" includes="org/**"/>

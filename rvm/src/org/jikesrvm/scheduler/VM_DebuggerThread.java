@@ -19,6 +19,7 @@ import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_FileSystem;
 import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.unboxed.Address;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * An interactive debugger that runs inside the virtual machine.
@@ -31,7 +32,15 @@ public class VM_DebuggerThread extends VM_Thread {
   public VM_DebuggerThread() {
     super(null);
     makeDaemon(true);
-    super.isSystemThread = true;
+  }
+
+  /**
+   * Is this the debugger thread?
+   * @return true
+   */
+  @Uninterruptible
+  public boolean isDebuggerThread() {
+    return true;
   }
 
   public String toString() {

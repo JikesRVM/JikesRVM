@@ -42,22 +42,19 @@ import org.jikesrvm.scheduler.VM_Thread;
  *     c) static information about a method; or
  *     d) all of the above.
  */
-public class VM_ControllerThread extends VM_Thread {
-
-  public String toString() {
-    return "VM_ControllerThread";
-  }
+public final class VM_ControllerThread extends VM_Thread {
 
   /**
    * constructor
    * @param sentinel   An object to signal when up and running
    */
   VM_ControllerThread(Object sentinel) {
+    super(null, "VM_ControllerThread");
     this.sentinel = sentinel;
     makeDaemon(true);
   }
 
-  private Object sentinel;
+  private final Object sentinel;
 
   /**
    * There are several ways in which a dcg organizer might

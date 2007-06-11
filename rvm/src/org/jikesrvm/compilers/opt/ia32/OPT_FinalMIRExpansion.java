@@ -53,6 +53,7 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_ADD;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_CALL;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_CMP;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_CMPXCHG;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_CMPXCHG8B;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_FCLEAR_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_FFREE;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_FLD;
@@ -67,6 +68,7 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_JCC2_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_JMP;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_LOCK;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_LOCK_CMPXCHG_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_LOCK_CMPXCHG8B_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOV;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOV_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_OFFSET;
@@ -331,6 +333,11 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
         case IA32_LOCK_CMPXCHG_opcode:
           p.insertBefore(MIR_Empty.create(IA32_LOCK));
           p.operator = IA32_CMPXCHG;
+          break;
+
+        case IA32_LOCK_CMPXCHG8B_opcode:
+          p.insertBefore(MIR_Empty.create(IA32_LOCK));
+          p.operator = IA32_CMPXCHG8B;
           break;
 
         case YIELDPOINT_PROLOGUE_opcode:

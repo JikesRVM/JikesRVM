@@ -83,4 +83,8 @@ public class JikesRVMSupport {
     if (VM.VerifyAssertions) VM._assert(VM.runningVM);
     return new Thread(vmdata, myName);
   }
+
+  public static VM_Thread getThread(Thread thread) {
+    return thread.vmdata;
+  }
 }

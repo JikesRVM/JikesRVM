@@ -140,7 +140,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     VM_Thread currentThread = VM_Processor.getCurrentProcessor().activeThread;
     currentThread.stackLimit =
         VM_Magic.objectAsAddress(currentThread.stack).plus(ArchitectureSpecific.VM_StackframeLayoutConstants.STACK_SIZE_GUARD);
-    currentThread.isBootThread = true;
+    currentThread.setBootThread();
 
     VM_Processor.getCurrentProcessor().activeThreadStackLimit = currentThread.stackLimit;
     currentThread.startQuantum(VM_Time.cycles());
@@ -226,6 +226,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
 
     runClassInitializer("java.lang.Runtime");
     runClassInitializer("java.lang.System");
+    runClassInitializer("sun.misc.Unsafe");
 
     runClassInitializer("java.lang.Character");
     runClassInitializer("java.util.WeakHashMap"); // Need for ThreadLocal

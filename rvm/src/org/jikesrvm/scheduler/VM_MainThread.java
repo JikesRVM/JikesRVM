@@ -30,8 +30,8 @@ import org.jikesrvm.runtime.VM_Reflection;
 /**
  * Thread in which user's "main" program runs.
  */
-public class VM_MainThread extends Thread {
-  private String[] args;
+public final class VM_MainThread extends Thread {
+  private final String[] args;
   private final String[] agents;
   private VM_Method mainMethod;
   protected boolean launched = false;
@@ -47,8 +47,7 @@ public class VM_MainThread extends Thread {
     super(args); // special constructor to create thread that has no parent
     this.agents = VM_CommandLineArgs.getArgs(VM_CommandLineArgs.JAVAAGENT_ARG);
     this.args = args;
-    this.vmdata.isMainThread = true;
-    this.vmdata.isSystemThread = false;
+    java.lang.JikesRVMSupport.getThread(this).setMainThread();
     if (dbg) {
       VM.sysWriteln("VM_MainThread(args.length == ", args.length, "): constructor done");
     }

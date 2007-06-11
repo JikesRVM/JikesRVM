@@ -16,6 +16,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Magic;
 import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.jikesrvm.runtime.VM_Time;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * Low priority thread to run when there's nothing else to do.
@@ -24,7 +25,7 @@ import org.jikesrvm.runtime.VM_Time;
  *
  * This follows the Singleton pattern.
  */
-class VM_IdleThread extends VM_Thread {
+final class VM_IdleThread extends VM_Thread {
 
   /**
    * Attempt rudimentary load balancing.  If a virtual processor
@@ -50,9 +51,17 @@ class VM_IdleThread extends VM_Thread {
   VM_IdleThread(VM_Processor processorAffinity, boolean runInitProcessor) {
     super(null, myName);
     makeDaemon(true);
-    super.isIdleThread = true;
     super.processorAffinity = processorAffinity;
     runInitProc = runInitProcessor;
+  }
+
+  /**
+   * Is this the idle thread?
+   * @return true
+   */
+  @Uninterruptible
+  public boolean isIdleThread() {
+    return true;
   }
 
   public String toString() { // overrides VM_Thread

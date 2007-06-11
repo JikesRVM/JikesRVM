@@ -62,3 +62,5 @@
 [Lorg/mmtk/utility/options/Option;
 [Lorg/mmtk/utility/scan/MMType;
 [Lorg/mmtk/utility/scan/Scan;
+
+Lsun/misc/Unsafe;

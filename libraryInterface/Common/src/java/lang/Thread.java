@@ -26,37 +26,51 @@ import org.jikesrvm.scheduler.VM_Wait;
  */
 public class Thread implements Runnable {
 
+  /**
+   * Uncaught exception interface
+   */
+  public interface UncaughtExceptionHandler
+  {
+    void uncaughtException(Thread thr, Throwable exc);
+  }
+
   public static final int MIN_PRIORITY = 1;
   public static final int MAX_PRIORITY = 10;
   public static final int NORM_PRIORITY = 5;
 
   private static int createCount = 0;
-    
-  protected VM_Thread vmdata;             // need to be accessible to
-                                          // VM_MainThread.
 
+  /**
+   * Corresponding VM_Thread. Needs to be accessible to MainThread.
+   */
+  final VM_Thread vmdata;
+  
   private volatile boolean started = false;
     
-  private String name = null;
+  private String name;
     
-  private ThreadGroup group = null;
+  private final ThreadGroup group;
     
-  private Runnable runnable = null;
+  private final Runnable runnable;
     
   private ClassLoader contextClassLoader = null;
     
   private volatile boolean isInterrupted;
 
-  WeakHashMap<Object,Object> locals = new WeakHashMap<Object,Object>();
+  final WeakHashMap<Object,Object> locals = new WeakHashMap<Object,Object>();
   
-  // Special constructor to create thread that has no parent.
-  // Only for use by VM_MainThread() constructor.
-  // ugh. protected, should probably be default. fix this.
-  //
+  // See java.util.concurrent.LockSupport
+  Object parkBlocker;
+  
+  /**
+   * Special constructor to create thread that has no parent.
+   * Only for use by MainThread() constructor.
+   * ugh. protected, should probably be default. fix this.
+   */
   protected Thread(String[] argv){
     vmdata = new VM_Thread(this);
     
-    vmdata.isSystemThread = false;
+    vmdata.setMainThread();
     vmdata.priority = NORM_PRIORITY;
     name = "main";
     group = ThreadGroup.root;
@@ -64,6 +78,7 @@ public class Thread implements Runnable {
     // Is this necessary?  I've added it because it seems wrong to have a null
     // context class loader; maybe it's OK though?
     contextClassLoader = ClassLoader.getSystemClassLoader();
+    runnable = null;
   }
     
   /** This is only used to create the system threads.
@@ -75,14 +90,13 @@ public class Thread implements Runnable {
    * called with a NULL VM_Thread argument.  In turn, the constructor is only
    * called with that argument when we create the "boot thread".
    */
-
   Thread(VM_Thread vmdata, String myName) {
     final boolean dbg = false;
     
     if (dbg) VM.sysWriteln("Invoked Thread(VM_Thread, String)");
     this.vmdata = vmdata;
     if (dbg) VM.sysWriteln("  Thread(VM_Thread, String) wrote vmdata");
-    // isSystemThread defaults to "true"
+    // By default threads are system threads
     vmdata.priority = NORM_PRIORITY;
     if (dbg) 
       VM.sysWriteln("  Thread(VM_Thread, String) wrote vmdata.priority");
@@ -101,6 +115,7 @@ public class Thread implements Runnable {
     // contextClassLoader = ClassLoader.getSystemClassLoader();
     if (dbg) 
       VM.sysWriteln("  Thread(VM_Thread, String) set contextClassLoader");
+    runnable = null;
   }
 
   public Thread() {
@@ -127,10 +142,14 @@ public class Thread implements Runnable {
     this(group, null, threadName);
   }
 
+  public Thread(ThreadGroup group, Runnable runnable, String threadName, long stackSize) {
+    this(group, runnable, threadName);
+  }
+
   public Thread(ThreadGroup group, Runnable runnable, String threadName) {
     vmdata = new VM_Thread(this);
 
-    vmdata.isSystemThread = false;
+    vmdata.setNormalThread();
     if (threadName==null) throw new NullPointerException();
     this.name = threadName;
     this.runnable = runnable;
@@ -425,56 +444,55 @@ public class Thread implements Runnable {
     return currentThread().locals;
   }
 
-  /* Classpath 0.91 fixes */
+  /** Default exception handler.  */
+  private static UncaughtExceptionHandler defaultHandler;
 
   /**
-	* Uncaught exception handler is currently not supported - this
-	* field exists to avoid build problems with classpath 0.91
-	*/
+   * Uncaught exception handler
+   */
   UncaughtExceptionHandler exceptionHandler;
 
   /**
-	* Uncaught exception handler is currently not supported - this
-	* method exists to avoid build problems with classpath 0.91
-	*/
+   * Set uncaught exception handler for thread
+   */
   public void setUncaughtExceptionHandler(UncaughtExceptionHandler h) {
-	 throw new VM_UnimplementedError();
+    SecurityManager sm = SecurityManager.current;
+    if (sm != null)
+      sm.checkAccess(this);    
+    exceptionHandler = h;
   }
   /**
-	* Uncaught exception handler is currently not supported - this
-	* method exists to avoid build problems with classpath 0.91
-	*/
+   * Get uncaught exception handler for thread, group or default.
+   */
   public UncaughtExceptionHandler getUncaughtExceptionHandler() {
-	 throw new VM_UnimplementedError();
+    if(exceptionHandler != null) {
+      return exceptionHandler;
+    } else if (group != null) {
+      return group;
+    } else {
+      return defaultHandler;
+    }
   }
   /**
-	* Uncaught exception handler is currently not supported - this
-	* method exists to avoid build problems with classpath 0.91
-	*/
+   * Set default uncaught exception handler
+   */
   public static void setDefaultUncaughtExceptionHandler(UncaughtExceptionHandler h) {
-	 throw new VM_UnimplementedError();
+    SecurityManager sm = SecurityManager.current;
+    if (sm != null)
+      sm.checkPermission(new RuntimePermission("setDefaultUncaughtExceptionHandler"));    
+    defaultHandler = h;
   }
   /**
-	* Uncaught exception handler is currently not supported - this
-	* method exists to avoid build problems with classpath 0.91
-	*/
+   * Get default uncaught exception handler
+   */
   public static UncaughtExceptionHandler getDefaultUncaughtExceptionHandler() {
-	 throw new VM_UnimplementedError();
+    return defaultHandler;
   }
+
   /**
-	* Uncaught exception handler is currently not supported - this
-	* interface exists to avoid build problems with classpath 0.91
-	*/
-  public interface UncaughtExceptionHandler
-  {
-    void uncaughtException(Thread thr, Throwable exc);
-  }
-  /**
-	* getId is currently not supported - this
-	* interface exists to avoid build problems with classpath 0.92
-	*/
-  public long getId()
-  {
-	 throw new VM_UnimplementedError();
+   * Get ID of thread, maybe a recycled ID
+   */
+  public long getId() {
+    return (long)vmdata.getIndex();
   }
 }

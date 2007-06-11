@@ -38,6 +38,26 @@ public class VM_Synchronization {
   }
 
   @Inline
+  public static boolean tryCompareAndSwap(Object base, Offset offset, long testValue, long newValue) {
+    long oldValue;
+    do {
+      oldValue = VM_Magic.prepareLong(base, offset);
+      if (oldValue != testValue) return false;
+    } while (!VM_Magic.attemptLong(base, offset, oldValue, newValue));
+    return true;
+  }
+
+  @Inline
+  public static boolean tryCompareAndSwap(Object base, Offset offset, Object testValue, Object newValue) {
+    Object oldValue;
+    do {
+      oldValue = VM_Magic.prepareObject(base, offset);
+      if (oldValue != testValue) return false;
+    } while (!VM_Magic.attemptObject(base, offset, oldValue, newValue));
+    return true;
+  }
+
+  @Inline
   public static boolean testAndSet(Object base, Offset offset, int newValue) {
     int oldValue;
     do {

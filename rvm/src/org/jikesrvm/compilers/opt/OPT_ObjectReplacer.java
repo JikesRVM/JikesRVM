@@ -37,6 +37,7 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_OBJ_TIB_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INSTANCEOF_NOTNULL_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INSTANCEOF_UNRESOLVED_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INSTANCEOF_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_STORE_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.MONITORENTER_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.MONITOREXIT_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.MUST_IMPLEMENT_INTERFACE_opcode;
@@ -217,6 +218,7 @@ public final class OPT_ObjectReplacer implements OPT_AggregateReplacer {
         case REF_IFCMP_opcode:
         case BOOLEAN_CMP_INT_opcode:
         case BOOLEAN_CMP_ADDR_opcode:
+        case LONG_STORE_opcode:
           return true;
       }
     }

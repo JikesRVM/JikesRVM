@@ -101,7 +101,7 @@ public class VM_ThreadQueue extends VM_AbstractThreadQueue {
     }
     VM_Thread nextThread = head.next;
 
-    if (currentThread.isGCThread) {
+    if (currentThread.isGCThread()) {
       head = nextThread;
       if (head == null) {
         tail = null;
@@ -112,7 +112,7 @@ public class VM_ThreadQueue extends VM_AbstractThreadQueue {
     }
 
     while (nextThread != null) {
-      if (nextThread.isGCThread) {
+      if (nextThread.isGCThread()) {
         currentThread.next = nextThread.next;
         if (nextThread == tail) {
           tail = currentThread;

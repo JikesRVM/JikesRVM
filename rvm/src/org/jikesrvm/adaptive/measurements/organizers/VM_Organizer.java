@@ -26,8 +26,9 @@ import org.vmmagic.pragma.Uninterruptible;
  */
 public abstract class VM_Organizer extends VM_Thread {
 
-  public String toString() {
-    return "VM_Organizer";
+  /** Constructor */
+  public VM_Organizer() {
+    super(null, "VM_Organizer");
   }
 
   /**
@@ -39,7 +40,7 @@ public abstract class VM_Organizer extends VM_Thread {
   /**
    * A queue to hold the organizer thread when it isn't executing
    */
-  private VM_ThreadQueue tq = new VM_ThreadQueue();
+  private final VM_ThreadQueue tq = new VM_ThreadQueue();
 
   /**
    * Called when thread is scheduled.
