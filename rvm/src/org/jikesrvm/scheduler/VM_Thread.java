@@ -663,15 +663,13 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
    */
   @Interruptible
   public final void park (boolean isAbsolute, long time) {
+    InterruptedException e = null;
     synchronized(parkingObject) {
       // Has the thread already been unparked? (ie the permit is available?)
       if (threadParkedState == PERMIT) {
         // Yes: exit early
-        threadParkedState = RUNNING;
       } else {
         // Put thread into parked state
-        // If exception occurs rethrow but release locks first
-        Throwable rethrow = null;
         // Do we have a timeout?
         if (time == 0) {
           // no timeout
@@ -691,7 +689,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
           try {
             yield(l.waiting, l.mutex); // thread-switching benign
           } catch (Throwable thr) {
-            rethrow = thr; // An InterruptedException. We'll rethrow it after regaining the lock on o.
+            e = (InterruptedException)thr;
           }
         } else {
           if (isAbsolute) {
@@ -717,16 +715,18 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
           try {
             yield(l.waiting, l.mutex, VM_Scheduler.wakeupQueue, VM_Scheduler.wakeupMutex); // thread-switching benign
           } catch (Throwable thr) {
-            rethrow = thr;
+            e = (InterruptedException)thr;
           }
         }
         // regain lock to be released when we leave the syncronized block
         VM_ObjectModel.genericLock(parkingObject);
         waitObject = null;
         waitCount = 0;
-        if (rethrow != null) {
-          VM_Runtime.athrow(rethrow); // doesn't return
-        }
+      }
+      threadParkedState = RUNNING;
+      if (e != null) {
+        // We were interrupted, make sure wait queues are cleaned out
+        parkingObject.notifyAll();
       }
     }
   }
@@ -1684,6 +1684,12 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
     }
     if (!isAlive) {
       offset = sprintf(dest, offset, "-not_alive");
+    }
+    if (threadParkedState == PARKED) {
+      offset = sprintf(dest, offset, "-parked");
+    }
+    if (threadParkedState == PERMIT) {
+      offset = sprintf(dest, offset, "-permit");
     }
     return offset;
   }
