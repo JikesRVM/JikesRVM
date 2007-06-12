@@ -74,6 +74,7 @@ public class VM_CommandLineArgs {
   public static final int VERBOSE_CLS_ARG = 6;
   public static final int JAR_ARG = 7;
   public static final int JAVAAGENT_ARG = 8;
+  public static final int ASSERTION_ARG = 9;
 
   // -----------------------------------------------//
   // The following arguments are RVM-specific.      //
@@ -129,6 +130,8 @@ public class VM_CommandLineArgs {
                                             new Prefix("-verbose:class$", VERBOSE_CLS_ARG),
                                             new Prefix("-verbose:jni$", VERBOSE_JNI_ARG),
                                             new Prefix("-verbose$", VERBOSE_CLS_ARG),
+                                            new Prefix("-enableassertions$", ASSERTION_ARG),
+                                            new Prefix("-ea$", ASSERTION_ARG),
                                             new Prefix("-X:vmClasses=", BOOTSTRAP_CLASSES_ARG),
                                             new Prefix("-X:cpuAffinity=", CPUAFFINITY_ARG),
                                             new Prefix("-X:processors=", PROCESSORS_ARG),
