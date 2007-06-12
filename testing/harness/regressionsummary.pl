@@ -69,7 +69,10 @@ my $short = 1;
 
 # these will need to change
 my $regressiondomain = "anu.edu.au";
-my $reporturl = "http://jikesrvm.anu.edu.au/~regression";
+my $reporturl = "http://jikesrvm.anu.edu.au/~regression/$reportdir";
+if ($reportdir =~ /^http/) {
+  $reporturl = $reportdir;
+}
 
 # initialize things
 
@@ -134,7 +137,7 @@ sub printmimehdr {
   my ($out) = @_;
   print $out "MIME-Version: 1.0\n";
 #  print $out "Content-type: multipart/mixed; boundary=\"$MIMEBOUNDARY\"\n";
-#  print $out "Content-Base: $reporturl/$reportdir/\n";
+#  print $out "Content-Base: $reporturl/\n";
 #  print $out "\n--$MIMEBOUNDARY\n";
 #  print $out "Content-Type: text/plain; charset=\"iso-8859-1\"\n";
 #  print $out "Content-Transfer-Encoding: quoted-printable\n\n";
@@ -161,7 +164,7 @@ sub printsummary {
   my ($out, $html, $checkout, $datestring) = @_;
   if ($html) {
     print $out "<h2>Regression summary for $regressionhost, $checkout</h2>\n";
-    print $out "Details are available <a href=\"$reporturl/$reportdir/$datestring.html\">here</a><br>\n";
+    print $out "Details are available <a href=\"$reporturl/$datestring.html\">here</a><br>\n";
   } else {
     print $out "Regression summary for $regressionhost, $checkout\n";
     print $out "Details are available at: $datestring.html\n";
@@ -292,7 +295,7 @@ sub getbestperf {
 sub printjavadoc {
   my ($out, $html, $javadocerrors, $datestring) = @_;
   my $str = "$javadocerrors Javadoc errors";
-  my $jdurl = "$reporturl/$reportdir/$datestring.html\#javadoc";
+  my $jdurl = "$reporturl/$datestring.html\#javadoc";
   if ($html) {
     print $out "<h2>$str</h2>\n";
     print $out "Details <a href=\"$jdurl\">here</a><br>\n";
@@ -426,7 +429,7 @@ sub printfailuresummary {
        $err = ${$allerrors}{"$today:$build:$bm"};
        ($href,$error) = split(/:/, $err, 2);
        if ($href) {
-         $href = "$reporturl/$reportdir/$datestring.html$href";
+         $href = "$reporturl/$datestring.html$href";
        }
      }
      if ($bm eq "") {
@@ -455,7 +458,7 @@ sub printfailuresummary {
        if ($html) {
 	 print $out "<tr><td align=\"right\" style=\"font-style:italic\">";
        }
-       print $out "[Truncated: See ".($html ? "<a href=\"$reporturl/$reportdir/$datestring.html\">":"")."report".($html ? "</a>":"")." for full details.]";
+       print $out "[Truncated: See ".($html ? "<a href=\"$reporturl/$datestring.html\">":"")."report".($html ? "</a>":"")." for full details.]";
        if ($html) {
 	 print $out "</tr>\n";
        }
