@@ -267,6 +267,23 @@ public abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
     }
   }
 
+  protected final OPT_MemoryOperand MO(OPT_Operand base, OPT_Operand offset, byte size, OPT_LocationOperand loc,
+      OPT_Operand guard, int disp) {
+    if (base instanceof OPT_IntConstantOperand) {
+      if (offset instanceof OPT_IntConstantOperand) {
+        return MO_D(Offset.fromIntSignExtend(IV(base) + IV(offset) + disp), size, loc, guard);
+      } else {
+        return MO_BD(offset, Offset.fromIntSignExtend(IV(base)+disp), size, loc, guard);
+      }
+    } else {
+      if (offset instanceof OPT_IntConstantOperand) {
+        return MO_BD(base, Offset.fromIntSignExtend(IV(offset)+disp), size, loc, guard);
+      } else {
+        return MO_BID(base, offset, Offset.fromIntSignExtend(disp), size, loc, guard);
+      }
+    }
+  }
+
   protected final OPT_MemoryOperand MO_ARRAY(OPT_Operand base, OPT_Operand index, byte scale, byte size,
                                              OPT_LocationOperand loc, OPT_Operand guard) {
     if (index instanceof OPT_IntConstantOperand) {

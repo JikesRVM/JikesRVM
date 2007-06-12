@@ -2019,10 +2019,14 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, Prepare.getResult(P(p)), \
 r:	PREPARE_LONG(riv, riv)
 30
 EMIT_INSTRUCTION
-OPT_RegisterOperand hres = Load.getResult(P(p)); \
+OPT_RegisterOperand hres = Prepare.getResult(P(p)); \
+OPT_MemoryOperand hmo = MO(Prepare.getAddress(P(p)), Prepare.getOffset(P(p)), DW, \
+                           Prepare.getLocation(P(p)), Prepare.getGuard(P(p)), DW); \
 OPT_RegisterOperand lres = new OPT_RegisterOperand(regpool.getSecondReg(hres.register), VM_TypeReference.Int); \
-EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, hres, MO_L(P(p), DW, DW).copy()))); \
-EMIT(MIR_Move.mutate(P(p), IA32_MOV, lres, MO_L(P(p), DW)));
+OPT_MemoryOperand lmo = MO(Prepare.getAddress(P(p)), Prepare.getOffset(P(p)), DW, \
+                           Prepare.getLocation(P(p)), Prepare.getGuard(P(p))); \
+EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, hres, hmo))); \
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, lres, lmo));
 
 ##################################
 # Stores (register to memory moves)
