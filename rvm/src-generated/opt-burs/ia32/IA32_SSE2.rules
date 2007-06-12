@@ -33,9 +33,14 @@ NOFLAGS
 # ADD/SUB/MUL/DIV
 #####
 r: FLOAT_ADD(r, r)
-20
+p.child1.isREGISTERNode() ? 20 : 30
 EMIT_INSTRUCTION
 SSE2_COP(IA32_ADDSS, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
+
+r: FLOAT_ADD(r, r)
+p.child2.isREGISTERNode() ? 20 : 30
+EMIT_INSTRUCTION
+SSE2_COP(IA32_ADDSS, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), Binary.getVal1(P(p)));
 
 r: FLOAT_SUB(r, r)
 20
@@ -43,9 +48,14 @@ EMIT_INSTRUCTION
 SSE2_NCOP(IA32_SUBSS, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
 
 r: FLOAT_MUL(r, r)
-20
+p.child1.isREGISTERNode() ? 20 : 30
 EMIT_INSTRUCTION
 SSE2_COP(IA32_MULSS, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
+
+r: FLOAT_MUL(r, r)
+p.child2.isREGISTERNode() ? 20 : 30
+EMIT_INSTRUCTION
+SSE2_COP(IA32_MULSS, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), Binary.getVal1(P(p)));
 
 r: FLOAT_DIV(r, r)
 20
@@ -58,9 +68,14 @@ EMIT_INSTRUCTION
 SSE2_NEG(IA32_XORPS, IA32_SUBSS, P(p), Unary.getResult(P(p)), Unary.getVal(P(p)));
 
 r: DOUBLE_ADD(r, r)
-20
+p.child1.isREGISTERNode() ? 20 : 30
 EMIT_INSTRUCTION
 SSE2_COP(IA32_ADDSD, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
+
+r: DOUBLE_ADD(r, r)
+p.child2.isREGISTERNode() ? 20 : 30
+EMIT_INSTRUCTION
+SSE2_COP(IA32_ADDSD, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), Binary.getVal1(P(p)));
 
 r: DOUBLE_SUB(r, r)
 20
@@ -68,9 +83,9 @@ EMIT_INSTRUCTION
 SSE2_NCOP(IA32_SUBSD, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
 
 r: DOUBLE_MUL(r, r)
-20
+p.child1.isREGISTERNode() ? 20 : 30
 EMIT_INSTRUCTION
-SSE2_COP(IA32_MULSD, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
+SSE2_COP(IA32_MULSD, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), Binary.getVal1(P(p)));
 
 r: DOUBLE_DIV(r, r)
 20
