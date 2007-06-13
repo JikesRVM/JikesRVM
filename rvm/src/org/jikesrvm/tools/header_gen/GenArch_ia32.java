@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.tools.header_gen;
 
+import org.jikesrvm.ia32.VM_ArchConstants;
 import org.jikesrvm.ia32.VM_BaselineConstants;
 import org.jikesrvm.ia32.VM_RegisterConstants;
 import org.jikesrvm.ia32.VM_StackframeLayoutConstants;
@@ -55,6 +56,8 @@ final class GenArch_ia32 extends GenArch {
     pln("VM_Processor_jtoc_offset = ", offset);
     offset = VM_Entrypoints.arrayIndexTrapParamField.getOffset();
     pln("VM_Processor_arrayIndexTrapParam_offset = ", offset);
+
+    p("static const int VM_ArchConstants_SSE2 = " + (VM_ArchConstants.SSE2_BASE ? "1;\n" : "0;\n"));
   }
 
   public void emitArchAssemblerDeclarations() {
