@@ -73,29 +73,19 @@ public class VM_Memory implements VM_SizeConstants {
 
         if (VM.BuildFor64Addr) {
           switch (startDiff) {
-            case 7:
-              dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(-7)), Offset.fromIntSignExtend(-7));
-            case 6:
-              dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(-6)), Offset.fromIntSignExtend(-6));
-            case 5:
-              dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(-5)), Offset.fromIntSignExtend(-5));
-            case 4:
-              dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(-4)), Offset.fromIntSignExtend(-4));
-            case 3:
-              dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(-3)), Offset.fromIntSignExtend(-3));
-            case 2:
-              dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(-2)), Offset.fromIntSignExtend(-2));
-            case 1:
-              dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(-1)), Offset.fromIntSignExtend(-1));
+            case 7: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(-7)), Offset.fromIntSignExtend(-7));
+            case 6: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(-6)), Offset.fromIntSignExtend(-6));
+            case 5: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(-5)), Offset.fromIntSignExtend(-5));
+            case 4: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(-4)), Offset.fromIntSignExtend(-4));
+            case 3: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(-3)), Offset.fromIntSignExtend(-3));
+            case 2: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(-2)), Offset.fromIntSignExtend(-2));
+            case 1: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(-1)), Offset.fromIntSignExtend(-1));
           }
         } else {
           switch (startDiff) {
-            case 3:
-                dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(-3)), Offset.fromIntSignExtend(-3));
-            case 2:
-                dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(-2)), Offset.fromIntSignExtend(-2));
-            case 1:
-                dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(-1)), Offset.fromIntSignExtend(-1));
+            case 3: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(-3)), Offset.fromIntSignExtend(-3));
+            case 2: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(-2)), Offset.fromIntSignExtend(-2));
+            case 1: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(-1)), Offset.fromIntSignExtend(-1));
           }
         }
 
@@ -108,29 +98,19 @@ public class VM_Memory implements VM_SizeConstants {
 
         if (VM.BuildFor64Addr) {
           switch (endDiff) {
-            case 7:
-              dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(6)), Offset.fromIntSignExtend(6));
-            case 6:
-                dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(5)), Offset.fromIntSignExtend(5));
-            case 5:
-                dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(4)), Offset.fromIntSignExtend(4));
-            case 4:
-                dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(3)), Offset.fromIntSignExtend(3));
-            case 3:
-                dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(2)), Offset.fromIntSignExtend(2));
-            case 2:
-                dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(1)), Offset.fromIntSignExtend(1));
-            case 1:
-                dstPtr.store(srcPtr.loadByte());
+            case 7: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(6)), Offset.fromIntSignExtend(6));
+            case 6: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(5)), Offset.fromIntSignExtend(5));
+            case 5: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(4)), Offset.fromIntSignExtend(4));
+            case 4: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(3)), Offset.fromIntSignExtend(3));
+            case 3: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(2)), Offset.fromIntSignExtend(2));
+            case 2: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(1)), Offset.fromIntSignExtend(1));
+            case 1: dstPtr.store(srcPtr.loadByte());
           }
         } else {
           switch (endDiff) {
-            case 3:
-                dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(2)), Offset.fromIntSignExtend(2));
-            case 2:
-                dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(1)), Offset.fromIntSignExtend(1));
-            case 1:
-                dstPtr.store(srcPtr.loadByte());
+            case 3: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(2)), Offset.fromIntSignExtend(2));
+            case 2: dstPtr.store(srcPtr.loadByte(Offset.fromIntSignExtend(1)), Offset.fromIntSignExtend(1));
+            case 1: dstPtr.store(srcPtr.loadByte());
           }
         }
 
@@ -181,12 +161,9 @@ public class VM_Memory implements VM_SizeConstants {
 
         if (VM.BuildFor64Addr) {
           switch (startDiff) {
-            case 6:
-              dstPtr.store(srcPtr.loadChar(Offset.fromIntSignExtend(-6)), Offset.fromIntSignExtend(-6));
-            case 4:
-              dstPtr.store(srcPtr.loadChar(Offset.fromIntSignExtend(-4)), Offset.fromIntSignExtend(-4));
-            case 2:
-              dstPtr.store(srcPtr.loadChar(Offset.fromIntSignExtend(-2)), Offset.fromIntSignExtend(-2));
+            case 6: dstPtr.store(srcPtr.loadChar(Offset.fromIntSignExtend(-6)), Offset.fromIntSignExtend(-6));
+            case 4: dstPtr.store(srcPtr.loadChar(Offset.fromIntSignExtend(-4)), Offset.fromIntSignExtend(-4));
+            case 2: dstPtr.store(srcPtr.loadChar(Offset.fromIntSignExtend(-2)), Offset.fromIntSignExtend(-2));
           }
         } else {
           if (startDiff == 2) {
@@ -203,12 +180,9 @@ public class VM_Memory implements VM_SizeConstants {
 
         if (VM.BuildFor64Addr) {
           switch (endDiff) {
-            case 6:
-              dstPtr.store(srcPtr.loadChar(Offset.fromIntSignExtend(4)), Offset.fromIntSignExtend(4));
-            case 4:
-              dstPtr.store(srcPtr.loadChar(Offset.fromIntSignExtend(2)), Offset.fromIntSignExtend(2));
-            case 2:
-              dstPtr.store(srcPtr.loadChar());
+            case 6: dstPtr.store(srcPtr.loadChar(Offset.fromIntSignExtend(4)), Offset.fromIntSignExtend(4));
+            case 4: dstPtr.store(srcPtr.loadChar(Offset.fromIntSignExtend(2)), Offset.fromIntSignExtend(2));
+            case 2: dstPtr.store(srcPtr.loadChar());
           }
         } else {
           if (endDiff == 2) {
