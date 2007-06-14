@@ -79,6 +79,7 @@ Ljava/lang/SecurityException;
 Ljava/lang/StackOverflowError;
 Ljava/lang/Throwable;
 Ljava/lang/Throwable$StaticData;
+Ljava/lang/VMThrowable;
 
 Ljava/lang/UnknownError;
 Ljava/lang/VirtualMachineError;

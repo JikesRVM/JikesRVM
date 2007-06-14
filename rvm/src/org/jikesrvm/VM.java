@@ -288,6 +288,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     runClassInitializer("java.util.zip.InflaterDynHeader");
     runClassInitializer("java.util.zip.InflaterHuffmanTree");
     runClassInitializer("java.util.Date");
+    runClassInitializer("java.lang.Throwable$StaticData");
     if (VM.BuildWithAllClasses) {
       runClassInitializer("java.util.jar.Attributes$Name");
     }

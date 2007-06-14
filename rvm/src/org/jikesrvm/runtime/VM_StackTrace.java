@@ -12,78 +12,66 @@
  */
 package org.jikesrvm.runtime;
 
-import org.jikesrvm.ArchitectureSpecific;
+import static org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP;
+import static org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants.INVISIBLE_METHOD_ID;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Options;
-import org.jikesrvm.VM_PrintContainer;
-import org.jikesrvm.VM_PrintLN;
+import org.jikesrvm.classloader.VM_Atom;
 import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_MemberReference;
 import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
+import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
+import org.jikesrvm.compilers.opt.VM_OptEncodedCallSiteTree;
+import org.jikesrvm.compilers.opt.VM_OptMachineCodeMap;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * A list of compiled method and instructionOffset pairs that describe
- * the state of the call stack at a particular instant.
+ * A list of compiled method and instructionOffset pairs that describe the state
+ * of the call stack at a particular instant.
  */
 public class VM_StackTrace {
-
-  /** Index of the next stack trace; incremented every time we create one
-   afresh. */
-  public final int traceIndex;
-  static int lastTraceIndex = 0;
-
-  /** How deep in printing stack traces is too deep?  Bail at this point. */
-  public int printingMaxDepth = 10;
-
-  private static synchronized int getNextTraceIndex() {
-    return ++lastTraceIndex;
-  }
-
-  /** How many frames are "too many" to display fully? Let's say that zero is
-   undefined, any negative number means "no limit" and a positive number is
-   a defined limit.   This replaces the former use of a constant.in the
-   overloaded print() methods below.  Further, it's modifiable, as a user
-   preference.
-
-   Upped the former constant 50 to 100, per a discussion with Perry Cheng.
-   --Steven Augart */
-  public static final int elideAfterThisManyFrames = 100;
-
-  /**
-   * The compiled methods that comprise the trace
-   */
+  /** The compiled methods of the stack trace */
   private final VM_CompiledMethod[] compiledMethods;
-  //private final AddressArray framePointers;
 
-  /**
-   * The instruction offsets within those methods.
-   */
-  private final int[] offsets;
+  /** The offset of the instruction within the compiled method */
+  private final int[] instructionOffsets;
+
+  /** Index of the last stack trace */
+  private static int lastTraceIndex = 0;
+
+  /** Index of this stack trace */
+  private final int traceIndex;
 
   /** Should this be (or is this) a verbose stack trace? */
-  public boolean isVerbose() {
-    return /* If we're printing verbose stack traces... */
-        (VM.VerboseStackTracePeriod > 0)
-        /* AND this particular trace meets the periodicity requirements */ &&
-        (((traceIndex - 1) % VM.VerboseStackTracePeriod) == 0);
+  private boolean isVerbose() {
+    // If we're printing verbose stack traces...   
+    // AND this particular trace meets the periodicity requirements
+    return (VM.VerboseStackTracePeriod > 0) &&
+    (((traceIndex - 1) % VM.VerboseStackTracePeriod) == 0);
+    
   }
 
   /**
    * Create a trace of the current call stack
+   * @param skip number of stack trace elements to skip prior to creating
    */
   public VM_StackTrace(int skip) {
-    traceIndex = getNextTraceIndex(); // set for good for this method.
+    // Poor man's atomic integer, to get through bootstrap
+    synchronized(VM_StackTrace.class) {
+      lastTraceIndex++;
+      traceIndex = lastTraceIndex;
+    }
     // (1) Count the number of frames comprising the stack.
     int numFrames = walkFrames(false, skip + 1);
+    // (2) Construct arrays to hold raw data
     compiledMethods = new VM_CompiledMethod[numFrames];
-    //framePointers = AddressArray.create(numFrames);
-    offsets = new int[numFrames];
+    instructionOffsets = new int[numFrames];
+    // (3) Fill in arrays
     walkFrames(true, skip + 1);
-
     // Debugging trick: print every nth stack trace created
     if (isVerbose()) {
       VM.disableGC();
@@ -94,6 +82,12 @@ public class VM_StackTrace {
     }
   }
 
+  /**
+   * Walk the stack counting the number of stack frames encountered
+   * @param record fill in the compiledMethods and instructionOffsets arrays?
+   * @param skip number of stack frames to skip prior to counting
+   * @return number of stack frames encountered
+   */
   private int walkFrames(boolean record, int skip) {
     int stackFrameCount = 0;
     VM.disableGC(); // so fp & ip don't change under our feet
@@ -104,19 +98,21 @@ public class VM_StackTrace {
       ip = VM_Magic.getReturnAddress(fp);
     }
     fp = VM_Magic.getCallerFramePointer(fp);
-    while (VM_Magic.getCallerFramePointer(fp).NE(ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP)) {
+    while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
       int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
-      if (compiledMethodId != ArchitectureSpecific.VM_StackframeLayoutConstants.INVISIBLE_METHOD_ID) {
-        VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
+      if (compiledMethodId != INVISIBLE_METHOD_ID) {
+        VM_CompiledMethod compiledMethod =
+          VM_CompiledMethods.getCompiledMethod(compiledMethodId);
         if (record) {
           compiledMethods[stackFrameCount] = compiledMethod;
-          //framePointers.set(stackFrameCount,fp);
         }
         if (compiledMethod.getCompilerType() != VM_CompiledMethod.TRAP) {
           if (record) {
-            offsets[stackFrameCount] = compiledMethod.getInstructionOffset(ip).toInt();
+            instructionOffsets[stackFrameCount] =
+              compiledMethod.getInstructionOffset(ip).toInt();
           }
-          if (compiledMethod.getMethod().getDeclaringClass().hasBridgeFromNativeAnnotation()) {
+          if (compiledMethod.getMethod().getDeclaringClass()
+              .hasBridgeFromNativeAnnotation()) {
             // skip native frames, stopping at last native frame preceeding the
             // Java To C transition frame
             fp = VM_Runtime.unwindNativeStackFrame(fp);
@@ -131,355 +127,146 @@ public class VM_StackTrace {
     return stackFrameCount;
   }
 
-  /*  The code below is temporarily commented out; Steve Augart's work in
- progress */
-//   /** The common prelude used by all programs that JikesRVM starts.  The big
-//    * idea here is to elide those last few methods. */
-//   private static VM_Method runMethodMarkingPrelude = getRunMethodMarkingPrelude();
-
-//   /** Get a marker for point on the stack below which we just Don't Care
-//       To Look.  Two approaches we could take:
-
-//       <ol>
-
-//       <li> <p>The method "org.jikesrvm.scheduler.VM_MainThread.run()" (with an empty
-//       parameter list) launches most of our programs.  That marks the prelude
-//       to calling main().  Most users only care about main and beyond.  So we
-//       figure out where the prelude is so that we can skip it.
-
-//       <p> So, what to do if we fail to find that method?  It could be legal,
-//       since somebody might be experimenting with new JikesRVM features;
-//       perhaps using it to launch web browser applets?  (Admittedly this seems
-//       unlikely.)  We'll just kindly return null. Better a verbose stack trace
-//       than generating an InternalError().
-//       <p>
-//       We will assume that no user class calls
-//       org.jikesrvm.scheduler.VM_MainThread.run().  This is a pretty safe bet.
-//       </li>
-
-//       <li>
-//       <p>Just look for the invocation of <tt>main</tt>.  As the Java Language
-//       Specification, Second Edition says (Section 12.1):
-//       <blockquote>
-//         A Java virtual machine starts execution by invoking the method
-//       <tt>main</tt> of some specified class, passing it a single argument,
-//       which is an array of strings.  In the examples in this specification,
-//       the first class is typically called <tt>Test</tt>.  [&hellip;]
-//       <p>
-//       The manner in which the initial class is specified to the Java virtual
-//       machine is  beyond the scope of this specification [&hellip;]
-//       </blockquote>
-
-//       Section 12.1.4 says:
-
-//       <blockquote>
-//       The method <tt>main</tt> must be declared <tt>public</tt>,
-//       <tt>static</tt>, and <tt>void</tt>.  It must accept a single argument
-//       that is an array of strings.
-//       </blockquote>
-
-//       We do, though, have to consider the (perhaps unlikely) possibility of a
-//       recursive invocation of <tt>main</tt>.
-//       </li>
-//       </ol>
-//   */
-//   private static VM_Method getRunMethodMarkingPrelude() {
-//     /* We're implementing here the first method discussed above. */
-//     System.err.println("Calling getRunMethodMarkingPrelude()"); // DEBUG XXX
-//     try {
-//       Class c = Class.forName("org.jikesrvm.scheduler.VM_MainThread");
-//       Method m = c.getDeclaredMethod("run", new Class[0]);
-//       return java.lang.reflect.JikesRVMSupport.getMethodOf(m);
-//     } catch (ClassNotFoundException cnf) {
-//       return null;
-//     } catch (NoSuchMethodException nsm) {
-//       return null;
-//     } catch (SecurityException se) {
-//       return null;
-//     }
-//   }
-
-  /** If printing a stack trace, also dump it via VM.sysWrite if not doing so
-   already.  This is specifically in order to figure out why Eclipse blows
-   up in certain cases, since Eclipse snags the stack trace output to
-   use internally!  So we need a copy.
-
-   Disabled by default.
-   */
-  public static final boolean alsoPrintToSysWrite = VM_Options.stackTraceAlsoToVMSysWrite;
-
-  /** Announce when we're printing a stack trace.  Announce the fact and the
-   serial # of the stack trace via a line sent to VM.sysWriteln().
-
-   Disabled by default; otherwise, the Eclipse regression test output would
-   get loaded with these. */
-  public static final boolean announceWhenPrintingStackTrace = VM_Options.stackTraceAnnounceWhenPrinting;
-
-  /** Print (via VM.sysWrite()) the context of every attempt to print a stack
-   frame.  This is specifically to help figure out errors that happen when
-   printing the stack.  Disabled by default. */
-  public static final boolean showPrintingContext = VM_Options.stackTraceShowPrintingContext;
-
-  /**
-   * Print the stack trace.  This is a safety net around print4Real(), a
-   * private method that does the actual work.  Here we just catch any stray
-   * OutOfMemoryError or other Throwables that we didn't think of when we
-   * wrote this code.
-   *
-   * @param out VM_PrintLN to print on.
-   *
-   * @param trigger The Throwable that caused the stack trace.
-   *  Used to elide internal details from the stack trace.
-   *  If null, then we print a full stack trace, without eliding the
-   *  methods used internally to gather the stack trace.
-   *
-   *  @param effect A <code>Throwable</code> whose details we've presumably
-   *  already printed, meaning that we can elide the stack frames someone has
-   *  already seen. May be <code>null</code>
-   *  <p>
-   *  <b>TODO:</b> Implement the elision.  As of this writing,
-   *  it's unused.
-   *
-   *  @param depth How deep is our current stack of recursive printings?
-   */
-  public void print(VM_PrintLN out, Throwable trigger, Throwable effect, int depth) {
-    boolean printed = false;
-    try {
-      if (announceWhenPrintingStackTrace) {
-        VM.sysWriteln("VM_StackTrace.print(): Printing Stack Trace # ", traceIndex);
-      }
-      if (alsoPrintToSysWrite) {
-        if (!out.isSysWrite()) {
-          VM.sysWriteln("[ VM_StackTrace.print(#", traceIndex, "): Here's the copy to sysWrite:");
-          print(VM_PrintContainer.readyPrinter, trigger, effect, depth);
-          VM.sysWriteln("... END VM_StackTrace.print():" + " sysWrote Stack Trace # ", traceIndex, "]");
-        }
-      }
-      if (showPrintingContext) {
-        VM.disableGC();
-        VM.sysWriteln("[Here is the context of the attempt" + " to print stack trace #:", traceIndex);
-        VM_Scheduler.dumpStack();
-        VM.sysWriteln("... END context of the attempt" + " to print Stack Trace # ", traceIndex, "]");
-        VM.enableGC();
-      }
-
-      print4Real(out, trigger, depth);
-      printed = true;
-    } catch (OutOfMemoryError e) {
-      trigger.tallyOutOfMemoryError();
-      VM.sysWriteln("VM_StackTrace.print(): OutOfMemoryError while printing stack trace # ", traceIndex);
-    } catch (Throwable e) {
-      trigger.tallyWeirdError();
-      VM.sysWriteln("VM_StackTrace.print(): *UNEXPECTED* Throwable while displaying stack trace # ", traceIndex);
-      VM.sysWrite("    The Throwable was: ");
-      e.sysWrite(depth + 1);
-      VM.sysWriteln("VM_StackTrace.print(): And its stack trace was:");
-      e.sysWriteStackTrace(depth + 1);
-    } finally {
-      if (!printed) {
-        if (out.isSysWrite()) {
-          VM.sysWriteln("[ Aborting stack trace # ", traceIndex, " ; already was printing with sysWrite()]");
+  /** Class to wrap up a stack frame element */
+  public static class Element {
+    /** Stack trace's method, null => invisible or trap */
+    private final VM_Method method;
+    /** Line number of element */
+    private final int lineNumber;
+    /** Is this an invisible method? */
+    private final boolean isInvisible;
+    /** Is this a hardware trap method? */
+    private final boolean isTrap;
+    /** Constructor for non-opt compiled methods */     
+    Element(VM_CompiledMethod cm, int off) {
+      isInvisible = (cm == null);
+      if (!isInvisible) {
+        isTrap = cm.getCompilerType() == VM_CompiledMethod.TRAP;
+        if (!isTrap) {
+          method = cm.getMethod();
+          lineNumber = cm.findLineNumberForInstruction(Offset.fromIntSignExtend(off));
         } else {
-          VM.sysWriteln("[ Retrying printing stack trace # ", traceIndex, "; using sysWrite(), this time ]");
-          print4Real(VM_PrintContainer.readyPrinter, trigger, depth);
+          method = null;
+          lineNumber = 0;
         }
+      } else {
+        isTrap = false;
+        method = null;
+        lineNumber = 0;
+      }
+    }
+    /** Constructor for opt compiled methods */
+    Element(VM_Method method, int ln) {
+      this.method = method;
+      lineNumber = ln;
+      isTrap = false;
+      isInvisible = false;
+    }
+    /** Get source file name */
+    public String getFileName() {
+      if (isInvisible || isTrap) {
+        return null;
+      } else {
+        VM_Atom fn = method.getDeclaringClass().getSourceName();
+        return (fn != null)  ? fn.toString() : null;
+      }
+    }
+    /** Get class name */
+    public String getClassName() {
+      if (isInvisible || isTrap) {
+        return null;
+      } else {
+        return method.getDeclaringClass().toString();
+      }
+    }
+    /** Get method name */
+    public String getMethodName() {
+      if (isInvisible) {
+        return "<invisible method>";
+      } else if (isTrap) {
+        return "<hardware trap>";
+      } else {
+        return method.getName().toString();
+      }
+    }
+    /** Get line number */
+    public int getLineNumber() {
+      return lineNumber;
+    }
+    public boolean isNative() {
+      if (isInvisible || isTrap) {
+        return false;
+      } else {
+        return method.isNative();
       }
     }
   }
 
-  public void print(VM_PrintLN out, Throwable trigger) {
-    print(out, trigger, null, 0);
-  }
-
-  /**
-   * Really Print the stack trace.
-   * Delegate the actual printing of the stack trace to the
-   * VM_CompiledMethod; this means it will deal with inlining by the opt
-   * compiler in a sensible fashion.
-   *
-   * This is not ever supposed to throw an OutOfMemoryError.  But if it should
-   * ever happen to do so, we will catch it in the caller, print().
-
-   * @param out VM_PrintLN to print on.
-   * @param trigger The Throwable that caused the stack trace.
-   *  Used to elide internal details from the stack trace.  Those internal
-   *  details are the methods we use to gather that stack trace.
-   *
-   *  If null, then we print a full stack trace, without eliding the
-   *  methods used internally to gather the stack trace.
-   */
-
-  private void print4Real(VM_PrintLN out, Throwable trigger, int depth) {
-    //    out.println("Calling print(out, trigger = " + trigger.toString() + ")"); // DEBUG XXX
-
-    if (depth > printingMaxDepth) {
-      VM.sysWriteln("VM_StackTrace.print4Real(): Already ",
-                    depth,
-                    " levels deep in a recursive stack trace; won't show trace # ",
-                    traceIndex);
-      return;                   // feign success
-    }
-    int lastFrame = lastFrameToPrint();
-
-    /* Where'd we find the trigger?
-     * -1 indicates that we never found the trigger. */
-    int foundTriggerAt = findTrigger(trigger, lastFrame);
-
-    /* Now we can start printing frames. */
-    int nPrinted = 0;           // how many frames have we printed?
-    for (int i = foundTriggerAt + 1; i <= lastFrame; ++i, ++nPrinted) {
-      VM_CompiledMethod cm = compiledMethods[i];
-      if (nPrinted == elideAfterThisManyFrames) {
-        // large stack - suppress excessive output
-        int oldIndex = i;
-        int newIndex = lastFrame - 9;
-        if (newIndex > oldIndex) {
-          i = newIndex;
-          try {
-            out.print("\t...");
-            out.print(newIndex - oldIndex);
-            out.println(" stackframes omitted.");
-            // out.println("\t..." + (newIndex - oldIndex) + " stackframes omitted...");
-            return;
-          } catch (OutOfMemoryError e) {
-            trigger.tallyOutOfMemoryError();
-            if (out.isSysWrite()) {
-              VM.sysWriteln("\t... <some stack frames elided (also, Out of memory)>");
-            } else {
-              VM.sysWriteln(
-                  "VM_StackTrace.print4Real(): Caught OutOfMemoryError while trying to display how many stack frames are omitted (elided).");
-              VM.sysWriteln("VM_StackTrace.print4Real(): Relaunching the error");
-
-              throw e;          // launch again, for our caller.
+  /** Return the stack trace for use by the Throwable API */
+  public Element[] getStackTrace() {
+    Element[] elements = new Element[countFrames()];
+    if (!VM.BuildForOptCompiler) {
+      for (int i=0; i < compiledMethods.length; i++) {
+        elements[i] = new Element(compiledMethods[i], instructionOffsets[i]);
+      }
+    } else {
+      int element = 0;
+      for (int i=0; i < compiledMethods.length; i++) {
+        VM_CompiledMethod compiledMethod = compiledMethods[i];
+        if (compiledMethod.getCompilerType() != VM_CompiledMethod.OPT) {
+          elements[element] = new Element(compiledMethods[i], instructionOffsets[i]);
+          element++;
+        } else {
+          Offset instructionOffset = Offset.fromIntSignExtend(instructionOffsets[i]);
+          VM_OptCompiledMethod optInfo = (VM_OptCompiledMethod)compiledMethod;
+          VM_OptMachineCodeMap map = optInfo.getMCMap();
+          int iei = map.getInlineEncodingForMCOffset(instructionOffset);
+          if (iei < 0) {
+            elements[element] = new Element(compiledMethods[i], instructionOffsets[i]);
+            element++;
+          } else {
+            int[] inlineEncoding = map.inlineEncoding;
+            int bci = map.getBytecodeIndexForMCOffset(instructionOffset);
+            for (; iei >= 0; iei = VM_OptEncodedCallSiteTree.getParent(iei, inlineEncoding)) {
+              int mid = VM_OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
+              VM_Method method = VM_MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
+              int lineNumber = ((VM_NormalMethod)method).getLineNumberForBCIndex(bci);
+              elements[element] = new Element(method, lineNumber);
+              element++;        
             }
           }
         }
       }
-      try {
-        //VM.sysWrite(framePointers.get(i));
-        if (cm == null) {
-          out.println("\tat <invisible method>");
-          /* Commented out; Work in Progress: */
-//      } else if (cm.getMethod() == runMethodMarkingPrelude) {
-//      /* cm.getMethod() yields a VM_Method. */
-//      /* Notice that if runMethodMarkingPrelude is null, the right thing
-//         happens here. */
-//              return;                 // gone far enough.
-        } else {
-          cm.printStackTrace(Offset.fromIntSignExtend(offsets[i]), out);
-        }
-      } catch (OutOfMemoryError e) {
-        trigger.tallyOutOfMemoryError();
+    }
+    return elements;
+  } 
 
-        if (out.isSysWrite()) {
-          VM.sysWriteln("\tat <one undisplayable stack frame (Out of Memory) >");
+  /** Count number of stack frames including those inlined */
+  private int countFrames() {
+    int numElements=0;    
+    if (!VM.BuildForOptCompiler) {
+      numElements = compiledMethods.length;
+    } else {
+      for (int i=0; i < compiledMethods.length; i++) {
+        VM_CompiledMethod compiledMethod = compiledMethods[i];
+        if (compiledMethod.getCompilerType() != VM_CompiledMethod.OPT) {
+          numElements++;
         } else {
-          try {
-            out.flush();
-            // The output's been flushed, I guess.  Make sure the line ends
-            // cleanly.
-            VM.sysWriteln();
-          } catch (OutOfMemoryError e2) {
-            trigger.tallyOutOfMemoryError();
-            VM.sysWriteln();
-            VM.sysWriteln("VM_StackTrace.print4Real: Caught OutOfMemoryError while flushing output.   Going on.");
+          Offset instructionOffset = Offset.fromIntSignExtend(instructionOffsets[i]);
+          VM_OptCompiledMethod optInfo = (VM_OptCompiledMethod)compiledMethod;
+          VM_OptMachineCodeMap map = optInfo.getMCMap();
+          int iei = map.getInlineEncodingForMCOffset(instructionOffset);
+          if (iei < 0) {
+            numElements++;
+          } else {
+            int[] inlineEncoding = map.inlineEncoding;
+            for (; iei >= 0; iei = VM_OptEncodedCallSiteTree.getParent(iei, inlineEncoding)) {
+              numElements++;
+            }
           }
-          VM.sysWriteln(
-              "VM_StackTrace.print4Real: Caught OutOfMemoryError while printing one frame of stack trace.  Re-throwing it.");
-          throw e;              // pass up to caller.
         }
       }
     }
+    return numElements;
   }
-
-  /** Helper for print4Real: What methods at the end (At the top of the call
-   tree) should be omitted, since they're just internal system overhead? */
-  private int lastFrameToPrint() {
-    int lastFrame = compiledMethods.length - 1;
-
-    // The Main Thread's last six stack frames are always:
-    //
-    //   <invisible method>  (the reflection frame)
-    //   Lorg/jikesrvm/VM_Reflection; invoke()
-    //   Lorg/jikesrvm/VM_MainThread; run()V
-    //   Lorg/jikesrvm/VM_Thread; run()V
-    //   Lorg/jikesrvm/VM_Thread; startoff()V
-    // so we can skip them.
-    //
-    // Other Threads, except for the boot thread, have VM_Thread.startoff as
-    // the last stack frame, and VM_Thread.run() as the penultimate stack
-    // frame.
-    for (; lastFrame > 0; --lastFrame) {
-      VM_Method m = compiledMethods[lastFrame].getMethod();
-      if (m == VM_Entrypoints.threadStartoffMethod) {
-        continue;
-      }             /* org.jikesrvm.scheduler.VM_Thread.startoff() is OK
-                                 to elide. */
-      if (m == VM_Entrypoints.threadRunMethod) {
-        continue;
-      }             /* org.jikesrvm.scheduler.VM_Thread.run() is OK
-                                 to elide. */
-      if (m == VM_Entrypoints.mainThreadRunMethod) {
-        lastFrame -= 3;
-        if (lastFrame <= 0) {
-          // error actually happened before reflective invoke;
-          // so put back the elided frames that aren't all there yet...
-          lastFrame += 3;
-        }
-        break;             /* org.jikesrvm.scheduler.VM_MainThread.run() is OK to
-                              elide */
-      }
-      /* No match.  Abort. */
-      break;
-    }
-    return lastFrame;
-  }
-
-  /** What triggered the stack trace?  Return -1 (IMPORTANT) as a sentinel
-   value if we do not find the trigger, or if the trigger is null.
-   */
-  private int findTrigger(Throwable trigger, int lastFrame) {
-    int foundTriggerAt = -1;    // -1 is a sentinel value; important in code
-    // below.
-    if (trigger != null) {
-      Class<? extends Throwable> triggerClass = trigger.getClass();
-      /* So, elide up to the triggeringMethod.  If we never find the
-         triggeringMethod, then leave foundTriggerAt set to -1; the printing
-         code will handle that correctly.. */
-      for (int i = 0; i <= lastFrame; ++i) {
-        VM_CompiledMethod cm = compiledMethods[i];
-        if (cm == null || cm.getCompilerType() == VM_CompiledMethod.TRAP) {
-          continue;
-        }
-        VM_Method m = cm.getMethod();
-        /* Declaring class of the method whose call is recorded in this stack
-         * frame.  */
-        VM_Class frameVM_Class = m.getDeclaringClass();
-        if (frameVM_Class.getClassForType() == triggerClass) {
-          foundTriggerAt = i;
-          break;
-        }
-      }
-    }
-    /* foundTriggerAt should either be between 0 and lastFrame
-       or it should be -1. */
-
-    // Handle case where an out of line machine code frame is
-    // at compiledMethods[foundTriggerAt +1].
-    // Happens when the exception object being thrown is created via
-    // reflection (which is how JNI does it).
-    while (foundTriggerAt + 2 < compiledMethods.length && compiledMethods[foundTriggerAt + 1] == null) {
-      foundTriggerAt++;
-    }
-
-    /* Now check to see if the triggering frame is VM_Runtime.deliverHardwareException.
-       If it is, then skip two more frames to avoid showing it and the
-       <hardware trap> frame that called it */
-    VM_CompiledMethod bottom = compiledMethods[foundTriggerAt + 1];
-    if (bottom.getMethod() == VM_Entrypoints.deliverHardwareExceptionMethod) {
-      foundTriggerAt += 2;
-    }
-    return foundTriggerAt;
-  }
-
 }
