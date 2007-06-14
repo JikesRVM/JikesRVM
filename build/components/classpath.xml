@@ -116,7 +116,7 @@
     <test-file name="ecj.dir" location="${components.file}"/>
     <test-file name="make.exe" location="${host.file}"/>
 
-    <condition property="cp.enable.gtk-peer" value=" --enable-gtk-peer" else=" --disable-gtk-peer">
+    <condition property="cp.enable.gtk-peer" value=" --enable-gtk-peer --enable-portable-native-sync" else=" --disable-gtk-peer">
       <and>
         <not>
           <or>
