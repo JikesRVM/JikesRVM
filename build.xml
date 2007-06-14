@@ -80,7 +80,8 @@
     </fail>
     <available property="host_config_present" file="${config.file}"/>
     <fail unless="host_config_present">
-      Configuration file ${config.file} not present. Please set config.name to the name of file in ${jikesrvm.dir}/build/configs directory without the .properties suffix.
+      Configuration file ${config.file} not present. Please set config.name to the name of file in
+      ${jikesrvm.dir}/build/configs directory without the .properties suffix.
     </fail>
     <test-property name="config.mmtk.plan" location="${config.file}"/>
   </target>
@@ -88,7 +89,8 @@
   <target name="check-target-properties">
     <available property="target_config_present" file="${target.file}"/>
     <fail unless="target_config_present">
-      Target file ${target.file} not present. Please set target.name to the name of file in ${jikesrvm.dir}/build/targets directory without the .properties suffix.
+      Target file ${target.file} not present. Please set target.name to the name of file in
+      ${jikesrvm.dir}/build/targets directory without the .properties suffix.
     </fail>
     <test-property name="target.arch" location="${target.file}"/>
     <test-property name="target.os" location="${target.file}"/>
@@ -102,10 +104,11 @@
     <test-property name="target.jni-suffix" location="${target.file}"/>
   </target>
 
-  <target name="check-host-properties"  depends="check-host-name">
+  <target name="check-host-properties" depends="check-host-name">
     <available property="host_file_present" file="${host.file}"/>
     <fail unless="host_file_present">
-      Host file ${host.file} not present. Please set host.name to the name of file in ${jikesrvm.dir}/build/hosts directory without the .properties suffix.
+      Host file ${host.file} not present. Please set host.name to the name of file in ${jikesrvm.dir}/build/hosts
+      directory without the .properties suffix.
     </fail>
     <test-file name="bison.exe" location="${host.file}"/>
     <test-file name="c++.exe" location="${host.file}"/>
@@ -338,7 +341,8 @@ Check to make sure all required properties are specified. This includes properti
       <GenerateFromTemplate>
         <args>
           <arg value="${build.ir.dir}/OPT_Operator.template"/>
-          <arg value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/ir/OPT_Operator.java"/>
+          <arg
+              value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/ir/OPT_Operator.java"/>
           <arg value="ARCH_IR_DIR=@{arch}"/>
           <arg value="ARCHITECTURE=@{arch}"/>
           <arg value="ARCH_BITS=@{addressSize}"/>
@@ -352,7 +356,8 @@ Check to make sure all required properties are specified. This includes properti
       <GenerateFromTemplate>
         <args>
           <arg value="${build.ir.dir}/OPT_Operators.template"/>
-          <arg value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/ir/OPT_Operators.java"/>
+          <arg
+              value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/ir/OPT_Operators.java"/>
           <arg value="ARCH_IR_DIR=@{arch}"/>
           <arg value="ARCHITECTURE=@{arch}"/>
           <arg value="ARCH_BITS=@{addressSize}"/>
@@ -395,7 +400,8 @@ Check to make sure all required properties are specified. This includes properti
       <exec executable="${perl.exe}" failonerror="true">
         <arg value="${build.ir.dir}/splitInstructionFormats.perl"/>
         <arg value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/ir"/>
-        <arg value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/ir/InstructionFormats.RAW"/>
+        <arg
+            value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/ir/InstructionFormats.RAW"/>
       </exec>
 
       <mkdir dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/@{arch}"/>
@@ -417,7 +423,8 @@ Check to make sure all required properties are specified. This includes properti
         <arg value="-p"/>
         <arg value="BURS"/>
         <arg value="ir.brg"/>
-        <redirector output="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/@{arch}/jburg.out"/>
+        <redirector
+            output="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/@{arch}/jburg.out"/>
       </exec>
 
       <copy file="${basedir}/rvm/src-generated/opt-burs/jburg/burg.template"
@@ -433,27 +440,32 @@ Check to make sure all required properties are specified. This includes properti
         </filterset>
       </copy>
 
-      <concat destfile="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/@{arch}/OPT_BURS_TreeNode.java">
+      <concat
+          destfile="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/@{arch}/OPT_BURS_TreeNode.java">
         <filelist dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/@{arch}"
                   files="OPT_BURS_TreeNode.template"/>
         <filelist dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/@{arch}"
                   files="BURS_State.template"/>
       </concat>
 
-      <concat destfile="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/@{arch}/OPT_BURS_STATE.java">
-        <filelist dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/@{arch}" files="burg.template"/>
-        <filelist dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/@{arch}" files="jburg.out"/>
+      <concat
+          destfile="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/@{arch}/OPT_BURS_STATE.java">
+        <filelist dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/@{arch}"
+                  files="burg.template"/>
+        <filelist dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/@{arch}"
+                  files="jburg.out"/>
       </concat>
       <mkdir dir="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/@{arch}"/>
       <GenerateFromTemplate>
         <args>
           <arg value="${basedir}/rvm/src-generated/opt-scheduler/OPT_OperatorClass.template"/>
-          <arg value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/OPT_OperatorClass.java"/>
+          <arg
+              value="${generated.dir}/@{arch}-@{addressSize}/main/java/org/jikesrvm/compilers/opt/OPT_OperatorClass.java"/>
           <arg value="ARCHITECTURE_IR_DIR=@{arch}"/>
           <arg value="ADDRESS_MODE=@{addressSize}"/>
         </args>
       </GenerateFromTemplate>
-      
+
       <condition property="@{arch}-ppc_quote" value="/**" else="">
         <equals arg1="@{arch}" arg2="ppc"/>
       </condition>
@@ -657,7 +669,8 @@ Check to make sure all required properties are specified. This includes properti
 
     <mkdir dir="${generated.config.java}/org/jikesrvm/memorymanagers/mminterface"/>
 
-    <condition property="pp_RVM_ARCH_HELPER" value="org.jikesrvm.ppc.VM_MachineSpecificPowerPC.PPC${target.address.size}">
+    <condition property="pp_RVM_ARCH_HELPER"
+               value="org.jikesrvm.ppc.VM_MachineSpecificPowerPC.PPC${target.address.size}">
       <equals arg1="${target.arch}" arg2="ppc"/>
     </condition>
     <condition property="pp_RVM_ARCH_HELPER"
@@ -709,7 +722,7 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="pp_RVM_WITH_GCTRACE" value="true" else="false">
       <equals arg1="${config.mmtk.plan}" arg2="org.mmtk.plan.semispace.gctrace.GCTrace"/>
     </condition>
-    
+
 
     <copy file="${basedir}/rvm/src-generated/vm-configuration/VM_Configuration.template"
           tofile="${generated.config.java}/org/jikesrvm/VM_Configuration.java">
@@ -731,17 +744,17 @@ Check to make sure all required properties are specified. This includes properti
         <filter token="_RVM_WITH_GCSPY_" value="${config.include.gcspy}"/>
         <filter token="_RVM_CLASSPATH_VERSION_" value="${classpath.version}"/>
         <filter token="_RVM_STRESSGC_INTERVAL_" value="${config.stress-gc-interval}"/>
-        <filter token="_RVM_WITH_GCTRACE_" value="${pp_RVM_WITH_GCTRACE}"/>        
+        <filter token="_RVM_WITH_GCTRACE_" value="${pp_RVM_WITH_GCTRACE}"/>
       </filterset>
     </copy>
-    
+
     <copy file="${basedir}/rvm/src-generated/vm-configuration/Selected.template"
           tofile="${generated.config.java}/org/jikesrvm/memorymanagers/mminterface/Selected.java">
       <filterset>
         <filter token="_PLAN_" value="${config.mmtk.plan}"/>
       </filterset>
     </copy>
-    
+
     <condition property="pp_address.method" value="fromIntZeroExtend" else="fromLong">
       <equals arg1="${target.address.size}" arg2="32"/>
     </condition>
@@ -755,7 +768,7 @@ Check to make sure all required properties are specified. This includes properti
         <filter token="_ADDRESS_METHOD_" value="${pp_address.method}"/>
       </filterset>
     </copy>
-    
+
     <mkdir dir="${generated.config.native}"/>
     <echo file="${generated.config.native}/RunBootImage.h">
       const unsigned heap_default_initial_size = ${config.default-heapsize.initial}*1024*1024;
@@ -827,7 +840,7 @@ Check to make sure all required properties are specified. This includes properti
         <property name="classlib.library-interface.non-cpl.java" location="libraryInterface/GNUClasspath/LGPL/src"/>
         <property name="classlib.library-interface.non-cpl2.java" location="libraryInterface/GNUClasspath/PD/src"/>
       </sequential>
-    </if>  
+    </if>
   </target>
 
   <target name="compile" depends="compile-mmtk,prepare-source,prepare-config-source,choose-classlib">
@@ -835,7 +848,7 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="exclude-arch" value="IA" else="PPC">
       <equals arg1="${target.arch}" arg2="ppc"/>
     </condition>
-    
+
     <!--
      FIXME: When we can capture the primordials based on reachability
      we will not need to delete class dir here. We will also be able to
@@ -880,7 +893,7 @@ Check to make sure all required properties are specified. This includes properti
       <arg value="${build.base}/syscall/java"/>
       <arg value="${main.java}/org/jikesrvm/runtime/VM_SysCall.java"/>
     </exec>
-    
+
     <echo message="second compile (from ${generated.java})"/>
     <javac destdir="${build.classes}"
            debug="true"
@@ -918,7 +931,7 @@ Check to make sure all required properties are specified. This includes properti
     <jar destfile="${build.vm.jar}" update="true">
       <fileset dir="${build.classes}">
         <exclude name="java/**"/>
-	<exclude name="sun/**"/>
+        <exclude name="sun/**"/>
         <exclude name="gnu/**"/>
       </fileset>
       <fileset dir="${build.vmmagic-stub.classes}">
@@ -984,7 +997,7 @@ Check to make sure all required properties are specified. This includes properti
       <and>
         <isset property="include.opt"/>
         <isset property="include.all"/>
-      </and>                              
+      </and>
     </condition>
     <condition property="primordials.arch" value=",RVM_PPC.txt" else=",RVM_IA32.txt">
       <equals arg1="${target.arch}" arg2="ppc"/>
@@ -1091,7 +1104,8 @@ Check to make sure all required properties are specified. This includes properti
   <!-- Generate InterfaceDeclarations.h for booter -->
   <target name="gen-interface" depends="package">
     <mkdir dir="${build.native}"/>
-    <java classname="org.jikesrvm.tools.header_gen.GenerateInterfaceDeclarations" fork="yes" maxmemory="200M" failonerror="true">
+    <java classname="org.jikesrvm.tools.header_gen.GenerateInterfaceDeclarations" fork="yes" maxmemory="200M"
+          failonerror="true">
       <classpath>
         <pathelement location="${build.classes}"/>
         <pathelement location="${build.vm.jar}"/>
@@ -1255,7 +1269,7 @@ Check to make sure all required properties are specified. This includes properti
       <arg value="${build.base}/RVM.map"/>
       <arg value="${build.base}/JikesRVM-symbols.s"/>
     </exec>
- 
+
     <exec executable="${c++.exe}" failonerror="true">
       <arg value="-c"/>
       <arg value="-o"/>
@@ -1281,7 +1295,7 @@ Check to make sure all required properties are specified. This includes properti
     </copy>
     <copy file="${basedir}/tools/bootImageRunner/rvm" todir="${dist.base}">
       <filterset>
-        <filter token="PRELOAD" 
+        <filter token="PRELOAD"
                 value="${target.dll-prefix}syswrap${target.dll-ext}"/>
       </filterset>
     </copy>
@@ -1327,7 +1341,7 @@ target.jni-suffix=${target.jni-suffix}
     <copy todir="${dist.base}">
       <fileset dir="${build.base}">
         <include name="*${target.dll-ext}"/>
-        <include name="*${target.jni-suffix}"/>        
+        <include name="*${target.jni-suffix}"/>
         <include name="JikesRVM"/>
         <include name="JikesRVM-symbols.o"/>
       </fileset>
@@ -1335,7 +1349,7 @@ target.jni-suffix=${target.jni-suffix}
     <chmod perm="ugo+rx">
       <fileset dir="${dist.base}">
         <include name="*${target.dll-ext}"/>
-        <include name="*${target.jni-suffix}"/>        
+        <include name="*${target.jni-suffix}"/>
         <include name="JikesRVM"/>
       </fileset>
     </chmod>
@@ -1362,12 +1376,12 @@ target.jni-suffix=${target.jni-suffix}
           if="include.gcspy">
     <copy todir="${dist.base}">
       <fileset dir="${gcspy.server.dir}">
-        <include name="${target.dll-prefix}*${target.jni-suffix}"/>        
+        <include name="${target.dll-prefix}*${target.jni-suffix}"/>
       </fileset>
     </copy>
     <chmod perm="ugo+rx">
       <fileset dir="${dist.base}">
-        <include name="*${target.jni-suffix}"/>        
+        <include name="*${target.jni-suffix}"/>
       </fileset>
     </chmod>
   </target>
@@ -1435,7 +1449,7 @@ target.jni-suffix=${target.jni-suffix}
     <ant antfile="build/components/pmd.xml" target="ensure"/>
 
     <taskdef name="pmd" classname="net.sourceforge.pmd.ant.PMDTask">
-      <classpath >
+      <classpath>
         <fileset dir="${pmd.dir}/lib">
           <include name="*.jar"/>
         </fileset>
@@ -1534,7 +1548,7 @@ target.jni-suffix=${target.jni-suffix}
         source="1.5"
         private="true"
         windowtitle="Jikes RVM API">
-      
+
       <classpath>
         <pathelement location="${build.dir}/javadoc/classes-ia32"/>
       </classpath>
@@ -1546,13 +1560,13 @@ target.jni-suffix=${target.jni-suffix}
 
       <arg value="-linksource"/>
       <arg value="-notimestamp"/>
-      
+
       <packageset dir="${main.java}" defaultexcludes="yes" includes="org/**" excludes="**/ppc/**"/>
       <packageset dir="${classlib.library-interface.common.java}" defaultexcludes="yes" includes="gnu/**"/>
       <packageset dir="${classlib.library-interface.cpl.java}" defaultexcludes="yes" includes="gnu/**"/>
       <packageset dir="${classlib.library-interface.non-cpl.java}" defaultexcludes="yes" includes="gnu/**"/>
       <packageset dir="${classlib.library-interface.non-cpl2.java}" defaultexcludes="yes" includes="gnu/**"/>
-      
+
       <packageset dir="${vmmagic-stub.java}" defaultexcludes="yes" includes="org/**"/>
       <packageset dir="${mmtk.java}" defaultexcludes="yes" includes="org/**"/>
       <packageset dir="${mmtk-rvm.java}" defaultexcludes="yes" includes="org/**"/>
