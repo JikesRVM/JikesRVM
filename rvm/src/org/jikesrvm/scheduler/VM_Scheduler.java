@@ -14,7 +14,6 @@ package org.jikesrvm.scheduler;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Constants;
 import org.jikesrvm.classloader.VM_MemberReference;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_NormalMethod;
@@ -44,7 +43,7 @@ import org.vmmagic.unboxed.Offset;
  *    - locks
  */
 @Uninterruptible
-public class VM_Scheduler implements VM_Constants {
+public class VM_Scheduler {
 
   /** Toggle display of frame pointer address in stack dump */
   private static final boolean SHOW_FP_IN_STACK_DUMP = false;
@@ -68,21 +67,27 @@ public class VM_Scheduler implements VM_Constants {
   public static final int LOG_MAX_THREADS = 14;
   public static final int MAX_THREADS = 1 << LOG_MAX_THREADS;
 
-  // Flag for controlling virtual-to-physical processor binding.
-  //
+  /** Flag for controlling virtual-to-physical processor binding. */
   public static final int NO_CPU_AFFINITY = -1;
 
-  // scheduling quantum in milliseconds: interruptQuantum * interruptQuantumMultiplier
+  /** Scheduling quantum in milliseconds: interruptQuantum * interruptQuantumMultiplier */
   public static int schedulingQuantum = 10;
 
   // Virtual cpu's.
   //
-  public static int cpuAffinity =
-      NO_CPU_AFFINITY; // physical cpu to which first virtual processor is bound (remainder are bound sequentially)
-  public static int numProcessors = 1; // total number of virtual processors to be used
-  public static VM_Processor[] processors;        // list thereof (slot 0 always empty)
-  public static boolean allProcessorsInitialized; // have all completed initialization?
-  public static boolean terminated;        // VM is terminated, clean up and exit
+  /**
+   * Physical cpu to which first virtual processor is bound (remainder are bound
+   * sequentially)
+   */
+  public static int cpuAffinity = NO_CPU_AFFINITY;
+  /** Total number of virtual processors to be used */
+  public static int numProcessors = 1;
+  /** Array of all virtual processors (slot 0 always empty) */
+  public static VM_Processor[] processors;
+  /** Have all processors completed initialization? */
+  public static boolean allProcessorsInitialized;
+  /** VM is terminated, clean up and exit */
+  public static boolean terminated;
 
   // Thread creation and deletion.
   //
@@ -118,22 +123,45 @@ public class VM_Scheduler implements VM_Constants {
   public static final VM_ThreadQueue finalizerQueue = new VM_ThreadQueue();
   public static final VM_ProcessorLock finalizerMutex = new VM_ProcessorLock();
 
-  // Debugging output.
-
-  // Thick locks.
-  //
+  /** Thick locks. */
   public static VM_Lock[] locks;
 
-  // Flag set by external signal to request debugger activation at next thread switch.
-  // See also: RunBootImage.C
-  //
+  /**
+   * Flag set by external signal to request debugger activation at next thread switch.
+   * See also: RunBootImage.C
+   */
   public static boolean debugRequested;
 
-  // Trace flags.
-  //
-  static final boolean countLocks = false;
+  /** Number of times dump stack has been called recursively */
+  private static int inDumpStack = 0;
 
-  private static int NUM_EXTRA_PROCS = 0; // How many extra procs (not counting primordial) ?
+  /** In dump stack and dying */
+  private static boolean exitInProgress = false;
+
+  /** How many extra procs (not counting primordial) ? */
+  private static int NUM_EXTRA_PROCS = 0;
+
+  /** Extra debug from traces */
+  private static final boolean traceDetails = false;
+
+  /** Int controlling output. 0 => output can be used, otherwise ID of processor */
+  @SuppressWarnings({"unused", "UnusedDeclaration"})
+  private static int outputLock;
+  
+  ////////////////////////////////////////////////
+  // fields for synchronizing code patching
+  ////////////////////////////////////////////////
+
+  /**
+   * How may processors to be synchronized for code patching, the last one (0)
+   * will notify the blocked thread. Used only if RVM_FOR_POWERPC is true
+   */
+  public static int toSyncProcessors;
+
+  /**
+   * Synchronize object. Used only if RVM_FOR_POWERPC is true
+   */
+  public static Object syncObj = null;
 
   /**
    * Initialize boot image.
@@ -363,8 +391,6 @@ public class VM_Scheduler implements VM_Constants {
 
   }
 
-  private static final boolean traceDetails = false;
-
   /**
    * Print out message in format "p[j] (cez#td) who: what", where:
    *    p  = processor id
@@ -522,7 +548,6 @@ public class VM_Scheduler implements VM_Constants {
   }
 
   static void tracebackWithoutLock() {
-
     if (VM.runningVM) {
       dumpStack(VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()));
     } else {
@@ -538,8 +563,11 @@ public class VM_Scheduler implements VM_Constants {
     if (VM.runningVM) {
       dumpStack(VM_Magic.getFramePointer());
     } else {
-      (new Throwable("--traceback from Jikes RVM's VM_Scheduler class--"))
-          .printStackTrace();
+      StackTraceElement[] elements =
+        (new Throwable("--traceback from Jikes RVM's VM_Scheduler class--")).getStackTrace();
+      for (StackTraceElement element: elements) {
+        System.err.println(element.toString());
+      }
     }
   }
 
@@ -558,8 +586,6 @@ public class VM_Scheduler implements VM_Constants {
     dumpStack(ip, fp);
 
   }
-
-  static int inDumpStack = 0;
 
   /**
    * Dump state of a (stopped) thread's stack.
@@ -614,18 +640,13 @@ public class VM_Scheduler implements VM_Constants {
             if (iei >= 0) {
               int[] inlineEncoding = map.inlineEncoding;
               int bci = map.getBytecodeIndexForMCOffset(instructionOffset);
-              for (; iei >= 0; iei = VM_OptEncodedCallSiteTree
-                  .getParent(iei, inlineEncoding)) {
-                int mid = VM_OptEncodedCallSiteTree
-                    .getMethodID(iei, inlineEncoding);
-                method = VM_MemberReference.getMemberRef(mid)
-                    .asMethodReference().getResolvedMember();
-                lineNumber = ((VM_NormalMethod) method)
-                    .getLineNumberForBCIndex(bci);
+              for (; iei >= 0; iei = VM_OptEncodedCallSiteTree.getParent(iei, inlineEncoding)) {
+                int mid = VM_OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
+                method = VM_MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
+                lineNumber = ((VM_NormalMethod)method).getLineNumberForBCIndex(bci);
                 showMethod(method, lineNumber, fp);
                 if (iei > 0) {
-                  bci = VM_OptEncodedCallSiteTree
-                      .getByteCodeOffset(iei, inlineEncoding);
+                  bci = VM_OptEncodedCallSiteTree.getByteCodeOffset(iei, inlineEncoding);
                 }
               }
             } else {
@@ -646,7 +667,7 @@ public class VM_Scheduler implements VM_Constants {
   }
 
   private static void showPrologue(Address fp) {
-    VM.sysWrite("   ");
+    VM.sysWrite("   at ");
     if (SHOW_FP_IN_STACK_DUMP) {
       VM.sysWrite("[");
       VM.sysWrite(fp);
@@ -699,8 +720,6 @@ public class VM_Scheduler implements VM_Constants {
     }
     VM.sysWrite("\n");
   }
-
-  private static boolean exitInProgress = false;
 
   /**
    * Dump state of a (stopped) thread's stack and exit the virtual machine.
@@ -800,21 +819,22 @@ public class VM_Scheduler implements VM_Constants {
   // Low level output locking. //
   //---------------------------//
 
-  static int outputLock;
-
   static void lockOutput() {
     if (VM_Scheduler.numProcessors == 1) return;
     VM_Processor.getCurrentProcessor().disableThreadSwitching();
     do {
       int processorId = VM_Magic.prepareInt(VM_Magic.getJTOC(), VM_Entrypoints.outputLockField.getOffset());
-      if (processorId == 0 &&
-          VM_Magic.attemptInt(VM_Magic.getJTOC(),
-                              VM_Entrypoints.outputLockField.getOffset(),
-                              0,
-                              VM_Processor.getCurrentProcessorId())) {
-        break;
+      if (processorId != 0) {
+        // expect 0 but got another processor's ID
+        continue;
       }
-    } while (true);
+      // Attempt atomic swap of outputLock to out processor ID
+      if(!VM_Magic.attemptInt(VM_Magic.getJTOC(),
+          VM_Entrypoints.outputLockField.getOffset(),
+          0, VM_Processor.getCurrentProcessorId())) {
+        continue;
+      }
+    } while (false);
     VM_Magic.isync(); // TODO!! is this really necessary?
   }
 
@@ -836,19 +856,4 @@ public class VM_Scheduler implements VM_Constants {
     }
     VM_Processor.getCurrentProcessor().enableThreadSwitching();
   }
-
-  ////////////////////////////////////////////////
-  // fields for synchronizing code patching
-  ////////////////////////////////////////////////
-
-  /**
-   * how may processors to be synchronized for code patching, the last
-   * one (0) will notify the blocked thread.
-   */
-  public static int toSyncProcessors;  // Used only if RVM_FOR_POWERPC is true
-
-  /**
-   * synchronize object
-   */
-  public static Object syncObj = null; // Used only if RVM_FOR_POWERPC is true
 }
