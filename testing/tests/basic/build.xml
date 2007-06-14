@@ -106,6 +106,7 @@
     <runCompareTest tag="TestInterruptAndSpin" class="test.org.jikesrvm.basic.core.threads.TestInterruptAndSpin"/>
     <runCompareTest tag="TestInterruptedSleep" class="test.org.jikesrvm.basic.core.threads.TestInterruptedSleep"/>
     <runCompareTest tag="TestInterruptedWait" class="test.org.jikesrvm.basic.core.threads.TestInterruptedWait"/>
+    <runCompareTest tag="TestParallelHardwareTrap" class="test.org.jikesrvm.basic.core.threads.TestParallelHardwareTrap" timeLimit="20"/>
     <runCompareTest tag="TestStop" class="test.org.jikesrvm.basic.core.threads.TestStop"/>
     <runCompareTest tag="TestSuspend" class="test.org.jikesrvm.basic.core.threads.TestSuspend" timeLimit="20"/>
     <runCompareTest tag="TestTimeSlicing" class="test.org.jikesrvm.basic.core.threads.TestTimeSlicing"/>

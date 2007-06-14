@@ -267,7 +267,21 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
     unsigned int localInstructionAddress;
     static pthread_mutex_t exceptionLock = PTHREAD_MUTEX_INITIALIZER;
 
-    pthread_mutex_lock( &exceptionLock );
+    /*
+     * Get the exceptionLock. We can not call pthread_mutex_lock,
+     * it might block and we could catch another signal
+     */
+    for(;;) {
+      int lockrc = pthread_mutex_trylock( &exceptionLock );
+      if (lockrc == 0) break;        // We have the lock
+      if (lockrc == EBUSY) continue; // Busy, we *must* spin
+
+      writeErr("invalid result from pthread_mutex_trylock %d\n", lockrc);
+      signal(signo, SIG_DFL);
+      raise(signo);
+      // We should never get here.
+      _exit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
+    }
 
     unsigned int localVirtualProcessorAddress;
     unsigned int localFrameAddress;
