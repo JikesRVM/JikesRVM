@@ -32,7 +32,6 @@ import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.NoInline;
-import org.vmmagic.pragma.NoOptCompile;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -648,10 +647,6 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    *           onto the stack immediately above this frame, for use by
    *           VM_HardwareTrapGCMapIterator during garbage collection.
    */
-  // Force baseline compilation so calls to exception constructors aren't inlined,
-  // since inlining confuses VM_StackTrace when it searches for the exception on the stack.
-  // TODO: Modify VM_StackTrace so it understands inlined calls
-  @NoOptCompile
   static void deliverHardwareException(int trapCode, int trapInfo) {
 
     VM_Thread myThread = VM_Thread.getCurrentThread();
@@ -933,16 +928,16 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
     VM_Thread.getCurrentThread().dyingWithUncaughtException = true;
 
     /* Grow the heap.
-* This could be (but isn't) undoable.  That doesn't matter here, since
-* we're dying in any case.
-*
-* There's no way to give the additional memory exclusively to this
-* particular thread; too bad. */
+     * This could be (but isn't) undoable.  That doesn't matter here, since
+     * we're dying in any case.
+     *
+     * There's no way to give the additional memory exclusively to this
+     * particular thread; too bad. */
     if (VM.doEmergencyGrowHeap && exceptionObject instanceof OutOfMemoryError) {
       MM_Interface.emergencyGrowHeap(5 * (1 << 20)); // ask for 5 megs and pray
     }
-    handlePossibleRecursiveException();
     VM.enableGC();
+    handlePossibleRecursiveException();
     VM_Thread vmThr = VM_Thread.getCurrentThread();
     Thread thr = vmThr.peekJavaLangThread();
     if (thr == null) {
@@ -952,17 +947,38 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
       VM.sysWrite("Exception in thread \"", thr.getName(), "\": ");
     }
     exceptionObject.printStackTrace();
+    // Exception "handled" so decrement uncaught exception count
+    synchronized(VM_Runtime.class) {
+      handlingUncaughtException--;
+    }
     VM_Thread.terminate();
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
   }
 
-  private static int handlingUncaughtException = 0; // used by handlePossibleRecursiveException()
+  /**
+   * used by handlePossibleRecursiveException() to determine the number of
+   * exceptions being handled
+   */
+  private static int handlingUncaughtException = 0;
 
   /** Handle the case of exception handling triggering new exceptions. */
   private static void handlePossibleRecursiveException() {
-    ++handlingUncaughtException;
-    if (handlingUncaughtException > 1 &&
-        handlingUncaughtException <=
+    int numUncaughtExceptions;
+    // ensure access to handlingUncaughtException is synchronized
+    synchronized(VM_Runtime.class) {
+      handlingUncaughtException++;
+      numUncaughtExceptions = handlingUncaughtException; 
+    }
+    // If there are uncaught exceptions being handled try to let them finish
+    // before complaining
+    if (numUncaughtExceptions > 1) {
+      VM_Thread.yield();
+    }
+    synchronized(VM_Runtime.class) {
+      numUncaughtExceptions = handlingUncaughtException; 
+    }
+    if (numUncaughtExceptions > 1 &&
+        numUncaughtExceptions <=
         VM.maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite) {
       VM.sysWrite("We got an uncaught exception while (recursively) handling ");
       VM.sysWrite(handlingUncaughtException - 1);
@@ -972,7 +988,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
       }
       VM.sysWriteln(".");
     }
-    if (handlingUncaughtException > VM.maxSystemTroubleRecursionDepth) {
+    if (numUncaughtExceptions > VM.maxSystemTroubleRecursionDepth) {
       VM.dieAbruptlyRecursiveSystemTrouble();
       if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
     }

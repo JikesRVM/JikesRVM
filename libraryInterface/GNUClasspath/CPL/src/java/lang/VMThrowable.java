@@ -62,7 +62,7 @@ public final class VMThrowable {
       return proxyVMThrowable;
     } else {
       try {
-        VM_StackTrace stackTrace = new VM_StackTrace(1);
+        VM_StackTrace stackTrace = new VM_StackTrace();
         return new VMThrowable(stackTrace);
       } catch (OutOfMemoryError t) {
         VM.sysWriteln("VMThrowable.fillInStackTrace(): Cannot fill in a stack trace; out of memory!");
@@ -86,7 +86,7 @@ public final class VMThrowable {
     } else {
       VM_StackTrace.Element[] vmElements;
       try {
-        vmElements = stackTrace.getStackTrace();
+        vmElements = stackTrace.getStackTrace(parent);
       } catch (Throwable t) {
         VM.sysWriteln("Error calling VM_StackTrace.getStackTrace: dumping stack using scheduler");
         VM_Scheduler.dumpStack();

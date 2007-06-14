@@ -26,6 +26,7 @@ import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.objectmodel.VM_FieldLayoutContext;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_Runtime;
 import org.jikesrvm.runtime.VM_StackBrowser;
 import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.util.VM_Synchronizer;
@@ -342,7 +343,13 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
   public boolean isMemberClass() {
     return ((declaringClass != null) && ((modifiers & ACC_STATIC) == 0));
   }
-
+  /**
+   * @return true if this an object of this class could be assigned to Throwable
+   */
+  public boolean isThrowable() {
+    return (getTypeRef() == VM_TypeReference.JavaLangThrowable) ||
+    VM_Runtime.isAssignableWith(VM_TypeReference.JavaLangThrowable.resolve(), this);
+  }
   /**
    * Get the modifiers associated with this class {@link
    * VM_ClassLoaderConstants}.

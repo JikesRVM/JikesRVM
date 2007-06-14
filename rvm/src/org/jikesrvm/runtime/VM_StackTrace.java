@@ -15,8 +15,9 @@ package org.jikesrvm.runtime;
 import static org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP;
 import static org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants.INVISIBLE_METHOD_ID;
 import org.jikesrvm.VM;
+import org.jikesrvm.VM_Options;
 import org.jikesrvm.classloader.VM_Atom;
-import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_DynamicTypeCheck;
 import org.jikesrvm.classloader.VM_MemberReference;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_NormalMethod;
@@ -34,7 +35,10 @@ import org.vmmagic.unboxed.Offset;
  * of the call stack at a particular instant.
  */
 public class VM_StackTrace {
-  /** The compiled methods of the stack trace */
+  /**
+   * The compiled methods of the stack trace. Ordered with the top of the stack at
+   * 0 and the bottom of the stack at the end of the array
+   */
   private final VM_CompiledMethod[] compiledMethods;
 
   /** The offset of the instruction within the compiled method */
@@ -45,7 +49,7 @@ public class VM_StackTrace {
 
   /** Index of this stack trace */
   private final int traceIndex;
-
+  
   /** Should this be (or is this) a verbose stack trace? */
   private boolean isVerbose() {
     // If we're printing verbose stack traces...   
@@ -57,21 +61,20 @@ public class VM_StackTrace {
 
   /**
    * Create a trace of the current call stack
-   * @param skip number of stack trace elements to skip prior to creating
    */
-  public VM_StackTrace(int skip) {
+  public VM_StackTrace() {
     // Poor man's atomic integer, to get through bootstrap
     synchronized(VM_StackTrace.class) {
       lastTraceIndex++;
       traceIndex = lastTraceIndex;
     }
     // (1) Count the number of frames comprising the stack.
-    int numFrames = walkFrames(false, skip + 1);
+    int numFrames = walkFrames(false);
     // (2) Construct arrays to hold raw data
     compiledMethods = new VM_CompiledMethod[numFrames];
     instructionOffsets = new int[numFrames];
     // (3) Fill in arrays
-    walkFrames(true, skip + 1);
+    walkFrames(true);
     // Debugging trick: print every nth stack trace created
     if (isVerbose()) {
       VM.disableGC();
@@ -85,18 +88,13 @@ public class VM_StackTrace {
   /**
    * Walk the stack counting the number of stack frames encountered
    * @param record fill in the compiledMethods and instructionOffsets arrays?
-   * @param skip number of stack frames to skip prior to counting
    * @return number of stack frames encountered
    */
-  private int walkFrames(boolean record, int skip) {
+  private int walkFrames(boolean record) {
     int stackFrameCount = 0;
     VM.disableGC(); // so fp & ip don't change under our feet
     Address fp = VM_Magic.getFramePointer();
     Address ip = VM_Magic.getReturnAddress(fp);
-    for (int i = 0; i < skip; i++) {
-      fp = VM_Magic.getCallerFramePointer(fp);
-      ip = VM_Magic.getReturnAddress(fp);
-    }
     fp = VM_Magic.getCallerFramePointer(fp);
     while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
       int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
@@ -203,15 +201,19 @@ public class VM_StackTrace {
   }
 
   /** Return the stack trace for use by the Throwable API */
-  public Element[] getStackTrace() {
-    Element[] elements = new Element[countFrames()];
+  public Element[] getStackTrace(Throwable cause) {
+    int first = firstRealMethod(cause);
+    int last = lastRealMethod(first);
+    Element[] elements = new Element[countFrames(first, last)];
     if (!VM.BuildForOptCompiler) {
-      for (int i=0; i < compiledMethods.length; i++) {
-        elements[i] = new Element(compiledMethods[i], instructionOffsets[i]);
+      int element = 0;
+      for (int i=first; i <= last; i++) {
+        elements[element] = new Element(compiledMethods[i], instructionOffsets[i]);
+        element++;
       }
     } else {
       int element = 0;
-      for (int i=0; i < compiledMethods.length; i++) {
+      for (int i=first; i <= last; i++) {
         VM_CompiledMethod compiledMethod = compiledMethods[i];
         if ((compiledMethod == null) ||
             (compiledMethod.getCompilerType() != VM_CompiledMethod.OPT)) {
@@ -243,13 +245,17 @@ public class VM_StackTrace {
     return elements;
   } 
 
-  /** Count number of stack frames including those inlined */
-  private int countFrames() {
-    int numElements=0;    
+  /**
+   * Count number of stack frames including those inlined by the opt compiler
+   * @param first the first compiled method to look from
+   * @param last the last compiled method to look to
+   */
+  private int countFrames(int first, int last) {
+    int numElements=0;
     if (!VM.BuildForOptCompiler) {
-      numElements = compiledMethods.length;
+      numElements = last - first + 1;
     } else {
-      for (int i=0; i < compiledMethods.length; i++) {
+      for (int i=first; i <= last; i++) {
         VM_CompiledMethod compiledMethod = compiledMethods[i];
         if ((compiledMethod == null) ||
             (compiledMethod.getCompilerType() != VM_CompiledMethod.OPT)) {
@@ -272,5 +278,136 @@ public class VM_StackTrace {
       }
     }
     return numElements;
+  }
+  /**
+   * Find the first non-VM method/exception initializer method in the stack
+   * trace. As we're working with the compiled methods we're assumig the
+   * constructor of the exception won't have been inlined into the throwing
+   * method.
+   * 
+   * @param cause the cause of generating the stack trace marking the end of the
+   *          frames to elide
+   * @return the index of the method throwing the exception or else 0
+   */  
+  private int firstRealMethod(Throwable cause) {
+    /* We expect a hardware trap to look like:
+     * at org.jikesrvm.runtime.VM_StackTrace.<init>(VM_StackTrace.java:78)
+     * at java.lang.VMThrowable.fillInStackTrace(VMThrowable.java:67)
+     * at java.lang.Throwable.fillInStackTrace(Throwable.java:498)
+     * at java.lang.Throwable.<init>(Throwable.java:159)
+     * at java.lang.Throwable.<init>(Throwable.java:147)
+     * at java.lang.Exception.<init>(Exception.java:66)
+     * at java.lang.RuntimeException.<init>(RuntimeException.java:64)
+     * at java.lang.NullPointerException.<init>(NullPointerException.java:69)
+     * at org.jikesrvm.runtime.VM_Runtime.deliverHardwareException(VM_Runtime.java:682)
+     * at <hardware trap>(Unknown Source:0)
+     *
+     * and a software trap to look like:
+     * at org.jikesrvm.runtime.VM_StackTrace.<init>(VM_StackTrace.java:78)
+     * at java.lang.VMThrowable.fillInStackTrace(VMThrowable.java:67)
+     * at java.lang.Throwable.fillInStackTrace(Throwable.java:498)
+     * at java.lang.Throwable.<init>(Throwable.java:159)
+     * at java.lang.Error.<init>(Error.java:81)
+     * at java.lang.LinkageError.<init>(LinkageError.java:72)
+     * at java.lang.ExceptionInInitializerError.<init>(ExceptionInInitializerError.java:85)
+     * at java.lang.ExceptionInInitializerError.<init>(ExceptionInInitializerError.java:75)
+     */
+    if (VM_Options.stackTraceFull) {
+      return 0;
+    } else {
+      // (1) remove any VM_StackTrace frames
+      int element = 0;
+      while((element < compiledMethods.length) &&
+          (compiledMethods[element] != null) &&
+          compiledMethods[element].method.getDeclaringClass().getClassForType() == VM_StackTrace.class) {
+        element++;
+      }
+      // (2) remove any VMThrowable frames
+      while((element < compiledMethods.length) &&
+          (compiledMethods[element] != null) &&
+          compiledMethods[element].method.getDeclaringClass().getClassForType() == java.lang.VMThrowable.class) {
+        element++;
+      }
+      // (3) remove any Throwable frames
+      while((element < compiledMethods.length) &&
+          (compiledMethods[element] != null) &&
+          compiledMethods[element].method.getDeclaringClass().getClassForType() == java.lang.Throwable.class) {
+        element++;
+      }
+      // (4) remove frames belonging to exception constructors upto the causes constructor
+      while((element < compiledMethods.length) &&
+          (compiledMethods[element] != null) &&
+          (compiledMethods[element].method.getDeclaringClass().getClassForType() != cause.getClass()) &&
+          compiledMethods[element].method.isObjectInitializer() &&
+          compiledMethods[element].method.getDeclaringClass().isThrowable()) {
+        element++;
+      }
+      // (5) remove frames belonging to the causes constructor
+      // NB This can be made to incorrectly elide frames if the cause
+      // exception is thrown from a constructor of the cause exception, however,
+      // Sun's VM has the same problem
+      while((element < compiledMethods.length) &&
+          (compiledMethods[element] != null) &&
+          (compiledMethods[element].method.getDeclaringClass().getClassForType() == cause.getClass()) &&
+          compiledMethods[element].method.isObjectInitializer()) {
+        element++;
+      }
+      // (6) remove possible hardware exception deliverer frames
+      if (element < compiledMethods.length - 2) {
+        if ((compiledMethods[element+1] != null) &&
+            compiledMethods[element+1].getCompilerType() == VM_CompiledMethod.TRAP) {
+          element+=2;
+        }
+      }
+      return element;
+    }
+  }
+  /**
+   * Find the first non-VM method at the end of the stack trace
+   * @param first the first real method of the stack trace
+   * @return compiledMethods.length-1 if no non-VM methods found else the index of
+   *         the method
+   */  
+  private int lastRealMethod(int first) {
+    /* We expect an exception on the main thread to look like:
+     * at <invisible method>(Unknown Source:0)
+     * at org.jikesrvm.runtime.VM_Reflection.invoke(VM_Reflection.java:132)
+     * at org.jikesrvm.scheduler.VM_MainThread.run(VM_MainThread.java:195)
+     * at org.jikesrvm.scheduler.VM_Thread.run(VM_Thread.java:534)
+     * at org.jikesrvm.scheduler.VM_Thread.startoff(VM_Thread.java:1113
+     * 
+     * and on another thread to look like:
+     * at org.jikesrvm.scheduler.VM_Thread.run(VM_Thread.java:534)
+     * at org.jikesrvm.scheduler.VM_Thread.startoff(VM_Thread.java:1113)
+     */
+    int max = compiledMethods.length-1;
+    if (VM_Options.stackTraceFull) {
+      return max;
+    } else {
+      // Start at end of array and elide a frame unless we find a place to stop
+      for (int i=max; i >= first; i--) {
+        if (compiledMethods[i] == null) {
+          // we found an invisible method, assume next method if this is sane
+          if (i-1 >= 0) {
+            return i-1;
+          } else {
+            return max; // not sane => return max
+          }
+        }
+        if (compiledMethods[i].getCompilerType() == VM_CompiledMethod.TRAP) {
+          // looks like we've gone too low
+          return max;
+        }
+        Class frameClass = compiledMethods[i].method.getDeclaringClass().getClassForType();
+        if ((frameClass != org.jikesrvm.scheduler.VM_MainThread.class) &&
+            (frameClass != org.jikesrvm.scheduler.VM_Thread.class) &&
+            (frameClass != org.jikesrvm.runtime.VM_Reflection.class)){
+          // Found a non-VM method
+          return i;
+        }
+      }
+      // No frame found
+      return max;
+    }
   }
 }

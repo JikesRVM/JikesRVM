@@ -71,6 +71,19 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools implements OP
         if (verbose) VM.sysWriteln("\tNO: pragmaNoInline\n");
         return OPT_InlineDecision.NO("pragmaNoInline");
       }
+      if (// are we calling a throwable constructor
+          staticCallee.isObjectInitializer() &&
+          staticCallee.getDeclaringClass().isThrowable() &&
+          // and not from a throwable constructor
+          !(caller.isObjectInitializer() &&
+              caller.getDeclaringClass().isThrowable())) {
+        // We need throwable constructors to have their own compiled method IDs
+        // to correctly elide stack frames when generating stack traces (see
+        // VM_StackTrace).
+        if (verbose) VM.sysWriteln("\tNO: throwable constructor\n");
+        return OPT_InlineDecision.NO("throwable constructor");      
+      }
+        
       if (!staticCallee.isAbstract()) {
         int inlinedSizeEstimate = inlinedSizeEstimate((VM_NormalMethod) staticCallee, state);
         boolean guardless = state.getHasPreciseTarget() || !needsGuard(staticCallee);
