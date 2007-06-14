@@ -52,8 +52,6 @@ public final class VMThrowable {
    */
   static VMThrowable fillInStackTrace(Throwable parent){
     if (!VM.fullyBooted) {
-      VM.sysWriteln("Exception in non-fully booted VM");
-      VM_Scheduler.dumpStack();
       return null;
     }
     else if(VM_Thread.getCurrentThread().isGCThread()) {
