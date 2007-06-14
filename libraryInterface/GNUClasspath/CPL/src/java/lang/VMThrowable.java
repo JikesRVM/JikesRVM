@@ -25,7 +25,7 @@ public final class VMThrowable {
   /** Count of how many out of memory errors have occured */
   private int numOutOfMemoryErrors = 0;
   /** Number of out of memory errors for this  */
-  private static final int maxOutOfMemoryErrors = 5; 
+  private static final int maxOutOfMemoryErrors = 5;
   /** Proxy VMThrowable used when its not safe to create a proper VMThrowable */
   private static final VMThrowable proxyVMThrowable = new VMThrowable();
   /**
@@ -33,7 +33,7 @@ public final class VMThrowable {
    * an unexpected error
    */
   private static final StackTraceElement[] zeroLengthStackTrace = new StackTraceElement[0];
-  
+
   /**
    * Constructor - used to construct the proxy stack trace that stands in place
    * of stack traces
@@ -45,9 +45,9 @@ public final class VMThrowable {
   private VMThrowable(VM_StackTrace stackTrace) {
     this.stackTrace = stackTrace;
   }
-  
+
   /**
-   * Create the VMThrowable 
+   * Create the VMThrowable
    * @return constructed VMThrowable
    */
   static VMThrowable fillInStackTrace(Throwable parent){
@@ -97,7 +97,7 @@ public final class VMThrowable {
       if (vmElements == null) {
         VM.sysWriteln("Error calling VM_StackTrace.getStackTrace returned null");
         VM_Scheduler.dumpStack();
-        return zeroLengthStackTrace;        
+        return zeroLengthStackTrace;
       }
       if (VM.fullyBooted) {
         try {
@@ -147,7 +147,7 @@ public final class VMThrowable {
       }
       return zeroLengthStackTrace;
     }
-  }  
+  }
   /**
    * Did an out of memory error occur during the creation of the throwable? Only
    * allow so many before terminating the VM, to avoid infinite recursion
