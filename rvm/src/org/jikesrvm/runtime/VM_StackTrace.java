@@ -213,8 +213,10 @@ public class VM_StackTrace {
       int element = 0;
       for (int i=0; i < compiledMethods.length; i++) {
         VM_CompiledMethod compiledMethod = compiledMethods[i];
-        if (compiledMethod.getCompilerType() != VM_CompiledMethod.OPT) {
-          elements[element] = new Element(compiledMethods[i], instructionOffsets[i]);
+        if ((compiledMethod == null) ||
+            (compiledMethod.getCompilerType() != VM_CompiledMethod.OPT)) {
+          // Invisible or non-opt compiled method
+          elements[element] = new Element(compiledMethod, instructionOffsets[i]);
           element++;
         } else {
           Offset instructionOffset = Offset.fromIntSignExtend(instructionOffsets[i]);
@@ -222,7 +224,7 @@ public class VM_StackTrace {
           VM_OptMachineCodeMap map = optInfo.getMCMap();
           int iei = map.getInlineEncodingForMCOffset(instructionOffset);
           if (iei < 0) {
-            elements[element] = new Element(compiledMethods[i], instructionOffsets[i]);
+            elements[element] = new Element(compiledMethod, instructionOffsets[i]);
             element++;
           } else {
             int[] inlineEncoding = map.inlineEncoding;
@@ -249,7 +251,9 @@ public class VM_StackTrace {
     } else {
       for (int i=0; i < compiledMethods.length; i++) {
         VM_CompiledMethod compiledMethod = compiledMethods[i];
-        if (compiledMethod.getCompilerType() != VM_CompiledMethod.OPT) {
+        if ((compiledMethod == null) ||
+            (compiledMethod.getCompilerType() != VM_CompiledMethod.OPT)) {
+          // Invisible or non-opt compiled method
           numElements++;
         } else {
           Offset instructionOffset = Offset.fromIntSignExtend(instructionOffsets[i]);
