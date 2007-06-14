@@ -251,16 +251,12 @@ public final class OPT_BC2IR
       this.bciAdjustment = 0;
     }
 
-    this.osrGuardedInline =
-        VM
-            .runningVM &&
-                       context.options
-                           .OSR_GUARDED_INLINING &&
-                                                 !context.method.isForOsrSpecialization() &&
-                                                 OPT_Compiler.getAppStarted() &&
-                                                 (VM_Controller.options != null) &&
-                                                 VM_Controller.options
-                                                     .ENABLE_RECOMPILATION;
+    this.osrGuardedInline = VM.runningVM &&
+       context.options.OSR_GUARDED_INLINING &&
+       !context.method.isForOsrSpecialization() &&
+       OPT_Compiler.getAppStarted() &&
+       (VM_Controller.options != null) &&
+       VM_Controller.options.ENABLE_RECOMPILATION;
   }
 
   private void finish(OPT_GenerationContext context) {
