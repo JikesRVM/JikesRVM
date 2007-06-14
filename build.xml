@@ -923,12 +923,12 @@ Check to make sure all required properties are specified. This includes properti
   <target name="package" depends="compile,compile-vmmagic">
     <!-- create a rt.jar for the RVM -->
     <copy file="${classpath.lib.dir}/classpath.jar" tofile="${build.rt.jar}"/>
-    <zip destfile="${build.rt.jar}" update="true" basedir="${build.classes}">
+    <zip destfile="${build.rt.jar}" update="true" basedir="${build.classes}" compress="false">
       <include name="java/**"/>
       <include name="sun/**"/>
       <include name="gnu/**"/>
     </zip>
-    <jar destfile="${build.vm.jar}" update="true">
+    <jar destfile="${build.vm.jar}" update="true" compress="false">
       <fileset dir="${build.classes}">
         <exclude name="java/**"/>
         <exclude name="sun/**"/>
