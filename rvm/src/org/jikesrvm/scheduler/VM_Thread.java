@@ -879,10 +879,8 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
       }
 
       if (threadSwitch &&
-          (VM_Processor.getCurrentProcessor()
-              .yieldForCBSMethod ||
-                                 VM_Processor.getCurrentProcessor()
-                                     .yieldForCBSCall)) {
+          (VM_Processor.getCurrentProcessor().yieldForCBSMethod ||
+           VM_Processor.getCurrentProcessor().yieldForCBSCall)) {
         // want to sample the current thread, not the next one to be scheduled
         // So, defer actual threadswitch until we take all of our samples
         VM_Processor.getCurrentProcessor().threadSwitchWhenCBSComplete = true;
@@ -1979,7 +1977,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
    * @return false
    */
   public boolean isDebuggerThread() {
-    return true;
+    return false;
   }
 
   /** Set this to be the main thread */
