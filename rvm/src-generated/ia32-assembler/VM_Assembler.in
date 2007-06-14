@@ -12,16 +12,16 @@
  */
 package org.jikesrvm.compilers.common.assembler.ia32;
 
+import org.jikesrvm.*;
 import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.VM;
-import org.jikesrvm.compilers.baseline.ia32.VM_Compiler;
-import org.jikesrvm.compilers.common.assembler.VM_AbstractAssembler;
-import org.jikesrvm.compilers.common.assembler.VM_ForwardReference;
-import org.jikesrvm.ia32.VM_RegisterConstants;
 import org.jikesrvm.runtime.VM_Magic;
-import org.vmmagic.pragma.NoInline;
-import org.vmmagic.unboxed.Offset;
-import org.vmmagic.unboxed.Word;
+import org.jikesrvm.compilers.baseline.ia32.VM_Compiler;
+import org.jikesrvm.ia32.VM_RegisterConstants;
+import org.jikesrvm.compilers.common.assembler.VM_ForwardReference;
+import org.jikesrvm.compilers.common.assembler.VM_AbstractAssembler;
+
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
  *  <P> This class is the low-level assembler for Intel; it contains
@@ -273,10 +273,22 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param data the byte data value to write
    */
   protected final void setMachineCodes(int index, byte data) {
-    if(index >= machineCodes.length) {
-      growMachineCodes(index, data);
-    } else {
+    /*
+     * The two code fragments below should produce the same result.  Mutating the 
+     * allocation sequence in the commented-out version throws OOB exceptions.
+     * I'll try to add a test case, but I suspect the planned compiler cleanups
+     * will oviate the need.  TODO make this code sane again.  RJG
+     * As at r12043.
+     */
+//    if(index >= machineCodes.length) {
+//      growMachineCodes(index, data);
+//    } else {
+//      machineCodes[index] = data;
+//    }
+    try {
       machineCodes[index] = data;
+    } catch (ArrayIndexOutOfBoundsException e) {
+      growMachineCodes(index, data);
     }
   }
 
