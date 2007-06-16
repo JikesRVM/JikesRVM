@@ -305,6 +305,34 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants, VM_BBConstant
               }
               bbMaps[handlerBBNum][currBBStkEmpty + 1] = REFERENCE;
               blockStkTop[handlerBBNum] = currBBStkEmpty + 1;
+            } else  {
+              if (inJSRSub && basicBlocks[handlerBBNum].isInJSR()) {
+                // In JSR and handler within the same JSR. 
+                // Ensure SET_TO_NONREFERENCE is carried across 
+                for (int k = 0; k <= currBBStkEmpty; k++) {
+                  if (currBBMap[k] == SET_TO_NONREFERENCE && bbMaps[handlerBBNum][k] != SET_TO_NONREFERENCE) {
+                    handlerProcessed[i] = false;
+                    bbMaps[handlerBBNum][k] = SET_TO_NONREFERENCE;
+                  }
+                }
+              } else if (inJSRSub) {
+                // In JSR but handler is shared by JSR and non JSR
+                // realise JSR and SET_TO_NONREFERENCE becomes NON_REFERENCE
+                for (int k = 0; k <= currBBStkEmpty; k++) {
+                  if (currBBMap[k] == SET_TO_NONREFERENCE && bbMaps[handlerBBNum][k] != NON_REFERENCE) {
+                    handlerProcessed[i] = false;
+                    bbMaps[handlerBBNum][k] = NON_REFERENCE;
+                  }
+                }
+              } else {
+                // No JSRs involved, simply ensure NON_REFERENCE is carried over
+                for (int k = 0; k <= currBBStkEmpty; k++) {
+                  if (currBBMap[k] == NON_REFERENCE && bbMaps[handlerBBNum][k] != NON_REFERENCE) {
+                    handlerProcessed[i] = false;
+                    bbMaps[handlerBBNum][k] = NON_REFERENCE;
+                  }
+                }
+              }
             }
           }
         }
