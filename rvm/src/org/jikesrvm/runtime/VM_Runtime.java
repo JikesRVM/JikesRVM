@@ -30,6 +30,7 @@ import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.VM_Processor;
 import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
@@ -366,7 +367,9 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
                                          int offset, int site) throws OutOfMemoryError {
 
     // GC stress testing
-    if (VM.ForceFrequentGC && VM_Scheduler.allProcessorsInitialized) {
+    if (VM.ForceFrequentGC &&
+        VM_Scheduler.allProcessorsInitialized &&
+        VM_Processor.getCurrentProcessor().threadSwitchingEnabled()) {
       if (countDownToGC-- <= 0) {
         //VM.sysWrite("FORCING GC: Countdown trigger in quickNewScalar\n");
         countDownToGC = VM.StressGCAllocationInterval;
@@ -452,7 +455,9 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
     if (numElements < 0) raiseNegativeArraySizeException();
 
     // GC stress testing
-    if (VM.ForceFrequentGC && VM_Scheduler.allProcessorsInitialized) {
+    if (VM.ForceFrequentGC &&
+        VM_Scheduler.allProcessorsInitialized &&
+        VM_Processor.getCurrentProcessor().threadSwitchingEnabled()) {
       if (countDownToGC-- <= 0) {
         //VM.sysWrite("FORCING GC: Countdown trigger in quickNewArray\n");
         countDownToGC = VM.StressGCAllocationInterval;
@@ -671,7 +676,9 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
     }
 
     // GC stress testing
-    if (VM.ForceFrequentGC && VM_Scheduler.allProcessorsInitialized) {
+    if (VM.ForceFrequentGC &&
+        VM_Scheduler.allProcessorsInitialized &&
+        VM_Processor.getCurrentProcessor().threadSwitchingEnabled()) {
       //VM.sysWrite("FORCING GC: in deliverHardwareException\n");
       System.gc();
     }
@@ -967,7 +974,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
     // ensure access to handlingUncaughtException is synchronized
     synchronized(VM_Runtime.class) {
       handlingUncaughtException++;
-      numUncaughtExceptions = handlingUncaughtException; 
+      numUncaughtExceptions = handlingUncaughtException;
     }
     // If there are uncaught exceptions being handled try to let them finish
     // before complaining
@@ -975,7 +982,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
       VM_Thread.yield();
     }
     synchronized(VM_Runtime.class) {
-      numUncaughtExceptions = handlingUncaughtException; 
+      numUncaughtExceptions = handlingUncaughtException;
     }
     if (numUncaughtExceptions > 1 &&
         numUncaughtExceptions <=
