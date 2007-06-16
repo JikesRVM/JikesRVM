@@ -1332,7 +1332,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
    */
   @LogicallyUninterruptible
   public final int getIndex() {
-    if (VM.VerifyAssertions) VM._assert(VM_Scheduler.threads[threadSlot] == this);
+    if (VM.VerifyAssertions) VM._assert(!isAlive || VM_Scheduler.threads[threadSlot] == this);
     return threadSlot; 
   }
 
