@@ -51,6 +51,7 @@
     <dacapo name="antlr"/>
     <dacapo name="bloat"/>
     <dacapo name="chart" requires-display="true"/>
+    <dacapo name="eclipse"/>
     <dacapo name="fop"/>
     <dacapo name="hsqldb"/>
     <dacapo name="jython"/>
@@ -58,7 +59,6 @@
     <dacapo name="lusearch"/>
     <dacapo name="pmd"/>
     <dacapo name="xalan"/>
-    <dacapo name="eclipse"/>
 
     <finishResults/>
   </target>
