@@ -18,6 +18,8 @@ import java.io.Serializable;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.ProtectionDomain;
+import java.security.AllPermission;
+import java.security.Permissions;
 
 import java.lang.annotation.Annotation;
 
@@ -51,7 +53,18 @@ import org.jikesrvm.VM_UnimplementedError;
  * as they appear in the method summary list of Sun's 1.4 Javadoc API. 
  */
 public final class Class<T> implements Serializable, Type, AnnotatedElement, GenericDeclaration {
+  private static final class StaticData
+  {
+    static final ProtectionDomain unknownProtectionDomain;
 
+    static
+    {
+      Permissions permissions = new Permissions();
+      permissions.add(new AllPermission());
+      unknownProtectionDomain = new ProtectionDomain(null, permissions);
+    }
+  }
+  
   static final long serialVersionUID = 3206093459760846163L;
     
   /**
@@ -504,7 +517,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     if (security != null) {
       security.checkPermission(new RuntimePermission("getProtectionDomain"));
     }
-    return pd;
+    return pd == null ? StaticData.unknownProtectionDomain : pd;
   }
 
   public URL getResource(String resName) {

@@ -28,6 +28,7 @@
 ## Classes involved with the process of class loading...
 # fundamental java classes
 Ljava/lang/Class;
+Ljava/lang/Class$StaticData;
 Ljava/lang/Object;
 Ljava/lang/Runtime;
 Ljava/lang/String;
