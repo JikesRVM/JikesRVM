@@ -932,7 +932,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
     }
     /* No appropriate catch block found. */
 
-    VM_Thread.getCurrentThread().dyingWithUncaughtException = true;
+    VM_Thread.getCurrentThread().uncaughtExceptionCount++;
 
     /* Grow the heap.
      * This could be (but isn't) undoable.  That doesn't matter here, since
@@ -943,8 +943,8 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
     if (VM.doEmergencyGrowHeap && exceptionObject instanceof OutOfMemoryError) {
       MM_Interface.emergencyGrowHeap(5 * (1 << 20)); // ask for 5 megs and pray
     }
-    VM.enableGC();
     handlePossibleRecursiveException();
+    VM.enableGC();
     VM_Thread vmThr = VM_Thread.getCurrentThread();
     Thread thr = vmThr.peekJavaLangThread();
     if (thr == null) {
@@ -954,43 +954,20 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
       VM.sysWrite("Exception in thread \"", thr.getName(), "\": ");
     }
     exceptionObject.printStackTrace();
-    // Exception "handled" so decrement uncaught exception count
-    synchronized(VM_Runtime.class) {
-      handlingUncaughtException--;
-    }
     VM_Thread.terminate();
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
   }
 
-  /**
-   * used by handlePossibleRecursiveException() to determine the number of
-   * exceptions being handled
-   */
-  private static int handlingUncaughtException = 0;
-
   /** Handle the case of exception handling triggering new exceptions. */
   private static void handlePossibleRecursiveException() {
-    int numUncaughtExceptions;
-    // ensure access to handlingUncaughtException is synchronized
-    synchronized(VM_Runtime.class) {
-      handlingUncaughtException++;
-      numUncaughtExceptions = handlingUncaughtException;
-    }
-    // If there are uncaught exceptions being handled try to let them finish
-    // before complaining
-    if (numUncaughtExceptions > 1) {
-      VM_Thread.yield();
-    }
-    synchronized(VM_Runtime.class) {
-      numUncaughtExceptions = handlingUncaughtException;
-    }
+    int numUncaughtExceptions = VM_Thread.getCurrentThread().uncaughtExceptionCount;
     if (numUncaughtExceptions > 1 &&
         numUncaughtExceptions <=
         VM.maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite) {
       VM.sysWrite("We got an uncaught exception while (recursively) handling ");
-      VM.sysWrite(handlingUncaughtException - 1);
+      VM.sysWrite(numUncaughtExceptions - 1);
       VM.sysWrite(" uncaught exception");
-      if (handlingUncaughtException - 1 != 1) {
+      if (numUncaughtExceptions - 1 != 1) {
         VM.sysWrite("s");
       }
       VM.sysWriteln(".");

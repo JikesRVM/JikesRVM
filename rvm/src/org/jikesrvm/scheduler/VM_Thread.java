@@ -236,7 +236,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
   private long totalCycles;
 
   /** Set by exception handler. */
-  public boolean dyingWithUncaughtException = false;
+  public int uncaughtExceptionCount = 0;
 
   /*
    * Enumerate different types of yield points for sampling
@@ -1220,7 +1220,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
     }
 
     if (terminateSystem) {
-      if (myThread.dyingWithUncaughtException)
+      if (myThread.uncaughtExceptionCount > 0)
         /* Use System.exit so that any shutdown hooks are run.  */ {
         System.exit(VM.EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
       } else if (myThread.thread instanceof VM_MainThread) {
