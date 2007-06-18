@@ -179,6 +179,27 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
   }
 
   /**
+   * Write barrier for compare and exchange object field operations.
+   *
+   * @param ref the object which is the subject of the putfield
+   * @param offset the offset of the field to be modified
+   * @param old the old value to swap out
+   * @param value the new value for the field
+   */
+  @Inline
+  public static boolean tryCompareAndSwapWriteBarrier(Object ref, Offset offset, Object old, Object value) {
+    ObjectReference src = ObjectReference.fromObject(ref);
+    return Selected.Mutator.get().tryCompareAndSwapWriteBarrier(src,
+                                        src.toAddress().plus(offset),
+                                        ObjectReference.fromObject(old),
+                                        ObjectReference.fromObject(value),
+                                        offset,
+                                        0, // do not have location metadata
+                                        PUTFIELD_WRITE_BARRIER);
+  }
+  
+  
+  /**
    * Write barrier for putstatic operations.
    *
    * @param offset the offset of the field to be modified

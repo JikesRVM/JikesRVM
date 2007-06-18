@@ -182,6 +182,29 @@ import org.vmmagic.unboxed.*;
   }
   
   /**
+   * Attempt to atomically exchange the value in the given slot
+   * with the passed replacement value. If a new reference is 
+   * created, we must then take appropriate write barrier actions.<p>
+   * 
+   * @param src The object into which the new reference will be stored
+   * @param slot The address into which the new reference will be
+   * stored.
+   * @param old The old reference to be swapped out 
+   * @param tgt The target of the new reference
+   * @param metaDataA An int that assists the host VM in creating a store
+   * @param metaDataB An int that assists the host VM in creating a store
+   * @param mode The context in which the store occured
+   * @return True if the swap was successful.
+   */
+  public boolean tryCompareAndSwapWriteBarrier(ObjectReference src, Address slot,
+      ObjectReference old, ObjectReference tgt, Offset metaDataA,
+      int metaDataB, int mode) {
+    if (RCHeader.logRequired(src))
+      writeBarrierSlow(src);
+    return VM.barriers.tryCompareAndSwapWriteInBarrier(src, slot, old, tgt, metaDataA, metaDataB, mode);
+  }
+  
+  /**
    * A number of references are about to be copied from object
    * <code>src</code> to object <code>dst</code> (as in an array
    * copy).  Thus, <code>dst</code> is the mutated object.  Take

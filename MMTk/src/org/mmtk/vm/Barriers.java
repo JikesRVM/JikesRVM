@@ -58,6 +58,22 @@ import org.vmmagic.unboxed.*;
                                            ObjectReference ref, Address slot,
                                            ObjectReference target, Offset offset,
       int locationMetadata, int mode);
+  
+  /**
+   * Attempt an atomic compare and exchange in a write barrier sequence.
+   * 
+   * @param ref The object that has the reference field
+   * @param slot The slot that holds the reference
+   * @param old The old reference to be swapped out 
+   * @param target The value that the slot will be updated to
+   * @param offset The offset from the ref (metaDataA)
+   * @param locationMetadata An index of the FieldReference (metaDataB)
+   * @param mode The context in which the write is occuring
+   * @return True if the compare and swap was successful
+   */
+  public abstract boolean tryCompareAndSwapWriteInBarrier(ObjectReference ref, Address slot,
+      ObjectReference old, ObjectReference target, Offset offset, int locationMetadata, int mode);
+
 
   /**
    * Gets an element of a char array without invoking any read barrier

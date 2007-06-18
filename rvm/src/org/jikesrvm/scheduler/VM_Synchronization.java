@@ -13,6 +13,8 @@
 package org.jikesrvm.scheduler;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
+import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
@@ -49,12 +51,16 @@ public class VM_Synchronization {
 
   @Inline
   public static boolean tryCompareAndSwap(Object base, Offset offset, Object testValue, Object newValue) {
-    Object oldValue;
-    do {
-      oldValue = VM_Magic.prepareObject(base, offset);
-      if (oldValue != testValue) return false;
-    } while (!VM_Magic.attemptObject(base, offset, oldValue, newValue));
-    return true;
+    if (MM_Constants.NEEDS_WRITE_BARRIER) {
+      return MM_Interface.tryCompareAndSwapWriteBarrier(base, offset, testValue, newValue);
+    } else {
+      Object oldValue;
+      do {
+        oldValue = VM_Magic.prepareObject(base, offset);
+        if (oldValue != testValue) return false;
+      } while (!VM_Magic.attemptObject(base, offset, oldValue, newValue));
+      return true;
+    }
   }
 
   @Inline

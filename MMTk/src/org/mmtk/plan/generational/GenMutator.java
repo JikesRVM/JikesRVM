@@ -172,6 +172,40 @@ import org.vmmagic.unboxed.*;
     }
     VM.barriers.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
   }
+  
+  /**
+   * Attempt to atomically exchange the value in the given slot
+   * with the passed replacement value. If a new reference is 
+   * created, we must then take appropriate write barrier actions.<p>
+   * 
+   * In this case, we remember the address of the source of the
+   * pointer if the new reference points into the nursery from
+   * non-nursery space.
+   * 
+   * @param src The object into which the new reference will be stored
+   * @param slot The address into which the new reference will be
+   * stored.
+   * @param old The old reference to be swapped out 
+   * @param tgt The target of the new reference
+   * @param metaDataA An int that assists the host VM in creating a store
+   * @param metaDataB An int that assists the host VM in creating a store
+   * @param mode The context in which the store occured
+   * @return True if the swap was successful.
+   */
+  @Inline
+  public boolean tryCompareAndSwapWriteBarrier(ObjectReference src, Address slot,
+      ObjectReference old, ObjectReference tgt, Offset metaDataA,
+      int metaDataB, int mode) {
+    boolean result = VM.barriers.tryCompareAndSwapWriteInBarrier(src, slot, old, tgt, metaDataA, metaDataB, mode);
+    if (result) {
+      if (Gen.GATHER_WRITE_BARRIER_STATS) Gen.wbFast.inc();
+      if (slot.LT(Gen.NURSERY_START) && tgt.toAddress().GE(Gen.NURSERY_START)) {
+        if (Gen.GATHER_WRITE_BARRIER_STATS) Gen.wbSlow.inc();
+        remset.insert(slot);
+      }
+    }
+    return result;
+  }
 
   /**
    * A number of references are about to be copied from object

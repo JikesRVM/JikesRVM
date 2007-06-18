@@ -128,16 +128,94 @@ import org.vmmagic.unboxed.*;
     else
       writeBarrierInternalOOL(src, slot, tgt, metaDataA, metaDataB, mode);
   }
+  
+  /**
+   * Attempt to atomically exchange the value in the given slot
+   * with the passed replacement value. If a new reference is 
+   * created, we must then take appropriate write barrier actions.<p>
+   * 
+   * @param src The object into which the new reference will be stored
+   * @param slot The address into which the new reference will be
+   * stored.
+   * @param old The old reference to be swapped out 
+   * @param tgt The target of the new reference
+   * @param metaDataA An int that assists the host VM in creating a store
+   * @param metaDataB An int that assists the host VM in creating a store
+   * @param mode The context in which the store occured
+   * @return True if the swap was successful.
+   */
+  @Inline
+  public boolean tryCompareAndSwapWriteBarrier(ObjectReference src, Address slot,
+      ObjectReference old, ObjectReference tgt, Offset metaDataA,
+      int metaDataB, int mode) {
+    if (VM.VERIFY_ASSERTIONS) {
+      // TODO VM.assertions._assert(!Plan.gcInProgress());
+    }
+    if (RC.INLINE_WRITE_BARRIER)
+      return tryCompareAndSwapWriteBarrierInternal(src, slot, old, tgt, metaDataA, metaDataB, mode);
+    else
+      return tryCompareAndSwapWriteBarrierInternalOOL(src, slot, old, tgt, metaDataA, metaDataB, mode);
+  }
+  
+  /**
+   * Attempt to atomically exchange the value in the given slot
+   * with the passed replacement value. If a new reference is 
+   * created, we must then take appropriate write barrier actions.<p>
+   *
+   * @param src The object being mutated.
+   * @param slot The address of the word (slot) being mutated.
+   * @param old The old reference to be swapped out 
+   * @param tgt The target of the new reference (about to be stored into src).
+   * @param metaDataA An int that assists the host VM in creating a store
+   * @param metaDataB An int that assists the host VM in creating a store
+   * @param mode The mode of the store (eg putfield, putstatic)
+   */
+  @Inline
+  private boolean tryCompareAndSwapWriteBarrierInternal(ObjectReference src, Address slot,
+                                          ObjectReference old, ObjectReference tgt, Offset metaDataA,
+                                          int metaDataB, int mode) { 
+    if (RC.GATHER_WRITE_BARRIER_STATS) RC.wbFast.inc();
+    if (RC.WITH_COALESCING_RC) {
+      if (RCHeader.logRequired(src)) {
+        coalescingWriteBarrierSlow(src);
+      }
+      return VM.barriers.tryCompareAndSwapWriteInBarrier(src,slot,old,tgt,metaDataA,metaDataB,mode);
+    } else {
+      boolean result = VM.barriers.tryCompareAndSwapWriteInBarrier(src,slot,old,tgt,metaDataA,metaDataB,mode);
+      
+      if (result && !Space.isInSpace(RCBase.VM_SPACE, src)) {
+        if (RC.isRCObject(old)) decBuffer.pushOOL(old);
+        if (RC.isRCObject(tgt)) RCHeader.incRCOOL(tgt);
+      } 
+      
+      return result;
+    }
+  }
+  
+  /**
+   * Attempt to atomically exchange the value in the given slot
+   * with the passed replacement value. If a new reference is 
+   * created, we must then take appropriate write barrier actions.<p>
+   *
+   * @param src The object being mutated.
+   * @param slot The address of the word (slot) being mutated.
+   * @param old The old reference to be swapped out 
+   * @param tgt The target of the new reference (about to be stored into src).
+   * @param metaDataA An int that assists the host VM in creating a store
+   * @param metaDataB An int that assists the host VM in creating a store
+   * @param mode The mode of the store (eg putfield, putstatic)
+   */
+  @NoInline
+  private boolean tryCompareAndSwapWriteBarrierInternalOOL(ObjectReference src, Address slot,
+                                          ObjectReference old, ObjectReference tgt, Offset metaDataA,
+                                          int metaDataB, int mode) { 
+    return tryCompareAndSwapWriteBarrierInternal(src,slot,old,tgt,metaDataA,metaDataB,mode);
+  }
+
 
   /**
    * A new reference is about to be created.  Perform appropriate
    * write barrier action.<p>
-   *
-   * In this case, we remember the address of the source of the
-   * pointer if the new reference points into the nursery from
-   * non-nursery space.  This method is <b>inlined</b> by the
-   * optimizing compiler, and the methods it calls are forced out of
-   * line.
    *
    * @param src The object being mutated.
    * @param slot The address of the word (slot) being mutated.

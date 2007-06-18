@@ -65,6 +65,29 @@ import org.vmmagic.pragma.*;
   }
 
   /**
+   * Attempt an atomic compare and exchange in a write barrier sequence.
+   * 
+   * @param ref The object that has the reference field
+   * @param slot The slot that holds the reference
+   * @param old The old reference to be swapped out 
+   * @param target The value that the slot will be updated to
+   * @param offset The offset from the ref (metaDataA)
+   * @param locationMetadata An index of the FieldReference (metaDataB)
+   * @param mode The context in which the write is occuring
+   * @return True if the compare and swap was successful
+   */
+  @Inline
+  public final boolean tryCompareAndSwapWriteInBarrier(ObjectReference ref, Address slot,
+      ObjectReference old, ObjectReference target, Offset offset, int locationMetadata, int mode) {
+    Object oldValue;
+    do {
+      oldValue = VM_Magic.prepareObject(ref, offset);
+      if (oldValue != old) return false;
+    } while (!VM_Magic.attemptObject(ref, offset, oldValue, target));
+    return true;
+  }
+
+  /**
    * Sets an element of a char array without invoking any write
    * barrier.  This method is called by the Log method, as it will be
    * used during garbage collection and needs to manipulate character
