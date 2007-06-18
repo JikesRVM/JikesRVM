@@ -42,6 +42,8 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_TIME_BASE;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IR_PROLOGUE;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.UNINT_BEGIN;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.UNINT_END;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.SET_CAUGHT_EXCEPTION;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_CAUGHT_EXCEPTION;
 import org.jikesrvm.compilers.opt.ir.OPT_Register;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 
@@ -292,7 +294,7 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
     //    a) No load instruction may rise above an acquire
     //    b) No instruction may rise above an UNINT_BEGIN (conservative),
     //       a yieldpoint (we placed the yieldpoints where we wanted them),
-    //       or an IR_PROLOGUE.
+    //       a GET_CAUGHT_EXCEPTION, or an IR_PROLOGUE.
     //    c) No GC point may rise above an UNINT_END
     OPT_DepGraphNode lastTotalBarrier = null;
     OPT_DepGraphNode lastGCBarrier = null;
@@ -310,7 +312,7 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
         lastAcquire.insertOutEdge(pnode, CONTROL);
       }
       OPT_Operator pop = p.operator();
-      if (p.isYieldPoint() || pop == IR_PROLOGUE || pop == UNINT_BEGIN || pop == GET_TIME_BASE) {
+      if (p.isYieldPoint() || pop == IR_PROLOGUE || pop == UNINT_BEGIN || pop == GET_TIME_BASE || pop == GET_CAUGHT_EXCEPTION) {
         lastTotalBarrier = pnode;
       }
       if (pop == UNINT_END) {
@@ -324,7 +326,8 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
     // (2) In a backward pass we add the following dependences:
     //    a) No store instruction may sink below a release.
     //    b) No instruction may sink below an UNINT_END (conservative),
-    //       a branch/return, or a yieldpoint (again want to pin yieldpoints).
+    //       a branch/return, a SET_CAUGHT_EXCEPTION, or a yieldpoint 
+    //       (again want to pin yieldpoints).
     //    c) No GC point may sink below an UNINT_BEGIN
     lastTotalBarrier = null;
     lastGCBarrier = null;
@@ -342,7 +345,7 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
         pnode.insertOutEdge(lastRelease, CONTROL);
       }
       OPT_Operator pop = p.operator();
-      if (p.isBranch() || p.isReturn() || p.isYieldPoint() || pop == UNINT_END || pop == GET_TIME_BASE) {
+      if (p.isBranch() || p.isReturn() || p.isYieldPoint() || pop == UNINT_END || pop == GET_TIME_BASE || pop == SET_CAUGHT_EXCEPTION) {
         lastTotalBarrier = pnode;
       }
       if (pop == UNINT_BEGIN) {
