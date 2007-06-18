@@ -402,7 +402,7 @@
         </conditions>
         <sequential>
           <property name="test.@{tag}.rvm-wrapper.exe" value="${display-wrapper.exe}"/>
-          <property name="test.@{tag}.rvm.wrapped-args" value="${rvm.exe} ${test.@{tag}.rvm.args}"/>
+          <property name="test.@{tag}.rvm.wrapped-args" value="-a ${rvm.exe} ${test.@{tag}.rvm.args}"/>
         </sequential>
       </if>
       <!-- Defaults -->
