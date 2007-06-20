@@ -269,6 +269,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     /* Used if we start up Jikes RVM with the -jar argument; that argument
 * means that we need a working -jar before we can return an
 * Application Class Loader. */
+    runClassInitializer("java.net.URLConnection");
     runClassInitializer("gnu.java.net.protocol.jar.Connection$JarFileCache");
 
     runClassInitializer("java.lang.ClassLoader$StaticData");

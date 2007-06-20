@@ -280,8 +280,11 @@ Lgnu/java/net/protocol/file/Handler;
 # by java/net/URL
 Lgnu/java/net/protocol/jar/Handler;
 # by gnu/java/net/protocol/jar/Handler
+Ljava/net/URLConnection;
 Lgnu/java/net/protocol/jar/Connection;
 Lgnu/java/net/protocol/jar/Connection$JarFileCache;
+
+Lgnu/java/net/DefaultContentHandlerFactory;
 
 # Not necessary, since we can class load from regular files at the
 # point it's needed, but used while booting, so including it should
