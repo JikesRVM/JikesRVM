@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.baseline.ia32;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_MethodReference;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiledMethod;
@@ -135,7 +135,7 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator implemen
       Offset callingInstructionOffset = callingCompiledMethod.getInstructionOffset(ip);
 
       callingCompiledMethod.getDynamicLink(dynamicLink, callingInstructionOffset);
-      bridgeTarget = dynamicLink.methodRef().getResolvedMember();
+      bridgeTarget = dynamicLink.methodRef();
       bridgeParameterTypes = bridgeTarget.getParameterTypes();
       if (dynamicLink.isInvokedWithImplicitThisParameter()) {
         bridgeParameterInitialIndex = -1;
@@ -395,7 +395,7 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator implemen
   // Additional iterator state for mapping dynamic bridge stackframes.
   //
   private VM_DynamicLink dynamicLink;                    // place to keep info returned by VM_CompiledMethod.getDynamicLink
-  private VM_Method bridgeTarget;                        // method to be invoked via dynamic bridge (null: current frame is not a dynamic bridge)
+  private VM_MethodReference bridgeTarget;                        // method to be invoked via dynamic bridge (null: current frame is not a dynamic bridge)
   private VM_TypeReference[] bridgeParameterTypes;           // parameter types passed by that method
   private boolean bridgeParameterMappingRequired; // have all bridge parameters been mapped yet?
   private boolean bridgeSpilledParameterMappingRequired; // do we need to map spilled params (baseline compiler = no, opt = yes)
