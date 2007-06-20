@@ -86,6 +86,7 @@
     <parameter key="target.bootimage.data.address" value="${target.bootimage.data.address}"/>
     <parameter key="target.bootimage.rmap.address" value="${target.bootimage.rmap.address}"/>
     <parameter key="target.max-mappable.address" value="${target.max-mappable.address}"/>
+    <parameter key="target.arch.sse2" value="${target.arch.sse2}"/>
   </build-parameters>
   <test-parameters>
     <parameter key="mode" value="${test.mode}"/>
