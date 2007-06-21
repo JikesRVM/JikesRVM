@@ -100,6 +100,8 @@
     <!-- currently no patches required -->
     <patch patchfile="${components.patch.dir}/classpath-web.classpath30275.patch"
 	   dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <patch patchfile="${components.patch.dir}/classpath-web.RVM-77.patch"
+	   dir="${classpath.package.dir}/classpath/" strip="0"/>
   </target>
   <target name="patch-classpath-web" depends="fetch" if="classpath.from-web">
     <patch patchfile="${components.patch.dir}/classpath-web.R1722506.patch"
@@ -107,6 +109,8 @@
     <patch patchfile="${components.patch.dir}/classpath-web.R1728742.patch"
 	   dir="${classpath.package.dir}/classpath/" strip="0"/>
     <patch patchfile="${components.patch.dir}/classpath-web.classpath30275.patch"
+	   dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <patch patchfile="${components.patch.dir}/classpath-web.RVM-77.patch"
 	   dir="${classpath.package.dir}/classpath/" strip="0"/>
   </target>
   <target name="patch" depends="patch-classpath-web,patch-classpath-cvs"/>
