@@ -53,10 +53,9 @@ public final class VMThrowable {
   static VMThrowable fillInStackTrace(Throwable parent){
     if (!VM.fullyBooted) {
       return null;
-    }
-    else if(VM_Thread.getCurrentThread().isGCThread()) {
+    } else if (VM_Thread.getCurrentThread().isGCThread()) {
       VM.sysWriteln("Exception in GC thread");
-      VM_Scheduler.dumpStack();
+      VM_Scheduler.dumpVirtualMachine();
       return null;
     } else if (parent instanceof OutOfMemoryError) {
       return proxyVMThrowable;
