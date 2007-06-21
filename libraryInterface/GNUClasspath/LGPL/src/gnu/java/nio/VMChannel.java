@@ -283,9 +283,12 @@ public final class VMChannel
     if (VM.VerifyAssertions)
       VM._assert(!MM_Interface.objectCanMove(dst));
     int bytes = VM_FileSystem.readBytes(fd,dst,position,len);
-    if (bytes < 0)
+    if (bytes < 0) {
       throw new IOException("Error code "+Integer.toString(bytes));
-    if (bytes == 0) bytes = -1;
+    }
+    if (bytes == 0) {
+      bytes = -1;
+    }
     return bytes;
   }
 
@@ -307,7 +310,12 @@ public final class VMChannel
    */
   public int read() throws IOException
   {
-    return read(nfd.getNativeFD());
+    //return read(nfd.getNativeFD());
+    int result = VM_FileSystem.readByte(nfd.getNativeFD());
+    if (result < -1) {
+      throw new IOException("Error code "+Integer.toString(result));
+    }
+    return result;
   }
 
   private static native int read(int fd) throws IOException;
@@ -534,7 +542,11 @@ public final class VMChannel
    */
   public void write(int b) throws IOException
   {
-    write(nfd.getNativeFD(), b);
+    //write(nfd.getNativeFD(), b);
+    int result = VM_FileSystem.writeByte(nfd.getNativeFD(), b);
+    if (result < 0) {
+      throw new IOException("Error code "+Integer.toString(result));
+    }
   }
 
   private static native void write(int fd, int b) throws IOException;
