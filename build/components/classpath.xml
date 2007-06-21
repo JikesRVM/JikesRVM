@@ -15,6 +15,8 @@
   <import file="base.xml"/>
   <property file="${components.file}"/>
 
+  <!-- NOTE: when incrementing classpath version, check the patches -->
+  <!-- in target patch-classpath-web                                -->
   <property name="classpath.version" value="95"/>
   <property name="classpath.description" value="GNU Classpath"/>
 
@@ -95,14 +97,23 @@
 
   <target name="fetch" depends="get-classpath-from-web,get-classpath-from-cvs"/>
 
-  <!-- patch classpath -->
+  <!-- *************************************************************************** -->
+  <!--                        patch classpath                                      -->
+  <!-- In general these are patches to issues reported to classpath but not yet    -->
+  <!-- committed (patches against CVS head) or in a stable release (against 'web') -->
+  <!-- please maintain separate patches for cvs head and stable versions           -->
+  <!-- of classpath, even if the patch is identical                                -->
+  <!-- *************************************************************************** -->
+  
+  <!-- Patches against CVS head -->
   <target name="patch-classpath-cvs" depends="fetch" if="classpath.from-cvs">
-    <!-- currently no patches required -->
-    <patch patchfile="${components.patch.dir}/classpath-web.classpath30275.patch"
+    <patch patchfile="${components.patch.dir}/classpath-cvs.classpath30275.patch"
 	   dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-web.RVM-77.patch"
+    <patch patchfile="${components.patch.dir}/classpath-cvs.RVM-77.patch"
 	   dir="${classpath.package.dir}/classpath/" strip="0"/>
   </target>
+  
+  <!-- Patches against the current stable version -->
   <target name="patch-classpath-web" depends="fetch" if="classpath.from-web">
     <patch patchfile="${components.patch.dir}/classpath-web.R1722506.patch"
 	   dir="${classpath.package.dir}/classpath/" strip="0"/>
