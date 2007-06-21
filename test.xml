@@ -16,7 +16,7 @@
   <import file="${jikesrvm.dir}/build/base.xml"/>
   <import file="${jikesrvm.dir}/build/tasks.xml"/>
 
-  <property name="test-run.name" value="sanity"/>
+  <property name="test-run.name" value="pre-commit"/>
 
   <property name="test-run.file" value="${jikesrvm.dir}/build/test-runs/${test-run.name}.properties"/>
   <property file="${test-run.file}"/>
