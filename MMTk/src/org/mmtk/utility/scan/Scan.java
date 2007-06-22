@@ -26,13 +26,13 @@ import org.vmmagic.pragma.*;
 @Uninterruptible public final class Scan {
   /**
    * Scan a object, processing each pointer field encountered.
-   * 
+   *
    * @param trace The trace to use when scanning.
    * @param object The object to be scanned.
    */
   @Inline
   public static void scanObject(TraceStep trace,
-                                ObjectReference object) { 
+                                ObjectReference object) {
     MMType type = VM.objectModel.getObjectType(object);
     if (!type.isDelegated()) {
       int references = type.getReferences(object);
@@ -46,12 +46,12 @@ import org.vmmagic.pragma.*;
 
   /**
    * Scan a object, pre-copying each child object encountered.
-   * 
+   *
    * @param trace The trace to use when precopying.
    * @param object The object to be scanned.
    */
   @Inline
-  public static void precopyChildren(TraceLocal trace, ObjectReference object) { 
+  public static void precopyChildren(TraceLocal trace, ObjectReference object) {
     MMType type = VM.objectModel.getObjectType(object);
     if (!type.isDelegated()) {
       int references = type.getReferences(object);

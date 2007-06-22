@@ -18,7 +18,7 @@ import org.vmmagic.pragma.*;
 
 /**
  * Color.java
- * 
+ *
  * Cut-down implementation of java.awt.Color sufficient to provide
  * the server side (Stream) with colours
  */
@@ -56,7 +56,7 @@ import org.vmmagic.pragma.*;
    * @param b blue component
    */
   public Color(short r, short g, short b) {
-    if (VM.VERIFY_ASSERTIONS) 
+    if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert((0 <= r) && (r <= 255) &&
                            (0 <= g) && (g <= 255) &&
                            (0 <= b) && (b <= 255));
@@ -79,21 +79,21 @@ import org.vmmagic.pragma.*;
 
   /**
    * Red component
-   * 
+   *
    * @return the red component
    */
   public short getRed() { return r; }
 
   /**
    * Green component
-   * 
+   *
    * @return the green component
    */
   public short getGreen() { return g; }
 
   /**
    * Blue component
-   * 
+   *
    * @return the blue component
    */
   public short getBlue() { return b; }

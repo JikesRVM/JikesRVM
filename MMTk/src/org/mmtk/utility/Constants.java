@@ -18,7 +18,7 @@ import org.mmtk.vm.VM;
 /**
  * MMTk follows the pattern set by Jikes RVM for defining sizes of
  * primitive types thus:
- * 
+ *
  *  static final int LOG_BYTES_IN_INT = 2;
  *  static final int BYTES_IN_INT = 1<<LOG_BYTES_IN_INT;
  * static final int LOG_BITS_IN_INT = LOG_BITS_IN_BYTE + LOG_BYTES_IN_INT;
@@ -27,7 +27,7 @@ import org.mmtk.vm.VM;
 public interface Constants {
 
   /****************************************************************************
-   * 
+   *
    * MMTk constants
    */
   int PUTFIELD_WRITE_BARRIER = 0;
@@ -39,7 +39,7 @@ public interface Constants {
 
 
   /****************************************************************************
-   * 
+   *
    * Generic sizes
    */
   byte LOG_BYTES_IN_BYTE = 0;
@@ -54,7 +54,7 @@ public interface Constants {
   int BYTES_IN_KBYTE = 1 << LOG_BYTES_IN_KBYTE;
 
   /****************************************************************************
-   * 
+   *
    * Card scanning
    */
   boolean SUPPORT_CARD_SCANNING = false;
@@ -67,11 +67,11 @@ public interface Constants {
   int CARD_META_PAGES_PER_REGION = SUPPORT_CARD_SCANNING ? (1<<LOG_CARD_META_PAGES) : 0;
   int CARD_MASK = (1<<LOG_CARD_BYTES) - 1;
 
-  
+
   /****************************************************************************
-   * 
+   *
    * Java-specific sizes currently required by MMTk
-   * 
+   *
    * TODO MMTk should really become independant of these Java types
    */
   byte LOG_BYTES_IN_SHORT = 1;
@@ -88,7 +88,7 @@ public interface Constants {
   int MIN_INT = 0x80000000;
 
   /****************************************************************************
-   * 
+   *
    * VM-Specific sizes
    */
   byte LOG_BYTES_IN_ADDRESS = VM.LOG_BYTES_IN_ADDRESS;
@@ -115,14 +115,14 @@ public interface Constants {
    * requirement of the VM.  When making allocation requests, both
    * <code>align</code> and <code>offset</code> must be multiples of
    * <code>MIN_ALIGNMENT</code>.
-   * 
+   *
    * This value is required to be a power of 2.
    */
   byte LOG_MIN_ALIGNMENT = VM.LOG_MIN_ALIGNMENT;
   int MIN_ALIGNMENT = 1 << LOG_MIN_ALIGNMENT;
 
   /**
-   * The maximum alignment request the vm will make. This must be a 
+   * The maximum alignment request the vm will make. This must be a
    * power of two multiple of the minimum alignment.
    */
   int MAX_ALIGNMENT = MIN_ALIGNMENT<<VM.MAX_ALIGNMENT_SHIFT;

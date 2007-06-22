@@ -24,11 +24,11 @@ import org.vmmagic.unboxed.*;
  * This supports <i>unsynchronized</i> enqueuing and dequeuing of tracing data
  * and bulk processing of the buffer.
  */
-@Uninterruptible public class TraceBuffer extends LocalQueue 
+@Uninterruptible public class TraceBuffer extends LocalQueue
   implements Constants, TracingConstants {
 
   /***********************************************************************
-   * 
+   *
    * Class based constants
    */
   private static final Word TRACE_NEW_RECORD = Word.fromIntSignExtend(3);
@@ -46,25 +46,25 @@ import org.vmmagic.unboxed.*;
   private static final Word TRACE_BOOT_ALLOC_SIZE = Word.fromIntSignExtend(18);
 
   /*
-   * Debugging and trace reducing constants 
+   * Debugging and trace reducing constants
    */
   public static final boolean OMIT_ALLOCS=false;
   public static final boolean OMIT_UPDATES=false;
   public static final boolean OMIT_BOOTALLOCS=false;
   public static final boolean OMIT_UNREACHABLES=false;
   public static final boolean OMIT_OTHERS=false;
-  public static final boolean OMIT_OUTPUT=OMIT_ALLOCS && OMIT_UPDATES && 
+  public static final boolean OMIT_OUTPUT=OMIT_ALLOCS && OMIT_UPDATES &&
                                           OMIT_OTHERS;
 
 
   /***********************************************************************
-   * 
+   *
    * Public methods
    */
 
   /**
    * Constructor
-   * 
+   *
    * @param pool The shared queue to which this queue will append its
    * buffers (when full or flushed) and from which it will aquire new
    * buffers when it has exhausted its own.
@@ -75,11 +75,11 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Push word onto the tracing queue.
-   * 
+   *
    * @param i The data to be pushed onto the tracing queue
    */
   @Inline
-  public final void push(Word i) { 
+  public final void push(Word i) {
     checkTailInsert(1);
     uncheckedTailInsert(i.toAddress());
   }
@@ -93,10 +93,10 @@ import org.vmmagic.unboxed.*;
     boolean loggedRecord = false;
     /* First we must flush any remaining data */
     if (!OMIT_OUTPUT) Log.writeln();
-    
+
     /* Process through the entire buffer. */
     while (checkDequeue(1)) {
-      /* For speed and efficiency, we will actually process the data buffer by 
+      /* For speed and efficiency, we will actually process the data buffer by
          buffer and not by dequeue-ing each entry. */
       while (!bufferOffset(head).isZero()) {
         head = head.minus(BYTES_IN_ADDRESS);
@@ -154,19 +154,19 @@ import org.vmmagic.unboxed.*;
             }
             traceState = TRACE_DEATH_TIME;
           } else if (traceState.EQ(TRACE_BOOT_ALLOC_SIZE)) {
-            if (!OMIT_BOOTALLOCS) 
+            if (!OMIT_BOOTALLOCS)
               Log.write(val);
             traceState = TRACE_NEW_RECORD;
           } else if (traceState.EQ(TRACE_ALLOC_SIZE)) {
-            if (!OMIT_ALLOCS) 
+            if (!OMIT_ALLOCS)
               Log.write(val);
             traceState = TRACE_ALLOC_FP;
           } else if (traceState.EQ(TRACE_ALLOC_FP)) {
-            if (!OMIT_ALLOCS) 
+            if (!OMIT_ALLOCS)
               Log.write(val);
             traceState = TRACE_ALLOC_THREAD;
           } else if (traceState.EQ(TRACE_ALLOC_THREAD)) {
-            if (!OMIT_ALLOCS) 
+            if (!OMIT_ALLOCS)
               Log.write(val);
             traceState = TRACE_NEW_RECORD;
           } else if (traceState.EQ(TRACE_TIB_SET)) {
@@ -194,7 +194,7 @@ import org.vmmagic.unboxed.*;
             if (!OMIT_UNREACHABLES)
               Log.write(val);
             traceState = TRACE_NEW_RECORD;
-          } else if (traceState.EQ(TRACE_FIELD_SET) || 
+          } else if (traceState.EQ(TRACE_FIELD_SET) ||
                      traceState.EQ(TRACE_ARRAY_SET)) {
             if (!OMIT_UPDATES) {
               Log.write('U');
@@ -203,7 +203,7 @@ import org.vmmagic.unboxed.*;
               loggedRecord = true;
             }
             traceState = TRACE_FIELD_SLOT;
-          } else if (traceState.EQ(TRACE_FIELD_TARGET) || 
+          } else if (traceState.EQ(TRACE_FIELD_TARGET) ||
                      traceState.EQ(TRACE_ARRAY_TARGET)) {
             if (!OMIT_UPDATES)
               Log.write(val);

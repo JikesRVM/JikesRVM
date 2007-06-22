@@ -20,7 +20,7 @@ import org.vmmagic.pragma.*;
 @Uninterruptible public abstract class Collection {
 
   /****************************************************************************
-   * 
+   *
    * Class variables
    */
 
@@ -37,7 +37,7 @@ import org.vmmagic.pragma.*;
   /**
    * Resource triggered garbage collection.  For example, an
    * allocation request would take the number of pages in use beyond
-   * the number available. 
+   * the number available.
    */
   public static final int RESOURCE_GC_TRIGGER = 2;
 
@@ -72,17 +72,17 @@ import org.vmmagic.pragma.*;
 
   /**
    * Triggers a collection.
-   * 
+   *
    * @param why the reason why a collection was triggered.  0 to
    *          <code>TRIGGER_REASONS - 1</code>.
    */
   @Interruptible
-  public abstract void triggerCollection(int why); 
+  public abstract void triggerCollection(int why);
 
   /**
    * Triggers a collection without allowing for a thread switch. This is needed
    * for Merlin lifetime analysis used by trace generation
-   * 
+   *
    * @param why the reason why a collection was triggered.  0 to
    *          <code>TRIGGER_REASONS - 1</code>.
    */
@@ -99,14 +99,14 @@ import org.vmmagic.pragma.*;
    * used to ensure a GC is not in the process of completing, to
    * avoid, for example, an async GC being triggered on the switch
    * from GC to mutator thread before all GC threads have switched.
-   * 
+   *
    * @return True if GC is not in progress.
    */
   public abstract boolean noThreadsInGC();
 
   /**
    * Prepare a mutator for collection.
-   * 
+   *
    * @param m the mutator to prepare
    */
   public abstract void prepareMutator(MutatorContext m);

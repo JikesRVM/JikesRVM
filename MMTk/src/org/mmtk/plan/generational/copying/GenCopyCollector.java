@@ -25,15 +25,15 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements <i>per-collector thread</i> behavior and state for
  * the <code>GenCopy</code> two-generational copying collector.<p>
- * 
+ *
  * Specifically, this class defines semantics specific to the collection of
  * the mature generation (<code>GenCollector</code> defines nursery semantics).
  * In particular the mature space allocator is defined (for collection-time
  * allocation into the mature space), and the mature space per-collector thread
  * collection time semantics are defined.<p>
- * 
+ *
  * @see GenCopy for a description of the <code>GenCopy</code> algorithm.
- * 
+ *
  * @see GenCopy
  * @see GenCopyMutator
  * @see GenCollector
@@ -54,7 +54,7 @@ import org.vmmagic.pragma.*;
   private final GenCopyMatureTraceLocal matureTrace;
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
@@ -67,14 +67,14 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Collection-time allocation
    */
 
   /**
    * Allocate space for copying an object (this method <i>does not</i>
    * copy the object, it only allocates space)
-   * 
+   *
    * @param original A reference to the original object
    * @param bytes The size of the space to be allocated (in bytes)
    * @param align The requested alignment.
@@ -83,7 +83,7 @@ import org.vmmagic.pragma.*;
    */
   @Inline
   public Address allocCopy(ObjectReference original, int bytes,
-      int align, int offset, int allocator) { 
+      int align, int offset, int allocator) {
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
       VM.assertions._assert(allocator == GenCopy.ALLOC_MATURE_MINORGC ||
@@ -95,9 +95,9 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Perform any post-copy actions.  In this case we clear any bits used 
+   * Perform any post-copy actions.  In this case we clear any bits used
    * for this object's GC metadata.
-   * 
+   *
    * @param object The newly allocated object
    * @param typeRef the type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
@@ -105,21 +105,21 @@ import org.vmmagic.pragma.*;
    */
   @Inline
   public final void postCopy(ObjectReference object, ObjectReference typeRef,
-      int bytes, int allocator) { 
+      int bytes, int allocator) {
     CopySpace.clearGCBits(object);
     if (GenCopy.IGNORE_REMSETS)
       CopySpace.markObject(getCurrentTrace(),object, GenCopy.immortalSpace.getMarkState());
   }
 
-  
+
   /*****************************************************************************
-   * 
+   *
    * Collection
    */
 
   /**
    * Execute a per-collector collection phase.
-   * 
+   *
    * @param phaseId The phase to execute.
    * @param primary True if this thread should peform local single-threaded
    * actions.
@@ -128,7 +128,7 @@ import org.vmmagic.pragma.*;
     if (global().traceFullHeap()) {
       if (phaseId == GenCopy.PREPARE) {
         super.collectionPhase(phaseId, primary);
-        if (global().gcFullHeap) mature.rebind(GenCopy.toSpace());       
+        if (global().gcFullHeap) mature.rebind(GenCopy.toSpace());
       }
       if (phaseId == GenCopy.START_CLOSURE) {
         matureTrace.startTrace();
@@ -149,7 +149,7 @@ import org.vmmagic.pragma.*;
   }
 
   /*****************************************************************************
-   * 
+   *
    * Miscellaneous
    */
 

@@ -49,15 +49,15 @@ import java.lang.ref.PhantomReference;
  *
  * Based on previous ReferenceProcessor.java, which was loosely based
  * on Finalizer.java
- * 
+ *
  * As an optimization for generational collectors, each reference type
- * maintains two queues: a nursery queue and the main queue. 
+ * maintains two queues: a nursery queue and the main queue.
  */
 @Uninterruptible public final class ReferenceGlue extends org.mmtk.vm.ReferenceGlue {
   /********************************************************************
-   * Class fields 
+   * Class fields
    */
-  
+
   /**
    * <code>true</code> if the references are implemented as heap
    * objects (rather than in a table, for example).  In this context
@@ -86,12 +86,12 @@ import java.lang.ref.PhantomReference;
   private int countOnWaitingList = 0;
   private int semantics;
 
-  
+
   /**
    * Constructor
    */
   public ReferenceGlue() {}
-  
+
   /**
    * Constructor
    * @param semantics Soft, phantom or weak
@@ -105,38 +105,38 @@ import java.lang.ref.PhantomReference;
    *
    * (SJF: This method must NOT be inlined into an inlined allocation
    * sequence, since it contains a lock!)
-   * 
+   *
    * @param ref the reference to add
    */
   @Interruptible
   @NoInline
-  private void addCandidate(Reference<?> ref) { 
+  private void addCandidate(Reference<?> ref) {
     if (TRACE) {
         Address referenceAsAddress = VM_Magic.objectAsAddress(ref);
         ObjectReference referent = getReferent(referenceAsAddress);
         VM.sysWriteln("Adding Reference: ", referenceAsAddress);
         VM.sysWriteln("       Referent:  ", referent);
     }
-    
+
     lock.acquire();
     setNextReferenceAsAddress(VM_Magic.objectAsAddress(ref), nurseryListHead);
     nurseryListHead = VM_Magic.objectAsAddress(ref);
-    countOnWaitingList += 1;    
+    countOnWaitingList += 1;
     lock.release();
   }
-  
+
   /**
    * Scan through all references and forward. Only called when references
    * are objects.
    */
   public void forward() {
-    
+
     if (TRACE) {
       VM.sysWrite("Starting ReferenceProcessor.traverse(");
       VM.sysWrite(ReferenceProcessor.semanticStrings[semantics]);
       VM.sysWriteln(")");
     }
-    
+
     Address reference = waitingListHead;
     Address prevReference = Address.zero();
     if (!waitingListHead.isZero()) {
@@ -155,7 +155,7 @@ import java.lang.ref.PhantomReference;
     if (!prevReference.isZero()) {
       setNextReferenceAsAddress(prevReference, Address.zero());
     }
-    
+
     if (TRACE) {
       VM.sysWrite("Ending ReferenceProcessor.traverse(");
       VM.sysWrite(ReferenceProcessor.semanticStrings[semantics]);
@@ -167,22 +167,22 @@ import java.lang.ref.PhantomReference;
    * Scan through the list of references. Calls ReferenceProcessor's
    * processReference method for each reference and builds a new
    * list of those references still active.
-   * 
+   *
    * Depending on the value of <code>nursery</code>, we will either
    * scan all references, or just those created since the last scan.
-   * 
+   *
    * @param nursery Scan only the newly created references
    */
   @LogicallyUninterruptible
-  private void scanReferences(boolean nursery) { 
+  private void scanReferences(boolean nursery) {
     Address reference;
     Address prevReference = Address.zero();
     Address newHead = Address.zero();
     int waiting = 0;
-    
+
     if (!nursery) {
       /* Process the mature reference list */
-      
+
       reference = waitingListHead;
       while (!reference.isZero()) {
         Address newReference =
@@ -232,7 +232,7 @@ import java.lang.ref.PhantomReference;
 
   /**
    * Scan through the list of references with the specified semantics.
-   * 
+   *
    * @param semantics the number representing the semantics
    * @param nursery Scan only the newly created references
    */
@@ -274,7 +274,7 @@ import java.lang.ref.PhantomReference;
    * class rather than the public Reference class to ensure that Jikes
    * has a safe way of enqueueing the object, one that cannot be
    * overridden by the application program.
-   * 
+   *
    * @see java.lang.ref.ReferenceQueue
    * @param addr the address of the Reference object
    * @param onlyOnce <code>true</code> if the reference has ever
@@ -295,7 +295,7 @@ import java.lang.ref.PhantomReference;
    * @param ref the SoftReference to add
    */
   @Interruptible
-  public static void addSoftCandidate(SoftReference<?> ref) { 
+  public static void addSoftCandidate(SoftReference<?> ref) {
     softReferenceProcessor.addCandidate(ref);
   }
 
@@ -304,19 +304,19 @@ import java.lang.ref.PhantomReference;
    * @param ref the WeakReference to add
    */
   @Interruptible
-  public static void addWeakCandidate(WeakReference<?> ref) { 
+  public static void addWeakCandidate(WeakReference<?> ref) {
     weakReferenceProcessor.addCandidate(ref);
   }
-  
+
   /**
    * Add a reference to the list of phantom references.
    * @param ref the PhantomReference to add
    */
   @Interruptible
-  public static void addPhantomCandidate(PhantomReference<?> ref) { 
+  public static void addPhantomCandidate(PhantomReference<?> ref) {
     phantomReferenceProcessor.addCandidate(ref);
   }
-  
+
   /***********************************************************************
    *
    * Reference object field accesors
@@ -331,7 +331,7 @@ import java.lang.ref.PhantomReference;
   public ObjectReference getReferent(Address addr) {
     return addr.loadObjectReference(VM_Entrypoints.referenceReferentField.getOffset());
   }
-  
+
   /**
    * Set the referent in a reference.  For Java the reference is
    * a Reference object.
@@ -341,11 +341,11 @@ import java.lang.ref.PhantomReference;
   public void setReferent(Address addr, ObjectReference referent) {
     addr.store(referent, VM_Entrypoints.referenceReferentField.getOffset());
   }
-  
+
   private static Address getNextReferenceAsAddress(Address ref) {
     return ref.loadAddress(VM_Entrypoints.referenceNextAsAddressField.getOffset());
   }
-  
+
   private static void setNextReferenceAsAddress(Address ref,
                                                 Address next) {
     ref.store(next, VM_Entrypoints.referenceNextAsAddressField.getOffset());
@@ -365,10 +365,10 @@ import java.lang.ref.PhantomReference;
     case ReferenceProcessor.PHANTOM_SEMANTICS:
       return phantomReferenceProcessor.countOnWaitingList;
     }
-    
+
     return -1;
   }
-  
+
   /**
    * Scan through all references and forward. Only called when references
    * are objects.

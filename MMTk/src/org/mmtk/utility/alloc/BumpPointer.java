@@ -21,42 +21,42 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * This class implements a bump pointer allocator that allows linearly 
- * scanning through the allocated objects. In order to achieve this in the 
+ * This class implements a bump pointer allocator that allows linearly
+ * scanning through the allocated objects. In order to achieve this in the
  * face of parallelism it maintains a header at a region (1 or more chunks)
- * granularity. 
- * 
+ * granularity.
+ *
  * Intra-block allocation is fast, requiring only a load, addition comparison
  * and store.  If a block boundary is encountered the allocator will
  * request more memory (virtual and actual).
- * 
- * In the current implementation the scanned objects maintain affinity 
+ *
+ * In the current implementation the scanned objects maintain affinity
  * with the thread that allocated the objects in the region. In the future
- * it is anticipated that subclasses should be allowed to choose to improve 
+ * it is anticipated that subclasses should be allowed to choose to improve
  * load balancing during the parallel scan.
- * 
+ *
  * Each region is laid out as follows:
- * 
+ *
  *  +-------------+-------------+-------------+---------------
- *  | Region  End | Next Region |  Data  End  | Data --> 
+ *  | Region  End | Next Region |  Data  End  | Data -->
  * +-------------+-------------+-------------+---------------
- * 
- * The minimum region size is 32768 bytes, so the 3 or 4 word overhead is 
- * less than 0.05% of all space. 
- * 
+ *
+ * The minimum region size is 32768 bytes, so the 3 or 4 word overhead is
+ * less than 0.05% of all space.
+ *
  * An intended enhancement is to facilitate a reallocation operation
- * where a second cursor is maintained over earlier regions (and at the 
+ * where a second cursor is maintained over earlier regions (and at the
  * limit a lower location in the same region). This would be accompianied
- * with an alternative slow path that would allow reuse of empty regions. 
- * 
+ * with an alternative slow path that would allow reuse of empty regions.
+ *
  * This class relies on the supporting virtual machine implementing the
  * getNextObject and related operations.
  */
-@Uninterruptible public class BumpPointer extends Allocator 
+@Uninterruptible public class BumpPointer extends Allocator
   implements Constants {
 
   /****************************************************************************
-   * 
+   *
    * Class variables
    */
 
@@ -64,7 +64,7 @@ import org.vmmagic.pragma.*;
   private static final int LOG_DEFAULT_STEP_SIZE = 20; // 1M: let the external slow path dominate
   private static final int STEP_SIZE = 1<<(SUPPORT_CARD_SCANNING ? LOG_CARD_BYTES : LOG_DEFAULT_STEP_SIZE);
   protected static final int LOG_CHUNK_SIZE = LOG_BYTES_IN_PAGE + 3;
-  protected static final Word CHUNK_MASK = Word.one().lsh(LOG_CHUNK_SIZE).minus(Word.one());  
+  protected static final Word CHUNK_MASK = Word.one().lsh(LOG_CHUNK_SIZE).minus(Word.one());
 
   // Offsets into header
   protected static final Offset REGION_LIMIT_OFFSET = Offset.zero();
@@ -80,7 +80,7 @@ import org.vmmagic.pragma.*;
       MAX_ALIGNMENT, 0).toWord().toOffset();
 
   /****************************************************************************
-   * 
+   *
    * Instance variables
    */
   protected Address cursor; // insertion point
@@ -94,7 +94,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Constructor.
-   * 
+   *
    * @param space The space to bump point into.
    * @param allowScanning Allow linear scanning of this region of memory.
    */
@@ -117,10 +117,10 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Re-associate this bump pointer with a different space. Also 
+   * Re-associate this bump pointer with a different space. Also
    * reset the bump pointer so that it will use the new space
    * on the next call to <code>alloc</code>.
-   * 
+   *
    * @param space The space to associate the bump pointer with.
    */
   public final void rebind(Space space) {
@@ -129,18 +129,18 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Allocate space for a new object.  This is frequently executed code and 
+   * Allocate space for a new object.  This is frequently executed code and
    * the coding is deliberaetly sensitive to the optimizing compiler.
    * After changing this, always check the IR/MC that is generated.
    *
    * @param bytes The number of bytes allocated
    * @param align The requested alignment
-   * @param offset The offset from the alignment 
+   * @param offset The offset from the alignment
    * @param inGC Is the allocation request occuring during GC.
    * @return The address of the first byte of the allocated region
    */
   @Inline
-  public final Address alloc(int bytes, int align, int offset, boolean inGC) { 
+  public final Address alloc(int bytes, int align, int offset, boolean inGC) {
     Address start = alignAllocationNoFill(cursor, align, offset);
     Address end = start.plus(bytes);
     if (end.GT(internalLimit))
@@ -155,17 +155,17 @@ import org.vmmagic.pragma.*;
   * pointer reaches the internal limit.  The code is forced out of
   * line.  If required we perform an external slow path take, which
   * we inline into this method since this is already out of line.
-  * 
+  *
   * @param start The start address for the pending allocation
   * @param end The end address for the pending allocation
   * @param align The requested alignment
-  * @param offset The offset from the alignment 
+  * @param offset The offset from the alignment
   * @param inGC Is the allocation request occuring during GC.
   * @return The address of the first byte of the allocated region
   */
   @NoInline
   private Address allocSlow(Address start, Address end, int align,
-      int offset, boolean inGC) { 
+      int offset, boolean inGC) {
     Address rtn = null;
     Address card = null;
     if (SUPPORT_CARD_SCANNING)
@@ -174,7 +174,7 @@ import org.vmmagic.pragma.*;
       rtn = allocSlowInline(end.diff(start).toInt(), align, offset,
           inGC);
       if (SUPPORT_CARD_SCANNING && card.NE(getCard(rtn.plus(CARD_MASK))))
-        card = getCard(rtn); // round down  
+        card = getCard(rtn); // round down
     } else {             /* internal slow path */
       while (internalLimit.LE(end))
         internalLimit = internalLimit.plus(STEP_SIZE);
@@ -188,12 +188,12 @@ import org.vmmagic.pragma.*;
       createCardAnchor(card, rtn, end.diff(start).toInt());
     return rtn;
   }
-  
+
   /**
    * Given an allocation which starts a new card, create a record of
-   * where the start of the object is relative to the start of the 
-   * card. 
-   * 
+   * where the start of the object is relative to the start of the
+   * card.
+   *
    * @param card An address that lies within the card to be marked
    * @param start The address of an object which creates a new card.
    * @param bytes The size of the pending allocation in bytes (used for debugging)
@@ -215,14 +215,14 @@ import org.vmmagic.pragma.*;
 
   /**
    * Return the start of the card corresponding to a given address.
-   * 
+   *
    * @param address The address for which the card start is required
    * @return The start of the card containing the address
    */
   private static Address getCard(Address address) {
     return address.toWord().and(Word.fromIntSignExtend(CARD_MASK).not()).toAddress();
   }
-  
+
   /**
    * Return the address of the metadata for a card, given the address of the card.
    * @param card The address of some card
@@ -239,10 +239,10 @@ import org.vmmagic.pragma.*;
    * from the fast path) because of the possibility of a thread switch
    * and corresponding re-association of bump pointers to kernel
    * threads.
-   *  
+   *
    * @param bytes The number of bytes allocated
    * @param align The requested alignment
-   * @param offset The offset from the alignment 
+   * @param offset The offset from the alignment
    * @param inGC Was the request made from within GC?
    * @return The address of the first byte of the allocated region or
    * zero on failure
@@ -275,13 +275,13 @@ import org.vmmagic.pragma.*;
   /**
    * Update the limit pointer.  As a side effect update the internal limit
    * pointer appropriately.
-   * 
+   *
    * @param newLimit The new value for the limit pointer
    * @param start The start of the region to be allocated into
    * @param bytes The size of the pending allocation (if any).
-   */  
+   */
   @Inline
-  protected final void updateLimit(Address newLimit, Address start, int bytes) { 
+  protected final void updateLimit(Address newLimit, Address start, int bytes) {
     limit = newLimit;
     internalLimit = start.plus(STEP_SIZE);
     if (internalLimit.GT(limit))
@@ -293,17 +293,17 @@ import org.vmmagic.pragma.*;
         VM.assertions._assert(internalLimit.LE(limit));
     }
   }
-  
+
   /**
    * A bump pointer chuck/region has been consumed but the contigious region
    * is available, so consume it and then return the address of the start
    * of a memory region satisfying the outstanding allocation request.  This
    * is relevant when re-using memory, as in a mark-compact collector.
-   * 
+   *
    * @param nextRegion The region to be consumed
    * @param bytes The number of bytes allocated
    * @param align The requested alignment
-   * @param offset The offset from the alignment 
+   * @param offset The offset from the alignment
    * @param inGC Was the request made from within GC?
    * @return The address of the first byte of the allocated region or
    * zero on failure
@@ -313,7 +313,7 @@ import org.vmmagic.pragma.*;
     region.plus(DATA_END_OFFSET).store(cursor);
     region = nextRegion;
     cursor = nextRegion.plus(DATA_START_OFFSET);
-    updateLimit(nextRegion.loadAddress(REGION_LIMIT_OFFSET), nextRegion, bytes); 
+    updateLimit(nextRegion.loadAddress(REGION_LIMIT_OFFSET), nextRegion, bytes);
     nextRegion.store(Address.zero(), DATA_END_OFFSET);
     VM.memory.zero(cursor, limit.diff(cursor).toWord().toExtent().plus(BYTES_IN_ADDRESS));
     reusePages(Conversions.bytesToPages(limit.diff(region).plus(BYTES_IN_ADDRESS)));
@@ -323,7 +323,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Update the metadata to reflect the addition of a new region.
-   * 
+   *
    * @param start The start of the new region
    * @param size The size of the new region (rounded up to chunk-alignment)
    */
@@ -359,7 +359,7 @@ import org.vmmagic.pragma.*;
     driver.setRange(space.getStart(), limit);
     this.linearScan(driver.getScanner());
   }
-  
+
   /**
    * Gather data for GCspy. <p>
    * This method calls the drivers linear scanner to scan through
@@ -370,30 +370,30 @@ import org.vmmagic.pragma.*;
    */
   public void gcspyGatherData(LinearSpaceDriver driver, Space scanSpace) {
 	//TODO can scanSpace ever be different to this.space?
-    if (VM.VERIFY_ASSERTIONS) 
-	  VM.assertions._assert(scanSpace == space, "scanSpace != space"); 
-    
+    if (VM.VERIFY_ASSERTIONS)
+	  VM.assertions._assert(scanSpace == space, "scanSpace != space");
+
 	//driver.setRange(scanSpace.getStart(), cursor);
     Address start = scanSpace.getStart();
     driver.setRange(start, limit);
-    
+
     if (false) {
       Log.write("\nBumpPointer.gcspyGatherData set Range "); Log.write(scanSpace.getStart());
       Log.write(" to "); Log.writeln(limit);
       Log.write("BumpPointergcspyGatherData scan from "); Log.writeln(initialRegion);
     }
-    
+
     linearScan(driver.getScanner());
   }
 
 
   /**
    * Perform a linear scan through the objects allocated by this bump pointer.
-   * 
+   *
    * @param scanner The scan object to delegate scanning to.
    */
   @Inline
-  public final void linearScan(LinearScan scanner) { 
+  public final void linearScan(LinearScan scanner) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(allowScanning);
     /* Has this allocator ever allocated anything? */
     if (initialRegion.isZero()) return;
@@ -408,7 +408,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Perform a linear scan through a single contigious region
-   * 
+   *
    * @param scanner The scan object to delegate to.
    * @param start The start of this region
    */

@@ -25,7 +25,7 @@ import org.vmmagic.unboxed.*;
 /**
  * This class implements the global state of a simple reference counting
  * collector.
- * 
+ *
  * All plans make a clear distinction between <i>global</i> and
  * <i>thread-local</i> activities, and divides global and local state
  * into separate class hierarchies.  Global activities must be
@@ -42,24 +42,24 @@ import org.vmmagic.unboxed.*;
  * performance properties of MMTk plans.
  */
 @Uninterruptible public class GenRC extends RCBase {
-  
+
   /****************************************************************************
    *
    * Class variables
    */
-  
+
   /** The nursery space, where all new objects are allocated by default. */
   public static CopySpace nurserySpace = new CopySpace("nursery", DEFAULT_POLL_FREQUENCY, (float) 0.15, true, false);
-  
+
   public static final int NS = nurserySpace.getDescriptor();
-  
+
   // Allocators
-  public static final int ALLOC_NURSERY = ALLOC_DEFAULT;  
+  public static final int ALLOC_NURSERY = ALLOC_DEFAULT;
 
   /****************************************************************************
    * Instance variables
    */
-  
+
   /**
    * Constructor.
  */
@@ -68,31 +68,31 @@ import org.vmmagic.unboxed.*;
       VM.assertions._assert(WITH_COALESCING_RC);
     }
   }
-  
+
   /*****************************************************************************
-   * 
+   *
    * Collection
    */
-  
-  
+
+
   /**
    * Perform a (global) collection phase.
-   * 
+   *
    * @param phaseId Collection phase to execute.
    */
   @NoInline
-  public void collectionPhase(int phaseId) { 
+  public void collectionPhase(int phaseId) {
     if (phaseId == PREPARE) {
       nurserySpace.prepare(true);
     }
-    
+
     if (phaseId == RELEASE) {
       nurserySpace.release();
     }
-    
+
     super.collectionPhase(phaseId);
   }
-  
+
   /**
    * This method is called periodically by the allocation subsystem
    * (by default, each time a page is consumed), and provides the
@@ -118,7 +118,7 @@ import org.vmmagic.unboxed.*;
    * @return True if a collection has been triggered
    */
   @LogicallyUninterruptible
-  public boolean poll(boolean vmExhausted, Space space) { 
+  public boolean poll(boolean vmExhausted, Space space) {
     if (getCollectionsInitiated() > 0 || !isInitialized()) return false;
     vmExhausted |= stressTestGCRequired();
     boolean heapFull = getPagesReserved() > getTotalPages();
@@ -126,7 +126,7 @@ import org.vmmagic.unboxed.*;
                           Options.nurserySize.getMaxNursery();
     boolean metaDataFull = metaDataSpace.reservedPages() >
                            META_DATA_FULL_THRESHOLD;
-    int newMetaDataPages = metaDataSpace.committedPages() - 
+    int newMetaDataPages = metaDataSpace.committedPages() -
                            previousMetaDataPages;
     if (vmExhausted || heapFull || nurseryFull || metaDataFull ||
         (progress && (newMetaDataPages > Options.metaDataLimit.getPages()))) {
@@ -143,7 +143,7 @@ import org.vmmagic.unboxed.*;
     }
     return false;
   }
-  
+
   /**
    * Return the number of pages available for allocation, <i>assuming
    * all future allocation is to the nursery</i>.
@@ -178,10 +178,10 @@ import org.vmmagic.unboxed.*;
   public final int getPagesUsed() {
     return super.getPagesUsed() + nurserySpace.reservedPages();
   }
-  
+
   /**
    * @see org.mmtk.plan.Plan#objectCanMove
-   * 
+   *
    * @param object Object in question
    * @return False if the object will never move
    */

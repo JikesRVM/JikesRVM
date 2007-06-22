@@ -25,7 +25,7 @@ import org.vmmagic.unboxed.*;
 
 /**
  * This class implements the global state of a simple mark-sweep collector.
- * 
+ *
  * All plans make a clear distinction between <i>global</i> and
  * <i>thread-local</i> activities, and divides global and local state
  * into separate class hierarchies.  Global activities must be
@@ -71,23 +71,23 @@ import org.vmmagic.unboxed.*;
    * Boot-time initialization
    */
   @Interruptible
-  public void boot() { 
+  public void boot() {
     super.boot();
     msReservedPages = (int) (getTotalPages() * MS_RESERVE_FRACTION);
   }
 
   /*****************************************************************************
-   * 
+   *
    * Collection
    */
 
   /**
    * Perform a (global) collection phase.
-   * 
+   *
    * @param phaseId Collection phase to execute.
    */
   @Inline
-  public final void collectionPhase(int phaseId) { 
+  public final void collectionPhase(int phaseId) {
 
     if (phaseId == PREPARE) {
       super.collectionPhase(phaseId);
@@ -95,7 +95,7 @@ import org.vmmagic.unboxed.*;
       msSpace.prepare();
       return;
     }
-    
+
     if (phaseId == RELEASE) {
       msTrace.release();
       msSpace.release();
@@ -106,14 +106,14 @@ import org.vmmagic.unboxed.*;
 
     super.collectionPhase(phaseId);
   }
-  
+
   /**
    * Update bookkeeping of GC progress.
    */
   private void updateProgress() {
       int available = getTotalPages() - getPagesReserved();
 
-      progress = (available > availablePreGC) && 
+      progress = (available > availablePreGC) &&
                  (available > getExceptionReserve());
 
       if (progress) {
@@ -129,13 +129,13 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Poll for a collection
-   * 
+   *
    * @param vmExhausted Virtual Memory range for space is exhausted.
    * @param space The space that caused the poll.
    * @return True if a collection is required.
    */
   @LogicallyUninterruptible
-  public final boolean poll(boolean vmExhausted, Space space) { 
+  public final boolean poll(boolean vmExhausted, Space space) {
     if (getCollectionsInitiated() > 0 || !isInitialized() || space == metaDataSpace) {
       return false;
     }
@@ -153,7 +153,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /*****************************************************************************
-   * 
+   *
    * Accounting
    */
 
@@ -161,7 +161,7 @@ import org.vmmagic.unboxed.*;
    * Return the number of pages reserved for use given the pending
    * allocation.  The superclass accounts for its spaces, we just
    * augment this with the mark-sweep space's contribution.
-   * 
+   *
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
@@ -171,7 +171,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * @see org.mmtk.plan.Plan#objectCanMove
-   * 
+   *
    * @param object Object in question
    * @return False if the object will never move
    */

@@ -30,13 +30,13 @@ import org.mmtk.utility.Log;
 /**
  * Simple, fair locks with deadlock detection.
  *
- * The implementation mimics a deli-counter and consists of two values: 
+ * The implementation mimics a deli-counter and consists of two values:
  * the ticket dispenser and the now-serving display, both initially zero.
  * Acquiring a lock involves grabbing a ticket number from the dispenser
  * using a fetchAndIncrement and waiting until the ticket number equals
  * the now-serving display.  On release, the now-serving display is
  * also fetchAndIncremented.
- * 
+ *
  * This implementation relies on there being less than 1<<32 waiters.
  */
 @Uninterruptible public class Lock extends org.mmtk.vm.Lock {
@@ -51,14 +51,14 @@ import org.mmtk.utility.Log;
 
   // Debugging
   private static final boolean REPORT_SLOW = true;
-  private static int TIMEOUT_CHECK_FREQ = 1000; 
+  private static int TIMEOUT_CHECK_FREQ = 1000;
   public static final int verbose = 0; // show who is acquiring and releasing the locks
   private static int lockCount = 0;
 
   // Core Instance fields
   private String name;        // logical name of lock
   private final int id;       // lock id (based on a non-resetting counter)
-  
+
   @SuppressWarnings({"unused", "UnusedDeclaration", "CanBeFinal"}) // Accessed via VM_EntryPoints
   private int dispenser;      // ticket number of next customer
   private int serving;        // number of customer being served
@@ -73,15 +73,15 @@ import org.mmtk.utility.Log;
 
   public static void fullyBooted() {
     SLOW_THRESHOLD = VM_Time.millisToCycles(200); // cycles for .2 seconds
-    TIME_OUT = 10 * SLOW_THRESHOLD; 
+    TIME_OUT = 10 * SLOW_THRESHOLD;
   }
 
-  public Lock(String name) { 
+  public Lock(String name) {
     this();
     this.name = name;
   }
-  
-  public Lock() { 
+
+  public Lock() {
     dispenser = serving = 0;
     id = lockCount++;
   }
@@ -89,7 +89,7 @@ import org.mmtk.utility.Log;
   public void setName(String str) {
     name = str;
   }
-  
+
   // Try to acquire a lock and spin-wait until acquired.
   // (1) The isync at the end is important to prevent hardware instruction re-ordering
   //       from floating instruction below the acquire above the point of acquisition.
@@ -111,7 +111,7 @@ import org.mmtk.utility.Log;
         long now = VM_Time.cycles();
         long lastReportDuration = now - lastSlowReport;
         long waitTime = now - localStart;
-        if (lastReportDuration > 
+        if (lastReportDuration >
             SLOW_THRESHOLD + VM_Time.millisToCycles(200 * (VM_Thread.getCurrentThread().getIndex() % 5))) {
             lastSlowReport = now;
             Log.write("GC Warning: slow/deadlock - thread ");
@@ -120,15 +120,15 @@ import org.mmtk.utility.Log;
             Log.write(" failed to acquire lock "); Log.write(id);
             Log.write(" ("); Log.write(name);
             Log.write(") serving "); Log.write(serving);
-            Log.write(" after "); 
+            Log.write(" after ");
             Log.write(VM_Time.cyclesToMillis(waitTime)); Log.write(" ms");
             Log.writelnNoFlush();
 
             VM_Thread t = thread;
-            if (t == null) 
+            if (t == null)
               Log.writeln("GC Warning: Locking thread unknown", false);
             else {
-              Log.write("GC Warning: Locking thread: "); 
+              Log.write("GC Warning: Locking thread: ");
               writeThreadIdToLog(t);
               Log.write(" at position ");
               Log.writeln(where, false);
@@ -139,7 +139,7 @@ import org.mmtk.utility.Log;
             for (int i=(serving + 90) % 100; i != (serving%100); i = (i+1)%100) {
               if (VM.VerifyAssertions) VM._assert(i >= 0 && i < 100);
               Log.write("GC Warning: ");
-              Log.write(i); 
+              Log.write(i);
               Log.write(": index "); Log.write(servingHistory[i]);
               Log.write("   tid "); Log.write(tidHistory[i]);
               Log.write("    start = "); Log.write(startHistory[i]);
@@ -151,7 +151,7 @@ import org.mmtk.utility.Log;
             Log.flush();
         }
         if (waitTime > TIME_OUT) {
-            Log.write("GC Warning: Locked out thread: "); 
+            Log.write("GC Warning: Locked out thread: ");
             writeThreadIdToLog(VM_Thread.getCurrentThread());
             Log.writeln();
             VM_Scheduler.dumpStack();
@@ -160,7 +160,7 @@ import org.mmtk.utility.Log;
       }
     }
 
-    if (REPORT_SLOW) { 
+    if (REPORT_SLOW) {
       servingHistory[serving % 100] = serving;
       tidHistory[serving % 100] = VM_Thread.getCurrentThread().getIndex();
       startHistory[serving % 100] = VM_Time.cycles();
@@ -195,7 +195,7 @@ import org.mmtk.utility.Log;
   }
 
   // Release the lock by incrementing serving counter.
-  // (1) The sync is needed to flush changes made while the lock is held and also prevent 
+  // (1) The sync is needed to flush changes made while the lock is held and also prevent
   //        instructions floating into the critical section.
   // (2) When verbose, the amount of time the lock is ehld is printed.
   //
@@ -233,7 +233,7 @@ import org.mmtk.utility.Log;
    * Does not use any newlines, nor does it flush.
    *
    *  This function may be called during GC; it avoids write barriers and
-   *  allocation. 
+   *  allocation.
    *
    *  @param t  The {@link VM_Thread} we are interested in.
    */

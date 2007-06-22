@@ -21,7 +21,7 @@ import org.vmmagic.pragma.Uninterruptible;
 
   /**
    * Set the name of this lock instance
-   * 
+   *
    * @param str The name of the lock (for error output).
    */
   public abstract void setName(String str);
@@ -34,7 +34,7 @@ import org.vmmagic.pragma.Uninterruptible;
 
   /**
    * Perform sanity checks on the lock. For debugging.
-   * 
+   *
    * @param w Identifies the code location in the debugging output.
    */
   public abstract void check(int w);

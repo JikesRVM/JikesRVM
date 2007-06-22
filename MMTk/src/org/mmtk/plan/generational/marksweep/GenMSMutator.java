@@ -25,16 +25,16 @@ import org.vmmagic.unboxed.*;
 /**
  * This class implements <i>per-mutator thread</i> behavior and state for
  * the <code>GenMS</code> two-generational copying collector.<p>
- * 
+ *
  * Specifically, this class defines mutator-time semantics specific to the
  * mature generation (<code>GenMutator</code> defines nursery semantics).
  * In particular the mature space allocator is defined (for mutator-time
  * allocation into the mature space via pre-tenuring), and the mature space
  * per-mutator thread collection time semantics are defined (rebinding
  * the mature space allocator).<p>
- * 
+ *
  * See {@link GenMS} for a description of the <code>GenMS</code> algorithm.
- * 
+ *
  * @see GenMS
  * @see GenMSCollector
  * @see GenMutator
@@ -54,9 +54,9 @@ import org.vmmagic.unboxed.*;
    */
   private final MarkSweepLocal mature;
 
-  
+
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
@@ -68,13 +68,13 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Mutator-time allocation
    */
 
   /**
    * Allocate memory for an object.
-   * 
+   *
    * @param bytes The number of bytes required for the object.
    * @param align Required alignment for the object.
    * @param offset Offset associated with the alignment.
@@ -83,7 +83,7 @@ import org.vmmagic.unboxed.*;
    * @return The low address of the allocated memory.
    */
   @Inline
-  public final Address alloc(int bytes, int align, int offset, int allocator, int site) { 
+  public final Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == GenMS.ALLOC_MATURE) {
       return mature.alloc(bytes, align, offset, false);
     }
@@ -93,7 +93,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Perform post-allocation actions.  For many allocators none are
    * required.
-   * 
+   *
    * @param ref The newly allocated object
    * @param typeRef the type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
@@ -101,7 +101,7 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public final void postAlloc(ObjectReference ref, ObjectReference typeRef,
-      int bytes, int allocator) { 
+      int bytes, int allocator) {
     if (allocator == GenMS.ALLOC_MATURE) {
       GenMS.msSpace.initializeHeader(ref, true);
     } else {
@@ -114,7 +114,7 @@ import org.vmmagic.unboxed.*;
    * particular method will match against those spaces defined at this
    * level of the class hierarchy.  Subclasses must deal with spaces
    * they define and refer to superclasses appropriately.
-   * 
+   *
    * @param a An allocator
    * @return The space into which <code>a</code> is allocating, or
    *         <code>null</code> if there is no space associated with
@@ -130,7 +130,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Return the allocator instance associated with a space
    * <code>space</code>, for this plan instance.
-   * 
+   *
    * @param space The space for which the allocator instance is desired.
    * @return The allocator instance associated with this plan instance
    * which is allocating into <code>space</code>, or <code>null</code>
@@ -142,18 +142,18 @@ import org.vmmagic.unboxed.*;
   }
 
   /*****************************************************************************
-   * 
+   *
    * Collection
    */
 
   /**
    * Perform a per-mutator collection phase.
-   * 
+   *
    * @param phaseId Collection phase to perform
    * @param primary Is this thread to do the one-off thread-local tasks
    */
   @NoInline
-  public void collectionPhase(int phaseId, boolean primary) { 
+  public void collectionPhase(int phaseId, boolean primary) {
     if (global().traceFullHeap()) {
       if (phaseId == GenMS.PREPARE_MUTATOR) {
         super.collectionPhase(phaseId, primary);
@@ -172,7 +172,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Miscellaneous
    */
 

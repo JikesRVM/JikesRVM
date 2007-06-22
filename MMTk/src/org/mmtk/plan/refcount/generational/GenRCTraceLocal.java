@@ -34,13 +34,13 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Externally visible Object processing and tracing
    */
 
   /**
    * Is the specified object live?
-   * 
+   *
    * @param object The object.
    * @return True if the object is live.
    */
@@ -81,22 +81,22 @@ import org.vmmagic.unboxed.*;
     }
     return object;
   }
-  
+
   /**
    * This method traces an object with knowledge of the fact that object
    * is a root or not. In simple collectors the fact it is a root is not
    * important so this is the default implementation given here.
-   * 
+   *
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
   @Inline
-  public ObjectReference traceObject(ObjectReference object) { 
+  public ObjectReference traceObject(ObjectReference object) {
     return traceObject(object, false);
   }
 
   @Inline
-  public int getAllocator() { 
+  public int getAllocator() {
     return GenRC.ALLOC_RC;
   }
 
@@ -110,14 +110,14 @@ import org.vmmagic.unboxed.*;
       return GenRC.nurserySpace.traceObject(this, object);
     return object;
   }
-  
+
   /**
    * Miscellaneous
    */
 
   /**
    * Called during the trace to process any remsets. As there is a bug
-   * in JikesRVM where write barriers occur during GC, this is 
+   * in JikesRVM where write barriers occur during GC, this is
    * necessary.
    */
   public void flushRememberedSets() {

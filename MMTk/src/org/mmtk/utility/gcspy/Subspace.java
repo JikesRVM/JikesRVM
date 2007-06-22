@@ -44,7 +44,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Create a new subspace
-   * 
+   *
    * @param start The address of the start of the subspace
    * @param end The address of the end of the subspace
    * @param firstIndex The index of the first block of the subspace
@@ -85,7 +85,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Reset a new subspace
-   * 
+   *
    * @param start The address of the start of the subspace
    * @param end The address of the end of the subspace
    * @param firstIndex The index of the first block of the subspace
@@ -162,7 +162,7 @@ import org.vmmagic.pragma.*;
       Log.write(" end_ ", end_);
       Log.write(" blockSize_ ", blockSize_);
       Log.write(" firstIndex_ ", firstIndex_);
-      Log.write(" + ", addr.diff(start_).toInt() / blockSize_); 
+      Log.write(" + ", addr.diff(start_).toInt() / blockSize_);
       Log.writeln(" addr ", addr);
     }
     return firstIndex_ + addr.diff(start_).toInt() / blockSize_;
@@ -179,7 +179,7 @@ import org.vmmagic.pragma.*;
   }
 
   //--------------Accessors-------------------------
-  
+
   /**
    * Get the start of the subspace
    * @return The start of this subspace

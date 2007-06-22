@@ -20,14 +20,14 @@ import org.vmmagic.unboxed.*;
 /**
  * This abstract class is the fundamental mechanism for performing a
  * transitive closure over an object graph.<p>
- * 
+ *
  * @see org.mmtk.plan.TraceLocal
  */
 @Uninterruptible public abstract class TraceStep implements Constants {
 
   /**
    * Trace a reference during GC.
-   * 
+   *
    * @param objLoc The location containing the object reference to be
    * traced.
    */

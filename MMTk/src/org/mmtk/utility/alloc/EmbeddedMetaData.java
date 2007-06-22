@@ -41,7 +41,7 @@ import org.vmmagic.pragma.*;
    * Given an address, return the begining of the meta data for the
    * region containing the address.  This is a fast operation because
    * it only involves masking out low order bits.
-   * 
+   *
    * @param address The address whose meta data is sought.
    * @return The address of the start of the meta data for the meta
    * region in which the address is located.
@@ -55,7 +55,7 @@ import org.vmmagic.pragma.*;
    * Given an address, the density (coverage) of a meta data type, and
    * the granularity (alignment) of the meta data, return the offset
    * into the meta data the address.
-   * 
+   *
    * @param address The address whose meta data offset is sought.
    * @param logCoverage The log base two of the coverage of the meta
    * data in question. For example, a value of 4 would indicate a

@@ -20,16 +20,16 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements basic memory copying, setting and clearing
  * operations.
- * 
+ *
  * NOTE: Most of the operations in this class are performed at teh
  * granularity of a Java integer (ie 4-byte units)
- * 
+ *
  * FIXME: Why can't these operations be performed at word-granularity?
  */
 @Uninterruptible public class Memory implements Constants {
 
   /****************************************************************************
-   * 
+   *
    * Class variables
    */
 
@@ -39,18 +39,18 @@ import org.vmmagic.pragma.*;
 
 
   /****************************************************************************
-   * 
+   *
    * Basic memory setting and zeroing operations
    */
 
   /**
    * Zero a region of memory
-   * 
+   *
    * @param start The start of the region to be zeroed (must be 4-byte aligned)
    * @param bytes The number of bytes to be zeroed (must be 4-byte aligned)
    */
   @Inline
-  public static void zero(Address start, Extent bytes) { 
+  public static void zero(Address start, Extent bytes) {
     if (VM.VERIFY_ASSERTIONS) {
       assertAligned(start);
       assertAligned(bytes);
@@ -63,12 +63,12 @@ import org.vmmagic.pragma.*;
 
   /**
    * Zero a small region of memory
-   * 
+   *
    * @param start The start of the region to be zeroed (must be 4-byte aligned)
    * @param bytes The number of bytes to be zeroed (must be 4-byte aligned)
    */
   @Inline
-  public static void zeroSmall(Address start, Extent bytes) { 
+  public static void zeroSmall(Address start, Extent bytes) {
     if (VM.VERIFY_ASSERTIONS) {
       assertAligned(start);
       assertAligned(bytes);
@@ -80,13 +80,13 @@ import org.vmmagic.pragma.*;
 
   /**
    * Set a region of memory
-   * 
+   *
    * @param start The start of the region to be zeroed (must be 4-byte aligned)
    * @param bytes The number of bytes to be zeroed (must be 4-byte aligned)
    * @param value The value to which the integers in the region should be set
    */
   @Inline
-  public static void set(Address start, int bytes, int value) { 
+  public static void set(Address start, int bytes, int value) {
     if (VM.VERIFY_ASSERTIONS) {
       assertAligned(start);
       assertAligned(bytes);
@@ -98,49 +98,49 @@ import org.vmmagic.pragma.*;
 
 
   /****************************************************************************
-   * 
+   *
    * Helper methods
    */
 
   /**
    * Check that a memory range is zeroed
-   * 
+   *
    * @param start The start address of the range to be checked
    * @param bytes The size of the region to be checked, in bytes
    * @return True if the region is zeroed
    */
   @Inline
-  public static boolean IsZeroed(Address start, int bytes) { 
+  public static boolean IsZeroed(Address start, int bytes) {
     return isSet(start, bytes, false, 0);
   }
 
   /**
    * Assert that a memory range is zeroed.  An assertion failure will
    * occur if the region is not zeroed.
-   * 
+   *
    * this is in the inline allocation sequence when
    * VM.VERIFY_ASSERTIONS is true, it is carefully written to
    * reduce the impact on code space.
-   * 
+   *
    * @param start The start address of the range to be checked
    * @param bytes The size of the region to be checked, in bytes
    */
   @NoInline
-  public static void assertIsZeroed(Address start, int bytes) { 
+  public static void assertIsZeroed(Address start, int bytes) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isSet(start, bytes, true, 0));
   }
 
   /**
    * Verbosely check and return true if a memory range is set to some
    * integer value
-   * 
+   *
    * @param start The start address of the range to be checked
    * @param bytes The size of the region to be checked, in bytes
    * @param value The value to which this region should be set
    * @return True if the region has been correctly set
    */
   @Inline
-  public static boolean isSet(Address start, int bytes, int value) { 
+  public static boolean isSet(Address start, int bytes, int value) {
     return isSet(start, bytes, true, value);
   }
 
@@ -148,7 +148,7 @@ import org.vmmagic.pragma.*;
    * Assert appropriate alignment, triggering an assertion failure if
    * the value does not satisify the alignment requirement of the
    * memory operations.
-   * 
+   *
    * @param value The value to be tested
    */
   private static void assertAligned(int value) {
@@ -169,7 +169,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Test whether a memory range is set to a given integer value
-   * 
+   *
    * @param start The address to start checking at
    * @param bytes The size of the region to check, in bytes
    * @param verbose If true, produce verbose output
@@ -182,7 +182,7 @@ import org.vmmagic.pragma.*;
      *  cause/encourage the GCP into moving a get_obj_tib into the
      * interruptible region where the tib is being installed via an
      * int_store
-   */ { 
+   */ {
     if (VM.VERIFY_ASSERTIONS) assertAligned(bytes);
     for (int i = 0; i < bytes; i += BYTES_IN_INT)
       if (start.loadInt(Offset.fromIntSignExtend(i)) != value) {
@@ -202,7 +202,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Dump the contents of memory around a given address
-   * 
+   *
    * @param addr The address around which the memory should be dumped
    * @param beforeBytes The number of bytes before the address to be
    * included in the dump

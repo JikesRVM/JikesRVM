@@ -119,7 +119,7 @@ import org.vmmagic.pragma.*;
    * @param trace The trace instance to use for reporting references.
    * @param processCodeLocations Should code locations be processed?
    */
-  public static void scanThread(VM_Thread thread, TraceLocal trace, 
+  public static void scanThread(VM_Thread thread, TraceLocal trace,
                                 boolean processCodeLocations) {
     /* get the gprs associated with this thread */
     Address gprs = VM_Magic.objectAsAddress(thread.contextRegisters.gprs);
@@ -139,8 +139,8 @@ import org.vmmagic.pragma.*;
    * @param topFrame The top frame of the stack being scanned, or zero
    * if this is to be inferred from the thread (normally the case).
    */
-  public static void scanThread(VM_Thread thread, TraceLocal trace, 
-                                boolean processCodeLocations, 
+  public static void scanThread(VM_Thread thread, TraceLocal trace,
+                                boolean processCodeLocations,
                                 Address gprs, Address topFrame) {
     /* establish ip and fp for the stack to be scanned */
     Address ip, fp, initialIPLoc;
@@ -153,7 +153,7 @@ import org.vmmagic.pragma.*;
       fp = VM_Magic.getCallerFramePointer(topFrame);
       initialIPLoc = thread.contextRegisters.getIPLocation(); // FIXME
     }
-    
+
     /* Grab the ScanThread instance associated with this thread */
     ScanThread scanner = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread()).getThreadScanner();
 
@@ -180,7 +180,7 @@ import org.vmmagic.pragma.*;
    * @param fp The frame pointer for the top frame of the stack we're
    * about to scan.
    */
-  private void startScan(TraceLocal trace, 
+  private void startScan(TraceLocal trace,
                          boolean processCodeLocations,
                          VM_Thread thread, Address gprs, Address ip,
                          Address fp, Address initialIPLoc, Address topFrame) {
@@ -237,13 +237,13 @@ import org.vmmagic.pragma.*;
         fp = VM_Magic.getCallerFramePointer(fp);
       }
     }
-    
+
     /* If a thread started via createVM or attachVM, base may need scaning */
     checkJNIBase(verbosity);
 
     if (verbosity >= 1) Log.writeln("--- End Of Stack Scan ---\n");
   }
-  
+
   /**
    * When an exception occurs, registers are saved temporarily.  If
    * the stack being scanned is in this state, we need to scan those
@@ -278,7 +278,7 @@ import org.vmmagic.pragma.*;
    * @param ipLoc The location of the pointer into this code object
    */
   @Inline
-  private void codeLocationsPush(ObjectReference code, Address ipLoc) { 
+  private void codeLocationsPush(ObjectReference code, Address ipLoc) {
     if (VALIDATE_REFS) {
       Address ip = ipLoc.loadAddress();
       Offset offset = ip.diff(code.toAddress());
@@ -291,7 +291,7 @@ import org.vmmagic.pragma.*;
         Log.write("       offset = "); Log.writeln(offset);
         Log.write("       interior ref loc = "); Log.writeln(ipLoc);
         if (!failed) failed = true;
-      }    
+      }
     }
     trace.addInteriorRootLocation(code, ipLoc);
   }
@@ -318,20 +318,20 @@ import org.vmmagic.pragma.*;
 
     /* scan the frame for object pointers */
     scanFrameForObjects(verbosity);
-    
+
     /* scan the frame for pointers to code */
     if (processCodeLocations && compiledMethodType != VM_CompiledMethod.TRAP)
       processFrameForCode(verbosity);
-    
+
     iterator.cleanupPointers();
-    
+
     /* skip preceeding native frames if this frame is a native bridge */
     if (compiledMethodType != VM_CompiledMethod.TRAP &&
         compiledMethod.getMethod().getDeclaringClass().hasBridgeFromNativeAnnotation()) {
       fp = VM_Runtime.unwindNativeStackFrameForGC(fp);
       if (verbosity >= 1) Log.write("scanFrame skipping native C frames\n");
     }
-    return fp;     
+    return fp;
   }
 
   /**
@@ -360,16 +360,16 @@ import org.vmmagic.pragma.*;
     compiledMethod.setActiveOnStack();  // prevents code from being collected
 
     compiledMethodType = compiledMethod.getCompilerType();
-    
+
     if (verbosity >= 1) printMethodHeader();
 
     /* get the code associated with this frame */
     Offset offset = compiledMethod.getInstructionOffset(ip);
-    
+
     /* initialize MapIterator for this frame */
     iterator = iteratorGroup.selectIterator(compiledMethod);
     iterator.setupIterator(compiledMethod, offset, fp);
-    
+
     if (verbosity >= 2) dumpStackFrame(verbosity);
     if (verbosity >= 3) Log.writeln("--- Refs Reported By GCMap Iterator ---");
 
@@ -393,7 +393,7 @@ import org.vmmagic.pragma.*;
    * performing the scan.
    */
   private void scanFrameForObjects(int verbosity) {
-    for (Address refaddr = iterator.getNextReferenceAddress(); 
+    for (Address refaddr = iterator.getNextReferenceAddress();
          !refaddr.isZero();
          refaddr = iterator.getNextReferenceAddress()) {
       if (VALIDATE_REFS) checkReference(refaddr, verbosity);
@@ -414,14 +414,14 @@ import org.vmmagic.pragma.*;
    * top of stack frames, while boot image frames are skipped when
    * considering other frames.  Shouldn't they both be considered in
    * both cases?
-   * 
+   *
    * @param verbosity The level of verbosity to be used when
    * performing the scan.
    */
   private void processFrameForCode(int verbosity) {
     /* get the code object associated with this frame */
     ObjectReference code = ObjectReference.fromObject(compiledMethod.getEntryCodeArray());
-    
+
     pushFrameIP(code, verbosity);
     scanFrameForCode(code, verbosity);
   }
@@ -429,14 +429,14 @@ import org.vmmagic.pragma.*;
   /**
    * Push the instruction pointer associated with this frame onto the
    * code locations deque.<p>
-   * 
+   *
    * A stack frame represents an execution context, and thus has an
    * instruction pointer associated with it.  In the case of the top
    * frame, the instruction pointer is captured by the IP register,
    * which is preseved in the thread data structure at thread switch
    * time.  In the case of all non-top frames, the next instruction
    * pointer is stored as the return address for the <i>previous</i>
-   * frame.<p> 
+   * frame.<p>
    *
    * The address of the code pointer is pushed onto the code locations
    * deque along with the address of the code object into which it
@@ -456,9 +456,9 @@ import org.vmmagic.pragma.*;
   private void pushFrameIP(ObjectReference code, int verbosity) {
     if (prevFp.isZero()) {  /* top of stack: IP in thread state */
       if (verbosity >= 2) {
-        Log.write(" t.contextRegisters.ip    = "); 
+        Log.write(" t.contextRegisters.ip    = ");
         Log.writeln(thread.contextRegisters.ip);
-        Log.write("*t.contextRegisters.iploc = "); 
+        Log.write("*t.contextRegisters.iploc = ");
         Log.writeln(thread.contextRegisters.getIPLocation().loadAddress());
       }
       /* skip native code, as it is not (cannot be) moved */
@@ -479,7 +479,7 @@ import org.vmmagic.pragma.*;
         codeLocationsPush(code, returnAddressLoc);
     }
   }
-  
+
   /**
    * Scan this frame for internal code pointers.  The GC map iterator
    * is used to identify any local variables (stored on the stack)
@@ -491,7 +491,7 @@ import org.vmmagic.pragma.*;
    */
   private void scanFrameForCode(ObjectReference code, int verbosity) {
     iterator.reset();
-    for (Address retaddrLoc = iterator.getNextReturnAddressAddress();  
+    for (Address retaddrLoc = iterator.getNextReturnAddressAddress();
          !retaddrLoc.isZero();
          retaddrLoc = iterator.getNextReturnAddressAddress())
       codeLocationsPush(code, retaddrLoc);
@@ -543,7 +543,7 @@ import org.vmmagic.pragma.*;
    * special fixup routine, thread.fixupMovedStack to adjust all of
    * the special interior pointers (SP, FP).  If we implement split C
    * & Java stacks then we could allow the Java stacks to be moved,
-   * but we can't move the native stack. 
+   * but we can't move the native stack.
    */
   private void assertImmovable() {
     VM._assert(trace.willNotMove(ObjectReference.fromObject(thread.stack)));
@@ -569,7 +569,7 @@ import org.vmmagic.pragma.*;
     Log.write("         ip = "); Log.writeln(ip);
     Log.write("         fp = "); Log.writeln(fp);
     Log.write("  registers.ip = "); Log.writeln(thread.contextRegisters.ip);
-    if (verbosity >= 2 && thread.jniEnv != null) 
+    if (verbosity >= 2 && thread.jniEnv != null)
       thread.jniEnv.dumpJniRefsStack();
   }
 
@@ -582,7 +582,7 @@ import org.vmmagic.pragma.*;
    */
   private void dumpRef(Address refaddr, int verbosity) {
     ObjectReference ref = refaddr.loadObjectReference();
-    VM.sysWrite(refaddr); 
+    VM.sysWrite(refaddr);
     if (verbosity >= 4) {
       VM.sysWrite(":"); MM_Interface.dumpRef(ref);
     } else
@@ -597,13 +597,13 @@ import org.vmmagic.pragma.*;
    * @param verbosity The level of verbosity to be used when
    * performing the scan.
    */
-  private void checkReference(Address refaddr, int verbosity) { 
+  private void checkReference(Address refaddr, int verbosity) {
     ObjectReference ref = refaddr.loadObjectReference();
     if (!MM_Interface.validRef(ref)) {
       Log.writeln();
       Log.writeln("Invalid ref reported while scanning stack");
       printMethodHeader();
-      Log.write(refaddr); Log.write(":"); Log.flush(); MM_Interface.dumpRef(ref);  
+      Log.write(refaddr); Log.write(":"); Log.flush(); MM_Interface.dumpRef(ref);
       dumpStackFrame(verbosity);
       Log.writeln();
       Log.writeln("Dumping stack starting at frame with bad ref:");
@@ -615,7 +615,7 @@ import org.vmmagic.pragma.*;
       VM.sysFail("\n\nVM_ScanStack: Detected bad GC map; exiting RVM with fatal error");
     }
   }
-  
+
   /**
    * Print out the name of a method
    *
@@ -678,7 +678,7 @@ import org.vmmagic.pragma.*;
       start = fp;                         // start at fp
       end = fp.loadAddress();   // stop at callers fp
     }
-    
+
     for (Address loc = start; loc.LT(end); loc = loc.plus(BYTES_IN_ADDRESS)) {
       Log.write(loc); Log.write(" (");
       Log.write(loc.diff(start));

@@ -52,14 +52,14 @@ import org.vmmagic.unboxed.*;
   /****************************************************************************
    * Instance fields
    */
-  
+
   public CopyLocal nursery = new CopyLocal(GenRC.nurserySpace);
-  
+
   /****************************************************************************
    *
    * Mutator-time allocation
    */
-  
+
   /**
    * Allocate space (for an object)
    *
@@ -71,13 +71,13 @@ import org.vmmagic.unboxed.*;
    * @return The address of the first byte of the allocated region
    */
   @Inline
-  public final Address alloc(int bytes, int align, int offset, int allocator, int site) { 
+  public final Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == GenRC.ALLOC_NURSERY) {
       return nursery.alloc(bytes, align, offset, false);
     }
     return super.alloc(bytes,align,offset,allocator, site);
   }
-  
+
   /**
    * Perform post-allocation actions.  For many allocators none are
    * required.
@@ -89,12 +89,12 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public final void postAlloc(ObjectReference ref, ObjectReference typeRef,
-      int bytes, int allocator) { 
+      int bytes, int allocator) {
     if (allocator != GenRC.ALLOC_NURSERY) {
       super.postAlloc(ref,typeRef,bytes,allocator);
     }
   }
-  
+
   /**
    * Return the space into which an allocator is allocating.  This
    * particular method will match against those spaces defined at this
@@ -112,7 +112,7 @@ import org.vmmagic.unboxed.*;
     if (a == nursery) return GenRC.nurserySpace;
     return super.getSpaceFromAllocator(a);
   }
-  
+
   /**
    * Return the allocator instance associated with a space
    * <code>space</code>, for this plan instance.  This exists
@@ -128,20 +128,20 @@ import org.vmmagic.unboxed.*;
     if (space == GenRC.nurserySpace) return nursery;
     return super.getAllocatorFromSpace(space);
   }
-  
+
   /****************************************************************************
-   * 
+   *
    * Collection
    */
 
   /**
    * Perform a per-mutator collection phase.
-   * 
+   *
    * @param phaseId The collection phase to perform
    * @param primary Perform any single-threaded activities using this thread.
    */
   @Inline
-  public void collectionPhase(int phaseId, boolean primary) { 
+  public void collectionPhase(int phaseId, boolean primary) {
 
     if (phaseId == GenRC.PREPARE_MUTATOR) {
       nursery.rebind(GenRC.nurserySpace);
@@ -149,12 +149,12 @@ import org.vmmagic.unboxed.*;
 
     super.collectionPhase(phaseId, primary);
   }
-  
+
   /****************************************************************************
    *
    * Write barriers.
    */
-  
+
   /**
    * A new reference is about to be created.  Perform appropriate
    * write barrier action.<p>
@@ -174,22 +174,22 @@ import org.vmmagic.unboxed.*;
   @Inline
   public final void writeBarrier(ObjectReference src, Address slot,
                                  ObjectReference tgt, Offset metaDataA,
-                                 int metaDataB, int mode) { 
+                                 int metaDataB, int mode) {
     if (GenRC.GATHER_WRITE_BARRIER_STATS) GenRC.wbFast.inc();
     if (RCHeader.logRequired(src))
       writeBarrierSlow(src);
     VM.barriers.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
   }
-  
+
   /**
    * Attempt to atomically exchange the value in the given slot
-   * with the passed replacement value. If a new reference is 
+   * with the passed replacement value. If a new reference is
    * created, we must then take appropriate write barrier actions.<p>
-   * 
+   *
    * @param src The object into which the new reference will be stored
    * @param slot The address into which the new reference will be
    * stored.
-   * @param old The old reference to be swapped out 
+   * @param old The old reference to be swapped out
    * @param tgt The target of the new reference
    * @param metaDataA An int that assists the host VM in creating a store
    * @param metaDataB An int that assists the host VM in creating a store
@@ -203,7 +203,7 @@ import org.vmmagic.unboxed.*;
       writeBarrierSlow(src);
     return VM.barriers.tryCompareAndSwapWriteInBarrier(src, slot, old, tgt, metaDataA, metaDataB, mode);
   }
-  
+
   /**
    * A number of references are about to be copied from object
    * <code>src</code> to object <code>dst</code> (as in an array
@@ -227,13 +227,13 @@ import org.vmmagic.unboxed.*;
   @Inline
   public final boolean writeBarrier(ObjectReference src, Offset srcOffset,
                                     ObjectReference dst, Offset dstOffset,
-                                    int bytes) { 
+                                    int bytes) {
     if (GenRC.GATHER_WRITE_BARRIER_STATS) GenRC.wbFast.inc();
     if (RCHeader.logRequired(dst))
       writeBarrierSlow(dst);
     return false;
   }
-  
+
   /**
    * This object <i>may</i> need to be logged because we <i>may</i>
    * have been the first to update it.  We can't be sure because of

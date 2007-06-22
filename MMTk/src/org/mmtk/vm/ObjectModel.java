@@ -33,12 +33,12 @@ import org.vmmagic.unboxed.*;
   public abstract ObjectReference copy(ObjectReference from, int allocator);
 
   /**
-   * Copy an object to be pointer to by the to address. This is required 
-   * for delayed-copy collectors such as compacting collectors. During the 
+   * Copy an object to be pointer to by the to address. This is required
+   * for delayed-copy collectors such as compacting collectors. During the
    * collection, MMTk reserves a region in the heap for an object as per
-   * requirements found from ObjectModel and then asks ObjectModel to 
+   * requirements found from ObjectModel and then asks ObjectModel to
    * determine what the object's reference will be post-copy.
-   * 
+   *
    * @param from the address of the object to be copied
    * @param to The target location.
    * @param region The start of the region that was reserved for this object
@@ -50,17 +50,17 @@ import org.vmmagic.unboxed.*;
    * Return the reference that an object will be refered to after it is copied
    * to the specified region. Used in delayed-copy collectors such as compacting
    * collectors.
-   * 
+   *
    * @param from The object to be copied.
    * @param to The region to be copied to.
    * @return The resulting reference.
    */
   public abstract ObjectReference getReferenceWhenCopiedTo(ObjectReference from, Address to);
 
-  
+
   /**
    * Return the size required to copy an object
-   * 
+   *
    * @param object The object whose size is to be queried
    * @return The size required to copy <code>obj</code>
    */
@@ -68,7 +68,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Return the alignment requirement for a copy of this object
-   * 
+   *
    * @param object The object whose size is to be queried
    * @return The alignment required for a copy of <code>obj</code>
    */
@@ -76,16 +76,16 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Return the alignment offset requirements for a copy of this object
-   * 
+   *
    * @param object The object whose size is to be queried
    * @return The alignment offset required for a copy of <code>obj</code>
    */
   public abstract int getAlignOffsetWhenCopied(ObjectReference object);
 
-    
+
   /**
    * Return the size used by an object
-   * 
+   *
    * @param object The object whose size is to be queried
    * @return The size of <code>obj</code>
    */
@@ -102,15 +102,15 @@ import org.vmmagic.unboxed.*;
   public abstract ObjectReference getObjectFromStartAddress(Address start);
   /**
    * Gets a pointer to the address just past the end of the object.
-   * 
+   *
    * @param object The objecty.
    */
   public abstract Address getObjectEndAddress(ObjectReference object);
 
-  
+
   /**
    * Get the type descriptor for an object.
-   * 
+   *
    * @param ref address of the object
    * @return byte array with the type descriptor
    */
@@ -118,12 +118,12 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Get the length of an array object.
-   * 
+   *
    * @param object address of the object
    * @return The array length, in elements
    */
   public abstract int getArrayLength(ObjectReference object);
-  
+
   /**
    * Attempts to set the bits available for memory manager use in an
    * object.  The attempt will only be successful if the current value
@@ -143,7 +143,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Gets the value of bits available for memory manager use in an
    * object, in preparation for setting those bits.
-   * 
+   *
    * @param object the address of the object
    * @return the value of the bits
    */
@@ -151,14 +151,14 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Sets the bits available for memory manager use in an object.
-   * 
+   *
    * @param object the address of the object
    * @param val the new value of the bits
    */
   public abstract void writeAvailableBitsWord(ObjectReference object, Word val);
   /**
    * Read the bits available for memory manager use in an object.
-   * 
+   *
    * @param object the address of the object
    * @return the value of the bits
    */
@@ -169,14 +169,14 @@ import org.vmmagic.unboxed.*;
    * reference address.  XXX The object model / memory manager
    * interface should be improved so that the memory manager does not
    * need to know this.
-   * 
+   *
    * @return the offset, relative the object reference address
    */
   public abstract Offset GC_HEADER_OFFSET();
 
   /**
    * Returns the lowest address of the storage associated with an object.
-   * 
+   *
    * @param object the reference address of the object
    * @return the lowest address of the object
    */
@@ -185,7 +185,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Returns an address guaranteed to be inside the storage assocatied
    * with and object.
-   * 
+   *
    * @param object the reference address of the object
    * @return an address inside the object
    */
@@ -194,7 +194,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Checks if a reference of the given type in another object is
    * inherently acyclic.  The type is given as a TIB.
-   * 
+   *
    * @return <code>true</code> if a reference of the type is
    * inherently acyclic
    */
@@ -202,7 +202,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Return the type object for a give object
-   * 
+   *
    * @param object The object whose type is required
    * @return The type object for <code>object</code>
    */
@@ -215,12 +215,12 @@ import org.vmmagic.unboxed.*;
    */
   /** @return The offset from array reference to element zero */
   protected abstract Offset getArrayBaseOffset();
- 
+
   /*
    * NOTE: These methods should not be called by anything other than the
    * reflective mechanisms in org.mmtk.vm.VM, and are not implemented by
    * subclasses.
-   * 
+   *
    * This hack exists only to allow us to declare the respective
    * methods as protected.
    */

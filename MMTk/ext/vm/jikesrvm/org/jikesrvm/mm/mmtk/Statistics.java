@@ -25,7 +25,7 @@ import org.vmmagic.pragma.*;
    * @return The number of collections that have occured.
    */
   @Uninterruptible
-  public int getCollectionCount() { 
+  public int getCollectionCount() {
     return MM_Interface.getCollectionCount();
   }
 

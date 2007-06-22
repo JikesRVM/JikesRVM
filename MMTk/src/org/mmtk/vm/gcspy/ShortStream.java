@@ -31,7 +31,7 @@ import org.vmmagic.pragma.*;
    */
   private short[] data;			// The stream data
   private short defaultValue;	// The default value for the data items
-  
+
   /****************************************************************************
   *
   * Initialization
@@ -41,23 +41,23 @@ import org.vmmagic.pragma.*;
   * Construct a new GCspy stream of SHORT_TYPE
   * @param driver          The driver that owns this Stream
   * @param name           The name of the stream (e.g. "Used space")
-  * @param minValue       The minimum value for any item in this stream. 
+  * @param minValue       The minimum value for any item in this stream.
   *                       Values less than this will be represented as "minValue-"
-  * @param maxValue       The maximum value for any item in this stream. 
+  * @param maxValue       The maximum value for any item in this stream.
   *                       Values greater than this will be represented as "maxValue+"
   * @param zeroValue      The zero value for this stream
   * @param defaultValue   The default value for this stream
   * @param stringPre      A string to prefix values (e.g. "Used: ")
   * @param stringPost     A string to suffix values (e.g. " bytes.")
-  * @param presentation   How a stream value is to be presented.    
-  * @param paintStyle     How the value is to be painted.   
+  * @param presentation   How a stream value is to be presented.
+  * @param paintStyle     How the value is to be painted.
   * @param indexMaxStream The index of the maximum stream if the presentation is *_VAR.
   * @param colour         The default colour for tiles of this stream
   */
  public ShortStream(
         AbstractDriver driver,
         String name,
-        short minValue,         
+        short minValue,
         short maxValue,
         short zeroValue,
         short defaultValue,
@@ -67,13 +67,13 @@ import org.vmmagic.pragma.*;
         int paintStyle,
         int indexMaxStream,
         Color colour,
-        boolean summary) { 
-    
-   super(driver, StreamConstants.SHORT_TYPE, name, 
+        boolean summary) {
+
+   super(driver, StreamConstants.SHORT_TYPE, name,
          minValue, maxValue, zeroValue, defaultValue,
-         stringPre, stringPost, presentation, paintStyle, 
+         stringPre, stringPost, presentation, paintStyle,
          indexMaxStream, colour, summary);
-   
+
    data = (short[])GCspy.util.createDataArray(new short[0], driver.getMaxTileNum());
    this.defaultValue = defaultValue;
  }
@@ -82,7 +82,7 @@ import org.vmmagic.pragma.*;
    * Reset all data in this stream to default values.
    */
   public void resetData () {
-    for (int i = 0; i < data.length; i++) 
+    for (int i = 0; i < data.length; i++)
       data[i] = defaultValue;
   }
 
@@ -102,10 +102,10 @@ import org.vmmagic.pragma.*;
      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(remainder <= blockSize);
      if (value <= remainder) {  // fits in this tile
        data[start] += value;
-       //checkspace(start, value, "scanObject fits in first tile"); 
+       //checkspace(start, value, "scanObject fits in first tile");
      } else {
        data[start] += remainder;
-       //checkspace(start, remainder, "scanObject remainder put in first tile");  
+       //checkspace(start, remainder, "scanObject remainder put in first tile");
        value -= remainder;
        start++;
        while (value >= blockSize) {
@@ -115,7 +115,7 @@ import org.vmmagic.pragma.*;
          start++;
        }
        data[start] += value;
-       //checkspace(start, value, "scanObject last tile"); 
+       //checkspace(start, value, "scanObject last tile");
      }
    }
 

@@ -28,11 +28,11 @@ import org.vmmagic.pragma.*;
  * processed in the proper order to determine if any reference objects
  * are no longer active or whether referents that have died should be
  * kept alive.
- * 
+ *
  * Loosely based on Finalizer.java
- * 
+ *
  * To ensure that processing is efficient with generational collectors
- * in languages that have immutable reference types, there is a   
+ * in languages that have immutable reference types, there is a
  * reference nursery. If the appropriate flag is passed during processing
  * (and the language has immutable references), then it is safe to only
  * process references created since the last collection.
@@ -60,11 +60,11 @@ import org.vmmagic.pragma.*;
   /**
    * Scan references with the specified semantics.
    * @param semantics The number representing the semantics
-   * @param nursery It is safe to only collect new references 
+   * @param nursery It is safe to only collect new references
    */
   @Inline
   @LogicallyUninterruptible
-  private static void traverse(int semantics, boolean nursery) { 
+  private static void traverse(int semantics, boolean nursery) {
 
     if (TRACE) {
       Log.write("Starting ReferenceProcessor.traverse(");
@@ -81,7 +81,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Forward a reference object.
-   * 
+   *
    * @param reference The reference to forward
    * @return The forwarded reference
    */
@@ -104,7 +104,7 @@ import org.vmmagic.pragma.*;
     VM.referenceTypes.setReferent(reference, referent);
 
 
-    
+
     if (VM.REFERENCES_ARE_OBJECTS) {
       reference = trace.getForwardedReference(reference.toObjectReference()).toAddress();
     }
@@ -125,7 +125,7 @@ import org.vmmagic.pragma.*;
    */
   @Inline
   public static Address processReference(Address reference,
-                                         int semantics) { 
+                                         int semantics) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!reference.isZero());
 
     TraceLocal trace = VM.activePlan.collector().getCurrentTrace();
@@ -139,7 +139,7 @@ import org.vmmagic.pragma.*;
      * If the reference is dead, we're done with it. Let it (and
      * possibly its referent) be garbage-collected.
      */
-    if (VM.REFERENCES_ARE_OBJECTS && 
+    if (VM.REFERENCES_ARE_OBJECTS &&
         !trace.isReferentLive(reference.toObjectReference())) {
       newReference = Address.zero();
     } else {
@@ -247,7 +247,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Set flag indicating if soft references referring to non-strongly
-   * reachable objects should be cleared during GC. Usually this is 
+   * reachable objects should be cleared during GC. Usually this is
    * false so the referent will stay alive. But when memory becomes
    * scarce the collector should reclaim all such objects before it is
    * forced to throw an OutOfVM.me.exception. Note that this flag
@@ -264,7 +264,7 @@ import org.vmmagic.pragma.*;
    * @param nursery It is safe to only collect new references
    */
   @NoInline
-  public static void processSoftReferences(boolean nursery) { 
+  public static void processSoftReferences(boolean nursery) {
     traverse(SOFT_SEMANTICS, nursery);
     clearSoftReferences = false;
   }
@@ -274,7 +274,7 @@ import org.vmmagic.pragma.*;
    * @param nursery It is safe to only collect new references
    */
   @NoInline
-  public static void processWeakReferences(boolean nursery) { 
+  public static void processWeakReferences(boolean nursery) {
     traverse(WEAK_SEMANTICS, nursery);
   }
 
@@ -283,7 +283,7 @@ import org.vmmagic.pragma.*;
    * @param nursery It is safe to only collect new references
    */
   @NoInline
-  public static void processPhantomReferences(boolean nursery) { 
+  public static void processPhantomReferences(boolean nursery) {
     traverse(PHANTOM_SEMANTICS, nursery);
   }
 

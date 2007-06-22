@@ -31,12 +31,12 @@ import org.vmmagic.unboxed.*;
  * Class that supports scanning Objects and Arrays for references
  * during tracing, handling those references, and computing death times
  */
-@Uninterruptible public final class TraceGenerator 
+@Uninterruptible public final class TraceGenerator
   implements Constants, TracingConstants {
 
 
   /***********************************************************************
-   * 
+   *
    * Class variables
    */
 
@@ -67,21 +67,21 @@ import org.vmmagic.unboxed.*;
 
 
   /***********************************************************************
-   * 
+   *
    * Public analysis methods
    */
 
   /**
    * This is called at "build-time" and passes the necessary build image
    * objects to the trace processor.
-   * 
-   * @param worklist_ The dequeue that serves as the worklist for 
+   *
+   * @param worklist_ The dequeue that serves as the worklist for
    * death time propagation
    * @param trace_ The dequeue used to store and then output the trace
    */
   @Interruptible
   public static void init(SortTODSharedDeque worklist_,
-                                SortTODSharedDeque trace_) { 
+                                SortTODSharedDeque trace_) {
     /* Objects are only needed for merlin tracing */
     if (MERLIN_ANALYSIS) {
       workListPool = worklist_;
@@ -100,7 +100,7 @@ import org.vmmagic.unboxed.*;
    * This is called immediately before Jikes terminates.  It will perform
    * any death time processing that the analysis requires and then output
    * any remaining information in the trace buffer.
-   * 
+   *
    * @param value The integer value for the reason Jikes is terminating
    */
   public static void notifyExit(int value) {
@@ -112,7 +112,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Add a newly allocated object into the linked list of objects in a region.
    * This is typically called after each object allocation.
-   * 
+   *
    * @param ref The address of the object to be added to the linked list
    * @param linkSpace The region to which the object should be added
    */
@@ -135,14 +135,14 @@ import org.vmmagic.unboxed.*;
 
 
   /***********************************************************************
-   * 
+   *
    * Trace generation code
    */
 
   /**
    * Add the information in the bootImage to the trace.  This should be
    * called before any allocations and pointer updates have occured.
-   * 
+   *
    * @param bootStart The address at which the bootimage starts
    */
   public static void boot(Address bootStart) {
@@ -158,7 +158,7 @@ import org.vmmagic.unboxed.*;
       trace.push(thisOID);
       trace.push(nextOID.minus(thisOID).lsh(LOG_BYTES_IN_ADDRESS));
       nextOID = thisOID;
-      /* Move to the next object & adjust for starting address of 
+      /* Move to the next object & adjust for starting address of
          the bootImage */
       if (!next.isNull()) {
         next = next.toAddress().plus(bootStart.toWord().toOffset()).toObjectReference();
@@ -172,7 +172,7 @@ import org.vmmagic.unboxed.*;
    * Do any tracing work required at each a pointer store operation.  This
    * will add the pointer store to the trace buffer and, when Merlin lifetime
    * analysis is being used, performs the necessary timestamping.
-   * 
+   *
    * @param isScalar If this is a pointer store to a scalar object
    * @param src The address of the source object
    * @param slot The address within <code>src</code> into which
@@ -182,7 +182,7 @@ import org.vmmagic.unboxed.*;
   @NoInline
   public static void processPointerUpdate(boolean isScalar,
                                           ObjectReference src,
-                                          Address slot, ObjectReference tgt) { 
+                                          Address slot, ObjectReference tgt) {
     // The trace can be busy only if this is a pointer update as a result of
     // the garbage collection needed by tracing. For the moment, we will
     // not report these updates.
@@ -215,7 +215,7 @@ import org.vmmagic.unboxed.*;
    * Do any tracing work required at each object allocation. This will add the
    * object allocation to the trace buffer, triggers the necessary collection
    * work at exact allocations, and output the data in the trace buffer.
-   * 
+   *
    * @param ref The address of the object just allocated.
    * @param typeRef the type reference for the instance being created
    * @param bytes The size of the object being allocated
@@ -223,7 +223,7 @@ import org.vmmagic.unboxed.*;
   @LogicallyUninterruptible
   @NoInline
   public static void traceAlloc(boolean isImmortal, ObjectReference ref,
-      ObjectReference typeRef, int bytes) { 
+      ObjectReference typeRef, int bytes) {
     boolean gcAllowed = VM.traceInterface.gcEnabled() && Plan.isInitialized()
         && !Plan.gcInProgress();
     /* Test if it is time/possible for an exact allocation. */
@@ -288,15 +288,15 @@ import org.vmmagic.unboxed.*;
   }
 
   /***********************************************************************
-   * 
+   *
    * Merlin lifetime analysis methods
    */
 
   /**
    * This computes and adds to the trace buffer the unreachable time for
-   * all of the objects that are _provably_ unreachable.  This method 
-   * should be called after garbage collection (but before the space has 
-   * been reclaimed) and at program termination.  
+   * all of the objects that are _provably_ unreachable.  This method
+   * should be called after garbage collection (but before the space has
+   * been reclaimed) and at program termination.
    */
   private static void findDeaths() {
     /* Only the merlin analysis needs to compute death times */
@@ -332,7 +332,7 @@ import org.vmmagic.unboxed.*;
           VM.traceInterface.setLink(thisRef, prevRef);
           prevRef = thisRef;
         } else {
-          /* For brute force lifetime analysis, objects become 
+          /* For brute force lifetime analysis, objects become
              unreachable "now" */
           Word deadTime;
           if (MERLIN_ANALYSIS)
@@ -355,7 +355,7 @@ import org.vmmagic.unboxed.*;
    * This method is called for each root-referenced object at every Merlin
    * root enumeration.  The method will update the death time of the parameter
    * to the current trace time.
-   * 
+   *
    * @param obj The root-referenced object
    */
   public static void rootEnumerate(ObjectReference obj) {
@@ -366,7 +366,7 @@ import org.vmmagic.unboxed.*;
    * This propagates the death time being computed to the object passed as an
    * address. If we find the unreachable time for the parameter, it will be
    * pushed on to the processing stack.
-   * 
+   *
    * @param ref The address of the object to examine
    */
   public static void propagateDeathTime(ObjectReference ref) {

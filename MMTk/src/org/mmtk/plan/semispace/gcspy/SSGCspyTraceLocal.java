@@ -32,23 +32,23 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Externally visible Object processing and tracing
    */
 
   /**
    * This method is the core method during the trace of the object graph.
    * The role of this method is to:
-   * 
+   *
    * 1. Ensure the traced object is not collected.
    * 2. If this is the first visit to the object enqueue it to be scanned.
    * 3. Return the forwarded reference to the object.
-   * 
+   *
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
   @Inline
-  public ObjectReference traceObject(ObjectReference object) { 
+  public ObjectReference traceObject(ObjectReference object) {
     if (object.isNull()) return object;
     if (Space.isInSpace(SSGCspy.GCSPY, object))
       return SSGCspy.gcspySpace.traceObject(this, object);
@@ -57,13 +57,13 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Will this object move from this point on, during the current trace ?
-   * 
+   *
    * @param object The object to query.
    * @return True if the object will not move.
    */
   public boolean willNotMove(ObjectReference object) {
     if (Space.isInSpace(SSGCspy.GCSPY, object))
-      return true; 
+      return true;
     return super.willNotMove(object);
   }
 }

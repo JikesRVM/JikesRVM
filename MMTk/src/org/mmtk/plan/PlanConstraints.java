@@ -42,7 +42,7 @@ import org.vmmagic.pragma.*;
   /** @return True if this Plan moves objects. */
   public boolean movesObjects() { return false;}
 
-  /** @return True if this object forwards objects <i>after</i> 
+  /** @return True if this object forwards objects <i>after</i>
    * determining global object liveness (e.g. many compacting collectors). */
   public boolean needsForwardAfterLiveness() { return false;}
 

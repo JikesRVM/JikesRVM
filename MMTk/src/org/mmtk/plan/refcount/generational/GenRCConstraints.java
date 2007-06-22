@@ -23,6 +23,6 @@ import org.vmmagic.pragma.*;
  * issues with ordering of static initialization.
  */
 @Uninterruptible public class GenRCConstraints extends RCBaseConstraints {
-  
+
   public boolean movesObjects() { return true; }
 }

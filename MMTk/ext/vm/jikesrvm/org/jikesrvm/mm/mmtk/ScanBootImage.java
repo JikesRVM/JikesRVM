@@ -28,10 +28,10 @@ import org.vmmagic.pragma.*;
  * Scan the boot image for references using the boot image reference map
  */
 public class ScanBootImage implements Constants {
-  
+
   private static final boolean DEBUG = false;
   private static final boolean FILTER = true;
-  
+
   private static final int LOG_CHUNK_BYTES = 10;
   private static final int CHUNK_BYTES = 1<<LOG_CHUNK_BYTES;
   private static final int LONG_MASK = 0x1;
@@ -39,47 +39,47 @@ public class ScanBootImage implements Constants {
   private static final int MAX_RUN = (1<<BITS_IN_BYTE)-1;
   private static final int LONG_OFFSET_BYTES = 4;
   private static final int GUARD_REGION = LONG_OFFSET_BYTES + 1; /* long offset + run encoding */
-  
+
   /* statistics */
   static int roots = 0;
   static int refs = 0;
-  
+
   /****************************************************************************
    *
    * GC-time decoding (multi-threaded)
    */
-  
+
   /**
    * Scan the boot image for object references.  Executed by
    * all GC threads in parallel, with each doing a portion of the
    * boot image.
-   * 
+   *
    * @param trace The trace object to which the roots should be added
    */
   @Inline
   @Uninterruptible
-  public static void scanBootImage(TraceLocal trace) { 
+  public static void scanBootImage(TraceLocal trace) {
     /* establish sentinals in map & image */
     Address mapStart = VM_BootRecord.the_boot_record.bootImageRMapStart;
     Address mapEnd = VM_BootRecord.the_boot_record.bootImageRMapEnd;
     Address imageStart = VM_BootRecord.the_boot_record.bootImageDataStart;
-    
+
     /* figure out striding */
     int stride = VM_CollectorThread.numCollectors()<<LOG_CHUNK_BYTES;
     VM_CollectorThread collector = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
     int start = (collector.getGCOrdinal() - 1)<<LOG_CHUNK_BYTES;
     Address cursor = mapStart.plus(start);
-    
+
     /* statistics */
     roots = 0;
     refs = 0;
-    
+
     /* process chunks in parallel till done */
     while (cursor.LT(mapEnd)) {
       processChunk(cursor, imageStart, mapStart, mapEnd, trace);
       cursor = cursor.plus(stride);
     }
-    
+
     /* print some debugging stats */
     if (DEBUG) {
       Log.write("<boot image");
@@ -87,11 +87,11 @@ public class ScanBootImage implements Constants {
       Log.write(" refs: "); Log.write(refs);
       Log.write(">");
     }
-    
+
     /* sync up all collection threads */
     VM_CollectorThread.gcBarrier.rendezvous(4300);
   }
-  
+
   /**
    * Process a chunk of encoded reference data, enqueuing each
    * reference (optionally filtering them on whether they point
@@ -107,7 +107,7 @@ public class ScanBootImage implements Constants {
   @Inline
   @Uninterruptible
   private static void processChunk(Address chunkStart, Address imageStart,
-      Address mapStart, Address mapEnd, TraceLocal trace) { 
+      Address mapStart, Address mapEnd, TraceLocal trace) {
     int value;
     Offset offset = Offset.zero();
     Address cursor = chunkStart;
@@ -146,7 +146,7 @@ public class ScanBootImage implements Constants {
       }
     }
   }
-  
+
   /****************************************************************************
    *
    * Build-time encoding (assumed to be single-threaded)
@@ -154,19 +154,19 @@ public class ScanBootImage implements Constants {
   private static int lastOffset = 0;
   private static int oldIndex = 0;
   private static int codeIndex = 0;
-  
+
   /* statistics */
   private static int shortRefs = 0;
   private static int runRefs = 0;
   private static int longRefs = 0;
   private static int startRefs = 0;
-  
+
   /**
    * Take a bytemap encoding of all references in the boot image, and
    * produce an encoded byte array.  Return the total length of the
    * encoding.
    */
-  public static int encodeRMap(byte[] bootImageRMap, byte[] referenceMap, 
+  public static int encodeRMap(byte[] bootImageRMap, byte[] referenceMap,
       int referenceMapLimit) {
     for (int index = 0; index <= referenceMapLimit; index++) {
       if (referenceMap[index] == 1) {
@@ -175,7 +175,7 @@ public class ScanBootImage implements Constants {
     }
     return codeIndex + 1;
   }
-  
+
   /**
    * Print some basic statistics about the encoded references, for
    * debugging purposes.
@@ -190,7 +190,7 @@ public class ScanBootImage implements Constants {
       Log.write("size: "); Log.writeln(codeIndex);
     }
   }
-  
+
   /**
    * Encode a given offset (distance from the start of the boot image)
    * into the code array.
@@ -214,7 +214,7 @@ public class ScanBootImage implements Constants {
       int delta = offset - lastOffset;
       if (VM.VerifyAssertions) VM._assert((delta & 0x3) == 0);
       if (VM.VerifyAssertions) VM._assert(delta > 0);
-      
+
       int currentrun = ((int) code[codeIndex]) & 0xff;
       if ((delta == BYTES_IN_ADDRESS) &&
           (currentrun < MAX_RUN)) {
@@ -253,12 +253,12 @@ public class ScanBootImage implements Constants {
     }
     lastOffset = offset;
   }
-  
+
   /****************************************************************************
    *
    * Utility encoding and decoding methods
    */
-  
+
   /**
    * Decode an encoded offset given the coded byte array, and index
    * into it, and the current (last) offset.
@@ -276,15 +276,15 @@ public class ScanBootImage implements Constants {
       return lastOffset + BYTES_IN_WORD;
     } else {
       if (((index & (CHUNK_BYTES - 1)) == 0) ||
-          (((int) code[index] &LONG_MASK) == LONG_MASK)) 
+          (((int) code[index] &LONG_MASK) == LONG_MASK))
       {
         return decodeWord(code, index);
       } else {
         return lastOffset + (((int) code[index]) & 0xff);
-      } 
+      }
     }
   }
-  
+
   /**
    * Decode a 4-byte encoding, taking a pointer to the first byte of
    * the encoding, and returning the encoded value as an <code>Offset</code>
@@ -294,7 +294,7 @@ public class ScanBootImage implements Constants {
    */
   @Inline
   @Uninterruptible
-  private static Offset decodeWord(Address cursor) { 
+  private static Offset decodeWord(Address cursor) {
     int value;
     value  = ((int) cursor.loadByte())                                    & 0x000000fc;
     value |= ((int) cursor.loadByte(Offset.fromIntSignExtend(1))<<BITS_IN_BYTE)     & 0x0000ff00;
@@ -302,7 +302,7 @@ public class ScanBootImage implements Constants {
     value |= ((int) cursor.loadByte(Offset.fromIntSignExtend(3))<<(3*BITS_IN_BYTE)) & 0xff000000;
     return Offset.fromIntSignExtend(value);
   }
-  
+
   /**
    * Decode a 4-byte encoding, taking a byte array and an index into
    * it and returning the encoded value as an integer
@@ -314,7 +314,7 @@ public class ScanBootImage implements Constants {
    */
   @Inline
   @Uninterruptible
-  private static int decodeWord(byte[] code, int index) { 
+  private static int decodeWord(byte[] code, int index) {
     int value;
     value  = ((int) code[index])                     & 0x000000fc;
     value |= ((int) code[index+1]<<BITS_IN_BYTE)     & 0x0000ff00;
@@ -322,7 +322,7 @@ public class ScanBootImage implements Constants {
     value |= ((int) code[index+3]<<(3*BITS_IN_BYTE)) & 0xff000000;
     return value;
   }
-  
+
   /**
    * Encode a 4-byte encoding, taking a byte array, the current index into
    * it, and the value to be encoded.
@@ -342,5 +342,5 @@ public class ScanBootImage implements Constants {
     code[index++] = (byte) (value & 0xff);
     return index;
   }
-  
+
 }

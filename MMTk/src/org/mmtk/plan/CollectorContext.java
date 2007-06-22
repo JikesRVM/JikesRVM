@@ -36,7 +36,7 @@ import org.vmmagic.unboxed.*;
  * scheme (such as Jikes RVM), <i>M</i> will typically be equal to the
  * level of <i>true</i> parallelism (ie the number of underlying
  * kernel threads).<p>
- * 
+ *
  * Collector operations are separated into <i>per-collector thread</i>
  * operations (the bulk of the GC), and <i>per-mutator thread</i> operations
  * (important in flushing and restoring per-mutator state such as allocator
@@ -45,24 +45,24 @@ import org.vmmagic.unboxed.*;
  * collector thread, and that the <i>M</i> per-mutator thread operations
  * are multiplexed across the <i>N</i> active collector threads
  * (@see SimplePhase#delegatePhase).<p>
- * 
+ *
  * MMTk assumes that the VM instantiates instances of CollectorContext
- * in thread local storage (TLS) for each thread participating in 
- * collection.  Accesses to this state are therefore assumed to be 
- * low-cost at GC time.<p> 
- * 
+ * in thread local storage (TLS) for each thread participating in
+ * collection.  Accesses to this state are therefore assumed to be
+ * low-cost at GC time.<p>
+ *
  * MMTk explicitly separates thread-local (this class) and global
  * operations (@see Plan), so that syncrhonization is localized
- * and explicit, and thus hopefully minimized (@see Plan). Gloabl (Plan) 
+ * and explicit, and thus hopefully minimized (@see Plan). Gloabl (Plan)
  * and per-thread (this class) state are also explicitly separated.
  * Operations in this class (and its children) are therefore strictly
  * local to each collector thread, and synchronized operations always
  * happen via access to explicitly global classes such as Plan and its
  * children.<p>
- * 
+ *
  * This class (and its children) therefore typically implement per-collector
  * thread structures such as collection work queues.
- * 
+ *
  * @see SimplePhase#delegatePhase
  * @see MutatorContext
  * @see org.mmtk.vm.ActivePlan
@@ -82,9 +82,9 @@ import org.vmmagic.unboxed.*;
   /** Per-collector allocator into the immortal space */
   protected BumpPointer immortal = new ImmortalLocal(Plan.immortalSpace);
 
-  
+
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
   protected CollectorContext() {}
@@ -95,7 +95,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Allocate memory when copying an object.
-   * 
+   *
    * @param original The object that is being copied.
    * @param bytes The number of bytes required for the copy.
    * @param align Required alignment for the copy.
@@ -111,7 +111,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Perform any post-copy actions.
-   * 
+   *
    * @param ref The newly allocated object
    * @param typeRef the type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
@@ -123,11 +123,11 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Run-time check of the allocator to use for a given copy allocation
-   * 
+   *
    * At the moment this method assumes that allocators will use the simple
    * (worst) method of aligning to determine if the object is a large object
    * to ensure that no objects are larger than other allocators can handle.
-   * 
+   *
    * @param from The object that is being copied.
    * @param bytes The number of bytes to be allocated.
    * @param align The requested alignment.
@@ -136,7 +136,7 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public int copyCheckAllocator(ObjectReference from, int bytes,
-      int align, int allocator) { 
+      int align, int allocator) {
     return allocator;
   }
 
@@ -149,7 +149,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Perform a (local) collection phase.
-   * 
+   *
    * @param phaseId The unique phase identifier
    * @param primary Should this thread be used to execute any single-threaded
    * local operations?
@@ -175,5 +175,5 @@ import org.vmmagic.unboxed.*;
 
   /** @return the unique identifier for this collector context. */
   @Inline
-  public int getId() { return id; } 
+  public int getId() { return id; }
 }

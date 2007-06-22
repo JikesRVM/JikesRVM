@@ -22,20 +22,20 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This class implements <i>per-mutator thread</i> behavior 
+ * This class implements <i>per-mutator thread</i> behavior
  * and state for the <i>MC</i> plan, which implements a full-heap
  * mark-compact collector.<p>
- * 
+ *
  * Specifically, this class defines <i>MC</i> mutator-time allocation
  * and per-mutator thread collection semantics (flushing and restoring
  * per-mutator allocator state).
- * 
+ *
  * See {@link MC} for an overview of the mark-compact algorithm.<p>
- * 
+ *
  * FIXME Currently MC does not properly separate mutator and collector
  * behaviors, so some of the collection logic here should really be
  * per-collector thread, not per-mutator thread.
- * 
+ *
  * @see MC
  * @see MCCollector
  * @see org.mmtk.plan.StopTheWorldMutator
@@ -50,7 +50,7 @@ import org.vmmagic.unboxed.*;
   private MarkCompactLocal mc;
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
@@ -62,7 +62,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Mutator-time allocation
    */
 
@@ -70,7 +70,7 @@ import org.vmmagic.unboxed.*;
    * Allocate memory for an object. This class handles the default allocator
    * from the mark sweep space, and delegates everything else to the
    * superclass.
-   * 
+   *
    * @param bytes The number of bytes required for the object.
    * @param align Required alignment for the object.
    * @param offset Offset associated with the alignment.
@@ -79,7 +79,7 @@ import org.vmmagic.unboxed.*;
    * @return The low address of the allocated memory.
    */
   @Inline
-  public Address alloc(int bytes, int align, int offset, int allocator, int site) { 
+  public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == MC.ALLOC_DEFAULT) {
       return mc.alloc(bytes, align, offset, false);
     }
@@ -98,7 +98,7 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public void postAlloc(ObjectReference ref, ObjectReference typeRef,
-      int bytes, int allocator) { 
+      int bytes, int allocator) {
     if (allocator == MC.ALLOC_DEFAULT)
       MC.mcSpace.initializeHeader(ref);
     else
@@ -110,7 +110,7 @@ import org.vmmagic.unboxed.*;
    * particular method will match against those spaces defined at this
    * level of the class hierarchy.  Subclasses must deal with spaces
    * they define and refer to superclasses appropriately.
-   * 
+   *
    * @param a An allocator
    * @return The space into which <code>a</code> is allocating, or
    *         <code>null</code> if there is no space associated with
@@ -124,7 +124,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Return the allocator instance associated with a space
    * <code>space</code>, for this plan instance.
-   * 
+   *
    * @param space The space for which the allocator instance is desired.
    * @return The allocator instance associated with this plan instance
    * which is allocating into <code>space</code>, or <code>null</code>
@@ -135,20 +135,20 @@ import org.vmmagic.unboxed.*;
     return super.getAllocatorFromSpace(space);
   }
 
-  
+
   /****************************************************************************
-   * 
+   *
    * Collection
    */
 
   /**
    * Perform a per-mutator collection phase.
-   * 
+   *
    * @param phaseId The collection phase to perform
    * @param primary Perform any single-threaded activities using this thread.
    */
   @Inline
-  public final void collectionPhase(int phaseId, boolean primary) { 
+  public final void collectionPhase(int phaseId, boolean primary) {
     if (phaseId == MC.PREPARE_MUTATOR) {
       super.collectionPhase(phaseId, primary);
       return;

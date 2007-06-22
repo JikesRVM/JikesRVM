@@ -75,12 +75,12 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Perform any sanity checking collection phases.
-   * 
+   *
    * @param phaseId The id to proces
    * @return True if the phase was handled.
    */
   @NoInline
-  public boolean collectionPhase(int phaseId) { 
+  public boolean collectionPhase(int phaseId) {
     if (phaseId == StopTheWorld.SANITY_PREPARE) {
       Log.writeln("");
       Log.write("============================== GC Sanity Checking ");
@@ -128,7 +128,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Print out object information (used for warning and error messages)
-   * 
+   *
    * @param object The object to dump info for.
    */
   public static void dumpObjectInformation(ObjectReference object) {

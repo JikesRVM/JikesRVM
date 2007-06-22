@@ -55,23 +55,23 @@ public final class Options {
   public static Verbose verbose;
   public static VerboseTiming verboseTiming;
   public static XmlStats xmlStats;
-  
+
   /**
    * Print the options for the current run in XML format
    */
   public static void printOptionsXml() {
     Log.writeln("<options>");
-    
-    startOpt("minHeap"); 
+
+    startOpt("minHeap");
     Log.write(HeapGrowthManager.getInitialHeapSize());
     units("bytes");
     endOpt();
-    
-    startOpt("maxHeap"); 
-    Log.write(HeapGrowthManager.getMaxHeapSize()); 
+
+    startOpt("maxHeap");
+    Log.write(HeapGrowthManager.getMaxHeapSize());
     units("bytes");
     endOpt();
-    
+
     Option opt = Option.getFirst();
     while (opt != null) {
       opt.log(Option.XML);

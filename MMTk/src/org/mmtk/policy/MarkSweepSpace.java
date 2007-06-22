@@ -37,12 +37,12 @@ import org.vmmagic.unboxed.*;
   implements Constants {
 
   /****************************************************************************
-   * 
+   *
    * Class variables
    */
   /** highest bit bits we may use */
   private static final int MAX_BITS = 4;
- 
+
   /* mark bits */
   private static final int COUNT_BASE = 0;
   public static final int DEFAULT_MARKCOUNT_BITS = 2;
@@ -50,15 +50,15 @@ import org.vmmagic.unboxed.*;
   private static final Word MARK_COUNT_INCREMENT = Word.one().lsh(COUNT_BASE);
   private static final Word MARK_COUNT_MASK = Word.one().lsh(MAX_MARKCOUNT_BITS).minus(Word.one()).lsh(COUNT_BASE);
   private static final Word MARK_BITS_MASK = Word.one().lsh(MAX_BITS).minus(Word.one());
-  
+
   /* header requirements */
   public static final int LOCAL_GC_BITS_REQUIRED = MAX_BITS;
   public static final int GLOBAL_GC_BITS_REQUIRED = 0;
   public static final int GC_HEADER_WORDS_REQUIRED = 0;
 
-  
+
   /****************************************************************************
-   * 
+   *
    * Instance variables
    */
   private Word markState = Word.one();
@@ -66,7 +66,7 @@ import org.vmmagic.unboxed.*;
   private boolean inMSCollection;
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
@@ -74,7 +74,7 @@ import org.vmmagic.unboxed.*;
     Options.markSweepMarkBits = new MarkSweepMarkBits();
     Options.eagerCompleteSweep = new EagerCompleteSweep();
   }
-  
+
   /**
    * The caller specifies the region of virtual memory to be used for
    * this space.  If this region conflicts with an existing space,
@@ -86,7 +86,7 @@ import org.vmmagic.unboxed.*;
    * @param start The start address of the space in virtual memory
    * @param bytes The size of the space in virtual memory, in bytes
    */
-  public MarkSweepSpace(String name, int pageBudget, Address start, 
+  public MarkSweepSpace(String name, int pageBudget, Address start,
                         Extent bytes) {
     super(name, false, false, start, bytes);
     pr = new FreeListPageResource(pageBudget, this, start, extent, MarkSweepLocal.META_DATA_PAGES_PER_REGION);
@@ -94,11 +94,11 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Construct a space of a given number of megabytes in size.<p>
-   * 
+   *
    * The caller specifies the amount virtual memory to be used for
    * this space <i>in megabytes</i>.  If there is insufficient address
    * space, then the constructor will fail.
-   * 
+   *
    * @param name The name of this space (used when printing error messages etc)
    * @param pageBudget The number of pages this space may consume
    * before consulting the plan
@@ -132,13 +132,13 @@ import org.vmmagic.unboxed.*;
    * Construct a space that consumes a given number of megabytes of
    * virtual memory, at either the top or bottom of the available
    * virtual memory.
-   * 
+   *
    * The caller specifies the amount virtual memory to be used for
    * this space <i>in megabytes</i>, and whether it should be at the
    * top or bottom of the available virtual memory.  If the request
    * clashes with existing virtual memory allocations, then the
    * constructor will fail.
-   * 
+   *
    * @param name The name of this space (used when printing error messages etc)
    * @param pageBudget The number of pages this space may consume
    * before consulting the plan
@@ -176,7 +176,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Collection
    */
 
@@ -205,26 +205,26 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Return true if this mark-sweep space is currently being collected.
-   * 
+   *
    * @return True if this mark-sweep space is currently being collected.
    */
   @Inline
-  public boolean inMSCollection() { 
+  public boolean inMSCollection() {
     return inMSCollection;
   }
 
   /**
    * Release an allocated page or pages
-   * 
+   *
    * @param start The address of the start of the page or pages
    */
   @Inline
-  public void release(Address start) { 
+  public void release(Address start) {
     ((FreeListPageResource) pr).releasePages(start);
   }
 
   /****************************************************************************
-   * 
+   *
    * Object processing and tracing
    */
 
@@ -243,7 +243,7 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public ObjectReference traceObject(TraceLocal trace,
-                                           ObjectReference object) { 
+                                           ObjectReference object) {
     if (MarkSweepLocal.HEADER_MARK_BITS) {
       if (testAndMark(object, markState)) {
         MarkSweepLocal.liveBlock(object);
@@ -258,43 +258,43 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * 
+   *
    * @param object The object in question
    * @return True if this object is known to be live (i.e. it is marked)
    */
   @Inline
-  public boolean isLive(ObjectReference object) { 
+  public boolean isLive(ObjectReference object) {
     if (MarkSweepLocal.HEADER_MARK_BITS) {
 	return testMarkState(object, markState);
     } else {
       return MarkSweepLocal.isLiveObject(object);
     }
   }
-  
+
   /**
    * Get the current mark state
-   * 
+   *
    * @return The current mark state.
    */
   @Inline
-  public Word getMarkState() { 
+  public Word getMarkState() {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(markState.and(MARK_COUNT_MASK.not()).isZero());
     return markState;
   }
-  
+
   /**
    * Get the previous mark state.
-   *  
+   *
    * @return The previous mark state.
    */
   @Inline
-  public Word getPreviousMarkState() { 
+  public Word getPreviousMarkState() {
     return deltaMarkState(false);
   }
 
   /**
    * Return the mark state incremented or decremented by one.
-   * 
+   *
    * @param increment If true, then return the incremented value else return the decremented value
    * @return the mark state incremented or decremented by one.
    */
@@ -307,17 +307,17 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Header manipulation
    */
 
   /**
    * Perform any required post allocation initialization
-   * 
+   *
    * @param object the object ref to the storage to be initialized
    */
   @Inline
-  public void postAlloc(ObjectReference object) { 
+  public void postAlloc(ObjectReference object) {
     initializeHeader(object, true);
   }
 
@@ -325,12 +325,12 @@ import org.vmmagic.unboxed.*;
    * Perform any required post copy (i.e. in-GC allocation) initialization.
    * This is relevant (for example) when MS is used as the mature space in
    * a copying GC.
-   * 
+   *
    * @param object the object ref to the storage to be initialized
-   * @param majorGC Is this copy happening during a major gc? 
+   * @param majorGC Is this copy happening during a major gc?
    */
   @Inline
-  public void postCopy(ObjectReference object, boolean majorGC) { 
+  public void postCopy(ObjectReference object, boolean majorGC) {
     initializeHeader(object, false);
     if (MarkSweepLocal.HEADER_MARK_BITS) {
       if (majorGC) MarkSweepLocal.liveBlock(object);
@@ -341,16 +341,16 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Perform any required initialization of the GC portion of the header.
-   * 
+   *
    * @param object the object ref to the storage to be initialized
    * @param alloc is this initialization occuring due to (initial) allocation
    * (true) or due to copying (false)?
    */
   @Inline
-  public void initializeHeader(ObjectReference object, boolean alloc) { 
+  public void initializeHeader(ObjectReference object, boolean alloc) {
     if (MarkSweepLocal.HEADER_MARK_BITS)
-      if (alloc) 
-        writeAllocState(object);	
+      if (alloc)
+        writeAllocState(object);
       else
         writeMarkState(object);
    }
@@ -363,7 +363,7 @@ import org.vmmagic.unboxed.*;
    * @param value The value to which the mark bits will be set
    */
   @Inline
-  private static boolean testAndMark(ObjectReference object, Word value) { 
+  private static boolean testAndMark(ObjectReference object, Word value) {
     Word oldValue, markBits;
     oldValue = VM.objectModel.readAvailableBitsWord(object);
     markBits = oldValue.and(MARK_BITS_MASK);
@@ -374,13 +374,13 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Return true if the mark count for an object has the given value.
-   * 
+   *
    * @param object The object whose mark bit is to be tested
    * @param value The value against which the mark bit will be tested
    * @return True if the mark bit for the object has the given value.
    */
   @Inline
-  public static boolean testMarkState(ObjectReference object, Word value) { 
+  public static boolean testMarkState(ObjectReference object, Word value) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(value.and(MARK_COUNT_MASK.not()).isZero());
     return VM.objectModel.readAvailableBitsWord(object).and(MARK_COUNT_MASK).EQ(value);
   }
@@ -388,7 +388,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Write the allocState into the mark state fields of an object non-atomically.
    * This is appropriate for allocation time initialization.
-   * 
+   *
    * @param object The object whose mark state is to be written
    */
   @Inline
@@ -397,11 +397,11 @@ import org.vmmagic.unboxed.*;
     Word newValue = oldValue.and(MARK_BITS_MASK.not()).or(allocState);
     VM.objectModel.writeAvailableBitsWord(object, newValue);
   }
-  
+
   /**
    * Write the markState into the mark state fields of an object non-atomically.
    * This is appropriate for collection time initialization.
-   * 
+   *
    * @param object The object whose mark state is to be written
    */
   @Inline

@@ -34,10 +34,10 @@ import org.vmmagic.pragma.*;
   private static final boolean DEBUG_ = false;
   private static final int LOG_BYTES_IN_WORD = LOG_BYTES_IN_INT;
   private static final int BYTES_IN_WORD = 1 << LOG_BYTES_IN_WORD;
-  
+
   /**
    * Allocate an array of bytes with malloc
-   * 
+   *
    * @param size The size to allocate
    * @return The start address of the memory allocated in C space
    * @see #free
@@ -47,23 +47,23 @@ import org.vmmagic.pragma.*;
       Address rtn  = sysCall.sysMalloc(size);
       if (rtn.isZero()) VM.assertions.fail("GCspy malloc failure");
       return rtn;
-    } else 
+    } else
       return Address.zero();
   }
 
   /**
    * Free an array of bytes previously allocated with malloc
-   * 
+   *
    * @param addr The address of some memory previously allocated with malloc
    * @see #malloc
    */
   public final void free(Address addr) {
-    if (org.jikesrvm.VM.BuildWithGCSpy) 
+    if (org.jikesrvm.VM.BuildWithGCSpy)
       if (!addr.isZero())
         sysCall.sysFree(addr);
   }
-  
-  
+
+
   // From VM.java
   @SuppressWarnings({"unused", "CanBeFinal", "UnusedDeclaration"}) // Accessed by native code
   private static int sysWriteLock = 0;
@@ -72,7 +72,7 @@ import org.vmmagic.pragma.*;
   private static void swLock() {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
       if (sysWriteLockOffset.isMax()) return;
-      while (!VM_Synchronization.testAndSet(VM_Magic.getJTOC(), sysWriteLockOffset, 1)) 
+      while (!VM_Synchronization.testAndSet(VM_Magic.getJTOC(), sysWriteLockOffset, 1))
         ;
     }
   }
@@ -95,24 +95,24 @@ import org.vmmagic.pragma.*;
    * swLock/swUnlock mechanism, as per VM.sysWrite on String
    */
   @LogicallyUninterruptible
-  public final Address getBytes (String str) { 
+  public final Address getBytes (String str) {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
-      if (str == null) 
+      if (str == null)
         return Address.zero();
-  
+
       if (DEBUG_) {
         Log.write("getBytes: "); Log.write(str); Log.write("->");
       }
-  
+
       // Grab some memory sufficient to hold the null terminated string,
       // rounded up to an integral number of ints.
       int len;
-      swLock(); 
-        len = str.length(); 
+      swLock();
+        len = str.length();
       swUnlock();
       int size = ((len >>> LOG_BYTES_IN_WORD) + 1) << LOG_BYTES_IN_WORD;
       Address rtn = malloc(size);
-     
+
       // Write the string into it, one word at a time, being carefull about endianism
       for (int w = 0; w <= (len >>> LOG_BYTES_IN_WORD); w++)  {
         int value = 0;
@@ -121,7 +121,7 @@ import org.vmmagic.pragma.*;
         for (int b = 0; b < BYTES_IN_WORD; b++) {
           byte byteVal = 0;
           if (offset + b < len) {
-            swLock(); 
+            swLock();
               byteVal = (byte) str.charAt(offset + b);    // dodgy conversion!
             swUnlock();
           }
@@ -141,7 +141,7 @@ import org.vmmagic.pragma.*;
       }
       return rtn;
     }
-    else 
+    else
       return Address.zero();
   }
 
@@ -150,19 +150,19 @@ import org.vmmagic.pragma.*;
 
   /**
    * Pretty print a size, converting from bytes to kilo- or mega-bytes as appropriate
-   * 
+   *
    * @param buffer The buffer (in C space) in which to place the formatted size
    * @param size The size in bytes
    */
   public final void formatSize(Address buffer, int size) {
-    if (org.jikesrvm.VM.BuildWithGCSpy) 
+    if (org.jikesrvm.VM.BuildWithGCSpy)
       sysCall.gcspyFormatSize(buffer, size);
   }
 
-  
+
   /**
    * Pretty print a size, converting from bytes to kilo- or mega-bytes as appropriate
-   * 
+   *
    * @param format A format string
    * @param bufsize The size of a buffer large enough to hold the formatted result
    * @param size The size in bytes
@@ -172,17 +172,17 @@ import org.vmmagic.pragma.*;
       // - sprintf(tmp, "Current Size: %s\n", gcspy_formatSize(size));
       Address tmp = malloc(bufsize);
       Address formattedSize = malloc(bufsize);
-      Address currentSize = getBytes(format); 
+      Address currentSize = getBytes(format);
       formatSize(formattedSize, size);
       sprintf(tmp, currentSize, formattedSize);
       return tmp;
     }
-    else 
+    else
       return Address.zero();
   }
 
   /**
-   * Create an array of a particular type. 
+   * Create an array of a particular type.
    * The easiest way to use this is:
    *     Foo[] x = (Foo [])Stream.createDataArray(new Foo[0], numElements);
    * @param templ a data array to use as a template
@@ -190,10 +190,10 @@ import org.vmmagic.pragma.*;
    * @return the new array
    */
   @Interruptible
-  public Object createDataArray(Object templ, int numElements) { 
+  public Object createDataArray(Object templ, int numElements) {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
       VM_Array array = VM_Magic.getObjectType(templ).asArray();
-      return VM_Runtime.resolvedNewArray(numElements, 
+      return VM_Runtime.resolvedNewArray(numElements,
                               array.getLogElementSize(),
                               VM_ObjectModel.computeArrayHeaderSize(array),
                               array.getTypeInformationBlock(),
@@ -202,24 +202,24 @@ import org.vmmagic.pragma.*;
                               VM_ObjectModel.getOffsetForAlignment(array),
                               0);
     }
-    else 
+    else
       return null;
   }
- 
+
   //----------- Various methods modelled on string.c ---------------------//
 
   /**
    * sprintf(char *str, char *format, char* value)
-   * 
+   *
    * @param str The destination 'string' (memory in C space)
    * @param format The format 'string' (memory in C space)
    * @param value The value 'string' (memory in C space)
    * @return The number of characters printed (as returned by C's sprintf
    */
   public final int sprintf(Address str, Address format, Address value) {
-    if (org.jikesrvm.VM.BuildWithGCSpy) 
+    if (org.jikesrvm.VM.BuildWithGCSpy)
       return sysCall.gcspySprintf(str, format, value);
-    else 
+    else
       return 0;
   }
 }

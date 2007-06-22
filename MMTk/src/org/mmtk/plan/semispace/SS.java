@@ -42,10 +42,10 @@ import org.vmmagic.unboxed.*;
  */
 @Uninterruptible public class SS extends StopTheWorld {
   /** Fraction of available virtual memory available to each semispace */
-  private static final float SEMISPACE_VIRT_MEM_FRAC = (float) 0.30; 
-  
+  private static final float SEMISPACE_VIRT_MEM_FRAC = (float) 0.30;
+
   /****************************************************************************
-   * 
+   *
    * Class variables
    */
 
@@ -63,7 +63,7 @@ import org.vmmagic.unboxed.*;
   public final Trace ssTrace;
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
@@ -105,17 +105,17 @@ import org.vmmagic.unboxed.*;
 
 
   /****************************************************************************
-   * 
+   *
    * Collection
    */
 
   /**
    * Perform a (global) collection phase.
-   * 
+   *
    * @param phaseId Collection phase
    */
   @Inline
-  public void collectionPhase(int phaseId) { 
+  public void collectionPhase(int phaseId) {
     if (phaseId == SS.PREPARE) {
       hi = !hi; // flip the semi-spaces
       // prepare each of the collected regions
@@ -152,7 +152,7 @@ import org.vmmagic.unboxed.*;
    * of this method must code as though the method is interruptible.
    * In practice, this means that, after this call, processor-specific
    * values must be reloaded.
-   * 
+   *
    * @see org.mmtk.policy.Space#acquire(int)
    * @param vmExhausted Virtual Memory range for space is exhausted.
    * @param space the space that triggered the polling (i.e. the space
@@ -160,7 +160,7 @@ import org.vmmagic.unboxed.*;
    * @return True if a collection has been triggered
    */
   @LogicallyUninterruptible
-  public boolean poll(boolean vmExhausted, Space space) { 
+  public boolean poll(boolean vmExhausted, Space space) {
     if (getCollectionsInitiated() > 0 || !isInitialized() || space == metaDataSpace)
       return false;
 
@@ -181,13 +181,13 @@ import org.vmmagic.unboxed.*;
 
 
   /****************************************************************************
-   * 
+   *
    * Accounting
    */
 
   /**
    * Return the number of pages reserved for copying.
-   * 
+   *
    * @return The number of pages reserved given the pending
    * allocation, including space reserved for copying.
    */
@@ -201,7 +201,7 @@ import org.vmmagic.unboxed.*;
    * Return the number of pages reserved for use given the pending
    * allocation.  This is <i>exclusive of</i> space reserved for
    * copying.
-   * 
+   *
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
@@ -212,7 +212,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Return the number of pages available for allocation, <i>assuming
    * all future allocation is to the semi-space</i>.
-   * 
+   *
    * @return The number of pages available for allocation, <i>assuming
    * all future allocation is to the semi-space</i>.
    */
@@ -222,7 +222,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * @see org.mmtk.plan.Plan#objectCanMove
-   * 
+   *
    * @param object Object in question
    * @return False if the object will never move
    */

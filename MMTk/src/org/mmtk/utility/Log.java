@@ -23,14 +23,14 @@ import org.vmmagic.pragma.*;
 @Uninterruptible public class Log implements Constants {
 
   /****************************************************************************
-   * 
+   *
    * Class variables
    */
 
   /**
    * characters in the write buffer for the caller's message.  This
    * does not include characters reserved for the overflow message.
-   * 
+   *
    * This needs to be large because Jikes RVM's implementation of Lock.java
    * logs a lot of information when there is potential GC deadlock.
    */
@@ -44,7 +44,7 @@ import org.vmmagic.pragma.*;
     OVERFLOW_MESSAGE.charAt(0);
 
   /** characters in the overflow message, including the (optional) final
-   * newline  */ 
+   * newline  */
   private static final int OVERFLOW_SIZE = OVERFLOW_MESSAGE.length();
 
   /**
@@ -86,7 +86,7 @@ import org.vmmagic.pragma.*;
   private static Log log = new Log();
 
   /****************************************************************************
-   * 
+   *
    * Instance variables
    */
 
@@ -119,7 +119,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * writes a boolean. Either "true" or "false" is logged.
-   * 
+   *
    * @param b boolean value to be logged.
    */
   public static void write(boolean b) {
@@ -128,7 +128,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * writes a character
-   * 
+   *
    * @param c character to be logged
    */
   public static void write(char c) {
@@ -139,7 +139,7 @@ import org.vmmagic.pragma.*;
    * writes a long, in decimal.  The value is not padded and no
    * thousands seperator is logged.  If the value is negative a
    * leading minus sign (-) is logged.
-   * 
+   *
    * @param l long value to be logged
    */
   public static void write(long l) {
@@ -236,7 +236,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * writes an array of characters
-   * 
+   *
    * @param c the array of characters to be logged
    */
   public static void write(char[] c) {
@@ -245,7 +245,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * writes the start of an array of characters
-   * 
+   *
    * @param c the array of characters
    * @param len the number of characters to be logged, starting with
    * the first character
@@ -259,7 +259,7 @@ import org.vmmagic.pragma.*;
   /**
    * writes an array of bytes.  The bytes are interpretted
    * as characters.
-   * 
+   *
    * @param b the array of bytes to be logged
    */
   public static void write(byte[] b) {
@@ -269,7 +269,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * writes a string
-   * 
+   *
    * @param s the string to be logged
    */
   public static void write(String s) {
@@ -279,7 +279,7 @@ import org.vmmagic.pragma.*;
   /**
    * writes a word, in hexadecimal.  It is zero-padded to the size of
    * an address.
-   * 
+   *
    * @param w the word to be logged
    */
   public static void write(Word w) {
@@ -288,7 +288,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * writes a word, in decimal.
-   * 
+   *
    * @param w the word to be logged
    */
   public static void writeDec(Word w) {
@@ -300,13 +300,13 @@ import org.vmmagic.pragma.*;
 
   /**
    * writes an address, in hexademical. It is zero-padded.
-   * 
+   *
    * @param a the address to be logged
    */
   public static void write(Address a) {
     writeHex(a.toWord(), BYTES_IN_ADDRESS);
   }
-  
+
   /**
    * writes a string followed by an address, in hexademical.
    * @see #write(String)
@@ -335,7 +335,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * writes an object reference, in hexademical. It is zero-padded.
-   * 
+   *
    * @param o the object reference to be logged
    */
   public static void write(ObjectReference o) {
@@ -344,7 +344,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * writes an offset, in hexademical. It is zero-padded.
-   * 
+   *
    * @param o the offset to be logged
    */
   public static void write(Offset o) {
@@ -353,7 +353,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * writes an extent, in hexademical. It is zero-padded.
-   * 
+   *
    * @param e the extent to be logged
    */
   public static void write(Extent e) {
@@ -370,7 +370,7 @@ import org.vmmagic.pragma.*;
   /**
    * writes a boolean and a new-line, then flushes the buffer.
    * @see #write(boolean)
-   * 
+   *
    * @param b boolean value to be logged.
    */
   public static void writeln(boolean b) { writeln(b, true); }
@@ -378,7 +378,7 @@ import org.vmmagic.pragma.*;
   /**
    * writes a character and a new-line, then flushes the buffer.
    * @see #write(char)
-   * 
+   *
    * @param c character to be logged
    */
   public static void writeln(char c)    { writeln(c, true); }
@@ -386,7 +386,7 @@ import org.vmmagic.pragma.*;
   /**
    * writes a long, in decimal, and a new-line, then flushes the buffer.
    * @see #write(long)
-   * 
+   *
    * @param l long value to be logged
    */
   public static void writeln(long l)    { writeln(l, true); }
@@ -394,7 +394,7 @@ import org.vmmagic.pragma.*;
   /**
    * writes a <code>double</code> and a new-line, then flushes the buffer.
    * @see #write(double)
-   * 
+   *
    * @param d the double to be logged
    */
   public static void writeln(double d)  { writeln(d, true); }
@@ -402,7 +402,7 @@ import org.vmmagic.pragma.*;
   /**
    * writes a <code>double</code> and a new-line, then flushes the buffer.
    * @see #write(double, int)
-   * 
+   *
    * @param d the double to be logged
    */
   public static void writeln(double d, int postDecimalDigits) {
@@ -411,7 +411,7 @@ import org.vmmagic.pragma.*;
   /**
    * writes an array of characters and a new-line, then flushes the buffer.
    * @see #write(char [])
-   * 
+   *
    * @param ca the array of characters to be logged
    */
   public static void writeln(char [] ca) { writeln(ca, true); }
@@ -420,7 +420,7 @@ import org.vmmagic.pragma.*;
    * writes the start of an array of characters and a new-line, then
    * flushes the buffer.
    * @see #write(char[], int)
-   * 
+   *
    * @param ca the array of characters
    * @param len the number of characters to be logged, starting with
    * the first character
@@ -431,14 +431,14 @@ import org.vmmagic.pragma.*;
    * writes an array of bytes and a new-line, then
    * flushes the buffer.
    * @see #write(byte[])
-   * 
+   *
    * @param b the array of bytes to be logged
    */
   public static void writeln(byte [] b) { writeln(b, true); }
 
   /**
    * writes a string and a new-line, then flushes the buffer.
-   * 
+   *
    * @param s the string to be logged
    */
   public static void writeln(String s)  { writeln(s, true); }
@@ -446,7 +446,7 @@ import org.vmmagic.pragma.*;
   /**
    * writes a word, in hexadecimal, and a new-line, then flushes the buffer.
    * @see #write(Word)
-   * 
+   *
    * @param w the word to be logged
    */
   public static void writeln(Word w) { writeln(w, true); }
@@ -455,7 +455,7 @@ import org.vmmagic.pragma.*;
    * writes an address, in hexademical, and a new-line, then flushes
    * the buffer.
    * @see #write(Address)
-   * 
+   *
    * @param a the address to be logged
    */
   public static void writeln(Address a) { writeln(a, true); }
@@ -464,7 +464,7 @@ import org.vmmagic.pragma.*;
    * writes an object reference, in hexademical, and a new-line, then
    * flushes the buffer.
    * @see #write(ObjectReference)
-   * 
+   *
    * @param o the object reference to be logged
    */
   public static void writeln(ObjectReference o) { writeln(o, true); }
@@ -472,7 +472,7 @@ import org.vmmagic.pragma.*;
   /**
    * writes an offset, in hexademical, and a new-line, then flushes the buffer.
    * @see #write(Offset)
-   * 
+   *
    * @param o the offset to be logged
    */
   public static void writeln(Offset o) { writeln(o, true); }
@@ -480,7 +480,7 @@ import org.vmmagic.pragma.*;
   /**
    * writes an extent, in hexademical, and a new-line, then flushes the buffer.
    * @see #write(Extent)
-   * 
+   *
    * @param e the extent to be logged
    */
   public static void writeln(Extent e) { writeln(e, true); }
@@ -495,7 +495,7 @@ import org.vmmagic.pragma.*;
   /**
    * writes a boolean and a new-line, then optionally flushes the buffer.
    * @see #write(boolean)
-   * 
+   *
    * @param b boolean value to be logged.
    * @param flush if <code>true</code> then flushes the buffer
    */
@@ -508,7 +508,7 @@ import org.vmmagic.pragma.*;
    * writes a character and a new-line, then optionally flushes the
    * buffer.
    * @see #write(char)
-   * 
+   *
    * @param c character to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
@@ -521,7 +521,7 @@ import org.vmmagic.pragma.*;
    * writes a long, in decimal, and a new-line, then optionally flushes
    * the buffer.
    * @see #write(long)
-   * 
+   *
    * @param l long value to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
@@ -534,7 +534,7 @@ import org.vmmagic.pragma.*;
    * writes a <code>double</code> and a new-line, then optionally flushes
    * the buffer.
    * @see #write(double)
-   * 
+   *
    * @param d the double to be logged
    * @param flush if <code>true</code> then flush the buffer
    */
@@ -547,7 +547,7 @@ import org.vmmagic.pragma.*;
    * writes a <code>double</code> and a new-line, then optionally flushes
    * the buffer.
    * @see #write(double, int)
-   * 
+   *
    * @param d the double to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
@@ -561,7 +561,7 @@ import org.vmmagic.pragma.*;
    * writes an array of characters and a new-line, then optionally
    * flushes the buffer.
    * @see #write(char [])
-   * 
+   *
    * @param ca the array of characters to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
@@ -574,7 +574,7 @@ import org.vmmagic.pragma.*;
    * writes the start of an array of characters and a new-line, then
    * optionally flushes the buffer.
    * @see #write(char[], int)
-   * 
+   *
    * @param ca the array of characters
    * @param len the number of characters to be logged, starting with
    * the first character
@@ -589,7 +589,7 @@ import org.vmmagic.pragma.*;
    * writes an array of bytes and a new-line, then optionally flushes the
    * buffer.
    * @see #write(byte[])
-   * 
+   *
    * @param b the array of bytes to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
@@ -600,7 +600,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * writes a string and a new-line, then optionally flushes the buffer.
-   * 
+   *
    * @param s the string to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
@@ -619,7 +619,7 @@ import org.vmmagic.pragma.*;
    * writes a word, in hexadecimal, and a new-line, then optionally
    * flushes the buffer.
    * @see #write(Word)
-   * 
+   *
    * @param w the word to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
@@ -633,7 +633,7 @@ import org.vmmagic.pragma.*;
    * writes an address, in hexademical, and a new-line, then optionally
    * flushes the buffer.
    * @see #write(Address)
-   * 
+   *
    * @param a the address to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
@@ -646,7 +646,7 @@ import org.vmmagic.pragma.*;
    * writes an object reference, in hexademical, and a new-line, then
    * optionally flushes the buffer.
    * @see #write(ObjectReference)
-   * 
+   *
    * @param o the object reference to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
@@ -659,7 +659,7 @@ import org.vmmagic.pragma.*;
    * writes an offset, in hexademical, and a new-line, then optionally
    * flushes the buffer.
    * @see #write(Offset)
-   * 
+   *
    * @param o the offset to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
@@ -672,7 +672,7 @@ import org.vmmagic.pragma.*;
    * writes an extent, in hexademical, and a new-line, then optionally
    * flushes the buffer.
    * @see #write(Extent)
-   * 
+   *
    * @param e the extent to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
@@ -685,7 +685,7 @@ import org.vmmagic.pragma.*;
    * writes a string followed by a Address
    * @see #write(String)
    * @see #write(Address)
-   * 
+   *
    * @param s the string to be logged
    * @param a the Address to be logged
    */
@@ -713,7 +713,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * writes a new-line and optionally flushes the buffer
-   * 
+   *
    * @param flush if <code>true</code> the buffer is flushed
    */
   private static void writelnWithFlush(boolean flush) {
@@ -724,7 +724,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * writes a <code>long</code> in hexadecimal
-   * 
+   *
    * @param w the Word to be logged
    * @param bytes the number of bytes from the long to be logged.  If
    * less than 8 then the least significant bytes are logged and some
@@ -746,7 +746,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * adds a character to the buffer
-   * 
+   *
    * @param c the character to add
    */
   private static void add(char c) {
@@ -755,7 +755,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * adds a string to the buffer
-   * 
+   *
    * @param s the string to add
    */
   private static void add(String s) {
@@ -771,7 +771,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * adds a character to the buffer
-   * 
+   *
    * @param c the character to add
    */
   private void addToBuffer(char c) {
@@ -785,7 +785,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * adds a string to the buffer
-   * 
+   *
    * @param s the string to add
    */
   private void addToBuffer(String s) {
@@ -810,7 +810,7 @@ import org.vmmagic.pragma.*;
    */
   private void flushBuffer() {
     int newlineAdjust = overflowLastChar == NEW_LINE_CHAR ? 0 : -1;
-    int totalMessageSize = 
+    int totalMessageSize =
       overflow ? MESSAGE_BUFFER_SIZE + OVERFLOW_SIZE + newlineAdjust
       : bufferIndex;
     if (threadIdFlag)

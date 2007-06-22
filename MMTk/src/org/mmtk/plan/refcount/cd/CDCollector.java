@@ -19,7 +19,7 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.ObjectReference;
 
 /**
- * This class implements <i>per-collector thread</i> behavior 
+ * This class implements <i>per-collector thread</i> behavior
  * and state for a cycle detector.
  */
 @Uninterruptible public abstract class CDCollector {
@@ -28,38 +28,38 @@ import org.vmmagic.unboxed.ObjectReference;
    */
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
   /*****************************************************************************
-   * 
+   *
    * Collection
    */
-  
+
   /**
    * Perform a collection phase.
-   * 
+   *
    * @param phaseId Collection phase to execute.
    * @param primary Use this thread to execute any single-threaded collector
    * context actions.
    */
   @Inline
-  public boolean collectionPhase(int phaseId, boolean primary) { 
+  public boolean collectionPhase(int phaseId, boolean primary) {
     return false;
   }
-  
-  
+
+
   /**
    * Buffer an object after a successful update when shouldBufferOnDecRC
    * returned true.
-   *  
+   *
    * @param object The object to buffer.
    */
   public abstract void bufferOnDecRC(ObjectReference object);
-  
+
   /****************************************************************************
-   * 
+   *
    * Miscellaneous
    */
 

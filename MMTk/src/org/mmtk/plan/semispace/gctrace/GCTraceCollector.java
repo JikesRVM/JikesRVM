@@ -22,13 +22,13 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements <i>per-collector thread</i> behavior and state for the
  * <i>GCTrace</i> plan, which implements a GC tracing algorithm.<p>
- * 
+ *
  * Specifically, this class defines <i>SS</i> collection behavior
  * (through <code>inducedTrace</code> and the <code>collectionPhase</code>
  * method), and collection-time allocation (copying of objects).<p>
- * 
+ *
  * See {@link GCTrace} for an overview of the GC trace algorithm.<p>
- * 
+ *
  * @see SSCollector
  * @see GCTrace
  * @see GCTraceMutator
@@ -43,7 +43,7 @@ import org.vmmagic.pragma.*;
   protected final GCTraceTraceLocal inducedTrace;
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
@@ -55,13 +55,13 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Collection
    */
 
   /**
    * Perform a per-collector collection phase.
-   * 
+   *
    * @param phaseId The collection phase to perform
    * @param primary perform any single-threaded local activities.
    */
@@ -97,7 +97,7 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Miscellaneous
    */
 

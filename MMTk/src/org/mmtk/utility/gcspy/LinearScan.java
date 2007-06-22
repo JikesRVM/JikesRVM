@@ -33,7 +33,7 @@ import org.vmmagic.pragma.*;
   public LinearScan (AbstractDriver d) { driver = d; }
 
   /**
-   * Scan an object. The object reference is passed to the scan method of the 
+   * Scan an object. The object reference is passed to the scan method of the
    * GCspy driver registered with this scanner.
    * @param obj The object to scan.
    */

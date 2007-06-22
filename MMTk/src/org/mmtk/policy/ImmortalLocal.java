@@ -18,9 +18,9 @@ import org.vmmagic.pragma.*;
 
 /**
  * This class implements unsynchronized (local) elements of an
- * immortal space. Allocation is via the bump pointer 
- * (@see BumpPointer). 
- * 
+ * immortal space. Allocation is via the bump pointer
+ * (@see BumpPointer).
+ *
  * @see BumpPointer
  * @see ImmortalSpace
  */
@@ -28,7 +28,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Constructor
-   * 
+   *
    * @param space The space to bump point into.
    */
   public ImmortalLocal(ImmortalSpace space) {

@@ -20,20 +20,20 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * This supports <i>unsynchronized</i> pushing and popping of addresses. 
+ * This supports <i>unsynchronized</i> pushing and popping of addresses.
  * In addition, this can sort the entries currently on the shared stack.
  */
-@Uninterruptible public class SortTODAddressStack extends LocalDeque 
+@Uninterruptible public class SortTODAddressStack extends LocalDeque
   implements Constants {
 
   /****************************************************************************
-   * 
+   *
    * Public instance methods
    */
 
   /**
    * Constructor
-   * 
+   *
    * @param queue The shared stack to which this stack will append
    * its buffers (when full or flushed) and from which it will aquire new
    * buffers when it has exhausted its own.
@@ -52,11 +52,11 @@ import org.vmmagic.pragma.*;
 
   /**
    * Push an address onto the address stack.
-   * 
+   *
    * @param addr the address to be pushed onto the address queue
    */
   @Inline
-  public final void push(Address addr) { 
+  public final void push(Address addr) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!addr.isZero());
     checkHeadInsert(1);
     uncheckedHeadInsert(addr);
@@ -65,12 +65,12 @@ import org.vmmagic.pragma.*;
   /**
    * Pop an address from the address stack, return zero if the stack
    * is empty.
-   * 
+   *
    * @return The next address in the address stack, or zero if the
    * stack is empty
    */
   @Inline
-  public final Address pop() { 
+  public final Address pop() {
     if (checkDequeue(1)) {
       return uncheckedDequeue();
     } else {
@@ -80,12 +80,12 @@ import org.vmmagic.pragma.*;
 
   /**
    * Check if the (local and shared) stacks are empty.
-   * 
+   *
    * @return True if there are no more entries on the local & shared stack,
    *         false otherwise.
    */
   @Inline
-  public final boolean isEmpty() { 
+  public final boolean isEmpty() {
     return !checkDequeue(1);
   }
 }

@@ -27,20 +27,20 @@ import org.vmmagic.unboxed.*;
 @Uninterruptible public class GenSanityCheckerLocal extends SanityCheckerLocal {
 
   /**
-   * Return the expected reference count. For non-reference counting 
+   * Return the expected reference count. For non-reference counting
    * collectors this becomes a true/false relationship.
-   * 
+   *
    * @param object The object to check.
    * @param sanityRootRC The number of root references to the object.
    * @return The expected (root excluded) reference count.
    */
-  protected int sanityExpectedRC(ObjectReference object, 
+  protected int sanityExpectedRC(ObjectReference object,
                                            int sanityRootRC) {
     Space space = Space.getSpaceForObject(object);
 
     // Nursery
     if (space == Gen.nurserySpace) {
-      return global().preGCSanity() 
+      return global().preGCSanity()
         ? SanityChecker.UNSURE
         : SanityChecker.DEAD;
     }
@@ -58,8 +58,8 @@ import org.vmmagic.unboxed.*;
     }
 
     // Mature space (full heap collection)
-    return space.isReachable(object) 
-      ? SanityChecker.ALIVE 
+    return space.isReachable(object)
+      ? SanityChecker.ALIVE
       : SanityChecker.DEAD;
   }
 

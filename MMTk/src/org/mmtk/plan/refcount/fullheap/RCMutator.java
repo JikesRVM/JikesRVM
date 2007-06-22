@@ -24,22 +24,22 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This class implements <i>per-mutator thread</i> behavior 
+ * This class implements <i>per-mutator thread</i> behavior
  * and state for the <i>MS</i> plan, which implements a full-heap
  * mark-sweep collector.<p>
- * 
+ *
  * Specifically, this class defines <i>MS</i> mutator-time allocation
  * and per-mutator thread collection semantics (flushing and restoring
  * per-mutator allocator state).<p>
- * 
+ *
  * @see org.mmtk.plan.markcompact.MC for an overview of the mark-compact algorithm.<p>
- * 
+ *
  * FIXME The SegregatedFreeList class (and its decendents such as
  * MarkSweepLocal) does not properly separate mutator and collector
  * behaviors, so the ms field below should really not exist in
  * this class as there is no collection-time allocation in this
  * collector.
- * 
+ *
  * @see RC
  * @see RCCollector
  * @see org.mmtk.plan.StopTheWorldMutator
@@ -48,7 +48,7 @@ import org.vmmagic.unboxed.*;
  */
 @Uninterruptible public abstract class RCMutator extends RCBaseMutator implements Constants {
   /****************************************************************************
-   * 
+   *
    * Mutator-time allocation
    */
 
@@ -56,7 +56,7 @@ import org.vmmagic.unboxed.*;
    * Allocate memory for an object. This class handles the default allocator
    * from the mark sweep space, and delegates everything else to the
    * superclass.
-   * 
+   *
    * @param bytes The number of bytes required for the object.
    * @param align Required alignment for the object.
    * @param offset Offset associated with the alignment.
@@ -65,7 +65,7 @@ import org.vmmagic.unboxed.*;
    * @return The low address of the allocated memory.
    */
   @Inline
-  public Address alloc(int bytes, int align, int offset, int allocator, int site) { 
+  public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == RC.ALLOC_DEFAULT) {
       // The default allocator for full heap RC is ALLOC_RC
       allocator = RC.ALLOC_RC;
@@ -85,14 +85,14 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public void postAlloc(ObjectReference ref, ObjectReference typeRef,
-      int bytes, int allocator) { 
+      int bytes, int allocator) {
     if (allocator == RC.ALLOC_DEFAULT) {
       // The default allocator for full heap RC is ALLOC_RC
       allocator = RC.ALLOC_RC;
     }
     super.postAlloc(ref, typeRef, bytes, allocator);
   }
-  
+
   /****************************************************************************
   *
   * Write barriers.
@@ -119,7 +119,7 @@ import org.vmmagic.unboxed.*;
   @Inline
   public final void writeBarrier(ObjectReference src, Address slot,
                                  ObjectReference tgt, Offset metaDataA,
-                                 int metaDataB, int mode) { 
+                                 int metaDataB, int mode) {
     if (VM.VERIFY_ASSERTIONS) {
       // TODO VM.assertions._assert(!Plan.gcInProgress());
     }
@@ -128,16 +128,16 @@ import org.vmmagic.unboxed.*;
     else
       writeBarrierInternalOOL(src, slot, tgt, metaDataA, metaDataB, mode);
   }
-  
+
   /**
    * Attempt to atomically exchange the value in the given slot
-   * with the passed replacement value. If a new reference is 
+   * with the passed replacement value. If a new reference is
    * created, we must then take appropriate write barrier actions.<p>
-   * 
+   *
    * @param src The object into which the new reference will be stored
    * @param slot The address into which the new reference will be
    * stored.
-   * @param old The old reference to be swapped out 
+   * @param old The old reference to be swapped out
    * @param tgt The target of the new reference
    * @param metaDataA An int that assists the host VM in creating a store
    * @param metaDataB An int that assists the host VM in creating a store
@@ -156,15 +156,15 @@ import org.vmmagic.unboxed.*;
     else
       return tryCompareAndSwapWriteBarrierInternalOOL(src, slot, old, tgt, metaDataA, metaDataB, mode);
   }
-  
+
   /**
    * Attempt to atomically exchange the value in the given slot
-   * with the passed replacement value. If a new reference is 
+   * with the passed replacement value. If a new reference is
    * created, we must then take appropriate write barrier actions.<p>
    *
    * @param src The object being mutated.
    * @param slot The address of the word (slot) being mutated.
-   * @param old The old reference to be swapped out 
+   * @param old The old reference to be swapped out
    * @param tgt The target of the new reference (about to be stored into src).
    * @param metaDataA An int that assists the host VM in creating a store
    * @param metaDataB An int that assists the host VM in creating a store
@@ -173,7 +173,7 @@ import org.vmmagic.unboxed.*;
   @Inline
   private boolean tryCompareAndSwapWriteBarrierInternal(ObjectReference src, Address slot,
                                           ObjectReference old, ObjectReference tgt, Offset metaDataA,
-                                          int metaDataB, int mode) { 
+                                          int metaDataB, int mode) {
     if (RC.GATHER_WRITE_BARRIER_STATS) RC.wbFast.inc();
     if (RC.WITH_COALESCING_RC) {
       if (RCHeader.logRequired(src)) {
@@ -182,24 +182,24 @@ import org.vmmagic.unboxed.*;
       return VM.barriers.tryCompareAndSwapWriteInBarrier(src,slot,old,tgt,metaDataA,metaDataB,mode);
     } else {
       boolean result = VM.barriers.tryCompareAndSwapWriteInBarrier(src,slot,old,tgt,metaDataA,metaDataB,mode);
-      
+
       if (result && !Space.isInSpace(RCBase.VM_SPACE, src)) {
         if (RC.isRCObject(old)) decBuffer.pushOOL(old);
         if (RC.isRCObject(tgt)) RCHeader.incRCOOL(tgt);
-      } 
-      
+      }
+
       return result;
     }
   }
-  
+
   /**
    * Attempt to atomically exchange the value in the given slot
-   * with the passed replacement value. If a new reference is 
+   * with the passed replacement value. If a new reference is
    * created, we must then take appropriate write barrier actions.<p>
    *
    * @param src The object being mutated.
    * @param slot The address of the word (slot) being mutated.
-   * @param old The old reference to be swapped out 
+   * @param old The old reference to be swapped out
    * @param tgt The target of the new reference (about to be stored into src).
    * @param metaDataA An int that assists the host VM in creating a store
    * @param metaDataB An int that assists the host VM in creating a store
@@ -208,7 +208,7 @@ import org.vmmagic.unboxed.*;
   @NoInline
   private boolean tryCompareAndSwapWriteBarrierInternalOOL(ObjectReference src, Address slot,
                                           ObjectReference old, ObjectReference tgt, Offset metaDataA,
-                                          int metaDataB, int mode) { 
+                                          int metaDataB, int mode) {
     return tryCompareAndSwapWriteBarrierInternal(src,slot,old,tgt,metaDataA,metaDataB,mode);
   }
 
@@ -227,7 +227,7 @@ import org.vmmagic.unboxed.*;
   @Inline
   private void writeBarrierInternal(ObjectReference src, Address slot,
                                           ObjectReference tgt, Offset metaDataA,
-                                          int metaDataB, int mode) { 
+                                          int metaDataB, int mode) {
     if (RC.GATHER_WRITE_BARRIER_STATS) RC.wbFast.inc();
     if (RC.WITH_COALESCING_RC) {
       if (RCHeader.logRequired(src)) {
@@ -237,7 +237,7 @@ import org.vmmagic.unboxed.*;
     } else {
       ObjectReference old = VM.barriers.
       performWriteInBarrierAtomic(src,slot,tgt,metaDataA,metaDataB,mode);
-      
+
       if (Space.isInSpace(RCBase.VM_SPACE, src)) return;
       if (RC.isRCObject(old)) decBuffer.pushOOL(old);
       if (RC.isRCObject(tgt)) RCHeader.incRCOOL(tgt);
@@ -260,7 +260,7 @@ import org.vmmagic.unboxed.*;
   private void writeBarrierInternalOOL(ObjectReference src, Address slot,
                                              ObjectReference tgt,
                                              Offset metaDataA, int metaDataB,
-                                             int mode) { 
+                                             int mode) {
     if (RC.GATHER_WRITE_BARRIER_STATS) RC.wbFast.inc();
     if (RC.WITH_COALESCING_RC) {
       if (RCHeader.logRequired(src)) {
@@ -270,7 +270,7 @@ import org.vmmagic.unboxed.*;
     } else {
       ObjectReference old = VM.barriers.
       performWriteInBarrierAtomic(src,slot,tgt,metaDataA,metaDataB,mode);
-      
+
       if (Space.isInSpace(RCBase.VM_SPACE, src)) return;
       if (RC.isRCObject(old)) decBuffer.push(old);
       if (RC.isRCObject(tgt)) RCHeader.incRC(tgt);
@@ -302,7 +302,7 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public final boolean writeBarrier(ObjectReference src, Offset srcOffset,
-                                    ObjectReference dst, Offset dstOffset, int bytes) { 
+                                    ObjectReference dst, Offset dstOffset, int bytes) {
     if (VM.VERIFY_ASSERTIONS) {
       // TODO VM.assertions._assert(!Plan.gcInProgress());
     }
@@ -321,7 +321,7 @@ import org.vmmagic.unboxed.*;
         do {
           old = d.prepareObjectReference();
         } while (!d.attempt(old, tgt));
-        
+
         if (RC.isRCObject(old)) decBuffer.push(old);
         if (RC.isRCObject(tgt)) RCHeader.incRC(tgt);
         s = s.plus(BYTES_IN_ADDRESS);

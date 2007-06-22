@@ -25,7 +25,7 @@ import org.vmmagic.pragma.*;
  * Specifically, this class <i>would</i> define <i>NoGC</i> collection time semantics,
  * however, since this plan never collects, this class consists only of stubs which
  * may be useful as a template for implementing a basic collector.
- * 
+ *
  * @see NoGC
  * @see NoGCMutator
  * @see StopTheWorldCollector
@@ -51,7 +51,7 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Collection
    */
 
@@ -64,7 +64,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Perform a per-collector collection phase.
-   * 
+   *
    * @param phaseId The collection phase to perform
    * @param primary perform any single-threaded local activities.
    */
@@ -73,17 +73,17 @@ import org.vmmagic.pragma.*;
     /*
      if (phaseId == NoGC.PREPARE) {
      }
-     
+
      if (phaseId == NoGC.BEGIN_CLOSURE) {
      trace.startTrace();
      return;
      }
-     
+
      if (phaseId == NoGC.COMPLETE_CLOSURE) {
      trace.completeTrace();
      return;
      }
-     
+
      if (phaseId == NoGC.RELEASE) {
      }
      super.collectionPhase(phaseId, participating, primary);
@@ -91,7 +91,7 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Miscellaneous
    */
 

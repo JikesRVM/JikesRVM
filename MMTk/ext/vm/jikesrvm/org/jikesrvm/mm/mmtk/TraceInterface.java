@@ -77,7 +77,7 @@ import org.vmmagic.pragma.*;
    */
   public boolean gcEnabled() {
     /* This test is based upon a review of the code and trial-and-error */
-    return VM_Processor.getCurrentProcessor().threadSwitchingEnabled() && 
+    return VM_Processor.getCurrentProcessor().threadSwitchingEnabled() &&
       VM_Scheduler.allProcessorsInitialized;
   }
 
@@ -95,7 +95,7 @@ import org.vmmagic.pragma.*;
         /* Compare the letters in the allocCallMethod */
         int j = VM_Magic.getArrayLength(funcName) - 1;
         while (j >= 0) {
-          if (Barriers.getArrayNoBarrierStatic(name, j) != 
+          if (Barriers.getArrayNoBarrierStatic(name, j) !=
               Barriers.getArrayNoBarrierStatic(funcName, j))
             break;
           j--;
@@ -118,7 +118,7 @@ import org.vmmagic.pragma.*;
    * the update will be stored
    * @return The easy to understand offset of the slot
    */
-  public Offset adjustSlotOffset(boolean isScalar, 
+  public Offset adjustSlotOffset(boolean isScalar,
                                               ObjectReference src,
                                               Address slot) {
     /* Offset scalar objects so that the fields appear to begin at offset 0
@@ -131,7 +131,7 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * This skips over the frames added by the tracing algorithm, outputs 
+   * This skips over the frames added by the tracing algorithm, outputs
    * information identifying the method the containts the "new" call triggering
    * the allocation, and returns the address of the first non-trace, non-alloc
    * stack frame.
@@ -141,7 +141,7 @@ import org.vmmagic.pragma.*;
    */
   @NoInline
   @Interruptible // This can't be uninterruptible --- it is an IO routine
-  public Address skipOwnFramesAndDump(ObjectReference typeRef) { 
+  public Address skipOwnFramesAndDump(ObjectReference typeRef) {
     Object[] tib = VM_Magic.addressAsObjectArray(typeRef.toAddress());
     VM_Method m = null;
     int bci = -1;
@@ -155,7 +155,7 @@ import org.vmmagic.pragma.*;
       compiledMethodID = VM_Magic.getCompiledMethodID(fp);
       if (compiledMethodID != INVISIBLE_METHOD_ID) {
         // normal java frame(s)
-        VM_CompiledMethod compiledMethod = 
+        VM_CompiledMethod compiledMethod =
           VM_CompiledMethods.getCompiledMethod(compiledMethodID);
         if (compiledMethod.getCompilerType() != VM_CompiledMethod.TRAP) {
           ipOffset = compiledMethod.getInstructionOffset(ip);
@@ -169,14 +169,14 @@ import org.vmmagic.pragma.*;
               int[] inlineEncoding = map.inlineEncoding;
               boolean allocCall = true;
               bci = map.getBytecodeIndexForMCOffset(ipOffset);
-              for (int j = iei; j >= 0 && allocCall; 
+              for (int j = iei; j >= 0 && allocCall;
                    j = VM_OptEncodedCallSiteTree.getParent(j,inlineEncoding)) {
                 int mid = VM_OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
                 m = VM_MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
                 if (!isAllocCall(m.getName().getBytes()))
                   allocCall = false;
                 if (j > 0)
-                  bci = VM_OptEncodedCallSiteTree.getByteCodeOffset(j, 
+                  bci = VM_OptEncodedCallSiteTree.getByteCodeOffset(j,
                                                                     inlineEncoding);
               }
               if (!allocCall)
@@ -184,7 +184,7 @@ import org.vmmagic.pragma.*;
             }
           } else {
             if (!isAllocCall(m.getName().getBytes())) {
-              VM_BaselineCompiledMethod baseInfo = 
+              VM_BaselineCompiledMethod baseInfo =
                 (VM_BaselineCompiledMethod)compiledMethod;
               bci = baseInfo.findBytecodeIndexForInstruction(ipOffset.toWord().lsh(INSTRUCTION_WIDTH).toOffset());
               break;
@@ -197,9 +197,9 @@ import org.vmmagic.pragma.*;
     }
     if (m != null) {
       int allocid = (((compiledMethodID & 0x0000ffff) << 15) ^
-                     ((compiledMethodID & 0xffff0000) >> 16) ^ 
+                     ((compiledMethodID & 0xffff0000) >> 16) ^
                      ipOffset.toInt()) & ~0x80000000;
-    
+
       /* Now print the location string. */
       VM.sysWrite('\n');
       VM.writeHex(allocid);
@@ -228,62 +228,62 @@ import org.vmmagic.pragma.*;
    */
 
   @Inline
-  public void updateDeathTime(Object obj) { 
+  public void updateDeathTime(Object obj) {
     VM_MiscHeader.updateDeathTime(obj);
   }
 
   @Inline
-  public void setDeathTime(ObjectReference ref, Word time_) { 
+  public void setDeathTime(ObjectReference ref, Word time_) {
     VM_MiscHeader.setDeathTime(ref.toObject(), time_);
   }
 
   @Inline
-  public void setLink(ObjectReference ref, ObjectReference link) { 
+  public void setLink(ObjectReference ref, ObjectReference link) {
     VM_MiscHeader.setLink(ref.toObject(), link);
   }
 
   @Inline
-  public void updateTime(Word time_) { 
+  public void updateTime(Word time_) {
     VM_MiscHeader.updateTime(time_);
   }
 
   @Inline
-  public Word getOID(ObjectReference ref) { 
+  public Word getOID(ObjectReference ref) {
     return VM_MiscHeader.getOID(ref.toObject());
   }
 
   @Inline
-  public Word getDeathTime(ObjectReference ref) { 
+  public Word getDeathTime(ObjectReference ref) {
     return VM_MiscHeader.getDeathTime(ref.toObject());
   }
 
   @Inline
-  public ObjectReference getLink(ObjectReference ref) { 
+  public ObjectReference getLink(ObjectReference ref) {
     return VM_MiscHeader.getLink(ref.toObject());
   }
 
   @Inline
-  public Address getBootImageLink() { 
+  public Address getBootImageLink() {
     return VM_MiscHeader.getBootImageLink();
   }
 
   @Inline
-  public Word getOID() { 
+  public Word getOID() {
     return VM_MiscHeader.getOID();
   }
 
   @Inline
-  public void setOID(Word oid) { 
+  public void setOID(Word oid) {
     VM_MiscHeader.setOID(oid);
   }
 
   @Inline
-  public int getHeaderSize() { 
+  public int getHeaderSize() {
     return VM_MiscHeader.getHeaderSize();
   }
 
   @Inline
-  public int getHeaderEndOffset() { 
+  public int getHeaderEndOffset() {
     return VM_ObjectModel.getHeaderEndOffset();
   }
 }

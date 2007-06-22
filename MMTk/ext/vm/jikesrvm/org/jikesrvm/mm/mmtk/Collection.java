@@ -47,8 +47,8 @@ import org.vmmagic.pragma.*;
    * Class variables
    */
 
-  /** An unknown GC trigger reason.  Signals a logic bug. */ 
-  public static final int UNKNOWN_GC_TRIGGER = 0;  
+  /** An unknown GC trigger reason.  Signals a logic bug. */
+  public static final int UNKNOWN_GC_TRIGGER = 0;
   /** Externally triggered garbage collection (eg call to System.gc())  */
   public static final int EXTERNAL_GC_TRIGGER = 1;
   /** Resource triggered garbage collection.  For example, an
@@ -114,13 +114,13 @@ import org.vmmagic.pragma.*;
    * <code>TRIGGER_REASONS - 1</code>.
    */
   @Interruptible
-  public final void triggerCollection(int why) { 
+  public final void triggerCollection(int why) {
     triggerCollectionStatic(why);
   }
-  
+
   @Interruptible
   public static void triggerCollectionStatic(int why) {
-    if (VM.VerifyAssertions) VM._assert((why >= 0) && (why < TRIGGER_REASONS)); 
+    if (VM.VerifyAssertions) VM._assert((why >= 0) && (why < TRIGGER_REASONS));
     Plan.collectionInitiated();
 
     if (Options.verbose.getValue() >= 4) {
@@ -129,10 +129,10 @@ import org.vmmagic.pragma.*;
     }
     if (why == EXTERNAL_GC_TRIGGER) {
       Selected.Plan.get().userTriggeredGC();
-      if (Options.verbose.getValue() == 1 || Options.verbose.getValue() == 2) 
+      if (Options.verbose.getValue() == 1 || Options.verbose.getValue() == 2)
         VM.sysWrite("[Forced GC]");
     }
-    if (Options.verbose.getValue() > 2) 
+    if (Options.verbose.getValue() > 2)
       VM.sysWriteln("Collection triggered due to ", triggerReasons[why]);
     Extent sizeBeforeGC = HeapGrowthManager.getCurrentHeapSize();
     long start = VM_Time.cycles();
@@ -141,23 +141,23 @@ import org.vmmagic.pragma.*;
     double gcTime = VM_Time.cyclesToMillis(end - start);
     if (Options.verbose.getValue() > 2) VM.sysWriteln("Collection finished (ms): ", gcTime);
 
-    if (Selected.Plan.get().isLastGCFull() && 
+    if (Selected.Plan.get().isLastGCFull() &&
    sizeBeforeGC.EQ(HeapGrowthManager.getCurrentHeapSize()))
       checkForExhaustion(why, false);
-    
+
     Plan.checkForAsyncCollection();
   }
 
   /**
    * Triggers a collection without allowing for a thread switch.  This is needed
-   * for Merlin lifetime analysis used by trace generation 
+   * for Merlin lifetime analysis used by trace generation
    *
    * @param why the reason why a collection was triggered.  0 to
    * <code>TRIGGER_REASONS - 1</code>.
    */
   @LogicallyUninterruptible
-  public final void triggerCollectionNow(int why) { 
-    if (VM.VerifyAssertions) VM._assert((why >= 0) && (why < TRIGGER_REASONS)); 
+  public final void triggerCollectionNow(int why) {
+    if (VM.VerifyAssertions) VM._assert((why >= 0) && (why < TRIGGER_REASONS));
     Plan.collectionInitiated();
 
     if (Options.verbose.getValue() >= 4) {
@@ -166,23 +166,23 @@ import org.vmmagic.pragma.*;
     }
     if (why == EXTERNAL_GC_TRIGGER) {
       Selected.Plan.get().userTriggeredGC();
-      if (Options.verbose.getValue() == 1 || Options.verbose.getValue() == 2) 
+      if (Options.verbose.getValue() == 1 || Options.verbose.getValue() == 2)
         VM.sysWrite("[Forced GC]");
     }
-    if (Options.verbose.getValue() > 2) 
+    if (Options.verbose.getValue() > 2)
       VM.sysWriteln("Collection triggered due to ", triggerReasons[why]);
     Extent sizeBeforeGC = HeapGrowthManager.getCurrentHeapSize();
     long start = VM_Time.cycles();
     VM_CollectorThread.collect(VM_CollectorThread.handshake, why);
     long end = VM_Time.cycles();
     double gcTime = VM_Time.cyclesToMillis(end - start);
-    if (Options.verbose.getValue() > 2) 
+    if (Options.verbose.getValue() > 2)
       VM.sysWriteln("Collection finished (ms): ", gcTime);
 
-    if (Selected.Plan.get().isLastGCFull() && 
+    if (Selected.Plan.get().isLastGCFull() &&
         sizeBeforeGC.EQ(HeapGrowthManager.getCurrentHeapSize()))
       checkForExhaustion(why, false);
-    
+
     Plan.checkForAsyncCollection();
   }
 
@@ -191,7 +191,7 @@ import org.vmmagic.pragma.*;
    * exhaustion first.
    */
   @Uninterruptible
-  public final void triggerAsyncCollection() { 
+  public final void triggerAsyncCollection() {
     checkForExhaustion(RESOURCE_GC_TRIGGER, true);
     Plan.collectionInitiated();
     if (Options.verbose.getValue() >= 1) VM.sysWrite("[Async GC]");
@@ -207,8 +207,8 @@ import org.vmmagic.pragma.*;
    * @return True if GC is not in progress.
    */
  @Uninterruptible
- public final boolean noThreadsInGC() { 
-   return VM_CollectorThread.noThreadsInGC(); 
+ public final boolean noThreadsInGC() {
+   return VM_CollectorThread.noThreadsInGC();
  }
 
   private static final int OOM_EXN_HEADROOM_BYTES = 1<<19; // 512K should be plenty to make an exn
@@ -222,7 +222,7 @@ import org.vmmagic.pragma.*;
   @LogicallyUninterruptible
   private static void checkForExhaustion(int why, boolean async) {
     double usage = Plan.reservedMemory().toLong()/ ((double) Plan.totalMemory().toLong());
-    
+
     //    if (Plan.totalMemory() - Plan.reservedMemory() < 64<<10) {
     if (usage > OUT_OF_MEMORY_THRESHOLD) {
       if (why == INTERNAL_GC_TRIGGER) {
@@ -233,10 +233,10 @@ import org.vmmagic.pragma.*;
         }
         if (VM.debugOOM || Options.verbose.getValue() >= 5)
           VM.sysWriteln("triggerCollection(): About to try \"new OutOfMemoryError()\"");
-        
+
         int currentAvail = Selected.Plan.get().getPagesAvail() << LOG_BYTES_IN_PAGE; // may be negative
         int headroom = OOM_EXN_HEADROOM_BYTES - currentAvail;
-        MM_Interface.emergencyGrowHeap(headroom);  
+        MM_Interface.emergencyGrowHeap(headroom);
         OutOfMemoryError oome = new OutOfMemoryError();
         MM_Interface.emergencyGrowHeap(-headroom);
         if (VM.debugOOM || Options.verbose.getValue() >= 5)
@@ -263,7 +263,7 @@ import org.vmmagic.pragma.*;
     VM_Processor vp = ((Selected.Mutator) m).getProcessor();
     int vpStatus = vp.vpStatus;
     if (vpStatus == VM_Processor.BLOCKED_IN_NATIVE) {
-      
+
       /* processor & its running thread are blocked in C for this GC.
        Its stack needs to be scanned, starting from the "top" java
        frame, which has been saved in the running threads JNIEnv.  Put
@@ -273,7 +273,7 @@ import org.vmmagic.pragma.*;
       t.contextRegisters.setInnermost(Address.zero(), t.jniEnv.topJavaFP());
     }
   }
-  
+
   /**
    * Prepare a collector for a collection.
    *
@@ -288,7 +288,7 @@ import org.vmmagic.pragma.*;
     while (true) {
       Address caller_ip = VM_Magic.getReturnAddress(fp);
       Address caller_fp = VM_Magic.getCallerFramePointer(fp);
-      if (VM_Magic.getCallerFramePointer(caller_fp).EQ(ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP)) 
+      if (VM_Magic.getCallerFramePointer(caller_fp).EQ(ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP))
         VM.sysFail("prepareMutator (participating): Could not locate VM_CollectorThread.run");
       int compiledMethodId = VM_Magic.getCompiledMethodID(caller_fp);
       VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
@@ -299,7 +299,7 @@ import org.vmmagic.pragma.*;
         t.contextRegisters.setInnermost(caller_ip, caller_fp);
         break;
       }
-      fp = caller_fp; 
+      fp = caller_fp;
     }
   }
 
@@ -308,7 +308,7 @@ import org.vmmagic.pragma.*;
    * (that is, the order this processor arrived at the barrier).
    */
   @Uninterruptible
-  public final int rendezvous(int where) { 
+  public final int rendezvous(int where) {
     return VM_CollectorThread.gcBarrier.rendezvous(where);
   }
 
@@ -316,7 +316,7 @@ import org.vmmagic.pragma.*;
    *
    * Finalizers
    */
-  
+
   /**
    * Schedule the finalizerThread, if there are objects to be
    * finalized and the finalizerThread is on its queue (ie. currently

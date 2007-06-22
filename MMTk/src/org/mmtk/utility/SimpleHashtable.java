@@ -20,8 +20,8 @@ import org.vmmagic.unboxed.*;
 
 /**
  * This class implements a simple hashtable. It is intended for use
- * in sanity checking or debugging, not high-performance algorithms.<p> 
- * 
+ * in sanity checking or debugging, not high-performance algorithms.<p>
+ *
  * This class is not thread safe.
  */
 @Uninterruptible public abstract class SimpleHashtable implements Constants {
@@ -54,9 +54,9 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Create a new data table of a specified size.
-   * 
+   *
    * @param rps The space to acquire the data structure from.
-   * @param logSize The log of the number of table entries. 
+   * @param logSize The log of the number of table entries.
    * @param es The size of each entry.
    */
   protected SimpleHashtable(RawPageSpace rps, int logSize, Extent es) {
@@ -95,15 +95,15 @@ import org.vmmagic.unboxed.*;
   /**
    * Retrieve a pointer to the entry for the given object, or zero if one
    * does not exist, unless create is passed.<p>
-   * 
+   *
    * If create is true, the return is guaranteed to be non-null.
-   * 
+   *
    * @param key The key used to lookup.
    * @param create Create a new entry if not found.
    * @return A pointer to the reference or null.
    */
   @Inline
-  public final Address getEntry(Word key, boolean create) { 
+  public final Address getEntry(Word key, boolean create) {
     int startIndex = computeHash(key);
     int index = startIndex;
     Word curAddress;
@@ -112,8 +112,8 @@ import org.vmmagic.unboxed.*;
       entry = getEntry(index);
       curAddress = entry.loadWord(KEY_OFFSET);
       index = (index + 1) & mask.toInt();
-    } while(curAddress.NE(key) && 
-            !curAddress.isZero() && 
+    } while(curAddress.NE(key) &&
+            !curAddress.isZero() &&
             index != startIndex);
 
     if (index == startIndex) {
@@ -130,7 +130,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Compute the hashtable index for a given object.
-   * 
+   *
    * @param key The key.
    * @return The index.
    */
@@ -141,7 +141,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Return the address of a specified entry in the table.
-   * 
+   *
    * @param index The index of the entry.
    * @return An address to the entry.
    */
@@ -152,7 +152,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Does the passed object have an entry in the table?
-   * 
+   *
    * @param key The key to find an entry for
    * @return True if there is an entry for that object.
    */
@@ -169,9 +169,9 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * The next element in the table after the passed entry, or 
+   * The next element in the table after the passed entry, or
    * null if it is the last entry.
-   * 
+   *
    * @param curr The object to look for the next entry from.
    * @return The next entry or null.
    */
@@ -186,7 +186,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Given an address of an entry, return a pointer to the payload.
-   * 
+   *
    * @param entry The entry
    * @return The object reference.
    */
@@ -196,8 +196,8 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Given a key, return a pointer to the payload.
-   * 
-   * @param key The key 
+   *
+   * @param key The key
    * @return The object reference.
    */
   public final Address getPayloadAddress(Word key) {
@@ -207,10 +207,10 @@ import org.vmmagic.unboxed.*;
     return entry.plus(DATA_OFFSET);
   }
 
-  
+
   /**
    * Return the key for a given entry.
-   * 
+   *
    * @param entry The entry.
    * @return The key.
    */
@@ -220,8 +220,8 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Update the key for a given entry. This operation is not
-   * safe without rehashing 
-   * 
+   * safe without rehashing
+   *
    * @param entry The entry to update.
    * @param key The new key.
    */

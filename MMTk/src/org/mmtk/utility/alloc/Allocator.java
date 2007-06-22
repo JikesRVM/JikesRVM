@@ -62,14 +62,14 @@ import org.vmmagic.pragma.*;
    *
    * @param region The region to align up.
    * @param alignment The requested alignment
-   * @param offset The offset from the alignment 
+   * @param offset The offset from the alignment
    * @param knownAlignment The statically known minimum alignment.
    * @return The aligned up address.
    */
   @Inline
   public static Address alignAllocation(Address region, int alignment,
-                                             int offset, int knownAlignment, 
-                                             boolean fillAlignmentGap) { 
+                                             int offset, int knownAlignment,
+                                             boolean fillAlignmentGap) {
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(knownAlignment >= MIN_ALIGNMENT);
       VM.assertions._assert(MIN_ALIGNMENT >= BYTES_IN_INT);
@@ -112,7 +112,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Fill the specified region with the alignment value.
-   * 
+   *
    * @param start The start of the region.
    * @param end A pointer past the end of the region.
    */
@@ -139,12 +139,12 @@ import org.vmmagic.pragma.*;
    *
    * @param region The region to align up.
    * @param alignment The requested alignment
-   * @param offset The offset from the alignment 
+   * @param offset The offset from the alignment
    * @return The aligned up address.
    */
   @Inline
   public static Address alignAllocation(Address region, int alignment,
-                                             int offset) { 
+                                             int offset) {
     return alignAllocation(region, alignment, offset, MIN_ALIGNMENT, true);
   }
 
@@ -156,19 +156,19 @@ import org.vmmagic.pragma.*;
    *
    * @param region The region to align up.
    * @param alignment The requested alignment
-   * @param offset The offset from the alignment 
+   * @param offset The offset from the alignment
    * @return The aligned up address.
    */
   @Inline
   public static Address alignAllocationNoFill(Address region, int alignment,
-                                             int offset) { 
+                                             int offset) {
     return alignAllocation(region, alignment, offset, MIN_ALIGNMENT, false);
   }
 
   /**
    * This method calculates the minimum size that will guarantee the allocation
    * of a specified number of bytes at the specified alignment.
-   * 
+   *
    * @param size The number of bytes (not aligned).
    * @param alignment The requested alignment (some factor of 2).
    */
@@ -180,7 +180,7 @@ import org.vmmagic.pragma.*;
   /**
    * This method calculates the minimum size that will guarantee the allocation
    * of a specified number of bytes at the specified alignment.
-   * 
+   *
    * @param size The number of bytes (not aligned).
    * @param alignment The requested alignment (some factor of 2).
    * @param knownAlignment The known minimum alignment. Specifically for use in
@@ -189,10 +189,10 @@ import org.vmmagic.pragma.*;
    */
   @Inline
   public static int getMaximumAlignedSize(int size, int alignment,
-                                                int knownAlignment) { 
+                                                int knownAlignment) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(size == Conversions.roundDown(size, knownAlignment));
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(knownAlignment >= MIN_ALIGNMENT);
-    
+
     if (MAX_ALIGNMENT <= MIN_ALIGNMENT || alignment <= knownAlignment) {
       return size;
     } else {
@@ -202,7 +202,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Single slow path allocation attempt. This is called by allocSlow.
-   * 
+   *
    * @param bytes The size of the allocation request
    * @param alignment The required alignment
    * @param offset The alignment offset
@@ -216,7 +216,7 @@ import org.vmmagic.pragma.*;
    * <b>Out-of-line</b> slow path allocation. This method forces slow path
    * allocation to be out of line (typically desirable, but not when the
    * calling context is already explicitly out-of-line).
-   * 
+   *
    * @param bytes The size of the allocation request
    * @param alignment The required alignment
    * @param offset The alignment offset
@@ -227,14 +227,14 @@ import org.vmmagic.pragma.*;
   public final Address allocSlow(int bytes, int alignment, int offset, boolean inGC) {
     return allocSlowInline(bytes, alignment, offset, inGC);
   }
-  
+
   /**
    * <b>Inline</b> slow path allocation. This method attempts allocSlowOnce
    * several times, and allows collection to occur, and ensures that execution
-   * safely resumes by taking care of potential thread/mutator context affinity 
-   * changes. All allocators should use this as the trampoline for slow 
+   * safely resumes by taking care of potential thread/mutator context affinity
+   * changes. All allocators should use this as the trampoline for slow
    * path allocation.
-   * 
+   *
    * @param bytes The size of the allocation request
    * @param alignment The required alignment
    * @param offset The alignment offset
@@ -243,7 +243,7 @@ import org.vmmagic.pragma.*;
    */
   @Inline
   public final Address allocSlowInline(int bytes, int alignment, int offset,
-      boolean inGC) { 
+      boolean inGC) {
     int gcCountStart = Stats.gcCount();
     Allocator current = this;
     for (int i = 0; i < MAX_RETRY; i++) {
@@ -254,7 +254,7 @@ import org.vmmagic.pragma.*;
         /* This is in case a GC occurs, and our mutator context is stale.
          * In some VMs the scheduler can change the affinity between the
          * current thread and the mutator context. This is possible for
-         * VMs that dynamically multiplex Java threads onto multiple mutator 
+         * VMs that dynamically multiplex Java threads onto multiple mutator
          * contexts, */
 	current = VM.activePlan.mutator().getOwnAllocator(current);
     }

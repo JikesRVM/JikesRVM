@@ -24,9 +24,9 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements the global state of a simple sliding mark-compact
  * collector.
- * 
+ *
  * FIXME Need algorithmic overview and references.
- * 
+ *
  * All plans make a clear distinction between <i>global</i> and
  * <i>thread-local</i> activities, and divides global and local state
  * into separate class hierarchies.  Global activities must be
@@ -63,7 +63,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * This is the phase that is executed to perform a mark-compact collection.
-   * 
+   *
    * FIXME: Far too much duplication and inside knowledge of StopTheWorld
    */
   public ComplexPhase mcCollection = new ComplexPhase("collection", null, new int[] {
@@ -100,18 +100,18 @@ import org.vmmagic.pragma.*;
   }
 
   /*****************************************************************************
-   * 
+   *
    * Collection
    */
 
 
   /**
    * Perform a (global) collection phase.
-   * 
+   *
    * @param phaseId Collection phase to execute.
    */
   @Inline
-  public final void collectionPhase(int phaseId) { 
+  public final void collectionPhase(int phaseId) {
     if (phaseId == PREPARE) {
       super.collectionPhase(phaseId);
       markTrace.prepare();
@@ -143,13 +143,13 @@ import org.vmmagic.pragma.*;
 
   /**
    * Poll for a collection
-   * 
+   *
    * @param vmExhausted Virtual Memory range for space is exhausted.
    * @param space The space that caused the poll.
    * @return True if a collection is required.
    */
   @LogicallyUninterruptible
-  public final boolean poll(boolean vmExhausted, Space space) { 
+  public final boolean poll(boolean vmExhausted, Space space) {
     if (getCollectionsInitiated() > 0 || !isInitialized() || space == metaDataSpace) {
       return false;
     }
@@ -166,7 +166,7 @@ import org.vmmagic.pragma.*;
   }
 
   /*****************************************************************************
-   * 
+   *
    * Accounting
    */
 
@@ -174,7 +174,7 @@ import org.vmmagic.pragma.*;
    * Return the number of pages reserved for use given the pending
    * allocation.  The superclass accounts for its spaces, we just
    * augment this with the mark-sweep space's contribution.
-   * 
+   *
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */

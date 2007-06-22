@@ -23,12 +23,12 @@ import org.vmmagic.pragma.*;
 /**
  * This abstract class implements <i>per-collector thread</i>
  * behavior and state for <i>generational copying collectors</i>.<p>
- * 
+ *
  * Specifically, this class defines nursery collection behavior (through
  * <code>nurseryTrace</code> and the <code>collectionPhase</code> method).
  * Per-collector thread remset consumers are instantiated here (used by
  * sub-classes).
- * 
+ *
  * @see Gen
  * @see GenMutator
  * @see StopTheWorldCollector
@@ -51,13 +51,13 @@ import org.vmmagic.pragma.*;
   private GenSanityCheckerLocal sanityChecker;
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
   /**
    * Constructor
-   * 
+   *
    * Note that the collector is a consumer of remsets, while the
    * mutator is a producer.  The <code>GenMutator</code> class is
    * responsible for construction of the WriteBuffer (producer).
@@ -73,18 +73,18 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Collection
    */
 
   /**
    * Perform a per-collector collection phase.
-   * 
+   *
    * @param phaseId The collection phase to perform
    * @param primary Use this thread for single-threaded local activities.
    */
   @NoInline
-  public void collectionPhase(int phaseId, boolean primary) { 
+  public void collectionPhase(int phaseId, boolean primary) {
 
     if (phaseId == Gen.PREPARE) {
       nurseryTrace.prepare();
@@ -97,7 +97,7 @@ import org.vmmagic.pragma.*;
       }
       return;
     }
-    
+
     if (phaseId == Gen.START_CLOSURE) {
       if (!global().gcFullHeap) {
         nurseryTrace.startTrace();
@@ -123,7 +123,7 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Miscellaneous
    */
 

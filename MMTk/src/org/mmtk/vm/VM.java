@@ -26,13 +26,13 @@ import org.vmmagic.unboxed.Offset;
 /**
  * This class is responsible for all VM-specific functionality required
  * by MMTk.<p>
- * 
+ *
  * The class has three major elements.  First it defines VM-specific
  * constants which are used throughout MMTk, second, it declares
  * singleton instances of each of the abstract classes in this
  * package, and third, it provides factory methods for VM-specific
  * instances which are needed by MMTk (such as <code>Lock</code>).<p>
- * 
+ *
  * Both the constants and the singleton instances are initialized to
  * VM-specific values at build time using reflection and a VM-specific
  * factory class. The system property <code>mmtk.hostjvm</code> is
@@ -47,7 +47,7 @@ import org.vmmagic.unboxed.Offset;
  * and initialize the constants and singletons defined here.
  */
 public final class VM {
-  
+
   /*
    * VM-specific constant values
    */
@@ -95,7 +95,7 @@ public final class VM {
   public static final Statistics statistics;
   public static final Strings strings;
   public static final TraceInterface traceInterface;
-  
+
   /*
    * The remainder is does the static initialization of the
    * above, reflectively binding to the appropriate host jvm
@@ -136,7 +136,7 @@ public final class VM {
     statistics = factory.newStatistics();
     strings = factory.newStrings();
     traceInterface = factory.newTraceInterface();
-    
+
     /* Now initialize the constants using the vm-specific singletons */
     VERIFY_ASSERTIONS = Assert.verifyAssertionsTrapdoor(assertions);
     HEAP_START = Memory.heapStartTrapdoor(memory);
@@ -153,108 +153,108 @@ public final class VM {
     ARRAY_BASE_OFFSET = ObjectModel.arrayBaseOffsetTrapdoor(objectModel);
     REFERENCES_ARE_OBJECTS = ReferenceGlue.referencesAreObjectsTrapdoor(referenceTypes);
   }
-  
+
   /**
    * Create a new Lock instance using the appropriate VM-specific
    * concrete Lock sub-class.
-   * 
+   *
    * @see Lock
-   * 
+   *
    * @param name The string to be associated with this lock instance
    * @return A concrete VM-specific Lock instance.
    */
   public static Lock newLock(String name) {
     return factory.newLock(name);
   }
-  
+
   /**
    * Create a new SynchronizedCounter instance using the appropriate
    * VM-specific concrete SynchronizedCounter sub-class.
-   * 
+   *
    * @see SynchronizedCounter
-   * 
+   *
    * @return A concrete VM-specific SynchronizedCounter instance.
    */
   public static SynchronizedCounter newSynchronizedCounter() {
     return factory.newSynchronizedCounter();
   }
-  
+
   /**********************************************************************
    * GCspy methods
    */
-  
+
   /**
    * Create a new Util instance using the appropriate
    * VM-specific concrete Util sub-class.
-   * 
+   *
    * @see Util
-   * 
-   * @return A concrete VM-specific Util instance. 
+   *
+   * @return A concrete VM-specific Util instance.
    */
   public static Util newGCspyUtil() {
     return factory.newGCspyUtil();
   }
- 
+
   /**
    * Create a new ServerInterpreter instance using the appropriate
    * VM-specific concrete ServerInterpreter sub-class.
-   * 
+   *
    * @see ServerInterpreter
-   * 
-   * @return A concrete VM-specific ServerInterpreter instance. 
+   *
+   * @return A concrete VM-specific ServerInterpreter instance.
    */
   public static ServerInterpreter newGCspyServerInterpreter() {
     return factory.newGCspyServerInterpreter();
   }
-  
+
   /**
    * Create a new ServerInterpreter instance using the appropriate
    * VM-specific concrete ServerInterpreter sub-class.
-   *  
+   *
    * @see ServerInterpreter
-   * 
-   * @return A concrete VM-specific ServerInterpreter instance. 
+   *
+   * @return A concrete VM-specific ServerInterpreter instance.
    */
   public static ServerSpace newGCspyServerSpace(
       ServerInterpreter serverInterpreter,
-      String serverName, 
+      String serverName,
       String driverName,
       String title,
       String blockInfo,
       int tileNum,
-      String unused, 
+      String unused,
       boolean mainSpace) {
     return factory.newGCspyServerSpace(serverInterpreter, serverName, driverName,
-                                       title, blockInfo, tileNum, unused, 
+                                       title, blockInfo, tileNum, unused,
                                        mainSpace);
   }
-  
+
   /**
    * Create a new ByteStream instance using the appropriate
    * VM-specific concrete ByteStream sub-class.
-   * 
+   *
    * @param driver        The driver that owns this Stream
    * @param name           The name of the stream (e.g. "Used space")
-   * @param minValue       The minimum value for any item in this stream. 
+   * @param minValue       The minimum value for any item in this stream.
    *                       Values less than this will be represented as "minValue-"
-   * @param maxValue       The maximum value for any item in this stream. 
+   * @param maxValue       The maximum value for any item in this stream.
    *                       Values greater than this will be represented as "maxValue+"
    * @param zeroValue      The zero value for this stream
    * @param defaultValue   The default value for this stream
    * @param stringPre      A string to prefix values (e.g. "Used: ")
    * @param stringPost     A string to suffix values (e.g. " bytes.")
-   * @param presentation   How a stream value is to be presented.    
-   * @param paintStyle     How the value is to be painted.   
+   * @param presentation   How a stream value is to be presented.
+   * @param paintStyle     How the value is to be painted.
    * @param indexMaxStream The index of the maximum stream if the presentation is *_VAR.
    * @param colour         The default colour for tiles of this stream
    * @see IntStream
-   * 
-   * @return A concrete VM-specific ByteStream instance. 
+   *
+   * @return A concrete VM-specific ByteStream instance.
    */
   public static ByteStream newGCspyByteStream(
       AbstractDriver driver,
       String name,
-      byte minValue,         
+      byte minValue,
       byte maxValue,
       byte zeroValue,
       byte defaultValue,
@@ -270,33 +270,33 @@ public final class VM {
                                      presentation, paintStyle, indexMaxStream,
                                      colour, summary);
   }
-  
+
   /**
    * Create a new IntStream instance using the appropriate
    * VM-specific concrete IntStream sub-class.
-   * 
+   *
    * @param driver        The driver that owns this Stream
    * @param name           The name of the stream (e.g. "Used space")
-   * @param minValue       The minimum value for any item in this stream. 
+   * @param minValue       The minimum value for any item in this stream.
    *                       Values less than this will be represented as "minValue-"
-   * @param maxValue       The maximum value for any item in this stream. 
+   * @param maxValue       The maximum value for any item in this stream.
    *                       Values greater than this will be represented as "maxValue+"
    * @param zeroValue      The zero value for this stream
    * @param defaultValue   The default value for this stream
    * @param stringPre      A string to prefix values (e.g. "Used: ")
    * @param stringPost     A string to suffix values (e.g. " bytes.")
-   * @param presentation   How a stream value is to be presented.    
-   * @param paintStyle     How the value is to be painted.   
+   * @param presentation   How a stream value is to be presented.
+   * @param paintStyle     How the value is to be painted.
    * @param indexMaxStream The index of the maximum stream if the presentation is *_VAR.
    * @param colour         The default colour for tiles of this stream
    * @see IntStream
-   * 
-   * @return A concrete VM-specific IntStream instance. 
+   *
+   * @return A concrete VM-specific IntStream instance.
    */
   public static IntStream newGCspyIntStream(
       AbstractDriver driver,
       String name,
-      int minValue,         
+      int minValue,
       int maxValue,
       int zeroValue,
       int defaultValue,
@@ -316,29 +316,29 @@ public final class VM {
   /**
    * Create a new ShortStream instance using the appropriate
    * VM-specific concrete ShortStream sub-class.
-   * 
+   *
    * @param driver        The driver that owns this Stream
    * @param name           The name of the stream (e.g. "Used space")
-   * @param minValue       The minimum value for any item in this stream. 
+   * @param minValue       The minimum value for any item in this stream.
    *                       Values less than this will be represented as "minValue-"
-   * @param maxValue       The maximum value for any item in this stream. 
+   * @param maxValue       The maximum value for any item in this stream.
    *                       Values greater than this will be represented as "maxValue+"
    * @param zeroValue      The zero value for this stream
    * @param defaultValue   The default value for this stream
    * @param stringPre      A string to prefix values (e.g. "Used: ")
    * @param stringPost     A string to suffix values (e.g. " bytes.")
-   * @param presentation   How a stream value is to be presented.    
-   * @param paintStyle     How the value is to be painted.   
+   * @param presentation   How a stream value is to be presented.
+   * @param paintStyle     How the value is to be painted.
    * @param indexMaxStream The index of the maximum stream if the presentation is *_VAR.
    * @param colour         The default colour for tiles of this stream
    * @see IntStream
-   * 
-   * @return A concrete VM-specific IntStream instance. 
+   *
+   * @return A concrete VM-specific IntStream instance.
    */
   public static ShortStream newGCspyShortStream(
       AbstractDriver driver,
       String name,
-      short minValue,         
+      short minValue,
       short maxValue,
       short zeroValue,
       short defaultValue,
@@ -346,7 +346,7 @@ public final class VM {
       String stringPost,
       int presentation,
       int paintStyle,
-      int indexMaxStream, 
+      int indexMaxStream,
       Color colour,
       boolean summary) {
     return factory.newGCspyShortStream(driver, name, minValue,  maxValue,

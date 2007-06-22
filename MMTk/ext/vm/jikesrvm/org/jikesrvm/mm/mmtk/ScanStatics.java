@@ -43,7 +43,7 @@ public final class ScanStatics implements Constants {
    */
   @Inline
   @Uninterruptible
-  public static void scanStatics(TraceLocal trace) { 
+  public static void scanStatics(TraceLocal trace) {
     // The address of the statics table
     // equivalent to VM_Statics.getSlots()
     final Address slots = VM_Magic.getJTOC();

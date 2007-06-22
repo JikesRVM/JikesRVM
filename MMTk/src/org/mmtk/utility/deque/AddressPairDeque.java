@@ -26,13 +26,13 @@ import org.vmmagic.pragma.*;
 @Uninterruptible public class AddressPairDeque extends LocalDeque implements Constants {
 
   /****************************************************************************
-   * 
+   *
    * Public instance methods
    */
 
   /**
    * Constructor
-   * 
+   *
    * @param queue The shared queue to which this queue will append
    * its buffers (when full or flushed) and from which it will aquire new
    * buffers when it has exhausted its own.
@@ -43,7 +43,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Insert an address pair into the address queue.
-   * 
+   *
    * @param addr1 the first address to be inserted into the address queue
    * @param addr2 the second address to be inserted into the address queue
    */
@@ -57,7 +57,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Push an address pair onto the address queue.
-   * 
+   *
    * @param addr1 the first value to be pushed onto the address queue
    * @param addr2 the second value to be pushed onto the address queue
    */
@@ -72,7 +72,7 @@ import org.vmmagic.pragma.*;
   /**
    * Pop the first address in a pair from the address queue, return
    * zero if the queue is empty.
-   * 
+   *
    * @return The next address in the address queue, or zero if the
    * queue is empty
    */
@@ -85,7 +85,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Pop the second address in a pair from the address queue.
-   * 
+   *
    * @return The next address in the address queue
    */
   public final Address pop2() {

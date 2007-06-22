@@ -25,7 +25,7 @@ import org.vmmagic.pragma.*;
 @Uninterruptible public abstract class LongCounter extends Counter {
 
   /****************************************************************************
-   * 
+   *
    * Instance variables
    */
 
@@ -36,13 +36,13 @@ import org.vmmagic.pragma.*;
   private boolean running = false;
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
   /**
    * Constructor
-   * 
+   *
    * @param name The name to be associated with this counter
    */
   LongCounter(String name) {
@@ -51,7 +51,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Constructor
-   * 
+   *
    * @param name The name to be associated with this counter
    * @param start True if this counter is to be implicitly started
    * when <code>startAll()</code> is called (otherwise the counter
@@ -63,7 +63,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Constructor
-   * 
+   *
    * @param name The name to be associated with this counter
    * @param start True if this counter is to be implicitly started
    * when <code>startAll()</code> is called (otherwise the counter
@@ -77,13 +77,13 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Counter-specific methods
    */
   protected abstract long getCurrentValue();
 
   /****************************************************************************
-   * 
+   *
    * Generic counter control methods: start, stop, print etc
    */
 
@@ -113,7 +113,7 @@ import org.vmmagic.pragma.*;
    * The phase has changed (from GC to mutator or mutator to GC).
    * Take action with respect to the last phase if necessary.
    * <b>Do nothing in this case.</b>
-   * 
+   *
    * @param oldPhase The last phase
    */
   protected void phaseChange(int oldPhase) {
@@ -129,7 +129,7 @@ import org.vmmagic.pragma.*;
   /**
    * Print the value of this counter for the given phase.  Print '0'
    * for false, '1' for true.
-   * 
+   *
    * @param phase The phase to be printed
    */
   protected final void printCount(int phase) {
@@ -151,7 +151,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Get the total as at the lasts phase
-   * 
+   *
    * @return The total as at the last phase
    */
   long getLastTotal() {
@@ -160,7 +160,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Print the current total for either the mutator or GC phase
-   * 
+   *
    * @param mutator True if the total for the mutator phases is to be
    * printed (otherwise the total for the GC phases will be printed).
    */
@@ -175,7 +175,7 @@ import org.vmmagic.pragma.*;
   /**
    * Print the current minimum value for either the mutator or GC
    * phase.
-   * 
+   *
    * @param mutator True if the minimum for the mutator phase is to be
    * printed (otherwise the minimum for the GC phase will be printed).
    */
@@ -191,7 +191,7 @@ import org.vmmagic.pragma.*;
   /**
    * Print the current maximum value for either the mutator or GC
    * phase.
-   * 
+   *
    * @param mutator True if the maximum for the mutator phase is to be
    * printed (otherwise the maximum for the GC phase will be printed).
    */
@@ -206,7 +206,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Print the given value
-   * 
+   *
    * @param value The value to be printed
    */
   void printValue(long value) {

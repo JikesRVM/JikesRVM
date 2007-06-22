@@ -32,20 +32,20 @@ import org.vmmagic.pragma.*;
   implements Constants {
 
   /****************************************************************************
-   * 
+   *
    * Class variables
    */
-  
+
   public static final int META_DATA_PAGES_PER_REGION = SegregatedFreeList.META_DATA_PAGES_PER_REGION_WITH_BITMAP;
 
 
   /****************************************************************************
-   * 
+   *
    * Instance variables
    */
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
@@ -55,7 +55,7 @@ import org.vmmagic.pragma.*;
    */
   static {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(LAZY_SWEEP);
-    
+
     cellSize = new int[SIZE_CLASSES];
     blockSizeClass = new byte[SIZE_CLASSES];
     cellsInBlock = new int[SIZE_CLASSES];
@@ -82,7 +82,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Constructor
-   * 
+   *
    * @param space The rc space to which this allocator
    * instances is bound.
    */
@@ -92,7 +92,7 @@ import org.vmmagic.pragma.*;
 
 
   /****************************************************************************
-   * 
+   *
    * Allocation
    */
 
@@ -114,10 +114,10 @@ import org.vmmagic.pragma.*;
 
   protected boolean preserveFreeList() { return false; }
   protected boolean maintainSideBitmap() { return true; }
-  
+
   /**
    * Free an object.
-   * 
+   *
    * @param object The object to be freed.
    */
   @Inline
@@ -126,7 +126,7 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Collection
    */
 
@@ -143,7 +143,7 @@ import org.vmmagic.pragma.*;
   public void releaseCollector() {
     sweepBlocks(true);
   }
-  
+
   /**
    * Finish up after a collection.
  */

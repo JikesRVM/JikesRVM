@@ -38,15 +38,15 @@ import org.vmmagic.unboxed.*;
  * flexible nursery behavior ("The Standard ML of New Jersey
  * collector"), or go to Appel's paper "Simple generational garbage
  * collection and fast allocation." SP&E 19(2):171--183, 1989.<p>
- * 
- * 
+ *
+ *
  * For general comments about the global/local distinction among classes refer
  * to Plan.java and PlanLocal.java.
  */
 @Uninterruptible public class GenMS extends Gen {
 
   /*****************************************************************************
-   * 
+   *
    * Class fields
    */
 
@@ -56,7 +56,7 @@ import org.vmmagic.unboxed.*;
   public static final int MS = msSpace.getDescriptor();
 
   /****************************************************************************
-   * 
+   *
    * Instance fields
    */
 
@@ -64,7 +64,7 @@ import org.vmmagic.unboxed.*;
   public final Trace matureTrace = new Trace(metaDataSpace);
 
   /*****************************************************************************
-   * 
+   *
    * Collection
    */
   /*
@@ -72,7 +72,7 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   @Override
-  public final void collectionPhase(int phaseId) { 
+  public final void collectionPhase(int phaseId) {
     if (traceFullHeap()) {
       if (phaseId == PREPARE) {
         super.collectionPhase(phaseId);
@@ -92,42 +92,42 @@ import org.vmmagic.unboxed.*;
   }
 
   /*****************************************************************************
-   * 
+   *
    * Accounting
    */
 
   /**
    * Return the number of pages reserved for use given the pending
    * allocation.
-   * 
+   *
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
   @Inline
   @Override
-  public int getPagesUsed() { 
+  public int getPagesUsed() {
     return msSpace.reservedPages() + super.getPagesUsed();
   }
 
   /*****************************************************************************
-   * 
+   *
    * Miscellaneous
    */
 
   /**
    * Accessor method to allow the generic generational code in Gen.java
    * to access the mature space.
-   * 
+   *
    * @return The active mature space
    */
   @Inline
-  protected final Space activeMatureSpace() { 
+  protected final Space activeMatureSpace() {
     return msSpace;
   }
 
   /**
    * @see org.mmtk.plan.Plan#objectCanMove
-   * 
+   *
    * @param object Object in question
    * @return False if the object will never move
    */

@@ -15,33 +15,33 @@ package org.mmtk.utility.statistics;
 import org.vmmagic.pragma.*;
 
 /**
- * 
+ *
  * This abstract class describes the interface of a generic counter.
  */
 @Uninterruptible public abstract class Counter {
 
   /****************************************************************************
-   * 
+   *
    * Instance variables
    */
 
   private final String name;
   private final boolean start;
   private final boolean mergephases;
-  
+
   /**
    * Allow for counters whose values are too complex to be simply printed out.
    */
   protected boolean complex = false;
-  
+
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
   /**
    * Constructor
-   * 
+   *
    * @param name The name to be associated with this counter
    */
   Counter(String name) {
@@ -50,7 +50,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Constructor
-   * 
+   *
    * @param name The name to be associated with this counter
    * @param start True if this counter is to be implicitly started
    * when <code>startAll()</code> is called (otherwise the counter
@@ -62,7 +62,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Constructor
-   * 
+   *
    * @param name The name to be associated with this counter
    * @param start  True if this counter is to be implicitly started
    * when <code>startAll()</code> is called (otherwise the counter
@@ -78,7 +78,7 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Counter control methods: start, stop, print etc
    */
 
@@ -95,14 +95,14 @@ import org.vmmagic.pragma.*;
   /**
    * The phase has changed (from GC to mutator or mutator to GC).
    * Take action with respect to the last phase if necessary.
-   * 
+   *
    * @param oldPhase The last phase
    */
   abstract void phaseChange(int oldPhase);
 
   /**
    * Print the value of this counter for the given phase
-   * 
+   *
    * @param phase The phase to be printed
    */
   abstract void printCount(int phase);
@@ -114,7 +114,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Print the current total for either the mutator or GC phase
-   * 
+   *
    * @param mutator True if the total for the mutator phases is to be
    * printed (otherwise the total for the GC phases will be printed).
    */
@@ -122,7 +122,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Print the current minimum value for either the mutator or GC phase
-   * 
+   *
    * @param mutator True if the minimum for the mutator phase is to be
    * printed (otherwise the minimum for the GC phase will be printed).
    */
@@ -130,7 +130,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Print the current maximum value for either the mutator or GC phase
-   * 
+   *
    * @param mutator True if the maximum for the mutator phase is to be
    * printed (otherwise the maximum for the GC phase will be printed).
    */
@@ -145,7 +145,7 @@ import org.vmmagic.pragma.*;
 
 
   /****************************************************************************
-   * 
+   *
    * Accessor methods
    */
 

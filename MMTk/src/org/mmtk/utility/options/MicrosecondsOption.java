@@ -26,7 +26,7 @@ public class MicrosecondsOption extends Option {
 
   /**
    * Create a new microsecond option.
-   * 
+   *
    * @param name The space separated name for the option.
    * @param desc The purpose of the option
    * @param defaultUs The default value of the option (usec).
@@ -38,41 +38,41 @@ public class MicrosecondsOption extends Option {
 
   /**
    * Read the current value of the option in microseconds.
-   * 
+   *
    * @return The option value.
    */
   @Uninterruptible
-  public int getMicroseconds() { 
+  public int getMicroseconds() {
     return this.value;
   }
 
   /**
    * Read the current value of the option in milliseconds.
-   * 
+   *
    * @return The option value.
    */
   @Uninterruptible
-  public int getMilliseconds() { 
+  public int getMilliseconds() {
     return this.value / 1000;
   }
 
   /**
    * Read the default value of the option in microseconds.
-   * 
+   *
    * @return The default value.
    */
   @Uninterruptible
-  public int getDefaultMicroseconds() { 
+  public int getDefaultMicroseconds() {
     return this.defaultValue;
   }
 
   /**
    * Read the default value of the option in milliseconds.
-   * 
+   *
    * @return The default value.
    */
   @Uninterruptible
-  public int getDefaultMilliseconds() { 
+  public int getDefaultMilliseconds() {
     return this.defaultValue / 1000;
   }
 
@@ -81,7 +81,7 @@ public class MicrosecondsOption extends Option {
    * option is set. An error occurs if the value is negative, and then the
    * validate method is called to allow subclasses to perform any additional
    * validation.
-   * 
+   *
    * @param value The new value for the option.
    */
   public void setMicroseconds(int value) {
@@ -102,7 +102,7 @@ public class MicrosecondsOption extends Option {
   /**
    * Log the option value in raw format - delegate upwards
    * for fancier formatting.
-   * 
+   *
    * @param format Output format (see Option.java for possible values)
    */
   @Override

@@ -23,10 +23,10 @@ import org.vmmagic.pragma.*;
 
 /**
  * Phases of a garbage collection.
- * 
+ *
  * A complex phase is a sequence of phases.  They are constructed
  * from arrays of either the phases or phase IDs.
- * 
+ *
  * TODO write a replacePhase method.
  */
 @Uninterruptible public final class ComplexPhase extends Phase
@@ -43,7 +43,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Construct a complex phase from an array of phase IDs.
-   * 
+   *
    * @param name The name of the phase.
    * @param subPhases The IDs of the supphases
    */
@@ -55,7 +55,7 @@ import org.vmmagic.pragma.*;
   /**
    * Construct a complex phase from an array of phase IDs, but using
    * the specified timer rather than creating one.
-   * 
+   *
    * @param name The name of the phase.
    * @param timer The timer for this phase to contribute to.
    * @param subPhases The IDs of the supphases
@@ -81,7 +81,7 @@ import org.vmmagic.pragma.*;
   /**
    * Execute this phase, synchronizing initially.  Simply executes
    * the component phases in turn.
-   * 
+   *
    * TODO are we oversynchronizing here ??
    */
   protected void delegatePhase() {
@@ -101,7 +101,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Replace a phase. For example to replace a placeholder
-   * 
+   *
    * @param oldId The phase to replace.
    * @param newId The new phase.
    */

@@ -41,11 +41,11 @@ import org.vmmagic.pragma.*;
 
   /** Used by mmtypes for arrays */
   private static final int [] zeroLengthIntArray = new int [0];
-  
+
   /**
    * Factory methods
    */
-  
+
   /**
    * Create an MMType for a reference array
    */
@@ -53,7 +53,7 @@ import org.vmmagic.pragma.*;
   public static MMType createRefArray(boolean isAcyclic, int allocator) {
     return new MMType(false,true,isAcyclic,allocator,zeroLengthIntArray);
   }
-  
+
   /**
    * Create an MMType for a primitive array
    */
@@ -61,10 +61,10 @@ import org.vmmagic.pragma.*;
   public static MMType createPrimArray(int allocator) {
     return new MMType(false,false,true,allocator,zeroLengthIntArray);
   }
-  
+
   /**
    * Create an MMType for a scalar.
-   * 
+   *
    * @param isAcyclic
    * @param allocator
    * @param offsets
@@ -74,10 +74,10 @@ import org.vmmagic.pragma.*;
   public static MMType createScalar(boolean isAcyclic, int allocator, int[] offsets) {
     return new MMType(false,false,isAcyclic,allocator,offsets);
   }
-  
+
   /**
    * Create an MMType for a delegated type.
-   * 
+   *
    * @param allocator
    * @return
    */
@@ -85,15 +85,15 @@ import org.vmmagic.pragma.*;
   public static MMType createDelegated(boolean isAcyclic, int allocator) {
     return new MMType(true,false,isAcyclic,allocator,null);
   }
-  
+
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
   /**
    * Constructor
-   * 
+   *
    * @param isDelegated True if scanning of this type is delegated to the VM
    * @param isReferenceArray True if the type is array of reference
    * @param isAcyclic True if the type is inherently acyclic
@@ -103,7 +103,7 @@ import org.vmmagic.pragma.*;
    * type (if any).
    */
   public MMType(boolean isDelegated, boolean isReferenceArray,
-      boolean isAcyclic, int allocator, int[] offsets) { 
+      boolean isAcyclic, int allocator, int[] offsets) {
     this.isDelegated = isDelegated;
     this.isReferenceArray = isReferenceArray;
     this.isAcyclic = isAcyclic;
@@ -112,21 +112,21 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Scanning and tracing
    */
 
   /**
    * Return a slot (location of an address) given an object address
    * and a reference number.
-   * 
+   *
    * @param object The address of an object
    * @param reference The number of a field in a scalar or the index
    * into an array
    * @return The address of the relevant slot within the object
    */
   @Inline
-  public Address getSlot(ObjectReference object, int reference) { 
+  public Address getSlot(ObjectReference object, int reference) {
     Address addr = object.toAddress();
     if (isReferenceArray)
       return addr.plus(VM.ARRAY_BASE_OFFSET).plus(reference << LOG_BYTES_IN_ADDRESS);
@@ -138,12 +138,12 @@ import org.vmmagic.pragma.*;
    * Return the number of references in an object.  In the case of a
    * scalar this is the number of fields, in the case of an array, the
    * number of elements in the array.
-   * 
+   *
    * @param object The object in question
    * @return The number of references in the object
    */
   @Inline
-  public int getReferences(ObjectReference object) { 
+  public int getReferences(ObjectReference object) {
     if (isReferenceArray)
       return VM.objectModel.getArrayLength(object);
     else
@@ -151,17 +151,17 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Statistics
    */
 
   /**
    * Account for an alloc of this type if profiling is turned on.
-   * 
+   *
    * @param size The number of bytes allocated
    */
   @Inline
-  void profileAlloc(int size) { 
+  void profileAlloc(int size) {
     if (PROFILING_STATISTICS) {
       allocCount++;
       allocBytes += size;
@@ -170,11 +170,11 @@ import org.vmmagic.pragma.*;
 
   /**
    * Account for a copy of this type if profiling is turned on.
-   * 
-   * @param size The number of bytes copied. 
+   *
+   * @param size The number of bytes copied.
    */
   @Inline
-  public void profileCopy(int size) { 
+  public void profileCopy(int size) {
     if (PROFILING_STATISTICS) {
       copyCount++;
       copyBytes += size;
@@ -183,11 +183,11 @@ import org.vmmagic.pragma.*;
 
   /**
    * Account for a scan of this type if profiling is turned on.
-   * 
-   * @param size The number of bytes scanned. 
+   *
+   * @param size The number of bytes scanned.
    */
   @Inline
-  void profileScan(int size) { 
+  void profileScan(int size) {
     if (PROFILING_STATISTICS) {
       scanCount++;
       scanBytes += size;
@@ -195,7 +195,7 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Convenience Methods
    */
 

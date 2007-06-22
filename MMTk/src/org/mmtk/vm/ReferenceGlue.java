@@ -17,7 +17,7 @@ import org.vmmagic.unboxed.*;
 
 /**
  * This class manages SoftReferences, WeakReferences, and
- * PhantomReferences. 
+ * PhantomReferences.
  */
 @Uninterruptible public abstract class ReferenceGlue {
   /**
@@ -43,7 +43,7 @@ import org.vmmagic.unboxed.*;
    * class rather than the public Reference class to ensure that Jikes
    * has a safe way of enqueueing the object, one that cannot be
    * overridden by the application program.
-   * 
+   *
    * @see java.lang.ref.ReferenceQueue
    * @param addr the address of the Reference object
    * @param onlyOnce <code>true</code> if the reference has ever
@@ -54,7 +54,7 @@ import org.vmmagic.unboxed.*;
                                                boolean onlyOnce);
 
   /***********************************************************************
-   * 
+   *
    * Reference object field accesors
    */
 
@@ -73,22 +73,22 @@ import org.vmmagic.unboxed.*;
    * @param referent the referent address
    */
   public abstract void setReferent(Address addr, ObjectReference referent);
- 
+
   /**
    * @return <code>true</code> if the references are implemented as heap
    * objects (rather than in a table, for example).  In this context
    * references are soft, weak or phantom references.
-   * 
+   *
    * This must be implemented by subclasses, but is never called by MMTk users.
    */
   protected abstract boolean getReferencesAreObjects();
-  
+
   /**
    * NOTE: This method should not be called by anything other than the
    * reflective mechanisms in org.mmtk.vm.VM, and is not implemented by
    * subclasses.
-   * 
-   * This hack exists only to allow us to declare getVerifyAssertions() as 
+   *
+   * This hack exists only to allow us to declare getVerifyAssertions() as
    * a protected method.
    */
   static boolean referencesAreObjectsTrapdoor(ReferenceGlue a) {

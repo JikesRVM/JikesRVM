@@ -54,12 +54,12 @@ import org.vmmagic.pragma.*;
    */
   @LogicallyUninterruptible
   public int copyStringToChars(String src, char [] dst,
-                                     int dstBegin, int dstEnd) { 
+                                     int dstBegin, int dstEnd) {
     if (VM.runningVM)
       VM_Processor.getCurrentProcessor().disableThreadSwitching();
     int len = src.length();
     int n = (dstBegin + len <= dstEnd) ? len : (dstEnd - dstBegin);
-    for (int i = 0; i < n; i++) 
+    for (int i = 0; i < n; i++)
       Barriers.setArrayNoBarrierStatic(dst, dstBegin + i, src.charAt(i));
     if (VM.runningVM)
       VM_Processor.getCurrentProcessor().enableThreadSwitching();

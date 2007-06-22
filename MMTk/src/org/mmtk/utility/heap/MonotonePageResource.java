@@ -29,11 +29,11 @@ import org.vmmagic.unboxed.*;
  * virtual address space are checked.  If the request for space can't
  * be satisfied (for either reason) a GC may be triggered.<p>
  */
-@Uninterruptible public final class MonotonePageResource extends PageResource 
+@Uninterruptible public final class MonotonePageResource extends PageResource
   implements Constants {
 
   /****************************************************************************
-   * 
+   *
    * Instance variables
    */
   private Address cursor;
@@ -42,10 +42,10 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Constructor
-   * 
+   *
    * Contiguous monotone resource. The address range is pre-defined at
    * initializtion time and is immutable.
-   * 
+   *
    * @param pageBudget The budget of pages available to this memory
    * manager before it must poll the collector.
    * @param space The space to which this resource is attached
@@ -64,13 +64,13 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Constructor
-   * 
+   *
    * Discontiguous monotone resource. The address range is <i>not</i>
    * pre-defined at initializtion time and is dynamically defined to
    * be some set of pages, according to demand and availability.
-   * 
+   *
    * CURRENTLY UNIMPLEMENTED
-   * 
+   *
    * @param pageBudget The budget of pages available to this memory
    * manager before it must poll the collector.
    * @param space The space to which this resource is attached
@@ -80,7 +80,7 @@ import org.vmmagic.unboxed.*;
   public MonotonePageResource(int pageBudget, Space space, int metaDataPagesPerRegion) {
     super(pageBudget, space);
     /* unimplemented */
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false); 
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     this.contiguous = false;
     this.start = Address.zero();
     this.cursor = Address.zero();
@@ -101,7 +101,7 @@ import org.vmmagic.unboxed.*;
    * failure.
    */
   @Inline
-  protected Address allocPages(int requestPages) { 
+  protected Address allocPages(int requestPages) {
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(contiguous);
     int pages = requestPages;
@@ -137,18 +137,18 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Adjust a page request to include metadata requirements, if any.<p>
-   * 
+   *
    * Note that there could be a race here, with multiple threads each
    * adjusting their request on account of the same single metadata
    * region.  This should not be harmful, as the failing requests will
    * just retry, and if multiple requests succeed, only one of them
    * will actually have the metadata accounted against it, the others
    * will simply have more space than they originally requested.
-   * 
+   *
    * @param pages The size of the pending allocation in pages
    * @return The number of required pages, inclusive of any metadata
    */
-  public int adjustForMetaData(int pages) { 
+  public int adjustForMetaData(int pages) {
     Extent bytes = Conversions.pagesToBytes(pages);
     if (metaDataPagesPerRegion != 0) {
       if (cursor.LE(getRegionStart(cursor.plus(bytes))))
@@ -159,25 +159,25 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Adjust a page request to include metadata requirements, if any.<p>
-   * 
+   *
    * Note that there could be a race here, with multiple threads each
    * adjusting their request on account of the same single metadata
    * region.  This should not be harmful, as the failing requests will
    * just retry, and if multiple requests succeed, only one of them
    * will actually have the metadata accounted against it, the others
    * will simply have more space than they originally requested.
-   * 
+   *
    * @param pages The size of the pending allocation in pages
    * @param begin The start address of the region assigned to this pending
    * request
    * @return The number of required pages, inclusive of any metadata
    */
-  public int adjustForMetaData(int pages, Address begin) { 
+  public int adjustForMetaData(int pages, Address begin) {
     if (getRegionStart(begin).plus(metaDataPagesPerRegion<<LOG_BYTES_IN_PAGE).EQ(begin))
       pages += metaDataPagesPerRegion;
     return pages;
    }
-  
+
   private static Address getRegionStart(Address addr) {
     return addr.toWord().and(Word.fromIntSignExtend(EmbeddedMetaData.BYTES_IN_REGION - 1).not()).toAddress();
   }
@@ -187,7 +187,7 @@ import org.vmmagic.unboxed.*;
    * reserved and committed pages appropriately.
    */
   @Inline
-  public void reset() { 
+  public void reset() {
     lock();
     reserved = 0;
     committed = 0;
@@ -197,7 +197,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Notify that several pages are no longer in use.
-   * 
+   *
    * @param pages The number of pages
    */
   public void unusePages(int pages) {
@@ -209,7 +209,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Notify that previously unused pages are in use again.
-   * 
+   *
    * @param pages The number of pages
    */
   public void reusePages(int pages) {

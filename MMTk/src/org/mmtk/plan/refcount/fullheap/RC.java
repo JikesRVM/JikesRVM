@@ -23,7 +23,7 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements the global state of a simple reference counting
  * collector.
- * 
+ *
  * All plans make a clear distinction between <i>global</i> and
  * <i>thread-local</i> activities, and divides global and local state
  * into separate class hierarchies.  Global activities must be
@@ -39,27 +39,27 @@ import org.vmmagic.pragma.*;
  * instances is crucial to understanding the correctness and
  * performance properties of MMTk plans.
  */
-@Uninterruptible public class RC extends RCBase { 
+@Uninterruptible public class RC extends RCBase {
   /*****************************************************************************
-   * 
+   *
    * Collection
    */
 
   /**
    * Poll for a collection
-   * 
+   *
    * @param vmExhausted Virtual Memory range for space is exhausted.
    * @param space The space that caused the poll.
    * @return True if a collection is required.
    */
   @LogicallyUninterruptible
-  public boolean poll(boolean vmExhausted, Space space) { 
+  public boolean poll(boolean vmExhausted, Space space) {
     if (getCollectionsInitiated() > 0 || !isInitialized()) return false;
     vmExhausted |= stressTestGCRequired();
     boolean heapFull = getPagesReserved() > getTotalPages();
     boolean metaDataFull = metaDataSpace.reservedPages() >
                            META_DATA_FULL_THRESHOLD;
-    int newMetaDataPages = metaDataSpace.committedPages() - 
+    int newMetaDataPages = metaDataSpace.committedPages() -
                            previousMetaDataPages;
     if (vmExhausted || heapFull || metaDataFull ||
         (progress && (newMetaDataPages > Options.metaDataLimit.getPages()))) {

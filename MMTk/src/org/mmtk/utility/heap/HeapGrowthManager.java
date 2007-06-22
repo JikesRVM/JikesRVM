@@ -22,7 +22,7 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This class is responsible for growing and shrinking the 
+ * This class is responsible for growing and shrinking the
  * heap size by observing heap utilization and GC load.
  */
 @Uninterruptible public abstract class HeapGrowthManager implements Constants {
@@ -62,7 +62,7 @@ import org.vmmagic.unboxed.*;
       { 1.00, 1.00, 1.00, 1.25, 1.30, 1.50, 1.50 } };
 
   /**
-   * An encoding of the function used to manage heap size.  
+   * An encoding of the function used to manage heap size.
    * The xaxis represents the live ratio at the end of a major collection.
    * The yaxis represents the GC load (GC time/total time).
    * The interior of the matrix represents a ratio to shrink or grow
@@ -70,17 +70,17 @@ import org.vmmagic.unboxed.*;
    * The constraints on the matrix are:
    * <ul>
    * <li> function[0][0] is ignored.
-   * <li> All numbers in the first row must monotonically increase and 
+   * <li> All numbers in the first row must monotonically increase and
    *      must be in the range from 0 to 1 inclusive.</li>
-   * <li> All numbers in the first column must monotonically increase 
+   * <li> All numbers in the first column must monotonically increase
    *      and must be in the range from 0 to 1 inclusive.</li>
    * <li> There must be 0 and 1 values specified in both dimensions.
-   * <li> For all interior points in the matrix, the value must be 
+   * <li> For all interior points in the matrix, the value must be
    *      greater than the liveRatio for that column.</li>
    * </ul>
    */
-  private static final double[][] function = 
-    VM.activePlan.constraints().generational() 
+  private static final double[][] function =
+    VM.activePlan.constraints().generational()
     ? generationalFunction : nongenerationalFunction;
 
   private static long endLastMajorGC;
@@ -109,7 +109,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Return the max heap size in bytes (as set by -Xmx).
-   * 
+   *
    * @return The max heap size in bytes (as set by -Xmx).
    */
   public static Extent getMaxHeapSize() {
@@ -118,7 +118,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Return the initial heap size in bytes (as set by -Xms).
-   * 
+   *
    * @return The initial heap size in bytes (as set by -Xms).
    */
   public static Extent getInitialHeapSize() {
@@ -170,8 +170,8 @@ import org.vmmagic.unboxed.*;
       // Heap size is going to change
       currentHeapSize = newSize;
       if (Options.verbose.getValue() >= 2) {
-        Log.write("GC Message: Heap changed from "); Log.writeDec(oldSize.toWord().rshl(LOG_BYTES_IN_KBYTE)); 
-        Log.write("KB to "); Log.writeDec(newSize.toWord().rshl(LOG_BYTES_IN_KBYTE)); 
+        Log.write("GC Message: Heap changed from "); Log.writeDec(oldSize.toWord().rshl(LOG_BYTES_IN_KBYTE));
+        Log.write("KB to "); Log.writeDec(newSize.toWord().rshl(LOG_BYTES_IN_KBYTE));
         Log.writeln("KB");
       }
       return true;
@@ -238,16 +238,16 @@ import org.vmmagic.unboxed.*;
 
     // (3) Compute the heap change ratio
     double factor = function[gcLoadUnder][liveRatioUnder];
-    double liveRatioFraction = 
+    double liveRatioFraction =
       (liveRatio - function[0][liveRatioUnder]) /
       (function[0][liveRatioAbove] - function[0][liveRatioUnder]);
-    double liveRatioDelta = 
+    double liveRatioDelta =
       function[gcLoadUnder][liveRatioAbove] - function[gcLoadUnder][liveRatioUnder];
     factor += (liveRatioFraction * liveRatioDelta);
-    double gcLoadFraction = 
-      (gcLoad - function[gcLoadUnder][0]) / 
+    double gcLoadFraction =
+      (gcLoad - function[gcLoadUnder][0]) /
       (function[gcLoadAbove][0] - function[gcLoadUnder][0]);
-    double gcLoadDelta = 
+    double gcLoadDelta =
       function[gcLoadAbove][liveRatioUnder] - function[gcLoadUnder][liveRatioUnder];
     factor += (gcLoadFraction * gcLoadDelta);
 

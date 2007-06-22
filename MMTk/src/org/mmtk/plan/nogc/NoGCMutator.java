@@ -25,12 +25,12 @@ import org.vmmagic.unboxed.*;
  * This class implements <i>per-mutator thread</i> behavior and state
  * for the <i>NoGC</i> plan, which simply allocates (without ever collecting
  * until the available space is exhausted.<p>
- * 
+ *
  * Specifically, this class defines <i>NoGC</i> mutator-time allocation
  * through a bump pointer (<code>def</code>) and includes stubs for
  * per-mutator thread collection semantics (since there is no collection
  * in this plan, these remain just stubs).
- * 
+ *
  * @see NoGC
  * @see NoGCCollector
  * @see org.mmtk.plan.StopTheWorldMutator
@@ -45,7 +45,7 @@ import org.vmmagic.unboxed.*;
   private final ImmortalLocal def; // the default allocator
 
   /************************************************************************
-   * 
+   *
    * Initialization
    */
 
@@ -57,13 +57,13 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Mutator-time allocation
    */
 
   /**
    * Allocate memory for an object.
-   * 
+   *
    * @param bytes The number of bytes required for the object.
    * @param align Required alignment for the object.
    * @param offset Offset associated with the alignment.
@@ -72,7 +72,7 @@ import org.vmmagic.unboxed.*;
    * @return The address of the newly allocated memory.
    */
   @Inline
-  public Address alloc(int bytes, int align, int offset, int allocator, int site) { 
+  public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == NoGC.ALLOC_DEFAULT) {
       return def.alloc(bytes, align, offset, false);
     }
@@ -82,7 +82,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Perform post-allocation actions.  For many allocators none are
    * required.
-   * 
+   *
    * @param ref The newly allocated object
    * @param typeRef the type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
@@ -90,7 +90,7 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public void postAlloc(ObjectReference ref, ObjectReference typeRef,
-      int bytes, int allocator) { 
+      int bytes, int allocator) {
     if (allocator != NoGC.ALLOC_DEFAULT) {
       super.postAlloc(ref, typeRef, bytes, allocator);
     }
@@ -101,7 +101,7 @@ import org.vmmagic.unboxed.*;
    * particular method will match against those spaces defined at this
    * level of the class hierarchy.  Subclasses must deal with spaces
    * they define and refer to superclasses appropriately.
-   * 
+   *
    * @param a An allocator
    * @return The space into which <code>a</code> is allocating, or
    *         <code>null</code> if there is no space associated with
@@ -117,7 +117,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Return the allocator instance associated with a space
    * <code>space</code>, for this plan instance.
-   * 
+   *
    * @param space The space for which the allocator instance is desired.
    * @return The allocator instance associated with this plan instance
    * which is allocating into <code>space</code>, or <code>null</code>
@@ -129,13 +129,13 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Collection
    */
 
   /**
    * Perform a per-mutator collection phase.
-   * 
+   *
    * @param phaseId The collection phase to perform
    * @param primary perform any single-threaded local activities.
    */
@@ -144,7 +144,7 @@ import org.vmmagic.unboxed.*;
     /*
      if (phaseId == NoGC.PREPARE_MUTATOR) {
      }
-     
+
      if (phaseId == NoGC.RELEASE_MUTATOR) {
      }
      super.collectionPhase(phaseId, participating, primary);

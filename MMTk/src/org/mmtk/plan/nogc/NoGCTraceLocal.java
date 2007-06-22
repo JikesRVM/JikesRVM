@@ -33,13 +33,13 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Externally visible Object processing and tracing
    */
 
   /**
    * Is the specified object reachable?
-   * 
+   *
    * @param object The object.
    * @return <code>true</code> if the object is reachable.
    */
@@ -54,16 +54,16 @@ import org.vmmagic.unboxed.*;
   /**
    * This method is the core method during the trace of the object graph.
    * The role of this method is to:
-   * 
+   *
    * 1. Ensure the traced object is not collected.
    * 2. If this is the first visit to the object enqueue it to be scanned.
    * 3. Return the forwarded reference to the object.
-   * 
+   *
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
   @Inline
-  public ObjectReference traceObject(ObjectReference object) { 
+  public ObjectReference traceObject(ObjectReference object) {
     if (object.isNull()) return object;
     if (Space.isInSpace(NoGC.DEF, object))
       return NoGC.defSpace.traceObject(this, object);

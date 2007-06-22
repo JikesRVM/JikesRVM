@@ -22,10 +22,10 @@ import org.vmmagic.unboxed.*;
 
 /**
  * This class implements "block" data structures of various sizes.<p>
- * 
+ *
  * Blocks are a non-shared (thread-local) coarse-grained unit of
  * storage. Blocks are available in power-of-two sizes.
- * 
+ *
  * Virtual memory space is taken from a VM resource, and pages
  * consumed by blocks are accounted for by a memory resource.
  */
@@ -33,7 +33,7 @@ import org.vmmagic.unboxed.*;
 
 
   /****************************************************************************
-   * 
+   *
    * Class variables
    */
   private static final boolean PARANOID = false;
@@ -70,7 +70,7 @@ import org.vmmagic.unboxed.*;
   public static final Extent META_DATA_EXTENT = Extent.fromIntSignExtend(META_DATA_BYTES_PER_REGION);
 
   /****************************************************************************
-   * 
+   *
    * Instance variables
    */
   private Space space;
@@ -79,7 +79,7 @@ import org.vmmagic.unboxed.*;
   private int[] usedBlocks;
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
   BlockAllocator(Space space) {
@@ -90,20 +90,20 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Allocation & freeing
    */
 
   /**
    * Allocate a block, returning the address of the first usable byte
    * in the block.
-   * 
+   *
    * @param blockSizeClass The size class for the block to be allocated.
    * @return The address of the first usable byte in the block, or
    * zero on failure.
    */
   Address alloc(int blockSizeClass) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((blockSizeClass >= 0) && 
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((blockSizeClass >= 0) &&
                            (blockSizeClass <= MAX_BLOCK_SIZE_CLASS));
     Address rtn;
     if (PARANOID) sanity(false);
@@ -124,7 +124,7 @@ import org.vmmagic.unboxed.*;
    * Free a block.  If the block is a sub-page block and the page is
    * not completely free, then the block is added to the free list.
    * Otherwise the block is returned to the virtual memory resource.
-   * 
+   *
    * @param block The address of the block to be freed
    */
   void free(Address block) {
@@ -158,7 +158,7 @@ import org.vmmagic.unboxed.*;
    * Take a block off the free list (if available), updating the free
    * list and inuse counters as necessary.  Return the first usable
    * byte of the block, or zero on failure.
-   * 
+   *
    * @param blockSizeClass The size class for the block to be allocated.
    * @return The address of the first usable byte in the block, or
    * zero on failure.
@@ -182,7 +182,7 @@ import org.vmmagic.unboxed.*;
    * blocks.  Return the address of the first usable byte of the first
    * block on success, or zero on failure.  If successful, any
    * subblocks will be added to the free list.
-   * 
+   *
    * @param blockSizeClass The size class for the block to be allocated.
    * @return The address of the first usable byte in the block, or
    * zero on failure.
@@ -233,7 +233,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Return the size in bytes of a block of a given size class
-   * 
+   *
    * @param blockSizeClass The size class in question
    * @return The size in bytes of a block of this size class
    */
@@ -259,29 +259,29 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Block meta-data manipulation
    */
 
   /**
    * Reset the inuse count for a set of blocks to 1.
-   * 
+   *
    * @param block One of the one or more blocks in the set whose count
    * is to be reset to 1.
    */
   @Inline
-  private static void resetInUseCount(Address block) { 
+  private static void resetInUseCount(Address block) {
     setInUseCount(block, (short) 1);
   }
 
   /**
    * Increment the inuse count for a set of blocks
-   * 
+   *
    * @param block One of the blocks in the set whose count is being
    * incremented.
    */
   @Inline
-  private static void incInUseCount(Address block) { 
+  private static void incInUseCount(Address block) {
     setInUseCount(block, (short) (getInUseCount(block) + 1));
   }
 
@@ -289,13 +289,13 @@ import org.vmmagic.unboxed.*;
    * Decrement the inuse count for a set of blocks and return the
    * post-decrement value. This says how many blocks are in use on a
    * given page.
-   * 
+   *
    * @param block One of one or more blocks in the set whose count is being
    *          decremented.
    * @return The post-decrement count for this set of blocks
    */
   @Inline
-  private static int decInUseCount(Address block) { 
+  private static int decInUseCount(Address block) {
     short value = (short) (getInUseCount(block) - 1);
     setInUseCount(block, value);
     return value;
@@ -304,7 +304,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Set the <i>in use</i> meta data field for a given page.  This
    * says how many blocks are in use on a given page.
-   * 
+   *
    * @param address The address of interest
    * @param iu The value to which this field is to be set
    */
@@ -317,7 +317,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Get the block's <i>in use</i> meta data field for a given page.
    * This says how many blocks are in use on a given page.
-   * 
+   *
    * @param address The address of interest
    * @return The inuse field for the block containing the given address
    */
@@ -331,7 +331,7 @@ import org.vmmagic.unboxed.*;
    * Set the <i>block size class</i> meta data field for a given
    * address (all blocks on a given page are homogeneous with respect
    * to block size class).
-   * 
+   *
    * @param block The address of interest
    * @param sc The value to which this field is to be set
    */
@@ -357,7 +357,7 @@ import org.vmmagic.unboxed.*;
    * Get the <i>block size class</i> meta data field for a given page
    * (all blocks on a given page are homogeneous with respect to block
    * size class).
-   * 
+   *
    * @param address The address of interest
    * @return The size class field for the block containing the given address
    */
@@ -372,7 +372,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Get the <i>address of the start of a block size class</i> a given page
    * within the block.
-   * 
+   *
    * @param address The address of interest
    * @return The address of the block containing the address
    */
@@ -382,12 +382,12 @@ import org.vmmagic.unboxed.*;
     byte offset = (byte) (getMetaAddress(address).loadByte(BMD_OFFSET) >>> BLOCK_PAGE_OFFSET_SHIFT);
     return address.minus(offset<<LOG_BYTES_IN_PAGE);
   }
-  
+
   /**
    * Set the <i>client size class</i> meta data field for a given
    * address (all blocks on a given page are homogeneous with respect
    * to block size class).
-   * 
+   *
    * @param block The address of interest
    * @param sc The value to which this field is to be set
    */
@@ -405,7 +405,7 @@ import org.vmmagic.unboxed.*;
    * Get the <i>client size class</i> meta data field for a given page
    * (all blocks on a given page are homogeneous with respect to block
    * size class).
-   * 
+   *
    * @param address The address of interest
    * @return The size class field for the block containing the given address
    */
@@ -426,7 +426,7 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public static void setFreeListMeta(Address address,
-                                           Address value) { 
+                                           Address value) {
     getMetaAddress(address).plus(FL_META_OFFSET).store(value);
   }
 
@@ -446,7 +446,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Remove a block from the doubly linked list of blocks
-   * 
+   *
    * @param block The block to be removed from the doubly linked list
    */
   @Inline
@@ -464,7 +464,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Add a block to the doubly linked list of blocks
-   * 
+   *
    * @param block The block to be added
    * @param prev The block that is to preceed the new block
    */
@@ -484,7 +484,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Set the <i>prev</i> meta data field for a given address
-   * 
+   *
    * @param address The address of interest
    * @param prev The value to which this field is to be set
    */
@@ -495,7 +495,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Get the <i>prev</i> meta data field for a given address
-   * 
+   *
    * @param address The address of interest
    * @return The prev field for the block containing the given address
    */
@@ -506,7 +506,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Set the <i>next</i> meta data field for a given address
-   * 
+   *
    * @param address The address of interest
    * @param next The value to which this field is to be set
    */
@@ -517,7 +517,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Get the <i>next</i> meta data field for a given address
-   * 
+   *
    * @param address The address of interest
    * @return The next field for the block containing the given address
    */
@@ -530,7 +530,7 @@ import org.vmmagic.unboxed.*;
    * Get the address of some metadata given the address for which the
    * metadata is required and the offset into the metadata that is of
    * interest.
-   * 
+   *
    * @param address The address for which the metadata is required
    * @return The address of the specified meta data
    */
@@ -551,19 +551,19 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   private static Address getMetaAddress(Address address,
-                                              Offset offset) { 
+                                              Offset offset) {
     return EmbeddedMetaData.getMetaDataBase(address).plus(EmbeddedMetaData.getMetaDataOffset(address, LOG_BYTE_COVERAGE, LOG_BYTES_IN_BLOCK_META)).plus(offset);
   }
 
   /****************************************************************************
-   * 
+   *
    * Free list manipulation
    */
 
   /**
    * Given some block, unlink all blocks on the page in which that
    * block resides and return the address of the containing page.
-   * 
+   *
    * @param block The block whose page is to be unlinked
    * @param blockSizeClass The size class of the page
    * @return The address of the page containing <code>block</code>
@@ -587,46 +587,46 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Sanity checks
    */
 
-  
+
   /**
    * Mark the metadata for this block.
-   * 
-   * @param ref 
-   */ 
+   *
+   * @param ref
+   */
   @Inline
   public static void markBlockMeta(ObjectReference ref) {
     getMetaAddress(VM.objectModel.refToAddress(ref)).plus(FL_META_OFFSET).store(Word.one());
   }
- 
+
   /**
    * Return true if the metadata for this block was set.
-   * 
+   *
    * @param block The block address
    * @return value of the meta data.
-   */ 
+   */
   @Inline
   public static boolean checkBlockMeta(Address block) {
     return getMetaAddress(block).plus(FL_META_OFFSET).loadWord().EQ(Word.one());
   }
-  
+
   /**
    * Clear the metadata for this block
-   * 
+   *
    * @param block The block address
-   */ 
+   */
   @Inline
   public static void clearBlockMeta(Address block) {
     getMetaAddress(block).plus(FL_META_OFFSET).store(Word.zero());
   }
-  
+
   /**
    * Perform a basic sanity test, checking the contents of each of the
    * block free lists.
-   * 
+   *
    * @param verbose If true then produce large amounts of debugging
    * output detailing the composition of the free lists.
    */
@@ -647,7 +647,7 @@ import org.vmmagic.unboxed.*;
    * Perform a sanity traversal of a linked list of blocks, checking
    * that the double links are sane, and returning the length of the
    * list.
-   * 
+   *
    * @param block The first block in the list to be checked
    * @param prev The previous block in the list (possibly null)
    * @param verbose If true then produce large amounts of debugging

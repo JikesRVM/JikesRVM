@@ -27,17 +27,17 @@ import org.vmmagic.pragma.*;
  * the ability for entries to be added to the head of the deque and popped
  * from the rear.
  */
-@Uninterruptible public class LocalDeque extends LocalQueue 
+@Uninterruptible public class LocalDeque extends LocalQueue
   implements Constants {
 
   /****************************************************************************
-   * 
+   *
    * Public instance methods
    */
 
   /**
    * Constructor
-   * 
+   *
    * @param queue The shared deque to which this local deque will append
    * its buffers (when full or flushed).
    */
@@ -60,7 +60,7 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Protected instance methods
    */
 
@@ -73,23 +73,23 @@ import org.vmmagic.pragma.*;
    * buffer must contain enough space for this many words.
    */
   @Inline
-  protected final void checkHeadInsert(int arity) { 
-    if (bufferOffset(head).EQ(bufferSentinel(arity)) || 
+  protected final void checkHeadInsert(int arity) {
+    if (bufferOffset(head).EQ(bufferSentinel(arity)) ||
         head.EQ(HEAD_INITIAL_VALUE))
       headOverflow(arity);
     else if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(bufferOffset(head).sLE(bufferLastOffset(arity)));
   }
 
   /**
-   * Insert a value at the front of the deque (and buffer).  This is 
-   * <i>unchecked</i>.  The caller must first call 
-   * <code>checkHeadInsert()</code> to ensure the buffer can accommodate 
+   * Insert a value at the front of the deque (and buffer).  This is
+   * <i>unchecked</i>.  The caller must first call
+   * <code>checkHeadInsert()</code> to ensure the buffer can accommodate
    * the insertion.
-   * 
+   *
    * @param value the value to be inserted.
    */
   @Inline
-  protected final void uncheckedHeadInsert(Address value) { 
+  protected final void uncheckedHeadInsert(Address value) {
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(bufferOffset(head).sLT(bufferSentinel(queue.getArity())));
     head.store(value);
     head = head.plus(BYTES_IN_ADDRESS);
@@ -97,14 +97,14 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Private instance methods and fields
    */
 
   /**
    * Buffer space has been exhausted, allocate a new buffer and enqueue
    * the existing buffer (if any).
-   * 
+   *
    * @param arity The arity of this buffer (used for sanity test only).
    */
   private void headOverflow(int arity) {
@@ -117,9 +117,9 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Close the head buffer and enqueue it at the front of the 
+   * Close the head buffer and enqueue it at the front of the
    * shared buffer deque.
-   * 
+   *
    *  @param arity The arity of this buffer.
    */
   @Inline
@@ -133,8 +133,8 @@ import org.vmmagic.pragma.*;
    * Otherwise try wait on the shared deque until either all other
    * clients of the reach exhaustion or a buffer becomes
    * available.
-   * 
-   * @param arity The arity of this buffer  
+   *
+   * @param arity The arity of this buffer
    * @return True if the consumer has eaten all of the entries
    */
   @SuppressWarnings("unused")

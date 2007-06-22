@@ -23,14 +23,14 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This class implements <i>per-mutator thread</i> behavior 
+ * This class implements <i>per-mutator thread</i> behavior
  * and state for the <i>CopyMS</i> plan.<p>
- * 
+ *
  * Specifically, this class defines <i>CopyMS</i> mutator-time
  * allocation into the nursery and mature space (through pre-tenuring).
  * Per-mutator thread collection semantics are also defined (flushing
  * and restoring per-mutator allocator state).
- * 
+ *
  * @see CopyMS
  * @see CopyMSCollector
  * @see org.mmtk.plan.StopTheWorldMutator
@@ -47,7 +47,7 @@ import org.vmmagic.unboxed.*;
   private CopyLocal nursery;
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
@@ -60,7 +60,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Mutator-time allocation
    */
 
@@ -68,7 +68,7 @@ import org.vmmagic.unboxed.*;
    * Allocate memory for an object. This class handles the default allocator
    * from the mark sweep space, and delegates everything else to the
    * superclass.
-   * 
+   *
    * @param bytes The number of bytes required for the object.
    * @param align Required alignment for the object.
    * @param offset Offset associated with the alignment.
@@ -76,7 +76,7 @@ import org.vmmagic.unboxed.*;
    * @return The low address of the allocated memory.
    */
   @Inline
-  public Address alloc(int bytes, int align, int offset, int allocator, int site) { 
+  public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == CopyMS.ALLOC_DEFAULT)
       return nursery.alloc(bytes, align, offset, false);
     if (allocator == CopyMS.ALLOC_MS)
@@ -98,7 +98,7 @@ import org.vmmagic.unboxed.*;
   @SuppressWarnings({"UnnecessaryReturnStatement"})
   @Inline
   public void postAlloc(ObjectReference ref, ObjectReference typeRef,
-      int bytes, int allocator) { 
+      int bytes, int allocator) {
     if (allocator == CopyMS.ALLOC_DEFAULT)
       return;
     else if (allocator == CopyMS.ALLOC_MS)
@@ -112,7 +112,7 @@ import org.vmmagic.unboxed.*;
    * particular method will match against those spaces defined at this
    * level of the class hierarchy.  Subclasses must deal with spaces
    * they define and refer to superclasses appropriately.
-   * 
+   *
    * @param a An allocator
    * @return The space into which <code>a</code> is allocating, or
    *         <code>null</code> if there is no space associated with
@@ -127,7 +127,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Return the allocator instance associated with a space
    * <code>space</code>, for this plan instance.
-   * 
+   *
    * @param space The space for which the allocator instance is desired.
    * @return The allocator instance associated with this plan instance
    * which is allocating into <code>space</code>, or <code>null</code>
@@ -140,18 +140,18 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Collection
    */
 
   /**
    * Perform a per-mutator collection phase.
-   * 
+   *
    * @param phaseId The collection phase to perform
    * @param primary Use this thread for single-threaded local activities.
    */
   @Inline
-  public final void collectionPhase(int phaseId, boolean primary) { 
+  public final void collectionPhase(int phaseId, boolean primary) {
     if (phaseId == CopyMS.PREPARE_MUTATOR) {
       super.collectionPhase(phaseId, primary);
       mature.prepare();

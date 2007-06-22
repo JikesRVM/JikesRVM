@@ -26,7 +26,7 @@ import org.vmmagic.unboxed.*;
 
 /**
  * Each instance of this class corresponds to one treadmill *space*.
- * 
+ *
  * Each of the instance methods of this class may be called by any
  * thread (i.e. synchronization must be explicit in any instance or
  * class method).
@@ -35,11 +35,11 @@ import org.vmmagic.unboxed.*;
  * and called on a per-thread basis, where each instance of
  * TreadmillLocal corresponds to one thread operating over one space.
  */
-@Uninterruptible public final class LargeObjectSpace extends Space 
+@Uninterruptible public final class LargeObjectSpace extends Space
   implements Constants {
 
   /****************************************************************************
-   * 
+   *
    * Class variables
    */
   public static final int LOCAL_GC_BITS_REQUIRED = 2;
@@ -49,7 +49,7 @@ import org.vmmagic.unboxed.*;
   private static final Word LOS_BIT_MASK = Word.fromIntZeroExtend(3); // ...11
 
   /****************************************************************************
-   * 
+   *
    * Instance variables
    */
   private Word markState;
@@ -58,7 +58,7 @@ import org.vmmagic.unboxed.*;
   private Treadmill treadmill;
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
@@ -81,7 +81,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Construct a space of a given number of megabytes in size.<p>
-   * 
+   *
    * The caller specifies the amount virtual memory to be used for
    * this space <i>in megabytes</i>.  If there is insufficient address
    * space, then the constructor will fail.
@@ -119,13 +119,13 @@ import org.vmmagic.unboxed.*;
    * Construct a space that consumes a given number of megabytes of
    * virtual memory, at either the top or bottom of the available
    * virtual memory.
-   * 
+   *
    * The caller specifies the amount virtual memory to be used for
    * this space <i>in megabytes</i>, and whether it should be at the
    * top or bottom of the available virtual memory.  If the request
    * clashes with existing virtual memory allocations, then the
    * constructor will fail.
-   * 
+   *
    * @param name The name of this space (used when printing error messages etc)
    * @param pageBudget The number of pages this space may consume
    * before consulting the plan
@@ -157,12 +157,12 @@ import org.vmmagic.unboxed.*;
    * @param top Should this space be at the top (or bottom) of the
    * available virtual memory.
    */
-  public LargeObjectSpace(String name, int pageBudget, float frac, 
+  public LargeObjectSpace(String name, int pageBudget, float frac,
                           boolean top) {
     super(name, false, false, frac, top);
     init(pageBudget);
   }
-  
+
   @Interruptible
   private void init(int pageBudget) {
     pr = new FreeListPageResource(pageBudget, this, start, extent);
@@ -171,7 +171,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Collection
    */
 
@@ -181,12 +181,12 @@ import org.vmmagic.unboxed.*;
    * collections.
  */
   public void prepare(boolean fullHeap) {
-    if (fullHeap) { 
+    if (fullHeap) {
       if (VM.VERIFY_ASSERTIONS) {
         VM.assertions._assert(treadmill.fromSpaceEmpty());
       }
       markState = MARK_BIT.minus(markState);
-      treadmill.flip();          
+      treadmill.flip();
     }
     inNurseryGC = !fullHeap;
   }
@@ -198,7 +198,7 @@ import org.vmmagic.unboxed.*;
   public void release(boolean fullHeap) {
     // sweep the large objects
     sweepLargePages(true);                // sweep the nursery
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(treadmill.nurseryEmpty());   
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(treadmill.nurseryEmpty());
     if (fullHeap) sweepLargePages(false); // sweep the mature space
   }
 
@@ -213,27 +213,27 @@ import org.vmmagic.unboxed.*;
       release(LargeObjectAllocator.getSuperPage(cell));
     }
     if (VM.VERIFY_ASSERTIONS) {
-      if (sweepNursery)                                                      
+      if (sweepNursery)
         VM.assertions._assert(treadmill.nurseryEmpty());
-      else                                                                   
+      else
         VM.assertions._assert(treadmill.fromSpaceEmpty());
-    }                                                                       
+    }
   }
-  
+
   /**
    * Release a group of pages that were allocated together.
-   * 
+   *
    * @param first The first page in the group of pages that were
    * allocated together.
    */
   @Inline
-  public void release(Address first) { 
+  public void release(Address first) {
     ((FreeListPageResource) pr).releasePages(first);
   }
 
 
   /****************************************************************************
-   * 
+   *
    * Object processing and tracing
    */
 
@@ -253,7 +253,7 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public ObjectReference traceObject(TraceLocal trace,
-      ObjectReference object) { 
+      ObjectReference object) {
     boolean nurseryObject = isInNursery(object);
     if (!inNurseryGC || nurseryObject) {
       if (testAndMark(object, markState)) {
@@ -269,7 +269,7 @@ import org.vmmagic.unboxed.*;
    * @return True if this object is known to be live (i.e. it is marked)
    */
    @Inline
-   public boolean isLive(ObjectReference object) { 
+   public boolean isLive(ObjectReference object) {
     return testMarkBit(object, markState);
   }
 
@@ -277,7 +277,7 @@ import org.vmmagic.unboxed.*;
    * An object has been marked (identified as live).  Large objects
    * are added to the to-space treadmill, while all other objects will
    * have a mark bit set in the superpage header.
-   * 
+   *
    * @param object The object which has been marked.
    */
   @Inline
@@ -289,27 +289,27 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Header manipulation
    */
 
   /**
    * Perform any required initialization of the GC portion of the header.
-   * 
+   *
    * @param object the object ref to the storage to be initialized
    * @param isPLOSObject the object is allocated in the PLOS
    */
   @Inline
-  public void initializeHeader(ObjectReference object, boolean isPLOSObject) { 
+  public void initializeHeader(ObjectReference object, boolean isPLOSObject) {
     Word oldValue = VM.objectModel.readAvailableBitsWord(object);
-    Word newValue = oldValue.and(LOS_BIT_MASK.not()).or(markState).or(NURSERY_BIT); 
+    Word newValue = oldValue.and(LOS_BIT_MASK.not()).or(markState).or(NURSERY_BIT);
     VM.objectModel.writeAvailableBitsWord(object, newValue);
   }
 
   /**
    * Atomically attempt to set the mark bit of an object.  Return true
    * if successful, false if the mark bit was already set.
-   * 
+   *
    * @param object The object whose mark bit is to be written
    * @param value The value to which the mark bit will be set
    */
@@ -327,7 +327,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Return true if the mark bit for an object has the given value.
-   * 
+   *
    * @param object The object whose mark bit is to be tested
    * @param value The value against which the mark bit will be tested
    * @return True if the mark bit for the object has the given value.
@@ -338,11 +338,11 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * Return true if the object is in the logical nursery                      
-   *                                                                          
-   * @param object The object whose status is to be tested                    
-   * @return True if the object is in the logical nursery                     
-   */                                                                         
+   * Return true if the object is in the logical nursery
+   *
+   * @param object The object whose status is to be tested
+   * @return True if the object is in the logical nursery
+   */
   @Inline
   private boolean isInNursery(ObjectReference object) {
      return VM.objectModel.readAvailableBitsWord(object).and(NURSERY_BIT).EQ(NURSERY_BIT);
@@ -350,32 +350,32 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Return the size of the super page
-   * 
+   *
    * @param first the Address of the first word in the superpage
    * @return the size in bytes
    */
   public Extent getSize(Address first) {
     return ((FreeListPageResource) pr).getSize(first);
   }
-  
+
   /**
-   * This is the cell list for this large object space. 
-   * 
+   * This is the cell list for this large object space.
+   *
    * Note that it depends on the specific local in use whether this
    * is being used.
-   * 
+   *
    * @return The cell list associated with this large object space.
    */
   public DoublyLinkedList getCells() {
     return this.cells;
   }
-  
+
   /**
-   * This is the treadmill used by the large object space. 
-   * 
+   * This is the treadmill used by the large object space.
+   *
    * Note that it depends on the specific local in use whether this
    * is being used.
-   * 
+   *
    * @return The treadmill associated with this large object space.
    */
   public Treadmill getTreadmill() {

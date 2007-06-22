@@ -25,18 +25,18 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.ObjectReference;
 
 /**
- * This class implements <i>per-collector thread</i> behavior 
+ * This class implements <i>per-collector thread</i> behavior
  * and state for a trial deletion cycle detector.
  */
 @Uninterruptible public final class TrialDeletionCollector extends CDCollector implements Constants {
 
   /****************************************************************************
-   * 
+   *
    * Class variables
    */
-  
+
   /****************************************************************************
-   * 
+   *
    * Instance variables
    */
   public ObjectReferenceDeque workQueue;
@@ -47,14 +47,14 @@ import org.vmmagic.unboxed.ObjectReference;
   public ObjectReferenceDeque cycleBufferA;
   public ObjectReferenceDeque cycleBufferB;
   public ObjectReferenceDeque freeBuffer;
-  
+
   public TrialDeletionCollectStep collectStep;
   public TrialDeletionGreyStep greyStep;
   public TrialDeletionScanStep scanStep;
   public TrialDeletionScanBlackStep scanBlackStep;
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
   public TrialDeletionCollector() {
@@ -82,7 +82,7 @@ import org.vmmagic.unboxed.ObjectReference;
 
   /**
    * Perform a collection phase.
-   * 
+   *
    * @param phaseId Collection phase to execute.
    * @param primary Use this thread to execute any single-threaded collector
    * context actions.
@@ -90,54 +90,54 @@ import org.vmmagic.unboxed.ObjectReference;
   public boolean collectionPhase(int phaseId, boolean primary) {
     boolean filter  = global().cdMode >= TrialDeletion.FILTER_PURPLE;
     boolean collect = global().cdMode >= TrialDeletion.FULL_COLLECTION;
-    
+
     // Phases that occur when we are filtering or collecting
     if (phaseId == TrialDeletion.CD_FILTER_PURPLE) {
       if (filter) filterPurpleBufs();
       return true;
     }
-    
+
     if (phaseId == TrialDeletion.CD_FREE_FILTERED) {
       if (filter) processFreeBufs();
       return true;
     }
-  
+
     // Phases that occur when we are doing a full collection
     if (phaseId == TrialDeletion.CD_FILTER_MATURE) {
       if (collect) filterMaturePurpleBufs();
       return true;
     }
-    
+
     if (phaseId == TrialDeletion.CD_MARK_GREY) {
       if (collect && primary) doMarkGreyPhase();
       return true;
     }
-    
+
     if (phaseId == TrialDeletion.CD_SCAN) {
       if (collect && primary) doScanPhase();
       return true;
     }
-    
+
     if (phaseId == TrialDeletion.CD_COLLECT) {
       if (collect && primary) doCollectPhase();
       return true;
     }
-    
+
     if (phaseId == TrialDeletion.CD_FREE) {
       if (collect) processFreeBufs();
       return true;
     }
-    
+
     if (phaseId == TrialDeletion.CD_FLUSH_FILTERED) {
       if (collect) flushFilteredPurpleBufs();
       return true;
     }
-    
+
     if (phaseId == TrialDeletion.CD_PROCESS_DECS) {
       if (collect) ((RCBaseCollector)VM.activePlan.collector()).processDecBuffer();
       return true;
     }
-    
+
     return false;
   }
 
@@ -145,7 +145,7 @@ import org.vmmagic.unboxed.ObjectReference;
     filterPurpleBufs(unfilteredPurpleBuffer, maturePurpleBuffer);
     maturePurpleBuffer.flushLocal();
   }
-  
+
   private void filterMaturePurpleBufs() {
     if (filteredPurpleBuffer.isEmpty()) {
       filterPurpleBufs(maturePurpleBuffer, filteredPurpleBuffer);
@@ -193,9 +193,9 @@ import org.vmmagic.unboxed.ObjectReference;
   }
 
   /****************************************************************************
-   * 
+   *
    * Mark grey
-   * 
+   *
    * Trace from purple "roots", marking grey.  Try to work within a
    * time cap.  This will work <b>only</b> if the purple objects are
    * maintained as a <b>queue</b> rather than a <b>stack</b>
@@ -219,7 +219,7 @@ import org.vmmagic.unboxed.ObjectReference;
   }
   @Inline
   private boolean processGreyObject(ObjectReference object,
-                                          ObjectReferenceDeque tgt) { 
+                                          ObjectReferenceDeque tgt) {
    // Log.write("pg[");Log.write(object);RefCountSpace.print(object);Log.writeln("]");
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!RCHeader.isGreen(object));
     if (RCHeader.isPurpleNotGrey(object)) {
@@ -237,13 +237,13 @@ import org.vmmagic.unboxed.ObjectReference;
     }
     return true;
   }
-  
+
   @Inline
   private void markGrey(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(workQueue.pop().isNull());
     while (!object.isNull()) {
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!RCHeader.isGreen(object));
-      
+
       if (!RCHeader.isGrey(object)) {
         RCHeader.makeGrey(object);
         Scan.scanObject(greyStep, object);
@@ -251,9 +251,9 @@ import org.vmmagic.unboxed.ObjectReference;
       object = workQueue.pop();
     }
   }
-  
+
   @Inline
-  public void enumerateGrey(ObjectReference object) { 
+  public void enumerateGrey(ObjectReference object) {
     if (RCBase.isRCObject(object) && !RCHeader.isGreen(object)) {
       if (VM.VERIFY_ASSERTIONS) {
         // TODO VM.assertions._assert(RCHeader.isLiveRC(object));
@@ -290,13 +290,13 @@ import org.vmmagic.unboxed.ObjectReference;
       object = workQueue.pop();
     }
   }
-  
+
   @Inline
-  public void enumerateScan(ObjectReference object) { 
+  public void enumerateScan(ObjectReference object) {
     if (RCBase.isRCObject(object) && !RCHeader.isGreen(object))
       workQueue.push(object);
   }
-  
+
   @Inline
   private void scanBlack(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(blackQueue.pop().isNull());
@@ -310,7 +310,7 @@ import org.vmmagic.unboxed.ObjectReference;
     }
   }
   @Inline
-  public void enumerateScanBlack(ObjectReference object) { 
+  public void enumerateScanBlack(ObjectReference object) {
     if (RCBase.isRCObject(object) && !RCHeader.isGreen(object)) {
       RCHeader.unsyncIncRC(object);
       if (!RCHeader.isBlack(object))
@@ -327,7 +327,7 @@ import org.vmmagic.unboxed.ObjectReference;
       collectWhite(object);
     }
   }
-  
+
   @Inline
   private void collectWhite(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(workQueue.pop().isNull());
@@ -340,9 +340,9 @@ import org.vmmagic.unboxed.ObjectReference;
       object = workQueue.pop();
     }
   }
-  
+
   @Inline
-  public void enumerateCollect(ObjectReference object) { 
+  public void enumerateCollect(ObjectReference object) {
     if (RCBase.isRCObject(object)) {
       if (RCHeader.isGreen(object)) {
         ((RCBaseCollector)VM.activePlan.collector()).decBuffer.push(object);
@@ -351,11 +351,11 @@ import org.vmmagic.unboxed.ObjectReference;
       }
     }
   }
-  
+
   /**
    * Buffer an object after a successful update when shouldBufferOnDecRC
    * returned true.
-   *  
+   *
    * @param object The object to buffer.
    */
   public void bufferOnDecRC(ObjectReference object) {

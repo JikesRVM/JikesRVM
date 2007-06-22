@@ -32,7 +32,7 @@ import org.vmmagic.unboxed.*;
   implements Constants {
 
   /****************************************************************************
-   * 
+   *
    * Class variables
    */
   public static final int LOCAL_GC_BITS_REQUIRED = 0;
@@ -40,7 +40,7 @@ import org.vmmagic.unboxed.*;
   public static final int GC_HEADER_WORDS_REQUIRED = 0;
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
@@ -55,7 +55,7 @@ import org.vmmagic.unboxed.*;
    * @param start The start address of the space in virtual memory
    * @param bytes The size of the space in virtual memory, in bytes
    */
-  public ExplicitFreeListSpace(String name, int pageBudget, Address start, 
+  public ExplicitFreeListSpace(String name, int pageBudget, Address start,
                         Extent bytes) {
     super(name, false, false, start, bytes);
     pr = new FreeListPageResource(pageBudget, this, start, extent, ExplicitFreeListLocal.META_DATA_PAGES_PER_REGION);
@@ -63,11 +63,11 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Construct a space of a given number of megabytes in size.<p>
-   * 
+   *
    * The caller specifies the amount virtual memory to be used for
    * this space <i>in megabytes</i>.  If there is insufficient address
    * space, then the constructor will fail.
-   * 
+   *
    * @param name The name of this space (used when printing error messages etc)
    * @param pageBudget The number of pages this space may consume
    * before consulting the plan
@@ -101,13 +101,13 @@ import org.vmmagic.unboxed.*;
    * Construct a space that consumes a given number of megabytes of
    * virtual memory, at either the top or bottom of the available
    * virtual memory.
-   * 
+   *
    * The caller specifies the amount virtual memory to be used for
    * this space <i>in megabytes</i>, and whether it should be at the
    * top or bottom of the available virtual memory.  If the request
    * clashes with existing virtual memory allocations, then the
    * constructor will fail.
-   * 
+   *
    * @param name The name of this space (used when printing error messages etc)
    * @param pageBudget The number of pages this space may consume
    * before consulting the plan
@@ -145,7 +145,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Collection
    */
 
@@ -155,22 +155,22 @@ import org.vmmagic.unboxed.*;
   public void prepare() {}
 
   /**
-   * A new collection increment has completed. 
+   * A new collection increment has completed.
    */
   public void release() {}
 
   /**
    * Release an allocated page or pages
-   * 
+   *
    * @param start The address of the start of the page or pages
    */
   @Inline
-  public void release(Address start) { 
+  public void release(Address start) {
     ((FreeListPageResource) pr).releasePages(start);
   }
 
   /****************************************************************************
-   * 
+   *
    * Object processing and tracing
    */
 
@@ -189,17 +189,17 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public ObjectReference traceObject(TraceLocal trace,
-                                           ObjectReference object) { 
+                                           ObjectReference object) {
     return object;
   }
 
   /**
-   * 
+   *
    * @param object The object in question
    * @return True if this object is known to be live (i.e. it is marked)
    */
   @Inline
-  public boolean isLive(ObjectReference object) { 
+  public boolean isLive(ObjectReference object) {
     return true;
   }
 }

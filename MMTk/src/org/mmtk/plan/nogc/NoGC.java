@@ -29,7 +29,7 @@ import org.vmmagic.pragma.*;
 @Uninterruptible public class NoGC extends Plan {
 
   /*****************************************************************************
-   * 
+   *
    * Class fields
    */
   public static final ImmortalSpace defSpace
@@ -37,7 +37,7 @@ import org.vmmagic.pragma.*;
   public static final int DEF = defSpace.getDescriptor();
 
   /*****************************************************************************
-   * 
+   *
    * Instance fields
    */
   public final Trace trace;
@@ -50,13 +50,13 @@ import org.vmmagic.pragma.*;
   }
 
   /*****************************************************************************
-   * 
+   *
    * Collection
    */
 
   /**
    * Perform a (global) collection phase.
-   * 
+   *
    * @param phaseId Collection phase
    */
   public final void collectionPhase(int phaseId) {
@@ -70,7 +70,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Poll for a collection
-   * 
+   *
    * @param vmExhausted Virtual Memory range for space is exhausted.
    * @param space The space that caused the poll.
    * @return True if a collection is required.
@@ -84,14 +84,14 @@ import org.vmmagic.pragma.*;
   }
 
   /*****************************************************************************
-   * 
+   *
    * Accounting
    */
 
   /**
    * Return the number of pages used given the pending
    * allocation.
-   * 
+   *
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */

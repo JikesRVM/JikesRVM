@@ -44,12 +44,12 @@ import org.vmmagic.pragma.*;
    *
    * @param message the string to log
    */
-  public final void fail(String message) { 
-    VM.sysFail(message); 
+  public final void fail(String message) {
+    VM.sysFail(message);
   }
 
   @Uninterruptible
-  public final void exit(int rc) { 
+  public final void exit(int rc) {
     VM.sysExit(rc);
   }
 
@@ -61,7 +61,7 @@ import org.vmmagic.pragma.*;
    * @param cond the condition to be checked
    */
   @Inline
-  public final void _assert(boolean cond) { 
+  public final void _assert(boolean cond) {
     if (!org.mmtk.vm.VM.VERIFY_ASSERTIONS)
       VM.sysFail("All assertions must be guarded by VM.VERIFY_ASSERTIONS: please check the failing assertion");
     VM._assert(cond);
@@ -71,12 +71,12 @@ import org.vmmagic.pragma.*;
    * Checks that the given condition is true.  If it is not, this
    * method prints a message, does a traceback and exits. All calls
    * to this method must be guarded by <code>VM.VERIFY_ASSERTIONS</code>.
-   * 
+   *
    * @param cond the condition to be checked
    * @param message the message to print
    */
   @Inline
-  public final void _assert(boolean cond, String message) { 
+  public final void _assert(boolean cond, String message) {
     if (!org.mmtk.vm.VM.VERIFY_ASSERTIONS)
       VM.sysFail("All assertions must be guarded by VM.VERIFY_ASSERTIONS: please check the failing assertion");
     if (!cond) VM.sysWriteln(message);
@@ -94,7 +94,7 @@ import org.vmmagic.pragma.*;
    */
   @LogicallyUninterruptible
   @NoInline
-  public final void failWithOutOfMemoryError() { 
+  public final void failWithOutOfMemoryError() {
     failWithOutOfMemoryErrorStatic();
   }
 

@@ -30,11 +30,11 @@ public class TraceRate extends IntOption
 
   /**
    * Return the appropriate value.
-   * 
+   *
    * @return the trace rate.
    */
   @Uninterruptible
-  public int getValue() { 
+  public int getValue() {
     return (this.value < BYTES_IN_ADDRESS)
       ? 1
         : (this.value >> LOG_BYTES_IN_ADDRESS);

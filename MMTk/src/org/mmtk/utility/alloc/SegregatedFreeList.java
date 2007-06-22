@@ -24,9 +24,9 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * 
+ *
  * This abstract class implements a simple segregated free list.<p>
- * 
+ *
  * See: Wilson, Johnstone, Neely and Boles "Dynamic Storage
  * Allocation: A Survey and Critical Review", IWMM 1995, for an
  * overview of free list allocation and the various implementation
@@ -44,14 +44,14 @@ import org.vmmagic.unboxed.*;
  * size class becomes the current block and its free list is used.  If
  * there are no more blocks the a new block is allocated.<p>
  */
-@Uninterruptible public abstract class SegregatedFreeList extends Allocator 
+@Uninterruptible public abstract class SegregatedFreeList extends Allocator
   implements Constants {
 
   /****************************************************************************
-   * 
+   *
    * Class variables
    */
-   
+
   protected static final boolean LAZY_SWEEP = true;
   private static final boolean COMPACT_SIZE_CLASSES = false;
   private static final boolean SORT_FREE_BLOCKS = false;
@@ -98,7 +98,7 @@ import org.vmmagic.unboxed.*;
   private int[] fragUsedPages;
 
   /****************************************************************************
-   * 
+   *
    * Instance variables
    */
   protected BlockAllocator blockAllocator;
@@ -111,7 +111,7 @@ import org.vmmagic.unboxed.*;
   protected int[] cellsInUse;
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
@@ -122,7 +122,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Constructor
-   * 
+   *
    * @param space The space with which this allocator will be associated
    */
   public SegregatedFreeList(Space space) {
@@ -136,15 +136,15 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Allocation
    */
 
   /**
    * Allocate <code>bytes</code> contigious bytes of zeroed memory.<p>
-   * 
+   *
    * This code first tries the fast version and, if needed, the slow path.
-   * 
+   *
    * @param bytes The size of the object to occupy this space, in bytes.
    * @param align The requested alignment.
    * @param offset The alignment offset.
@@ -154,7 +154,7 @@ import org.vmmagic.unboxed.*;
    * contigious bytes of zeroed memory.
    */
   @Inline
-  public final Address alloc(int bytes, int align, int offset, boolean inGC) { 
+  public final Address alloc(int bytes, int align, int offset, boolean inGC) {
     if (FRAGMENTATION_CHECK)
       bytesAlloc += bytes;
     Address cell = allocFast(bytes, align, offset, inGC);
@@ -166,7 +166,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Allocate <code>bytes</code> contigious bytes of zeroed memory.<p>
-   * 
+   *
    * This code must be efficient and must compile easily.  Here we
    * minimize the number of calls to inlined functions, and force the
    * "slow path" (uncommon case) out of line to reduce pressure on the
@@ -183,7 +183,7 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public final Address allocFast(int bytes, int align, int offset,
-                                 boolean inGC) { 
+                                 boolean inGC) {
     int alignedBytes = getMaximumAlignedSize(bytes, align);
     int sizeClass = getSizeClass(alignedBytes);
     Address cell = freeList.get(sizeClass);
@@ -211,14 +211,14 @@ import org.vmmagic.unboxed.*;
    * This code should be relatively infrequently executed, so it is
    * forced out of line to reduce pressure on the compilation of the
    * core alloc routine.<p>
-   * 
+   *
    * Precondition: None
-   * 
+   *
    * Postconditions: A new cell has been allocated (not zeroed), and
    * the block containing the cell has been placed on the appropriate
    * free list data structures.  The free list itself is not updated
    * (the caller must do so).<p>
-   * 
+   *
    * @param bytes The size of the object to occupy this space, in bytes.
    * @param align The requested alignment.
    * @param offset The alignment offset.
@@ -229,7 +229,7 @@ import org.vmmagic.unboxed.*;
    */
   @NoInline
   public final Address allocSlowOnce(int bytes, int align, int offset,
-      boolean inGC) { 
+      boolean inGC) {
     Address cell = allocFast(bytes, align, offset, inGC);
     if (!cell.isZero())
       return cell;
@@ -272,9 +272,9 @@ import org.vmmagic.unboxed.*;
    * the block into cells and placing those cells on a free list for
    * that block.  The block becomes the current head for this size
    * class and the address of the first available cell is returned.<p>
-   * 
+   *
    * <b>This is guaranteed to return pre-zeroed cells</b>
-   * 
+   *
    * @param sizeClass The size class to be expanded
    * @return The address of the first available cell in the newly
    * allocated block of pre-zeroed cells, or return zero if there were
@@ -313,19 +313,19 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Return the next cell in a free list chain.
-   * 
+   *
    * @param cell The address of teh current cell.
    * @return The next cell in a free list chain (null if this is the
    * last).
    */
   @Inline
-  protected final Address getNextCell(Address cell) { 
+  protected final Address getNextCell(Address cell) {
     return cell.loadAddress();
   }
 
   /**
    * Set the next cell in a free list chain
-   * 
+   *
    * @param cell The cell whose link is to be set
    * @param next The next cell in the chain.
    */
@@ -335,7 +335,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Freeing
    */
 
@@ -351,20 +351,20 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public final void free(Address cell, Address block, int sizeClass,
-                         Address nextFree) { 
+                         Address nextFree) {
     Memory.zeroSmall(cell, Extent.fromIntZeroExtend(cellSize[sizeClass]));
     setNextCell(cell, nextFree);
   }
 
   /****************************************************************************
-   * 
+   *
    * Block management
    */
 
   /**
    * Install a new block. The block needs to be added to the size
    * class's linked list of blocks and made the current block.
-   * 
+   *
    * @param block The block to be added
    * @param sizeClass The size class to which the block is being added
    */
@@ -381,12 +381,12 @@ import org.vmmagic.unboxed.*;
   /**
    * Free a block.  The block needs to be removed from its size
    * class's linked list before being freed.
-   * 
+   *
    * @param block The block to be freed
    * @param sizeClass The size class with which the block was associated.
    */
   @Inline
-  protected final void freeBlock(Address block, int sizeClass) { 
+  protected final void freeBlock(Address block, int sizeClass) {
     Address next = BlockAllocator.getNextBlock(block);
     Address prev = BlockAllocator.getPrevBlock(block);
     BlockAllocator.unlinkBlock(block);
@@ -400,27 +400,27 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Size classes
    */
 
   /**
    * Get the size class for a given number of bytes.<p>
-   * 
+   *
    * We use size classes based on a worst case internal fragmentation
    * loss target of 1/8.  In fact, across sizes from 8 bytes to 512
    * the average worst case loss is 13.3%, giving an expected loss
    * (assuming uniform distribution) of about 7%.  We avoid using the
    * Lea class sizes because they were so numerous and therefore
    * liable to lead to excessive inter-class-size fragmentation.<p>
-   * 
+   *
    * This method may segregate arrays and scalars (currently it does
    * not).
    *
    * This method should be more intelligent and take alignment requests
-   * into consideration. The issue with this is that the block header 
-   * which can be varied by subclasses can change the alignment of the 
-   * cells. 
+   * into consideration. The issue with this is that the block header
+   * which can be varied by subclasses can change the alignment of the
+   * cells.
    *
    * @param bytes The number of bytes required to accommodate the
    * object to be allocated.
@@ -473,7 +473,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Return the size of a basic cell (i.e. not including any cell
    * header) for a given size class.
-   * 
+   *
    * @param sc The size class in question
    * @return The size of a basic cell (i.e. not including any cell
    * header).
@@ -507,7 +507,7 @@ import org.vmmagic.unboxed.*;
                 (sc < 21) ? (sc - 18) <<  9:
                             (sc - 19) << 10);
       else
-        return ((sc < 14) ? (sc +  1) <<  3:        
+        return ((sc < 14) ? (sc +  1) <<  3:
                 (sc < 21) ? (sc -  6) <<  4:
                 (sc < 24) ? (sc - 13) <<  5:
                 (sc < 28) ? (sc - 18) <<  6:
@@ -517,18 +517,18 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Preserving (saving & restoring) free lists
  */
 
   protected abstract boolean maintainSideBitmap();
   protected abstract boolean preserveFreeList();
   protected abstract Address advanceToBlock(Address block, int sizeClass);
-  
+
   /**
    * Should the sweep reclaim the cell containing this object. Is this object
    * live. This is only used when maintainSideBitmap is false.
-   * 
+   *
    * @param object The object to query
    * @param markState The markState interpreted and supplied by subclass.
    * @return True if the cell should be reclaimed
@@ -537,7 +537,7 @@ import org.vmmagic.unboxed.*;
     VM.assertions.fail("Must implement reclaimCellForObject if not maintaining side bitmap");
     return false;
   }
-  
+
   /**
    * Zero all of the current free list pointers, and refresh the
    * <code>currentBlock</code> values, so instead of the free list
@@ -560,7 +560,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Retrieve free list pointers from the first blocks in the free
-   * list. 
+   * list.
    */
   public final void restoreFreeLists() {
     for (int sizeClass = 0; sizeClass < SIZE_CLASSES; sizeClass++) {
@@ -576,19 +576,19 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Metadata manipulation
    */
 
   /**
    * In the case where free lists associated with each block are
    * preserved, get the free list for a given block.
-   * 
+   *
    * @param block The block whose free list is to be found
    * @return The free list for this block
    */
   @Inline
-  protected final Address getFreeList(Address block) { 
+  protected final Address getFreeList(Address block) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(preserveFreeList());
     return BlockAllocator.getFreeListMeta(block);
   }
@@ -596,25 +596,25 @@ import org.vmmagic.unboxed.*;
   /**
    * In the case where free lists associated with each block are
    * preserved, set the free list for a given block.
-   * 
+   *
    * @param block The block whose free list is to be found
    * @param cell The head of the free list (i.e. the first cell in the
    * free list).
    */
   @Inline
-  protected final void setFreeList(Address block, Address cell) { 
+  protected final void setFreeList(Address block, Address cell) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(preserveFreeList());
     BlockAllocator.setFreeListMeta(block, cell);
   }
 
   /****************************************************************************
-   * 
+   *
    * Collection
    */
 
   /**
    * Sweep all blocks for free objects.
-   * 
+   *
    * FIXME This is currently implemented by searching each *mutator* free list.  It needs to be per-collector, not per-mutator.
    * @param clearBlockMarks should we clear block mark bits after reading?  Otherwise they must be done on masse when appropriate.
    */
@@ -640,7 +640,7 @@ import org.vmmagic.unboxed.*;
           Address cursor = block;
           while(cursor.LT(block.plus(blockSize))) {
             live |= BlockAllocator.checkBlockMeta(cursor);
-            if (clearBlockMarks) BlockAllocator.clearBlockMeta(cursor); 
+            if (clearBlockMarks) BlockAllocator.clearBlockMeta(cursor);
             cursor = cursor.plus(1 << BlockAllocator.LOG_MIN_BLOCK);
           }
           if (!live) {
@@ -674,7 +674,7 @@ import org.vmmagic.unboxed.*;
 
   protected final void consumeBlockLists(Word markState) {
     for (int sizeClass = 0; sizeClass < SIZE_CLASSES; sizeClass++) {
-      
+
       Address current = currentBlock.get(sizeClass);
       if (!current.isZero()) {
         // find a free list which is not empty
@@ -691,7 +691,7 @@ import org.vmmagic.unboxed.*;
    * Add a block to a liveness bucket according to the specified
    * liveness.  This allows a cheap approximation to sorting the
    * blocks by liveness.
-   * 
+   *
    * @param block the block to be added to a bucket
    * @param liveness the liveness of the block that is to be added
    */
@@ -722,7 +722,7 @@ import org.vmmagic.unboxed.*;
    * free list is built up in LIFO (stack) orderr, starting with the
    * blocks that will be used last, and finishing with the blocks that
    * should be used first by the allocator.
-   * 
+   *
    * @param sizeClass The sizeclass whose free block list is being
    * composed
    */
@@ -747,7 +747,7 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   private Address addToFreeBlockList(int sizeClass, Address head,
-      int bucket) { 
+      int bucket) {
     Address tail = blockBucketTail.get(bucket);
     if (!tail.isZero()) {
       if (head.isZero())
@@ -761,13 +761,13 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Live bit manipulation
    */
 
   /**
    * Atomically set the live bit for a given object
-   * 
+   *
    * @param object The object whose live bit is to be set.
    * @return True if the bit was changed to true.
    */
@@ -775,10 +775,10 @@ import org.vmmagic.unboxed.*;
   public static boolean liveObject(ObjectReference object) {
     return liveAddress(VM.objectModel.objectStartRef(object), true);
   }
-  
+
   /**
    * Set the live bit for the block containing the given object
-   * 
+   *
    * @param object The object whose blocks liveness is to be set.
    */
   @Inline
@@ -790,7 +790,7 @@ import org.vmmagic.unboxed.*;
    * Set the live bit for a given object, without using
    * synchronization primitives---must only be used when contention
    * for live bit is strictly not possible
-   * 
+   *
    * @param object The object whose live bit is to be set.
    */
   @Inline
@@ -800,7 +800,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Set the live bit for a given address
-   * 
+   *
    * @param address The address whose live bit is to be set.
    * @param atomic True if we want to perform this operation atomically
    */
@@ -820,7 +820,7 @@ import org.vmmagic.unboxed.*;
     }
     return oldValue.and(mask).NE(mask);
   }
- 
+
   /**
    * Test the live bit for a given object
    *
@@ -847,7 +847,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Clear the live bit for a given object
-   * 
+   *
    * @param object The object whose live bit is to be cleared.
    */
   @Inline
@@ -857,7 +857,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Clear the live bit for a given address
-   * 
+   *
    * @param address The address whose live bit is to be cleared.
    */
   @Inline
@@ -908,7 +908,7 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   private static int getLiveness(Address block, Extent blockSize,
-      boolean count) { 
+      boolean count) {
     int liveWords = 0;
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(alignToLiveStride(block).EQ(block));
     Address cursor = getLiveWordAddress(block);
@@ -929,7 +929,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Use the live bits for a block to infer free cells and thus
    * construct a free list for the block.
-   * 
+   *
    * @param block The block to be processed
    * @param sizeClass The size class for the block
    * @return The head of the new free list
@@ -939,19 +939,19 @@ import org.vmmagic.unboxed.*;
       VM.assertions._assert(maintainSideBitmap());
     return makeFreeListFromLiveBits(block, sizeClass, Word.zero());
   }
- 
+
   /**
    * Use the live bits for a block to infer free cells and thus
    * construct a free list for the block.
-   * 
+   *
    * @param block The block to be processed
    * @param sizeClass The size class for the block
    * @param markState The current marking state
    * @return The head of the new free list
    */
   @Inline
-  protected final Address makeFreeListFromLiveBits(Address block, 
-                                                   int sizeClass, Word markState) { 
+  protected final Address makeFreeListFromLiveBits(Address block,
+                                                   int sizeClass, Word markState) {
     if (maintainSideBitmap()) {
       Extent cellBytes = Extent.fromIntSignExtend(cellSize[sizeClass]);
       Address cellCursor = block.plus(blockHeaderSize[sizeClass]);
@@ -1020,7 +1020,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Return the live word for a region including a given address
-   * 
+   *
    * @param address The address for which the live word is required
    * @return A word containing live bits for the given address.
    */
@@ -1030,7 +1030,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Given an address, produce a bit mask for the live table
-   * 
+   *
    * @param address The address whose live bit mask is to be established
    * @param set True if we want the mask for <i>setting</i> the bit,
    * false if we want the mask for <i>clearing</i> the bit.
@@ -1046,7 +1046,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Given an address, return the address of the live word for
    * that address.
-   * 
+   *
    * @param address The address whose live word address is to be returned
    * @return The address of the live word for this object
    */
@@ -1057,7 +1057,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Miscellaneous
    */
   public void show() {

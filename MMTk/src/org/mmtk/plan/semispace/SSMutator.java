@@ -24,16 +24,16 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * This class implements <i>per-mutator thread</i> behavior 
+ * This class implements <i>per-mutator thread</i> behavior
  * and state for the <i>SS</i> plan, which implements a full-heap
  * semi-space collector.<p>
- * 
+ *
  * Specifically, this class defines <i>SS</i> mutator-time allocation
  * and per-mutator thread collection semantics (flushing and restoring
  * per-mutator allocator state).<p>
- * 
+ *
  * See {@link SS} for an overview of the semi-space algorithm.<p>
- * 
+ *
  * @see SS
  * @see SSCollector
  * @see StopTheWorldMutator
@@ -47,7 +47,7 @@ import org.vmmagic.pragma.*;
   protected final CopyLocal ss;
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
@@ -59,13 +59,13 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Mutator-time allocation
    */
 
   /**
    * Allocate space (for an object)
-   * 
+   *
    * @param bytes The size of the space to be allocated (in bytes)
    * @param align The requested alignment.
    * @param offset The alignment offset.
@@ -74,7 +74,7 @@ import org.vmmagic.pragma.*;
    * @return The address of the first byte of the allocated region
    */
   @Inline
-  public Address alloc(int bytes, int align, int offset, int allocator, int site) { 
+  public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == SS.ALLOC_SS)
       return ss.alloc(bytes, align, offset, false);
     else
@@ -84,7 +84,7 @@ import org.vmmagic.pragma.*;
   /**
    * Perform post-allocation actions.  For many allocators none are
    * required.
-   * 
+   *
    * @param object The newly allocated object
    * @param typeRef The type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
@@ -92,7 +92,7 @@ import org.vmmagic.pragma.*;
    */
   @Inline
   public void postAlloc(ObjectReference object, ObjectReference typeRef,
-      int bytes, int allocator) { 
+      int bytes, int allocator) {
     if (allocator == SS.ALLOC_SS) return;
     super.postAlloc(object, typeRef, bytes, allocator);
   }
@@ -103,7 +103,7 @@ import org.vmmagic.pragma.*;
    * level of the class hierarchy.  Subclasses must deal with spaces
    * they define and refer to superclasses appropriately.  This exists
    * to support {@link MutatorContext#getOwnAllocator(Allocator)}.
-   * 
+   *
    * @see MutatorContext#getOwnAllocator(Allocator)
    * @param a An allocator
    * @return The space into which <code>a</code> is allocating, or
@@ -119,7 +119,7 @@ import org.vmmagic.pragma.*;
    * Return the allocator instance associated with a space
    * <code>space</code>, for this plan instance.  This exists
    * to support {@link MutatorContext#getOwnAllocator(Allocator)}.
-   * 
+   *
    * @see MutatorContext#getOwnAllocator(Allocator)
    * @param space The space for which the allocator instance is desired.
    * @return The allocator instance associated with this plan instance
@@ -134,7 +134,7 @@ import org.vmmagic.pragma.*;
   /**
    * Give the compiler/runtime statically generated alloction advice
    * which will be passed to the allocation routine at runtime.
-   * 
+   *
    * @param type The type id of the type being allocated
    * @param bytes The size (in bytes) required for this object
    * @param callsite Information identifying the point in the code
@@ -148,20 +148,20 @@ import org.vmmagic.pragma.*;
     return null;
   }
 
-  
+
   /****************************************************************************
-   * 
+   *
    * Collection
    */
 
   /**
    * Perform a per-mutator collection phase.
-   * 
+   *
    * @param phaseId The collection phase to perform
    * @param primary Perform any single-threaded activities using this thread.
    */
   @Inline
-  public void collectionPhase(int phaseId, boolean primary) { 
+  public void collectionPhase(int phaseId, boolean primary) {
     if (phaseId == SS.PREPARE_MUTATOR) {
       super.collectionPhase(phaseId, primary);
       return;
@@ -177,9 +177,9 @@ import org.vmmagic.pragma.*;
     super.collectionPhase(phaseId, primary);
   }
 
-  
+
   /****************************************************************************
-   * 
+   *
    * Miscellaneous
    */
 

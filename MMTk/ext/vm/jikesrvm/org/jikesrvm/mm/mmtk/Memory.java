@@ -39,11 +39,11 @@ import org.vmmagic.pragma.*;
   protected final byte getLogBytesInPageConstant() { return 12; }
   protected final byte getLogMinAlignmentConstant() { return VM_JavaHeader.LOG_MIN_ALIGNMENT;}
   protected final byte getMaxAlignmentShiftConstant() { return VM_SizeConstants.LOG_BYTES_IN_LONG - VM_SizeConstants.LOG_BYTES_IN_INT; }
-  protected final int getMaxBytesPaddingConstant() { return VM_SizeConstants.BYTES_IN_DOUBLE; } 
+  protected final int getMaxBytesPaddingConstant() { return VM_SizeConstants.BYTES_IN_DOUBLE; }
   protected final int getAlignmentValueConstant() { return VM_JavaHeader.ALIGNMENT_VALUE;}
-  
+
   private static ImmortalSpace bootSpace;
-  
+
   /* FIXME the following was established via trial and error :-( */
   //  private static int BOOT_SEGMENT_MB = 4+(BOOT_IMAGE_SIZE.toInt()>>LOG_BYTES_IN_MBYTE);
   private static int BOOT_SEGMENT_MB = (0x10000000>>LOG_BYTES_IN_MBYTE);
@@ -65,9 +65,9 @@ import org.vmmagic.pragma.*;
    * the boot image space is returned.
    */
   @Interruptible
-  public final ImmortalSpace getVMSpace() { 
+  public final ImmortalSpace getVMSpace() {
     if (bootSpace == null)
-      bootSpace = new ImmortalSpace("boot", Plan.DEFAULT_POLL_FREQUENCY, 
+      bootSpace = new ImmortalSpace("boot", Plan.DEFAULT_POLL_FREQUENCY,
                                     BOOT_SEGMENT_MB, false);
     return bootSpace;
   }
@@ -112,7 +112,7 @@ import org.vmmagic.pragma.*;
     }
     return result.toInt();
   }
-  
+
   /**
    * Protects access to an area of virtual memory.
    *
@@ -179,12 +179,12 @@ import org.vmmagic.pragma.*;
    */
 
   @Inline
-  public final void sync() { 
+  public final void sync() {
     VM_Magic.sync();
   }
 
   @Inline
-  public final void isync() { 
+  public final void isync() {
     VM_Magic.isync();
   }
 }

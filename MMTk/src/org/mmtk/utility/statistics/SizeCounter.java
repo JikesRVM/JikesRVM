@@ -18,27 +18,27 @@ import org.vmmagic.pragma.*;
  * This class implements a simple counter of events of different sizes
  * (eg object allocations, where total number of objects and total
  * volume of objects would be counted).
- * 
+ *
  * The counter is trivially composed from two event counters (one for
  * counting the number of events, the other for counting the volume).
  */
 @Uninterruptible public class SizeCounter {
 
   /****************************************************************************
-   * 
+   *
    * Instance variables
    */
   private EventCounter units;
   private EventCounter volume;
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
   /**
    * Constructor
-   * 
+   *
    * @param name The name to be associated with this counter
    */
   public SizeCounter(String name) {
@@ -47,7 +47,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Constructor
-   * 
+   *
    * @param name The name to be associated with this counter
    * @param start True if this counter is to be implicitly started
    * when <code>startAll()</code> is called (otherwise the counter
@@ -59,7 +59,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Constructor
-   * 
+   *
    * @param name The name to be associated with this counter
    * @param start True if this counter is to be implicitly started
    * when <code>startAll()</code> is called (otherwise the counter
@@ -73,13 +73,13 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Counter-specific methods
    */
 
   /**
    * Increment the event counter by <code>value</code>
-   * 
+   *
    * @param value The amount by which the counter should be incremented.
    */
   public void inc(int value) {
@@ -88,7 +88,7 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Generic counter control methods: start, stop, print etc
    */
 

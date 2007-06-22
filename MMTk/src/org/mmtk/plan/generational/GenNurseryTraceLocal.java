@@ -29,7 +29,7 @@ import org.vmmagic.unboxed.*;
 @Uninterruptible public final class GenNurseryTraceLocal extends TraceLocal {
 
   /****************************************************************************
-   * 
+   *
    * Instance fields.
    */
   private final AddressDeque remset;
@@ -46,13 +46,13 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Externally visible Object processing and tracing
    */
 
   /**
    * Is the specified object live?
-   * 
+   *
    * @param object The object.
    * @return True if the object is live.
    */
@@ -71,16 +71,16 @@ import org.vmmagic.unboxed.*;
   /**
    * This method is the core method during the trace of the object graph.
    * The role of this method is to:
-   * 
+   *
    * 1. Ensure the traced object is not collected.
    * 2. If this is the first visit to the object enqueue it to be scanned.
    * 3. Return the forwarded reference to the object.
-   * 
+   *
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
   @Inline
-  public ObjectReference traceObject(ObjectReference object) { 
+  public ObjectReference traceObject(ObjectReference object) {
     if (!object.isNull() && object.toAddress().GE(Gen.NURSERY_START)) {
       if (object.toAddress().LT(Gen.NURSERY_END))
         return Gen.nurserySpace.traceObject(this, object);
@@ -94,7 +94,7 @@ import org.vmmagic.unboxed.*;
    * Process any remembered set entries.
    */
   @Inline
-  protected void processRememberedSets() { 
+  protected void processRememberedSets() {
     logMessage(5, "processing remset");
     while (!remset.isEmpty()) {
       Address loc = remset.pop();
@@ -116,13 +116,13 @@ import org.vmmagic.unboxed.*;
    * @return The allocator to use when copying objects during this trace.
    */
   @Inline
-  public int getAllocator() { 
+  public int getAllocator() {
     return Gen.ALLOC_MATURE_MINORGC;
   }
 
   /**
    * Will the object move from now on during the collection.
-   * 
+   *
    * @param object The object to query.
    * @return True if the object is guaranteed not to move.
    */

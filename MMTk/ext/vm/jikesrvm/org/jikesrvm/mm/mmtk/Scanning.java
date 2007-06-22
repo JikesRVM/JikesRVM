@@ -46,11 +46,11 @@ import org.vmmagic.pragma.*;
    */
   @Inline
   @Uninterruptible
-  public final void scanObject(TraceStep trace, ObjectReference object) { 
+  public final void scanObject(TraceStep trace, ObjectReference object) {
     // Never reached
     if (VM.VerifyAssertions) VM._assert(false);
   }
-  
+
   /**
    * Delegated precopying of a object's children, processing each pointer field
    * encountered. <b>Jikes RVM never delegates, so this is never
@@ -60,11 +60,11 @@ import org.vmmagic.pragma.*;
    */
   @Inline
   @Uninterruptible
-  public final void precopyChildren(TraceLocal trace, ObjectReference object) { 
+  public final void precopyChildren(TraceLocal trace, ObjectReference object) {
     // Never reached
     if (VM.VerifyAssertions) VM._assert(false);
   }
-  
+
   /**
    * Prepares for using the <code>computeAllRoots</code> method.  The
    * thread counter allows multiple GC threads to co-operatively
@@ -85,30 +85,30 @@ import org.vmmagic.pragma.*;
    * are computed the same instances are explicitly scanned and
    * included in the set of roots.  The existence of this method
    * allows the actions of calculating roots and forwarding GC
-   * instances to be decoupled. 
-   * 
+   * instances to be decoupled.
+   *
    * The thread table is scanned in parallel by each processor, by striding
    * through the table at a gap of chunkSize*numProcs.  Feel free to adjust
    * chunkSize if you want to tune a parallel collector.
-   * 
+   *
    * Explicitly no-inlined to prevent over-inlining of collectionPhase.
-   * 
+   *
    * TODO Experiment with specialization to remove virtual dispatch ?
    */
   @NoInline
-  public final void preCopyGCInstances(TraceLocal trace) { 
+  public final void preCopyGCInstances(TraceLocal trace) {
     int chunkSize = 2;
     int threadIndex, start, end, stride;
     VM_CollectorThread ct;
-    
+
     stride = chunkSize * VM_CollectorThread.numCollectors();
     ct = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
     start = (ct.getGCOrdinal() - 1) * chunkSize;
-    
+
     int numThreads = VM_Scheduler.threadHighWatermark+1;
     if (TRACE_PRECOPY)
       VM.sysWriteln(ct.getGCOrdinal()," preCopying ",numThreads," threads");
-    
+
     ObjectReference threadTable = ObjectReference.fromObject(VM_Scheduler.threads);
     while (start < numThreads) {
       end = start + chunkSize;
@@ -121,7 +121,7 @@ import org.vmmagic.pragma.*;
       for (threadIndex = start; threadIndex < end; threadIndex++) {
         VM_Thread thread = VM_Scheduler.threads[threadIndex];
         if (thread != null) {
-          /* Copy the thread object - use address arithmetic to get the address 
+          /* Copy the thread object - use address arithmetic to get the address
            * of the array entry */
           if (TRACE_PRECOPY) {
             VM.sysWriteln(ct.getGCOrdinal()," Forwarding thread ",threadIndex);
@@ -129,7 +129,7 @@ import org.vmmagic.pragma.*;
             VM.sysWriteln(ObjectReference.fromObject(thread).toAddress());
           }
           Address threadTableSlot = threadTable.toAddress().plus(threadIndex<<LOG_BYTES_IN_ADDRESS);
-          if (VM.VerifyAssertions) 
+          if (VM.VerifyAssertions)
             VM._assert(ObjectReference.fromObject(thread).toAddress().EQ(
                 threadTableSlot.loadObjectReference().toAddress()),
             "Thread table address arithmetic is wrong!");
@@ -153,8 +153,8 @@ import org.vmmagic.pragma.*;
       start = start + stride;
     }
   }
-  
- 
+
+
   /**
    * Enumerator the pointers in an object, calling back to a given plan
    * for each pointer encountered. <i>NOTE</i> that only the "real"
@@ -165,7 +165,7 @@ import org.vmmagic.pragma.*;
    */
   @Inline
   @Uninterruptible
-  private static void precopyChildren(TraceLocal trace, Object object) { 
+  private static void precopyChildren(TraceLocal trace, Object object) {
     Scan.precopyChildren(trace,ObjectReference.fromObject(object));
   }
 
@@ -176,13 +176,13 @@ import org.vmmagic.pragma.*;
    * effects (such as copying or forwarding of objects).  There are a
    * number of important preconditions:
    *
-   * <ul> 
+   * <ul>
    * <li> All objects used in the course of GC (such as the GC thread
    * objects) need to be "pre-copied" prior to calling this method.
    * <li> The <code>threadCounter</code> must be reset so that load
    * balancing parallel GC can share the work of scanning threads.
    * </ul>
-   * 
+   *
    * TODO rewrite to avoid the per-thread synchronization, like precopy.
    *
    * @param trace The trace object to use to report root locations.
@@ -191,15 +191,15 @@ import org.vmmagic.pragma.*;
     boolean processCodeLocations = MM_Constants.MOVES_OBJECTS;
      /* scan statics */
     ScanStatics.scanStatics(trace);
- 
+
     /* scan all threads */
     while (true) {
       int threadIndex = threadCounter.increment();
       if (threadIndex > VM_Scheduler.threadHighWatermark) break;
-      
+
       VM_Thread thread = VM_Scheduler.threads[threadIndex];
       if (thread == null) continue;
-      
+
       /* scan the thread (stack etc.) */
       ScanThread.scanThread(thread, trace, processCodeLocations);
 
@@ -220,7 +220,7 @@ import org.vmmagic.pragma.*;
    * scanning the space if it is aware of all pointers out of that space.  This method
    * is used to establish the root set out of the scannable space in the case where
    * such a space exists.
-   *  
+   *
    * @param trace The trace object to use to report root locations.
    */
   public void computeBootImageRoots(TraceLocal trace) {

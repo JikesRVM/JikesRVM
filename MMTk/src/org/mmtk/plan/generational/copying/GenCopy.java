@@ -53,7 +53,7 @@ import org.vmmagic.pragma.*;
 @Uninterruptible public class GenCopy extends Gen {
 
   /****************************************************************************
-   * 
+   *
    * Class variables
    */
 
@@ -76,7 +76,7 @@ import org.vmmagic.pragma.*;
 
 
   /****************************************************************************
-   * 
+   *
    * Instance fields
    */
   final Trace matureTrace;
@@ -110,8 +110,8 @@ import org.vmmagic.pragma.*;
   static int toSpaceDesc() { return hi ? MS1 : MS0; }
 
   /**
-   * @return The semispace we are currently copying from 
-   * (or copied from at last major GC) 
+   * @return The semispace we are currently copying from
+   * (or copied from at last major GC)
    */
   static CopySpace fromSpace() {
     return hi ? matureSpace0 : matureSpace1;
@@ -123,17 +123,17 @@ import org.vmmagic.pragma.*;
   static int fromSpaceDesc() { return hi ? MS0 : MS1; }
 
   /****************************************************************************
-   * 
+   *
    * Collection
    */
 
   /**
    * Perform a phase of the currently active collection.
-   * 
+   *
    * @param phaseId Collection phase to process
    */
   @Inline
-  public void collectionPhase(int phaseId) { 
+  public void collectionPhase(int phaseId) {
     if (traceFullHeap()) {
       if (phaseId == PREPARE) {
         super.collectionPhase(phaseId);
@@ -154,25 +154,25 @@ import org.vmmagic.pragma.*;
   }
 
   /*****************************************************************************
-   * 
+   *
    * Accounting
    */
 
   /**
    * Return the number of pages reserved for use given the pending
    * allocation.
-   * 
+   *
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
   @Inline
-  public int getPagesUsed() { 
+  public int getPagesUsed() {
     return toSpace().reservedPages() + super.getPagesUsed();
   }
 
   /**
    * Return the number of pages reserved for copying.
-   * 
+   *
    * @return the number of pages reserved for copying.
    */
   public final int getCopyReserve() {
@@ -189,7 +189,7 @@ import org.vmmagic.pragma.*;
    * @return The mature space we are currently allocating into
    */
   @Inline
-  public Space activeMatureSpace() { 
+  public Space activeMatureSpace() {
     return toSpace();
   }
 }

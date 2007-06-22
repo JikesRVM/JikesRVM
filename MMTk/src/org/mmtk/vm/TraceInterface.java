@@ -23,13 +23,13 @@ import org.vmmagic.pragma.*;
 
 
   /***********************************************************************
-   * 
+   *
    * Public Methods
    */
 
   /**
    * Returns if the VM is ready for a garbage collection.
-   * 
+   *
    * @return True if the VM is ready for GC, false otherwise.
    */
   public abstract boolean gcEnabled();
@@ -38,7 +38,7 @@ import org.vmmagic.pragma.*;
    * This adjusts the offset into an object to reflect what it would look like
    * if the fields were laid out in memory space immediately after the object
    * pointer.
-   * 
+   *
    * @param isScalar If this is a pointer store to a scalar object
    * @param src The address of the source object
    * @param slot The address within <code>src</code> into which
@@ -54,7 +54,7 @@ import org.vmmagic.pragma.*;
    * information identifying the method the containts the "new" call triggering
    * the allocation, and returns the address of the first non-trace, non-alloc
    * stack frame.
-   * 
+   *
    *@param typeRef The type reference (tib) of the object just allocated
    * @return The frame pointer address for the method that allocated the object
    */
@@ -62,7 +62,7 @@ import org.vmmagic.pragma.*;
   public abstract Address skipOwnFramesAndDump(ObjectReference typeRef);
 
   /***********************************************************************
-   * 
+   *
    * Wrapper methods
    */
   public abstract void updateDeathTime(Object obj);

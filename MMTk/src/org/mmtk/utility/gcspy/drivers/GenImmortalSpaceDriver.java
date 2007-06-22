@@ -26,9 +26,9 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * GCspy driver for the MMTk generational immortal space. 
+ * GCspy driver for the MMTk generational immortal space.
  * Additional Stream for remset references.
- * This class extends ImmortalSpaceDriver, a simple driver for 
+ * This class extends ImmortalSpaceDriver, a simple driver for
  * the contiguous MMTk ImmortalSpace.
  */
 @Uninterruptible public class GenImmortalSpaceDriver extends ImmortalSpaceDriver {
@@ -50,13 +50,13 @@ import org.vmmagic.pragma.*;
    * @param blockSize The tile size
    * @param mainSpace Is this the main space?
    */
-  public GenImmortalSpaceDriver( 
+  public GenImmortalSpaceDriver(
                      ServerInterpreter server,
 		             String spaceName,
                      Space mmtkSpace,
                      int blockSize,
-                     boolean mainSpace) { 
-    
+                     boolean mainSpace) {
+
     super(server, spaceName, mmtkSpace, blockSize, mainSpace);
 
     // create additional stream
@@ -79,26 +79,26 @@ import org.vmmagic.pragma.*;
    */
   protected String getDriverName() {
     return "MMTk GenImmortalSpaceDriver";
-  } 
+  }
 
   /**
    * Heelper methods to create the additional streams
  */
   @Interruptible
-  private ShortStream createRemsetStream() { 
+  private ShortStream createRemsetStream() {
     return VM.newGCspyShortStream(
-                     this, 
+                     this,
                      "Remembered set stream",
-                     (short)0, 
+                     (short)0,
                      // Say, typical size = 4 * typical scalar size?
                      (short)(maxObjectsPerBlock(blockSize)/8),
-                     (short)0, 
                      (short)0,
-                     "Remset references: ", 
+                     (short)0,
+                     "Remset references: ",
                      " references",
                      StreamConstants.PRESENTATION_PLUS,
-                     StreamConstants.PAINT_STYLE_ZERO, 
-                     0, 
+                     StreamConstants.PAINT_STYLE_ZERO,
+                     0,
                      Color.Cyan,
 		             true);
   }
@@ -111,7 +111,7 @@ import org.vmmagic.pragma.*;
     super.setupSummaries();
     remsetStream.setSummary(totalRemset);
   }
-  
+
   /**
    * Handle a remset address
    *
@@ -127,10 +127,10 @@ import org.vmmagic.pragma.*;
       totalRemset++;
       return true;
     }
-    else 
+    else
       return false;
   }
-  
+
   /**
    * Reset the remset Stream
    * The remset Stream has to be reset seperately because we do not
@@ -140,5 +140,5 @@ import org.vmmagic.pragma.*;
     remsetStream.resetData();
     totalRemset = 0;
   }
-  
-} 
+
+}

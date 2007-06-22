@@ -15,21 +15,21 @@ package org.mmtk.vm;
 import org.mmtk.utility.options.Option;
 /**
  * Skeleton for class to handle command-line arguments and options for GC.
- * 
+ *
  **/
 public abstract class Options {
 
   /**
    * Map a name into a key in the VM's format
-   * 
-   * @param name the space delimited name. 
+   *
+   * @param name the space delimited name.
    * @return the VM specific key.
    */
   public abstract String getKey(String name);
 
   /**
    * Failure during option processing. This must never return.
-   * 
+   *
    * @param o The option that was being set.
    * @param message The error message.
    */
@@ -37,7 +37,7 @@ public abstract class Options {
 
   /**
    * Warning during option processing.
-   * 
+   *
    * @param o The option that was being set.
    * @param message The warning message.
    */

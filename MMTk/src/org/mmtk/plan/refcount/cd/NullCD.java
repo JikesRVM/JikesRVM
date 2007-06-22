@@ -22,13 +22,13 @@ import org.vmmagic.unboxed.*;
 @Uninterruptible public final class NullCD extends CD {
 
   /*****************************************************************************
-   * 
+   *
    * Collection
    */
 
   /**
    * Update the CD section of the RC word when an increment is performed
-   * 
+   *
    * @param rcWord The refcount word after the increment.
    * @return The updated status after CD modification
    */
@@ -39,7 +39,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * If the reported decrement succeeds, should we buffer the object?
-   * 
+   *
    * @param rcWord The refcount work post decrement.
    * @return The updated status after CD modification
    */
@@ -47,21 +47,21 @@ import org.vmmagic.unboxed.*;
     // Never
     return false;
   }
-  
+
   /**
    * Allow a free of this object, or is it in a CD data structure
-   * 
+   *
    * @param object The object to check
    * @return True if free is safe
    */
   public boolean allowFree(ObjectReference object) {
     // Always safe
     return true;
-  } 
-  
+  }
+
   /**
    * Update the header on a buffered dec to non-zero RC
-   * 
+   *
    * @param rcWord The refcount work post decrement.
    * @return The updated status after CD modification
    */
@@ -71,17 +71,17 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Update the header on a non-buffered dec to non-zero RC
-   * 
+   *
    * @param rcWord The refcount work post decrement.
    * @return The updated status after CD modification
    */
   public int updateHeaderOnUnbufferedDec(int rcWord) {
     return rcWord;
   }
-  
+
   /**
    * Perform any cycle detector header initialization.
-   * 
+   *
    * @param typeRef Type information for the object.
    * @param rcWord The refcount work post decrement.
    * @return The updated status after CD modification

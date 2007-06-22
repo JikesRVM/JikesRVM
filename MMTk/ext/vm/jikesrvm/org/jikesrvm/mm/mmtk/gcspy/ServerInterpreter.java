@@ -25,15 +25,15 @@ import org.vmmagic.pragma.*;
 /**
  * Generic GCspy Server Interpreter
  *
- * This class implements the GCspy server. 
+ * This class implements the GCspy server.
  * The server runs as a separate pthread and communicates with GCspy
  * clients. It handles commands from the client and passes data to it.
  * Mostly it forwards calls to the C gcspy library.
  */
 @Uninterruptible public class ServerInterpreter extends org.mmtk.vm.gcspy.ServerInterpreter
   implements VM_JavaHeaderConstants {
-  
-  
+
+
   /**
    * Create a new ServerInterpreter singleton.
    * @param name The name of the server
@@ -41,29 +41,29 @@ import org.vmmagic.pragma.*;
    * @param verbose Whether the server is to run verbosely
    */
   @Interruptible
-  public void init (String name, int port, boolean verbose) { 
+  public void init (String name, int port, boolean verbose) {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
       if (VM.VERIFY_ASSERTIONS)
         VM.assertions._assert(!initialised, "Tried to re-init server interpreter");
       initialised = true;
-      
-      if (DEBUG) 
+
+      if (DEBUG)
         Log.writeln("-- Initialising main server on port ",port);
-      
+
       Address tmp = GCspy.util.getBytes(name);
       server = sysCall.gcspyMainServerInit(port, MAX_LEN, tmp, verbose?1:0);
-      
+
       if (DEBUG) {
-        Log.writeln("gcspy_main_server_t address = "); Log.writeln(server); 
+        Log.writeln("gcspy_main_server_t address = "); Log.writeln(server);
       }
-      
+
       GCspy.util.free(tmp);
       // Set up the list of ServerSpaces
       spaces = new org.jikesrvm.mm.mmtk.gcspy.ServerSpace[MAX_SPACES];
     }
   }
- 
-  /** 
+
+  /**
    * Add an event to the ServerInterpreter.
    * @param num the event number
    * @param name the event name
@@ -71,9 +71,9 @@ import org.vmmagic.pragma.*;
   public void addEvent (int num, String name) {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
       if (VM.VERIFY_ASSERTIONS)
-        VM.assertions._assert(initialised, 
+        VM.assertions._assert(initialised,
                        "ServerInterpreter.addEvent: server not initiialised");
-      
+
       Address tmp = GCspy.util.getBytes(name);
       sysCall.gcspyMainServerAddEvent(server, num, tmp);
       GCspy.util.free(tmp);
@@ -87,15 +87,15 @@ import org.vmmagic.pragma.*;
   public void setGeneralInfo(String info) {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
       if (VM.VERIFY_ASSERTIONS)
-        VM.assertions._assert(initialised, 
+        VM.assertions._assert(initialised,
                        "ServerInterpreter.setGeneralInfo: server not initiialised");
-      
+
       Address tmp = GCspy.util.getBytes(info);
       sysCall.gcspyMainServerSetGeneralInfo(server, tmp);
       GCspy.util.free(tmp);
     }
-  } 
-  
+  }
+
   /**
    * Start the server, running its main loop in a pthread.
    * @param wait Whether to wait for the client to connect
@@ -103,7 +103,7 @@ import org.vmmagic.pragma.*;
   public void startServer(boolean wait) {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
       if (DEBUG) { Log.write("Starting GCSpy server, wait="); Log.writeln(wait); }
-      
+
       Address serverOuterLoop = sysCall.gcspyMainServerOuterLoop();
       sysCall.gcspyStartserver(server, wait?1:0, serverOuterLoop);
     }
@@ -118,16 +118,16 @@ import org.vmmagic.pragma.*;
     if (org.jikesrvm.VM.BuildWithGCSpy) {
       if (DEBUG)
         Log.writeln("ServerInterpreter.isConnected, server=", server);
-      
-      if (!initialised) 
+
+      if (!initialised)
         return false;
       int res = sysCall.gcspyMainServerIsConnected(server, event);
       return (res != 0);
       }
-    else 
+    else
       return false;
   }
-  
+
   /**
    * Start compensation timer so that time spent gathering data is
    * not confused with the time spent in the application and the VM.
@@ -135,13 +135,13 @@ import org.vmmagic.pragma.*;
   public void startCompensationTimer() {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
       if (VM.VERIFY_ASSERTIONS)
-        VM.assertions._assert(initialised, 
+        VM.assertions._assert(initialised,
                        "ServerInterpreter.startCompensationTimer: server not initiialised");
-      
+
       sysCall.gcspyMainServerStartCompensationTimer(server);
     }
   }
-  
+
   /**
    * Stop compensation timer so that time spent gathering data is
    * not confused with the time spent in the application and the VM.r
@@ -149,9 +149,9 @@ import org.vmmagic.pragma.*;
   public void stopCompensationTimer() {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
       if (VM.VERIFY_ASSERTIONS)
-        VM.assertions._assert(initialised, 
+        VM.assertions._assert(initialised,
                        "ServerInterpreter.stopCompensationTimer: server not initiialised");
-      
+
       sysCall.gcspyMainServerStopCompensationTimer(server);
     }
   }
@@ -165,8 +165,8 @@ import org.vmmagic.pragma.*;
     if (org.jikesrvm.VM.BuildWithGCSpy) {
       if (DEBUG)
         Log.writeln("ServerInterpreter.serverSafepoint, server=", server);
-      
-      if (!initialised) 
+
+      if (!initialised)
         return;
       sysCall.gcspyMainServerSafepoint(server, event);
     }

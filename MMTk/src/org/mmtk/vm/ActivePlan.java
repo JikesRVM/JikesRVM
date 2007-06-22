@@ -38,7 +38,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Return the <code>CollectorContext</code> instance given its unique identifier.
-   * 
+   *
    * @param id The identifier of the <code>CollectorContext</code>  to return
    * @return The specified <code>CollectorContext</code>
    */
@@ -46,7 +46,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Return the <code>MutatorContext</code> instance given its unique identifier.
-   * 
+   *
    * @param id The identifier of the <code>MutatorContext</code>  to return
    * @return The specified <code>MutatorContext</code>
    */
@@ -64,7 +64,7 @@ import org.vmmagic.pragma.*;
   /**
    * Return the next <code>MutatorContext</code> in a
    * synchronized iteration of all mutators.
-   * 
+   *
    * @return The next <code>MutatorContext</code> in a
    *  synchronized iteration of all mutators, or
    *  <code>null</code> when all mutators have been done.
@@ -73,19 +73,19 @@ import org.vmmagic.pragma.*;
 
   /**
    * Register a new <code>CollectorContext</code> instance.
-   * 
+   *
    * @param collector The <code>CollectorContext</code> to register.
    * @return The <code>CollectorContext</code>'s unique identifier
    */
   @Interruptible
-  public abstract int registerCollector(CollectorContext collector); 
+  public abstract int registerCollector(CollectorContext collector);
 
   /**
    * Register a new <code>MutatorContext</code> instance.
-   * 
+   *
    * @param mutator The <code>MutatorContext</code> to register.
    * @return The <code>MutatorContext</code>'s unique identifier
    */
   @Interruptible
-  public abstract int registerMutator(MutatorContext mutator); 
+  public abstract int registerMutator(MutatorContext mutator);
 }

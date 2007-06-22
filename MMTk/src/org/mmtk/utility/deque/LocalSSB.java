@@ -48,13 +48,13 @@ import org.vmmagic.unboxed.*;
 @Uninterruptible class LocalSSB extends Deque implements Constants {
 
   /****************************************************************************
-   * 
+   *
    * Public instance methods
    */
 
   /**
    * Constructor
-   * 
+   *
    * @param queue The shared queue to which this local ssb will append
    * its buffers (when full or flushed).
    */
@@ -81,7 +81,7 @@ import org.vmmagic.unboxed.*;
   }
 
  /****************************************************************************
-   * 
+   *
    * Protected instance methods and fields
    */
   protected Address tail; // the location in the buffer
@@ -105,7 +105,7 @@ import org.vmmagic.unboxed.*;
    * buffer must contain enough space for this many words.
    */
   @Inline
-  protected final void checkTailInsert(int arity) { 
+  protected final void checkTailInsert(int arity) {
     if (bufferOffset(tail).isZero())
       tailOverflow(arity);
     else if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(bufferOffset(tail).sGE(Word.fromIntZeroExtend(arity).lsh(LOG_BYTES_IN_ADDRESS).toOffset()));
@@ -115,11 +115,11 @@ import org.vmmagic.unboxed.*;
    * Insert a value into the buffer.  This is <i>unchecked</i>.  The
    * caller must first call <code>checkInsert()</code> to ensure the
    * buffer can accommodate the insertion.
-   * 
+   *
    * @param value the value to be inserted.
    */
   @Inline
-  protected final void uncheckedTailInsert(Address value) { 
+  protected final void uncheckedTailInsert(Address value) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(bufferOffset(tail).sGE(Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)));
     tail = tail.minus(BYTES_IN_ADDRESS);
     tail.store(value);
@@ -134,7 +134,7 @@ import org.vmmagic.unboxed.*;
    * (which allows a simple test against the base to be used when
    * popping entries).  This is <i>expensive</i>, so should be
    * avoided.
-   * 
+   *
    * @param arity The arity of the buffer in question
    * @return The last slot in the normalized buffer that contains an entry
    */
@@ -153,24 +153,24 @@ import org.vmmagic.unboxed.*;
   /**
    * Return the sentinel offset for a buffer of a given arity.  This is used
    * both to compute the address at the end of the buffer.
-   * 
+   *
    * @param arity The arity of this buffer
    * @return The sentinel offset value for a buffer of the given arity.
    */
   @Inline
-  protected final Offset bufferSentinel(int arity) { 
+  protected final Offset bufferSentinel(int arity) {
     return bufferLastOffset(arity).plus(BYTES_IN_ADDRESS);
   }
 
   /****************************************************************************
-   * 
+   *
    * Private instance methods
    */
 
   /**
    * Buffer space has been exhausted, allocate a new buffer and enqueue
    * the existing buffer (if any).
-   * 
+   *
    * @param arity The arity of this buffer (used for sanity test only).
    */
   private void tailOverflow(int arity) {
@@ -186,7 +186,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Close the tail buffer (normalizing if necessary), and enqueue it
    * at the tail of the shared buffer queue.
-   * 
+   *
    *  @param arity The arity of this buffer.
    */
   @NoInline
@@ -201,10 +201,10 @@ import org.vmmagic.unboxed.*;
     }
     queue.enqueue(last.plus(BYTES_IN_ADDRESS), arity, true);
   }
-  
+
   /**
    * Return true if this SSB is locally empty
-   * 
+   *
    * @return true if this SSB is locally empty
    */
   public final boolean isFlushed() {

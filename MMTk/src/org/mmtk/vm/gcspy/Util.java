@@ -21,10 +21,10 @@ import org.vmmagic.pragma.*;
  * methods.
  */
 @Uninterruptible public abstract class Util {
-  
+
   /**
    * Allocate an array of bytes with malloc
-   * 
+   *
    * @param size The size to allocate
    * @return The start address of the memory allocated in C space
    * @see #free
@@ -33,15 +33,15 @@ import org.vmmagic.pragma.*;
 
   /**
    * Free an array of bytes previously allocated with malloc
-   * 
+   *
    * @param addr The address of some memory previously allocated with malloc
    * @see #malloc
    */
   public abstract void free(Address addr);
-  
+
   /**
    * Dump a range in format [start,end)
-   * 
+   *
    * @param start The start of the range
    * @param end The end of the range
    */
@@ -61,15 +61,15 @@ import org.vmmagic.pragma.*;
 
   /**
    * Pretty print a size, converting from bytes to kilo- or mega-bytes as appropriate
-   * 
+   *
    * @param buffer The buffer (in C space) in which to place the formatted size
    * @param size The size in bytes
    */
   public abstract void formatSize(Address buffer, int size);
- 
+
   /**
    * Pretty print a size, converting from bytes to kilo- or mega-bytes as appropriate
-   * 
+   *
    * @param format A format string
    * @param bufsize The size of a buffer large enough to hold the formatted result
    * @param size The size in bytes
@@ -81,7 +81,7 @@ import org.vmmagic.pragma.*;
   /**
    * Place a string representation of a long in an array of bytes
    * without incurring allocation
-   * 
+   *
    * @param buffer The byte array
    * @param value The long to convert
    * @return The length of the string representation of the integer
@@ -90,11 +90,11 @@ import org.vmmagic.pragma.*;
   public static int numToBytes(byte[] buffer, long value) {
     return numToBytes(buffer, value, 10);
   }
-  
+
   /**
    * Place a string representation of a long in an array of bytes
    * without incurring allocation
-   * 
+   *
    * @param buffer The byte array
    * @param value The long to convert
    * @param radix the base to use for conversion
@@ -105,12 +105,12 @@ import org.vmmagic.pragma.*;
 
     if (radix < Character.MIN_RADIX || radix > Character.MAX_RADIX)
       radix = 10;
-    
+
     if (value == 0) {
       buffer[0] = (byte)'0';
       return 1;
     }
-    
+
     boolean negative;
     long longValue;
     int count;
@@ -121,12 +121,12 @@ import org.vmmagic.pragma.*;
       longValue = value;
       count = 2;
     }
-    
+
     long j = longValue;
     while ((j /= radix) != 0) count++;
     if (count > buffer.length)
       return -1; // overflow
-    
+
     int i = count;
     do {
       int ch = (int) -(longValue % radix);
@@ -137,23 +137,23 @@ import org.vmmagic.pragma.*;
       buffer [--i] = (byte) ch;
     } while ((longValue /= radix) != 0);
     if (negative) buffer [0] = (byte)'-';
-    
+
     return count;
 
   }
 
   /**
    * sprintf(char *str, char *format, char* value)
-   * 
+   *
    * @param str The destination 'string' (memory in C space)
    * @param format The format 'string' (memory in C space)
    * @param value The value 'string' (memory in C space)
    * @return The number of characters printed (as returned by C's sprintf
    */
   public abstract int sprintf(Address str, Address format, Address value);
-  
+
   /**
-   * Create an array of a particular type. 
+   * Create an array of a particular type.
    * The easiest way to use this is:
    *     Foo[] x = (Foo [])Stream.createDataArray(new Foo[0], numElements);
    * @param templ a data array to use as a template
@@ -161,6 +161,6 @@ import org.vmmagic.pragma.*;
    * @return the new array
    */
   @Interruptible
-  public abstract Object createDataArray(Object templ, int numElements); 
+  public abstract Object createDataArray(Object templ, int numElements);
 }
 

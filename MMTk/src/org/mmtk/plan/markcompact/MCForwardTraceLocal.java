@@ -33,13 +33,13 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Externally visible Object processing and tracing
    */
 
   /**
    * Is the specified object live?
-   * 
+   *
    * @param object The object.
    * @return True if the object is live.
    */
@@ -54,19 +54,19 @@ import org.vmmagic.unboxed.*;
   /**
    * This method is the core method during the trace of the object graph.
    * The role of this method is to:
-   * 
+   *
    * 1. Ensure the traced object is not collected.
    * 2. If this is the first visit to the object enqueue it to be scanned.
    * 3. Return the forwarded reference to the object.
-   * 
+   *
    * In this instance, we refer objects in the mark-sweep space to the
    * msSpace for tracing, and defer to the superclass for all others.
-   * 
+   *
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
   @Inline
-  public ObjectReference traceObject(ObjectReference object) { 
+  public ObjectReference traceObject(ObjectReference object) {
     if (object.isNull()) return object;
     if (Space.isInSpace(MC.MARK_COMPACT, object))
       return MC.mcSpace.traceForwardObject(this, object);
@@ -75,7 +75,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Will this object move from this point on, during the current trace ?
-   * 
+   *
    * @param object The object to query.
    * @return True if the object will not move.
    */
@@ -85,12 +85,12 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Ensure that this object will not move for the rest of the GC.
-   * 
+   *
    * @param object The object that must not move
    * @return The new object, guaranteed stable for the rest of the GC.
    */
   @Inline
-  public ObjectReference precopyObject(ObjectReference object) { 
+  public ObjectReference precopyObject(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) {
       // All precopying must occur during the initial trace.
       VM.assertions._assert(!Space.isInSpace(MC.MARK_COMPACT, object));

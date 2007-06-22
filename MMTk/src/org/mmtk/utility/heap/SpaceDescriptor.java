@@ -22,7 +22,7 @@ import org.vmmagic.unboxed.*;
 
 /**
  * This class manages the encoding and decoding of space descriptors.<p>
- * 
+ *
  * Space descriptors are integers that encode a space's mapping into
  * virtual memory.  For discontigious spaces, they indicate
  * discontiguity and mapping must be done by consulting the space map.
@@ -38,7 +38,7 @@ import org.vmmagic.unboxed.*;
 @Uninterruptible public class SpaceDescriptor implements Constants {
 
   /****************************************************************************
-   * 
+   *
    * Class variables
    */
 
@@ -58,13 +58,13 @@ import org.vmmagic.unboxed.*;
   private static final int VM_BASE_EXPONENT = BITS_IN_INT - VM_MANTISSA_BITS;
 
   /****************************************************************************
-   * 
+   *
    * Descriptor creation
    */
 
   /**
    * Create a descriptor for a <i>contigious</i> space
-   * 
+   *
    * @param start The start address of the space
    * @param end The end address of the space
    * @return An integer descriptor encoding the region of virtual
@@ -87,14 +87,14 @@ import org.vmmagic.unboxed.*;
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(tmp.lsh(VM_BASE_EXPONENT + exponent).EQ(start.toWord()));
     return (mantissa<<VM_MANTISSA_SHIFT)
-      | (exponent<<VM_EXPONENT_SHIFT) 
+      | (exponent<<VM_EXPONENT_SHIFT)
         | (chunks << VM_SIZE_SHIFT)
         | ((top) ? VM_TYPE_CONTIGUOUS_HI : VM_TYPE_CONTIGUOUS);
   }
 
   /**
    * Create a descriptor for a <i>dis-contigious</i> (shared) space
-   * 
+   *
    * @return An integer descriptor reflecting the fact that this space
    * is shared (and thus discontigious and so must be established via
    * maps).
@@ -104,42 +104,42 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Descriptor interrogation
    */
 
   /**
    * Return true if this descriptor describes a contigious space
-   * 
+   *
    * @param descriptor
    * @return True if this descriptor describes a contigious space
    */
   @Inline
-  public static boolean isContiguous(int descriptor) { 
+  public static boolean isContiguous(int descriptor) {
     return ((descriptor & VM_TYPE_CONTIGUOUS) == VM_TYPE_CONTIGUOUS);
   }
 
   /**
    * Return true if this descriptor describes a contigious space that
    * is at the top of the virtual address space
-   * 
+   *
    * @param descriptor
    * @return True if this descriptor describes a contigious space that
    * is at the top of the virtual address space
    */
   @Inline
-  public static boolean isContiguousHi(int descriptor) { 
+  public static boolean isContiguousHi(int descriptor) {
     return ((descriptor & VM_TYPE_MASK) == VM_TYPE_CONTIGUOUS_HI);
   }
 
   /**
    * Return the start of this region of memory encoded in this descriptor
-   * 
+   *
    * @param descriptor
    * @return The start of this region of memory encoded in this descriptor
    */
   @Inline
-  public static Address getStart(int descriptor) { 
+  public static Address getStart(int descriptor) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isContiguous(descriptor));
     Word mantissa = Word.fromIntSignExtend(descriptor >>> VM_MANTISSA_SHIFT);
     int exponent = (descriptor & VM_EXPONENT_MASK) >>> VM_EXPONENT_SHIFT;
@@ -149,13 +149,13 @@ import org.vmmagic.unboxed.*;
   /**
    * Return the size of the region of memory encoded in this
    * descriptor, in chunks
-   * 
+   *
    * @param descriptor
    * @return The size of the region of memory encoded in this
    * descriptor, in chunks
    */
   @Inline
-  public static int getChunks(int descriptor) { 
+  public static int getChunks(int descriptor) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isContiguous(descriptor));
     return (descriptor & VM_SIZE_MASK) >>> VM_SIZE_SHIFT;
   }

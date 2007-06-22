@@ -30,7 +30,7 @@ import org.vmmagic.unboxed.*;
  * the point of global synchronization, and synchronization only
  * occurs at the granularity of aquiring (and releasing) chunks of
  * memory from the VMResource.
- * 
+ *
  * If there are C CPUs and T LargeObjectSpaces, there must be C X T
  * instances of this class, one for each CPU, LargeObjectSpace pair.
  */
@@ -38,23 +38,23 @@ import org.vmmagic.unboxed.*;
   implements Constants {
 
   /****************************************************************************
-   * 
+   *
    * Class variables
    */
 
   /****************************************************************************
-   * 
+   *
    * Instance variables
    */
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
   /**
    * Constructor
-   * 
+   *
    * @param space The large object space to which this thread instance
    * is bound.
    */
@@ -64,7 +64,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Allocation
    */
 
@@ -73,16 +73,16 @@ import org.vmmagic.unboxed.*;
    *  reused, this will be called each time it is reused in the
    *  lifetime of the cell, by contrast to initializeCell, which is
    *  called exactly once.).
-   * 
+   *
    * @param cell The newly allocated cell
    */
   @Inline
-  protected void postAlloc (Address cell) { 
+  protected void postAlloc (Address cell) {
     space.getCells().add(DoublyLinkedList.payloadToNode(cell));
   }
 
   /****************************************************************************
-   * 
+   *
    * Collection
    */
 
@@ -98,7 +98,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Free an object
-   * 
+   *
    * @param space The space the object is allocated in.
    * @param object The object to be freed.
    */
@@ -110,7 +110,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Miscellaneous size-related methods
    */
 
@@ -118,22 +118,22 @@ import org.vmmagic.unboxed.*;
    * Return the size of the per-superpage header required by this
    * system.  In this case it is just the underlying superpage header
    * size.
-   * 
+   *
    * @return The size of the per-superpage header required by this
    * system.
    */
   @Inline
-  protected int superPageHeaderSize() { 
-    return DoublyLinkedList.headerSize(); 
+  protected int superPageHeaderSize() {
+    return DoublyLinkedList.headerSize();
   }
 
   /**
    * Return the size of the per-cell header for cells of a given class
    * size.
-   * 
+   *
    * @return The size of the per-cell header for cells of a given class
    * size.
    */
   @Inline
-  protected int cellHeaderSize() { return 0; } 
+  protected int cellHeaderSize() { return 0; }
 }

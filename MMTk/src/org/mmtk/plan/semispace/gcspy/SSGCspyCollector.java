@@ -27,9 +27,9 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements <i>per-collector thread</i> behavior and state for the
  * <i>SSGCspy</i> plan.<p>
- * 
+ *
  * See {@link SSGCspy} for an overview of the GC-spy mechanisms.<p>
- * 
+ *
  * @see SSCollector
  * @see SSGCspy
  * @see SSGCspyMutator
@@ -40,7 +40,7 @@ import org.vmmagic.pragma.*;
 @Uninterruptible public class SSGCspyCollector extends SSCollector {
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
@@ -56,16 +56,16 @@ import org.vmmagic.pragma.*;
   public SSGCspyCollector() {
     super(new SSGCspyTraceLocal(global().ssTrace));
   }
-  
-  
+
+
   /****************************************************************************
-   * 
+   *
    * Data gathering
    */
-  
+
   /**
    * Perform a (local) collection phase.
-   * Before a collection, we need to discover 
+   * Before a collection, we need to discover
    * <ul>
    * <li>the tospace objects copied by the collector in the last GC cycle
    * <li>the semispace objects allocated since by the mutator.
@@ -80,12 +80,12 @@ import org.vmmagic.pragma.*;
    * </ul>
    */
   @Inline
-  public final void collectionPhase(int phaseId, boolean primary) { 
+  public final void collectionPhase(int phaseId, boolean primary) {
     if (DEBUG) { Log.write("--Phase Collector."); Log.writeln(Phase.getName(phaseId)); }
-    
+
     //TODO do we need to worry any longer about primary??
     if (phaseId == SS.PREPARE) {
-      //if (primary) 
+      //if (primary)
         gcspyGatherData(SSGCspy.BEFORE_COLLECTION);
       super.collectionPhase(phaseId, primary);
       return;
@@ -93,16 +93,16 @@ import org.vmmagic.pragma.*;
 
     if (phaseId == SS.FORWARD_FINALIZABLE) {
       super.collectionPhase(phaseId, primary);
-      //if (primary) 
+      //if (primary)
         gcspyGatherData(SSGCspy.SEMISPACE_COPIED);
       return;
     }
-    
+
     if (phaseId == SS.RELEASE) {
-      //if (primary) 
+      //if (primary)
         //gcspyGatherData(SSGCspy.SEMISPACE_COPIED);
       super.collectionPhase(phaseId, primary);
-      //if (primary) 
+      //if (primary)
         gcspyGatherData(SSGCspy.AFTER_COLLECTION);
       return;
     }
@@ -119,7 +119,7 @@ import org.vmmagic.pragma.*;
    * addresses of the semispace. However, per-object information can only be
    * gathered by sweeping through the space and we do this here for tutorial
    * purposes.
-   * 
+   *
    * @param event
    *          The event, either BEFORE_COLLECTION, SEMISPACE_COPIED or
    *          AFTER_COLLECTION
@@ -129,7 +129,7 @@ import org.vmmagic.pragma.*;
       Log.writeln("SSGCspyCollector.gcspyGatherData, event=", event);
       Log.writeln("SSGCspyCollector.gcspyGatherData, port=", GCspy.getGCspyPort());
     }
-    
+
     // If port = 0 there can be no GCspy client connected
     if (GCspy.getGCspyPort() == 0)
       return;
@@ -138,49 +138,49 @@ import org.vmmagic.pragma.*;
     // event, then we gather data. But first we start a timer to
     // compensate for the time spent gathering data here.
     if (GCspy.server.isConnected(event)) {
-      
+
       if (DEBUG) {
-        if (SSGCspy.hi) 
+        if (SSGCspy.hi)
           Log.write("\nCollector Examining Lowspace (event ", event);
-        else    
+        else
           Log.write("\nCollector Examining Highspace (event ", event);
         Log.write(")");
         SSGCspy.reportSpaces(); Log.writeln();
       }
-          
+
       if (event == SSGCspy.BEFORE_COLLECTION) {
         if (DEBUG) debugSpaces(SSGCspy.fromSpace());
-        
+
         // Just send the old values again
         if (DEBUG) {
           Log.write("SSGCspyCollector.gcspyGatherData transmit driver, ");
           Log.writeln(SSGCspy.fromSpace().getName());
         }
-        
+
         fromSpaceDriver().transmit(event);
         // Mutator.gcspyGatherData follows so leave safepoint to there.
       }
-      
-      
+
+
       else if (event == SSGCspy.SEMISPACE_COPIED) {
         if (DEBUG) debugSpaces(SSGCspy.toSpace());
-        
+
         // We need to reset, scan and send values for tospace
         // We'll leave resetting fromspace to AFTER_COLLECTION
         if (DEBUG) {
           Log.write("SSGCspyCollector.gcspyGatherData reset, gather and transmit driver ");
           Log.writeln(SSGCspy.toSpace().getName());
         }
-        
+
         GCspy.server.startCompensationTimer();
-        toSpaceDriver().resetData(); 
+        toSpaceDriver().resetData();
         ss.gcspyGatherData(toSpaceDriver(), SSGCspy.toSpace());
         GCspy.server.stopCompensationTimer();
         toSpaceDriver().transmit(event);
-        
+
         // We'll leave the safepoint to RELEASE_MUTATOR
       }
-      
+
       else if (event == SSGCspy.AFTER_COLLECTION) {
         if (DEBUG) {
           Log.write("SSGCspyCollector.gcspyGatherData transmit toSpaceDriver, ");
@@ -188,16 +188,16 @@ import org.vmmagic.pragma.*;
           Log.write("SSGCspyCollector.gcspyGatherData reset fromSpaceDriver, ");
           Log.writeln(SSGCspy.fromSpace().getName());
         }
-        
+
         toSpaceDriver().transmit(event);
-        
+
         // Here we reset fromspace data
         fromSpaceDriver().resetData();
         Address start = SSGCspy.fromSpace().getStart();
         fromSpaceDriver().setRange(start, start);
         fromSpaceDriver().transmit(event);
       }
-      
+
     }
     // else Log.write("not transmitting...");
   }
@@ -206,7 +206,7 @@ import org.vmmagic.pragma.*;
    * Print some debugging info
    * @param scannedSpace
    */
-  private void debugSpaces(CopySpace scannedSpace) {  
+  private void debugSpaces(CopySpace scannedSpace) {
     Log.write("SSGCspyCollector.gcspyGatherData: gather data for active semispace ");
     Log.write(scannedSpace.getStart()); Log.write("-",ss.getCursor()); Log.flush();
     Log.write(". The space is: "); Log.writeln(ss.getSpace().getName());
@@ -215,11 +215,11 @@ import org.vmmagic.pragma.*;
     Log.write(" to "); Log.writeln(ss.getCursor());
     SSGCspy.reportSpaces();
   }
-  
+
   /**
    * Reset all root streams.<p>
    */
-  void resetRootStreams() { 
+  void resetRootStreams() {
     SSGCspy.ss0Driver.resetRootsStream();
     SSGCspy.ss1Driver.resetRootsStream();
     SSGCspy.immortalDriver.resetRootsStream();
@@ -235,9 +235,9 @@ import org.vmmagic.pragma.*;
    * @param addr The Address of the object to be checked
    */
   protected void checkAllDriversForRootAddress(Address addr) {
-    if(addr.isZero()) 
+    if(addr.isZero())
       return;
-    
+
     SSGCspy.ss0Driver.handleRoot(addr);
     SSGCspy.ss1Driver.handleRoot(addr);
     SSGCspy.immortalDriver.handleRoot(addr);
@@ -248,7 +248,7 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Miscellaneous
    */
 
@@ -259,12 +259,12 @@ import org.vmmagic.pragma.*;
   }
 
   /** @return the driver for toSpace */
-  private LinearSpaceDriver toSpaceDriver() { 
+  private LinearSpaceDriver toSpaceDriver() {
     return SSGCspy.hi ? SSGCspy.ss1Driver : SSGCspy.ss0Driver;
   }
-  
+
   /** @return the driver for fromSpace */
-  private LinearSpaceDriver fromSpaceDriver() { 
+  private LinearSpaceDriver fromSpaceDriver() {
     return SSGCspy.hi ? SSGCspy.ss0Driver : SSGCspy.ss1Driver;
   }
 }

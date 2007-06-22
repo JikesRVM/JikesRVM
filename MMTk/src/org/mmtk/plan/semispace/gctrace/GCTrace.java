@@ -80,7 +80,7 @@ import org.vmmagic.pragma.*;
 @Uninterruptible public class GCTrace extends SS {
 
   /****************************************************************************
-   * 
+   *
    * Class variables
    */
 
@@ -95,7 +95,7 @@ import org.vmmagic.pragma.*;
   public static boolean finalDead = false;
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
@@ -110,10 +110,10 @@ import org.vmmagic.pragma.*;
 
   /**
    * The postBoot method is called by the runtime immediately after
-   * command-line arguments are available. 
+   * command-line arguments are available.
    */
   @Interruptible
-  public void postBoot() { 
+  public void postBoot() {
     Options.noFinalizer.setValue(true);
   }
 
@@ -141,12 +141,12 @@ import org.vmmagic.pragma.*;
    * <code>collect()</code> method of this class or its superclass.<p>
    *
    * This method is clearly interruptible since it can lead to a GC.
-   * However, the caller is typically uninterruptible and this fiat allows 
-   * the interruptibility check to work.  The caveat is that the caller 
-   * of this method must code as though the method is interruptible. 
+   * However, the caller is typically uninterruptible and this fiat allows
+   * the interruptibility check to work.  The caveat is that the caller
+   * of this method must code as though the method is interruptible.
    * In practice, this means that, after this call, processor-specific
    * values must be reloaded.
-   * 
+   *
    * @see org.mmtk.policy.Space#acquire(int)
    * @param vmExhausted Virtual Memory range for space is exhausted.
    * @param space the space that triggered the polling (i.e. the space
@@ -154,7 +154,7 @@ import org.vmmagic.pragma.*;
    * @return True if a collection has been triggered
    */
   @LogicallyUninterruptible
-  public boolean poll(boolean vmExhausted, Space space) { 
+  public boolean poll(boolean vmExhausted, Space space) {
     if (getCollectionsInitiated() > 0 || !isInitialized() || space == metaDataSpace || space == traceSpace)
       return false;
 
@@ -174,7 +174,7 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Collection
    */
 
@@ -204,9 +204,9 @@ import org.vmmagic.pragma.*;
     }
   }
 
-  
+
   /****************************************************************************
-   * 
+   *
    * Space management
    */
 

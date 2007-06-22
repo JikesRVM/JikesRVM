@@ -33,13 +33,13 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Externally visible Object processing and tracing
    */
 
   /**
    * Is the specified object live?
-   * 
+   *
    * @param object The object.
    * @return True if the object is live.
    */
@@ -54,44 +54,44 @@ import org.vmmagic.unboxed.*;
   /**
    * This method is the core method during the trace of the object graph.
    * The role of this method is to:
-   * 
-   * For reference counting, we simply try to enumerate all 'roots' 
-   * into the reference counted spaces. 
-   * 
+   *
+   * For reference counting, we simply try to enumerate all 'roots'
+   * into the reference counted spaces.
+   *
    * @param object The object to be traced.
    * @param root is this object a root
    * @return The new reference to the same object instance.
    */
   @Inline
-  public ObjectReference traceObject(ObjectReference object, boolean root) { 
+  public ObjectReference traceObject(ObjectReference object, boolean root) {
     if (root && RC.isRCObject(object)) {
       collector().reportRoot(object);
     }
     return object;
   }
-  
+
   /**
    * This method is the core method during the trace of the object graph.
    * The role of this method is to:
-   * 
+   *
    * For reference counting, we never do anything with non-root objects.
-   * 
+   *
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
   @Inline
-  public ObjectReference traceObject(ObjectReference object) { 
+  public ObjectReference traceObject(ObjectReference object) {
     return object;
   }
-  
-  
+
+
   /**
    * Miscellaneous
    */
 
   /**
    * Called during the trace to process any remsets. As there is a bug
-   * in JikesRVM where write barriers occur during GC, this is 
+   * in JikesRVM where write barriers occur during GC, this is
    * necessary.
    */
   public void flushRememberedSets() {
@@ -107,7 +107,7 @@ import org.vmmagic.unboxed.*;
   private static RCCollector collector() {
     return (RCCollector)VM.activePlan.collector();
   }
-  
+
   /**
    * Return true if an object is ready to move to the finalizable
    * queue, i.e. it has no regular references to it.

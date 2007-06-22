@@ -22,8 +22,8 @@ import org.vmmagic.unboxed.*;
 @Uninterruptible public abstract class Scanning implements Constants {
   /**
    * Delegated scanning of a object, processing each pointer field
-   * encountered. 
-   * 
+   * encountered.
+   *
    * @param object The object to be scanned.
    */
   public abstract void scanObject(TraceStep trace, ObjectReference object);
@@ -31,7 +31,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Delegated precopying of a object's children, processing each pointer field
    * encountered.
-   * 
+   *
    * @param trace The trace object to use for precopying.
    * @param object The object to be scanned.
    */
@@ -55,7 +55,7 @@ import org.vmmagic.unboxed.*;
    * are computed the same instances are explicitly scanned and
    * included in the set of roots.  The existence of this method
    * allows the actions of calculating roots and forwarding GC
-   * instances to be decoupled. 
+   * instances to be decoupled.
    */
   public abstract void preCopyGCInstances(TraceLocal trace);
 
@@ -65,19 +65,19 @@ import org.vmmagic.unboxed.*;
    * interior root locations queues.  This method should not have side
    * effects (such as copying or forwarding of objects).  There are a
    * number of important preconditions:
-   * 
+   *
    * <ul>
    * <li> All objects used in the course of GC (such as the GC thread
    * objects) need to be "pre-copied" prior to calling this method.
    * <li> The <code>threadCounter</code> must be reset so that load
    * balancing parallel GC can share the work of scanning threads.
    * </ul>
-   * 
+   *
    * @param trace The trace to use for computing roots.
    */
   public abstract void computeAllRoots(TraceLocal trace);
 
-  
+
   /**
    * Compute all roots out of the VM's boot image (if any).  This method is a no-op
    * in the case where the VM does not maintain an MMTk-visible Java space.   However,
@@ -87,7 +87,7 @@ import org.vmmagic.unboxed.*;
    * scanning the space if it is aware of all pointers out of that space.  This method
    * is used to establish the root set out of the scannable space in the case where
    * such a space exists.
-   *  
+   *
    * @param trace The trace object to use to report root locations.
    */
   public abstract void computeBootImageRoots(TraceLocal trace);

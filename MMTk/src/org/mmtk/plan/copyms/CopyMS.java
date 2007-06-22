@@ -25,8 +25,8 @@ import org.vmmagic.pragma.*;
 
 /**
  * This class implements the global state of a full-heap collector
- * with a copying nursery and mark-sweep mature space.  Unlike a full 
- * generational collector, there is no write barrier, no remembered set, and 
+ * with a copying nursery and mark-sweep mature space.  Unlike a full
+ * generational collector, there is no write barrier, no remembered set, and
  * every collection is full-heap.
  *
  * All plans make a clear distinction between <i>global</i> and
@@ -86,24 +86,24 @@ import org.vmmagic.pragma.*;
    * Boot-time initialization
    */
   @Interruptible
-  public void boot() { 
+  public void boot() {
     super.boot();
     msReservedPages = (int) (getTotalPages() * CopyMS_RESERVE_FRACTION);
   }
 
   /*****************************************************************************
-   * 
+   *
    * Collection
    */
 
 
   /**
    * Perform a (global) collection phase.
-   * 
+   *
    * @param phaseId Collection phase to execute.
    */
   @Inline
-  public final void collectionPhase(int phaseId) { 
+  public final void collectionPhase(int phaseId) {
     if (phaseId == PREPARE) {
       super.collectionPhase(phaseId);
       trace.prepare();
@@ -118,7 +118,7 @@ import org.vmmagic.pragma.*;
 
       int available = getTotalPages() - getPagesReserved();
 
-      progress = (available > availablePreGC) && 
+      progress = (available > availablePreGC) &&
                  (available > getExceptionReserve());
 
       if (progress) {
@@ -140,19 +140,19 @@ import org.vmmagic.pragma.*;
 
   /**
    * Poll for a collection
-   * 
+   *
    * @param vmExhausted Virtual Memory range for space is exhausted.
    * @param space The space that caused the poll.
    * @return True if a collection is required.
    */
   @LogicallyUninterruptible
-  public final boolean poll(boolean vmExhausted, Space space) { 
-    if (getCollectionsInitiated() > 0 || !isInitialized() || 
+  public final boolean poll(boolean vmExhausted, Space space) {
+    if (getCollectionsInitiated() > 0 || !isInitialized() ||
         space == metaDataSpace)
       return false;
     vmExhausted |= stressTestGCRequired();
     boolean heapFull = getPagesReserved() > getTotalPages();
-    boolean nurseryFull = nurserySpace.reservedPages() > 
+    boolean nurseryFull = nurserySpace.reservedPages() >
                           Options.nurserySize.getMaxNursery();
     if (vmExhausted || heapFull || nurseryFull) {
       int required = space.reservedPages() - space.committedPages();
@@ -166,14 +166,14 @@ import org.vmmagic.pragma.*;
   }
 
   /*****************************************************************************
-   * 
+   *
    * Accounting
    */
 
   /**
    * Return the number of pages reserved for use given the pending
    * allocation.
-   * 
+   *
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
@@ -185,7 +185,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Return the number of pages reserved for copying.
-   * 
+   *
    * @return The number of pages reserved given the pending
    * allocation, including space reserved for copying.
    */

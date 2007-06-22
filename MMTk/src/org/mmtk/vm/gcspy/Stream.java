@@ -21,25 +21,25 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Address;
 
 /**
- * 
+ *
  * Abstract class for a GCspy Stream.
  * Implementing classes will mostly forward calls
  * to the gcspy C library
  */
 
 @Uninterruptible public abstract class Stream {
-  
+
   /****************************************************************************
   *
   * Instance variables
   */
-  
+
   /**
    * The address of the C stream, gcspy_gc_stream_t *stream, used in all calls
    * to the C library
    */
   protected Address stream;
-  
+
   /** The owning GCspy space */
   protected ServerSpace serverSpace;
 
@@ -47,7 +47,7 @@ import org.vmmagic.unboxed.Address;
   protected int streamId;
 
   /**
-   * A summary has 1 or 2 values depending on presentation style 
+   * A summary has 1 or 2 values depending on presentation style
    * (PERCENT* styles require 2 values).
    */
   protected int summaryLen;
@@ -63,16 +63,16 @@ import org.vmmagic.unboxed.Address;
   private int max; // The maximum value for tiles
 
   /** use summaries? */
-  protected boolean summaryEnabled; 
+  protected boolean summaryEnabled;
 
   /** the presentation style */
-  protected int presentation; 
+  protected int presentation;
 
   protected static final boolean DEBUG = false;
 
   /**
    * Construct a new GCspy stream.
-   * 
+   *
    * @param driver The AbstractDriver that owns this Stream
    * @param dataType The stream's data type, one of BYTE_TYPE, SHORT_TYPE or INT_TYPE
    * @param name The name of the stream (e.g. "Used space")
@@ -91,20 +91,20 @@ import org.vmmagic.unboxed.Address;
    * @param summary Is a summary enabled?
    */
   protected Stream(
-      AbstractDriver driver, 
-      int dataType, 
-      String name, 
-      int minValue, 
-      int maxValue, 
-      int zeroValue, 
+      AbstractDriver driver,
+      int dataType,
+      String name,
+      int minValue,
+      int maxValue,
+      int zeroValue,
       int defaultValue,
-      String stringPre, 
-      String stringPost, 
-      int presentation, 
-      int paintStyle, 
-      int indexMaxStream, 
-      Color colour, 
-      boolean summary) { 
+      String stringPre,
+      String stringPost,
+      int presentation,
+      int paintStyle,
+      int indexMaxStream,
+      Color colour,
+      boolean summary) {
 
     serverSpace = driver.getServerSpace();
     summaryEnabled = summary;
@@ -121,8 +121,8 @@ import org.vmmagic.unboxed.Address;
       Log.writeln(" id=", streamId);
     }
   }
-  
-  
+
+
   /**
    * Set the stream address and id (called by AbstractDriver.addStream).
    * @param id the id
@@ -150,7 +150,7 @@ import org.vmmagic.unboxed.Address;
    * @param presentation the presentation style
    */
   @Interruptible
-  private void setupSummary(int presentation) { 
+  private void setupSummary(int presentation) {
     switch (presentation) {
       case StreamConstants.PRESENTATION_PLAIN:
       case StreamConstants.PRESENTATION_PLUS:

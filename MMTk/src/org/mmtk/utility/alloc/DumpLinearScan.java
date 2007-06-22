@@ -25,11 +25,11 @@ import org.vmmagic.pragma.*;
 public final class DumpLinearScan extends LinearScan {
   /**
    * Scan an object.
-   * 
+   *
    * @param object The object to scan
    */
   @Inline
-  public void scan(ObjectReference object) { 
+  public void scan(ObjectReference object) {
     Log.write("[");
     Log.write(object.toAddress());
     Log.write("], SIZE = ");

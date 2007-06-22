@@ -59,7 +59,7 @@ import org.vmmagic.unboxed.*;
   /****************************************************************************
    * Constants
    */
-  
+
   /* GC State */
   public static final int NOT_IN_GC = 0; // this must be zero for C code
   public static final int GC_PREPARE = 1; // before setup and obtaining root
@@ -74,8 +74,8 @@ import org.vmmagic.unboxed.*;
   public static final int META_DATA_MB = 32;
   public static final int META_DATA_PAGES = (META_DATA_MB << 20) >> LOG_BYTES_IN_PAGE;
   public static final int META_DATA_FULL_THRESHOLD = META_DATA_PAGES >> 1;
-  public static final float LOS_FRAC = (float) 0.03;                          
-  public static final float PLOS_FRAC = (float) 0.07;                         
+  public static final float LOS_FRAC = (float) 0.03;
+  public static final float PLOS_FRAC = (float) 0.07;
 
   /* Allocator Constants */
   public static final int ALLOC_DEFAULT = 0;
@@ -118,7 +118,7 @@ import org.vmmagic.unboxed.*;
 
   /** Primitive (non-ref) large objects are allocated into a special primitive
       large object space. */
-  public static final LargeObjectSpace ploSpace = new LargeObjectSpace("plos", DEFAULT_POLL_FREQUENCY, PLOS_FRAC, true);    
+  public static final LargeObjectSpace ploSpace = new LargeObjectSpace("plos", DEFAULT_POLL_FREQUENCY, PLOS_FRAC, true);
 
   /* Space descriptors */
   public static final int IMMORTAL = immortalSpace.getDescriptor();
@@ -165,7 +165,7 @@ import org.vmmagic.unboxed.*;
    * allocation.
    */
   @Interruptible
-  public void boot() { 
+  public void boot() {
   }
 
   /**
@@ -178,7 +178,7 @@ import org.vmmagic.unboxed.*;
    * boot is called.
    */
   @Interruptible
-  public void postBoot() { 
+  public void postBoot() {
     if (Options.verbose.getValue() > 2) Space.printVMMap();
     if (Options.verbose.getValue() > 0) Stats.startAll();
     if (Options.eagerMmapSpaces.getValue()) Space.eagerlyMmapMMTkSpaces();
@@ -189,7 +189,7 @@ import org.vmmagic.unboxed.*;
    * execution commences.
    */
   @Interruptible
-  public void fullyBooted() { 
+  public void fullyBooted() {
     initialized = true;
     exceptionReserve = (int) (getTotalPages() *
                               (1 - Collection.OUT_OF_MEMORY_THRESHOLD));
@@ -197,7 +197,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * The VM is about to exit. Perform any clean up operations.
-   * 
+   *
    * @param value The exit value
    */
   public void notifyExit(int value) {
@@ -216,7 +216,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Any Plan can override this to provide additional plan specific
    * timing information.
-   * 
+   *
    * @param totals Print totals
    */
   protected void printDetailedTiming(boolean totals) {}
@@ -224,7 +224,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Perform any required initialization of the GC portion of the header.
    * Called for objects created at boot time.
-   * 
+   *
    * @param ref the object ref to the storage to be initialized
    * @param typeRef the type reference for the instance being created
    * @param size the number of bytes allocated by the GC system for
@@ -234,7 +234,7 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public Word setBootTimeGCBits(Address ref, ObjectReference typeRef,
-                                int size, Word status) { 
+                                int size, Word status) {
     return status; // nothing to do (no bytes of GC header)
   }
 
@@ -259,31 +259,31 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Replace a phase.
-   * 
+   *
    * @param oldPhase The phase to be replaced
    * @param newPhase The phase to replace with
    */
   @Interruptible
-  public void replacePhase(int oldPhase, int newPhase) { 
+  public void replacePhase(int oldPhase, int newPhase) {
     VM.assertions.fail("replacePhase not implemented for this plan");
   }
 
-  
+
   /**
    * Insert a phase.
-   * 
+   *
    * @param marker The phase to insert after
    * @param newPhase The phase to replace with
    */
   @Interruptible
-  public void insertPhaseAfter(int marker, int newPhase) { 
+  public void insertPhaseAfter(int marker, int newPhase) {
     int newComplexPhase = (new ComplexPhase("auto-gen",
-                                            null, 
+                                            null,
                                             new int[] {marker,newPhase})
                           ).getId();
     replacePhase(marker, newComplexPhase);
   }
-  
+
   /**
    * @return Whether last GC is a full GC.
    */
@@ -311,7 +311,7 @@ import org.vmmagic.unboxed.*;
    * @return True is a stress test GC is required
    */
   @Inline
-  public final boolean stressTestGCRequired() { 
+  public final boolean stressTestGCRequired() {
     long pages = Space.cumulativeCommittedPages();
     if (initialized &&
         ((pages ^ lastStressPages) > Options.stressFactor.getPages())) {
@@ -337,7 +337,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Add a request for n required pages
-   * @param pages The number of pages required 
+   * @param pages The number of pages required
    */
   @Interruptible
   protected static void addRequired(int pages) {
@@ -350,7 +350,7 @@ import org.vmmagic.unboxed.*;
   protected static int getRequired() {
     return required;
   }
-  
+
   /** Reset the required page count */
   protected static void resetRequired() {
     required = 0;
@@ -378,7 +378,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Check whether an asynchronous collection is pending.<p>
-   * 
+   *
    * This is decoupled from the poll() mechanism because the
    * triggering of asynchronous collections can trigger write
    * barriers, which can trigger an asynchronous collection.  Thus, if
@@ -416,7 +416,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Return true if a collection is in progress.
-   * 
+   *
    * @return True if a collection is in progress.
    */
   public static boolean gcInProgress() {
@@ -425,7 +425,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Return true if a collection is in progress and past the preparatory stage.
-   * 
+   *
    * @return True if a collection is in progress and past the preparatory stage.
    */
   public static boolean gcInProgressProper() {
@@ -434,7 +434,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Sets the GC status.
-   * 
+   *
    * @param s The new GC status.
    */
   public static void setGCStatus(int s) {
@@ -477,7 +477,7 @@ import org.vmmagic.unboxed.*;
    * Return the space into which an allocator is allocating.  The
    * allocator, <code>a</code> may be assocaited with any plan
    * instance.
-   * 
+   *
    * @param a An allocator
    * @return The space into which <code>a</code> is allocating, or
    *         <code>null</code> if there is no space associated with
@@ -505,7 +505,7 @@ import org.vmmagic.unboxed.*;
    * and then start stats collection.
    */
   @Interruptible
-  public static void harnessBegin() { 
+  public static void harnessBegin() {
     // Save old values.
     boolean oldFullHeap = Options.fullHeapSystemGC.getValue();
     boolean oldIgnore = Options.ignoreSystemGC.getValue();
@@ -552,7 +552,7 @@ import org.vmmagic.unboxed.*;
    * of <i>available memory</i>, which must account for unused memory
    * that is held in reserve for copying, and therefore unavailable
    * for allocation.
-   * 
+   *
    * @return The amount of <i>free memory</i>, in bytes (where free is
    * defined as not in use).
    */
@@ -564,7 +564,7 @@ import org.vmmagic.unboxed.*;
    * Return the amount of <i>memory in use</i>, in bytes.  Note that
    * this excludes unused memory that is held in reserve for copying,
    * and therefore unavailable for allocation.
-   * 
+   *
    * @return The amount of <i>memory in use</i>, in bytes.
    */
   public static Extent usedMemory() {
@@ -576,7 +576,7 @@ import org.vmmagic.unboxed.*;
    * Return the amount of <i>memory in use</i>, in bytes.  Note that
    * this includes unused memory that is held in reserve for copying,
    * and therefore unavailable for allocation.
-   * 
+   *
    * @return The amount of <i>memory in use</i>, in bytes.
    */
   public static Extent reservedMemory() {
@@ -586,7 +586,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Return the total amount of memory managed to the memory
    * management system, in bytes.
-   * 
+   *
    * @return The total amount of memory managed to the memory
    * management system, in bytes.
    */
@@ -599,7 +599,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Return the total amount of memory managed to the memory
    * management system, in pages.
-   * 
+   *
    * @return The total amount of memory managed to the memory
    * management system, in pages.
    */
@@ -609,7 +609,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Return the number of pages available for allocation.
-   * 
+   *
    * @return The number of pages available for allocation.
    */
   public int getPagesAvail() {
@@ -620,7 +620,7 @@ import org.vmmagic.unboxed.*;
    * Return the number of pages reserved for use given the pending
    * allocation.  Sub-classes must override the getCopyReserve method,
    * as the arithmetic here is fixed.
-   * 
+   *
    * @return The number of pages reserved given the pending
    * allocation, including space reserved for copying.
    */
@@ -631,7 +631,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Return the number of pages reserved for copying.  Subclasses that
    * manage a copying space must add the copying contribution.
-   * 
+   *
    * @return The number of pages reserved given the pending
    * allocation, including space reserved for copying.
    */
@@ -642,7 +642,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Return the number of pages reserved for use given the pending
    * allocation.
-   * 
+   *
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
@@ -655,7 +655,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Return the number of metadata pages reserved for use given the pending
    * allocation.
-   * 
+   *
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
@@ -665,7 +665,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Return the cycle time at which this GC should complete.
-   * 
+   *
    * @return The time cap for this GC (i.e. the time by which it
    * should complete).
    */
@@ -690,19 +690,19 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Start GCspy server.
-   * 
+   *
    * @param port The port to listen on,
-   * @param wait Should we wait for a client to connect? 
+   * @param wait Should we wait for a client to connect?
    */
   @Interruptible
-  public void startGCspyServer(int port, boolean wait) { 
+  public void startGCspyServer(int port, boolean wait) {
     VM.assertions.fail("startGCspyServer called on non GCspy plan");
   }
 
   /**
    * Can this object ever move.  Used by the VM to make decisions about
    * whether it needs to copy IO buffers etc.
-   * 
+   *
    * @param object The object in question
    * @return True if it is possible that the object will ever move
    */
@@ -717,7 +717,7 @@ import org.vmmagic.unboxed.*;
       return false;
     if (Space.isInSpace(VM_SPACE, object))
       return false;
-    
+
     /*
      * Default to true - this preserves correctness over efficiency.
      * Individual plans should override for non-moving spaces they define.

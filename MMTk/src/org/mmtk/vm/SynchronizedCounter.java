@@ -22,21 +22,21 @@ import org.vmmagic.pragma.Uninterruptible;
 
   /**
    * Reset the counter to 0, returning its previous value.
-   * 
+   *
    * @return The value of the counter, prior to reset.
    */
   public abstract int reset();
 
   /**
    * Adds 1 to the counter.
-   * 
+   *
    * @return the value before the add
    */
   public abstract int increment();
 
   /**
    * Peek at the counter
-   * 
+   *
    * @return The current value of the counter.
    */
   public abstract int peek();

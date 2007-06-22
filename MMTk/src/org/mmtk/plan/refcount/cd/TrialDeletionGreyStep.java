@@ -24,7 +24,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Trace a reference during GC.
-   * 
+   *
    * @param objLoc The location containing the object reference to be
    * traced.
    */

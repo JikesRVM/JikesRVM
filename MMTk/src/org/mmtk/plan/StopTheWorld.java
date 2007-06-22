@@ -29,12 +29,12 @@ import org.vmmagic.pragma.*;
  * This abstract class implments the core functionality for
  * stop-the-world collectors.  Stop-the-world collectors should
  * inherit from this class.<p>
- * 
+ *
  * This class defines the collection phases, and provides base
  * level implementations of them.  Subclasses should provide
  * implementations for the spaces that they introduce, and
  * delegate up the class hierarchy.<p>
- * 
+ *
  * For details of the split between global and thread-local operations
  * @see org.mmtk.plan.Plan
  */
@@ -166,11 +166,11 @@ import org.vmmagic.pragma.*;
    * allocation.
    */
   @Interruptible
-  public void postBoot() { 
+  public void postBoot() {
     super.postBoot();
 
     if (Options.sanityCheck.getValue()) {
-      if (getSanityChecker() == null || 
+      if (getSanityChecker() == null ||
           VM.activePlan.collector().getSanityChecker() == null) {
         Log.writeln("Collector does not support sanity checking!");
       } else {
@@ -189,11 +189,11 @@ import org.vmmagic.pragma.*;
 
   /**
    * Perform a (global) collection phase.
-   * 
-   * @param phaseId The unique of the phase to perform. 
+   *
+   * @param phaseId The unique of the phase to perform.
    */
   @Inline
-  public void collectionPhase(int phaseId) { 
+  public void collectionPhase(int phaseId) {
     if (phaseId == INITIATE) {
       if (Stats.gatheringStats()) {
         Stats.startGC();
@@ -240,19 +240,19 @@ import org.vmmagic.pragma.*;
       return;
     }
 
-    Log.write("Global phase "); Log.write(Phase.getName(phaseId)); 
+    Log.write("Global phase "); Log.write(Phase.getName(phaseId));
     Log.writeln(" not handled.");
     VM.assertions.fail("Global phase not handled!");
   }
-  
+
   /**
    * Replace a phase.
-   * 
+   *
    * @param oldPhase The phase to be replaced
    * @param newPhase The phase to replace with
    */
   @Interruptible
-  public void replacePhase(int oldPhase, int newPhase) { 
+  public void replacePhase(int oldPhase, int newPhase) {
     collection.replacePhase(oldPhase, newPhase);
   }
 

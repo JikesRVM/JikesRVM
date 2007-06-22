@@ -25,14 +25,14 @@ import org.vmmagic.pragma.*;
 /**
  * This supports <i>unsynchronized</i> enqueuing and dequeuing of buffers
  * for shared use.  The data can be added to and removed from either end
- * of the deque.  
+ * of the deque.
  */
 @Uninterruptible public class SharedDeque extends Deque implements Constants {
 
   private static final Offset PREV_OFFSET = Offset.fromIntSignExtend(BYTES_IN_ADDRESS);
 
   /****************************************************************************
-   * 
+   *
    * Public instance methods
    */
 
@@ -53,7 +53,7 @@ import org.vmmagic.pragma.*;
   }
 
   @Inline
-  final int getArity() { return arity; } 
+  final int getArity() { return arity; }
 
   final void enqueue(Address buf, int arity, boolean toTail) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(arity == this.arity);
@@ -91,7 +91,7 @@ import org.vmmagic.pragma.*;
   }
 
   @Inline
-  final Address dequeue(int arity) { 
+  final Address dequeue(int arity) {
     return dequeue(arity, false);
   }
 
@@ -101,7 +101,7 @@ import org.vmmagic.pragma.*;
   }
 
   @Inline
-  final Address dequeueAndWait(int arity) { 
+  final Address dequeueAndWait(int arity) {
     return dequeueAndWait(arity, false);
   }
 
@@ -129,7 +129,7 @@ import org.vmmagic.pragma.*;
   }
 
   @Inline
-  final Address alloc() { 
+  final Address alloc() {
     Address rtn = rps.acquire(PAGES_PER_BUFFER);
     if (rtn.isZero()) {
       Space.printUsageMB();
@@ -140,18 +140,18 @@ import org.vmmagic.pragma.*;
   }
 
   @Inline
-  final void free(Address buf) { 
+  final void free(Address buf) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(buf.EQ(bufferStart(buf)) && !buf.isZero());
     rps.release(buf);
   }
 
   @Inline
-  public final int enqueuedPages() { 
+  public final int enqueuedPages() {
     return bufsenqueued << LOG_PAGES_PER_BUFFER;
   }
 
   /****************************************************************************
-   * 
+   *
    * Private instance methods and fields
    */
   private RawPageSpace rps;
@@ -164,7 +164,7 @@ import org.vmmagic.pragma.*;
   private int bufsenqueued;
   private Lock lock;
 
-  
+
   private Address dequeue(boolean waiting, boolean fromTail) {
     lock();
     Address rtn = ((fromTail) ? tail : head);
@@ -206,7 +206,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Set the "next" pointer in a buffer forming the linked buffer chain.
-   * 
+   *
    * @param buf The buffer whose next field is to be set.
    * @param next The reference to which next should point.
    */
@@ -216,7 +216,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Get the "next" pointer in a buffer forming the linked buffer chain.
-   * 
+   *
    * @param buf The buffer whose next field is to be returned.
    * @return The next field for this buffer.
    */
@@ -226,7 +226,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Set the "prev" pointer in a buffer forming the linked buffer chain.
-   * 
+   *
    * @param buf The buffer whose next field is to be set.
    * @param prev The reference to which prev should point.
    */
@@ -236,7 +236,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Get the "next" pointer in a buffer forming the linked buffer chain.
-   * 
+   *
    * @param buf The buffer whose next field is to be returned.
    * @return The next field for this buffer.
    */
@@ -247,7 +247,7 @@ import org.vmmagic.pragma.*;
   /**
    * Check the number of buffers in the work queue (for debugging
    * purposes).
-   * 
+   *
    * @param length The number of buffers believed to be in the queue.
    * @return True if the length of the queue matches length.
    */

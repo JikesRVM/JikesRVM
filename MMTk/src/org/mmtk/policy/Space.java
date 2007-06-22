@@ -39,13 +39,13 @@ import org.vmmagic.unboxed.*;
  * In addition to tracking virtual memory use and the mapping to
  * policy, spaces also manage memory consumption (<i>used</i> virtual
  * memory).<p>
- * 
+ *
  * Discontigious spaces are currently unsupported.
  */
 @Uninterruptible public abstract class Space implements Constants {
 
   /****************************************************************************
-   * 
+   *
    * Class variables
    */
 
@@ -76,7 +76,7 @@ import org.vmmagic.unboxed.*;
   private static Address heapLimit = HEAP_END;
 
   /****************************************************************************
-   * 
+   *
    * Instance variables
    */
   private int descriptor;
@@ -90,7 +90,7 @@ import org.vmmagic.unboxed.*;
   protected PageResource pr;
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
@@ -144,7 +144,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Construct a space of a given number of megabytes in size.<p>
-   * 
+   *
    * The caller specifies the amount virtual memory to be used for
    * this space <i>in megabytes</i>.  If there is insufficient address
    * space, then the constructor will fail.
@@ -155,7 +155,7 @@ import org.vmmagic.unboxed.*;
    * @param mb The size of the space in virtual memory, in megabytes (MB)
    */
   Space(String name, boolean movable, boolean immortal, int mb) {
-    this(name, movable, immortal, heapCursor, 
+    this(name, movable, immortal, heapCursor,
          Word.fromIntSignExtend(mb).lsh(LOG_BYTES_IN_MBYTE).toExtent());
     heapCursor = heapCursor.plus(extent);
     if (heapCursor.GT(heapLimit)) {
@@ -191,13 +191,13 @@ import org.vmmagic.unboxed.*;
    * Construct a space that consumes a given number of megabytes of
    * virtual memory, at either the top or bottom of the available
    * virtual memory.
-   * 
+   *
    * The caller specifies the amount virtual memory to be used for
    * this space <i>in megabytes</i>, and whether it should be at the
    * top or bottom of the available virtual memory.  If the request
    * clashes with existing virtual memory allocations, then the
    * constructor will fail.
-   * 
+   *
    * @param name The name of this space (used when printing error messages etc)
    * @param movable Are objects in this space movable?
    * @param immortal Are objects in this space immortal (uncollected)?
@@ -206,7 +206,7 @@ import org.vmmagic.unboxed.*;
    * available virtual memory.
    */
   Space(String name, boolean movable, boolean immortal, int mb, boolean top) {
-    this(name, movable, immortal, 
+    this(name, movable, immortal,
          Word.fromIntSignExtend(mb).lsh(LOG_BYTES_IN_MBYTE).toExtent(), top);
   }
 
@@ -229,7 +229,7 @@ import org.vmmagic.unboxed.*;
    * @param top Should this space be at the top (or bottom) of the
    * available virtual memory.
    */
-  Space(String name, boolean movable, boolean immortal, float frac, 
+  Space(String name, boolean movable, boolean immortal, float frac,
         boolean top) {
     this(name, movable, immortal, getFracAvailable(frac), top);
   }
@@ -276,7 +276,7 @@ import org.vmmagic.unboxed.*;
 
 
   /****************************************************************************
-   * 
+   *
    * Accessor methods
    */
 
@@ -313,13 +313,13 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Object and address tests / accessors
    */
 
   /**
    * Return true if the given object is in an immortal (uncollected) space.
-   * 
+   *
    * @param object The object in question
    * @return True if the given object is in an immortal (uncollected) space.
    */
@@ -333,7 +333,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Return true if the given object is in space that moves objects.
-   * 
+   *
    * @param object The object in question
    * @return True if the given object is in space that moves objects.
    */
@@ -348,7 +348,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Return true if the given object is in a space managed by MMTk.
-   * 
+   *
    * @param object The object in question
    * @return True if the given object is in a space managed by MMTk.
    */
@@ -359,7 +359,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Return true if the given address is in a space managed by MMTk.
-   * 
+   *
    * @param address The address in question
    * @return True if the given address is in a space managed by MMTk.
    */
@@ -371,14 +371,14 @@ import org.vmmagic.unboxed.*;
   /**
    * Return true if the given object is the space associated with the
    * given descriptor.
-   * 
+   *
    * @param descriptor The descriptor for a space
    * @param object The object in question
    * @return True if the given object is in the space associated with
    * the descriptor.
    */
   @Inline
-  public static boolean isInSpace(int descriptor, ObjectReference object) { 
+  public static boolean isInSpace(int descriptor, ObjectReference object) {
     if (!SpaceDescriptor.isContiguous(descriptor)) {
       return getDescriptorForObject(object) == descriptor;
     } else {
@@ -397,39 +397,39 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Return the space for a given object
-   * 
+   *
    * @param object The object in question
    * @return The space containing the object
    */
   @Inline
-  public static Space getSpaceForObject(ObjectReference object) { 
+  public static Space getSpaceForObject(ObjectReference object) {
     return Map.getSpaceForObject(object);
   }
 
   /**
    * Return the descriptor for a given object
-   * 
+   *
    * @param object The object in question
    * @return The descriptor for the space containing the object
    */
   @Inline
-  public static int getDescriptorForObject(ObjectReference object) { 
+  public static int getDescriptorForObject(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
     return Map.getDescriptorForObject(object);
   }
 
 
   /****************************************************************************
-   * 
+   *
    * Page management
    */
 
   /**
    * Acquire a number of pages from the page resource, returning
    * either the address of the first page, or zero on failure.<p>
-   * 
+   *
    * This may trigger a GC if necessary.<p>
-   * 
+   *
    * First the page budget is checked to see whether polling the GC is
    * necessary.  If so, the GC is polled.  If a GC is required then the
    * request fails and zero is returned.<p>
@@ -462,14 +462,14 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Release a unit of allocation (a page or pages)
-   * 
+   *
    * @param start The address of the start of the region to be released
    */
   public abstract void release(Address start);
 
   /**
    * Get the total number of pages reserved by all of the spaces
-   * 
+   *
    * @return the total number of papers reserved by all of the spaces
    */
   private static int getPagesReserved() {
@@ -481,7 +481,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Debugging / printing
    */
 
@@ -506,14 +506,14 @@ import org.vmmagic.unboxed.*;
       Log.writeln(space.start.plus(space.extent.minus(1)));
     }
   }
-   
+
   /**
    * Ensure that all MMTk spaces (all spaces aside from the VM space)
    * are mapped. Demand zero map all of them if they are not already
    * mapped.
    */
   @Interruptible
-  public static void eagerlyMmapMMTkSpaces() { 
+  public static void eagerlyMmapMMTkSpaces() {
     for (int i = 0; i < spaceCount; i++) {
       Space space = spaces[i];
       if (space != VM.memory.getVMSpace()) {
@@ -533,7 +533,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Print out the memory used by all spaces in either megabytes or
    * pages.
-   * 
+   *
    * @param mode An enumeration type that specifies the format for the
    * prining (PAGES, MB, PAGES_MB, or MB_PAGES).
    */
@@ -553,7 +553,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Print out the number of pages and or megabytes, depending on the mode.
-   * 
+   *
    * @param pages The number of pages
    * @param mode An enumeration type that specifies the format for the
    * prining (PAGES, MB, PAGES_MB, or MB_PAGES).
@@ -561,7 +561,7 @@ import org.vmmagic.unboxed.*;
   private static void printPages(int pages, int mode) {
     double mb = (double) (pages << LOG_BYTES_IN_PAGE) / (double) (1 << 20);
     switch (mode) {
-    case PAGES: Log.write(pages); Log.write(" pgs"); break; 
+    case PAGES: Log.write(pages); Log.write(" pgs"); break;
     case MB:    Log.write(mb); Log.write(" Mb"); break;
     case PAGES_MB: Log.write(pages); Log.write(" pgs ("); Log.write(mb); Log.write(" Mb)"); break;
     case MB_PAGES: Log.write(mb); Log.write(" Mb ("); Log.write(pages); Log.write(" pgs)"); break;
@@ -570,14 +570,14 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Miscellaneous
    */
 
   /**
    * Trace an object as part of a collection and return the object,
    * which may have been forwarded (if a copying collector).
-   * 
+   *
    * @param trace The trace being conducted.
    * @param object The object to trace
    * @return The object, forwarded, if appropriate
@@ -585,11 +585,11 @@ import org.vmmagic.unboxed.*;
   public abstract ObjectReference traceObject(TraceLocal trace,
       ObjectReference object);
 
-  
+
   /**
    * Has the object in this space been reached during the current collection.
    * This is used for GC Tracing.
-   * 
+   *
    * @param object The object reference.
    * @return True if the object is reachable.
    */
@@ -597,10 +597,10 @@ import org.vmmagic.unboxed.*;
     return isLive(object);
   }
 
-  
+
   /**
    * Is the object in this space alive?
-   * 
+   *
    * @param object The object reference.
    * @return True if the object is live.
    */
@@ -608,7 +608,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Align an address to a space chunk
-   * 
+   *
    * @param addr The address to be aligned
    * @param down If true the address will be rounded down, otherwise
    * it will rounded up.
@@ -620,7 +620,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Align an extent to a space chunk
-   * 
+   *
    * @param bytes The extent to be aligned
    * @param down If true the address will be rounded down, otherwise
    * it will rounded up.
@@ -632,7 +632,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Initialize/create the descriptor for this space
-   * 
+   *
    * @param shared True if this is a shared (discontigious) space
    */
   private void createDescriptor(boolean shared) {
@@ -645,7 +645,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Convert a fraction into a number of bytes according to the
    * fraction of available bytes.
-   * 
+   *
    * @param frac The fraction of avialable virtual memory desired
    * @return The corresponding number of bytes, chunk-aligned.
    */

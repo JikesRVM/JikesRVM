@@ -25,9 +25,9 @@ import org.vmmagic.unboxed.ObjectReference;
 
 /**
  * This class implements unsynchronized (local) elements of a
- * sliding mark-compact collector. Allocation is via the bump pointer 
- * (@see BumpPointer). 
- * 
+ * sliding mark-compact collector. Allocation is via the bump pointer
+ * (@see BumpPointer).
+ *
  * @see BumpPointer
  * @see MarkCompactSpace
  */
@@ -35,7 +35,7 @@ import org.vmmagic.unboxed.ObjectReference;
 
   /**
    * Constructor
-   * 
+   *
    * @param space The space to bump point into.
    */
   public MarkCompactLocal(MarkCompactSpace space) {
@@ -192,13 +192,13 @@ import org.vmmagic.unboxed.ObjectReference;
       start = start.plus(NEXT_REGION_OFFSET).loadAddress(); // Move on to next
     }
   }
-  
+
   /**
    * Some pages are about to be re-used to satisfy a slow path request.
    * @param pages The number of pages.
    */
   protected void reusePages(int pages) {
-    ((MarkCompactSpace)space).reusePages(pages); 
+    ((MarkCompactSpace)space).reusePages(pages);
   }
 
   /**

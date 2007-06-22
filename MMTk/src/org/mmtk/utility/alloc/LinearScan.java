@@ -23,7 +23,7 @@ import org.vmmagic.pragma.*;
 public abstract class LinearScan {
   /**
    * Scan an object.
-   * 
+   *
    * @param object The object to scan
    */
   public abstract void scan(ObjectReference object);

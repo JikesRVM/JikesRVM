@@ -23,13 +23,13 @@ import org.vmmagic.pragma.*;
 @Uninterruptible public class Timer extends LongCounter {
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
   /**
    * Constructor
-   * 
+   *
    * @param name The name to be associated with this counter
    */
   public Timer(String name) {
@@ -38,7 +38,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Constructor
-   * 
+   *
    * @param name The name to be associated with this counter
    * @param start True if this counter is to be implicitly started
    * when <code>startAll()</code> is called (otherwise the counter
@@ -50,7 +50,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Constructor
-   * 
+   *
    * @param name The name to be associated with this counter
    * @param start True if this counter is to be implicitly started
    * when <code>startAll()</code> is called (otherwise the counter
@@ -63,13 +63,13 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Counter-specific methods
    */
 
   /**
    * Get the current value for this timer
-   * 
+   *
    * @return The current value for this timer
    */
   @Inline
@@ -100,7 +100,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Print a value (in milliseconds)
-   * 
+   *
    * @param value The value to be printed
    */
   final void printValue(long value) {
@@ -109,7 +109,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Print a value in microseconds
-   * 
+   *
    * @param value The value to be printed
    */
   final void printMicro(long value) {
@@ -118,7 +118,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Print a value in milliseconds
-   * 
+   *
    * @param value The value to be printed
    */
   final void printMillis(long value) {
@@ -127,7 +127,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Print a value in seconds
-   * 
+   *
    * @param value The value to be printed
    */
   final void printSecs(long value) {

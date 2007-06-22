@@ -38,20 +38,20 @@ import org.vmmagic.unboxed.*;
  * scheme (such as Jikes RVM), <i>M</i> will typically be equal to the
  * level of <i>true</i> parallelism (ie the number of underlying
  * kernel threads).<p>
- * 
+ *
  * MMTk assumes that the VM instantiates instances of MutatorContext
- * in thread local storage (TLS) for each thread participating in 
- * collection.  Accesses to this state are therefore assumed to be 
+ * in thread local storage (TLS) for each thread participating in
+ * collection.  Accesses to this state are therefore assumed to be
  * low-cost during mutator time.<p>
- * 
+ *
  * This class (and its children) is therefore used for unsynchronized
  * per-mutator operations such as <i>allocation</i> and <i>write barriers</i>.
  * The semantics and necessary state for these operations are therefore
  * specified in the GC-specific subclasses of this class.
- * 
+ *
  * MMTk explicitly separates thread-local (this class) and global
  * operations (@see Plan), so that syncrhonization is localized
- * and explicit, and thus hopefully minimized (@see Plan). Gloabl (Plan) 
+ * and explicit, and thus hopefully minimized (@see Plan). Gloabl (Plan)
  * and per-thread (this class) state are also explicitly separated.
  * Operations in this class (and its children) are therefore strictly
  * local to each mutator thread, and synchronized operations always
@@ -64,13 +64,13 @@ import org.vmmagic.unboxed.*;
  * syncrhonization (the "fast path") until a limit is reached, at which
  * point the "slow path" is called, and more memory is aquired from a
  * global resource.<p>
- * 
+ *
  * As the super-class of all per-mutator contexts, this class implements
  * basic per-mutator behavior common to all MMTk collectors, including
- * support for immortal and large object space allocation, as well as 
+ * support for immortal and large object space allocation, as well as
  * empty stubs for write barriers (to be overridden by sub-classes as
  * needed).
- * 
+ *
  * @see SimplePhase#delegatePhase
  * @see CollectorContext
  * @see org.mmtk.vm.ActivePlan
@@ -96,15 +96,15 @@ import org.vmmagic.unboxed.*;
 
   /** Per-mutator allocator into the primitive large object space */
   protected LargeObjectLocal plos = new LargeObjectLocal(Plan.ploSpace);
-  
+
   /****************************************************************************
-   * 
+   *
    * Collection.
    */
 
   /**
    * Perform a per-mutator collection phase.
-   * 
+   *
    * @param phaseId The unique phase identifier
    * @param primary Should this thread be used to execute any single-threaded
    * local operations?
@@ -112,26 +112,26 @@ import org.vmmagic.unboxed.*;
   public abstract void collectionPhase(int phaseId, boolean primary);
 
   /****************************************************************************
-   * 
+   *
    * Allocation.
    */
 
   /**
    * Run-time check of the allocator to use for a given allocation
-   * 
+   *
    * At the moment this method assumes that allocators will use the simple
    * (worst) method of aligning to determine if the object is a large object
    * to ensure that no objects are larger than other allocators can handle.
-   * 
+   *
    * @param bytes The number of bytes to be allocated
    * @param align The requested alignment.
    * @param allocator The allocator statically assigned to this allocation
    * @return The allocator dyncamically assigned to this allocation
    */
   @Inline
-  public int checkAllocator(int bytes, int align, int allocator) { 
+  public int checkAllocator(int bytes, int align, int allocator) {
     if (allocator == Plan.ALLOC_DEFAULT &&
-        Allocator.getMaximumAlignedSize(bytes, align) > Plan.LOS_SIZE_THRESHOLD) 
+        Allocator.getMaximumAlignedSize(bytes, align) > Plan.LOS_SIZE_THRESHOLD)
       return Plan.ALLOC_LOS;
     else if (allocator == Plan.ALLOC_NON_REFERENCE) {
         if (Allocator.getMaximumAlignedSize(bytes, align) > Plan.PLOS_SIZE_THRESHOLD)
@@ -144,7 +144,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Allocate memory for an object.
-   * 
+   *
    * @param bytes The number of bytes required for the object.
    * @param align Required alignment for the object.
    * @param offset Offset associated with the alignment.
@@ -153,7 +153,7 @@ import org.vmmagic.unboxed.*;
    * @return The low address of the allocated chunk.
    */
   @Inline
-  public Address alloc(int bytes, int align, int offset, int allocator, int site) { 
+  public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     switch (allocator) {
     case      Plan.ALLOC_LOS: return los.alloc(bytes, align, offset, false);
     case      Plan.ALLOC_PRIMITIVE_LOS: return plos.alloc(bytes, align, offset, false);
@@ -167,7 +167,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Perform post-allocation actions.  For many allocators none are
    * required.
-   * 
+   *
    * @param ref The newly allocated object
    * @param typeRef the type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
@@ -175,7 +175,7 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public void postAlloc(ObjectReference ref, ObjectReference typeRef,
-      int bytes, int allocator) { 
+      int bytes, int allocator) {
     switch (allocator) {
     case           Plan.ALLOC_LOS: Plan.loSpace.initializeHeader(ref, false); return;
     case Plan.ALLOC_PRIMITIVE_LOS: Plan.ploSpace.initializeHeader(ref, true); return;
@@ -186,7 +186,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Space - Allocator mapping. See description for getOwnAllocator that
    * describes why this is important.
    */
@@ -211,10 +211,10 @@ import org.vmmagic.unboxed.*;
    * established and associated with the thread (see {@link
    * org.mmtk.utility.alloc.Allocator#allocSlow(int, int, int,
    * boolean) Allocator.allocSlow()}).
-   * 
+   *
    * @see org.mmtk.utility.alloc.Allocator
    * @see org.mmtk.utility.alloc.Allocator#allocSlow(int, int, int, boolean)
-   * 
+   *
    * @param a An allocator instance.
    * @return An allocator instance associated with <i>this plan
    * instance</i> that allocates into the same space as <code>a</code>
@@ -232,7 +232,7 @@ import org.vmmagic.unboxed.*;
    * particular method will match against those spaces defined at this
    * level of the class hierarchy.  Subclasses must deal with spaces
    * they define and refer to superclasses appropriately.
-   * 
+   *
    * @param a An allocator
    * @return The space into which <code>a</code> is allocating, or
    *         <code>null</code> if there is no space associated with
@@ -250,7 +250,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Return the allocator instance associated with a space
    * <code>space</code>, for this plan instance.
-   * 
+   *
    * @param space The space for which the allocator instance is desired.
    * @return The allocator instance associated with this plan instance
    * which is allocating into <code>space</code>, or <code>null</code>
@@ -274,7 +274,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Write and read barriers. By default do nothing, override if
    * appropriate.
    */
@@ -282,9 +282,9 @@ import org.vmmagic.unboxed.*;
   /**
    * A new reference is about to be created. Take appropriate write
    * barrier actions.<p>
-   * 
+   *
    * <b>By default do nothing, override if appropriate.</b>
-   * 
+   *
    * @param src The object into which the new reference will be stored
    * @param slot The address into which the new reference will be
    * stored.
@@ -300,18 +300,18 @@ import org.vmmagic.unboxed.*;
     // write barriers are not used and this is never called
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
   }
-  
+
   /**
    * Attempt to atomically exchange the value in the given slot
-   * with the passed replacement value. If a new reference is 
+   * with the passed replacement value. If a new reference is
    * created, we must then take appropriate write barrier actions.<p>
-   * 
+   *
    * <b>By default do nothing, override if appropriate.</b>
-   * 
+   *
    * @param src The object into which the new reference will be stored
    * @param slot The address into which the new reference will be
    * stored.
-   * @param old The old reference to be swapped out 
+   * @param old The old reference to be swapped out
    * @param tgt The target of the new reference
    * @param metaDataA An int that assists the host VM in creating a store
    * @param metaDataB An int that assists the host VM in creating a store
@@ -365,7 +365,7 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public Address readBarrier(ObjectReference src, Address slot,
-      int context) { 
+      int context) {
     // read barrier currently unimplemented
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     return Address.max();
@@ -380,7 +380,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * Assert that the remsets have been flushed.  This is critical to 
+   * Assert that the remsets have been flushed.  This is critical to
    * correctness.  We need to maintain the invariant that remset entries
    * do not accrue during GC.  If the host JVM generates barrier entires
    * it is its own responsibility to ensure that they are flushed before
@@ -392,11 +392,11 @@ import org.vmmagic.unboxed.*;
   }
 
   /***********************************************************************
-   * 
+   *
    * Miscellaneous
    */
 
   /** @return the unique identifier for this mutator context. */
   @Inline
-  public int getId() { return id; } 
+  public int getId() { return id; }
 }

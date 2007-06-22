@@ -23,18 +23,18 @@ import org.vmmagic.unboxed.*;
 
 /**
  * Each instance of this class corresponds to one raw page space.
- * 
+ *
  * This class provides access to raw memory for managing internal meta
  * data.
  */
-@Uninterruptible public final class RawPageSpace extends Space 
+@Uninterruptible public final class RawPageSpace extends Space
   implements Constants {
 
   /**
    * The caller specifies the region of virtual memory to be used for
    * this space.  If this region conflicts with an existing space,
    * then the constructor will fail.
-   * 
+   *
    * @param name The name of this space (used when printing error messages etc)
    * @param pageBudget The number of pages this space may consume
    * before consulting the plan
@@ -49,7 +49,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Construct a space of a given number of megabytes in size.<p>
-   * 
+   *
    * The caller specifies the amount virtual memory to be used for
    * this space <i>in megabytes</i>.  If there is insufficient address
    * space, then the constructor will fail.
@@ -92,27 +92,27 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Release a group of pages that were allocated together.
-   * 
+   *
    * @param first The first page in the group of pages that were
    * allocated together.
    */
   @Inline
-  public void release(Address first) { 
+  public void release(Address first) {
     ((FreeListPageResource) pr).releasePages(first);
   }
 
   /**
    * Trace an object.
-   * 
+   *
    * This makes no sense for a raw page space and should never be
    * called.
-   * 
+   *
    * @param object The object to be traced.
    * @return <code>zero</code>: calling this is an error.
    */
   @Inline
   public ObjectReference traceObject(TraceLocal trace,
-                                           ObjectReference object) { 
+                                           ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     return ObjectReference.nullReference();
   }

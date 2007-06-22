@@ -24,13 +24,13 @@ import org.vmmagic.pragma.*;
   implements Constants {
 
   /****************************************************************************
-   * 
+   *
    * Public instance methods
    */
 
   /**
    * Constructor
-   * 
+   *
    * @param queue The shared queue to which this local ssb will append
    * its buffers (when full or flushed).
    */
@@ -40,11 +40,11 @@ import org.vmmagic.pragma.*;
 
   /**
    * Insert a value to be remembered into the write buffer.
-   * 
+   *
    * @param addr the value to be inserted into the write buffer
    */
   @NoInline
-  public final void insert(Address addr) { 
+  public final void insert(Address addr) {
     checkTailInsert(1);
     uncheckedTailInsert(addr);
   }

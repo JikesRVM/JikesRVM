@@ -20,7 +20,7 @@ public class VerboseFragmentationStats extends BooleanOption {
    * Create the option.
    */
   public VerboseFragmentationStats() {
-    super("Verbose Fragmentation Stats", 
+    super("Verbose Fragmentation Stats",
         "Should we print verbose fragmentation statistics for the free list allocator?",
         false);
   }

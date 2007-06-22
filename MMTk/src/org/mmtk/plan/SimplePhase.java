@@ -22,7 +22,7 @@ import org.vmmagic.pragma.*;
 
 /**
  * Phases of a garbage collection.
- * 
+ *
  * A simple phase calls the collectionPhase method of a global
  * and/or all thread-local plan instances, and performs synchronization
  * and timing.
@@ -45,7 +45,7 @@ import org.vmmagic.pragma.*;
   /**
    * Construct a phase given just a name and a global/local ordering
    * scheme.
-   * 
+   *
    * @param name The name of the phase
    * @param ordering Order of global/local phases
    */
@@ -60,7 +60,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Construct a phase, re-using a specified timer.
-   * 
+   *
    * @param name Display name of the phase
    * @param timer Timer for this phase to contribute to
    * @param ordering Order of global/local phases
@@ -91,7 +91,7 @@ import org.vmmagic.pragma.*;
    * Execute a phase during a collection.
    */
   @NoInline
-  protected void delegatePhase() { 
+  protected void delegatePhase() {
     boolean log = Options.verbose.getValue() >= 6;
     boolean logDetails = Options.verbose.getValue() >= 7;
 
@@ -151,7 +151,7 @@ import org.vmmagic.pragma.*;
   /**
    * Change the ordering of the phase. This can be used, for example,
    * to realise a placeholder phase at runtime.
-   * 
+   *
    * @param ordering The new ordering.
    */
   public void changeOrdering(int ordering) {

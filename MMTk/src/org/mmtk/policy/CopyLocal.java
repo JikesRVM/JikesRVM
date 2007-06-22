@@ -18,9 +18,9 @@ import org.vmmagic.pragma.*;
 
 /**
  * This class implements unsynchronized (local) elements of a
- * copying collector. Allocation is via the bump pointer 
- * (@see BumpPointer). 
- * 
+ * copying collector. Allocation is via the bump pointer
+ * (@see BumpPointer).
+ *
  * @see BumpPointer
  * @see CopySpace
  */
@@ -28,7 +28,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Constructor
-   * 
+   *
    * @param space The space to bump point into.
    */
   public CopyLocal(CopySpace space) {

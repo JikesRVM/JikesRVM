@@ -50,15 +50,15 @@ import org.vmmagic.pragma.*;
 
   // Overall statistics
   protected int totalScalarObjects   = 0;    // total number of objects allocated
-  protected int totalArrayObjects    = 0;  
+  protected int totalArrayObjects    = 0;
   protected int totalPrimitives      = 0;
   protected int totalScalarUsedSpace = 0;    // total space used
-  protected int totalArrayUsedSpace  = 0; 
-  protected int totalRoots           = 0;       
-  protected int totalRefFromImmortal = 0;  
- 
+  protected int totalArrayUsedSpace  = 0;
+  protected int totalRoots           = 0;
+  protected int totalRefFromImmortal = 0;
+
   private final LinearScan scanner;	         // A scanner to trace objects
-   
+
   // Debugging
   protected Address lastAddress = Address.zero();
   protected int lastSize = 0;
@@ -74,13 +74,13 @@ import org.vmmagic.pragma.*;
    * @param blockSize The tile size
    * @param mainSpace Is this the main space?
    */
-  public LinearSpaceDriver( 
+  public LinearSpaceDriver(
                      ServerInterpreter server,
 		             String spaceName,
                      Space mmtkSpace,
                      int blockSize,
-                     boolean mainSpace) { 
-    
+                     boolean mainSpace) {
+
     super(server, spaceName, mmtkSpace, blockSize, mainSpace);
 
     if (DEBUG) {
@@ -93,7 +93,7 @@ import org.vmmagic.pragma.*;
 
     // Initialise a subspace and 4 Streams
     subspace = createSubspace(mmtkSpace);
-    allTileNum = 0;    
+    allTileNum = 0;
     scalarUsedSpaceStream = createScalarUsedSpaceStream();
     arrayUsedSpaceStream  = createArrayUsedSpaceStream();
     scalarObjectsStream   = createScalarObjectsStream();
@@ -112,35 +112,35 @@ import org.vmmagic.pragma.*;
    * Get the name of this driver type.
    * @return The name of this driver.
    */
-  protected String getDriverName() { return "MMTk LinearSpaceDriver"; } 
-  
+  protected String getDriverName() { return "MMTk LinearSpaceDriver"; }
+
   /**
    * Private creator methods to create the Streams.
-   */ 
+   */
   @Interruptible
-  private IntStream createScalarUsedSpaceStream() { 
+  private IntStream createScalarUsedSpaceStream() {
     return VM.newGCspyIntStream(
-                     this,                                     
-                     "Scalar Used Space stream",            // stream name 
-                     0,                                     // min. data value 
-                     blockSize,                             // max. data value 
-                     0,                                     // zero value 
-                     0,                                     // default value 
-                    "Scalars and primitive arrays: ",       // value prefix 
-                    " bytes",                               // value suffix 
-                     StreamConstants.PRESENTATION_PERCENT,  // presentation style 
-                     StreamConstants.PAINT_STYLE_ZERO,      // paint style 
-                     0,                                     // index of max stream (only needed if the presentation is *_VAR) 
-                     Color.Red,                             // tile colour 
-		             true );			                    // summary enabled 
+                     this,
+                     "Scalar Used Space stream",            // stream name
+                     0,                                     // min. data value
+                     blockSize,                             // max. data value
+                     0,                                     // zero value
+                     0,                                     // default value
+                    "Scalars and primitive arrays: ",       // value prefix
+                    " bytes",                               // value suffix
+                     StreamConstants.PRESENTATION_PERCENT,  // presentation style
+                     StreamConstants.PAINT_STYLE_ZERO,      // paint style
+                     0,                                     // index of max stream (only needed if the presentation is *_VAR)
+                     Color.Red,                             // tile colour
+		             true );			                    // summary enabled
   }
 
   @Interruptible
-  private IntStream createArrayUsedSpaceStream() { 
+  private IntStream createArrayUsedSpaceStream() {
     return VM.newGCspyIntStream(
-                     this,                                     
-                     "Array Used Space stream", 
-                     0, 
+                     this,
+                     "Array Used Space stream",
+                     0,
                      blockSize,
                      0,
                      0,
@@ -148,112 +148,112 @@ import org.vmmagic.pragma.*;
                     " bytes",
                      StreamConstants.PRESENTATION_PERCENT,
                      StreamConstants.PAINT_STYLE_ZERO,
-                     0, 
+                     0,
                      Color.Blue,
 		             true);
   }
 
   @Interruptible
-  private ShortStream createScalarObjectsStream() { 
+  private ShortStream createScalarObjectsStream() {
     return VM.newGCspyShortStream(
-                     this, 
+                     this,
                      "Scalar Objects stream",
-                     (short)0, 
+                     (short)0,
                      // Say, max value = 50% of max possible
                      (short)(maxObjectsPerBlock(blockSize)/2),
-                     (short)0, 
                      (short)0,
-                     "Scalars: ", 
+                     (short)0,
+                     "Scalars: ",
                      " objects",
                      StreamConstants.PRESENTATION_PLUS,
-                     StreamConstants.PAINT_STYLE_ZERO, 
-                     0, 
+                     StreamConstants.PAINT_STYLE_ZERO,
+                     0,
                      Color.Green,
 		             true);
   }
-  
+
   @Interruptible
-  private ShortStream createArrayPrimitiveStream() { 
+  private ShortStream createArrayPrimitiveStream() {
     return VM.newGCspyShortStream(
-                     this, 
+                     this,
                      "Array Primitive stream",
-                     (short)0, 
+                     (short)0,
                      // Say, typical primitive array size = 4 * typical scalar size?
                      (short)(maxObjectsPerBlock(blockSize)/8),
-                     (short)0, 
                      (short)0,
-                     "Primitive arrays: ", 
+                     (short)0,
+                     "Primitive arrays: ",
                      " objects",
                      StreamConstants.PRESENTATION_PLUS,
-                     StreamConstants.PAINT_STYLE_ZERO, 
-                     0, 
+                     StreamConstants.PAINT_STYLE_ZERO,
+                     0,
                      Color.Yellow,
 		             true);
   }
 
   @Interruptible
-  private ShortStream createArrayObjectsStream() { 
+  private ShortStream createArrayObjectsStream() {
     return VM.newGCspyShortStream(
-                     this, 
+                     this,
                      "Array Objects stream",
-                     (short)0, 
+                     (short)0,
                      // Say, typical ref array size = 4 * typical scalar size?
                      (short)(maxObjectsPerBlock(blockSize)/8),
-                     (short)0, 
                      (short)0,
-                     "Reference arrays: ", 
+                     (short)0,
+                     "Reference arrays: ",
                      " objects",
                      StreamConstants.PRESENTATION_PLUS,
-                     StreamConstants.PAINT_STYLE_ZERO, 
-                     0, 
+                     StreamConstants.PAINT_STYLE_ZERO,
+                     0,
                      Color.Cyan,
 		             true);
   }
 
   @Interruptible
-  private ShortStream createRootsStream() { 
+  private ShortStream createRootsStream() {
     return VM.newGCspyShortStream(
-                     this, 
+                     this,
                      "Roots stream",
-                     (short)0, 
+                     (short)0,
                      // Say, typical size = 4 * typical scalar size?
                      (short)(maxObjectsPerBlock(blockSize)/8),
-                     (short)0, 
                      (short)0,
-                     "Roots: ", 
+                     (short)0,
+                     "Roots: ",
                      " objects",
                      StreamConstants.PRESENTATION_PLUS,
-                     StreamConstants.PAINT_STYLE_ZERO, 
-                     0, 
+                     StreamConstants.PAINT_STYLE_ZERO,
+                     0,
                      Color.Blue,
 		             true);
   }
-  
+
   @Interruptible
-  private ShortStream createRefFromImmortalStream() { 
+  private ShortStream createRefFromImmortalStream() {
     return VM.newGCspyShortStream(
-                     this, 
+                     this,
                      "References from immortal stream",
-                     (short)0, 
+                     (short)0,
                      // Say, typical size = 4 * typical scalar size?
                      (short)(maxObjectsPerBlock(blockSize)/8),
-                     (short)0, 
                      (short)0,
-                     "References from immortal space: ", 
+                     (short)0,
+                     "References from immortal space: ",
                      " references",
                      StreamConstants.PRESENTATION_PLUS,
-                     StreamConstants.PAINT_STYLE_ZERO, 
-                     0, 
+                     StreamConstants.PAINT_STYLE_ZERO,
+                     0,
                      Color.Blue,
 		             true);
   }
-                      
+
   /**
    * Reset the statistics for all the streams, including totals used for summaries
    */
   public void resetData () {
     super.resetData();
-  
+
     // Reset all the streams
     scalarUsedSpaceStream.resetData();
     arrayUsedSpaceStream.resetData();
@@ -261,10 +261,10 @@ import org.vmmagic.pragma.*;
     arrayObjectsStream.resetData();
     arrayPrimitiveStream.resetData();
     refFromImmortalStream.resetData();
-    
+
     // Reset the summary counts
-    totalScalarObjects   = 0;   
-    totalArrayObjects    = 0; 
+    totalScalarObjects   = 0;
+    totalArrayObjects    = 0;
     totalPrimitives      = 0;
     totalScalarUsedSpace = 0;
     totalArrayUsedSpace  = 0;
@@ -276,7 +276,7 @@ import org.vmmagic.pragma.*;
    * @return the scanner for this driver
    */
    public LinearScan getScanner() { return scanner; }
-   
+
   /**
    * Set the current address range of a contiguous space
    * @param start the start of the contiguous space
@@ -286,20 +286,20 @@ import org.vmmagic.pragma.*;
     int current = subspace.getBlockNum();
     int required = countTileNum(start, end, subspace.getBlockSize());
 
-    // Reset the subspace 
-    if(required != current) 
+    // Reset the subspace
+    if(required != current)
       subspace.reset(start, end, 0, required);
-    
+
     if (DEBUG) {
       Log.write("\nContiguousSpaceDriver.setRange for contiguous space: ");
       Log.write(subspace.getFirstIndex()); Log.write("-", subspace.getBlockNum());
       Log.write(" (", start); Log.write("-", end); Log.write(")");
     }
-    
+
     // Reset the driver
-    // Note release() only resets a CopySpace's  cursor (and optionally zeroes 
-    // or mprotects the pages); it doesn't make the pages available to other 
-    // spaces. If pages were to be released, change the test here to 
+    // Note release() only resets a CopySpace's  cursor (and optionally zeroes
+    // or mprotects the pages); it doesn't make the pages available to other
+    // spaces. If pages were to be released, change the test here to
     //     if (allTileNum != required) {
     if (allTileNum < required) {
       if (DEBUG) { Log.write(", resize from ", allTileNum); Log.write(" to ", required); }
@@ -312,13 +312,13 @@ import org.vmmagic.pragma.*;
 
 
   /**
-   * Update the tile statistics 
+   * Update the tile statistics
    * @param obj The current object
    */
-  public void  scan(ObjectReference obj) { 
-    scan(obj, true); 
+  public void  scan(ObjectReference obj) {
+    scan(obj, true);
   }
-  
+
   /**
    * Update the tile statistics
    * @param obj The current object
@@ -327,7 +327,7 @@ import org.vmmagic.pragma.*;
   public void scan(ObjectReference obj, boolean total) {
     // get length of object and determine if it's an array
     MMType type =  VM.objectModel.getObjectType(obj);
-    // VM_Type would say whether it was an array; 
+    // VM_Type would say whether it was an array;
     // MMType won't, so we'll just show reference arrays
     boolean isArray = type.isReferenceArray();
     int length = VM.objectModel.getCurrentSize(obj);
@@ -342,7 +342,7 @@ import org.vmmagic.pragma.*;
       }
       lastAddress = addr;
       lastSize = length;
-    } 
+    }
 
     // Update the stats
     if (subspace.addressInRange(addr)) {
@@ -355,7 +355,7 @@ import org.vmmagic.pragma.*;
           totalArrayObjects++;
           totalArrayUsedSpace += length;
         }
-      } 
+      }
       else {
         if(!this.scanCheckPrimitiveArray(obj.toObject(), index, total, length) ) {
           // real object
@@ -369,9 +369,9 @@ import org.vmmagic.pragma.*;
       }
     }
   }
-  
+
   /**
-   * Check if this Object is an array of primitives.<br> 
+   * Check if this Object is an array of primitives.<br>
    * Part of the public scan() method.
    *
    * @param obj The Object to check
@@ -381,8 +381,8 @@ import org.vmmagic.pragma.*;
    * @return True if this Object is an array of primitives.
    */
   protected boolean scanCheckPrimitiveArray(Object obj, int index, boolean total, int length) {
-    if(obj instanceof long[]   || 
-	   obj instanceof int[]    || 
+    if(obj instanceof long[]   ||
+	   obj instanceof int[]    ||
 	   obj instanceof short[]  ||
 	   obj instanceof byte[]   ||
 	   obj instanceof double[] ||
@@ -403,7 +403,7 @@ import org.vmmagic.pragma.*;
    * @param event The event, defined in the Plan
    */
   public void transmit (int event) {
-    if (!server.isConnected(event)) 
+    if (!server.isConnected(event))
       return;
 
     if (DEBUG) {
@@ -414,17 +414,17 @@ import org.vmmagic.pragma.*;
       Log.writeln(", control.length=", control.length);
       Log.flush();
     }
-    
+
     // Setup the summaries
     setupSummaries();
 
     // Setup the control info
-    setupControlInfo(); 
+    setupControlInfo();
 
     // Setup the space info
     Offset size = subspace.getEnd().diff(subspace.getStart());
     setSpaceInfo(size);
-    
+
     // Send the all streams
     send(event, allTileNum);
 
@@ -453,7 +453,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Setup control info part of the <code>transmit</code> method.<p>
-   * Override this method to change the controls for your own driver subclass.   
+   * Override this method to change the controls for your own driver subclass.
  */
   protected void setupControlInfo() {
     int numBlocks = subspace.getBlockNum();
@@ -462,9 +462,9 @@ import org.vmmagic.pragma.*;
       Log.write("LinearSpaceDriver.transmitSetupControlInfo: allTileNum=", allTileNum);
       Log.writeln(", numBlocks=", numBlocks);
     }
-    if (numBlocks < allTileNum) 
+    if (numBlocks < allTileNum)
       controlValues(CONTROL_UNUSED,
-		            subspace.getFirstIndex() + numBlocks, 
+		            subspace.getFirstIndex() + numBlocks,
                     allTileNum - numBlocks);
   }
 
@@ -485,7 +485,7 @@ import org.vmmagic.pragma.*;
     }
     else return false;
   }
-  
+
   /**
    * Reset the roots Stream
    * The roots Stream has to be reset seperately because we do not
@@ -495,7 +495,7 @@ import org.vmmagic.pragma.*;
     rootsStream.resetData();
     totalRoots = 0;
   }
-  
+
   /**
    * Handle a direct reference from the immortal space.
    *
@@ -512,6 +512,6 @@ import org.vmmagic.pragma.*;
       return true;
     }
     else return false;
-  } 
+  }
 
 }

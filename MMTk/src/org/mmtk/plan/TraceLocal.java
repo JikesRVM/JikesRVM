@@ -29,14 +29,14 @@ import org.vmmagic.unboxed.*;
  * functionality for a transitive closure over the heap graph. This class
  * specifically implements the unsynchronized thread-local component
  * (ie the 'fast path') of the trace mechanism.<p>
- * 
+ *
  * @see org.mmtk.plan.Plan
  * @see org.mmtk.plan.Trace
  */
-@Uninterruptible public abstract class TraceLocal extends TraceStep 
+@Uninterruptible public abstract class TraceLocal extends TraceStep
   implements Constants {
   /****************************************************************************
-   * 
+   *
    * Instance variables
    */
   // gray objects
@@ -47,13 +47,13 @@ import org.vmmagic.unboxed.*;
   protected final AddressPairDeque interiorRootLocations;
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
   /**
    * Constructor
-   * 
+   *
    * @param trace The global trace class to use.
    */
   public TraceLocal(Trace trace) {
@@ -66,7 +66,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Internally visible Object processing and tracing
    */
 
@@ -80,7 +80,7 @@ import org.vmmagic.unboxed.*;
    * @param root True if <code>objLoc</code> is within a root.
    */
   @Inline
-  public final void traceObjectLocation(Address objLoc, boolean root) { 
+  public final void traceObjectLocation(Address objLoc, boolean root) {
     ObjectReference object = objLoc.loadObjectReference();
     ObjectReference newObject = traceObject(object, root);
     objLoc.store(newObject);
@@ -96,7 +96,7 @@ import org.vmmagic.unboxed.*;
    * traced.  The object reference is <i>NOT</i> an interior pointer.
    */
   @Inline
-  public final void traceObjectLocation(Address objLoc) { 
+  public final void traceObjectLocation(Address objLoc) {
     traceObjectLocation(objLoc, false);
   }
 
@@ -137,49 +137,49 @@ import org.vmmagic.unboxed.*;
    * generally themselves gc-critical), the forwarding and scanning of
    * the objects must be dislocated.  It is an error for a non-moving
    * collector to call this method.
-   * 
+   *
    * @param object The forwarded object to be scanned
    */
   @Inline
-  protected void scanObject(ObjectReference object) { 
+  protected void scanObject(ObjectReference object) {
     Scan.scanObject(this, object);
   }
 
 
   /****************************************************************************
-   * 
+   *
    * Externally visible Object processing and tracing
    */
 
   /**
    * Add a gray object
-   * 
+   *
    * @param object The object to be enqueued
    */
   @Inline
-  public final void enqueue(ObjectReference object) { 
+  public final void enqueue(ObjectReference object) {
     values.push(object);
   }
 
   /**
    * Report a new root location for the trace.
-   * 
+   *
    * @param location The slot of the root.
    */
   @Inline
-  public final void addRootLocation(Address location) { 
+  public final void addRootLocation(Address location) {
     rootLocations.push(location);
   }
 
   /**
    * Report a new interior root location for the trace.
-   * 
+   *
    * @param object The object the location resides in.
    * @param location The slot of the root.
    */
   @Inline
   public final void addInteriorRootLocation(ObjectReference object,
-                                            Address location) { 
+                                            Address location) {
     interiorRootLocations.push(object.toAddress(), location);
   }
 
@@ -193,12 +193,12 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Is the specified object live?
-   * 
+   *
    * @param object The object.
    * @return True if the object is live.
    */
   @Inline
-  public boolean isLive(ObjectReference object) { 
+  public boolean isLive(ObjectReference object) {
     Space space = Space.getSpaceForObject(object);
     if (space == Plan.loSpace)
       return Plan.loSpace.isLive(object);
@@ -214,46 +214,46 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Is the specified object reachable? Used for GC Trace
-   * 
+   *
    * @param object The object.
    * @return True if the object is live.
    */
   @Inline
-  public boolean isReachable(ObjectReference object) { 
+  public boolean isReachable(ObjectReference object) {
     return Space.getSpaceForObject(object).isReachable(object);
   }
 
   /**
    * Is the specified referent of a reference type object live?
-   * 
+   *
    * @param object The object.
    * @return True if the reference object is live.
    */
   @Inline
-  public boolean isReferentLive(ObjectReference object) { 
+  public boolean isReferentLive(ObjectReference object) {
     return isLive(object);
   }
 
   /**
    * This method is the core method during the trace of the object graph.
    * The role of this method is to:
-   * 
+   *
    * 1. Ensure the traced object is not collected.
    * 2. If this is the first visit to the object enqueue it to be scanned.
    * 3. Return the forwarded reference to the object.
-   * 
+   *
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
   @Inline
-  public ObjectReference traceObject(ObjectReference object) { 
+  public ObjectReference traceObject(ObjectReference object) {
     if (Space.isInSpace(Plan.VM_SPACE, object))
       return (Plan.SCAN_BOOT_IMAGE) ? object : Plan.vmSpace.traceObject(this, object);
     if (Space.isInSpace(Plan.IMMORTAL, object))
       return Plan.immortalSpace.traceObject(this, object);
     if (Space.isInSpace(Plan.LOS, object))
       return Plan.loSpace.traceObject(this, object);
-    if (Space.isInSpace(Plan.PLOS, object)) 
+    if (Space.isInSpace(Plan.PLOS, object))
       return Plan.ploSpace.traceObject(this, object);
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(false, "No special case for space in traceObject");
@@ -263,12 +263,12 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Ensure that this object will not move for the rest of the GC.
-   * 
+   *
    * @param object The object that must not move
    * @return The new object, guaranteed stable for the rest of the GC.
    */
   @Inline
-  public ObjectReference precopyObject(ObjectReference object) { 
+  public ObjectReference precopyObject(ObjectReference object) {
     return traceObject(object);
   }
 
@@ -276,12 +276,12 @@ import org.vmmagic.unboxed.*;
    * This method traces an object with knowledge of the fact that object
    * is a root or not. In simple collectors the fact it is a root is not
    * important so this is the default implementation given here.
-   * 
+   *
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
   @Inline
-  public ObjectReference traceObject(ObjectReference object, boolean root) { 
+  public ObjectReference traceObject(ObjectReference object, boolean root) {
     return traceObject(object);
   }
 
@@ -289,10 +289,10 @@ import org.vmmagic.unboxed.*;
    * Ensure that the referenced object will not move from this point through
    * to the end of the collection. This can involve forwarding the object
    * if necessary.
-   * 
+   *
    * <i>Non-copying collectors do nothing, copying collectors must
    * override this method in each of their trace classes.</i>
-   * 
+   *
    * @param object The object that must not move during the collection.
    * @return True If the object will not move during collection
    */
@@ -312,7 +312,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * If a Finalizable object has moved, return the new location.
-   * 
+   *
    * @param object The object which may have been forwarded.
    * @return The new location of <code>object</code>.
    */
@@ -323,52 +323,52 @@ import org.vmmagic.unboxed.*;
   /**
    * If the reference object (from a Reference Type) has object has moved,
    * return the new location.
-   * 
+   *
    * @param object The object which may have been forwarded.
    * @return The new location of <code>object</code>.
    */
   @Inline
-  public ObjectReference getForwardedReferent(ObjectReference object) { 
+  public ObjectReference getForwardedReferent(ObjectReference object) {
     return getForwardedReference(object);
   }
 
   /**
    * If the Reference Type object has moved, return the new location.
-   * 
+   *
    * @param object The object which may have been forwarded.
    * @return The new location of <code>object</code>.
    */
   @Inline
-  public ObjectReference getForwardedReferenceType(ObjectReference object) { 
+  public ObjectReference getForwardedReferenceType(ObjectReference object) {
     return getForwardedReference(object);
   }
 
   /**
    * If the referenced object has moved, return the new location.
-   * 
+   *
    * Some copying collectors will need to override this method.
-   * 
+   *
    * @param object The object which may have been forwarded.
    * @return The new location of <code>object</code>.
    */
   @Inline
-  public ObjectReference getForwardedReference(ObjectReference object) { 
+  public ObjectReference getForwardedReference(ObjectReference object) {
     return traceObject(object);
   }
 
   /**
    * Make alive a referent object that is known not to be live
    * (isLive is false). This is used by the ReferenceProcessor.
-   * 
+   *
    * <i>For many collectors these semantics relfect those of
    * <code>traceObject</code>, which is implemented here.  Other
    * collectors must override this method.</i>
-   * 
+   *
    * @param object The object which is to be made alive.
    * @return The possibly forwarded address of the object.
    */
   @Inline
-  public ObjectReference retainReferent(ObjectReference object) { 
+  public ObjectReference retainReferent(ObjectReference object) {
     return traceObject(object);
   }
 
@@ -378,11 +378,11 @@ import org.vmmagic.unboxed.*;
    * collected (despite being otherwise unreachable), and should
    * return its forwarded address if keeping the object alive involves
    * forwarding. This is only ever called once for an object.<p>
-   * 
+   *
    * <i>For many collectors these semantics relfect those of
    * <code>traceObject</code>, which is implemented here.  Other
    * collectors must override this method.</i>
-   * 
+   *
    * @param object The object which may have been forwarded.
    * @return The forwarded value for <code>object</code>.  <i>In this
    * case return <code>object</code>, copying collectors must override
@@ -412,9 +412,9 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Collection
-   * 
+   *
    * Important notes:
    *   . Global actions are executed by only one thread
    *   . Thread-local actions are executed by all threads
@@ -440,7 +440,7 @@ import org.vmmagic.unboxed.*;
    * are empty.
    */
   @Inline
-  public void startTrace() { 
+  public void startTrace() {
     logMessage(4, "Working on GC in parallel");
     logMessage(5, "processing root locations");
     while (!rootLocations.isEmpty()) {
@@ -463,7 +463,7 @@ import org.vmmagic.unboxed.*;
    * are empty.
    */
   @Inline
-  public void completeTrace() { 
+  public void completeTrace() {
     logMessage(4, "Continuing GC in parallel");
     logMessage(5, "processing gray objects");
     assertMutatorRemsetsFlushed();
@@ -485,7 +485,7 @@ import org.vmmagic.unboxed.*;
   protected void processRememberedSets() {}
 
   /**
-   * Assert that the remsets have been flushed.  This is critical to 
+   * Assert that the remsets have been flushed.  This is critical to
    * correctness.  We need to maintain the invariant that remset entries
    * do not accrue during GC.  If the host JVM generates barrier entires
    * it is its own responsibility to ensure that they are flushed before
@@ -501,12 +501,12 @@ import org.vmmagic.unboxed.*;
   /**
    * This method logs a message with preprended thread id, if the
    * verbosity level is greater or equal to the passed level.
-   * 
+   *
    * @param minVerbose The required verbosity level
    * @param message The message to display
    */
   @Inline
-  protected final void logMessage(int minVerbose, String message) { 
+  protected final void logMessage(int minVerbose, String message) {
     if (Options.verbose.getValue() >= minVerbose) {
       Log.prependThreadId();
       Log.write("    ");
@@ -516,7 +516,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Copying traces should override this stub
-   * 
+   *
    * @return The allocator id to use when copying.
    */
   public int getAllocator() {
@@ -526,13 +526,13 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Given a slot (ie the address of an ObjectReference), ensure that the
-   * referent will not move for the rest of the GC. This is achieved by 
-   * calling the precopyObject method. 
-   * 
+   * referent will not move for the rest of the GC. This is achieved by
+   * calling the precopyObject method.
+   *
    * @param slot The slot to check
    */
   @Inline
-  public final void precopyObjectLocation(Address slot) { 
+  public final void precopyObjectLocation(Address slot) {
     ObjectReference child = slot.loadObjectReference();
     if (!child.isNull()) {
       child = precopyObject(child);

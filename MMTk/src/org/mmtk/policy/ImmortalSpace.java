@@ -29,24 +29,24 @@ import org.vmmagic.pragma.*;
  * actually collect.  This class does not hold any state, all methods
  * are static.
  */
-@Uninterruptible public final class ImmortalSpace extends Space 
+@Uninterruptible public final class ImmortalSpace extends Space
   implements Constants {
 
   /****************************************************************************
-   * 
+   *
    * Class variables
    */
   static final Word GC_MARK_BIT_MASK = Word.one();
   private static final int META_DATA_PAGES_PER_REGION = CARD_META_PAGES_PER_REGION;
 
   /****************************************************************************
-   * 
+   *
    * Instance variables
    */
   private Word markState = Word.zero(); // when GC off, the initialization value
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
@@ -69,7 +69,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Construct a space of a given number of megabytes in size.<p>
-   * 
+   *
    * The caller specifies the amount virtual memory to be used for
    * this space <i>in megabytes</i>.  If there is insufficient address
    * space, then the constructor will fail.
@@ -107,13 +107,13 @@ import org.vmmagic.pragma.*;
    * Construct a space that consumes a given number of megabytes of
    * virtual memory, at either the top or bottom of the available
    * virtual memory.
-   * 
+   *
    * The caller specifies the amount virtual memory to be used for
    * this space <i>in megabytes</i>, and whether it should be at the
    * top or bottom of the available virtual memory.  If the request
    * clashes with existing virtual memory allocations, then the
    * constructor will fail.
-   * 
+   *
    * @param name The name of this space (used when printing error messages etc)
    * @param pageBudget The number of pages this space may consume
    * before consulting the plan
@@ -152,17 +152,17 @@ import org.vmmagic.pragma.*;
 
   /** @return the current mark state */
   @Inline
-  public Word getMarkState() { return markState; } 
+  public Word getMarkState() { return markState; }
 
   /****************************************************************************
-   * 
+   *
    * Object header manipulations
    */
 
   /**
    * Initialize the object header post-allocation.  We need to set the mark state
    * correctly and set the logged bit if necessary.
-   * 
+   *
    * @param object The newly allocated object instance whose header we are initializing
    */
   public void initializeHeader(ObjectReference object) {
@@ -176,7 +176,7 @@ import org.vmmagic.pragma.*;
    * Returns true if marking was done.
    */
   @Inline
-  private static boolean testAndMark(ObjectReference object, Word value) { 
+  private static boolean testAndMark(ObjectReference object, Word value) {
     Word oldValue;
     do {
       oldValue = VM.objectModel.prepareAvailableBits(object);
@@ -198,7 +198,7 @@ import org.vmmagic.pragma.*;
    */
   @Inline
   public ObjectReference traceObject(TraceLocal trace,
-                                           ObjectReference object) { 
+                                           ObjectReference object) {
     if (testAndMark(object, markState))
       trace.enqueue(object);
     return object;
@@ -218,17 +218,17 @@ import org.vmmagic.pragma.*;
   /**
    * Release an allocated page or pages.  In this case we do nothing
    * because we only release pages enmasse.
-   * 
+   *
    * @param start The address of the start of the page or pages
    */
   @Inline
-  public void release(Address start) { 
+  public void release(Address start) {
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(false); // this policy only releases pages enmasse
   }
 
   @Inline
-  public boolean isLive(ObjectReference object) { 
+  public boolean isLive(ObjectReference object) {
     return true;
   }
 
@@ -237,7 +237,7 @@ import org.vmmagic.pragma.*;
    * This is done by comparing the mark bit to the current mark state. For the
    * immortal collector reachable and live are different, making this method
    * necessary.
-   * 
+   *
    * @param object The address of an object in immortal space to test
    * @return True if <code>ref</code> may be a reachable object (e.g., having
    *         the current mark state).  While all immortal objects are live,

@@ -33,21 +33,21 @@ public class NurserySize {
 
   /**
    * Read the upper bound of the nursery size.
-   * 
+   *
    * @return maximum number of pages in the nursery.
    */
   @Uninterruptible
-  public int getMaxNursery() { 
+  public int getMaxNursery() {
     return boundedNursery.getPages();
   }
 
   /**
    * Read the lower bound of the nursery size.
-   * 
+   *
    * @return minimum number of pages in the nursery.
    */
   @Uninterruptible
-  public int getMinNursery() { 
+  public int getMinNursery() {
     return fixedNursery.getPages();
   }
 }

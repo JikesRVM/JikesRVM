@@ -25,12 +25,12 @@ import org.vmmagic.pragma.*;
 /**
  * This class (and its sub-classes) implement <i>per-collector thread</i>
  * behavior and state.
- * 
+ *
  * MMTk assumes that the VM instantiates instances of CollectorContext
- * in thread local storage (TLS) for each thread participating in 
- * collection.  Accesses to this state are therefore assumed to be 
+ * in thread local storage (TLS) for each thread participating in
+ * collection.  Accesses to this state are therefore assumed to be
  * low-cost during mutator time.<p>
- * 
+ *
  * @see CollectorContext
  * @see SimplePhase#delegatePhase
  */
@@ -44,7 +44,7 @@ import org.vmmagic.pragma.*;
   private SanityCheckerLocal sanityChecker = new SanityCheckerLocal();
 
   /****************************************************************************
-   * 
+   *
    * Collection
    */
 
@@ -54,13 +54,13 @@ import org.vmmagic.pragma.*;
 
   /**
    * Perform a per-collector collection phase.
-   * 
+   *
    * @param phaseId The unique phase identifier
    * @param primary Should this thread be used to execute any single-threaded
    * local operations?
    */
   @Inline
-  public void collectionPhase(int phaseId, boolean primary) { 
+  public void collectionPhase(int phaseId, boolean primary) {
     if (phaseId == StopTheWorld.INITIATE) {
       VM.collection.prepareCollector(this);
       return;
@@ -151,13 +151,13 @@ import org.vmmagic.pragma.*;
       return;
     }
 
-    Log.write("Per-collector phase "); Log.write(Phase.getName(phaseId)); 
+    Log.write("Per-collector phase "); Log.write(Phase.getName(phaseId));
     Log.writeln(" not handled.");
     VM.assertions.fail("Per-collector phase not handled!");
   }
 
   /****************************************************************************
-   * 
+   *
    * Miscellaneous.
    */
 

@@ -26,7 +26,7 @@ public class FloatOption extends Option {
 
   /**
    * Create a new float option.
-   * 
+   *
    * @param name The space separated name for the option.
    * @param desc The purpose of the option
    * @param defaultValue The default value of the option.
@@ -38,21 +38,21 @@ public class FloatOption extends Option {
 
   /**
    * Read the current value of the option.
-   * 
+   *
    * @return The option value.
    */
   @Uninterruptible
-  public float getValue() { 
+  public float getValue() {
     return this.value;
   }
 
   /**
    * Read the default value of the option
-   * 
+   *
    * @return The default value.
    */
   @Uninterruptible
-  public float getDefaultValue() { 
+  public float getDefaultValue() {
     return this.defaultValue;
   }
 
@@ -60,7 +60,7 @@ public class FloatOption extends Option {
    * Update the value of the option, echoing the change if the echoOptions
    * option is set. This method also calls the validate method to allow
    * subclasses to perform any required validation.
-   * 
+   *
    * @param value The new value for the option.
    */
   public void setValue(float value) {
@@ -80,7 +80,7 @@ public class FloatOption extends Option {
   /**
    * Log the option value in raw format - delegate upwards
    * for fancier formatting.
-   * 
+   *
    * @param format Output format (see Option.java for possible values)
    */
   @Override

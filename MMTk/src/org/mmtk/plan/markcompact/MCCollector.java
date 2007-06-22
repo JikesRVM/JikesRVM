@@ -21,20 +21,20 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This class implements <i>per-collector thread</i> behavior 
+ * This class implements <i>per-collector thread</i> behavior
  * and state for the <i>MC</i> plan, which implements a full-heap
  * mark-compact collector.<p>
- * 
+ *
  * Specifically, this class defines <i>MC</i> collection behavior
  * (through <code>trace</code> and the <code>collectionPhase</code>
  * method), and collection-time allocation.<p>
- * 
+ *
  * @see MC for an overview of the mark-compact algorithm.<p>
- * 
+ *
  * FIXME Currently MC does not properly separate mutator and collector
  * behaviors, so some of the collection logic in MCMutator should
  * really be per-collector thread, not per-mutator thread.
- * 
+ *
  * @see MC
  * @see MCMutator
  * @see StopTheWorldCollector
@@ -57,9 +57,9 @@ import org.vmmagic.unboxed.*;
   // Sanity checking
   private final MCSanityCheckerLocal sanityChecker;
 
-  
+
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
@@ -72,16 +72,16 @@ import org.vmmagic.unboxed.*;
     sanityChecker = new MCSanityCheckerLocal();
   }
 
-  
+
   /****************************************************************************
-   * 
+   *
    * Collection-time allocation
    */
 
   /**
    * Allocate space for copying an object (this method <i>does not</i>
    * copy the object, it only allocates space)
-   * 
+   *
    * @param original A reference to the original object
    * @param bytes The size of the space to be allocated (in bytes)
    * @param align The requested alignment.
@@ -90,7 +90,7 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public Address allocCopy(ObjectReference original, int bytes,
-      int align, int offset, int allocator) { 
+      int align, int offset, int allocator) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(allocator == MC.ALLOC_IMMORTAL);
 
     return immortal.alloc(bytes, align, offset, true);
@@ -98,30 +98,30 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Perform any post-copy actions.
-   * 
+   *
    * @param object The newly allocated object
    * @param typeRef the type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
    */
   @Inline
   public void postCopy(ObjectReference object, ObjectReference typeRef,
-      int bytes, int allocator) { 
+      int bytes, int allocator) {
     MC.immortalSpace.initializeHeader(object);
   }
 
   /****************************************************************************
-   * 
+   *
    * Collection
    */
 
   /**
    * Perform a per-collector collection phase.
-   * 
+   *
    * @param phaseId The collection phase to perform
    * @param primary Perform any single-threaded activities using this thread.
    */
   @Inline
-  public final void collectionPhase(int phaseId, boolean primary) { 
+  public final void collectionPhase(int phaseId, boolean primary) {
     if (phaseId == MC.PREPARE) {
       currentTrace = TRACE_MARK;
       super.collectionPhase(phaseId, primary);
@@ -168,7 +168,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Miscellaneous
    */
 

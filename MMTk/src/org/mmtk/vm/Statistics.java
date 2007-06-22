@@ -18,7 +18,7 @@ import org.vmmagic.pragma.Uninterruptible;
 @Uninterruptible public abstract class Statistics {
   /**
    * Returns the number of collections that have occured.
-   * 
+   *
    * @return The number of collections that have occured.
    */
   public abstract int getCollectionCount();
@@ -32,7 +32,7 @@ import org.vmmagic.pragma.Uninterruptible;
    * Convert cycles to milliseconds
    */
   public abstract double cyclesToMillis(long c);
-  
+
   /**
    * Convert cycles to seconds
    */

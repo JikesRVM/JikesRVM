@@ -26,44 +26,44 @@ import org.vmmagic.pragma.*;
 @Uninterruptible class Deque implements Constants {
 
   /****************************************************************************
-   * 
+   *
    * Protected instance methods
-   * 
+   *
    * protected int enqueued;
    */
 
   @Inline
-  protected final Offset bufferOffset(Address buf) { 
+  protected final Offset bufferOffset(Address buf) {
     return buf.toWord().and(BUFFER_MASK).toOffset();
   }
   @Inline
-  protected final Address bufferStart(Address buf) { 
+  protected final Address bufferStart(Address buf) {
     return buf.toWord().and(BUFFER_MASK.not()).toAddress();
   }
   @Inline
-  protected final Address bufferEnd(Address buf) { 
+  protected final Address bufferEnd(Address buf) {
     return bufferStart(buf).plus(USABLE_BUFFER_BYTES);
   }
   @Inline
-  protected final Address bufferFirst(Address buf) { 
+  protected final Address bufferFirst(Address buf) {
     return bufferStart(buf);
   }
   @Inline
-  protected final Address bufferLast(Address buf, int arity) { 
+  protected final Address bufferLast(Address buf, int arity) {
     return bufferStart(buf).plus(bufferLastOffset(arity));
   }
   @Inline
-  protected final Address bufferLast(Address buf) { 
+  protected final Address bufferLast(Address buf) {
     return bufferLast(buf, 1);
   }
   @Inline
-  protected final Offset bufferLastOffset(int arity) { 
+  protected final Offset bufferLastOffset(int arity) {
     return Offset.fromIntZeroExtend(USABLE_BUFFER_BYTES - BYTES_IN_ADDRESS
         - (USABLE_BUFFER_BYTES % (arity << LOG_BYTES_IN_ADDRESS)));
   }
 
   /****************************************************************************
-   * 
+   *
    * Private and protected static final fields (aka constants)
    */
   protected static final int LOG_PAGES_PER_BUFFER = 0;

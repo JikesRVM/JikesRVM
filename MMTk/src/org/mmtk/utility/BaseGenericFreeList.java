@@ -31,7 +31,7 @@ import org.vmmagic.pragma.*;
  *   <li> The allocator can only deal with MAX_UNITS units (see below for
  *   the value).</li>
  * </ul>
- * 
+ *
  * The basic data structure used by the algorithm is a large table,
  * with one word per allocatable unit.  Each word is used in a
  * number of different ways, some combination of "undefined" (32),
@@ -41,7 +41,7 @@ import org.vmmagic.pragma.*;
  *                       +-+-+-----------+-----------+
  *                       |f|m|    prev   | next/size |
  *                       +-+-+-----------+-----------+
- * 
+ *
  *   - single free unit: "free", "single", "prev", "next"
  *   - single used unit: "used", "single"
  *    - contigious free units
@@ -53,10 +53,10 @@ import org.vmmagic.pragma.*;
  *     . second unit: "used", "multi", "size"
  *     . last unit: "used", "multi", "size"
  *    - any other unit: undefined
- *     
+ *
  *                       +-+-+-----------+-----------+
  *   top sentinel        |0|0|    tail   |   head    |  [-1]
- *                       +-+-+-----------+-----------+ 
+ *                       +-+-+-----------+-----------+
  *                                     ....
  *            /--------  +-+-+-----------+-----------+
  *            |          |1|1|   prev    |   next    |  [j]
@@ -82,7 +82,7 @@ import org.vmmagic.pragma.*;
  *                                     ....
  *                       +-+-+-----------------------+
  *   bottom sentinel     |0|0|                       |  [N]
- *                       +-+-+-----------------------+ 
+ *                       +-+-+-----------------------+
  * </pre>
  * The sentinels serve as guards against out of range coalescing
  * because they both appear as "used" blocks and so will never
@@ -92,13 +92,13 @@ import org.vmmagic.pragma.*;
 @Uninterruptible abstract class BaseGenericFreeList implements Constants {
 
   /****************************************************************************
-   * 
+   *
    * Public instance methods
    */
 
   /**
    * Allocate <code>size</code> units. Return the unit ID
-   * 
+   *
    * @param size  The number of units to be allocated
    * @return The index of the first of the <code>size</code>
    * contigious units, or -1 if the request can't be satisfied
@@ -114,7 +114,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Allocate <code>size</code> units. Return the unit ID
-   * 
+   *
    * @param size  The number of units to be allocated
    * @return The index of the first of the <code>size</code>
    * contigious units, or -1 if the request can't be satisfied
@@ -130,7 +130,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Allocate <code>size</code> units. Return the unit ID
-   * 
+   *
    * @param size  The number of units to be allocated
    * @return The index of the first of the <code>size</code>
    * contigious units, or -1 if the request can't be satisfied
@@ -149,7 +149,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Free a previously allocated contigious lump of units.
-   * 
+   *
    * @param unit The index of the first unit.
    * @return The number of units freed.
    */
@@ -167,7 +167,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Return the size of the specified lump of units
-   * 
+   *
    * @param unit The index of the first unit in the lump.
    * @return The size of the lump, in units.
    */
@@ -176,14 +176,14 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Private fields and methods
    */
 
   /**
    * Initialize a new heap.  Fabricate a free list entry containing
    * everything
-   * 
+   *
    * @param units The number of units in the heap
    */
   protected final void initializeHeap(int units) {
@@ -193,7 +193,7 @@ import org.vmmagic.pragma.*;
   /**
    * Initialize a new heap.  Fabricate a free list entry containing
    * everything
-   * 
+   *
    * @param units The number of units in the heap
    */
   protected final void initializeHeap(int units, int grain) {
@@ -219,7 +219,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Reduce a lump of units to size, freeing any excess.
-   * 
+   *
    * @param unit The index of the first unit
    * @param size The size of the first part
    */
@@ -248,7 +248,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Add a lump of units to the free list
-   * 
+   *
    * @param unit The first unit in the lump of units to be added
    */
   private void addToFree(int unit) {
@@ -262,7 +262,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Remove a lump of units from the free list
-   * 
+   *
    * @param unit The first unit in the lump of units to be removed
    */
   private void removeFromFree(int unit) {
@@ -274,7 +274,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Get the lump to the "right" of the current lump (i.e. "below" it)
-   * 
+   *
    * @param unit The index of the first unit in the lump in question
    * @return The index of the first unit in the lump to the
    * "right"/"below" the lump in question.

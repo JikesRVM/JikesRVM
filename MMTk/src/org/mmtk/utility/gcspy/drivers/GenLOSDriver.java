@@ -25,11 +25,11 @@ import org.vmmagic.pragma.*;
 
 
 /**
- * This class extends a simple driver for the MMTk LargeObjectSpace 
+ * This class extends a simple driver for the MMTk LargeObjectSpace
  * for Generational Collectors.
  */
 @Uninterruptible public class GenLOSDriver extends TreadmillDriver {
-  
+
   private static final boolean DEBUG = false;
 
   // The additional remset stream
@@ -37,10 +37,10 @@ import org.vmmagic.pragma.*;
   // Additional overall statistic
   protected int totalRemset = 0;   // total of remset Addresses
 
-  
+
   /**
    * Create a new driver for this collector
-   * 
+   *
    * @param server The name of the GCspy server that owns this space
    * @param spaceName The name of this driver
    * @param lospace the large object space for this allocator
@@ -53,7 +53,7 @@ import org.vmmagic.pragma.*;
                       LargeObjectSpace lospace,
                       int blockSize,
                       int threshold,
-                      boolean mainSpace) { 
+                      boolean mainSpace) {
     //TODO blocksize should be a multiple of treadmill granularity
     super(server, spaceName, lospace, blockSize, threshold, mainSpace);
     // create remset stream
@@ -68,28 +68,28 @@ import org.vmmagic.pragma.*;
    */
   protected String getDriverName() {
     return "MMTk GenLOSDriver";
-  } 
-  
-  // private creator methods for the streams 
+  }
+
+  // private creator methods for the streams
   @Interruptible
-  private ShortStream createRemsetStream() { 
+  private ShortStream createRemsetStream() {
     return VM.newGCspyShortStream(
-                     this, 
+                     this,
                      "Remembered set stream",
-                     (short)0, 
+                     (short)0,
                      // Say, typical size = 4 * typical scalar size?
                      (short)(maxObjectsPerBlock(blockSize)/8),
-                     (short)0, 
                      (short)0,
-                     "Remset references: ", 
+                     (short)0,
+                     "Remset references: ",
                      " references",
                      StreamConstants.PRESENTATION_PLUS,
-                     StreamConstants.PAINT_STYLE_ZERO, 
-                     0, 
+                     StreamConstants.PAINT_STYLE_ZERO,
+                     0,
                      Color.Cyan,
 		             true);
   }
-  
+
   /**
    * Setup summaries part of the <code>transmit</code> method.<p>
    * Overrides <code>transmitSetupSummaries </code> of superclass to
@@ -99,7 +99,7 @@ import org.vmmagic.pragma.*;
     super.setupSummaries();
     remsetStream.setSummary(totalRemset);
   }
-  
+
   /**
    * Handle a remset address.
    *
@@ -115,10 +115,10 @@ import org.vmmagic.pragma.*;
       this.totalRemset++;
       return true;
     }
-    else 
+    else
       return false;
   }
-  
+
   /**
    * Reset the remset Stream. <p>
    * The remset Stream has to be reset seperately because we do not

@@ -30,20 +30,20 @@ import org.vmmagic.pragma.*;
 @Uninterruptible public class GCspy {
 
   /****************************************************************************
-   * 
+   *
    * Class variables
    */
-  
+
   public static final Util util = VM.newGCspyUtil();
   public static final ServerInterpreter server = VM.newGCspyServerInterpreter();
-  
+
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
   @Interruptible
-  public static void createOptions() { 
+  public static void createOptions() {
     Options.gcspyPort = new GCspyPort();
     Options.gcspyWait = new GCspyWait();
     Options.gcspyTileSize = new GCspyTileSize();
@@ -60,7 +60,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Get the number of the port that GCspy communicates on
-   * 
+   *
    * @return the GCspy port number
    */
   public static int getGCspyPort() {
@@ -69,7 +69,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Should the VM wait for GCspy to connect?
-   * 
+   *
    * @return whether the VM should wait for the visualiser to connect
    */
   public static boolean getGCspyWait() {
@@ -81,7 +81,7 @@ import org.vmmagic.pragma.*;
    * WARNING: allocates memory indirectly
    */
   @Interruptible
-  public static void startGCspyServer() { 
+  public static void startGCspyServer() {
     int port = getGCspyPort();
     Log.write("GCspy.startGCspyServer, port="); Log.write(port);
     Log.write(", wait=");

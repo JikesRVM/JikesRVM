@@ -30,7 +30,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Perform the actual write of the write barrier.
-   * 
+   *
    * @param ref The object that has the reference field
    * @param slot The slot that holds the reference
    * @param target The value that the slot will be updated to
@@ -39,13 +39,13 @@ import org.vmmagic.unboxed.*;
    * @param mode The context in which the write is occuring
    */
   public abstract void performWriteInBarrier(ObjectReference ref, Address slot,
-                                           ObjectReference target, Offset offset, 
+                                           ObjectReference target, Offset offset,
                                            int locationMetadata, int mode);
 
   /**
-   * Atomically write a reference field of an object or array and return 
+   * Atomically write a reference field of an object or array and return
    * the old value of the reference field.
-   * 
+   *
    * @param ref The object that has the reference field
    * @param slot The slot that holds the reference
    * @param target The value that the slot will be updated to
@@ -58,13 +58,13 @@ import org.vmmagic.unboxed.*;
                                            ObjectReference ref, Address slot,
                                            ObjectReference target, Offset offset,
       int locationMetadata, int mode);
-  
+
   /**
    * Attempt an atomic compare and exchange in a write barrier sequence.
-   * 
+   *
    * @param ref The object that has the reference field
    * @param slot The slot that holds the reference
-   * @param old The old reference to be swapped out 
+   * @param old The old reference to be swapped out
    * @param target The value that the slot will be updated to
    * @param offset The offset from the ref (metaDataA)
    * @param locationMetadata An index of the FieldReference (metaDataB)
@@ -78,7 +78,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Gets an element of a char array without invoking any read barrier
    * or performing bounds check.
-   * 
+   *
    * @param src the source array
    * @param index the natural array index of the element to get
    * @return the new value of element
@@ -88,7 +88,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Gets an element of a byte array without invoking any read barrier
    * or bounds check.
-   * 
+   *
    * @param src the source array
    * @param index the natural array index of the element to get
    * @return the new value of element
@@ -98,7 +98,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Gets an element of an int array without invoking any read barrier
    * or performing bounds checks.
-   * 
+   *
    * @param src the source array
    * @param index the natural array index of the element to get
    * @return the new value of element
@@ -108,7 +108,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Gets an element of an Object array without invoking any read
    * barrier or performing bounds checks.
-   * 
+   *
    * @param src the source array
    * @param index the natural array index of the element to get
    * @return the new value of element
@@ -118,7 +118,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Gets an element of an array of byte arrays without causing the potential
    * thread switch point that array accesses normally cause.
-   * 
+   *
    * @param src the source array
    * @param index the index of the element to get
    * @return the new value of element
