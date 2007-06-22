@@ -27,11 +27,6 @@ import org.vmmagic.unboxed.Offset;
 public final class VM_NativeMethod extends VM_Method {
 
   /**
-   * the name of the native procedure in the native library
-   */
-  private String nativeProcedureName;
-
-  /**
    * the IP of the native p rocedure
    */
   private Address nativeIP;
@@ -173,8 +168,8 @@ public final class VM_NativeMethod extends VM_Method {
       return true;
     }
 
-    nativeProcedureName = getMangledName(false);
-    String nativeProcedureNameWithSignature = getMangledName(true);
+    final String nativeProcedureName = getMangledName(false);
+    final String nativeProcedureNameWithSignature = getMangledName(true);
 
     Address symbolAddress = VM_DynamicLibrary.resolveSymbol(nativeProcedureNameWithSignature);
     if (symbolAddress.isZero()) {
