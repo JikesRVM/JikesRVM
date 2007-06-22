@@ -15,6 +15,7 @@ package org.mmtk.utility;
 import org.mmtk.vm.SynchronizedCounter;
 
 import org.mmtk.vm.VM;
+import org.mmtk.utility.options.Options;
 
 import org.vmmagic.pragma.*;
 
@@ -111,14 +112,19 @@ import org.vmmagic.pragma.*;
           } else {
             long elapsed = VM.statistics.cycles() - startCheck;
             if (elapsed - lastElapsed > WARN_PERIOD) {
-              Log.write("GC Warning: Barrier wait has reached "); Log.write(VM.statistics.cyclesToSecs(elapsed));
-              Log.write(" seconds.  Called from "); Log.write(where); Log.write(".  myOrder = "); Log.write(myValue);
-              Log.write("  count is "); Log.write(c.peek()); Log.write(" waiting for "); Log.write(target - 1);
-              Log.writeln();
-              lastElapsed = elapsed;
+              if (Options.verbose.getValue() >= 1) {
+                Log.write("GC Warning: Barrier wait has reached "); Log.write(VM.statistics.cyclesToSecs(elapsed));
+                Log.write(" seconds.  Called from "); Log.write(where); Log.write(".  myOrder = "); Log.write(myValue);
+                Log.write("  count is "); Log.write(c.peek()); Log.write(" waiting for "); Log.write(target - 1);
+                Log.writeln();
+                lastElapsed = elapsed;
+              }
             }
-            if (elapsed > TIME_OUT)
-              VM.assertions.fail("GC Error: Barrier Timeout");
+            if (elapsed > TIME_OUT) {
+              if (Options.verbose.getValue() >= 1) {
+                VM.assertions.fail("GC Error: Barrier Timeout");
+              }
+            }
           }
         }
       }
