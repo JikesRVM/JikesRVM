@@ -34,6 +34,7 @@ import org.jikesrvm.scheduler.VM_Processor;
 import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Inline;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -296,8 +297,6 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
   //                     Object Allocation.                        //
   //---------------------------------------------------------------//
 
-  static int countDownToGC = VM.StressGCAllocationInterval;
-
   /**
    * Allocate something like "new Foo()".
    * @param id id of type reference of class to create.
@@ -367,15 +366,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
                                          int offset, int site) throws OutOfMemoryError {
 
     // GC stress testing
-    if (VM.ForceFrequentGC &&
-        VM_Scheduler.allProcessorsInitialized &&
-        VM_Processor.getCurrentProcessor().threadSwitchingEnabled()) {
-      if (countDownToGC-- <= 0) {
-        //VM.sysWrite("FORCING GC: Countdown trigger in quickNewScalar\n");
-        countDownToGC = VM.StressGCAllocationInterval;
-        System.gc();
-      }
-    }
+    checkAllocationCountDownToGC();
 
     // Allocate the object and initialize its header
     Object newObj = MM_Interface.allocateScalar(size, tib, allocator, align, offset, site);
@@ -455,15 +446,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
     if (numElements < 0) raiseNegativeArraySizeException();
 
     // GC stress testing
-    if (VM.ForceFrequentGC &&
-        VM_Scheduler.allProcessorsInitialized &&
-        VM_Processor.getCurrentProcessor().threadSwitchingEnabled()) {
-      if (countDownToGC-- <= 0) {
-        //VM.sysWrite("FORCING GC: Countdown trigger in quickNewArray\n");
-        countDownToGC = VM.StressGCAllocationInterval;
-        System.gc();
-      }
-    }
+    checkAllocationCountDownToGC();
 
     // Allocate the array and initialize its header
     return MM_Interface.allocateArray(numElements, logElementSize, headerSize, tib, allocator, align, offset, site);
@@ -676,9 +659,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
     }
 
     // GC stress testing
-    if (VM.ForceFrequentGC &&
-        VM_Scheduler.allProcessorsInitialized &&
-        VM_Processor.getCurrentProcessor().threadSwitchingEnabled()) {
+    if (canForceGC()) {
       //VM.sysWrite("FORCING GC: in deliverHardwareException\n");
       System.gc();
     }
@@ -1065,4 +1046,54 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
   private static void unwindInvisibleStackFrame(VM_Registers registers) {
     registers.unwindStackFrame();
   }
+
+  /**
+   * Number of allocations left before a GC is forced. Only used if VM.StressGCAllocationInterval is not 0.
+   */
+  static int allocationCountDownToGC = VM.StressGCAllocationInterval;
+
+  /**
+   * Number of c-to-java jni calls left before a GC is forced. Only used if VM.StressGCAllocationInterval is not 0.
+   */
+  static int jniCountDownToGC = VM.StressGCAllocationInterval;
+
+  /**
+   * Check to see if we are stress testing garbage collector and if another JNI call should
+   * trigger a gc then do so.
+   */
+  @Inline
+  public static void checkJNICountDownToGC() {
+    if (canForceGC()) {
+      if (jniCountDownToGC-- <= 0) {
+        jniCountDownToGC = VM.StressGCAllocationInterval;
+        System.gc();
+      }
+    }
+  }
+
+  /**
+   * Check to see if we are stress testing garbage collector and if another allocation should
+   * trigger a gc then do so.
+   */
+  @Inline
+  private static void checkAllocationCountDownToGC() {
+    if (canForceGC()) {
+      if (allocationCountDownToGC-- <= 0) {
+        allocationCountDownToGC = VM.StressGCAllocationInterval;
+        System.gc();
+      }
+    }
+  }
+
+  /**
+   * Return true if we are stress testing garbage collector and the system is in state where we
+   * can force a garbage collection.
+   */
+  @Inline
+  private static boolean canForceGC() {
+    return VM.ForceFrequentGC &&
+           VM_Scheduler.allProcessorsInitialized &&
+           VM_Processor.getCurrentProcessor().threadSwitchingEnabled();
+  }
+
 }

@@ -117,6 +117,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int GetVersion(VM_JNIEnvironment env) {
     if (traceJNI) VM.sysWrite("JNI called: GetVersion  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     return 0x00010004;          // JNI 1.4
   }
@@ -136,6 +137,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static int DefineClass(VM_JNIEnvironment env, Address classNameAddress, int classLoader, Address data,
                                  int dataLen) {
     if (traceJNI) VM.sysWrite("JNI called: DefineClass  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       String classString = null;
@@ -175,6 +177,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int FindClass(VM_JNIEnvironment env, Address classNameAddress) {
     if (traceJNI) VM.sysWrite("JNI called: FindClass  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     String classString = null;
     try {
@@ -203,6 +206,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int GetSuperclass(VM_JNIEnvironment env, int classJREF) {
     if (traceJNI) VM.sysWrite("JNI called: GetSuperclass  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Class<?> cls = (Class<?>) env.getJNIRef(classJREF);
@@ -225,6 +229,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static boolean IsAssignableFrom(VM_JNIEnvironment env, int firstClassJREF, int secondClassJREF) {
     if (traceJNI) VM.sysWrite("JNI called: IsAssignableFrom  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Class<?> cls1 = (Class<?>) env.getJNIRef(firstClassJREF);
@@ -247,6 +252,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int Throw(VM_JNIEnvironment env, int exceptionJREF) {
     if (traceJNI) VM.sysWrite("JNI called: Throw  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       env.recordException((Throwable) env.getJNIRef(exceptionJREF));
@@ -267,6 +273,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int ThrowNew(VM_JNIEnvironment env, int throwableClassJREF, Address exceptionNameAddress) {
     if (traceJNI) VM.sysWrite("JNI called: ThrowNew  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Class<?> cls = (Class<?>) env.getJNIRef(throwableClassJREF);
@@ -296,6 +303,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int ExceptionOccurred(VM_JNIEnvironment env) {
     if (traceJNI) VM.sysWrite("JNI called: ExceptionOccurred  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Throwable e = env.getException();
@@ -319,6 +327,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static void ExceptionDescribe(VM_JNIEnvironment env) {
     if (traceJNI) VM.sysWrite("JNI called: ExceptionDescribe  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Throwable e = env.getException();
@@ -339,6 +348,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static void ExceptionClear(VM_JNIEnvironment env) {
     if (traceJNI) VM.sysWrite("JNI called: ExceptionClear  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       env.recordException(null);
@@ -356,6 +366,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static void FatalError(VM_JNIEnvironment env, Address messageAddress) {
     if (traceJNI) VM.sysWrite("JNI called: FatalError  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       VM.sysWrite(VM_JNIHelpers.createStringFromC(messageAddress));
@@ -368,6 +379,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
   private static int NewGlobalRef(VM_JNIEnvironment env, int objectJREF) {
     if (traceJNI) VM.sysWrite("JNI called: NewGlobalRef\n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj1 = env.getJNIRef(objectJREF);
@@ -381,6 +393,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
   private static void DeleteGlobalRef(VM_JNIEnvironment env, int refJREF) {
     if (traceJNI) VM.sysWrite("JNI called: DeleteGlobalRef\n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       VM_JNIGlobalRefTable.deleteGlobalRef(refJREF);
@@ -392,6 +405,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
   private static void DeleteLocalRef(VM_JNIEnvironment env, int objJREF) {
     if (traceJNI) VM.sysWrite("JNI called: DeleteLocalRef\n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       env.deleteJNIRef(objJREF);
@@ -412,6 +426,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static boolean IsSameObject(VM_JNIEnvironment env, int obj1JREF, int obj2JREF) {
     if (traceJNI) VM.sysWrite("JNI called: IsSameObject  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj1 = env.getJNIRef(obj1JREF);
@@ -436,6 +451,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int AllocObject(VM_JNIEnvironment env, int classJREF) throws InstantiationException, OutOfMemoryError {
     if (traceJNI) VM.sysWrite("JNI called: AllocObject  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Class<?> javaCls = (Class<?>) env.getJNIRef(classJREF);
@@ -471,6 +487,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int NewObject(VM_JNIEnvironment env, int classJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: NewObject  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Class<?> cls = (Class<?>) env.getJNIRef(classJREF);
@@ -505,6 +522,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static int NewObjectV(VM_JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: NewObjectV  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Class<?> cls = (Class<?>) env.getJNIRef(classJREF);
@@ -538,6 +556,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static int NewObjectA(VM_JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: NewObjectA  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Class<?> cls = (Class<?>) env.getJNIRef(classJREF);
@@ -566,6 +585,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int GetObjectClass(VM_JNIEnvironment env, int objJREF) {
     if (traceJNI) VM.sysWrite("JNI called: GetObjectClass  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -586,6 +606,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int IsInstanceOf(VM_JNIEnvironment env, int objJREF, int classJREF) {
     if (traceJNI) VM.sysWrite("JNI called: IsInstanceOf  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Class<?> cls = (Class<?>) env.getJNIRef(classJREF);
@@ -615,6 +636,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static int GetMethodID(VM_JNIEnvironment env, int classJREF, Address methodNameAddress,
                                  Address methodSigAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetMethodID  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       // obtain the names as String from the native space
@@ -670,6 +692,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int CallObjectMethod(VM_JNIEnvironment env, int objJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallObjectMethod  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -694,6 +717,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static int CallObjectMethodV(VM_JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallObjectMethodV  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -718,6 +742,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static int CallObjectMethodA(VM_JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallObjectMethodA  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -742,6 +767,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static boolean CallBooleanMethod(VM_JNIEnvironment env, int objJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallBooleanMethod  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -766,6 +792,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static boolean CallBooleanMethodV(VM_JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallBooleanMethodV  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -790,6 +817,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static boolean CallBooleanMethodA(VM_JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallBooleanMethodA  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -814,6 +842,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static byte CallByteMethod(VM_JNIEnvironment env, int objJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallByteMethod  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -838,6 +867,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static byte CallByteMethodV(VM_JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallByteMethodV  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -862,6 +892,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static byte CallByteMethodA(VM_JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallByteMethodA  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -886,6 +917,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static char CallCharMethod(VM_JNIEnvironment env, int objJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallCharMethod  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -910,6 +942,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static char CallCharMethodV(VM_JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallCharMethodV  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -934,6 +967,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static char CallCharMethodA(VM_JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallCharMethodA  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -958,6 +992,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static short CallShortMethod(VM_JNIEnvironment env, int objJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallShortMethod  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -982,6 +1017,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static short CallShortMethodV(VM_JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallShortMethodV  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1006,6 +1042,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static short CallShortMethodA(VM_JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallShortMethodA  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1030,6 +1067,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int CallIntMethod(VM_JNIEnvironment env, int objJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallIntMethod  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1054,6 +1092,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static int CallIntMethodV(VM_JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallIntMethodV  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1078,6 +1117,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static int CallIntMethodA(VM_JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallIntMethodA  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1102,6 +1142,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static long CallLongMethod(VM_JNIEnvironment env, int objJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallLongMethod  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1126,6 +1167,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static long CallLongMethodV(VM_JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallLongMethodV  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1150,6 +1192,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static long CallLongMethodA(VM_JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallLongMethodA  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1174,6 +1217,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static float CallFloatMethod(VM_JNIEnvironment env, int objJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallFloatMethod  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1198,6 +1242,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static float CallFloatMethodV(VM_JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallFloatMethodV  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1222,6 +1267,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static float CallFloatMethodA(VM_JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallFloatMethodA  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1246,6 +1292,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static double CallDoubleMethod(VM_JNIEnvironment env, int objJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallDoubleMethod  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1270,6 +1317,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static double CallDoubleMethodV(VM_JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallDoubleMethodV  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1294,6 +1342,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static double CallDoubleMethodA(VM_JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallDoubleMethodA  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1317,6 +1366,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static void CallVoidMethod(VM_JNIEnvironment env, int objJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallVoidMethod  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1338,6 +1388,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static void CallVoidMethodV(VM_JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallVoidMethodV  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1359,6 +1410,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static void CallVoidMethodA(VM_JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallVoidMethodA  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1383,6 +1435,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static int CallNonvirtualObjectMethod(VM_JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualObjectMethod  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1408,6 +1461,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static int CallNonvirtualObjectMethodV(VM_JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                  Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualObjectMethodV  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1433,6 +1487,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static int CallNonvirtualObjectMethodA(VM_JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                  Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualObjectMethodA  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1459,6 +1514,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static boolean CallNonvirtualBooleanMethod(VM_JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualBooleanMethod  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1484,6 +1540,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static boolean CallNonvirtualBooleanMethodV(VM_JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                       Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualBooleanMethodV  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1509,6 +1566,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static boolean CallNonvirtualBooleanMethodA(VM_JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                       Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualBooleanMethodA  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1535,6 +1593,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static byte CallNonvirtualByteMethod(VM_JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualByteMethod  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1560,6 +1619,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static byte CallNonvirtualByteMethodV(VM_JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualByteMethodV  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1585,6 +1645,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static byte CallNonvirtualByteMethodA(VM_JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualByteMethodA  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1611,6 +1672,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static char CallNonvirtualCharMethod(VM_JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualCharMethod  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1636,6 +1698,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static char CallNonvirtualCharMethodV(VM_JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualCharMethodV  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1661,6 +1724,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static char CallNonvirtualCharMethodA(VM_JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualCharMethodA  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1687,6 +1751,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static short CallNonvirtualShortMethod(VM_JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualShortMethod  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1712,6 +1777,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static short CallNonvirtualShortMethodV(VM_JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                   Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualShortMethodV  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1737,6 +1803,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static short CallNonvirtualShortMethodA(VM_JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                   Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualShortMethodA  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1763,6 +1830,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static int CallNonvirtualIntMethod(VM_JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualIntMethod  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1788,6 +1856,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static int CallNonvirtualIntMethodV(VM_JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                               Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualIntMethodV  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1813,6 +1882,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static int CallNonvirtualIntMethodA(VM_JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                               Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualIntMethodA  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1839,6 +1909,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static long CallNonvirtualLongMethod(VM_JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualLongMethod  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1864,6 +1935,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static long CallNonvirtualLongMethodV(VM_JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualLongMethodV  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1889,6 +1961,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static long CallNonvirtualLongMethodA(VM_JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualLongMethodA  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1915,6 +1988,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static float CallNonvirtualFloatMethod(VM_JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualFloatMethod  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1940,6 +2014,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static float CallNonvirtualFloatMethodV(VM_JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                   Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualFloatMethodV  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1965,6 +2040,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static float CallNonvirtualFloatMethodA(VM_JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                   Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualFloatMethodA  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -1991,6 +2067,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static double CallNonvirtualDoubleMethod(VM_JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualDoubleMethod  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -2016,6 +2093,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static double CallNonvirtualDoubleMethodV(VM_JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                     Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualDoubleMethodV  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -2041,6 +2119,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static double CallNonvirtualDoubleMethodA(VM_JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                     Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualDoubleMethodA  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -2066,6 +2145,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static void CallNonvirtualVoidMethod(VM_JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualVoidMethod  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -2088,6 +2168,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static void CallNonvirtualVoidMethodV(VM_JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualVoidMethodV  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -2110,6 +2191,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static void CallNonvirtualVoidMethodA(VM_JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallNonvirtualVoidMethodA  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -2135,6 +2217,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static int GetFieldID(VM_JNIEnvironment env, int classJREF, Address fieldNameAddress,
                                 Address descriptorAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetFieldID  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Class<?> cls = (Class<?>) env.getJNIRef(classJREF);
@@ -2172,6 +2255,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int GetObjectField(VM_JNIEnvironment env, int objJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetObjectField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -2194,6 +2278,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int GetBooleanField(VM_JNIEnvironment env, int objJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetBooleanField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -2215,6 +2300,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int GetByteField(VM_JNIEnvironment env, int objJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetByteField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -2236,6 +2322,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int GetCharField(VM_JNIEnvironment env, int objJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetCharField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -2257,6 +2344,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int GetShortField(VM_JNIEnvironment env, int objJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetShortField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -2278,6 +2366,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int GetIntField(VM_JNIEnvironment env, int objJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetIntField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -2299,6 +2388,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static long GetLongField(VM_JNIEnvironment env, int objJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetLongField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -2320,6 +2410,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static float GetFloatField(VM_JNIEnvironment env, int objJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetFloatField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -2341,6 +2432,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static double GetDoubleField(VM_JNIEnvironment env, int objJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetDoubleField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -2362,6 +2454,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static void SetObjectField(VM_JNIEnvironment env, int objJREF, int fieldID, int valueJREF) {
     if (traceJNI) VM.sysWrite("JNI called: SetObjectField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -2383,6 +2476,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static void SetBooleanField(VM_JNIEnvironment env, int objJREF, int fieldID, boolean value) {
     if (traceJNI) VM.sysWrite("JNI called: SetBooleanField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -2403,6 +2497,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static void SetByteField(VM_JNIEnvironment env, int objJREF, int fieldID, byte value) {
     if (traceJNI) VM.sysWrite("JNI called: SetByteField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -2423,6 +2518,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static void SetCharField(VM_JNIEnvironment env, int objJREF, int fieldID, char value) {
     if (traceJNI) VM.sysWrite("JNI called: SetCharField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -2443,6 +2539,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static void SetShortField(VM_JNIEnvironment env, int objJREF, int fieldID, short value) {
     if (traceJNI) VM.sysWrite("JNI called: SetShortField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -2463,6 +2560,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static void SetIntField(VM_JNIEnvironment env, int objJREF, int fieldID, int value) {
     if (traceJNI) VM.sysWrite("JNI called: SetIntField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -2483,6 +2581,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static void SetLongField(VM_JNIEnvironment env, int objJREF, int fieldID, long value) {
     if (traceJNI) VM.sysWrite("JNI called: SetLongField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -2503,6 +2602,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static void SetFloatField(VM_JNIEnvironment env, int objJREF, int fieldID, float value) {
     if (traceJNI) VM.sysWrite("JNI called: SetFloatField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -2523,6 +2623,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static void SetDoubleField(VM_JNIEnvironment env, int objJREF, int fieldID, double value) {
     if (traceJNI) VM.sysWrite("JNI called: SetDoubleField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -2548,6 +2649,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static int GetStaticMethodID(VM_JNIEnvironment env, int classJREF, Address methodNameAddress,
                                        Address methodSigAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetStaticMethodID  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       // obtain the names as String from the native space
@@ -2597,6 +2699,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int CallStaticObjectMethod(VM_JNIEnvironment env, int classJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticObjectMethod  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(methodID, null);
@@ -2620,6 +2723,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static int CallStaticObjectMethodV(VM_JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticObjectMethodV  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object returnObj = VM_JNIHelpers.invokeWithVarArg(methodID, argAddress, null);
@@ -2643,6 +2747,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static int CallStaticObjectMethodA(VM_JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticObjectMethodA  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object returnObj = VM_JNIHelpers.invokeWithJValue(methodID, argAddress, null);
@@ -2666,6 +2771,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static boolean CallStaticBooleanMethod(VM_JNIEnvironment env, int classJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticBooleanMethod  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(methodID, VM_TypeReference.Boolean);
@@ -2689,6 +2795,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static boolean CallStaticBooleanMethodV(VM_JNIEnvironment env, int classJREF, int methodID,
                                                   Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticBooleanMethodV  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object returnObj = VM_JNIHelpers.invokeWithVarArg(methodID, argAddress, VM_TypeReference.Boolean);
@@ -2712,6 +2819,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static boolean CallStaticBooleanMethodA(VM_JNIEnvironment env, int classJREF, int methodID,
                                                   Address argAddress) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticBooleanMethodA  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object returnObj = VM_JNIHelpers.invokeWithJValue(methodID, argAddress, VM_TypeReference.Boolean);
@@ -2735,6 +2843,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static byte CallStaticByteMethod(VM_JNIEnvironment env, int classJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticByteMethod  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(methodID, VM_TypeReference.Byte);
@@ -2758,6 +2867,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static byte CallStaticByteMethodV(VM_JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticByteMethodV  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object returnObj = VM_JNIHelpers.invokeWithVarArg(methodID, argAddress, VM_TypeReference.Byte);
@@ -2781,6 +2891,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static byte CallStaticByteMethodA(VM_JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticByteMethodA  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object returnObj = VM_JNIHelpers.invokeWithJValue(methodID, argAddress, VM_TypeReference.Byte);
@@ -2804,6 +2915,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static char CallStaticCharMethod(VM_JNIEnvironment env, int classJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticCharMethod  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(methodID, VM_TypeReference.Char);
@@ -2827,6 +2939,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static char CallStaticCharMethodV(VM_JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticCharMethodV  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object returnObj = VM_JNIHelpers.invokeWithVarArg(methodID, argAddress, VM_TypeReference.Char);
@@ -2850,6 +2963,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static char CallStaticCharMethodA(VM_JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticCharMethodA  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object returnObj = VM_JNIHelpers.invokeWithJValue(methodID, argAddress, VM_TypeReference.Char);
@@ -2873,6 +2987,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static short CallStaticShortMethod(VM_JNIEnvironment env, int classJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticShortMethod  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(methodID, VM_TypeReference.Short);
@@ -2896,6 +3011,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static short CallStaticShortMethodV(VM_JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticShortMethodV  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object returnObj = VM_JNIHelpers.invokeWithVarArg(methodID, argAddress, VM_TypeReference.Short);
@@ -2919,6 +3035,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static short CallStaticShortMethodA(VM_JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticShortMethodA  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object returnObj = VM_JNIHelpers.invokeWithJValue(methodID, argAddress, VM_TypeReference.Short);
@@ -2942,6 +3059,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int CallStaticIntMethod(VM_JNIEnvironment env, int classJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticIntMethod  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(methodID, VM_TypeReference.Int);
@@ -2965,6 +3083,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static int CallStaticIntMethodV(VM_JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticIntMethodV  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object returnObj = VM_JNIHelpers.invokeWithVarArg(methodID, argAddress, VM_TypeReference.Int);
@@ -2988,6 +3107,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static int CallStaticIntMethodA(VM_JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticIntMethodA  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object returnObj = VM_JNIHelpers.invokeWithJValue(methodID, argAddress, VM_TypeReference.Int);
@@ -3011,6 +3131,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static long CallStaticLongMethod(VM_JNIEnvironment env, int classJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticLongMethod  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(methodID, VM_TypeReference.Long);
@@ -3034,6 +3155,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static long CallStaticLongMethodV(VM_JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticLongMethodV  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object returnObj = VM_JNIHelpers.invokeWithVarArg(methodID, argAddress, VM_TypeReference.Long);
@@ -3057,6 +3179,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static long CallStaticLongMethodA(VM_JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticLongMethodA  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object returnObj = VM_JNIHelpers.invokeWithJValue(methodID, argAddress, VM_TypeReference.Long);
@@ -3080,6 +3203,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static float CallStaticFloatMethod(VM_JNIEnvironment env, int classJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticFloatMethod  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(methodID, VM_TypeReference.Float);
@@ -3103,6 +3227,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static float CallStaticFloatMethodV(VM_JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticFloatMethodV  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object returnObj = VM_JNIHelpers.invokeWithVarArg(methodID, argAddress, VM_TypeReference.Float);
@@ -3126,6 +3251,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static float CallStaticFloatMethodA(VM_JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticFloatMethodA  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object returnObj = VM_JNIHelpers.invokeWithJValue(methodID, argAddress, VM_TypeReference.Float);
@@ -3149,6 +3275,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static double CallStaticDoubleMethod(VM_JNIEnvironment env, int classJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticDoubleMethod  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object returnObj = VM_JNIHelpers.invokeWithDotDotVarArg(methodID, VM_TypeReference.Double);
@@ -3172,6 +3299,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static double CallStaticDoubleMethodV(VM_JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticDoubleMethodV  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object returnObj = VM_JNIHelpers.invokeWithVarArg(methodID, argAddress, VM_TypeReference.Double);
@@ -3195,6 +3323,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static double CallStaticDoubleMethodA(VM_JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticDoubleMethodA  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object returnObj = VM_JNIHelpers.invokeWithJValue(methodID, argAddress, VM_TypeReference.Double);
@@ -3217,6 +3346,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static void CallStaticVoidMethod(VM_JNIEnvironment env, int classJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticVoidMethod  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       VM_JNIHelpers.invokeWithDotDotVarArg(methodID, VM_TypeReference.Void);
@@ -3237,6 +3367,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static void CallStaticVoidMethodV(VM_JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticVoidMethodV  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       VM_JNIHelpers.invokeWithVarArg(methodID, argAddress, VM_TypeReference.Void);
@@ -3257,6 +3388,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static void CallStaticVoidMethodA(VM_JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticVoidMethodA  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       VM_JNIHelpers.invokeWithJValue(methodID, argAddress, VM_TypeReference.Void);
@@ -3281,6 +3413,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static int GetStaticFieldID(VM_JNIEnvironment env, int classJREF, Address fieldNameAddress,
                                       Address descriptorAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetStaticFieldID  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Class<?> cls = (Class<?>) env.getJNIRef(classJREF);
@@ -3317,6 +3450,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int GetStaticObjectField(VM_JNIEnvironment env, int classJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetStaticObjectField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
@@ -3338,6 +3472,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int GetStaticBooleanField(VM_JNIEnvironment env, int classJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetStaticBooleanField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
@@ -3358,6 +3493,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int GetStaticByteField(VM_JNIEnvironment env, int classJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetStaticByteField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
@@ -3378,6 +3514,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int GetStaticCharField(VM_JNIEnvironment env, int classJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetStaticCharField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
@@ -3398,6 +3535,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int GetStaticShortField(VM_JNIEnvironment env, int classJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetStaticShortField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
@@ -3418,6 +3556,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int GetStaticIntField(VM_JNIEnvironment env, int classJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetStaticIntField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
@@ -3438,6 +3577,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static long GetStaticLongField(VM_JNIEnvironment env, int classJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetStaticLongField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
@@ -3458,6 +3598,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static float GetStaticFloatField(VM_JNIEnvironment env, int classJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetStaticFloatField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
@@ -3478,6 +3619,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static double GetStaticDoubleField(VM_JNIEnvironment env, int classJREF, int fieldID) {
     if (traceJNI) VM.sysWrite("JNI called: GetStaticDoubleField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
@@ -3499,6 +3641,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static void SetStaticObjectField(VM_JNIEnvironment env, int classJREF, int fieldID, int objectJREF) {
     if (traceJNI) VM.sysWrite("JNI called: SetStaticObjectField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
@@ -3519,6 +3662,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static void SetStaticBooleanField(VM_JNIEnvironment env, int classJREF, int fieldID, boolean fieldValue) {
     if (traceJNI) VM.sysWrite("JNI called: SetStaticBooleanField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
@@ -3538,6 +3682,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static void SetStaticByteField(VM_JNIEnvironment env, int classJREF, int fieldID, byte fieldValue) {
     if (traceJNI) VM.sysWrite("JNI called: SetStaticByteField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
@@ -3557,6 +3702,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static void SetStaticCharField(VM_JNIEnvironment env, int classJREF, int fieldID, char fieldValue) {
     if (traceJNI) VM.sysWrite("JNI called: SetStaticCharField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
@@ -3576,6 +3722,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static void SetStaticShortField(VM_JNIEnvironment env, int classJREF, int fieldID, short fieldValue) {
     if (traceJNI) VM.sysWrite("JNI called: SetStaticShortField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
@@ -3595,6 +3742,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static void SetStaticIntField(VM_JNIEnvironment env, int classJREF, int fieldID, int fieldValue) {
     if (traceJNI) VM.sysWrite("JNI called: SetStaticIntField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
@@ -3614,6 +3762,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static void SetStaticLongField(VM_JNIEnvironment env, int classJREF, int fieldID, long fieldValue) {
     if (traceJNI) VM.sysWrite("JNI called: SetStaticLongField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
@@ -3633,6 +3782,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static void SetStaticFloatField(VM_JNIEnvironment env, int classJREF, int fieldID, float fieldValue) {
     if (traceJNI) VM.sysWrite("JNI called: SetStaticFloatField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
@@ -3652,6 +3802,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static void SetStaticDoubleField(VM_JNIEnvironment env, int classJREF, int fieldID, double fieldValue) {
     if (traceJNI) VM.sysWrite("JNI called: SetStaticDoubleField  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
@@ -3673,6 +3824,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int NewString(VM_JNIEnvironment env, Address uchars, int len) {
     if (traceJNI) VM.sysWrite("JNI called: NewString  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       final char[] contents = new char[len];
@@ -3693,6 +3845,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int GetStringLength(VM_JNIEnvironment env, int objJREF) {
     if (traceJNI) VM.sysWrite("JNI called: GetStringLength  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       String str = (String) env.getJNIRef(objJREF);
@@ -3715,6 +3868,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static Address GetStringChars(VM_JNIEnvironment env, int objJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetStringChars  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       String str = (String) env.getJNIRef(objJREF);
@@ -3749,6 +3903,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static void ReleaseStringChars(VM_JNIEnvironment env, int objJREF, Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: ReleaseStringChars  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       sysCall.sysFree(bufAddress);
@@ -3768,6 +3923,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int NewStringUTF(VM_JNIEnvironment env, Address utf8bytes) {
     if (traceJNI) VM.sysWrite("JNI called: NewStringUTF  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       byte[] utf8array = VM_JNIHelpers.createByteArrayFromC(utf8bytes);
@@ -3788,6 +3944,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int GetStringUTFLength(VM_JNIEnvironment env, int objJREF) {
     if (traceJNI) VM.sysWrite("JNI called: GetStringUTFLength  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       String str = (String) env.getJNIRef(objJREF);
@@ -3810,6 +3967,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static Address GetStringUTFChars(VM_JNIEnvironment env, int strJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetStringUTFChars  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       String str = (String) env.getJNIRef(strJREF);
@@ -3853,6 +4011,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static void ReleaseStringUTFChars(VM_JNIEnvironment env, int objJREF, Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: ReleaseStringUTFChars  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       sysCall.sysFree(bufAddress);
@@ -3870,6 +4029,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int GetArrayLength(VM_JNIEnvironment env, int arrayJREF) {
     if (traceJNI) VM.sysWrite("JNI called: GetArrayLength  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object theArray = env.getJNIRef(arrayJREF);
@@ -3893,6 +4053,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int NewObjectArray(VM_JNIEnvironment env, int length, int classJREF, int initElementJREF) {
     if (traceJNI) VM.sysWrite("JNI called: NewObjectArray  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object initElement = env.getJNIRef(initElementJREF);
@@ -3937,6 +4098,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int GetObjectArrayElement(VM_JNIEnvironment env, int arrayJREF, int index) {
     if (traceJNI) VM.sysWrite("JNI called: GetObjectArrayElement  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object[] sourceArray = (Object[]) env.getJNIRef(arrayJREF);
@@ -3974,6 +4136,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static void SetObjectArrayElement(VM_JNIEnvironment env, int arrayJREF, int index, int objectJREF) {
     if (traceJNI) VM.sysWrite("JNI called: SetObjectArrayElement  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object[] sourceArray = (Object[]) env.getJNIRef(arrayJREF);
@@ -3993,6 +4156,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int NewBooleanArray(VM_JNIEnvironment env, int length) {
     if (traceJNI) VM.sysWrite("JNI called: NewBooleanArray  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       boolean[] newArray = new boolean[length];
@@ -4013,6 +4177,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int NewByteArray(VM_JNIEnvironment env, int length) {
     if (traceJNI) VM.sysWrite("JNI called: NewByteArray  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       byte[] newArray = new byte[length];
@@ -4033,6 +4198,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int NewCharArray(VM_JNIEnvironment env, int length) {
     if (traceJNI) VM.sysWrite("JNI called: NewCharArray  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       char[] newArray = new char[length];
@@ -4053,6 +4219,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int NewShortArray(VM_JNIEnvironment env, int length) {
     if (traceJNI) VM.sysWrite("JNI called: NewShortArray  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       short[] newArray = new short[length];
@@ -4073,6 +4240,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int NewIntArray(VM_JNIEnvironment env, int length) {
     if (traceJNI) VM.sysWrite("JNI called: NewIntArray  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       int[] newArray = new int[length];
@@ -4093,6 +4261,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int NewLongArray(VM_JNIEnvironment env, int length) {
     if (traceJNI) VM.sysWrite("JNI called: NewLongArray  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       long[] newArray = new long[length];
@@ -4113,6 +4282,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int NewFloatArray(VM_JNIEnvironment env, int length) {
     if (traceJNI) VM.sysWrite("JNI called: NewFloatArray  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       float[] newArray = new float[length];
@@ -4133,6 +4303,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int NewDoubleArray(VM_JNIEnvironment env, int length) {
     if (traceJNI) VM.sysWrite("JNI called: NewDoubleArray  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       double[] newArray = new double[length];
@@ -4155,6 +4326,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static Address GetBooleanArrayElements(VM_JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetBooleanArrayElements  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       boolean[] sourceArray = (boolean[]) env.getJNIRef(arrayJREF);
@@ -4192,6 +4364,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static Address GetByteArrayElements(VM_JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetByteArrayElements \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       byte[] sourceArray = (byte[]) env.getJNIRef(arrayJREF);
@@ -4236,6 +4409,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static Address GetCharArrayElements(VM_JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetCharArrayElements  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       char[] sourceArray = (char[]) env.getJNIRef(arrayJREF);
@@ -4278,6 +4452,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static Address GetShortArrayElements(VM_JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetShortArrayElements  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       short[] sourceArray = (short[]) env.getJNIRef(arrayJREF);
@@ -4320,6 +4495,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static Address GetIntArrayElements(VM_JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetIntArrayElements  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       int[] sourceArray = (int[]) env.getJNIRef(arrayJREF);
@@ -4361,6 +4537,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static Address GetLongArrayElements(VM_JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetLongArrayElements  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       long[] sourceArray = (long[]) env.getJNIRef(arrayJREF);
@@ -4402,6 +4579,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static Address GetFloatArrayElements(VM_JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetFloatArrayElements  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       float[] sourceArray = (float[]) env.getJNIRef(arrayJREF);
@@ -4444,6 +4622,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static Address GetDoubleArrayElements(VM_JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetDoubleArrayElements  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       double[] sourceArray = (double[]) env.getJNIRef(arrayJREF);
@@ -4487,6 +4666,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static void ReleaseBooleanArrayElements(VM_JNIEnvironment env, int arrayJREF, Address copyBufferAddress,
                                                   int releaseMode) {
     if (traceJNI) VM.sysWrite("JNI called: ReleaseBooleanArrayElements  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       boolean[] sourceArray = (boolean[]) env.getJNIRef(arrayJREF);
@@ -4538,6 +4718,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static void ReleaseByteArrayElements(VM_JNIEnvironment env, int arrayJREF, Address copyBufferAddress,
                                                int releaseMode) {
     if (traceJNI) VM.sysWrite("JNI called: ReleaseByteArrayElements  releaseMode=", releaseMode);
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       byte[] sourceArray = (byte[]) env.getJNIRef(arrayJREF);
@@ -4579,6 +4760,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static void ReleaseCharArrayElements(VM_JNIEnvironment env, int arrayJREF, Address copyBufferAddress,
                                                int releaseMode) {
     if (traceJNI) VM.sysWrite("JNI called: ReleaseCharArrayElements \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       char[] sourceArray = (char[]) env.getJNIRef(arrayJREF);
@@ -4616,6 +4798,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static void ReleaseShortArrayElements(VM_JNIEnvironment env, int arrayJREF, Address copyBufferAddress,
                                                 int releaseMode) {
     if (traceJNI) VM.sysWrite("JNI called: ReleaseShortArrayElements  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       short[] sourceArray = (short[]) env.getJNIRef(arrayJREF);
@@ -4653,6 +4836,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static void ReleaseIntArrayElements(VM_JNIEnvironment env, int arrayJREF, Address copyBufferAddress,
                                               int releaseMode) {
     if (traceJNI) VM.sysWrite("JNI called: ReleaseIntArrayElements  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       int[] sourceArray = (int[]) env.getJNIRef(arrayJREF);
@@ -4690,6 +4874,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static void ReleaseLongArrayElements(VM_JNIEnvironment env, int arrayJREF, Address copyBufferAddress,
                                                int releaseMode) {
     if (traceJNI) VM.sysWrite("JNI called: ReleaseLongArrayElements  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       long[] sourceArray = (long[]) env.getJNIRef(arrayJREF);
@@ -4727,6 +4912,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static void ReleaseFloatArrayElements(VM_JNIEnvironment env, int arrayJREF, Address copyBufferAddress,
                                                 int releaseMode) {
     if (traceJNI) VM.sysWrite("JNI called: ReleaseFloatArrayElements  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       float[] sourceArray = (float[]) env.getJNIRef(arrayJREF);
@@ -4764,6 +4950,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static void ReleaseDoubleArrayElements(VM_JNIEnvironment env, int arrayJREF, Address copyBufferAddress,
                                                  int releaseMode) {
     if (traceJNI) VM.sysWrite("JNI called: ReleaseDoubleArrayElements  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       double[] sourceArray = (double[]) env.getJNIRef(arrayJREF);
@@ -4800,6 +4987,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static void GetBooleanArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                             Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetBooleanArrayRegion  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       boolean[] sourceArray = (boolean[]) env.getJNIRef(arrayJREF);
@@ -4827,6 +5015,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static void GetByteArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                          Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetByteArrayRegion  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       byte[] sourceArray = (byte[]) env.getJNIRef(arrayJREF);
@@ -4855,6 +5044,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static void GetCharArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                          Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetCharArrayRegion  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       char[] sourceArray = (char[]) env.getJNIRef(arrayJREF);
@@ -4885,6 +5075,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static void GetShortArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                           Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetShortArrayRegion  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       short[] sourceArray = (short[]) env.getJNIRef(arrayJREF);
@@ -4915,6 +5106,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static void GetIntArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                         Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetIntArrayRegion  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       int[] sourceArray = (int[]) env.getJNIRef(arrayJREF);
@@ -4945,6 +5137,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static void GetLongArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                          Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetLongArrayRegion   \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       long[] sourceArray = (long[]) env.getJNIRef(arrayJREF);
@@ -4975,6 +5168,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static void GetFloatArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                           Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetFloatArrayRegion    \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       float[] sourceArray = (float[]) env.getJNIRef(arrayJREF);
@@ -5005,6 +5199,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static void GetDoubleArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                            Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetDoubleArrayRegion   \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       double[] sourceArray = (double[]) env.getJNIRef(arrayJREF);
@@ -5035,6 +5230,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static void SetBooleanArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                             Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: SetBooleanArrayRegion  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       boolean[] destinationArray = (boolean[]) env.getJNIRef(arrayJREF);
@@ -5063,6 +5259,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static void SetByteArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                          Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: SetByteArrayRegion  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       byte[] destinationArray = (byte[]) env.getJNIRef(arrayJREF);
@@ -5091,6 +5288,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static void SetCharArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                          Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: SetCharArrayRegion  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       char[] destinationArray = (char[]) env.getJNIRef(arrayJREF);
@@ -5121,6 +5319,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static void SetShortArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                           Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: SetShortArrayRegion  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       short[] destinationArray = (short[]) env.getJNIRef(arrayJREF);
@@ -5151,6 +5350,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static void SetIntArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                         Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: SetIntArrayRegion  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       int[] destinationArray = (int[]) env.getJNIRef(arrayJREF);
@@ -5181,6 +5381,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static void SetLongArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                          Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: SetLongArrayRegion  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       long[] destinationArray = (long[]) env.getJNIRef(arrayJREF);
@@ -5211,6 +5412,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static void SetFloatArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                           Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: SetFloatArrayRegion  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       float[] destinationArray = (float[]) env.getJNIRef(arrayJREF);
@@ -5241,6 +5443,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static void SetDoubleArrayRegion(VM_JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                            Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: SetDoubleArrayRegion  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       double[] destinationArray = (double[]) env.getJNIRef(arrayJREF);
@@ -5270,6 +5473,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int RegisterNatives(VM_JNIEnvironment env, int classJREF, Address methodsAddress, int nmethods) {
     if (traceJNI) VM.sysWrite("JNI called: RegisterNatives  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       // get the target class
@@ -5330,6 +5534,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int UnregisterNatives(VM_JNIEnvironment env, int classJREF) {
     if (traceJNI) VM.sysWrite("JNI called: UnregisterNatives  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
 
@@ -5363,6 +5568,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int MonitorEnter(VM_JNIEnvironment env, int objJREF) {
     if (traceJNI) VM.sysWrite("JNI called: MonitorEnter  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -5382,6 +5588,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int MonitorExit(VM_JNIEnvironment env, int objJREF) {
     if (traceJNI) VM.sysWrite("JNI called: MonitorExit  \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object obj = env.getJNIRef(objJREF);
@@ -5395,6 +5602,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
   private static int GetJavaVM(VM_JNIEnvironment env, Address StarStarJavaVM) {
     if (traceJNI) VM.sysWrite("JNI called: GetJavaVM \n");
+    VM_Runtime.checkJNICountDownToGC();
+
     try {
       if (traceJNI) VM.sysWriteln(StarStarJavaVM);
       Address JavaVM = VM_BootRecord.the_boot_record.sysJavaVM;
@@ -5420,6 +5629,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int FromReflectedMethod(VM_JNIEnvironment env, int methodJREF) {
     if (traceJNI) VM.sysWrite("JNI called: FromReflectedMethod \n");
+    VM_Runtime.checkJNICountDownToGC();
+
     Object methodObj = env.getJNIRef(methodJREF);
     VM_Method meth;
     if (methodObj instanceof Constructor) {
@@ -5440,6 +5651,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    * */
   private static int FromReflectedField(VM_JNIEnvironment env, int fieldJREF) {
     if (traceJNI) VM.sysWrite("JNI called: FromReflectedField \n");
+    VM_Runtime.checkJNICountDownToGC();
+
     Field fieldObj = (Field) env.getJNIRef(fieldJREF);
     VM_Field f = java.lang.reflect.JikesRVMSupport.getFieldOf(fieldObj);
     if (traceJNI) VM.sysWrite("got field " + f + "\n");
@@ -5463,6 +5676,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int ToReflectedMethod(VM_JNIEnvironment env, int clsJREF, int methodID, boolean isStatic) {
     if (traceJNI) VM.sysWrite("JNI called: ToReflectedMethod \n");
+    VM_Runtime.checkJNICountDownToGC();
+
     VM_Method targetMethod = VM_MemberReference.getMemberRef(methodID).asMethodReference().resolve();
     Object ret;
     if (targetMethod.isObjectInitializer()) {
@@ -5490,6 +5705,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int ToReflectedField(VM_JNIEnvironment env, int clsJREF, int fieldID, boolean isStatic) {
     if (traceJNI) VM.sysWrite("JNI called: ToReflectedField \n");
+    VM_Runtime.checkJNICountDownToGC();
+
     VM_Field field = VM_MemberReference.getMemberRef(fieldID).asFieldReference().resolve();
     return env.pushJNIRef(java.lang.reflect.JikesRVMSupport.createField(field));
   }
@@ -5501,6 +5718,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int PushLocalFrame(VM_JNIEnvironment env, int capacity) {
     if (traceJNI) VM.sysWrite("JNI called: PushLocalFrame \n");
+    VM_Runtime.checkJNICountDownToGC();
+
     return 0;                   // OK
   }
 
@@ -5515,6 +5734,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int PopLocalFrame(VM_JNIEnvironment env, int resultJREF) {
     if (traceJNI) VM.sysWrite("JNI called: PopLocalFrame \n");
+    VM_Runtime.checkJNICountDownToGC();
+
     // do nothing.
     return resultJREF;
   }
@@ -5529,6 +5750,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int NewLocalRef(VM_JNIEnvironment env, int oldJREF) {
     if (traceJNI) VM.sysWrite("JNI called: NewLocalRef \n");
+    VM_Runtime.checkJNICountDownToGC();
+
     Object oldObj = env.getJNIRef(oldJREF);
     /* pushJNIRef automatically handles null refs properly. */
     return env.pushJNIRef(oldObj);
@@ -5546,6 +5769,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static int EnsureLocalCapacity(VM_JNIEnvironment env, int capacity) {
     if (traceJNI) VM.sysWrite("JNI called: EnsureLocalCapacity \n");
+    VM_Runtime.checkJNICountDownToGC();
+
     return 0;                   // success!
   }
 
@@ -5562,6 +5787,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static void GetStringRegion(VM_JNIEnvironment env, int strJREF, int start, int len, Address buf) {
     if (traceJNI) VM.sysWrite("JNI called: GetStringRegion \n");
+    VM_Runtime.checkJNICountDownToGC();
+
     try {
       String str = (String) env.getJNIRef(strJREF);
       char[] strChars = java.lang.JikesRVMSupport.getBackingCharArray(str);
@@ -5594,6 +5821,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static void GetStringUTFRegion(VM_JNIEnvironment env, int strJREF, int start, int len, Address buf) {
     if (traceJNI) VM.sysWrite("JNI called: GetStringUTFRegion \n");
+    VM_Runtime.checkJNICountDownToGC();
+
     try {
       String str = (String) env.getJNIRef(strJREF);
 
@@ -5633,6 +5862,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static Address GetPrimitiveArrayCritical(VM_JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
 
     if (traceJNI) VM.sysWrite("JNI called: GetPrimitiveArrayCritical \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       Object primitiveArray = env.getJNIRef(arrayJREF);
@@ -5671,6 +5901,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
   private static void ReleasePrimitiveArrayCritical(VM_JNIEnvironment env, int arrayJREF, Address arrayCopyAddress,
                                                     int mode) {
     if (traceJNI) VM.sysWrite("JNI called: ReleasePrimitiveArrayCritical \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     try {
       VM.enableGC(true);
@@ -5692,6 +5923,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static Address GetStringCritical(VM_JNIEnvironment env, int strJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetStringCritical \n");
+    VM_Runtime.checkJNICountDownToGC();
+
     String str = (String) env.getJNIRef(strJREF);
     char[] strChars = java.lang.JikesRVMSupport.getBackingCharArray(str);
     int strOffset = java.lang.JikesRVMSupport.getStringOffset(str);
@@ -5717,6 +5950,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
    */
   private static void ReleaseStringCritical(VM_JNIEnvironment env, int strJREF, Address carray) {
     if (traceJNI) VM.sysWrite("JNI called: ReleaseStringCritical \n");
+    VM_Runtime.checkJNICountDownToGC();
+
     try {
       VM.enableGC(true);
     } catch (Throwable unexpected) {
@@ -5727,6 +5962,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
   private static int NewWeakGlobalRef(VM_JNIEnvironment env, int objectJREF) {
     if (traceJNI) VM.sysWrite("JNI called: NewWeakGlobalRef \n");
+    VM_Runtime.checkJNICountDownToGC();
+
     try {
       Object obj1 = env.getJNIRef(objectJREF);
       return VM_JNIGlobalRefTable.newWeakRef(obj1);
@@ -5739,6 +5976,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
   private static void DeleteWeakGlobalRef(VM_JNIEnvironment env, int refJREF) {
     if (traceJNI) VM.sysWrite("JNI called: DeleteWeakGlobalRef \n");
+    VM_Runtime.checkJNICountDownToGC();
+
     try {
       VM_JNIGlobalRefTable.deleteWeakRef(refJREF);
     } catch (Throwable unexpected) {
@@ -5749,6 +5988,7 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
   private static int ExceptionCheck(VM_JNIEnvironment env) {
     if (traceJNI) VM.sysWrite("JNI called: ExceptionCheck \n");
+    VM_Runtime.checkJNICountDownToGC();
 
     return env.getException() == null ? 0 : 1;
   }
@@ -5759,6 +5999,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
   private static int NewDirectByteBuffer(VM_JNIEnvironment env, Address address, long capacity) {
     if (traceJNI) VM.sysWrite("JNI called: NewDirectByteBuffer \n");
+    VM_Runtime.checkJNICountDownToGC();
+
     try {
       Buffer buffer = java.nio.JikesRVMSupport.newDirectByteBuffer(address, capacity);
       return env.pushJNIRef(buffer);
@@ -5771,6 +6013,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
   private static Address GetDirectBufferAddress(VM_JNIEnvironment env, int bufJREF) {
     if (traceJNI) VM.sysWrite("JNI called: GetDirectBufferAddress \n");
+    VM_Runtime.checkJNICountDownToGC();
+
     try {
       Buffer buffer = (Buffer) env.getJNIRef(bufJREF);
       //if (buffer instanceof ByteBuffer) {
@@ -5789,6 +6033,8 @@ public class VM_JNIFunctions implements VM_SizeConstants {
 
   private static long GetDirectBufferCapacity(VM_JNIEnvironment env, int bufJREF) {
     if (traceJNI) VM.sysWrite("JNI called: GetDirectBufferCapacity \n");
+    VM_Runtime.checkJNICountDownToGC();
+
     try {
       Buffer buffer = (Buffer) env.getJNIRef(bufJREF);
       return buffer.capacity();
