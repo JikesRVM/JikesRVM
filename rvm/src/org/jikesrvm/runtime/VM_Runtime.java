@@ -1063,7 +1063,9 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    */
   @Inline
   public static void checkJNICountDownToGC() {
-    if (canForceGC()) {
+    // Temporarily disabled as it will causes nightly to take too long to run
+    // There should be a mechanism to optionally enable this countdown in VM_Configuration
+    if (false && canForceGC()) {
       if (jniCountDownToGC-- <= 0) {
         jniCountDownToGC = VM.StressGCAllocationInterval;
         System.gc();
