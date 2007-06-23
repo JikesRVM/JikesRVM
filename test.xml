@@ -307,10 +307,11 @@
     <mkdir dir="${results.archive}"/>
 
     <hostname property="local.hostname"/>
-    <property name="archive.filename" value="${local.hostname}_${test-run.name}_r${svn.revision}_${target.name}_Report.xml"/>
+    <tstamp prefix="report"/>
+
+    <property name="archive.filename" value="${local.hostname}_${test-run.name}_${report.DSTAMP}${report.TSTAMP}_r${svn.revision}_${target.name}_Report.xml"/>
     <gzip src="${test.results.dir}/Report.xml" destfile="${results.archive}/${archive.filename}.gz"/>
 
-    <tstamp prefix="report"/>
     <gzip src="${test.results.dir}/Report.xml" destfile="${results.archive}/${report.DSTAMP}.xml.gz"/>
   </target>
 
