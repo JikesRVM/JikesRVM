@@ -17,7 +17,7 @@ import org.jikesrvm.runtime.VM_StackTrace;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.scheduler.VM_Scheduler;
 /**
- * Implementation of string interning for JikesRVM.
+ * Implementation of throwables for JikesRVM.
  */
 public final class VMThrowable {
   /** The stack trace for this throwable */
