@@ -529,7 +529,12 @@ Check to make sure all required properties are specified. This includes properti
 
     <if>
       <conditions>
-        <equals arg1="${target.arch.sse2}" arg2="full"/>
+        <not>
+          <or>
+            <equals arg1="${target.arch.sse2}" arg2="none"/>
+            <equals arg1="${target.arch.sse2}" arg2="base"/>
+          </or>
+        </not>
       </conditions>
       <sequential>
         <property name="ia32-fp-rules" value="IA32_SSE2.rules"/>
@@ -694,16 +699,17 @@ Check to make sure all required properties are specified. This includes properti
       <equals arg1="${target.os}" arg2="Linux"/>
     </condition>
     <condition property="pp_RVM_FOR_SSE2" value="true" else="false">
-      <or>
-        <equals arg1="${target.arch.sse2}" arg2="true"/>
-        <equals arg1="${target.arch.sse2}" arg2="base"/>
-        <equals arg1="${target.arch.sse2}" arg2="full"/>
-      </or>
+      <not>
+        <equals arg1="${target.arch.sse2}" arg2="none"/>
+      </not>
     </condition>
     <condition property="pp_RVM_FOR_SSE2_FULL" value="true" else="false">
-      <or>
-        <equals arg1="${target.arch.sse2}" arg2="full"/>
-      </or>
+      <not>
+        <or>
+          <equals arg1="${target.arch.sse2}" arg2="none"/>
+          <equals arg1="${target.arch.sse2}" arg2="base"/>
+        </or>
+      </not>
     </condition>
     <condition property="pp_RVM_WITH_ASSERTIONS" value="true" else="false">
       <not>
