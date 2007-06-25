@@ -21,8 +21,6 @@
 #include "JNI12.h"
 
 #define TRACE 0
-/** This bug must be fixed; we have an outstanding defect report. */
-#define RETURNING_GLOBALS_AND_WEAKS_BROKEN 1
 int verbose=1;
 
 /*
@@ -75,10 +73,7 @@ Java_JNI12_testGlobalCreationAndReturn(JNIEnv *env, jclass mine, jobject methObj
     heldGlobal = (*env)->NewGlobalRef(env, methObj);
     if (TRACE)
         fprintf(stderr, "methObj = %p ==> heldGlobal = %p \n", methObj, heldGlobal);
-    if (RETURNING_GLOBALS_AND_WEAKS_BROKEN)
-        return (*env)->NewLocalRef(env, heldGlobal);
-    else
-        return heldGlobal;
+    return heldGlobal;
 }
 
 
@@ -90,10 +85,7 @@ Java_JNI12_testWeakCreationAndReturn(JNIEnv *env, jclass mine, jobject methObj)
     heldWeak = (*env)->NewWeakGlobalRef(env, methObj);
     if (TRACE)
         fprintf(stderr, "methObj = %p ==> heldWeak = %p \n", methObj, heldWeak);
-    if (RETURNING_GLOBALS_AND_WEAKS_BROKEN)
-        return (*env)->NewLocalRef(env, heldWeak);
-    else
-        return heldWeak;
+    return heldWeak;
 }
 
 

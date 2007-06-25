@@ -26,6 +26,7 @@ import org.jikesrvm.ia32.VM_BaselineConstants;
 import org.jikesrvm.ia32.VM_MachineCode;
 import org.jikesrvm.ia32.VM_ProcessorLocalState;
 import org.jikesrvm.jni.VM_JNICompiledMethod;
+import org.jikesrvm.jni.VM_JNIGlobalRefTable;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.vmmagic.unboxed.Address;
@@ -131,11 +132,37 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     asm.emitMOV_Reg_RegDisp(S0, S0, VM_Entrypoints.jniEnvField.getOffset());
 
     if (method.getReturnType().isReferenceType()) {
-      // XXX TODO: This code is broken. It only handles Local references.
+      asm.emitCMP_Reg_Imm(T0, 0);
+      VM_ForwardReference globalRef = asm.forwardJcc(VM_Assembler.LT);
+      
+      // Deal with local references
       asm.emitADD_Reg_RegDisp(T0,
-                              S0,
-                              VM_Entrypoints.JNIRefsField.getOffset());      // T0 <- address of entry (not index)
+          S0,
+          VM_Entrypoints.JNIRefsField.getOffset());      // T0 <- address of entry (not index)
       asm.emitMOV_Reg_RegInd(T0, T0);   // get the reference
+      VM_ForwardReference afterGlobalRef = asm.forwardJMP();
+      
+      // Deal with global references
+      globalRef.resolve(asm);
+      asm.emitMOV_Reg_Reg(T1, T0);
+      asm.emitTEST_Reg_Imm(T1, VM_JNIGlobalRefTable.STRONG_REF_BIT);
+      asm.emitMOV_Reg_RegDisp(T1, JTOC, VM_Entrypoints.JNIGlobalRefsField.getOffset());
+      VM_ForwardReference weakGlobalRef = asm.forwardJcc(VM_Assembler.EQ);
+      
+      // Strong global references
+      asm.emitNEG_Reg(T0);
+      asm.emitMOV_Reg_RegIdx(T0, T1, T0, VM_Assembler.WORD, Offset.zero());
+      VM_ForwardReference afterWeakGlobalRef = asm.forwardJMP();
+      
+      // Weak global references
+      weakGlobalRef.resolve(asm);
+      asm.emitOR_Reg_Imm(T0, VM_JNIGlobalRefTable.STRONG_REF_BIT);
+      asm.emitNEG_Reg(T0);
+      asm.emitMOV_Reg_RegIdx(T0, T1, T0, VM_Assembler.WORD, Offset.zero());
+      asm.emitMOV_Reg_RegDisp(T0, T0, VM_Entrypoints.referenceReferentField.getOffset());
+      
+      afterWeakGlobalRef.resolve(asm);
+      afterGlobalRef.resolve(asm);
     } else if (method.getReturnType().isLongType()) {
       asm.emitPUSH_Reg(T1);    // need to use T1 in popJNIrefForEpilog and to swap order T0-T1
     }

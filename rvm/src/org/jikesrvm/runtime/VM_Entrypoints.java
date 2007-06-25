@@ -338,6 +338,8 @@ public class VM_Entrypoints implements VM_Constants {
 
   public static final VM_Field JNIEnvSavedPRField =
       getField("Lorg/jikesrvm/jni/VM_JNIEnvironment;", "savedPRreg", "Lorg/jikesrvm/scheduler/VM_Processor;");
+  public static final VM_Field JNIGlobalRefsField =
+    getField("Lorg/jikesrvm/jni/VM_JNIGlobalRefTable;", "refs", "[Ljava/lang/Object;");
   public static final VM_Field JNIRefsField =
       getField("Lorg/jikesrvm/jni/VM_JNIEnvironment;", "JNIRefs", "Lorg/vmmagic/unboxed/AddressArray;");
   public static final VM_Field JNIRefsTopField = getField("Lorg/jikesrvm/jni/VM_JNIEnvironment;", "JNIRefsTop", "I");

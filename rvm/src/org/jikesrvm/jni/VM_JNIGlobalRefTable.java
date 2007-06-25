@@ -23,7 +23,7 @@ import org.vmmagic.unboxed.ObjectReference;
  * Weak Global References are global references (negative numbers), with the
  * 2^30 bit UNset.  Mask in the 2^30 bit to get the real index into the table.
  */
-class VM_JNIGlobalRefTable {
+public class VM_JNIGlobalRefTable {
 
   private static Object[] refs = new Object[100];
   private static int free = 1;
@@ -42,7 +42,7 @@ class VM_JNIGlobalRefTable {
   }
 
   /* Weak references are returned with the STRONG_REF_BIT bit UNset.  */
-  static final int STRONG_REF_BIT = 1 << 30;
+  public static final int STRONG_REF_BIT = 1 << 30;
 
   static int newWeakRef(Object referent) {
     int gref = newGlobalRef(new WeakReference<Object>(referent));

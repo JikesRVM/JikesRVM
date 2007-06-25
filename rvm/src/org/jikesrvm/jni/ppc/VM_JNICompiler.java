@@ -24,6 +24,7 @@ import org.jikesrvm.compilers.common.assembler.VM_ForwardReference;
 import org.jikesrvm.compilers.common.assembler.ppc.VM_Assembler;
 import org.jikesrvm.compilers.common.assembler.ppc.VM_AssemblerConstants;
 import org.jikesrvm.jni.VM_JNICompiledMethod;
+import org.jikesrvm.jni.VM_JNIGlobalRefTable;
 import org.jikesrvm.ppc.VM_BaselineConstants;
 import org.jikesrvm.ppc.VM_MachineCode;
 import org.jikesrvm.runtime.VM_Entrypoints;
@@ -310,8 +311,36 @@ public abstract class VM_JNICompiler
 
     VM_TypeReference returnType = method.getReturnType();
     if (returnType.isReferenceType()) {
-      // use returned offset to load ref from JNIRefs into R3
+      asm.emitCMPI(T0, 0);
+      VM_ForwardReference globalRef = asm.emitForwardBC(VM_Assembler.LT);
+      
+      // Local ref - load from JNIRefs
       asm.emitLAddrX(T0, S1, T0);         // S1 is still the base of the JNIRefs array
+      VM_ForwardReference afterGlobalRef = asm.emitForwardB();
+      
+      // Deal with global references
+      globalRef.resolve(asm);
+      asm.emitLVAL(T3, VM_JNIGlobalRefTable.STRONG_REF_BIT);
+      asm.emitAND(T1, T0, T3);
+      asm.emitLAddrOffset(T2, JTOC, VM_Entrypoints.JNIGlobalRefsField.getOffset());
+      asm.emitCMPI(T1, 0);
+      VM_ForwardReference weakGlobalRef = asm.emitForwardBC(VM_Assembler.EQ);
+      
+      // Strong global references
+      asm.emitNEG(T0, T0);
+      asm.emitSLWI(T0, T0, LOG_BYTES_IN_ADDRESS);  // convert index to offset
+      asm.emitLAddrX(T0, T2, T0);
+      VM_ForwardReference afterWeakGlobalRef = asm.emitForwardB();
+      
+      // Weak global references
+      weakGlobalRef.resolve(asm);
+      asm.emitOR(T0, T0, T3); // STRONG_REF_BIT
+      asm.emitNEG(T0, T0);
+      asm.emitSLWI(T0, T0, LOG_BYTES_IN_ADDRESS);  // convert index to offset
+      asm.emitLAddrX(T0, T2, T0);
+      asm.emitLAddrOffset(T0, T0, VM_Entrypoints.referenceReferentField.getOffset());
+      afterWeakGlobalRef.resolve(asm);
+      afterGlobalRef.resolve(asm);
     }
 
     // pop the glue stack frame, restore the Java caller frame
