@@ -111,6 +111,7 @@ public abstract class VM_ProcessorLocalState {
    * @param srcReg register containing value to exchange
    */
   public static void emitCompareAndExchangeField(VM_Assembler asm, Offset offset, byte srcReg) {
+    asm.emitLockNextInstruction();
     asm.emitCMPXCHG_RegDisp_Reg(PROCESSOR_REGISTER, offset, srcReg);
   }
 
