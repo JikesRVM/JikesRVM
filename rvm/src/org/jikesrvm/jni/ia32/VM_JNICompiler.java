@@ -511,6 +511,10 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
       }
     }
 
+    // Now set the top offset based on how many values we actually pushed.
+    asm.emitSUB_Reg_RegDisp(T0, S0, VM_Entrypoints.JNIRefsField.getOffset());
+    asm.emitMOV_RegDisp_Reg(S0, VM_Entrypoints.JNIRefsTopField.getOffset(), T0);
+    
     // >>>> THERE <<<<
     // End use of T0 and S0
   }
@@ -594,9 +598,6 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     asm.emitADD_Reg_RegDisp(T0,
                             S0,
                             VM_Entrypoints.JNIRefsField.getOffset());       // recompute T0 <- address of top (not index)
-
-    // and go ahead and bump up the Top offset by the amount expected
-    asm.emitADD_RegDisp_Imm(S0, VM_Entrypoints.JNIRefsTopField.getOffset(), numRefsExpected * WORDSIZE);
   }
 
   /**
