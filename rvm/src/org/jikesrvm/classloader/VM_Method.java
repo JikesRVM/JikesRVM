@@ -75,7 +75,6 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     super(declaringClass, memRef, (short) (modifiers & APPLICABLE_TO_METHODS), signature, annotations);
     this.parameterAnnotations = parameterAnnotations;
     this.annotationDefault = annotationDefault;
-    memRef.asMethodReference().setResolvedMember(this);
     this.exceptionTypes = exceptionTypes;
     this.jtocOffset = Offset.fromIntSignExtend(-1);
   }

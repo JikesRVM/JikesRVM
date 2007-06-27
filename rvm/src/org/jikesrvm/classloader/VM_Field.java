@@ -46,7 +46,6 @@ public final class VM_Field extends VM_Member {
                    int constantValueIndex, VM_Annotation[] annotations) {
     super(declaringClass, memRef, modifiers, signature, annotations);
     this.constantValueIndex = constantValueIndex;
-    memRef.asFieldReference().setResolvedMember(this);
   }
 
   /**

@@ -103,7 +103,7 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
    * For use by VM_Field constructor
    */
   void setResolvedMember(VM_Field it) {
-    if (VM.VerifyAssertions) VM._assert(resolvedMember == null);
+    if (VM.VerifyAssertions) VM._assert(resolvedMember == null || resolvedMember == it);
     resolvedMember = it;
   }
 

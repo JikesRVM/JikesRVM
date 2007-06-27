@@ -120,7 +120,7 @@ public final class VM_MethodReference extends VM_MemberReference {
    * For use by VM_Method constructor
    */
   void setResolvedMember(VM_Method it) {
-    if (VM.VerifyAssertions) VM._assert(resolvedMember == null);
+    if (VM.VerifyAssertions) VM._assert(resolvedMember == null || resolvedMember == it);
     resolvedMember = it;
   }
 

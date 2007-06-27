@@ -687,6 +687,9 @@ public final class VM_TypeReference {
    */
   void setResolvedType(VM_Type rt) {
     resolvedType = rt;
+    if (resolvedType.isClassType()) {
+      resolvedType.asClass().setResolvedMembers();
+    }
   }
 
   /**

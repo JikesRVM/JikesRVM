@@ -440,6 +440,28 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
   }
 
   /**
+   * Set the resolvedMember in all declared members.
+   */
+  void setResolvedMembers() {
+    for(VM_Field field: declaredFields) {
+      /* Make all declared fields appear resolved */
+      field.getMemberRef().asFieldReference().setResolvedMember(field);
+    }
+    for(VM_Method method: declaredMethods) {
+      /* Make all declared methods appear resolved */
+      method.getMemberRef().asMethodReference().setResolvedMember(method);
+    }
+    if (virtualMethods != null) {
+      /* Possibly created Miranda methods */
+      for(VM_Method method: virtualMethods) {
+        if (method.getDeclaringClass() == this) {
+          method.getMemberRef().asMethodReference().setResolvedMember(method);
+        }
+      }
+    }
+  }
+
+  /**
    * Static initializer method for this class (null -> no static initializer
    *  or initializer already been run).
    */
@@ -450,39 +472,39 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
 
   Annotation[] getAnnotationsInternal() {
     final VM_Class parent = getSuperClass();
-    if (null == parent) {
+    if (parent == null) {
       return super.getAnnotationsInternal();
-    } else {
-      if (null == annotations) {
-        final Annotation[] declared = getDeclaredAnnotations();
-        //Not synchronized as it does not matter if occasionally we create two cached copies
-        final Annotation[] parentAnnotations = parent.getAnnotations();
-        int rejected = 0;
-        for (int i = 0; i < parentAnnotations.length; i++) {
-          final Annotation pa = parentAnnotations[i];
-          final Class<? extends Annotation> paType = pa.annotationType();
-          if (!paType.isAnnotationPresent(Inherited.class)) {
-            parentAnnotations[i] = null;
-            rejected++;
-          } else {
-            for (final Annotation a : declared) {
-              if (a.annotationType().equals(paType)) {
-                parentAnnotations[i] = null;
-                rejected++;
-                break;
-              }
+    }
+    if (annotations == null) {
+      final Annotation[] declared = getDeclaredAnnotations();
+      // Not synchronized as it does not matter if occasionally we create two cached copies
+      final Annotation[] parentAnnotations = parent.getAnnotations();
+      int rejected = 0;
+      for (int i = 0; i < parentAnnotations.length; i++) {
+        final Annotation pa = parentAnnotations[i];
+        final Class<? extends Annotation> paType = pa.annotationType();
+        if (!paType.isAnnotationPresent(Inherited.class)) {
+          parentAnnotations[i] = null;
+          rejected++;
+        } else {
+          for (final Annotation a : declared) {
+            if (a.annotationType().equals(paType)) {
+              parentAnnotations[i] = null;
+              rejected++;
+              break;
             }
           }
         }
-        annotations = new Annotation[declared.length + parentAnnotations.length - rejected];
-        System.arraycopy(declared, 0, annotations, 0, declared.length);
-        int index = declared.length;
-        for (final Annotation pa : parentAnnotations) {
-          if (null != pa) annotations[index++] = pa;
-        }
       }
-      return annotations;
+      final Annotation[] cache = new Annotation[declared.length + parentAnnotations.length - rejected];
+      System.arraycopy(declared, 0, cache, 0, declared.length);
+      int index = declared.length;
+      for (final Annotation pa : parentAnnotations) {
+        if (pa != null) cache[index++] = pa;
+      }
+      annotations = cache;
     }
+    return annotations;
   }
 
   /**
@@ -1725,7 +1747,7 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
     boolean foundCyclic = false;
     for (VM_Field instanceField : instanceFields) {
       VM_TypeReference ft = instanceField.getType();
-      if (!(ft.isResolved() && ft.peekResolvedType().isAcyclicReference())) {
+      if (!ft.isResolved() || !ft.peekResolvedType().isAcyclicReference()) {
         foundCyclic = true;
         break;
       }
