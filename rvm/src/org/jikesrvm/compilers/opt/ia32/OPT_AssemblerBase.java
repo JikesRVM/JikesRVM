@@ -26,6 +26,7 @@ import org.jikesrvm.compilers.opt.ir.MIR_CondBranch;
 import org.jikesrvm.compilers.opt.ir.MIR_Lea;
 import org.jikesrvm.compilers.opt.ir.MIR_Move;
 import org.jikesrvm.compilers.opt.ir.MIR_Test;
+import org.jikesrvm.compilers.opt.ir.MIR_Unary;
 import org.jikesrvm.compilers.opt.ir.MIR_UnaryNoRes;
 import org.jikesrvm.compilers.opt.ir.OPT_BranchOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_IR;
@@ -557,11 +558,11 @@ abstract class OPT_AssemblerBase extends VM_Assembler
       case LABEL_opcode:
       case BBEND_opcode:
       case UNINT_BEGIN_opcode:
-      case UNINT_END_opcode:
+      case UNINT_END_opcode: {
         // these generate no code
         return 0;
-
-        // Generated from the same case in VM_Assembler
+      }
+      // Generated from the same case in VM_Assembler
       case IA32_ADC_opcode:
       case IA32_ADD_opcode:
       case IA32_AND_opcode:
@@ -585,7 +586,80 @@ abstract class OPT_AssemblerBase extends VM_Assembler
         size += operandCost(MIR_Test.getVal2(inst), true);
         return size;
       }
-
+      case IA32_ADDSD_opcode:
+      case IA32_SUBSD_opcode:
+      case IA32_MULSD_opcode:
+      case IA32_DIVSD_opcode:
+      case IA32_XORPD_opcode:
+      case IA32_ADDSS_opcode:
+      case IA32_SUBSS_opcode:
+      case IA32_MULSS_opcode:
+      case IA32_DIVSS_opcode:
+      case IA32_XORPS_opcode: {
+        int size = 4; // opcode + modr/m
+        OPT_Operand value = MIR_BinaryAcc.getValue(inst);
+        size += operandCost(value, false);
+        return size;
+      }
+      case IA32_UCOMISS_opcode: {
+        int size = 3; // opcode + modr/m
+        OPT_Operand val2 = MIR_Compare.getVal2(inst);
+        size += operandCost(val2, false);
+        return size;
+      }
+      case IA32_UCOMISD_opcode: {
+        int size = 4; // opcode + modr/m
+        OPT_Operand val2 = MIR_Compare.getVal2(inst);
+        size += operandCost(val2, false);
+        return size;
+      }
+      case IA32_CVTSI2SS_opcode:
+      case IA32_CVTSI2SD_opcode:
+      case IA32_CVTSS2SD_opcode:
+      case IA32_CVTSD2SS_opcode:
+      case IA32_CVTSD2SI_opcode:
+      case IA32_CVTTSD2SI_opcode:
+      case IA32_CVTSS2SI_opcode:
+      case IA32_CVTTSS2SI_opcode: {
+        int size = 4; // opcode + modr/m
+        OPT_Operand result = MIR_Unary.getResult(inst);
+        OPT_Operand value = MIR_Unary.getVal(inst);
+        size += operandCost(result, false);
+        size += operandCost(value, false);
+        return size;
+      }
+      case IA32_CMPEQSD_opcode:
+      case IA32_CMPLTSD_opcode:
+      case IA32_CMPLESD_opcode:
+      case IA32_CMPUNORDSD_opcode:
+      case IA32_CMPNESD_opcode:
+      case IA32_CMPNLTSD_opcode:
+      case IA32_CMPNLESD_opcode:
+      case IA32_CMPORDSD_opcode:
+      case IA32_CMPEQSS_opcode:
+      case IA32_CMPLTSS_opcode:
+      case IA32_CMPLESS_opcode:
+      case IA32_CMPUNORDSS_opcode:
+      case IA32_CMPNESS_opcode:
+      case IA32_CMPNLTSS_opcode:
+      case IA32_CMPNLESS_opcode:
+      case IA32_CMPORDSS_opcode: {
+        int size = 5; // opcode + modr/m + type
+        OPT_Operand value = MIR_BinaryAcc.getValue(inst);
+        size += operandCost(value, false);
+        return size;
+      }
+      case IA32_MOVD_opcode:
+      case IA32_MOVQ_opcode:
+      case IA32_MOVSS_opcode: 
+      case IA32_MOVSD_opcode: {
+        int size = 4; // opcode + modr/m
+        OPT_Operand result = MIR_Move.getResult(inst);
+        OPT_Operand value = MIR_Move.getValue(inst);
+        size += operandCost(result, false);
+        size += operandCost(value, false);
+        return size;
+      }
       case IA32_PUSH_opcode: {
         OPT_Operand op = MIR_UnaryNoRes.getVal(inst);
         int size = 0;
