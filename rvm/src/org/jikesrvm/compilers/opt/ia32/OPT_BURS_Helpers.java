@@ -840,7 +840,7 @@ OPT_Operand value, boolean signExtend) {
    * Performs a long -> double/float conversion using x87 and marshalls between to XMMs.
    */
   protected final void SSE2_X87_REM(OPT_Instruction s) {
-    OPT_Operand result = Move.getClearResult(s);
+    OPT_Operand result = Binary.getClearResult(s);
     OPT_RegisterOperand st0 = new OPT_RegisterOperand(getST0(), result.getType());
     int offset = -burs.ir.stackManager.allocateSpaceForConversion();
     OPT_StackLocationOperand sl = new OPT_StackLocationOperand(true, offset, SSE2_SIZE(result));
@@ -848,7 +848,8 @@ OPT_Operand value, boolean signExtend) {
     EMIT(CPOS(s, MIR_Move.create(IA32_FLD, st0, sl.copy())));
     EMIT(CPOS(s, MIR_Move.create(SSE2_MOVE(result), sl.copy(), Binary.getVal1(s))));
     EMIT(CPOS(s, MIR_Move.create(IA32_FLD, st0.copy(), sl.copy())));
-    EMIT(CPOS(s, MIR_Nullary.create(IA32_FPREM, st0.copy())));
+    // The parameters to FPREM actually get ignored (implied ST0/ST1)
+    EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_FPREM, st0.copy(), st0.copy())));
     EMIT(CPOS(s, MIR_Move.create(IA32_FSTP, sl.copy(), st0.copy())));
     EMIT(MIR_Move.mutate(s, SSE2_MOVE(result), result, sl.copy()));
   }
@@ -968,7 +969,7 @@ OPT_Operand value, boolean signExtend) {
       EMIT(MIR_BinaryAcc.mutate(s, subOp, result, value));
     } else {
       OPT_RegisterOperand temp = regpool.makeTemp(value.getType());
-      EMIT(CPOS(s, MIR_Move.create(xorOp, temp.copyRO(), temp)));
+      EMIT(CPOS(s, MIR_BinaryAcc.create(xorOp, temp.copyRO(), temp)));
       EMIT(MIR_BinaryAcc.mutate(s, subOp, temp.copyRO(), value));
       EMIT(CPOS(s, MIR_Move.create(SSE2_MOVE(result), result, temp.copyRO())));
     }
@@ -995,7 +996,7 @@ OPT_Operand value, boolean signExtend) {
    * Expansion of SSE2 floating point constant loads
    */
   protected final void SSE2_FPCONSTANT(OPT_Instruction s) {
-    EMIT(MIR_Move.mutate(s, SSE2_MOVE(Unary.getResult(s)), Binary.getResult(s), MO_MC(s)));
+    EMIT(MIR_Move.mutate(s, SSE2_MOVE(Binary.getResult(s)), Binary.getResult(s), MO_MC(s)));
   }
   
   /**

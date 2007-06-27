@@ -1301,56 +1301,56 @@ move
 
 ####################
 IA32_CVTSI2SS
-MIR_Move
+MIR_Unary
 move
 
 
 
 ####################
 IA32_CVTSS2SD
-MIR_Move
+MIR_Unary
 move
 
 
 
 ####################
 IA32_CVTSS2SI
-MIR_Move
+MIR_Unary
 move
 
 
 
 ####################
 IA32_CVTTSS2SI
-MIR_Move
+MIR_Unary
 move
 
 
 
 ####################
 IA32_CVTSI2SD
-MIR_Move
+MIR_Unary
 move
 
 
 
 ####################
 IA32_CVTSD2SS
-MIR_Move
+MIR_Unary
 move
 
 
 
 ####################
 IA32_CVTSD2SI
-MIR_Move
+MIR_Unary
 move
 
 
 
 ####################
 IA32_CVTTSD2SI
-MIR_Move
+MIR_Unary
 move
 
 
