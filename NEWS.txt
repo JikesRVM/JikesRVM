@@ -6,8 +6,28 @@ This file contains the release notes since Jikes RVM 2.0.0, released
 on October 14, 2001,
 
 
-*Jikes RVM 2.9.1 Release Notes (Future)
+*Jikes RVM 2.9.1 Release Notes (July 2, 2007)
 ** Highlights
+
+*** A major stability drive has resulted in Jikes RVM being able to 
+    reliably run the entire DaCapo benchmark suite on ia32-linux.  
+    The following issues were resolved to make this possible:
+      <Daniel, please put in your list of issues by DaCapo benchmark here>
+
+*** Significant performance improvements over Jikes RVM 2.9.0.  
+    On ia32-linux, DaCapo performance improved by XXX%, SPECjvm98 by YYY% 
+    and SPECjbb2005 by ZZZ%.  <Dave will measure>
+
+*** As part of the stability drive, many O2 optimizations in the
+    optimizing compiler have been moved to O3 (and thus are not enabled by
+    default). Despite this, overall performance on ia32-linux has improved
+    since the 2.9.0 release.  Re-building an aggressive O2 optimization 
+    package by stabilizing current O3 optimizations and by building new 
+    optimization passes will be one of the focus areas for the project 
+    going forward. 
+
+*** The recommended version of GNU classpath is 0.95.
+    Earlier versions of GNU classpath are not supported.
 
 *** SSA expression folding has been expanded to cover far more cases than
     previously. This leads to a > 1% speedup on benchmarks such as SpecJBB'05.
