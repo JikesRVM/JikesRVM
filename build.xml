@@ -13,6 +13,8 @@
 <project name="JikesRVM" default="main" basedir=".">
 
   <property name="rvm.version" value="2.9.0+svn"/>
+  <!-- <property name="svn.revision" value="XXX"/> -->
+  
 
   <property name="jikesrvm.dir" location="${basedir}"/>
   <import file="build/base.xml"/>
@@ -670,7 +672,7 @@ Check to make sure all required properties are specified. This includes properti
     </java>
   </target>
 
-  <target name="gen-config-source" depends="check-properties">
+  <target name="gen-config-source" depends="check-properties,get-svn-version">
 
     <mkdir dir="${generated.config.java}/org/jikesrvm/memorymanagers/mminterface"/>
 
@@ -779,7 +781,7 @@ Check to make sure all required properties are specified. This includes properti
     <echo file="${generated.config.native}/RunBootImage.h">
       const unsigned heap_default_initial_size = ${config.default-heapsize.initial}*1024*1024;
       const unsigned heap_default_maximum_size = ${config.default-heapsize.maximum}*1024*1024;
-      const char *rvm_version = "Jikes RVM ${rvm.version}";
+      const char *rvm_version = "Jikes RVM ${rvm.version} (r${svn.revision})";
       const char *rvm_configuration = "${config.name}";
       const char *rvm_host_configuration = "${config.file}";
       const char *rvm_target_configuration = "${target.file}";

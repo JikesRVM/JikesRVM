@@ -206,38 +206,6 @@
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
-  <!-- *                      Targets for retrieving svn version                  * -->
-  <!-- *                                                                          * -->
-  <!-- **************************************************************************** -->
-
-  <target name="check-svn-present">
-    <available property="svn.present" file=".svn" type="dir"/>
-    <property name="svn.exe" value="svn"/>
-  </target>
-
-  <target name="extract-svn-version" depends="check-svn-present" if="svn.present">
-    <exec executable="${svn.exe}">
-      <arg value="info"/>
-      <redirector outputproperty="svn.revision">
-        <outputfilterchain>
-          <linecontains>
-            <contains value="Revision: "/>
-          </linecontains>
-          <tokenfilter>
-            <replacestring from="Revision: " to=""/>
-          </tokenfilter>
-        </outputfilterchain>
-      </redirector>
-    </exec>
-  </target>
-
-  <target name="get-svn-version" depends="extract-svn-version">
-    <!-- set property if not already set -->
-    <property name="svn.revision" value="1"/>
-  </target>
-
-  <!-- **************************************************************************** -->
-  <!-- *                                                                          * -->
   <!-- *                       Targets for aggregating results                    * -->
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
