@@ -12,7 +12,28 @@ on October 14, 2001,
 *** A major stability drive has resulted in Jikes RVM being able to 
     reliably run the entire DaCapo benchmark suite on ia32-linux.  
     The following issues were resolved to make this possible:
-      <Daniel, please put in your list of issues by DaCapo benchmark here>
+
+    multiple benchmarks:
+    r12809: Missed lock prefix (stack scanning failures).
+    r12737: GC map iterator crashed on dynamic link frames.
+
+    eclipse: 
+    r12302: Classpath RandomAccessFile incorrectly truncated.
+    r12394: PLOS exhaustion bug in MMTk.
+    r12375: ThinLock of interface from OPT code.
+    r12815: Bad GC map in JNI methods.
+    r12722: Fix for GC map bugs around expection throws.
+
+    lusearch:
+    r12602: Floating point precision (SSE2).
+    r12633: Parallel hardware traps.
+
+    hsqldb:
+    r12683: Invalid assertion in VM_Thread.
+
+    xalan:
+    r12742: Missing static initializer broke jar caching (halves runtime).
+    r12753: FileOutputStream wastefully copying arrays (halves runtime).
 
 *** Significant performance improvements over Jikes RVM 2.9.0.  
     On ia32-linux, DaCapo performance improved by XXX%, SPECjvm98 by YYY% 
@@ -44,11 +65,23 @@ on October 14, 2001,
     except that it can be traced during garbage collection. Conversion of
     Objects to ObjectReferences must now be explicit or else it will generate
     an error in the optimizing compiler.
+    <Daniel will comment on this before release>
 
 *** The ability to force a garbage collection after N allocations or at every
     exception delivery has been revived and is controlled by the configuration
     variable config.stress-gc-interval which should be set to non-zero value to
     enable.
+
+*** Simplistic debug symbols to show boot image method entry points in
+    gdb. Resolved issues with rvm script so this works with rvm -gdb now.
+
+*** New faster primary regression machine (Core 2 Duo) for ia32-linux
+    at ANU. Resolved performance issues with previous regression machine.
+
+*** Introduced the capability to patch against classpath versions. This allows
+    us to keep backported performance optimizations and/or bug fixes
+
+*** Implementation of returning global JNI references from C to Java.
 
 *** VM_ prefix added to classes that must be included in the primordial
     class list. Classes affected include; PrintLN, PrintContainer,
@@ -68,6 +101,12 @@ on October 14, 2001,
     been moved in to the "org.jikesrvm.runtime" package.
 
 ** Bug fixes
+
+*** Baseline GC map bug for handler blocks affecting SPECjbb2000
+    (r12685).
+
+*** Classpath race in cloning of XML Node affecting SPECjbb2005
+    (r12395).
 
 *** Fix final field chasing in OPT_Simplifier and re-enable constant
     folding for fields.
