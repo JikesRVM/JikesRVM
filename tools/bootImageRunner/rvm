@@ -19,8 +19,15 @@ export BASE_ARGS="-X:ic=$RVM_HOME/RVM.code.image -X:id=$RVM_HOME/RVM.data.image 
 # This may need to be LIBPATH under AIX or SHLIB_PATH on HP-UX
 export LD_LIBRARY_PATH=$RVM_HOME:$LD_LIBRARY_PATH
 
+WRAP=exec
+
+if ((( $# >= 2 )) && [[ $1 == -wrap ]] ); then
+  WRAP=$2
+  shift 2
+fi
+
 if (( $# == 0 )) || ((( $# >= 1 )) && [[ $1 != -gdb ]] ); then
-  LD_PRELOAD="$LD_PRELOAD $RVM_HOME/@PRELOAD@" exec "$RVM_HOME/JikesRVM" $BASE_ARGS "$@"
+  LD_PRELOAD="$LD_PRELOAD $RVM_HOME/@PRELOAD@" $WRAP "$RVM_HOME/JikesRVM" $BASE_ARGS "$@"
   exit
 fi
 
