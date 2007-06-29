@@ -1576,4 +1576,43 @@ target.jni-suffix=${target.jni-suffix}
     <record name="${build.dir}/javadoc/JavadocReport.txt" action="stop"/>
   </target>
 
+  <target name="eclipse-project" depends="prepare-source">
+    <delete dir="eclipse"/>
+    <delete file=".project"/>
+    <delete file=".classpath"/>
+    <mkdir dir="eclipse"/>
+    <copy todir="eclipse/gen-base">
+      <fileset dir="${generated.java}"><include name="**/*.*"/></fileset>
+    </copy>
+    <copy todir="eclipse/gen-config">
+      <fileset dir="${generated.config.java}"><include name="**/*.*"/></fileset>
+    </copy>
+    <copy todir="eclipse/gen-arch">
+      <fileset dir="${generated.arch.java}"><include name="**/*.*"/></fileset>
+    </copy>
+    <copy file="build/eclipse/project.template" tofile=".project">
+      <filterset>
+        <filter token="TARGET" value="${target.name}"/>
+        <filter token="CONFIG" value="${config.name}"/>
+      </filterset>
+    </copy>
+    <if>
+      <conditions>
+        <or>
+          <equals arg1="${target.arch}" arg2="ppc"/>
+        </or>
+      </conditions>
+      <sequential>
+        <property name="other.arch" value="ia32"/>  
+      </sequential>
+    </if>
+    <property name="other.arch" value="ppc"/>  
+    <copy file="build/eclipse/classpath.template" tofile=".classpath">
+      <filterset>
+        <filter token="CLASSPATH_JAR" value="${classpath.lib.dir}/classpath.jar"/>
+        <filter token="OTHER_ARCH" value="${other.arch}"/>
+        <filter token="ARCH" value="${target.arch}"/>
+      </filterset>
+    </copy>
+  </target>
 </project>
