@@ -33,5 +33,5 @@ target.dll-prefix=
 # suffix for jni shared libraries (differs from dll suffix on OSX)
 target.jni-suffix=
 
-# Set to true to enable usage of SSE2 instructions on ia32
+# Set to none, base or full depending on usage of SSE2 instructions on ia32
 target.arch.sse2=

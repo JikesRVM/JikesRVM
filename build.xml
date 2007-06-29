@@ -14,7 +14,6 @@
 
   <property name="rvm.version" value="2.9.0+svn"/>
   <!-- <property name="svn.revision" value="XXX"/> -->
-  
 
   <property name="jikesrvm.dir" location="${basedir}"/>
   <import file="build/base.xml"/>
@@ -531,12 +530,7 @@ Check to make sure all required properties are specified. This includes properti
 
     <if>
       <conditions>
-        <not>
-          <or>
-            <equals arg1="${target.arch.sse2}" arg2="none"/>
-            <equals arg1="${target.arch.sse2}" arg2="base"/>
-          </or>
-        </not>
+        <equals arg1="${target.arch.sse2}" arg2="full"/>
       </conditions>
       <sequential>
         <property name="ia32-fp-rules" value="IA32_SSE2.rules"/>
@@ -706,12 +700,7 @@ Check to make sure all required properties are specified. This includes properti
       </not>
     </condition>
     <condition property="pp_RVM_FOR_SSE2_FULL" value="true" else="false">
-      <not>
-        <or>
-          <equals arg1="${target.arch.sse2}" arg2="none"/>
-          <equals arg1="${target.arch.sse2}" arg2="base"/>
-        </or>
-      </not>
+      <equals arg1="${target.arch.sse2}" arg2="full"/>
     </condition>
     <condition property="pp_RVM_WITH_ASSERTIONS" value="true" else="false">
       <not>
@@ -730,7 +719,6 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="pp_RVM_WITH_GCTRACE" value="true" else="false">
       <equals arg1="${config.mmtk.plan}" arg2="org.mmtk.plan.semispace.gctrace.GCTrace"/>
     </condition>
-
 
     <copy file="${basedir}/rvm/src-generated/vm-configuration/VM_Configuration.template"
           tofile="${generated.config.java}/org/jikesrvm/VM_Configuration.java">
