@@ -19,8 +19,6 @@
     <equals arg1="${test.mode}" arg2="gcstress"/>
   </condition>
 
-  <property name="test.max.heapsize" value="150"/>
-
   <import file="../../../build/tests.xml"/>
 
   <property name="dacapo.jar" value="${external.lib.dir}/dacapo/dacapo-2006-10.jar"/>
@@ -29,9 +27,10 @@
   <macrodef name="dacapo">
     <attribute name="name"/>
     <attribute name="timeLimit" default=""/>
+    <attribute name="heapsize" default=""/>
     <attribute name="requires-display" default="false"/>
     <sequential>
-      <rvm tag="@{name}" class="Harness" requires-display="@{requires-display}" args="@{name}" timeLimit="@{timeLimit}"/>
+      <rvm tag="@{name}" class="Harness" requires-display="@{requires-display}" args="@{name}" timeLimit="@{timeLimit}" maxHeapSize="@{heapsize}"/>
       <outputSingleStatisticResults tag="@{name}" key="time" pattern="===== DaCapo @{name} PASSED in (.*) msec ====="/>
     </sequential>
   </macrodef>
@@ -48,17 +47,18 @@
 
     <startResults/>
 
-    <dacapo name="antlr"/>
-    <dacapo name="bloat"/>
-    <dacapo name="chart" requires-display="true"/>
-    <dacapo name="eclipse"/>
-    <dacapo name="fop"/>
-    <dacapo name="hsqldb"/>
-    <dacapo name="jython"/>
-    <dacapo name="luindex"/>
-    <dacapo name="lusearch"/>
-    <dacapo name="pmd"/>
-    <dacapo name="xalan"/>
+    <!-- Heapsize set to 6x minimum heap size with MarkCompact -->
+    <dacapo name="antlr"    heapsize="120"/>
+    <dacapo name="bloat"    heapsize="150"/>
+    <dacapo name="chart"    heapsize="240" requires-display="true"/>
+    <dacapo name="eclipse"  heapsize="400"/>
+    <dacapo name="fop"      heapsize="180"/>
+    <dacapo name="hsqldb"   heapsize="500"/>
+    <dacapo name="jython"   heapsize="200"/>
+    <dacapo name="luindex"  heapsize="120"/>
+    <dacapo name="lusearch" heapsize="300"/>
+    <dacapo name="pmd"      heapsize="200"/>
+    <dacapo name="xalan"    heapsize="150"/>
 
     <finishResults/>
   </target>
