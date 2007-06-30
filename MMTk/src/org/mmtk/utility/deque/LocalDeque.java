@@ -113,6 +113,7 @@ import org.vmmagic.pragma.*;
       closeAndInsertHead(arity);
 
     head = queue.alloc();
+    Plan.checkForAsyncCollection(); // possible side-effect of alloc()
   }
 
   /**

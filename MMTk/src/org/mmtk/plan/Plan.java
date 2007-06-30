@@ -349,6 +349,7 @@ public abstract class Plan implements Constants {
   protected static int requiredAtStart;
   protected static boolean userTriggeredGC;
   protected static boolean emergencyCollection;
+  protected static boolean awaitingAsyncCollection;
   
   private static boolean initialized = false;
   private static boolean collectionTriggered;
@@ -728,7 +729,7 @@ public abstract class Plan implements Constants {
          * an asynchronous GC, which will occur at the next safe point.
          */
         logPoll(space, "Asynchronous collection requested");
-        VM.collection.triggerAsyncCollection(Collection.RESOURCE_GC_TRIGGER);
+        setAwaitingAsyncCollection();
         return false;
       }
       logPoll(space, "Triggering collection");
@@ -739,6 +740,31 @@ public abstract class Plan implements Constants {
     return false;
   }
   
+  /**
+   * Check whether an asynchronous collection is pending.<p>
+   *
+   * This is decoupled from the poll() mechanism because the
+   * triggering of asynchronous collections can trigger write
+   * barriers, which can trigger an asynchronous collection.  Thus, if
+   * the triggering were tightly coupled with the request to alloc()
+   * within the write buffer code, then inifinite regress could
+   * result.  There is no race condition in the following code since
+   * there is no harm in triggering the collection more than once,
+   * thus it is unsynchronized.
+   */
+  @Inline
+  public static void checkForAsyncCollection() {
+    if (awaitingAsyncCollection && VM.collection.noThreadsInGC()) {
+      awaitingAsyncCollection = false;
+      VM.collection.triggerAsyncCollection(Collection.RESOURCE_GC_TRIGGER);
+    }
+  }
+
+  /** Request an async GC */
+  protected static void setAwaitingAsyncCollection() {
+    awaitingAsyncCollection = true;
+  }
+
   /**
    * Log a message from within 'poll'
    * @param space
