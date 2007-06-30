@@ -734,7 +734,7 @@ public abstract class VM_CompilerFramework
 
         case JBC_aastore: {
           if (shouldPrint) asm.noteBytecode(biStart, "aastore");
-          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("aastore");
+          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("aastore", bcodes.index());
           emit_aastore();
           break;
         }
@@ -1370,7 +1370,7 @@ public abstract class VM_CompilerFramework
           VM_FieldReference fieldRef = bcodes.getFieldReference();
           if (shouldPrint) asm.noteBytecode(biStart, "getstatic", fieldRef);
           if (fieldRef.needsDynamicLink(method)) {
-            if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved getstatic ", fieldRef);
+            if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved getstatic ", fieldRef, bcodes.index());
             emit_unresolved_getstatic(fieldRef);
           } else {
             emit_resolved_getstatic(fieldRef);
@@ -1382,7 +1382,7 @@ public abstract class VM_CompilerFramework
           VM_FieldReference fieldRef = bcodes.getFieldReference();
           if (shouldPrint) asm.noteBytecode(biStart, "putstatic", fieldRef);
           if (fieldRef.needsDynamicLink(method)) {
-            if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved putstatic ", fieldRef);
+            if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved putstatic ", fieldRef, bcodes.index());
             emit_unresolved_putstatic(fieldRef);
           } else {
             emit_resolved_putstatic(fieldRef);
@@ -1394,7 +1394,7 @@ public abstract class VM_CompilerFramework
           VM_FieldReference fieldRef = bcodes.getFieldReference();
           if (shouldPrint) asm.noteBytecode(biStart, "getfield", fieldRef);
           if (fieldRef.needsDynamicLink(method)) {
-            if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved getfield ", fieldRef);
+            if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved getfield ", fieldRef, bcodes.index());
             emit_unresolved_getfield(fieldRef);
           } else {
             emit_resolved_getfield(fieldRef);
@@ -1406,7 +1406,7 @@ public abstract class VM_CompilerFramework
           VM_FieldReference fieldRef = bcodes.getFieldReference();
           if (shouldPrint) asm.noteBytecode(biStart, "putfield", fieldRef);
           if (fieldRef.needsDynamicLink(method)) {
-            if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved putfield ", fieldRef);
+            if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved putfield ", fieldRef, bcodes.index());
             emit_unresolved_putfield(fieldRef);
           } else {
             emit_resolved_putfield(fieldRef);
@@ -1440,14 +1440,14 @@ public abstract class VM_CompilerFramework
                  * be invokevirtual.
                  */
             if (shouldPrint) asm.noteBytecode(biStart, "invokeinterface", methodRef);
-            if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("invokeinterface ", methodRef);
+            if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("invokeinterface ", methodRef, bcodes.index());
             emit_invokeinterface(methodRef);
           } else {
             if (methodRef.needsDynamicLink(method)) {
-              if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokevirtual ", methodRef);
+              if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokevirtual ", methodRef, bcodes.index());
               emit_unresolved_invokevirtual(methodRef);
             } else {
-              if (VM.VerifyUnint && !isInterruptible) checkTarget(methodRef.peekResolvedMethod());
+              if (VM.VerifyUnint && !isInterruptible) checkTarget(methodRef.peekResolvedMethod(), bcodes.index());
               emit_resolved_invokevirtual(methodRef);
             }
           }
@@ -1473,7 +1473,7 @@ public abstract class VM_CompilerFramework
           if (shouldPrint) asm.noteBytecode(biStart, "invokespecial", methodRef);
           VM_Method target = methodRef.resolveInvokeSpecial();
           if (target != null) {
-            if (VM.VerifyUnint && !isInterruptible) checkTarget(target);
+            if (VM.VerifyUnint && !isInterruptible) checkTarget(target, bcodes.index());
             emit_resolved_invokespecial(methodRef, target);
           } else {
             emit_unresolved_invokespecial(methodRef);
@@ -1506,10 +1506,10 @@ public abstract class VM_CompilerFramework
             }
           }
           if (methodRef.needsDynamicLink(method)) {
-            if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokestatic ", methodRef);
+            if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokestatic ", methodRef, bcodes.index());
             emit_unresolved_invokestatic(methodRef);
           } else {
-            if (VM.VerifyUnint && !isInterruptible) checkTarget(methodRef.peekResolvedMethod());
+            if (VM.VerifyUnint && !isInterruptible) checkTarget(methodRef.peekResolvedMethod(), bcodes.index());
             emit_resolved_invokestatic(methodRef);
           }
 
@@ -1535,7 +1535,7 @@ public abstract class VM_CompilerFramework
           VM_MethodReference methodRef = bcodes.getMethodReference();
           bcodes.alignInvokeInterface();
           if (shouldPrint) asm.noteBytecode(biStart, "invokeinterface", methodRef);
-          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("invokeinterface ", methodRef);
+          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("invokeinterface ", methodRef, bcodes.index());
           emit_invokeinterface(methodRef);
 
           if (xx != null) {
@@ -1554,7 +1554,7 @@ public abstract class VM_CompilerFramework
         case JBC_new: {
           VM_TypeReference typeRef = bcodes.getTypeReference();
           if (shouldPrint) asm.noteBytecode(biStart, "new", typeRef);
-          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new ", typeRef);
+          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new ", typeRef, bcodes.index());
           VM_Type type = typeRef.peekResolvedType();
           if (type != null && (type.isInitialized() || type.isInBootImage())) {
             emit_resolved_new(type.asClass());
@@ -1569,7 +1569,7 @@ public abstract class VM_CompilerFramework
           VM_Array array = VM_Array.getPrimitiveArrayType(atype);
           if (VM.VerifyAssertions) VM._assert(array.isResolved());
           if (shouldPrint) asm.noteBytecode(biStart, "newarray", array.getTypeRef());
-          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new ", array);
+          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new ", array, bcodes.index());
           emit_resolved_newarray(array);
           break;
         }
@@ -1579,7 +1579,7 @@ public abstract class VM_CompilerFramework
           VM_TypeReference arrayRef = elementTypeRef.getArrayTypeForElementType();
 
           if (shouldPrint) asm.noteBytecode(biStart, "anewarray new", arrayRef);
-          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new ", arrayRef);
+          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new ", arrayRef, bcodes.index());
 
           if (VM.VerifyAssertions && elementTypeRef.isUnboxedType()) {
             VM._assert(false,
@@ -1620,7 +1620,7 @@ public abstract class VM_CompilerFramework
         case JBC_athrow: {
           if (shouldPrint) asm.noteBytecode(biStart, "athrow");
           if (VM.UseEpilogueYieldPoints) emit_threadSwitchTest(VM_Thread.EPILOGUE);
-          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("athrow");
+          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("athrow", bcodes.index());
           emit_athrow();
           break;
         }
@@ -1650,7 +1650,7 @@ public abstract class VM_CompilerFramework
               break;
             }
           }
-          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("checkcast ", typeRef);
+          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("checkcast ", typeRef, bcodes.index());
           emit_checkcast(typeRef);
           break;
         }
@@ -1676,21 +1676,21 @@ public abstract class VM_CompilerFramework
               }
             }
           }
-          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("instanceof ", typeRef);
+          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("instanceof ", typeRef, bcodes.index());
           emit_instanceof(typeRef);
           break;
         }
 
         case JBC_monitorenter: {
           if (shouldPrint) asm.noteBytecode(biStart, "monitorenter");
-          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("monitorenter");
+          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("monitorenter", bcodes.index());
           emit_monitorenter();
           break;
         }
 
         case JBC_monitorexit: {
           if (shouldPrint) asm.noteBytecode(biStart, "monitorexit");
-          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("monitorexit");
+          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("monitorexit", bcodes.index());
           emit_monitorexit();
           break;
         }
@@ -1770,7 +1770,7 @@ public abstract class VM_CompilerFramework
           VM_TypeReference typeRef = bcodes.getTypeReference();
           int dimensions = bcodes.getArrayDimension();
           if (shouldPrint) asm.noteBytecode(biStart, "multianewarray", typeRef);
-          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("multianewarray");
+          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("multianewarray", bcodes.index());
           emit_multianewarray(typeRef, dimensions);
           break;
         }
@@ -1997,10 +1997,11 @@ public abstract class VM_CompilerFramework
    *
    * @param msg description of bytecode that is violating the invariant
    * @param obj object that provides further information
+   * @param bci the index of the current bytecode
    */
   @NoInline
-  protected final void forbiddenBytecode(String msg, Object obj) {
-    forbiddenBytecode(msg + obj);
+  protected final void forbiddenBytecode(String msg, Object obj, int bci) {
+    forbiddenBytecode(msg + obj, bci);
   }
 
   /**
@@ -2008,33 +2009,41 @@ public abstract class VM_CompilerFramework
    * Uninterruptible code.
    *
    * @param msg description of bytecode that is violating the invariant
+   * @param bci the index of the current bytecode
    */
   @NoInline
-  protected final void forbiddenBytecode(String msg) {
+  protected final void forbiddenBytecode(String msg, int bci) {
     if (!VM.ParanoidVerifyUnint) {
       // Respect programmer overrides of uninterruptibility checking
       if (method.hasLogicallyUninterruptibleAnnotation()) return;
       if (method.hasUninterruptibleNoWarnAnnotation()) return;
     }
-    VM.sysWriteln("WARNING " + method + ": contains forbidden bytecode " + msg);
+    // NB generate as a single string to avoid threads splitting output
+    VM.sysWriteln("UNINTERRUPTIBLE WARNING\n   "+ method + " at line " + method.getLineNumberForBCIndex(bci) +
+    "\n   Uninterruptible methods may not contain the following forbidden bytecode\n   " + msg);
   }
 
   /**
    * Ensure that the callee method is safe to invoke from uninterruptible code
    *
    * @param target the target methodRef
+   * @param bci the index of the current bytecode
    */
-  protected final void checkTarget(VM_Method target) {
+  protected final void checkTarget(VM_Method target, int bci) {
     if (!VM.ParanoidVerifyUnint) {
       // Respect programmer overrides of uninterruptibility checking
       if (method.hasLogicallyUninterruptibleAnnotation()) return;
       if (method.hasUninterruptibleNoWarnAnnotation()) return;
     }
     if (isUninterruptible && !target.isUninterruptible()) {
-      VM.sysWriteln("WARNING " + method + ": contains call to non-uninterruptible method " + target);
+      // NB generate as a single string to avoid threads splitting output
+      VM.sysWrite("UNINTERRUPTIBLE WARNING\n   "+ method + " at line " + method.getLineNumberForBCIndex(bci) +
+      "\n   Uninterruptible method calls non-uninterruptible method " + target + "\n");
     }
     if (isUnpreemptible && target.isInterruptible()) {
-      VM.sysWriteln("WARNING " + method + ": contains call to interruptible method " + target);
+      // NB generate as a single string to avoid threads splitting output
+      VM.sysWrite("UNPREEMPTIBLE WARNING\n   "+ method + " at line " + method.getLineNumberForBCIndex(bci) +
+          "\n   Unpreemptible method calls interruptible method " + target + "\n");
     }
   }
 
