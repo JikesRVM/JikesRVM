@@ -3213,7 +3213,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
           return DefUseEffect.TRAP_REDUCED;
         } else if (calleeThis.isConstant() || calleeThis.asRegister().isPreciseType()) {
           VM_TypeReference calleeClass = calleeThis.getType();
-          if (calleeClass.isResolved()) {
+          if (calleeClass.isResolved() && calleeClass.peekResolvedType().isResolved()) {
             methOp.refine(calleeClass.peekResolvedType());
             return DefUseEffect.UNCHANGED;
           }
@@ -3262,7 +3262,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         catch (Throwable e) { t = e;}
         if (t != null) {
           // Call threw exception so leave in to generate at execution time
-          return DefUseEffect.UNCHANGED;            
+          return DefUseEffect.UNCHANGED;
         }
         if(method.getReturnType().isVoidType()) {
           Empty.mutate(s, NOP);
@@ -3348,7 +3348,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       return new OPT_ObjectConstantOperand(x, Offset.zero());
     }
   }
-  
+
   private static DefUseEffect getField(OPT_Instruction s) {
     if (CF_FIELDS) {
       OPT_Operand ref = GetField.getRef(s);
