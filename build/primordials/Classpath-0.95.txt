@@ -470,6 +470,7 @@ Ljava/lang/Class$StaticData;
 [Ljava/lang/reflect/Method;
 [Ljava/lang/reflect/Member;
 [Ljava/lang/reflect/Constructor;
+Ljava/security/ProtectionDomain;
 [Ljava/security/ProtectionDomain;
 [Ljava/lang/Package;
 
