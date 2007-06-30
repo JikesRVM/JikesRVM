@@ -22,10 +22,10 @@ import org.jikesrvm.runtime.VM_Statics;
  * Implementation of string interning for JikesRVM.
  */
 final class VMString {
-  private static final WeakHashMap<String,WeakReference<String>> internedStrings = 
+  private static final WeakHashMap<String,WeakReference<String>> internedStrings =
     new WeakHashMap<String,WeakReference<String>>();
 
-  /** 
+  /**
    * Intern the argument string.
    * First check to see if the string is in the string literal
    * dictionary.
@@ -40,7 +40,7 @@ final class VMString {
           return s;
         }
       }
-      
+
       // Check to see if this is a StringLiteral:
       String literal = VM_Statics.findStringLiteral(str);
       if (literal != null) {
@@ -48,7 +48,7 @@ final class VMString {
         // Would be faster to find the next time we went looking for it,
         // but will waste space and uselessly increase the number of weak refs
         // in the system because it will _always be reachable from the JTOC.
-        return literal; 
+        return literal;
       }
 
       // If we get to here, then there is no interned version of the String.

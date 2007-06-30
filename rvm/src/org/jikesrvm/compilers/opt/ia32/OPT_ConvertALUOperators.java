@@ -142,7 +142,7 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase implements OPT_Op
     // Reverse pass over instructions supports simple live analysis.
     for (OPT_Instruction next, s = ir.lastInstructionInCodeOrder(); s != null; s = next) {
       next = s.prevInstructionInCodeOrder();
-      
+
       switch(s.getOpcode()) {
       case BOOLEAN_NOT_opcode: break;
       case REF_NOT_opcode: s.operator = INT_NOT; break;

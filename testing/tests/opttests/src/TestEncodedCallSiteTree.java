@@ -13,7 +13,7 @@
 class TestEncodedCallSiteTree {
   static final int A = 100;
   static final int B = 200;
-  static final int C = 300; 
+  static final int C = 300;
   static final int D = 400;
   static final int E = 500;
   static final int F = 600;
@@ -21,7 +21,7 @@ class TestEncodedCallSiteTree {
   static final int H = 800;
   static final int I = 900;
   static final int J = 1000;
-  
+
   // <A, 12, B>, <A,14,C>, <A,16,D>, <B,3,E>, <B,5,F>, <C,10,G>, <G,20,H>, <H,30,I>
   static int[] data1 =  { -1, A, -2, 12, B, 14, C, 16, D, -6, 3, E, 5, F, -9, 10, G, -2, 20, H, -2, 30, I };
 
@@ -47,4 +47,4 @@ class TestEncodedCallSiteTree {
     System.out.println("Result is "+VM_OptEncodedCallSiteTree.callEdgeMissing(callerMID, bcIndex, calleeMID, data)+"\n");
   }
 
-}    
+}

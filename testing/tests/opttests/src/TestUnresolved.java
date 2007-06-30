@@ -26,7 +26,7 @@ public class TestUnresolved {
       System.out.println(foo3());
       foo4();
       new temp4(10).bar();
-      
+
       temp5[] test = new temp5[2];
       test[0] = new temp5();
       test[1] = new temp6();
@@ -51,7 +51,7 @@ public class TestUnresolved {
        long t = temp1.y;
        temp1.y = t+1;
        return t;
-   } 
+   }
 
    static double foo3() {
        double t = temp1.z;

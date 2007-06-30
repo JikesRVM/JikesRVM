@@ -15,7 +15,7 @@ class TestFinally
    static int
    foo(int a, int b)
       {
-      try 
+      try
          {
          return a / b;
          }
@@ -25,7 +25,7 @@ class TestFinally
          return 1;
          }
 
-      finally 
+      finally
          {
          return 2;
          }
@@ -83,7 +83,7 @@ class TestFinally
       else
          return false;
       c= c + b;
-      return c >= a; 
+      return c >= a;
    }
 
    static int foo4(int a, int b) {
@@ -102,8 +102,8 @@ class TestFinally
       }
       return x;
    }
-   
-   public static void 
+
+   public static void
    main(String args[])
       {
    // VM.boot();
@@ -120,7 +120,7 @@ class TestFinally
       System.out.println(foo4(100,10));
       System.out.println(foo4(0,10));
       System.out.println(foo4(100,0));
-      
+
       try  {
          System.out.println("hi");      // jsr
       }

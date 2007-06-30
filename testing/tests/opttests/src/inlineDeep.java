@@ -42,14 +42,14 @@ public final class inlineDeep {
     int k = recurs3(j, n)+i;
     return k;
   }
-  
+
   static int recurs3(int i, int m) {
     int j = i+m-1;
     int n = m - i;
     int k = recurs2(j, n)+i;
     return k;
   }
-  
+
   static int recurs2(int i, int m) {
     int j = i+m-1;
     int n = m - i;

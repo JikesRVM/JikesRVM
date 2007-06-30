@@ -11,8 +11,8 @@
  *  regarding copyright ownership.
  */
 class TestBarrier {
-  
-  static Object[] array = new Object[10]; 
+
+  static Object[] array = new Object[10];
   static test     Test  = new test();
 
   public static void main(String args[]) {
@@ -24,13 +24,13 @@ class TestBarrier {
      boolean result = false;
      Test.field = o;
      array[0] = o;
-     if (o == null) 
+     if (o == null)
         result = true;
      return result;
   }
 
 
   static class test {
-     Object field; 
+     Object field;
   }
 }

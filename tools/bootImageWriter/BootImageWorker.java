@@ -20,14 +20,14 @@ public class BootImageWorker implements Runnable {
 
   public static final boolean verbose = false;
   private static final AtomicLong count = new AtomicLong();
-  private final VM_Type type; 
+  private final VM_Type type;
 
   BootImageWorker(VM_Type type) {
     this.type = type;
   }
 
   public void run () {
-    if (type == null) 
+    if (type == null)
       return;
     long startTime = 0;
     long myCount = 0;

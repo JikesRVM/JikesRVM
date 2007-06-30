@@ -16,18 +16,18 @@ class BlockingWorker extends Thread {
 
   int        sleepTime;
   boolean    isFinished;
-  
+
   BlockingWorker(int time)
   {
     this.sleepTime = time;
     this.isFinished = false;
   }
-  
+
   public void start() //- overrides Thread
   {
     super.start();
   }
-  
+
   public void run()  //- overrides Thread
   {
     int loopctr = 5;

@@ -21,7 +21,7 @@ class ExceptionTest5 {
 
  public static boolean run() {
     try {
-      if (testa.length <= 3) 
+      if (testa.length <= 3)
          throw new IndexOutOfBoundsException("I am IndexOBE");
       testa[3] = 0;
     } catch (NullPointerException n) {

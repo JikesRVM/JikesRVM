@@ -141,7 +141,7 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
         if (VM_ArchConstants.SSE2_FULL) {
           if (type.isFloatType()) {
             ret.insertBefore(MIR_Move.create(IA32_MOVSS, rOp, symb1));
-          } else {          
+          } else {
             ret.insertBefore(MIR_Move.create(IA32_MOVSD, rOp, symb1));
           }
         } else {
@@ -178,7 +178,7 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
       }
       ret.insertBefore(MIR_UnaryNoRes.create(IA32_FCLEAR, IC(nSave)));
     }
-    
+
     // Set the first 'Val' in the return instruction to hold an integer
     // constant which is the number of words to pop from the stack while
     // returning from this method.

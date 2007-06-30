@@ -19,18 +19,18 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
 
 /**
- * A Pragma is a mechanism for supplying information to the compiler to alter the code it 
+ * A Pragma is a mechanism for supplying information to the compiler to alter the code it
  * generates for a method. A Pragma is similar to an {@link @org.vmmagic.Intrinsic}
- * but it does not provide any behaviour but provides information to the compiler that modifies 
- * optimizations, calling conventions and activation frame layout. 
- * 
+ * but it does not provide any behaviour but provides information to the compiler that modifies
+ * optimizations, calling conventions and activation frame layout.
+ *
  * <p>If the Pragma annotation is applied to a method then then the method is a handled specially
- * by the compiler. If the Pragma annotation is applied to a class then then all the methods in that 
- * class are handled specially by the compiler.</p> 
- * 
- * <p>NOTE: At the current time the Pragma annotation is only used for documentation 
- * purposes but in the near future it is expected that the semantics of the annotation will 
- * be enforced by the compiler.</p> 
+ * by the compiler. If the Pragma annotation is applied to a class then then all the methods in that
+ * class are handled specially by the compiler.</p>
+ *
+ * <p>NOTE: At the current time the Pragma annotation is only used for documentation
+ * purposes but in the near future it is expected that the semantics of the annotation will
+ * be enforced by the compiler.</p>
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE,ElementType.METHOD})

@@ -115,7 +115,7 @@ class VMMath {
   @Pure
   public static double log1p(double a) {
     return mathMagic(VM_BootRecord.the_boot_record.sysVMMathLog1pIP, a);
-  }  
+  }
 }
 
- 	  	 
+

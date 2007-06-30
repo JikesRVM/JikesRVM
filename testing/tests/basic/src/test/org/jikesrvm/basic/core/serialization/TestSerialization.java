@@ -62,7 +62,7 @@ class TestSerialization {
         if( data[i] != bytes[i] ) {
           System.out.println("data differs at " + i);
           break;
-        }               
+        }
       }
     } catch (java.io.IOException e) {
       e.printStackTrace(System.out);

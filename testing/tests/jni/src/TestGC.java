@@ -41,12 +41,12 @@ class TestGC {
     if (args.length!=0) {
         for (int i=0; i<args.length; i++) {
             if (args[i].equals("-quiet")) {
-                verbose = false;        
+                verbose = false;
                 setVerboseOff();
-            }   
+            }
             if (args[i].equals("-jdk")) {
-                runningUnderJDK = true; 
-            }   
+                runningUnderJDK = true;
+            }
         }
     }
 
@@ -61,7 +61,7 @@ class TestGC {
 
         returnobj = testgc( str1, str2 );
         printVerbose("TestGC After native call:");
-        
+
         Address newAddress1 = VM_Magic.objectAsAddress(str1);
         Address newAddress2 = VM_Magic.objectAsAddress(str2);
         if (oldAddress1!=newAddress1 && oldAddress2!=newAddress2) {
@@ -86,7 +86,7 @@ class TestGC {
   }
 
   static void printVerbose(String str) {
-    if (verbose) 
+    if (verbose)
       System.out.println(str);
   }
 

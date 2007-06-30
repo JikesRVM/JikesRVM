@@ -51,22 +51,22 @@ class tBlockingThreads
       for ( int wrk = 0; wrk < NUMBER_OF_WORKERS; wrk++ )
         {
           if (wrk%2 == 0)
-            a[wrk] = new BlockingThreadsWorker(1); 
+            a[wrk] = new BlockingThreadsWorker(1);
           else
-            a[wrk] = new BlockingThreadsWorker(2); 
-          
+            a[wrk] = new BlockingThreadsWorker(2);
+
           a[wrk].start();
         }
-      
+
       for ( int i = 0; i < NUMBER_OF_WORKERS; i ++ ) {
         int cntr = 1;
         while( ! a[i].isFinished) {
-          
-          try {              
+
+          try {
             Thread.currentThread().sleep(100);
-          } 
+          }
           catch (InterruptedException e) {}
-          
+
           cntr++;
           if (cntr%1000 == 0)
             VM_Scheduler.trace("main","waiting for worker",i);
@@ -83,5 +83,5 @@ class tBlockingThreads
     } // use Worker Threads
 
   } // main
-  
+
 }

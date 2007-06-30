@@ -13,8 +13,8 @@
 package test.org.jikesrvm.basic.core.threads;
 
 public class TestParallelHardwareTrap {
-  public static Object o = null; 
-  public static Object oLock = new Object(); 
+  public static Object o = null;
+  public static Object oLock = new Object();
   public static int done = 0;
 
   public static void main(String[] args) {
@@ -26,7 +26,7 @@ public class TestParallelHardwareTrap {
             causeAndHandleNPE();
           }
           synchronized (oLock) {
-            done++; 
+            done++;
             oLock.notify();
           }
         }
@@ -34,8 +34,8 @@ public class TestParallelHardwareTrap {
     }
     synchronized (oLock) {
       while (done < 10) {
-        try { 
-          oLock.wait(); 
+        try {
+          oLock.wait();
         } catch (InterruptedException ie) {}
       }
     }

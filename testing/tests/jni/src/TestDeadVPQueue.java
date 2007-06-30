@@ -14,7 +14,7 @@ import org.jikesrvm.scheduler.VM_Scheduler;
 
 class TestDeadVPQueue
    {
-   public static void 
+   public static void
    main(String args[])
       throws Exception
       {
@@ -29,11 +29,11 @@ class TestDeadVPQueue
 
       System.loadLibrary("TestDeadVPQueueWorker");
 
-     
+
       // create a thread and wait for it to terminate
       System.out.println(Thread.currentThread().getName() + ": creating worker 1");
       TestDeadVPQueueWorker w1 = new TestDeadVPQueueWorker("worker 1");
-      
+
       System.out.println(Thread.currentThread().getName() + ": starting worker 1");
       w1.start();
       while (w1.state != TestDeadVPQueueWorker.ending) {
@@ -45,7 +45,7 @@ class TestDeadVPQueue
       // create a second thread and wait for it to terminate
     System.out.println(Thread.currentThread().getName() + ": creating worker 2");
        TestDeadVPQueueWorker w2 = new TestDeadVPQueueWorker("worker 2");
-      
+
       System.out.println(Thread.currentThread().getName() + ": starting worker 2");
       w2.start();
       while (w2.state != TestDeadVPQueueWorker.ending) {
@@ -63,7 +63,7 @@ class TestDeadVPQueue
       // create start and run 9 threads
       for ( int i = 1; i < 10; i++){
 
-       String s = " worker " + i;  
+       String s = " worker " + i;
        // create a thread and start it
        System.out.println(Thread.currentThread().getName() + ":creating" +s);
        w = new TestDeadVPQueueWorker(s);
@@ -76,7 +76,7 @@ class TestDeadVPQueue
         try {Thread.currentThread().sleep(500); } catch (InterruptedException e) {}
       }
 
-     
+
       System.out.println("main: bye");
       VM_Scheduler.dumpVirtualMachine();
       }

@@ -18,7 +18,7 @@ class FieldAccess {
   /**
    * static fields
    */
-  static int staticInt;           
+  static int staticInt;
   static byte staticByte;
   static char staticChar;
   static short staticShort;
@@ -31,7 +31,7 @@ class FieldAccess {
   /**
    * virtual fields
    */
-  int instanceInt;  
+  int instanceInt;
   byte instanceByte;
   char instanceChar;
   short instanceShort;
@@ -40,7 +40,7 @@ class FieldAccess {
   double instanceDouble;
   long instanceLong;
   FieldAccess instanceObject;
-  
+
   public static native void setVerboseOff();
 
   /**
@@ -78,7 +78,7 @@ class FieldAccess {
   static native int setStaticFloatField();
   static native int setStaticDoubleField();
   static native int setStaticObjectField(Object obj);
-                      
+
   static native int setIntField(Object obj);
   static native int setBooleanField(Object obj);
   static native int setByteField(Object obj);
@@ -113,9 +113,9 @@ class FieldAccess {
 
     if (args.length!=0) {
       if (args[0].equals("-quiet")) {
-        verbose = false;        
+        verbose = false;
         setVerboseOff();
-      }         
+      }
     }
 
     FieldAccess anObj = new FieldAccess();
@@ -140,29 +140,29 @@ class FieldAccess {
      */
     returnValue = accessStaticIntField();
     checkTest(returnValue, (staticInt==123), "accessStaticIntField");
-    
+
     returnValue = accessStaticBooleanField();
     checkTest(returnValue, (staticBoolean==true), "accessStaticBooleanField");
-    
+
     returnValue = accessStaticByteField();
     checkTest(returnValue, (staticByte==12), "accessStaticByteField");
-    
+
     returnValue = accessStaticCharField();
     checkTest(returnValue, (staticChar=='a'), "accessStaticCharField");
-    
+
     returnValue = accessStaticShortField();
     checkTest(returnValue, (staticShort==67), "accessStaticShortField");
-    
+
     returnValue = accessStaticLongField();
     checkTest(returnValue, (staticLong==246l), "accessStaticLongField");
-    
+
     returnValue = accessStaticFloatField();
     checkTest(returnValue, (staticFloat==.123f), "accessStaticFloatField");
-    
+
     returnValue = accessStaticDoubleField();
     checkTest(returnValue, (staticDouble==567.123d), "accessStaticDoubleField");
-    
-    tempObject = staticObject;   
+
+    tempObject = staticObject;
     returnValue = accessStaticObjectField();
     checkTest(returnValue, (staticObject.equals(tempObject)), "accessStaticObjectField");
 
@@ -172,28 +172,28 @@ class FieldAccess {
      */
     returnValue = accessIntField(anObj);
     checkTest(returnValue, (anObj.instanceInt==456), "accessIntField");
-    
+
     returnValue = accessBooleanField(anObj);
     checkTest(returnValue, (anObj.instanceBoolean==false), "accessBooleanField");
-    
+
     returnValue = accessByteField(anObj);
     checkTest(returnValue, (anObj.instanceByte==34), "accessByteField");
-    
+
     returnValue = accessCharField(anObj);
     checkTest(returnValue, (anObj.instanceChar=='t'), "accessCharField");
-    
+
     returnValue = accessShortField(anObj);
     checkTest(returnValue, (anObj.instanceShort==45), "accessShortField");
-    
+
     returnValue = accessLongField(anObj);
     checkTest(returnValue, (anObj.instanceLong==135l), "accessLongField");
-    
+
     returnValue = accessFloatField(anObj);
     checkTest(returnValue, (anObj.instanceFloat==.456f), "accessFloatField");
-    
+
     returnValue = accessDoubleField(anObj);
     checkTest(returnValue, (anObj.instanceDouble==1234.567d), "accessDoubleField");
-    
+
     tempObject = anObj.instanceObject;    // to check that the reference doesn't get corrupted
     returnValue = accessObjectField(anObj);
     checkTest(returnValue, (anObj.instanceObject.equals(tempObject)), "accessObjectField");
@@ -203,28 +203,28 @@ class FieldAccess {
      */
     returnValue = setStaticIntField();
     checkTest(returnValue, (staticInt==456), "setStaticIntField");
-    
+
     returnValue = setStaticBooleanField();
     checkTest(returnValue, (staticBoolean==false), "setStaticBooleanField");
-    
+
     returnValue = setStaticByteField();
     checkTest(returnValue, (staticByte==24), "setStaticByteField");
-    
+
     returnValue = setStaticCharField();
     checkTest(returnValue, (staticChar=='b'), "setStaticCharField");
-    
+
     returnValue = setStaticShortField();
     checkTest(returnValue, (staticShort==76), "setStaticShortField");
-    
+
     returnValue = setStaticLongField();
     checkTest(returnValue, (staticLong==357l), "setStaticLongField");
-    
+
     returnValue = setStaticFloatField();
     checkTest(returnValue, (staticFloat==.234f), "setStaticFloatField");
-    
+
     returnValue = setStaticDoubleField();
     checkTest(returnValue, (staticDouble==123.456d), "setStaticDoubleField");
-    
+
     returnValue = setStaticObjectField(extraObject);
     checkTest(returnValue, (staticObject.equals(extraObject)), "setStaticObjectField");
 
@@ -234,28 +234,28 @@ class FieldAccess {
      */
     returnValue = setIntField(anObj);
     checkTest(returnValue, (anObj.instanceInt==789), "setIntField");
-    
+
     returnValue = setBooleanField(anObj);
     checkTest(returnValue, (anObj.instanceBoolean==true), "setBooleanField");
-    
+
     returnValue = setByteField(anObj);
     checkTest(returnValue, (anObj.instanceByte==77), "setByteField");
-    
+
     returnValue = setCharField(anObj);
     checkTest(returnValue, (anObj.instanceChar=='q'), "setCharField");
-    
+
     returnValue = setShortField(anObj);
     checkTest(returnValue, (anObj.instanceShort==25), "setShortField");
-    
+
     returnValue = setLongField(anObj);
     checkTest(returnValue, (anObj.instanceLong==345l), "setLongField");
-    
+
     returnValue = setFloatField(anObj);
     checkTest(returnValue, (anObj.instanceFloat==.789f), "setFloatField");
-    
+
     returnValue = setDoubleField(anObj);
     checkTest(returnValue, (anObj.instanceDouble==234.456d), "setDoubleField");
-    
+
     returnValue = setObjectField(anObj,extraObject);
     checkTest(returnValue, (anObj.instanceObject.equals(extraObject)), "setObjectField");
 
@@ -266,13 +266,13 @@ class FieldAccess {
 
     if (allTestPass)
       System.out.println("PASS: FieldAccess");
-    else 
+    else
       System.out.println("FAIL: FieldAccess");
-  
+
   }
 
   static void printVerbose(String str) {
-    if (verbose) 
+    if (verbose)
       System.out.println(str);
   }
 

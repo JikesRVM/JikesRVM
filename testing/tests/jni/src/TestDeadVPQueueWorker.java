@@ -41,11 +41,11 @@ class TestDeadVPQueueWorker extends Thread
 
         int returnValue = nativeFoo(17);
         System.out.println("First nativeFoo return " + returnValue);
-    
+
         returnValue = nativeFoo(30);
         System.out.println("Second nativeFoo return " + returnValue);
-        
-        
+
+
         state = ending;
       }
    }

@@ -50,14 +50,14 @@ final class VMClassLoader
    * A map of maps. The first map is indexed by the classloader. The
    * map this finds then maps String class names to classes
    */
-  private static final VM_HashMap<ClassLoader,VM_HashMap<String,Class<?>>> loadedClasses = 
+  private static final VM_HashMap<ClassLoader,VM_HashMap<String,Class<?>>> loadedClasses =
     new VM_HashMap<ClassLoader,VM_HashMap<String,Class<?>>>();
 
   /** packages loaded by the bootstrap class loader */
-  private static final VM_HashMap<String,Package> definedPackages = 
+  private static final VM_HashMap<String,Package> definedPackages =
     new VM_HashMap<String,Package>();
 
-  private static final VM_HashMap<String,ZipFile> bootjars = 
+  private static final VM_HashMap<String,ZipFile> bootjars =
     new VM_HashMap<String,ZipFile>();
 
   static
@@ -66,7 +66,7 @@ final class VMClassLoader
 
     if( packages != null)
     {
-      String specName = 
+      String specName =
         SystemProperties.getProperty("java.specification.name");
       String vendor =
         SystemProperties.getProperty("java.specification.vendor");
@@ -224,7 +224,7 @@ final class VMClassLoader
 
   static Package[] getPackages() {
     Package[] packages = new Package[definedPackages.size()];
-    
+
     Iterator<Package> it = definedPackages.valueIterator();
     int idx = 0;
     while (it.hasNext()) {
@@ -236,7 +236,7 @@ final class VMClassLoader
   static Class<?> getPrimitiveClass(char type) {
     VM_Type t;
     switch (type) {
-    case 'Z': 
+    case 'Z':
       t = VM_Type.BooleanType;
       break;
     case 'B':

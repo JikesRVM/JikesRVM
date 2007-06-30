@@ -31,7 +31,7 @@ class ClassQuery extends ClassQuerySuper {
    * constructor
    */
   public ClassQuery() {
-    toTestConstructor = 2;    
+    toTestConstructor = 2;
   }
 
 
@@ -47,9 +47,9 @@ class ClassQuery extends ClassQuerySuper {
 
     if (args.length!=0) {
       if (args[0].equals("-quiet")) {
-        verbose = false;        
+        verbose = false;
         setVerboseOff();
-      }         
+      }
     }
 
     /***********************************************
@@ -59,13 +59,13 @@ class ClassQuery extends ClassQuerySuper {
       subcls = Class.forName("MethodInvocationSub");
       supercls = Class.forName("MethodInvocation");
       returnValue = 0;
-    } catch (ClassNotFoundException e) {            
+    } catch (ClassNotFoundException e) {
       returnValue = 1;
     }
 
     returncls = testSuperClass(subcls);
     checkTest(returnValue, (supercls==returncls), "GetSuperclass");
-    
+
 
     /***********************************************
      * check if type is assignable
@@ -118,12 +118,12 @@ class ClassQuery extends ClassQuerySuper {
         returnValue = 1;
 
 
-    } catch (ClassNotFoundException e) {            
+    } catch (ClassNotFoundException e) {
       returnValue = 1;
     }
 
     checkTest(returnValue, true, "IsAssignableFrom");
-    
+
 
     /***********************************************
      * check for same object
@@ -136,10 +136,10 @@ class ClassQuery extends ClassQuerySuper {
       returnValue = 1;
     returnFlag = testSameObject(obj1, obj3);
     if (!returnFlag)             // should be true
-      returnValue = 1;    
+      returnValue = 1;
     checkTest(returnValue, true, "IsSameObject");
-    
-    
+
+
     /***********************************************
      * test creating object without executing the constructor
      */
@@ -148,11 +148,11 @@ class ClassQuery extends ClassQuerySuper {
       ClassQuery blankObj = (ClassQuery) testAllocObject(subcls);
       if (blankObj.toTestConstructor==2)    // shouldn't have been initialized
         returnValue = 1;
-      else 
+      else
         returnValue = 0;
       // blankObj = new ClassQuery();
       // System.out.println("the field is " + blankObj.toTestConstructor);
-    } catch (ClassNotFoundException e) {            
+    } catch (ClassNotFoundException e) {
       returnValue = 1;
     }
     checkTest(returnValue, true, "AllocObject");
@@ -165,11 +165,11 @@ class ClassQuery extends ClassQuerySuper {
       returncls = testGetObjectClass(obj1);
       subcls = Class.forName("java.lang.String");
       checkTest(0, (returncls==subcls), "GetObjectClass");
-    } catch (ClassNotFoundException e) {            
+    } catch (ClassNotFoundException e) {
       checkTest(0, false, "GetObjectClass");
     }
-      
-    
+
+
     /***********************************************
      * summarize
      */
@@ -181,7 +181,7 @@ class ClassQuery extends ClassQuerySuper {
   }
 
   static void printVerbose(String str) {
-    if (verbose) 
+    if (verbose)
       System.out.println(str);
   }
 

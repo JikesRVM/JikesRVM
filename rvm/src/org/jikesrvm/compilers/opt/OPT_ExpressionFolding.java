@@ -1480,16 +1480,16 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             // x = a lcmp c1; y = y = x cmp c2 ? true : false
             if (cond.isEQUAL() && c2 == 0) {
               return BooleanCmp.create(BOOLEAN_CMP_LONG, y.copyRO(), a.copyRO(), LC(c1),
-                  OPT_ConditionOperand.EQUAL(), prof);              
+                  OPT_ConditionOperand.EQUAL(), prof);
             } else if (cond.isNOT_EQUAL() && c2 == 0) {
                 return BooleanCmp.create(BOOLEAN_CMP_LONG, y.copyRO(), a.copyRO(), LC(c1),
-                    OPT_ConditionOperand.NOT_EQUAL(), prof);              
+                    OPT_ConditionOperand.NOT_EQUAL(), prof);
             } else if ((cond.isEQUAL() && c2 == 1)||(cond.isGREATER() && c2 == 0)){
               return BooleanCmp.create(BOOLEAN_CMP_LONG, y.copyRO(), a.copyRO(), LC(c1),
-                  OPT_ConditionOperand.GREATER(), prof);              
+                  OPT_ConditionOperand.GREATER(), prof);
             } else if (cond.isGREATER_EQUAL() && c2 == 0){
               return BooleanCmp.create(BOOLEAN_CMP_LONG, y.copyRO(), a.copyRO(), LC(c1),
-                  OPT_ConditionOperand.GREATER_EQUAL(), prof);              
+                  OPT_ConditionOperand.GREATER_EQUAL(), prof);
             } else if ((cond.isEQUAL() && c2 == -1)||(cond.isLESS() && c2 == 0)) {
               return BooleanCmp.create(BOOLEAN_CMP_LONG, y.copyRO(), a.copyRO(), LC(c1),
                   OPT_ConditionOperand.LESS(), prof);
@@ -1575,7 +1575,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             return IfCmp.create(INT_IFCMP, y.copyRO(), a.copyRO(), IC(-c2), cond.flipOperands(), target, prof);
           } else if (def.operator == BOOLEAN_CMP_INT) {
             int c1 = getIntValue(BooleanCmp.getVal2(def));
-            OPT_ConditionOperand cond2 = BooleanCmp.getCond(def).copy().asCondition();            
+            OPT_ConditionOperand cond2 = BooleanCmp.getCond(def).copy().asCondition();
             // x = a cmp c1 ? true : false; y = x cmp c2
             if ((cond.isEQUAL() && c2 == 1)||
                 (cond.isNOT_EQUAL() && c2 == 0)) {
@@ -1588,7 +1588,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             }
           } else if (def.operator == BOOLEAN_CMP_LONG) {
             long c1 = getLongValue(BooleanCmp.getVal2(def));
-            OPT_ConditionOperand cond2 = BooleanCmp.getCond(def).copy().asCondition();            
+            OPT_ConditionOperand cond2 = BooleanCmp.getCond(def).copy().asCondition();
             // x = a cmp c1 ? true : false; y = x cmp c2
             if ((cond.isEQUAL() && c2 == 1)||
                 (cond.isNOT_EQUAL() && c2 == 0)) {
@@ -1601,7 +1601,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             }
           } else if (def.operator == BOOLEAN_CMP_ADDR) {
             Address c1 = getAddressValue(BooleanCmp.getVal2(def));
-            OPT_ConditionOperand cond2 = BooleanCmp.getCond(def).copy().asCondition();            
+            OPT_ConditionOperand cond2 = BooleanCmp.getCond(def).copy().asCondition();
             // x = a cmp c1 ? true : false; y = x cmp c2
             if ((cond.isEQUAL() && c2 == 1)||
                 (cond.isNOT_EQUAL() && c2 == 0)) {
@@ -1614,7 +1614,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             }
           } else if (def.operator == BOOLEAN_CMP_FLOAT) {
             float c1 = getFloatValue(BooleanCmp.getVal2(def));
-            OPT_ConditionOperand cond2 = BooleanCmp.getCond(def).copy().asCondition();            
+            OPT_ConditionOperand cond2 = BooleanCmp.getCond(def).copy().asCondition();
             // x = a cmp c1 ? true : false; y = x cmp c2
             if ((cond.isEQUAL() && c2 == 1)||
                 (cond.isNOT_EQUAL() && c2 == 0)) {
@@ -1627,7 +1627,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             }
           } else if (def.operator == BOOLEAN_CMP_DOUBLE) {
             double c1 = getDoubleValue(BooleanCmp.getVal2(def));
-            OPT_ConditionOperand cond2 = BooleanCmp.getCond(def).copy().asCondition();            
+            OPT_ConditionOperand cond2 = BooleanCmp.getCond(def).copy().asCondition();
             // x = a cmp c1 ? true : false; y = x cmp c2
             if ((cond.isEQUAL() && c2 == 1)||
                 (cond.isNOT_EQUAL() && c2 == 0)) {

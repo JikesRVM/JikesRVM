@@ -25,4 +25,4 @@ import org.vmmagic.Pragma;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 @Pragma
-public @interface BaselineSaveLSRegisters { } 
+public @interface BaselineSaveLSRegisters { }

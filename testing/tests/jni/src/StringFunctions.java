@@ -13,7 +13,7 @@
 class StringFunctions {
   static boolean verbose = true;         // set to true to get messages for each test
   static boolean allTestPass = true;
-  
+
   static String hiTon = "hiTon";
   static String hiSteve = "hiSteve";
   static String hiTony = "hiTony";
@@ -46,9 +46,9 @@ class StringFunctions {
 
     if (args.length!=0) {
       if (args[0].equals("-quiet")) {
-        verbose = false;        
+        verbose = false;
         setVerboseOff();
-      }         
+      }
     }
 
     /**
@@ -61,14 +61,14 @@ class StringFunctions {
     returnString = accessNewString(hiTon);
     printVerbose("accessNewString returnString = " + returnString + ".");
     checkTest(0, (returnString.equals(hiTon)), "accessNewString");
-    
+
     returnValue = accessGetStringLength(hiTon);
     checkTest(0, (returnValue==5), "accessGetStringLength");
-    
+
     returnString = accessNewStringUTF(hiSteve);
     printVerbose("accessNewStringUTF returnString = " + returnString + ".");
     checkTest(0, (returnString.equals(hiSteve)), "accessNewStringUTF");
-    
+
     returnValue = accessGetStringUTFLength(hiSteve);
     checkTest(0, (returnValue==7), "accessGetStringUTFLength");
 
@@ -82,13 +82,13 @@ class StringFunctions {
 
     if (allTestPass)
       System.out.println("PASS: StringFunctions");
-    else 
+    else
       System.out.println("FAIL: StringFunctions");
-  
+
   }
 
   static void printVerbose(String str) {
-    if (verbose) 
+    if (verbose)
       System.out.println(str);
   }
 

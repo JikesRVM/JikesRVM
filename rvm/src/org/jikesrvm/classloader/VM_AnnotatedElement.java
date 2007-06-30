@@ -264,7 +264,7 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
   public final boolean hasPureAnnotation() {
     return isAnnotationDeclared(VM_TypeReference.Pure);
   }
-  
+
   /**
    * Return true if this element has a RuntimeFinal annotation.
    * @see org.vmmagic.pragma.RuntimeFinal

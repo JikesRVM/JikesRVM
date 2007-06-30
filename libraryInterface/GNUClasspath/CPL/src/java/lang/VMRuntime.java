@@ -40,49 +40,49 @@ final class VMRuntime {
   @SuppressWarnings("unused") // Accessed from VM_EntryPoints
   private int gcLock;
   private static final Offset gcLockOffset;
-  
+
   private VMRuntime() { }
 
   static int availableProcessors() {
     return VM_Scheduler.numProcessors;
   }
-    
+
   static long freeMemory() {
     return MM_Interface.freeMemory().toLong();
   }
-    
+
   static long totalMemory() {
     return MM_Interface.totalMemory().toLong();
   }
-    
+
   static long maxMemory() {
     return MM_Interface.maxMemory().toLong();
   }
-    
+
   static void gc() {
     if (VM_Synchronization.testAndSet(instance, gcLockOffset, 1)) {
       MM_Interface.gc();
       VM_Synchronization.fetchAndStore(instance, gcLockOffset, 0);
     }
   }
-    
+
   static void runFinalization() {
     // TODO: talk to Steve B & Perry and figure out what to do.
     // as this is a hint, we can correctly ignore it.
     // However, there might be something else we should do.
   }
-    
+
   static void runFinalizationForExit() {
     if (runFinalizersOnExit) {
       // TODO: talk to Steve B & Perry and figure out what to do.
       throw new VM_UnimplementedError();
     }
   }
-    
+
   static void traceInstructions(boolean on) {
     // VMs are free to ignore this...
   }
-    
+
   static void traceMethodCalls(boolean on) {
     // VMs are free to ignore this...
   }
@@ -93,7 +93,7 @@ final class VMRuntime {
 
   static void exit(int status) {
     VM.sysExit(status);
-  }    
+  }
 
   /** <b>XXX TODO</b> We currently ignore the
    * <code>loader</code> parameter.
@@ -130,7 +130,7 @@ final class VMRuntime {
    * TODO: I don't THINK there's anything we need to do for this, but we should
    * look it over more carefully.  Perhaps we want to add something so that we
    * will try to run the hooks in case of an abnormal  exit (such a
-   * control-C)?  */ 
+   * control-C)?  */
   static void enableShutdownHooks() {
   }
 }

@@ -20,7 +20,7 @@ class T {
       ;
     return x;
   }
-  
+
   private int x;
 }
 
@@ -39,18 +39,18 @@ public class gctest {
     T o10 = new T(4);
     int x;
 
-    System.gc(); 
+    System.gc();
     o1 = new T(3);
-    System.gc(); 
+    System.gc();
 
     x = o1.foo() +       o2.foo() +      o3.foo() +
       o4.foo() +     o5.foo() +     o6.foo() +
       o7.foo() +     o8.foo() +     o9.foo() +
       o10.foo();
-    System.gc();   
+    System.gc();
 
 
-    // allocate more storage 
+    // allocate more storage
     o1 = new T(3);
     o2 = new T(4);
     o3 = new T(4);
@@ -62,7 +62,7 @@ public class gctest {
     o9 = new T(4);
     o10 = new T(4);
 
-    System.gc();   
+    System.gc();
 
     x = o1.foo() +       o2.foo() +      o3.foo() +
       o4.foo() +     o5.foo() +     o6.foo() +

@@ -23,7 +23,7 @@ import org.jikesrvm.runtime.VM_Runtime;
  * Implementation of java.lang.reflect.Field for JikesRVM.
  *
  * By convention, order methods in the same order
- * as they appear in the method summary list of Sun's 1.4 Javadoc API. 
+ * as they appear in the method summary list of Sun's 1.4 Javadoc API.
  */
 public final class Method extends AccessibleObject implements Member {
   final VM_Method method;
@@ -32,13 +32,13 @@ public final class Method extends AccessibleObject implements Member {
   private Method() {
     method = null;
   }
-    
+
   // For use by JikesRVMSupport
   Method(VM_Method m) {
     method = m;
   }
 
-  public boolean equals(Object other) { 
+  public boolean equals(Object other) {
     if (other instanceof Method) {
       return method == ((Method)other).method;
     } else {
@@ -86,18 +86,18 @@ public final class Method extends AccessibleObject implements Member {
   }
 
   public Object invoke(Object receiver, Object[] args) throws IllegalAccessException,
-                                                              IllegalArgumentException, 
+                                                              IllegalArgumentException,
                                                               ExceptionInInitializerError,
                                                               InvocationTargetException {
     VM_Method method = this.method;
     VM_Class declaringClass = method.getDeclaringClass();
-    
+
     // validate "this" argument
     if (!method.isStatic()) {
       if (receiver == null) throw new NullPointerException();
       receiver = JikesRVMSupport.makeArgumentCompatible(declaringClass, receiver);
     }
-    
+
     // validate number and types of remaining arguments
     VM_TypeReference[] parameterTypes = method.getParameterTypes();
     if (args == null) {
@@ -119,10 +119,10 @@ public final class Method extends AccessibleObject implements Member {
 
     // find the right method to call
     if (! method.isStatic()) {
-        VM_Class C = VM_Magic.getObjectType(receiver).asClass(); 
+        VM_Class C = VM_Magic.getObjectType(receiver).asClass();
         method = C.findVirtualMethod(method.getName(), method.getDescriptor());
     }
-    
+
     // Forces initialization of declaring class
     if (method.isStatic() && !declaringClass.isInitialized()) {
       try {

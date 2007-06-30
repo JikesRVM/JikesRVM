@@ -30,11 +30,11 @@ public class JikesRVMSupport implements VM_SizeConstants {
   public static InetAddress createInetAddress(int address) {
     return createInetAddress(address, null);
   }
-    
+
   public static InetAddress createInetAddress(int address, String hostname) {
     return new Inet4Address(toArrayForm(address), hostname);
   }
-    
+
   public static int getFamily(InetAddress inetaddress) {
     if (inetaddress instanceof Inet4Address) {
       return 2;
@@ -44,7 +44,7 @@ public class JikesRVMSupport implements VM_SizeConstants {
       throw new org.jikesrvm.VM_UnimplementedError("Unknown InetAddress family");
     }
   }
-    
+
   public static void setHostName(InetAddress inetaddress, String hostname) {
     inetaddress.hostName = hostname;
   }

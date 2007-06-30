@@ -28,7 +28,7 @@ public class JikesRVMSupport {
   }
 
   public static Pointer getPointerFromAddress(Address address) {
-    if (VM.BuildFor32Addr) 
+    if (VM.BuildFor32Addr)
       return new Pointer32(address.toInt());
     else
       return new Pointer64(address.toLong());

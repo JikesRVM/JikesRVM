@@ -27,10 +27,10 @@ class MonitorTest {
 
 
   /**
-   * called from native, increment a count protected by a lock on stringObject in native 
+   * called from native, increment a count protected by a lock on stringObject in native
    */
   static void accessCountUnderNativeLock(int increment) {
-    
+
     // lock the same object again to test nested monitor enter
     synchronized(stringObject) {
       globalCount += increment;
@@ -54,9 +54,9 @@ class MonitorTest {
 
     if (args.length!=0) {
       if (args[0].equals("-quiet")) {
-        verbose = false;        
+        verbose = false;
         setVerboseOff();
-      }         
+      }
     }
 
     // Create an object to lock on
@@ -66,7 +66,7 @@ class MonitorTest {
     printVerbose("Creating worker threads");
     Worker threadOne = new Worker("thread One", stringObject);
     Worker threadTwo = new Worker("thread Two", stringObject);
-    
+
     printVerbose("Starting worker threads");
     threadOne.start();
     threadTwo.start();
@@ -74,7 +74,7 @@ class MonitorTest {
     // wait for the threads to come up
     while (!threadOne.readyFlag || !threadTwo.readyFlag) {
     }
-    
+
     printVerbose("Worker threads running, start counting");
     startCounting = true;
 
@@ -86,8 +86,8 @@ class MonitorTest {
     printVerbose("Worker threads finish, check count");
 
     // get a copy so the checking can be protected in case some threads are still running
-    int copyCount = globalCount;  
-    
+    int copyCount = globalCount;
+
     if (copyCount == 0 && allTestPass) {
       System.out.println("PASS: MonitorTest");
     } else {
@@ -96,11 +96,11 @@ class MonitorTest {
     }
 
 
-  }    
+  }
 
 
   static void printVerbose(String str) {
-    if (verbose) 
+    if (verbose)
       System.out.println(str);
   }
 

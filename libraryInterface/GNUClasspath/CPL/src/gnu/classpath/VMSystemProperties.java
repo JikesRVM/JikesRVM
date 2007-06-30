@@ -35,16 +35,16 @@ public class VMSystemProperties {
    *  gnu.classpath.VMSystemProperties.postInit.
  */
   public static void preInit(Properties p) {
-    p.put("java.version", "1.6.0"); /* This is a lie, of course -- we don't 
+    p.put("java.version", "1.6.0"); /* This is a lie, of course -- we don't
                                        really support all 1.6 features, such
-                                       as assertions.  However, it is a  
+                                       as assertions.  However, it is a
                                        necessary lie, since Eclipse 3.0
                                        explicitly tests java.version and
                                        insists upon at least 1.4.1 to run. */
     p.put("java.vendor", "Jikes RVM Project");
     p.put("java.vm.vendor", "Jikes RVM Project");
     p.put("java.vendor.url", "http://jikesrvm.org");
-    
+
     p.put("java.specification.name", "Java Platform API Specification");
     p.put("java.specification.vendor", "Sun Microsystems Inc.");
     p.put("java.specification.version", "1.6");
@@ -54,35 +54,35 @@ public class VMSystemProperties {
     p.put("java.vm.specification.version", "1.0");
 
     /* 50.0 brings us through Java version 1.6. */
-    p.put("java.class.version", "50.0"); 
+    p.put("java.class.version", "50.0");
 
     p.put("file.separator", "/");
     p.put("path.separator", ":");
     p.put("line.separator", "\n");
-        
+
     p.put("java.compiler", "JikesRVM");
     p.put("java.vm.version", "1.6.0");
     p.put("java.vm.name", "JikesRVM");
     p.put("file.encoding", "8859_1");
     p.put("java.io.tmpdir", "/tmp");
     p.put("gnu.cpu.endian", VM_Configuration.LittleEndian ? "little" : "big");
-    
+
 
     String s;
     s = VM_BootstrapClassLoader.getBootstrapRepositories();
     p.put("java.boot.class.path", s);
     /* sun.boot.class.path is not necessary, yes, but possibly useful; Steve
      * Augart has seen at least one piece of code on the web that reads
-     * this. */ 
+     * this. */
     p.put("sun.boot.class.path", s);
-    
+
 
     /* user.timezone
 
        I (Steve Augart) started a discussion about this on classpath@gnu.org
        on 23 March 2003.  Summary: we define user.timezone specifically in
        order to pass that information to GNU Classpath's implementation of
-       java.util.TimeZone, which initializes 
+       java.util.TimeZone, which initializes
        later on in the boot process.  It does not seem to be required by the
        spec, and it's the empty string in Blackdown 1.4.2.
 
@@ -103,7 +103,7 @@ public class VMSystemProperties {
        dynamically-loaded libraries, the things that end in ".so" on Linux. */
     insertLibraryPath(p);
 
-    /* What should we do about java.ext.dirs?  
+    /* What should we do about java.ext.dirs?
        XXX TODO
 
        java.ext.dirs is allegedly mandatory, according to the API docs shipped
@@ -121,7 +121,7 @@ public class VMSystemProperties {
       VM.sysWrite("Jikes RVM: Warning: You have explicitly set java.ext.dirs; that will not do anything under Jikes RVM");
     }
     p.put("java.ext.dirs", s);
-    
+
 
     /* We also set java.class.path in setApplicationRepositories().
      *  We'll treat setting the java.class.path property as essentially
@@ -171,7 +171,7 @@ public class VMSystemProperties {
    *
    * os.name, os.arch, os.version
    * user.name, user.home, user.dir
-   * gnu.classpath.vm.shortname, gnu.classpath.home.url, 
+   * gnu.classpath.vm.shortname, gnu.classpath.home.url,
    * java.home,
    *
    * We can look at them here via VM_CommandLineArgs.getEnvironmentArg().

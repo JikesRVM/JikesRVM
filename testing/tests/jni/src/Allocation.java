@@ -27,14 +27,14 @@ class Allocation {
 
     String returnObj;
     Class classObj=null;
-      
+
     System.loadLibrary("Allocation");
 
     if (args.length!=0) {
       if (args[0].equals("-quiet")) {
-        verbose = false;        
+        verbose = false;
         setVerboseOff();
-      }         
+      }
     }
 
     // the class to create a new instance
@@ -43,7 +43,7 @@ class Allocation {
       classObj = Class.forName("java.lang.String");
     } catch (Exception e) {
       System.out.println("Fix test program");
-    }    
+    }
 
     // get some input for creating the new instance of String
     String inputStr = "Month Of March";
@@ -53,7 +53,7 @@ class Allocation {
     returnObj = testNewObjectA(classObj, inputCharArray);
     // System.out.println("The new object:  " + returnObj);
     checkTest(0, (returnObj.equals(inputStr)), "NewObjectA");
-    
+
     returnObj = null;
     returnObj = testNewObjectV(classObj, inputCharArray);
     // System.out.println("The new object:  " + returnObj);
@@ -69,13 +69,13 @@ class Allocation {
 
     if (allTestPass)
       System.out.println("PASS: Allocation");
-    else 
+    else
       System.out.println("FAIL: Allocation");
   }
 
 
   static void printVerbose(String str) {
-    if (verbose) 
+    if (verbose)
       System.out.println(str);
   }
 
@@ -87,6 +87,6 @@ class Allocation {
       printVerbose("FAIL: " + testName);
     }
   }
-  
+
 
 }

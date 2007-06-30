@@ -20,7 +20,7 @@ import org.jikesrvm.runtime.VM_Runtime;
  * Implementation of java.lang.reflect.Constructor for JikesRVM.
  *
  * By convention, order methods in the same order
- * as they appear in the method summary list of Sun's 1.4 Javadoc API. 
+ * as they appear in the method summary list of Sun's 1.4 Javadoc API.
  */
 public final class Constructor<T> extends AccessibleObject
   implements GenericDeclaration, Member
@@ -44,7 +44,7 @@ public final class Constructor<T> extends AccessibleObject
       return false;
     }
   }
-    
+
   @SuppressWarnings("unchecked")  // Type system needs to be bent a bit here
   public Class<T> getDeclaringClass() {
     return (Class<T>)constructor.getDeclaringClass().getClassForType();
@@ -66,7 +66,7 @@ public final class Constructor<T> extends AccessibleObject
   public String getName() {
     return getDeclaringClass().getName();
   }
-    
+
   public Class<?>[] getParameterTypes() {
     return JikesRVMSupport.typesToClasses(constructor.getParameterTypes());
   }
@@ -80,8 +80,8 @@ public final class Constructor<T> extends AccessibleObject
   }
 
   public Object newInstance(Object[] args) throws InstantiationException,
-                                                  IllegalAccessException, 
-                                                  IllegalArgumentException, 
+                                                  IllegalAccessException,
+                                                  IllegalArgumentException,
                                                   InvocationTargetException {
     // Check accessibility
     if (!constructor.isPublic() && !isAccessible()) {
@@ -103,7 +103,7 @@ public final class Constructor<T> extends AccessibleObject
         args[i] = JikesRVMSupport.makeArgumentCompatible(parameterTypes[i].resolve(), args[i]);
       }
     }
-    
+
     VM_Class cls = constructor.getDeclaringClass();
     if (cls.isAbstract()) {
       throw new InstantiationException("Abstract class");

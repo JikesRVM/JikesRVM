@@ -17,7 +17,7 @@ class inlineTest5
   {
     int i = l2i0( 0x000000000fffffffL);
     int j = l2i0( 0x0000000000ffffffL);
- 
+
     return i+j;
   }
 
@@ -44,7 +44,7 @@ class inlineTest5
   static int l2i5(long i) {
 
     int j = (int)i;
- 
+
     int k = ((int)i)*2+j*5;
     int l = ((int)i)+j+k;
     int m = k-l*6;

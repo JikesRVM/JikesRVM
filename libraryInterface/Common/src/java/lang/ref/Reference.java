@@ -48,7 +48,7 @@ public abstract class Reference<T> {
  */
   Reference<?> nextOnQueue;
 
-  
+
   /**
    * The queue this reference is registered on. This is null, if this
    * wasn't registered to any queue or reference was already enqueued.
@@ -74,14 +74,14 @@ public abstract class Reference<T> {
 
   /**
    * Returns the object, this reference refers to.
-   * @return the object, this reference refers to, or null if the 
+   * @return the object, this reference refers to, or null if the
    * reference was cleared.
    */
   @SuppressWarnings("unchecked") // This method requires an unchecked cast
   public T get() {
 
     Address tmp = referent;
-    
+
     if (tmp.isZero())
         return null;
 
@@ -97,11 +97,11 @@ public abstract class Reference<T> {
   }
 
   @Uninterruptible
-  public boolean wasEverEnqueued() { 
+  public boolean wasEverEnqueued() {
     return wasEnqueued;
   }
 
-  /* 
+  /*
    * This method requires external synchronization.
    * The logically uninterruptible pragma is a bold faced lie;
    * injecting it for now to avoid a warning message during the build
@@ -110,7 +110,7 @@ public abstract class Reference<T> {
    */
   @LogicallyUninterruptible
   @Uninterruptible
-  public boolean enqueue() { 
+  public boolean enqueue() {
     if (nextOnQueue == null && queue != null) {
       wasEnqueued = true;
       queue.enqueue(this);

@@ -12,7 +12,7 @@
  */
 public class TracingTest {
   public static Integer[] arr;
-  
+
   public static void main(String[] args) {
     arr = new Integer[20];
     for (int i = 0; i < 20; i++) {

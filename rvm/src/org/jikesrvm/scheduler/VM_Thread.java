@@ -1365,7 +1365,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
       VM.sysFail("too many threads"); // !!TODO: grow threads[] array
       return -1;
     }
-  
+
     /**
      * Release this thread's threads[] slot.
      * Assumption: call is guarded by threadCreationMutex.
@@ -1401,7 +1401,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
   @LogicallyUninterruptible
   public final int getIndex() {
     if (VM.VerifyAssertions) VM._assert(!isAlive || VM_Scheduler.threads[threadSlot] == this);
-    return threadSlot; 
+    return threadSlot;
   }
 
   /**

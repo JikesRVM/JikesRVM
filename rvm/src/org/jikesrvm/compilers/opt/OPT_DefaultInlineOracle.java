@@ -81,9 +81,9 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools implements OP
         // to correctly elide stack frames when generating stack traces (see
         // VM_StackTrace).
         if (verbose) VM.sysWriteln("\tNO: throwable constructor\n");
-        return OPT_InlineDecision.NO("throwable constructor");      
+        return OPT_InlineDecision.NO("throwable constructor");
       }
-        
+
       if (!staticCallee.isAbstract()) {
         int inlinedSizeEstimate = inlinedSizeEstimate((VM_NormalMethod) staticCallee, state);
         boolean guardless = state.getHasPreciseTarget() || !needsGuard(staticCallee);

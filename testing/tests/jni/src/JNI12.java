@@ -40,30 +40,30 @@ class JNI12 {
   public void dummyFunc () {
   }
   public int dummyFld;
-  
-  public static void main(String args[]) 
+
+  public static void main(String args[])
     throws NoSuchMethodException, NoSuchFieldException
   {
     System.loadLibrary("JNI12");
 
     if (args.length != 0) {
       if (args[0].equals("-quiet")) {
-        verbose = false;        
+        verbose = false;
         setVerboseOff();
-      }         
+      }
     }
 
     Object returnObj;
     // Reflected Methods
-    
+
     Class myClass =JNI12.class;
-    
+
     Method dummyM = myClass.getMethod("dummyFunc", new Class[0]);
     returnObj = testReflectedMethods(myClass, dummyM);
     checkTest(0, (returnObj.equals(dummyM)), "ReflectedMethods");
 
     Field dummyF = myClass.getField("dummyFld");
-    
+
     returnObj = testReflectedFields(myClass, dummyF);
     checkTest(0, (returnObj.equals(dummyF)), "ReflectedFields & NewLocalRef");
 
@@ -100,13 +100,13 @@ class JNI12 {
 
     if (allTestPass)
       System.out.println("PASS: JNI_12");
-    else 
+    else
       System.out.println("FAIL: JNI_12");
   }
 
 
   static void printVerbose(String str) {
-    if (verbose) 
+    if (verbose)
       System.out.println(str);
   }
 

@@ -21,19 +21,19 @@ class StringRegion {
   static native int testStringRegion(String s); // 0 if OK
   static native int testStringCritical(String s); // 0 if OK
 
-  public static void main(String args[]) 
+  public static void main(String args[])
   {
     System.loadLibrary("StringRegion");
 
     if (args.length != 0) {
       if (args[0].equals("-quiet")) {
-        verbose = false;        
+        verbose = false;
         setVerboseOff();
-      }         
+      }
     }
 
     // Reflected Methods
-    
+
     // get some input for the string
     String inputStr = "Live Free or Die";
     int ret = testStringRegion(inputStr);
@@ -47,13 +47,13 @@ class StringRegion {
 
     if (allTestPass)
       System.out.println("PASS: StringRegion");
-    else 
+    else
       System.out.println("FAIL: StringRegion");
   }
 
 
   static void printVerbose(String str) {
-    if (verbose) 
+    if (verbose)
       System.out.println(str);
   }
 
@@ -65,6 +65,6 @@ class StringRegion {
       printVerbose("FAIL: " + testName);
     }
   }
-  
+
 
 }

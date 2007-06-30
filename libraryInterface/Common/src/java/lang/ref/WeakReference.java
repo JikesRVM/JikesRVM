@@ -16,7 +16,7 @@ import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 
 /**
  * Implementation of java.lang.ref.WeakReference for JikesRVM.
- * 
+ *
  * @see java.util.WeakHashMap
  */
 public class WeakReference<T> extends Reference<T> {

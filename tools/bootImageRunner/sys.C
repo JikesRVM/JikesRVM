@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
- 
+
 /**
  * O/S support services required by the java class libraries.
  * See also: VM_BootRecord.java

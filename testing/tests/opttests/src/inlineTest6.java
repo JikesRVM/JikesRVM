@@ -17,7 +17,7 @@ class inlineTest6
   {
     int i = sum(100);
     int j = sum(200);
- 
+
     return i+j;
   }
 

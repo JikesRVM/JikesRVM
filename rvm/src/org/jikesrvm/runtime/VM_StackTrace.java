@@ -50,14 +50,14 @@ public class VM_StackTrace {
 
   /** Index of this stack trace */
   private final int traceIndex;
-  
+
   /** Should this be (or is this) a verbose stack trace? */
   private boolean isVerbose() {
-    // If we're printing verbose stack traces...   
+    // If we're printing verbose stack traces...
     // AND this particular trace meets the periodicity requirements
     return (VM.VerboseStackTracePeriod > 0) &&
     (((traceIndex - 1) % VM.VerboseStackTracePeriod) == 0);
-    
+
   }
 
   /**
@@ -146,7 +146,7 @@ public class VM_StackTrace {
     private final boolean isInvisible;
     /** Is this a hardware trap method? */
     private final boolean isTrap;
-    /** Constructor for non-opt compiled methods */     
+    /** Constructor for non-opt compiled methods */
     Element(VM_CompiledMethod cm, int off) {
       isInvisible = (cm == null);
       if (!isInvisible) {
@@ -247,14 +247,14 @@ public class VM_StackTrace {
               VM_Method method = VM_MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
               int lineNumber = ((VM_NormalMethod)method).getLineNumberForBCIndex(bci);
               elements[element] = new Element(method, lineNumber);
-              element++;        
+              element++;
             }
           }
         }
       }
     }
     return elements;
-  } 
+  }
 
   /**
    * Count number of stack frames including those inlined by the opt compiler
@@ -295,11 +295,11 @@ public class VM_StackTrace {
    * trace. As we're working with the compiled methods we're assumig the
    * constructor of the exception won't have been inlined into the throwing
    * method.
-   * 
+   *
    * @param cause the cause of generating the stack trace marking the end of the
    *          frames to elide
    * @return the index of the method throwing the exception or else 0
-   */  
+   */
   private int firstRealMethod(Throwable cause) {
     /* We expect a hardware trap to look like:
      * at org.jikesrvm.runtime.VM_StackTrace.<init>(VM_StackTrace.java:78)
@@ -403,7 +403,7 @@ public class VM_StackTrace {
    * @param first the first real method of the stack trace
    * @return compiledMethods.length-1 if no non-VM methods found else the index of
    *         the method
-   */  
+   */
   private int lastRealMethod(int first) {
     /* We expect an exception on the main thread to look like:
      * at <invisible method>(Unknown Source:0)
@@ -411,7 +411,7 @@ public class VM_StackTrace {
      * at org.jikesrvm.scheduler.VM_MainThread.run(VM_MainThread.java:195)
      * at org.jikesrvm.scheduler.VM_Thread.run(VM_Thread.java:534)
      * at org.jikesrvm.scheduler.VM_Thread.startoff(VM_Thread.java:1113
-     * 
+     *
      * and on another thread to look like:
      * at org.jikesrvm.scheduler.VM_Thread.run(VM_Thread.java:534)
      * at org.jikesrvm.scheduler.VM_Thread.startoff(VM_Thread.java:1113)

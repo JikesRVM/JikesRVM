@@ -198,7 +198,7 @@ class TypeCheck {
         x  = new Integer(5);
     else if (t1 < 0)
         x = new Float(6.7);
-    else 
+    else
         x = null;
     if (t1 > 0 && ((Integer) x).intValue() != 5)
         return false;
@@ -209,25 +209,25 @@ class TypeCheck {
         x  = new Integer(5);
     else if (t1 < 0)
         x = new Float(6.7);
-    else 
+    else
         x = null;
     Integer i = (Integer) x;
     if (i == null && t1 > 0)
         return false;
-    
+
     // TEST 17
     // checkcast + if null
     if (t1 > 0)
         x  = new Integer(5);
     else if (t1 < 0)
         x = new Float(6.7);
-    else 
+    else
         x = null;
     i = (Integer) x;
     if (i != null)
         if (t1 > 0 && i.intValue() != 5)
             return false;
-        
+
     return testSuccess;
   }
 

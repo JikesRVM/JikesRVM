@@ -23,7 +23,7 @@ import org.apache.tools.ant.taskdefs.Property;
  * the current time in a property with the name "&lt;property&gt;.start". If stop is set to
  * true then the task attempts to load a start time from "&lt;property&gt;.start" and then
  * stores the current time in "&lt;property&gt;.end" and the duration between "&lt;property&gt;.start"
- * and now in "&lt;property&gt;.duration". 
+ * and now in "&lt;property&gt;.duration".
  */
 public class TimerTask
     extends Task {

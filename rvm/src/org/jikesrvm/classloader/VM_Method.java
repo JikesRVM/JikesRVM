@@ -525,7 +525,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
   /**
    * Is the method Pure? That is would it, without any side effects, return the
    * same value given the same arguments?
-   * 
+   *
    * @return whether the method has a pure annotation
    */
   public final boolean isPure() {

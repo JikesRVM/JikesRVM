@@ -15,7 +15,7 @@ class Mangled_Name_s_ {
   static boolean allTestPass = true;
 
 
-  public static native void 
+  public static native void
     setVerboseOff();
 
   // method name for special case
@@ -33,9 +33,9 @@ class Mangled_Name_s_ {
     System.loadLibrary("Mangled_Name_s_");
     if (args.length!=0) {
       if (args[0].equals("-quiet")) {
-        verbose = false;        
+        verbose = false;
         setVerboseOff();
-      }         
+      }
     }
 
     returnValue = _underscore();
@@ -46,7 +46,7 @@ class Mangled_Name_s_ {
 
     returnValue = overload();
     checkTest(returnValue, "overload");
-    
+
     returnValue = overload(1);
     checkTest(returnValue, "overload(int)");
 
@@ -58,13 +58,13 @@ class Mangled_Name_s_ {
 
     if (allTestPass)
       System.out.println("PASS: Mangled_Name_s_");
-    else 
+    else
       System.out.println("FAIL: Mangled_Name_s_");
-      
+
   }
 
   static void printVerbose(String str) {
-    if (verbose) 
+    if (verbose)
       System.out.println(str);
   }
 

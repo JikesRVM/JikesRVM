@@ -14,13 +14,13 @@
 
   <target name="dacapo-head-message"><echo>
     === DaCapo Benchmarks (HEAD) ========================================
-      
+
     This test is for helping to ensure JikesRVM is capable of running
     future DaCapo releases. This *must* not be used for any performance
     testing, as the benchmarks and/or loads included are not final and
-    may be substantially different from official DaCapo benchmark 
+    may be substantially different from official DaCapo benchmark
     releases.
-   
+
     For more information on the DaCapo benchmarks visit:
        http://www.dacapobench.org
 

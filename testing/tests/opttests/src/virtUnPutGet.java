@@ -27,7 +27,7 @@ public class virtUnPutGet {
 
     vt.tval += n;
     vt.ppp();
- 
+
     return vt.tval;
   }
 

@@ -22,9 +22,9 @@ public class hanoioo {
                peg3 = new Peg(3);
 
     public static void main(String args[]) {
-     
+
        Globals.NumDisks = 24;
-       if (args.length > 0) Globals.NumDisks = Integer.parseInt(args[0]); 
+       if (args.length > 0) Globals.NumDisks = Integer.parseInt(args[0]);
 
        System.out.println("moving " + Globals.NumDisks + " disks...");
 

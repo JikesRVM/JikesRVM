@@ -25,11 +25,11 @@ class Exhaust {
   static int rounds = 5;
   static long tot = 0;          // total # allocated
   static long wasAllocating;            // How much were we allocating?
-  
+
 
   public static void main(String[] args) {
     long mhs = MM_Interface.getMaxHeapSize().toLong();
-    
+
     o.println("Max heap size: " + mhs + " bytes");
     if (mhs > 1024 * 1024)
       o.println("  that's " + mhs / ( 1024.0 * 1024.0 ) + " megabytes");
@@ -41,7 +41,7 @@ class Exhaust {
   }
 
   @NoInline
-  public static int doInner (int size) { 
+  public static int doInner (int size) {
     while (true) {
       wasAllocating = size;
       Object [] next = new Object[size / 4];
@@ -53,15 +53,15 @@ class Exhaust {
   }
 
   @NoInline
-  public static void runTest() { 
-    int size = itemSize;  
+  public static void runTest() {
+    int size = itemSize;
     for (int i=1; i<=rounds; i++) {
       o.println("Starting round " + i + " with size = " + size);
-        
+
       first = new Object[1];
       last = first;
       tot = 0;
-        
+
       o.println("  Allocating until exception thrown");
       try {
         doInner(size);

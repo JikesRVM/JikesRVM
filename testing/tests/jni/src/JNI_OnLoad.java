@@ -21,13 +21,13 @@ public class JNI_OnLoad {
 
     if (args.length!=0) {
       if (args[0].equals("-quiet")) {
-        verbose = false;        
+        verbose = false;
         setVerboseOff();
       }
     }
 
     int returnValue;
-    
+
     returnValue = testJNIOnLoad();
     checkTest(returnValue, true, "testJNIOnLoad -- A");
 
@@ -41,9 +41,9 @@ public class JNI_OnLoad {
   private final static native int testJNIOnLoad();
 
   public static native void setVerboseOff();
-      
+
   static void printVerbose(String str) {
-    if (verbose) 
+    if (verbose)
       System.out.println(str);
   }
 

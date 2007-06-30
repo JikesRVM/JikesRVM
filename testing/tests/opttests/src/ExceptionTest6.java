@@ -26,7 +26,7 @@ class ExceptionTest6 {
         try {
           ExceptionTest.run2(3);
         } catch (IndexOutOfBoundsException e1) {
-          
+
           System.out.println(" so [0].");
 
           try {
@@ -39,11 +39,11 @@ class ExceptionTest6 {
               System.out.println(" so [1].");
             }
 
-            
+
           } catch (IndexOutOfBoundsException e3) {
             System.out.println(" so [2]." );
           }
-          
+
         }
       } catch (IndexOutOfBoundsException e4) {
         System.out.println(" so [4].");

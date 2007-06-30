@@ -24,7 +24,7 @@ class matmul {
 
   // timer
   static double timer() {
-    
+
     return System.currentTimeMillis()/1000.0;
   }
 
@@ -33,7 +33,7 @@ class matmul {
 
     int i;
     int j;
-    
+
     for (i=0;i<m;i++) {
       for (j=0;j<n;j++) {
         A[i][j] = 1.0;
@@ -51,7 +51,7 @@ class matmul {
         C[i][j] = 0.0;
       }
     }
-  }     
+  }
 
   // matrix multiply
   static void multipl() {
@@ -59,7 +59,7 @@ class matmul {
     int i;
     int j;
     int k;
-    
+
     for (i=0;i<m;i++) {
       for (j=0;j<p;j++) {
         for (k=0;k<n;k++) {

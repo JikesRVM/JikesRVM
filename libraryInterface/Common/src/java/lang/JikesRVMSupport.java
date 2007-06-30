@@ -62,17 +62,17 @@ public class JikesRVMSupport {
    * */
 
   @Uninterruptible
-  public static char[] getBackingCharArray(String str) { 
+  public static char[] getBackingCharArray(String str) {
     return str.value;
   }
 
   @Uninterruptible
-  public static int getStringLength(String str) { 
+  public static int getStringLength(String str) {
     return str.count;
   }
 
   @Uninterruptible
-  public static int getStringOffset(String str) { 
+  public static int getStringOffset(String str) {
     return str.offset;
   }
 

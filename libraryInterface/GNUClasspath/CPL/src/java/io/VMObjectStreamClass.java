@@ -45,12 +45,12 @@ final class VMObjectStreamClass {
     VM_Field f = java.lang.reflect.JikesRVMSupport.getFieldOf(field);
     f.setLongValueUnchecked(obj, val);
   }
-  
+
   static void setIntNative(Field field, Object obj, int val) {
     VM_Field f = java.lang.reflect.JikesRVMSupport.getFieldOf(field);
     f.setIntValueUnchecked(obj, val);
   }
-  
+
   static void setShortNative(Field field, Object obj, short val) {
     VM_Field f = java.lang.reflect.JikesRVMSupport.getFieldOf(field);
     f.setShortValueUnchecked(obj, val);

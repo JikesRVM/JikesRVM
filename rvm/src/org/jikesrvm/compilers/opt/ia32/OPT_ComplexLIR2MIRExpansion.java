@@ -147,7 +147,7 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
       // shift is of a constant so set up registers
       int low = val1.asLongConstant().lower32();
       int high = val1.asLongConstant().upper32();
-      
+
       testBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
           new OPT_RegisterOperand(lowlhsReg, VM_TypeReference.Int),
           IC(low))));
@@ -188,7 +188,7 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     shift64BB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
         new OPT_RegisterOperand(lowlhsReg, VM_TypeReference.Int),
         IC(0))));
-    
+
     shift64BB.appendInstruction(CPOS(s, MIR_Branch.create(IA32_JMP,
         nextBB.makeJumpTarget())));
     shift64BB.insertOut(nextBB);
@@ -247,7 +247,7 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
       // shift is of a constant so set up registers
       int low = val1.asLongConstant().lower32();
       int high = val1.asLongConstant().upper32();
-      
+
       testBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
           new OPT_RegisterOperand(lowlhsReg, VM_TypeReference.Int),
           IC(low))));
@@ -293,7 +293,7 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     shift64BB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_SAR,
         new OPT_RegisterOperand(lhsReg, VM_TypeReference.Int),
         IC(31))));
-    
+
     shift64BB.appendInstruction(CPOS(s, MIR_Branch.create(IA32_JMP,
         nextBB.makeJumpTarget())));
     shift64BB.insertOut(nextBB);
@@ -352,7 +352,7 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
       // shift is of a constant so set up registers
       int low = val1.asLongConstant().lower32();
       int high = val1.asLongConstant().upper32();
-      
+
       testBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
           new OPT_RegisterOperand(lowlhsReg, VM_TypeReference.Int),
           IC(low))));
@@ -393,7 +393,7 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     shift64BB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
         new OPT_RegisterOperand(lhsReg, VM_TypeReference.Int),
         IC(0))));
-    
+
     shift64BB.appendInstruction(CPOS(s, MIR_Branch.create(IA32_JMP,
         nextBB.makeJumpTarget())));
     shift64BB.insertOut(nextBB);
@@ -438,7 +438,7 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     ir.cfg.linkInCodeOrder(testBB, mul64BB);
     OPT_BasicBlock mul32BB = testBB.splitNodeAt(s,ir);
     ir.cfg.linkInCodeOrder(testBB, mul32BB);
-    
+
     // Source registers
     OPT_Register lhsReg = Binary.getResult(s).register;
     OPT_Register lowlhsReg = ir.regpool.getSecondReg(lhsReg);
@@ -471,10 +471,10 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
         new OPT_RegisterOperand(tmp, VM_TypeReference.Int))));
     testBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
         new OPT_RegisterOperand(edx, VM_TypeReference.Int),
-        new OPT_RegisterOperand(lowrhsReg1, VM_TypeReference.Int))));            
+        new OPT_RegisterOperand(lowrhsReg1, VM_TypeReference.Int))));
     testBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
         new OPT_RegisterOperand(eax, VM_TypeReference.Int),
-        new OPT_RegisterOperand(lowrhsReg2, VM_TypeReference.Int))));            
+        new OPT_RegisterOperand(lowrhsReg2, VM_TypeReference.Int))));
     testBB.appendInstruction(CPOS(s, MIR_CondBranch.create(IA32_JCC,
         OPT_IA32ConditionOperand.NE(),
         mul64BB.makeJumpTarget(),
@@ -482,7 +482,7 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     testBB.insertOut(mul64BB);
     testBB.insertOut(mul32BB);
 
-    // multiply 32: on entry EAX = d, EDX = b, tmp = a 
+    // multiply 32: on entry EAX = d, EDX = b, tmp = a
     // edx:eax = b * d
     mul32BB.appendInstruction(CPOS(s, MIR_Multiply.create(IA32_MUL,
         new OPT_RegisterOperand(edx, VM_TypeReference.Int),
@@ -490,7 +490,7 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
         new OPT_RegisterOperand(edx, VM_TypeReference.Int))));
     mul32BB.appendInstruction(MIR_Branch.create(IA32_JMP, nextBB.makeJumpTarget()));
     mul32BB.insertOut(nextBB);
-    
+
     // multiply 64: on entry EAX = d, EDX = b, tmp = a
     // edx = b imul c
     // tmp = a imul d
@@ -525,7 +525,7 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     s.remove();
     return nextInstr;
   }
-  
+
   private static OPT_Instruction long_ifcmp(OPT_Instruction s, OPT_IR ir) {
     OPT_Instruction nextInstr = s.nextInstructionInCodeOrder();
     OPT_ConditionOperand cond = IfCmp.getCond(s);

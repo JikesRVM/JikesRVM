@@ -240,7 +240,7 @@ public final class VM_ThinLock implements VM_ThinLockConstants {
    * @return the heavy-weight lock on this object
    */
   private static VM_Lock inflate(Object o, Offset lockOffset) {
-    if (VM.VerifyAssertions) { 
+    if (VM.VerifyAssertions) {
       VM._assert(holdsLock(o, lockOffset, VM_Thread.getCurrentThread()));
       VM._assert((VM_Magic.getWordAtOffset(o, lockOffset).and(TL_FAT_LOCK_MASK).isZero()));
     }

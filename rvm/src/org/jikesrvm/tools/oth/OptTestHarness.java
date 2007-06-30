@@ -91,7 +91,7 @@ class OptTestHarness {
 
   static VM_Class mainClass;
   static String[] mainArgs;
-  
+
   static int parseMethodArgs(VM_TypeReference[] argDesc, String[] args, int i, Object[] methodArgs) {
     try {
       for (int argNum = 0; argNum < argDesc.length; ++argNum) {
@@ -387,7 +387,7 @@ class OptTestHarness {
       }
       EXECUTE_WITH_REFLECTION = false;
     }
-    
+
     if (EXECUTE_MAIN) {
       VM_Method mainMethod = mainClass.findMainMethod();
       if (mainMethod == null) {
@@ -395,7 +395,7 @@ class OptTestHarness {
         System.err.println(mainClass + " doesn't have a \"public static void main(String[])\" method to execute\n");
         return;
       }
-      VM.sysWrite("**** START OF EXECUTION of " + mainMethod + " ****.\n");      
+      VM.sysWrite("**** START OF EXECUTION of " + mainMethod + " ****.\n");
       VM_Reflection.invoke(mainMethod, null, new Object[]{mainArgs}, false);
       VM.sysWrite("**** END OF EXECUTION of " + mainMethod + " ****.\n");
     }

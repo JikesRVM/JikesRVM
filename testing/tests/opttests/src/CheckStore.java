@@ -15,7 +15,7 @@ class CheckStore {
   public static void main(String[] args) {
      run();
   }
-  
+
   public static boolean run() {
     System.out.println("CheckStore prints: ");
     try {
@@ -51,7 +51,7 @@ class CheckStore {
 
   static void run2(int a, Object elem) {
      Object[] array;
-     if (a < 0) 
+     if (a < 0)
         array = new Object[2];
      else
         array = new String[2];

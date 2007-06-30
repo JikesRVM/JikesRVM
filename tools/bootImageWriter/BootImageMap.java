@@ -143,7 +143,7 @@ public class BootImageMap extends BootImageWriterMessages
         entry = new Entry(newId(), jdkObject, OBJECT_NOT_ALLOCATED);
         keyToEntry.put(key, entry);
         objectIdToEntry.add(entry);
-      }   
+      }
       return entry;
     }
   }

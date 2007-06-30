@@ -21,7 +21,7 @@ class NullIdentity {
   static native int nullForceSpill(Object a, Object b, Object c, Object d,
                                    Object e, Object f, Object g, Object h,
                                    Object i, Object j, Object k, Object l);
-  
+
   /************************************************************
    * Main body of the test program
  */
@@ -30,12 +30,12 @@ class NullIdentity {
     String anObj = new String("Year of the Dragon");
 
     System.loadLibrary("NullIdentity");
-    
+
     if (args.length!=0) {
       if (args[0].equals("-quiet")) {
-        verbose = false;        
+        verbose = false;
         setVerboseOff();
-      }         
+      }
     }
 
     returnValue = nullFirst(null);
@@ -47,15 +47,15 @@ class NullIdentity {
     returnValue = nullForceSpill(anObj, anObj, anObj, anObj, anObj, anObj,
                                  anObj, anObj, anObj, anObj, anObj, null);
     checkTest(returnValue, "nullForceSpill");
-    
+
     if (allTestPass)
       System.out.println("PASS: NullIdentity");
-    else 
+    else
       System.out.println("FAIL: NullIdentity");
   }
 
   static void printVerbose(String str) {
-    if (verbose) 
+    if (verbose)
       System.out.println(str);
   }
 

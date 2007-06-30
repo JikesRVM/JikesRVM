@@ -18,12 +18,12 @@ import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
  * Implementation of java.lang.ref.PhantomReference for JikesRVM.
  */
 public class PhantomReference<T> extends Reference<T> {
-  
+
   public PhantomReference(T referent, ReferenceQueue<T> q) {
     super(referent, q);
     MM_Interface.addPhantomReference(this);
   }
-  
+
   /**
    * Returns the object this reference refers to. Phantom references
   always return <code>null</code>.

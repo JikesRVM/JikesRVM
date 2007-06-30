@@ -23,12 +23,12 @@ public class TestJNIDirectBuffers {
 
     if (args.length!=0) {
       if (args[0].equals("-quiet")) {
-        verbose = false;        
+        verbose = false;
         setVerboseOff();
       }
     }
     int returnValue;
-    
+
     ByteBuffer buffer = ByteBuffer.allocateDirect(1);
 
     returnValue = testBuffer(buffer);
@@ -45,7 +45,7 @@ public class TestJNIDirectBuffers {
     if (address != buffer_address) {
       printVerbose("Wrong address: " + address + " != " + buffer_address);
       checkTest(0, false, "CheckAddress");
-    }      
+    }
 
     returnValue = testBuffer(native_buffer);
     checkTest(returnValue, true, "testBuffer -- B");
@@ -93,9 +93,9 @@ public class TestJNIDirectBuffers {
   private final static native ByteBuffer newByteBuffer(long address, long capacity);
 
   public static native void setVerboseOff();
-      
+
   static void printVerbose(String str) {
-    if (verbose) 
+    if (verbose)
       System.out.println(str);
   }
 

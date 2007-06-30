@@ -18,9 +18,9 @@ import org.jikesrvm.runtime.VM_Runtime;
 
 /**
  * Jikes RVM implementation of java.lang.Object.
- * 
+ *
  * By convention, order methods in the same order
- * as they appear in the method summary list of Sun's 1.4 Javadoc API. 
+ * as they appear in the method summary list of Sun's 1.4 Javadoc API.
  */
 public class Object {
 
@@ -40,7 +40,7 @@ public class Object {
   public final Class<?> getClass() {
     return VM_ObjectModel.getObjectType(this).getClassForType();
   }
-    
+
   public int hashCode() {
     return VM_ObjectModel.getObjectHashCode(this);
   }
@@ -56,7 +56,7 @@ public class Object {
   public String toString () {
     return getClass().getName() + "@" + Integer.toHexString(hashCode());
   }
-  
+
   public final void wait () throws InterruptedException,
                                    IllegalMonitorStateException {
     VM_Lock.wait(this);
@@ -76,7 +76,7 @@ public class Object {
         time = 1;
       } else if (frac >= 500000) {
         time += 1;
-      } 
+      }
       if (time == 0) {
         VM_Lock.wait(this);
       } else {

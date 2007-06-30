@@ -17,13 +17,13 @@ class TestSwitch
     // VM.boot();
     run();
   }
-  
+
   public static boolean run()
   {
     System.out.println("TestSwitch");
-    
+
     int j;
-    
+
     // tableswitch
     System.out.print("\nwant: 99101199\n got: ");
     for (int i = 9; i < 13; i += 1)
@@ -37,7 +37,7 @@ class TestSwitch
         System.out.print(j);
       }
     System.out.println();
-    
+
     // lookupswitch
     System.out.print("\nwant: 99102030405099\n got: ");
     for (int i = 0; i < 70; i += 10)

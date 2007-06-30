@@ -313,11 +313,11 @@ public abstract class VM_JNICompiler
     if (returnType.isReferenceType()) {
       asm.emitCMPI(T0, 0);
       VM_ForwardReference globalRef = asm.emitForwardBC(VM_Assembler.LT);
-      
+
       // Local ref - load from JNIRefs
       asm.emitLAddrX(T0, S1, T0);         // S1 is still the base of the JNIRefs array
       VM_ForwardReference afterGlobalRef = asm.emitForwardB();
-      
+
       // Deal with global references
       globalRef.resolve(asm);
       asm.emitLVAL(T3, VM_JNIGlobalRefTable.STRONG_REF_BIT);
@@ -325,13 +325,13 @@ public abstract class VM_JNICompiler
       asm.emitLAddrOffset(T2, JTOC, VM_Entrypoints.JNIGlobalRefsField.getOffset());
       asm.emitCMPI(T1, 0);
       VM_ForwardReference weakGlobalRef = asm.emitForwardBC(VM_Assembler.EQ);
-      
+
       // Strong global references
       asm.emitNEG(T0, T0);
       asm.emitSLWI(T0, T0, LOG_BYTES_IN_ADDRESS);  // convert index to offset
       asm.emitLAddrX(T0, T2, T0);
       VM_ForwardReference afterWeakGlobalRef = asm.emitForwardB();
-      
+
       // Weak global references
       weakGlobalRef.resolve(asm);
       asm.emitOR(T0, T0, T3); // STRONG_REF_BIT

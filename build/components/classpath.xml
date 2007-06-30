@@ -104,7 +104,7 @@
   <!-- please maintain separate patches for cvs head and stable versions           -->
   <!-- of classpath, even if the patch is identical                                -->
   <!-- *************************************************************************** -->
-  
+
   <!-- Patches against CVS head -->
   <target name="patch-classpath-cvs" depends="fetch" if="classpath.from-cvs">
     <patch patchfile="${components.patch.dir}/classpath-cvs.classpath30275.patch"
@@ -112,7 +112,7 @@
     <patch patchfile="${components.patch.dir}/classpath-cvs.RVM-77.patch"
 	   dir="${classpath.package.dir}/classpath/" strip="0"/>
   </target>
-  
+
   <!-- Patches against the current stable version -->
   <target name="patch-classpath-web" depends="fetch" if="classpath.from-web">
     <patch patchfile="${components.patch.dir}/classpath-web.R1722506.patch"
@@ -155,8 +155,8 @@
       <equals arg1="${target.os}" arg2="AIX"/>
     </condition>
 
-    <!-- horrible hackery to get assembler object mode set properly on AIX. 
-         implicit here is the assumption that only AIX as/ld actually look at the 
+    <!-- horrible hackery to get assembler object mode set properly on AIX.
+         implicit here is the assumption that only AIX as/ld actually look at the
          value of OBJECT_MODE environment variable, so we can set it to 32 by default
          and non-AIX platforms won't care. -->
     <condition property="cp.objectmode" value="32_64" else="32">

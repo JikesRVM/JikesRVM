@@ -22,11 +22,11 @@ class table {
       return 0;
     else {
       switch(a) {
-        case 0: a = 1; break; 
-        case 1: a = 2; break; 
-        case 2: a = 3; break; 
-        case 3: a = 4; break; 
-        case 4: a = 5; break; 
+        case 0: a = 1; break;
+        case 1: a = 2; break;
+        case 2: a = 3; break;
+        case 3: a = 4; break;
+        case 4: a = 5; break;
       }
       return a;
     }

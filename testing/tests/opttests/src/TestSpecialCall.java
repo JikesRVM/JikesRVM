@@ -30,7 +30,7 @@ class C extends B
       bar();       // invokespecial - private  --> C.bar
       foo();       // invokevirtual            --> C.foo
       }
-      
+
    C()                { System.out.print("C.init "); }
            void foo() { System.out.print("C.foo "); }
    private void bar() { System.out.print("C.bar "); }
@@ -47,7 +47,7 @@ class TestSpecialCall
    public static boolean run()
       {
       System.out.println("TestSpecialCall");
-      
+
       System.out.print("want: A.init B.init C.init A.init B.foo C.bar C.foo\n");
       System.out.print(" got: ");
       new C().test();

@@ -19,7 +19,7 @@ import java.lang.annotation.ElementType;
 import org.vmmagic.Pragma;
 
 /**
- * Methods of a class that implements this interface are treated specially 
+ * Methods of a class that implements this interface are treated specially
  * by the compilers:
  *  -They are only called from C or C++ program
  *  -The compiler will generate the necessary prolog to insert a glue stack

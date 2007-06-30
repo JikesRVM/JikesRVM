@@ -28,13 +28,13 @@ class TestClassInitializerC
    {
    static     { System.out.println("clinit called for TestClassInitializerC"); }
    }
-   
+
 class TestClassInitializerD extends TestClassInitializerC
    {
    static     { System.out.println("clinit called for TestClassInitializerD"); }
    static int i = 123;
    }
-   
+
 class TestClassInitializer
    {
    public static void main(String args[])

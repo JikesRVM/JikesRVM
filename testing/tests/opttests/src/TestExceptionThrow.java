@@ -17,17 +17,17 @@ class MyErrorBase extends Throwable
    {
      private static final long serialVersionUID = 0L;
    }
-   
+
 class MyError extends MyErrorBase
    {
      private static final long serialVersionUID = 0L;
    }
-   
+
 class NotMyError extends Throwable
    {
      private static final long serialVersionUID = 0L;
    }
-   
+
 class TestExceptionThrow
    {
    public static void main(String args[])
@@ -41,7 +41,7 @@ class TestExceptionThrow
       System.out.println("run1");
       if (!run1()) correct = false;
       System.out.println("run2");
-      if (!run2()) correct = false; 
+      if (!run2()) correct = false;
       System.out.println("run3");
       if (!run3()) correct = false;
       System.out.println("run4");
@@ -73,7 +73,7 @@ class TestExceptionThrow
       {
       System.out.println("TestExceptionThrow");
       int a = 1;
-      int b = 2; 
+      int b = 2;
       // test "user" exceptions
       try
          {
@@ -84,7 +84,7 @@ class TestExceptionThrow
          {
          System.out.println("caught: " + e);
          }
-      
+
 
       // test "vm" exceptions
       try
@@ -121,15 +121,15 @@ class TestExceptionThrow
      }
 
      public static boolean run2a() throws IndexOutOfBoundsException {
-       return run2b();  
+       return run2b();
      }
 
      public static boolean run2b() throws IndexOutOfBoundsException {
-       return run2c();  
+       return run2c();
      }
 
      public static boolean run2c() throws IndexOutOfBoundsException {
-       return run2d();  
+       return run2d();
      }
 
      public static boolean run2d() throws IndexOutOfBoundsException {
@@ -147,7 +147,7 @@ class TestExceptionThrow
 
 
 
-     
+
    static int test3[] = null; //new int[3];
 
    public static boolean run3() {
@@ -204,7 +204,7 @@ class TestExceptionThrow
   }
 
 
-   
+
    public static boolean run6() {
        System.out.println(access(4));
        return true;
@@ -224,7 +224,7 @@ class TestExceptionThrow
       throws Throwable
       {
       System.out.println("TestThrow");
-      
+
       // test "user" exceptions
       try
          {
@@ -238,7 +238,7 @@ class TestExceptionThrow
          System.out.println("caught: " + e);
       // e.printStackTrace(System.out);     // !!TODO: fix backtrace so it omits <init> functions for throwables
          }
-      
+
       // test "vm" exceptions
       try
          {
@@ -263,7 +263,7 @@ class TestExceptionThrow
      // very similar to run5(), but throw is inline instead of in callee method
    public static boolean run8() throws Throwable {
      try {
-       if (testa.length <= 3) 
+       if (testa.length <= 3)
          throw new IndexOutOfBoundsException("I am IndexOBE");
        testa[3] = 0;
      } catch (NullPointerException n) {
@@ -276,7 +276,7 @@ class TestExceptionThrow
      System.out.println(" At End");
      return true;
    }
-  
+
   public static boolean run9() {
     try {
       foo9(1);
@@ -329,7 +329,7 @@ class TestExceptionThrow
      try {
         throw new NullPointerException();
      } catch (Exception e) {
- 
+
      }
      try {
         int x = b10/a10;

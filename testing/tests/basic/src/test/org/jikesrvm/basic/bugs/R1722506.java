@@ -15,13 +15,13 @@ package test.org.jikesrvm.basic.bugs;
 import java.io.*;
 
 /**
- * [ 1722506 ] dacapo eclipse fails EOF exceptions 
+ * [ 1722506 ] dacapo eclipse fails EOF exceptions
  * http://sourceforge.net/tracker/index.php?func=detail&aid=1722506&group_id=128805&atid=712768
  */
 public class R1722506 {
   public static void main(String[] args) {
     String filename = System.getProperty("java.io.tmpdir")+"/filetest.tmp";
-    try {    
+    try {
       File newIndexFile = new File(filename);
       DataOutputStream stream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(newIndexFile, false), 2048));
       for (int i = 0; i < 50; i++)

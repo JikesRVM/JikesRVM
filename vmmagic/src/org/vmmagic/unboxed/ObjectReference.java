@@ -16,9 +16,9 @@ import org.vmmagic.Unboxed;
 
 /**
  * The object reference type is used by the runtime system and collector to
- * represent a type that holds a reference to a single object. 
+ * represent a type that holds a reference to a single object.
  * We use a separate type instead of the Java Object type for coding clarity,
- * to make a clear distinction between objects the VM is written in, and 
+ * to make a clear distinction between objects the VM is written in, and
  * objects that the VM is managing. No operations that can not be completed in
  * pure Java should be allowed on Object.
  */
@@ -30,10 +30,10 @@ public final class ObjectReference {
    */
   @SuppressWarnings("unused")
   private Object data;
-  
+
   /**
    * Convert from an object to a reference.
-   * @param obj The object 
+   * @param obj The object
    * @return The corresponding reference
    */
   public static ObjectReference fromObject(Object obj) {

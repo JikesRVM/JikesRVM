@@ -11,7 +11,7 @@
  *  regarding copyright ownership.
  */
 class logic {
-  
+
    static boolean not(boolean a) {
        return !a;
    }
@@ -45,7 +45,7 @@ class logic {
    }
 
    static int  eje(int a) {
-    if (aja(a)) 
+    if (aja(a))
        return 0;
     else
        return 1;
@@ -56,14 +56,14 @@ class logic {
        return 3;
     else
        return 5;
-   } 
+   }
 
    static int  ojo(int a, int b) {
     if (ajaja(a,b))
        return 3;
     else
        return 5;
-   } 
+   }
 
    static boolean uju(Object a) {
       return a == null;
@@ -85,7 +85,7 @@ class logic {
    }
 
    static int insert(int a) {
-      return (a & 0xFC07FFFF) | 0x580000; 
+      return (a & 0xFC07FFFF) | 0x580000;
    }
 
    static int insert1(int a) {
@@ -127,7 +127,7 @@ static int extract5(int a) {
 
 static int extract6(int a) {
     return (a >>> 4) << 12;
-}    
+}
 
 static int extract7(int a) {
     return (a >>>12) <<  4;
@@ -136,7 +136,7 @@ static int extract7(int a) {
 
 static int extract8(int a) {
     return (a >>12) >>  4;
-} 
+}
 
 static int extract9(int a) {
     return (a <<12) <<  4;

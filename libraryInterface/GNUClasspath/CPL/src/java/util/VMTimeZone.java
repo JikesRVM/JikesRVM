@@ -19,7 +19,7 @@ public class VMTimeZone {
     return null;                // We don't need to do anything here; Jikes
                                 // RVM automatically takes care of this for
                                 // us, since "bin/runrvm" always sets the
-                                // user.timezone property. 
+                                // user.timezone property.
   }
-    
+
 }

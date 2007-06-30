@@ -13,7 +13,7 @@
 class bug {
 
    static byte x[] = {-1};
-   
+
    public static void main(String args[]) {
       int X = x[0];
       int Y;

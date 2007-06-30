@@ -134,33 +134,33 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     if (method.getReturnType().isReferenceType()) {
       asm.emitCMP_Reg_Imm(T0, 0);
       VM_ForwardReference globalRef = asm.forwardJcc(VM_Assembler.LT);
-      
+
       // Deal with local references
       asm.emitADD_Reg_RegDisp(T0,
           S0,
           VM_Entrypoints.JNIRefsField.getOffset());      // T0 <- address of entry (not index)
       asm.emitMOV_Reg_RegInd(T0, T0);   // get the reference
       VM_ForwardReference afterGlobalRef = asm.forwardJMP();
-      
+
       // Deal with global references
       globalRef.resolve(asm);
       asm.emitMOV_Reg_Reg(T1, T0);
       asm.emitTEST_Reg_Imm(T1, VM_JNIGlobalRefTable.STRONG_REF_BIT);
       asm.emitMOV_Reg_RegDisp(T1, JTOC, VM_Entrypoints.JNIGlobalRefsField.getOffset());
       VM_ForwardReference weakGlobalRef = asm.forwardJcc(VM_Assembler.EQ);
-      
+
       // Strong global references
       asm.emitNEG_Reg(T0);
       asm.emitMOV_Reg_RegIdx(T0, T1, T0, VM_Assembler.WORD, Offset.zero());
       VM_ForwardReference afterWeakGlobalRef = asm.forwardJMP();
-      
+
       // Weak global references
       weakGlobalRef.resolve(asm);
       asm.emitOR_Reg_Imm(T0, VM_JNIGlobalRefTable.STRONG_REF_BIT);
       asm.emitNEG_Reg(T0);
       asm.emitMOV_Reg_RegIdx(T0, T1, T0, VM_Assembler.WORD, Offset.zero());
       asm.emitMOV_Reg_RegDisp(T0, T0, VM_Entrypoints.referenceReferentField.getOffset());
-      
+
       afterWeakGlobalRef.resolve(asm);
       afterGlobalRef.resolve(asm);
     } else if (method.getReturnType().isLongType()) {
@@ -227,7 +227,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
         asm.emitMOVSD_Reg_RegDisp(XMM0, PR, VM_Entrypoints.scratchStorageField.getOffset());
       }
     }
-    
+
     // return to caller
     // pop parameters from stack (Note that parameterWords does not include "this")
     if (method.isStatic()) {
@@ -514,7 +514,7 @@ public abstract class VM_JNICompiler implements VM_BaselineConstants {
     // Now set the top offset based on how many values we actually pushed.
     asm.emitSUB_Reg_RegDisp(T0, S0, VM_Entrypoints.JNIRefsField.getOffset());
     asm.emitMOV_RegDisp_Reg(S0, VM_Entrypoints.JNIRefsTopField.getOffset(), T0);
-    
+
     // >>>> THERE <<<<
     // End use of T0 and S0
   }

@@ -13,7 +13,7 @@
 class LargeAlloc {
 
   static long allocSize = 0;  // in megabytes
-  static int itemSize = 16 * 1024; 
+  static int itemSize = 16 * 1024;
   static int sizeCount = 10;
   static double sizeRatio = 1.5;
   static double timeLimit = 120;
@@ -21,7 +21,7 @@ class LargeAlloc {
 
   public static void main(String[] args)  throws Throwable {
     boolean base = true;
-    if (args.length == 0) 
+    if (args.length == 0)
       System.out.println("No argument.  Assuming base");
     if (args[0].compareTo("opt") == 0 ||
         args[0].compareTo("perf") == 0) {

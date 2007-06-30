@@ -44,11 +44,11 @@ class NativeException {
 
     if (args.length!=0) {
       if (args[0].equals("-quiet")) {
-        verbose = false;        
+        verbose = false;
         setVerboseOff();
-      }         
+      }
     }
-    
+
     /****************************************************
      * Exception passing through native code without being handled
      */
@@ -61,8 +61,8 @@ class NativeException {
       returnFlag = true;
     }
     checkTest(0, returnFlag, "Exception pass through");
-    
-    
+
+
     /****************************************************
      * check for exception in native code
      */
@@ -70,18 +70,18 @@ class NativeException {
       returnFlag = testExceptionOccured(intArray);  // shouldn't return here
       returnFlag = false;
     } catch (RuntimeException e) {
-      returnFlag = true; 
+      returnFlag = true;
     }
     checkTest(0, returnFlag, "Exception handled in native code");
-    
-    
+
+
     /****************************************************
      * check for exception being cleared in native code
      */
     try {
-      returnFlag = testExceptionClear(intArray);  
+      returnFlag = testExceptionClear(intArray);
     } catch (RuntimeException e) {
-      returnFlag = false;  // shouldn't be here      
+      returnFlag = false;  // shouldn't be here
     }
     checkTest(0, returnFlag, "ExceptionClear");
 
@@ -89,13 +89,13 @@ class NativeException {
     /****************************************************
      * print exception trace and clear
      */
-    if (verbose) { 
+    if (verbose) {
       // disable when 'quiet' due to differences in jdk & RVM
       // printing in stack traces.  Causes spurious test failure.
       try {
-        returnFlag = testExceptionDescribe(intArray);  
+        returnFlag = testExceptionDescribe(intArray);
       } catch (RuntimeException e) {
-        returnFlag = false;  // shouldn't be here      
+        returnFlag = false;  // shouldn't be here
       }
       checkTest(0, returnFlag, "ExceptionDescribe");
     }
@@ -104,11 +104,11 @@ class NativeException {
      * give the native code an exception to throw
      */
     try {
-      returnFlag = testExceptionThrow(new Exception("Test Throw in native"));  
-      returnFlag = false;  // shouldn't be here  
+      returnFlag = testExceptionThrow(new Exception("Test Throw in native"));
+      returnFlag = false;  // shouldn't be here
     } catch (Throwable e) {
-      printVerbose("Caught exception:  got " + e.toString());      
-      returnFlag = true;  
+      printVerbose("Caught exception:  got " + e.toString());
+      returnFlag = true;
     }
     checkTest(0, returnFlag, "ExceptionThrow");
 
@@ -118,15 +118,15 @@ class NativeException {
      */
     try {
       Class ecls = Class.forName("java.lang.Exception");
-      returnFlag = testExceptionThrowNew(ecls);  
-      returnFlag = false;  // shouldn't be here  
+      returnFlag = testExceptionThrowNew(ecls);
+      returnFlag = false;  // shouldn't be here
     }
     catch (ClassNotFoundException e1) {
-      returnFlag = false;  // shouldn't be here        
+      returnFlag = false;  // shouldn't be here
     }
     catch (Exception e) {
-      printVerbose("Caught exception:  got " + e.toString());      
-      returnFlag = true;  
+      printVerbose("Caught exception:  got " + e.toString());
+      returnFlag = true;
     }
     checkTest(0, returnFlag, "ExceptionThrowNew");
 
@@ -134,10 +134,10 @@ class NativeException {
     /****************************************************
      * let the native code declare FatalError and exit the JVM
     try {
-      returnFlag = testFatalError(allTestPass, intArray);  
-      returnFlag = false;  // shouldn't be here            
+      returnFlag = testFatalError(allTestPass, intArray);
+      returnFlag = false;  // shouldn't be here
     } catch (RuntimeException e) {
-      returnFlag = false;  // shouldn't be here      
+      returnFlag = false;  // shouldn't be here
     }
     checkTest(0, returnFlag, "FatalError");
      */
@@ -147,7 +147,7 @@ class NativeException {
 
     if (allTestPass)
       System.out.println("PASS: NativeException");  // won't reach here if FatalError test succeeds
-    else 
+    else
       System.out.println("FAIL: NativeException");
 
   }
@@ -155,7 +155,7 @@ class NativeException {
 
 
   static void printVerbose(String str) {
-    if (verbose) 
+    if (verbose)
       System.out.println(str);
   }
 

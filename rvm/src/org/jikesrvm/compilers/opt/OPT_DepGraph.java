@@ -326,7 +326,7 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph {
     // (2) In a backward pass we add the following dependences:
     //    a) No store instruction may sink below a release.
     //    b) No instruction may sink below an UNINT_END (conservative),
-    //       a branch/return, a SET_CAUGHT_EXCEPTION, or a yieldpoint 
+    //       a branch/return, a SET_CAUGHT_EXCEPTION, or a yieldpoint
     //       (again want to pin yieldpoints).
     //    c) No GC point may sink below an UNINT_BEGIN
     lastTotalBarrier = null;

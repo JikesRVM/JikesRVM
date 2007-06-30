@@ -24,7 +24,7 @@ public class virtUnresolved {
     virtTest vt = new virtTest();
     vt.ppp(n);
     vt.ppp();
- 
+
     return f1;
   }
 

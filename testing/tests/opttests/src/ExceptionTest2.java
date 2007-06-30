@@ -31,15 +31,15 @@ class ExceptionTest2 {
   }
 
   public static boolean run2() throws IndexOutOfBoundsException {
-    return run3();  
+    return run3();
   }
 
   public static boolean run3() throws IndexOutOfBoundsException {
-    return run4();  
+    return run4();
   }
 
   public static boolean run4() throws IndexOutOfBoundsException {
-    return run5();  
+    return run5();
   }
 
   public static boolean run5() throws IndexOutOfBoundsException {

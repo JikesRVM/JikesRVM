@@ -26,7 +26,7 @@ public final class Word {
   /**
    * Convert an into to a word.  On 64-bit machines, sign-extend the
    * high order bit.
-   * 
+   *
    * @param val
    * @return
    */
@@ -37,7 +37,7 @@ public final class Word {
   /**
    * Convert an int to a word.  On 64-bit machines, zero-extend the
    * high order bit.
-   * 
+   *
    * @param val
    * @return
    */
@@ -48,18 +48,18 @@ public final class Word {
   /**
    * Convert a long to a word.  On 64-bit this is a no-op.
    * TODO document behaviour on 32-bit.  Truncate ?
-   * 
+   *
    * @param val
    * @return
    */
   public static Word fromLong(long val) {
     return null;
   }
-  
+
   /**
-   * The Word constant 0.  
+   * The Word constant 0.
    * Equivalent to Word.fromIntSignExtend(0), but more readable.
-   * 
+   *
    * @return
    */
   public static Word zero() {
@@ -67,9 +67,9 @@ public final class Word {
   }
 
   /**
-   * The Word constant 1.  
+   * The Word constant 1.
    * Equivalent to Word.fromIntSignExtend(1), but more readable.
-   * 
+   *
    * @return
    */
   public static Word one() {
@@ -79,7 +79,7 @@ public final class Word {
   /**
    * The maximum representable Word value.  Words are unsigned, so this is
    * a word full of 1s, 32/64-bit safe.
-   * 
+   *
    * @return
    */
   public static Word max() {
@@ -88,7 +88,7 @@ public final class Word {
 
   /**
    * Type-cast to an int, truncating on 64-bit platforms.
-   * 
+   *
    * @return
    */
   public int toInt() {
@@ -120,7 +120,7 @@ public final class Word {
 
   /**
    * Add two words
-   * 
+   *
    * @param w2
    * @return
    */
@@ -155,7 +155,7 @@ public final class Word {
     return null;
   }
 
-  /** 
+  /**
    * Subtract an offset from a word
    * @param w2
    * @return

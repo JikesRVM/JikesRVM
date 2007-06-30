@@ -187,9 +187,9 @@ public abstract class VM_OutOfLineMachineCode implements VM_BaselineConstants {
       asm.emitMOV_Reg_RegDisp(S0, S0, FPRMETA_FP_OFFSET); // S0 <- FPRmeta
 
       if (VM.VerifyAssertions) VM._assert(NUM_PARAMETER_FPRS <= 4);
-      
+
       VM_ForwardReference fr_next;
- 
+
       asm.emitCMP_Reg_Imm(T1, 0);                         // length == 0 ?
       VM_ForwardReference fpr_r1 = asm.forwardJcc(VM_Assembler.EQ);
       asm.emitMOVSD_Reg_RegInd(XMM0, T0);

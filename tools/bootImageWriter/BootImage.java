@@ -30,7 +30,7 @@ import org.vmmagic.unboxed.Word;
  * Memory image of virtual machine that will be written to disk file and later
  * "booted".
  */
-public class BootImage extends BootImageWriterMessages 
+public class BootImage extends BootImageWriterMessages
   implements BootImageWriterConstants, BootImageInterface, VM_SizeConstants {
 
   /**
@@ -136,7 +136,7 @@ public class BootImage extends BootImageWriterMessages
     bootImageCode = null;
     System.gc();
     // end IBM JVM kludge
-    
+
     /* Now we generate a compressed reference map.  Typically we get 4 bits/address, but
        we'll create the in-memory array assuming worst case 1:1 compression.  Only the
        used portion of the array actually gets written into the image. */
@@ -215,7 +215,7 @@ public class BootImage extends BootImageWriterMessages
   }
 
   /**
-   * Allocate space in bootimage. Moral equivalent of 
+   * Allocate space in bootimage. Moral equivalent of
    * memory managers allocating raw storage at runtime.
    *
    * @param size the number of bytes to allocate
@@ -227,7 +227,7 @@ public class BootImage extends BootImageWriterMessages
     Offset unalignedOffset = freeDataOffset;
     freeDataOffset = MM_Interface.alignAllocation(freeDataOffset, align, offset);
     if (VM.ExtremeAssertions) {
-      VM._assert(freeDataOffset.plus(offset).toWord().and(Word.fromIntSignExtend(align -1)).isZero()); 
+      VM._assert(freeDataOffset.plus(offset).toWord().and(Word.fromIntSignExtend(align -1)).isZero());
       VM._assert(freeDataOffset.toWord().and(Word.fromIntSignExtend(3)).isZero());
     }
     Offset lowAddr = freeDataOffset;
@@ -235,20 +235,20 @@ public class BootImage extends BootImageWriterMessages
     if (freeDataOffset.sGT(Offset.fromIntZeroExtend(BOOT_IMAGE_DATA_SIZE)))
       fail("bootimage full (need at least " + size + " more bytes for data)");
 
-    VM_ObjectModel.fillAlignmentGap(this, BOOT_IMAGE_DATA_START.plus(unalignedOffset), 
+    VM_ObjectModel.fillAlignmentGap(this, BOOT_IMAGE_DATA_START.plus(unalignedOffset),
                                     lowAddr.minus(unalignedOffset).toWord().toExtent());
     return BOOT_IMAGE_DATA_START.plus(lowAddr);
   }
 
   /**
-   * Round a size in bytes up to the next value of MIN_ALIGNMENT 
+   * Round a size in bytes up to the next value of MIN_ALIGNMENT
    */
   private int roundAllocationSize(int size) {
     return size + ((-size) & ((1 << VM_JavaHeader.LOG_MIN_ALIGNMENT) - 1));
-  } 
-  
+  }
+
   /**
-   * Allocate space in bootimage. Moral equivalent of 
+   * Allocate space in bootimage. Moral equivalent of
    * memory managers allocating raw storage at runtime.
    *
    * @param size the number of bytes to allocate
@@ -260,7 +260,7 @@ public class BootImage extends BootImageWriterMessages
     Offset unalignedOffset = freeCodeOffset;
     freeCodeOffset = MM_Interface.alignAllocation(freeCodeOffset, align, offset);
     if (VM.ExtremeAssertions) {
-      VM._assert(freeCodeOffset.plus(offset).toWord().and(Word.fromIntSignExtend(align -1)).isZero()); 
+      VM._assert(freeCodeOffset.plus(offset).toWord().and(Word.fromIntSignExtend(align -1)).isZero());
       VM._assert(freeCodeOffset.toWord().and(Word.fromIntSignExtend(3)).isZero());
     }
     Offset lowAddr = freeCodeOffset;
@@ -268,9 +268,9 @@ public class BootImage extends BootImageWriterMessages
     if (freeCodeOffset.sGT(Offset.fromIntZeroExtend(BOOT_IMAGE_CODE_SIZE)))
       fail("bootimage full (need at least " + size + " more bytes for data)");
 
-    VM_ObjectModel.fillAlignmentGap(this, BOOT_IMAGE_CODE_START.plus(unalignedOffset), 
+    VM_ObjectModel.fillAlignmentGap(this, BOOT_IMAGE_CODE_START.plus(unalignedOffset),
                                     lowAddr.minus(unalignedOffset).toWord().toExtent());
-    
+
     return BOOT_IMAGE_CODE_START.plus(lowAddr);
   }
 
@@ -377,7 +377,7 @@ public class BootImage extends BootImageWriterMessages
    * to a static, or tib, or some other metadata)
    */
   public void setAddressWord(Address address, Word value, boolean objField) {
-    if (objField) 
+    if (objField)
       markReferenceMap(address);
     if (VM.BuildFor32Addr)
       setFullWord(address, value.toInt());

@@ -15,7 +15,7 @@ public class tak_fp{
   // float tak(float x, float y, float z);
 
   public static void main(String argv[])
-  { 
+  {
         System.out.println("Tak is running\n");
           float result = tak(18,12,6);
           System.out.println(result + "\n"+test2(18));
@@ -38,7 +38,7 @@ public class tak_fp{
       float y = 18.0F;
       test1(y);
       return y;
-   } 
+   }
 
    public static void test1(float x) {
 

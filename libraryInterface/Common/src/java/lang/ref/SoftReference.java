@@ -28,5 +28,5 @@ public class SoftReference<T> extends Reference<T> {
     super(referent, q);
     MM_Interface.addSoftReference(this);
   }
-  
+
 }

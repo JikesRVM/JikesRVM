@@ -651,7 +651,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
       }
       case IA32_MOVD_opcode:
       case IA32_MOVQ_opcode:
-      case IA32_MOVSS_opcode: 
+      case IA32_MOVSS_opcode:
       case IA32_MOVSD_opcode: {
         int size = 4; // opcode + modr/m
         OPT_Operand result = MIR_Move.getResult(inst);

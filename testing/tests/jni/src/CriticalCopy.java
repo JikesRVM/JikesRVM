@@ -24,7 +24,7 @@ class CriticalCopy {
   static long    longArray[]    = {0x80001000, 0x80001000, 0x80001000, 0x80001000, 0x80001000,
                                    0x80001000, 0x80001000, 0x80001000, 0x80001000, 0x80001000};
   static double  doubleArray[]  = {115.1, 115.1, 115.1, 115.1, 115.1, 115.1, 115.1, 115.1, 115.1, 115.1};
-  static float   floatArray[]   = {(float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1, 
+  static float   floatArray[]   = {(float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1,
                                    (float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1};
 
 
@@ -44,17 +44,17 @@ class CriticalCopy {
 
     if (args.length!=0) {
       if (args[0].equals("-quiet")) {
-        verbose = false;        
+        verbose = false;
         setVerboseOff();
-      }         
+      }
     }
 
 
     returnValue = primitiveIntegerArray(intArray);
-    // check that the array has new values 
+    // check that the array has new values
     boolean checkFlag = true;
-    if (verbose) 
-      System.out.println("Updated copy");    
+    if (verbose)
+      System.out.println("Updated copy");
 
     for (int i=0; i<intArray.length; i++) {
       if (verbose)
@@ -63,18 +63,18 @@ class CriticalCopy {
         checkFlag = false;
     }
     checkTest(returnValue, checkFlag, "primitiveIntegerArray");
-  
+
     // Summarize
 
     if (allTestPass)
       System.out.println("PASS: CriticalCopy");
-    else 
+    else
       System.out.println("FAIL: CriticalCopy");
-  
+
   }
 
   static void printVerbose(String str) {
-    if (verbose) 
+    if (verbose)
       System.out.println(str);
   }
 

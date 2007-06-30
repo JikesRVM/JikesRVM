@@ -28,7 +28,7 @@ public class TestInterruptedSleep2 {
           interrupted = true;
         }
         if (interrupted) {
-          System.out.println("TestInterruptedSleep2 SUCCESS");          
+          System.out.println("TestInterruptedSleep2 SUCCESS");
         } else {
           System.out.println("TestInterruptedSleep2 FAILED");
         }

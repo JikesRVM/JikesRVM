@@ -266,7 +266,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
 
       if (VM_ArchConstants.SSE2_FULL) {
         for(int i=0; i < 8; i++) {
-          fsaveLocation = allocateNewSpillLocation(DOUBLE_REG);  
+          fsaveLocation = allocateNewSpillLocation(DOUBLE_REG);
         }
       } else {
         // Grab 108 bytes (same as 27 4-byte spills) in the stack
@@ -571,12 +571,12 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
    * @param inst the first instruction after the prologue.
    */
   private void saveFloatingPointState(OPT_Instruction inst) {
-    
+
     if (VM_ArchConstants.SSE2_FULL) {
       OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
       for (int i=0; i < 8; i++) {
-        inst.insertBefore(MIR_Move.create(IA32_MOVQ, 
-            new OPT_StackLocationOperand(true, -fsaveLocation + (i * 8), 8), 
+        inst.insertBefore(MIR_Move.create(IA32_MOVQ,
+            new OPT_StackLocationOperand(true, -fsaveLocation + (i * 8), 8),
             new OPT_RegisterOperand(phys.getFPR(i), VM_TypeReference.Long)));
       }
     } else {
@@ -594,7 +594,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
     if (VM_ArchConstants.SSE2_FULL) {
       OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
       for (int i=0; i < 8; i++) {
-        inst.insertBefore(MIR_Move.create(IA32_MOVQ, 
+        inst.insertBefore(MIR_Move.create(IA32_MOVQ,
             new OPT_RegisterOperand(phys.getFPR(i), VM_TypeReference.Long),
             new OPT_StackLocationOperand(true, -fsaveLocation + (i * 8), 8)));
       }

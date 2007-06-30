@@ -153,7 +153,7 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
           break;
         case ATTEMPT_INT_opcode:
           attempt(s, ir, false, false);
-          break;          
+          break;
         case ATTEMPT_LONG_opcode:
           attempt(s, ir, false, true);
           break;

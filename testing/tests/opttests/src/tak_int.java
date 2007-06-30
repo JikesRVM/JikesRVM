@@ -16,7 +16,7 @@ public class tak_int{
 
   /*
   public static void main(String argv[])
-  { 
+  {
         int i;
         System.out.println("Tak is running\n");
         for (i=0; i<1000; i++){

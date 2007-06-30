@@ -86,7 +86,7 @@ class TestArithmetic {
     System.out.println(a >> 1);  // ishr
     System.out.print("Expected: 2147483646 Actual: ");
     System.out.println(a >>> 1);  // iushr
-    
+
     // funny Java shift cases
     a = int1;
 
@@ -97,13 +97,13 @@ class TestArithmetic {
     System.out.print("Expected: 2 Actual: ");
     System.out.println(a << 33);
     System.out.print("Expected: -2147483648 Actual: ");
-    System.out.println(a << -1);    
+    System.out.println(a << -1);
     System.out.print("Expected: 1 Actual: ");
-    System.out.println(a << -32);    
+    System.out.println(a << -32);
     System.out.print("Expected: -2147483648 Actual: ");
-    System.out.println(a << -33);    
+    System.out.println(a << -33);
     System.out.print("Expected: 2 Actual: ");
-    System.out.println(1 << int33);    
+    System.out.println(1 << int33);
 
     System.out.print("Expected: 1 Actual: ");
     System.out.println(a >> 32);
@@ -112,11 +112,11 @@ class TestArithmetic {
     System.out.print("Expected: 0 Actual: ");
     System.out.println(a >> 33);
     System.out.print("Expected: 0 Actual: ");
-    System.out.println(a >> -1);    
+    System.out.println(a >> -1);
     System.out.print("Expected: 1 Actual: ");
-    System.out.println(a >> -32);    
+    System.out.println(a >> -32);
     System.out.print("Expected: 0 Actual: ");
-    System.out.println(a >> -33);    
+    System.out.println(a >> -33);
     System.out.print("Expected: -2 Actual: ");
     System.out.println(-4 >> int33);
 
@@ -127,14 +127,14 @@ class TestArithmetic {
     System.out.print("Expected: 0 Actual: ");
     System.out.println(a >>> 33);
     System.out.print("Expected: 0 Actual: ");
-    System.out.println(a >>> -1);    
+    System.out.println(a >>> -1);
     System.out.print("Expected: 1 Actual: ");
-    System.out.println(a >>> -32);    
+    System.out.println(a >>> -32);
     System.out.print("Expected: 0 Actual: ");
-    System.out.println(a >>> -33);    
+    System.out.println(a >>> -33);
     System.out.print("Expected: 2147483646 Actual: ");
     System.out.println(-4 >>> int33);
-    
+
     // IA32 bit test patterns
     System.out.print("Expected: true Actual: ");
     System.out.println(((1 << int1) & int3) != 0);
@@ -142,7 +142,7 @@ class TestArithmetic {
     System.out.println(((1 << int1) & int3) == 0);
     System.out.print("Expected: true Actual: ");
     System.out.println(((1 << int33) & int3) != 0);
-    
+
     System.out.print("Expected: true Actual: ");
     System.out.println((int3 & (1 << int1)) != 0);
     System.out.print("Expected: false Actual: ");
@@ -230,16 +230,16 @@ class TestArithmetic {
     System.out.print("Expected: 1229482698272145681 Actual: ");
     System.out.println(a | b);  // lor
     System.out.print("Expected: 1224979098644775184 Actual: ");
-    System.out.println(a ^ b);  // lxor    
+    System.out.println(a ^ b);  // lxor
 
     // bit patterns that can be optimized for certain operators if converting
     // long operators into int operators
-    long long0x00000000FFFFFFFF = 0x00000000FFFFFFFFL; 
-    long long0xFFFFFFFF00000000 = 0xFFFFFFFF00000000L; 
-    long long0x00000001FFFFFFFF = 0x00000001FFFFFFFFL; 
-    long long0xFFFFFFFF00000001 = 0xFFFFFFFF00000001L; 
-    long long0x0000000100000000 = 0x0000000100000000L; 
-    long long0x0000000100000001 = 0x0000000100000001L; 
+    long long0x00000000FFFFFFFF = 0x00000000FFFFFFFFL;
+    long long0xFFFFFFFF00000000 = 0xFFFFFFFF00000000L;
+    long long0x00000001FFFFFFFF = 0x00000001FFFFFFFFL;
+    long long0xFFFFFFFF00000001 = 0xFFFFFFFF00000001L;
+    long long0x0000000100000000 = 0x0000000100000000L;
+    long long0x0000000100000001 = 0x0000000100000001L;
 
     a = long_1;
 

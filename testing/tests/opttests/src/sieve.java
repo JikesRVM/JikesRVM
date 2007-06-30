@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-class sieve { 
+class sieve {
   static final int size = 8190*2;
   static boolean[] flags = new boolean[size+1];
   public static void main(String args[]) {
@@ -39,7 +39,7 @@ class sieve {
       }
     }
     // System.out.println(count + " primes."); /* primes found on 100th pass */
-    
+
     return count;
   }
 }

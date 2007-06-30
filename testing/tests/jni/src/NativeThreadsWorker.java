@@ -18,13 +18,13 @@ class NativeThreadsWorker extends Thread
 
    String     name;
    boolean    isFinished;
-   
+
    NativeThreadsWorker(String name)
       {
       this.name = name;
       say(name, "creating");
       }
-      
+
    public void
    start() //- overrides Thread
       {
@@ -33,7 +33,7 @@ class NativeThreadsWorker extends Thread
       }
 
      //- overrides Thread
-     //      
+     //
      public void
        run()   {
        int tid = VM_Magic.getThreadIdRegister() >>  VM_ObjectLayoutConstants.OBJECT_THREAD_ID_SHIFT;
@@ -53,24 +53,24 @@ class NativeThreadsWorker extends Thread
              //     VM.debugBreakpoint();
 
              // try to print a string
-             //      say(name, " before s created"); 
+             //      say(name, " before s created");
              //      String s = java.lang.Float.toString(fp);
              //      say(name, " after s created");
              //             String s2 = " return value = " + s;
              //             say(name, s2);
 
-             //try {         
+             //try {
              //  say(name, "sleeping");
              //  sleep(300);
-             //} 
+             //}
              //catch (InterruptedException e) {}
            } else {// pong story
              // others sleep for a while and then call java  function
              say(name, "about to sleep for 100 msec");
-             try {           
+             try {
                say(name, "sleeping");
                sleep(100);
-             } 
+             }
              catch (InterruptedException e) {}
              say(name, "after sleep -calling javaFoo");
              retval = tNativeThreads.javaFoo(10);

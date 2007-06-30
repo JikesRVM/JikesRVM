@@ -24,7 +24,7 @@ public class interf {
     vTest4 vt = new vTest4();
 
     f1 = intfTest((abc) vt, n);
- 
+
     return f1;
   }
 
@@ -45,7 +45,7 @@ class vTest4 implements abc {
   public int getVal() { return tval; }
 
   public void putVal(int val) {
-    tval += val; 
+    tval += val;
   }
 
 }

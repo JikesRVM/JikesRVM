@@ -23,7 +23,7 @@ public class TestLoadingWithoutName
     final String resource = "TestClassLoading.class";
     System.out.println("Loading resource " + resource);
     final InputStream input = TestLoadingWithoutName.class.getResourceAsStream(resource);
-    System.out.println("Loaded resource? = " + (null != input)); 
+    System.out.println("Loaded resource? = " + (null != input));
     final int size = input.available();
     final byte[] data = new byte[size];
     int count = 0;

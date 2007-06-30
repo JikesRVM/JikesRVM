@@ -21,7 +21,7 @@ public class Unsafe {
   private static final Unsafe unsafe = new Unsafe();
 
   private Unsafe() {}
-  
+
   public static Unsafe getUnsafe() {
     SecurityManager sm = System.getSecurityManager();
     if (sm != null)
@@ -32,7 +32,7 @@ public class Unsafe {
   private Offset longToOffset(long offset) {
     return Offset.fromIntSignExtend((int)offset);
   }
-  
+
   public long objectFieldOffset(Field field) {
     VM_Field vmfield = java.lang.reflect.JikesRVMSupport.getFieldOf(field);
     return vmfield.getOffset().toLong();
@@ -42,22 +42,22 @@ public class Unsafe {
     Offset off = longToOffset(offset);
     return VM_Synchronization.tryCompareAndSwap(obj, off, expect, update);
   }
-	
+
   public boolean compareAndSwapLong(Object obj,long offset,long expect,long update) {
-    Offset off = Offset.fromIntSignExtend((int)offset);      
+    Offset off = Offset.fromIntSignExtend((int)offset);
     return VM_Synchronization.tryCompareAndSwap(obj, off, expect, update);
   }
 
   public boolean compareAndSwapObject(Object obj,long offset,Object expect,Object update) {
-    Offset off = Offset.fromIntSignExtend((int)offset);      
+    Offset off = Offset.fromIntSignExtend((int)offset);
     return VM_Synchronization.tryCompareAndSwap(obj, off, expect, update);
   }
-  
+
   public void putOrderedInt(Object obj,long offset,int value) {
     Offset off = longToOffset(offset);
     VM_Magic.setIntAtOffset(obj,off,value);
   }
-  
+
   public void putOrderedLong(Object obj,long offset,long value) {
     Offset off = longToOffset(offset);
     VM_Magic.setLongAtOffset(obj,off,value);
@@ -72,7 +72,7 @@ public class Unsafe {
     Offset off = longToOffset(offset);
     VM_Magic.setIntAtOffset(obj,off,value);
   }
-  
+
   public int getIntVolatile(Object obj,long offset) {
     Offset off = longToOffset(offset);
     return VM_Magic.getIntAtOffset(obj,off);
@@ -97,7 +97,7 @@ public class Unsafe {
     Offset off = longToOffset(offset);
     return VM_Magic.getLongAtOffset(obj,off);
   }
-  
+
   public void putObjectVolatile(Object obj,long offset,Object value) {
     Offset off = longToOffset(offset);
     VM_Magic.setObjectAtOffset(obj,off,value);
@@ -123,7 +123,7 @@ public class Unsafe {
       return 0;
     } else {
       return 1 << arrayType.asArray().getLogElementSize();
-    }        
+    }
   }
 
   public void unpark(Thread thread) {

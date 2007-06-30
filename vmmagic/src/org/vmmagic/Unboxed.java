@@ -19,24 +19,24 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
 
 /**
- * The Unboxed annotation marks a type as unboxed. Besides the primitive types, all Java values 
- * are boxed types. Conceptually, they are represented by a pointer to a heap object. However, 
- * an unboxed type is represented by the value itself. All methods on an unboxed type are 
+ * The Unboxed annotation marks a type as unboxed. Besides the primitive types, all Java values
+ * are boxed types. Conceptually, they are represented by a pointer to a heap object. However,
+ * an unboxed type is represented by the value itself. All methods on an unboxed type are
  * {@link Intrinsic}s.
- * 
+ *
  * <p>As an unboxed type is not a regular java object there are a few constraints on the way unboxed
  * types are handled;</p>
  * <ul>
  *   <li>All methods are {@link Intrinsic} and thus there can be no virtual methods.</li>
  *   <li>An unboxed type can not be synchronized on.</li>
  *   <li>An unboxed type has no hashcode.</li>
- *   <li>An unboxed type MUST NOT be passed where an object is expected or when two overloaded methods 
+ *   <li>An unboxed type MUST NOT be passed where an object is expected or when two overloaded methods
  *       can only be distinguished by by Object vs unboxed parameter type.</li>
  * </ul>
- * 
- * <p>NOTE: At the current time the Unboxed annotation is only used for documentation 
- * purposes but in the near future it is expected that the semantics of the annotation will 
- * be enforced by the compiler.</p> 
+ *
+ * <p>NOTE: At the current time the Unboxed annotation is only used for documentation
+ * purposes but in the near future it is expected that the semantics of the annotation will
+ * be enforced by the compiler.</p>
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

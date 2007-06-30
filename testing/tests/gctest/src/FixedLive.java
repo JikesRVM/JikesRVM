@@ -85,9 +85,9 @@ class FixedLive {
     sumTraceTime = chop(sumTraceTime);
     avgTraceRate = sumTraceRate / sampleCount;
     avgAllocRate = sumAllocRate / sampleCount;
-    diffSquaredSumTraceRate = squaredSumTraceRate + sampleCount * (avgTraceRate * avgTraceRate) 
+    diffSquaredSumTraceRate = squaredSumTraceRate + sampleCount * (avgTraceRate * avgTraceRate)
       - 2 * avgTraceRate * sumTraceRate;
-    diffSquaredSumAllocRate = squaredSumAllocRate + sampleCount * (avgAllocRate * avgAllocRate) 
+    diffSquaredSumAllocRate = squaredSumAllocRate + sampleCount * (avgAllocRate * avgAllocRate)
       - 2 * avgAllocRate * sumAllocRate;
     rmsTraceRate = Math.sqrt(diffSquaredSumTraceRate / sampleCount);
     rmsAllocRate = Math.sqrt(diffSquaredSumAllocRate / sampleCount);
@@ -118,8 +118,8 @@ class FixedLive {
   // Allocate until either maxGC GC's have occurred or maxMb megabytes have been allocated
   //
   @NoInline
-  public static void allocateLoop(int count) { 
-    for (int i=0; i<count; i++) 
+  public static void allocateLoop(int count) {
+    for (int i=0; i<count; i++)
       junk = new Node2I2A();
   }
 
@@ -158,12 +158,12 @@ class FixedLive {
   public static void runTest() throws Throwable {
 
     System.out.println("FixedLive running with " + liveSize + " Mb fixed live data\n");
-    
+
     long start = System.currentTimeMillis();
     Node2I2A.computeObjectSize();
     System.out.println("Estimated object size of a 4-field object (2 int, 2 ref) is " + Node2I2A.objectSize + " bytes");
     System.out.println("Header size is probably " + (Node2I2A.objectSize - 16) + " bytes");
-    System.out.println("Note that the results of this test are not too meaningful for a generational collector"); 
+    System.out.println("Note that the results of this test are not too meaningful for a generational collector");
 
     int count = (liveSize << 20) / Node2I2A.objectSize;
     System.out.println("Creating live data: tree with " + count + " nodes");

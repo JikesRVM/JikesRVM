@@ -22,83 +22,83 @@ class TestCompare
   {
     boolean retSuccess = true;
     System.out.print("TestCompare");
-    
+
     zero_cmp();
     if (!testSuccess) {
-      System.out.print("\n--zero_cmp--");       
+      System.out.print("\n--zero_cmp--");
       System.out.println(" failed. ***************\n\n");
      }
-    
+
     retSuccess &= testSuccess;
     testSuccess = true;
-    
+
     i_cmp();
     if (!testSuccess) {
-      System.out.print("\n--i_cmp--");     
+      System.out.print("\n--i_cmp--");
       System.out.println(" failed. ***************\n\n");
     }
-    
+
     retSuccess &= testSuccess;
     testSuccess = true;
-    
+
     l_cmp();
     if (!testSuccess) {
-      System.out.print("\n--l_cmp--");      
+      System.out.print("\n--l_cmp--");
       System.out.println(" failed. ***************\n\n");
     }
-    
+
     retSuccess &= testSuccess;
     testSuccess = true;
 
     f_cmp();
     if (!testSuccess) {
-      System.out.print("\n--f_cmp--");      
+      System.out.print("\n--f_cmp--");
       System.out.println(" failed. ***************\n\n");
     }
-    
+
     retSuccess &= testSuccess;
     testSuccess = true;
-    
+
     d_cmp();
     if (!testSuccess) {
-      System.out.print("\n--d_cmp--");     
+      System.out.print("\n--d_cmp--");
       System.out.println(" failed. ***************\n\n");
     }
-    
+
     retSuccess &= testSuccess;
     testSuccess = true;
-    
+
     a_cmp();
     if (!testSuccess) {
-      System.out.print("\n--a_cmp--");     
+      System.out.print("\n--a_cmp--");
       System.out.println(" failed. ***************\n\n");
     }
-    
+
     retSuccess &= testSuccess;
     testSuccess = true;
-    
+
     null_cmp();
     if (!testSuccess) {
-      System.out.print("\n--null_cmp--");    
+      System.out.print("\n--null_cmp--");
       System.out.println(" failed. ***************\n\n");
     }
-    
+
     retSuccess &= testSuccess;
     testSuccess = true;
-    
+
     str_cmp();
     if (!testSuccess) {
-      System.out.print("\n--str_cmp--");    
+      System.out.print("\n--str_cmp--");
       System.out.println(" failed. ***************\n\n");
     }
-    
+
     if (retSuccess)
       System.out.println(" succeeded.");
-    
+
     return retSuccess;
-    
+
   }
-  
+
    static String str = "";
    static void zero() { str += "0"; }
    static void one()  { str += "1"; }
@@ -109,9 +109,9 @@ class TestCompare
       int i = -1;
       zero_cmp(i);
    }
-   static void 
+   static void
    zero_cmp(int i)
-      { 
+      {
         // System.out.print("\nzero_cmp want: 100110\n got: ");
       str = "";
       if (i != 0) one(); else zero(); // ifeq
@@ -162,22 +162,22 @@ class TestCompare
    }
    static void
    l_cmp(long a, long b)
-      { 
+      {
         //     System.out.print("\nl_cmp want: 100010001\n got: ");
       str = "";
 
       if (a <  b) one(); else zero(); // lcmp(-1)
       if (a == b) one(); else zero();
       if (a >  b) one(); else zero();
-      
+
       if (a <  a) one(); else zero();
       if (a == a) one(); else zero(); // lcmp(0)
       if (a >  a) one(); else zero();
-      
+
       if (b <  a) one(); else zero();
       if (b == a) one(); else zero();
       if (b >  a) one(); else zero(); // lcmp(1)
-      
+
       if (!str.equals("100010001")) {
         System.out.println("\n ****** Want 100010001\n got: " + str);
         testSuccess = false;
@@ -186,7 +186,7 @@ class TestCompare
 
       //      System.out.println();
       }
-      
+
    static void
    f_cmp()
       {
@@ -196,22 +196,22 @@ class TestCompare
    }
    static void
    f_cmp(float a, float b)
-      { 
+      {
         //      System.out.print("\nf_cmp want: 100010001\n got: ");
       str = "";
 
       if (a <  b) one(); else zero(); // fcmp[lg](-1)
       if (a == b) one(); else zero();
       if (a >  b) one(); else zero();
-      
+
       if (a <  a) one(); else zero();
       if (a == a) one(); else zero(); // fcmp[lg](0)
       if (a >  a) one(); else zero();
-      
+
       if (b <  a) one(); else zero();
       if (b == a) one(); else zero();
       if (b >  a) one(); else zero(); // fcmp[lg](1)
-      
+
       //      System.out.println();
 
       if (!str.equals("100010001")) {
@@ -221,7 +221,7 @@ class TestCompare
 
 
       }
-      
+
    static void
    d_cmp()
       {
@@ -231,22 +231,22 @@ class TestCompare
    }
    static void
    d_cmp(double a, double b)
-      { 
+      {
         // System.out.print("\nd_cmp want: 100010001\n got: ");
       str = "";
 
       if (a <  b) one(); else zero(); // dcmp[lg](-1)
       if (a == b) one(); else zero();
       if (a >  b) one(); else zero();
-      
+
       if (a <  a) one(); else zero();
       if (a == a) one(); else zero(); // dcmp[lg](0)
       if (a >  a) one(); else zero();
-      
+
       if (b <  a) one(); else zero();
       if (b == a) one(); else zero();
       if (b >  a) one(); else zero(); // dcmp[lg](1)
-      
+
       //      System.out.println();
 
       if (!str.equals("100010001")) {
@@ -255,7 +255,7 @@ class TestCompare
       }
 
       }
-      
+
    static void
    a_cmp()
       {
@@ -289,7 +289,7 @@ class TestCompare
    null_cmp(Object o)
       {
         //      System.out.print("\nnull_cmp want: 10\n got: ");
-      
+
         str = "";
         if (o == null) one(); else zero(); // ifnonnull
         if (o != null) one(); else zero(); // ifnull

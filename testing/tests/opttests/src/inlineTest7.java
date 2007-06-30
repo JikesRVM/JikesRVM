@@ -15,7 +15,7 @@ public class inlineTest7 {
   public static void main(String[] args) {
     run();
   }
-  
+
   public static void run() {
     inlineTest7 x = new inlineTest7();
     x.foo();
@@ -32,10 +32,10 @@ public class inlineTest7 {
   }
 
   public int bar(int i, int j) {
-    if (i < j) 
+    if (i < j)
       return i;
-    else 
+    else
       return j;
   }
 }
-  
+

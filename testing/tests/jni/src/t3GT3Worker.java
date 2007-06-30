@@ -22,11 +22,11 @@ class t3GT3Worker extends Thread {
     this.length = length;
     syncher = o;
   }
-  
+
   public void start() { //- overrides Thread
     super.start();
   }
-  
+
   public void run() { //- overrides Thread
       isReady = true;
       synchronized (syncher) {

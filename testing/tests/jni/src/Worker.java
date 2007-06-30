@@ -25,7 +25,7 @@ class Worker extends Thread  {
     theLock = lockObject;
     readyFlag = false;
     doneFlag = false;
-    
+
   }
 
 
@@ -33,7 +33,7 @@ class Worker extends Thread  {
   // overrides Thread
   public void start()  {
     super.start();
-  }    
+  }
 
   // overrides Thread
   public void run() {
@@ -54,7 +54,7 @@ class Worker extends Thread  {
     MonitorTest.printVerbose(".... " + name + " done.");
     doneFlag = true;
 
-    
+
 
   }
 

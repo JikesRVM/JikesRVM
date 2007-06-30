@@ -89,7 +89,7 @@ class A {
     checkAStore(new B[3], new B());
     checkAStore(new B[3], new A());
     checkAStore(new B[3], new C());
-    
+
     doit();
   }
 
@@ -150,9 +150,9 @@ class A {
     } else {
       System.out.println(" is D.");
     }
-    
+
   }
-      
+
   static void ifCheck(A a) {
     if (a instanceof X) {
       System.out.println(" is X.");
@@ -202,7 +202,7 @@ class A {
     } else {
       System.out.println(" is D.");
     }
-  }    
+  }
 
 
   static void nonNullCheckcast(A a) {
@@ -235,7 +235,7 @@ class A {
       System.out.println(" not D.");
     }
   }
-      
+
   static void checkcast(A a) {
     try {
       X x = (X)a;
@@ -302,14 +302,14 @@ class A {
   String test1() {
     if (this instanceof I)
       return "true";
-    else 
+    else
       return "false";
   }
 
   String test2() {
     if (this instanceof J)
       return "true";
-    else 
+    else
       return "false";
   }
 
@@ -375,7 +375,7 @@ final class H extends G {}
 class X extends A {}
 class Y extends X implements K {}
 
-interface I {} 
+interface I {}
 interface J extends I {}
 interface K extends I {}
 interface L extends J {}

@@ -32,7 +32,7 @@ class JikesRVMHelpers {
     MethodSignatureParser p = new MethodSignatureParser(constructor, sig.toString());
     return p.getTypeParameters();
   }
-  
+
   static Type[] getGenericExceptionTypes(Constructor constructor, VM_Atom sig) {
     MethodSignatureParser p = new MethodSignatureParser(constructor, sig.toString());
     return p.getGenericExceptionTypes();

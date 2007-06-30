@@ -25,7 +25,7 @@ import gnu.java.lang.reflect.ClassSignatureParser;
  */
 class JikesRVMHelpers {
 
-  
+
   static Type[] getInterfaceTypesFromSignature(Class<?> clazz, VM_Atom sig) {
     ClassSignatureParser p = new ClassSignatureParser(clazz, sig.toString());
     return p.getInterfaceTypes();

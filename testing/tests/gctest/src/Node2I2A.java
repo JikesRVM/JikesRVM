@@ -36,13 +36,13 @@ class Node2I2A {
       }
       synchronized(fakeLock) {
         // This seemingly useless lock operation prevents the optimizing
-        // compiler from doing redundant load elimination of the internal fields 
+        // compiler from doing redundant load elimination of the internal fields
         // used to compute freeMemory in the watson semispace collector.
         // Fairly amusing...at the HIR level there is of course nothing in the above loop
         // that would cause the compiler to think that the fields of VM_ContiguousHeap get changed.
         // Arguably the fields in question should be marked volatile, but injecting this
-        // fake lock operation here causes us to obey the java memory model and not do the 
-        // redundant load elimination. 
+        // fake lock operation here causes us to obey the java memory model and not do the
+        // redundant load elimination.
       }
       long end = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
       long used = end - start;
@@ -50,7 +50,7 @@ class Node2I2A {
         measuredObjectSize = used / ((double) estimateSize);
         objectSize = (int) (measuredObjectSize + 0.5); // round to byte
         objectSize = (objectSize + 2) / 4 * 4; // round to word
-        if (objectSize > 16) 
+        if (objectSize > 16)
           break;
       }
       estimateSize = (int) (0.75 * estimateSize);

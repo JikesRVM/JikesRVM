@@ -431,7 +431,7 @@ public final class VM_Magic {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return false;
   }
-  
+
   //---------------------------------------//
   //             Type Conversion.          //
   //---------------------------------------//

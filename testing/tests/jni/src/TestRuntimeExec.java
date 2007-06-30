@@ -69,14 +69,14 @@ class TestRuntimeExec extends Thread {
         try {
             charsExpected = 10000*(testData[0].length()+testData[1].length());
 
-            String fileName ="/tmp/out" + myNumber; 
+            String fileName ="/tmp/out" + myNumber;
 
-            final Process tac = 
+            final Process tac =
                 Runtime.getRuntime().exec(new String[]{PROGRAM, fileName}, null, new File("/tmp"));
 
             Thread writer = new Thread() {
                 public void run() {
-                    DataOutputStream stdin = 
+                    DataOutputStream stdin =
                         new DataOutputStream( tac.getOutputStream() );
 
                     try {
@@ -98,31 +98,31 @@ class TestRuntimeExec extends Thread {
 
             Thread reader = new Thread() {
                 public void run() {
-                    DataInputStream stdout = 
+                    DataInputStream stdout =
                         new DataInputStream( tac.getInputStream() );
                     try {
-                    
+
                         for(int x = 0; x < 10000; x++) {
                             for(int i = 0; i < testData.length; i++) {
-                                String in = stdout.readUTF(); 
+                                String in = stdout.readUTF();
                                 charsRead += in.length();
-                                if (! in.equals(testData[i])) 
+                                if (! in.equals(testData[i]))
                                     throw new Error("TestRuntimeExec FAILED: bad input " +  in);
                             }
                         }
 
                         int exitCode = tac.waitFor();
 
-                        if (exitCode == 0 && 
+                        if (exitCode == 0 &&
                             charsRead==charsExpected &&
                             charsWritten==charsExpected
-                           ) 
+                           )
                             System.err.println("TestRuntimeExec SUCCESS");
-                        else 
+                        else
                             System.err.println("TestRuntimeExec FAILED");
-                        
+
                         //System.exit(exitCode);
-                        
+
                     } catch (Throwable e) {
                         e.printStackTrace();
                         throw new Error("TestRuntimeExec FAILED");

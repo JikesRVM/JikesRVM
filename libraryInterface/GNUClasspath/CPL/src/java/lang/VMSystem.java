@@ -61,7 +61,7 @@ final class VMSystem {
 	  VM_Runtime.raiseArrayStoreException();
     }
   }
-    
+
   static int identityHashCode(Object o) {
     return o == null ? 0 : VM_ObjectModel.getObjectHashCode(o);
   }
@@ -80,10 +80,10 @@ final class VMSystem {
 
   static void setIn(InputStream in) {
     try {
-      VM_Field inField = 
+      VM_Field inField =
         ((VM_Class)JikesRVMSupport.getTypeForClass(System.class))
-        .findDeclaredField( 
-                           VM_Atom.findOrCreateUnicodeAtom("in"), 
+        .findDeclaredField(
+                           VM_Atom.findOrCreateUnicodeAtom("in"),
                            VM_Atom.findOrCreateUnicodeAtom("Ljava/io/InputStream;"));
 
       inField.setObjectValueUnchecked(null, in);
@@ -94,10 +94,10 @@ final class VMSystem {
 
   static void setOut(PrintStream out) {
     try {
-      VM_Field outField = 
+      VM_Field outField =
         ((VM_Class)JikesRVMSupport.getTypeForClass(System.class))
-        .findDeclaredField( 
-                           VM_Atom.findOrCreateUnicodeAtom("out"), 
+        .findDeclaredField(
+                           VM_Atom.findOrCreateUnicodeAtom("out"),
                            VM_Atom.findOrCreateUnicodeAtom("Ljava/io/PrintStream;"));
 
       outField.setObjectValueUnchecked(null, out);
@@ -108,10 +108,10 @@ final class VMSystem {
 
   static void setErr(PrintStream err) {
     try {
-      VM_Field errField = 
+      VM_Field errField =
         ((VM_Class)JikesRVMSupport.getTypeForClass(System.class))
-        .findDeclaredField( 
-                           VM_Atom.findOrCreateUnicodeAtom("err"), 
+        .findDeclaredField(
+                           VM_Atom.findOrCreateUnicodeAtom("err"),
                            VM_Atom.findOrCreateUnicodeAtom("Ljava/io/PrintStream;"));
 
       errField.setObjectValueUnchecked(null, err);
@@ -129,18 +129,18 @@ final class VMSystem {
   static String internString(String string) {
     try {
       return (String)
-        VM_Statics.getSlotContentsAsObject(Offset.fromIntSignExtend( 
+        VM_Statics.getSlotContentsAsObject(Offset.fromIntSignExtend(
             VM_Statics.findOrCreateStringLiteral(VM_Atom.findOrCreateUnicodeAtom(string))));
     } catch (UTFDataFormatException ex) {
       throw new InternalError( ex.toString() );
     }
   }
 
-  /** Get the value of an environment variable.  
+  /** Get the value of an environment variable.
    */
   static String getenv(String envarName) {
-    
-    byte[] buf = new byte[128]; // Modest amount of space for starters.  
+
+    byte[] buf = new byte[128]; // Modest amount of space for starters.
 
     byte[] nameBytes = envarName.getBytes();
 

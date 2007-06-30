@@ -23,7 +23,7 @@ import org.vmmagic.Pragma;
  * of this field consists of an intrisically managed chunk of raw memory of
  * the specified size. This is used as the basic building block for native
  * width types.
- * 
+ *
  * To construct types larger than those possible with RawStorage, simply
  * construct an type with multiple (Unboxed) fields.
  */

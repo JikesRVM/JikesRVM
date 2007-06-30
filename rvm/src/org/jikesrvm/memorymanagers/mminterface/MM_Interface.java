@@ -197,8 +197,8 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
                                         0, // do not have location metadata
                                         PUTFIELD_WRITE_BARRIER);
   }
-  
-  
+
+
   /**
    * Write barrier for putstatic operations.
    *

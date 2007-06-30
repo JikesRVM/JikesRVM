@@ -19,11 +19,11 @@ import java.util.jar.*;
 /**
  * Compares the APIs of two collection of classes <new> and <old> -- we compare
  * the contents of <old> to <new>.  First, the classes found in <new> not found
- * in <old> are reported -- these are denoted by <diff>.  Then from those classes, 
+ * in <old> are reported -- these are denoted by <diff>.  Then from those classes,
  * the fields, methods, and constructors found in <diff> not in <old> are reported.
  */
 public class FindMissingAPI {
-  
+
   public static void main(String[] args) {
     try {
       new FindMissingAPI().realMain(args);
@@ -31,7 +31,7 @@ public class FindMissingAPI {
   }
 
   public void realMain(String[] args) throws Exception {
-    parse(args);    
+    parse(args);
 
     // Create two classLoaders from the new and old classpaths
     ClassFinder oldClassFinder = createClassFinder(oldClasspath);
@@ -59,7 +59,7 @@ public class FindMissingAPI {
     List<Method> missingMethods = new ArrayList<Method>();
     @SuppressWarnings("unchecked")
     List<Constructor> missingConstructors = new ArrayList<Constructor>();
-    for (Class<?> newClass : foundClasses) { 
+    for (Class<?> newClass : foundClasses) {
       Class<?> oldClass = oldClasses.get(newClass.getName());
       try {
         compare(missingFields, newClass.getFields(), oldClass.getFields(), Field.class);
@@ -94,7 +94,7 @@ public class FindMissingAPI {
     return m;
   }
 
-  private <T extends Member>void compare(Collection<T> missing, T[] newMembers, T[] oldMembers, Class<T> klass) 
+  private <T extends Member>void compare(Collection<T> missing, T[] newMembers, T[] oldMembers, Class<T> klass)
     throws Exception {
     Method method = equalMethod(klass);
     for (int i = 0; i < newMembers.length; i++) {
@@ -109,7 +109,7 @@ public class FindMissingAPI {
       if (!found) missing.add(newMember);
     }
   }
-  
+
   @SuppressWarnings("unused") // Invoked by reflection
   private boolean equal(Field f0, Field f1) {
     return memberEqual(f0, f1);
@@ -184,7 +184,7 @@ public class FindMissingAPI {
   }
 
   private static class ClassFinder {
-  
+
     private final List<File> paths = new ArrayList<File>();
     private final URLClassLoader loader;
 
@@ -210,7 +210,7 @@ public class FindMissingAPI {
           }
         }
       }
-      
+
       // Create the loader to which we delegate
       loader = new URLClassLoader(urls(this.paths), null);
     }
@@ -266,8 +266,8 @@ public class FindMissingAPI {
             String className = classFile.getName();
             int iclass = className.indexOf(".class");
             className = className.substring(0, iclass);
-            for (File trav = classFile.getParentFile(); 
-                 trav != null && !trav.equals(path); 
+            for (File trav = classFile.getParentFile();
+                 trav != null && !trav.equals(path);
                  trav = trav.getParentFile()) {
               className = trav.getName() + "." + className;
             }
@@ -296,12 +296,12 @@ public class FindMissingAPI {
       return classes;
     }
 
-    private void handle(Throwable t, String s) { 
+    private void handle(Throwable t, String s) {
       if (!"".equals(s)) System.err.println(t + ":" + s);
       if (t != null) t.printStackTrace();
     }
     private void handle(Throwable t) { handle(t, ""); }
-  
+
     private final URL[] urls(List<File> paths) {
       List<URL> urls = new ArrayList<URL>();
       for (File f : paths) {
@@ -313,7 +313,7 @@ public class FindMissingAPI {
       }
       return (URL[])urls.toArray(new URL[]{});
     }
-  
+
     private final List<File> separate(String path) {
       final List<File> list = new ArrayList<File>();
       if (path == null) {
@@ -325,7 +325,7 @@ public class FindMissingAPI {
       }
       return list;
     }
- 
+
     private static boolean isJarFile(File file) {
       String name = file.getName();
       return name.endsWith(".zip") || name.endsWith(".jar");

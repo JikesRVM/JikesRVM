@@ -16,15 +16,15 @@ import java.io.IOException;
 class MyErrorBase extends Throwable
    {
    }
-   
+
 class MyError extends MyErrorBase
    {
    }
-   
+
 class NotMyError extends Throwable
    {
    }
-   
+
 class TestThrow2
    {
    public static void main(String args[])
@@ -38,7 +38,7 @@ class TestThrow2
       {
       System.out.println("TestThrow2");
       int a = 1;
-      int b = 2; 
+      int b = 2;
       // test "user" exceptions
       try
          {
@@ -49,7 +49,7 @@ class TestThrow2
          {
          System.out.println("caught: " + e);
          }
-      
+
       // test "vm" exceptions
       try
          {

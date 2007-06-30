@@ -44,7 +44,7 @@ public static void run() {
         n9  = 616 * ITERATIONS;
         n10 =  10 * ITERATIONS;
         n11 =  93 * ITERATIONS;
-        
+
 
 /* MODULE 1:  simple identifiers */
 
@@ -206,11 +206,11 @@ private static void p0()
 
 private static void pout(int n, int j, int k, double x1, double x2, double x3, double x4)
 {
-   System.out.println(x1 + " " + x2 + " " + x3 + " " + x4 + 
-                      //" " + Double.doubleToLongBits(x1) + 
-                      //" " + Double.doubleToLongBits(x2) + 
-                      //" " + Double.doubleToLongBits(x3) + 
-                      //" " + Double.doubleToLongBits(x4) + 
+   System.out.println(x1 + " " + x2 + " " + x3 + " " + x4 +
+                      //" " + Double.doubleToLongBits(x1) +
+                      //" " + Double.doubleToLongBits(x2) +
+                      //" " + Double.doubleToLongBits(x3) +
+                      //" " + Double.doubleToLongBits(x4) +
                       " " + n + " " +j + " " + k);
 }
 

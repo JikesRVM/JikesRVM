@@ -57,7 +57,7 @@ import org.vmmagic.pragma.Uninterruptible;
 public final class OSR_OrganizerThread extends VM_Thread {
   /** Constructor */
   public OSR_OrganizerThread() {
-    super(null, "OSR_Organizer");    
+    super(null, "OSR_Organizer");
     makeDaemon(true);
   }
 

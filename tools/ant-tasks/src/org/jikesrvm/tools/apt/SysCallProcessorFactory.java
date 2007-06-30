@@ -30,18 +30,18 @@ public class SysCallProcessorFactory implements AnnotationProcessorFactory {
   /**
    * These are the annotations we know about
    */
-  private static Collection<String> supportedAnnotations = 
+  private static Collection<String> supportedAnnotations =
     Collections.unmodifiableCollection(
         Arrays.asList(
             SysCallProcessor.GEN_IMPL_ANNOTATION,
             SysCallProcessor.SYSCALL_TEMPLATE_ANNOTATION));
-  
+
   /**
    * Options that can be passed to us with "-A" - none at the moment.
    */
-  private static Collection<String> supportedOptions = 
+  private static Collection<String> supportedOptions =
     Collections.emptySet();
-  
+
   /**
    * The factory method
    */
