@@ -734,6 +734,8 @@ public abstract class VM_CompilerFramework
 
         case JBC_aastore: {
           if (shouldPrint) asm.noteBytecode(biStart, "aastore");
+          // Forbidden from uninterruptible code as may cause an {@link
+          // ArrayStoreException}
           if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("aastore", bcodes.index());
           emit_aastore();
           break;
@@ -1370,6 +1372,8 @@ public abstract class VM_CompilerFramework
           VM_FieldReference fieldRef = bcodes.getFieldReference();
           if (shouldPrint) asm.noteBytecode(biStart, "getstatic", fieldRef);
           if (fieldRef.needsDynamicLink(method)) {
+            // Forbidden from uninterruptible code as dynamic linking can cause
+            // interruptions
             if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved getstatic ", fieldRef, bcodes.index());
             emit_unresolved_getstatic(fieldRef);
           } else {
@@ -1382,6 +1386,8 @@ public abstract class VM_CompilerFramework
           VM_FieldReference fieldRef = bcodes.getFieldReference();
           if (shouldPrint) asm.noteBytecode(biStart, "putstatic", fieldRef);
           if (fieldRef.needsDynamicLink(method)) {
+            // Forbidden from uninterruptible code as dynamic linking can cause
+            // interruptions
             if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved putstatic ", fieldRef, bcodes.index());
             emit_unresolved_putstatic(fieldRef);
           } else {
@@ -1394,6 +1400,8 @@ public abstract class VM_CompilerFramework
           VM_FieldReference fieldRef = bcodes.getFieldReference();
           if (shouldPrint) asm.noteBytecode(biStart, "getfield", fieldRef);
           if (fieldRef.needsDynamicLink(method)) {
+            // Forbidden from uninterruptible code as dynamic linking can cause
+            // interruptions
             if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved getfield ", fieldRef, bcodes.index());
             emit_unresolved_getfield(fieldRef);
           } else {
@@ -1406,6 +1414,8 @@ public abstract class VM_CompilerFramework
           VM_FieldReference fieldRef = bcodes.getFieldReference();
           if (shouldPrint) asm.noteBytecode(biStart, "putfield", fieldRef);
           if (fieldRef.needsDynamicLink(method)) {
+            // Forbidden from uninterruptible code as dynamic linking can cause
+            // interruptions
             if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved putfield ", fieldRef, bcodes.index());
             emit_unresolved_putfield(fieldRef);
           } else {
@@ -1436,14 +1446,18 @@ public abstract class VM_CompilerFramework
 
           if (methodRef.isMiranda()) {
             /* Special case of abstract interface method should generate
-                 * an invokeinterface, despite the compiler claiming it should
-                 * be invokevirtual.
-                 */
+             * an invokeinterface, despite the compiler claiming it should
+             * be invokevirtual.
+             */
             if (shouldPrint) asm.noteBytecode(biStart, "invokeinterface", methodRef);
+            // Forbidden from uninterruptible code as interface invocation
+            // causes runtime checks that can be interrupted
             if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("invokeinterface ", methodRef, bcodes.index());
             emit_invokeinterface(methodRef);
           } else {
             if (methodRef.needsDynamicLink(method)) {
+              // Forbidden from uninterruptible code as dynamic linking can
+              // cause interruptions
               if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokevirtual ", methodRef, bcodes.index());
               emit_unresolved_invokevirtual(methodRef);
             } else {
@@ -1506,6 +1520,8 @@ public abstract class VM_CompilerFramework
             }
           }
           if (methodRef.needsDynamicLink(method)) {
+            // Forbidden from uninterruptible code as dynamic linking can
+            // cause interruptions
             if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokestatic ", methodRef, bcodes.index());
             emit_unresolved_invokestatic(methodRef);
           } else {
@@ -1535,6 +1551,8 @@ public abstract class VM_CompilerFramework
           VM_MethodReference methodRef = bcodes.getMethodReference();
           bcodes.alignInvokeInterface();
           if (shouldPrint) asm.noteBytecode(biStart, "invokeinterface", methodRef);
+          // Forbidden from uninterruptible code as interface invocation
+          // causes runtime checks that can be interrupted
           if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("invokeinterface ", methodRef, bcodes.index());
           emit_invokeinterface(methodRef);
 
@@ -1554,6 +1572,8 @@ public abstract class VM_CompilerFramework
         case JBC_new: {
           VM_TypeReference typeRef = bcodes.getTypeReference();
           if (shouldPrint) asm.noteBytecode(biStart, "new", typeRef);
+          // Forbidden from uninterruptible code as new causes calls into MMTk
+          // that are interruptible
           if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new ", typeRef, bcodes.index());
           VM_Type type = typeRef.peekResolvedType();
           if (type != null && (type.isInitialized() || type.isInBootImage())) {
@@ -1568,6 +1588,8 @@ public abstract class VM_CompilerFramework
           int atype = bcodes.getArrayElementType();
           VM_Array array = VM_Array.getPrimitiveArrayType(atype);
           if (VM.VerifyAssertions) VM._assert(array.isResolved());
+          // Forbidden from uninterruptible code as new causes calls into MMTk
+          // that are interruptible
           if (shouldPrint) asm.noteBytecode(biStart, "newarray", array.getTypeRef());
           if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new ", array, bcodes.index());
           emit_resolved_newarray(array);
@@ -1579,6 +1601,8 @@ public abstract class VM_CompilerFramework
           VM_TypeReference arrayRef = elementTypeRef.getArrayTypeForElementType();
 
           if (shouldPrint) asm.noteBytecode(biStart, "anewarray new", arrayRef);
+          // Forbidden from uninterruptible code as new causes calls into MMTk
+          // that are interruptible
           if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new ", arrayRef, bcodes.index());
 
           if (VM.VerifyAssertions && elementTypeRef.isUnboxedType()) {
@@ -1620,6 +1644,8 @@ public abstract class VM_CompilerFramework
         case JBC_athrow: {
           if (shouldPrint) asm.noteBytecode(biStart, "athrow");
           if (VM.UseEpilogueYieldPoints) emit_threadSwitchTest(VM_Thread.EPILOGUE);
+          // Forbidden from uninterruptible code as athrow causes calls into runtime
+          // that are interruptible
           if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("athrow", bcodes.index());
           emit_athrow();
           break;
@@ -1650,6 +1676,8 @@ public abstract class VM_CompilerFramework
               break;
             }
           }
+          // Forbidden from uninterruptible code as it may throw an exception
+          // that executes via interruptible code
           if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("checkcast ", typeRef, bcodes.index());
           emit_checkcast(typeRef);
           break;
@@ -1676,6 +1704,8 @@ public abstract class VM_CompilerFramework
               }
             }
           }
+          // Forbidden from uninterruptible code as calls interruptible runtime
+          // for its implementation
           if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("instanceof ", typeRef, bcodes.index());
           emit_instanceof(typeRef);
           break;
@@ -1683,6 +1713,8 @@ public abstract class VM_CompilerFramework
 
         case JBC_monitorenter: {
           if (shouldPrint) asm.noteBytecode(biStart, "monitorenter");
+          // Forbidden from uninterruptible code as calls interruptible object model
+          // for its implementation
           if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("monitorenter", bcodes.index());
           emit_monitorenter();
           break;
@@ -1690,6 +1722,8 @@ public abstract class VM_CompilerFramework
 
         case JBC_monitorexit: {
           if (shouldPrint) asm.noteBytecode(biStart, "monitorexit");
+          // Forbidden from uninterruptible code as calls interruptible object model
+          // for its implementation
           if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("monitorexit", bcodes.index());
           emit_monitorexit();
           break;
@@ -1770,6 +1804,8 @@ public abstract class VM_CompilerFramework
           VM_TypeReference typeRef = bcodes.getTypeReference();
           int dimensions = bcodes.getArrayDimension();
           if (shouldPrint) asm.noteBytecode(biStart, "multianewarray", typeRef);
+          // Forbidden from uninterruptible code as new causes calls into MMTk
+          // that are interruptible
           if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("multianewarray", bcodes.index());
           emit_multianewarray(typeRef, dimensions);
           break;
@@ -2019,7 +2055,7 @@ public abstract class VM_CompilerFramework
       if (method.hasUninterruptibleNoWarnAnnotation()) return;
     }
     // NB generate as a single string to avoid threads splitting output
-    VM.sysWriteln("UNINTERRUPTIBLE WARNING\n   "+ method + " at line " + method.getLineNumberForBCIndex(bci) +
+    VM.sysWriteln("WARNING: UNINTERRUPTIBLE VIOLATION\n   "+ method + " at line " + method.getLineNumberForBCIndex(bci) +
     "\n   Uninterruptible methods may not contain the following forbidden bytecode\n   " + msg);
   }
 
@@ -2037,12 +2073,12 @@ public abstract class VM_CompilerFramework
     }
     if (isUninterruptible && !target.isUninterruptible()) {
       // NB generate as a single string to avoid threads splitting output
-      VM.sysWrite("UNINTERRUPTIBLE WARNING\n   "+ method + " at line " + method.getLineNumberForBCIndex(bci) +
+      VM.sysWrite("WARNING: UNINTERRUPTIBLE VIOLATION\n   "+ method + " at line " + method.getLineNumberForBCIndex(bci) +
       "\n   Uninterruptible method calls non-uninterruptible method " + target + "\n");
     }
     if (isUnpreemptible && target.isInterruptible()) {
       // NB generate as a single string to avoid threads splitting output
-      VM.sysWrite("UNPREEMPTIBLE WARNING\n   "+ method + " at line " + method.getLineNumberForBCIndex(bci) +
+      VM.sysWrite("WARNING: UNPREEMPTIBLE VIOLATION\n   "+ method + " at line " + method.getLineNumberForBCIndex(bci) +
           "\n   Unpreemptible method calls interruptible method " + target + "\n");
     }
   }
