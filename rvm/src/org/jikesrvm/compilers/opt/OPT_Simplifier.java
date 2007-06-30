@@ -3413,7 +3413,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       } else {
         OPT_RegisterOperand rop = op.asRegister();
         VM_TypeReference typeRef = rop.getType();
-        if (typeRef.isResolved() && rop.isPreciseType()) {
+        if (typeRef.isResolved() && typeRef.peekResolvedType().isResolved() && rop.isPreciseType()) {
           Move.mutate(s,
                       REF_MOVE,
                       GuardedUnary.getClearResult(s),
@@ -3428,7 +3428,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
   private static DefUseEffect getClassTib(OPT_Instruction s) {
     if (CF_TIB) {
       OPT_TypeOperand typeOp = Unary.getVal(s).asType();
-      if (typeOp.getTypeRef().isResolved()) {
+      if (typeOp.getTypeRef().isResolved() && typeOp.getTypeRef().peekResolvedType().isResolved()) {
         Move.mutate(s,
                     REF_MOVE,
                     Unary.getClearResult(s),
