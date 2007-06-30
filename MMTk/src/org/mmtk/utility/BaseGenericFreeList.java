@@ -113,6 +113,20 @@ import org.vmmagic.pragma.*;
   }
 
   /**
+   * Would an allocation of <code>size</code> units succeed?
+   * 
+   * @param size The number of units to test for
+   * @return True if such a request could be satisfied.
+   */
+  public final boolean couldAlloc(int size) {
+    // Note: -1 is both the default return value *and* the start sentinel index
+    int rtn = HEAD; // HEAD = -1
+    while (((rtn = getNext(rtn)) != HEAD) && (getSize(rtn) < size));
+
+    return (rtn != -1);
+  }
+
+  /**
    * Allocate <code>size</code> units. Return the unit ID
    *
    * @param size  The number of units to be allocated

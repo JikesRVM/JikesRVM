@@ -27,6 +27,7 @@ import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
 import org.jikesrvm.compilers.opt.VM_OptEncodedCallSiteTree;
 import org.jikesrvm.compilers.opt.VM_OptMachineCodeMap;
 import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -93,9 +94,19 @@ public class VM_StackTrace {
   private int walkFrames(boolean record) {
     int stackFrameCount = 0;
     VM.disableGC(); // so fp & ip don't change under our feet
-    Address fp = VM_Magic.getFramePointer();
-    Address ip = VM_Magic.getReturnAddress(fp);
-    fp = VM_Magic.getCallerFramePointer(fp);
+    VM_Thread stackTraceThread = VM_Thread.getCurrentThread().getThreadForStackTrace();
+    Address fp;
+    Address ip; 
+    if (stackTraceThread != VM_Thread.getCurrentThread()) {
+      /* Stack trace for a sleeping thread */
+      fp = stackTraceThread.contextRegisters.getInnermostFramePointer();
+      ip = stackTraceThread.contextRegisters.getInnermostInstructionAddress();
+    } else {
+      /* Stack trace for the current thread */ 
+      fp = VM_Magic.getFramePointer();
+      ip = VM_Magic.getReturnAddress(fp);
+      fp = VM_Magic.getCallerFramePointer(fp);
+    }
     while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
       int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
       if (compiledMethodId != INVISIBLE_METHOD_ID) {
@@ -311,12 +322,37 @@ public class VM_StackTrace {
      * at java.lang.LinkageError.<init>(LinkageError.java:72)
      * at java.lang.ExceptionInInitializerError.<init>(ExceptionInInitializerError.java:85)
      * at java.lang.ExceptionInInitializerError.<init>(ExceptionInInitializerError.java:75)
+     * 
+     * and an OutOfMemoryError to look like:
+     * at org.jikesrvm.scheduler.VM_Processor.dispatch(VM_Processor.java:211)
+     * at org.jikesrvm.scheduler.VM_Thread.morph(VM_Thread.java:1125)
+     * ...
+     * at org.jikesrvm.memorymanagers.mminterface.MM_Interface.allocateSpace(MM_Interface.java:613)
+     * ...
+     * at org.jikesrvm.runtime.VM_Runtime.unresolvedNewArray(VM_Runtime.java:401)
      */
     if (VM_Options.stackTraceFull) {
       return 0;
     } else {
-      // (1) remove any VM_StackTrace frames
       int element = 0;
+      // Deal with OutOfMemoryError
+      if (cause instanceof OutOfMemoryError) {
+        // (1) search until VM_Runtime
+        while((element < compiledMethods.length) &&
+            (compiledMethods[element] != null) &&
+            compiledMethods[element].method.getDeclaringClass().getClassForType() != VM_Runtime.class) {
+          element++;
+        }
+        // (2) continue until not VM_Runtime
+        while((element < compiledMethods.length) &&
+            (compiledMethods[element] != null) &&
+            compiledMethods[element].method.getDeclaringClass().getClassForType() == VM_Runtime.class) {
+          element++;
+        }
+        return element;
+      }
+      
+      // (1) remove any VM_StackTrace frames
       while((element < compiledMethods.length) &&
           (compiledMethods[element] != null) &&
           compiledMethods[element].method.getDeclaringClass().getClassForType() == VM_StackTrace.class) {

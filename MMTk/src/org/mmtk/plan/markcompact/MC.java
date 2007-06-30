@@ -15,11 +15,10 @@ package org.mmtk.plan.markcompact;
 import org.mmtk.plan.*;
 import org.mmtk.policy.MarkCompactSpace;
 import org.mmtk.policy.Space;
-import org.mmtk.utility.Conversions;
-import org.mmtk.vm.Collection;
-import org.mmtk.vm.VM;
+import org.mmtk.utility.Log;
 
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.ObjectReference;
 
 /**
  * This class implements the global state of a simple sliding mark-compact
@@ -141,30 +140,6 @@ import org.vmmagic.pragma.*;
     super.collectionPhase(phaseId);
   }
 
-  /**
-   * Poll for a collection
-   *
-   * @param vmExhausted Virtual Memory range for space is exhausted.
-   * @param space The space that caused the poll.
-   * @return True if a collection is required.
-   */
-  @LogicallyUninterruptible
-  public final boolean poll(boolean vmExhausted, Space space) {
-    if (getCollectionsInitiated() > 0 || !isInitialized() || space == metaDataSpace) {
-      return false;
-    }
-    boolean spaceFull = space.reservedPages() >= Conversions.bytesToPages(space.getExtent());
-    vmExhausted |= stressTestGCRequired();
-    boolean heapFull = getPagesReserved() > getTotalPages();
-
-    if (vmExhausted || spaceFull || heapFull) {
-      addRequired(space.reservedPages() - space.committedPages());
-      VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
-      return true;
-    }
-    return false;
-  }
-
   /*****************************************************************************
    *
    * Accounting
@@ -180,5 +155,29 @@ import org.vmmagic.pragma.*;
    */
   public int getPagesUsed() {
     return (mcSpace.reservedPages() + super.getPagesUsed());
+  }
+  
+  /**
+   * Calculate the number of pages a collection is required to free to satisfy
+   * outstanding allocation requests.
+   * 
+   * @return the number of pages a collection is required to free to satisfy
+   * outstanding allocation requests.
+   */
+  public int getPagesRequired() {
+    return super.getPagesRequired() + mcSpace.requiredPages();
+  }
+
+  /**
+   * @see org.mmtk.plan.Plan#objectCanMove
+   *
+   * @param object Object in question
+   * @return False if the object will never move
+   */
+  @Override
+  public boolean objectCanMove(ObjectReference object) {
+    if (Space.isInSpace(MARK_COMPACT, object))
+      return true;
+    return super.objectCanMove(object);
   }
 }

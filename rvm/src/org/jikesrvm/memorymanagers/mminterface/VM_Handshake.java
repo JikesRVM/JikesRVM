@@ -17,7 +17,7 @@ import org.jikesrvm.mm.mmtk.Collection;
 import org.jikesrvm.mm.mmtk.Lock;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
-import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
@@ -63,7 +63,7 @@ public class VM_Handshake {
    * collector thread, which will disable further thread switching on
    * the processor until it has completed the collection.
    */
-  @Interruptible
+  @LogicallyUninterruptible
   public void requestAndAwaitCompletion(int why) {
     if (request()) {
       gcTrigger = why;
@@ -145,8 +145,8 @@ public class VM_Handshake {
     VM_CollectorThread.participantCount[0] = 0;
 
     /* reset rendezvous counters to 0, the decision about which
- * collector threads will participate has moved to the run method
- * of CollectorThread */
+     * collector threads will participate has moved to the run method
+     * of CollectorThread */
     VM_CollectorThread.gcBarrier.resetRendezvous();
 
     /* Deque and schedule collector threads on ALL RVM Processors.
@@ -177,10 +177,10 @@ public class VM_Handshake {
   @Uninterruptible
   private int waitForPrecedingGC() {
     /*
-    * Get the number of GC threads.  Include NativeDaemonProcessor
-    * collector thread in the count.  If it exists, check for null to
-    * allow builds without a NativeDaemon (see VM_Scheduler)
-    */
+     * Get the number of GC threads.  Include NativeDaemonProcessor
+     * collector thread in the count.  If it exists, check for null to
+     * allow builds without a NativeDaemon (see VM_Scheduler)
+     */
     int maxCollectorThreads = VM_Scheduler.numProcessors;
 
     /* Wait for all gc threads to finish preceeding collection cycle */

@@ -54,21 +54,12 @@ import org.vmmagic.pragma.*;
   public static final int TRIGGER_REASONS = 4;
 
   /** Short descriptions of the garbage collection trigger reasons. */
-  private static final String[] triggerReasons = {
+  protected static final String[] triggerReasons = {
     "unknown",
     "external request",
     "resource exhaustion",
     "internal request"
   };
-
-
-  /**
-   * The percentage threshold for throwing an OutOfMemoryError.  If,
-   * after a garbage collection, the amount of memory used as a
-   * percentage of the available heap memory exceeds this percentage
-   * the memory manager will throw an OutOfMemoryError.
-   */
-  public static final double OUT_OF_MEMORY_THRESHOLD = 0.98;
 
   /**
    * Triggers a collection.
@@ -76,23 +67,38 @@ import org.vmmagic.pragma.*;
    * @param why the reason why a collection was triggered.  0 to
    *          <code>TRIGGER_REASONS - 1</code>.
    */
-  @Interruptible
+  @LogicallyUninterruptible
   public abstract void triggerCollection(int why);
 
   /**
-   * Triggers a collection without allowing for a thread switch. This is needed
-   * for Merlin lifetime analysis used by trace generation
-   *
-   * @param why the reason why a collection was triggered.  0 to
-   *          <code>TRIGGER_REASONS - 1</code>.
+   * Joins an already requested collection.
    */
-  public abstract void triggerCollectionNow(int why);
+  @LogicallyUninterruptible
+  public abstract void joinCollection(); 
 
   /**
    * Trigger an asynchronous collection, checking for memory
    * exhaustion first.
+   * 
+   * @param why the reason why a collection was triggered.  0 to
+   *          <code>TRIGGER_REASONS - 1</code>.
    */
-  public abstract void triggerAsyncCollection();
+  public abstract void triggerAsyncCollection(int why);
+
+  /**
+   * The maximum number collection attempts across threads.
+   */
+  public abstract int maximumCollectionAttempt();
+
+  /**
+   * Report that the allocation has succeeded.
+   */
+  public abstract void reportAllocationSuccess();
+  
+  /**
+   * Report that a physical allocation has failed.
+   */
+  public abstract void reportPhysicalAllocationFailed();
 
   /**
    * Determine whether a collection cycle has fully completed (this is

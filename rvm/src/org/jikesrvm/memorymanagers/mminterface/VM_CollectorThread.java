@@ -17,6 +17,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.mm.mmtk.Collection;
 import org.jikesrvm.mm.mmtk.ScanThread;
+import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Time;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.scheduler.VM_Scheduler;
@@ -31,6 +32,7 @@ import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.NoOptCompile;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -113,6 +115,9 @@ public final class VM_CollectorThread extends VM_Thread {
 
   /** Use by collector threads to rendezvous during collection */
   public static SynchronizationBarrier gcBarrier;
+  
+  /** The base collection attempt */
+  public static int collectionAttemptBase = 0;
 
   /***********************************************************************
    *
@@ -130,7 +135,10 @@ public final class VM_CollectorThread extends VM_Thread {
   int timeInRendezvous;
 
   static boolean gcThreadRunning;
-
+  
+  /** The thread to use to determine stack traces if Throwables are created **/
+  private Address stackTraceThread;
+  
   /** @return the thread scanner instance associated with this instance */
   @Uninterruptible
   public final ScanThread getThreadScanner() { return threadScanner; }
@@ -174,6 +182,32 @@ public final class VM_CollectorThread extends VM_Thread {
   @Uninterruptible
   public boolean isGCThread() {
     return true;
+  }
+  
+  /**
+   * Get the thread to use for building stack traces.
+   */
+  @Uninterruptible
+  public VM_Thread getThreadForStackTrace() {
+    if (stackTraceThread.isZero())
+      return this;
+    return (VM_Thread)VM_Magic.addressAsObject(stackTraceThread);
+  }
+
+  /**
+   * Set the thread to use for building stack traces.
+   */
+  @Uninterruptible
+  public void setThreadForStackTrace(VM_Thread thread) {
+    stackTraceThread = VM_Magic.objectAsAddress(thread);
+  }
+
+  /**
+   * Set the thread to use for building stack traces.
+   */
+  @Uninterruptible
+  public void clearThreadForStackTrace() {
+    stackTraceThread = Address.zero();
   }
 
   /**
@@ -301,9 +335,7 @@ public final class VM_CollectorThread extends VM_Thread {
   // refs stored in registers by baseline compiler will not be relocated by GC, so use stack only
   @BaselineSaveLSRegisters
   // and store all registers from previous method in prologue, so that we can stack access them while scanning this thread.
-  @Uninterruptible
   public void run() {
-
     for (int count = 0; ; count++) {
       /* suspend this thread: it will resume when scheduled by
        * VM_Handshake initiateCollection().  while suspended,
@@ -322,46 +354,78 @@ public final class VM_CollectorThread extends VM_Thread {
 
       gcOrdinal = VM_Synchronization.fetchAndAdd(participantCount, Offset.zero(), 1) + 1;
       long startCycles = VM_Time.cycles();
-
+      
       if (verbose > 2) VM.sysWriteln("GC Message: VM_CT.run entering first rendezvous - gcOrdinal =", gcOrdinal);
 
       /* wait for other collector threads to arrive or be made
        * non-participants */
       if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run  initializing rendezvous");
       gcBarrier.startupRendezvous();
-
-      /* actually perform the GC... */
-      if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run  starting collection");
-      if (isActive) Selected.Collector.get().collect(); // gc
-      if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run  finished collection");
-
-      gcBarrier.rendezvous(5200);
+      do {
+        /* actually perform the GC... */
+        if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run  starting collection");
+        if (isActive) Selected.Collector.get().collect(); // gc
+        if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run  finished collection");
+  
+        gcBarrier.rendezvous(5200);
+  
+        if (gcOrdinal == 1) {
+          long elapsedCycles = VM_Time.cycles() - startCycles;
+          HeapGrowthManager.recordGCTime(VM_Time.cyclesToMillis(elapsedCycles));
+          if (Selected.Plan.get().lastCollectionFullHeap()) {
+            if (Options.variableSizeHeap.getValue() && handshake.gcTrigger != Collection.EXTERNAL_GC_TRIGGER) {
+              // Don't consider changing the heap size if gc was forced by System.gc()
+              HeapGrowthManager.considerHeapSize();
+            }
+            HeapGrowthManager.reset();
+          }
+  
+          /* Snip reference to any methods that are still marked
+           * obsolete after we've done stack scans. This allows
+           * reclaiming them on the next GC. */
+          VM_CompiledMethods.snipObsoleteCompiledMethods();
+  
+          collectionCount += 1;
+          collectionAttemptBase++;
+        }
+        
+        startCycles = VM_Time.cycles();
+        gcBarrier.rendezvous(5201);
+      } while (Selected.Plan.get().lastCollectionFailed() && !Selected.Plan.get().lastCollectionEmergency());
 
       if (gcOrdinal == 1) {
-        long elapsedCycles = VM_Time.cycles() - startCycles;
-        HeapGrowthManager.recordGCTime(VM_Time.cyclesToMillis(elapsedCycles));
-      }
-      if (gcOrdinal == 1 && Selected.Plan.get().isLastGCFull()) {
-        if (Options.variableSizeHeap.getValue() && handshake.gcTrigger != Collection.EXTERNAL_GC_TRIGGER) {
-          // Don't consider changing the heap size if gc was forced by System.gc()
-          HeapGrowthManager.considerHeapSize();
+        /* If the collection failed, we may need to throw OutOfMemory errors.
+         * As we have not cleared the GC flag, allocation is not budgeted.
+         * 
+         * This is not flawless in the case we physically can not allocate
+         * anything right after a GC, but that case is unlikely (we can
+         * not make it happen) and is a lot of work to get around. */
+        if (Selected.Plan.get().lastCollectionEmergency()) {
+          Plan.startEmergencyAllocation();
+          boolean gcFailed = Selected.Plan.get().lastCollectionFailed(); 
+          // Allocate OOMEs (some of which *may* not get used)
+          for(int t=0; t < VM_Scheduler.threadHighWatermark; t++) {
+            VM_Thread thread = VM_Scheduler.threads[t];
+            if (thread != null) {
+              if (thread.getCollectionAttempt() > 0) {
+                /* this thread was allocating */
+                if (gcFailed || thread.physicalAllocationFailed()) {
+                  allocateOOMEForThread(thread);
+                }
+              }
+            }
+          }
+          Plan.finishEmergencyAllocation();
         }
-        HeapGrowthManager.reset();
       }
 
       /* Wake up mutators waiting for this gc cycle and reset
-* the handshake object to be used for next gc cycle.
-* Note that mutators will not run until after thread switching
-* is enabled, so no mutators can possibly arrive at old
-* handshake object: it's safe to replace it with a new one. */
+       * the handshake object to be used for next gc cycle.
+       * Note that mutators will not run until after thread switching
+       * is enabled, so no mutators can possibly arrive at old
+       * handshake object: it's safe to replace it with a new one. */
       if (gcOrdinal == 1) {
-        /* Snip reference to any methods that are still marked
-         * obsolete after we've done stack scans. This allows
-         * reclaiming them on next GC. */
-        VM_CompiledMethods.snipObsoleteCompiledMethods();
-
-        collectionCount += 1;
-
+        collectionAttemptBase = 0;
         /* notify mutators waiting on previous handshake object -
          * actually we don't notify anymore, mutators are simply in
          * processor ready queues waiting to be dispatched. */
@@ -415,6 +479,18 @@ public final class VM_CollectorThread extends VM_Thread {
     return gcBarrier.rendezvous(where);
   }
 
+  /**
+   * Allocate an OutOfMemoryError for a given thread.
+   * @param thread
+   */
+  @LogicallyUninterruptible
+  public void allocateOOMEForThread(VM_Thread thread) {
+    /* We are running inside a gc thread, so we will allocate if physically possible */
+    this.setThreadForStackTrace(thread);
+    thread.setOutOfMemoryError(new OutOfMemoryError());
+    this.clearThreadForStackTrace();
+  }
+  
   /*
   @Uninterruptible
   public static void printThreadWaitTimes() {

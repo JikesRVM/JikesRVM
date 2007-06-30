@@ -260,9 +260,9 @@ import org.vmmagic.unboxed.*;
       if (MERLIN_ANALYSIS) {
         lastGC = VM.traceInterface.getOID(ref);
         VM.traceInterface.updateTime(lastGC);
-        VM.collection.triggerCollectionNow(Collection.INTERNAL_GC_TRIGGER);
+        VM.collection.triggerCollection(Collection.INTERNAL_GC_TRIGGER);
       } else {
-        VM.collection.triggerCollectionNow(Collection.RESOURCE_GC_TRIGGER);
+        VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
         lastGC = VM.traceInterface.getOID(ref);
       }
     }

@@ -17,12 +17,10 @@ import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.Space;
 
 import org.mmtk.utility.deque.*;
-import org.mmtk.utility.Conversions;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.statistics.*;
 
-import org.mmtk.vm.Collection;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -116,12 +114,12 @@ import org.vmmagic.unboxed.*;
    *
    * Collection
    */
-
+  
   /**
-   * A user-triggered GC has been initiated.
+   * Force the next collection to be full heap.
    */
-  public void userTriggeredGC() {
-    nextGCFullHeap |= Options.fullHeapSystemGC.getValue();
+  public void forceFullHeapCollection() {
+    nextGCFullHeap = true;
   }
 
   /**
@@ -131,9 +129,9 @@ import org.vmmagic.unboxed.*;
    */
   @NoInline
   public void collectionPhase(int phaseId) {
-    if (phaseId == INITIATE) {
-      gcFullHeap = nextGCFullHeap;
+    if (phaseId == SET_COLLECTION_KIND) {
       super.collectionPhase(phaseId);
+      gcFullHeap = requiresFullHeapCollection();
       return;
     }
 
@@ -169,7 +167,6 @@ import org.vmmagic.unboxed.*;
       }
       lastCommittedPLOSpages = ploSpace.committedPages();
       nextGCFullHeap = (getPagesAvail() < Options.nurserySize.getMinNursery());
-      progress = (getPagesReserved() + getRequired()) < getTotalPages();
       return;
     }
 
@@ -177,88 +174,68 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * Poll for a collection
+   * This method controls the triggering of a GC. It is called periodically
+   * during allocation. Returns true to trigger a collection.
    *
-   * @param vmExhausted Virtual Memory range for space is exhausted.
-   * @param space The space that caused the poll.
-   * @return True if a collection is required.
+   * @param spaceFull Space request failed, must recover pages within 'space'.
+   * @return True if a collection is requested by the plan.
    */
-  @LogicallyUninterruptible
-  public final boolean poll(boolean vmExhausted, Space space) {
-    if (getCollectionsInitiated() > 0 || !isInitialized())
-      return false;
-
-    boolean stressForceGC = stressTestGCRequired();
-
-    if (stressForceGC) {
-      nextGCFullHeap = true;
-    }
-
-    boolean heapFull = getPagesReserved() > getTotalPages();
+  public final boolean collectionRequired(boolean spaceFull) {
     boolean nurseryFull = nurserySpace.reservedPages() > Options.nurserySize.getMaxNursery();
-    boolean metaDataFull = metaDataSpace.reservedPages() > META_DATA_FULL_THRESHOLD;
-
-    if (stressForceGC || vmExhausted || heapFull || nurseryFull || metaDataFull) {
-      if (space == metaDataSpace) {
-        /* In general we must not trigger a GC on metadata allocation since
-         * this is not, in general, in a GC safe point.  Instead we initiate
-         * an asynchronous GC, which will occur at the next safe point.
-         */
-        logPoll(space, "Asynchronous collection requested");
-        setAwaitingCollection();
-        return false;
-      }
-      int required = space.reservedPages() - space.committedPages();
-      if (space == nurserySpace || (copyMature() && (space == activeMatureSpace()))) {
-        // must account for copy reserve
-        required = required << 1;
-      }
-
-      if (!nextGCFullHeap) {
-        if (space == nurserySpace || space == ploSpace) {
-          // This is a nursery space
-          int plosNurseryPages = ploSpace.committedPages() - lastCommittedPLOSpages;
-          int smallNurseryPages = nurserySpace.committedPages();
-          int smallNurseryYield = (int)((smallNurseryPages * 2) * SURVIVAL_ESTIMATE);
-          int plosYield = (int)(plosNurseryPages * SURVIVAL_ESTIMATE);
-
-          if ((plosYield + smallNurseryYield) < required) {
-            // We need to perform a full heap GC as we dont expect to recover enough pages.
-            nextGCFullHeap = true;
-          } else if (vmExhausted) {
-            // We need to recover pages specifically from 'space', check we expect to
-            if (((space == ploSpace) && (plosYield < required)) ||
-                ((space == nurserySpace) && (smallNurseryYield < required))) {
-              nextGCFullHeap = true;
-            }
-          }
-        } else {
-          // This is another space, we need to full heap collect.
-          nextGCFullHeap = true;
-        }
-      }
-      logPoll(space,"Collection requested");
-      addRequired(required);
-      VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
+    
+    return super.collectionRequired(spaceFull) || nurseryFull; 
+  }
+  
+  /**
+   * Determine if this GC should be a full heap collection.
+   * 
+   * @return True is this GC should be a full heap collection.
+   */
+  protected boolean requiresFullHeapCollection() {
+    if (userTriggeredGC && Options.fullHeapSystemGC.getValue()) {
       return true;
     }
+
+    if (nextGCFullHeap || collectionAttempt > 1) {
+      // Forces full heap collection
+      return true;
+    }
+
+    if (loSpace.allocationFailed()) {
+      // We need space from the nursery
+      return true;
+    }
+
+    // Estimate the yield from nursery PLOS pages
+    int plosNurseryPages = ploSpace.committedPages() - lastCommittedPLOSpages;
+    int plosYield = (int)(plosNurseryPages * SURVIVAL_ESTIMATE);
+
+    // Estimate the yield from small nursery pages
+    int smallNurseryPages = nurserySpace.committedPages();
+    int smallNurseryYield = (int)((smallNurseryPages << 1) * SURVIVAL_ESTIMATE);
+
+    if ((plosYield + smallNurseryYield) < getPagesRequired()) {
+      // Our total yield is insufficent.
+      return true;
+    }
+
+    if (nurserySpace.allocationFailed()) {
+      if (smallNurseryYield < (nurserySpace.requiredPages() << 1)) {
+        // We have run out of VM pages in the nursery
+        return true;
+      }
+    }
+
+    if (ploSpace.allocationFailed()) {
+      if (plosYield < ploSpace.requiredPages()) {
+        // We have run out of VM pages in the PLOS
+        return true;
+      }
+    }
+
     return false;
   }
-
-  /**
-   * Log a message from within 'poll'
-   * @param space
-   * @param message
-   */
-  private void logPoll(Space space, String message) {
-    if (Options.verbose.getValue() >= 3) {
-      Log.write("  [POLL] ");
-      Log.write(space.getName());
-      Log.write(": ");
-      Log.writeln(message);
-    }
-  }
-
+  
 
   /*****************************************************************************
    *
@@ -289,8 +266,8 @@ import org.vmmagic.unboxed.*;
    * @return The number of pages reserved given the pending
    * allocation, including space reserved for copying.
    */
-  public int getCopyReserve() {
-    return nurserySpace.reservedPages() + super.getCopyReserve();
+  public int getCollectionReserve() {
+    return nurserySpace.reservedPages() + super.getCollectionReserve();
   }
 
   /**
@@ -315,7 +292,18 @@ import org.vmmagic.unboxed.*;
   public int getPagesAvail() {
     return super.getPagesAvail() >> 1;
   }
-
+  
+  /**
+   * Calculate the number of pages a collection is required to free to satisfy
+   * outstanding allocation requests.
+   * 
+   * @return the number of pages a collection is required to free to satisfy
+   * outstanding allocation requests.
+   */
+  public int getPagesRequired() {
+    /* We don't currently pretenure, so mature space must be zero */
+    return super.getPagesRequired() + (nurserySpace.requiredPages() << 1);
+  }
 
   /*****************************************************************************
    *
@@ -362,9 +350,10 @@ import org.vmmagic.unboxed.*;
   /**
    * @return Is last GC a full collection?
    */
-  public final boolean isLastGCFull() {
+  public final boolean lastCollectionFullHeap() {
     return gcFullHeap;
   }
+
   /**
    * @see org.mmtk.plan.Plan#objectCanMove
    *
@@ -377,5 +366,4 @@ import org.vmmagic.unboxed.*;
       return true;
     return super.objectCanMove(object);
   }
-
 }

@@ -227,5 +227,4 @@ import org.vmmagic.unboxed.*;
   static Offset arrayBaseOffsetTrapdoor(ObjectModel o) {
     return o.getArrayBaseOffset();
   }
-
 }

@@ -17,8 +17,6 @@ import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.MutatorContext;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Finalizer;
-import org.mmtk.utility.heap.HeapGrowthManager;
-import org.mmtk.utility.ReferenceProcessor;
 import org.mmtk.utility.options.Options;
 
 import org.jikesrvm.VM;
@@ -29,60 +27,27 @@ import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
-import org.jikesrvm.runtime.VM_Time;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.classloader.VM_Atom;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.memorymanagers.mminterface.Selected;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
-@Uninterruptible public class Collection extends org.mmtk.vm.Collection implements Constants, VM_Constants {
+@Uninterruptible
+public class Collection extends org.mmtk.vm.Collection implements Constants, VM_Constants {
 
   /****************************************************************************
    *
    * Class variables
    */
 
-  /** An unknown GC trigger reason.  Signals a logic bug. */
-  public static final int UNKNOWN_GC_TRIGGER = 0;
-  /** Externally triggered garbage collection (eg call to System.gc())  */
-  public static final int EXTERNAL_GC_TRIGGER = 1;
-  /** Resource triggered garbage collection.  For example, an
-      allocation request would take the number of pages in use beyond
-      the number available. */
-  public static final int RESOURCE_GC_TRIGGER = 2;
-  /**
-   * Internally triggered garbage collection.  For example, the memory
-   * manager attempting another collection after the first failed to
-   * free space.
-   */
-  public static final int INTERNAL_GC_TRIGGER = 3;
-  /** The number of garbage collection trigger reasons. */
-  public static final int TRIGGER_REASONS = 4;
-  /** Short descriptions of the garbage collection trigger reasons. */
-  private static final String[] triggerReasons = {
-    "unknown",
-    "external request",
-    "resource exhaustion",
-    "internal request"
-  };
-
   /** The fully qualified name of the collector thread. */
   private static VM_Atom collectorThreadAtom;
   /** The string "run". */
   private static VM_Atom runAtom;
-
-  /**
-   * The percentage threshold for throwing an OutOfMemoryError.  If,
-   * after a garbage collection, the amount of memory used as a
-   * percentage of the available heap memory exceeds this percentage
-   * the memory manager will throw an OutOfMemoryError.
-   */
-  public static final double OUT_OF_MEMORY_THRESHOLD = 0.98;
 
   /***********************************************************************
    *
@@ -99,101 +64,128 @@ import org.vmmagic.pragma.*;
    */
   @Interruptible
   public static void init() {
-    collectorThreadAtom = VM_Atom.findOrCreateAsciiAtom(
-      "Lorg/jikesrvm/memorymanagers/mminterface/VM_CollectorThread;");
+    collectorThreadAtom = VM_Atom.findOrCreateAsciiAtom("Lorg/jikesrvm/memorymanagers/mminterface/VM_CollectorThread;");
     runAtom = VM_Atom.findOrCreateAsciiAtom("run");
   }
-
-  /**
-   * An enumerator used to forward root objects
-   */
+  
   /**
    * Triggers a collection.
    *
    * @param why the reason why a collection was triggered.  0 to
    * <code>TRIGGER_REASONS - 1</code>.
    */
-  @Interruptible
+  @LogicallyUninterruptible
   public final void triggerCollection(int why) {
     triggerCollectionStatic(why);
   }
 
-  @Interruptible
-  public static void triggerCollectionStatic(int why) {
-    if (VM.VerifyAssertions) VM._assert((why >= 0) && (why < TRIGGER_REASONS));
-    Plan.collectionInitiated();
-
+  /**
+   * Joins a collection.
+   */
+  @LogicallyUninterruptible
+  public final void joinCollection() {
     if (Options.verbose.getValue() >= 4) {
-      VM.sysWriteln("Entered VM_Interface.triggerCollection().  Stack:");
+      VM.sysWriteln("Entered Collection.joinCollection().  Stack:");
       VM_Scheduler.dumpStack();
     }
-    if (why == EXTERNAL_GC_TRIGGER) {
-      Selected.Plan.get().userTriggeredGC();
-      if (Options.verbose.getValue() == 1 || Options.verbose.getValue() == 2)
-        VM.sysWrite("[Forced GC]");
+    
+    while (Plan.isCollectionTriggered()) {
+      /* allow a gc thread to run */
+      VM_Thread.yield();
     }
-    if (Options.verbose.getValue() > 2)
-      VM.sysWriteln("Collection triggered due to ", triggerReasons[why]);
-    Extent sizeBeforeGC = HeapGrowthManager.getCurrentHeapSize();
-    long start = VM_Time.cycles();
-    VM_CollectorThread.collect(VM_CollectorThread.handshake, why);
-    long end = VM_Time.cycles();
-    double gcTime = VM_Time.cyclesToMillis(end - start);
-    if (Options.verbose.getValue() > 2) VM.sysWriteln("Collection finished (ms): ", gcTime);
-
-    if (Selected.Plan.get().isLastGCFull() &&
-   sizeBeforeGC.EQ(HeapGrowthManager.getCurrentHeapSize()))
-      checkForExhaustion(why, false);
-
-    Plan.checkForAsyncCollection();
+    checkForOutOfMemoryError(true);
   }
-
+  
   /**
-   * Triggers a collection without allowing for a thread switch.  This is needed
-   * for Merlin lifetime analysis used by trace generation
+   * Triggers a collection.
    *
    * @param why the reason why a collection was triggered.  0 to
    * <code>TRIGGER_REASONS - 1</code>.
    */
   @LogicallyUninterruptible
-  public final void triggerCollectionNow(int why) {
+  public static void triggerCollectionStatic(int why) {
     if (VM.VerifyAssertions) VM._assert((why >= 0) && (why < TRIGGER_REASONS));
-    Plan.collectionInitiated();
-
+    
     if (Options.verbose.getValue() >= 4) {
-      VM.sysWriteln("Entered VM_Interface.triggerCollectionNow().  Stack:");
+      VM.sysWriteln("Entered Collection.triggerCollection().  Stack:");
       VM_Scheduler.dumpStack();
     }
+
+    checkForOutOfMemoryError(false);
+    
+    Plan.setCollectionTriggered();
     if (why == EXTERNAL_GC_TRIGGER) {
       Selected.Plan.get().userTriggeredGC();
       if (Options.verbose.getValue() == 1 || Options.verbose.getValue() == 2)
         VM.sysWrite("[Forced GC]");
+    } else {
+      VM_Thread.getCurrentThread().reportCollectionAttempt();
     }
-    if (Options.verbose.getValue() > 2)
-      VM.sysWriteln("Collection triggered due to ", triggerReasons[why]);
-    Extent sizeBeforeGC = HeapGrowthManager.getCurrentHeapSize();
-    long start = VM_Time.cycles();
+
     VM_CollectorThread.collect(VM_CollectorThread.handshake, why);
-    long end = VM_Time.cycles();
-    double gcTime = VM_Time.cyclesToMillis(end - start);
-    if (Options.verbose.getValue() > 2)
-      VM.sysWriteln("Collection finished (ms): ", gcTime);
+    checkForOutOfMemoryError(true);
 
-    if (Selected.Plan.get().isLastGCFull() &&
-        sizeBeforeGC.EQ(HeapGrowthManager.getCurrentHeapSize()))
-      checkForExhaustion(why, false);
+    if (Options.verbose.getValue() >= 4) {
+      VM.sysWriteln("Leaving Collection.triggerCollection().");
+    }
+  }
+  
+  /**
+   * Check if there is an out of memory error waiting.
+   */
+  @Inline
+  @LogicallyUninterruptible
+  private static void checkForOutOfMemoryError(boolean afterCollection) {
+    VM_Thread myThread = VM_Thread.getCurrentThread();
+    OutOfMemoryError oome = myThread.getOutOfMemoryError();
+    if (oome != null && (!afterCollection || !myThread.physicalAllocationFailed())) {
+      if (Options.verbose.getValue() >= 4) {
+        VM.sysWriteln("Throwing OutOfMemoryError in Collection.triggerCollection().");
+      }
+      myThread.clearOutOfMemoryError();
+      myThread.resetCollectionAttempts();
+      throw oome;
+    }
+  }
 
-    Plan.checkForAsyncCollection();
+  /**
+   * The maximum number collection attempts across threads.
+   */
+  public int maximumCollectionAttempt() {
+    int max = 1;
+    for(int t=0; t < VM_Scheduler.threadHighWatermark; t++) {
+      VM_Thread thread = VM_Scheduler.threads[t];
+      if (thread != null) {
+        int current = thread.getCollectionAttempt();
+        if (current > max) max = current;
+      }
+    }
+    return max + VM_CollectorThread.collectionAttemptBase;
+  }
+
+  /**
+   * Report that the the physical allocation has succeeded.
+   */
+  public void reportAllocationSuccess() {
+    VM_Thread myThread = VM_Thread.getCurrentThread();
+    myThread.clearOutOfMemoryError();
+    myThread.resetCollectionAttempts();
+    myThread.clearPhysicalAllocationFailed();
+  }
+
+  /**
+   * Report that a physical allocation has failed.
+   */
+  public void reportPhysicalAllocationFailed() {
+    VM_Thread.getCurrentThread().setPhysicalAllocationFailed();
   }
 
   /**
    * Trigger an asynchronous collection, checking for memory
    * exhaustion first.
    */
-  @Uninterruptible
-  public final void triggerAsyncCollection() {
-    checkForExhaustion(RESOURCE_GC_TRIGGER, true);
-    Plan.collectionInitiated();
+  public final void triggerAsyncCollection(int why) { 
+    Plan.setCollectionTriggered();
     if (Options.verbose.getValue() >= 1) VM.sysWrite("[Async GC]");
     VM_CollectorThread.asyncCollect(VM_CollectorThread.handshake);
   }
@@ -206,48 +198,9 @@ import org.vmmagic.pragma.*;
    *
    * @return True if GC is not in progress.
    */
- @Uninterruptible
- public final boolean noThreadsInGC() {
-   return VM_CollectorThread.noThreadsInGC();
- }
-
-  private static final int OOM_EXN_HEADROOM_BYTES = 1<<19; // 512K should be plenty to make an exn
-  /**
-   * Check for memory exhaustion, possibly throwing an out of memory
-   * exception and/or triggering another GC.
-   *
-   * @param why Why the collection was triggered
-   * @param async True if this collection was asynchronously triggered.
-   */
-  @LogicallyUninterruptible
-  private static void checkForExhaustion(int why, boolean async) {
-    double usage = Plan.reservedMemory().toLong()/ ((double) Plan.totalMemory().toLong());
-
-    //    if (Plan.totalMemory() - Plan.reservedMemory() < 64<<10) {
-    if (usage > OUT_OF_MEMORY_THRESHOLD) {
-      if (why == INTERNAL_GC_TRIGGER) {
-        if (Options.verbose.getValue() >= 2) {
-          VM.sysWriteln("OutOfMemoryError: usage = ", usage);
-          VM.sysWriteln("          reserved (KB) = ", Plan.reservedMemory().toLong() / 1024);
-          VM.sysWriteln("          total    (KB) = ", Plan.totalMemory().toLong() / 1024);
-        }
-        if (VM.debugOOM || Options.verbose.getValue() >= 5)
-          VM.sysWriteln("triggerCollection(): About to try \"new OutOfMemoryError()\"");
-
-        int currentAvail = Selected.Plan.get().getPagesAvail() << LOG_BYTES_IN_PAGE; // may be negative
-        int headroom = OOM_EXN_HEADROOM_BYTES - currentAvail;
-        MM_Interface.emergencyGrowHeap(headroom);
-        OutOfMemoryError oome = new OutOfMemoryError();
-        MM_Interface.emergencyGrowHeap(-headroom);
-        if (VM.debugOOM || Options.verbose.getValue() >= 5)
-          VM.sysWriteln("triggerCollection(): Allocated the new OutOfMemoryError().");
-        throw oome;
-      }
-      /* clear all possible reference objects */
-      ReferenceProcessor.setClearSoftReferences(true);
-      if (!async)
-        triggerCollectionStatic(INTERNAL_GC_TRIGGER);
-    }
+  @Uninterruptible
+  public final boolean noThreadsInGC() {
+    return VM_CollectorThread.noThreadsInGC();
   }
 
   /**
@@ -307,7 +260,6 @@ import org.vmmagic.pragma.*;
    * Rendezvous with all other processors, returning the rank
    * (that is, the order this processor arrived at the barrier).
    */
-  @Uninterruptible
   public final int rendezvous(int where) {
     return VM_CollectorThread.gcBarrier.rendezvous(where);
   }

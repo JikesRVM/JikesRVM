@@ -44,8 +44,8 @@ import org.vmmagic.pragma.*;
   private static long TIME_OUT =  Long.MAX_VALUE; // set to a real value by fullyBooted
 
   public static void fullyBooted() {
-    WARN_PERIOD = VM.statistics.secsToCycles(3);   // Print msg every WARN_PERIOD seconds
-    TIME_OUT = 10 * WARN_PERIOD; // Die after TIME_OUT seconds
+    WARN_PERIOD = VM.statistics.secsToCycles(20);   // Print msg every WARN_PERIOD seconds
+    TIME_OUT = 3 * WARN_PERIOD; // Die after TIME_OUT seconds
   }
 
   public Barrier() {

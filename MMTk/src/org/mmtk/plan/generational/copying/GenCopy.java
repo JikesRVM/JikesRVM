@@ -175,10 +175,21 @@ import org.vmmagic.pragma.*;
    *
    * @return the number of pages reserved for copying.
    */
-  public final int getCopyReserve() {
+  public final int getCollectionReserve() {
     // we must account for the number of pages required for copying,
     // which equals the number of semi-space pages reserved
-    return toSpace().reservedPages() + super.getCopyReserve();
+    return toSpace().reservedPages() + super.getCollectionReserve();
+  }
+
+  /**
+   * Calculate the number of pages a collection is required to free to satisfy
+   * outstanding allocation requests.
+   * 
+   * @return the number of pages a collection is required to free to satisfy
+   * outstanding allocation requests.
+   */
+  public int getPagesRequired() {
+    return super.getPagesRequired() + (toSpace().requiredPages() << 1);
   }
 
   /**************************************************************************

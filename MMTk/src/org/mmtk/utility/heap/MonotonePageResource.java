@@ -109,8 +109,7 @@ import org.vmmagic.unboxed.*;
     Address rtn = cursor;
     if (metaDataPagesPerRegion != 0) {
       /* adjust allocation for metadata */
-      Address regionStart = getRegionStart(cursor.plus(Conversions
-          .pagesToBytes(pages)));
+      Address regionStart = getRegionStart(cursor.plus(Conversions.pagesToBytes(pages)));
       Offset regionDelta = regionStart.diff(cursor);
       if (regionDelta.sGE(Offset.zero())) {
         /* start new region, so adjust pages and return address accordingly */
@@ -128,33 +127,25 @@ import org.vmmagic.unboxed.*;
     } else {
       Address old = cursor;
       cursor = tmp;
+      commitPages(requestPages, pages);
       unlock();
       Mmapper.ensureMapped(old, pages);
       VM.memory.zero(old, bytes);
       return rtn;
     }
-    }
+  }
 
   /**
    * Adjust a page request to include metadata requirements, if any.<p>
    *
-   * Note that there could be a race here, with multiple threads each
-   * adjusting their request on account of the same single metadata
-   * region.  This should not be harmful, as the failing requests will
-   * just retry, and if multiple requests succeed, only one of them
-   * will actually have the metadata accounted against it, the others
-   * will simply have more space than they originally requested.
+   * In this case we simply report the expected page cost. We can't use
+   * worst case here because we would exhaust our budget every time.
    *
    * @param pages The size of the pending allocation in pages
    * @return The number of required pages, inclusive of any metadata
    */
   public int adjustForMetaData(int pages) {
-    Extent bytes = Conversions.pagesToBytes(pages);
-    if (metaDataPagesPerRegion != 0) {
-      if (cursor.LE(getRegionStart(cursor.plus(bytes))))
-        pages += metaDataPagesPerRegion;
-    }
-    return pages;
+    return (metaDataPagesPerRegion * pages) / EmbeddedMetaData.PAGES_IN_REGION;
    }
 
   /**

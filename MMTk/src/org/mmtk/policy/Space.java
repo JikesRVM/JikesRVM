@@ -12,6 +12,7 @@
  */
 package org.mmtk.policy;
 
+import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.heap.Map;
 import org.mmtk.utility.heap.Mmapper;
@@ -86,7 +87,8 @@ import org.vmmagic.unboxed.*;
   protected Extent extent;
   protected boolean immortal;
   protected boolean movable;
-
+  
+  private boolean allocationFailed;
   protected PageResource pr;
 
   /****************************************************************************
@@ -301,12 +303,21 @@ import org.vmmagic.unboxed.*;
   /** Movable getter @return True if objects in this space may move */
   public final boolean isMovable() { return movable; }
 
+  /** Allocationfailed getter @return true if an allocation has failed since GC */
+  public final boolean allocationFailed() { return allocationFailed; }
+  
+  /** Clear Allocationfailed flag */
+  public final void clearAllocationFailed() { allocationFailed = false; }
+  
   /** ReservedPages getter @return The number of reserved pages */
   public final int reservedPages() { return pr.reservedPages(); }
 
   /** CommittedPages getter @return The number of committed pages */
   public final int committedPages() { return pr.committedPages(); }
 
+  /** RequiredPages getter @return The number of required pages */
+  public final int requiredPages() { return pr.requiredPages(); }
+  
   /** Cumulative committed pages getter @return Cumulative committed pages. */
   public static long cumulativeCommittedPages() {
     return PageResource.cumulativeCommittedPages();
@@ -445,18 +456,34 @@ import org.vmmagic.unboxed.*;
    * failure.
    */
   public final Address acquire(int pages) {
+    boolean allowPoll = !Plan.gcInProgress() && Plan.isInitialized() && !Plan.isEmergencyAllocation();
+    
     /* First check page budget and poll if necessary */
     if (!pr.reservePages(pages)) {
       /* Need to poll, either fixing budget or requiring GC */
-      if (VM.activePlan.global().poll(false, this))
+      if (allowPoll && VM.activePlan.global().poll(false, this)) {
+        pr.clearRequest(pages);
         return Address.zero(); // GC required, return failure
+      }
     }
 
-    /* Page budget is OK, so try to acquire specific pages in virtual memory */
+    /* Page budget is ok, try to acquire virtual memory */
     Address rtn = pr.getNewPages(pages);
-    if (rtn.isZero())
-      VM.activePlan.global().poll(true, this); // Failed, so force a GC
-
+    if (rtn.isZero()) {
+      /* Failed, so force a GC */
+      if (Plan.isEmergencyAllocation()) {
+        pr.clearRequest(pages);
+        VM.assertions.fail("Failed emergency allocation");
+      }
+      if (!allowPoll) VM.assertions.fail("Physical allocation failed during special (collection/emergency) allocation!");
+      allocationFailed = true;
+      VM.collection.reportPhysicalAllocationFailed();
+      VM.activePlan.global().poll(true, this);
+      pr.clearRequest(pages);
+      return Address.zero();
+    }
+    
+    if (allowPoll) VM.collection.reportAllocationSuccess();
     return rtn;
   }
 
@@ -468,9 +495,19 @@ import org.vmmagic.unboxed.*;
   public abstract void release(Address start);
 
   /**
+   * Clear the allocation failed flag for all spaces. 
+   *
+   */
+  public static void clearAllAllocationFailed() {
+    for (int i = 0; i < spaceCount; i++) {
+      spaces[i].clearAllocationFailed();
+    }
+  }
+
+  /**
    * Get the total number of pages reserved by all of the spaces
    *
-   * @return the total number of papers reserved by all of the spaces
+   * @return the total number of pages reserved by all of the spaces
    */
   private static int getPagesReserved() {
     int pages = 0;

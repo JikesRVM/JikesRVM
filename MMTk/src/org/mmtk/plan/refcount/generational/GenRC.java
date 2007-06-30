@@ -16,7 +16,6 @@ import org.mmtk.plan.refcount.RCBase;
 import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.options.Options;
-import org.mmtk.vm.Collection;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -41,7 +40,8 @@ import org.vmmagic.unboxed.*;
  * instances is crucial to understanding the correctness and
  * performance properties of MMTk plans.
  */
-@Uninterruptible public class GenRC extends RCBase {
+@Uninterruptible
+public class GenRC extends RCBase {
 
   /****************************************************************************
    *
@@ -62,7 +62,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Constructor.
- */
+   */
   public GenRC() {
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(WITH_COALESCING_RC);
@@ -73,7 +73,6 @@ import org.vmmagic.unboxed.*;
    *
    * Collection
    */
-
 
   /**
    * Perform a (global) collection phase.
@@ -94,54 +93,16 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * This method is called periodically by the allocation subsystem
-   * (by default, each time a page is consumed), and provides the
-   * collector with an opportunity to collect.<p>
-   *
-   * We trigger a collection whenever an allocation request is made
-   * that would take the number of pages in use (committed for use)
-   * beyond the number of pages available.  Collections are triggered
-   * through the runtime, and ultimately call the
-   * <code>collect()</code> method of this class or its superclass.<p>
-   *
-   * This method is clearly interruptible since it can lead to a GC.
-   * However, the caller is typically uninterruptible and this fiat allows
-   * the interruptibility check to work.  The caveat is that the caller
-   * of this method must code as though the method is interruptible.
-   * In practice, this means that, after this call, processor-specific
-   * values must be reloaded.
-   *
-   * @see org.mmtk.policy.Space#acquire(int)
-   * @param vmExhausted Virtual Memory range for space is exhausted.
-   * @param space the space that triggered the polling (i.e. the space
-   * into which an allocation is about to occur).
-   * @return True if a collection has been triggered
+   * This method controls the triggering of a GC. It is called periodically
+   * during allocation. Returns true to trigger a collection.
+   * 
+   * @param spaceFull Space request failed, must recover pages within 'space'.
+   * @return True if a collection is requested by the plan.
    */
-  @LogicallyUninterruptible
-  public boolean poll(boolean vmExhausted, Space space) {
-    if (getCollectionsInitiated() > 0 || !isInitialized()) return false;
-    vmExhausted |= stressTestGCRequired();
-    boolean heapFull = getPagesReserved() > getTotalPages();
-    boolean nurseryFull = nurserySpace.reservedPages() >
-                          Options.nurserySize.getMaxNursery();
-    boolean metaDataFull = metaDataSpace.reservedPages() >
-                           META_DATA_FULL_THRESHOLD;
-    int newMetaDataPages = metaDataSpace.committedPages() -
-                           previousMetaDataPages;
-    if (vmExhausted || heapFull || nurseryFull || metaDataFull ||
-        (progress && (newMetaDataPages > Options.metaDataLimit.getPages()))) {
-      if (space == metaDataSpace) {
-        setAwaitingCollection();
-        return false;
-      }
-      int required = space.reservedPages() - space.committedPages();
-      // account for copy reserve
-      if (space == nurserySpace) required = required<<1;
-      addRequired(required);
-      VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
-      return true;
-    }
-    return false;
+  public final boolean collectionRequired(boolean spaceFull) {
+    boolean nurseryFull = nurserySpace.reservedPages() > Options.nurserySize.getMaxNursery();
+    
+    return super.collectionRequired(spaceFull) || nurseryFull; 
   }
 
   /**
@@ -155,15 +116,14 @@ import org.vmmagic.unboxed.*;
     return super.getPagesAvail() >> 1;
   }
 
-
   /**
    * Return the number of pages reserved for copying.
    *
    * @return The number of pages reserved given the pending
    * allocation, including space reserved for copying.
    */
-  public final int getCopyReserve() {
-    return nurserySpace.reservedPages() + super.getCopyReserve();
+  public final int getCollectionReserve() {
+    return nurserySpace.reservedPages() + super.getCollectionReserve();
   }
 
   /**
@@ -180,6 +140,17 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
+   * Calculate the number of pages a collection is required to free to satisfy
+   * outstanding allocation requests.
+   * 
+   * @return the number of pages a collection is required to free to satisfy
+   * outstanding allocation requests.
+   */
+  public int getPagesRequired() {
+    return super.getPagesRequired() + (nurserySpace.requiredPages() << 1);
+  }
+
+  /**
    * @see org.mmtk.plan.Plan#objectCanMove
    *
    * @param object Object in question
@@ -191,5 +162,4 @@ import org.vmmagic.unboxed.*;
       return true;
     return super.objectCanMove(object);
   }
-
 }

@@ -16,12 +16,12 @@ import org.mmtk.policy.Space;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.Log;
+import org.mmtk.utility.ReferenceProcessor;
 import org.mmtk.utility.options.*;
 import org.mmtk.utility.sanitychecker.SanityChecker;
 import org.mmtk.utility.statistics.Stats;
 import org.mmtk.utility.statistics.Timer;
 import org.mmtk.vm.VM;
-
 
 import org.vmmagic.pragma.*;
 
@@ -43,13 +43,14 @@ import org.vmmagic.pragma.*;
   /****************************************************************************
    * Constants
    */
-
+  
   /* Shared Timers */
   private static final Timer refTypeTime = new Timer("refType", false, true);
   private static final Timer scanTime = new Timer("scan", false, true);
   private static final Timer finalizeTime = new Timer("finalize", false, true);
 
   /* Phases */
+  public static final int SET_COLLECTION_KIND = new SimplePhase("set-collection-kind", null,      Phase.GLOBAL_ONLY  ).getId();
   public static final int INITIATE            = new SimplePhase("initiate", null,                 Phase.GLOBAL_FIRST  ).getId();
   public static final int INITIATE_MUTATOR    = new SimplePhase("initiate-mutator",               Phase.MUTATOR_ONLY  ).getId();
   public static final int PREPARE             = new SimplePhase("prepare",                        Phase.GLOBAL_FIRST  ).getId();
@@ -92,6 +93,7 @@ import org.vmmagic.pragma.*;
    * Start the collection, including preparation for any collected spaces.
    */
   protected static final int initPhase = new ComplexPhase("init", new int[] {
+      SET_COLLECTION_KIND,
       INITIATE,
       INITIATE_MUTATOR,
       SANITY_PLACEHOLDER,
@@ -156,6 +158,11 @@ import org.vmmagic.pragma.*;
 
   /* Basic GC sanity checker */
   private SanityChecker sanityChecker = new SanityChecker();
+  
+  /**
+   * The current collection attempt.
+   */
+  protected int collectionAttempt;
 
   /****************************************************************************
    * Collection
@@ -194,6 +201,21 @@ import org.vmmagic.pragma.*;
    */
   @Inline
   public void collectionPhase(int phaseId) {
+    if (phaseId == SET_COLLECTION_KIND) {
+      requiredAtStart = getPagesRequired();
+      collectionAttempt = VM.collection.maximumCollectionAttempt();
+      emergencyCollection = (lastCollectionFullHeap() && collectionAttempt > 1);
+      if (collectionAttempt > MAX_COLLECTION_ATTEMPTS) {
+        VM.assertions.fail("Too many collection attempts. Suspect plan is not setting FullHeap flag");
+      }
+      if (emergencyCollection) {
+        if (Options.verbose.getValue() > 1) Log.write("[Emergency]");
+        ReferenceProcessor.setClearSoftReferences(true);
+        forceFullHeapCollection();
+      }
+      return;
+    }
+
     if (phaseId == INITIATE) {
       if (Stats.gatheringStats()) {
         Stats.startGC();
@@ -226,12 +248,13 @@ import org.vmmagic.pragma.*;
     }
 
     if (phaseId == COMPLETE) {
-      resetRequired();
       Plan.setGCStatus(NOT_IN_GC);
       if (Stats.gatheringStats()) {
         Stats.endGC();
         printPostStats();
       }
+      Space.clearAllAllocationFailed();
+      userTriggeredGC = false;
       return;
     }
 

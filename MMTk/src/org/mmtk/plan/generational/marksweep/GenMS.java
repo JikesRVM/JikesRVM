@@ -109,6 +109,18 @@ import org.vmmagic.unboxed.*;
     return msSpace.reservedPages() + super.getPagesUsed();
   }
 
+  /**
+   * Calculate the number of pages a collection is required to free to satisfy
+   * outstanding allocation requests.
+   * 
+   * @return the number of pages a collection is required to free to satisfy
+   * outstanding allocation requests.
+   */
+  public int getPagesRequired() {
+    return super.getPagesRequired() + msSpace.requiredPages();
+  }
+
+
   /*****************************************************************************
    *
    * Miscellaneous
@@ -137,5 +149,4 @@ import org.vmmagic.unboxed.*;
       return false;
     return super.objectCanMove(object);
   }
-
 }

@@ -126,6 +126,7 @@ import org.vmmagic.pragma.*;
       Address rtn = start.plus(Conversions.pagesToBytes(pageOffset));
       Mmapper.ensureMapped(rtn, pages);
       VM.memory.zero(rtn, Conversions.pagesToBytes(pages));
+      commitPages(pages, pages);
       unlock();
       return rtn;
     }
@@ -191,18 +192,6 @@ import org.vmmagic.pragma.*;
    * @return The (unadjusted) request size, since metadata is pre-allocated
    */
   public int adjustForMetaData(int pages) { return pages; }
-
-  /**
-   * Adjust a page request to include metadata requirements, if any.  In the
-   * case of a free-list allocator, meta-data is pre-allocated, so simply
-   * return the un-adjusted request size.
-   *
-   * @param pages The size of the pending allocation in pages
-   * @param begin The start of the region of memory assigned to this pending
-   * allocation
-   * @return The (unadjusted) request size, since metadata is pre-allocated
-   */
-  public int adjustForMetaData(int pages, Address begin) { return pages; }
 
   @Inline
   int pages(Address first) {

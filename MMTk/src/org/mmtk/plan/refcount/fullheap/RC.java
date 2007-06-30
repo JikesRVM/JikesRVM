@@ -13,10 +13,6 @@
 package org.mmtk.plan.refcount.fullheap;
 
 import org.mmtk.plan.refcount.RCBase;
-import org.mmtk.policy.Space;
-import org.mmtk.utility.options.Options;
-import org.mmtk.vm.VM;
-import org.mmtk.vm.Collection;
 
 import org.vmmagic.pragma.*;
 
@@ -39,38 +35,6 @@ import org.vmmagic.pragma.*;
  * instances is crucial to understanding the correctness and
  * performance properties of MMTk plans.
  */
-@Uninterruptible public class RC extends RCBase {
-  /*****************************************************************************
-   *
-   * Collection
-   */
-
-  /**
-   * Poll for a collection
-   *
-   * @param vmExhausted Virtual Memory range for space is exhausted.
-   * @param space The space that caused the poll.
-   * @return True if a collection is required.
-   */
-  @LogicallyUninterruptible
-  public boolean poll(boolean vmExhausted, Space space) {
-    if (getCollectionsInitiated() > 0 || !isInitialized()) return false;
-    vmExhausted |= stressTestGCRequired();
-    boolean heapFull = getPagesReserved() > getTotalPages();
-    boolean metaDataFull = metaDataSpace.reservedPages() >
-                           META_DATA_FULL_THRESHOLD;
-    int newMetaDataPages = metaDataSpace.committedPages() -
-                           previousMetaDataPages;
-    if (vmExhausted || heapFull || metaDataFull ||
-        (progress && (newMetaDataPages > Options.metaDataLimit.getPages()))) {
-      if (space == metaDataSpace) {
-        setAwaitingCollection();
-        return false;
-      }
-      addRequired(space.reservedPages() - space.committedPages());
-      VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
-      return true;
-    }
-    return false;
-  }
+@Uninterruptible
+public class RC extends RCBase {
 }

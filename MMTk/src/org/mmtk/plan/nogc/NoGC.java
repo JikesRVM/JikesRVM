@@ -15,8 +15,6 @@ package org.mmtk.plan.nogc;
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.Trace;
 import org.mmtk.policy.ImmortalSpace;
-import org.mmtk.policy.Space;
-import org.mmtk.utility.Conversions;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -69,18 +67,15 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Poll for a collection
+   * This method controls the triggering of a GC. It is called periodically
+   * during allocation. Returns true to trigger a collection.
    *
-   * @param vmExhausted Virtual Memory range for space is exhausted.
-   * @param space The space that caused the poll.
-   * @return True if a collection is required.
+   * @param spaceFull Space request failed, must recover pages within 'space'.
+   * @return True if a collection is requested by the plan.
    */
-  public final boolean poll(boolean vmExhausted, Space space) {
-    boolean spaceFull = space.reservedPages() >= Conversions.bytesToPages(space.getExtent());
-    if (spaceFull || getPagesReserved() > getTotalPages()) {
-      VM.assertions.fail("GC Triggered in NoGC Plan due to memory exhaustion.");
-    }
-    return false;
+  public final boolean collectionRequired(boolean spaceFull) {
+    // Never collect
+    return false; 
   }
 
   /*****************************************************************************
@@ -98,5 +93,4 @@ import org.vmmagic.pragma.*;
   public int getPagesUsed() {
     return (defSpace.reservedPages() + super.getPagesUsed());
   }
-
 }

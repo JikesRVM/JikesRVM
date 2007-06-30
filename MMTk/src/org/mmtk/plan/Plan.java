@@ -27,7 +27,6 @@ import org.mmtk.utility.sanitychecker.SanityChecker;
 import org.mmtk.utility.statistics.Timer;
 import org.mmtk.utility.statistics.Stats;
 
-import org.mmtk.vm.Lock;
 import org.mmtk.vm.VM;
 import org.mmtk.vm.Collection;
 
@@ -55,7 +54,8 @@ import org.vmmagic.unboxed.*;
  * instances is crucial to understanding the correctness and
  * performance proprties of MMTk plans.
  */
-@Uninterruptible public abstract class Plan implements Constants {
+@Uninterruptible
+public abstract class Plan implements Constants {
   /****************************************************************************
    * Constants
    */
@@ -76,6 +76,8 @@ import org.vmmagic.unboxed.*;
   public static final int META_DATA_FULL_THRESHOLD = META_DATA_PAGES >> 1;
   public static final float LOS_FRAC = (float) 0.03;
   public static final float PLOS_FRAC = (float) 0.07;
+  public static final int HEAP_FULL_MINIMUM = (1 << 17) >> LOG_BYTES_IN_PAGE; // 128K
+  public static final int HEAP_FULL_PERCENTAGE = 2;
 
   /* Allocator Constants */
   public static final int ALLOC_DEFAULT = 0;
@@ -99,7 +101,8 @@ import org.vmmagic.unboxed.*;
   public static final int DEFAULT_MIN_NURSERY = (256 * 1024) >> LOG_BYTES_IN_PAGE;
   public static final int DEFAULT_MAX_NURSERY = (32 << 20) >> LOG_BYTES_IN_PAGE;
   public static final boolean SCAN_BOOT_IMAGE = true;  // scan it for roots rather than trace it
-
+  public static final int MAX_COLLECTION_ATTEMPTS = 10;
+  
   /****************************************************************************
    * Class variables
    */
@@ -191,8 +194,6 @@ import org.vmmagic.unboxed.*;
   @Interruptible
   public void fullyBooted() {
     initialized = true;
-    exceptionReserve = (int) (getTotalPages() *
-                              (1 - Collection.OUT_OF_MEMORY_THRESHOLD));
   }
 
   /**
@@ -287,9 +288,29 @@ import org.vmmagic.unboxed.*;
   /**
    * @return Whether last GC is a full GC.
    */
-  public boolean isLastGCFull() {
+  public boolean lastCollectionFullHeap() {
     return true;
   }
+  
+  /**
+   * @return Is last GC a full collection?
+   */
+  public final boolean lastCollectionEmergency() {
+    return emergencyCollection;
+  }
+  
+  /**
+   * @return True if we have run out of heap space.
+   */
+  public final boolean lastCollectionFailed() {
+    return getPagesAvail() < getHeapFullThreshold() ||
+           getPagesAvail() < requiredAtStart;
+  }
+  
+  /**
+   * Force the next collection to be full heap.
+   */
+  public void forceFullHeapCollection() {}
 
   /**
    * @return Is current GC only collecting objects allocated since last GC.
@@ -325,95 +346,62 @@ import org.vmmagic.unboxed.*;
    * GC State
    */
 
-  private volatile static int required = 0;
-  private static Lock requiredLock = VM.newLock("RequiredPages");
-  protected static boolean progress = true;
-
-  private static boolean awaitingCollection = false;
+  protected static int requiredAtStart;
+  protected static boolean userTriggeredGC;
+  protected static boolean emergencyCollection;
+  
   private static boolean initialized = false;
-  private static int collectionsInitiated = 0;
+  private static boolean collectionTriggered;
   private static int gcStatus = NOT_IN_GC; // shared variable
-  private static int exceptionReserve = 0;
-
-  /**
-   * Add a request for n required pages
-   * @param pages The number of pages required
-   */
-  @Interruptible
-  protected static void addRequired(int pages) {
-    requiredLock.acquire();
-    required += pages;
-    requiredLock.release();
-  }
-
-  /** @return The required page count */
-  protected static int getRequired() {
-    return required;
-  }
-
-  /** Reset the required page count */
-  protected static void resetRequired() {
-    required = 0;
-  }
-
+  private static boolean emergencyAllocation;
+  
   /** @return Is the memory management system initialized? */
   public static boolean isInitialized() {
     return initialized;
   }
 
-  /** @return The number of collections that have been initiated. */
-  protected static int getCollectionsInitiated() {
-    return collectionsInitiated;
-  }
-
-  /** @return The amount of space reserved in case of an exception. */
-  protected static int getExceptionReserve() {
-    return exceptionReserve;
-  }
-
-  /** Request an async GC */
-  protected static void setAwaitingCollection() {
-    awaitingCollection = true;
-  }
-
   /**
-   * Check whether an asynchronous collection is pending.<p>
-   *
-   * This is decoupled from the poll() mechanism because the
-   * triggering of asynchronous collections can trigger write
-   * barriers, which can trigger an asynchronous collection.  Thus, if
-   * the triggering were tightly coupled with the request to alloc()
-   * within the write buffer code, then inifinite regress could
-   * result.  There is no race condition in the following code since
-   * there is no harm in triggering the collection more than once,
-   * thus it is unsynchronized.
+   * Has collection has triggered?
    */
-  public static void checkForAsyncCollection() {
-    if (awaitingCollection && VM.collection.noThreadsInGC()) {
-      awaitingCollection = false;
-      VM.collection.triggerAsyncCollection();
-    }
+  public static boolean isCollectionTriggered() {
+    return collectionTriggered;
   }
-
+  
   /**
-   * A collection has been initiated.  Increment the collectionInitiated
-   * state variable appropriately.
+   * Set that a collection has been triggered.
    */
-  public static void collectionInitiated() {
-    collectionsInitiated++;
+  public static void setCollectionTriggered() {
+    collectionTriggered = true;
   }
 
   /**
-   * A collection has fully completed.  Decrement the collectionInitiated
-   * state variable appropriately.
+   * A collection has fully completed.  Clear the triggered flag.
    */
   public static void collectionComplete() {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(collectionsInitiated > 0);
-    // FIXME The following will probably break async GC. A better fix
-    // is needed
-    collectionsInitiated = 0;
+    collectionTriggered = false;
   }
 
+  /**
+   * Are we in a region of emergency allocation?
+   */
+  public static boolean isEmergencyAllocation() {
+    return emergencyAllocation;
+  }
+
+  /**
+   * Start a region of emergency allocation.
+   */
+  public static void startEmergencyAllocation() {
+    emergencyAllocation = true;
+  }
+
+  /**
+   * Finish a region of emergency allocation.
+   */
+  public static void finishEmergencyAllocation() {
+    emergencyAllocation = false;
+  }
+  
   /**
    * Return true if a collection is in progress.
    *
@@ -447,7 +435,8 @@ import org.vmmagic.unboxed.*;
    * A user-triggered GC has been initiated.  By default, do nothing,
    * but this may be overridden.
    */
-  public void userTriggeredGC() {
+  public final void userTriggeredGC() {
+    userTriggeredGC = true;
   }
 
   /****************************************************************************
@@ -559,6 +548,17 @@ import org.vmmagic.unboxed.*;
   public static Extent freeMemory() {
     return totalMemory().minus(usedMemory());
   }
+  
+  /**
+   * Return the amount of <i>available memory</i>, in bytes.  Note 
+   * that this accounts for unused memory that is held in reserve 
+   * for copying, and therefore unavailable for allocation.
+   * 
+   * @return The amount of <i>available memory</i>, in bytes.
+   */
+  public static Extent availableMemory() {
+    return totalMemory().minus(reservedMemory());
+  }
 
   /**
    * Return the amount of <i>memory in use</i>, in bytes.  Note that
@@ -625,17 +625,18 @@ import org.vmmagic.unboxed.*;
    * allocation, including space reserved for copying.
    */
   public final int getPagesReserved() {
-    return getPagesUsed() + getCopyReserve();
+    return getPagesUsed() + getCollectionReserve();
   }
 
   /**
-   * Return the number of pages reserved for copying.  Subclasses that
+   * Return the number of pages reserved for collection.  
+   * In most cases this is a copy reserve, all subclasses that
    * manage a copying space must add the copying contribution.
    *
    * @return The number of pages reserved given the pending
-   * allocation, including space reserved for copying.
+   * allocation, including space reserved for collection.
    */
-  public int getCopyReserve() {
+  public int getCollectionReserve() {
     return 0;
   }
 
@@ -648,8 +649,29 @@ import org.vmmagic.unboxed.*;
    */
   public int getPagesUsed() {
     return loSpace.reservedPages() + ploSpace.reservedPages() +
-           immortalSpace.reservedPages() +
-           metaDataSpace.reservedPages();
+           immortalSpace.reservedPages() + metaDataSpace.reservedPages();
+  }
+  
+  /**
+   * Calculate the number of pages a collection is required to free to satisfy
+   * outstanding allocation requests.
+   * 
+   * @return the number of pages a collection is required to free to satisfy
+   * outstanding allocation requests.
+   */
+  public int getPagesRequired() {
+    return loSpace.requiredPages() + ploSpace.requiredPages() + 
+      metaDataSpace.requiredPages() + immortalSpace.requiredPages();
+  }
+
+  /**
+   * The minimum number of pages a GC must have available after a collection
+   * for us to consider the collection successful.
+   */
+  public int getHeapFullThreshold() {
+    int threshold = (getTotalPages() * HEAP_FULL_PERCENTAGE) / 100;
+    if (threshold < HEAP_FULL_MINIMUM) threshold = HEAP_FULL_MINIMUM;
+    return threshold;
   }
 
   /**
@@ -682,12 +704,70 @@ import org.vmmagic.unboxed.*;
    * (by default, each time a page is consumed), and provides the
    * collector with an opportunity to collect.
    *
-   * @param vmExhausted Virtual Memory range for space is exhausted.
+   * @param spaceFull Space request failed, must recover pages within 'space'.
    * @param space The space that triggered the poll.
    * @return true if a collection is required.
    */
-  public abstract boolean poll(boolean vmExhausted, Space space);
+  @LogicallyUninterruptible
+  public final boolean poll(boolean spaceFull, Space space) {
+    if (isCollectionTriggered()) {
+      if (space == metaDataSpace) {
+        /* This is not, in general, in a GC safe point. */
+        return false;
+      }
+      /* Someone else initiated a collection, we should join it */      
+      logPoll(space, "Joining collection");
+      VM.collection.joinCollection();
+      return true;
+    }
 
+    if (collectionRequired(spaceFull)) {
+      if (space == metaDataSpace) {
+        /* In general we must not trigger a GC on metadata allocation since 
+         * this is not, in general, in a GC safe point.  Instead we initiate
+         * an asynchronous GC, which will occur at the next safe point.
+         */
+        logPoll(space, "Asynchronous collection requested");
+        VM.collection.triggerAsyncCollection(Collection.RESOURCE_GC_TRIGGER);
+        return false;
+      }
+      logPoll(space, "Triggering collection");
+      VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
+      return true;
+    }
+    
+    return false;
+  }
+  
+  /**
+   * Log a message from within 'poll'
+   * @param space
+   * @param message
+   */
+  private void logPoll(Space space, String message) {
+    if (Options.verbose.getValue() >= 3) {
+      Log.write("  [POLL] "); 
+      Log.write(space.getName()); 
+      Log.write(": "); 
+      Log.writeln(message); 
+    }
+  }
+  
+  /**
+   * This method controls the triggering of a GC. It is called periodically
+   * during allocation. Returns true to trigger a collection.
+   * 
+   * @param spaceFull Space request failed, must recover pages within 'space'.
+   * @return True if a collection is requested by the plan.
+   */
+  protected boolean collectionRequired(boolean spaceFull) {
+    boolean stressForceGC = stressTestGCRequired();
+    boolean heapFull = getPagesReserved() > getTotalPages();
+    boolean metaDataFull = metaDataSpace.reservedPages() > META_DATA_FULL_THRESHOLD;
+
+    return spaceFull || stressForceGC || heapFull || metaDataFull;
+  }
+  
   /**
    * Start GCspy server.
    *

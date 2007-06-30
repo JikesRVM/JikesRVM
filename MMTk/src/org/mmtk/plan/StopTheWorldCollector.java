@@ -47,7 +47,6 @@ import org.vmmagic.pragma.*;
    *
    * Collection
    */
-
   public void collect() {
     Phase.delegatePhase(global().collection);
   }

@@ -14,9 +14,6 @@ package org.mmtk.plan.semispace;
 
 import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.Space;
-import org.mmtk.utility.Conversions;
-import org.mmtk.vm.Collection;
-import org.mmtk.vm.VM;
 import org.mmtk.plan.*;
 
 import org.vmmagic.pragma.*;
@@ -40,7 +37,8 @@ import org.vmmagic.unboxed.*;
  * instances is crucial to understanding the correctness and
  * performance proprties of this plan.
  */
-@Uninterruptible public class SS extends StopTheWorld {
+@Uninterruptible
+public class SS extends StopTheWorld {
   /** Fraction of available virtual memory available to each semispace */
   private static final float SEMISPACE_VIRT_MEM_FRAC = (float) 0.30;
 
@@ -135,51 +133,6 @@ import org.vmmagic.unboxed.*;
     super.collectionPhase(phaseId);
   }
 
-  /**
-   * This method is called periodically by the allocation subsystem
-   * (by default, each time a page is consumed), and provides the
-   * collector with an opportunity to collect.<p>
-   *
-   * We trigger a collection whenever an allocation request is made
-   * that would take the number of pages in use (committed for use)
-   * beyond the number of pages available.  Collections are triggered
-   * through the runtime, and ultimately call the
-   * <code>collect()</code> method of this class or its superclass.<p>
-   *
-   * This method is clearly interruptible since it can lead to a GC.
-   * However, the caller is typically uninterruptible and this fiat allows
-   * the interruptibility check to work.  The caveat is that the caller
-   * of this method must code as though the method is interruptible.
-   * In practice, this means that, after this call, processor-specific
-   * values must be reloaded.
-   *
-   * @see org.mmtk.policy.Space#acquire(int)
-   * @param vmExhausted Virtual Memory range for space is exhausted.
-   * @param space the space that triggered the polling (i.e. the space
-   * into which an allocation is about to occur).
-   * @return True if a collection has been triggered
-   */
-  @LogicallyUninterruptible
-  public boolean poll(boolean vmExhausted, Space space) {
-    if (getCollectionsInitiated() > 0 || !isInitialized() || space == metaDataSpace)
-      return false;
-
-    boolean spaceFull = space.reservedPages() >= Conversions.bytesToPages(space.getExtent());
-    vmExhausted |= stressTestGCRequired();
-
-    boolean heapFull = getPagesReserved() > getTotalPages();
-    if (vmExhausted || spaceFull || heapFull) {
-      int required = space.reservedPages() - space.committedPages();
-      if (space == copySpace0 || space == copySpace1)
-        required = required << 1; // must account for copy reserve
-      addRequired(required);
-      VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
-      return true;
-    }
-    return false;
-  }
-
-
   /****************************************************************************
    *
    * Accounting
@@ -191,10 +144,10 @@ import org.vmmagic.unboxed.*;
    * @return The number of pages reserved given the pending
    * allocation, including space reserved for copying.
    */
-  public final int getCopyReserve() {
+  public final int getCollectionReserve() {
     // we must account for the number of pages required for copying,
     // which equals the number of semi-space pages reserved
-    return toSpace().reservedPages() + super.getCopyReserve();
+    return toSpace().reservedPages() + super.getCollectionReserve();
   }
 
   /**
@@ -217,7 +170,18 @@ import org.vmmagic.unboxed.*;
    * all future allocation is to the semi-space</i>.
    */
   public final int getPagesAvail() {
-    return (getTotalPages() - getPagesReserved()) >> 1;
+    return(super.getPagesAvail()) >> 1;
+  }
+
+  /**
+   * Calculate the number of pages a collection is required to free to satisfy
+   * outstanding allocation requests.
+   * 
+   * @return the number of pages a collection is required to free to satisfy
+   * outstanding allocation requests.
+   */
+  public int getPagesRequired() {
+    return super.getPagesRequired() + (toSpace().requiredPages() << 1);
   }
 
   /**
@@ -232,5 +196,4 @@ import org.vmmagic.unboxed.*;
       return true;
     return super.objectCanMove(object);
   }
-
 }

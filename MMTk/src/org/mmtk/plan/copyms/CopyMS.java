@@ -15,11 +15,7 @@ package org.mmtk.plan.copyms;
 import org.mmtk.plan.*;
 import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.MarkSweepSpace;
-import org.mmtk.policy.Space;
 import org.mmtk.utility.options.Options;
-
-import org.mmtk.vm.Collection;
-import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 
@@ -49,9 +45,6 @@ import org.vmmagic.pragma.*;
   /****************************************************************************
    * Constants
    */
-  public static final int CopyMS_PAGE_RESERVE = (512 << 10) >>> LOG_BYTES_IN_PAGE;
-  public static final double CopyMS_RESERVE_FRACTION = 0.1;
-
 
   /****************************************************************************
    * Class variables
@@ -72,9 +65,6 @@ import org.vmmagic.pragma.*;
 
   public final Trace trace;
 
-  private int msReservedPages;
-  private int availablePreGC;
-
   /**
    * Constructor.
  */
@@ -88,7 +78,6 @@ import org.vmmagic.pragma.*;
   @Interruptible
   public void boot() {
     super.boot();
-    msReservedPages = (int) (getTotalPages() * CopyMS_RESERVE_FRACTION);
   }
 
   /*****************************************************************************
@@ -115,54 +104,24 @@ import org.vmmagic.pragma.*;
       trace.release();
       msSpace.release();
       nurserySpace.release();
-
-      int available = getTotalPages() - getPagesReserved();
-
-      progress = (available > availablePreGC) &&
-                 (available > getExceptionReserve());
-
-      if (progress) {
-        msReservedPages = (int) (available * CopyMS_RESERVE_FRACTION);
-        int threshold = 2 * getExceptionReserve();
-        if (threshold < CopyMS_PAGE_RESERVE) threshold = CopyMS_PAGE_RESERVE;
-        if (msReservedPages < threshold)
-          msReservedPages = threshold;
-      } else {
-        msReservedPages = msReservedPages / 2;
-      }
-
       super.collectionPhase(phaseId);
       return;
     }
 
     super.collectionPhase(phaseId);
   }
-
+  
   /**
-   * Poll for a collection
+   * This method controls the triggering of a GC. It is called periodically
+   * during allocation. Returns true to trigger a collection.
    *
-   * @param vmExhausted Virtual Memory range for space is exhausted.
-   * @param space The space that caused the poll.
-   * @return True if a collection is required.
+   * @param spaceFull Space request failed, must recover pages within 'space'.
+   * @return True if a collection is requested by the plan.
    */
-  @LogicallyUninterruptible
-  public final boolean poll(boolean vmExhausted, Space space) {
-    if (getCollectionsInitiated() > 0 || !isInitialized() ||
-        space == metaDataSpace)
-      return false;
-    vmExhausted |= stressTestGCRequired();
-    boolean heapFull = getPagesReserved() > getTotalPages();
-    boolean nurseryFull = nurserySpace.reservedPages() >
-                          Options.nurserySize.getMaxNursery();
-    if (vmExhausted || heapFull || nurseryFull) {
-      int required = space.reservedPages() - space.committedPages();
-      // account for copy reserve
-      if (space == nurserySpace) required = required<<1;
-      addRequired(required);
-      VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
-      return true;
-    }
-    return false;
+  public final boolean collectionRequired(boolean spaceFull) {
+    boolean nurseryFull = nurserySpace.reservedPages() > Options.nurserySize.getMaxNursery();
+    
+    return super.collectionRequired(spaceFull) || nurseryFull; 
   }
 
   /*****************************************************************************
@@ -184,13 +143,14 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Return the number of pages reserved for copying.
+   * Return the number of pages reserved for collection.
+   * For mark sweep this is a fixed fraction of total pages.
    *
    * @return The number of pages reserved given the pending
-   * allocation, including space reserved for copying.
+   * allocation, including space reserved for collection.
    */
-  public final int getCopyReserve() {
-    return nurserySpace.reservedPages() + super.getCopyReserve();
+  public int getCollectionReserve() {
+    return nurserySpace.reservedPages() + super.getCollectionReserve();
   }
 
   /**
@@ -201,4 +161,15 @@ import org.vmmagic.pragma.*;
     return (getTotalPages() - getPagesReserved()) >> 1;
   }
 
+  /**
+   * Calculate the number of pages a collection is required to free to satisfy
+   * outstanding allocation requests.
+   * 
+   * @return the number of pages a collection is required to free to satisfy
+   * outstanding allocation requests.
+   */
+  public int getPagesRequired() {
+    return super.getPagesRequired() + msSpace.requiredPages() + 
+      (nurserySpace.requiredPages() << 1);
+  }
 }

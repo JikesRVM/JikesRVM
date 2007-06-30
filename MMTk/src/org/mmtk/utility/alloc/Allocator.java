@@ -38,18 +38,7 @@ import org.vmmagic.pragma.*;
  * where the allocation that caused a GC or allocations immediately following
  * GC are run incorrectly.
  */
-
 @Uninterruptible public abstract class Allocator implements Constants {
-  /**
-   * Maximum number of retries on consecutive allocation failure.
- */
-  private static final int MAX_RETRY = 5;
-
-  /**
-   * Constructor
- */
-  Allocator() {
-  }
 
   /**
    * Aligns up an allocation request. The allocation request accepts a
@@ -246,7 +235,7 @@ import org.vmmagic.pragma.*;
       boolean inGC) {
     int gcCountStart = Stats.gcCount();
     Allocator current = this;
-    for (int i = 0; i < MAX_RETRY; i++) {
+    for (int i = 0; i < Plan.MAX_COLLECTION_ATTEMPTS; i++) {
       Address result = current.allocSlowOnce(bytes, alignment, offset, inGC);
       if (!result.isZero())
         return result;
@@ -256,10 +245,10 @@ import org.vmmagic.pragma.*;
          * current thread and the mutator context. This is possible for
          * VMs that dynamically multiplex Java threads onto multiple mutator
          * contexts, */
-	current = VM.activePlan.mutator().getOwnAllocator(current);
+        current = VM.activePlan.mutator().getOwnAllocator(current);
+      }
     }
-    }
-    Log.write("GC Warning: Possible VM range imbalance - Allocator.allocSlow failed on request of ");
+    Log.write("GC Error: Allocator.allocSlow failed on request of ");
     Log.write(bytes);
     Log.write(" on space ");
     Log.writeln(Plan.getSpaceNameFromAllocatorAnyLocal(this));
@@ -268,8 +257,7 @@ import org.vmmagic.pragma.*;
     Log.write("gcCount (now) = ");
     Log.writeln(Stats.gcCount());
     Space.printUsageMB();
-    VM.assertions.dumpStack();
-    VM.assertions.failWithOutOfMemoryError();
+    VM.assertions.fail("Allocation Failed!");
     /* NOTREACHED */
     return Address.zero();
   }

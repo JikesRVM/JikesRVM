@@ -54,7 +54,7 @@ import org.vmmagic.pragma.*;
    *
    * Collection
    */
-
+  
   /**
    * Perform a garbage collection
    */

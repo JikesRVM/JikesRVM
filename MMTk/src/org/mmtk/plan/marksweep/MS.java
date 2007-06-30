@@ -14,11 +14,7 @@ package org.mmtk.plan.marksweep;
 
 import org.mmtk.plan.*;
 import org.mmtk.policy.MarkSweepSpace;
-import org.mmtk.policy.MarkSweepLocal;
 import org.mmtk.policy.Space;
-import org.mmtk.utility.Conversions;
-import org.mmtk.vm.Collection;
-import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -46,16 +42,12 @@ import org.vmmagic.unboxed.*;
   /****************************************************************************
    * Constants
    */
-  public static final int MS_PAGE_RESERVE = (512 << 10) >>> LOG_BYTES_IN_PAGE; // 1M
-  public static final double MS_RESERVE_FRACTION = 0.1;
-
 
   /****************************************************************************
    * Class variables
    */
 
-  public static final MarkSweepSpace msSpace
-    = new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, (float) 0.6);
+  public static final MarkSweepSpace msSpace = new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, (float) 0.6);
   public static final int MARK_SWEEP = msSpace.getDescriptor();
 
   /****************************************************************************
@@ -64,16 +56,12 @@ import org.vmmagic.unboxed.*;
 
   public final Trace msTrace = new Trace(metaDataSpace);
 
-  private int msReservedPages;
-  private int availablePreGC;
-
   /**
    * Boot-time initialization
    */
   @Interruptible
   public void boot() {
     super.boot();
-    msReservedPages = (int) (getTotalPages() * MS_RESERVE_FRACTION);
   }
 
   /*****************************************************************************
@@ -99,57 +87,11 @@ import org.vmmagic.unboxed.*;
     if (phaseId == RELEASE) {
       msTrace.release();
       msSpace.release();
-      updateProgress();
       super.collectionPhase(phaseId);
       return;
     }
 
     super.collectionPhase(phaseId);
-  }
-
-  /**
-   * Update bookkeeping of GC progress.
-   */
-  private void updateProgress() {
-      int available = getTotalPages() - getPagesReserved();
-
-      progress = (available > availablePreGC) &&
-                 (available > getExceptionReserve());
-
-      if (progress) {
-        msReservedPages = (int) (available * MS_RESERVE_FRACTION);
-        int threshold = 2 * getExceptionReserve();
-        if (threshold < MS_PAGE_RESERVE) threshold = MS_PAGE_RESERVE;
-        if (msReservedPages < threshold)
-          msReservedPages = threshold;
-      } else {
-        msReservedPages = msReservedPages / 2;
-      }
-  }
-
-  /**
-   * Poll for a collection
-   *
-   * @param vmExhausted Virtual Memory range for space is exhausted.
-   * @param space The space that caused the poll.
-   * @return True if a collection is required.
-   */
-  @LogicallyUninterruptible
-  public final boolean poll(boolean vmExhausted, Space space) {
-    if (getCollectionsInitiated() > 0 || !isInitialized() || space == metaDataSpace) {
-      return false;
-    }
-    boolean spaceFull = space.reservedPages() >= Conversions.bytesToPages(space.getExtent());
-    vmExhausted |= stressTestGCRequired() || MarkSweepLocal.mustCollect();
-    availablePreGC = getTotalPages() - getPagesReserved();
-    int reserve = (space == msSpace) ? msReservedPages : 0;
-
-    if (vmExhausted || spaceFull || availablePreGC <= reserve) {
-      addRequired(space.reservedPages() - space.committedPages());
-      VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
-      return true;
-    }
-    return false;
   }
 
   /*****************************************************************************
@@ -167,6 +109,17 @@ import org.vmmagic.unboxed.*;
    */
   public int getPagesUsed() {
     return (msSpace.reservedPages() + super.getPagesUsed());
+  }
+
+  /**
+   * Calculate the number of pages a collection is required to free to satisfy
+   * outstanding allocation requests.
+   * 
+   * @return the number of pages a collection is required to free to satisfy
+   * outstanding allocation requests.
+   */
+  public int getPagesRequired() {
+    return super.getPagesRequired() + msSpace.requiredPages();
   }
 
   /**

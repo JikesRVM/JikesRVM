@@ -57,6 +57,7 @@ public abstract class PageResource implements Constants {
   // page budgeting
   protected int reserved;
   protected int committed;
+  protected int required;
   private int pageBudget;
 
   protected boolean contiguous = false;
@@ -115,31 +116,36 @@ public abstract class PageResource implements Constants {
   @Inline
   public final boolean reservePages(int pages) {
     lock();
-    reserved = committed + adjustForMetaData(pages);
+    required += adjustForMetaData(pages);
+    reserved = committed + required;
     boolean satisfied = reserved <= pageBudget;
     unlock();
     return satisfied;
+  }
+  
+  /**
+   * Remove a request to the space. 
+   *
+   * @param pages The number of pages in the request.
+   */
+  @Inline
+  public final void clearRequest(int pages) {
+    lock();
+    required -= adjustForMetaData(pages);
+    unlock();
   }
 
   abstract Address allocPages(int pages);
 
   /**
-   * Adjust a page request to include metadata requirements, if any.
+   * Adjust a page request to include metadata requirements for a request
+   * of the given size. This must be a pure function, that is it does not
+   * depend on the state of the PageResource.
    *
    * @param pages The size of the pending allocation in pages
    * @return The number of required pages, inclusive of any metadata
    */
   public abstract int adjustForMetaData(int pages);
-
-  /**
-   * Adjust a page request to include metadata requirements, if any.
-   *
-   * @param pages The size of the pending allocation in pages
-   * @param begin The address of the virtual memory region assigned to this
-   * pending request
-   * @return The number of required pages, inclusive of any metadata
-   */
-  public abstract int adjustForMetaData(int pages, Address begin);
 
   /**
    * Allocate pages in virtual memory, returning zero on failure.<p>
@@ -157,9 +163,7 @@ public abstract class PageResource implements Constants {
    */
   @Inline
   public final Address getNewPages(int pages) {
-    Address rtn = allocPages(pages);
-    if (!rtn.isZero()) commitPages(pages, rtn);
-    return rtn;
+    return allocPages(pages);
   }
 
   /**
@@ -168,16 +172,22 @@ public abstract class PageResource implements Constants {
    * both the page budget and virtual memory.  This simply accounts
    * for the descrepency between <code>committed</code> and
    * <code>reserved</code> while the request was pending.
+   * 
+   * This *MUST* be called by each PageResource during the
+   * allocPages, and the caller must hold the lock.
    *
-   * @param pages The number of pages to be committed
+   * @param requestedPages The number of pages from this request
+   * @param totalPages The number of pages 
    * @param begin The start address of the allocated region
    */
-  private void commitPages(int pages, Address begin) {
-    lock();
-    committed += adjustForMetaData(pages, begin);
+  protected void commitPages(int requestedPages, int totalPages) {
+    int predictedPages = adjustForMetaData(requestedPages);
+    int delta = totalPages - predictedPages;
+    required -= predictedPages;
+    reserved += delta;
+    committed += totalPages;
     if (!Plan.gcInProgress())
-      addToCommitted(pages); // only count mutator pages
-    unlock();
+      addToCommitted(totalPages); // only count mutator pages
   }
 
   /**
@@ -193,6 +203,13 @@ public abstract class PageResource implements Constants {
    * @return The number of committed pages.
    */
   public final int committedPages() { return committed; }
+
+  /**
+   * Return the number of required pages
+   *
+   * @return The number of required pages.
+   */
+  public final int requiredPages() { return required; }
 
   /**
    * Return the cumulative number of committed pages
