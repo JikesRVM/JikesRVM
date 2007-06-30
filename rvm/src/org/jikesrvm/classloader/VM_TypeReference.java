@@ -54,7 +54,7 @@ public final class VM_TypeReference {
    * The VM_Type instance that this type reference resolves to.
    * Null if the reference has not yet been resolved.
    */
-  private VM_Type resolvedType;
+  private VM_Type type;
 
   /**
    * Used to canonicalize TypeReferences
@@ -529,9 +529,9 @@ public final class VM_TypeReference {
    */
   @Uninterruptible
   public int getStackWords() {
-    if (isResolved()) {
+    if (isLoaded()) {
       // all primitive and magic types are resolved immediately
-      return resolvedType.getStackWords();
+      return type.getStackWords();
     } else {
       // anything remaining must be a reference
       return 1;
@@ -543,9 +543,9 @@ public final class VM_TypeReference {
    */
   @Uninterruptible
   public int getMemoryBytes() {
-    if (isResolved()) {
+    if (isLoaded()) {
       // all primitive and magic types are resolved immediately
-      return resolvedType.getMemoryBytes();
+      return type.getMemoryBytes();
     } else {
       // anything remaining must be a reference
       return BYTES_IN_ADDRESS;
@@ -647,8 +647,8 @@ public final class VM_TypeReference {
   public boolean definitelyDifferent(VM_TypeReference that) {
     if (this == that) return false;
     if (name != that.name) return true;
-    VM_Type mine = peekResolvedType();
-    VM_Type theirs = that.peekResolvedType();
+    VM_Type mine = peekType();
+    VM_Type theirs = that.peekType();
     if (mine == null || theirs == null) return false;
     return mine != theirs;
   }
@@ -660,35 +660,43 @@ public final class VM_TypeReference {
     if (VM.VerifyAssertions) VM._assert(that != null);
     if (this == that) return true;
     if (name != that.name) return false;
-    VM_Type mine = peekResolvedType();
-    VM_Type theirs = that.peekResolvedType();
+    VM_Type mine = peekType();
+    VM_Type theirs = that.peekType();
     if (mine == null || theirs == null) return false;
     return mine == theirs;
   }
 
   /**
-   * Has the type reference already been resolved into a type?
+   * Return true if the type for type reference has been loaded.
+   */
+  @Uninterruptible
+  public boolean isLoaded() {
+    return type != null;
+  }
+
+  /**
+   * Return true if the type for type reference has been loaded and it is resolved.
    */
   @Uninterruptible
   public boolean isResolved() {
-    return resolvedType != null;
+    return isLoaded() && type.isResolved();
   }
 
   /**
    * @return the current value of resolvedType -- null if not yet resolved.
    */
   @Uninterruptible
-  public VM_Type peekResolvedType() {
-    return resolvedType;
+  public VM_Type peekType() {
+    return type;
   }
 
   /*
    * for use by VM_ClassLoader.defineClassInternal
    */
-  void setResolvedType(VM_Type rt) {
-    resolvedType = rt;
-    if (resolvedType.isClassType()) {
-      resolvedType.asClass().setResolvedMembers();
+  void setType(VM_Type rt) {
+    type = rt;
+    if (type.isClassType()) {
+      type.asClass().setResolvedMembers();
     }
   }
 
@@ -724,7 +732,7 @@ public final class VM_TypeReference {
   }
 
   private VM_Type resolveInternal() throws NoClassDefFoundError, IllegalArgumentException {
-    if (resolvedType != null) return resolvedType;
+    if (type != null) return type;
     if (isClassType()) {
       VM_Type ans;
       if (VM.runningVM) {
@@ -748,15 +756,15 @@ public final class VM_TypeReference {
         ans = ((VM_BootstrapClassLoader) classloader).loadVMClass(name.classNameFromDescriptor());
       }
       if (VM.VerifyAssertions) {
-        VM._assert(resolvedType == null || resolvedType == ans);
+        VM._assert(type == null || type == ans);
       }
-      setResolvedType(ans);
+      setType(ans);
     } else if (isArrayType()) {
       if (isUnboxedArrayType()) {
         // Ensure that we only create one VM_Array object for each pair of
         // names for this type.
         // Do this by resolving AddressArray to [Address
-        setResolvedType(getArrayElementType().getArrayTypeForElementType().resolve());
+        setType(getArrayElementType().getArrayTypeForElementType().resolve());
       } else {
         VM_Type elementType = getArrayElementType().resolve();
         if (elementType.getClassLoader() != classloader) {
@@ -764,15 +772,15 @@ public final class VM_TypeReference {
           // was loaded using a different classloader.
           // Find the canonical type reference and ask it to resolve itself.
           VM_TypeReference canonical = VM_TypeReference.findOrCreate(elementType.getClassLoader(), name);
-          setResolvedType(canonical.resolve());
+          setType(canonical.resolve());
         } else {
-          setResolvedType(new VM_Array(this, elementType));
+          setType(new VM_Array(this, elementType));
         }
       }
     } else {
-      setResolvedType(VM_Primitive.createPrimitive(this));
+      setType(VM_Primitive.createPrimitive(this));
     }
-    return resolvedType;
+    return type;
   }
 
   public String toString() {

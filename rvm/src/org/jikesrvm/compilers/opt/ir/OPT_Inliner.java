@@ -229,7 +229,7 @@ public class OPT_Inliner {
         if (VM.BuildForIMTInterfaceInvocation || (VM.BuildForITableInterfaceInvocation && VM.DirectlyIndexedITables)) {
           VM_Type interfaceType = mo.getTarget().getDeclaringClass();
           VM_TypeReference recTypeRef = receiver.getType();
-          VM_Class recType = (VM_Class) recTypeRef.peekResolvedType();
+          VM_Class recType = (VM_Class) recTypeRef.peekType();
           // Attempt to avoid inserting the check by seeing if the
           // known static type of the receiver implements the interface.
           boolean requiresImplementsTest = true;

@@ -83,7 +83,7 @@ public abstract class VM_Member extends VM_AnnotatedElement implements VM_Consta
    */
   @Uninterruptible
   public final VM_Class getDeclaringClass() {
-    return declaringClass.peekResolvedType().asClass();
+    return declaringClass.peekType().asClass();
   }
 
   /**
@@ -194,7 +194,7 @@ public abstract class VM_Member extends VM_AnnotatedElement implements VM_Consta
    */
   @Uninterruptible
   public final Offset getOffset() {
-    if (VM.VerifyAssertions) VM._assert(declaringClass.isResolved());
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM._assert(offset != NO_OFFSET);
     return Offset.fromIntSignExtend(offset);
   }

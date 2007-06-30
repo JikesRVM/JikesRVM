@@ -448,7 +448,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     VM_Atom classDescriptor = VM_Atom.findOrCreateAsciiAtom(className.replace('.', '/')).descriptorFromClassName();
     VM_TypeReference tRef =
         VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), classDescriptor);
-    VM_Class cls = (VM_Class) tRef.peekResolvedType();
+    VM_Class cls = (VM_Class) tRef.peekType();
     if (null == cls) {
       sysWrite("Failed to run class intializer for ");
       sysWrite(className);

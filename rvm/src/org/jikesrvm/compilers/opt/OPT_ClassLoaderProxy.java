@@ -133,8 +133,8 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
 
     // technique: push heritage of each type on a separate stack,
     // then find the highest point in the stack where they differ.
-    VM_Class c1 = (VM_Class) t1.peekResolvedType();
-    VM_Class c2 = (VM_Class) t2.peekResolvedType();
+    VM_Class c1 = (VM_Class) t1.peekType();
+    VM_Class c2 = (VM_Class) t2.peekType();
     if (c1 != null && c2 != null) {
       // The ancestor hierarchy is available, so do this exactly
       OPT_Stack<VM_Class> s1 = new OPT_Stack<VM_Class>();
@@ -262,8 +262,8 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
             // parentType is known to not be java.lang.Object.
             return NO;
           } else {
-            VM_Class childClass = (VM_Class) childType.peekResolvedType();
-            VM_Class parentClass = (VM_Class) parentType.peekResolvedType();
+            VM_Class childClass = (VM_Class) childType.peekType();
+            VM_Class parentClass = (VM_Class) parentType.peekType();
             if (childClass != null && parentClass != null) {
               if (parentClass.isResolved() && childClass.isResolved() ||
                   (VM.writingBootImage && parentClass.isInBootImage() && childClass.isInBootImage())) {

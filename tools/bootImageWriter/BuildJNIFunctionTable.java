@@ -273,7 +273,7 @@ public class BuildJNIFunctionTable {
     String[] names = initNames();
     VM_CodeArray[] functions = new VM_CodeArray[VM_JNIFunctions.FUNCTIONCOUNT];
 
-    VM_Class cls = VM_TypeReference.VM_JNIFunctions.peekResolvedType().asClass();
+    VM_Class cls = VM_TypeReference.VM_JNIFunctions.peekType().asClass();
     if (VM.VerifyAssertions) VM._assert(cls.isInstantiated());
     for (VM_Method mth : cls.getDeclaredMethods()) {
       String methodName = mth.getName().toString();

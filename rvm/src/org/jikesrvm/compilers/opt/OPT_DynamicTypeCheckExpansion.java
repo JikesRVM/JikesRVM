@@ -443,7 +443,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
     // we lost type information due to unloaded classes causing
     // imprecise meets.  This should only happen once in a blue moon,
     // so don't bother trying anything clever when it does.
-    VM_Type compType = arrayRef.getType().peekResolvedType();
+    VM_Type compType = arrayRef.getType().peekType();
     if (compType != null && !compType.isJavaLangObjectType()) {
       // optionally (1) from above
       if (compType.getDimensionality() == 1) {
@@ -622,7 +622,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                                                                  OPT_RegisterOperand result) {
     // Is LHStype a class?
     if (LHStype.isClassType()) {
-      VM_Class LHSclass = (VM_Class) LHStype.peekResolvedType();
+      VM_Class LHSclass = (VM_Class) LHStype.peekType();
       if (LHSclass != null && LHSclass.isResolved()) {
         // Cases 4, 5, and 6 of VM_DynamicTypeCheck: LHSclass is a
         // resolved class or interface
@@ -737,7 +737,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
     }
     if (LHStype.isArrayType()) {
       // Case 2 of VM_DynamicTypeCheck: LHS is an array.
-      VM_Array LHSArray = (VM_Array) LHStype.peekResolvedType();
+      VM_Array LHSArray = (VM_Array) LHStype.peekType();
       if (LHSArray != null) {
         VM_Type innermostElementType = LHSArray.getInnermostElementType();
         if (innermostElementType.isPrimitiveType() ||
@@ -835,7 +835,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
     s.remove();
 
     if (LHStype.isClassType()) {
-      VM_Class LHSclass = (VM_Class) LHStype.peekResolvedType();
+      VM_Class LHSclass = (VM_Class) LHStype.peekType();
       if (LHSclass != null && LHSclass.isResolved()) {
         // Cases 4, 5, and 6 of VM_DynamicTypeCheck: LHSclass is a resolved
         // class or interface
@@ -971,7 +971,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 
     if (LHStype.isArrayType()) {
       // Case 2 of VM_DynamicTypeCheck: LHS is an array.
-      VM_Array LHSArray = (VM_Array) LHStype.peekResolvedType();
+      VM_Array LHSArray = (VM_Array) LHStype.peekType();
       if (LHSArray != null) {
         OPT_Operand classTIB = getTIB(continueAt, ir, LHSArray);
         VM_Type innermostElementType = LHSArray.getInnermostElementType();

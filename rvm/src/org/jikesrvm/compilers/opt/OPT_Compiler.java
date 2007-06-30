@@ -135,7 +135,7 @@ public final class OPT_Compiler implements VM_Callbacks.StartupMonitor {
     VM_TypeReference tRef =
         VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
                                       VM_Atom.findOrCreateAsciiAtom(klassName));
-    VM_Class klass = (VM_Class) tRef.peekResolvedType();
+    VM_Class klass = (VM_Class) tRef.peekType();
     for (VM_Method meth : klass.getDeclaredMethods()) {
       if (meth.isClassInitializer()) {
         continue;

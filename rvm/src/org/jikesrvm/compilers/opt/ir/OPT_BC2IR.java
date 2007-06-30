@@ -312,12 +312,12 @@ public final class OPT_BC2IR
     markGuardlessNonNull(t);
     // We can do early resolution of the array type if the element type
     // is already initialized.
-    VM_Type arrayType = array.peekResolvedType();
+    VM_Type arrayType = array.peekType();
     OPT_Operator op = NEWARRAY_UNRESOLVED;
     OPT_TypeOperand arrayOp = makeTypeOperand(array);
     if (arrayType != null) {
       if (!(arrayType.isInitialized() || arrayType.isInBootImage()) && VM_Type.JavaLangObjectType.isInstantiated()) {
-        VM_Type elementType = elementTypeRef.peekResolvedType();
+        VM_Type elementType = elementTypeRef.peekType();
         if (elementType != null) {
           if (elementType.isInitialized() || elementType.isInBootImage()) {
             arrayType.resolve();
@@ -1489,7 +1489,7 @@ public final class OPT_BC2IR
             offsetOp = new OPT_AddressConstantOperand(field.getOffset());
 
             // use results of field analysis to refine type of result
-            VM_Type ft = fieldType.peekResolvedType();
+            VM_Type ft = fieldType.peekType();
             if (ft != null && ft.isClassType()) {
               VM_TypeReference concreteType = OPT_FieldAnalysis.getConcreteType(field);
               if (concreteType != null) {
@@ -1583,7 +1583,7 @@ public final class OPT_BC2IR
             offsetOp = new OPT_AddressConstantOperand(field.getOffset());
 
             // use results of field analysis to refine type.
-            VM_Type ft = fieldType.peekResolvedType();
+            VM_Type ft = fieldType.peekType();
             if (ft != null && ft.isClassType()) {
               VM_TypeReference concreteType = OPT_FieldAnalysis.getConcreteType(field);
               if (concreteType != null) {
@@ -1677,7 +1677,7 @@ public final class OPT_BC2IR
             // An invokevirtual that is really an invokeinterface.
             s = _callHelper(ref, OPT_MethodOperand.INTERFACE(ref, null));
             OPT_Operand receiver = Call.getParam(s, 0);
-            VM_Class receiverType = (VM_Class) receiver.getType().peekResolvedType();
+            VM_Class receiverType = (VM_Class) receiver.getType().peekType();
             // null check on this parameter of call
             clearCurrentGuard();
             if (do_NullCheck(receiver)) {
@@ -1766,7 +1766,7 @@ public final class OPT_BC2IR
               isPreciseType = true;
               tr = receiver.getType();
             }
-            VM_Type type = tr.peekResolvedType();
+            VM_Type type = tr.peekType();
             if (type != null && type.isResolved() && type.isClassType()) {
               VM_Method vmeth = target;
               if (target == null || type != target.getDeclaringClass()) {
@@ -1890,7 +1890,7 @@ public final class OPT_BC2IR
 
           s = _callHelper(ref, OPT_MethodOperand.INTERFACE(ref, resolvedMethod));
           OPT_Operand receiver = Call.getParam(s, 0);
-          VM_Class receiverType = (VM_Class) receiver.getType().peekResolvedType();
+          VM_Class receiverType = (VM_Class) receiver.getType().peekType();
           // null check on this parameter of call
           // TODO: Strictly speaking we need to do dynamic linking of the
           //       interface type BEFORE we do the null check. FIXME.
@@ -2026,7 +2026,7 @@ public final class OPT_BC2IR
           markGuardlessNonNull(t);
           OPT_Operator operator;
           OPT_TypeOperand klassOp;
-          VM_Class klassType = (VM_Class) klass.peekResolvedType();
+          VM_Class klassType = (VM_Class) klass.peekType();
           if (klassType != null && (klassType.isInitialized() || klassType.isInBootImage())) {
             klassOp = makeTypeOperand(klassType);
             operator = NEW;
@@ -2130,7 +2130,7 @@ public final class OPT_BC2IR
             if (classLoading) {
               s = TypeCheck.create(CHECKCAST_UNRESOLVED, op2, makeTypeOperand(typeRef));
             } else {
-              OPT_TypeOperand typeOp = makeTypeOperand(typeRef.peekResolvedType());
+              OPT_TypeOperand typeOp = makeTypeOperand(typeRef.peekType());
               if (isNonNull(op2)) {
                 s = TypeCheck.create(CHECKCAST_NOTNULL, op2, typeOp, getGuard(op2));
               } else {
@@ -2180,7 +2180,7 @@ public final class OPT_BC2IR
           if (classLoading) {
             s = InstanceOf.create(INSTANCEOF_UNRESOLVED, t, makeTypeOperand(typeRef), op2);
           } else {
-            OPT_TypeOperand typeOp = makeTypeOperand(typeRef.peekResolvedType());
+            OPT_TypeOperand typeOp = makeTypeOperand(typeRef.peekType());
             if (isNonNull(op2)) {
               s = InstanceOf.create(INSTANCEOF_NOTNULL, t, typeOp, op2, getGuard(op2));
             } else {
@@ -2788,7 +2788,7 @@ public final class OPT_BC2IR
   }
 
   private boolean couldCauseClassLoading(VM_TypeReference typeRef) {
-    VM_Type type = typeRef.peekResolvedType();
+    VM_Type type = typeRef.peekType();
     if (type == null) return true;
     if (type.isInitialized()) return false;
     if (type.isArrayType()) return !type.isResolved();
@@ -3682,7 +3682,7 @@ public final class OPT_BC2IR
         do {
           elemType2 = elemType2.getArrayElementType();
         } while (elemType2.isArrayType());
-        VM_Type et2 = elemType2.peekResolvedType();
+        VM_Type et2 = elemType2.peekType();
         if (et2 != null) {
           if (et2.isPrimitiveType() || ((VM_Class) et2).isFinal()) {
             VM_TypeReference myElemType = getRefTypeOf(elem);
@@ -3698,7 +3698,7 @@ public final class OPT_BC2IR
         }
       } else {
         // elemType is class
-        VM_Type et = elemType.peekResolvedType();
+        VM_Type et = elemType.peekType();
         if (et != null && ((VM_Class) et).isFinal()) {
           if (getRefTypeOf(elem) == elemType) {
             if (DBG_TYPE) {

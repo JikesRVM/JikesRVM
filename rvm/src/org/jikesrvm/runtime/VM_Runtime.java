@@ -109,7 +109,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
         if one is looking at it from the point of view of the "instanceof"
         operator.  */
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(targetID);
-    VM_Type lhsType = tRef.peekResolvedType();
+    VM_Type lhsType = tRef.peekType();
     if (lhsType == null) {
       lhsType = tRef.resolve();
     }
@@ -181,7 +181,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
     }
 
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
-    VM_Type lhsType = tRef.peekResolvedType();
+    VM_Type lhsType = tRef.peekType();
     if (lhsType == null) {
       lhsType = tRef.resolve();
     }
@@ -306,7 +306,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    */
   static Object unresolvedNewScalar(int id, int site) throws NoClassDefFoundError, OutOfMemoryError {
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
-    VM_Type t = tRef.peekResolvedType();
+    VM_Type t = tRef.peekType();
     if (t == null) {
       t = tRef.resolve();
     }
@@ -388,7 +388,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
   public static Object unresolvedNewArray(int numElements, int id, int site)
       throws NoClassDefFoundError, OutOfMemoryError, NegativeArraySizeException {
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
-    VM_Type t = tRef.peekResolvedType();
+    VM_Type t = tRef.peekType();
     if (t == null) {
       t = tRef.resolve();
     }

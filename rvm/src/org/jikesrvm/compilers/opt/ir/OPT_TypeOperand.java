@@ -50,7 +50,7 @@ public final class OPT_TypeOperand extends OPT_Operand {
    * Create a new type operand with the specified type reference
    */
   public OPT_TypeOperand(VM_TypeReference tr) {
-    type = tr.peekResolvedType();
+    type = tr.peekType();
     typeRef = tr;
   }
 

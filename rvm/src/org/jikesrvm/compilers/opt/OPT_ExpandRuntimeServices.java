@@ -254,7 +254,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase {
             inst.remove();
           } else {
             OPT_Operand ref = MonitorOp.getClearRef(inst);
-            VM_Type refType = ref.getType().peekResolvedType();
+            VM_Type refType = ref.getType().peekType();
             if (refType != null && !refType.getThinLockOffset().isMax()) {
               VM_Method target = VM_Entrypoints.inlineLockMethod;
               Call.mutate2(inst,
@@ -289,7 +289,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase {
             inst.remove();
           } else {
             OPT_Operand ref = MonitorOp.getClearRef(inst);
-            VM_Type refType = ref.getType().peekResolvedType();
+            VM_Type refType = ref.getType().peekType();
             if (refType != null && !refType.getThinLockOffset().isMax()) {
               VM_Method target = VM_Entrypoints.inlineUnlockMethod;
               Call.mutate2(inst,

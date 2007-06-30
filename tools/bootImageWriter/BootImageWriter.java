@@ -2158,7 +2158,7 @@ public class BootImageWriter extends BootImageWriterMessages
           value = VM_Type.VoidType;
         }
         else {
-          value = VM_TypeReference.findOrCreate((Class)jdkObject).peekResolvedType();
+          value = VM_TypeReference.findOrCreate((Class)jdkObject).peekType();
           if (value == null) {
              throw new Error("Failed to populate Class.type for " + jdkObject);
           }
@@ -2195,7 +2195,7 @@ public class BootImageWriter extends BootImageWriterMessages
       if(rvmFieldName.equals("constructor")) {
         // fill in this VM_Method field
         String typeName = "L" + cons.getDeclaringClass().getName().replace('.','/') + ";";
-        VM_Type type = VM_TypeReference.findOrCreate(typeName).peekResolvedType();
+        VM_Type type = VM_TypeReference.findOrCreate(typeName).peekType();
         if (type == null) {
           throw new Error("Failed to find type for Constructor.constructor: " + cons + " " + typeName);
         }

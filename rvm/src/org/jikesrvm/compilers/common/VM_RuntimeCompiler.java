@@ -260,7 +260,7 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
 
     if (VM.BuildForAdaptiveSystem) {
       // Get the opt's report
-      VM_Type theType = VM_TypeReference.OPT_OptimizationPlanner.peekResolvedType();
+      VM_Type theType = VM_TypeReference.OPT_OptimizationPlanner.peekType();
       if (theType != null && theType.asClass().isInitialized()) {
         OPT_OptimizationPlanner.generateOptimizingCompilerSubsystemReport(explain);
       } else {

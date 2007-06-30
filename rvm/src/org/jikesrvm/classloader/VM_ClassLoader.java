@@ -254,7 +254,7 @@ public class VM_ClassLoader implements VM_Constants, VM_ClassLoaderConstants {
         VM.sysWriteln("loading \"" + tRef.getName() + "\" with " + classloader);
       }
       VM_Class ans = VM_Class.readClass(tRef, new DataInputStream(is));
-      tRef.setResolvedType(ans);
+      tRef.setType(ans);
       return ans;
     } catch (IOException e) {
       ClassFormatError cfe = new ClassFormatError(e.getMessage());

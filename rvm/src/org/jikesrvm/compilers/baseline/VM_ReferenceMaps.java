@@ -377,7 +377,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants {
 
   @Interruptible
   public int size() {
-    int size = VM_TypeReference.VM_ReferenceMaps.peekResolvedType().asClass().getInstanceSize();
+    int size = VM_TypeReference.VM_ReferenceMaps.peekType().asClass().getInstanceSize();
     if (MCSites != null) size += VM_Array.IntArray.getInstanceSize(MCSites.length);
     if (referenceMaps != null) size += VM_Array.ByteArray.getInstanceSize(referenceMaps.length);
     if (jsrInfo != null && jsrInfo.unusualReferenceMaps != null) {

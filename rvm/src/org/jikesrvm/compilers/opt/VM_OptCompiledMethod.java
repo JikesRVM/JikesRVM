@@ -223,7 +223,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
 
   @Interruptible
   public int size() {
-    int size = VM_TypeReference.VM_ExceptionTable.peekResolvedType().asClass().getInstanceSize();
+    int size = VM_TypeReference.VM_ExceptionTable.peekType().asClass().getInstanceSize();
     size += _mcMap.size();
     if (eTable != null) size += VM_Array.IntArray.getInstanceSize(eTable.length);
     if (patchMap != null) size += VM_Array.IntArray.getInstanceSize(patchMap.length);

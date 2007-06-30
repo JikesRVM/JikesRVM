@@ -306,7 +306,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     if (!tr.isPrimitiveType()) {
       return JBC_areturn;
     } else {
-      VM_Primitive pt = (VM_Primitive) tr.peekResolvedType();
+      VM_Primitive pt = (VM_Primitive) tr.peekType();
       if ((pt == VM_Type.BooleanType) ||
           (pt == VM_Type.ByteType) ||
           (pt == VM_Type.ShortType) ||

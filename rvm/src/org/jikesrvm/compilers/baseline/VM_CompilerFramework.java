@@ -1575,7 +1575,7 @@ public abstract class VM_CompilerFramework
           // Forbidden from uninterruptible code as new causes calls into MMTk
           // that are interruptible
           if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new ", typeRef, bcodes.index());
-          VM_Type type = typeRef.peekResolvedType();
+          VM_Type type = typeRef.peekType();
           if (type != null && (type.isInitialized() || type.isInBootImage())) {
             emit_resolved_new(type.asClass());
           } else {
@@ -1617,11 +1617,11 @@ public abstract class VM_CompilerFramework
 
           // We can do early resolution of the array type if the element type
           // is already initialized.
-          VM_Array array = (VM_Array) arrayRef.peekResolvedType();
+          VM_Array array = (VM_Array) arrayRef.peekType();
           if (array != null &&
               !(array.isInitialized() || array.isInBootImage()) &&
               VM_Type.JavaLangObjectType.isInstantiated()) {
-            VM_Type elementType = elementTypeRef.peekResolvedType();
+            VM_Type elementType = elementTypeRef.peekType();
             if (elementType != null && (elementType.isInitialized() || elementType.isInBootImage())) {
               array.resolve();
               array.instantiate();
@@ -1654,7 +1654,7 @@ public abstract class VM_CompilerFramework
         case JBC_checkcast: {
           VM_TypeReference typeRef = bcodes.getTypeReference();
           if (shouldPrint) asm.noteBytecode(biStart, "checkcast", typeRef);
-          VM_Type type = typeRef.peekResolvedType();
+          VM_Type type = typeRef.peekType();
           if (type != null) {
             if (type.isClassType()) {
               if (type.asClass().isFinal()) {
@@ -1686,7 +1686,7 @@ public abstract class VM_CompilerFramework
         case JBC_instanceof: {
           VM_TypeReference typeRef = bcodes.getTypeReference();
           if (shouldPrint) asm.noteBytecode(biStart, "instanceof", typeRef);
-          VM_Type type = typeRef.peekResolvedType();
+          VM_Type type = typeRef.peekType();
           if (type != null) {
             if (type.isClassType()) {
               if (type.asClass().isFinal()) {

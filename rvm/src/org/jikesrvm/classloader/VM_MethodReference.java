@@ -129,7 +129,7 @@ public final class VM_MethodReference extends VM_MemberReference {
    * method, return null if the method cannot be resolved without classloading.
    */
   public synchronized VM_Method resolveInvokeSpecial() {
-    VM_Class thisClass = (VM_Class) type.peekResolvedType();
+    VM_Class thisClass = (VM_Class) type.peekType();
     if (thisClass == null && name != VM_ClassLoader.StandardObjectInitializerMethodName) {
       thisClass = (VM_Class) type.resolve();
       /* Can't fail to resolve thisClass; we're at compile time doing
@@ -168,7 +168,7 @@ public final class VM_MethodReference extends VM_MemberReference {
     if (resolvedMember != null) return resolvedMember;
 
     // Hasn't been resolved yet. Try to do it now without triggering class loading.
-    VM_Class declaringClass = (VM_Class) type.peekResolvedType();
+    VM_Class declaringClass = (VM_Class) type.peekType();
     if (declaringClass == null) return null;
     return resolveInternal(declaringClass);
   }
@@ -202,7 +202,7 @@ public final class VM_MethodReference extends VM_MemberReference {
   public boolean isMiranda() {
 
     // Hasn't been resolved yet. Try to do it now without triggering class loading.
-    VM_Class declaringClass = (VM_Class) type.peekResolvedType();
+    VM_Class declaringClass = (VM_Class) type.peekType();
     if (declaringClass == null) { return false; }
 
     if (!declaringClass.isResolved()) {
@@ -300,7 +300,7 @@ public final class VM_MethodReference extends VM_MemberReference {
     if (resolvedMember != null) return resolvedMember;
 
     // Hasn't been resolved yet. Try to do it now.
-    VM_Class declaringClass = (VM_Class) type.peekResolvedType();
+    VM_Class declaringClass = (VM_Class) type.peekType();
     if (declaringClass == null) return null;
     if (!declaringClass.isResolved()) {
       declaringClass.resolve();

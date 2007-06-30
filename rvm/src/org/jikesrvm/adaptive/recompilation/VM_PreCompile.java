@@ -65,7 +65,7 @@ public class VM_PreCompile implements VM_Callbacks.StartupMonitor {
 
       VM_TypeReference tRef =
           VM_TypeReference.findOrCreate(VM_ClassLoader.getApplicationClassLoader(), value.getClassName());
-      VM_Class cls = (VM_Class) tRef.peekResolvedType();
+      VM_Class cls = (VM_Class) tRef.peekType();
       if (cls == null) {
         try {
           cls = tRef.resolve().asClass();

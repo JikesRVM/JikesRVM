@@ -331,7 +331,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase {
           OPT_RegisterOperand lval = (OPT_RegisterOperand) obj.copy();
           lval.type = TypeCheck.getType(instr).getTypeRef();
           lval.clearDeclaredType();
-          if (lval.type.isResolved() && lval.type.isClassType() && lval.type.peekResolvedType().asClass().isFinal()) {
+          if (lval.type.isLoaded() && lval.type.isClassType() && lval.type.peekType().asClass().isFinal()) {
             lval.setPreciseType();
           } else {
             lval.clearPreciseType();

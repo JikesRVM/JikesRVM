@@ -362,7 +362,7 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod implement
   private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_BaselineCompiledMethod.class);
 
   public int size() {
-    int size = TYPE.peekResolvedType().asClass().getInstanceSize();
+    int size = TYPE.peekType().asClass().getInstanceSize();
     if (bytecodeMap != null) size += VM_Array.ByteArray.getInstanceSize(bytecodeMap.length);
     if (eTable != null) size += VM_Array.IntArray.getInstanceSize(eTable.length);
     if (referenceMaps != null) size += referenceMaps.size();

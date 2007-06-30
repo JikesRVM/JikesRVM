@@ -69,7 +69,7 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
    * </ul>
    */
   private static boolean isCandidate(VM_TypeReference tref) {
-    VM_Type t = tref.peekResolvedType();
+    VM_Type t = tref.peekType();
     if (t == null) return false;
     if (t.isPrimitiveType()) {
       return false;

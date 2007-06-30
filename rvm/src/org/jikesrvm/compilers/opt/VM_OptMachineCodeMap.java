@@ -670,7 +670,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants, OPT_Constants {
    * Total bytes of machine code maps
    */
   int size() {
-    int size = TYPE.peekResolvedType().asClass().getInstanceSize();
+    int size = TYPE.peekType().asClass().getInstanceSize();
     if (MCInformation != null) size += VM_Array.IntArray.getInstanceSize(MCInformation.length);
     if (inlineEncoding != null) size += VM_Array.IntArray.getInstanceSize(inlineEncoding.length);
     if (gcMaps != null) size += VM_Array.IntArray.getInstanceSize(gcMaps.length);

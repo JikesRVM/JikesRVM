@@ -116,7 +116,7 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
     if (resolvedMember != null) return resolvedMember;
 
     // Hasn't been resolved yet. Try to do it now without triggering class loading.
-    VM_Class declaringClass = (VM_Class) type.peekResolvedType();
+    VM_Class declaringClass = (VM_Class) type.peekType();
     if (declaringClass == null) return null;
     return resolveInternal(declaringClass);
   }

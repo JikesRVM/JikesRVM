@@ -1747,7 +1747,7 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
     boolean foundCyclic = false;
     for (VM_Field instanceField : instanceFields) {
       VM_TypeReference ft = instanceField.getType();
-      if (!ft.isResolved() || !ft.peekResolvedType().isResolved() || !ft.peekResolvedType().isAcyclicReference()) {
+      if (!ft.isResolved() || !ft.peekType().isAcyclicReference()) {
         foundCyclic = true;
         break;
       }
@@ -2289,7 +2289,7 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
                      baInitMemRef.resolveMember().getDeclaringClass(), // superClass
                      new VM_Class[]{annotationInterface}, // declaredInterfaces
                      annotationFields, annotationMethods, null, null, null, null, null, null, null, null);
-    annotationClass.setResolvedType(klass);
+    annotationClass.setType(klass);
     return klass;
   }
 
