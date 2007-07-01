@@ -4134,10 +4134,10 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
             popLong(T2, T1);                      // pop newvalue low and high
             popAddr(T0);                          // pop base
             if (VM.BuildFor32Addr) {
-              asm.emitSTWX(T2, 0, T0);             // *(base) = newvalue low
-              asm.emitSTWX(T1, BYTES_IN_INT, T0);  // *(base+4) = newvalue high
+              asm.emitSTW(T2, 0, T0);             // *(base) = newvalue low
+              asm.emitSTW(T1, BYTES_IN_INT, T0);  // *(base+4) = newvalue high
             } else {
-              asm.emitSTDX(T1, 0, T0);           // *(base) = newvalue
+              asm.emitSTD(T1, 0, T0);           // *(base) = newvalue
             }
           } else {
             popInt(T1);                           // pop offset
