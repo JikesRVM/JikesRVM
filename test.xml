@@ -364,6 +364,10 @@
       <arg value="${cattrack.upload.incoming.dir}/${local.hostname}/${archive.filename}.gz_tmp"/>
       <arg value="${cattrack.upload.incoming.dir}/${local.hostname}/${archive.filename}.gz"/>
     </exec>
+    <exec executable="ssh" failonerror="true">
+      <arg value="${cattrack.upload.account}"/>
+      <arg value="cd ~/cattrack &amp;&amp; ./script/runner -e production &quot;TestRunImporter.process_incoming_test_runs(true)&quot;"/>
+    </exec>
   </target>
 
   <!-- **************************************************************************** -->
