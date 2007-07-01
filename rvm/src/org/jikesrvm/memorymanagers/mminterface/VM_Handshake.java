@@ -65,8 +65,7 @@ public class VM_Handshake {
    */
   @LogicallyUninterruptible
   public void requestAndAwaitCompletion(int why) {
-    if (request()) {
-      gcTrigger = why;
+    if (request(why)) {
       if (verbose >= 1) VM.sysWriteln("GC Message: VM_Handshake.requestAndAwaitCompletion - yielding");
       /* allow a gc thread to run */
       VM_Thread.yield();
@@ -82,8 +81,8 @@ public class VM_Handshake {
    * this call at an otherwise unsafe point.
    */
   @Uninterruptible
-  public void requestAndContinue() {
-    request();
+  public void requestAndContinue(int why) {
+    request(why);
   }
 
   @Uninterruptible
@@ -229,7 +228,7 @@ public class VM_Handshake {
    * @return true if the completion flag is not already set.
    */
   @Uninterruptible
-  private boolean request() {
+  private boolean request(int why) {
     lock.acquire();
     if (completionFlag) {
       if (verbose >= 1) {
@@ -238,6 +237,7 @@ public class VM_Handshake {
       lock.release();
       return false;
     }
+    if (why > gcTrigger) gcTrigger = why;
     if (requestFlag) {
       if (verbose >= 1) {
         VM.sysWriteln("GC Message: mutator: already in progress");

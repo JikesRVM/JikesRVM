@@ -303,8 +303,9 @@ public abstract class Plan implements Constants {
    * @return True if we have run out of heap space.
    */
   public final boolean lastCollectionFailed() {
-    return getPagesAvail() < getHeapFullThreshold() ||
-           getPagesAvail() < requiredAtStart;
+    return !userTriggeredCollection && 
+      (getPagesAvail() < getHeapFullThreshold() ||
+       getPagesAvail() < requiredAtStart);
   }
   
   /**
@@ -347,7 +348,7 @@ public abstract class Plan implements Constants {
    */
 
   protected static int requiredAtStart;
-  protected static boolean userTriggeredGC;
+  protected static boolean userTriggeredCollection;
   protected static boolean emergencyCollection;
   protected static boolean awaitingAsyncCollection;
   
@@ -436,8 +437,8 @@ public abstract class Plan implements Constants {
    * A user-triggered GC has been initiated.  By default, do nothing,
    * but this may be overridden.
    */
-  public final void userTriggeredGC() {
-    userTriggeredGC = true;
+  public static void setUserTriggeredCollection(boolean value) {
+    userTriggeredCollection = value;
   }
 
   /****************************************************************************

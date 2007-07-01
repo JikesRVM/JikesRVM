@@ -115,7 +115,6 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
     
     Plan.setCollectionTriggered();
     if (why == EXTERNAL_GC_TRIGGER) {
-      Selected.Plan.get().userTriggeredGC();
       if (Options.verbose.getValue() == 1 || Options.verbose.getValue() == 2)
         VM.sysWrite("[Forced GC]");
     } else {
@@ -187,7 +186,7 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
   public final void triggerAsyncCollection(int why) { 
     Plan.setCollectionTriggered();
     if (Options.verbose.getValue() >= 1) VM.sysWrite("[Async GC]");
-    VM_CollectorThread.asyncCollect(VM_CollectorThread.handshake);
+    VM_CollectorThread.asyncCollect(VM_CollectorThread.handshake, why);
   }
 
   /**

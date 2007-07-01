@@ -258,6 +258,7 @@ public final class VM_CollectorThread extends VM_Thread {
    *
    * @param handshake VM_Handshake for the requested collection
    */
+  @LogicallyUninterruptible
   public static void collect(VM_Handshake handshake, int why) {
     handshake.requestAndAwaitCompletion(why);
   }
@@ -271,8 +272,8 @@ public final class VM_CollectorThread extends VM_Thread {
    * @param handshake VM_Handshake for the requested collection
    */
   @Uninterruptible
-  public static void asyncCollect(VM_Handshake handshake) {
-    handshake.requestAndContinue();
+  public static void asyncCollect(VM_Handshake handshake, int why) {
+    handshake.requestAndContinue(why);
   }
 
   /**
@@ -357,6 +358,11 @@ public final class VM_CollectorThread extends VM_Thread {
       
       if (verbose > 2) VM.sysWriteln("GC Message: VM_CT.run entering first rendezvous - gcOrdinal =", gcOrdinal);
 
+      boolean userTriggered = handshake.gcTrigger == Collection.EXTERNAL_GC_TRIGGER;
+      if (gcOrdinal == 1) {
+        Plan.setUserTriggeredCollection(userTriggered);
+      }
+
       /* wait for other collector threads to arrive or be made
        * non-participants */
       if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run  initializing rendezvous");
@@ -373,7 +379,7 @@ public final class VM_CollectorThread extends VM_Thread {
           long elapsedCycles = VM_Time.cycles() - startCycles;
           HeapGrowthManager.recordGCTime(VM_Time.cyclesToMillis(elapsedCycles));
           if (Selected.Plan.get().lastCollectionFullHeap()) {
-            if (Options.variableSizeHeap.getValue() && handshake.gcTrigger != Collection.EXTERNAL_GC_TRIGGER) {
+            if (Options.variableSizeHeap.getValue() && !userTriggered) { 
               // Don't consider changing the heap size if gc was forced by System.gc()
               HeapGrowthManager.considerHeapSize();
             }

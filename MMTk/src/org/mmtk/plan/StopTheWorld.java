@@ -254,7 +254,6 @@ import org.vmmagic.pragma.*;
         printPostStats();
       }
       Space.clearAllAllocationFailed();
-      userTriggeredGC = false;
       awaitingAsyncCollection = false;
       return;
     }

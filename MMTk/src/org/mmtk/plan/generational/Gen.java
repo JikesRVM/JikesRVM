@@ -192,7 +192,7 @@ import org.vmmagic.unboxed.*;
    * @return True is this GC should be a full heap collection.
    */
   protected boolean requiresFullHeapCollection() {
-    if (userTriggeredGC && Options.fullHeapSystemGC.getValue()) {
+    if (userTriggeredCollection && Options.fullHeapSystemGC.getValue()) {
       return true;
     }
 
