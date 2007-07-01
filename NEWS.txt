@@ -60,13 +60,6 @@ on October 14, 2001,
 *** Methods in VM_Type that duplicated functionality in VM_TypeReference
     now delegate to associated VM_TypeReference.
 
-*** ObjectReference is now classified as an unboxed/primitive type and for
-    all intents and purposes it is treated like other word/Address types
-    except that it can be traced during garbage collection. Conversion of
-    Objects to ObjectReferences must now be explicit or else it will generate
-    an error in the optimizing compiler.
-    <Daniel will comment on this before release>
-
 *** The ability to force a garbage collection after N allocations or at every
     exception delivery has been revived and is controlled by the configuration
     variable config.stress-gc-interval which should be set to non-zero value to
