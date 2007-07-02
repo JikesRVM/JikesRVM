@@ -12,7 +12,7 @@
 	<classpathentry kind="src" path="eclipse/gen-config"/>
 	<classpathentry kind="src" path="eclipse/gen-arch"/>
 	
-	<classpathentry kind="lib" path="@CLASSPATH_JAR@" />
+	<classpathentry kind="lib" path="eclipse/classpath.jar"/>
 
 	<classpathentry kind="output" path="eclipse/bin"/>
 </classpath>
