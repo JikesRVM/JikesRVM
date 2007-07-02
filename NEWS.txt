@@ -39,6 +39,9 @@ on October 14, 2001,
     On ia32-linux, DaCapo performance improved by XXX%, SPECjvm98 by YYY%
     and SPECjbb2005 by ZZZ%.  <Dave will measure>
 
+*** New eclipse-project ant target to make it easy to get up and running
+    in eclipse.
+
 *** As part of the stability drive, many O2 optimizations in the
     optimizing compiler have been moved to O3 (and thus are not enabled by
     default). Despite this, overall performance on ia32-linux has improved
