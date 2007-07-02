@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>JikesRVM @TARGET@ @CONFIG@</name>
+	<name>@TITLE@ @TARGET@ @CONFIG@</name>
 	<comment></comment>
 	<projects>
 	</projects>

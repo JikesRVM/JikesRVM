@@ -1580,6 +1580,7 @@ target.jni-suffix=${target.jni-suffix}
   </target>
 
   <target name="eclipse-project" depends="prepare-source">
+    <property name="eclipse.project.name" value="JikesRVM"/>
     <delete dir="eclipse"/>
     <delete file=".project"/>
     <delete file=".classpath"/>
@@ -1595,6 +1596,7 @@ target.jni-suffix=${target.jni-suffix}
     </copy>
     <copy file="build/eclipse/project.template" tofile=".project">
       <filterset>
+        <filter token="TITLE" value="${eclipse.project.name}"/>
         <filter token="TARGET" value="${target.name}"/>
         <filter token="CONFIG" value="${config.name}"/>
       </filterset>
