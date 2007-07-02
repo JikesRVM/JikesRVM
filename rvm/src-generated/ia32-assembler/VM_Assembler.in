@@ -1776,7 +1776,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
       int miStart = mi;
       setMachineCodes(mi++, (byte) 0x0F);
       setMachineCodes(mi++, (byte) 0xC7);
-      emitSIBRegOperands(base2, index2, scale2, disp2, (byte)0);
+      emitSIBRegOperands(base2, index2, scale2, disp2, (byte)1);
       if (lister != null) lister.RXD(miStart, "CMPXCHG8B", base2, index2, scale2, disp2);
   }
 
