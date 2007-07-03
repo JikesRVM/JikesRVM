@@ -38,12 +38,12 @@ import org.jikesrvm.compilers.opt.ir.OPT_LocationOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_Operand;
 import org.jikesrvm.compilers.opt.ir.OPT_OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.OPT_Operator;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_CAUGHT_EXCEPTION;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_TIME_BASE;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IR_PROLOGUE;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.SET_CAUGHT_EXCEPTION;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.UNINT_BEGIN;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.UNINT_END;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.SET_CAUGHT_EXCEPTION;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_CAUGHT_EXCEPTION;
 import org.jikesrvm.compilers.opt.ir.OPT_Register;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 

@@ -26,7 +26,6 @@ import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterConstants;
 import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 import org.jikesrvm.ArchitectureSpecific.OPT_RegisterRestrictions;
 import org.jikesrvm.ArchitectureSpecific.OPT_StackManager;
-import org.jikesrvm.ArchitectureSpecific.VM_ArchConstants;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.ir.OPT_AddressConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;

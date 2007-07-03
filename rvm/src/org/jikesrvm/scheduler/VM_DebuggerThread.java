@@ -18,8 +18,8 @@ import org.jikesrvm.VM;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_FileSystem;
 import org.jikesrvm.runtime.VM_Magic;
-import org.vmmagic.unboxed.Address;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
 
 /**
  * An interactive debugger that runs inside the virtual machine.

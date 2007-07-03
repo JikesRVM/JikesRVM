@@ -16,7 +16,6 @@ import org.jikesrvm.ArchitectureSpecific.OPT_CallingConvention;
 import org.jikesrvm.ArchitectureSpecific.OPT_ComplexLIR2MIRExpansion;
 import org.jikesrvm.ArchitectureSpecific.OPT_ConvertALUOperators;
 import org.jikesrvm.ArchitectureSpecific.OPT_NormalizeConstants;
-import org.jikesrvm.ArchitectureSpecific.VM_ArchConstants;
 import org.jikesrvm.VM;
 import static org.jikesrvm.VM_SizeConstants.LOG_BYTES_IN_ADDRESS;
 import org.jikesrvm.classloader.VM_Type;

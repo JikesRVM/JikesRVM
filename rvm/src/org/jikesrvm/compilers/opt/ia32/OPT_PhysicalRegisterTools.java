@@ -19,9 +19,9 @@ import org.jikesrvm.compilers.opt.ir.MIR_Move;
 import org.jikesrvm.compilers.opt.ir.OPT_IR;
 import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_FMOV;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOVSS;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOVSD;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOV;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOVSD;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOVSS;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 import org.jikesrvm.ia32.VM_ArchConstants;
 

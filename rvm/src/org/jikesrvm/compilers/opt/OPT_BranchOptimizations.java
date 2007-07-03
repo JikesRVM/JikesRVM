@@ -29,13 +29,13 @@ import org.jikesrvm.compilers.opt.ir.OPT_BranchProfileOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_ConditionOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_IR;
 import org.jikesrvm.compilers.opt.ir.OPT_IRTools;
+import static org.jikesrvm.compilers.opt.ir.OPT_IRTools.CPOS;
 import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
 import org.jikesrvm.compilers.opt.ir.OPT_InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.OPT_IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_Operand;
 import org.jikesrvm.compilers.opt.ir.OPT_OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.OPT_Operator;
-import static org.jikesrvm.compilers.opt.ir.OPT_IRTools.CPOS;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BBEND;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_ADDR;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_INT;
@@ -75,7 +75,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_Register;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.Return;
 import org.jikesrvm.compilers.opt.ir.Unary;
-import org.jikesrvm.ia32.VM_ArchConstants;
 
 /**
  * Perform simple peephole optimizations for branches.

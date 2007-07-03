@@ -15,8 +15,8 @@ package org.jikesrvm.classloader;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.runtime.VM_Statics;
-import org.vmmagic.unboxed.Offset;
 import org.vmmagic.pragma.Inline;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Provides minimal abstraction layer to a stream of bytecodes
