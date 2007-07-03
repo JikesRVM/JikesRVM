@@ -262,7 +262,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
    * Constant fold TIB operations?  Default is true, flip to avoid
    * consuming precious JTOC slots to hold new constant values.
    */
-  public static final boolean CF_TIB = false;
+  public static final boolean CF_TIB = true;
 
   /**
    * Effect of the simplification on Def-Use chains
@@ -3386,28 +3386,17 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
   private static DefUseEffect getObjTib(OPT_Instruction s) {
     if (CF_TIB) {
       OPT_Operand op = GuardedUnary.getVal(s);
-      if (VM.VerifyAssertions && op.isNullConstant()) {
+      if (op.isNullConstant()) {
         // Simplify to an unreachable operand, this instruction is dead code
         // guarded by a nullcheck that should already have been simplified
         OPT_RegisterOperand result = GetField.getClearResult(s);
         Move.mutate(s, OPT_IRTools.getMoveOp(result.getType()), result, new OPT_UnreachableOperand());
         return DefUseEffect.MOVE_FOLDED;
       } else if (op.isConstant()) {
-        try {
-          // NB as the operand is final it must already have been
-          // resolved.
-          VM_Type type = op.getType().resolve();
-          Move.mutate(s, REF_MOVE, GuardedUnary.getClearResult(s), new OPT_TIBConstantOperand(type));
+        final VM_TypeReference typeRef = op.getType();
+        if (typeRef.isResolved()) {
+          Move.mutate(s, REF_MOVE, GuardedUnary.getClearResult(s), new OPT_TIBConstantOperand(op.getType().peekType()));
           return DefUseEffect.MOVE_FOLDED;
-        } catch (NoClassDefFoundError e) {
-          if (VM.runningVM) {
-            // this is unexpected
-            throw e;
-          } else {
-            // Class not found during bootstrap due to chasing a class
-            // only valid in the bootstrap JVM
-            System.out.println("Failed to resolve: " + op.getType() + ": " + e.getMessage());
-          }
         }
       } else {
         OPT_RegisterOperand rop = op.asRegister();
