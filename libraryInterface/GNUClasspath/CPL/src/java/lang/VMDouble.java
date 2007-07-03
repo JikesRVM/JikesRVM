@@ -24,14 +24,9 @@ final class VMDouble {
   }
 
   static long doubleToLongBits(double value) {
-    long val = VM_Magic.doubleAsLongBits(value);
-    long exponent = val & 0x7ff0000000000000L;
-    long mantissa = val & 0x000fffffffffffffL;
-    if (exponent ==  0x7ff0000000000000L && mantissa != 0) {
-      return 0x7ff8000000000000L;
-    } else {
-      return val;
-    }
+    // Check for NaN and return canonical NaN value
+    if (value != value) return 0x7ff8000000000000L;
+    else return VM_Magic.doubleAsLongBits(value);
   }
 
   static long doubleToRawLongBits(double value) {

@@ -36,8 +36,10 @@ public class VM_Math {
 
   /** largest double that can be rounded to an int */
   static final double maxint = 0.5D + 0x7FFFFFFF;
-  /** largest float that can be rounded to an int */
-  static final float maxintF = 0.5F + 0x7FFFFFFF;
+  /** largest float that can be rounded to an int (0x7FFFFFFF) */
+  static final float maxintF = java.lang.Float.intBitsToFloat(0x4F000000);
+  /** largest float that can be rounded to a long (0x7FFFFFFFFFFFFFFF) */
+  static final float maxlongF = java.lang.Float.intBitsToFloat(0x5F000000);
 
   // smallest double that can be rounded to an int
   static final double minint = (double) Integer.MIN_VALUE;

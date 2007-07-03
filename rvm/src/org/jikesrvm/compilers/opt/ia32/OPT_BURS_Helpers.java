@@ -561,7 +561,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
    * @param offset location in JTOC
    * @return created memory operand
    */
-  private OPT_MemoryOperand loadFromJTOC(Offset offset) {
+  static OPT_MemoryOperand loadFromJTOC(Offset offset) {
     OPT_LocationOperand loc = new OPT_LocationOperand(offset);
     OPT_Operand guard = TG();
     return OPT_MemoryOperand.D(VM_Magic.getTocPointer().plus(offset), (byte) 4, loc, guard);

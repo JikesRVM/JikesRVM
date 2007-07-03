@@ -303,21 +303,6 @@ public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElem
           }
           break;
 
-          case FLOAT_2INT_opcode: {
-            if (VM.BuildForIA32 && VM.BuildForSSE2Full) {
-              // TODO: Work out an efficient SSE2 conversion
-              Call.mutate1(s,
-                           SYSCALL,
-                           Unary.getClearResult(s),
-                           null,
-                           OPT_MethodOperand.STATIC(VM_Entrypoints.sysFloatToIntIPField),
-                           Unary.getClearVal(s));
-              OPT_ConvertToLowLevelIR.expandSysCallTarget(s, ir);
-              OPT_CallingConvention.expandSysCall(s, ir);
-            }
-          }
-          break;
-
           case DOUBLE_2INT_opcode: {
             if (VM.BuildForIA32 && VM.BuildForSSE2Full) {
               // TODO: Work out an efficient SSE2 conversion
@@ -334,6 +319,8 @@ public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElem
           break;
           case SYSCALL_opcode:
             OPT_CallingConvention.expandSysCall(s, ir);
+            break;
+          default:
             break;
         }
       }

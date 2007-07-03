@@ -1466,57 +1466,88 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the f2i bytecode
    */
   protected final void emit_f2i() {
-    // TODO: use SSE/x87 operations to do this conversion inline taking care of
-    // the boundary cases that differ between x87 and Java
+    if (SSE2_BASE) {
+      // Set up max int in XMM0
+      asm.emitMOVSS_Reg_RegDisp(XMM0, JTOC, VM_Entrypoints.maxintFloatField.getOffset());
+      // Set up value in XMM1
+      asm.emitMOVSS_Reg_RegInd(XMM1, SP);
+      // if value > maxint or NaN goto fr1; FP0 = value
+      asm.emitUCOMISS_Reg_Reg(XMM0, XMM1);
+      VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LLE);
+      asm.emitCVTTSS2SI_Reg_Reg(T0, XMM1);
+      asm.emitMOV_RegInd_Reg(SP, T0);
+      VM_ForwardReference fr2 = asm.forwardJMP();
+      fr1.resolve(asm);
+      VM_ForwardReference fr3 = asm.forwardJcc(VM_Assembler.PE); // if value == NaN goto fr3
+      asm.emitMOV_RegInd_Imm(SP, 0x7FFFFFFF);
+      VM_ForwardReference fr4 = asm.forwardJMP();
+      fr3.resolve(asm);
+      asm.emitMOV_RegInd_Imm(SP, 0);
+      fr2.resolve(asm);
+      fr4.resolve(asm);
+    } else {
+      // TODO: use SSE/x87 operations to do this conversion inline taking care of
+      // the boundary cases that differ between x87 and Java
 
-    // (1) save RVM nonvolatiles
-    int numNonVols = NONVOLATILE_GPRS.length;
-    Offset off = Offset.fromIntSignExtend(numNonVols * WORDSIZE);
-    for (int i = 0; i < numNonVols; i++) {
-      asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
+      // (1) save RVM nonvolatiles
+      int numNonVols = NONVOLATILE_GPRS.length;
+      Offset off = Offset.fromIntSignExtend(numNonVols * WORDSIZE);
+      for (int i = 0; i < numNonVols; i++) {
+        asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
+      }
+      // (2) Push arg to C function
+      asm.emitPUSH_RegDisp(SP, off);
+      // (3) invoke C function through bootrecord
+      asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
+      asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysFloatToIntIPField.getOffset());
+      // (4) pop argument;
+      asm.emitPOP_Reg(S0);
+      // (5) restore RVM nonvolatiles
+      for (int i = numNonVols - 1; i >= 0; i--) {
+        asm.emitPOP_Reg(NONVOLATILE_GPRS[i]);
+      }
+      // (6) put result on expression stack
+      asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T0);
     }
-    // (2) Push arg to C function
-    asm.emitPUSH_RegDisp(SP, off);
-    // (3) invoke C function through bootrecord
-    asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
-    asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysFloatToIntIPField.getOffset());
-    // (4) pop argument;
-    asm.emitPOP_Reg(S0);
-    // (5) restore RVM nonvolatiles
-    for (int i = numNonVols - 1; i >= 0; i--) {
-      asm.emitPOP_Reg(NONVOLATILE_GPRS[i]);
-    }
-    // (6) put result on expression stack
-    asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T0);
   }
 
   /**
    * Emit code to implement the f2l bytecode
    */
   protected final void emit_f2l() {
-    // TODO: use SSE/x87 operations to do this conversion inline taking care of
-    // the boundary cases that differ between x87 and Java
+	 // TODO: SSE3 has a FISTTP instruction that stores the value with truncation
+    // meaning the FPSCW can be left alone
 
-    // (1) save RVM nonvolatiles
-    int numNonVols = NONVOLATILE_GPRS.length;
-    Offset off = Offset.fromIntSignExtend(numNonVols * WORDSIZE);
-    for (int i = 0; i < numNonVols; i++) {
-      asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
-    }
-    // (2) Push arg to C function
-    asm.emitPUSH_RegDisp(SP, off);
-    // (3) invoke C function through bootrecord
-    asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
-    asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysFloatToLongIPField.getOffset());
-    // (4) pop argument;
-    asm.emitPOP_Reg(S0);
-    // (5) restore RVM nonvolatiles
-    for (int i = numNonVols - 1; i >= 0; i--) {
-      asm.emitPOP_Reg(NONVOLATILE_GPRS[i]);
-    }
-    // (6) put result on expression stack
-    asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T1);
-    asm.emitPUSH_Reg(T0);
+	 // Setup value into FP1
+    asm.emitFLD_Reg_RegInd(FP0, SP);
+    // Setup maxint into FP0
+    asm.emitFLD_Reg_RegDisp(FP0, JTOC, VM_Entrypoints.maxlongFloatField.getOffset());
+    // if value > maxint or NaN goto fr1; FP0 = value
+    asm.emitFUCOMIP_Reg_Reg(FP0, FP1);
+    VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LLE);
+    // Normally the status and control word rounds numbers, but for conversion
+    // to an integer/long value we want truncation. We therefore save the FPSCW,
+    // set it to truncation perform operation then restore
+    asm.emitADD_Reg_Imm(SP, -WORDSIZE);                      // Grow the stack    
+    asm.emitFNSTCW_RegDisp(SP, MINUS_ONE_SLOT);              // [SP-4] = fpscw
+    asm.emitMOVZX_Reg_RegDisp_Word(T0, SP, MINUS_ONE_SLOT);  // EAX = fpscw
+    asm.emitOR_Reg_Imm(T0, 0xC00);                           // EAX = FPSCW in truncate mode
+    asm.emitMOV_RegInd_Reg(SP, T0);                          // [SP] = new fpscw value
+    asm.emitFLDCW_RegInd(SP);                                // Set FPSCW
+    asm.emitFISTP_RegInd_Reg_Quad(SP, FP0);                  // Store 64bit long
+    asm.emitFLDCW_RegDisp(SP, MINUS_ONE_SLOT);               // Restore FPSCW
+    VM_ForwardReference fr2 = asm.forwardJMP();
+    fr1.resolve(asm);
+    asm.emitFSTP_Reg_Reg(FP0, FP0);                          // pop FPU*1
+    VM_ForwardReference fr3 = asm.forwardJcc(VM_Assembler.PE); // if value == NaN goto fr3
+    asm.emitMOV_RegInd_Imm(SP, 0x7FFFFFFF);
+    asm.emitPUSH_Imm(-1);
+    VM_ForwardReference fr4 = asm.forwardJMP();
+    fr3.resolve(asm);
+    asm.emitMOV_RegInd_Imm(SP, 0);
+    asm.emitPUSH_Imm(0);
+    fr2.resolve(asm);
+    fr4.resolve(asm);
   }
 
   /**
@@ -3482,8 +3513,8 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       }
 
       if (methodName == VM_MagicNames.prepareLong
-					|| methodName == VM_MagicNames.loadLong
-					|| methodName == VM_MagicNames.loadDouble) {
+               || methodName == VM_MagicNames.loadLong
+               || methodName == VM_MagicNames.loadDouble) {
 
         if (types.length == 0) {
           // No offset

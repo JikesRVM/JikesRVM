@@ -198,6 +198,7 @@ public class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions
       case IA32_CVTSI2SD_opcode:
       case IA32_CVTSS2SD_opcode:
       case IA32_CVTSS2SI_opcode:
+      case IA32_CVTTSS2SI_opcode:
       case IA32_CVTSI2SS_opcode: {
         OPT_RegisterOperand op = MIR_Unary.getResult(s).asRegister();
         if (op.asRegister().register == r) return true;
