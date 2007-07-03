@@ -143,6 +143,14 @@ public abstract class VM_CompilerFramework
       isUninterruptible = method.isUninterruptible();
       isUnpreemptible = method.isUnpreemptible();
     }
+
+    // Double check logically uninterruptible methods have been annotated as
+    // uninterruptible
+    // TODO: remove logically uninterruptible annotations
+    if (VM.VerifyAssertions && method.hasLogicallyUninterruptibleAnnotation()) {
+      VM._assert(isUninterruptible, "LogicallyUninterruptible but not Uninterruptible method: ",
+        method.toString());
+    }
   }
 
   final int[] getBytecodeMap() {
