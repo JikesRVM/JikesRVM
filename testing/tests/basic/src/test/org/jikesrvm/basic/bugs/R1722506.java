@@ -12,7 +12,11 @@
  */
 package test.org.jikesrvm.basic.bugs;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.RandomAccessFile;
 
 /**
  * [ 1722506 ] dacapo eclipse fails EOF exceptions

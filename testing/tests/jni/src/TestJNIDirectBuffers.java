@@ -10,7 +10,8 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-import java.nio.*;
+
+import java.nio.ByteBuffer;
 
 public class TestJNIDirectBuffers {
 

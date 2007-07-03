@@ -10,7 +10,6 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-import org.jikesrvm.*;
 
 /**
  * Test native method with threads

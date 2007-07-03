@@ -10,9 +10,10 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
+
 import java.io.PrintStream;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.NoInline;
 
 class Exhaust {
 

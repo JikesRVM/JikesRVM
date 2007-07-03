@@ -10,9 +10,10 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-import org.jikesrvm.*;
+
+import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Magic;
-import org.vmmagic.unboxed.*;
+import org.vmmagic.unboxed.Address;
 
 /**
  * Test GC with Native frames on stack

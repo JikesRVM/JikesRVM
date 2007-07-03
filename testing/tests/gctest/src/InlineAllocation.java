@@ -10,9 +10,10 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-import org.jikesrvm.*;
-import org.jikesrvm.classloader.*;
-import java.lang.reflect.*;
+
+import java.lang.reflect.Method;
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_Method;
 
 /**
  * A test to detect regressions in the quality of the optimizing compiler's
