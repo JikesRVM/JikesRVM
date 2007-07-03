@@ -1117,6 +1117,9 @@ public class BootImageWriter extends BootImageWriterMessages
       catch (InterruptedException e){
         throw new Error("Build interrupted", e);
       }
+      if (BootImageWorker.instantiationFailed) {
+        throw new Error("Error during instantiaion");
+      }
 
       if (profile) {
         stopTime = System.currentTimeMillis();
