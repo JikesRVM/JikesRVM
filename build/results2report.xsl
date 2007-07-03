@@ -20,7 +20,7 @@
       <id>
         <xsl:value-of select="@name"/>
       </id>
-      <xsl:copy-of select="revision|time|builds"/>
+      <xsl:copy-of select="revision|time|variant|builds"/>
       <target>
         <parameters>
           <xsl:copy-of select="test-configuration[1]/results[1]/build-parameters/parameter[starts-with(@key,'target.')]"/>

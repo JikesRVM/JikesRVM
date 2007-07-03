@@ -17,6 +17,7 @@
   <import file="${jikesrvm.dir}/build/tasks.xml"/>
 
   <property name="test-run.name" value="pre-commit"/>
+  <property name="test-run.variant" value="${test-run.name}"/>
 
   <property name="test-run.file" value="${jikesrvm.dir}/build/test-runs/${test-run.name}.properties"/>
   <property file="${test-run.file}"/>
@@ -216,6 +217,7 @@
       <![CDATA[<test-run name="${test-run.name}">
   <revision>${svn.revision}</revision>
   <time>${test-run.start.time}</time>
+  <variant>${test-run.variant}</variant>
 ]]></echo>
     <concat destfile="${build.results.dir}/Results.xml" append="true">
       <path path="${build.results.file}"/>
