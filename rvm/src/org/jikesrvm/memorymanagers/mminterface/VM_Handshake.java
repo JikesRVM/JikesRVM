@@ -64,6 +64,7 @@ public class VM_Handshake {
    * the processor until it has completed the collection.
    */
   @LogicallyUninterruptible
+  @Uninterruptible
   public void requestAndAwaitCompletion(int why) {
     if (request(why)) {
       if (verbose >= 1) VM.sysWriteln("GC Message: VM_Handshake.requestAndAwaitCompletion - yielding");
