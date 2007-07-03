@@ -3384,7 +3384,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
   }
 
   private static DefUseEffect getObjTib(OPT_Instruction s) {
-    if (CF_TIB) {
+    if (CF_TIB && false) {
       OPT_Operand op = GuardedUnary.getVal(s);
       if (op.isNullConstant()) {
         // Simplify to an unreachable operand, this instruction is dead code
