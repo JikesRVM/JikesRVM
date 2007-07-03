@@ -15,14 +15,16 @@
                                                     </span>
 				    </div>
 				    <div class="pagesubheading">
-					    This page last changed on Mar 07, 2007 by <font color="#0050B2">pdonald</font>.
+					    This page last changed on Jun 21, 2007 by <font color="#0050B2">pdonald</font>.
 				    </div>
 
 				    <p>The Jikes RVM includes a testing framework for running functional and performance tests and it also includes a number of actual tests. See <a href="External Test Resources.html" title="External Test Resources">External Test Resources</a> for details or downloading prerequisites for the tests. The tests are executed using an Ant build file and produce results that conform to the definition below. The results are aggregated and processed to produce a high level report defining the status of the Jikes RVM.</p>
 
-<p>The testing framework was designed to support continuous and periodical execution of tests. A "<em>test-run</em>" occurs every time the testing framework is invoked. Every "<em>test-run</em>" will execute one or more "<em>test-configuration</em>"s. A "<em>test-configuration</em>" defines a particular build "<em>configuration</em>" (See <a href="Configuring the RVM.html" title="Configuring the RVM">Configuring the RVM</a> for details) combined with a set of parameters that are passed to the RVM during the execution of the tests. i.e. a particular "<em>test-configuration</em>" may pass parameters such as <tt>&#45;X:aos:enable_recompilation=false &#45;X:aos:initial_compiler=opt &#45;X:opt:O1</tt> to test the Level 1 Opt compiler optimizations.</p>
+<p>The testing framework was designed to support continuous and periodical execution of tests. A "<em>test-run</em>" occurs every time the testing framework is invoked. Every "<em>test-run</em>" will execute one or more "<em>test-configuration</em>"s. A "<em>test-configuration</em>" defines a particular build "<em>configuration</em>" (See <a href="Configuring the RVM.html" title="Configuring the RVM">Configuring the RVM</a> for details) combined with a set of parameters that are passed to the RVM during the execution of the tests. i.e. a particular "<em>test-configuration</em>" may pass parameters such as <tt>&#45;X:aos:enable_recompilation=false &#45;X:aos:initial_compiler=opt &#45;X:irc:O1</tt> to test the Level 1 Opt compiler optimizations.</p>
 
 <p>Every "<em>test-configuration</em>" will execute one or more "<em>group</em>"s of tests. Every "<em>group</em>" is defined by a Ant build.xml file in a separate sub-directory of <tt>$RVM_ROOT/testing/tests</tt>. Each "<em>test</em>" has a number of input parameters such as the classname to execute, the parameters to pass to the RVM or to the program. The "<em>test</em>" records a number of values such as execution time, exit code, result, standard output etc. and may also record a number of statistics if it is a performance test.</p>
+
+<p>The project includes several different types of _test run_s and the description of each the test runs and their purpose is given in <a href="Test Run Descriptions.html" title="Test Run Descriptions">Test Run Descriptions</a>.</p>
 
 <h2><a name="TestingtheRVM-AntProperties"></a>Ant Properties</h2>
 
@@ -36,8 +38,8 @@
 </tr>
 <tr>
 <td class='confluenceTd'> test-run.name </td>
-<td class='confluenceTd'> The name of the <em>test-run</em>. The name should match one of the files located in the <a href="http://svn.sourceforge.net/viewvc/jikesrvm/rvmroot/trunk/build/test-runs/" title="Visit page outside Confluence">build/test-runs/</a> directory minus the '.properties' extension. </td>
-<td class='confluenceTd'> sanity </td>
+<td class='confluenceTd'> The name of the <em>test-run</em>. The name should match one of the files located in the <a href="http://svn.sourceforge.net/viewvc/jikesrvm/rvmroot/trunk/build/test-runs/">build/test-runs/</a> directory minus the '.properties' extension. </td>
+<td class='confluenceTd'> pre-commit </td>
 </tr>
 <tr>
 <td class='confluenceTd'> results.dir </td>
@@ -91,10 +93,9 @@
 </tr>
 </tbody></table>
 
-
 <h2><a name="TestingtheRVM-Definingatest%5Crun"></a>Defining a test&#45;run</h2>
 
-<p>A <em>test-run</em> is defined by a number of properties located in a property file located in the <a href="http://svn.sourceforge.net/viewvc/jikesrvm/rvmroot/trunk/build/test-runs/" title="Visit page outside Confluence">build/test-runs/</a> directory. </p>
+<p>A <em>test-run</em> is defined by a number of properties located in a property file located in the <a href="http://svn.sourceforge.net/viewvc/jikesrvm/rvmroot/trunk/build/test-runs/">build/test-runs/</a> directory. </p>
 
 <p>The property <em>test.configs</em> is a whitespace separated list of <em>test&#45;configuration</em> "tags". Every tag uniquely identifies a particular <em>test&#45;configuration</em>. Every <em>test&#45;configuration</em> is defined by a number of properties in the property file that are prefixed with <em>test.config.&lt;tag&gt;.</em> and the following table defines the possible properties.</p>
 
@@ -152,66 +153,92 @@ test.config.prototype-opt.tests=${test.set}
 </pre>
 </div></div>
 
-<h3><a name="TestingtheRVM-Excludingtests"></a>Excluding tests</h3>
+<h3><a name="TestingtheRVM-TestSpecificParameters"></a>Test Specific Parameters</h3>
 
-<p>Sometimes it is desirable to exclude tests. The test exclusion may occur as the test is known to fail on a particular target platform, build configuration or maybe it just takes too long. To exclude a test a property must be specified either in .ant.properties or in the test-run properties file. The following patterns may be used to exclude particular tests.</p>
+<p>Each test can have additional parameters specified that will be used by the test infrastructure when starting the Jikes RVM instance to execute the test. These additional parameters are described in the following table.</p>
 
 <table class='confluenceTable'><tbody>
 <tr>
-<th class='confluenceTh'> Property </th>
+<th class='confluenceTh'> Parameter </th>
 <th class='confluenceTh'> Description </th>
+<th class='confluenceTh'> Default Property </th>
+<th class='confluenceTh'> Default Value</th>
 </tr>
 <tr>
-<td class='confluenceTd'> exclude.test.&lt;group&gt;.&lt;test&gt; </td>
-<td class='confluenceTd'> Exclude single test.</td>
+<td class='confluenceTd'> initial.heapsize </td>
+<td class='confluenceTd'> The initial size of the heap. </td>
+<td class='confluenceTd'> ${test.initial.heapsize} </td>
+<td class='confluenceTd'> ${config.default-heapsize.initial}</td>
 </tr>
 <tr>
-<td class='confluenceTd'> exclude.test.&lt;build-configuration&gt;.&lt;group&gt;.&lt;test&gt; </td>
-<td class='confluenceTd'> Exclude single test in particular build configuration.</td>
+<td class='confluenceTd'> max.heapsize </td>
+<td class='confluenceTd'> The initial size of the heap. </td>
+<td class='confluenceTd'> ${test.max.heapsize} </td>
+<td class='confluenceTd'> ${config.default-heapsize.maximum}</td>
 </tr>
 <tr>
-<td class='confluenceTd'> exclude.test.&lt;build-target&gt;.&lt;group&gt;.&lt;test&gt; </td>
-<td class='confluenceTd'> Exclude single test on particular target platform.</td>
+<td class='confluenceTd'> max.opt.level </td>
+<td class='confluenceTd'> The maximum optimization level for the tests or an empty string to use the Jikes RVM default. </td>
+<td class='confluenceTd'> ${test.max.opt.level} </td>
+<td class='confluenceTd'> ""</td>
 </tr>
 <tr>
-<td class='confluenceTd'> exclude.test.&lt;build-configuration&gt;.&lt;build-target&gt;.&lt;group&gt;.&lt;test&gt; </td>
-<td class='confluenceTd'> Exclude single test in particular build configuration on particular target platform.</td>
+<td class='confluenceTd'> processors </td>
+<td class='confluenceTd'> The number of processors to use for the test or 'all' to use all available processors. </td>
+<td class='confluenceTd'>${test.processors} </td>
+<td class='confluenceTd'> all</td>
 </tr>
 <tr>
-<td class='confluenceTd'> exclude.group.&lt;group&gt; </td>
-<td class='confluenceTd'> Exclude test group.</td>
+<td class='confluenceTd'> time.limit </td>
+<td class='confluenceTd'> The time limit for the test in seconds. After the time limit expires the Jikes RVM instance will be forcefully terminated. </td>
+<td class='confluenceTd'> ${test.time.limit} </td>
+<td class='confluenceTd'> 1000</td>
 </tr>
 <tr>
-<td class='confluenceTd'> exclude.group.&lt;build-configuration&gt;.&lt;group&gt; </td>
-<td class='confluenceTd'> Exclude test group in particular build configuration.</td>
+<td class='confluenceTd'> class.path </td>
+<td class='confluenceTd'> The class path for the test. </td>
+<td class='confluenceTd'> ${test.class.path} </td>
+<td class='confluenceTd'> &nbsp;</td>
 </tr>
 <tr>
-<td class='confluenceTd'> exclude.group.&lt;build-target&gt;.&lt;group&gt; </td>
-<td class='confluenceTd'> Exclude test group on particular target platform.</td>
+<td class='confluenceTd'> extra.args </td>
+<td class='confluenceTd'> Extra arguments that are passed to the RVM. </td>
+<td class='confluenceTd'> ${test.rvm.extra.args} </td>
+<td class='confluenceTd'> ""</td>
 </tr>
 <tr>
-<td class='confluenceTd'> exclude.group.&lt;build-configuration&gt;.&lt;build-target&gt;.&lt;group&gt; </td>
-<td class='confluenceTd'> Exclude test group in particular build configuration on particular target platform.</td>
-</tr>
-<tr>
-<td class='confluenceTd'> exclude.&lt;build-configuration&gt; </td>
-<td class='confluenceTd'> Exclude all tests in particular build configuration.</td>
-</tr>
-<tr>
-<td class='confluenceTd'> exclude.&lt;build-target&gt; </td>
-<td class='confluenceTd'> Exclude all tests on particular target platform.</td>
-</tr>
-<tr>
-<td class='confluenceTd'> exclude.&lt;build-configuration&gt;.&lt;build-target&gt; </td>
-<td class='confluenceTd'> Exclude all tests in particular build configuration on particular target platform.</td>
+<td class='confluenceTd'> exclude </td>
+<td class='confluenceTd'> If set to true, the test will be not be executed. </td>
+<td class='confluenceTd'>&nbsp;</td>
+<td class='confluenceTd'> ""</td>
 </tr>
 </tbody></table>
 
-<p>At the time of writing the Jikes RVM does not support suspending and resuming threads and as a result the test named "TestSuspend" in the "basic" group will always fail. Rather than being notified of this failure we can disable the test by adding a property such as "exclude.test.basic.TestSuspend=true" into test&#45;run properties file.</p>
+<p>To determine the value of a test specific parameters, the following mechanism is used;</p>
+<ol>
+	<li>Search for one of the the following ant properties, in order.
+	<ol>
+		<li>test.config.&lt;build-configuration&gt;.&lt;group&gt;.&lt;test&gt;.&lt;parameter&gt;</li>
+		<li>test.config.&lt;build-configuration&gt;.&lt;group&gt;.&lt;parameter&gt;</li>
+		<li>test.config.&lt;build-configuration&gt;.&lt;parameter&gt;</li>
+		<li>test.config.&lt;build-configuration&gt;.&lt;group&gt;.&lt;test&gt;.&lt;parameter&gt;</li>
+		<li>test.config.&lt;build-configuration&gt;.&lt;group&gt;.&lt;parameter&gt;</li>
+	</ol>
+	</li>
+	<li>If none of the above properties are defined then use the parameter that was passed to the &lt;rvm&gt; macro in the ant build file.</li>
+	<li>If no parameter was passed to the &lt;rvm&gt; macro then use the default value which is stored in the "Default Property" as specified in the above table. By default the value of the "Default Property" is specified as the "Default Value" in the above table, however a particular build file may specify a different "Default Value".</li>
+</ol>
+
+
+<h3><a name="TestingtheRVM-Excludingtests"></a>Excluding tests</h3>
+
+<p>Sometimes it is desirable to exclude tests. The test exclusion may occur as the test is known to fail on a particular target platform, build configuration or maybe it just takes too long. To exclude a test, you must define the test specific parameter "exclude" to true either in .ant.properties or in the test-run properties file. </p>
+
+<p>i.e. At the time of writing the Jikes RVM does not support suspending and resuming threads and as a result the test named "TestSuspend" in the "basic" group will always fail. Rather than being notified of this failure we can disable the test by adding a property such as "test.config.basic.TestSuspend.exclude=true" into test&#45;run properties file.</p>
 
 <h2><a name="TestingtheRVM-Executingatestrun"></a>Executing a test-run</h2>
 
-<p>The tests are executed by the Ant driver script <em>test.xml</em>. The <em>test-run.name</em> property defines the particular test-run to execute and if not set defaults to "<em>sanity</em>". The command <tt>ant &#45;f test.xml -Dtest&#45;run.name=simple</tt> executes the test&#45;run defined in <em>build/test-runs/simple.properties</em>. When this command completes you can point your browser at <tt>target/test-driver/results/Report.html</tt> to get an overview on test run or at <tt>${results.dir}/tests/${test-run.name}/Report.xml</tt> for an xml document describing test results.</p>
+<p>The tests are executed by the Ant driver script <em>test.xml</em>. The <em>test-run.name</em> property defines the particular test-run to execute and if not set defaults to "<em>sanity</em>". The command <tt>ant &#45;f test.xml -Dtest&#45;run.name=simple</tt> executes the test&#45;run defined in <em>build/test-runs/simple.properties</em>. When this command completes you can point your browser at <tt>${results.dir}/tests/${test-run.name}/Report.html</tt> to get an overview on test run or at <tt>${results.dir}/tests/${test-run.name}/Report.xml</tt> for an xml document describing test results.</p>
 
 				    
                     			    </td>
@@ -222,7 +249,7 @@ test.config.prototype-opt.tests=${test.set}
 				<td height="12" background="border/border_bottom.gif"><img src="border/spacer.gif" width="1" height="1" border="0"/></td>
 			</tr>
 		    <tr>
-			    <td align="center"><font color="grey">Document generated by Confluence on Mar 15, 2007 09:56</font></td>
+			    <td align="center"><font color="grey">Document generated by Confluence on Jul 25, 2007 12:31</font></td>
 		    </tr>
 	    </table>
     </body>
