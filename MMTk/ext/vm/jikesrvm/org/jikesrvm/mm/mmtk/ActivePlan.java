@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2004
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm.mm.mmtk;
 
@@ -21,43 +24,38 @@ import org.vmmagic.pragma.*;
 /**
  * This class contains interfaces to access the current plan, plan local and
  * plan constraints instances.
- *
- *
- * @author Daniel Frampton 
- * @author Robin Garner 
- * @author Steve Blackburn
  */
 @Uninterruptible public final class ActivePlan extends org.mmtk.vm.ActivePlan {
 
   /* Collector and Mutator Context Management */
   private static final int MAX_CONTEXTS = 100;
   private static Selected.Collector[] collectors = new Selected.Collector[MAX_CONTEXTS];
-  private static int collectorCount = 0; // Number of collector instances 
+  private static int collectorCount = 0; // Number of collector instances
   private static Selected.Mutator[] mutators = new Selected.Mutator[MAX_CONTEXTS];
-  private static int mutatorCount = 0; // Number of mutator instances 
+  private static int mutatorCount = 0; // Number of mutator instances
   private static SynchronizedCounter mutatorCounter = new SynchronizedCounter();
 
   /** @return The active Plan instance. */
   @Inline
-  public Plan global() { 
+  public Plan global() {
     return Selected.Plan.get();
-  } 
-  
+  }
+
   /** @return The active PlanConstraints instance. */
   @Inline
-  public PlanConstraints constraints() { 
+  public PlanConstraints constraints() {
     return Selected.Constraints.get();
-  } 
-  
+  }
+
   /** @return The active CollectorContext instance. */
   @Inline
-  public CollectorContext collector() { 
+  public CollectorContext collector() {
     return Selected.Collector.get();
   }
-  
+
   /** @return The active MutatorContext instance. */
   @Inline
-  public MutatorContext mutator() { 
+  public MutatorContext mutator() {
     return Selected.Mutator.get();
   }
 
@@ -65,37 +63,37 @@ import org.vmmagic.pragma.*;
   public static void flushRememberedSets() {
      Selected.Mutator.get().flushRememberedSets();
   }
-    
+
   /**
    * Return the CollectorContext instance given its unique identifier.
    *
    * @param id The identifier of the CollectorContext to return
    * @return The specified CollectorContext
-   */ 
+   */
   @Inline
-  public CollectorContext collector(int id) { 
+  public CollectorContext collector(int id) {
     return collectors[id];
   }
-  
+
   /**
    * Return the MutatorContext instance given its unique identifier.
-   * 
+   *
    * @param id The identifier of the MutatorContext to return
    * @return The specified MutatorContext
-   */ 
+   */
   @Inline
-  public MutatorContext mutator(int id) { 
+  public MutatorContext mutator(int id) {
     return mutators[id];
   }
 
   /**
    * Return the Selected.Collector instance given its unique identifier.
-   * 
+   *
    * @param id The identifier of the Selected.Collector to return
    * @return The specified Selected.Collector
-   */ 
+   */
   @Inline
-  public Selected.Collector selectedCollector(int id) { 
+  public Selected.Collector selectedCollector(int id) {
     return collectors[id];
   }
   /**
@@ -105,17 +103,17 @@ import org.vmmagic.pragma.*;
    * @return The specified Selected.Mutator
    */
   @Inline
-  public Selected.Mutator selectedMutator(int id) { 
+  public Selected.Mutator selectedMutator(int id) {
     return mutators[id];
   }
 
-  
+
   /** @return The number of registered CollectorContext instances. */
   @Inline
-  public int collectorCount() { 
+  public int collectorCount() {
     return collectorCount;
   }
-   
+
   /** @return The number of registered MutatorContext instances. */
   public int mutatorCount() {
     return mutatorCount;
@@ -125,11 +123,11 @@ import org.vmmagic.pragma.*;
   public void resetMutatorIterator() {
     mutatorCounter.reset();
   }
- 
-  /** 
+
+  /**
    * Return the next <code>MutatorContext</code> in a
    * synchronized iteration of all mutators.
-   *  
+   *
    * @return The next <code>MutatorContext</code> in a
    *  synchronized iteration of all mutators, or
    *  <code>null</code> when all mutators have been done.
@@ -137,7 +135,7 @@ import org.vmmagic.pragma.*;
   public MutatorContext getNextMutator() {
     int id = mutatorCounter.increment();
     return id >= mutatorCount ? null : mutators[id];
-  } 
+  }
 
   /**
    * Register a new CollectorContext instance.
@@ -148,11 +146,11 @@ import org.vmmagic.pragma.*;
    * @return The CollectorContext's unique identifier
    */
   @Interruptible
-  public int registerCollector(CollectorContext collector) { 
+  public int registerCollector(CollectorContext collector) {
     collectors[collectorCount] = (Selected.Collector) collector;
     return collectorCount++;
   }
-  
+
   /**
    * Register a new MutatorContext instance.
    *
@@ -162,8 +160,8 @@ import org.vmmagic.pragma.*;
    * @return The MutatorContext's unique identifier
    */
   @Interruptible
-  public int registerMutator(MutatorContext mutator) { 
+  public int registerMutator(MutatorContext mutator) {
     mutators[mutatorCount] = (Selected.Mutator) mutator;
     return mutatorCount++;
-  } 
+  }
 }

@@ -1,23 +1,26 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp 2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-
 package org.jikesrvm.osr;
 
-import org.jikesrvm.*;
-import org.jikesrvm.classloader.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.runtime.VM_Entrypoints;
 
 /**
  * Special invokestatic, with only two possible target
  * OSR_ObjectHolder.getRefAt and OSR_ObjectHolder.cleanRefs
  * indiced by GETREFAT and CLEANREFS.
- * 
- * @author Feng Qian
  */
 
 public class BC_InvokeStatic extends OSR_PseudoBytecode {
@@ -42,37 +45,36 @@ public class BC_InvokeStatic extends OSR_PseudoBytecode {
   public int stackChanges() {
     VM_Method callee = null;
     switch (tid) {
-    case GETREFAT:
-      callee = VM_Entrypoints.osrGetRefAtMethod;
-      break;
-    case CLEANREFS:
-      callee = VM_Entrypoints.osrCleanRefsMethod;
-      break;
-    default:
-      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-      break;
+      case GETREFAT:
+        callee = VM_Entrypoints.osrGetRefAtMethod;
+        break;
+      case CLEANREFS:
+        callee = VM_Entrypoints.osrCleanRefsMethod;
+        break;
+      default:
+        if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+        break;
     }
-  
+
     int psize = callee.getParameterWords();
     int schanges = -psize;
-    
+
     VM_TypeReference rtype = callee.getReturnType();
     byte tcode = rtype.getName().parseForTypeCode();
-    
+
     if (tcode == VoidTypeCode) {
       // do nothing
     } else {
-      if ( (tcode == LongTypeCode) ||
-           (tcode == DoubleTypeCode) ) {
-        schanges ++;
+      if ((tcode == LongTypeCode) || (tcode == DoubleTypeCode)) {
+        schanges++;
       }
-      schanges ++;
+      schanges++;
     }
-    
+
     return schanges;
   }
- 
+
   public String toString() {
-    return "InvokeStatic "+tid;
+    return "InvokeStatic " + tid;
   }
 }

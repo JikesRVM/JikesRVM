@@ -1,10 +1,14 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
- * 
- * (C) Copyright Peter Donald. 2007
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ *
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm.tools.ant;
 
@@ -18,9 +22,6 @@ import org.apache.tools.ant.taskdefs.Property;
 import org.apache.tools.ant.types.RegularExpression;
 import org.apache.tools.ant.util.regexp.Regexp;
 
-/**
- * @author Peter Donald
- */
 public class SelectRegexTask
     extends Task {
 
@@ -54,8 +55,9 @@ public class SelectRegexTask
   }
 
   private byte[] readFully() {
+    FileInputStream inputStream = null;
     try {
-      final FileInputStream inputStream = new FileInputStream(file);
+      inputStream = new FileInputStream(file);
       final int size = (int) file.length();
       final byte[] bytes = new byte[size];
       int count = 0;
@@ -65,6 +67,14 @@ public class SelectRegexTask
       return bytes;
     } catch (IOException ioe) {
       throw new BuildException("Error loading file " + file, ioe, getLocation());
+    } finally {
+      if( null != inputStream ) {
+        try {
+          inputStream.close();
+        } catch (final IOException ioe) {
+          //ignore
+        }
+      }
     }
   }
 

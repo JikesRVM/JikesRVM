@@ -1,13 +1,17 @@
 #!/usr/bin/perl
 #
-# This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
-# The Jikes RVM project is distributed under the Common Public License (CPL).
-# A copy of the license is included in the distribution, and is also
-# available at http://www.opensource.org/licenses/cpl1.0.php
+#  This file is part of the Jikes RVM project (http://jikesrvm.org).
 #
-# (C) Copyright IBM Corp. 2001, 2003
+#  This file is licensed to You under the Common Public License (CPL);
+#  You may not use this file except in compliance with the License. You
+#  may obtain a copy of the License at
 #
+#      http://www.opensource.org/licenses/cpl1.0.php
 #
+#  See the COPYRIGHT.txt file distributed with this work for information
+#  regarding copyright ownership.
+#
+
 # Parse the various nightly sanity logs and produce a html summary.
 #
 # usage: nightlyreport.pl [-x <input xml>|-r <input root>] [-o <outputfile>] [-s <scp target directory>]
@@ -141,7 +145,7 @@ sub gensummary {
   my $rsz = sprintf("%.2fMB", ${$imagesize}{"rmap"}/1024);
   my $tsz = sprintf("%.2fMB", (${$imagesize}{"code"}+${$imagesize}{"data"}+${$imagesize}{"rmap"})/1024);
   print $html "<tr><td align=\"right\">Image size:<td><b>$tsz</b> (code: $csz, data: $dsz, rmap: $rsz)</tr>\n";
-  
+
   my $svnurl = "http://svn.sourceforge.net/viewvc/jikesrvm?view=rev&revision=$svnrevision";
   print $html "<tr><td align=\"right\">Revision:<td><b><a href=\"$svnurl\">$svnrevision</a></b></tr>\n";
   print $html "<tr><td align=\"right\">Checkout at:<td>$svnstamp</tr>\n";
@@ -263,7 +267,7 @@ sub genbuildfailures {
   if ($errnum > 0) {
     print $html "<table columns=\"3\" style=\"border-collapse:collapse;font-weight:normal;\">\n";
     print $html "<tr><td><th>Build</th><th>Synopsis</th></tr>";
-    $errnum = 0;  
+    $errnum = 0;
     for($s = 0; $s <= $#{$sanity}; $s++) {
       my $error = ${$errors}[$s];
       if ($error =~ /FAILED to build/) {
@@ -388,13 +392,13 @@ sub genstacks {
       if (${$stackid}[$err] == $s) {
         my $build = "";
         my $test = "";
-        ($build,$test) = split(/:/, ${$sanity}[$err]);      
+        ($build,$test) = split(/:/, ${$sanity}[$err]);
         print $html "<tr><td><td>$build $test</tr>\n";
       }
     }
     my $stack = ${$stacks}[$s];
     print $html "<tr><td colspan=\"2\"><i>Stack trace:</i></tr>\n";
-    print $html "<tr><td width=\"40\"><td>$stack\n</tr>\n";    
+    print $html "<tr><td width=\"40\"><td>$stack\n</tr>\n";
   }
   print $html "</table>\n";
 }
@@ -425,7 +429,7 @@ sub getxml {
   } else {
     open(XML, "$reportfilename") or die "Could not open $reportfilename";
   }
-  my ($intest, $inbuild, $thistest, $thisbuild, $test, $result, $output, $command, $time, $configuration);
+  my ($intest, $inbuild, $thistest, $thisbuild, $test, $result, $output, $command, $time, $configuration, $testConfiguration, $name, $optlevel);
   $intest = $inbuild = $thistest = $thisbuild = $time = 0;
   while (<XML>) {
     if (/<revision>/) {
@@ -448,17 +452,31 @@ sub getxml {
       $thisbuild++;
       $inbuild = 0;
     } elsif (/<configuration>/) {
-      $intest = 0;
-      ($configuration) = /<configuration>(.+)<\/configuration/;
+#      $intest = 0;
+#      ($configuration) = /<configuration>(.+)<\/configuration/;
+      $_ = <XML>;
+      while (!/<id>/ && !/<parameters>/) { $_ = <XML>; }
+      ($configuration) = /<id>(.+)<\/id>/;
+#      print "<configuration $configuration/>\n";
     } elsif (/<test-configuration>/) {
       $_ = <XML>;
-      while (!/<id>/) { $_ = <XML>; }
-      ($configuration) = /<id>(.+)<\/id>/;
+      while (!/<id>/ && !/<parameters>/) { $_ = <XML>; }
+      ($testConfiguration) = /<id>(.+)<\/id>/;
+#      print "<test-configuration $configuration/>\n";
+    } elsif (/<name>/) {
+      ($name) =  /<name>(.+)<\/name/;
+      ($optlevel) =  /<name>Measure_Compilation_Opt_(.+)<\/name/;
     } elsif (/<test>/) {
       ${$stackidx}[$thistest] = -1;
       $intest = 1;
+      $_ = <XML>;
+#      print "TEST ===> $_";
+#      while (!/<id>/ && !/<parameters>/) { $_ = <XML>; }
+      ($test) = /<id>(.+)<\/id>/;
+#      print "<test $test />\n";
     } elsif (/<\/test>/) {
-      ${$sanity}[$thistest] = "$configuration:$test";
+#      print "---> completed $testConfiguration:$test\n";
+      ${$sanity}[$thistest] = "$testConfiguration:$test";
       ${$ran}++;
       if ($result ne "EXCLUDED") {
 	${$cmd}[${$ran}] = $command;
@@ -469,45 +487,56 @@ sub getxml {
 	  my $errmsg = getxmlerrmsg($result, $time, $output, \$stackid, $stacks);
 	  ${$error}[$thistest] = $errmsg;
 	  ${$stackidx}[$thistest] = $stackid;
-#	  print "$test $configuration $result $errmsg $stackid\n";
+#	  print "$test $testConfiguration $result $errmsg $stackid\n";
 	}
       } else {
 	${$error}[$thistest] = $result;
       }
       $intest = 0;
       $thistest++;
-    } elsif (/<id>/ && $intest) {
-      ($test) = /<id>(.+)<\/id>/;
     } elsif (/<command>/ && $intest) {
       ($command) = /<command>(.+)<\/command>/;
     } elsif (/<time>/ && $intest) {
       ($time) = /<time>(.+)<\/time>/;
     } elsif (/<result>/ && ($intest || $inbuild)) {
       ($result) = /<result>(.+)<\/result>/;
- #     print "$test $configuration $result\n";
+ #     print "$test $testConfiguration $result\n";
+    } elsif (/<output>/ && ($optlevel ne "")) {
+      while (!(/Compilation Subsystem Report/) && !(/<\/output>/)) {
+	$_ = <XML>;
+      }
+      while (!(/<\/output>/)) {
+	${$optdetails}[$optlevel] .= $_;
+	$_ = <XML>;
+      }
     } elsif (/<output>/ && ($intest || $inbuild)) {
       ($output) = /<output>(.+)$/;
       $output .= "\n";
-      $_ = <XML>;
-      while (!(/<\/output>/)) {
-	$output .= "$_\n";
+      if (!(/<\/output>/)) {
 	$_ = <XML>;
+	while (!(/<\/output>/)) {
+	  $output .= "$_\n";
+	  $_ = <XML>;
+	}
       }
-    } elsif ($test eq "ImageSizes" && $configuration eq "production" && /<statistics>/) {
-      $_ = <XML>;
-      while (!(/<\/statistics>/)) {
-	my ($part, $value) = /<statistic key=\"(.+).size\" value=\"(.+)\"/;
-	${$imagesize}{$part} = $value/1024;
+    } elsif ($test eq "ImageSizes") {
+#      print "--->$test $testConfiguration\n";
+      if ($testConfiguration eq "production" && /<statistics>/) {
 	$_ = <XML>;
+	while (!(/<\/statistics>/)) {
+	  my ($part, $value) = /<statistic key=\"(.+).size\" value=\"(.+)\"/;
+	  ${$imagesize}{$part} = $value/1024;
+	  $_ = <XML>;
+	}
       }
-    } elsif ($test eq "SPECjbb2000" && $configuration eq "production" && /<statistics>/) {
+    } elsif ($test eq "SPECjbb2000" && $testConfiguration eq "production" && /<statistics>/) {
       $_ = <XML>;
       while (!(/<\/statistics>/)) {
 	my ($value) = /<statistic key="score" value="(.+)"/;
 	${$perf}{"jbb2000"} = $value;
 	$_ = <XML>;
       }
-    } elsif ($test eq "SPECjvm98" && $configuration eq "production" && /<statistics>/) {
+    } elsif ($test eq "SPECjvm98" && $testConfiguration eq "production_performance" && /<statistics>/) {
      my ($score, $time, $ratio, $bm, $count);
       $_ = <XML>;
       $ratio = $time = -1;
@@ -521,8 +550,8 @@ sub getxml {
 	    ${$perf}{"jvm98-bottomline"} = $value;
 	  }
 	} else {
-	  if ($metric eq "time") { 
-	    $time = $value; 
+	  if ($metric eq "time") {
+	    $time = $value;
 	  } elsif ($metric eq "ratio") {
 	    $ratio = $value;
 	  }
@@ -661,7 +690,7 @@ sub getxmlerrmsg {
   return $error;
 }
 #
-# Dig out the error message and stack trace (if any) for a given 
+# Dig out the error message and stack trace (if any) for a given
 # regression failure
 #
 sub geterrmsg {
@@ -677,7 +706,7 @@ sub geterrmsg {
 }
 
 #
-# Dig out the error message and stack trace (if any) for a given 
+# Dig out the error message and stack trace (if any) for a given
 # build failure
 #
 sub getbuilderr {
@@ -864,7 +893,7 @@ sub printhtmlhdr {
   print $htmlstream "tr\n{\n\tfont-size:          x-small;\n\tfont-family:        verdana, arial, helvetica, sans-serif;\n\tfont-weight:        normal;\n\tcolor:              #000000;\n}\n";
   print $htmlstream "td\n{\n\tfont-size:          x-small;\n\tfont-family:        verdana, arial, helvetica, sans-serif;\n\tfont-weight:        normal;\n\tcolor:              #000000;\n}\n";
   print $htmlstream "</style>\n";
-  print $htmlstream "<body>\n";  
+  print $htmlstream "<body>\n";
 }
 
 #
@@ -874,4 +903,4 @@ sub printhtmlftr {
   my ($htmlstream) = @_;
   print $htmlstream "</body>\n";
 }
- 
+

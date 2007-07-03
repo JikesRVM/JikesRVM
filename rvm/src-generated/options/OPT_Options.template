@@ -1,17 +1,21 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
+package org.jikesrvm.compilers.opt;
 
-package org.jikesrvm.opt;
 import org.jikesrvm.*;
 
 /**
- * Class to handle command-line arguments and options for the 
+ * Class to handle command-line arguments and options for the
  * optimizng compiler.
  * <p>
  * Note: This file is mechanically generated from OPT_Options.template
@@ -21,7 +25,6 @@ import org.jikesrvm.*;
  *       All other options are defined in VALUE_DAT_FILES
  *       (value, enumeration, bitmask)
  *
- * @author Dave Grove
  **/
 public class OPT_Options implements Cloneable {
 
@@ -42,15 +45,15 @@ $$$$ END LET USE_OPT_LEVELS
   private boolean instanceProcessAsOption(String arg) {
     if (arg.startsWith("O")) {
       try {
-	setOptLevel(Integer.parseInt(arg.substring(1)));
+        setOptLevel(Integer.parseInt(arg.substring(1)));
       } catch (NumberFormatException e) {
-	return false;
+        return false;
       }
       return true;
     }
     return false;
-  }    
-  
+  }
+
   private static void instancePrintHelpHeader(String prefix) {
     VM.sysWrite("Commands\n");
     VM.sysWrite(prefix+"[help]\t\t\tPrint brief description of opt compiler's command-line arguments\n");
@@ -65,7 +68,7 @@ $$$$ END LET USE_OPT_LEVELS
 
 
   private static void instancePrintHelpFooter(String prefix) {
-  }	
+  }
 
 
   // accessor to get OPT level
@@ -76,15 +79,15 @@ $$$$ END LET USE_OPT_LEVELS
   // Set the options to encode the optimizations enabled at the given opt label
   // and disabled all optimizations that are not enabled at the given opt label
   public void setOptLevel(int level) {
-     OPTIMIZATION_LEVEL = level;	
-     // Begin generated opt-level logic       
+     OPTIMIZATION_LEVEL = level;
+     // Begin generated opt-level logic
 $$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
 $$$$ FOREACH OPTION BDATFILE
      $$$$ SPLIT "OPTION.DECL" " " FULL_NAME OPT_LEVEL DEFAULT_VALUE SHORT_NAME
      $$$$ IF OPT_LEVEL != -1
-     if (level >= OPT_LEVEL) 
+     if (level >= OPT_LEVEL)
         FULL_NAME = true;
-     else 
+     else
         FULL_NAME = false;
      $$$$ END IF OPT_LEVEL
      $$$$ END SPLIT

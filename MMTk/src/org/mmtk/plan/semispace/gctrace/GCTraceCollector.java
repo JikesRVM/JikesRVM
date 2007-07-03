@@ -1,19 +1,18 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
  *
- * (C) Copyright Department of Computer Science,
- * University of Massachusetts, Amherst. 2003
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.plan.semispace.gctrace;
 
 import org.mmtk.plan.*;
-import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.semispace.*;
 import org.mmtk.vm.VM;
 
@@ -23,27 +22,19 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements <i>per-collector thread</i> behavior and state for the
  * <i>GCTrace</i> plan, which implements a GC tracing algorithm.<p>
- * 
+ *
  * Specifically, this class defines <i>SS</i> collection behavior
  * (through <code>inducedTrace</code> and the <code>collectionPhase</code>
  * method), and collection-time allocation (copying of objects).<p>
- * 
+ *
  * See {@link GCTrace} for an overview of the GC trace algorithm.<p>
- * 
+ *
  * @see SSCollector
  * @see GCTrace
  * @see GCTraceMutator
  * @see org.mmtk.plan.StopTheWorldCollector
  * @see org.mmtk.plan.CollectorContext
  * @see org.mmtk.plan.SimplePhase#delegatePhase
- * 
- *
- * @author Steve Blackburn
- * @author Perry Cheng
- * @author Daniel Frampton
- * @author Robin Garner
- * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
- * 
  */
 @Uninterruptible public class GCTraceCollector extends SSCollector {
   /****************************************************************************
@@ -52,7 +43,7 @@ import org.vmmagic.pragma.*;
   protected final GCTraceTraceLocal inducedTrace;
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
@@ -64,13 +55,13 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Collection
    */
 
   /**
    * Perform a per-collector collection phase.
-   * 
+   *
    * @param phaseId The collection phase to perform
    * @param primary perform any single-threaded local activities.
    */
@@ -106,7 +97,7 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Miscellaneous
    */
 

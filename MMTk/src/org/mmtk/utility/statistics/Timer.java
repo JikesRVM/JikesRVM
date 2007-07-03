@@ -1,13 +1,15 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2003
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-
 package org.mmtk.utility.statistics;
 
 import org.mmtk.utility.Log;
@@ -17,19 +19,17 @@ import org.vmmagic.pragma.*;
 
 /**
  * This class implements a simple timer.
- * 
- * @author Steve Blackburn
  */
 @Uninterruptible public class Timer extends LongCounter {
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
   /**
    * Constructor
-   * 
+   *
    * @param name The name to be associated with this counter
    */
   public Timer(String name) {
@@ -38,7 +38,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Constructor
-   * 
+   *
    * @param name The name to be associated with this counter
    * @param start True if this counter is to be implicitly started
    * when <code>startAll()</code> is called (otherwise the counter
@@ -50,7 +50,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Constructor
-   * 
+   *
    * @param name The name to be associated with this counter
    * @param start True if this counter is to be implicitly started
    * when <code>startAll()</code> is called (otherwise the counter
@@ -63,13 +63,13 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Counter-specific methods
    */
 
   /**
    * Get the current value for this timer
-   * 
+   *
    * @return The current value for this timer
    */
   @Inline
@@ -100,7 +100,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Print a value (in milliseconds)
-   * 
+   *
    * @param value The value to be printed
    */
   final void printValue(long value) {
@@ -109,7 +109,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Print a value in microseconds
-   * 
+   *
    * @param value The value to be printed
    */
   final void printMicro(long value) {
@@ -118,7 +118,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Print a value in milliseconds
-   * 
+   *
    * @param value The value to be printed
    */
   final void printMillis(long value) {
@@ -127,7 +127,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Print a value in seconds
-   * 
+   *
    * @param value The value to be printed
    */
   final void printSecs(long value) {

@@ -1,80 +1,90 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-
-package org.jikesrvm.opt.@_ARCH_@;
+package org.jikesrvm.compilers.opt.@_ARCH_@;
 
 import org.jikesrvm.*;
-import org.jikesrvm.opt.ir.*;
-import org.jikesrvm.opt.OPT_DepGraphNode;
+import org.jikesrvm.compilers.opt.ir.*;
+import org.jikesrvm.compilers.opt.OPT_DepGraphNode;
 
 /**
- * An OPT_BURS_TreeNode is a node in a binary tree that is fed 
+ * An OPT_BURS_TreeNode is a node in a binary tree that is fed
  * as input to BURS.
  * Machine-generated, do not edit.
- * 
- * @see org.jikesrvm.opt.OPT_BURS
- * @see OPT_BURS_STATE
  *
- * @author David Grove
- * @author Vivek Sarkar
+ * @see org.jikesrvm.compilers.opt.OPT_BURS
+ * @see OPT_BURS_STATE
  */
 public class OPT_BURS_TreeNode implements OPT_BURS_Definitions {
 
   public ArchitectureSpecific.OPT_BURS_TreeNode child1;
   public ArchitectureSpecific.OPT_BURS_TreeNode child2;
 
-  /** 
-   * Dependence graph node corresponding to 
+  /**
+   * Dependence graph node corresponding to
    * interior node in BURS tree (set to null for
    * leaf node or for OTHER_OPERAND node).
-   */  
-  public final OPT_DepGraphNode dg_node; 
+   */
+  public final OPT_DepGraphNode dg_node;
 
-  // oooo oooo oooo oooo nnnn nnnn trrr rrrr
-  // o == opcode
-  // n = non terminal
-  // t = tree root
-  // r = num of registers used
-  private int word; 
+  /**
+   * Opcode of instruction
+   */
+  private final char opcode;
+
+  /**
+   * nonterminal > 0 ==> this tree node is the
+   * root of a "supernode"; the value of nonterminal
+   *  identifies the matching non-terminal
+   * nonterminal = 0 ==> this tree node is NOT the
+   * root of a "supernode".
+   */
+  private byte nonterminal;
+
+  /**
+   * <pre>
+   * trrr rrrr
+   * t = tree root
+   * r = num of registers used
+   * </pre>
+   */
+  private byte treeroot_registersused;
 
   public final char getOpcode() {
-    return (char)((word & 0xffff0000) >>> 16);
+    return opcode;
   }
-
-  public final void setOpcode(char opcode) {
-    word = (word & 0x0000ffff) | (opcode << 16);
-  }
-
-  // OUTPUT FIELDS FOR BURS:
-  // nonterminal > 0 ==> this tree node is the
-  // root of a "supernode"; the value of nonterminal
-  // identifies the matching non-terminal
-  // nonterminal = 0 ==> this tree node is NOT the
-  // root of a "supernode".
 
   public final int getNonTerminal() {
-     return ((word & 0xff00) >> 8);
+     return (int)nonterminal & 0xFF;
   }
 
   public final void setNonTerminal(int nonterminal) {
      if (VM.VerifyAssertions) VM._assert(nonterminal <= 0xff);
-     word = (word & 0xffff00ff) | (nonterminal << 8);
+     this.nonterminal = (byte)nonterminal;
   }
 
-  public final boolean isTreeRoot() { return (word & 0x80 ) != 0; }
-  public final void setTreeRoot() { word |= 0x80; }
+  public final boolean isTreeRoot() {
+     return (treeroot_registersused & 0x80 ) != 0;
+  }
+
+  public final void setTreeRoot() {
+     treeroot_registersused |= 0x80;
+  }
 
   public final void setNumRegisters(int r) {
-    word = (word & 0xffffff80) | (r & 0x7f);
+    treeroot_registersused = (byte)((treeroot_registersused & 0x80) | (r & 0x7f));
   }
   public final int numRegisters() {
-    return word & 0x7f;
+    return treeroot_registersused & 0x7f;
   }
 
   public final OPT_Instruction getInstruction() {
@@ -87,15 +97,15 @@ public class OPT_BURS_TreeNode implements OPT_BURS_Definitions {
   public OPT_BURS_TreeNode(OPT_DepGraphNode n) {
     OPT_Instruction instr = n._instr;
     dg_node = n;
-    setOpcode(instr.getOpcode());
+    opcode = instr.getOpcode();
   }
- 
+
   /**
    * Constructor for leaf/auxiliary node.
    */
   public OPT_BURS_TreeNode(char Opcode) {
     dg_node = null;
-    setOpcode(Opcode);
+    opcode = Opcode;
   }
 
   public String toString() {

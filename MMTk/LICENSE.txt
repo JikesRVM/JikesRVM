@@ -14,10 +14,10 @@ license.  The CPL meets the Debian Free Software Guidelines.
    1. DEFINITIONS
 
    "Contribution" means:
-       
+
    a) in the case of the initial Contributor, the initial code and
        documentation distributed under this Agreement, and
-       
+
    b) in the case of each subsequent Contributor:
 
       i) changes to the Program, and
@@ -46,9 +46,9 @@ license.  The CPL meets the Debian Free Software Guidelines.
    "Recipient" means anyone who receives the Program under this
    Agreement, including all Contributors.
 
-       
+
    2. GRANT OF RIGHTS
-   
+
    a) Subject to the terms of this Agreement, each Contributor hereby
        grants Recipient a non-exclusive, worldwide, royalty-free
        copyright license to reproduce, prepare derivative works of,
@@ -92,7 +92,7 @@ license.  The CPL meets the Debian Free Software Guidelines.
 
    A Contributor may choose to distribute the Program in object code
    form under its own license agreement, provided that:
-       
+
    a) it complies with the terms and conditions of this Agreement; and
 
    b) its license agreement:
@@ -117,12 +117,12 @@ license.  The CPL meets the Debian Free Software Guidelines.
        software exchange.
 
    When the Program is made available in source code form:
-      
+
    a) it must be made available under this Agreement; and
 
    b) a copy of this Agreement must be included with each copy of the
       Program.
-      
+
    Contributors may not remove or alter any copyright notices
    contained within the Program.
 

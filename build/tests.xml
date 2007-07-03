@@ -1,49 +1,40 @@
 <!--
-
-  The test infrastructure relies on the definition of properties with well known names when executing,
-  analyzing and recording each individual test. It was implemented this way as ants properties can only
-  be assigned once and passing all the parameters around in macros is unwieldy.
-
-  Every test has a "tag" that uniquely identifies it. Usually the tag is the name of class file
-  optionally appended with a "selector". The tag identifies a particular run of a test.
-
-  The following properties are either derived from input parameters or set from defaults.
-   - test.@{tag}.tag                      (Name of the test)
-   - test.@{tag}.class                    (Name of class to run)
-   - test.@{tag}.args                     (Arguments passed to class)
-   - test.@{tag}.class.path               (Classpath test run with)
-   - test.@{tag}.initial.heapsize         (Initial heap size)
-   - test.@{tag}.max.heapsize             (Maximum heap size)
-   - test.@{tag}.time.limit               (Time limit)
-   - test.@{tag}.extra,args               (Any extra test-specific args to rvm)
-   - test.@{tag}.rvm.args                 (The complete set of args passed to rvm)
-   - test.@{tag}.command                  (The complete command line to execute the test)
-   - test.@{tag}.dir                      (The working directory for test)
-  The following properties contain the output results of running the rvm.
-   - test.@{tag}.exit.code                (The exit code from rvm)
-   - test.@{tag}.output.file              (The name of the file containing output from execution)
-   - test.@{tag}.sanitized.output.file    (The name of the file containing output from execution after it was cleaned)        
-  The following properties contain the results of running the analysis.
-   - test.@{tag}.result                   (One of SUCCESS, FAILURE, ERROR or NOTRUN)
-   - test.@{tag}.result.explanation       (The reason for result if not SUCCESS)
-   - test.@{tag}.statistic.@{key}         (For every statistic extracted from output there is one equiv property)
-
--->
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Common Public License (CPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/cpl1.0.php
+ ~
+ ~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
 <project name="tests">
 
   <property name="jikesrvm.dir" location="${basedir}/../../.."/>
   <!-- configuration data -->
   <property file="${test.rvm.dir}/constants.properties"/>
+  <if>
+    <conditions>
+      <isset property="test-run.file"/>
+    </conditions>
+    <sequential>
+      <property file="${test-run.file}"/>
+    </sequential>
+  </if>
 
   <import file="${jikesrvm.dir}/build/base.xml"/>
   <import file="${jikesrvm.dir}/build/tasks.xml"/>
-  
+
   <property name="rvm.exe" location="${test.rvm.dir}/rvm"/>
 
   <!-- Default values -->
   <property name="test.mode" value=""/>
   <property name="test.time.limit" value="1000"/>
   <property name="test.rvm.extra.args" value=""/>
+  <property name="test.processors" value="all"/>
+  <property name="test.max.opt.level" value=""/>
   <property name="test.initial.heapsize" value="${config.default-heapsize.initial}"/>
   <property name="test.max.heapsize" value="${config.default-heapsize.maximum}"/>
 
@@ -86,7 +77,7 @@
     <parameter key="config.default-heapsize.initial" value="${config.default-heapsize.initial}"/>
     <parameter key="config.default-heapsize.maximum" value="${config.default-heapsize.maximum}"/>
     <parameter key="config.bootimage.compiler.args" value="${config.bootimage.compiler.args}"/>
-    <parameter key="config.stress-gc" value="${config.stress-gc}"/>
+    <parameter key="config.stress-gc-interval" value="${config.stress-gc-interval}"/>
     <parameter key="target.name" value="${target.name}"/>
     <parameter key="target.arch" value="${target.arch}"/>
     <parameter key="target.address.size" value="${target.address.size}"/>
@@ -95,10 +86,10 @@
     <parameter key="target.bootimage.data.address" value="${target.bootimage.data.address}"/>
     <parameter key="target.bootimage.rmap.address" value="${target.bootimage.rmap.address}"/>
     <parameter key="target.max-mappable.address" value="${target.max-mappable.address}"/>
+    <parameter key="target.arch.sse2" value="${target.arch.sse2}"/>
   </build-parameters>
   <test-parameters>
     <parameter key="mode" value="${test.mode}"/>
-    <parameter key="extra.args" value="${test.rvm.extra.args}"/>
   </test-parameters>
 ]]></res>
     </sequential>
@@ -142,7 +133,7 @@
     <attribute name="name" default=""/>
     <attribute name="tag"/>
     <sequential>
-            <res><![CDATA[
+      <res><![CDATA[
 <test>
   <tag>@{tag}</tag>
   <class>${test.@{tag}.class}</class>
@@ -154,6 +145,8 @@
     <parameter key="max.heapsize" value="${test.@{tag}.max.heapsize}"/>
     <parameter key="time.limit" value="${test.@{tag}.time.limit}"/>
     <parameter key="extra.args" value='${test.@{tag}.extra.args}'/>
+    <parameter key="processors" value='${test.@{tag}.processors}'/>
+    <parameter key="max.opt.level" value='${test.@{tag}.max.opt.level}'/>
   </rvm-parameters>
   <exit-code>${test.@{tag}.exit.code}</exit-code>
   <time>${test.@{tag}.time.duration}</time>
@@ -237,12 +230,12 @@
       <res><![CDATA[<result>${test.@{tag}.result}</result>]]></res>
       <res><![CDATA[<result-explanation>${test.@{tag}.result.explanation}</result-explanation>]]></res>
       <res><![CDATA[<output><]]>![CDATA[</res>
-      <copy file="${test.@{tag}.output.file}" tofile="${build.tests.dir}/deleteme.txt"/>
+      <toAscii src="${test.@{tag}.output.file}" dest="${build.tests.dir}/deleteme.txt"/>
+      <!-- truncate output to 400K -->
+      <truncate file="${build.tests.dir}/deleteme.txt" size="409600"/>
       <replace file="${build.tests.dir}/deleteme.txt" token="]]&gt;" value="]]&gt;]]&lt;![CDATA[&gt;"/>
-      <!-- may need to set an encoding -->
-      <native2ascii src="${build.tests.dir}" dest="${build.tests.dir}" includes="deleteme.txt" ext=".ascii"/>
       <concat destfile="${results.file}" append="true">
-        <path path="${build.tests.dir}/deleteme.ascii"/>
+        <path path="${build.tests.dir}/deleteme.txt"/>
       </concat>
       <res>]]<![CDATA[></output>]]></res>
     </sequential>
@@ -257,7 +250,8 @@
   <macrodef name="displayTestResults">
     <attribute name="tag"/>
     <sequential>
-      <echo message="Test Result for [${config.name}|${test.group.name}] @{tag} : ${test.@{tag}.result} ${test.@{tag}.result.explanation}"/>
+      <echo
+          message="Test Result for [${config.name}|${test.group.name}] @{tag} : ${test.@{tag}.result} ${test.@{tag}.result.explanation}"/>
     </sequential>
   </macrodef>
 
@@ -287,11 +281,46 @@
     <attribute name="file"/>
     <attribute name="tofile"/>
     <sequential>
+      <toAscii src="@{file}" dest="${build.tests.dir}/deleteme.ascii"/>
       <!-- TODO: can be replaced by line filtering copy in ant 1.7 -->
-      <exec executable="${awk.exe}" failonerror="true" input="@{file}" output="@{tofile}">
+      <exec executable="${awk.exe}" failonerror="true" input="${build.tests.dir}/deleteme.ascii" output="@{tofile}">
         <arg value="-f"/>
         <arg value="${jikesrvm.dir}/testing/harness/RVMJunkFilter.awk"/>
       </exec>
+
+    </sequential>
+  </macrodef>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                   Macros for extractin proeprty for test                 * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <macrodef name="setIfPresent">
+    <attribute name="name"/>
+    <attribute name="key"/>
+    <sequential>
+      <condition property="@{name}" value="${@{key}}">
+        <isset property="@{key}"/>
+      </condition>
+    </sequential>
+  </macrodef>
+
+  <macrodef name="setTestProperty">
+    <attribute name="config" default="${config.name}"/>
+    <attribute name="group" default="${test.group.name}"/>
+    <attribute name="tag"/>
+    <attribute name="key"/>
+    <attribute name="default"/>
+    <sequential>
+      <setIfPresent name="test.@{tag}.@{key}" key="test.config.@{config}.@{group}.@{tag}.@{key}"/>
+      <setIfPresent name="test.@{tag}.@{key}" key="test.config.@{config}.@{group}.@{key}"/>
+      <setIfPresent name="test.@{tag}.@{key}" key="test.config.@{config}.@{key}"/>
+      <setIfPresent name="test.@{tag}.@{key}" key="test.config.@{group}.@{tag}.@{key}"/>
+      <setIfPresent name="test.@{tag}.@{key}" key="test.config.@{group}.@{key}"/>
+      <setIfPresent name="test.@{tag}.@{key}" key="test.config.@{key}"/>
+      <property name="test.@{tag}.@{key}" value="@{default}"/>
     </sequential>
   </macrodef>
 
@@ -310,28 +339,52 @@
     <attribute name="class"/>
     <attribute name="args" default=""/>
     <attribute name="classpath" default=""/>
+    <attribute name="processors" default=""/>
     <attribute name="initialHeapSize" default=""/>
     <attribute name="maxHeapSize" default=""/>
     <attribute name="rvmArgs" default=""/>
     <attribute name="timeLimit" default=""/>
+    <attribute name="maxOptLevel" default=""/>
     <attribute name="exitCode" default="0"/>
     <attribute name="dir" default="${build.tests.dir}"/>
+    <attribute name="requires-display" default="false"/>
     <sequential>
-      <condition property="test.@{tag}.max.heapsize" value="${test.max.heapsize}" else="@{maxHeapSize}">
-        <equals arg1="@{maxHeapSize}" arg2=""/>
-      </condition>
-      <condition property="test.@{tag}.initial.heapsize" value="${test.initial.heapsize}" else="@{initialHeapSize}">
-        <equals arg1="@{initialHeapSize}" arg2=""/>
-      </condition>
-      <condition property="test.@{tag}.time.limit" value="${test.time.limit}" else="@{timeLimit}">
-        <equals arg1="@{timeLimit}" arg2=""/>
-      </condition>
-      <condition property="test.@{tag}.class.path" value="${test.class.path}" else="@{classpath}">
+      <condition property="default.test.@{tag}.classpath" value="${test.class.path}" else="@{classpath}">
         <equals arg1="@{classpath}" arg2=""/>
       </condition>
-      <property name="test.@{tag}.extra.args" value="@{rvmArgs}"/>
+      <condition property="default.test.@{tag}.processors" value="${test.processors}" else="@{processors}">
+        <equals arg1="@{processors}" arg2=""/>
+      </condition>
+      <condition property="default.test.@{tag}.initialHeapSize" value="${test.initial.heapsize}"
+                 else="@{initialHeapSize}">
+        <equals arg1="@{initialHeapSize}" arg2=""/>
+      </condition>
+      <condition property="default.test.@{tag}.maxHeapSize" value="${test.max.heapsize}" else="@{maxHeapSize}">
+        <equals arg1="@{maxHeapSize}" arg2=""/>
+      </condition>
+      <condition property="default.test.@{tag}.timeLimit" value="${test.time.limit}" else="@{timeLimit}">
+        <equals arg1="@{timeLimit}" arg2=""/>
+      </condition>
+      <condition property="default.test.@{tag}.maxOptLevel" value="${test.max.opt.level}" else="@{maxOptLevel}">
+        <equals arg1="@{maxOptLevel}" arg2=""/>
+      </condition>
+
+      <setTestProperty tag="@{tag}" key="extra.args" default="@{rvmArgs}"/>
+      <setTestProperty tag="@{tag}" key="class.path" default="${default.test.@{tag}.classpath}"/>
+      <setTestProperty tag="@{tag}" key="time.limit" default="${default.test.@{tag}.timeLimit}"/>
+      <setTestProperty tag="@{tag}" key="initial.heapsize" default="${default.test.@{tag}.initialHeapSize}"/>
+      <setTestProperty tag="@{tag}" key="max.heapsize" default="${default.test.@{tag}.maxHeapSize}"/>
+      <setTestProperty tag="@{tag}" key="processors" default="${default.test.@{tag}.processors}"/>
+      <setTestProperty tag="@{tag}" key="max.opt.level" default="${default.test.@{tag}.maxOptLevel}"/>
+      <setTestProperty tag="@{tag}" key="exclude" default="false"/>
+
+      <condition property="test.@{tag}.maxOptLevel-arg" value=""
+                 else="-X:aos:max_opt_level=${test.@{tag}.max.opt.level}">
+        <equals arg1="${test.@{tag}.max.opt.level}" arg2=""/>
+      </condition>
+
       <property name="test.@{tag}.rvm.args"
-                value="-X:vm:errorsFatal=true -Xms${test.@{tag}.initial.heapsize}M -Xmx${test.@{tag}.max.heapsize}M ${test.@{tag}.extra.args} ${test.rvm.extra.args}"/>
+                value="-X:vm:errorsFatal=true -X:processors=${test.@{tag}.processors} -Xms${test.@{tag}.initial.heapsize}M -Xmx${test.@{tag}.max.heapsize}M ${test.@{tag}.extra.args} ${test.rvm.extra.args} ${test.@{tag}.maxOptLevel-arg}"/>
       <property name="test.@{tag}.tag" value="@{tag}"/>
       <property name="test.@{tag}.class" value="@{class}"/>
       <property name="test.@{tag}.args" value="@{args}"/>
@@ -340,26 +393,22 @@
       <property name="test.@{tag}.output.file" value="${output.dir}/@{tag}-output.txt"/>
       <property name="test.@{tag}.sanitized.output.file" value="${output.dir}/@{tag}.txt"/>
 
-      <condition property="test.@{tag}.exclude" value="true" else="false">
-        <or>
-          <!-- check whether we have disabled test altogether, in configuration, target or configuration+target -->
-          <isset property="exclude.test.${test.group.name}.@{tag}"/>
-          <isset property="exclude.test.${config.name}.${test.group.name}.@{tag}"/>
-          <isset property="exclude.test.${target.name}.${test.group.name}.@{tag}"/>
-          <isset property="exclude.test.${config.name}.${target.name}.${test.group.name}.@{tag}"/>
-
-          <!-- check whether we have disabled suite altogether, in configuration, target or configuration+target -->
-          <isset property="exclude.group.${test.group.name}"/>
-          <isset property="exclude.group.${config.name}.${test.group.name}"/>
-          <isset property="exclude.group.${target.name}.${test.group.name}"/>
-          <isset property="exclude.group.${config.name}.${target.name}.${test.group.name}"/>
-
-          <!-- check whether we have disabled testing altogether, in configuration, target or configuration+target -->
-          <isset property="exclude.${config.name}"/>
-          <isset property="exclude.${target.name}"/>
-          <isset property="exclude.${config.name}.${target.name}"/>
-        </or>
-      </condition>
+      <!-- Do we need a display wrapper ? -->
+      <if>
+        <conditions>
+          <and>
+            <equals arg1="@{requires-display}" arg2="true"/>
+            <isset property="display-wrapper.exe"/>
+          </and>
+        </conditions>
+        <sequential>
+          <property name="test.@{tag}.rvm-wrapper.exe" value="${display-wrapper.exe}"/>
+          <property name="test.@{tag}.rvm.wrapped-args" value="-a ${rvm.exe} ${test.@{tag}.rvm.args}"/>
+        </sequential>
+      </if>
+      <!-- Defaults -->
+      <property name="test.@{tag}.rvm-wrapper.exe" value="${rvm.exe}"/>
+      <property name="test.@{tag}.rvm.wrapped-args" value="${test.@{tag}.rvm.args}"/>
 
       <property name="test.@{tag}.command"
                 value='${rvm.exe} ${test.@{tag}.rvm.args} -classpath "${test.@{tag}.class.path}" ${test.@{tag}.class} ${test.@{tag}.args}'/>
@@ -368,7 +417,7 @@
           <equals arg1="${test.@{tag}.exclude}" arg2="true"/>
         </conditions>
         <sequential>
-        <!-- If excluded then record result -->
+          <!-- If excluded then record result -->
           <property name="test.@{tag}.result" value="EXCLUDED"/>
           <explainResult tag="@{tag}" message="Test excluded."/>
           <touch file="${test.@{tag}.output.file}"/>
@@ -377,17 +426,19 @@
       <timer property="test.@{tag}.time"/>
       <if>
         <conditions>
-          <equals arg1="${test.@{tag}.exclude}" arg2="false"/>
+          <not>
+            <equals arg1="${test.@{tag}.exclude}" arg2="true"/>
+          </not>
         </conditions>
         <sequential>
-          <texec executable="${rvm.exe}"
+          <texec executable="${test.@{tag}.rvm-wrapper.exe}"
                  failonerror="false"
                  dir="@{dir}"
                  timeout="${test.@{tag}.time.limit}000"
                  timeoutProperty="test.@{tag}.timeout"
                  output="${test.@{tag}.output.file}"
                  resultproperty="test.@{tag}.exit.code">
-            <arg line="${test.@{tag}.rvm.args}"/>
+            <arg line="${test.@{tag}.rvm.wrapped-args}"/>
             <arg value="-classpath"/>
             <arg value="${test.@{tag}.class.path}"/>
             <arg line="${test.@{tag}.class} ${test.@{tag}.args}"/>

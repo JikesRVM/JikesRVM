@@ -1,3 +1,15 @@
+<!--
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Common Public License (CPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/cpl1.0.php
+ ~
+ ~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
 <project name="tasks">
 
   <!-- **************************************************************************** -->
@@ -24,6 +36,13 @@
     <taskdef name="if" classname="org.jikesrvm.tools.ant.IfTask" classpath="${tasks.classes}"/>
     <!-- Task that makes determining whether an ant build failed easier. Used in test infrastructure. -->
     <taskdef name="erant" classname="org.jikesrvm.tools.ant.ErrorRecordingAntTask" classpath="${tasks.classes}"/>
+    <!-- Task that copys a file while replacing non-ascii chars with ? -->
+    <taskdef name="toAscii" classname="org.jikesrvm.tools.ant.ToAsciiTask" classpath="${tasks.classes}"/>
+    <!-- Task to get hostname -->
+    <taskdef name="hostname" classname="org.jikesrvm.tools.ant.HostnameTask" classpath="${tasks.classes}"/>
+    <!-- Truncate a file (used in testing) -->
+    <taskdef name="truncate" classname="org.jikesrvm.tools.ant.TruncateTask" classpath="${tasks.classes}"/>
+
   </target>
 
 </project>

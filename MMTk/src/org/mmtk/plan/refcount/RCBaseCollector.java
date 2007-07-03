@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2005, 2006
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.plan.refcount;
 
@@ -22,32 +25,27 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This class implements <i>per-collector thread</i> behavior 
+ * This class implements <i>per-collector thread</i> behavior
  * and state for the <i>RC</i> plan, which implements a full-heap
  * reference counting collector.<p>
- * 
+ *
  * Specifically, this class defines <i>RC</i> collection behavior
  * (through <code>trace</code> and the <code>collectionPhase</code>
  * method).<p>
- * 
+ *
  * @see RCBase for an overview of the reference counting algorithm.<p>
- * 
+ *
  * FIXME The SegregatedFreeList class (and its decendents such as
  * MarkSweepLocal) does not properly separate mutator and collector
  * behaviors, so the ms field below should really not exist in
  * this class as there is no collection-time allocation in this
  * collector.
- * 
+ *
  * @see RCBase
  * @see RCBaseMutator
  * @see StopTheWorldCollector
  * @see CollectorContext
  * @see SimplePhase#delegatePhase
- * 
- *
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public abstract class RCBaseCollector extends StopTheWorldCollector {
 
@@ -58,7 +56,7 @@ import org.vmmagic.unboxed.*;
   public ObjectReferenceDeque oldRootSet;
   public DecBuffer decBuffer;
   public ObjectReferenceDeque modBuffer;
-  
+
   private NullCDCollector nullCD;
   private TrialDeletionCollector trialDeletionCD;
   private RCSanityCheckerLocal sanityChecker;
@@ -90,18 +88,18 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Collection
    */
 
   /**
    * Perform a per-collector collection phase.
-   * 
+   *
    * @param phaseId The collection phase to perform
    * @param primary Perform any single-threaded activities using this thread.
    */
   @Inline
-  public void collectionPhase(int phaseId, boolean primary) { 
+  public void collectionPhase(int phaseId, boolean primary) {
     if (phaseId == RCBase.PREPARE) {
       if (RCBase.WITH_COALESCING_RC) {
         processModBuffer();
@@ -135,7 +133,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Report a root object.
-   * 
+   *
    * @param object The root
    */
   public void reportRoot(ObjectReference object) {
@@ -145,7 +143,7 @@ import org.vmmagic.unboxed.*;
     RCHeader.incRC(object);
     newRootSet.push(object);
   }
-  
+
   /**
    * Process the old root set, by either decrementing each
    * entry, or unmarking the object's root flag.
@@ -168,7 +166,7 @@ import org.vmmagic.unboxed.*;
     }
     oldRootSet.flushLocal();
   }
-  
+
   /**
    * Process the decrement buffers, enqueing recursive
    * decrements if necessary.
@@ -192,7 +190,7 @@ import org.vmmagic.unboxed.*;
       }
     }
   }
-  
+
   /**
    * Process the modified object buffers.
    */
@@ -204,9 +202,9 @@ import org.vmmagic.unboxed.*;
       Scan.scanObject(modProcessor, current);
     }
   }
-  
+
   /****************************************************************************
-   * 
+   *
    * Miscellaneous
    */
 
@@ -215,25 +213,25 @@ import org.vmmagic.unboxed.*;
   private static RCBase global() {
     return (RCBase) VM.activePlan.global();
   }
-  
+
   /** @return The current sanity checker. */
   public SanityCheckerLocal getSanityChecker() {
     return sanityChecker;
   }
-  
+
   /** @return The TraceStep to use when processing modified objects. */
   protected abstract TraceStep getModifiedProcessor();
-  
+
   /** @return The active cycle detector instance */
   @Inline
-  public final CDCollector cycleDetector() { 
+  public final CDCollector cycleDetector() {
     switch (RCBase.CYCLE_DETECTOR) {
     case RCBase.NO_CYCLE_DETECTOR:
       return nullCD;
     case RCBase.TRIAL_DELETION:
       return trialDeletionCD;
     }
-    
+
     VM.assertions.fail("No cycle detector instance found.");
     return null;
   }

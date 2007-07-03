@@ -1,15 +1,17 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 /* Test stack resize with native methods
- * Implement native methods from StackResize.java 
- * 
- * @author Ton Ngo 9/6/01
+ * Implement native methods from StackResize.java
  */
 
 #include <stdio.h>
@@ -30,20 +32,20 @@ JNIEXPORT jboolean JNICALL Java_StackResize_expectResize
   jmethodID methodID;
 
 
-  /* First check to see if the stack has been resized on the first 
+  /* First check to see if the stack has been resized on the first
    * transition to native code
    */
   methodID = (*env) -> GetStaticMethodID(env, cls, "checkResizeOccurred", "(I)Z");
   if (methodID == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> GetStaticMethodID: fail to get method ID for static method checkResizeOccurred\n");
     return JNI_FALSE;
-  } 
+  }
 
   returnBooleanValue = (*env) -> CallStaticBooleanMethod(env, cls, methodID,
                                                          previousStackSize);
   if (returnBooleanValue == JNI_FALSE) {
-    if (verbose) 
+    if (verbose)
       printf("> FAIL to resize stack on first native method\n");
     return JNI_FALSE;
   }
@@ -51,15 +53,15 @@ JNIEXPORT jboolean JNICALL Java_StackResize_expectResize
   /* Next call back to Java to make another native call */
   methodID = (*env) -> GetStaticMethodID(env, cls, "makeSecondNativeCall", "()Z");
   if (methodID == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> GetStaticMethodID: fail to get method ID for static method makeSecondNativeCall\n");
     return JNI_FALSE;
-  } 
+  }
 
   returnBooleanValue = (*env) -> CallStaticBooleanMethod(env, cls, methodID);
 
   if (returnBooleanValue == JNI_FALSE) {
-    if (verbose) 
+    if (verbose)
       printf("> Error: stack should not be resized on second native method\n");
     return JNI_FALSE;
   }
@@ -84,15 +86,15 @@ JNIEXPORT jboolean JNICALL Java_StackResize_expectNoResize
    */
   methodID = (*env) -> GetStaticMethodID(env, cls, "checkResizeOccurred", "(I)Z");
   if (methodID == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> GetStaticMethodID: fail to get method ID for static method checkResizeNotOccurred\n");
     return JNI_FALSE;
-  } 
+  }
 
   returnBooleanValue = (*env) -> CallStaticBooleanMethod(env, cls, methodID,
                                                          previousStackSize);
   if (returnBooleanValue == JNI_TRUE) {
-    if (verbose) 
+    if (verbose)
       printf("> Unexpected stack resize on second native method\n");
     return JNI_FALSE;
   }

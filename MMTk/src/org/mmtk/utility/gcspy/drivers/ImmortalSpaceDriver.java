@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Richard Jones, 2005-6
- * Computing Laboratory, University of Kent at Canterbury
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.utility.gcspy.drivers;
 
@@ -19,16 +22,12 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * GCspy driver for the contiguous MMTk ImmortalSpace. 
+ * GCspy driver for the contiguous MMTk ImmortalSpace.
  * Adds features for the Immortal space.
  * <p>
  *
  * This class extends LinearSpaceDriver, a simple driver for contiguous MMTk spaces
  * such as CopySpace and ImmortalSpace.
- *
- *
- * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
- * @author Hanspeter Johner
  */
 @Uninterruptible public class ImmortalSpaceDriver extends LinearSpaceDriver {
 
@@ -46,13 +45,13 @@ import org.vmmagic.pragma.*;
    * @param blockSize The tile size
    * @param mainSpace Is this the main space?
    */
-  public ImmortalSpaceDriver( 
+  public ImmortalSpaceDriver(
                      ServerInterpreter server,
 		             String spaceName,
                      Space mmtkSpace,
                      int blockSize,
-                     boolean mainSpace) { 
-    
+                     boolean mainSpace) {
+
     super(server, spaceName, mmtkSpace, blockSize, mainSpace);
 
     if (DEBUG) {
@@ -62,7 +61,7 @@ import org.vmmagic.pragma.*;
       Log.write(", extent="); Log.write(mmtkSpace.getExtent());
       Log.write(", maxTileNum="); Log.writeln(maxTileNum);
     }
-    
+
     // initially no registered drivers for reference notification
     registeredDrivers = new AbstractDriver[0];
   }
@@ -73,11 +72,11 @@ import org.vmmagic.pragma.*;
    */
   protected String getDriverName() {
     return "MMTk ImmortalSpaceDriver";
-  } 
-  
+  }
+
   /**
    * Update the tile statistics. <br>
-   * This method overrides <code> scan </code> iin its superclass to 
+   * This method overrides <code> scan </code> iin its superclass to
    * add immortal space features.
    *
    * @param object The current object
@@ -87,21 +86,21 @@ import org.vmmagic.pragma.*;
     // get type of object
     MMType type = VM.objectModel.getObjectType(object);
     Address addr = object.toAddress();
-    
+
     if (subspace.addressInRange(addr)) {
       // Address in Range, locate references
       int references = type.getReferences(object);
       for (int i = 0; i < references; i++) {
         Address target = type.getSlot(object, i).loadAddress();
         // notify registered drivers
-        for (int j = 0; j < this.registeredDrivers.length; j++) 
+        for (int j = 0; j < this.registeredDrivers.length; j++)
           registeredDrivers[j].handleReferenceFromImmortalSpace(target);
       }
       // Work done, call scan() in superclass for default handling
       super.scan(object, total);
     }
   }
-  
+
   /**
    * Register a set of AbstractDriver instances to be notified about direct references.
    *

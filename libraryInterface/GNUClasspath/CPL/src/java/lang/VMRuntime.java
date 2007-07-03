@@ -1,16 +1,25 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp 2003, 2004
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package java.lang;
 
 import java.io.File;
 
 import org.jikesrvm.*;
+import org.jikesrvm.runtime.VM_DynamicLibrary;
+import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_Process;
+import org.jikesrvm.scheduler.VM_Synchronization;
+import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.memorymanagers.mminterface.*;
 
 import org.vmmagic.unboxed.Offset;
@@ -18,9 +27,6 @@ import org.vmmagic.unboxed.Offset;
 /**
  * Jikes RVM implementation of GNU Classpath's java.lang.VMRuntime.
  * See reference implementation for javadoc.
- *
- * @author Julian Dolby
- * @author Dave Grove
  */
 final class VMRuntime {
 
@@ -34,49 +40,49 @@ final class VMRuntime {
   @SuppressWarnings("unused") // Accessed from VM_EntryPoints
   private int gcLock;
   private static final Offset gcLockOffset;
-  
+
   private VMRuntime() { }
 
   static int availableProcessors() {
     return VM_Scheduler.numProcessors;
   }
-    
+
   static long freeMemory() {
     return MM_Interface.freeMemory().toLong();
   }
-    
+
   static long totalMemory() {
     return MM_Interface.totalMemory().toLong();
   }
-    
+
   static long maxMemory() {
     return MM_Interface.maxMemory().toLong();
   }
-    
+
   static void gc() {
     if (VM_Synchronization.testAndSet(instance, gcLockOffset, 1)) {
       MM_Interface.gc();
       VM_Synchronization.fetchAndStore(instance, gcLockOffset, 0);
     }
   }
-    
+
   static void runFinalization() {
     // TODO: talk to Steve B & Perry and figure out what to do.
     // as this is a hint, we can correctly ignore it.
     // However, there might be something else we should do.
   }
-    
+
   static void runFinalizationForExit() {
     if (runFinalizersOnExit) {
       // TODO: talk to Steve B & Perry and figure out what to do.
       throw new VM_UnimplementedError();
     }
   }
-    
+
   static void traceInstructions(boolean on) {
     // VMs are free to ignore this...
   }
-    
+
   static void traceMethodCalls(boolean on) {
     // VMs are free to ignore this...
   }
@@ -87,7 +93,7 @@ final class VMRuntime {
 
   static void exit(int status) {
     VM.sysExit(status);
-  }    
+  }
 
   /** <b>XXX TODO</b> We currently ignore the
    * <code>loader</code> parameter.
@@ -124,7 +130,7 @@ final class VMRuntime {
    * TODO: I don't THINK there's anything we need to do for this, but we should
    * look it over more carefully.  Perhaps we want to add something so that we
    * will try to run the hooks in case of an abnormal  exit (such a
-   * control-C)?  */ 
+   * control-C)?  */
   static void enableShutdownHooks() {
   }
 }

@@ -1,17 +1,19 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp 2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-
 package org.jikesrvm.osr;
+
 /**
- * artificial instruction, load a PC on the stack. 
- *
- * @author Feng Qian
+ * artificial instruction, load a PC on the stack.
  */
 
 public class BC_LoadRetAddrConst extends OSR_PseudoBytecode {
@@ -37,7 +39,7 @@ public class BC_LoadRetAddrConst extends OSR_PseudoBytecode {
   }
 
   public int stackChanges() {
-        return +1;
+    return +1;
   }
 
   public void patch(int off) {
@@ -45,6 +47,6 @@ public class BC_LoadRetAddrConst extends OSR_PseudoBytecode {
   }
 
   public String toString() {
-    return "LoadRetAddrConst "+bcindex;
+    return "LoadRetAddrConst " + bcindex;
   }
 }

@@ -1,15 +1,15 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-/*
- * @author Perry Cheng
- */
-
 class Node2I2A {
 
   int data1;
@@ -36,13 +36,13 @@ class Node2I2A {
       }
       synchronized(fakeLock) {
         // This seemingly useless lock operation prevents the optimizing
-        // compiler from doing redundant load elimination of the internal fields 
+        // compiler from doing redundant load elimination of the internal fields
         // used to compute freeMemory in the watson semispace collector.
         // Fairly amusing...at the HIR level there is of course nothing in the above loop
         // that would cause the compiler to think that the fields of VM_ContiguousHeap get changed.
         // Arguably the fields in question should be marked volatile, but injecting this
-        // fake lock operation here causes us to obey the java memory model and not do the 
-        // redundant load elimination. 
+        // fake lock operation here causes us to obey the java memory model and not do the
+        // redundant load elimination.
       }
       long end = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
       long used = end - start;
@@ -50,7 +50,7 @@ class Node2I2A {
         measuredObjectSize = used / ((double) estimateSize);
         objectSize = (int) (measuredObjectSize + 0.5); // round to byte
         objectSize = (objectSize + 2) / 4 * 4; // round to word
-        if (objectSize > 16) 
+        if (objectSize > 16)
           break;
       }
       estimateSize = (int) (0.75 * estimateSize);

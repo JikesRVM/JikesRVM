@@ -1,28 +1,31 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm.ia32;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
-import org.jikesrvm.VM_Reflection;
-import org.jikesrvm.classloader.*;
-
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.runtime.VM_Reflection;
+import org.vmmagic.unboxed.Word;
+import org.vmmagic.unboxed.WordArray;
 
 /**
  * Machine dependent portion of Reflective method invoker.
- *
- * @author Maria Butrico
  */
 public abstract class VM_MachineReflection implements VM_RegisterConstants {
 
-  /** 
+  /**
    * Determine number/type of registers and parameters required to
    * call specified method.
    * Unlike the PowerPC code we count all the parameters, not just the
@@ -30,15 +33,18 @@ public abstract class VM_MachineReflection implements VM_RegisterConstants {
    * following the calling convention.
    */
   public static int countParameters(VM_Method method) {
-    int GPRs   = 0;
-    int FPRs   = 0;
+    int GPRs = 0;
+    int FPRs = 0;
     int parameters = 0; // parameters size in 32-bits quant.
 
     int gp = NUM_PARAMETER_GPRS; // 0, 1, 2
     int fp = NUM_PARAMETER_FPRS; // 0-8
 
     if (!method.isStatic()) {
-      if (gp > 0) {GPRs++; gp--;}
+      if (gp > 0) {
+        GPRs++;
+        gp--;
+      }
       parameters++;
     }
 
@@ -75,20 +81,20 @@ public abstract class VM_MachineReflection implements VM_RegisterConstants {
     }
 
     // hack to return triple
-    return (parameters<<(VM_Constants.REFLECTION_FPRS_BITS+VM_Constants.REFLECTION_GPRS_BITS)) |
-      (FPRs<<VM_Constants.REFLECTION_GPRS_BITS) | GPRs;
+    return (parameters << (VM_Constants.REFLECTION_FPRS_BITS + VM_Constants.REFLECTION_GPRS_BITS)) |
+           (FPRs << VM_Constants.REFLECTION_GPRS_BITS) |
+           GPRs;
   }
-  
 
   /**
    * Collect parameters into arrays of registers/spills, as required to
    * call specified method.
    */
-  public static void packageParameters(VM_Method method, Object thisArg, Object[] otherArgs,
-                                WordArray GPRs, double[] FPRs, WordArray Parameters) {
-    int GPR             = 0;
-    int FPR             = FPRs.length;
-    int parameter       = 0;
+  public static void packageParameters(VM_Method method, Object thisArg, Object[] otherArgs, WordArray GPRs,
+                                       double[] FPRs, byte[] FPRmeta, WordArray Parameters) {
+    int GPR = 0;
+    int FPR = VM_ArchConstants.SSE2_FULL ? 0 : FPRs.length;
+    int parameter = 0;
 
     int gp = NUM_PARAMETER_GPRS; // 0, 1, 2
     int fp = NUM_PARAMETER_FPRS; // 0-8
@@ -102,27 +108,33 @@ public abstract class VM_MachineReflection implements VM_RegisterConstants {
       Parameters.set(parameter++, val);
     }
 
-    VM_TypeReference [] types = method.getParameterTypes();
-    for (int i=0; i<types.length; i++) {
+    VM_TypeReference[] types = method.getParameterTypes();
+    for (int i = 0; i < types.length; i++) {
       VM_TypeReference t = types[i];
 
       if (t.isLongType()) {
         long l = VM_Reflection.unwrapLong(otherArgs[i]);
         if (gp > 0) {
           gp--;
-          GPRs.set(GPR++, Word.fromIntZeroExtend((int)(l>>>32)));
+          GPRs.set(GPR++, Word.fromIntZeroExtend((int) (l >>> 32)));
           if (gp > 0) {
             gp--;
-            GPRs.set(GPR++, Word.fromIntZeroExtend((int)(l)));
+            GPRs.set(GPR++, Word.fromIntZeroExtend((int) (l)));
           }
         }
-        Parameters.set(parameter++, Word.fromIntZeroExtend((int)(l>>>32)));
-        Parameters.set(parameter++, Word.fromIntZeroExtend((int)l));
-        
+        Parameters.set(parameter++, Word.fromIntZeroExtend((int) (l >>> 32)));
+        Parameters.set(parameter++, Word.fromIntZeroExtend((int) l));
+
       } else if (t.isFloatType()) {
         if (fp > 0) {
           fp--;
-          FPRs[--FPR] = VM_Reflection.unwrapFloat(otherArgs[i]);
+          if (VM_ArchConstants.SSE2_FULL) {
+            FPRs[FPR] = VM_Reflection.unwrapFloat(otherArgs[i]);
+            FPRmeta[FPR] = 0x0;
+            FPR++;
+          } else {
+            FPRs[--FPR] = VM_Reflection.unwrapFloat(otherArgs[i]);
+          }
         }
         float f = VM_Reflection.unwrapFloat(otherArgs[i]);
         Parameters.set(parameter++, Word.fromIntZeroExtend(Float.floatToIntBits(f)));
@@ -130,12 +142,18 @@ public abstract class VM_MachineReflection implements VM_RegisterConstants {
       } else if (t.isDoubleType()) {
         if (fp > 0) {
           fp--;
-          FPRs[--FPR] = VM_Reflection.unwrapDouble(otherArgs[i]);
+          if (VM_ArchConstants.SSE2_FULL) {
+            FPRs[FPR] = VM_Reflection.unwrapDouble(otherArgs[i]);
+            FPRmeta[FPR] = 0x1;
+            FPR++;
+          } else {
+            FPRs[--FPR] = VM_Reflection.unwrapDouble(otherArgs[i]);
+          }
         }
         double d = VM_Reflection.unwrapDouble(otherArgs[i]);
         long l = Double.doubleToLongBits(d);
-        Parameters.set(parameter++, Word.fromIntZeroExtend((int)(l>>>32)));
-        Parameters.set(parameter++, Word.fromIntZeroExtend((int)l));
+        Parameters.set(parameter++, Word.fromIntZeroExtend((int) (l >>> 32)));
+        Parameters.set(parameter++, Word.fromIntZeroExtend((int) l));
 
       } else if (t.isBooleanType()) {
         Word val = Word.fromIntZeroExtend(VM_Reflection.unwrapBooleanAsInt(otherArgs[i]));
@@ -160,7 +178,7 @@ public abstract class VM_MachineReflection implements VM_RegisterConstants {
           GPRs.set(GPR++, val);
         }
         Parameters.set(parameter++, val);
-        
+
       } else if (t.isShortType()) {
         Word val = Word.fromIntZeroExtend(VM_Reflection.unwrapShort(otherArgs[i]));
         if (gp > 0) {
@@ -185,7 +203,7 @@ public abstract class VM_MachineReflection implements VM_RegisterConstants {
         }
         Parameters.set(parameter++, val);
 
-      } else  {
+      } else {
         if (VM.VerifyAssertions) VM._assert(VM_Constants.NOT_REACHED);
       }
     }

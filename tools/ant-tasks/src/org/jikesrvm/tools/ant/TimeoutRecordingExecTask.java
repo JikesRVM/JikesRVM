@@ -1,24 +1,24 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Peter Donald. 2007
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm.tools.ant;
 
 import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.util.Watchdog;
 import org.apache.tools.ant.taskdefs.ExecTask;
 import org.apache.tools.ant.taskdefs.ExecuteWatchdog;
 import org.apache.tools.ant.taskdefs.Property;
-import java.lang.reflect.Field;
 
 /**
  * ExecTask extension that sets a proeprty when watchdog kills task.
- *
- * @author Peter Donald
  */
 public class TimeoutRecordingExecTask
     extends ExecTask {
@@ -40,39 +40,9 @@ public class TimeoutRecordingExecTask
       property.execute();
     }
   }
-  
+
   protected ExecuteWatchdog createWatchdog() throws BuildException {
-    if (false) {
-      watchdog = super.createWatchdog();
-    } else {
-      try {
-        final Field field = ExecTask.class.getDeclaredField("timeout");
-        field.setAccessible(true);
-        final Long timeout = (Long) field.get(this);
-        watchdog = (timeout == null) ? null : new MyExecuteWatchdog(timeout);
-      } catch (final Exception e) {
-        e.printStackTrace();
-        throw new BuildException("Error getting timeout", e);
-      }
-    }
+    watchdog = super.createWatchdog();
     return watchdog;
-  }
-
-  static class MyExecuteWatchdog extends ExecuteWatchdog {
-
-    public MyExecuteWatchdog(long l) {
-      super(l);
-    }
-
-    public void timeoutOccured(Watchdog watchdog) {
-      System.out.println("Timeout occured. Attempting to kill process...");
-      try {
-        super.timeoutOccured(watchdog);
-        System.out.println("Process should be dead...");
-      } catch (final Throwable e) {
-        System.out.println("Error terminating process...");
-        e.printStackTrace(System.out);        
-      }      
-    }
   }
 }

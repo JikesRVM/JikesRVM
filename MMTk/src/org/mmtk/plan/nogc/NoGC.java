@@ -1,18 +1,20 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2005
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.plan.nogc;
 
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.Trace;
 import org.mmtk.policy.ImmortalSpace;
-import org.mmtk.policy.Space;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -21,16 +23,11 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements the global state of a a simple allocator
  * without a collector.
- * 
- *
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public class NoGC extends Plan {
 
   /*****************************************************************************
-   * 
+   *
    * Class fields
    */
   public static final ImmortalSpace defSpace
@@ -38,7 +35,7 @@ import org.vmmagic.pragma.*;
   public static final int DEF = defSpace.getDescriptor();
 
   /*****************************************************************************
-   * 
+   *
    * Instance fields
    */
   public final Trace trace;
@@ -51,13 +48,13 @@ import org.vmmagic.pragma.*;
   }
 
   /*****************************************************************************
-   * 
+   *
    * Collection
    */
 
   /**
    * Perform a (global) collection phase.
-   * 
+   *
    * @param phaseId Collection phase
    */
   public final void collectionPhase(int phaseId) {
@@ -70,33 +67,30 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Poll for a collection
-   * 
-   * @param mustCollect Force a collection.
-   * @param space The space that caused the poll.
-   * @return True if a collection is required.
+   * This method controls the triggering of a GC. It is called periodically
+   * during allocation. Returns true to trigger a collection.
+   *
+   * @param spaceFull Space request failed, must recover pages within 'space'.
+   * @return True if a collection is requested by the plan.
    */
-  public final boolean poll(boolean mustCollect, Space space) {
-    if (getPagesReserved() > getTotalPages()) {
-      VM.assertions.fail("GC Triggered in NoGC Plan due to memory exhaustion.");
-    }
-    return false;
+  public final boolean collectionRequired(boolean spaceFull) {
+    // Never collect
+    return false; 
   }
 
   /*****************************************************************************
-   * 
+   *
    * Accounting
    */
 
   /**
    * Return the number of pages used given the pending
    * allocation.
-   * 
+   *
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
   public int getPagesUsed() {
     return (defSpace.reservedPages() + super.getPagesUsed());
   }
-
 }

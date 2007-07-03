@@ -1,25 +1,35 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm;
 
-import org.jikesrvm.classloader.*;
 import java.util.Enumeration;
+import org.jikesrvm.classloader.VM_Atom;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.util.VM_Synchronizer;
 
 /**
  * A class for managing various callbacks from the VM.
- * 
+ *
  * <p>Consumers should register an implementation of the needed interface with
  * a given callback method, and will get notified when the event happens.
- * 
+ *
  * <p>Note: callback consumers should not rely on any particular order of
  * callback invocation.
- * 
+ *
  * <p>TODO: allow limited control over callback order.
  *
  * <p>
@@ -49,15 +59,13 @@ import java.util.Enumeration;
  *                          application support)
  * <li> RecompileAllDynamicallyLoadedMethods - called when the application
  *                          wants to recompile all methods that were previously
- *                          dynamically compiled.  Could be useful for 
+ *                          dynamically compiled.  Could be useful for
  *                          studying the the impact of how much of
  *                          class hierarchy being loaded effects compilation
- *                          performance 
+ *                          performance
  *                          (application must call this explicitly for anything
  *                           to happen)
  * </ul>
- *
- * @author Igor Pechtchanski
  */
 public final class VM_Callbacks {
   ///////////////
@@ -67,7 +75,7 @@ public final class VM_Callbacks {
   /**
    * Interface for monitoring class loading.
    */
-  public static interface ClassLoadedMonitor {
+  public interface ClassLoadedMonitor {
     /**
      * Notify the monitor that a class has been loaded.
      * @param klass the class that was loaded
@@ -127,7 +135,7 @@ public final class VM_Callbacks {
   /**
    * Interface for monitoring class resolution.
    */
-  public static interface ClassResolvedMonitor {
+  public interface ClassResolvedMonitor {
     /**
      * Notify the monitor that a class has been resolved.
      * @param klass the class that was resolved
@@ -187,7 +195,7 @@ public final class VM_Callbacks {
   /**
    * Interface for monitoring class instantiation.
    */
-  public static interface ClassInstantiatedMonitor {
+  public interface ClassInstantiatedMonitor {
     /**
      * Notify the monitor that a class has been instantiated.
      * @param klass the class that was instantiated
@@ -213,8 +221,7 @@ public final class VM_Callbacks {
         VM.sysWrite(getClass(cb));
         VM.sysWrite("\n");
       }
-      classInstantiatedCallbacks = new CallbackList(cb,
-                                                    classInstantiatedCallbacks);
+      classInstantiatedCallbacks = new CallbackList(cb, classInstantiatedCallbacks);
     }
   }
 
@@ -248,7 +255,7 @@ public final class VM_Callbacks {
   /**
    * Interface for monitoring class initialization.
    */
-  public static interface ClassInitializedMonitor {
+  public interface ClassInitializedMonitor {
     /**
      * Notify the monitor that a class has been initialized.
      * @param klass the class that was initialized
@@ -274,8 +281,7 @@ public final class VM_Callbacks {
         VM.sysWrite(getClass(cb));
         VM.sysWrite("\n");
       }
-      classInitializedCallbacks = new CallbackList(cb,
-                                                   classInitializedCallbacks);
+      classInitializedCallbacks = new CallbackList(cb, classInitializedCallbacks);
     }
   }
 
@@ -309,7 +315,7 @@ public final class VM_Callbacks {
   /**
    * Interface for monitoring method override.
    */
-  public static interface MethodOverrideMonitor {
+  public interface MethodOverrideMonitor {
     /**
      * Notify the monitor that a method has been overridden.
      * @param method the method that was loaded
@@ -355,10 +361,11 @@ public final class VM_Callbacks {
       VM.sysWrite("invoking method override monitors: ");
       VM.sysWrite(method);
       VM.sysWrite(":");
-      if (parent != null)
+      if (parent != null) {
         VM.sysWrite(parent);
-      else
+      } else {
         VM.sysWrite("null");
+      }
       VM.sysWrite("\n");
       //printStack("From: ");
     }
@@ -376,7 +383,7 @@ public final class VM_Callbacks {
   /**
    * Interface for monitoring method compile.
    */
-  public static interface MethodCompileMonitor {
+  public interface MethodCompileMonitor {
     /**
      * Notify the monitor that a method is about to be compiled.
      * NOTE: use VM.runningVM and VM.writingBootImage to determine
@@ -446,7 +453,7 @@ public final class VM_Callbacks {
   /**
    * Interface for monitoring forName calls.
    */
-  public static interface ForNameMonitor {
+  public interface ForNameMonitor {
     /**
      * Notify the monitor that java.lang.Class.forName was called.
      * @param type the type that will be returned
@@ -503,11 +510,10 @@ public final class VM_Callbacks {
     forNameEnabled = true;
   }
 
-
   /**
    * Interface for monitoring defineClass calls.
    */
-  public static interface DefineClassMonitor {
+  public interface DefineClassMonitor {
     /**
      * Notify the monitor that java.lang.Class.defineclass was called.
      * @param type the type that will be returned
@@ -564,12 +570,10 @@ public final class VM_Callbacks {
     defineClassEnabled = true;
   }
 
-
-
   /**
    * Interface for monitoring loadClass calls.
    */
-  public static interface LoadClassMonitor {
+  public interface LoadClassMonitor {
     /**
      * Notify the monitor that java.lang.Class.loadclass was called.
      * @param type the type that will be returned
@@ -626,11 +630,10 @@ public final class VM_Callbacks {
     loadClassEnabled = true;
   }
 
-
   /**
    * Interface for monitoring boot image writing.
    */
-  public static interface BootImageMonitor {
+  public interface BootImageMonitor {
     /**
      * Notify the monitor that boot image writing is in progress.
      * @param types the types that are included in the boot image
@@ -687,7 +690,7 @@ public final class VM_Callbacks {
   /**
    * Interface for monitoring VM startup.
    */
-  public static interface StartupMonitor {
+  public interface StartupMonitor {
     /**
      * Notify the monitor that the VM has started up.
      */
@@ -743,7 +746,7 @@ public final class VM_Callbacks {
   /**
    * Interface for monitoring VM exit.
    */
-  public static interface ExitMonitor {
+  public interface ExitMonitor {
     /**
      * Notify the monitor that the VM is about to exit.
      * @param value the exit value
@@ -755,7 +758,7 @@ public final class VM_Callbacks {
    * VM exit callback list.
    */
   private static CallbackList exitCallbacks = null;
-  private static Object exitLock = new VM_Synchronizer();
+  private static final Object exitLock = new VM_Synchronizer();
   private static boolean exitCallbacksStarted = false;
 
   /**
@@ -804,7 +807,7 @@ public final class VM_Callbacks {
   /**
    * Interface for monitoring when an application starts executing
    */
-  public static interface AppStartMonitor {
+  public interface AppStartMonitor {
     /**
      * Notify the monitor that the application has started executing
      * @param app application name
@@ -858,7 +861,7 @@ public final class VM_Callbacks {
   /**
    * Interface for monitoring when an application completes executing
    */
-  public static interface AppCompleteMonitor {
+  public interface AppCompleteMonitor {
     /**
      * Notify the monitor that the application has completed executing
      * @param app  name of application
@@ -895,7 +898,9 @@ public final class VM_Callbacks {
     synchronized (appCompleteLock) {
       if (appCompleteCallbacks == null) return;
       if (TRACE_APP_COMPLETE) {
-        VM.sysWrite("invoking application complete monitors for application ");VM.sysWrite(app);VM.sysWrite("\n");
+        VM.sysWrite("invoking application complete monitors for application ");
+        VM.sysWrite(app);
+        VM.sysWrite("\n");
       }
       for (CallbackList l = appCompleteCallbacks; l != null; l = l.next) {
         if (TRACE_APP_COMPLETE) {
@@ -911,7 +916,7 @@ public final class VM_Callbacks {
   /**
    * Interface for monitoring when an application starts a run
    */
-  public static interface AppRunStartMonitor {
+  public interface AppRunStartMonitor {
     /**
      * Notify the monitor that the application has started a run
      * @param app application name
@@ -924,7 +929,7 @@ public final class VM_Callbacks {
    * Application Run Start callback list.
    */
   private static CallbackList appRunStartCallbacks = null;
-  private static Object appRunStartLock = new VM_Synchronizer();
+  private static final Object appRunStartLock = new VM_Synchronizer();
 
   /**
    * Register a callback for when the application starts a run
@@ -951,7 +956,11 @@ public final class VM_Callbacks {
       if (TRACE_APP_RUN_START) {
         //VM.sysWrite(getThread(), false);
         //VM.sysWrite(": ");
-        VM.sysWrite("invoking the start monitor for application ");VM.sysWrite(app);VM.sysWrite(" at run ");VM.sysWrite(run);VM.sysWrite("\n");
+        VM.sysWrite("invoking the start monitor for application ");
+        VM.sysWrite(app);
+        VM.sysWrite(" at run ");
+        VM.sysWrite(run);
+        VM.sysWrite("\n");
       }
       for (CallbackList l = appRunStartCallbacks; l != null; l = l.next) {
         if (TRACE_APP_RUN_START) {
@@ -967,7 +976,7 @@ public final class VM_Callbacks {
   /**
    * Interface for monitoring when an application completes a run
    */
-  public static interface AppRunCompleteMonitor {
+  public interface AppRunCompleteMonitor {
     /**
      * Notify the monitor that the application has completed a run
      * @param app name of application
@@ -980,7 +989,7 @@ public final class VM_Callbacks {
    * Application Run Complete callback list.
    */
   private static CallbackList appRunCompleteCallbacks = null;
-  private static Object appRunCompleteLock = new VM_Synchronizer();
+  private static final Object appRunCompleteLock = new VM_Synchronizer();
 
   /**
    * Register a callback for when the application completes a run
@@ -1024,9 +1033,9 @@ public final class VM_Callbacks {
   }
 
   /**
-   * Interface for requesting VM to recompile all previously dynamically compiled methods 
+   * Interface for requesting VM to recompile all previously dynamically compiled methods
    */
-  public static interface RecompileAllDynamicallyLoadedMethodsMonitor {
+  public interface RecompileAllDynamicallyLoadedMethodsMonitor {
     /**
      * Notify the monitor that the application has requested the recompile
      */
@@ -1037,7 +1046,7 @@ public final class VM_Callbacks {
    * Recompile all callback list.
    */
   private static CallbackList recompileAllCallbacks = null;
-  private static Object recompileAllLock = new VM_Synchronizer();
+  private static final Object recompileAllLock = new VM_Synchronizer();
 
   /**
    * Register a callback for when the application requests to recompile all
@@ -1094,39 +1103,44 @@ public final class VM_Callbacks {
    * Linked list of callbacks.
    */
   private static class CallbackList {
-    public CallbackList(Object cb, CallbackList n) { callback = cb; next = n; }
+    public CallbackList(Object cb, CallbackList n) {
+      callback = cb;
+      next = n;
+    }
+
     public final Object callback;
     public final CallbackList next;
   }
 
-  private static final boolean TRACE_ADDMONITOR        = false;
-  private static final boolean TRACE_CLASSLOADED       = false;
-  private static final boolean TRACE_CLASSRESOLVED     = false;
-  private static final boolean TRACE_CLASSINITIALIZED  = false;
+  private static final boolean TRACE_ADDMONITOR = false;
+  private static final boolean TRACE_CLASSLOADED = false;
+  private static final boolean TRACE_CLASSRESOLVED = false;
+  private static final boolean TRACE_CLASSINITIALIZED = false;
   private static final boolean TRACE_CLASSINSTANTIATED = false;
-  private static final boolean TRACE_METHODOVERRIDE    = false;
-  private static final boolean TRACE_METHODCOMPILE     = false;
-  private static final boolean TRACE_FORNAME           = false;
-  private static final boolean TRACE_DEFINECLASS       = false;
-  private static final boolean TRACE_LOADCLASS         = false;
-  private static final boolean TRACE_BOOTIMAGE         = false;
-  private static final boolean TRACE_STARTUP           = false;
-  private static final boolean TRACE_EXIT              = false;
-  private static final boolean TRACE_APP_RUN_START     = false;
-  private static final boolean TRACE_APP_RUN_COMPLETE  = false;
-  private static final boolean TRACE_APP_START         = false;
-  private static final boolean TRACE_APP_COMPLETE      = false;
-  private static final boolean TRACE_RECOMPILE_ALL     = false;
+  private static final boolean TRACE_METHODOVERRIDE = false;
+  private static final boolean TRACE_METHODCOMPILE = false;
+  private static final boolean TRACE_FORNAME = false;
+  private static final boolean TRACE_DEFINECLASS = false;
+  private static final boolean TRACE_LOADCLASS = false;
+  private static final boolean TRACE_BOOTIMAGE = false;
+  private static final boolean TRACE_STARTUP = false;
+  private static final boolean TRACE_EXIT = false;
+  private static final boolean TRACE_APP_RUN_START = false;
+  private static final boolean TRACE_APP_RUN_COMPLETE = false;
+  private static final boolean TRACE_APP_START = false;
+  private static final boolean TRACE_APP_COMPLETE = false;
+  private static final boolean TRACE_RECOMPILE_ALL = false;
 
   /**
    * Return class name of the object.
    * @return class name of the object
    */
   private static VM_Atom getClass(Object o) {
-    if (VM.runningVM)
-        return java.lang.JikesRVMSupport.getTypeForClass(o.getClass()).getDescriptor();
-    else
-        return VM_Atom.findOrCreateAsciiAtom(o.getClass().getName());
+    if (VM.runningVM) {
+      return java.lang.JikesRVMSupport.getTypeForClass(o.getClass()).getDescriptor();
+    } else {
+      return VM_Atom.findOrCreateAsciiAtom(o.getClass().getName());
+    }
   }
 
   /**
@@ -1135,10 +1149,11 @@ public final class VM_Callbacks {
    */
   @SuppressWarnings("unused")
   private static int getThread() {
-    if (VM.runningVM)
+    if (VM.runningVM) {
       return VM_Thread.getCurrentThread().getIndex();
-    else
+    } else {
       return System.identityHashCode(Thread.currentThread());
+    }
   }
 
   /**
@@ -1146,10 +1161,11 @@ public final class VM_Callbacks {
    */
   @SuppressWarnings("unused")
   private static void printStack(String message) {
-    if (VM.runningVM)
+    if (VM.runningVM) {
       VM_Scheduler.traceback(message);
-    else
+    } else {
       new Throwable(message).printStackTrace();
+    }
   }
 }
 

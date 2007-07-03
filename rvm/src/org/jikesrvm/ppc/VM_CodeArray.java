@@ -1,39 +1,41 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2003
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm.ppc;
-
-import org.vmmagic.pragma.*;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * VM_CodeArray represents a code object (contiguous memory region containing code).
  * The types of the access methods are platform-dependent.
- *
- * @author Perry Cheng
  */
-@Uninterruptible public abstract class VM_CodeArray {
-  private int [] data;
+@Uninterruptible
+public abstract class VM_CodeArray {
+  private int[] data;
 
-  public VM_CodeArray (int size) { 
+  public VM_CodeArray(int size) {
     if (VM.runningVM) VM._assert(false);  // should be unreachable
     data = new int[size];
   }
 
-  public int get (int index) {
+  public int get(int index) {
     if (VM.runningVM) VM._assert(false);  // should be hijacked
     return data[index];
   }
 
-  public void set (int index, int v) {
+  public void set(int index, int v) {
     if (VM.runningVM) VM._assert(false);  // should be hijacked
     data[index] = v;
   }
@@ -44,8 +46,7 @@ import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
   }
 
   public Object getBacking() {
-    if (!VM.writingImage)
-      VM.sysFail("VM_CodeArray.getBacking called when not writing boot image");
+    if (!VM.writingImage) VM.sysFail("VM_CodeArray.getBacking called when not writing boot image");
     return data;
   }
 
@@ -54,8 +55,6 @@ import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
    * Because Jikes RVM believes that VM_CodeArray is really a Code[]
    * (ie, an array of primitives), we cannot define non-hijacked methods
    * on the 'class' VM_CodeArray.
-   * 
-   * @author Dave Grove
    */
   public static class Factory {
     /**

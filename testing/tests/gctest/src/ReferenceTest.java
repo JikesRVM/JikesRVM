@@ -1,19 +1,20 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-
 import java.lang.ref.*;
 //import org.jikesrvm.*;
 
 /**
  * A test to test java.lang.ref.*.
- * 
- * @author Perry Cheng
  */
 class ReferenceTest {
 
@@ -50,17 +51,17 @@ class ReferenceTest {
     return result;
   }
 
-  private static Object dummy;  
+  private static Object dummy;
   public static void allocateDiscard (double amt) { // amt in Mb
     int rounds = MBtoUnits(amt);
-    for (int i=0; i<rounds; i++)  
+    for (int i=0; i<rounds; i++)
         dummy = allocateUnit();
   }
 
   public static Object allocateHold (double amt) { // amt in Mb
     int rounds = MBtoUnits(amt);
     Object [] a = new Object[rounds];
-    for (int i=0; i<rounds; i++)  
+    for (int i=0; i<rounds; i++)
         a[i] = allocateUnit();
     return a;
   }
@@ -72,7 +73,7 @@ class ReferenceTest {
         allocateDiscard(0.1);
         long curFree = Runtime.getRuntime().freeMemory();
         count++;
-        if (curFree > lastFree) 
+        if (curFree > lastFree)
             return (count * 0.1);
         lastFree = curFree;
       }
@@ -108,7 +109,7 @@ class ReferenceTest {
 
   public static double getHeapSize() {
       allocateUntilNextGC(); // clear current heap twice
-      allocateUntilNextGC(); 
+      allocateUntilNextGC();
       double size = allocateUntilNextGC();
       System.out.print("ReferenceTest checking available size of heap (Mb): ");
       System.out.println(size);
@@ -127,7 +128,7 @@ class ReferenceTest {
         if (quality == GOOD) System.out.print("   GOOD");
         if (quality == POOR) System.out.print("   POOR");
       }
-      else 
+      else
         failCount++;
       System.out.println();
   }
@@ -165,7 +166,7 @@ class ReferenceTest {
       check("Fraction of soft references before GC still live = " + softAvail, (softAvail == 1.0));
       allocateHold(0.5 * initialHeapSize);
       softAvail = checkReferenceArray(sra, srq);
-      check("Fraction of soft references after  GC still live = " + softAvail, 
+      check("Fraction of soft references after  GC still live = " + softAvail,
             (softAvail >= 0.00) && (softAvail <= 0.67),
             ((softAvail >= 0.33) && (softAvail <= 0.66)) ? GOOD : POOR);
 

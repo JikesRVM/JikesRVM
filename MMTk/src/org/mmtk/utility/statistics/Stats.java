@@ -1,13 +1,15 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2003
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-
 package org.mmtk.utility.statistics;
 
 import org.mmtk.plan.Plan;
@@ -22,13 +24,11 @@ import org.vmmagic.pragma.*;
 
 /**
  * This class implements basic statistics functionality
- * 
- * @author Steve Blackburn
  */
 @Uninterruptible public class Stats {
 
   /****************************************************************************
-   * 
+   *
    * Class variables
    */
 
@@ -46,7 +46,7 @@ import org.vmmagic.pragma.*;
   static boolean gatheringStats = false;
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
@@ -64,11 +64,11 @@ import org.vmmagic.pragma.*;
 
   /**
    * Add a new counter to the set of managed counters.
-   * 
+   *
    * @param ctr The counter to be added.
    */
   @Interruptible
-  static void newCounter(Counter ctr) { 
+  static void newCounter(Counter ctr) {
     if (counters < (MAX_COUNTERS - 1)) {
       counter[counters++] = ctr;
     } else {
@@ -224,10 +224,9 @@ import org.vmmagic.pragma.*;
   }
 
   /* ****************************************************************
-   * 
+   *
    *              Statistics output in xml format
-   * 
-   */
+ */
 
   /**
    * Print command-line options and statistics in XML format
@@ -242,7 +241,7 @@ import org.vmmagic.pragma.*;
     Xml.closeAllTags(); // The global mmtk-stats tag
     Xml.end();
   }
-  
+
   private static void openStatXml(String name) {
     Xml.openMinorTag("stat");
     Xml.attribute("name", name);
@@ -251,13 +250,13 @@ import org.vmmagic.pragma.*;
   private static void closeStatXml() {
     Xml.closeMinorTag();
   }
-  
+
   enum Phase {
     MUTATOR("mu"), GC("gc"), COMBINED("all");
-    
+
     private final String name;
-    Phase(String name) { 
-      this.name = name; 
+    Phase(String name) {
+      this.name = name;
     }
     public String toString() { return name; }
   }
@@ -284,7 +283,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Print a single total in an xml tag
-   * 
+   *
    * @param c The counter
    * @param phase The phase
    */
@@ -293,7 +292,7 @@ import org.vmmagic.pragma.*;
     openStatXml(c.getName());
     Xml.openAttribute("value");
     if (phase == Phase.COMBINED) {
-      c.printTotal(); 
+      c.printTotal();
     } else {
       c.printTotal(phase == Phase.MUTATOR);
       Xml.closeAttribute();
@@ -306,7 +305,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Print a single phase counter in an xml tag
-   * 
+   *
    * @param c The counter
    * @param p The phase number
    * @param phase The phase (null, "mu" or "gc")
@@ -316,7 +315,7 @@ import org.vmmagic.pragma.*;
     openStatXml(c.getName());
     Xml.openAttribute("value");
     if (phase == Phase.COMBINED) {
-      c.printCount(p); 
+      c.printCount(p);
     } else {
       c.printCount(p);
       Xml.closeAttribute();
@@ -334,7 +333,7 @@ import org.vmmagic.pragma.*;
   public static void printPhasesXml() {
     Xml.openTag("mmtk-stats-per-gc");
     for (int p = 0; p <= phase; p += 2) {
-      Xml.openTag("phase",false); 
+      Xml.openTag("phase",false);
       Xml.attribute("gc",(p/2)+1);
       Xml.closeMinorTag();
       for (int c = 0; c < counters; c++) {

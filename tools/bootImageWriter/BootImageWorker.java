@@ -1,54 +1,47 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp 2001,2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-
-import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 import org.jikesrvm.classloader.VM_Type;
 
 /**
- * Worker thread for parallel compilation
- * during bootimage writing.
- * @author Perry Cheng
+ * Worker for parallel compilation during bootimage writing.
  */
-public class BootImageWorker extends Thread {
+public class BootImageWorker implements Runnable {
 
-  public static final int verbose = 0;
-  static Enumeration enumeration;
-  int id;
+  public static final boolean verbose = false;
+  private static final AtomicLong count = new AtomicLong();
+  private final VM_Type type;
 
-  public static void startup (Enumeration e) {
-    enumeration = e;
+  BootImageWorker(VM_Type type) {
+    this.type = type;
   }
 
   public void run () {
-
-    int count = 0;
-    while (true) {
-      VM_Type type = null;
-      synchronized (enumeration) {
-        if (enumeration.hasMoreElements()) {
-          type = (VM_Type) enumeration.nextElement();
-          count++;
-        }
-      }
-      if (type == null) 
-        return;
-      long startTime = 0;
-      if (verbose >= 1) {
-          startTime = System.currentTimeMillis();
-          BootImageWriterMessages.say(startTime + ": "+ count +" starting " + type +"(Thread " + id + ")");
-      }
-      type.instantiate();
-      if (verbose >= 1) {
-        long stopTime = System.currentTimeMillis();
-        BootImageWriterMessages.say(stopTime + ": "+ count +" finish " + type +" duration: " + (stopTime - startTime) + "ms (Thread "+ id +")");
-      }
+    if (type == null)
+      return;
+    long startTime = 0;
+    long myCount = 0;
+    if (verbose) {
+      startTime = System.currentTimeMillis();
+      myCount = count.incrementAndGet();
+      BootImageWriterMessages.say(startTime + ": "+ myCount +" starting " + type);
+    }
+    type.instantiate();
+    if (verbose) {
+      long stopTime = System.currentTimeMillis();
+      BootImageWriterMessages.say(stopTime + ": "+ myCount +" finish " + type +
+          " duration: " + (stopTime - startTime));
     }
   }
-
 }
+

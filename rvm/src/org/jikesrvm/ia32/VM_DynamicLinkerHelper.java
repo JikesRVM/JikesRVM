@@ -1,38 +1,38 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm.ia32;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Magic;
+import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 
 /**
  * Machine specific helper functions for dynamic linking.
- * 
- * @author Bowen Alpern
- * @author Maria Butrico
- * @author Anthony Cocchi
  */
 @Uninterruptible
 public abstract class VM_DynamicLinkerHelper {
 
   /**
    * Reach up two stack frames into a frame that is compiled
-   * with the DynamicBridge register protocol and grap 
+   * with the DynamicBridge register protocol and grap
    * the receiver object of the invoke (ie the first param).
    * NOTE: assumes that caller has disabled GC.
    */
   @NoInline
   public
-  static Object getReceiverObject() { 
+  static Object getReceiverObject() {
 
     Address callingFrame = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());
     callingFrame = VM_Magic.getCallerFramePointer(callingFrame);

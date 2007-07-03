@@ -1,16 +1,14 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
- */
-
-/**
- * Just lots of unsynchronized read/write to static shared variables.
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
  *
- * @author unascribed
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 public class threadTest1 {
 
@@ -51,7 +49,7 @@ public class threadTest1 {
          }
 
          for (int i = 0; i < NUM_THREADS; i ++) {
-                 System.out.println("Final[" + i + "]: a = " + aResult[i] + 
+                 System.out.println("Final[" + i + "]: a = " + aResult[i] +
                                         ", b = " + bResult[i]);
          }
     }
@@ -62,14 +60,14 @@ public class threadTest1 {
 class TestThread1 extends Thread {
 
     TestThread1(int id) { _tid = id;}
-        
+
     public void run () {
 
        for (int i = 0; i < 10000; i++) {
             threadTest1.a++;
             threadTest1.b += 2;
        }
-       
+
        if (_tid*2 > threadTest1.NUM_THREADS) {
          for (int i = 0; i < 10000; i++) {
             threadTest1.a++;
@@ -77,7 +75,7 @@ class TestThread1 extends Thread {
          }
 
        }
-           
+
        System.out.println("Final: [" + _tid + "]" + " a = " + threadTest1.a + ", b = " + threadTest1.b);
        threadTest1.aResult[_tid] =  threadTest1.a;
        threadTest1.bResult[_tid] =  threadTest1.b;

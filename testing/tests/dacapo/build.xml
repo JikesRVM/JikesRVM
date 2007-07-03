@@ -1,9 +1,23 @@
+<!--
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Common Public License (CPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/cpl1.0.php
+ ~
+ ~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
 <project name="dacapo" default="test" basedir=".">
 
-  <condition property="test.time.limit" value="1800" else="480">
+  <condition property="test.time.limit" value="1800">
     <equals arg1="${test.mode}" arg2="performance"/>
   </condition>
-  <property name="test.max.heapsize" value="150"/>
+  <condition property="test.time.limit" value="3000" else="480">
+    <equals arg1="${test.mode}" arg2="gcstress"/>
+  </condition>
 
   <import file="../../../build/tests.xml"/>
 
@@ -13,8 +27,10 @@
   <macrodef name="dacapo">
     <attribute name="name"/>
     <attribute name="timeLimit" default=""/>
+    <attribute name="heapsize" default=""/>
+    <attribute name="requires-display" default="false"/>
     <sequential>
-      <rvm tag="@{name}" class="Harness" args="@{name}" timeLimit="@{timeLimit}"/>
+      <rvm tag="@{name}" class="Harness" requires-display="@{requires-display}" args="@{name}" timeLimit="@{timeLimit}" maxHeapSize="@{heapsize}"/>
       <outputSingleStatisticResults tag="@{name}" key="time" pattern="===== DaCapo @{name} PASSED in (.*) msec ====="/>
     </sequential>
   </macrodef>
@@ -31,17 +47,18 @@
 
     <startResults/>
 
-    <dacapo name="antlr"/>
-    <dacapo name="bloat"/>
-    <dacapo name="chart"/>
-    <dacapo name="fop"/>
-    <dacapo name="hsqldb"/>
-    <dacapo name="jython"/>
-    <dacapo name="luindex"/>
-    <dacapo name="lusearch"/>
-    <dacapo name="pmd"/>
-    <dacapo name="xalan"/>
-    <dacapo name="eclipse"/>
+    <!-- Heapsize set to 6x minimum heap size with MarkCompact -->
+    <dacapo name="antlr"    heapsize="120"/>
+    <dacapo name="bloat"    heapsize="150"/>
+    <dacapo name="chart"    heapsize="240" requires-display="true"/>
+    <dacapo name="eclipse"  heapsize="400"/>
+    <dacapo name="fop"      heapsize="180"/>
+    <dacapo name="hsqldb"   heapsize="500"/>
+    <dacapo name="jython"   heapsize="200"/>
+    <dacapo name="luindex"  heapsize="120"/>
+    <dacapo name="lusearch" heapsize="300"/>
+    <dacapo name="pmd"      heapsize="200"/>
+    <dacapo name="xalan"    heapsize="150"/>
 
     <finishResults/>
   </target>

@@ -1,20 +1,19 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-/*
- * Unit tests for VM_OptEncodedCallSiteTree.callEdgeMissing
- * @author Dave Grove
- */
-
 class TestEncodedCallSiteTree {
   static final int A = 100;
   static final int B = 200;
-  static final int C = 300; 
+  static final int C = 300;
   static final int D = 400;
   static final int E = 500;
   static final int F = 600;
@@ -22,7 +21,7 @@ class TestEncodedCallSiteTree {
   static final int H = 800;
   static final int I = 900;
   static final int J = 1000;
-  
+
   // <A, 12, B>, <A,14,C>, <A,16,D>, <B,3,E>, <B,5,F>, <C,10,G>, <G,20,H>, <H,30,I>
   static int[] data1 =  { -1, A, -2, 12, B, 14, C, 16, D, -6, 3, E, 5, F, -9, 10, G, -2, 20, H, -2, 30, I };
 
@@ -48,4 +47,4 @@ class TestEncodedCallSiteTree {
     System.out.println("Result is "+VM_OptEncodedCallSiteTree.callEdgeMissing(callerMID, bcIndex, calleeMID, data)+"\n");
   }
 
-}    
+}

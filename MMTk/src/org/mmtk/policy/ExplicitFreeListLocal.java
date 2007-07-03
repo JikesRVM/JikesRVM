@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.policy;
 
@@ -24,29 +27,25 @@ import org.vmmagic.pragma.*;
  *
  * @see SegregatedFreeList
  * @see ExplicitFreeListSpace
- *
- *
- * @author Steve Blackburn
- * @author Daniel Frampton
  */
 @Uninterruptible public final class ExplicitFreeListLocal extends SegregatedFreeList
   implements Constants {
 
   /****************************************************************************
-   * 
+   *
    * Class variables
    */
-  
+
   public static final int META_DATA_PAGES_PER_REGION = SegregatedFreeList.META_DATA_PAGES_PER_REGION_WITH_BITMAP;
 
 
   /****************************************************************************
-   * 
+   *
    * Instance variables
    */
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
@@ -56,7 +55,7 @@ import org.vmmagic.pragma.*;
    */
   static {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(LAZY_SWEEP);
-    
+
     cellSize = new int[SIZE_CLASSES];
     blockSizeClass = new byte[SIZE_CLASSES];
     cellsInBlock = new int[SIZE_CLASSES];
@@ -83,7 +82,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Constructor
-   * 
+   *
    * @param space The rc space to which this allocator
    * instances is bound.
    */
@@ -93,7 +92,7 @@ import org.vmmagic.pragma.*;
 
 
   /****************************************************************************
-   * 
+   *
    * Allocation
    */
 
@@ -115,10 +114,10 @@ import org.vmmagic.pragma.*;
 
   protected boolean preserveFreeList() { return false; }
   protected boolean maintainSideBitmap() { return true; }
-  
+
   /**
    * Free an object.
-   * 
+   *
    * @param object The object to be freed.
    */
   @Inline
@@ -127,7 +126,7 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Collection
    */
 
@@ -140,16 +139,14 @@ import org.vmmagic.pragma.*;
 
   /**
    * Finish up after a collection.
-   * 
-   */
+ */
   public void releaseCollector() {
     sweepBlocks(true);
   }
-  
+
   /**
    * Finish up after a collection.
-   * 
-   */
+ */
   public void releaseMutator() {
     restoreFreeLists();
   }

@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2004
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.utility.heap;
 
@@ -24,11 +27,8 @@ import org.vmmagic.pragma.*;
  * page is requested by the space both a page budget and the use of
  * virtual address space are checked.  If the request for space can't
  * be satisfied (for either reason) a GC may be triggered.<p>
- * 
- *
- * @author Steve Blackburn
  */
-@Uninterruptible public final class FreeListPageResource extends PageResource 
+@Uninterruptible public final class FreeListPageResource extends PageResource
   implements Constants {
 
   private GenericFreeList freeList;
@@ -37,10 +37,10 @@ import org.vmmagic.pragma.*;
 
   /**
    * Constructor
-   * 
+   *
    * Contiguous monotone resource. The address range is pre-defined at
    * initializtion time and is immutable.
-   * 
+   *
    * @param pageBudget The budget of pages available to this memory
    * manager before it must poll the collector.
    * @param space The space to which this resource is attached
@@ -55,10 +55,10 @@ import org.vmmagic.pragma.*;
 
   /**
    * Constructor
-   * 
+   *
    * Contiguous monotone resource. The address range is pre-defined at
    * initializtion time and is immutable.
-   * 
+   *
    * @param pageBudget The budget of pages available to this memory
    * manager before it must poll the collector.
    * @param space The space to which this resource is attached
@@ -77,13 +77,13 @@ import org.vmmagic.pragma.*;
 
   /**
    * Constructor
-   * 
+   *
    * Discontiguous monotone resource. The address range is <i>not</i>
    * pre-defined at initializtion time and is dynamically defined to
    * be some set of pages, according to demand and availability.
-   * 
+   *
    * CURRENTLY UNIMPLEMENTED
-   * 
+   *
    * @param pageBudget The budget of pages available to this memory
    * manager before it must poll the collector.
    * @param space The space to which this resource is attached
@@ -91,22 +91,22 @@ import org.vmmagic.pragma.*;
   public FreeListPageResource(int pageBudget, Space space) {
     super(pageBudget, space);
     /* unimplemented */
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false); 
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
   }
 
   /**
    * Allocate <code>pages</code> pages from this resource.<p>
-   * 
+   *
    * If the request can be satisfied, then ensure the pages are
    * mmpapped and zeroed before returning the address of the start of
    * the region.  If the request cannot be satisified, return zero.
-   * 
+   *
    * @param pages The number of pages to be allocated.
    * @return The start of the first page if successful, zero on
    * failure.
    */
   @Inline
-  protected Address allocPages(int pages) { 
+  protected Address allocPages(int pages) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(contiguous);
     lock();
     int pageOffset = freeList.alloc(pages);
@@ -126,6 +126,7 @@ import org.vmmagic.pragma.*;
       Address rtn = start.plus(Conversions.pagesToBytes(pageOffset));
       Mmapper.ensureMapped(rtn, pages);
       VM.memory.zero(rtn, Conversions.pagesToBytes(pages));
+      commitPages(pages, pages);
       unlock();
       return rtn;
     }
@@ -135,12 +136,12 @@ import org.vmmagic.pragma.*;
    * Release a group of pages, associated with this page resource,
    * that were allocated together, optionally zeroing on release and
    * optionally memory protecting on release.
-   * 
+   *
    * @param first The first page in the group of pages that were
    * allocated together.
    */
   @Inline
-  public void releasePages(Address first) { 
+  public void releasePages(Address first) {
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(Conversions.isPageAligned(first));
 
@@ -164,7 +165,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Reserve virtual address space for meta-data.
-   * 
+   *
    * @param extent The size of this space
    */
   private void reserveMetaData(Extent extent) {
@@ -186,26 +187,14 @@ import org.vmmagic.pragma.*;
    * Adjust a page request to include metadata requirements, if any.  In the
    * case of a free-list allocator, meta-data is pre-allocated, so simply
    * return the un-adjusted request size.
-   * 
+   *
    * @param pages The size of the pending allocation in pages
    * @return The (unadjusted) request size, since metadata is pre-allocated
    */
   public int adjustForMetaData(int pages) { return pages; }
-  
-  /**
-   * Adjust a page request to include metadata requirements, if any.  In the
-   * case of a free-list allocator, meta-data is pre-allocated, so simply
-   * return the un-adjusted request size.
-   * 
-   * @param pages The size of the pending allocation in pages
-   * @param begin The start of the region of memory assigned to this pending
-   * allocation
-   * @return The (unadjusted) request size, since metadata is pre-allocated
-   */
-  public int adjustForMetaData(int pages, Address begin) { return pages; }
-  
+
   @Inline
-  int pages(Address first) { 
+  int pages(Address first) {
     return freeList.size(Conversions.bytesToPages(first.diff(start)));
   }
 
@@ -216,12 +205,12 @@ import org.vmmagic.pragma.*;
 
   /**
    * Return the size of the super page
-   * 
+   *
    * @param first the Address of the first word in the superpage
    * @return the size in bytes
    */
   @Inline
-  public Extent getSize(Address first) { 
+  public Extent getSize(Address first) {
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(Conversions.isPageAligned(first));
 

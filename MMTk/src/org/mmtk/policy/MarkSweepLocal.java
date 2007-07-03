@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2003
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.policy;
 
@@ -36,18 +39,15 @@ import org.vmmagic.pragma.*;
  * more efficient.  This approach maximizes the speed of the common
  * case when marking, while also allowing for fast sweeping, with
  * minimal space overhead (2 bits per object).
- * 
+ *
  * @see SegregatedFreeList
  * @see MarkSweepSpace
- * 
- *
- * @author Steve Blackburn
  */
 @Uninterruptible public final class MarkSweepLocal extends SegregatedFreeList
   implements Constants {
 
   /****************************************************************************
-   * 
+   *
    * Class variables
    */
   private static final int FRAG_PERCENTILES = 5; // 20% iles
@@ -62,12 +62,12 @@ import org.vmmagic.pragma.*;
    */
   public static final boolean HEADER_MARK_BITS = true;
   public static final int META_DATA_PAGES_PER_REGION = HEADER_MARK_BITS
-    ? SegregatedFreeList.META_DATA_PAGES_PER_REGION_NO_BITMAP 
+    ? SegregatedFreeList.META_DATA_PAGES_PER_REGION_NO_BITMAP
     : SegregatedFreeList.META_DATA_PAGES_PER_REGION_WITH_BITMAP;
 
-  
+
   /****************************************************************************
-   * 
+   *
    * Instance variables
    */
   private MarkSweepSpace msSpace;
@@ -86,7 +86,7 @@ import org.vmmagic.pragma.*;
   protected boolean maintainSideBitmap() { return !HEADER_MARK_BITS; }
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
@@ -121,7 +121,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Constructor
-   * 
+   *
    * @param space The mark-sweep space to which this allocator
    * instances is bound.
    */
@@ -140,7 +140,7 @@ import org.vmmagic.pragma.*;
 
 
   /****************************************************************************
-   * 
+   *
    * Allocation
    */
 
@@ -165,7 +165,7 @@ import org.vmmagic.pragma.*;
 
 
   /****************************************************************************
-   * 
+   *
    * Collection
    */
 
@@ -183,15 +183,13 @@ import org.vmmagic.pragma.*;
 
   /**
    * Finish up after a collection.
-   * 
-   */
+ */
   public void releaseCollector() {
     sweepBlocks(true); // sweep the blocks
   }
   /**
    * Finish up after a collection.
-   * 
-   */
+ */
   public void releaseMutator() {
     restoreFreeLists();
     if (Options.fragmentationStats.getValue())
@@ -201,19 +199,19 @@ import org.vmmagic.pragma.*;
   /**
    * Should the sweep reclaim the cell containing this object. Is this object
    * live. This is only used when maintainSideBitmap is false.
-   * 
+   *
    * @param object The object to query
    * @param markState The markState ot compare against
    * @return True if the cell should be reclaimed
    */
   @Inline
-  protected boolean reclaimCellForObject(ObjectReference object, 
-                                               Word markState) { 
+  protected boolean reclaimCellForObject(ObjectReference object,
+                                               Word markState) {
     return !MarkSweepSpace.testMarkState(object, markState);
   }
 
   /****************************************************************************
-   * 
+   *
    * Fragmentation analysis
    */
 
@@ -244,7 +242,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Return the number of unused bytes on the free lists
-   * 
+   *
    * @param prepare True if this is called in the prepare phase
    * (immediately prior to GC), false if called in the release phase.
    * @return The number of unused bytes on the free lists
@@ -267,7 +265,7 @@ import org.vmmagic.pragma.*;
    * zeroed, set, and become stale, and depending on where in this
    * cycle this method is called, the results will differ
    * dramatically).
-   * 
+   *
    * @param block The block whose marked cells are to be counted
    * @return the number of cells marked as live on this block.
    */
@@ -453,7 +451,7 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Sanity checks and debugging
    */
   private int getUsedPages() {

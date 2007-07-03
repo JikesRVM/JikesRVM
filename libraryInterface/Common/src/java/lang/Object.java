@@ -1,27 +1,30 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp 2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package java.lang;
 
-import org.jikesrvm.VM_ObjectModel;
-import org.jikesrvm.VM_Lock;
-import org.jikesrvm.VM_Runtime;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
+import org.jikesrvm.scheduler.VM_Lock;
+import org.jikesrvm.runtime.VM_Runtime;
 
 /**
  * Jikes RVM implementation of java.lang.Object.
- * 
+ *
  * By convention, order methods in the same order
- * as they appear in the method summary list of Sun's 1.4 Javadoc API. 
- * 
- * @author Julian Dolby
+ * as they appear in the method summary list of Sun's 1.4 Javadoc API.
  */
 public class Object {
 
+  @SuppressWarnings({"PMD.ProperCloneImplementation","PMD.CloneMethodMustImplementCloneable","CloneDoesntCallSuperClone"})
   protected Object clone() throws CloneNotSupportedException {
     return VM_Runtime.clone(this);
   }
@@ -30,13 +33,14 @@ public class Object {
     return this == o;
   }
 
+  @SuppressWarnings({"PMD.EmptyFinalizer","FinalizeDoesntCallSuperFinalize"})
   protected void finalize () throws Throwable {
   }
 
   public final Class<?> getClass() {
     return VM_ObjectModel.getObjectType(this).getClassForType();
   }
-    
+
   public int hashCode() {
     return VM_ObjectModel.getObjectHashCode(this);
   }
@@ -52,7 +56,7 @@ public class Object {
   public String toString () {
     return getClass().getName() + "@" + Integer.toHexString(hashCode());
   }
-  
+
   public final void wait () throws InterruptedException,
                                    IllegalMonitorStateException {
     VM_Lock.wait(this);
@@ -72,7 +76,7 @@ public class Object {
         time = 1;
       } else if (frac >= 500000) {
         time += 1;
-      } 
+      }
       if (time == 0) {
         VM_Lock.wait(this);
       } else {

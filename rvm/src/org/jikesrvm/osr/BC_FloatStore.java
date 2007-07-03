@@ -1,23 +1,25 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp 2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-
 package org.jikesrvm.osr;
+
 /**
- * BC_FloatStore: fstore, fstore_<i> 
- * 
- * @author Feng Qian
+ * BC_FloatStore: fstore, fstore_<i>
  */
 public class BC_FloatStore extends OSR_PseudoBytecode {
   private int bsize;
   private byte[] codes;
   private int lnum;
-  
+
   public BC_FloatStore(int local) {
     this.lnum = local;
     if (local <= 255) {
@@ -38,10 +40,10 @@ public class BC_FloatStore extends OSR_PseudoBytecode {
   }
 
   public int stackChanges() {
-        return -1;
+    return -1;
   }
 
   public String toString() {
-    return "FloatStore "+lnum;
+    return "FloatStore " + lnum;
   }
 }

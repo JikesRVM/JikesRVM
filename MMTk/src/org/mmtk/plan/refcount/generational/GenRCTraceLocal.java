@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2005
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.plan.refcount.generational;
 
@@ -21,11 +24,6 @@ import org.vmmagic.unboxed.*;
 /**
  * This abstract class implments the thread-local functionality for a transitive
  * closure over a mark-sweep space.
- * 
- *
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public final class GenRCTraceLocal extends TraceLocal {
   /**
@@ -36,13 +34,13 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Externally visible Object processing and tracing
    */
 
   /**
    * Is the specified object live?
-   * 
+   *
    * @param object The object.
    * @return True if the object is live.
    */
@@ -83,22 +81,22 @@ import org.vmmagic.unboxed.*;
     }
     return object;
   }
-  
+
   /**
    * This method traces an object with knowledge of the fact that object
    * is a root or not. In simple collectors the fact it is a root is not
    * important so this is the default implementation given here.
-   * 
+   *
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
   @Inline
-  public ObjectReference traceObject(ObjectReference object) { 
+  public ObjectReference traceObject(ObjectReference object) {
     return traceObject(object, false);
   }
 
   @Inline
-  public int getAllocator() { 
+  public int getAllocator() {
     return GenRC.ALLOC_RC;
   }
 
@@ -112,14 +110,14 @@ import org.vmmagic.unboxed.*;
       return GenRC.nurserySpace.traceObject(this, object);
     return object;
   }
-  
+
   /**
    * Miscellaneous
    */
 
   /**
    * Called during the trace to process any remsets. As there is a bug
-   * in JikesRVM where write barriers occur during GC, this is 
+   * in JikesRVM where write barriers occur during GC, this is
    * necessary.
    */
   public void flushRememberedSets() {

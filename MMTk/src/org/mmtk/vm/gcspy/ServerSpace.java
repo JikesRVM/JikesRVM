@@ -1,12 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Richard Jones, 2003-6
- * Computing Laboratory, University of Kent at Canterbury
- * All rights reserved.
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.vm.gcspy;
 
@@ -17,11 +19,8 @@ import org.vmmagic.pragma.*;
 
 /**
  * Abstract class for the GCspy Space abstraction.
- * 
- * Implementing classes will largely forward calls to the gcspy C library.
- * 
  *
- * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
+ * Implementing classes will largely forward calls to the gcspy C library.
  */
 @Uninterruptible public abstract class ServerSpace {
 
@@ -39,7 +38,7 @@ import org.vmmagic.pragma.*;
   protected Address driver;      // a pointer to the C driver, gcspy_gc_drivert *driver;
   protected static final boolean DEBUG = false;
 
-  
+
   /**
    * Get a pointer to the native driver
    * @return The address of the C driver, gcspy_gc_drivert *, used in all calls
@@ -48,7 +47,7 @@ import org.vmmagic.pragma.*;
   Address getDriverAddress() {
     return driver;
   }
-  
+
   /**
    * Tell the native driver the tile name.
    * @param i the number of the tile
@@ -72,14 +71,14 @@ import org.vmmagic.pragma.*;
    * @param value The value for the format string
    */
   public abstract void setTilename(int i, String format, long value);
-  
+
   /**
    * Tell the C driver to resize
    * @param size the new driver size
    */
   public abstract void resize(int size);
 
-  /** 
+  /**
    * Start a transmission
    */
   public abstract void startCommunication();
@@ -151,7 +150,7 @@ import org.vmmagic.pragma.*;
    * @param info A pointer to the information (held as C string)
    */
   public abstract void spaceInfo (Address info);
-  
+
   /**
    * End the transmission (for this event)
    */

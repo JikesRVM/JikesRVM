@@ -1,16 +1,17 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 /* Test JNI Functions related to Exception
- * Implement native methods from NativeException.java 
- * 
- * @author Ton Ngo, Steve Smith 
- * @date   3/24/00
+ * Implement native methods from NativeException.java
  */
 #include <stdio.h>
 #include <stdlib.h>             /* malloc() */
@@ -38,7 +39,7 @@ JNIEXPORT jboolean JNICALL Java_NativeException_testPassThrough
   (JNIEnv *env, jclass cls, jintArray intArray) {
 
   int i;
-  int size = 10; 
+  int size = 10;
   jint *buf = (jint *) malloc(sizeof(int) * size);
   for (i = 0; i<size; i++) {
     buf[i] = buf[i] + 1;
@@ -61,7 +62,7 @@ JNIEXPORT jboolean JNICALL Java_NativeException_testExceptionOccured
   (JNIEnv *env, jclass cls, jintArray intArray) {
 
   int i;
-  int size = 10; 
+  int size = 10;
   jthrowable e;
 
   jint *buf = (jint *) malloc(sizeof(int) * size);
@@ -86,7 +87,7 @@ JNIEXPORT jboolean JNICALL Java_NativeException_testExceptionClear
   (JNIEnv *env, jclass cls, jintArray intArray) {
 
   int i;
-  int size = 10; 
+  int size = 10;
   jint *buf = (jint *) malloc(sizeof(int) * size);
   for (i = 0; i<size; i++) {
     buf[i] = buf[i] + 1;
@@ -97,7 +98,7 @@ JNIEXPORT jboolean JNICALL Java_NativeException_testExceptionClear
 
   (*env) -> ExceptionClear(env);
 
-  return JNI_TRUE;    
+  return JNI_TRUE;
 
 }
 
@@ -112,7 +113,7 @@ JNIEXPORT jboolean JNICALL Java_NativeException_testExceptionDescribe
   (JNIEnv *env, jclass cls, jintArray intArray) {
 
   int i;
-  int size = 10; 
+  int size = 10;
   jint *buf = (jint *) malloc(sizeof(int) * size);
   for (i = 0; i<size; i++) {
     buf[i] = buf[i] + 1;
@@ -123,7 +124,7 @@ JNIEXPORT jboolean JNICALL Java_NativeException_testExceptionDescribe
 
   (*env) -> ExceptionDescribe(env); /* also clear exception */
 
-  return JNI_TRUE; 
+  return JNI_TRUE;
 
 }
 

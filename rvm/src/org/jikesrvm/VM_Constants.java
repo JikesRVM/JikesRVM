@@ -1,31 +1,29 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm;
 
-import org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants;
-import org.jikesrvm.ArchitectureSpecific.VM_RegisterConstants;
-import org.jikesrvm.ArchitectureSpecific.VM_TrapConstants;
+import org.jikesrvm.objectmodel.VM_TIBLayoutConstants;
+import org.jikesrvm.objectmodel.VM_ThinLockConstants;
 
 /**
  * Constants describing vm object, stack, and register characteristics.
  * Some of these constants are architecture-specific
  * and some are (at the moment) architecture-neutral.
- *
- * @author Bowen Alpern
- * @author Stephen Fink
- * @author David Grove
  */
-public interface VM_Constants
-extends   VM_ThinLockConstants,         // architecture-neutral
-          VM_TIBLayoutConstants,        // architecture-neutral
-          VM_HeapLayoutConstants,       // architecture-neutral
-          VM_SizeConstants             // 'semi-'architecture-neutral
+public interface VM_Constants extends VM_ThinLockConstants,         // architecture-neutral
+                                      VM_TIBLayoutConstants,        // architecture-neutral
+                                      VM_HeapLayoutConstants,       // architecture-neutral
+                                      VM_SizeConstants             // 'semi-'architecture-neutral
 {
   /**
    * For assertion checking things that should never happen.

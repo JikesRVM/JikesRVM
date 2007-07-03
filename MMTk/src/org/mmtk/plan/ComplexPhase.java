@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2005
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.plan;
 
@@ -20,15 +23,11 @@ import org.vmmagic.pragma.*;
 
 /**
  * Phases of a garbage collection.
- * 
+ *
  * A complex phase is a sequence of phases.  They are constructed
  * from arrays of either the phases or phase IDs.
- * 
- * TODO write a replacePhase method.
- * 
  *
- * @author Daniel Frampton
- * @author Robin Garner
+ * TODO write a replacePhase method.
  */
 @Uninterruptible public final class ComplexPhase extends Phase
   implements Constants {
@@ -44,7 +43,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Construct a complex phase from an array of phase IDs.
-   * 
+   *
    * @param name The name of the phase.
    * @param subPhases The IDs of the supphases
    */
@@ -56,7 +55,7 @@ import org.vmmagic.pragma.*;
   /**
    * Construct a complex phase from an array of phase IDs, but using
    * the specified timer rather than creating one.
-   * 
+   *
    * @param name The name of the phase.
    * @param timer The timer for this phase to contribute to.
    * @param subPhases The IDs of the supphases
@@ -82,7 +81,7 @@ import org.vmmagic.pragma.*;
   /**
    * Execute this phase, synchronizing initially.  Simply executes
    * the component phases in turn.
-   * 
+   *
    * TODO are we oversynchronizing here ??
    */
   protected void delegatePhase() {
@@ -102,7 +101,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Replace a phase. For example to replace a placeholder
-   * 
+   *
    * @param oldId The phase to replace.
    * @param newId The new phase.
    */

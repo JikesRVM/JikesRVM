@@ -1,27 +1,29 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp 2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package java.lang.reflect;
 
-import org.jikesrvm.VM_ObjectModel;
-import org.jikesrvm.VM_Runtime;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
+import org.jikesrvm.runtime.VM_Runtime;
 import org.jikesrvm.classloader.*;
 
 /**
  * Library support interface of Jikes RVM
- *
- * @author Julian Dolby
  */
 public class JikesRVMSupport {
 
   /**
    * Convert from "vm" type system to "jdk" type system.
-   */ 
+   */
   static Class<?>[] typesToClasses(VM_TypeReference[] types) {
     Class<?>[] classes = new Class[types.length];
     for (int i = 0; i < types.length; i++) {
@@ -33,9 +35,9 @@ public class JikesRVMSupport {
   // Make possibly wrapped method argument compatible with expected type
   // throwing IllegalArgumentException if it cannot be.
   //
-  @SuppressWarnings({"UnnecessaryBoxing"})
+  @SuppressWarnings({"UnnecessaryBoxing","PMD.IntegerInstantiation"})
   static Object makeArgumentCompatible(VM_Type expectedType, Object arg) {
-    if (expectedType.isPrimitiveType()) { 
+    if (expectedType.isPrimitiveType()) {
       if (arg instanceof java.lang.Void) {
         if (expectedType.isVoidType()) return arg;
       } else if (arg instanceof java.lang.Boolean) {
@@ -67,12 +69,12 @@ public class JikesRVMSupport {
     } else {
       if (arg == null) return arg; // null is always ok
       VM_Type actualType = VM_ObjectModel.getObjectType(arg);
-      if (expectedType == actualType || 
+      if (expectedType == actualType ||
           expectedType == VM_Type.JavaLangObjectType ||
           VM_Runtime.isAssignableWith(expectedType, actualType)) {
         return arg;
       }
-    } 
+    }
     throw new IllegalArgumentException();
   }
 
@@ -103,7 +105,7 @@ public class JikesRVMSupport {
 
 
   /**
-   * Check to see if a method declared by the accessingClass 
+   * Check to see if a method declared by the accessingClass
    * should be allowed to access the argument VM_Member.
    * Assumption: member is not public.  This trivial case should
    * be approved by the caller without needing to call this method.
@@ -124,8 +126,8 @@ public class JikesRVMSupport {
     } else {
       // default: access within package is allowed
       if (declaringClass.getPackageName().equals(accessingClass.getPackageName())) return;
-    }      
-    
+    }
+
     throw new IllegalAccessException("Access to "+member+" is denied to "+accessingClass);
   }
 

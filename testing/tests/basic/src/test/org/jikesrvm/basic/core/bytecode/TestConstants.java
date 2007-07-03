@@ -1,16 +1,17 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package test.org.jikesrvm.basic.core.bytecode;
 
-/**
- * @author unascribed
- */
 class TestConstants {
   public static void main(String[] args) {
     aconst();
@@ -120,15 +121,15 @@ class TestConstants {
     // Intel FPU constants
     System.out.print("Expected: 3.141592653589793 Actual: ");
     System.out.println(Math.PI);
-    
+
     final double LG2 = 0.3010299956639811952256464283594894482;
     System.out.print("Expected: 0.3010299956639812 Actual: ");
     System.out.println(LG2);
-    
+
     final double LN2 = 0.6931471805599453094286904741849753009;
     System.out.print("Expected: 0.6931471805599453 Actual: ");
     System.out.println(LN2);
-    
+
     final double L2E = 1.4426950408889634073876517827983434472;
     System.out.print("Expected: 1.4426950408889634 Actual: ");
     System.out.println(L2E);

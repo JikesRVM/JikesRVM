@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Richard Jones, 2004-6
- * Computing Laboratory, University of Kent at Canterbury
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.utility.gcspy.drivers;
 
@@ -26,9 +29,6 @@ import org.vmmagic.pragma.*;
  *
  * This class implements for the MMTk a base driver for a GCspy space.
  * All drivers for GCspy spaces should inherit from this class.
- *
- *
- * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  */
 @Uninterruptible
 public abstract class AbstractDriver {
@@ -40,22 +40,22 @@ public abstract class AbstractDriver {
 
   // Controls used for tile presentation
   /** The tile is used */
-  protected static final byte CONTROL_USED            =  1; 
+  protected static final byte CONTROL_USED            =  1;
   /** The tile is a background tile */
-  protected static final byte CONTROL_BACKGROUND      =  2; 
+  protected static final byte CONTROL_BACKGROUND      =  2;
   /** The tile is unused */
-  protected static final byte CONTROL_UNUSED          =  4; 
+  protected static final byte CONTROL_UNUSED          =  4;
   /** The tile is a separator */
-  protected static final byte CONTROL_SEPARATOR       =  8; 
+  protected static final byte CONTROL_SEPARATOR       =  8;
   /** The tile is a link */
   protected static final byte CONTROL_LINK            = 16;
-  
+
 
   private static final int MAX_STREAMS = 64;	// Max number of streams
 
   private static final boolean DEBUG = false;
   protected String myClass;			// used in debugging messages
-  
+
 
   /****************************************************************************
    *
@@ -84,7 +84,7 @@ public abstract class AbstractDriver {
 
   /**
    * Create a new driver for this collector.
-   * 
+   *
    * @param server The ServerInterpreter that owns this GCspy space.
    * @param name The name of this driver.
    * @param mmtkSpace The MMTk space represented by this driver.
@@ -92,10 +92,10 @@ public abstract class AbstractDriver {
    * @param mainSpace Is this the main space?
    */
   public AbstractDriver(ServerInterpreter server,
-                        String name, 
-			            Space mmtkSpace, 
-			            int blockSize, 
-			            boolean mainSpace) { 
+                        String name,
+			            Space mmtkSpace,
+			            int blockSize,
+			            boolean mainSpace) {
     this.server = server;
     this.name = name;
     this.mmtkSpace = mmtkSpace;
@@ -104,10 +104,10 @@ public abstract class AbstractDriver {
     maxTileNum = countTileNum(mmtkSpace.getExtent(), blockSize);
     control = (byte[])GCspy.util.createDataArray(new byte[0], maxTileNum);
     // to avoid allocation during GC we preallocate the streams array
-    streams = new Stream[MAX_STREAMS];    
+    streams = new Stream[MAX_STREAMS];
     serverSpace = createServerSpace(server, name, maxTileNum, mainSpace);
   }
-  
+
   /**
    * Create a subspace for this space.
    * Subspace provide useful facilities for contiguous spaces, even if
@@ -115,11 +115,11 @@ public abstract class AbstractDriver {
    * @param mmtkSpace The MMTk space
    */
   @Interruptible
-  protected Subspace createSubspace (Space mmtkSpace) { 
+  protected Subspace createSubspace (Space mmtkSpace) {
     Address start = mmtkSpace.getStart();
     return new Subspace(start, start, 0, blockSize, 0);
   }
-  
+
   /**
    * Create a new GCspy ServerSpace and add it to the ServerInterpreter.
    * @param server the GCspy ServerInterpreter.
@@ -131,25 +131,25 @@ public abstract class AbstractDriver {
   protected ServerSpace createServerSpace(ServerInterpreter server,
                   String spaceName,
 			      int maxTileNum,
-			      boolean mainSpace) { 
+			      boolean mainSpace) {
     // Set the block label
     String tmp = "Block Size: " + ((blockSize < 1024) ?
                      blockSize + " bytes\n":
                      (blockSize / 1024) + " Kbytes\n");
 
-    // Create a single GCspy Space 
+    // Create a single GCspy Space
     return VM.newGCspyServerSpace(
 		            server,   			        // the server
                     spaceName,                  // space name
                     getDriverName(),            // driver (space) name
                     "Block ",                   // space title
                     tmp,                        // block info
-                    maxTileNum,                 // number of tiles 
+                    maxTileNum,                 // number of tiles
                     "UNUSED",                   // the label for unused blocks
                     mainSpace                   // main space
 		    );
-  } 
-  
+  }
+
   /**
    * Get the name of this driver type.
    * @return The name of this driver.
@@ -164,7 +164,7 @@ public abstract class AbstractDriver {
     return maxTileNum;
   }
 
-  /** 
+  /**
    * The GCspy space managed by this driver.
    * @return the GCspy server space.
    */
@@ -177,7 +177,7 @@ public abstract class AbstractDriver {
    * @exception IndexOutOfBoundsException if more than MAX_STREAMS are added
    */
   @Interruptible
-  public void addStream(Stream stream) { 
+  public void addStream(Stream stream) {
     int id = 0;
     while (id < MAX_STREAMS) {
       if (streams[id] == null) {
@@ -191,7 +191,7 @@ public abstract class AbstractDriver {
     }
     throw new IndexOutOfBoundsException("Too many streams added to driver "+name);
   }
-  
+
   /**
    * Count number of tiles in an address range.
    * @param start The start of the range.
@@ -215,14 +215,14 @@ public abstract class AbstractDriver {
     int diff = extent.toInt();
     return countTileNum(diff, tileSize);
   }
- 
+
   private int countTileNum (int diff, int tileSize) {
     int tiles = diff / tileSize;
     if ((diff % tileSize) != 0)
       ++tiles;
     return tiles;
   }
- 
+
   /**
    * Indicate the limits of a space.
    *
@@ -243,7 +243,7 @@ public abstract class AbstractDriver {
 
   /**
    * Setup the tile names in a subspace. Tile names are typically
-   * address ranges but may be anything (e.g. a size class if the 
+   * address ranges but may be anything (e.g. a size class if the
    * space is a segregated free-list manager, or a class name if the
    * space represents the class instances loaded).
    *
@@ -256,12 +256,12 @@ public abstract class AbstractDriver {
     int bs = subspace.getBlockSize();
 
     for (int i = 0; i < numTiles; ++i) {
-      if (subspace.indexInRange(i)) 
-        serverSpace.setTilename(i, start.plus((i - first) * bs), 
+      if (subspace.indexInRange(i))
+        serverSpace.setTilename(i, start.plus((i - first) * bs),
                                 start.plus((i + 1 - first) * bs));
     }
   }
- 
+
   /**
    * The "typical" maximum number of objects in each tile.
    * @param blockSize The size of a tile
@@ -272,7 +272,7 @@ public abstract class AbstractDriver {
     // VM-dependent class
     return blockSize / GCspy.server.computeHeaderSize();
   }
-  
+
   /**
    * Is the server connected to a GCspy client?
    * @param event The current event
@@ -286,11 +286,11 @@ public abstract class AbstractDriver {
    * In this base driver, we simply note that the data has changed.
    */
   protected void resetData() { changed = true; }
-  
+
   /**
    * Scan an object found at a location.
    * Collectors typically call this method to update GCspy statistics.
-   * The driver may or may not accumulate values found, depending on 
+   * The driver may or may not accumulate values found, depending on
    * the value of total.
    * @param obj the reference to the object found
    * @param total Whether to total the statistics
@@ -308,7 +308,7 @@ public abstract class AbstractDriver {
   /**
    * Scan an object found at a location.
    * Collectors typically call this method to update GCspy statistics.
-   * The driver may or may not accumulate values found, depending on 
+   * The driver may or may not accumulate values found, depending on
    * the value of total.
    * @param obj the reference to the object found
    * @param total Whether to total the statistics
@@ -322,7 +322,7 @@ public abstract class AbstractDriver {
    * @param obj the reference to the object found
    */
   public void scan(Address obj) {}
-  
+
   /**
    * Handle a direct reference from the immortal space.<p>
    * This is an empty implementation. Subclasses may override this method
@@ -334,11 +334,11 @@ public abstract class AbstractDriver {
   public boolean handleReferenceFromImmortalSpace(Address addr) {
     return false;
   }
-                    
+
   /**
    * Set space info.
    * This simply reports the size of the current space.
-   * Drivers that want to send something more complex than 
+   * Drivers that want to send something more complex than
    *  "Current Size: size\n"
    * must override this method.
    *
@@ -347,11 +347,11 @@ public abstract class AbstractDriver {
   protected void setSpaceInfo(Offset size) {
     //    - sprintf(tmp, "Current Size: %s\n", gcspy_formatSize(size));
     Address tmp = GCspy.util.formatSize("Current Size: %s\n", 128, size.toInt());
-    serverSpace.spaceInfo(tmp); 
+    serverSpace.spaceInfo(tmp);
     GCspy.util.free(tmp);
   }
 
-  
+
   /****************************************************************************
    *
    * Control values
@@ -391,7 +391,7 @@ public abstract class AbstractDriver {
    */
   protected static boolean controlIsSeparator (byte val) {
     return (val & CONTROL_SEPARATOR) != 0;
-  }  
+  }
 
   /**
    * Initialise the value of a control.
@@ -453,9 +453,9 @@ public abstract class AbstractDriver {
     changed = true;
     for (int i = start; i < (start+len); ++i) {
       // Cannot be both USED and UNUSED or BACKGROUND
-      if (controlIsBackground(tag) || controlIsUnused(tag)) 
+      if (controlIsBackground(tag) || controlIsUnused(tag))
         setControl(i, (byte)~CONTROL_USED);
-      else if (controlIsUsed(tag)) 
+      else if (controlIsUsed(tag))
         setControl(i, (byte)~CONTROL_UNUSED);
       addControl(i, tag);
     }
@@ -485,7 +485,7 @@ public abstract class AbstractDriver {
 
   /**
    * Send all the streams for this space if it has changed.
-   * Assume that the data has been gathered and that summary info 
+   * Assume that the data has been gathered and that summary info
    * and control values have been set before this is called.
    *
    * @param event the event
@@ -494,8 +494,8 @@ public abstract class AbstractDriver {
   protected void send(int event, int numTiles) {
     if (changed) {
       serverSpace.startCommunication();
-      for (int i = 0; i < MAX_STREAMS; i++) 
-        if (streams[i] != null) 
+      for (int i = 0; i < MAX_STREAMS; i++)
+        if (streams[i] != null)
           streams[i].send(event, numTiles);
       serverSpace.sendControls(this, numTiles);
       serverSpace.endCommunication();

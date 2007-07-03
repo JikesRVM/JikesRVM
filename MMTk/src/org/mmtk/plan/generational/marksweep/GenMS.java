@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2005
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.plan.generational.marksweep;
 
@@ -35,20 +38,15 @@ import org.vmmagic.unboxed.*;
  * flexible nursery behavior ("The Standard ML of New Jersey
  * collector"), or go to Appel's paper "Simple generational garbage
  * collection and fast allocation." SP&E 19(2):171--183, 1989.<p>
- * 
- * 
+ *
+ *
  * For general comments about the global/local distinction among classes refer
  * to Plan.java and PlanLocal.java.
- * 
- *
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public class GenMS extends Gen {
 
   /*****************************************************************************
-   * 
+   *
    * Class fields
    */
 
@@ -58,7 +56,7 @@ import org.vmmagic.unboxed.*;
   public static final int MS = msSpace.getDescriptor();
 
   /****************************************************************************
-   * 
+   *
    * Instance fields
    */
 
@@ -66,7 +64,7 @@ import org.vmmagic.unboxed.*;
   public final Trace matureTrace = new Trace(metaDataSpace);
 
   /*****************************************************************************
-   * 
+   *
    * Collection
    */
   /*
@@ -74,7 +72,7 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   @Override
-  public final void collectionPhase(int phaseId) { 
+  public final void collectionPhase(int phaseId) {
     if (traceFullHeap()) {
       if (phaseId == PREPARE) {
         super.collectionPhase(phaseId);
@@ -94,42 +92,54 @@ import org.vmmagic.unboxed.*;
   }
 
   /*****************************************************************************
-   * 
+   *
    * Accounting
    */
 
   /**
    * Return the number of pages reserved for use given the pending
    * allocation.
-   * 
+   *
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
   @Inline
   @Override
-  public int getPagesUsed() { 
+  public int getPagesUsed() {
     return msSpace.reservedPages() + super.getPagesUsed();
   }
 
-  /*****************************************************************************
+  /**
+   * Calculate the number of pages a collection is required to free to satisfy
+   * outstanding allocation requests.
    * 
+   * @return the number of pages a collection is required to free to satisfy
+   * outstanding allocation requests.
+   */
+  public int getPagesRequired() {
+    return super.getPagesRequired() + msSpace.requiredPages();
+  }
+
+
+  /*****************************************************************************
+   *
    * Miscellaneous
    */
 
   /**
    * Accessor method to allow the generic generational code in Gen.java
    * to access the mature space.
-   * 
+   *
    * @return The active mature space
    */
   @Inline
-  protected final Space activeMatureSpace() { 
+  protected final Space activeMatureSpace() {
     return msSpace;
   }
 
   /**
    * @see org.mmtk.plan.Plan#objectCanMove
-   * 
+   *
    * @param object Object in question
    * @return False if the object will never move
    */
@@ -139,5 +149,4 @@ import org.vmmagic.unboxed.*;
       return false;
     return super.objectCanMove(object);
   }
-
 }

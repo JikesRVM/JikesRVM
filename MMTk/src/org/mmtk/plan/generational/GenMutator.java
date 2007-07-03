@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2006
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.plan.generational;
 
@@ -22,28 +25,23 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This abstract class implements <i>per-mutator thread</i> behavior 
+ * This abstract class implements <i>per-mutator thread</i> behavior
  * and state for <i>generational copying collectors</i>.<p>
- * 
+ *
  * Specifically, this class defines mutator-time allocation into the nursery;
  * write barrier semantics, and per-mutator thread collection semantics
  * (flushing and restoring per-mutator allocator and remset state).
- * 
+ *
  * @see Gen
  * @see GenCollector
  * @see StopTheWorldMutator
  * @see MutatorContext
  * @see SimplePhase#delegatePhase
- * 
- *
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public class GenMutator extends StopTheWorldMutator {
 
   /*****************************************************************************
-   * 
+   *
    * Instance fields
    */
   protected final CopyLocal nursery = new CopyLocal(Gen.nurserySpace);
@@ -52,16 +50,16 @@ import org.vmmagic.unboxed.*;
   protected final AddressPairDeque arrayRemset;
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
   /**
    * Constructor
-   * 
+   *
    * Note that each mutator is a producer of remsets, while each
    * collector is a consumer.  The <code>GenCollector</code> class
-   * is responsible for construction of the consumer. 
+   * is responsible for construction of the consumer.
    * @see GenCollector
    */
   public GenMutator() {
@@ -70,13 +68,13 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Mutator-time allocation
    */
 
   /**
    * Allocate memory for an object.
-   * 
+   *
    * @param bytes The number of bytes required for the object.
    * @param align Required alignment for the object.
    * @param offset Offset associated with the alignment.
@@ -85,7 +83,7 @@ import org.vmmagic.unboxed.*;
    * @return The low address of the allocated memory.
    */
   @Inline
-  public Address alloc(int bytes, int align, int offset, int allocator, int site) { 
+  public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == Gen.ALLOC_NURSERY) {
       if (Stats.GATHER_MARK_CONS_STATS) Gen.nurseryCons.inc(bytes);
       return nursery.alloc(bytes, align, offset, false);
@@ -96,7 +94,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Perform post-allocation actions.  For many allocators none are
    * required.
-   * 
+   *
    * @param ref The newly allocated object
    * @param typeRef the type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
@@ -104,7 +102,7 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public void postAlloc(ObjectReference ref, ObjectReference typeRef,
-      int bytes, int allocator) { 
+      int bytes, int allocator) {
     if (allocator != Gen.ALLOC_NURSERY) {
       super.postAlloc(ref, typeRef, bytes, allocator);
     }
@@ -115,7 +113,7 @@ import org.vmmagic.unboxed.*;
    * particular method will match against those spaces defined at this
    * level of the class hierarchy.  Subclasses must deal with spaces
    * they define and refer to superclasses appropriately.
-   * 
+   *
    * @param a An allocator
    * @return The space into which <code>a</code> is allocating, or
    *         <code>null</code> if there is no space associated with
@@ -131,7 +129,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Return the allocator instance associated with a space
    * <code>space</code>, for this plan instance.
-   * 
+   *
    * @param space The space for which the allocator instance is desired.
    * @return The allocator instance associated with this plan instance
    * which is allocating into <code>space</code>, or <code>null</code>
@@ -143,7 +141,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Barriers
    */
 
@@ -166,13 +164,47 @@ import org.vmmagic.unboxed.*;
   @Inline
   public final void writeBarrier(ObjectReference src, Address slot,
       ObjectReference tgt, Offset metaDataA,
-      int metaDataB, int mode) { 
+      int metaDataB, int mode) {
     if (Gen.GATHER_WRITE_BARRIER_STATS) Gen.wbFast.inc();
     if (slot.LT(Gen.NURSERY_START) && tgt.toAddress().GE(Gen.NURSERY_START)) {
       if (Gen.GATHER_WRITE_BARRIER_STATS) Gen.wbSlow.inc();
       remset.insert(slot);
     }
     VM.barriers.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
+  }
+
+  /**
+   * Attempt to atomically exchange the value in the given slot
+   * with the passed replacement value. If a new reference is
+   * created, we must then take appropriate write barrier actions.<p>
+   *
+   * In this case, we remember the address of the source of the
+   * pointer if the new reference points into the nursery from
+   * non-nursery space.
+   *
+   * @param src The object into which the new reference will be stored
+   * @param slot The address into which the new reference will be
+   * stored.
+   * @param old The old reference to be swapped out
+   * @param tgt The target of the new reference
+   * @param metaDataA An int that assists the host VM in creating a store
+   * @param metaDataB An int that assists the host VM in creating a store
+   * @param mode The context in which the store occured
+   * @return True if the swap was successful.
+   */
+  @Inline
+  public boolean tryCompareAndSwapWriteBarrier(ObjectReference src, Address slot,
+      ObjectReference old, ObjectReference tgt, Offset metaDataA,
+      int metaDataB, int mode) {
+    boolean result = VM.barriers.tryCompareAndSwapWriteInBarrier(src, slot, old, tgt, metaDataA, metaDataB, mode);
+    if (result) {
+      if (Gen.GATHER_WRITE_BARRIER_STATS) Gen.wbFast.inc();
+      if (slot.LT(Gen.NURSERY_START) && tgt.toAddress().GE(Gen.NURSERY_START)) {
+        if (Gen.GATHER_WRITE_BARRIER_STATS) Gen.wbSlow.inc();
+        remset.insert(slot);
+      }
+    }
+    return result;
   }
 
   /**
@@ -199,7 +231,7 @@ import org.vmmagic.unboxed.*;
   @Inline
   public final boolean writeBarrier(ObjectReference src, Offset srcOffset,
       ObjectReference dst, Offset dstOffset,
-      int bytes) { 
+      int bytes) {
     // We can ignore when src is in old space, right?
     if (dst.toAddress().LT(Gen.NURSERY_START))
       arrayRemset.insert(dst.toAddress().plus(dstOffset),
@@ -215,9 +247,9 @@ import org.vmmagic.unboxed.*;
     arrayRemset.flushLocal();
     assertRemsetFlushed();
   }
-  
+
   /**
-   * Assert that the remsets have been flushed.  This is critical to 
+   * Assert that the remsets have been flushed.  This is critical to
    * correctness.  We need to maintain the invariant that remset entries
    * do not accrue during GC.  If the host JVM generates barrier entires
    * it is its own responsibility to ensure that they are flushed before
@@ -231,7 +263,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Collection
    */
 
@@ -239,7 +271,7 @@ import org.vmmagic.unboxed.*;
    * Perform a per-mutator collection phase.
    */
   @NoInline
-  public void collectionPhase(int phaseId, boolean primary) { 
+  public void collectionPhase(int phaseId, boolean primary) {
 
     if (phaseId == Gen.PREPARE_MUTATOR) {
       nursery.rebind(Gen.nurserySpace);
@@ -268,7 +300,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Miscellaneous
    */
 

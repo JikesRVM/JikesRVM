@@ -1,17 +1,17 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Elias Naur 2006
- * 
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 import java.nio.*;
 
-/**
- * @author Elias Naur
- */
 public class TestJNIDirectBuffers {
 
   // set to true to get messages for each test
@@ -23,12 +23,12 @@ public class TestJNIDirectBuffers {
 
     if (args.length!=0) {
       if (args[0].equals("-quiet")) {
-        verbose = false;        
+        verbose = false;
         setVerboseOff();
       }
     }
     int returnValue;
-    
+
     ByteBuffer buffer = ByteBuffer.allocateDirect(1);
 
     returnValue = testBuffer(buffer);
@@ -45,7 +45,7 @@ public class TestJNIDirectBuffers {
     if (address != buffer_address) {
       printVerbose("Wrong address: " + address + " != " + buffer_address);
       checkTest(0, false, "CheckAddress");
-    }      
+    }
 
     returnValue = testBuffer(native_buffer);
     checkTest(returnValue, true, "testBuffer -- B");
@@ -93,9 +93,9 @@ public class TestJNIDirectBuffers {
   private final static native ByteBuffer newByteBuffer(long address, long capacity);
 
   public static native void setVerboseOff();
-      
+
   static void printVerbose(String str) {
-    if (verbose) 
+    if (verbose)
       System.out.println(str);
   }
 

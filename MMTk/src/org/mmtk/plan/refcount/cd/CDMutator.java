@@ -1,22 +1,21 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2006
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-
 package org.mmtk.plan.refcount.cd;
 
 import org.vmmagic.pragma.*;
 /**
- * This class implements the abstract <i>per-mutator thread</i> 
- * behavior for a cycle detector. 
- * 
- *
- * @author Daniel Frampton
+ * This class implements the abstract <i>per-mutator thread</i>
+ * behavior for a cycle detector.
  */
 @Uninterruptible public abstract class CDMutator {
   /****************************************************************************
@@ -24,28 +23,28 @@ import org.vmmagic.pragma.*;
    */
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
-  
+
   /*****************************************************************************
-   * 
+   *
    * Collection
    */
-  
+
   /**
    * Perform a mutator collection phase.
-   * 
+   *
    * @param phaseId Collection phase to execute.
    */
   @Inline
-  public boolean collectionPhase(int phaseId) { 
+  public boolean collectionPhase(int phaseId) {
     return false;
   }
-  
+
   /****************************************************************************
-   * 
+   *
    * Miscellaneous
    */
 }

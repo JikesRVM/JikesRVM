@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2005
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.plan.generational;
 
@@ -14,12 +17,10 @@ import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.Space;
 
 import org.mmtk.utility.deque.*;
-import org.mmtk.utility.Conversions;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.statistics.*;
 
-import org.mmtk.vm.Collection;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -36,19 +37,14 @@ import org.vmmagic.unboxed.*;
  * supported.  Full heap collections occur when the nursery size has
  * dropped to a statically defined threshold,
  * <code>NURSERY_THRESHOLD</code><p>
- * 
+ *
  * See also Plan.java for general comments on local vs global plan
  * classes.
- * 
- *
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public abstract class Gen extends StopTheWorld {
 
   /*****************************************************************************
-   * 
+   *
    * Constants
    */
   protected static final float SURVIVAL_ESTIMATE = (float) 0.8; // est yield
@@ -62,7 +58,7 @@ import org.vmmagic.unboxed.*;
   public static final int ALLOC_MATURE_MAJORGC = StopTheWorld.ALLOCATORS + 3;
 
   /*****************************************************************************
-   * 
+   *
    * Class fields
    */
 
@@ -84,7 +80,7 @@ import org.vmmagic.unboxed.*;
   private static int lastCommittedPLOSpages = 0;
 
   /*****************************************************************************
-   * 
+   *
    * Instance fields
    */
   /* status fields */
@@ -115,30 +111,30 @@ import org.vmmagic.unboxed.*;
   }
 
   /*****************************************************************************
-   * 
+   *
    * Collection
    */
-
-  /**
-   * A user-triggered GC has been initiated.
-   */
-  public void userTriggeredGC() {
-    nextGCFullHeap |= Options.fullHeapSystemGC.getValue();
-  }
   
   /**
+   * Force the next collection to be full heap.
+   */
+  public void forceFullHeapCollection() {
+    nextGCFullHeap = true;
+  }
+
+  /**
    * Perform a (global) collection phase.
-   * 
+   *
    * @param phaseId Collection phase to execute.
    */
   @NoInline
-  public void collectionPhase(int phaseId) { 
-    if (phaseId == INITIATE) {
-      gcFullHeap = nextGCFullHeap;
+  public void collectionPhase(int phaseId) {
+    if (phaseId == SET_COLLECTION_KIND) {
       super.collectionPhase(phaseId);
+      gcFullHeap = requiresFullHeapCollection();
       return;
     }
-    
+
     if (phaseId == PREPARE) {
       nurserySpace.prepare(true);
       if (!traceFullHeap()) {
@@ -171,7 +167,6 @@ import org.vmmagic.unboxed.*;
       }
       lastCommittedPLOSpages = ploSpace.committedPages();
       nextGCFullHeap = (getPagesAvail() < Options.nurserySize.getMinNursery());
-      progress = (getPagesReserved() + required) < getTotalPages();
       return;
     }
 
@@ -179,55 +174,74 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * Poll for a collection
-   * 
-   * @param mustCollect Force a collection.
-   * @param space The space that caused the poll.
-   * @return True if a collection is required.
+   * This method controls the triggering of a GC. It is called periodically
+   * during allocation. Returns true to trigger a collection.
+   *
+   * @param spaceFull Space request failed, must recover pages within 'space'.
+   * @return True if a collection is requested by the plan.
    */
-  @LogicallyUninterruptible
-  public final boolean poll(boolean mustCollect, Space space) {
-    if (getCollectionsInitiated() > 0 || !isInitialized())
-      return false;
-
-    if (stressTestGCRequired()) {
-      mustCollect = true;
-      nextGCFullHeap = true;
-    }
-    boolean spaceFull = space.reservedPages() >= Conversions.bytesToPages(space.getExtent());
-    boolean heapFull = getPagesReserved() > getTotalPages();
-    boolean nurseryFull = nurserySpace.reservedPages() >
-                          Options.nurserySize.getMaxNursery();
-    boolean metaDataFull = metaDataSpace.reservedPages() >
-                           META_DATA_FULL_THRESHOLD;
-    if (mustCollect || heapFull || nurseryFull || metaDataFull || spaceFull) {
-      if (space == metaDataSpace) {
-        /* In general we must not trigger a GC on metadata allocation since 
-         * this is not, in general, in a GC safe point.  Instead we initiate
-         * an asynchronous GC, which will occur at the next safe point.
-         */
-        setAwaitingCollection();
-        return false;
-      }
-      required = space.reservedPages() - space.committedPages();
-      if (space == nurserySpace ||
-          (copyMature() && (space == activeMatureSpace())))
-        required = required << 1; // must account for copy reserve
-      int plosNurseryPages = ploSpace.committedPages() - lastCommittedPLOSpages;
-      int nurseryYield = (int)(((nurserySpace.committedPages() * 2) + plosNurseryPages) * SURVIVAL_ESTIMATE);
-      nextGCFullHeap |= nurseryYield < required || (space != nurserySpace);
-      VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
+  public final boolean collectionRequired(boolean spaceFull) {
+    boolean nurseryFull = nurserySpace.reservedPages() > Options.nurserySize.getMaxNursery();
+    
+    return super.collectionRequired(spaceFull) || nurseryFull; 
+  }
+  
+  /**
+   * Determine if this GC should be a full heap collection.
+   * 
+   * @return True is this GC should be a full heap collection.
+   */
+  protected boolean requiresFullHeapCollection() {
+    if (userTriggeredCollection && Options.fullHeapSystemGC.getValue()) {
       return true;
     }
+
+    if (nextGCFullHeap || collectionAttempt > 1) {
+      // Forces full heap collection
+      return true;
+    }
+
+    if (loSpace.allocationFailed()) {
+      // We need space from the nursery
+      return true;
+    }
+
+    // Estimate the yield from nursery PLOS pages
+    int plosNurseryPages = ploSpace.committedPages() - lastCommittedPLOSpages;
+    int plosYield = (int)(plosNurseryPages * SURVIVAL_ESTIMATE);
+
+    // Estimate the yield from small nursery pages
+    int smallNurseryPages = nurserySpace.committedPages();
+    int smallNurseryYield = (int)((smallNurseryPages << 1) * SURVIVAL_ESTIMATE);
+
+    if ((plosYield + smallNurseryYield) < getPagesRequired()) {
+      // Our total yield is insufficent.
+      return true;
+    }
+
+    if (nurserySpace.allocationFailed()) {
+      if (smallNurseryYield < (nurserySpace.requiredPages() << 1)) {
+        // We have run out of VM pages in the nursery
+        return true;
+      }
+    }
+
+    if (ploSpace.allocationFailed()) {
+      if (plosYield < ploSpace.requiredPages()) {
+        // We have run out of VM pages in the PLOS
+        return true;
+      }
+    }
+
     return false;
   }
+  
 
- 
   /*****************************************************************************
-   * 
+   *
    * Correctness
    */
-  
+
   /**
    * Remset entries should never be produced by MMTk code.  If the host JVM
    * produces remset entries during GC, it is the responsibility of the host
@@ -242,25 +256,25 @@ import org.vmmagic.unboxed.*;
   }
 
   /*****************************************************************************
-   * 
+   *
    * Accounting
    */
 
   /**
    * Return the number of pages reserved for copying.
-   * 
+   *
    * @return The number of pages reserved given the pending
    * allocation, including space reserved for copying.
    */
-  public int getCopyReserve() {
-    return nurserySpace.reservedPages() + super.getCopyReserve();
+  public int getCollectionReserve() {
+    return nurserySpace.reservedPages() + super.getCollectionReserve();
   }
 
   /**
    * Return the number of pages in use given the pending
    * allocation.  Simply add the nursery's contribution to that of
    * the superclass.
-   * 
+   *
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
@@ -271,17 +285,28 @@ import org.vmmagic.unboxed.*;
   /**
    * Return the number of pages available for allocation, <i>assuming
    * all future allocation is to the nursery</i>.
-   * 
+   *
    * @return The number of pages available for allocation, <i>assuming
    * all future allocation is to the nursery</i>.
    */
   public int getPagesAvail() {
     return super.getPagesAvail() >> 1;
   }
-
+  
+  /**
+   * Calculate the number of pages a collection is required to free to satisfy
+   * outstanding allocation requests.
+   * 
+   * @return the number of pages a collection is required to free to satisfy
+   * outstanding allocation requests.
+   */
+  public int getPagesRequired() {
+    /* We don't currently pretenure, so mature space must be zero */
+    return super.getPagesRequired() + (nurserySpace.requiredPages() << 1);
+  }
 
   /*****************************************************************************
-   * 
+   *
    * Miscellaneous
    */
 
@@ -321,16 +346,17 @@ import org.vmmagic.unboxed.*;
   public final boolean isCurrentGCNursery() {
     return !gcFullHeap;
   }
-  
+
   /**
    * @return Is last GC a full collection?
    */
-  public final boolean isLastGCFull() {
+  public final boolean lastCollectionFullHeap() {
     return gcFullHeap;
   }
+
   /**
    * @see org.mmtk.plan.Plan#objectCanMove
-   * 
+   *
    * @param object
    * @return
    */
@@ -340,5 +366,4 @@ import org.vmmagic.unboxed.*;
       return true;
     return super.objectCanMove(object);
   }
-
 }

@@ -1,13 +1,14 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
- */
-/**
- * @author unascribed
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 class matmul {
 
@@ -23,7 +24,7 @@ class matmul {
 
   // timer
   static double timer() {
-    
+
     return System.currentTimeMillis()/1000.0;
   }
 
@@ -32,7 +33,7 @@ class matmul {
 
     int i;
     int j;
-    
+
     for (i=0;i<m;i++) {
       for (j=0;j<n;j++) {
         A[i][j] = 1.0;
@@ -50,7 +51,7 @@ class matmul {
         C[i][j] = 0.0;
       }
     }
-  }     
+  }
 
   // matrix multiply
   static void multipl() {
@@ -58,7 +59,7 @@ class matmul {
     int i;
     int j;
     int k;
-    
+
     for (i=0;i<m;i++) {
       for (j=0;j<p;j++) {
         for (k=0;k<n;k++) {

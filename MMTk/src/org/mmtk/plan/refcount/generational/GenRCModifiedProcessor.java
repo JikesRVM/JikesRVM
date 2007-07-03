@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.plan.refcount.generational;
 
@@ -19,31 +22,25 @@ import org.vmmagic.unboxed.*;
 /**
  * This abstract class is the fundamental mechanism for performing a
  * transitive closure over an object graph.<p>
- * 
- * @see org.mmtk.plan.TraceLocal
- * 
  *
- * @author Perry Cheng
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
+ * @see org.mmtk.plan.TraceLocal
  */
-@Uninterruptible public final class GenRCModifiedProcessor extends TraceStep { 
+@Uninterruptible public final class GenRCModifiedProcessor extends TraceStep {
   private final GenRCTraceLocal trace;
 
-  
+
   public GenRCModifiedProcessor(GenRCTraceLocal t) {
-    trace = t; 
+    trace = t;
   }
-  
+
   /**
    * Trace a reference during GC.
-   * 
+   *
    * @param objLoc The location containing the object reference to be
    * traced.
    */
   @Inline
-  public void traceObjectLocation(Address objLoc) { 
+  public void traceObjectLocation(Address objLoc) {
     ObjectReference object = objLoc.loadObjectReference();
     if (!object.isNull()) {
       if (Space.isInSpace(GenRC.NS, object)) {

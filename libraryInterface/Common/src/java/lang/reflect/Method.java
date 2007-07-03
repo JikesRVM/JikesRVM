@@ -1,33 +1,29 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp 2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package java.lang.reflect;
 
 import java.lang.annotation.Annotation;
 
 import org.jikesrvm.classloader.*;
-import org.jikesrvm.VM_Reflection;
-import org.jikesrvm.VM_Magic;
-import org.jikesrvm.VM_Runtime;
+import org.jikesrvm.runtime.VM_Reflection;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_Runtime;
 
 /**
  * Implementation of java.lang.reflect.Field for JikesRVM.
  *
  * By convention, order methods in the same order
- * as they appear in the method summary list of Sun's 1.4 Javadoc API. 
- *
- * @author John Barton 
- * @author Julian Dolby
- * @author Stephen Fink
- * @author Eugene Gluzberg
- * @author Dave Grove
- * @modified Steven Augart
- * @modified Ian Rogers
+ * as they appear in the method summary list of Sun's 1.4 Javadoc API.
  */
 public final class Method extends AccessibleObject implements Member {
   final VM_Method method;
@@ -36,13 +32,13 @@ public final class Method extends AccessibleObject implements Member {
   private Method() {
     method = null;
   }
-    
+
   // For use by JikesRVMSupport
   Method(VM_Method m) {
     method = m;
   }
 
-  public boolean equals(Object other) { 
+  public boolean equals(Object other) {
     if (other instanceof Method) {
       return method == ((Method)other).method;
     } else {
@@ -90,18 +86,18 @@ public final class Method extends AccessibleObject implements Member {
   }
 
   public Object invoke(Object receiver, Object[] args) throws IllegalAccessException,
-                                                              IllegalArgumentException, 
+                                                              IllegalArgumentException,
                                                               ExceptionInInitializerError,
                                                               InvocationTargetException {
     VM_Method method = this.method;
     VM_Class declaringClass = method.getDeclaringClass();
-    
+
     // validate "this" argument
     if (!method.isStatic()) {
       if (receiver == null) throw new NullPointerException();
       receiver = JikesRVMSupport.makeArgumentCompatible(declaringClass, receiver);
     }
-    
+
     // validate number and types of remaining arguments
     VM_TypeReference[] parameterTypes = method.getParameterTypes();
     if (args == null) {
@@ -123,10 +119,10 @@ public final class Method extends AccessibleObject implements Member {
 
     // find the right method to call
     if (! method.isStatic()) {
-        VM_Class C = VM_Magic.getObjectType(receiver).asClass(); 
+        VM_Class C = VM_Magic.getObjectType(receiver).asClass();
         method = C.findVirtualMethod(method.getName(), method.getDescriptor());
     }
-    
+
     // Forces initialization of declaring class
     if (method.isStatic() && !declaringClass.isInitialized()) {
       try {

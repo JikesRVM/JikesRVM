@@ -1,13 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2004
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
  *
- * (C) Copyright IBM Corp. 2001, 2003
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.vm;
 
@@ -16,16 +17,10 @@ import org.mmtk.plan.MutatorContext;
 
 import org.vmmagic.pragma.*;
 
-/**
- *
- * @author Steve Blackburn
- * @author Perry Cheng
- * 
- */
 @Uninterruptible public abstract class Collection {
 
   /****************************************************************************
-   * 
+   *
    * Class variables
    */
 
@@ -42,7 +37,7 @@ import org.vmmagic.pragma.*;
   /**
    * Resource triggered garbage collection.  For example, an
    * allocation request would take the number of pages in use beyond
-   * the number available. 
+   * the number available.
    */
   public static final int RESOURCE_GC_TRIGGER = 2;
 
@@ -59,59 +54,65 @@ import org.vmmagic.pragma.*;
   public static final int TRIGGER_REASONS = 4;
 
   /** Short descriptions of the garbage collection trigger reasons. */
-  private static final String[] triggerReasons = {
+  protected static final String[] triggerReasons = {
     "unknown",
     "external request",
     "resource exhaustion",
     "internal request"
   };
 
-
-  /**
-   * The percentage threshold for throwing an OutOfMemoryError.  If,
-   * after a garbage collection, the amount of memory used as a
-   * percentage of the available heap memory exceeds this percentage
-   * the memory manager will throw an OutOfMemoryError.
-   */
-  public static final double OUT_OF_MEMORY_THRESHOLD = 0.98;
-
   /**
    * Triggers a collection.
-   * 
+   *
    * @param why the reason why a collection was triggered.  0 to
    *          <code>TRIGGER_REASONS - 1</code>.
    */
-  @Interruptible
-  public abstract void triggerCollection(int why); 
+  @LogicallyUninterruptible
+  public abstract void triggerCollection(int why);
 
   /**
-   * Triggers a collection without allowing for a thread switch. This is needed
-   * for Merlin lifetime analysis used by trace generation
-   * 
-   * @param why the reason why a collection was triggered.  0 to
-   *          <code>TRIGGER_REASONS - 1</code>.
+   * Joins an already requested collection.
    */
-  public abstract void triggerCollectionNow(int why);
+  @LogicallyUninterruptible
+  public abstract void joinCollection(); 
 
   /**
    * Trigger an asynchronous collection, checking for memory
    * exhaustion first.
+   * 
+   * @param why the reason why a collection was triggered.  0 to
+   *          <code>TRIGGER_REASONS - 1</code>.
    */
-  public abstract void triggerAsyncCollection();
+  public abstract void triggerAsyncCollection(int why);
+
+  /**
+   * The maximum number collection attempts across threads.
+   */
+  public abstract int maximumCollectionAttempt();
+
+  /**
+   * Report that the allocation has succeeded.
+   */
+  public abstract void reportAllocationSuccess();
+  
+  /**
+   * Report that a physical allocation has failed.
+   */
+  public abstract void reportPhysicalAllocationFailed();
 
   /**
    * Determine whether a collection cycle has fully completed (this is
    * used to ensure a GC is not in the process of completing, to
    * avoid, for example, an async GC being triggered on the switch
    * from GC to mutator thread before all GC threads have switched.
-   * 
+   *
    * @return True if GC is not in progress.
    */
   public abstract boolean noThreadsInGC();
 
   /**
    * Prepare a mutator for collection.
-   * 
+   *
    * @param m the mutator to prepare
    */
   public abstract void prepareMutator(MutatorContext m);

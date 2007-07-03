@@ -1,32 +1,34 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp 2001,2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.*;
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
-import org.jikesrvm.ArchitectureSpecific.VM_LazyCompilationTrampolineGenerator;
-
 import java.io.DataInputStream;
 import java.io.IOException;
-
+import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import org.jikesrvm.ArchitectureSpecific.VM_LazyCompilationTrampolineGenerator;
+import org.jikesrvm.VM;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_CompiledMethods;
+import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_Statics;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Offset;
-import org.vmmagic.pragma.*;
 
 /**
  * A method of a java class corresponding to a method_info structure
  * in the class file. A method is read from a class file using the
  * {@link #readMethod} method.
- *
- * @author Bowen Alpern
- * @author Dave Grove
- * @author Derek Lieber
- * @author Ian Rogers
  */
 public abstract class VM_Method extends VM_Member implements VM_BytecodeConstants {
 
@@ -67,24 +69,20 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * @param parameterAnnotations array of runtime visible parameter annotations
    * @param annotationDefault value for this annotation that appears
    */
-  protected VM_Method(VM_TypeReference declaringClass, VM_MemberReference memRef,
-                      short modifiers, VM_TypeReference[] exceptionTypes, VM_Atom signature,
-                      VM_Annotation[] annotations,
-                      VM_Annotation[] parameterAnnotations,
-                      Object annotationDefault)
-  {
-    super(declaringClass, memRef, (short)(modifiers & APPLICABLE_TO_METHODS), signature, annotations);
+  protected VM_Method(VM_TypeReference declaringClass, VM_MemberReference memRef, short modifiers,
+                      VM_TypeReference[] exceptionTypes, VM_Atom signature, VM_Annotation[] annotations,
+                      VM_Annotation[] parameterAnnotations, Object annotationDefault) {
+    super(declaringClass, memRef, (short) (modifiers & APPLICABLE_TO_METHODS), signature, annotations);
     this.parameterAnnotations = parameterAnnotations;
     this.annotationDefault = annotationDefault;
-    memRef.asMethodReference().setResolvedMember(this);
     this.exceptionTypes = exceptionTypes;
     this.jtocOffset = Offset.fromIntSignExtend(-1);
   }
-  
+
   /**
-   * Called from {@link VM_Class#readClass(VM_TypeReference, DataInputStream)} to create an
+   * Called from {@link VM_Class#readClass(VM_TypeReference,DataInputStream)} to create an
    * instance of a VM_Method by reading the relevant data from the argument bytecode stream.
-   * 
+   *
    * @param declaringClass the VM_TypeReference of the class being loaded
    * @param constantPool the constantPool of the VM_Class object that's being constructed
    * @param memRef the canonical memberReference for this member.
@@ -94,39 +92,39 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
   static VM_Method readMethod(VM_TypeReference declaringClass, int[] constantPool, VM_MemberReference memRef,
                               short modifiers, DataInputStream input) throws IOException {
     short tmp_localWords = 0;
-    short tmp_operandWords = 0;      
-    byte[] tmp_bytecodes = null;       
+    short tmp_operandWords = 0;
+    byte[] tmp_bytecodes = null;
     VM_ExceptionHandlerMap tmp_exceptionHandlerMap = null;
     VM_TypeReference[] tmp_exceptionTypes = null;
-    int[] tmp_lineNumberMap = null;      
+    int[] tmp_lineNumberMap = null;
     VM_Atom tmp_signature = null;
     VM_Annotation[] annotations = null;
     VM_Annotation[] parameterAnnotations = null;
     Object tmp_annotationDefault = null;
 
     // Read the attributes
-    for (int i = 0, n = input.readUnsignedShort(); i<n; i++) {
-      VM_Atom attName   = VM_Class.getUtf(constantPool, input.readUnsignedShort());
-      int     attLength = input.readInt();
+    for (int i = 0, n = input.readUnsignedShort(); i < n; i++) {
+      VM_Atom attName = VM_Class.getUtf(constantPool, input.readUnsignedShort());
+      int attLength = input.readInt();
 
       // Only bother to interpret non-boring Method attributes
       if (attName == VM_ClassLoader.codeAttributeName) {
         tmp_operandWords = input.readShort();
-        tmp_localWords   = input.readShort();
+        tmp_localWords = input.readShort();
         tmp_bytecodes = new byte[input.readInt()];
         input.readFully(tmp_bytecodes);
         tmp_exceptionHandlerMap = VM_ExceptionHandlerMap.readExceptionHandlerMap(input, constantPool);
 
         // Read the attributes portion of the code attribute
-        for (int j = 0, n2 = input.readUnsignedShort(); j<n2; j++) {
-          attName   = VM_Class.getUtf(constantPool, input.readUnsignedShort());
+        for (int j = 0, n2 = input.readUnsignedShort(); j < n2; j++) {
+          attName = VM_Class.getUtf(constantPool, input.readUnsignedShort());
           attLength = input.readInt();
 
           if (attName == VM_ClassLoader.lineNumberTableAttributeName) {
             int cnt = input.readUnsignedShort();
             if (cnt != 0) {
               tmp_lineNumberMap = new int[cnt];
-              for (int k = 0; k<cnt; k++) {
+              for (int k = 0; k < cnt; k++) {
                 int startPC = input.readUnsignedShort();
                 int lineNumber = input.readUnsignedShort();
                 tmp_lineNumberMap[k] = (lineNumber << BITS_IN_SHORT) | startPC;
@@ -150,16 +148,14 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
       } else if (attName == VM_ClassLoader.signatureAttributeName) {
         tmp_signature = VM_Class.getUtf(constantPool, input.readUnsignedShort());
       } else if (attName == VM_ClassLoader.runtimeVisibleAnnotationsAttributeName) {
-        annotations = VM_AnnotatedElement.readAnnotations(constantPool, input, 2,
-                                                                            declaringClass.getClassLoader());
+        annotations = VM_AnnotatedElement.readAnnotations(constantPool, input, 2, declaringClass.getClassLoader());
       } else if (attName == VM_ClassLoader.runtimeVisibleParameterAnnotationsAttributeName) {
-        parameterAnnotations = VM_AnnotatedElement.readAnnotations(constantPool, input, 1,
-                                                                                     declaringClass.getClassLoader());
+        parameterAnnotations =
+            VM_AnnotatedElement.readAnnotations(constantPool, input, 1, declaringClass.getClassLoader());
       } else if (attName == VM_ClassLoader.annotationDefaultAttributeName) {
         try {
           tmp_annotationDefault = VM_Annotation.readValue(constantPool, input, declaringClass.getClassLoader());
-        }
-        catch (ClassNotFoundException e){
+        } catch (ClassNotFoundException e) {
           throw new Error(e);
         }
       } else {
@@ -169,18 +165,42 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     }
     VM_Method method;
     if ((modifiers & ACC_NATIVE) != 0) {
-      method = new VM_NativeMethod(declaringClass, memRef, modifiers, tmp_exceptionTypes, tmp_signature,
-                                   annotations, parameterAnnotations, tmp_annotationDefault);
+      method =
+          new VM_NativeMethod(declaringClass,
+                              memRef,
+                              modifiers,
+                              tmp_exceptionTypes,
+                              tmp_signature,
+                              annotations,
+                              parameterAnnotations,
+                              tmp_annotationDefault);
     } else if ((modifiers & ACC_ABSTRACT) != 0) {
-      method = new VM_AbstractMethod(declaringClass, memRef, modifiers, tmp_exceptionTypes, tmp_signature,
-                                     annotations, parameterAnnotations, tmp_annotationDefault);
+      method =
+          new VM_AbstractMethod(declaringClass,
+                                memRef,
+                                modifiers,
+                                tmp_exceptionTypes,
+                                tmp_signature,
+                                annotations,
+                                parameterAnnotations,
+                                tmp_annotationDefault);
 
     } else {
-      method = new VM_NormalMethod(declaringClass, memRef, modifiers, tmp_exceptionTypes,
-                                   tmp_localWords, tmp_operandWords, tmp_bytecodes, 
-                                   tmp_exceptionHandlerMap, tmp_lineNumberMap,
-                                   constantPool, tmp_signature,
-                                   annotations, parameterAnnotations, tmp_annotationDefault);
+      method =
+          new VM_NormalMethod(declaringClass,
+                              memRef,
+                              modifiers,
+                              tmp_exceptionTypes,
+                              tmp_localWords,
+                              tmp_operandWords,
+                              tmp_bytecodes,
+                              tmp_exceptionHandlerMap,
+                              tmp_lineNumberMap,
+                              constantPool,
+                              tmp_signature,
+                              annotations,
+                              parameterAnnotations,
+                              tmp_annotationDefault);
     }
     return method;
   }
@@ -202,20 +222,28 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
   static VM_Method createAnnotationMethod(VM_TypeReference annotationClass, int[] constantPool,
                                           VM_MemberReference memRef, VM_Method interfaceMethod,
                                           int constantPoolIndex) {
-    byte[] bytecodes = new byte[] {
-      (byte)JBC_aload_0,
-      (byte)JBC_getfield,
-      (byte)(constantPoolIndex >>> 8),
-      (byte)constantPoolIndex,
-      // Xreturn
-      (byte)typeRefToReturnBytecode(interfaceMethod.getReturnType())
-    };
-    return new VM_NormalMethod(annotationClass, memRef, (short)(ACC_PUBLIC|ACC_FINAL|ACC_SYNTHETIC), null,
-                               (short)1, (short)2, bytecodes,
-                               null, null,
+    byte[] bytecodes =
+        new byte[]{
+        (byte) JBC_aload_0,
+        (byte) JBC_getfield, (byte) (constantPoolIndex >>> 8), (byte) constantPoolIndex,
+        // Xreturn
+        (byte) typeRefToReturnBytecode(interfaceMethod.getReturnType())};
+    return new VM_NormalMethod(annotationClass,
+                               memRef,
+                               (short) (ACC_PUBLIC | ACC_FINAL | ACC_SYNTHETIC),
+                               null,
+                               (short) 1,
+                               (short) 2,
+                               bytecodes,
+                               null,
+                               null,
                                constantPool,
-                               null, null, null, null);
+                               null,
+                               null,
+                               null,
+                               null);
   }
+
   /**
    * Create a method to initialise the annotation class
    *
@@ -228,39 +256,46 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * @param aMethods
    * @return the created method
    */
-  static VM_Method createAnnotationInit(VM_TypeReference aClass, int[] constantPool,
-                                        VM_MemberReference memRef, int objectInitIndex,
-                                        VM_Field[] aFields, VM_Method[] aMethods,
+  static VM_Method createAnnotationInit(VM_TypeReference aClass, int[] constantPool, VM_MemberReference memRef,
+                                        int objectInitIndex, VM_Field[] aFields, VM_Method[] aMethods,
                                         int[] defaultConstants) {
-    byte[] bytecode = new byte[6+(defaultConstants.length*7)];
-    bytecode[0] =   (byte)JBC_aload_0; // stack[0] = this
-    bytecode[1] =   (byte)JBC_aload_1; // stack[1] = instanceof VM_Annotation
-    bytecode[2] = (byte)JBC_invokespecial;
-    bytecode[3] = (byte)(objectInitIndex >>> 8);
-    bytecode[4] = (byte)objectInitIndex;
-    for(int i=0, j=0; i < aMethods.length; i++) {
-      if(aMethods[i].annotationDefault != null) {
-        bytecode[(j*7)+5+0] = (byte)JBC_aload_0;    // stack[0] = this
-        if(VM_Class.getLiteralSize(constantPool, defaultConstants[j]) == BYTES_IN_INT) {
-          bytecode[(j*7)+5+1] = (byte)JBC_ldc_w; // stack[1] = value
+    byte[] bytecode = new byte[6 + (defaultConstants.length * 7)];
+    bytecode[0] = (byte) JBC_aload_0; // stack[0] = this
+    bytecode[1] = (byte) JBC_aload_1; // stack[1] = instanceof VM_Annotation
+    bytecode[2] = (byte) JBC_invokespecial;
+    bytecode[3] = (byte) (objectInitIndex >>> 8);
+    bytecode[4] = (byte) objectInitIndex;
+    for (int i = 0, j = 0; i < aMethods.length; i++) {
+      if (aMethods[i].annotationDefault != null) {
+        bytecode[(j * 7) + 5 + 0] = (byte) JBC_aload_0;    // stack[0] = this
+        if (VM_Class.getLiteralSize(constantPool, defaultConstants[j]) == BYTES_IN_INT) {
+          bytecode[(j * 7) + 5 + 1] = (byte) JBC_ldc_w; // stack[1] = value
+        } else {
+          bytecode[(j * 7) + 5 + 1] = (byte) JBC_ldc2_w;// stack[1&2] = value
         }
-        else {
-          bytecode[(j*7)+5+1] = (byte)JBC_ldc2_w;// stack[1&2] = value
-        }
-        bytecode[(j*7)+5+2] = (byte)(defaultConstants[j] >>> 8);        
-        bytecode[(j*7)+5+3] = (byte)defaultConstants[j];        
-        bytecode[(j*7)+5+4] = (byte)JBC_putfield;
-        bytecode[(j*7)+5+5] = (byte)(i >>> 8);        
-        bytecode[(j*7)+5+6] = (byte)i;
+        bytecode[(j * 7) + 5 + 2] = (byte) (defaultConstants[j] >>> 8);
+        bytecode[(j * 7) + 5 + 3] = (byte) defaultConstants[j];
+        bytecode[(j * 7) + 5 + 4] = (byte) JBC_putfield;
+        bytecode[(j * 7) + 5 + 5] = (byte) (i >>> 8);
+        bytecode[(j * 7) + 5 + 6] = (byte) i;
         j++;
       }
     }
-    bytecode[bytecode.length-1] = (byte)JBC_return;
-    return new VM_NormalMethod(aClass, memRef, (short)(ACC_PUBLIC|ACC_FINAL|ACC_SYNTHETIC), null,
-                               (short)2, (short)3, bytecode,
-                               null, null,
+    bytecode[bytecode.length - 1] = (byte) JBC_return;
+    return new VM_NormalMethod(aClass,
+                               memRef,
+                               (short) (ACC_PUBLIC | ACC_FINAL | ACC_SYNTHETIC),
+                               null,
+                               (short) 2,
+                               (short) 3,
+                               bytecode,
+                               null,
+                               null,
                                constantPool,
-                               null, null, null, null);
+                               null,
+                               null,
+                               null,
+                               null);
   }
 
   /**
@@ -268,58 +303,58 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * reference?
    */
   private static int typeRefToReturnBytecode(VM_TypeReference tr) {
-    if(!tr.isPrimitiveType()) {
+    if (!tr.isPrimitiveType()) {
       return JBC_areturn;
     } else {
-      VM_Primitive pt = (VM_Primitive)tr.peekResolvedType();
-      if((pt == VM_Type.BooleanType)||(pt == VM_Type.ByteType)||(pt == VM_Type.ShortType)||
-              (pt == VM_Type.CharType)||(pt == VM_Type.IntType)) {
+      VM_Primitive pt = (VM_Primitive) tr.peekType();
+      if ((pt == VM_Type.BooleanType) ||
+          (pt == VM_Type.ByteType) ||
+          (pt == VM_Type.ShortType) ||
+          (pt == VM_Type.CharType) ||
+          (pt == VM_Type.IntType)) {
         return JBC_ireturn;
-      }
-      else if(pt == VM_Type.LongType) {
+      } else if (pt == VM_Type.LongType) {
         return JBC_lreturn;
-      }
-      else if(pt == VM_Type.FloatType) {
+      } else if (pt == VM_Type.FloatType) {
         return JBC_freturn;
-      }
-      else if(pt == VM_Type.DoubleType) {
+      } else if (pt == VM_Type.DoubleType) {
         return JBC_dreturn;
-      }
-      else {
+      } else {
         VM._assert(false);
         return -1;
       }
     }
   }
+
   /**
    * Is this method a class initializer?
    */
   @Uninterruptible
-  public final boolean isClassInitializer() { 
-    return getName() == VM_ClassLoader.StandardClassInitializerMethodName;  
+  public final boolean isClassInitializer() {
+    return getName() == VM_ClassLoader.StandardClassInitializerMethodName;
   }
 
   /**
    * Is this method an object initializer?
    */
   @Uninterruptible
-  public final boolean isObjectInitializer() { 
-    return getName() == VM_ClassLoader.StandardObjectInitializerMethodName; 
+  public final boolean isObjectInitializer() {
+    return getName() == VM_ClassLoader.StandardObjectInitializerMethodName;
   }
 
   /**
    * Is this method a compiler-generated object initializer helper?
    */
   @Uninterruptible
-  public final boolean isObjectInitializerHelper() { 
-    return getName() == VM_ClassLoader.StandardObjectInitializerHelperMethodName; 
+  public final boolean isObjectInitializerHelper() {
+    return getName() == VM_ClassLoader.StandardObjectInitializerHelperMethodName;
   }
 
   /**
    * Type of this method's return value.
    */
   @Uninterruptible
-  public final VM_TypeReference getReturnType() { 
+  public final VM_TypeReference getReturnType() {
     return memRef.asMethodReference().getReturnType();
   }
 
@@ -328,7 +363,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * Note: does *not* include implicit "this" parameter, if any.
    */
   @Uninterruptible
-  public final VM_TypeReference[] getParameterTypes() { 
+  public final VM_TypeReference[] getParameterTypes() {
     return memRef.asMethodReference().getParameterTypes();
   }
 
@@ -337,7 +372,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * Note: does *not* include implicit "this" parameter, if any.
    */
   @Uninterruptible
-  public final int getParameterWords() { 
+  public final int getParameterWords() {
     return memRef.asMethodReference().getParameterWords();
   }
 
@@ -355,9 +390,9 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * We make this method Unpreemptible to avoid a race-condition
    * in VM_Reflection.invoke.
    * @return compiled method
-   */ 
+   */
   @Unpreemptible
-  public final synchronized VM_CompiledMethod getCurrentCompiledMethod() { 
+  public final synchronized VM_CompiledMethod getCurrentCompiledMethod() {
     return currentCompiledMethod;
   }
 
@@ -365,7 +400,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * Declared as statically dispatched?
    */
   @Uninterruptible
-  public final boolean isStatic() { 
+  public final boolean isStatic() {
     return (modifiers & ACC_STATIC) != 0;
   }
 
@@ -373,7 +408,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * Declared as non-overridable by subclasses?
    */
   @Uninterruptible
-  public final boolean isFinal() { 
+  public final boolean isFinal() {
     return (modifiers & ACC_FINAL) != 0;
   }
 
@@ -381,7 +416,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * Guarded by monitorenter/monitorexit?
    */
   @Uninterruptible
-  public final boolean isSynchronized() { 
+  public final boolean isSynchronized() {
     return (modifiers & ACC_SYNCHRONIZED) != 0;
   }
 
@@ -389,7 +424,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * Not implemented in java?
    */
   @Uninterruptible
-  public final boolean isNative() { 
+  public final boolean isNative() {
     return (modifiers & ACC_NATIVE) != 0;
   }
 
@@ -399,12 +434,12 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
   public final boolean isSysCall() {
     return isNative() && isStatic() && isAnnotationDeclared(VM_TypeReference.SysCall);
   }
-  
+
   /**
    * Implemented in subclass?
    */
   @Uninterruptible
-  public final boolean isAbstract() { 
+  public final boolean isAbstract() {
     return (modifiers & ACC_ABSTRACT) != 0;
   }
 
@@ -416,12 +451,12 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
   }
 
   /**
-   * Exceptions thrown by this method - 
+   * Exceptions thrown by this method -
    * something like { "java/lang/IOException", "java/lang/EOFException" }
    * @return info (null --> method doesn't throw any exceptions)
    */
   @Uninterruptible
-  public final VM_TypeReference[] getExceptionTypes() { 
+  public final VM_TypeReference[] getExceptionTypes() {
     return exceptionTypes;
   }
 
@@ -488,6 +523,15 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
   }
 
   /**
+   * Is the method Pure? That is would it, without any side effects, return the
+   * same value given the same arguments?
+   *
+   * @return whether the method has a pure annotation
+   */
+  public final boolean isPure() {
+   return hasPureAnnotation();
+  }
+  /**
    * Has this method been marked as forbidden to inline?
    * ie., it is marked with the <CODE>NoInline</CODE> annotation or
    * the <CODE>NoOptCompile</CODE> annotation?
@@ -544,26 +588,26 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
         return VM_Entrypoints.lazyMethodInvokerMethod.getCurrentEntryCodeArray();
       }
     } else {
-      compile(); 
+      compile();
       return currentCompiledMethod.getEntryCodeArray();
     }
   }
 
   /**
    * Generate machine code for this method if valid
-   * machine code doesn't already exist. 
+   * machine code doesn't already exist.
    * Return the resulting VM_CompiledMethod object.
    */
   public final synchronized void compile() {
     if (VM.VerifyAssertions) VM._assert(getDeclaringClass().isResolved());
     if (isCompiled()) return;
 
-    if (VM.TraceClassLoading && VM.runningVM)  VM.sysWrite("VM_Method: (begin) compiling " + this + "\n");
+    if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Method: (begin) compiling " + this + "\n");
 
     VM_CompiledMethod cm = genCode();
 
     // Ensure that cm wasn't invalidated while it was being compiled.
-    synchronized(cm) {
+    synchronized (cm) {
       if (cm.isInvalid()) {
         VM_CompiledMethods.setCompiledMethodObsolete(cm);
       } else {
@@ -571,34 +615,34 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
       }
     }
 
-    if (VM.TraceClassLoading && VM.runningVM)  VM.sysWrite("VM_Method: (end)   compiling " + this + "\n");
+    if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Method: (end)   compiling " + this + "\n");
   }
 
   protected abstract VM_CompiledMethod genCode();
 
   //----------------------------------------------------------------//
   //                        Section 3.                              //
-  // The following are available after the declaring class has been // 
+  // The following are available after the declaring class has been //
   // "instantiated".                                                //
   //----------------------------------------------------------------//
 
   /**
-   * Change machine code that will be used by future executions of this method 
+   * Change machine code that will be used by future executions of this method
    * (ie. optimized <-> non-optimized)
    * @param compiledMethod new machine code
-   * Side effect: updates jtoc or method dispatch tables 
+   * Side effect: updates jtoc or method dispatch tables
    * ("type information blocks")
    *              for this class and its subclasses
-   */ 
+   */
   public final synchronized void replaceCompiledMethod(VM_CompiledMethod compiledMethod) {
     if (VM.VerifyAssertions) VM._assert(getDeclaringClass().isInstantiated());
     // If we're replacing with a non-null compiledMethod, ensure that is still valid!
     if (compiledMethod != null) {
-      synchronized(compiledMethod) {
+      synchronized (compiledMethod) {
         if (compiledMethod.isInvalid()) return;
       }
     }
-      
+
     // Grab version that is being replaced
     VM_CompiledMethod oldCompiledMethod = currentCompiledMethod;
     currentCompiledMethod = compiledMethod;
@@ -608,7 +652,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
     getDeclaringClass().updateMethod(this);
 
     // Replace constant-ified virtual method in JTOC if necessary
-    if(jtocOffset.toInt() != -1) {
+    if (jtocOffset.toInt() != -1) {
       VM_Statics.setSlotContents(jtocOffset, getCurrentEntryCodeArray());
     }
 
@@ -619,7 +663,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
   }
 
   /**
-   * If CM is the current compiled code for this, then invaldiate it. 
+   * If CM is the current compiled code for this, then invaldiate it.
    */
   public final synchronized void invalidateCompiledMethod(VM_CompiledMethod cm) {
     if (VM.VerifyAssertions) VM._assert(getDeclaringClass().isInstantiated());
@@ -633,7 +677,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    */
   public final synchronized Offset findOrCreateJtocOffset() {
     if (VM.VerifyAssertions) VM._assert(!isStatic() && !isObjectInitializer());
-    if(jtocOffset.EQ(Offset.zero())) {
+    if (jtocOffset.EQ(Offset.zero())) {
       jtocOffset = VM_Statics.allocateReferenceSlot();
       VM_Statics.setSlotContents(jtocOffset, getCurrentEntryCodeArray());
     }

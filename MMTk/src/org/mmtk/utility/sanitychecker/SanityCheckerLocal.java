@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2005
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.utility.sanitychecker;
 
@@ -22,9 +25,6 @@ import org.vmmagic.unboxed.*;
 
 /**
  * This class performs sanity checks for StopTheWorld collectors.
- * 
- *
- * @author Daniel Frampton
  */
 @Uninterruptible public class SanityCheckerLocal implements Constants {
 
@@ -41,13 +41,13 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Perform any sanity checking collection phases.
-   * 
+   *
    * @param phaseId The id to proces
    * @param primary Perform local single threaded actions on this thread
    * @return True if the phase was handled.
    */
   @NoInline
-  public final boolean collectionPhase(int phaseId, boolean primary) { 
+  public final boolean collectionPhase(int phaseId, boolean primary) {
     if (phaseId == StopTheWorld.SANITY_PREPARE) {
       if (primary) {
         sanityTrace.prepare();
@@ -117,9 +117,9 @@ import org.vmmagic.unboxed.*;
    * Process an object during sanity checking, validating data,
    * incrementing counters and enqueuing if this is the first
    * visit to the object.
-   * 
+   *
    * @param object The object to mark.
-   * @param root True If the object is a root. 
+   * @param root True If the object is a root.
    */
   public final void processObject(TraceLocal trace, ObjectReference object,
       boolean root) {
@@ -141,24 +141,24 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * Return the expected reference count. For non-reference counting 
+   * Return the expected reference count. For non-reference counting
    * collectors this becomes a true/false relationship.
-   * 
+   *
    * @param object The object to check.
    * @param sanityRootRC The number of root references to the object.
    * @return The expected (root excluded) reference count.
    */
-  protected int sanityExpectedRC(ObjectReference object, 
+  protected int sanityExpectedRC(ObjectReference object,
                                  int sanityRootRC) {
     if (global().preGCSanity())
       return SanityChecker.UNSURE;
-    
+
     Space space = Space.getSpaceForObject(object);
-    return space.isReachable(object) 
-      ? SanityChecker.ALIVE 
+    return space.isReachable(object)
+      ? SanityChecker.ALIVE
       : SanityChecker.DEAD;
   }
-  
+
   /** @return The global trace as a SanityChecker instance. */
   protected static SanityChecker global() {
     return VM.activePlan.global().getSanityChecker();

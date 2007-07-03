@@ -1,20 +1,21 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
- */
-/**
- * @author unascribed
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 class CheckStore {
 
   public static void main(String[] args) {
      run();
   }
-  
+
   public static boolean run() {
     System.out.println("CheckStore prints: ");
     try {
@@ -50,7 +51,7 @@ class CheckStore {
 
   static void run2(int a, Object elem) {
      Object[] array;
-     if (a < 0) 
+     if (a < 0)
         array = new Object[2];
      else
         array = new String[2];

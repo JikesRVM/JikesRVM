@@ -1,24 +1,25 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-
 package org.jikesrvm.memorymanagers.mminterface;
 
-import org.mmtk.utility.Barrier;
-
-import org.vmmagic.pragma.*;
-
-import org.jikesrvm.VM_Scheduler;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Magic;
-import org.jikesrvm.VM_Processor;
-import org.jikesrvm.VM_Thread;
-import static org.jikesrvm.VM_SysCall.sysCall;
+import org.jikesrvm.runtime.VM_Magic;
+import static org.jikesrvm.runtime.VM_SysCall.sysCall;
+import org.jikesrvm.scheduler.VM_Processor;
+import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.scheduler.VM_Thread;
+import org.mmtk.utility.Barrier;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * A synchronization barrier used to synchronize collector threads,
@@ -27,24 +28,20 @@ import static org.jikesrvm.VM_SysCall.sysCall;
  * The core barrier functionality is implemented by a barrier object.
  * The code in this class is in charge of VM-related idiosyncrasies like
  * computing how many processors are participating in a particular collection.
- *
- * @author   Derek Lieber
- * @author   Perry Cheng - Rewrite major portions
- * @modified Steve Smith
  */
 public final class SynchronizationBarrier {
 
   private static final int verbose = 0;
 
-  // number of physical processors on running computer 
-  private int   numRealProcessors; 
+  // number of physical processors on running computer
+  private int numRealProcessors;
 
   final Barrier barrier = new Barrier();
 
   /**
    * Constructor
    */
-  public SynchronizationBarrier () { 
+  public SynchronizationBarrier() {
     // initialize numRealProcessors to 1. Will be set to actual value later.
     // Using without resetting will cause waitABit() to yield instead of spinning
     numRealProcessors = 1;
@@ -54,7 +51,7 @@ public final class SynchronizationBarrier {
    * Wait for all other collectorThreads/processors to arrive at this barrier.
    */
   @Uninterruptible
-  public int rendezvous (int where) { 
+  public int rendezvous(int where) {
 
     barrier.arrive(where);
 
@@ -73,16 +70,20 @@ public final class SynchronizationBarrier {
    * been declared non-participating.
    */
   @Uninterruptible
-  public void startupRendezvous () { 
+  public void startupRendezvous() {
 
     int myProcessorId = VM_Processor.getCurrentProcessorId();
     VM_CollectorThread th = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
     int myNumber = th.getGCOrdinal();
 
-    if (verbose > 0)
-      VM.sysWriteln("GC Message: SynchronizationBarrier.startupRendezvous: proc ", myProcessorId, " ordinal ", myNumber);
+    if (verbose > 0) {
+      VM.sysWriteln("GC Message: SynchronizationBarrier.startupRendezvous: proc ",
+                    myProcessorId,
+                    " ordinal ",
+                    myNumber);
+    }
 
-    if ( myNumber > 1 ) {   // non-designated guys just wait for designated guy to finish
+    if (myNumber > 1) {   // non-designated guys just wait for designated guy to finish
       barrier.arrive(8888); // wait for designated guy to do his job
       VM_Magic.isync();     // so subsequent instructions won't see stale values
       if (verbose > 0) VM.sysWriteln("GC Message: startupRendezvous  leaving as ", myNumber);
@@ -95,22 +96,24 @@ public final class SynchronizationBarrier {
     waitABit(5);          // give missing threads a chance to show up
     int numParticipating = 0;
     for (int i = 1; i <= VM_Scheduler.numProcessors; i++) {
-      if ( VM_Scheduler.processors[i].lockInCIfInC() ) { // can't be true for self
-          if (verbose > 0) VM.sysWriteln("GC Message: excluding processor ", i);
-          removeProcessor(i);
-      }
-      else
+      if (VM_Scheduler.processors[i].lockInCIfInC()) { // can't be true for self
+        if (verbose > 0) VM.sysWriteln("GC Message: excluding processor ", i);
+        removeProcessor(i);
+      } else {
         numParticipating++;
+      }
     }
 
-    if (verbose > 0) 
-        VM.sysWriteln("GC Message: startupRendezvous  numParticipating = ", numParticipating);
+    if (verbose > 0) {
+      VM.sysWriteln("GC Message: startupRendezvous  numParticipating = ", numParticipating);
+    }
     barrier.setTarget(numParticipating);
     barrier.arrive(8888);    // all setup now complete and we can proceed
     VM_Magic.sync();   // update main memory so other processors will see it in "while" loop
     VM_Magic.isync();  // so subsequent instructions won't see stale values
-    if (verbose > 0) 
-        VM.sysWriteln("GC Message: startupRendezvous  designated proc leaving");
+    if (verbose > 0) {
+      VM.sysWriteln("GC Message: startupRendezvous  designated proc leaving");
+    }
 
   }  // startupRendezvous
 
@@ -119,7 +122,7 @@ public final class SynchronizationBarrier {
    * Also sets numRealProcessors to number of real CPUs.
    */
   @Uninterruptible
-  public void resetRendezvous () { 
+  public void resetRendezvous() {
     numRealProcessors = sysCall.sysNumProcessors();
     barrier.clearTarget();
     VM_Magic.sync();      // make other threads/processors see the update
@@ -135,19 +138,19 @@ public final class SynchronizationBarrier {
    * @param x amount to spin in some unknown units
    */
   @Uninterruptible
-  private int waitABit ( int x ) { 
+  private int waitABit(int x) {
     int sum = 0;
     if (VM_Scheduler.numProcessors < numRealProcessors) {
       // spin for a while, keeping the operating system thread
-      for ( int i = 0; i < (x*100); i++)
+      for (int i = 0; i < (x * 100); i++) {
         sum = sum + i;
+      }
       return sum;
     } else {
-      sysCall.sysVirtualProcessorYield();        // pthread yield 
+      sysCall.sysVirtualProcessorYield();        // pthread yield
       return 0;
     }
   }
-
 
   /**
    * remove a processor from the rendezvous for the current collection.
@@ -156,7 +159,7 @@ public final class SynchronizationBarrier {
    * @param id  processor id of processor to be removed.
    */
   @Uninterruptible
-  private void removeProcessor( int id ) { 
+  private void removeProcessor(int id) {
 
     VM_Processor vp = VM_Scheduler.processors[id];
 
@@ -164,9 +167,9 @@ public final class SynchronizationBarrier {
     vp.transferMutex.lock();
     VM_Thread ct = vp.transferQueue.dequeueGCThread(null);
     vp.transferMutex.unlock();
-    if (VM.VerifyAssertions) 
-      VM._assert(ct != null && ct.isGCThread == true);
-
+    if (VM.VerifyAssertions) {
+      VM._assert(ct != null && ct.isGCThread());
+    }
     // put it back on the global collector thread queue
     VM_Scheduler.collectorMutex.lock();
     VM_Scheduler.collectorQueue.enqueue(ct);

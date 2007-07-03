@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2005
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.utility.options;
 
@@ -14,10 +17,6 @@ import org.mmtk.utility.heap.HeapGrowthManager;
 
 /**
  * Repository for all option instances.
- * 
- *
- * @author Daniel Frampton
- * @author Robin Garner
  */
 public final class Options {
   /* Options system options */
@@ -56,23 +55,23 @@ public final class Options {
   public static Verbose verbose;
   public static VerboseTiming verboseTiming;
   public static XmlStats xmlStats;
-  
+
   /**
    * Print the options for the current run in XML format
    */
   public static void printOptionsXml() {
     Log.writeln("<options>");
-    
-    startOpt("minHeap"); 
+
+    startOpt("minHeap");
     Log.write(HeapGrowthManager.getInitialHeapSize());
     units("bytes");
     endOpt();
-    
-    startOpt("maxHeap"); 
-    Log.write(HeapGrowthManager.getMaxHeapSize()); 
+
+    startOpt("maxHeap");
+    Log.write(HeapGrowthManager.getMaxHeapSize());
     units("bytes");
     endOpt();
-    
+
     Option opt = Option.getFirst();
     while (opt != null) {
       opt.log(Option.XML);

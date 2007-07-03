@@ -1,13 +1,15 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-
 package org.mmtk.utility.alloc;
 
 import org.mmtk.policy.LargeObjectSpace;
@@ -23,34 +25,32 @@ import org.vmmagic.pragma.*;
  * occurs at the granularity of aquiring (and releasing) chunks of
  * memory from the VMResource.  Subclasses may require finer grained
  * synchronization during a marking phase, for example.<p>
- * 
+ *
  * This is a first cut implementation, with plenty of room for
  * improvement...
- * 
- * @author Steve Blackburn
  */
 @Uninterruptible public abstract class LargeObjectAllocator extends Allocator implements Constants {
 
   /****************************************************************************
-   * 
+   *
    * Class variables
    */
   protected static final Word PAGE_MASK = Word.fromIntSignExtend(~(BYTES_IN_PAGE - 1));
 
   /****************************************************************************
-   * 
+   *
    * Instance variables
    */
   protected LargeObjectSpace space;
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
   /**
    * Constructor
-   * 
+   *
    * @param space The space with which this large object allocator
    * will be associated.
    */
@@ -59,13 +59,13 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Allocation
    */
 
   /**
    * Allocate space for an object
-   * 
+   *
    * @param bytes The number of bytes allocated
    * @param align The requested alignment.
    * @param offset The alignment offset.
@@ -74,7 +74,7 @@ import org.vmmagic.pragma.*;
    * not return zero.
    */
   @NoInline
-  public final Address alloc(int bytes, int align, int offset, boolean inGC) { 
+  public final Address alloc(int bytes, int align, int offset, boolean inGC) {
     Address cell = allocSlow(bytes, align, offset, inGC);
     postAlloc(cell);
     return alignAllocation(cell, align, offset);
@@ -107,7 +107,7 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Freeing
    */
 
@@ -116,16 +116,16 @@ import org.vmmagic.pragma.*;
    * the superpage, if not add to the super page's free list and if
    * all cells on the superpage are free, then release the
    * superpage.
-   * 
+   *
    * @param cell The address of the first byte of the cell to be freed
    */
   @Inline
-  public final void free(Address cell) { 
+  public final void free(Address cell) {
     space.release(getSuperPage(cell));
   }
 
   /****************************************************************************
-   * 
+   *
    * Superpages
    */
 
@@ -149,7 +149,7 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Miscellaneous
    */
   public void show() {

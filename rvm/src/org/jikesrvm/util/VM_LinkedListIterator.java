@@ -1,22 +1,33 @@
+/*
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ *
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
+ */
 package org.jikesrvm.util;
 
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
-
 import org.jikesrvm.VM;
 
 public final class VM_LinkedListIterator<T> implements ListIterator<T> {
   boolean canRemove = false;
-  
+
   /** The list we are iterating over */
   final VM_LinkedList<T> l;
-  
+
   /** Pointer to the current (most recently returned) element. */
   private VM_LinkedList.Element<T> cursor = null;
-  
+
   /**
    * Constructor
-   * 
+   *
    * @param l The list to iterate over.
    */
   VM_LinkedListIterator(VM_LinkedList<T> l) {
@@ -24,7 +35,7 @@ public final class VM_LinkedListIterator<T> implements ListIterator<T> {
   }
 
   public void add(T arg0) {
-    l.insertAfter(cursor,arg0);
+    l.insertAfter(cursor, arg0);
     cursor = cursor.next;
   }
 
@@ -37,11 +48,12 @@ public final class VM_LinkedListIterator<T> implements ListIterator<T> {
   }
 
   public T next() {
-    if (cursor == null)
+    if (cursor == null) {
       cursor = l.head;
-    else {
-      if (cursor.next == null)
+    } else {
+      if (cursor.next == null) {
         throw new NoSuchElementException();
+      }
       cursor = cursor.next;
     }
     canRemove = true;
@@ -52,14 +64,15 @@ public final class VM_LinkedListIterator<T> implements ListIterator<T> {
     if (canRemove) {
       l.removeInternal(cursor);
       canRemove = false;
-    } else
+    } else {
       throw new IllegalStateException();
+    }
   }
 
   /* ---------------------------------------------------------------------- */
   /*                      Methods below unimplemented                       */
   /* ---------------------------------------------------------------------- */
-  
+
   public int nextIndex() {
     if (VM.VerifyAssertions) VM._assert(false);
     return 0;

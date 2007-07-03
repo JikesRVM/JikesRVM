@@ -1,6 +1,21 @@
+<!--
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Common Public License (CPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/cpl1.0.php
+ ~
+ ~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
 <project name="basic" default="test" basedir=".">
 
-  <property name="test.time.limit" value="400"/>
+  <condition property="test.time.limit" value="1000" else="400">
+    <equals arg1="${test.mode}" arg2="gcstress"/>
+  </condition>
+
   <property name="test.max.heapsize" value="150"/>
 
   <import file="../../../build/tests.xml"/>
@@ -8,7 +23,7 @@
   <property name="main.java" location="${basedir}/src"/>
 
   <property name="build.classes" location="${build.tests.dir}/classes"/>
- 
+
   <property name="test.class.path" value="${build.classes}"/>
 
   <!-- **************************************************************************** -->
@@ -68,7 +83,7 @@
 
     <runCompareTest tag="TestAnnotationInheritance" class="test.org.jikesrvm.basic.core.annotation.TestAnnotationInheritance"/>
 
-    <runCompareTest tag="TestResolveOnInvokeVirtual"
+    <runCompareTest tag="TestResolveOnInvokeInterface"
                     class="test.org.jikesrvm.basic.core.bytecode.TestResolveOnInvokeInterface"
                     rvmArgs="-javaagent:${build.tests.dir}/IdentityAgent.jar"/>
     <runCompareTest tag="TestResolveOnCheckcast"
@@ -90,7 +105,9 @@
     <runCompareTest tag="TestTimedWait" class="test.org.jikesrvm.basic.core.threads.TestTimedWait"/>
     <runCompareTest tag="TestInterruptAndSpin" class="test.org.jikesrvm.basic.core.threads.TestInterruptAndSpin"/>
     <runCompareTest tag="TestInterruptedSleep" class="test.org.jikesrvm.basic.core.threads.TestInterruptedSleep"/>
+    <runCompareTest tag="TestInterruptedSleep2" class="test.org.jikesrvm.basic.core.threads.TestInterruptedSleep2"/>
     <runCompareTest tag="TestInterruptedWait" class="test.org.jikesrvm.basic.core.threads.TestInterruptedWait"/>
+    <runCompareTest tag="TestParallelHardwareTrap" class="test.org.jikesrvm.basic.core.threads.TestParallelHardwareTrap" timeLimit="20"/>
     <runCompareTest tag="TestStop" class="test.org.jikesrvm.basic.core.threads.TestStop"/>
     <runCompareTest tag="TestSuspend" class="test.org.jikesrvm.basic.core.threads.TestSuspend" timeLimit="20"/>
     <runCompareTest tag="TestTimeSlicing" class="test.org.jikesrvm.basic.core.threads.TestTimeSlicing"/>
@@ -125,7 +142,7 @@
     <runCompareTest tag="R1644460_B" class="test.org.jikesrvm.basic.bugs.R1644460_B"/>
     <runCompareTest tag="R1644449" class="test.org.jikesrvm.basic.bugs.R1644449"/>
     <runCompareTest tag="R1657236" class="test.org.jikesrvm.basic.bugs.R1657236"/>
-
+    <runCompareTest tag="R1722506" class="test.org.jikesrvm.basic.bugs.R1722506"/>
     <finishResults/>
   </target>
 

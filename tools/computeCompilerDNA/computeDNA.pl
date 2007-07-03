@@ -1,12 +1,15 @@
 #!/usr/bin/perl
-
 #
-# This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
-# The Jikes RVM project is distributed under the Common Public License (CPL).
-# A copy of the license is included in the distribution, and is also
-# available at http://www.opensource.org/licenses/cpl1.0.php
+#  This file is part of the Jikes RVM project (http://jikesrvm.org).
 #
-# (C) Copyright IBM Corp. 2001
+#  This file is licensed to You under the Common Public License (CPL);
+#  You may not use this file except in compliance with the License. You
+#  may obtain a copy of the License at
+#
+#      http://www.opensource.org/licenses/cpl1.0.php
+#
+#  See the COPYRIGHT.txt file distributed with this work for information
+#  regarding copyright ownership.
 #
 
 # This script takes the result file from running Run-gather-DNA and
@@ -15,7 +18,6 @@
 # fed into the VM_CompilerDNA.java file in the adaptive system.
 
 # Note:  I am a Perl novice.  Feel free to improve the quality of this code!
-# @author Michael Hind, 10/30/01
 #
 
 $NUM_COMPILERS=4;
@@ -41,10 +43,10 @@ while(<in_file>){
 
     if ($processingCompRate eq true) {
 	# this code is used to process the 1st half of the file, the comp rate data
-	
+
 	# sample string
 	# "======= _200_check Finished in 1.392 secs"
-	
+
 	# This says match ("m/") the following
 	#   \S+ 1 or more any non-white space
 	#   ()  give it a name, $1, $2, etc
@@ -53,7 +55,7 @@ while(<in_file>){
 	    # remember the benchmarks as we see them
 	    $benchmarks{$numBench} = $benchmark;
 	}
-	
+
 	# Base	310	65	505.80	5.36	172.0	32.1
 	if ($run==0) {
 	    if (m/Base\s+(\S+)\s+(\S+)\s+(\S+)/) {
@@ -171,7 +173,7 @@ sub pad_with_tab {
     } else {
 	print $string;
     }
-    
+
 }
 
 

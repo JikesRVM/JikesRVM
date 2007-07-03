@@ -1,23 +1,43 @@
 #! /bin/bash
+#
+#  This file is part of the Jikes RVM project (http://jikesrvm.org).
+#
+#  This file is licensed to You under the Common Public License (CPL);
+#  You may not use this file except in compliance with the License. You
+#  may obtain a copy of the License at
+#
+#      http://www.opensource.org/licenses/cpl1.0.php
+#
+#  See the COPYRIGHT.txt file distributed with this work for information
+#  regarding copyright ownership.
+#
 
-export RVM_DIR="`dirname "$0"`"
 export RVM_HOME="`dirname "$0"`"
 
-export BASE_ARGS="-X:ic=$RVM_DIR/RVM.code.image -X:id=$RVM_DIR/RVM.data.image -X:ir=$RVM_DIR/RVM.rmap.image -X:vmClasses=$RVM_DIR/jksvm.jar:$RVM_DIR/rvmrt.jar -Duser.timezone=$(date +%Z) -Drvm.root=$RVM_HOME -Drvm.build=$RVM_DIR -Djava.home=$RVM_HOME -Dgnu.classpath.home.url=file:$RVM_DIR -Dgnu.classpath.vm.shortname=JikesRVM -Duser.home=$HOME -Duser.dir=`pwd` -Duser.name=`whoami` -Dos.name=`uname -s` -Dos.version=`uname -r` -Dos.arch=`uname -m`"
+export BASE_ARGS="-X:ic=$RVM_HOME/RVM.code.image -X:id=$RVM_HOME/RVM.data.image -X:ir=$RVM_HOME/RVM.rmap.image -X:vmClasses=$RVM_HOME/jksvm.jar:$RVM_HOME/rvmrt.jar -Duser.timezone=$(date +%Z) -Djava.home=$RVM_HOME -Dgnu.classpath.home.url=file:$RVM_HOME -Dgnu.classpath.vm.shortname=JikesRVM -Duser.home=$HOME -Duser.dir=`pwd` -Duser.name=`whoami` -Dos.name=`uname -s` -Dos.version=`uname -r` -Dos.arch=`uname -m`"
 
 # This may need to be LIBPATH under AIX or SHLIB_PATH on HP-UX
-export LD_LIBRARY_PATH=$RVM_DIR:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$RVM_HOME:$LD_LIBRARY_PATH
+
+WRAP=exec
+
+if ((( $# >= 2 )) && [[ $1 == -wrap ]] ); then
+  WRAP=$2
+  shift 2
+fi
 
 if (( $# == 0 )) || ((( $# >= 1 )) && [[ $1 != -gdb ]] ); then
-@PRELOAD@ exec "$RVM_DIR/JikesRVM" $BASE_ARGS "$@"
-else
+  LD_PRELOAD="$LD_PRELOAD $RVM_HOME/@PRELOAD@" $WRAP "$RVM_HOME/JikesRVM" $BASE_ARGS "$@"
+  exit
+fi
+
 # Remove -gdb arg
 shift
 
 export GDB_ARGS=
 if (( $# >= 1 )) && [[ $1 == -fullname ]]; then
-    GDB_ARGS="$1";
-    shift
+  GDB_ARGS="$1";
+  shift
 fi
 
 export TMP_GDB_COMMANDS=$RVM_HOME/gdb.commandlineArgs
@@ -26,8 +46,8 @@ echo -n "set args" > $TMP_GDB_COMMANDS
 echo $BASE_ARGS | tr ' ' '\n' | awk '{print "\"" $1 "\"" }' | tr '\n' ' ' >> $TMP_GDB_COMMANDS
 #echo $* | tr ' ' '\n' | awk '{print "\"" $1 "\"" }' >> $TMP_GDB_COMMANDS
 for arg in "$@"; do
-    echo -n " \"$arg\"" >> $TMP_GDB_COMMANDS 
-done 
+    echo -n " \"$arg\"" >> $TMP_GDB_COMMANDS
+done
 echo "" >> $TMP_GDB_COMMANDS
 
 # Tell gdb to completely ignore some signals that Jikes RVM uses
@@ -35,8 +55,14 @@ echo "" >> $TMP_GDB_COMMANDS
 # SIGSEGV is a null pointer exception
 echo "handle SIGSEGV nostop noprint pass" >> $TMP_GDB_COMMANDS
 
+echo "set env LD_PRELOAD = $LD_PRELOAD $RVM_HOME/@PRELOAD@" >> $TMP_GDB_COMMANDS
+
+# Include symbols if available
+if [[ -e $RVM_HOME/JikesRVM-symbols.o ]]; then
+  echo "add-symbol-file $RVM_HOME/JikesRVM-symbols.o 0x0" >> $TMP_GDB_COMMANDS
+fi
+
 # Set an initial breakpoint right before we start the jump into VM.boot
 echo "break bootThread" >> $TMP_GDB_COMMANDS
 
-@PRELOAD@ gdb "${gdb_args[@]}" "$RVM_DIR/JikesRVM" "--command=$TMP_GDB_COMMANDS" 
-fi
+gdb "${gdb_args[@]}" "$RVM_HOME/JikesRVM" "--command=$TMP_GDB_COMMANDS"

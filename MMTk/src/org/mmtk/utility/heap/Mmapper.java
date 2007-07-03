@@ -1,18 +1,18 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2002
- * (C) Copyright IBM Corp. 2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-
 package org.mmtk.utility.heap;
 
 import org.mmtk.utility.*;
-import org.mmtk.utility.Constants;
 
 import org.mmtk.vm.Lock;
 import org.mmtk.vm.VM;
@@ -22,12 +22,9 @@ import org.vmmagic.pragma.*;
 
 /**
  * This class implements mmapping and protection of virtual memory.
- * 
- *
- * @author Steve Blackburn
  */
 @Uninterruptible public final class Mmapper implements Constants {
-  
+
   /****************************************************************************
    * Constants
    */
@@ -51,7 +48,7 @@ import org.vmmagic.pragma.*;
   /****************************************************************************
    * Initialization
    */
-  
+
   /**
    * Class initializer.  This is executed <i>prior</i> to bootstrap
    * (i.e. at "build" time).
@@ -66,16 +63,16 @@ import org.vmmagic.pragma.*;
   /****************************************************************************
    * Generic mmap and protection functionality
    */
- 
+
   /**
    * Given an address array describing the regions of virtual memory to be used
    * by MMTk, demand zero map all of them if they are not already mapped.
-   * 
+   *
    * @param spaceMap An address array containing a pairs of start and end
    * addresses for each of the regions to be mappe3d
    */
   public static void eagerlyMmapAllSpaces(AddressArray spaceMap) {
-    
+
     /*for (int i = 0; i < spaceMap.length() / 2; i++) {
       Address regionStart = spaceMap.get(i * 2);
       Address regionEnd = spaceMap.get(i * 2 + 1);
@@ -90,11 +87,11 @@ import org.vmmagic.pragma.*;
       ensureMapped(regionStart, pages);
     }*/
   }
-  
+
   /**
    *  Mark a range of pages as having (already) been mapped.  This is useful
    *  where the VM has performed the mapping of the pages itself.
-   *  
+   *
    * @param start The start of the range to be marked as mapped
    * @param bytes The size of the range, in bytes.
    */
@@ -109,12 +106,12 @@ import org.vmmagic.pragma.*;
    * Ensure that a range of pages is mmapped (or equivalent).  If the
    * pages are not yet mapped, demand-zero map them. Note that mapping
    * occurs at chunk granularity, not page granularity.<p>
-   * 
+   *
    * NOTE: There is a monotonicity assumption so that only updates require lock
    * acquisition.
    * TODO: Fix the above to support unmapping.
-   * 
-   * @param start The start of the range to be mapped. 
+   *
+   * @param start The start of the range to be mapped.
    * @param pages The size of the range to be mapped, in pages
    */
   public static void ensureMapped(Address start, int pages) {
@@ -124,7 +121,7 @@ import org.vmmagic.pragma.*;
       if (mapped[chunk] == MAPPED) continue;
       Address mmapStart = Conversions.mmapChunksToAddress(chunk);
       lock.acquire();
-//      Log.writeln(mmapStart); 
+//      Log.writeln(mmapStart);
       // might have become MAPPED here
       lock.check(100);
       if (mapped[chunk] == UNMAPPED) {
@@ -170,8 +167,8 @@ import org.vmmagic.pragma.*;
   /**
    * Memory protect a range of pages (using mprotect or equivalent).  Note
    * that protection occurs at chunk granularity, not page granularity.
-   * 
-   * @param start The start of the range to be protected. 
+   *
+   * @param start The start of the range to be protected.
    * @param pages The size of the range to be protected, in pages
    */
   public static void protect(Address start, int pages) {
@@ -204,33 +201,33 @@ import org.vmmagic.pragma.*;
   /****************************************************************************
    * Utility functions
    */
-  
+
   /**
    * Return true if the given address has been mmapped
-   * 
+   *
    * @param addr The address in question.
    * @return true if the given address has been mmapped
    */
   @Uninterruptible
-  public static boolean addressIsMapped(Address addr) { 
+  public static boolean addressIsMapped(Address addr) {
     int chunk = Conversions.addressToMmapChunksDown(addr);
     return mapped[chunk] == MAPPED;
   }
 
   /**
    * Return true if the given object has been mmapped
-   * 
+   *
    * @param object The object in question.
    * @return true if the given object has been mmapped
    */
   @Uninterruptible
-  public static boolean objectIsMapped(ObjectReference object) { 
+  public static boolean objectIsMapped(ObjectReference object) {
     return addressIsMapped(VM.objectModel.refToAddress(object));
   }
-  
+
   /**
    * Return a given address rounded up to an mmap chunk size
-   * 
+   *
    * @param addr The address to be aligned
    * @return The given address rounded up to an mmap chunk size
    */
@@ -241,7 +238,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Return a given address rounded down to an mmap chunk size
-   * 
+   *
    * @param addr The address to be aligned
    * @return The given address rounded down to an mmap chunk size
    */

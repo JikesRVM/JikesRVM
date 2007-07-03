@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- *     Australian National University. 2004
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.utility.alloc;
 
@@ -24,9 +27,6 @@ import org.vmmagic.pragma.*;
  * will be reduced (as compared with embedding meta-data at the start
  * of each page which will cause those few cache lines corresponding
  * to the start of each page to be heavily conflicted).
- * 
- *
- * @author Steve Blackburn
  */
 @Uninterruptible public final class EmbeddedMetaData implements Constants {
 
@@ -41,7 +41,7 @@ import org.vmmagic.pragma.*;
    * Given an address, return the begining of the meta data for the
    * region containing the address.  This is a fast operation because
    * it only involves masking out low order bits.
-   * 
+   *
    * @param address The address whose meta data is sought.
    * @return The address of the start of the meta data for the meta
    * region in which the address is located.
@@ -55,7 +55,7 @@ import org.vmmagic.pragma.*;
    * Given an address, the density (coverage) of a meta data type, and
    * the granularity (alignment) of the meta data, return the offset
    * into the meta data the address.
-   * 
+   *
    * @param address The address whose meta data offset is sought.
    * @param logCoverage The log base two of the coverage of the meta
    * data in question. For example, a value of 4 would indicate a

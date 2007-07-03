@@ -1,10 +1,14 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp 2003
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package java.lang.ref;
 
@@ -12,15 +16,14 @@ import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 
 /**
  * Implementation of java.lang.ref.PhantomReference for JikesRVM.
- * @author Chris Hoffmann
  */
 public class PhantomReference<T> extends Reference<T> {
-  
+
   public PhantomReference(T referent, ReferenceQueue<T> q) {
     super(referent, q);
     MM_Interface.addPhantomReference(this);
   }
-  
+
   /**
    * Returns the object this reference refers to. Phantom references
   always return <code>null</code>.

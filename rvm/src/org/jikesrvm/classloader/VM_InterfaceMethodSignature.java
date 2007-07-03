@@ -1,38 +1,39 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001, 2004
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.*;
-import org.jikesrvm.util.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.objectmodel.VM_TIBLayoutConstants;
+import org.jikesrvm.util.VM_HashSet;
 import org.vmmagic.unboxed.Offset;
 
 /**
- *  An interface method signature is a pair of atoms: 
+ *  An interface method signature is a pair of atoms:
  *  interfaceMethodName + interfaceMethodDescriptor.
- *
- * @author Bowen Alpern
- * @author Dave Grove
- * @author Derek Lieber
  */
 public final class VM_InterfaceMethodSignature implements VM_TIBLayoutConstants, VM_SizeConstants {
 
   /**
    * Used to canonicalize VM_InterfaceMethodSignatures
    */
-  private static VM_HashSet<VM_InterfaceMethodSignature> dictionary = 
-    new VM_HashSet<VM_InterfaceMethodSignature>();
+  private static VM_HashSet<VM_InterfaceMethodSignature> dictionary = new VM_HashSet<VM_InterfaceMethodSignature>();
 
   /**
    * Used to assign ids. Don't use id 0 to allow clients to use id 0 as a 'null'.
    */
-  private static int nextId = 1; 
-  
+  private static int nextId = 1;
+
   /**
    * Name of the interface method
    */
@@ -60,14 +61,13 @@ public final class VM_InterfaceMethodSignature implements VM_TIBLayoutConstants,
    * @return the interface method signature
    */
   public static synchronized VM_InterfaceMethodSignature findOrCreate(VM_MemberReference ref) {
-    VM_InterfaceMethodSignature key = 
-      new VM_InterfaceMethodSignature(ref.getName(), ref.getDescriptor());
+    VM_InterfaceMethodSignature key = new VM_InterfaceMethodSignature(ref.getName(), ref.getDescriptor());
     VM_InterfaceMethodSignature val = dictionary.get(key);
-    if (val != null)  return val;
+    if (val != null) return val;
     key.id = nextId++;
     dictionary.add(key);
     return key;
-  }    
+  }
 
   /**
    * @return name of the interface method
@@ -98,9 +98,9 @@ public final class VM_InterfaceMethodSignature implements VM_TIBLayoutConstants,
 
   public boolean equals(Object other) {
     if (other instanceof VM_InterfaceMethodSignature) {
-      VM_InterfaceMethodSignature that = (VM_InterfaceMethodSignature)other;
+      VM_InterfaceMethodSignature that = (VM_InterfaceMethodSignature) other;
       return name == that.name && descriptor == that.descriptor;
-    }  else {
+    } else {
       return false;
     }
   }
@@ -111,9 +111,9 @@ public final class VM_InterfaceMethodSignature implements VM_TIBLayoutConstants,
    * Note that all methods with same name & descriptor map to the same slot.
    * <p>
    * TODO!! replace this stupid offset assignment algorithm with something more reasonable.
-   * 
+   *
    * @return offset in TIB/IMT
-   */ 
+   */
   public Offset getIMTOffset() {
     if (VM.VerifyAssertions) VM._assert(VM.BuildForIMTInterfaceInvocation);
     int slot = id % IMT_METHOD_SLOTS;

@@ -1,15 +1,15 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-/**
- * @author unascribed
- */
-
 class TestMath
    {
    public static void main(String args[])
@@ -22,7 +22,7 @@ class TestMath
       System.out.println("TestMath");
 
       System.out.println("-- Math.floor --");
-      
+
       System.out.println("\nwant: 1.0 \ngot:  " + Math.floor(1.6));
       System.out.println("\nwant: 1.0 \ngot:  " + Math.floor(1.5));
       System.out.println("\nwant: 1.0 \ngot:  " + Math.floor(1.4));
@@ -34,7 +34,7 @@ class TestMath
       System.out.println("\nwant: -2.0 \ngot:  " + Math.floor(-1.4));
 
       System.out.println("-- Math.ceil --");
-      
+
       System.out.println("\nwant: 2.0 \ngot:  " + Math.ceil(1.6));
       System.out.println("\nwant: 2.0 \ngot:  " + Math.ceil(1.5));
       System.out.println("\nwant: 2.0 \ngot:  " + Math.ceil(1.4));

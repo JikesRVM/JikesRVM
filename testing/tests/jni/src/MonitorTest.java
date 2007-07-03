@@ -1,20 +1,15 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
- */
-/**
- * Test monitor operation from native
- * The following JNI calls are tested:
- *      MonitorEnter         MonitorExit
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
  *
- * @author Ton Ngo, Steve Smith 
- * @date 1/3/01
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-
 class MonitorTest {
   static boolean verbose = true;         // set to true to get messages for each test
   static boolean allTestPass = true;
@@ -32,10 +27,10 @@ class MonitorTest {
 
 
   /**
-   * called from native, increment a count protected by a lock on stringObject in native 
+   * called from native, increment a count protected by a lock on stringObject in native
    */
   static void accessCountUnderNativeLock(int increment) {
-    
+
     // lock the same object again to test nested monitor enter
     synchronized(stringObject) {
       globalCount += increment;
@@ -59,9 +54,9 @@ class MonitorTest {
 
     if (args.length!=0) {
       if (args[0].equals("-quiet")) {
-        verbose = false;        
+        verbose = false;
         setVerboseOff();
-      }         
+      }
     }
 
     // Create an object to lock on
@@ -71,7 +66,7 @@ class MonitorTest {
     printVerbose("Creating worker threads");
     Worker threadOne = new Worker("thread One", stringObject);
     Worker threadTwo = new Worker("thread Two", stringObject);
-    
+
     printVerbose("Starting worker threads");
     threadOne.start();
     threadTwo.start();
@@ -79,7 +74,7 @@ class MonitorTest {
     // wait for the threads to come up
     while (!threadOne.readyFlag || !threadTwo.readyFlag) {
     }
-    
+
     printVerbose("Worker threads running, start counting");
     startCounting = true;
 
@@ -91,8 +86,8 @@ class MonitorTest {
     printVerbose("Worker threads finish, check count");
 
     // get a copy so the checking can be protected in case some threads are still running
-    int copyCount = globalCount;  
-    
+    int copyCount = globalCount;
+
     if (copyCount == 0 && allTestPass) {
       System.out.println("PASS: MonitorTest");
     } else {
@@ -101,11 +96,11 @@ class MonitorTest {
     }
 
 
-  }    
+  }
 
 
   static void printVerbose(String str) {
-    if (verbose) 
+    if (verbose)
       System.out.println(str);
   }
 

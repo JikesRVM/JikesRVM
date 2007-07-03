@@ -1,28 +1,31 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2005
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.plan.markcompact;
 
 import org.mmtk.plan.*;
 import org.mmtk.policy.MarkCompactSpace;
 import org.mmtk.policy.Space;
-import org.mmtk.vm.Collection;
-import org.mmtk.vm.VM;
+import org.mmtk.utility.Log;
 
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.ObjectReference;
 
 /**
  * This class implements the global state of a simple sliding mark-compact
  * collector.
- * 
+ *
  * FIXME Need algorithmic overview and references.
- * 
+ *
  * All plans make a clear distinction between <i>global</i> and
  * <i>thread-local</i> activities, and divides global and local state
  * into separate class hierarchies.  Global activities must be
@@ -37,9 +40,6 @@ import org.vmmagic.pragma.*;
  * (such as memory and virtual memory resources).  This mapping of threads to
  * instances is crucial to understanding the correctness and
  * performance properties of MMTk plans.
- * 
- *
- * @author Daniel Frampton
  */
 @Uninterruptible public class MC extends StopTheWorld {
 
@@ -62,7 +62,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * This is the phase that is executed to perform a mark-compact collection.
-   * 
+   *
    * FIXME: Far too much duplication and inside knowledge of StopTheWorld
    */
   public ComplexPhase mcCollection = new ComplexPhase("collection", null, new int[] {
@@ -91,35 +91,26 @@ import org.vmmagic.pragma.*;
 
   /**
    * Constructor.
-   * 
-   */
+ */
   public MC() {
     markTrace = new Trace(metaDataSpace);
     forwardTrace = new Trace(metaDataSpace);
     collection = mcCollection;
   }
 
-  /**
-   * Boot-time initialization
-   */
-  @Interruptible
-  public void boot() { 
-    super.boot();
-  }
-
   /*****************************************************************************
-   * 
+   *
    * Collection
    */
 
 
   /**
    * Perform a (global) collection phase.
-   * 
+   *
    * @param phaseId Collection phase to execute.
    */
   @Inline
-  public final void collectionPhase(int phaseId) { 
+  public final void collectionPhase(int phaseId) {
     if (phaseId == PREPARE) {
       super.collectionPhase(phaseId);
       markTrace.prepare();
@@ -149,31 +140,8 @@ import org.vmmagic.pragma.*;
     super.collectionPhase(phaseId);
   }
 
-  /**
-   * Poll for a collection
-   * 
-   * @param mustCollect Force a collection.
-   * @param space The space that caused the poll.
-   * @return True if a collection is required.
-   */
-  @LogicallyUninterruptible
-  public final boolean poll(boolean mustCollect, Space space) { 
-    if (getCollectionsInitiated() > 0 || !isInitialized() || space == metaDataSpace) {
-      return false;
-    }
-    mustCollect |= stressTestGCRequired();
-    boolean heapFull = getPagesReserved() > getTotalPages();
-
-    if (mustCollect || heapFull) {
-      required = space.reservedPages() - space.committedPages();
-      VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
-      return true;
-    }
-    return false;
-  }
-
   /*****************************************************************************
-   * 
+   *
    * Accounting
    */
 
@@ -181,11 +149,35 @@ import org.vmmagic.pragma.*;
    * Return the number of pages reserved for use given the pending
    * allocation.  The superclass accounts for its spaces, we just
    * augment this with the mark-sweep space's contribution.
-   * 
+   *
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
   public int getPagesUsed() {
     return (mcSpace.reservedPages() + super.getPagesUsed());
+  }
+  
+  /**
+   * Calculate the number of pages a collection is required to free to satisfy
+   * outstanding allocation requests.
+   * 
+   * @return the number of pages a collection is required to free to satisfy
+   * outstanding allocation requests.
+   */
+  public int getPagesRequired() {
+    return super.getPagesRequired() + mcSpace.requiredPages();
+  }
+
+  /**
+   * @see org.mmtk.plan.Plan#objectCanMove
+   *
+   * @param object Object in question
+   * @return False if the object will never move
+   */
+  @Override
+  public boolean objectCanMove(ObjectReference object) {
+    if (Space.isInSpace(MARK_COMPACT, object))
+      return true;
+    return super.objectCanMove(object);
   }
 }

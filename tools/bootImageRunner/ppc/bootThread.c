@@ -1,15 +1,17 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 /*
  * Begin execution of a VM_Thread "startoff" method.
- * @author Derek Lieber
- * @date 21 Oct 1998
  *
  * Signature:
  *    void bootThread(int jtoc, int pr, int ti, int fp);
@@ -22,11 +24,10 @@
  *
  * Returned:
  *    does not return
- *
  */
 #define NEED_ASSEMBLER_DECLARATIONS
 #include <InterfaceDeclarations.h>
- 
+
        .file    "bootThread.s"
 #if (defined __linux__)
 #ifdef RVM_FOR_32_ADDR
@@ -55,12 +56,12 @@
         mr      JTOC,T0
         mr      PROCESSOR_REGISTER,T1
         mr      FP,T3
-        
+
         /*
          * At this point we've abandoned the C stack and are running on a VM_Thread's stack.
          */
-        
-#ifdef RVM_FOR_32_ADDR 
+
+#ifdef RVM_FOR_32_ADDR
         lwz     S0,STACKFRAME_NEXT_INSTRUCTION_OFFSET(FP)   /* fetch method entrypoint address*/
 #else
         ld      S0,STACKFRAME_NEXT_INSTRUCTION_OFFSET(FP)   /* fetch method entrypoint address*/

@@ -1,13 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2004
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
  *
- * (C) Copyright IBM Corp. 2001, 2003
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm.mm.mmtk;
 
@@ -16,22 +17,16 @@ import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.utility.Constants;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_BootRecord;
+import org.jikesrvm.runtime.VM_BootRecord;
 import org.jikesrvm.VM_HeapLayoutConstants;
-import org.jikesrvm.VM_Magic;
-import org.jikesrvm.VM_Memory;
-import org.jikesrvm.VM_JavaHeader;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_Memory;
+import org.jikesrvm.objectmodel.VM_JavaHeader;
 import org.jikesrvm.VM_SizeConstants;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
-/**
- *
- * @author Steve Blackburn
- * @author Perry Cheng
- *
- */
 @Uninterruptible public class Memory extends org.mmtk.vm.Memory
   implements Constants, VM_HeapLayoutConstants, VM_SizeConstants {
 
@@ -44,11 +39,11 @@ import org.vmmagic.pragma.*;
   protected final byte getLogBytesInPageConstant() { return 12; }
   protected final byte getLogMinAlignmentConstant() { return VM_JavaHeader.LOG_MIN_ALIGNMENT;}
   protected final byte getMaxAlignmentShiftConstant() { return VM_SizeConstants.LOG_BYTES_IN_LONG - VM_SizeConstants.LOG_BYTES_IN_INT; }
-  protected final int getMaxBytesPaddingConstant() { return VM_SizeConstants.BYTES_IN_DOUBLE; } 
+  protected final int getMaxBytesPaddingConstant() { return VM_SizeConstants.BYTES_IN_DOUBLE; }
   protected final int getAlignmentValueConstant() { return VM_JavaHeader.ALIGNMENT_VALUE;}
-  
+
   private static ImmortalSpace bootSpace;
-  
+
   /* FIXME the following was established via trial and error :-( */
   //  private static int BOOT_SEGMENT_MB = 4+(BOOT_IMAGE_SIZE.toInt()>>LOG_BYTES_IN_MBYTE);
   private static int BOOT_SEGMENT_MB = (0x10000000>>LOG_BYTES_IN_MBYTE);
@@ -70,9 +65,9 @@ import org.vmmagic.pragma.*;
    * the boot image space is returned.
    */
   @Interruptible
-  public final ImmortalSpace getVMSpace() { 
+  public final ImmortalSpace getVMSpace() {
     if (bootSpace == null)
-      bootSpace = new ImmortalSpace("boot", Plan.DEFAULT_POLL_FREQUENCY, 
+      bootSpace = new ImmortalSpace("boot", Plan.DEFAULT_POLL_FREQUENCY,
                                     BOOT_SEGMENT_MB, false);
     return bootSpace;
   }
@@ -117,7 +112,7 @@ import org.vmmagic.pragma.*;
     }
     return result.toInt();
   }
-  
+
   /**
    * Protects access to an area of virtual memory.
    *
@@ -184,12 +179,12 @@ import org.vmmagic.pragma.*;
    */
 
   @Inline
-  public final void sync() { 
+  public final void sync() {
     VM_Magic.sync();
   }
 
   @Inline
-  public final void isync() { 
+  public final void isync() {
     VM_Magic.isync();
   }
 }

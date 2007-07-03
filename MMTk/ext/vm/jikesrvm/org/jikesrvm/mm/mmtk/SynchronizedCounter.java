@@ -1,25 +1,26 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm.mm.mmtk;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Synchronization;
-import org.jikesrvm.VM_Entrypoints;
+import org.jikesrvm.scheduler.VM_Synchronization;
+import org.jikesrvm.runtime.VM_Entrypoints;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Offset;
 
 /**
  * A counter that supports atomic increment and reset.
- *
- *
- * @author Perry Cheng
  */
 @Uninterruptible public final class SynchronizedCounter extends org.mmtk.vm.SynchronizedCounter {
 

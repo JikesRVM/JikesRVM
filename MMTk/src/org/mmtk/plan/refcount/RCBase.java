@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2005, 2006
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.plan.refcount;
 
@@ -18,6 +21,7 @@ import org.mmtk.policy.ExplicitFreeListSpace;
 import org.mmtk.policy.ExplicitLargeObjectLocal;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.deque.SharedDeque;
+import org.mmtk.utility.options.Options;
 import org.mmtk.utility.statistics.EventCounter;
 
 import org.mmtk.vm.VM;
@@ -28,7 +32,7 @@ import org.vmmagic.unboxed.*;
 /**
  * This class implements the global state of a simple reference counting
  * collector.
- * 
+ *
  * All plans make a clear distinction between <i>global</i> and
  * <i>thread-local</i> activities, and divides global and local state
  * into separate class hierarchies.  Global activities must be
@@ -43,11 +47,6 @@ import org.vmmagic.unboxed.*;
  * (such as memory and virtual memory resources).  This mapping of threads to
  * instances is crucial to understanding the correctness and
  * performance properties of MMTk plans.
- * 
- *
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public abstract class RCBase extends StopTheWorld {
 
@@ -59,7 +58,7 @@ import org.vmmagic.unboxed.*;
   public static final boolean INLINE_WRITE_BARRIER       = WITH_COALESCING_RC;
   public static final boolean GATHER_WRITE_BARRIER_STATS = false;
   public static final boolean FORCE_FULL_CD              = false;
-  
+
   // Cycle detection selection
   public static final int     NO_CYCLE_DETECTOR = 0;
   public static final int     TRIAL_DELETION    = 1;
@@ -75,13 +74,13 @@ import org.vmmagic.unboxed.*;
   // Counters
   public static EventCounter wbFast;
   public static EventCounter wbSlow;
-    
+
   // Allocators
   public static final int ALLOC_RC = StopTheWorld.ALLOCATORS;
   public static final int ALLOCATORS = ALLOC_RC + 1;
-  
+
   // Cycle Detectors
-  private NullCD nullCD; 
+  private NullCD nullCD;
   private TrialDeletion trialDeletionCD;
 
   /****************************************************************************
@@ -94,11 +93,10 @@ import org.vmmagic.unboxed.*;
   public final SharedDeque newRootPool;
   public final SharedDeque oldRootPool;
   protected int previousMetaDataPages;
-  
+
   /**
    * Constructor.
-   * 
-   */
+ */
   public RCBase() {
     if (!SCAN_BOOT_IMAGE) {
       VM.assertions.fail("RC currently requires scan boot image");
@@ -122,11 +120,11 @@ import org.vmmagic.unboxed.*;
       break;
     }
   }
-  
+
   /**
    * Perform any required initialization of the GC portion of the header.
    * Called for objects created at boot time.
-   * 
+   *
    * @param ref the object ref to the storage to be initialized
    * @param typeRef the type reference for the instance being created
    * @param size the number of bytes allocated by the GC system for
@@ -136,27 +134,26 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public Word setBootTimeGCBits(Address ref, ObjectReference typeRef,
-                                int size, Word status) { 
+                                int size, Word status) {
     if (WITH_COALESCING_RC) {
-      status = status.or(SCAN_BOOT_IMAGE ? RCHeader.LOGGED : RCHeader.UNLOGGED); 
+      status = status.or(SCAN_BOOT_IMAGE ? RCHeader.LOGGED : RCHeader.UNLOGGED);
     }
     return status;
   }
-  
+
   /*****************************************************************************
-   * 
+   *
    * Collection
    */
 
-
   /**
    * Perform a (global) collection phase.
-   * 
+   *
    * @param phaseId Collection phase to execute.
    */
   @Inline
-  public void collectionPhase(int phaseId) { 
-   
+  public void collectionPhase(int phaseId) {
+
     if (phaseId == PREPARE) {
       rcTrace.prepare();
       return;
@@ -172,8 +169,21 @@ import org.vmmagic.unboxed.*;
     }
   }
 
-  /*****************************************************************************
+  /**
+   * This method controls the triggering of a GC. It is called periodically
+   * during allocation. Returns true to trigger a collection.
    * 
+   * @param spaceFull Space request failed, must recover pages within 'space'.
+   * @return True if a collection is requested by the plan.
+   */
+  public boolean collectionRequired(boolean spaceFull) {
+    int newMetaDataPages = metaDataSpace.committedPages() - previousMetaDataPages;
+    
+    return super.collectionRequired(spaceFull) || (newMetaDataPages > Options.metaDataLimit.getPages()); 
+  }
+  
+  /*****************************************************************************
+   *
    * Accounting
    */
 
@@ -181,7 +191,7 @@ import org.vmmagic.unboxed.*;
    * Return the number of pages reserved for use given the pending
    * allocation.  The superclass accounts for its spaces, we just
    * augment this with the mark-sweep space's contribution.
-   * 
+   *
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
@@ -189,55 +199,66 @@ import org.vmmagic.unboxed.*;
     return (rcSpace.reservedPages() + super.getPagesUsed());
   }
 
-  /****************************************************************************
+  /**
+   * Calculate the number of pages a collection is required to free to satisfy
+   * outstanding allocation requests.
    * 
+   * @return the number of pages a collection is required to free to satisfy
+   * outstanding allocation requests.
+   */
+  public int getPagesRequired() {
+    return super.getPagesRequired() + rcSpace.requiredPages();
+  }
+
+  /****************************************************************************
+   *
    * Miscellaneous
    */
 
   /**
    * Determine if an object is in a reference counted space.
-   * 
+   *
    * @param object The object to check
    * @return True if the object is in a reference counted space.
    */
   public static boolean isRCObject(ObjectReference object) {
-    return !object.isNull() && !Space.isInSpace(VM_SPACE, object);  
+    return !object.isNull() && !Space.isInSpace(VM_SPACE, object);
   }
 
   /**
    * Free a reference counted object.
-   * 
+   *
    * @param object The object to free.
    */
   public static void free(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) {
     	VM.assertions._assert(isRCObject(object));
     }
-    
+
     if (Space.isInSpace(REF_COUNT, object)) {
       ExplicitFreeListLocal.free(object);
     } else if (Space.isInSpace(LOS, object)){
       ExplicitLargeObjectLocal.free(loSpace, object);
     }
   }
-  
+
   /** @return The active cycle detector instance */
   @Inline
-  public final CD cycleDetector() { 
+  public final CD cycleDetector() {
     switch (RCBase.CYCLE_DETECTOR) {
     case RCBase.NO_CYCLE_DETECTOR:
       return nullCD;
     case RCBase.TRIAL_DELETION:
       return trialDeletionCD;
     }
-    
+
     VM.assertions.fail("No cycle detector instance found.");
     return null;
   }
-  
+
   /**
    * @see org.mmtk.plan.Plan#objectCanMove
-   * 
+   *
    * @param object Object in question
    * @return False if the object will never move
    */

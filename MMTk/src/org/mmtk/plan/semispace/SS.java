@@ -1,18 +1,19 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.plan.semispace;
 
 import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.Space;
-import org.mmtk.vm.Collection;
-import org.mmtk.vm.VM;
 import org.mmtk.plan.*;
 
 import org.vmmagic.pragma.*;
@@ -35,20 +36,14 @@ import org.vmmagic.unboxed.*;
  * and therefore "static" members of Plan.  This mapping of threads to
  * instances is crucial to understanding the correctness and
  * performance proprties of this plan.
- * 
- *
- * @author Steve Blackburn
- * @author Perry Cheng
- * @author Robin Garner
- * @author Daniel Frampton
- * 
  */
-@Uninterruptible public class SS extends StopTheWorld {
+@Uninterruptible
+public class SS extends StopTheWorld {
   /** Fraction of available virtual memory available to each semispace */
-  private static final float SEMISPACE_VIRT_MEM_FRAC = (float) 0.30; 
-  
+  private static final float SEMISPACE_VIRT_MEM_FRAC = (float) 0.30;
+
   /****************************************************************************
-   * 
+   *
    * Class variables
    */
 
@@ -66,7 +61,7 @@ import org.vmmagic.unboxed.*;
   public final Trace ssTrace;
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
@@ -81,7 +76,7 @@ import org.vmmagic.unboxed.*;
    * instances are allocated.  These instances will be incorporated
    * into the boot image by the build process.
    */
-  static {}
+  static {} //NOPMD
 
   /**
    * Constructor
@@ -108,17 +103,17 @@ import org.vmmagic.unboxed.*;
 
 
   /****************************************************************************
-   * 
+   *
    * Collection
    */
 
   /**
    * Perform a (global) collection phase.
-   * 
+   *
    * @param phaseId Collection phase
    */
   @Inline
-  public void collectionPhase(int phaseId) { 
+  public void collectionPhase(int phaseId) {
     if (phaseId == SS.PREPARE) {
       hi = !hi; // flip the semi-spaces
       // prepare each of the collected regions
@@ -138,73 +133,28 @@ import org.vmmagic.unboxed.*;
     super.collectionPhase(phaseId);
   }
 
-  /**
-   * This method is called periodically by the allocation subsystem
-   * (by default, each time a page is consumed), and provides the
-   * collector with an opportunity to collect.<p>
-   *
-   * We trigger a collection whenever an allocation request is made
-   * that would take the number of pages in use (committed for use)
-   * beyond the number of pages available.  Collections are triggered
-   * through the runtime, and ultimately call the
-   * <code>collect()</code> method of this class or its superclass.<p>
-   *
-   * This method is clearly interruptible since it can lead to a GC.
-   * However, the caller is typically uninterruptible and this fiat allows
-   * the interruptibility check to work.  The caveat is that the caller
-   * of this method must code as though the method is interruptible.
-   * In practice, this means that, after this call, processor-specific
-   * values must be reloaded.
-   * 
-   * @see org.mmtk.policy.Space#acquire(int)
-   * @param mustCollect if <code>true</code> then a collection is
-   * required and must be triggered.  Otherwise a collection is only
-   * triggered if we deem it necessary.
-   * @param space the space that triggered the polling (i.e. the space
-   * into which an allocation is about to occur).
-   * @return True if a collection has been triggered
-   */
-  @LogicallyUninterruptible
-  public boolean poll(boolean mustCollect, Space space) { 
-    if (getCollectionsInitiated() > 0 || !isInitialized() || space == metaDataSpace)
-      return false;
-
-    mustCollect |= stressTestGCRequired();
-
-    boolean heapFull = getPagesReserved() > getTotalPages();
-    if (mustCollect || heapFull) {
-      required = space.reservedPages() - space.committedPages();
-      if (space == copySpace0 || space == copySpace1)
-        required = required << 1; // must account for copy reserve
-      VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
-      return true;
-    }
-    return false;
-  }
-
-
   /****************************************************************************
-   * 
+   *
    * Accounting
    */
 
   /**
    * Return the number of pages reserved for copying.
-   * 
+   *
    * @return The number of pages reserved given the pending
    * allocation, including space reserved for copying.
    */
-  public final int getCopyReserve() {
+  public final int getCollectionReserve() {
     // we must account for the number of pages required for copying,
     // which equals the number of semi-space pages reserved
-    return toSpace().reservedPages() + super.getCopyReserve();
+    return toSpace().reservedPages() + super.getCollectionReserve();
   }
 
   /**
    * Return the number of pages reserved for use given the pending
    * allocation.  This is <i>exclusive of</i> space reserved for
    * copying.
-   * 
+   *
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
@@ -215,17 +165,28 @@ import org.vmmagic.unboxed.*;
   /**
    * Return the number of pages available for allocation, <i>assuming
    * all future allocation is to the semi-space</i>.
-   * 
+   *
    * @return The number of pages available for allocation, <i>assuming
    * all future allocation is to the semi-space</i>.
    */
   public final int getPagesAvail() {
-    return (getTotalPages() - getPagesReserved()) >> 1;
+    return(super.getPagesAvail()) >> 1;
+  }
+
+  /**
+   * Calculate the number of pages a collection is required to free to satisfy
+   * outstanding allocation requests.
+   * 
+   * @return the number of pages a collection is required to free to satisfy
+   * outstanding allocation requests.
+   */
+  public int getPagesRequired() {
+    return super.getPagesRequired() + (toSpace().requiredPages() << 1);
   }
 
   /**
    * @see org.mmtk.plan.Plan#objectCanMove
-   * 
+   *
    * @param object Object in question
    * @return False if the object will never move
    */
@@ -235,5 +196,4 @@ import org.vmmagic.unboxed.*;
       return true;
     return super.objectCanMove(object);
   }
-
 }

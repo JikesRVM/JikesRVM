@@ -1,11 +1,14 @@
-/**
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+/*
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- *     University of Massachusetts, Amherst. 2003.
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.utility.deque;
 
@@ -19,11 +22,9 @@ import org.vmmagic.unboxed.*;
 /**
  * This supports <i>unsynchronized</i> enqueuing and dequeuing of buffers
  * for shared use.  The data can be added to and removed from either end
- * of the deque. This class is based upon the SharedQueue class.  The sorting 
- * routines were modified from code written by Narendran Sachindran and 
+ * of the deque. This class is based upon the SharedQueue class.  The sorting
+ * routines were modified from code written by Narendran Sachindran and
  * Matthew Hertz for GCTk.
- * 
- * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
  */
 @Uninterruptible public abstract class SortSharedDeque extends SharedDeque {
 
@@ -33,13 +34,13 @@ import org.vmmagic.unboxed.*;
   private static final Offset INSERTION_SORT_LIMIT = Offset.fromIntSignExtend(80);
 
   /***********************************************************************
-   * 
+   *
    * Class variables
    */
 
   /**
    * Constructor
-   * 
+   *
    * @param rps The space from which the instance should obtain buffers.
    */
   public SortSharedDeque(RawPageSpace rps, int arity) {
@@ -49,14 +50,14 @@ import org.vmmagic.unboxed.*;
   }
 
   /***********************************************************************
-   * 
+   *
    * Sorting methods, utilities, and instance variables
    */
 
 
   /**
    * Return the sorting key for the object passed as a parameter.
-   * 
+   *
    * @param obj The address of the object whose key is wanted
    * @return The value of the sorting key for this object
    */
@@ -71,7 +72,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Find the highest bit that is set in a longword and return a mask
    * with only that bit set.
-   * 
+   *
    * @param addr Value for which the mask needs to be found
    * @return The highest bit set in the parameter
    */
@@ -101,7 +102,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Perform insertion sort within an intra-block address range.
-   * 
+   *
    *  @param begin Start address of the range to be sorted
    *  @param end End address of the range to be sorted
    */
@@ -129,7 +130,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * Sort objects using radix exchange sort. An explicit stack is 
+   * Sort objects using radix exchange sort. An explicit stack is
    *  maintained to avoid using recursion.
    */
   public void sort() {
@@ -165,9 +166,9 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * Partition the slots in an address range based on the value in 
+   * Partition the slots in an address range based on the value in
    * a particular bit. Place the start & end addresses of the two
-   * partitions & a bitmask per partition (which indicates the highest 
+   * partitions & a bitmask per partition (which indicates the highest
    * bit position at which the max & min of a partition differ) on the
    * stack. This works just like the partition in quick sort, except
    * that a bit value is being compared here
@@ -279,7 +280,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /*************************************************************************
-   * 
+   *
    * Sorting Stack management routines
    */
   private int stackLoc;
@@ -324,7 +325,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Push an address on to the stack
-   * 
+   *
   * @param val The address to be pushed
    */
   private void pushOnStack(Address val) {
@@ -334,7 +335,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Pop an address from the stack
-   * 
+   *
    * @return The address at the top of the stack, or 0 if stack is empty
    */
   private Address popStack() {
@@ -347,8 +348,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Debug routine, used to check if the object buffer is sorted correctly in
    * decreasing final reference deletion time
-   * 
-   */
+ */
   private void checkIfSorted() {
     if (VM.VERIFY_ASSERTIONS) {
       Address buf, end;

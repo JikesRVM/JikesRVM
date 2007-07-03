@@ -1,26 +1,27 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Ian Rogers, The University of Manchester 2006
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm.classloader;
 
-import java.lang.reflect.AnnotatedElement;
-import java.lang.annotation.Annotation;
 import java.io.DataInputStream;
 import java.io.IOException;
-
+import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
 import org.jikesrvm.VM;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * A common abstract super class for all elements that can be
  * annotated within the JVM. Namely classes, methods and fields.
- *
- * @author Ian Rogers
  */
 public abstract class VM_AnnotatedElement implements AnnotatedElement {
   /**
@@ -51,31 +52,26 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    * have 1.
    * @return an array of read annotations
    */
-  protected static VM_Annotation[] readAnnotations(int[] constantPool,
-                                                   DataInputStream input,
-                                                   int numAnnotationBytes,
-                                                   ClassLoader classLoader) 
-      throws IOException
-  {
+  protected static VM_Annotation[] readAnnotations(int[] constantPool, DataInputStream input, int numAnnotationBytes,
+                                                   ClassLoader classLoader) throws IOException {
     try {
       int numAnnotations;
-      if(numAnnotationBytes == 2) {
+      if (numAnnotationBytes == 2) {
         numAnnotations = input.readUnsignedShort();
       } else {
         if (VM.VerifyAssertions) VM._assert(numAnnotationBytes == 1);
         numAnnotations = input.readByte() & 0xFF;
       }
       final VM_Annotation[] annotations = new VM_Annotation[numAnnotations];
-      for(int j=0; j < numAnnotations; j++) {
+      for (int j = 0; j < numAnnotations; j++) {
         annotations[j] = VM_Annotation.readAnnotation(constantPool, input, classLoader);
       }
       return annotations;
-    }
-    catch(ClassNotFoundException e) {
+    } catch (ClassNotFoundException e) {
       throw new Error(e);
     }
   }
-  
+
   /**
    * Get the annotations for this and all super annotated elements.
    */
@@ -106,7 +102,7 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    */
   private Annotation[] cloneAnnotations(final Annotation[] internal) {
     final Annotation[] annotations = new Annotation[internal.length];
-    System.arraycopy(internal,0,annotations,0,internal.length);
+    System.arraycopy(internal, 0, annotations, 0, internal.length);
     return annotations;
   }
 
@@ -138,7 +134,7 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
     }
     final Annotation[] annotations = getAnnotationsInternal();
     for (final Annotation annotation : annotations) {
-      if( annotationClass.isInstance(annotation) ) return (T)annotation;
+      if (annotationClass.isInstance(annotation)) return (T) annotation;
     }
     return null;
   }
@@ -148,17 +144,17 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    * element?
    */
   public final boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
-      return getAnnotation(annotationClass) != null;
+    return getAnnotation(annotationClass) != null;
   }
 
   /**
    * Return true if annotation present.
-   * 
+   *
    * This is provided as an alternative to isAnnotationPresent() as isAnnotationPresent()
-   * may require classloading and instantiation of annotations. Classloading would mean 
+   * may require classloading and instantiation of annotations. Classloading would mean
    * that it would not be @Uninterruptible. Instantiation is not desirtable as checking
    * of annotations occurs prior to the bootimage compiler being ready to instantiate
-   * objects. 
+   * objects.
    */
   @Uninterruptible
   final boolean isAnnotationDeclared(final VM_TypeReference annotationTypeRef) {
@@ -244,7 +240,7 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
   public final boolean hasNoInlineAnnotation() {
     return isAnnotationDeclared(VM_TypeReference.NoInline);
   }
-  
+
   /**
    * Return true if this element has a BaselineNoRegisters annotation.
    * @see org.vmmagic.pragma.BaselineNoRegisters
@@ -252,12 +248,28 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
   public final boolean hasBaselineNoRegistersAnnotation() {
     return isAnnotationDeclared(VM_TypeReference.BaselineNoRegisters);
   }
-  
+
   /**
    * Return true if this element has a BaselineSaveLSRegisters annotation.
    * @see org.vmmagic.pragma.BaselineSaveLSRegisters
    */
   public final boolean hasBaselineSaveLSRegistersAnnotation() {
     return isAnnotationDeclared(VM_TypeReference.BaselineSaveLSRegisters);
+  }
+
+  /**
+   * Return true if this element has a Pure annotation.
+   * @see org.vmmagic.pragma.Pure
+   */
+  public final boolean hasPureAnnotation() {
+    return isAnnotationDeclared(VM_TypeReference.Pure);
+  }
+
+  /**
+   * Return true if this element has a RuntimeFinal annotation.
+   * @see org.vmmagic.pragma.RuntimeFinal
+   */
+  public final boolean hasRuntimeFinalAnnotation() {
+    return isAnnotationDeclared(VM_TypeReference.RuntimeFinal);
   }
 }

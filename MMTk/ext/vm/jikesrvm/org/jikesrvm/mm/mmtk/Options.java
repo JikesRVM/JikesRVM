@@ -1,13 +1,17 @@
-/* 
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+/*
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright ANU. 2004
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm.mm.mmtk;
- 
+
 import org.mmtk.utility.options.*;
 
 import org.vmmagic.unboxed.Extent;
@@ -17,26 +21,22 @@ import org.jikesrvm.VM_CommandLineArgs;
 
 /**
  * Class to handle command-line arguments and options for GC.
- *
- *
- * @author Daniel Frampton 
- *
  */
 public final class Options extends org.mmtk.vm.Options {
 
   /**
    * Map a name into a key in the VM's format
    *
-   * @param name the space delimited name. 
+   * @param name the space delimited name.
    * @return the vm specific key.
    */
   public String getKey(String name) {
     int space = name.indexOf(' ');
     if (space < 0) return name.toLowerCase();
 
-    String word = name.substring(0, space); 
+    String word = name.substring(0, space);
     String key = word.toLowerCase();
-    
+
     do {
       int old = space+1;
       space = name.indexOf(' ', old);
@@ -55,7 +55,7 @@ public final class Options extends org.mmtk.vm.Options {
    * @param message The error message.
    */
   public void fail(Option o, String message) {
-      VM.sysFail("ERROR: Option '" + o.getKey() + "' : " + 
+      VM.sysFail("ERROR: Option '" + o.getKey() + "' : " +
                  message);
   }
 
@@ -66,14 +66,14 @@ public final class Options extends org.mmtk.vm.Options {
    * @param message The warning message.
    */
   public void warn(Option o, String message) {
-      VM.sysWriteln("WARNING: Option '" + o.getKey() + "' : " + 
+      VM.sysWriteln("WARNING: Option '" + o.getKey() + "' : " +
                     message);
   }
 
 
   /**
    * Take a string (most likely a command-line argument) and try to proccess it
-   * as an option command.  Return true if the string was understood, false 
+   * as an option command.  Return true if the string was understood, false
    * otherwise.
    *
    * @param arg a String to try to process as an option command
@@ -107,7 +107,7 @@ public final class Options extends org.mmtk.vm.Options {
     String name = arg.substring(0,split);
     String value = arg.substring(split+1);
 
-    Option o = Option.getOption(name); 
+    Option o = Option.getOption(name);
 
     if (o == null) return false;
 
@@ -182,14 +182,14 @@ public final class Options extends org.mmtk.vm.Options {
         for (int c = key.length(); c<39;c++) {
           VM.sysWrite(" ");
         }
-        VM.sysWriteln(o.getDescription()); 
+        VM.sysWriteln(o.getDescription());
       }
       o = o.getNext();
     }
 
     VM.sysWriteln("\nValue Options (-X:gc:<option>=<value>)");
     VM.sysWriteln("Option                         Type    Description");
-    
+
     o = Option.getFirst();
     while (o != null) {
       if (o.getType() != Option.BOOLEAN_OPTION &&
@@ -207,7 +207,7 @@ public final class Options extends org.mmtk.vm.Options {
           case Option.PAGES_OPTION:        VM.sysWrite("bytes   "); break;
           case Option.STRING_OPTION:       VM.sysWrite("string  "); break;
         }
-        VM.sysWriteln(o.getDescription()); 
+        VM.sysWriteln(o.getDescription());
       }
       o = o.getNext();
     }
@@ -216,7 +216,7 @@ public final class Options extends org.mmtk.vm.Options {
 
     o = Option.getFirst();
     while (o != null) {
-      if (o.getType() == Option.ENUM_OPTION) { 
+      if (o.getType() == Option.ENUM_OPTION) {
         VM.sysWrite("\t\t");
         VM.sysWriteln(o.getDescription());
         String key = o.getKey();
@@ -234,7 +234,7 @@ public final class Options extends org.mmtk.vm.Options {
     }
 
     VM.sysExit(VM.EXIT_STATUS_PRINTED_HELP_MESSAGE);
-  }    
+  }
 
   /**
    * Print out the option values

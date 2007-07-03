@@ -1,11 +1,14 @@
-/**
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+/*
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2004.
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.utility.deque;
 
@@ -18,16 +21,13 @@ import org.vmmagic.pragma.*;
 /**
  * This class specializes SortSharedQueue to sort objects according to
  * their time of death (TOD).
- * 
- *
- * @author Steve Blackburn
  */
 @Uninterruptible
 public final class SortTODSharedDeque extends SortSharedDeque {
 
   /**
    * Constructor
-   * 
+   *
    * @param rps The space from which the instance should obtain buffers.
    * @param arity The arity of the data to be enqueued
    */
@@ -37,7 +37,7 @@ public final class SortTODSharedDeque extends SortSharedDeque {
 
   /**
    * Return the sorting key for the object passed as a parameter.
-   * 
+   *
    * @param obj The address of the object whose key is wanted
    * @return The value of the sorting key for this object
    */

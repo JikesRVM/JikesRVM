@@ -1,7 +1,7 @@
 This portion of Jikes RVM's library interface implementation is
 directly derived from GNU Classpath and therefore is redistributable
 under the same License as GNU Classpath itself. That is the the GNU
-General Public  License (with a special exception described below). 
+General Public  License (with a special exception described below).
 
 -- The following is the legal text of the License taken from GNU Classpath --
 
@@ -17,7 +17,7 @@ in the file COPYING.  If you do not have the source code, it is available at:
   making a combined work based on this library.  Thus, the terms and
   conditions of the GNU General Public License cover the whole
   combination.
- 
+
   As a special exception, the copyright holders of this library give you
   permission to link this library with independent modules to produce an
   executable, regardless of the license terms of these independent

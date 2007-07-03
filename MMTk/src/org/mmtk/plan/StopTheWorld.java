@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2005
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.plan;
 
@@ -13,12 +16,12 @@ import org.mmtk.policy.Space;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.Log;
+import org.mmtk.utility.ReferenceProcessor;
 import org.mmtk.utility.options.*;
 import org.mmtk.utility.sanitychecker.SanityChecker;
 import org.mmtk.utility.statistics.Stats;
 import org.mmtk.utility.statistics.Timer;
 import org.mmtk.vm.VM;
-
 
 import org.vmmagic.pragma.*;
 
@@ -26,33 +29,28 @@ import org.vmmagic.pragma.*;
  * This abstract class implments the core functionality for
  * stop-the-world collectors.  Stop-the-world collectors should
  * inherit from this class.<p>
- * 
+ *
  * This class defines the collection phases, and provides base
  * level implementations of them.  Subclasses should provide
  * implementations for the spaces that they introduce, and
  * delegate up the class hierarchy.<p>
- * 
+ *
  * For details of the split between global and thread-local operations
  * @see org.mmtk.plan.Plan
- * 
- *
- * @author Perry Cheng
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public abstract class StopTheWorld extends Plan
   implements Constants {
   /****************************************************************************
    * Constants
    */
-
+  
   /* Shared Timers */
   private static final Timer refTypeTime = new Timer("refType", false, true);
   private static final Timer scanTime = new Timer("scan", false, true);
   private static final Timer finalizeTime = new Timer("finalize", false, true);
 
   /* Phases */
+  public static final int SET_COLLECTION_KIND = new SimplePhase("set-collection-kind", null,      Phase.GLOBAL_ONLY  ).getId();
   public static final int INITIATE            = new SimplePhase("initiate", null,                 Phase.GLOBAL_FIRST  ).getId();
   public static final int INITIATE_MUTATOR    = new SimplePhase("initiate-mutator",               Phase.MUTATOR_ONLY  ).getId();
   public static final int PREPARE             = new SimplePhase("prepare",                        Phase.GLOBAL_FIRST  ).getId();
@@ -95,6 +93,7 @@ import org.vmmagic.pragma.*;
    * Start the collection, including preparation for any collected spaces.
    */
   protected static final int initPhase = new ComplexPhase("init", new int[] {
+      SET_COLLECTION_KIND,
       INITIATE,
       INITIATE_MUTATOR,
       SANITY_PLACEHOLDER,
@@ -159,6 +158,11 @@ import org.vmmagic.pragma.*;
 
   /* Basic GC sanity checker */
   private SanityChecker sanityChecker = new SanityChecker();
+  
+  /**
+   * The current collection attempt.
+   */
+  protected int collectionAttempt;
 
   /****************************************************************************
    * Collection
@@ -169,11 +173,11 @@ import org.vmmagic.pragma.*;
    * allocation.
    */
   @Interruptible
-  public void postBoot() { 
+  public void postBoot() {
     super.postBoot();
 
     if (Options.sanityCheck.getValue()) {
-      if (getSanityChecker() == null || 
+      if (getSanityChecker() == null ||
           VM.activePlan.collector().getSanityChecker() == null) {
         Log.writeln("Collector does not support sanity checking!");
       } else {
@@ -192,11 +196,26 @@ import org.vmmagic.pragma.*;
 
   /**
    * Perform a (global) collection phase.
-   * 
-   * @param phaseId The unique of the phase to perform. 
+   *
+   * @param phaseId The unique of the phase to perform.
    */
   @Inline
-  public void collectionPhase(int phaseId) { 
+  public void collectionPhase(int phaseId) {
+    if (phaseId == SET_COLLECTION_KIND) {
+      requiredAtStart = getPagesRequired();
+      collectionAttempt = VM.collection.maximumCollectionAttempt();
+      emergencyCollection = (lastCollectionFullHeap() && collectionAttempt > 1);
+      if (collectionAttempt > MAX_COLLECTION_ATTEMPTS) {
+        VM.assertions.fail("Too many collection attempts. Suspect plan is not setting FullHeap flag");
+      }
+      if (emergencyCollection) {
+        if (Options.verbose.getValue() > 1) Log.write("[Emergency]");
+        ReferenceProcessor.setClearSoftReferences(true);
+        forceFullHeapCollection();
+      }
+      return;
+    }
+
     if (phaseId == INITIATE) {
       if (Stats.gatheringStats()) {
         Stats.startGC();
@@ -234,6 +253,8 @@ import org.vmmagic.pragma.*;
         Stats.endGC();
         printPostStats();
       }
+      Space.clearAllAllocationFailed();
+      awaitingAsyncCollection = false;
       return;
     }
 
@@ -242,19 +263,19 @@ import org.vmmagic.pragma.*;
       return;
     }
 
-    Log.write("Global phase "); Log.write(Phase.getName(phaseId)); 
+    Log.write("Global phase "); Log.write(Phase.getName(phaseId));
     Log.writeln(" not handled.");
     VM.assertions.fail("Global phase not handled!");
   }
-  
+
   /**
    * Replace a phase.
-   * 
+   *
    * @param oldPhase The phase to be replaced
    * @param newPhase The phase to replace with
    */
   @Interruptible
-  public void replacePhase(int oldPhase, int newPhase) { 
+  public void replacePhase(int oldPhase, int newPhase) {
     collection.replacePhase(oldPhase, newPhase);
   }
 

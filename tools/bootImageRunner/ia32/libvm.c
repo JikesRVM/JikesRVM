@@ -1,10 +1,14 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp 2001,2002, 2003,2004
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 
 /**
@@ -15,9 +19,6 @@
  * The file "sys.C" contains the o/s support services required by the java class libraries.
  *
  * IA32 version for Linux
- *
- * @author Derek Lieber
- * @date 06 Apr 2000
  */
 
 #ifndef _GNU_SOURCE
@@ -40,6 +41,12 @@
 #endif
 #include <assert.h>
 
+#ifdef __APPLE__
+#include "osx_ucontext.h"
+#else
+#include "linux_ucontext.h"
+#endif
+
 #define __STDC_FORMAT_MACROS    // include PRIxPTR
 #include <inttypes.h>           // PRIxPTR, uintptr_t
 
@@ -60,7 +67,7 @@ extern "C" void setLinkage(VM_BootRecord*);
 /* Sink for messages relating to serious errors detected by C runtime. */
 FILE *SysErrorFile = stderr;
 static int SysErrorFd = 2;              // not used outside this file.
- 
+
 /* Sink for trace messages produced by VM.sysWrite(). */
 FILE *SysTraceFile = stderr;
 int SysTraceFd = 2;
@@ -111,8 +118,8 @@ static void writeErr(const char fmt[], ...)
     NONNULL(1) __attribute__((format (printf, 1, 2)));
 
 
-static int 
-pageRoundUp(int size) 
+static int
+pageRoundUp(int size)
 {
     int pageSize = 4096;
     return (size + pageSize - 1) / pageSize * pageSize;
@@ -154,12 +161,12 @@ getInstructionFollowing(unsigned int faultingInstructionAddress)
         if ( lib_verbose)
             fprintf(SysTraceFile, "failing instruction : %s %s\n",
                     MnemonicBuffer, OperandBuffer);
-        return faultingInstructionAddress + p->retleng;    
+        return faultingInstructionAddress + p->retleng;
     }
 }
 
-static int 
-inRVMAddressSpace(VM_Address addr) 
+static int
+inRVMAddressSpace(VM_Address addr)
 {
     /* get the boot record */
     VM_Address *heapRanges = bootRecord->heapRanges;
@@ -175,8 +182,8 @@ inRVMAddressSpace(VM_Address addr)
     return false;
 }
 
-static int 
-isVmSignal(unsigned int ip, unsigned int jtoc) 
+static int
+isVmSignal(unsigned int ip, unsigned int jtoc)
 {
     return inRVMAddressSpace(ip) && inRVMAddressSpace(jtoc);
 }
@@ -251,7 +258,7 @@ vwriteFmt(int fd, size_t bufsz, const char fmt[], va_list ap)
         num_rerun = 0;          // we made progress.
         bp += nwrote;
         nchars -= nwrote;
-    }   
+    }
 }
 
 void
@@ -260,7 +267,21 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
     unsigned int localInstructionAddress;
     static pthread_mutex_t exceptionLock = PTHREAD_MUTEX_INITIALIZER;
 
-    pthread_mutex_lock( &exceptionLock );
+    /*
+     * Get the exceptionLock. We can not call pthread_mutex_lock,
+     * it might block and we could catch another signal
+     */
+    for(;;) {
+      int lockrc = pthread_mutex_trylock( &exceptionLock );
+      if (lockrc == 0) break;        // We have the lock
+      if (lockrc == EBUSY) continue; // Busy, we *must* spin
+
+      writeErr("invalid result from pthread_mutex_trylock %d\n", lockrc);
+      signal(signo, SIG_DFL);
+      raise(signo);
+      // We should never get here.
+      _exit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
+    }
 
     unsigned int localVirtualProcessorAddress;
     unsigned int localFrameAddress;
@@ -270,16 +291,12 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 
     unsigned int instructionFollowing;
 
-    ucontext_t *uc = (ucontext_t *) context;  // user context
-    mcontext_t *mc = &(uc->uc_mcontext);      // machine context
-    greg_t  *gregs = mc->gregs;               // general purpose registers
-
     /*
      * fill local working variables from context saved by OS trap handler
      * mechanism
      */
-    localInstructionAddress     = gregs[REG_EIP];
-    localVirtualProcessorAddress = gregs[REG_ESI];
+    localInstructionAddress     = IA32_EIP(context);
+    localVirtualProcessorAddress = IA32_ESI(context);
 
     // We are prepared to handle these kinds of "recoverable" traps:
     //
@@ -301,7 +318,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 
         else if (signo == SIGFPE)
             isRecoverable = 1;
-   
+
         else if (signo == SIGTRAP)
             isRecoverable = 0;
         else
@@ -309,66 +326,111 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
     } else {
         writeErr("%s: TROUBLE.  Got a signal (%s; #%d) from outside the VM's address space.\n", Me,  strsignal(signo), signo);
     }
-    
+
 
 
 
     if (lib_verbose || !isRecoverable)
     {
-        writeErr("%s:%s trapped signal %d (%s)\n", Me, 
-                 isRecoverable? "" : " UNRECOVERABLE", 
+        writeErr("%s:%s trapped signal %d (%s)\n", Me,
+                 isRecoverable? "" : " UNRECOVERABLE",
                  signo, strsignal(signo));
 
-        writeErr("handler stack 0x%08x\n", 
+        writeErr("handler stack 0x%08x\n",
                  (unsigned) &localInstructionAddress);
         if (signo == SIGSEGV)
             writeErr("si->si_addr   0x%08x\n", (unsigned) si->si_addr);
-        writeErr("gs            0x%08x\n", gregs[REG_GS]);
-        writeErr("fs            0x%08x\n", gregs[REG_FS]);
-        writeErr("es            0x%08x\n", gregs[REG_ES]);
-        writeErr("ds            0x%08x\n", gregs[REG_DS]);
-        writeErr("edi -- JTOC?  0x%08x\n", gregs[REG_EDI]);
-        writeErr("esi -- PR/VP  0x%08x\n", gregs[REG_ESI]);
-        writeErr("ebp -- FP?    0x%08x\n", gregs[REG_EBP]);
-        writeErr("esp -- SP     0x%08x\n", gregs[REG_ESP]);
-        writeErr("ebx           0x%08x\n", gregs[REG_EBX]);
-        writeErr("edx -- T1?    0x%08x\n", gregs[REG_EDX]);
-        writeErr("ecx -- S0?    0x%08x\n", gregs[REG_ECX]);
-        writeErr("eax -- T0?    0x%08x\n", gregs[REG_EAX]);
-        writeErr("trapno        0x%08x\n", gregs[REG_TRAPNO]);
-        writeErr("err           0x%08x\n", gregs[REG_ERR]);
-        writeErr("eip           0x%08x\n", gregs[REG_EIP]);
-        writeErr("cs            0x%08x\n", gregs[REG_CS]);
-        writeErr("eflags        0x%08x\n", gregs[REG_EFL]);
-        writeErr("esp_at_signal 0x%08x\n", gregs[REG_UESP]);
-        writeErr("ss            0x%08x\n", gregs[REG_SS]);
+        writeErr("gs            0x%08x\n", IA32_GS(context));
+        writeErr("fs            0x%08x\n", IA32_FS(context));
+        writeErr("es            0x%08x\n", IA32_ES(context));
+        writeErr("ds            0x%08x\n", IA32_DS(context));
+        writeErr("edi -- JTOC?  0x%08x\n", IA32_EDI(context));
+        writeErr("esi -- PR/VP  0x%08x\n", IA32_ESI(context));
+        writeErr("ebp -- FP?    0x%08x\n", IA32_EBP(context));
+        writeErr("esp -- SP     0x%08x\n", IA32_ESP(context));
+        writeErr("ebx           0x%08x\n", IA32_EBX(context));
+        writeErr("edx -- T1?    0x%08x\n", IA32_EDX(context));
+        writeErr("ecx -- S0?    0x%08x\n", IA32_ECX(context));
+        writeErr("eax -- T0?    0x%08x\n", IA32_EAX(context));
+        writeErr("ss            0x%08x\n", IA32_SS(context));
+        writeErr("eip           0x%08x\n", IA32_EIP(context));
+        writeErr("cs            0x%08x\n", IA32_CS(context));
+        writeErr("trapno        0x%08x\n", IA32_TRAPNO(context));
+        writeErr("err           0x%08x\n", IA32_ERR(context));
+        writeErr("eflags        0x%08x\n", IA32_EFLAGS(context));
+        // writeErr("esp_at_signal 0x%08x\n", IA32_UESP(context));
 /* null if fp registers haven't been used yet */
         writeErr("fpstate       0x%08x\n",
-                                        (unsigned) mc->fpregs);
+                                        (unsigned) IA32_FPSTATE(context));
         writeErr("oldmask       0x%08lx\n",
-                                        (unsigned long) mc->oldmask);
-        writeErr("cr2           0x%08lx\n", 
+                                        (unsigned long) IA32_OLDMASK(context));
+        writeErr("cr2           0x%08lx\n",
                                         /* seems to contain mem address that
                                          * faulting instruction was trying to
-                                         * access */  
-                                        (unsigned long) mc->cr2);       
+                                         * access */
+                                        (unsigned long) IA32_FPFAULTDATA(context));
 
         /*
          * There are 8 floating point registers, each 10 bytes wide.
          * See /usr/include/asm/sigcontext.h
          */
-        if (mc->fpregs) {
-            struct _libc_fpreg *fpreg = mc->fpregs->_st;
-
-            for (int i = 0; i < 8; ++i) {
+        if (IA32_FPREGS(context)) {
                 writeErr("fp%d 0x%04x%04x%04x%04x%04x\n",
-                                i,
-                                fpreg[i].significand[0] & 0xffff,
-                                fpreg[i].significand[1] & 0xffff,
-                                fpreg[i].significand[2] & 0xffff,
-                                fpreg[i].significand[3] & 0xffff,
-                                fpreg[i].exponent & 0xffff);
-            }
+                                0,
+                                IA32_STMM(context, 0, 0) & 0xffff,
+                                IA32_STMM(context, 0, 1) & 0xffff,
+                                IA32_STMM(context, 0, 2) & 0xffff,
+                                IA32_STMM(context, 0, 3) & 0xffff,
+                                IA32_STMMEXP(context, 0) & 0xffff);
+                writeErr("fp%d 0x%04x%04x%04x%04x%04x\n",
+                                1,
+                                IA32_STMM(context, 1, 0) & 0xffff,
+                                IA32_STMM(context, 1, 1) & 0xffff,
+                                IA32_STMM(context, 1, 2) & 0xffff,
+                                IA32_STMM(context, 1, 3) & 0xffff,
+                                IA32_STMMEXP(context, 1) & 0xffff);
+                writeErr("fp%d 0x%04x%04x%04x%04x%04x\n",
+                                2,
+                                IA32_STMM(context, 2, 0) & 0xffff,
+                                IA32_STMM(context, 2, 1) & 0xffff,
+                                IA32_STMM(context, 2, 2) & 0xffff,
+                                IA32_STMM(context, 2, 3) & 0xffff,
+                                IA32_STMMEXP(context, 2) & 0xffff);
+                writeErr("fp%d 0x%04x%04x%04x%04x%04x\n",
+                                3,
+                                IA32_STMM(context, 3, 0) & 0xffff,
+                                IA32_STMM(context, 3, 1) & 0xffff,
+                                IA32_STMM(context, 3, 2) & 0xffff,
+                                IA32_STMM(context, 3, 3) & 0xffff,
+                                IA32_STMMEXP(context, 3) & 0xffff);
+                writeErr("fp%d 0x%04x%04x%04x%04x%04x\n",
+                                4,
+                                IA32_STMM(context, 4, 0) & 0xffff,
+                                IA32_STMM(context, 4, 1) & 0xffff,
+                                IA32_STMM(context, 4, 2) & 0xffff,
+                                IA32_STMM(context, 4, 3) & 0xffff,
+                                IA32_STMMEXP(context, 4) & 0xffff);
+                writeErr("fp%d 0x%04x%04x%04x%04x%04x\n",
+                                5,
+                                IA32_STMM(context, 5, 0) & 0xffff,
+                                IA32_STMM(context, 5, 1) & 0xffff,
+                                IA32_STMM(context, 5, 2) & 0xffff,
+                                IA32_STMM(context, 5, 3) & 0xffff,
+                                IA32_STMMEXP(context, 5) & 0xffff);
+                writeErr("fp%d 0x%04x%04x%04x%04x%04x\n",
+                                6,
+                                IA32_STMM(context, 6, 0) & 0xffff,
+                                IA32_STMM(context, 6, 1) & 0xffff,
+                                IA32_STMM(context, 6, 2) & 0xffff,
+                                IA32_STMM(context, 6, 3) & 0xffff,
+                                IA32_STMMEXP(context, 6) & 0xffff);
+                writeErr("fp%d 0x%04x%04x%04x%04x%04x\n",
+                                7,
+                                IA32_STMM(context, 7, 0) & 0xffff,
+                                IA32_STMM(context, 7, 1) & 0xffff,
+                                IA32_STMM(context, 7, 2) & 0xffff,
+                                IA32_STMM(context, 7, 3) & 0xffff,
+                                IA32_STMMEXP(context, 7) & 0xffff);
         }
 
         if (isRecoverable) {
@@ -381,10 +443,10 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
     /* test validity of virtual processor address */
     {
         unsigned int vp_hn;  /* the high nibble of the vp address value */
-        vp_hn = localVirtualProcessorAddress >> 28;  
-        if (vp_hn < 3 || !inRVMAddressSpace(localVirtualProcessorAddress)) 
+        vp_hn = localVirtualProcessorAddress >> 28;
+        if (vp_hn < 3 || !inRVMAddressSpace(localVirtualProcessorAddress))
         {
-            writeErr("invalid vp address (not an address - high nibble %d)\n", 
+            writeErr("invalid vp address (not an address - high nibble %d)\n",
                      vp_hn);
             signal(signo, SIG_DFL);
             raise(signo);
@@ -395,17 +457,17 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 
 
     /* get the frame pointer from processor object  */
-    localFrameAddress = 
+    localFrameAddress =
         *(unsigned *) (localVirtualProcessorAddress + VM_Processor_framePointer_offset);
 
     /* test validity of frame address */
     {
         unsigned int fp_hn;
-        fp_hn = localFrameAddress >> 28;  
-        if (fp_hn < 3 || !inRVMAddressSpace(localFrameAddress)) 
+        fp_hn = localFrameAddress >> 28;
+        if (fp_hn < 3 || !inRVMAddressSpace(localFrameAddress))
         {
             writeErr("invalid frame address %x"
-            " (not an address - high nibble %d)\n", 
+            " (not an address - high nibble %d)\n",
                                  localFrameAddress, fp_hn);
             signal(signo, SIG_DFL);
             raise(signo);
@@ -416,17 +478,17 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 
 
     int HardwareTrapMethodId = bootRecord->hardwareTrapMethodId;
-    unsigned int javaExceptionHandlerAddress = 
+    unsigned int javaExceptionHandlerAddress =
         *(unsigned int *) (localJTOC + bootRecord->deliverHardwareExceptionOffset);
 
     DumpStackAndDieOffset = bootRecord->dumpStackAndDieOffset;
 
     /* get the active thread id */
-    unsigned int threadObjectAddress = 
+    unsigned int threadObjectAddress =
         *(unsigned int*) (localVirtualProcessorAddress + VM_Processor_activeThread_offset);
 
     /* then get its hardware exception registers */
-    unsigned int registers = 
+    unsigned int registers =
         *(unsigned int *) (threadObjectAddress +
                            VM_Thread_hardwareExceptionRegisters_offset);
 
@@ -440,10 +502,10 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
     long unsigned int *fp;
 
     /* Test for recursive errors -- if so, take one final stacktrace and exit
-     */ 
+     */
     if (*vmr_inuse || !isRecoverable) {
         if (*vmr_inuse)
-            fprintf(SysTraceFile, 
+            fprintf(SysTraceFile,
                      "%s: internal error: recursive use of"
                     " hardware exception registers (exiting)\n", Me);
         /*
@@ -451,28 +513,28 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
          * before exiting by returning to VM_Scheduler.dumpStackAndDie passing
          * it the fp of the offending thread.
          *
-         * We could try to continue, but sometimes doing so results 
+         * We could try to continue, but sometimes doing so results
          * in cascading failures
          * and it's hard to tell what the real problem was.
          */
         int dumpStack = *(int *) ((char *) localJTOC + DumpStackAndDieOffset);
 
         /* setup stack frame to contain the frame pointer */
-        sp = (long unsigned int *) gregs[REG_ESP];
+        sp = (long unsigned int *) IA32_ESP(context);
 
         /* put fp as a  parameter on the stack  */
-        gregs[REG_ESP] = gregs[REG_ESP] - 4;
-        sp = (long unsigned int *) gregs[REG_ESP];
+        IA32_ESP(context) = IA32_ESP(context) - 4;
+        sp = (long unsigned int *) IA32_ESP(context);
         *sp = localFrameAddress;
-        gregs[REG_EAX] = localFrameAddress; // must pass localFrameAddress in first param register!
+        IA32_EAX(context) = localFrameAddress; // must pass localFrameAddress in first param register!
 
         /* put a return address of zero on the stack */
-        gregs[REG_ESP] = gregs[REG_ESP] - 4;
-        sp = (long unsigned int *) gregs[REG_ESP];
+        IA32_ESP(context) = IA32_ESP(context) - 4;
+        sp = (long unsigned int *) IA32_ESP(context);
         *sp = 0;
 
         /* set up to goto dumpStackAndDie routine ( in VM_Scheduler) as if called */
-        gregs[REG_EIP] = dumpStack;
+        IA32_EIP(context) = dumpStack;
         *vmr_inuse = false;
 
         pthread_mutex_unlock( &exceptionLock );
@@ -482,29 +544,29 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
     *vmr_inuse = 1;                     /* mark in use to avoid infinite loop */
 
     /* move gp registers to VM_Registers object */
-    vmr_gprs[VM_Constants_EAX] = gregs[REG_EAX];
-    vmr_gprs[VM_Constants_ECX] = gregs[REG_ECX];
-    vmr_gprs[VM_Constants_EDX] = gregs[REG_EDX];
-    vmr_gprs[VM_Constants_EBX] = gregs[REG_EBX];
-    vmr_gprs[VM_Constants_ESP] = gregs[REG_ESP];
-    vmr_gprs[VM_Constants_EBP] = gregs[REG_EBP];
-    vmr_gprs[VM_Constants_ESI] = gregs[REG_ESI];
-    vmr_gprs[VM_Constants_EDI] = gregs[REG_EDI];
+    vmr_gprs[VM_Constants_EAX] = IA32_EAX(context);
+    vmr_gprs[VM_Constants_ECX] = IA32_ECX(context);
+    vmr_gprs[VM_Constants_EDX] = IA32_EDX(context);
+    vmr_gprs[VM_Constants_EBX] = IA32_EBX(context);
+    vmr_gprs[VM_Constants_ESP] = IA32_ESP(context);
+    vmr_gprs[VM_Constants_EBP] = IA32_EBP(context);
+    vmr_gprs[VM_Constants_ESI] = IA32_ESI(context);
+    vmr_gprs[VM_Constants_EDI] = IA32_EDI(context);
 
     /* set the next instruction for the failing frame */
     instructionFollowing = getInstructionFollowing(localInstructionAddress);
 
 
-    /* 
-     * Advance ESP to the guard region of the stack. 
-     * Enables opt compiler to have ESP point to somewhere 
+    /*
+     * Advance ESP to the guard region of the stack.
+     * Enables opt compiler to have ESP point to somewhere
      * other than the bottom of the frame at a PEI (see bug 2570).
      *
      * We'll execute the entire code sequence for
      * VM_Runtime.deliverHardwareException et al. in the guard region of the
-     * stack to avoid bashing stuff in the bottom opt-frame. 
+     * stack to avoid bashing stuff in the bottom opt-frame.
      */
-    sp = (long unsigned int *) gregs[REG_ESP];
+    sp = (long unsigned int *) IA32_ESP(context);
     uintptr_t stackLimit
         = *(unsigned *)(threadObjectAddress + VM_Thread_stackLimit_offset);
     if ((uintptr_t) sp <= stackLimit - 384) {
@@ -517,8 +579,8 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
     sp = (long unsigned int *)stackLimit - 384;
     stackLimit -= VM_Constants_STACK_SIZE_GUARD;
     *(unsigned *)(threadObjectAddress + VM_Thread_stackLimit_offset) = stackLimit;
-    *(unsigned *)(gregs[REG_ESI] + VM_Processor_activeThreadStackLimit_offset) = stackLimit;
-  
+    *(unsigned *)(IA32_ESI(context) + VM_Processor_activeThreadStackLimit_offset) = stackLimit;
+
     /* Insert artificial stackframe at site of trap. */
     /* This frame marks the place where "hardware exception registers" were saved. */
     sp = (long unsigned int *) ((char *) sp - VM_Constants_STACKFRAME_HEADER_SIZE);
@@ -527,9 +589,9 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
     /* fill in artificial stack frame */
     *(int *) ((char *) fp + VM_Constants_STACKFRAME_FRAME_POINTER_OFFSET)
         = localFrameAddress;
-    *(int *) ((char *) fp + VM_Constants_STACKFRAME_METHOD_ID_OFFSET) 
+    *(int *) ((char *) fp + VM_Constants_STACKFRAME_METHOD_ID_OFFSET)
         = HardwareTrapMethodId;
-    *(int *) ((char *) fp + VM_Constants_STACKFRAME_RETURN_ADDRESS_OFFSET) 
+    *(int *) ((char *) fp + VM_Constants_STACKFRAME_RETURN_ADDRESS_OFFSET)
         = instructionFollowing;
 
     /* fill in call to "deliverHardwareException" */
@@ -538,7 +600,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
     if (signo == SIGSEGV) {
         *(int *) sp = VM_Runtime_TRAP_NULL_POINTER;
 
-        /* an int immediate instruction produces a SIGSEGV signal.  
+        /* an int immediate instruction produces a SIGSEGV signal.
            An int 3 instruction a trap fault */
         if (*(unsigned char *)(localInstructionAddress) == 0xCD) {
             // is INT imm instruction
@@ -566,13 +628,13 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
         *(int *) sp = VM_Runtime_TRAP_UNKNOWN;
     }
 
-    gregs[REG_EAX] = *(int *)sp; // also pass first param in EAX.
+    IA32_EAX(context) = *(int *)sp; // also pass first param in EAX.
     if (lib_verbose)
-        fprintf(SysTraceFile, "Trap code is 0x%x\n", gregs[REG_EAX]);
+        fprintf(SysTraceFile, "Trap code is 0x%x\n", IA32_EAX(context));
 
     sp = (long unsigned int *) ((char *) sp - 4);       /* next parameter is info for array bounds trap */
     *(int *) sp = *(unsigned *) (localVirtualProcessorAddress + VM_Processor_arrayIndexTrapParam_offset);
-    gregs[REG_EDX] = *(int *)sp; // also pass second param in EDX.
+    IA32_EDX(context) = *(int *)sp; // also pass second param in EDX.
     sp = (long unsigned int *) ((char *) sp - 4);       /* return address - looks like called from failing instruction */
     *(int *) sp = instructionFollowing;
 
@@ -582,27 +644,27 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 
     if (lib_verbose)
         fprintf(SysTraceFile, "Set vmr_fp to 0x%x\n", localFrameAddress);
-  
+
     /* set up context block to look like the artificial stack frame is
-     * returning  */ 
-    gregs[REG_ESP] = (int) sp;
-    gregs[REG_EBP] = (int) fp;
+     * returning  */
+    IA32_ESP(context) = (int) sp;
+    IA32_EBP(context) = (int) fp;
     *(unsigned int *) (localVirtualProcessorAddress + VM_Processor_framePointer_offset) = (int) fp;
 
     /* setup to return to deliver hardware exception routine */
-    gregs[REG_EIP] = javaExceptionHandlerAddress;
+    IA32_EIP(context) = javaExceptionHandlerAddress;
 
     pthread_mutex_unlock( &exceptionLock );
 }
 
 
-static void 
-softwareSignalHandler(int signo, 
-                      siginfo_t UNUSED *si, 
-                      void *context) 
+static void
+softwareSignalHandler(int signo,
+                      siginfo_t UNUSED *si,
+                      void *context)
 {
     // asynchronous signal used to awaken internal debugger
-    if (signo == SIGQUIT) { 
+    if (signo == SIGQUIT) {
         // Turn on debug-request flag.
         // Note that "jtoc" is not necessarily valid, because we might have interrupted
         // C-library code, so we use boot image jtoc address (== VmToc) instead.
@@ -624,7 +686,7 @@ softwareSignalHandler(int signo,
 
     /** We need to adapt this code so that we run the exit handlers
         appropriately. */
-    
+
     if (signo == SIGTERM) {
         // Presumably we received this signal because someone wants us
         // to shut down.  Exit directly (unless the lib_verbose flag is set).
@@ -639,38 +701,35 @@ softwareSignalHandler(int signo,
             signal(signo, SIG_DFL);
             raise(signo);
         }
-        
+
 
         DumpStackAndDieOffset = bootRecord->dumpStackAndDieOffset;
 
         unsigned int localJTOC = VmToc;
-        ucontext_t *uc = (ucontext_t *) context;  // user context
-        mcontext_t *mc = &(uc->uc_mcontext);      // machine context
-        greg_t  *gregs = mc->gregs;              // general purpose registers
         int dumpStack = *(int *) ((char *) localJTOC + DumpStackAndDieOffset);
 
         /* get the frame pointer from processor object  */
-        unsigned int localVirtualProcessorAddress       = gregs[REG_ESI];
-        unsigned int localFrameAddress = 
+        unsigned int localVirtualProcessorAddress       = IA32_ESI(context);
+        unsigned int localFrameAddress =
             *(unsigned *) (localVirtualProcessorAddress + VM_Processor_framePointer_offset);
 
         /* setup stack frame to contain the frame pointer */
-        long unsigned int *sp = (long unsigned int *) gregs[REG_ESP];
+        long unsigned int *sp = (long unsigned int *) IA32_ESP(context);
 
         /* put fp as a  parameter on the stack  */
-        gregs[REG_ESP] = gregs[REG_ESP] - 4;
-        sp = (long unsigned int *) gregs[REG_ESP];
+        IA32_ESP(context) = IA32_ESP(context) - 4;
+        sp = (long unsigned int *) IA32_ESP(context);
         *sp = localFrameAddress;
         // must pass localFrameAddress in first param register!
-        gregs[REG_EAX] = localFrameAddress;
+        IA32_EAX(context) = localFrameAddress;
 
         /* put a return address of zero on the stack */
-        gregs[REG_ESP] = gregs[REG_ESP] - 4;
-        sp = (long unsigned int *) gregs[REG_ESP];
+        IA32_ESP(context) = IA32_ESP(context) - 4;
+        sp = (long unsigned int *) IA32_ESP(context);
         *sp = 0;
 
         /* goto dumpStackAndDie routine (in VM_Scheduler) as if called */
-        gregs[REG_EIP] = dumpStack;
+        IA32_EIP(context) = dumpStack;
         return;
     }
 
@@ -678,15 +737,15 @@ softwareSignalHandler(int signo,
     fprintf(SysTraceFile, "%s: got an unexpected software signal (# %d)", Me, signo);
 #if defined __GLIBC__ && defined _GNU_SOURCE
     fprintf(SysTraceFile, " %s", strsignal(signo));
-#endif    
+#endif
     fprintf(SysTraceFile, "; ignoring it.\n");
 }
 
 static void*
 mapImageFile(const char *fileName, const void *targetAddress, bool isCode,
              unsigned *roundedImageSize) {
-    
-    /* open and mmap the image file. 
+
+    /* open and mmap the image file.
      * create bootRegion
      */
     FILE *fin = fopen (fileName, "r");
@@ -707,10 +766,10 @@ mapImageFile(const char *fileName, const void *targetAddress, bool isCode,
     void *bootRegion = 0;
     bootRegion = mmap((void*)targetAddress, *roundedImageSize,
 		      PROT_READ | PROT_WRITE | PROT_EXEC,
-		      MAP_FIXED | MAP_PRIVATE | MAP_NORESERVE, 
+		      MAP_FIXED | MAP_PRIVATE | MAP_NORESERVE,
 		      fileno(fin), 0);
     if (bootRegion == (void *) MAP_FAILED) {
-        fprintf(SysErrorFile, "%s: mmap failed (errno=%d): %s\n", 
+        fprintf(SysErrorFile, "%s: mmap failed (errno=%d): %s\n",
 		Me, errno, strerror(errno));
         return 0;
     }
@@ -766,7 +825,7 @@ createVM(int UNUSED vmInSeparateThread)
                                         &roundedCodeRegionSize);
     if (bootCodeRegion != bootImageCodeAddress)
         return 1;
-    
+
     unsigned roundedRMapRegionSize;
     void *bootRMapRegion = mapImageFile(bootRMapFilename,
                                         bootImageRMapAddress,
@@ -774,7 +833,7 @@ createVM(int UNUSED vmInSeparateThread)
                                         &roundedRMapRegionSize);
     if (bootRMapRegion != bootImageRMapAddress)
         return 1;
-    
+
 
     /* validate contents of boot record */
     bootRecord = (VM_BootRecord *) bootDataRegion;
@@ -823,7 +882,7 @@ createVM(int UNUSED vmInSeparateThread)
     ProcessorsOffset = bootRecord->processorsOffset;
 
     // remember JTOC offset of VM_Scheduler.DebugRequested
-    // 
+    //
     DebugRequestedOffset = bootRecord->debugRequestedOffset;
 
     /* write freespace information into boot record */
@@ -842,44 +901,44 @@ createVM(int UNUSED vmInSeparateThread)
     setLinkage(bootRecord);
     if (lib_verbose) {
         fprintf(SysTraceFile, "%s: boot record contents:\n", Me);
-        fprintf(SysTraceFile, "   bootImageDataStart:   0x%08x\n", 
+        fprintf(SysTraceFile, "   bootImageDataStart:   0x%08x\n",
                 bootRecord->bootImageDataStart);
-        fprintf(SysTraceFile, "   bootImageDataEnd:     0x%08x\n", 
+        fprintf(SysTraceFile, "   bootImageDataEnd:     0x%08x\n",
                 bootRecord->bootImageDataEnd);
-        fprintf(SysTraceFile, "   bootImageCodeStart:   0x%08x\n", 
+        fprintf(SysTraceFile, "   bootImageCodeStart:   0x%08x\n",
                 bootRecord->bootImageCodeStart);
-        fprintf(SysTraceFile, "   bootImageCodeEnd:     0x%08x\n", 
+        fprintf(SysTraceFile, "   bootImageCodeEnd:     0x%08x\n",
                 bootRecord->bootImageCodeEnd);
-        fprintf(SysTraceFile, "   bootImageRMapStart:   0x%08x\n", 
+        fprintf(SysTraceFile, "   bootImageRMapStart:   0x%08x\n",
                 bootRecord->bootImageRMapStart);
-        fprintf(SysTraceFile, "   bootImageRMapEnd:     0x%08x\n", 
+        fprintf(SysTraceFile, "   bootImageRMapEnd:     0x%08x\n",
                 bootRecord->bootImageRMapEnd);
-        fprintf(SysTraceFile, "   initialHeapSize:      0x%08x\n", 
+        fprintf(SysTraceFile, "   initialHeapSize:      0x%08x\n",
                 bootRecord->initialHeapSize);
-        fprintf(SysTraceFile, "   maximumHeapSize:      0x%08x\n", 
+        fprintf(SysTraceFile, "   maximumHeapSize:      0x%08x\n",
                 bootRecord->maximumHeapSize);
-        fprintf(SysTraceFile, "   tiRegister:           0x%08x\n", 
+        fprintf(SysTraceFile, "   tiRegister:           0x%08x\n",
                 bootRecord->tiRegister);
-        fprintf(SysTraceFile, "   spRegister:           0x%08x\n", 
+        fprintf(SysTraceFile, "   spRegister:           0x%08x\n",
                 bootRecord->spRegister);
-        fprintf(SysTraceFile, "   ipRegister:           0x%08x\n", 
+        fprintf(SysTraceFile, "   ipRegister:           0x%08x\n",
                 bootRecord->ipRegister);
-        fprintf(SysTraceFile, "   tocRegister:          0x%08x\n", 
+        fprintf(SysTraceFile, "   tocRegister:          0x%08x\n",
                 bootRecord->tocRegister);
-        fprintf(SysTraceFile, "   sysWriteCharIP:       0x%08x\n", 
-                bootRecord->sysWriteCharIP);
+        fprintf(SysTraceFile, "   sysConsoleWriteCharIP:0x%08x\n",
+                bootRecord->sysConsoleWriteCharIP);
         fprintf(SysTraceFile, "   ...etc...                   \n");
     }
 
     /* install a stack for hardwareTrapHandler() to run on */
     stack_t stack;
-   
+
     memset (&stack, 0, sizeof stack);
     stack.ss_sp = new char[SIGSTKSZ];
-   
+
     stack.ss_size = SIGSTKSZ;
     if (sigaltstack (&stack, 0)) {
-        fprintf(SysErrorFile, "%s: sigaltstack failed (errno=%d)\n", 
+        fprintf(SysErrorFile, "%s: sigaltstack failed (errno=%d)\n",
                 Me, errno);
         return 1;
     }
@@ -926,7 +985,7 @@ createVM(int UNUSED vmInSeparateThread)
         return 1;
     }
     if (sigaction (SIGQUIT, &action, 0)) { /* catch QUIT to invoke debugger
-                                            * thread */ 
+                                            * thread */
         fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", Me, errno);
         return 1;
     }
@@ -951,21 +1010,21 @@ createVM(int UNUSED vmInSeparateThread)
     int pr;
     int *sp  = (int *) bootRecord->spRegister;
     {
-        unsigned *processors 
-            = *(unsigned **) (bootRecord->tocRegister 
+        unsigned *processors
+            = *(unsigned **) (bootRecord->tocRegister
                               + bootRecord->processorsOffset);
         pr      = processors[VM_Scheduler_PRIMORDIAL_PROCESSOR_ID];
 
         /* initialize the thread id jtoc, and framepointer fields in the primordial
          * processor object.
          */
-        *(unsigned int *) (pr + VM_Processor_threadId_offset) 
-            = VM_Scheduler_PRIMORDIAL_THREAD_INDEX 
+        *(unsigned int *) (pr + VM_Processor_threadId_offset)
+            = VM_Scheduler_PRIMORDIAL_THREAD_INDEX
                 << VM_ThinLockConstants_TL_THREAD_ID_SHIFT;
         *(unsigned int *) (pr + VM_Processor_jtoc_offset) = jtoc;
-        *(unsigned int *) (pr + VM_Processor_framePointer_offset) 
+        *(unsigned int *) (pr + VM_Processor_framePointer_offset)
             = (int)sp - 8;
-    } 
+    }
 
     *--sp = 0xdeadbabe;         /* STACKFRAME_RETURN_ADDRESS_OFFSET */
     *--sp = VM_Constants_STACKFRAME_SENTINEL_FP; /* STACKFRAME_FRAME_POINTER_OFFSET */
@@ -982,14 +1041,14 @@ createVM(int UNUSED vmInSeparateThread)
 
 // Get address of JTOC.
 extern "C" void *
-getJTOC(void) 
+getJTOC(void)
 {
     return (void*) VmToc;
 }
 
 // Get offset of VM_Scheduler.processors in JTOC.
-extern "C" VM_Offset 
-getProcessorsOffset(void) 
+extern "C" VM_Offset
+getProcessorsOffset(void)
 {
     return ProcessorsOffset;
 }

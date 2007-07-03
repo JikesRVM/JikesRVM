@@ -1,12 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Richard Jones, 2003
- * Computing Laboratory, University of Kent at Canterbury
- * All rights reserved.
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.utility.gcspy;
 
@@ -16,12 +18,9 @@ import org.vmmagic.pragma.*;
 
 /**
  * Color.java
- * 
+ *
  * Cut-down implementation of java.awt.Color sufficient to provide
  * the server side (Stream) with colours
- * 
- *
- * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  */
 @Uninterruptible public class Color {
 
@@ -57,7 +56,7 @@ import org.vmmagic.pragma.*;
    * @param b blue component
    */
   public Color(short r, short g, short b) {
-    if (VM.VERIFY_ASSERTIONS) 
+    if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert((0 <= r) && (r <= 255) &&
                            (0 <= g) && (g <= 255) &&
                            (0 <= b) && (b <= 255));
@@ -80,21 +79,21 @@ import org.vmmagic.pragma.*;
 
   /**
    * Red component
-   * 
+   *
    * @return the red component
    */
   public short getRed() { return r; }
 
   /**
    * Green component
-   * 
+   *
    * @return the green component
    */
   public short getGreen() { return g; }
 
   /**
    * Blue component
-   * 
+   *
    * @return the blue component
    */
   public short getBlue() { return b; }

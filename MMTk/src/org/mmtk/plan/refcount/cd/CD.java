@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2006
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.plan.refcount.cd;
 
@@ -21,11 +24,8 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This class implements <i>global</i> behavior 
+ * This class implements <i>global</i> behavior
  * and state for a cycle detector.
- *  
- *
- * @author Daniel Frampton
  */
 @Uninterruptible public abstract class CD {
 
@@ -43,8 +43,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Constructor.
-   * 
-   */
+ */
   public CD() {
     Options.cycleFilterThreshold = new CycleFilterThreshold();
     Options.cycleTriggerThreshold = new CycleTriggerThreshold();
@@ -52,14 +51,14 @@ import org.vmmagic.unboxed.*;
   }
 
   /*****************************************************************************
-   * 
+   *
    * Collection
    */
 
   /**
    * Decide whether cycle collection should be invoked.  This uses
    * a probabalisitic heuristic based on heap fullness.
-   * 
+   *
    * @return True if cycle collection should be invoked
    */
   protected final boolean shouldCollectCycles() {
@@ -70,7 +69,7 @@ import org.vmmagic.unboxed.*;
    * Decide whether the purple buffer should be filtered.  This will
    * happen if the heap is close to full or if the number of purple
    * objects enqued has reached a user-defined threashold.
-   * 
+   *
    * @return True if the unfiltered purple buffer should be filtered
    */
   protected final boolean shouldFilterPurple() {
@@ -80,7 +79,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Decide whether to act on cycle collection or purple filtering.
    * This uses a probabalisitic heuristic based on heap fullness.
-   * 
+   *
    * @return True if we should act
    */
   private boolean shouldAct(int thresholdPages) {
@@ -91,7 +90,7 @@ import org.vmmagic.unboxed.*;
     boolean rtn = (slack <= LOG_WRIGGLE) && ((Stats.gcCount() & mask) == mask);
     return rtn;
   }
-  
+
   private int log2(int value) {
     int rtn = 0;
     while (value > 1<<rtn) rtn++;
@@ -100,17 +99,17 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Perform a (global) collection phase.
-   * 
+   *
    * @param phaseId Collection phase to execute.
    */
   @Inline
-  public boolean collectionPhase(int phaseId) { 
+  public boolean collectionPhase(int phaseId) {
     return false;
   }
-  
+
   /**
    * Update the CD section of the RC word when an increment is performed
-   * 
+   *
    * @param rcWord The refcount word after the increment.
    * @return The updated status after CD modification
    */
@@ -118,7 +117,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * If the reported decrement succeeds, should we buffer the object?
-   * 
+   *
    * @param rcWord The refcount work post decrement.
    * @return True if DEC_BUFFER should be returned
    */
@@ -126,15 +125,15 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Allow a free of this object, or is it in a CD data structure
-   * 
+   *
    * @param object The object to check
    * @return True if free is safe
    */
   public abstract boolean allowFree(ObjectReference object);
-  
+
   /**
    * Update the header on a buffered dec to non-zero RC
-   * 
+   *
    * @param rcWord The refcount work post decrement.
    * @return The updated status after CD modification
    */
@@ -142,15 +141,15 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Update the header on a non-buffered dec to non-zero RC
-   * 
+   *
    * @param rcWord The refcount work post decrement.
    * @return The updated status after CD modification
    */
   public abstract int updateHeaderOnUnbufferedDec(int rcWord);
-  
+
   /**
    * Perform any cycle detector header initialization.
-   * 
+   *
    * @param typeRef Type information for the object.
    * @param rcWord The refcount work post decrement.
    * @return The updated status after CD modification
@@ -158,7 +157,7 @@ import org.vmmagic.unboxed.*;
   public abstract int initializeHeader(ObjectReference typeRef, int rcWord);
 
   /****************************************************************************
-   * 
+   *
    * Miscellaneous
    */
 

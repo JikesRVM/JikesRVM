@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *(C) Copyright Richard Jones, 2005-6
- * Computing Laboratory, University of Kent at Canterbury
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.plan.semispace.gcspy;
 
@@ -27,11 +30,11 @@ import org.vmmagic.pragma.*;
 /**
  * This class extends a simple semi-space collector to instrument it for
  * GCspy. <p>
- * 
+ *
  * See the Jones & Lins GC book, section 2.2 for an overview of the basic
  * algorithm. This implementation also includes a large object space
  * (LOS), and an uncollected "immortal" space.<p>
- * 
+ *
  * All plans make a clear distinction between <i>global</i> and
  * <i>thread-local</i> activities.  Global activities must be
  * synchronized, whereas no synchronization is required for
@@ -106,60 +109,53 @@ import org.vmmagic.pragma.*;
      SSGCspy.gcspyGatherData, event=2
  --Phase Collector.complete
  --Phase Plan.complete
- *
- *
- * @author <a href="http://www.cs.ukc.ac.uk/~rej/">Richard Jones</a>
- * @author Steve Blackburn
- * @author Perry Cheng
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public class SSGCspy extends SS implements GCspyPlan {
 
   /****************************************************************************
-   * 
+   *
    * Class variables
    */
 
   // The events, BEFORE_COLLECTION, SEMISPACE_COPIED or AFTER_COLLECTION
-  
-  /** 
-   * Before a collection has started, 
+
+  /**
+   * Before a collection has started,
    * i.e. before SS.collectionPhase(SS.PREPARE,..).
    */
   static final int BEFORE_COLLECTION = 0;
-  
-  /** 
+
+  /**
    * After the semispace has been copied and the large object space has been traced
    * At this time the Large Object Space has not been swept.
    */
   static final int SEMISPACE_COPIED  = BEFORE_COLLECTION + 1;
-  
+
   /**
    * The collection is complete,
    * i.e. immediately after SS.collectionPhase(SS.RELEASE,..).
    * The Large Object Space has been swept.
    */
   static final int AFTER_COLLECTION  = SEMISPACE_COPIED + 1;
-  
+
   static int gcspyEvent_ = BEFORE_COLLECTION;
 
   // The specific drivers for this collector
   static LinearSpaceDriver ss0Driver;
   static LinearSpaceDriver ss1Driver;
-  static ImmortalSpaceDriver immortalDriver; 
+  static ImmortalSpaceDriver immortalDriver;
   static TreadmillDriver losNurseryDriver;
-  static TreadmillDriver losDriver;  
+  static TreadmillDriver losDriver;
   static TreadmillDriver plosNurseryDriver;
   static TreadmillDriver plosDriver;
-  
+
   private static final boolean DEBUG = false;
 
-  
+
   static {
     GCspy.createOptions();
   }
- 
+
   /**
    * Start the server and wait if necessary.
    * This method has the following responsibilities.
@@ -172,8 +168,8 @@ import org.vmmagic.pragma.*;
    *      <pre>server.setGeneralInfo(info); </pre>
    * <li> Create new drivers for each component to be visualised.
    *      <pre>myDriver = new MyDriver(server, args...);</pre>
-   *      Drivers extend AbstractDriver and register their spce with the 
-   *      ServerInterpreter. In addition to the server, drivers will take as 
+   *      Drivers extend AbstractDriver and register their spce with the
+   *      ServerInterpreter. In addition to the server, drivers will take as
    *      arguments the name of the space, the MMTk space, the tilesize, and
    *      whether this space is to be the main space in the visualiser.
    * </ol>
@@ -183,10 +179,10 @@ import org.vmmagic.pragma.*;
    * @param port The port to talk to the GCspy client (e.g. visualiser)
    */
   @Interruptible
-  public final void startGCspyServer(int port, boolean wait) { 
-    GCspy.server.init("SemiSpaceServerInterpreter", port, true/*verbose*/); 
+  public final void startGCspyServer(int port, boolean wait) {
+    GCspy.server.init("SemiSpaceServerInterpreter", port, true/*verbose*/);
     if (DEBUG) Log.writeln("SSGCspy: ServerInterpreter initialised");
-    
+
     GCspy.server.addEvent(BEFORE_COLLECTION, "Before collection");
     GCspy.server.addEvent(SEMISPACE_COPIED, "Semispace copied; LOS traced");
     GCspy.server.addEvent(AFTER_COLLECTION, "After collection; LOS swept");
@@ -204,13 +200,13 @@ import org.vmmagic.pragma.*;
     losDriver         = newTreadmillDriver("LOS", loSpace);
     plosNurseryDriver = newTreadmillDriver("Primitive LOS Nursery", ploSpace);
     plosDriver        = newTreadmillDriver("PLOS", ploSpace);
-    
+
     if (DEBUG) Log.write("SemiServerInterpreter initialised\n");
-    
+
     // Register drivers to allow immortal space to notify direct references
     immortalDriver.registerDriversForReferenceNotification(
-      new AbstractDriver[] {ss0Driver, ss1Driver, immortalDriver, 
-                            losNurseryDriver, losDriver, 
+      new AbstractDriver[] {ss0Driver, ss1Driver, immortalDriver,
+                            losNurseryDriver, losDriver,
                             plosNurseryDriver, plosDriver});
     if (DEBUG) Log.writeln("SSGCspy: registered drivers");
 
@@ -228,14 +224,14 @@ import org.vmmagic.pragma.*;
    * @return A new GCspy driver for this space
    */
   @Interruptible
-  private LinearSpaceDriver newLinearSpaceDriver(String name, CopySpace space, boolean mainSpace) { 
+  private LinearSpaceDriver newLinearSpaceDriver(String name, CopySpace space, boolean mainSpace) {
     // TODO What if tileSize is too small (i.e. too many tiles for GCspy buffer)
     // TODO stop the GCspy spaces in the visualiser from fluctuating in size
     // so much as we resize them.
-    return new LinearSpaceDriver(GCspy.server, name, space, 
+    return new LinearSpaceDriver(GCspy.server, name, space,
             Options.gcspyTileSize.getValue(), mainSpace);
   }
-  
+
   /**
    * Create a new TreadmillDriver
    * TODO is this the best name or should we call it LargeObjectSpaceDriver?
@@ -244,25 +240,25 @@ import org.vmmagic.pragma.*;
    * @return A new GCspy driver for this space
    */
   @Interruptible
-  private TreadmillDriver newTreadmillDriver(String name, LargeObjectSpace space) { 
-    return new TreadmillDriver(GCspy.server, name, space, 
+  private TreadmillDriver newTreadmillDriver(String name, LargeObjectSpace space) {
+    return new TreadmillDriver(GCspy.server, name, space,
             Options.gcspyTileSize.getValue(), LOS_SIZE_THRESHOLD, false);
   }
-  
+
   /****************************************************************************
-   * 
+   *
    * Collection
    */
 
   /**
    * Perform a (global) collection phase.
-   * 
+   *
    * @param phaseId Collection phase
    */
   @Inline
-  public void collectionPhase(int phaseId) { 
+  public void collectionPhase(int phaseId) {
     if (DEBUG) { Log.write("--Phase Plan."); Log.writeln(Phase.getName(phaseId)); }
-    
+
     if (phaseId == SSGCspy.PREPARE) {
       super.collectionPhase(phaseId);
       gcspySpace.prepare();
@@ -279,7 +275,7 @@ import org.vmmagic.pragma.*;
 
     super.collectionPhase(phaseId);
   }
-  
+
   /**
    * Gather data for GCspy for the semispaces, the immortal space and the large
    * object space.
@@ -290,7 +286,7 @@ import org.vmmagic.pragma.*;
    * addresses of the semispace. However, per-object information can only be
    * gathered by sweeping through the space and we do this here for tutorial
    * purposes.
-   * 
+   *
    * @param event
    *          The event, either BEFORE_COLLECTION, SEMISPACE_COPIED or
    *          AFTER_COLLECTION
@@ -300,11 +296,11 @@ import org.vmmagic.pragma.*;
       Log.writeln("SSGCspy.gcspyGatherData, event=", event);
       Log.writeln("SSGCspy.gcspyGatherData, port=", GCspy.getGCspyPort());
     }
-    
+
     // If port = 0 there can be no GCspy client connected
     if (GCspy.getGCspyPort() == 0)
       return;
-    
+
     // This is a safepoint for the server, i.e. it is a point at which
     // the server can pause.
     // The Mutator is called after the Collector so the Mutator must set the safepoint
@@ -313,7 +309,7 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Accounting
    */
 
@@ -321,15 +317,15 @@ import org.vmmagic.pragma.*;
    * Return the number of pages reserved for use given the pending
    * allocation.  This is <i>exclusive of</i> space reserved for
    * copying.
-   * 
+   *
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
   public final int getPagesUsed() {
     return super.getPagesUsed() + gcspySpace.reservedPages();
   }
- 
-  
+
+
   /**
    * Report information on the semispaces
    */

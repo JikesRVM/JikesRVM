@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.policy;
 
@@ -25,34 +28,31 @@ import org.vmmagic.unboxed.*;
  * shared VMResource used by each instance is the point of global
  * synchronization, and synchronization only occurs at the granularity
  * of aquiring (and releasing) chunks of memory from the VMResource.
- * 
+ *
  * If there are C CPUs and T TreadmillSpaces, there must be C X T
  * instances of this class, one for each CPU, TreadmillSpace pair.
- * 
- *
- * @author Steve Blackburn
  */
 @Uninterruptible public final class LargeObjectLocal extends LargeObjectAllocator
   implements Constants {
 
   /****************************************************************************
-   * 
+   *
    * Class variables
    */
 
   /****************************************************************************
-   * 
+   *
    * Instance variables
    */
- 
+
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
   /**
    * Constructor
-   * 
+   *
    * @param space The treadmill space to which this thread instance is
    * bound.
    */
@@ -62,7 +62,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Allocation
    */
 
@@ -71,16 +71,16 @@ import org.vmmagic.unboxed.*;
    *  reused, this will be called each time it is reused in the
    *  lifetime of the cell, by contrast to initializeCell, which is
    *  called exactly once.).
-   * 
+   *
    * @param cell The newly allocated cell
    */
   @Inline
-  protected void postAlloc (Address cell) { 
+  protected void postAlloc (Address cell) {
     space.getTreadmill().addToTreadmill(Treadmill.payloadToNode(cell));
   }
 
   /****************************************************************************
-   * 
+   *
    * Collection
    */
 
@@ -98,7 +98,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Miscellaneous size-related methods
    */
 
@@ -106,24 +106,24 @@ import org.vmmagic.unboxed.*;
    * Return the size of the per-superpage header required by this
    * system.  In this case it is just the underlying superpage header
    * size.
-   * 
+   *
    * @return The size of the per-superpage header required by this
    * system.
    */
   @Inline
-  protected int superPageHeaderSize() { 
+  protected int superPageHeaderSize() {
     return Treadmill.headerSize();
   }
 
   /**
    * Return the size of the per-cell header for cells of a given class
    * size.
-   * 
+   *
    * @return The size of the per-cell header for cells of a given class
    * size.
    */
   @Inline
-  protected int cellHeaderSize() { 
+  protected int cellHeaderSize() {
     return 0;
   }
 
@@ -136,7 +136,7 @@ import org.vmmagic.unboxed.*;
     // TODO: assumes single threaded
     space.getTreadmill().gcspyGatherData(event, losDriver);
   }
-  
+
   /**
    * Gather data for GCSpy for an older space
    * @param event the gc event

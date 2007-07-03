@@ -1,13 +1,14 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
- */
-/**
- * @author unascribed
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 class T {
   T(int x) {
@@ -19,7 +20,7 @@ class T {
       ;
     return x;
   }
-  
+
   private int x;
 }
 
@@ -38,18 +39,18 @@ public class gctest {
     T o10 = new T(4);
     int x;
 
-    System.gc(); 
+    System.gc();
     o1 = new T(3);
-    System.gc(); 
+    System.gc();
 
     x = o1.foo() +       o2.foo() +      o3.foo() +
       o4.foo() +     o5.foo() +     o6.foo() +
       o7.foo() +     o8.foo() +     o9.foo() +
       o10.foo();
-    System.gc();   
+    System.gc();
 
 
-    // allocate more storage 
+    // allocate more storage
     o1 = new T(3);
     o2 = new T(4);
     o3 = new T(4);
@@ -61,7 +62,7 @@ public class gctest {
     o9 = new T(4);
     o10 = new T(4);
 
-    System.gc();   
+    System.gc();
 
     x = o1.foo() +       o2.foo() +      o3.foo() +
       o4.foo() +     o5.foo() +     o6.foo() +

@@ -1,20 +1,21 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
- */
-/**
- * @author unascribed
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 public class tak_fp{
 
   // float tak(float x, float y, float z);
 
   public static void main(String argv[])
-  { 
+  {
         System.out.println("Tak is running\n");
           float result = tak(18,12,6);
           System.out.println(result + "\n"+test2(18));
@@ -37,7 +38,7 @@ public class tak_fp{
       float y = 18.0F;
       test1(y);
       return y;
-   } 
+   }
 
    public static void test1(float x) {
 

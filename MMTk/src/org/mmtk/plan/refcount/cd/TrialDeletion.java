@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2006
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.plan.refcount.cd;
 
@@ -26,13 +29,11 @@ import org.vmmagic.unboxed.*;
 /**
  * This class implements the global state of a trial deletion cycle detector.
 
- *
- * @author Daniel Frampton
  */
 @Uninterruptible public final class TrialDeletion extends CD {
 
   /****************************************************************************
-   * 
+   *
    * Class variables
    */
  // Collection phases
@@ -48,7 +49,7 @@ import org.vmmagic.unboxed.*;
   public static final int CD_FLUSH_FILTERED   = new SimplePhase("td.flush-filtered",     Phase.COLLECTOR_ONLY  ).getId();
   public static final int CD_PROCESS_DECS     = new SimplePhase("td.process-decs",       Phase.COLLECTOR_ONLY  ).getId();
   public static final int CD_RELEASE          = new SimplePhase("td.release",            Phase.GLOBAL_ONLY     ).getId();
-  
+
   /* Cycle detection */
   private static final int cdPhase = new ComplexPhase("trial deletion", new int[] {
       CD_PREPARE_FILTER,
@@ -62,7 +63,7 @@ import org.vmmagic.unboxed.*;
       CD_FREE,
       CD_FLUSH_FILTERED,
       CD_PROCESS_DECS,
-      CD_RELEASE        
+      CD_RELEASE
   }).getId();
 
   public static final int NO_PROCESSING   = 0;
@@ -70,7 +71,7 @@ import org.vmmagic.unboxed.*;
   public static final int FULL_COLLECTION = 2;
 
   /****************************************************************************
-   * 
+   *
    * Instance variables
    */
   public final SharedDeque workPool;
@@ -83,9 +84,9 @@ import org.vmmagic.unboxed.*;
   public final SharedDeque freePool;
   public int cdMode;
   private long startCycles;
-  
+
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
@@ -105,19 +106,19 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Perform a (global) collection phase.
-   * 
+   *
    * @param phaseId Collection phase to execute.
    */
   @Inline
-  public boolean collectionPhase(int phaseId) { 
-    
+  public boolean collectionPhase(int phaseId) {
+
     if (phaseId == CD_PREPARE_FILTER) {
       if (shouldFilterPurple()) {
         cdMode = FILTER_PURPLE;
       }
       return true;
     }
-    
+
     if (phaseId == CD_PREPARE_COLLECT) {
       if (cdMode == FILTER_PURPLE) {
         if (shouldCollectCycles()) {
@@ -131,7 +132,7 @@ import org.vmmagic.unboxed.*;
       }
       return true;
     }
-    
+
     if (phaseId == CD_RELEASE) {
       if (cdMode == FULL_COLLECTION) {
         if (Options.verbose.getValue() > 0) {
@@ -141,18 +142,18 @@ import org.vmmagic.unboxed.*;
       }
       return true;
     }
-    
+
     return false;
   }
 
   /*****************************************************************************
-   * 
+   *
    * Collection
    */
 
   /**
    * Update the CD section of the RC word when an increment is performed
-   * 
+   *
    * @param rcWord The refcount word after the increment.
    * @return The updated status after CD modification
    */
@@ -162,7 +163,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * If the reported decrement succeeds, should we buffer the object?
-   * 
+   *
    * @param rcWord The refcount work post decrement.
    * @return The updated status after CD modification
    */
@@ -170,21 +171,21 @@ import org.vmmagic.unboxed.*;
     return ((rcWord & RCHeader.COLOR_MASK) < RCHeader.PURPLE) &&
            ((rcWord & RCHeader.BUFFERED_MASK) == 0);
   }
-  
-  
+
+
   /**
    * Allow a free of this object, or is it in a CD data structure
-   * 
+   *
    * @param object The object to check
    * @return True if free is safe
    */
   public boolean allowFree(ObjectReference object) {
     return !RCHeader.isBuffered(object);
   }
-    
+
   /**
    * Update the header on a buffered dec to non-zero RC
-   * 
+   *
    * @param rcWord The refcount work post decrement.
    * @return The updated status after CD modification
    */
@@ -194,20 +195,20 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Update the header on a non-buffered dec to non-zero RC
-   * 
+   *
    * @param rcWord The refcount work post decrement.
    * @return The updated status after CD modification
    */
   public int updateHeaderOnUnbufferedDec(int rcWord) {
-    if ((rcWord & RCHeader.GREEN) != 0) { 
+    if ((rcWord & RCHeader.GREEN) != 0) {
       return rcWord;
     }
     return (rcWord & ~RCHeader.COLOR_MASK) | RCHeader.PURPLE;
   }
-  
+
   /**
    * Perform any cycle detector header initialization.
-   * 
+   *
    * @param typeRef Type information for the object.
    * @param rcWord The refcount work post decrement.
    * @return The updated status after CD modification

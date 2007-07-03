@@ -1,13 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2004
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
  *
- * (C) Copyright IBM Corp. 2001, 2003
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm.mm.mmtk;
 
@@ -17,10 +18,10 @@ import org.mmtk.utility.alloc.Allocator;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
-import org.jikesrvm.VM_Magic;
-import org.jikesrvm.VM_Memory;
-import org.jikesrvm.VM_ObjectModel;
-import org.jikesrvm.VM_JavaHeaderConstants;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_Memory;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
+import org.jikesrvm.objectmodel.VM_JavaHeaderConstants;
 import org.jikesrvm.classloader.VM_Atom;
 import org.jikesrvm.classloader.VM_Array;
 import org.jikesrvm.classloader.VM_Class;
@@ -31,12 +32,6 @@ import org.jikesrvm.memorymanagers.mminterface.Selected;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
-/**
- *
- * @author Steve Blackburn
- * @author Perry Cheng
- *
- */
 @Uninterruptible public final class ObjectModel extends org.mmtk.vm.ObjectModel implements Constants, VM_Constants {
 
   protected Offset getArrayBaseOffset() { return VM_JavaHeaderConstants.ARRAY_BASE_OFFSET; }
@@ -53,10 +48,10 @@ import org.vmmagic.pragma.*;
    * @return the address of the new object
    */
   @Inline
-  public ObjectReference copy(ObjectReference from, int allocator) { 
+  public ObjectReference copy(ObjectReference from, int allocator) {
     Object[] tib = VM_ObjectModel.getTIB(from);
     VM_Type type = VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]);
-    
+
     if (type.isClassType())
       return copyScalar(from, tib, type.asClass(), allocator);
     else
@@ -65,15 +60,15 @@ import org.vmmagic.pragma.*;
 
   @Inline
   private ObjectReference copyScalar(ObjectReference from, Object[] tib,
-                                       VM_Class type, int allocator) { 
-    int bytes = VM_ObjectModel.bytesRequiredWhenCopied(from, type);
-    int align = VM_ObjectModel.getAlignment(type, from);
+                                       VM_Class type, int allocator) {
+    int bytes = VM_ObjectModel.bytesRequiredWhenCopied(from.toObject(), type);
+    int align = VM_ObjectModel.getAlignment(type, from.toObject());
     int offset = VM_ObjectModel.getOffsetForAlignment(type, from);
     Selected.Collector plan = Selected.Collector.get();
     allocator = plan.copyCheckAllocator(from, bytes, align, allocator);
     Address region = MM_Interface.allocateSpace(plan, bytes, align, offset,
                                                 allocator, from);
-    Object toObj = VM_ObjectModel.moveObject(region, from, bytes, false, type);
+    Object toObj = VM_ObjectModel.moveObject(region, from.toObject(), bytes, false, type);
     ObjectReference to = ObjectReference.fromObject(toObj);
     plan.postCopy(to, ObjectReference.fromObject(tib), bytes, allocator);
     MMType mmType = (MMType) type.getMMType();
@@ -83,16 +78,16 @@ import org.vmmagic.pragma.*;
 
   @Inline
   private ObjectReference copyArray(ObjectReference from, Object[] tib,
-                                      VM_Array type, int allocator) { 
-    int elements = VM_Magic.getArrayLength(from);
-    int bytes = VM_ObjectModel.bytesRequiredWhenCopied(from, type, elements);
-    int align = VM_ObjectModel.getAlignment(type, from);
+                                      VM_Array type, int allocator) {
+    int elements = VM_Magic.getArrayLength(from.toObject());
+    int bytes = VM_ObjectModel.bytesRequiredWhenCopied(from.toObject(), type, elements);
+    int align = VM_ObjectModel.getAlignment(type, from.toObject());
     int offset = VM_ObjectModel.getOffsetForAlignment(type, from);
     Selected.Collector plan = Selected.Collector.get();
     allocator = plan.copyCheckAllocator(from, bytes, align, allocator);
     Address region = MM_Interface.allocateSpace(plan, bytes, align, offset,
                                                 allocator, from);
-    Object toObj = VM_ObjectModel.moveObject(region, from, bytes, false, type);
+    Object toObj = VM_ObjectModel.moveObject(region, from.toObject(), bytes, false, type);
     ObjectReference to = ObjectReference.fromObject(toObj);
     plan.postCopy(to, ObjectReference.fromObject(tib), bytes, allocator);
     if (type == VM_Type.CodeArrayType) {
@@ -105,61 +100,61 @@ import org.vmmagic.pragma.*;
     mmType.profileCopy(bytes);
     return to;
   }
-  
+
   /**
    * Return the size of a given object, in bytes
-   * 
+   *
    * @param object The object whose size is being queried
    * @return The size (in bytes) of the given object.
    */
   static int getObjectSize(ObjectReference object) {
     Object[] tib = VM_ObjectModel.getTIB(object);
     VM_Type type = VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]);
-    
+
     if (type.isClassType())
-      return VM_ObjectModel.bytesRequiredWhenCopied(object, type.asClass());
+      return VM_ObjectModel.bytesRequiredWhenCopied(object.toObject(), type.asClass());
     else
-      return VM_ObjectModel.bytesRequiredWhenCopied(object, type.asArray(), VM_Magic.getArrayLength(object));
+      return VM_ObjectModel.bytesRequiredWhenCopied(object.toObject(), type.asArray(), VM_Magic.getArrayLength(object.toObject()));
   }
 
   /**
-   * Copy an object to be pointer to by the to address. This is required 
-   * for delayed-copy collectors such as compacting collectors. During the 
+   * Copy an object to be pointer to by the to address. This is required
+   * for delayed-copy collectors such as compacting collectors. During the
    * collection, MMTk reserves a region in the heap for an object as per
-   * requirements found from ObjectModel and then asks ObjectModel to 
+   * requirements found from ObjectModel and then asks ObjectModel to
    * determine what the object's reference will be post-copy.
-   * 
+   *
    * @param from the address of the object to be copied
    * @param to The target location.
    * @param region The start (or an address less than) the region that was reserved for this object.
    * @return Address The address past the end of the copied object
    */
   @Inline
-  public Address copyTo(ObjectReference from, ObjectReference to, Address region) { 
+  public Address copyTo(ObjectReference from, ObjectReference to, Address region) {
     Object[] tib = VM_ObjectModel.getTIB(from);
     VM_Type type = VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]);
     int bytes;
-    
+
     boolean copy = (from != to);
-    
+
     if (copy) {
       if (type.isClassType()) {
         VM_Class classType = type.asClass();
-        bytes = VM_ObjectModel.bytesRequiredWhenCopied(from, classType);
-        VM_ObjectModel.moveObject(from, to, bytes, false, classType);
+        bytes = VM_ObjectModel.bytesRequiredWhenCopied(from.toObject(), classType);
+        VM_ObjectModel.moveObject(from.toObject(), to.toObject(), bytes, false, classType);
       } else {
       VM_Array arrayType = type.asArray();
-        int elements = VM_Magic.getArrayLength(from);
-        bytes = VM_ObjectModel.bytesRequiredWhenCopied(from, arrayType, elements);
-        VM_ObjectModel.moveObject(from, to, bytes, false, arrayType);
+        int elements = VM_Magic.getArrayLength(from.toObject());
+        bytes = VM_ObjectModel.bytesRequiredWhenCopied(from.toObject(), arrayType, elements);
+        VM_ObjectModel.moveObject(from.toObject(), to.toObject(), bytes, false, arrayType);
       }
     } else {
       bytes = getCurrentSize(to);
     }
-    
+
     Address start = VM_ObjectModel.objectStartRef(to);
     Allocator.fillAlignmentGap(region, start);
-    
+
     return start.plus(bytes);
   }
 
@@ -173,18 +168,18 @@ import org.vmmagic.pragma.*;
    * @return The resulting reference.
    */
   public ObjectReference getReferenceWhenCopiedTo(ObjectReference from, Address to) {
-    return ObjectReference.fromObject(VM_ObjectModel.getReferenceWhenCopiedTo(from, to));
+    return ObjectReference.fromObject(VM_ObjectModel.getReferenceWhenCopiedTo(from.toObject(), to));
   }
-  
+
   /**
    * Gets a pointer to the address just past the end of the object.
-   * 
+   *
    * @param object The objecty.
    */
   public Address getObjectEndAddress(ObjectReference object) {
-    return VM_ObjectModel.getObjectEndAddress(object);
+    return VM_ObjectModel.getObjectEndAddress(object.toObject());
   }
-  
+
   /**
    * Return the size required to copy an object
    *
@@ -192,9 +187,9 @@ import org.vmmagic.pragma.*;
    * @return The size required to copy <code>obj</code>
    */
   public int getSizeWhenCopied(ObjectReference object) {
-    return VM_ObjectModel.bytesRequiredWhenCopied(object);
+    return VM_ObjectModel.bytesRequiredWhenCopied(object.toObject());
   }
-  
+
   /**
    * Return the alignment requirement for a copy of this object
    *
@@ -205,12 +200,12 @@ import org.vmmagic.pragma.*;
     Object[] tib = VM_ObjectModel.getTIB(object);
     VM_Type type = VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]);
     if (type.isArrayType()) {
-      return VM_ObjectModel.getAlignment(type.asArray(), object);
+      return VM_ObjectModel.getAlignment(type.asArray(), object.toObject());
     } else {
-      return VM_ObjectModel.getAlignment(type.asClass(), object);
+      return VM_ObjectModel.getAlignment(type.asClass(), object.toObject());
     }
   }
-  
+
   /**
    * Return the alignment offset requirements for a copy of this object
    *
@@ -226,7 +221,7 @@ import org.vmmagic.pragma.*;
       return VM_ObjectModel.getOffsetForAlignment(type.asClass(), object);
     }
   }
-  
+
   /**
    * Return the size used by an object
    *
@@ -234,7 +229,7 @@ import org.vmmagic.pragma.*;
    * @return The size of <code>obj</code>
    */
   public int getCurrentSize(ObjectReference object) {
-    return VM_ObjectModel.bytesUsed(object);
+    return VM_ObjectModel.bytesUsed(object.toObject());
   }
 
   /**
@@ -250,7 +245,7 @@ import org.vmmagic.pragma.*;
   public ObjectReference getObjectFromStartAddress(Address start) {
     return VM_ObjectModel.getObjectFromStartAddress(start);
   }
-  
+
   /**
    * Get the type descriptor for an object.
    *
@@ -263,7 +258,7 @@ import org.vmmagic.pragma.*;
   }
 
   @Inline
-  public int getArrayLength(ObjectReference object) { 
+  public int getArrayLength(ObjectReference object) {
     return VM_Magic.getArrayLength(object.toObject());
   }
   /**
@@ -336,7 +331,7 @@ import org.vmmagic.pragma.*;
    * @return the value of the bits
    */
   public Word readAvailableBitsWord(ObjectReference object) {
-    return VM_ObjectModel.readAvailableBitsWord(object);
+    return VM_ObjectModel.readAvailableBitsWord(object.toObject());
   }
 
   /**
@@ -359,7 +354,7 @@ import org.vmmagic.pragma.*;
    * @return the lowest address of the object
    */
   @Inline
-  public Address objectStartRef(ObjectReference object) { 
+  public Address objectStartRef(ObjectReference object) {
     return VM_ObjectModel.objectStartRef(object);
   }
 
@@ -382,7 +377,7 @@ import org.vmmagic.pragma.*;
    * inherently acyclic
    */
   @Inline
-  public boolean isAcyclic(ObjectReference typeRef) { 
+  public boolean isAcyclic(ObjectReference typeRef) {
     Object type;
     Object[] tib = VM_Magic.addressAsObjectArray(typeRef.toAddress());
     if (true) {  // necessary to avoid an odd compiler bug
@@ -400,7 +395,7 @@ import org.vmmagic.pragma.*;
    * @return The type object for <code>object</code>
    */
   @Inline
-  public MMType getObjectType(ObjectReference object) { 
+  public MMType getObjectType(ObjectReference object) {
     Object obj = object.toObject();
     Object[] tib = VM_ObjectModel.getTIB(obj);
     if (VM.VerifyAssertions) {

@@ -1,22 +1,24 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2002, 2003, 2004
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-
-// @author Stephen Fink
 
 // Definitions of constants for handling C command-line arguments
 // These are actually only included by one caller, RunBootImage.C
 
-#ifndef CMDLINE_H 
+#ifndef CMDLINE_H
 #define CMDLINE_H
 
 /* These definitions must remain in sync with nonStandardArgs, the array
- * immediately below. */ 
+ * immediately below. */
 static const int HELP_INDEX                    = 0;
 static const int VERBOSE_INDEX                 = HELP_INDEX+1;
 static const int VERBOSE_BOOT_INDEX            = VERBOSE_INDEX+1;
@@ -40,7 +42,7 @@ static const int PROCESSORS_INDEX              = CPUAFFINITY_INDEX+1;
 static const int numNonstandardArgs      = PROCESSORS_INDEX+1;
 
 static const char* nonStandardArgs[numNonstandardArgs] = {
-   "-X", 
+   "-X",
    "-X:verbose",
    "-X:verboseBoot=",
    "-Xms",
@@ -63,7 +65,7 @@ static const char* nonStandardArgs[numNonstandardArgs] = {
 
 // a NULL-terminated list.
 static const char* nonStandardUsage[] = {
-   "    -X                       Print usage on nonstandard options", 
+   "    -X                       Print usage on nonstandard options",
    "    -X:verbose               Print out additional lowlevel information",
    "    -X:verboseBoot=<number>  Print out messages while booting VM",
    "    -Xms<number><unit>       Initial size of heap",

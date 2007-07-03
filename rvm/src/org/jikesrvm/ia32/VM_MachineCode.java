@@ -1,17 +1,20 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm.ia32;
 
 import org.jikesrvm.ArchitectureSpecific;
 
-/** 
- * @author Julian Dolby
+/**
  */
 public abstract class VM_MachineCode {
   private final ArchitectureSpecific.VM_CodeArray instructions;
@@ -20,16 +23,16 @@ public abstract class VM_MachineCode {
   //       OSR is currently implemented.
   private int[] bytecodeMap;
 
-  public VM_MachineCode (ArchitectureSpecific.VM_CodeArray i, int[] bm) {
+  public VM_MachineCode(ArchitectureSpecific.VM_CodeArray i, int[] bm) {
     instructions = i;
-    bytecodeMap  = bm;
+    bytecodeMap = bm;
   }
 
-  public final ArchitectureSpecific.VM_CodeArray getInstructions () {
+  public final ArchitectureSpecific.VM_CodeArray getInstructions() {
     return instructions;
   }
 
-  public final int[] getBytecodeMap () {
+  public final int[] getBytecodeMap() {
     return bytecodeMap;
   }
 

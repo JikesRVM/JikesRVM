@@ -1,28 +1,29 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp 2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-
 package org.jikesrvm.osr;
 
-import org.jikesrvm.opt.ir.*;
 import org.jikesrvm.VM;
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import org.vmmagic.unboxed.Word;
 
 /**
- * An OSR_LocalRegPair keeps the type information and localtion of 
+ * An OSR_LocalRegPair keeps the type information and localtion of
  * a local variable/stack slot from byte code to machine code.
- *
- * @author Feng Qian
  */
 public class OSR_LocalRegPair implements OSR_Constants {
 
-  // is it a local or stack? 
-  public int kind; 
+  // is it a local or stack?
+  public int kind;
 
   // what's the number of local of stack
   public int num;
@@ -35,22 +36,22 @@ public class OSR_LocalRegPair implements OSR_Constants {
    * it out later.
    */
   public OPT_Operand operand;
- 
+
   /* rest part only available after updated by OPT_LinearScan.updateOSRMaps. */
-  
+
   /* A reg value could be an integer constant (ICONST),
-   *                      a physical register (PHYREG), or
-   *                      a spill on the stack (SPILL).
-   * The  valueType is one of them, combined with the typeCode, one shuld be
-   * able to recover the value of a variable.
-   */
-  public int valueType;    
+  *                      a physical register (PHYREG), or
+  *                      a spill on the stack (SPILL).
+  * The  valueType is one of them, combined with the typeCode, one shuld be
+  * able to recover the value of a variable.
+  */
+  public int valueType;
 
   /* The meaning of value field depends on valueType
-   * for ICONST, ACONST and LCONST, it is the value of the constant,
-   * for PHYREG, it is the register number,
-   * for SPILL, it is the spill location.
-   */ 
+  * for ICONST, ACONST and LCONST, it is the value of the constant,
+  * for PHYREG, it is the register number,
+  * for SPILL, it is the spill location.
+  */
   public Word value;
 
   /* A LONG variable takes two symbolic registers, we need to know another
@@ -59,12 +60,12 @@ public class OSR_LocalRegPair implements OSR_Constants {
   public OSR_LocalRegPair _otherHalf;
 
   /* The LiveAnalysis phase builds the linked list of tuples, and
-   * the long type variables will get another half register 
+   * the long type variables will get another half register
    * ( splitted in BURS ).
    * After register allocation, we should not use <code>operand</code>
    * anymore. The physical register number, spilled location, or
    * constant value is represented by (valueType, value)
-   */ 
+   */
   public OSR_LocalRegPair(int kind, int num, byte type, OPT_Operand op) {
     this.kind = kind;
     this.num = num;
@@ -78,26 +79,26 @@ public class OSR_LocalRegPair implements OSR_Constants {
 
   /* converts tuple to string as
    *  ( L/S num, type, valueType, value, oprand )
-   */      
+   */
   public String toString() {
     StringBuilder buf = new StringBuilder("(");
 
-    buf.append((char)kind);
+    buf.append((char) kind);
     buf.append(num).append(" , ");
 
-    char tcode = (char)typeCode;
+    char tcode = (char) typeCode;
 
     buf.append(tcode).append(" , ");
     buf.append(valueType).append(" , ");
-    buf.append(value).append(" , ");
+    buf.append("0x").append(Long.toHexString(value.toLong())).append(" , ");
     buf.append(operand).append(")");
 
     // for long type, append another half
     if (VM.BuildFor32Addr && (tcode == LongTypeCode)) {
       buf.append("(").append(_otherHalf.valueType).append(" , ");
-      buf.append(_otherHalf.value).append(")");
+      buf.append("0x").append(Integer.toHexString(_otherHalf.value.toInt())).append(")");
     }
     return buf.toString();
   }
 }
-  
+

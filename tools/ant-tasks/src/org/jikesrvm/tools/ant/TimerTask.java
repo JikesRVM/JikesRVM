@@ -1,10 +1,14 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Peter Donald. 2007
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm.tools.ant;
 
@@ -19,9 +23,7 @@ import org.apache.tools.ant.taskdefs.Property;
  * the current time in a property with the name "&lt;property&gt;.start". If stop is set to
  * true then the task attempts to load a start time from "&lt;property&gt;.start" and then
  * stores the current time in "&lt;property&gt;.end" and the duration between "&lt;property&gt;.start"
- * and now in "&lt;property&gt;.duration". 
- *
- * @author Peter Donald
+ * and now in "&lt;property&gt;.duration".
  */
 public class TimerTask
     extends Task {

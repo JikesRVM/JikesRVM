@@ -1,15 +1,15 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-/**
- * @author unascribed
- */
-
 class TestReturn
 {
   public static void main(String args[])
@@ -17,17 +17,17 @@ class TestReturn
     // VM.boot();
     run();
   }
-  
+
   static boolean testSuccess = true;
 
   public static boolean run()
   {
     System.out.print("TestReturn");
-    
+
     /**/                                                       void_f();
     boolean b_f = boolean_f();
     if (!b_f) {
-      System.out.print("\nwant: true\n got: "); 
+      System.out.print("\nwant: true\n got: ");
       System.out.println(boolean_f());
       testSuccess = false;
     }
@@ -41,42 +41,42 @@ class TestReturn
     char c_f = char_f();
     if (c_f != 'A') {
       System.out.print("\nwant: A\n got: ");    System.out.println(char_f());
-      testSuccess = false;    
+      testSuccess = false;
     }
-    
+
     short s_f = short_f();
     if (s_f != 4) {
       System.out.print("\nwant: 4\n got: ");    System.out.println(short_f());
       testSuccess = false;
     }
-    
+
     int i_f = int_f();
     if (i_f != 5) {
       System.out.print("\nwant: 5\n got: ");    System.out.println(int_f());
-      testSuccess = false;    
+      testSuccess = false;
     }
-    
+
     long l_f = long_f();
     if (l_f != 6L) {
       System.out.print("\nwant: 6\n got: ");    System.out.println(long_f());
-      testSuccess = false;    
+      testSuccess = false;
     }
 
     float f_f = float_f();
     if (f_f != 7.0) {
       System.out.print("\nwant: 7.0\n got: ");  System.out.println(float_f());
-      testSuccess = false;    
+      testSuccess = false;
     }
 
     double d_f = double_f();
     if (d_f != 8.0D) {
       System.out.print("\nwant: 8.0\n got: ");  System.out.println(double_f());
-       testSuccess = false;   
+       testSuccess = false;
     }
 
     if (object_f() != null) {
       System.out.print("\nwant: null\n got: "); System.out.println(object_f());
-      testSuccess = false;    
+      testSuccess = false;
     }
 
     if (primitive_array_f() != null) {
@@ -95,7 +95,7 @@ class TestReturn
       System.out.println("  failed. ********************");
     return testSuccess;
   }
-  
+
   static void     void_f()            {                           return  ; } // return
   static boolean  boolean_f()         { boolean x   = true;       return x; } // ireturn
   static byte     byte_f()            { byte    x   = 2;          return x; } // ireturn

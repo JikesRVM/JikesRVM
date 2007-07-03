@@ -1,13 +1,14 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
- */
-/**
- * @author unascribed
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 class TestInstanceOf
 {
@@ -16,7 +17,7 @@ class TestInstanceOf
     // VM.boot();
     run();
   }
-  
+
   static boolean testSuccess = true;
 
   static boolean[] boolTest = new boolean[4];
@@ -24,42 +25,42 @@ class TestInstanceOf
   public static boolean run()
   {
     System.out.print("TestInstanceOf");
-    
+
     Object o1     = new TestInstanceOf();   // source: a reference
     Object o2[]   = new TestInstanceOf[2];  // source: an array of references
     Object o3[][] = new Object[2][];        // source: an array of arrays
     o3[0]  = new TestInstanceOf[4];
     o3[1]  = new TestInstanceOf[4];
     int    o4[]   = new int [2];            // source: an array of primitives
-    
+
     test(o1);
     if (!((boolTest[0])&&(!boolTest[1])&&(!boolTest[2])&&(!boolTest[3]))) {
-      System.out.print("\nwant: true false false false\n got: ");  
-      System.out.println(boolTest[0] + " " + boolTest[1] + 
+      System.out.print("\nwant: true false false false\n got: ");
+      System.out.println(boolTest[0] + " " + boolTest[1] +
                          " " + boolTest[2] + " " + boolTest[3]);
       testSuccess = false;
     }
-    
+
     test(o2);
-    if (!((!boolTest[0])&&(boolTest[1])&&(!boolTest[2])&&(!boolTest[3]))) { 
-      System.out.print("\nwant: false true false false\n got: ");  
-      System.out.println(boolTest[0] + " " + boolTest[1] + 
+    if (!((!boolTest[0])&&(boolTest[1])&&(!boolTest[2])&&(!boolTest[3]))) {
+      System.out.print("\nwant: false true false false\n got: ");
+      System.out.println(boolTest[0] + " " + boolTest[1] +
                          " " + boolTest[2] + " " + boolTest[3]);
       testSuccess = false;
     }
-    
+
     test(o3);
-    if (!((!boolTest[0])&&(!boolTest[1])&&(!boolTest[2])&&(!boolTest[3]))) { 
-      System.out.print("\nwant: false false false false\n got: "); 
-      System.out.println(boolTest[0] + " " + boolTest[1] + 
+    if (!((!boolTest[0])&&(!boolTest[1])&&(!boolTest[2])&&(!boolTest[3]))) {
+      System.out.print("\nwant: false false false false\n got: ");
+      System.out.println(boolTest[0] + " " + boolTest[1] +
                          " " + boolTest[2] + " " + boolTest[3]);
       testSuccess = false;
     }
-    
+
     test(o4);
-    if (!((!boolTest[0])&&(!boolTest[1])&&(!boolTest[2])&&(boolTest[3]))) { 
-      System.out.print("\nwant: false false false true\n got: ");  
-      System.out.println(boolTest[0] + " " + boolTest[1] + 
+    if (!((!boolTest[0])&&(!boolTest[1])&&(!boolTest[2])&&(boolTest[3]))) {
+      System.out.print("\nwant: false false false true\n got: ");
+      System.out.println(boolTest[0] + " " + boolTest[1] +
                          " " + boolTest[2] + " " + boolTest[3]);
       testSuccess = false;
     }
@@ -71,8 +72,8 @@ class TestInstanceOf
     if (testSuccess)
       System.out.println(" succeeded.");
     else
-      System.out.println(" failed. ***************\n\n");       
-    
+      System.out.println(" failed. ***************\n\n");
+
     return testSuccess;
   }
 
@@ -102,7 +103,7 @@ class TestInstanceOf
     boolTest[1] = o instanceof TestInstanceOf[]  ;  // target: an array of references
     boolTest[2] = o instanceof TestInstanceOf[][];  // target: an array of arrays
     boolTest[3] = o instanceof int []            ;  // target: an array of primitives
-    
+
     //    System.out.println(b1 + " " + b2 + " " + b3 + " " + b4);
   }
 }

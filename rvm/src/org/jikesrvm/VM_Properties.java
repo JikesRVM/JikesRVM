@@ -1,23 +1,25 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp 2001,2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm;
 
+import org.vmmagic.pragma.RuntimeFinal;
+
 /**
  * Flags that control the behavior of our virtual machine.
- * 
- * Typically these are properties that can be set from the command line
- * (and thus are NOT final).  All final properties should be 
- * declared in VM_Configuration
  *
- * @author Bowen Alpern
- * @author Stephen Fink
- * @author David Grove
+ * Typically these are properties that can be set from the command line
+ * (and thus are NOT final).  All final properties should be
+ * declared in VM_Configuration
  */
 public class VM_Properties extends VM_Options {
 
@@ -27,22 +29,26 @@ public class VM_Properties extends VM_Options {
   //    - by vm image itself, at execution time
   // The following flags specify which behavior is desired.
   //
-  
+
   /**
    * use classes for boot image generation? (see BootImageWriter)
    */
-  public static boolean writingBootImage; 
+  @RuntimeFinal(false)
+  public static boolean writingBootImage;
   /**
    * use classes for generic java programming?
    */
-  public static boolean runningTool;      
+  @RuntimeFinal(false)
+  public static boolean runningTool;
   /**
    * use classes for running actual VM?
    */
-  public static boolean runningVM;        
+  @RuntimeFinal(true)
+  public static boolean runningVM;
   /**
    * are we in the boot-image-writing portion of boot-image-creation
    */
+  @RuntimeFinal(false)
   public static boolean writingImage = false;
   /**
    * is the running VM fully booted?
@@ -51,21 +57,17 @@ public class VM_Properties extends VM_Options {
   public static boolean fullyBooted = false;
 
   /**
-   * Is dynamic class loading enabled?  Set by VM.boot at the appropriate time.
-   */
-  public static boolean dynamicClassLoadingEnabled = false;
-
-  /**
    * Is it safe to create a java.lang.Thread now?  Set by VM.boot at the
-   * appropriate time. 
+   * appropriate time.
    */
   public static boolean safeToAllocateJavaThread = false;
 
   /**
-   * If true, don't exit from the process.  As of July, 2003, this has not
-   * worked in a couple of years, nor has there been much interest in using it.
-   * If it is resurrected, we need to check the code that calls dieAbruptlyRecursiveSystemTrouble(), to make
-   * sure that instead we just kill the proper threads. 
+   * If true, don't exit from the process. As of July, 2003, this has not worked
+   * in a couple of years, nor has there been much interest in using it. If it
+   * is resurrected, we need to check the code that calls
+   * dieAbruptlyRecursiveSystemTrouble(), to make sure that instead we just kill
+   * the proper threads.
    */
   public static boolean runningAsSubsystem = false;
 
@@ -92,19 +94,19 @@ public class VM_Properties extends VM_Options {
 
   // Runtime subsystem tracing.
   //
-  public static final boolean TraceDictionaries       = false;
-  public static final boolean TraceStatics            = false;
-  public static final boolean TraceFileSystem         = false;
-  public static final boolean TraceThreads            = false;
-  public static final boolean TraceStackTrace         = false;
+  public static final boolean TraceDictionaries = false;
+  public static final boolean TraceStatics = false;
+  public static final boolean TraceFileSystem = false;
+  public static final boolean TraceThreads = false;
+  public static final boolean TraceStackTrace = false;
 
   // Baseline compiler reference map tracing.
   //
-  public static final boolean TraceStkMaps                  = false;
-  public static final boolean ReferenceMapsStatistics       = false;
-  public static final boolean ReferenceMapsBitStatistics    = false;
+  public static final boolean TraceStkMaps = false;
+  public static final boolean ReferenceMapsStatistics = false;
+  public static final boolean ReferenceMapsBitStatistics = false;
 
-  public static final boolean TraceOnStackReplacement   = false; 
+  public static final boolean TraceOnStackReplacement = false;
 
   /** How much farther? */
   public static final int maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite = 3;

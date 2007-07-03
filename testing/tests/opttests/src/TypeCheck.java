@@ -1,15 +1,15 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-/**
- * @author unascribed
- */
-
 class TypeCheck {
 
   public static void main(String[] args) {
@@ -198,7 +198,7 @@ class TypeCheck {
         x  = new Integer(5);
     else if (t1 < 0)
         x = new Float(6.7);
-    else 
+    else
         x = null;
     if (t1 > 0 && ((Integer) x).intValue() != 5)
         return false;
@@ -209,25 +209,25 @@ class TypeCheck {
         x  = new Integer(5);
     else if (t1 < 0)
         x = new Float(6.7);
-    else 
+    else
         x = null;
     Integer i = (Integer) x;
     if (i == null && t1 > 0)
         return false;
-    
+
     // TEST 17
     // checkcast + if null
     if (t1 > 0)
         x  = new Integer(5);
     else if (t1 < 0)
         x = new Float(6.7);
-    else 
+    else
         x = null;
     i = (Integer) x;
     if (i != null)
         if (t1 > 0 && i.intValue() != 5)
             return false;
-        
+
     return testSuccess;
   }
 

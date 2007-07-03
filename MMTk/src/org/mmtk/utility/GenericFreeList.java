@@ -1,15 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Architecture and Language Implementation Laboratory,
- *     Department of Computer Science,
- *     University of Massachusetts at Amherst. 2001
- * (C) Copyright Department of Computer Science,
- *     Australian National University. 2002
- * (C) Copyright IBM Corp. 2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.utility;
 
@@ -32,7 +31,7 @@ import org.vmmagic.pragma.*;
  *   <li> The allocator can only deal with MAX_UNITS units (see below for
  *   the value).</li>
  * </ul>
- * 
+ *
  * The basic data structure used by the algorithm is a large table,
  * with one word per allocatable unit.  Each word is used in a
  * number of different ways, some combination of "undefined" (32),
@@ -42,7 +41,7 @@ import org.vmmagic.pragma.*;
  *                       +-+-+-----------+-----------+
  *                       |f|m|    prev   | next/size |
  *                       +-+-+-----------+-----------+
- * 
+ *
  *   - single free unit: "free", "single", "prev", "next"
  *   - single used unit: "used", "single"
  *    - contiguous free units
@@ -54,10 +53,10 @@ import org.vmmagic.pragma.*;
  *     . second unit: "used", "multi", "size"
  *     . last unit: "used", "multi", "size"
  *    - any other unit: undefined
- *     
+ *
  *                       +-+-+-----------+-----------+
  *   top sentinel        |0|0|    tail   |   head    |  [-1]
- *                       +-+-+-----------+-----------+ 
+ *                       +-+-+-----------+-----------+
  *                                     ....
  *            /--------  +-+-+-----------+-----------+
  *            |          |1|1|   prev    |   next    |  [j]
@@ -83,20 +82,17 @@ import org.vmmagic.pragma.*;
  *                                     ....
  *                       +-+-+-----------------------+
  *   bottom sentinel     |0|0|                       |  [N]
- *                       +-+-+-----------------------+ 
+ *                       +-+-+-----------------------+
  * </pre>
  * The sentinels serve as guards against out of range coalescing
  * because they both appear as "used" blocks and so will never
  * coalesce.  The top sentinel also serves as the head and tail of
  * the doubly linked list of free blocks.
- * 
- * @author Steve Blackburn
- *
  */
 @Uninterruptible public final class GenericFreeList extends BaseGenericFreeList implements Constants {
 
   /****************************************************************************
-   * 
+   *
    * Public instance methods
    */
 
@@ -116,7 +112,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Initialize a unit as a sentinel
-   * 
+   *
    * @param unit The unit to be initilized
    */
   protected void setSentinel(int unit) {
@@ -126,7 +122,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Get the size of a lump of units
-   * 
+   *
    * @param unit The first unit in the lump of units
    * @return The size of the lump of units
    */
@@ -139,7 +135,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Set the size of lump of units
-   * 
+   *
    * @param unit The first unit in the lump of units
    * @param size The size of the lump of units
    */
@@ -154,7 +150,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Establish whether a lump of units is free
-   * 
+   *
    * @param unit The first or last unit in the lump
    * @return True if the lump is free
    */
@@ -165,7 +161,7 @@ import org.vmmagic.pragma.*;
   /**
    * Set the "free" flag for a lump of units (both the first and last
    * units in the lump are set.
-   * 
+   *
    * @param unit The first unit in the lump
    * @param isFree True if the lump is to be marked as free
    */
@@ -184,7 +180,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Get the next lump in the doubly linked free list
-   * 
+   *
    * @param unit The index of the first unit in the current lump
    * @return The index of the first unit of the next lump of units in the list
    */
@@ -195,7 +191,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Set the next lump in the doubly linked free list
-   * 
+   *
    * @param unit The index of the first unit in the lump to be set
    * @param next The value to be set.
    */
@@ -208,7 +204,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Get the previous lump in the doubly linked free list
-   * 
+   *
    * @param unit The index of the first unit in the current lump
    * @return The index of the first unit of the previous lump of units
    * in the list
@@ -220,7 +216,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Set the previous lump in the doubly linked free list
-   * 
+   *
    * @param unit The index of the first unit in the lump to be set
    * @param prev The value to be set.
    */
@@ -234,7 +230,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Get the lump to the "left" of the current lump (i.e. "above" it)
-   * 
+   *
    * @param unit The index of the first unit in the lump in question
    * @return The index of the first unit in the lump to the
    * "left"/"above" the lump in question.
@@ -248,7 +244,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Get the contents of an entry
-   * 
+   *
    * @param unit The index of the unit
    * @return The contents of the unit
    */
@@ -261,7 +257,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Set the contents of an entry
-   * 
+   *
    * @param unit The index of the unit
    * @param value The contents of the unit
    */

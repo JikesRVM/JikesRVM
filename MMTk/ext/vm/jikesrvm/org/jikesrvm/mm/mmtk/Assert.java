@@ -1,13 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2004
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
  *
- * (C) Copyright IBM Corp. 2001, 2003
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm.mm.mmtk;
 
@@ -15,16 +16,10 @@ import org.mmtk.policy.Space;
 
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Scheduler;
+import org.jikesrvm.scheduler.VM_Scheduler;
 
 import org.vmmagic.pragma.*;
 
-/**
- *
- * @author Steve Blackburn
- * @author Perry Cheng
- *
- */
 @Uninterruptible public class Assert extends org.mmtk.vm.Assert {
   /* wriggle-room to accommodate memory demands while handling failures */
   private static final int EMERGENCY_HEAP_REQ = 5<<20; // 5MB
@@ -49,12 +44,12 @@ import org.vmmagic.pragma.*;
    *
    * @param message the string to log
    */
-  public final void fail(String message) { 
-    VM.sysFail(message); 
+  public final void fail(String message) {
+    VM.sysFail(message);
   }
 
   @Uninterruptible
-  public final void exit(int rc) { 
+  public final void exit(int rc) {
     VM.sysExit(rc);
   }
 
@@ -66,7 +61,7 @@ import org.vmmagic.pragma.*;
    * @param cond the condition to be checked
    */
   @Inline
-  public final void _assert(boolean cond) { 
+  public final void _assert(boolean cond) {
     if (!org.mmtk.vm.VM.VERIFY_ASSERTIONS)
       VM.sysFail("All assertions must be guarded by VM.VERIFY_ASSERTIONS: please check the failing assertion");
     VM._assert(cond);
@@ -76,12 +71,12 @@ import org.vmmagic.pragma.*;
    * Checks that the given condition is true.  If it is not, this
    * method prints a message, does a traceback and exits. All calls
    * to this method must be guarded by <code>VM.VERIFY_ASSERTIONS</code>.
-   * 
+   *
    * @param cond the condition to be checked
    * @param message the message to print
    */
   @Inline
-  public final void _assert(boolean cond, String message) { 
+  public final void _assert(boolean cond, String message) {
     if (!org.mmtk.vm.VM.VERIFY_ASSERTIONS)
       VM.sysFail("All assertions must be guarded by VM.VERIFY_ASSERTIONS: please check the failing assertion");
     if (!cond) VM.sysWriteln(message);
@@ -99,7 +94,7 @@ import org.vmmagic.pragma.*;
    */
   @LogicallyUninterruptible
   @NoInline
-  public final void failWithOutOfMemoryError() { 
+  public final void failWithOutOfMemoryError() {
     failWithOutOfMemoryErrorStatic();
   }
 

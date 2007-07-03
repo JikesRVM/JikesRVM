@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- *     Australian National University. 2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.policy;
 
@@ -21,15 +24,12 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements functionality for a simple sliding mark-compact
  * space.
- * 
- *
- * @author Daniel Frampton
  */
 @Uninterruptible public final class MarkCompactSpace extends Space
   implements Constants {
 
   /****************************************************************************
-   * 
+   *
    * Class variables
    */
   public static final int LOCAL_GC_BITS_REQUIRED = 1;
@@ -40,12 +40,12 @@ import org.vmmagic.pragma.*;
   private static final Offset FORWARDING_POINTER_OFFSET = VM.objectModel.GC_HEADER_OFFSET();
 
   /****************************************************************************
-   * 
+   *
    * Instance variables
    */
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
@@ -82,10 +82,10 @@ import org.vmmagic.pragma.*;
     // nothing to do
   }
 
-  
+
   /**
    * Notify that several pages are no longer in use.
-   * 
+   *
    * @param pages The number of pages
    */
   public void unusePages(int pages) {
@@ -94,7 +94,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Notify that several pages are no longer in use.
-   * 
+   *
    * @param pages The number of pages
    */
   public void reusePages(int pages) {
@@ -104,11 +104,11 @@ import org.vmmagic.pragma.*;
   /**
    * Release an allocated page or pages.  In this case we do nothing
    * because we only release pages enmasse.
-   * 
+   *
    * @param start The address of the start of the page or pages
    */
   @Inline
-  public void release(Address start) { 
+  public void release(Address start) {
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(false); // this policy only releases pages enmasse
   }
@@ -124,7 +124,7 @@ import org.vmmagic.pragma.*;
    * @return The forwarded object.
    */
   @Inline
-  public ObjectReference traceObject(TraceLocal trace, ObjectReference object) { 
+  public ObjectReference traceObject(TraceLocal trace, ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(false);
     return null;
@@ -141,7 +141,7 @@ import org.vmmagic.pragma.*;
    * @return The forwarded object.
    */
   @Inline
-  public ObjectReference traceMarkObject(TraceLocal trace, ObjectReference object) { 
+  public ObjectReference traceMarkObject(TraceLocal trace, ObjectReference object) {
     if (testAndMark(object)) {
       trace.enqueue(object);
     } else if (!getForwardingPointer(object).isNull()) {
@@ -161,7 +161,7 @@ import org.vmmagic.pragma.*;
    * @return The forwarded object.
    */
   @Inline
-  public ObjectReference traceForwardObject(TraceLocal trace, ObjectReference object) { 
+  public ObjectReference traceForwardObject(TraceLocal trace, ObjectReference object) {
     if (testAndClearMark(object)) {
       trace.enqueue(object);
     }
@@ -172,7 +172,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Is this object live?
-   * 
+   *
    * @param object The object
    * @return True if the object is live
    */
@@ -183,7 +183,7 @@ import org.vmmagic.pragma.*;
   /**
    * Has the object in this space been reached during the current collection.
    * This is used for GC Tracing.
-   * 
+   *
    * @param object The object reference.
    * @return True if the object is reachable.
    */
@@ -193,57 +193,57 @@ import org.vmmagic.pragma.*;
 
 
   /****************************************************************************
-   * 
+   *
    * Header manipulation
    */
 
   /**
    * Perform any required post-allocation initialization
-   * 
+   *
    * <i>Nothing to be done in this case</i>
-   * 
+   *
    * @param object the object ref to the storage to be initialized
    */
   @Inline
-  public void postAlloc(ObjectReference object) { 
+  public void postAlloc(ObjectReference object) {
   }
 
   /**
    * Non-atomic read of forwarding pointer
-   * 
+   *
    * @param object The object whose forwarding pointer is to be read
    * @return The forwarding pointer stored in <code>object</code>'s
    * header.
    */
   @Inline
-  public static ObjectReference getForwardingPointer(ObjectReference object) { 
+  public static ObjectReference getForwardingPointer(ObjectReference object) {
     return object.toAddress().loadObjectReference(FORWARDING_POINTER_OFFSET);
   }
 
   /**
    * Initialise the header of the object.
-   * 
+   *
    * @param object The object to initialise
    */
   @Inline
-  public void initializeHeader(ObjectReference object) { 
+  public void initializeHeader(ObjectReference object) {
     // nothing to do
   }
 
   /**
    * Used to mark boot image objects during a parallel scan of objects
    * during GC Returns true if marking was done.
-   * 
+   *
    * @param object The object to be marked
    */
   @Inline
-  public static boolean testAndMark(ObjectReference object) { 
+  public static boolean testAndMark(ObjectReference object) {
     Word oldValue;
     do {
       oldValue = VM.objectModel.prepareAvailableBits(object);
       Word markBit = oldValue.and(GC_MARK_BIT_MASK);
       if (!markBit.isZero()) return false;
-    } while (!VM.objectModel.attemptAvailableBits(object, oldValue, 
+    } while (!VM.objectModel.attemptAvailableBits(object, oldValue,
                                                 oldValue.or(GC_MARK_BIT_MASK)));
     return true;
   }
@@ -251,11 +251,11 @@ import org.vmmagic.pragma.*;
   /**
    * Used to mark boot image objects during a parallel scan of objects
    * during GC Returns true if marking was done.
-   * 
+   *
    * @param object The object to be marked
    */
   @Inline
-  public static boolean isMarked(ObjectReference object) { 
+  public static boolean isMarked(ObjectReference object) {
     Word oldValue = VM.objectModel.readAvailableBitsWord(object);
     Word markBit = oldValue.and(GC_MARK_BIT_MASK);
     return (!markBit.isZero());
@@ -264,30 +264,30 @@ import org.vmmagic.pragma.*;
   /**
    * Used to mark boot image objects during a parallel scan of objects
    * during GC Returns true if marking was done.
-   * 
+   *
    * @param object The object to be marked
    */
   @Inline
-  private static boolean testAndClearMark(ObjectReference object) { 
+  private static boolean testAndClearMark(ObjectReference object) {
     Word oldValue;
     do {
       oldValue = VM.objectModel.prepareAvailableBits(object);
       Word markBit = oldValue.and(GC_MARK_BIT_MASK);
       if (markBit.isZero()) return false;
-    } while (!VM.objectModel.attemptAvailableBits(object, oldValue, 
+    } while (!VM.objectModel.attemptAvailableBits(object, oldValue,
                                                 oldValue.and(GC_MARK_BIT_MASK.not())));
     return true;
   }
 
-  
+
   /**
    * Used to mark boot image objects during a parallel scan of objects
    * during GC Returns true if marking was done.
-   * 
+   *
    * @param object The object to be marked
    */
   @Inline
-  public static boolean toBeCompacted(ObjectReference object) { 
+  public static boolean toBeCompacted(ObjectReference object) {
     Word oldValue = VM.objectModel.readAvailableBitsWord(object);
     Word markBit = oldValue.and(GC_MARK_BIT_MASK);
     return !markBit.isZero() && getForwardingPointer(object).isNull();
@@ -296,11 +296,11 @@ import org.vmmagic.pragma.*;
   /**
    * Used to mark boot image objects during a parallel scan of objects
    * during GC Returns true if marking was done.
-   * 
+   *
    * @param object The object to be marked
    */
   @Inline
-  public static void clearMark(ObjectReference object) { 
+  public static void clearMark(ObjectReference object) {
     Word oldValue = VM.objectModel.readAvailableBitsWord(object);
     VM.objectModel.writeAvailableBitsWord(object, oldValue.and(GC_MARK_BIT_MASK.not()));
   }
@@ -309,14 +309,14 @@ import org.vmmagic.pragma.*;
    * Non-atomic write of forwarding pointer word (assumption, thread
    * doing the set has done attempt to forward and owns the right to
    * copy the object)
-   * 
+   *
    * @param object The object whose forwarding pointer is to be set
    * @param ptr The forwarding pointer to be stored in the object's
    * forwarding word
    */
   @Inline
   public static void setForwardingPointer(ObjectReference object,
-                                           ObjectReference ptr) { 
+                                           ObjectReference ptr) {
     object.toAddress().store(ptr.toAddress(), FORWARDING_POINTER_OFFSET);
   }
 
@@ -324,11 +324,11 @@ import org.vmmagic.pragma.*;
    * Non-atomic clear of forwarding pointer word (assumption, thread
    * doing the set has done attempt to forward and owns the right to
    * copy the object)
-   * 
+   *
    * @param object The object whose forwarding pointer is to be set
    */
   @Inline
-  public static void clearForwardingPointer(ObjectReference object) { 
+  public static void clearForwardingPointer(ObjectReference object) {
     object.toAddress().store(Address.zero(), FORWARDING_POINTER_OFFSET);
   }
 }

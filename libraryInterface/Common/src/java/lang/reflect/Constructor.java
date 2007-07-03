@@ -1,29 +1,26 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp 2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package java.lang.reflect;
 
 import org.jikesrvm.classloader.*;
-import org.jikesrvm.VM_Reflection;
-import org.jikesrvm.VM_Runtime;
+import org.jikesrvm.runtime.VM_Reflection;
+import org.jikesrvm.runtime.VM_Runtime;
 
 /**
  * Implementation of java.lang.reflect.Constructor for JikesRVM.
  *
  * By convention, order methods in the same order
- * as they appear in the method summary list of Sun's 1.4 Javadoc API. 
- *
- * @author John Barton 
- * @author Julian Dolby
- * @author Stephen Fink
- * @author Eugene Gluzberg
- * @author Dave Grove
- * @modified Ian Rogers
+ * as they appear in the method summary list of Sun's 1.4 Javadoc API.
  */
 public final class Constructor<T> extends AccessibleObject
   implements GenericDeclaration, Member
@@ -47,7 +44,7 @@ public final class Constructor<T> extends AccessibleObject
       return false;
     }
   }
-    
+
   @SuppressWarnings("unchecked")  // Type system needs to be bent a bit here
   public Class<T> getDeclaringClass() {
     return (Class<T>)constructor.getDeclaringClass().getClassForType();
@@ -69,7 +66,7 @@ public final class Constructor<T> extends AccessibleObject
   public String getName() {
     return getDeclaringClass().getName();
   }
-    
+
   public Class<?>[] getParameterTypes() {
     return JikesRVMSupport.typesToClasses(constructor.getParameterTypes());
   }
@@ -83,8 +80,8 @@ public final class Constructor<T> extends AccessibleObject
   }
 
   public Object newInstance(Object[] args) throws InstantiationException,
-                                                  IllegalAccessException, 
-                                                  IllegalArgumentException, 
+                                                  IllegalAccessException,
+                                                  IllegalArgumentException,
                                                   InvocationTargetException {
     // Check accessibility
     if (!constructor.isPublic() && !isAccessible()) {
@@ -106,7 +103,7 @@ public final class Constructor<T> extends AccessibleObject
         args[i] = JikesRVMSupport.makeArgumentCompatible(parameterTypes[i].resolve(), args[i]);
       }
     }
-    
+
     VM_Class cls = constructor.getDeclaringClass();
     if (cls.isAbstract()) {
       throw new InstantiationException("Abstract class");

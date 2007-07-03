@@ -1,19 +1,23 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp 2002, 2004
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package java.lang;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_ObjectModel;
-import org.jikesrvm.VM_Runtime;
-import org.jikesrvm.VM_Statics;
-import static org.jikesrvm.VM_SysCall.sysCall; // for sysCall.sysGetenv
-import org.jikesrvm.VM_Time;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
+import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.VM_Statics;
+import static org.jikesrvm.runtime.VM_SysCall.sysCall; // for sysCall.sysGetenv
+import org.jikesrvm.runtime.VM_Time;
 import org.jikesrvm.VM_UnimplementedError;
 
 import org.jikesrvm.classloader.VM_Array;
@@ -28,30 +32,36 @@ import org.vmmagic.unboxed.Offset;
 
 /**
  * Library support interface of Jikes RVM
- *
- * @author Julian Dolby
- *
  */
 final class VMSystem {
 
 
   static void arraycopy(Object src, int srcPos, Object dst, int dstPos, int len) {
-    try {
-      if (src == null || dst == null)    VM_Runtime.raiseNullPointerException();
-      else if (src instanceof char[])    VM_Array.arraycopy((char[])src, srcPos, (char[])dst, dstPos, len);
-      else if (src instanceof boolean[]) VM_Array.arraycopy((boolean[])src, srcPos, (boolean[])dst, dstPos, len);
-      else if (src instanceof byte[])    VM_Array.arraycopy((byte[])src, srcPos, (byte[])dst, dstPos, len);
-      else if (src instanceof short[])   VM_Array.arraycopy((short[])src, srcPos, (short[])dst, dstPos, len);
-      else if (src instanceof int[])     VM_Array.arraycopy((int[])src, srcPos, (int[])dst, dstPos, len);
-      else if (src instanceof long[])    VM_Array.arraycopy((long[])src, srcPos, (long[])dst, dstPos, len);
-      else if (src instanceof float[])   VM_Array.arraycopy((float[])src, srcPos, (float[])dst, dstPos, len);
-      else if (src instanceof double[])  VM_Array.arraycopy((double[])src, srcPos, (double[])dst, dstPos, len);
-      else                               VM_Array.arraycopy((Object[])src, srcPos, (Object[])dst, dstPos, len);
-    } catch (ClassCastException e) {
-      VM_Runtime.raiseArrayStoreException();
+	if (src == null || dst == null) {
+	  VM_Runtime.raiseNullPointerException();
+	} else if ((src instanceof char[]) && (dst instanceof char[])) {
+	  VM_Array.arraycopy((char[])src, srcPos, (char[])dst, dstPos, len);
+	} else if ((src instanceof Object[]) && (dst instanceof Object[])) {
+	  VM_Array.arraycopy((Object[])src, srcPos, (Object[])dst, dstPos, len);
+	} else if ((src instanceof byte[]) && (dst instanceof byte[])) {
+	  VM_Array.arraycopy((byte[])src, srcPos, (byte[])dst, dstPos, len);
+	} else if ((src instanceof boolean[]) && (dst instanceof boolean[])) {
+	  VM_Array.arraycopy((boolean[])src, srcPos, (boolean[])dst, dstPos, len);
+	} else if ((src instanceof short[]) && (dst instanceof short[])) {
+	  VM_Array.arraycopy((short[])src, srcPos, (short[])dst, dstPos, len);
+	} else if ((src instanceof int[]) && (dst instanceof int[])) {
+	  VM_Array.arraycopy((int[])src, srcPos, (int[])dst, dstPos, len);
+	} else if ((src instanceof long[]) && (dst instanceof long[])) {
+	  VM_Array.arraycopy((long[])src, srcPos, (long[])dst, dstPos, len);
+	} else if ((src instanceof float[]) && (dst instanceof float[])) {
+	  VM_Array.arraycopy((float[])src, srcPos, (float[])dst, dstPos, len);
+	} else if ((src instanceof double[]) && (dst instanceof double[])) {
+	  VM_Array.arraycopy((double[])src, srcPos, (double[])dst, dstPos, len);
+	} else {
+	  VM_Runtime.raiseArrayStoreException();
     }
   }
-    
+
   static int identityHashCode(Object o) {
     return o == null ? 0 : VM_ObjectModel.getObjectHashCode(o);
   }
@@ -70,10 +80,10 @@ final class VMSystem {
 
   static void setIn(InputStream in) {
     try {
-      VM_Field inField = 
+      VM_Field inField =
         ((VM_Class)JikesRVMSupport.getTypeForClass(System.class))
-        .findDeclaredField( 
-                           VM_Atom.findOrCreateUnicodeAtom("in"), 
+        .findDeclaredField(
+                           VM_Atom.findOrCreateUnicodeAtom("in"),
                            VM_Atom.findOrCreateUnicodeAtom("Ljava/io/InputStream;"));
 
       inField.setObjectValueUnchecked(null, in);
@@ -84,10 +94,10 @@ final class VMSystem {
 
   static void setOut(PrintStream out) {
     try {
-      VM_Field outField = 
+      VM_Field outField =
         ((VM_Class)JikesRVMSupport.getTypeForClass(System.class))
-        .findDeclaredField( 
-                           VM_Atom.findOrCreateUnicodeAtom("out"), 
+        .findDeclaredField(
+                           VM_Atom.findOrCreateUnicodeAtom("out"),
                            VM_Atom.findOrCreateUnicodeAtom("Ljava/io/PrintStream;"));
 
       outField.setObjectValueUnchecked(null, out);
@@ -98,10 +108,10 @@ final class VMSystem {
 
   static void setErr(PrintStream err) {
     try {
-      VM_Field errField = 
+      VM_Field errField =
         ((VM_Class)JikesRVMSupport.getTypeForClass(System.class))
-        .findDeclaredField( 
-                           VM_Atom.findOrCreateUnicodeAtom("err"), 
+        .findDeclaredField(
+                           VM_Atom.findOrCreateUnicodeAtom("err"),
                            VM_Atom.findOrCreateUnicodeAtom("Ljava/io/PrintStream;"));
 
       errField.setObjectValueUnchecked(null, err);
@@ -119,18 +129,18 @@ final class VMSystem {
   static String internString(String string) {
     try {
       return (String)
-        VM_Statics.getSlotContentsAsObject(Offset.fromIntSignExtend( 
+        VM_Statics.getSlotContentsAsObject(Offset.fromIntSignExtend(
             VM_Statics.findOrCreateStringLiteral(VM_Atom.findOrCreateUnicodeAtom(string))));
     } catch (UTFDataFormatException ex) {
       throw new InternalError( ex.toString() );
     }
   }
 
-  /** Get the value of an environment variable.  
+  /** Get the value of an environment variable.
    */
   static String getenv(String envarName) {
-    
-    byte[] buf = new byte[128]; // Modest amount of space for starters.  
+
+    byte[] buf = new byte[128]; // Modest amount of space for starters.
 
     byte[] nameBytes = envarName.getBytes();
 

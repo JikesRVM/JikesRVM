@@ -1,16 +1,17 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-/* Test field access from native code 
- * Implement native methods from FieldAccess.java 
- * 
- * @author Ton Ngo, Steve Smith 
- * @date   1/4/01
+/* Test field access from native code
+ * Implement native methods from FieldAccess.java
  */
 
 #include <stdio.h>
@@ -36,11 +37,10 @@ JNIEXPORT void JNICALL Java_MonitorTest_setVerboseOff
  * Signature: (Ljava/lang/Object;)I
  *
  * Return 0 on success, non-zero on failure.
- *
  */
 JNIEXPORT jint JNICALL Java_MonitorTest_accessMonitorFromNative
   (JNIEnv *env, jclass cls, jobject lockObj) {
-  
+
   jmethodID methodID;
   jint rc;
   int incrementCount = 50;
@@ -62,28 +62,28 @@ JNIEXPORT jint JNICALL Java_MonitorTest_accessMonitorFromNative
     /* Call the Java method to increment the count */
     /* Then unlock */
     if (withLock) {
-      rc = (*env) -> MonitorEnter(env, lockObj);        
+      rc = (*env) -> MonitorEnter(env, lockObj);
       if (rc!=0) break;
     }
-    (*env) -> CallStaticVoidMethod(env, cls, methodID, 20);        
-    if (withLock) {      
+    (*env) -> CallStaticVoidMethod(env, cls, methodID, 20);
+    if (withLock) {
       rc = (*env) -> MonitorExit(env, lockObj);
       if (rc!=0) break;
     }
 
     /* try again with nested MonitorEnter */
     if (withLock) {
-      rc = (*env) -> MonitorEnter(env, lockObj);        
+      rc = (*env) -> MonitorEnter(env, lockObj);
       if (rc!=0) break;
-      rc = (*env) -> MonitorEnter(env, lockObj);        
+      rc = (*env) -> MonitorEnter(env, lockObj);
       if (rc!=0) break;
     }
-    (*env) -> CallStaticVoidMethod(env, cls, methodID, -20);        
+    (*env) -> CallStaticVoidMethod(env, cls, methodID, -20);
     if (withLock) {
       rc = (*env) -> MonitorExit(env, lockObj);
-      if (rc!=0) break;    
+      if (rc!=0) break;
       rc = (*env) -> MonitorExit(env, lockObj);
-      if (rc!=0) break;    
+      if (rc!=0) break;
     }
   }
 

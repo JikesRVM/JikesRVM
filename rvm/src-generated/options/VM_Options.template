@@ -1,12 +1,14 @@
-/* -*-java-*-
+/*
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
  *
- * (C) Copyright IBM Corp. 2003
+ *      http://www.opensource.org/licenses/cpl1.0.php
  *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm;
 
@@ -14,23 +16,20 @@ import org.vmmagic.pragma.*;
 
 /**
  * Class to handle command-line arguments and options meant
- * for the core runtime system of the VM.	
+ * for the core runtime system of the VM.
  * <p>
  * Note: This file is mechanically generated from VM_Options.template.
  * <p>
- * Note: Boolean options are defined in BOOLEAN_DAT_FILES 
- *       All other options are defined in VALUE_DAT_FILES 
+ * Note: Boolean options are defined in BOOLEAN_DAT_FILES
+ *       All other options are defined in VALUE_DAT_FILES
  *       (value, enumeration)
  * <p>
- * NOTE: This class does not support all of the types of 
+ * NOTE: This class does not support all of the types of
  *       options found in the other Jikes RVM options
  *       files.  This is intentional and is done to enable
- *       -X:vm options to be processed very early in the 
+ *       -X:vm options to be processed very early in the
  *       booting process.
  *
- * @author Bowen Alpern
- * @author Stephen Fink
- * @author Dave Grove
  **/
 @Uninterruptible public class VM_Options extends VM_Configuration {
 
@@ -50,7 +49,7 @@ $$$$ FOREACH OPTION VDATFILE
      $$$$ LET PRETTY_NAME @PAD(FULL_NAME,37-@LENGTH("TYPE")," ")
    public static TYPE PRETTY_NAME= DEFAULT_VALUE; // OPTION.DESCRIP
      $$$$ END LET PRETTY_NAME
-     $$$$ END SPLIT  
+     $$$$ END SPLIT
 $$$$ END FOREACH
 $$$$ END LOOP
    // End template-specified options
@@ -63,7 +62,7 @@ $$$$ FOREACH OPTION VDATFILE
    // FULL_NAME
           $$$$ LOOP CONSTNAME OPTION.ENUMS
                $$$$ SPLIT "CONSTNAME" " " ITEM_NAME QUERRY_NAME CMD_NAME
-   public static final TYPE ITEM_NAME = CONSTNAME.INDEX; 
+   public static final TYPE ITEM_NAME = CONSTNAME.INDEX;
    public static final boolean QUERRY_NAME() { return FULL_NAME == ITEM_NAME; }
                $$$$ END SPLIT CONSTNAME
           $$$$ END LOOP
@@ -76,7 +75,7 @@ $$$$ END LOOP
 
   /**
    * Take a string (most likely a command-line argument) and try to proccess it
-   * as an option command.  Return true if the string was understood, false 
+   * as an option command.  Return true if the string was understood, false
    * otherwise.
    *
    * @param arg a String to try to process as an option command
@@ -84,7 +83,7 @@ $$$$ END LOOP
    */
   @Interruptible
   @NoOptCompile
-  public static boolean process(String arg) { 
+  public static boolean process(String arg) {
 
     // First handle the "option commands"
     if (arg.equals("help")) {
@@ -105,7 +104,7 @@ $$$$ END LOOP
     int split = arg.indexOf('=');
     if (split == -1) {
       VM.sysWrite("  Illegal option specification!\n  \""+arg+
-		  "\" must be specified as a name-value pair in the form of option=value\n");
+                  "\" must be specified as a name-value pair in the form of option=value\n");
       return false;
     }
     String name = arg.substring(0,split);
@@ -119,11 +118,11 @@ $$$$ FOREACH OPTION BDATFILE
     if (name.equals("CMD_NAME")) {
       if (value.equals("true")) {
         FULL_NAME = true;
-	return true;
-      } else if (value.equals("false")) {
-  	FULL_NAME = false;
         return true;
-      } else 
+      } else if (value.equals("false")) {
+          FULL_NAME = false;
+        return true;
+      } else
         return false;
     }
      $$$$ END LET
@@ -159,14 +158,14 @@ $$$$ FOREACH OPTION VDATFILE
        $$$$ END IF
        return true;
      }
-     $$$$ ELSE 
+     $$$$ ELSE
        $$$$ IF TAG == E
             $$$$ LOOP CONSTNAME OPTION.ENUMS
                  $$$$ SPLIT "CONSTNAME" " " ITEM_NAME QUERRY_NAME CMD_NAME
        if (value.equals("CMD_NAME")) {
          FULL_NAME = ITEM_NAME;
          return true;
-       }         
+       }
                  $$$$ END SPLIT CONSTNAME
             $$$$ END LOOP
        return false;
@@ -226,7 +225,7 @@ $$$$ FOREACH OPTION VDATFILE
      $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
      $$$$ IF TAG == E
     VM.sysWrite("\t\tOPTION.DESCRIP\n");
-	  $$$$ LET MAIN_CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
+          $$$$ LET MAIN_CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
     VM.sysWrite("MAIN_CMD_NAME");
             $$$$ LOOP CONSTNAME OPTION.ENUMS
                  $$$$ SPLIT "CONSTNAME" " " ITEM_NAME QUERRY_NAME CMD_NAME
@@ -241,12 +240,12 @@ $$$$ END FOREACH
 $$$$ END LOOP
 
     VM.sysExit(VM.EXIT_STATUS_PRINTED_HELP_MESSAGE);
-  }    
+  }
 
   // print the options values
   public static void printOptions() {
     VM.sysWrite("Current value of VM options:\n");
-    //Begin generated option value printing 
+    //Begin generated option value printing
 $$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
 $$$$ FOREACH OPTION BDATFILE
      $$$$ SPLIT "OPTION.DECL" " " FULL_NAME DEFAULT_VALUE SHORT_NAME
@@ -283,6 +282,6 @@ $$$$ FOREACH OPTION VDATFILE
      $$$$ END SPLIT
 $$$$ END FOREACH
 $$$$ END LOOP
-    //End generated option value printing 
+    //End generated option value printing
   }
 }

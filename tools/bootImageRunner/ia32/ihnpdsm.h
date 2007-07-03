@@ -1,15 +1,16 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001, 2005
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 
-/*
- * @author Dave Toll
- */
 /*****************************************************************************\
 ***                                                                         ***
 ***        COPYRIGHT   I B M   CORPORATION  1983, 1984, 1985                ***
@@ -25,12 +26,12 @@
 
 // Original version disables return of instruction data parameters other than
 // length and type
-// Enable it now to get the r/m, mod, and reg/op field to compute the 
+// Enable it now to get the r/m, mod, and reg/op field to compute the
 // branch target address
 #undef RETPARMS
 #define RETPARMS 1
 
-// index of EIP register in the register buffer 
+// index of EIP register in the register buffer
 #define IP  8
 
 typedef char           CHAR;
@@ -72,8 +73,8 @@ typedef enum   {                       /* type of returned operand info      */
          cnearregtype  = 24,
          cfartype      = 25,
          cfarimmtype   = 26,
-         reptype       = 27,             
-         strbtype      = 28,             
+         reptype       = 27,
+         strbtype      = 28,
          strwtype      = 29} RETTYPE;
 
 
@@ -81,7 +82,7 @@ typedef enum   {                       /* type of returned operand info      */
 typedef struct parlist {             /* the parameter area                   */
   UCHAR  *iptr;                      /* machine code (INPUT) -- the
                                       * instruction stream we are
-                                      * disassembling ->       */ 
+                                      * disassembling ->       */
   UCHAR  *hbuffer;                   /* hex output buffer ->                 */
   size_t hbuffer_sz;            /* num bytes available to write into */
 
@@ -90,7 +91,7 @@ typedef struct parlist {             /* the parameter area                   */
 
   UCHAR  *ibuffer;                   /* operand output buffer ->             */
   size_t ibuffer_sz;               /* num bytes available to write into */
-  
+
   ULONG  instr_EIP;                  /* EIP value @ this instruction         */
   UINT   flagbits; /*mt*/            /* flag bits :                          */
                                      /* bit 1 (1) => ESC orders are decoded  */

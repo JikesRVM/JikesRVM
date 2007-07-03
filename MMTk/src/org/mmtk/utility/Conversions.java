@@ -1,12 +1,15 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-
 package org.mmtk.utility;
 
 import org.mmtk.utility.heap.*;
@@ -19,8 +22,6 @@ import org.vmmagic.pragma.*;
 /*
  import org.jikesrvm.VM_Offset;
  * Conversions between different units.
- *
- * @author Perry Cheng
  */
 @Uninterruptible public class Conversions implements Constants {
 
@@ -48,7 +49,7 @@ import org.vmmagic.pragma.*;
   public static int roundDown(int value, int alignment) {
 	return value & ~(alignment - 1);
   }
-  
+
   // Round up (if necessary)
   //
   public static int MBToPages(int megs) {

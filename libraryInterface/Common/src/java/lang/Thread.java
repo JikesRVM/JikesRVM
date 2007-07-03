@@ -1,11 +1,14 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp 2002, 2004
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
  *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package java.lang;
 
@@ -13,50 +16,61 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 import org.jikesrvm.VM;     // for VM.sysWrite()
-import org.jikesrvm.VM_ObjectModel;
-import org.jikesrvm.VM_Thread;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
+import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.VM_UnimplementedError;
-import org.jikesrvm.VM_Wait;
+import org.jikesrvm.scheduler.VM_Wait;
 
 /**
  * Jikes RVM implementation of a Java thread.
- *
- * @author Julian Dolby
- * @modified Steven Augart -- so it doesn't subclass VM_Thread any more.
  */
 public class Thread implements Runnable {
+
+  /**
+   * Uncaught exception interface
+   */
+  public interface UncaughtExceptionHandler
+  {
+    void uncaughtException(Thread thr, Throwable exc);
+  }
 
   public static final int MIN_PRIORITY = 1;
   public static final int MAX_PRIORITY = 10;
   public static final int NORM_PRIORITY = 5;
 
   private static int createCount = 0;
-    
-  protected VM_Thread vmdata;             // need to be accessible to
-                                          // MainThread.
+
+  /**
+   * Corresponding VM_Thread. Needs to be accessible to MainThread.
+   */
+  final VM_Thread vmdata;
 
   private volatile boolean started = false;
-    
-  private String name = null;
-    
-  private ThreadGroup group = null;
-    
-  private Runnable runnable = null;
-    
+
+  private String name;
+
+  private final ThreadGroup group;
+
+  private final Runnable runnable;
+
   private ClassLoader contextClassLoader = null;
-    
+
   private volatile boolean isInterrupted;
 
-  WeakHashMap<Object,Object> locals = new WeakHashMap<Object,Object>();
-  
-  // Special constructor to create thread that has no parent.
-  // Only for use by MainThread() constructor.
-  // ugh. protected, should probably be default. fix this.
-  //
+  final WeakHashMap<Object,Object> locals = new WeakHashMap<Object,Object>();
+
+  // See java.util.concurrent.LockSupport
+  Object parkBlocker;
+
+  /**
+   * Special constructor to create thread that has no parent.
+   * Only for use by MainThread() constructor.
+   * ugh. protected, should probably be default. fix this.
+   */
   protected Thread(String[] argv){
     vmdata = new VM_Thread(this);
-    
-    vmdata.isSystemThread = false;
+
+    vmdata.setMainThread();
     vmdata.priority = NORM_PRIORITY;
     name = "main";
     group = ThreadGroup.root;
@@ -64,27 +78,27 @@ public class Thread implements Runnable {
     // Is this necessary?  I've added it because it seems wrong to have a null
     // context class loader; maybe it's OK though?
     contextClassLoader = ClassLoader.getSystemClassLoader();
+    runnable = null;
   }
-    
+
   /** This is only used to create the system threads.
    *
-   * This is only used by 
-   * java.lang.JikesRVMSupport.createThread(VM_Thread, String). 
+   * This is only used by
+   * java.lang.JikesRVMSupport.createThread(VM_Thread, String).
    *
    * And THAT function is ONLY used by the VM_Thread() constructor, when
    * called with a NULL VM_Thread argument.  In turn, the constructor is only
    * called with that argument when we create the "boot thread".
    */
-
   Thread(VM_Thread vmdata, String myName) {
     final boolean dbg = false;
-    
+
     if (dbg) VM.sysWriteln("Invoked Thread(VM_Thread, String)");
     this.vmdata = vmdata;
     if (dbg) VM.sysWriteln("  Thread(VM_Thread, String) wrote vmdata");
-    // isSystemThread defaults to "true"
+    // By default threads are system threads
     vmdata.priority = NORM_PRIORITY;
-    if (dbg) 
+    if (dbg)
       VM.sysWriteln("  Thread(VM_Thread, String) wrote vmdata.priority");
     this.name = myName;
     if (dbg) VM.sysWriteln("  Thread(VM_Thread, String) wrote vmdata.name");
@@ -94,19 +108,20 @@ public class Thread implements Runnable {
     // // out of a threadGroup.
     // if ( group != null )
     group.addThread(this);
-    if (dbg) 
+    if (dbg)
       VM.sysWriteln("  Thread(VM_Thread, String) called group.addThread");
     // Is this necessary?  I've added it because it seems wrong to have a null
     // context class loader; maybe it's OK though?
     // contextClassLoader = ClassLoader.getSystemClassLoader();
-    if (dbg) 
+    if (dbg)
       VM.sysWriteln("  Thread(VM_Thread, String) set contextClassLoader");
+    runnable = null;
   }
 
   public Thread() {
     this(null, null, newName());
   }
-    
+
   public Thread(Runnable runnable) {
     this(null, runnable, newName());
   }
@@ -114,7 +129,7 @@ public class Thread implements Runnable {
   public Thread(Runnable runnable, String threadName) {
     this(null, runnable, threadName);
   }
-    
+
   public Thread(String threadName) {
     this(null, null, threadName);
   }
@@ -127,10 +142,14 @@ public class Thread implements Runnable {
     this(group, null, threadName);
   }
 
+  public Thread(ThreadGroup group, Runnable runnable, String threadName, long stackSize) {
+    this(group, runnable, threadName);
+  }
+
   public Thread(ThreadGroup group, Runnable runnable, String threadName) {
     vmdata = new VM_Thread(this);
 
-    vmdata.isSystemThread = false;
+    vmdata.setNormalThread();
     if (threadName==null) throw new NullPointerException();
     this.name = threadName;
     this.runnable = runnable;
@@ -146,7 +165,7 @@ public class Thread implements Runnable {
       if (currentManager != null) {
         // Ask SecurityManager for ThreadGroup...
         group = currentManager.getThreadGroup();
-                
+
         // ...but use the creator's group otherwise
         if (group == null) {
           group = currentThread.getThreadGroup();
@@ -156,14 +175,14 @@ public class Thread implements Runnable {
         group = currentThread.getThreadGroup();
       }
     }
-    
+
     group.checkAccess();
     group.addThread(this);
     this.group = group;
-        
+
     if (currentThread != null) { // Non-main thread
       contextClassLoader = currentThread.contextClassLoader;
-    } else { 
+    } else {
       // no parent: main thread, or one attached through JNI-C
       // Just set the context class loader
       contextClassLoader = ClassLoader.getSystemClassLoader();
@@ -187,7 +206,7 @@ public class Thread implements Runnable {
     return 0;
   }
 
-  public static Thread currentThread () { 
+  public static Thread currentThread () {
     Thread t = VM_Thread.getCurrentThread().getJavaLangThread();
     final boolean dbg2 = false;
     if ( dbg2 )
@@ -232,7 +251,7 @@ public class Thread implements Runnable {
       vmdata.kill(new InterruptedException("operation interrupted"), false);
     }
   }
-  
+
   public static boolean interrupted () {
     Thread current = currentThread();
     if (current.isInterrupted) {
@@ -241,14 +260,14 @@ public class Thread implements Runnable {
     }
     return false;
   }
-    
-    
+
+
   public final boolean isAlive() {
     synchronized (vmdata) {
       return vmdata.isAlive();
     }
   }
-    
+
   private boolean isDead() {
     // Has already started, is not alive anymore, and has been removed from the ThreadGroup
     synchronized (vmdata) {
@@ -272,23 +291,23 @@ public class Thread implements Runnable {
     }
   }
 
-  public final void join(long timeoutInMilliseconds) 
-    throws InterruptedException 
+  public final void join(long timeoutInMilliseconds)
+    throws InterruptedException
   {
     join(timeoutInMilliseconds, 0);
   }
-    
-  public final void join(long timeoutInMilliseconds, int nanos) 
-    throws InterruptedException 
+
+  public final void join(long timeoutInMilliseconds, int nanos)
+    throws InterruptedException
   {
     if (timeoutInMilliseconds < 0 || nanos < 0)
       throw new IllegalArgumentException();
-        
+
     synchronized (vmdata) {
       if (!started || isDead()) return;
-        
+
       // No nanosecond precision for now, we would need something like 'currentTimenanos'
-        
+
       long totalWaited = 0;
       long toWait = timeoutInMilliseconds;
       boolean timedOut = false;
@@ -312,7 +331,7 @@ public class Thread implements Runnable {
       }
     }
   }
-    
+
   /**
    * The JDK 1.4.2 API says:
    * << Automatically generated names are of the form "Thread-"+n,
@@ -343,7 +362,7 @@ public class Thread implements Runnable {
       runnable.run();
     }
   }
-    
+
   public void setContextClassLoader(ClassLoader cl) {
     contextClassLoader = cl;
   }
@@ -351,9 +370,9 @@ public class Thread implements Runnable {
   public final void setDaemon(boolean isDaemon) {
     checkAccess();
     synchronized (vmdata) {
-      if (!started) 
+      if (!started)
         vmdata.makeDaemon(isDaemon);
-      else 
+      else
         throw new IllegalThreadStateException();
     }
   }
@@ -375,29 +394,29 @@ public class Thread implements Runnable {
       vmdata.priority = newPriority;
     }
   }
-    
+
   public static void sleep (long time) throws InterruptedException {
     VM_Wait.sleep(time);
   }
-    
+
   public static void sleep(long time, int nanos) throws InterruptedException {
     if (time >= 0 && nanos >= 0)
       sleep(time);
     else
       throw new IllegalArgumentException();
   }
-    
+
   public void start()  {
     synchronized (vmdata) {
       vmdata.start();
       started = true;
     }
   }
-    
+
   public final void stop() {
     stop(new ThreadDeath());
   }
-    
+
   public final void stop(Throwable throwable) {
     checkAccess();
     synchronized (vmdata) {
@@ -411,7 +430,7 @@ public class Thread implements Runnable {
     return "Thread[ name = " + this.getName() + ", priority = " + getPriority()
       + ", group = " + getThreadGroup() + "]";
   }
-    
+
   public static void yield () {
     VM_Thread.yield();
   }
@@ -425,56 +444,55 @@ public class Thread implements Runnable {
     return currentThread().locals;
   }
 
-  /* Classpath 0.91 fixes */
+  /** Default exception handler.  */
+  private static UncaughtExceptionHandler defaultHandler;
 
   /**
-	* Uncaught exception handler is currently not supported - this
-	* field exists to avoid build problems with classpath 0.91
-	*/
+   * Uncaught exception handler
+   */
   UncaughtExceptionHandler exceptionHandler;
 
   /**
-	* Uncaught exception handler is currently not supported - this
-	* method exists to avoid build problems with classpath 0.91
-	*/
+   * Set uncaught exception handler for thread
+   */
   public void setUncaughtExceptionHandler(UncaughtExceptionHandler h) {
-	 throw new VM_UnimplementedError();
+    SecurityManager sm = SecurityManager.current;
+    if (sm != null)
+      sm.checkAccess(this);
+    exceptionHandler = h;
   }
   /**
-	* Uncaught exception handler is currently not supported - this
-	* method exists to avoid build problems with classpath 0.91
-	*/
+   * Get uncaught exception handler for thread, group or default.
+   */
   public UncaughtExceptionHandler getUncaughtExceptionHandler() {
-	 throw new VM_UnimplementedError();
+    if(exceptionHandler != null) {
+      return exceptionHandler;
+    } else if (group != null) {
+      return group;
+    } else {
+      return defaultHandler;
+    }
   }
   /**
-	* Uncaught exception handler is currently not supported - this
-	* method exists to avoid build problems with classpath 0.91
-	*/
+   * Set default uncaught exception handler
+   */
   public static void setDefaultUncaughtExceptionHandler(UncaughtExceptionHandler h) {
-	 throw new VM_UnimplementedError();
+    SecurityManager sm = SecurityManager.current;
+    if (sm != null)
+      sm.checkPermission(new RuntimePermission("setDefaultUncaughtExceptionHandler"));
+    defaultHandler = h;
   }
   /**
-	* Uncaught exception handler is currently not supported - this
-	* method exists to avoid build problems with classpath 0.91
-	*/
+   * Get default uncaught exception handler
+   */
   public static UncaughtExceptionHandler getDefaultUncaughtExceptionHandler() {
-	 throw new VM_UnimplementedError();
+    return defaultHandler;
   }
+
   /**
-	* Uncaught exception handler is currently not supported - this
-	* interface exists to avoid build problems with classpath 0.91
-	*/
-  public interface UncaughtExceptionHandler
-  {
-    void uncaughtException(Thread thr, Throwable exc);
-  }
-  /**
-	* getId is currently not supported - this
-	* interface exists to avoid build problems with classpath 0.92
-	*/
-  public long getId()
-  {
-	 throw new VM_UnimplementedError();
+   * Get ID of thread, maybe a recycled ID
+   */
+  public long getId() {
+    return (long)vmdata.getIndex();
   }
 }

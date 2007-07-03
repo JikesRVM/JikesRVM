@@ -1,27 +1,28 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2006
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm.ppc;
 
-import org.jikesrvm.VM_Constants;
-import org.jikesrvm.VM_MachineSpecific;
-import org.jikesrvm.VM_Memory;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecific.VM_Registers;
-
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.VM_MachineSpecific;
+import org.jikesrvm.runtime.VM_Memory;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Wrappers around PowerPC-specific code common to both 32 & 64 bit
- * 
- *
- * @author Steve Blackburn
  */
 public abstract class VM_MachineSpecificPowerPC extends VM_MachineSpecific implements VM_ArchConstants {
 
@@ -31,20 +32,20 @@ public abstract class VM_MachineSpecificPowerPC extends VM_MachineSpecific imple
   public static final class PPC32 extends VM_MachineSpecificPowerPC {
     public static final PPC32 singleton = new PPC32();
   }
-  
+
   /**
    * Wrappers around PPC64-specific code (64-bit specific)
    */
   public static final class PPC64 extends VM_MachineSpecificPowerPC {
     public static final PPC64 singleton = new PPC64();
   }
- 
-  
-  /* 
-   * Generic (32/64 neutral) PowerPC support
-   */
-  
+
+  /*
+  * Generic (32/64 neutral) PowerPC support
+  */
+
   /* common to all ISAs */
+
   /**
    * The following method will emit code that moves a reference to an
    * object's TIB into a destination register.
@@ -55,15 +56,15 @@ public abstract class VM_MachineSpecificPowerPC extends VM_MachineSpecific imple
    * @param tibOffset the offset of the tib from the object header
    */
   @Interruptible
-  public final void baselineEmitLoadTIB(ArchitectureSpecific.VM_Assembler asm, int dest, int object, Offset tibOffset) { 
+  public final void baselineEmitLoadTIB(ArchitectureSpecific.VM_Assembler asm, int dest, int object, Offset tibOffset) {
     asm.emitLAddrOffset(dest, object, tibOffset);
   }
-  
+
   /**
    * The following method initializes a thread stack as if
    * "startoff" method had been called by an empty baseline-compiled
    *  "sentinel" frame with one local variable
-   * 
+   *
    * @param contextRegisters The context registers for this thread
    * @param ip The instruction pointer for the "startoff" method
    * @param sp The base of the stack
@@ -71,16 +72,16 @@ public abstract class VM_MachineSpecificPowerPC extends VM_MachineSpecific imple
   @Uninterruptible
   public final void initializeStack(VM_Registers contextRegisters, Address ip, Address sp) {
     Address fp;
-   // align stack frame
+    // align stack frame
     int INITIAL_FRAME_SIZE = STACKFRAME_HEADER_SIZE;
     fp = VM_Memory.alignDown(sp.minus(INITIAL_FRAME_SIZE), STACKFRAME_ALIGNMENT);
     fp.plus(STACKFRAME_FRAME_POINTER_OFFSET).store(STACKFRAME_SENTINEL_FP);
     fp.plus(STACKFRAME_NEXT_INSTRUCTION_OFFSET).store(ip); // need to fix
     fp.plus(STACKFRAME_METHOD_ID_OFFSET).store(INVISIBLE_METHOD_ID);
-        
+
     contextRegisters.gprs.set(FRAME_POINTER, fp.toWord());
-    contextRegisters.ip  = ip;
+    contextRegisters.ip = ip;
   }
-    /* unique to PowerPC */
+  /* unique to PowerPC */
 
 }

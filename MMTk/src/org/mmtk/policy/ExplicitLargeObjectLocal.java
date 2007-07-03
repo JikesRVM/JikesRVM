@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.policy;
 
@@ -27,35 +30,31 @@ import org.vmmagic.unboxed.*;
  * the point of global synchronization, and synchronization only
  * occurs at the granularity of aquiring (and releasing) chunks of
  * memory from the VMResource.
- * 
+ *
  * If there are C CPUs and T LargeObjectSpaces, there must be C X T
  * instances of this class, one for each CPU, LargeObjectSpace pair.
- * 
- *
- * @author Steve Blackburn
- * @author Daniel Frampton
  */
 @Uninterruptible public final class ExplicitLargeObjectLocal extends LargeObjectAllocator
   implements Constants {
 
   /****************************************************************************
-   * 
+   *
    * Class variables
    */
 
   /****************************************************************************
-   * 
+   *
    * Instance variables
    */
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
   /**
    * Constructor
-   * 
+   *
    * @param space The large object space to which this thread instance
    * is bound.
    */
@@ -65,7 +64,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Allocation
    */
 
@@ -74,16 +73,16 @@ import org.vmmagic.unboxed.*;
    *  reused, this will be called each time it is reused in the
    *  lifetime of the cell, by contrast to initializeCell, which is
    *  called exactly once.).
-   * 
+   *
    * @param cell The newly allocated cell
    */
   @Inline
-  protected void postAlloc (Address cell) { 
+  protected void postAlloc (Address cell) {
     space.getCells().add(DoublyLinkedList.payloadToNode(cell));
   }
 
   /****************************************************************************
-   * 
+   *
    * Collection
    */
 
@@ -99,7 +98,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Free an object
-   * 
+   *
    * @param space The space the object is allocated in.
    * @param object The object to be freed.
    */
@@ -111,7 +110,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Miscellaneous size-related methods
    */
 
@@ -119,22 +118,22 @@ import org.vmmagic.unboxed.*;
    * Return the size of the per-superpage header required by this
    * system.  In this case it is just the underlying superpage header
    * size.
-   * 
+   *
    * @return The size of the per-superpage header required by this
    * system.
    */
   @Inline
-  protected int superPageHeaderSize() { 
-    return DoublyLinkedList.headerSize(); 
+  protected int superPageHeaderSize() {
+    return DoublyLinkedList.headerSize();
   }
 
   /**
    * Return the size of the per-cell header for cells of a given class
    * size.
-   * 
+   *
    * @return The size of the per-cell header for cells of a given class
    * size.
    */
   @Inline
-  protected int cellHeaderSize() { return 0; } 
+  protected int cellHeaderSize() { return 0; }
 }

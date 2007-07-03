@@ -1,12 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Richard Jones, 2002-5
- * Computing Laboratory, University of Kent at Canterbury
- * All rights reserved.
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.utility.gcspy;
 
@@ -29,9 +31,6 @@ import org.vmmagic.pragma.*;
  * A subspace keeps track of the start and end address of the region,
  * the index of its first block, the size of the blocks in this space,
  * and the number of blocks in this subspace.
- *
- *
- * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  */
 @Uninterruptible public class Subspace {
 
@@ -45,7 +44,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Create a new subspace
-   * 
+   *
    * @param start The address of the start of the subspace
    * @param end The address of the end of the subspace
    * @param firstIndex The index of the first block of the subspace
@@ -86,7 +85,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Reset a new subspace
-   * 
+   *
    * @param start The address of the start of the subspace
    * @param end The address of the end of the subspace
    * @param firstIndex The index of the first block of the subspace
@@ -163,7 +162,7 @@ import org.vmmagic.pragma.*;
       Log.write(" end_ ", end_);
       Log.write(" blockSize_ ", blockSize_);
       Log.write(" firstIndex_ ", firstIndex_);
-      Log.write(" + ", addr.diff(start_).toInt() / blockSize_); 
+      Log.write(" + ", addr.diff(start_).toInt() / blockSize_);
       Log.writeln(" addr ", addr);
     }
     return firstIndex_ + addr.diff(start_).toInt() / blockSize_;
@@ -180,7 +179,7 @@ import org.vmmagic.pragma.*;
   }
 
   //--------------Accessors-------------------------
-  
+
   /**
    * Get the start of the subspace
    * @return The start of this subspace

@@ -1,18 +1,22 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Ian Rogers, The University of Manchester 2007
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-//$Id: $
 package org.vmmagic.pragma;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.ElementType;
+import org.vmmagic.Pragma;
 
 /**
  * An annotation for static native methods to show that they should be
@@ -20,10 +24,9 @@ import java.lang.annotation.ElementType;
  * C function that doesn't set up the JNI environment and is therefore
  * cheaper than JNI. The first argument to the function is the address
  * of the C function to run.
- * 
- * @author Ian Rogers
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
+@Pragma
 public @interface SysCall {
 }

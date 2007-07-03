@@ -1,26 +1,29 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm.ia32;
 
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
-
-import org.jikesrvm.VM_Entrypoints;
-import org.jikesrvm.VM_Magic;
+import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_Magic;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.WordArray;
 
 /**
  * The machine state comprising a thread's execution context.
- *
- * @author Bowen Alpern
- * @author David Grove
  */
-@Uninterruptible public abstract class VM_Registers implements VM_RegisterConstants {
+@Uninterruptible
+public abstract class VM_Registers implements VM_RegisterConstants {
 
   // The following are used both for thread context switching
   // and for software/hardware exception reporting/delivery.
@@ -29,24 +32,24 @@ import org.jikesrvm.VM_Magic;
   public final double[] fprs; // floating point registers
   public Address ip;     // instruction address register
   public Address fp;     // frame pointer
-  
-  // set by C hardware exception handler and VM_Runtime.athrow 
+
+  // set by C hardware exception handler and VM_Runtime.athrow
   // and reset by each implementation of VM_ExceptionDeliverer.deliverException
   //
   public boolean inuse; // do exception registers currently contain live values?
-  
+
   public VM_Registers() {
     gprs = WordArray.create(NUM_GPRS);
     fprs = new double[NUM_FPRS];
   }
-  
+
   /**
    * Return framepointer for the deepest stackframe
    */
   public final Address getInnermostFramePointer() {
     return fp;
   }
-  
+
   /**
    * Return next instruction address for the deepest stackframe
    */

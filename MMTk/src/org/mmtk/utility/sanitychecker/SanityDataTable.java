@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2005
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.utility.sanitychecker;
 
@@ -19,15 +22,12 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This class implements a simple hashtable to store and retrieve per 
- * object information for sanity checking. <p> 
- * 
- * This class is not thread safe.
- * 
+ * This class implements a simple hashtable to store and retrieve per
+ * object information for sanity checking. <p>
  *
- * @author Daniel Frampton
+ * This class is not thread safe.
  */
-@Uninterruptible public final class SanityDataTable extends SimpleHashtable 
+@Uninterruptible public final class SanityDataTable extends SimpleHashtable
   implements Constants {
 
   /** The number of bits for the normal reference count */
@@ -47,9 +47,9 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Create a new data table of a specified size.
-   * 
+   *
    * @param rps The space to acquire the data structure from.
-   * @param logSize The log of the number of table entries. 
+   * @param logSize The log of the number of table entries.
    */
   public SanityDataTable(RawPageSpace rps, int logSize) {
     super(rps, logSize, Extent.fromIntSignExtend(BYTES_IN_WORD));
@@ -57,13 +57,13 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Increment the data word for an object.
-   * 
+   *
    * @param entry The table entry.
    * @param root True if this is a root reference.
    * @return True if this is the first ref to that object.
    */
   @Inline
-  public static boolean incRC(Address entry, boolean root) { 
+  public static boolean incRC(Address entry, boolean root) {
     Address data = SimpleHashtable.getPayloadAddress(entry);
     int old = data.loadInt();
     data.store(old + (root ? ROOT_RC_INC : NORMAL_RC_INC));
@@ -71,13 +71,13 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * Push any entries that are only in this table, and not the 
+   * Push any entries that are only in this table, and not the
    * passed table. This does not compare values.
-   * 
+   *
    * @param other The table to use for comparison.
    * @param deque The buffer to push results onto.
    */
-  public void pushNotInOther(SanityDataTable other, 
+  public void pushNotInOther(SanityDataTable other,
                              ObjectReferenceDeque deque) {
     Address entry = getFirst();
     while (!entry.isZero()) {
@@ -89,11 +89,11 @@ import org.vmmagic.unboxed.*;
     }
   }
 
-  
+
   /**
-   * Given an address of an entry, read the reference count, 
+   * Given an address of an entry, read the reference count,
    * excluding root references.
-   * 
+   *
    * @param entry The entry
    * @return The reference count.
    */
@@ -103,7 +103,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Given an address of an entry, read the root reference count.
-   * 
+   *
    * @param entry The entry
    * @return The root reference count.
    */
@@ -113,7 +113,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Given an address of an entry, read the total reference count.
-   * 
+   *
    * @param entry The entry
    * @return The total reference count.
    */
@@ -124,7 +124,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Given an address of an entry, read the reference component.
-   * 
+   *
    * @param entry The entry
    * @return The object reference.
    */
@@ -133,25 +133,25 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * Forward data table using the supplied trace. Note that the data is 
+   * Forward data table using the supplied trace. Note that the data is
    * not hashed correctly, so only enumeration can be used without
-   * rehashing.  
-   * 
+   * rehashing.
+   *
    * @param trace The trace to use.
    */
   public void forwardTable(TraceLocal trace) {
     Address entry = getFirst();
     while (!entry.isZero()) {
       ObjectReference obj = getObjectReference(entry);
-      SimpleHashtable.replaceKey(entry, trace.getForwardedReference(obj).toAddress().toWord()); 
+      SimpleHashtable.replaceKey(entry, trace.getForwardedReference(obj).toAddress().toWord());
       entry = getNext(entry);
     }
   }
 
   /**
    * Get an entry for an object.
-   * 
-   * @param object The object to find an entry for. 
+   *
+   * @param object The object to find an entry for.
    * @param create Create an entry if none exists?
    * @return The entry address.
    */

@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2005
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.plan;
 
@@ -18,20 +21,16 @@ import org.vmmagic.pragma.*;
 /**
  * A garbage collection proceeds as a sequence of phases. Each
  * phase is either simple (singular) or complex (an array).
- * 
+ *
  * The context an individual phase executes in may be global, local,
  * or an (ordered) combination of global and local.
- * 
+ *
  * @see CollectorContext#collectionPhase
  * @see Plan#collectionPhase
- * 
- * Urgent TODO: Assess cost of rendezvous when running in parallel.
- * It should be possible to remove some by thinking about phases more 
- * carefully
- * 
  *
- * @author Daniel Frampton
- * @author Robin Garner
+ * Urgent TODO: Assess cost of rendezvous when running in parallel.
+ * It should be possible to remove some by thinking about phases more
+ * carefully
  */
 @Uninterruptible public abstract class Phase implements Constants {
   private static final int MAX_PHASES = 64;
@@ -66,8 +65,8 @@ import org.vmmagic.pragma.*;
   public static final int MUTATOR_ONLY = MUTATOR_MASK;
 
   /**
-   * A phase that currently does not execute. Is either designed to be 
-   * replaced by collectors if required, or is a reminded or a future 
+   * A phase that currently does not execute. Is either designed to be
+   * replaced by collectors if required, or is a reminded or a future
    * work item.
    */
   public static final int PLACEHOLDER = 0;
@@ -83,16 +82,16 @@ import org.vmmagic.pragma.*;
   protected final String name;
 
   /**
-   * The Timer that is started and stopped around the excecution of this 
+   * The Timer that is started and stopped around the excecution of this
    * phase.
    */
   protected final Timer timer;
 
   /**
    * Create a new Phase. This involves creating a corresponding Timer
-   * instance, allocating a unique identifier, and registering the 
+   * instance, allocating a unique identifier, and registering the
    * Phase.
-   * 
+   *
    * @param name The name for the phase.
    */
   protected Phase(String name) {
@@ -102,7 +101,7 @@ import org.vmmagic.pragma.*;
   /**
    * Create a new phase. This involves setting the corresponding Timer
    * instance, allocating a unique identifier, and registering the Phase.
-   * 
+   *
    * @param name The name of the phase.
    * @param timer The timer, or null if this is an untimed phase.
    */
@@ -132,10 +131,10 @@ import org.vmmagic.pragma.*;
    * Delegate the execution of a specified phase. This causes any
    * necessary synchronization to be executed, and the appropriate
    * collectionPhase calls to be made to Plan and PlanLocal
-   * 
+   *
    * @see Plan#collectionPhase
    * @see CollectorContext#collectionPhase
-   * 
+   *
    * @param phaseId The identifier of the phase to execute.
    */
   public static void delegatePhase(int phaseId) {
@@ -146,10 +145,10 @@ import org.vmmagic.pragma.*;
    * Delegate the execution of a specified phase. This causes any
    * necessary synchronization to be executed, and the appropriate
    * collectionPhase calls to be made to Plan and PlanLocal
-   * 
+   *
    * @see Plan
    * @see CollectorContext
-   * 
+   *
    * @param phase The phase to execute.
    */
   protected static void delegatePhase(Phase phase) {
@@ -168,7 +167,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Retrieve a phase by the unique phase identifier.
-   * 
+   *
    * @param id The phase identifier.
    * @return The Phase instance.
    */

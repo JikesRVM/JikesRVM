@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- *     University of Massachusetts, Amherst. 2003
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.utility.deque;
 
@@ -26,8 +29,8 @@ import org.vmmagic.unboxed.*;
  * <code>SharedDeque</code>.
  *
  * The implementation is intended to be as efficient as possible, in
- * time and space, and is the basis for the <code>TraceBuffer</code> used by 
- * heap trace generation. Each instance adds a single field to those inherited 
+ * time and space, and is the basis for the <code>TraceBuffer</code> used by
+ * heap trace generation. Each instance adds a single field to those inherited
  * from the SSB: a bump pointer.
  *
  * Preconditions: Buffers are always aligned on buffer-size address
@@ -36,14 +39,12 @@ import org.vmmagic.unboxed.*;
  * Invariants: Buffers are filled such that tuples (of the specified
  * arity) are packed to the low end of the buffer.  Thus buffer
  * underflows will always arise when then cursor is buffer-size aligned.
- * 
- * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
  */
 @Uninterruptible class LocalQueue extends LocalSSB implements Constants {
 
   /**
    * Constructor
-   * 
+   *
    * @param queue The shared queue to which this local ssb will append
    * its buffers (when full or flushed).
    */
@@ -52,7 +53,7 @@ import org.vmmagic.unboxed.*;
   }
 
  /****************************************************************************
-   * 
+   *
    * Protected instance methods and fields
    */
   protected Address head; // the start of the buffer
@@ -74,7 +75,7 @@ import org.vmmagic.unboxed.*;
    * buffer must contain enough space for this many words.
    */
   @Inline
-  protected final boolean checkDequeue(int arity) { 
+  protected final boolean checkDequeue(int arity) {
     if (bufferOffset(head).isZero()) {
       return dequeueUnderflow(arity);
     } else {
@@ -87,11 +88,11 @@ import org.vmmagic.unboxed.*;
    * Dequeue a value from the buffer.  This is <i>unchecked</i>.  The
    * caller must first call <code>checkDequeue()</code> to ensure the
    * buffer has and entry to be removed.
-   * 
+   *
    * @return The first entry on the queue.
    */
   @Inline
-  protected final Address uncheckedDequeue(){ 
+  protected final Address uncheckedDequeue(){
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(bufferOffset(head).sGE(Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)));
     head = head.minus(BYTES_IN_ADDRESS);
     return head.loadAddress();
@@ -103,8 +104,8 @@ import org.vmmagic.unboxed.*;
    * Otherwise try wait on the global queue until either all other
    * clients of the queue reach exhaustion or a buffer becomes
    * available.
-   * 
-   * @param arity The arity of this buffer  
+   *
+   * @param arity The arity of this buffer
    * @return True if the consumer has eaten all the entries
    */
   protected final boolean headStarved(int arity) {
@@ -125,7 +126,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Private instance methods
    */
 

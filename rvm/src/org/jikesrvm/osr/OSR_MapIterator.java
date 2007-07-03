@@ -1,18 +1,22 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp 2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-
 package org.jikesrvm.osr;
 
-import org.jikesrvm.*;
+import org.jikesrvm.VM;
+
 /**
  * An iterator over an encoded OSR map.
- * It is a bit odd to used now. 
+ * It is a bit odd to used now.
  *     while (it.hasMore()) {
  *       it.getKind();
  *       it.getNumber();
@@ -22,13 +26,11 @@ import org.jikesrvm.*;
  *
  *       it.moveToNext();
  *     }
- * 
- * @author Feng Qian
  */
 
-public class OSR_MapIterator implements OSR_Constants{
+public class OSR_MapIterator implements OSR_Constants {
   private int curidx;
-  private int[] maps;  
+  private int[] maps;
   private int curmid;
   private int curmpc;
 
@@ -38,7 +40,7 @@ public class OSR_MapIterator implements OSR_Constants{
   public OSR_MapIterator(int[] mapcode, int index) {
     // skip over the map of registers which are references.
     this.curidx = index + 1;
-    this.maps   = mapcode;
+    this.maps = mapcode;
 
     if ((mapcode[index] & NEXT_BIT) != 0) {
       this.moreMethId = true;
@@ -50,7 +52,7 @@ public class OSR_MapIterator implements OSR_Constants{
     return this.moreElemnt;
   }
 
-  /* after finishing iteration of one method, move to the next, 
+  /* after finishing iteration of one method, move to the next,
    * it if is empty, move further.
    */
   private void moveToNextMethodId() {
@@ -58,12 +60,12 @@ public class OSR_MapIterator implements OSR_Constants{
 
     this.curmid = maps[curidx] & ~NEXT_BIT;
     this.moreMethId = (maps[curidx] & NEXT_BIT) != 0;
-    
-    this.curidx ++;
+
+    this.curidx++;
     this.curmpc = maps[curidx] & ~NEXT_BIT;
     this.moreElemnt = (maps[curidx] & NEXT_BIT) != 0;
 
-    this.curidx ++;
+    this.curidx++;
 
     // if this method id entry is empty, skip to the next
     if (!hasMoreElements() && hasMoreMethodId()) {
@@ -85,11 +87,11 @@ public class OSR_MapIterator implements OSR_Constants{
    * Moves the index to the next element, update more first because
    * we use last element's bit to indicate whether this element is
    * available.
-   */ 
+   */
   public void moveToNext() {
     if (VM.VerifyAssertions) VM._assert(this.hasMore());
 
-    this.moreElemnt    = (maps[curidx] & NEXT_BIT) != 0;
+    this.moreElemnt = (maps[curidx] & NEXT_BIT) != 0;
     this.curidx += 2;
     if (!hasMoreElements() && hasMoreMethodId()) {
       moveToNextMethodId();
@@ -99,6 +101,7 @@ public class OSR_MapIterator implements OSR_Constants{
   /* for the current element, provide a list of queries. */
 
   /* what kind. */
+
   public int getKind() {
     return (maps[curidx] & KIND_MASK) >> KIND_SHIFT;
   }
@@ -120,7 +123,7 @@ public class OSR_MapIterator implements OSR_Constants{
 
   /* value */
   public int getValue() {
-    return (maps[curidx+1]);
+    return maps[curidx + 1];
   }
 
   /* current mid */

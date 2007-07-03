@@ -1,26 +1,24 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
  *
- * (C) Copyright Department of Computer Science,
- * University of Massachusetts, Amherst. 2003
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.plan.semispace.gctrace;
 
 import org.mmtk.plan.semispace.*;
 import org.mmtk.policy.RawPageSpace;
-import org.mmtk.policy.Space;
 import org.mmtk.utility.deque.SortTODSharedDeque;
 import org.mmtk.utility.TraceGenerator;
 import org.mmtk.utility.options.Options;
 
 import org.mmtk.vm.VM;
-import org.mmtk.vm.Collection;
 
 import org.vmmagic.pragma.*;
 
@@ -76,19 +74,11 @@ import org.vmmagic.pragma.*;
  * and therefore "static" members of Plan.  This mapping of threads to
  * instances is crucial to understanding the correctness and
  * performance proprties of this plan.
- * 
- *
- * @author Steve Blackburn
- * @author Perry Cheng
- * @author Daniel Frampton
- * @author Robin Garner
- * @author <a href="http://cs.canisius.edu/~hertzm">Matthew Hertz</a>
- * 
  */
 @Uninterruptible public class GCTrace extends SS {
 
   /****************************************************************************
-   * 
+   *
    * Class variables
    */
 
@@ -103,7 +93,7 @@ import org.vmmagic.pragma.*;
   public static boolean finalDead = false;
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
@@ -118,10 +108,10 @@ import org.vmmagic.pragma.*;
 
   /**
    * The postBoot method is called by the runtime immediately after
-   * command-line arguments are available. 
+   * command-line arguments are available.
    */
   @Interruptible
-  public void postBoot() { 
+  public void postBoot() {
     Options.noFinalizer.setValue(true);
   }
 
@@ -138,52 +128,22 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * This method is called periodically by the allocation subsystem
-   * (by default, each time a page is consumed), and provides the
-   * collector with an opportunity to collect.<p>
+   * This method controls the triggering of a GC. It is called periodically
+   * during allocation. Returns true to trigger a collection.
    *
-   * We trigger a collection whenever an allocation request is made
-   * that would take the number of pages in use (committed for use)
-   * beyond the number of pages available.  Collections are triggered
-   * through the runtime, and ultimately call the
-   * <code>collect()</code> method of this class or its superclass.<p>
-   *
-   * This method is clearly interruptible since it can lead to a GC.
-   * However, the caller is typically uninterruptible and this fiat allows 
-   * the interruptibility check to work.  The caveat is that the caller 
-   * of this method must code as though the method is interruptible. 
-   * In practice, this means that, after this call, processor-specific
-   * values must be reloaded.
-   * 
-   * @see org.mmtk.policy.Space#acquire(int)
-   * @param mustCollect if <code>true</code> then a collection is
-   * required and must be triggered.  Otherwise a collection is only
-   * triggered if we deem it necessary.
-   * @param space the space that triggered the polling (i.e. the space
-   * into which an allocation is about to occur).
-   * @return True if a collection has been triggered
+   * @param spaceFull Space request failed, must recover pages within 'space'.
+   * @return True if a collection is requested by the plan.
    */
-  @LogicallyUninterruptible
-  public boolean poll(boolean mustCollect, Space space) { 
-    if (getCollectionsInitiated() > 0 || !isInitialized() || space == metaDataSpace || space == traceSpace)
-      return false;
-
-    mustCollect |= stressTestGCRequired();
-
-    boolean heapFull = getPagesReserved() > getTotalPages();
-    if (mustCollect || heapFull) {
-      required = space.reservedPages() - space.committedPages();
-      if (space == copySpace0 || space == copySpace1)
-        required = required << 1; // must account for copy reserve
+  public final boolean collectionRequired(boolean spaceFull) {
+    if (super.collectionRequired(spaceFull)) {
       traceInducedGC = false;
-      VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
     }
     return false;
   }
 
   /****************************************************************************
-   * 
+   *
    * Collection
    */
 
@@ -194,7 +154,6 @@ import org.vmmagic.pragma.*;
     if (phaseId == RELEASE) {
       if (traceInducedGC) {
         /* Clean up following a trace-induced scan */
-        progress = true;
         deathScan = false;
       } else {
         /* Finish the collection by calculating the unreachable times */
@@ -213,9 +172,9 @@ import org.vmmagic.pragma.*;
     }
   }
 
-  
+
   /****************************************************************************
-   * 
+   *
    * Space management
    */
 

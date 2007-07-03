@@ -1,10 +1,14 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Australian National University 2007
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm.util;
 
@@ -12,23 +16,20 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
-
 import org.jikesrvm.VM;
 
 /**
  * Implementation of java.util.LinkedList for use in classes that
  * end up in the boot image.
- * 
- * @author Robin Garner
  */
 public final class VM_LinkedList<T> implements List<T> {
-  
+
   /** Element count */
   private int count = 0;
-  
+
   /** pointer to first element in the list */
   Element<T> head = null;
-  
+
   /** pointer to last element in the list */
   Element<T> tail = null;
 
@@ -36,7 +37,7 @@ public final class VM_LinkedList<T> implements List<T> {
    * Insert an element at a given position in the list.
    * <p>
    * UNIMPLEMENTED
-   * 
+   *
    * @param pos Position in the list (0..size()-1)
    * @param entry Element to insert
    */
@@ -44,9 +45,9 @@ public final class VM_LinkedList<T> implements List<T> {
     if (VM.VerifyAssertions) VM._assert(false);
   }
 
-  /** 
-   * Insert at the tail of the list 
-   * 
+  /**
+   * Insert at the tail of the list
+   *
    * @param entry The entry to add.
    * @return true (as per java collections framework standard)
    */
@@ -68,7 +69,7 @@ public final class VM_LinkedList<T> implements List<T> {
 
   /**
    * Insert an entry after the given element.  Used via the iterator.
-   * 
+   *
    * @param e List element
    * @param t New list entry
    */
@@ -81,12 +82,14 @@ public final class VM_LinkedList<T> implements List<T> {
     } else {
       newElement.next = e.next;
       newElement.prev = e;
-      if (e.next != null)
+      if (e.next != null) {
         e.next.prev = newElement;
+      }
       e.next = newElement;
     }
-    if (tail == null || tail == e)
+    if (tail == null || tail == e) {
       tail = newElement;
+    }
     count++;
   }
 
@@ -120,7 +123,7 @@ public final class VM_LinkedList<T> implements List<T> {
 
   /**
    * Membership test
-   * 
+   *
    * @param arg0 Object to check
    * @return
    */
@@ -130,14 +133,16 @@ public final class VM_LinkedList<T> implements List<T> {
 
   /**
    * Set inclusion test
-   * 
+   *
    * @param arg0 Objects to check
    * @return
    */
   public boolean containsAll(Collection<?> arg0) {
-    for (Object o : arg0)
-      if (!contains(o))
+    for (Object o : arg0) {
+      if (!contains(o)) {
         return false;
+      }
+    }
     return true;
   }
 
@@ -149,33 +154,37 @@ public final class VM_LinkedList<T> implements List<T> {
    */
   public T get(int index) {
     /* Special-case getting the head of the list for speed */
-    if (index == 0 && head != null)
+    if (index == 0 && head != null) {
       return head.entry;
-    
+    }
+
     /* bounds check */
-    if (index < 0 || index >= size()) 
+    if (index < 0 || index >= size()) {
       throw new IndexOutOfBoundsException();
-    
+    }
+
     Element<T> cursor = head;
-    for (int i=0; i < index; i++)
+    for (int i = 0; i < index; i++) {
       cursor = cursor.next;
+    }
     return cursor.entry;
   }
 
   /**
    * Return the position of the given element.
-   * 
+   *
    * @param arg0 Member to test for.
    * @return Zero-based index of the element, or -1 if not found.
    */
   public int indexOf(Object arg0) {
     int i = 0;
     for (T t : this) {
-      if (t == arg0)
-        return  i;
+      if (t == arg0) {
+        return i;
+      }
       i++;
     }
-    return  -1;
+    return -1;
   }
 
   public boolean isEmpty() {
@@ -204,17 +213,18 @@ public final class VM_LinkedList<T> implements List<T> {
 
   /**
    * Remove the nth element of the list.
-   * 
+   *
    * @param index n
    * @return The nth element
    */
   public T remove(int index) {
     /* bounds check */
-    if (index < 0 || index >= size()) 
+    if (index < 0 || index >= size()) {
       throw new IndexOutOfBoundsException();
-    
+    }
+
     Element<T> cursor = head;
-    for (int i=0; i < index; i++) {
+    for (int i = 0; i < index; i++) {
       cursor = cursor.next;
     }
     removeInternal(cursor);
@@ -226,8 +236,7 @@ public final class VM_LinkedList<T> implements List<T> {
    */
   public boolean remove(Object arg0) {
     Element<T> cursor = head;
-    while (cursor != null && 
-        !(arg0 == null ? cursor.entry == null : cursor.entry.equals(arg0))) {
+    while (cursor != null && !(arg0 == null ? cursor.entry == null : cursor.entry.equals(arg0))) {
       cursor = cursor.next;
     }
     if (cursor == null) {
@@ -242,15 +251,17 @@ public final class VM_LinkedList<T> implements List<T> {
     if (e.prev == null) {
       if (VM.VerifyAssertions) VM._assert(e == head);
       head = e.next;
-    } else
+    } else {
       e.prev.next = e.next;
-    
+    }
+
     if (e.next == null) {
       if (VM.VerifyAssertions) VM._assert(e == tail);
       tail = e.prev;
-    } else
+    } else {
       e.next.prev = e.prev;
-    
+    }
+
     count--;
   }
 
@@ -296,8 +307,7 @@ public final class VM_LinkedList<T> implements List<T> {
 
   /**
    * Class for the actual elements of the list.
-   * 
-   * @author robin garner
+   *
    *
    * @param <T> Type of the entry
    */
@@ -305,7 +315,7 @@ public final class VM_LinkedList<T> implements List<T> {
     Element<T> next;
     Element<T> prev;
     T entry;
-    
+
     Element(T entry) {
       this.entry = entry;
     }

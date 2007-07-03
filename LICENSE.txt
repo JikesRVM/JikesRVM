@@ -7,7 +7,7 @@ Note: some code in the libraryInterface tree is distributed under
 other open source licenses.  See the various LICENSE files in that
 tree for details.
 
-Note:  rvm/src-generated/opt-burs/jburg contains a tool, jburg, 
+Note:  rvm/src-generated/opt-burs/jburg contains a tool, jburg,
 which was derived from iburg and is not distributed under the CPL.
 See rvm/src-generated/opt-burs/jburg/LICENSE for details.
 
@@ -22,10 +22,10 @@ See rvm/src-generated/opt-burs/jburg/LICENSE for details.
    1. DEFINITIONS
 
    "Contribution" means:
-       
+
    a) in the case of the initial Contributor, the initial code and
        documentation distributed under this Agreement, and
-       
+
    b) in the case of each subsequent Contributor:
 
       i) changes to the Program, and
@@ -54,9 +54,9 @@ See rvm/src-generated/opt-burs/jburg/LICENSE for details.
    "Recipient" means anyone who receives the Program under this
    Agreement, including all Contributors.
 
-       
+
    2. GRANT OF RIGHTS
-   
+
    a) Subject to the terms of this Agreement, each Contributor hereby
        grants Recipient a non-exclusive, worldwide, royalty-free
        copyright license to reproduce, prepare derivative works of,
@@ -100,7 +100,7 @@ See rvm/src-generated/opt-burs/jburg/LICENSE for details.
 
    A Contributor may choose to distribute the Program in object code
    form under its own license agreement, provided that:
-       
+
    a) it complies with the terms and conditions of this Agreement; and
 
    b) its license agreement:
@@ -125,12 +125,12 @@ See rvm/src-generated/opt-burs/jburg/LICENSE for details.
        software exchange.
 
    When the Program is made available in source code form:
-      
+
    a) it must be made available under this Agreement; and
 
    b) a copy of this Agreement must be included with each copy of the
       Program.
-      
+
    Contributors may not remove or alter any copyright notices
    contained within the Program.
 

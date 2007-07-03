@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Richard Jones, 2005-6
- * Computing Laboratory, University of Kent at Canterbury
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.utility.gcspy.drivers;
 
@@ -23,14 +26,10 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * GCspy driver for the MMTk generational immortal space. 
+ * GCspy driver for the MMTk generational immortal space.
  * Additional Stream for remset references.
- * This class extends ImmortalSpaceDriver, a simple driver for 
+ * This class extends ImmortalSpaceDriver, a simple driver for
  * the contiguous MMTk ImmortalSpace.
- *
- *
- * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
- * @author Hanspeter Johner
  */
 @Uninterruptible public class GenImmortalSpaceDriver extends ImmortalSpaceDriver {
 
@@ -51,13 +50,13 @@ import org.vmmagic.pragma.*;
    * @param blockSize The tile size
    * @param mainSpace Is this the main space?
    */
-  public GenImmortalSpaceDriver( 
+  public GenImmortalSpaceDriver(
                      ServerInterpreter server,
 		             String spaceName,
                      Space mmtkSpace,
                      int blockSize,
-                     boolean mainSpace) { 
-    
+                     boolean mainSpace) {
+
     super(server, spaceName, mmtkSpace, blockSize, mainSpace);
 
     // create additional stream
@@ -80,27 +79,26 @@ import org.vmmagic.pragma.*;
    */
   protected String getDriverName() {
     return "MMTk GenImmortalSpaceDriver";
-  } 
+  }
 
   /**
    * Heelper methods to create the additional streams
-   *
-   */
+ */
   @Interruptible
-  private ShortStream createRemsetStream() { 
+  private ShortStream createRemsetStream() {
     return VM.newGCspyShortStream(
-                     this, 
+                     this,
                      "Remembered set stream",
-                     (short)0, 
+                     (short)0,
                      // Say, typical size = 4 * typical scalar size?
                      (short)(maxObjectsPerBlock(blockSize)/8),
-                     (short)0, 
                      (short)0,
-                     "Remset references: ", 
+                     (short)0,
+                     "Remset references: ",
                      " references",
                      StreamConstants.PRESENTATION_PLUS,
-                     StreamConstants.PAINT_STYLE_ZERO, 
-                     0, 
+                     StreamConstants.PAINT_STYLE_ZERO,
+                     0,
                      Color.Cyan,
 		             true);
   }
@@ -108,13 +106,12 @@ import org.vmmagic.pragma.*;
   /**
    * Setup summaries part of the <code>transmit</code> method.<p>
    * Overrides method in superclass to handle additional Stream.
-   * 
-   */
+ */
   protected void setupSummaries() {
     super.setupSummaries();
     remsetStream.setSummary(totalRemset);
   }
-  
+
   /**
    * Handle a remset address
    *
@@ -130,19 +127,18 @@ import org.vmmagic.pragma.*;
       totalRemset++;
       return true;
     }
-    else 
+    else
       return false;
   }
-  
+
   /**
    * Reset the remset Stream
    * The remset Stream has to be reset seperately because we do not
    * gather data in the usual way using scan().
-   *
-   */
+ */
   public void resetRemsetStream() {
     remsetStream.resetData();
     totalRemset = 0;
   }
-  
-} 
+
+}

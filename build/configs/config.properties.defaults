@@ -1,4 +1,17 @@
-# This file defines the default values for config properties
+#
+#  This file is part of the Jikes RVM project (http://jikesrvm.org).
+#
+#  This file is licensed to You under the Common Public License (CPL);
+#  You may not use this file except in compliance with the License. You
+#  may obtain a copy of the License at
+#
+#      http://www.opensource.org/licenses/cpl1.0.php
+#
+#  See the COPYRIGHT.txt file distributed with this work for information
+#  regarding copyright ownership.
+#
+
+## This file defines the default values for config properties
 config.runtime.compiler=base
 config.bootimage.compiler=base
 config.include.aos=false
@@ -10,4 +23,4 @@ config.assertions=normal
 config.default-heapsize.initial=20
 config.default-heapsize.maximum=100
 config.bootimage.compiler.args=
-config.stress-gc=false
+config.stress-gc-interval=0

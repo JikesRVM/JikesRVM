@@ -1,19 +1,15 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 1998, 1999 All Rights Reserved
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-
-/**
- * Adapted for Jikes RVM
- * @author Ton Ngo
- * @author Steve Smith 
- * @date 4/12/00
- */
-
 #ifndef JNI_H
 #define JNI_H
 
@@ -21,7 +17,7 @@
 #include <stdio.h>  /* For 1.1 version of args (i.e., vfprintf) */
 #include <stdarg.h> /* For va_list */
 
-#define JNIEXPORT 
+#define JNIEXPORT
 #define JNICALL
 
 #ifdef __cplusplus
@@ -604,41 +600,41 @@ struct JNIEnv_ {
     void SetShortArrayRegion(jshortArray array, jsize start, jsize len, jshort *buf) { functions->SetShortArrayRegion(this, array, start, len, buf); }
     void SetIntArrayRegion(jintArray array, jsize start, jsize len, jint *buf) {
         functions->SetIntArrayRegion(this, array, start, len, buf); }
-    void SetLongArrayRegion(jlongArray array, jsize start, jsize len, 
-                            jlong *buf) { 
+    void SetLongArrayRegion(jlongArray array, jsize start, jsize len,
+                            jlong *buf) {
         functions->SetLongArrayRegion(this, array, start, len, buf); }
-    void SetFloatArrayRegion(jfloatArray array, jsize start, jsize len, 
-                             jfloat *buf) { 
+    void SetFloatArrayRegion(jfloatArray array, jsize start, jsize len,
+                             jfloat *buf) {
         functions->SetFloatArrayRegion(this, array, start, len, buf); }
-    void SetDoubleArrayRegion(jdoubleArray array, jsize start, jsize len, 
-                              jdouble *buf) { 
+    void SetDoubleArrayRegion(jdoubleArray array, jsize start, jsize len,
+                              jdouble *buf) {
         functions->SetDoubleArrayRegion(this, array, start, len, buf); }
-    jint RegisterNatives(jclass clazz, const JNINativeMethod *methods, 
-                         jint nMethods) { 
+    jint RegisterNatives(jclass clazz, const JNINativeMethod *methods,
+                         jint nMethods) {
         return functions->RegisterNatives(this, clazz, methods, nMethods); }
-    jint UnregisterNatives(jclass clazz) { 
+    jint UnregisterNatives(jclass clazz) {
         return functions->UnregisterNatives(this, clazz); }
-    jint MonitorEnter(jobject obj) { 
+    jint MonitorEnter(jobject obj) {
         return functions->MonitorEnter(this, obj); }
     jint MonitorExit(jobject obj) { return functions->MonitorExit(this, obj); }
     jint GetJavaVM(JavaVM **vm) { return functions->GetJavaVM(this, vm); }
-    void GetStringRegion(jstring str, jsize start, jsize len, jchar *buf) { 
+    void GetStringRegion(jstring str, jsize start, jsize len, jchar *buf) {
         functions->GetStringRegion(this, str, start, len, buf); }
-    void GetStringUTFRegion(jstring str, jsize start, jsize len, char *buf) { 
+    void GetStringUTFRegion(jstring str, jsize start, jsize len, char *buf) {
         functions->GetStringUTFRegion(this, str, start, len, buf); }
-    void* GetPrimitiveArrayCritical(jarray array, jboolean *isCopy) { 
+    void* GetPrimitiveArrayCritical(jarray array, jboolean *isCopy) {
         return functions->GetPrimitiveArrayCritical(this, array, isCopy); }
     void ReleasePrimitiveArrayCritical(jarray array, void *carray, jint mode) {
         functions->ReleasePrimitiveArrayCritical(this, array, carray, mode); }
-    jchar* GetStringCritical(jstring string, jboolean *isCopy) { 
-        return functions->GetStringCritical(this, string, isCopy); 
+    jchar* GetStringCritical(jstring string, jboolean *isCopy) {
+        return functions->GetStringCritical(this, string, isCopy);
     }
-    void ReleaseStringCritical(jstring string, jchar *carray) { 
+    void ReleaseStringCritical(jstring string, jchar *carray) {
         functions->ReleaseStringCritical(this, string, carray); }
-    jweak NewWeakGlobalRef(jobject obj) { 
+    jweak NewWeakGlobalRef(jobject obj) {
         return functions->NewWeakGlobalRef(this, obj); }
-    void DeleteWeakGlobalRef(jweak obj) { 
-        functions->DeleteWeakGlobalRef(this, obj); 
+    void DeleteWeakGlobalRef(jweak obj) {
+        functions->DeleteWeakGlobalRef(this, obj);
     }
     jboolean ExceptionCheck() { return functions->ExceptionCheck(this); }
     jobject NewDirectByteBuffer(JNIEnv *env, void *address, jlong capacity) {
@@ -647,21 +643,21 @@ struct JNIEnv_ {
     void * GetDirectBufferAddress(JNIEnv *env, jobject buf) {
         return functions->GetDirectBufferAddress(env, buf);
     }
-	
+
     jlong GetDirectBufferCapacity(JNIEnv *env, jobject buf) {
         return functions->GetDirectBufferCapacity(env, buf);
     }
 #endif
 };
 
-/****** 
+/******
  * Arguments for RVM  (Java 1.1 version)
  * Default values set by calling JNI_GetDefaultJavaVMInitArgs(JDK1_1InitArgs *)
  */
 typedef struct JDK1_1InitArgs {
     jint version;
     char **properties;
-    jint checkSource; 
+    jint checkSource;
     jint nativeStackSize;
     jint javaStackSize;
     jint minHeapSize;

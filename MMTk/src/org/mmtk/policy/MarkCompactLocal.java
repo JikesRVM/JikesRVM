@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2004
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.policy;
 
@@ -22,19 +25,17 @@ import org.vmmagic.unboxed.ObjectReference;
 
 /**
  * This class implements unsynchronized (local) elements of a
- * sliding mark-compact collector. Allocation is via the bump pointer 
- * (@see BumpPointer). 
- * 
+ * sliding mark-compact collector. Allocation is via the bump pointer
+ * (@see BumpPointer).
+ *
  * @see BumpPointer
  * @see MarkCompactSpace
- * 
- * @author Daniel Frampton
  */
 @Uninterruptible public final class MarkCompactLocal extends BumpPointer {
 
   /**
    * Constructor
-   * 
+   *
    * @param space The space to bump point into.
    */
   public MarkCompactLocal(MarkCompactSpace space) {
@@ -56,7 +57,7 @@ import org.vmmagic.unboxed.ObjectReference;
 
     /* Keep track of which regions are being used */
     int oldPages = 0;
-    int newPages = 0;
+    int newPages = Conversions.bytesToPages(allocEnd.diff(allocStart).plus(BYTES_IN_ADDRESS));;
 
     while (!start.isZero()) {
       /* Get the end of this region */
@@ -191,13 +192,13 @@ import org.vmmagic.unboxed.ObjectReference;
       start = start.plus(NEXT_REGION_OFFSET).loadAddress(); // Move on to next
     }
   }
-  
+
   /**
    * Some pages are about to be re-used to satisfy a slow path request.
    * @param pages The number of pages.
    */
   protected void reusePages(int pages) {
-    ((MarkCompactSpace)space).reusePages(pages); 
+    ((MarkCompactSpace)space).reusePages(pages);
   }
 
   /**

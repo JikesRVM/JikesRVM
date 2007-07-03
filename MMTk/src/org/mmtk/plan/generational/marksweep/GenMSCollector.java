@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2005
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.plan.generational.marksweep;
 
@@ -24,31 +27,26 @@ import org.vmmagic.unboxed.*;
 /**
  * This class implements <i>per-collector thread</i> behavior and state for
  * the <code>GenMS</code> two-generational copying collector.<p>
- * 
+ *
  * Specifically, this class defines semantics specific to the collection of
  * the mature generation (<code>GenCollector</code> defines nursery semantics).
  * In particular the mature space allocator is defined (for collection-time
  * allocation into the mature space), and the mature space per-collector thread
  * collection time semantics are defined.<p>
- * 
+ *
  * @see GenMS for a description of the <code>GenMS</code> algorithm.
- * 
+ *
  * @see GenMS
  * @see GenMSMutator
  * @see GenCollector
  * @see org.mmtk.plan.StopTheWorldCollector
  * @see org.mmtk.plan.CollectorContext
  * @see org.mmtk.plan.SimplePhase#delegatePhase
- * 
- *
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public abstract class GenMSCollector extends GenCollector {
 
   /*****************************************************************************
-   * 
+   *
    * Instance fields
    */
 
@@ -65,14 +63,14 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Collection-time allocation
    */
 
   /**
    * Allocate space for copying an object (this method <i>does not</i>
    * copy the object, it only allocates space)
-   * 
+   *
    * @param original A reference to the original object
    * @param bytes The size of the space to be allocated (in bytes)
    * @param align The requested alignment.
@@ -82,10 +80,10 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public final Address allocCopy(ObjectReference original, int bytes,
-                                 int align, int offset, int allocator) { 
+                                 int align, int offset, int allocator) {
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
-      VM.assertions._assert(allocator == GenMS.ALLOC_MATURE_MINORGC || 
+      VM.assertions._assert(allocator == GenMS.ALLOC_MATURE_MINORGC ||
                      allocator == GenMS.ALLOC_MATURE_MAJORGC);
     }
     if (Stats.GATHER_MARK_CONS_STATS) {
@@ -96,30 +94,30 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Perform any post-copy actions.
-   * 
+   *
    * @param object The newly allocated object
    * @param typeRef the type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
    */
   @Inline
   public final void postCopy(ObjectReference object, ObjectReference typeRef,
-                             int bytes, int allocator) { 
+                             int bytes, int allocator) {
     GenMS.msSpace.postCopy(object, allocator == GenMS.ALLOC_MATURE_MAJORGC);
   }
 
   /*****************************************************************************
-   * 
+   *
    * Collection
    */
 
   /**
    * Perform a (local) collection phase.
-   * 
+   *
    * @param phaseId Collection phase to perform
    * @param primary Is this thread to do the one-off thread-local tasks
    */
   @NoInline
-  public void collectionPhase(int phaseId, boolean primary) { 
+  public void collectionPhase(int phaseId, boolean primary) {
     if (global().traceFullHeap()) {
       if (phaseId == GenMS.PREPARE) {
         super.collectionPhase(phaseId, primary);
@@ -153,12 +151,12 @@ import org.vmmagic.unboxed.*;
   }
 
   @Inline
-  public final TraceLocal getFullHeapTrace() { 
+  public final TraceLocal getFullHeapTrace() {
     return matureTrace;
   }
 
   /****************************************************************************
-   * 
+   *
    * Miscellaneous
    */
 

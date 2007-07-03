@@ -1,15 +1,15 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2004
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-/*
- * @author Steven Augart
- */
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
@@ -40,30 +40,30 @@ class JNI12 {
   public void dummyFunc () {
   }
   public int dummyFld;
-  
-  public static void main(String args[]) 
+
+  public static void main(String args[])
     throws NoSuchMethodException, NoSuchFieldException
   {
     System.loadLibrary("JNI12");
 
     if (args.length != 0) {
       if (args[0].equals("-quiet")) {
-        verbose = false;        
+        verbose = false;
         setVerboseOff();
-      }         
+      }
     }
 
     Object returnObj;
     // Reflected Methods
-    
+
     Class myClass =JNI12.class;
-    
+
     Method dummyM = myClass.getMethod("dummyFunc", new Class[0]);
     returnObj = testReflectedMethods(myClass, dummyM);
     checkTest(0, (returnObj.equals(dummyM)), "ReflectedMethods");
 
     Field dummyF = myClass.getField("dummyFld");
-    
+
     returnObj = testReflectedFields(myClass, dummyF);
     checkTest(0, (returnObj.equals(dummyF)), "ReflectedFields & NewLocalRef");
 
@@ -100,13 +100,13 @@ class JNI12 {
 
     if (allTestPass)
       System.out.println("PASS: JNI_12");
-    else 
+    else
       System.out.println("FAIL: JNI_12");
   }
 
 
   static void printVerbose(String str) {
-    if (verbose) 
+    if (verbose)
       System.out.println(str);
   }
 

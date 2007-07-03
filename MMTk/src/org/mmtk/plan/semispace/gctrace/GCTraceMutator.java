@@ -1,14 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
  *
- * (C) Copyright Department of Computer Science,
- * University of Massachusetts, Amherst. 2003
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.plan.semispace.gctrace;
 
@@ -23,38 +23,30 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements <i>per-mutator thread</i> behavior and state for the
  * <i>GCTrace</i> plan, which implements a GC tracing algorithm.<p>
- * 
+ *
  * Specifically, this class defines <i>SS</i> mutator-time allocation, write
  * barriers, and per-mutator collection semantics.<p>
- * 
+ *
  * See {@link GCTrace} for an overview of the GC trace algorithm.<p>
- * 
+ *
  * @see SSMutator
  * @see GCTrace
  * @see GCTraceCollector
  * @see org.mmtk.plan.StopTheWorldMutator
  * @see org.mmtk.plan.MutatorContext
  * @see org.mmtk.plan.SimplePhase#delegatePhase
- * 
- *
- * @author Steve Blackburn
- * @author Perry Cheng
- * @author Daniel Frampton
- * @author Robin Garner
- * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
- * 
  */
 @Uninterruptible public class GCTraceMutator extends SSMutator {
 
   /****************************************************************************
-   * 
+   *
    * Mutator-time allocation
    */
 
   /**
    * Perform post-allocation actions.  For many allocators none are
    * required.
-   * 
+   *
    * @param object The newly allocated object
    * @param typeRef the type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
@@ -62,7 +54,7 @@ import org.vmmagic.pragma.*;
    */
   @Inline
   public final void postAlloc(ObjectReference object, ObjectReference typeRef,
-      int bytes, int allocator) { 
+      int bytes, int allocator) {
     /* Make the trace generator aware of the new object. */
     TraceGenerator.addTraceObject(object, allocator);
 
@@ -74,15 +66,15 @@ import org.vmmagic.pragma.*;
     GCTrace.traceInducedGC = false;
   }
 
-  
+
   /****************************************************************************
-   * 
+   *
    * Write barrier.
    */
 
   /**
    * A new reference is about to be created.  Take appropriate write
-   * barrier actions.<p> 
+   * barrier actions.<p>
    *
    * In this case, we remember the address of the source of the
    * pointer if the new reference points into the nursery from
@@ -99,11 +91,39 @@ import org.vmmagic.pragma.*;
    */
   @Inline
   public final void writeBarrier(ObjectReference src, Address slot,
-      ObjectReference tgt, Offset metaDataA, 
-      int metaDataB, int mode) { 
+      ObjectReference tgt, Offset metaDataA,
+      int metaDataB, int mode) {
     TraceGenerator.processPointerUpdate(mode == PUTFIELD_WRITE_BARRIER,
         src, slot, tgt);
     VM.barriers.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
+  }
+
+  /**
+   * Attempt to atomically exchange the value in the given slot
+   * with the passed replacement value. If a new reference is
+   * created, we must then take appropriate write barrier actions.<p>
+   *
+   * <b>By default do nothing, override if appropriate.</b>
+   *
+   * @param src The object into which the new reference will be stored
+   * @param slot The address into which the new reference will be
+   * stored.
+   * @param old The old reference to be swapped out
+   * @param tgt The target of the new reference
+   * @param metaDataA An int that assists the host VM in creating a store
+   * @param metaDataB An int that assists the host VM in creating a store
+   * @param mode The context in which the store occured
+   * @return True if the swap was successful.
+   */
+  @Inline
+  public boolean tryCompareAndSwapWriteBarrier(ObjectReference src, Address slot,
+      ObjectReference old, ObjectReference tgt, Offset metaDataA,
+      int metaDataB, int mode) {
+    boolean result = VM.barriers.tryCompareAndSwapWriteInBarrier(src, slot, old, tgt, metaDataA, metaDataB, mode);
+    if (result) {
+      TraceGenerator.processPointerUpdate(mode == PUTFIELD_WRITE_BARRIER, src, slot, tgt);
+    }
+    return result;
   }
 
   /**
@@ -140,13 +160,13 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Collection
    */
 
   /**
    * Perform a per-mutator collection phase.
-   * 
+   *
    * @param phaseId The collection phase to perform
    * @param primary perform any single-threaded local activities.
    */

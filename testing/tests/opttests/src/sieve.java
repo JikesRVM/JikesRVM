@@ -1,19 +1,16 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
- */
-/**
- * Eratosthenes Sieve Prime-Number Program from BYTE
- * January 1983
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
  *
- * @author unascribed
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
- 
-class sieve { 
+class sieve {
   static final int size = 8190*2;
   static boolean[] flags = new boolean[size+1];
   public static void main(String args[]) {
@@ -42,7 +39,7 @@ class sieve {
       }
     }
     // System.out.println(count + " primes."); /* primes found on 100th pass */
-    
+
     return count;
   }
 }

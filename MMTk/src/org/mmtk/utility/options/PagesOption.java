@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2004
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.utility.options;
 
@@ -17,9 +20,6 @@ import org.vmmagic.unboxed.*;
 
 /**
  * A memory option that stores values as a whole number of pages.
- * 
- *
- * @author Daniel Frampton
  */
 public class PagesOption extends Option {
   // values
@@ -28,7 +28,7 @@ public class PagesOption extends Option {
 
   /**
    * Create a new pages option.
-   * 
+   *
    * @param name The space separated name for the option.
    * @param desc The purpose of the option
    * @param defaultPages The default value of the option.
@@ -40,41 +40,41 @@ public class PagesOption extends Option {
 
   /**
    * Read the current value of the option in pages.
-   * 
+   *
    * @return The option value.
    */
   @Uninterruptible
-  public int getPages() { 
+  public int getPages() {
     return this.value;
   }
 
   /**
    * Read the current value of the option in bytes.
-   * 
+   *
    * @return The option value.
    */
   @Uninterruptible
-  public Extent getBytes() { 
+  public Extent getBytes() {
     return Conversions.pagesToBytes(this.value);
   }
 
   /**
    * Read the default value of the option in bytes.
-   * 
+   *
    * @return The default value.
    */
   @Uninterruptible
-  public Extent getDefaultBytes() { 
+  public Extent getDefaultBytes() {
     return Conversions.pagesToBytes(this.defaultValue);
   }
 
   /**
    * Read the default value of the option in pages.
-   * 
+   *
    * @return The default value.
    */
   @Uninterruptible
-  public int getDefaultPages() { 
+  public int getDefaultPages() {
     return this.defaultValue;
   }
 
@@ -83,7 +83,7 @@ public class PagesOption extends Option {
    * option is set. A warning is raised if the value is not a whole multiple
    * of pages, and then the validate method is called to allow subclasses to
    * perform any additional validation.
-   * 
+   *
    * @param value The new value for the option.
    */
   public void setBytes(Extent value) {
@@ -106,7 +106,7 @@ public class PagesOption extends Option {
   /**
    * Log the option value in raw format - delegate upwards
    * for fancier formatting.
-   * 
+   *
    * @param format Output format (see Option.java for possible values)
    */
   @Override

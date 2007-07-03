@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2006
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.plan.marksweep;
 
@@ -19,32 +22,27 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This class implements <i>per-mutator thread</i> behavior 
+ * This class implements <i>per-mutator thread</i> behavior
  * and state for the <i>MS</i> plan, which implements a full-heap
  * mark-sweep collector.<p>
- * 
+ *
  * Specifically, this class defines <i>MS</i> mutator-time allocation
  * and per-mutator thread collection semantics (flushing and restoring
  * per-mutator allocator state).<p>
- * 
+ *
  * @see org.mmtk.plan.markcompact.MC for an overview of the mark-compact algorithm.<p>
- * 
+ *
  * FIXME The SegregatedFreeList class (and its decendents such as
  * MarkSweepLocal) does not properly separate mutator and collector
  * behaviors, so the ms field below should really not exist in
  * this class as there is no collection-time allocation in this
  * collector.
- * 
+ *
  * @see MS
  * @see MSCollector
  * @see StopTheWorldMutator
  * @see MutatorContext
  * @see SimplePhase#delegatePhase
- * 
- *
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public abstract class MSMutator extends StopTheWorldMutator {
 
@@ -55,7 +53,7 @@ import org.vmmagic.unboxed.*;
   private MarkSweepLocal ms;
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
@@ -67,7 +65,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Mutator-time allocation
    */
 
@@ -75,7 +73,7 @@ import org.vmmagic.unboxed.*;
    * Allocate memory for an object. This class handles the default allocator
    * from the mark sweep space, and delegates everything else to the
    * superclass.
-   * 
+   *
    * @param bytes The number of bytes required for the object.
    * @param align Required alignment for the object.
    * @param offset Offset associated with the alignment.
@@ -83,7 +81,7 @@ import org.vmmagic.unboxed.*;
    * @return The low address of the allocated memory.
    */
   @Inline
-  public Address alloc(int bytes, int align, int offset, int allocator, int site) { 
+  public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == MS.ALLOC_DEFAULT) {
       return ms.alloc(bytes, align, offset, false);
     }
@@ -102,7 +100,7 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public void postAlloc(ObjectReference ref, ObjectReference typeRef,
-      int bytes, int allocator) { 
+      int bytes, int allocator) {
     if (allocator == MS.ALLOC_DEFAULT)
       MS.msSpace.postAlloc(ref);
     else
@@ -114,7 +112,7 @@ import org.vmmagic.unboxed.*;
    * particular method will match against those spaces defined at this
    * level of the class hierarchy.  Subclasses must deal with spaces
    * they define and refer to superclasses appropriately.
-   * 
+   *
    * @param a An allocator
    * @return The space into which <code>a</code> is allocating, or
    *         <code>null</code> if there is no space associated with
@@ -128,7 +126,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Return the allocator instance associated with a space
    * <code>space</code>, for this plan instance.
-   * 
+   *
    * @param space The space for which the allocator instance is desired.
    * @return The allocator instance associated with this plan instance
    * which is allocating into <code>space</code>, or <code>null</code>
@@ -140,18 +138,18 @@ import org.vmmagic.unboxed.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Collection
    */
 
   /**
    * Perform a per-mutator collection phase.
-   * 
+   *
    * @param phaseId The collection phase to perform
    * @param primary Perform any single-threaded activities using this thread.
    */
   @Inline
-  public final void collectionPhase(int phaseId, boolean primary) { 
+  public final void collectionPhase(int phaseId, boolean primary) {
     if (phaseId == MS.PREPARE_MUTATOR) {
       super.collectionPhase(phaseId, primary);
       ms.prepare();

@@ -1,18 +1,20 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp 2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package java.net;
 import org.jikesrvm.VM_SizeConstants;
 
 /**
  * Library support interface of Jikes RVM
- *
- * @author Julian Dolby
  */
 public class JikesRVMSupport implements VM_SizeConstants {
 
@@ -28,11 +30,11 @@ public class JikesRVMSupport implements VM_SizeConstants {
   public static InetAddress createInetAddress(int address) {
     return createInetAddress(address, null);
   }
-    
+
   public static InetAddress createInetAddress(int address, String hostname) {
     return new Inet4Address(toArrayForm(address), hostname);
   }
-    
+
   public static int getFamily(InetAddress inetaddress) {
     if (inetaddress instanceof Inet4Address) {
       return 2;
@@ -42,7 +44,7 @@ public class JikesRVMSupport implements VM_SizeConstants {
       throw new org.jikesrvm.VM_UnimplementedError("Unknown InetAddress family");
     }
   }
-    
+
   public static void setHostName(InetAddress inetaddress, String hostname) {
     inetaddress.hostName = hostname;
   }

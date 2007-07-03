@@ -1,35 +1,36 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp 2001,2002,2003
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm.jni;
 
-import org.jikesrvm.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.util.VM_StringUtilities;
-
-import org.vmmagic.unboxed.*;
+import org.vmmagic.unboxed.Address;
 
 /**
  * Platform independent utility functions called from VM_JNIFunctions
- * (cannot be placed in VM_JNIFunctions because methods 
+ * (cannot be placed in VM_JNIFunctions because methods
  * there are specially compiled to be called from native).
- * 
+ *
  * @see VM_JNIFunctions
- * 
- * @author Dave Grove
- * @author Ton Ngo
- * @author Steve Smith 
  */
 public abstract class VM_JNIGenericHelpers {
 
   /**
    * Given an address in C that points to a null-terminated string,
    * create a new Java byte[] with a copy of the string.
-   * 
+   *
    * @param stringAddress an address in C space for a string
    * @return a new Java byte[]
    */
@@ -50,30 +51,34 @@ public abstract class VM_JNIGenericHelpers {
         byte2 = ((word >> 8) & 0xFF);
         byte3 = (word & 0xFF);
       }
-      if (byte0==0)
+      if (byte0 == 0) {
         break;
+      }
       length++;
-      if (byte1==0) 
+      if (byte1 == 0) {
         break;
+      }
       length++;
-      if (byte2==0)
+      if (byte2 == 0) {
         break;
+      }
       length++;
-      if (byte3==0)
+      if (byte3 == 0) {
         break;
+      }
       length++;
     }
 
-   byte[] contents = new byte[length];
-   VM_Memory.memcopy(VM_Magic.objectAsAddress(contents), stringAddress, length);
-   
-   return contents;
+    byte[] contents = new byte[length];
+    VM_Memory.memcopy(VM_Magic.objectAsAddress(contents), stringAddress, length);
+
+    return contents;
   }
 
   /**
    * Given an address in C that points to a null-terminated string,
    * create a new Java String with a copy of the string.
-   * 
+   *
    * @param stringAddress an address in C space for a string
    * @return a new Java String
    */
@@ -92,7 +97,7 @@ public abstract class VM_JNIGenericHelpers {
    * of type (jboolean *).
    * @param boolPtr Native pointer to a jboolean variable to be set.   May be
    *            the NULL pointer, in which case we do nothing.
-   * @param val Value to set it to (usually TRUE) 
+   * @param val Value to set it to (usually TRUE)
    *
    * XXX There was a strange bug where calling this would crash the VM.
    * That's why it's ifdef'd.  So the dozen-odd places in VM_JNIFunctions
@@ -102,21 +107,28 @@ public abstract class VM_JNIGenericHelpers {
 
   static void setBoolStar(Address boolPtr, boolean val) {
     // VM.sysWriteln("Someone called setBoolStar");
-    if (boolPtr.isZero())
+    if (boolPtr.isZero()) {
       return;
+    }
     int temp = boolPtr.loadInt();
     int intval;
     if (VM.LittleEndian) {
-      if (val)                  // set to true.
+      if (val) {
+        // set to true.
         intval = (temp & 0xffffff00) | 0x00000001;
-      else                      // set to false
+      } else {
+        // set to false
         intval = (temp & 0xffffff00);
+      }
     } else {
       /* Big Endian */
-      if (val)                  // set to true
+      if (val) {
+        // set to true
         intval = (temp & 0x00ffffff) | 0x01000000;
-      else                      // set to false
-        intval =  temp & 0x00ffffff;
+      } else {
+        // set to false
+        intval = temp & 0x00ffffff;
+      }
     }
     boolPtr.store(intval);
   }

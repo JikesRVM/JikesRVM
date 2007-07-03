@@ -1,18 +1,20 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-import org.jikesrvm.*;
-/**
- * @author unascribed
- */
+import org.jikesrvm.scheduler.VM_Scheduler;
+
 class TestDeadVPQueue
    {
-   public static void 
+   public static void
    main(String args[])
       throws Exception
       {
@@ -27,11 +29,11 @@ class TestDeadVPQueue
 
       System.loadLibrary("TestDeadVPQueueWorker");
 
-     
+
       // create a thread and wait for it to terminate
       System.out.println(Thread.currentThread().getName() + ": creating worker 1");
       TestDeadVPQueueWorker w1 = new TestDeadVPQueueWorker("worker 1");
-      
+
       System.out.println(Thread.currentThread().getName() + ": starting worker 1");
       w1.start();
       while (w1.state != TestDeadVPQueueWorker.ending) {
@@ -43,7 +45,7 @@ class TestDeadVPQueue
       // create a second thread and wait for it to terminate
     System.out.println(Thread.currentThread().getName() + ": creating worker 2");
        TestDeadVPQueueWorker w2 = new TestDeadVPQueueWorker("worker 2");
-      
+
       System.out.println(Thread.currentThread().getName() + ": starting worker 2");
       w2.start();
       while (w2.state != TestDeadVPQueueWorker.ending) {
@@ -61,7 +63,7 @@ class TestDeadVPQueue
       // create start and run 9 threads
       for ( int i = 1; i < 10; i++){
 
-       String s = " worker " + i;  
+       String s = " worker " + i;
        // create a thread and start it
        System.out.println(Thread.currentThread().getName() + ":creating" +s);
        w = new TestDeadVPQueueWorker(s);
@@ -74,7 +76,7 @@ class TestDeadVPQueue
         try {Thread.currentThread().sleep(500); } catch (InterruptedException e) {}
       }
 
-     
+
       System.out.println("main: bye");
       VM_Scheduler.dumpVirtualMachine();
       }

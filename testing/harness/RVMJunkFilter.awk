@@ -1,20 +1,21 @@
 #
-# This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
-# The Jikes RVM project is distributed under the Common Public License (CPL).
-# A copy of the license is included in the distribution, and is also
-# available at http://www.opensource.org/licenses/cpl1.0.php
+#  This file is part of the Jikes RVM project (http://jikesrvm.org).
 #
-# (C) Copyright IBM Corp. 2001
+#  This file is licensed to You under the Common Public License (CPL);
+#  You may not use this file except in compliance with the License. You
+#  may obtain a copy of the License at
 #
+#      http://www.opensource.org/licenses/cpl1.0.php
 #
-# @author Julian Dolby
+#  See the COPYRIGHT.txt file distributed with this work for information
+#  regarding copyright ownership.
 #
-BEGIN { 
+BEGIN {
     yes = "yes"
     no = "no"
     counts = no
     gc_mess = no
-    report_crap = no 
+    report_crap = no
     kill_next = no
     boot_image_junk = no
     verbose_trap = no
@@ -59,6 +60,7 @@ BEGIN {
 /^GC Warning:/ { next }
 /^GC Message:/ { next }
 /^\[GC [0-9]*/ { next }
+/FORCING GC\: Countdown trigger in*/ { next }
 /^\[Forced GC\]*/ { next }
 /^\[End [0-9]*.[0-9]* ms\]*/ { next }
 /^validRef: REF outside heap, ref = [0-9x]*$/ { kill_next = yes; next }
@@ -134,8 +136,8 @@ verbose_trap==yes { next }
 /vm: normal trap/ && verbose_trap==normal { next }
 /failing instruction : / && verbose_trap==normal { next }
 /Trap code is 0x[0-9a-fA-F]*/ && verbose_trap==normal { next }
-/Set vmr_fp to 0x[0-9a-f]*/ && verbose_trap==normal { 
-  verbose_trap = no; next 
+/Set vmr_fp to 0x[0-9a-f]*/ && verbose_trap==normal {
+  verbose_trap = no; next
 }
 
 #

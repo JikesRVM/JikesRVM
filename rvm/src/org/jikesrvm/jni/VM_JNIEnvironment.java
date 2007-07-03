@@ -1,26 +1,30 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp 2001,2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm.jni;
 
-import org.jikesrvm.*;
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-
-import org.vmmagic.pragma.*; 
-import org.vmmagic.unboxed.*; 
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.scheduler.VM_Processor;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.AddressArray;
+import org.vmmagic.unboxed.ObjectReference;
 
 /**
  * A JNIEnvironment is created for each Java thread.
- * 
- * @author Dave Grove
- * @author Ton Ngo
- * @author Steve Smith 
  */
 public class VM_JNIEnvironment implements VM_SizeConstants {
 
@@ -32,7 +36,7 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
   /**
    * sometimes we put stuff onto the jnirefs array bypassing the code
    * that makes sure that it does not overflow (evil assembly code in the
-   * jni stubs that would be painful to fix).  So, we keep some space 
+   * jni stubs that would be painful to fix).  So, we keep some space
    * between the max value in JNIRefsMax and the actual size of the
    * array.  How much is governed by this field.
    */
@@ -46,7 +50,7 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
 
   /**
    * For the PowerOpenABI we need a linkage triple instead of just
-   * a function pointer.  
+   * a function pointer.
    * This is an array of such triples that matches JNIFunctions.
    */
   private static AddressArray[] LinkageTriplets;
@@ -56,46 +60,49 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
    * when we are making a C => Java transition.
    * We mainly need this for OSX/Linux but it is also nice to have on AIX.
    */
-  @SuppressWarnings({"unused", "UnusedDeclaration"})  // used by native code
+  @SuppressWarnings({"unused", "UnusedDeclaration"})
+  // used by native code
   private final Address savedJTOC = VM.BuildForPowerPC ? VM_Magic.getTocPointer() : Address.zero();
-   
+
   /**
    * This is the pointer to the shared JNIFunction table.
    * When we invoke a native method, we adjust the pointer we
    * pass to the native code such that this field is at offset 0.
    * In other words, we turn a VM_JNIEnvironment into a JNIEnv*
-   * by handing the native code an interior pointer to 
+   * by handing the native code an interior pointer to
    * this object that points directly to this field.
-   */ 
-  @SuppressWarnings({"unused", "UnusedDeclaration"}) // used by native code  
-  private final Address externalJNIFunctions = VM.BuildForPowerOpenABI ? VM_Magic.objectAsAddress(LinkageTriplets) : VM_Magic.objectAsAddress(JNIFunctions);
+   */
+  @SuppressWarnings({"unused", "UnusedDeclaration"})
+  // used by native code
+  private final Address externalJNIFunctions =
+      VM.BuildForPowerOpenABI ? VM_Magic.objectAsAddress(LinkageTriplets) : VM_Magic.objectAsAddress(JNIFunctions);
 
   /**
-   * For saving processor register on entry to native, 
+   * For saving processor register on entry to native,
    * to be restored on JNI call from native
    */
-  protected VM_Processor savedPRreg; 
+  protected VM_Processor savedPRreg;
 
   /**
-   * true if the bottom stack frame is native, 
+   * true if the bottom stack frame is native,
    * such as thread for CreateJVM or AttachCurrentThread
    */
-  protected boolean alwaysHasNativeFrame;  
+  protected boolean alwaysHasNativeFrame;
 
   /**
    * references passed to native code
    */
-  public AddressArray JNIRefs; 
+  public AddressArray JNIRefs;
 
   /**
-   * address of current top ref in JNIRefs array   
+   * address of current top ref in JNIRefs array
    */
   public int JNIRefsTop;
 
   /**
    * offset of end (last entry) of JNIRefs array
    */
-  protected int JNIRefsMax;   
+  protected int JNIRefsMax;
 
   /**
    * previous frame boundary in JNIRefs array
@@ -113,7 +120,7 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
   protected Throwable pendingException;
 
   /**
-   * We allocate VM_JNIEnvironments in the immortal heap (so we 
+   * We allocate VM_JNIEnvironments in the immortal heap (so we
    * can hand them directly to C code).  Therefore, we must do some
    * kind of pooling of VM_JNIEnvironment instances.
    * This is the free list of unused instances.
@@ -169,40 +176,41 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
    * accessor methods
    */
   @Uninterruptible
-  public final boolean hasNativeStackFrame() { 
+  public final boolean hasNativeStackFrame() {
     return alwaysHasNativeFrame || JNIRefsTop != 0;
   }
 
   @Uninterruptible
-  public final Address topJavaFP() { 
+  public final Address topJavaFP() {
     return JNITopJavaFP;
   }
 
   @Uninterruptible
-  public final AddressArray refsArray() { 
+  public final AddressArray refsArray() {
     return JNIRefs;
   }
 
   @Uninterruptible
-  public final int refsTop() { 
+  public final int refsTop() {
     return JNIRefsTop;
   }
-   
+
   @Uninterruptible
-  public final int savedRefsFP() { 
+  public final int savedRefsFP() {
     return JNIRefsSavedFP;
   }
 
   /**
-   * Push a reference onto thread local JNIRefs stack.   
-   * To be used by JNI functions when returning a reference 
+   * Push a reference onto thread local JNIRefs stack.
+   * To be used by JNI functions when returning a reference
    * back to JNI native C code.
    * @param ref the object to put on stack
    * @return offset of entry in JNIRefs stack
    */
   public final int pushJNIRef(Object ref) {
-    if (ref == null)
+    if (ref == null) {
       return 0;
+    }
 
     if (VM.VerifyAssertions) {
       VM._assert(MM_Interface.validRef(ObjectReference.fromObject(ref)));
@@ -216,9 +224,8 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
 
     if (JNIRefsTop >= JNIRefsMax) {
       JNIRefsMax *= 2;
-      AddressArray newrefs = AddressArray.create((JNIRefsMax>>>LOG_BYTES_IN_ADDRESS) +
-                                                       JNIREFS_FUDGE_LENGTH);
-      for(int i = 0; i<JNIRefs.length(); i++) {
+      AddressArray newrefs = AddressArray.create((JNIRefsMax >>> LOG_BYTES_IN_ADDRESS) + JNIREFS_FUDGE_LENGTH);
+      for (int i = 0; i < JNIRefs.length(); i++) {
         newrefs.set(i, JNIRefs.get(i));
       }
       JNIRefs = newrefs;
@@ -236,16 +243,17 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
   public final Object getJNIRef(int offset) {
     if (offset > JNIRefsTop) {
       VM.sysWrite("JNI ERROR: getJNIRef for illegal offset > TOP, ");
-      VM.sysWrite(offset); 
+      VM.sysWrite(offset);
       VM.sysWrite("(top is ");
       VM.sysWrite(JNIRefsTop);
       VM.sysWrite(")\n");
       return null;
     }
-    if (offset < 0)
+    if (offset < 0) {
       return VM_JNIGlobalRefTable.ref(offset);
-    else
+    } else {
       return VM_Magic.addressAsObject(JNIRefs.get(offset >>> LOG_BYTES_IN_ADDRESS));
+    }
   }
 
   /**
@@ -255,12 +263,12 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
   public final void deleteJNIRef(int offset) {
     if (offset > JNIRefsTop) {
       VM.sysWrite("JNI ERROR: getJNIRef for illegal offset > TOP, ");
-      VM.sysWrite(offset); 
+      VM.sysWrite(offset);
       VM.sysWrite("(top is ");
       VM.sysWrite(JNIRefsTop);
       VM.sysWrite(")\n");
     }
-    
+
     JNIRefs.set(offset >>> LOG_BYTES_IN_ADDRESS, Address.zero());
 
     if (offset == JNIRefsTop) JNIRefsTop -= BYTES_IN_ADDRESS;
@@ -270,7 +278,7 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
    * Dump the JNIRefs stack to the sysWrite stream
    */
   @Uninterruptible
-  public final void dumpJniRefsStack () { 
+  public final void dumpJniRefsStack() {
     int jniRefOffset = JNIRefsTop;
     VM.sysWrite("\n* * dump of JNIEnvironment JniRefs Stack * *\n");
     VM.sysWrite("* JNIRefs = ");
@@ -280,7 +288,7 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
     VM.sysWrite(" * JNIRefsSavedFP = ");
     VM.sysWrite(JNIRefsSavedFP);
     VM.sysWrite(".\n*\n");
-    while (jniRefOffset>= 0) {
+    while (jniRefOffset >= 0) {
       VM.sysWrite(jniRefOffset);
       VM.sysWrite(" ");
       VM.sysWrite(VM_Magic.objectAsAddress(JNIRefs).plus(jniRefOffset));
@@ -298,12 +306,12 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
    */
   public final void recordException(Throwable e) {
     // don't overwrite the first exception except to clear it
-    if (pendingException==null || e==null) {
+    if (pendingException == null || e == null) {
       pendingException = e;
     }
   }
 
-  /** 
+  /**
    * @return the pending exception
    */
   public final Throwable getException() {
@@ -319,7 +327,7 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
     if (VM.BuildForPowerOpenABI) {
       // Allocate the linkage triplets in the bootimage too (so they won't move)
       LinkageTriplets = new AddressArray[functions.length];
-      for (int i=0; i<functions.length; i++) {
+      for (int i = 0; i < functions.length; i++) {
         LinkageTriplets[i] = AddressArray.create(3);
       }
     }
@@ -332,7 +340,7 @@ public class VM_JNIEnvironment implements VM_SizeConstants {
   public static void boot() {
     if (VM.BuildForPowerOpenABI) {
       // fill in the TOC and IP entries for each linkage triplet
-      for (int i=0; i<JNIFunctions.length; i++) {
+      for (int i = 0; i < JNIFunctions.length; i++) {
         AddressArray triplet = LinkageTriplets[i];
         triplet.set(1, VM_Magic.getTocPointer());
         triplet.set(0, VM_Magic.objectAsAddress(JNIFunctions[i]));

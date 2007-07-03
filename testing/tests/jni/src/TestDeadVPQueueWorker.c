@@ -1,16 +1,15 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
- */
-/* test native code for jni
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
  *
- * @author unascribed
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-
 #include <stdio.h>
 #include "TestDeadVPQueueWorker.h"
 #include <jni.h>
@@ -21,7 +20,7 @@ JNIEXPORT jint JNICALL Java_TestDeadVPQueueWorker_nativeFoo
   int localval = value + 15;
   jintArray myArray;
 
-  printf("Java_TestDeadVPQueueWorker_nativeFoo: reached native code with 0x%X 0x%X %d \n", env, cls, value); 
+  printf("Java_TestDeadVPQueueWorker_nativeFoo: reached native code with 0x%X 0x%X %d \n", env, cls, value);
 
   myArray = (*env) -> NewIntArray(env, 11);
   printf("Java_TestDeadVPQueueWorker_nativeFoo: JNI call returns 0x%X\n", myArray);

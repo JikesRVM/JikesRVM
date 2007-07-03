@@ -1,18 +1,19 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-
-import org.jikesrvm.*;
+import org.jikesrvm.scheduler.VM_Scheduler;
 
 /**
  * Test native methods that block in native code
- *
- * @author unascribed
  */
 
 class tBlockingThreads
@@ -50,22 +51,22 @@ class tBlockingThreads
       for ( int wrk = 0; wrk < NUMBER_OF_WORKERS; wrk++ )
         {
           if (wrk%2 == 0)
-            a[wrk] = new BlockingThreadsWorker(1); 
+            a[wrk] = new BlockingThreadsWorker(1);
           else
-            a[wrk] = new BlockingThreadsWorker(2); 
-          
+            a[wrk] = new BlockingThreadsWorker(2);
+
           a[wrk].start();
         }
-      
+
       for ( int i = 0; i < NUMBER_OF_WORKERS; i ++ ) {
         int cntr = 1;
         while( ! a[i].isFinished) {
-          
-          try {              
+
+          try {
             Thread.currentThread().sleep(100);
-          } 
+          }
           catch (InterruptedException e) {}
-          
+
           cntr++;
           if (cntr%1000 == 0)
             VM_Scheduler.trace("main","waiting for worker",i);
@@ -82,5 +83,5 @@ class tBlockingThreads
     } // use Worker Threads
 
   } // main
-  
+
 }

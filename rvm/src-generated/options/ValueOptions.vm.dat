@@ -1,16 +1,20 @@
 #
-# This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
-# The Jikes RVM project is distributed under the Common Public License (CPL).
-# A copy of the license is included in the distribution, and is also
-# available at http://www.opensource.org/licenses/cpl1.0.php
+#  This file is part of the Jikes RVM project (http://jikesrvm.org).
 #
-# (C) Copyright IBM Corp. 2003
+#  This file is licensed to You under the Common Public License (CPL);
+#  You may not use this file except in compliance with the License. You
+#  may obtain a copy of the License at
 #
-DECL 
+#      http://www.opensource.org/licenses/cpl1.0.php
+#
+#  See the COPYRIGHT.txt file distributed with this work for information
+#  regarding copyright ownership.
+#
+DECL
 # Structure of DECL TAG FULL_NAME TYPE DEFAULT_VALUE {SHORT_NAME}
 # TAG: E = Enumeration, V = Value
 # TYPE: byte, int, String, float, double
-DESCRIP  
+DESCRIP
 ENUMS
 #Structure of ENUMS "ITEM_NAME QUERY_NAME CMD_NAME"
 
@@ -20,7 +24,7 @@ If we get deeper than this in one of the System Trouble functions, try to die.
 
 # NOTE: Although this option can be set to arbitrary values,
 #       setting it to a smaller quantum than what is actually supported
-#       by pthread nanosleep on the target platform will reduce the 
+#       by pthread nanosleep on the target platform will reduce the
 #       effectiveness of the Adaptive System.  Therefore, this setting
 #       should be verified by running a relatively long running program
 #       on an unload machine and enabling -X:aos:reportInterruptStats=true

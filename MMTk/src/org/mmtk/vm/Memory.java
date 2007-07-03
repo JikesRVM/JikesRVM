@@ -1,13 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2004
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
  *
- * (C) Copyright IBM Corp. 2001, 2003
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.vm;
 
@@ -16,93 +17,87 @@ import org.mmtk.policy.ImmortalSpace;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
-/**
- *
- * @author Steve Blackburn
- * @author Perry Cheng
- * 
- */
 @Uninterruptible public abstract class Memory
 {
-  
+
   /**
    * Allows for the VM to reserve space between HEAP_START()
    * and AVAILABLE_START() for its own purposes.  MMTk should
-   * expect to encounter objects in this range, but may not 
+   * expect to encounter objects in this range, but may not
    * allocate in this range.
-   * 
+   *
    * MMTk expects the virtual address space between AVAILABLE_START()
    * and AVAILABLE_END() to be contiguous and unmapped.
    * Allows for the VM to reserve space between HEAP_END()
    * and AVAILABLE_END() for its own purposes.  MMTk should
-   * expect to encounter objects in this range, but may not 
+   * expect to encounter objects in this range, but may not
    * allocate in this range.
-   * 
+   *
    * MMTk expects the virtual address space between AVAILABLE_START()
    * and AVAILABLE_END() to be contiguous and unmapped.
-   * 
+   *
    * @return The high bound of the memory that MMTk can allocate.
    */
-  
+
   /**
    * Return the space associated with/reserved for the VM.  In the
    * case of Jikes RVM this is the boot image space.<p>
-   * 
+   *
    * @return The space managed by the virtual machine.
    */
   @Interruptible
-  public abstract ImmortalSpace getVMSpace(); 
-  
+  public abstract ImmortalSpace getVMSpace();
+
   /** Global preparation for a collection. */
   public abstract void globalPrepareVMSpace();
-  
+
   /** Per-collector preparation for a collection. */
   public abstract void collectorPrepareVMSpace();
-  
+
   /** Per-collector post-collection work. */
   public abstract void collectorReleaseVMSpace();
-  
+
   /** Global post-collection work. */
   public abstract void globalReleaseVMSpace();
-  
+
   /**
    * Sets the range of addresses associated with a heap.
-   * 
+   *
    * @param id the heap identifier
    * @param start the address of the start of the heap
    * @param end the address of the end of the heap
    */
   public abstract void setHeapRange(int id, Address start, Address end);
-  
+
   /**
    * Demand zero mmaps an area of virtual memory.
-   * 
+   *
    * @param start the address of the start of the area to be mapped
    * @param size the size, in bytes, of the area to be mapped
    * @return 0 if successful, otherwise the system errno
    */
   public abstract int dzmmap(Address start, int size);
-  
+
   /**
    * Protects access to an area of virtual memory.
-   * 
+   *
    * @param start the address of the start of the area to be mapped
    * @param size the size, in bytes, of the area to be mapped
    * @return <code>true</code> if successful, otherwise
    * <code>false</code>
    */
   public abstract boolean mprotect(Address start, int size);
-  
+
   /**
    * Allows access to an area of virtual memory.
-   * 
+   *
    * @param start the address of the start of the area to be mapped
    * @param size the size, in bytes, of the area to be mapped
    * @return <code>true</code> if successful, otherwise
    * <code>false</code>
    */
   public abstract boolean munprotect(Address start, int size);
-  
+
   /**
    * Zero a region of memory.
    * @param start Start of address range (inclusive)
@@ -110,18 +105,18 @@ import org.vmmagic.pragma.*;
    * Returned: nothing
    */
   public abstract void zero(Address start, Extent len);
-  
+
   /**
    * Zero a range of pages of memory.
    * @param start Start of address range (must be a page address)
    * @param len Length in bytes of range (must be multiple of page size)
    */
   public abstract void zeroPages(Address start, int len);
-  
+
   /**
    * Logs the contents of an address and the surrounding memory to the
    * error output.
-   * 
+   *
    * @param start the address of the memory to be dumped
    * @param beforeBytes the number of bytes before the address to be
    * included
@@ -130,23 +125,23 @@ import org.vmmagic.pragma.*;
    */
   public abstract void dumpMemory(Address start, int beforeBytes,
       int afterBytes);
-  
+
   /**
-   * Wait for preceeding cache flush/invalidate instructions to complete 
+   * Wait for preceeding cache flush/invalidate instructions to complete
    * on all processors.  Ensures that all memory writes before this
    * point are visible to all processors.
    */
   @Inline
-  public abstract void sync(); 
-  
+  public abstract void sync();
+
   /**
-   * Wait for all preceeding instructions to complete and discard any 
-   * prefetched instructions on this processor.  Also prevents the 
+   * Wait for all preceeding instructions to complete and discard any
+   * prefetched instructions on this processor.  Also prevents the
    * compiler from performing code motion across this point.
    */
   @Inline
-  public abstract void isync(); 
- 
+  public abstract void isync();
+
   /*
    * NOTE: The following methods must be implemented by subclasses of this
    * class, but are internal to the VM<->MM interface glue, so are never
@@ -174,7 +169,7 @@ import org.vmmagic.pragma.*;
   protected abstract int getMaxBytesPaddingConstant();
   /** @return The value to store in alignment holes */
   protected abstract int getAlignmentValueConstant();
-  
+
   /*
    * NOTE: These methods should not be called by anything other than the
    * reflective mechanisms in org.mmtk.vm.VM, and are not implemented by

@@ -1,27 +1,22 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2004
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
  *
- * (C) Copyright IBM Corp. 2001, 2003
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm.mm.mmtk;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Processor;
+import org.jikesrvm.scheduler.VM_Processor;
 
 import org.vmmagic.pragma.*;
 
-/**
- *
- * @author Steve Blackburn
- * @author Perry Cheng
- *
- */
 @Uninterruptible public final class Strings extends org.mmtk.vm.Strings {
   /**
    * Log a message.
@@ -59,12 +54,12 @@ import org.vmmagic.pragma.*;
    */
   @LogicallyUninterruptible
   public int copyStringToChars(String src, char [] dst,
-                                     int dstBegin, int dstEnd) { 
+                                     int dstBegin, int dstEnd) {
     if (VM.runningVM)
       VM_Processor.getCurrentProcessor().disableThreadSwitching();
     int len = src.length();
     int n = (dstBegin + len <= dstEnd) ? len : (dstEnd - dstBegin);
-    for (int i = 0; i < n; i++) 
+    for (int i = 0; i < n; i++)
       Barriers.setArrayNoBarrierStatic(dst, dstBegin + i, src.charAt(i));
     if (VM.runningVM)
       VM_Processor.getCurrentProcessor().enableThreadSwitching();

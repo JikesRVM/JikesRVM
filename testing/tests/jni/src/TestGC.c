@@ -1,15 +1,16 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 /* Test GC with Native frames on stack
- * 
- * @author Ton Ngo, Steve Smith 
- * @date   3/29/00
  */
 
 #include <stdio.h>
@@ -43,30 +44,30 @@ JNIEXPORT jobject JNICALL Java_TestGC_testgc
 
   systemClass = (*env) -> FindClass(env, "java/lang/System");
   if (systemClass == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> FindClass: fail to get class for java/lang/System\n");
     return NULL;
-  } 
+  }
 
   methodID = (*env) -> GetStaticMethodID(env, systemClass, "gc", "()V");
   if (methodID == NULL) {
-    if (verbose) 
+    if (verbose)
       printf("> GetStaticMethodID: fail to get method ID for static method System.gc\n");
     return NULL;
-  } 
+  }
 
-  if (verbose) 
+  if (verbose)
     printf("about to do System.gc\n");
 
   (*env) -> CallStaticVoidMethodA(env, systemClass, methodID, NULL);
 
-  if (verbose) 
+  if (verbose)
     printf("back from System.gc\n");
 
 
   /* Do a few operations on the moved object to see if it's still valid */
   if (verbose) printf("Calling FindClass\n");
-  expectCls = (*env) -> FindClass(env, "java/lang/String");  
+  expectCls = (*env) -> FindClass(env, "java/lang/String");
   if (verbose) printf("Calling IsInstanceOf\n");
   matchClass = (*env) -> IsInstanceOf(env, obj1, expectCls);
   if (!matchClass)

@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2005
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.plan.nogc;
 
@@ -22,17 +25,12 @@ import org.vmmagic.pragma.*;
  * Specifically, this class <i>would</i> define <i>NoGC</i> collection time semantics,
  * however, since this plan never collects, this class consists only of stubs which
  * may be useful as a template for implementing a basic collector.
- * 
+ *
  * @see NoGC
  * @see NoGCMutator
  * @see StopTheWorldCollector
  * @see CollectorContext
  * @see SimplePhase#delegatePhase
- * 
- *
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public abstract class NoGCCollector extends CollectorContext {
 
@@ -53,10 +51,10 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Collection
    */
-
+  
   /**
    * Perform a garbage collection
    */
@@ -66,7 +64,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Perform a per-collector collection phase.
-   * 
+   *
    * @param phaseId The collection phase to perform
    * @param primary perform any single-threaded local activities.
    */
@@ -75,17 +73,17 @@ import org.vmmagic.pragma.*;
     /*
      if (phaseId == NoGC.PREPARE) {
      }
-     
+
      if (phaseId == NoGC.BEGIN_CLOSURE) {
      trace.startTrace();
      return;
      }
-     
+
      if (phaseId == NoGC.COMPLETE_CLOSURE) {
      trace.completeTrace();
      return;
      }
-     
+
      if (phaseId == NoGC.RELEASE) {
      }
      super.collectionPhase(phaseId, participating, primary);
@@ -93,7 +91,7 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Miscellaneous
    */
 

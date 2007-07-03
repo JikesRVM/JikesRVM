@@ -15,14 +15,14 @@
                                                     </span>
 				    </div>
 				    <div class="pagesubheading">
-					    This page last changed on Feb 24, 2007 by <font color="#0050B2">pdonald</font>.
+					    This page last changed on Apr 01, 2007 by <font color="#0050B2">pdonald</font>.
 				    </div>
 
-				    <p>The source code for the Jikes RVM is stored in a <a href="http://subversion.tigris.org/" title="Visit page outside Confluence">Subversion</a> repository. A developer can either work with the version control system or downloaded one of the releases.</p>
+				    <p>The source code for the Jikes RVM is stored in a <a href="http://subversion.tigris.org/">Subversion</a> repository. A developer can either work with the version control system or downloaded one of the releases.</p>
 
 <h2><a name="GetTheSource-DownloadaRelease"></a>Download a Release</h2>
 
-<p>Major and minor releases of the Jikes RVM occur at regular intervals. These releases are archived in the <a href="http://sourceforge.net/project/showfiles.php?group_id=128805" title="Visit page outside Confluence">file download</a>area in either tar-gzip (jikesrvm-&lt;version&gt;.tar.gz) or tar-bzip2 (jikesrvm-&lt;version&gt;.tar.bz2) format. Use your web browser to download the latest version of the Jikes RVM then to extract the tar-gzip archive type:</p>
+<p>Major and minor releases of the Jikes RVM occur at regular intervals. These releases are archived in the <a href="http://sourceforge.net/project/showfiles.php?group_id=128805">file download</a>area in either tar-gzip (jikesrvm-&lt;version&gt;.tar.gz) or tar-bzip2 (jikesrvm-&lt;version&gt;.tar.bz2) format. Use your web browser to download the latest version of the Jikes RVM then to extract the tar-gzip archive type:</p>
 
 <p>&gt; tar xvzf jikesrvm-&lt;version&gt;.tar.gz</p>
 
@@ -32,23 +32,23 @@
 
 <h2><a name="GetTheSource-UseSubversion"></a>Use Subversion</h2>
 
-<p>The source code for the Jikes RVM is stored in a <a href="http://subversion.tigris.org/" title="Visit page outside Confluence">Subversion</a> repository. There is plenty of online documentation for using Subversion such as the <a href="http://svnbook.red-bean.com/" title="Visit page outside Confluence">Subversion Book</a> or <a href="https://sourceforge.net/docs/E09" title="Visit page outside Confluence">Sourceforge documentation</a> but after installing Subversion the current version of source can be downloaded via:</p>
+<p>The source code for the Jikes RVM is stored in a <a href="http://subversion.tigris.org/">Subversion</a> repository. There is plenty of online documentation for using Subversion such as the <a href="http://svnbook.red-bean.com/">Subversion Book</a> or <a href="https://sourceforge.net/docs/E09">Sourceforge documentation</a> but after installing Subversion the current version of source can be downloaded via:</p>
 <div class="panel"><div class="panelContent">
-<p>  &gt; svn co <a href="https://svn.sourceforge.net/svnroot/jikesrvm/rvmroot/trunk" title="Visit page outside Confluence">https://svn.sourceforge.net/svnroot/jikesrvm/rvmroot/trunk</a> jikesrvm</p>
+<p>  &gt; svn co <a href="https://jikesrvm.svn.sourceforge.net/svnroot/jikesrvm/rvmroot/trunk">https://jikesrvm.svn.sourceforge.net/svnroot/jikesrvm/rvmroot/trunk</a> jikesrvm</p>
 </div></div>
 <p>You can also retrieve a specific version (such as 2.4.6) via:</p>
 <div class="panel"><div class="panelContent">
-<p>  &gt; svn co <a href="https://svn.sourceforge.net/svnroot/jikesrvm/rvmroot/tags/JIKESRVM-2r4r6" title="Visit page outside Confluence">https://svn.sourceforge.net/svnroot/jikesrvm/rvmroot/tags/JIKESRVM-2r4r6</a> jikesrvm</p>
+<p>  &gt; svn co <a href="https://jikesrvm.svn.sourceforge.net/svnroot/jikesrvm/rvmroot/tags/2.4.6">https://jikesrvm.svn.sourceforge.net/svnroot/jikesrvm/rvmroot/tags/2.4.6</a> jikesrvm</p>
 </div></div>
-<p>If you are a core developer you will be able to commit changes to the repository directly. Otherwise you will need to place patches in the <a href="http://sourceforge.net/tracker/?group_id=128805&amp;atid=712770" title="Visit page outside Confluence">patch tracker</a>.</p>
+<p>If you are a core developer you will be able to commit changes to the repository directly. Otherwise you will need to place patches in the <a href="http://sourceforge.net/tracker/?group_id=128805&amp;atid=712770">patch tracker</a>.</p>
 
-<p>You can browse the online subversion repository at <a href="http://svn.sourceforge.net/viewvc/jikesrvm/rvmroot/trunk/" title="Visit page outside Confluence">http://svn.sourceforge.net/viewvc/jikesrvm/rvmroot/trunk/</a>.</p>
+<p>You can browse the online subversion repository at <a href="http://svn.sourceforge.net/viewvc/jikesrvm/rvmroot/trunk/">http://svn.sourceforge.net/viewvc/jikesrvm/rvmroot/trunk/</a>.</p>
 
 <h2><a name="GetTheSource-UseSVK"></a>Use SVK</h2>
 
-<p>You may want to retrieve Jikes RVM, make modifications and version control your changes. Unfortunately Subversion does not natively support decentralized development model where everyone maintains their own development tree. For this you will need to use <a href="http://svk.bestpractical.com/view/HomePage" title="Visit page outside Confluence">SVK</a>. SVK describes itself as "a decentralized version control system built with the robust Subversion filesystem. It supports repository mirroring, disconnected operation, history-sensitive merging, and integrates with other version control systems, as well as popular visual merge tools."</p>
+<p>You may want to retrieve Jikes RVM, make modifications and version control your changes. Unfortunately Subversion does not natively support decentralized development model where everyone maintains their own development tree. For this you will need to use <a href="http://svk.bestpractical.com/view/HomePage">SVK</a>. SVK describes itself as "a decentralized version control system built with the robust Subversion filesystem. It supports repository mirroring, disconnected operation, history-sensitive merging, and integrates with other version control systems, as well as popular visual merge tools."</p>
 
-<p>Note: The directions on this page were partially derived from a blog <a href="http://scottstuff.net/blog/articles/2005/07/07/distributed-development-with-svk" title="Visit page outside Confluence">entry</a> by Scott Laird.</p>
+<p>Note: The directions on this page were partially derived from a blog <a href="http://scottstuff.net/blog/articles/2005/07/07/distributed-development-with-svk">entry</a> by Scott Laird.</p>
 
 <h3><a name="GetTheSource-SettinguptheLocalRepository"></a>Setting up the Local Repository</h3>
 
@@ -56,7 +56,7 @@
 
 <div class="panel"><div class="panelContent">
 <p>&gt; svk depotmap &#45;-init # Initialize local repository<br/>
-&gt; svk mirror <a href="https://svn.sourceforge.net/svnroot/jikesrvm/rvmroot/trunk" title="Visit page outside Confluence">https://svn.sourceforge.net/svnroot/jikesrvm/rvmroot/trunk</a> //jikesrvm/trunk # Setup up mapping<br/>
+&gt; svk mirror <a href="https://jikesrvm.svn.sourceforge.net/svnroot/jikesrvm/rvmroot/trunk">https://jikesrvm.svn.sourceforge.net/svnroot/jikesrvm/rvmroot/trunk</a> //jikesrvm/trunk # Setup up mapping<br/>
 &gt; svk sync &#45;-all # Synchronize local repository to all remote repositories</p>
 </div></div>
 
@@ -149,7 +149,7 @@
 &gt; ... svk commit &#45;m "Fix missed changes" ...</p>
 </div></div>
 
-<p>Finally you create a diff file and add it into the <a href="http://sourceforge.net/tracker/?group_id=128805&amp;atid=712770" title="Visit page outside Confluence">patch tracker</a>.</p>
+<p>Finally you create a diff file and add it into the <a href="http://sourceforge.net/tracker/?group_id=128805&amp;atid=712770">patch tracker</a>.</p>
 
 <div class="panel"><div class="panelContent">
 <p>&gt; svk diff //jikesrvm/trunk //jikesrvm/patchsets/news_add &gt; news_add_diff.txt</p>
@@ -175,7 +175,7 @@
 
 <div class="panel"><div class="panelContent">
 <p>&gt; svk mkdir //mirror<br/>
-&gt; svk ls <a href="http://www.mysvnserver.com/svn/public/" title="Visit page outside Confluence">http://www.mysvnserver.com/svn/public/</a><br/>
+&gt; svk ls <a href="http://www.mysvnserver.com/svn/public/">http://www.mysvnserver.com/svn/public/</a><br/>
 &lt;follow the prompts and have it mirror it onto //mirror/mymirror&gt;<br/>
 &gt; svk sync //mirror/mymirror<br/>
 &gt; svk mkdir //mirror/mymirror/jikesrvm<br/>
@@ -190,7 +190,7 @@
 
 <h2><a name="GetTheSource-Usedarcs"></a>Use darcs</h2>
 
-<p>While a central SVN repository is excellent for collaboration on a common code base, sometimes you wish to try things before commiting to the SVN repository. If you plan on making a lot of changes spread accross numerous files, it can be handy to have a local version control system (VCS) in which to record your changes. Similarly to the SVK setup detailed above, you can opt to use <a href="http://www.darcs.net" title="Visit page outside Confluence">darcs</a>as your local version control system. Darcs is an open-source distributed VCS. This means that there is no centralized server on which the repository resides. Instead, each repository stands on its own, and changes made to one copy of the repository can be put into another copy. Basically, darcs is built around patches, that are invertible, commutable (if not there is a dependency) and mergable in any order. Because people are pretty familiar wirth SVN, a there is a page detailing the <a href="http://darcs.net/DarcsWiki/WorkFlowsVsSubversion" title="Visit page outside Confluence">workflow comparison</a> between darcs and SVN.</p>
+<p>While a central SVN repository is excellent for collaboration on a common code base, sometimes you wish to try things before commiting to the SVN repository. If you plan on making a lot of changes spread accross numerous files, it can be handy to have a local version control system (VCS) in which to record your changes. Similarly to the SVK setup detailed above, you can opt to use <a href="http://www.darcs.net">darcs</a>as your local version control system. Darcs is an open-source distributed VCS. This means that there is no centralized server on which the repository resides. Instead, each repository stands on its own, and changes made to one copy of the repository can be put into another copy. Basically, darcs is built around patches, that are invertible, commutable (if not there is a dependency) and mergable in any order. Because people are pretty familiar wirth SVN, a there is a page detailing the <a href="http://darcs.net/DarcsWiki/WorkFlowsVsSubversion">workflow comparison</a> between darcs and SVN.</p>
 
 <p>The directions given here are structured alike the SVK directions.</p>
 
@@ -257,7 +257,7 @@
 
 <h3><a name="GetTheSource-PreparingPatchesandApplyingChanges"></a>Preparing Patches and Applying Changes</h3>
 
-<p>If you wish to get a patch to the Jikes RVM team, you first update your local copy using SVN, store the changes into darcs, as described above, and basically create a SVN diff and submit the diff to the <a href="http://sourceforge.net/tracker/?group_id=128805&amp;atid=712770" title="Visit page outside Confluence">patch tracker</a>.</p>
+<p>If you wish to get a patch to the Jikes RVM team, you first update your local copy using SVN, store the changes into darcs, as described above, and basically create a SVN diff and submit the diff to the <a href="http://sourceforge.net/tracker/?group_id=128805&amp;atid=712770">patch tracker</a>.</p>
 
 <p>If you have SVN write access to the central Jikes RVM SVN repository, you use the regular SVN command to check in your code.</p>
 
@@ -285,7 +285,7 @@
 
 <h2><a name="GetTheSource-UseSVN%3A%3AMirrortoClonetheSVNRepository"></a>Use SVN::Mirror to Clone the SVN Repository</h2>
 
-<p>You can use SVN::Mirror to mirror the repository locally. You can install it via your distributions package manager or via Perl's CPAN (&lt;code&gt;perl &#45;MCPAN &#45;e shell&lt;/code&gt;) installation tool. You will need the command line interface to this called <a href="http://search.cpan.org/~clkao/SVN-Mirror-0.69_2/bin/svm" title="Visit page outside Confluence">svm</a>.</p>
+<p>You can use SVN::Mirror to mirror the repository locally. You can install it via your distributions package manager or via Perl's CPAN (&lt;code&gt;perl &#45;MCPAN &#45;e shell&lt;/code&gt;) installation tool. You will need the command line interface to this called <a href="http://search.cpan.org/~clkao/SVN-Mirror-0.69_2/bin/svm">svm</a>.</p>
 
 <p>First create a repository to hold your mirror that will be held at the location 'SVMREPOS':</p>
 
@@ -297,7 +297,7 @@
 <p>then initialize and synchronize it to the latest repository:</p>
 
 <div class="panel"><div class="panelContent">
-<p>&gt; svm init mirror/mymirror/jikesrvm <a href="https://svn.sourceforge.net/svnroot/jikesrvm/rvmroot/trunk" title="Visit page outside Confluence">https://svn.sourceforge.net/svnroot/jikesrvm/rvmroot/trunk</a><br/>
+<p>&gt; svm init mirror/mymirror/jikesrvm <a href="https://jikesrvm.svn.sourceforge.net/svnroot/jikesrvm/rvmroot/trunk">https://jikesrvm.svn.sourceforge.net/svnroot/jikesrvm/rvmroot/trunk</a><br/>
 &gt; svm sync mirror/mymirror/jikesrvm</p>
 </div></div>
 
@@ -327,7 +327,7 @@
 				<td height="12" background="border/border_bottom.gif"><img src="border/spacer.gif" width="1" height="1" border="0"/></td>
 			</tr>
 		    <tr>
-			    <td align="center"><font color="grey">Document generated by Confluence on Mar 15, 2007 09:56</font></td>
+			    <td align="center"><font color="grey">Document generated by Confluence on Jul 25, 2007 12:31</font></td>
 		    </tr>
 	    </table>
     </body>

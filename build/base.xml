@@ -1,7 +1,15 @@
 <!--
-common build component for setting up and checking propertys that common across all builds - even nightly builds.
- jikesrvm.dir MUST be set to base directory before importing project.  
--->
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Common Public License (CPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/cpl1.0.php
+ ~
+ ~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
 <project name="base">
 
   <property file="${jikesrvm.dir}/.ant.properties"/>
@@ -17,7 +25,10 @@ common build component for setting up and checking propertys that common across 
   <!-- location of components -->
   <property name="components.dir" location="${jikesrvm.dir}/components"/>
   <property name="components.file" location="${components.dir}/components.properties"/>
-  
+
+  <!-- location of patches against components -->
+  <property name="components.patch.dir" location="${jikesrvm.dir}/build/components/patches"/>
+
   <!-- location of intermediate directory -->
   <property name="build.dir" location="${jikesrvm.dir}/target"/>
 
@@ -26,7 +37,7 @@ common build component for setting up and checking propertys that common across 
 
   <!-- base location for all test results -->
   <property name="results.dir" location="${jikesrvm.dir}/results"/>
-  
+
   <!-- by default not working on patch -->
   <property name="patch.name" value=""/>
 
@@ -112,4 +123,35 @@ common build component for setting up and checking propertys that common across 
     </sequential>
   </macrodef>
 
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                      Targets for retrieving svn version                  * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="check-svn-present">
+    <available property="svn.present" file=".svn" type="dir"/>
+    <property name="svn.exe" value="svn"/>
+  </target>
+
+  <target name="extract-svn-version" depends="check-svn-present" if="svn.present">
+    <exec executable="${svn.exe}">
+      <arg value="info"/>
+      <redirector outputproperty="svn.revision">
+        <outputfilterchain>
+          <linecontains>
+            <contains value="Revision: "/>
+          </linecontains>
+          <tokenfilter>
+            <replacestring from="Revision: " to=""/>
+          </tokenfilter>
+        </outputfilterchain>
+      </redirector>
+    </exec>
+  </target>
+
+  <target name="get-svn-version" depends="extract-svn-version">
+    <!-- set property if not already set -->
+    <property name="svn.revision" value="Unknown"/>
+  </target>
 </project>

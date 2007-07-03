@@ -1,18 +1,17 @@
 #
-# This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
-# The Jikes RVM project is distributed under the Common Public License (CPL).
-# A copy of the license is included in the distribution, and is also
-# available at http://www.opensource.org/licenses/cpl1.0.php
+#  This file is part of the Jikes RVM project (http://jikesrvm.org).
 #
-# (C) Copyright IBM Corp. 2001,2002,2004
+#  This file is licensed to You under the Common Public License (CPL);
+#  You may not use this file except in compliance with the License. You
+#  may obtain a copy of the License at
 #
+#      http://www.opensource.org/licenses/cpl1.0.php
 #
-# @author Dave Grove
-# @author Mauricio J. Serrano
-# @modified Kris Venstermans
+#  See the COPYRIGHT.txt file distributed with this work for information
+#  regarding copyright ownership.
 #
 # BURS rules that are common to PPC32 and PPC64
-# !!!warning: pay attention to rules that set condition bits !!! 
+# !!!warning: pay attention to rules that set condition bits !!!
 # Mostly these are mode dependant and do NOT have the same behavior on 32-bit and 64-bit.
 # E.g. ADDr, ADDIC, ANDr are not OK to use here. SLWr and ANDIr on the other hand can be used.
 #
@@ -189,7 +188,7 @@ EMIT(P(p));
 stm:	NULL_CHECK(r)
 11
 EMIT_INSTRUCTION
-EMIT(P(p)); 
+EMIT(P(p));
 
 ###########
 # Rules for exceptions
@@ -309,7 +308,7 @@ EMIT_INSTRUCTION
 TRAP_IF_IMM(P(p), true);
 
 ##################################
-# Basic Boolean ALU operations 
+# Basic Boolean ALU operations
 ##################################
 #####
 # BOOLEAN_NOT
@@ -408,7 +407,7 @@ EMIT_INSTRUCTION
 FLIP_BOOLCMP(); EMIT_PUSHED_BOOLCMP(BooleanCmp.getResult(P(p)));
 
 ##################################
-# Basic Integer ALU operations 
+# Basic Integer ALU operations
 ##################################
 #####
 # REF_ADD
@@ -521,7 +520,8 @@ EMIT(MIR_Binary.mutate(P(p), PPC_SLWI, Binary.getResult(P(p)),                \
 rz:	INT_SHL(r,r)
 20
 EMIT_INSTRUCTION
-INT_SHIFT(P(p),PPC_SLW);
+EMIT(MIR_Binary.mutate(P(p), PPC_SLW, Binary.getResult(P(p)), \
+                       R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p)))));
 
 rz:	INT_SHL(INT_USHR(r,INT_CONSTANT),INT_CONSTANT)
 10
@@ -540,7 +540,8 @@ EMIT(MIR_Binary.mutate(P(p), PPC_SRAWI, Binary.getResult(P(p)), R(Binary.getVal1
 rs:	INT_SHR(r,r)
 20
 EMIT_INSTRUCTION
-INT_SHIFT(P(p),PPC_SRAW);
+EMIT(MIR_Binary.mutate(P(p), PPC_SRAW, Binary.getResult(P(p)), \
+                       R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p)))));
 
 #guaranteed to be correct also on 64-bit: INT_CONSTANT of REF_AND is immediate, so sign is always zero
 rp:	INT_SHR(REF_AND(r,INT_CONSTANT),INT_CONSTANT)
@@ -571,7 +572,8 @@ EMIT(MIR_Binary.mutate(P(p), PPC_SRWI, Binary.getResult(P(p)),                \
 rz:	INT_USHR(r,r)
 20
 EMIT_INSTRUCTION
-INT_SHIFT(P(p),PPC_SRW);
+EMIT(MIR_Binary.mutate(P(p), PPC_SRW, Binary.getResult(P(p)), \
+                       R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p)))));
 
 #assumption for rp : INT_CONSTANT of USHR <> 0, should be taken care of by OPT_Simplifier
 rp:	INT_USHR(REF_AND(r,INT_CONSTANT),INT_CONSTANT)
@@ -703,10 +705,10 @@ EMIT_INSTRUCTION
 EMIT(MIR_Binary.mutate(P(p), PPC_EQV, Unary.getResult(P(p)), R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p))));
 
 ##################################
-# Basic Floating-Point ALU operations 
+# Basic Floating-Point ALU operations
 ##################################
 #####
-# FLOAT_ADD 
+# FLOAT_ADD
 #####
 r:	FLOAT_ADD(r,r)
 10
@@ -715,7 +717,7 @@ EMIT(MIR_Binary.mutate(P(p), PPC_FADDS, Binary.getResult(P(p)), \
                        R(Binary.getVal1(P(p))), Binary.getVal2(P(p))));
 
 #####
-# DOUBLE_ADD 
+# DOUBLE_ADD
 #####
 r:	DOUBLE_ADD(r,r)
 10
@@ -724,7 +726,7 @@ EMIT(MIR_Binary.mutate(P(p), PPC_FADD, Binary.getResult(P(p)),                \
                        R(Binary.getVal1(P(p))), Binary.getVal2(P(p))));
 
 #####
-# FLOAT_MUL 
+# FLOAT_MUL
 #####
 r:	FLOAT_MUL(r,r)
 10
@@ -733,7 +735,7 @@ EMIT(MIR_Binary.mutate(P(p), PPC_FMULS, Binary.getResult(P(p)),               \
                        R(Binary.getVal1(P(p))), Binary.getVal2(P(p))));
 
 #####
-# DOUBLE_MUL 
+# DOUBLE_MUL
 #####
 r:	DOUBLE_MUL(r,r)
 10
@@ -742,7 +744,7 @@ EMIT(MIR_Binary.mutate(P(p), PPC_FMUL, Binary.getResult(P(p)),                \
                        R(Binary.getVal1(P(p))), Binary.getVal2(P(p))));
 
 #####
-# FLOAT_SUB 
+# FLOAT_SUB
 #####
 r:	FLOAT_SUB(r,r)
 10
@@ -751,7 +753,7 @@ EMIT(MIR_Binary.mutate(P(p), PPC_FSUBS, Binary.getResult(P(p)),               \
                        R(Binary.getVal1(P(p))), Binary.getVal2(P(p))));
 
 #####
-# DOUBLE_SUB 
+# DOUBLE_SUB
 #####
 r:	DOUBLE_SUB(r,r)
 10
@@ -760,7 +762,7 @@ EMIT(MIR_Binary.mutate(P(p), PPC_FSUB, Binary.getResult(P(p)),                \
                        R(Binary.getVal1(P(p))), Binary.getVal2(P(p))));
 
 #####
-# FLOAT_DIV 
+# FLOAT_DIV
 #####
 r:	FLOAT_DIV(r,r)
 10
@@ -769,7 +771,7 @@ EMIT(MIR_Binary.mutate(P(p), PPC_FDIVS, Binary.getResult(P(p)),               \
                        R(Binary.getVal1(P(p))), Binary.getVal2(P(p))));
 
 #####
-# DOUBLE_DIV 
+# DOUBLE_DIV
 #####
 r:	DOUBLE_DIV(r,r)
 10
@@ -778,7 +780,7 @@ EMIT(MIR_Binary.mutate(P(p), PPC_FDIV, Binary.getResult(P(p)),                \
                        R(Binary.getVal1(P(p))), Binary.getVal2(P(p))));
 
 #####
-# FLOAT_NEG 
+# FLOAT_NEG
 #####
 r:	FLOAT_NEG(r)
 10
@@ -786,7 +788,7 @@ EMIT_INSTRUCTION
 EMIT(MIR_Unary.mutate(P(p), PPC_FNEG, Unary.getResult(P(p)), Unary.getVal(P(p))));
 
 #####
-# DOUBLE_NEG 
+# DOUBLE_NEG
 #####
 r:	DOUBLE_NEG(r)
 10
@@ -1647,7 +1649,7 @@ NOFLAGS
 // do nothing
 
 ###############
-# on stack replace 
+# on stack replace
 ###############
 r:  YIELDPOINT_OSR(any, any)
 11
@@ -1665,10 +1667,23 @@ EMIT(MIR_Load.mutate(P(p), PPC_LWARX, Prepare.getResult(P(p)),   \
                               Prepare.getLocation(P(p)),                  \
                               Prepare.getGuard(P(p))));
 
+r:      PREPARE_LONG(r, r)
+11
+EMIT_INSTRUCTION
+EMIT(MIR_Load.mutate(P(p), PPC_LAddrARX, Prepare.getResult(P(p)),   \
+                              R(Prepare.getAddress(P(p))), Prepare.getOffset(P(p)),           \
+                              Prepare.getLocation(P(p)),                  \
+                              Prepare.getGuard(P(p))));
+
 #####
 # ATTEMPT (atomic compare-exchange)
 #####
 r:      ATTEMPT_INT(r, r)
+11
+EMIT_INSTRUCTION
+EMIT(P(p));  // Leave for OPT_ComplexLIR2MIRExpansion
+
+r:      ATTEMPT_LONG(r, r)
 11
 EMIT_INSTRUCTION
 EMIT(P(p));  // Leave for OPT_ComplexLIR2MIRExpansion

@@ -1,28 +1,30 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-import org.jikesrvm.*;
-/**
- * @author unascribed
- */
+import org.jikesrvm.runtime.VM_Magic;
+
 class NativeThreadsWorker extends Thread
    {
 ///static VM_ProcessorLock mutex = new VM_ProcessorLock();
 
    String     name;
    boolean    isFinished;
-   
+
    NativeThreadsWorker(String name)
       {
       this.name = name;
       say(name, "creating");
       }
-      
+
    public void
    start() //- overrides Thread
       {
@@ -31,7 +33,7 @@ class NativeThreadsWorker extends Thread
       }
 
      //- overrides Thread
-     //      
+     //
      public void
        run()   {
        int tid = VM_Magic.getThreadIdRegister() >>  VM_ObjectLayoutConstants.OBJECT_THREAD_ID_SHIFT;
@@ -51,24 +53,24 @@ class NativeThreadsWorker extends Thread
              //     VM.debugBreakpoint();
 
              // try to print a string
-             //      say(name, " before s created"); 
+             //      say(name, " before s created");
              //      String s = java.lang.Float.toString(fp);
              //      say(name, " after s created");
              //             String s2 = " return value = " + s;
              //             say(name, s2);
 
-             //try {         
+             //try {
              //  say(name, "sleeping");
              //  sleep(300);
-             //} 
+             //}
              //catch (InterruptedException e) {}
            } else {// pong story
              // others sleep for a while and then call java  function
              say(name, "about to sleep for 100 msec");
-             try {           
+             try {
                say(name, "sleeping");
                sleep(100);
-             } 
+             }
              catch (InterruptedException e) {}
              say(name, "after sleep -calling javaFoo");
              retval = tNativeThreads.javaFoo(10);

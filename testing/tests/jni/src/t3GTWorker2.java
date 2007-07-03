@@ -1,39 +1,33 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
- */
-
-/**
- * Part of thread management test in
- * the face of long-running native calls;
- * this thread sleeps for the specified time when called
- * repeatedly, until it receives a signal
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
  *
- * @author Dick Attanasio
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-
 class t3GTWorker2 extends Thread {
 
   int        arg1;
   boolean    isReady;
   boolean    isFinished;
-  
+
   t3GTWorker2(int arg1)
   {
     this.arg1 = arg1;
     this.isFinished = false;
     this.isReady    = false;
   }
-  
+
   public void start() //- overrides Thread
   {
     super.start();
   }
-  
+
   public void run()  //- overrides Thread
   {
 

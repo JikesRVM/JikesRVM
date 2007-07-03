@@ -1,15 +1,15 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-/*
- * @author Ton Ngo
- */
-
 class Allocation {
   static boolean verbose = true;         // set to true to get messages for each test
   static boolean allTestPass = true;
@@ -27,14 +27,14 @@ class Allocation {
 
     String returnObj;
     Class classObj=null;
-      
+
     System.loadLibrary("Allocation");
 
     if (args.length!=0) {
       if (args[0].equals("-quiet")) {
-        verbose = false;        
+        verbose = false;
         setVerboseOff();
-      }         
+      }
     }
 
     // the class to create a new instance
@@ -43,7 +43,7 @@ class Allocation {
       classObj = Class.forName("java.lang.String");
     } catch (Exception e) {
       System.out.println("Fix test program");
-    }    
+    }
 
     // get some input for creating the new instance of String
     String inputStr = "Month Of March";
@@ -53,7 +53,7 @@ class Allocation {
     returnObj = testNewObjectA(classObj, inputCharArray);
     // System.out.println("The new object:  " + returnObj);
     checkTest(0, (returnObj.equals(inputStr)), "NewObjectA");
-    
+
     returnObj = null;
     returnObj = testNewObjectV(classObj, inputCharArray);
     // System.out.println("The new object:  " + returnObj);
@@ -69,13 +69,13 @@ class Allocation {
 
     if (allTestPass)
       System.out.println("PASS: Allocation");
-    else 
+    else
       System.out.println("FAIL: Allocation");
   }
 
 
   static void printVerbose(String str) {
-    if (verbose) 
+    if (verbose)
       System.out.println(str);
   }
 
@@ -87,6 +87,6 @@ class Allocation {
       printVerbose("FAIL: " + testName);
     }
   }
-  
+
 
 }

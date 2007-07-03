@@ -1,10 +1,14 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp 2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package java.lang.reflect;
 
@@ -16,21 +20,14 @@ import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.classloader.VM_Atom;
 
-import org.jikesrvm.VM_ObjectModel;
-import org.jikesrvm.VM_Runtime;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
+import org.jikesrvm.runtime.VM_Runtime;
 
 /**
  * Implementation of java.lang.reflect.Field for JikesRVM.
  *
  * By convention, order methods in the same order
- * as they appear in the method summary list of Sun's 1.4 Javadoc API. 
- *
- * @author John Barton 
- * @author Julian Dolby
- * @author Stephen Fink
- * @author Eugene Gluzberg
- * @author Dave Grove
- * @modified Ian Rogers
+ * as they appear in the method summary list of Sun's 1.4 Javadoc API.
  */
 public final class Field extends AccessibleObject implements Member {
 
@@ -40,12 +37,12 @@ public final class Field extends AccessibleObject implements Member {
   private Field() {
     field = null;
   }
-    
+
   // For use by JikesRVMSupport
   Field(VM_Field f) {
     field = f;
   }
-    
+
   public boolean equals(Object object) {
     if (object instanceof Field) {
       return field == ((Field)object).field;
@@ -85,7 +82,7 @@ public final class Field extends AccessibleObject implements Member {
     checkReadAccess(object);
     return getBooleanInternal(object);
   }
-    
+
   public byte getByte(Object object) throws IllegalAccessException, IllegalArgumentException {
     checkReadAccess(object);
     return getByteInternal(object);
@@ -127,7 +124,7 @@ public final class Field extends AccessibleObject implements Member {
   public String getName() {
     return field.getName().toString();
   }
-    
+
   public short getShort(Object object) throws IllegalAccessException, IllegalArgumentException {
     checkReadAccess(object);
     return getShortInternal(object);
@@ -151,7 +148,7 @@ public final class Field extends AccessibleObject implements Member {
     return field.isEnumConstant();
   }
 
-  public void set(Object object, Object value) 
+  public void set(Object object, Object value)
     throws IllegalAccessException, IllegalArgumentException     {
     checkWriteAccess(object);
 
@@ -165,7 +162,7 @@ public final class Field extends AccessibleObject implements Member {
         } catch (NoClassDefFoundError e) {
           throw new IllegalArgumentException("field type mismatch");
         }
-        if (fieldType != valueType 
+        if (fieldType != valueType
             && !VM_Runtime.isAssignableWith(fieldType, valueType))
         {
           throw new IllegalArgumentException("field type mismatch");
@@ -192,14 +189,14 @@ public final class Field extends AccessibleObject implements Member {
       throw new IllegalArgumentException("field type mismatch");
     }
   }
-    
-  public void setBoolean(Object object, boolean value) 
+
+  public void setBoolean(Object object, boolean value)
     throws IllegalAccessException, IllegalArgumentException    {
     checkWriteAccess(object);
     setBooleanInternal(object, value);
   }
 
-  public void setByte(Object object, byte value) 
+  public void setByte(Object object, byte value)
     throws IllegalAccessException, IllegalArgumentException    {
     checkWriteAccess(object);
     setByteInternal(object, value);
@@ -249,8 +246,8 @@ public final class Field extends AccessibleObject implements Member {
     sb.append(getName());
     return sb.toString();
   }
- 
-  private void checkReadAccess(Object obj) throws IllegalAccessException, 
+
+  private void checkReadAccess(Object obj) throws IllegalAccessException,
                                                   IllegalArgumentException,
                                                   ExceptionInInitializerError {
 
@@ -282,7 +279,7 @@ public final class Field extends AccessibleObject implements Member {
     }
   }
 
-  private void checkWriteAccess(Object obj) throws IllegalAccessException, 
+  private void checkWriteAccess(Object obj) throws IllegalAccessException,
                                                    IllegalArgumentException,
                                                    ExceptionInInitializerError {
 
@@ -322,7 +319,7 @@ public final class Field extends AccessibleObject implements Member {
     if (!type.isBooleanType()) throw new IllegalArgumentException("field type mismatch");
     return field.getBooleanValueUnchecked(object);
   }
-    
+
   private byte getByteInternal(Object object) throws IllegalArgumentException {
     VM_TypeReference type = field.getType();
     if (!type.isByteType()) throw new IllegalArgumentException("field type mismatch");
@@ -418,7 +415,7 @@ public final class Field extends AccessibleObject implements Member {
     }
   }
 
-  private void setBooleanInternal(Object object, boolean value) 
+  private void setBooleanInternal(Object object, boolean value)
     throws IllegalArgumentException {
     VM_TypeReference type = field.getType();
     if (type.isBooleanType())
@@ -429,19 +426,19 @@ public final class Field extends AccessibleObject implements Member {
 
   private void setByteInternal(Object object, byte value) throws IllegalArgumentException {
     VM_TypeReference type = field.getType();
-    if (type.isByteType()) 
+    if (type.isByteType())
       field.setByteValueUnchecked(object, value);
     else if (type.isLongType())
       field.setLongValueUnchecked(object, (long)value);
-    else if (type.isIntType()) 
+    else if (type.isIntType())
       field.setIntValueUnchecked(object, (int)value);
     else if (type.isShortType())
       field.setShortValueUnchecked(object, (short)value);
-    else if (type.isCharType()) 
+    else if (type.isCharType())
       field.setCharValueUnchecked(object, (char)value);
     else if (type.isDoubleType())
       field.setDoubleValueUnchecked(object, (double)value);
-    else if (type.isFloatType()) 
+    else if (type.isFloatType())
       field.setFloatValueUnchecked(object, (float)value);
     else
       throw new IllegalArgumentException("field type mismatch");
@@ -449,17 +446,17 @@ public final class Field extends AccessibleObject implements Member {
 
   private void setCharInternal(Object object, char value) throws IllegalArgumentException {
     VM_TypeReference type = field.getType();
-    if (type.isCharType()) 
+    if (type.isCharType())
       field.setCharValueUnchecked(object, value);
     else if (type.isLongType())
       field.setLongValueUnchecked(object, (long)value);
-    else if (type.isIntType()) 
+    else if (type.isIntType())
       field.setIntValueUnchecked(object, (int)value);
     else if (type.isShortType())
       field.setShortValueUnchecked(object, (short)value);
     else if (type.isDoubleType())
       field.setDoubleValueUnchecked(object, (double)value);
-    else if (type.isFloatType()) 
+    else if (type.isFloatType())
       field.setFloatValueUnchecked(object, (float)value);
     else
       throw new IllegalArgumentException("field type mismatch");
@@ -467,7 +464,7 @@ public final class Field extends AccessibleObject implements Member {
 
   private void setDoubleInternal(Object object, double value) throws IllegalArgumentException {
     VM_TypeReference type = field.getType();
-    if (type.isDoubleType()) 
+    if (type.isDoubleType())
       field.setDoubleValueUnchecked(object, value);
     else
       throw new IllegalArgumentException("field type mismatch");
@@ -475,7 +472,7 @@ public final class Field extends AccessibleObject implements Member {
 
   private void setFloatInternal(Object object, float value) throws IllegalArgumentException {
     VM_TypeReference type = field.getType();
-    if (type.isFloatType()) 
+    if (type.isFloatType())
       field.setFloatValueUnchecked(object, value);
     else if (type.isDoubleType())
       field.setDoubleValueUnchecked(object, (double)value);
@@ -485,13 +482,13 @@ public final class Field extends AccessibleObject implements Member {
 
   private void setIntInternal(Object object, int value) throws IllegalArgumentException {
     VM_TypeReference type = field.getType();
-    if (type.isIntType()) 
+    if (type.isIntType())
       field.setIntValueUnchecked(object, value);
     else if (type.isLongType())
       field.setLongValueUnchecked(object, (long) value);
     else if (type.isDoubleType())
       field.setDoubleValueUnchecked(object, (double)value);
-    else if (type.isFloatType()) 
+    else if (type.isFloatType())
       field.setFloatValueUnchecked(object, (float)value);
     else
       throw new IllegalArgumentException("field type mismatch");
@@ -499,11 +496,11 @@ public final class Field extends AccessibleObject implements Member {
 
   private void setLongInternal(Object object, long value) throws IllegalArgumentException {
     VM_TypeReference type = field.getType();
-    if (type.isLongType()) 
+    if (type.isLongType())
       field.setLongValueUnchecked(object, value);
     else if (type.isDoubleType())
       field.setDoubleValueUnchecked(object, (double)value);
-    else if (type.isFloatType()) 
+    else if (type.isFloatType())
       field.setFloatValueUnchecked(object, (float)value);
     else
       throw new IllegalArgumentException("field type mismatch");
@@ -515,11 +512,11 @@ public final class Field extends AccessibleObject implements Member {
       field.setShortValueUnchecked(object, value);
     else if (type.isLongType())
       field.setLongValueUnchecked(object, (long)value);
-    else if (type.isIntType()) 
+    else if (type.isIntType())
       field.setIntValueUnchecked(object, (int)value);
     else if (type.isDoubleType())
       field.setDoubleValueUnchecked(object, (double)value);
-    else if (type.isFloatType()) 
+    else if (type.isFloatType())
       field.setFloatValueUnchecked(object, (float)value);
     else
       throw new IllegalArgumentException("field type mismatch");

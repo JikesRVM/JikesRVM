@@ -1,0 +1,52 @@
+<!--
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Common Public License (CPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/cpl1.0.php
+ ~
+ ~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
+<project name="pmd" default="build" basedir=".">
+
+  <import file="base.xml"/>
+  <property file="${components.file}"/>
+
+  <property name="pmd.version" value="3.9"/>
+  <property name="pmd.description" value="PMD"/>
+
+  <property name="pmd.package.dir" value="${components.dir}/pmd/${pmd.version}"/>
+  <property name="pmd.dir" location="${pmd.package.dir}/pmd-${pmd.version}"/>
+
+  <target name="init-pmd-properties" depends="prepare-ant-tasks">
+    <condition property="pmd.from-web" value="true">
+      <or>
+        <not>
+          <available file="${pmd.dir}/constants.properties"/>
+        </not>
+        <isset property="pmd.force-download"/>
+      </or>
+    </condition>
+  </target>
+
+  <target name="fetch" depends="init-pmd-properties" if="pmd.from-web">
+    <property name="pmd.web-archive" value="pmd-bin-${pmd.version}.zip"/>
+    <mkdir dir="${pmd.package.dir}"/>
+    <get src="http://nchc.dl.sourceforge.net/sourceforge/pmd/${pmd.web-archive}"
+         dest="${pmd.package.dir}/${pmd.web-archive}"/>
+    <unzip src="${pmd.package.dir}/${pmd.web-archive}" dest="${pmd.package.dir}"/>
+    <writeComponentConstants dir="${pmd.dir}"/>
+  </target>
+
+  <target name="build" depends="fetch">
+    <setComponentsConfig key="pmd.dir" value="${pmd.dir}"/>
+  </target>
+
+  <target name="ensure" depends="prepare-ant-tasks">
+    <ensureUptodate name="pmd" dir="${pmd.dir}"/>
+  </target>
+
+</project>

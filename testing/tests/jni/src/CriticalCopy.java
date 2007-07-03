@@ -1,20 +1,15 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
- */
-/**
- * Test JNI functions that provide direct pointer
- * to Java internal memory such as array, string
- * These functions are added for Java 2.
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
  *
- * @author Ton Ngo, Steve Smith 
- * @date   6/19/00
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-
 class CriticalCopy {
   static boolean verbose = true;         // set to true to get messages for each test
   static boolean allTestPass = true;
@@ -29,7 +24,7 @@ class CriticalCopy {
   static long    longArray[]    = {0x80001000, 0x80001000, 0x80001000, 0x80001000, 0x80001000,
                                    0x80001000, 0x80001000, 0x80001000, 0x80001000, 0x80001000};
   static double  doubleArray[]  = {115.1, 115.1, 115.1, 115.1, 115.1, 115.1, 115.1, 115.1, 115.1, 115.1};
-  static float   floatArray[]   = {(float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1, 
+  static float   floatArray[]   = {(float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1,
                                    (float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1};
 
 
@@ -49,17 +44,17 @@ class CriticalCopy {
 
     if (args.length!=0) {
       if (args[0].equals("-quiet")) {
-        verbose = false;        
+        verbose = false;
         setVerboseOff();
-      }         
+      }
     }
 
 
     returnValue = primitiveIntegerArray(intArray);
-    // check that the array has new values 
+    // check that the array has new values
     boolean checkFlag = true;
-    if (verbose) 
-      System.out.println("Updated copy");    
+    if (verbose)
+      System.out.println("Updated copy");
 
     for (int i=0; i<intArray.length; i++) {
       if (verbose)
@@ -68,18 +63,18 @@ class CriticalCopy {
         checkFlag = false;
     }
     checkTest(returnValue, checkFlag, "primitiveIntegerArray");
-  
+
     // Summarize
 
     if (allTestPass)
       System.out.println("PASS: CriticalCopy");
-    else 
+    else
       System.out.println("FAIL: CriticalCopy");
-  
+
   }
 
   static void printVerbose(String str) {
-    if (verbose) 
+    if (verbose)
       System.out.println(str);
   }
 

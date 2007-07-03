@@ -1,17 +1,24 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp 2003
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-
 package org.jikesrvm.adaptive;
 
-import org.jikesrvm.*;
-
-import org.vmmagic.pragma.*;
+import org.jikesrvm.adaptive.controller.VM_Controller;
+import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.scheduler.VM_Synchronization;
+import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.VM_ThreadQueue;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * Organizer thread collects OSR requests and inserted in controller queue
@@ -24,9 +31,9 @@ import org.vmmagic.pragma.*;
  * P1, P2:
  *   if (C.osr_flag == false) {
  *     C.osr_flag = true;
- *     C.activate(); 
+ *     C.activate();
  *   }
- * 
+ *
  * C:
  *   while (true) {
  *     while (osr_flag == true) {
@@ -37,7 +44,7 @@ import org.vmmagic.pragma.*;
  *     C.passivate();
  *   }
  *
- * // compensate the case C missed osr_flag 
+ * // compensate the case C missed osr_flag
  * Other thread switching:
  *   if (C.osr_flag == true) {
  *     C.activate();
@@ -45,20 +52,15 @@ import org.vmmagic.pragma.*;
  *
  * C.activate and passivate have to acquire a lock before dequeue and
  * enqueue.
- *
- * @author Feng Qian
  */
 
-public class OSR_OrganizerThread extends VM_Thread {
-
-  public String toString() {
-    return "OSR_Organizer";
-  }
-
+public final class OSR_OrganizerThread extends VM_Thread {
+  /** Constructor */
   public OSR_OrganizerThread() {
-        makeDaemon(true);
+    super(null, "OSR_Organizer");
+    makeDaemon(true);
   }
-  
+
   public boolean osr_flag = false;
 
   public void run() {
@@ -73,25 +75,26 @@ public class OSR_OrganizerThread extends VM_Thread {
   }
 
   // lock = 0, free , 1 owned by someone
-  @SuppressWarnings("unused") // Accessed via VM_EntryPoints
+  @SuppressWarnings("unused")
+  // Accessed via VM_EntryPoints
   private int queueLock = 0;
-  private VM_ThreadQueue tq = new VM_ThreadQueue();
+  private final VM_ThreadQueue tq = new VM_ThreadQueue();
+
   private void passivate() {
-    boolean gainedLock = VM_Synchronization.testAndSet(this, 
-                    VM_Entrypoints.osrOrganizerQueueLockField.getOffset(), 1);
+    boolean gainedLock = VM_Synchronization.testAndSet(this, VM_Entrypoints.osrOrganizerQueueLockField.getOffset(), 1);
     if (gainedLock) {
 
       // we cannot release lock before enqueue the organizer.
       // ideally, calling yield(q, l) is the solution, but
       // we donot want to use a lock
-      // 
+      //
       // this.beingDispatched = true;
       // tq.enqueue(this);
       // this.queueLock = 0;
       // morph(false);
       //
       // currently we go through following sequence which is incorrect
-      // 
+      //
       // this.queueLock = 0;
       // this.beingDispatched = true;
       // tq.enqueue(this);
@@ -99,7 +102,7 @@ public class OSR_OrganizerThread extends VM_Thread {
       //
       this.queueLock = 0; // release lock
       yield(tq);     // sleep in tq
-    }     
+    }
     // if failed, just continue the loop again
   }
 
@@ -108,9 +111,8 @@ public class OSR_OrganizerThread extends VM_Thread {
    * Only one thread can access queue at one time
    */
   @Uninterruptible
-  public void activate() { 
-    boolean gainedLock = VM_Synchronization.testAndSet(this,
-         VM_Entrypoints.osrOrganizerQueueLockField.getOffset(), 1);
+  public void activate() {
+    boolean gainedLock = VM_Synchronization.testAndSet(this, VM_Entrypoints.osrOrganizerQueueLockField.getOffset(), 1);
     if (gainedLock) {
       VM_Thread org = tq.dequeue();
       // release lock
@@ -126,7 +128,7 @@ public class OSR_OrganizerThread extends VM_Thread {
   // proces osr request
   private void processOsrRequest() {
     // scanning VM_Scheduler.threads
-    for (int i=0, n=VM_Scheduler.threads.length; i<n; i++) {
+    for (int i = 0, n = VM_Scheduler.threads.length; i < n; i++) {
       VM_Thread thread = VM_Scheduler.threads[i];
       if (thread != null) {
         if (thread.requesting_osr) {

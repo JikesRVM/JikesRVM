@@ -1,20 +1,21 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-
 import org.jikesrvm.*;
+import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.unboxed.*;
 
 /**
  * Test GC with Native frames on stack
- *
- * @author Ton Ngo, Steve Smith 
- * @date   3/29/00
  */
 class TestGC {
   static boolean verbose = true;         // set to true to get messages for each test
@@ -40,12 +41,12 @@ class TestGC {
     if (args.length!=0) {
         for (int i=0; i<args.length; i++) {
             if (args[i].equals("-quiet")) {
-                verbose = false;        
+                verbose = false;
                 setVerboseOff();
-            }   
+            }
             if (args[i].equals("-jdk")) {
-                runningUnderJDK = true; 
-            }   
+                runningUnderJDK = true;
+            }
         }
     }
 
@@ -60,7 +61,7 @@ class TestGC {
 
         returnobj = testgc( str1, str2 );
         printVerbose("TestGC After native call:");
-        
+
         Address newAddress1 = VM_Magic.objectAsAddress(str1);
         Address newAddress2 = VM_Magic.objectAsAddress(str2);
         if (oldAddress1!=newAddress1 && oldAddress2!=newAddress2) {
@@ -85,7 +86,7 @@ class TestGC {
   }
 
   static void printVerbose(String str) {
-    if (verbose) 
+    if (verbose)
       System.out.println(str);
   }
 

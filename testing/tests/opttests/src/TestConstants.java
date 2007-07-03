@@ -1,13 +1,14 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
- */
-/**
- * @author unascribed
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 class TestConstants
 {
@@ -18,11 +19,11 @@ class TestConstants
   }
 
   static boolean testSuccess = true;
-  
+
   public static boolean run()
   {
     System.out.print("TestConstants");
-    
+
     aconst();
     iconst();
     lconst();
@@ -35,207 +36,207 @@ class TestConstants
     } else {
       System.out.println(" failed. **************\n");
     }
-    
+
     return testSuccess;
   }
-  
+
   static void
   aconst()
   {
     Object x;
-    x = null; 
+    x = null;
     if (x != null) {
-      System.out.print("\nwant: null\n got: "); 
+      System.out.print("\nwant: null\n got: ");
       System.out.println(x); // aconst_null
       testSuccess = false;
     }
   }
-  
+
   static void
   iconst()
   {
     int  x;
     x = -1;
     if (x != -1) {
-      System.out.print("\nwant: -1\n got: "); 
+      System.out.print("\nwant: -1\n got: ");
       System.out.println(x);  // iconst_m1
       testSuccess = false;
     }
 
     x =  0;
     if (x != 0) {
-      System.out.print("\nwant: 0\n got: ");  
+      System.out.print("\nwant: 0\n got: ");
       System.out.println(x);  // iconst_0
       testSuccess = false;
     }
 
-    x =  1; 
+    x =  1;
     if (x != 1) {
-      System.out.print("\nwant: 1\n got: ");  
+      System.out.print("\nwant: 1\n got: ");
       System.out.println(x);  // iconst_1
       testSuccess = false;
     }
 
     x =  2;
     if (x != 2) {
-      System.out.print("\nwant: 2\n got: ");  
+      System.out.print("\nwant: 2\n got: ");
       System.out.println(x);  // iconst_2
       testSuccess = false;
     }
 
-    x =  3; 
+    x =  3;
     if (x != 3) {
-      System.out.print("\nwant: 3\n got: ");  
+      System.out.print("\nwant: 3\n got: ");
       System.out.println(x);  // iconst_3
       testSuccess = false;
     }
 
-    x =  4; 
+    x =  4;
     if (x != 4) {
-      System.out.print("\nwant: 4\n got: ");  
+      System.out.print("\nwant: 4\n got: ");
       System.out.println(x);  // iconst_4
       testSuccess = false;
     }
 
     x =  5;
     if (x != 5) {
-      System.out.print("\nwant: 5\n got: ");  
+      System.out.print("\nwant: 5\n got: ");
       System.out.println(x);  // iconst_5
       testSuccess = false;
     }
   }
-  
+
   static void
   lconst()
   {
     long x;
-    x =  0; 
+    x =  0;
     if (x != 0L) {
-      System.out.print("\nwant: 0\n got: "); 
+      System.out.print("\nwant: 0\n got: ");
       System.out.println(x);  // lconst_0
       testSuccess = false;
     }
 
     x =  1;
     if (x != 1L) {
-      System.out.print("\nwant: 1\n got: "); 
+      System.out.print("\nwant: 1\n got: ");
       System.out.println(x);  // lconst_1
       testSuccess = false;
     }
   }
-  
+
   static void
   fconst()
   {
     float x;
     x =  0;
     if (x != 0.0) {
-      System.out.print("\nwant: 0.0\n got: "); 
+      System.out.print("\nwant: 0.0\n got: ");
       System.out.println(x);  // fconst_0
       testSuccess = false;
     }
 
     x =  1;
     if (x != 1.0) {
-      System.out.print("\nwant: 1.0\n got: "); 
+      System.out.print("\nwant: 1.0\n got: ");
       System.out.println(x);  // fconst_1
       testSuccess = false;
     }
 
     x =  2;
     if (x != 2.0) {
-      System.out.print("\nwant: 2.0\n got: "); 
+      System.out.print("\nwant: 2.0\n got: ");
       System.out.println(x);  // fconst_2
       testSuccess = false;
     }
   }
-  
+
   static void
   dconst()
   {
     double x;
     x =  0;
     if (x != 0.0) {
-      System.out.print("\nwant: 0.0\n got: "); 
+      System.out.print("\nwant: 0.0\n got: ");
       System.out.println(x);  // dconst_0
       testSuccess = false;
     }
 
-    x =  1; 
+    x =  1;
     if (x != 1.0) {
-      System.out.print("\nwant: 1.0\n got: "); 
+      System.out.print("\nwant: 1.0\n got: ");
       System.out.println(x);  // dconst_1
       testSuccess = false;
     }
   }
-  
+
   static void
   misc()
   {
     byte  x0 =                 127;
     if (x0 != 127) {
-      System.out.print("\nwant: 127\n got: ");                  
+      System.out.print("\nwant: 127\n got: ");
       System.out.println(x0);           // bipush
       testSuccess = false;
     }
 
-    x0 =                -127; 
+    x0 =                -127;
     if (x0 != -127) {
-      System.out.print("\nwant: -127\n got: ");                 
+      System.out.print("\nwant: -127\n got: ");
       System.out.println(x0);           // bipush
       testSuccess = false;
     }
 
-    short x1 =               32767; 
+    short x1 =               32767;
     if (x1 != 32767) {
-      System.out.print("\nwant: 32767\n got: ");                
+      System.out.print("\nwant: 32767\n got: ");
       System.out.println(x1);           // sipush
       testSuccess = false;
     }
 
     x1 =              -32767;
     if (x1 != -32767) {
-      System.out.print("\nwant: -32767\n got: ");               
+      System.out.print("\nwant: -32767\n got: ");
       System.out.println(x1);           // sipush
       testSuccess = false;
     }
-    
+
     int   x2 =          0x7fffffff;
     if (x2 != 2147483647) {
-      System.out.print("\nwant: 2147483647\n got: ");           
+      System.out.print("\nwant: 2147483647\n got: ");
       System.out.println(x2);           // ldc
       testSuccess = false;
     }
 
-    x2 =          0x80000001; 
+    x2 =          0x80000001;
     if (x2 != -2147483647) {
-      System.out.print("\nwant: -2147483647\n got: ");          
+      System.out.print("\nwant: -2147483647\n got: ");
       System.out.println(x2);           // ldc
       testSuccess = false;
     }
-    
+
     long  x4 = 0x7fffffffffffffffL;
     if (x4 != 9223372036854775807L) {
-      System.out.print("\nwant: 9223372036854775807\n got: ");  
+      System.out.print("\nwant: 9223372036854775807\n got: ");
       System.out.println(x4);           // ldc2_w
       testSuccess = false;
     }
 
     x4 = 0x8000000000000001L;
     if (x4 != -9223372036854775807L) {
-      System.out.print("\nwant: -9223372036854775807\n got: "); 
+      System.out.print("\nwant: -9223372036854775807\n got: ");
       System.out.println(x4);           // ldc2_w
       testSuccess = false;
     }
-    
+
     String str = new TestConstants().s();  // ldc_w
     if (!str.equals("X98")) {
-      System.out.print("\nwant: X98\n got: ");                  
+      System.out.print("\nwant: X98\n got: ");
       System.out.println(new TestConstants().s());  // ldc_w
       testSuccess = false;
     }
   }
-  
+
   public final String x0 = "X0";
   public final String x1 = "X1";
   public final String x2 = "X2";
@@ -493,6 +494,6 @@ class TestConstants
   public final String x254 = "X254";
   public final String x255 = "X255";
   public final String x256 = "X256";
-  
+
   String s() { return x98; } // ldc_w
 }

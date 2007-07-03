@@ -1,10 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp 2001,2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.utility;
 
@@ -22,30 +26,27 @@ import org.vmmagic.unboxed.*;
  * implemented are the same.  This is true in the case of Jikes RVM,
  * but it is not true for any VM implementing a language other than
  * Java.
- * 
- * 
+ *
+ *
  * Each instance of this class is a doubly-linked list, in which
  * each item or node is a piece of memory.  The first two words of each node
  * contains the forward and backward links.  The third word contains
  * the treadmill.  The remaining portion is the payload.
- * 
+ *
  * The treadmill object itself must not be moved.
- * 
+ *
  * Access to the instances may be synchronized depending on the
  * constructor argument.
- * 
- *
- * @author Perry Cheng
  */
 @Uninterruptible public final class DoublyLinkedList implements Constants {
 
   /****************************************************************************
-   * 
+   *
    * Class variables
    */
 
   /****************************************************************************
-   * 
+   *
    * Instance variables
    */
   private Address head;
@@ -53,7 +54,7 @@ import org.vmmagic.unboxed.*;
   private final int logGranularity;  // Each node on the treadmill is guaranteed to be a multiple of granularity.
 
   /****************************************************************************
-   * 
+   *
    * Instance Methods
    */
 
@@ -109,7 +110,7 @@ import org.vmmagic.unboxed.*;
   }
 
   @Inline
-  public void add(Address node) { 
+  public void add(Address node) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isNode(node));
     if (lock != null) lock.acquire();
     node.store(Address.zero(), PREV_OFFSET);
@@ -121,7 +122,7 @@ import org.vmmagic.unboxed.*;
   }
 
   @Inline
-  public void remove(Address node) { 
+  public void remove(Address node) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isNode(node));
     if (lock != null) lock.acquire();
     Address prev = node.loadAddress(PREV_OFFSET);
@@ -140,17 +141,17 @@ import org.vmmagic.unboxed.*;
   }
 
   @Inline
-  public Address getHead() { 
+  public Address getHead() {
     return head;
   }
 
   @Inline
-  public Address getNext(Address node) { 
+  public Address getNext(Address node) {
     return node.loadAddress(NEXT_OFFSET);
   }
 
   @Inline
-  public Address pop() { 
+  public Address pop() {
     Address first = head;
     if (!first.isZero())
       remove(first);
@@ -158,13 +159,13 @@ import org.vmmagic.unboxed.*;
   }
 
   @Inline
-  public boolean isEmpty() { 
+  public boolean isEmpty() {
     return head.isZero();
   }
 
   /**
    * Return true if a cell is on a given treadmill
-   * 
+   *
    * @param node The cell being searched for
    * @return True if the cell is found on the treadmill
    */

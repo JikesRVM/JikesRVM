@@ -1,16 +1,21 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm.ia32;
 
-import org.jikesrvm.VM_Magic;
-import org.jikesrvm.VM_Processor;
-import org.vmmagic.pragma.*;
+import org.jikesrvm.compilers.common.assembler.ia32.VM_Assembler;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.scheduler.VM_Processor;
+import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -18,29 +23,26 @@ import org.vmmagic.unboxed.Offset;
  * use in order to access the current <code>VM_Processor</code> object.
  *
  * @see VM_Processor
- *
- * @author Stephen Fink
  */
 public abstract class VM_ProcessorLocalState {
-  
+
   protected static final byte PROCESSOR_REGISTER = VM_RegisterConstants.ESI;
 
   /**
    * The C bootstrap program has placed a pointer to the initial
-   * VM_Processor in ESI.  
+   * VM_Processor in ESI.
    */
   @Uninterruptible
   public
-  static void boot() { 
+  static void boot() {
     // do nothing - everything is already set up.
   }
-
 
   /**
    * Return the current VM_Processor object
    */
   @Uninterruptible
-  public static VM_Processor getCurrentProcessor() { 
+  public static VM_Processor getCurrentProcessor() {
     return VM_Magic.getESIAsProcessor();
   }
 
@@ -48,36 +50,36 @@ public abstract class VM_ProcessorLocalState {
    * Set the current VM_Processor object
    */
   @Uninterruptible
-  public static void setCurrentProcessor(VM_Processor p) { 
+  public static void setCurrentProcessor(VM_Processor p) {
     VM_Magic.setESIAsProcessor(p);
   }
 
   /**
-   * Emit an instruction sequence to move the value of a register into a field 
-   * in the current processor offset 
+   * Emit an instruction sequence to move the value of a register into a field
+   * in the current processor offset
    *
    * @param asm assembler object
    * @param offset of field in the <code>VM_Processor</code> object
    * @param reg number of the register supplying the new value
    */
   public static void emitMoveRegToField(VM_Assembler asm, Offset offset, byte reg) {
-    asm.emitMOV_RegDisp_Reg(PROCESSOR_REGISTER,offset,reg);
+    asm.emitMOV_RegDisp_Reg(PROCESSOR_REGISTER, offset, reg);
   }
 
   /**
-   * Emit an instruction sequence to move an immediate value into a field 
-   * in the current processor offset 
+   * Emit an instruction sequence to move an immediate value into a field
+   * in the current processor offset
    *
    * @param asm assembler object
    * @param offset of field in the <code>VM_Processor</code> object
    * @param imm immediate value
    */
   public static void emitMoveImmToField(VM_Assembler asm, Offset offset, int imm) {
-    asm.emitMOV_RegDisp_Imm(PROCESSOR_REGISTER,offset,imm);
+    asm.emitMOV_RegDisp_Imm(PROCESSOR_REGISTER, offset, imm);
   }
 
   /**
-   * Emit an instruction sequence to move the value of a field in the 
+   * Emit an instruction sequence to move the value of a field in the
    * current processor offset to a register
    *
    * @param asm assembler object
@@ -85,11 +87,11 @@ public abstract class VM_ProcessorLocalState {
    * @param offset of field in the <code>VM_Processor</code> object
    */
   public static void emitMoveFieldToReg(VM_Assembler asm, byte dest, Offset offset) {
-    asm.emitMOV_Reg_RegDisp(dest,PROCESSOR_REGISTER,offset);
+    asm.emitMOV_Reg_RegDisp(dest, PROCESSOR_REGISTER, offset);
   }
 
   /**
-   * Emit an instruction sequence to compare the value of a field in the 
+   * Emit an instruction sequence to compare the value of a field in the
    * current processor offset with an immediate value
    *
    * @param asm assembler object
@@ -97,11 +99,11 @@ public abstract class VM_ProcessorLocalState {
    * @param imm immediate value to compare with
    */
   public static void emitCompareFieldWithImm(VM_Assembler asm, Offset offset, int imm) {
-    asm.emitCMP_RegDisp_Imm(PROCESSOR_REGISTER,offset,imm);
+    asm.emitCMP_RegDisp_Imm(PROCESSOR_REGISTER, offset, imm);
   }
 
   /**
-   * Emit an instruction sequence to to an atomic compare and exchange on a field in the 
+   * Emit an instruction sequence to to an atomic compare and exchange on a field in the
    * current processor offset with an immediate value. Assumes EAX (T0) contains old value.
    *
    * @param asm assembler object
@@ -109,31 +111,34 @@ public abstract class VM_ProcessorLocalState {
    * @param srcReg register containing value to exchange
    */
   public static void emitCompareAndExchangeField(VM_Assembler asm, Offset offset, byte srcReg) {
+    asm.emitLockNextInstruction();
     asm.emitCMPXCHG_RegDisp_Reg(PROCESSOR_REGISTER, offset, srcReg);
   }
 
   /**
-   * Emit an instruction sequence to decrement the value of a field in the 
+   * Emit an instruction sequence to decrement the value of a field in the
    * current processor offset
    *
    * @param asm assembler object
    * @param offset of field in the <code>VM_Processor</code> object
    */
   public static void emitDecrementField(VM_Assembler asm, Offset offset) {
-    asm.emitDEC_RegDisp(PROCESSOR_REGISTER,offset);
+    asm.emitDEC_RegDisp(PROCESSOR_REGISTER, offset);
   }
+
   /**
-   * Emit an instruction sequence to PUSH the value of a field in the 
+   * Emit an instruction sequence to PUSH the value of a field in the
    * current processor offset
    *
    * @param asm assembler object
    * @param offset of field in the <code>VM_Processor</code> object
    */
   public static void emitPushField(VM_Assembler asm, Offset offset) {
-    asm.emitPUSH_RegDisp(PROCESSOR_REGISTER,offset);
+    asm.emitPUSH_RegDisp(PROCESSOR_REGISTER, offset);
   }
+
   /**
-   * Emit an instruction sequence to POP a value into a field in the 
+   * Emit an instruction sequence to POP a value into a field in the
    * current processor offset
    *
    * @param asm assembler object
@@ -172,8 +177,9 @@ public abstract class VM_ProcessorLocalState {
    * @param offset offset
    */
   public static void emitStoreProcessor(VM_Assembler asm, byte base, Offset offset) {
-    asm.emitMOV_RegDisp_Reg(base,offset,PROCESSOR_REGISTER);
+    asm.emitMOV_RegDisp_Reg(base, offset, PROCESSOR_REGISTER);
   }
+
   /**
    * Emit an instruction sequence to load current VM_Processor
    * object from a location defined by [base]+offset
@@ -183,6 +189,6 @@ public abstract class VM_ProcessorLocalState {
    * @param offset offset
    */
   public static void emitLoadProcessor(VM_Assembler asm, byte base, Offset offset) {
-    asm.emitMOV_Reg_RegDisp(PROCESSOR_REGISTER,base,offset);
+    asm.emitMOV_Reg_RegDisp(PROCESSOR_REGISTER, base, offset);
   }
 }

@@ -1,16 +1,17 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
- */
-/**
- * @author unascribed
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 class logic {
-  
+
    static boolean not(boolean a) {
        return !a;
    }
@@ -44,7 +45,7 @@ class logic {
    }
 
    static int  eje(int a) {
-    if (aja(a)) 
+    if (aja(a))
        return 0;
     else
        return 1;
@@ -55,14 +56,14 @@ class logic {
        return 3;
     else
        return 5;
-   } 
+   }
 
    static int  ojo(int a, int b) {
     if (ajaja(a,b))
        return 3;
     else
        return 5;
-   } 
+   }
 
    static boolean uju(Object a) {
       return a == null;
@@ -84,7 +85,7 @@ class logic {
    }
 
    static int insert(int a) {
-      return (a & 0xFC07FFFF) | 0x580000; 
+      return (a & 0xFC07FFFF) | 0x580000;
    }
 
    static int insert1(int a) {
@@ -126,7 +127,7 @@ static int extract5(int a) {
 
 static int extract6(int a) {
     return (a >>> 4) << 12;
-}    
+}
 
 static int extract7(int a) {
     return (a >>>12) <<  4;
@@ -135,7 +136,7 @@ static int extract7(int a) {
 
 static int extract8(int a) {
     return (a >>12) >>  4;
-} 
+}
 
 static int extract9(int a) {
     return (a <<12) <<  4;

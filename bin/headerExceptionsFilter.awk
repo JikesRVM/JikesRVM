@@ -1,21 +1,16 @@
-# This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
-# The Jikes RVM project is distributed under the Common Public License (CPL).
-# A copy of the license is included in the distribution, and is also
-# available at http://www.opensource.org/licenses/cpl1.0.php
 #
-# (C) Copyright IBM Corp. 2001, 2003, 2005, 2006
+#  This file is part of the Jikes RVM project (http://jikesrvm.org).
+#
+#  This file is licensed to You under the Common Public License (CPL);
+#  You may not use this file except in compliance with the License. You
+#  may obtain a copy of the License at
+#
+#      http://www.opensource.org/licenses/cpl1.0.php
+#
+#  See the COPYRIGHT.txt file distributed with this work for information
+#  regarding copyright ownership.
 #
 
-# @author Peter Sweeney
-# @date 11/1/2001
-# @modified Steven Augart
-# @date June, 2003
-
-## Auxiliary AWK program to help out /bin/findDeviantFiles.  You should
-## never run this directly; to discourage people from doing so, this is not an
-## executable file.
-
-#
 # The following is a list of patterns to match files
 # that are expempted from project-wide standards on
 # header infromation.  This list should be kept as
@@ -24,42 +19,36 @@
 #
 /\/rvm\/src-generated\/opt-burs\/jburg\// { next }
 
-# Avoid reporting a gazillion bogus violations when
-# this script is run from night-sanity-run
-/results\// { next }
-/dist\// { next }
-/generated\// { next }
-/target\// { next }
-/doc\/api\// { next }
-
-# don't need an author for all the build scripts
-/build\// { next }
-
-/doc\/userguide\// { next }
 /MMTk\/doc\// { next }
 
+# Test results
 /testing\/tests\/javalex\/qb1.lex.ref/ {next}
 /testing\/tests\/SPECjbb2000\/SPECjbb./ {next}
 /testing\/tests\/SPECjbb2005\/SPECjbb./ {next}
 /testing\/tests\/pseudojbb\/pseudojbb/ {next}
 /testing\/tests\/pseudojbb\/props/ {next}
-/testing\/tests\/mauve\/mauve-jikesrvm/ {next}
+/\.expected/ { next }
+/testing\/tests\/basic\/src\/test\/org\/jikesrvm\/basic\/core\/serialization\/SerializationData\.dat/ {next}
 
-# actually has the right headers, but utf8 characters break the checkers
-/testing\/tests\/utf8\/src\/utf8test.java/ {next}
+# Users custom settings
+/\.ant.properties/ { next }
 
-/tools\/bootImageRunner\/org_jikesrvm_VM_0005fProcess.h/ { next }
-/tools\/bootImageWriter\/rvm.security/ { next }
+# Eclipses project files
+/\.classpath/ { next }
+/\.project/ { next }
 
-/LICENSE/ { next }
-/NEWS/ { next }
+# IDEAs project files
+/\.iml/ { next }
 
-/.properties$/ { next }
-/.properties\.sample$/ { next }
-/README$/ { next }
+/COPYRIGHT\.txt/ { next }
+/LICENSE\.txt/ { next }
+/NEWS\.txt/ { next }
+/README\.txt/ { next }
 
-#
+# Non-text media
+/\.gif/ { next }
+/\.ico/ { next }
+
 # print everything else
-#
 { print; }
 

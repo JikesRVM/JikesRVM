@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2005
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.utility.sanitychecker;
 
@@ -23,9 +26,6 @@ import org.vmmagic.unboxed.*;
 
 /**
  * This class performs sanity checks for StopTheWorld collectors.
- * 
- *
- * @author Daniel Frampton
  */
 @Uninterruptible public final class SanityChecker implements Constants {
 
@@ -75,12 +75,12 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Perform any sanity checking collection phases.
-   * 
+   *
    * @param phaseId The id to proces
    * @return True if the phase was handled.
    */
   @NoInline
-  public boolean collectionPhase(int phaseId) { 
+  public boolean collectionPhase(int phaseId) {
     if (phaseId == StopTheWorld.SANITY_PREPARE) {
       Log.writeln("");
       Log.write("============================== GC Sanity Checking ");
@@ -128,7 +128,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Print out object information (used for warning and error messages)
-   * 
+   *
    * @param object The object to dump info for.
    */
   public static void dumpObjectInformation(ObjectReference object) {

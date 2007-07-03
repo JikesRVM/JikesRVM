@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2004
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.utility.heap;
 
@@ -25,15 +28,12 @@ import org.vmmagic.unboxed.*;
  * page is requested by the space both a page budget and the use of
  * virtual address space are checked.  If the request for space can't
  * be satisfied (for either reason) a GC may be triggered.<p>
- * 
- *
- * @author Steve Blackburn
  */
-@Uninterruptible public final class MonotonePageResource extends PageResource 
+@Uninterruptible public final class MonotonePageResource extends PageResource
   implements Constants {
 
   /****************************************************************************
-   * 
+   *
    * Instance variables
    */
   private Address cursor;
@@ -42,10 +42,10 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Constructor
-   * 
+   *
    * Contiguous monotone resource. The address range is pre-defined at
    * initializtion time and is immutable.
-   * 
+   *
    * @param pageBudget The budget of pages available to this memory
    * manager before it must poll the collector.
    * @param space The space to which this resource is attached
@@ -64,13 +64,13 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Constructor
-   * 
+   *
    * Discontiguous monotone resource. The address range is <i>not</i>
    * pre-defined at initializtion time and is dynamically defined to
    * be some set of pages, according to demand and availability.
-   * 
+   *
    * CURRENTLY UNIMPLEMENTED
-   * 
+   *
    * @param pageBudget The budget of pages available to this memory
    * manager before it must poll the collector.
    * @param space The space to which this resource is attached
@@ -80,7 +80,7 @@ import org.vmmagic.unboxed.*;
   public MonotonePageResource(int pageBudget, Space space, int metaDataPagesPerRegion) {
     super(pageBudget, space);
     /* unimplemented */
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false); 
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     this.contiguous = false;
     this.start = Address.zero();
     this.cursor = Address.zero();
@@ -101,7 +101,7 @@ import org.vmmagic.unboxed.*;
    * failure.
    */
   @Inline
-  protected Address allocPages(int requestPages) { 
+  protected Address allocPages(int requestPages) {
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(contiguous);
     int pages = requestPages;
@@ -109,8 +109,7 @@ import org.vmmagic.unboxed.*;
     Address rtn = cursor;
     if (metaDataPagesPerRegion != 0) {
       /* adjust allocation for metadata */
-      Address regionStart = getRegionStart(cursor.plus(Conversions
-          .pagesToBytes(pages)));
+      Address regionStart = getRegionStart(cursor.plus(Conversions.pagesToBytes(pages)));
       Offset regionDelta = regionStart.diff(cursor);
       if (regionDelta.sGE(Offset.zero())) {
         /* start new region, so adjust pages and return address accordingly */
@@ -128,56 +127,48 @@ import org.vmmagic.unboxed.*;
     } else {
       Address old = cursor;
       cursor = tmp;
+      commitPages(requestPages, pages);
       unlock();
       Mmapper.ensureMapped(old, pages);
       VM.memory.zero(old, bytes);
       return rtn;
     }
-    }
+  }
 
   /**
    * Adjust a page request to include metadata requirements, if any.<p>
-   * 
-   * Note that there could be a race here, with multiple threads each
-   * adjusting their request on account of the same single metadata
-   * region.  This should not be harmful, as the failing requests will
-   * just retry, and if multiple requests succeed, only one of them
-   * will actually have the metadata accounted against it, the others
-   * will simply have more space than they originally requested.
-   * 
+   *
+   * In this case we simply report the expected page cost. We can't use
+   * worst case here because we would exhaust our budget every time.
+   *
    * @param pages The size of the pending allocation in pages
    * @return The number of required pages, inclusive of any metadata
    */
-  public int adjustForMetaData(int pages) { 
-    Extent bytes = Conversions.pagesToBytes(pages);
-    if (metaDataPagesPerRegion != 0) {
-      if (cursor.LE(getRegionStart(cursor.plus(bytes))))
-        pages += metaDataPagesPerRegion;
-    }
-    return pages;
+  public int adjustForMetaData(int pages) {
+    return (metaDataPagesPerRegion * pages) / EmbeddedMetaData.PAGES_IN_REGION;
    }
 
   /**
    * Adjust a page request to include metadata requirements, if any.<p>
-   * 
+   *
    * Note that there could be a race here, with multiple threads each
    * adjusting their request on account of the same single metadata
    * region.  This should not be harmful, as the failing requests will
    * just retry, and if multiple requests succeed, only one of them
    * will actually have the metadata accounted against it, the others
    * will simply have more space than they originally requested.
-   * 
+   *
    * @param pages The size of the pending allocation in pages
    * @param begin The start address of the region assigned to this pending
    * request
    * @return The number of required pages, inclusive of any metadata
    */
-  public int adjustForMetaData(int pages, Address begin) { 
+  public int adjustForMetaData(int pages, Address begin) {
     if (getRegionStart(begin).plus(metaDataPagesPerRegion<<LOG_BYTES_IN_PAGE).EQ(begin))
       pages += metaDataPagesPerRegion;
     return pages;
    }
-  
+
   private static Address getRegionStart(Address addr) {
     return addr.toWord().and(Word.fromIntSignExtend(EmbeddedMetaData.BYTES_IN_REGION - 1).not()).toAddress();
   }
@@ -187,7 +178,7 @@ import org.vmmagic.unboxed.*;
    * reserved and committed pages appropriately.
    */
   @Inline
-  public void reset() { 
+  public void reset() {
     lock();
     reserved = 0;
     committed = 0;
@@ -197,7 +188,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Notify that several pages are no longer in use.
-   * 
+   *
    * @param pages The number of pages
    */
   public void unusePages(int pages) {
@@ -209,7 +200,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Notify that previously unused pages are in use again.
-   * 
+   *
    * @param pages The number of pages
    */
   public void reusePages(int pages) {

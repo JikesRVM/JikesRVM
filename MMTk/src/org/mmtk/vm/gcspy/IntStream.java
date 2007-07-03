@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Richard Jones, 2002-6
- * Computing Laboratory, University of Kent at Canterbury
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.vm.gcspy;
 
@@ -19,9 +22,6 @@ import org.vmmagic.pragma.*;
 
 /**
  * Set up a GCspy Stream with data type INT_TYPE.
- *
- *
- * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  */
 @Uninterruptible public abstract class IntStream extends Stream {
 
@@ -31,8 +31,8 @@ import org.vmmagic.pragma.*;
    */
   private int[] data;			// The stream data
   private int defaultValue;		// The default value for the data items
-  
-  
+
+
   /****************************************************************************
    *
    * Initialization
@@ -42,23 +42,23 @@ import org.vmmagic.pragma.*;
    * Construct a new GCspy stream of INT_TYPE
    * @param driver          The driver that owns this Stream
    * @param name           The name of the stream (e.g. "Used space")
-   * @param minValue       The minimum value for any item in this stream. 
+   * @param minValue       The minimum value for any item in this stream.
    *                       Values less than this will be represented as "minValue-"
-   * @param maxValue       The maximum value for any item in this stream. 
+   * @param maxValue       The maximum value for any item in this stream.
    *                       Values greater than this will be represented as "maxValue+"
    * @param zeroValue      The zero value for this stream
    * @param defaultValue   The default value for this stream
    * @param stringPre      A string to prefix values (e.g. "Used: ")
    * @param stringPost     A string to suffix values (e.g. " bytes.")
-   * @param presentation   How a stream value is to be presented.    
-   * @param paintStyle     How the value is to be painted.   
+   * @param presentation   How a stream value is to be presented.
+   * @param paintStyle     How the value is to be painted.
    * @param indexMaxStream The index of the maximum stream if the presentation is *_VAR.
    * @param colour         The default colour for tiles of this stream
    */
   public IntStream(
          AbstractDriver driver,
          String name,
-         int minValue,         
+         int minValue,
          int maxValue,
          int zeroValue,
          int defaultValue,
@@ -68,13 +68,13 @@ import org.vmmagic.pragma.*;
          int paintStyle,
          int indexMaxStream,
          Color colour,
-         boolean summary) { 
-     
-    super(driver, StreamConstants.INT_TYPE, name, 
+         boolean summary) {
+
+    super(driver, StreamConstants.INT_TYPE, name,
           minValue, maxValue, zeroValue, defaultValue,
-          stringPre, stringPost, presentation, paintStyle, 
+          stringPre, stringPost, presentation, paintStyle,
           indexMaxStream, colour, summary);
-    
+
     data = (int[])GCspy.util.createDataArray(new int[0], driver.getMaxTileNum());
     this.defaultValue = defaultValue;
   }
@@ -83,7 +83,7 @@ import org.vmmagic.pragma.*;
    * Reset all data in this stream to default values.
    */
   public void resetData () {
-    for (int i = 0; i < data.length; i++) 
+    for (int i = 0; i < data.length; i++)
       data[i] = defaultValue;
   }
 
@@ -102,10 +102,10 @@ import org.vmmagic.pragma.*;
      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(remainder <= blockSize);
      if (value <= remainder) {  // fits in this tile
        data[start] += value;
-       //checkspace(start, value, "scanObject fits in first tile"); 
+       //checkspace(start, value, "scanObject fits in first tile");
      } else {
        data[start] += remainder;
-       //checkspace(start, remainder, "scanObject remainder put in first tile");  
+       //checkspace(start, remainder, "scanObject remainder put in first tile");
        value -= remainder;
        start++;
        while (value >= blockSize) {
@@ -115,7 +115,7 @@ import org.vmmagic.pragma.*;
          start++;
        }
        data[start] += value;
-       //checkspace(start, value, "scanObject last tile"); 
+       //checkspace(start, value, "scanObject last tile");
      }
    }
 

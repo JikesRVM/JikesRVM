@@ -1,13 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- *     Australian National University. 2004
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
  *
- * (C) Copyright IBM Corp. 2001, 2003
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.vm;
 
@@ -20,10 +21,6 @@ import org.vmmagic.pragma.*;
 
 /**
  * Stub to give access to plan local, constraint and global instances
- * 
- *
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public abstract class ActivePlan {
 
@@ -41,7 +38,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Return the <code>CollectorContext</code> instance given its unique identifier.
-   * 
+   *
    * @param id The identifier of the <code>CollectorContext</code>  to return
    * @return The specified <code>CollectorContext</code>
    */
@@ -49,7 +46,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Return the <code>MutatorContext</code> instance given its unique identifier.
-   * 
+   *
    * @param id The identifier of the <code>MutatorContext</code>  to return
    * @return The specified <code>MutatorContext</code>
    */
@@ -67,7 +64,7 @@ import org.vmmagic.pragma.*;
   /**
    * Return the next <code>MutatorContext</code> in a
    * synchronized iteration of all mutators.
-   * 
+   *
    * @return The next <code>MutatorContext</code> in a
    *  synchronized iteration of all mutators, or
    *  <code>null</code> when all mutators have been done.
@@ -76,19 +73,19 @@ import org.vmmagic.pragma.*;
 
   /**
    * Register a new <code>CollectorContext</code> instance.
-   * 
+   *
    * @param collector The <code>CollectorContext</code> to register.
    * @return The <code>CollectorContext</code>'s unique identifier
    */
   @Interruptible
-  public abstract int registerCollector(CollectorContext collector); 
+  public abstract int registerCollector(CollectorContext collector);
 
   /**
    * Register a new <code>MutatorContext</code> instance.
-   * 
+   *
    * @param mutator The <code>MutatorContext</code> to register.
    * @return The <code>MutatorContext</code>'s unique identifier
    */
   @Interruptible
-  public abstract int registerMutator(MutatorContext mutator); 
+  public abstract int registerMutator(MutatorContext mutator);
 }

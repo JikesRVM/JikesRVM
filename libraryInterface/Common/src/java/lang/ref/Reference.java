@@ -1,20 +1,23 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp 2003
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package java.lang.ref;
 
-import org.jikesrvm.VM_Magic;
+import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
  * The JikesRVM implementation of the java.lang.ref.Reference class.
- * @author Chris Hoffmann
  */
 public abstract class Reference<T> {
 
@@ -42,11 +45,10 @@ public abstract class Reference<T> {
    * default implementation of java.lang.ref.ReferenceQueue in the GNU
    * classpath release.
    * @see java.lang.ref.ReferenceQueue
-   *
-   */
+ */
   Reference<?> nextOnQueue;
 
-  
+
   /**
    * The queue this reference is registered on. This is null, if this
    * wasn't registered to any queue or reference was already enqueued.
@@ -72,14 +74,14 @@ public abstract class Reference<T> {
 
   /**
    * Returns the object, this reference refers to.
-   * @return the object, this reference refers to, or null if the 
+   * @return the object, this reference refers to, or null if the
    * reference was cleared.
    */
   @SuppressWarnings("unchecked") // This method requires an unchecked cast
   public T get() {
 
     Address tmp = referent;
-    
+
     if (tmp.isZero())
         return null;
 
@@ -95,11 +97,11 @@ public abstract class Reference<T> {
   }
 
   @Uninterruptible
-  public boolean wasEverEnqueued() { 
+  public boolean wasEverEnqueued() {
     return wasEnqueued;
   }
 
-  /* 
+  /*
    * This method requires external synchronization.
    * The logically uninterruptible pragma is a bold faced lie;
    * injecting it for now to avoid a warning message during the build
@@ -108,7 +110,7 @@ public abstract class Reference<T> {
    */
   @LogicallyUninterruptible
   @Uninterruptible
-  public boolean enqueue() { 
+  public boolean enqueue() {
     if (nextOnQueue == null && queue != null) {
       wasEnqueued = true;
       queue.enqueue(this);

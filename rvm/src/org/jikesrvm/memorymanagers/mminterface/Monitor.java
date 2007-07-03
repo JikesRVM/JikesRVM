@@ -1,34 +1,33 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm.memorymanagers.mminterface;
 
-import org.mmtk.utility.Constants;
-
 import org.jikesrvm.VM_Callbacks;
-
-import org.vmmagic.pragma.*;
+import org.mmtk.utility.Constants;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * This class allows JMTk to register call backs with VM_Callbacks.
- * 
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
- *
  */
-@Uninterruptible public class Monitor 
-  implements Constants, VM_Callbacks.ExitMonitor {
+@Uninterruptible
+public class Monitor implements Constants, VM_Callbacks.ExitMonitor {
 
   /**
    * Register the exit monitor at boot time.
    */
   @Interruptible
-  public static void boot() { 
+  public static void boot() {
     VM_Callbacks.addExitMonitor(new Monitor());
   }
 

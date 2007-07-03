@@ -1,9 +1,14 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
- * (C) Copyright IBM Corp 2002, 2004, 2005
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ *
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package gnu.classpath;
 
@@ -13,8 +18,6 @@ import org.jikesrvm.VM;
 
 /**
  * Library support interface of Jikes RVM
- *
- * @author Elias Naur
  */
 public class JikesRVMSupport {
   public static Address getAddressFromPointer(Pointer pointer) {
@@ -25,7 +28,7 @@ public class JikesRVMSupport {
   }
 
   public static Pointer getPointerFromAddress(Address address) {
-    if (VM.BuildFor32Addr) 
+    if (VM.BuildFor32Addr)
       return new Pointer32(address.toInt());
     else
       return new Pointer64(address.toLong());

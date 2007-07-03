@@ -1,4 +1,4 @@
 Registering transformer
-Transforming class: test/org/jikesrvm/basic/core/bytecode/TestResolveOnInvokeVirtual
-Transforming class: test/org/jikesrvm/basic/core/bytecode/TestResolveOnInvokeVirtual$A
+Transforming class: test/org/jikesrvm/basic/core/bytecode/TestResolveOnInvokeInterface
+Transforming class: test/org/jikesrvm/basic/core/bytecode/TestResolveOnInvokeInterface$A
 Got NPE

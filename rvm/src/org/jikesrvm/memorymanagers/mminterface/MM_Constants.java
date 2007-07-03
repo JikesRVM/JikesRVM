@@ -1,13 +1,15 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2004
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-
 package org.jikesrvm.memorymanagers.mminterface;
 
 import org.jikesrvm.VM_SizeConstants;
@@ -17,8 +19,6 @@ import org.jikesrvm.VM_SizeConstants;
  * package space so that they can be accessed by the VM in an
  * MM-neutral way.  It is separate from MM_Interface to break
  * cyclic class-loading dependencies.
- * 
- * @author Steve Blackburn
  */
 public class MM_Constants implements VM_SizeConstants {
   /** True if the selected plan needs support for linearly scanning the heap */

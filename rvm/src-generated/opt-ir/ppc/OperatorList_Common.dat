@@ -1,14 +1,15 @@
 #
-# This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
-# The Jikes RVM project is distributed under the Common Public License (CPL).
-# A copy of the license is included in the distribution, and is also
-# available at http://www.opensource.org/licenses/cpl1.0.php
+#  This file is part of the Jikes RVM project (http://jikesrvm.org).
 #
-# (C) Copyright IBM Corp. 2001
+#  This file is licensed to You under the Common Public License (CPL);
+#  You may not use this file except in compliance with the License. You
+#  may obtain a copy of the License at
 #
-#//OperatorList_Common.dat
+#      http://www.opensource.org/licenses/cpl1.0.php
 #
-# @author: Kris Venstermans
+#  See the COPYRIGHT.txt file distributed with this work for information
+#  regarding copyright ownership.
+#
 ###################
 SYMBOL
 INSTRUCTION_FORMAT
@@ -130,16 +131,16 @@ memAsLoad | memAsStore
 -1
 
 ####################
-# A call whose target is in a class that implements 
+# A call whose target is in a class that implements
 # the VM_SaveVolatile interface.  Therefore, this
-# call will not kill volatile registers 
-# (the callee will save/restore them).	
-# 
+# call will not kill volatile registers
+# (the callee will save/restore them).
+#
 ####################
 ####################
 CALL_SAVE_VOLATILE
 MIR_Call
-call | immedPEI 
+call | immedPEI
 
 
 -1
@@ -227,7 +228,7 @@ MIR_Unary
 none
 
 XER
-(31<<26 | 234<<1)  
+(31<<26 | 234<<1)
 
 ####################
 PPC_ADDIC
@@ -307,7 +308,7 @@ MIR_Unary
 none
 
 XER
-(31<<26 | 232<<1)  
+(31<<26 | 232<<1)
 
 ####################
 PPC_AND
@@ -722,7 +723,7 @@ JTOC
 # by convention we only use it for returns.
 PPC_BLR
 MIR_Return
-ret 
+ret
 
 LR
 (19<<26 | 0x14<<21 | 16<<1)
@@ -854,7 +855,7 @@ MIR_Unary
 none
 
 
-(15<<26)   
+(15<<26)
 
 ####################
 PPC_CMP
@@ -1173,7 +1174,7 @@ none
 ###################
 PPC_LWZ
 MIR_Load
-load 
+load
 
 
 (32<<26)
@@ -1181,7 +1182,7 @@ load
 ####################
 PPC_LWZU
 MIR_LoadUpdate
-load 
+load
 
 
 (33<<26)
@@ -1189,7 +1190,7 @@ load
 ####################
 PPC_LWZUX
 MIR_LoadUpdate
-load 
+load
 
 
 (31<<26 | 55<<1)
@@ -1197,7 +1198,7 @@ load
 ####################
 PPC_LWZX
 MIR_Load
-load 
+load
 
 
 (31<<26 | 23<<1)
@@ -1213,7 +1214,7 @@ memAsLoad | memAsStore | load | acquire
 ####################
 PPC_LBZ
 MIR_Load
-load 
+load
 
 
 (34<<26)
@@ -1221,7 +1222,7 @@ load
 ####################
 PPC_LBZUX
 MIR_LoadUpdate
-load 
+load
 
 
 (31<<26 | 119<<1)
@@ -1229,7 +1230,7 @@ load
 ####################
 PPC_LBZX
 MIR_Load
-load 
+load
 
 
 (31<<26 | 87<<1)
@@ -1237,7 +1238,7 @@ load
 ####################
 PPC_LHA
 MIR_Load
-load 
+load
 
 
 (42<<26)
@@ -1245,7 +1246,7 @@ load
 ####################
 PPC_LHAX
 MIR_Load
-load 
+load
 
 
 (31<<26 | 343<<1)
@@ -1253,7 +1254,7 @@ load
 ####################
 PPC_LHZ
 MIR_Load
-load 
+load
 
 
 (40<<26)
@@ -1261,7 +1262,7 @@ load
 ####################
 PPC_LHZX
 MIR_Load
-load 
+load
 
 
 (31<<26 | 279<<1)
@@ -1269,7 +1270,7 @@ load
 ####################
 PPC_LFD
 MIR_Load
-load 
+load
 
 
 (50<<26)
@@ -1277,7 +1278,7 @@ load
 ####################
 PPC_LFDX
 MIR_Load
-load 
+load
 
 
 (31<<26 | 599<<1)
@@ -1285,7 +1286,7 @@ load
 ####################
 PPC_LFS
 MIR_Load
-load 
+load
 
 
 (48<<26)
@@ -1293,7 +1294,7 @@ load
 ####################
 PPC_LFSX
 MIR_Load
-load 
+load
 
 
 (31<<26 | 535<<1)
@@ -1310,7 +1311,7 @@ load
 ####################
 PPC_STW
 MIR_Store
-store 
+store
 
 
 (36<<26)
@@ -1318,7 +1319,7 @@ store
 ####################
 PPC_STWX
 MIR_Store
-store 
+store
 
 
 (31<<26 | 151<<1)
@@ -1326,7 +1327,7 @@ store
 ####################
 PPC_STWCXr
 MIR_Store
-memAsLoad | memAsStore | store | compare 
+memAsLoad | memAsStore | store | compare
 C0
 
 (31<<26 | 150<<1 | 1)
@@ -1334,7 +1335,7 @@ C0
 ####################
 PPC_STWU
 MIR_StoreUpdate
-store 
+store
 
 
 (37<<26)
@@ -1342,7 +1343,7 @@ store
 ####################
 PPC_STB
 MIR_Store
-store 
+store
 
 
 (38<<26)
@@ -1350,7 +1351,7 @@ store
 ####################
 PPC_STBX
 MIR_Store
-store 
+store
 
 
 (31<<26 | 215<<1)
@@ -1358,7 +1359,7 @@ store
 ####################
 PPC_STH
 MIR_Store
-store 
+store
 
 
 (44<<26)
@@ -1366,7 +1367,7 @@ store
 ####################
 PPC_STHX
 MIR_Store
-store 
+store
 
 
 (31<<26 | 407<<1)
@@ -1374,7 +1375,7 @@ store
 ####################
 PPC_STFD
 MIR_Store
-store 
+store
 
 
 (54<<26)
@@ -1382,7 +1383,7 @@ store
 ####################
 PPC_STFDX
 MIR_Store
-store 
+store
 
 
 (31<<26 | 727<<1)
@@ -1390,7 +1391,7 @@ store
 ####################
 PPC_STFDU
 MIR_StoreUpdate
-store 
+store
 
 
 (31<<26 | 759<<1)
@@ -1398,7 +1399,7 @@ store
 ####################
 PPC_STFS
 MIR_Store
-store 
+store
 
 
 (52<<26)
@@ -1406,7 +1407,7 @@ store
 ####################
 PPC_STFSX
 MIR_Store
-store 
+store
 
 
 (31<<26 | 663<<1)
@@ -1414,7 +1415,7 @@ store
 ####################
 PPC_STFSU
 MIR_StoreUpdate
-store 
+store
 
 
 (53<<26)
@@ -1751,7 +1752,7 @@ none
 ###################
 PPC64_LD
 MIR_Load
-load 
+load
 
 
 (58<<26)
@@ -1767,7 +1768,7 @@ load
 ####################
 PPC64_STD
 MIR_Store
-store 
+store
 
 
 (62<<26)

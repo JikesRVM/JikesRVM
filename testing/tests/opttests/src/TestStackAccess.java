@@ -1,15 +1,15 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-/**
- * @author unascribed
- */
-
 class TestStackAccess
 {
   public static void main(String args[])
@@ -17,13 +17,13 @@ class TestStackAccess
     // VM.boot();
     run();
   }
-  
+
   static boolean testSuccess = true;
 
   public static boolean run()
   {
     System.out.print("TestStackAccess");
-    
+
     String str;
 
     if (!istoreload().equals("01234")) {
@@ -43,7 +43,7 @@ class TestStackAccess
       System.out.println(astoreload());
       testSuccess = false;
     }
-    
+
     str =  lstoreload0() + lstoreload1() + lstoreload2() +
              lstoreload3() + lstoreload();
     if (!str.equals("001012012301234")) {
@@ -59,13 +59,13 @@ class TestStackAccess
       System.out.println(str);
       testSuccess = false;
     }
-    
+
     if (!dup().equals("12211")) {
       System.out.print("\nwant: 12211\n got: ");
       System.out.println(dup());
       testSuccess = false;
     }
-    
+
     if (!swap().equals("x")) {
       System.out.print("\nwant: x\n got: ");
       System.out.println(swap());
@@ -77,10 +77,10 @@ class TestStackAccess
       System.out.println(" succeeded.");
     else
       System.out.println(" failed. *********************");
-      
+
     return testSuccess;
   }
-  
+
    static String
   istoreload()
   {
@@ -100,7 +100,7 @@ class TestStackAccess
       Integer.toString(x2) +Integer.toString(x3) +
       Integer.toString(x4) ;
   }
-  
+
   static String
   fstoreload()
   {
@@ -109,7 +109,7 @@ class TestStackAccess
     float x2 = 2;          // fstore_2
     float x3 = 3;          // fstore_3
     float x4 = 4;          // fstore
-    
+
     /*
       System.out.print(x0);   // fload_0
       System.out.print(x1);   // fload_1
@@ -121,7 +121,7 @@ class TestStackAccess
       Float.toString(x2) +Float.toString(x3) +
       Float.toString(x4) ;
   }
-  
+
   static String
   astoreload()
   {
@@ -130,7 +130,7 @@ class TestStackAccess
     Object x2 = null;      // astore_2
     Object x3 = null;      // astore_3
     Object x4 = null;      // astore
-    
+
     /*
       System.out.print(x0);   // aload_0
       System.out.print(x1);   // aload_1
@@ -138,35 +138,35 @@ class TestStackAccess
       System.out.print(x3);   // aload_3
       System.out.print(x4);   // aload
       */
-    
+
     String str = "";
     if (x0 == null) str += "null";
     if (x1 == null) str += "null";
     if (x2 == null) str += "null";
     if (x3 == null) str += "null";
     if (x4 == null) str += "null";
-    
+
     return str;
   }
-   
+
    static String
    lstoreload0()
       {
       long x0 = 0;           // lstore_0
-      
+
       /*
       System.out.print(x0);   // lload_0
       */
 
       return Long.toString(x0);
       }
-   
+
    static String
    lstoreload1()
       {
       int  x0 = 0;
       long x1 = 1;           // lstore_1
-      
+
       /*
       System.out.print(x0);
       System.out.print(x1);   // lload_1
@@ -174,14 +174,14 @@ class TestStackAccess
 
       return Integer.toString(x0) + Long.toString(x1);
       }
-   
+
    static String
    lstoreload2()
       {
       int  x0 = 0;
       int  x1 = 1;
       long x2 = 2;           // lstore_2
-      
+
       /*
       System.out.print(x0);
       System.out.print(x1);
@@ -190,8 +190,8 @@ class TestStackAccess
 
       return Integer.toString(x0) + Integer.toString(x1) + Long.toString(x2);
       }
-   
-   
+
+
    static String
    lstoreload3()
       {
@@ -199,7 +199,7 @@ class TestStackAccess
       int  x1 = 1;
       int  x2 = 2;
       long x3 = 3;           // lstore_3
-      
+
       /*
       System.out.print(x0);
       System.out.print(x1);
@@ -210,7 +210,7 @@ class TestStackAccess
       return Integer.toString(x0) + Integer.toString(x1) + Integer.toString(x2) +
              Long.toString(x3);
       }
-   
+
    static String
    lstoreload()
       {
@@ -219,7 +219,7 @@ class TestStackAccess
       int  x2 = 2;
       int  x3 = 3;
       long x4 = 4;           // lstore
-      
+
       /*
       System.out.print(x0);
       System.out.print(x1);
@@ -230,7 +230,7 @@ class TestStackAccess
       return Integer.toString(x0) + Integer.toString(x1) + Integer.toString(x2) +
              Integer.toString(x3) + Long.toString(x4);
       }
-   
+
    static String
    dstoreload0()
       {
@@ -239,7 +239,7 @@ class TestStackAccess
 
       return Double.toString(x0);
       }
-   
+
    static String
    dstoreload1()
       {
@@ -252,14 +252,14 @@ class TestStackAccess
 
       return Integer.toString(x0) + Double.toString(x1);
       }
-   
+
    static String
    dstoreload2()
       {
       int  x0 = 0;
       int  x1 = 1;
       double x2 = 2;         // dstore_2
-      
+
       /*
       System.out.print(x0);
       System.out.print(x1);
@@ -267,7 +267,7 @@ class TestStackAccess
       */
       return Integer.toString(x0) + Integer.toString(x1) + Double.toString(x2);
       }
-   
+
    static String
    dstoreload3()
       {
@@ -285,7 +285,7 @@ class TestStackAccess
       return Integer.toString(x0) + Integer.toString(x1) +Integer.toString(x2)
              + Double.toString(x3);
       }
-   
+
    static String
    dstoreload()
       {
@@ -294,7 +294,7 @@ class TestStackAccess
       int  x2 = 2;
       int  x3 = 3;
       double x4 = 4;          // dstore
-      
+
       /*
       System.out.print(x0);
       System.out.print(x1);
@@ -314,7 +314,7 @@ class TestStackAccess
 
    int  lpos   = 0;
    long lbuf[] = { 1, 2 };
-   
+
    static String
    dup()
       {
@@ -332,7 +332,7 @@ class TestStackAccess
       str += Long.toString(t.a+t.b);
       // System.out.print(t.a + t.b);
 
-      str += Long.toString(t.lbuf[t.lpos]++);  
+      str += Long.toString(t.lbuf[t.lpos]++);
       //System.out.print(t.lbuf[t.lpos]++);         // dup2_x2
 
       int x[] = new int[1];
@@ -342,11 +342,11 @@ class TestStackAccess
            str += Integer.toString(1);
            //  System.out.print(1);
          }
-         
+
          }
       return str;
       }
-      
+
    static String
    swap()
       {

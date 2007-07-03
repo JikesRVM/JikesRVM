@@ -1,24 +1,21 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
- */
-/**
- * Test name mangling from java to C
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
  *
- * @author Ton Ngo 
- * @date   7/12/01
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-
 class Mangled_Name_s_ {
   static boolean verbose = true;         // set to true to get messages for each test
   static boolean allTestPass = true;
 
 
-  public static native void 
+  public static native void
     setVerboseOff();
 
   // method name for special case
@@ -36,9 +33,9 @@ class Mangled_Name_s_ {
     System.loadLibrary("Mangled_Name_s_");
     if (args.length!=0) {
       if (args[0].equals("-quiet")) {
-        verbose = false;        
+        verbose = false;
         setVerboseOff();
-      }         
+      }
     }
 
     returnValue = _underscore();
@@ -49,7 +46,7 @@ class Mangled_Name_s_ {
 
     returnValue = overload();
     checkTest(returnValue, "overload");
-    
+
     returnValue = overload(1);
     checkTest(returnValue, "overload(int)");
 
@@ -61,13 +58,13 @@ class Mangled_Name_s_ {
 
     if (allTestPass)
       System.out.println("PASS: Mangled_Name_s_");
-    else 
+    else
       System.out.println("FAIL: Mangled_Name_s_");
-      
+
   }
 
   static void printVerbose(String str) {
-    if (verbose) 
+    if (verbose)
       System.out.println(str);
   }
 

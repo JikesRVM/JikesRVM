@@ -1,13 +1,15 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- *     Australian National University. 2004
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-
 package org.mmtk.policy;
 
 import org.mmtk.plan.TraceLocal;
@@ -21,21 +23,18 @@ import org.vmmagic.unboxed.*;
 
 /**
  * Each instance of this class corresponds to one raw page space.
- * 
+ *
  * This class provides access to raw memory for managing internal meta
  * data.
- * 
- *
- * @author Steve Blackburn
  */
-@Uninterruptible public final class RawPageSpace extends Space 
+@Uninterruptible public final class RawPageSpace extends Space
   implements Constants {
 
   /**
    * The caller specifies the region of virtual memory to be used for
    * this space.  If this region conflicts with an existing space,
    * then the constructor will fail.
-   * 
+   *
    * @param name The name of this space (used when printing error messages etc)
    * @param pageBudget The number of pages this space may consume
    * before consulting the plan
@@ -50,7 +49,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Construct a space of a given number of megabytes in size.<p>
-   * 
+   *
    * The caller specifies the amount virtual memory to be used for
    * this space <i>in megabytes</i>.  If there is insufficient address
    * space, then the constructor will fail.
@@ -93,27 +92,27 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Release a group of pages that were allocated together.
-   * 
+   *
    * @param first The first page in the group of pages that were
    * allocated together.
    */
   @Inline
-  public void release(Address first) { 
+  public void release(Address first) {
     ((FreeListPageResource) pr).releasePages(first);
   }
 
   /**
    * Trace an object.
-   * 
+   *
    * This makes no sense for a raw page space and should never be
    * called.
-   * 
+   *
    * @param object The object to be traced.
    * @return <code>zero</code>: calling this is an error.
    */
   @Inline
   public ObjectReference traceObject(TraceLocal trace,
-                                           ObjectReference object) { 
+                                           ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     return ObjectReference.nullReference();
   }

@@ -1,23 +1,25 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp 2001,2002,2003,2004
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-/* Handles "extern" declarations shared among files in
+
+ /* Handles "extern" declarations shared among files in
  * tools/bootImageRunner/.
- * @author: Steven Augart, based on contributions from everyone who ever
- * touched files in that directory.
- *
  */
 #include <stdio.h>
 #include <inttypes.h>
 
 #ifdef __cplusplus
 extern "C" {
-#endif    
+#endif
 
 #include "cAttributePortability.h"
 #include "../../include/jni.h"
@@ -31,7 +33,7 @@ extern "C" {
 extern FILE *SysErrorFile;    // sink for serious error messages
 extern FILE *SysErrorFile;	// libvm.C
 // extern int SysErrorFd;	// in IA32 libvm.C, not in powerpc.
- 
+
 // Sink for trace messages produced by VM.sysWrite().
 extern FILE *SysTraceFile;	// libvm.C
 extern int   SysTraceFd;	// libvm.C
@@ -59,7 +61,7 @@ extern uint64_t maximumHeapSize;
 
 /* Defined in RunBootImage.C */
 unsigned int parse_memory_size(
-    const char *sizeName, const char *sizeFlag, 
+    const char *sizeName, const char *sizeFlag,
     const char *defaultFactor, unsigned roundTo,
     const char *token, const char *subtoken, bool *fastExit);
 
@@ -97,4 +99,4 @@ extern void processTimerTick(void);
 
 #ifdef __cplusplus
 }
-#endif    
+#endif

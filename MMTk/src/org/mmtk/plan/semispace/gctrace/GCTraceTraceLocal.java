@@ -1,14 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
  *
- * (C) Copyright Department of Computer Science,
- * University of Massachusetts, Amherst. 2003
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.plan.semispace.gctrace;
 
@@ -72,20 +72,12 @@ import org.vmmagic.pragma.*;
  * and therefore "static" members of Plan.  This mapping of threads to
  * instances is crucial to understanding the correctness and
  * performance proprties of this plan.
- * 
- *
- * @author Steve Blackburn
- * @author Perry Cheng
- * @author Daniel Frampton
- * @author Robin Garner
- * @author <a href="http://cs.canisius.edu/~hertzm">Matthew Hertz</a>
- * 
  */
 @Uninterruptible public final class GCTraceTraceLocal extends SSTraceLocal {
 
   /**
    * Constructor
-   * 
+   *
    * @param trace The global trace to use.
    */
   public GCTraceTraceLocal(Trace trace) {
@@ -93,7 +85,7 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Object processing and tracing
    */
 
@@ -107,7 +99,7 @@ import org.vmmagic.pragma.*;
    * @return The possibly moved reference.
    */
   @Inline
-  public ObjectReference traceObject(ObjectReference object) { 
+  public ObjectReference traceObject(ObjectReference object) {
     if (object.isNull()) return object;
     if (GCTrace.traceInducedGC) {
       /* We are performing a root scan following an allocation. */
@@ -126,11 +118,11 @@ import org.vmmagic.pragma.*;
   /**
    * Ensure that the referenced object will not move during a collection
    * by 'precopying' it at the beginning.
-   * 
+   *
    * @param object The object to ensure will not move.
    */
   @Inline
-  public ObjectReference precopyObject(ObjectReference object) { 
+  public ObjectReference precopyObject(ObjectReference object) {
     if (object.isNull()) return object;
     if (GCTrace.traceInducedGC) {
       /* We are performing a root scan following an allocation. */
@@ -145,17 +137,17 @@ import org.vmmagic.pragma.*;
     }
   }
 
-    
+
   /**
    * If the referenced object has moved, return the new location.
-   * 
+   *
    * Some copying collectors will need to override this method.
-   * 
+   *
    * @param object The object which may have been forwarded.
    * @return The new location of <code>object</code>.
    */
   @Inline
-  public ObjectReference getForwardedReference(ObjectReference object) { 
+  public ObjectReference getForwardedReference(ObjectReference object) {
     if (object.isNull()) return object;
     if (SS.hi && Space.isInSpace(SS.SS0, object)) {
       return SS.copySpace0.traceObject(this, object);
@@ -167,7 +159,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Return true if <code>obj</code> is a live object.
-   * 
+   *
    * @param object The object in question
    * @return True if <code>obj</code> is a live object.
    */
@@ -179,7 +171,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Return true if <code>obj</code> is a reachable object.
-   * 
+   *
    * @param object The object in question
    * @return True if <code>obj</code> is a reachable object;
    * unreachable objects may still be live, however
@@ -195,7 +187,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Is this object guaranteed not to move during the collection.
-   * 
+   *
    * @param object The object to check.
    * @return True if the object is guaranteed not to move.
    */

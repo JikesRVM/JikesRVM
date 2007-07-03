@@ -1,31 +1,30 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm.ia32;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Magic;
-import org.jikesrvm.VM_Runtime;
-import org.jikesrvm.classloader.*;
-
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.classloader.VM_Array;
+import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_Runtime;
+import org.vmmagic.unboxed.Address;
 
 /**
  * Helper routine to pull the parameters to multianewarray off the
- * Java expression stack maintained by the baseline compiler and 
+ * Java expression stack maintained by the baseline compiler and
  * pass them to VM_Runtime.buildMultiDimensionalArray.
- * 
- * TODO: There is only 1 line of platform dependent code here; refactor?
  *
- * @author Bowen Alpern
- * @author Maria Butrico
- * @author Tony Cocchi 
- * @author Derek Lieber
+ * TODO: There is only 1 line of platform dependent code here; refactor?
  */
 public abstract class VM_MultianewarrayHelper {
 
@@ -41,26 +40,25 @@ public abstract class VM_MultianewarrayHelper {
    *
    * See also: bytecode 0xc5 ("multianewarray") in VM_Compiler
    */
-  static Object newArrayArray (int methodId, int numDimensions, int typeId, int argOffset)
-    throws NoClassDefFoundError,
-           NegativeArraySizeException, 
-           OutOfMemoryError {
+  static Object newArrayArray(int methodId, int numDimensions, int typeId, int argOffset)
+      throws NoClassDefFoundError, NegativeArraySizeException, OutOfMemoryError {
     // fetch number of elements to be allocated for each array dimension
     //
     int[] numElements = new int[numDimensions];
     VM.disableGC();
     Address argp = VM_Magic.getFramePointer().plus(argOffset);
     for (int i = 0; i < numDimensions; ++i) {
-        argp = argp.minus(4);
-        numElements[i] = argp.loadInt();
+      argp = argp.minus(4);
+      numElements[i] = argp.loadInt();
     }
     VM.enableGC();
-    
+
     // validate arguments
     //
-    for (int i = 0; i < numDimensions; ++i)
+    for (int i = 0; i < numDimensions; ++i) {
       if (numElements[i] < 0) throw new NegativeArraySizeException();
-    
+    }
+
     // create array
     //
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(typeId);

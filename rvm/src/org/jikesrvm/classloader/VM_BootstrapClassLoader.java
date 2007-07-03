@@ -1,47 +1,50 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp 2001,2002,2005
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.*;
-import org.jikesrvm.util.*;
-
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.StringTokenizer;
-import java.util.Enumeration;
 import java.util.Vector;
-import java.util.zip.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import org.jikesrvm.VM;
+import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.util.VM_HashMap;
 
-import java.net.URL;
-
-import java.io.*;
-
-/** 
+/**
  * Implements an object that functions as the bootstrap class loader.
  * This class is a Singleton pattern.
- *
- * @author Bowen Alpern
- * @author Derek Lieber
  */
 public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
 
-  private final VM_HashMap<String,VM_Type> loaded = 
-    new VM_HashMap<String,VM_Type>(); 
+  private final VM_HashMap<String, VM_Type> loaded = new VM_HashMap<String, VM_Type>();
 
   private static final boolean DBG = false;
 
   /** Places whence we load bootstrap .class files. */
   private static String bootstrapClasspath;
-  
+
   /**
    * Set list of places to be searched for vm classes and resources.
    * @param bootstrapClasspath path specification in standard "classpath"
-   *    format 
+   *    format
    */
   public static void setBootstrapRepositories(String bootstrapClasspath) {
     VM_BootstrapClassLoader.bootstrapClasspath = bootstrapClasspath;
@@ -49,7 +52,7 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
 
   /**
    * @return List of places to be searched for VM classes and resources,
-   *      in standard "classpath" format 
+   *      in standard "classpath" format
    */
   public static String getBootstrapRepositories() {
     return bootstrapClasspath;
@@ -58,18 +61,19 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
   /**
    * Initialize for execution.
    * @param bootstrapClasspath names of directories containing the bootstrap
-   * .class files, and the names of any .zip/.jar files.  
+   * .class files, and the names of any .zip/.jar files.
    * These are the ones that implement the VM and its
    * standard runtime libraries.  This may contain several names separated
-   * with colons (':'), just 
+   * with colons (':'), just
    * as a classpath may.   (<code>null</code> ==> use the values specified by
    * {@link #setBootstrapRepositories} when the boot image was created.  This
    * feature is not actually used, but may be helpful in avoiding trouble.)
    */
   public static void boot(String bootstrapClasspath) {
-    if (bootstrapClasspath != null)
+    if (bootstrapClasspath != null) {
       VM_BootstrapClassLoader.bootstrapClasspath = bootstrapClasspath;
-    zipFileCache = new HashMap<String,ZipFile>();
+    }
+    zipFileCache = new HashMap<String, ZipFile>();
     if (VM.runningVM) {
       try {
         /* Here, we have to replace the fields that aren't carried over from
@@ -78,8 +82,8 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
          *
          * bootstrapClassLoader.definedPackages    = new HashMap();
          */
-        VM_Entrypoints.classLoaderDefinedPackages.setObjectValueUnchecked(bootstrapClassLoader, 
-            new java.util.HashMap<String,Package>());
+        VM_Entrypoints.classLoaderDefinedPackages.setObjectValueUnchecked(bootstrapClassLoader,
+                                                                          new java.util.HashMap<String, Package>());
       } catch (Exception e) {
         VM.sysFail("Failed to setup bootstrap class loader");
       }
@@ -87,27 +91,25 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
   }
 
   /** Prevent other classes from constructing one. */
-  private VM_BootstrapClassLoader() { 
-    super(null); 
+  private VM_BootstrapClassLoader() {
+    super(null);
   }
 
   /* Interface */
-  private static final VM_BootstrapClassLoader bootstrapClassLoader =
-    new VM_BootstrapClassLoader();
+  private static final VM_BootstrapClassLoader bootstrapClassLoader = new VM_BootstrapClassLoader();
 
-  public static VM_BootstrapClassLoader getBootstrapClassLoader() { 
+  public static VM_BootstrapClassLoader getBootstrapClassLoader() {
     return bootstrapClassLoader;
   }
-  
 
   /**
    * Backdoor for use by VM_TypeReference.resolve when !VM.runningVM.
-   * As of this writing, it is not used by any other classes. 
+   * As of this writing, it is not used by any other classes.
    * @throws NoClassDefFoundError
    */
   synchronized VM_Type loadVMClass(String className) throws NoClassDefFoundError {
-    try {           
-      InputStream is = getResourceAsStream(className.replace('.','/') + ".class");
+    try {
+      InputStream is = getResourceAsStream(className.replace('.', '/') + ".class");
       if (is == null) throw new NoClassDefFoundError(className);
       DataInputStream dataInputStream = new DataInputStream(is);
       VM_Type type = null;
@@ -133,10 +135,9 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
     }
   }
 
-  public synchronized Class<?> loadClass(String className, boolean resolveClass)
-    throws ClassNotFoundException {
+  public synchronized Class<?> loadClass(String className, boolean resolveClass) throws ClassNotFoundException {
     if (className.startsWith("L") && className.endsWith(";")) {
-      className = className.substring(1, className.length()-2);
+      className = className.substring(1, className.length() - 2);
     }
     VM_Type loadedType = loaded.get(className);
     Class<?> loadedClass;
@@ -158,15 +159,15 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
    * @return the class object, if it was found
    * @exception ClassNotFoundException if the class was not found, or was invalid
    */
-  public Class<?> findClass (String className) throws ClassNotFoundException {
+  public Class<?> findClass(String className) throws ClassNotFoundException {
     if (className.startsWith("[")) {
-      VM_TypeReference typeRef = VM_TypeReference.findOrCreate(this, 
-                                                               VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')));
+      VM_TypeReference typeRef =
+          VM_TypeReference.findOrCreate(this, VM_Atom.findOrCreateAsciiAtom(className.replace('.', '/')));
       VM_Type ans = typeRef.resolve();
       loaded.put(className, ans);
       return ans.getClassForType();
-    } else {    
-      if ( ! VM.dynamicClassLoadingEnabled ) {
+    } else {
+      if (!VM.fullyBooted) {
         VM.sysWrite("Trying to load a class (");
         VM.sysWrite(className);
         VM.sysWrite(") too early in the booting process, before dynamic");
@@ -174,11 +175,11 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
         VM.sysFail("Trying to load a class too early in the booting process");
       }
       // class types: try to find the class file
-      try {         
+      try {
         if (className.startsWith("L") && className.endsWith(";")) {
-          className = className.substring(1, className.length()-2);
+          className = className.substring(1, className.length() - 2);
         }
-        InputStream is = getResourceAsStream(className.replace('.','/') + ".class");
+        InputStream is = getResourceAsStream(className.replace('.', '/') + ".class");
         if (is == null) throw new ClassNotFoundException(className);
         DataInputStream dataInputStream = new DataInputStream(is);
         Class<?> cls = null;
@@ -197,8 +198,7 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
         throw e;
       } catch (Throwable e) {
         if (DBG) {
-          VM.sysWrite("About to throw ClassNotFoundException(", className,
-                      ") because we got this Throwable:");
+          VM.sysWrite("About to throw ClassNotFoundException(", className, ") because we got this Throwable:");
           e.printStackTrace();
         }
         // We didn't find the class, or it wasn't valid, etc.
@@ -206,53 +206,55 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
       }
     }
   }
-  
+
   /** Keep this a static field, since it's looked at in
    *  {@link VM_MemberReference#parse}. */
   public static final String myName = "BootstrapCL";
-  
+
   public String toString() { return myName; }
 
-  private static HashMap<String,ZipFile> zipFileCache;
-    
+  private static HashMap<String, ZipFile> zipFileCache;
+
   private interface Handler<T> {
     void process(ZipFile zf, ZipEntry ze) throws Exception;
+
     void process(File f) throws Exception;
+
     T getResult();
   }
 
   public InputStream getResourceAsStream(final String name) {
     Handler<InputStream> findStream = new Handler<InputStream>() {
-        InputStream stream;
+      InputStream stream;
 
-        public InputStream getResult() { return stream; }
+      public InputStream getResult() { return stream; }
 
-        public void process(ZipFile zf, ZipEntry ze) throws Exception {
-          stream = zf.getInputStream(ze);
-        }
+      public void process(ZipFile zf, ZipEntry ze) throws Exception {
+        stream = zf.getInputStream(ze);
+      }
 
-        public void process(File file) throws Exception {
-          stream = new FileInputStream(file);
-        }
-      };
+      public void process(File file) throws Exception {
+        stream = new FileInputStream(file);
+      }
+    };
 
     return getResourceInternal(name, findStream, false);
   }
 
   public URL findResource(final String name) {
     Handler<URL> findURL = new Handler<URL>() {
-        URL url;
+      URL url;
 
-        public URL getResult() { return url; }
+      public URL getResult() { return url; }
 
-        public void process(ZipFile zf, ZipEntry ze) throws Exception {
-          url = new URL("jar", null, -1, "file:" + zf.getName() + "!/" +name);
-        }
+      public void process(ZipFile zf, ZipEntry ze) throws Exception {
+        url = new URL("jar", null, -1, "file:" + zf.getName() + "!/" + name);
+      }
 
-        public void process(File file) throws Exception {
-          url = new URL("file", null, -1, file.getName());
-        }
-      };
+      public void process(File file) throws Exception {
+        url = new URL("file", null, -1, file.getName());
+      }
+    };
 
     return getResourceInternal(name, findURL, false);
   }
@@ -261,14 +263,14 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
     Handler<Enumeration<URL>> findURL = new Handler<Enumeration<URL>>() {
       Vector<URL> urls;
 
-      public Enumeration<URL> getResult() { 
+      public Enumeration<URL> getResult() {
         if (urls == null) urls = new Vector<URL>();
-        return urls.elements(); 
+        return urls.elements();
       }
 
       public void process(ZipFile zf, ZipEntry ze) throws Exception {
         if (urls == null) urls = new Vector<URL>();
-        urls.addElement(new URL("jar", null, -1, "file:" + zf.getName() + "!/" +name));
+        urls.addElement(new URL("jar", null, -1, "file:" + zf.getName() + "!/" + name));
       }
 
       public void process(File file) throws Exception {
@@ -303,7 +305,7 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
 
           ZipEntry ze = zf.getEntry(name);
           if (ze == null) continue;
-          
+
           h.process(zf, ze);
           if (!multiple) return h.getResult();
         } else if (path.endsWith(File.separator)) {
@@ -323,6 +325,6 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
       }
     }
 
-    return (multiple)? h.getResult() : null;
+    return (multiple) ? h.getResult() : null;
   }
 }

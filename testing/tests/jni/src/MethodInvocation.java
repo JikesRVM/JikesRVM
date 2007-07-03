@@ -1,50 +1,15 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-/**
- *  Method invocation in JNI:  test the following JNI functions
- *    CallStaticBooleanMethodA    CallStaticBooleanMethodV  CallStaticBooleanMethod 
- *    CallStaticByteMethodA       CallStaticByteMethodV     CallStaticByteMethod    
- *    CallStaticCharMethodA       CallStaticCharMethodV     CallStaticCharMethod    
- *    CallStaticShortMethodA      CallStaticShortMethodV    CallStaticShortMethod   
- *    CallStaticIntMethodA        CallStaticIntMethodV      CallStaticIntMethod     
- *    CallStaticLongMethodA       CallStaticLongMethodV     CallStaticLongMethod    
- *    CallStaticFloatMethodA      CallStaticFloatMethodV    CallStaticFloatMethod   
- *    CallStaticDoubleMethodA     CallStaticDoubleMethodV   CallStaticDoubleMethod  
- *    CallStaticVoidMethodA       CallStaticVoidMethodV     CallStaticVoidMethod    
- *    CallStaticObjectMethodA     CallStaticObjectMethodV   CallStaticObjectMethod
- *
- *    CallBooleanMethodA          CallBooleanMethodV        CallBooleanMethod 
- *    CallByteMethodA             CallByteMethodV           CallByteMethod    
- *    CallCharMethodA             CallCharMethodV           CallCharMethod    
- *    CallShortMethodA            CallShortMethodV          CallShortMethod   
- *    CallIntMethodA              CallIntMethodV            CallIntMethod     
- *    CallLongMethodA             CallLongMethodV           CallLongMethod    
- *    CallFloatMethodA            CallFloatMethodV          CallFloatMethod   
- *    CallDoubleMethodA           CallDoubleMethodV         CallDoubleMethod  
- *    CallVoidMethodA             CallVoidMethodV           CallVoidMethod    
- *    CallObjectMethodA           CallObjectMethodV         CallObjectMethod
- *
- *    CallNonvirtualBooleanMethodA   CallNonvirtualBooleanMethodV   CallNonvirtualBooleanMethod 
- *    CallNonvirtualByteMethodA      CallNonvirtualByteMethodV      CallNonvirtualByteMethod    
- *    CallNonvirtualCharMethodA      CallNonvirtualCharMethodV      CallNonvirtualCharMethod    
- *    CallNonvirtualShortMethodA     CallNonvirtualShortMethodV     CallNonvirtualShortMethod   
- *    CallNonvirtualIntMethodA       CallNonvirtualIntMethodV       CallNonvirtualIntMethod     
- *    CallNonvirtualLongMethodA      CallNonvirtualLongMethodV      CallNonvirtualLongMethod    
- *    CallNonvirtualFloatMethodA     CallNonvirtualFloatMethodV     CallNonvirtualFloatMethod   
- *    CallNonvirtualDoubleMethodA    CallNonvirtualDoubleMethodV    CallNonvirtualDoubleMethod  
- *    CallNonvirtualVoidMethodA      CallNonvirtualVoidMethodV      CallNonvirtualVoidMethod    
- *    CallNonvirtualObjectMethodA    CallNonvirtualObjectMethodV    CallNonvirtualObjectMethod
- *
- * @author Ton Ngo, Steve Smith 
- * @date   2/11/00
- */
-
 class MethodInvocation {
 
   static boolean verbose = true;         // set to true to get messages for each test
@@ -74,74 +39,74 @@ class MethodInvocation {
    */
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)Z        */
-  public static boolean staticReturnBoolean(byte val0, char val1, short val2,  
-                                  int val3, long val4, float val5,  
+  public static boolean staticReturnBoolean(byte val0, char val1, short val2,
+                                  int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
     return !val8;
   }
-  
+
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)B        */
-  public static byte staticReturnByte(byte val0, char val1, short val2,  
-                                  int val3, long val4, float val5,  
+  public static byte staticReturnByte(byte val0, char val1, short val2,
+                                  int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
     return (byte) (val0 + 3);
   }
-  
+
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)C        */
-  public static char staticReturnChar(byte val0, char val1, short val2,  
-                                  int val3, long val4, float val5,  
+  public static char staticReturnChar(byte val0, char val1, short val2,
+                                  int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
     if (val1=='a')
       return 'b';
     else
       return 'c';    // didn't get the expected argument, force test to fail
   }
-  
+
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)S        */
-  public static short staticReturnShort(byte val0, char val1, short val2,  
-                                  int val3, long val4, float val5,  
+  public static short staticReturnShort(byte val0, char val1, short val2,
+                                  int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
     return (short) (val2 + 15);
   }
-  
+
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)I        */
-  public static int staticReturnInt(byte val0, char val1, short val2,  
-                                  int val3, long val4, float val5,  
+  public static int staticReturnInt(byte val0, char val1, short val2,
+                                  int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
     return val3 + (int) val2;
   }
-  
+
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)J        */
-  public static long staticReturnLong(byte val0, char val1, short val2,  
-                                  int val3, long val4, float val5,  
+  public static long staticReturnLong(byte val0, char val1, short val2,
+                                  int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
     return val4 + (long) val3;
   }
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)F        */
-  public static float staticReturnFloat(byte val0, char val1, short val2,  
-                                  int val3, long val4, float val5,  
+  public static float staticReturnFloat(byte val0, char val1, short val2,
+                                  int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
     return val5 + (float) 100.0;
   }
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)D        */
-  public static double staticReturnDouble(byte val0, char val1, short val2,  
-                                  int val3, long val4, float val5,  
+  public static double staticReturnDouble(byte val0, char val1, short val2,
+                                  int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
     return val6 + (double) 100.0;
   }
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)         */
-  public static void staticReturnVoid(byte val0, char val1, short val2,  
-                                  int val3, long val4, float val5,  
+  public static void staticReturnVoid(byte val0, char val1, short val2,
+                                  int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
     testFlagForVoid = 789;     // update the flag to indicate success
   }
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)Ljava/lang/Object;        */
-  public static Object staticReturnObject(byte val0, char val1, short val2,  
-                                  int val3, long val4, float val5,  
+  public static Object staticReturnObject(byte val0, char val1, short val2,
+                                  int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
     return new String("Year 2000");
   }
@@ -153,74 +118,74 @@ class MethodInvocation {
    */
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)Z        */
-  public boolean virtualReturnBoolean(byte val0, char val1, short val2,  
-                                  int val3, long val4, float val5,  
+  public boolean virtualReturnBoolean(byte val0, char val1, short val2,
+                                  int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
     return !val8;
   }
-  
+
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)B        */
-  public byte virtualReturnByte(byte val0, char val1, short val2,  
-                                  int val3, long val4, float val5,  
+  public byte virtualReturnByte(byte val0, char val1, short val2,
+                                  int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
     return (byte) (val0 + 7);
   }
-  
+
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)C        */
-  public char virtualReturnChar(byte val0, char val1, short val2,  
-                                  int val3, long val4, float val5,  
+  public char virtualReturnChar(byte val0, char val1, short val2,
+                                  int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
     if (val1=='x')
       return 'y';
     else
       return 'z';    // didn't get the expected argument, force test to fail
   }
-  
+
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)S        */
-  public short virtualReturnShort(byte val0, char val1, short val2,  
-                                  int val3, long val4, float val5,  
+  public short virtualReturnShort(byte val0, char val1, short val2,
+                                  int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
     return (short) (val2 + 23);
   }
-  
+
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)I        */
-  public int virtualReturnInt(byte val0, char val1, short val2,  
-                                  int val3, long val4, float val5,  
+  public int virtualReturnInt(byte val0, char val1, short val2,
+                                  int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
     return val3 + (int) val0;
   }
-  
+
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)J        */
-  public long virtualReturnLong(byte val0, char val1, short val2,  
-                                  int val3, long val4, float val5,  
+  public long virtualReturnLong(byte val0, char val1, short val2,
+                                  int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
     return val4 + (long) val2;
   }
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)F        */
-  public float virtualReturnFloat(byte val0, char val1, short val2,  
-                                  int val3, long val4, float val5,  
+  public float virtualReturnFloat(byte val0, char val1, short val2,
+                                  int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
     return val5 + (float) 32.0;
   }
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)D        */
-  public double virtualReturnDouble(byte val0, char val1, short val2,  
-                                  int val3, long val4, float val5,  
+  public double virtualReturnDouble(byte val0, char val1, short val2,
+                                  int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
     return val6 + (double) 1000.0;
   }
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)         */
-  public void virtualReturnVoid(byte val0, char val1, short val2,  
-                                  int val3, long val4, float val5,  
+  public void virtualReturnVoid(byte val0, char val1, short val2,
+                                  int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
     testFlagForVoid = 456;     // update the flag to indicate success
   }
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)Ljava/lang/Object;        */
-  public Object virtualReturnObject(byte val0, char val1, short val2,  
-                                  int val3, long val4, float val5,  
+  public Object virtualReturnObject(byte val0, char val1, short val2,
+                                  int val3, long val4, float val5,
                                   double val6, Object val7, boolean val8) {
     return new String("RVM");
   }
@@ -235,8 +200,7 @@ class MethodInvocation {
 
   /************************************************************
    * Main body of the test program
-   *
-   */
+ */
   public static void main(String args[]) {
     int returnValue;
     String anObj = new String("Year of the Dragon");
@@ -245,44 +209,44 @@ class MethodInvocation {
 
     if (args.length!=0) {
       if (args[0].equals("-quiet")) {
-        verbose = false;        
+        verbose = false;
         setVerboseOff();
-      }         
+      }
     }
 
     /**
-     *  Test the static method invocations 
+     *  Test the static method invocations
      */
     // pass arguments as an array of jvalue
     returnValue = invokeStaticMethodA(anObj);
     checkTest(returnValue, "callStatic<type>MethodA");
-    
+
     // pass arguments as va_list pointer to a variable argument list
     testFlagForVoid = 0;        // reset flag to be updated by method returning void
     returnValue = invokeStaticMethodV(anObj);
     checkTest(returnValue, "callStatic<type>MethodV");
-    
-    
+
+
     // pass arguments as a variable argument list at the call site
     testFlagForVoid = 0;        // reset flag to be updated by method returning void
     returnValue = invokeStaticMethod(anObj);
     checkTest(returnValue, "callStatic<type>Method");
-    
-    
-    
+
+
+
     /**
-     *  Test the virtual method invocations 
+     *  Test the virtual method invocations
      */
     // pass arguments as an array of jvalue
     MethodInvocation targetObj = new MethodInvocation();
     returnValue = invokeVirtualMethodA(targetObj, anObj);
     checkTest(returnValue, "call<type>MethodA");
-    
+
     // pass arguments as va_list pointer to a variable argument list
     testFlagForVoid = 0;        // reset flag to be updated by method returning void
     returnValue = invokeVirtualMethodV(targetObj, anObj);
     checkTest(returnValue, "call<type>MethodV");
-    
+
     // pass arguments as a variable argument list at the call site
     testFlagForVoid = 0;        // reset flag to be updated by method returning void
     returnValue = invokeVirtualMethod(targetObj, anObj);
@@ -291,13 +255,13 @@ class MethodInvocation {
 
 
     /**
-     * Test the nonvirtual method invocations 
+     * Test the nonvirtual method invocations
      */
     MethodInvocationSub subObj = new MethodInvocationSub();
 
     // reset flag to be updated by method returning void
-    testFlagForVoid = 0;        
-    MethodInvocationSub.testFlagForVoid = 0;  
+    testFlagForVoid = 0;
+    MethodInvocationSub.testFlagForVoid = 0;
 
     // pass arguments as an array of jvalue
     returnValue = invokeNonVirtualMethodA(subObj, anObj);
@@ -305,8 +269,8 @@ class MethodInvocation {
 
 
     // reset flag to be updated by method returning void
-    testFlagForVoid = 0;        
-    MethodInvocationSub.testFlagForVoid = 0;       
+    testFlagForVoid = 0;
+    MethodInvocationSub.testFlagForVoid = 0;
 
     // pass arguments as va_list pointer to a variable argument list
     returnValue = invokeNonVirtualMethodV(subObj, anObj);
@@ -314,9 +278,9 @@ class MethodInvocation {
 
 
     // reset flag to be updated by method returning void
-    testFlagForVoid = 0;        
-    MethodInvocationSub.testFlagForVoid = 0; 
-    
+    testFlagForVoid = 0;
+    MethodInvocationSub.testFlagForVoid = 0;
+
     // pass arguments as a variable argument list at the call site
     returnValue = invokeNonVirtualMethod(subObj, anObj);
     checkTest(returnValue, "callNonVirtual<type>Method");
@@ -326,15 +290,15 @@ class MethodInvocation {
 
     if (allTestPass)
       System.out.println("PASS: MethodInvocation");
-    else 
+    else
       System.out.println("FAIL: MethodInvocation");
- 
+
 
   }
 
 
   static void printVerbose(String str) {
-    if (verbose) 
+    if (verbose)
       System.out.println(str);
   }
 

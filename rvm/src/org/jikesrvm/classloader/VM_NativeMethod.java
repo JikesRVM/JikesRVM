@@ -1,36 +1,35 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp 2001,2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.*;
-
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.compilers.common.VM_BootImageCompiler;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.compilers.common.VM_RuntimeCompiler;
+import org.jikesrvm.runtime.VM_DynamicLibrary;
+import org.jikesrvm.runtime.VM_Entrypoints;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * A native method of a java class.
- *
- * @author Bowen Alpern
- * @author Dave Grove
- * @author Derek Lieber
- * @modified Ian Rogers
  */
 public final class VM_NativeMethod extends VM_Method {
 
   /**
-   * the name of the native procedure in the native library
-   */
-  private String nativeProcedureName;                 
-
-  /**
    * the IP of the native p rocedure
    */
-  private Address nativeIP;                               
+  private Address nativeIP;
 
   /**
    * the TOC of the native procedure.
@@ -39,8 +38,8 @@ public final class VM_NativeMethod extends VM_Method {
    *       and pushing this field down to it.  For now, just bloat up
    *       all native methods by 1 slot.
    */
-  private Address nativeTOC;                              
-  
+  private Address nativeTOC;
+
   /**
    * Construct native method information
    *
@@ -54,15 +53,17 @@ public final class VM_NativeMethod extends VM_Method {
    * @param parameterAnnotations array of runtime visible parameter annotations
    * @param annotationDefault value for this annotation that appears
    */
-  VM_NativeMethod(VM_TypeReference declaringClass, VM_MemberReference memRef,
-                  short modifiers, VM_TypeReference[] exceptionTypes,
-                  VM_Atom signature,
-                  VM_Annotation[] annotations,
-                  VM_Annotation[] parameterAnnotations,
-                  Object annotationDefault)
-  {
-    super(declaringClass, memRef, modifiers, exceptionTypes, signature,
-          annotations, parameterAnnotations, annotationDefault);
+  VM_NativeMethod(VM_TypeReference declaringClass, VM_MemberReference memRef, short modifiers,
+                  VM_TypeReference[] exceptionTypes, VM_Atom signature, VM_Annotation[] annotations,
+                  VM_Annotation[] parameterAnnotations, Object annotationDefault) {
+    super(declaringClass,
+          memRef,
+          modifiers,
+          exceptionTypes,
+          signature,
+          annotations,
+          parameterAnnotations,
+          annotationDefault);
   }
 
   /**
@@ -74,7 +75,7 @@ public final class VM_NativeMethod extends VM_Method {
       // generates a call to the first argument - the address of a C
       // function
       VM_Entrypoints.sysCallMethod.compile();
-      return VM_Entrypoints.sysCallMethod.getCurrentCompiledMethod();      
+      return VM_Entrypoints.sysCallMethod.getCurrentCompiledMethod();
     } else if (!resolveNativeMethod()) {
       // if fail to resolve native, get code to throw unsatifiedLinkError
       VM_Entrypoints.unimplementedNativeMethodMethod.compile();
@@ -91,10 +92,10 @@ public final class VM_NativeMethod extends VM_Method {
   /**
    * Get the native IP for this method
    */
-  public Address getNativeIP() { 
+  public Address getNativeIP() {
     return nativeIP;
   }
-  
+
   /**
    * get the native TOC for this method
    */
@@ -109,26 +110,23 @@ public final class VM_NativeMethod extends VM_Method {
   /**
    * replace a character in a string with a string
    */
-  private String replaceCharWithString(String originalString, 
-                                       char targetChar, 
-                                       String replaceString) {
+  private String replaceCharWithString(String originalString, char targetChar, String replaceString) {
     String returnString;
     int first = originalString.indexOf(targetChar);
-    int next  = originalString.indexOf(targetChar, first+1);
-    if (first!=-1) {
-      returnString = originalString.substring(0,first) + replaceString;
-      while (next!=-1) {
-        returnString += originalString.substring(first+1, next) + replaceString;
+    int next = originalString.indexOf(targetChar, first + 1);
+    if (first != -1) {
+      returnString = originalString.substring(0, first) + replaceString;
+      while (next != -1) {
+        returnString += originalString.substring(first + 1, next) + replaceString;
         first = next;
-        next = originalString.indexOf(targetChar, next+1);
+        next = originalString.indexOf(targetChar, next + 1);
       }
-      returnString += originalString.substring(first+1);
+      returnString += originalString.substring(first + 1);
     } else {
       returnString = originalString;
     }
     return returnString;
   }
-
 
   /**
    * Compute the mangled name of the native routine: Java_Class_Method_Sig
@@ -150,16 +148,15 @@ public final class VM_NativeMethod extends VM_Method {
 
     if (sig) {
       String sigName = getDescriptor().toString();
-      sigName = sigName.substring( sigName.indexOf('(')+1, sigName.indexOf(')') );
+      sigName = sigName.substring(sigName.indexOf('(') + 1, sigName.indexOf(')'));
       sigName = replaceCharWithString(sigName, '[', "_3");
       sigName = replaceCharWithString(sigName, ';', "_2");
-      sigName = sigName.replace( '/', '_');
+      sigName = sigName.replace('/', '_');
       mangledMethodName += "__" + sigName;
     }
 
-
     String mangledName = "Java_" + mangledClassName + "_" + mangledMethodName;
-    mangledName = mangledName.replace( '.', '_' );
+    mangledName = mangledName.replace('.', '_');
     // VM.sysWrite("getMangledName:  " + mangledName + " \n");
 
     return mangledName;
@@ -171,8 +168,8 @@ public final class VM_NativeMethod extends VM_Method {
       return true;
     }
 
-    nativeProcedureName = getMangledName(false);
-    String nativeProcedureNameWithSignature = getMangledName(true);
+    final String nativeProcedureName = getMangledName(false);
+    final String nativeProcedureNameWithSignature = getMangledName(true);
 
     Address symbolAddress = VM_DynamicLibrary.resolveSymbol(nativeProcedureNameWithSignature);
     if (symbolAddress.isZero()) {
@@ -184,7 +181,7 @@ public final class VM_NativeMethod extends VM_Method {
       return false;
     } else {
       if (VM.BuildForPowerOpenABI) {
-        nativeIP  = symbolAddress.loadAddress();
+        nativeIP = symbolAddress.loadAddress();
         nativeTOC = symbolAddress.loadAddress(Offset.fromIntSignExtend(BYTES_IN_ADDRESS));
       } else {
         nativeIP = symbolAddress;
@@ -193,14 +190,13 @@ public final class VM_NativeMethod extends VM_Method {
     }
   }
 
-
   /**
    * Registers a native method
    * @param symbolAddress address of native function that implements the method
    */
   public synchronized void registerNativeSymbol(Address symbolAddress) {
     if (VM.BuildForPowerOpenABI) {
-      nativeIP  = symbolAddress.loadAddress();
+      nativeIP = symbolAddress.loadAddress();
       nativeTOC = symbolAddress.loadAddress(Offset.fromIntSignExtend(BYTES_IN_ADDRESS));
     } else {
       nativeIP = symbolAddress;
@@ -213,10 +209,10 @@ public final class VM_NativeMethod extends VM_Method {
    */
   public synchronized void unregisterNativeSymbol() {
     if (VM.BuildForPowerOpenABI) {
-      nativeIP  = Address.zero();
+      nativeIP = Address.zero();
       nativeTOC = Address.zero();
     } else {
-      nativeIP  = Address.zero();
+      nativeIP = Address.zero();
     }
     replaceCompiledMethod(null);
   }

@@ -1,10 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2003
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.utility;
 
@@ -19,8 +23,6 @@ import org.vmmagic.pragma.*;
  * The mechanism handles proper resetting by usnig 3 underlying counters
  * and supports unconditional blocking until the number of participants
  * can be determined.
- * 
- * @author Perry Cheng
  */
 @Uninterruptible public final class Barrier {
 
@@ -42,8 +44,8 @@ import org.vmmagic.pragma.*;
   private static long TIME_OUT =  Long.MAX_VALUE; // set to a real value by fullyBooted
 
   public static void fullyBooted() {
-    WARN_PERIOD = VM.statistics.secsToCycles(3);   // Print msg every WARN_PERIOD seconds
-    TIME_OUT = 10 * WARN_PERIOD; // Die after TIME_OUT seconds
+    WARN_PERIOD = VM.statistics.secsToCycles(20);   // Print msg every WARN_PERIOD seconds
+    TIME_OUT = 3 * WARN_PERIOD; // Die after TIME_OUT seconds
   }
 
   public Barrier() {

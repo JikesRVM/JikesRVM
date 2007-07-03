@@ -1,16 +1,20 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 //OPT_OperatorClass.java
-package org.jikesrvm.opt;
+package org.jikesrvm.compilers.opt;
 
 import org.jikesrvm.*;
-import org.jikesrvm.opt.ir.*;
+import org.jikesrvm.compilers.opt.ir.*;
 import java.util.ArrayList;
 
 /**
@@ -20,10 +24,9 @@ import java.util.ArrayList;
  * as a static final field in OPT_OperatorClass.  You can compare
  * OPT_OperatorClasses using ==.
  * Every OPT_Operator contains one of these.
- * 
+ *
  * @see OPT_Operator
  * @see OPT_Operators
- * @author Igor Pechtchanski
  */
 public final class OPT_OperatorClass implements OPT_Operators {
 
@@ -136,7 +139,7 @@ $$$$ END FOREACH
     * Returns the maximum latency of any instruction in the class.
     * Note: it is faster to simply check the field directly, if possible.
     */
-   public final int maxLatency() { return maxlat; }
+   public int maxLatency() { return maxlat; }
 
    /**
     * Latencies to other classes
@@ -180,7 +183,7 @@ $$$$ END FOREACH
     * @param opclass destination operator class
     * @return latency to given operator class
     */
-   public final int latency(OPT_OperatorClass opclass) {
+   public int latency(OPT_OperatorClass opclass) {
       return (Integer) latObj(opclass);
    }
 
@@ -190,7 +193,7 @@ $$$$ END FOREACH
     * @param opclass destination operator class
     * @param latency desired latency
     */
-   public final void setLatency(OPT_OperatorClass opclass, int latency) {
+   public void setLatency(OPT_OperatorClass opclass, int latency) {
       int latencies_size = latencies.size();
       if (opclass.id < latencies_size) {
          latencies.set(opclass.id, latency);
@@ -208,7 +211,7 @@ $$$$ END FOREACH
     * @param opclass source operator class
     * @param latency desired latency
     */
-   public final void setRevLatency(OPT_OperatorClass opclass, int latency) {
+   public void setRevLatency(OPT_OperatorClass opclass, int latency) {
       opclass.setLatency(this, latency);
    }
 
@@ -308,7 +311,7 @@ $$$$ END FOREACH
       StringBuffer sb = new StringBuffer("Size=");
       sb.append(masks.length).append('\n');
      for (int[] mask : masks) {
-       for (int v : mask) 
+       for (int v : mask)
          sb.append(toBinaryPad32(v)).append('\n');
        sb.append('\n');
      }
@@ -356,7 +359,7 @@ $$$$ END FOREACH
    static int depth = 0;
 
    // For internal use only.
-   private final int fillMasks(OPT_ResourceReservation[] pat, int[] assign,
+   private int fillMasks(OPT_ResourceReservation[] pat, int[] assign,
                                int all, int rrq, int comb) {
       if (rrq == pat.length) {
          for (int i = 0; i < masks[comb].length; i++)

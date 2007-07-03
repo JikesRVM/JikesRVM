@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Richard Jones, 2005-6
- * Computing Laboratory, University of Kent at Canterbury
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.utility.gcspy.drivers;
 
@@ -22,15 +25,11 @@ import org.vmmagic.pragma.*;
 
 
 /**
- * This class extends a simple driver for the MMTk LargeObjectSpace 
+ * This class extends a simple driver for the MMTk LargeObjectSpace
  * for Generational Collectors.
- *
- *
- * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
- * @author Hanspeter Johner
  */
 @Uninterruptible public class GenLOSDriver extends TreadmillDriver {
-  
+
   private static final boolean DEBUG = false;
 
   // The additional remset stream
@@ -38,10 +37,10 @@ import org.vmmagic.pragma.*;
   // Additional overall statistic
   protected int totalRemset = 0;   // total of remset Addresses
 
-  
+
   /**
    * Create a new driver for this collector
-   * 
+   *
    * @param server The name of the GCspy server that owns this space
    * @param spaceName The name of this driver
    * @param lospace the large object space for this allocator
@@ -54,7 +53,7 @@ import org.vmmagic.pragma.*;
                       LargeObjectSpace lospace,
                       int blockSize,
                       int threshold,
-                      boolean mainSpace) { 
+                      boolean mainSpace) {
     //TODO blocksize should be a multiple of treadmill granularity
     super(server, spaceName, lospace, blockSize, threshold, mainSpace);
     // create remset stream
@@ -69,39 +68,38 @@ import org.vmmagic.pragma.*;
    */
   protected String getDriverName() {
     return "MMTk GenLOSDriver";
-  } 
-  
-  // private creator methods for the streams 
+  }
+
+  // private creator methods for the streams
   @Interruptible
-  private ShortStream createRemsetStream() { 
+  private ShortStream createRemsetStream() {
     return VM.newGCspyShortStream(
-                     this, 
+                     this,
                      "Remembered set stream",
-                     (short)0, 
+                     (short)0,
                      // Say, typical size = 4 * typical scalar size?
                      (short)(maxObjectsPerBlock(blockSize)/8),
-                     (short)0, 
                      (short)0,
-                     "Remset references: ", 
+                     (short)0,
+                     "Remset references: ",
                      " references",
                      StreamConstants.PRESENTATION_PLUS,
-                     StreamConstants.PAINT_STYLE_ZERO, 
-                     0, 
+                     StreamConstants.PAINT_STYLE_ZERO,
+                     0,
                      Color.Cyan,
 		             true);
   }
-  
+
   /**
    * Setup summaries part of the <code>transmit</code> method.<p>
    * Overrides <code>transmitSetupSummaries </code> of superclass to
    * handle additional streams.
-   * 
-   */
+ */
   protected void setupSummaries() {
     super.setupSummaries();
     remsetStream.setSummary(totalRemset);
   }
-  
+
   /**
    * Handle a remset address.
    *
@@ -117,16 +115,15 @@ import org.vmmagic.pragma.*;
       this.totalRemset++;
       return true;
     }
-    else 
+    else
       return false;
   }
-  
+
   /**
    * Reset the remset Stream. <p>
    * The remset Stream has to be reset seperately because we do not
    * gather data in the usual way using <code>scan()</code>.
-   *
-   */
+ */
   public void resetRemsetStream() {
     remsetStream.resetData();
     totalRemset = 0;

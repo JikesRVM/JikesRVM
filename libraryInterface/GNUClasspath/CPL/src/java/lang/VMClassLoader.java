@@ -1,12 +1,15 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp 2002,2005,2006
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-
 package java.lang;
 
 import gnu.classpath.Configuration;
@@ -40,9 +43,6 @@ import org.jikesrvm.util.VM_HashMap;
 /**
  * Jikes RVM impl of VMClassLoader.
  * See GNU classpath reference impl for javadoc.
- *
- * @author Julian Dolby
- * @author Ian Rogers
  */
 final class VMClassLoader
 {
@@ -50,14 +50,14 @@ final class VMClassLoader
    * A map of maps. The first map is indexed by the classloader. The
    * map this finds then maps String class names to classes
    */
-  private static final VM_HashMap<ClassLoader,VM_HashMap<String,Class<?>>> loadedClasses = 
+  private static final VM_HashMap<ClassLoader,VM_HashMap<String,Class<?>>> loadedClasses =
     new VM_HashMap<ClassLoader,VM_HashMap<String,Class<?>>>();
 
   /** packages loaded by the bootstrap class loader */
-  private static final VM_HashMap<String,Package> definedPackages = 
+  private static final VM_HashMap<String,Package> definedPackages =
     new VM_HashMap<String,Package>();
 
-  private static final VM_HashMap<String,ZipFile> bootjars = 
+  private static final VM_HashMap<String,ZipFile> bootjars =
     new VM_HashMap<String,ZipFile>();
 
   static
@@ -66,7 +66,7 @@ final class VMClassLoader
 
     if( packages != null)
     {
-      String specName = 
+      String specName =
         SystemProperties.getProperty("java.specification.name");
       String vendor =
         SystemProperties.getProperty("java.specification.vendor");
@@ -224,7 +224,7 @@ final class VMClassLoader
 
   static Package[] getPackages() {
     Package[] packages = new Package[definedPackages.size()];
-    
+
     Iterator<Package> it = definedPackages.valueIterator();
     int idx = 0;
     while (it.hasNext()) {
@@ -236,7 +236,7 @@ final class VMClassLoader
   static Class<?> getPrimitiveClass(char type) {
     VM_Type t;
     switch (type) {
-    case 'Z': 
+    case 'Z':
       t = VM_Type.BooleanType;
       break;
     case 'B':

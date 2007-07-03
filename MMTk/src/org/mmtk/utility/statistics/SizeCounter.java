@@ -1,13 +1,15 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2003
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-
 package org.mmtk.utility.statistics;
 
 import org.vmmagic.pragma.*;
@@ -16,29 +18,27 @@ import org.vmmagic.pragma.*;
  * This class implements a simple counter of events of different sizes
  * (eg object allocations, where total number of objects and total
  * volume of objects would be counted).
- * 
+ *
  * The counter is trivially composed from two event counters (one for
  * counting the number of events, the other for counting the volume).
- * 
- * @author Steve Blackburn
  */
 @Uninterruptible public class SizeCounter {
 
   /****************************************************************************
-   * 
+   *
    * Instance variables
    */
   private EventCounter units;
   private EventCounter volume;
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
   /**
    * Constructor
-   * 
+   *
    * @param name The name to be associated with this counter
    */
   public SizeCounter(String name) {
@@ -47,7 +47,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Constructor
-   * 
+   *
    * @param name The name to be associated with this counter
    * @param start True if this counter is to be implicitly started
    * when <code>startAll()</code> is called (otherwise the counter
@@ -59,7 +59,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Constructor
-   * 
+   *
    * @param name The name to be associated with this counter
    * @param start True if this counter is to be implicitly started
    * when <code>startAll()</code> is called (otherwise the counter
@@ -73,13 +73,13 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Counter-specific methods
    */
 
   /**
    * Increment the event counter by <code>value</code>
-   * 
+   *
    * @param value The amount by which the counter should be incremented.
    */
   public void inc(int value) {
@@ -88,7 +88,7 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Generic counter control methods: start, stop, print etc
    */
 

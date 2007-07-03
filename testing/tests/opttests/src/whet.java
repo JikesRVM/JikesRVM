@@ -1,25 +1,15 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-/**
- *      Whetstone benchmark in C.  This program is a translation of the
- *      original Algol version in "A Synthetic Benchmark" by H.J. Curnow
- *      and B.A. Wichman in Computer Journal, Vol  19 #1, February 1976.
- *
- *      Used to test compiler optimization and floating point performance.
- *
- *      Compile by:             cc -O -s -o whet whet.c
- *      or:                     cc -O -DPOUT -s -o whet whet.c
- *      if output is desired.
- *
- * @author unascribed
- */
-
 public class whet {
 
 
@@ -54,7 +44,7 @@ public static void run() {
         n9  = 616 * ITERATIONS;
         n10 =  10 * ITERATIONS;
         n11 =  93 * ITERATIONS;
-        
+
 
 /* MODULE 1:  simple identifiers */
 
@@ -216,11 +206,11 @@ private static void p0()
 
 private static void pout(int n, int j, int k, double x1, double x2, double x3, double x4)
 {
-   System.out.println(x1 + " " + x2 + " " + x3 + " " + x4 + 
-                      //" " + Double.doubleToLongBits(x1) + 
-                      //" " + Double.doubleToLongBits(x2) + 
-                      //" " + Double.doubleToLongBits(x3) + 
-                      //" " + Double.doubleToLongBits(x4) + 
+   System.out.println(x1 + " " + x2 + " " + x3 + " " + x4 +
+                      //" " + Double.doubleToLongBits(x1) +
+                      //" " + Double.doubleToLongBits(x2) +
+                      //" " + Double.doubleToLongBits(x3) +
+                      //" " + Double.doubleToLongBits(x4) +
                       " " + n + " " +j + " " + k);
 }
 

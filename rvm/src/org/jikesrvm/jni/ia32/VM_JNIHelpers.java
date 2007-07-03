@@ -1,48 +1,49 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp 2001,2002,2003, 2004
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm.jni.ia32;
 
+import java.lang.reflect.Constructor;
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Magic;
-import org.jikesrvm.VM_Reflection;
-import org.jikesrvm.VM_Thread;
-import org.jikesrvm.classloader.*;
+import org.jikesrvm.classloader.VM_MemberReference;
+import org.jikesrvm.classloader.VM_Method;
+import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.jni.VM_JNIEnvironment;
 import org.jikesrvm.jni.VM_JNIFunctions;
 import org.jikesrvm.jni.VM_JNIGenericHelpers;
-
-import java.lang.reflect.*;
-
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_Reflection;
+import org.jikesrvm.scheduler.VM_Thread;
+import org.vmmagic.pragma.NoInline;
+import org.vmmagic.pragma.NoOptCompile;
+import org.vmmagic.unboxed.Address;
 
 /**
  * Platform dependent utility functions called from VM_JNIFunctions
- * (cannot be placed in VM_JNIFunctions because methods 
+ * (cannot be placed in VM_JNIFunctions because methods
  * there are specially compiled to be called from native).
- * 
+ *
  * @see VM_JNIFunctions
- * 
- * @author Dave Grove
- * @author Ton Ngo
- * @author Steve Smith 
  */
 public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
-  
+
   /**
    * Common code shared by the JNI functions NewObjectA, NewObjectV, NewObject
    * (object creation)
    * @param methodID the method ID for a constructor
    * @return a new object created by the specified constructor
    */
-  public static Object invokeInitializer(Class<?> cls, int methodID, Address argAddress, 
-                                  boolean isJvalue, boolean isDotDotStyle) throws Exception {
+  public static Object invokeInitializer(Class<?> cls, int methodID, Address argAddress, boolean isJvalue,
+                                         boolean isDotDotStyle) throws Exception {
 
     // get the parameter list as Java class
     VM_Method mth = VM_MemberReference.getMemberRef(methodID).asMethodReference().resolve();
@@ -53,17 +54,19 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
 
     // Package the parameters for the constructor
     Address varargAddress;
-    if (isDotDotStyle) 
+    if (isDotDotStyle) {
       // flag is false because this JNI function has 3 args before the var args
-      varargAddress = getVarArgAddress(false);    
-    else
+      varargAddress = getVarArgAddress(false);
+    } else {
       varargAddress = argAddress;
+    }
 
     Object[] argObjs;
-    if (isJvalue)
+    if (isJvalue) {
       argObjs = packageParameterFromJValue(mth, argAddress);
-    else
+    } else {
       argObjs = packageParameterFromVarArg(mth, varargAddress);
+    }
 
     // construct the new object
     return constMethod.newInstance(argObjs);
@@ -74,34 +77,33 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * (static method invocation)
    * @param methodID the method ID
    * @param expectReturnType the return type of the method to be invoked
-   * @return an object that may be the return object or a wrapper for the primitive return value 
+   * @return an object that may be the return object or a wrapper for the primitive return value
    */
   @NoInline
-  @NoOptCompile // expect a certain stack frame structure
-  public static Object invokeWithDotDotVarArg(int methodID, VM_TypeReference expectReturnType)
-    throws Exception {
-    Address varargAddress = getVarArgAddress(false);    
+  @NoOptCompile
+  // expect a certain stack frame structure
+  public static Object invokeWithDotDotVarArg(int methodID, VM_TypeReference expectReturnType) throws Exception {
+    Address varargAddress = getVarArgAddress(false);
     return packageAndInvoke(null, methodID, varargAddress, expectReturnType, false, true);
   }
 
   /**
    * Common code shared by the JNI functions Call<type>Method
    * (virtual method invocation)
-   * @param obj the object instance 
+   * @param obj the object instance
    * @param methodID the method ID
    * @param expectReturnType the return type for checking purpose
    * @param skip4Args  true if the calling JNI Function takes 4 args before the vararg
    *                   false if the calling JNI Function takes 3 args before the vararg
-   * @return an object that may be the return object or a wrapper for the primitive return value 
+   * @return an object that may be the return object or a wrapper for the primitive return value
    */
   @NoInline
-  @NoOptCompile // expect a certain stack frame structure
-  public static Object invokeWithDotDotVarArg(Object obj, int methodID, 
-                                              VM_TypeReference expectReturnType, 
-                                              boolean skip4Args)
-    throws Exception {
+  @NoOptCompile
+  // expect a certain stack frame structure
+  public static Object invokeWithDotDotVarArg(Object obj, int methodID, VM_TypeReference expectReturnType,
+                                              boolean skip4Args) throws Exception {
 
-    Address varargAddress = getVarArgAddress(skip4Args);    
+    Address varargAddress = getVarArgAddress(skip4Args);
     return packageAndInvoke(obj, methodID, varargAddress, expectReturnType, skip4Args, true);
   }
 
@@ -112,7 +114,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * saved return address, starting with the first arg. <br>
    *
    * For the JNI functions that takes var args, their prolog code will save the
-   * var arg in the glue frame because the values in the register may be lost by 
+   * var arg in the glue frame because the values in the register may be lost by
    * subsequent calls. <br>
    *
    * This method copies the var arg values that were saved earlier in glue frame into
@@ -124,9 +126,9 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * because native code can hold an address into the stack, so this code is OK,
    * but this is an issue to be resolved later. <br>
    *
-   * NOTE:  this method assumes that it is immediately above the 
-   * invokeWithDotDotVarArg frame, the JNI frame, the glue frame and 
-   * the C caller frame in the respective order.  
+   * NOTE:  this method assumes that it is immediately above the
+   * invokeWithDotDotVarArg frame, the JNI frame, the glue frame and
+   * the C caller frame in the respective order.
    * Therefore, this method will not work if called from anywhere else.
    *
    * <pre>
@@ -136,17 +138,17 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    *   | mid  |
    *   |      |
    *   |      |
-   *   |------|   
+   *   |------|
    *   |  fp  | <- VM_JNIEnvironment.invokeWithDotDotVarArg frame
    *   | mid  |
    *   | ...  |
    *   |      |
    *   |      |
-   *   |------|   
+   *   |------|
    *   |  fp  | <- JNI method frame
    *   | mid  |
    *   | ...  |
-   *   | arg 0|    args copied by JNI prolog (3 for static, nonvirtual, 
+   *   | arg 0|    args copied by JNI prolog (3 for static, nonvirtual,
    *   | arg 1|    or 4 for virtual)
    *   | arg 2|
    *   |      |
@@ -154,15 +156,15 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    *   |------|
    *   | fp   | <- Native C caller frame
    *   |return|
-   *   | arg 0|    
-   *   | arg 1|    
+   *   | arg 0|
+   *   | arg 1|
    *   | arg 2|
    *   | arg 3|
    *   | arg 4|
    *   | arg 5|
    *   | arg 6|
    *   | arg 7|
-   *   | arg 8|    
+   *   | arg 8|
    *   | arg 9|
    *   |      |
    *   |      |
@@ -177,36 +179,35 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * @return the starting address of the vararg in the caller stack frame
    */
   @NoInline
-  private static Address getVarArgAddress(boolean skip4Args) { 
+  private static Address getVarArgAddress(boolean skip4Args) {
     Address fp = VM_Magic.getFramePointer();
     fp = fp.loadAddress();
     fp = fp.loadAddress();
-    return (fp.plus(2*4 + (skip4Args ? 4*4 : 3*4)));
+    return (fp.plus(2 * 4 + (skip4Args ? 4 * 4 : 3 * 4)));
   }
 
   /**
    * Common code shared by the JNI functions CallStatic<type>MethodV
    * @param methodID the method ID
    * @param argAddress a raw address for the variable argument list
-   * @return an object that may be the return object or a wrapper for the primitive return value 
+   * @return an object that may be the return object or a wrapper for the primitive return value
    */
-  public static Object invokeWithVarArg(int methodID, Address argAddress, VM_TypeReference expectReturnType) 
-    throws Exception {
+  public static Object invokeWithVarArg(int methodID, Address argAddress, VM_TypeReference expectReturnType)
+      throws Exception {
     return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, true);
   }
 
   /**
    * Common code shared by the JNI functions Call<type>MethodV
-   * @param obj the object instance 
+   * @param obj the object instance
    * @param methodID the method ID
    * @param argAddress a raw address for the variable argument list
    * @param expectReturnType the return type for checking purpose
    * @param skip4Args received from the JNI function, passed on to VM_Reflection.invoke()
-   * @return an object that may be the return object or a wrapper for the primitive return value 
+   * @return an object that may be the return object or a wrapper for the primitive return value
    */
-  public static Object invokeWithVarArg(Object obj, int methodID, Address argAddress, 
-                                        VM_TypeReference expectReturnType, boolean skip4Args) 
-    throws Exception {
+  public static Object invokeWithVarArg(Object obj, int methodID, Address argAddress, VM_TypeReference expectReturnType,
+                                        boolean skip4Args) throws Exception {
     return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, true);
   }
 
@@ -214,70 +215,71 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * Common code shared by the JNI functions CallStatic<type>MethodA
    * @param methodID id of VM_MemberReference
    * @param argAddress a raw address for the argument array
-   * @return an object that may be the return object or a wrapper for the primitive return value 
+   * @return an object that may be the return object or a wrapper for the primitive return value
    */
-  public static Object invokeWithJValue(int methodID, Address argAddress, 
-                                        VM_TypeReference expectReturnType) 
-    throws Exception {
+  public static Object invokeWithJValue(int methodID, Address argAddress, VM_TypeReference expectReturnType)
+      throws Exception {
     return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, false);
   }
 
   /**
    * Common code shared by the JNI functions Call<type>MethodA
-   * @param obj the object instance 
+   * @param obj the object instance
    * @param methodID id of VM_MemberReference
    * @param argAddress a raw address for the argument array
    * @param expectReturnType the return type for checking purpose
    * @param skip4Args received from the JNI function, passed on to VM_Reflection.invoke()
-   * @return an object that may be the return object or a wrapper for the primitive return value 
+   * @return an object that may be the return object or a wrapper for the primitive return value
    */
-  public static Object invokeWithJValue(Object obj, int methodID, Address argAddress, 
-                                        VM_TypeReference expectReturnType, boolean skip4Args) 
-    throws Exception {
+  public static Object invokeWithJValue(Object obj, int methodID, Address argAddress, VM_TypeReference expectReturnType,
+                                        boolean skip4Args) throws Exception {
     return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, false);
   }
 
   /**
    * Common code shared by invokeWithJValue, invokeWithVarArg and invokeWithDotDotVarArg
-   * @param obj the object instance 
+   * @param obj the object instance
    * @param methodID id of VM_MemberReference
    * @param argAddress a raw address for the argument array
    * @param expectReturnType the return type for checking purpose
-   * @param skip4Args This flag is received from the JNI function and passed directly to 
-   *                     VM_Reflection.invoke().  
+   * @param skip4Args This flag is received from the JNI function and passed directly to
+   *                     VM_Reflection.invoke().
    *                     It is true if the actual method is to be invoked, which could be
    *                     from the superclass.
-   *                     It is false if the method from the real class of the object 
+   *                     It is false if the method from the real class of the object
    *                     is to be invoked, which may not be the actual method specified by methodID
    * @param isVarArg  This flag describes whether the array of parameters is in var arg format or
    *                  jvalue format
-   * @return an object that may be the return object or a wrapper for the primitive return value 
+   * @return an object that may be the return object or a wrapper for the primitive return value
    */
   @NoInline
-  @NoOptCompile // expect a certain stack frame structure
-  static Object packageAndInvoke(Object obj, int methodID, Address argAddress, 
-                                        VM_TypeReference expectReturnType, boolean skip4Args, 
-                                        boolean isVarArg) 
-    throws Exception {
+  @NoOptCompile
+  // expect a certain stack frame structure
+  static Object packageAndInvoke(Object obj, int methodID, Address argAddress, VM_TypeReference expectReturnType,
+                                 boolean skip4Args, boolean isVarArg) throws Exception {
 
     VM_Method targetMethod = VM_MemberReference.getMemberRef(methodID).asMethodReference().resolve();
     VM_TypeReference returnType = targetMethod.getReturnType();
 
     if (VM_JNIFunctions.traceJNI) {
-      VM.sysWrite("JNI CallXXXMethod:  (mid " + methodID + ") " +
-                  targetMethod.getDeclaringClass().toString() + 
-                  "." + 
-                  targetMethod.getName().toString() + "\n");
+      VM.sysWrite("JNI CallXXXMethod:  (mid " +
+                  methodID +
+                  ") " +
+                  targetMethod.getDeclaringClass().toString() +
+                  "." +
+                  targetMethod.getName().toString() +
+                  "\n");
     }
-    
-    if (expectReturnType==null) {   // for reference return type 
-      if (!returnType.isReferenceType())
-        throw new Exception("Wrong return type for method: expect reference type instead of " + returnType);      
+
+    if (expectReturnType == null) {   // for reference return type
+      if (!returnType.isReferenceType()) {
+        throw new Exception("Wrong return type for method: expect reference type instead of " + returnType);
+      }
     } else {    // for primitive return type
-      if (!returnType.definitelySame(expectReturnType))
-        throw new Exception("Wrong return type for method: expect " + expectReturnType + 
-                            " instead of " + returnType);
-    }  
+      if (!returnType.definitelySame(expectReturnType)) {
+        throw new Exception("Wrong return type for method: expect " + expectReturnType + " instead of " + returnType);
+      }
+    }
 
     // Repackage the arguments into an array of objects based on the signature of this method
     Object[] argObjectArray;
@@ -295,7 +297,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * Repackage the arguments passed as a variable argument list into an array of Object,
    * used by the JNI functions CallStatic<type>MethodV
    * @param targetMethod   The target {@link VM_Method}
-   * @param argAddress an address into the C space for the array of jvalue unions;  
+   * @param argAddress an address into the C space for the array of jvalue unions;
    *                   each element is 2-word and holds the argument of the appropriate type
    * @return an Object array holding the arguments wrapped at Objects
    */
@@ -305,7 +307,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
     Object[] argObjectArray = new Object[argCount];
 
     Address addr = argAddress;
-    for (int i=0; i<argCount; i++) {
+    for (int i = 0; i < argCount; i++) {
       int loword = addr.loadInt();
       addr = addr.plus(4);
 
@@ -314,7 +316,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
         // NOTE:  in VarArg convention, C compiler will expand a float to a double that occupy 2 words
         // so we have to extract it as a double and convert it back to a float
         int hiword = addr.loadInt();
-        addr = addr.plus(4);                       
+        addr = addr.plus(4);
         long doubleBits = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
         argObjectArray[i] = VM_Reflection.wrapFloat((float) (Double.longBitsToDouble(doubleBits)));
       } else if (argTypes[i].isDoubleType()) {
@@ -322,13 +324,13 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
         addr = addr.plus(4);
         long doubleBits = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
         argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(doubleBits));
-      } else if (argTypes[i].isLongType()) { 
+      } else if (argTypes[i].isLongType()) {
         int hiword = addr.loadInt();
         addr = addr.plus(4);
         long longValue = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
         argObjectArray[i] = VM_Reflection.wrapLong(longValue);
       } else if (argTypes[i].isBooleanType()) {
-        // the 0/1 bit is stored in the high byte               
+        // the 0/1 bit is stored in the high byte
         argObjectArray[i] = VM_Reflection.wrapBoolean(loword);
       } else if (argTypes[i].isByteType()) {
         // the target byte is stored in the high byte
@@ -342,7 +344,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
       } else if (argTypes[i].isReferenceType()) {
         // for object, the arg is a JREF index, dereference to get the real object
         VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
-        argObjectArray[i] =  env.getJNIRef(loword);   
+        argObjectArray[i] = env.getJNIRef(loword);
       } else if (argTypes[i].isIntType()) {
         argObjectArray[i] = VM_Reflection.wrapInt(loword);
       } else {
@@ -357,7 +359,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * Repackage the arguments passed as an array of jvalue into an array of Object,
    * used by the JNI functions CallStatic<type>MethodA
    * @param targetMethod   The target {@link VM_Method}
-   * @param argAddress an address into the C space for the array of jvalue unions;  
+   * @param argAddress an address into the C space for the array of jvalue unions;
    *                   each element is 2-word and holds the argument of the appropriate type
    * @return an Object array holding the arguments wrapped at Objects
    */
@@ -370,7 +372,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
     VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
 
     Address addr = argAddress;
-    for (int i=0; i<argCount; i++, addr = addr.plus(8)) {
+    for (int i = 0; i < argCount; i++, addr = addr.plus(8)) {
       int loword = addr.loadInt();
       int hiword;
       // convert and wrap the argument according to the expected type
@@ -380,12 +382,12 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
         hiword = addr.plus(4).loadInt();
         long doubleBits = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
         argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(doubleBits));
-      } else if (argTypes[i].isLongType()) { 
+      } else if (argTypes[i].isLongType()) {
         hiword = addr.plus(4).loadInt();
         long longValue = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
         argObjectArray[i] = VM_Reflection.wrapLong(longValue);
       } else if (argTypes[i].isBooleanType()) {
-        // the 0/1 bit is stored in the high byte       
+        // the 0/1 bit is stored in the high byte
         argObjectArray[i] = VM_Reflection.wrapBoolean(loword & 0x000000FF);
       } else if (argTypes[i].isByteType()) {
         // the target byte is stored in the high byte
@@ -398,7 +400,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
         argObjectArray[i] = VM_Reflection.wrapShort((short) (loword & 0x0000FFFF));
       } else if (argTypes[i].isReferenceType()) {
         // for object, the arg is a JREF index, dereference to get the real object
-        argObjectArray[i] =  env.getJNIRef(loword);   
+        argObjectArray[i] = env.getJNIRef(loword);
       } else if (argTypes[i].isIntType()) {
         argObjectArray[i] = VM_Reflection.wrapInt(loword);
       } else {

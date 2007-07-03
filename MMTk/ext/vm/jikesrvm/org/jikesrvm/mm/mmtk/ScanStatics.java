@@ -1,18 +1,22 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm.mm.mmtk;
 
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.Constants;
-import org.jikesrvm.VM_Statics;
-import org.jikesrvm.VM_Magic;
-import org.jikesrvm.VM_Thread;
+import org.jikesrvm.runtime.VM_Statics;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
 
 import org.vmmagic.unboxed.*;
@@ -20,11 +24,7 @@ import org.vmmagic.pragma.*;
 
 /**
  * Class that determines all JTOC slots (statics) that hold references
- *
- *
- * @author Perry Cheng
- * @author Ian Rogers
- */  
+ */
 public final class ScanStatics implements Constants {
   /**
    * Size in 32bits words of a JTOC slot (ie 32bit addresses = 1,
@@ -43,7 +43,7 @@ public final class ScanStatics implements Constants {
    */
   @Inline
   @Uninterruptible
-  public static void scanStatics(TraceLocal trace) { 
+  public static void scanStatics(TraceLocal trace) {
     // The address of the statics table
     // equivalent to VM_Statics.getSlots()
     final Address slots = VM_Magic.getJTOC();

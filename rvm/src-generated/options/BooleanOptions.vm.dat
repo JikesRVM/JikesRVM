@@ -1,10 +1,14 @@
 #
-# This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
-# The Jikes RVM project is distributed under the Common Public License (CPL).
-# A copy of the license is included in the distribution, and is also
-# available at http://www.opensource.org/licenses/cpl1.0.php
+#  This file is part of the Jikes RVM project (http://jikesrvm.org).
 #
-# (C) Copyright IBM Corp. 2003
+#  This file is licensed to You under the Common Public License (CPL);
+#  You may not use this file except in compliance with the License. You
+#  may obtain a copy of the License at
+#
+#      http://www.opensource.org/licenses/cpl1.0.php
+#
+#  See the COPYRIGHT.txt file distributed with this work for information
+#  regarding copyright ownership.
 #
 DECL
 # Structure of DECL FULL_NAME DEFAULT_VALUE {SHORT_NAME}
@@ -13,20 +17,11 @@ DESCRIP
 MeasureCompilation false measureCompilation
 Time all compilations and report on exit
 
-stackTraceVMSysWrite false 
-Exclusively use VM.sysWrite to print stack dumps
+stackTraceFull false
+Stack traces to consist of VM and application frames
 
-stackTraceAtExit false 
+stackTraceAtExit false
 Dump a stack trace (via VM.syswrite) upon exit
-
-stackTraceAlsoToVMSysWrite false
-When printing a stack dump, print a copy via VM.sysWrite (if not doing so already)
-
-stackTraceAnnounceWhenPrinting false
-Announce via VM.syswrite() when we print a stack trace
-
-stackTraceShowPrintingContext false
-Print the context of every attempt to print out a stack trace, to debug problems with the stack trace printing code itself.
 
 TraceClassLoading false verboseTraceClassLoading
 More detailed tracing then -verbose:class

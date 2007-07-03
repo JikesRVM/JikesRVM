@@ -1,5 +1,18 @@
+#
+#  This file is part of the Jikes RVM project (http://jikesrvm.org).
+#
+#  This file is licensed to You under the Common Public License (CPL);
+#  You may not use this file except in compliance with the License. You
+#  may obtain a copy of the License at
+#
+#      http://www.opensource.org/licenses/cpl1.0.php
+#
+#  See the COPYRIGHT.txt file distributed with this work for information
+#  regarding copyright ownership.
+#
+
 # Must be one of ia32 or ppc
-target.arch= 
+target.arch=
 # Must be one of AIX, Linux or OSX
 target.os=
 # Must be 32 or 64
@@ -19,3 +32,6 @@ target.dll-prefix=
 
 # suffix for jni shared libraries (differs from dll suffix on OSX)
 target.jni-suffix=
+
+# Set to none, base or full depending on usage of SSE2 instructions on ia32
+target.arch.sse2=

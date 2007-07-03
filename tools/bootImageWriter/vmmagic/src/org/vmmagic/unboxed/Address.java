@@ -1,16 +1,18 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp 2001, 2004
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
  *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.vmmagic.unboxed;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Magic;
 import org.jikesrvm.VM_SizeConstants;
 
 import org.vmmagic.pragma.*;
@@ -23,7 +25,7 @@ import org.vmmagic.pragma.*;
  * operations (Java does not have unsigned int types).
  * <p>
  * For efficiency and to avoid meta-circularity, the Address class is
- * intercepted like {@link VM_Magic} and converted into the base type so no
+ * intercepted like {@link org.jikesrvm.runtime.VM_Magic} and converted into the base type so no
  * Address object is created run-time.
  *
  * @author Perry Cheng

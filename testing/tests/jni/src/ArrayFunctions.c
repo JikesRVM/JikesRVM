@@ -1,18 +1,18 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
  *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 /**
  * Test JNI Functions related to Array
- * Implement native methods from ArrayFunctions.java 
- * 
- * @author Ton Ngo, Steve Smith 
- * @date   3/9/00
+ * Implement native methods from ArrayFunctions.java
  */
 
 #include <stdio.h>
@@ -175,10 +175,10 @@ JNIEXPORT jintArray JNICALL Java_ArrayFunctions_testIntArrayRegion
   (JNIEnv *env, jclass cls, jintArray intArray) {
 
   int i;
-  int size = 10; 
+  int size = 10;
   jint *buf = (jint *) malloc(sizeof(int) * size);
   (*env) -> GetIntArrayRegion(env, intArray, 0, 10, buf);
-  
+
   for (i = 0; i<size; i++) {
     buf[i] = buf[i] + 1;
   }
@@ -200,14 +200,14 @@ JNIEXPORT jbooleanArray JNICALL Java_ArrayFunctions_testBooleanArrayRegion
   (JNIEnv *env, jclass cls, jbooleanArray sourceArray) {
 
   int i;
-  int size = 10; 
+  int size = 10;
   jboolean *buf = (jboolean *) malloc(sizeof(jboolean) * size);
   (*env) -> GetBooleanArrayRegion(env, sourceArray, 0, 10, buf);
-  
+
   for (i = 0; i<size; i++) {
     if (buf[i])
       buf[i] = 0;
-    else 
+    else
       buf[i] = 1;
   }
 
@@ -227,10 +227,10 @@ JNIEXPORT jshortArray JNICALL Java_ArrayFunctions_testShortArrayRegion
   (JNIEnv *env, jclass cls, jshortArray sourceArray) {
 
   int i;
-  int size = 10; 
+  int size = 10;
   jshort *buf = (jshort *) malloc(sizeof(jshort) * size);
   (*env) -> GetShortArrayRegion(env, sourceArray, 0, 10, buf);
-  
+
   for (i = 0; i<size; i++) {
     buf[i] += 1;
   }
@@ -250,12 +250,12 @@ JNIEXPORT jbyteArray JNICALL Java_ArrayFunctions_testByteArrayRegion
   (JNIEnv *env, jclass cls, jbyteArray sourceArray) {
 
   int i;
-  int size = 10; 
+  int size = 10;
   jbyte *buf = (jbyte *) malloc(sizeof(jbyte) * size);
   (*env) -> GetByteArrayRegion(env, sourceArray, 0, 10, buf);
-  
+
   for (i = 0; i<size; i++) {
-    buf[i] += 1;   
+    buf[i] += 1;
   }
 
   (*env) -> SetByteArrayRegion(env, sourceArray, 0, 10, buf);
@@ -273,10 +273,10 @@ JNIEXPORT jcharArray JNICALL Java_ArrayFunctions_testCharArrayRegion
   (JNIEnv *env, jclass cls, jcharArray sourceArray) {
 
   int i;
-  int size = 10; 
+  int size = 10;
   jchar *buf = (jchar *) malloc(sizeof(jchar) * size);
   (*env) -> GetCharArrayRegion(env, sourceArray, 0, 10, buf);
-  
+
   buf[0] = 'j';
   buf[1] = 'a';
   buf[2] = 'l';
@@ -303,12 +303,12 @@ JNIEXPORT jlongArray JNICALL Java_ArrayFunctions_testLongArrayRegion
   (JNIEnv *env, jclass cls, jlongArray sourceArray) {
 
   int i;
-  int size = 10; 
+  int size = 10;
   jlong *buf = (jlong *) malloc(sizeof(jlong) * size);
   (*env) -> GetLongArrayRegion(env, sourceArray, 0, 10, buf);
-  
+
   for (i = 0; i<size; i++) {
-    buf[i] += (long) i; 
+    buf[i] += (long) i;
   }
 
   (*env) -> SetLongArrayRegion(env, sourceArray, 0, 10, buf);
@@ -326,10 +326,10 @@ JNIEXPORT jdoubleArray JNICALL Java_ArrayFunctions_testDoubleArrayRegion
   (JNIEnv *env, jclass cls, jdoubleArray sourceArray) {
 
   int i;
-  int size = 10; 
+  int size = 10;
   jdouble *buf = (jdouble *) malloc(sizeof(jdouble) * size);
   (*env) -> GetDoubleArrayRegion(env, sourceArray, 0, 10, buf);
-  
+
   for (i = 0; i<size; i++) {
     buf[i] += (double) i;
   }
@@ -349,10 +349,10 @@ JNIEXPORT jfloatArray JNICALL Java_ArrayFunctions_testFloatArrayRegion
   (JNIEnv *env, jclass cls, jfloatArray sourceArray) {
 
   int i;
-  int size = 10; 
+  int size = 10;
   jfloat *buf = (jfloat *) malloc(sizeof(jfloat) * size);
   (*env) -> GetFloatArrayRegion(env, sourceArray, 0, 10, buf);
-  
+
   for (i = 0; i<size; i++) {
     buf[i] += (float) i;
   }
@@ -388,8 +388,8 @@ JNIEXPORT jintArray JNICALL Java_ArrayFunctions_testIntArrayElements
   (JNIEnv *env, jclass cls, jintArray sourceArray, jint testState) {
 
   int i;
-  int size = 10; 
-  jboolean isCopy = JNI_FALSE; 
+  int size = 10;
+  jboolean isCopy = JNI_FALSE;
   jint *buf;
 
   switch (testState) {
@@ -401,9 +401,9 @@ JNIEXPORT jintArray JNICALL Java_ArrayFunctions_testIntArrayElements
     savedArrayPointer = (char *) buf;
     for (i = 0; i<size; i++) {
       buf[i] = buf[i] + 1;
-    }    
+    }
     /* copy back but don't free the buffer */
-    (*env) -> ReleaseIntArrayElements(env, sourceArray, buf, JNI_COMMIT);    
+    (*env) -> ReleaseIntArrayElements(env, sourceArray, buf, JNI_COMMIT);
     break;
 
   case 1:
@@ -411,22 +411,22 @@ JNIEXPORT jintArray JNICALL Java_ArrayFunctions_testIntArrayElements
     buf = (jint *) savedArrayPointer;
     for (i = 0; i<size; i++) {
       buf[i] = buf[i] + 2;
-    }    
+    }
     /* copy back and free the buffer */
-    (*env) -> ReleaseIntArrayElements(env, sourceArray, buf, 0);    
+    (*env) -> ReleaseIntArrayElements(env, sourceArray, buf, 0);
     savedArrayPointer = 0;
     buf = 0;
     break;
 
   default:
     /* third time, get the array copy again, modify but don't update */
-    buf = (*env) -> GetIntArrayElements(env, sourceArray, &isCopy);    
+    buf = (*env) -> GetIntArrayElements(env, sourceArray, &isCopy);
     lastGetArrayElementsWasCopy = isCopy;
     for (i = 0; i<size; i++) {
       buf[i] = buf[i] + 3;
-    }    
+    }
     /* free the buffer without copying back */
-    (*env) -> ReleaseIntArrayElements(env, sourceArray, buf, JNI_ABORT);    
+    (*env) -> ReleaseIntArrayElements(env, sourceArray, buf, JNI_ABORT);
     break;
   }
 
@@ -444,45 +444,45 @@ JNIEXPORT jbooleanArray JNICALL Java_ArrayFunctions_testBooleanArrayElements
   (JNIEnv *env, jclass cls, jbooleanArray sourceArray, jint testState) {
 
   int i;
-  int size = 10; 
-  jboolean isCopy = JNI_FALSE; 
+  int size = 10;
+  jboolean isCopy = JNI_FALSE;
   jboolean *buf;
 
   switch (testState) {
 
   case 0:
     /* first time, get the array copy, update and save the pointer */
-    buf = (*env) -> GetBooleanArrayElements(env, sourceArray, &isCopy);    
+    buf = (*env) -> GetBooleanArrayElements(env, sourceArray, &isCopy);
     lastGetArrayElementsWasCopy = isCopy;
     savedArrayPointer = (char *) buf;
-    buf[0] = JNI_TRUE; buf[1] = JNI_FALSE; buf[2] = JNI_TRUE; buf[3] = JNI_FALSE; 
-    buf[4] = JNI_TRUE; buf[5] = JNI_FALSE; buf[6] = JNI_TRUE; buf[7] = JNI_FALSE; 
-    buf[8] = JNI_TRUE; buf[9] = JNI_FALSE; 
+    buf[0] = JNI_TRUE; buf[1] = JNI_FALSE; buf[2] = JNI_TRUE; buf[3] = JNI_FALSE;
+    buf[4] = JNI_TRUE; buf[5] = JNI_FALSE; buf[6] = JNI_TRUE; buf[7] = JNI_FALSE;
+    buf[8] = JNI_TRUE; buf[9] = JNI_FALSE;
     /* copy back but don't free the buffer */
-    (*env) -> ReleaseBooleanArrayElements(env, sourceArray, buf, JNI_COMMIT);    
+    (*env) -> ReleaseBooleanArrayElements(env, sourceArray, buf, JNI_COMMIT);
     break;
 
   case 1:
     /* second time, reuse the array copy via the saved pointer */
     buf = (jboolean *) savedArrayPointer;
-    buf[0] = JNI_FALSE; buf[1] = JNI_TRUE; buf[2] = JNI_FALSE; buf[3] = JNI_TRUE; 
-    buf[4] = JNI_FALSE; buf[5] = JNI_TRUE; buf[6] = JNI_FALSE; buf[7] = JNI_TRUE; 
-    buf[8] = JNI_FALSE; buf[9] = JNI_TRUE; 
+    buf[0] = JNI_FALSE; buf[1] = JNI_TRUE; buf[2] = JNI_FALSE; buf[3] = JNI_TRUE;
+    buf[4] = JNI_FALSE; buf[5] = JNI_TRUE; buf[6] = JNI_FALSE; buf[7] = JNI_TRUE;
+    buf[8] = JNI_FALSE; buf[9] = JNI_TRUE;
     /* copy back and free the buffer */
-    (*env) -> ReleaseBooleanArrayElements(env, sourceArray, buf, 0);    
+    (*env) -> ReleaseBooleanArrayElements(env, sourceArray, buf, 0);
     savedArrayPointer = 0;
     buf = 0;
     break;
 
   default:
     /* third time, get the array copy again, modify but don't update */
-    buf = (*env) -> GetBooleanArrayElements(env, sourceArray, &isCopy);    
+    buf = (*env) -> GetBooleanArrayElements(env, sourceArray, &isCopy);
     lastGetArrayElementsWasCopy = isCopy;
-    buf[0] = JNI_FALSE; buf[1] = JNI_TRUE; buf[2] = JNI_FALSE; buf[3] = JNI_TRUE; 
-    buf[4] = JNI_FALSE; buf[5] = JNI_TRUE; buf[6] = JNI_FALSE; buf[7] = JNI_TRUE; 
-    buf[8] = JNI_FALSE; buf[9] = JNI_TRUE; 
+    buf[0] = JNI_FALSE; buf[1] = JNI_TRUE; buf[2] = JNI_FALSE; buf[3] = JNI_TRUE;
+    buf[4] = JNI_FALSE; buf[5] = JNI_TRUE; buf[6] = JNI_FALSE; buf[7] = JNI_TRUE;
+    buf[8] = JNI_FALSE; buf[9] = JNI_TRUE;
     /* free the buffer without copying back */
-    (*env) -> ReleaseBooleanArrayElements(env, sourceArray, buf, JNI_ABORT);    
+    (*env) -> ReleaseBooleanArrayElements(env, sourceArray, buf, JNI_ABORT);
     break;
   }
 
@@ -501,22 +501,22 @@ JNIEXPORT jbyteArray JNICALL Java_ArrayFunctions_testByteArrayElements
 
 
   int i;
-  int size = 10; 
-  jboolean isCopy = JNI_FALSE; 
+  int size = 10;
+  jboolean isCopy = JNI_FALSE;
   jbyte *buf;
 
   switch (testState) {
 
   case 0:
     /* first time, get the array copy, update and save the pointer */
-    buf = (*env) -> GetByteArrayElements(env, sourceArray, &isCopy);    
+    buf = (*env) -> GetByteArrayElements(env, sourceArray, &isCopy);
     lastGetArrayElementsWasCopy = isCopy;
     savedArrayPointer = (char *) buf;
     for (i = 0; i<size; i++) {
       buf[i] = buf[i] + 4;
-    }    
+    }
     /* copy back but don't free the buffer */
-    (*env) -> ReleaseByteArrayElements(env, sourceArray, buf, JNI_COMMIT);    
+    (*env) -> ReleaseByteArrayElements(env, sourceArray, buf, JNI_COMMIT);
     break;
 
   case 1:
@@ -524,22 +524,22 @@ JNIEXPORT jbyteArray JNICALL Java_ArrayFunctions_testByteArrayElements
     buf = (jbyte *) savedArrayPointer;
     for (i = 0; i<size; i++) {
       buf[i] = buf[i] + 5;
-    }    
+    }
     /* copy back and free the buffer */
-    (*env) -> ReleaseByteArrayElements(env, sourceArray, buf, 0);    
+    (*env) -> ReleaseByteArrayElements(env, sourceArray, buf, 0);
     savedArrayPointer = 0;
     buf = 0;
     break;
 
   default:
     /* third time, get the array copy again, modify but don't update */
-    buf = (*env) -> GetByteArrayElements(env, sourceArray, &isCopy);    
+    buf = (*env) -> GetByteArrayElements(env, sourceArray, &isCopy);
     lastGetArrayElementsWasCopy = isCopy;
     for (i = 0; i<size; i++) {
       buf[i] = buf[i] + 6;
-    }    
+    }
     /* free the buffer without copying back */
-    (*env) -> ReleaseByteArrayElements(env, sourceArray, buf, JNI_ABORT);    
+    (*env) -> ReleaseByteArrayElements(env, sourceArray, buf, JNI_ABORT);
     break;
   }
 
@@ -557,22 +557,22 @@ JNIEXPORT jshortArray JNICALL Java_ArrayFunctions_testShortArrayElements
   (JNIEnv *env, jclass cls, jshortArray sourceArray, jint testState) {
 
   int i;
-  int size = 10; 
-  jboolean isCopy = JNI_FALSE; 
+  int size = 10;
+  jboolean isCopy = JNI_FALSE;
   jshort *buf;
 
   switch (testState) {
 
   case 0:
     /* first time, get the array copy, update and save the pointer */
-    buf = (*env) -> GetShortArrayElements(env, sourceArray, &isCopy);    
+    buf = (*env) -> GetShortArrayElements(env, sourceArray, &isCopy);
     lastGetArrayElementsWasCopy = isCopy;
     savedArrayPointer = (char *) buf;
     for (i = 0; i<size; i++) {
       buf[i] = buf[i] + 7;
-    }    
+    }
     /* copy back but don't free the buffer */
-    (*env) -> ReleaseShortArrayElements(env, sourceArray, buf, JNI_COMMIT);    
+    (*env) -> ReleaseShortArrayElements(env, sourceArray, buf, JNI_COMMIT);
     break;
 
   case 1:
@@ -580,22 +580,22 @@ JNIEXPORT jshortArray JNICALL Java_ArrayFunctions_testShortArrayElements
     buf = (jshort *) savedArrayPointer;
     for (i = 0; i<size; i++) {
       buf[i] = buf[i] + 8;
-    }    
+    }
     /* copy back and free the buffer */
-    (*env) -> ReleaseShortArrayElements(env, sourceArray, buf, 0);    
+    (*env) -> ReleaseShortArrayElements(env, sourceArray, buf, 0);
     savedArrayPointer = 0;
     buf = 0;
     break;
 
   default:
     /* third time, get the array copy again, modify but don't update */
-    buf = (*env) -> GetShortArrayElements(env, sourceArray, &isCopy);    
+    buf = (*env) -> GetShortArrayElements(env, sourceArray, &isCopy);
     lastGetArrayElementsWasCopy = isCopy;
     for (i = 0; i<size; i++) {
       buf[i] = buf[i] + 9;
-    }    
+    }
     /* free the buffer without copying back */
-    (*env) -> ReleaseShortArrayElements(env, sourceArray, buf, JNI_ABORT);    
+    (*env) -> ReleaseShortArrayElements(env, sourceArray, buf, JNI_ABORT);
     break;
   }
 
@@ -613,45 +613,45 @@ JNIEXPORT jcharArray JNICALL Java_ArrayFunctions_testCharArrayElements
   (JNIEnv *env, jclass cls, jcharArray sourceArray, jint testState) {
 
   int i;
-  int size = 10; 
-  jboolean isCopy = JNI_FALSE; 
+  int size = 10;
+  jboolean isCopy = JNI_FALSE;
   jchar *buf;
 
   switch (testState) {
 
   case 0:
     /* first time, get the array copy, update and save the pointer */
-    buf = (*env) -> GetCharArrayElements(env, sourceArray, &isCopy);    
+    buf = (*env) -> GetCharArrayElements(env, sourceArray, &isCopy);
     lastGetArrayElementsWasCopy = isCopy;
     savedArrayPointer = (char *) buf;
-    buf[0] = 'a'; buf[1] = 'b'; buf[2] = 'c'; buf[3] = 'd'; 
-    buf[4] = 'e'; buf[5] = 'f'; buf[6] = 'g'; buf[7] = 'h'; 
-    buf[8] = 'i'; buf[9] = 'j'; 
+    buf[0] = 'a'; buf[1] = 'b'; buf[2] = 'c'; buf[3] = 'd';
+    buf[4] = 'e'; buf[5] = 'f'; buf[6] = 'g'; buf[7] = 'h';
+    buf[8] = 'i'; buf[9] = 'j';
     /* copy back but don't free the buffer */
-    (*env) -> ReleaseCharArrayElements(env, sourceArray, buf, JNI_COMMIT);    
+    (*env) -> ReleaseCharArrayElements(env, sourceArray, buf, JNI_COMMIT);
     break;
 
   case 1:
     /* second time, reuse the array copy via the saved pointer */
     buf = (jchar *) savedArrayPointer;
-    buf[0] = 'j'; buf[1] = 'a'; buf[2] = 'l'; buf[3] = 'e'; 
-    buf[4] = 'p'; buf[5] = 'e'; buf[6] = 'n'; buf[7] = 'o'; 
-    buf[8] = 'v'; buf[9] = 'm'; 
+    buf[0] = 'j'; buf[1] = 'a'; buf[2] = 'l'; buf[3] = 'e';
+    buf[4] = 'p'; buf[5] = 'e'; buf[6] = 'n'; buf[7] = 'o';
+    buf[8] = 'v'; buf[9] = 'm';
     /* copy back and free the buffer */
-    (*env) -> ReleaseCharArrayElements(env, sourceArray, buf, 0);    
+    (*env) -> ReleaseCharArrayElements(env, sourceArray, buf, 0);
     savedArrayPointer = 0;
     buf = 0;
     break;
 
   default:
     /* third time, get the array copy again, modify but don't update */
-    buf = (*env) -> GetCharArrayElements(env, sourceArray, &isCopy);    
+    buf = (*env) -> GetCharArrayElements(env, sourceArray, &isCopy);
     lastGetArrayElementsWasCopy = isCopy;
     for (i = 0; i<size; i++) {
       buf[i] = 'x';
-    }    
+    }
     /* free the buffer without copying back */
-    (*env) -> ReleaseCharArrayElements(env, sourceArray, buf, JNI_ABORT);    
+    (*env) -> ReleaseCharArrayElements(env, sourceArray, buf, JNI_ABORT);
     break;
   }
 
@@ -668,22 +668,22 @@ JNIEXPORT jlongArray JNICALL Java_ArrayFunctions_testLongArrayElements
   (JNIEnv *env, jclass cls, jlongArray sourceArray, jint testState) {
 
   int i;
-  int size = 10; 
-  jboolean isCopy = JNI_FALSE; 
+  int size = 10;
+  jboolean isCopy = JNI_FALSE;
   jlong *buf;
 
   switch (testState) {
 
   case 0:
     /* first time, get the array copy, update and save the pointer */
-    buf = (*env) -> GetLongArrayElements(env, sourceArray, &isCopy);    
+    buf = (*env) -> GetLongArrayElements(env, sourceArray, &isCopy);
     lastGetArrayElementsWasCopy = isCopy;
     savedArrayPointer = (char *) buf;
     for (i = 0; i<size; i++) {
       buf[i] = buf[i] + 10;
-    }    
+    }
     /* copy back but don't free the buffer */
-    (*env) -> ReleaseLongArrayElements(env, sourceArray, buf, JNI_COMMIT);    
+    (*env) -> ReleaseLongArrayElements(env, sourceArray, buf, JNI_COMMIT);
     break;
 
   case 1:
@@ -691,22 +691,22 @@ JNIEXPORT jlongArray JNICALL Java_ArrayFunctions_testLongArrayElements
     buf = (jlong *) savedArrayPointer;
     for (i = 0; i<size; i++) {
       buf[i] = buf[i] + 11;
-    }    
+    }
     /* copy back and free the buffer */
-    (*env) -> ReleaseLongArrayElements(env, sourceArray, buf, 0);    
+    (*env) -> ReleaseLongArrayElements(env, sourceArray, buf, 0);
     savedArrayPointer = 0;
     buf = 0;
     break;
 
   default:
     /* third time, get the array copy again, modify but don't update */
-    buf = (*env) -> GetLongArrayElements(env, sourceArray, &isCopy);    
+    buf = (*env) -> GetLongArrayElements(env, sourceArray, &isCopy);
     lastGetArrayElementsWasCopy = isCopy;
     for (i = 0; i<size; i++) {
       buf[i] = buf[i] + 12;
-    }    
+    }
     /* free the buffer without copying back */
-    (*env) -> ReleaseLongArrayElements(env, sourceArray, buf, JNI_ABORT);    
+    (*env) -> ReleaseLongArrayElements(env, sourceArray, buf, JNI_ABORT);
     break;
   }
 
@@ -723,22 +723,22 @@ JNIEXPORT jdoubleArray JNICALL Java_ArrayFunctions_testDoubleArrayElements
   (JNIEnv *env, jclass cls, jdoubleArray sourceArray, jint testState) {
 
   int i;
-  int size = 10; 
-  jboolean isCopy = JNI_FALSE; 
+  int size = 10;
+  jboolean isCopy = JNI_FALSE;
   jdouble *buf;
 
   switch (testState) {
 
   case 0:
     /* first time, get the array copy, update and save the pointer */
-    buf = (*env) -> GetDoubleArrayElements(env, sourceArray, &isCopy);    
+    buf = (*env) -> GetDoubleArrayElements(env, sourceArray, &isCopy);
     lastGetArrayElementsWasCopy = isCopy;
     savedArrayPointer = (char *) buf;
     for (i = 0; i<size; i++) {
       buf[i] = buf[i] + 13.0;
-    }    
+    }
     /* copy back but don't free the buffer */
-    (*env) -> ReleaseDoubleArrayElements(env, sourceArray, buf, JNI_COMMIT);    
+    (*env) -> ReleaseDoubleArrayElements(env, sourceArray, buf, JNI_COMMIT);
     break;
 
   case 1:
@@ -746,22 +746,22 @@ JNIEXPORT jdoubleArray JNICALL Java_ArrayFunctions_testDoubleArrayElements
     buf = (jdouble *) savedArrayPointer;
     for (i = 0; i<size; i++) {
       buf[i] = buf[i] + 14.0;
-    }    
+    }
     /* copy back and free the buffer */
-    (*env) -> ReleaseDoubleArrayElements(env, sourceArray, buf, 0);    
+    (*env) -> ReleaseDoubleArrayElements(env, sourceArray, buf, 0);
     savedArrayPointer = 0;
     buf = 0;
     break;
 
   default:
     /* third time, get the array copy again, modify but don't update */
-    buf = (*env) -> GetDoubleArrayElements(env, sourceArray, &isCopy);    
+    buf = (*env) -> GetDoubleArrayElements(env, sourceArray, &isCopy);
     lastGetArrayElementsWasCopy = isCopy;
     for (i = 0; i<size; i++) {
       buf[i] = buf[i] + 15.0;
-    }    
+    }
     /* free the buffer without copying back */
-    (*env) -> ReleaseDoubleArrayElements(env, sourceArray, buf, JNI_ABORT);    
+    (*env) -> ReleaseDoubleArrayElements(env, sourceArray, buf, JNI_ABORT);
     break;
   }
 
@@ -778,22 +778,22 @@ JNIEXPORT jfloatArray JNICALL Java_ArrayFunctions_testFloatArrayElements
   (JNIEnv *env, jclass cls, jfloatArray sourceArray, jint testState) {
 
   int i;
-  int size = 10; 
-  jboolean isCopy = JNI_FALSE; 
+  int size = 10;
+  jboolean isCopy = JNI_FALSE;
   jfloat *buf;
 
   switch (testState) {
 
   case 0:
     /* first time, get the array copy, update and save the pointer */
-    buf = (*env) -> GetFloatArrayElements(env, sourceArray, &isCopy);    
+    buf = (*env) -> GetFloatArrayElements(env, sourceArray, &isCopy);
     lastGetArrayElementsWasCopy = isCopy;
     savedArrayPointer = (char *) buf;
     for (i = 0; i<size; i++) {
       buf[i] = buf[i] + (float) 16.0;
-    }    
+    }
     /* copy back but don't free the buffer */
-    (*env) -> ReleaseFloatArrayElements(env, sourceArray, buf, JNI_COMMIT);    
+    (*env) -> ReleaseFloatArrayElements(env, sourceArray, buf, JNI_COMMIT);
     break;
 
   case 1:
@@ -801,22 +801,22 @@ JNIEXPORT jfloatArray JNICALL Java_ArrayFunctions_testFloatArrayElements
     buf = (jfloat *) savedArrayPointer;
     for (i = 0; i<size; i++) {
       buf[i] = buf[i] + (float) 17.0;
-    }    
+    }
     /* copy back and free the buffer */
-    (*env) -> ReleaseFloatArrayElements(env, sourceArray, buf, 0);    
+    (*env) -> ReleaseFloatArrayElements(env, sourceArray, buf, 0);
     savedArrayPointer = 0;
     buf = 0;
     break;
 
   default:
     /* third time, get the array copy again, modify but don't update */
-    buf = (*env) -> GetFloatArrayElements(env, sourceArray, &isCopy);    
+    buf = (*env) -> GetFloatArrayElements(env, sourceArray, &isCopy);
     lastGetArrayElementsWasCopy = isCopy;
     for (i = 0; i<size; i++) {
       buf[i] = buf[i] + (float) 18.0;
-    }    
+    }
     /* free the buffer without copying back */
-    (*env) -> ReleaseFloatArrayElements(env, sourceArray, buf, JNI_ABORT);    
+    (*env) -> ReleaseFloatArrayElements(env, sourceArray, buf, JNI_ABORT);
     break;
   }
 
@@ -831,7 +831,7 @@ JNIEXPORT jfloatArray JNICALL Java_ArrayFunctions_testFloatArrayElements
  * Signature: ([Ljava/lang/Object;Ljava/lang/Object;I)Ljava/lang/Object;
  */
 JNIEXPORT jobject JNICALL Java_ArrayFunctions_testObjectArrayElement
-  (JNIEnv *env, jclass cls, jobjectArray sourceArray, jobject toAssign, 
+  (JNIEnv *env, jclass cls, jobjectArray sourceArray, jobject toAssign,
    jint index_) {
 
   /* get the current element */
@@ -839,7 +839,7 @@ JNIEXPORT jobject JNICALL Java_ArrayFunctions_testObjectArrayElement
 
   /* change the element at this index */
   (*env) -> SetObjectArrayElement(env, sourceArray, index_, toAssign);
-  
+
   return previous;
 
 }

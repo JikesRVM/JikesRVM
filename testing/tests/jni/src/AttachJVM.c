@@ -1,10 +1,14 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 /****************************************************************
  * This program tests the JNI functions provided in the library:
@@ -16,11 +20,9 @@
  *    GetEnv
  * This is adapted from the example in the JNI book by Sheng Liang
  * (page 90-91)
- *
- * @author Ton Ngo, Steve Smith 4/10/00
  */
 
-#include <pthread.h> 
+#include <pthread.h>
 #include <jni.h>
 JavaVM *jvm; /* The virtual machine instance */
 
@@ -44,8 +46,6 @@ void dummyBreakpoint () {
 
 /****************************************************
  *  Procedure to be executed by the pthreads
- * 
- * 
  */
 void *thread_fun(void *arg)
 {
@@ -63,7 +63,7 @@ void *thread_fun(void *arg)
 
   /****************************************************
    * Test AttachCurrentThread
-   * Pass NULL as the third argument 
+   * Pass NULL as the third argument
    */
   if (verbose_mode)
     printf("C thread %d: attaching to JVM, pid = %d\n", threadNum, pthread_self());
@@ -80,7 +80,7 @@ void *thread_fun(void *arg)
 
 
   /****************************************************
-   *  Now with a JNIEnv handle, try a few JNI functions 
+   *  Now with a JNIEnv handle, try a few JNI functions
    */
   cls = (*env)->FindClass(env, "myMain");
 
@@ -94,9 +94,9 @@ void *thread_fun(void *arg)
       printf("C thread %d: FindClass returns %d \n", threadNum, cls);
   }
 
-  dummyBreakpoint();  
+  dummyBreakpoint();
 
-  mid = (*env)->GetStaticMethodID(env, cls, "compute", 
+  mid = (*env)->GetStaticMethodID(env, cls, "compute",
                                   "([Ljava/lang/String;)I");
   if (mid == 0) {
     if (verbose_mode)
@@ -133,14 +133,14 @@ void *thread_fun(void *arg)
   }
 
   res = (*env)->CallStaticIntMethod(env, cls, mid, args);
-  
+
   if ((*env)->ExceptionOccurred(env)) {
     if (verbose_mode)
       (*env)->ExceptionDescribe(env);
     thread_pass = 0;
   } else if (res==123) {
     if (verbose_mode)
-      printf("C thread %d: Java call succeeds\n", threadNum);    
+      printf("C thread %d: Java call succeeds\n", threadNum);
   } else if (res==456) {
     if (verbose_mode)
       printf("C thread %d: ERROR, parameter fails to be passed to Java\n");
@@ -153,7 +153,7 @@ void *thread_fun(void *arg)
 
 
   /****************************************************
-   * test GetEnv 
+   * test GetEnv
    */
   res = (*jvm)->GetEnv(jvm, ((void *) &env2), JNI_VERSION_1_1);
   if (res < 0) {
@@ -170,7 +170,7 @@ void *thread_fun(void *arg)
       thread_pass = 0;
     }
   }
- 
+
 
   /****************************************************
    * Test DetachCurrentThread
@@ -253,7 +253,7 @@ main(int argc, char **argv) {
     if (!strcmp(argv[1], "-verbose")) {
       verbose_mode = 1;
     }
-  } 
+  }
 
   if (res < 0) {
     fprintf(stderr, "FAIL: AttachJVM, cannot create Java VM from C\n");
@@ -282,7 +282,7 @@ main(int argc, char **argv) {
   mid = (*env)->GetStaticMethodID(env, cls, "main",
                                   "([Ljava/lang/String;)V");
   if (mid == 0) {
-    if (verbose_mode) 
+    if (verbose_mode)
       printf("ERROR: GetStaticMethodID fails\n");
     main_pass = 0;
     goto destroy;
@@ -293,7 +293,7 @@ main(int argc, char **argv) {
 
   jstr = (*env)->NewStringUTF(env, " main thread from C!");
   if (jstr == 0) {
-    if (verbose_mode) 
+    if (verbose_mode)
       printf("ERROR: NewStringUTF fails\n");
     main_pass = 0;
     goto destroy;
@@ -305,7 +305,7 @@ main(int argc, char **argv) {
   stringClass = (*env)->FindClass(env, "java/lang/String");
   args = (*env)->NewObjectArray(env, 1, stringClass, jstr);
   if (args == 0) {
-    if (verbose_mode) 
+    if (verbose_mode)
       printf("ERROR: NewObjectArray fails\n");
     main_pass = 0;
     goto destroy;
@@ -322,35 +322,35 @@ main(int argc, char **argv) {
       (*env)->ExceptionDescribe(env);
     }
     main_pass = 0;
-  } else { 
+  } else {
     if (verbose_mode)
       printf("CallStaticVoidMethod succeeds.\n");
   }
 
 
- 
+
   /***************************************************
-   * Now create the threads and let them do some more Java work 
-   * pass the thread number to every thread 
+   * Now create the threads and let them do some more Java work
+   * pass the thread number to every thread
    */
-    
+
   pthread_create(&first_th,  NULL, thread_fun, (void *) 0);
-  pthread_create(&second_th, NULL, thread_fun, (void *) 1); 
-  
+  pthread_create(&second_th, NULL, thread_fun, (void *) 1);
+
   /* wait for the pthreads to finish */
   pthread_join(first_th, NULL);
   pthread_join(second_th, NULL);
-  
+
   /* sleep(60);  */
-  
-  
+
+
   if (verbose_mode)
     printf("C: threads are done, taking down JVM.\n");
-  
-  
-  
+
+
+
   /***************************************************
-   *  Test GetCreatedJVMs 
+   *  Test GetCreatedJVMs
    */
   numJVM = 0;
   jvmBuf = (JavaVM **) malloc(sizeof(JavaVM *) * BUFLEN);
@@ -373,17 +373,17 @@ main(int argc, char **argv) {
         printf("AttachJVM: GetCreatedJavaVMs succeeds\n");
     }
   }
-  
-  
+
+
   /***************************************************
    *  Test DestroyJavaVM
    */
  destroy:
   rc = (*jvm)->DestroyJavaVM(jvm);
-  
+
   if (rc!=0) {
     if (verbose_mode)
-      printf("C: DestroyJavaVM returns with -1 as expected \n");    
+      printf("C: DestroyJavaVM returns with -1 as expected \n");
   } else {
     if (verbose_mode)
       printf("C: Unexpected return value from DestroyJavaVM\n");

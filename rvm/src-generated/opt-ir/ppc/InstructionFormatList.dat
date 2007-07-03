@@ -1,12 +1,14 @@
 #
-# This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
-# The Jikes RVM project is distributed under the Common Public License (CPL).
-# A copy of the license is included in the distribution, and is also
-# available at http://www.opensource.org/licenses/cpl1.0.php
+#  This file is part of the Jikes RVM project (http://jikesrvm.org).
 #
-# (C) Copyright IBM Corp. 2001
+#  This file is licensed to You under the Common Public License (CPL);
+#  You may not use this file except in compliance with the License. You
+#  may obtain a copy of the License at
 #
-#//OperatorTypeList.dat
+#      http://www.opensource.org/licenses/cpl1.0.php
+#
+#  See the COPYRIGHT.txt file distributed with this work for information
+#  regarding copyright ownership.
 #
 NAME
 # structure of SIZES: NUMDEFS NUMDEFUSES NUMUSES NUMVAR VARDORU NUMALT
@@ -18,7 +20,7 @@ SIG
 VARSIG
 
 #
-# PowerPC MIR instruction formats 
+# PowerPC MIR instruction formats
 #
 # Base-offset load
 # Offset can be either RegisterOperand or IntConstantOperand
@@ -110,7 +112,7 @@ MIR_CondBranch2
 0 0 7
 "U Value OPT_RegisterOperand" "U Cond1 OPT_PowerPCConditionOperand" \
 "U Target1 OPT_BranchOperand" "U BranchProfile1 OPT_BranchProfileOperand" "U Cond2 OPT_PowerPCConditionOperand" \
-"U Target2 OPT_BranchOperand" "U BranchProfile2 OPT_BranchProfileOperand" 
+"U Target2 OPT_BranchOperand" "U BranchProfile2 OPT_BranchProfileOperand"
 
 
 # Call (branch and link)
@@ -180,7 +182,7 @@ MIR_Ternary
 # backend support for tableswitch (index is a DU)
 MIR_LowTableSwitch
 0 1 0 2 U -1
-"DU Index OPT_RegisterOperand" 
+"DU Index OPT_RegisterOperand"
 "Target OPT_BranchOperand" "BranchProfile OPT_BranchProfileOperand"
 
 # Rotate-and-mask ALU operation

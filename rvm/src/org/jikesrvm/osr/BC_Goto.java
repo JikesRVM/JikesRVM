@@ -1,23 +1,25 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp 2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-
 package org.jikesrvm.osr;
+
 /**
  * goto instruction
- *
- * @author Feng Qian
  */
 public class BC_Goto extends OSR_PseudoBytecode {
   private int offset;
   private byte[] codes;
   private int bsize;
-  
+
   public BC_Goto(int off) {
     this.offset = off;
     adjustFields();
@@ -45,22 +47,21 @@ public class BC_Goto extends OSR_PseudoBytecode {
   }
 
   private void adjustFields() {
-    if ( (offset >= -32768)
-        &&(offset <= 32767) ) {
+    if ((offset >= -32768) && (offset <= 32767)) {
       bsize = 3;
       codes = new byte[3];
-      codes[0] = (byte)JBC_goto;
-      codes[1] = (byte)(offset >> 8);
-      codes[2] = (byte)(offset & 0xFF);
+      codes[0] = (byte) JBC_goto;
+      codes[1] = (byte) (offset >> 8);
+      codes[2] = (byte) (offset & 0xFF);
     } else {
       bsize = 5;
       codes = new byte[5];
-      codes[0] = (byte)JBC_goto_w;
+      codes[0] = (byte) JBC_goto_w;
       int2bytes(codes, 1, offset);
     }
   }
- 
+
   public String toString() {
-    return "goto "+this.offset;
+    return "goto " + this.offset;
   }
 }

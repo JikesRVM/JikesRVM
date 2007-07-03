@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Richard Jones,
- * Computing Laboratory, University of Kent at Canterbury, 2003-6
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.utility.gcspy;
 
@@ -23,27 +26,24 @@ import org.vmmagic.pragma.*;
  * whether the VM should wait for a GCspy client to connect, and tile size.
  * Most importantly, it calls the Plan's startGCspyServer method which
  * creates a new ServerInterpreter, and adds events and space drivers.
- * 
- *
- * @author <a href="http://www.cs.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  */
 @Uninterruptible public class GCspy {
 
   /****************************************************************************
-   * 
+   *
    * Class variables
    */
-  
+
   public static final Util util = VM.newGCspyUtil();
   public static final ServerInterpreter server = VM.newGCspyServerInterpreter();
-  
+
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
   @Interruptible
-  public static void createOptions() { 
+  public static void createOptions() {
     Options.gcspyPort = new GCspyPort();
     Options.gcspyWait = new GCspyWait();
     Options.gcspyTileSize = new GCspyTileSize();
@@ -60,7 +60,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Get the number of the port that GCspy communicates on
-   * 
+   *
    * @return the GCspy port number
    */
   public static int getGCspyPort() {
@@ -69,7 +69,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Should the VM wait for GCspy to connect?
-   * 
+   *
    * @return whether the VM should wait for the visualiser to connect
    */
   public static boolean getGCspyWait() {
@@ -81,7 +81,7 @@ import org.vmmagic.pragma.*;
    * WARNING: allocates memory indirectly
    */
   @Interruptible
-  public static void startGCspyServer() { 
+  public static void startGCspyServer() {
     int port = getGCspyPort();
     Log.write("GCspy.startGCspyServer, port="); Log.write(port);
     Log.write(", wait=");

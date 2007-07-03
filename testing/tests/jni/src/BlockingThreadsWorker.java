@@ -1,33 +1,37 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-import org.jikesrvm.*;
+import org.jikesrvm.scheduler.VM_Scheduler;
+
 /*
- * @author Ton Ngo
- */
+*/
 class BlockingThreadsWorker extends Thread {
 
   static final boolean trace = false;
 
   int        sleepTime;
   boolean    isFinished;
-  
+
   BlockingThreadsWorker(int time)
   {
     this.sleepTime = time;
     this.isFinished = false;
   }
-  
+
   public void start() //- overrides Thread
   {
     super.start();
   }
-  
+
   public void run()  //- overrides Thread
   {
     int loopctr = 5;

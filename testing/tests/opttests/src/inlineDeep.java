@@ -1,19 +1,15 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-/**
- * Use the following command to compile the program with full debug output:
- *
- *     jsh java optCompilerDriver +depgraph +ir +low +burs +regalloc fibo 
- *
- * @author unascribed
- */
-
 public final class inlineDeep {
 
   public static void main(String args[]) {
@@ -46,14 +42,14 @@ public final class inlineDeep {
     int k = recurs3(j, n)+i;
     return k;
   }
-  
+
   static int recurs3(int i, int m) {
     int j = i+m-1;
     int n = m - i;
     int k = recurs2(j, n)+i;
     return k;
   }
-  
+
   static int recurs2(int i, int m) {
     int j = i+m-1;
     int n = m - i;

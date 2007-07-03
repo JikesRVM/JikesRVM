@@ -1,19 +1,18 @@
-/* -*-c++-*-
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+/*
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp 2001,2002,2004, 2005
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 
 /**
  * Implementation of JNI Invocation API for Jikes RVM.
- *
- * @author Steve Augart
- * @author Julian Dolby
- * @author Dave Grove
- * @author Ian Rogers
  */
 
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS
@@ -70,8 +69,8 @@ getJniEnvFromVmProcessor(void *vmProcessorPtr)
  * TODO: Implement.
  */
 static
-jint 
-DestroyJavaVM(JavaVM UNUSED * vm) 
+jint
+DestroyJavaVM(JavaVM UNUSED * vm)
 {
     fprintf(stderr, "JikesRVM: Unimplemented JNI call DestroyJavaVM\n");
     return JNI_ERR;
@@ -85,8 +84,8 @@ DestroyJavaVM(JavaVM UNUSED * vm)
  * TODO: Implement for actually attaching unattached threads.
  */
 static
-jint 
-AttachCurrentThread(JavaVM UNUSED * vm, /* JNIEnv */ void ** penv, /* JavaVMAttachArgs */ void *args) 
+jint
+AttachCurrentThread(JavaVM UNUSED * vm, /* JNIEnv */ void ** penv, /* JavaVMAttachArgs */ void *args)
 {
     JavaVMAttachArgs *aargs = (JavaVMAttachArgs *) args;
     jint version;
@@ -101,7 +100,7 @@ AttachCurrentThread(JavaVM UNUSED * vm, /* JNIEnv */ void ** penv, /* JavaVMAtta
     // printing an error message further along in this function.
     if (version > JNI_VERSION_1_4)
         return JNI_EVERSION;
-    
+
     /* If we're already attached, we're gold. */
     register jint retval = GetEnv(vm, penv, version);
     if (retval == JNI_OK)
@@ -119,16 +118,16 @@ AttachCurrentThread(JavaVM UNUSED * vm, /* JNIEnv */ void ** penv, /* JavaVMAtta
 
 /* TODO: Implement */
 static
-jint 
-DetachCurrentThread(JavaVM UNUSED *vm) 
+jint
+DetachCurrentThread(JavaVM UNUSED *vm)
 {
     fprintf(stderr, "UNIMPLEMENTED JNI call DetachCurrentThread\n");
     return JNI_ERR;
 }
- 
-jint 
-GetEnv(JavaVM UNUSED *vm, void **penv, jint version) 
-{ 
+
+jint
+GetEnv(JavaVM UNUSED *vm, void **penv, jint version)
+{
     if (version > JNI_VERSION_1_4)
         return JNI_EVERSION;
 
@@ -142,7 +141,7 @@ GetEnv(JavaVM UNUSED *vm, void **penv, jint version)
     void *vmProcessor = pthread_getspecific(VmProcessorKey);
     // Get the JNIEnv from the VM_Processor object
     JNIEnv *env = getJniEnvFromVmProcessor(vmProcessor);
- 
+
     *penv = env;
 
     return JNI_OK;
@@ -151,8 +150,8 @@ GetEnv(JavaVM UNUSED *vm, void **penv, jint version)
 /** JNI 1.4 */
 /* TODO: Implement */
 static
-jint 
-AttachCurrentThreadAsDaemon(JavaVM UNUSED * vm, /* JNIEnv */ void UNUSED ** penv, /* JavaVMAttachArgs */ void UNUSED *args) 
+jint
+AttachCurrentThreadAsDaemon(JavaVM UNUSED * vm, /* JNIEnv */ void UNUSED ** penv, /* JavaVMAttachArgs */ void UNUSED *args)
 {
     fprintf(stderr, "Unimplemented JNI call AttachCurrentThreadAsDaemon\n");
     return JNI_ERR;

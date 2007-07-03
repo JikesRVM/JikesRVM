@@ -1,22 +1,23 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
- */
-/**
- * @author unascribed
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 public class myMain {
 
   public static int compute (String[] args) {
     // System.out.println(args[0].substring(0,8) + "-----" + args[0].substring(12));
     if (args[0].startsWith("C thread") &&
-        args[0].endsWith("Hello from C"))      
+        args[0].endsWith("Hello from C"))
       return 123;
-    else 
+    else
       return 456;
   }
 
@@ -28,6 +29,6 @@ public class myMain {
     // for (int i=0; i<args.length; i++) {
     //  System.out.println("   arg " + i + " : " + args[i]);
     // }
-    
+
   }
 }

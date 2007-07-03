@@ -1,0 +1,85 @@
+<!--
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Common Public License (CPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/cpl1.0.php
+ ~
+ ~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
+<project name="dacapo-head" default="test" basedir=".">
+
+  <target name="dacapo-head-message"><echo>
+    === DaCapo Benchmarks (HEAD) ========================================
+
+    This test is for helping to ensure JikesRVM is capable of running
+    future DaCapo releases. This *must* not be used for any performance
+    testing, as the benchmarks and/or loads included are not final and
+    may be substantially different from official DaCapo benchmark
+    releases.
+
+    For more information on the DaCapo benchmarks visit:
+       http://www.dacapobench.org
+
+    =====================================================================
+  </echo></target>
+
+  <condition property="test.time.limit" value="1800">
+    <equals arg1="${test.mode}" arg2="performance"/>
+  </condition>
+  <condition property="test.time.limit" value="3000" else="480">
+    <equals arg1="${test.mode}" arg2="gcstress"/>
+  </condition>
+
+  <import file="../../../build/tests.xml"/>
+
+  <property name="dacapo-head.jar" value="${external.lib.dir}/dacapo/dacapo-HEAD.jar"/>
+  <property name="test.class.path" value="${dacapo-head.jar}"/>
+
+  <macrodef name="dacapo">
+    <attribute name="name"/>
+    <attribute name="timeLimit" default=""/>
+    <attribute name="heapsize" default=""/>
+    <attribute name="requires-display" default="false"/>
+    <sequential>
+      <rvm tag="@{name}" class="Harness" requires-display="@{requires-display}" args="@{name}" timeLimit="@{timeLimit}" maxHeapSize="@{heapsize}"/>
+      <outputSingleStatisticResults tag="@{name}" key="time" pattern="===== DaCapo @{name} PASSED in (.*) msec ====="/>
+    </sequential>
+  </macrodef>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Run the tests                                 * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="test" depends="init">
+    <test-property name="external.lib.dir" location="${jikesrvm.dir}/.ant.properties"/>
+    <test-file name="dacapo-head.jar" location="${jikesrvm.dir}/.ant.properties"/>
+
+    <antcall target="dacapo-head-message"/>
+
+    <startResults/>
+
+    <!-- Heapsize set to 6x minimum heap size with MarkCompact -->
+    <dacapo name="antlr"    heapsize="120"/>
+    <dacapo name="bloat"    heapsize="150"/>
+    <dacapo name="chart"    heapsize="240" requires-display="true"/>
+    <dacapo name="eclipse"  heapsize="400"/>
+    <dacapo name="fop"      heapsize="180"/>
+    <dacapo name="hsqldb"   heapsize="500"/>
+    <dacapo name="jython"   heapsize="200"/>
+    <dacapo name="luindex"  heapsize="120"/>
+    <dacapo name="lusearch" heapsize="300"/>
+    <dacapo name="pmd"      heapsize="200"/>
+    <dacapo name="sunflow"  heapsize="200" requires-display="true"/>
+    <dacapo name="xalan"    heapsize="150"/>
+
+
+    <finishResults/>
+  </target>
+
+</project>

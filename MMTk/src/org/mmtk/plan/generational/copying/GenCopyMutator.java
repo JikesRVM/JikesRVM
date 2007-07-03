@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2006
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.plan.generational.copying;
 
@@ -21,27 +24,22 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements <i>per-mutator thread</i> behavior and state for
  * the <code>GenCopy</code> two-generational copying collector.<p>
- * 
+ *
  * Specifically, this class defines mutator-time semantics specific to the
  * mature generation (<code>GenMutator</code> defines nursery semantics).
  * In particular the mature space allocator is defined (for mutator-time
  * allocation into the mature space via pre-tenuring), and the mature space
  * per-mutator thread collection time semantics are defined (rebinding
  * the mature space allocator).<p>
- * 
+ *
  * @see GenCopy for a description of the <code>GenCopy</code> algorithm.
- * 
+ *
  * @see GenCopy
  * @see GenCopyCollector
  * @see GenMutator
  * @see org.mmtk.plan.StopTheWorldMutator
  * @see org.mmtk.plan.MutatorContext
  * @see org.mmtk.plan.SimplePhase#delegatePhase
- * 
- *
- * @author Steve Blackburn
- * @author Daniel Frampton
- * @author Robin Garner
  */
 @Uninterruptible public abstract class GenCopyMutator extends GenMutator {
   /******************************************************************
@@ -56,7 +54,7 @@ import org.vmmagic.pragma.*;
   private CopyLocal mature;
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
@@ -68,13 +66,13 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Mutator-time allocation
    */
 
   /**
    * Allocate space (for an object) in the specified space
-   * 
+   *
    * @param bytes The size of the space to be allocated (in bytes)
    * @param align The requested alignment.
    * @param offset The alignment offset.
@@ -83,7 +81,7 @@ import org.vmmagic.pragma.*;
    * @return The address of the first byte of the allocated region
    */
   @Inline
-  public final Address alloc(int bytes, int align, int offset, int allocator, int site) { 
+  public final Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == GenCopy.ALLOC_MATURE) {
       return mature.alloc(bytes, align, offset, false);
     }
@@ -92,7 +90,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Perform post-allocation initialization of an object
-   * 
+   *
    * @param object The newly allocated object
    * @param typeRef the type reference for the instance being created
    * @param allocator The allocator to allocate from
@@ -100,7 +98,7 @@ import org.vmmagic.pragma.*;
    */
   @Inline
   public final void postAlloc(ObjectReference object, ObjectReference typeRef,
-      int bytes, int allocator) { 
+      int bytes, int allocator) {
     // nothing to be done
     if (allocator == GenCopy.ALLOC_MATURE) return;
     super.postAlloc(object, typeRef, bytes, allocator);
@@ -112,7 +110,7 @@ import org.vmmagic.pragma.*;
    * level of the class hierarchy.  Subclasses must deal with spaces
    * they define and refer to superclasses appropriately.  This exists
    * to support {@link org.mmtk.plan.MutatorContext#getOwnAllocator(Allocator)}.
-   * 
+   *
    * @see org.mmtk.plan.MutatorContext#getOwnAllocator(Allocator)
    * @param a An allocator
    * @return The space into which <code>a</code> is allocating, or
@@ -128,7 +126,7 @@ import org.vmmagic.pragma.*;
    * Return the allocator instance associated with a space
    * <code>space</code>, for this plan instance.  This exists
    * to support {@link org.mmtk.plan.MutatorContext#getOwnAllocator(Allocator)}.
-   * 
+   *
    * @see org.mmtk.plan.MutatorContext#getOwnAllocator(Allocator)
    * @param space The space for which the allocator instance is desired.
    * @return The allocator instance associated with this plan instance
@@ -140,15 +138,15 @@ import org.vmmagic.pragma.*;
     return super.getAllocatorFromSpace(space);
   }
 
-  
+
   /*****************************************************************************
-   * 
+   *
    * Collection
    */
 
   /**
    * Execute a per-mutator collection phase.
-   * 
+   *
    * @param phaseId The phase to execute.
    * @param primary True if this thread should peform local single-threaded
    * actions.
@@ -157,16 +155,16 @@ import org.vmmagic.pragma.*;
     if (global().traceFullHeap()) {
       if (phaseId == GenCopy.PREPARE_MUTATOR) {
         super.collectionPhase(phaseId, primary);
-        if (global().gcFullHeap) mature.rebind(GenCopy.toSpace());       
+        if (global().gcFullHeap) mature.rebind(GenCopy.toSpace());
         return;
       }
     }
-    
+
     super.collectionPhase(phaseId, primary);
   }
 
   /*****************************************************************************
-   * 
+   *
    * Miscellaneous
    */
 

@@ -1,16 +1,18 @@
-/* -*-c++-*-
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
- * 
- * (C) Copyright Richard Jones,. University of Kent, 2006
+/*
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ *
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 
 /**
  * A testing stub for GCspy
- *
- * @author Richard Jones
  */
 
 
@@ -20,7 +22,7 @@
 void
 gcspy_mainServerInit (gcspy_main_server_t *server, int port, unsigned maxLen,
 		      const char *name, int verbose) {
-    printf("GCspy server on port %d\n", port);  
+    printf("GCspy server on port %d\n", port);
 }
 
 void

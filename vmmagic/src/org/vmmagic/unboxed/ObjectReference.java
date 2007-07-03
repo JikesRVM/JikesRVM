@@ -1,28 +1,39 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright ANU, 2004
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.vmmagic.unboxed;
 
+import org.vmmagic.Unboxed;
+
 /**
  * The object reference type is used by the runtime system and collector to
- * represent a type that holds a reference to a single object. 
+ * represent a type that holds a reference to a single object.
  * We use a separate type instead of the Java Object type for coding clarity,
- * to make a clear distinction between objects the VM is written in, and 
+ * to make a clear distinction between objects the VM is written in, and
  * objects that the VM is managing. No operations that can not be completed in
  * pure Java should be allowed on Object.
- * 
- * @author Daniel Frampton
  */
+@Unboxed
 public final class ObjectReference {
 
   /**
+   * The object field.
+   */
+  @SuppressWarnings("unused")
+  private Object data;
+
+  /**
    * Convert from an object to a reference.
-   * @param obj The object 
+   * @param obj The object
    * @return The corresponding reference
    */
   public static ObjectReference fromObject(Object obj) {

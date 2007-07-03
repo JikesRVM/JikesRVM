@@ -1,23 +1,29 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm.jni.ppc;
 
-import org.jikesrvm.ppc.VM_BaselineConstants;
+import org.jikesrvm.VM;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.jni.VM_JNIEnvironment;
 import org.jikesrvm.memorymanagers.mminterface.VM_GCMapIterator;
-import org.jikesrvm.VM;
-import org.jikesrvm.VM_CompiledMethod;
-import org.jikesrvm.VM_Magic;
-import org.jikesrvm.VM_Thread;
-
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
+import org.jikesrvm.ppc.VM_BaselineConstants;
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.scheduler.VM_Thread;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.AddressArray;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.WordArray;
 
 /**
  * Iterator for stack frames inserted at the transition from Java to
@@ -32,12 +38,10 @@ import org.vmmagic.pragma.*;
  * set to cause the returning Native code to restore those registers from
  * this save area.  If GC does not occur, the Native C code has restored
  * these regs, and the transition return code does not do the restore.
- *
- * @author Steve Smith
  */
-@Uninterruptible public abstract class VM_JNIGCMapIterator extends VM_GCMapIterator 
-  implements VM_BaselineConstants,
-             VM_JNIStackframeLayoutConstants {
+@Uninterruptible
+public abstract class VM_JNIGCMapIterator extends VM_GCMapIterator
+    implements VM_BaselineConstants, VM_JNIStackframeLayoutConstants {
 
   // non-volitile regs are saved at the end of the transition frame,
   // after the saved JTOC and SP, and preceeded by a GC flag.
@@ -58,20 +62,20 @@ import org.vmmagic.pragma.*;
   //     --> |                |  <- callers FP
   //
   // The following constant is the offset from the callers FP to
-  // the GC flag at the beginning of this area.  
+  // the GC flag at the beginning of this area.
   //
 
   public static int verbose = 0;
-  
-   // additional instance fields added by this subclass of VM_GCMapIterator
+
+  // additional instance fields added by this subclass of VM_GCMapIterator
   private AddressArray jniRefs;
   private int jniNextRef;
   private int jniFramePtr;
   private Address jniSavedReturnAddr;
-  
+
   public VM_JNIGCMapIterator(WordArray registerLocations) {
-     this.registerLocations = registerLocations;
-   }
+    this.registerLocations = registerLocations;
+  }
 
   // Override newStackWalk() in parent class VM_GCMapIterator to
   // initialize iterator for scan of JNI JREFs stack of refs
@@ -90,23 +94,21 @@ import org.vmmagic.pragma.*;
     }
   }
 
-  public void setupIterator(VM_CompiledMethod compiledMethod, 
-                            Offset instructionOffset, 
-                            Address framePtr) { 
+  public void setupIterator(VM_CompiledMethod compiledMethod, Offset instructionOffset, Address framePtr) {
     this.framePtr = framePtr;
-    // processor reg (R16) was saved in reg save area at offset -72 
-    // from callers frameptr, and after GC will be used to set 
+    // processor reg (R16) was saved in reg save area at offset -72
+    // from callers frameptr, and after GC will be used to set
     // processor reg upon return to java.  it must be reported
     // so it will be relocated, if necessary
     //
     Address callers_fp = this.framePtr.loadAddress();
     if (VM.BuildForPowerOpenABI) {
-      jniSavedReturnAddr       = callers_fp.minus(JNI_PROLOG_RETURN_ADDRESS_OFFSET);
+      jniSavedReturnAddr = callers_fp.minus(JNI_PROLOG_RETURN_ADDRESS_OFFSET);
     } else {
       if (VM.VerifyAssertions) VM._assert(VM.BuildForSVR4ABI || VM.BuildForMachOABI);
       // ScanThread calls getReturnAddressLocation() to get this stack frame
       // it is already processed
-      jniSavedReturnAddr       = Address.zero();
+      jniSavedReturnAddr = Address.zero();
     }
 
     // set the GC flag in the Java to C frame to indicate GC occurred
@@ -115,9 +117,9 @@ import org.vmmagic.pragma.*;
     //
     callers_fp.minus(JNI_GC_FLAG_OFFSET).store(1);
   }
-  
+
   // return (address of) next ref in the current "frame" on the
-  // threads JNIEnvironment stack of refs         
+  // threads JNIEnvironment stack of refs
   // When at the end of the current frame, update register locations to point
   // to the non-volatile registers saved in the JNI transition frame.
   //
@@ -136,9 +138,9 @@ import org.vmmagic.pragma.*;
     //
     if (jniFramePtr > 0) {
       jniFramePtr = jniRefs.get(jniFramePtr >> LOG_BYTES_IN_ADDRESS).toInt();
-      jniNextRef = jniNextRef - BYTES_IN_ADDRESS ;
+      jniNextRef = jniNextRef - BYTES_IN_ADDRESS;
     }
-    
+
     // set register locations for non-volatiles to point to registers saved in
     // the JNI transition frame at a fixed negative offset from the callers FP.
     Address registerLocation = this.framePtr.loadAddress().minus(JNI_RVM_NONVOLATILE_OFFSET);
@@ -153,7 +155,7 @@ import org.vmmagic.pragma.*;
   }
 
   public Address getNextReturnAddressAddress() {
-    if ( !jniSavedReturnAddr.isZero() ) {
+    if (!jniSavedReturnAddr.isZero()) {
       Address ref_address = jniSavedReturnAddr;
       jniSavedReturnAddr = Address.zero();
       if (verbose > 0) {
@@ -166,9 +168,9 @@ import org.vmmagic.pragma.*;
   }
 
   public void reset() {}
-  
+
   public void cleanupPointers() {}
-  
+
   public int getType() {
     return VM_CompiledMethod.JNI;
   }

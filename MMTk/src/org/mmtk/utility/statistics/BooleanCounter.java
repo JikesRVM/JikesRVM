@@ -1,13 +1,15 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2003
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-
 package org.mmtk.utility.statistics;
 
 import org.mmtk.utility.Log;
@@ -19,13 +21,11 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements a simple boolean counter (counting number of
  * phases where some boolean event is true).
- * 
- * @author Steve Blackburn
  */
 @Uninterruptible public class BooleanCounter extends Counter {
 
   /****************************************************************************
-   * 
+   *
    * Instance variables
    */
 
@@ -35,13 +35,13 @@ import org.vmmagic.pragma.*;
   private boolean running = false;
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
   /**
    * Constructor
-   * 
+   *
    * @param name The name to be associated with this counter
    */
   public BooleanCounter(String name) {
@@ -50,7 +50,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Constructor
-   * 
+   *
    * @param name The name to be associated with this counter
    * @param start True if this counter is to be implicitly started
    * when <code>startAll()</code> is called (otherwise the counter
@@ -62,7 +62,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Constructor
-   * 
+   *
    * @param name The name to be associated with this counter
    * @param start True if this counter is to be implicitly started
    * when <code>startAll()</code> is called (otherwise the counter
@@ -78,7 +78,7 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Counter-specific methods
    */
 
@@ -92,7 +92,7 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Generic counter control methods: start, stop, print etc
    */
 
@@ -118,7 +118,7 @@ import org.vmmagic.pragma.*;
    * The phase has changed (from GC to mutator or mutator to GC).
    * Take action with respect to the last phase if necessary.
    * <b>Do nothing in this case.</b>
-   * 
+   *
    * @param oldPhase The last phase
    */
   void phaseChange(int oldPhase) {}
@@ -126,7 +126,7 @@ import org.vmmagic.pragma.*;
   /**
    * Print the value of this counter for the given phase.  Print '0'
    * for false, '1' for true.
-   * 
+   *
    * @param phase The phase to be printed
    */
   protected final void printCount(int phase) {
@@ -152,7 +152,7 @@ import org.vmmagic.pragma.*;
   /**
    * Print the current total number of 'true' phases for either the
    * mutator or GC phase
-   * 
+   *
    * @param mutator True if the total for the mutator phases is to be
    * printed (otherwise the total for the GC phases will be printed).
    */
@@ -167,7 +167,7 @@ import org.vmmagic.pragma.*;
   /**
    * Print the current minimum value for either the mutator or GC
    * phase. <b>Do nothing in this case.</b>
-   * 
+   *
    * @param mutator True if the minimum for the mutator phase is to be
    * printed (otherwise the minimum for the GC phase will be printed).
    */
@@ -176,7 +176,7 @@ import org.vmmagic.pragma.*;
   /**
    * Print the current maximum value for either the mutator or GC
    * phase. <b>Do nothing in this case.</b>
-   * 
+   *
    * @param mutator True if the maximum for the mutator phase is to be
    * printed (otherwise the maximum for the GC phase will be printed).
    */
@@ -184,7 +184,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Print the given value
-   * 
+   *
    * @param value The value to be printed
    */
   void printValue(int value) {

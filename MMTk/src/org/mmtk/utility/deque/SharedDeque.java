@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- *     Australian National University. 2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.utility.deque;
 
@@ -22,25 +25,20 @@ import org.vmmagic.pragma.*;
 /**
  * This supports <i>unsynchronized</i> enqueuing and dequeuing of buffers
  * for shared use.  The data can be added to and removed from either end
- * of the deque.  
- * 
- *
- * @author Steve Blackburn
- * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
+ * of the deque.
  */
 @Uninterruptible public class SharedDeque extends Deque implements Constants {
 
   private static final Offset PREV_OFFSET = Offset.fromIntSignExtend(BYTES_IN_ADDRESS);
 
   /****************************************************************************
-   * 
+   *
    * Public instance methods
    */
 
   /**
    * Constructor
-   * 
-   */
+ */
   public SharedDeque(RawPageSpace rps, int arity) {
     this.rps = rps;
     this.arity = arity;
@@ -55,7 +53,7 @@ import org.vmmagic.pragma.*;
   }
 
   @Inline
-  final int getArity() { return arity; } 
+  final int getArity() { return arity; }
 
   final void enqueue(Address buf, int arity, boolean toTail) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(arity == this.arity);
@@ -93,7 +91,7 @@ import org.vmmagic.pragma.*;
   }
 
   @Inline
-  final Address dequeue(int arity) { 
+  final Address dequeue(int arity) {
     return dequeue(arity, false);
   }
 
@@ -103,7 +101,7 @@ import org.vmmagic.pragma.*;
   }
 
   @Inline
-  final Address dequeueAndWait(int arity) { 
+  final Address dequeueAndWait(int arity) {
     return dequeueAndWait(arity, false);
   }
 
@@ -131,7 +129,7 @@ import org.vmmagic.pragma.*;
   }
 
   @Inline
-  final Address alloc() { 
+  final Address alloc() {
     Address rtn = rps.acquire(PAGES_PER_BUFFER);
     if (rtn.isZero()) {
       Space.printUsageMB();
@@ -142,18 +140,18 @@ import org.vmmagic.pragma.*;
   }
 
   @Inline
-  final void free(Address buf) { 
+  final void free(Address buf) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(buf.EQ(bufferStart(buf)) && !buf.isZero());
     rps.release(buf);
   }
 
   @Inline
-  public final int enqueuedPages() { 
+  public final int enqueuedPages() {
     return bufsenqueued << LOG_PAGES_PER_BUFFER;
   }
 
   /****************************************************************************
-   * 
+   *
    * Private instance methods and fields
    */
   private RawPageSpace rps;
@@ -166,7 +164,7 @@ import org.vmmagic.pragma.*;
   private int bufsenqueued;
   private Lock lock;
 
-  
+
   private Address dequeue(boolean waiting, boolean fromTail) {
     lock();
     Address rtn = ((fromTail) ? tail : head);
@@ -208,7 +206,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Set the "next" pointer in a buffer forming the linked buffer chain.
-   * 
+   *
    * @param buf The buffer whose next field is to be set.
    * @param next The reference to which next should point.
    */
@@ -218,7 +216,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Get the "next" pointer in a buffer forming the linked buffer chain.
-   * 
+   *
    * @param buf The buffer whose next field is to be returned.
    * @return The next field for this buffer.
    */
@@ -228,7 +226,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Set the "prev" pointer in a buffer forming the linked buffer chain.
-   * 
+   *
    * @param buf The buffer whose next field is to be set.
    * @param prev The reference to which prev should point.
    */
@@ -238,7 +236,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Get the "next" pointer in a buffer forming the linked buffer chain.
-   * 
+   *
    * @param buf The buffer whose next field is to be returned.
    * @return The next field for this buffer.
    */
@@ -249,7 +247,7 @@ import org.vmmagic.pragma.*;
   /**
    * Check the number of buffers in the work queue (for debugging
    * purposes).
-   * 
+   *
    * @param length The number of buffers believed to be in the queue.
    * @return True if the length of the queue matches length.
    */

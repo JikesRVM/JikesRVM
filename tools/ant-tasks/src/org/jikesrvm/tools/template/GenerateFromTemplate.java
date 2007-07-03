@@ -1,17 +1,36 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2001
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm.tools.template;
 
-import java.io.*;
-import java.util.Vector;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.StreamTokenizer;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
+import java.util.Vector;
 
 /**
  * Generates output files given a template.  Run from command line.
@@ -148,9 +167,6 @@ import java.util.StringTokenizer;
  * On substitution, <FOREACH var>.<field name> is substituted by a value
  * of the field named <field name> in the current record of the FOREACH file.
  * A special field INDEX will contain the current record number.
- *
- * @author John Whaley
- * @author Igor Pechtchanski
  */
 public class GenerateFromTemplate {
 
@@ -472,7 +488,7 @@ public class GenerateFromTemplate {
         data = new BufferedReader(new FileReader(file_name));
     } catch (java.io.FileNotFoundException e) {
         data = new BufferedReader(new FileReader(inDir + file_name));
-    }   
+    }
 
     // read field information
     Vector<String> fields_v = new Vector<String>();
@@ -1042,11 +1058,11 @@ public class GenerateFromTemplate {
        value[i] = pst.nextToken();
 
     if (DEBUG) {
-      if (value.length > 0) 
+      if (value.length > 0)
         System.out.println("doing conditional "+arg+" "+op+" "+value[0]);
       else
         System.out.println("doing conditional "+arg+" "+op+" <NO ARGUMENT TOKEN FOUND>");
-    }        
+    }
 
     // Evaluate conditional.
     Vector newRegion = (Vector) region.elementAt(1);

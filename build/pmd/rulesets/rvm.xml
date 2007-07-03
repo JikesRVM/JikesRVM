@@ -1,0 +1,74 @@
+<!--
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Common Public License (CPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/cpl1.0.php
+ ~
+ ~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
+<ruleset name="Jikes RVM Rules"
+         xmlns="http://pmd.sf.net/ruleset/1.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sf.net/ruleset/1.0.0 http://pmd.sf.net/ruleset_xml_schema.xsd"
+         xsi:noNamespaceSchemaLocation="http://pmd.sf.net/ruleset_xml_schema.xsd">
+  <description>
+    The rules for the Jikes RVM that we should follow. Extracted from basic ruleset.
+  </description>
+
+  <rule ref="rulesets/imports.xml"/>
+  <rule ref="rulesets/clone.xml"/>
+
+  <!-- We should probable just exclude ones we don't want rather than including every rule we do want -->
+  <rule ref="rulesets/basic.xml/JumbledIncrementer"/>
+  <rule ref="rulesets/basic.xml/ForLoopShouldBeWhileLoop"/>
+  <rule ref="rulesets/basic.xml/UnnecessaryConversionTemporary"/>
+  <rule ref="rulesets/basic.xml/ReturnFromFinallyBlock"/>
+  <rule ref="rulesets/basic.xml/EmptySynchronizedBlock"/>
+  <rule ref="rulesets/basic.xml/UnnecessaryReturn"/>
+  <rule ref="rulesets/basic.xml/EmptyStaticInitializer"/>
+  <rule ref="rulesets/basic.xml/EmptyStatementNotInLoop"/>
+  <rule ref="rulesets/basic.xml/BooleanInstantiation"/>
+  <rule ref="rulesets/basic.xml/UnnecessaryFinalModifier"/>
+  <rule ref="rulesets/basic.xml/UselessOverridingMethod"/>
+  <rule ref="rulesets/basic.xml/ClassCastExceptionWithToArray"/>
+  <rule ref="rulesets/basic.xml/AvoidDecimalLiteralsInBigDecimalConstructor"/>
+  <rule ref="rulesets/basic.xml/UselessOperationOnImmutable"/>
+  <rule ref="rulesets/basic.xml/MisplacedNullCheck"/>
+  <rule ref="rulesets/basic.xml/UnusedNullCheckInEquals"/>
+  <rule ref="rulesets/basic.xml/BrokenNullCheck"/>
+  <rule ref="rulesets/basic.xml/BigIntegerInstantiation"/>
+  <rule ref="rulesets/basic.xml/AvoidUsingOctalValues"/>
+
+  <rule ref="rulesets/migrating.xml/IntegerInstantiation"/>
+
+  <rule ref="rulesets/naming.xml/ClassNamingConventions"/>
+  <rule ref="rulesets/naming.xml/AvoidDollarSigns"/>
+  <rule ref="rulesets/naming.xml/SuspiciousHashcodeMethodName"/>
+  <rule ref="rulesets/naming.xml/SuspiciousEqualsMethodName"/>
+  <rule ref="rulesets/naming.xml/AvoidNonConstructorMethodsWithClassName"/>
+  <rule ref="rulesets/naming.xml/PackageCase"/>
+  <rule ref="rulesets/naming.xml/MisleadingVariableName"/>
+
+  <rule ref="rulesets/controversial.xml/UnnecessaryConstructor"/>
+  <rule ref="rulesets/controversial.xml/UnusedModifier"/>
+  <rule ref="rulesets/controversial.xml/DontImportSun"/>
+  <rule ref="rulesets/controversial.xml/SuspiciousOctalEscape"/>
+<!--
+  <rule ref="rulesets/controversial.xml/NullAssignment"/>
+  <rule ref="rulesets/controversial.xml/CallSuperInConstructor"/>
+  <rule ref="rulesets/controversial.xml/UnnecessaryParentheses"/>
+-->
+
+  <rule ref="rulesets/finalizers.xml/EmptyFinalizer"/>
+  <rule ref="rulesets/finalizers.xml/FinalizeOnlyCallsSuperFinalize"/>
+  <rule ref="rulesets/finalizers.xml/FinalizeOverloaded"/>
+  <rule ref="rulesets/finalizers.xml/FinalizeDoesNotCallSuperFinalize"/>
+  <rule ref="rulesets/finalizers.xml/FinalizeShouldBeProtected"/>
+  <rule ref="rulesets/finalizers.xml/AvoidCallingFinalize"/>
+
+</ruleset>
+

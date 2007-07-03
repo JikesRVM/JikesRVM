@@ -1,19 +1,23 @@
 #!/usr/bin/perl
 #
-# This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
-# The Jikes RVM project is distributed under the Common Public License (CPL).
-# A copy of the license is included in the distribution, and is also
-# available at http://www.opensource.org/licenses/cpl1.0.php
+#  This file is part of the Jikes RVM project (http://jikesrvm.org).
 #
-# (C) Copyright IBM Corp. 2001, 2003
+#  This file is licensed to You under the Common Public License (CPL);
+#  You may not use this file except in compliance with the License. You
+#  may obtain a copy of the License at
 #
+#      http://www.opensource.org/licenses/cpl1.0.php
 #
+#  See the COPYRIGHT.txt file distributed with this work for information
+#  regarding copyright ownership.
+#
+
 # Produce an email which summarizes a nightly regression run.
 #
 use Time::Local;
 
 require "getopts.pl";
-&Getopts('a:e:p:r:s:h:o:');
+&Getopts('a:e:p:r:s:h:o:d:');
 die "Need to specify either an email address with -e or an output file with -o" unless (($opt_e eq "") xor ($opt_o eq ""));
 my $reportrecipient = $opt_e;
 my $outputfile = $opt_o;
@@ -23,6 +27,10 @@ die "Need to specify a platform with -p" unless ($opt_p ne "");
 my $platform = $opt_p;
 die "Need to specify a regression host -h" unless ($opt_h ne "");
 my $regressionhost = $opt_h;
+my $reportdir = $regressionhost;
+if ($opt_d ne "") {
+  $reportdir = $opt_d;
+} 
 die "Need to specify a report (for today) -r" unless ($opt_r ne "");
 my $report = $opt_r;
 die "Need to specify an xml to html conversion script -s" unless (!($report =~ /xml.gz/) || $opt_s ne "");
@@ -37,17 +45,34 @@ my $COLORS = 16;
 my $RED = "#FF0000";
 my $GREEN = "#00FF00";
 my $BLACK = "#000000";
+my $AMBER = "#FF8c00";
 my $NORMALFONT = "font-weight:normal;";
 my $BOLDFONT = "font-weight:bold;";
 my $MIMEBOUNDARY = "======".time()."======";
 my $SVNURL = "http://svn.sourceforge.net/viewvc/jikesrvm?view=rev&revision=";
 my $SENDMAIL = "/usr/sbin/sendmail";
+my $NEWFAILURESSTR = "failures new to this week";
+my $NEWSUCCESSSTR = "successes new to this week";
+my $NEWSKIPSTR = "skipped tests";
+my $TRANSIENTSTR = "transient failures";
+my $PERSISTENTSTR = "persistent failures";
+my $ALLSUCCESSSTR = "all successes";
+my $ALLFAILURESTR = "all failures";
+my $SKIPPED = "skipped";
+my $SUCCESS_LIST_LIMIT = 30;
+my $FAILURE_LIST_LIMIT = 30;
+my $SKIPPED_LIST_LIMIT = 30;
+my $DEFAULT_LIST_LIMIT = 30;
+my $REVISIONS_LIST_LIMIT = 50;
 my $html = 1;
 my $short = 1;
 
 # these will need to change
 my $regressiondomain = "anu.edu.au";
-my $reporturl = "http://cs.anu.edu.au/people/Steve.Blackburn/jikesrvm";
+my $reporturl = "http://jikesrvm.anu.edu.au/~regression/$reportdir";
+if ($reportdir =~ /^http/) {
+  $reporturl = $reportdir;
+}
 
 # initialize things
 
@@ -112,7 +137,7 @@ sub printmimehdr {
   my ($out) = @_;
   print $out "MIME-Version: 1.0\n";
 #  print $out "Content-type: multipart/mixed; boundary=\"$MIMEBOUNDARY\"\n";
-#  print $out "Content-Base: $reporturl/$regressionhost/\n";
+#  print $out "Content-Base: $reporturl/\n";
 #  print $out "\n--$MIMEBOUNDARY\n";
 #  print $out "Content-Type: text/plain; charset=\"iso-8859-1\"\n";
 #  print $out "Content-Transfer-Encoding: quoted-printable\n\n";
@@ -139,7 +164,7 @@ sub printsummary {
   my ($out, $html, $checkout, $datestring) = @_;
   if ($html) {
     print $out "<h2>Regression summary for $regressionhost, $checkout</h2>\n";
-    print $out "Details are available <a href=\"$reporturl/$regressionhost/$datestring.html\">here</a><br>\n";
+    print $out "Details are available <a href=\"$reporturl/$datestring.html\">here</a><br>\n";
   } else {
     print $out "Regression summary for $regressionhost, $checkout\n";
     print $out "Details are available at: $datestring.html\n";
@@ -152,17 +177,26 @@ sub printsummary {
 sub printrevisions {
   my ($out, $html, $today, $checkout, $allrevisions) = @_;
   my $latestrev = ${$allrevisions}[$today];
-  my $rev = ${$allrevisions}[(($today - 1) % 7)] + 1;
+  my $rev = 0;
+  # find the last revision for which there was a test
+  for ($d=1; $d < 7; $d++) {
+    $tmprev= ${$allrevisions}[(($today + $d) % 7)];
+    if ($tmprev > $rev) {
+      $rev = $tmprev;
+    }
+  }
+  $rev++;
+
   if ($html) {
     print $out "Checkout at: $checkout<br>\n";
   } else {
     print $out "Checkout at: $checkout\n";
-  } 
+  }
   if ($html) {
     print $out "Revisions covered by this sanity run: \n";
   } else {
     print $out "Revisions covered by this sanity run: ";
-  } 
+  }
   while ($rev <= $latestrev) {
     if ($html) {
       print $out  "<a href=\"$SVNURL$rev\">$rev<\/a>";
@@ -170,6 +204,10 @@ sub printrevisions {
     } else {
       print $out $rev;
       print $out (($rev != $latestrev) ? ", " : "\n");
+    }
+    if ($rev < $latestrev - $REVISIONS_LIST_LIMIT) {
+      print $out " [truncated] ";
+      $rev = $latestrev - $REVISIONS_LIST_LIMIT;
     }
     $rev++;
   }
@@ -184,8 +222,8 @@ sub printfailures {
   my %weeklyinsane = ();
   aggregatesanity("day", \%allsanity, \%weeklysane, \%weeklyinsane);
 
-  my @allfailures = getfailures($today, "all failures", $allsanity, \%weeklysane, \%weeklyinsane);
-  my @allsuccesses = getfailures($today, "all successes", $allsanity, \%weeklysane, \%weeklyinsane);
+  my @allfailures = getfailures($today, $ALLFAILURESTR, $allsanity, \%weeklysane, \%weeklyinsane);
+  my @allsuccesses = getfailures($today, $ALLSUCCESSSTR, $allsanity, \%weeklysane, \%weeklyinsane);
   my $pass = $#allsuccesses + 1;
   my $fail = $#allfailures + 1;
   my $run = $pass+$fail;
@@ -202,12 +240,13 @@ sub printfailures {
   } else {
     print $out "$str\n";
   }
-  printfailuresummary($out, $html, $today, $datestring, $RED, "failures new to this week", $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
+  printfailuresummary($out, $html, $today, $datestring, $RED, $NEWFAILURESSTR, $FAILURE_LIST_LIMIT, $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
+  printfailuresummary($out, $html, $today, $datestring, $AMBER, $NEWSKIPSTR, $SKIPPED_LIST_LIMIT, $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
   if ($summary) {
-    printfailuresummary($out, $html, $today, $datestring, $GREEN, "successes new to this week", $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
+    printfailuresummary($out, $html, $today, $datestring, $GREEN, $NEWSUCCESSSTR, $SUCCESS_LIST_LIMIT, $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
   } else {
-    printfailuresummary($out, $html, $today, $datestring, $BLACK, "transient failures", $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
-    printfailuresummary($out, $html, $today, $datestring, $BLACK, "persistent failures", $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
+    printfailuresummary($out, $html, $today, $datestring, $BLACK, $TRANSIENTSTR, $DEFAULT_LIST_LIMIT, $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
+    printfailuresummary($out, $html, $today, $datestring, $BLACK, $PERSISTENTSTR, $DEFAULT_LIST_LIMIT, $allsanity, $allerrors, \%weeklysane, \%weeklyinsane);
   }
 }
 
@@ -256,7 +295,7 @@ sub getbestperf {
 sub printjavadoc {
   my ($out, $html, $javadocerrors, $datestring) = @_;
   my $str = "$javadocerrors Javadoc errors";
-  my $jdurl = "$reporturl/$regressionhost/$datestring.html\#javadoc";
+  my $jdurl = "$reporturl/$datestring.html\#javadoc";
   if ($html) {
     print $out "<h2>$str</h2>\n";
     print $out "Details <a href=\"$jdurl\">here</a><br>\n";
@@ -272,9 +311,9 @@ sub printjavadoc {
 sub printweeklyoverview {
   my ($out, $html, $today, $allperf, $bestperf, $allsanity) = @_;
   my $str = "Day-by-day overview";
-  if ($html) { 
+  if ($html) {
     print $out "<h2>$str</h2>\n";
-    printtablehdr($out, "result"); 
+    printtablehdr($out, "result");
   } else {
     print $out "$str\n";
   }
@@ -300,7 +339,7 @@ sub printperfoverview {
     my $day = ($today + $d) % 7;
     my $score = ${$allperf}{"$day:$bmkey"};
     my $textcolor = "";
-    if ($score == "") { 
+    if ($score == "") {
       $score = "-";
     } else {
       my $best = ${$bestperf}{$bmkey};
@@ -370,7 +409,7 @@ sub printsanityoverview {
 # print a summary list of passes/fails for a given criteria
 #
 sub printfailuresummary {
-  my ($out, $html, $today, $datestring, $color, $type, $allsanity, $allerrors, $weeklysane, $weeklyinsane) = @_;
+  my ($out, $html, $today, $datestring, $color, $type, $listlimit, $allsanity, $allerrors, $weeklysane, $weeklyinsane) = @_;
   my @list = getfailures($today, $type, $allsanity, $weeklysane, $weeklyinsane);
   my $str = ($#list + 1)." $type";
   if ($html) {
@@ -381,6 +420,7 @@ sub printfailuresummary {
   if ($html) {
     print $out "<table columns=\"3\" style=\"border-collapse:collapse;font-weight:normal;\">\n";
   }
+  my $outputlines = 0;
   foreach $fail (sort @list) {
      ($bm,$build) = split(/:/, $fail);
      my $href = "";
@@ -389,10 +429,10 @@ sub printfailuresummary {
        $err = ${$allerrors}{"$today:$build:$bm"};
        ($href,$error) = split(/:/, $err, 2);
        if ($href) {
-         $href = "$reporturl/$regressionhost/$datestring.html$href";
+         $href = "$reporturl/$datestring.html$href";
        }
      }
-     if ($bm eq "") { 
+     if ($bm eq "") {
        $bm = "All benchmarks";
        if ($html) {
           $bm = "<b>$bm</b>";
@@ -413,6 +453,17 @@ sub printfailuresummary {
      } else {
        print $out "$build $bm $error\n";
      }
+     $outputlines++;
+     if ($outputlines >= $listlimit) {
+       if ($html) {
+	 print $out "<tr><td align=\"right\" style=\"font-style:italic\">";
+       }
+       print $out "[Truncated: See ".($html ? "<a href=\"$reporturl/$datestring.html\">":"")."report".($html ? "</a>":"")." for full details.]";
+       if ($html) {
+	 print $out "</tr>\n";
+       }
+       last;
+     }
   }
   if ($html) {
     print $out "</table>\n";
@@ -427,31 +478,36 @@ sub getfailures {
   my @failures = ();
   my $pass = 0;
   my $fail = 0;
+  my $skip = 0;
   foreach $key (keys %{$allsanity}) {
     ($kday,$kbuild,$kbm) = split(/:/, $key);
     if ($kday eq $day) {
       if (${$allsanity}{$key} == -1) {
         $fail++;
-        if ($type eq "new failures" && ${$insane}{"$kbuild:$kbm"} == 1) {
+        if ($type eq $NEWFAILURESSTR && ${$insane}{"$kbuild:$kbm"} == 1) {
           push (@failures, "$kbm:$kbuild");
-        } elsif ($type eq "transient failures" && ${$sane}{"$kbuild:$kbm"} > 1) {
+        } elsif ($type eq $TRANSIENTSTR && ${$sane}{"$kbuild:$kbm"} > 1) {
           push (@failures, "$kbm:$kbuild");
-        } elsif ($type eq "persistent failures" && ${$insane}{"$kbuild:$kbm"} == 7) {
+        } elsif ($type eq $PERSISTENTSTR && ${$insane}{"$kbuild:$kbm"} == 7) {
           push (@failures, "$kbm:$kbuild");
-        } elsif ($type eq "all failures") {
+        } elsif ($type eq $ALLFAILURESTR) {
           push (@failures, "$kbm:$kbuild");
         }
-      } else {
+      } elsif (${$allsanity}{$key} ne $SKIPPED) {
         $pass++;
-        if ($type eq "new successes" && ${$sane}{"$kbuild:$kbm"} == 1) {
+        if ($type eq $NEWSUCCESSSTR && ${$sane}{"$kbuild:$kbm"} == 1) {
           push (@failures, "$kbm:$kbuild");
-        } elsif ($type eq "all successes") {
+        } elsif ($type eq $ALLSUCCESSSTR) {
           push (@failures, "$kbm:$kbuild");
         }
       }
+    } elsif ($type eq $NEWSKIPSTR && ${$allsanity}{"$day:$kbuild:$kbm"} eq "" && ${$allsanity}{$key} ne $SKIPPED) {
+      $skip++;
+      ${$allsanity}{"$day:$kbuild:$kbm"} = $SKIPPED;
+      push (@failures, "$kbm:$kbuild");
     }
   }
-#  print "==> pass: $day $pass fail: $fail\n";
+#  print "==> $day pass: $pass fail: $fail skip: $skip\n";
   return @failures;
 }
 
@@ -480,18 +536,20 @@ sub printsanitytable {
   my ($out, $html, $truncate, $type, $short, $allsanity) = @_;
   my %sane = ();
   my %insane = ();
-  aggregatesanity($type, $allsanity, \%sane, \%insane);
-  printonesanitytable($out, $html, $truncate, $type, $short, \%sane, \%insane);
+  my %skipped = ();
+  aggregatesanity($type, $allsanity, \%sane, \%insane, \%skipped);
+  printonesanitytable($out, $html, $truncate, $type, $short, \%sane, \%insane, \%skipped);
 }
 
 #
 # print sanity table
 #
 sub printonesanitytable {
-  my ($out, $html, $truncate, $label, $short, $daytargetsane, $daytargetinsane) = @_;
+  my ($out, $html, $truncate, $label, $short, $daytargetsane, $daytargetinsane, $daytargetskipped) = @_;
   my %all = ();
   my %allsane = ();
   my %allinsane = ();
+  my %allskipped = ();
 
   # aggregate results
   foreach $key (keys %{$daytargetsane}) {
@@ -504,6 +562,11 @@ sub printonesanitytable {
     $all{$tgt} = 1;
     $allinsane{$tgt} = $allinsane{$tgt} + ${$daytargetinsane}{$key};
   }
+  foreach $key (keys %{$daytargetskipped}) {
+    ($day,$tgt) = split(/:/, $key);
+    $all{$tgt} = 1;
+    $allskipped{$tgt} = $allskipped{$tgt} + ${$daytargetskipped}{$key};
+  }
 
   if ($html) {
     print $out "<h2>Sanity regression: by $label</h2>\n";
@@ -511,20 +574,21 @@ sub printonesanitytable {
   }
 
   my $target;
-  foreach $target (sort { ($allsane{$a}/($allsane{$a}+$allinsane{$a})) <=> ($allsane{$b}/($allsane{$b}+$allinsane{$b}))} keys %all) {
-    my $skip = 0;
+  foreach $target (sort { ($allsane{$a}/($allsane{$a}+$allinsane{$a}+$allskipped{$a})) <=> ($allsane{$b}/($allsane{$b}+$allinsane{$b}+$allskipped{$b}))} keys %all) {
+    my $print = 1;
     if ($truncate) {
-	  $skip = 1;
-	  for ($d = 1; $d <= 7; $d++) {
+      $print = 0;
+      for ($d = 1; $d <= 7; $d++) {
         my $day = ($today + $d) % 7;
         my $good = ${$daytargetsane}{"$day:$target"};
         my $bad = ${$daytargetinsane}{"$day:$target"};
-	    if ($good == 0 || $bad > 0) {
-	      $skip = 0;
-	    }
-	  }
+        my $skipped = ${$daytargetskipped}{"$day:$target"};
+	if ($good == 0 || $bad > 0 || $skipped > 0) {
+	  $print = 1;
+	}
+      }
     }
-    if (!$skip) {
+    if ($print) {
       if ($html) {
         print $out "<tr>\n";
         print $out "\t<td align=\"right\" $width>$target\n";
@@ -535,10 +599,11 @@ sub printonesanitytable {
         my $day = ($today + $d) % 7;
         my $good = ${$daytargetsane}{"$day:$target"};
         my $bad = ${$daytargetinsane}{"$day:$target"};
-        my $ratio = ($good == 0) ? 0 : $good/($good+$bad);
+	my $skipped = ${$daytargetskipped}{"$day:$target"};
+        my $ratio = ($good == 0) ? 0 : $good/($good+$bad+$skipped);
         my $str = "";
-        if ($good == 0) { 
-          $str = "-"; 
+        if ($good == 0) {
+          $str = "-";
         } else {
           if ($short) {
             $str = sprintf("%d\%", int(100*$ratio));
@@ -547,7 +612,7 @@ sub printonesanitytable {
           }
         }
         if ($html) {
-          my $style = getcolorstyle($ratio); 
+          my $style = getcolorstyle($ratio, ($skipped > 0));
           $style .= ($day == $today) ? "border-left: 1px solid white;" : "";
           print $out "\t<td align=\"center\" $width style=\"$style\">$str\n";
         } else {
@@ -585,7 +650,7 @@ sub getdata {
     my $day = ($today - $d) % 7;
     if ($xml) {
       my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime ($checkouttime - ($d*$DAYSECS));
-      my $datestr = sprintf("%04d%02d%02d", $year+1900, $mon+1, $mday); 
+      my $datestr = sprintf("%04d%02d%02d", $year+1900, $mon+1, $mday);
       $archivefile = "$archivepath/$datestr.xml.gz";
       $source = "$nightlyreport -x $archivefile |";
     } else {
@@ -639,7 +704,7 @@ sub getdatestringfromcheckout {
   for ($month = 0; ($month < 12) && ($mon ne $SHORTMONTHS[$month]); $month++) {};
   return sprintf("%04d%02d%02d", $year, $month+1, $mday);
 }
-  
+
 
 #
 # dig out the day number (perl convention) from the svn timestamp in today's log
@@ -679,7 +744,7 @@ sub getdaydata {
   my $fail = 0;
   open (IN, "$source");
   while (<IN>) {
-    if ($day == -1 && 
+    if ($day == -1 &&
 	((($value) = /Checkout at:<td>(.+)<\/tr>/) ||
 	 (($value) = /<time>([A-Z][a-z]+\s.+\s\d+)<\/time>/))) {
       ${$checkout} = $value;
@@ -750,7 +815,7 @@ sub getdaydata {
 # aggregate sanity stats for one day, either by build or benchmark
 #
 sub aggregatesanity {
-  my ($aggregateby, $allsanity, $sane, $insane) = @_;
+  my ($aggregateby, $allsanity, $sane, $insane, $skipped) = @_;
   foreach $key (keys %{$allsanity}) {
     ($day,$build,$bm) = split(/:/, $key);
     my $newkey;
@@ -764,8 +829,10 @@ sub aggregatesanity {
     if ($newkey ne "$day:") {
       if (${$allsanity}{$key} == 1) {
         ${$sane}{$newkey} = ${$sane}{$newkey} + 1;
-      } else {
+      } elsif (${$allsanity}{$key} ne $SKIPPED) {
         ${$insane}{$newkey} = ${$insane}{$newkey} + 1;
+      } else {
+        ${$skipped}{$newkey} = ${$skipped}{$newkey} + 1;
       }
     }
   }
@@ -801,7 +868,7 @@ sub printhtmlhdr {
   print $html "tr\n{\n\tfont-size:          x-small;\n\tfont-family:        verdana, arial, helvetica, sans-serif;\n\tfont-weight:        normal;\n\tcolor:              #000000;\n}\n";
   print $html "td\n{\n\tfont-size:          x-small;\n\tfont-family:        verdana, arial, helvetica, sans-serif;\n\tfont-weight:        normal;\n\tcolor:              #000000;\n}\n";
   print $html "</style>\n";
-  print $html "<body>\n";  
+  print $html "<body>\n";
 }
 
 #
@@ -833,11 +900,14 @@ sub printtablehdr {
 # produce a color style statement given a success ratio
 #
 sub getcolorstyle {
-  my ($ratio) = @_;
+  my ($ratio, $skipped) = @_;
   my $green;
   my $red;
-
-  if ($ratio > 0.5) {
+  
+  if ($skipped) {
+    $green = 165;
+    $red = 255;
+  } elsif ($ratio > 0.5) {
     $green = (256/($COLORS/2))*int(($COLORS/2) * $ratio);
     if ($green != 0) { $green = $green - 1; }
     $red = (255-$green)/2;

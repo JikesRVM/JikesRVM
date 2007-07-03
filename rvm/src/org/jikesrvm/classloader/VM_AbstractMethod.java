@@ -1,22 +1,22 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp 2001,2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.*;
+import org.jikesrvm.compilers.common.VM_CompiledMethod;
+import org.jikesrvm.runtime.VM_Entrypoints;
 
 /**
  * An abstract method of a java class.
- *
- * @author Bowen Alpern
- * @author Dave Grove
- * @author Derek Lieber
- * @modified Ian Rogers
  */
 public final class VM_AbstractMethod extends VM_Method {
 
@@ -32,14 +32,17 @@ public final class VM_AbstractMethod extends VM_Method {
    * @param parameterAnnotations array of runtime visible parameter annotations
    * @param annotationDefault value for this annotation that appears
    */
-  VM_AbstractMethod(VM_TypeReference declaringClass, VM_MemberReference memRef,
-                    short modifiers, VM_TypeReference[] exceptionTypes, VM_Atom signature,
-                    VM_Annotation[] annotations,
-                    VM_Annotation[] parameterAnnotations,
-                    Object annotationDefault)
-  {
-    super(declaringClass, memRef, modifiers, exceptionTypes, signature,
-          annotations, parameterAnnotations, annotationDefault);
+  VM_AbstractMethod(VM_TypeReference declaringClass, VM_MemberReference memRef, short modifiers,
+                    VM_TypeReference[] exceptionTypes, VM_Atom signature, VM_Annotation[] annotations,
+                    VM_Annotation[] parameterAnnotations, Object annotationDefault) {
+    super(declaringClass,
+          memRef,
+          modifiers,
+          exceptionTypes,
+          signature,
+          annotations,
+          parameterAnnotations,
+          annotationDefault);
   }
 
   /**

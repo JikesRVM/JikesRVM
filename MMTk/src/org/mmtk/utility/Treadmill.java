@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp 2001,2002
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
  *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.utility;
 
@@ -25,18 +28,16 @@ import org.vmmagic.pragma.*;
  * each item or node is a piece of memory.  The first two words of each node
  * contains the forward and backward links.  The third word contains
  * the treadmill.  The remaining portion is the payload.
- * 
+ *
  * The treadmill object itself must not be moved.
- * 
+ *
  * Access to the instances may be synchronized depending on the constructor argument.
- * 
- * @author Perry Cheng
  */
 @Uninterruptible public final class Treadmill
   implements Constants {
 
   /****************************************************************************
-   * 
+   *
    * Instance variables
    */
   private DoublyLinkedList fromSpace;
@@ -44,7 +45,7 @@ import org.vmmagic.pragma.*;
   private DoublyLinkedList nursery;
 
   /****************************************************************************
-   * 
+   *
    * Initialization
    */
 
@@ -58,18 +59,18 @@ import org.vmmagic.pragma.*;
   }
 
   @Inline
-  public void addToTreadmill(Address node) { 
+  public void addToTreadmill(Address node) {
     nursery.add(node);
   }
 
   @Inline
-  public Address pop(boolean fromNursery) { 
+  public Address pop(boolean fromNursery) {
     return (fromNursery) ? nursery.pop() : fromSpace.pop();
   }
 
   @Inline
-  public void copy(Address node, boolean isInNursery) { 
-    if (isInNursery) 
+  public void copy(Address node, boolean isInNursery) {
+    if (isInNursery)
       nursery.remove(node);
     else
       fromSpace.remove(node);
@@ -77,20 +78,20 @@ import org.vmmagic.pragma.*;
   }
 
   @Inline
-  public boolean toSpaceEmpty() { 
+  public boolean toSpaceEmpty() {
     return toSpace.isEmpty();
   }
-  
+
   @Inline
-  public boolean fromSpaceEmpty() { 
+  public boolean fromSpaceEmpty() {
     return fromSpace.isEmpty();
   }
-  
+
   @Inline
-  public boolean nurseryEmpty() { 
+  public boolean nurseryEmpty() {
     return nursery.isEmpty();
   }
-  
+
   public void flip() {
     DoublyLinkedList tmp = fromSpace;
     fromSpace = toSpace;
@@ -98,7 +99,7 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * Misc header manipulation
    */
 
@@ -123,7 +124,7 @@ import org.vmmagic.pragma.*;
   }
 
   /****************************************************************************
-   * 
+   *
    * GCSpy
    */
 
@@ -135,7 +136,7 @@ import org.vmmagic.pragma.*;
   public void gcspyGatherData(int event, TreadmillDriver tmDriver) {
     this.nursery.gcspyGatherData(tmDriver);
   }
-  
+
   /**
    * Gather data for GCSpy
    * @param event the gc event

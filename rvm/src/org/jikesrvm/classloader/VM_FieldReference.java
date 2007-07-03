@@ -1,26 +1,27 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp. 2003
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.*;
-import org.vmmagic.pragma.*;
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_SizeConstants;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * A class to represent the reference in a class file to a field.
- * 
- * @author Bowen Alpern
- * @author Dave Grove
- * @author Derek Lieber
  */
 public final class VM_FieldReference extends VM_MemberReference implements VM_SizeConstants {
 
-  /** 
+  /**
    * The VM_Field that this field reference resolved to (null if not yet resolved).
    */
   private VM_Field resolvedMember;
@@ -44,22 +45,22 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
    * @return the type of the field's value
    */
   @Uninterruptible
-  public VM_TypeReference getFieldContentsType() { 
+  public VM_TypeReference getFieldContentsType() {
     return fieldContentsType;
   }
-  
+
   /**
    * How many stackslots do value of this type take?
    */
   public int getNumberOfStackSlots() {
-    return getFieldContentsType().getStackWords();  
+    return getFieldContentsType().getStackWords();
   }
-    
+
   /**
    * Get size of the field's value, in bytes.
-   */ 
+   */
   @Uninterruptible
-  public int getSize() { 
+  public int getSize() {
     return fieldContentsType.getMemoryBytes();
   }
 
@@ -68,22 +69,23 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
    */
   public boolean definitelyDifferent(VM_FieldReference that) {
     if (this == that) return false;
-    if (getName() != that.getName() ||
-        getDescriptor() != that.getDescriptor()) return true;
+    if (getName() != that.getName() || getDescriptor() != that.getDescriptor()) {
+      return true;
+    }
     VM_Field mine = peekResolvedField();
     VM_Field theirs = that.peekResolvedField();
     if (mine == null || theirs == null) return false;
     return mine != theirs;
   }
 
-    
   /**
    * Do this and that definitely refer to the same field?
    */
   public boolean definitelySame(VM_FieldReference that) {
     if (this == that) return true;
-    if (getName() != that.getName() ||
-        getDescriptor() != that.getDescriptor()) return false;
+    if (getName() != that.getName() || getDescriptor() != that.getDescriptor()) {
+      return false;
+    }
     VM_Field mine = peekResolvedField();
     VM_Field theirs = that.peekResolvedField();
     if (mine == null || theirs == null) return false;
@@ -101,7 +103,7 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
    * For use by VM_Field constructor
    */
   void setResolvedMember(VM_Field it) {
-    if (VM.VerifyAssertions) VM._assert(resolvedMember == null);
+    if (VM.VerifyAssertions) VM._assert(resolvedMember == null || resolvedMember == it);
     resolvedMember = it;
   }
 
@@ -112,9 +114,9 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
    */
   public VM_Field peekResolvedField() {
     if (resolvedMember != null) return resolvedMember;
-    
+
     // Hasn't been resolved yet. Try to do it now without triggering class loading.
-    VM_Class declaringClass = (VM_Class)type.peekResolvedType();
+    VM_Class declaringClass = (VM_Class) type.peekType();
     if (declaringClass == null) return null;
     return resolveInternal(declaringClass);
   }
@@ -126,9 +128,9 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
    */
   public synchronized VM_Field resolve() {
     if (resolvedMember != null) return resolvedMember;
-    
+
     // Hasn't been resolved yet. Do it now triggering class loading if necessary.
-    return resolveInternal((VM_Class)type.resolve());
+    return resolveInternal((VM_Class) type.resolve());
   }
 
   private VM_Field resolveInternal(VM_Class declaringClass) {
@@ -139,7 +141,7 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
       // Look in this class
       VM_Field it = c.findDeclaredField(name, descriptor);
       if (it != null) {
-        resolvedMember = it; 
+        resolvedMember = it;
         return resolvedMember;
       }
       // Look at all interfaces directly and indirectly implemented by this class.

@@ -1,11 +1,14 @@
 /*
- * This file is part of MMTk (http://jikesrvm.sourceforge.net).
- * MMTk is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2004
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
 package org.mmtk.utility.options;
 
@@ -29,9 +32,6 @@ import org.mmtk.vm.VM;
  * "No Finalizer" to noFinalizer. The VM may not remove any letters
  * when performing this mapping but may remove spaces and change
  * the case of any character.
- * 
- *
- * @author Daniel Frampton
  */
 public abstract class Option {
   // options registry
@@ -56,7 +56,7 @@ public abstract class Option {
   public static final int MICROSECONDS_OPTION = 7;
   public static final int FLOAT_OPTION = 8;
   public static final int ADDRESS_OPTION = 9;
-  
+
   /**
    * The possible output formats
    */
@@ -68,7 +68,7 @@ public abstract class Option {
   /**
    * Using the VM determined key, look up the corresponding option,
    * or return null if an option can not be found.
-   * 
+   *
    * @param key The (unique) option key.
    * @return The option, or null.
    */
@@ -86,7 +86,7 @@ public abstract class Option {
   /**
    * Return the first option. This can be used with the getNext method to
    * iterate through the options.
-   * 
+   *
    * @return The first option, or null if no options exist.
    */
   public static Option getFirst() {
@@ -103,7 +103,7 @@ public abstract class Option {
   /**
    * Construct a new option. This also calls the VM to map the option's
    * name into a unique option key and links it onto the option list.
-   * 
+   *
    * @param type The option type as defined in this class.
    * @param name The unique name of the option.
    * @param description A short description of the option and purpose.
@@ -123,7 +123,7 @@ public abstract class Option {
 
   /**
    * Return the VM determined key for an option
-   * 
+   *
    * @return The key.
    */
   public String getKey() {
@@ -132,7 +132,7 @@ public abstract class Option {
 
   /**
    * Return the next option in the linked list.
-   * 
+   *
    * @return The next option or null if this is the last option.
    */
   public Option getNext() {
@@ -141,7 +141,7 @@ public abstract class Option {
 
   /**
    * Return the name for the option.
-   * 
+   *
    * @return The option name.
    */
   public String getName() {
@@ -150,7 +150,7 @@ public abstract class Option {
 
   /**
    * Return the option description.
-   * 
+   *
    * @return The option description.
    */
   public String getDescription() {
@@ -159,16 +159,16 @@ public abstract class Option {
 
   /**
    * Return the type of the option.
-   * 
+   *
    * @return The option type.
    */
   public int getType() {
     return this.type;
   }
-  
+
   /**
    * Log the option value in one of several formats
-   * 
+   *
    * @param format Output format (see Option.java for possible values)
    */
   void log(int format) {
@@ -193,7 +193,7 @@ public abstract class Option {
         break;
     }
   }
-  
+
   /**
    * This is a validation method that can be implemented by leaf option
    * classes to provide additional validation. This should not be implemented
@@ -205,7 +205,7 @@ public abstract class Option {
   /**
    * A fatal error occurred during the setting of an option. This method
    * calls into the VM and is required to cause the system to stop.
-   * 
+   *
    * @param message The error message associated with the failure.
    */
   protected void fail(String message) {
@@ -214,7 +214,7 @@ public abstract class Option {
 
   /**
    * Fail if a specified condition is met.
-   * 
+   *
    * @param condition The condition that indicates failure.
    * @param message The error message associated with the failure.
    */
@@ -225,7 +225,7 @@ public abstract class Option {
   /**
    * A non-fatal error occurred during the setting of an option. This method
    * calls into the VM and shall not cause the system to stop.
-   * 
+   *
    * @param message The message associated with the warning.
    */
   protected void warn(String message) {
@@ -234,7 +234,7 @@ public abstract class Option {
 
   /**
    * Warn if a specified condition is met.
-   * 
+   *
    * @param condition The condition that indicates warning.
    * @param message The message associated with the warning.
    */
