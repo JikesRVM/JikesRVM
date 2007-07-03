@@ -259,6 +259,7 @@ public final class VM_CollectorThread extends VM_Thread {
    * @param handshake VM_Handshake for the requested collection
    */
   @LogicallyUninterruptible
+  @Uninterruptible
   public static void collect(VM_Handshake handshake, int why) {
     handshake.requestAndAwaitCompletion(why);
   }
@@ -336,6 +337,7 @@ public final class VM_CollectorThread extends VM_Thread {
   // refs stored in registers by baseline compiler will not be relocated by GC, so use stack only
   @BaselineSaveLSRegisters
   // and store all registers from previous method in prologue, so that we can stack access them while scanning this thread.
+  @Uninterruptible
   public void run() {
     for (int count = 0; ; count++) {
       /* suspend this thread: it will resume when scheduled by
@@ -490,6 +492,7 @@ public final class VM_CollectorThread extends VM_Thread {
    * @param thread
    */
   @LogicallyUninterruptible
+  @Uninterruptible
   public void allocateOOMEForThread(VM_Thread thread) {
     /* We are running inside a gc thread, so we will allocate if physically possible */
     this.setThreadForStackTrace(thread);
