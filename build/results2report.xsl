@@ -78,7 +78,7 @@
           <id>
             <xsl:value-of select="../../group/text()"/>
           </id>
-          <xsl:for-each select="../../test">
+          <xsl:for-each select="../../test/result[text() != 'EXCLUDED']/..">
             <test>
               <id>
                 <xsl:value-of select="tag"/>
