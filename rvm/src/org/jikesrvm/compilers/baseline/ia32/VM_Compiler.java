@@ -3487,13 +3487,15 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
 
         if (types.length == 0) {
           // No offset
-          throw new RuntimeException("Magic not implemented");
+          asm.emitPOP_Reg(T0);                // base
+          asm.emitPUSH_RegDisp(T0, ONE_SLOT); // pushes [T0+4]
+          asm.emitPUSH_RegInd(T0);            // pushes [T0]
         } else {
           // Load at offset
           asm.emitPOP_Reg(S0);                  // offset
           asm.emitPOP_Reg(T0);                  // base
           asm.emitPUSH_RegIdx(T0, S0, VM_Assembler.BYTE, ONE_SLOT); // pushes [T0+S0+4]
-          asm.emitPUSH_RegIdx(T0, S0, VM_Assembler.BYTE, NO_SLOT); // pushes [T0+S0]
+          asm.emitPUSH_RegIdx(T0, S0, VM_Assembler.BYTE, NO_SLOT);  // pushes [T0+S0]
         }
         return true;
       }
@@ -3563,7 +3565,12 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
 
           if (types.length == 1) {
             // No offset
-            throw new RuntimeException("Magic not implemented");
+            asm.emitMOV_Reg_RegInd(T0, SP);             // value high
+            asm.emitMOV_Reg_RegDisp(T1, SP, TWO_SLOTS); // base
+            asm.emitMOV_RegInd_Reg(T1, T0);             // [T1] <- T0
+            asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);  // value low
+            asm.emitMOV_RegDisp_Reg(T1, ONE_SLOT, T0);  // [T1+4] <- T0
+            asm.emitADD_Reg_Imm(SP, WORDSIZE * 3);      // pop stack locations
           } else {
             // Store at offset
             asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);          // value high
