@@ -19,7 +19,6 @@ import org.jikesrvm.classloader.VM_Atom;
 import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.util.VM_HashMap;
-import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.UninterruptibleNoWarn;
 import org.vmmagic.unboxed.Address;
@@ -547,8 +546,7 @@ public class VM_Statics implements VM_Constants {
   /**
    * Fetch contents of a slot, as an Address.
    */
-  @LogicallyUninterruptible
-  @Uninterruptible
+  @UninterruptibleNoWarn
   public static Address getSlotContentsAsAddress(Offset offset) {
     if (VM.runningVM) {
       if (VM.BuildFor32Addr) {
