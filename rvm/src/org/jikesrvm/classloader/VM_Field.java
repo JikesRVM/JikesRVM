@@ -20,6 +20,7 @@ import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Statics;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Word;
 
 /**
  * A field of a java class.
@@ -245,6 +246,14 @@ public final class VM_Field extends VM_Member {
     }
   }
 
+  public Word getWordValueUnchecked(Object obj) {
+    if (isStatic()) {
+      return VM_Statics.getSlotContentsAsAddress(getOffset()).toWord();
+    } else {
+      return VM_Magic.getWordAtOffset(obj, getOffset());
+    }
+  }
+
   public boolean getBooleanValueUnchecked(Object obj) {
     byte bits;
     if (isStatic()) {
@@ -310,6 +319,14 @@ public final class VM_Field extends VM_Member {
       return VM_Magic.getLongAtOffset(obj, getOffset());
     }
   }
+  
+  private Word getWord(Object obj) {
+    if (isStatic()) {
+      return VM_Statics.getSlotContentsAsAddress(getOffset()).toWord();
+    } else {
+      return VM_Magic.getWordAtOffset(obj, getOffset());
+    }
+  }
 
   /**
    * assign one object ref from heap using RVM object model, GC safe.
@@ -329,6 +346,19 @@ public final class VM_Field extends VM_Member {
       } else {
         VM_Magic.setObjectAtOffset(obj, getOffset(), ref);
       }
+    }
+  }
+
+  /**
+   * assign one object ref from heap using RVM object model, GC safe.
+   * @param obj the object whose field is to be modified, or null if the field is static.
+   * @param ref the object reference to be assigned.
+   */
+  public void setWordValueUnchecked(Object obj, Word ref) {
+    if (isStatic()) {
+      VM_Statics.setSlotContents(getOffset(), ref);
+    } else {
+      VM_Magic.setWordAtOffset(obj, getOffset(), ref);
     }
   }
 

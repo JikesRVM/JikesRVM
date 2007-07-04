@@ -16,7 +16,9 @@ import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
  * Represents an address constant operand.
@@ -47,6 +49,26 @@ public final class OPT_AddressConstantOperand extends OPT_ConstantOperand {
    */
   public OPT_AddressConstantOperand(Offset v) {
     this(v.toWord().toAddress());
+  }
+
+  /**
+   * Constructs a new address constant operand with the specified offset value.
+   *
+   * @param v value
+   * TODO: make a separte OPT_OffsetConstantOperand
+   */
+  public OPT_AddressConstantOperand(Extent v) {
+    this(v.toWord().toAddress());
+  }
+
+  /**
+   * Constructs a new address constant operand with the specified offset value.
+   *
+   * @param v value
+   * TODO: make a separte OPT_OffsetConstantOperand
+   */
+  public OPT_AddressConstantOperand(Word v) {
+    this(v.toAddress());
   }
 
   /**
