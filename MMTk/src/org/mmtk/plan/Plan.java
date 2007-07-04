@@ -532,7 +532,7 @@ public abstract class Plan implements Constants {
   }
 
   /****************************************************************************
-   * VM.me.Accounting
+   * VM Accounting
    */
 
   /* Global accounting and static access */
