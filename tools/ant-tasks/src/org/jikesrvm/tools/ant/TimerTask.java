@@ -46,7 +46,7 @@ public class TimerTask
       if (null == start) throw new BuildException("Start not yet set.");
       final long startTime = Long.parseLong(start);
       setProperty(property + ".end", String.valueOf(now));
-      setProperty(property + ".duration", String.valueOf(now - startTime));
+      setProperty(property + ".duration", String.valueOf(Math.abs(now - startTime)));
     } else {
       setProperty(property + ".start", String.valueOf(now));
     }
