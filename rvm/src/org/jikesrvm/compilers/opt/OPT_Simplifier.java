@@ -3384,6 +3384,8 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
   }
 
   private static DefUseEffect getObjTib(OPT_Instruction s) {
+    // Constant folding object tibs is disabled as it causes
+    // failures in SPECjbb200* benchmarks. See RVM-16
     if (CF_TIB && false) {
       OPT_Operand op = GuardedUnary.getVal(s);
       if (op.isNullConstant()) {
