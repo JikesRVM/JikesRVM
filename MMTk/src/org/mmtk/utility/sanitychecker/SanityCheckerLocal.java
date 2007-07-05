@@ -12,6 +12,7 @@
  */
 package org.mmtk.utility.sanitychecker;
 
+import org.mmtk.plan.Plan;
 import org.mmtk.plan.StopTheWorld;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.policy.Space;
@@ -57,6 +58,9 @@ import org.vmmagic.unboxed.*;
 
     if (phaseId == StopTheWorld.SANITY_ROOTS) {
       VM.scanning.computeAllRoots(sanityTrace);
+      if (Plan.SCAN_BOOT_IMAGE) {
+        VM.scanning.computeBootImageRoots(sanityTrace);
+      }
       sanityTrace.flushRoots();
       return true;
     }
@@ -128,6 +132,10 @@ import org.vmmagic.unboxed.*;
 
     if (object.isNull()) {
       SanityChecker.nullReferenceCount++;
+      return;
+    }
+
+    if (Plan.SCAN_BOOT_IMAGE && Space.isInSpace(Plan.VM_SPACE, object)) {
       return;
     }
 
