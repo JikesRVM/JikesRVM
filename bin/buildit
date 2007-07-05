@@ -1,0 +1,812 @@
+#!/usr/bin/perl
+#
+#  This file is part of the Jikes RVM project (http://jikesrvm.org).
+#
+#  This file is licensed to You under the Common Public License (CPL);
+#  You may not use this file except in compliance with the License. You
+#  may obtain a copy of the License at
+#
+#      http://www.opensource.org/licenses/cpl1.0.php
+#
+#  See the COPYRIGHT.txt file distributed with this work for information
+#  regarding copyright ownership.
+
+#
+# This is not the standard supported way of building. This is a helper
+# script to faciliate testing and building of many builds across
+# multiple machines.
+#
+# This script can be dangerous. Be CAREFUL.
+#
+# Comments and suggestions on how to improve this script are most welcome.
+#
+
+$shortusage = 
+"Usage: buildit [-dhgqz] [-r root] [-s suffix] [-j java-home]
+       [--test-run xxx] build-host [-c target-host] [ Configs... ]
+";
+$usage = $shortusage."Building:
+  buildit <Option(s)> build-host [-c target-host] <Config(s)>
+
+Testing:
+  buildit <Option(s)> -t test-set build-host [-c target-host] [<Config(s)>]
+
+Configuration is specified as either:
+ - a specific configuration, such as
+   buildit <Option(s)> build-host -c target-host development
+  
+ - a single compiler and N gcs, such as
+   buildit <Option(s)> build-host -c target-host BaseBase MarkSweep SemiSpace
+
+Tests can be run as either:
+ - build and run a complete test run as specified in the test file
+   buildit <Option(s)> --test-run xxx build-host target-host
+ 
+ - build and run the test run from the test file on a different Configuration
+   buildit <Option(s)> --test-run xxx build-host -c target-host <Config(s)>
+
+ - build and run the test(s) specified on the command line
+   buildit <Option(s)> -t test build-host -c target-host <Config(s)>
+   buildit <Option(s)> -t test1 -t test2 ...
+
+Options:
+     --nuke           Nuke the build and target host roots (rm -rf *)
+     --clear-cache    Clear configuration cache
+ -d, --dry-run        Dry run, just print commands
+     --build-user     Specify a username for the build host
+     --target-user    Specify a username for the target host 
+ -u, --user           Specify a username for both hosts
+ -h, --help           Show this usage message
+
+Building Options:
+     --x87            Use x87 Compatibility mode.
+ -c, --cross-to       Crossbuild to target host (or copy post build).
+ -p, --with-perfctr   Build with perfctr support
+ -g, --gdb-symbols    Build with gdb symbols
+ -q, --quick          Quick build (not 100% safe - doesn't regenerate source)
+     --classpath-cvs  Build from classpath CVS head
+ -r, --root           Specify rvm root on the commandline, chosen by:
+                        -r root option if specified, otherwise;
+                        \$RVM_ROOT environment variable if set, otherwise;
+                        current directory, equivalent to -r .
+ -s, --suffix         Append a suffix to the build name
+ -m, --mmtk-config    MMTk properties (included in suffix)
+ -j, --java-home      Specify a JAVA_HOME directory to use
+     --build-arg      Specify an additional argument for the ant build
+     --bc-arg         Specify arguments for the bootimage compiler
+
+Testing Options:
+ -t, --test           Specify a test to run (overriden by --test-run)
+ -n, --name           Give the results run a name, link in results/buildit
+     --test-run       The test run to use for each configuration on the target
+     --run-arg        Specify an additional argument for the test execution
+     --email-report   Send a result summary email when done
+     --ext-lib-dir    Specify the benchmarks directory for testing.
+     --processors     Specify the number of processors to use.
+ -z, --skip-build     Run tests without building
+
+";
+
+#
+# Load configuration and cache
+#
+$baseConfigFile = $0.".base_config";
+$configFile = home_dir()."/.buildit_config";
+$cacheFile = home_dir()."/.buildit_cache";
+
+load_config($baseConfigFile);
+load_config($configFile);
+
+# Benchmarks directory
+$extlibdir=$config{"global.ext.lib.dir"};
+
+# Upload Information
+$upload_base=$config{"global.upload.base"};
+$upload_host=$config{"global.upload.host"};
+$web_base=$config{"global.upload.url"};
+
+# Email Server
+$mailserver=$config{"global.mail.server"};
+
+# Execution environment
+$xvfb_run=$config{"global.display-wrapper.exe"};
+
+use Cwd 'abs_path';
+use Getopt::Long qw(:config no_auto_abbrev bundling);
+
+GetOptions(
+  "s|suffix=s" => \$suffix,
+  "m|mmtk-config=s" => \$mmtk_config,
+  "nuke" => \$nuke,
+  "c|cross-to=s" => \$target,
+  "u|user=s" => \$cmd_user,
+  "build-user=s" => \$cmd_hostUser,
+  "target-user=s" => \$cmd_targetUser,
+  "classpath-cvs" => \$cvs_head,
+  "g|gdb-symbols" => \$gdb_symbols,
+  "test-run=s" => \$test_set,
+  "t|test=s" => \@test_array,
+  "build-arg=s" => \@build_array,
+  "n|name=s" => \$results_name,
+  "run-arg=s" => \@run_array,
+  "bc-arg=s" => \@bcarg_array,
+  "d|dry-run" => \$dry_run,
+  "clear-cache" => \$clear_cache,
+  "r|root=s" => \$root,
+  "q|quick" => \$quick,
+  "processors=s" => \$procs,
+  "p|with-perfctr" => \$with_perfctr,
+  "z|skip-build" => \$skip_build,
+  "h|help" => \$help,
+  "x87" => \$x87,
+  "j|java-home=s" => \$javaHomeCmd,
+  "ext-lib-dir=s" => \$extlibdir,
+  "e|email-report" => \$email_report) or bad_usage();
+
+if ($clear_cache) {
+  unlink($cacheFile);
+}
+load_config($cacheFile);
+
+$test_list = join(" ", @test_array);
+$build_args = join(" ", @build_array);
+$run_args = join(" ", @run_array);
+$bc_args = join(" ", @bcarg_array);
+  
+$start = `date`;
+chomp($start);
+$host = shift(@ARGV);
+$compiler = shift(@ARGV);
+@gcs = @ARGV;
+
+if ($target eq "") {
+  $target = $host;
+}
+if ($results_name eq "") {
+  $results_name = "latest";
+}
+
+$testsid = getid();
+
+# The -h option
+if ($help) {
+  print($usage);
+  exit();
+}
+
+if ($root eq "") {
+  if ($ENV{RVM_ROOT} != "") {
+    $root = $ENV{RVM_ROOT};
+  } else { 
+    $root = abs_path(".");
+  }
+}
+
+if ($host eq "") {
+  bad_usage("build-host not specified");
+}
+if ($target eq "") {
+  bad_usage("target-host not specified");
+}
+if ($root eq "") {
+  bad_usage("rvm root is not specified");
+}
+
+$hostUser = $ENV{USER};
+$targetUser = $ENV{USER};
+
+if ($cmd_hostUser ne "") {
+  $hostUser = $cmd_hostUser;
+} elsif ($cmd_user ne "") {
+  $hostUser = $cmd_user;
+} elsif ($config{"$host.user"} ne "") {
+  $hostUser = $config{"$host.user"};
+}
+
+if ($cmd_targetUser ne "") {
+  $hostUser = $cmd_hostUser;
+} elsif ($cmd_user ne "") {
+  $targetUser = $cmd_user;
+} elsif ($config{"$target.user"} ne "") {
+  $targetUser = $config{"$target.user"};
+}
+
+$sshHost = $hostUser."@".$host;
+$sshTarget = $targetUser."@".$target;
+
+$local = `hostname`;
+chomp($local);
+
+if ($config{"$local.home"} ne "") {
+  $localHome = $config{"$local.home"};
+} else {
+  $localHome = abs_path(home_dir());
+}
+
+if ($config{"$host.home"} ne "") {
+  $hostHome = $config{"$host.home"};
+} else {
+  $hostHome = `ssh $sshHost pwd`;
+  chomp($hostHome);
+}
+
+if ($config{"$target.home"} ne "") {
+  $targetHome = $config{"$target.home"};
+} else {
+  $targetHome = `ssh $sshTarget pwd`;
+  chomp($targetHome);
+}
+
+$localRoot = abs_path($root);
+$localRoot =~ s/^$localHome/~/;
+$hostRoot = $localRoot;
+$targetRoot = $localRoot;
+
+$localRoot =~ s/^~/$localHome/;
+$hostRoot =~ s/^~/$hostHome/;
+$targetRoot =~ s/^~/$targetHome/;
+
+if (! -e $localRoot . "/rvm") {
+  bad_usage("rvm root does not point to a valid source tree");
+}
+
+if ($config{"$host.host-type"} ne "") {
+  $hostConfig = $config{"$host.host-type"};
+} else {
+  @host_info = split(" ", `ssh $sshHost uname -mo`);
+  chomp(@host_info);
+  $hostConfig = $config{"global.arch.".$host_info[0]}."-".$config{"global.os.".$host_info[1]};
+}
+
+if ($config{"$target.host-type"} ne "") {
+  $targetConfig = $config{"$target.host-type"};
+} else {
+  @target_info = split(" ", `ssh $sshTarget uname -mo`);
+  chomp(@target_info);
+  $targetConfig = $config{"global.arch.".$target_info[0]}."-".$config{"global.os.".$target_info[1]};
+}
+
+if ($config{"$local.home"} eq "") {
+  confirm("Is $localHome the right home directory for $local?");
+  cache_data("$local.home", $localHome);
+}
+if ($config{"$host.home"} eq "") {
+  confirm("Is $hostHome the right home directory for $host?");
+  cache_data("$host.home", $hostHome);
+}
+if ($config{"$target.home"} eq "" && $host ne $target) {
+  confirm("Is $targetHome the right home directory for $target?");
+  cache_data("$target.home", $targetHome);
+}
+if ($config{"$host.host-type"} eq "") {
+  confirm("Is $hostConfig the right type for $host?");
+  cache_data("$host.host-type", $hostConfig);
+}
+if ($config{"$target.host-type"} eq "" && $host ne $target) {
+  confirm("Is $targetConfig the right type for $target?");
+  cache_data("$target.host-type", $targetConfig);
+}
+
+if ($config{"$local.$localRoot"} eq "") {
+  confirm("Is $localRoot the correct root directory here?");
+  cache_data("$local.$localRoot", "OK");
+}
+if ($config{"$host.$hostRoot"} eq "") {
+  confirm("Is $hostRoot the correct root directory on $host?\nBe CAREFUL as we are going to rsync --delete to there!");
+  cache_data("$host.$hostRoot", "OK");
+}
+if ($config{"$target.$targetRoot"} eq "" && $host ne $target) {
+  confirm("Is $targetRoot the correct root directory on $target?\nBe CAREFUL as we are going to rsync --delete to there!");
+  cache_data("$target.$targetRoot", "OK");
+}
+
+if ($javaHomeCmd eq "") {
+  $javaHome{$host} = $config{"global.javahome.".$hostConfig};
+  $javaHome{$target} = $config{"global.javahome.".$targetConfig};
+} else {
+  $javaHome{$host} = $javaHomeCmd;
+  $javaHome{$target} = $javaHomeCmd;
+}
+
+if ($extlibdir eq "") {
+  bad_usage("ext.lib.dir not specified");
+}
+
+if ($javaHome{$host} eq "") {
+  bad_usage("Host java home not specified");
+}
+if ($javaHome{$target} eq "") {
+  bad_usage("Target java home not specified");
+}
+
+if (! -e $localRoot."/build/hosts/".$hostConfig.".properties") {
+  bad_usage("Couldn't find build-host config for $host '@host_info'");
+}
+if (! -e $localRoot."/build/targets/".$targetConfig.".properties") {
+  bad_usage("Couldn't find target-host config for $target '$targetConfig'");
+}
+
+if ($test_set) {
+  if (! -e $localRoot."/build/test-runs/".$test_set.".properties") {
+    bad_usage("Couldn't find test-set '$test_set'");
+  }
+}
+
+if ($test_list ne "") {
+  @tests = split(" ", $test_list);
+  foreach $test (@tests) {
+    if (! -d $localRoot."/testing/tests/$test") {
+      bad_usage("Couldn't find test '$test'");
+    }
+  } 
+}
+
+#
+# Configuration 
+#
+$implicitconfigs = ($#gcs == -1 && $compiler eq "");
+if ($#gcs == -1 && $test_set && $compiler eq "") {
+  my $rawconfigs = `grep \"^test.configs=.*$\" $localRoot/build/test-runs/$test_set.properties`;
+  chomp($rawconfigs);
+  $rawconfigs =~ s/^test.configs=//;
+  $compiler="";
+  $baseconfigs = " ";
+  foreach $config (split(" ", $rawconfigs)) {
+    my $search = "test.config.$config.configuration=";
+    my $baseconfig = `grep \"^$search.*$\" $localRoot/build/test-runs/$test_set.properties`;
+    chomp($baseconfig);
+    if ($baseconfig eq "") {
+      $baseconfig = $config;
+    } else {
+      $baseconfig =~ s/^$search//;
+    }
+    if($baseconfigs !~ / $baseconfig /) {
+      $baseconfigs = $baseconfigs.$baseconfig." ";
+    }
+  }
+  $baseconfigs =~ s/^ //;
+  @gcs = split(" ", $baseconfigs);
+}
+if ($#gcs == -1) {
+  if ($compiler ne "") {
+  @gcs = ( $compiler );
+  $compiler = "";
+  } else {
+    bad_usage("Need at least one configuration");
+  }
+}
+
+foreach $g (@gcs) {
+  $config = $compiler.$g; 
+  if (! -e $localRoot."/build/configs/".$config.".properties") {
+    bad_usage("Could not find configuration '$config'");
+  } 
+}
+# The -m option
+if (! $mmtk_config eq "") {
+  if (! -e $localRoot."/build/configs/".$mmtk_config.".mmtk.properties") {
+    bad_usage("Could not find MMTk properties '$mmtk_config'");
+  }
+}
+
+$report_email="";
+if ($email_report) {
+  if ($config{"global.report-email"} ne "") {
+    $report_email = $config{"global.report-email"};
+  } else {
+    print "Please enter the email address for reporting...\nreport_email : ";
+    $report_email = <STDIN>;
+    chomp($report_email);
+    confirm("Is $report_email correct?");
+    $report_email =~ s/\@/\\\@/;
+    cache_data("global.report-email", $report_email);
+  }
+}
+
+$bindir = "bin";
+$configdir = "config";
+$sourcedirs = "";
+
+#
+# The files that need to be transferred to a host in order to do a build
+#
+@dirs = ("rvm", "MMTk", "bin", "build", "testing", "tools", "tools-external", 
+         "include", "vmmagic", "build.xml", "libraryInterface", "test.xml");
+
+#
+# The files needed to be transferred to a host in order to complete a
+# cross-compiled build
+#
+# Plus the particular 'target' subdirectory.
+#
+@ccdirs = ("build.xml", "build");
+
+foreach $dir (@dirs) {
+  if (-e $localRoot."/".$dir) {
+    $sourcedirs .= " $localRoot/$dir";
+  }
+}
+
+#
+# Test connectivity
+#
+if ($config{"$host.tested"} eq "") {
+  print "Testing build-host connectivity... ";
+  if (!system("ssh $sshHost echo OK")) {
+    cache_data("$host.tested", "OK");
+  }
+}
+if ($config{"$target.tested"} eq "") {
+  print "Testing target-host connectivity... ";
+  if (!system("ssh $sshTarget echo OK")) {
+    cache_data("$target.tested", "OK");
+  }
+}
+if ($host ne $target && $config{"$host-$target.tested"} eq "") {
+  print "Testing build-host -> target-host connectivity... ";
+  if (!system("ssh -t $sshHost ssh $sshTarget echo OK")) {
+    cache_data("$host-$target.tested", "OK");
+  }
+}
+if ($upload_host ne "" && $config{"$target-$upload_host.tested"} eq "") {
+  print "Testing target-host -> upload-host connectivity... ";
+  if (!system("ssh -t $sshTarget ssh -t $upload_host echo OK")) {
+    cache_data("$target-$upload_host.tested", "OK");
+  }
+}
+
+#
+# Clean up first ?
+#
+if ($nuke) {
+  $nukecmd = "ssh -t $sshHost rm -rf $hostRoot;\n"; 
+  if ($host ne $target) {
+    $nukecmd = "ssh -t $sshTarget rm -rf $targetRoot;\n"; 
+  }
+  print "$nukecmd\n\n";
+  if (! $dry_run) {
+    system ($nukecmd);
+  }
+}
+
+#
+# Now do it!
+#
+if ($host ne "localhost") {
+  $rsync .= "ssh -t $sshHost mkdir -p $hostRoot;\n";
+  $rsync .= "rsync -azvLe ssh --delete --exclude=.svn --exclude=\*.class ".$sourcedirs." $sshHost:$hostRoot";
+  if ($host ne $target) {
+    $rsync .= ";\nrsync -azvLe ssh --delete --exclude=.svn --exclude=\*.class ".$sourcedirs." $sshTarget:$targetRoot";
+  }
+  print "$rsync\n\n";
+  if (! $dry_run) {
+    $rsyncRet = system ($rsync);
+  }
+}
+
+#
+# Additional ant flags for building classpath
+#
+$cp_flags = "";
+if ($cvs_head) {
+  $cp_flags .= "-Dclasspath.from-cvs=true ";
+}
+
+my $ok = ($rsyncRet == 0);
+
+if ($ok) {
+  foreach $g (@gcs) {
+    $_ = $g;
+
+    $config = "$compiler$g";
+
+    $rvm_revision=`svnversion`;
+    chomp($rvm_revision);
+
+    # Principal "-D" defines for ant
+    $defs = "-Dtarget.name=$targetConfig ".
+            "-Dconfig.name=$config ".
+            "-Dsvn.revision=$rvm_revision ";
+     
+    if ($suffix ne "") {
+      $defs .= "-Dconfig.variant=$suffix ";
+      $targetDir = $config."_".$suffix."_".$targetConfig;
+    } else {
+      $targetDir = $config."_".$targetConfig;
+    }
+ 
+      
+    if ($x87 ne "") {
+      $defs .= "-Dtarget.arch.sse2=none ";
+    }
+    if ($with_perfctr ne "") {
+      $defs .= "-Dconfig.include.perfctr=true ";
+    }
+    if ($mmtk_config ne "") {
+      $defs .= "-Dconfig.mmtk=$mmtk_config ";
+    }
+    if ($gdb_symbols ne "") {
+      $defs .= "-Drvm.debug-symbols=true ";
+    }
+    if ($build_args ne "") {
+      $defs       = $defs." ".$build_args." ";
+    }
+    if ($bc_args ne "") {
+      $defs       = $defs."-Dconfig.bootimage.compiler.args=\"$bc_args\" ";
+    }
+    $hostdefs   = $defs."-Dhost.name=$hostConfig ";
+    $targetdefs = $defs."-Dhost.name=$targetConfig ";
+
+    #
+    # Build classpath on host
+    #
+    $build = "";
+
+    if ($skip_build) {
+      $build .= "echo Skipping build ";
+    } else {
+      $build .= "ssh -t $sshHost '\n".
+               "  cd $hostRoot &&\n".
+               "  export JAVA_HOME=$javaHome{$host} && \n";
+
+      if (! $quick) {
+        $build .= "  ant very-clean -Dhost.name=$hostConfig &&\n";
+      }
+      $build .= "  ant check-components-properties ".
+                "-Dhost.name=$hostConfig ".
+                "-Dtarget.name=$hostConfig ".
+                $cp_flags."&& \n"; 
+    
+      #
+      # Initial build
+      #
+      if ($hostConfig eq $targetConfig) {
+        $build .= "  ant $hostdefs\n";
+      } else {
+        $build .= "  ant cross-compile-host $hostdefs\n";
+      }
+      $build .= "' ";
+    }
+
+    #
+    # Cross-builds
+    #
+    if ($host ne $target) {
+      $build .= "&& \n\n".
+                "ssh -t $sshTarget mkdir -p $targetRoot && \n\n";
+      if ($hostConfig eq $targetConfig) {
+        #
+        # Same architecture: just copy the dist directory
+        #
+        $build .= "ssh -t $sshHost rsync -avz $hostRoot/dist/$targetDir ";
+        $build .= " $sshTarget:$targetRoot/dist/ \n";
+      } else {
+        # Copy the compiled classes and boot image
+        $build .= "ssh -t $sshHost '\n".
+                  "  rsync -avz $hostRoot/target/$targetDir ".
+                  " $sshTarget:$targetRoot/target/ &&\n";
+        $copydirs = "";
+        foreach $d (@ccdirs) {
+          $copydirs .= " $hostRoot/$d";
+        }
+        $build .= "  rsync -avz $copydirs $sshTarget:$targetRoot/' &&\n\n";
+
+        #
+        # post-processing for cross-compile
+        #
+
+        # For the classpath build, the host is now the target ;)
+        $build .= "ssh -t $sshTarget '\n".
+                  "  cd $targetRoot && \n".
+                  "  export JAVA_HOME=$javaHome{$target} && \n";
+
+        $build .= "  ant check-components-properties ".
+                  "-Dhost.name=$targetConfig ".
+                  "-Dtarget.name=$targetConfig ".
+                  $cp_flags."&& \n";
+
+        $build .= "  ant cross-compile-target $targetdefs '\n";
+      }
+    }
+    print "---> Config: $compiler$g\n";
+    print "$build\n";
+    if (! $dry_run) {
+      $retval{$g} = system($build);
+      $ok = $ok && ($retval{$g} == 0);
+    }
+    $date{$g} = `date`;
+    chomp($date{$g});
+    print $date{$g}."\n";
+  }
+}
+
+my $resultdir = "results/buildit/".$testsid;
+my $uploaddir = $upload_base.$resultdir;
+my $webdir = $web_base.$resultdir;
+
+if ($ok && ($test_set ne "" || $test_list ne "")) {
+  my $configs="";
+  foreach $g (@gcs) {
+    $configs = $configs." ".$compiler.$g;
+  }
+  $configs =~ s/^ //;
+
+  $test = "ssh -t $sshTarget '\n".
+          "  cd $targetRoot && \n".
+          "  mkdir -p $resultdir && \n".
+          "  export JAVA_HOME=$javaHome{$target} && \n".
+          "  ant -f test.xml ".
+          "-Dhost.name=$targetConfig ".
+          "-Dskip.build=true ".
+          "-Dexternal.lib.dir=$extlibdir ".
+          "-Dresults.dir=$targetRoot/$resultdir ";
+
+  if ($xvfb_run ne "") {
+    $test .="-Ddisplay-wrapper.exe=$xvfb_run ";
+  }
+
+  if($report_email ne "") {
+    $test .= "-Dmail.from=$report_email ".
+             "-Dmail.to=$report_email ".
+             "-Dmail.host=$mailserver ".
+             "-Dsend.reports=true ".
+             "-Dweb.directory=$webdir ".
+             "-Dreporting.host.name=$target ";
+
+    if ($upload_host ne "") {
+      $test .= "-Dupload.location=$upload_host:$uploaddir ";
+    }
+
+    $make_upload = "ssh -t $upload_host mkdir -p $uploaddir ";
+    print($make_upload."\n");
+    if (! $dry_run) {
+      system($make_upload);
+    }
+  }
+
+  if ($procs ne "") {
+    $test .= "-Dtest.processors=$procs ";
+  }
+
+  if ($test_set ne "") {
+    $test .= "-Dtest-run.name=$test_set ";
+  }
+
+  if ($test_list ne "") {
+    $test .= "-Dtest.tests=\"$test_list\" ".
+             "-Dtest-run.name=local ";
+  }
+
+  if(! $implicitconfigs) {
+    $test .= "-Dtest.configs=\"$configs\" ";
+    if ($run_args ne "") {
+      foreach $conf (split(" ", $configs)) {
+        $test .= "-Dtest.config.$conf.extra.args=\"$run_args\" ";
+      }
+    }
+  }
+
+  $test .= "' \n";
+  print "$test\n";
+  if(! $dry_run) {
+    system($test);
+  }
+
+  $rsync = "mkdir -p $localRoot/$resultdir && ".
+           "rm -f $localRoot/results/buildit/$results_name && ".
+           "ln -s $localRoot/$resultdir $localRoot/results/buildit/$results_name && ".
+           "rsync -azvLe ssh $sshTarget:$targetRoot/$resultdir/ $localRoot/$resultdir/";
+
+  print "$rsync\n";
+  if(! $dry_run) {
+    system($rsync);
+  }
+}
+
+$end = `date`;
+chomp($end);
+
+print "===================== Summary =====================\n";
+print "Local   : ".$localRoot."\n";
+print "Build   : ".$sshHost.":".$hostRoot."\n";
+print "Target  : ".$sshTarget.":".$targetRoot."\n";
+print "Start   : ".$start."\n";
+$configTitle = "Config  : ";
+foreach $g (@gcs) {
+  print $configTitle.$compiler.$g;
+  if ($dry_run) {
+    print " [DRY RUN]\n";
+  } elsif (! defined($retval{$g})) {
+    print " [DID NOT BUILD]\n";
+  } elsif ($retval{$g} == 0) {
+    print " [SUCCESS ".$date{$g}."]\n";
+  } else {
+    print " [FAILED ".$date{$g}."]\n";
+  }
+  $configTitle = "          ";
+}
+if ($test_set || $test_list) {
+  print "Test Dir: $resultdir \n";
+  my $html = `find $localRoot/$resultdir -name Report.html`;
+  chomp ($html);
+  if (! $dry_run && $html ne "") { 
+    print "===================== Results =====================\n";
+    system("w3m -dump $html");
+  }
+}
+print "===================================================\n";
+
+
+sub msg_warn {
+  print(shift()."\n");
+}
+
+sub msg_error {
+  print("ERROR: ".shift()."\n");
+}
+
+sub bad_usage {
+    print($shortusage);
+    print("\n");
+    my $msg = shift();
+    if ($msg) {
+      msg_error($msg);
+    }
+    exit(-1);
+}
+
+sub cache_data {
+  my $key = shift();
+  my $value = shift();
+  open(CONFIG, ">> $cacheFile");
+  print CONFIG $key."=".$value."\n";
+  close(CONFIG);
+  $config{$key} = $value;
+}
+
+sub load_config {
+  my $file = shift();
+  if (-e $file) {
+    open(CONFIG, "< $file");
+    while (<CONFIG>) {
+      if (($_ =~ m/^#(.*)/) eq "") { 
+        my ($key, $value) = $_ =~ m/^(\S+)\s*=\s*(\S+)\s*$/;
+        if ($key ne "") {
+          $value = eval("\"".$value."\"");
+          $config{$key} = $value;
+        }
+      }
+    }
+    close(CONFIG);
+  }
+}
+
+sub confirm {
+  $message=shift;
+  print $message."\nPlease type y to confirm > ";
+  $conf = <STDIN>;
+  chomp($conf);
+  ($conf =~ /^[yY]/) or (print("Confirmation rejected...\n") and exit(-1));
+}
+
+sub home_dir {
+  if ($ENV{HOME}) {
+    return $ENV{HOME} 
+  }
+  if ($ENV{USERPROFILE}) {
+    return $ENV{USERPROFILE}
+  }
+  die "Could not find home directory."
+}
+
+#
+# Create a string that uniquely identifies this run
+#
+sub getid() {
+    ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
+    $year += 1900;
+    $mon += 1;
+    $day = (Sun,Mon,Tue,Wed,Thu,Fri,Sat)[$wday];
+    $id = sprintf("%s-%4d-%2.2d-%2.2d-%s-%2.2d-%2.2d-%2.2d", $target, $year, $mon, $mday, $day, $hour, $min, $sec);
+    return $id;
+}
