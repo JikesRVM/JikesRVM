@@ -3384,9 +3384,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
   }
 
   private static DefUseEffect getObjTib(OPT_Instruction s) {
-    // Constant folding object tibs is disabled as it causes
-    // failures in SPECjbb200* benchmarks. See RVM-16
-    if (CF_TIB && false) {
+    if (CF_TIB) {
       OPT_Operand op = GuardedUnary.getVal(s);
       if (op.isNullConstant()) {
         // Simplify to an unreachable operand, this instruction is dead code
@@ -3400,7 +3398,10 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
           Move.mutate(s, REF_MOVE, GuardedUnary.getClearResult(s), new OPT_TIBConstantOperand(op.getType().peekType()));
           return DefUseEffect.MOVE_FOLDED;
         }
-      } else {
+      } else if (false) {
+        // Constant folding object tibs based on precise type information 
+        // is disabled as it causes failures in SPECjbb200* benchmarks. See
+        // RVM-16
         OPT_RegisterOperand rop = op.asRegister();
         VM_TypeReference typeRef = rop.getType();
         if (typeRef.isResolved() && rop.isPreciseType()) {
