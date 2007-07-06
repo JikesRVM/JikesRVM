@@ -301,46 +301,36 @@ r:	INT_ADD(address1scaledreg, r)
 11
 EMIT_INSTRUCTION
 augmentAddress(Binary.getVal2(P(p))); \
-EMIT(MIR_Lea.mutate(P(p), IA32_LEA, Binary.getResult(P(p)), consumeAddress(DW, null, null)));
+EMIT_Lea(P(p), Binary.getResult(P(p)), consumeAddress(DW, null, null));
 
 r:	INT_ADD(r, address1scaledreg)
 11
 EMIT_INSTRUCTION
 augmentAddress(Binary.getVal1(P(p))); \
-EMIT(MIR_Lea.mutate(P(p), IA32_LEA, Binary.getResult(P(p)), consumeAddress(DW, null, null)));
+EMIT_Lea(P(p), Binary.getResult(P(p)), consumeAddress(DW, null, null));
 
 r:	INT_ADD(address1scaledreg, address1reg)
 11
 EMIT_INSTRUCTION
 combineAddresses(); \
-EMIT(MIR_Lea.mutate(P(p), IA32_LEA, Binary.getResult(P(p)), consumeAddress(DW, null, null)));
+EMIT_Lea(P(p), Binary.getResult(P(p)), consumeAddress(DW, null, null));
 
 r:	INT_ADD(address1reg, address1scaledreg)
 11
 EMIT_INSTRUCTION
 combineAddresses(); \
-EMIT(MIR_Lea.mutate(P(p), IA32_LEA, Binary.getResult(P(p)), consumeAddress(DW, null, null)));
+EMIT_Lea(P(p), Binary.getResult(P(p)), consumeAddress(DW, null, null));
 
 r:	INT_ADD(address, INT_CONSTANT)
 11
 EMIT_INSTRUCTION
 augmentAddress(Binary.getVal2(P(p))); \
-OPT_MemoryOperand mo=consumeAddress(DW, null, null); \
-if ((mo.index == null) && Binary.getResult(P(p)).similar(mo.base)) { \
- EMIT_Commutative(IA32_ADD, P(p), mo.base.copyRO(), mo.base, IC(mo.disp.toInt())); \
-} else { \
- EMIT(MIR_Lea.mutate(P(p), IA32_LEA, Binary.getResult(P(p)), mo)); \
-}
+EMIT_Lea(P(p), Binary.getResult(P(p)), consumeAddress(DW, null, null));
 
 r:	INT_MOVE(address)
 20
 EMIT_INSTRUCTION
-OPT_MemoryOperand mo=consumeAddress(DW, null, null); \
-if ((mo.index == null) && Move.getResult(P(p)).similar(mo.base)) { \
- EMIT_Commutative(IA32_ADD, P(p), Move.getResult(P(p)), mo.base, IC(mo.disp.toInt())); \
-} else { \
- EMIT(MIR_Lea.mutate(P(p), IA32_LEA, Move.getResult(P(p)), mo)); \
-}
+EMIT_Lea(P(p), Move.getResult(P(p)), consumeAddress(DW, null, null));
 
 ##################################
 # A few operators are passed through unchanged
@@ -840,7 +830,7 @@ if (Binary.getVal2(P(p)).isIntConstant()) { \
 } else { \
  pushAddress(R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))), B_S, Offset.zero()); \
 } \
-EMIT(MIR_Lea.mutate(P(p), IA32_LEA, Binary.getResult(P(p)), consumeAddress(DW, null, null)));
+EMIT_Lea(P(p), Binary.getResult(P(p)), consumeAddress(DW, null, null));
 
 ### Memory operands ###
 czr:	INT_ADD(riv, load32)
@@ -1013,7 +1003,7 @@ r:	INT_SHL(r, INT_CONSTANT)
 (Binary.getVal2(P(p)).asIntConstant().value & 0x1f) <= 3 ? 11 : INFINITE
 EMIT_INSTRUCTION
 pushAddress(null, Binary.getVal1(P(p)).asRegister(), LEA_SHIFT(Binary.getVal2(P(p))), Offset.zero()); \
-EMIT(MIR_Lea.mutate(P(p), IA32_LEA, Binary.getResult(P(p)), consumeAddress(DW, null, null)));
+EMIT_Lea(P(p), Binary.getResult(P(p)), consumeAddress(DW, null, null));
 
 # Are shifts being used to mask out lower bits?
 szpr:	INT_SHL(INT_SHR(r, INT_CONSTANT), INT_CONSTANT)

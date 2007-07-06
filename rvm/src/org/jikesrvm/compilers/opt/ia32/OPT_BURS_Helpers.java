@@ -242,6 +242,28 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
   }
 
   /**
+   * Create the MIR LEA instruction performing a few simplifications if possible
+   * @param s the instruction being replaced
+   * @param result the destination register
+   * @param mo the memory operand
+   */
+  protected void EMIT_Lea(OPT_Instruction s, OPT_RegisterOperand result, OPT_MemoryOperand mo) {
+    // A memory operand is: base + scaled index + displacement
+    if ((mo.index == null) && mo.disp.isZero()) {
+      if (VM.VerifyAssertions) VM._assert(mo.scale == 0 && mo.base != null);
+      // If there is no index or displacement emit a move
+      EMIT(MIR_Move.mutate(s, IA32_MOV, result, mo.base));
+    } else if ((mo.index == null) && result.similar(mo.base)) {
+      if (VM.VerifyAssertions) VM._assert(mo.scale == 0);
+      // If there is no index and we're redefining the same register, emit an add
+      EMIT(MIR_BinaryAcc.mutate(s, IA32_ADD, result, IC(mo.disp.toInt())));
+    } else {
+      // Lea is simplest form
+      EMIT(MIR_Lea.mutate(s, IA32_LEA, result, mo));
+    }
+  }
+
+  /**
    * Convert the given comparison with a boolean (int) value into a condition
    * suitable for the carry flag
    * @param x the value 1 (true) or 0 (false)
