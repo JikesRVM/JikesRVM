@@ -26,7 +26,8 @@ import org.vmmagic.pragma.*;
  *
  * FIXME: Why can't these operations be performed at word-granularity?
  */
-@Uninterruptible public class Memory implements Constants {
+@Uninterruptible 
+public class Memory implements Constants {
 
   /****************************************************************************
    *
@@ -188,7 +189,7 @@ import org.vmmagic.pragma.*;
       if (start.loadInt(Offset.fromIntSignExtend(i)) != value) {
         if (verbose) {
           Log.prependThreadId();
-          Log.write("VM.me.range does not contain only value ");
+          Log.write("VM range does not contain only value ");
           Log.writeln(value);
           Log.write("Non-zero range: "); Log.write(start);
           Log.write(" .. "); Log.writeln(start.plus(bytes));
