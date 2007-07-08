@@ -22,6 +22,9 @@
 /MMTk\/doc\// { next }
 
 # Ignore patches
+/build\/test-runs\/local.\.properties/ {next}
+
+# Ignore patches
 /build\/components\/patches/ {next}
 
 # Test results
