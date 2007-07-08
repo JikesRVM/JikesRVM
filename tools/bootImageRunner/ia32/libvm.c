@@ -805,11 +805,6 @@ createVM(int UNUSED vmInSeparateThread)
     setbuf (SysErrorFile, 0);
     setbuf (SysTraceFile, 0);
 
-    if (lib_verbose)
-    {
-        fprintf(SysTraceFile, "IA32 linux build\n");
-    }
-
     unsigned roundedDataRegionSize;
     void *bootDataRegion = mapImageFile(bootDataFilename,
                                         bootImageDataAddress,
