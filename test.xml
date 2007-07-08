@@ -88,7 +88,8 @@
 
   <target name="init" depends="prepare-ant-tasks">
     <tstamp prefix="test-run.start">
-      <format property="time" pattern="EE MMM d HH:mm:ss z yyyy"/>
+      <format property="time" pattern="EEE MMM dd HH:mm:ss z yyyy" timezone="UTC"/>
+      <format property="time-stamp" pattern="yyyyMMddHHmmss" timezone="UTC"/>
     </tstamp>
   </target>
 
@@ -277,9 +278,8 @@
     <mkdir dir="${results.archive}"/>
 
     <hostname property="local.hostname"/>
-    <tstamp prefix="report"/>
 
-    <property name="archive.filename" value="${local.hostname}_${test-run.name}_${report.DSTAMP}${report.TSTAMP}_r${svn.revision}_${target.name}_Report.xml"/>
+    <property name="archive.filename" value="${local.hostname}_${test-run.name}_${time-stamp}_r${svn.revision}_${target.name}_Report.xml"/>
     <gzip src="${test.results.dir}/Report.xml" destfile="${results.archive}/${archive.filename}.gz"/>
   </target>
 

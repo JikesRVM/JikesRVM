@@ -211,7 +211,7 @@ Check to make sure all required properties are specified. This includes properti
 
     <!-- setup properties for start of build. -->
     <tstamp prefix="start">
-      <format property="time" pattern="DD MMMM yyyy HH:mm"/>
+      <format property="time" pattern="EEE MMM dd HH:mm:ss z yyyy" timezone="UTC"/>
     </tstamp>
 
     <!-- set include.* properties if corresponding feature is in use. Properties used by if/unless guards. -->
