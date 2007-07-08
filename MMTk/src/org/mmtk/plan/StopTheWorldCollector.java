@@ -14,7 +14,6 @@ package org.mmtk.plan;
 
 import org.mmtk.utility.Finalizer;
 import org.mmtk.utility.Log;
-import org.mmtk.utility.ReferenceProcessor;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.sanitychecker.SanityCheckerLocal;
 
@@ -89,16 +88,15 @@ import org.vmmagic.pragma.*;
     }
 
     if (phaseId == StopTheWorld.SOFT_REFS) {
-      if (primary && !Options.noReferenceTypes.getValue())
-        ReferenceProcessor.processSoftReferences(
-            global().isCurrentGCNursery());
+      if (primary && !Options.noReferenceTypes.getValue()) {
+        VM.softReferences.scan(getCurrentTrace(),global().isCurrentGCNursery());
+      }
       return;
     }
 
     if (phaseId == StopTheWorld.WEAK_REFS) {
       if (primary && !Options.noReferenceTypes.getValue())
-        ReferenceProcessor.processWeakReferences(
-            global().isCurrentGCNursery());
+        VM.weakReferences.scan(getCurrentTrace(),global().isCurrentGCNursery());
       return;
     }
 
@@ -114,15 +112,16 @@ import org.vmmagic.pragma.*;
 
     if (phaseId == StopTheWorld.PHANTOM_REFS) {
       if (primary && !Options.noReferenceTypes.getValue())
-        ReferenceProcessor.processPhantomReferences(
-            global().isCurrentGCNursery());
+        VM.phantomReferences.scan(getCurrentTrace(),global().isCurrentGCNursery());
       return;
     }
 
     if (phaseId == StopTheWorld.FORWARD_REFS) {
       if (primary && !Options.noReferenceTypes.getValue() &&
           VM.activePlan.constraints().needsForwardAfterLiveness()) {
-        ReferenceProcessor.forwardReferences();
+        VM.softReferences.forward(getCurrentTrace(),global().isCurrentGCNursery());
+        VM.weakReferences.forward(getCurrentTrace(),global().isCurrentGCNursery());
+        VM.phantomReferences.forward(getCurrentTrace(),global().isCurrentGCNursery());
       }
       return;
     }

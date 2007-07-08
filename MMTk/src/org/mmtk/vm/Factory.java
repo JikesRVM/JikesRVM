@@ -103,13 +103,13 @@ public abstract class Factory {
   public abstract Options newOptions();
 
   /**
-   * Create a new ReferenceGlue instance using the appropriate VM-specific
-   * concrete ReferenceGlue sub-class.
+   * Create a new ReferenceProcessor instance using the appropriate VM-specific
+   * concrete ReferenceProcessor sub-class.
    *
-   * @see ReferenceGlue
-   * @return A concrete VM-specific ReferenceGlue instance.
+   * @see ReferenceProcessor
+   * @return A concrete VM-specific ReferenceProcessor instance.
    */
-  public abstract ReferenceGlue newReferenceGlue();
+  public abstract ReferenceProcessor newReferenceProcessor(ReferenceProcessor.Semantics semantics);
 
   /**
    * Create a new Scanning instance using the appropriate VM-specific

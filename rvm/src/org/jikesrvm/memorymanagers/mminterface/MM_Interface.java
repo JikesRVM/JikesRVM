@@ -27,7 +27,7 @@ import org.jikesrvm.mm.mmtk.Assert;
 import org.jikesrvm.mm.mmtk.Collection;
 import org.jikesrvm.mm.mmtk.Lock;
 import org.jikesrvm.mm.mmtk.Options;
-import org.jikesrvm.mm.mmtk.ReferenceGlue;
+import org.jikesrvm.mm.mmtk.ReferenceProcessor;
 import org.jikesrvm.mm.mmtk.SynchronizedCounter;
 import org.jikesrvm.objectmodel.BootImageInterface;
 import org.jikesrvm.objectmodel.VM_JavaHeader;
@@ -834,7 +834,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    */
   @Interruptible
   public static void addSoftReference(SoftReference<?> obj) {
-    ReferenceGlue.addSoftCandidate(obj);
+    ReferenceProcessor.addSoftCandidate(obj);
   }
 
   /**
@@ -844,7 +844,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    */
   @Interruptible
   public static void addWeakReference(WeakReference<?> obj) {
-    ReferenceGlue.addWeakCandidate(obj);
+    ReferenceProcessor.addWeakCandidate(obj);
   }
 
   /**
@@ -854,7 +854,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    */
   @Interruptible
   public static void addPhantomReference(PhantomReference<?> obj) {
-    ReferenceGlue.addPhantomCandidate(obj);
+    ReferenceProcessor.addPhantomCandidate(obj);
   }
 
   /***********************************************************************

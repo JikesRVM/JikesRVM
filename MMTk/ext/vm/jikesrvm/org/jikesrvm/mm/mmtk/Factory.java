@@ -14,6 +14,7 @@ package org.jikesrvm.mm.mmtk;
 
 import org.mmtk.utility.gcspy.Color;
 import org.mmtk.utility.gcspy.drivers.AbstractDriver;
+import org.mmtk.vm.ReferenceProcessor.Semantics;
 
 import org.jikesrvm.VM;
 
@@ -156,17 +157,17 @@ public final class Factory extends org.mmtk.vm.Factory {
   }
 
   /**
-   * Create a new ReferenceGlue instance using the appropriate VM-specific
-   * concrete ReferenceGlue sub-class.
+   * Create a new ReferenceProcessor instance using the appropriate VM-specific
+   * concrete ReferenceProcessor sub-class.
    *
-   * @see ReferenceGlue
-   * @return A concrete VM-specific ReferenceGlue instance.
+   * @see ReferenceProcessor
+   * @return A concrete VM-specific ReferenceProcessor instance.
    */
-  public org.mmtk.vm.ReferenceGlue newReferenceGlue() {
+  public org.mmtk.vm.ReferenceProcessor newReferenceProcessor(Semantics semantics) {
     try {
-      return new ReferenceGlue();
+      return ReferenceProcessor.get(semantics);
     } catch (Exception e) {
-      VM.sysFail("Failed to allocate new ReferenceGlue!");
+      VM.sysFail("Failed to allocate new ReferenceProcessor!");
       return null; // never get here
     }
   }

@@ -16,7 +16,6 @@ import org.mmtk.policy.Space;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.Log;
-import org.mmtk.utility.ReferenceProcessor;
 import org.mmtk.utility.options.*;
 import org.mmtk.utility.sanitychecker.SanityChecker;
 import org.mmtk.utility.statistics.Stats;
@@ -118,7 +117,7 @@ import org.vmmagic.pragma.*;
       WEAK_REFS,
       FINALIZABLE,  COMPLETE_CLOSURE,
       WEAK_TRACK_REFS,
-          PHANTOM_REFS }).getId();
+      PHANTOM_REFS}).getId();
 
   /**
    * Ensure that all references in the system are correct.
@@ -210,7 +209,6 @@ import org.vmmagic.pragma.*;
       }
       if (emergencyCollection) {
         if (Options.verbose.getValue() > 1) Log.write("[Emergency]");
-        ReferenceProcessor.setClearSoftReferences(true);
         forceFullHeapCollection();
       }
       return;
