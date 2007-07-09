@@ -103,7 +103,7 @@ class OPT_MIRSplitRanges extends OPT_CompilerPhase implements OPT_Operators {
             //       LowTableSwitch (which would cause IR verification
             //       problems anyways, since LowTableSwitch is a branch).
             insertMoveBefore(temp, rOp.copyRO(), s); // move r into 'temp' before s
-            rOp.register = temp.register;
+            rOp.setRegister(temp.getRegister());
           }
           break;
         }
@@ -145,10 +145,10 @@ class OPT_MIRSplitRanges extends OPT_CompilerPhase implements OPT_Operators {
       OPT_Operand op = ops.next();
       if (op.isRegister()) {
         OPT_RegisterOperand rOp = op.asRegister();
-        OPT_Register r = rOp.register;
+        OPT_Register r = rOp.getRegister();
         OPT_Register newR = newMap.get(r);
         if (newR != null) {
-          rOp.register = newR;
+          rOp.setRegister(newR);
         }
       }
     }
@@ -163,13 +163,13 @@ class OPT_MIRSplitRanges extends OPT_CompilerPhase implements OPT_Operators {
    */
   private static OPT_RegisterOperand findOrCreateTemp(OPT_RegisterOperand rOp,
                                                       java.util.HashMap<OPT_Register, OPT_Register> map, OPT_IR ir) {
-    OPT_Register tReg = map.get(rOp.register);
+    OPT_Register tReg = map.get(rOp.getRegister());
     if (tReg == null) {
-      OPT_RegisterOperand tOp = ir.regpool.makeTemp(rOp.type);
-      map.put(rOp.register, tOp.register);
+      OPT_RegisterOperand tOp = ir.regpool.makeTemp(rOp.getType());
+      map.put(rOp.getRegister(), tOp.getRegister());
       return tOp;
     } else {
-      return new OPT_RegisterOperand(tReg, rOp.type);
+      return new OPT_RegisterOperand(tReg, rOp.getType());
     }
   }
 

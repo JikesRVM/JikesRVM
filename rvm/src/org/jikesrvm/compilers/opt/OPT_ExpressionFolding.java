@@ -371,14 +371,14 @@ class OPT_ExpressionFolding extends OPT_IRTools {
           continue;
         }
 
-        if (candidates.contains(val1.asRegister().register)) {
-          OPT_Instruction def = val1.asRegister().register.getFirstDef();
+        if (candidates.contains(val1.asRegister().getRegister())) {
+          OPT_Instruction def = val1.asRegister().getRegister().getFirstDef();
 
           // filter out moves to get the real defining instruction
           while (Move.conforms(def)) {
             OPT_Operand op = Move.getVal(def);
             if (op.isRegister()) {
-              def = op.asRegister().register.getFirstDef();
+              def = op.asRegister().getRegister().getFirstDef();
             } else {
               // The non-constant operand of the candidate expression is the
               // result of moving a constant. Remove as a candidate and leave
@@ -442,7 +442,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
         VM._assert(val1.isRegister(), "Error with val1 of " + s);
       }
 
-      OPT_Register v1 = val1.asRegister().register;
+      OPT_Register v1 = val1.asRegister().getRegister();
       if (candidates.contains(v1)) {
         for (Enumeration<OPT_RegisterOperand> uses = OPT_DefUse.uses(v1); uses
             .hasMoreElements();) {
@@ -2423,7 +2423,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
         if (val1.isConstant()) {
           return null;
         }
-        return Unary.getResult(s).asRegister().register;
+        return Unary.getResult(s).asRegister().getRegister();
       }
 
       case INT_ADD_opcode:
@@ -2486,7 +2486,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               return null;
             }
 
-            return Binary.getResult(s).asRegister().register;
+            return Binary.getResult(s).asRegister().getRegister();
           } else {
             if (VM.VerifyAssertions) {
               VM._assert(val2.isRegister());
@@ -2496,7 +2496,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             if (s.operator.isCommutative() && val1.isConstant() && !val1.isObjectConstant()) {
               Binary.setVal1(s, Binary.getClearVal2(s));
               Binary.setVal2(s, val1);
-              return Binary.getResult(s).asRegister().register;
+              return Binary.getResult(s).asRegister().getRegister();
             }
           }
         }
@@ -2514,7 +2514,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             return null;
           }
 
-          return GuardedBinary.getResult(s).asRegister().register;
+          return GuardedBinary.getResult(s).asRegister().getRegister();
         }
         return null;
       }
@@ -2532,7 +2532,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               return null;
             }
 
-            return BooleanCmp.getResult(s).asRegister().register;
+            return BooleanCmp.getResult(s).asRegister().getRegister();
           } else {
             if (VM.VerifyAssertions) {
               VM._assert(val2.isRegister());
@@ -2542,7 +2542,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               BooleanCmp.setVal1(s, BooleanCmp.getClearVal2(s));
               BooleanCmp.setVal2(s, val1);
               BooleanCmp.getCond(s).flipOperands();
-              return BooleanCmp.getResult(s).asRegister().register;
+              return BooleanCmp.getResult(s).asRegister().getRegister();
             }
           }
         }
@@ -2563,7 +2563,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               return null;
             }
 
-            return IfCmp.getGuardResult(s).asRegister().register;
+            return IfCmp.getGuardResult(s).asRegister().getRegister();
           } else {
             if (VM.VerifyAssertions) {
               VM._assert(val2.isRegister());
@@ -2573,7 +2573,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               IfCmp.setVal1(s, IfCmp.getClearVal2(s));
               IfCmp.setVal2(s, val1);
               IfCmp.getCond(s).flipOperands();
-              return IfCmp.getGuardResult(s).asRegister().register;
+              return IfCmp.getGuardResult(s).asRegister().getRegister();
             }
           }
         }
@@ -2590,7 +2590,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               return null;
             }
 
-            return IfCmp2.getGuardResult(s).asRegister().register;
+            return IfCmp2.getGuardResult(s).asRegister().getRegister();
           } else {
             if (VM.VerifyAssertions) {
               VM._assert(val2.isRegister());
@@ -2601,7 +2601,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               IfCmp2.setVal2(s, val1);
               IfCmp2.getCond1(s).flipOperands();
               IfCmp2.getCond2(s).flipOperands();
-              return IfCmp2.getGuardResult(s).asRegister().register;
+              return IfCmp2.getGuardResult(s).asRegister().getRegister();
             }
           }
         }
@@ -2623,7 +2623,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               return null;
             }
 
-            return CondMove.getResult(s).asRegister().register;
+            return CondMove.getResult(s).asRegister().getRegister();
           } else {
             if (VM.VerifyAssertions) {
               VM._assert(val2.isRegister());
@@ -2633,7 +2633,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               CondMove.setVal1(s, CondMove.getClearVal2(s));
               CondMove.setVal2(s, val1);
               CondMove.getCond(s).flipOperands();
-              return CondMove.getResult(s).asRegister().register;
+              return CondMove.getResult(s).asRegister().getRegister();
             }
           }
         }

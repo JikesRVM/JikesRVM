@@ -142,7 +142,7 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
           }
           // calculate address to which to jump, and store it
           // on the top of the stack
-          OPT_Register regS = MIR_LowTableSwitch.getIndex(p).register;
+          OPT_Register regS = MIR_LowTableSwitch.getIndex(p).getRegister();
           nextBlock.appendInstruction(MIR_BinaryAcc.create(IA32_SHL,
                                                            new OPT_RegisterOperand(regS, VM_TypeReference.Int),
                                                            IC(2)));
@@ -264,8 +264,8 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
               // eliminate useless move
               p.remove();
             } else {
-              int i = OPT_PhysicalRegisterSet.getFPRIndex(result.asRegister().register);
-              int j = OPT_PhysicalRegisterSet.getFPRIndex(value.asRegister().register);
+              int i = OPT_PhysicalRegisterSet.getFPRIndex(result.asRegister().getRegister());
+              int j = OPT_PhysicalRegisterSet.getFPRIndex(value.asRegister().getRegister());
               if (i == 0) {
                 MIR_XChng.mutate(p, IA32_FXCH, result, value);
               } else if (j == 0) {
@@ -320,8 +320,8 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
 	  // replace reg1 = LEA [reg1 << c1] with reg1 = reg1 << c1
           OPT_MemoryOperand value = MIR_Lea.getValue(p);
           OPT_RegisterOperand result = MIR_Lea.getResult(p);
-          if ((value.base != null && value.base.register == result.register) ||
-              (value.index != null && value.index.register == result.register)) {
+          if ((value.base != null && value.base.getRegister() == result.getRegister()) ||
+              (value.index != null && value.index.getRegister() == result.getRegister())) {
             // Calculate what flags are defined in coming instructions before a use of a flag or BBend
             OPT_Instruction x = next;
             int futureDefs = 0;
@@ -333,28 +333,28 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
             if (BBend.conforms(x) ||
                 (futureDefs & OPT_PhysicalDefUse.maskAF_CF_OF_PF_SF_ZF) == OPT_PhysicalDefUse.maskAF_CF_OF_PF_SF_ZF) {
 	      if (value.base != null &&
-		  value.index != null && value.index.register == result.register &&
+		  value.index != null && value.index.getRegister() == result.getRegister() &&
 		  value.disp.isZero() &&
 		  value.scale == 0) {
 		// reg1 = lea [base + reg1] -> add reg1, base
                 MIR_BinaryAcc.mutate(p, IA32_ADD, result, value.base);
-              } else if (value.base != null && value.base.register == result.register &&
+              } else if (value.base != null && value.base.getRegister() == result.getRegister() &&
 			 value.index != null &&
 			 value.disp.isZero() &&
 			 value.scale == 0) {
 		// reg1 = lea [reg1 + index] -> add reg1, index
                 MIR_BinaryAcc.mutate(p, IA32_ADD, result, value.index);                
-              } else if (value.base != null && value.base.register == result.register &&
+              } else if (value.base != null && value.base.getRegister() == result.getRegister() &&
 			 value.index == null) {
 		// reg1 = lea [reg1 + disp] -> add reg1, disp
                 MIR_BinaryAcc.mutate(p, IA32_ADD, result, IC(value.disp.toInt()));                
               } else if (value.base == null &&
-			 value.index == null && value.index.register == result.register &&
+			 value.index == null && value.index.getRegister() == result.getRegister() &&
 			 value.scale == 0) {
 		// reg1 = lea [reg1 + disp] -> add reg1, disp
                 MIR_BinaryAcc.mutate(p, IA32_ADD, result, IC(value.disp.toInt()));                
               } else if (value.base == null &&
-			 value.index == null && value.index.register == result.register &&
+			 value.index == null && value.index.getRegister() == result.getRegister() &&
 			 value.disp.isZero()) {
 		// reg1 = lea [reg1 << scale] -> shl reg1, scale
                 MIR_BinaryAcc.mutate(p, IA32_SHL, result, IC(value.scale));                
@@ -451,8 +451,8 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
         // eliminate useless move
         s.remove();
       } else {
-        int i = OPT_PhysicalRegisterSet.getFPRIndex(result.asRegister().register);
-        int j = OPT_PhysicalRegisterSet.getFPRIndex(value.asRegister().register);
+        int i = OPT_PhysicalRegisterSet.getFPRIndex(result.asRegister().getRegister());
+        int j = OPT_PhysicalRegisterSet.getFPRIndex(value.asRegister().getRegister());
         if (j == 0) {
           // We have FMOV Fi, F0
           // Expand as:
@@ -483,7 +483,7 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
         //        FLD M    (push M on FP stack).
         //        FSTP F(i+1)  (copy F0 to F(i+1) and pop register stack)
         if (VM.VerifyAssertions) VM._assert(result.isRegister());
-        int i = OPT_PhysicalRegisterSet.getFPRIndex(result.asRegister().register);
+        int i = OPT_PhysicalRegisterSet.getFPRIndex(result.asRegister().getRegister());
         s.insertBefore(MIR_Move.create(IA32_FLD, D(phys.getFPR(0)), value));
         MIR_Move.mutate(s, IA32_FSTP, D(phys.getFPR(i + 1)), D(phys.getFPR(0)));
       }
@@ -493,7 +493,7 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
       if (VM.VerifyAssertions) {
         VM._assert(result instanceof OPT_MemoryOperand);
       }
-      int i = OPT_PhysicalRegisterSet.getFPRIndex(value.asRegister().register);
+      int i = OPT_PhysicalRegisterSet.getFPRIndex(value.asRegister().getRegister());
       if (i != 0) {
         // Expand as:
         //        FLD Fi    (push Fi on FP stack).

@@ -166,8 +166,8 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
   }
 
   private static void double_2int(OPT_Instruction s, OPT_IR ir) {
-    OPT_Register res = Unary.getResult(s).register;
-    OPT_Register src = ((OPT_RegisterOperand) Unary.getVal(s)).register;
+    OPT_Register res = Unary.getResult(s).getRegister();
+    OPT_Register src = ((OPT_RegisterOperand) Unary.getVal(s)).getRegister();
     OPT_Register FP = ir.regpool.getPhysicalRegisterSet().getFP();
     int p = ir.stackManager.allocateSpaceForConversion();
     OPT_Register temp = ir.regpool.getDouble();
@@ -196,8 +196,8 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
 
   private static void double_2long(OPT_Instruction s, OPT_IR ir) {
     if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
-    OPT_Register res = Unary.getResult(s).register;
-    OPT_Register src = ((OPT_RegisterOperand) Unary.getVal(s)).register;
+    OPT_Register res = Unary.getResult(s).getRegister();
+    OPT_Register src = ((OPT_RegisterOperand) Unary.getVal(s)).getRegister();
     OPT_Register FP = ir.regpool.getPhysicalRegisterSet().getFP();
     int p = ir.stackManager.allocateSpaceForConversion();
     OPT_Register temp = ir.regpool.getDouble();
@@ -226,7 +226,7 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
 
   private static void boolean_cmp(OPT_Instruction s, OPT_IR ir, boolean cmp32Bit) {
     // undo the optimization because it cannot efficiently be generated
-    OPT_Register res = BooleanCmp.getClearResult(s).register;
+    OPT_Register res = BooleanCmp.getClearResult(s).getRegister();
     OPT_RegisterOperand one = (OPT_RegisterOperand) BooleanCmp.getClearVal1(s);
     OPT_Operand two = BooleanCmp.getClearVal2(s);
     OPT_ConditionOperand cond = BooleanCmp.getClearCond(s);
@@ -237,7 +237,7 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     OPT_BasicBlock BB2 = BB1.createSubBlock(0, ir);
     OPT_BasicBlock BB3 = BB1.createSubBlock(0, ir);
     OPT_RegisterOperand t = ir.regpool.makeTempInt();
-    t.register.setCondition();
+    t.getRegister().setCondition();
     OPT_Operator op;
     if (VM.BuildFor64Addr && !cmp32Bit) {
       if (two instanceof OPT_IntConstantOperand) {
@@ -291,7 +291,7 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
         if (VM.VerifyAssertions) VM._assert(false);
         break;
     }
-    OPT_Register res = Binary.getClearResult(s).register;
+    OPT_Register res = Binary.getClearResult(s).getRegister();
     OPT_RegisterOperand one = (OPT_RegisterOperand) Binary.getClearVal1(s);
     OPT_RegisterOperand two = (OPT_RegisterOperand) Binary.getClearVal2(s);
     res.setSpansBasicBlock();
@@ -303,7 +303,7 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     OPT_BasicBlock BB4 = BB1.createSubBlock(0, ir);
     OPT_BasicBlock BB5 = BB1.createSubBlock(0, ir);
     OPT_RegisterOperand t = ir.regpool.makeTempInt();
-    t.register.setCondition();
+    t.getRegister().setCondition();
     BB1.appendInstruction(MIR_Binary.create(PPC_FCMPU, t, one, two));
     BB1.appendInstruction(MIR_CondBranch.create(PPC_BCOND,
                                                 t.copyD2U(),
@@ -350,11 +350,11 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
   }
 
   private static void threeValueLongCmp_32(OPT_Instruction s, OPT_IR ir) {
-    OPT_Register res = Binary.getClearResult(s).register;
+    OPT_Register res = Binary.getClearResult(s).getRegister();
     OPT_RegisterOperand one = (OPT_RegisterOperand) Binary.getClearVal1(s);
     OPT_RegisterOperand two = (OPT_RegisterOperand) Binary.getClearVal2(s);
-    OPT_RegisterOperand lone = L(ir.regpool.getSecondReg(one.register));
-    OPT_RegisterOperand ltwo = L(ir.regpool.getSecondReg(two.register));
+    OPT_RegisterOperand lone = L(ir.regpool.getSecondReg(one.getRegister()));
+    OPT_RegisterOperand ltwo = L(ir.regpool.getSecondReg(two.getRegister()));
     res.setSpansBasicBlock();
     OPT_BasicBlock BB1 = s.getBasicBlock();
     OPT_BasicBlock BB6 = BB1.splitNodeAt(s, ir);
@@ -364,7 +364,7 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     OPT_BasicBlock BB4 = BB1.createSubBlock(0, ir);
     OPT_BasicBlock BB5 = BB1.createSubBlock(0, ir);
     OPT_RegisterOperand t = ir.regpool.makeTempInt();
-    t.register.setCondition();
+    t.getRegister().setCondition();
     BB1.appendInstruction(MIR_Binary.create(PPC_CMP, t, one, two));
     BB1.appendInstruction(MIR_CondBranch2.create(PPC_BCOND2,
                                                  t.copyD2U(),
@@ -406,7 +406,7 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
   }
 
   private static void threeValueLongCmp_64(OPT_Instruction s, OPT_IR ir) {
-    OPT_Register res = Binary.getClearResult(s).register;
+    OPT_Register res = Binary.getClearResult(s).getRegister();
     OPT_RegisterOperand one = (OPT_RegisterOperand) Binary.getClearVal1(s);
     OPT_RegisterOperand two = (OPT_RegisterOperand) Binary.getClearVal2(s);
     res.setSpansBasicBlock();
@@ -417,7 +417,7 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     OPT_BasicBlock BB3 = BB1.createSubBlock(0, ir);
     OPT_BasicBlock BB4 = BB1.createSubBlock(0, ir);
     OPT_RegisterOperand t = ir.regpool.makeTempInt();
-    t.register.setCondition();
+    t.getRegister().setCondition();
     BB1.appendInstruction(MIR_Binary.create(PPC64_CMP, t, one, two));
     BB1.appendInstruction(MIR_CondBranch2.create(PPC_BCOND2,
                                                  t.copyD2U(),
@@ -449,13 +449,13 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     OPT_BasicBlock BB1 = s.getBasicBlock();
     OPT_BasicBlock BB2 = BB1.createSubBlock(0, ir);
     OPT_BasicBlock BB3 = BB1.splitNodeAt(s, ir);
-    OPT_Register defHigh = Binary.getResult(s).register;
+    OPT_Register defHigh = Binary.getResult(s).getRegister();
     OPT_Register defLow = ir.regpool.getSecondReg(defHigh);
     OPT_RegisterOperand left = (OPT_RegisterOperand) Binary.getVal1(s);
-    OPT_Register leftHigh = left.register;
+    OPT_Register leftHigh = left.getRegister();
     OPT_Register leftLow = ir.regpool.getSecondReg(leftHigh);
     OPT_RegisterOperand shiftOp = (OPT_RegisterOperand) Binary.getVal2(s);
-    OPT_Register shift = shiftOp.register;
+    OPT_Register shift = shiftOp.getRegister();
     OPT_Register t31 = ir.regpool.getInteger();
     OPT_Register t0 = ir.regpool.getInteger();
     OPT_Register cr = ir.regpool.getCondition();
@@ -501,8 +501,8 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     OPT_RegisterOperand cr = ir.regpool.makeTempCondition();
     OPT_RegisterOperand val1 = (OPT_RegisterOperand) IfCmp.getClearVal1(s);
     OPT_RegisterOperand val2 = (OPT_RegisterOperand) IfCmp.getClearVal2(s);
-    OPT_RegisterOperand lval1 = L(ir.regpool.getSecondReg(val1.register));
-    OPT_RegisterOperand lval2 = L(ir.regpool.getSecondReg(val2.register));
+    OPT_RegisterOperand lval1 = L(ir.regpool.getSecondReg(val1.getRegister()));
+    OPT_RegisterOperand lval2 = L(ir.regpool.getSecondReg(val2.getRegister()));
     OPT_PowerPCConditionOperand cond = new OPT_PowerPCConditionOperand(IfCmp.getCond(s));
     BB1.appendInstruction(MIR_Binary.create(PPC_CMP, cr, val1, val2));
     BB1.appendInstruction(MIR_CondBranch.create(PPC_BCOND,
@@ -523,7 +523,7 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     if (VM.BuildFor32Addr) {
       OPT_BasicBlock BB1 = s.getBasicBlock();
       BB1 = BB1.segregateInstruction(s, ir);
-      OPT_Register defHigh = Nullary.getResult(s).register;
+      OPT_Register defHigh = Nullary.getResult(s).getRegister();
       OPT_Register defLow = ir.regpool.getSecondReg(defHigh);
       OPT_Register t0 = ir.regpool.getInteger();
       OPT_Register cr = ir.regpool.getCondition();
@@ -547,7 +547,7 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
       BB1.insertOut(BB1);
     } else {
       // We read the 64-bit time base register atomically
-      OPT_Register def = Nullary.getResult(s).register;
+      OPT_Register def = Nullary.getResult(s).getRegister();
       // See PowerPC Architecture, Book II, pp.352-353
       OPT_Register TL = ir.regpool.getPhysicalRegisterSet().getTL();
       MIR_Move.mutate(s, PPC_MFTB, L(def), L(TL));

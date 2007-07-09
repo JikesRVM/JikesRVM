@@ -681,11 +681,11 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
 
     // Get the spill location previously assigned to the symbolic
     // register.
-    int location = OPT_RegisterAllocatorState.getSpill(symb.register);
+    int location = OPT_RegisterAllocatorState.getSpill(symb.getRegister());
 
     // Create a memory operand M representing the spill location.
     OPT_Operand M = null;
-    int type = OPT_PhysicalRegisterSet.getPhysicalRegisterType(symb.register);
+    int type = OPT_PhysicalRegisterSet.getPhysicalRegisterType(symb.getRegister());
     int size = OPT_PhysicalRegisterSet.getSpillSize(type);
 
     M = new OPT_StackLocationOperand(true, -location, (byte) size);
@@ -698,8 +698,8 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
    * Does a memory operand hold a symbolic register?
    */
   private boolean hasSymbolicRegister(OPT_MemoryOperand M) {
-    if (M.base != null && !M.base.register.isPhysical()) return true;
-    if (M.index != null && !M.index.register.isPhysical()) return true;
+    if (M.base != null && !M.base.getRegister().isPhysical()) return true;
+    if (M.index != null && !M.index.getRegister().isPhysical()) return true;
     return false;
   }
 
@@ -935,7 +935,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
           s.replaceOperand(op, M);
         } else if (op instanceof OPT_MemoryOperand) {
           OPT_MemoryOperand M = op.asMemory();
-          if ((M.base != null && M.base.register == ESP) || (M.index != null && M.index.register == ESP)) {
+          if ((M.base != null && M.base.getRegister() == ESP) || (M.index != null && M.index.getRegister() == ESP)) {
             M.disp = M.disp.minus(ESPOffset);
           }
         }

@@ -665,7 +665,7 @@ public class OPT_LICM extends OPT_CompilerPhase {
       return lateBlock;
     }
 
-    OPT_Register res = ((OPT_RegisterOperand) resOp).register;
+    OPT_Register res = ((OPT_RegisterOperand) resOp).getRegister();
     OPT_RegisterOperandEnumeration e = OPT_DefUse.uses(res);
 
     while (e.hasMoreElements()) {
@@ -724,7 +724,7 @@ public class OPT_LICM extends OPT_CompilerPhase {
         return defiOp.instruction;
       }
     } else if (op instanceof OPT_RegisterOperand) {
-      OPT_Register reg = ((OPT_RegisterOperand) op).register;
+      OPT_Register reg = ((OPT_RegisterOperand) op).getRegister();
       OPT_RegisterOperandEnumeration defs = OPT_DefUse.defs(reg);
       if (!defs.hasMoreElements()) {          // params have no def
         return ir.firstInstructionInCodeOrder();

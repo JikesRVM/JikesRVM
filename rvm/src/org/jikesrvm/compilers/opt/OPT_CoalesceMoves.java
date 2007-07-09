@@ -79,11 +79,11 @@ class OPT_CoalesceMoves extends OPT_CompilerPhase {
     for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
       OPT_Instruction s = e.nextElement();
       if (s.operator.isMove()) {
-        OPT_Register r = Move.getResult(s).asRegister().register;
+        OPT_Register r = Move.getResult(s).asRegister().getRegister();
         if (r.isSymbolic()) {
           OPT_Operand val = Move.getVal(s);
           if (val != null && val.isRegister()) {
-            OPT_Register r2 = val.asRegister().register;
+            OPT_Register r2 = val.asRegister().getRegister();
             if (r2.isSymbolic()) {
               if (OPT_Coalesce.attempt(ir, live, r, r2)) {
                 if (DEBUG) System.out.println("COALESCED " + r + " " + r2);

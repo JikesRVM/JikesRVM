@@ -96,7 +96,7 @@ final class OPT_MinimalBURS extends OPT_BURS {
       // Set child = OPT_BURS_TreeNode for operand op
       OPT_BURS_TreeNode child;
       if (op instanceof OPT_RegisterOperand) {
-        if (op.asRegister().register.isValidation()) continue;
+        if (op.asRegister().getRegister().isValidation()) continue;
         child = Register;
       } else if (op instanceof OPT_IntConstantOperand) {
         child = new OPT_BURS_IntConstantTreeNode(((OPT_IntConstantOperand) op).value);

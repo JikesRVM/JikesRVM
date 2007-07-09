@@ -13,6 +13,8 @@
 package org.jikesrvm.compilers.opt.ir;
 
 import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.VM;
 
 /**
  * A symbolic or physical register.
@@ -30,11 +32,13 @@ public final class OPT_RegisterOperand extends OPT_Operand {
 
   /**
    * Register object that this operand uses.
+   * TODO: make this field private, it is accessed via generated code
    */
   public OPT_Register register;
 
   /**
    * Inferred data type of the contents of the register.
+   * TODO: make this field private, it is accessed via generated code
    */
   public VM_TypeReference type;
 
@@ -108,8 +112,8 @@ public final class OPT_RegisterOperand extends OPT_Operand {
    * @param typ data type
    */
   public OPT_RegisterOperand(OPT_Register reg, VM_TypeReference typ) {
-    register = reg;
-    type = typ;
+    setRegister(reg);
+    setType(typ);
   }
 
   /**
@@ -118,16 +122,30 @@ public final class OPT_RegisterOperand extends OPT_Operand {
    * @param reg register object
    * @param typ data type
    * @param inFlags to set for this register
+   * @param isPrecise is this a precise type
+   * @param isDeclared is this a declared type
    */
-  public OPT_RegisterOperand(OPT_Register reg, VM_TypeReference typ, byte inFlags) {
-    register = reg;
-    type = typ;
+  public OPT_RegisterOperand(OPT_Register reg, VM_TypeReference typ, byte inFlags,
+      boolean isPrecise, boolean isDeclared) {
+    setRegister(reg);
+    setType(typ);
     flags = inFlags;
+    if (isPrecise) {
+      setPreciseType();
+    } else {
+      clearPreciseType();
+    }
+    if (isDeclared) {
+      setDeclaredType();
+    } else {
+      clearDeclaredType();
+    }
   }
 
   /**
    * Returns a copy of this register operand as an operand
    */
+  @Override
   public OPT_Operand copy() {
     return copyRO();
   }
@@ -139,11 +157,17 @@ public final class OPT_RegisterOperand extends OPT_Operand {
    * and/or scratchObject being copied
    */
   public OPT_RegisterOperand copyRO() {
-    OPT_RegisterOperand temp = new OPT_RegisterOperand(register, type);
+    OPT_RegisterOperand temp = new OPT_RegisterOperand(getRegister(), type);
     temp.info = info;
     temp.flags = flags;
     temp.flags2 = flags2;
     temp.scratchObject = scratchObject;
+    if (VM.VerifyAssertions && isPreciseType() && type != null &&
+        type.isClassType() && type.isResolved()) {
+      VM_Class preciseClass = type.resolve().asClass();
+      VM._assert(!preciseClass.isInterface());
+      VM._assert(!preciseClass.isAbstract());
+    }
     return temp;
   }
 
@@ -181,24 +205,9 @@ public final class OPT_RegisterOperand extends OPT_Operand {
    *
    * @param op operand to compare against
    */
+  @Override
   public boolean similar(OPT_Operand op) {
-    return (op instanceof OPT_RegisterOperand) && (register == ((OPT_RegisterOperand) op).register);
-  }
-
-  /**
-   * Modify the register
-   */
-  public void setRegister(OPT_Register replacement) {
-    register = replacement;
-  }
-
-  /**
-   * Return the {@link VM_TypeReference} of the value represented by the operand.
-   *
-   * @return the inferred data type of the contents of the register
-   */
-  public VM_TypeReference getType() {
-    return type;
+    return (op instanceof OPT_RegisterOperand) && (getRegister() == ((OPT_RegisterOperand) op).getRegister());
   }
 
   /**
@@ -208,8 +217,8 @@ public final class OPT_RegisterOperand extends OPT_Operand {
    * @param rhs the type to copy information from
    */
   public void copyType(OPT_RegisterOperand rhs) {
-    this.type = rhs.type;
     this.flags = rhs.flags;
+    this.setType(rhs.type);
   }
 
   /**
@@ -219,6 +228,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
    *         is int-like as defined by {@link VM_TypeReference#isIntLikeType}
    *         or <code>false</code> if it is not.
    */
+  @Override
   public boolean isIntLike() {
     return type.isIntLikeType();
   }
@@ -230,6 +240,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
    *         is int-like as defined by {@link VM_TypeReference#isIntLikeType}
    *         or <code>false</code> if it is not.
    */
+  @Override
   public boolean isInt() {
     return type.isIntType();
   }
@@ -241,6 +252,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
    *         is a long as defined by {@link VM_TypeReference#isLongType}
    *         or <code>false</code> if it is not.
    */
+  @Override
   public boolean isLong() {
     return type.isLongType();
   }
@@ -252,6 +264,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
    *         is a float as defined by {@link VM_TypeReference#isFloatType}
    *         or <code>false</code> if it is not.
    */
+  @Override
   public boolean isFloat() {
     return type.isFloatType();
   }
@@ -263,6 +276,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
    *         is a double as defined by {@link VM_TypeReference#isDoubleType}
    *         or <code>false</code> if it is not.
    */
+  @Override
   public boolean isDouble() {
     return type.isDoubleType();
   }
@@ -274,6 +288,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
    *         is a reference as defined by {@link VM_TypeReference#isReferenceType}
    *         or <code>false</code> if it is not.
    */
+  @Override
   public boolean isRef() {
     return type.isReferenceType();
   }
@@ -285,6 +300,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
    *         is an address as defined by {@link VM_TypeReference#isWordType}
    *         or <code>false</code> if it is not.
    */
+  @Override
   public boolean isAddress() {
     return type.isWordType();
   }
@@ -295,6 +311,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
    * @return <code>true</code> if the operand definitely represents
    *         <code>null</code> or <code>false</code> if it does not.
    */
+  @Override
   public boolean isDefinitelyNull() {
     return type == VM_TypeReference.NULL_TYPE;
   }
@@ -339,7 +356,14 @@ public final class OPT_RegisterOperand extends OPT_Operand {
   public boolean isPreciseType() { return (flags & PRECISE_TYPE) != 0; }
 
   /** Set this register as having a precise type */
-  public void setPreciseType() { flags |= PRECISE_TYPE; }
+  public void setPreciseType() {
+    if (VM.VerifyAssertions && type.isClassType() && type.isResolved()) {
+      VM_Class preciseClass = type.resolve().asClass();
+      VM._assert(!preciseClass.isInterface());
+      VM._assert(!preciseClass.isAbstract());
+    }
+    flags |= PRECISE_TYPE;
+  }
 
   /** Clear this register from having a precise type */
   public void clearPreciseType() { flags &= ~PRECISE_TYPE; }
@@ -366,11 +390,23 @@ public final class OPT_RegisterOperand extends OPT_Operand {
   /** Merge two sets of register flags */
   public void addFlags(byte inFlag) {
     flags |= inFlag;
+    if (VM.VerifyAssertions && isPreciseType() && type != null &&
+        type.isClassType() && type.isResolved()) {
+      VM_Class preciseClass = type.resolve().asClass();
+      VM._assert(!preciseClass.isInterface());
+      VM._assert(!preciseClass.isAbstract());
+    }
   }
 
   /** Currently all flags are inheritable, so copy all flags from src */
   public void setInheritableFlags(OPT_RegisterOperand src) {
     flags = src.getFlags();
+    if (VM.VerifyAssertions && isPreciseType() && type != null &&
+        type.isClassType() && type.isResolved()) {
+      VM_Class preciseClass = type.resolve().asClass();
+      VM._assert(!preciseClass.isInterface());
+      VM._assert(!preciseClass.isAbstract());
+    }
   }
 
   /** Currently all flags are "meetable", so mask flags together */
@@ -460,8 +496,9 @@ public final class OPT_RegisterOperand extends OPT_Operand {
   /**
    * Returns the string representation of this operand.
    */
+  @Override
   public String toString() {
-    String s = register.toString();
+    String s = getRegister().toString();
     if (type != null) {
       if (type != VM_TypeReference.VALIDATION_TYPE) {
         s = s + "(" + type.getName();
@@ -477,4 +514,42 @@ public final class OPT_RegisterOperand extends OPT_Operand {
     return s;
   }
 
+  /**
+   * Modify the register
+   */
+  public void setRegister(OPT_Register register) {
+    this.register = register;
+  }
+
+  /**
+   * @return the register
+   */
+  public OPT_Register getRegister() {
+    return register;
+  }
+
+  /**
+   * Set the {@link VM_TypeReference} of the value represented by the operand.
+   *
+   * @param the inferred data type of the contents of the register
+   */
+  public void setType(VM_TypeReference t) {
+    type = t;
+    if (VM.VerifyAssertions && isPreciseType() && type != null &&
+        type.isClassType() && type.isResolved()) {
+      VM_Class preciseClass = type.resolve().asClass();
+      VM._assert(!preciseClass.isInterface());
+      VM._assert(!preciseClass.isAbstract());
+    }
+  }
+
+  /**
+   * Return the {@link VM_TypeReference} of the value represented by the operand.
+   *
+   * @return the inferred data type of the contents of the register
+   */
+  @Override
+  public VM_TypeReference getType() {
+    return type;
+  }
 }

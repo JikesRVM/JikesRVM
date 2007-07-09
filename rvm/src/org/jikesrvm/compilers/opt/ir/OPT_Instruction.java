@@ -633,16 +633,16 @@ public final class OPT_Instruction implements VM_Constants, OPT_Operators, OPT_C
     for (OPT_OperandEnumeration u = getUses(); u.hasMoreElements();) {
       OPT_Operand use = u.nextElement();
       if (use.isRegister()) {
-        if (use.asRegister().register == r) {
-          use.asRegister().register = n;
+        if (use.asRegister().getRegister() == r) {
+          use.asRegister().setRegister(n);
         }
       }
     }
     for (OPT_OperandEnumeration d = getDefs(); d.hasMoreElements();) {
       OPT_Operand def = d.nextElement();
       if (def.isRegister()) {
-        if (def.asRegister().register == r) {
-          def.asRegister().register = n;
+        if (def.asRegister().getRegister() == r) {
+          def.asRegister().setRegister(n);
         }
       }
     }

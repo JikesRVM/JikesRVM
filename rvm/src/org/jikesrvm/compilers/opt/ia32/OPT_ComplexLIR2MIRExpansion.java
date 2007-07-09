@@ -218,13 +218,13 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     ir.cfg.linkInCodeOrder(testBB, shift64BB);
 
     // Source registers
-    OPT_Register lhsReg = Binary.getResult(s).register;
+    OPT_Register lhsReg = Binary.getResult(s).getRegister();
     OPT_Register lowlhsReg = ir.regpool.getSecondReg(lhsReg);
     OPT_Operand val1 = Binary.getVal1(s);
     OPT_Register rhsReg;
     OPT_Register lowrhsReg;
     if (val1.isRegister()) {
-      rhsReg = val1.asRegister().register;
+      rhsReg = val1.asRegister().getRegister();
       lowrhsReg = ir.regpool.getSecondReg(rhsReg);
     } else {
       // shift is of a constant so set up registers
@@ -318,13 +318,13 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     ir.cfg.linkInCodeOrder(testBB, shift64BB);
 
     // Source registers
-    OPT_Register lhsReg = Binary.getResult(s).register;
+    OPT_Register lhsReg = Binary.getResult(s).getRegister();
     OPT_Register lowlhsReg = ir.regpool.getSecondReg(lhsReg);
     OPT_Operand val1 = Binary.getVal1(s);
     OPT_Register rhsReg;
     OPT_Register lowrhsReg;
     if (val1.isRegister()) {
-      rhsReg = val1.asRegister().register;
+      rhsReg = val1.asRegister().getRegister();
       lowrhsReg = ir.regpool.getSecondReg(rhsReg);
     } else {
       // shift is of a constant so set up registers
@@ -423,13 +423,13 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     ir.cfg.linkInCodeOrder(testBB, shift64BB);
 
     // Source registers
-    OPT_Register lhsReg = Binary.getResult(s).register;
+    OPT_Register lhsReg = Binary.getResult(s).getRegister();
     OPT_Register lowlhsReg = ir.regpool.getSecondReg(lhsReg);
     OPT_Operand val1 = Binary.getVal1(s);
     OPT_Register rhsReg;
     OPT_Register lowrhsReg;
     if (val1.isRegister()) {
-      rhsReg = val1.asRegister().register;
+      rhsReg = val1.asRegister().getRegister();
       lowrhsReg = ir.regpool.getSecondReg(rhsReg);
     } else {
       // shift is of a constant so set up registers
@@ -523,11 +523,11 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     ir.cfg.linkInCodeOrder(testBB, mul32BB);
 
     // Source registers
-    OPT_Register lhsReg = Binary.getResult(s).register;
+    OPT_Register lhsReg = Binary.getResult(s).getRegister();
     OPT_Register lowlhsReg = ir.regpool.getSecondReg(lhsReg);
-    OPT_Register rhsReg1 = Binary.getVal1(s).asRegister().register;
+    OPT_Register rhsReg1 = Binary.getVal1(s).asRegister().getRegister();
     OPT_Register lowrhsReg1 = ir.regpool.getSecondReg(rhsReg1);
-    OPT_Register rhsReg2 = Binary.getVal2(s).asRegister().register;
+    OPT_Register rhsReg2 = Binary.getVal2(s).asRegister().getRegister();
     OPT_Register lowrhsReg2 = ir.regpool.getSecondReg(rhsReg2);
 
     // Working registers
@@ -612,10 +612,10 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
   private static OPT_Instruction long_ifcmp(OPT_Instruction s, OPT_IR ir) {
     OPT_Instruction nextInstr = s.nextInstructionInCodeOrder();
     OPT_ConditionOperand cond = IfCmp.getCond(s);
-    OPT_Register xh = ((OPT_RegisterOperand) IfCmp.getVal1(s)).register;
+    OPT_Register xh = ((OPT_RegisterOperand) IfCmp.getVal1(s)).getRegister();
     OPT_Register xl = ir.regpool.getSecondReg(xh);
     OPT_RegisterOperand yh = (OPT_RegisterOperand) IfCmp.getClearVal2(s);
-    OPT_RegisterOperand yl = new OPT_RegisterOperand(ir.regpool.getSecondReg(yh.register), VM_TypeReference.Int);
+    OPT_RegisterOperand yl = new OPT_RegisterOperand(ir.regpool.getSecondReg(yh.getRegister()), VM_TypeReference.Int);
     basic_long_ifcmp(s, ir, cond, xh, xl, yh, yl);
     return nextInstr;
   }
@@ -623,7 +623,7 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
   private static OPT_Instruction long_ifcmp_imm(OPT_Instruction s, OPT_IR ir) {
     OPT_Instruction nextInstr = s.nextInstructionInCodeOrder();
     OPT_ConditionOperand cond = IfCmp.getCond(s);
-    OPT_Register xh = ((OPT_RegisterOperand) IfCmp.getVal1(s)).register;
+    OPT_Register xh = ((OPT_RegisterOperand) IfCmp.getVal1(s)).getRegister();
     OPT_Register xl = ir.regpool.getSecondReg(xh);
     OPT_LongConstantOperand rhs = (OPT_LongConstantOperand) IfCmp.getVal2(s);
     int low = rhs.lower32();

@@ -55,7 +55,7 @@ final class OPT_LiveSetElement {
    * This is done to promote something of WordType to ReferenceType for the purposes of GC mapping.
    */
   public void setRegisterOperand(OPT_RegisterOperand newRegOp) {
-    if (VM.VerifyAssertions) VM._assert(regOp.register.number == newRegOp.register.number);
+    if (VM.VerifyAssertions) VM._assert(regOp.getRegister().number == newRegOp.getRegister().number);
     regOp = newRegOp;
   }
 
@@ -64,7 +64,7 @@ final class OPT_LiveSetElement {
    * @return the register associated with this element
    */
   public OPT_Register getRegister() {
-    return regOp.register;
+    return regOp.getRegister();
   }
 
   /**
@@ -72,7 +72,7 @@ final class OPT_LiveSetElement {
    * @return the register type associated with this element
    */
   public VM_TypeReference getRegisterType() {
-    return regOp.type;
+    return regOp.getType();
   }
 
   /**

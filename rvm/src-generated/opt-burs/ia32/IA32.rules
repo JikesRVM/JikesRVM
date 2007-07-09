@@ -1545,7 +1545,7 @@ INT_2LONG(P(p), Binary.getResult(P(p)), consumeMO(), false);
 r:      LONG_SHL(INT_2LONG(r), INT_CONSTANT)
 VR(p) == 32 ? 23 : INFINITE
 EMIT_INSTRUCTION
-OPT_Register hr = Binary.getResult(P(p)).register; \
+OPT_Register hr = Binary.getResult(P(p)).getRegister(); \
 OPT_Register lr = regpool.getSecondReg(hr); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, new OPT_RegisterOperand(hr, VM_TypeReference.Int), Unary.getVal(PL(p)).copy())); \
 EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(lr, VM_TypeReference.Int), IC(0))));
@@ -1553,7 +1553,7 @@ EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(lr, VM_TypeRef
 r:      LONG_SHL(INT_2LONG(load64), INT_CONSTANT)
 VR(p) == 32 ? 23 : INFINITE
 EMIT_INSTRUCTION
-OPT_Register hr = Binary.getResult(P(p)).register; \
+OPT_Register hr = Binary.getResult(P(p)).getRegister(); \
 OPT_Register lr = regpool.getSecondReg(hr); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, new OPT_RegisterOperand(hr, VM_TypeReference.Int), setSize(consumeMO(),4))); \
 EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(lr, VM_TypeReference.Int), IC(0))));
@@ -1564,19 +1564,19 @@ EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(lr, VM_TypeRef
 r:	LONG_2INT(r)
 13
 EMIT_INSTRUCTION
-OPT_Register lh = regpool.getSecondReg(R(Unary.getVal(P(p))).register); \
+OPT_Register lh = regpool.getSecondReg(R(Unary.getVal(P(p))).getRegister()); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), new OPT_RegisterOperand(lh, VM_TypeReference.Int)));
 
 stm:	INT_STORE(LONG_2INT(r), OTHER_OPERAND(riv,riv))
 15
 EMIT_INSTRUCTION
-OPT_Register lh = regpool.getSecondReg(R(Unary.getVal(PL(p))).register); \
+OPT_Register lh = regpool.getSecondReg(R(Unary.getVal(PL(p))).getRegister()); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), DW), new OPT_RegisterOperand(lh, VM_TypeReference.Int)));
 
 stm:	INT_ASTORE(LONG_2INT(r), OTHER_OPERAND(r,riv))
 15
 EMIT_INSTRUCTION
-OPT_Register lh = regpool.getSecondReg(R(Unary.getVal(PL(p))).register); \
+OPT_Register lh = regpool.getSecondReg(R(Unary.getVal(PL(p))).getRegister()); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), DW_S, DW), new OPT_RegisterOperand(lh, VM_TypeReference.Int)));
 
 r:	LONG_2INT(load64)
@@ -1592,13 +1592,13 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), consumeMO()));
 r:	LONG_2INT(LONG_USHR(r, INT_CONSTANT))
 VLR(p) == 32 ? 13 : INFINITE
 EMIT_INSTRUCTION
-OPT_Register uh = Binary.getVal1(PL(p)).asRegister().register; \
+OPT_Register uh = Binary.getVal1(PL(p)).asRegister().getRegister(); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), new OPT_RegisterOperand(uh, VM_TypeReference.Int)));
 
 r:      LONG_2INT(LONG_SHR(r, INT_CONSTANT))
 VLR(p) == 32 ? 13 : INFINITE
 EMIT_INSTRUCTION
-OPT_Register uh = Binary.getVal1(PL(p)).asRegister().register; \
+OPT_Register uh = Binary.getVal1(PL(p)).asRegister().getRegister(); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), new OPT_RegisterOperand(uh, VM_TypeReference.Int)));
 
 r:      LONG_2INT(LONG_USHR(load64, INT_CONSTANT))
@@ -1722,9 +1722,9 @@ NOFLAGS
 r:	LONG_MOVE(r)
 23
 EMIT_INSTRUCTION
-OPT_Register res1 = Move.getResult(P(p)).register;           \
+OPT_Register res1 = Move.getResult(P(p)).getRegister();           \
 OPT_Register res2 = regpool.getSecondReg(res1);              \
-OPT_Register val1 = Move.getVal(P(p)).asRegister().register; \
+OPT_Register val1 = Move.getVal(P(p)).asRegister().getRegister(); \
 OPT_Register val2 = regpool.getSecondReg(val1);              \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, new OPT_RegisterOperand(res1, VM_TypeReference.Int), \
                      new OPT_RegisterOperand(val1, VM_TypeReference.Int)));               \
@@ -1734,7 +1734,7 @@ EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(res2, VM_TypeR
 r:	LONG_MOVE(LONG_CONSTANT)
 21
 EMIT_INSTRUCTION
-OPT_Register res1 = Move.getResult(P(p)).register;   \
+OPT_Register res1 = Move.getResult(P(p)).getRegister();   \
 OPT_Register res2 = regpool.getSecondReg(res1);      \
 OPT_LongConstantOperand val = LC(Move.getVal(P(p))); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, new OPT_RegisterOperand(res1, VM_TypeReference.Int), IC(val.upper32()))); \
@@ -1936,7 +1936,7 @@ r:	LONG_LOAD(riv, riv)
 30
 EMIT_INSTRUCTION
 OPT_RegisterOperand hres = Load.getResult(P(p)); \
-OPT_RegisterOperand lres = new OPT_RegisterOperand(regpool.getSecondReg(hres.register), VM_TypeReference.Int); \
+OPT_RegisterOperand lres = new OPT_RegisterOperand(regpool.getSecondReg(hres.getRegister()), VM_TypeReference.Int); \
 EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, hres, MO_L(P(p), DW, DW).copy()))); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, lres, MO_L(P(p), DW)));
 
@@ -1947,7 +1947,7 @@ r:	LONG_ALOAD(r, riv)
 30
 EMIT_INSTRUCTION
 OPT_RegisterOperand hres = ALoad.getResult(P(p)); \
-OPT_RegisterOperand lres = new OPT_RegisterOperand(regpool.getSecondReg(hres.register), VM_TypeReference.Int); \
+OPT_RegisterOperand lres = new OPT_RegisterOperand(regpool.getSecondReg(hres.getRegister()), VM_TypeReference.Int); \
 EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, hres, MO_AL(P(p), QW_S, DW, DW).copy()))); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, lres, MO_AL(P(p), QW_S, DW)));
 
@@ -2012,7 +2012,7 @@ EMIT_INSTRUCTION
 OPT_RegisterOperand hres = Prepare.getResult(P(p)); \
 OPT_MemoryOperand hmo = MO(Prepare.getAddress(P(p)), Prepare.getOffset(P(p)), DW, \
                            Prepare.getLocation(P(p)), Prepare.getGuard(P(p)), DW); \
-OPT_RegisterOperand lres = new OPT_RegisterOperand(regpool.getSecondReg(hres.register), VM_TypeReference.Int); \
+OPT_RegisterOperand lres = new OPT_RegisterOperand(regpool.getSecondReg(hres.getRegister()), VM_TypeReference.Int); \
 OPT_MemoryOperand lmo = MO(Prepare.getAddress(P(p)), Prepare.getOffset(P(p)), DW, \
                            Prepare.getLocation(P(p)), Prepare.getGuard(P(p))); \
 EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, hres, hmo))); \
@@ -2331,7 +2331,7 @@ stm:	LONG_STORE(r, OTHER_OPERAND(riv, riv))
 30
 EMIT_INSTRUCTION
 OPT_RegisterOperand hval = (OPT_RegisterOperand)Store.getValue(P(p)); \
-OPT_RegisterOperand lval = new OPT_RegisterOperand(regpool.getSecondReg(hval.register), VM_TypeReference.Int); \
+OPT_RegisterOperand lval = new OPT_RegisterOperand(regpool.getSecondReg(hval.getRegister()), VM_TypeReference.Int); \
 EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, MO_S(P(p), DW, DW).copy(), hval))); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), DW), lval));
 
@@ -2349,7 +2349,7 @@ stm:	LONG_ASTORE(r, OTHER_OPERAND(r, riv))
 30
 EMIT_INSTRUCTION
 OPT_RegisterOperand hval = (OPT_RegisterOperand)AStore.getValue(P(p)); \
-OPT_RegisterOperand lval = new OPT_RegisterOperand(regpool.getSecondReg(hval.register), VM_TypeReference.Int); \
+OPT_RegisterOperand lval = new OPT_RegisterOperand(regpool.getSecondReg(hval.getRegister()), VM_TypeReference.Int); \
 EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, MO_AS(P(p), QW_S, DW, DW).copy(), hval))); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), QW_S, DW), lval));
 
@@ -2542,9 +2542,9 @@ stm:	RETURN(r)
 EMIT_INSTRUCTION
 OPT_RegisterOperand ret = R(Return.getVal(P(p)));            \
 OPT_RegisterOperand ret2 = null;	                            \
-if (ret.type.isLongType()) {                                 \
-  ret.type = VM_TypeReference.Int;                           \
-  ret2 = new OPT_RegisterOperand(regpool.getSecondReg(ret.register), VM_TypeReference.Int); \
+if (ret.getType().isLongType()) {                                 \
+  ret.setType(VM_TypeReference.Int);                           \
+  ret2 = new OPT_RegisterOperand(regpool.getSecondReg(ret.getRegister()), VM_TypeReference.Int); \
 }                                                            \
 EMIT(MIR_Return.mutate(P(p), IA32_RET, null, ret, ret2));
 

@@ -115,7 +115,7 @@ public abstract class OPT_GenericPhysicalRegisterTools extends OPT_IRTools {
       OPT_Operand op = e.nextElement();
       if (op == null) continue;
       if (op.isRegister()) {
-        if (op.asRegister().register.isPhysical()) {
+        if (op.asRegister().getRegister().isPhysical()) {
           return true;
         }
       }

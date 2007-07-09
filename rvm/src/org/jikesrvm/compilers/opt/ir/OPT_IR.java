@@ -925,7 +925,7 @@ public final class OPT_IR {
                    use
                        .instruction);
           }
-          if ((IRStage >= MIR) && (use.isRegister()) && (use.asRegister().register.isValidation())) {
+          if ((IRStage >= MIR) && (use.isRegister()) && (use.asRegister().getRegister().isValidation())) {
             verror(where,
                    "In block " +
                    block +
@@ -951,7 +951,7 @@ public final class OPT_IR {
                    def
                        .instruction);
           }
-          if ((IRStage >= MIR) && (def.isRegister()) && (def.asRegister().register.isValidation())) {
+          if ((IRStage >= MIR) && (def.isRegister()) && (def.asRegister().getRegister().isValidation())) {
             verror(where,
                    "In block " +
                    block +
@@ -1321,7 +1321,7 @@ public final class OPT_IR {
         (VM.BuildForPowerPC && OPT_Operators.helper.isPowerPCTrapOperand(operand))) {
       return null;
     } else if (operand.isRegister()) {
-      OPT_Register register = operand.asRegister().register;
+      OPT_Register register = operand.asRegister().getRegister();
       // ignore physical registers
       return (register.isPhysical()) ? null : register;
     } else if (operand.isBlock()) {
@@ -1359,7 +1359,7 @@ public final class OPT_IR {
    */
   private Object getVariableDef(String where, OPT_Operand operand) {
     if (operand.isRegister()) {
-      OPT_Register register = operand.asRegister().register;
+      OPT_Register register = operand.asRegister().getRegister();
       // ignore physical registers
       return (register.isPhysical()) ? null : register;
     } else if (operand instanceof OPT_HeapOperand) {

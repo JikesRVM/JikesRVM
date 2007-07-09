@@ -187,7 +187,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @return the 3 bit IA32 ISA encoding of op
    */
   byte getReg(OPT_Operand op) {
-    return getMachineRegister(op.asRegister().register);
+    return getMachineRegister(op.asRegister().getRegister());
   }
 
   /**
@@ -208,7 +208,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @return the 3 bit IA32 ISA encoding of the base register of op
    */
   byte getBase(OPT_Operand op) {
-    return getMachineRegister(((OPT_MemoryOperand) op).base.register);
+    return getMachineRegister(((OPT_MemoryOperand) op).base.getRegister());
   }
 
   /**
@@ -228,7 +228,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @return the 3 bit IA32 ISA encoding of the index register of op
    */
   byte getIndex(OPT_Operand op) {
-    return getMachineRegister(((OPT_MemoryOperand) op).index.register);
+    return getMachineRegister(((OPT_MemoryOperand) op).index.getRegister());
   }
 
   /**
@@ -728,7 +728,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
       int prefix = mop.size == 2 ? 1 : 0;
 
       // Deal with EBP wierdness
-      if (mop.base != null && mop.base.register == EBP) {
+      if (mop.base != null && mop.base.getRegister() == EBP) {
         if (mop.index != null) {
           // forced into SIB + 32 bit displacement no matter what disp is
           return prefix + 5;
@@ -739,13 +739,13 @@ abstract class OPT_AssemblerBase extends VM_Assembler
           return prefix + 4;
         }
       }
-      if (mop.index != null && mop.index.register == EBP) {
+      if (mop.index != null && mop.index.getRegister() == EBP) {
         // forced into SIB + 32 bit displacement no matter what disp is
         return prefix + 5;
       }
 
       // Deal with ESP wierdness -- requires SIB byte even when index is null
-      if (mop.base != null && mop.base.register == ESP) {
+      if (mop.base != null && mop.base.getRegister() == ESP) {
         if (fits(mop.disp, 8)) {
           return prefix + 2;
         } else {

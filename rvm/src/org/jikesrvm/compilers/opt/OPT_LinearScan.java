@@ -2466,11 +2466,11 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
           OPT_Operand op = ops.next();
           if (op.isRegister()) {
             OPT_RegisterOperand rop = op.asRegister();
-            OPT_Register r = rop.register;
+            OPT_Register r = rop.getRegister();
             if (r.isSymbolic() && !r.isSpilled()) {
               OPT_Register p = OPT_RegisterAllocatorState.getMapping(r);
               if (VM.VerifyAssertions) VM._assert(p != null);
-              rop.register = p;
+              rop.setRegister(p);
             }
           }
         }
@@ -2549,7 +2549,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
             OPT_Operand op = tuple.operand;
             if (op.isRegister()) {
-              OPT_Register sym_reg = ((OPT_RegisterOperand) op).register;
+              OPT_Register sym_reg = ((OPT_RegisterOperand) op).getRegister();
 
               setRealPosition(tuple, sym_reg);
 
@@ -2561,7 +2561,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
                 if (VM.VerifyAssertions) VM._assert(other_op.isRegister());
 
-                OPT_Register other_reg = ((OPT_RegisterOperand) other_op).register;
+                OPT_Register other_reg = ((OPT_RegisterOperand) other_op).getRegister();
                 setRealPosition(other, other_reg);
               }
               /* According to OPT_ConvertToLowLevelIR, StringConstant, LongConstant,

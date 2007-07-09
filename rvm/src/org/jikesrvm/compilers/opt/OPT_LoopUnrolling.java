@@ -299,7 +299,7 @@ public class OPT_LoopUnrolling extends OPT_CompilerPhase {
 
     OPT_RegisterOperand rop1 = (OPT_RegisterOperand) op1;
 
-    OPT_Register reg = rop1.register;
+    OPT_Register reg = rop1.getRegister();
     if (reg.isPhysical()) {
       report("10 loops over physical register\n");
       return false;
@@ -484,8 +484,8 @@ public class OPT_LoopUnrolling extends OPT_CompilerPhase {
     ir.cfg.linkInCodeOrder(guardBlock2, landingPad);
     ir.cfg.linkInCodeOrder(landingPad, mainLoop);
 
-    OPT_RegisterOperand remainder = ir.regpool.makeTemp(rop1.type);
-    OPT_RegisterOperand limit = ir.regpool.makeTemp(rop1.type);
+    OPT_RegisterOperand remainder = ir.regpool.makeTemp(rop1.getType());
+    OPT_RegisterOperand limit = ir.regpool.makeTemp(rop1.getType());
 
     // test whether a <= b for stride == 1 and a >= b for stride == -1
     tmp = guardBlock0.lastInstruction();
@@ -745,7 +745,7 @@ public class OPT_LoopUnrolling extends OPT_CompilerPhase {
     while (true) {
       if (!(use instanceof OPT_RegisterOperand)) return use;
       OPT_RegisterOperand rop = (OPT_RegisterOperand) use;
-      OPT_RegisterOperandEnumeration defs = OPT_DefUse.defs(rop.register);
+      OPT_RegisterOperandEnumeration defs = OPT_DefUse.defs(rop.getRegister());
       if (!defs.hasMoreElements()) {return use;}
       OPT_Instruction def = defs.next().instruction;
       if (!Move.conforms(def)) return use;
@@ -760,7 +760,7 @@ public class OPT_LoopUnrolling extends OPT_CompilerPhase {
 
   private static OPT_Instruction definingInstruction(OPT_Operand op) {
     if (!(op instanceof OPT_RegisterOperand)) return op.instruction;
-    OPT_RegisterOperandEnumeration defs = OPT_DefUse.defs(((OPT_RegisterOperand) op).register);
+    OPT_RegisterOperandEnumeration defs = OPT_DefUse.defs(((OPT_RegisterOperand) op).getRegister());
     if (!defs.hasMoreElements()) {return op.instruction;}
     OPT_Instruction def = defs.next().instruction;
     if (defs.hasMoreElements()) {return op.instruction;}
@@ -773,7 +773,7 @@ public class OPT_LoopUnrolling extends OPT_CompilerPhase {
     } else if (op instanceof OPT_ConstantOperand) {
       return true;
     } else if (op instanceof OPT_RegisterOperand) {
-      OPT_Register reg = ((OPT_RegisterOperand) op).register;
+      OPT_Register reg = ((OPT_RegisterOperand) op).getRegister();
       OPT_RegisterOperandEnumeration defs = OPT_DefUse.defs(reg);
       // if no definitions of this register (very strange) give up
       if (!defs.hasMoreElements()) return false;
@@ -794,7 +794,7 @@ public class OPT_LoopUnrolling extends OPT_CompilerPhase {
     }
     if (op instanceof OPT_RegisterOperand) {
       boolean invariant = true;
-      OPT_Register reg = ((OPT_RegisterOperand) op).register;
+      OPT_Register reg = ((OPT_RegisterOperand) op).getRegister();
       OPT_RegisterOperandEnumeration defs = OPT_DefUse.defs(reg);
       while (defs.hasMoreElements()) {
         OPT_Instruction inst = defs.next().instruction;
@@ -819,7 +819,7 @@ public class OPT_LoopUnrolling extends OPT_CompilerPhase {
   // For debugging
   private static void _printDefs(OPT_Operand op) {
     if (op instanceof OPT_RegisterOperand) {
-      OPT_Register reg = ((OPT_RegisterOperand) op).register;
+      OPT_Register reg = ((OPT_RegisterOperand) op).getRegister();
       OPT_RegisterOperandEnumeration defs = OPT_DefUse.defs(reg);
       defs = OPT_DefUse.defs(reg);
       while (defs.hasMoreElements()) {
@@ -965,7 +965,7 @@ public class OPT_LoopUnrolling extends OPT_CompilerPhase {
       this.use = use;
       if (use instanceof OPT_RegisterOperand) {
         OPT_RegisterOperand rop = (OPT_RegisterOperand) use;
-        defs = OPT_DefUse.defs(rop.register);
+        defs = OPT_DefUse.defs(rop.getRegister());
         this.use = null;
         if (!defs.hasMoreElements()) defs = null;
       }

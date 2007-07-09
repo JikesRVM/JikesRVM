@@ -204,11 +204,11 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
       OPT_Operand op = e.nextElement();
       if (op != null) {
         if (op.isRegister()) {
-          OPT_Register r3 = op.asRegister().register;
+          OPT_Register r3 = op.asRegister().getRegister();
           if (r3 == r1) {
-            op.asRegister().register = r2;
+            op.asRegister().setRegister(r2);
           } else if (OPT_RegisterAllocatorState.getSpill(r3) == spill1) {
-            op.asRegister().register = r2;
+            op.asRegister().setRegister(r2);
           }
         }
       }
@@ -461,7 +461,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     for (Enumeration<OPT_Operand> e = s.getOperands(); e.hasMoreElements();) {
       OPT_Operand op = e.nextElement();
       if (op.isRegister()) {
-        OPT_Register r = op.asRegister().register;
+        OPT_Register r = op.asRegister().getRegister();
         if (r.isSymbolic()) {
           if (location == OPT_RegisterAllocatorState.getSpill(r)) {
             if (getRestrictions().isForbidden(r, phys, s)) {
@@ -702,7 +702,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     for (Enumeration<OPT_Operand> e = s.getDefs(); e.hasMoreElements();) {
       OPT_Operand op = e.nextElement();
       if (op != null && op.isRegister()) {
-        OPT_Register r = op.asRegister().register;
+        OPT_Register r = op.asRegister().getRegister();
         if (OPT_RegisterAllocatorState.getSpill(r) == loc) {
           return true;
         }
@@ -718,7 +718,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     for (Enumeration<OPT_Operand> e = s.getUses(); e.hasMoreElements();) {
       OPT_Operand op = e.nextElement();
       if (op != null && op.isRegister()) {
-        OPT_Register r = op.asRegister().register;
+        OPT_Register r = op.asRegister().getRegister();
         if (OPT_RegisterAllocatorState.getSpill(r) == loc) {
           return true;
         }
@@ -737,7 +737,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     for (Enumeration<OPT_Operand> e = s.getUses(); e.hasMoreElements();) {
       OPT_Operand op = e.nextElement();
       if (op != null && op.isRegister()) {
-        OPT_Register r = op.asRegister().register;
+        OPT_Register r = op.asRegister().getRegister();
         if (OPT_RegisterAllocatorState.getSpill(r) == loc) {
           return r;
         }
@@ -853,7 +853,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
     for (Enumeration<OPT_Operand> e = s.getOperands(); e.hasMoreElements();) {
       OPT_Operand op = e.nextElement();
       if (op != null && op.isRegister()) {
-        if (op.asRegister().register.number == r.number) {
+        if (op.asRegister().getRegister().number == r.number) {
           return true;
         }
       }
@@ -1005,7 +1005,7 @@ public abstract class OPT_GenericStackManager extends OPT_IRTools {
         for (Enumeration<OPT_Operand> ops = s.getOperands(); ops.hasMoreElements();) {
           OPT_Operand op = ops.nextElement();
           if (op != null && op.isRegister()) {
-            OPT_Register r = op.asRegister().register;
+            OPT_Register r = op.asRegister().getRegister();
             if (!r.isPhysical()) {
               // Is r currently assigned to a scratch register?
               // Note that if we're being cheap, the answer is always no (null)

@@ -236,8 +236,8 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
    */
   static void replaceLoadWithMove(OPT_Register r, OPT_Instruction load) {
     OPT_RegisterOperand dest = ResultCarrier.getResult(load);
-    OPT_RegisterOperand rop = new OPT_RegisterOperand(r, dest.type);
-    load.replace(Move.create(OPT_IRTools.getMoveOp(dest.type), dest, rop));
+    OPT_RegisterOperand rop = new OPT_RegisterOperand(r, dest.getType());
+    load.replace(Move.create(OPT_IRTools.getMoveOp(dest.getType()), dest, rop));
   }
 
   /**
@@ -351,7 +351,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
     OPT_Register result = registers.get(key);
     if (result == null) {
       // create a new temp and insert it in the mapping
-      result = pool.makeTemp(type).register;
+      result = pool.makeTemp(type).getRegister();
       registers.put(key, result);
     }
     return result;
@@ -375,7 +375,7 @@ final class OPT_LoadElimination extends OPT_OptimizationPlanCompositeElement {
     OPT_Register result = registers.get(key);
     if (result == null) {
       // create a new temp and insert it in the mapping
-      result = pool.makeTemp(type).register;
+      result = pool.makeTemp(type).getRegister();
       registers.put(key, result);
     }
     return result;

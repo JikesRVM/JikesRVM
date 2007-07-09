@@ -295,14 +295,14 @@ public class OPT_ConvertALUOperators extends OPT_CompilerPhase implements OPT_Op
         for (OPT_OperandEnumeration defs = s.getPureDefs(); defs.hasMoreElements();) {
           OPT_Operand op = defs.next();
           if (op.isRegister()) {
-            markDead(op.asRegister().register);
+            markDead(op.asRegister().getRegister());
           }
         }
         for (OPT_OperandEnumeration uses = s.getUses(); // includes def/uses
              uses.hasMoreElements();) {
           OPT_Operand op = uses.next();
           if (op.isRegister()) {
-            markLive(op.asRegister().register);
+            markLive(op.asRegister().getRegister());
           }
         }
       }

@@ -87,7 +87,7 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase {
               OPT_Operand use = e.next();
               if (use instanceof OPT_RegisterOperand) {
                 OPT_RegisterOperand rUse = (OPT_RegisterOperand) use;
-                OPT_Operand value = info.get(rUse.register);
+                OPT_Operand value = info.get(rUse.getRegister());
                 if (value != null) {
                   didSomething = true;
                   value = value.copy();
@@ -111,7 +111,7 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase {
             HashSet<OPT_Register> toRemove = new HashSet<OPT_Register>();
             for (Map.Entry<OPT_Register, OPT_Operand> entry : info.entrySet()) {
               OPT_Register eR = entry.getValue().
-                  asRegister().register;
+                  asRegister().getRegister();
               if (killPhysicals && eR.isPhysical()) {
                 // delay the removal to avoid ConcurrentModification
                 // with iterator.
@@ -127,7 +127,7 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase {
           for (OPT_OperandEnumeration e = s.getDefs(); e.hasMoreElements();) {
             OPT_Operand def = e.next();
             if (def != null && def.isRegister()) {
-              OPT_Register r = def.asRegister().register;
+              OPT_Register r = def.asRegister().getRegister();
               info.remove(r);
               // also must kill any registers mapped to r
               // TODO: use a better data structure for efficiency.
@@ -135,7 +135,7 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase {
               // premature optimization.
               HashSet<OPT_Register> toRemove = new HashSet<OPT_Register>();
               for (Map.Entry<OPT_Register, OPT_Operand> entry : info.entrySet()) {
-                OPT_Register eR = ((OPT_RegisterOperand) entry.getValue()).register;
+                OPT_Register eR = ((OPT_RegisterOperand) entry.getValue()).getRegister();
                 if (eR == r) {
                   // delay the removal to avoid ConcurrentModification
                   // with iterator.
@@ -152,8 +152,8 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase {
         // GEN
         if (Move.conforms(s)) {
           OPT_Operand val = Move.getVal(s);
-          if (val.isRegister() && !val.asRegister().register.isPhysical()) {
-            info.put(Move.getResult(s).register, val);
+          if (val.isRegister() && !val.asRegister().getRegister().isPhysical()) {
+            info.put(Move.getResult(s).getRegister(), val);
           }
         }
       }

@@ -113,7 +113,7 @@ public final class OPT_DefUse {
    * @param regOp the operand that uses the register
    */
   static void recordUse(OPT_RegisterOperand regOp) {
-    OPT_Register reg = regOp.register;
+    OPT_Register reg = regOp.getRegister();
     regOp.append(reg.useList);
     reg.useList = regOp;
     reg.useCount++;
@@ -126,7 +126,7 @@ public final class OPT_DefUse {
    * @param regOp the operand that uses the register
    */
   public static void recordDefUse(OPT_RegisterOperand regOp) {
-    OPT_Register reg = regOp.register;
+    OPT_Register reg = regOp.getRegister();
     if (SUPRESS_DU_FOR_PHYSICALS && reg.isPhysical()) return;
     regOp.append(reg.useList);
     reg.useList = regOp;
@@ -137,7 +137,7 @@ public final class OPT_DefUse {
    * @param regOp the operand that uses the register
    */
   static void recordDef(OPT_RegisterOperand regOp) {
-    OPT_Register reg = regOp.register;
+    OPT_Register reg = regOp.getRegister();
     if (SUPRESS_DU_FOR_PHYSICALS && reg.isPhysical()) return;
     regOp.append(reg.defList);
     reg.defList = regOp;
@@ -148,7 +148,7 @@ public final class OPT_DefUse {
    * @param regOp the operand that uses the register
    */
   public static void removeUse(OPT_RegisterOperand regOp) {
-    OPT_Register reg = regOp.register;
+    OPT_Register reg = regOp.getRegister();
     if (SUPRESS_DU_FOR_PHYSICALS && reg.isPhysical()) return;
     if (regOp == reg.useList) {
       reg.useList = reg.useList.getNext();
@@ -173,7 +173,7 @@ public final class OPT_DefUse {
    * @param regOp the operand that uses the register
    */
   public static void removeDef(OPT_RegisterOperand regOp) {
-    OPT_Register reg = regOp.register;
+    OPT_Register reg = regOp.getRegister();
     if (SUPRESS_DU_FOR_PHYSICALS && reg.isPhysical()) return;
     if (regOp == reg.defList) {
       reg.defList = reg.defList.getNext();
@@ -205,7 +205,7 @@ public final class OPT_DefUse {
    */
   static void transferUse(OPT_RegisterOperand origRegOp, OPT_RegisterOperand newRegOp) {
     if (VM.VerifyAssertions) {
-      VM._assert(origRegOp.register.getType() == newRegOp.register.getType());
+      VM._assert(origRegOp.getRegister().getType() == newRegOp.getRegister().getType());
     }
     OPT_Instruction inst = origRegOp.instruction;
     if (DEBUG) {
@@ -214,19 +214,19 @@ public final class OPT_DefUse {
     removeUse(origRegOp);
     // check to see if the regOp type is NOT a ref, but the newRegOp type
     // is a reference.   This can occur because of magic calls.
-    if (!origRegOp.type.isReferenceType() && newRegOp.type.isReferenceType()) {
+    if (!origRegOp.getType().isReferenceType() && newRegOp.getType().isReferenceType()) {
       // clone the newRegOp object and use it to replace the regOp object
       OPT_RegisterOperand copiedRegOp = (OPT_RegisterOperand) newRegOp.copy();
       inst.replaceOperand(origRegOp, copiedRegOp);
       recordUse(copiedRegOp);
     } else {
       // just copy the register
-      origRegOp.register = newRegOp.register;
+      origRegOp.setRegister(newRegOp.getRegister());
       recordUse(origRegOp);
     }
     if (DEBUG) {
-      printUses(origRegOp.register);
-      printUses(newRegOp.register);
+      printUses(origRegOp.getRegister());
+      printUses(newRegOp.getRegister());
     }
   }
 
@@ -355,7 +355,7 @@ public final class OPT_DefUse {
     lastOperand = null;
     for (OPT_RegisterOperand def = reg2.defList; def != null; lastOperand = def, def = def.getNext()) {
       // Change def to refer to reg1 instead
-      def.register = reg1;
+      def.setRegister(reg1);
       // Track lastOperand
       lastOperand = def;
     }
@@ -368,7 +368,7 @@ public final class OPT_DefUse {
     lastOperand = null;
     for (OPT_RegisterOperand use = reg2.useList; use != null; use = use.getNext()) {
       // Change use to refer to reg1 instead
-      use.register = reg1;
+      use.setRegister(reg1);
       // Track lastOperand
       lastOperand = use;
     }
@@ -407,7 +407,7 @@ public final class OPT_DefUse {
         for (OPT_OperandEnumeration ops = inst.getOperands(); ops.hasMoreElements();) {
           OPT_Operand op = ops.next();
           if (op instanceof OPT_RegisterOperand) {
-            OPT_Register reg = ((OPT_RegisterOperand) op).register;
+            OPT_Register reg = ((OPT_RegisterOperand) op).getRegister();
             if (reg.isPhysical()) {
               continue;
             }

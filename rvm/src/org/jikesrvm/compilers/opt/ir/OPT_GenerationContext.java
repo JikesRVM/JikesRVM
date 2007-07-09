@@ -224,7 +224,7 @@ public final class OPT_GenerationContext implements org.jikesrvm.compilers.opt.O
       VM_TypeReference thisType = meth.getDeclaringClass().getTypeRef();
       OPT_RegisterOperand thisOp = makeLocal(localNum, thisType);
       // The this param of a virtual method is by definition non null
-      OPT_RegisterOperand guard = makeNullCheckGuard(thisOp.register);
+      OPT_RegisterOperand guard = makeNullCheckGuard(thisOp.getRegister());
       OPT_BC2IR.setGuard(thisOp, guard);
       appendInstruction(prologue, Move.create(GUARD_MOVE, guard.copyRO(), new OPT_TrueGuardOperand()), PROLOGUE_BCI);
       thisOp.setDeclaredType();
@@ -251,7 +251,7 @@ public final class OPT_GenerationContext implements org.jikesrvm.compilers.opt.O
     }
     VM_TypeReference returnType = meth.getReturnType();
     if (returnType != VM_TypeReference.Void) {
-      resultReg = temps.makeTemp(returnType).register;
+      resultReg = temps.makeTemp(returnType).getRegister();
     }
 
     enclosingHandlers = null;
@@ -299,7 +299,7 @@ public final class OPT_GenerationContext implements org.jikesrvm.compilers.opt.O
       // of clearing in case inlining aborts.
     }
     if (Call.hasResult(callSite)) {
-      child.resultReg = Call.getResult(callSite).copyD2D().register;
+      child.resultReg = Call.getResult(callSite).copyD2D().getRegister();
       child.resultReg.setSpansBasicBlock(); // it will...
     }
 
@@ -325,9 +325,9 @@ public final class OPT_GenerationContext implements org.jikesrvm.compilers.opt.O
       OPT_RegisterOperand local = null;
       if (receiver.isRegister()) {
         OPT_RegisterOperand objPtr = receiver.asRegister();
-        if (OPT_ClassLoaderProxy.includesType(child.method.getDeclaringClass().getTypeRef(), objPtr.type) != YES) {
+        if (OPT_ClassLoaderProxy.includesType(child.method.getDeclaringClass().getTypeRef(), objPtr.getType()) != YES) {
           // narrow type of actual to match formal static type implied by method
-          objPtr.type = child.method.getDeclaringClass().getTypeRef();
+          objPtr.setType(child.method.getDeclaringClass().getTypeRef());
           objPtr.clearPreciseType(); // Can be precise but not assignable if enough classes aren't loaded
           objPtr.setDeclaredType();
         }
@@ -338,7 +338,7 @@ public final class OPT_GenerationContext implements org.jikesrvm.compilers.opt.O
         local = child.makeLocal(localNum++, receiver.getType());
         local.setPreciseType();
         // Constants trivially non-null
-        OPT_RegisterOperand guard = child.makeNullCheckGuard(local.register);
+        OPT_RegisterOperand guard = child.makeNullCheckGuard(local.getRegister());
         OPT_BC2IR.setGuard(local, guard);
         child.prologue.appendInstruction(Move.create(GUARD_MOVE, guard.copyRO(), new OPT_TrueGuardOperand()));
       } else {
@@ -355,12 +355,12 @@ public final class OPT_GenerationContext implements org.jikesrvm.compilers.opt.O
       OPT_Operand actual = child.arguments[argIdx];
       if (actual.isRegister()) {
         OPT_RegisterOperand rActual = actual.asRegister();
-        if (OPT_ClassLoaderProxy.includesType(argType, rActual.type) != YES) {
+        if (OPT_ClassLoaderProxy.includesType(argType, rActual.getType()) != YES) {
           // narrow type of actual to match formal static type implied by method
-          rActual.type = argType;
           rActual.clearPreciseType(); // Can be precise but not
           // assignable if enough classes aren't loaded
           rActual.setDeclaredType();
+          rActual.setType(argType);
         }
         formal = child.makeLocal(localNum++, rActual);
         child.arguments[argIdx] = formal;  // Avoid confusion in BC2IR of
@@ -507,7 +507,7 @@ public final class OPT_GenerationContext implements org.jikesrvm.compilers.opt.O
    * @param props OPT_RegisterOperand to inherit flags from
    */
   OPT_RegisterOperand makeLocal(int i, OPT_RegisterOperand props) {
-    OPT_RegisterOperand local = makeLocal(i, props.type);
+    OPT_RegisterOperand local = makeLocal(i, props.getType());
     local.setInheritableFlags(props);
     OPT_BC2IR.setGuard(local, OPT_BC2IR.getGuard(props));
     return local;
@@ -529,7 +529,7 @@ public final class OPT_GenerationContext implements org.jikesrvm.compilers.opt.O
    */
   public boolean isLocal(OPT_Operand op, int i, VM_TypeReference type) {
     if (op instanceof OPT_RegisterOperand) {
-      if (getPool(type)[i] == ((OPT_RegisterOperand) op).register) return true;
+      if (getPool(type)[i] == ((OPT_RegisterOperand) op).getRegister()) return true;
     }
     return false;
   }

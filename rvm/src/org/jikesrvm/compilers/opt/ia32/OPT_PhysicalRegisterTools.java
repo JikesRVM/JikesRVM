@@ -40,17 +40,17 @@ public abstract class OPT_PhysicalRegisterTools extends OPT_GenericPhysicalRegis
    * Create an MIR instruction to move rhs into lhs
    */
   public static OPT_Instruction makeMoveInstruction(OPT_RegisterOperand lhs, OPT_RegisterOperand rhs) {
-    if (rhs.register.isInteger() || rhs.register.isLong() || rhs.register.isAddress()) {
+    if (rhs.getRegister().isInteger() || rhs.getRegister().isLong() || rhs.getRegister().isAddress()) {
       if (VM.VerifyAssertions) {
-        VM._assert(lhs.register.isInteger() || lhs.register.isLong() || lhs.register.isAddress());
+        VM._assert(lhs.getRegister().isInteger() || lhs.getRegister().isLong() || lhs.getRegister().isAddress());
       }
       return MIR_Move.create(IA32_MOV, lhs, rhs);
-    } else if (rhs.register.isFloatingPoint()) {
+    } else if (rhs.getRegister().isFloatingPoint()) {
       if (VM.VerifyAssertions) {
-        VM._assert(lhs.register.isFloatingPoint());
+        VM._assert(lhs.getRegister().isFloatingPoint());
       }
       if (VM_ArchConstants.SSE2_FULL) {
-        if (rhs.register.isFloat()) {
+        if (rhs.getRegister().isFloat()) {
           return MIR_Move.create(IA32_MOVSS, lhs, rhs);
         } else {
           return MIR_Move.create(IA32_MOVSD, lhs, rhs);

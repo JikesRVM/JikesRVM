@@ -66,7 +66,7 @@ public final class OPT_ObjectReplacer implements OPT_AggregateReplacer {
    * @return the object, or null if illegal
    */
   public static OPT_ObjectReplacer getReplacer(OPT_Instruction inst, OPT_IR ir) {
-    OPT_Register r = New.getResult(inst).register;
+    OPT_Register r = New.getResult(inst).getRegister();
     // TODO :handle these cases
     if (containsUnsupportedUse(ir, r)) {
       return null;
@@ -90,7 +90,7 @@ public final class OPT_ObjectReplacer implements OPT_AggregateReplacer {
       VM_Field f = fields.get(i);
       OPT_Operand defaultValue = OPT_IRTools.getDefaultOperand(f.getType());
       scalars[i] = OPT_IRTools.moveIntoRegister(ir.regpool, defI, defaultValue);
-      scalars[i].type = f.getType();
+      scalars[i].setType(f.getType());
     }
     // now remove the def
     if (DEBUG) {
@@ -154,7 +154,7 @@ public final class OPT_ObjectReplacer implements OPT_AggregateReplacer {
         if (VM.VerifyAssertions) VM._assert(fr.isResolved());
         VM_Field f = fr.peekResolvedField();
         int index = fields.indexOf(f);
-        VM_TypeReference type = scalars[index].type;
+        VM_TypeReference type = scalars[index].getType();
         OPT_Operator moveOp = OPT_IRTools.getMoveOp(type);
         OPT_Instruction i = Move.create(moveOp, scalars[index].copyRO(), PutField.getClearValue(inst));
         inst.insertBefore(i);
@@ -167,7 +167,7 @@ public final class OPT_ObjectReplacer implements OPT_AggregateReplacer {
         if (VM.VerifyAssertions) VM._assert(fr.isResolved());
         VM_Field f = fr.peekResolvedField();
         int index = fields.indexOf(f);
-        VM_TypeReference type = scalars[index].type;
+        VM_TypeReference type = scalars[index].getType();
         OPT_Operator moveOp = OPT_IRTools.getMoveOp(type);
         OPT_Instruction i = Move.create(moveOp, GetField.getClearResult(inst), scalars[index].copyRO());
         inst.insertBefore(i);

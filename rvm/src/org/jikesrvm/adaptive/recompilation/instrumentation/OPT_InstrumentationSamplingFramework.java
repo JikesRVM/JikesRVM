@@ -776,7 +776,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
         OPT_Operand op = inst.getOperand(i);
         if (op instanceof OPT_RegisterOperand) {
           OPT_RegisterOperand ro = (OPT_RegisterOperand) op;
-          if (ro.register.isTemp() && !ro.register.spansBasicBlock()) {
+          if (ro.getRegister().isTemp() && !ro.getRegister().spansBasicBlock()) {
             // This register does not span multiple basic blocks, so
             // replace it with a temp.
             OPT_RegisterOperand newReg = getOrCreateDupReg(ro, ir);
@@ -810,12 +810,12 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
         OPT_Operand op = inst.getOperand(i);
         if (op instanceof OPT_RegisterOperand) {
           OPT_RegisterOperand ro = (OPT_RegisterOperand) op;
-          if (ro.register.isTemp() && !ro.register.spansBasicBlock()) {
+          if (ro.getRegister().isTemp() && !ro.getRegister().spansBasicBlock()) {
 
             // This register does not span multiple basic blocks.  It
             // will be touched by the register duplication, so clear
             // its scratch reg.
-            ro.register.scratchObject = null;
+            ro.getRegister().scratchObject = null;
           }
         }
       }
@@ -835,12 +835,12 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
 
     // Check if the register associated with this regOperand already
     // has a paralles operand
-    if (ro.register.scratchObject == null) {
+    if (ro.getRegister().scratchObject == null) {
       // If no dup register exists, make a new one and remember it.
-      OPT_RegisterOperand dupRegOp = ir.regpool.makeTemp(ro.type);
-      ro.register.scratchObject = dupRegOp.register;
+      OPT_RegisterOperand dupRegOp = ir.regpool.makeTemp(ro.getType());
+      ro.getRegister().scratchObject = dupRegOp.getRegister();
     }
-    return new OPT_RegisterOperand((OPT_Register) ro.register.scratchObject, ro.type);
+    return new OPT_RegisterOperand((OPT_Register) ro.getRegister().scratchObject, ro.getType());
   }
 
   /**

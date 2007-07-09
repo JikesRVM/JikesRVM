@@ -178,7 +178,7 @@ public final class OPT_TailRecursionElimination extends OPT_CompilerPhase {
     for (int i = 0; i < numParams; i++) {
       OPT_Operand actual = Call.getClearParam(call, i);
       temps[i] = ir.regpool.makeTemp(actual);
-      OPT_Instruction move = Move.create(OPT_IRTools.getMoveOp(temps[i].type), temps[i], actual);
+      OPT_Instruction move = Move.create(OPT_IRTools.getMoveOp(temps[i].getType()), temps[i], actual);
       move.copyPosition(call);
       call.insertBefore(move);
     }
@@ -187,7 +187,7 @@ public final class OPT_TailRecursionElimination extends OPT_CompilerPhase {
     //     the corresponding fresh temporary
     for (int i = 0; i < numParams; i++) {
       OPT_RegisterOperand formal = Prologue.getFormal(prologue, i).copyD2D();
-      OPT_Instruction move = Move.create(OPT_IRTools.getMoveOp(formal.type), formal, temps[i].copyD2U());
+      OPT_Instruction move = Move.create(OPT_IRTools.getMoveOp(formal.getType()), formal, temps[i].copyD2U());
       move.copyPosition(call);
       call.insertBefore(move);
     }

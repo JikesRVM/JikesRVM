@@ -248,7 +248,7 @@ public final class OPT_Simple extends OPT_CompilerPhase {
         }
 
         if (rhs.isRegister()) {
-          OPT_Register rrhs = rhs.asRegister().register;
+          OPT_Register rrhs = rhs.asRegister().getRegister();
           // If rhs is a non-SSA register, then we can't propagate it
           // because we can't be sure that the same definition reaches
           // all uses.
@@ -268,7 +268,7 @@ public final class OPT_Simple extends OPT_CompilerPhase {
           OPT_RegisterOperand rhsRegOp = rhs.asRegister();
           for (OPT_RegisterOperand use = reg.useList; use != null; use = nextUse) {
             nextUse = use.getNext(); // get early before reg's useList is updated.
-            if (VM.VerifyAssertions) VM._assert(rhsRegOp.register.getType() == use.register.getType());
+            if (VM.VerifyAssertions) VM._assert(rhsRegOp.getRegister().getType() == use.getRegister().getType());
             OPT_DefUse.transferUse(use, rhsRegOp);
           }
         } else if (rhs.isConstant()) {
@@ -286,7 +286,7 @@ public final class OPT_Simple extends OPT_CompilerPhase {
         if (rhs.isRegister()) {
           OPT_DefUse.removeUse(rhs.asRegister());
         }
-        ir.regpool.removeRegister(lhs.register);
+        ir.regpool.removeRegister(lhs.getRegister());
       }
     }
   }
@@ -364,12 +364,12 @@ public final class OPT_Simple extends OPT_CompilerPhase {
       for (OPT_RegisterOperand use = reg.useList; use != null; use = use.getNext()) {
         // if rhs.type is a supertype of use.type, don't do it
         // because use.type has more detailed information
-        if (OPT_ClassLoaderProxy.includesType(rhs.type, use.type) == YES) {
+        if (OPT_ClassLoaderProxy.includesType(rhs.getType(), use.getType()) == YES) {
           continue;
         }
         // If VM_Magic has been employed to convert an int to a reference,
         // don't undo the effects!
-        if (rhs.type.isPrimitiveType() && !use.type.isPrimitiveType()) {
+        if (rhs.getType().isPrimitiveType() && !use.getType().isPrimitiveType()) {
           continue;
         }
         use.copyType(rhs);
@@ -418,7 +418,7 @@ public final class OPT_Simple extends OPT_CompilerPhase {
         boundsCheckOK = true;
         arraylengthOK = true;
       } else if (sizeOp instanceof OPT_RegisterOperand) {
-        if (sizeOp.asRegister().register.isSSA()) {
+        if (sizeOp.asRegister().getRegister().isSSA()) {
           arraylengthOK = true;
         }
       }
@@ -515,9 +515,9 @@ public final class OPT_Simple extends OPT_CompilerPhase {
 
       // remove trivial assignments
       if (Move.conforms(instr)) {
-        OPT_Register lhs = Move.getResult(instr).asRegister().register;
+        OPT_Register lhs = Move.getResult(instr).asRegister().getRegister();
         if (Move.getVal(instr).isRegister()) {
-          OPT_Register rhs = Move.getVal(instr).asRegister().register;
+          OPT_Register rhs = Move.getVal(instr).asRegister().getRegister();
           if (lhs == rhs) {
             OPT_DefUse.removeInstructionAndUpdateDU(instr);
             continue;
@@ -536,11 +536,11 @@ public final class OPT_Simple extends OPT_CompilerPhase {
         }
         foundRegisterDef = true;
         OPT_RegisterOperand r = def.asRegister();
-        if (r.register.useList != null) {
+        if (r.getRegister().useList != null) {
           isDead = false;
           break;
         }
-        if (r.register.isPhysical()) {
+        if (r.getRegister().isPhysical()) {
           isDead = false;
           break;
         }

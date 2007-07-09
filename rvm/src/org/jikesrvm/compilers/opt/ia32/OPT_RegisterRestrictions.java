@@ -78,7 +78,7 @@ public class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions
           for (Enumeration<OPT_Operand> e = s.getOperands(); e.hasMoreElements();) {
             OPT_Operand op = e.nextElement();
             if (op != null && op.isRegister()) {
-              noteMustNotSpill(op.asRegister().register);
+              noteMustNotSpill(op.asRegister().getRegister());
               handle8BitRestrictions(s);
             }
           }
@@ -89,21 +89,21 @@ public class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions
       switch (s.getOpcode()) {
         case MIR_LOWTABLESWITCH_opcode: {
           OPT_RegisterOperand op = MIR_LowTableSwitch.getIndex(s);
-          noteMustNotSpill(op.register);
+          noteMustNotSpill(op.getRegister());
         }
         break;
         case IA32_MOVZX__B_opcode:
         case IA32_MOVSX__B_opcode: {
           if (MIR_Unary.getVal(s).isRegister()) {
             OPT_RegisterOperand val = MIR_Unary.getVal(s).asRegister();
-            restrictTo8Bits(val.register);
+            restrictTo8Bits(val.getRegister());
           }
         }
         break;
         case IA32_SET__B_opcode: {
           if (MIR_Set.getResult(s).isRegister()) {
             OPT_RegisterOperand op = MIR_Set.getResult(s).asRegister();
-            restrictTo8Bits(op.register);
+            restrictTo8Bits(op.getRegister());
           }
         }
         break;
@@ -165,7 +165,7 @@ public class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions
         for (OPT_OperandEnumeration e2 = s.getRootOperands(); e2.hasMoreElements();) {
           OPT_Operand rootOp = e2.next();
           if (rootOp.isRegister()) {
-            restrictTo8Bits(rootOp.asRegister().register);
+            restrictTo8Bits(rootOp.asRegister().getRegister());
           }
         }
       }
@@ -201,7 +201,7 @@ public class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions
       case IA32_CVTTSS2SI_opcode:
       case IA32_CVTSI2SS_opcode: {
         OPT_RegisterOperand op = MIR_Unary.getResult(s).asRegister();
-        if (op.asRegister().register == r) return true;
+        if (op.asRegister().getRegister() == r) return true;
       }
       break;
 
@@ -216,63 +216,63 @@ public class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions
       case IA32_SUBSD_opcode:
       case IA32_XORPD_opcode: {
         OPT_RegisterOperand op = MIR_BinaryAcc.getResult(s).asRegister();
-        if (op.asRegister().register == r) return true;
+        if (op.asRegister().getRegister() == r) return true;
       }
       break;
 
       case IA32_UCOMISD_opcode:
       case IA32_UCOMISS_opcode: {
         OPT_RegisterOperand op = MIR_Compare.getVal1(s).asRegister();
-        if (op.asRegister().register == r) return true;
+        if (op.asRegister().getRegister() == r) return true;
       }
       break;
 
       case IA32_SHRD_opcode:
       case IA32_SHLD_opcode: {
         OPT_RegisterOperand op = MIR_DoubleShift.getSource(s);
-        if (op.asRegister().register == r) return true;
+        if (op.asRegister().getRegister() == r) return true;
       }
       break;
       case IA32_FCOMI_opcode:
       case IA32_FCOMIP_opcode: {
         OPT_Operand op = MIR_Compare.getVal2(s);
         if (!(op instanceof OPT_BURSManagedFPROperand)) {
-          if (op.asRegister().register == r) return true;
+          if (op.asRegister().getRegister() == r) return true;
         }
       }
       break;
       case IA32_IMUL2_opcode: {
         OPT_RegisterOperand op = MIR_BinaryAcc.getResult(s).asRegister();
-        if (op.asRegister().register == r) return true;
+        if (op.asRegister().getRegister() == r) return true;
       }
       break;
       case MIR_LOWTABLESWITCH_opcode: {
         OPT_RegisterOperand op = MIR_LowTableSwitch.getIndex(s);
-        if (op.asRegister().register == r) return true;
+        if (op.asRegister().getRegister() == r) return true;
       }
       break;
       case IA32_CMOV_opcode:
       case IA32_FCMOV_opcode: {
         OPT_RegisterOperand op = MIR_CondMove.getResult(s).asRegister();
-        if (op.asRegister().register == r) return true;
+        if (op.asRegister().getRegister() == r) return true;
       }
       break;
       case IA32_MOVZX__B_opcode:
       case IA32_MOVSX__B_opcode: {
         OPT_RegisterOperand op = MIR_Unary.getResult(s).asRegister();
-        if (op.asRegister().register == r) return true;
+        if (op.asRegister().getRegister() == r) return true;
       }
       break;
       case IA32_MOVZX__W_opcode:
       case IA32_MOVSX__W_opcode: {
         OPT_RegisterOperand op = MIR_Unary.getResult(s).asRegister();
-        if (op.asRegister().register == r) return true;
+        if (op.asRegister().getRegister() == r) return true;
       }
       break;
       case IA32_SET__B_opcode: {
         if (MIR_Set.getResult(s).isRegister()) {
           OPT_RegisterOperand op = MIR_Set.getResult(s).asRegister();
-          if (op.asRegister().register == r) return true;
+          if (op.asRegister().getRegister() == r) return true;
         }
       }
       break;
@@ -280,9 +280,9 @@ public class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions
         // at least 1 of the two operands must be in a register
         if (!MIR_Test.getVal2(s).isConstant()) {
           if (MIR_Test.getVal1(s).isRegister()) {
-            if (MIR_Test.getVal1(s).asRegister().register == r) return true;
+            if (MIR_Test.getVal1(s).asRegister().getRegister() == r) return true;
           } else if (MIR_Test.getVal2(s).isRegister()) {
-            if (MIR_Test.getVal2(s).asRegister().register == r) return true;
+            if (MIR_Test.getVal2(s).asRegister().getRegister() == r) return true;
           }
         }
       }
@@ -291,7 +291,7 @@ public class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions
         // val2 of bit test must be either a constant or register
         if (!MIR_Test.getVal2(s).isConstant()) {
           if (MIR_Test.getVal2(s).isRegister()) {
-            if (MIR_Test.getVal2(s).asRegister().register == r) return true;
+            if (MIR_Test.getVal2(s).asRegister().getRegister() == r) return true;
           }
         }
       }
@@ -326,7 +326,7 @@ public class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions
       case IA32_MOVSX__B_opcode: {
         if (MIR_Unary.getVal(s).isRegister()) {
           OPT_RegisterOperand val = MIR_Unary.getVal(s).asRegister();
-          if (val.register == symb) {
+          if (val.getRegister() == symb) {
             return !okFor8(r);
           }
         }
@@ -335,7 +335,7 @@ public class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions
       case IA32_SET__B_opcode: {
         if (MIR_Set.getResult(s).isRegister()) {
           OPT_RegisterOperand op = MIR_Set.getResult(s).asRegister();
-          if (op.asRegister().register == symb) {
+          if (op.asRegister().getRegister() == symb) {
             return !okFor8(r);
           }
         }

@@ -201,7 +201,7 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
     for (int i = inst.getNumberOfOperands() - 1; i >= 0; --i) {
       OPT_Operand op = inst.getOperand(i);
       if (op instanceof OPT_RegisterOperand) {
-        if (op.asRegister().type.isWordType() || op.asRegister().register.isPhysical()) {
+        if (op.asRegister().getType().isWordType() || op.asRegister().getRegister().isPhysical()) {
           return true;
         }
       }

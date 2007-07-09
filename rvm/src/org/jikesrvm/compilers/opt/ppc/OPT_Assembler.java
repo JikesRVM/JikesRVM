@@ -364,7 +364,7 @@ public abstract class OPT_Assembler implements OPT_Operators, VM_Constants, VM_A
           /* Just a nicer name for a twi <ref> lessthan 1 */
         {
           int op0 = OPT_PowerPCTrapOperand.LOWER;
-          int op1 = ((OPT_RegisterOperand) NullCheck.getRef(p)).register.number & REG_MASK;
+          int op1 = ((OPT_RegisterOperand) NullCheck.getRef(p)).getRegister().number & REG_MASK;
           int op2 = 1;
           inst = VM.BuildFor64Addr ? PPC64_TDI.instTemplate : PPC_TWI.instTemplate;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | op2));

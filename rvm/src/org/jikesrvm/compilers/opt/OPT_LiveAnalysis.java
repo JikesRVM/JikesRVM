@@ -464,12 +464,12 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
           if (isSkippableReg(regOp, ir)) {
             continue;
           }
-          VM_TypeReference regType = regOp.type;
+          VM_TypeReference regType = regOp.getType();
 
           // Because the summary we compute is used to propagate to other
           // basic blocks, if a register is block local, we don't need to
           // include it.  It will be picked up later by local propagation phase.
-          if (regOp.register.spansBasicBlock() && regType != null) {
+          if (regOp.getRegister().spansBasicBlock() && regType != null) {
 
             // if it is a DEF we place it is the BBKillSet and remove it from
             // the GEN set, (GEN should only contain upward-exposed uses,
@@ -505,13 +505,13 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
               continue;
             }
 
-            VM_TypeReference regType = regOp.type;
+            VM_TypeReference regType = regOp.getType();
 
             // Because the summary we compute is used to propagate to
             // other basic blocks, if a register is block local,
             // we don't need to include it.  It will be picked up
             // later by local propagation phase.
-            if (regOp.register.spansBasicBlock() && regType != null) {
+            if (regOp.getRegister().spansBasicBlock() && regType != null) {
               bbLiveInfo[bblock.getNumber()].getGen().add(regOp);
             }
           }                     // is RegOp
@@ -560,8 +560,8 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
               OPT_Operand myRval = Phi.getValue(phi, j);
               if (myRval instanceof OPT_RegisterOperand) {
                 OPT_RegisterOperand regOp = (OPT_RegisterOperand) myRval;
-                VM_TypeReference regType = regOp.type;
-                if (regOp.register.spansBasicBlock() && regType != null) {
+                VM_TypeReference regType = regOp.getType();
+                if (regOp.getRegister().spansBasicBlock() && regType != null) {
                   bbLiveInfo[bblock.getNumber()].getGen().add(regOp);
                 }
               }
@@ -779,7 +779,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
             if (isSkippableReg(regOp, ir)) {
               continue;
             }
-            if (regOp.type != null) {
+            if (regOp.getType() != null) {
               // process the def as a kill
               local.remove(regOp);
               if (verbose) {
@@ -787,7 +787,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
               }
 
               // mark this instruction as the start of the live range for reg
-              OPT_LiveInterval.setStartLiveRange(regOp.register, inst, block);
+              OPT_LiveInterval.setStartLiveRange(regOp.getRegister(), inst, block);
             }
           } // if operand is a Register
         }   // defs
@@ -832,7 +832,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
             if (isSkippableReg(regOp, ir)) {
               continue;
             }
-            VM_TypeReference regType = regOp.type;
+            VM_TypeReference regType = regOp.getType();
             // see Def loop comment about magics
             if (regType != null) {
               // process the use as a gen
@@ -842,7 +842,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
                 System.out.println("local: " + local);
               }
               // mark this instruction as the end of the live range for reg
-              OPT_LiveInterval.createEndLiveRange(regOp.register, block, inst);
+              OPT_LiveInterval.createEndLiveRange(regOp.getRegister(), block, inst);
             }
           }     // if operand is a Register
         }     // uses
@@ -899,7 +899,7 @@ public final class OPT_LiveAnalysis extends OPT_CompilerPhase {
     // register allocation needs to know about physical registers, except
     // for the ones listed below.  Such regs are inserted in the IR
     // during call expansion.
-    return regOp.register.isExcludedLiveA() || (regOp.register.isValidation() && skipGuards);
+    return regOp.getRegister().isExcludedLiveA() || (regOp.getRegister().isValidation() && skipGuards);
   }
 
   /**

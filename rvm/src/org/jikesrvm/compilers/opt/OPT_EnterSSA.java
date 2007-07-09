@@ -234,8 +234,8 @@ public class OPT_EnterSSA extends OPT_CompilerPhase {
         while (uses.hasMoreElements()) {
           OPT_Operand op = uses.next();
           if (op instanceof OPT_RegisterOperand) {
-            if (!killed.contains(op.asRegister().register)) {
-              nonLocalRegisters.add(op.asRegister().register);
+            if (!killed.contains(op.asRegister().getRegister())) {
+              nonLocalRegisters.add(op.asRegister().getRegister());
             }
           }
         }
@@ -243,7 +243,7 @@ public class OPT_EnterSSA extends OPT_CompilerPhase {
         while (defs.hasMoreElements()) {
           OPT_Operand op = defs.next();
           if (op instanceof OPT_RegisterOperand) {
-            killed.add(op.asRegister().register);
+            killed.add(op.asRegister().getRegister());
           }
         }
       }
@@ -271,7 +271,7 @@ public class OPT_EnterSSA extends OPT_CompilerPhase {
           OPT_RegisterOperand v = ResultCarrier.getResult(pei);
           // void calls and the like... :(
           if (v != null) {
-            OPT_Register orig = v.register;
+            OPT_Register orig = v.getRegister();
             {
               OPT_BasicBlockEnumeration out = block.getApplicableExceptionalOut(pei);
               while (out.hasMoreElements()) {
@@ -299,8 +299,8 @@ public class OPT_EnterSSA extends OPT_CompilerPhase {
       for (OPT_Pair copy : needed) {
         OPT_BasicBlock inBlock = (OPT_BasicBlock) copy.first;
         OPT_RegisterOperand registerOp = (OPT_RegisterOperand) copy.second;
-        VM_TypeReference type = registerOp.type;
-        OPT_Register register = registerOp.register;
+        VM_TypeReference type = registerOp.getType();
+        OPT_Register register = registerOp.getRegister();
         OPT_Register temp = ir.regpool.getReg(register);
         inBlock.prependInstruction(OPT_SSA.makeMoveInstruction(ir, register, temp, type));
         OPT_BasicBlockEnumeration outBlocks = inBlock.getIn();
@@ -548,10 +548,10 @@ public class OPT_EnterSSA extends OPT_CompilerPhase {
           OPT_Operand operand = s.getOperand(j);
           if (operand == null) continue;
           if (!operand.isRegister()) continue;
-          if (operand.asRegister().register.isSSA()) continue;
-          if (operand.asRegister().register.isPhysical()) continue;
+          if (operand.asRegister().getRegister().isSSA()) continue;
+          if (operand.asRegister().getRegister().isPhysical()) continue;
 
-          int reg = operand.asRegister().register.getNumber();
+          int reg = operand.asRegister().getRegister().getNumber();
           result[reg].set(bbNumber);
         }
       }
@@ -751,13 +751,13 @@ public class OPT_EnterSSA extends OPT_CompilerPhase {
           OPT_Operand op = A.getOperand(u);
           if (op instanceof OPT_RegisterOperand) {
             OPT_RegisterOperand rop = (OPT_RegisterOperand) op;
-            OPT_Register r1 = rop.register;
+            OPT_Register r1 = rop.getRegister();
             if (r1.isSSA()) continue;
             if (r1.isPhysical()) continue;
             OPT_RegisterOperand r2 = S[r1.getNumber()].peek();
             if (DEBUG) System.out.println("REPLACE NORMAL USE " + r1 + " with " + r2);
             if (r2 != null) {
-              rop.register = r2.register;
+              rop.setRegister(r2.getRegister());
               OPT_DefUse.recordUse(rop);
             }
           }
@@ -768,12 +768,12 @@ public class OPT_EnterSSA extends OPT_CompilerPhase {
         OPT_Operand op = A.getOperand(d);
         if (op instanceof OPT_RegisterOperand) {
           OPT_RegisterOperand rop = (OPT_RegisterOperand) op;
-          OPT_Register r1 = rop.register;
+          OPT_Register r1 = rop.getRegister();
           if (r1.isSSA()) continue;
           if (r1.isPhysical()) continue;
           OPT_Register r2 = ir.regpool.getReg(r1);
           if (DEBUG) System.out.println("PUSH " + r2 + " FOR " + r1 + " BECAUSE " + A);
-          S[r1.getNumber()].push(new OPT_RegisterOperand(r2, rop.type));
+          S[r1.getNumber()].push(new OPT_RegisterOperand(r2, rop.getType()));
           rop.setRegister(r2);
           r2.scratchObject = r1;
         }
@@ -793,7 +793,7 @@ public class OPT_EnterSSA extends OPT_CompilerPhase {
       while (s.operator() == PHI) {
         OPT_Operand val = Phi.getValue(s, j);
         if (val.isRegister()) {
-          OPT_Register r1 = ((OPT_RegisterOperand) Phi.getValue(s, j)).register;
+          OPT_Register r1 = ((OPT_RegisterOperand) Phi.getValue(s, j)).getRegister();
           // ignore registers already marked SSA by a previous pass
           if (!r1.isSSA()) {
             OPT_RegisterOperand r2 = S[r1.getNumber()].peek();
@@ -828,7 +828,7 @@ public class OPT_EnterSSA extends OPT_CompilerPhase {
         OPT_Operand newOp = A.getOperand(d);
         if (newOp == null) continue;
         if (!newOp.isRegister()) continue;
-        OPT_Register newReg = newOp.asRegister().register;
+        OPT_Register newReg = newOp.asRegister().getRegister();
         if (newReg.isSSA()) continue;
         if (newReg.isPhysical()) continue;
         OPT_Register r1 = (OPT_Register) newReg.scratchObject;
@@ -1040,12 +1040,12 @@ public class OPT_EnterSSA extends OPT_CompilerPhase {
           didSomething = true;
           if (phi.scratch == NO_NULL_TYPE) i.remove();
           OPT_RegisterOperand result = (OPT_RegisterOperand) Phi.getResult(phi);
-          result.type = meet;
-          for (Enumeration<OPT_RegisterOperand> e = OPT_DefUse.uses(result.register); e.hasMoreElements();) {
+          result.setType(meet);
+          for (Enumeration<OPT_RegisterOperand> e = OPT_DefUse.uses(result.getRegister()); e.hasMoreElements();) {
             OPT_RegisterOperand rop = e.nextElement();
-            if (rop.type != meet) {
+            if (rop.getType() != meet) {
               rop.clearPreciseType();
-              rop.type = meet;
+              rop.setType(meet);
             }
           }
         }
@@ -1075,7 +1075,7 @@ public class OPT_EnterSSA extends OPT_CompilerPhase {
         }
         OPT_RegisterOperand result = Phi.getResult(phi).asRegister();
         i.remove();
-        for (Enumeration<OPT_RegisterOperand> e = OPT_DefUse.uses(result.register); e.hasMoreElements();) {
+        for (Enumeration<OPT_RegisterOperand> e = OPT_DefUse.uses(result.getRegister()); e.hasMoreElements();) {
           OPT_RegisterOperand use = e.nextElement();
           OPT_Instruction s = use.instruction;
           if (Phi.conforms(s)) {
@@ -1176,7 +1176,7 @@ public class OPT_EnterSSA extends OPT_CompilerPhase {
     if (firstUse == null) {
       return null;             // parameter has no uses
     }
-    return firstUse.type;
+    return firstUse.getType();
   }
 }
 
