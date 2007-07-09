@@ -3398,10 +3398,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
           Move.mutate(s, REF_MOVE, GuardedUnary.getClearResult(s), new OPT_TIBConstantOperand(op.getType().peekType()));
           return DefUseEffect.MOVE_FOLDED;
         }
-      } else if (false) {
-        // Constant folding object tibs based on precise type information 
-        // is disabled as it causes failures in SPECjbb200* benchmarks. See
-        // RVM-16
+      } else {
         OPT_RegisterOperand rop = op.asRegister();
         VM_TypeReference typeRef = rop.getType();
         if (typeRef.isResolved() && rop.isPreciseType()) {
@@ -3464,7 +3461,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         OPT_TIBConstantOperand tib = tibOp.asTIBConstant();
         Move.mutate(s,
                     REF_MOVE,
-                    Load.getClearResult(s),
+                    Unary.getClearResult(s),
                     new OPT_ObjectConstantOperand(tib.value.getSuperclassIds(), Offset.zero()));
         return DefUseEffect.MOVE_FOLDED;
       }
@@ -3479,7 +3476,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
         OPT_TIBConstantOperand tib = tibOp.asTIBConstant();
         Move.mutate(s,
                     REF_MOVE,
-                    Load.getClearResult(s),
+                    Unary.getClearResult(s),
                     new OPT_ObjectConstantOperand(tib.value.getDoesImplement(), Offset.zero()));
         return DefUseEffect.MOVE_FOLDED;
       }
