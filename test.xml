@@ -186,25 +186,6 @@
     </forEach>
 
     <bres><![CDATA[</builds>]]></bres>
-
-    <if>
-      <conditions>
-        <and>
-          <not>
-            <isset property="skip.build"/>
-          </not>
-          <not>
-            <isset property="skip.javadoc"/>
-          </not>
-        </and>
-      </conditions>
-      <sequential>
-        <erant antfile="${jikesrvm.dir}/build.xml" failonerror="false" target="apidoc">
-          <property name="config.name" value="prototype-opt"/>
-        </erant>
-      </sequential>
-    </if>
-
   </target>
 
   <!-- **************************************************************************** -->
