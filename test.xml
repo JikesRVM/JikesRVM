@@ -278,7 +278,7 @@
 
   <target name="archive" depends="gen-xml-report">
     <mkdir dir="${results.archive}"/>
-    <property name="archive.filename" value="${local.hostname}_${test-run.name}_${time-stamp}_r${svn.revision}_${target.name}_Report.xml"/>
+    <property name="archive.filename" value="${local.hostname}_${test-run.name}_${test-run.start.time-stamp}_r${svn.revision}_${target.name}_Report.xml"/>
     <gzip src="${test.results.dir}/Report.xml" destfile="${results.archive}/${archive.filename}.gz"/>
   </target>
 
