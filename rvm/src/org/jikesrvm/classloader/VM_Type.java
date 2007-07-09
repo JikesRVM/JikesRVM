@@ -284,6 +284,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
    * Define hashCode(), to allow use of consistent hash codes during
    * bootImage writing and run-time
    */
+  @Override
   public final int hashCode() {
     return typeRef.hashCode();
   }
@@ -560,6 +561,11 @@ public abstract class VM_Type extends VM_AnnotatedElement
     return null;
   }
 
+  /**
+   * Is the given slot accessible in this type's TIB? Will fail an assertion if
+   * not.
+   * @param slot the slot to check
+   */
   protected void checkTIBSlotIsAccessible(int slot) {
     if (!isInstantiated()) {
       VM._assert(false, toString() + "'s TIB is inaccessible as its not instantiated");
