@@ -245,7 +245,7 @@ import org.vmmagic.unboxed.*;
   public final void flushRememberedSets() {
     remset.flushLocal();
     arrayRemset.flushLocal();
-    assertRemsetFlushed();
+    assertRemsetsFlushed();
   }
 
   /**
@@ -255,7 +255,7 @@ import org.vmmagic.unboxed.*;
    * it is its own responsibility to ensure that they are flushed before
    * returning to MMTk.
    */
-  public final void assertRemsetFlushed() {
+  public final void assertRemsetsFlushed() {
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(remset.isFlushed());
       VM.assertions._assert(arrayRemset.isFlushed());
@@ -292,7 +292,7 @@ import org.vmmagic.unboxed.*;
       } else {
         plos.release(false);
       }
-      assertRemsetFlushed();
+      assertRemsetsFlushed();
       return;
     }
 

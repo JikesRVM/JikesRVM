@@ -242,19 +242,6 @@ import org.vmmagic.unboxed.*;
    * Correctness
    */
 
-  /**
-   * Remset entries should never be produced by MMTk code.  If the host JVM
-   * produces remset entries during GC, it is the responsibility of the host
-   * JVM to flush those remset entries out of the mutator contexts.
-   */
-  public static void assertMutatorRemsetsFlushed() {
-    if (VM.VERIFY_ASSERTIONS) {
-      GenMutator mutator = null;
-      while ((mutator = (GenMutator) VM.activePlan.getNextMutator()) != null)
-        mutator.assertRemsetFlushed();
-    }
-  }
-
   /*****************************************************************************
    *
    * Accounting
