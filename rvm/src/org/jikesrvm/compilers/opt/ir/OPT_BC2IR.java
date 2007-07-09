@@ -2139,7 +2139,7 @@ public final class OPT_BC2IR
             }
           }
           op2 = op2.copy();
-          if (op2 instanceof OPT_RegisterOperand) {
+          if (op2 instanceof OPT_RegisterOperand && !op2.asRegister().isPreciseType()) {
             ((OPT_RegisterOperand) op2).type = typeRef;
           }
           push(op2);
