@@ -3401,7 +3401,11 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
       } else {
         OPT_RegisterOperand rop = op.asRegister();
         VM_TypeReference typeRef = rop.getType();
-        if (typeRef.isResolved() && rop.isPreciseType()) {
+        // Is the type of this register only one possible type?
+        if (typeRef.isResolved() && rop.isPreciseType() && typeRef.resolve().isInstantiated()) {
+          // before simplifying ensure that the type is instantiated, this stops
+          // constant propagation potentially moving the TIB constant before the
+          // runtime call that instantiates it
           Move.mutate(s,
                       REF_MOVE,
                       GuardedUnary.getClearResult(s),
