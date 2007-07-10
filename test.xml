@@ -146,7 +146,18 @@
             <concat destfile="${build.results.file}" append="true">
               <path path="${driver.scratch.dir}/Build-${test.config.@{tag}.configuration}.txt"/>
             </concat>
-            <bres>]<![CDATA[]></output></build>]]></bres>
+            <bres>]<![CDATA[]></output><parameters>]]></bres>
+            <property prefix="@{tag}" file="${test.config.@{tag}.rvm.dir}/constants.properties"/>
+
+            <property name="properties.config"
+                      value="config.name config.runtime.compiler config.bootimage.compiler config.mmtk.plan config.include.aos config.include.gcspy config.include.gcspy-client config.include.all-classes config.assertions config.default-heapsize.initial config.default-heapsize.maximum config.bootimage.compiler.args config.stress-gc-interval"/>
+            <forEach list="${properties.config}" property="property">
+              <sequential>
+                <bres><![CDATA[<parameter key="@{property}" value="${@{tag}.@{property}}"/>]]></bres>
+              </sequential>
+            </forEach>
+            <bres><![CDATA[</parameters></build>]]></bres>
+
           </sequential>
         </if>
         <propertycopy name="test.config.@{tag}.build.error" from="${test.config.@{tag}.configuration}.build.error"/>
@@ -221,7 +232,7 @@
           <sequential>
             <property name="properties.target"
                       value="target.name target.arch target.address.size target.os target.bootimage.code.address target.bootimage.data.address target.bootimage.rmap.address target.max-mappable.address target.arch.sse2"/>
-            <echo file="${build.results.dir}/Results.xml" append="true"><![CDATA[<target>]]></echo>
+            <echo file="${build.results.dir}/Results.xml" append="true"><![CDATA[<target><parameters>]]></echo>
             <forEach list="${properties.target}" property="property">
               <sequential>
                 <echo file="${build.results.dir}/Results.xml" append="true"><![CDATA[
@@ -229,7 +240,7 @@
     ]]></echo>
               </sequential>
             </forEach>
-            <echo file="${build.results.dir}/Results.xml" append="true"><![CDATA[</target>]]></echo>
+            <echo file="${build.results.dir}/Results.xml" append="true"><![CDATA[</parameters></target>]]></echo>
           </sequential>
         </if>
 

@@ -20,11 +20,18 @@
       <id>
         <xsl:value-of select="@name"/>
       </id>
-      <xsl:copy-of select="revision|time|variant|builds|target"/>
+      <xsl:copy-of select="revision|time|variant|target"/>
+      <builds>
+        <xsl:for-each select="builds/build">
+          <build>
+            <xsl:copy-of select="configuration|time|result|output"/>
+          </build>
+        </xsl:for-each>
+      </builds>
       <xsl:for-each
-          select="test-configuration/results[generate-id() = generate-id(key('configurations',build-parameters/parameter[@key='config.name']/@value))]">
+          select="builds/build/configuration">
         <xsl:call-template name="configuration">
-          <xsl:with-param name="config-name" select="build-parameters/parameter[@key='config.name']/@value"/>
+          <xsl:with-param name="config-name" select="text()"/>
         </xsl:call-template>
       </xsl:for-each>
     </report>
@@ -38,7 +45,7 @@
       </id>
       <parameters>
         <xsl:copy-of
-            select="/test-run/test-configuration/results[generate-id() = generate-id(key('configurations',$config-name))]/build-parameters/parameter[starts-with(@key,'config.')]"/>
+            select="/test-run/builds/build/configuration[text() = $config-name]/../parameters/parameter"/>
       </parameters>
       <xsl:call-template name="do-test-configuration">
         <xsl:with-param name="excludes" select="'|'"/>
