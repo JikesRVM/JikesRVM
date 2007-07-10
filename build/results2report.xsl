@@ -20,12 +20,7 @@
       <id>
         <xsl:value-of select="@name"/>
       </id>
-      <xsl:copy-of select="revision|time|variant|builds"/>
-      <target>
-        <parameters>
-          <xsl:copy-of select="test-configuration[1]/results[1]/build-parameters/parameter[starts-with(@key,'target.')]"/>
-        </parameters>
-      </target>
+      <xsl:copy-of select="revision|time|variant|builds|target"/>
       <xsl:for-each
           select="test-configuration/results[generate-id() = generate-id(key('configurations',build-parameters/parameter[@key='config.name']/@value))]">
         <xsl:call-template name="configuration">

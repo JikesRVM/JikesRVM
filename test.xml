@@ -210,6 +210,29 @@
     <forEach list="${test.configs}" property="tag">
       <sequential>
         <testRunPropertyInit tag="@{tag}"/>
+        <property prefix="@{tag}" file="${test.config.@{tag}.rvm.dir}/constants.properties"/>
+
+        <if>
+          <conditions>
+            <not>
+              <isset property="properties.target"/>
+            </not>
+          </conditions>
+          <sequential>
+            <property name="properties.target"
+                      value="target.name target.arch target.address.size target.os target.bootimage.code.address target.bootimage.data.address target.bootimage.rmap.address target.max-mappable.address target.arch.sse2"/>
+            <echo file="${build.results.dir}/Results.xml" append="true"><![CDATA[<target>]]></echo>
+            <forEach list="${properties.target}" property="property">
+              <sequential>
+                <echo file="${build.results.dir}/Results.xml" append="true"><![CDATA[
+            <parameter key="@{property}" value="${@{tag}.@{property}}"/>
+    ]]></echo>
+              </sequential>
+            </forEach>
+            <echo file="${build.results.dir}/Results.xml" append="true"><![CDATA[</target>]]></echo>
+          </sequential>
+        </if>
+
         <echo file="${build.results.dir}/@{tag}.xml" append="false">
           <![CDATA[<test-configuration tag="@{tag}" name="${test.config.@{tag}.name}">]]></echo>
         <condition property="test.config.@{tag}.prefix" value="" else="${test.config.@{tag}.name}_">
