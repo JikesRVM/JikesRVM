@@ -59,12 +59,6 @@ import org.vmmagic.unboxed.*;
   protected static final Address DEBUG_BLOCK = Address.max(); // 0x5b098008
   protected static final int SIZE_CLASSES = (COMPACT_SIZE_CLASSES) ? 28 : 40;
   protected static final int FREE_LIST_HEADER_BYTES = BYTES_IN_ADDRESS;
-  private static final int FREE_LIST_OFFSET = 0;
-  private static final int FREE_LIST_BITS = BlockAllocator.LOG_MAX_BLOCK;
-  private static final int SIZE_CLASS_BITS = 6;
-  private static final int INUSE_BITS = 10;
-  private static final int SIZE_CLASS_SHIFT = FREE_LIST_BITS;
-  private static final int INUSE_SHIFT = FREE_LIST_BITS + SIZE_CLASS_BITS;
   protected static final int MIN_CELLS = 6;
   protected static final int MAX_CELLS = 99; // (1<<(INUSE_BITS-1))-1;
   public static final int MAX_CELL_SIZE = 8<<10;
@@ -80,9 +74,12 @@ import org.vmmagic.unboxed.*;
   private static final int LOG_LIVE_WORD_STRIDE = LOG_LIVE_COVERAGE + LOG_BYTES_IN_WORD;
   private static final Extent LIVE_WORD_STRIDE = Extent.fromIntSignExtend(1<<LOG_LIVE_WORD_STRIDE);
   private static final Word LIVE_WORD_STRIDE_MASK = LIVE_WORD_STRIDE.minus(1).toWord().not();
-  private static final int NET_META_DATA_BYTES_PER_REGION = BlockAllocator.META_DATA_BYTES_PER_REGION + LIVE_BYTES_PER_REGION;
-  protected static final int META_DATA_PAGES_PER_REGION_WITH_BITMAP = Conversions.bytesToPages(Extent.fromIntSignExtend(NET_META_DATA_BYTES_PER_REGION));
-  protected static final int META_DATA_PAGES_PER_REGION_NO_BITMAP = Conversions.bytesToPages(Extent.fromIntSignExtend(BlockAllocator.META_DATA_BYTES_PER_REGION));
+  private static final int NET_META_DATA_BYTES_PER_REGION = 
+    BlockAllocator.META_DATA_BYTES_PER_REGION + LIVE_BYTES_PER_REGION;
+  protected static final int META_DATA_PAGES_PER_REGION_WITH_BITMAP = 
+    Conversions.bytesToPages(Extent.fromIntSignExtend(NET_META_DATA_BYTES_PER_REGION));
+  protected static final int META_DATA_PAGES_PER_REGION_NO_BITMAP = 
+    Conversions.bytesToPages(Extent.fromIntSignExtend(BlockAllocator.META_DATA_BYTES_PER_REGION));
 
   private static final Extent META_DATA_OFFSET = BlockAllocator.META_DATA_EXTENT;
 
@@ -94,8 +91,6 @@ import org.vmmagic.unboxed.*;
   public static final boolean FRAGMENTATION_CHECK = false;
   protected static final boolean FRAG_VERBOSE = false;
   protected static int bytesAlloc;
-  private long[] fragInuseCellBytes;
-  private int[] fragUsedPages;
 
   /****************************************************************************
    *

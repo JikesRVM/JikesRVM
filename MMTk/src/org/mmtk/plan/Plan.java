@@ -183,6 +183,7 @@ public abstract class Plan implements Constants {
   @Interruptible
   public void postBoot() {
     if (Options.verbose.getValue() > 2) Space.printVMMap();
+    if (Options.verbose.getValue() > 3) VM.config.printConfig();
     if (Options.verbose.getValue() > 0) Stats.startAll();
     if (Options.eagerMmapSpaces.getValue()) Space.eagerlyMmapMMTkSpaces();
   }

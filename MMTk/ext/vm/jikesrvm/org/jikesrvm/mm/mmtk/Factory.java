@@ -26,6 +26,9 @@ import org.jikesrvm.VM;
  */
 public final class Factory extends org.mmtk.vm.Factory {
 
+  private static final String DEFAULT_MMTK_PROPERTIES = ".mmtk.properties";
+  private static final String CONFIG_FILE_PROPERTY = "mmtk.properties";
+
   /**
    * Create a new ActivePlan instance using the appropriate VM-specific
    * concrete ActivePlan sub-class.
@@ -90,6 +93,22 @@ public final class Factory extends org.mmtk.vm.Factory {
     }
   }
 
+  /**
+   * Create a new BuildTimeConfig instance using the appropriate VM-specific
+   * concrete BuildTimeConfig sub-class.
+   * 
+   * @see Collection
+   * @return A concrete VM-specific Collection instance.
+   */
+  public org.mmtk.vm.BuildTimeConfig newBuildTimeConfig() {
+    try {
+      return new BuildTimeConfig(CONFIG_FILE_PROPERTY, DEFAULT_MMTK_PROPERTIES);
+    } catch (Exception e) {
+      VM.sysFail("Failed to allocate new BuildTimeConfiguration!");
+      return null; // never get here
+    }
+  }
+  
   /**
    * Create a new Lock instance using the appropriate VM-specific
    * concrete Lock sub-class.

@@ -19,7 +19,10 @@
   <import file="build/base.xml"/>
   <import file="build/tasks.xml"/>
 
+  <property name="config.mmtk" value="default"/>
   <property name="config.file" location="${jikesrvm.dir}/build/configs/${config.name}.properties"/>
+  <property name="mmtk.properties" location="${jikesrvm.dir}/build/mmtk/${config.mmtk}.properties"/>
+  <property name="default.mmtk.properties" location="${jikesrvm.dir}/build/mmtk/default.properties"/>
 
   <!-- configuration data -->
   <property file="${config.file}"/>
@@ -121,6 +124,26 @@
     <test-property name="shld.args" location="${host.file}"/>
   </target>
 
+  <target name="check-mmtk-properties"  depends="check-host-name">
+    <available property="mmtk_properties_present" file="${mmtk.properties}"/>
+    <fail unless="mmtk_properties_present">
+      MMTk properties file ${mmtk.properties} not present. Please set mmtk.properties to the name of file in ${jikesrvm.dir}/build/mmtk directory without the .properties suffix.
+    </fail>
+    
+    <!-- Load the user-specified properties -->
+    <loadproperties srcFile="${mmtk.properties}"/>
+    
+    <!-- 
+         Load the default properties - won't overwrite the user-specified 
+         because properties are immutable
+      -->
+    <loadproperties srcFile="${default.mmtk.properties}"/>
+    
+    <!-- Now sanity check the properties we need later -->
+    <test-property name="mmtk.headerMarkBit" location="${mmtk.properties}"/>
+    <!-- <echoproperties prefix="mmtk."/> -->
+  </target>
+
   <target name="include-gcspy-check">
     <condition property="include.gcspy-java" value="true">
       <equals arg1="${config.include.gcspy}" arg2="true"/>
@@ -206,7 +229,7 @@ Check to make sure all required properties are specified. This includes properti
  * component properties for classpath, gcspy etc.
   -->
   <target name="check-properties"
-          depends="check-host-properties,check-config-properties,check-target-properties,check-classpath-properties,check-gcspy-properties"
+          depends="check-host-properties,check-config-properties,check-target-properties,check-classpath-properties,check-gcspy-properties,check-mmtk-properties"
           description="Check that all require properties are specified.">
 
     <!-- setup properties for start of build. -->
@@ -774,6 +797,7 @@ Check to make sure all required properties are specified. This includes properti
       const char *rvm_host_configuration = "${config.file}";
       const char *rvm_target_configuration = "${target.file}";
     </echo>
+    
   </target>
 
   <!-- Control targets for the source generation -->
@@ -845,6 +869,12 @@ Check to make sure all required properties are specified. This includes properti
       <equals arg1="${target.arch}" arg2="ppc"/>
     </condition>
 
+    <condition property="arch-helper-class"
+               value="org/jikesrvm/ia32/VM_MachineSpecificIA.java"
+               else="org/jikesrvm/ppc/VM_MachineSpecificPowerPC.java">
+      <equals arg1="${target.arch}" arg2="ia32"/>
+    </condition>
+
     <!--
      FIXME: When we can capture the primordials based on reachability
      we will not need to delete class dir here. We will also be able to
@@ -870,6 +900,7 @@ Check to make sure all required properties are specified. This includes properti
       <include name="gnu/**/*.java"/>
       <include name="sun/**/*.java"/>
       <include name="java/**/*.java"/>
+      <include name="${arch-helper-class}"/>
       <include name="org/jikesrvm/mm/mmtk/**/*.java"/>
       <include name="org/jikesrvm/tools/oth/OptTestHarness.java"/>
       <include name="org/jikesrvm/tools/header_gen/GenArch_${target.arch}.java"/>
@@ -1031,6 +1062,7 @@ Check to make sure all required properties are specified. This includes properti
     </condition>
 
     <echo message="Building bootimage. Output redirected to : ${build.base}/BootImageWriterOutput.txt"/>
+    <echo message="MMTk properties = ${mmtk.properties}"/>
     <java classname="BootImageWriter"
           fork="yes"
           maxmemory="500M"
@@ -1044,6 +1076,8 @@ Check to make sure all required properties are specified. This includes properti
       </classpath>
 
       <sysproperty key="mmtk.hostjvm" value="org.jikesrvm.mm.mmtk.Factory"/>
+      <sysproperty key="mmtk.properties" value="${mmtk.properties}"/>
+      <sysproperty key="rvm.properties" value="${build.base}/rvm.properties"/>
       <jvmarg value="-Xbootclasspath/a:${rvm.class.path}"/>
       <jvmarg value="-Xss2m"/>
       <arg value="-classpath"/>
@@ -1108,6 +1142,7 @@ Check to make sure all required properties are specified. This includes properti
         <pathelement location="${build.rt.jar}"/>
       </classpath>
       <sysproperty key="mmtk.hostjvm" value="org.jikesrvm.mm.mmtk.Factory"/>
+      <sysproperty key="mmtk.properties" value="${mmtk.properties}"/>
       <jvmarg value="-Xbootclasspath/a:${build.rt.jar}"/>
       <arg value="-da"/>
       <arg value="${target.bootimage.data.address}"/>

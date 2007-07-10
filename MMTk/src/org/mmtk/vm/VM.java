@@ -85,6 +85,7 @@ public final class VM {
   public static final Assert assertions;
   public static final Barriers barriers;
   public static final Collection collection;
+  public static final Config config;
   public static final Memory memory;
   public static final ObjectModel objectModel;
   public static final Options options;
@@ -138,6 +139,7 @@ public final class VM {
     statistics = factory.newStatistics();
     strings = factory.newStrings();
     traceInterface = factory.newTraceInterface();
+    config = new Config(factory.newBuildTimeConfig());
 
     /* Now initialize the constants using the vm-specific singletons */
     VERIFY_ASSERTIONS = Assert.verifyAssertionsTrapdoor(assertions);

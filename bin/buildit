@@ -313,7 +313,7 @@ if ($extlibdir eq "") {
 }
 
 if ($javaHome{$host} eq "") {
-  bad_usage("Host java home not specified");
+  bad_usage("Host java home not specified. Use -j JAVAHOME or set global.javahome.$hostConfig in ~/.buildit_config");
 }
 if ($javaHome{$target} eq "") {
   bad_usage("Target java home not specified");
@@ -384,9 +384,10 @@ foreach $g (@gcs) {
 }
 # The -m option
 if (! $mmtk_config eq "") {
-  if (! -e $localRoot."/build/configs/".$mmtk_config.".mmtk.properties") {
+  if (! -e $localRoot."/build/mmtk/".$mmtk_config.".properties") {
     bad_usage("Could not find MMTk properties '$mmtk_config'");
   }
+  $suffix .= $mmtk_config;
 }
 
 $report_email="";

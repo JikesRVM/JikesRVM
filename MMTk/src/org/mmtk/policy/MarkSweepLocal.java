@@ -17,6 +17,7 @@ import org.mmtk.utility.alloc.SegregatedFreeList;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.options.Options;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -60,7 +61,7 @@ import org.vmmagic.pragma.*;
    * in the headers of object (or other sub-class scheme), and a single
    * mark bit per block.
    */
-  public static final boolean HEADER_MARK_BITS = true;
+  public static final boolean HEADER_MARK_BITS = VM.config.HEADER_MARK_BITS;
   public static final int META_DATA_PAGES_PER_REGION = HEADER_MARK_BITS
     ? SegregatedFreeList.META_DATA_PAGES_PER_REGION_NO_BITMAP
     : SegregatedFreeList.META_DATA_PAGES_PER_REGION_WITH_BITMAP;
