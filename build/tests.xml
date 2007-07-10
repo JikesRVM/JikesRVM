@@ -283,11 +283,17 @@
     <sequential>
       <toAscii src="@{file}" dest="${build.tests.dir}/deleteme.ascii"/>
       <!-- TODO: can be replaced by line filtering copy in ant 1.7 -->
-      <exec executable="${awk.exe}" failonerror="true" input="${build.tests.dir}/deleteme.ascii" output="@{tofile}">
-        <arg value="-f"/>
-        <arg value="${jikesrvm.dir}/testing/harness/RVMJunkFilter.awk"/>
-      </exec>
-
+      <lineFilter src="${build.tests.dir}/deleteme.ascii" dest="@{tofile}">
+        <filter pattern="^GCspy.startGCspyServer"/>
+        <filter pattern="^GCspy server on port [0-9]*"/>
+        <filter pattern="^GCspy safepoint for event [0-9]*"/>
+        <filter pattern="^GC Warning:"/>
+        <filter pattern="^GC Message:"/>
+        <filter pattern="^\[GC [0-9]*"/>
+        <filter pattern="^\[Forced GC\]*"/>
+        <filter pattern="^\[End [0-9]*.[0-9]* ms\]*"/>
+        <filter pattern="^AOS: In non-adaptive mode; controller thread exiting."/>
+      </lineFilter>
     </sequential>
   </macrodef>
 
@@ -532,7 +538,6 @@
       Host file ${host.file} not present. Please set host.name to the name of file in ${jikesrvm.dir}/build/hosts
       directory without the .properties suffix.
     </fail>
-    <test-file name="awk.exe" location="${host.file}"/>
 
     <fail unless="test.group.name" message="test.group.name must be set to name of test group."/>
 

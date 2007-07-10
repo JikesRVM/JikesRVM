@@ -42,7 +42,8 @@
     <taskdef name="hostname" classname="org.jikesrvm.tools.ant.HostnameTask" classpath="${tasks.classes}"/>
     <!-- Truncate a file (used in testing) -->
     <taskdef name="truncate" classname="org.jikesrvm.tools.ant.TruncateTask" classpath="${tasks.classes}"/>
-
+    <!-- Filter out lines -->
+    <taskdef name="lineFilter" classname="org.jikesrvm.tools.ant.LineFilterTask" classpath="${tasks.classes}"/>
   </target>
 
 </project>
