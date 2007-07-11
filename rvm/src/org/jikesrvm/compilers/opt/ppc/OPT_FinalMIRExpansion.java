@@ -17,6 +17,7 @@ import org.jikesrvm.classloader.VM_InterfaceMethodSignature;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.compilers.opt.OPT_Bits;
 import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.VM_OptEntrypoints;
 import org.jikesrvm.compilers.opt.ir.MIR_Binary;
 import org.jikesrvm.compilers.opt.ir.MIR_Branch;
 import org.jikesrvm.compilers.opt.ir.MIR_Call;
@@ -183,7 +184,7 @@ public abstract class OPT_FinalMIRExpansion extends OPT_IRTools {
           if (VM.VerifyAssertions) {
             VM._assert(p.bcIndex >= 0 && p.position != null);
           }
-          Offset offset = VM_Entrypoints.optResolveMethod.getOffset();
+          Offset offset = VM_OptEntrypoints.optResolveMethod.getOffset();
           if (OPT_Bits.fits(offset, 16)) {
             p.insertBefore(MIR_Load.create(PPC_LAddr, A(zero), A(JTOC), IC(OPT_Bits.PPCMaskLower16(offset))));
           } else {
@@ -320,25 +321,25 @@ public abstract class OPT_FinalMIRExpansion extends OPT_IRTools {
       if (ir.MIRInfo.prologueYieldpointBlock != null) {
         return ir.MIRInfo.prologueYieldpointBlock;
       } else {
-        meth = VM_Entrypoints.optThreadSwitchFromPrologueMethod;
+        meth = VM_OptEntrypoints.optThreadSwitchFromPrologueMethod;
       }
     } else if (whereFrom == VM_Thread.BACKEDGE) {
       if (ir.MIRInfo.backedgeYieldpointBlock != null) {
         return ir.MIRInfo.backedgeYieldpointBlock;
       } else {
-        meth = VM_Entrypoints.optThreadSwitchFromBackedgeMethod;
+        meth = VM_OptEntrypoints.optThreadSwitchFromBackedgeMethod;
       }
     } else if (whereFrom == VM_Thread.EPILOGUE) {
       if (ir.MIRInfo.epilogueYieldpointBlock != null) {
         return ir.MIRInfo.epilogueYieldpointBlock;
       } else {
-        meth = VM_Entrypoints.optThreadSwitchFromEpilogueMethod;
+        meth = VM_OptEntrypoints.optThreadSwitchFromEpilogueMethod;
       }
     } else if (whereFrom == VM_Thread.OSROPT) {
       if (ir.MIRInfo.osrYieldpointBlock != null) {
         return ir.MIRInfo.osrYieldpointBlock;
       } else {
-        meth = VM_Entrypoints.optThreadSwitchFromOsrOptMethod;
+        meth = VM_OptEntrypoints.optThreadSwitchFromOsrOptMethod;
       }
     }
 

@@ -23,7 +23,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_CompilationState;
 import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
 import org.jikesrvm.compilers.opt.ir.OPT_Operand;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
-import org.jikesrvm.runtime.VM_Entrypoints;
 
 /**
  * This class provides some utilities that are useful for inlining.
@@ -158,7 +157,7 @@ public abstract class OPT_InlineTools implements OPT_Constants {
     // then we always want to inline java.lang.System.arraycopy.
     // TODO: Would be nice to discover this automatically!!!
     //       There have to be other methods with similar properties.
-    if (callee == VM_Entrypoints.sysArrayCopy) {
+    if (callee == VM_OptEntrypoints.sysArrayCopy) {
       OPT_Operand src = Call.getParam(state.getCallInstruction(), 0);
       return src.getType() != VM_TypeReference.JavaLangObject;
     }

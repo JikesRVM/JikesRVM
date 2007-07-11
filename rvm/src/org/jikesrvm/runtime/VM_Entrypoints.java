@@ -13,7 +13,6 @@
 package org.jikesrvm.runtime;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.adaptive.VM_AosEntrypoints;
 import org.jikesrvm.classloader.VM_Field;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_NormalMethod;
@@ -386,58 +385,6 @@ public class VM_Entrypoints {
   public static final VM_Field socketImplAddressField =
       getField("Ljava/net/SocketImpl;", "address", "Ljava/net/InetAddress;");
   public static final VM_Field socketImplPortField = getField("Ljava/net/SocketImpl;", "port", "I");
-
-  //////////////////
-  // Entrypoints that are valid only when the opt compiler is included in the build
-  //////////////////
-
-  public static final VM_Field osrOrganizerQueueLockField;
-  public static final VM_NormalMethod optThreadSwitchFromOsrOptMethod;
-  public static final VM_NormalMethod optThreadSwitchFromPrologueMethod;
-  public static final VM_NormalMethod optThreadSwitchFromBackedgeMethod;
-  public static final VM_NormalMethod optThreadSwitchFromEpilogueMethod;
-  public static final VM_NormalMethod yieldpointFromNativePrologueMethod;
-  public static final VM_NormalMethod yieldpointFromNativeEpilogueMethod;
-  public static final VM_NormalMethod optResolveMethod;
-  public static final VM_NormalMethod optNewArrayArrayMethod;
-  public static final VM_NormalMethod sysArrayCopy;
-
-  static {
-    if (VM.BuildForOptCompiler) {
-      osrOrganizerQueueLockField = getField("Lorg/jikesrvm/adaptive/OSR_OrganizerThread;", "queueLock", "I");
-      optThreadSwitchFromOsrOptMethod =
-          getMethod("Lorg/jikesrvm/compilers/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromOsrOpt", "()V");
-      optThreadSwitchFromPrologueMethod =
-          getMethod("Lorg/jikesrvm/compilers/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromPrologue", "()V");
-      optThreadSwitchFromBackedgeMethod =
-          getMethod("Lorg/jikesrvm/compilers/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromBackedge", "()V");
-      optThreadSwitchFromEpilogueMethod =
-          getMethod("Lorg/jikesrvm/compilers/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromEpilogue", "()V");
-      yieldpointFromNativePrologueMethod =
-          getMethod("Lorg/jikesrvm/compilers/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromNativePrologue", "()V");
-      yieldpointFromNativeEpilogueMethod =
-          getMethod("Lorg/jikesrvm/compilers/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromNativeEpilogue", "()V");
-      optResolveMethod = getMethod("Lorg/jikesrvm/compilers/opt/VM_OptSaveVolatile;", "OPT_resolve", "()V");
-
-      optNewArrayArrayMethod =
-          getMethod("Lorg/jikesrvm/compilers/opt/VM_OptLinker;", "newArrayArray", "(I[II)Ljava/lang/Object;");
-
-      sysArrayCopy = getMethod("Ljava/lang/VMSystem;", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
-      sysArrayCopy.setRuntimeServiceMethod(false);
-    } else {
-      osrOrganizerQueueLockField = null;
-      optThreadSwitchFromOsrOptMethod = null;
-      optThreadSwitchFromPrologueMethod = null;
-      optThreadSwitchFromBackedgeMethod = null;
-      optThreadSwitchFromEpilogueMethod = null;
-      yieldpointFromNativePrologueMethod = null;
-      yieldpointFromNativeEpilogueMethod = null;
-      optResolveMethod = null;
-      optNewArrayArrayMethod = null;
-      sysArrayCopy = null;
-    }
-  }
-
 
   public static final VM_Field classLoaderDefinedPackages =
       getField("Ljava/lang/ClassLoader;", "definedPackages", "Ljava/util/HashMap;");

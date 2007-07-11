@@ -228,7 +228,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase {
 
         case NEWOBJMULTIARRAY_opcode: {
           int typeRefId = NewArray.getType(inst).getTypeRef().getId();
-          VM_Method target = VM_Entrypoints.optNewArrayArrayMethod;
+          VM_Method target = VM_OptEntrypoints.optNewArrayArrayMethod;
           VM_Method callSite = inst.position.getMethod();
           Call.mutate3(inst,
                        CALL,

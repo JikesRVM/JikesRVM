@@ -93,6 +93,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_TrapCodeOperand;
 import org.jikesrvm.compilers.opt.ir.ia32.OPT_IA32ConditionOperand;
 import org.jikesrvm.compilers.opt.ir.ia32.OPT_PhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.ia32.OPT_PhysicalDefUse;
+import org.jikesrvm.compilers.opt.VM_OptEntrypoints;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.unboxed.Offset;
@@ -343,27 +344,27 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
 			 value.disp.isZero() &&
 			 value.scale == 0) {
 		// reg1 = lea [reg1 + index] -> add reg1, index
-                MIR_BinaryAcc.mutate(p, IA32_ADD, result, value.index);                
+                MIR_BinaryAcc.mutate(p, IA32_ADD, result, value.index);
               } else if (value.base != null && value.base.getRegister() == result.getRegister() &&
 			 value.index == null) {
 		// reg1 = lea [reg1 + disp] -> add reg1, disp
-                MIR_BinaryAcc.mutate(p, IA32_ADD, result, IC(value.disp.toInt()));                
+                MIR_BinaryAcc.mutate(p, IA32_ADD, result, IC(value.disp.toInt()));
               } else if (value.base == null &&
 			 value.index == null && value.index.getRegister() == result.getRegister() &&
 			 value.scale == 0) {
 		// reg1 = lea [reg1 + disp] -> add reg1, disp
-                MIR_BinaryAcc.mutate(p, IA32_ADD, result, IC(value.disp.toInt()));                
+                MIR_BinaryAcc.mutate(p, IA32_ADD, result, IC(value.disp.toInt()));
               } else if (value.base == null &&
 			 value.index == null && value.index.getRegister() == result.getRegister() &&
 			 value.disp.isZero()) {
 		// reg1 = lea [reg1 << scale] -> shl reg1, scale
-                MIR_BinaryAcc.mutate(p, IA32_SHL, result, IC(value.scale));                
+                MIR_BinaryAcc.mutate(p, IA32_SHL, result, IC(value.scale));
               }
             }
           }
         }
         break;
-          
+
         case IA32_FCLEAR_opcode:
           expandFClear(p, ir);
           break;
@@ -395,20 +396,20 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
           break;
 
         case YIELDPOINT_PROLOGUE_opcode:
-          expandYieldpoint(p, ir, VM_Entrypoints.optThreadSwitchFromPrologueMethod, OPT_IA32ConditionOperand.NE());
+          expandYieldpoint(p, ir, VM_OptEntrypoints.optThreadSwitchFromPrologueMethod, OPT_IA32ConditionOperand.NE());
           break;
 
         case YIELDPOINT_EPILOGUE_opcode:
-          expandYieldpoint(p, ir, VM_Entrypoints.optThreadSwitchFromEpilogueMethod, OPT_IA32ConditionOperand.NE());
+          expandYieldpoint(p, ir, VM_OptEntrypoints.optThreadSwitchFromEpilogueMethod, OPT_IA32ConditionOperand.NE());
           break;
 
         case YIELDPOINT_BACKEDGE_opcode:
-          expandYieldpoint(p, ir, VM_Entrypoints.optThreadSwitchFromBackedgeMethod, OPT_IA32ConditionOperand.GT());
+          expandYieldpoint(p, ir, VM_OptEntrypoints.optThreadSwitchFromBackedgeMethod, OPT_IA32ConditionOperand.GT());
           break;
 
         case YIELDPOINT_OSR_opcode:
           // must yield, does not check threadSwitch request
-          expandUnconditionalYieldpoint(p, ir, VM_Entrypoints.optThreadSwitchFromOsrOptMethod);
+          expandUnconditionalYieldpoint(p, ir, VM_OptEntrypoints.optThreadSwitchFromOsrOptMethod);
           break;
 
       }
