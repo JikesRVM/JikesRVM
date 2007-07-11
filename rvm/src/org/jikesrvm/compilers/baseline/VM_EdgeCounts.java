@@ -23,6 +23,7 @@ import org.jikesrvm.VM_Callbacks;
 import org.jikesrvm.classloader.VM_MemberReference;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.runtime.VM_Magic;
+import org.vmmagic.pragma.Entrypoint;
 
 /**
  * A repository of edge counters for bytecode-level edge conditional branches.
@@ -48,6 +49,7 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
    * plus either TAKEN or NOT_TAKEN. The value is the count of the
    * number of times a particular branch event occurs.
    */
+  @Entrypoint
   private static int[][] data;
 
   public void notifyExit(int value) { dumpCounts(); }

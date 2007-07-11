@@ -60,10 +60,14 @@ import org.mmtk.utility.Log;
   private final int id;       // lock id (based on a non-resetting counter)
 
   @SuppressWarnings({"unused", "UnusedDeclaration", "CanBeFinal"}) // Accessed via VM_EntryPoints
+  @Entrypoint
   private int dispenser;      // ticket number of next customer
+  @Entrypoint
   private int serving;        // number of customer being served
   // Diagnosis Instance fields
+  @Entrypoint
   private VM_Thread thread;   // if locked, who locked it?
+  @Entrypoint
   private long start;         // if locked, when was it locked?
   private int where = -1;     // how far along has the lock owner progressed?
   private final int[] servingHistory = new int[100];

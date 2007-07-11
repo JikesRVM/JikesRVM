@@ -24,6 +24,7 @@ import org.jikesrvm.runtime.VM_Time;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -464,23 +465,27 @@ public final class VM_Processor extends MM_ProcessorContext implements VM_Consta
    *   >0 means that the next yieldpoint of any type should be taken
    *   <0 means that the next prologue/epilogue yieldpoint should be taken
    */
+  @Entrypoint
   int takeYieldpoint;
 
   /**
    * thread currently running on this processor
    */
+  @Entrypoint
   public VM_Thread activeThread;
 
   /**
    * cached activeThread.stackLimit;
    * removes 1 load from stackoverflow sequence.
    */
+  @Entrypoint
   public Address activeThreadStackLimit;
 
   /**
    * Cache the results of activeThread.getLockingId()
    * for use in monitor operations.
    */
+  @Entrypoint
   public int threadId;
 
   /* --------- BEGIN IA-specific fields. NOTE: NEED TO REFACTOR --------- */
@@ -520,6 +525,7 @@ public final class VM_Processor extends MM_ProcessorContext implements VM_Consta
    * Is set approximately once every VM.interruptQuantum ms except when
    * GC is in progress.
    */
+  @Entrypoint
   int timeSliceExpired;
 
   /**
@@ -695,6 +701,7 @@ public final class VM_Processor extends MM_ProcessorContext implements VM_Consta
    * Number of timer ticks that have actually been forwarded to the VM from
    * the C time slicing code
    */
+  @Entrypoint
   public static int reportedTimerTicks = 0;
 
   /**
@@ -702,6 +709,7 @@ public final class VM_Processor extends MM_ProcessorContext implements VM_Consta
    * Invariant: timerTicks >= reportedTimerTicks
    * reportedTimerTicks can be lower because we supress the reporting of timer ticks during GC.
    */
+  @Entrypoint
   public static int timerTicks = 0;
 
   /**
@@ -718,6 +726,7 @@ public final class VM_Processor extends MM_ProcessorContext implements VM_Consta
    * Status of the processor.
    * Always one of IN_JAVA, IN_NATIVE or BLOCKED_IN_NATIVE.
    */
+  @Entrypoint
   public int vpStatus;
 
   /**
@@ -726,6 +735,7 @@ public final class VM_Processor extends MM_ProcessorContext implements VM_Consta
    *
    * CRA, Maria
    */
+  @Entrypoint
   public int pthread_id;
 
   // manage thick locks
@@ -746,6 +756,7 @@ public final class VM_Processor extends MM_ProcessorContext implements VM_Consta
   // PPC baseline compiler
   @SuppressWarnings({"unused", "CanBeFinal", "UnusedDeclaration"})
 // accessed via VM_EntryPoints
+  @Entrypoint
   private double scratchStorage;
 
   @LogicallyUninterruptible

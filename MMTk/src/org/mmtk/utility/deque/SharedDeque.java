@@ -156,11 +156,17 @@ import org.vmmagic.pragma.*;
    */
   private RawPageSpace rps;
   private int arity;
+  @Entrypoint
   private int completionFlag; //
+  @Entrypoint
   private int numConsumers; //
+  @Entrypoint
   private int numConsumersWaiting; //
+  @Entrypoint
   protected Address head;
+  @Entrypoint
   protected Address tail;
+  @Entrypoint
   private int bufsenqueued;
   private Lock lock;
 

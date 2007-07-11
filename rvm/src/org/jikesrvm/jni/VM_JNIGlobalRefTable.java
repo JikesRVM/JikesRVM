@@ -16,15 +16,15 @@ import java.lang.ref.WeakReference;
 import org.jikesrvm.VM;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.vmmagic.unboxed.ObjectReference;
+import org.vmmagic.pragma.Entrypoint;
 
 /**
- *
- *
  * Weak Global References are global references (negative numbers), with the
  * 2^30 bit UNset.  Mask in the 2^30 bit to get the real index into the table.
  */
 public class VM_JNIGlobalRefTable {
 
+  @Entrypoint
   private static Object[] refs = new Object[100];
   private static int free = 1;
 

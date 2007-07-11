@@ -19,6 +19,7 @@ import org.jikesrvm.objectmodel.VM_TIBLayoutConstants;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Statics;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -146,6 +147,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
   /**
    * Type id -- used to index into typechecking datastructures
    */
+  @Entrypoint
   protected final int id;
 
   /**
@@ -156,6 +158,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
   /**
    * instance of java.lang.Class corresponding to this type
    */
+  @Entrypoint
   private final Class<?> classForType;
 
   /**
@@ -163,6 +166,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
    * classes. NB this field must appear in all VM_Types for fast type
    * checks (See {@link org.jikesrvm.compilers.opt.OPT_DynamicTypeCheckExpansion}).
    */
+  @Entrypoint
   protected final int dimension;
   /**
    * Number of superclasses to Object. Known immediately for
@@ -170,6 +174,7 @@ public abstract class VM_Type extends VM_AnnotatedElement
    * this field must appear in all VM_Types for fast object array
    * store checks (See {@link org.jikesrvm.compilers.opt.OPT_DynamicTypeCheckExpansion}).
    */
+  @Entrypoint
   protected int depth;
   /**
    * cached VM_Array that corresponds to arrays of this type.

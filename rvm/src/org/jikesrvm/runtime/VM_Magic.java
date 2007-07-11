@@ -21,6 +21,7 @@ import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.Intrinsic;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
@@ -436,6 +437,7 @@ public final class VM_Magic {
   //             Type Conversion.          //
   //---------------------------------------//
 
+  @Entrypoint
   private static VM_ObjectAddressRemapper objectAddressRemapper;
 
   /**

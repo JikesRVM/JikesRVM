@@ -25,6 +25,7 @@ import org.jikesrvm.runtime.VM_Statics;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -77,6 +78,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
   /**
    * The VM_Type object for the innermost element of this array type.
    */
+  @Entrypoint
   private final VM_Type innermostElementType;
 
   /**

@@ -32,6 +32,7 @@ import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -83,6 +84,7 @@ public class VM_Scheduler {
   /** Total number of virtual processors to be used */
   public static int numProcessors = 1;
   /** Array of all virtual processors (slot 0 always empty) */
+  @Entrypoint
   public static VM_Processor[] processors;
   /** Have all processors completed initialization? */
   public static boolean allProcessorsInitialized;
@@ -130,6 +132,7 @@ public class VM_Scheduler {
    * Flag set by external signal to request debugger activation at next thread switch.
    * See also: RunBootImage.C
    */
+  @Entrypoint
   public static boolean debugRequested;
 
   /** Number of times dump stack has been called recursively */
@@ -146,6 +149,7 @@ public class VM_Scheduler {
 
   /** Int controlling output. 0 => output can be used, otherwise ID of processor */
   @SuppressWarnings({"unused", "UnusedDeclaration"})
+  @Entrypoint
   private static int outputLock;
 
   ////////////////////////////////////////////////
@@ -728,6 +732,7 @@ public class VM_Scheduler {
    * This method is called from RunBootImage.C when something goes horrifically
    * wrong with exception handling and we want to die with useful diagnostics.
    */
+  @Entrypoint
   public static void dumpStackAndDie(Address fp) {
     if (!exitInProgress) {
       // This is the first time I've been called, attempt to exit "cleanly"

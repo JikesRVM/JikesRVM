@@ -15,6 +15,7 @@ package org.jikesrvm.runtime;
 import org.jikesrvm.VM;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.AddressArray;
 import org.vmmagic.unboxed.Extent;
@@ -96,6 +97,7 @@ public class VM_BootRecord {
    * hand, simply addresses the boot record as the first object in
    * the boot image).
    */
+  @Entrypoint
   public static VM_BootRecord the_boot_record;
 
   public VM_BootRecord() {
@@ -201,6 +203,7 @@ public class VM_BootRecord {
   /**
    * an external signal has been sent e.g. kill -signalnumber processid
    */
+  @Entrypoint
   int externalSignalFlag;
 
   // Host operating system entrypoints - see "sys.C"
@@ -249,6 +252,7 @@ public class VM_BootRecord {
   public Address sysNumProcessorsIP;
   public Address sysVirtualProcessorCreateIP;
   public Address sysVirtualProcessorBindIP;
+  @Entrypoint
   public Address sysVirtualProcessorYieldIP;
   public Address sysVirtualProcessorEnableTimeSlicingIP;
   public Address sysPthreadSelfIP;
@@ -259,14 +263,23 @@ public class VM_BootRecord {
   public Address sysStashVmProcessorInPthreadIP;
 
   // arithmetic
+  @Entrypoint
   public Address sysLongDivideIP;
+  @Entrypoint
   public Address sysLongRemainderIP;
+  @Entrypoint
   public Address sysLongToFloatIP;
+  @Entrypoint
   public Address sysLongToDoubleIP;
+  @Entrypoint
   public Address sysFloatToIntIP;
+  @Entrypoint
   public Address sysDoubleToIntIP;
+  @Entrypoint
   public Address sysFloatToLongIP;
+  @Entrypoint
   public Address sysDoubleToLongIP;
+  @Entrypoint
   public Address sysDoubleRemainderIP;
   public Address sysPrimitiveParseFloatIP;
   public Address sysPrimitiveParseIntIP;

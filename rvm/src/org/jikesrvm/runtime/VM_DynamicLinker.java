@@ -23,6 +23,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.vmmagic.pragma.DynamicBridge;
 import org.vmmagic.pragma.NoInline;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -37,6 +38,7 @@ public class VM_DynamicLinker implements VM_Constants {
    *  Taken:    nothing (calling context is implicit)
    *  Returned: does not return (method dispatch table is updated and method is executed)
    */
+  @Entrypoint
   static void lazyMethodInvoker() {
     VM_DynamicLink dl = DL_Helper.resolveDynamicInvocation();
     VM_Method targMethod = DL_Helper.resolveMethodRef(dl);
@@ -51,6 +53,7 @@ public class VM_DynamicLinker implements VM_Constants {
    *  Taken:    nothing (calling context is implicit)
    *  Returned: does not return (throws UnsatisfiedLinkError)
    */
+  @Entrypoint
   static void unimplementedNativeMethod() {
     VM_DynamicLink dl = DL_Helper.resolveDynamicInvocation();
     VM_Method targMethod = DL_Helper.resolveMethodRef(dl);
@@ -60,6 +63,7 @@ public class VM_DynamicLinker implements VM_Constants {
   /**
    * Report a magic SysCall has been mistakenly invoked
    */
+  @Entrypoint
   static void sysCallMethod() {
     VM_DynamicLink dl = DL_Helper.resolveDynamicInvocation();
     VM_Method targMethod = DL_Helper.resolveMethodRef(dl);

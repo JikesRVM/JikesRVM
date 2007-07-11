@@ -26,6 +26,7 @@ import org.jikesrvm.classloader.VM_ClassLoader;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.runtime.VM_Reflection;
+import org.vmmagic.pragma.Entrypoint;
 
 /**
  * Thread in which user's "main" program runs.
@@ -134,6 +135,7 @@ public final class VM_MainThread extends Thread {
    * just to provide debug messages in a place where very little is actually
    * likely to go wrong, but there you have it....
    */
+  @Entrypoint
   public void run() {
 
     if (dbg) VM.sysWriteln("VM_MainThread.run() starting ");

@@ -30,6 +30,7 @@ import org.vmmagic.unboxed.Offset;
     offset = VM_Entrypoints.synchronizedCounterField.getOffset();
   }
 
+  @Entrypoint
   private int count = 0;
 
   public int reset() {

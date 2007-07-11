@@ -42,6 +42,7 @@ import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.NoOptCompile;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -103,6 +104,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
    * This value must be non-zero because it is shifted
    * and used in {@link Object} lock ownership tests.
    */
+  @Entrypoint
   private final int threadSlot;
 
   /**
@@ -144,20 +146,24 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
    */
 
   /** The machine stack on which to execute this thread. */
+  @Entrypoint
   public byte[] stack;
 
   /** The {@link Address} of the guard area for {@link #stack}. */
+  @Entrypoint
   public Address stackLimit;
 
   /**
    * Place to save register state when this thread is not actually running.
    */
+  @Entrypoint
   public final VM_Registers contextRegisters;
 
   /**
    * Place to save register state when C signal handler traps
    * an exception while this thread is running.
    */
+  @Entrypoint
   public final VM_Registers hardwareExceptionRegisters;
 
   /**
@@ -200,6 +206,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
    * Is this thread's stack being "borrowed" by thread dispatcher
    * (ie. while choosing next thread to run)?
    */
+  @Entrypoint
   public boolean beingDispatched;
 
   /**
@@ -221,6 +228,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
   /**
    * Cached JNI environment for this thread
    */
+  @Entrypoint
   public VM_JNIEnvironment jniEnv;
 
   /**
@@ -258,7 +266,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
   public void resetCollectionAttempts() {
     collectionAttempt = 0;
   }
-  
+
   /** Get the physical allocation failed flag. */
   public boolean physicalAllocationFailed() {
     return physicalAllocationFailed;
@@ -283,14 +291,14 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
   public OutOfMemoryError getOutOfMemoryError() {
     return outOfMemoryError;
   }
-  
+
   /**
    * Sets the outstanding OutOfMemoryError.
    */
   public void setOutOfMemoryError(OutOfMemoryError oome) {
     outOfMemoryError = oome;
   }
-  
+
   /**
    * Get the thread to use for building stack traces.
    */
@@ -298,14 +306,14 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
   public VM_Thread getThreadForStackTrace() {
     return this;
   }
-  
+
   /**
    * Clears the outstanding OutOfMemoryError.
    */
   public void clearOutOfMemoryError() {
     outOfMemoryError = null;
   }
-  
+
   /*
    * Enumerate different types of yield points for sampling
    */
@@ -385,6 +393,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
   private static final char[] dumpBuffer = new char[MAX_DUMP_LEN];
 
   @SuppressWarnings({"unused", "CanBeFinal", "UnusedDeclaration"})// accessed via VM_EntryPoints
+  @Entrypoint
   private static int dumpBufferLock = 0;
 
   /** Reset at boot time. */
@@ -417,6 +426,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
 
   /** A lock for {@link #intBuffer} */
   @SuppressWarnings({"unused", "CanBeFinal", "UnusedDeclaration"})// accessed via VM_EntryPoints
+  @Entrypoint
   private static int intBufferLock = 0;
 
   /** The offset of {@link #intBufferLock} in this class's TIB.
@@ -598,6 +608,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
    * Subclass should override with something more interesting.
    */
   @Interruptible
+  @Entrypoint
   public void run() {
     thread.run();
   }
@@ -834,6 +845,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
   //We should also have a pragma that saves all non-volatiles in opt compiler,
   // OSR_BaselineExecStateExtractor.java, should then restore all non-volatiles before stack replacement
   //todo fix this -- related to SaveVolatile
+  @Entrypoint
   public static void yieldpointFromPrologue() {
     yieldpoint(PROLOGUE);
   }
@@ -847,6 +859,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
   //We should also have a pragma that saves all non-volatiles in opt compiler,
   // OSR_BaselineExecStateExtractor.java, should then restore all non-volatiles before stack replacement
   //todo fix this -- related to SaveVolatile
+  @Entrypoint
   public static void yieldpointFromBackedge() {
     yieldpoint(BACKEDGE);
   }
@@ -860,6 +873,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
   //We should also have a pragma that saves all non-volatiles in opt compiler,
   // OSR_BaselineExecStateExtractor.java, should then restore all non-volatiles before stack replacement
   //todo fix this -- related to SaveVolatile
+  @Entrypoint
   public static void yieldpointFromEpilogue() {
     yieldpoint(EPILOGUE);
   }
@@ -1172,6 +1186,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
   @Interruptible
   @SuppressWarnings({"unused", "UnusedDeclaration"})
   // Called by back-door methods.
+  @Entrypoint
   private static void startoff() {
     VM_Thread currentThread = getCurrentThread();
     if (trace) {

@@ -20,6 +20,7 @@ import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
@@ -70,6 +71,7 @@ public final class VM_ThinLock implements VM_ThinLockConstants {
    * @see org.jikesrvm.compilers.opt.OPT_ExpandRuntimeServices
    */
   @Inline
+  @Entrypoint
   static void inlineLock(Object o, Offset lockOffset) {
     Word old = VM_Magic.prepareWord(o, lockOffset);
     if (old.rshl(TL_THREAD_ID_SHIFT).isZero()) {
@@ -95,6 +97,7 @@ public final class VM_ThinLock implements VM_ThinLockConstants {
    * @see org.jikesrvm.compilers.opt.OPT_ExpandRuntimeServices
    */
   @Inline
+  @Entrypoint
   static void inlineUnlock(Object o, Offset lockOffset) {
     Word old = VM_Magic.prepareWord(o, lockOffset);
     Word threadId = Word.fromIntZeroExtend(VM_Processor.getCurrentProcessor().threadId);

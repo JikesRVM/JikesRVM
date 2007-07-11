@@ -102,7 +102,7 @@ public abstract class Plan implements Constants {
   public static final int DEFAULT_MAX_NURSERY = (32 << 20) >> LOG_BYTES_IN_PAGE;
   public static final boolean SCAN_BOOT_IMAGE = true;  // scan it for roots rather than trace it
   public static final int MAX_COLLECTION_ATTEMPTS = 10;
-  
+
   /****************************************************************************
    * Class variables
    */
@@ -292,23 +292,23 @@ public abstract class Plan implements Constants {
   public boolean lastCollectionFullHeap() {
     return true;
   }
-  
+
   /**
    * @return Is last GC a full collection?
    */
   public static final boolean isEmergencyCollection() {
     return emergencyCollection;
   }
-  
+
   /**
    * @return True if we have run out of heap space.
    */
   public final boolean lastCollectionFailed() {
-    return !userTriggeredCollection && 
+    return !userTriggeredCollection &&
       (getPagesAvail() < getHeapFullThreshold() ||
        getPagesAvail() < requiredAtStart);
   }
-  
+
   /**
    * Force the next collection to be full heap.
    */
@@ -352,12 +352,13 @@ public abstract class Plan implements Constants {
   protected static boolean userTriggeredCollection;
   protected static boolean emergencyCollection;
   protected static boolean awaitingAsyncCollection;
-  
+
   private static boolean initialized = false;
   private static boolean collectionTriggered;
+  @Entrypoint
   private static int gcStatus = NOT_IN_GC; // shared variable
   private static boolean emergencyAllocation;
-  
+
   /** @return Is the memory management system initialized? */
   public static boolean isInitialized() {
     return initialized;
@@ -369,7 +370,7 @@ public abstract class Plan implements Constants {
   public static boolean isCollectionTriggered() {
     return collectionTriggered;
   }
-  
+
   /**
    * Set that a collection has been triggered.
    */
@@ -404,7 +405,7 @@ public abstract class Plan implements Constants {
   public static void finishEmergencyAllocation() {
     emergencyAllocation = false;
   }
-  
+
   /**
    * Return true if a collection is in progress.
    *
@@ -551,12 +552,12 @@ public abstract class Plan implements Constants {
   public static Extent freeMemory() {
     return totalMemory().minus(usedMemory());
   }
-  
+
   /**
-   * Return the amount of <i>available memory</i>, in bytes.  Note 
-   * that this accounts for unused memory that is held in reserve 
+   * Return the amount of <i>available memory</i>, in bytes.  Note
+   * that this accounts for unused memory that is held in reserve
    * for copying, and therefore unavailable for allocation.
-   * 
+   *
    * @return The amount of <i>available memory</i>, in bytes.
    */
   public static Extent availableMemory() {
@@ -632,7 +633,7 @@ public abstract class Plan implements Constants {
   }
 
   /**
-   * Return the number of pages reserved for collection.  
+   * Return the number of pages reserved for collection.
    * In most cases this is a copy reserve, all subclasses that
    * manage a copying space must add the copying contribution.
    *
@@ -654,16 +655,16 @@ public abstract class Plan implements Constants {
     return loSpace.reservedPages() + ploSpace.reservedPages() +
            immortalSpace.reservedPages() + metaDataSpace.reservedPages();
   }
-  
+
   /**
    * Calculate the number of pages a collection is required to free to satisfy
    * outstanding allocation requests.
-   * 
+   *
    * @return the number of pages a collection is required to free to satisfy
    * outstanding allocation requests.
    */
   public int getPagesRequired() {
-    return loSpace.requiredPages() + ploSpace.requiredPages() + 
+    return loSpace.requiredPages() + ploSpace.requiredPages() +
       metaDataSpace.requiredPages() + immortalSpace.requiredPages();
   }
 
@@ -718,7 +719,7 @@ public abstract class Plan implements Constants {
         /* This is not, in general, in a GC safe point. */
         return false;
       }
-      /* Someone else initiated a collection, we should join it */      
+      /* Someone else initiated a collection, we should join it */
       logPoll(space, "Joining collection");
       VM.collection.joinCollection();
       return true;
@@ -726,7 +727,7 @@ public abstract class Plan implements Constants {
 
     if (collectionRequired(spaceFull)) {
       if (space == metaDataSpace) {
-        /* In general we must not trigger a GC on metadata allocation since 
+        /* In general we must not trigger a GC on metadata allocation since
          * this is not, in general, in a GC safe point.  Instead we initiate
          * an asynchronous GC, which will occur at the next safe point.
          */
@@ -738,10 +739,10 @@ public abstract class Plan implements Constants {
       VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
     }
-    
+
     return false;
   }
-  
+
   /**
    * Check whether an asynchronous collection is pending.<p>
    *
@@ -774,17 +775,17 @@ public abstract class Plan implements Constants {
    */
   private void logPoll(Space space, String message) {
     if (Options.verbose.getValue() >= 3) {
-      Log.write("  [POLL] "); 
-      Log.write(space.getName()); 
-      Log.write(": "); 
-      Log.writeln(message); 
+      Log.write("  [POLL] ");
+      Log.write(space.getName());
+      Log.write(": ");
+      Log.writeln(message);
     }
   }
-  
+
   /**
    * This method controls the triggering of a GC. It is called periodically
    * during allocation. Returns true to trigger a collection.
-   * 
+   *
    * @param spaceFull Space request failed, must recover pages within 'space'.
    * @return True if a collection is requested by the plan.
    */
@@ -795,7 +796,7 @@ public abstract class Plan implements Constants {
 
     return spaceFull || stressForceGC || heapFull || metaDataFull;
   }
-  
+
   /**
    * Start GCspy server.
    *

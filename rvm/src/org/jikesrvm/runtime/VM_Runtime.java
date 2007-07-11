@@ -35,6 +35,7 @@ import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -100,6 +101,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    *                 class/array/interface
    * @return true iff is object instance of target type?
    */
+  @Entrypoint
   static boolean instanceOf(Object object, int targetID) throws NoClassDefFoundError {
 
     /*  Here, LHS and RHS refer to the way we would treat these if they were
@@ -138,6 +140,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * @return true iff is object instance of target type?
    */
   @Uninterruptible
+  @Entrypoint
   static boolean instanceOfResolvedClass(Object object, int id) {
     if (object == null) {
       return false; // null is not an instance of any type
@@ -159,6 +162,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    *         target type
    */
   @Uninterruptible
+  @Entrypoint
   static boolean instanceOfFinal(Object object, Offset targetTibOffset) {
     if (object == null) {
       return false; // null is not an instance of any type
@@ -175,6 +179,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * @param object object to be tested
    * @param id of type reference corresponding to target class/array/interface
    */
+  @Entrypoint
   static void checkcast(Object object, int id) throws ClassCastException, NoClassDefFoundError {
     if (object == null) {
       return; // null may be cast to any type
@@ -203,6 +208,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * @param id of type corresponding to target class
    */
   @Uninterruptible
+  @Entrypoint
   static void checkcastResolvedClass(Object object, int id) {
     if (object == null) return; // null can be cast to any type
 
@@ -221,6 +227,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * quick version for final classes, array of final class or array of primitives
    */
   @Uninterruptible
+  @Entrypoint
   static void checkcastFinal(Object object, Offset targetTibOffset) {
     if (object == null) return; // null can be cast to any type
 
@@ -248,6 +255,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
   /**
    * Throw exception iff array assignment is illegal.
    */
+  @Entrypoint
   static void checkstore(Object array, Object arrayElement) throws ArrayStoreException {
     if (arrayElement == null) {
       return; // null may be assigned to any type
@@ -304,6 +312,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    *           (ready for initializer to be run on it)
    * See also: bytecode 0xbb ("new")
    */
+  @Entrypoint
   static Object unresolvedNewScalar(int id, int site) throws NoClassDefFoundError, OutOfMemoryError {
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
     VM_Type t = tRef.peekType();
@@ -362,6 +371,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    *           (ready for initializer to be run on it)
    * See also: bytecode 0xbb ("new")
    */
+  @Entrypoint
   public static Object resolvedNewScalar(int size, Object[] tib, boolean hasFinalizer, int allocator, int align,
                                          int offset, int site) throws OutOfMemoryError {
 
@@ -385,6 +395,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * @return array with header installed and all fields set to zero/null
    * See also: bytecode 0xbc ("anewarray")
    */
+  @Entrypoint
   public static Object unresolvedNewArray(int numElements, int id, int site)
       throws NoClassDefFoundError, OutOfMemoryError, NegativeArraySizeException {
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
@@ -439,6 +450,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    *         to zero/null
    * See also: bytecode 0xbc ("newarray") and 0xbd ("anewarray")
    */
+  @Entrypoint
   public static Object resolvedNewArray(int numElements, int logElementSize, int headerSize, Object[] tib,
                                         int allocator, int align, int offset, int site)
       throws OutOfMemoryError, NegativeArraySizeException {
@@ -580,6 +592,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
   /**
    * Report unexpected method call: abstract method (verification error).
    */
+  @Entrypoint
   static void unexpectedAbstractMethodCall() {
     VM.sysWrite("VM_Runtime.unexpectedAbstractMethodCall\n");
     throw new AbstractMethodError();
@@ -587,7 +600,9 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
 
   /**
    * Report unimplemented bytecode.
+   * TODO: Deleteme as I am unused!
    */
+  @Entrypoint
   static void unimplementedBytecode(int bytecode) {
     VM.sysWrite(bytecode);
     VM.sysFail("VM_Runtime.unimplementedBytecode\n");
@@ -607,6 +622,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * This method is public so that it can be invoked by java.lang.VMClass.
    */
   @NoInline
+  @Entrypoint
   public static void athrow(Throwable exceptionObject) {
     VM_Registers registers = new VM_Registers();
     VM.disableGC();              // VM.enableGC() is called when the exception is delivered.
@@ -635,6 +651,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    *           onto the stack immediately above this frame, for use by
    *           VM_HardwareTrapGCMapIterator during garbage collection.
    */
+  @Entrypoint
   static void deliverHardwareException(int trapCode, int trapInfo) {
 
     VM_Thread myThread = VM_Thread.getCurrentThread();
@@ -707,6 +724,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * does not return (stack is unwound and execution resumes in a catch block)
    */
   @NoInline
+  @Entrypoint
   static void unlockAndThrow(Object objToUnlock, Throwable objToThrow) {
     VM_ObjectModel.genericUnlock(objToUnlock);
     athrow(objToThrow);
@@ -718,6 +736,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * then recover the array index from a trap instruction.
    */
   @NoInline
+  @Entrypoint
   static void raiseArrayIndexOutOfBoundsException(int index) {
     throw new java.lang.ArrayIndexOutOfBoundsException(index);
   }
@@ -743,6 +762,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * raise a null pointer exception.
    */
   @NoInline
+  @Entrypoint
   public static void raiseNullPointerException() {
     throw new java.lang.NullPointerException();
   }
@@ -765,6 +785,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * raise an arithmetic exception.
    */
   @NoInline
+  @Entrypoint
   static void raiseArithmeticException() {
     throw new java.lang.ArithmeticException();
   }
@@ -774,6 +795,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * Used to handle error cases in invokeinterface dispatching.
    */
   @NoInline
+  @Entrypoint
   static void raiseAbstractMethodError() {
     throw new java.lang.AbstractMethodError();
   }
@@ -783,6 +805,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * Used to handle error cases in invokeinterface dispatching.
    */
   @NoInline
+  @Entrypoint
   static void raiseIllegalAccessError() {
     throw new java.lang.IllegalAccessError();
   }

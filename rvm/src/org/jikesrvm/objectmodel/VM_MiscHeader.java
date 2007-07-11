@@ -18,6 +18,7 @@ import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
 import org.vmmagic.unboxed.Offset;
@@ -59,6 +60,7 @@ public final class VM_MiscHeader implements VM_Constants, VM_MiscHeaderConstants
   /**
    * The next object ID to be used.
    */
+  @Entrypoint
   private static Word oid;
   /**
    * The current "time" for the trace being generated.
@@ -67,6 +69,7 @@ public final class VM_MiscHeader implements VM_Constants, VM_MiscHeaderConstants
   /**
    * The address of the last object allocated into the header.
    */
+  @Entrypoint
   private static Word prevAddress;
 
   static {

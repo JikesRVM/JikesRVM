@@ -25,6 +25,7 @@ import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.ObjectReference;
@@ -460,6 +461,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants, VM_SizeConstants 
   /**
    * Generic lock
    */
+  @Entrypoint
   public static void genericLock(Object o) {
     VM_JavaHeader.genericLock(o);
   }
@@ -467,6 +469,7 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants, VM_SizeConstants 
   /**
    * Generic unlock
    */
+  @Entrypoint
   public static void genericUnlock(Object o) {
     VM_JavaHeader.genericUnlock(o);
   }

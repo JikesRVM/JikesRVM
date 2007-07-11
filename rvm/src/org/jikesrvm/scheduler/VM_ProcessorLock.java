@@ -18,6 +18,7 @@ import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -99,6 +100,7 @@ public final class VM_ProcessorLock implements VM_Constants {
    * </ul>
    * Only the first two states are possible unless MCS locking is implemented.
    */
+  @Entrypoint
   VM_Processor latestContender;
 
   /**

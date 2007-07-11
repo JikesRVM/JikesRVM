@@ -23,6 +23,7 @@ import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.memorymanagers.mminterface.*;
 
 import org.vmmagic.unboxed.Offset;
+import org.vmmagic.pragma.Entrypoint;
 
 /**
  * Jikes RVM implementation of GNU Classpath's java.lang.VMRuntime.
@@ -38,6 +39,7 @@ final class VMRuntime {
   }
   private static final VMRuntime instance;
   @SuppressWarnings("unused") // Accessed from VM_EntryPoints
+  @Entrypoint
   private int gcLock;
   private static final Offset gcLockOffset;
 

@@ -53,6 +53,7 @@ import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.UninterruptibleNoWarn;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.ObjectReference;
@@ -605,6 +606,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
 
   @SuppressWarnings({"unused", "CanBeFinal", "UnusedDeclaration"})
   // accessed via VM_EntryPoints
+  @Entrypoint
   private static int sysWriteLock = 0;
   private static Offset sysWriteLockOffset = Offset.max();
 
