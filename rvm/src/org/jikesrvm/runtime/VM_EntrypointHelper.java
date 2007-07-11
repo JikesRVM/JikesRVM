@@ -27,7 +27,7 @@ import org.jikesrvm.classloader.VM_TypeReference;
  * methods of the virtual machine that are needed by compiler-generated
  * machine code or C runtime code.
  */
-class VM_EntrypointHelper {
+public class VM_EntrypointHelper {
   /**
    * Get description of virtual machine component (field or method).
    * Note: This is method is intended for use only by VM classes that need
@@ -73,13 +73,17 @@ class VM_EntrypointHelper {
     return null; // placate jikes
   }
 
-  static VM_NormalMethod getMethod(String klass, String member, String descriptor) {
+  public static VM_NormalMethod getMethod(String klass, String member, String descriptor, final boolean runtimeServiceMethod) {
     VM_NormalMethod m = (VM_NormalMethod) getMember(klass, member, descriptor);
-    m.setRuntimeServiceMethod(true);
+    m.setRuntimeServiceMethod(runtimeServiceMethod);
     return m;
   }
 
-  static VM_Field getField(String klass, String member, String descriptor) {
+  public static VM_NormalMethod getMethod(String klass, String member, String descriptor) {
+    return getMethod(klass, member, descriptor, true);
+  }
+
+  public static VM_Field getField(String klass, String member, String descriptor) {
     return (VM_Field) getMember(klass, member, descriptor);
   }
 }

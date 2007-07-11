@@ -14,9 +14,9 @@ package org.jikesrvm.adaptive.measurements.listeners;
 
 import org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants;
 import org.jikesrvm.VM;
+import org.jikesrvm.adaptive.VM_AosEntrypoints;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Synchronization;
 import org.jikesrvm.scheduler.VM_Thread;
@@ -123,7 +123,7 @@ public class VM_EdgeListener extends VM_ContextListener implements VM_Stackframe
       VM.sysWriteln("): enter ", samplesTaken);
     }
 
-    VM_Synchronization.fetchAndAdd(this, VM_Entrypoints.edgeListenerUpdateCalledField.getOffset(), 1);
+    VM_Synchronization.fetchAndAdd(this, VM_AosEntrypoints.edgeListenerUpdateCalledField.getOffset(), 1);
 
     // don't take a sample for back edge yield points
     if (whereFrom == VM_Thread.BACKEDGE) return;
@@ -186,7 +186,7 @@ public class VM_EdgeListener extends VM_ContextListener implements VM_Stackframe
 
     // Find out what sample we are.
     int sampleNumber =
-        VM_Synchronization.fetchAndAdd(this, VM_Entrypoints.edgeListenerSamplesTakenField.getOffset(), 1);
+        VM_Synchronization.fetchAndAdd(this, VM_AosEntrypoints.edgeListenerSamplesTakenField.getOffset(), 1);
     int idx = 3 * sampleNumber;
 
     // If we got buffer slots that are beyond the end of the buffer, that means

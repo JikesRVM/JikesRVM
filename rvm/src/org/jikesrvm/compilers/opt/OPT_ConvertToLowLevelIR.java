@@ -13,6 +13,7 @@
 package org.jikesrvm.compilers.opt;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.adaptive.VM_AosEntrypoints;
 import static org.jikesrvm.VM_Constants.LOG_BYTES_IN_ADDRESS;
 import static org.jikesrvm.VM_Constants.LOG_BYTES_IN_INT;
 import static org.jikesrvm.VM_Constants.NEEDS_DYNAMIC_LINK;
@@ -1303,7 +1304,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
                              ir,
                              REF_LOAD,
                              VM_TypeReference.JavaLangObjectArray,
-                             VM_Entrypoints.specializedMethodsField.getOffset());
+                             VM_AosEntrypoints.specializedMethodsField.getOffset());
     OPT_RegisterOperand instr =
         InsertLoadOffset(s,
                          ir,

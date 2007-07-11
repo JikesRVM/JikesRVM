@@ -13,6 +13,7 @@
 package org.jikesrvm.runtime;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.adaptive.VM_AosEntrypoints;
 import org.jikesrvm.classloader.VM_Field;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_NormalMethod;
@@ -389,7 +390,6 @@ public class VM_Entrypoints {
   //////////////////
   // Entrypoints that are valid only when the opt compiler is included in the build
   //////////////////
-  public static final VM_Field specializedMethodsField;
 
   public static final VM_Field osrOrganizerQueueLockField;
   public static final VM_NormalMethod optThreadSwitchFromOsrOptMethod;
@@ -404,10 +404,6 @@ public class VM_Entrypoints {
 
   static {
     if (VM.BuildForOptCompiler) {
-      specializedMethodsField =
-          getField("Lorg/jikesrvm/compilers/opt/OPT_SpecializedMethodPool;",
-                   "specializedMethods",
-                   "[Lorg/jikesrvm/ArchitectureSpecific$VM_CodeArray;");
       osrOrganizerQueueLockField = getField("Lorg/jikesrvm/adaptive/OSR_OrganizerThread;", "queueLock", "I");
       optThreadSwitchFromOsrOptMethod =
           getMethod("Lorg/jikesrvm/compilers/opt/VM_OptSaveVolatile;", "OPT_yieldpointFromOsrOpt", "()V");
@@ -429,7 +425,6 @@ public class VM_Entrypoints {
       sysArrayCopy = getMethod("Ljava/lang/VMSystem;", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
       sysArrayCopy.setRuntimeServiceMethod(false);
     } else {
-      specializedMethodsField = null;
       osrOrganizerQueueLockField = null;
       optThreadSwitchFromOsrOptMethod = null;
       optThreadSwitchFromPrologueMethod = null;
@@ -443,79 +438,6 @@ public class VM_Entrypoints {
     }
   }
 
-  public static final VM_NormalMethod osrGetRefAtMethod;
-  public static final VM_NormalMethod osrCleanRefsMethod;
-
-  static {
-    if (VM.BuildForAdaptiveSystem) {
-      osrGetRefAtMethod = getMethod("Lorg/jikesrvm/osr/OSR_ObjectHolder;", "getRefAt", "(II)Ljava/lang/Object;");
-      osrCleanRefsMethod = getMethod("Lorg/jikesrvm/osr/OSR_ObjectHolder;", "cleanRefs", "(I)V");
-    } else {
-      osrGetRefAtMethod = null;
-      osrCleanRefsMethod = null;
-    }
-  }
-
-  //////////////////
-  // Entrypoints that are valid only when the adaptive optimization system is included in the build
-  //////////////////
-  public static final VM_Field methodListenerNumSamplesField;
-
-  public static final VM_Field edgeListenerUpdateCalledField;
-  public static final VM_Field edgeListenerSamplesTakenField;
-
-  public static final VM_Field yieldCountListenerNumYieldsField;
-
-  public static final VM_Field counterArrayManagerCounterArraysField;
-
-  public static final VM_Field invocationCountsField;
-  public static final VM_NormalMethod invocationCounterTrippedMethod;
-
-  // Counter-based sampling fields
-  public static final VM_Field globalCBSField;
-  public static final VM_Field processorCBSField;
-  public static final VM_Field cbsResetValueField;
-
-  static {
-    if (VM.BuildForAdaptiveSystem) {
-      methodListenerNumSamplesField =
-          getField("Lorg/jikesrvm/adaptive/measurements/listeners/VM_MethodListener;", "numSamples", "I");
-      edgeListenerUpdateCalledField =
-          getField("Lorg/jikesrvm/adaptive/measurements/listeners/VM_EdgeListener;", "updateCalled", "I");
-      edgeListenerSamplesTakenField =
-          getField("Lorg/jikesrvm/adaptive/measurements/listeners/VM_EdgeListener;", "samplesTaken", "I");
-      yieldCountListenerNumYieldsField =
-          getField("Lorg/jikesrvm/adaptive/measurements/listeners/VM_YieldCounterListener;", "numYields", "I");
-
-      counterArrayManagerCounterArraysField =
-          getField("Lorg/jikesrvm/adaptive/measurements/instrumentation/VM_CounterArrayManager;",
-                   "counterArrays",
-                   "[[D");
-
-      invocationCountsField = getField("Lorg/jikesrvm/adaptive/recompilation/VM_InvocationCounts;", "counts", "[I");
-      invocationCounterTrippedMethod =
-          getMethod("Lorg/jikesrvm/adaptive/recompilation/VM_InvocationCounts;", "counterTripped", "(I)V");
-
-      globalCBSField =
-          getField("Lorg/jikesrvm/adaptive/recompilation/instrumentation/VM_CounterBasedSampling;",
-                   "globalCounter",
-                   "I");
-      processorCBSField = getField("Lorg/jikesrvm/scheduler/VM_Processor;", "processor_cbs_counter", "I");
-      cbsResetValueField =
-          getField("Lorg/jikesrvm/adaptive/recompilation/instrumentation/VM_CounterBasedSampling;", "resetValue", "I");
-    } else {
-      methodListenerNumSamplesField = null;
-      edgeListenerUpdateCalledField = null;
-      edgeListenerSamplesTakenField = null;
-      yieldCountListenerNumYieldsField = null;
-      counterArrayManagerCounterArraysField = null;
-      invocationCountsField = null;
-      invocationCounterTrippedMethod = null;
-      globalCBSField = null;
-      processorCBSField = null;
-      cbsResetValueField = null;
-    }
-  }
 
   public static final VM_Field classLoaderDefinedPackages =
       getField("Ljava/lang/ClassLoader;", "definedPackages", "Ljava/util/HashMap;");

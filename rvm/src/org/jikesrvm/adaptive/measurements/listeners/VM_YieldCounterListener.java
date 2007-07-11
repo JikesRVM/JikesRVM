@@ -13,7 +13,7 @@
 package org.jikesrvm.adaptive.measurements.listeners;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.adaptive.VM_AosEntrypoints;
 import org.jikesrvm.scheduler.VM_Synchronization;
 import org.vmmagic.pragma.Uninterruptible;
 
@@ -43,7 +43,7 @@ public final class VM_YieldCounterListener extends VM_NullListener {
    *             EPILOGUE?
    */
   public void update(int whereFrom) {
-    int yp = VM_Synchronization.fetchAndAdd(this, VM_Entrypoints.yieldCountListenerNumYieldsField.getOffset(), 1) + 1;
+    int yp = VM_Synchronization.fetchAndAdd(this, VM_AosEntrypoints.yieldCountListenerNumYieldsField.getOffset(), 1) + 1;
     if (yp == yieldThreshold) {
       totalYields += yp;
       activateOrganizer();

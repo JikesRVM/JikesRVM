@@ -13,9 +13,9 @@
 package org.jikesrvm.osr;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.adaptive.VM_AosEntrypoints;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.runtime.VM_Entrypoints;
 
 /**
  * Special invokestatic, with only two possible target
@@ -46,10 +46,10 @@ public class BC_InvokeStatic extends OSR_PseudoBytecode {
     VM_Method callee = null;
     switch (tid) {
       case GETREFAT:
-        callee = VM_Entrypoints.osrGetRefAtMethod;
+        callee = VM_AosEntrypoints.osrGetRefAtMethod;
         break;
       case CLEANREFS:
-        callee = VM_Entrypoints.osrCleanRefsMethod;
+        callee = VM_AosEntrypoints.osrCleanRefsMethod;
         break;
       default:
         if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);

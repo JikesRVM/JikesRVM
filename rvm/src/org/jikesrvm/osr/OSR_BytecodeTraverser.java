@@ -13,6 +13,7 @@
 package org.jikesrvm.osr;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.adaptive.VM_AosEntrypoints;
 import org.jikesrvm.classloader.VM_BytecodeConstants;
 import org.jikesrvm.classloader.VM_BytecodeStream;
 import org.jikesrvm.classloader.VM_Class;
@@ -23,7 +24,6 @@ import org.jikesrvm.classloader.VM_MethodReference;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
-import org.jikesrvm.runtime.VM_Entrypoints;
 
 /**
  * OSR_BytecodeTraverser does depth first search on a bytecode
@@ -1327,10 +1327,10 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants, OSR_Constant
               VM_Method callee = null;
               switch (mid) {
                 case GETREFAT:
-                  callee = VM_Entrypoints.osrGetRefAtMethod;
+                  callee = VM_AosEntrypoints.osrGetRefAtMethod;
                   break;
                 case CLEANREFS:
-                  callee = VM_Entrypoints.osrCleanRefsMethod;
+                  callee = VM_AosEntrypoints.osrCleanRefsMethod;
                   break;
                 default:
                   if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);

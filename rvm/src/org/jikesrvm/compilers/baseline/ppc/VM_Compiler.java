@@ -15,6 +15,7 @@ package org.jikesrvm.compilers.baseline.ppc;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.recompilation.VM_InvocationCounts;
+import org.jikesrvm.adaptive.VM_AosEntrypoints;
 import org.jikesrvm.classloader.VM_Array;
 import org.jikesrvm.classloader.VM_Atom;
 import org.jikesrvm.classloader.VM_Class;
@@ -3483,13 +3484,13 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       if (VM.BuildForAdaptiveSystem && options.INVOCATION_COUNTERS) {
         int id = compiledMethod.getId();
         VM_InvocationCounts.allocateCounter(id);
-        asm.emitLAddrToc(T0, VM_Entrypoints.invocationCountsField.getOffset());
+        asm.emitLAddrToc(T0, VM_AosEntrypoints.invocationCountsField.getOffset());
         asm.emitLVAL(T1, compiledMethod.getId() << LOG_BYTES_IN_INT);
         asm.emitLIntX(T2, T0, T1);
         asm.emitADDICr(T2, T2, -1);
         asm.emitSTWX(T2, T0, T1);
         VM_ForwardReference fr2 = asm.emitForwardBC(VM_Assembler.GT);
-        asm.emitLAddrToc(T0, VM_Entrypoints.invocationCounterTrippedMethod.getOffset());
+        asm.emitLAddrToc(T0, VM_AosEntrypoints.invocationCounterTrippedMethod.getOffset());
         asm.emitMTCTR(T0);
         asm.emitLVAL(T0, id);
         asm.emitBCCTRL();

@@ -15,6 +15,7 @@ package org.jikesrvm.compilers.baseline.ia32;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.adaptive.recompilation.VM_InvocationCounts;
+import org.jikesrvm.adaptive.VM_AosEntrypoints;
 import org.jikesrvm.classloader.VM_Array;
 import org.jikesrvm.classloader.VM_Atom;
 import org.jikesrvm.classloader.VM_Class;
@@ -1528,7 +1529,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     // Normally the status and control word rounds numbers, but for conversion
     // to an integer/long value we want truncation. We therefore save the FPSCW,
     // set it to truncation perform operation then restore
-    asm.emitADD_Reg_Imm(SP, -WORDSIZE);                      // Grow the stack    
+    asm.emitADD_Reg_Imm(SP, -WORDSIZE);                      // Grow the stack
     asm.emitFNSTCW_RegDisp(SP, MINUS_ONE_SLOT);              // [SP-4] = fpscw
     asm.emitMOVZX_Reg_RegDisp_Word(T0, SP, MINUS_ONE_SLOT);  // EAX = fpscw
     asm.emitOR_Reg_Imm(T0, 0xC00);                           // EAX = FPSCW in truncate mode
@@ -3403,12 +3404,12 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     if (VM.BuildForAdaptiveSystem && options.INVOCATION_COUNTERS) {
       int id = compiledMethod.getId();
       VM_InvocationCounts.allocateCounter(id);
-      asm.emitMOV_Reg_RegDisp(ECX, JTOC, VM_Entrypoints.invocationCountsField.getOffset());
+      asm.emitMOV_Reg_RegDisp(ECX, JTOC, VM_AosEntrypoints.invocationCountsField.getOffset());
       asm.emitSUB_RegDisp_Imm(ECX, Offset.fromIntZeroExtend(compiledMethod.getId() << 2), 1);
       VM_ForwardReference notTaken = asm.forwardJcc(VM_Assembler.GT);
       asm.emitPUSH_Imm(id);
       genParameterRegisterLoad(1);
-      asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.invocationCounterTrippedMethod.getOffset());
+      asm.emitCALL_RegDisp(JTOC, VM_AosEntrypoints.invocationCounterTrippedMethod.getOffset());
       notTaken.resolve(asm);
     }
   }

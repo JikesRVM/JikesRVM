@@ -18,6 +18,7 @@ import org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Services;
 import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.adaptive.VM_AosEntrypoints;
 import org.jikesrvm.classloader.VM_Array;
 import org.jikesrvm.classloader.VM_BytecodeConstants;
 import org.jikesrvm.classloader.VM_BytecodeStream;
@@ -31,7 +32,6 @@ import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.compilers.common.assembler.VM_ForwardReference;
-import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Statics;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.pragma.NoInline;
@@ -1936,10 +1936,10 @@ public abstract class VM_CompilerFramework
                 int targetidx = bcodes.readIntConst(); // fetch4BytesSigned();
                 switch (targetidx) {
                   case org.jikesrvm.osr.OSR_Constants.GETREFAT:
-                    methodRef = VM_Entrypoints.osrGetRefAtMethod;
+                    methodRef = VM_AosEntrypoints.osrGetRefAtMethod;
                     break;
                   case org.jikesrvm.osr.OSR_Constants.CLEANREFS:
-                    methodRef = VM_Entrypoints.osrCleanRefsMethod;
+                    methodRef = VM_AosEntrypoints.osrCleanRefsMethod;
                     break;
                   default:
                     if (VM.TraceOnStackReplacement) {

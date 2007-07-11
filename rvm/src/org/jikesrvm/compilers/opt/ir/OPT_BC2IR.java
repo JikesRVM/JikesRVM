@@ -19,6 +19,7 @@ import java.util.NoSuchElementException;
 import org.jikesrvm.ArchitectureSpecific.OPT_RegisterPool;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.VM_Controller;
+import org.jikesrvm.adaptive.VM_AosEntrypoints;
 import org.jikesrvm.classloader.VM_Array;
 import org.jikesrvm.classloader.VM_BytecodeConstants;
 import org.jikesrvm.classloader.VM_BytecodeStream;
@@ -2338,6 +2339,7 @@ public final class OPT_BC2IR
           break;
 
         case JBC_impdep1: {
+          if (VM.BuildForAdaptiveSystem) {
           int pseudo_opcode = bcodes.nextPseudoInstruction();
           switch (pseudo_opcode) {
             case PSEUDO_LoadIntConst: {
@@ -2420,10 +2422,10 @@ public final class OPT_BC2IR
               int targetidx = bcodes.readIntConst();
               switch (targetidx) {
                 case GETREFAT:
-                  meth = VM_Entrypoints.osrGetRefAtMethod;
+                  meth = VM_AosEntrypoints.osrGetRefAtMethod;
                   break;
                 case CLEANREFS:
-                  meth = VM_Entrypoints.osrCleanRefsMethod;
+                  meth = VM_AosEntrypoints.osrCleanRefsMethod;
                   break;
                 default:
                   if (VM.TraceOnStackReplacement) {
@@ -2495,9 +2497,11 @@ public final class OPT_BC2IR
               OPT_OptimizingCompilerException.UNREACHABLE();
               break;
           }
-          break;
+            break;
+          } else {
+            OPT_OptimizingCompilerException.UNREACHABLE();
+          }
         }
-
         default:
           OPT_OptimizingCompilerException.UNREACHABLE();
           break;
