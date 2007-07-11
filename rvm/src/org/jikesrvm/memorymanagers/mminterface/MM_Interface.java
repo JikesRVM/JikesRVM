@@ -49,6 +49,7 @@ import org.mmtk.utility.scan.MMType;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.ObjectReference;
@@ -165,6 +166,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * @param locationMetadata an int that encodes the source location being modified
    */
   @Inline
+  @Entrypoint
   public static void putfieldWriteBarrier(Object ref, Offset offset, Object value, int locationMetadata) {
     ObjectReference src = ObjectReference.fromObject(ref);
     Selected.Mutator.get().writeBarrier(src,
@@ -203,6 +205,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * @param value the new value for the field
    */
   @Inline
+  @Entrypoint
   public static void putstaticWriteBarrier(Offset offset, Object value) {
     // putstatic barrier currently unimplemented
     if (VM.VerifyAssertions) VM._assert(false);
@@ -224,6 +227,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * @param value the object that is the target of the new reference.
    */
   @Inline
+  @Entrypoint
   public static void arrayStoreWriteBarrier(Object ref, int index, Object value) {
     ObjectReference array = ObjectReference.fromObject(ref);
     Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_ADDRESS);
@@ -268,6 +272,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    *
    * @param object the object to check
    */
+  @Entrypoint
   public static void modifyCheck(Object object) {
     /* Make sure that during GC, we don't update on a possibly moving object.
        Such updates are dangerous because they can be lost.
