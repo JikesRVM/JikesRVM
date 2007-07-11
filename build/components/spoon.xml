@@ -44,7 +44,7 @@
   </target>
 
   <target name="build" depends="fetch">
-    <setComponentsConfig key="spoon.dir" value="${spoon.dir}"/>
+    <setComponentsConfig key="spoon.jar" value="${spoon.dir}/spoon.jar"/>
   </target>
 
   <target name="ensure" depends="prepare-ant-tasks">
