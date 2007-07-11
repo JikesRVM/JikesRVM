@@ -13,7 +13,6 @@
 package org.jikesrvm.runtime;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.VM_Constants;
 import org.jikesrvm.classloader.VM_Field;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_NormalMethod;
@@ -24,7 +23,7 @@ import static org.jikesrvm.runtime.VM_EntrypointHelper.getMethod;
  * Fields and methods of the virtual machine that are needed by
  * compiler-generated machine code or C runtime code.
  */
-public class VM_Entrypoints implements VM_Constants {
+public class VM_Entrypoints {
 
   public static final String arch = VM.BuildForIA32 ? "ia32" : "ppc";
   public static final VM_NormalMethod bootMethod = getMethod("Lorg/jikesrvm/VM;", "boot", "()V");
