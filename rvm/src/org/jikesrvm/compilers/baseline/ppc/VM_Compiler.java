@@ -47,6 +47,7 @@ import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_MagicNames;
 import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.runtime.VM_Statics;
+import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
@@ -2904,7 +2905,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
    * @param dimensions the number of dimensions
    */
   protected final void emit_multianewarray(VM_TypeReference typeRef, int dimensions) {
-    asm.emitLAddrToc(T0, VM_Entrypoints.newArrayArrayMethod.getOffset());
+    asm.emitLAddrToc(T0, VM_ArchEntrypoints.newArrayArrayMethod.getOffset());
     asm.emitMTCTR(T0);
     asm.emitLVAL(T0, method.getId());
     asm.emitLVAL(T1, dimensions);
@@ -4394,20 +4395,20 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
       pushInt(T0);  // push success of conditional store
     } else if (methodName == VM_MagicNames.saveThreadState) {
       peekAddr(T0, 0); // T0 := address of VM_Registers object
-      asm.emitLAddrToc(S0, VM_Entrypoints.saveThreadStateInstructionsField.getOffset());
+      asm.emitLAddrToc(S0, VM_ArchEntrypoints.saveThreadStateInstructionsField.getOffset());
       asm.emitMTCTR(S0);
       asm.emitBCCTRL(); // call out of line machine code
       discardSlot();  // pop arg
     } else if (methodName == VM_MagicNames.threadSwitch) {
       peekAddr(T1, 0); // T1 := address of VM_Registers of new thread
       peekAddr(T0, 1); // T0 := address of previous VM_Thread object
-      asm.emitLAddrToc(S0, VM_Entrypoints.threadSwitchInstructionsField.getOffset());
+      asm.emitLAddrToc(S0, VM_ArchEntrypoints.threadSwitchInstructionsField.getOffset());
       asm.emitMTCTR(S0);
       asm.emitBCCTRL();
       discardSlots(2);  // pop two args
     } else if (methodName == VM_MagicNames.restoreHardwareExceptionState) {
       peekAddr(T0, 0); // T0 := address of VM_Registers object
-      asm.emitLAddrToc(S0, VM_Entrypoints.restoreHardwareExceptionStateInstructionsField.getOffset());
+      asm.emitLAddrToc(S0, VM_ArchEntrypoints.restoreHardwareExceptionStateInstructionsField.getOffset());
       asm.emitMTLR(S0);
       asm.emitBCLR(); // branch to out of line machine code (does not return)
     } else if (methodName == VM_MagicNames.returnToNewStack) {
@@ -4686,7 +4687,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
 
     // fetch parameters and generate call to method invoker
     //
-    asm.emitLAddrToc(S0, VM_Entrypoints.reflectiveMethodInvokerInstructionsField.getOffset());
+    asm.emitLAddrToc(S0, VM_ArchEntrypoints.reflectiveMethodInvokerInstructionsField.getOffset());
     peekAddr(T0, 4);        // t0 := code
     asm.emitMTCTR(S0);
     peekAddr(T1, 3);        // t1 := gprs

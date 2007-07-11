@@ -28,6 +28,7 @@ import org.jikesrvm.objectmodel.VM_ThinLockConstants;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_FileSystem;
 import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_ThreadEventConstants;
 import org.jikesrvm.scheduler.VM_ThreadIOConstants;
@@ -567,14 +568,14 @@ public class GenerateInterfaceDeclarations {
 
     // fields in VM_Registers
     //
-    offset = VM_Entrypoints.registersGPRsField.getOffset();
+    offset = VM_ArchEntrypoints.registersGPRsField.getOffset();
     pln("VM_Registers_gprs_offset = ", offset);
-    offset = VM_Entrypoints.registersFPRsField.getOffset();
+    offset = VM_ArchEntrypoints.registersFPRsField.getOffset();
     pln("VM_Registers_fprs_offset = ", offset);
-    offset = VM_Entrypoints.registersIPField.getOffset();
+    offset = VM_ArchEntrypoints.registersIPField.getOffset();
     pln("VM_Registers_ip_offset = ", offset);
 
-    offset = VM_Entrypoints.registersInUseField.getOffset();
+    offset = VM_ArchEntrypoints.registersInUseField.getOffset();
     pln("VM_Registers_inuse_offset = ", offset);
 
     // fields in VM_JNIEnvironment

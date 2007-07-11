@@ -12,8 +12,8 @@
  */
 package org.jikesrvm.ppc;
 
-import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -87,7 +87,7 @@ public abstract class VM_Registers implements VM_ArchConstants {
   }
 
   public final Address getIPLocation() {
-    Offset ipOffset = VM_Entrypoints.registersIPField.getOffset();
+    Offset ipOffset = VM_ArchEntrypoints.registersIPField.getOffset();
     return VM_Magic.objectAsAddress(this).plus(ipOffset);
   }
 

@@ -29,6 +29,7 @@ import org.jikesrvm.ppc.VM_BaselineConstants;
 import org.jikesrvm.ppc.VM_MachineCode;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Memory;
+import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -244,7 +245,7 @@ public abstract class VM_JNICompiler
     storeParameters(asm, frameSize, method, klass);
 
     // Get address of out_of_line prolog into S1, before setting TOC reg.
-    asm.emitLAddrOffset(S1, JTOC, VM_Entrypoints.invokeNativeFunctionInstructionsField.getOffset());
+    asm.emitLAddrOffset(S1, JTOC, VM_ArchEntrypoints.invokeNativeFunctionInstructionsField.getOffset());
     asm.emitMTCTR(S1);
 
     // set the TOC and IP for branch to out_of_line code
@@ -1300,7 +1301,7 @@ public abstract class VM_JNICompiler
     if (VM.BuildForSVR4ABI || VM.BuildForMachOABI) {
       // on AIX JTOC is part of AIX Linkage triplet and this already set by our caller.
       // Thus, we only need this load on non-AIX platforms
-      asm.emitLAddrOffset(JTOC, T0, VM_Entrypoints.JNIEnvSavedJTOCField.getOffset());
+      asm.emitLAddrOffset(JTOC, T0, VM_ArchEntrypoints.JNIEnvSavedJTOCField.getOffset());
     }
 
     asm.emitLVALAddr(S1, VM_Entrypoints.vpStatusField.getOffset());

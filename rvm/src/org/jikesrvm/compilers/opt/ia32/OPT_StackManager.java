@@ -77,6 +77,7 @@ import org.jikesrvm.compilers.opt.ir.ia32.OPT_PhysicalRegisterSet;
 import org.jikesrvm.ia32.VM_ArchConstants;
 import static org.jikesrvm.ia32.VM_StackframeLayoutConstants.STACKFRAME_ALIGNMENT;
 import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -467,7 +468,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
     OPT_Register PR = phys.getPR();
     OPT_MemoryOperand fpHome =
         OPT_MemoryOperand.BD(new OPT_RegisterOperand(PR, VM_TypeReference.Int),
-                             VM_Entrypoints.framePointerField.getOffset(),
+                             VM_ArchEntrypoints.framePointerField.getOffset(),
                              (byte) WORDSIZE,
                              null,
                              null);
@@ -662,7 +663,7 @@ public abstract class OPT_StackManager extends OPT_GenericStackManager {
     ret.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(frameSize)));
     OPT_MemoryOperand fpHome =
         OPT_MemoryOperand.BD(new OPT_RegisterOperand(PR, VM_TypeReference.Int),
-                             VM_Entrypoints.framePointerField.getOffset(),
+                             VM_ArchEntrypoints.framePointerField.getOffset(),
                              (byte) WORDSIZE,
                              null,
                              null);

@@ -35,6 +35,7 @@ import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.runtime.VM_Process;
 import org.jikesrvm.runtime.VM_Runtime;
 import org.jikesrvm.runtime.VM_Time;
+import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.vmmagic.pragma.BaselineNoRegisters;
 import org.vmmagic.pragma.BaselineSaveLSRegisters;
 import org.vmmagic.pragma.Interruptible;
@@ -896,7 +897,7 @@ public class VM_Thread implements ArchitectureSpecific.VM_StackframeLayoutConsta
       // TODO: Is this sufficient? Ask Steve why we don't need to sync icache/dcache. --dave
       // make sure not get stale data
       VM_Magic.isync();
-      VM_Synchronization.fetchAndDecrement(VM_Magic.getJTOC(), VM_Entrypoints.toSyncProcessorsField.getOffset(), 1);
+      VM_Synchronization.fetchAndDecrement(VM_Magic.getJTOC(), VM_ArchEntrypoints.toSyncProcessorsField.getOffset(), 1);
     }
 
     // If thread is in critical section we can't switch right now, defer until later

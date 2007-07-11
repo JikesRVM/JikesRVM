@@ -35,9 +35,9 @@ import org.jikesrvm.compilers.opt.ir.OPT_TrueGuardOperand;
 import org.jikesrvm.compilers.opt.ir.Store;
 import org.jikesrvm.ia32.VM_ArchConstants;
 import org.jikesrvm.ia32.VM_StackframeLayoutConstants;
-import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_MagicNames;
+import org.jikesrvm.runtime.VM_ArchEntrypoints;
 
 /**
  * This class implements the machine-specific magics for the opt compiler.
@@ -76,7 +76,7 @@ public abstract class OPT_GenerateMachineSpecificMagic implements OPT_Operators,
     } else if (methodName == VM_MagicNames.getFramePointer) {
       gc.allocFrame = true;
       OPT_RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Address);
-      VM_Field f = VM_Entrypoints.framePointerField;
+      VM_Field f = VM_ArchEntrypoints.framePointerField;
       OPT_RegisterOperand pr = new OPT_RegisterOperand(phys.getESI(), VM_TypeReference.Int);
       bc2ir.appendInstruction(GetField.create(GETFIELD,
                                               val,

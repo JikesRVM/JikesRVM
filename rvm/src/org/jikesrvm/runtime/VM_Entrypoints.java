@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.runtime;
 
-import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_Field;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_NormalMethod;
@@ -25,7 +24,6 @@ import static org.jikesrvm.runtime.VM_EntrypointHelper.getMethod;
  */
 public interface VM_Entrypoints {
 
-  String arch = VM.BuildForIA32 ? "ia32" : "ppc";
   VM_NormalMethod bootMethod = getMethod("Lorg/jikesrvm/VM;", "boot", "()V");
 
   VM_Method java_lang_reflect_Method_invokeMethod =
@@ -71,8 +69,6 @@ public interface VM_Entrypoints {
       getMethod("Lorg/jikesrvm/runtime/VM_Runtime;",
                 "resolvedNewArray",
                 "(III[Ljava/lang/Object;IIII)Ljava/lang/Object;");
-  VM_NormalMethod newArrayArrayMethod =
-      getMethod("Lorg/jikesrvm/" + arch + "/VM_MultianewarrayHelper;", "newArrayArray", "(IIII)Ljava/lang/Object;");
   VM_Field gcLockField = getField("Ljava/lang/VMRuntime;", "gcLock", "I");
 
   VM_Field sysWriteLockField = getField("Lorg/jikesrvm/VM;", "sysWriteLock", "I");
@@ -165,26 +161,6 @@ public interface VM_Entrypoints {
       getField("Lorg/jikesrvm/runtime/VM_Math;",
                "I2Dconstant",
                "D");//  special double value for use in int <--> double conversions
-  VM_Field FPUControlWordField =
-      (VM.BuildForIA32) ? getField("Lorg/jikesrvm/" + arch + "/VM_MachineSpecificIA;", "FPUControlWord", "I") : null;
-
-  String ArchCodeArrayName = "Lorg/jikesrvm/ArchitectureSpecific$VM_CodeArray;";
-  VM_Field reflectiveMethodInvokerInstructionsField =
-      getField("Lorg/jikesrvm/" + arch + "/VM_OutOfLineMachineCode;",
-               "reflectiveMethodInvokerInstructions",
-               ArchCodeArrayName);
-  VM_Field saveThreadStateInstructionsField =
-      getField("Lorg/jikesrvm/" + arch + "/VM_OutOfLineMachineCode;", "saveThreadStateInstructions", ArchCodeArrayName);
-  VM_Field threadSwitchInstructionsField =
-      getField("Lorg/jikesrvm/" + arch + "/VM_OutOfLineMachineCode;", "threadSwitchInstructions", ArchCodeArrayName);
-  VM_Field restoreHardwareExceptionStateInstructionsField =
-      getField("Lorg/jikesrvm/" + arch + "/VM_OutOfLineMachineCode;",
-               "restoreHardwareExceptionStateInstructions",
-               ArchCodeArrayName);
-  VM_Field invokeNativeFunctionInstructionsField =
-      getField("Lorg/jikesrvm/" + arch + "/VM_OutOfLineMachineCode;",
-               "invokeNativeFunctionInstructions",
-               ArchCodeArrayName);
 
   VM_Field scratchStorageField =
       getField("Lorg/jikesrvm/scheduler/VM_Processor;", "scratchStorage", "D");
@@ -202,18 +178,6 @@ public interface VM_Entrypoints {
       getField("Lorg/jikesrvm/scheduler/VM_Processor;", "reportedTimerTicks", "I");
   VM_Field vpStatusField = getField("Lorg/jikesrvm/scheduler/VM_Processor;", "vpStatus", "I");
   VM_Field threadIdField = getField("Lorg/jikesrvm/scheduler/VM_Processor;", "threadId", "I");
-  VM_Field jtocField =
-      (VM.BuildForIA32) ? getField("Lorg/jikesrvm/scheduler/VM_Processor;",
-                                   "jtoc",
-                                   "Lorg/vmmagic/unboxed/Address;") : null;
-  VM_Field framePointerField =
-      (VM.BuildForIA32) ? getField("Lorg/jikesrvm/scheduler/VM_Processor;",
-                                   "framePointer",
-                                   "Lorg/vmmagic/unboxed/Address;") : null;
-  VM_Field hiddenSignatureIdField =
-      (VM.BuildForIA32) ? getField("Lorg/jikesrvm/scheduler/VM_Processor;", "hiddenSignatureId", "I") : null;
-  VM_Field arrayIndexTrapParamField =
-      (VM.BuildForIA32) ? getField("Lorg/jikesrvm/scheduler/VM_Processor;", "arrayIndexTrapParam", "I") : null;
 
   VM_Field referenceReferentField =
       getField("Ljava/lang/ref/Reference;", "referent", "Lorg/vmmagic/unboxed/Address;");
@@ -292,23 +256,6 @@ public interface VM_Entrypoints {
   VM_NormalMethod modifyCheckMethod =
       getMethod("Lorg/jikesrvm/memorymanagers/mminterface/MM_Interface;", "modifyCheck", "(Ljava/lang/Object;)V");
 
-  VM_Field registersIPField =
-      getField("Lorg/jikesrvm/" + arch + "/VM_Registers;", "ip", "Lorg/vmmagic/unboxed/Address;");
-  VM_Field registersFPRsField = getField("Lorg/jikesrvm/" + arch + "/VM_Registers;", "fprs", "[D");
-  VM_Field registersGPRsField =
-      getField("Lorg/jikesrvm/" + arch + "/VM_Registers;", "gprs", "Lorg/vmmagic/unboxed/WordArray;");
-  VM_Field registersInUseField = getField("Lorg/jikesrvm/" + arch + "/VM_Registers;", "inuse", "Z");
-  VM_Field registersLRField =
-      (VM.BuildForPowerPC) ? getField("Lorg/jikesrvm/" + arch + "/VM_Registers;",
-                                      "lr",
-                                      "Lorg/vmmagic/unboxed/Address;") : null;
-  VM_Field toSyncProcessorsField =
-      (VM.BuildForPowerPC) ? getField("Lorg/jikesrvm/scheduler/VM_Scheduler;", "toSyncProcessors", "I") : null;
-  VM_Field registersFPField =
-      (VM.BuildForIA32) ? getField("Lorg/jikesrvm/" + arch + "/VM_Registers;",
-                                   "fp",
-                                   "Lorg/vmmagic/unboxed/Address;") : null;
-
   VM_Field outputLockField = getField("Lorg/jikesrvm/scheduler/VM_Scheduler;", "outputLock", "I");
 
   VM_Field processorsField =
@@ -346,10 +293,6 @@ public interface VM_Entrypoints {
       getField("Lorg/jikesrvm/jni/VM_JNIEnvironment;", "pendingException", "Ljava/lang/Throwable;");
   VM_Field JNIExternalFunctionsField =
       getField("Lorg/jikesrvm/jni/VM_JNIEnvironment;", "externalJNIFunctions", "Lorg/vmmagic/unboxed/Address;");
-  VM_Field JNIEnvSavedJTOCField =
-      (VM.BuildForPowerPC) ? getField("Lorg/jikesrvm/jni/VM_JNIEnvironment;",
-                                      "savedJTOC",
-                                      "Lorg/vmmagic/unboxed/Address;") : null;
 
   VM_Field the_boot_recordField =
       getField("Lorg/jikesrvm/runtime/VM_BootRecord;", "the_boot_record", "Lorg/jikesrvm/runtime/VM_BootRecord;");

@@ -138,6 +138,7 @@ import org.jikesrvm.compilers.opt.ir.ia32.OPT_IA32ConditionOperand;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -1026,14 +1027,14 @@ OPT_Operand value, boolean signExtend) {
     // load the JTOC into a register
     OPT_RegisterOperand PR = new OPT_RegisterOperand(regpool
         .getPhysicalRegisterSet().getPR(), VM_TypeReference.Int);
-    OPT_Operand jtoc = OPT_MemoryOperand.BD(PR, VM_Entrypoints.jtocField
+    OPT_Operand jtoc = OPT_MemoryOperand.BD(PR, VM_ArchEntrypoints.jtocField
         .getOffset(), DW, null, null);
     OPT_RegisterOperand regOp = regpool.makeTempInt();
     EMIT(CPOS(s, MIR_Move.create(IA32_MOV, regOp, jtoc)));
 
     // Store the FPU Control Word to a JTOC slot
     OPT_MemoryOperand M =
-        OPT_MemoryOperand.BD(regOp.copyRO(), VM_Entrypoints.FPUControlWordField.getOffset(), W, null, null);
+        OPT_MemoryOperand.BD(regOp.copyRO(), VM_ArchEntrypoints.FPUControlWordField.getOffset(), W, null, null);
     EMIT(CPOS(s, MIR_UnaryNoRes.create(IA32_FNSTCW, M)));
     // Set the bits in the status word that control round to zero.
     // Note that we use a 32-bit and, even though we only care about the

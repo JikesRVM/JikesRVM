@@ -20,6 +20,7 @@ import org.jikesrvm.compilers.common.assembler.ppc.VM_AssemblerConstants;
 import org.jikesrvm.jni.ppc.VM_JNIStackframeLayoutConstants;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.vmmagic.unboxed.Offset;
 
@@ -199,18 +200,18 @@ public abstract class VM_OutOfLineMachineCode
     // save return address
     //
     asm.emitMFLR(T1);               // T1 = LR (return address)
-    asm.emitSTAddrOffset(T1, T0, VM_Entrypoints.registersIPField.getOffset()); // registers.ip = return address
+    asm.emitSTAddrOffset(T1, T0, VM_ArchEntrypoints.registersIPField.getOffset()); // registers.ip = return address
 
     // save non-volatile fprs
     //
-    asm.emitLAddrOffset(T1, T0, VM_Entrypoints.registersFPRsField.getOffset()); // T1 := registers.fprs[]
+    asm.emitLAddrOffset(T1, T0, VM_ArchEntrypoints.registersFPRsField.getOffset()); // T1 := registers.fprs[]
     for (int i = FIRST_NONVOLATILE_FPR; i <= LAST_NONVOLATILE_FPR; ++i) {
       asm.emitSTFD(i, i << LOG_BYTES_IN_DOUBLE, T1);
     }
 
     // save non-volatile gprs
     //
-    asm.emitLAddrOffset(T1, T0, VM_Entrypoints.registersGPRsField.getOffset()); // T1 := registers.gprs[]
+    asm.emitLAddrOffset(T1, T0, VM_ArchEntrypoints.registersGPRsField.getOffset()); // T1 := registers.gprs[]
     for (int i = FIRST_NONVOLATILE_GPR; i <= LAST_NONVOLATILE_GPR; ++i) {
       asm.emitSTAddr(i, i << LOG_BYTES_IN_ADDRESS, T1);
     }
@@ -245,9 +246,9 @@ public abstract class VM_OutOfLineMachineCode
   private static ArchitectureSpecific.VM_CodeArray generateThreadSwitchInstructions() {
     VM_Assembler asm = new ArchitectureSpecific.VM_Assembler(0);
 
-    Offset ipOffset = VM_Entrypoints.registersIPField.getOffset();
-    Offset fprsOffset = VM_Entrypoints.registersFPRsField.getOffset();
-    Offset gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
+    Offset ipOffset = VM_ArchEntrypoints.registersIPField.getOffset();
+    Offset fprsOffset = VM_ArchEntrypoints.registersFPRsField.getOffset();
+    Offset gprsOffset = VM_ArchEntrypoints.registersGPRsField.getOffset();
 
     // (1) Save nonvolatile hardware state of current thread.
     asm.emitMFLR(T3);                         // T3 gets return address
@@ -317,24 +318,24 @@ public abstract class VM_OutOfLineMachineCode
 
     // restore LR
     //
-    asm.emitLAddrOffset(REGISTER_ZERO, T0, VM_Entrypoints.registersLRField.getOffset());
+    asm.emitLAddrOffset(REGISTER_ZERO, T0, VM_ArchEntrypoints.registersLRField.getOffset());
     asm.emitMTLR(REGISTER_ZERO);
 
     // restore IP (hold it in CT register for a moment)
     //
-    asm.emitLAddrOffset(REGISTER_ZERO, T0, VM_Entrypoints.registersIPField.getOffset());
+    asm.emitLAddrOffset(REGISTER_ZERO, T0, VM_ArchEntrypoints.registersIPField.getOffset());
     asm.emitMTCTR(REGISTER_ZERO);
 
     // restore fprs
     //
-    asm.emitLAddrOffset(T1, T0, VM_Entrypoints.registersFPRsField.getOffset()); // T1 := registers.fprs[]
+    asm.emitLAddrOffset(T1, T0, VM_ArchEntrypoints.registersFPRsField.getOffset()); // T1 := registers.fprs[]
     for (int i = 0; i < NUM_FPRS; ++i) {
       asm.emitLFD(i, i << LOG_BYTES_IN_DOUBLE, T1);
     }
 
     // restore gprs
     //
-    asm.emitLAddrOffset(T1, T0, VM_Entrypoints.registersGPRsField.getOffset()); // T1 := registers.gprs[]
+    asm.emitLAddrOffset(T1, T0, VM_ArchEntrypoints.registersGPRsField.getOffset()); // T1 := registers.gprs[]
 
     for (int i = FIRST_NONVOLATILE_GPR; i <= LAST_NONVOLATILE_GPR; ++i) {
       asm.emitLAddr(i, i << LOG_BYTES_IN_ADDRESS, T1);
@@ -442,7 +443,7 @@ public abstract class VM_OutOfLineMachineCode
       asm.emitLAddr(S0, 0, S0);
     }
     asm.emitLAddr(PROCESSOR_REGISTER, -JNI_ENV_OFFSET, S0);   // load VM_JNIEnvironment
-    asm.emitLAddrOffset(JTOC, PROCESSOR_REGISTER, VM_Entrypoints.JNIEnvSavedJTOCField.getOffset());      // load JTOC
+    asm.emitLAddrOffset(JTOC, PROCESSOR_REGISTER, VM_ArchEntrypoints.JNIEnvSavedJTOCField.getOffset());      // load JTOC
     asm.emitLAddrOffset(PROCESSOR_REGISTER,
                         PROCESSOR_REGISTER,
                         VM_Entrypoints.JNIEnvSavedPRField.getOffset()); // load PR

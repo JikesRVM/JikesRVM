@@ -38,6 +38,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_StackLocationOperand;
 import org.jikesrvm.compilers.opt.ir.Prologue;
 import org.jikesrvm.ia32.VM_ArchConstants;
 import org.jikesrvm.runtime.VM_Entrypoints;
+import org.jikesrvm.runtime.VM_ArchEntrypoints;
 
 /**
  * This class contains IA32 calling conventions
@@ -110,7 +111,7 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
           VM_InterfaceMethodSignature sig = VM_InterfaceMethodSignature.findOrCreate(mo.getMemberRef());
           OPT_MemoryOperand M =
               OPT_MemoryOperand.BD(new OPT_RegisterOperand(phys.getPR(), VM_TypeReference.Int),
-                                   VM_Entrypoints.hiddenSignatureIdField.getOffset(),
+                                   VM_ArchEntrypoints.hiddenSignatureIdField.getOffset(),
                                    (byte) WORDSIZE,
                                    null,
                                    null);

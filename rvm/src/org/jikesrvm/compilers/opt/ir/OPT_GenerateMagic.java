@@ -71,8 +71,8 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.SHORT_STORE;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.SYSCALL;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.UBYTE_LOAD;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.USHORT_LOAD;
-import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_MagicNames;
+import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -528,24 +528,24 @@ public class OPT_GenerateMagic {
         res = gc.temps.makeTempInt();
         bc2ir.push(res.copyD2U());
       }
-      VM_Field target = VM_Entrypoints.reflectiveMethodInvokerInstructionsField;
+      VM_Field target = VM_ArchEntrypoints.reflectiveMethodInvokerInstructionsField;
       OPT_MethodOperand met = OPT_MethodOperand.STATIC(target);
       OPT_Instruction s =
           Call.create5(CALL, res, new OPT_AddressConstantOperand(target.getOffset()), met, code, gprs, fprs, fprmeta, spills);
       bc2ir.appendInstruction(s);
     } else if (methodName == VM_MagicNames.saveThreadState) {
       OPT_Operand p1 = bc2ir.popRef();
-      VM_Field target = VM_Entrypoints.saveThreadStateInstructionsField;
+      VM_Field target = VM_ArchEntrypoints.saveThreadStateInstructionsField;
       OPT_MethodOperand mo = OPT_MethodOperand.STATIC(target);
       bc2ir.appendInstruction(Call.create1(CALL, null, new OPT_AddressConstantOperand(target.getOffset()), mo, p1));
     } else if (methodName == VM_MagicNames.threadSwitch) {
       OPT_Operand p2 = bc2ir.popRef();
       OPT_Operand p1 = bc2ir.popRef();
-      VM_Field target = VM_Entrypoints.threadSwitchInstructionsField;
+      VM_Field target = VM_ArchEntrypoints.threadSwitchInstructionsField;
       OPT_MethodOperand mo = OPT_MethodOperand.STATIC(target);
       bc2ir.appendInstruction(Call.create2(CALL, null, new OPT_AddressConstantOperand(target.getOffset()), mo, p1, p2));
     } else if (methodName == VM_MagicNames.restoreHardwareExceptionState) {
-      VM_Field target = VM_Entrypoints.restoreHardwareExceptionStateInstructionsField;
+      VM_Field target = VM_ArchEntrypoints.restoreHardwareExceptionStateInstructionsField;
       OPT_MethodOperand mo = OPT_MethodOperand.STATIC(target);
       bc2ir.appendInstruction(Call.create1(CALL,
                                            null,

@@ -96,6 +96,7 @@ import org.jikesrvm.compilers.opt.ir.ia32.OPT_PhysicalDefUse;
 import org.jikesrvm.compilers.opt.VM_OptEntrypoints;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -238,7 +239,7 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
             }
             OPT_MemoryOperand mo =
                 OPT_MemoryOperand.BD(new OPT_RegisterOperand(phys.getPR(), VM_TypeReference.Int),
-                                     VM_Entrypoints.arrayIndexTrapParamField.getOffset(),
+                                     VM_ArchEntrypoints.arrayIndexTrapParamField.getOffset(),
                                      (byte) 4,
                                      null,
                                      null);
