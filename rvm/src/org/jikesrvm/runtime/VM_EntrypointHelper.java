@@ -23,7 +23,9 @@ import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.classloader.VM_TypeReference;
 
 /**
- * Helper class for retrieving entrypoints.
+ * Helper class for retrieving entrypoints. Entrypoints are fields and
+ * methods of the virtual machine that are needed by compiler-generated
+ * machine code or C runtime code.
  */
 class VM_EntrypointHelper {
   /**
