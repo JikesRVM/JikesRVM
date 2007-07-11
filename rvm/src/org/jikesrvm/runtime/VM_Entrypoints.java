@@ -85,8 +85,6 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field dumpBufferLockField =
       getField("Lorg/jikesrvm/scheduler/VM_Thread;", "dumpBufferLock", "I");
 
-  public static final VM_NormalMethod unimplementedBytecodeMethod =
-      getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "unimplementedBytecode", "(I)V");
   public static final VM_NormalMethod unexpectedAbstractMethodCallMethod =
       getMethod("Lorg/jikesrvm/runtime/VM_Runtime;", "unexpectedAbstractMethodCall", "()V");
   public static final VM_NormalMethod raiseNullPointerException =
@@ -555,30 +553,21 @@ public class VM_Entrypoints implements VM_Constants {
       if ((member = cls.findDeclaredMethod(memName, memDescriptor)) != null) {
         return member;
       }
-
-      // The usual causes for getMember() to fail are:
-      //  1. you mispelled the class name, member name, or member signature
-      //  2. the class containing the specified member didn't get compiled
-      //
-      VM.sysWrite("VM_Entrypoints.getMember: can't find class=" +
-                  classDescriptor +
-                  " member=" +
-                  memberName +
-                  " desc=" +
-                  memberDescriptor +
-                  "\n");
-      VM._assert(NOT_REACHED);
     } catch (Exception e) {
       e.printStackTrace();
-      VM.sysWrite("VM_Entrypoints.getMember: can't resolve class=" +
-                  classDescriptor +
-                  " member=" +
-                  memberName +
-                  " desc=" +
-                  memberDescriptor +
-                  "\n");
-      VM._assert(NOT_REACHED);
     }
+    // The usual causes for getMember() to fail are:
+    //  1. you mispelled the class name, member name, or member signature
+    //  2. the class containing the specified member didn't get compiled
+    //
+    VM.sysWrite("VM_Entrypoints.getMember: can't resolve class=" +
+                classDescriptor +
+                " member=" +
+                memberName +
+                " desc=" +
+                memberDescriptor +
+                "\n");
+    VM._assert(NOT_REACHED);
     return null; // placate jikes
   }
 
@@ -591,9 +580,4 @@ public class VM_Entrypoints implements VM_Constants {
   private static VM_Field getField(String klass, String member, String descriptor) {
     return (VM_Field) getMember(klass, member, descriptor);
   }
-
-  public static VM_Field getSysCallField(String name) {
-    return (VM_Field) getMember("Lorg/jikesrvm/VM_BootRecord;", name + "IP", "Lorg/vmmagic/unboxed/Address;");
-  }
-
 }

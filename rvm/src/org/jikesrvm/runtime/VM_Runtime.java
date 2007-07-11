@@ -598,16 +598,6 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
     throw new AbstractMethodError();
   }
 
-  /**
-   * Report unimplemented bytecode.
-   * TODO: Deleteme as I am unused!
-   */
-  @Entrypoint
-  static void unimplementedBytecode(int bytecode) {
-    VM.sysWrite(bytecode);
-    VM.sysFail("VM_Runtime.unimplementedBytecode\n");
-  }
-
   //---------------------------------------------------------------//
   //                    Exception Handling.                        //
   //---------------------------------------------------------------//
