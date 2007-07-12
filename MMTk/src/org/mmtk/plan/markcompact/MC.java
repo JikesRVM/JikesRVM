@@ -169,15 +169,15 @@ import org.vmmagic.unboxed.ObjectReference;
   }
 
   /**
-   * @see org.mmtk.plan.Plan#objectCanMove
+   * @see org.mmtk.plan.Plan#willNeverMove
    *
    * @param object Object in question
-   * @return False if the object will never move
+   * @return True if the object will never move
    */
   @Override
-  public boolean objectCanMove(ObjectReference object) {
+  public boolean willNeverMove(ObjectReference object) {
     if (Space.isInSpace(MARK_COMPACT, object))
-      return true;
-    return super.objectCanMove(object);
+      return false;
+    return super.willNeverMove(object);
   }
 }

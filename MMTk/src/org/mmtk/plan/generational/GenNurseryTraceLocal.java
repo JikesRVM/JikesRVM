@@ -126,7 +126,7 @@ import org.vmmagic.unboxed.*;
    * @param object The object to query.
    * @return True if the object is guaranteed not to move.
    */
-  public boolean willNotMove(ObjectReference object) {
+  public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     if (object.isNull()) return false;
     return object.toAddress().LT(Gen.NURSERY_START) ||
     	Space.isInSpace(Plan.PLOS, object);

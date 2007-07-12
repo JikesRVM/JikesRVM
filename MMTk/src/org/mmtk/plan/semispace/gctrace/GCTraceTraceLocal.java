@@ -191,8 +191,8 @@ import org.vmmagic.pragma.*;
    * @param object The object to check.
    * @return True if the object is guaranteed not to move.
    */
-  public boolean willNotMove(ObjectReference object) {
+  public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     if (GCTrace.traceInducedGC) return true;
-    else return super.willNotMove(object);
+    else return super.willNotMoveInCurrentCollection(object);
   }
 }

@@ -796,8 +796,8 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
   /*
  *  Will this object move (allows us to optimize some JNI calls)
  *  */
-  public static boolean objectCanMove(Object obj) {
-    return Selected.Plan.get().objectCanMove(ObjectReference.fromObject(obj));
+  public static boolean willNeverMove(Object obj) {
+    return Selected.Plan.get().willNeverMove(ObjectReference.fromObject(obj));
   }
 
   /***********************************************************************

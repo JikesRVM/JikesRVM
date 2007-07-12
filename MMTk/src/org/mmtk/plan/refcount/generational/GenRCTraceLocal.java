@@ -100,7 +100,7 @@ import org.vmmagic.unboxed.*;
     return GenRC.ALLOC_RC;
   }
 
-  public boolean willNotMove(ObjectReference object) {
+  public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
     return !(Space.isInSpace(GenRC.NS, object));
   }

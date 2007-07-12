@@ -813,25 +813,25 @@ public abstract class Plan implements Constants {
    * whether it needs to copy IO buffers etc.
    *
    * @param object The object in question
-   * @return True if it is possible that the object will ever move
+   * @return True if it is not possible that the object will ever move.
    */
-  public boolean objectCanMove(ObjectReference object) {
+  public boolean willNeverMove(ObjectReference object) {
     if (!VM.activePlan.constraints().movesObjects())
-      return false;
+      return true;
     if (Space.isInSpace(LOS, object))
-      return false;
+      return true;
     if (Space.isInSpace(PLOS,object))
-      return false;
+      return true;
     if (Space.isInSpace(IMMORTAL, object))
-      return false;
+      return true;
     if (Space.isInSpace(VM_SPACE, object))
-      return false;
+      return true;
 
     /*
-     * Default to true - this preserves correctness over efficiency.
+     * Default to false- this preserves correctness over efficiency.
      * Individual plans should override for non-moving spaces they define.
      */
-    return true;
+    return false;
   }
 
 }

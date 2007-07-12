@@ -80,10 +80,10 @@ import org.vmmagic.pragma.*;
    * @return True if this object is guaranteed not to move during this
    *         collection.
    */
-  public boolean willNotMove(ObjectReference object) {
+  public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     if (object.toAddress().GE(Gen.NURSERY_START))
       return object.toAddress().GE(Gen.NURSERY_END);
-    return super.willNotMove(object);
+    return super.willNotMoveInCurrentCollection(object);
   }
 
   /**

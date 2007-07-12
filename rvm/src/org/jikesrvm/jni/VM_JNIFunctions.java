@@ -4370,7 +4370,11 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       byte[] sourceArray = (byte[]) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
-      if (MM_Interface.objectCanMove(sourceArray)) {
+      if (MM_Interface.willNeverMove(sourceArray)) {
+        /* return a direct pointer */
+        VM_JNIGenericHelpers.setBoolStar(isCopyAddress, false);
+        return VM_Magic.objectAsAddress(sourceArray);
+      } else {
         // alloc non moving buffer in C heap for a copy of string contents
         Address copyBuffer = sysCall.sysMalloc(size);
 
@@ -4386,10 +4390,6 @@ public class VM_JNIFunctions implements VM_SizeConstants {
         VM_JNIGenericHelpers.setBoolStar(isCopyAddress, true);
 
         return copyBuffer;
-      } else {
-        /* return a direct pointer */
-        VM_JNIGenericHelpers.setBoolStar(isCopyAddress, false);
-        return VM_Magic.objectAsAddress(sourceArray);
       }
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -4415,7 +4415,10 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       char[] sourceArray = (char[]) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
-      if (MM_Interface.objectCanMove(sourceArray)) {
+      if (MM_Interface.willNeverMove(sourceArray)) {
+        VM_JNIGenericHelpers.setBoolStar(isCopyAddress, false);
+        return VM_Magic.objectAsAddress(sourceArray);
+      } else {
         // alloc non moving buffer in C heap for a copy of string contents
         Address copyBuffer = sysCall.sysMalloc(size * BYTES_IN_CHAR);
         if (copyBuffer.isZero()) {
@@ -4430,9 +4433,6 @@ public class VM_JNIFunctions implements VM_SizeConstants {
         VM_JNIGenericHelpers.setBoolStar(isCopyAddress, true);
 
         return copyBuffer;
-      } else {
-        VM_JNIGenericHelpers.setBoolStar(isCopyAddress, false);
-        return VM_Magic.objectAsAddress(sourceArray);
       }
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -4458,7 +4458,10 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       short[] sourceArray = (short[]) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
-      if (MM_Interface.objectCanMove(sourceArray)) {
+      if (MM_Interface.willNeverMove(sourceArray)) {
+        VM_JNIGenericHelpers.setBoolStar(isCopyAddress, false);
+        return VM_Magic.objectAsAddress(sourceArray);
+      } else {
         // alloc non moving buffer in C heap for a copy of string contents
         Address copyBuffer = sysCall.sysMalloc(size * BYTES_IN_SHORT);
         if (copyBuffer.isZero()) {
@@ -4473,9 +4476,6 @@ public class VM_JNIFunctions implements VM_SizeConstants {
         VM_JNIGenericHelpers.setBoolStar(isCopyAddress, true);
 
         return copyBuffer;
-      } else {
-        VM_JNIGenericHelpers.setBoolStar(isCopyAddress, false);
-        return VM_Magic.objectAsAddress(sourceArray);
       }
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -4501,7 +4501,10 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       int[] sourceArray = (int[]) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
-      if (MM_Interface.objectCanMove(sourceArray)) {
+      if (MM_Interface.willNeverMove(sourceArray)) {
+        VM_JNIGenericHelpers.setBoolStar(isCopyAddress, false);
+        return VM_Magic.objectAsAddress(sourceArray);
+      } else {
         // alloc non moving buffer in C heap for a copy of array contents
         Address copyBuffer = sysCall.sysMalloc(size << LOG_BYTES_IN_INT);
         if (copyBuffer.isZero()) {
@@ -4515,9 +4518,6 @@ public class VM_JNIFunctions implements VM_SizeConstants {
         VM_JNIGenericHelpers.setBoolStar(isCopyAddress, true);
 
         return copyBuffer;
-      } else {
-        VM_JNIGenericHelpers.setBoolStar(isCopyAddress, false);
-        return VM_Magic.objectAsAddress(sourceArray);
       }
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -4543,7 +4543,10 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       long[] sourceArray = (long[]) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
-      if (MM_Interface.objectCanMove(sourceArray)) {
+      if (MM_Interface.willNeverMove(sourceArray)) {
+        VM_JNIGenericHelpers.setBoolStar(isCopyAddress, false);
+        return VM_Magic.objectAsAddress(sourceArray);
+      } else {
         // alloc non moving buffer in C heap for a copy of string contents
         Address copyBuffer = sysCall.sysMalloc(size << LOG_BYTES_IN_LONG);
         if (copyBuffer.isZero()) {
@@ -4557,9 +4560,6 @@ public class VM_JNIFunctions implements VM_SizeConstants {
         VM_JNIGenericHelpers.setBoolStar(isCopyAddress, true);
 
         return copyBuffer;
-      } else {
-        VM_JNIGenericHelpers.setBoolStar(isCopyAddress, false);
-        return VM_Magic.objectAsAddress(sourceArray);
       }
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -4585,7 +4585,10 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       float[] sourceArray = (float[]) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
-      if (MM_Interface.objectCanMove(sourceArray)) {
+      if (MM_Interface.willNeverMove(sourceArray)) {
+        VM_JNIGenericHelpers.setBoolStar(isCopyAddress, false);
+        return VM_Magic.objectAsAddress(sourceArray);
+      } else {
         // alloc non moving buffer in C heap for a copy of string contents
         Address copyBuffer = sysCall.sysMalloc(size << LOG_BYTES_IN_FLOAT);
         if (copyBuffer.isZero()) {
@@ -4600,9 +4603,6 @@ public class VM_JNIFunctions implements VM_SizeConstants {
         VM_JNIGenericHelpers.setBoolStar(isCopyAddress, true);
 
         return copyBuffer;
-      } else {
-        VM_JNIGenericHelpers.setBoolStar(isCopyAddress, false);
-        return VM_Magic.objectAsAddress(sourceArray);
       }
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -4628,7 +4628,10 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       double[] sourceArray = (double[]) env.getJNIRef(arrayJREF);
       int size = sourceArray.length;
 
-      if (MM_Interface.objectCanMove(sourceArray)) {
+      if (MM_Interface.willNeverMove(sourceArray)) {
+        VM_JNIGenericHelpers.setBoolStar(isCopyAddress, false);
+        return VM_Magic.objectAsAddress(sourceArray);
+      } else {
         // alloc non moving buffer in C heap for a copy of string contents
         Address copyBuffer = sysCall.sysMalloc(size << LOG_BYTES_IN_DOUBLE);
         if (copyBuffer.isZero()) {
@@ -4642,9 +4645,6 @@ public class VM_JNIFunctions implements VM_SizeConstants {
         VM_JNIGenericHelpers.setBoolStar(isCopyAddress, true);
 
         return copyBuffer;
-      } else {
-        VM_JNIGenericHelpers.setBoolStar(isCopyAddress, false);
-        return VM_Magic.objectAsAddress(sourceArray);
       }
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);

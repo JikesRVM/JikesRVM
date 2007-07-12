@@ -100,7 +100,7 @@ import org.vmmagic.unboxed.*;
    * @param object The object to query.
    * @return True if the object will not move during this collection.
    */
-  public boolean willNotMove(ObjectReference object) {
+  public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     return !Space.isInSpace(CopyMS.NURSERY, object);
   }
 

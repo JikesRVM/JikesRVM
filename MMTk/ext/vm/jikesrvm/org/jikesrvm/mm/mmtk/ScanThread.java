@@ -215,7 +215,7 @@ import org.vmmagic.pragma.*;
    */
   private void scanThreadInternal(Address gprs, int verbosity) {
     if (verbosity >= 1) Log.writeln("--- Start Of Stack Scan ---\n");
-    if (VM.VerifyAssertions) assertImmovable();
+    if (VM.VerifyAssertions) assertImmovableInCurrentCollection();
 
     /* first find any references to exception handlers in the registers */
     getHWExceptionRegisters(verbosity);
@@ -545,16 +545,16 @@ import org.vmmagic.pragma.*;
    * & Java stacks then we could allow the Java stacks to be moved,
    * but we can't move the native stack.
    */
-  private void assertImmovable() {
-    VM._assert(trace.willNotMove(ObjectReference.fromObject(thread.stack)));
-    VM._assert(trace.willNotMove(ObjectReference.fromObject(thread)));
-    VM._assert(trace.willNotMove(ObjectReference.fromObject(thread.stack)));
-    VM._assert(thread.jniEnv == null || trace.willNotMove(ObjectReference.fromObject(thread.jniEnv)));
-    VM._assert(thread.jniEnv == null || thread.jniEnv.refsArray() == null || trace.willNotMove(ObjectReference.fromObject(thread.jniEnv.refsArray())));
-    VM._assert(trace.willNotMove(ObjectReference.fromObject(thread.contextRegisters)));
-    VM._assert(trace.willNotMove(ObjectReference.fromObject(thread.contextRegisters.gprs)));
-    VM._assert(trace.willNotMove(ObjectReference.fromObject(thread.hardwareExceptionRegisters)));
-    VM._assert(trace.willNotMove(ObjectReference.fromObject(thread.hardwareExceptionRegisters.gprs)));
+  private void assertImmovableInCurrentCollection() {
+    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.stack)));
+    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread)));
+    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.stack)));
+    VM._assert(thread.jniEnv == null || trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.jniEnv)));
+    VM._assert(thread.jniEnv == null || thread.jniEnv.refsArray() == null || trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.jniEnv.refsArray())));
+    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.contextRegisters)));
+    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.contextRegisters.gprs)));
+    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.hardwareExceptionRegisters)));
+    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.hardwareExceptionRegisters.gprs)));
   }
 
   /**
