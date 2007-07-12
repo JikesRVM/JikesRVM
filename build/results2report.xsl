@@ -47,12 +47,15 @@
         <xsl:copy-of
             select="/test-run/builds/build/configuration[text() = $config-name]/../parameters/parameter"/>
       </parameters>
-      <xsl:call-template name="do-test-configuration">
-        <xsl:with-param name="excludes" select="'|'"/>
-        <xsl:with-param name="config-name" select="$config-name"/>
-        <xsl:with-param name="tag-name"
-                        select="/test-run/test-configuration/results/build-parameters/parameter[@key='config.name' and @value=$config-name]/../../../@tag"/>
-      </xsl:call-template>
+      <xsl:if
+          test="/test-run/test-configuration/results/build-parameters/parameter[@key='config.name' and @value=$config-name]">
+        <xsl:call-template name="do-test-configuration">
+          <xsl:with-param name="excludes" select="'|'"/>
+          <xsl:with-param name="config-name" select="$config-name"/>
+          <xsl:with-param name="tag-name"
+                          select="/test-run/test-configuration/results/build-parameters/parameter[@key='config.name' and @value=$config-name]/../../../@tag"/>
+        </xsl:call-template>
+      </xsl:if>
     </configuration>
   </xsl:template>
 
