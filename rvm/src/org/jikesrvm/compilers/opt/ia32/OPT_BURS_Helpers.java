@@ -18,7 +18,6 @@ import org.jikesrvm.compilers.opt.OPT_BURS;
 import org.jikesrvm.compilers.opt.OPT_BURS_MemOp_Helpers;
 import org.jikesrvm.compilers.opt.OPT_DefUse;
 import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
-import org.jikesrvm.compilers.opt.VM_OptEntrypoints;
 import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.CacheOp;
 import org.jikesrvm.compilers.opt.ir.Call;
@@ -3171,7 +3170,7 @@ OPT_Operand value, boolean signExtend) {
    * @param s the instruction to expand
    */
   protected final void RESOLVE(OPT_Instruction s) {
-    OPT_Operand target = loadFromJTOC(VM_OptEntrypoints.optResolveMethod
+    OPT_Operand target = loadFromJTOC(VM_Entrypoints.optResolveMethod
         .getOffset());
     EMIT(CPOS(s,
               MIR_Call.mutate0(s,
@@ -3179,7 +3178,7 @@ OPT_Operand value, boolean signExtend) {
                                null,
                                null,
                                target,
-                               OPT_MethodOperand.STATIC(VM_OptEntrypoints.optResolveMethod))));
+                               OPT_MethodOperand.STATIC(VM_Entrypoints.optResolveMethod))));
   }
 
   /**

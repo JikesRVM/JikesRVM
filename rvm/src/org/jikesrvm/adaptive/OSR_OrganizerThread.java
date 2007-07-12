@@ -13,6 +13,7 @@
 package org.jikesrvm.adaptive;
 
 import org.jikesrvm.adaptive.controller.VM_Controller;
+import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Synchronization;
 import org.jikesrvm.scheduler.VM_Thread;
@@ -80,7 +81,7 @@ public final class OSR_OrganizerThread extends VM_Thread {
   private final VM_ThreadQueue tq = new VM_ThreadQueue();
 
   private void passivate() {
-    boolean gainedLock = VM_Synchronization.testAndSet(this, VM_AosEntrypoints.osrOrganizerQueueLockField.getOffset(), 1);
+    boolean gainedLock = VM_Synchronization.testAndSet(this, VM_Entrypoints.osrOrganizerQueueLockField.getOffset(), 1);
     if (gainedLock) {
 
       // we cannot release lock before enqueue the organizer.
@@ -111,7 +112,7 @@ public final class OSR_OrganizerThread extends VM_Thread {
    */
   @Uninterruptible
   public void activate() {
-    boolean gainedLock = VM_Synchronization.testAndSet(this, VM_AosEntrypoints.osrOrganizerQueueLockField.getOffset(), 1);
+    boolean gainedLock = VM_Synchronization.testAndSet(this, VM_Entrypoints.osrOrganizerQueueLockField.getOffset(), 1);
     if (gainedLock) {
       VM_Thread org = tq.dequeue();
       // release lock
