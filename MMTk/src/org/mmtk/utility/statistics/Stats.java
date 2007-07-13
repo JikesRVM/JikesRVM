@@ -168,7 +168,7 @@ import org.vmmagic.pragma.*;
   public static void printTotals() {
     Log.writeln("============================ MMTk Statistics Totals ============================");
     printColumnNames();
-    Log.write(gcCount); Log.write("\t");
+    Log.write(phase/2); Log.write("\t");
     for (int c = 0; c < counters; c++) {
       if (counter[c].mergePhases()) {
         counter[c].printTotal(); Log.write("\t");
@@ -269,7 +269,7 @@ import org.vmmagic.pragma.*;
   @Interruptible
   public static void printTotalsXml() {
     Xml.openTag("mmtk-stats-totals");
-    Xml.singleValue("gc", gcCount);
+    Xml.singleValue("gc", phase/2);
     for (int c = 0; c < counters; c++) {
      if (!counter[c].isComplex())
       if (counter[c].mergePhases()) {
