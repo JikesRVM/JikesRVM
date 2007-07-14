@@ -246,6 +246,7 @@ public final class VM_BuildBB implements VM_BytecodeConstants, VM_BBConstants {
         }
 
         case JBC_goto_w: {
+          lastInstrType = BRANCH;
           int offset = bcodes.getWideBranchOffset();
           if (offset < 0) gcPointCount++; // gc map required if backward edge
           int branchtarget = lastInstrStart + offset;
@@ -254,6 +255,7 @@ public final class VM_BuildBB implements VM_BytecodeConstants, VM_BBConstants {
         }
 
         case JBC_tableswitch: {
+          lastInstrType = BRANCH;
           bcodes.alignSwitch();
           int def = bcodes.getDefaultSwitchOffset();
           processBranchTarget(lastInstrStart, lastInstrStart + def);
@@ -271,6 +273,7 @@ public final class VM_BuildBB implements VM_BytecodeConstants, VM_BBConstants {
         }
 
         case JBC_lookupswitch: {
+          lastInstrType = BRANCH;
           bcodes.alignSwitch();
           int def = bcodes.getDefaultSwitchOffset();
           int npairs = bcodes.getSwitchLength();
