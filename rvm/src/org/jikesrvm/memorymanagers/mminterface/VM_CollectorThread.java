@@ -412,7 +412,7 @@ public final class VM_CollectorThread extends VM_Thread {
           Plan.startEmergencyAllocation();
           boolean gcFailed = Selected.Plan.get().lastCollectionFailed(); 
           // Allocate OOMEs (some of which *may* not get used)
-          for(int t=0; t < VM_Scheduler.threadHighWatermark; t++) {
+          for(int t=0; t <= VM_Scheduler.threadHighWatermark; t++) {
             VM_Thread thread = VM_Scheduler.threads[t];
             if (thread != null) {
               if (thread.getCollectionAttempt() > 0) {
