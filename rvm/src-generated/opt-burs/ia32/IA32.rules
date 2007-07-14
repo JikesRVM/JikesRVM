@@ -2507,19 +2507,10 @@ EMIT(MIR_Branch.mutate(P(p), IA32_JMP, Goto.getTarget(P(p))));
 #####
 # PREFETCH
 #####
-#stm:	PREFETCH(r)
-#11
-#EMIT_INSTRUCTION
-#EMIT(MIR_CacheOp.mutate(P(p), IA32_PREFETCH, R(CacheOp.getRef(P(p)))));
-#
-#####
-# PREFETCH (by analogy with INT_SHL)
-#####
 stm:	PREFETCH(r)
 11
 EMIT_INSTRUCTION
-EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getEDI(), VM_TypeReference.Int), CacheOp.getRef(P(p))))); \
-EMIT(MIR_CacheOp.mutate(P(p), IA32_PREFETCH, new OPT_RegisterOperand(getEDI(), VM_TypeReference.Int)));
+EMIT(MIR_CacheOp.mutate(P(p), IA32_PREFETCHNTA, R(CacheOp.getRef(P(p)))));
 
 ##################################
 # Calling convention

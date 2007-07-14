@@ -4162,7 +4162,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     // software prefetch
     if (methodName == VM_MagicNames.prefetch || methodName == VM_MagicNames.prefetchNTA) {
       asm.emitPOP_Reg(T0);
-      asm.emitPREFETCH_Reg(T0);
+      asm.emitPREFETCHNTA_Reg(T0);
       return true;
     }
 

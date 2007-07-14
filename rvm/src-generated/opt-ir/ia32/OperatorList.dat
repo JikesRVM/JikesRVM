@@ -936,7 +936,7 @@ AF_CF_OF_PF_SF_ZF
 
 
 ####################
-IA32_PREFETCH
+IA32_PREFETCHNTA
 MIR_CacheOp
 none
 

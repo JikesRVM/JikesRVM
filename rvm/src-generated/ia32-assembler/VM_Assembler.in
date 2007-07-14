@@ -1520,7 +1520,7 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
   }
 
   // software prefetch
-  public final void emitPREFETCH_Reg(byte srcReg) {
+  public final void emitPREFETCHNTA_Reg(byte srcReg) {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++,(byte) 0x18);

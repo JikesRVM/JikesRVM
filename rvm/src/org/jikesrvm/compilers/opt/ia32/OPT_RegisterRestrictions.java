@@ -18,6 +18,7 @@ import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.OPT_GenericRegisterRestrictions;
 import org.jikesrvm.compilers.opt.OPT_LiveIntervalElement;
 import org.jikesrvm.compilers.opt.ir.MIR_BinaryAcc;
+import org.jikesrvm.compilers.opt.ir.MIR_CacheOp;
 import org.jikesrvm.compilers.opt.ir.MIR_Compare;
 import org.jikesrvm.compilers.opt.ir.MIR_CondMove;
 import org.jikesrvm.compilers.opt.ir.MIR_DoubleShift;
@@ -193,6 +194,12 @@ public class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions
    */
   public static boolean mustBeInRegister(OPT_Register r, OPT_Instruction s) {
     switch (s.getOpcode()) {
+      case IA32_PREFETCHNTA_opcode: {
+        OPT_RegisterOperand op = MIR_CacheOp.getAddress(s).asRegister();
+        if (op.register == r) return true;
+      }
+      break;
+
       case IA32_CVTSD2SI_opcode:
       case IA32_CVTSD2SS_opcode:
       case IA32_CVTSI2SD_opcode:
