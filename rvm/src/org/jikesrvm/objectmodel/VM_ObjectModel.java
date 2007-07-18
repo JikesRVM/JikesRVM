@@ -507,8 +507,8 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants, VM_SizeConstants 
   /**
    * Non-atomic read of byte containing available bits
    */
-  public static int readAvailableBitsByte(Object o) {
-    return VM_JavaHeader.readAvailableBitsByte(o);
+  public static byte readAvailableByte(Object o) {
+    return VM_JavaHeader.readAvailableByte(o);
   }
 
   /**
@@ -521,8 +521,8 @@ public class VM_ObjectModel implements VM_JavaHeaderConstants, VM_SizeConstants 
   /**
    * Non-atomic write of byte containing available bits
    */
-  public static void writeAvailableBitsByte(Object o, byte val) {
-    VM_JavaHeader.writeAvailableBitsByte(o, val);
+  public static void writeAvailableByte(Object o, byte val) {
+    VM_JavaHeader.writeAvailableByte(o, val);
   }
 
   /**

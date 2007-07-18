@@ -150,6 +150,21 @@ import org.vmmagic.unboxed.*;
   public abstract Word prepareAvailableBits(ObjectReference object);
 
   /**
+   * Sets the byte available for memory manager use in an object.
+   *
+   * @param object the address of the object
+   * @param val the new value of the byte
+   */
+  public abstract void writeAvailableByte(ObjectReference object, byte val);
+  /**
+   * Read the byte available for memory manager use in an object.
+   *
+   * @param object the address of the object
+   * @return the value of the byte
+   */
+  public abstract byte readAvailableByte(ObjectReference object);
+  
+  /**
    * Sets the bits available for memory manager use in an object.
    *
    * @param object the address of the object

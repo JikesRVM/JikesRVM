@@ -315,6 +315,26 @@ import org.vmmagic.pragma.*;
   }
 
   /**
+   * Sets the byte available for memory manager use in an object.
+   *
+   * @param object the address of the object
+   * @param val the new value of the byte
+   */
+  public void writeAvailableByte(ObjectReference object, byte val) {
+    VM_ObjectModel.writeAvailableByte(object.toObject(), val);
+  }
+
+  /**
+   * Read the byte available for memory manager use in an object.
+   *
+   * @param object the address of the object
+   * @return the value of the byte 
+   */
+  public byte readAvailableByte(ObjectReference object) {
+    return VM_ObjectModel.readAvailableByte(object.toObject());
+  }
+
+  /**
    * Sets the bits available for memory manager use in an object.
    *
    * @param object the address of the object
