@@ -730,6 +730,7 @@ if ($test_set || $test_list) {
   print "Test Dir: $resultdir \n";
   my $xmls = `find $localRoot/$resultdir -name Results.xml`;
   chomp ($xmls);
+  $xmls =~ s/\n/ /g; 
   if (! $dry_run && $xmls ne "") { 
     print "===================== Results =====================\n";
     print "Total Results Found : ";
