@@ -27,6 +27,8 @@ public class MM_Constants implements VM_SizeConstants {
   public static final int GC_HEADER_BITS = Selected.Constraints.get().gcHeaderBits();
   /** Number of additional bytes required in the header by the selected plan */
   public static final int GC_HEADER_BYTES = Selected.Constraints.get().gcHeaderWords() << LOG_BYTES_IN_WORD;
+  /** True if the selected plan requires a read barrier on reference types */
+  public static final boolean NEEDS_REFTYPE_READ_BARRIER = Selected.Constraints.get().needsReferenceTypeReadBarrier();
   /** True if the selected plan requires write barriers on putfield, arraystore or modifycheck */
   public static final boolean NEEDS_WRITE_BARRIER = Selected.Constraints.get().needsWriteBarrier();
   /** True if the selected plan requires write barriers on putstatic */

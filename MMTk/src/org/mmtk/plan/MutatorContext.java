@@ -355,6 +355,19 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
+   * Read a reference type. In a concurrent collector this may
+   * involve adding the referent to the marking queue.
+   *
+   * @param src The referent being read.
+   * @return The new referent.
+   */
+  @Inline
+  public ObjectReference referenceTypeReadBarrier(ObjectReference referent) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
+    return ObjectReference.nullReference();
+  }
+
+  /**
    * Read a reference. Take appropriate read barrier action, and
    * return the value that was read.<p> This is a <b>substituting<b>
    * barrier.  The call to this barrier takes the place of a load.<p>

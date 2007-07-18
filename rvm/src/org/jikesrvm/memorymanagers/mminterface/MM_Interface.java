@@ -265,6 +265,22 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
                                                bytes);
   }
 
+  /***********************************************************************
+  *
+  * Read barriers
+  */
+
+  /**
+   * A reference type is being read.
+   *
+   * @param obj The non-null referent about to be released to the mutator.
+   * @return The object to release to the mutator.
+   */
+  public static Object referenceTypeReadBarrier(Object obj) {
+    ObjectReference result = Selected.Mutator.get().referenceTypeReadBarrier(ObjectReference.fromObject(obj));
+    return result.toObject();
+  }
+
   /**
    * Checks that if a garbage collection is in progress then the given
    * object is not movable.  If it is movable error messages are
@@ -822,7 +838,6 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    *
    * @return the object needing to be finialized
    */
-  @Interruptible
   public static Object getFinalizedObject() {
     return Finalizer.get().toObject();
   }

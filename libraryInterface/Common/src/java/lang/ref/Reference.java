@@ -12,6 +12,8 @@
  */
 package java.lang.ref;
 
+import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
+import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -79,13 +81,31 @@ public abstract class Reference<T> {
    */
   @SuppressWarnings("unchecked") // This method requires an unchecked cast
   public T get() {
-
     Address tmp = referent;
 
     if (tmp.isZero())
         return null;
 
-    return (T)VM_Magic.addressAsObject(tmp);
+    return (T)getInternal(tmp);
+  }
+
+  /**
+   * Takes the passed address and (atomically) performs any read barrier actions
+   * before returning it as an object.
+   *
+   * @param tmp The non-zero referent address
+   * @return The referent object.
+   */ 
+  @Uninterruptible
+  @Inline
+  private final Object getInternal(Address tmp) {
+    Object ref = VM_Magic.addressAsObject(tmp);
+
+    if (MM_Constants.NEEDS_REFTYPE_READ_BARRIER) {
+      ref = MM_Interface.referenceTypeReadBarrier(ref);
+    }
+
+    return ref; 
   }
 
   public void clear() {
