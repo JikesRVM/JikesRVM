@@ -31,8 +31,7 @@ public abstract class VM_DynamicLinkerHelper {
    * NOTE: assumes that caller has disabled GC.
    */
   @NoInline
-  public
-  static Object getReceiverObject() {
+  public static Object getReceiverObject() {
 
     Address callingFrame = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());
     callingFrame = VM_Magic.getCallerFramePointer(callingFrame);
