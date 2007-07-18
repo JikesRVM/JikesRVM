@@ -68,7 +68,7 @@ import org.vmmagic.pragma.*;
    * @param phaseId The collection phase to perform
    * @param primary perform any single-threaded local activities.
    */
-  public final void collectionPhase(int phaseId, boolean primary) {
+  public final void collectionPhase(short phaseId, boolean primary) {
     VM.assertions.fail("GC Triggered in NoGC Plan.");
     /*
      if (phaseId == NoGC.PREPARE) {

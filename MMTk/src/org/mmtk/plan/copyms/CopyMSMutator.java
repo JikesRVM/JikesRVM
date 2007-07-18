@@ -151,14 +151,14 @@ import org.vmmagic.unboxed.*;
    * @param primary Use this thread for single-threaded local activities.
    */
   @Inline
-  public final void collectionPhase(int phaseId, boolean primary) {
-    if (phaseId == CopyMS.PREPARE_MUTATOR) {
+  public final void collectionPhase(short phaseId, boolean primary) {
+    if (phaseId == CopyMS.PREPARE) {
       super.collectionPhase(phaseId, primary);
       mature.prepare();
       return;
     }
 
-    if (phaseId == CopyMS.RELEASE_MUTATOR) {
+    if (phaseId == CopyMS.RELEASE) {
       nursery.reset();
       mature.releaseMutator();
       super.collectionPhase(phaseId, primary);

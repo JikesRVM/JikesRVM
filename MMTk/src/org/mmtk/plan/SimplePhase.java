@@ -23,39 +23,22 @@ import org.vmmagic.pragma.*;
 /**
  * Phases of a garbage collection.
  *
- * A simple phase calls the collectionPhase method of a global
- * and/or all thread-local plan instances, and performs synchronization
- * and timing.
  */
-@Uninterruptible public final class SimplePhase extends Phase
+@Uninterruptible
+public final class SimplePhase extends Phase
   implements Constants {
   /****************************************************************************
    * Instance fields
    */
-
-  /* Define the ordering of global and local collection phases */
-  final boolean globalFirst;
-  final boolean globalLast;
-  final boolean perCollector;
-  final boolean perMutator;
-
-  /* placeholder plans are no-ops */
-  final boolean placeholder;
-
+  
   /**
    * Construct a phase given just a name and a global/local ordering
    * scheme.
    *
    * @param name The name of the phase
-   * @param ordering Order of global/local phases
    */
-  public SimplePhase(String name, int ordering) {
+  protected SimplePhase(String name) {
     super(name);
-    this.globalFirst = (ordering & Phase.GLOBAL_FIRST_MASK) != 0;
-    this.globalLast = (ordering & Phase.GLOBAL_LAST_MASK) != 0;
-    this.perCollector = (ordering & Phase.COLLECTOR_MASK) != 0;
-    this.perMutator = (ordering & Phase.MUTATOR_MASK) != 0;
-    this.placeholder = (ordering == Phase.PLACEHOLDER);
   }
 
   /**
@@ -63,97 +46,75 @@ import org.vmmagic.pragma.*;
    *
    * @param name Display name of the phase
    * @param timer Timer for this phase to contribute to
-   * @param ordering Order of global/local phases
    */
-  public SimplePhase(String name, Timer timer, int ordering) {
+  protected SimplePhase(String name, Timer timer) {
     super(name, timer);
-    this.globalFirst = (ordering & Phase.GLOBAL_FIRST_MASK) != 0;
-    this.globalLast = (ordering & Phase.GLOBAL_LAST_MASK) != 0;
-    this.perCollector = (ordering & Phase.COLLECTOR_MASK) != 0;
-    this.perMutator = (ordering & Phase.MUTATOR_MASK) != 0;
-    this.placeholder = (ordering == Phase.PLACEHOLDER);
-  }
-
-  /**
-   * Display a phase for debugging purposes.
-   */
-  protected void logPhase() {
-    Log.write("simple [");
-    if (globalFirst) Log.write("G");
-    if (perCollector) Log.write("C");
-    if (perMutator  ) Log.write("M");
-    if (globalLast ) Log.write("G");
-    Log.write("] phase ");
-    Log.writeln(name);
   }
 
   /**
    * Execute a phase during a collection.
    */
   @NoInline
-  protected void delegatePhase() {
+  protected void execute(boolean primary, short schedule) {
+    if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert(schedule == SCHEDULE_GLOBAL || 
+                            schedule == SCHEDULE_COLLECTOR || 
+                            schedule == SCHEDULE_MUTATOR);
+    }
+    
     boolean log = Options.verbose.getValue() >= 6;
     boolean logDetails = Options.verbose.getValue() >= 7;
 
     if (log) {
-      Log.write("SimplePhase.delegatePhase ");
+      Log.write("Execute ");
       logPhase();
     }
 
-    if (placeholder) return;
+    /* Start the timer */
+    if (primary && timer != null) timer.start();
 
     Plan plan = VM.activePlan.global();
     CollectorContext collector = VM.activePlan.collector();
 
-    /*
-     * Synchronize at the start, and choose one CPU as the primary,
-     * to perform global tasks.
-     */
-    int order = VM.collection.rendezvous(1000 + id);
-    final boolean primary = order == 1;
-
-    if (primary && timer != null) timer.start();
-    if (globalFirst) { // Phase has a global component, executed first
-      if (logDetails) Log.writeln("  global...");
+    /* Global phase */
+    if (schedule == SCHEDULE_GLOBAL) {
+      if (logDetails) Log.writeln(" as Global...");
       if (primary) plan.collectionPhase(id);
-      VM.collection.rendezvous(2000 + id);
     }
 
-    if (perCollector) { // Phase has a per-collector component
-      if (logDetails) Log.writeln("  per-collector...");
+    /* Collector phase */
+    if (schedule == SCHEDULE_COLLECTOR) {
+      if (logDetails) Log.writeln(" as Collector...");
       collector.collectionPhase(id, primary);
-      VM.collection.rendezvous(3000 + id);
     }
 
-    if (perMutator) { // Phase has a per-mutator component
-      if (logDetails) Log.writeln("  per-mutator...");
-      /* iterate through all mutator contexts, worker-farmer */
+    /* Mutator phase */
+    if (schedule == SCHEDULE_MUTATOR) {
+      if (logDetails) Log.writeln(" as Mutator...");
+      /* Iterate through all mutator contexts */
       MutatorContext mutator = null;
       while ((mutator = VM.activePlan.getNextMutator()) != null) {
         mutator.collectionPhase(id, primary);
       }
-      VM.collection.rendezvous(4000 + id);
+      /* TODO: This can be skipped if the *next* phase is not mutator */
+      rendezvous(9, schedule);
       if (primary) {
         VM.activePlan.resetMutatorIterator();
       }
-      VM.collection.rendezvous(4500 + id);
     }
-
-    if (globalLast) { // Phase has a global component, executed last
-      if (logDetails) Log.writeln("  global...");
-      if (primary) plan.collectionPhase(id);
-      VM.collection.rendezvous(5000 + id);
-    }
-
+    
+    rendezvous(10, schedule);
+    
+    /* Stop the timer */
     if (primary && timer != null) timer.stop();
   }
 
   /**
-   * Change the ordering of the phase. This can be used, for example,
-   * to realise a placeholder phase at runtime.
-   *
-   * @param ordering The new ordering.
+   * Display a phase for debugging purposes.
    */
-  public void changeOrdering(int ordering) {
+  protected void logPhase() {
+    Log.write("SimplePhase(");
+    Log.write(name);
+    Log.write(")");
   }
 }

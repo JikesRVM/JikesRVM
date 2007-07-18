@@ -257,16 +257,16 @@ public abstract class Plan implements Constants {
   /**
    * Perform a (global) collection phase.
    */
-  public abstract void collectionPhase(int phase);
+  public abstract void collectionPhase(short phase);
 
   /**
    * Replace a phase.
    *
-   * @param oldPhase The phase to be replaced
-   * @param newPhase The phase to replace with
+   * @param oldScheduledPhase The scheduled phase to insert after
+   * @param scheduledPhase The scheduled phase to insert
    */
   @Interruptible
-  public void replacePhase(int oldPhase, int newPhase) {
+  public void replacePhase(int oldScheduledPhase, int scheduledPhase) {
     VM.assertions.fail("replacePhase not implemented for this plan");
   }
 
@@ -274,16 +274,13 @@ public abstract class Plan implements Constants {
   /**
    * Insert a phase.
    *
-   * @param marker The phase to insert after
-   * @param newPhase The phase to replace with
+   * @param markerScheduledPhase The scheduled phase to insert after
+   * @param scheduledPhase The scheduled phase to insert
    */
   @Interruptible
-  public void insertPhaseAfter(int marker, int newPhase) {
-    int newComplexPhase = (new ComplexPhase("auto-gen",
-                                            null,
-                                            new int[] {marker,newPhase})
-                          ).getId();
-    replacePhase(marker, newComplexPhase);
+  public void insertPhaseAfter(int markerScheduledPhase, int scheduledPhase) {
+    short tempPhase = Phase.createComplex("auto-gen", null, markerScheduledPhase, scheduledPhase);
+    replacePhase(markerScheduledPhase, Phase.scheduleComplex(tempPhase));
   }
 
   /**

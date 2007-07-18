@@ -154,7 +154,7 @@ import org.vmmagic.unboxed.*;
    * @param primary Should this thread be used to execute any single-threaded
    * local operations?
    */
-  public abstract void collectionPhase(int phaseId, boolean primary);
+  public abstract void collectionPhase(short phaseId, boolean primary);
 
   /** @return The current trace instance. */
   public abstract TraceLocal getCurrentTrace();

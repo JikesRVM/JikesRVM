@@ -49,9 +49,9 @@ import org.vmmagic.pragma.*;
  *
  * FIXME This seems to have changed
  * The order of phases and GCspy actions is important here. It is:
- *   PREPARE_MUTATOR phase
+ *   PREPARE phase
  * 	SSGCspyMutator.gcspyGatherData(SSGCspy.BEFORE_COLLECTION); // safepoint
- * 	SSMutator.PREPARE_MUTATOR // FIXME DOES NOT ss.rebind(SS.toSpace());
+ * 	SSMutator.PREPARE // FIXME DOES NOT ss.rebind(SS.toSpace());
  *
  *   PREPARE phase
  * 	SS.PREPARE // flip semispaces
@@ -64,9 +64,9 @@ import org.vmmagic.pragma.*;
  * 	SSCollector.FORWARD_FINALIZABLE
  *	SSGCspyCollector.gcspyGatherData(SSGCspy.SEMISPACE_COPIED);
  *
- *   RELEASE_MUTATOR phase
+ *   RELEASE phase
  *	SSGCspyMutator.gcspyGatherData(SSGCspy.SEMISPACE_COPIED); // safepoint
- *	SSMutator.RELEASE_MUTATOR // FIXME ss.rebind(SS.toSpace());
+ *	SSMutator.RELEASE // FIXME ss.rebind(SS.toSpace());
  *	SSGCspyMutator.gcspyGatherData(SSGCspy.AFTER_COLLECTION);
  *
  *   RELEASE phase
@@ -77,7 +77,7 @@ import org.vmmagic.pragma.*;
  *	SSGCspy.gcspyGatherData(); // safepoint
  *
  * Note that SSMutator has changed the point at which it rebinds toSpace
- * from PREPARE_MUTATOR (2.4.6) to after RELEASE_MUTATOR (3.x.x).
+ * from PREPARE (2.4.6) to after RELEASE (3.x.x).
  *
  --Phase Collector.initiate
  --Phase Mutator.initiate-mutator
@@ -256,7 +256,7 @@ import org.vmmagic.pragma.*;
    * @param phaseId Collection phase
    */
   @Inline
-  public void collectionPhase(int phaseId) {
+  public void collectionPhase(short phaseId) {
     if (DEBUG) { Log.write("--Phase Plan."); Log.writeln(Phase.getName(phaseId)); }
 
     if (phaseId == SSGCspy.PREPARE) {

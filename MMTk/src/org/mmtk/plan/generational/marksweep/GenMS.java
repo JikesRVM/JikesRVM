@@ -72,7 +72,7 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   @Override
-  public final void collectionPhase(int phaseId) {
+  public final void collectionPhase(short phaseId) {
     if (traceFullHeap()) {
       if (phaseId == PREPARE) {
         super.collectionPhase(phaseId);

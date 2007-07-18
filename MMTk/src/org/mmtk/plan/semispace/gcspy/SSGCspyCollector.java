@@ -80,7 +80,7 @@ import org.vmmagic.pragma.*;
    * </ul>
    */
   @Inline
-  public final void collectionPhase(int phaseId, boolean primary) {
+  public final void collectionPhase(short phaseId, boolean primary) {
     if (DEBUG) { Log.write("--Phase Collector."); Log.writeln(Phase.getName(phaseId)); }
 
     //TODO do we need to worry any longer about primary??
@@ -178,7 +178,7 @@ import org.vmmagic.pragma.*;
         GCspy.server.stopCompensationTimer();
         toSpaceDriver().transmit(event);
 
-        // We'll leave the safepoint to RELEASE_MUTATOR
+        // We'll leave the safepoint to RELEASE
       }
 
       else if (event == SSGCspy.AFTER_COLLECTION) {

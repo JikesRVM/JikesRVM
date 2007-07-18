@@ -152,18 +152,18 @@ import org.vmmagic.unboxed.*;
    * </ul>
    */
   @Inline
-  public final void collectionPhase(int phaseId, boolean primary) {
+  public final void collectionPhase(short phaseId, boolean primary) {
     if (DEBUG) { Log.write("--Phase Mutator."); Log.writeln(Phase.getName(phaseId)); }
 
     // TODO do we need to worry any longer about primary??
-    if (phaseId == SSGCspy.PREPARE_MUTATOR) {
+    if (phaseId == SSGCspy.PREPARE) {
       //if (primary)
         gcspyGatherData(SSGCspy.BEFORE_COLLECTION);
       super.collectionPhase(phaseId, primary);
       return;
     }
 
-    if (phaseId == SSGCspy.RELEASE_MUTATOR) {
+    if (phaseId == SSGCspy.RELEASE) {
       //if (primary)
         gcspyGatherData(SSGCspy.SEMISPACE_COPIED);
       super.collectionPhase(phaseId, primary);

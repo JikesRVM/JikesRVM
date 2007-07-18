@@ -271,9 +271,9 @@ import org.vmmagic.unboxed.*;
    * Perform a per-mutator collection phase.
    */
   @NoInline
-  public void collectionPhase(int phaseId, boolean primary) {
+  public void collectionPhase(short phaseId, boolean primary) {
 
-    if (phaseId == Gen.PREPARE_MUTATOR) {
+    if (phaseId == Gen.PREPARE) {
       nursery.rebind(Gen.nurserySpace);
       if (global().traceFullHeap()) {
         super.collectionPhase(phaseId, primary);
@@ -286,7 +286,7 @@ import org.vmmagic.unboxed.*;
       return;
     }
 
-    if (phaseId == Gen.RELEASE_MUTATOR) {
+    if (phaseId == Gen.RELEASE) {
       if (global().traceFullHeap()) {
         super.collectionPhase(phaseId, primary);
       } else {

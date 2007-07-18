@@ -121,7 +121,7 @@ import org.vmmagic.unboxed.*;
    * @param primary Perform any single-threaded activities using this thread.
    */
   @Inline
-  public final void collectionPhase(int phaseId, boolean primary) {
+  public final void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == MC.PREPARE) {
       currentTrace = TRACE_MARK;
       super.collectionPhase(phaseId, primary);

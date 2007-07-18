@@ -161,13 +161,13 @@ import org.vmmagic.pragma.*;
    * @param primary Perform any single-threaded activities using this thread.
    */
   @Inline
-  public void collectionPhase(int phaseId, boolean primary) {
-    if (phaseId == SS.PREPARE_MUTATOR) {
+  public void collectionPhase(short phaseId, boolean primary) {
+    if (phaseId == SS.PREPARE) {
       super.collectionPhase(phaseId, primary);
       return;
     }
 
-    if (phaseId == SS.RELEASE_MUTATOR) {
+    if (phaseId == SS.RELEASE) {
       super.collectionPhase(phaseId, primary);
       // rebind the allocation bump pointer to the appropriate semispace.
       ss.rebind(SS.toSpace());

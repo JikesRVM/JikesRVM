@@ -80,7 +80,7 @@ public class GenRC extends RCBase {
    * @param phaseId Collection phase to execute.
    */
   @NoInline
-  public void collectionPhase(int phaseId) {
+  public void collectionPhase(short phaseId) {
     if (phaseId == PREPARE) {
       nurserySpace.prepare(true);
     }

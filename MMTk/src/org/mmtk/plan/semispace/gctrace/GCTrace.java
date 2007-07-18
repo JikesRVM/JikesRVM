@@ -147,7 +147,7 @@ import org.vmmagic.pragma.*;
    * Collection
    */
 
-  public void collectionPhase(int phaseId) {
+  public void collectionPhase(short phaseId) {
     if (phaseId == PREPARE) {
       lastGCWasTracing = traceInducedGC;
     }

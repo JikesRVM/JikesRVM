@@ -141,9 +141,9 @@ import org.vmmagic.unboxed.*;
    * @param primary Perform any single-threaded activities using this thread.
    */
   @Inline
-  public void collectionPhase(int phaseId, boolean primary) {
+  public void collectionPhase(short phaseId, boolean primary) {
 
-    if (phaseId == GenRC.PREPARE_MUTATOR) {
+    if (phaseId == GenRC.PREPARE) {
       nursery.rebind(GenRC.nurserySpace);
     }
 

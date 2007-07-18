@@ -128,7 +128,7 @@ import org.vmmagic.unboxed.*;
    * @param phaseId Collection phase to execute.
    */
   @NoInline
-  public void collectionPhase(int phaseId) {
+  public void collectionPhase(short phaseId) {
     if (phaseId == SET_COLLECTION_KIND) {
       super.collectionPhase(phaseId);
       gcFullHeap = requiresFullHeapCollection();

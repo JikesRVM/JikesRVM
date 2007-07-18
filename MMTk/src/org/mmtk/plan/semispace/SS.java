@@ -113,7 +113,7 @@ public class SS extends StopTheWorld {
    * @param phaseId Collection phase
    */
   @Inline
-  public void collectionPhase(int phaseId) {
+  public void collectionPhase(short phaseId) {
     if (phaseId == SS.PREPARE) {
       hi = !hi; // flip the semi-spaces
       // prepare each of the collected regions

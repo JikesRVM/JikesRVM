@@ -84,7 +84,7 @@ import org.vmmagic.pragma.*;
    * @param primary Use this thread for single-threaded local activities.
    */
   @NoInline
-  public void collectionPhase(int phaseId, boolean primary) {
+  public void collectionPhase(short phaseId, boolean primary) {
 
     if (phaseId == Gen.PREPARE) {
       nurseryTrace.prepare();

@@ -75,7 +75,7 @@ import org.vmmagic.unboxed.*;
    * @param phaseId Collection phase to execute.
    */
   @Inline
-  public final void collectionPhase(int phaseId) {
+  public final void collectionPhase(short phaseId) {
 
     if (phaseId == PREPARE) {
       super.collectionPhase(phaseId);

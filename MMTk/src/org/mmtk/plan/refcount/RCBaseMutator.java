@@ -185,9 +185,9 @@ import org.vmmagic.unboxed.*;
    * @param primary Perform any single-threaded activities using this thread.
    */
   @Inline
-  public void collectionPhase(int phaseId, boolean primary) {
+  public void collectionPhase(short phaseId, boolean primary) {
 
-    if (phaseId == RCBase.PREPARE_MUTATOR) {
+    if (phaseId == RCBase.PREPARE) {
       rc.prepare();
       los.prepare();
       decBuffer.flushLocal();
@@ -195,7 +195,7 @@ import org.vmmagic.unboxed.*;
       return;
     }
 
-    if (phaseId == RCBase.RELEASE_MUTATOR) {
+    if (phaseId == RCBase.RELEASE) {
       los.release();
       rc.releaseCollector();
       rc.releaseMutator(); // FIXME see block comment at top of this class

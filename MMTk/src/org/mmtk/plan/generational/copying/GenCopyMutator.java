@@ -151,9 +151,9 @@ import org.vmmagic.pragma.*;
    * @param primary True if this thread should peform local single-threaded
    * actions.
    */
-  public void collectionPhase(int phaseId, boolean primary) {
+  public void collectionPhase(short phaseId, boolean primary) {
     if (global().traceFullHeap()) {
-      if (phaseId == GenCopy.PREPARE_MUTATOR) {
+      if (phaseId == GenCopy.PREPARE) {
         super.collectionPhase(phaseId, primary);
         if (global().gcFullHeap) mature.rebind(GenCopy.toSpace());
         return;

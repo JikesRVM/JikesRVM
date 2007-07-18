@@ -152,7 +152,7 @@ import org.vmmagic.unboxed.*;
    * @param phaseId Collection phase to execute.
    */
   @Inline
-  public void collectionPhase(int phaseId) {
+  public void collectionPhase(short phaseId) {
 
     if (phaseId == PREPARE) {
       rcTrace.prepare();

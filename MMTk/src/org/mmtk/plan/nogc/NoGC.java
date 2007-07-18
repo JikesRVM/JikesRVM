@@ -57,7 +57,7 @@ import org.vmmagic.pragma.*;
    *
    * @param phaseId Collection phase
    */
-  public final void collectionPhase(int phaseId) {
+  public final void collectionPhase(short phaseId) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     // if (phaseId == PREPARE) {
     // }

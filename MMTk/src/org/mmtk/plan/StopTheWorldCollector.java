@@ -47,7 +47,7 @@ import org.vmmagic.pragma.*;
    * Collection
    */
   public void collect() {
-    Phase.delegatePhase(global().collection);
+    Phase.executeScheduledPhase(Phase.scheduleComplex(global().collection));
   }
 
   /**
@@ -58,7 +58,7 @@ import org.vmmagic.pragma.*;
    * local operations?
    */
   @Inline
-  public void collectionPhase(int phaseId, boolean primary) {
+  public void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == StopTheWorld.INITIATE) {
       VM.collection.prepareCollector(this);
       return;

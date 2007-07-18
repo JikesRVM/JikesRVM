@@ -47,21 +47,21 @@ import org.vmmagic.pragma.*;
    * local operations?
    */
   @Inline
-  public void collectionPhase(int phaseId, boolean primary) {
+  public void collectionPhase(short phaseId, boolean primary) {
 
-    if (phaseId == StopTheWorld.INITIATE_MUTATOR) {
+    if (phaseId == StopTheWorld.INITIATE) {
       VM.collection.prepareMutator(this);
       return;
     }
 
-    if (phaseId == StopTheWorld.PREPARE_MUTATOR) {
+    if (phaseId == StopTheWorld.PREPARE) {
       los.prepare(true);
       plos.prepare(true);
       VM.memory.collectorPrepareVMSpace();
       return;
     }
 
-    if (phaseId == StopTheWorld.RELEASE_MUTATOR) {
+    if (phaseId == StopTheWorld.RELEASE) {
       los.release(true);
       plos.release(true);
       VM.memory.collectorReleaseVMSpace();

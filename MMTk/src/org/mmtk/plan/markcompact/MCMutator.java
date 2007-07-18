@@ -148,8 +148,8 @@ import org.vmmagic.unboxed.*;
    * @param primary Perform any single-threaded activities using this thread.
    */
   @Inline
-  public final void collectionPhase(int phaseId, boolean primary) {
-    if (phaseId == MC.PREPARE_MUTATOR) {
+  public final void collectionPhase(short phaseId, boolean primary) {
+    if (phaseId == MC.PREPARE) {
       super.collectionPhase(phaseId, primary);
       return;
     }
@@ -166,7 +166,7 @@ import org.vmmagic.unboxed.*;
       return;
     }
 
-    if (phaseId == MC.RELEASE_MUTATOR) {
+    if (phaseId == MC.RELEASE) {
       super.collectionPhase(phaseId, primary);
       return;
     }
