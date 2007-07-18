@@ -3630,7 +3630,6 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
           // No offset
           asm.emitMOV_Reg_RegInd(S0, SP);  // S0 = base
         }
-        asm.emitXOR_Reg_Reg(T0, T0);
         asm.emitLockNextInstruction();
         asm.emitCMPXCHG_RegInd_Reg(S0, T1);   // atomic compare-and-exchange
         asm.emitMOV_RegInd_Imm(SP, 1);        // 'push' true (overwriting base)
