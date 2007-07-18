@@ -72,20 +72,33 @@ import org.vmmagic.pragma.*;
   public static final int COMPLETE            = new SimplePhase("complete",  null,                Phase.GLOBAL_LAST   ).getId();
 
   /* Sanity placeholder */
-  public static final int SANITY_PLACEHOLDER  = new SimplePhase("sanity-placeholder", null,       Phase.PLACEHOLDER       ).getId();
+  public static final int PRE_SANITY_PLACEHOLDER  = new SimplePhase("pre-sanity-placeholder",  null, Phase.PLACEHOLDER).getId();
+  public static final int POST_SANITY_PLACEHOLDER = new SimplePhase("post-sanity-placeholder", null, Phase.PLACEHOLDER).getId();
 
   /* Sanity phases */
-  public static final int SANITY_PREPARE      = new SimplePhase("sanity-prepare",     null,       Phase.GLOBAL_FIRST      ).getId();
-  public static final int SANITY_ROOTS        = new SimplePhase("sanity-roots",       null,       Phase.GLOBAL_LAST       ).getId();
-  public static final int SANITY_CHECK        = new SimplePhase("sanity",             null,       Phase.COLLECTOR_ONLY        ).getId();
-  public static final int SANITY_RELEASE      = new SimplePhase("sanity-release",     null,       Phase.GLOBAL_LAST       ).getId();
+  public static final int SANITY_PREPARE      = new SimplePhase("sanity-prepare",     null, Phase.GLOBAL_FIRST  ).getId();
+  public static final int SANITY_ROOTS        = new SimplePhase("sanity-roots",       null, Phase.GLOBAL_LAST   ).getId();
+  public static final int SANITY_BUILD_TABLE  = new SimplePhase("sanity-build-table", null, Phase.COLLECTOR_ONLY).getId();
+  public static final int SANITY_CHECK_TABLE  = new SimplePhase("sanity-check-table", null, Phase.COLLECTOR_ONLY).getId();
+  public static final int SANITY_RELEASE      = new SimplePhase("sanity-release",     null, Phase.GLOBAL_LAST   ).getId();
 
-  /* Sanity check phase sequence */
-  private static final int sanityPhase = new ComplexPhase("sanity-check", null, new int[] {
+  /* Trace and set up a sanity table */
+  private static final int sanityBuildPhase = new ComplexPhase("sanity-build", null, new int[] {
       SANITY_PREPARE,
       SANITY_ROOTS,
-      SANITY_CHECK,
+      SANITY_BUILD_TABLE,
+  }).getId();
+
+  /* Validate a sanity table */
+  private static final int sanityCheckPhase = new ComplexPhase("sanity-check", null, new int[] {
+      SANITY_CHECK_TABLE,
       SANITY_RELEASE
+  }).getId();
+
+  /* Build and validate a sanity table */
+  private static final int sanityPhase = new ComplexPhase("sanity", null, new int[] {
+      sanityBuildPhase,
+      sanityCheckPhase
   }).getId();
 
   /**
@@ -95,7 +108,7 @@ import org.vmmagic.pragma.*;
       SET_COLLECTION_KIND,
       INITIATE,
       INITIATE_MUTATOR,
-      SANITY_PLACEHOLDER,
+      PRE_SANITY_PLACEHOLDER,
       }).getId();
 
   /**
@@ -141,7 +154,7 @@ import org.vmmagic.pragma.*;
    * The collection scheme - this is a small tree of complex phases.
    */
   protected static final int finishPhase = new ComplexPhase("finish", new int[] {
-      SANITY_PLACEHOLDER,
+      POST_SANITY_PLACEHOLDER,
       COMPLETE}).getId();
 
   /**
@@ -181,7 +194,8 @@ import org.vmmagic.pragma.*;
         Log.writeln("Collector does not support sanity checking!");
       } else {
         Log.writeln("Collection sanity checking enabled.");
-        replacePhase(SANITY_PLACEHOLDER, sanityPhase);
+        replacePhase(PRE_SANITY_PLACEHOLDER, sanityPhase);
+        replacePhase(POST_SANITY_PLACEHOLDER, sanityPhase);
       }
     }
   }
