@@ -69,7 +69,7 @@ public class VM_FinalizerThread extends VM_Thread {
           if (o == null) break;
           if (verbose >= 2) {
             VM.sysWrite("VM_FinalizerThread finalizing object at ", VM_Magic.objectAsAddress(o));
-            VM.sysWrite("of type ");
+            VM.sysWrite(" of type ");
             VM.sysWrite(VM_Magic.getObjectType(o).getDescriptor());
             VM.sysWriteln();
           }
