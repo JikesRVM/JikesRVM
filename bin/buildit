@@ -739,8 +739,8 @@ if ($test_set || $test_list) {
     system("cat $xmls | grep \"\\<result\\>\" | grep EXCLUDED | wc -l");
     print "            SUCCESS : ";
     system("cat $xmls | grep \"\\<result\\>\" | grep SUCCESS | wc -l");
-    print "             FAILED : ";
-    system("cat $xmls | grep \"\\<result\\>\" | grep FAILED | wc -l");
+    print "               FAIL : ";
+    system("cat $xmls | grep \"\\<result\\>\" | grep FAIL | wc -l");
 # We used to have a working report :(
 #system("w3m -dump $html");
   }
