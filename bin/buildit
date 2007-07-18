@@ -728,11 +728,20 @@ foreach $g (@gcs) {
 }
 if ($test_set || $test_list) {
   print "Test Dir: $resultdir \n";
-  my $html = `find $localRoot/$resultdir -name Report.html`;
-  chomp ($html);
-  if (! $dry_run && $html ne "") { 
+  my $xmls = `find $localRoot/$resultdir -name Results.xml`;
+  chomp ($xmls);
+  if (! $dry_run && $xmls ne "") { 
     print "===================== Results =====================\n";
-    system("w3m -dump $html");
+    print "Total Results Found : ";
+    system("cat $xmls | grep \"\\<result\\>\" | wc -l");
+    print "           EXCLUDED : ";
+    system("cat $xmls | grep \"\\<result\\>\" | grep EXCLUDED | wc -l");
+    print "            SUCCESS : ";
+    system("cat $xmls | grep \"\\<result\\>\" | grep SUCCESS | wc -l");
+    print "             FAILED : ";
+    system("cat $xmls | grep \"\\<result\\>\" | grep FAILED | wc -l");
+# We used to have a working report :(
+#system("w3m -dump $html");
   }
 }
 print "===================================================\n";
