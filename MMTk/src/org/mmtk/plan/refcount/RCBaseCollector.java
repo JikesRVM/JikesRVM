@@ -153,6 +153,7 @@ import org.vmmagic.unboxed.*;
     while (!(current = oldRootSet.pop()).isNull()) {
       decBuffer.push(current);
     }
+    decBuffer.flushLocal();
   }
 
   /**

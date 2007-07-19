@@ -158,7 +158,18 @@ import org.vmmagic.unboxed.*;
       rcTrace.prepare();
       return;
     }
+
+    if (phaseId == ROOTS) {
+      oldRootPool.reset();
+      super.collectionPhase(phaseId);
+      return;
+    }
+
     if (phaseId == RELEASE) {
+      newRootPool.reset();
+      decPool.reset();
+      modPool.reset();
+      
       rcTrace.release();
       previousMetaDataPages = metaDataSpace.reservedPages();
       return;

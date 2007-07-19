@@ -107,9 +107,13 @@ import org.vmmagic.unboxed.*;
       case RCBase.ALLOC_RC:
         return rc.alloc(bytes, align, offset, false);
       case RCBase.ALLOC_LOS:
-        return los.alloc(bytes, align, offset, false);
+      case RCBase.ALLOC_PRIMITIVE_LOS:
+          return los.alloc(bytes, align, offset, false);
+      case RCBase.ALLOC_IMMORTAL:
+        return immortal.alloc(bytes, align, offset, false);
       default:
-        return super.alloc(bytes, align, offset, allocator, site);
+        VM.assertions.fail("RC not aware of allocator");
+        return Address.zero();
     }
   }
 
@@ -132,11 +136,12 @@ import org.vmmagic.unboxed.*;
     case RCBase.ALLOC_LOS:
     case RCBase.ALLOC_IMMORTAL:
       if (RCBase.WITH_COALESCING_RC) modBuffer.push(ref);
+    case RCBase.ALLOC_PRIMITIVE_LOS:
       RCHeader.initializeHeader(ref, typeRef, true);
       decBuffer.push(ref);
       break;
   default:
-      if (RCBase.WITH_COALESCING_RC) modBuffer.push(ref);
+      VM.assertions.fail("RC not aware of allocator");
       break;
     }
   }

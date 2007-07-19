@@ -203,7 +203,7 @@ import org.vmmagic.unboxed.ObjectReference;
    * may never get processed).  It is therefore important that the
    * "insert" operation is used when adding to the purple queue,
    * rather than "push".
- */
+   */
 
   /**
    * Vist as many purple objects as time allows and transitively mark

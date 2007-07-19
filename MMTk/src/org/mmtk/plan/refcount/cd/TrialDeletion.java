@@ -109,8 +109,8 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   public boolean collectionPhase(int phaseId) {
-
     if (phaseId == CD_PREPARE_FILTER) {
+      cdMode = NO_PROCESSING;
       if (shouldFilterPurple()) {
         cdMode = FILTER_PURPLE;
       }
@@ -123,7 +123,7 @@ import org.vmmagic.unboxed.*;
           cdMode = FULL_COLLECTION;
           startCycles = VM.statistics.cycles();
           if (Options.verbose.getValue() > 0) {
-            Log.write("(CD ");
+            Log.write("(CD-TD ");
             Log.flush();
           }
         }
@@ -132,7 +132,18 @@ import org.vmmagic.unboxed.*;
     }
 
     if (phaseId == CD_RELEASE) {
+      if (cdMode != NO_PROCESSING) {
+        unfilteredPurplePool.reset();
+      }
       if (cdMode == FULL_COLLECTION) {
+        workPool.reset();
+        blackPool.reset();
+        maturePurplePool.reset();
+        filteredPurplePool.reset();
+        cyclePoolA.reset();
+        cyclePoolB.reset();
+        freePool.reset();
+
         if (Options.verbose.getValue() > 0) {
           Log.write(VM.statistics.cyclesToMillis(VM.statistics.cycles() - startCycles));
           Log.write(" ms)");
