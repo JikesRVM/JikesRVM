@@ -47,7 +47,7 @@ import org.vmmagic.pragma.*;
    * Collection
    */
   public void collect() {
-    Phase.executeScheduledPhase(Phase.scheduleComplex(global().collection));
+    Phase.beginNewPhaseStack(Phase.scheduleComplex(global().collection));
   }
 
   /**

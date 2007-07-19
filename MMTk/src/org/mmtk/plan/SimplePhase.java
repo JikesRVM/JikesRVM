@@ -30,7 +30,7 @@ public final class SimplePhase extends Phase
   /****************************************************************************
    * Instance fields
    */
-  
+
   /**
    * Construct a phase given just a name and a global/local ordering
    * scheme.
@@ -49,64 +49,6 @@ public final class SimplePhase extends Phase
    */
   protected SimplePhase(String name, Timer timer) {
     super(name, timer);
-  }
-
-  /**
-   * Execute a phase during a collection.
-   */
-  @NoInline
-  protected void execute(boolean primary, short schedule) {
-    if (VM.VERIFY_ASSERTIONS) {
-      VM.assertions._assert(schedule == SCHEDULE_GLOBAL || 
-                            schedule == SCHEDULE_COLLECTOR || 
-                            schedule == SCHEDULE_MUTATOR);
-    }
-    
-    boolean log = Options.verbose.getValue() >= 6;
-    boolean logDetails = Options.verbose.getValue() >= 7;
-
-    if (log) {
-      Log.write("Execute ");
-      logPhase();
-    }
-
-    /* Start the timer */
-    if (primary && timer != null) timer.start();
-
-    Plan plan = VM.activePlan.global();
-    CollectorContext collector = VM.activePlan.collector();
-
-    /* Global phase */
-    if (schedule == SCHEDULE_GLOBAL) {
-      if (logDetails) Log.writeln(" as Global...");
-      if (primary) plan.collectionPhase(id);
-    }
-
-    /* Collector phase */
-    if (schedule == SCHEDULE_COLLECTOR) {
-      if (logDetails) Log.writeln(" as Collector...");
-      collector.collectionPhase(id, primary);
-    }
-
-    /* Mutator phase */
-    if (schedule == SCHEDULE_MUTATOR) {
-      if (logDetails) Log.writeln(" as Mutator...");
-      /* Iterate through all mutator contexts */
-      MutatorContext mutator = null;
-      while ((mutator = VM.activePlan.getNextMutator()) != null) {
-        mutator.collectionPhase(id, primary);
-      }
-      /* TODO: This can be skipped if the *next* phase is not mutator */
-      rendezvous(9, schedule);
-      if (primary) {
-        VM.activePlan.resetMutatorIterator();
-      }
-    }
-    
-    rendezvous(10, schedule);
-    
-    /* Stop the timer */
-    if (primary && timer != null) timer.stop();
   }
 
   /**

@@ -64,7 +64,7 @@ public abstract class Plan implements Constants {
   public static final int NOT_IN_GC = 0; // this must be zero for C code
   public static final int GC_PREPARE = 1; // before setup and obtaining root
   public static final int GC_PROPER = 2;
-
+  
   /* Polling */
   public static final int DEFAULT_POLL_FREQUENCY = (128 << 10) >> LOG_BYTES_IN_PAGE;
   public static final int META_DATA_POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
@@ -427,14 +427,108 @@ public abstract class Plan implements Constants {
    * @param s The new GC status.
    */
   public static void setGCStatus(int s) {
+    if (gcStatus == NOT_IN_GC) {
+      /* From NOT_IN_GC to any phase */
+      if (Stats.gatheringStats()) {
+        Stats.startGC();
+        VM.activePlan.global().printPreStats();
+      }
+    }
     VM.memory.isync();
     gcStatus = s;
     VM.memory.sync();
+    if (gcStatus == NOT_IN_GC) {
+      /* From any phase to NOT_IN_GC */
+      if (Stats.gatheringStats()) {
+        Stats.endGC();
+        VM.activePlan.global().printPostStats();
+      }
+    }
   }
 
   /**
-   * A user-triggered GC has been initiated.  By default, do nothing,
-   * but this may be overridden.
+   * Print out statistics at the start of a GC
+   */
+  public void printPreStats() {
+    if ((Options.verbose.getValue() == 1) ||
+        (Options.verbose.getValue() == 2)) {
+      Log.write("[GC "); Log.write(Stats.gcCount());
+      if (Options.verbose.getValue() == 1) {
+        Log.write(" Start ");
+        Plan.totalTime.printTotalSecs();
+        Log.write(" s");
+      } else {
+        Log.write(" Start ");
+        Plan.totalTime.printTotalMillis();
+        Log.write(" ms");
+      }
+      Log.write("   ");
+      Log.write(Conversions.pagesToKBytes(getPagesUsed()));
+      Log.write("KB ");
+      Log.flush();
+    }
+    if (Options.verbose.getValue() > 2) {
+      Log.write("Collection "); Log.write(Stats.gcCount());
+      Log.write(":        ");
+      printUsedPages();
+      Log.write("  Before Collection: ");
+      Space.printUsageMB();
+      if (Options.verbose.getValue() >= 4) {
+        Log.write("                     ");
+        Space.printUsagePages();
+      }
+    }
+  }
+
+  /**
+   * Print out statistics at the end of a GC
+   */
+  public final void printPostStats() {
+    if ((Options.verbose.getValue() == 1) ||
+        (Options.verbose.getValue() == 2)) {
+      Log.write("-> ");
+      Log.writeDec(Conversions.pagesToBytes(getPagesUsed()).toWord().rshl(10));
+      Log.write("KB   ");
+      if (Options.verbose.getValue() == 1) {
+        totalTime.printLast();
+        Log.writeln(" ms]");
+      } else {
+        Log.write("End ");
+        totalTime.printTotal();
+        Log.writeln(" ms]");
+      }
+    }
+    if (Options.verbose.getValue() > 2) {
+      Log.write("   After Collection: ");
+      Space.printUsageMB();
+      if (Options.verbose.getValue() >= 4) {
+        Log.write("                     ");
+        Space.printUsagePages();
+      }
+      Log.write("                     ");
+      printUsedPages();
+      Log.write("    Collection time: ");
+      totalTime.printLast();
+      Log.writeln(" ms");
+    }
+  }
+
+  public final void printUsedPages() {
+    Log.write("reserved = ");
+    Log.write(Conversions.pagesToMBytes(getPagesReserved()));
+    Log.write(" MB (");
+    Log.write(getPagesReserved());
+    Log.write(" pgs)");
+    Log.write("      total = ");
+    Log.write(Conversions.pagesToMBytes(getTotalPages()));
+    Log.write(" MB (");
+    Log.write(getTotalPages());
+    Log.write(" pgs)");
+    Log.writeln();
+  }
+
+  /**
+   * A user-triggered GC has been initiated.
    */
   public static void setUserTriggeredCollection(boolean value) {
     userTriggeredCollection = value;
@@ -721,7 +815,7 @@ public abstract class Plan implements Constants {
       VM.collection.joinCollection();
       return true;
     }
-
+    
     if (collectionRequired(spaceFull)) {
       if (space == metaDataSpace) {
         /* In general we must not trigger a GC on metadata allocation since

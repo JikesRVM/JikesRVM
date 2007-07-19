@@ -26,30 +26,77 @@ import org.vmmagic.pragma.*;
  *
  * The context an individual phase executes in may be global, mutator,
  * or collector.
+ * 
+ * Phases are executed within a stack and all synchronization between
+ * parallel GC threads is managed from within this class.
  *
  * @see CollectorContext#collectionPhase
  * @see MutatorContext#collectionPhase
  * @see Plan#collectionPhase
- *
- * Urgent TODO: Assess cost of rendezvous when running in parallel.
- * It should be possible to remove some by thinking about phases more
- * carefully
  */
 @Uninterruptible
 public abstract class Phase implements Constants {
+  /***********************************************************************
+  * 
+  * Phase allocation and storage.
+  */
+  
+  /** The maximum number of phases */
   private static final int MAX_PHASES = 64;
+  /** The array of phase instances. Zero is unused. */
   private static final Phase[] phases = new Phase[MAX_PHASES];
+  /** The id to be allocated for the next phase */
   private static short nextPhaseId = 1;
 
+  /** Run the phase globally. */
+  protected static final short SCHEDULE_GLOBAL = 1;
+  /** Run the phase on collectors. */
+  protected static final short SCHEDULE_COLLECTOR = 2;
+  /** Run the phase on mutators. */
+  protected static final short SCHEDULE_MUTATOR = 3;
+  /** Don't run this phase. */
+  protected static final short SCHEDULE_PLACEHOLDER = 100;
+  /** This is a complex phase. */
+  protected static final short SCHEDULE_COMPLEX = 101;
+
+  /**
+   * Retrieve a phase by the unique phase identifier.
+   *
+   * @param id The phase identifier.
+   * @return The Phase instance.
+   */
+  public static Phase getPhase(short id) {
+    if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert(id < nextPhaseId, "Phase ID unknown");
+      VM.assertions._assert(phases[id] != null, "Uninitialised phase");
+    }
+    return phases[id];
+  }
+
+  /** Get the phase id component of an encoded phase */
+  protected static short getPhaseId(int scheduledPhase) {
+    short phaseId = (short)(scheduledPhase & 0x0000FFFF);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(phaseId > 0);
+    return phaseId;
+  }
+
+  /**
+   * @param phaseId The unique phase identifier.
+   * @return The name of the phase.
+   */
+  public static String getName(short phaseId) {
+    return phases[phaseId].name;
+  }
+
   /** Get the ordering component of an encoded phase */
-  static short getSchedule(int scheduledPhase) {
+  protected static short getSchedule(int scheduledPhase) {
     short ordering = (short)((scheduledPhase >> 16) & 0x0000FFFF);
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(ordering > 0);
     return ordering;
   }
-  
+
   /** Get the ordering component of an encoded phase */
-  static String getScheduleName(short ordering) {
+  protected static String getScheduleName(short ordering) {
     switch (ordering) {
       case SCHEDULE_GLOBAL:      return "Global";
       case SCHEDULE_COLLECTOR:   return "Collector";
@@ -59,28 +106,6 @@ public abstract class Phase implements Constants {
       default:                   return "UNKNOWN!";
     }
   }
-
-  /** Get the phase id component of an encoded phase */
-  static short getPhaseId(int scheduledPhase) {
-    short phaseId = (short)(scheduledPhase & 0x0000FFFF);
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(phaseId > 0);
-    return phaseId;
-  }
-
-  /** Run the phase globally. */
-  protected static final short SCHEDULE_GLOBAL = 1;
-
-  /** Run the phase on collectors. */
-  protected static final short SCHEDULE_COLLECTOR = 2;
-
-  /** Run the phase on mutators. */
-  protected static final short SCHEDULE_MUTATOR = 3;
-  
-  /** Don't run this phase. */
-  protected static final short SCHEDULE_PLACEHOLDER = 100;
-  
-  /** This is a complex phase. */
-  protected static final short SCHEDULE_COMPLEX = 101;
 
   /**
    * Construct a phase.
@@ -189,16 +214,10 @@ public abstract class Phase implements Constants {
     return (SCHEDULE_PLACEHOLDER << 16) + phaseId;
   }
 
-  /**
-   * Replace a scheduled phase. Used for example to replace a placeholder.
-   *
-   * @param rootPhase Root phase id.
-   * @param oldScheduledPhase The scheduled phase to replace.
-   * @param newScheduledPhase The new scheduled phase.
+  /***********************************************************************
+   * 
+   * Phase instance fields/methods.
    */
-  public static void replacePhase(int rootPhase, int oldScheduledPhase, int newScheduledPhase) {
-    
-  }
 
   /**
    * The unique phase identifier.
@@ -253,68 +272,357 @@ public abstract class Phase implements Constants {
    */
   protected abstract void logPhase();
   
-  /**
-   * @param phaseId The unique phase identifier.
-   * @return The name of the phase.
-   */
-  public static String getName(short phaseId) {
-    return phases[phaseId].name;
-  }
-
-  /**
-   * Execute the specified phase, synchronizing initially.
-   */
-  public static void executeScheduledPhase(int scheduledPhase) {
-    short phaseId = getPhaseId(scheduledPhase);
-    short schedule = getSchedule(scheduledPhase);
-    boolean primary = rendezvous(0, phaseId, schedule);
-    Phase p = getPhase(phaseId);
-    p.execute(primary, schedule);
-  }
-
-  /**
-   * Execute a phase according to the supplied schedule
-   *
-   * @param primary Should global actions be performed on this thread.
-   * @param schedule The schedule to use during execution
-   */
-  protected abstract void execute(boolean primary, short schedule);
-
-  /**
-   * Call rendezvous.
+  /***********************************************************************
    * 
-   * @param where A source location identifier.
-   * @param schedule The schedule used.
-   * @return True if the first to the rendezvous.
+   * Phase stack
    */
-  @Inline
-  protected final boolean rendezvous(int where, short schedule) {
-    return rendezvous(where, id, schedule);  
-  }
+
+  /** The maximum stack depth for the phase stack. */
+  private static final int MAX_PHASE_STACK_DEPTH = MAX_PHASES;
+
+  /** Stores the current sub phase for a complex phase. Each entry corresponds to a phase stack entry */
+  private static int[] complexPhaseCursor = new int[MAX_PHASE_STACK_DEPTH];
+
+  /** The phase stack. Stores the current nesting of phases */
+  private static int[] phaseStack = new int[MAX_PHASE_STACK_DEPTH];
+
+  /** The current stack pointer */
+  private static int phaseStackPointer = -1;
+
+  /** 
+   * The current even (0 mod 2) scheduled phase.
+   * As we only sync at the end of a phase we need this to ensure that 
+   * the primary thread setting the phase does not race with the other
+   * threads reading it.
+   */  
+  private static int evenScheduledPhase;
+
+  /** 
+   * The current odd (1 mod 2) scheduled phase.
+   * As we only sync at the end of a phase we need this to ensure that 
+   * the primary thread setting the phase does not race with the other
+   * threads reading it.
+   */
+  private static int oddScheduledPhase;
 
   /**
-   * Call rendezvous.
+   * Do we need to add a sync point to reset the mutator count. This
+   * is necessary for consecutive mutator phases and unneccessary 
+   * otherwise. Again we separate in even and odd to ensure that there
+   * is no race between the primary thread setting and the helper
+   * threads reading.
+   */
+  private static boolean evenMutatorResetRendezvous;
+
+  /**
+   * Do we need to add a sync point to reset the mutator count. This
+   * is necessary for consecutive mutator phases and unneccessary 
+   * otherwise. Again we separate in even and odd to ensure that there
+   * is no race between the primary thread setting and the helper
+   * threads reading.
+   */
+  private static boolean oddMutatorResetRendezvous;
+
+  /**
+   * The complex phase whose timer should be started after the next
+   * rendezvous. We can not start the timer at the point we determine
+   * the next complex phase as we determine the next phase at the 
+   * end of the previous phase before the sync point.
+   */
+  private static short startComplexTimer;
+
+  /**
+   * The complex phase whose timer should be stopped after the next
+   * rendezvous. We can not start the timer at the point we determine
+   * the next complex phase as we determine the next phase at the 
+   * end of the previous phase before the sync point.
+   */
+  private static short stopComplexTimer;
+
+  /**
+   * Place a phase on the phase stack and begin processing.
    * 
-   * @param where A source location identifier.
-   * @param schedule The schedule used.
-   * @return True if the first to the rendezvous.
+   * @param start The phase to execute
+   * @return True if the phase stack is exhausted.
    */
-  @Inline
-  protected static boolean rendezvous(int where, short id, short schedule) {
-    return VM.collection.rendezvous(100000 * schedule + 1000 * id + where) == 1;  
-  }
-
-  /**
-   * Retrieve a phase by the unique phase identifier.
-   *
-   * @param id The phase identifier.
-   * @return The Phase instance.
-   */
-  public static Phase getPhase(short id) {
-    if (VM.VERIFY_ASSERTIONS) {
-      VM.assertions._assert(id < nextPhaseId, "Phase ID unknown");
-      VM.assertions._assert(phases[id] != null, "Uninitialised phase");
+  public static boolean beginNewPhaseStack(int scheduledPhase) {
+    int order = VM.collection.rendezvous(1001);
+    if (order == 1) {
+      pushScheduledPhase(scheduledPhase);
     }
-    return phases[id];
+    return processPhaseStack(false);
+  }
+
+  /**
+   * Continue the execution of a phase stack. Used for incremental
+   * and concurrent collection.
+   * 
+   * @return True if the phase stack is exhausted.
+   */
+  public static boolean continuePhaseStack() {
+    return processPhaseStack(true);
+  }
+
+  /**
+   * Process the phase stack. This method is called by multiple threads.
+   */
+  private static boolean processPhaseStack(boolean resume) {
+    int order = VM.collection.rendezvous(1001);
+    final boolean primary = order == 1;
+
+    boolean log = Options.verbose.getValue() >= 6;
+    boolean logDetails = Options.verbose.getValue() >= 7;
+
+    if (primary && resume) {
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!Phase.isPhaseStackEmpty());
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!Plan.gcInProgress());
+      Plan.setGCStatus(Plan.GC_PROPER);
+    }
+
+    /* In order to reduce the need for synchronization, we keep an odd or even
+     * counter for the number of phases processed. As each phase has a single
+     * rendezvous it is only possible to be out by one so the odd or even counter
+     * protects us. */
+    boolean isEvenPhase = true;
+
+    if (primary) {
+      /* First phase will be even, so we say we are odd here so that the next phase set is even*/
+      setNextPhase(false, getNextPhase(), false);
+    }
+
+    /* Make sure everyone sees the first phase */
+    VM.collection.rendezvous(1002);
+
+    /* Global and Collector instances used in phases */
+    Plan plan = VM.activePlan.global();
+    CollectorContext collector = VM.activePlan.collector();
+    
+    /* The main phase execution loop */
+    int scheduledPhase;
+    while((scheduledPhase = getCurrentPhase(isEvenPhase)) > 0) {
+      short schedule = getSchedule(scheduledPhase);
+      short phaseId = getPhaseId(scheduledPhase);
+      Phase p = getPhase(phaseId);
+
+      /* Start the timer(s) */
+      if (primary) {
+        if (p.timer != null) p.timer.start();
+        if (startComplexTimer > 0) {
+          Phase.getPhase(startComplexTimer).timer.start();
+          startComplexTimer = 0;
+        }
+      }
+
+      if (log) {
+        Log.write("Execute ");
+        p.logPhase();
+      }
+
+      /* Execute a single simple scheduled phase */
+      switch (schedule) {
+        case SCHEDULE_GLOBAL: {
+          /* Global phase */
+          if (logDetails) Log.writeln(" as Global...");
+          if (primary) plan.collectionPhase(phaseId);
+          break;
+        }
+  
+        /* Collector phase */
+        case SCHEDULE_COLLECTOR: {
+          if (logDetails) Log.writeln(" as Collector...");
+          collector.collectionPhase(phaseId, primary);
+          break;
+        }
+  
+        /* Mutator phase */
+        case SCHEDULE_MUTATOR: {
+          if (logDetails) Log.writeln(" as Mutator...");
+          /* Iterate through all mutator contexts */
+          MutatorContext mutator = null;
+          while ((mutator = VM.activePlan.getNextMutator()) != null) {
+            mutator.collectionPhase(phaseId, primary);
+          }
+          break;
+        }
+
+        default: {
+          /* getNextPhase has done the wrong thing */
+          VM.assertions.fail("Invalid schedule in Phase.processPhaseStack");
+          break;
+        }
+      }
+
+      if (primary) {
+        /* Set the next phase by processing the stack */
+        int next = getNextPhase();
+        boolean needsResetRendezvous = (next > 0) && (schedule == SCHEDULE_MUTATOR && getSchedule(next) == SCHEDULE_MUTATOR);
+        setNextPhase(isEvenPhase, next, needsResetRendezvous);
+      }
+
+      /* Sync point after execution of a phase */
+      VM.collection.rendezvous(1004);
+
+      /* Mutator phase reset */
+      if (primary && schedule == SCHEDULE_MUTATOR) {
+        VM.activePlan.resetMutatorIterator();
+      }
+
+      /* At this point, in the case of consecutive phases with mutator 
+       * scheduling, we have to double-synchronize to ensure all 
+       * collector threads see the reset mutator counter. */ 
+      if (needsMutatorResetRendezvous(isEvenPhase)) {
+        VM.collection.rendezvous(1005);
+      }
+
+      /* Stop the timer(s) */
+      if (primary) {
+        if (p.timer != null) p.timer.stop();
+        if (stopComplexTimer > 0) {
+          Phase.getPhase(stopComplexTimer).timer.start();
+          stopComplexTimer = 0;
+        }
+      }
+
+      /* Flip the even / odd phase sense */
+      isEvenPhase = !isEvenPhase;
+    }
+
+    /* Phase stack exhausted so we return true */
+    return true;
+  }
+
+  /**
+   * Get the next phase.
+   */
+  private static int getCurrentPhase(boolean isEvenPhase) {
+    return isEvenPhase ? evenScheduledPhase : oddScheduledPhase;
+  }
+
+  /**
+   * Do we need a mutator reset rendezvous in this phase?
+   */
+  private static boolean needsMutatorResetRendezvous(boolean isEvenPhase) {
+    return isEvenPhase ? evenMutatorResetRendezvous : oddMutatorResetRendezvous;
+  }
+  /**
+   * Set the next phase. If we are in an even phase the next phase is odd.
+   */
+  private static void setNextPhase(boolean isEvenPhase, int scheduledPhase, boolean needsResetRendezvous) {
+    if (isEvenPhase) {
+      oddScheduledPhase = scheduledPhase;
+      evenMutatorResetRendezvous = needsResetRendezvous;
+    } else {
+      evenScheduledPhase = scheduledPhase;
+      oddMutatorResetRendezvous = needsResetRendezvous;
+    }
+  }
+
+  /**
+   * Pull the next scheduled phase off the stack. This may involve
+   * processing several complex phases and skipping placeholders, etc.
+   * 
+   * @return The next phase to run, or -1 if no phases are left.
+   */
+  private static int getNextPhase() {
+    while (phaseStackPointer >= 0) {
+      int scheduledPhase = peekScheduledPhase();
+      short schedule = getSchedule(scheduledPhase);
+      short phaseId = getPhaseId(scheduledPhase);
+      
+      switch(schedule) {
+        case SCHEDULE_PLACEHOLDER: {
+          /* Placeholders are ignored and we continue looking */
+          popScheduledPhase();
+          continue;
+        }
+
+        case SCHEDULE_GLOBAL:
+        case SCHEDULE_COLLECTOR:
+        case SCHEDULE_MUTATOR: {
+          /* Simple phases are just popped off the stack and executed */
+          popScheduledPhase();
+          return scheduledPhase;
+        }
+
+        case SCHEDULE_COMPLEX: {
+          /* A complex phase may either be a newly pushed complex phase,
+           * or a complex phase we are in the process of executing in 
+           * which case we move to the next subphase. */
+          ComplexPhase p = (ComplexPhase)getPhase(phaseId);
+          int cursor = incrementComplexPhaseCursor();
+          if (cursor == 0 && p.timer != null) {
+            /* Tell the primary thread to start the timer after the next sync. */
+            startComplexTimer = phaseId;
+          }
+          if (cursor < p.count()) {
+            /* There are more entries, we push the next one and continue */
+            pushScheduledPhase(p.get(cursor));
+            continue;
+          }
+          
+          /* We have finished this complex phase */
+          popScheduledPhase();
+          if (p.timer != null) {
+            /* Tell the primary thread to stop the timer after the next sync. */
+            stopComplexTimer = phaseId;
+          }
+          continue;
+        }
+
+        default: {
+          VM.assertions.fail("Invalid phase type encountered");
+        }
+      }      
+    }
+    return -1;
+  }
+
+  /**
+   * Push a phase onto the top of the work stack.
+   * 
+   * @param phase The phase to process next.
+   */
+  @Inline
+  public static boolean isPhaseStackEmpty() {
+    return phaseStackPointer < 0;
+  }
+  
+  /**
+   * Push a scheduled phase onto the top of the work stack.
+   * 
+   * @param scheduledPhase The scheduled phase.
+   */
+  @Inline
+  public static void pushScheduledPhase(int scheduledPhase) {
+    phaseStack[++phaseStackPointer] = scheduledPhase;
+    complexPhaseCursor[phaseStackPointer] = 0;
+  }
+  
+  /**
+   * Increment the cursor associated with the current phase
+   * stack entry. This is used to remember the current sub phase
+   * when executing a complex phase.
+   * 
+   * @return The old value of the cursor.
+   */
+  @Inline
+  private static int incrementComplexPhaseCursor() {
+    return complexPhaseCursor[phaseStackPointer]++;
+  }
+
+  /**
+   * Pop off the scheduled phase at the top of the work stack.
+   */
+  @Inline
+  private static int popScheduledPhase() {
+    return phaseStack[phaseStackPointer--];
+  }
+
+  /**
+   * Peek the scheduled phase at the top of the work stack.
+   */
+  @Inline
+  private static int peekScheduledPhase() {
+    return phaseStack[phaseStackPointer];
   }
 }

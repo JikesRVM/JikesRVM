@@ -13,10 +13,9 @@
 package org.mmtk.plan;
 
 import org.mmtk.utility.Constants;
-import org.mmtk.utility.statistics.Timer;
 import org.mmtk.utility.options.Options;
+import org.mmtk.utility.statistics.Timer;
 import org.mmtk.utility.Log;
-
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -48,13 +47,8 @@ public final class ComplexPhase extends Phase
    */
   protected ComplexPhase(String name, int[] scheduledSubPhases) {
     super(name);
-    if (VM.VERIFY_ASSERTIONS) {
-      for(int scheduledPhase: scheduledSubPhases) {
-        VM.assertions._assert(getSchedule(scheduledPhase) > 0);
-        VM.assertions._assert(getPhaseId(scheduledPhase) > 0);
-      }
-    }
     this.scheduledSubPhases = scheduledSubPhases;
+    checkPhases();
   }
 
   /**
@@ -67,13 +61,38 @@ public final class ComplexPhase extends Phase
    */
   protected ComplexPhase(String name, Timer timer, int[] scheduledSubPhases) {
     super(name, timer);
+    this.scheduledSubPhases = scheduledSubPhases;
+    checkPhases();
+  }
+
+  /**
+   * Validate the scheduled sub phases.
+   */
+  private void checkPhases() {
     if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert(scheduledSubPhases.length > 0);
       for(int scheduledPhase: scheduledSubPhases) {
         VM.assertions._assert(getSchedule(scheduledPhase) > 0);
         VM.assertions._assert(getPhaseId(scheduledPhase) > 0);
       }
     }
-    this.scheduledSubPhases = scheduledSubPhases;
+  }
+
+  /**
+   * The number of scheduled sub phases.
+   */
+  protected int count() {
+    return scheduledSubPhases.length;
+  }
+
+  /**
+   * Return an individual scheduled sub phase.
+   * 
+   * @param index The index
+   * @return The scheduled phase.
+   */
+  protected int get(int index) {
+    return scheduledSubPhases[index];
   }
 
   /**
@@ -93,37 +112,7 @@ public final class ComplexPhase extends Phase
     }
     Log.write(">)");
   }
-  
-  /**
-   * Execute the phase according to the specified schedule.
-   * 
-   * @param complexSchedule The schedule to execute with.
-   */
-  @Inline
-  protected void execute(boolean primary, short complexSchedule) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(complexSchedule == SCHEDULE_COMPLEX);
 
-    /* Start the timer */
-    if (primary && timer != null) timer.start();
-
-    if (Options.verbose.getValue() >= 4) {
-      Log.write("Delegating complex phase ");
-      Log.writeln(name);
-    }
-
-    for (int scheduledPhase : scheduledSubPhases) {
-      short schedule = getSchedule(scheduledPhase);
-      if (schedule != SCHEDULE_PLACEHOLDER) {
-        short phaseId = getPhaseId(scheduledPhase);
-        Phase p = getPhase(phaseId);
-        p.execute(primary, schedule);
-      }
-    }
-
-    /* Stop the timer */
-    if (primary && timer != null) timer.stop();
-  }
-  
   /**
    * Replace a scheduled phase. Used for example to replace a placeholder.
    * 

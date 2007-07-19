@@ -18,14 +18,13 @@ import org.mmtk.utility.Conversions;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.options.*;
 import org.mmtk.utility.sanitychecker.SanityChecker;
-import org.mmtk.utility.statistics.Stats;
 import org.mmtk.utility.statistics.Timer;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 
 /**
- * This abstract class implments the core functionality for
+ * This abstract class implements the core functionality for
  * stop-the-world collectors.  Stop-the-world collectors should
  * inherit from this class.<p>
  *
@@ -217,23 +216,19 @@ import org.vmmagic.pragma.*;
     if (phaseId == SET_COLLECTION_KIND) {
       requiredAtStart = getPagesRequired();
       collectionAttempt = VM.collection.maximumCollectionAttempt();
-      emergencyCollection = (lastCollectionFullHeap() && collectionAttempt > 1);
+      emergencyCollection = lastCollectionFullHeap() && collectionAttempt > 1;
       if (collectionAttempt > MAX_COLLECTION_ATTEMPTS) {
         VM.assertions.fail("Too many collection attempts. Suspect plan is not setting FullHeap flag");
       }
       if (emergencyCollection) {
-        if (Options.verbose.getValue() > 1) Log.write("[Emergency]");
+        if (Options.verbose.getValue() >= 1) Log.write("[Emergency]");
         forceFullHeapCollection();
       }
       return;
     }
 
     if (phaseId == INITIATE) {
-      if (Stats.gatheringStats()) {
-        Stats.startGC();
-        printPreStats();
-      }
-      Plan.setGCStatus(GC_PREPARE);
+      setGCStatus(GC_PREPARE);
       return;
     }
 
@@ -247,7 +242,7 @@ import org.vmmagic.pragma.*;
 
     if (phaseId == ROOTS) {
       VM.scanning.resetThreadCounter();
-      Plan.setGCStatus(GC_PROPER);
+      setGCStatus(GC_PROPER);
       return;
     }
 
@@ -260,11 +255,7 @@ import org.vmmagic.pragma.*;
     }
 
     if (phaseId == COMPLETE) {
-      Plan.setGCStatus(NOT_IN_GC);
-      if (Stats.gatheringStats()) {
-        Stats.endGC();
-        printPostStats();
-      }
+      setGCStatus(NOT_IN_GC);
       Space.clearAllAllocationFailed();
       awaitingAsyncCollection = false;
       return;
@@ -300,86 +291,5 @@ import org.vmmagic.pragma.*;
   public void replacePlaceholderPhase(short placeholderPhase, int newScheduledPhase) {
     ComplexPhase cp = (ComplexPhase)Phase.getPhase(collection);
     cp.replacePhase(Phase.schedulePlaceholder(placeholderPhase), newScheduledPhase);
-  }
-
-  /**
-   * Print out statistics at the start of a GC
-   */
-  public void printPreStats() {
-    if ((Options.verbose.getValue() == 1) ||
-        (Options.verbose.getValue() == 2)) {
-      Log.write("[GC "); Log.write(Stats.gcCount());
-      if (Options.verbose.getValue() == 1) {
-        Log.write(" Start ");
-        Plan.totalTime.printTotalSecs();
-        Log.write(" s");
-      } else {
-        Log.write(" Start ");
-        Plan.totalTime.printTotalMillis();
-        Log.write(" ms");
-      }
-      Log.write("   ");
-      Log.write(Conversions.pagesToKBytes(getPagesUsed()));
-      Log.write("KB ");
-      Log.flush();
-    }
-    if (Options.verbose.getValue() > 2) {
-      Log.write("Collection "); Log.write(Stats.gcCount());
-      Log.write(":        ");
-      printUsedPages();
-      Log.write("  Before Collection: ");
-      Space.printUsageMB();
-      if (Options.verbose.getValue() >= 4) {
-        Log.write("                     ");
-        Space.printUsagePages();
-      }
-    }
-  }
-
-  /**
-   * Print out statistics at the end of a GC
-   */
-  public final void printPostStats() {
-    if ((Options.verbose.getValue() == 1) ||
-        (Options.verbose.getValue() == 2)) {
-      Log.write("-> ");
-      Log.writeDec(Conversions.pagesToBytes(getPagesUsed()).toWord().rshl(10));
-      Log.write("KB   ");
-      if (Options.verbose.getValue() == 1) {
-        totalTime.printLast();
-        Log.writeln(" ms]");
-      } else {
-        Log.write("End ");
-        totalTime.printTotal();
-        Log.writeln(" ms]");
-      }
-    }
-    if (Options.verbose.getValue() > 2) {
-      Log.write("   After Collection: ");
-      Space.printUsageMB();
-      if (Options.verbose.getValue() >= 4) {
-        Log.write("                     ");
-        Space.printUsagePages();
-      }
-      Log.write("                     ");
-      printUsedPages();
-      Log.write("    Collection time: ");
-      totalTime.printLast();
-      Log.writeln(" ms");
-    }
-  }
-
-  public final void printUsedPages() {
-    Log.write("reserved = ");
-    Log.write(Conversions.pagesToMBytes(getPagesReserved()));
-    Log.write(" MB (");
-    Log.write(getPagesReserved());
-    Log.write(" pgs)");
-    Log.write("      total = ");
-    Log.write(Conversions.pagesToMBytes(getTotalPages()));
-    Log.write(" MB (");
-    Log.write(getTotalPages());
-    Log.write(" pgs)");
-    Log.writeln();
   }
 }
