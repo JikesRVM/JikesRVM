@@ -478,7 +478,7 @@ public abstract class Phase implements Constants {
       if (primary) {
         if (p.timer != null) p.timer.stop();
         if (stopComplexTimer > 0) {
-          Phase.getPhase(stopComplexTimer).timer.start();
+          Phase.getPhase(stopComplexTimer).timer.stop();
           stopComplexTimer = 0;
         }
       }
