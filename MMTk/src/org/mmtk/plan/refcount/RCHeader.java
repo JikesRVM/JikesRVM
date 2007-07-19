@@ -470,7 +470,7 @@ import org.vmmagic.pragma.*;
   @Uninterruptible
   public static void clearBufferedBit(ObjectReference object) {
     int oldValue = object.toAddress().loadInt(RC_HEADER_OFFSET);
-    int newValue = oldValue & ~BUFFERED_MASK;
+    int newValue = oldValue & ~(BUFFERED_MASK | PURPLE);
     object.toAddress().store(newValue, RC_HEADER_OFFSET);
   }
   @Inline
