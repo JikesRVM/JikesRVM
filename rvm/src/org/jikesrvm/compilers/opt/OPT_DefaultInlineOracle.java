@@ -25,6 +25,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.opt.ir.OPT_CompilationState;
 import org.jikesrvm.compilers.opt.ir.OPT_InlineSequence;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
+import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
 
 /**
@@ -405,7 +406,7 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools implements OP
     byte guard = state.getOptions().INLINING_GUARD;
     if (codePatchSupported) {
       if (VM.VerifyAssertions && VM.runningVM) {
-        VM._assert(VM_ObjectModel.holdsLock(VM_Class.classLoadListener, VM_Thread.getCurrentThread()));
+        VM._assert(VM_ObjectModel.holdsLock(VM_Class.classLoadListener, VM_Scheduler.getCurrentThread()));
       }
       if (guard == OPT_Options.IG_CODE_PATCH) {
         OPT_ClassLoadingDependencyManager cldm = (OPT_ClassLoadingDependencyManager) VM_Class.classLoadListener;

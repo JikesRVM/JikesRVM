@@ -10,16 +10,12 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.runtime;
+package org.jikesrvm.scheduler.greenthreads;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import org.jikesrvm.VM;
-import org.jikesrvm.scheduler.VM_Processor;
-import org.jikesrvm.scheduler.VM_ThreadEventConstants;
-import org.jikesrvm.scheduler.VM_ThreadProcessWaitData;
-import org.jikesrvm.scheduler.VM_Wait;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
@@ -34,7 +30,7 @@ public class VM_Process extends java.lang.Process {
   // VM_Processor from which the child process was created.
   // Linux forces us to use the same pthread when we wait
   // for the child process to exit.
-  VM_Processor creatingProcessor;
+  VM_GreenProcessor creatingProcessor;
 
   // Child's Unix process id
   private int pid;
@@ -63,7 +59,7 @@ public class VM_Process extends java.lang.Process {
    */
   public VM_Process(String program, String[] args, String[] env, String dirPath) {
     pid = exec4(program, args, env, dirPath);
-    creatingProcessor = VM_Processor.getCurrentProcessor();
+    creatingProcessor = VM_GreenProcessor.getCurrentProcessor();
     // FIXME: check for error creating process
 
     // initialize file descriptors
@@ -77,7 +73,7 @@ public class VM_Process extends java.lang.Process {
    * created from.
    */
   @Uninterruptible
-  public VM_Processor getCreatingProcessor() {
+  public VM_GreenProcessor getCreatingProcessor() {
     return creatingProcessor;
   }
 

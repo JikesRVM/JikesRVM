@@ -30,7 +30,7 @@ import org.jikesrvm.adaptive.recompilation.VM_InvocationCounts;
 import org.jikesrvm.adaptive.util.VM_AOSGenerator;
 import org.jikesrvm.adaptive.util.VM_AOSLogging;
 import org.jikesrvm.adaptive.util.VM_AOSOptions;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.VM_Scheduler.ThreadModel;;
 
 /**
  * This class implements the controller thread.  This entity is the brains of
@@ -42,14 +42,14 @@ import org.jikesrvm.scheduler.VM_Thread;
  *     c) static information about a method; or
  *     d) all of the above.
  */
-public final class VM_ControllerThread extends VM_Thread {
+public final class VM_ControllerThread extends ThreadModel {
 
   /**
    * constructor
    * @param sentinel   An object to signal when up and running
    */
   VM_ControllerThread(Object sentinel) {
-    super(null, "VM_ControllerThread");
+    super("VM_ControllerThread");
     this.sentinel = sentinel;
     makeDaemon(true);
   }

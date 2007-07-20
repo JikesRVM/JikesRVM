@@ -139,10 +139,6 @@ public abstract class OPT_GenerateMachineSpecificMagic implements OPT_Operators,
                                             fp,
                                             new OPT_IntConstantOperand(STACKFRAME_RETURN_ADDRESS_OFFSET)));
       bc2ir.push(val.copyD2U());
-    } else if (methodName == VM_MagicNames.clearFloatingPointState) {
-      if (!VM_ArchConstants.SSE2_FULL) {
-        bc2ir.appendInstruction(Empty.create(CLEAR_FLOATING_POINT_STATE));
-      }
     } else {
       // Distinguish between magics that we know we don't implement
       // (and never plan to implement) and those (usually new ones)

@@ -16,6 +16,7 @@ import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
@@ -30,8 +31,8 @@ public class OSR_Listener {
 
   @NoInline
   public static boolean checkForOSRPromotion(int whereFrom) {
-    if (VM_Thread.getCurrentThread().isIdleThread()) return false;
-    if (VM_Thread.getCurrentThread().isSystemThread()) return false;
+    if (VM_Scheduler.getCurrentThread().isIdleThread()) return false;
+    if (VM_Scheduler.getCurrentThread().isSystemThread()) return false;
 
     // check if there are pending osr request
     if ((VM_Controller.osrOrganizer != null) && (VM_Controller.osrOrganizer.osr_flag)) {
@@ -59,7 +60,7 @@ public class OSR_Listener {
       // Skip over wrapper to "real" method
       Address realFP = VM_Magic.getCallerFramePointer(tsFromFP);
 
-      Address stackbeg = VM_Magic.objectAsAddress(VM_Thread.getCurrentThread().stack);
+      Address stackbeg = VM_Magic.objectAsAddress(VM_Scheduler.getCurrentThread().getStack());
 
       Offset tsFromFPoff = tsFromFP.diff(stackbeg);
       Offset realFPoff = realFP.diff(stackbeg);
@@ -79,7 +80,7 @@ public class OSR_Listener {
     // Skip over wrapper to "real" method
     Address realFP = VM_Magic.getCallerFramePointer(tsFromFP);
     int ypTakenInCMID = VM_Magic.getCompiledMethodID(realFP);
-    Address stackbeg = VM_Magic.objectAsAddress(VM_Thread.getCurrentThread().stack);
+    Address stackbeg = VM_Magic.objectAsAddress(VM_Scheduler.getCurrentThread().getStack());
 
     Offset tsFromFPoff = tsFromFP.diff(stackbeg);
     Offset realFPoff = realFP.diff(stackbeg);

@@ -13,11 +13,11 @@
 package java.lang;
 
 import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.scheduler.VM_Lock;
+import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.runtime.VM_Runtime;
 
 /**
- * Jikes RVM implementation of java.lang.Object.
+ * Jikes RVM implementation of {@link java.lang.Object}
  *
  * By convention, order methods in the same order
  * as they appear in the method summary list of Sun's 1.4 Javadoc API.
@@ -46,11 +46,11 @@ public class Object {
   }
 
   public final void notify() throws IllegalMonitorStateException {
-    VM_Lock.notify(this);
+    VM_Thread.notify(this);
   }
 
   public final void notifyAll() throws IllegalMonitorStateException {
-    VM_Lock.notifyAll(this);
+    VM_Thread.notifyAll(this);
   }
 
   public String toString () {
@@ -59,7 +59,7 @@ public class Object {
 
   public final void wait () throws InterruptedException,
                                    IllegalMonitorStateException {
-    VM_Lock.wait(this);
+    VM_Thread.wait(this);
   }
 
   public final void wait (long time) throws InterruptedException,
@@ -78,9 +78,9 @@ public class Object {
         time += 1;
       }
       if (time == 0) {
-        VM_Lock.wait(this);
+        VM_Thread.wait(this);
       } else {
-        VM_Lock.wait(this, time);
+        VM_Thread.wait(this, time);
       }
     } else {
       throw new IllegalArgumentException();

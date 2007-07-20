@@ -21,7 +21,7 @@ import org.vmmagic.unboxed.*;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.VM_Scheduler;
 
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
@@ -210,7 +210,7 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
     while (maxIndex >= references.length()) {
       if (growingTable) {
         lock.release();
-        VM_Thread.yield();
+        VM_Scheduler.yield();
         lock.acquire();
       } else {
         growingTable = true;

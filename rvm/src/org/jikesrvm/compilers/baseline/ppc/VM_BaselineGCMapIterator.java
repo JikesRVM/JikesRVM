@@ -101,7 +101,7 @@ public abstract class VM_BaselineGCMapIterator extends VM_GCMapIterator implemen
     mapIndex = 0;
     if (mapId < 0) {
       // lock the jsr lock to serialize jsr processing
-      VM_ReferenceMaps.jsrLock.lock();
+      VM_ReferenceMaps.jsrLock.lock("jsr lock");
       int JSRindex = maps.setupJSRSubroutineMap(mapId);
       while (JSRindex != 0) {
         Address nextCallerAddress;

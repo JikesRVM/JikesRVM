@@ -14,7 +14,9 @@ package org.jikesrvm.runtime;
 
 import org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants;
 import org.jikesrvm.VM;
+import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.greenthreads.VM_FileSystem;
 import org.jikesrvm.util.VM_HashMap;
 import org.jikesrvm.util.VM_StringUtilities;
 import org.vmmagic.unboxed.Address;
@@ -60,14 +62,14 @@ public final class VM_DynamicLibrary {
 
     // make sure we have enough stack to load the library.
     // This operation has been known to require more than 20K of stack.
-    VM_Thread myThread = VM_Thread.getCurrentThread();
+    VM_Thread myThread = VM_Scheduler.getCurrentThread();
     Offset remaining = VM_Magic.getFramePointer().diff(myThread.stackLimit);
     int stackNeededInBytes = VM_StackframeLayoutConstants.STACK_SIZE_DLOPEN - remaining.toInt();
     if (stackNeededInBytes > 0) {
       if (myThread.hasNativeStackFrame()) {
         throw new java.lang.StackOverflowError("dlopen");
       } else {
-        VM_Thread.resizeCurrentStack(myThread.stack.length + stackNeededInBytes, null);
+        VM_Thread.resizeCurrentStack(myThread.getStackLength() + stackNeededInBytes, null);
       }
     }
 

@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.scheduler;
+package org.jikesrvm.scheduler.greenthreads;
 
 import org.vmmagic.pragma.Uninterruptible;
 
@@ -21,10 +21,10 @@ import org.vmmagic.pragma.Uninterruptible;
  * @see VM_ThreadProcessWaitQueue
  */
 @Uninterruptible
-public class VM_ThreadProcessWaitData extends VM_ThreadEventWaitData {
+public final class VM_ThreadProcessWaitData extends VM_ThreadEventWaitData {
 
   /** Process ID of process being waited for. */
-  int pid;
+  final int pid;
 
   /** Set to true if the process has finished. */
   public boolean finished;
@@ -33,12 +33,12 @@ public class VM_ThreadProcessWaitData extends VM_ThreadEventWaitData {
   public int exitStatus;
 
   /**
-   * Constuctor.
+   * Constructor.
    * @param maxWaitCycle timeout value for wait, or negative
    *   if there is no timeout
    * @param pid process ID of process being waited for
    */
-  public VM_ThreadProcessWaitData(int pid, long maxWaitCycle) {
+  VM_ThreadProcessWaitData(int pid, long maxWaitCycle) {
     super(maxWaitCycle);
     this.pid = pid;
   }
@@ -47,7 +47,7 @@ public class VM_ThreadProcessWaitData extends VM_ThreadEventWaitData {
    * Inform given <code>VM_ThreadEventWaitQueue</code> of this object's
    * concrete class type.
    */
-  public void accept(VM_ThreadEventWaitDataVisitor visitor) {
+  void accept(VM_ThreadEventWaitDataVisitor visitor) {
     visitor.visitThreadProcessWaitData(this);
   }
 }

@@ -45,14 +45,13 @@ public final class VM_MainThread extends Thread {
    *        args[1..N] = parameters to pass to "main" method
    */
   public VM_MainThread(String[] args) {
-    super(args); // special constructor to create thread that has no parent
+    super("MainThread");
+    setDaemon(false); // NB otherwise we inherit the boot threads daemon status
     this.agents = VM_CommandLineArgs.getArgs(VM_CommandLineArgs.JAVAAGENT_ARG);
     this.args = args;
-    java.lang.JikesRVMSupport.getThread(this).setMainThread();
     if (dbg) {
       VM.sysWriteln("VM_MainThread(args.length == ", args.length, "): constructor done");
     }
-
   }
 
   private void runAgents(ClassLoader cl) {
@@ -116,10 +115,6 @@ public final class VM_MainThread extends Thread {
     }
   }
 
-  public String toString() {
-    return "MainThread";
-  }
-
   VM_Method getMainMethod() {
     return mainMethod;
   }
@@ -135,8 +130,10 @@ public final class VM_MainThread extends Thread {
    * just to provide debug messages in a place where very little is actually
    * likely to go wrong, but there you have it....
    */
+  @Override
   @Entrypoint
   public void run() {
+    launched = true;
 
     if (dbg) VM.sysWriteln("VM_MainThread.run() starting ");
 
@@ -191,7 +188,6 @@ public final class VM_MainThread extends Thread {
     //
     VM_Callbacks.notifyStartup();
 
-    launched = true;
     if (dbg) VM.sysWriteln("[VM_MainThread.run() invoking \"main\" method... ");
     // invoke "main" method with argument list
     VM_Reflection.invoke(mainMethod, null, new Object[]{mainArgs}, false);

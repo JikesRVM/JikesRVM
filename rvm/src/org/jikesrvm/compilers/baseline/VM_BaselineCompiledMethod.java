@@ -281,13 +281,13 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod implement
     if (eTable != null) VM_ExceptionTable.printExceptionTable(eTable);
   }
 
-  /** Set the lock acquistion offset for synchronized methods */
+  /** Set the lock acquisition offset for synchronized methods */
   public void setLockAcquisitionOffset(int off) {
     if (VM.VerifyAssertions) VM._assert((off & 0xFFFF) == off);
     lockOffset = (char) off;
   }
 
-  /** Get the lock acquistion offset */
+  /** Get the lock acquisition offset */
   public Offset getLockAcquisitionOffset() {
     return Offset.fromIntZeroExtend(lockOffset);
   }

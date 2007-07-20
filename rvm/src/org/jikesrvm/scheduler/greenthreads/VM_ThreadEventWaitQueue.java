@@ -10,10 +10,11 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.scheduler;
+package org.jikesrvm.scheduler.greenthreads;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_Time;
+import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
 
@@ -36,18 +37,21 @@ import org.vmmagic.pragma.Uninterruptible;
 @Uninterruptible
 abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue implements VM_ThreadEventConstants {
 
-  protected VM_Thread head, tail;
+  protected VM_GreenThread head, tail;
 
-  // Number of queued threads.
+  /** Number of queued threads. */
   private int length;
 
-  // Number of threads ready to run because their events occurred,
-  // or their timeout expired.
+  /**
+   * Number of threads ready to run because their events occurred,or their
+   * timeout expired.
+   */
   private int ready;
 
   /**
    * Is queue empty?
    */
+  @Override
   public boolean isEmpty() {
     return length == 0;
   }
@@ -55,50 +59,16 @@ abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue implements
   /**
    * Number of threads on queue.
    */
+  @Override
   public int length() {
     return length;
   }
 
   /**
-   * Dump state for debugging.
-   */
-  @Interruptible
-  void dump() {
-    dump(" ");
-  }
-
-  /**
-   * Dump state for debugging.
-   */
-  @Interruptible
-  void dump(String prefix) {
-    VM.sysWrite(prefix);
-    for (VM_Thread t = head; t != null; t = t.next) {
-      VM.sysWrite(t.getIndex());
-      dumpWaitDescription(t);
-    }
-    VM.sysWrite("\n");
-  }
-
-  /**
-   * Dump description of what given thread is waiting for.
-   * For debugging.
-   */
-  @Interruptible
-  abstract void dumpWaitDescription(VM_Thread thread);
-
-  /**
-   * Get string describing what given thread is waiting for.
-   * This method must be interruptible!
-   */
-  @Interruptible
-  abstract String getWaitDescription(VM_Thread thread);
-
-  /**
    * Check to see if any threads are ready to run, either because
    * their events occurred or their waits timed out.
    */
-  public boolean isReady() {
+  boolean isReady() {
     if (length == 0) {
       return false; // no threads waiting
     }
@@ -113,30 +83,30 @@ abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue implements
         return false; // possibly transient error; try again later
       }
 
-      VM_Thread thread = head;
+      VM_GreenThread thread = head;
       long currentCycle = VM_Time.cycles();
 
       // See if any threads have become ready to run
       while (thread != null) {
         VM_ThreadEventWaitData waitData = thread.waitData;
-        long maxWaitCycle = waitData.maxWaitCycle;
+        long maxWaitCycle = waitData.getMaxWaitCycle();
 
         if (maxWaitCycle > 0 && maxWaitCycle < currentCycle) {
           // Wait timed out
-          waitData.waitFlags = WAIT_FINISHED | WAIT_TIMEOUT;
+          waitData.setFinishedAndTimeout();
           ++ready;
         } else if (isReady(thread)) {
           // Subclass has decided that the thread is ready to schedule;
           // it should have updated waitFlags appropriately
           if (VM.VerifyAssertions) {
-            VM._assert((waitData.waitFlags & WAIT_FINISHED) != 0);
+            VM._assert(waitData.isFinished());
           }
           ++ready;
         } else {
-          waitData.waitFlags &= ~(WAIT_FINISHED);
+          waitData.clearFinished();
         }
 
-        thread = thread.next;
+        thread = thread.getNext();
       }
     }
 
@@ -149,14 +119,14 @@ abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue implements
    * queued threads.
    * @return whether or not polling was successful
    */
-  public abstract boolean pollForEvents();
+  abstract boolean pollForEvents();
 
   /**
    * Check to see if the event the given thread is waiting for
    * has occurred, or if it should be woken up for any other reason
    * (such as being interrupted).
    */
-  public abstract boolean isReady(VM_Thread thread);
+  abstract boolean isReady(VM_GreenThread thread);
 
   /**
    * Place a thread on this queue.
@@ -164,17 +134,18 @@ abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue implements
    * be set to indicate the event that the thread is waiting for.
    * @param thread the thread to put on the queue
    */
-  public void enqueue(VM_Thread thread) {
+  @Override
+  public void enqueue(VM_GreenThread thread) {
     if (VM.VerifyAssertions) {
-      VM._assert(thread.waitData.waitFlags == WAIT_PENDING || thread.waitData.waitFlags == WAIT_NATIVE);
-      VM._assert(thread.next == null);
+      VM._assert(thread.waitData.isPending() || thread.waitData.isNative());
+      VM._assert(thread.getNext() == null);
     }
 
     // Add to queue
     if (head == null) {
       head = thread;
     } else {
-      tail.next = thread;
+      tail.setNext(thread);
     }
     tail = thread;
     ++length;
@@ -182,36 +153,35 @@ abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue implements
 
   /**
    * Get a thread that has become ready to run.
-   * @return the thread, or null if no threads from
-   *   this queue are ready
+   * @return the thread, or null if no threads from this queue are ready
    */
-  public VM_Thread dequeue() {
-    VM_Thread prev = null;
-    VM_Thread thread = head;
+  @Override
+  public VM_GreenThread dequeue() {
+    VM_GreenThread prev = null;
+    VM_GreenThread thread = head;
 
     if (VM.VerifyAssertions) VM._assert(ready >= 0);
 
     // See if a thread is finished waiting
     while (thread != null) {
-      VM_ThreadEventWaitData waitData = thread.waitData;
-      if ((waitData.waitFlags & WAIT_FINISHED) != 0) {
+      if (thread.waitData.isFinished()) {
         break;
       }
       prev = thread;
-      thread = thread.next;
+      thread = thread.getNext();
     }
 
     // If we found one, take it off the queue
     if (thread != null) {
       if (prev == null) {
-        head = thread.next;
+        head = thread.getNext();
       } else {
-        prev.next = thread.next;
+        prev.setNext(thread.getNext());
       }
       if (tail == thread) {
         tail = prev;
       }
-      thread.next = null;
+      prev = null;
 
       --length;
       --ready;
@@ -222,13 +192,48 @@ abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue implements
     return thread;
   }
 
-  /**
+  /*
    * Debugging.
    */
-  boolean contains(VM_Thread x) {
-    for (VM_Thread t = head; t != null; t = t.next) {
+  /** Does the queue contain the given thread */
+  final boolean contains(VM_Thread x) {
+    for (VM_GreenThread t = head; t != null; t = t.getNext()) {
       if (t == x) return true;
     }
     return false;
   }
+  /**
+   * Dump state for debugging.
+   */
+  @Interruptible
+  void dump() {
+    dump(" ");
+  }
+
+  /**
+   * Dump state for debugging.
+   */
+  @Interruptible
+  void dump(String prefix) {
+    VM.sysWrite(prefix);
+    for (VM_GreenThread t = head; t != null; t = t.getNext()) {
+      VM.sysWrite(t.getIndex());
+      dumpWaitDescription((VM_GreenThread)t);
+    }
+    VM.sysWrite("\n");
+  }
+
+  /**
+   * Dump description of what given thread is waiting for.
+   * For debugging.
+   */
+  @Interruptible
+  abstract void dumpWaitDescription(VM_GreenThread thread);
+
+  /**
+   * Get string describing what given thread is waiting for.
+   * This method must be interruptible!
+   */
+  @Interruptible
+  abstract String getWaitDescription(VM_GreenThread thread);
 }

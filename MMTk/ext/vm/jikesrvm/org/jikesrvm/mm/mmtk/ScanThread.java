@@ -29,6 +29,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.ArchitectureSpecific;
 
@@ -155,7 +156,7 @@ import org.vmmagic.pragma.*;
     }
 
     /* Grab the ScanThread instance associated with this thread */
-    ScanThread scanner = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread()).getThreadScanner();
+    ScanThread scanner = VM_Magic.threadAsCollectorThread(VM_Scheduler.getCurrentThread()).getThreadScanner();
 
     /* scan the stack */
     scanner.startScan(trace, processCodeLocations, thread, gprs, ip, fp, initialIPLoc, topFrame);
@@ -255,8 +256,9 @@ import org.vmmagic.pragma.*;
    * performing the scan.
    */
   private void getHWExceptionRegisters(int verbosity) {
-    if (processCodeLocations && thread.hardwareExceptionRegisters.inuse) {
-      Address ip = thread.hardwareExceptionRegisters.ip;
+    ArchitectureSpecific.VM_Registers hwExReg = thread.getHardwareExceptionRegisters();
+    if (processCodeLocations && hwExReg.inuse) {
+      Address ip = hwExReg.ip;
       VM_CompiledMethod compiledMethod = VM_CompiledMethods.findMethodForInstruction(ip);
       if (VM.VerifyAssertions) {
         VM._assert(compiledMethod != null);
@@ -264,7 +266,7 @@ import org.vmmagic.pragma.*;
       }
       compiledMethod.setActiveOnStack();
       ObjectReference code = ObjectReference.fromObject(compiledMethod.getEntryCodeArray());
-      Address ipLoc = thread.hardwareExceptionRegisters.getIPLocation();
+      Address ipLoc = hwExReg.getIPLocation();
       if (VM.VerifyAssertions) VM._assert(ip == ipLoc.loadAddress());
       codeLocationsPush(code, ipLoc);
     }
@@ -546,15 +548,15 @@ import org.vmmagic.pragma.*;
    * but we can't move the native stack.
    */
   private void assertImmovableInCurrentCollection() {
-    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.stack)));
+    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getStack())));
     VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread)));
-    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.stack)));
+    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getStack())));
     VM._assert(thread.jniEnv == null || trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.jniEnv)));
     VM._assert(thread.jniEnv == null || thread.jniEnv.refsArray() == null || trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.jniEnv.refsArray())));
     VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.contextRegisters)));
     VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.contextRegisters.gprs)));
-    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.hardwareExceptionRegisters)));
-    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.hardwareExceptionRegisters.gprs)));
+    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getHardwareExceptionRegisters())));
+    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getHardwareExceptionRegisters().gprs)));
   }
 
   /**

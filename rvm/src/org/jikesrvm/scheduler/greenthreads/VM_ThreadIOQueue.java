@@ -10,9 +10,11 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.scheduler;
+package org.jikesrvm.scheduler.greenthreads;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.scheduler.VM_ProcessorLock;
+
 import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
@@ -50,13 +52,15 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
   @Uninterruptible
   private static class WaitDataDowncaster extends VM_ThreadEventWaitDataVisitor {
 
-    public VM_ThreadIOWaitData waitData;
+    private VM_ThreadIOWaitData waitData;
 
-    public void visitThreadIOWaitData(VM_ThreadIOWaitData waitData) {
+    @Override
+    void visitThreadIOWaitData(VM_ThreadIOWaitData waitData) {
       this.waitData = waitData;
     }
 
-    public void visitThreadProcessWaitData(VM_ThreadProcessWaitData waitData) {
+    @Override
+    void visitThreadProcessWaitData(VM_ThreadProcessWaitData waitData) {
       if (VM.VerifyAssertions) VM._assert(false);
     }
   }
@@ -116,11 +120,10 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
    * java.lang.Thread.stop(), which is deprecated and stupid.
    * So, this method should generally never return true.
    */
-  private static boolean isKilled(VM_Thread thread) {
-    return (thread.waitData.waitFlags & WAIT_NATIVE) != 0 &&
-           thread.externalInterrupt != null &&
-           thread
-               .throwInterruptWhenScheduled;
+  private static boolean isKilled(VM_GreenThread thread) {
+    return thread.waitData.isNative() &&
+           thread.isInterrupted() &&
+           thread.getCauseOfThreadDeath() != null;
   }
 
   /**
@@ -177,6 +180,7 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
    * blocked in Java code, since they should be woken up as well.
    * @return true if poll was successful, false if not
    */
+  @Override
   public boolean pollForEvents() {
 
     numKilledInJava = 0;
@@ -185,13 +189,12 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
 
     // Interrogate all threads in the queue to determine
     // which file descriptors they are waiting for
-    VM_Thread thread = head;
+    VM_GreenThread thread = head;
     int readCount = 0, writeCount = 0, exceptCount = 0;
     while (thread != null) {
       // Was the thread killed while in Java code (i.e., not native?)
       // If so, it's ready.
       if (isKilled(thread)) {
-        thread.throwInterruptWhenScheduled = true;
         ++numKilledInJava;
       }
 
@@ -220,7 +223,7 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
         }
       }
 
-      thread = thread.next;
+      thread = (VM_GreenThread)thread.getNext();
     }
 
     // If there are killed non-native threads, just wake up one of
@@ -230,11 +233,11 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
     }
 
     // Do the select()
-    VM_Processor.getCurrentProcessor().isInSelect = true;
-    selectInProgressMutex.lock();
+    VM_GreenProcessor.getCurrentProcessor().isInSelect = true;
+    selectInProgressMutex.lock("select in progress mutex");
     int ret = sysCall.sysNetSelect(allFds, readCount, writeCount, exceptCount);
     selectInProgressMutex.unlock();
-    VM_Processor.getCurrentProcessor().isInSelect = false;
+    VM_GreenProcessor.getCurrentProcessor().isInSelect = false;
 
     // Did the select() succeed?
     return ret != -1;
@@ -246,7 +249,8 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
    * became ready.  If the thread is ready, update its
    * wait flags appropriately.
    */
-  public boolean isReady(VM_Thread thread) {
+  @Override
+  public boolean isReady(VM_GreenThread thread) {
     // Safe downcast from VM_ThreadEventWaitData to VM_ThreadIOWaitData.
     thread.waitData.accept(myDowncaster);
     VM_ThreadIOWaitData waitData = myDowncaster.waitData;
@@ -255,7 +259,7 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
     // Any threads killed while blocked in Java
     // are woken up.
     if (isKilled(thread)) {
-      waitData.waitFlags = (WAIT_FINISHED | WAIT_INTERRUPTED);
+      waitData.setFinishedAndInterrupted();
       return true;
     }
 
@@ -271,7 +275,7 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
     // being scheduled.
     boolean ready = (numReady > 0);
     if (ready) {
-      waitData.waitFlags = WAIT_FINISHED;
+      waitData.setFinished();
     }
     return ready;
   }
@@ -299,7 +303,8 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
    * For debugging.
    */
   @Interruptible
-  void dumpWaitDescription(VM_Thread thread) {
+  @Override
+  void dumpWaitDescription(VM_GreenThread thread) {
     // Safe downcast from VM_ThreadEventWaitData to VM_ThreadIOWaitData.
     // Because this method may be called by other VM_Processors without
     // locking (and thus execute concurrently with other methods), do NOT
@@ -343,7 +348,8 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
    * This method must be interruptible!
    */
   @Interruptible
-  String getWaitDescription(VM_Thread thread) {
+  @Override
+  String getWaitDescription(VM_GreenThread thread) {
     // Safe downcast from VM_ThreadEventWaitData to VM_ThreadIOWaitData.
     WaitDataDowncaster downcaster = new WaitDataDowncaster();
     thread.waitData.accept(downcaster);

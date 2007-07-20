@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.runtime;
+package org.jikesrvm.scheduler.greenthreads;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -21,11 +21,10 @@ import java.io.PrintStream;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Callbacks;
 import static org.jikesrvm.runtime.VM_SysCall.sysCall;
-import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.VM_ThreadEventConstants;
-import org.jikesrvm.scheduler.VM_ThreadIOConstants;
-import org.jikesrvm.scheduler.VM_ThreadIOWaitData;
-import org.jikesrvm.scheduler.VM_Wait;
+
+import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.runtime.VM_Time;
+import org.jikesrvm.runtime.VM_TimeoutException;
 import org.jikesrvm.util.VM_StringUtilities;
 import org.vmmagic.pragma.Inline;
 
@@ -333,7 +332,7 @@ public class VM_FileSystem {
         VM_ThreadIOWaitData waitData = VM_Wait.ioWaitRead(fd, totalWaitTime);
 
         // Did the wait time out?
-        if (waitData.timedOut()) {
+        if (waitData.isTimedOut()) {
           throw new VM_TimeoutException("read timed out");
         }
 
@@ -456,7 +455,7 @@ public class VM_FileSystem {
     // finished initializing the virtual processors.  It should generally
     // be possible to move such code later in the initialization sequence.
     if (VM.VerifyAssertions) {
-      VM._assert(VM_Scheduler.allProcessorsInitialized, "fd used before system is fully booted\n");
+      VM._assert(VM_GreenScheduler.allProcessorsInitialized, "fd used before system is fully booted\n");
     }
 
     int rc;

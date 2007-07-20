@@ -71,21 +71,7 @@ public class DebugUtil implements VM_Constants, Constants {
    */
   @Uninterruptible
   public static void dumpAllThreadStacks() {
-    Address ip, fp;
-    VM_Thread t;
-    VM_Scheduler.trace("\ndumpAllThreadStacks", "dumping stacks for all threads");
-    for (VM_Thread thread : VM_Scheduler.threads) {
-      t = thread;
-      if (t == null) continue;
-      VM.sysWrite("\n Thread ");
-      t.dump();
-      VM.sysWrite("\n");
-      // start stack dump using fp & ip in threads saved context registers
-      ip = t.contextRegisters.getInnermostInstructionAddress();
-      fp = t.contextRegisters.getInnermostFramePointer();
-      VM_Scheduler.dumpStack(ip, fp);
-    }
-    VM.sysWrite("\ndumpAllThreadStacks: end of thread stacks\n\n");
+    VM_Scheduler.dumpVirtualMachine();
   }  // dumpAllThreadStacks
 
   /**

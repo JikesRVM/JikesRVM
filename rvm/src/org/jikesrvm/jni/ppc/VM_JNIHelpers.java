@@ -24,6 +24,7 @@ import org.jikesrvm.ppc.VM_RegisterConstants;
 import org.jikesrvm.ppc.VM_StackframeLayoutConstants;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Reflection;
+import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.unboxed.Address;
@@ -552,7 +553,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers
       int argCount = argTypes.length;
       Object[] argObjectArray = new Object[argCount];
 
-      VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
+      VM_JNIEnvironment env = VM_Scheduler.getCurrentThread().getJNIEnv();
 
       // GPR r3 - r10 and FPR f1 - f8 are saved in glue stack frame
       Address regsavearea = glueFP.plus(VM_StackframeLayoutConstants.STACKFRAME_HEADER_SIZE);
@@ -615,7 +616,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers
       int argCount = argTypes.length;
       Object[] argObjectArray = new Object[argCount];
 
-      VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
+      VM_JNIEnvironment env = VM_Scheduler.getCurrentThread().getJNIEnv();
 
       // the va_list has following layout on PPC/Linux
       // GPR FPR 0 0   (4 bytes)
@@ -846,7 +847,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers
     Object[] argObjectArray = new Object[argCount];
 
     // get the VM_JNIEnvironment for this thread in case we need to dereference any object arg
-    VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
+    VM_JNIEnvironment env = VM_Scheduler.getCurrentThread().getJNIEnv();
 
     // VM.sysWrite("JNI packageParameterFromVarArg: packaging " + argCount + " arguments\n");
 
@@ -928,7 +929,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers
     Object[] argObjectArray = new Object[argCount];
 
     // get the VM_JNIEnvironment for this thread in case we need to dereference any object arg
-    VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
+    VM_JNIEnvironment env = VM_Scheduler.getCurrentThread().getJNIEnv();
 
     // VM.sysWrite("JNI packageParameterFromJValue: packaging " + argCount + " arguments\n");
 

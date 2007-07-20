@@ -34,7 +34,7 @@ import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_StackBrowser;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.SynchronizedObject;
 import org.vmmagic.pragma.Uninterruptible;
@@ -528,11 +528,11 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
 
         // how may processors to be synchronized
         // no current process, no the first dummy processor
-        VM_Scheduler.toSyncProcessors = VM_Scheduler.numProcessors - 1;
+        VM_Scheduler.toSyncProcessors = VM_GreenScheduler.numProcessors - 1;
 
         synchronized (VM_Scheduler.syncObj) {
-          for (int i = 0; i < VM_Scheduler.numProcessors; i++) {
-            VM_Processor proc = VM_Scheduler.processors[i + 1];
+          for (int i = 0; i < VM_GreenScheduler.numProcessors; i++) {
+            VM_Processor proc = VM_GreenScheduler.processors[i + 1];
             // do not sync the current processor
             if (proc != VM_Processor.getCurrentProcessor()) {
               proc.requestPostCodePatchSync();
@@ -546,7 +546,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
 
         // do sync only when necessary
         while (VM_Scheduler.toSyncProcessors > 0) {
-          VM_Thread.yield();
+          VM_Scheduler.yield();
         }
 
         if (DEBUG_CODE_PATCH) {

@@ -23,40 +23,47 @@ import org.vmmagic.unboxed.Offset;
 
 public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants {
 
-  /* the caller's state if this method is an inlinee */
+  /** the caller's state if this method is an inlinee */
   public OSR_ExecutionState callerState = null;
 
-  /* callee's compiled method id */
+  /** callee's compiled method id */
   public int callee_cmid = -1;
 
-  /* the method of which the execution state belongs to */
+  /** the method of which the execution state belongs to */
   public VM_NormalMethod meth;
 
-  /* the program pointer (bytecode index) */
+  /** the program pointer (bytecode index) */
   public int bcIndex;
 
-  /* runtime values of locals and stack expressions at
-  * the bytecode index
-  * Each element is an object of OSR_VariableElement.
-  */
+  /**
+   * runtime values of locals and stack expressions at the bytecode index Each
+   * element is an object of OSR_VariableElement.
+   */
   public LinkedList<OSR_VariableElement> varElms;
 
-  /* the thread on which the activation is running */
+  /** the thread on which the activation is running */
   public VM_Thread thread;
 
-  /* the offset of frame pointer of the activation. */
+  /** the offset of frame pointer of the activation. */
   public Offset fpOffset;
 
-  /* the callee (threadSwitch)'s frame pointer of this activation. */
+  /** the callee (threadSwitch)'s frame pointer of this activation. */
   public Offset tsFPOffset;
 
-  /* the compiled method id of the activation (a Java method
-   * may have multiple version of compiled method */
+  /**
+   * the compiled method id of the activation (a Java method may have multiple
+   * version of compiled method
+   */
   public int cmid;
 
-  //////////////////////////////
-  // initializer
-  /////////////////////////////
+  /**
+   * Initializer 
+   * @param whichThread
+   * @param framePointerOffset
+   * @param compiledMethodID
+   * @param pc
+   * @param tsFPOffset
+   */  
   public OSR_ExecutionState(VM_Thread whichThread, Offset framePointerOffset, int compiledMethodID, int pc,
                             Offset tsFPOffset) {
     this.thread = whichThread;
@@ -73,18 +80,18 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants {
   // instance methods for construction
   ////////////////////////////
 
-  /* add a OSR_VariableElement */
+  /** add a OSR_VariableElement */
 
   public void add(OSR_VariableElement elm) {
     this.varElms.add(elm);
   }
 
-  /* insert as the first element, for convinience. */
+  /** insert as the first element, for convinience. */
   public void addFirst(OSR_VariableElement elm) {
     this.varElms.addFirst(elm);
   }
 
-  /* returns thread. */
+  /** returns thread. */
   public VM_Thread getThread() {
     return this.thread;
   }
@@ -105,7 +112,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants {
     return this.tsFPOffset;
   }
 
-  /* print the current state for debugging */
+  /** print the current state for debugging */
   public void printState() {
     VM.sysWriteln("Execution state of " + meth);
     VM.sysWriteln("    thread index : ", thread.getIndex());

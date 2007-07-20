@@ -244,6 +244,9 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="include.opt" value="true">
       <equals arg1="${config.runtime.compiler}" arg2="opt"/>
     </condition>
+    <condition property="include.ppc" value="true">
+      <equals arg1="${target.arch}" arg2="ppc"/>
+    </condition>
     <condition property="include.aos" value="true">
       <and>
         <equals arg1="${config.include.aos}" arg2="true"/>
@@ -981,6 +984,8 @@ Check to make sure all required properties are specified. This includes properti
     <fileset id="primordials.main" dir="${build.classes}">
       <include name="**/VM*.class"/>
       <include name="org/**/*.class" if="include.all"/>
+      <exclude name="**/ppc/*.class" unless="include.ppc"/>
+      <exclude name="**/ia32/*.class" if="include.ppc"/>
       <include name="org/jikesrvm/adaptive/**/*.class" if="include.aos"/>
       <exclude name="org/jikesrvm/adaptive/**/*.class" unless="include.aos"/>
       <include name="org/jikesrvm/compilers/opt/**/*.class" if="include.opt"/>
@@ -1160,7 +1165,7 @@ Check to make sure all required properties are specified. This includes properti
     <mkdir dir="${build.native}"/>
     <javah destdir="${build.native}" classpath="${build.vm.jar}">
       <class name="org.jikesrvm.runtime.VM_DynamicLibrary"/>
-      <class name="org.jikesrvm.runtime.VM_Process"/>
+      <class name="org.jikesrvm.scheduler.greenthreads.VM_Process"/>
     </javah>
   </target>
 
@@ -1271,7 +1276,7 @@ Check to make sure all required properties are specified. This includes properti
       <arg line="${rvm.c++.args}"/>
       <arg value="-o"/>
       <arg value="${build.base}/${rvmexec.dll}"/>
-      <arg value="${bl.dir}/org_jikesrvm_runtime_VM_0005fProcess.c"/>
+      <arg value="${bl.dir}/org_jikesrvm_scheduler_greenthreads_VM_0005fProcess.c"/>
     </exec>
 
     <!-- create rvmdynlib shared library -->
@@ -1286,7 +1291,7 @@ Check to make sure all required properties are specified. This includes properti
     </exec>
 
     <exec executable="${c++.exe}" failonerror="true">
-      <arg line="${c++.args} ${rvm.common.args} ${gcspy.lib.dir} -lpthread ${rvm.src} -rdynamic -O2 -g"/>
+      <arg line="${c++.args} ${rvm.common.args} ${gcspy.lib.dir} -lpthread ${rvm.src} -rdynamic -g"/>
       <arg value="-o"/>
       <arg value="${build.base}/JikesRVM"/>
       <arg value="-L${build.base}"/>

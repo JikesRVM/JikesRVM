@@ -638,16 +638,3 @@ r:	LONG_BITS_AS_DOUBLE(rlv)
 60
 EMIT_INSTRUCTION
 GPR2FPR_64(P(p));
-
-###########
-# Rules for special registers
-###########
-stm:      ROUND_TO_ZERO
-21
-EMIT_INSTRUCTION
-ROUND_TO_ZERO(P(p));
-
-stm:      CLEAR_FLOATING_POINT_STATE
-1
-EMIT_INSTRUCTION
-EMIT(MIR_Empty.mutate(P(p), IA32_FNINIT));

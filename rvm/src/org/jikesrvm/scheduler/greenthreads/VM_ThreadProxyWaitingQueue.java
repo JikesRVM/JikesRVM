@@ -10,24 +10,28 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.scheduler;
+package org.jikesrvm.scheduler.greenthreads;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * See VM_Proxy
  */
 @Uninterruptible
-final class VM_ProxyWaitingQueue extends VM_AbstractThreadQueue {
+public final class VM_ThreadProxyWaitingQueue extends VM_AbstractThreadQueue {
 
-  private VM_Proxy tail;
-  private VM_Proxy head;
+  /** The end of the list of waiting proxies */
+  private VM_ThreadProxy tail;
+  /** The head of the list of waiting proxies */
+  private VM_ThreadProxy head;
 
   /**
    * Are any proxies on the queue?
    */
-  boolean isEmpty() {
+  @Override
+  public boolean isEmpty() {
     return (head == null);
   }
 
@@ -36,18 +40,19 @@ final class VM_ProxyWaitingQueue extends VM_AbstractThreadQueue {
    * Since a processor lock is held, the proxy cannot be created here.
    * Instead, it is cached in the proxy field of the thread.
    */
-  void enqueue(VM_Thread t) {
-    enqueue(t.proxy);
+  @Override
+  public void enqueue(VM_GreenThread t) {
+    enqueue(t.threadProxy);
   }
 
   /**
    * Add the proxy for a thread to tail of queue.
    */
-  void enqueue(VM_Proxy p) {
+  public void enqueue(VM_ThreadProxy p) {
     if (head == null) {
       head = p;
     } else {
-      tail.waitingNext = p;
+      tail.setWaitingNext(p);
     }
     tail = p;
   }
@@ -56,12 +61,13 @@ final class VM_ProxyWaitingQueue extends VM_AbstractThreadQueue {
    * Remove thread from head of queue.
    * @return the thread (null --> queue is empty)
    */
-  VM_Thread dequeue() {
+  @Override
+  public VM_GreenThread dequeue() {
     while (head != null) {
-      VM_Proxy p = head;
-      head = head.waitingNext;
+      VM_ThreadProxy p = head;
+      head = head.getWaitingNext();
       if (head == null) tail = null;
-      VM_Thread t = p.unproxy();
+      VM_GreenThread t = p.unproxy();
       if (t != null) return t;
     }
     return null;
@@ -70,12 +76,13 @@ final class VM_ProxyWaitingQueue extends VM_AbstractThreadQueue {
   /**
    * Number of items on queue (an estimate: queue is not locked during the scan).
    */
-  int length() {
+  @Override
+  public int length() {
     int i = 0;
-    VM_Proxy p = head;
+    VM_ThreadProxy p = head;
     while (p != null) {
       i = i + 1;
-      p = p.waitingNext;
+      p = p.getWaitingNext();
     }
     return i;
   }
@@ -83,19 +90,25 @@ final class VM_ProxyWaitingQueue extends VM_AbstractThreadQueue {
   // For debugging.
   //
   boolean contains(VM_Thread t) {
-    VM_Proxy p = head;
+    VM_ThreadProxy p = head;
     while (p != null) {
-      if (p.patron == t) return true;
-      p = p.waitingNext;
+      if (p.getPatron() == t) return true;
+      p = p.getWaitingNext();
     }
     return false;
   }
 
   void dump() {
-    for (VM_Proxy p = head; p != null; p = p.waitingNext) {
-      if (p.patron != null) p.patron.dump();
+    boolean pastFirst = false;
+    for (VM_ThreadProxy p = head; p != null; p = p.getWaitingNext()) {
+      if (pastFirst) {
+        VM.sysWrite(" ");
+      }
+      if (p.getPatron() != null) {
+        p.getPatron().dump();
+        pastFirst = true;
+      }
     }
     VM.sysWrite("\n");
   }
-
 }

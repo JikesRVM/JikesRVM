@@ -26,14 +26,15 @@ import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.objectmodel.VM_ThinLockConstants;
 import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.runtime.VM_FileSystem;
 import org.jikesrvm.runtime.VM_Runtime;
 import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.VM_ThreadEventConstants;
-import org.jikesrvm.scheduler.VM_ThreadIOConstants;
-import org.jikesrvm.scheduler.VM_ThreadIOQueue;
-import org.jikesrvm.scheduler.VM_ThreadProcessWaitQueue;
+import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
+import org.jikesrvm.scheduler.greenthreads.VM_FileSystem;
+import org.jikesrvm.scheduler.greenthreads.VM_ThreadEventConstants;
+import org.jikesrvm.scheduler.greenthreads.VM_ThreadIOConstants;
+import org.jikesrvm.scheduler.greenthreads.VM_ThreadIOQueue;
+import org.jikesrvm.scheduler.greenthreads.VM_ThreadProcessWaitQueue;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -47,18 +48,13 @@ public class GenerateInterfaceDeclarations {
   static PrintStream out;
   static PrintStream e;
   static final GenArch arch;
-  private static final String BOOT_RECORD_CLASSNAME = "org/jikesrvm/runtime/VM_BootRecord";
 
   static {
-    GenArch tmp = null;
-    try {
-      tmp =
-          (GenArch) Class.forName(VM.BuildForIA32 ? "org.jikesrvm.tools.header_gen.GenArch_ia32" : "org.jikesrvm.tools.header_gen.GenArch_ppc").newInstance();
-    } catch (Exception e) {
-      e.printStackTrace();
-      System.exit(-1);     // we must *not* go on if the above has failed
+    if (VM.BuildForIA32) {
+      arch = new org.jikesrvm.tools.header_gen.GenArch_ia32(); 
+    } else {
+      arch = new org.jikesrvm.tools.header_gen.GenArch_ppc();
     }
-    arch = tmp;
   }
 
   static void p(String s) {
@@ -335,34 +331,14 @@ public class GenerateInterfaceDeclarations {
   }
 
   static void emitBootRecordDeclarations() {
-    VM_Atom className = VM_Atom.findOrCreateAsciiAtom(BOOT_RECORD_CLASSNAME);
-    VM_Atom classDescriptor = className.descriptorFromClassName();
-    VM_Class bootRecord = null;
-    try {
-      bootRecord =
-          VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                                        classDescriptor).resolve().asClass();
-    } catch (NoClassDefFoundError e) {
-      System.err.println("Failed to load VM_BootRecord!");
-      System.exit(1);
-    }
+    VM_Class bootRecord = VM_TypeReference.findOrCreate(org.jikesrvm.runtime.VM_BootRecord.class).resolve().asClass();
     emitCDeclarationsForJavaType("VM_BootRecord", bootRecord);
   }
 
   // Emit declarations for VM_BootRecord object.
   //
   static void emitBootRecordInitialization() {
-    VM_Atom className = VM_Atom.findOrCreateAsciiAtom(BOOT_RECORD_CLASSNAME);
-    VM_Atom classDescriptor = className.descriptorFromClassName();
-    VM_Class bootRecord = null;
-    try {
-      bootRecord =
-          VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                                        classDescriptor).resolve().asClass();
-    } catch (NoClassDefFoundError e) {
-      System.err.println("Failed to load VM_BootRecord!");
-      System.exit(1);
-    }
+    VM_Class bootRecord = VM_TypeReference.findOrCreate(org.jikesrvm.runtime.VM_BootRecord.class).resolve().asClass();
     VM_Field[] fields = bootRecord.getDeclaredFields();
 
     // emit function declarations
@@ -465,7 +441,7 @@ public class GenerateInterfaceDeclarations {
 
     // values in VM_Scheduler
     //
-    p("static const int VM_Scheduler_PRIMORDIAL_PROCESSOR_ID = " + VM_Scheduler.PRIMORDIAL_PROCESSOR_ID + ";\n");
+    p("static const int VM_GreenScheduler_PRIMORDIAL_PROCESSOR_ID = " + VM_GreenScheduler.PRIMORDIAL_PROCESSOR_ID + ";\n");
     p("static const int VM_Scheduler_PRIMORDIAL_THREAD_INDEX = " + VM_Scheduler.PRIMORDIAL_THREAD_INDEX + ";\n");
     p("\n");
 
@@ -492,9 +468,7 @@ public class GenerateInterfaceDeclarations {
     // values in VM_ThreadProcessWaitQueue
     //
     p("static const int VM_ThreadProcessWaitQueue_PROCESS_FINISHED = " +
-      VM_ThreadProcessWaitQueue
-          .PROCESS_FINISHED +
-                            ";\n");
+      VM_ThreadProcessWaitQueue.PROCESS_FINISHED + ";\n");
 
     // values in VM_Runtime
     //
@@ -545,9 +519,9 @@ public class GenerateInterfaceDeclarations {
     offset = VM_Entrypoints.pthreadIDField.getOffset();
     pln("VM_Processor_pthread_id_offset = ", offset);
     offset = VM_Entrypoints.timerTicksField.getOffset();
-    pln("VM_Processor_timerTicks_offset = ", offset);
+    pln("VM_GreenProcessor_timerTicks_offset = ", offset);
     offset = VM_Entrypoints.reportedTimerTicksField.getOffset();
-    pln("VM_Processor_reportedTimerTicks_offset = ", offset);
+    pln("VM_GreenProcessor_reportedTimerTicks_offset = ", offset);
     offset = VM_Entrypoints.activeThreadField.getOffset();
     pln("VM_Processor_activeThread_offset = ", offset);
     offset = VM_Entrypoints.vpStatusField.getOffset();

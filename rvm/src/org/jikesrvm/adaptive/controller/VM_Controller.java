@@ -30,7 +30,7 @@ import org.jikesrvm.adaptive.util.VM_AOSOptions;
 import org.jikesrvm.adaptive.util.VM_BlockingPriorityQueue;
 import org.jikesrvm.compilers.baseline.VM_EdgeCounts;
 import org.jikesrvm.compilers.common.VM_RecompilationManager;
-import org.jikesrvm.scheduler.VM_Processor;
+import org.jikesrvm.scheduler.greenthreads.VM_GreenProcessor;
 
 /**
  * This class contains top level adaptive compilation subsystem functions.
@@ -130,6 +130,11 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
    */
   public static VM_PartialCallGraph dcg;
 
+  /**
+   * Used to shut down threads
+   */
+  private static final ThreadDeath threadDeath = new ThreadDeath();
+ 
   /**
    * Has the execution of boot completed successfully?
    */
@@ -302,8 +307,8 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
 
     if (options.REPORT_INTERRUPT_STATS) {
       VM.sysWriteln("Timer Interrupt and Listener Stats");
-      VM.sysWriteln("\tTotal number of clock ticks ", VM_Processor.timerTicks);
-      VM.sysWriteln("\tReported clock ticks ", VM_Processor.reportedTimerTicks);
+      VM.sysWriteln("\tTotal number of clock ticks ", VM_GreenProcessor.timerTicks);
+      VM.sysWriteln("\tReported clock ticks ", VM_GreenProcessor.reportedTimerTicks);
       VM.sysWriteln("\tController clock ", controllerClock);
       VM.sysWriteln("\tNumber of method samples taken ", (int) methodSamples.getTotalNumberOfSamples());
     }
@@ -323,10 +328,10 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
     VM.sysWriteln("AOS: Killing all adaptive system threads");
     for (Enumeration<VM_Organizer> e = organizers.elements(); e.hasMoreElements();) {
       VM_Organizer organizer = e.nextElement();
-      organizer.kill(new ThreadDeath(), true);
+      organizer.kill(threadDeath, true);
     }
-    compilationThread.kill(new ThreadDeath(), true);
-    controllerThread.kill(new ThreadDeath(), true);
+    compilationThread.kill(threadDeath, true);
+    controllerThread.kill(threadDeath, true);
     VM_RuntimeMeasurements.stop();
     report();
   }

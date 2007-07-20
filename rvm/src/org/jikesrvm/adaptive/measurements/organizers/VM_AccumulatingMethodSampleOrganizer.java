@@ -18,7 +18,7 @@ import org.jikesrvm.adaptive.database.methodsamples.VM_MethodCountData;
 import org.jikesrvm.adaptive.measurements.VM_RuntimeMeasurements;
 import org.jikesrvm.adaptive.measurements.listeners.VM_MethodListener;
 import org.jikesrvm.adaptive.util.VM_AOSLogging;
-import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
 
 /**
  * An organizer for method listener information that
@@ -39,9 +39,10 @@ public final class VM_AccumulatingMethodSampleOrganizer extends VM_Organizer {
   /**
    * Initialization: set up data structures and sampling objects.
    */
+  @Override
   public void initialize() {
     data = new VM_MethodCountData();
-    int numSamples = VM_Controller.options.METHOD_SAMPLE_SIZE * VM_Scheduler.numProcessors;
+    int numSamples = VM_Controller.options.METHOD_SAMPLE_SIZE * VM_GreenScheduler.numProcessors;
     if (VM_Controller.options.mlCBS()) {
       numSamples *= VM.CBSMethodSamplesPerTick;
     }

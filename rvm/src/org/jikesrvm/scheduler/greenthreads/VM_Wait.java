@@ -10,9 +10,8 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.scheduler;
+package org.jikesrvm.scheduler.greenthreads;
 
-import org.jikesrvm.runtime.VM_Process;
 import org.jikesrvm.runtime.VM_Time;
 
 /**
@@ -21,7 +20,7 @@ import org.jikesrvm.runtime.VM_Time;
  * and thus may not be called from within the scheduler proper
  * (e.g., <code>VM_Thread</code>, which is uninterruptible).
  */
-public class VM_Wait {
+class VM_Wait {
   private static boolean noIoWait = false;
 
   /**
@@ -32,20 +31,6 @@ public class VM_Wait {
    */
   public static void disableIoWait() {
     noIoWait = true;
-  }
-
-  /**
-   * Suspend execution of current thread for specified number of seconds
-   * (or fraction).
-   */
-  public static void sleep(long millis) throws InterruptedException {
-    VM_Thread myThread = VM_Thread.getCurrentThread();
-    myThread.wakeupCycle = VM_Time.cycles() + VM_Time.millisToCycles(millis);
-    // cache the proxy before obtaining lock
-    VM_Proxy proxy = new VM_Proxy(myThread, myThread.wakeupCycle);
-    myThread.proxy = proxy;
-
-    VM_Thread.sleepImpl(myThread);
   }
 
   /**
@@ -84,7 +69,7 @@ public class VM_Wait {
       waitData.markAllAsReady();
     } else {
       // Put the thread on the ioQueue
-      VM_Thread.ioWaitImpl(waitData);
+      VM_GreenThread.ioWaitImpl(waitData);
     }
 
     return waitData;
@@ -116,7 +101,7 @@ public class VM_Wait {
       waitData.markAllAsReady();
     } else {
       // Put the thread on the ioQueue
-      VM_Thread.ioWaitImpl(waitData);
+      VM_GreenThread.ioWaitImpl(waitData);
     }
 
     return waitData;
@@ -158,14 +143,14 @@ public class VM_Wait {
     waitData.exceptFds = exceptFds;
 
     if (fromNative) {
-      waitData.waitFlags |= VM_ThreadEventConstants.WAIT_NATIVE;
+      waitData.setNative();
     }
 
     // Put the thread on the ioQueue
     if (noIoWait) {
       waitData.markAllAsReady();
     } else {
-      VM_Thread.ioWaitImpl(waitData);
+      VM_GreenThread.ioWaitImpl(waitData);
     }
   }
 
@@ -187,7 +172,7 @@ public class VM_Wait {
     VM_ThreadProcessWaitData waitData = new VM_ThreadProcessWaitData(process.getPid(), maxWaitCycle);
 
     // Put the thread on the processWaitQueue
-    VM_Thread.processWaitImpl(waitData, process);
+    VM_GreenThread.processWaitImpl(waitData, process);
 
     return waitData;
   }

@@ -1018,32 +1018,6 @@ OPT_Operand value, boolean signExtend) {
   }
 
   /**
-   * Expansion of ROUND_TO_ZERO.
-   *
-   * @param s the instruction to expand
-   */
-  protected final void ROUND_TO_ZERO(OPT_Instruction s) {
-    // load the JTOC into a register
-    OPT_RegisterOperand PR = new OPT_RegisterOperand(regpool
-        .getPhysicalRegisterSet().getPR(), VM_TypeReference.Int);
-    OPT_Operand jtoc = OPT_MemoryOperand.BD(PR, VM_ArchEntrypoints.jtocField
-        .getOffset(), DW, null, null);
-    OPT_RegisterOperand regOp = regpool.makeTempInt();
-    EMIT(CPOS(s, MIR_Move.create(IA32_MOV, regOp, jtoc)));
-
-    // Store the FPU Control Word to a JTOC slot
-    OPT_MemoryOperand M =
-        OPT_MemoryOperand.BD(regOp.copyRO(), VM_ArchEntrypoints.FPUControlWordField.getOffset(), W, null, null);
-    EMIT(CPOS(s, MIR_UnaryNoRes.create(IA32_FNSTCW, M)));
-    // Set the bits in the status word that control round to zero.
-    // Note that we use a 32-bit and, even though we only care about the
-    // low-order 16 bits
-    EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_OR, M.copy(), IC(0x00000c00))));
-    // Now store the result back into the FPU Control Word
-    EMIT(MIR_Nullary.mutate(s, IA32_FLDCW, M.copy()));
-  }
-
-  /**
    * Expansion of INT_DIV and INT_REM
    *
    * @param s the instruction to expand

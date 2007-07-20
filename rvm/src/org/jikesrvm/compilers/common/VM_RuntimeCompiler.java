@@ -39,6 +39,7 @@ import org.jikesrvm.compilers.opt.OPT_OptimizationPlanner;
 import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.OPT_Options;
 import org.jikesrvm.runtime.VM_Time;
+import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
 
 /**
@@ -285,13 +286,13 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
     VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.BASELINE);
     long start = 0;
     if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
-      start = VM_Thread.getCurrentThread().accumulateCycles();
+      start = VM_Scheduler.getCurrentThread().accumulateCycles();
     }
 
     VM_CompiledMethod cm = VM_BaselineCompiler.compile(method);
 
     if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
-      long end = VM_Thread.getCurrentThread().accumulateCycles();
+      long end = VM_Scheduler.getCurrentThread().accumulateCycles();
       double compileTime = VM_Time.cyclesToMillis(end - start);
       cm.setCompilationTime(compileTime);
       record(BASELINE_COMPILER, method, cm);
@@ -345,13 +346,13 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
       VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.JNI);
       long start = 0;
       if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
-        start = VM_Thread.getCurrentThread().accumulateCycles();
+        start = VM_Scheduler.getCurrentThread().accumulateCycles();
       }
 
       VM_CompiledMethod cm = OPT_Compiler.compile(plan);
 
       if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
-        long end = VM_Thread.getCurrentThread().accumulateCycles();
+        long end = VM_Scheduler.getCurrentThread().accumulateCycles();
         double compileTime = VM_Time.cyclesToMillis(end - start);
         cm.setCompilationTime(compileTime);
         record(OPT_COMPILER, method, cm);
@@ -661,7 +662,7 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
               // exception in progress. can't use opt compiler:
               // it uses exceptions and runtime doesn't support
               // multiple pending (undelivered) exceptions [--DL]
-              VM_Thread.getCurrentThread().hardwareExceptionRegisters.inuse) {
+              VM_Scheduler.getCurrentThread().getHardwareExceptionRegisters().inuse) {
             // compile with baseline compiler
             cm = baselineCompile(method);
             VM_ControllerMemory.incrementNumBase();
@@ -754,7 +755,7 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
     VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.JNI);
     long start = 0;
     if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
-      start = VM_Thread.getCurrentThread().accumulateCycles();
+      start = VM_Scheduler.getCurrentThread().accumulateCycles();
     }
 
     VM_CompiledMethod cm = VM_JNICompiler.compile(method);
@@ -768,7 +769,7 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
     }
 
     if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
-      long end = VM_Thread.getCurrentThread().accumulateCycles();
+      long end = VM_Scheduler.getCurrentThread().accumulateCycles();
       double compileTime = VM_Time.cyclesToMillis(end - start);
       cm.setCompilationTime(compileTime);
       record(JNI_COMPILER, method, cm);

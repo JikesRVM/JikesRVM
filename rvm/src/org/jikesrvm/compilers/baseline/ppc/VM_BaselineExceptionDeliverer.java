@@ -21,6 +21,7 @@ import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.ppc.VM_BaselineConstants;
 import org.jikesrvm.runtime.VM_ExceptionDeliverer;
 import org.jikesrvm.runtime.VM_Magic;
+import org.jikesrvm.scheduler.VM_Scheduler;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -88,7 +89,9 @@ public abstract class VM_BaselineExceptionDeliverer extends VM_ExceptionDelivere
             lock = VM_Magic.addressAsObject(addr.loadAddress());
           }
         }
-        VM_ObjectModel.genericUnlock(lock);
+        if (VM_ObjectModel.holdsLock(lock, VM_Scheduler.getCurrentThread())) {
+          VM_ObjectModel.genericUnlock(lock);
+        }
       }
     }
     // restore non-volatile registers

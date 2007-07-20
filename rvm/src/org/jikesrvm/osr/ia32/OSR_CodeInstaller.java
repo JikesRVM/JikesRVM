@@ -39,7 +39,7 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
 
   public static boolean install(OSR_ExecutionState state, VM_CompiledMethod cm) {
     VM_Thread thread = state.getThread();
-    byte[] stack = thread.stack;
+    byte[] stack = thread.getStack();
 
     Offset tsfromFPOffset = state.getTSFPOffset();
     Offset fooFPOffset = state.getFPOffset();

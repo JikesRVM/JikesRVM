@@ -74,8 +74,8 @@ public abstract class OSR_BaselineExecStateExtractor extends OSR_ExecStateExtrac
       VM.sysWriteln("BASE execStateExtractor starting ...");
     }
 
-    VM_Registers contextRegisters = thread.contextRegisters;
-    byte[] stack = thread.stack;
+    VM_Registers contextRegisters = (VM_Registers)thread.getContextRegisters();
+    byte[] stack = thread.getStack();
 
     if (VM.VerifyAssertions) {
       int fooCmid = VM_Magic.getIntAtOffset(stack, methFPoff.plus(STACKFRAME_METHOD_ID_OFFSET));

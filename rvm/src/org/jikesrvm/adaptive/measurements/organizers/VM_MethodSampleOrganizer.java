@@ -21,7 +21,7 @@ import org.jikesrvm.adaptive.util.VM_AOSLogging;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
-import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
 
 /**
  * An organizer for method listener information.
@@ -52,10 +52,11 @@ public final class VM_MethodSampleOrganizer extends VM_Organizer {
   /**
    * Initialization: set up data structures and sampling objects.
    */
+  @Override
   public void initialize() {
     VM_AOSLogging.methodSampleOrganizerThreadStarted(filterOptLevel);
 
-    int numSamples = VM_Controller.options.METHOD_SAMPLE_SIZE * VM_Scheduler.numProcessors;
+    int numSamples = VM_Controller.options.METHOD_SAMPLE_SIZE * VM_GreenScheduler.numProcessors;
     if (VM_Controller.options.mlCBS()) {
       numSamples *= VM.CBSMethodSamplesPerTick;
     }

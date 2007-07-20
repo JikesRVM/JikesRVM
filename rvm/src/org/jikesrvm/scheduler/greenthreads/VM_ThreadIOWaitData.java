@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.scheduler;
+package org.jikesrvm.scheduler.greenthreads;
 
 import org.vmmagic.pragma.Uninterruptible;
 
@@ -22,7 +22,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * @see VM_ThreadEventWaitData
  */
 @Uninterruptible
-public class VM_ThreadIOWaitData extends VM_ThreadEventWaitData implements VM_ThreadIOConstants {
+public final class VM_ThreadIOWaitData extends VM_ThreadEventWaitData implements VM_ThreadIOConstants {
 
   public int[] readFds;
   public int[] writeFds;

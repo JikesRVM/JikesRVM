@@ -599,7 +599,7 @@ extern "C" void processTimerTick(void) {
     /*
      * Increment VM_Processor.timerTicks
      */
-    int* ttp = (int *) ((char *) VmToc + VM_Processor_timerTicks_offset);
+    int* ttp = (int *) ((char *) VmToc + VM_GreenProcessor_timerTicks_offset);
     *ttp = *ttp + 1;
 
     /*
@@ -612,7 +612,7 @@ extern "C" void processTimerTick(void) {
     /*
      * Increment VM_Processor.reportedTimerTicks
      */
-    int* rttp = (int *) ((char *) VmToc + VM_Processor_reportedTimerTicks_offset);
+    int* rttp = (int *) ((char *) VmToc + VM_GreenProcessor_reportedTimerTicks_offset);
     *rttp = *rttp + 1;
 
     /*
@@ -624,7 +624,7 @@ extern "C" void processTimerTick(void) {
     VM_Address *processors = *(VM_Address **) ((char *) VmToc + getProcessorsOffset());
     unsigned cnt = getArrayLength(processors);
     unsigned longest_stuck_ticks = 0;
-    for (unsigned i = VM_Scheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt ; i++) {
+    for (unsigned i = VM_GreenScheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt ; i++) {
         // Set takeYieldpoint field to 1; decrement timeSliceExpired field;
         // See how many ticks this VP has ignored, if too many have passed we will issue a warning below
         *(int *)((char *)processors[i] + VM_Processor_takeYieldpoint_offset) = 1;

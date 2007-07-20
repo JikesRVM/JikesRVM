@@ -91,7 +91,7 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
     
     while (Plan.isCollectionTriggered()) {
       /* allow a gc thread to run */
-      VM_Thread.yield();
+      VM_Scheduler.yield();
     }
     checkForOutOfMemoryError(true);
   }
@@ -118,7 +118,7 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
       if (Options.verbose.getValue() == 1 || Options.verbose.getValue() == 2)
         VM.sysWrite("[Forced GC]");
     } else {
-      VM_Thread.getCurrentThread().reportCollectionAttempt();
+      VM_Scheduler.getCurrentThread().reportCollectionAttempt();
     }
 
     VM_CollectorThread.collect(VM_CollectorThread.handshake, why);
@@ -135,7 +135,7 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
   @Inline
   @LogicallyUninterruptible
   private static void checkForOutOfMemoryError(boolean afterCollection) {
-    VM_Thread myThread = VM_Thread.getCurrentThread();
+    VM_Thread myThread = VM_Scheduler.getCurrentThread();
     OutOfMemoryError oome = myThread.getOutOfMemoryError();
     if (oome != null && (!afterCollection || !myThread.physicalAllocationFailed())) {
       if (Options.verbose.getValue() >= 4) {
@@ -152,7 +152,7 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
    */
   public int maximumCollectionAttempt() {
     int max = 1;
-    for(int t=0; t <= VM_Scheduler.threadHighWatermark; t++) {
+    for(int t=0; t < VM_Scheduler.getThreadHighWatermark(); t++) {
       VM_Thread thread = VM_Scheduler.threads[t];
       if (thread != null) {
         int current = thread.getCollectionAttempt();
@@ -166,7 +166,7 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
    * Report that the the physical allocation has succeeded.
    */
   public void reportAllocationSuccess() {
-    VM_Thread myThread = VM_Thread.getCurrentThread();
+    VM_Thread myThread = VM_Scheduler.getCurrentThread();
     myThread.clearOutOfMemoryError();
     myThread.resetCollectionAttempts();
     myThread.clearPhysicalAllocationFailed();
@@ -176,7 +176,7 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
    * Report that a physical allocation has failed.
    */
   public void reportPhysicalAllocationFailed() {
-    VM_Thread.getCurrentThread().setPhysicalAllocationFailed();
+    VM_Scheduler.getCurrentThread().setPhysicalAllocationFailed();
   }
 
   /**
@@ -235,7 +235,7 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
     VM_Processor vp = ((Selected.Collector) c).getProcessor();
     int vpStatus = vp.vpStatus;
     if (VM.VerifyAssertions) VM._assert(vpStatus != VM_Processor.BLOCKED_IN_NATIVE);
-    VM_Thread t = VM_Thread.getCurrentThread();
+    VM_Thread t = VM_Scheduler.getCurrentThread();
     Address fp = VM_Magic.getFramePointer();
     while (true) {
       Address caller_ip = VM_Magic.getReturnAddress(fp);
@@ -276,12 +276,9 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
    */
   @Uninterruptible
   public static void scheduleFinalizerThread () {
-
     int finalizedCount = Finalizer.countToBeFinalized();
-    boolean alreadyScheduled = VM_Scheduler.finalizerQueue.isEmpty();
-    if (finalizedCount > 0 && !alreadyScheduled) {
-      VM_Thread t = VM_Scheduler.finalizerQueue.dequeue();
-      VM_Processor.getCurrentProcessor().scheduleThread(t);
+    if (finalizedCount > 0) {
+      VM_Scheduler.scheduleFinalizer();
     }
   }
 }

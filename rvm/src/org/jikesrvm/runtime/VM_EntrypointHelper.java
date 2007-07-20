@@ -86,4 +86,65 @@ public class VM_EntrypointHelper {
   public static VM_Field getField(String klass, String member, String descriptor) {
     return (VM_Field) getMember(klass, member, descriptor);
   }
+
+  /**
+   * Get description of virtual machine field.
+   * @param klass class containing field
+   * @param memberName member name - something like "invokestatic"
+   * @param type of field
+   * @return corresponding VM_Field
+   */
+  static VM_Field getField(Class klass, String member, Class type) {
+    if (!VM.runningVM) { // avoid compiling this code into the boot image
+      try {
+        VM_TypeReference klassTRef = VM_TypeReference.findOrCreate(klass);
+        VM_Class cls = klassTRef.resolve().asClass();
+        cls.resolve();
+  
+        VM_Atom memName = VM_Atom.findOrCreateAsciiAtom(member);
+        VM_Atom typeName = VM_TypeReference.findOrCreate(type).getName();
+  
+        VM_Field field = cls.findDeclaredField(memName, typeName);
+        if (field != null) {
+          return field;
+        }
+      } catch(Throwable t) {
+        throw new Error("VM_Entrypoints.getField: can't resolve class=" +
+            klass + " member=" + member + " desc=" + type, t);
+      }
+    }
+    throw new Error("VM_Entrypoints.getField: can't resolve class=" +
+        klass + " member=" + member + " desc=" + type);      
+  }
+
+  /**
+   * Get description of virtual machine method.
+   * @param klass class  containing method
+   * @param memberName member name - something like "invokestatic"
+   * @param memberDescriptor member descriptor - something like "()V"
+   * @return corresponding VM_Method
+   */
+  static VM_NormalMethod getMethod(Class klass, String member, String descriptor) {
+    if (!VM.runningVM) { // avoid compiling this code into the boot image
+      try {
+        VM_TypeReference klassTRef = VM_TypeReference.findOrCreate(klass);
+        VM_Class cls = klassTRef.resolve().asClass();
+        cls.resolve();
+  
+        VM_Atom memName = VM_Atom.findOrCreateAsciiAtom(member);
+        VM_Atom memDescriptor = VM_Atom.findOrCreateAsciiAtom(descriptor);
+  
+        VM_NormalMethod m = (VM_NormalMethod)cls.findDeclaredMethod(memName, memDescriptor);
+        if (m != null) {
+          m.setRuntimeServiceMethod(true);
+          return m;
+        }
+      } catch(Throwable t) {
+        throw new Error("VM_Entrypoints.getField: can't resolve class=" +
+            klass + " member=" + member + " desc=" + descriptor, t);
+      }
+    }
+    throw new Error("VM_Entrypoints.getMethod: can't resolve class=" +
+        klass + " method=" + member + " desc=" + descriptor);      
+  }
 }

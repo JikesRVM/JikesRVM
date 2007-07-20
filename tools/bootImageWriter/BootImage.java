@@ -266,7 +266,7 @@ public class BootImage extends BootImageWriterMessages
     Offset lowAddr = freeCodeOffset;
     freeCodeOffset = freeCodeOffset.plus(size);
     if (freeCodeOffset.sGT(Offset.fromIntZeroExtend(BOOT_IMAGE_CODE_SIZE)))
-      fail("bootimage full (need at least " + size + " more bytes for data)");
+      fail("bootimage full (need at least " + size + " more bytes for code)");
 
     VM_ObjectModel.fillAlignmentGap(this, BOOT_IMAGE_CODE_START.plus(unalignedOffset),
                                     lowAddr.minus(unalignedOffset).toWord().toExtent());

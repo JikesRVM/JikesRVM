@@ -765,13 +765,6 @@ public final class VM_Magic {
     return null;
   }
 
-  /**
-   * Clear the hardware floating point state. NOTE: IA-specific
-   */
-  public static void clearFloatingPointState() {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-  }
-
   //---------------------------------------//
   //            Cache Management.          //
   //---------------------------------------//

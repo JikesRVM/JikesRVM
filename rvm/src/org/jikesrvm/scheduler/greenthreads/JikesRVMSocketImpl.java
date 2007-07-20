@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm;
+package org.jikesrvm.scheduler.greenthreads;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -31,20 +31,18 @@ import java.net.SocketImpl;
 import java.net.SocketImplFactory;
 import java.net.SocketOptions;
 import java.net.SocketTimeoutException;
-import org.jikesrvm.runtime.VM_FileSystem;
+
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.VM_UnimplementedError;
 import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.jikesrvm.runtime.VM_Time;
 import org.jikesrvm.runtime.VM_TimeoutException;
-import org.jikesrvm.scheduler.VM_ThreadEventConstants;
-import org.jikesrvm.scheduler.VM_ThreadIOConstants;
-import org.jikesrvm.scheduler.VM_ThreadIOQueue;
-import org.jikesrvm.scheduler.VM_ThreadIOWaitData;
-import org.jikesrvm.scheduler.VM_Wait;
 
 /**
  * Sockets using Jikes RVM non-blocking I/O support
  */
-final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
+public final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
 
   //
   // BEGIN API from SocketImpl class
@@ -167,7 +165,7 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
     // the timeout (if any) is reached, or an error occurs.
     while (true) {
       // Try to accept a connection
-      VM_ThreadIOQueue.selectInProgressMutex.lock();
+      VM_ThreadIOQueue.selectInProgressMutex.lock("select in progress mutex");
 
       connectionFd = sysCall.sysNetSocketAccept(native_fd, newSocket);
       VM_ThreadIOQueue.selectInProgressMutex.unlock();
@@ -488,7 +486,7 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
   private static void checkIoWaitRead(VM_ThreadIOWaitData waitData) throws SocketException, SocketTimeoutException {
 
     // Did the wait return because it timed out?
-    if (waitData.timedOut()) {
+    if (waitData.isTimedOut()) {
       throw new SocketTimeoutException("socket operation timed out");
     }
 
@@ -506,7 +504,7 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
   private static void checkIoWaitWrite(VM_ThreadIOWaitData waitData) throws SocketException, SocketTimeoutException {
 
     // Did the wait return because it timed out?
-    if (waitData.timedOut()) {
+    if (waitData.isTimedOut()) {
       throw new SocketTimeoutException("socket operation timed out");
     }
 
@@ -553,7 +551,7 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
     address |= ((ip[0] << (3 * BITS_IN_BYTE)) & 0xff000000);
 
     while (rc < 0) {
-      VM_ThreadIOQueue.selectInProgressMutex.lock();
+      VM_ThreadIOQueue.selectInProgressMutex.lock("select in progress mutex");
       rc = sysCall.sysNetSocketConnect(native_fd, family, address, remotePort);
       VM_ThreadIOQueue.selectInProgressMutex.unlock();
 
@@ -627,7 +625,7 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
   /**
    * Set up socket factories to use JikesRVMSocketImpl
    */
-  static void boot() {
+  public static void boot() {
     try {
       Socket.setSocketImplFactory(new SocketImplFactory() {
         public SocketImpl createSocketImpl() { return new JikesRVMSocketImpl(); }

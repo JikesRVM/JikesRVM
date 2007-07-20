@@ -1150,7 +1150,7 @@ public final class VM_Callbacks {
   @SuppressWarnings("unused")
   private static int getThread() {
     if (VM.runningVM) {
-      return VM_Thread.getCurrentThread().getIndex();
+      return VM_Scheduler.getCurrentThread().getIndex();
     } else {
       return System.identityHashCode(Thread.currentThread());
     }

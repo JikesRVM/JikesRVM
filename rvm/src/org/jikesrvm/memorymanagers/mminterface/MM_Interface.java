@@ -531,6 +531,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
         isPrefix("Lorg/jikesrvm/mm/", typeBA) ||
         isPrefix("Lorg/jikesrvm/memorymanagers/", typeBA) ||
         isPrefix("Lorg/jikesrvm/scheduler/VM_Processor;", typeBA) ||
+        isPrefix("Lorg/jikesrvm/scheduler/greenthreads/VM_GreenProcessor;", typeBA) ||
         isPrefix("Lorg/jikesrvm/jni/VM_JNIEnvironment;", typeBA)) {
       allocator = Plan.ALLOC_IMMORTAL;
     }

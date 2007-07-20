@@ -132,8 +132,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     ArrayList<Class<?>> publicClasses = new ArrayList<Class<?>>();
     for (Class<?> c = this; c != null; c = c.getSuperclass()) {
       c.checkMemberAccess(Member.PUBLIC);
-      VM_TypeReference[] declaredClasses
-        = c.type.asClass().getDeclaredClasses();
+      VM_TypeReference[] declaredClasses = c.type.asClass().getDeclaredClasses();
       if (declaredClasses != null) {
         for (VM_TypeReference declaredClass : declaredClasses) {
           if (declaredClass != null) {

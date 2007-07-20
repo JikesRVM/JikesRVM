@@ -56,7 +56,7 @@ import org.vmmagic.pragma.*;
   public int copyStringToChars(String src, char [] dst,
                                      int dstBegin, int dstEnd) {
     if (VM.runningVM)
-      VM_Processor.getCurrentProcessor().disableThreadSwitching();
+      VM_Processor.getCurrentProcessor().disableThreadSwitching("Disabled for MMTk string copy");
     int len = src.length();
     int n = (dstBegin + len <= dstEnd) ? len : (dstEnd - dstBegin);
     for (int i = 0; i < n; i++)

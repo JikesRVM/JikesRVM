@@ -874,7 +874,7 @@ createVM(int UNUSED vmInSeparateThread)
     VmToc = bootRecord->tocRegister;
 
     /* get and remember JTOC offset of VM_Scheduler.processors[] */
-    ProcessorsOffset = bootRecord->processorsOffset;
+    ProcessorsOffset = bootRecord->greenProcessorsOffset;
 
     // remember JTOC offset of VM_Scheduler.DebugRequested
     //
@@ -1007,8 +1007,8 @@ createVM(int UNUSED vmInSeparateThread)
     {
         unsigned *processors
             = *(unsigned **) (bootRecord->tocRegister
-                              + bootRecord->processorsOffset);
-        pr      = processors[VM_Scheduler_PRIMORDIAL_PROCESSOR_ID];
+                              + bootRecord->greenProcessorsOffset);
+        pr      = processors[VM_GreenScheduler_PRIMORDIAL_PROCESSOR_ID];
 
         /* initialize the thread id jtoc, and framepointer fields in the primordial
          * processor object.

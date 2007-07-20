@@ -50,7 +50,7 @@ import java.nio.MappedByteBuffer;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import org.jikesrvm.runtime.VM_FileSystem;
+import org.jikesrvm.scheduler.greenthreads.VM_FileSystem;
 
 /**
  * Native interface to support configuring of channel to run in a non-blocking

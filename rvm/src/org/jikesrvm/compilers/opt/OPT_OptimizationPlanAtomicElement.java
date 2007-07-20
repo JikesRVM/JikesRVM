@@ -15,7 +15,7 @@ package org.jikesrvm.compilers.opt;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.ir.OPT_IR;
 import org.jikesrvm.runtime.VM_Time;
-import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.VM_Scheduler;
 
 /**
  * An element in the opt compiler's optimization plan
@@ -80,13 +80,13 @@ public final class OPT_OptimizationPlanAtomicElement extends OPT_OptimizationPla
   public void perform(OPT_IR ir) {
     long start = 0;
     if (VM.MeasureCompilation && VM.runningVM) {
-      start = VM_Thread.getCurrentThread().accumulateCycles();
+      start = VM_Scheduler.getCurrentThread().accumulateCycles();
     }
     OPT_CompilerPhase cmpPhase = myPhase.newExecution(ir);
     cmpPhase.setContainer(this);
     cmpPhase.performPhase(ir);
     if (VM.MeasureCompilation && VM.runningVM) {
-      long end = VM_Thread.getCurrentThread().accumulateCycles();
+      long end = VM_Scheduler.getCurrentThread().accumulateCycles();
       cycles += end - start;
     }
   }

@@ -24,7 +24,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
 import org.jikesrvm.compilers.opt.VM_OptMachineCodeMap;
-import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -83,6 +83,7 @@ public class VM_DynamicCallGraphOrganizer extends VM_Organizer {
   /**
    * Initialization: set up data structures and sampling objects.
    */
+  @Override
   public void initialize() {
     VM_AOSLogging.DCGOrganizerThreadStarted();
 
@@ -91,7 +92,7 @@ public class VM_DynamicCallGraphOrganizer extends VM_Organizer {
     } else {
       numberOfBufferTriples = VM_Controller.options.DCG_SAMPLE_SIZE;
     }
-    numberOfBufferTriples *= VM_Scheduler.numProcessors;
+    numberOfBufferTriples *= VM_GreenScheduler.numProcessors;
     bufferSize = numberOfBufferTriples * 3;
     buffer = new int[bufferSize];
 

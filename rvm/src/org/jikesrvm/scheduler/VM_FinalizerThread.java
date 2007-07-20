@@ -17,7 +17,8 @@ import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Reflection;
-
+import org.jikesrvm.scheduler.greenthreads.VM_GreenThread;
+import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
 /**
  * Finalizer thread.
  *
@@ -29,24 +30,19 @@ import org.jikesrvm.runtime.VM_Reflection;
  *
  * This thread comes out of wait state via notify from the garbage collector
  */
-public class VM_FinalizerThread extends VM_Thread {
+public class VM_FinalizerThread extends VM_Scheduler.ThreadModel {
 
   private static final int verbose = 0; // currently goes up to 2
 
   private final Object[] none = new Object[0];
 
   public VM_FinalizerThread() {
-    super(null);
+    super("FinalizerThread");
   }
 
-  public String toString() {
-    return "FinalizerThread";
-  }
-
-  // Run the finalizer thread (one per RVM)
-  //
+  /** Run the finalizer thread (one per RVM) */
+  @Override
   public void run() {
-
     if (verbose >= 1) {
       VM_Scheduler.trace("VM_FinalizerThread ", "run routine entered");
     }
@@ -56,9 +52,7 @@ public class VM_FinalizerThread extends VM_Thread {
 
         // suspend this thread: it will resume when the garbage collector
         // places objects on the finalizer queue and notifies.
-
-        VM_Scheduler.finalizerMutex.lock();
-        VM_Thread.yield(VM_Scheduler.finalizerQueue, VM_Scheduler.finalizerMutex);
+        VM_Scheduler.suspendFinalizerThread();
 
         if (verbose >= 1) {
           VM.sysWriteln("VM_FinalizerThread starting finalization");

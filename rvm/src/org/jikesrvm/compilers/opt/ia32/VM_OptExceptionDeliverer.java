@@ -21,6 +21,7 @@ import org.jikesrvm.compilers.opt.VM_OptCompiledMethod;
 import org.jikesrvm.runtime.VM_ExceptionDeliverer;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Processor;
+import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -41,7 +42,7 @@ public abstract class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
                                Throwable exceptionObject, VM_Registers registers) {
     VM_OptCompiledMethod optMethod = (VM_OptCompiledMethod) compiledMethod;
     Address fp = registers.getInnermostFramePointer();
-    VM_Thread myThread = VM_Thread.getCurrentThread();
+    VM_Thread myThread = VM_Scheduler.getCurrentThread();
 
     if (TRACE) {
       VM.sysWrite("Frame size of ");
@@ -104,8 +105,8 @@ public abstract class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
     // If this was a straight software trap (athrow) then setting
     // the stacklimit should be harmless, since the stacklimit should already have exactly
     // the value we are setting it too.
-    if (!myThread.hardwareExceptionRegisters.inuse) {
-      myThread.stackLimit = VM_Magic.objectAsAddress(myThread.stack).plus(STACK_SIZE_GUARD);
+    if (!myThread.getHardwareExceptionRegisters().inuse) {
+      myThread.stackLimit = VM_Magic.objectAsAddress(myThread.getStack()).plus(STACK_SIZE_GUARD);
       VM_Processor.getCurrentProcessor().activeThreadStackLimit = myThread.stackLimit;
     }
 

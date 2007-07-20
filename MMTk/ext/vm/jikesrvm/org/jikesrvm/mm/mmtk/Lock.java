@@ -13,6 +13,7 @@
 package org.jikesrvm.mm.mmtk;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.VM_Services;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -116,10 +117,10 @@ import org.mmtk.utility.Log;
         long lastReportDuration = now - lastSlowReport;
         long waitTime = now - localStart;
         if (lastReportDuration >
-            SLOW_THRESHOLD + VM_Time.millisToCycles(200 * (VM_Thread.getCurrentThread().getIndex() % 5))) {
+            SLOW_THRESHOLD + VM_Time.millisToCycles(200 * (VM_Scheduler.getCurrentThread().getIndex() % 5))) {
             lastSlowReport = now;
             Log.write("GC Warning: slow/deadlock - thread ");
-            writeThreadIdToLog(VM_Thread.getCurrentThread());
+            writeThreadIdToLog(VM_Scheduler.getCurrentThread());
             Log.write(" with ticket "); Log.write(ticket);
             Log.write(" failed to acquire lock "); Log.write(id);
             Log.write(" ("); Log.write(name);
@@ -156,7 +157,7 @@ import org.mmtk.utility.Log;
         }
         if (waitTime > TIME_OUT) {
             Log.write("GC Warning: Locked out thread: ");
-            writeThreadIdToLog(VM_Thread.getCurrentThread());
+            writeThreadIdToLog(VM_Scheduler.getCurrentThread());
             Log.writeln();
             VM_Scheduler.dumpStack();
             VM.sysFail("Deadlock or someone holding on to lock for too long");
@@ -166,9 +167,9 @@ import org.mmtk.utility.Log;
 
     if (REPORT_SLOW) {
       servingHistory[serving % 100] = serving;
-      tidHistory[serving % 100] = VM_Thread.getCurrentThread().getIndex();
+      tidHistory[serving % 100] = VM_Scheduler.getCurrentThread().getIndex();
       startHistory[serving % 100] = VM_Time.cycles();
-      setLocker(VM_Time.cycles(), VM_Thread.getCurrentThread(), -1);
+      setLocker(VM_Time.cycles(), VM_Scheduler.getCurrentThread(), -1);
     }
 
     if (verbose > 1) {
@@ -183,7 +184,7 @@ import org.mmtk.utility.Log;
 
   public void check (int w) {
     if (!REPORT_SLOW) return;
-    if (VM.VerifyAssertions) VM._assert(VM_Thread.getCurrentThread() == thread);
+    if (VM.VerifyAssertions) VM._assert(VM_Scheduler.getCurrentThread() == thread);
     long diff = (REPORT_SLOW) ? VM_Time.cycles() - start : 0;
     boolean show = (verbose > 1) || (diff > SLOW_THRESHOLD);
     if (show) {
@@ -242,9 +243,9 @@ import org.mmtk.utility.Log;
    *  @param t  The {@link VM_Thread} we are interested in.
    */
   private static void writeThreadIdToLog(VM_Thread t) {
-    char[] buf = VM_Thread.grabDumpBuffer();
+    char[] buf = VM_Services.grabDumpBuffer();
     int len = t.dump(buf);
     Log.write(buf, len);
-    VM_Thread.releaseDumpBuffer();
+    VM_Services.releaseDumpBuffer();
   }
 }

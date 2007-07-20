@@ -15,6 +15,7 @@ package org.jikesrvm.compilers.opt.ir;
 import org.jikesrvm.ArchitectureSpecific.OPT_PhysicalRegisterSet;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.scheduler.VM_Scheduler;
 
 /**
  * Pool of symbolic registers.
@@ -74,7 +75,7 @@ public class OPT_GenericRegisterPool extends OPT_AbstractRegisterPool {
    * @return the temp
    */
   public OPT_RegisterOperand makePROp() {
-    return new OPT_RegisterOperand(physical.getPR(), VM_TypeReference.VM_Processor);
+    return new OPT_RegisterOperand(physical.getPR(), VM_Scheduler.getProcessorType());
   }
 
 }

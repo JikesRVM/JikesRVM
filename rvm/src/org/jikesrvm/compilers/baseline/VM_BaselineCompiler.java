@@ -22,6 +22,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.osr.OSR_BytecodeTraverser;
 import org.jikesrvm.runtime.VM_Time;
+import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.unboxed.Offset;
 
@@ -182,11 +183,11 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
 
     // Phase 1: GC map computation
     long start = 0;
-    if (VM.MeasureCompilation) start = VM_Thread.getCurrentThread().accumulateCycles();
+    if (VM.MeasureCompilation) start = VM_Scheduler.getCurrentThread().accumulateCycles();
     VM_ReferenceMaps refMaps =
         new VM_ReferenceMaps((VM_BaselineCompiledMethod) compiledMethod, stackHeights, localTypes);
     if (VM.MeasureCompilation) {
-      long end = VM_Thread.getCurrentThread().accumulateCycles();
+      long end = VM_Scheduler.getCurrentThread().accumulateCycles();
       gcMapCycles += end - start;
     }
 
@@ -197,7 +198,7 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
      * TODO: revist this code as part of OSR redesign
      */
     // Phase 2: OSR setup
-    if (VM.MeasureCompilation) start = VM_Thread.getCurrentThread().accumulateCycles();
+    if (VM.MeasureCompilation) start = VM_Scheduler.getCurrentThread().accumulateCycles();
     boolean edge_counters = options.EDGE_COUNTERS;
     if (VM.BuildForAdaptiveSystem && method.isForOsrSpecialization()) {
       options.EDGE_COUNTERS = false;
@@ -212,12 +213,12 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
       new OSR_BytecodeTraverser().prologueStackHeights(method, method.getOsrPrologue(), stackHeights);
     }
     if (VM.MeasureCompilation) {
-      long end = VM_Thread.getCurrentThread().accumulateCycles();
+      long end = VM_Scheduler.getCurrentThread().accumulateCycles();
       osrSetupCycles += end - start;
     }
 
     // Phase 3: Code gen
-    if (VM.MeasureCompilation) start = VM_Thread.getCurrentThread().accumulateCycles();
+    if (VM.MeasureCompilation) start = VM_Scheduler.getCurrentThread().accumulateCycles();
 
     // determine if we are going to insert edge counters for this method
     if (options
@@ -234,7 +235,7 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
     VM_CodeArray instructions = machineCode.getInstructions();
     int[] bcMap = machineCode.getBytecodeMap();
     if (VM.MeasureCompilation) {
-      long end = VM_Thread.getCurrentThread().accumulateCycles();
+      long end = VM_Scheduler.getCurrentThread().accumulateCycles();
       codeGenCycles += end - start;
     }
 
@@ -243,7 +244,7 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
      * TODO: revist this code as part of OSR redesign
      */
     // Phase 4: OSR part 2
-    if (VM.MeasureCompilation) start = VM_Thread.getCurrentThread().accumulateCycles();
+    if (VM.MeasureCompilation) start = VM_Scheduler.getCurrentThread().accumulateCycles();
     if (VM.BuildForAdaptiveSystem && method.isForOsrSpecialization()) {
       int[] newmap = new int[bcMap.length - method.getOsrPrologueLength()];
       System.arraycopy(bcMap, method.getOsrPrologueLength(), newmap, 0, newmap.length);
@@ -255,12 +256,12 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
       options.EDGE_COUNTERS = edge_counters;
     }
     if (VM.MeasureCompilation) {
-      long end = VM_Thread.getCurrentThread().accumulateCycles();
+      long end = VM_Scheduler.getCurrentThread().accumulateCycles();
       osrSetupCycles += end - start;
     }
 
     // Phase 5: Encode machine code maps
-    if (VM.MeasureCompilation) start = VM_Thread.getCurrentThread().accumulateCycles();
+    if (VM.MeasureCompilation) start = VM_Scheduler.getCurrentThread().accumulateCycles();
     if (method.isSynchronized()) {
       ((VM_BaselineCompiledMethod) compiledMethod).setLockAcquisitionOffset(lockOffset);
     }
@@ -274,7 +275,7 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
       printEndHeader(method);
     }
     if (VM.MeasureCompilation) {
-      long end = VM_Thread.getCurrentThread().accumulateCycles();
+      long end = VM_Scheduler.getCurrentThread().accumulateCycles();
       encodingCycles += end - start;
     }
   }

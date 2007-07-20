@@ -81,10 +81,42 @@ public class JikesRVMSupport {
    * */
   public static Thread createThread(VM_Thread vmdata, String myName) {
     if (VM.VerifyAssertions) VM._assert(VM.runningVM);
-    return new Thread(vmdata, myName);
+    Thread bootThread = new Thread(new VMThread(vmdata), myName,
+        vmdata.getPriority(), vmdata.isDaemonThread());
+    bootThread.group = ThreadGroup.root;
+    return bootThread;
   }
 
   public static VM_Thread getThread(Thread thread) {
-    return thread.vmdata;
+    if (thread == null) {
+      return null;
+    }
+    else if(thread.vmThread == null) {
+      return null;
+    }
+    else {
+      return thread.vmThread.vmdata;
+    }
+  }
+  
+  public static void threadDied(Thread thread) {
+    thread.die();
+  }
+  public static Throwable getStillBorn(Thread thread) {
+    return thread.stillborn;
+  }
+  public static void setStillBorn(Thread thread, Throwable stillborn) {
+    thread.stillborn = stillborn;
+  }
+  /***
+   * Enum stuff
+   */
+  @Uninterruptible
+  public static int getEnumOrdinal(Enum e) {
+    return e.ordinal;
+  }
+  @Uninterruptible
+  public static String getEnumName(Enum e) {
+    return e.name;
   }
 }

@@ -14,10 +14,10 @@ package org.jikesrvm.adaptive;
 
 import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Synchronization;
-import org.jikesrvm.scheduler.VM_Thread;
-import org.jikesrvm.scheduler.VM_ThreadQueue;
+import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.scheduler.greenthreads.VM_GreenThread;
+import org.jikesrvm.scheduler.greenthreads.VM_GreenThreadQueue;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
@@ -25,7 +25,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * The producers are application threads, and the consumer thread is the
  * organizer. The buffer is VM_Scheduler.threads array. The producer set
  * it is own flag "requesting_osr" and notify the consumer. The consumer
- * scans the threads array and collect requests. To work with concrrency,
+ * scans the threads array and collect requests. To work with concurrency,
  * we use following scheme:
  * P - producer, C - consumer
  * P1, P2:
@@ -54,15 +54,16 @@ import org.vmmagic.pragma.Uninterruptible;
  * enqueue.
  */
 
-public final class OSR_OrganizerThread extends VM_Thread {
+public final class OSR_OrganizerThread extends VM_GreenThread {
   /** Constructor */
   public OSR_OrganizerThread() {
-    super(null, "OSR_Organizer");
+    super("OSR_Organizer");    
     makeDaemon(true);
   }
 
   public boolean osr_flag = false;
 
+  @Override
   public void run() {
     while (true) {
       while (this.osr_flag) {
@@ -78,7 +79,7 @@ public final class OSR_OrganizerThread extends VM_Thread {
   @SuppressWarnings("unused")
   // Accessed via VM_EntryPoints
   private int queueLock = 0;
-  private final VM_ThreadQueue tq = new VM_ThreadQueue();
+  private final VM_GreenThreadQueue tq = new VM_GreenThreadQueue();
 
   private void passivate() {
     boolean gainedLock = VM_Synchronization.testAndSet(this, VM_Entrypoints.osrOrganizerQueueLockField.getOffset(), 1);
@@ -114,7 +115,7 @@ public final class OSR_OrganizerThread extends VM_Thread {
   public void activate() {
     boolean gainedLock = VM_Synchronization.testAndSet(this, VM_Entrypoints.osrOrganizerQueueLockField.getOffset(), 1);
     if (gainedLock) {
-      VM_Thread org = tq.dequeue();
+      VM_GreenThread org = tq.dequeue();
       // release lock
       this.queueLock = 0;
 
@@ -129,7 +130,7 @@ public final class OSR_OrganizerThread extends VM_Thread {
   private void processOsrRequest() {
     // scanning VM_Scheduler.threads
     for (int i = 0, n = VM_Scheduler.threads.length; i < n; i++) {
-      VM_Thread thread = VM_Scheduler.threads[i];
+      VM_GreenThread thread = (VM_GreenThread)VM_Scheduler.threads[i];
       if (thread != null) {
         if (thread.requesting_osr) {
           thread.requesting_osr = false;

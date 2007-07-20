@@ -62,7 +62,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
     * from the register save area of '<tsfrom>' method.
     */
 
-    byte[] stack = thread.stack;
+    byte[] stack = thread.getStack();
 
     // get registers for the caller ( real method )
     OSR_TempRegisters registers = new OSR_TempRegisters(thread.contextRegisters);

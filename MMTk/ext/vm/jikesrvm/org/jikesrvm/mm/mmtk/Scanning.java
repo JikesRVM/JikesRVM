@@ -102,10 +102,10 @@ import org.vmmagic.pragma.*;
     VM_CollectorThread ct;
 
     stride = chunkSize * VM_CollectorThread.numCollectors();
-    ct = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
+    ct = VM_Magic.threadAsCollectorThread(VM_Scheduler.getCurrentThread());
     start = (ct.getGCOrdinal() - 1) * chunkSize;
 
-    int numThreads = VM_Scheduler.threadHighWatermark+1;
+    int numThreads = VM_Scheduler.getThreadHighWatermark()+1;
     if (TRACE_PRECOPY)
       VM.sysWriteln(ct.getGCOrdinal()," preCopying ",numThreads," threads");
 
@@ -141,7 +141,7 @@ import org.vmmagic.pragma.*;
           }
           precopyChildren(trace,thread);
           precopyChildren(trace,thread.contextRegisters);
-          precopyChildren(trace,thread.hardwareExceptionRegisters);
+          precopyChildren(trace,thread.getHardwareExceptionRegisters());
           if (thread.jniEnv != null) {
             // Right now, jniEnv are Java-visible objects (not C-visible)
             // if (VM.VerifyAssertions)
@@ -195,7 +195,7 @@ import org.vmmagic.pragma.*;
     /* scan all threads */
     while (true) {
       int threadIndex = threadCounter.increment();
-      if (threadIndex > VM_Scheduler.threadHighWatermark) break;
+      if (threadIndex > VM_Scheduler.getThreadHighWatermark()) break;
 
       VM_Thread thread = VM_Scheduler.threads[threadIndex];
       if (thread == null) continue;

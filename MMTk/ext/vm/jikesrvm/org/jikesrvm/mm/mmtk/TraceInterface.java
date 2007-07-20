@@ -76,9 +76,7 @@ import org.vmmagic.pragma.*;
    * @return True if the RVM is ready for GC, false otherwise.
    */
   public boolean gcEnabled() {
-    /* This test is based upon a review of the code and trial-and-error */
-    return VM_Processor.getCurrentProcessor().threadSwitchingEnabled() &&
-      VM_Scheduler.allProcessorsInitialized;
+    return VM_Scheduler.gcEnabled();
   }
 
   /**

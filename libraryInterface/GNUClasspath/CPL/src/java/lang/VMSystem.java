@@ -33,7 +33,7 @@ import org.vmmagic.unboxed.Offset;
 /**
  * Library support interface of Jikes RVM
  */
-final class VMSystem {
+public final class VMSystem {
 
 
   static void arraycopy(Object src, int srcPos, Object dst, int dstPos, int len) {

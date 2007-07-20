@@ -44,6 +44,10 @@
 [Lorg/jikesrvm/scheduler/VM_Processor;
 [Lorg/jikesrvm/scheduler/VM_Thread;
 [Lorg/jikesrvm/scheduler/VM_Lock;
+[Lorg/jikesrvm/scheduler/greenthreads/VM_GreenProcessor;
+[Lorg/jikesrvm/scheduler/greenthreads/VM_GreenThread;
+[Lorg/jikesrvm/scheduler/greenthreads/VM_GreenLock;
+[Lorg/jikesrvm/scheduler/VM_Scheduler$ThreadModel;
 
 [Lorg/jikesrvm/util/VM_HashMap$Bucket;
 [Lorg/jikesrvm/util/VM_HashSet$Bucket;

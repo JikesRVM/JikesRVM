@@ -52,7 +52,7 @@ public abstract class OSR_PostThreadSwitch implements VM_BaselineConstants {
     }
 
     Offset offset = myThread.tsFPOffset.plus(STACKFRAME_RETURN_ADDRESS_OFFSET);
-    VM_Magic.objectAsAddress(myThread.stack).store(bridgeaddr, offset);
+    VM_Magic.objectAsAddress(myThread.getStack()).store(bridgeaddr, offset);
 
     myThread.tsFPOffset = Offset.zero();
 

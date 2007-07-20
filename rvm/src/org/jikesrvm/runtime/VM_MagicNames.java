@@ -131,7 +131,6 @@ public class VM_MagicNames {
   public static final VM_Atom prefetch = VM_Atom.findOrCreateAsciiAtom("prefetch");
   /* IA-specific */
   public static final VM_Atom prefetchNTA = VM_Atom.findOrCreateAsciiAtom("prefetchNTA");
-  public static final VM_Atom clearFloatingPointState = VM_Atom.findOrCreateAsciiAtom("clearFloatingPointState");
   /* PowerPC-specific */
   public static final VM_Atom dcbst = VM_Atom.findOrCreateAsciiAtom("dcbst");
   public static final VM_Atom dcbt = VM_Atom.findOrCreateAsciiAtom("dcbt");

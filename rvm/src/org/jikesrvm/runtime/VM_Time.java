@@ -20,11 +20,18 @@ import org.vmmagic.pragma.Uninterruptible;
  */
 @Uninterruptible
 public class VM_Time {
-
+  /* millisecond: 10^-3 seconds
+   * microsecond: 10^-6 seconds
+   * nanosecond:  10^-9 seconds
+   */
   /**
    * Conversion factor from cycles to time in milliseconds
    */
   private static double milliPerCycle = 0;
+  /**
+   * Conversion factor from cycles to time in milliseconds
+   */
+  private static double nanoPerCycle = 0;
 
   /**
    * Conversion factor from cycles to time in seconds
@@ -53,6 +60,7 @@ public class VM_Time {
     long cycles = endCycles - bootCycles;
     if (cycles < 0) VM.sysFail("VM_Time.boot failed due to negative cycle count");
     milliPerCycle = (((double) dur) / ((double) cycles)) / 1000;
+    nanoPerCycle = (((double) dur) / ((double) cycles)) * 1000;
     secPerCycle = milliPerCycle / 1000;
   }
 
@@ -100,6 +108,16 @@ public class VM_Time {
   public static long millisToCycles(double t) {
     if (VM.VerifyAssertions) VM._assert(milliPerCycle != 0);
     return (long) (t / milliPerCycle);
+  }
+
+  /**
+   * Convert a time value in nanoSeconds to cycles.
+   * @param t a time in milliseconds
+   * @return the corresponding number of cycles
+   */
+  public static long nanosToCycles(double t) {
+    if (VM.VerifyAssertions) VM._assert(nanoPerCycle != 0);
+    return (long) (t / nanoPerCycle);
   }
 
   /**

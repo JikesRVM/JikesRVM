@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.scheduler;
+package org.jikesrvm.scheduler.greenthreads;
 
 import org.vmmagic.pragma.Uninterruptible;
 
@@ -20,16 +20,16 @@ import org.vmmagic.pragma.Uninterruptible;
  * <code>VM_ThreadEventWaitData</code> reference.
  */
 @Uninterruptible
-public abstract class VM_ThreadEventWaitDataVisitor {
+abstract class VM_ThreadEventWaitDataVisitor {
 
   /**
    * Visit a VM_ThreadIOWaitData object.
    */
-  public abstract void visitThreadIOWaitData(VM_ThreadIOWaitData waitData);
+  abstract void visitThreadIOWaitData(VM_ThreadIOWaitData waitData);
 
   /**
    * Visit a VM_ThreadProcessWaitData object.
    */
-  public abstract void visitThreadProcessWaitData(VM_ThreadProcessWaitData waitData);
+  abstract void visitThreadProcessWaitData(VM_ThreadProcessWaitData waitData);
 
 }

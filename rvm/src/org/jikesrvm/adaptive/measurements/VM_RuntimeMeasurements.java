@@ -129,7 +129,7 @@ public abstract class VM_RuntimeMeasurements {
     //
     // "The idle thread is boring, and does not deserve to be sampled"
     //                           -- AOS Commandment Number 1
-    if (!VM_Thread.getCurrentThread().isIdleThread()) {
+    if (!VM_Scheduler.getCurrentThread().isIdleThread()) {
       // Crawl stack to get to the frame in which the yieldpoint was taken
       // NB: depends on calling structure described in method comment!!!
       Address fp = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()); // VM_Thread.yieldpoint
@@ -230,7 +230,7 @@ public abstract class VM_RuntimeMeasurements {
     //
     // "The idle thread is boring, and does not deserve to be sampled"
     //                           -- AOS Commandment Number 1
-    if (!VM_Thread.getCurrentThread().isIdleThread()) {
+    if (!VM_Scheduler.getCurrentThread().isIdleThread()) {
       // Crawl stack to get to the frame in which the yieldpoint was taken
       // NB: depends on calling structure described in method comment!!!
       Address fp = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()); // VM_Thread.yieldpoint
@@ -277,7 +277,7 @@ public abstract class VM_RuntimeMeasurements {
     //
     // "The idle thread is boring, and does not deserve to be sampled"
     //                           -- AOS Commandment Number 1
-    if (!VM_Thread.getCurrentThread().isIdleThread()) {
+    if (!VM_Scheduler.getCurrentThread().isIdleThread()) {
       // Crawl stack to get to the frame in which the yieldpoint was taken
       // NB: depends on calling structure described in method comment!!!
       Address fp = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()); // VM_Thread.yieldpoint
@@ -412,7 +412,7 @@ public abstract class VM_RuntimeMeasurements {
    * Called from VM_Thread.terminate.
    */
   public static void monitorThreadExit() {
-    VM_AOSLogging.threadExiting(VM_Thread.getCurrentThread());
+    VM_AOSLogging.threadExiting(VM_Scheduler.getCurrentThread());
   }
 
   /**

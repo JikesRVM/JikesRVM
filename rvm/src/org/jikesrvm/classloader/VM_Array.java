@@ -490,6 +490,11 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
 
     // Initialize TIB slots for virtual methods (copy from superclass == Object)
     VM_Type objectType = VM_Type.JavaLangObjectType;
+    while(!objectType.isInstantiated()) {
+      try {
+        Thread.sleep(10);
+      } catch (InterruptedException e) {}
+    }
     if (VM.VerifyAssertions) VM._assert(objectType.isInstantiated());
     Object[] javaLangObjectTIB = objectType.getTypeInformationBlock();
     for (int i = TIB_FIRST_VIRTUAL_METHOD_INDEX; i < javaLangObjectTIB.length; i++) {

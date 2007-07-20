@@ -22,6 +22,7 @@ import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_ExceptionDeliverer;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Processor;
+import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -35,11 +36,12 @@ public abstract class VM_BaselineExceptionDeliverer extends VM_ExceptionDelivere
   /**
    * Pass control to a catch block.
    */
+  @Override
   public void deliverException(VM_CompiledMethod compiledMethod, Address catchBlockInstructionAddress,
                                Throwable exceptionObject, ArchitectureSpecific.VM_Registers registers) {
     Address fp = registers.getInnermostFramePointer();
     VM_NormalMethod method = (VM_NormalMethod) compiledMethod.getMethod();
-    VM_Thread myThread = VM_Thread.getCurrentThread();
+    VM_Thread myThread = VM_Scheduler.getCurrentThread();
 
     // reset sp to "empty expression stack" state
     //
@@ -66,8 +68,8 @@ public abstract class VM_BaselineExceptionDeliverer extends VM_ExceptionDelivere
     // If this was a straight software trap (athrow) then setting
     // the stacklimit should be harmless, since the stacklimit should already have exactly
     // the value we are setting it too.
-    if (!myThread.hardwareExceptionRegisters.inuse) {
-      myThread.stackLimit = VM_Magic.objectAsAddress(myThread.stack).plus(STACK_SIZE_GUARD);
+    if (!myThread.getHardwareExceptionRegisters().inuse) {
+      myThread.stackLimit = VM_Magic.objectAsAddress(myThread.getStack()).plus(STACK_SIZE_GUARD);
       VM_Processor.getCurrentProcessor().activeThreadStackLimit = myThread.stackLimit;
     }
 
@@ -94,7 +96,9 @@ public abstract class VM_BaselineExceptionDeliverer extends VM_ExceptionDelivere
               VM_Magic.addressAsObject(fp.plus(VM_Compiler.locationToOffset(((VM_BaselineCompiledMethod) compiledMethod).getGeneralLocalLocation(
                   0)) - BYTES_IN_ADDRESS).loadAddress());
         }
-        VM_ObjectModel.genericUnlock(lock);
+        if (VM_ObjectModel.holdsLock(lock, VM_Scheduler.getCurrentThread())) {
+          VM_ObjectModel.genericUnlock(lock);
+        }
       }
     }
     // Restore nonvolatile registers used by the baseline compiler.
