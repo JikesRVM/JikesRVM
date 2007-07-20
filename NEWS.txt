@@ -7,9 +7,24 @@ on October 14, 2001,
 
 *Jikes RVM 2.9.2 Release Notes (Future)
 ** Highlights
+
+*** r13106: refactored thread model to seperate out the decision of green and
+    native threading. Improvements required in the area of OSR and collector
+    threads. This solves many issues with thread model including RFE-1147574,
+    RVM-62, RVM-64, RVM-55, RVM-125. The M-to-N greenthread model now passes
+    the majority of the JSR-166 TCK (some issues are class library related)
+    so java.util.concurrent can be used with the RVM. A stub is provided so
+    that native thread support can be added at a later date.
+
 ** Bug Fixes
+
+*** r13004: constant folding of TIBs is now safe as precise information on
+    register operands has been fixed.
+
 ** Other Notes
 
+*** r12922: Incorrect annotating code as logically uninterruptible on
+    interruptible code will now produce an error.
 
 *Jikes RVM 2.9.1 Release Notes (July 2, 2007)
 ** Highlights
@@ -53,6 +68,21 @@ on October 14, 2001,
     Re-building an aggressive O2 optimization package by stabilizing 
     current O3 optimizations and by building new optimization passes will be 
     one of the focus areas for the project going forward.
+
+*** The Intel back-end no longer has accumulate LIR form, we go directly from
+    non-accumulate form LIR to accumulate form MIR. This simplifies and
+    improves instruction selection by reducing the replication of rules to
+    accomodate for accumulate form expansion.
+
+*** Switch to using Classpath's Throwable code and implemented VMThrowable.
+    Implemented a certain amount of stack frame elision and added support for
+    getStackTrace.
+
+*** Support for @Pure and @RuntimeFinal annotations. The former allows
+    simplification of non-side effecting code without inlining (particularly
+    useful when we can't inline with syscalls or jni). The latter provides support
+    for booleans that are constant during runtime but vary at boot image write
+    time. These booleans can be constant folded now.
 
 *** The recommended version of GNU classpath is 0.95.
     Earlier versions of GNU classpath are not supported.
@@ -100,6 +130,9 @@ on October 14, 2001,
 *** Classes that resided in the runtime directory in 2.4.6 have
     been moved in to the "org.jikesrvm.runtime" package.
 
+*** Streamline some Intel operations, rotates, prefer branches to conditional
+    operations, use xor instead of move to zero a register.
+
 ** Bug fixes
 
 *** Baseline GC map bug for handler blocks affecting SPECjbb2000
@@ -114,8 +147,18 @@ on October 14, 2001,
 *** A GC map generation problem caused by casting Address to Objects
     and has been eliminated.
 
+*** Fix for annotations that carry values.
+
+*** Fix saturation on branch profile counters.
+
+*** Fix IA32_Test's register restrictions to avoid generating incorrect code.
+
 ** Other Notes
 
+*** Support for Intel branch hints, used in the baseline compiler that
+    can't modify its code layout.
+
+*** We now check for illegal upcasts from unboxed vmmagic to Java types.
 
 *Jikes RVM 2.9.0.1 Release Notes (April 1, 2007)
 *** Backport commit 11875 to fix bug when building GNU classpath for
