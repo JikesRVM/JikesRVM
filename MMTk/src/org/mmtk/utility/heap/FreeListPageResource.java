@@ -120,8 +120,8 @@ import org.vmmagic.pragma.*;
           int metapages = regions * metaDataPagesPerRegion;
           reserved += metapages;
           committed += metapages;
-          highWaterMark = pageOffset;
         }
+        highWaterMark = pageOffset;
       }
       Address rtn = start.plus(Conversions.pagesToBytes(pageOffset));
       Mmapper.ensureMapped(rtn, pages);
