@@ -637,7 +637,7 @@ public class OPT_GenerateMagic {
   } // generateMagic
 
   // Generate magic where the untype operational semantics is identified by name.
-  // The operands' types are determnied from the method signature.
+  // The operands' types are determined from the method signature.
   //
   static boolean generatePolymorphicMagic(OPT_BC2IR bc2ir, OPT_GenerationContext gc, VM_MethodReference meth,
                                           VM_Atom methodName) {

@@ -44,7 +44,7 @@ public class OPT_GenericRegisterPool extends OPT_AbstractRegisterPool {
 
   /**
    * Return the number of symbolic registers (doesn't count physical ones)
-   * @return the number of synbloic registers allocated by the pool
+   * @return the number of symbolic registers allocated by the pool
    */
   public int getNumberOfSymbolicRegisters() {
     int start = OPT_PhysicalRegisterSet.getSize();
@@ -75,7 +75,10 @@ public class OPT_GenericRegisterPool extends OPT_AbstractRegisterPool {
    * @return the temp
    */
   public OPT_RegisterOperand makePROp() {
-    return new OPT_RegisterOperand(physical.getPR(), VM_Scheduler.getProcessorType());
+    OPT_RegisterOperand prOp = new OPT_RegisterOperand(physical.getPR(),
+    		VM_Scheduler.getProcessorType());
+    prOp.setPreciseType();
+    return prOp;
   }
 
 }
