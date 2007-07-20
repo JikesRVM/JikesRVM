@@ -28,4 +28,6 @@ public abstract class VM_AbstractAssembler {
   public abstract void patchConditionalBranch(int sourceMachinecodeIndex);
 
   public abstract void patchSwitchCase(int sourceMachinecodeIndex);
+
+  public abstract void patchLoadReturnAddress(int sourceMachinecodeIndex);
 }

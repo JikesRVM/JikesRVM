@@ -951,18 +951,34 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
     forwardRefs = VM_ForwardReference.resolveMatching(this, forwardRefs, label);
   }
 
-  // OSR SUPPORT //
-  private int toBePatchedMCAddr;
-  private int targetBCpc = -1;
-  /* we have 5 bytes, opcode, imm */
-  public final void registerLoadRetAddrConst(int target) {
-    toBePatchedMCAddr = mi+1;
-    targetBCpc = target;
+  /**
+   * Set up a code sequence to push a return address. This involves pushing the 
+   * current instruction address, and setting up an ADD that gets resolved later.
+   * 
+   * @param bReturn the return address that is to be loaded.
+   */
+  public final void generateLoadReturnAddress(int bReturn) {
+    /* Push the IP */
+    emitCALL_Imm(mi + 5);
+    VM_ForwardReference r = new VM_ForwardReference.LoadReturnAddress(mi, bReturn);
+    forwardRefs = VM_ForwardReference.enqueue(forwardRefs, r);
+    /* Fake MAX_INTEGER to ensure 32 bit immediate */
+    emitADD_RegInd_Imm(ESP, Integer.MAX_VALUE);
   }
-
-  public final void patchLoadRetAddrConst(int bIP) {
-    if (bIP != targetBCpc) return;
-    emitImm32(mi, toBePatchedMCAddr);
+  
+  /**
+   * Patch the code sequence at sourceIndex to load the complete instruction address
+   * of the current instruction.
+   *
+   * @param sourceIndex the machine code offset of the load return addres to patch.
+   */
+  public final void patchLoadReturnAddress(int sourceIndex) {
+    /* We have the following pattern:
+     * | PUSH EIP | [SP] += | IMM32 |
+     *            ^         ^
+     *  sourceIndex        +3 */
+    int ipDelta = mi - sourceIndex;
+    emitImm32(ipDelta, sourceIndex + 3);
   }
 
   /**

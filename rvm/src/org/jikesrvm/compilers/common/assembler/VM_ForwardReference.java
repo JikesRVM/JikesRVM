@@ -108,7 +108,6 @@ public abstract class VM_ForwardReference {
     public void resolve(VM_AbstractAssembler asm) {
       asm.patchUnconditionalBranch(sourceMachinecodeIndex);
     }
-
   }
 
   public static class ConditionalBranch extends VM_ForwardReference {
@@ -120,7 +119,6 @@ public abstract class VM_ForwardReference {
     public void resolve(VM_AbstractAssembler asm) {
       asm.patchConditionalBranch(sourceMachinecodeIndex);
     }
-
   }
 
   public static class ShortBranch extends VM_ForwardReference {
@@ -136,7 +134,6 @@ public abstract class VM_ForwardReference {
     public void resolve(VM_AbstractAssembler asm) {
       asm.patchShortBranch(sourceMachinecodeIndex);
     }
-
   }
 
   public static class SwitchCase extends VM_ForwardReference {
@@ -148,7 +145,20 @@ public abstract class VM_ForwardReference {
     public void resolve(VM_AbstractAssembler asm) {
       asm.patchSwitchCase(sourceMachinecodeIndex);
     }
-
   }
 
+  public static class LoadReturnAddress extends VM_ForwardReference {
+
+    public LoadReturnAddress(int source) {
+      super(source);
+    }
+
+    public LoadReturnAddress(int source, int btarget) {
+      super(source, btarget);
+    }
+
+    public void resolve(VM_AbstractAssembler asm) {
+      asm.patchLoadReturnAddress(sourceMachinecodeIndex);
+    }
+  }
 }

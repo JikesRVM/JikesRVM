@@ -3697,7 +3697,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
   protected final void emit_loadretaddrconst(int bcIndex) {
     asm.emitBL(1, 0);
     asm.emitMFLR(T1);                   // LR +  0
-    asm.registerLoadRetAddrConst(bcIndex);
+    asm.registerLoadReturnAddress(bcIndex);
     asm.emitADDI(T1, bcIndex << LOG_BYTES_IN_INT, T1);
     pushAddr(T1);   // LR +  8
   }

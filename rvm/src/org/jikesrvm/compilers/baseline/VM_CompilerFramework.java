@@ -218,7 +218,6 @@ public abstract class VM_CompilerFramework
       biStart = bcodes.index();
       bytecodeMap[biStart] = asm.getMachineCodeIndex();
       asm.resolveForwardReferences(biStart);
-      asm.patchLoadRetAddrConst(biStart);
       starting_bytecode();
       int code = bcodes.nextInstruction();
       switch (code) {

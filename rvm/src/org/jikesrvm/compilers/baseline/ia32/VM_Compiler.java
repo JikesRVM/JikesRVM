@@ -4413,8 +4413,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   }
 
   protected final void emit_loadretaddrconst(int bcIndex) {
-    asm.registerLoadRetAddrConst(bcIndex);
-    asm.emitPUSH_Imm(bcIndex);
+    asm.generateLoadReturnAddress(bcIndex);
   }
 
   /* bTarget is optional, it emits a JUMP instruction, but the caller

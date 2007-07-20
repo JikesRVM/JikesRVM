@@ -215,13 +215,9 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
     }
   }
 
-  /************ OSR Support */
-  private int toBePatchedMCAddr;
-  private int targetBCpc = -1;
-
-  public final void registerLoadRetAddrConst(int target) {
-    toBePatchedMCAddr = mIP;
-    targetBCpc = target;
+  public final void registerLoadReturnAddress(int bReturn) {
+    VM_ForwardReference r = new VM_ForwardReference.LoadReturnAddress(mIP, bReturn);
+    forwardRefs = VM_ForwardReference.enqueue(forwardRefs, r);
   }
 
   /* the prologue is always before any real bytecode index.
@@ -233,15 +229,12 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Ba
   *          STU
   *
   * The third instruction should be patched with accurate relative address.
-  * It is computed by (mIP - toBePatchedMCAddr + 1)*4;
+  * It is computed by (mIP - sourceIndex + 1)*4;
   */
-  public final void patchLoadRetAddrConst(int bIP) {
-    if (bIP != targetBCpc) return;
-
-    int offset = (mIP - toBePatchedMCAddr + 1) * 4;
+  public final void patchLoadReturnAddress(int sourceIndex) {
+    int offset = (mIP - sourceIndex + 1) * 4;
     int mi = ADDI(T1, offset, T1);
-    mc.putInstruction(toBePatchedMCAddr, mi);
-    targetBCpc = -1;
+    mc.putInstruction(sourceIndex, mi);
   }
 
   final int ADDI(int RT, int D, int RA) {
