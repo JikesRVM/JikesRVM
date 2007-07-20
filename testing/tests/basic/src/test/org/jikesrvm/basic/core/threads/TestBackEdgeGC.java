@@ -96,6 +96,8 @@ class TestBackEdgeGC {
       // start a second gc- using previously created object and test if gc field is valid
       XThread.say("Starting 2nd CallGC");
       gc.start();
+      try { gc.join(); }
+      catch (InterruptedException e) {}
       XThread.say("2nd CallGC started - exiting Looper");
     }
   }
