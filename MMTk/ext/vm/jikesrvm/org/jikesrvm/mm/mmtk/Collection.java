@@ -152,7 +152,7 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
    */
   public int maximumCollectionAttempt() {
     int max = 1;
-    for(int t=0; t < VM_Scheduler.getThreadHighWatermark(); t++) {
+    for(int t=0; t <= VM_Scheduler.getThreadHighWatermark(); t++) {
       VM_Thread thread = VM_Scheduler.threads[t];
       if (thread != null) {
         int current = thread.getCollectionAttempt();
