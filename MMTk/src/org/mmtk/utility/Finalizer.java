@@ -196,7 +196,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Move all finalizable objects to the to-be-finalized queue
-   * Called on shutdown.  Caller must also scheduler the finalizer thread.
+   * Called on shutdown.  Caller must also schedule the finalizer thread.
    */
   public static void finalizeAll() {
 
