@@ -35,7 +35,7 @@ import org.vmmagic.pragma.*;
  * @see SSGCspyMutator
  * @see org.mmtk.plan.StopTheWorldCollector
  * @see org.mmtk.plan.CollectorContext
- * @see org.mmtk.plan.SimplePhase#delegatePhase
+ * @see org.mmtk.plan.SimplePhase
  */
 @Uninterruptible public class SSGCspyCollector extends SSCollector {
 
