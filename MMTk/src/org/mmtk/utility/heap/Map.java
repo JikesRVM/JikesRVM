@@ -12,21 +12,21 @@
  */
 package org.mmtk.utility.heap;
 
-import org.mmtk.utility.Constants;
-import org.mmtk.utility.Log;
 import org.mmtk.policy.Space;
-
+import org.mmtk.utility.Log;
 import org.mmtk.vm.VM;
-
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.Interruptible;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Extent;
 
 /**
  * This class manages the mapping of spaces to virtual memory ranges.<p>
  *
  * Discontigious spaces are currently unsupported.
  */
-@Uninterruptible public class Map implements Constants {
+@Uninterruptible public class Map {
 
   /****************************************************************************
    *
