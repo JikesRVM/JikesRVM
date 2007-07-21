@@ -15,6 +15,8 @@ package org.jikesrvm.scheduler;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
+import org.jikesrvm.VM_Configuration;
+import org.jikesrvm.VM_HeapLayoutConstants;
 import org.jikesrvm.classloader.VM_MemberReference;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_NormalMethod;
@@ -26,6 +28,7 @@ import org.jikesrvm.compilers.opt.VM_OptEncodedCallSiteTree;
 import org.jikesrvm.compilers.opt.VM_OptMachineCodeMap;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
+import org.jikesrvm.memorymanagers.mminterface.Selected;
 import org.jikesrvm.runtime.VM_Magic;
 import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
@@ -624,7 +627,9 @@ public abstract class VM_Scheduler {
     }
 
     VM.sysWriteln();
-    if (fp.toInt() < 0x10000) {
+    VM.sysWrite("PLO SPACE START: ", Selected.Plan.ploSpace.getStart());
+    VM.sysWrite("PLO SPACE END: ", Selected.Plan.ploSpace.getStart().plus(Selected.Plan.ploSpace.getExtent()));
+    if (fp.LT(Selected.Plan.ploSpace.getStart()) || fp.GT(Selected.Plan.ploSpace.getStart().plus(Selected.Plan.ploSpace.getExtent()))) {
       VM.sysWrite("Bogus looking frame pointer: ", fp);
       VM.sysWriteln(" not dumping stack");
     } else {
@@ -683,7 +688,7 @@ public abstract class VM_Scheduler {
             ip = VM_Magic.getReturnAddress(fp);
             fp = VM_Magic.getCallerFramePointer(fp);
           }
-          if (fp.toInt() < 0x10000) {
+          if (fp.LT(Selected.Plan.ploSpace.getStart()) || fp.GT(Selected.Plan.ploSpace.getStart().plus(Selected.Plan.ploSpace.getExtent()))) {
             VM.sysWrite("Bogus looking frame pointer: ", fp);
             VM.sysWriteln(" end of stack dump");
             break;

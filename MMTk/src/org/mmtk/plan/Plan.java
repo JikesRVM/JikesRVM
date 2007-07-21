@@ -64,7 +64,7 @@ public abstract class Plan implements Constants {
   public static final int NOT_IN_GC = 0; // this must be zero for C code
   public static final int GC_PREPARE = 1; // before setup and obtaining root
   public static final int GC_PROPER = 2;
-  
+
   /* Polling */
   public static final int DEFAULT_POLL_FREQUENCY = (128 << 10) >> LOG_BYTES_IN_PAGE;
   public static final int META_DATA_POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
@@ -88,7 +88,7 @@ public abstract class Plan implements Constants {
   public static final int ALLOC_GCSPY = 5;
   public static final int ALLOC_HOT_CODE = ALLOC_DEFAULT;
   public static final int ALLOC_COLD_CODE = ALLOC_DEFAULT;
-  public static final int ALLOC_STACK = ALLOC_DEFAULT;
+  public static final int ALLOC_STACK = ALLOC_PRIMITIVE_LOS;
   public static final int ALLOC_IMMORTAL_STACK = ALLOC_IMMORTAL;
   public static final int ALLOCATORS = 6;
   public static final int DEFAULT_SITE = -1;
@@ -815,7 +815,7 @@ public abstract class Plan implements Constants {
       VM.collection.joinCollection();
       return true;
     }
-    
+
     if (collectionRequired(spaceFull)) {
       if (space == metaDataSpace) {
         /* In general we must not trigger a GC on metadata allocation since
