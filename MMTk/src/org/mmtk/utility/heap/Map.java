@@ -83,18 +83,6 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * Return the space in which this object resides.
-   *
-   * @param object The object in question
-   * @return The space in which the object resides
-   */
-  @Inline
-  public static Space getSpaceForObject(ObjectReference object) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
-    return getSpaceForAddress(VM.objectModel.refToAddress(object));
-  }
-
-  /**
    * Return the space in which this address resides.
    *
    * @param address The address in question
@@ -115,9 +103,9 @@ import org.vmmagic.unboxed.*;
    * resides
    */
   @Inline
-  public static int getDescriptorForObject(ObjectReference object) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
-    int index = hashAddress(VM.objectModel.refToAddress(object));
+  public static int getDescriptorForAddress(Address object) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isZero());
+    int index = hashAddress(object);
     return VM.barriers.getArrayNoBarrier(descriptorMap, index);
   }
 
