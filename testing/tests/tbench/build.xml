@@ -15,12 +15,13 @@
   <condition property="arg" value="perf" else="base">
     <equals arg1="${test.mode}" arg2="performance"/>
   </condition>
-  <condition property="test.max.heapsize" value="300" else="150">
+  <condition property="test.time.limit" value="1200" else="200">
     <equals arg1="${test.mode}" arg2="performance"/>
   </condition>
-  <condition property="test.time.limit" value="1200" else="300">
-    <equals arg1="${test.mode}" arg2="performance"/>
-  </condition>
+
+  <property name="test.time.limit" value="200"/>
+  <property name="test.initial.heapsize" value="500"/>
+  <property name="test.max.heapsize" value="500"/>
 
   <import file="../../../build/tests.xml"/>
 
@@ -51,7 +52,7 @@
     <attribute name="threadCount" default="60"/>
     <attribute name="messageCount" default="50"/>
     <sequential>
-      <rvm tag="@{tag}" class="test.org.jikesrvm.tbench.Zog" args="@{threadCount} @{messageCount}"/>
+      <rvm tag="@{tag}" class="test.org.jikesrvm.tbench.Zog" rvmArgs="-X:gc:verbose=4" args="@{threadCount} @{messageCount}"/>
 
       <outputTestStart tag="@{tag}"/>
       <outputStatisticStart/>
@@ -78,6 +79,14 @@
     <ring tag="RingComm20x20" threadCount="20" messageCount="20"/>
     <ring tag="RingComm20x1000" threadCount="20" messageCount="1000"/>
     <ring tag="RingComm135x10000" threadCount="135" messageCount="10000"/>
+    <ring tag="RingComm136x10000" threadCount="136" messageCount="10000"/>
+    <ring tag="RingComm137x10000" threadCount="137" messageCount="10000"/>
+    <ring tag="RingComm150x10000" threadCount="150" messageCount="10000"/>
+    <!--
+      this next test fails as it can not allocate stack due to fixed range
+      of virtual memory for certain spaces
+    -->
+    <ring tag="RingComm1000x10000" threadCount="1000" messageCount="10000"/>
 
     <finishResults/>
   </target>
