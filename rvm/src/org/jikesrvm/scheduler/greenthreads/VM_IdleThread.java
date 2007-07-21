@@ -27,16 +27,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * This follows the Singleton pattern.
  */
 final class VM_IdleThread extends VM_GreenThread {
-
-  /**
-   * Attempt rudimentary load balancing.  If a virtual processor
-   * has no work it asks for some then spins for time waiting for
-   * an runnable thread to arrive.  If none does, or if this variable
-   * is false, the remaining time-slice is returned to the operating
-   * system.
-   */
-  private static boolean loadBalancing;
-
   /**
    * Should we call VM_Processor.initializeProcessor as the first action
    * of run?  True for every idle thread except the one that runs on the
@@ -44,13 +34,11 @@ final class VM_IdleThread extends VM_GreenThread {
    */
   private boolean runInitProc;
 
-  private static final String myName = "VM_IdleThread";
-
   /**
    * A thread to run if there is no other work for a virtual processor.
    */
   VM_IdleThread(VM_GreenProcessor processorAffinity, boolean runInitProcessor) {
-    super(myName);
+    super("VM_IdleThread");
     makeDaemon(true);
     super.processorAffinity = processorAffinity;
     runInitProc = runInitProcessor;
@@ -71,11 +59,13 @@ final class VM_IdleThread extends VM_GreenThread {
   public void run() { // overrides VM_Thread
     if (state != State.RUNNABLE)
       changeThreadState(State.NEW, State.RUNNABLE);
-    loadBalancing = VM_GreenScheduler.numProcessors > 1;
     VM_GreenProcessor myProcessor = VM_GreenProcessor.getCurrentProcessor();
     if (VM.ExtremeAssertions) VM._assert(myProcessor == processorAffinity);
 
     if (runInitProc) myProcessor.initializeProcessor();
+
+    // Only perform load balancing if there is more than one processor.
+    final boolean loadBalancing = VM_GreenScheduler.numProcessors > 1;
     long spinInterval = loadBalancing ? VM_Time.millisToCycles(1) : 0;
     main:
     while (true) {
@@ -131,5 +121,4 @@ final class VM_IdleThread extends VM_GreenThread {
     }
     return false;
   }
-
 }
