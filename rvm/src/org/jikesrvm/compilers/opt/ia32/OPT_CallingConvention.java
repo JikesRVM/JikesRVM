@@ -37,8 +37,8 @@ import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_StackLocationOperand;
 import org.jikesrvm.compilers.opt.ir.Prologue;
 import org.jikesrvm.ia32.VM_ArchConstants;
-import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_ArchEntrypoints;
+import org.jikesrvm.runtime.VM_Entrypoints;
 
 /**
  * This class contains IA32 calling conventions

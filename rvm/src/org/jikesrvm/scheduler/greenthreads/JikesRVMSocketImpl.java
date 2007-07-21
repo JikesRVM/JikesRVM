@@ -31,7 +31,6 @@ import java.net.SocketImpl;
 import java.net.SocketImplFactory;
 import java.net.SocketOptions;
 import java.net.SocketTimeoutException;
-
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
 import org.jikesrvm.VM_UnimplementedError;

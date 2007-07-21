@@ -24,8 +24,8 @@ import org.jikesrvm.compilers.opt.ir.MIR_Compare;
 import org.jikesrvm.compilers.opt.ir.MIR_CondBranch;
 import org.jikesrvm.compilers.opt.ir.MIR_CondBranch2;
 import org.jikesrvm.compilers.opt.ir.MIR_Empty;
-import org.jikesrvm.compilers.opt.ir.MIR_LowTableSwitch;
 import org.jikesrvm.compilers.opt.ir.MIR_Lea;
+import org.jikesrvm.compilers.opt.ir.MIR_LowTableSwitch;
 import org.jikesrvm.compilers.opt.ir.MIR_Move;
 import org.jikesrvm.compilers.opt.ir.MIR_Nullary;
 import org.jikesrvm.compilers.opt.ir.MIR_Return;
@@ -69,8 +69,8 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_JCC2_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_JMP;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_LEA_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_LOCK;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_LOCK_CMPXCHG_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_LOCK_CMPXCHG8B_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_LOCK_CMPXCHG_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOV;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOV_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_OFFSET;
@@ -91,11 +91,11 @@ import org.jikesrvm.compilers.opt.ir.OPT_Register;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_TrapCodeOperand;
 import org.jikesrvm.compilers.opt.ir.ia32.OPT_IA32ConditionOperand;
-import org.jikesrvm.compilers.opt.ir.ia32.OPT_PhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.ia32.OPT_PhysicalDefUse;
+import org.jikesrvm.compilers.opt.ir.ia32.OPT_PhysicalRegisterSet;
+import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -344,27 +344,27 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
 			 value.disp.isZero() &&
 			 value.scale == 0) {
 		// reg1 = lea [reg1 + index] -> add reg1, index
-                MIR_BinaryAcc.mutate(p, IA32_ADD, result, value.index);                
+                MIR_BinaryAcc.mutate(p, IA32_ADD, result, value.index);
               } else if (value.base != null && value.base.getRegister() == result.getRegister() &&
 			 value.index == null) {
 		// reg1 = lea [reg1 + disp] -> add reg1, disp
-                MIR_BinaryAcc.mutate(p, IA32_ADD, result, IC(value.disp.toInt()));                
+                MIR_BinaryAcc.mutate(p, IA32_ADD, result, IC(value.disp.toInt()));
               } else if (value.base == null &&
 			 value.index == null && value.index.getRegister() == result.getRegister() &&
 			 value.scale == 0) {
 		// reg1 = lea [reg1 + disp] -> add reg1, disp
-                MIR_BinaryAcc.mutate(p, IA32_ADD, result, IC(value.disp.toInt()));                
+                MIR_BinaryAcc.mutate(p, IA32_ADD, result, IC(value.disp.toInt()));
               } else if (value.base == null &&
 			 value.index == null && value.index.getRegister() == result.getRegister() &&
 			 value.disp.isZero()) {
 		// reg1 = lea [reg1 << scale] -> shl reg1, scale
-                MIR_BinaryAcc.mutate(p, IA32_SHL, result, IC(value.scale));                
+                MIR_BinaryAcc.mutate(p, IA32_SHL, result, IC(value.scale));
               }
             }
           }
         }
         break;
-          
+
         case IA32_FCLEAR_opcode:
           expandFClear(p, ir);
           break;

@@ -12,24 +12,21 @@
  */
 package org.jikesrvm.scheduler;
 
-import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import org.jikesrvm.ArchitectureSpecific.VM_Registers;
-import static org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants.*;
+import static org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants.INVISIBLE_METHOD_ID;
+import static org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP;
+import static org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants.STACK_SIZE_GUARD;
 import org.jikesrvm.VM;
+import org.jikesrvm.VM_Configuration;
 import org.jikesrvm.VM_Services;
 import org.jikesrvm.VM_UnimplementedError;
-import org.jikesrvm.VM_Configuration;
-import org.jikesrvm.VM_SizeConstants;
-import org.jikesrvm.adaptive.OSR_Listener;
 import org.jikesrvm.adaptive.OSR_OnStackReplacementEvent;
 import org.jikesrvm.adaptive.measurements.VM_RuntimeMeasurements;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.jni.VM_JNIEnvironment;
-import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import org.jikesrvm.mm.mmtk.Barriers;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.objectmodel.VM_ThinLockConstants;
 import org.jikesrvm.runtime.VM_Entrypoints;
@@ -37,22 +34,17 @@ import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Memory;
 import org.jikesrvm.runtime.VM_Runtime;
 import org.jikesrvm.runtime.VM_Time;
-import org.jikesrvm.scheduler.greenthreads.VM_AbstractThreadQueue;
-import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
-import org.jikesrvm.scheduler.greenthreads.VM_GreenThread;
-import org.jikesrvm.scheduler.greenthreads.VM_ThreadProxy;
-import org.jikesrvm.scheduler.greenthreads.VM_ThreadQueue;
-import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.vmmagic.pragma.BaselineNoRegisters;
 import org.vmmagic.pragma.BaselineSaveLSRegisters;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.NoOptCompile;
 import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
+
 /**
  * A generic java thread's execution context.
  *
@@ -153,12 +145,12 @@ public abstract class VM_Thread {
     /**
      * This state is valid only for green threads. The thread is awaiting IO to
      * readable. This state maps to {@link Thread.State#WAITING}.
-     */    
+     */
     IO_WAITING,
     /**
      * This state is valid only for green threads. The thread is awaiting a
      * process to finish. This state maps to {@link Thread.State#WAITING}.
-     */    
+     */
     PROCESS_WAITING
   }
 
@@ -222,7 +214,7 @@ public abstract class VM_Thread {
    * such doesn't have a Runnable...
    */
   final boolean systemThread;
-  
+
   /**
    * The boot thread, can't be final so as to allow initialization during boot
    * image writing.
@@ -320,9 +312,9 @@ public abstract class VM_Thread {
   public VM_JNIEnvironment jniEnv;
 
   /*
-   * Timing fields 
+   * Timing fields
    */
-  
+
   /**
    * Value returned from {@link VM_Time#cycles()} when this thread
    * started running. If not currently running, then it has the value 0.
@@ -357,7 +349,7 @@ public abstract class VM_Thread {
   /*
    * Fields used for on stack replacement
    */
-  
+
   /**
    * Only used by OSR when VM.BuildForAdaptiveSystem. Declared as an
    * Object to cut link to adaptive system.  Ugh.
@@ -395,10 +387,10 @@ public abstract class VM_Thread {
     this.name = name;
     this.daemon = daemon;
     this.priority = priority;
-    
+
     contextRegisters           = new VM_Registers();
     hardwareExceptionRegisters = new VM_Registers();
-        
+
     if(VM.VerifyAssertions) VM._assert(stack != null);
     // put self in list of threads known to scheduler and garbage collector
     if (!VM.runningVM) {
@@ -420,7 +412,7 @@ public abstract class VM_Thread {
       this.thread = thread;
       // Set thread type
       this.systemThread = system;
-      
+
       this.state = State.NEW;
 
       stackLimit = VM_Magic.objectAsAddress(stack).plus(STACK_SIZE_GUARD);
@@ -450,7 +442,7 @@ public abstract class VM_Thread {
       } else {
         onStackReplacementEvent = null;
       }
-      
+
       if (thread == null) {
         // create wrapper Thread if doesn't exist
         this.thread = java.lang.JikesRVMSupport.createThread(this, name);
@@ -465,7 +457,7 @@ public abstract class VM_Thread {
   public final void setupBootThread() {
     thread = java.lang.JikesRVMSupport.createThread(this, "Jikes_RVM_Boot_Thread");
   }
-  
+
   /**
    * String representation of thread
    */
@@ -505,17 +497,17 @@ public abstract class VM_Thread {
   public boolean getDisallowAllocationsByThisThread() {
     return disallowAllocationsByThisThread;
   }
-  
+
   /** Disallow allocations by this thread */
   public void setDisallowAllocationsByThisThread() {
     disallowAllocationsByThisThread = true;
   }
-  
+
   /** Allow allocations by this thread */
   public void clearDisallowAllocationsByThisThread() {
     disallowAllocationsByThisThread = false;
   }
-  
+
   /**
    * Initialize JNI environment for system threads. Called by VM.finishBooting
    */
@@ -533,12 +525,12 @@ public abstract class VM_Thread {
   public final boolean hasNativeStackFrame() {
     return jniEnv != null && jniEnv.hasNativeStackFrame();
   }
-  
+
   /**
    * Change the state of the thread and fail if we're not in the expected thread
    * state. This method is logically uninterruptible as we should never be in
    * the wrong state
-   * 
+   *
    * @param oldState the previous thread state
    * @param newState the new thread state
    */
@@ -547,9 +539,9 @@ public abstract class VM_Thread {
   protected final void changeThreadState(State oldState, State newState) {
     if (trace) {
       VM.sysWrite("VM_Thread.changeThreadState: thread=", threadSlot, name);
-      VM.sysWrite(" current=", java.lang.JikesRVMSupport.getEnumName(state)); 
-      VM.sysWrite(" old=", java.lang.JikesRVMSupport.getEnumName(oldState)); 
-      VM.sysWriteln(" new=", java.lang.JikesRVMSupport.getEnumName(newState)); 
+      VM.sysWrite(" current=", java.lang.JikesRVMSupport.getEnumName(state));
+      VM.sysWrite(" old=", java.lang.JikesRVMSupport.getEnumName(oldState));
+      VM.sysWriteln(" new=", java.lang.JikesRVMSupport.getEnumName(newState));
     }
     if (state == oldState) {
       state = newState;
@@ -558,11 +550,11 @@ public abstract class VM_Thread {
           oldState + " to " + newState + " when in state " + state + " in thread " + name);
     }
   }
-  
+
   /*
    * Starting and ending threads
    */
-  
+
   /**
    * Method to be executed when this thread starts running. Calls
    * java.lang.Thread.run but system threads can override directly.
@@ -634,7 +626,7 @@ public abstract class VM_Thread {
    * Assumption: VM_Thread.contextRegisters are ready to pick up execution
    *             ie. return to a yield or begin thread startup code
    */
-  public abstract void schedule(); 
+  public abstract void schedule();
   /**
    * Update internal state of Thread and Scheduler to indicate that
    * a thread is about to start
@@ -659,7 +651,7 @@ public abstract class VM_Thread {
     registerThread();
     schedule();
   }
-  
+
   /**
    * Terminate execution of current thread by abandoning all references to it
    * and resuming execution in some other (ready) thread.
@@ -773,7 +765,7 @@ public abstract class VM_Thread {
   public Throwable getCauseOfThreadDeath() {
     return causeOfThreadDeath;
   }
-  
+
   /*
    * Support for yieldpoints
    */
@@ -784,7 +776,7 @@ public abstract class VM_Thread {
   public static void yieldpoint(int whereFrom) {
     org.jikesrvm.scheduler.greenthreads.VM_GreenThread.yieldpoint(whereFrom);
   }
-  
+
   /**
    * Yieldpoint taken in prologue
    */
@@ -830,12 +822,12 @@ public abstract class VM_Thread {
   /*
    * Support for suspend/resume
    */
-  
+
   /**
    * Thread model dependent part of thread suspension
    */
   protected abstract void suspendInternal();
-  
+
   /**
    * Suspend execution of current thread until it is resumed.
    * Call only if caller has appropriate security clearance.
@@ -857,7 +849,7 @@ public abstract class VM_Thread {
       VM_Runtime.athrow(rethrow);
     }
   }
-  
+
   /**
    * Thread model dependent part of thread resumption
    */
@@ -877,7 +869,7 @@ public abstract class VM_Thread {
   /*
    * OSR support
    */
-  
+
   /**
    * Suspends the thread waiting for OSR (rescheduled by recompilation
    * thread when OSR is done).
@@ -907,7 +899,7 @@ public abstract class VM_Thread {
    * @param ns
    */
   @Interruptible
-  protected abstract void sleepInternal(long millis, int ns) throws InterruptedException; 
+  protected abstract void sleepInternal(long millis, int ns) throws InterruptedException;
   /**
    * Suspend execution of current thread for specified number of seconds
    * (or fraction).
@@ -990,7 +982,7 @@ public abstract class VM_Thread {
 
   @LogicallyUninterruptible
   private static void raiseIllegalMonitorStateException(String msg, Object o) {
-    throw new IllegalMonitorStateException(msg + o);    
+    throw new IllegalMonitorStateException(msg + o);
   }
   /**
    * Support for Java {@link java.lang.Object#notify()} synchronization primitive.
@@ -1024,7 +1016,7 @@ public abstract class VM_Thread {
     }
     VM_Scheduler.getCurrentThread().notifyAllInternal(o, l);
   }
-  
+
   /*
    * Interrupt and stop support
    */
@@ -1107,7 +1099,7 @@ public abstract class VM_Thread {
       try {
         sleepInternal(millis, ns);
       } catch (InterruptedException thr) {
-        // swallow thread interruptions      
+        // swallow thread interruptions
       }
       if (holdsLock) {
         VM_ObjectModel.genericLock(thread);
@@ -1511,7 +1503,7 @@ public abstract class VM_Thread {
   public final boolean isAlive() {
     return (state != State.NEW) && (state != State.TERMINATED);
   }
-  
+
   /**
    * Sets the name of the thread
    * @param name the new name for the thread
@@ -1527,18 +1519,18 @@ public abstract class VM_Thread {
   public final String getName() {
     return name;
   }
-  
+
   /**
    * Does the currently running Thread hold the lock on an obj?
    * @param obj the object to check
    * @return whether the thread holds the lock
-   * @see java.lang.Thread#holdsLock(Object) 
+   * @see java.lang.Thread#holdsLock(Object)
    */
   public final boolean holdsLock(Object obj) {
     VM_Thread mine = VM_Scheduler.getCurrentThread();
     return VM_ObjectModel.holdsLock(obj, mine);
   }
-  
+
   /**
    * Throw the external interrupt associated with the thread now it is running
    */
@@ -1567,7 +1559,7 @@ public abstract class VM_Thread {
    * @see java.lang.Thread#interrupted()
    */
   public final void clearInterrupted() {
-    interrupted = false; 
+    interrupted = false;
   }
   /**
    * Interrupt this thread
@@ -1675,7 +1667,7 @@ public abstract class VM_Thread {
       myThread.changeThreadState(State.JOINING, State.RUNNABLE);
     }
   }
-  
+
   /**
    * Count the stack frames of this thread
    */
@@ -1714,13 +1706,13 @@ public abstract class VM_Thread {
   public VM_Registers getContextRegisters() {
     return contextRegisters;
   }
-  
+
   /**
-   * Give a string of information on how a thread is set to be scheduled 
+   * Give a string of information on how a thread is set to be scheduled
    */
   @Interruptible
   public abstract String getThreadState();
-  
+
   /** Set the initial attempt. */
   public void reportCollectionAttempt() {
     collectionAttempt++;
@@ -1750,7 +1742,7 @@ public abstract class VM_Thread {
   public void clearPhysicalAllocationFailed() {
     physicalAllocationFailed = false;
   }
-  
+
   /**
    * Returns the outstanding OutOfMemoryError.
    */
@@ -1778,7 +1770,7 @@ public abstract class VM_Thread {
    */
   public void clearOutOfMemoryError() {
     outOfMemoryError = null;
-  }  
+  }
 
   @Interruptible
   public final void handleUncaughtException(Throwable exceptionObject) {
@@ -1805,7 +1797,7 @@ public abstract class VM_Thread {
     VM_Scheduler.getCurrentThread().terminate();
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
-  
+
   /** Handle the case of exception handling triggering new exceptions. */
   private void handlePossibleRecursiveException() {
     if (uncaughtExceptionCount > 1 &&
@@ -1919,7 +1911,7 @@ public abstract class VM_Thread {
       offset = VM_Services.sprintf(dest, offset, "-being_dispatched");
     }
     offset = VM_Services.sprintf(dest, offset, "-");
-    offset = VM_Services.sprintf(dest, offset, java.lang.JikesRVMSupport.getEnumName(state)); 
+    offset = VM_Services.sprintf(dest, offset, java.lang.JikesRVMSupport.getEnumName(state));
     if (state == State.TIMED_WAITING || state == State.TIMED_PARK) {
       offset = VM_Services.sprintf(dest, offset, "(");
       long timeLeft = wakeupCycle - VM_Time.cycles();

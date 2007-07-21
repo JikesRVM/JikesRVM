@@ -26,7 +26,6 @@ import org.jikesrvm.compilers.opt.ir.OPT_CompilationState;
 import org.jikesrvm.compilers.opt.ir.OPT_InlineSequence;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.VM_Thread;
 
 /**
  * The default inlining oracle used by the optimizing compiler.

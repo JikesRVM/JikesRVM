@@ -23,10 +23,6 @@ import org.jikesrvm.runtime.VM_Time;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.scheduler.VM_ProcessorLock;
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.greenthreads.VM_GlobalGreenThreadQueue;
-import org.jikesrvm.scheduler.greenthreads.VM_ThreadIOQueue;
-import org.jikesrvm.scheduler.greenthreads.VM_ThreadProcessWaitQueue;
-import org.jikesrvm.scheduler.greenthreads.VM_GreenThreadQueue;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.Uninterruptible;
@@ -63,7 +59,7 @@ public final class VM_GreenProcessor extends VM_Processor {
   /**
    * The reason given for disabling thread switching
    */
-  private final String[] threadSwitchDisabledReason = VM.VerifyAssertions ? new String[10] : null; 
+  private final String[] threadSwitchDisabledReason = VM.VerifyAssertions ? new String[10] : null;
   /**
    * threads to be added to ready queue
    */
@@ -430,8 +426,8 @@ public final class VM_GreenProcessor extends VM_Processor {
       transferQueue.enqueue(t);
       // Enqueueing the GC thread means we wish to enter a GC
       requestYieldToGC();
-      transferMutex.unlock();      
-    } else if (this != getCurrentProcessor() || 
+      transferMutex.unlock();
+    } else if (this != getCurrentProcessor() ||
         (t.beingDispatched && t != VM_Scheduler.getCurrentThread())) {
       transferMutex.lock("thread transfer");
       transferQueue.enqueue(t);
@@ -566,7 +562,7 @@ public final class VM_GreenProcessor extends VM_Processor {
     VM.sysWriteInt(timeSliceExpired);
     VM.sysWrite("\n");
   }
-  
+
   /**
    * Fail if thread switching is disabled on this processor
    */

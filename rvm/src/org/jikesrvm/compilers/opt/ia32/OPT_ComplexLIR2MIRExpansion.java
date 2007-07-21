@@ -14,14 +14,12 @@ package org.jikesrvm.compilers.opt.ia32;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.compilers.opt.OPT_DefUse;
 import org.jikesrvm.compilers.opt.OPT_OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.BBend;
 import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.IfCmp;
 import org.jikesrvm.compilers.opt.ir.Label;
-import org.jikesrvm.compilers.opt.ir.Unary;
 import org.jikesrvm.compilers.opt.ir.MIR_BinaryAcc;
 import org.jikesrvm.compilers.opt.ir.MIR_Branch;
 import org.jikesrvm.compilers.opt.ir.MIR_Compare;
@@ -42,13 +40,14 @@ import org.jikesrvm.compilers.opt.ir.OPT_IRTools;
 import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
 import org.jikesrvm.compilers.opt.ir.OPT_IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_LongConstantOperand;
-import org.jikesrvm.compilers.opt.ir.OPT_Operand;
 import org.jikesrvm.compilers.opt.ir.OPT_MemoryOperand;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_2INT_opcode;
+import org.jikesrvm.compilers.opt.ir.OPT_Operand;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_IFCMP_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_2INT_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_IFCMP_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_ADD;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_CMP;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_CVTTSS2SI;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_IMUL2;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_JCC;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_JCC2;
@@ -64,9 +63,8 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_SHLD;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_SHR;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_SHRD;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_TEST;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_XOR;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_UCOMISS;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_CVTTSS2SI;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_XOR;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_IFCMP_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_MUL_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_SHL_opcode;
@@ -74,7 +72,9 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_SHR_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_USHR_opcode;
 import org.jikesrvm.compilers.opt.ir.OPT_Register;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
+import org.jikesrvm.compilers.opt.ir.Unary;
 import org.jikesrvm.compilers.opt.ir.ia32.OPT_IA32ConditionOperand;
+import org.jikesrvm.runtime.VM_Entrypoints;
 
 /**
  * Handles the conversion from LIR to MIR of operators whose
@@ -174,7 +174,7 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     f2iBB.appendInstruction(CPOS(s, MIR_Branch.create(IA32_JMP,
         nextBB.makeJumpTarget())));
     f2iBB.insertOut(nextBB);
-    
+
     // Did the compare find a NaN or a maximum integer?
     nanTestBB.appendInstruction(CPOS(s, MIR_CondBranch.create(IA32_JCC,
         OPT_IA32ConditionOperand.PE(),
@@ -190,13 +190,13 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     maxintBB.appendInstruction(CPOS(s, MIR_Branch.create(IA32_JMP,
         nextBB.makeJumpTarget())));
     maxintBB.insertOut(nextBB);
-    
+
     // In case of NaN result is 0
     nanBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
                                                     result.copyRO(),
                                                     IC(0))));
     nanBB.insertOut(nextBB);
-    return nextInstr; 
+    return nextInstr;
   }
 
   private static OPT_Instruction long_shl(OPT_Instruction s, OPT_IR ir) {

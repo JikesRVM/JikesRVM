@@ -23,7 +23,6 @@ import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.osr.OSR_BytecodeTraverser;
 import org.jikesrvm.runtime.VM_Time;
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.unboxed.Offset;
 
 /**

@@ -18,19 +18,17 @@ import java.io.PrintStream;
 import java.util.Arrays;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.VM_Atom;
-import org.jikesrvm.classloader.VM_BootstrapClassLoader;
 import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.classloader.VM_Field;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.objectmodel.VM_ThinLockConstants;
+import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Runtime;
-import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
 import org.jikesrvm.scheduler.greenthreads.VM_FileSystem;
+import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
 import org.jikesrvm.scheduler.greenthreads.VM_ThreadEventConstants;
 import org.jikesrvm.scheduler.greenthreads.VM_ThreadIOConstants;
 import org.jikesrvm.scheduler.greenthreads.VM_ThreadIOQueue;
@@ -51,7 +49,7 @@ public class GenerateInterfaceDeclarations {
 
   static {
     if (VM.BuildForIA32) {
-      arch = new org.jikesrvm.tools.header_gen.GenArch_ia32(); 
+      arch = new org.jikesrvm.tools.header_gen.GenArch_ia32();
     } else {
       arch = new org.jikesrvm.tools.header_gen.GenArch_ppc();
     }

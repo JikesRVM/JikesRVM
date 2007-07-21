@@ -1,7 +1,6 @@
 package org.jikesrvm.scheduler.nativethreads;
 
 import static org.jikesrvm.ia32.VM_StackframeLayoutConstants.STACK_SIZE_NORMAL;
-
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.scheduler.VM_Lock;
 import org.jikesrvm.scheduler.VM_Thread;

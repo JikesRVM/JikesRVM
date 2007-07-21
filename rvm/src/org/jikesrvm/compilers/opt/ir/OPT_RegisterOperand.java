@@ -12,9 +12,9 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
-import org.jikesrvm.classloader.VM_TypeReference;
-import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_TypeReference;
 
 /**
  * A symbolic or physical register.

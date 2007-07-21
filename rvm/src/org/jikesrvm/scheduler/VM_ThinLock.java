@@ -18,11 +18,11 @@ import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.objectmodel.VM_ThinLockConstants;
 import org.jikesrvm.runtime.VM_Magic;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
@@ -232,7 +232,7 @@ public final class VM_ThinLock implements VM_ThinLockConstants {
 
   @LogicallyUninterruptible
   private static void raiseIllegalMonitorStateException(String msg, Object o) {
-    throw new IllegalMonitorStateException(msg + o);    
+    throw new IllegalMonitorStateException(msg + o);
   }
 
   ////////////////////////////////////////////////////////////////

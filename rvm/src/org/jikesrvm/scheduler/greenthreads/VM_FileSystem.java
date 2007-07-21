@@ -20,9 +20,8 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Callbacks;
-import static org.jikesrvm.runtime.VM_SysCall.sysCall;
-
 import org.jikesrvm.runtime.VM_Magic;
+import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.jikesrvm.runtime.VM_Time;
 import org.jikesrvm.runtime.VM_TimeoutException;
 import org.jikesrvm.util.VM_StringUtilities;

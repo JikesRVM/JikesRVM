@@ -19,8 +19,8 @@ import org.jikesrvm.compilers.common.assembler.ppc.VM_Assembler;
 import org.jikesrvm.compilers.common.assembler.ppc.VM_AssemblerConstants;
 import org.jikesrvm.jni.ppc.VM_JNIStackframeLayoutConstants;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_ArchEntrypoints;
+import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.vmmagic.unboxed.Offset;
 

@@ -30,7 +30,7 @@ import org.jikesrvm.adaptive.recompilation.VM_InvocationCounts;
 import org.jikesrvm.adaptive.util.VM_AOSGenerator;
 import org.jikesrvm.adaptive.util.VM_AOSLogging;
 import org.jikesrvm.adaptive.util.VM_AOSOptions;
-import org.jikesrvm.scheduler.VM_Scheduler.ThreadModel;;
+import org.jikesrvm.scheduler.VM_Scheduler.ThreadModel;
 
 /**
  * This class implements the controller thread.  This entity is the brains of

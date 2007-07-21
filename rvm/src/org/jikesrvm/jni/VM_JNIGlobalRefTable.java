@@ -15,8 +15,8 @@ package org.jikesrvm.jni;
 import java.lang.ref.WeakReference;
 import org.jikesrvm.VM;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
-import org.vmmagic.unboxed.ObjectReference;
 import org.vmmagic.pragma.Entrypoint;
+import org.vmmagic.unboxed.ObjectReference;
 
 /**
  * Weak Global References are global references (negative numbers), with the

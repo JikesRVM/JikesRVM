@@ -38,7 +38,6 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.ARRAYLENGTH_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_2INT_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_2LONG_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_REM_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_2INT_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_2LONG_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_REM_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GET_ARRAY_ELEMENT_TIB_FROM_TIB_opcode;

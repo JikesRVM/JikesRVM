@@ -1,7 +1,7 @@
 package org.jikesrvm.scheduler.greenthreads;
 
 import org.jikesrvm.ArchitectureSpecific;
-import static org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants.*;
+import static org.jikesrvm.ArchitectureSpecific.VM_StackframeLayoutConstants.STACK_SIZE_NORMAL;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.OSR_Listener;
 import org.jikesrvm.adaptive.measurements.VM_RuntimeMeasurements;
@@ -19,8 +19,8 @@ import org.jikesrvm.scheduler.VM_Synchronization;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.LogicallyUninterruptible;
-import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.NoInline;
+import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -30,7 +30,7 @@ import org.vmmagic.unboxed.Offset;
 public class VM_GreenThread extends VM_Thread {
   /** Lock controlling the suspending of a thread */
   private static final Offset suspendPendingOffset = VM_Entrypoints.suspendPendingField.getOffset();
-  
+
   /**
    * Should this thread be suspended the next time it is considered
    * for scheduling? NB int as we CAS to modify it
@@ -40,7 +40,7 @@ public class VM_GreenThread extends VM_Thread {
   /**
    * This thread's successor on a queue.
    */
-  private VM_GreenThread next;  
+  private VM_GreenThread next;
 
   /**
    * ID of processor to run this thread (cycles for load balance)
@@ -65,8 +65,8 @@ public class VM_GreenThread extends VM_Thread {
    * Virtual processor that this thread wants to run on
    * (null --> any processor is ok).
    */
-  public VM_GreenProcessor processorAffinity;  
-  
+  public VM_GreenProcessor processorAffinity;
+
 
   /**
    * Create a thread with default stack and with the given name.
@@ -115,20 +115,20 @@ public class VM_GreenThread extends VM_Thread {
   /*
    * Queue support
    */
-  
+
   /**
-   * Get the next element after this thread in a thread queue 
+   * Get the next element after this thread in a thread queue
    */
   public VM_GreenThread getNext() {
     return next;
   }
   /**
-   * Set the next element after this thread in a thread queue 
+   * Set the next element after this thread in a thread queue
    */
   public void setNext(VM_GreenThread next) {
     this.next = next;
   }
-  
+
   /**
    * Update internal state of Thread and Scheduler to indicate that
    * a thread is about to start
@@ -137,7 +137,7 @@ public class VM_GreenThread extends VM_Thread {
   protected void registerThreadInternal() {
     VM_GreenScheduler.registerThread(this);
   }
-  
+
   /**
    * Start execution of 'this' by putting it on the given queue.
    * Precondition: If the queue is global, caller must have the appropriate mutex.
@@ -158,7 +158,7 @@ public class VM_GreenThread extends VM_Thread {
   public void block(VM_ThreadQueue entering, VM_ProcessorLock mutex) {
     yield(entering, mutex);
   }
-  
+
   /**
    * Unblock thread from heavyweight lock blocking
    * @see VM_Lock#unlockHeavy(Object)
@@ -457,7 +457,7 @@ public class VM_GreenThread extends VM_Thread {
    */
   @Interruptible
   @Override
-  protected void sleepInternal(long millis, int ns) throws InterruptedException { 
+  protected void sleepInternal(long millis, int ns) throws InterruptedException {
     wakeupCycle = VM_Time.cycles() + VM_Time.millisToCycles(millis);
     // cache the proxy before obtaining lock
     VM_ThreadProxy proxy = new VM_ThreadProxy(this, wakeupCycle);
@@ -465,7 +465,7 @@ public class VM_GreenThread extends VM_Thread {
       throw new InterruptedException("sleep interrupted");
     }
   }
-  
+
   /**
    * Uninterruptible portion of going to sleep
    * @return were we interrupted prior to going to sleep
@@ -480,7 +480,7 @@ public class VM_GreenThread extends VM_Thread {
     yield(VM_GreenScheduler.wakeupQueue, VM_GreenScheduler.wakeupMutex);
     return false;
   }
-  
+
   /**
    * Support for Java {@link java.lang.Object#wait()} synchronization primitive.
    *
@@ -500,7 +500,7 @@ public class VM_GreenThread extends VM_Thread {
   @Override
   @Interruptible
   protected Throwable waitInternal(Object o, long millis) {
-    return waitInternal2(o, true, millis);    
+    return waitInternal2(o, true, millis);
   }
   /**
    * Combine the two outer waitInternal into one bigger one
@@ -513,7 +513,7 @@ public class VM_GreenThread extends VM_Thread {
   private Throwable waitInternal2(Object o, boolean hasTimeout, long millis) {
     // Check early otherwise we'll fail an assert when creating the heavy lock
     if (!VM_ObjectModel.holdsLock(o, VM_Scheduler.getCurrentThread())) {
-      return new IllegalMonitorStateException("waiting on " + o);      
+      return new IllegalMonitorStateException("waiting on " + o);
     }
     // get lock for object
     VM_GreenLock l = (VM_GreenLock)VM_ObjectModel.getHeavyLock(o, true);
@@ -527,7 +527,7 @@ public class VM_GreenThread extends VM_Thread {
       proxy = new VM_ThreadProxy(this);
     } else {
       wakeupCycle = VM_Time.cycles() + VM_Time.millisToCycles(millis);
-      proxy = new VM_ThreadProxy(this, wakeupCycle);      
+      proxy = new VM_ThreadProxy(this, wakeupCycle);
     }
     // carry on to uninterruptible portion
     Throwable t = waitImpl(o, l, hasTimeout, millis, proxy);
@@ -559,7 +559,7 @@ public class VM_GreenThread extends VM_Thread {
         if (hasTimeout) {
           changeThreadState(State.RUNNABLE, State.TIMED_WAITING);
         } else {
-          changeThreadState(State.RUNNABLE, State.WAITING);        
+          changeThreadState(State.RUNNABLE, State.WAITING);
         }
       }
       // allow an entering thread a chance to get the lock
@@ -596,7 +596,7 @@ public class VM_GreenThread extends VM_Thread {
         if (hasTimeout) {
           changeThreadState(State.TIMED_WAITING, State.RUNNABLE);
         } else {
-          changeThreadState(State.WAITING, State.RUNNABLE);        
+          changeThreadState(State.WAITING, State.RUNNABLE);
         }
       }
       // regain lock
@@ -621,7 +621,7 @@ public class VM_GreenThread extends VM_Thread {
     VM_GreenLock l = (VM_GreenLock)lock;
     l.mutex.lock("notify mutex"); // until unlock(), thread-switching fatal
     VM_GreenThread t = l.waiting.dequeue();
-    
+
     if (t != null) {
       l.entering.enqueue(t);
     }
@@ -645,7 +645,7 @@ public class VM_GreenThread extends VM_Thread {
     }
     l.mutex.unlock(); // thread-switching benign
   }
-  
+
   /**
    * Put given thread onto the IO wait queue.
    * @param waitData the wait data specifying the file descriptor(s)
@@ -703,7 +703,7 @@ public class VM_GreenThread extends VM_Thread {
         t.schedule();
       }
     }
-    // TODO!! handle this thread executing native code   
+    // TODO!! handle this thread executing native code
   }
 
   /**
@@ -730,14 +730,14 @@ public class VM_GreenThread extends VM_Thread {
   final boolean suspendIfPending() {
     if (suspendPending == 1) {
       if(VM_Synchronization.tryCompareAndSwap(this, suspendPendingOffset, 1, 0)) {
-        // we turned the suspendPending flag off 
+        // we turned the suspendPending flag off
         return true;
       } else {
         // swap failed, so it must have been resumed prior to being suspended
         return false;
       }
     } else {
-      return false;     
+      return false;
     }
   }
   /**
@@ -753,16 +753,16 @@ public class VM_GreenThread extends VM_Thread {
       changeThreadState(VM_Thread.State.BLOCKED, State.RUNNABLE);
     VM_GreenProcessor.getCurrentProcessor().scheduleThread(this);
   }
-  
+
   /**
-   * Give a string of information on how a thread is set to be scheduled 
+   * Give a string of information on how a thread is set to be scheduled
    */
   @Override
   @Interruptible
   public String getThreadState() {
     return VM_GreenScheduler.getThreadState(this);
   }
-  
+
   /**
    * Is this thread suitable for putting on a queue?
    * @return whether the thread is terminated

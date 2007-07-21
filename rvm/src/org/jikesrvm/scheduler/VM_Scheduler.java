@@ -27,13 +27,12 @@ import org.jikesrvm.compilers.opt.VM_OptMachineCodeMap;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.runtime.VM_Magic;
-import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
-
 import static org.jikesrvm.runtime.VM_SysCall.sysCall;
+import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -46,7 +45,7 @@ import org.vmmagic.unboxed.Offset;
 @Uninterruptible
 public abstract class VM_Scheduler {
   private static final VM_Scheduler singleton = new VM_GreenScheduler();
-  
+
   public static class ThreadModel extends org.jikesrvm.scheduler.greenthreads.VM_GreenThread {
     public ThreadModel(byte[] stack, String s) {
       super(stack, s);
@@ -62,7 +61,7 @@ public abstract class VM_Scheduler {
   private static VM_Scheduler getScheduler() {
     return singleton;
   }
-  
+
   /** Toggle display of frame pointer address in stack dump */
   private static final boolean SHOW_FP_IN_STACK_DUMP = true;
 
@@ -230,7 +229,7 @@ public abstract class VM_Scheduler {
    * Scheduler dependent dump of state of virtual machine.
    */
   protected abstract void dumpVirtualMachineInternal();
-  
+
   /**
    * Dump state of virtual machine.
    */
@@ -252,7 +251,7 @@ public abstract class VM_Scheduler {
   public static void unlockOutput() {
     getScheduler().unlockOutputInternal();
   }
- 
+
   protected abstract void suspendDebuggerThreadInternal();
 
   static void suspendDebuggerThread() {
@@ -263,20 +262,20 @@ public abstract class VM_Scheduler {
    * Schedule another thread
    */
   protected abstract void yieldInternal();
-  
+
   /**
    * Schedule another thread
    */
   public static void yield() {
     getScheduler().yieldInternal();
   }
-  
+
   /**
    * Schedule thread waiting on l to give it a chance to acquire the lock
    * @param l the lock to allow other thread chance to acquire
    */
   protected abstract void yieldToOtherThreadWaitingOnLockInternal(VM_Lock l);
-  
+
   /**
    * Schedule thread waiting on l to give it a chance to acquire the lock
    * @param l the lock to allow other thread chance to acquire
@@ -284,7 +283,7 @@ public abstract class VM_Scheduler {
   static void yieldToOtherThreadWaitingOnLock(VM_Lock l) {
     getScheduler().yieldToOtherThreadWaitingOnLockInternal(l);
   }
-  
+
   /** Start the debugger thread */
   @Interruptible
   protected abstract void startDebuggerThreadInternal();
@@ -293,7 +292,7 @@ public abstract class VM_Scheduler {
   @Interruptible
   public static void startDebuggerThread() {
     getScheduler().startDebuggerThreadInternal();
-  }  
+  }
 
   /** Scheduler specific initialization */
   @Interruptible
@@ -304,11 +303,11 @@ public abstract class VM_Scheduler {
   public static void init() {
     getScheduler().initInternal();
   }
-  
+
   /** Scheduler specific boot up */
   @Interruptible
   protected abstract void bootInternal();
-  
+
     /** Scheduler specific boot up */
   @Interruptible
   public static void boot() {
@@ -323,27 +322,27 @@ public abstract class VM_Scheduler {
   public static void sysExit() {
     getScheduler().sysExitInternal();
   }
-  
+
 
   /**
    *  Number of available processors
-   *  @see Runtime#availableProcessors() 
+   *  @see Runtime#availableProcessors()
    */
   protected abstract int availableProcessorsInternal();
-  
+
   /**
    *  Number of available processors
-   *  @see Runtime#availableProcessors() 
+   *  @see Runtime#availableProcessors()
    */
   public static int availableProcessors() {
-    return getScheduler().availableProcessorsInternal();  
+    return getScheduler().availableProcessorsInternal();
   }
 
   /**
    *  Number of VM_Processors
    */
   protected abstract int getNumberOfProcessorsInternal();
-  
+
   /**
    *  Number of VM_Processors
    */
@@ -354,20 +353,20 @@ public abstract class VM_Scheduler {
    * Get the current executing thread on this VM_Processor
    */
   public static VM_Thread getCurrentThread() {
-    return VM_Processor.getCurrentThread();    
+    return VM_Processor.getCurrentThread();
   }
-  
+
   /*
    * MMTk interface
    */
-  
+
   /**
    * Returns if the VM is ready for a garbage collection.
    *
    * @return True if the RVM is ready for GC, false otherwise.
    */
   public abstract boolean gcEnabledInternal();
-  
+
   /**
    * Returns if the VM is ready for a garbage collection.
    *
@@ -402,7 +401,7 @@ public abstract class VM_Scheduler {
    * @see org.jikesrvm.mm.mmtk.Collection
    */
   public static void scheduleFinalizer() {
-    getScheduler().scheduleFinalizerInternal();      
+    getScheduler().scheduleFinalizerInternal();
   }
 
   /**
@@ -691,7 +690,7 @@ public abstract class VM_Scheduler {
           }
         } // end while
       } catch (Throwable t) {
-        VM.sysWriteln("Something bad killed the stack dump. The last frame pointer was: ", fp);        
+        VM.sysWriteln("Something bad killed the stack dump. The last frame pointer was: ", fp);
       }
     }
     --inDumpStack;
@@ -773,20 +772,20 @@ public abstract class VM_Scheduler {
       // Get out quick and dirty to avoid hanging.
       sysCall.sysExit(VM.EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN);
     }
-  }  
-  
+  }
+
   /**
    * Is it safe to start forcing garbage collects for stress testing?
    */
   protected abstract boolean safeToForceGCsInternal();
-  
+
   /**
    * Is it safe to start forcing garbage collects for stress testing?
    */
   public static boolean safeToForceGCs() {
-    return getScheduler().safeToForceGCsInternal(); 
+    return getScheduler().safeToForceGCsInternal();
   }
-  
+
   /**
    * Set up the initial thread and processors as part of boot image writing
    * @return the boot thread
@@ -803,7 +802,7 @@ public abstract class VM_Scheduler {
     if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
     return getScheduler().setupBootThreadInternal();
   }
-  
+
   /**
    * Get the type of the processor (to avoid guarded inlining..)
    */

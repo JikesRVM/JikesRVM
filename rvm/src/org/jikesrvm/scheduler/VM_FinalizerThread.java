@@ -17,8 +17,7 @@ import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Reflection;
-import org.jikesrvm.scheduler.greenthreads.VM_GreenThread;
-import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
+
 /**
  * Finalizer thread.
  *

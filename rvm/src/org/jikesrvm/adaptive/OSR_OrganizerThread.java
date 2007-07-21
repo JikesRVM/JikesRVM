@@ -14,8 +14,8 @@ package org.jikesrvm.adaptive;
 
 import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.runtime.VM_Entrypoints;
-import org.jikesrvm.scheduler.VM_Synchronization;
 import org.jikesrvm.scheduler.VM_Scheduler;
+import org.jikesrvm.scheduler.VM_Synchronization;
 import org.jikesrvm.scheduler.greenthreads.VM_GreenThread;
 import org.jikesrvm.scheduler.greenthreads.VM_GreenThreadQueue;
 import org.vmmagic.pragma.Uninterruptible;
@@ -57,7 +57,7 @@ import org.vmmagic.pragma.Uninterruptible;
 public final class OSR_OrganizerThread extends VM_GreenThread {
   /** Constructor */
   public OSR_OrganizerThread() {
-    super("OSR_Organizer");    
+    super("OSR_Organizer");
     makeDaemon(true);
   }
 

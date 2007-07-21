@@ -12,9 +12,9 @@
  */
 package org.jikesrvm.runtime;
 
-import org.jikesrvm.classloader.VM_NormalMethod;
-import org.jikesrvm.classloader.VM_Field;
 import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_Field;
+import org.jikesrvm.classloader.VM_NormalMethod;
 
 /**
  * Entrypoints that are specific to instruction architecture.

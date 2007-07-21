@@ -13,12 +13,12 @@
 package org.jikesrvm.compilers.opt;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.adaptive.VM_AosEntrypoints;
 import static org.jikesrvm.VM_Constants.LOG_BYTES_IN_ADDRESS;
 import static org.jikesrvm.VM_Constants.LOG_BYTES_IN_INT;
 import static org.jikesrvm.VM_Constants.NEEDS_DYNAMIC_LINK;
 import static org.jikesrvm.VM_Constants.TIB_IMT_TIB_INDEX;
 import static org.jikesrvm.VM_Constants.TIB_ITABLES_TIB_INDEX;
+import org.jikesrvm.adaptive.VM_AosEntrypoints;
 import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.classloader.VM_Field;
 import org.jikesrvm.classloader.VM_InterfaceInvocation;

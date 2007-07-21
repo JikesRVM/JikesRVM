@@ -42,18 +42,18 @@ import org.jikesrvm.scheduler.VM_Lock;
 import org.jikesrvm.scheduler.VM_MainThread;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
 import org.jikesrvm.scheduler.VM_Synchronization;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.scheduler.greenthreads.JikesRVMSocketImpl;
 import org.jikesrvm.scheduler.greenthreads.VM_FileSystem;
+import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.UninterruptibleNoWarn;
-import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.ObjectReference;
@@ -65,12 +65,12 @@ import org.vmmagic.unboxed.Word;
  */
 @Uninterruptible
 public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
-  
+
   /**
    * Reference to the main thread that is the first none VM thread run
    */
   public static VM_MainThread mainThread;
-  
+
   //----------------------------------------------------------------------//
   //                          Initialization.                             //
   //----------------------------------------------------------------------//
@@ -308,9 +308,9 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     VM_Scheduler.boot();
     VM_DynamicLibrary.boot();
 
-    if (verboseBoot >= 1) VM.sysWriteln("Setting up boot thread");    
+    if (verboseBoot >= 1) VM.sysWriteln("Setting up boot thread");
     VM_Scheduler.getCurrentThread().setupBootThread();
-    
+
     // Create JNI Environment for boot thread.
     // After this point the boot thread can invoke native methods.
     org.jikesrvm.jni.VM_JNIEnvironment.boot();
@@ -323,7 +323,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     runClassInitializer("java.lang.Math");
     runClassInitializer("gnu.java.nio.VMChannel");
     runClassInitializer("gnu.java.nio.FileChannelImpl");
-    
+
     runClassInitializer("java.io.FileDescriptor");
     runClassInitializer("java.util.jar.JarFile");
 

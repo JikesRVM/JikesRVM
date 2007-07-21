@@ -19,7 +19,6 @@ import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.compilers.opt.OPT_MagicNotImplementedException;
 import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.CacheOp;
-import org.jikesrvm.compilers.opt.ir.Empty;
 import org.jikesrvm.compilers.opt.ir.GetField;
 import org.jikesrvm.compilers.opt.ir.Load;
 import org.jikesrvm.compilers.opt.ir.Move;
@@ -33,11 +32,10 @@ import org.jikesrvm.compilers.opt.ir.OPT_Operators;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_TrueGuardOperand;
 import org.jikesrvm.compilers.opt.ir.Store;
-import org.jikesrvm.ia32.VM_ArchConstants;
 import org.jikesrvm.ia32.VM_StackframeLayoutConstants;
+import org.jikesrvm.runtime.VM_ArchEntrypoints;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_MagicNames;
-import org.jikesrvm.runtime.VM_ArchEntrypoints;
 
 /**
  * This class implements the machine-specific magics for the opt compiler.

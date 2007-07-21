@@ -22,8 +22,8 @@ import org.jikesrvm.classloader.VM_MethodReference;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.vmmagic.pragma.DynamicBridge;
-import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Entrypoint;
+import org.vmmagic.pragma.NoInline;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 

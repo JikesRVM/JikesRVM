@@ -18,10 +18,9 @@ import org.jikesrvm.VM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_ProcessorContext;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.pragma.LogicallyUninterruptible;
-import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -236,7 +235,7 @@ public abstract class VM_Processor extends MM_ProcessorContext implements VM_Con
   private int lockCount;
 
   private final String[] lockReasons = VM.VerifyAssertions ? new String[100] : null;
-  
+
   public void registerLock(String reason) {
     VM_Magic.setObjectAtOffset(lockReasons, Offset.fromIntSignExtend(lockCount<<2), reason);
     lockCount ++;
@@ -251,7 +250,7 @@ public abstract class VM_Processor extends MM_ProcessorContext implements VM_Con
       VM.sysWriteln(" but ", lockCount);
       for (int j=0; j < lockCount; j++) {
         VM.sysWrite("Processor lock ", j);
-        VM.sysWriteln(" acquired for ", lockReasons[j]);        
+        VM.sysWriteln(" acquired for ", lockReasons[j]);
       }
       VM_Scheduler.dumpStack();
     }
@@ -413,12 +412,12 @@ public abstract class VM_Processor extends MM_ProcessorContext implements VM_Con
    * @param reason for disabling thread switching
    */
   public abstract void disableThreadSwitching(String reason);
-  
+
   /**
    * Enable thread switching in this processor.
    */
   public abstract void enableThreadSwitching();
-  
+
   /**
    * Fail if thread switching is disabled on this processor
    */

@@ -12,8 +12,8 @@
  */
 package org.jikesrvm.ia32;
 
-import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_ArchEntrypoints;
+import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;

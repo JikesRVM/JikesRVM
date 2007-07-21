@@ -18,8 +18,8 @@ import java.util.HashSet;
 import java.util.NoSuchElementException;
 import org.jikesrvm.ArchitectureSpecific.OPT_RegisterPool;
 import org.jikesrvm.VM;
-import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.adaptive.VM_AosEntrypoints;
+import org.jikesrvm.adaptive.controller.VM_Controller;
 import org.jikesrvm.classloader.VM_Array;
 import org.jikesrvm.classloader.VM_BytecodeConstants;
 import org.jikesrvm.classloader.VM_BytecodeStream;
@@ -192,7 +192,7 @@ public final class OPT_BC2IR
    * OSR: used for PSEUDO_InvokeStatic to recover the type info
    */
   private int param1, param2;
-  
+
   /**
    * osr barrier needs type information of locals and stacks,
    * it has to be created before a _callHelper.

@@ -20,16 +20,13 @@ import org.jikesrvm.osr.OSR_ObjectHolder;
 import org.jikesrvm.runtime.VM_BootRecord;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
+import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.jikesrvm.scheduler.VM_DebuggerThread;
 import org.jikesrvm.scheduler.VM_FinalizerThread;
 import org.jikesrvm.scheduler.VM_Lock;
 import org.jikesrvm.scheduler.VM_ProcessorLock;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
-import org.jikesrvm.scheduler.greenthreads.VM_IdleThread;
-import org.jikesrvm.scheduler.greenthreads.VM_GreenThreadQueue;
-
-import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
@@ -335,18 +332,18 @@ public final class VM_GreenScheduler extends VM_Scheduler {
    * Get the current executing thread on this VM_Processor
    */
   public static VM_GreenThread getCurrentThread() {
-    return (VM_GreenThread)VM_GreenProcessor.getCurrentProcessor().activeThread;    
+    return (VM_GreenThread)VM_GreenProcessor.getCurrentProcessor().activeThread;
   }
-  
+
   /**
    *  Number of available processors
-   *  @see Runtime#availableProcessors() 
+   *  @see Runtime#availableProcessors()
    */
   @Override
   protected int availableProcessorsInternal() {
     return numProcessors;
   }
-  
+
   /**
    * Schedule the finalizer thread if its not already running
    * @see org.jikesrvm.mm.mmtk.Collection
@@ -498,7 +495,7 @@ public final class VM_GreenScheduler extends VM_Scheduler {
   }
 
   /**
-   * Give a string of information on how a thread is set to be scheduled 
+   * Give a string of information on how a thread is set to be scheduled
    */
   @Interruptible
   static String getThreadState(VM_GreenThread t) {
@@ -549,7 +546,7 @@ public final class VM_GreenScheduler extends VM_Scheduler {
     if (thread.isDaemonThread()) numDaemons += 1;
     threadCreationMutex.unlock();
   }
-  
+
   /**
    * Schedule another thread
    */
@@ -583,7 +580,7 @@ public final class VM_GreenScheduler extends VM_Scheduler {
     VM_GreenLock l = (VM_GreenLock)lock;
     VM_GreenScheduler.getCurrentThread().yield(l.entering, l.mutex); // thread-switching benign
   }
-  
+
   /**
    * Is it safe to start forcing garbage collects for stress testing?
    */
@@ -592,7 +589,7 @@ public final class VM_GreenScheduler extends VM_Scheduler {
     return VM_GreenScheduler.allProcessorsInitialized &&
     VM_GreenProcessor.getCurrentProcessor().threadSwitchingEnabled();
   }
-  
+
   /**
    * Set up the initial thread and processors as part of boot image writing
    * @return the boot thread
@@ -607,7 +604,7 @@ public final class VM_GreenScheduler extends VM_Scheduler {
     processors[initProc].activeThread = startupThread;
     return startupThread;
   }
-  
+
   /**
    * Get the type of the processor (to avoid guarded inlining..)
    */

@@ -22,7 +22,6 @@ import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
 
 /**
@@ -138,7 +137,7 @@ public abstract class VM_Lock implements VM_Constants {
   public static int unlockOperations;
   /** Number of deflations */
   public static int deflations;
-  
+
   /**
    * Acquires this heavy-weight lock on the indicated object.
    *
@@ -204,7 +203,7 @@ public abstract class VM_Lock implements VM_Constants {
     return lockedObject;
   }
 
-  
+
   /**
    * Sets up the data structures for holding heavy-weight locks.
    */
@@ -433,7 +432,7 @@ public abstract class VM_Lock implements VM_Constants {
    * Is this thread t waiting on this lock?
    */
   protected abstract boolean isWaiting(VM_Thread t);
-  
+
   /**
    * scan lock queues for thread and report its state
    */
@@ -447,7 +446,7 @@ public abstract class VM_Lock implements VM_Constants {
     }
     return null;
   }
-  
+
   //////////////////////////////////////////////
   //             Statistics                   //
   //////////////////////////////////////////////

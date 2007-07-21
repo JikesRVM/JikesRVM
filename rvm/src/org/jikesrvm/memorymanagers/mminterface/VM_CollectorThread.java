@@ -23,8 +23,8 @@ import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Synchronization;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.scheduler.greenthreads.VM_GreenProcessor;
-import org.jikesrvm.scheduler.greenthreads.VM_GreenThread;
 import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
+import org.jikesrvm.scheduler.greenthreads.VM_GreenThread;
 import org.mmtk.plan.Plan;
 import org.mmtk.utility.heap.HeapGrowthManager;
 import org.mmtk.utility.options.Options;
@@ -39,10 +39,10 @@ import org.vmmagic.unboxed.Offset;
 
 /**
  * System thread used to preform garbage collections.
- * 
+ *
  * These threads are created by VM.boot() at runtime startup. One is created for
  * each VM_Processor that will (potentially) participate in garbage collection.
- * 
+ *
  * <pre>
  * Its &quot;run&quot; method does the following:
  *    1. wait for a collection request
@@ -51,7 +51,7 @@ import org.vmmagic.unboxed.Offset;
  *    4. synchronize with other collector threads (resume mutation)
  *    5. goto 1
  * </pre>
- * 
+ *
  * Between collections, the collector threads reside on the VM_Scheduler
  * collectorQueue. A collection in initiated by a call to the static
  * {@link #collect()} method, which calls
@@ -59,11 +59,11 @@ import org.vmmagic.unboxed.Offset;
  * threads and schedule them for execution. The collection commences when all
  * scheduled collector threads arrive at the first "rendezvous" in the run
  * methods run loop.
- * 
+ *
  * An instance of VM_Handshake contains state information for the "current"
  * collection. When a collection is finished, a new VM_Handshake is allocated
  * for the next garbage collection.
- * 
+ *
  * @see VM_Handshake
  */
 public final class VM_CollectorThread extends VM_GreenThread {
@@ -116,7 +116,7 @@ public final class VM_CollectorThread extends VM_GreenThread {
 
   /** Use by collector threads to rendezvous during collection */
   public static SynchronizationBarrier gcBarrier;
-  
+
   /** The base collection attempt */
   public static int collectionAttemptBase = 0;
 
@@ -136,10 +136,10 @@ public final class VM_CollectorThread extends VM_GreenThread {
   int timeInRendezvous;
 
   static boolean gcThreadRunning;
-  
+
   /** The thread to use to determine stack traces if Throwables are created **/
   private Address stackTraceThread;
-  
+
   /** @return the thread scanner instance associated with this instance */
   @Uninterruptible
   public final ScanThread getThreadScanner() { return threadScanner; }
@@ -184,7 +184,7 @@ public final class VM_CollectorThread extends VM_GreenThread {
   public boolean isGCThread() {
     return true;
   }
-  
+
   /**
    * Get the thread to use for building stack traces.
    */
@@ -360,7 +360,7 @@ public final class VM_CollectorThread extends VM_GreenThread {
 
       gcOrdinal = VM_Synchronization.fetchAndAdd(participantCount, Offset.zero(), 1) + 1;
       long startCycles = VM_Time.cycles();
-      
+
       if (verbose > 2) VM.sysWriteln("GC Message: VM_CT.run entering first rendezvous - gcOrdinal =", gcOrdinal);
 
       boolean userTriggered = handshake.gcTrigger == Collection.EXTERNAL_GC_TRIGGER;
@@ -377,29 +377,29 @@ public final class VM_CollectorThread extends VM_GreenThread {
         if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run  starting collection");
         if (isActive) Selected.Collector.get().collect(); // gc
         if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run  finished collection");
-  
+
         gcBarrier.rendezvous(5200);
-  
+
         if (gcOrdinal == 1) {
           long elapsedCycles = VM_Time.cycles() - startCycles;
           HeapGrowthManager.recordGCTime(VM_Time.cyclesToMillis(elapsedCycles));
           if (Selected.Plan.get().lastCollectionFullHeap()) {
-            if (Options.variableSizeHeap.getValue() && !userTriggered) { 
+            if (Options.variableSizeHeap.getValue() && !userTriggered) {
               // Don't consider changing the heap size if gc was forced by System.gc()
               HeapGrowthManager.considerHeapSize();
             }
             HeapGrowthManager.reset();
           }
-  
+
           /* Snip reference to any methods that are still marked
            * obsolete after we've done stack scans. This allows
            * reclaiming them on the next GC. */
           VM_CompiledMethods.snipObsoleteCompiledMethods();
-  
+
           collectionCount += 1;
           collectionAttemptBase++;
         }
-        
+
         startCycles = VM_Time.cycles();
         gcBarrier.rendezvous(5201);
       } while (Selected.Plan.get().lastCollectionFailed() && !Selected.Plan.get().isEmergencyCollection());
@@ -407,13 +407,13 @@ public final class VM_CollectorThread extends VM_GreenThread {
       if (gcOrdinal == 1) {
         /* If the collection failed, we may need to throw OutOfMemory errors.
          * As we have not cleared the GC flag, allocation is not budgeted.
-         * 
+         *
          * This is not flawless in the case we physically can not allocate
          * anything right after a GC, but that case is unlikely (we can
          * not make it happen) and is a lot of work to get around. */
         if (Selected.Plan.get().isEmergencyCollection()) {
           Plan.startEmergencyAllocation();
-          boolean gcFailed = Selected.Plan.get().lastCollectionFailed(); 
+          boolean gcFailed = Selected.Plan.get().lastCollectionFailed();
           // Allocate OOMEs (some of which *may* not get used)
           for(int t=0; t <= VM_Scheduler.getThreadHighWatermark(); t++) {
             VM_Thread thread = VM_Scheduler.threads[t];
@@ -502,7 +502,7 @@ public final class VM_CollectorThread extends VM_GreenThread {
     thread.setOutOfMemoryError(new OutOfMemoryError());
     this.clearThreadForStackTrace();
   }
-  
+
   /*
   @Uninterruptible
   public static void printThreadWaitTimes() {

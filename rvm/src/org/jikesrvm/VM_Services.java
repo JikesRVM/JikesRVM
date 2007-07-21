@@ -16,9 +16,9 @@ import org.jikesrvm.mm.mmtk.Barriers;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Synchronization;
+import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -272,7 +272,7 @@ public class VM_Services {
   @NoInline
   public static void breakStub() {
   }
-  
+
   static void println() { VM.sysWrite("\n"); }
 
   static void print(String s) { VM.sysWrite(s); }
@@ -319,5 +319,5 @@ public class VM_Services {
     }
     print("% of ");
     println(quantity);
-  } 
+  }
 }
