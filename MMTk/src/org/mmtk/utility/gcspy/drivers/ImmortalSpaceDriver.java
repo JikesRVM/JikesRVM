@@ -12,7 +12,7 @@
  */
 package org.mmtk.utility.gcspy.drivers;
 
-import org.mmtk.policy.Space;
+import org.mmtk.policy.ContiguousSpace;
 import org.mmtk.utility.scan.MMType;
 import org.mmtk.utility.Log;
 import org.mmtk.vm.gcspy.ServerInterpreter;
@@ -48,7 +48,7 @@ import org.vmmagic.pragma.*;
   public ImmortalSpaceDriver(
                      ServerInterpreter server,
 		             String spaceName,
-                     Space mmtkSpace,
+                     ContiguousSpace mmtkSpace,
                      int blockSize,
                      boolean mainSpace) {
 
@@ -109,5 +109,4 @@ import org.vmmagic.pragma.*;
   public void registerDriversForReferenceNotification(AbstractDriver[] drivers) {
     this.registeredDrivers = drivers;
   }
-
 }

@@ -45,19 +45,12 @@ import org.vmmagic.unboxed.*;
  */
 @Uninterruptible public abstract class Space implements Constants {
 
-  /****************************************************************************
-   *
-   * Class variables
-   */
-
-  private static boolean DEBUG = false;
-
   // the following is somewhat arbitrary for the 64 bit system at this stage
   private static final int LOG_ADDRESS_SPACE = (BYTES_IN_ADDRESS == 4) ? 32 : 40;
-  private static Address HEAP_START = chunkAlign(VM.HEAP_START, true);
+  protected static Address HEAP_START = chunkAlign(VM.HEAP_START, true);
   private static Address AVAILABLE_START = chunkAlign(VM.AVAILABLE_START, false);
   private static Address AVAILABLE_END = chunkAlign(VM.AVAILABLE_END, true);
-  private static Extent AVAILABLE_BYTES = AVAILABLE_END.toWord().minus(AVAILABLE_START.toWord()).toExtent();
+  protected static Extent AVAILABLE_BYTES = AVAILABLE_END.toWord().minus(AVAILABLE_START.toWord()).toExtent();
   public static final Address HEAP_END = chunkAlign(VM.HEAP_END, false);
 
   public static final int LOG_BYTES_IN_CHUNK = 22;
@@ -73,20 +66,18 @@ import org.vmmagic.unboxed.*;
 
   private static int spaceCount = 0;
   private static Space[] spaces = new Space[MAX_SPACES];
-  private static Address heapCursor = HEAP_START;
-  private static Address heapLimit = HEAP_END;
+  protected static Address heapCursor = HEAP_START;
+  protected static Address heapLimit = HEAP_END;
 
   /****************************************************************************
    *
    * Instance variables
    */
-  private int descriptor;
-  private int index;
-  private String name;
-  protected Address start;
-  protected Extent extent;
-  protected boolean immortal;
-  protected boolean movable;
+  private final int descriptor;
+  private final int index;
+  private final String name;
+  private final boolean immortal;
+  private final boolean movable;
 
   private boolean allocationFailed;
   protected PageResource pr;
@@ -108,174 +99,15 @@ import org.vmmagic.unboxed.*;
    * @param name The name of this space (used when printing error messages etc)
    * @param movable Are objects in this space movable?
    * @param immortal Are objects in this space immortal (uncollected)?
-   * @param start The start address of the space in virtual memory
-   * @param bytes The size of the space in virtual memory, in bytes
    */
-  Space(String name, boolean movable, boolean immortal, Address start,
-      Extent bytes) {
+  Space(String name, boolean movable, boolean immortal, int descriptor) {
     this.name = name;
     this.movable = movable;
     this.immortal = immortal;
-    this.start = start;
+    this.descriptor = descriptor;
     index = spaceCount++;
     spaces[index] = this;
-
-    /* ensure requests are chunk aligned */
-    if (bytes.NE(chunkAlign(bytes, false))) {
-      Log.write("Warning: ");
-      Log.write(name);
-      Log.write(" space request for ");
-      Log.write(bytes.toLong()); Log.write(" bytes rounded up to ");
-      bytes = chunkAlign(bytes, false);
-      Log.write(bytes.toLong()); Log.writeln(" bytes");
-      Log.writeln("(requests should be Space.BYTES_IN_CHUNK aligned)");
-    }
-    this.extent = bytes;
-
-    VM.memory.setHeapRange(index, start, start.plus(bytes));
-    createDescriptor(false);
-    Map.insert(start, extent, descriptor, this);
-
-    if (DEBUG) {
-      Log.write(name); Log.write(" ");
-      Log.write(start); Log.write(" ");
-      Log.write(start.plus(extent)); Log.write(" ");
-      Log.writeln(bytes.toWord());
-    }
   }
-
-  /**
-   * Construct a space of a given number of megabytes in size.<p>
-   *
-   * The caller specifies the amount virtual memory to be used for
-   * this space <i>in megabytes</i>.  If there is insufficient address
-   * space, then the constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param movable Are objects in this space movable?
-   * @param immortal Are objects in this space immortal (uncollected)?
-   * @param mb The size of the space in virtual memory, in megabytes (MB)
-   */
-  Space(String name, boolean movable, boolean immortal, int mb) {
-    this(name, movable, immortal, heapCursor,
-         Word.fromIntSignExtend(mb).lsh(LOG_BYTES_IN_MBYTE).toExtent());
-    heapCursor = heapCursor.plus(extent);
-    if (heapCursor.GT(heapLimit)) {
-      Log.write("Out of virtual address space allocating \"");
-      Log.write(name); Log.write("\" at ");
-      Log.write(heapCursor.minus(extent)); Log.write(" (");
-      Log.write(heapCursor); Log.write(" > ");
-      Log.write(heapLimit); Log.writeln(")");
-      VM.assertions.fail("exiting");
-    }
-  }
-
-  /**
-   * Construct a space that consumes a given fraction of the available
-   * virtual memory.<p>
-   *
-   * The caller specifies the amount virtual memory to be used for
-   * this space <i>as a fraction of the total available</i>.  If there
-   * is insufficient address space, then the constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param movable Are objects in this space movable?
-   * @param immortal Are objects in this space immortal (uncollected)?
-   * @param frac The size of the space in virtual memory, as a
-   * fraction of all available virtual memory
-   */
-  Space(String name, boolean movable, boolean immortal, float frac) {
-    this(name, movable, immortal, heapCursor, getFracAvailable(frac));
-    heapCursor = heapCursor.plus(extent);
-  }
-
-  /**
-   * Construct a space that consumes a given number of megabytes of
-   * virtual memory, at either the top or bottom of the available
-   * virtual memory.
-   *
-   * The caller specifies the amount virtual memory to be used for
-   * this space <i>in megabytes</i>, and whether it should be at the
-   * top or bottom of the available virtual memory.  If the request
-   * clashes with existing virtual memory allocations, then the
-   * constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param movable Are objects in this space movable?
-   * @param immortal Are objects in this space immortal (uncollected)?
-   * @param mb The size of the space in virtual memory, in megabytes (MB)
-   * @param top Should this space be at the top (or bottom) of the
-   * available virtual memory.
-   */
-  Space(String name, boolean movable, boolean immortal, int mb, boolean top) {
-    this(name, movable, immortal,
-         Word.fromIntSignExtend(mb).lsh(LOG_BYTES_IN_MBYTE).toExtent(), top);
-  }
-
-  /**
-   * Construct a space that consumes a given fraction of the available
-   * virtual memory, at either the top or bottom of the available
-   *          virtual memory.
-   *
-   * The caller specifies the amount virtual memory to be used for
-   * this space <i>as a fraction of the total available</i>, and
-   * whether it should be at the top or bottom of the available
-   * virtual memory.  If the request clashes with existing virtual
-   * memory allocations, then the constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param movable Are objects in this space movable?
-   * @param immortal Are objects in this space immortal (uncollected)?
-   * @param frac The size of the space in virtual memory, as a
-   * fraction of all available virtual memory
-   * @param top Should this space be at the top (or bottom) of the
-   * available virtual memory.
-   */
-  Space(String name, boolean movable, boolean immortal, float frac,
-        boolean top) {
-    this(name, movable, immortal, getFracAvailable(frac), top);
-  }
-
-  /**
-   * This is a private constructor that creates a contigious space at
-   * the top or bottom of the available virtual memory, if
-   * possible.<p>
-   *
-   * The caller specifies the size of the region of virtual memory and
-   * whether it should be at the top or bottom of the available
-   * address space.  If this region conflicts with an existing space,
-   * then the constructor will fail.
-   *
-   * @param name The name of this space (used when printing error messages etc)
-   * @param movable Are objects in this space movable?
-   * @param immortal Are objects in this space immortal (uncollected)?
-   * @param bytes The size of the space in virtual memory, in bytes
-   * @param top Should this space be at the top (or bottom) of the
-   * available virtual memory.
-   */
-  private Space(String name, boolean movable, boolean immortal, Extent bytes,
-      boolean top) {
-    this(name, movable, immortal, (top) ? heapLimit.minus(bytes) : HEAP_START,
-        bytes);
-    if (top) { // request for the top of available memory
-      /*      if (heapLimit.NE(HEAP_END)) {
-        Log.write("Unable to satisfy virtual address space request \"");
-        Log.write(name); Log.write("\" at ");
-        Log.writeln(heapLimit);
-        VM.assertions.fail("exiting");
-	} */
-      heapLimit = heapLimit.minus(extent);
-    } else { // request for the bottom of available memory
-      if (heapCursor.GT(HEAP_START)) {
-        Log.write("Unable to satisfy virtual address space request \"");
-        Log.write(name); Log.write("\" at ");
-        Log.writeln(heapCursor);
-        VM.assertions.fail("exiting");
-      }
-      heapCursor = heapCursor.plus(extent);
-    }
-  }
-
 
   /****************************************************************************
    *
@@ -284,12 +116,6 @@ import org.vmmagic.unboxed.*;
 
   /** Name getter @return The name of this space */
   public final String getName() { return name; }
-
-  /** Start getter @return The start address of this space */
-  public final Address getStart() { return start; }
-
-  /** Extent getter @return The size (extent) of this space */
-  public final Extent getExtent() { return extent; }
 
   /** Descriptor method @return The integer descriptor for this space */
   public final int getDescriptor() { return descriptor; }
@@ -555,10 +381,11 @@ import org.vmmagic.unboxed.*;
     for (int i = 0; i < spaceCount; i++) {
       Space space = spaces[i];
       Log.write(space.name); Log.write(" ");
-      Log.write(space.start); Log.write("->");
-      Log.writeln(space.start.plus(space.extent.minus(1)));
+      space.printVMRange();
     }
   }
+
+  protected abstract void printVMRange();
 
   /**
    * Ensure that all MMTk spaces (all spaces aside from the VM space)
@@ -572,16 +399,20 @@ import org.vmmagic.unboxed.*;
       if (space != VM.memory.getVMSpace()) {
         if (Options.verbose.getValue() > 2) {
           Log.write("Mapping ");
-          Log.write(space.name);
+          Log.write(space.getName());
           Log.write(" ");
-          Log.write(space.start);
-          Log.write("->");
-          Log.writeln(space.start.plus(space.extent.minus(1)));
+          space.printVMRange();
         }
-        Mmapper.ensureMapped(space.start, space.extent.toInt()>>LOG_BYTES_IN_PAGE);
+        space.ensureMapped();
       }
     }
   }
+
+  /**
+   * Ensure that this space is mapped.
+   * Demand zero map all of them if they are not already mapped.
+   */
+  protected abstract void ensureMapped();
 
   /**
    * Print out the memory used by all spaces in either megabytes or
@@ -669,43 +500,5 @@ import org.vmmagic.unboxed.*;
   private static Address chunkAlign(Address addr, boolean down) {
     if (!down) addr = addr.plus(BYTES_IN_CHUNK - 1);
     return addr.toWord().rshl(LOG_BYTES_IN_CHUNK).lsh(LOG_BYTES_IN_CHUNK).toAddress();
-  }
-
-  /**
-   * Align an extent to a space chunk
-   *
-   * @param bytes The extent to be aligned
-   * @param down If true the address will be rounded down, otherwise
-   * it will rounded up.
-   */
-  private static Extent chunkAlign(Extent bytes, boolean down) {
-    if (!down) bytes = bytes.plus(BYTES_IN_CHUNK - 1);
-    return bytes.toWord().rshl(LOG_BYTES_IN_CHUNK).lsh(LOG_BYTES_IN_CHUNK).toExtent();
-  }
-
-  /**
-   * Initialize/create the descriptor for this space
-   *
-   * @param shared True if this is a shared (discontigious) space
-   */
-  private void createDescriptor(boolean shared) {
-    if (shared)
-      descriptor = SpaceDescriptor.createDescriptor();
-    else
-      descriptor = SpaceDescriptor.createDescriptor(start, start.plus(extent));
-  }
-
-  /**
-   * Convert a fraction into a number of bytes according to the
-   * fraction of available bytes.
-   *
-   * @param frac The fraction of avialable virtual memory desired
-   * @return The corresponding number of bytes, chunk-aligned.
-   */
-  private static Extent getFracAvailable(float frac) {
-    long bytes = (long) (frac * AVAILABLE_BYTES.toLong());
-    Word mb = Word.fromIntSignExtend((int) (bytes >> LOG_BYTES_IN_MBYTE));
-    Extent rtn = mb.lsh(LOG_BYTES_IN_MBYTE).toExtent();
-    return chunkAlign(rtn, false);
   }
 }

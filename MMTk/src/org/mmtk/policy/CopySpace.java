@@ -26,8 +26,8 @@ import org.vmmagic.pragma.*;
  * space.  Since no state needs to be held globally or locally, all
  * methods are static.
  */
-@Uninterruptible public final class CopySpace extends Space
-  implements Constants {
+@Uninterruptible public final class CopySpace extends ContiguousSpace 
+    implements Constants {
 
   /****************************************************************************
    *

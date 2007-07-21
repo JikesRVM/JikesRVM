@@ -25,8 +25,7 @@ import org.vmmagic.pragma.*;
  * This class implements functionality for a simple sliding mark-compact
  * space.
  */
-@Uninterruptible public final class MarkCompactSpace extends Space
-  implements Constants {
+@Uninterruptible public final class MarkCompactSpace extends ContiguousSpace implements Constants {
 
   /****************************************************************************
    *

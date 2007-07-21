@@ -27,8 +27,7 @@ import org.vmmagic.unboxed.*;
  * This class provides access to raw memory for managing internal meta
  * data.
  */
-@Uninterruptible public final class RawPageSpace extends Space
-  implements Constants {
+@Uninterruptible public final class RawPageSpace extends ContiguousSpace implements Constants {
 
   /**
    * The caller specifies the region of virtual memory to be used for
