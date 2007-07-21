@@ -627,8 +627,6 @@ public abstract class VM_Scheduler {
     }
 
     VM.sysWriteln();
-    VM.sysWrite("PLO SPACE START: ", Selected.Plan.ploSpace.getStart());
-    VM.sysWrite("PLO SPACE END: ", Selected.Plan.ploSpace.getStart().plus(Selected.Plan.ploSpace.getExtent()));
     if (fp.LT(Selected.Plan.ploSpace.getStart()) || fp.GT(Selected.Plan.ploSpace.getStart().plus(Selected.Plan.ploSpace.getExtent()))) {
       VM.sysWrite("Bogus looking frame pointer: ", fp);
       VM.sysWriteln(" not dumping stack");
