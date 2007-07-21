@@ -24,6 +24,8 @@ package test.org.jikesrvm.tbench;
  * @link http://www.sics.se/~joe/ericsson/du98024.html
  */
 public class Zog extends Thread {
+  private static final boolean DEBUG = false;
+
   private Zog next;
   private boolean flag;
   private int message;
@@ -59,9 +61,9 @@ public class Zog extends Thread {
     private long runTime;
 
     public void run() {
-      final long startTime = System.nanoTime();
+      final long startTime = System.currentTimeMillis();
       super.run();
-      final long endTime = System.nanoTime();
+      final long endTime = System.currentTimeMillis();
 
       initTime = linkTime - startTime;
       runTime = endTime - linkTime;
@@ -69,7 +71,15 @@ public class Zog extends Thread {
 
     public void link(final Zog zog) {
       super.link(zog);
-      linkTime = System.nanoTime();
+      linkTime = System.currentTimeMillis();
+    }
+
+    public synchronized void send(int n) throws InterruptedException {
+      super.send(n);
+      if (DEBUG) {
+        final String marker = (n == 0) ? "." : (n % 100 == 0) ? "*\n" : (n % 10 == 0) ? "+" : ".";
+        System.out.print(marker);
+      }
     }
   }
 
@@ -113,6 +123,10 @@ public class Zog extends Thread {
 
     Zog old = first;
     for (int i = 0; i < threadCount; i++) {
+      if (DEBUG) {
+        final String marker = (i == 0) ? "." : (i % 100 == 0) ? "*\n" : (i % 10 == 0) ? "+" : ".";
+        System.out.print(marker);
+      }
       final Zog current = new Zog();
       current.link(old);
       current.start();
