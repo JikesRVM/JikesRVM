@@ -56,24 +56,6 @@ public class Zog extends Thread {
   }
 
   static class ZugZug extends Zog {
-    private long linkTime;
-    private long initTime;
-    private long runTime;
-
-    public void run() {
-      final long startTime = System.currentTimeMillis();
-      super.run();
-      final long endTime = System.currentTimeMillis();
-
-      initTime = linkTime - startTime;
-      runTime = endTime - linkTime;
-    }
-
-    public void link(final Zog zog) {
-      super.link(zog);
-      linkTime = System.currentTimeMillis();
-    }
-
     public synchronized void send(int n) throws InterruptedException {
       super.send(n);
       if (DEBUG) {
@@ -118,6 +100,7 @@ public class Zog extends Thread {
   }
 
   private static Results performTestRun(final int threadCount, final int messageCount) {
+    final long startTime = System.nanoTime();
     final ZugZug first = new ZugZug();
     first.start();
 
@@ -134,6 +117,8 @@ public class Zog extends Thread {
     }
 
     first.link(old);
+    final long linkTime = System.nanoTime();
+    final long initTime = linkTime - startTime;
 
     try {
       first.send(messageCount);
@@ -147,6 +132,9 @@ public class Zog extends Thread {
       e.printStackTrace();
       System.exit(16);
     }
-    return new Results(threadCount, messageCount, first.initTime, first.runTime);
+    final long endTime = System.nanoTime();
+    final long runTime = endTime - linkTime;
+
+    return new Results(threadCount, messageCount, initTime, runTime);
   }
 }
