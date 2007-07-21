@@ -14,12 +14,11 @@ package org.jikesrvm.scheduler;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
-import org.jikesrvm.VM_Services;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.runtime.VM_Magic;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
