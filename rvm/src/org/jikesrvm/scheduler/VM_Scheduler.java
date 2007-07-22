@@ -15,8 +15,6 @@ package org.jikesrvm.scheduler;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_SizeConstants;
-import org.jikesrvm.VM_Configuration;
-import org.jikesrvm.VM_HeapLayoutConstants;
 import org.jikesrvm.classloader.VM_MemberReference;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_NormalMethod;
@@ -32,6 +30,7 @@ import org.jikesrvm.memorymanagers.mminterface.Selected;
 import org.jikesrvm.runtime.VM_Magic;
 import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.jikesrvm.scheduler.greenthreads.VM_GreenScheduler;
+import org.mmtk.policy.Space;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.LogicallyUninterruptible;
@@ -627,7 +626,7 @@ public abstract class VM_Scheduler {
     }
 
     VM.sysWriteln();
-    if (fp.LT(Selected.Plan.ploSpace.getStart()) || fp.GT(Selected.Plan.ploSpace.getStart().plus(Selected.Plan.ploSpace.getExtent()))) {
+    if (!isAddressValidFramePointer(fp)) {
       VM.sysWrite("Bogus looking frame pointer: ", fp);
       VM.sysWriteln(" not dumping stack");
     } else {
@@ -686,7 +685,7 @@ public abstract class VM_Scheduler {
             ip = VM_Magic.getReturnAddress(fp);
             fp = VM_Magic.getCallerFramePointer(fp);
           }
-          if (fp.LT(Selected.Plan.ploSpace.getStart()) || fp.GT(Selected.Plan.ploSpace.getStart().plus(Selected.Plan.ploSpace.getExtent()))) {
+          if (!isAddressValidFramePointer(fp)) {
             VM.sysWrite("Bogus looking frame pointer: ", fp);
             VM.sysWriteln(" end of stack dump");
             break;
@@ -697,6 +696,30 @@ public abstract class VM_Scheduler {
       }
     }
     --inDumpStack;
+  }
+
+  /**
+   * Return true if the supplied address could be a valid frame pointer.
+   * To check for validity we make sure the framepointer is in the 
+   *
+   * @param address the address.
+   * @return true if the address could be a frame pointer, false otherwise.
+   */
+  private static boolean isAddressValidFramePointer(final Address address) {
+    return isAddressInSpace(address, Selected.Plan.ploSpace) ||
+           isAddressInSpace(address, Selected.Plan.immortalSpace);
+  }
+
+  /**
+   * Return true if address is in space.
+   *
+   * @param address the address.
+   * @param space the space.
+   * @return true if address is in space.
+   */
+  private static boolean isAddressInSpace(final Address address,
+                                          final Space space) {
+    return address.GE(space.getStart()) && address.LE(space.getStart().plus(space.getExtent()));
   }
 
   private static void showPrologue(Address fp) {
