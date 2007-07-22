@@ -109,9 +109,12 @@
     <runCompareTest tag="TestInterruptedWait" class="test.org.jikesrvm.basic.core.threads.TestInterruptedWait"/>
     <runCompareTest tag="TestParallelHardwareTrap" class="test.org.jikesrvm.basic.core.threads.TestParallelHardwareTrap" timeLimit="20"/>
     <runCompareTest tag="TestStop" class="test.org.jikesrvm.basic.core.threads.TestStop"/>
-    <runCompareTest tag="TestSuspend" class="test.org.jikesrvm.basic.core.threads.TestSuspend" timeLimit="20"/>
+    <runCompareTest tag="TestSuspend" class="test.org.jikesrvm.basic.core.threads.TestSuspend"/>
     <runCompareTest tag="TestTimeSlicing" class="test.org.jikesrvm.basic.core.threads.TestTimeSlicing"/>
     <runCompareTest tag="TestVolatiles" class="test.org.jikesrvm.basic.core.threads.TestVolatiles"/>
+
+    <runCompareTest tag="TestShutdownHook" class="test.org.jikesrvm.basic.core.threads.TestShutdownHook" timeLimit="20"/>
+    <runCompareTest tag="TestShutdownHookAfterExit" class="test.org.jikesrvm.basic.core.threads.TestShutdownHookAfterExit"/>
 
     <runCompareTest tag="TestSerialization" class="test.org.jikesrvm.basic.core.serialization.TestSerialization"
         classpath="${build.classes}:${main.java}"/>
