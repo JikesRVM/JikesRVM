@@ -12,7 +12,7 @@
  */
 package org.mmtk.utility.gcspy.drivers;
 
-import org.mmtk.policy.ContiguousSpace;
+import org.mmtk.policy.Space;
 import org.mmtk.utility.scan.MMType;
 import org.mmtk.utility.gcspy.Color;
 import org.mmtk.utility.gcspy.LinearScan;
@@ -77,7 +77,7 @@ import org.vmmagic.pragma.*;
   public LinearSpaceDriver(
                      ServerInterpreter server,
 		             String spaceName,
-                     ContiguousSpace mmtkSpace,
+                     Space mmtkSpace,
                      int blockSize,
                      boolean mainSpace) {
 

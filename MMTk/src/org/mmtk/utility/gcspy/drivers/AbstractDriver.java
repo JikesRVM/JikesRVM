@@ -13,7 +13,6 @@
 package org.mmtk.utility.gcspy.drivers;
 
 import org.mmtk.policy.Space;
-import org.mmtk.policy.ContiguousSpace;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.gcspy.GCspy;
 import org.mmtk.utility.gcspy.Subspace;
@@ -94,7 +93,7 @@ public abstract class AbstractDriver {
    */
   public AbstractDriver(ServerInterpreter server,
                         String name,
-			            ContiguousSpace mmtkSpace,
+			            Space mmtkSpace,
 			            int blockSize,
 			            boolean mainSpace) {
     this.server = server;
@@ -116,7 +115,7 @@ public abstract class AbstractDriver {
    * @param mmtkSpace The MMTk space
    */
   @Interruptible
-  protected Subspace createSubspace (ContiguousSpace mmtkSpace) {
+  protected Subspace createSubspace (Space mmtkSpace) {
     Address start = mmtkSpace.getStart();
     return new Subspace(start, start, 0, blockSize, 0);
   }

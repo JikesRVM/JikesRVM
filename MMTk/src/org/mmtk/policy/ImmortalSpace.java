@@ -29,9 +29,8 @@ import org.vmmagic.pragma.*;
  * actually collect.  This class does not hold any state, all methods
  * are static.
  */
-@Uninterruptible public final class ImmortalSpace
-    extends ContiguousSpace 
-    implements Constants {
+@Uninterruptible public final class ImmortalSpace extends Space
+  implements Constants {
 
   /****************************************************************************
    *

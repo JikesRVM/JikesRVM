@@ -13,7 +13,6 @@
 package org.mmtk.utility.alloc;
 
 import org.mmtk.policy.Space;
-import org.mmtk.policy.ContiguousSpace;
 import org.mmtk.utility.*;
 import org.mmtk.utility.gcspy.drivers.LinearSpaceDriver;
 import org.mmtk.vm.VM;
@@ -87,7 +86,7 @@ import org.vmmagic.pragma.*;
   protected Address cursor; // insertion point
   private Address internalLimit; // current internal slow-path sentinal for bump pointer
   private Address limit; // current external slow-path sentinal for bump pointer
-  protected ContiguousSpace space; // space this bump pointer is associated with
+  protected Space space; // space this bump pointer is associated with
   protected Address initialRegion; // first contiguous region
   protected final boolean allowScanning; // linear scanning is permitted if true
   protected Address region; // current contigious region
@@ -99,7 +98,7 @@ import org.vmmagic.pragma.*;
    * @param space The space to bump point into.
    * @param allowScanning Allow linear scanning of this region of memory.
    */
-  protected BumpPointer(ContiguousSpace space, boolean allowScanning) {
+  protected BumpPointer(Space space, boolean allowScanning) {
     this.space = space;
     this.allowScanning = allowScanning;
     reset();
@@ -124,7 +123,7 @@ import org.vmmagic.pragma.*;
    *
    * @param space The space to associate the bump pointer with.
    */
-  public final void rebind(ContiguousSpace space) {
+  public final void rebind(Space space) {
     reset();
     this.space = space;
   }
@@ -369,7 +368,7 @@ import org.vmmagic.pragma.*;
    * @param driver The GCspy driver for this space.
    * @param scanSpace The space to scan
    */
-  public void gcspyGatherData(LinearSpaceDriver driver, ContiguousSpace scanSpace) {
+  public void gcspyGatherData(LinearSpaceDriver driver, Space scanSpace) {
 	//TODO can scanSpace ever be different to this.space?
     if (VM.VERIFY_ASSERTIONS)
 	  VM.assertions._assert(scanSpace == space, "scanSpace != space");
@@ -448,7 +447,7 @@ import org.vmmagic.pragma.*;
   /** @return the current cursor value */
   public final Address getCursor() { return cursor; }
   /** @return the space associated with this bump pointer */
-  public final ContiguousSpace getSpace() { return space; }
+  public final Space getSpace() { return space; }
 
   /**
    * Print out the status of the allocator (for debugging)

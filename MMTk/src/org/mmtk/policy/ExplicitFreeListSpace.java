@@ -28,7 +28,8 @@ import org.vmmagic.unboxed.*;
  * threads.  Thus unlike this class, synchronization is not necessary
  * in the instance methods of MarkSweepLocal.
  */
-@Uninterruptible public final class ExplicitFreeListSpace extends ContiguousSpace implements Constants {
+@Uninterruptible public final class ExplicitFreeListSpace extends Space
+  implements Constants {
 
   /****************************************************************************
    *

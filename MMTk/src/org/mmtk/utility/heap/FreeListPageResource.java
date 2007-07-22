@@ -13,7 +13,6 @@
 package org.mmtk.utility.heap;
 
 import org.mmtk.policy.Space;
-import org.mmtk.policy.ContiguousSpace;
 import org.mmtk.utility.alloc.EmbeddedMetaData;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.GenericFreeList;
@@ -68,7 +67,7 @@ import org.vmmagic.pragma.*;
    * @param metaDataPagesPerRegion The number of pages of meta data
    * that are embedded in each region.
    */
-  public FreeListPageResource(int pageBudget, ContiguousSpace space, Address start,
+  public FreeListPageResource(int pageBudget, Space space, Address start,
       Extent bytes, int metaDataPagesPerRegion) {
     super(pageBudget, space, start);
     this.metaDataPagesPerRegion = metaDataPagesPerRegion;
