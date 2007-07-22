@@ -626,7 +626,7 @@ public class VM_GreenThread extends VM_Thread {
    * Support for Java {@link java.lang.Object#notify()} synchronization primitive.
    *
    * @param o the object synchronized on
-   * @param l the heavy weight lock
+   * @param lock the heavy weight lock
    */
   @Override
   protected void notifyInternal(Object o, VM_Lock lock) {
@@ -644,7 +644,7 @@ public class VM_GreenThread extends VM_Thread {
    * Support for Java {@link java.lang.Object#notify()} synchronization primitive.
    *
    * @param o the object synchronized on
-   * @param l the heavy weight lock
+   * @param lock the heavy weight lock
    */
   @Override
   protected void notifyAllInternal(Object o, VM_Lock lock) {
