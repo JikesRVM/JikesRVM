@@ -1,13 +1,15 @@
 /*
- * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
- * The Jikes RVM project is distributed under the Common Public License (CPL).
- * A copy of the license is included in the distribution, and is also
- * available at http://www.opensource.org/licenses/cpl1.0.php
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- * (C) Copyright IBM Corp 2001,2002, 2004
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
  */
-
-
 import java.util.Hashtable;
 import java.util.Vector;
 import java.util.Stack;
@@ -81,7 +83,7 @@ public class BootImageWriter extends BootImageWriterMessages
    * The boot thread
    */
   private static VM_Thread startupThread;
- 
+
   /**
    * How much talking while we work?
    */
@@ -1452,7 +1454,7 @@ public class BootImageWriter extends BootImageWriterMessages
    * @param jdkObject object to be copied
    * @param allocOnly if allocOnly is true, the TIB and other reference fields are not recursively copied
    * @param overwriteAddress if !overwriteAddress.isMax(), then copy object to given address
-   * @param parentObject 
+   * @param parentObject
    * @return offset of copied object within image, in bytes
    *         (OBJECT_NOT_PRESENT --> object not copied:
    *            it's not part of bootimage)

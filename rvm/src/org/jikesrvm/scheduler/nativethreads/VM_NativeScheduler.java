@@ -1,3 +1,15 @@
+/*
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ *
+ *  This file is licensed to You under the Common Public License (CPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/cpl1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
+ */
 package org.jikesrvm.scheduler.nativethreads;
 
 import org.jikesrvm.classloader.VM_TypeReference;
@@ -100,15 +112,15 @@ public class VM_NativeScheduler extends VM_Scheduler {
     // TODO Auto-generated method stub
     return false;
   }
-  
+
   /**
    * Schedule another thread
    */
   @Override
   protected void yieldInternal() {
-    // TODO Auto-generated method stub    
+    // TODO Auto-generated method stub
   }
-  
+
   /**
    * Set up the initial thread and processors as part of boot image writing
    * @return the boot thread
