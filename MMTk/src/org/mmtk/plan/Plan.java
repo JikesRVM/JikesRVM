@@ -354,8 +354,7 @@ public abstract class Plan implements Constants {
   private static boolean collectionTriggered;
   @Entrypoint
   private static int gcStatus = NOT_IN_GC; // shared variable
-  private static boolean emergencyAllocation;
-
+  
   /** @return Is the memory management system initialized? */
   public static boolean isInitialized() {
     return initialized;
@@ -380,27 +379,6 @@ public abstract class Plan implements Constants {
    */
   public static void collectionComplete() {
     collectionTriggered = false;
-  }
-
-  /**
-   * Are we in a region of emergency allocation?
-   */
-  public static boolean isEmergencyAllocation() {
-    return emergencyAllocation;
-  }
-
-  /**
-   * Start a region of emergency allocation.
-   */
-  public static void startEmergencyAllocation() {
-    emergencyAllocation = true;
-  }
-
-  /**
-   * Finish a region of emergency allocation.
-   */
-  public static void finishEmergencyAllocation() {
-    emergencyAllocation = false;
   }
 
   /**

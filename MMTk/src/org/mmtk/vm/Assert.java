@@ -47,11 +47,6 @@ import org.vmmagic.pragma.Uninterruptible;
   public abstract void dumpStack();
 
   /**
-   * Throw an out of memory exception.
-   */
-  public abstract void failWithOutOfMemoryError();
-
-  /**
    * Checks if the virtual machine is running.  This value changes, so
    * the call-through to the VM must be a method.  In Jikes RVM, just
    * returns VM.runningVM.

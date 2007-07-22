@@ -101,6 +101,12 @@ import org.vmmagic.pragma.*;
   public abstract void reportPhysicalAllocationFailed();
 
   /**
+   * Does the VM consider this an emergency alloction, where the normal
+   * heap size rules can be ignored.
+   */
+  public abstract boolean isEmergencyAllocation();
+
+  /**
    * Determine whether a collection cycle has fully completed (this is
    * used to ensure a GC is not in the process of completing, to
    * avoid, for example, an async GC being triggered on the switch

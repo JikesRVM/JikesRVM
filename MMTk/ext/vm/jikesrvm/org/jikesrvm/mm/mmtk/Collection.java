@@ -180,6 +180,14 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
   }
 
   /**
+   * Does the VM consider this an emergency allocation, where the normal
+   * heap size rules can be ignored.
+   */
+  public boolean isEmergencyAllocation() {
+    return VM_Scheduler.getCurrentThread().emergencyAllocation();
+  }
+
+  /**
    * Trigger an asynchronous collection, checking for memory
    * exhaustion first.
    */

@@ -88,30 +88,6 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Throw an out of memory exception.  If the context is one where
-   * we're already dealing with a problem, first request some
-   * emergency heap space.
-   */
-  @LogicallyUninterruptible
-  @NoInline
-  public final void failWithOutOfMemoryError() {
-    failWithOutOfMemoryErrorStatic();
-  }
-
-  /**
-   * Throw an out of memory exception.  If the context is one where
-   * we're already dealing with a problem, first request some
-   * emergency heap space.
-   */
-  @LogicallyUninterruptible
-  @NoInline
-  public static void failWithOutOfMemoryErrorStatic() {
-    if (VM.doEmergencyGrowHeap)
-      MM_Interface.emergencyGrowHeap(EMERGENCY_HEAP_REQ); // ask and pray
-    throw new OutOfMemoryError();
-  }
-
-  /**
    * Checks if the virtual machine is running.  This value changes, so
    * the call-through to the VM must be a method.  In Jikes RVM, just
    * returns VM.runningVM.

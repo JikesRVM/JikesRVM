@@ -330,6 +330,9 @@ public abstract class VM_Thread {
   /** Used by GC to determine collection success */
   private boolean physicalAllocationFailed;
 
+  /** Is this thread performing emergency allocation, when the normal heap limits are ignored. */
+  private boolean emergencyAllocation;
+
   /** Used by GC to determine collection success */
   private int collectionAttempt;
 
@@ -1725,7 +1728,7 @@ public abstract class VM_Thread {
     return physicalAllocationFailed;
   }
 
-  /** Get the physical allocation failed flag. */
+  /** Set the physical allocation failed flag. */
   public void setPhysicalAllocationFailed() {
     physicalAllocationFailed = true;
   }
@@ -1733,6 +1736,21 @@ public abstract class VM_Thread {
   /** Clear the physical allocation failed flag. */
   public void clearPhysicalAllocationFailed() {
     physicalAllocationFailed = false;
+  }
+
+  /** Set the emergency allocation flag. */
+  public void setEmergencyAllocation() {
+    emergencyAllocation = true;
+  }
+
+  /** Clear the emergency allocation flag. */
+  public void clearEmergencyAllocation() {
+    emergencyAllocation = false;
+  }
+
+  /** Read the emergency allocation flag. */
+  public boolean emergencyAllocation() {
+    return emergencyAllocation;
   }
 
   /**
@@ -1768,14 +1786,9 @@ public abstract class VM_Thread {
   public final void handleUncaughtException(Throwable exceptionObject) {
     uncaughtExceptionCount++;
 
-    /* Grow the heap.
-     * This could be (but isn't) undoable.  That doesn't matter here, since
-     * we're dying in any case.
-     *
-     * There's no way to give the additional memory exclusively to this
-     * particular thread; too bad. */
-    if (VM.doEmergencyGrowHeap && exceptionObject instanceof OutOfMemoryError) {
-      MM_Interface.emergencyGrowHeap(5 * (1 << 20)); // ask for 5 megs and pray
+    /* Say allocation from this thread is emergency allocation */
+    if (VM.doEmergencyGrowHeap && (exceptionObject instanceof OutOfMemoryError)) {
+      setEmergencyAllocation();
     }
     handlePossibleRecursiveException();
     VM.enableGC();

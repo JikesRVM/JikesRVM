@@ -402,7 +402,7 @@ public final class VM_CollectorThread extends VM_GreenThread {
 
         startCycles = VM_Time.cycles();
         gcBarrier.rendezvous(5201);
-      } while (Selected.Plan.get().lastCollectionFailed() && !Selected.Plan.get().isEmergencyCollection());
+      } while (Selected.Plan.get().lastCollectionFailed() && !Plan.isEmergencyCollection());
 
       if (gcOrdinal == 1) {
         /* If the collection failed, we may need to throw OutOfMemory errors.
@@ -411,8 +411,8 @@ public final class VM_CollectorThread extends VM_GreenThread {
          * This is not flawless in the case we physically can not allocate
          * anything right after a GC, but that case is unlikely (we can
          * not make it happen) and is a lot of work to get around. */
-        if (Selected.Plan.get().isEmergencyCollection()) {
-          Plan.startEmergencyAllocation();
+        if (Plan.isEmergencyCollection()) {
+          VM_Scheduler.getCurrentThread().setEmergencyAllocation();
           boolean gcFailed = Selected.Plan.get().lastCollectionFailed();
           // Allocate OOMEs (some of which *may* not get used)
           for(int t=0; t <= VM_Scheduler.getThreadHighWatermark(); t++) {
@@ -426,7 +426,7 @@ public final class VM_CollectorThread extends VM_GreenThread {
               }
             }
           }
-          Plan.finishEmergencyAllocation();
+          VM_Scheduler.getCurrentThread().clearEmergencyAllocation();
         }
       }
 

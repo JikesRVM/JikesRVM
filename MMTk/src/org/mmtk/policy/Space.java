@@ -472,7 +472,7 @@ import org.vmmagic.unboxed.*;
    * failure.
    */
   public final Address acquire(int pages) {
-    boolean allowPoll = !Plan.gcInProgress() && Plan.isInitialized() && !Plan.isEmergencyAllocation();
+    boolean allowPoll = !Plan.gcInProgress() && Plan.isInitialized() && !VM.collection.isEmergencyAllocation();
 
     /* First check page budget and poll if necessary */
     if (!pr.reservePages(pages)) {
@@ -487,7 +487,7 @@ import org.vmmagic.unboxed.*;
     Address rtn = pr.getNewPages(pages);
     if (rtn.isZero()) {
       /* Failed, so force a GC */
-      if (Plan.isEmergencyAllocation()) {
+      if (VM.collection.isEmergencyAllocation()) {
         pr.clearRequest(pages);
         VM.assertions.fail("Failed emergency allocation");
       }
