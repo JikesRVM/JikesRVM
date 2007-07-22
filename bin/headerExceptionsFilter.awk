@@ -27,6 +27,10 @@
 # Ignore patches
 /build\/components\/patches/ {next}
 
+# Ignore Code under an alternative license
+/libraryInterface\/GNUClasspath\/LGPL/ {next}
+/libraryInterface\/GNUClasspath\/PD/ {next}
+
 # Test results
 /testing\/tests\/javalex\/qb1.lex.ref/ {next}
 /testing\/tests\/SPECjbb2000\/SPECjbb./ {next}
