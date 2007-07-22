@@ -881,13 +881,13 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    */
   @NoOptCompile
   private static void deliverException(Throwable exceptionObject, VM_Registers exceptionRegisters) {
-    if (VM.debugOOM) {
+    if (VM.TraceExceptionDelivery) {
       VM.sysWriteln("VM_Runtime.deliverException() entered; just got an exception object.");
     }
 
     // walk stack and look for a catch block
     //
-    if (VM.debugOOM) {
+    if (VM.TraceExceptionDelivery) {
       VM.sysWrite("Hunting for a catch block...");
     }
     VM_Type exceptionType = VM_Magic.getObjectType(exceptionObject);
@@ -903,7 +903,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
 
         if (catchBlockOffset >= 0) {
           // found an appropriate catch block
-          if (VM.debugOOM) {
+          if (VM.TraceExceptionDelivery) {
             VM.sysWriteln("found one; delivering.");
           }
           Address catchBlockStart = compiledMethod.getInstructionAddress(Offset.fromIntSignExtend(catchBlockOffset));
@@ -918,7 +918,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
       fp = exceptionRegisters.getInnermostFramePointer();
     }
 
-    if (VM.debugOOM) {
+    if (VM.TraceExceptionDelivery) {
       VM.sysWriteln("Nope.");
       VM.sysWriteln("VM_Runtime.deliverException() found no catch block.");
     }

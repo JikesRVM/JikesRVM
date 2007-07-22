@@ -2040,9 +2040,6 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
 //     return (inSysExit != 0) || (inShutdown != 0);
 //   }
 
-  public static boolean debugOOM = false; // debug out-of-memory exception. DEBUG
-  public static boolean doEmergencyGrowHeap = !debugOOM; // DEBUG
-
   /**
    * Exit virtual machine.
    * @param value  value to pass to host o/s
@@ -2051,16 +2048,12 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
   @NoInline
   public static void sysExit(int value) {
     handlePossibleRecursiveCallToSysExit();
-    if (debugOOM) {
-      sysWriteln("entered VM.sysExit(", value, ")");
-    }
     if (VM_Options.stackTraceAtExit) {
       VM.sysWriteln("[Here is the context of the call to VM.sysExit(", value, ")...:");
       VM.disableGC();
       VM_GreenScheduler.dumpStack();
       VM.enableGC();
       VM.sysWriteln("... END context of the call to VM.sysExit]");
-
     }
 
     if (runningVM) {

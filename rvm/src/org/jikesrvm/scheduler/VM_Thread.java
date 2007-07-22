@@ -713,6 +713,9 @@ public abstract class VM_Thread {
     if (terminateSystem) {
       if (uncaughtExceptionCount > 0)
         /* Use System.exit so that any shutdown hooks are run.  */ {
+        if (VM.TraceExceptionDelivery) {
+          VM.sysWriteln("Calling sysExit due to uncaught exception.");
+        }
         System.exit(VM.EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
       } else if (thread instanceof VM_MainThread) {
         VM_MainThread mt = (VM_MainThread) thread;
@@ -1786,8 +1789,8 @@ public abstract class VM_Thread {
   public final void handleUncaughtException(Throwable exceptionObject) {
     uncaughtExceptionCount++;
 
-    /* Say allocation from this thread is emergency allocation */
-    if (VM.doEmergencyGrowHeap && (exceptionObject instanceof OutOfMemoryError)) {
+    if (exceptionObject instanceof OutOfMemoryError) {
+      /* Say allocation from this thread is emergency allocation */
       setEmergencyAllocation();
     }
     handlePossibleRecursiveException();
