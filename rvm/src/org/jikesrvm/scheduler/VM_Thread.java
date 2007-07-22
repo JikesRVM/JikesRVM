@@ -587,14 +587,6 @@ public abstract class VM_Thread {
   }
 
   /**
-   * Method to be executed when this thread termnates.
-   */
-  @Interruptible
-  public synchronized void exit() {
-    // Subclass should override with something more interesting.
-  }
-
-  /**
    * Begin execution of current thread by calling its "run" method. This method
    * is at the bottom of all created method's stacks.
    */
