@@ -111,10 +111,9 @@ public abstract class Phase implements Constants {
    * Construct a phase.
    *
    * @param name Display name of the phase
-   * @param timer Timer for this phase to contribute to
    */
   @Interruptible
-  public static final short createSimple(String name) {
+  public static short createSimple(String name) {
     return new SimplePhase(name).getId();
   }
 
@@ -125,7 +124,7 @@ public abstract class Phase implements Constants {
    * @param timer Timer for this phase to contribute to
    */
   @Interruptible
-  public static final short createSimple(String name, Timer timer) {
+  public static short createSimple(String name, Timer timer) {
     return new SimplePhase(name, timer).getId();
   }
 
@@ -136,9 +135,8 @@ public abstract class Phase implements Constants {
    * @param scheduledPhases The phases in this complex phase.
    */
   @Interruptible
-  public static final short createComplex(String name,int... scheduledPhases) {
-    short complexPhaseId = new ComplexPhase(name, scheduledPhases).getId();
-    return complexPhaseId;
+  public static short createComplex(String name,int... scheduledPhases) {
+    return new ComplexPhase(name, scheduledPhases).getId();
   }
 
   /**
@@ -149,9 +147,8 @@ public abstract class Phase implements Constants {
    * @param scheduledPhases The phases in this complex phase.
    */
   @Interruptible
-  public static final short createComplex(String name, Timer timer, int... scheduledPhases) {
-    short complexPhaseId = new ComplexPhase(name, timer, scheduledPhases).getId();
-    return complexPhaseId;
+  public static short createComplex(String name, Timer timer, int... scheduledPhases) {
+    return new ComplexPhase(name, timer, scheduledPhases).getId();
   }
 
   /**
@@ -161,7 +158,7 @@ public abstract class Phase implements Constants {
    * @param phaseId The phase to run as complex
    * @return The encoded phase value.
    */
-  public static final int scheduleComplex(short phaseId) {
+  public static int scheduleComplex(short phaseId) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(phaseId < MAX_PHASES);
     return (SCHEDULE_COMPLEX << 16) + phaseId;
   }
@@ -173,7 +170,7 @@ public abstract class Phase implements Constants {
    * @param phaseId The phase to run globally
    * @return The encoded phase value.
    */
-  public static final int scheduleGlobal(short phaseId) {
+  public static int scheduleGlobal(short phaseId) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(phaseId < MAX_PHASES);
     return (SCHEDULE_GLOBAL << 16) + phaseId;
   }
@@ -185,7 +182,7 @@ public abstract class Phase implements Constants {
    * @param phaseId The phase to run on collectors
    * @return The encoded phase value.
    */
-  public static final int scheduleCollector(short phaseId) {
+  public static int scheduleCollector(short phaseId) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(phaseId < MAX_PHASES);
     return (SCHEDULE_COLLECTOR << 16) + phaseId;
   }
@@ -197,7 +194,7 @@ public abstract class Phase implements Constants {
    * @param phaseId The phase to run on mutators
    * @return The encoded phase value.
    */
-  public static final int scheduleMutator(short phaseId) {
+  public static int scheduleMutator(short phaseId) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(phaseId < MAX_PHASES);
     return (SCHEDULE_MUTATOR << 16) + phaseId;
   }
@@ -209,7 +206,7 @@ public abstract class Phase implements Constants {
    * @param phaseId The phase to run on mutators
    * @return The encoded phase value.
    */
-  public static final int schedulePlaceholder(short phaseId) {
+  public static int schedulePlaceholder(short phaseId) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(phaseId < MAX_PHASES);
     return (SCHEDULE_PLACEHOLDER << 16) + phaseId;
   }
@@ -342,7 +339,7 @@ public abstract class Phase implements Constants {
   /**
    * Place a phase on the phase stack and begin processing.
    *
-   * @param start The phase to execute
+   * @param scheduledPhase The phase to execute
    * @return True if the phase stack is exhausted.
    */
   public static boolean beginNewPhaseStack(int scheduledPhase) {
@@ -438,7 +435,7 @@ public abstract class Phase implements Constants {
         case SCHEDULE_MUTATOR: {
           if (logDetails) Log.writeln(" as Mutator...");
           /* Iterate through all mutator contexts */
-          MutatorContext mutator = null;
+          MutatorContext mutator;
           while ((mutator = VM.activePlan.getNextMutator()) != null) {
             mutator.collectionPhase(phaseId, primary);
           }
@@ -578,9 +575,9 @@ public abstract class Phase implements Constants {
   }
 
   /**
-   * Push a phase onto the top of the work stack.
+   * Return true if phase stack is empty, false otherwise.
    *
-   * @param phase The phase to process next.
+   * @return true if phase stack is empty, false otherwise.
    */
   @Inline
   public static boolean isPhaseStackEmpty() {
