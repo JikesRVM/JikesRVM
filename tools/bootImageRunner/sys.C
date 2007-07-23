@@ -72,9 +72,8 @@ extern "C" int sched_yield(void);
 #include <sys/types.h>
 #include <sys/sysctl.h>
 extern "C"     int sigaltstack(const struct sigaltstack *ss, struct sigaltstack *oss);
-# if (defined HAS_DLCOMPAT)
-# include <dlfcn.h>
-# endif
+/* As of 10.4, dlopen comes with the OS */
+#include <dlfcn.h>
 #define MAP_ANONYMOUS MAP_ANON
 #include <sched.h>
 
