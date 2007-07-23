@@ -700,14 +700,21 @@ public abstract class VM_Scheduler {
 
   /**
    * Return true if the supplied address could be a valid frame pointer.
-   * To check for validity we make sure the framepointer is in the 
+   * To check for validity we make sure the framepointer is in  one of the
+   * spaces;
+   * <ul>
+   *   <li>PLOS (For regular threads)</li>
+   *   <li>Immortal (For threads allocated in immortal space such as collectors)</li>
+   *   <li>Boot (For the boot thread)</li>
+   * </ul>
    *
    * @param address the address.
    * @return true if the address could be a frame pointer, false otherwise.
    */
   private static boolean isAddressValidFramePointer(final Address address) {
     return isAddressInSpace(address, Selected.Plan.ploSpace) ||
-           isAddressInSpace(address, Selected.Plan.immortalSpace);
+           isAddressInSpace(address, Selected.Plan.immortalSpace)||
+           isAddressInSpace(address, Selected.Plan.vmSpace);
   }
 
   /**
