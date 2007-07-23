@@ -1,0 +1,136 @@
+<!--
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Common Public License (CPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/cpl1.0.php
+ ~
+ ~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
+<project name="jsr166-tck" default="test" basedir=".">
+
+  <condition property="test.time.limit" value="1000" else="400">
+    <equals arg1="${test.mode}" arg2="gcstress"/>
+  </condition>
+
+  <property name="test.max.heapsize" value="150"/>
+
+  <import file="../../../build/tests.xml"/>
+
+  <property name="main.java" location="${basedir}/src"/>
+
+  <property name="build.classes" location="${build.tests.dir}/classes"/>
+  <property name="junit.jar" location="${build.tests.dir}/junit4.2/junit-4.2.jar"/>
+  <property name="test.class.path" value="${junit.jar}:${build.classes}"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                           Download and extract junit                     * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="junit.download" depends="init">
+    <get src="http://superb-east.dl.sourceforge.net/sourceforge/junit/junit4.2.zip"
+         dest="${build.tests.dir}/junit4.2.zip"/>
+    <unzip src="${build.tests.dir}/junit4.2.zip" dest="${build.tests.dir}"/>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                           How to run a junit test                        * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <macrodef name="junit">
+    <attribute name="name"/>
+    <sequential>
+      <rvm tag="@{name}" class="@{name}" />
+      <outputSingleStatisticResults tag="@{name}" key="passed" pattern="OK \([0-9]+ tests\)"/>
+    </sequential>
+  </macrodef>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Compile the tests                             * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="compile" depends="init,junit.download">
+    <mkdir dir="${build.classes}"/>
+    <javac srcdir="${main.java}" classpath="${junit.jar}" destdir="${build.classes}" debug="true"/>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Run the tests                                 * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="test" depends="compile">
+    <startResults/>
+
+   <junit name="AbstractExecutorServiceTest" />
+   <junit name="AbstractQueuedLongSynchronizerTest" />
+   <junit name="AbstractQueuedSynchronizerTest" />
+   <junit name="AbstractQueueTest" />
+   <junit name="ArrayBlockingQueueTest" />
+   <junit name="ArrayDequeTest" />
+   <junit name="AtomicBooleanTest" />
+   <junit name="AtomicIntegerArrayTest" />
+   <junit name="AtomicIntegerFieldUpdaterTest" />
+   <junit name="AtomicIntegerTest" />
+   <junit name="AtomicLongArrayTest" />
+   <junit name="AtomicLongFieldUpdaterTest" />
+   <junit name="AtomicLongTest" />
+   <junit name="AtomicMarkableReferenceTest" />
+   <junit name="AtomicReferenceArrayTest" />
+   <junit name="AtomicReferenceFieldUpdaterTest" />
+   <junit name="AtomicReferenceTest" />
+   <junit name="AtomicStampedReferenceTest" />
+   <junit name="ConcurrentHashMapTest" />
+   <junit name="ConcurrentLinkedQueueTest" />
+   <junit name="ConcurrentSkipListMapTest" />
+   <junit name="ConcurrentSkipListSetTest" />
+   <junit name="ConcurrentSkipListSubMapTest" />
+   <junit name="ConcurrentSkipListSubSetTest" />
+   <junit name="CopyOnWriteArrayListTest" />
+   <junit name="CopyOnWriteArraySetTest" />
+   <junit name="CountDownLatchTest" />
+   <junit name="CyclicBarrierTest" />
+   <junit name="DelayQueueTest" />
+   <junit name="EntryTest" />
+   <junit name="ExchangerTest" />
+   <junit name="ExecutorCompletionServiceTest" />
+   <junit name="ExecutorsTest" />
+   <junit name="FutureTaskTest" />
+   <!-- <junit name="JSR166TestCase" /> -->
+   <junit name="LinkedBlockingDequeTest" />
+   <junit name="LinkedBlockingQueueTest" />
+   <junit name="LinkedListTest" />
+   <junit name="LockSupportTest" />
+   <junit name="PriorityBlockingQueueTest" />
+   <junit name="PriorityQueueTest" />
+   <junit name="ReentrantLockTest" />
+   <junit name="ReentrantReadWriteLockTest" />
+   <junit name="ScheduledExecutorSubclassTest" />
+   <junit name="ScheduledExecutorTest" />
+   <junit name="SemaphoreTest" />
+   <junit name="SynchronousQueueTest" />
+   <junit name="SystemTest" />
+   <junit name="ThreadLocalTest" />
+   <junit name="ThreadPoolExecutorSubclassTest" />
+   <junit name="ThreadPoolExecutorTest" />
+   <junit name="ThreadTest" />
+   <junit name="TimeUnitTest" />
+   <junit name="TreeMapTest" />
+   <junit name="TreeSetTest" />
+   <junit name="TreeSubMapTest" />
+   <junit name="TreeSubSetTest" />
+
+    <finishResults/>
+  </target>
+
+</project>
