@@ -68,7 +68,7 @@ public abstract class Factory {
   /**
    * Create a new Config instance using the appropriate VM-specific
    * concrete Config sub-class.
-   * 
+   *
    * @see Collection
    * @return A concrete VM-specific Collection instance.
    */

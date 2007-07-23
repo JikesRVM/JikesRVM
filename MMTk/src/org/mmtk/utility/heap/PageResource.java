@@ -122,9 +122,9 @@ public abstract class PageResource implements Constants {
     unlock();
     return satisfied;
   }
-  
+
   /**
-   * Remove a request to the space. 
+   * Remove a request to the space.
    *
    * @param pages The number of pages in the request.
    */
@@ -172,12 +172,12 @@ public abstract class PageResource implements Constants {
    * both the page budget and virtual memory.  This simply accounts
    * for the descrepency between <code>committed</code> and
    * <code>reserved</code> while the request was pending.
-   * 
+   *
    * This *MUST* be called by each PageResource during the
    * allocPages, and the caller must hold the lock.
    *
    * @param requestedPages The number of pages from this request
-   * @param totalPages The number of pages 
+   * @param totalPages The number of pages
    * @param begin The start address of the allocated region
    */
   protected void commitPages(int requestedPages, int totalPages) {

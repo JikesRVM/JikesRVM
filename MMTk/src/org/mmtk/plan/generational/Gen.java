@@ -114,7 +114,7 @@ import org.vmmagic.unboxed.*;
    *
    * Collection
    */
-  
+
   /**
    * Force the next collection to be full heap.
    */
@@ -182,13 +182,13 @@ import org.vmmagic.unboxed.*;
    */
   public final boolean collectionRequired(boolean spaceFull) {
     boolean nurseryFull = nurserySpace.reservedPages() > Options.nurserySize.getMaxNursery();
-    
-    return super.collectionRequired(spaceFull) || nurseryFull; 
+
+    return super.collectionRequired(spaceFull) || nurseryFull;
   }
-  
+
   /**
    * Determine if this GC should be a full heap collection.
-   * 
+   *
    * @return True is this GC should be a full heap collection.
    */
   protected boolean requiresFullHeapCollection() {
@@ -235,7 +235,7 @@ import org.vmmagic.unboxed.*;
 
     return false;
   }
-  
+
 
   /*****************************************************************************
    *
@@ -279,11 +279,11 @@ import org.vmmagic.unboxed.*;
   public int getPagesAvail() {
     return super.getPagesAvail() >> 1;
   }
-  
+
   /**
    * Calculate the number of pages a collection is required to free to satisfy
    * outstanding allocation requests.
-   * 
+   *
    * @return the number of pages a collection is required to free to satisfy
    * outstanding allocation requests.
    */

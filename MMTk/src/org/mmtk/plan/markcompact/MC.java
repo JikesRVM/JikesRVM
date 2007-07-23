@@ -158,11 +158,11 @@ import org.vmmagic.unboxed.ObjectReference;
   public int getPagesUsed() {
     return (mcSpace.reservedPages() + super.getPagesUsed());
   }
-  
+
   /**
    * Calculate the number of pages a collection is required to free to satisfy
    * outstanding allocation requests.
-   * 
+   *
    * @return the number of pages a collection is required to free to satisfy
    * outstanding allocation requests.
    */

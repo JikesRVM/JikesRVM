@@ -67,7 +67,7 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
     collectorThreadAtom = VM_Atom.findOrCreateAsciiAtom("Lorg/jikesrvm/memorymanagers/mminterface/VM_CollectorThread;");
     runAtom = VM_Atom.findOrCreateAsciiAtom("run");
   }
-  
+
   /**
    * Triggers a collection.
    *
@@ -88,14 +88,14 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
       VM.sysWriteln("Entered Collection.joinCollection().  Stack:");
       VM_Scheduler.dumpStack();
     }
-    
+
     while (Plan.isCollectionTriggered()) {
       /* allow a gc thread to run */
       VM_Scheduler.yield();
     }
     checkForOutOfMemoryError(true);
   }
-  
+
   /**
    * Triggers a collection.
    *
@@ -105,14 +105,14 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
   @LogicallyUninterruptible
   public static void triggerCollectionStatic(int why) {
     if (VM.VerifyAssertions) VM._assert((why >= 0) && (why < TRIGGER_REASONS));
-    
+
     if (Options.verbose.getValue() >= 4) {
       VM.sysWriteln("Entered Collection.triggerCollection().  Stack:");
       VM_Scheduler.dumpStack();
     }
 
     checkForOutOfMemoryError(false);
-    
+
     Plan.setCollectionTriggered();
     if (why == EXTERNAL_GC_TRIGGER) {
       if (Options.verbose.getValue() == 1 || Options.verbose.getValue() == 2)
@@ -128,7 +128,7 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
       VM.sysWriteln("Leaving Collection.triggerCollection().");
     }
   }
-  
+
   /**
    * Check if there is an out of memory error waiting.
    */
@@ -191,7 +191,7 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
    * Trigger an asynchronous collection, checking for memory
    * exhaustion first.
    */
-  public final void triggerAsyncCollection(int why) { 
+  public final void triggerAsyncCollection(int why) {
     Plan.setCollectionTriggered();
     if (Options.verbose.getValue() >= 1) VM.sysWrite("[Async GC]");
     VM_CollectorThread.asyncCollect(VM_CollectorThread.handshake, why);

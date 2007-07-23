@@ -41,7 +41,7 @@ import org.vmmagic.pragma.*;
   /****************************************************************************
    * Constants
    */
-  
+
   /* Shared Timers */
   private static final Timer refTypeTime = new Timer("refType", false, true);
   private static final Timer scanTime = new Timer("scan", false, true);
@@ -122,10 +122,10 @@ import org.vmmagic.pragma.*;
    * Complete closure including reference types and finalizable objects.
    */
   protected static final short refTypeClosurePhase = Phase.createComplex("refType-closure", null,
-      Phase.scheduleCollector  (SOFT_REFS),    
+      Phase.scheduleCollector  (SOFT_REFS),
       Phase.scheduleCollector  (COMPLETE_CLOSURE),
       Phase.scheduleCollector  (WEAK_REFS),
-      Phase.scheduleCollector  (FINALIZABLE),  
+      Phase.scheduleCollector  (FINALIZABLE),
       Phase.scheduleCollector  (COMPLETE_CLOSURE),
       Phase.schedulePlaceholder(WEAK_TRACK_REFS),
       Phase.scheduleCollector  (PHANTOM_REFS));
@@ -273,7 +273,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Replace a scheduled phase. Used for example to replace a placeholder.
-   * 
+   *
    * @param oldScheduledPhase The scheduled phase to replace.
    * @param newScheduledPhase The new scheduled phase.
    */
@@ -284,7 +284,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Replace a placeholder phase.
-   * 
+   *
    * @param placeHolderPhase The placeholder phase
    * @param newScheduledPhase The new scheduled phase.
    */

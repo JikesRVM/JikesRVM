@@ -26,7 +26,7 @@ import org.vmmagic.pragma.*;
  *
  * FIXME: Why can't these operations be performed at word-granularity?
  */
-@Uninterruptible 
+@Uninterruptible
 public class Memory implements Constants {
 
   /****************************************************************************

@@ -96,7 +96,7 @@ public final class Factory extends org.mmtk.vm.Factory {
   /**
    * Create a new BuildTimeConfig instance using the appropriate VM-specific
    * concrete BuildTimeConfig sub-class.
-   * 
+   *
    * @see Collection
    * @return A concrete VM-specific Collection instance.
    */
@@ -108,7 +108,7 @@ public final class Factory extends org.mmtk.vm.Factory {
       return null; // never get here
     }
   }
-  
+
   /**
    * Create a new Lock instance using the appropriate VM-specific
    * concrete Lock sub-class.

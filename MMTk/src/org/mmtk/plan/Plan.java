@@ -354,7 +354,7 @@ public abstract class Plan implements Constants {
   private static boolean collectionTriggered;
   @Entrypoint
   private static int gcStatus = NOT_IN_GC; // shared variable
-  
+
   /** @return Is the memory management system initialized? */
   public static boolean isInitialized() {
     return initialized;

@@ -169,7 +169,7 @@ import org.vmmagic.unboxed.*;
       newRootPool.reset();
       decPool.reset();
       modPool.reset();
-      
+
       rcTrace.release();
       previousMetaDataPages = metaDataSpace.reservedPages();
       return;
@@ -183,16 +183,16 @@ import org.vmmagic.unboxed.*;
   /**
    * This method controls the triggering of a GC. It is called periodically
    * during allocation. Returns true to trigger a collection.
-   * 
+   *
    * @param spaceFull Space request failed, must recover pages within 'space'.
    * @return True if a collection is requested by the plan.
    */
   public boolean collectionRequired(boolean spaceFull) {
     int newMetaDataPages = metaDataSpace.committedPages() - previousMetaDataPages;
-    
-    return super.collectionRequired(spaceFull) || (newMetaDataPages > Options.metaDataLimit.getPages()); 
+
+    return super.collectionRequired(spaceFull) || (newMetaDataPages > Options.metaDataLimit.getPages());
   }
-  
+
   /*****************************************************************************
    *
    * Accounting
@@ -213,7 +213,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Calculate the number of pages a collection is required to free to satisfy
    * outstanding allocation requests.
-   * 
+   *
    * @return the number of pages a collection is required to free to satisfy
    * outstanding allocation requests.
    */

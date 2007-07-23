@@ -163,7 +163,7 @@ import org.vmmagic.unboxed.*;
    * @return the value of the byte
    */
   public abstract byte readAvailableByte(ObjectReference object);
-  
+
   /**
    * Sets the bits available for memory manager use in an object.
    *

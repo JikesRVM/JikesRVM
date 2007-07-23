@@ -26,29 +26,29 @@ import org.jikesrvm.memorymanagers.mminterface.Selected;
  * Read build-time configuration information for MMTk from a Java properties
  * file.  Properties read through this mechanism should be read at build time
  * and saved in static final fields.
- * 
+ *
  * This is a wrapper for a java.util.Properties object.
  */
 public class BuildTimeConfig extends org.mmtk.vm.BuildTimeConfig {
-  
+
   /**
    * The underlying properties object
    */
   private Properties props;
-  
+
   public BuildTimeConfig(String property_file_property, String default_property_file) {
     props = getProperties(property_file_property,default_property_file);
   }
-  
+
   public BuildTimeConfig(String property_file_property) {
     props = getProperties(property_file_property,null);
   }
-  
+
   /**
    * @param property_file_property The name of the property that sets
    * the location of the properties file
    * @param default_property_file The default properties file.
-   * 
+   *
    */
   private Properties getProperties(String property_file_property, String default_property_file) {
     Properties props = new Properties();
@@ -63,7 +63,7 @@ public class BuildTimeConfig extends org.mmtk.vm.BuildTimeConfig {
       propFileName = System.getProperty(property_file_property, default_property_file);
     }
     File propFile = new File(propFileName);
-    
+
     try {
       props.load(new BufferedInputStream (new FileInputStream(propFile)));
     } catch (FileNotFoundException e) {
@@ -88,7 +88,7 @@ public class BuildTimeConfig extends org.mmtk.vm.BuildTimeConfig {
     String value = props.getProperty(name,Boolean.toString(dflt));
     return Boolean.valueOf(value);
   }
-  
+
   @Override
   public boolean getBooleanProperty(String name) {
     String value = props.getProperty(name);
@@ -96,13 +96,13 @@ public class BuildTimeConfig extends org.mmtk.vm.BuildTimeConfig {
       throw new RuntimeException("Undefined property "+name);
     return Boolean.valueOf(value);
   }
-  
+
   @Override
   public int getIntProperty(String name, int dflt) {
     String value = props.getProperty(name,Integer.toString(dflt));
     return Integer.valueOf(value);
   }
-  
+
   @Override
   public int getIntProperty(String name) {
     String value = props.getProperty(name);
@@ -110,12 +110,12 @@ public class BuildTimeConfig extends org.mmtk.vm.BuildTimeConfig {
       throw new RuntimeException("Undefined property "+name);
     return Integer.valueOf(value);
   }
-  
+
   @Override
   public String getStringProperty(String name, String dflt) {
     return props.getProperty(name,dflt);
   }
-  
+
   @Override
   public String getStringProperty(String name) {
     String value = props.getProperty(name);
@@ -123,6 +123,6 @@ public class BuildTimeConfig extends org.mmtk.vm.BuildTimeConfig {
       throw new RuntimeException("Undefined property "+name);
     return value;
   }
-  
+
 
 }

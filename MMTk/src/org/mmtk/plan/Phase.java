@@ -26,7 +26,7 @@ import org.vmmagic.pragma.*;
  *
  * The context an individual phase executes in may be global, mutator,
  * or collector.
- * 
+ *
  * Phases are executed within a stack and all synchronization between
  * parallel GC threads is managed from within this class.
  *
@@ -37,10 +37,10 @@ import org.vmmagic.pragma.*;
 @Uninterruptible
 public abstract class Phase implements Constants {
   /***********************************************************************
-  * 
+  *
   * Phase allocation and storage.
   */
-  
+
   /** The maximum number of phases */
   private static final int MAX_PHASES = 64;
   /** The array of phase instances. Zero is unused. */
@@ -137,7 +137,7 @@ public abstract class Phase implements Constants {
    */
   @Interruptible
   public static final short createComplex(String name,int... scheduledPhases) {
-    short complexPhaseId = new ComplexPhase(name, scheduledPhases).getId(); 
+    short complexPhaseId = new ComplexPhase(name, scheduledPhases).getId();
     return complexPhaseId;
   }
 
@@ -150,14 +150,14 @@ public abstract class Phase implements Constants {
    */
   @Interruptible
   public static final short createComplex(String name, Timer timer, int... scheduledPhases) {
-    short complexPhaseId = new ComplexPhase(name, timer, scheduledPhases).getId(); 
+    short complexPhaseId = new ComplexPhase(name, timer, scheduledPhases).getId();
     return complexPhaseId;
   }
 
   /**
-   * Take the passed phase and return an encoded phase to 
+   * Take the passed phase and return an encoded phase to
    * run that phase as a complex phase.
-   * 
+   *
    * @param phaseId The phase to run as complex
    * @return The encoded phase value.
    */
@@ -167,9 +167,9 @@ public abstract class Phase implements Constants {
   }
 
   /**
-   * Take the passed phase and return an encoded phase to 
+   * Take the passed phase and return an encoded phase to
    * run that phase in a global context;
-   * 
+   *
    * @param phaseId The phase to run globally
    * @return The encoded phase value.
    */
@@ -179,9 +179,9 @@ public abstract class Phase implements Constants {
   }
 
   /**
-   * Take the passed phase and return an encoded phase to 
+   * Take the passed phase and return an encoded phase to
    * run that phase in a collector context;
-   * 
+   *
    * @param phaseId The phase to run on collectors
    * @return The encoded phase value.
    */
@@ -191,9 +191,9 @@ public abstract class Phase implements Constants {
   }
 
   /**
-   * Take the passed phase and return an encoded phase to 
+   * Take the passed phase and return an encoded phase to
    * run that phase in a mutator context;
-   * 
+   *
    * @param phaseId The phase to run on mutators
    * @return The encoded phase value.
    */
@@ -203,9 +203,9 @@ public abstract class Phase implements Constants {
   }
 
   /**
-   * Take the passed phase and return an encoded phase to 
+   * Take the passed phase and return an encoded phase to
    * run that phase in a mutator context;
-   * 
+   *
    * @param phaseId The phase to run on mutators
    * @return The encoded phase value.
    */
@@ -215,7 +215,7 @@ public abstract class Phase implements Constants {
   }
 
   /***********************************************************************
-   * 
+   *
    * Phase instance fields/methods.
    */
 
@@ -271,9 +271,9 @@ public abstract class Phase implements Constants {
    * Display a phase for debugging purposes.
    */
   protected abstract void logPhase();
-  
+
   /***********************************************************************
-   * 
+   *
    * Phase stack
    */
 
@@ -289,17 +289,17 @@ public abstract class Phase implements Constants {
   /** The current stack pointer */
   private static int phaseStackPointer = -1;
 
-  /** 
+  /**
    * The current even (0 mod 2) scheduled phase.
-   * As we only sync at the end of a phase we need this to ensure that 
+   * As we only sync at the end of a phase we need this to ensure that
    * the primary thread setting the phase does not race with the other
    * threads reading it.
-   */  
+   */
   private static int evenScheduledPhase;
 
-  /** 
+  /**
    * The current odd (1 mod 2) scheduled phase.
-   * As we only sync at the end of a phase we need this to ensure that 
+   * As we only sync at the end of a phase we need this to ensure that
    * the primary thread setting the phase does not race with the other
    * threads reading it.
    */
@@ -307,7 +307,7 @@ public abstract class Phase implements Constants {
 
   /**
    * Do we need to add a sync point to reset the mutator count. This
-   * is necessary for consecutive mutator phases and unneccessary 
+   * is necessary for consecutive mutator phases and unneccessary
    * otherwise. Again we separate in even and odd to ensure that there
    * is no race between the primary thread setting and the helper
    * threads reading.
@@ -316,7 +316,7 @@ public abstract class Phase implements Constants {
 
   /**
    * Do we need to add a sync point to reset the mutator count. This
-   * is necessary for consecutive mutator phases and unneccessary 
+   * is necessary for consecutive mutator phases and unneccessary
    * otherwise. Again we separate in even and odd to ensure that there
    * is no race between the primary thread setting and the helper
    * threads reading.
@@ -326,7 +326,7 @@ public abstract class Phase implements Constants {
   /**
    * The complex phase whose timer should be started after the next
    * rendezvous. We can not start the timer at the point we determine
-   * the next complex phase as we determine the next phase at the 
+   * the next complex phase as we determine the next phase at the
    * end of the previous phase before the sync point.
    */
   private static short startComplexTimer;
@@ -334,14 +334,14 @@ public abstract class Phase implements Constants {
   /**
    * The complex phase whose timer should be stopped after the next
    * rendezvous. We can not start the timer at the point we determine
-   * the next complex phase as we determine the next phase at the 
+   * the next complex phase as we determine the next phase at the
    * end of the previous phase before the sync point.
    */
   private static short stopComplexTimer;
 
   /**
    * Place a phase on the phase stack and begin processing.
-   * 
+   *
    * @param start The phase to execute
    * @return True if the phase stack is exhausted.
    */
@@ -356,7 +356,7 @@ public abstract class Phase implements Constants {
   /**
    * Continue the execution of a phase stack. Used for incremental
    * and concurrent collection.
-   * 
+   *
    * @return True if the phase stack is exhausted.
    */
   public static boolean continuePhaseStack() {
@@ -396,7 +396,7 @@ public abstract class Phase implements Constants {
     /* Global and Collector instances used in phases */
     Plan plan = VM.activePlan.global();
     CollectorContext collector = VM.activePlan.collector();
-    
+
     /* The main phase execution loop */
     int scheduledPhase;
     while((scheduledPhase = getCurrentPhase(isEvenPhase)) > 0) {
@@ -426,14 +426,14 @@ public abstract class Phase implements Constants {
           if (primary) plan.collectionPhase(phaseId);
           break;
         }
-  
+
         /* Collector phase */
         case SCHEDULE_COLLECTOR: {
           if (logDetails) Log.writeln(" as Collector...");
           collector.collectionPhase(phaseId, primary);
           break;
         }
-  
+
         /* Mutator phase */
         case SCHEDULE_MUTATOR: {
           if (logDetails) Log.writeln(" as Mutator...");
@@ -467,9 +467,9 @@ public abstract class Phase implements Constants {
         VM.activePlan.resetMutatorIterator();
       }
 
-      /* At this point, in the case of consecutive phases with mutator 
-       * scheduling, we have to double-synchronize to ensure all 
-       * collector threads see the reset mutator counter. */ 
+      /* At this point, in the case of consecutive phases with mutator
+       * scheduling, we have to double-synchronize to ensure all
+       * collector threads see the reset mutator counter. */
       if (needsMutatorResetRendezvous(isEvenPhase)) {
         VM.collection.rendezvous(1005);
       }
@@ -520,7 +520,7 @@ public abstract class Phase implements Constants {
   /**
    * Pull the next scheduled phase off the stack. This may involve
    * processing several complex phases and skipping placeholders, etc.
-   * 
+   *
    * @return The next phase to run, or -1 if no phases are left.
    */
   private static int getNextPhase() {
@@ -528,7 +528,7 @@ public abstract class Phase implements Constants {
       int scheduledPhase = peekScheduledPhase();
       short schedule = getSchedule(scheduledPhase);
       short phaseId = getPhaseId(scheduledPhase);
-      
+
       switch(schedule) {
         case SCHEDULE_PLACEHOLDER: {
           /* Placeholders are ignored and we continue looking */
@@ -546,7 +546,7 @@ public abstract class Phase implements Constants {
 
         case SCHEDULE_COMPLEX: {
           /* A complex phase may either be a newly pushed complex phase,
-           * or a complex phase we are in the process of executing in 
+           * or a complex phase we are in the process of executing in
            * which case we move to the next subphase. */
           ComplexPhase p = (ComplexPhase)getPhase(phaseId);
           int cursor = incrementComplexPhaseCursor();
@@ -559,7 +559,7 @@ public abstract class Phase implements Constants {
             pushScheduledPhase(p.get(cursor));
             continue;
           }
-          
+
           /* We have finished this complex phase */
           popScheduledPhase();
           if (p.timer != null) {
@@ -572,24 +572,24 @@ public abstract class Phase implements Constants {
         default: {
           VM.assertions.fail("Invalid phase type encountered");
         }
-      }      
+      }
     }
     return -1;
   }
 
   /**
    * Push a phase onto the top of the work stack.
-   * 
+   *
    * @param phase The phase to process next.
    */
   @Inline
   public static boolean isPhaseStackEmpty() {
     return phaseStackPointer < 0;
   }
-  
+
   /**
    * Push a scheduled phase onto the top of the work stack.
-   * 
+   *
    * @param scheduledPhase The scheduled phase.
    */
   @Inline
@@ -597,12 +597,12 @@ public abstract class Phase implements Constants {
     phaseStack[++phaseStackPointer] = scheduledPhase;
     complexPhaseCursor[phaseStackPointer] = 0;
   }
-  
+
   /**
    * Increment the cursor associated with the current phase
    * stack entry. This is used to remember the current sub phase
    * when executing a complex phase.
-   * 
+   *
    * @return The old value of the cursor.
    */
   @Inline

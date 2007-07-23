@@ -88,7 +88,7 @@ import org.vmmagic.unboxed.*;
    *
    * Initialization
    */
-  
+
   public TrialDeletion(RCBase global) {
     workPool = new SharedDeque(RCBase.metaDataSpace, 1);
     blackPool = new SharedDeque(RCBase.metaDataSpace, 1);

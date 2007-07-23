@@ -328,7 +328,7 @@ import org.vmmagic.pragma.*;
    * Read the byte available for memory manager use in an object.
    *
    * @param object the address of the object
-   * @return the value of the byte 
+   * @return the value of the byte
    */
   public byte readAvailableByte(ObjectReference object) {
     return VM_ObjectModel.readAvailableByte(object.toObject());

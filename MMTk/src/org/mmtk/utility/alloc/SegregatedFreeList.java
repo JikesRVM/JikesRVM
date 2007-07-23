@@ -74,11 +74,11 @@ import org.vmmagic.unboxed.*;
   private static final int LOG_LIVE_WORD_STRIDE = LOG_LIVE_COVERAGE + LOG_BYTES_IN_WORD;
   private static final Extent LIVE_WORD_STRIDE = Extent.fromIntSignExtend(1<<LOG_LIVE_WORD_STRIDE);
   private static final Word LIVE_WORD_STRIDE_MASK = LIVE_WORD_STRIDE.minus(1).toWord().not();
-  private static final int NET_META_DATA_BYTES_PER_REGION = 
+  private static final int NET_META_DATA_BYTES_PER_REGION =
     BlockAllocator.META_DATA_BYTES_PER_REGION + LIVE_BYTES_PER_REGION;
-  protected static final int META_DATA_PAGES_PER_REGION_WITH_BITMAP = 
+  protected static final int META_DATA_PAGES_PER_REGION_WITH_BITMAP =
     Conversions.bytesToPages(Extent.fromIntSignExtend(NET_META_DATA_BYTES_PER_REGION));
-  protected static final int META_DATA_PAGES_PER_REGION_NO_BITMAP = 
+  protected static final int META_DATA_PAGES_PER_REGION_NO_BITMAP =
     Conversions.bytesToPages(Extent.fromIntSignExtend(BlockAllocator.META_DATA_BYTES_PER_REGION));
 
   private static final Extent META_DATA_OFFSET = BlockAllocator.META_DATA_EXTENT;

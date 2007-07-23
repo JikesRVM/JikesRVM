@@ -75,7 +75,7 @@ import org.vmmagic.pragma.*;
    */
   public final boolean collectionRequired(boolean spaceFull) {
     // Never collect
-    return false; 
+    return false;
   }
 
   /*****************************************************************************

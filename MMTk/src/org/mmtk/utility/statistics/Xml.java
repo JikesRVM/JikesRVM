@@ -142,32 +142,32 @@ import org.vmmagic.unboxed.Word;
 
   /**
    * Output a "config" entity, with a given name and <code>boolean</code>value.
-   * 
+   *
    * @param name Name of the entity
    * @param value The value of the entity
    * @param units The units, or null for no units.
    */
   public static void configItem(String name, boolean value) {
     openMinorTag("conf");
-    attribute("name",name); 
-    attribute("value",value); 
+    attribute("name",name);
+    attribute("value",value);
     closeMinorTag();
   }
-  
+
   /**
    * Output a "config" entity, with a given name and <code>String</code>value.
-   * 
+   *
    * @param name Name of the entity
    * @param value The value of the entity
    * @param units The units, or null for no units.
    */
   public static void configItem(String name, String value) {
     openMinorTag("conf");
-    attribute("name",name); 
-    attribute("value",value); 
+    attribute("name",name);
+    attribute("value",value);
     closeMinorTag();
   }
-  
+
   /**
    * Output a "stat" entity, with a given name, <code>long</code> value and
    * optionally, units.
@@ -226,7 +226,7 @@ import org.vmmagic.unboxed.Word;
 
   /**
    * Add a boolean-valued attribute to an open XML tag.
-   * 
+   *
    * @param name Name of the entity
    * @param value The value of the entity
    */

@@ -114,7 +114,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Would an allocation of <code>size</code> units succeed?
-   * 
+   *
    * @param size The number of units to test for
    * @return True if such a request could be satisfied.
    */

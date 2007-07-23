@@ -87,7 +87,7 @@ public final class ComplexPhase extends Phase
 
   /**
    * Return an individual scheduled sub phase.
-   * 
+   *
    * @param index The index
    * @return The scheduled phase.
    */
@@ -115,13 +115,13 @@ public final class ComplexPhase extends Phase
 
   /**
    * Replace a scheduled phase. Used for example to replace a placeholder.
-   * 
+   *
    * @param oldScheduledPhase The scheduled phase to replace.
    * @param newScheduledPhase The new scheduled phase.
    */
   public void replacePhase(int oldScheduledPhase, int newScheduledPhase) {
     for (int i = 0; i < scheduledSubPhases.length; i++) {
-      int scheduledPhase = scheduledSubPhases[i]; 
+      int scheduledPhase = scheduledSubPhases[i];
       if (scheduledPhase == oldScheduledPhase) {
         /* Replace */
         scheduledSubPhases[i] = newScheduledPhase;
