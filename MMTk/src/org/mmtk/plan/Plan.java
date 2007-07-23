@@ -88,7 +88,7 @@ public abstract class Plan implements Constants {
   public static final int ALLOC_GCSPY = 5;
   public static final int ALLOC_HOT_CODE = ALLOC_DEFAULT;
   public static final int ALLOC_COLD_CODE = ALLOC_DEFAULT;
-  public static final int ALLOC_STACK = ALLOC_PRIMITIVE_LOS;
+  public static final int ALLOC_STACK = ALLOC_LOS;
   public static final int ALLOC_IMMORTAL_STACK = ALLOC_IMMORTAL;
   public static final int ALLOCATORS = 6;
   public static final int DEFAULT_SITE = -1;
