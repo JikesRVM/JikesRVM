@@ -293,7 +293,7 @@ public abstract class Plan implements Constants {
   /**
    * @return Is last GC a full collection?
    */
-  public static final boolean isEmergencyCollection() {
+  public static boolean isEmergencyCollection() {
     return emergencyCollection;
   }
 
