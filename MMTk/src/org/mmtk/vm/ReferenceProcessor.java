@@ -19,10 +19,10 @@ import org.vmmagic.pragma.Uninterruptible;
  * This class manages SoftReferences, WeakReferences, and
  * PhantomReferences.
  */
-@Uninterruptible 
+@Uninterruptible
 public abstract class ReferenceProcessor {
 
-  public enum Semantics { SOFT, WEAK, PHANTOM; }
+  public enum Semantics { SOFT, WEAK, PHANTOM }
 
   /**
    * Scan through the list of references with the specified semantics.
@@ -32,13 +32,13 @@ public abstract class ReferenceProcessor {
   public abstract void scan(TraceLocal trace, boolean nursery);
 
   /**
-   * Iterate over all references and forward. 
+   * Iterate over all references and forward.
    */
   public abstract void forward(TraceLocal trace, boolean nursery);
 
   /**
    * Return the number of references objects on the queue
-   * 
+   *
    * @return
    */
   public abstract int countWaitingReferences();
