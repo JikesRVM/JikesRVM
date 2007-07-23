@@ -222,7 +222,7 @@ public final class VM_ProcessorLock implements VM_Constants {
     if (n > 100) {
       VM.sysWriteln("Unexpectedly large processor lock contention");
       VM_Scheduler.dumpStack();
-      VM._assert(false);
+      VM.sysFail("Unexpectedly large processor lock contention");
     }
     int pid = VM_Processor.getCurrentProcessorId();
     if (pid < 0) pid = -pid;                            // native processors have negative ids
