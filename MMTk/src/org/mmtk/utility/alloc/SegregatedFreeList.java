@@ -289,7 +289,6 @@ import org.vmmagic.unboxed.*;
     int useableBlockSize = blockSize - blockHeaderSize[sizeClass];
     Address sentinel = block.plus(blockSize);
     Address lastCell = Address.zero();
-    int cellCount = 0;
 
     // pre-zero the block
     VM.memory.zero(cursor, Extent.fromIntZeroExtend(useableBlockSize));
@@ -299,7 +298,6 @@ import org.vmmagic.unboxed.*;
       setNextCell(cursor, lastCell);
       lastCell = cursor;
       cursor = cursor.plus(cellExtent);
-      cellCount++;
     }
 
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!lastCell.isZero());
