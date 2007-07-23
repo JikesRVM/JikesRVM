@@ -77,6 +77,12 @@ public final class VM_GreenProcessor extends VM_Processor {
    */
   VM_ThreadProcessWaitQueue processWaitQueue;
 
+  /** guard for collectorThread */
+  public final VM_ProcessorLock collectorThreadMutex;
+
+  /** the collector thread to run */
+  public VM_GreenThread collectorThread;
+  
   /**
    * Lock protecting a process wait queue.
    * This is needed because a thread may need to switch
@@ -141,6 +147,7 @@ public final class VM_GreenProcessor extends VM_Processor {
   public VM_GreenProcessor(int id) {
     super(id);
     this.transferMutex = new VM_ProcessorLock();
+    this.collectorThreadMutex = new VM_ProcessorLock();
     this.transferQueue = new VM_GlobalGreenThreadQueue(this.transferMutex);
     this.readyQueue = new VM_GreenThreadQueue();
     this.ioQueue = new VM_ThreadIOQueue();
@@ -305,17 +312,27 @@ public final class VM_GreenProcessor extends VM_Processor {
    */
   @Inline
   private VM_GreenThread getRunnableThread() {
+    // Is there a GC thread waiting to be scheduled?
+    if (collectorThread != null) {
+      // Schedule GC threads first. This avoids a deadlock when GC is trigerred
+      // during scheduling (usually due to a write barrier)
+      collectorThreadMutex.lock("getting runnable gc thread");
+      if (VM.VerifyAssertions) VM._assert(collectorThread != null);
+      VM_GreenThread ct = collectorThread;
+      if (VM.TraceThreadScheduling > 1) {
+        VM_Scheduler.trace("VM_Processor", "getRunnableThread: collector thread", ct.getIndex());
+      }
+      collectorThread = null;
+      collectorThreadMutex.unlock();
+      return ct;
+    }
 
     for (int i = transferQueue.length(); 0 < i; i--) {
       transferMutex.lock("transfer queue mutex for dequeue");
       VM_GreenThread t = transferQueue.dequeue();
       transferMutex.unlock();
-      if (t.isGCThread()) {
-        if (VM.TraceThreadScheduling > 1) {
-          VM_Scheduler.trace("VM_Processor", "getRunnableThread: collector thread", t.getIndex());
-        }
-        return t;
-      } else if (t.beingDispatched && t != VM_Scheduler.getCurrentThread()) {
+      if (VM.VerifyAssertions) VM._assert(!t.isGCThread());
+      if (t.beingDispatched && t != VM_Scheduler.getCurrentThread()) {
         // thread's stack in use by some OTHER dispatcher
         if (VM.TraceThreadScheduling > 1) {
           VM_Scheduler.trace("VM_Processor", "getRunnableThread: stack in use", t.getIndex());
@@ -422,11 +439,11 @@ public final class VM_GreenProcessor extends VM_Processor {
    */
   private void transferThread(VM_GreenThread t) {
     if (t.isGCThread()) {
-      transferMutex.lock("thread transfer");
-      transferQueue.enqueue(t);
-      // Enqueueing the GC thread means we wish to enter a GC
+      collectorThreadMutex.lock("gc thread transfer");
+      collectorThread = t;
+      /* Implied by transferring a gc thread */
       requestYieldToGC();
-      transferMutex.unlock();
+      collectorThreadMutex.unlock();
     } else if (this != getCurrentProcessor() ||
         (t.beingDispatched && t != VM_Scheduler.getCurrentThread())) {
       transferMutex.lock("thread transfer");
