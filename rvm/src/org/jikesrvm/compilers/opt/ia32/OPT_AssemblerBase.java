@@ -184,18 +184,16 @@ abstract class OPT_AssemblerBase extends VM_Assembler
   }
 
   /**
-   * Return the machine-level register number corresponding to a
-   * given OPT_Register.  The optimizing compiler has its own notion
-   * of register numbers, which is not the same as the numbers used
-   * by the IA32 ISA.  This method takes an optimizing compiler
-   * register and translates it into the appropriate machine-level
-   * encoding.  This method is not applied directly to operands, but
-   * rather to register objects.
-   *
-   * @see #getReg
+   * Return the machine-level register number corresponding to a given integer
+   * OPT_Register. The optimizing compiler has its own notion of register
+   * numbers, which is not the same as the numbers used by the IA32 ISA. This
+   * method takes an optimizing compiler register and translates it into the
+   * appropriate machine-level encoding. This method is not applied directly to
+   * operands, but rather to register objects.
+   * 
    * @see #getBase
    * @see #getIndex
-   *
+   * 
    * @param reg the register being queried
    * @return the 3 bit machine-level encoding of reg
    */
