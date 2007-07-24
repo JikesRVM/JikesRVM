@@ -560,6 +560,14 @@ EMIT_INSTRUCTION
 FPR_2INT(P(p), Unary.getResult(P(p)), consumeMO());
 
 #####
+# FLOAT_2LONG
+#####
+r: FLOAT_2LONG(r)
+20
+EMIT_INSTRUCTION
+EMIT(P(p)); /* leave for complex operators */
+
+#####
 # FLOAT_2DOUBLE
 #####
 r:	FLOAT_2DOUBLE(r)

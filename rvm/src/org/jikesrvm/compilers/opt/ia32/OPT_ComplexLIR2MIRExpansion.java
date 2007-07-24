@@ -30,6 +30,7 @@ import org.jikesrvm.compilers.opt.ir.MIR_Move;
 import org.jikesrvm.compilers.opt.ir.MIR_Multiply;
 import org.jikesrvm.compilers.opt.ir.MIR_Test;
 import org.jikesrvm.compilers.opt.ir.MIR_Unary;
+import org.jikesrvm.compilers.opt.ir.MIR_UnaryNoRes;
 import org.jikesrvm.compilers.opt.ir.MIR_UnaryAcc;
 import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
 import org.jikesrvm.compilers.opt.ir.OPT_BranchOperand;
@@ -39,20 +40,32 @@ import org.jikesrvm.compilers.opt.ir.OPT_IR;
 import org.jikesrvm.compilers.opt.ir.OPT_IRTools;
 import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
 import org.jikesrvm.compilers.opt.ir.OPT_IntConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_LocationOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_LongConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_MemoryOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import org.jikesrvm.compilers.opt.ir.OPT_StackLocationOperand;
+
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_IFCMP_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_2INT_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_2LONG_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_IFCMP_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_ADD;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_CMP;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_CVTTSS2SI;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_FILD;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_FISTP;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_FLD;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_FNSTCW;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_FLDCW;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_FSTP;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_FUCOMIP;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_IMUL2;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_JCC;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_JCC2;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_JMP;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOV;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOVZX__W;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MOVSS;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_MUL;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IA32_NOT;
@@ -119,6 +132,9 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
         case FLOAT_2INT_opcode:
           nextInstr = float_2int(s, ir);
           break;
+        case FLOAT_2LONG_opcode:
+          nextInstr = float_2long(s, ir);
+          break;
         default:
           nextInstr = s.nextInstructionInCodeOrder();
           break;
@@ -158,7 +174,7 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     OPT_RegisterOperand result = Unary.getResult(s);
     OPT_RegisterOperand value = Unary.getVal(s).asRegister();
     OPT_MemoryOperand maxint = OPT_BURS_Helpers.loadFromJTOC(VM_Entrypoints.maxintFloatField.getOffset());
-    OPT_RegisterOperand maxintReg = ir.regpool.makeTempFloat();;
+    OPT_RegisterOperand maxintReg = ir.regpool.makeTempFloat();
     s.insertBefore(CPOS(s,MIR_Move.create(IA32_MOVSS, maxintReg, maxint)));
     MIR_Compare.mutate(s, IA32_UCOMISS, maxintReg.copyRO(), value);
     testBB.appendInstruction(CPOS(s, MIR_CondBranch.create(IA32_JCC,
@@ -195,6 +211,112 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     nanBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
                                                     result.copyRO(),
                                                     IC(0))));
+    nanBB.insertOut(nextBB);
+    return nextInstr;
+  }
+
+  private static OPT_Instruction float_2long(OPT_Instruction s, OPT_IR ir) {
+    OPT_Instruction nextInstr = s.nextInstructionInCodeOrder();
+    while(Label.conforms(nextInstr)||BBend.conforms(nextInstr)) {
+      nextInstr = nextInstr.nextInstructionInCodeOrder();
+    }
+    // we need 6 basic blocks (in code order)
+    // 1: the current block that does a test to see if this is a regular f2l or
+    //    branches to the maxint/NaN case
+    // 2: a block to perform a regular f2l
+    // 3: a block to test for NaN
+    // 4: a block to perform give maxint
+    // 5: a block to perform NaN
+    // 6: the next basic block
+    OPT_BasicBlock testBB = s.getBasicBlock();
+    OPT_BasicBlock nextBB = testBB.splitNodeAt(s,ir);
+    ir.cfg.linkInCodeOrder(testBB, nextBB);
+    OPT_BasicBlock nanBB = testBB.splitNodeAt(s,ir);
+    ir.cfg.linkInCodeOrder(testBB, nanBB);
+    OPT_BasicBlock maxintBB = testBB.splitNodeAt(s,ir);
+    ir.cfg.linkInCodeOrder(testBB, maxintBB);
+    OPT_BasicBlock nanTestBB = testBB.splitNodeAt(s,ir);
+    ir.cfg.linkInCodeOrder(testBB, nanTestBB);
+    OPT_BasicBlock f2lBB = testBB.splitNodeAt(s,ir);
+    ir.cfg.linkInCodeOrder(testBB, f2lBB);
+
+    // Move the maxlongFloat value and the value into x87 registers and compare and
+    // branch if they are <= or unordered.
+    OPT_RegisterOperand resultHi = Unary.getResult(s);
+    OPT_RegisterOperand resultLo = new OPT_RegisterOperand(ir.regpool.getSecondReg(resultHi.getRegister()),
+        VM_TypeReference.Int);
+    OPT_RegisterOperand value = Unary.getVal(s).asRegister();
+    OPT_RegisterOperand cw = ir.regpool.makeTempInt();
+    OPT_MemoryOperand maxlong = OPT_BURS_Helpers.loadFromJTOC(VM_Entrypoints.maxlongFloatField.getOffset());
+    OPT_RegisterOperand st0 = new OPT_RegisterOperand(ir.regpool.getPhysicalRegisterSet().getST0(),
+        VM_TypeReference.Float);
+    OPT_RegisterOperand st1 = new OPT_RegisterOperand(ir.regpool.getPhysicalRegisterSet().getST1(),
+        VM_TypeReference.Float);
+    int offset = -ir.stackManager.allocateSpaceForConversion();
+    OPT_StackLocationOperand slLo = new OPT_StackLocationOperand(true, offset, 4);
+    OPT_StackLocationOperand slHi = new OPT_StackLocationOperand(true, offset+4, 4);
+    OPT_StackLocationOperand sl = new OPT_StackLocationOperand(true, offset, 8);
+    OPT_MemoryOperand scratchLo = new OPT_MemoryOperand(ir.regpool.makePROp(), null, (byte)0,
+        VM_Entrypoints.scratchStorageField.getOffset(), (byte)4,
+        new OPT_LocationOperand(VM_Entrypoints.scratchStorageField), null);
+    OPT_MemoryOperand scratchHi = new OPT_MemoryOperand(ir.regpool.makePROp(), null, (byte)0,
+        VM_Entrypoints.scratchStorageField.getOffset().plus(4), (byte)4,
+        new OPT_LocationOperand(VM_Entrypoints.scratchStorageField), null);
+
+    s.insertBefore(CPOS(s, MIR_Move.create(IA32_MOVSS, slLo, value)));
+    s.insertBefore(CPOS(s, MIR_Move.create(IA32_FLD, st0, slLo.copy())));
+    s.insertBefore(CPOS(s, MIR_Move.create(IA32_FLD, st0.copyRO(), maxlong)));
+    MIR_Compare.mutate(s, IA32_FUCOMIP, st0.copyRO(), st1);
+    testBB.appendInstruction(CPOS(s, MIR_CondBranch.create(IA32_JCC,
+        OPT_IA32ConditionOperand.LLE(),
+        nanTestBB.makeJumpTarget(),
+        OPT_BranchProfileOperand.unlikely())));
+    testBB.insertOut(f2lBB);
+    testBB.insertOut(nanTestBB);
+
+    // Convert float to long knowing that if the value is < min long the Intel
+    // unspecified result is min long
+    // TODO: this would be a lot simpler and faster with SSE3's FISTTP instruction
+    f2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FNSTCW, scratchLo.copy())));
+    f2lBB.appendInstruction(CPOS(s, MIR_Unary.create(IA32_MOVZX__W, cw, scratchLo.copy())));
+    f2lBB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_OR, cw, IC(0xC00))));
+    f2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, scratchHi, cw.copyRO())));    
+    f2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FLDCW, scratchHi.copy())));
+    f2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_FISTP, sl, st0.copyRO())));
+    f2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FLDCW, scratchLo.copy())));    
+    f2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, resultLo, slLo)));    
+    f2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, resultHi, slHi)));    
+    f2lBB.appendInstruction(CPOS(s, MIR_Branch.create(IA32_JMP,
+        nextBB.makeJumpTarget())));
+    f2lBB.insertOut(nextBB);
+
+    // Did the compare find a NaN or a maximum integer?
+    nanTestBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_FSTP, st0.copyRO(), st0.copyRO())));    
+    nanTestBB.appendInstruction(CPOS(s, MIR_CondBranch.create(IA32_JCC,
+        OPT_IA32ConditionOperand.PE(),
+        nanBB.makeJumpTarget(),
+        OPT_BranchProfileOperand.unlikely())));
+    nanTestBB.insertOut(nanBB);
+    nanTestBB.insertOut(maxintBB);
+
+    // Value was >= max long
+    maxintBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+        resultLo.copyRO(),
+        IC((int)Long.MAX_VALUE))));
+    maxintBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+        resultHi.copyRO(),
+        IC((int)(Long.MAX_VALUE >>> 32)))));
+    maxintBB.appendInstruction(CPOS(s, MIR_Branch.create(IA32_JMP,
+        nextBB.makeJumpTarget())));
+    maxintBB.insertOut(nextBB);
+
+    // In case of NaN result is 0
+    nanBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+        resultLo.copyRO(),
+        IC(0))));
+    nanBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV,
+        resultHi.copyRO(),
+        IC(0))));
     nanBB.insertOut(nextBB);
     return nextInstr;
   }

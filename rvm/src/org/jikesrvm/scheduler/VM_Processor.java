@@ -290,8 +290,10 @@ public abstract class VM_Processor extends MM_ProcessorContext implements VM_Con
   VM_ProcessorLock awaitingProcessorLock;
   VM_Processor contenderLink;
 
-  // Scratch area for use for gpr <=> fpr transfers by
-  // PPC baseline compiler
+  /**
+   * Scratch area for use for gpr <=> fpr transfers by PPC baseline compiler.
+   * Used to transfer x87 to SSE registers on IA32
+   */
   @SuppressWarnings({"unused", "CanBeFinal", "UnusedDeclaration"})
   //accessed via VM_EntryPoints
   private double scratchStorage;

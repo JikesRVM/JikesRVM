@@ -277,7 +277,7 @@ public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElem
           break;
 
           case FLOAT_2LONG_opcode: {
-            if (VM.BuildForPowerPC && VM.BuildFor64Addr) break; // don't reduce operator -- leave for BURS
+            if (VM.BuildForPowerPC && VM.BuildFor64Addr || VM.BuildForSSE2Full) break; // don't reduce operator -- leave for BURS
             Call.mutate1(s,
                          SYSCALL,
                          Unary.getClearResult(s),
