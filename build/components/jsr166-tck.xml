@@ -1,0 +1,53 @@
+<!--
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Common Public License (CPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/cpl1.0.php
+ ~
+ ~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
+<project name="jsr166-tck" default="build" basedir=".">
+
+  <import file="base.xml"/>
+  <property file="${components.file}"/>
+
+  <property name="jsr166-tck.version" value="jsr166"/>
+  <property name="jsr166-tck.description" value="jsr166 TCK"/>
+
+  <property name="jsr166-tck.package.dir" value="${components.dir}/jsr166-tck"/>
+  <property name="jsr166-tck.dir" location="${jsr166-tck.package.dir}/tck"/>
+
+  <target name="init-jsr166-tck-properties" depends="prepare-ant-tasks">
+    <condition property="jsr166-tck.from-web" value="true">
+      <or>
+        <not>
+          <available file="${jsr166-tck.dir}/constants.properties"/>
+        </not>
+        <isset property="jsr166-tck.force-download"/>
+      </or>
+    </condition>
+  </target>
+
+  <target name="fetch" depends="init-jsr166-tck-properties" if="jsr166-tck.from-web">
+    <property name="jsr166-tck.web-archive" value="jsr166-tck.tar.gz"/>
+    <mkdir dir="${jsr166-tck.package.dir}"/>
+    <get src="http://gee.cs.oswego.edu/cgi-bin/viewcvs.cgi/jsr166/src/test/tck/tck.tar.gz?tarball=1"
+         dest="${jsr166-tck.package.dir}/${jsr166-tck.web-archive}"/>
+    <mkdir dir="${jsr166-tck.dir}"/>
+    <untar src="${jsr166-tck.package.dir}/${jsr166-tck.web-archive}" compression="gzip" dest="${jsr166-tck.package.dir}"/>
+    <writeComponentConstants dir="${jsr166-tck.dir}"/>
+  </target>
+
+  <target name="build" depends="fetch">
+    <setComponentsConfig key="jsr166-tck.dir" value="${jsr166-tck.dir}"/>
+  </target>
+
+  <target name="ensure" depends="prepare-ant-tasks">
+    <ensureUptodate name="jsr166-tck" dir="${jsr166-tck.dir}"/>
+  </target>
+
+</project>
