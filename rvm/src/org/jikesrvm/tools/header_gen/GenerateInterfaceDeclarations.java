@@ -48,11 +48,15 @@ public class GenerateInterfaceDeclarations {
   static final GenArch arch;
 
   static {
-    if (VM.BuildForIA32) {
-      arch = new org.jikesrvm.tools.header_gen.GenArch_ia32();
-    } else {
-      arch = new org.jikesrvm.tools.header_gen.GenArch_ppc();
+    GenArch tmp = null;
+    try {
+      tmp =
+          (GenArch) Class.forName(VM.BuildForIA32 ? "org.jikesrvm.tools.header_gen.GenArch_ia32" : "org.jikesrvm.tools.header_gen.GenArch_ppc").newInstance();
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.exit(-1);     // we must *not* go on if the above has failed
     }
+    arch = tmp;
   }
 
   static void p(String s) {
