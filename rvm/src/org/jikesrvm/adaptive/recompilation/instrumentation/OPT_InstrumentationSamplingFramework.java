@@ -448,7 +448,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
         load =
             Load.create(INT_LOAD,
                         cbsReg.copyRO(),
-                        OPT_IRTools.A(ir.regpool.getPhysicalRegisterSet().getPR()),
+                        ir.regpool.makePROp(),
                         OPT_IRTools.AC(VM_AosEntrypoints.processorCBSField.getOffset()),
                         new OPT_LocationOperand(VM_AosEntrypoints.processorCBSField));
 
@@ -497,7 +497,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
       store =
           Store.create(INT_STORE,
                        cbsReg.copyRO(),
-                       OPT_IRTools.A(ir.regpool.getPhysicalRegisterSet().getPR()),
+                       ir.regpool.makePROp(),
                        OPT_IRTools.AC(VM_AosEntrypoints.processorCBSField.getOffset()),
                        new OPT_LocationOperand(VM_AosEntrypoints.processorCBSField));
 
@@ -591,7 +591,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
         store =
             Store.create(INT_STORE,
                          cbsReg.copyRO(),
-                         OPT_IRTools.A(ir.regpool.getPhysicalRegisterSet().getPR()),
+                         ir.regpool.makePROp(),
                          OPT_IRTools.AC(VM_AosEntrypoints.processorCBSField.getOffset()),
                          new OPT_LocationOperand(VM_AosEntrypoints.processorCBSField));
       } else {

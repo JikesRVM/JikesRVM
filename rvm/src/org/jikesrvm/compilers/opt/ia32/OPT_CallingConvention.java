@@ -110,7 +110,7 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
         if (mo.isInterface()) {
           VM_InterfaceMethodSignature sig = VM_InterfaceMethodSignature.findOrCreate(mo.getMemberRef());
           OPT_MemoryOperand M =
-              OPT_MemoryOperand.BD(new OPT_RegisterOperand(phys.getPR(), VM_TypeReference.Int),
+              OPT_MemoryOperand.BD(ir.regpool.makePROp(),
                                    VM_ArchEntrypoints.hiddenSignatureIdField.getOffset(),
                                    (byte) WORDSIZE,
                                    null,
@@ -202,7 +202,7 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
         if (VM_ArchConstants.SSE2_FULL && isSysCall) {
           byte size = (byte)(result1.getType().isFloatType() ? 4 : 8);
           OPT_RegisterOperand st0 = new OPT_RegisterOperand(phys.getST0(), result1.getType());
-          OPT_RegisterOperand pr = new OPT_RegisterOperand(phys.getPR(), VM_TypeReference.Int);
+          OPT_RegisterOperand pr = ir.regpool.makePROp();
           OPT_MemoryOperand scratch = new OPT_MemoryOperand(pr, null, (byte)0, VM_Entrypoints.scratchStorageField.getOffset(), size, new OPT_LocationOperand(VM_Entrypoints.scratchStorageField), null);
 
           OPT_Instruction pop = MIR_Move.create(IA32_FSTP, scratch, st0);
@@ -387,9 +387,8 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
     }
 
     // save the processor register
-    OPT_Register PR = phys.getPR();
     OPT_Operand M = new OPT_StackLocationOperand(true, -location, (byte) WORDSIZE);
-    call.insertBefore(MIR_Move.create(IA32_MOV, M, new OPT_RegisterOperand(PR, VM_TypeReference.Int)));
+    call.insertBefore(MIR_Move.create(IA32_MOV, M, ir.regpool.makePROp()));
   }
 
   /**
@@ -420,9 +419,8 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
     }
 
     // restore the processor register
-    OPT_Register PR = phys.getPR();
     OPT_Operand M = new OPT_StackLocationOperand(true, -location, (byte) WORDSIZE);
-    call.insertAfter(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(PR, VM_TypeReference.Int), M));
+    call.insertAfter(MIR_Move.create(IA32_MOV, ir.regpool.makePROp(), M));
   }
 
   /**
