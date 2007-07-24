@@ -161,7 +161,8 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
     reg[PROCESSOR_REGISTER].setSpansBasicBlock();
 
     // For SSE2
-    reg[ST0].isDouble();
+    reg[ST0].setDouble();
+    reg[ST1].setDouble();
 
     // 7. set up the volatile FPRs
     for (Enumeration<OPT_Register> e = enumerateVolatileFPRs(); e.hasMoreElements();) {
@@ -447,6 +448,8 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
     regName[PF] = "PF";
     regName[SF] = "SF";
     regName[ZF] = "ZF";
+    regName[ST0] = "ST0";
+    regName[ST1] = "ST1";
   }
 
   /**

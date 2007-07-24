@@ -25,7 +25,7 @@ import org.jikesrvm.scheduler.VM_Scheduler;
  */
 public class OPT_GenericRegisterPool extends OPT_AbstractRegisterPool {
 
-  protected OPT_PhysicalRegisterSet physical = new OPT_PhysicalRegisterSet();
+  protected final OPT_PhysicalRegisterSet physical = new OPT_PhysicalRegisterSet();
 
   public OPT_PhysicalRegisterSet getPhysicalRegisterSet() {
     return physical;
