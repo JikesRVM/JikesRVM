@@ -642,6 +642,10 @@ if ($ok && ($test_set ne "" || $test_list ne "")) {
           "-Dexternal.lib.dir=$extlibdir ".
           "-Dresults.dir=$targetRoot/$resultdir ";
 
+  if ($suffix ne "") {
+    $test .= "-Dconfig.variant=$suffix ";
+  }
+
   if ($xvfb_run ne "") {
     $test .="-Ddisplay-wrapper.exe=$xvfb_run ";
   }
