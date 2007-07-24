@@ -563,8 +563,8 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
     int offset = -burs.ir.stackManager.allocateSpaceForConversion();
     if (op instanceof OPT_RegisterOperand) {
       OPT_RegisterOperand hval = (OPT_RegisterOperand) op;
-      OPT_RegisterOperand lval = new OPT_RegisterOperand(regpool
-          .getSecondReg(hval.getRegister()), VM_TypeReference.Int);
+      OPT_RegisterOperand lval = new OPT_RegisterOperand(regpool.getSecondReg(hval.getRegister()),
+          VM_TypeReference.Int);
       EMIT(MIR_Move.create(IA32_MOV, new OPT_StackLocationOperand(true, offset + 4, DW), hval));
       EMIT(MIR_Move.create(IA32_MOV, new OPT_StackLocationOperand(true, offset, DW), lval));
     } else {
