@@ -20,34 +20,26 @@
 
   <import file="../../../build/tests.xml"/>
 
-  <property name="main.java" location="${basedir}/src"/>
+  <ant antfile="../../../build/components/junit.xml" target="ensure"/>
+  <ant antfile="../../../build/components/jsr166-tck.xml" target="ensure"/>
+  <property file="${components.file}"/>
+
+  <property name="main.java" location="${jsr166-tck.dir}"/>
 
   <property name="build.classes" location="${build.tests.dir}/classes"/>
-  <property name="junit.jar" location="${build.tests.dir}/junit4.2/junit-4.2.jar"/>
   <property name="test.class.path" value="${junit.jar}:${build.classes}"/>
 
-  <!-- **************************************************************************** -->
-  <!-- *                                                                          * -->
-  <!-- *                           Download and extract junit                     * -->
-  <!-- *                                                                          * -->
-  <!-- **************************************************************************** -->
-
-  <target name="junit.download" depends="init">
-    <get src="http://superb-east.dl.sourceforge.net/sourceforge/junit/junit4.2.zip"
-         dest="${build.tests.dir}/junit4.2.zip"/>
-    <unzip src="${build.tests.dir}/junit4.2.zip" dest="${build.tests.dir}"/>
-  </target>
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
-  <!-- *                           How to run a junit test                        * -->
+  <!-- *                           How to run a tck test                          * -->
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <macrodef name="junit">
+  <macrodef name="tck">
     <attribute name="name"/>
     <sequential>
-      <rvm tag="@{name}" class="@{name}" />
+      <rvm tag="@{name}" class="@{name}"/>
       <outputSingleStatisticResults tag="@{name}" key="passed" pattern="OK \([0-9]+ tests\)"/>
     </sequential>
   </macrodef>
@@ -58,7 +50,7 @@
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="compile" depends="init,junit.download">
+  <target name="compile" depends="init">
     <mkdir dir="${build.classes}"/>
     <javac srcdir="${main.java}" classpath="${junit.jar}" destdir="${build.classes}" debug="true"/>
   </target>
@@ -72,63 +64,63 @@
   <target name="test" depends="compile">
     <startResults/>
 
-   <junit name="AbstractExecutorServiceTest" />
-   <junit name="AbstractQueuedLongSynchronizerTest" />
-   <junit name="AbstractQueuedSynchronizerTest" />
-   <junit name="AbstractQueueTest" />
-   <junit name="ArrayBlockingQueueTest" />
-   <junit name="ArrayDequeTest" />
-   <junit name="AtomicBooleanTest" />
-   <junit name="AtomicIntegerArrayTest" />
-   <junit name="AtomicIntegerFieldUpdaterTest" />
-   <junit name="AtomicIntegerTest" />
-   <junit name="AtomicLongArrayTest" />
-   <junit name="AtomicLongFieldUpdaterTest" />
-   <junit name="AtomicLongTest" />
-   <junit name="AtomicMarkableReferenceTest" />
-   <junit name="AtomicReferenceArrayTest" />
-   <junit name="AtomicReferenceFieldUpdaterTest" />
-   <junit name="AtomicReferenceTest" />
-   <junit name="AtomicStampedReferenceTest" />
-   <junit name="ConcurrentHashMapTest" />
-   <junit name="ConcurrentLinkedQueueTest" />
-   <junit name="ConcurrentSkipListMapTest" />
-   <junit name="ConcurrentSkipListSetTest" />
-   <junit name="ConcurrentSkipListSubMapTest" />
-   <junit name="ConcurrentSkipListSubSetTest" />
-   <junit name="CopyOnWriteArrayListTest" />
-   <junit name="CopyOnWriteArraySetTest" />
-   <junit name="CountDownLatchTest" />
-   <junit name="CyclicBarrierTest" />
-   <junit name="DelayQueueTest" />
-   <junit name="EntryTest" />
-   <junit name="ExchangerTest" />
-   <junit name="ExecutorCompletionServiceTest" />
-   <junit name="ExecutorsTest" />
-   <junit name="FutureTaskTest" />
-   <!-- <junit name="JSR166TestCase" /> -->
-   <junit name="LinkedBlockingDequeTest" />
-   <junit name="LinkedBlockingQueueTest" />
-   <junit name="LinkedListTest" />
-   <junit name="LockSupportTest" />
-   <junit name="PriorityBlockingQueueTest" />
-   <junit name="PriorityQueueTest" />
-   <junit name="ReentrantLockTest" />
-   <junit name="ReentrantReadWriteLockTest" />
-   <junit name="ScheduledExecutorSubclassTest" />
-   <junit name="ScheduledExecutorTest" />
-   <junit name="SemaphoreTest" />
-   <junit name="SynchronousQueueTest" />
-   <junit name="SystemTest" />
-   <junit name="ThreadLocalTest" />
-   <junit name="ThreadPoolExecutorSubclassTest" />
-   <junit name="ThreadPoolExecutorTest" />
-   <junit name="ThreadTest" />
-   <junit name="TimeUnitTest" />
-   <junit name="TreeMapTest" />
-   <junit name="TreeSetTest" />
-   <junit name="TreeSubMapTest" />
-   <junit name="TreeSubSetTest" />
+    <tck name="AbstractExecutorServiceTest"/>
+    <tck name="AbstractQueuedLongSynchronizerTest"/>
+    <tck name="AbstractQueuedSynchronizerTest"/>
+    <tck name="AbstractQueueTest"/>
+    <tck name="ArrayBlockingQueueTest"/>
+    <tck name="ArrayDequeTest"/>
+    <tck name="AtomicBooleanTest"/>
+    <tck name="AtomicIntegerArrayTest"/>
+    <tck name="AtomicIntegerFieldUpdaterTest"/>
+    <tck name="AtomicIntegerTest"/>
+    <tck name="AtomicLongArrayTest"/>
+    <tck name="AtomicLongFieldUpdaterTest"/>
+    <tck name="AtomicLongTest"/>
+    <tck name="AtomicMarkableReferenceTest"/>
+    <tck name="AtomicReferenceArrayTest"/>
+    <tck name="AtomicReferenceFieldUpdaterTest"/>
+    <tck name="AtomicReferenceTest"/>
+    <tck name="AtomicStampedReferenceTest"/>
+    <tck name="ConcurrentHashMapTest"/>
+    <tck name="ConcurrentLinkedQueueTest"/>
+    <tck name="ConcurrentSkipListMapTest"/>
+    <tck name="ConcurrentSkipListSetTest"/>
+    <tck name="ConcurrentSkipListSubMapTest"/>
+    <tck name="ConcurrentSkipListSubSetTest"/>
+    <tck name="CopyOnWriteArrayListTest"/>
+    <tck name="CopyOnWriteArraySetTest"/>
+    <tck name="CountDownLatchTest"/>
+    <tck name="CyclicBarrierTest"/>
+    <tck name="DelayQueueTest"/>
+    <tck name="EntryTest"/>
+    <tck name="ExchangerTest"/>
+    <tck name="ExecutorCompletionServiceTest"/>
+    <tck name="ExecutorsTest"/>
+    <tck name="FutureTaskTest"/>
+    <!-- <tck name="JSR166TestCase" /> -->
+    <tck name="LinkedBlockingDequeTest"/>
+    <tck name="LinkedBlockingQueueTest"/>
+    <tck name="LinkedListTest"/>
+    <tck name="LockSupportTest"/>
+    <tck name="PriorityBlockingQueueTest"/>
+    <tck name="PriorityQueueTest"/>
+    <tck name="ReentrantLockTest"/>
+    <tck name="ReentrantReadWriteLockTest"/>
+    <tck name="ScheduledExecutorSubclassTest"/>
+    <tck name="ScheduledExecutorTest"/>
+    <tck name="SemaphoreTest"/>
+    <tck name="SynchronousQueueTest"/>
+    <tck name="SystemTest"/>
+    <tck name="ThreadLocalTest"/>
+    <tck name="ThreadPoolExecutorSubclassTest"/>
+    <tck name="ThreadPoolExecutorTest"/>
+    <tck name="ThreadTest"/>
+    <tck name="TimeUnitTest"/>
+    <tck name="TreeMapTest"/>
+    <tck name="TreeSetTest"/>
+    <tck name="TreeSubMapTest"/>
+    <tck name="TreeSubSetTest"/>
 
     <finishResults/>
   </target>
