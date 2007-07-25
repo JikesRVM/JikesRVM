@@ -165,18 +165,22 @@ public class VM_Entrypoints {
   public static final VM_Field zeroDoubleField = getField(org.jikesrvm.runtime.VM_Math.class, "zeroD", double.class);
   /** 1.0 */
   public static final VM_Field oneDoubleField = getField(org.jikesrvm.runtime.VM_Math.class, "oneD", double.class);
-  /**  largest double that can be rounded to an int */
+  /** largest double that can be rounded to an int */
   public static final VM_Field maxintField =
       getField(org.jikesrvm.runtime.VM_Math.class, "maxint", double.class);
+  /** largest double that can be rounded to a long */
+  public static final VM_Field maxlongField =
+    getField(org.jikesrvm.runtime.VM_Math.class, "maxlong", double.class);
   /** smallest double that can be rounded to an int */
   public static final VM_Field minintField =
       getField(org.jikesrvm.runtime.VM_Math.class, "minint", double.class);
   /** largest float that can be rounded to an int */
   public static final VM_Field maxintFloatField =
     getField(org.jikesrvm.runtime.VM_Math.class, "maxintF", float.class);
-  /** IEEEmagic constant */
+  /** largest float that can be rounded to a long */
   public static final VM_Field maxlongFloatField =
     getField(org.jikesrvm.runtime.VM_Math.class, "maxlongF", float.class);
+  /** IEEEmagic constant */
   public static final VM_Field IEEEmagicField =
       getField(org.jikesrvm.runtime.VM_Math.class, "IEEEmagic", double.class);
   /** special double value for use in int <--> double conversions */

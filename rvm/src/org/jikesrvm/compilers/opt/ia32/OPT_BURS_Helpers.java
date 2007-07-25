@@ -575,15 +575,16 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
   }
 
   /**
-   * Create memory operand to load 32 bits form a given jtoc offset
+   * Create memory operand to load from a given jtoc offset
    *
    * @param offset location in JTOC
+   * @param size of value in JTOC
    * @return created memory operand
    */
-  static OPT_MemoryOperand loadFromJTOC(Offset offset) {
+  static OPT_MemoryOperand loadFromJTOC(Offset offset, byte size) {
     OPT_LocationOperand loc = new OPT_LocationOperand(offset);
     OPT_Operand guard = TG();
-    return OPT_MemoryOperand.D(VM_Magic.getTocPointer().plus(offset), (byte) 4, loc, guard);
+    return OPT_MemoryOperand.D(VM_Magic.getTocPointer().plus(offset), size, loc, guard);
   }
 
   /*
@@ -3140,8 +3141,7 @@ OPT_Operand value, boolean signExtend) {
    * @param s the instruction to expand
    */
   protected final void RESOLVE(OPT_Instruction s) {
-    OPT_Operand target = loadFromJTOC(VM_Entrypoints.optResolveMethod
-        .getOffset());
+    OPT_Operand target = loadFromJTOC(VM_Entrypoints.optResolveMethod.getOffset(), DW);
     EMIT(CPOS(s,
               MIR_Call.mutate0(s,
                                CALL_SAVE_VOLATILE,

@@ -290,7 +290,7 @@ public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElem
           break;
 
           case DOUBLE_2LONG_opcode: {
-            if (VM.BuildForPowerPC && VM.BuildFor64Addr) break; // don't reduce operator -- leave for BURS
+            if (VM.BuildForPowerPC && VM.BuildFor64Addr || VM.BuildForSSE2Full) break; // don't reduce operator -- leave for BURS
             Call.mutate1(s,
                          SYSCALL,
                          Unary.getClearResult(s),
@@ -299,21 +299,6 @@ public final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElem
                          Unary.getClearVal(s));
             OPT_ConvertToLowLevelIR.expandSysCallTarget(s, ir);
             OPT_CallingConvention.expandSysCall(s, ir);
-          }
-          break;
-
-          case DOUBLE_2INT_opcode: {
-            if (VM.BuildForIA32 && VM.BuildForSSE2Full) {
-              // TODO: Work out an efficient SSE2 conversion
-              Call.mutate1(s,
-                           SYSCALL,
-                           Unary.getClearResult(s),
-                           null,
-                           OPT_MethodOperand.STATIC(VM_Entrypoints.sysDoubleToIntIPField),
-                           Unary.getClearVal(s));
-              OPT_ConvertToLowLevelIR.expandSysCallTarget(s, ir);
-              OPT_CallingConvention.expandSysCall(s, ir);
-            }
           }
           break;
           case SYSCALL_opcode:

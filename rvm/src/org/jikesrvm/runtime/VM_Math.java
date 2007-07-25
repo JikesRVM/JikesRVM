@@ -52,6 +52,9 @@ public class VM_Math {
   /** largest double that can be rounded to an int */
   @Entrypoint
   static final double maxint = 0.5D + 0x7FFFFFFF;
+  /** largest double that can be rounded to a long */
+  @Entrypoint
+  static final double maxlong = 0.5D + 0x7FFFFFFFFFFFFFFFL;
   /** largest float that can be rounded to an int (0x7FFFFFFF) */
   @Entrypoint
   static final float maxintF = java.lang.Float.intBitsToFloat(0x4F000000);
