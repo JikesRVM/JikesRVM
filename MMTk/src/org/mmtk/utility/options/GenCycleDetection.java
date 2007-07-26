@@ -15,7 +15,7 @@ package org.mmtk.utility.options;
 /**
  * Should we use a generational approach to cycle detection?
  */
-public class GenCycleDetection extends BooleanOption {
+public final class GenCycleDetection extends BooleanOption {
   /**
    * Create the option.
    */

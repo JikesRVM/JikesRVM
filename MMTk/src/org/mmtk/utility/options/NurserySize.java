@@ -18,7 +18,7 @@ import org.vmmagic.pragma.*;
  * A composite option that provides a min/max interface to MMTk,
  * and a fixed/bounded option interface to the VM/user.
  */
-public class NurserySize {
+public final class NurserySize {
   // values
   private FixedNursery fixedNursery;
   private BoundedNursery boundedNursery;

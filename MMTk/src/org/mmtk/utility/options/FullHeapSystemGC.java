@@ -15,7 +15,7 @@ package org.mmtk.utility.options;
 /**
  * Should a major GC be performed when a system GC is triggered?
  */
-public class FullHeapSystemGC extends BooleanOption {
+public final class FullHeapSystemGC extends BooleanOption {
   /**
    * Create the option.
    */

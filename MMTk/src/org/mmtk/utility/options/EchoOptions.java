@@ -15,7 +15,7 @@ package org.mmtk.utility.options;
 /**
  * Echo when options are set?
  */
-public class EchoOptions extends BooleanOption {
+public final class EchoOptions extends BooleanOption {
   /**
    * Create the option.
    */

@@ -19,7 +19,7 @@ import org.mmtk.plan.Plan;
  *
  * This option is not intended to be created directly, but via NurserySize.
  */
-public class FixedNursery extends PagesOption {
+public final class FixedNursery extends PagesOption {
   // values
   BoundedNursery boundedNursery;
 

@@ -17,7 +17,7 @@ import org.vmmagic.pragma.*;
 /**
  * The granularity of the trace being produced.
  */
-public class TraceRate extends IntOption
+public final class TraceRate extends IntOption
   implements org.mmtk.utility.Constants {
   /**
    * Create the option.

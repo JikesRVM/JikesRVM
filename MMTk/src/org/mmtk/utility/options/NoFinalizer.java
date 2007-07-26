@@ -15,7 +15,7 @@ package org.mmtk.utility.options;
 /**
  * Should finalization be disabled?
  */
-public class NoFinalizer extends BooleanOption {
+public final class NoFinalizer extends BooleanOption {
   /**
    * Create the option.
    */

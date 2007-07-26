@@ -16,7 +16,7 @@ package org.mmtk.utility.options;
  * When printing statistics, should statistics for each
  * gc-mutator phase be printed?
  */
-public class PrintPhaseStats extends BooleanOption {
+public final class PrintPhaseStats extends BooleanOption {
   /**
    * Create the option.
    */

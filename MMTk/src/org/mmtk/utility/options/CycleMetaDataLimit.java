@@ -15,7 +15,7 @@ package org.mmtk.utility.options;
 /**
  * Trigger cycle detection if the meta data volume grows to this limit.
  */
-public class CycleMetaDataLimit extends PagesOption {
+public final class CycleMetaDataLimit extends PagesOption {
   /**
    * Create the option.
    */

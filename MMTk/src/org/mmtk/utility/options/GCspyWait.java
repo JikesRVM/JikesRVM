@@ -15,7 +15,7 @@ package org.mmtk.utility.options;
 /**
  * Should the VM wait for the visualiser to connect?
  */
-public class GCspyWait extends BooleanOption {
+public final class GCspyWait extends BooleanOption {
   /**
    * Create the option
    */
