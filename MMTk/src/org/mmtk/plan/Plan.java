@@ -150,6 +150,7 @@ public abstract class Plan implements Constants {
     Options.noFinalizer = new NoFinalizer();
     Options.noReferenceTypes = new NoReferenceTypes();
     Options.fullHeapSystemGC = new FullHeapSystemGC();
+    Options.harnessAll = new HarnessAll();
     Options.ignoreSystemGC = new IgnoreSystemGC();
     Options.metaDataLimit = new MetaDataLimit();
     Options.nurserySize = new NurserySize();
@@ -195,6 +196,7 @@ public abstract class Plan implements Constants {
   @Interruptible
   public void fullyBooted() {
     initialized = true;
+    if (Options.harnessAll.getValue()) harnessBegin();
   }
 
   /**
@@ -202,7 +204,9 @@ public abstract class Plan implements Constants {
    *
    * @param value The exit value
    */
+  @Interruptible
   public void notifyExit(int value) {
+    if (Options.harnessAll.getValue()) harnessEnd();
     if (Options.verbose.getValue() == 1) {
       Log.write("[End ");
       totalTime.printTotalSecs();

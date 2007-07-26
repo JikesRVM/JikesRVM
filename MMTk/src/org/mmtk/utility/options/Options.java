@@ -39,6 +39,7 @@ public final class Options {
   public static GCspyWait gcspyWait;
   public static GCTimeCap gcTimeCap;
   public static GenCycleDetection genCycleDetection;
+  public static HarnessAll harnessAll;
   public static IgnoreSystemGC ignoreSystemGC;
   public static MarkSweepMarkBits markSweepMarkBits;
   public static MetaDataLimit metaDataLimit;
