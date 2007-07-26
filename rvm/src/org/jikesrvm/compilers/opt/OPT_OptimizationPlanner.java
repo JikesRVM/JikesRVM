@@ -150,11 +150,11 @@ public class OPT_OptimizationPlanner {
         // Always do initial wave of peephole branch optimizations
         new OPT_BranchOptimizations(0, true, false),
 
-        // Adjust static branch probabilites to account for infrequent blocks
+        // Adjust static branch probabilities to account for infrequent blocks
         new OPT_AdjustBranchProbabilities(),
 
         // Optional printing of initial HIR
-        // Do this after branch optmization, since without merging
+        // Do this after branch optimization, since without merging
         // FallThroughOuts, the IR is quite ugly.
         new OPT_IRPrinter("Initial HIR") {
           public boolean shouldPerform(OPT_Options options) {
@@ -184,7 +184,7 @@ public class OPT_OptimizationPlanner {
             return options.getOptLevel() >= 1;
           }
         },
-        // CFG spliting
+        // CFG splitting
         new OPT_StaticSplitting(),
         // restructure loops
         new OPT_CFGTransformations(),
