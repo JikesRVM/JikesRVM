@@ -546,67 +546,67 @@ if ($ok) {
     if ($skip_build) {
       $build .= "echo Skipping build ";
     } else {
-      $build .= "ssh -t $sshHost '\n".
-               "  cd $hostRoot &&\n".
-               "  export JAVA_HOME=$javaHome{$host} && \n";
+      $build .= "ssh -t $sshHost '/bin/bash -c \" ".
+               "  cd $hostRoot &&".
+               "  export JAVA_HOME=$javaHome{$host} && ";
 
       if (! $quick) {
-        $build .= "  ant very-clean -Dhost.name=$hostConfig &&\n";
+        $build .= "  ant very-clean -Dhost.name=$hostConfig &&";
       }
       $build .= "  ant check-components-properties ".
                 "-Dhost.name=$hostConfig ".
                 "-Dtarget.name=$hostConfig ".
-                $cp_flags."&& \n"; 
+                $cp_flags."&& "; 
     
       #
       # Initial build
       #
       if ($hostConfig eq $targetConfig) {
-        $build .= "  ant $hostdefs\n";
+        $build .= "  ant $hostdefs";
       } else {
-        $build .= "  ant cross-compile-host $hostdefs\n";
+        $build .= "  ant cross-compile-host $hostdefs";
       }
-      $build .= "' ";
+      $build .= "\"' ";
     }
 
     #
     # Cross-builds
     #
     if ($host ne $target) {
-      $build .= "&& \n\n".
-                "ssh -t $sshTarget mkdir -p $targetRoot && \n\n";
+      $build .= "&& ".
+                "ssh -t $sshTarget mkdir -p $targetRoot && ";
       if ($hostConfig eq $targetConfig) {
         #
         # Same architecture: just copy the dist directory
         #
         $build .= "ssh -t $sshHost rsync -avz $hostRoot/dist/$targetDir ";
-        $build .= " $sshTarget:$targetRoot/dist/ \n";
+        $build .= " $sshTarget:$targetRoot/dist/ ";
       } else {
         # Copy the compiled classes and boot image
-        $build .= "ssh -t $sshHost '\n".
+        $build .= "ssh -t $sshHost '".
                   "  rsync -avz $hostRoot/target/$targetDir ".
-                  " $sshTarget:$targetRoot/target/ &&\n";
+                  " $sshTarget:$targetRoot/target/ &&";
         $copydirs = "";
         foreach $d (@ccdirs) {
           $copydirs .= " $hostRoot/$d";
         }
-        $build .= "  rsync -avz $copydirs $sshTarget:$targetRoot/' &&\n\n";
+        $build .= "  rsync -avz $copydirs $sshTarget:$targetRoot/' &&";
 
         #
         # post-processing for cross-compile
         #
 
         # For the classpath build, the host is now the target ;)
-        $build .= "ssh -t $sshTarget '\n".
-                  "  cd $targetRoot && \n".
-                  "  export JAVA_HOME=$javaHome{$target} && \n";
+        $build .= "ssh -t $sshTarget '/bin/bash -c \"".
+	          "  cd $targetRoot && ".
+                  "  export JAVA_HOME=$javaHome{$target} && ";
 
         $build .= "  ant check-components-properties ".
                   "-Dhost.name=$targetConfig ".
                   "-Dtarget.name=$targetConfig ".
-                  $cp_flags."&& \n";
+                  $cp_flags."&& ";
 
-        $build .= "  ant cross-compile-target $targetdefs '\n";
+        $build .= "  ant cross-compile-target $targetdefs \"'";
       }
     }
     print "---> Config: $compiler$g\n";
@@ -632,10 +632,10 @@ if ($ok && ($test_set ne "" || $test_list ne "")) {
   }
   $configs =~ s/^ //;
 
-  $test = "ssh -t $sshTarget '\n".
-          "  cd $targetRoot && \n".
-          "  mkdir -p $resultdir && \n".
-          "  export JAVA_HOME=$javaHome{$target} && \n".
+  $test = "ssh -t $sshTarget '/bin/bash -c \" ".
+          "  cd $targetRoot && ".
+          "  mkdir -p $resultdir && ".
+          "  export JAVA_HOME=$javaHome{$target} && ".
           "  ant -f test.xml ".
           "-Dhost.name=$targetConfig ".
           "-Dskip.build=true ".
@@ -678,20 +678,20 @@ if ($ok && ($test_set ne "" || $test_list ne "")) {
   }
 
   if ($test_list ne "") {
-    $test .= "-Dtest.tests=\"$test_list\" ".
+    $test .= "-Dtest.tests='$test_list' ".
              "-Dtest-run.name=local ";
   }
 
   if(! $implicitconfigs) {
-    $test .= "-Dtest.configs=\"$configs\" ";
+    $test .= "-Dtest.configs='$configs' ";
     if ($run_args ne "") {
       foreach $conf (split(" ", $configs)) {
-        $test .= "-Dtest.config.$conf.extra.args=\"$run_args\" ";
+        $test .= "-Dtest.config.$conf.extra.args='$run_args' ";
       }
     }
   }
 
-  $test .= "' \n";
+  $test .= "\"' \n";
   print "$test\n";
   if(! $dry_run) {
     system($test);
