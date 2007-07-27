@@ -197,6 +197,11 @@ public final class OPT_Simple extends OPT_CompilerPhase {
     // This pass usually doesn't modify the DU, but
     // if it does it will recompute it.
     foldConstants(ir);
+    // Simple local expression folding respecting DU
+    if (OPT_ExpressionFolding.performLocal(ir)) {
+      // constant folding again
+      foldConstants(ir);
+    }
     // Try to remove conditional branches with constant operands
     // If it actually constant folds a branch,
     // this pass will recompute the DU
