@@ -341,6 +341,7 @@ public final class OPT_Instruction implements VM_Constants, OPT_Operators, OPT_C
    */
   public OPT_Instruction nextInstructionInCodeOrder() {
     if (next == null) {
+      if (VM.VerifyAssertions) VM._assert(BBend.conforms(this));
       OPT_BasicBlock nBlock = BBend.getBlock(this).block.nextBasicBlockInCodeOrder();
       if (nBlock == null) {
         return null;
