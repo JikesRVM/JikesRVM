@@ -12,13 +12,9 @@
  */
 package java.lang;
 
-import org.jikesrvm.VM;
-import org.jikesrvm.runtime.VM_StackTrace;
-import org.jikesrvm.scheduler.VM_MainThread;
+import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.scheduler.greenthreads.VM_GreenThread;
-import org.jikesrvm.scheduler.VM_Scheduler;
-import org.jikesrvm.objectmodel.VM_ObjectModel;
 
 /**
  * Wrapper for Jikes RVM thread class

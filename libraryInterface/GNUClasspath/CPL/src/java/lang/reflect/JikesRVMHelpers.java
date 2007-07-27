@@ -28,17 +28,17 @@ class JikesRVMHelpers {
     return ClassHelper.getUserName(c);
   }
 
-  static TypeVariable<?>[] getTypeParameters(Constructor constructor, VM_Atom sig) {
+  static TypeVariable<?>[] getTypeParameters(Constructor<?> constructor, VM_Atom sig) {
     MethodSignatureParser p = new MethodSignatureParser(constructor, sig.toString());
     return p.getTypeParameters();
   }
 
-  static Type[] getGenericExceptionTypes(Constructor constructor, VM_Atom sig) {
+  static Type[] getGenericExceptionTypes(Constructor<?> constructor, VM_Atom sig) {
     MethodSignatureParser p = new MethodSignatureParser(constructor, sig.toString());
     return p.getGenericExceptionTypes();
   }
 
-  static Type[] getGenericParameterTypes(Constructor constructor, VM_Atom sig) {
+  static Type[] getGenericParameterTypes(Constructor<?> constructor, VM_Atom sig) {
     MethodSignatureParser p = new MethodSignatureParser(constructor, sig.toString());
     return p.getGenericParameterTypes();
   }

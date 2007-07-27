@@ -33,7 +33,7 @@ public class VM_CommandLineArgs {
   private static final boolean DEBUG = false;
 
   /** Represent a single command line prefix */
-  private static final class Prefix implements Comparable {
+  private static final class Prefix implements Comparable<Prefix> {
     /** The command line string e.g. "-X:irc:" */
     public final String value;
     /** A number that describes the type of the argument */
@@ -48,8 +48,8 @@ public class VM_CommandLineArgs {
     }
 
     /** Sorting method for Comparable. Sort by string value */
-    public int compareTo(Object o) {
-      return -value.compareTo(((Prefix) o).value);
+    public int compareTo(Prefix o) {
+      return -value.compareTo(o.value);
     }
   }
 

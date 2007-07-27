@@ -28,6 +28,7 @@ public final class Constructor<T> extends AccessibleObject
   final VM_Method constructor;
 
   // Prevent this class from being instantiated.
+  @SuppressWarnings("unused")
   private Constructor() {
     constructor = null;
   }

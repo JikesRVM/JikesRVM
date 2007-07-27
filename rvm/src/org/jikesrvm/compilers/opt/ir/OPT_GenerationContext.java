@@ -709,7 +709,7 @@ public final class OPT_GenerationContext implements org.jikesrvm.compilers.opt.O
    */
   private OPT_Operand getLockObject() {
     if (method.isStatic()) {
-      Class klass = method.getDeclaringClass().getClassForType();
+      Class<?> klass = method.getDeclaringClass().getClassForType();
       Offset offs = Offset.fromIntSignExtend(VM_Statics.findOrCreateObjectLiteral(klass));
       return new OPT_ClassConstantOperand(klass, offs);
     } else {

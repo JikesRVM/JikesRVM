@@ -14,7 +14,6 @@ package java.lang;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.VM_StackTrace;
-import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.scheduler.VM_Scheduler;
 /**
  * Implementation of throwables for JikesRVM.

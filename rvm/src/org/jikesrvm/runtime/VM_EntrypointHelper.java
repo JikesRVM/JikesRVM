@@ -94,7 +94,7 @@ public class VM_EntrypointHelper {
    * @param type of field
    * @return corresponding VM_Field
    */
-  static VM_Field getField(Class klass, String member, Class type) {
+  static VM_Field getField(Class<?> klass, String member, Class<?> type) {
     if (!VM.runningVM) { // avoid compiling this code into the boot image
       try {
         VM_TypeReference klassTRef = VM_TypeReference.findOrCreate(klass);
@@ -124,7 +124,7 @@ public class VM_EntrypointHelper {
    * @param memberDescriptor member descriptor - something like "()V"
    * @return corresponding VM_Method
    */
-  static VM_NormalMethod getMethod(Class klass, String member, String descriptor) {
+  static VM_NormalMethod getMethod(Class<?> klass, String member, String descriptor) {
     if (!VM.runningVM) { // avoid compiling this code into the boot image
       try {
         VM_TypeReference klassTRef = VM_TypeReference.findOrCreate(klass);

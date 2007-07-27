@@ -12,14 +12,14 @@
  */
 package sun.misc;
 
-import org.jikesrvm.VM;
+import java.lang.reflect.Field;
+
 import org.jikesrvm.classloader.VM_Field;
 import org.jikesrvm.classloader.VM_Type;
-import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Synchronization;
+import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.unboxed.Offset;
-import java.lang.reflect.Field;
 
 public class Unsafe {
   private static final Unsafe unsafe = new Unsafe();
@@ -117,11 +117,11 @@ public class Unsafe {
     return VM_Magic.getObjectAtOffset(obj,off);
   }
 
-  public int arrayBaseOffset(Class arrayClass) {
+  public int arrayBaseOffset(Class<?> arrayClass) {
     return 0;
   }
 
-  public int arrayIndexScale(Class arrayClass) {
+  public int arrayIndexScale(Class<?> arrayClass) {
     VM_Type arrayType = java.lang.JikesRVMSupport.getTypeForClass(arrayClass);
     if (!arrayType.isArrayType()) {
       return 0;

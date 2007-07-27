@@ -29,6 +29,7 @@ public final class Method extends AccessibleObject implements Member {
   final VM_Method method;
 
    // Prevent this class from being instantiated.
+  @SuppressWarnings("unused")
   private Method() {
     method = null;
   }

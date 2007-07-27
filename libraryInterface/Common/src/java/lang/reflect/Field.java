@@ -34,6 +34,7 @@ public final class Field extends AccessibleObject implements Member {
   final VM_Field field;
 
   // Prevent this class from being instantiated.
+  @SuppressWarnings("unused")
   private Field() {
     field = null;
   }

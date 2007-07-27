@@ -433,7 +433,7 @@ public class VM_StackTrace {
           // looks like we've gone too low
           return max;
         }
-        Class frameClass = compiledMethods[i].method.getDeclaringClass().getClassForType();
+        Class<?> frameClass = compiledMethods[i].method.getDeclaringClass().getClassForType();
         if ((frameClass != org.jikesrvm.scheduler.VM_MainThread.class) &&
             (frameClass != org.jikesrvm.scheduler.VM_Thread.class) &&
             (frameClass != org.jikesrvm.runtime.VM_Reflection.class)){

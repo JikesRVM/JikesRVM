@@ -112,11 +112,11 @@ public class JikesRVMSupport {
    * Enum stuff
    */
   @Uninterruptible
-  public static int getEnumOrdinal(Enum e) {
+  public static int getEnumOrdinal(Enum<?> e) {
     return e.ordinal;
   }
   @Uninterruptible
-  public static String getEnumName(Enum e) {
+  public static String getEnumName(Enum<?> e) {
     return e.name;
   }
 }
