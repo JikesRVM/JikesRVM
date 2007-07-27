@@ -268,7 +268,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                                       RHStib,
                                       succBlock,
                                       failBlock,
-                                      null,
+                                      guard.copyRO(),
                                       OPT_BranchProfileOperand.never());
   }
 
@@ -303,7 +303,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                                       RHStib,
                                       succBlock,
                                       failBlock,
-                                      null,
+                                      ir.regpool.makeTempValidation(),
                                       OPT_BranchProfileOperand.never());
   }
 
@@ -343,12 +343,12 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
           InsertGuardedUnary(s, ir, ARRAYLENGTH, VM_TypeReference.Int, doesImpl.copyD2U(), TG());
       OPT_Instruction lengthCheck =
           IfCmp.create(INT_IFCMP,
-                       null,
-                       doesImplLength,
-                       IC(interfaceIndex),
-                       OPT_ConditionOperand.LESS_EQUAL(),
-                       failBlock.makeJumpTarget(),
-                       OPT_BranchProfileOperand.never());
+              ir.regpool.makeTempValidation(),
+              doesImplLength,
+              IC(interfaceIndex),
+              OPT_ConditionOperand.LESS_EQUAL(),
+              failBlock.makeJumpTarget(),
+              OPT_BranchProfileOperand.never());
       s.insertBefore(lengthCheck);
       myBlock.splitNodeWithLinksAt(lengthCheck, ir);
       myBlock.insertOut(failBlock); // required due to splitNode!
@@ -365,7 +365,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
     OPT_RegisterOperand bit = InsertBinary(s, ir, INT_AND, VM_TypeReference.Int, entry, IC(interfaceMask));
     IfCmp.mutate(s,
                  INT_IFCMP,
-                 null,
+                 ir.regpool.makeTempValidation(),
                  bit,
                  IC(0),
                  OPT_ConditionOperand.EQUAL(),
@@ -800,7 +800,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                                       RHStib,
                                       trueBlock,
                                       falseBlock,
-                                      null,
+                                      ir.regpool.makeTempValidation(),
                                       new OPT_BranchProfileOperand());
   }
 
@@ -890,7 +890,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
             // For a final class, we can do a PTR compare of
             // rhsTIB and the TIB of the class
             OPT_Operand classTIB = getTIB(continueAt, ir, LHSclass);
-            continueAt.insertBefore(IfCmp.create(INT_IFCMP,
+            continueAt.insertBefore(IfCmp.create(REF_IFCMP,
                                                  oldGuard,
                                                  RHStib,
                                                  classTIB,

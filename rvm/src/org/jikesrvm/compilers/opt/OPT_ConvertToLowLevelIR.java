@@ -334,7 +334,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
         case IG_CLASS_TEST_opcode:
           IfCmp.mutate(s,
                        REF_IFCMP,
-                       null,
+                       ir.regpool.makeTempValidation(),
                        getTIB(s, ir, InlineGuard.getClearValue(s), InlineGuard.getClearGuard(s)),
                        getTIB(s, ir, InlineGuard.getGoal(s).asType()),
                        OPT_ConditionOperand.NOT_EQUAL(),
@@ -348,7 +348,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
           OPT_Operand t2 = getTIB(s, ir, methOp.getTarget().getDeclaringClass());
           IfCmp.mutate(s,
                        REF_IFCMP,
-                       null,
+                       ir.regpool.makeTempValidation(),
                        getInstanceMethod(s, ir, t1, methOp.getTarget()),
                        getInstanceMethod(s, ir, t2, methOp.getTarget()),
                        OPT_ConditionOperand.NOT_EQUAL(),
@@ -489,12 +489,12 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
     }
     OPT_BranchProfileOperand defaultProb = TableSwitch.getClearDefaultBranchProfile(s);
     s.replace(IfCmp.create(INT_IFCMP,
-                           null,
-                           t,
-                           IC(highLimit - lowLimit),
-                           OPT_ConditionOperand.HIGHER(),
-                           defaultLabel,
-                           defaultProb));
+        ir.regpool.makeTempValidation(),
+        t,
+        IC(highLimit - lowLimit),
+        OPT_ConditionOperand.HIGHER(),
+        defaultLabel,
+        defaultProb));
     // Reweight branches to account for the default branch going. If
     // the default probability was ALWAYS then when we recompute the
     // weight to be a proportion of the total number of branches.
@@ -674,12 +674,12 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
     if (low != high) {
       if (value == min) {
         curBlock.appendInstruction(IfCmp.create(INT_IFCMP,
-                                                null,
-                                                reg.copy(),
-                                                val,
-                                                OPT_ConditionOperand.EQUAL(),
-                                                branchBB.makeJumpTarget(),
-                                                new OPT_BranchProfileOperand(equalProb)));
+            ir.regpool.makeTempValidation(),
+            reg.copy(),
+            val,
+            OPT_ConditionOperand.EQUAL(),
+            branchBB.makeJumpTarget(),
+            new OPT_BranchProfileOperand(equalProb)));
       } else {
 
         // To compute the probability of the second compare, the first
@@ -693,15 +693,15 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
         }
 
         curBlock.appendInstruction(IfCmp2.create(INT_IFCMP2,
-                                                 null,
-                                                 reg.copy(),
-                                                 val,
-                                                 OPT_ConditionOperand.LESS(),
-                                                 lesserBlock.makeJumpTarget(),
-                                                 new OPT_BranchProfileOperand(lessProb),
-                                                 OPT_ConditionOperand.EQUAL(),
-                                                 branchBB.makeJumpTarget(),
-                                                 new OPT_BranchProfileOperand(secondIfProb)));
+            ir.regpool.makeTempValidation(),
+            reg.copy(),
+            val,
+            OPT_ConditionOperand.LESS(),
+            lesserBlock.makeJumpTarget(),
+            new OPT_BranchProfileOperand(lessProb),
+            OPT_ConditionOperand.EQUAL(),
+            branchBB.makeJumpTarget(),
+            new OPT_BranchProfileOperand(secondIfProb)));
         curBlock.insertOut(lesserBlock);
       }
     } else {      // Base case: middle was the only case left to consider
@@ -710,12 +710,12 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
         curBlock.insertOut(branchBB);
       } else {
         curBlock.appendInstruction(IfCmp.create(INT_IFCMP,
-                                                null,
-                                                reg.copy(),
-                                                val,
-                                                OPT_ConditionOperand.EQUAL(),
-                                                branchBB.makeJumpTarget(),
-                                                new OPT_BranchProfileOperand(equalProb)));
+            ir.regpool.makeTempValidation(),
+            reg.copy(),
+            val,
+            OPT_ConditionOperand.EQUAL(),
+            branchBB.makeJumpTarget(),
+            new OPT_BranchProfileOperand(equalProb)));
         OPT_BasicBlock newBlock = curBlock.createSubBlock(0, ir);
         curBlock.insertOut(newBlock);
         ir.cfg.linkInCodeOrder(curBlock, newBlock);
@@ -1036,12 +1036,12 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools {
                                          TG()));
     testBB.appendInstruction(Unary.create(INT_2ADDRSigExt, offset, offset.copy()));
     testBB.appendInstruction(IfCmp.create(REF_IFCMP,
-                                          null,
-                                          offset.copy(),
-                                          AC(Address.fromIntSignExtend(NEEDS_DYNAMIC_LINK)),
-                                          OPT_ConditionOperand.EQUAL(),
-                                          resolveBB.makeJumpTarget(),
-                                          bp));
+        ir.regpool.makeTempValidation(),
+        offset.copy(),
+        AC(Address.fromIntSignExtend(NEEDS_DYNAMIC_LINK)),
+        OPT_ConditionOperand.EQUAL(),
+        resolveBB.makeJumpTarget(),
+        bp));
 
     // Handle the offset being invalid
     resolveBB.appendInstruction(CacheOp.mutate(s, RESOLVE, memberOp));
