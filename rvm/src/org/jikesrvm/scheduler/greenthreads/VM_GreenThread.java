@@ -470,9 +470,9 @@ public class VM_GreenThread extends VM_Thread {
   @Interruptible
   @Override
   protected void sleepInternal(long millis, int ns) throws InterruptedException {
-    wakeupCycle = VM_Time.cycles() + VM_Time.millisToCycles(millis);
+    wakeupNanoTime = VM_Time.nanoTime() + (millis * (long)1e6);
     // cache the proxy before obtaining lock
-    VM_ThreadProxy proxy = new VM_ThreadProxy(this, wakeupCycle);
+    VM_ThreadProxy proxy = new VM_ThreadProxy(this, wakeupNanoTime);
     if(sleepImpl(proxy)) {
       throw new InterruptedException("sleep interrupted");
     }
@@ -538,8 +538,8 @@ public class VM_GreenThread extends VM_Thread {
     if (!hasTimeout) {
       proxy = new VM_ThreadProxy(this);
     } else {
-      wakeupCycle = VM_Time.cycles() + VM_Time.millisToCycles(millis);
-      proxy = new VM_ThreadProxy(this, wakeupCycle);
+      wakeupNanoTime = VM_Time.nanoTime() + millis * (long)1e6;
+      proxy = new VM_ThreadProxy(this, wakeupNanoTime);
     }
     // carry on to uninterruptible portion
     Throwable t = waitImpl(o, l, hasTimeout, millis, proxy);

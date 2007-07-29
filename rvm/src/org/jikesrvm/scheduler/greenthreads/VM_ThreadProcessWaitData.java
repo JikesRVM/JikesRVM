@@ -34,12 +34,12 @@ public final class VM_ThreadProcessWaitData extends VM_ThreadEventWaitData {
 
   /**
    * Constructor.
-   * @param maxWaitCycle timeout value for wait, or negative
+   * @param maxWaitNano timeout value for wait, or negative
    *   if there is no timeout
    * @param pid process ID of process being waited for
    */
-  VM_ThreadProcessWaitData(int pid, long maxWaitCycle) {
-    super(maxWaitCycle);
+  VM_ThreadProcessWaitData(int pid, long maxWaitNano) {
+    super(maxWaitNano);
     this.pid = pid;
   }
 

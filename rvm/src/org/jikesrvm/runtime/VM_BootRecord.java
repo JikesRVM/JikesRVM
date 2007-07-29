@@ -286,7 +286,8 @@ public class VM_BootRecord {
   public Address sysParseMemorySizeIP;
 
   // time
-  Address sysGetTimeOfDayIP;
+  Address sysCurrentTimeMillisIP;
+  Address sysNanoTimeIP;
   Address sysNanosleepIP;
 
   // shared libraries

@@ -92,7 +92,7 @@ public class VM_AOSLogging {
    * Helper routine to produce the current time as a string
    */
   private static String getTime() {
-    return VM_Controller.controllerClock + ":" + VM_Time.cycles();
+    return VM_Controller.controllerClock + ":" + VM_Time.nanoTime();
   }
 
   /**

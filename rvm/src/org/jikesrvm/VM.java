@@ -146,7 +146,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
         currentThread.getStack()).plus(ArchitectureSpecific.VM_StackframeLayoutConstants.STACK_SIZE_GUARD);
 
     VM_Processor.getCurrentProcessor().activeThreadStackLimit = currentThread.stackLimit;
-    currentThread.startQuantum(VM_Time.cycles());
+    currentThread.startQuantum(VM_Time.nanoTime());
 
     finishBooting();
   }
@@ -179,10 +179,6 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     }
     MM_Interface.boot(VM_BootRecord.the_boot_record);
 
-    // Start calculation of cycles to millsecond conversion factor
-    if (verboseBoot >= 1) VM.sysWriteln("Stage one of booting VM_Time");
-    VM_Time.bootStageOne();
-
     // Reset the options for the baseline compiler to avoid carrying
     // them over from bootimage writing time.
     //
@@ -210,11 +206,6 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     String bootstrapClasses = VM_CommandLineArgs.getBootstrapClasses();
     VM_ClassLoader.boot();      // Wipe out cached application class loader
     VM_BootstrapClassLoader.boot(bootstrapClasses);
-
-    // Complete calculation of cycles to millsecond conversion factor
-    // Must be done before any dynamic compilation occurs.
-    if (verboseBoot >= 1) VM.sysWriteln("Stage two of booting VM_Time");
-    VM_Time.bootStageTwo();
 
     // Initialize statics that couldn't be placed in bootimage, either
     // because they refer to external state (open files), or because they

@@ -38,16 +38,16 @@ class VM_Wait {
    * of time when the wait should time out.
    * Leaves negative times unchanged, since these indicate infinite waits.
    */
-  private static long getMaxWaitCycle(double totalWaitTimeInSeconds) {
+  private static long getMaxWaitNano(double totalWaitTimeInSeconds) {
     // If a non-negative wait time was specified, it specifies the total
     // number of seconds to wait, so convert it to a timestamp (number of
     // seconds past the epoch).  Negative value indicates indefinite wait,
     // in which case nothing needs to be done.
-    long maxWaitCycle = VM_Time.secsToCycles(totalWaitTimeInSeconds);
-    if (maxWaitCycle >= 0) {
-      maxWaitCycle += VM_Time.cycles();
+    long maxWaitNano = (long)(totalWaitTimeInSeconds * 1e9);
+    if (maxWaitNano >= 0) {
+      maxWaitNano += VM_Time.nanoTime();
     }
-    return maxWaitCycle;
+    return maxWaitNano;
   }
 
   /**
@@ -61,8 +61,8 @@ class VM_Wait {
   public static VM_ThreadIOWaitData ioWaitRead(int fd, double totalWaitTime) {
     // Create wait data to represent the event the thread is
     // waiting for
-    long maxWaitCycle = getMaxWaitCycle(totalWaitTime);
-    VM_ThreadIOWaitData waitData = new VM_ThreadIOWaitData(maxWaitCycle);
+    long maxWaitNano = getMaxWaitNano(totalWaitTime);
+    VM_ThreadIOWaitData waitData = new VM_ThreadIOWaitData(maxWaitNano);
     waitData.readFds = new int[]{fd};
 
     if (noIoWait) {
@@ -93,8 +93,8 @@ class VM_Wait {
   public static VM_ThreadIOWaitData ioWaitWrite(int fd, double totalWaitTime) {
     // Create wait data to represent the event the thread is
     // waiting for
-    long maxWaitCycle = getMaxWaitCycle(totalWaitTime);
-    VM_ThreadIOWaitData waitData = new VM_ThreadIOWaitData(maxWaitCycle);
+    long maxWaitNano = getMaxWaitNano(totalWaitTime);
+    VM_ThreadIOWaitData waitData = new VM_ThreadIOWaitData(maxWaitNano);
     waitData.writeFds = new int[]{fd};
 
     if (noIoWait) {
@@ -136,8 +136,8 @@ class VM_Wait {
 
     // Create wait data to represent the event that the thread is
     // waiting for
-    long maxWaitCycle = getMaxWaitCycle(totalWaitTime);
-    VM_ThreadIOWaitData waitData = new VM_ThreadIOWaitData(maxWaitCycle);
+    long maxWaitNano = getMaxWaitNano(totalWaitTime);
+    VM_ThreadIOWaitData waitData = new VM_ThreadIOWaitData(maxWaitNano);
     waitData.readFds = readFds;
     waitData.writeFds = writeFds;
     waitData.exceptFds = exceptFds;
@@ -168,8 +168,8 @@ class VM_Wait {
 
     // Create wait data to represent the event the thread is
     // waiting for
-    long maxWaitCycle = getMaxWaitCycle(totalWaitTime);
-    VM_ThreadProcessWaitData waitData = new VM_ThreadProcessWaitData(process.getPid(), maxWaitCycle);
+    long maxWaitNano = getMaxWaitNano(totalWaitTime);
+    VM_ThreadProcessWaitData waitData = new VM_ThreadProcessWaitData(process.getPid(), maxWaitNano);
 
     // Put the thread on the processWaitQueue
     VM_GreenThread.processWaitImpl(waitData, process);

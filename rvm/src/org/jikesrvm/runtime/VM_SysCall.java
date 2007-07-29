@@ -244,7 +244,10 @@ public abstract class VM_SysCall {
 
   // time
   @SysCallTemplate
-  public abstract long sysGetTimeOfDay();
+  public abstract long sysCurrentTimeMillis();
+
+  @SysCallTemplate
+  public abstract long sysNanoTime();
 
   @SysCallTemplate
   public abstract void sysNanosleep(long howLongNanos);

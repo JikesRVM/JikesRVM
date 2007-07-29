@@ -136,7 +136,6 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
   @Interruptible
   public static void fullyBootedVM() {
     Selected.Plan.get().fullyBooted();
-    Lock.fullyBooted();
     Barrier.fullyBooted();
   }
 

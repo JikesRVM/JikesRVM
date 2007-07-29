@@ -82,7 +82,7 @@ import org.vmmagic.unboxed.*;
   public final SharedDeque cyclePoolB;
   public final SharedDeque freePool;
   public int cdMode;
-  private long startCycles;
+  private long startNanos;
 
   /****************************************************************************
    *
@@ -121,7 +121,7 @@ import org.vmmagic.unboxed.*;
       if (cdMode == FILTER_PURPLE) {
         if (shouldCollectCycles()) {
           cdMode = FULL_COLLECTION;
-          startCycles = VM.statistics.cycles();
+          startNanos = VM.statistics.nanoTime();
           if (Options.verbose.getValue() > 0) {
             Log.write("(CD-TD ");
             Log.flush();
@@ -145,7 +145,7 @@ import org.vmmagic.unboxed.*;
         freePool.reset();
 
         if (Options.verbose.getValue() > 0) {
-          Log.write(VM.statistics.cyclesToMillis(VM.statistics.cycles() - startCycles));
+          Log.write(VM.statistics.nanosToMillis(VM.statistics.nanoTime() - startNanos));
           Log.write(" ms)");
         }
       }

@@ -47,8 +47,16 @@ import org.mmtk.utility.Log;
   private static final Offset servingFieldOffset = VM_Entrypoints.servingField.getOffset();
   private static final Offset threadFieldOffset = VM_Entrypoints.lockThreadField.getOffset();
   private static final Offset startFieldOffset = VM_Entrypoints.lockStartField.getOffset();
-  private static long SLOW_THRESHOLD = Long.MAX_VALUE>>1; // set to a real value by fullyBooted
-  private static long TIME_OUT = Long.MAX_VALUE;       // set to a real value by fullyBooted
+  /**
+   * A lock operation is considered slow if it takes more than 200 milliseconds.
+   * The value is represented in nanoSeconds (for use with VM_Time.nanoTime()).
+   */
+  private static long SLOW_THRESHOLD = 200 * ((long)1e6);
+  /**
+   * A lock operation times out if it takes more than 10x SLOW_THRESHOLD.
+   * The value is represented in nanoSeconds (for use with VM_Time.nanoTime()).
+   */
+  private static long TIME_OUT = 10 * SLOW_THRESHOLD;
 
   // Debugging
   private static final boolean REPORT_SLOW = true;
@@ -76,11 +84,6 @@ import org.mmtk.utility.Log;
   private final long[] startHistory = new long[100];
   private final long[] endHistory = new long[100];
 
-  public static void fullyBooted() {
-    SLOW_THRESHOLD = VM_Time.millisToCycles(200); // cycles for .2 seconds
-    TIME_OUT = 10 * SLOW_THRESHOLD;
-  }
-
   public Lock(String name) {
     this();
     this.name = name;
@@ -99,7 +102,7 @@ import org.mmtk.utility.Log;
   // (1) The isync at the end is important to prevent hardware instruction re-ordering
   //       from floating instruction below the acquire above the point of acquisition.
   // (2) A deadlock is presumed to have occurred if the number of retries exceeds MAX_RETRY.
-  // (3) When a lock is acquired, the time of acquistion and the identity of acquirer is recorded.
+  // (3) When a lock is acquired, the time of acquisition and the identity of acquirer is recorded.
   //
   public void acquire() {
 
@@ -110,14 +113,14 @@ import org.mmtk.utility.Log;
     long lastSlowReport = 0;
 
     while (ticket != serving) {
-      if (localStart == 0) lastSlowReport = localStart = VM_Time.cycles();
+      if (localStart == 0) lastSlowReport = localStart = VM_Time.nanoTime();
       if (--retryCountdown == 0) {
         retryCountdown = TIMEOUT_CHECK_FREQ;
-        long now = VM_Time.cycles();
+        long now = VM_Time.nanoTime();
         long lastReportDuration = now - lastSlowReport;
         long waitTime = now - localStart;
         if (lastReportDuration >
-            SLOW_THRESHOLD + VM_Time.millisToCycles(200 * (VM_Scheduler.getCurrentThread().getIndex() % 5))) {
+            SLOW_THRESHOLD + ((200 * (VM_Scheduler.getCurrentThread().getIndex() % 5))) * 1e6) {
             lastSlowReport = now;
             Log.write("GC Warning: slow/deadlock - thread ");
             writeThreadIdToLog(VM_Scheduler.getCurrentThread());
@@ -126,7 +129,7 @@ import org.mmtk.utility.Log;
             Log.write(" ("); Log.write(name);
             Log.write(") serving "); Log.write(serving);
             Log.write(" after ");
-            Log.write(VM_Time.cyclesToMillis(waitTime)); Log.write(" ms");
+            Log.write(VM_Time.nanosToMillis(waitTime)); Log.write(" ms");
             Log.writelnNoFlush();
 
             VM_Thread t = thread;
@@ -150,7 +153,7 @@ import org.mmtk.utility.Log;
               Log.write("    start = "); Log.write(startHistory[i]);
               Log.write("    end = "); Log.write(endHistory[i]);
               Log.write("    start-myStart = ");
-              Log.write(VM_Time.cyclesToMillis(startHistory[i] - localStart));
+              Log.write(VM_Time.nanosToMillis(startHistory[i] - localStart));
               Log.writelnNoFlush();
             }
             Log.flush();
@@ -168,8 +171,8 @@ import org.mmtk.utility.Log;
     if (REPORT_SLOW) {
       servingHistory[serving % 100] = serving;
       tidHistory[serving % 100] = VM_Scheduler.getCurrentThread().getIndex();
-      startHistory[serving % 100] = VM_Time.cycles();
-      setLocker(VM_Time.cycles(), VM_Scheduler.getCurrentThread(), -1);
+      startHistory[serving % 100] = VM_Time.nanoTime();
+      setLocker(VM_Time.nanoTime(), VM_Scheduler.getCurrentThread(), -1);
     }
 
     if (verbose > 1) {
@@ -185,7 +188,7 @@ import org.mmtk.utility.Log;
   public void check (int w) {
     if (!REPORT_SLOW) return;
     if (VM.VerifyAssertions) VM._assert(VM_Scheduler.getCurrentThread() == thread);
-    long diff = (REPORT_SLOW) ? VM_Time.cycles() - start : 0;
+    long diff = (REPORT_SLOW) ? VM_Time.nanoTime() - start : 0;
     boolean show = (verbose > 1) || (diff > SLOW_THRESHOLD);
     if (show) {
       Log.write("GC Warning: Thread ");
@@ -193,7 +196,7 @@ import org.mmtk.utility.Log;
       Log.write(" reached point "); Log.write(w);
       Log.write(" while holding lock "); Log.write(id);
       Log.write(" "); Log.write(name);
-      Log.write(" at "); Log.write(VM_Time.cyclesToMillis(diff));
+      Log.write(" at "); Log.write(VM_Time.nanosToMillis(diff));
       Log.writeln(" ms");
     }
     where = w;
@@ -205,7 +208,7 @@ import org.mmtk.utility.Log;
   // (2) When verbose, the amount of time the lock is ehld is printed.
   //
   public void release() {
-    long diff = (REPORT_SLOW) ? VM_Time.cycles() - start : 0;
+    long diff = (REPORT_SLOW) ? VM_Time.nanoTime() - start : 0;
     boolean show = (verbose > 1) || (diff > SLOW_THRESHOLD);
     if (show) {
       Log.write("GC Warning: Thread ");
@@ -213,12 +216,12 @@ import org.mmtk.utility.Log;
       Log.write(" released lock "); Log.write(id);
       Log.write(" "); Log.write(name);
       Log.write(" after ");
-      Log.write(VM_Time.cyclesToMillis(diff));
+      Log.write(VM_Time.nanosToMillis(diff));
       Log.writeln(" ms");
     }
 
     if (REPORT_SLOW) {
-      endHistory[serving % 100] = VM_Time.cycles();
+      endHistory[serving % 100] = VM_Time.nanoTime();
       setLocker(0, null, -1);
     }
 

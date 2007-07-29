@@ -710,37 +710,8 @@ getTimeSlice_msec(void)
     return timeSlice_msec;
 }
 
-
-//
-// returns the time of day in the buffer provided
-//
-/*
-  extern "C" int
-  sysGetTimeOfDay(char * buffer) {
-  int rc;
-  struct timeval tv;
-  struct timezone tz;
-
-  rc = gettimeofday(&tv, &tz);
-  if (rc != 0) return rc;
-
-  buffer[0] = (tv.tv_sec >> 24) & 0x000000ff;
-  buffer[1] = (tv.tv_sec >> 16) & 0x000000ff;
-  buffer[2] = (tv.tv_sec >> 8) & 0x000000ff;
-  buffer[3] = tv.tv_sec & 0x000000ff;
-
-  buffer[4] = (tv.tv_usec >> 24) & 0x000000ff;
-  buffer[5] = (tv.tv_usec >> 16) & 0x000000ff;
-  buffer[6] = (tv.tv_usec >> 8) & 0x000000ff;
-  buffer[7] = tv.tv_usec & 0x000000ff;
-
-  return rc;
-  }
-*/
-
-
 extern "C" long long
-sysGetTimeOfDay()
+sysCurrentTimeMillis()
 {
     int rc;
     long long returnValue;
@@ -753,8 +724,32 @@ sysGetTimeOfDay()
     if (rc != 0) {
         returnValue = rc;
     } else {
-        returnValue = (long long) tv.tv_sec * 1000000;
-        returnValue += tv.tv_usec;
+        returnValue = ((long long) tv.tv_sec * 1000) + tv.tv_usec/1000;
+    }
+
+    return returnValue;
+}
+
+extern "C" long long
+sysNanoTime()
+{
+	/* 
+	 * For now just use the basic gettimeofday implementation.
+	 * We should really be using clock_gettime on CLOCK_MONOTONIC_HR
+	 */
+    int rc;
+    long long returnValue;
+    struct timeval tv;
+    struct timezone tz;
+
+    returnValue = 0;
+
+    rc = gettimeofday(&tv, &tz);
+    if (rc != 0) {
+        returnValue = rc;
+    } else {
+        returnValue = (long long) tv.tv_sec * 1000000000;
+        returnValue += tv.tv_usec * 1000;
     }
 
     return returnValue;

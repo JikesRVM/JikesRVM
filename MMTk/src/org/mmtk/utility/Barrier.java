@@ -44,7 +44,7 @@ import org.vmmagic.pragma.*;
   private static long TIME_OUT =  Long.MAX_VALUE; // set to a real value by fullyBooted
 
   public static void fullyBooted() {
-    WARN_PERIOD = VM.statistics.secsToCycles(20);   // Print msg every WARN_PERIOD seconds
+    WARN_PERIOD = VM.statistics.secsToNanos(20);   // Print msg every WARN_PERIOD seconds
     TIME_OUT = 3 * WARN_PERIOD; // Die after TIME_OUT seconds
   }
 
@@ -107,11 +107,11 @@ import org.vmmagic.pragma.*;
         }
         if (((i - 1) % TIME_CHECK) == 0) {
           if (startCheck == 0) {
-            startCheck = VM.statistics.cycles();
+            startCheck = VM.statistics.nanoTime();
           } else {
-            long elapsed = VM.statistics.cycles() - startCheck;
+            long elapsed = VM.statistics.nanoTime() - startCheck;
             if (elapsed - lastElapsed > WARN_PERIOD) {
-              Log.write("GC Warning: Barrier wait has reached "); Log.write(VM.statistics.cyclesToSecs(elapsed));
+              Log.write("GC Warning: Barrier wait has reached "); Log.write(VM.statistics.nanosToSecs(elapsed));
               Log.write(" seconds.  Called from "); Log.write(where); Log.write(".  myOrder = "); Log.write(myValue);
               Log.write("  count is "); Log.write(c.peek()); Log.write(" waiting for "); Log.write(target - 1);
               Log.writeln();

@@ -84,14 +84,14 @@ abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue implements
       }
 
       VM_GreenThread thread = head;
-      long currentCycle = VM_Time.cycles();
+      long currentNano = VM_Time.nanoTime();
 
       // See if any threads have become ready to run
       while (thread != null) {
         VM_ThreadEventWaitData waitData = thread.waitData;
-        long maxWaitCycle = waitData.getMaxWaitCycle();
+        long maxWaitNano = waitData.getMaxWaitNano();
 
-        if (maxWaitCycle > 0 && maxWaitCycle < currentCycle) {
+        if (maxWaitNano > 0 && maxWaitNano < currentNano) {
           // Wait timed out
           waitData.setFinishedAndTimeout();
           ++ready;

@@ -33,10 +33,10 @@ import org.vmmagic.unboxed.Offset;
  */
 public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
 
-  private static long gcMapCycles;
-  private static long osrSetupCycles;
-  private static long codeGenCycles;
-  private static long encodingCycles;
+  private static long gcMapNanos;
+  private static long osrSetupNanos;
+  private static long codeGenNanos;
+  private static long encodingNanos;
 
   /**
    * Options used during base compiler execution
@@ -136,10 +136,10 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
     VM.sysWriteln("\tPhase\t\t\t    Time");
     VM.sysWriteln("\t\t\t\t(ms)    (%ofTotal)");
 
-    double gcMapTime = VM_Time.cyclesToMillis(gcMapCycles);
-    double osrSetupTime = VM_Time.cyclesToMillis(osrSetupCycles);
-    double codeGenTime = VM_Time.cyclesToMillis(codeGenCycles);
-    double encodingTime = VM_Time.cyclesToMillis(encodingCycles);
+    double gcMapTime = VM_Time.nanosToMillis(gcMapNanos);
+    double osrSetupTime = VM_Time.nanosToMillis(osrSetupNanos);
+    double codeGenTime = VM_Time.nanosToMillis(codeGenNanos);
+    double encodingTime = VM_Time.nanosToMillis(encodingNanos);
     double total = gcMapTime + osrSetupTime + codeGenTime + encodingTime;
 
     VM.sysWrite("\tCompute GC Maps\t\t", gcMapTime);
@@ -182,12 +182,12 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
 
     // Phase 1: GC map computation
     long start = 0;
-    if (VM.MeasureCompilation) start = VM_Scheduler.getCurrentThread().accumulateCycles();
+    if (VM.MeasureCompilation) start = VM_Scheduler.getCurrentThread().accumulateNanos();
     VM_ReferenceMaps refMaps =
         new VM_ReferenceMaps((VM_BaselineCompiledMethod) compiledMethod, stackHeights, localTypes);
     if (VM.MeasureCompilation) {
-      long end = VM_Scheduler.getCurrentThread().accumulateCycles();
-      gcMapCycles += end - start;
+      long end = VM_Scheduler.getCurrentThread().accumulateNanos();
+      gcMapNanos += end - start;
     }
 
     /* reference map and stackheights were computed using original bytecodes
@@ -197,7 +197,7 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
      * TODO: revist this code as part of OSR redesign
      */
     // Phase 2: OSR setup
-    if (VM.MeasureCompilation) start = VM_Scheduler.getCurrentThread().accumulateCycles();
+    if (VM.MeasureCompilation) start = VM_Scheduler.getCurrentThread().accumulateNanos();
     boolean edge_counters = options.EDGE_COUNTERS;
     if (VM.BuildForAdaptiveSystem && method.isForOsrSpecialization()) {
       options.EDGE_COUNTERS = false;
@@ -212,12 +212,12 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
       new OSR_BytecodeTraverser().prologueStackHeights(method, method.getOsrPrologue(), stackHeights);
     }
     if (VM.MeasureCompilation) {
-      long end = VM_Scheduler.getCurrentThread().accumulateCycles();
-      osrSetupCycles += end - start;
+      long end = VM_Scheduler.getCurrentThread().accumulateNanos();
+      osrSetupNanos += end - start;
     }
 
     // Phase 3: Code gen
-    if (VM.MeasureCompilation) start = VM_Scheduler.getCurrentThread().accumulateCycles();
+    if (VM.MeasureCompilation) start = VM_Scheduler.getCurrentThread().accumulateNanos();
 
     // determine if we are going to insert edge counters for this method
     if (options
@@ -234,8 +234,8 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
     VM_CodeArray instructions = machineCode.getInstructions();
     int[] bcMap = machineCode.getBytecodeMap();
     if (VM.MeasureCompilation) {
-      long end = VM_Scheduler.getCurrentThread().accumulateCycles();
-      codeGenCycles += end - start;
+      long end = VM_Scheduler.getCurrentThread().accumulateNanos();
+      codeGenNanos += end - start;
     }
 
     /* adjust machine code map, and restore original bytecode
@@ -243,7 +243,7 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
      * TODO: revist this code as part of OSR redesign
      */
     // Phase 4: OSR part 2
-    if (VM.MeasureCompilation) start = VM_Scheduler.getCurrentThread().accumulateCycles();
+    if (VM.MeasureCompilation) start = VM_Scheduler.getCurrentThread().accumulateNanos();
     if (VM.BuildForAdaptiveSystem && method.isForOsrSpecialization()) {
       int[] newmap = new int[bcMap.length - method.getOsrPrologueLength()];
       System.arraycopy(bcMap, method.getOsrPrologueLength(), newmap, 0, newmap.length);
@@ -255,12 +255,12 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
       options.EDGE_COUNTERS = edge_counters;
     }
     if (VM.MeasureCompilation) {
-      long end = VM_Scheduler.getCurrentThread().accumulateCycles();
-      osrSetupCycles += end - start;
+      long end = VM_Scheduler.getCurrentThread().accumulateNanos();
+      osrSetupNanos += end - start;
     }
 
     // Phase 5: Encode machine code maps
-    if (VM.MeasureCompilation) start = VM_Scheduler.getCurrentThread().accumulateCycles();
+    if (VM.MeasureCompilation) start = VM_Scheduler.getCurrentThread().accumulateNanos();
     if (method.isSynchronized()) {
       ((VM_BaselineCompiledMethod) compiledMethod).setLockAcquisitionOffset(lockOffset);
     }
@@ -274,8 +274,8 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
       printEndHeader(method);
     }
     if (VM.MeasureCompilation) {
-      long end = VM_Scheduler.getCurrentThread().accumulateCycles();
-      encodingCycles += end - start;
+      long end = VM_Scheduler.getCurrentThread().accumulateNanos();
+      encodingNanos += end - start;
     }
   }
 

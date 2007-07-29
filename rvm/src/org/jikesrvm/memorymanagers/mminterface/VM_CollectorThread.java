@@ -359,7 +359,7 @@ public final class VM_CollectorThread extends VM_GreenThread {
       if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run waking up");
 
       gcOrdinal = VM_Synchronization.fetchAndAdd(participantCount, Offset.zero(), 1) + 1;
-      long startCycles = VM_Time.cycles();
+      long startTime = VM_Time.nanoTime();
 
       if (verbose > 2) VM.sysWriteln("GC Message: VM_CT.run entering first rendezvous - gcOrdinal =", gcOrdinal);
 
@@ -381,8 +381,8 @@ public final class VM_CollectorThread extends VM_GreenThread {
         gcBarrier.rendezvous(5200);
 
         if (gcOrdinal == 1) {
-          long elapsedCycles = VM_Time.cycles() - startCycles;
-          HeapGrowthManager.recordGCTime(VM_Time.cyclesToMillis(elapsedCycles));
+          long elapsedTime = VM_Time.nanoTime() - startTime;
+          HeapGrowthManager.recordGCTime(VM_Time.nanosToMillis(elapsedTime));
           if (Selected.Plan.get().lastCollectionFullHeap()) {
             if (Options.variableSizeHeap.getValue() && !userTriggered) {
               // Don't consider changing the heap size if gc was forced by System.gc()
@@ -400,7 +400,7 @@ public final class VM_CollectorThread extends VM_GreenThread {
           collectionAttemptBase++;
         }
 
-        startCycles = VM_Time.cycles();
+        startTime = VM_Time.nanoTime();
         gcBarrier.rendezvous(5201);
       } while (Selected.Plan.get().lastCollectionFailed() && !Plan.isEmergencyCollection());
 

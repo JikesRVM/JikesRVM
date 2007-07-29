@@ -283,7 +283,7 @@ public abstract class VM_Thread {
   /**
    * If this thread is sleeping, when should it be awakened?
    */
-  protected long wakeupCycle;
+  protected long wakeupNanoTime;
 
   /*
    * Parking fields
@@ -316,16 +316,16 @@ public abstract class VM_Thread {
    */
 
   /**
-   * Value returned from {@link VM_Time#cycles()} when this thread
+   * Value returned from {@link VM_Time#nanoTime()} when this thread
    * started running. If not currently running, then it has the value 0.
    */
-  private long startCycle;
+  private long startNano;
 
   /**
-   * Accumulated cycle count as measured by {@link VM_Time#cycles()}
+   * Accumulated nanoTime as measured by {@link VM_Time#nanoTime()}
    * used by this thread.
    */
-  private long totalCycles;
+  private long totalNanos;
 
   /** Used by GC to determine collection success */
   private boolean physicalAllocationFailed;
@@ -1080,7 +1080,7 @@ public abstract class VM_Thread {
         if (isAbsolute) {
           // if it's an absolute amount of time then remove the current time as
           // we will adjust up by this much in the sleep
-          millis -= VM_Time.cyclesToMillis(VM_Time.cycles());
+          millis -= (VM_Time.nanoTime() / ((long)1e6));
         }
         ns = (int)time % 1000000;
       } else {
@@ -1413,16 +1413,16 @@ public abstract class VM_Thread {
   }
 
   /**
-   * Accumulate the interval from {@link #startCycle} to the result
-   * of calling {@link org.jikesrvm.runtime.VM_Time#cycles()} into {@link #totalCycles}
-   * returning the new value of totalCycles.
+   * Accumulate the interval from {@link #startNano} to the result
+   * of calling {@link org.jikesrvm.runtime.VM_Time#nanoTime()} into {@link #totalNanos}
+   * returning the new value of {@link #totalNanos}.
    * @return totalCycles
    */
-  public long accumulateCycles() {
-    long now = VM_Time.cycles();
-    totalCycles += now - startCycle;
-    startCycle = now;
-    return totalCycles;
+  public long accumulateNanos() {
+    long now = VM_Time.nanoTime();
+    totalNanos += now - startNano;
+    startNano = now;
+    return totalNanos;
   }
 
   /**
@@ -1430,7 +1430,7 @@ public abstract class VM_Thread {
    * start executing.
    */
   public void startQuantum(long now) {
-    startCycle = now;
+    startNano = now;
   }
 
   /**
@@ -1438,18 +1438,18 @@ public abstract class VM_Thread {
    * executing.
    */
   public void endQuantum(long now) {
-    totalCycles += now - startCycle;
-    startCycle = 0;
+    totalNanos += now - startNano;
+    startNano = 0;
   }
 
-  /** @return The value of {@link #totalCycles}, converted to milliseconds */
+  /** @return The value of {@link #totalNanos}, converted to milliseconds */
   public final double getCPUTimeMillis() {
-    return VM_Time.cyclesToMillis(totalCycles);
+    return VM_Time.nanosToMillis(totalNanos);
   }
 
-  /** @return The value of {@link #totalCycles} */
-  public final long getTotalCycles() {
-    return totalCycles;
+  /** @return The value of {@link #totalNanos} */
+  public final long getTotalNanos() {
+    return totalNanos;
   }
 
   /** @return The value of {@link #isBootThread} */
@@ -1652,12 +1652,12 @@ public abstract class VM_Thread {
           wait(this);
         }
       } else {
-        long startCycles = VM_Time.cycles();
+        long startNano = VM_Time.nanoTime();
         long timeLeft;
         if (isAlive()) {
           do {
-            double elapsedMillis = VM_Time.cyclesToMillis(VM_Time.cycles()-startCycles);
-            timeLeft = ms - (long)elapsedMillis;
+            long elapsedMillis = (VM_Time.nanoTime()-startNano)/((long) 1e6);
+            timeLeft = ms - elapsedMillis;
             wait(this, timeLeft);
           } while (isAlive() && timeLeft > 0);
         }
@@ -1922,8 +1922,8 @@ public abstract class VM_Thread {
     offset = VM_Services.sprintf(dest, offset, java.lang.JikesRVMSupport.getEnumName(state));
     if (state == State.TIMED_WAITING || state == State.TIMED_PARK) {
       offset = VM_Services.sprintf(dest, offset, "(");
-      long timeLeft = wakeupCycle - VM_Time.cycles();
-      offset = VM_Services.sprintf(dest, offset, (long)VM_Time.cyclesToMillis(timeLeft));
+      long timeLeft = wakeupNanoTime - VM_Time.nanoTime();
+      offset = VM_Services.sprintf(dest, offset, (long)VM_Time.nanosToMillis(timeLeft));
       offset = VM_Services.sprintf(dest, offset, "ms)");
     }
     if (throwInterruptWhenScheduled) {

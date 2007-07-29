@@ -297,7 +297,7 @@ public final class VM_GreenProcessor extends VM_Processor {
 
     // Accumulate CPU time on a per thread basis.
     // Used by the adaptive system and compilation measurement.
-    long now = VM_Time.cycles();
+    long now = VM_Time.nanoTime();
     previousThread.endQuantum(now);
     newThread.startQuantum(now);
 

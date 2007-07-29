@@ -358,10 +358,8 @@ public class VM_FileSystem {
     }
   }
 
-  // TODO: Think about getting rid of this function and switching
-  //       this whole layer over to cycles instead.
   private static double now() {
-    return ((double) VM_Time.currentTimeMicros()) / 100000;
+    return ((double) VM_Time.currentTimeMillis()) / 1000;
   }
 
   /**

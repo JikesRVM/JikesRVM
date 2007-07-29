@@ -66,12 +66,12 @@ final class VM_IdleThread extends VM_GreenThread {
 
     // Only perform load balancing if there is more than one processor.
     final boolean loadBalancing = VM_GreenScheduler.numProcessors > 1;
-    long spinInterval = loadBalancing ? VM_Time.millisToCycles(1) : 0;
+    long spinNano = loadBalancing ? ((long)1e6) : 0;
     main:
     while (true) {
       if (VM_Scheduler.terminated) terminate();
       if (VM.VerifyAssertions) VM._assert(processorAffinity.idleQueue.isEmpty());
-      long t = VM_Time.cycles() + spinInterval;
+      long t = VM_Time.nanoTime() + spinNano;
 
       if (VM_Scheduler.debugRequested) {
         VM.sysWriteln("debug requested in idle thread");
@@ -87,7 +87,7 @@ final class VM_IdleThread extends VM_GreenThread {
           VM_GreenThread.yield(VM_GreenProcessor.getCurrentProcessor().idleQueue);
           continue main;
         }
-      } while (VM_Time.cycles() < t);
+      } while (VM_Time.nanoTime() < t);
 
       /* Now go into the long-term sleep/check-for-work loop. */
       for (; ;) {
@@ -97,7 +97,7 @@ final class VM_IdleThread extends VM_GreenThread {
         }
         VM_GreenThread.yield(VM_GreenProcessor.getCurrentProcessor().idleQueue);
         /* Doze a millisecond (well, Linux rounds it up to a centisecond)  */
-        sysCall.sysNanosleep(1000 * 1000);
+        sysCall.sysNanosleep((long)1e6);
       }
     }
   }

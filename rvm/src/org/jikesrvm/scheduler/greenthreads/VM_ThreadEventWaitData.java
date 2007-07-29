@@ -27,10 +27,10 @@ public abstract class VM_ThreadEventWaitData implements VM_ThreadEventConstants 
    * Timestamp at which time the thread should return from its
    * wait if the event it is waiting for has not occurred.
    */
-  private final long maxWaitCycle;
+  private final long maxWaitNano;
   /** Accessor for maxWaitCycle */
-  long getMaxWaitCycle() {
-    return maxWaitCycle;
+  long getMaxWaitNano() {
+    return maxWaitNano;
   }
   /*
    * Flags describing state and outcome of wait.
@@ -97,11 +97,11 @@ public abstract class VM_ThreadEventWaitData implements VM_ThreadEventConstants 
 
   /**
    * Constructor.
-   * @param maxWaitCycle the timestamp when the wait should end
+   * @param maxWaitNano the timestamp when the wait should end
    */
-  VM_ThreadEventWaitData(long maxWaitCycle) {
+  VM_ThreadEventWaitData(long maxWaitNano) {
     // assert isPending();
-    this.maxWaitCycle = maxWaitCycle;
+    this.maxWaitNano = maxWaitNano;
   }
 
   /**

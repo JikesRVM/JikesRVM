@@ -75,7 +75,7 @@ public final class VMSystem {
   }
 
   public static long nanoTime() {
-    return VM_Time.currentTimeMicros() * 1000;
+    return VM_Time.nanoTime();
   }
 
   static void setIn(InputStream in) {

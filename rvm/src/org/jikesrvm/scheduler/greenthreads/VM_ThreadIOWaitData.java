@@ -36,8 +36,8 @@ public final class VM_ThreadIOWaitData extends VM_ThreadEventWaitData implements
    * Constructor.
    * @param maxWaitCycle the timestamp when the wait should end
    */
-  public VM_ThreadIOWaitData(long maxWaitCycle) {
-    super(maxWaitCycle);
+  public VM_ThreadIOWaitData(long maxWaitNano) {
+    super(maxWaitNano);
   }
 
   /**

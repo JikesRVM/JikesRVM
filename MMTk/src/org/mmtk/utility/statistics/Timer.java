@@ -74,7 +74,7 @@ import org.vmmagic.pragma.*;
    */
   @Inline
   protected final long getCurrentValue() {
-    return VM.statistics.cycles();
+    return VM.statistics.nanoTime();
   }
 
   /**
@@ -113,7 +113,7 @@ import org.vmmagic.pragma.*;
    * @param value The value to be printed
    */
   final void printMicro(long value) {
-    Log.write(1000 * VM.statistics.cyclesToMillis(value));
+    Log.write(1000 * VM.statistics.nanosToMillis(value));
   }
 
   /**
@@ -122,7 +122,7 @@ import org.vmmagic.pragma.*;
    * @param value The value to be printed
    */
   final void printMillis(long value) {
-    Log.write(VM.statistics.cyclesToMillis(value));
+    Log.write(VM.statistics.nanosToMillis(value));
   }
 
   /**
@@ -131,14 +131,14 @@ import org.vmmagic.pragma.*;
    * @param value The value to be printed
    */
   final void printSecs(long value) {
-    Log.write(VM.statistics.cyclesToSecs(value));
+    Log.write(VM.statistics.nanosToSecs(value));
   }
 
   /**
    * Get the current value of the timer in milliseconds
    */
   final double getTotalMillis() {
-    return VM.statistics.cyclesToMillis(totalCount);
+    return VM.statistics.nanosToMillis(totalCount);
   }
 
 }

@@ -40,7 +40,7 @@ public final class VM_ThreadProxyWakeupQueue extends VM_AbstractThreadQueue {
    */
   public boolean isReady() {
     VM_ThreadProxy temp = head;
-    return ((temp != null) && (VM_Time.cycles() >= temp.getWakeupCycle()));
+    return ((temp != null) && (VM_Time.nanoTime() >= temp.getWakeupNano()));
   }
 
   /**
@@ -63,8 +63,8 @@ public final class VM_ThreadProxyWakeupQueue extends VM_AbstractThreadQueue {
         if(VM.VerifyAssertions) VM._assert(p.getPatron().isQueueable());
         VM_ThreadProxy previous = null;
         VM_ThreadProxy current = head;
-        // skip proxies with earlier wakeupCycles
-        while (current != null && current.getWakeupCycle() <= p.getWakeupCycle()) {
+        // skip proxies with earlier wakeup timestamps
+        while (current != null && current.getWakeupNano() <= p.getWakeupNano()) {
           previous = current;
           current = current.getWakeupNext();
         }
@@ -86,9 +86,9 @@ public final class VM_ThreadProxyWakeupQueue extends VM_AbstractThreadQueue {
    */
   @Override
   public VM_GreenThread dequeue() {
-    long currentCycle = VM_Time.cycles();
+    long currentNano = VM_Time.nanoTime();
     while (head != null) {
-      if (currentCycle < head.getWakeupCycle()) return null;
+      if (currentNano < head.getWakeupNano()) return null;
       VM_ThreadProxy p = head;
       head = head.getWakeupNext();
       p.setWakeupNext(null);

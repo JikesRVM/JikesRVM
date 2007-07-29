@@ -26,25 +26,25 @@ import org.vmmagic.pragma.Uninterruptible;
   /**
    * Read cycle counter
    */
-  public abstract long cycles();
+  public abstract long nanoTime();
 
   /**
-   * Convert cycles to milliseconds
+   * Convert nanoseconds to milliseconds
    */
-  public abstract double cyclesToMillis(long c);
+  public abstract double nanosToMillis(long c);
 
   /**
-   * Convert cycles to seconds
+   * Convert nanoseconds to seconds
    */
-  public abstract double cyclesToSecs(long c);
+  public abstract double nanosToSecs(long c);
 
   /**
-   * Convert milliseconds to cycles
+   * Convert milliseconds to nanoseconds
    */
-  public abstract long millisToCycles(double t);
+  public abstract long millisToNanos(double t);
 
   /**
-   * Convert seconds to cycles
+   * Convert seconds to nanoseconds
    */
-  public abstract long secsToCycles(double t);
+  public abstract long secsToNanos(double t);
 }

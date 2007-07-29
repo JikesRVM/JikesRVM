@@ -41,7 +41,7 @@ public final class VM_ThreadProxy {
    */
   final VM_ProcessorLock mutex = new VM_ProcessorLock();
   /** When the thread is scheduled to wake up if it's on the wakeup queue */
-  private final long wakeupCycle;
+  private final long wakeupNano;
   /** The next element in the waiting queue */
   private VM_ThreadProxy waitingNext;
   /** The next element in the wakeup queue */
@@ -50,16 +50,16 @@ public final class VM_ThreadProxy {
   /** Create a proxy for a thread on a waiting queue */
   public VM_ThreadProxy(VM_GreenThread t) {
     patron = t;
-    wakeupCycle = 0;
+    wakeupNano = 0;
   }
 
   /**
    * Create a proxy for a thread on a wakeup queue (may be on a waiting queue
    * also)
    */
-  public VM_ThreadProxy(VM_GreenThread t, long cycles) {
+  public VM_ThreadProxy(VM_GreenThread t, long nano) {
     patron = t;
-    wakeupCycle = cycles;
+    wakeupNano = nano;
   }
 
   /**
@@ -86,8 +86,8 @@ public final class VM_ThreadProxy {
   }
   
   /** Get the wake up time */
-  long getWakeupCycle() {
-    return wakeupCycle;
+  long getWakeupNano() {
+    return wakeupNano;
   }
 
   /** Get the next element in the waiting queue */
