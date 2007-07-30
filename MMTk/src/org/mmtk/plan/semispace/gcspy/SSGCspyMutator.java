@@ -38,7 +38,6 @@ import org.vmmagic.unboxed.*;
  * @see SSGCspyCollector
  * @see org.mmtk.plan.StopTheWorldMutator
  * @see org.mmtk.plan.MutatorContext
- * @see org.mmtk.plan.SimplePhase#delegatePhase
  */
 @Uninterruptible public class SSGCspyMutator extends SSMutator {
 
@@ -117,9 +116,9 @@ import org.vmmagic.unboxed.*;
   /**
    * Return the allocator instance associated with a space
    * <code>space</code>, for this plan instance.  This exists
-   * to support {@link MutatorContext#getOwnAllocator(Allocator)}.
+   * to support {@link org.mmtk.plan.MutatorContext#getOwnAllocator(Allocator)}.
    *
-   * @see MutatorContext#getOwnAllocator(Allocator)
+   * @see org.mmtk.plan.MutatorContext#getOwnAllocator(Allocator)
    * @param space The space for which the allocator instance is desired.
    * @return The allocator instance associated with this plan instance
    * which is allocating into <code>space</code>, or <code>null</code>
@@ -189,7 +188,6 @@ import org.vmmagic.unboxed.*;
    * @param event
    *          The event, either BEFORE_COLLECTION, SEMISPACE_COPIED or
    *          AFTER_COLLECTION
-   * @param fullHeap full heap collection
    */
   private void gcspyGatherData(int event) {
     if(DEBUG) {
@@ -375,7 +373,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Debugging info for the semispaces
-   * @param scannedSpace
+   * @param scannedSpace the space to output debug for.
    */
   private void debugSpaces(CopySpace scannedSpace) {
     Log.write("SSGCspyMutator.gcspyGatherData: gather data for active semispace ");

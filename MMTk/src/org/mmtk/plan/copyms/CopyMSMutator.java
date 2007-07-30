@@ -35,7 +35,6 @@ import org.vmmagic.unboxed.*;
  * @see CopyMSCollector
  * @see org.mmtk.plan.StopTheWorldMutator
  * @see org.mmtk.plan.MutatorContext
- * @see org.mmtk.plan.SimplePhase#delegatePhase
  */
 @Uninterruptible public abstract class CopyMSMutator extends StopTheWorldMutator {
 

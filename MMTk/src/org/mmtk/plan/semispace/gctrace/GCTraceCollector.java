@@ -34,7 +34,6 @@ import org.vmmagic.pragma.*;
  * @see GCTraceMutator
  * @see org.mmtk.plan.StopTheWorldCollector
  * @see org.mmtk.plan.CollectorContext
- * @see org.mmtk.plan.SimplePhase#delegatePhase
  */
 @Uninterruptible public class GCTraceCollector extends SSCollector {
   /****************************************************************************

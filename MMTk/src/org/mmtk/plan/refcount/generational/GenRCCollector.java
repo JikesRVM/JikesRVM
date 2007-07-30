@@ -45,7 +45,6 @@ import org.vmmagic.unboxed.*;
  * @see GenRCMutator
  * @see org.mmtk.plan.StopTheWorldCollector
  * @see org.mmtk.plan.CollectorContext
- * @see org.mmtk.plan.SimplePhase#delegatePhase
  */
 @Uninterruptible public abstract class GenRCCollector extends RCBaseCollector
 implements Constants {

@@ -39,7 +39,6 @@ import org.vmmagic.pragma.*;
  * @see GenCollector
  * @see org.mmtk.plan.StopTheWorldCollector
  * @see org.mmtk.plan.CollectorContext
- * @see org.mmtk.plan.SimplePhase#delegatePhase
  */
 @Uninterruptible public abstract class GenCopyCollector extends GenCollector {
 
