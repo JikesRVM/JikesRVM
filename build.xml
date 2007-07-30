@@ -1264,7 +1264,7 @@ Check to make sure all required properties are specified. This includes properti
     <!-- create jvm shared library -->
     <property name="rvm.dll" value="${target.dll-prefix}rvm${target.dll-ext}"/>
     <exec executable="${c++.exe}" failonerror="true">
-      <arg line="${rvm.c++.args} -lpthread"/>
+      <arg line="${rvm.c++.args} -lpthread -lrt"/>
       <arg value="-o"/>
       <arg value="${build.base}/${rvm.dll}"/>
       <arg value="${bl.dir}/jvm.C"/>
@@ -1291,7 +1291,7 @@ Check to make sure all required properties are specified. This includes properti
     </exec>
 
     <exec executable="${c++.exe}" failonerror="true">
-      <arg line="${c++.args} ${rvm.common.args} ${gcspy.lib.dir} -lpthread ${rvm.src} -rdynamic -g"/>
+      <arg line="${c++.args} ${rvm.common.args} ${gcspy.lib.dir} -lpthread -lrt ${rvm.src} -rdynamic -g"/>
       <arg value="-o"/>
       <arg value="${build.base}/JikesRVM"/>
       <arg value="-L${build.base}"/>

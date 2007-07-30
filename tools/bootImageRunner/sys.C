@@ -733,26 +733,20 @@ sysCurrentTimeMillis()
 extern "C" long long
 sysNanoTime()
 {
-	/* 
-	 * For now just use the basic gettimeofday implementation.
-	 * We should really be using clock_gettime on CLOCK_MONOTONIC_HR
-	 */
-    int rc;
-    long long returnValue;
-    struct timeval tv;
-    struct timezone tz;
-
-    returnValue = 0;
-
-    rc = gettimeofday(&tv, &tz);
-    if (rc != 0) {
-        returnValue = rc;
-    } else {
-        returnValue = (long long) tv.tv_sec * 1000000000;
-        returnValue += tv.tv_usec * 1000;
-    }
-
-    return returnValue;
+	struct timespec tp;
+	long long retVal;
+	
+	int rc = clock_gettime(CLOCK_MONOTONIC, &tp);
+	if (rc != 0) {
+		retVal = rc;
+	    if (lib_verbose) {
+	        fprintf(stderr, "sysNanoTime: Non-zero return code %d from clock_gettime\n", rc);
+	    }
+	} else {
+		retVal = (((long long) tp.tv_sec) * 1000000000) + tp.tv_nsec;
+	}
+	
+	return retVal;
 }
 
 
