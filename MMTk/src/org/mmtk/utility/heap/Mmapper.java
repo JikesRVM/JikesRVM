@@ -123,11 +123,8 @@ import org.vmmagic.pragma.*;
       lock.acquire();
 //      Log.writeln(mmapStart);
       // might have become MAPPED here
-      lock.check(100);
       if (mapped[chunk] == UNMAPPED) {
-        lock.check(101);
         int errno = VM.memory.dzmmap(mmapStart, MMAP_CHUNK_BYTES);
-        lock.check(102);
         if (errno != 0) {
           lock.release();
           Log.write("ensureMapped failed with errno "); Log.write(errno);
@@ -140,12 +137,9 @@ import org.vmmagic.pragma.*;
             Log.write(" with len = "); Log.writeln(MMAP_CHUNK_BYTES);
           }
         }
-        lock.check(103);
       }
       if (mapped[chunk] == PROTECTED) {
-        lock.check(201);
         if (!VM.memory.munprotect(mmapStart, MMAP_CHUNK_BYTES)) {
-          lock.check(202);
           lock.release();
           VM.assertions.fail("Mmapper.ensureMapped (unprotect) failed");
         }
@@ -156,9 +150,7 @@ import org.vmmagic.pragma.*;
           }
         }
       }
-      lock.check(301);
       mapped[chunk] = MAPPED;
-      lock.check(302);
       lock.release();
     }
 
