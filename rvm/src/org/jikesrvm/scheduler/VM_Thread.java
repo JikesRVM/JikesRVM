@@ -1820,7 +1820,9 @@ public abstract class VM_Thread {
       // This is output like that of the Sun JDK.
       VM.sysWrite("Exception in thread \"", getName(), "\": ");
     }
-    exceptionObject.printStackTrace();
+    if (VM.fullyBooted) {
+      exceptionObject.printStackTrace();
+    }
     VM_Scheduler.getCurrentThread().terminate();
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
