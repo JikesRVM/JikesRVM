@@ -295,11 +295,17 @@ public final class VM_GreenProcessor extends VM_Processor {
       scheduleThread(t);
     }
 
-    // Accumulate CPU time on a per thread basis.
-    // Used by the adaptive system and compilation measurement.
-    long now = VM_Time.nanoTime();
-    previousThread.endQuantum(now);
-    newThread.startQuantum(now);
+    // If one of the threads has an active timerInteval, then we need to 
+    // update the timing information.
+    if (previousThread.hasActiveTimedInterval() || newThread.hasActiveTimedInterval()) {
+      long now = VM_Time.nanoTime();
+      if (previousThread.hasActiveTimedInterval()) {
+        previousThread.suspendInterval(now);
+      }
+      if (newThread.hasActiveTimedInterval()) {
+        newThread.resumeInterval(now);        
+      }
+    }
 
     threadId = newThread.getLockingId();
     activeThreadStackLimit = newThread.stackLimit; // Delay this to last possible moment so we can sysWrite

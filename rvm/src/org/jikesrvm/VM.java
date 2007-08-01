@@ -146,8 +146,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
         currentThread.getStack()).plus(ArchitectureSpecific.VM_StackframeLayoutConstants.STACK_SIZE_GUARD);
 
     VM_Processor.getCurrentProcessor().activeThreadStackLimit = currentThread.stackLimit;
-    currentThread.startQuantum(VM_Time.nanoTime());
-
+    
     finishBooting();
   }
 
@@ -2048,6 +2047,9 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     }
 
     if (runningVM) {
+      // VM.sysWriteln("Total number of nanoTime calls ",VM_Time.nanoTimeCount);
+      // VM.sysWriteln("Number of java.lang.System.nanoTime calls ",VM_Time.systemNanoTimeCount);
+      // VM.sysWriteln("Number of intenral nanoTime calls ",VM_Time.nanoTimeCount - VM_Time.systemNanoTimeCount);
       VM_Scheduler.sysExit();
       VM_Callbacks.notifyExit(value);
       VM.shutdown(value);

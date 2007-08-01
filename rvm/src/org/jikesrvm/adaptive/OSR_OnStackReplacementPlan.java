@@ -94,9 +94,6 @@ public class OSR_OnStackReplacementPlan implements VM_Constants {
     setTimeInitiated(VM_Controller.controllerClock);
 
     {
-      // we will reuse the compilation plan before
-      cpThread.accumulateNanos();
-
       OSR_ExecStateExtractor extractor = null;
 
       VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(this.CMID);
@@ -124,8 +121,6 @@ public class OSR_OnStackReplacementPlan implements VM_Constants {
 
       // compile from callee to caller
       VM_CompiledMethod newCM = OSR_SpecialCompiler.recompileState(state, invalidate);
-
-      cpThread.accumulateNanos();
 
       setTimeCompleted(VM_Controller.controllerClock);
 

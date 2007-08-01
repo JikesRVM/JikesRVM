@@ -151,9 +151,6 @@ public class VM_AOSLogging {
                       t.getIndex() +
                       " " +
                       t.getClass().getName() +
-                      " " +
-                      " Time: " +
-                      (t.getCPUTimeMillis() / 1000) +
                       " status(" +
                       status +
                       ")");

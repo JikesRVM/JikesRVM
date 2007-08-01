@@ -36,7 +36,7 @@ public final class OPT_OptimizationPlanAtomicElement extends OPT_OptimizationPla
   /**
    * Accumulated nanoseconds spent in the element.
    */
-  long phaseNanos;
+  long phaseNanos = 0;
 
   /**
    * Counters to be used by myPhase to gather phase specific stats.
@@ -79,15 +79,18 @@ public final class OPT_OptimizationPlanAtomicElement extends OPT_OptimizationPla
    */
   public void perform(OPT_IR ir) {
     long start = 0;
-    if (VM.MeasureCompilation && VM.runningVM) {
-      start = VM_Scheduler.getCurrentThread().accumulateNanos();
-    }
-    OPT_CompilerPhase cmpPhase = myPhase.newExecution(ir);
-    cmpPhase.setContainer(this);
-    cmpPhase.performPhase(ir);
-    if (VM.MeasureCompilation && VM.runningVM) {
-      long end = VM_Scheduler.getCurrentThread().accumulateNanos();
-      phaseNanos += end - start;
+    try {
+      if (VM.MeasureCompilationPhases && VM.runningVM) {
+        start = VM_Scheduler.getCurrentThread().startTimedInterval();
+      }
+      OPT_CompilerPhase cmpPhase = myPhase.newExecution(ir);
+      cmpPhase.setContainer(this);
+      cmpPhase.performPhase(ir);
+    } finally {
+      if (VM.MeasureCompilationPhases && VM.runningVM) {
+        long end = VM_Scheduler.getCurrentThread().endTimedInterval();
+        phaseNanos += end - start;
+      }
     }
   }
 

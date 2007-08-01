@@ -284,18 +284,24 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
   public static VM_CompiledMethod baselineCompile(VM_NormalMethod method) {
     VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.BASELINE);
     long start = 0;
-    if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
-      start = VM_Scheduler.getCurrentThread().accumulateNanos();
+    VM_CompiledMethod cm = null;
+    try {
+      if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
+        start = VM_Scheduler.getCurrentThread().startTimedInterval();
+      }
+
+      cm = VM_BaselineCompiler.compile(method);
+    } finally {
+      if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
+        long end = VM_Scheduler.getCurrentThread().endTimedInterval();
+        if (cm != null) {
+          double compileTime = VM_Time.nanosToMillis(end - start);
+          cm.setCompilationTime(compileTime);
+          record(BASELINE_COMPILER, method, cm);
+        }
+      }
     }
 
-    VM_CompiledMethod cm = VM_BaselineCompiler.compile(method);
-
-    if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
-      long end = VM_Scheduler.getCurrentThread().accumulateNanos();
-      double compileTime = VM_Time.nanosToMillis(end - start);
-      cm.setCompilationTime(compileTime);
-      record(BASELINE_COMPILER, method, cm);
-    }
 
     return cm;
   }
@@ -344,17 +350,21 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
 
       VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.JNI);
       long start = 0;
-      if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
-        start = VM_Scheduler.getCurrentThread().accumulateNanos();
-      }
-
-      VM_CompiledMethod cm = OPT_Compiler.compile(plan);
-
-      if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
-        long end = VM_Scheduler.getCurrentThread().accumulateNanos();
-        double compileTime = VM_Time.nanosToMillis(end - start);
-        cm.setCompilationTime(compileTime);
-        record(OPT_COMPILER, method, cm);
+      VM_CompiledMethod cm = null;
+      try {
+        if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
+          start = VM_Scheduler.getCurrentThread().startTimedInterval();
+        }
+        cm = OPT_Compiler.compile(plan);
+      } finally {
+        if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
+          long end = VM_Scheduler.getCurrentThread().endTimedInterval();
+          if (cm != null) {
+            double compileTime = VM_Time.nanosToMillis(end - start);
+            cm.setCompilationTime(compileTime);
+            record(OPT_COMPILER, method, cm);
+          }
+        }
       }
 
       return cm;
@@ -594,7 +604,7 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
     }
     if (VM.BuildForAdaptiveSystem) {
       optimizationPlan = OPT_OptimizationPlanner.createOptimizationPlan((OPT_Options) options);
-      if (VM.MeasureCompilation) {
+      if (VM.MeasureCompilationPhases) {
         OPT_OptimizationPlanner.initializeMeasureCompilation();
       }
 
@@ -753,25 +763,30 @@ public class VM_RuntimeCompiler implements VM_Constants, VM_Callbacks.ExitMonito
   public static VM_CompiledMethod compile(VM_NativeMethod method) {
     VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.JNI);
     long start = 0;
-    if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
-      start = VM_Scheduler.getCurrentThread().accumulateNanos();
-    }
+    VM_CompiledMethod cm = null;
+    try {
+      if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
+        start = VM_Scheduler.getCurrentThread().startTimedInterval();
+      }
 
-    VM_CompiledMethod cm = VM_JNICompiler.compile(method);
-    if (VM.verboseJNI) {
-      VM.sysWriteln("[Dynamic-linking native method " +
-                    method.getDeclaringClass() +
-                    "." +
-                    method.getName() +
-                    " " +
-                    method.getDescriptor());
-    }
-
-    if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
-      long end = VM_Scheduler.getCurrentThread().accumulateNanos();
-      double compileTime = VM_Time.nanosToMillis(end - start);
-      cm.setCompilationTime(compileTime);
-      record(JNI_COMPILER, method, cm);
+      cm = VM_JNICompiler.compile(method);
+      if (VM.verboseJNI) {
+        VM.sysWriteln("[Dynamic-linking native method " +
+                      method.getDeclaringClass() +
+                      "." +
+                      method.getName() +
+                      " " +
+                      method.getDescriptor());
+      }
+    } finally {
+      if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
+        long end = VM_Scheduler.getCurrentThread().endTimedInterval();
+        if (cm != null) {
+          double compileTime = VM_Time.nanosToMillis(end - start);
+          cm.setCompilationTime(compileTime);
+          record(JNI_COMPILER, method, cm);
+        }
+      }
     }
 
     return cm;

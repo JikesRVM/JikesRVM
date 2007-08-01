@@ -17,6 +17,9 @@ DESCRIP
 MeasureCompilation false measureCompilation
 Time all compilations and report on exit
 
+MeasureCompilationPhases false measureCompilationPhases
+Time all compilation sub-phases and report on exit
+
 stackTraceFull false
 Stack traces to consist of VM and application frames
 

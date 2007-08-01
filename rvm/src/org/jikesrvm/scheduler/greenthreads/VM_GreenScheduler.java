@@ -404,7 +404,6 @@ public final class VM_GreenScheduler extends VM_Scheduler {
     for (int i = 1; i < threads.length; ++i) {
       if (threads[i] != null) {
         threads[i].dumpWithPadding(30);
-        VM.sysWrite(threads[i].getCPUTimeMillis());
         VM.sysWrite("\n");
       }
     }

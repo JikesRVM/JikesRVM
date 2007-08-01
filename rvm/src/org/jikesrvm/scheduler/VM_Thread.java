@@ -314,18 +314,23 @@ public abstract class VM_Thread {
   /*
    * Timing fields
    */
+  /**
+   * Per thread timing is only active when this field has a value greater than 0.
+   */
+  private int timingDepth = 0;
+  
 
   /**
    * Value returned from {@link VM_Time#nanoTime()} when this thread
    * started running. If not currently running, then it has the value 0.
    */
-  private long startNano;
+  private long startNano = 0;
 
   /**
    * Accumulated nanoTime as measured by {@link VM_Time#nanoTime()}
    * used by this thread.
    */
-  private long totalNanos;
+  private long totalNanos = 0;
 
   /** Used by GC to determine collection success */
   private boolean physicalAllocationFailed;
@@ -1413,13 +1418,36 @@ public abstract class VM_Thread {
   }
 
   /**
-   * Accumulate the interval from {@link #startNano} to the result
-   * of calling {@link org.jikesrvm.runtime.VM_Time#nanoTime()} into {@link #totalNanos}
-   * returning the new value of {@link #totalNanos}.
-   * @return totalCycles
+   * @return whether or not the thread has an active timer interval
    */
-  public long accumulateNanos() {
+  public boolean hasActiveTimedInterval() {
+    return timingDepth > 0;
+  }
+  
+  /**
+   * Begin a possibly nested timing interval.
+   * @return the current value of {@link #totalNanos}. 
+   */
+  public long startTimedInterval() {
     long now = VM_Time.nanoTime();
+    if (timingDepth == 0) {
+      timingDepth = 1;
+      startNano = now;
+      totalNanos = 0;
+    } else {
+      timingDepth++;
+      totalNanos += now - startNano;
+      startNano = now;
+    }
+    return totalNanos;
+  }
+  
+  /**
+   * End a possibly nested timing interval
+   */
+  public long endTimedInterval() {
+    long now = VM_Time.nanoTime();
+    timingDepth--;
     totalNanos += now - startNano;
     startNano = now;
     return totalNanos;
@@ -1429,7 +1457,8 @@ public abstract class VM_Thread {
    * Called from  VM_Processor.dispatch when a thread is about to
    * start executing.
    */
-  public void startQuantum(long now) {
+  public void resumeInterval(long now) {
+    if (VM.VerifyAssertions) VM._assert(startNano == 0);
     startNano = now;
   }
 
@@ -1437,19 +1466,9 @@ public abstract class VM_Thread {
    * Called from {@link VM_Processor#dispatch} when a thread is about to stop
    * executing.
    */
-  public void endQuantum(long now) {
+  public void suspendInterval(long now) {
     totalNanos += now - startNano;
     startNano = 0;
-  }
-
-  /** @return The value of {@link #totalNanos}, converted to milliseconds */
-  public final double getCPUTimeMillis() {
-    return VM_Time.nanosToMillis(totalNanos);
-  }
-
-  /** @return The value of {@link #totalNanos} */
-  public final long getTotalNanos() {
-    return totalNanos;
   }
 
   /** @return The value of {@link #isBootThread} */

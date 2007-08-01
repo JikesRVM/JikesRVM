@@ -48,7 +48,7 @@ public class OPT_OptimizationPlanner {
    * @param explain Should an explanation of the metrics be generated?
    */
   public static void generateOptimizingCompilerSubsystemReport(boolean explain) {
-    if (!VM.MeasureCompilation) {
+    if (!VM.MeasureCompilationPhases) {
       return;
     }
 
