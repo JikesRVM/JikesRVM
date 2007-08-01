@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.ia32;
 
+import java.util.ArrayList;
 import org.jikesrvm.ArchitectureSpecific.OPT_Assembler;
 import org.jikesrvm.ArchitectureSpecific.VM_Assembler;
 import org.jikesrvm.VM;
@@ -45,7 +46,6 @@ import org.jikesrvm.compilers.opt.ir.ia32.OPT_PhysicalRegisterSet;
 import org.jikesrvm.ia32.VM_TrapConstants;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.unboxed.Offset;
-import java.util.ArrayList;
 
 /**
  *  This class provides support functionality used by the generated

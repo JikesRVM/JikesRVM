@@ -24,7 +24,6 @@ import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.mm.mmtk.Collection;
-import org.jikesrvm.mm.mmtk.Lock;
 import org.jikesrvm.mm.mmtk.Options;
 import org.jikesrvm.mm.mmtk.ReferenceProcessor;
 import org.jikesrvm.mm.mmtk.SynchronizedCounter;

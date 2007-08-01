@@ -24,20 +24,19 @@ import org.jikesrvm.compilers.opt.ir.IfCmp;
 import org.jikesrvm.compilers.opt.ir.IfCmp2;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.OPT_AddressConstantOperand;
-import org.jikesrvm.compilers.opt.ir.OPT_BasicBlock;
 import org.jikesrvm.compilers.opt.ir.OPT_BranchOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_BranchProfileOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_ConditionOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_DoubleConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_FloatConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_IR;
-import org.jikesrvm.compilers.opt.ir.OPT_IREnumeration;
 import org.jikesrvm.compilers.opt.ir.OPT_IRTools;
 import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
 import org.jikesrvm.compilers.opt.ir.OPT_IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_LongConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_NullConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import org.jikesrvm.compilers.opt.ir.OPT_OperandEnumeration;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BBEND;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_ADDR;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_ADDR_opcode;
@@ -185,14 +184,11 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_USHR;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_USHR_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_XOR;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_XOR_opcode;
-import org.jikesrvm.compilers.opt.ir.OPT_InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.OPT_Register;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
-import org.jikesrvm.compilers.opt.ir.OPT_OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Unary;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Word;
-import java.util.HashMap;
 
 /**
  * This class simplifies expressions in SSA form.
