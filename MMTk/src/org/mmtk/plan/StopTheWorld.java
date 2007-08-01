@@ -288,8 +288,8 @@ import org.vmmagic.pragma.*;
    * @param placeHolderPhase The placeholder phase
    * @param newScheduledPhase The new scheduled phase.
    */
-  public void replacePlaceholderPhase(short placeholderPhase, int newScheduledPhase) {
+  public void replacePlaceholderPhase(short placeHolderPhase, int newScheduledPhase) {
     ComplexPhase cp = (ComplexPhase)Phase.getPhase(collection);
-    cp.replacePhase(Phase.schedulePlaceholder(placeholderPhase), newScheduledPhase);
+    cp.replacePhase(Phase.schedulePlaceholder(placeHolderPhase), newScheduledPhase);
   }
 }
