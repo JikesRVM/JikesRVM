@@ -20,10 +20,6 @@ import org.vmmagic.pragma.Uninterruptible;
 @Uninterruptible
 public class VM_Time {
   
-  public static long nanoTimeCount = 0;
-  public static long systemNanoTimeCount = 0;
-  public static long mmtkNanoTimeCount = 0;
-
   /**
    * Convert a long representing a time in nanoseconds into
    * a double representing the same time in milliseconds.
@@ -55,7 +51,6 @@ public class VM_Time {
    * @return a monotonic timer value in nanoseconds.
    */
   public static long nanoTime() {
-    nanoTimeCount++;
     return VM_SysCall.sysCall.sysNanoTime();
   }
 

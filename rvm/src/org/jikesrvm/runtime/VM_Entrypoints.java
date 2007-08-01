@@ -254,7 +254,6 @@ public class VM_Entrypoints {
   public static final VM_Field servingField = getField(org.jikesrvm.mm.mmtk.Lock.class, "serving", int.class);
   public static final VM_Field lockThreadField =
       getField(org.jikesrvm.mm.mmtk.Lock.class, "thread", org.jikesrvm.scheduler.VM_Thread.class);
-  public static final VM_Field lockStartField = getField(org.jikesrvm.mm.mmtk.Lock.class, "start", long.class);
   public static final VM_Field gcStatusField = getField(org.mmtk.plan.Plan.class, "gcStatus", int.class);
   public static final VM_Field SQCFField = getField(org.mmtk.utility.deque.SharedDeque.class, "completionFlag", int.class);
   public static final VM_Field SQNCField = getField(org.mmtk.utility.deque.SharedDeque.class, "numConsumers", int.class);

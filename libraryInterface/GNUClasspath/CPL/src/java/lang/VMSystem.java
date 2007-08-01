@@ -75,7 +75,6 @@ public final class VMSystem {
   }
 
   public static long nanoTime() {
-    VM_Time.systemNanoTimeCount++;
     return VM_Time.nanoTime();
   }
 
