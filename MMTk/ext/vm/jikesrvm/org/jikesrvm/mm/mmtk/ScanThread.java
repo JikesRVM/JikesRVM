@@ -29,7 +29,6 @@ import org.jikesrvm.compilers.common.VM_CompiledMethod;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.runtime.VM_Runtime;
-import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.jikesrvm.ArchitectureSpecific;
 
@@ -219,7 +218,7 @@ import org.vmmagic.pragma.*;
     if (VM.VerifyAssertions) assertImmovableInCurrentCollection();
 
     /* first find any references to exception handlers in the registers */
-    getHWExceptionRegisters(verbosity);
+    getHWExceptionRegisters();
 
     /* reinitialize the stack iterator group */
     iteratorGroup.newStackWalk(thread, gprs);
@@ -240,7 +239,7 @@ import org.vmmagic.pragma.*;
     }
 
     /* If a thread started via createVM or attachVM, base may need scaning */
-    checkJNIBase(verbosity);
+    checkJNIBase();
 
     if (verbosity >= 1) Log.writeln("--- End Of Stack Scan ---\n");
   }
@@ -252,10 +251,8 @@ import org.vmmagic.pragma.*;
    * then scanning for code pointers is not required, so we don't need
    * to do anything. (SB: Why only code pointers?)
    *
-   * @param verbosity The level of verbosity to be used when
-   * performing the scan.
    */
-  private void getHWExceptionRegisters(int verbosity) {
+  private void getHWExceptionRegisters() {
     ArchitectureSpecific.VM_Registers hwExReg = thread.getHardwareExceptionRegisters();
     if (processCodeLocations && hwExReg.inuse) {
       Address ip = hwExReg.ip;
@@ -425,7 +422,7 @@ import org.vmmagic.pragma.*;
     ObjectReference code = ObjectReference.fromObject(compiledMethod.getEntryCodeArray());
 
     pushFrameIP(code, verbosity);
-    scanFrameForCode(code, verbosity);
+    scanFrameForCode(code);
   }
 
   /**
@@ -488,10 +485,8 @@ import org.vmmagic.pragma.*;
    * which happen to be pointers into code.<p>
    *
    * @param code The code object associated with this frame.
-   * @param verbosity The level of verbosity to be used when
-   * performing the scan.
    */
-  private void scanFrameForCode(ObjectReference code, int verbosity) {
+  private void scanFrameForCode(ObjectReference code) {
     iterator.reset();
     for (Address retaddrLoc = iterator.getNextReturnAddressAddress();
          !retaddrLoc.isZero();
@@ -515,10 +510,8 @@ import org.vmmagic.pragma.*;
    * FIXME: SB: Why is this AIX specific?  Why depend on the
    * preprocessor?
    *
-   * @param verbosity The level of verbosity to be used when
-   * performing the scan.
    */
-  private void checkJNIBase(int verbosity) {
+  private void checkJNIBase() {
     if (VM.BuildForAix) {
       VM_GCMapIterator iterator = iteratorGroup.getJniIterator();
       Address refaddr =  iterator.getNextReferenceAddress();
