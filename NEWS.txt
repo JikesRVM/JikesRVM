@@ -8,6 +8,9 @@ on October 14, 2001,
 *Jikes RVM 2.9.2 Release Notes (Future)
 ** Highlights
 
+*** r13223: Fixes to enable the Jikes RVM to run on PPC32 OS/X, this
+    functionality had been broken for at least half a year.
+
 *** r13106: refactored thread model to seperate out the decision of green and
     native threading. Improvements required in the area of OSR and collector
     threads. This solves many issues with thread model including RFE-1147574,
