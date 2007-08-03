@@ -94,7 +94,7 @@ public final class VM_DynamicLibrary {
   }
 
   /**
-   * Called after we've succesfully loaded the shared library
+   * Called after we've successfully loaded the shared library
    */
   private void callOnLoad() {
     // Run any JNI_OnLoad functions defined within the library
