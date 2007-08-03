@@ -63,10 +63,12 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
 
   // Debug flags
   private static final boolean TRACE = false;
+  private static final boolean TRACE_UNREACHABLE = false;
   private static final boolean TRACE_DETAIL = false;
+  private static final boolean STRESS = true;
 
   /** Initial size of the reference object table */
-  private static final int INITIAL_SIZE = 256;
+  private static final int INITIAL_SIZE = STRESS ? 1 : 256;
 
   /**
    * Grow the reference object table by this multiplier
@@ -82,7 +84,7 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   /**
    * The table of reference objects for the current semantics
    */
-  private AddressArray references = AddressArray.create(INITIAL_SIZE);
+  private volatile AddressArray references = AddressArray.create(INITIAL_SIZE);
 
   /**
    * Index into the <code>references</code> table for the start of
@@ -93,13 +95,13 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   /**
    * Index of the first free slot in the reference table.
    */
-  private int maxIndex = 0;
+  private volatile int maxIndex = 0;
 
   /**
    * Flag to prevent a race between threads growing the reference object
    * table.
    */
-  private boolean growingTable = false;
+  private volatile boolean growingTable = false;
 
   /**
    * Semantics
@@ -152,8 +154,8 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * @param ref The reference to insert
    */
   private void setReference(int i, ObjectReference ref) {
-    if (TRACE) {
-      VM.sysWriteln("  reference ",i);
+    if (TRACE_DETAIL) {
+      VM.sysWrite("  reference ",i);
       VM.sysWriteln(" <- ",ref);
     }
     references.set(i,ref.toAddress());
@@ -175,10 +177,10 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * Logically Uninterruptible because it can GC when it allocates, but
    * the rest of the code can't tolerate GC
    */
-  @LogicallyUninterruptible
+  @UninterruptibleNoWarn
   private AddressArray growReferenceTable() {
-    int newLength = (int)(references.length() * GROWTH_FACTOR);
-    if (TRACE) VM.sysWriteln("Expanding reference type table ",semantics.toString()," to ",newLength);
+    int newLength = STRESS ? references.length() + 1 : (int)(references.length() * GROWTH_FACTOR);
+    if (TRACE) VM.sysWriteln("Expanding reference type table ",semanticsStr," to ",newLength);
     AddressArray newReferences = AddressArray.create(newLength);
     for (int i=0; i < references.length(); i++)
       newReferences.set(i,references.get(i));
@@ -198,25 +200,31 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
     if (TRACE) {
       ObjectReference referenceAsAddress = ObjectReference.fromObject(ref);
       ObjectReference referent = getReferent(referenceAsAddress);
-      VM.sysWriteln("Adding Reference: ", referenceAsAddress);
-      VM.sysWriteln("       Referent:  ", referent);
+      VM.sysWrite("Adding Reference: ", referenceAsAddress);
+      VM.sysWriteln(" ~> ", referent);
     }
 
-    /* TODO add comments */
+    /* 
+     * Ensure that only one thread at a time can grow the
+     * table of references
+     */
     lock.acquire();
     while (maxIndex >= references.length()) {
       if (growingTable) {
         lock.release();
-        VM_Scheduler.yield();
+        VM_Scheduler.yield(); // (1) Allow another thread to grow the table
         lock.acquire();
       } else {
-        growingTable = true;
-        lock.release();
+        growingTable = true;  // Prevent other threads from growing table while lock is released
+        lock.release();       // Can't hold the lock while allocating
         AddressArray newTable = growReferenceTable();
         lock.acquire();
         references = newTable;
-        growingTable = false;
+        growingTable = false; // Allow other threads to grow the table rather than waiting for us
       }
+    }
+    if (TRACE) {
+      VM.sysWriteln("  ref # ",maxIndex);
     }
     addReference(ref);
     lock.release();
@@ -352,7 +360,7 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   public ObjectReference processReference(TraceLocal trace, ObjectReference reference) {
     if (VM.VerifyAssertions) VM._assert(!reference.isNull());
 
-    if (TRACE) VM.sysWriteln("### old reference: ",reference);
+    if (TRACE_DETAIL) VM.sysWriteln("### old reference: ",reference);
 
     /*
      * If the reference is dead, we're done with it. Let it (and
@@ -368,7 +376,7 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
     ObjectReference oldReferent = getReferent(reference);
 
     if (TRACE_DETAIL) {
-      VM.sysWriteln("    new reference: ",newReference);
+      VM.sysWrite("    new reference: ",newReference);
       VM.sysWriteln("    old referent: ",oldReferent);
     }
 
@@ -407,7 +415,7 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
        */
       ObjectReference newReferent = trace.getForwardedReferent(oldReferent);
 
-      if (TRACE) VM.sysWriteln(" new referent: ",newReferent);
+      if (TRACE_DETAIL) VM.sysWriteln(" new referent: ",newReferent);
 
       /*
        * The reference object stays on the waiting list, and the
@@ -423,7 +431,7 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
     } else {
       /* Referent is unreachable. Clear the referent and enqueue the reference object. */
 
-      if (TRACE) VM.sysWriteln(" UNREACHABLE:  ",oldReferent);
+      if (TRACE_UNREACHABLE) VM.sysWriteln(" UNREACHABLE:  ",oldReferent);
 
       clearReferent(newReference);
       enqueueReference(newReference);
