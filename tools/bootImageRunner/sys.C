@@ -77,7 +77,6 @@ extern "C"     int sigaltstack(const struct sigaltstack *ss, struct sigaltstack 
 #define MAP_ANONYMOUS MAP_ANON
 #include <sched.h>
 
-
 /* AIX/PowerPC */
 #else
 #include <sys/cache.h>
@@ -730,13 +729,18 @@ sysCurrentTimeMillis()
     return returnValue;
 }
 
+
+#ifdef __MACH__
+mach_timebase_info_data_t timebaseInfo;
+#endif
+
 extern "C" long long
 sysNanoTime()
 {
-	struct timespec tp;
 	long long retVal;
-	
-	int rc = clock_gettime(CLOCK_MONOTONIC, &tp);
+#ifndef __MACH__
+	struct timespec tp;
+        int rc = clock_gettime(CLOCK_MONOTONIC, &tp);
 	if (rc != 0) {
 		retVal = rc;
 	    if (lib_verbose) {
@@ -745,8 +749,11 @@ sysNanoTime()
 	} else {
 		retVal = (((long long) tp.tv_sec) * 1000000000) + tp.tv_nsec;
 	}
-	
-	return retVal;
+#else
+        Nanoseconds nanoTime;
+        retVal = mach_absolute_time() * timebaseInfo.numer / timebaseInfo.denom;
+#endif
+    return retVal;
 }
 
 
@@ -1701,10 +1708,6 @@ findMappable()
 extern "C" void*
 sysDlopen(char *libname)
 {
-#if (defined RVM_FOR_OSX) && (!defined HAS_DLCOMPAT)
-   fprintf(SysTraceFile, "sys: dlopen not implemented yet\n");
-   return 0;
-#else
     void * libHandler;
     do {
         libHandler = dlopen(libname, RTLD_LAZY|RTLD_GLOBAL);
@@ -1718,7 +1721,6 @@ sysDlopen(char *libname)
     }
 
     return libHandler;
-#endif
 }
 
 // Look up symbol in dynamic library.
@@ -1728,12 +1730,7 @@ sysDlopen(char *libname)
 extern "C" void*
 sysDlsym(VM_Address libHandler, char *symbolName)
 {
-#if (defined RVM_FOR_OSX) && (!defined HAS_DLCOMPAT)
-   fprintf(SysTraceFile, "sys: dlsym not implemented yet\n");
-   return 0;
-#else
     return dlsym((void *) libHandler, symbolName);
-#endif
 }
 
 //---------------------//

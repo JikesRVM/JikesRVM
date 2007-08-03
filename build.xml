@@ -1261,10 +1261,20 @@ Check to make sure all required properties are specified. This includes properti
 
   <target name="build-bootloader" depends="build-gcspy-stub,build-syswrap,build-ppc-bootThread">
 
+    <!-- rdynamic flag used to control the exporting of symbols into an ELF -->
+    <condition property="c++.rdynamic" value="" else="-rdynamic">
+      <equals arg1="${target.os}" arg2="OSX"/>
+    </condition>
+
+    <!-- is the real-time library necessary? -->
+    <condition property="c++.librt" value="" else="-lrt">
+      <equals arg1="${target.os}" arg2="OSX"/>
+    </condition>
+  	
     <!-- create jvm shared library -->
     <property name="rvm.dll" value="${target.dll-prefix}rvm${target.dll-ext}"/>
     <exec executable="${c++.exe}" failonerror="true">
-      <arg line="${rvm.c++.args} -lpthread -lrt"/>
+      <arg line="${rvm.c++.args} -lpthread ${c++.librt}"/>
       <arg value="-o"/>
       <arg value="${build.base}/${rvm.dll}"/>
       <arg value="${bl.dir}/jvm.C"/>
@@ -1291,7 +1301,7 @@ Check to make sure all required properties are specified. This includes properti
     </exec>
 
     <exec executable="${c++.exe}" failonerror="true">
-      <arg line="${c++.args} ${rvm.common.args} ${gcspy.lib.dir} -lpthread -lrt ${rvm.src} -rdynamic -g"/>
+      <arg line="${c++.args} ${rvm.common.args} ${gcspy.lib.dir} -lpthread ${c++.librt} ${rvm.src} ${c++.rdynamic} -g"/>
       <arg value="-o"/>
       <arg value="${build.base}/JikesRVM"/>
       <arg value="-L${build.base}"/>
