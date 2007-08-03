@@ -929,23 +929,25 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
 
 
   /**
-   * The current frame is expected to be one of the JNI functions
-   * called from C,
-   * below which is one or more native stack frames
-   * Skip over all frames below with saved code pointers outside of heap
-   * (C frames),
-   * stopping at the native frame immediately preceding the glue frame which
-   * contains
-   * the method ID of the native method
-   * (this is necessary to allow retrieving the
-   * return address of the glue frame)
-   * Ton Ngo 7/30/01
+   * Skip over all frames below currfp with saved code pointers outside of heap
+   * (C frames), stopping at the native frame immediately preceding the glue
+   * frame which contains the method ID of the native method (this is necessary
+   * to allow retrieving the return address of the glue frame)
+   * 
+   * @param currfp The current frame is expected to be one of the JNI functions
+   *            called from C, below which is one or more native stack frames
    */
   @Uninterruptible
   public static Address unwindNativeStackFrame(Address currfp) {
-    Address ip, callee_fp;
+    // Remembered address of previous FP
+    Address callee_fp;
+    // Address of native frame
     Address fp = VM_Magic.getCallerFramePointer(currfp);
+    // Instruction pointer for current native frame
+    Address ip;
 
+    // Loop until either we fall off the stack or we find an instruction address
+    // in one of our heaps
     do {
       callee_fp = fp;
       ip = VM_Magic.getReturnAddress(fp);
