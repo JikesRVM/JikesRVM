@@ -191,7 +191,14 @@ public class VM_JNIFunctions implements VM_SizeConstants {
       env.recordException(new NoClassDefFoundError(classString));
       return 0;
     } catch (Throwable unexpected) {
-      if (traceJNI) unexpected.printStackTrace(System.err);
+      if (traceJNI) {
+        if (VM.fullyBooted) {
+          unexpected.printStackTrace(System.err);
+        } else {
+          VM.sysWrite("Unexpected exception ", unexpected.getClass().toString());
+          VM.sysWriteln(" to early in VM boot up to print ", unexpected.getMessage());
+        }
+      }
       env.recordException(unexpected);
       return 0;
     }
