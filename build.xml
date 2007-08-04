@@ -1191,7 +1191,7 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="gcspy.includes.dir" value="-I${gcspy.server.dir}/include" else="">
       <equals arg1="${config.include.gcspy}" arg2="true"/>
     </condition>
-    <condition property="gcspy.lib.dir" value="-L${build.native} -lgcspy">
+    <condition property="gcspy.lib.dir" value="-L${dist.base}/include -lgcspy">
       <isset property="include.gcspy-stub"/>
     </condition>
     <condition property="gcspy.lib.dir" value="-L${gcspy.server.dir} -lgcspy" else="">
@@ -1206,7 +1206,7 @@ Check to make sure all required properties are specified. This includes properti
     </condition>
 
     <property name="rvm.includes"
-              value="-I${bl.dir} -I${basedir}/include -I${build.native} -I${generated.config.native} ${gcspy.includes.dir} ${arch.includes}"/>
+              value="-I${bl.dir} -I${basedir}/include -I${dist.base}/include -I${generated.config.native} ${gcspy.includes.dir} ${arch.includes}"/>
 
     <property name="rvm.defines" value="-D_REENTRANT ${filter} "/>
 
@@ -1231,6 +1231,7 @@ Check to make sure all required properties are specified. This includes properti
 
   <target name="build-syswrap" depends="check-bootloader-properties" if="include.syswrap">
     <!-- create syswrap shared library -->
+    <mkdir dir="${build.base}"/>
     <property name="syswrap.dll" value="${target.dll-prefix}syswrap${target.dll-ext}"/>
     <exec executable="${c++.exe}" failonerror="true">
       <arg line="${rvm.c++.args}"/>
@@ -1351,6 +1352,12 @@ Check to make sure all required properties are specified. This includes properti
     <chmod file="${dist.base}/rvm" perm="ugo+rx"/>
     <copy file="${build.rt.jar}" todir="${dist.base}"/>
     <copy file="${build.vm.jar}" todir="${dist.base}"/>
+    <mkdir dir="${dist.base}/include"/>
+    <copy todir="${dist.base}/include">
+      <fileset dir="${build.native}">
+        <include name="*.h"/>
+      </fileset>
+    </copy>
     <echo file="${dist.base}/constants.properties"><![CDATA[# Build time constants used when building image.
 config.name=${config.name}
 config.runtime.compiler=${config.runtime.compiler}
