@@ -35,35 +35,33 @@ import org.vmmagic.unboxed.*;
  * mutator threads.  When a uses "green threads" or a hybrid threading
  * scheme (such as Jikes RVM), <i>M</i> will typically be equal to the
  * level of <i>true</i> parallelism (ie the number of underlying
- * kernel threads).<p>
+ * kernel threads).</p>
  *
- * Collector operations are separated into <i>per-collector thread</i>
+ * <p>Collector operations are separated into <i>per-collector thread</i>
  * operations (the bulk of the GC), and <i>per-mutator thread</i> operations
  * (important in flushing and restoring per-mutator state such as allocator
- * state and write buffer/remset state).  <code>SimplePhase</code>
+ * state and write buffer/remset state).  {@link SimplePhase}
  * ensures that per-collector thread GC phases are performed by each
  * collector thread, and that the <i>M</i> per-mutator thread operations
- * are multiplexed across the <i>N</i> active collector threads
- * (@see SimplePhase#delegatePhase).<p>
+ * are multiplexed across the <i>N</i> active collector threads.</p>
  *
- * MMTk assumes that the VM instantiates instances of CollectorContext
+ * <p>MMTk assumes that the VM instantiates instances of {@link CollectorContext}
  * in thread local storage (TLS) for each thread participating in
  * collection.  Accesses to this state are therefore assumed to be
  * low-cost at GC time.<p>
  *
- * MMTk explicitly separates thread-local (this class) and global
- * operations (@see Plan), so that syncrhonization is localized
- * and explicit, and thus hopefully minimized (@see Plan). Gloabl (Plan)
+ * <p>MMTk explicitly separates thread-local (this class) and global
+ * operations (See {@link Plan}), so that syncrhonization is localized
+ * and explicit, and thus hopefully minimized (See {@link Plan}). Global (Plan)
  * and per-thread (this class) state are also explicitly separated.
  * Operations in this class (and its children) are therefore strictly
  * local to each collector thread, and synchronized operations always
  * happen via access to explicitly global classes such as Plan and its
- * children.<p>
+ * children.</p>
  *
- * This class (and its children) therefore typically implement per-collector
- * thread structures such as collection work queues.
+ * <p>This class (and its children) therefore typically implement per-collector
+ * thread structures such as collection work queues.</p>
  *
- * @see SimplePhase#delegatePhase
  * @see MutatorContext
  * @see org.mmtk.vm.ActivePlan
  * @see Plan
@@ -112,9 +110,10 @@ import org.vmmagic.unboxed.*;
   /**
    * Perform any post-copy actions.
    *
-   * @param ref The newly allocated object
-   * @param typeRef the type reference for the instance being created
-   * @param bytes The size of the space to be allocated (in bytes)
+   * @param ref The newly allocated object.
+   * @param typeRef the type reference for the instance being created.
+   * @param bytes The size of the space to be allocated (in bytes).
+   * @param allocator The allocator statically assigned to this allocation. 
    */
   public void postCopy(ObjectReference ref, ObjectReference typeRef,
       int bytes, int allocator) {
