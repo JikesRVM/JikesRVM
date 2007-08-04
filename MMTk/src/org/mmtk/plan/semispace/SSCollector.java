@@ -36,7 +36,6 @@ import org.vmmagic.pragma.*;
  * @see SSMutator
  * @see StopTheWorldCollector
  * @see CollectorContext
- * @see SimplePhase#delegatePhase
  */
 @Uninterruptible public abstract class SSCollector extends StopTheWorldCollector {
 

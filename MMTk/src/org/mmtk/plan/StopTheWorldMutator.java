@@ -27,7 +27,6 @@ import org.vmmagic.pragma.*;
  * time.<p>
  *
  * @see MutatorContext
- * @see SimplePhase#delegatePhase
  */
 @Uninterruptible public abstract class StopTheWorldMutator extends MutatorContext {
 
@@ -39,8 +38,6 @@ import org.vmmagic.pragma.*;
   /**
    * Perform a per-mutator collection phase.   This is executed by
    * one collector thread on behalf of a mutator thread.
-   *
-   * @see SimplePhase#delegatePhase
    *
    * @param phaseId The unique phase identifier
    * @param primary Should this thread be used to execute any single-threaded

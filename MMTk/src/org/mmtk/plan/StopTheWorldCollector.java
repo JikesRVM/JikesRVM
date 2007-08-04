@@ -31,7 +31,6 @@ import org.vmmagic.pragma.*;
  * low-cost during mutator time.<p>
  *
  * @see CollectorContext
- * @see SimplePhase#delegatePhase
  */
 @Uninterruptible public abstract class StopTheWorldCollector extends CollectorContext {
 

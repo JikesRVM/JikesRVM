@@ -71,12 +71,10 @@ import org.vmmagic.unboxed.*;
  * empty stubs for write barriers (to be overridden by sub-classes as
  * needed).
  *
- * @see SimplePhase#delegatePhase
  * @see CollectorContext
  * @see org.mmtk.vm.ActivePlan
  * @see Plan
  */
-
 @Uninterruptible  public abstract class MutatorContext implements Constants {
   /****************************************************************************
    * Instance fields
@@ -358,7 +356,7 @@ import org.vmmagic.unboxed.*;
    * Read a reference type. In a concurrent collector this may
    * involve adding the referent to the marking queue.
    *
-   * @param src The referent being read.
+   * @param referent The referent being read.
    * @return The new referent.
    */
   @Inline

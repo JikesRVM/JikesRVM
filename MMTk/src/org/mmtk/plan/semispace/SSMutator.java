@@ -38,7 +38,6 @@ import org.vmmagic.pragma.*;
  * @see SSCollector
  * @see StopTheWorldMutator
  * @see MutatorContext
- * @see SimplePhase#delegatePhase
  */
 @Uninterruptible public abstract class SSMutator extends StopTheWorldMutator {
   /****************************************************************************

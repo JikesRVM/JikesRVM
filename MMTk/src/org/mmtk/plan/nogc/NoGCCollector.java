@@ -30,7 +30,6 @@ import org.vmmagic.pragma.*;
  * @see NoGCMutator
  * @see StopTheWorldCollector
  * @see CollectorContext
- * @see SimplePhase#delegatePhase
  */
 @Uninterruptible public abstract class NoGCCollector extends CollectorContext {
 
