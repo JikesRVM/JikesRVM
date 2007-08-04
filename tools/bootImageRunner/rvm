@@ -14,7 +14,7 @@
 
 export RVM_HOME="`dirname "$0"`"
 
-export BASE_ARGS="-X:ic=$RVM_HOME/RVM.code.image -X:id=$RVM_HOME/RVM.data.image -X:ir=$RVM_HOME/RVM.rmap.image -X:vmClasses=$RVM_HOME/jksvm.jar:$RVM_HOME/rvmrt.jar -Duser.timezone=$(date +%Z) -Djava.home=$RVM_HOME -Dgnu.classpath.home.url=file:$RVM_HOME -Dgnu.classpath.vm.shortname=JikesRVM -Duser.home=$HOME -Duser.dir=`pwd` -Duser.name=`whoami` -Dos.name=`uname -s` -Dos.version=`uname -r` -Dos.arch=`uname -p`"
+export BASE_ARGS="-X:ic=$RVM_HOME/RVM.code.image -X:id=$RVM_HOME/RVM.data.image -X:ir=$RVM_HOME/RVM.rmap.image -X:vmClasses=$RVM_HOME/jksvm.jar:$RVM_HOME/rvmrt.jar -Duser.timezone=$(date +%Z) -Djava.home=$RVM_HOME -Dgnu.classpath.home.url=file:$RVM_HOME -Dgnu.classpath.vm.shortname=JikesRVM -Duser.home=$HOME -Duser.dir=`pwd` -Duser.name=`whoami` -Dos.name=`uname -s` -Dos.version=`uname -r` -Dos.arch=`uname -m`"
 
 # This may need to be LIBPATH under AIX or SHLIB_PATH on HP-UX
 export LD_LIBRARY_PATH=$RVM_HOME:$LD_LIBRARY_PATH
