@@ -65,7 +65,7 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   private static final boolean TRACE = false;
   private static final boolean TRACE_UNREACHABLE = false;
   private static final boolean TRACE_DETAIL = false;
-  private static final boolean STRESS = true;
+  private static final boolean STRESS = false;
 
   /** Initial size of the reference object table */
   private static final int INITIAL_SIZE = STRESS ? 1 : 256;
