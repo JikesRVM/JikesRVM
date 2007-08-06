@@ -14,12 +14,15 @@ package org.jikesrvm.mm.mmtk;
 
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
+import org.mmtk.policy.Space;
 import org.mmtk.utility.options.Options;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.memorymanagers.mminterface.DebugUtil;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.scheduler.VM_Scheduler;
 
@@ -154,10 +157,6 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * @param ref The reference to insert
    */
   private void setReference(int i, ObjectReference ref) {
-    if (TRACE_DETAIL) {
-      VM.sysWrite("  reference ",i);
-      VM.sysWriteln(" <- ",ref);
-    }
     references.set(i,ref.toAddress());
   }
 
@@ -209,6 +208,7 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
      * table of references
      */
     lock.acquire();
+    addReference(ref);
     while (maxIndex >= references.length()) {
       if (growingTable) {
         lock.release();
@@ -223,10 +223,6 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
         growingTable = false; // Allow other threads to grow the table rather than waiting for us
       }
     }
-    if (TRACE) {
-      VM.sysWriteln("  ref # ",maxIndex);
-    }
-    addReference(ref);
     lock.release();
   }
 
@@ -360,14 +356,19 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   public ObjectReference processReference(TraceLocal trace, ObjectReference reference) {
     if (VM.VerifyAssertions) VM._assert(!reference.isNull());
 
-    if (TRACE_DETAIL) VM.sysWriteln("### old reference: ",reference);
-
+    if (TRACE_DETAIL) {
+      VM.sysWrite("Processing reference: ",reference);
+    }
     /*
      * If the reference is dead, we're done with it. Let it (and
      * possibly its referent) be garbage-collected.
      */
     if (!trace.isLive(reference)) {
       clearReferent(reference);                   // Too much paranoia ...
+      if (TRACE_UNREACHABLE) { VM.sysWriteln(" UNREACHABLE reference:  ",reference); }
+      if (TRACE_DETAIL) {
+        VM.sysWriteln(" (unreachable)");
+      }
       return ObjectReference.nullReference();
     }
 
@@ -376,8 +377,7 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
     ObjectReference oldReferent = getReferent(reference);
 
     if (TRACE_DETAIL) {
-      VM.sysWrite("    new reference: ",newReference);
-      VM.sysWriteln("    old referent: ",oldReferent);
+      VM.sysWrite(" ~> ",oldReferent);
     }
 
     /*
@@ -387,16 +387,19 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
      * waiting list.
      */
     if (oldReferent.isNull()) {
+      if (TRACE_DETAIL) VM.sysWriteln(" (null referent)");
       return ObjectReference.nullReference();
     }
 
+    if (TRACE_DETAIL)  VM.sysWrite(" => ",newReference);
+    
     if (semantics == Semantics.SOFT) {
       /*
        * Unless we've completely run out of memory, we keep
        * softly reachable objects alive.
        */
       if (!Plan.isEmergencyCollection()) {
-        if (TRACE_DETAIL) VM.sysWriteln("    resurrecting: ",oldReferent);
+        if (TRACE_DETAIL) VM.sysWrite(" (soft) ");
         trace.retainReferent(oldReferent);
       }
     } else if (semantics == Semantics.PHANTOM) {
@@ -409,13 +412,29 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
     }
 
     if (trace.isLive(oldReferent)) {
+      if (VM.VerifyAssertions) {
+        if (!DebugUtil.validRef(oldReferent)) {
+          VM.sysWriteln("Error in old referent.");
+          DebugUtil.dumpRef(oldReferent);
+          VM.sysFail("Invalid reference");
+        }
+      }
       /*
        * Referent is still reachable in a way that is as strong as
        * or stronger than the current reference level.
        */
       ObjectReference newReferent = trace.getForwardedReferent(oldReferent);
 
-      if (TRACE_DETAIL) VM.sysWriteln(" new referent: ",newReferent);
+      if (TRACE_DETAIL) VM.sysWriteln(" ~> ",newReferent);
+      
+      if (VM.VerifyAssertions) {
+        if (!DebugUtil.validRef(newReferent)) {
+          VM.sysWriteln("Error forwarding reference object.");
+          DebugUtil.dumpRef(oldReferent);
+          VM.sysFail("Invalid reference");
+        }
+        VM._assert(trace.isLive(newReferent));
+      }
 
       /*
        * The reference object stays on the waiting list, and the
@@ -431,7 +450,8 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
     } else {
       /* Referent is unreachable. Clear the referent and enqueue the reference object. */
 
-      if (TRACE_UNREACHABLE) VM.sysWriteln(" UNREACHABLE:  ",oldReferent);
+      if (TRACE_DETAIL) VM.sysWriteln(" UNREACHABLE");
+      else if (TRACE_UNREACHABLE) VM.sysWriteln(" UNREACHABLE referent:  ",oldReferent);
 
       clearReferent(newReference);
       enqueueReference(newReference);
