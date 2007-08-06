@@ -207,7 +207,7 @@ public final class VM_MiscHeader implements VM_Constants, VM_MiscHeaderConstants
   public static void dumpHeader(Object ref) {
     // by default nothing to do, unless the misc header is required
     if (MM_Constants.GENERATE_GC_TRACE) {
-      VM.sysWrite(" OID=", getOID(VM_Magic.objectAsAddress(ref)));
+      VM.sysWrite(" OID=", getOID(ref));
       VM.sysWrite(" LINK=", getLink(ref));
       VM.sysWrite(" DEATH=", getDeathTime(ref));
     }
