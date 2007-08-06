@@ -197,15 +197,15 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
     // copy the first result parameter
     if (MIR_Call.hasResult(call)) {
       OPT_RegisterOperand result1 = MIR_Call.getClearResult(call);
-      MIR_Call.setResult(call, null);
       if (result1.getType().isFloatType() || result1.getType().isDoubleType()) {
         if (VM_ArchConstants.SSE2_FULL && isSysCall) {
           byte size = (byte)(result1.getType().isFloatType() ? 4 : 8);
           OPT_RegisterOperand st0 = new OPT_RegisterOperand(phys.getST0(), result1.getType());
+          MIR_Call.setResult(call, st0); // result is in st0, set it to avoid extending the live range of st0
           OPT_RegisterOperand pr = ir.regpool.makePROp();
           OPT_MemoryOperand scratch = new OPT_MemoryOperand(pr, null, (byte)0, VM_Entrypoints.scratchStorageField.getOffset(), size, new OPT_LocationOperand(VM_Entrypoints.scratchStorageField), null);
 
-          OPT_Instruction pop = MIR_Move.create(IA32_FSTP, scratch, st0);
+          OPT_Instruction pop = MIR_Move.create(IA32_FSTP, scratch, st0.copyRO());
           call.insertAfter(pop);
           if (result1.getType().isFloatType()) {
             pop.insertAfter(MIR_Move.create(IA32_MOVSS, result1, scratch.copy()));
@@ -215,6 +215,7 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
         } else {
           OPT_Register r = phys.getReturnFPR();
           OPT_RegisterOperand physical = new OPT_RegisterOperand(r, result1.getType());
+          MIR_Call.setResult(call, physical.copyRO()); // result is in physical, set it to avoid extending its live range
           OPT_Instruction tmp;
           if (VM_ArchConstants.SSE2_FULL) {
             if (result1.getType().isFloatType()) {
@@ -227,27 +228,25 @@ public abstract class OPT_CallingConvention extends OPT_IRTools
           }
           call.insertAfter(tmp);
         }
-        MIR_Call.setResult(call, null);
       } else {
         // first GPR result register
         OPT_Register r = phys.getFirstReturnGPR();
         OPT_RegisterOperand physical = new OPT_RegisterOperand(r, result1.getType());
         OPT_Instruction tmp = MIR_Move.create(IA32_MOV, result1, physical);
         call.insertAfter(tmp);
-        MIR_Call.setResult(call, null);
+        MIR_Call.setResult(call, physical.copyRO());  // result is in physical, set it to avoid extending its live range
       }
     }
 
     // copy the second result parameter
     if (MIR_Call.hasResult2(call)) {
       OPT_RegisterOperand result2 = MIR_Call.getClearResult2(call);
-      MIR_Call.setResult2(call, null);
       // second GPR result register
       OPT_Register r = phys.getSecondReturnGPR();
       OPT_RegisterOperand physical = new OPT_RegisterOperand(r, result2.getType());
       OPT_Instruction tmp = MIR_Move.create(IA32_MOV, result2, physical);
       call.insertAfter(tmp);
-      MIR_Call.setResult2(call, null);
+      MIR_Call.setResult2(call, physical.copyRO());  // result is in physical, set it to avoid extending its live range
     }
   }
 
