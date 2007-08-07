@@ -3515,7 +3515,7 @@ public final class OPT_BC2IR
    * @return true if an unconditional throw is generated, false otherwise
    */
   public boolean do_NullCheck(OPT_Operand ref) {
-    if (gc.options.NO_NULL_CHECK) {
+    if (gc.noNullChecks()) {
       return false;
     }
     if (ref.isDefinitelyNull()) {
@@ -3609,7 +3609,7 @@ public final class OPT_BC2IR
    */
   public boolean do_BoundsCheck(OPT_Operand ref, OPT_Operand index) {
     // Unsafely eliminate all bounds checks
-    if (gc.options.NO_BOUNDS_CHECK) {
+    if (gc.noBoundsChecks()) {
       return false;
     }
     OPT_RegisterOperand guard = gc.temps.makeTempValidation();

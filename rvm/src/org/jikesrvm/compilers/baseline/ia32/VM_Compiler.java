@@ -57,7 +57,9 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
 
   private final int parameterWords;
   private int firstLocalOffset;
-
+  /** Generate array index out of bounds checks? */
+  private final boolean generateBoundsChecks;
+  
   private static final Offset NO_SLOT = Offset.zero();
   private static final Offset ONE_SLOT = NO_SLOT.plus(WORDSIZE);
   private static final Offset TWO_SLOTS = ONE_SLOT.plus(WORDSIZE);
@@ -73,6 +75,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     super(cm);
     stackHeights = new int[bcodes.length()];
     parameterWords = method.getParameterWords() + (method.isStatic() ? 0 : 1); // add 1 for this pointer
+    generateBoundsChecks = !method.hasNoBoundsCheckAnnotation();
   }
 
   protected void initializeCompiler() {
@@ -3101,20 +3104,22 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * @param indexReg the register containing the index
    * @param arrayRefReg the register containing the array reference
    */
-  private static void genBoundsCheck(VM_Assembler asm, byte indexReg, byte arrayRefReg) {
-    // compare index to array length
-    asm.emitCMP_RegDisp_Reg(arrayRefReg,
-                            VM_ObjectModel.getArrayLengthOffset(),
-                            indexReg);
-    // Jmp around trap if index is OK
-    asm.emitBranchLikelyNextInstruction();
-    VM_ForwardReference fr = asm.forwardJcc(VM_Assembler.LGT);
-    // "pass" index param to C trap handler
-    VM_ProcessorLocalState.emitMoveRegToField(asm,
-        VM_ArchEntrypoints.arrayIndexTrapParamField.getOffset(), indexReg);
-    // trap
-    asm.emitINT_Imm(VM_Runtime.TRAP_ARRAY_BOUNDS + RVM_TRAP_BASE);
-    fr.resolve(asm);
+  private void genBoundsCheck(VM_Assembler asm, byte indexReg, byte arrayRefReg) {
+    if (generateBoundsChecks) {
+      // compare index to array length
+      asm.emitCMP_RegDisp_Reg(arrayRefReg,
+          VM_ObjectModel.getArrayLengthOffset(),
+          indexReg);
+      // Jmp around trap if index is OK
+      asm.emitBranchLikelyNextInstruction();
+      VM_ForwardReference fr = asm.forwardJcc(VM_Assembler.LGT);
+      // "pass" index param to C trap handler
+      VM_ProcessorLocalState.emitMoveRegToField(asm,
+          VM_ArchEntrypoints.arrayIndexTrapParamField.getOffset(), indexReg);
+      // trap
+      asm.emitINT_Imm(VM_Runtime.TRAP_ARRAY_BOUNDS + RVM_TRAP_BASE);
+      fr.resolve(asm);
+    }
   }
 
   /**
