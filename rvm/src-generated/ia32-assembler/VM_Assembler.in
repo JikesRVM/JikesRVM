@@ -272,22 +272,12 @@ public abstract class VM_Assembler extends VM_AbstractAssembler implements VM_Re
    * @param index the byte offset into which to write
    * @param data the byte data value to write
    */
+  @NoNullCheck
+  @NoBoundsCheck
   protected final void setMachineCodes(int index, byte data) {
-    /*
-     * The two code fragments below should produce the same result.  Mutating the 
-     * allocation sequence in the commented-out version throws OOB exceptions.
-     * I'll try to add a test case, but I suspect the planned compiler cleanups
-     * will oviate the need.  TODO make this code sane again.  RJG
-     * As at r12043.
-     */
-//    if(index >= machineCodes.length) {
-//      growMachineCodes(index, data);
-//    } else {
-//      machineCodes[index] = data;
-//    }
-    try {
+    if(index < machineCodes.length) {
       machineCodes[index] = data;
-    } catch (ArrayIndexOutOfBoundsException e) {
+    } else {
       growMachineCodes(index, data);
     }
   }
