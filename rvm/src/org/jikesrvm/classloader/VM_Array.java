@@ -109,30 +109,6 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
   private boolean inBootImage;
 
   /**
-   * The memory manager's notion of this type created after the
-   * resolving
-   */
-  private Object mmType;
-
-  /**
-   * Record the type information the memory manager holds about this
-   * type
-   * @param mmt the type to record
-   */
-  public void setMMType(Object mmt) {
-    mmType = mmt;
-  }
-
-  /**
-   * @return the type information the memory manager previously
-   * recorded about this type
-   */
-  @Uninterruptible
-  public Object getMMType() {
-    return mmType;
-  }
-
-  /**
    * Name - something like "[I" or "[Ljava.lang.String;"
    */
   public String toString() {

@@ -208,12 +208,6 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
   /** Reference Count GC: is this type acyclic?  */
   private boolean acyclic;
 
-  /**
-   * The memory manager's notion of this type created after the
-   * resolving
-   */
-  private Object mmType;
-
   /** Cached set of inherited and declared annotations. */
   private Annotation[] annotations;
 
@@ -780,24 +774,6 @@ public final class VM_Class extends VM_Type implements VM_Constants, VM_ClassLoa
    */
   public boolean hasSaveVolatileAnnotation() {
     return isAnnotationDeclared(VM_TypeReference.SaveVolatile);
-  }
-
-  /**
-   * Record the type information the memory manager holds about this
-   * type
-   * @param mmt the type to record
-   */
-  public void setMMType(Object mmt) {
-    mmType = mmt;
-  }
-
-  /**
-   * @return the type information the memory manager previously
-   * recorded about this type
-   */
-  @Uninterruptible
-  public Object getMMType() {
-    return mmType;
   }
 
   //--------------------------------------------------------------------//
