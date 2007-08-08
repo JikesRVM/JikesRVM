@@ -756,6 +756,11 @@ public abstract class VM_Type extends VM_AnnotatedElement
   }
 
   /**
+   * This returns the type information as supplied by the memory manager.
+   * The method is located here as this is the only common superclass of VM_Array
+   * and VM_Class, and due to performance reasons this needs to be a non-abstract
+   * method. For VM_Primitive instances the mmType will always be null.
+   *
    * @return the type information the memory manager previously
    * recorded about this type
    */
