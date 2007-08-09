@@ -35,7 +35,7 @@ public class VM_Synchronization {
    * @param offset position of field
    * @param testValue expected value of field
    * @param newValue new value of field
-   * @return true => successful swap, false => field not equal to testValue 
+   * @return true => successful swap, false => field not equal to testValue
    */
   @Inline
   public static boolean tryCompareAndSwap(Object base, Offset offset, int testValue, int newValue) {
@@ -53,7 +53,7 @@ public class VM_Synchronization {
    * @param offset position of field
    * @param testValue expected value of field
    * @param newValue new value of field
-   * @return true => successful swap, false => field not equal to testValue 
+   * @return true => successful swap, false => field not equal to testValue
    */
   @Inline
   public static boolean tryCompareAndSwap(Object base, Offset offset, long testValue, long newValue) {
@@ -71,7 +71,7 @@ public class VM_Synchronization {
    * @param offset position of field
    * @param testValue expected value of field
    * @param newValue new value of field
-   * @return true => successful swap, false => field not equal to testValue 
+   * @return true => successful swap, false => field not equal to testValue
    */
   @Inline
   public static boolean tryCompareAndSwap(Object base, Offset offset, Object testValue, Object newValue) {

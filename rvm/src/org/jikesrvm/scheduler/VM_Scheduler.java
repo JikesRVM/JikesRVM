@@ -162,7 +162,7 @@ public abstract class VM_Scheduler {
       return PRIMORDIAL_THREAD_INDEX;
     } else {
       VM_Scheduler.threadCreationMutex.lock("thread creation mutex");
-      for (int cnt = threads.length; --cnt >= 1; ) {
+      for (int cnt = threads.length; --cnt >= 1;) {
         int index = threadAllocationIndex;
         threadAllocationIndex++;
         if (threadAllocationIndex == threads.length) {

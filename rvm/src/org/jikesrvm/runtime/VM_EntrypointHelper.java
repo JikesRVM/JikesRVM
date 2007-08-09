@@ -100,10 +100,10 @@ public class VM_EntrypointHelper {
         VM_TypeReference klassTRef = VM_TypeReference.findOrCreate(klass);
         VM_Class cls = klassTRef.resolve().asClass();
         cls.resolve();
-  
+
         VM_Atom memName = VM_Atom.findOrCreateAsciiAtom(member);
         VM_Atom typeName = VM_TypeReference.findOrCreate(type).getName();
-  
+
         VM_Field field = cls.findDeclaredField(memName, typeName);
         if (field != null) {
           return field;
@@ -114,7 +114,7 @@ public class VM_EntrypointHelper {
       }
     }
     throw new Error("VM_Entrypoints.getField: can't resolve class=" +
-        klass + " member=" + member + " desc=" + type);      
+        klass + " member=" + member + " desc=" + type);
   }
 
   /**
@@ -130,10 +130,10 @@ public class VM_EntrypointHelper {
         VM_TypeReference klassTRef = VM_TypeReference.findOrCreate(klass);
         VM_Class cls = klassTRef.resolve().asClass();
         cls.resolve();
-  
+
         VM_Atom memName = VM_Atom.findOrCreateAsciiAtom(member);
         VM_Atom memDescriptor = VM_Atom.findOrCreateAsciiAtom(descriptor);
-  
+
         VM_NormalMethod m = (VM_NormalMethod)cls.findDeclaredMethod(memName, memDescriptor);
         if (m != null) {
           m.setRuntimeServiceMethod(true);
@@ -145,6 +145,6 @@ public class VM_EntrypointHelper {
       }
     }
     throw new Error("VM_Entrypoints.getMethod: can't resolve class=" +
-        klass + " method=" + member + " desc=" + descriptor);      
+        klass + " method=" + member + " desc=" + descriptor);
   }
 }

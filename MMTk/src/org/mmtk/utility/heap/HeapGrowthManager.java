@@ -80,8 +80,7 @@ import org.vmmagic.unboxed.*;
    * </ul>
    */
   private static final double[][] function =
-    VM.activePlan.constraints().generational()
-    ? generationalFunction : nongenerationalFunction;
+    VM.activePlan.constraints().generational() ? generationalFunction : nongenerationalFunction;
 
   private static long endLastMajorGC;
   private static double accumulatedGCTime;

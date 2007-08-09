@@ -51,7 +51,7 @@ public abstract class VM_ThreadEventWaitData implements VM_ThreadEventConstants 
    * The thread was interrupted before the event or the timeout occurred.
    */
   private boolean interrupted;
-  
+
   /** The thread is waiting on a queue (NB state at construction)*/
   boolean isPending() {
     return !_native && !finished && !timedout && !interrupted;

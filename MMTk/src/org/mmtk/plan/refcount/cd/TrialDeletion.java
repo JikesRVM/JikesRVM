@@ -12,9 +12,7 @@
  */
 package org.mmtk.plan.refcount.cd;
 
-import org.mmtk.plan.ComplexPhase;
 import org.mmtk.plan.Phase;
-import org.mmtk.plan.SimplePhase;
 import org.mmtk.plan.refcount.RCBase;
 import org.mmtk.plan.refcount.RCHeader;
 import org.mmtk.utility.Log;
@@ -50,6 +48,8 @@ import org.vmmagic.unboxed.*;
   public static final short CD_PROCESS_DECS     = Phase.createSimple("td.process-decs");
   public static final short CD_RELEASE          = Phase.createSimple("td.release");
 
+  // CHECKSTYLE:OFF
+
   /* Cycle detection */
   private static final short cdPhase = Phase.createComplex("trial deletion",
       Phase.scheduleGlobal   (CD_PREPARE_FILTER),
@@ -64,6 +64,8 @@ import org.vmmagic.unboxed.*;
       Phase.scheduleCollector(CD_FLUSH_FILTERED),
       Phase.scheduleCollector(CD_PROCESS_DECS),
       Phase.scheduleGlobal   (CD_RELEASE));
+
+  // CHECKSTYLE:ON
 
   public static final int NO_PROCESSING   = 0;
   public static final int FILTER_PURPLE   = 1;

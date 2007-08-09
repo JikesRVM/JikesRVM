@@ -14,7 +14,6 @@ package org.jikesrvm.mm.mmtk;
 
 import org.mmtk.policy.Space;
 
-import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.VM;
 import org.jikesrvm.scheduler.VM_Scheduler;
 

@@ -46,21 +46,21 @@ import org.mmtk.utility.Log;
   private static final Offset dispenserFieldOffset = VM_Entrypoints.dispenserField.getOffset();
   private static final Offset servingFieldOffset = VM_Entrypoints.servingField.getOffset();
   private static final Offset threadFieldOffset = VM_Entrypoints.lockThreadField.getOffset();
-  
+
   /**
    * VM_Time.nanoTime is expensive and accurate; VM_Time.cycles is cheap but inaccurate.
    * How many cycles to we let go by in between calls to VM_Time.nanoTime?
-   * To hold timing overhead to acceptable levels, this should be a number that is 
-   * highly likely to correspond to at least 1 millisecond of real time.  
+   * To hold timing overhead to acceptable levels, this should be a number that is
+   * highly likely to correspond to at least 1 millisecond of real time.
    */
   private static final long CHECK_NANOTIME_CYCLE_THRESHOLD = (long)1e7;  // (1e7 cycles / 4e9 cycles/sec == 2.5ms)
-  
+
   /**
    * A lock operation is considered slow if it takes more than 200 milliseconds.
    * The value is represented in nanoSeconds (for use with VM_Time.nanoTime()).
    */
   private static long SLOW_THRESHOLD = 200 * ((long)1e6);
-  
+
   /**
    * A lock operation times out if it takes more than 10x SLOW_THRESHOLD.
    * The value is represented in nanoSeconds (for use with VM_Time.nanoTime()).
@@ -80,7 +80,7 @@ import org.mmtk.utility.Log;
   private int dispenser;      // ticket number of next customer
   @Entrypoint
   private int serving;        // number of customer being served
-  
+
   // Diagnosis Instance fields
   @Entrypoint
   private VM_Thread thread;   // if locked, who locked it?
@@ -177,20 +177,20 @@ import org.mmtk.utility.Log;
       Log.write(" "); Log.write(name);
       Log.writeln();
     }
-    
+
     setLocker(VM_Scheduler.getCurrentThread(), -1);
-    
+
     VM_Magic.isync();
   }
 
-  public void check (int w) {
+  public void check(int w) {
     if (VM.VerifyAssertions) VM._assert(VM_Scheduler.getCurrentThread() == thread);
     if (verbose) {
       Log.write("Thread ");
       writeThreadIdToLog(thread);
       Log.write(" reached point "); Log.write(w);
       Log.write(" while holding lock "); Log.write(id);
-      Log.write(" "); 
+      Log.write(" ");
       Log.writeln(name);
     }
     where = w;
@@ -205,7 +205,7 @@ import org.mmtk.utility.Log;
       Log.write("Thread ");
       writeThreadIdToLog(thread);
       Log.write(" released lock "); Log.write(id);
-      Log.write(" "); 
+      Log.write(" ");
       Log.writeln(name);
     }
 

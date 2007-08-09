@@ -1540,8 +1540,7 @@ public final class OPT_BC2IR
                     // only valid in the bootstrap JVM
                   }
                 }
-              }
-              else if (field.isRuntimeFinal()) {
+              } else if (field.isRuntimeFinal()) {
                 if (VM.VerifyAssertions) VM._assert(fieldType.isBooleanType());
                 boolean rhsBool = field.getRuntimeFinalValue();
                 push(new OPT_IntConstantOperand(rhsBool? 1 : 0));

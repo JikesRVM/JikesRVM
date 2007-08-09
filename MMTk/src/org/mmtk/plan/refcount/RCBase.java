@@ -67,8 +67,7 @@ import org.vmmagic.unboxed.*;
   /****************************************************************************
    * Class variables
    */
-  public static final ExplicitFreeListSpace rcSpace
-    = new ExplicitFreeListSpace("rc", DEFAULT_POLL_FREQUENCY, (float) 0.5);
+  public static final ExplicitFreeListSpace rcSpace = new ExplicitFreeListSpace("rc", DEFAULT_POLL_FREQUENCY, (float) 0.5);
   public static final int REF_COUNT = rcSpace.getDescriptor();
 
   // Counters
@@ -243,7 +242,7 @@ import org.vmmagic.unboxed.*;
    */
   public static void free(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) {
-    	VM.assertions._assert(isRCObject(object));
+      VM.assertions._assert(isRCObject(object));
     }
 
     if (Space.isInSpace(REF_COUNT, object)) {

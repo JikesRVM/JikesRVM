@@ -309,14 +309,14 @@ public final class OPT_BranchOptimizations extends OPT_BranchOptimizationDriver 
       OPT_Instruction nextI = firstRealInstructionFollowing(nextLabel);
       if (nextI != null && Goto.conforms(nextI)) {
         // Check that the target is not the fall through (the goto itself).
-        // If we add a goto to the next block, it will be removed by 
+        // If we add a goto to the next block, it will be removed by
         // processGoto and we will loop indefinitely.
         // This can be tripped by (strange) code such as:
         // if (condition) while (true);
         OPT_BasicBlock gotoTarget = nextI.getBranchTarget();
         OPT_Instruction gotoLabel = gotoTarget.firstInstruction();
         OPT_Instruction gotoInst = firstRealInstructionFollowing(gotoLabel);
-        
+
         if (gotoInst != nextI) {
           // replicate Goto
           cb.insertAfter(nextI.copyWithoutLinks());

@@ -47,7 +47,7 @@ import org.vmmagic.pragma.*;
    */
   public ImmortalSpaceDriver(
                      ServerInterpreter server,
-		             String spaceName,
+                     String spaceName,
                      Space mmtkSpace,
                      int blockSize,
                      boolean mainSpace) {

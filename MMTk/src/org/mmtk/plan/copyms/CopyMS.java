@@ -72,14 +72,6 @@ import org.vmmagic.pragma.*;
     trace = new Trace(metaDataSpace);
   }
 
-  /**
-   * Boot-time initialization
-   */
-  @Interruptible
-  public void boot() {
-    super.boot();
-  }
-
   /*****************************************************************************
    *
    * Collection

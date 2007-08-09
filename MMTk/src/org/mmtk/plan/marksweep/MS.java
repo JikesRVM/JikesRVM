@@ -56,14 +56,6 @@ import org.vmmagic.unboxed.*;
 
   public final Trace msTrace = new Trace(metaDataSpace);
 
-  /**
-   * Boot-time initialization
-   */
-  @Interruptible
-  public void boot() {
-    super.boot();
-  }
-
   /*****************************************************************************
    *
    * Collection

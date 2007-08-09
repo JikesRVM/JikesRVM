@@ -645,8 +645,7 @@ import org.vmmagic.pragma.*;
         Log.write(codeBase);
         Log.write("     code offset = ");
         Log.writeln(ip.diff(codeBase.toAddress()));
-    }
-    else {
+    } else {
       Log.write("   Method is uncompiled - ip = ");
       Log.writeln(ip);
     }
@@ -682,7 +681,7 @@ import org.vmmagic.pragma.*;
       Log.write(value);
       Log.write(" ");
       Log.flush();
-      if (verbosity >= 3 && MM_Interface.objectInVM(value) && loc.NE(start) && loc.NE(end) )
+      if (verbosity >= 3 && MM_Interface.objectInVM(value) && loc.NE(start) && loc.NE(end))
         MM_Interface.dumpRef(value);
       else
         Log.writeln();

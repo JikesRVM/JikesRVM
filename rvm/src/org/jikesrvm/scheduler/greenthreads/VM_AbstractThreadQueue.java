@@ -26,7 +26,7 @@ public abstract class VM_AbstractThreadQueue {
   /** Add a thread to tail of queue. */
   public abstract void enqueue(VM_GreenThread t);
 
-  /** 
+  /**
    * Remove thread from head of queue.
    * @return the thread (null --> queue is empty)
    */

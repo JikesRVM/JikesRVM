@@ -30,8 +30,7 @@ import org.vmmagic.pragma.*;
    *
    * Class fields
    */
-  public static final ImmortalSpace defSpace
-    = new ImmortalSpace("default", DEFAULT_POLL_FREQUENCY, (float) 0.6);
+  public static final ImmortalSpace defSpace = new ImmortalSpace("default", DEFAULT_POLL_FREQUENCY, (float) 0.6);
   public static final int DEF = defSpace.getDescriptor();
 
   /*****************************************************************************

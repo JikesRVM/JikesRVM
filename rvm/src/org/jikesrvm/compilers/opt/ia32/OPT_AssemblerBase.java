@@ -190,10 +190,10 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * method takes an optimizing compiler register and translates it into the
    * appropriate machine-level encoding. This method is not applied directly to
    * operands, but rather to register objects.
-   * 
+   *
    * @see #getBase
    * @see #getIndex
-   * 
+   *
    * @param reg the register being queried
    * @return the 3 bit machine-level encoding of reg
    */
@@ -228,17 +228,15 @@ abstract class OPT_AssemblerBase extends VM_Assembler
     } else {
       if (VM.VerifyAssertions) VM._assert(type == DOUBLE_REG);
       if (reg.number < FIRST_SPECIAL) {
-        result = (byte) (reg.number - FIRST_DOUBLE);  
-      }
-      else if (reg.number == ST0) {
+        result = (byte) (reg.number - FIRST_DOUBLE);
+      } else if (reg.number == ST0) {
         result = 0;
-      }
-      else {
+      } else {
         if (VM.VerifyAssertions) VM._assert(reg.number == ST1);
         result = 1;
       }
     }
-    if (OPT_IR.PARANOID) VM._assert((result & 0x7) == result); 
+    if (OPT_IR.PARANOID) VM._assert((result & 0x7) == result);
     return result;
   }
 

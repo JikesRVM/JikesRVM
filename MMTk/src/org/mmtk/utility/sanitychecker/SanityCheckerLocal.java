@@ -167,9 +167,7 @@ import org.vmmagic.unboxed.*;
       return SanityChecker.UNSURE;
 
     Space space = Space.getSpaceForObject(object);
-    return space.isReachable(object)
-      ? SanityChecker.ALIVE
-      : SanityChecker.DEAD;
+    return space.isReachable(object) ? SanityChecker.ALIVE : SanityChecker.DEAD;
   }
 
   /** @return The global trace as a SanityChecker instance. */

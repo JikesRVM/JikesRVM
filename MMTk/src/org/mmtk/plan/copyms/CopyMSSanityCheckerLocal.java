@@ -33,20 +33,15 @@ import org.vmmagic.unboxed.*;
    * @param sanityRootRC The number of root references to the object.
    * @return The expected (root excluded) reference count.
    */
-  protected int sanityExpectedRC(ObjectReference object,
-                                           int sanityRootRC) {
+  protected int sanityExpectedRC(ObjectReference object, int sanityRootRC) {
     Space space = Space.getSpaceForObject(object);
 
     // Nursery
     if (space == CopyMS.nurserySpace) {
-      return global().preGCSanity()
-        ? SanityChecker.UNSURE
-        : SanityChecker.DEAD;
+      return global().preGCSanity() ? SanityChecker.UNSURE : SanityChecker.DEAD;
     }
 
-    return space.isReachable(object)
-      ? SanityChecker.ALIVE
-      : SanityChecker.DEAD;
+    return space.isReachable(object) ? SanityChecker.ALIVE : SanityChecker.DEAD;
   }
 
 }

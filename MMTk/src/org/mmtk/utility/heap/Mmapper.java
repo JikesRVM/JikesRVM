@@ -130,8 +130,7 @@ import org.vmmagic.pragma.*;
           Log.write("ensureMapped failed with errno "); Log.write(errno);
           Log.write(" on address "); Log.writeln(mmapStart);
           if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
-        }
-        else {
+        } else {
           if (verbose) {
             Log.write("mmap succeeded at chunk "); Log.write(chunk);  Log.write("  "); Log.write(mmapStart);
             Log.write(" with len = "); Log.writeln(MMAP_CHUNK_BYTES);
@@ -142,8 +141,7 @@ import org.vmmagic.pragma.*;
         if (!VM.memory.munprotect(mmapStart, MMAP_CHUNK_BYTES)) {
           lock.release();
           VM.assertions.fail("Mmapper.ensureMapped (unprotect) failed");
-        }
-        else {
+        } else {
           if (verbose) {
             Log.write("munprotect succeeded at chunk "); Log.write(chunk);  Log.write("  "); Log.write(mmapStart);
             Log.write(" with len = "); Log.writeln(MMAP_CHUNK_BYTES);
@@ -174,16 +172,14 @@ import org.vmmagic.pragma.*;
         if (!VM.memory.mprotect(mmapStart, MMAP_CHUNK_BYTES)) {
           lock.release();
           VM.assertions.fail("Mmapper.mprotect failed");
-        }
-        else {
+        } else {
           if (verbose) {
             Log.write("mprotect succeeded at chunk "); Log.write(chunk);  Log.write("  "); Log.write(mmapStart);
             Log.write(" with len = "); Log.writeln(MMAP_CHUNK_BYTES);
           }
         }
         mapped[chunk] = PROTECTED;
-      }
-      else {
+      } else {
         if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(mapped[chunk] == PROTECTED);
       }
     }

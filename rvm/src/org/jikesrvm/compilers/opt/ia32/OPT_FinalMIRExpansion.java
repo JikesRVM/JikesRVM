@@ -315,10 +315,10 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
 
         case IA32_LEA_opcode: {
           // Sometimes we're over eager in BURS in using LEAs and after register
-	  // allocation we can simplify to the accumulate form
+          // allocation we can simplify to the accumulate form
           // replace reg1 = LEA [reg1 + reg2] with reg1 = reg1 + reg2
-	  // replace reg1 = LEA [reg1 + c1] with reg1 = reg1 + c1
-	  // replace reg1 = LEA [reg1 << c1] with reg1 = reg1 << c1
+          // replace reg1 = LEA [reg1 + c1] with reg1 = reg1 + c1
+          // replace reg1 = LEA [reg1 << c1] with reg1 = reg1 << c1
           OPT_MemoryOperand value = MIR_Lea.getValue(p);
           OPT_RegisterOperand result = MIR_Lea.getResult(p);
           if ((value.base != null && value.base.getRegister() == result.getRegister()) ||
@@ -333,31 +333,31 @@ public class OPT_FinalMIRExpansion extends OPT_IRTools {
             // If the flags will be destroyed prior to use or we reached the end of the basic block
             if (BBend.conforms(x) ||
                 (futureDefs & OPT_PhysicalDefUse.maskAF_CF_OF_PF_SF_ZF) == OPT_PhysicalDefUse.maskAF_CF_OF_PF_SF_ZF) {
-	      if (value.base != null &&
-		  value.index != null && value.index.getRegister() == result.getRegister() &&
-		  value.disp.isZero() &&
-		  value.scale == 0) {
-		// reg1 = lea [base + reg1] -> add reg1, base
+              if (value.base != null &&
+                  value.index != null && value.index.getRegister() == result.getRegister() &&
+                  value.disp.isZero() &&
+                  value.scale == 0) {
+                // reg1 = lea [base + reg1] -> add reg1, base
                 MIR_BinaryAcc.mutate(p, IA32_ADD, result, value.base);
               } else if (value.base != null && value.base.getRegister() == result.getRegister() &&
-			 value.index != null &&
-			 value.disp.isZero() &&
-			 value.scale == 0) {
-		// reg1 = lea [reg1 + index] -> add reg1, index
+                         value.index != null &&
+                         value.disp.isZero() &&
+                         value.scale == 0) {
+                // reg1 = lea [reg1 + index] -> add reg1, index
                 MIR_BinaryAcc.mutate(p, IA32_ADD, result, value.index);
               } else if (value.base != null && value.base.getRegister() == result.getRegister() &&
-			 value.index == null) {
-		// reg1 = lea [reg1 + disp] -> add reg1, disp
+                         value.index == null) {
+                // reg1 = lea [reg1 + disp] -> add reg1, disp
                 MIR_BinaryAcc.mutate(p, IA32_ADD, result, IC(value.disp.toInt()));
               } else if (value.base == null &&
-			 value.index == null && value.index.getRegister() == result.getRegister() &&
-			 value.scale == 0) {
-		// reg1 = lea [reg1 + disp] -> add reg1, disp
+                         value.index == null && value.index.getRegister() == result.getRegister() &&
+                         value.scale == 0) {
+                // reg1 = lea [reg1 + disp] -> add reg1, disp
                 MIR_BinaryAcc.mutate(p, IA32_ADD, result, IC(value.disp.toInt()));
               } else if (value.base == null &&
-			 value.index == null && value.index.getRegister() == result.getRegister() &&
-			 value.disp.isZero()) {
-		// reg1 = lea [reg1 << scale] -> shl reg1, scale
+                         value.index == null && value.index.getRegister() == result.getRegister() &&
+                         value.disp.isZero()) {
+                // reg1 = lea [reg1 << scale] -> shl reg1, scale
                 MIR_BinaryAcc.mutate(p, IA32_SHL, result, IC(value.scale));
               }
             }

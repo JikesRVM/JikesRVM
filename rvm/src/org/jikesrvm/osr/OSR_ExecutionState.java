@@ -57,13 +57,13 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants {
   public int cmid;
 
   /**
-   * Initializer 
+   * Initializer
    * @param whichThread
    * @param framePointerOffset
    * @param compiledMethodID
    * @param pc
    * @param tsFPOffset
-   */  
+   */
   public OSR_ExecutionState(VM_Thread whichThread, Offset framePointerOffset, int compiledMethodID, int pc,
                             Offset tsFPOffset) {
     this.thread = whichThread;

@@ -66,5 +66,4 @@ public abstract class BuildTimeConfig {
    * @return The value of the property
    */
   public abstract boolean getBooleanProperty(String name, boolean dflt);
-
 }

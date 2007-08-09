@@ -52,7 +52,7 @@ import org.vmmagic.unboxed.Offset;
     return VM_Synchronization.fetchAndAdd(this, offset, 1);
   }
 
-  public int peek () {
+  public int peek() {
     return count;
   }
 

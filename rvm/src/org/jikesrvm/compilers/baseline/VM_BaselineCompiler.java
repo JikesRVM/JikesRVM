@@ -133,7 +133,7 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
    */
   public static void generateBaselineCompilerSubsystemReport(boolean explain) {
     if (!VM.MeasureCompilationPhases) return;
-    
+
     VM.sysWriteln("\n\t\tBaseline Compiler SubSystem");
     VM.sysWriteln("\tPhase\t\t\t    Time");
     VM.sysWriteln("\t\t\t\t(ms)    (%ofTotal)");
@@ -277,7 +277,7 @@ public abstract class VM_BaselineCompiler extends VM_CompilerFramework {
         // restore options
         options.EDGE_COUNTERS = edge_counters;
       }
-    } finally { 
+    } finally {
       if (VM.MeasureCompilationPhases) {
         long end = VM_Scheduler.getCurrentThread().endTimedInterval();
         osrSetupNanos += end - start;

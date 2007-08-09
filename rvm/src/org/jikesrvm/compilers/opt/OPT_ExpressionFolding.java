@@ -315,72 +315,72 @@ class OPT_ExpressionFolding extends OPT_IRTools {
     while (outer != null) {
       OPT_Register outerDef = isCandidateExpression(outer, false);
       if (outerDef != null) {
-	OPT_Instruction inner = outer.nextInstructionInCodeOrder();
-	loop_over_inner_instructions:
-	while ((inner != null) && (inner.operator() != BBEND)) {
-	  OPT_Register innerDef = isCandidateExpression(inner, false);
-	  // 1. check for true dependence (does inner use outer's def?)
-	  if (innerDef != null) {
-	    OPT_OperandEnumeration uses = inner.getUses();
-	    loop_over_inner_uses:
-	    while(uses.hasMoreElements()) {
-	      OPT_Operand use = uses.nextElement();
-	      if (use.isRegister() && (use.asRegister().getRegister() == outerDef)) {
-		// Optimization case
-		OPT_Instruction newInner = transform(inner, outer);
-		if (newInner != null) {
-		  OPT_DefUse.replaceInstructionAndUpdateDU(inner, CPOS(inner,newInner));
-		  inner = newInner;
-		  didSomething = true;
-		}
-		break loop_over_inner_uses;
-	      }
-	    }
-	  }
-	  // 2. check for output dependence (does inner kill outer's def?)
-	  if (innerDef == outerDef) {
-	    break loop_over_inner_instructions;
-	  }
-	  if (innerDef == null) {
-	    OPT_OperandEnumeration defs = inner.getDefs();
-	    while(defs.hasMoreElements()) {
-	      OPT_Operand def = defs.nextElement();
-	      if (def.isRegister()) {
-		OPT_Register defReg = def.asRegister().getRegister();
-		if (defReg == outerDef) {
-		  break loop_over_inner_instructions;
-		}
-	      }
-	    }
-	  }
-	  // 3. check for anti dependence (do we define something that outer uses?)
-	  if (innerDef != null) {
-	    OPT_OperandEnumeration uses = outer.getUses();
-	    loop_over_outer_uses:
-	    while(uses.hasMoreElements()) {
-	      OPT_Operand use = uses.nextElement();
-	      if (use.isRegister() && (use.asRegister().getRegister() == innerDef)) {
-		break loop_over_inner_instructions;
-	      }
-	    }
-	  } else {
-	    OPT_OperandEnumeration defs = inner.getDefs();
-	    while(defs.hasMoreElements()) {
-	      OPT_Operand def = defs.nextElement();
-	      if (def.isRegister()) {
-		OPT_OperandEnumeration uses = outer.getUses();
-		loop_over_outer_uses:
-		while(uses.hasMoreElements()) {
-		  OPT_Operand use = uses.nextElement();
-		  if (use.similar(def)) {
-		    break loop_over_inner_instructions;
-		  }
-		}
-	      }
-	    }
-	  }
-	  inner = inner.nextInstructionInCodeOrder();
-	} // loop over inner instructions
+        OPT_Instruction inner = outer.nextInstructionInCodeOrder();
+        loop_over_inner_instructions:
+        while ((inner != null) && (inner.operator() != BBEND)) {
+          OPT_Register innerDef = isCandidateExpression(inner, false);
+          // 1. check for true dependence (does inner use outer's def?)
+          if (innerDef != null) {
+            OPT_OperandEnumeration uses = inner.getUses();
+            loop_over_inner_uses:
+            while(uses.hasMoreElements()) {
+              OPT_Operand use = uses.nextElement();
+              if (use.isRegister() && (use.asRegister().getRegister() == outerDef)) {
+                // Optimization case
+                OPT_Instruction newInner = transform(inner, outer);
+                if (newInner != null) {
+                  OPT_DefUse.replaceInstructionAndUpdateDU(inner, CPOS(inner,newInner));
+                  inner = newInner;
+                  didSomething = true;
+                }
+                break loop_over_inner_uses;
+              }
+            }
+          }
+          // 2. check for output dependence (does inner kill outer's def?)
+          if (innerDef == outerDef) {
+            break loop_over_inner_instructions;
+          }
+          if (innerDef == null) {
+            OPT_OperandEnumeration defs = inner.getDefs();
+            while(defs.hasMoreElements()) {
+              OPT_Operand def = defs.nextElement();
+              if (def.isRegister()) {
+                OPT_Register defReg = def.asRegister().getRegister();
+                if (defReg == outerDef) {
+                  break loop_over_inner_instructions;
+                }
+              }
+            }
+          }
+          // 3. check for anti dependence (do we define something that outer uses?)
+          if (innerDef != null) {
+            OPT_OperandEnumeration uses = outer.getUses();
+            loop_over_outer_uses:
+            while(uses.hasMoreElements()) {
+              OPT_Operand use = uses.nextElement();
+              if (use.isRegister() && (use.asRegister().getRegister() == innerDef)) {
+                break loop_over_inner_instructions;
+              }
+            }
+          } else {
+            OPT_OperandEnumeration defs = inner.getDefs();
+            while(defs.hasMoreElements()) {
+              OPT_Operand def = defs.nextElement();
+              if (def.isRegister()) {
+                OPT_OperandEnumeration uses = outer.getUses();
+                loop_over_outer_uses:
+                while(uses.hasMoreElements()) {
+                  OPT_Operand use = uses.nextElement();
+                  if (use.similar(def)) {
+                    break loop_over_inner_instructions;
+                  }
+                }
+              }
+            }
+          }
+          inner = inner.nextInstructionInCodeOrder();
+        } // loop over inner instructions
       }
       outer = outer.nextInstructionInCodeOrder();
     } // loop over outer instructions
@@ -2547,14 +2547,14 @@ class OPT_ExpressionFolding extends OPT_IRTools {
         if (val1.isConstant()) {
           return null;
         }
-	OPT_Register result = Unary.getResult(s).asRegister().getRegister();
-	if (ssa) {
-	  return result;
-	} else if (val1.asRegister().getRegister() != result) {
-	  return result;
-	} else {
-	  return null;
-	}
+        OPT_Register result = Unary.getResult(s).asRegister().getRegister();
+        if (ssa) {
+          return result;
+        } else if (val1.asRegister().getRegister() != result) {
+          return result;
+        } else {
+          return null;
+        }
       }
 
       case INT_ADD_opcode:
@@ -2617,14 +2617,14 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               return null;
             }
 
-	    OPT_Register result = Binary.getResult(s).asRegister().getRegister();
-	    if (ssa) {
-	      return result;
-	    } else if (val1.asRegister().getRegister() != result) {
-	      return result;
-	    } else {
-	      return null;
-	    }
+            OPT_Register result = Binary.getResult(s).asRegister().getRegister();
+            if (ssa) {
+              return result;
+            } else if (val1.asRegister().getRegister() != result) {
+              return result;
+            } else {
+              return null;
+            }
           } else {
             if (VM.VerifyAssertions) {
               VM._assert(val2.isRegister());
@@ -2634,14 +2634,14 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             if (s.operator.isCommutative() && val1.isConstant() && !val1.isObjectConstant() && !val1.isTIBConstant()) {
               Binary.setVal1(s, Binary.getClearVal2(s));
               Binary.setVal2(s, val1);
-	      OPT_Register result = Binary.getResult(s).asRegister().getRegister();
-	      if (ssa) {
-		return result;
-	      } else if (val2.asRegister().getRegister() != result) {
-		return result;
-	      } else {
-		return null;
-	      }
+              OPT_Register result = Binary.getResult(s).asRegister().getRegister();
+              if (ssa) {
+                return result;
+              } else if (val2.asRegister().getRegister() != result) {
+                return result;
+              } else {
+                return null;
+              }
             }
           }
         }
@@ -2658,12 +2658,12 @@ class OPT_ExpressionFolding extends OPT_IRTools {
           if (val1.isConstant()) {
             return null;
           }
-	  OPT_Register result = GuardedBinary.getResult(s).asRegister().getRegister();
-	  if (ssa) {
-	    return result;
-	  } else if (val1.asRegister().getRegister() != result) {
-	    return result;
-	  }
+          OPT_Register result = GuardedBinary.getResult(s).asRegister().getRegister();
+          if (ssa) {
+            return result;
+          } else if (val1.asRegister().getRegister() != result) {
+            return result;
+          }
         }
         return null;
       }
@@ -2680,12 +2680,12 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             if (val1.isConstant()) {
               return null;
             }
-	    OPT_Register result = BooleanCmp.getResult(s).asRegister().getRegister();
-	    if (ssa) {
-	      return result;
-	    } else if (val1.asRegister().getRegister() != result) {
-	      return result;
-	    }
+            OPT_Register result = BooleanCmp.getResult(s).asRegister().getRegister();
+            if (ssa) {
+              return result;
+            } else if (val1.asRegister().getRegister() != result) {
+              return result;
+            }
           } else {
             if (VM.VerifyAssertions) {
               VM._assert(val2.isRegister());
@@ -2695,12 +2695,12 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               BooleanCmp.setVal1(s, BooleanCmp.getClearVal2(s));
               BooleanCmp.setVal2(s, val1);
               BooleanCmp.getCond(s).flipOperands();
-	      OPT_Register result = BooleanCmp.getResult(s).asRegister().getRegister();
-	      if (ssa) {
-		return result;
-	      } else if (val2.asRegister().getRegister() != result) {
-		return result;
-	      }
+              OPT_Register result = BooleanCmp.getResult(s).asRegister().getRegister();
+              if (ssa) {
+                return result;
+              } else if (val2.asRegister().getRegister() != result) {
+                return result;
+              }
             }
           }
         }
@@ -2721,12 +2721,12 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               return null;
             }
 
-	    OPT_Register result = IfCmp.getGuardResult(s).asRegister().getRegister();
-	    if (ssa) {
-	      return result;
-	    } else if (val1.asRegister().getRegister() != result) {
-	      return result;
-	    }
+            OPT_Register result = IfCmp.getGuardResult(s).asRegister().getRegister();
+            if (ssa) {
+              return result;
+            } else if (val1.asRegister().getRegister() != result) {
+              return result;
+            }
           } else {
             if (VM.VerifyAssertions) {
               VM._assert(val2.isRegister());
@@ -2736,12 +2736,12 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               IfCmp.setVal1(s, IfCmp.getClearVal2(s));
               IfCmp.setVal2(s, val1);
               IfCmp.getCond(s).flipOperands();
-	      OPT_Register result = IfCmp.getGuardResult(s).asRegister().getRegister();
-	      if (ssa) {
-		return result;
-	      } else if (val2.asRegister().getRegister() != result) {
-		return result;
-	      }
+              OPT_Register result = IfCmp.getGuardResult(s).asRegister().getRegister();
+              if (ssa) {
+                return result;
+              } else if (val2.asRegister().getRegister() != result) {
+                return result;
+              }
             }
           }
         }
@@ -2758,12 +2758,12 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               return null;
             }
 
-	    OPT_Register result = IfCmp2.getGuardResult(s).asRegister().getRegister();
-	    if (ssa) {
-	      return result;
-	    } else if (val1.asRegister().getRegister() != result) {
-	      return result;
-	    }
+            OPT_Register result = IfCmp2.getGuardResult(s).asRegister().getRegister();
+            if (ssa) {
+              return result;
+            } else if (val1.asRegister().getRegister() != result) {
+              return result;
+            }
           } else {
             if (VM.VerifyAssertions) {
               VM._assert(val2.isRegister());
@@ -2774,12 +2774,12 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               IfCmp2.setVal2(s, val1);
               IfCmp2.getCond1(s).flipOperands();
               IfCmp2.getCond2(s).flipOperands();
-	      OPT_Register result = IfCmp2.getGuardResult(s).asRegister().getRegister();
-	      if (ssa) {
-		return result;
-	      } else if (val2.asRegister().getRegister() != result) {
-		return result;
-	      }
+              OPT_Register result = IfCmp2.getGuardResult(s).asRegister().getRegister();
+              if (ssa) {
+                return result;
+              } else if (val2.asRegister().getRegister() != result) {
+                return result;
+              }
             }
           }
         }
@@ -2800,12 +2800,12 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             if (val1.isConstant()) {
               return null;
             }
-	    OPT_Register result = CondMove.getResult(s).asRegister().getRegister();
-	    if (ssa) {
-	      return result;
-	    } else if (val1.asRegister().getRegister() != result) {
-	      return result;
-	    }
+            OPT_Register result = CondMove.getResult(s).asRegister().getRegister();
+            if (ssa) {
+              return result;
+            } else if (val1.asRegister().getRegister() != result) {
+              return result;
+            }
           } else {
             if (VM.VerifyAssertions) {
               VM._assert(val2.isRegister());
@@ -2815,12 +2815,12 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               CondMove.setVal1(s, CondMove.getClearVal2(s));
               CondMove.setVal2(s, val1);
               CondMove.getCond(s).flipOperands();
-	      OPT_Register result = CondMove.getResult(s).asRegister().getRegister();
-	      if (ssa) {
-		return result;
-	      } else if (val2.asRegister().getRegister() != result) {
-		return result;
-	      }
+              OPT_Register result = CondMove.getResult(s).asRegister().getRegister();
+              if (ssa) {
+                return result;
+              } else if (val2.asRegister().getRegister() != result) {
+                return result;
+              }
             }
           }
         }

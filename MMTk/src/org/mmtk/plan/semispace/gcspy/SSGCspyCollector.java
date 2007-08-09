@@ -159,10 +159,7 @@ import org.vmmagic.pragma.*;
 
         fromSpaceDriver().transmit(event);
         // Mutator.gcspyGatherData follows so leave safepoint to there.
-      }
-
-
-      else if (event == SSGCspy.SEMISPACE_COPIED) {
+      } else if (event == SSGCspy.SEMISPACE_COPIED) {
         if (DEBUG) debugSpaces(SSGCspy.toSpace());
 
         // We need to reset, scan and send values for tospace
@@ -179,9 +176,7 @@ import org.vmmagic.pragma.*;
         toSpaceDriver().transmit(event);
 
         // We'll leave the safepoint to RELEASE
-      }
-
-      else if (event == SSGCspy.AFTER_COLLECTION) {
+      } else if (event == SSGCspy.AFTER_COLLECTION) {
         if (DEBUG) {
           Log.write("SSGCspyCollector.gcspyGatherData transmit toSpaceDriver, ");
           Log.writeln(SSGCspy.toSpace().getName());

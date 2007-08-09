@@ -37,7 +37,6 @@ import org.jikesrvm.runtime.VM_ExitStatus;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Runtime;
 import static org.jikesrvm.runtime.VM_SysCall.sysCall;
-import org.jikesrvm.runtime.VM_Time;
 import org.jikesrvm.scheduler.VM_Lock;
 import org.jikesrvm.scheduler.VM_MainThread;
 import org.jikesrvm.scheduler.VM_Processor;
@@ -146,7 +145,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
         currentThread.getStack()).plus(ArchitectureSpecific.VM_StackframeLayoutConstants.STACK_SIZE_GUARD);
 
     VM_Processor.getCurrentProcessor().activeThreadStackLimit = currentThread.stackLimit;
-    
+
     finishBooting();
   }
 

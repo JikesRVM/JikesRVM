@@ -30,7 +30,7 @@ import org.vmmagic.pragma.*;
    *
    * Instance variables
    */
-  private byte[] data;			// The stream data
+  private byte[] data;          // The stream data
   private byte defaultValue;    // The default value for the data items
 
 
@@ -83,7 +83,7 @@ import org.vmmagic.pragma.*;
   /**
    * Reset all data in this stream to default values.
    */
-  public void resetData () {
+  public void resetData() {
     for (int i = 0; i < data.length; i++)
       data[i] = defaultValue;
   }
@@ -99,33 +99,33 @@ import org.vmmagic.pragma.*;
    * @param blockSize the size of each tile
    * @param value the value to distribute
    */
-   public void distribute(int start, byte remainder, int blockSize, byte value) {
-     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(remainder <= blockSize);
-     if (value <= remainder) {  // fits in this tile
-       data[start] += value;
-       //checkspace(start, value, "scanObject fits in first tile");
-     } else {
-       data[start] += remainder;
-       //checkspace(start, remainder, "scanObject remainder put in first tile");
-       value -= remainder;
-       start++;
-       while (value >= blockSize) {
-         data[start] += blockSize;
-         //checkspace(start, blockSize, "scanObject subsequent tile");
-         value -= blockSize;
-         start++;
-       }
-       data[start] += value;
-       //checkspace(start, value, "scanObject last tile");
-     }
-   }
+  public void distribute(int start, byte remainder, int blockSize, byte value) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(remainder <= blockSize);
+    if (value <= remainder) {  // fits in this tile
+      data[start] += value;
+      //checkspace(start, value, "scanObject fits in first tile");
+    } else {
+      data[start] += remainder;
+      //checkspace(start, remainder, "scanObject remainder put in first tile");
+      value -= remainder;
+      start++;
+      while (value >= blockSize) {
+        data[start] += blockSize;
+        //checkspace(start, blockSize, "scanObject subsequent tile");
+        value -= blockSize;
+        start++;
+      }
+      data[start] += value;
+      //checkspace(start, value, "scanObject last tile");
+    }
+  }
 
-   /**
-    * Increment the value of a tile.
-    * @param index the index
-    * @param value the increment
-    */
-   public void increment (int index, byte value) { data[index] += value; }
+  /**
+   * Increment the value of a tile.
+   * @param index the index
+   * @param value the increment
+   */
+  public void increment(int index, byte value) { data[index] += value; }
 
   /**
    * Send the data and summary for this stream.
@@ -133,7 +133,7 @@ import org.vmmagic.pragma.*;
    * @param numTiles The number of tiles to send (which may be less than maxTileNum)
    * @see #ByteStream
    */
-  public void send (int event, int numTiles) {
+  public void send(int event, int numTiles) {
     if (DEBUG) {
       Log.write("sending "); Log.write(numTiles); Log.writeln(" int values");
     }

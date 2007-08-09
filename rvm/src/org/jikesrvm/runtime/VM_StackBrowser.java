@@ -73,7 +73,7 @@ public final class VM_StackBrowser implements ArchitectureSpecific.VM_Stackframe
     Address newIP = VM_Magic.getReturnAddress(prevFP);
 
     int cmid = VM_Magic.getCompiledMethodID(newFP);
- 
+
     while (cmid == INVISIBLE_METHOD_ID) {
       prevFP = newFP;
       newFP = VM_Magic.getCallerFramePointer(newFP);
@@ -155,7 +155,7 @@ public final class VM_StackBrowser implements ArchitectureSpecific.VM_Stackframe
   public ClassLoader getClassLoader() {
     return getCurrentClass().getClassLoader();
   }
-  
+
   /** Get the inline encoding associated with the current stack location, called only by opt compiled methods */
   public int getInlineEncodingIndex() {
     return currentInlineEncodingIndex;

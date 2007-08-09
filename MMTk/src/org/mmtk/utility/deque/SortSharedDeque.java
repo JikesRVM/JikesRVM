@@ -120,9 +120,9 @@ import org.vmmagic.unboxed.*;
         if (lKey.GT(rKey)) {
           lPtr.minus(BYTES_IN_ADDRESS).store(lSlot);
           lPtr = lPtr.plus(BYTES_IN_ADDRESS);
-        }
-        else
+        } else {
           break;
+        }
       }
       lPtr.minus(BYTES_IN_ADDRESS).store(rSlot);
       rPtr = rPtr.minus(BYTES_IN_ADDRESS);

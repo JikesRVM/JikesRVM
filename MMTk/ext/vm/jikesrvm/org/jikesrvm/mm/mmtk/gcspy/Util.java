@@ -95,7 +95,7 @@ import org.vmmagic.pragma.*;
    * swLock/swUnlock mechanism, as per VM.sysWrite on String
    */
   @LogicallyUninterruptible
-  public final Address getBytes (String str) {
+  public final Address getBytes(String str) {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
       if (str == null)
         return Address.zero();
@@ -126,10 +126,10 @@ import org.vmmagic.pragma.*;
             swUnlock();
           }
           // Endianism matters
-          if (org.jikesrvm.VM.BuildForIA32)
+          if (org.jikesrvm.VM.BuildForIA32) {
             value = (byteVal << shift) | value;
-          else {
-        	org.jikesrvm.VM._assert(org.jikesrvm.VM.NOT_REACHED);
+          } else {
+            org.jikesrvm.VM._assert(org.jikesrvm.VM.NOT_REACHED);
             value = (value << shift) | byteVal; // not tested
           }
           shift += BITS_IN_BYTE;
@@ -140,9 +140,9 @@ import org.vmmagic.pragma.*;
         sysCall.sysWriteBytes(2/*SysTraceFd*/, rtn, size); Log.write("\n");
       }
       return rtn;
-    }
-    else
+    } else {
       return Address.zero();
+    }
   }
 
   public static final int KILOBYTE = 1024;
@@ -176,9 +176,9 @@ import org.vmmagic.pragma.*;
       formatSize(formattedSize, size);
       sprintf(tmp, currentSize, formattedSize);
       return tmp;
-    }
-    else
+    } else {
       return Address.zero();
+    }
   }
 
   /**
@@ -201,9 +201,9 @@ import org.vmmagic.pragma.*;
                               VM_ObjectModel.getAlignment(array),
                               VM_ObjectModel.getOffsetForAlignment(array),
                               0);
-    }
-    else
+    } else {
       return null;
+    }
   }
 
   //----------- Various methods modelled on string.c ---------------------//

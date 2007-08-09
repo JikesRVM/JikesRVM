@@ -330,14 +330,14 @@ import org.vmmagic.unboxed.Word;
    * Open an XML comment
    */
   public static void openComment() {
-	  Log.write("<!-- ");
+    Log.write("<!-- ");
   }
 
   /**
    * Close an XML comment
    */
   public static void closeComment() {
-	  Log.write(" -->");
+    Log.write(" -->");
   }
 
   /**
@@ -346,10 +346,10 @@ import org.vmmagic.unboxed.Word;
    * @param comment The comment.
    */
   public static void comment(String comment) {
-	  openComment();
-	  Log.write(comment);
-	  closeComment();
-	  Log.writeln();
+    openComment();
+    Log.write(comment);
+    closeComment();
+    Log.writeln();
   }
 
 }

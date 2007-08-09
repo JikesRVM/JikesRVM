@@ -54,7 +54,7 @@ public interface OPT_PhysicalRegisterConstants extends VM_RegisterConstants {
   /** AF bit of EFLAGS */
   int AF = FIRST_SPECIAL + 0;
   /** CF bit of EFLAGS */
-  int CF = FIRST_SPECIAL + 1; 
+  int CF = FIRST_SPECIAL + 1;
   /** OF bit of EFLAGS */
   int OF = FIRST_SPECIAL + 2;
   /** PF bit of EFLAGS */
@@ -72,7 +72,7 @@ public interface OPT_PhysicalRegisterConstants extends VM_RegisterConstants {
   /** C3 bit of EFLAGS */
   int C3 = FIRST_SPECIAL + 9;
   /** ST0 - top of FP stack (for SSE2) */
-  int ST0 = FIRST_SPECIAL + 10; 
+  int ST0 = FIRST_SPECIAL + 10;
   /** ST1 - below top of FP stack (for SSE2) */
   int ST1 = FIRST_SPECIAL + 11;
 }

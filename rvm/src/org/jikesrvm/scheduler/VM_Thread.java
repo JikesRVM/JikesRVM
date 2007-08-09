@@ -318,7 +318,7 @@ public abstract class VM_Thread {
    * Per thread timing is only active when this field has a value greater than 0.
    */
   private int timingDepth = 0;
-  
+
 
   /**
    * Value returned from {@link VM_Time#nanoTime()} when this thread
@@ -390,7 +390,7 @@ public abstract class VM_Thread {
   /**
    * @param stack stack in which to execute the thread
    */
-  protected VM_Thread (byte[] stack, Thread thread, String name, boolean daemon, boolean system, int priority) {
+  protected VM_Thread(byte[] stack, Thread thread, String name, boolean daemon, boolean system, int priority) {
     this.stack = stack;
     this.name = name;
     this.daemon = daemon;
@@ -579,17 +579,12 @@ public abstract class VM_Thread {
         }
       }
       thread.run();
-    }
-    catch(Throwable t)
-    {
-      try
-      {
+    } catch(Throwable t) {
+      try {
         Thread.UncaughtExceptionHandler handler;
         handler = thread.getUncaughtExceptionHandler();
         handler.uncaughtException(thread, t);
-      }
-      catch(Throwable ignore)
-      {
+      } catch(Throwable ignore) {
       }
     }
   }
@@ -609,9 +604,7 @@ public abstract class VM_Thread {
 
     try {
       currentThread.run();
-    }
-    finally
-    {
+    } finally {
       if (trace) {
         VM.sysWriteln("VM_Thread.startoff(): finished ", currentThread.toString(), ".run()");
       }
@@ -1054,7 +1047,7 @@ public abstract class VM_Thread {
    * @param time the timeout value in nanoseconds, 0 => no timeout
    */
   @Interruptible
-  public final void park (boolean isAbsolute, long time) throws Throwable {
+  public final void park(boolean isAbsolute, long time) throws Throwable {
     if (VM.VerifyAssertions) {
       VM_Thread curThread = VM_Scheduler.getCurrentThread();
       VM._assert(curThread == this);
@@ -1117,7 +1110,7 @@ public abstract class VM_Thread {
   /**
    * Unpark this thread, not necessarily the current thread
    */
-  public void unpark () {
+  public void unpark() {
     if (state == State.PARKED) {
       // Wake up sleeping thread
       kill(proxyInterruptException , false);
@@ -1423,10 +1416,10 @@ public abstract class VM_Thread {
   public boolean hasActiveTimedInterval() {
     return timingDepth > 0;
   }
-  
+
   /**
    * Begin a possibly nested timing interval.
-   * @return the current value of {@link #totalNanos}. 
+   * @return the current value of {@link #totalNanos}.
    */
   public long startTimedInterval() {
     long now = VM_Time.nanoTime();
@@ -1441,7 +1434,7 @@ public abstract class VM_Thread {
     }
     return totalNanos;
   }
-  
+
   /**
    * End a possibly nested timing interval
    */
@@ -1477,7 +1470,7 @@ public abstract class VM_Thread {
   }
 
   /** @return Is this the MainThread ? */
-  private final boolean isMainThread() {
+  private boolean isMainThread() {
     return thread instanceof VM_MainThread;
   }
 

@@ -289,18 +289,18 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     f2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FNSTCW, scratchLo.copy())));
     f2lBB.appendInstruction(CPOS(s, MIR_Unary.create(IA32_MOVZX__W, cw, scratchLo.copy())));
     f2lBB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_OR, cw, IC(0xC00))));
-    f2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, scratchHi, cw.copyRO())));    
+    f2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, scratchHi, cw.copyRO())));
     f2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FLDCW, scratchHi.copy())));
     f2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_FISTP, sl, st0.copyRO())));
-    f2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FLDCW, scratchLo.copy())));    
-    f2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, resultLo, slLo.copy())));    
-    f2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, resultHi, slHi)));    
+    f2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FLDCW, scratchLo.copy())));
+    f2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, resultLo, slLo.copy())));
+    f2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, resultHi, slHi)));
     f2lBB.appendInstruction(CPOS(s, MIR_Branch.create(IA32_JMP,
         nextBB.makeJumpTarget())));
     f2lBB.insertOut(nextBB);
 
     // Did the compare find a NaN or a maximum integer?
-    nanTestBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_FSTP, st0.copyRO(), st0.copyRO())));    
+    nanTestBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_FSTP, st0.copyRO(), st0.copyRO())));
     nanTestBB.appendInstruction(CPOS(s, MIR_CondBranch.create(IA32_JCC,
         OPT_IA32ConditionOperand.PE(),
         nanBB.makeJumpTarget(),
@@ -467,18 +467,18 @@ public abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     d2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FNSTCW, scratchLo.copy())));
     d2lBB.appendInstruction(CPOS(s, MIR_Unary.create(IA32_MOVZX__W, cw, scratchLo.copy())));
     d2lBB.appendInstruction(CPOS(s, MIR_BinaryAcc.create(IA32_OR, cw, IC(0xC00))));
-    d2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, scratchHi, cw.copyRO())));    
+    d2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, scratchHi, cw.copyRO())));
     d2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FLDCW, scratchHi.copy())));
     d2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_FISTP, sl.copy(), st0.copyRO())));
-    d2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FLDCW, scratchLo.copy())));    
-    d2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, resultLo, slLo)));    
-    d2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, resultHi, slHi)));    
+    d2lBB.appendInstruction(CPOS(s, MIR_UnaryNoRes.create(IA32_FLDCW, scratchLo.copy())));
+    d2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, resultLo, slLo)));
+    d2lBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_MOV, resultHi, slHi)));
     d2lBB.appendInstruction(CPOS(s, MIR_Branch.create(IA32_JMP,
         nextBB.makeJumpTarget())));
     d2lBB.insertOut(nextBB);
 
     // Did the compare find a NaN or a maximum integer?
-    nanTestBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_FSTP, st0.copyRO(), st0.copyRO())));    
+    nanTestBB.appendInstruction(CPOS(s, MIR_Move.create(IA32_FSTP, st0.copyRO(), st0.copyRO())));
     nanTestBB.appendInstruction(CPOS(s, MIR_CondBranch.create(IA32_JCC,
         OPT_IA32ConditionOperand.PE(),
         nanBB.makeJumpTarget(),

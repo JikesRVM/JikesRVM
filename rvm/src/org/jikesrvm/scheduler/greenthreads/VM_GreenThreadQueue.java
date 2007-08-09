@@ -170,9 +170,9 @@ public class VM_GreenThreadQueue extends VM_AbstractThreadQueue {
     for (VM_GreenThread t = head; t != null; t = t.getNext()) {
       if (t.isGCThread()) return true;
     }
-    return false;    
+    return false;
   }
-  
+
   public void dump() {
     // We shall space-separate them, for compactness.
     // I hope this is a good decision.

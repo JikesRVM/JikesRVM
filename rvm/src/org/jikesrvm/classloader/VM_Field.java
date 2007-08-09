@@ -170,7 +170,7 @@ public final class VM_Field extends VM_Member {
    * place a reading the field.
    * @return whether the method has a pure annotation
    */
-  public final boolean isRuntimeFinal() {
+  public boolean isRuntimeFinal() {
    return hasRuntimeFinalAnnotation();
   }
 
@@ -178,7 +178,7 @@ public final class VM_Field extends VM_Member {
    * Get the value from the runtime final field
    * @return whether the method has a pure annotation
    */
-  public final boolean getRuntimeFinalValue() {
+  public boolean getRuntimeFinalValue() {
     org.vmmagic.pragma.RuntimeFinal ann;
     if (VM.runningVM) {
       ann = getAnnotation(org.vmmagic.pragma.RuntimeFinal.class);
@@ -319,7 +319,7 @@ public final class VM_Field extends VM_Member {
       return VM_Magic.getLongAtOffset(obj, getOffset());
     }
   }
-  
+
   private Word getWord(Object obj) {
     if (isStatic()) {
       return VM_Statics.getSlotContentsAsAddress(getOffset()).toWord();

@@ -21,8 +21,6 @@ import org.mmtk.utility.Log;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.statistics.*;
 
-import org.mmtk.vm.VM;
-
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 

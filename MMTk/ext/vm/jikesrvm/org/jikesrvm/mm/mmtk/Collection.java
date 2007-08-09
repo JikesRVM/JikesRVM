@@ -283,7 +283,7 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
    * has been called, and before mutators are allowed to run.
    */
   @Uninterruptible
-  public static void scheduleFinalizerThread () {
+  public static void scheduleFinalizerThread() {
     int finalizedCount = Finalizer.countToBeFinalized();
     if (finalizedCount > 0) {
       VM_Scheduler.scheduleFinalizer();

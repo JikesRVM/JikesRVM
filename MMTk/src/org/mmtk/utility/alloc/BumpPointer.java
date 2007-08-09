@@ -334,9 +334,8 @@ import org.vmmagic.pragma.*;
       initialRegion = start;
       region = start;
       cursor = region.plus(DATA_START_OFFSET);
-    } else if (limit.plus(BYTES_IN_ADDRESS).NE(start)
-        || region.diff(start.plus(size)).toWord().toExtent()
-        .GT(maximumRegionSize())) {
+    } else if (limit.plus(BYTES_IN_ADDRESS).NE(start) ||
+               region.diff(start.plus(size)).toWord().toExtent().GT(maximumRegionSize())) {
       /* non contiguous or over-size, initialize new region */
       region.plus(NEXT_REGION_OFFSET).store(start);
       region.plus(DATA_END_OFFSET).store(cursor);
@@ -355,7 +354,7 @@ import org.vmmagic.pragma.*;
    * @param driver The GCspy driver for this space.
    */
   public void gcspyGatherData(LinearSpaceDriver driver) {
-	//driver.setRange(space.getStart(), cursor);
+    //driver.setRange(space.getStart(), cursor);
     driver.setRange(space.getStart(), limit);
     this.linearScan(driver.getScanner());
   }
@@ -369,11 +368,10 @@ import org.vmmagic.pragma.*;
    * @param scanSpace The space to scan
    */
   public void gcspyGatherData(LinearSpaceDriver driver, Space scanSpace) {
-	//TODO can scanSpace ever be different to this.space?
-    if (VM.VERIFY_ASSERTIONS)
-	  VM.assertions._assert(scanSpace == space, "scanSpace != space");
+    //TODO can scanSpace ever be different to this.space?
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(scanSpace == space, "scanSpace != space");
 
-	//driver.setRange(scanSpace.getStart(), cursor);
+    //driver.setRange(scanSpace.getStart(), cursor);
     Address start = scanSpace.getStart();
     driver.setRange(start, limit);
 

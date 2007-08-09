@@ -17,8 +17,7 @@ import org.mmtk.policy.ImmortalSpace;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
-@Uninterruptible public abstract class Memory
-{
+@Uninterruptible public abstract class Memory {
 
   /**
    * Allows for the VM to reserve space between HEAP_START()

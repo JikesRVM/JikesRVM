@@ -321,7 +321,7 @@ import org.vmmagic.unboxed.*;
       markBit = oldValue.and(LOS_BIT_MASK);
       if (markBit.EQ(value)) return false;
     } while (!VM.objectModel.attemptAvailableBits(object, oldValue,
-						  oldValue.and(LOS_BIT_MASK.not()).or(value)));
+                                                  oldValue.and(LOS_BIT_MASK.not()).or(value)));
     return true;
   }
 

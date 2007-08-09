@@ -96,8 +96,8 @@ import org.vmmagic.unboxed.*;
    * @return True if the object will not move.
    */
   public boolean willNotMoveInCurrentCollection(ObjectReference object) {
-    return (SS.hi && !Space.isInSpace(SS.SS0, object))
-        || (!SS.hi && !Space.isInSpace(SS.SS1, object));
+    return (SS.hi && !Space.isInSpace(SS.SS0, object)) ||
+           (!SS.hi && !Space.isInSpace(SS.SS1, object));
   }
 
   /**

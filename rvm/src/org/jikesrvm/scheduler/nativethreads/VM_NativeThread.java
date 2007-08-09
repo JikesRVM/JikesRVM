@@ -57,7 +57,7 @@ public class VM_NativeThread extends VM_Thread {
   /**
    * Create a thread.
    */
-  protected VM_NativeThread (byte[] stack, Thread thread, String name, boolean daemon, boolean system, int priority) {
+  protected VM_NativeThread(byte[] stack, Thread thread, String name, boolean daemon, boolean system, int priority) {
     super(stack, thread, name, daemon, system, priority);
   }
 

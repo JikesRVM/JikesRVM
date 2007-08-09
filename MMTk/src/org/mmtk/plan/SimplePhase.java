@@ -14,9 +14,7 @@ package org.mmtk.plan;
 
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.statistics.Timer;
-import org.mmtk.utility.options.Options;
 import org.mmtk.utility.Log;
-import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 

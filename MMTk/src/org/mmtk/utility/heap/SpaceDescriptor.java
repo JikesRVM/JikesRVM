@@ -73,8 +73,7 @@ import org.vmmagic.unboxed.*;
   public static int createDescriptor(Address start, Address end) {
     int chunks = end.diff(start).toWord().rshl(Space.LOG_BYTES_IN_CHUNK).toInt();
     if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(!start.isZero() && chunks > 0
-          && chunks < (1 << VM_SIZE_BITS));
+      VM.assertions._assert(!start.isZero() && chunks > 0 && chunks < (1 << VM_SIZE_BITS));
     boolean top = end.EQ(Space.HEAP_END);
     Word tmp = start.toWord();
     tmp = tmp.rshl(VM_BASE_EXPONENT);
@@ -86,10 +85,10 @@ import org.vmmagic.unboxed.*;
     int mantissa = tmp.toInt();
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(tmp.lsh(VM_BASE_EXPONENT + exponent).EQ(start.toWord()));
-    return (mantissa<<VM_MANTISSA_SHIFT)
-      | (exponent<<VM_EXPONENT_SHIFT)
-        | (chunks << VM_SIZE_SHIFT)
-        | ((top) ? VM_TYPE_CONTIGUOUS_HI : VM_TYPE_CONTIGUOUS);
+    return (mantissa<<VM_MANTISSA_SHIFT) |
+           (exponent<<VM_EXPONENT_SHIFT) |
+           (chunks << VM_SIZE_SHIFT) |
+           ((top) ? VM_TYPE_CONTIGUOUS_HI : VM_TYPE_CONTIGUOUS);
   }
 
   /**

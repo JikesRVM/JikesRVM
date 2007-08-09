@@ -173,8 +173,8 @@ import org.vmmagic.unboxed.Address;
    */
   public void setSummary(int value0) {
     if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(presentation != StreamConstants.PRESENTATION_PERCENT
-          && presentation != StreamConstants.PRESENTATION_PERCENT_VAR);
+      VM.assertions._assert(presentation != StreamConstants.PRESENTATION_PERCENT &&
+                            presentation != StreamConstants.PRESENTATION_PERCENT_VAR);
     summary0 = value0;
   }
 
@@ -186,8 +186,8 @@ import org.vmmagic.unboxed.Address;
    */
   public void setSummary(int value0, int value1) {
     if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(presentation == StreamConstants.PRESENTATION_PERCENT
-                         || presentation == StreamConstants.PRESENTATION_PERCENT_VAR);
+      VM.assertions._assert(presentation == StreamConstants.PRESENTATION_PERCENT ||
+                            presentation == StreamConstants.PRESENTATION_PERCENT_VAR);
     summary0 = value0;
     summary1 = value1;
   }

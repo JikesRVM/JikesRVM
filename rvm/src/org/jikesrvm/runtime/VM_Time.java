@@ -19,7 +19,7 @@ import org.vmmagic.pragma.Uninterruptible;
  */
 @Uninterruptible
 public class VM_Time {
-  
+
   /**
    * Convert a long representing a time in nanoseconds into
    * a double representing the same time in milliseconds.
@@ -29,12 +29,12 @@ public class VM_Time {
   public static double nanosToMillis(long c) {
     return ((double)c)/1e6;
   }
-  
+
   /**
    * Return the value of a hardware cycle counter (RDTSC on IA32, time base register on PPC).
-   * This is a very cheap, but also unreliably "timing" mechanism. 
+   * This is a very cheap, but also unreliably "timing" mechanism.
    * There is absolutely no guarantee that the values returned from this method will
-   * either by monotonic (ie, "time" can go backwards) or 
+   * either by monotonic (ie, "time" can go backwards) or
    * smooth ("time" can appear to move at a variable rate).
    * This method should only be used for approximate timing in frequently executed code.
    * We intentionally do not provide an API for converting from cycles to seconds because
@@ -43,10 +43,10 @@ public class VM_Time {
   public static long cycles() {
     return VM_Magic.getTimeBase();
   }
-  
+
   /**
    * Same semantics as java.lang.System.nanoTime();
-   * This (or java.lang.System.nanoTime) is the 
+   * This (or java.lang.System.nanoTime) is the
    * preferred API for VM internal timing functions.
    * @return a monotonic timer value in nanoseconds.
    */

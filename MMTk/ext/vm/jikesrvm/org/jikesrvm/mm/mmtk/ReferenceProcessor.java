@@ -47,7 +47,7 @@ import java.lang.ref.PhantomReference;
  * maintains two queues: a nursery queue and the main queue.
  */
 @Uninterruptible
-public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
+public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
 
   /********************************************************************
    * Class fields
@@ -175,7 +175,7 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    *
    * <p>Logically Uninterruptible because it can GC when it allocates, but
    * the rest of the code can't tolerate GC.
-   * 
+   *
    * <p>This method is called without the reference processor lock held,
    * but with the flag <code>growingTable</code> set.
    */
@@ -209,18 +209,18 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
       VM.sysWriteln(" ~> ", referent);
     }
 
-    /* 
+    /*
      * Ensure that only one thread at a time can grow the
      * table of references.  The volatile flag <code>growingTable</code> is
      * used to allow growing the table to trigger GC, but to prevent
      * any other thread from accessing the table while it is being grown.
-     * 
+     *
      * If the table has space, threads will add the reference, incrementing maxIndex
      * and exit.
-     * 
+     *
      * If the table is full, the first thread to notice will grow the table.
      * Subsequent threads will release the lock and yield at (1) while the
-     * first thread 
+     * first thread
      */
     lock.acquire();
     while (growingTable || maxIndex >= references.length()) {
@@ -406,7 +406,7 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
     }
 
     if (TRACE_DETAIL)  VM.sysWrite(" => ",newReference);
-    
+
     if (semantics == Semantics.SOFT) {
       /*
        * Unless we've completely run out of memory, we keep
@@ -440,7 +440,7 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
       ObjectReference newReferent = trace.getForwardedReferent(oldReferent);
 
       if (TRACE_DETAIL) VM.sysWriteln(" ~> ",newReferent);
-      
+
       if (VM.VerifyAssertions) {
         if (!DebugUtil.validRef(newReferent)) {
           VM.sysWriteln("Error forwarding reference object.");

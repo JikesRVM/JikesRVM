@@ -265,7 +265,7 @@ import org.vmmagic.unboxed.*;
   @Inline
   public boolean isLive(ObjectReference object) {
     if (MarkSweepLocal.HEADER_MARK_BITS) {
-	return testMarkState(object, markState);
+      return testMarkState(object, markState);
     } else {
       return MarkSweepLocal.isLiveObject(object);
     }

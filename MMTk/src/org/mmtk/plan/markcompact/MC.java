@@ -15,7 +15,6 @@ package org.mmtk.plan.markcompact;
 import org.mmtk.plan.*;
 import org.mmtk.policy.MarkCompactSpace;
 import org.mmtk.policy.Space;
-import org.mmtk.utility.Log;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.ObjectReference;
@@ -59,6 +58,8 @@ import org.vmmagic.unboxed.ObjectReference;
   public static final short CALCULATE_FP        = Phase.createSimple("calc-fp");
   public static final short COMPACT             = Phase.createSimple("compact");
 
+  // CHECKSTYLE:OFF
+
   /**
    * This is the phase that is executed to perform a mark-compact collection.
    *
@@ -83,6 +84,8 @@ import org.vmmagic.unboxed.ObjectReference;
       Phase.scheduleGlobal   (RELEASE_FORWARD),
       Phase.scheduleMutator  (COMPACT),
       Phase.scheduleComplex  (finishPhase));
+
+  // CHECKSTYLE:ON
 
   /****************************************************************************
    * Instance variables

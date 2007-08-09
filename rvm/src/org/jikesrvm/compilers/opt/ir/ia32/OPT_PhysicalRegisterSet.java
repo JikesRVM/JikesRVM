@@ -388,7 +388,7 @@ public abstract class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegiste
     if (VM.VerifyAssertions) VM._assert(VM_ArchConstants.SSE2_FULL);
     return reg[ST1];
   }
-    
+
   /**
    * @return the FPR register used to hold a return value
    */

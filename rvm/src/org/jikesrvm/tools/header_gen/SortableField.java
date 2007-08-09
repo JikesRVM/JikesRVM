@@ -28,8 +28,8 @@ class SortableField implements Comparable<SortableField> {
   }
 
   public int compareTo(SortableField y) {
-	  if (offset.sGT(y.offset)) return 1;
-	  if (offset.sLT(y.offset)) return -1;
-	  return 0;
+    if (offset.sGT(y.offset)) return 1;
+    if (offset.sLT(y.offset)) return -1;
+    return 0;
   }
 }

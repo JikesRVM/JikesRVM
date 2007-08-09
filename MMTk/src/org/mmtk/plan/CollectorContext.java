@@ -113,7 +113,7 @@ import org.vmmagic.unboxed.*;
    * @param ref The newly allocated object.
    * @param typeRef the type reference for the instance being created.
    * @param bytes The size of the space to be allocated (in bytes).
-   * @param allocator The allocator statically assigned to this allocation. 
+   * @param allocator The allocator statically assigned to this allocation.
    */
   public void postCopy(ObjectReference ref, ObjectReference typeRef,
       int bytes, int allocator) {

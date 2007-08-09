@@ -142,7 +142,7 @@ public final class VM_CollectorThread extends VM_GreenThread {
 
   /** @return the thread scanner instance associated with this instance */
   @Uninterruptible
-  public final ScanThread getThreadScanner() { return threadScanner; }
+  public ScanThread getThreadScanner() { return threadScanner; }
 
   /***********************************************************************
    *
@@ -307,7 +307,7 @@ public final class VM_CollectorThread extends VM_GreenThread {
    * @return The GC ordinal
    */
   @Uninterruptible
-  public final int getGCOrdinal() {
+  public int getGCOrdinal() {
     return gcOrdinal;
   }
 
@@ -319,7 +319,7 @@ public final class VM_CollectorThread extends VM_GreenThread {
    * @param ord The new GC ordinal for this thread
    */
   @Uninterruptible
-  public final void setGCOrdinal(int ord) {
+  public void setGCOrdinal(int ord) {
     gcOrdinal = ord;
   }
 

@@ -204,14 +204,12 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
     if (result.similar(val1)) {
       // Straight forward case where instruction is already in accumulate form
       EMIT(MIR_BinaryAcc.mutate(s, operator, result, val2));
-    }
-    else if (!result.similar(val2)) {
+    } else if (!result.similar(val2)) {
       // Move first operand to result and perform operator on result, if
       // possible redundant moves should be remove by register allocator
       EMIT(CPOS(s, MIR_Move.create(IA32_MOV, result.copy(), val1)));
       EMIT(MIR_BinaryAcc.mutate(s, operator, result, val2));
-    }
-    else {
+    } else {
       // Potential to clobber second operand during move to result. Use a
       // temporary register to perform the operation and rely on register
       // allocator to remove redundant moves
@@ -956,14 +954,12 @@ OPT_Operand value, boolean signExtend) {
     if (result.similar(val1)) {
       // Straight forward case where instruction is already in accumulate form
       EMIT(MIR_BinaryAcc.mutate(s, operator, result, val2));
-    }
-    else if (!result.similar(val2)) {
+    } else if (!result.similar(val2)) {
       // Move first operand to result and perform operator on result, if
       // possible redundant moves should be remove by register allocator
       EMIT(CPOS(s, MIR_Move.create(SSE2_MOVE(result), result.copy(), val1)));
       EMIT(MIR_BinaryAcc.mutate(s, operator, result, val2));
-    }
-    else {
+    } else {
       // Potential to clobber second operand during move to result. Use a
       // temporary register to perform the operation and rely on register
       // allocator to remove redundant moves
@@ -1164,8 +1160,7 @@ OPT_Operand value, boolean signExtend) {
         throw new OPT_OptimizingCompilerException("OPT_BURS_Helpers",
             "unexpected parameters: " + result + "=" + val1 + "-" + val2);
       }
-    }
-    else if (!result.similar(val2)) {
+    } else if (!result.similar(val2)) {
       // Move first operand to result and perform operator on result, if
       // possible redundant moves should be remove by register allocator
       if (result.isRegister()) {
@@ -1223,8 +1218,7 @@ OPT_Operand value, boolean signExtend) {
         throw new OPT_OptimizingCompilerException("OPT_BURS_Helpers",
             "unexpected parameters: " + result + "=" + val1 + "-" + val2);
       }
-    }
-    else {
+    } else {
       // Potential to clobber second operand during move to result. Use a
       // temporary register to perform the operation and rely on register
       // allocator to remove redundant moves
@@ -1311,8 +1305,7 @@ OPT_Operand value, boolean signExtend) {
       if (VM.VerifyAssertions) VM._assert(Binary.getResult(s).similar(result) &&
           Binary.getVal1(s).similar(value1) && Binary.getVal2(s).similar(value2));
       EMIT(s);
-    }
-    else {
+    } else {
       // The value of value1 should be identical to result, to avoid moves, and a
       // register in the case of multiplication with a constant
       if ((value2.similar(result)) || value1.isLongConstant()) {
@@ -2719,15 +2712,13 @@ OPT_Operand value, boolean signExtend) {
       OPT_Register val1_reg = val1.asRegister().getRegister();
       EMIT(MIR_Move.create(IA32_MOV, res.copyRO(), new OPT_RegisterOperand(val1_reg, VM_TypeReference.Int)));
       EMIT(MIR_BinaryAcc.mutate(s, IA32_SHR, res, IC(31)));
-    }
-    else if (cond.isGREATER_EQUAL() && val2.isLongConstant() && val2.asLongConstant().value == 0 && val1.isRegister()) {
+    } else if (cond.isGREATER_EQUAL() && val2.isLongConstant() && val2.asLongConstant().value == 0 && val1.isRegister()) {
       // Put the most significant bit of val1 into res and invert
       OPT_Register val1_reg = val1.asRegister().getRegister();
       EMIT(MIR_Move.create(IA32_MOV, res.copyRO(), new OPT_RegisterOperand(val1_reg, VM_TypeReference.Int)));
       EMIT(MIR_BinaryAcc.mutate(s, IA32_SHR, res, IC(31)));
       EMIT(MIR_BinaryAcc.create(IA32_XOR, res.copyRO(), IC(1)));
-    }
-    else {
+    } else {
       // Long comparison is a subtraction:
       // <, >= : easy to compute as SF !=/== OF
       // >, <= : flipOperands and treat as a </>=
@@ -3226,53 +3217,54 @@ OPT_Operand value, boolean signExtend) {
    * @param newValue the new value to place at the address mo
    */
   protected final void ATTEMPT_LONG(OPT_RegisterOperand result,
-		  OPT_MemoryOperand mo,
-		  OPT_Operand oldValue,
-		  OPT_Operand newValue) {
-	  // Set up EDX:EAX with the old value
-	  if (oldValue.isRegister()) {
-		  OPT_Register oldValue_hval = oldValue.asRegister().getRegister();
-		  OPT_Register oldValue_lval = regpool.getSecondReg(oldValue_hval);
-		  EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getEDX(), VM_TypeReference.Int),
-				  new OPT_RegisterOperand(oldValue_hval, VM_TypeReference.Int)));
-		  EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getEAX(), VM_TypeReference.Int),
-				  new OPT_RegisterOperand(oldValue_lval, VM_TypeReference.Int)));
-	  } else {
-		  if (VM.VerifyAssertions) VM._assert(oldValue.isLongConstant());
-		  OPT_LongConstantOperand val = oldValue.asLongConstant();
-		  EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getEDX(), VM_TypeReference.Int),
-				  IC(val.upper32())));
-		  EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getEAX(), VM_TypeReference.Int),
-				  IC(val.lower32())));
-	  }
+                                    OPT_MemoryOperand mo,
+                                    OPT_Operand oldValue,
+                                    OPT_Operand newValue) {
+    // Set up EDX:EAX with the old value
+    if (oldValue.isRegister()) {
+      OPT_Register oldValue_hval = oldValue.asRegister().getRegister();
+      OPT_Register oldValue_lval = regpool.getSecondReg(oldValue_hval);
+      EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getEDX(), VM_TypeReference.Int),
+          new OPT_RegisterOperand(oldValue_hval, VM_TypeReference.Int)));
+      EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getEAX(), VM_TypeReference.Int),
+          new OPT_RegisterOperand(oldValue_lval, VM_TypeReference.Int)));
+    } else {
+      if (VM.VerifyAssertions) VM._assert(oldValue.isLongConstant());
+      OPT_LongConstantOperand val = oldValue.asLongConstant();
+      EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getEDX(), VM_TypeReference.Int),
+          IC(val.upper32())));
+      EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getEAX(), VM_TypeReference.Int),
+          IC(val.lower32())));
+    }
 
-	  // Set up ECX:EBX with the new value
-	  if (newValue.isRegister()) {
-		  OPT_Register newValue_hval = newValue.asRegister().getRegister();
-		  OPT_Register newValue_lval = regpool.getSecondReg(newValue_hval);
-		  EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int),
-				  new OPT_RegisterOperand(newValue_hval, VM_TypeReference.Int)));
-		  EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getEBX(), VM_TypeReference.Int),
-				  new OPT_RegisterOperand(newValue_lval, VM_TypeReference.Int)));
-	  } else {
-		  if (VM.VerifyAssertions) VM._assert(newValue.isLongConstant());
-		  OPT_LongConstantOperand val = newValue.asLongConstant();
-		  EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int),
-				  IC(val.upper32())));
-		  EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getEBX(), VM_TypeReference.Int),
-				  IC(val.lower32())));
-	  }
+    // Set up ECX:EBX with the new value
+    if (newValue.isRegister()) {
+      OPT_Register newValue_hval = newValue.asRegister().getRegister();
+      OPT_Register newValue_lval = regpool.getSecondReg(newValue_hval);
+      EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int),
+          new OPT_RegisterOperand(newValue_hval, VM_TypeReference.Int)));
+      EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getEBX(), VM_TypeReference.Int),
+          new OPT_RegisterOperand(newValue_lval, VM_TypeReference.Int)));
+    } else {
+      if (VM.VerifyAssertions) VM._assert(newValue.isLongConstant());
+      OPT_LongConstantOperand val = newValue.asLongConstant();
+      EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int),
+          IC(val.upper32())));
+      EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getEBX(), VM_TypeReference.Int),
+          IC(val.lower32())));
+    }
 
-	  EMIT(MIR_CompareExchange8B.create(IA32_LOCK_CMPXCHG8B,
-			  new OPT_RegisterOperand(getEDX(), VM_TypeReference.Int),
-					  new OPT_RegisterOperand(getEAX(), VM_TypeReference.Int),
-					  mo,
-					  new OPT_RegisterOperand(getECX(), VM_TypeReference.Int),
-					  new OPT_RegisterOperand(getEBX(), VM_TypeReference.Int)));
-	  OPT_RegisterOperand temp = regpool.makeTemp(result);
-	  EMIT(MIR_Set.create(IA32_SET__B, temp, OPT_IA32ConditionOperand.EQ()));
-	  // need to zero-extend the result of the set
-	  EMIT(MIR_Unary.create(IA32_MOVZX__B, result, temp.copy()));
+    EMIT(MIR_CompareExchange8B.create(IA32_LOCK_CMPXCHG8B,
+         new OPT_RegisterOperand(getEDX(), VM_TypeReference.Int),
+         new OPT_RegisterOperand(getEAX(), VM_TypeReference.Int),
+         mo,
+         new OPT_RegisterOperand(getECX(), VM_TypeReference.Int),
+         new OPT_RegisterOperand(getEBX(), VM_TypeReference.Int)));
+
+    OPT_RegisterOperand temp = regpool.makeTemp(result);
+    EMIT(MIR_Set.create(IA32_SET__B, temp, OPT_IA32ConditionOperand.EQ()));
+    // need to zero-extend the result of the set
+    EMIT(MIR_Unary.create(IA32_MOVZX__B, result, temp.copy()));
   }
 
   /**

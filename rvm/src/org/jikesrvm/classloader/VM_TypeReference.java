@@ -15,7 +15,11 @@ package org.jikesrvm.classloader;
 import org.jikesrvm.VM;
 import static org.jikesrvm.VM_SizeConstants.BYTES_IN_ADDRESS;
 import org.jikesrvm.util.VM_HashSet;
+
+// TODO: The following is due to a bug in checkstyle 4.3
+// CHECKSTYLE:OFF
 import org.vmmagic.pragma.Uninterruptible;
+// CHECKSTYLE:ON
 
 /**
  * A class to represent the reference in a class file to some

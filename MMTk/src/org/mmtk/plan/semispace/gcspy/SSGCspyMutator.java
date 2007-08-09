@@ -261,12 +261,9 @@ import org.vmmagic.unboxed.*;
         // This is a safepoint for the server, i.e. it is a point at which
         // the server can pause.
         GCspy.server.serverSafepoint(event);
-      }
-
-
-      else if (event == SSGCspy.SEMISPACE_COPIED) {
+      } else if (event == SSGCspy.SEMISPACE_COPIED) {
         // We have flipped
-	// toSpace still has not been rebound
+        // toSpace still has not been rebound
 
         // -- Handle the semispaces
         if (DEBUG) {
@@ -307,11 +304,9 @@ import org.vmmagic.unboxed.*;
         // This is a safepoint for the server, i.e. it is a point at which
         // the server can pause.
         GCspy.server.serverSafepoint(event);
-      }
-
-      else if (event == SSGCspy.AFTER_COLLECTION) {
+      } else if (event == SSGCspy.AFTER_COLLECTION) {
         // We have flipped
-	// And toSpace has been rebound
+        // And toSpace has been rebound
 
         GCspy.server.startCompensationTimer();
 

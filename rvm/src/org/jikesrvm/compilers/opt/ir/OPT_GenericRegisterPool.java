@@ -75,8 +75,7 @@ public class OPT_GenericRegisterPool extends OPT_AbstractRegisterPool {
    * @return the temp
    */
   public OPT_RegisterOperand makePROp() {
-    OPT_RegisterOperand prOp = new OPT_RegisterOperand(physical.getPR(),
-    		VM_Scheduler.getProcessorType());
+    OPT_RegisterOperand prOp = new OPT_RegisterOperand(physical.getPR(), VM_Scheduler.getProcessorType());
     prOp.setPreciseType();
     return prOp;
   }

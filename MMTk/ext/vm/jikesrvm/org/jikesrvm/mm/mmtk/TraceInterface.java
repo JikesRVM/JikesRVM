@@ -28,7 +28,6 @@ import org.jikesrvm.compilers.common.VM_CompiledMethods;
 
 import org.jikesrvm.objectmodel.VM_MiscHeader;
 import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.objectmodel.VM_TIBLayoutConstants;

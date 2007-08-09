@@ -134,7 +134,7 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
    * Used to shut down threads
    */
   private static final ThreadDeath threadDeath = new ThreadDeath();
- 
+
   /**
    * Has the execution of boot completed successfully?
    */

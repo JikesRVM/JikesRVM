@@ -321,7 +321,7 @@ public class OPT_SpaceEffGraph implements OPT_Graph, OPT_VCGGraph, OPT_TopSortIn
       for (OPT_SpaceEffGraphEdge inEdge = n.firstInEdge(); inEdge != null; inEdge = inEdge.getNextIn()) {
         if (visitedNodes.contains(inEdge)) {
           duplicatedNodes ++;
-          res.append ("(Duplicated edge " + inEdge.toNodeString() + ")");
+          res.append("(Duplicated edge " + inEdge.toNodeString() + ")");
           if (duplicatedNodes > 5) {
             break;
           }
@@ -340,7 +340,7 @@ public class OPT_SpaceEffGraph implements OPT_Graph, OPT_VCGGraph, OPT_TopSortIn
       for (OPT_SpaceEffGraphEdge out = n.firstOutEdge(); out != null; out = out.getNextOut()) {
         if (visitedNodes.contains(out)) {
           duplicatedNodes ++;
-          res.append ("(Duplicated edge " + out.toNodeString() + ")");
+          res.append("(Duplicated edge " + out.toNodeString() + ")");
           if (duplicatedNodes > 5) {
             break;
           }

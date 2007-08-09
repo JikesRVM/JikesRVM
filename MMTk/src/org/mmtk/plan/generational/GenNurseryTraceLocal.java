@@ -128,8 +128,7 @@ import org.vmmagic.unboxed.*;
    */
   public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     if (object.isNull()) return false;
-    return object.toAddress().LT(Gen.NURSERY_START) ||
-    	Space.isInSpace(Plan.PLOS, object);
+    return object.toAddress().LT(Gen.NURSERY_START) || Space.isInSpace(Plan.PLOS, object);
   }
 
 }

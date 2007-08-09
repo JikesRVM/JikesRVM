@@ -494,14 +494,14 @@ public final class OPT_GenerationContext implements org.jikesrvm.compilers.opt.O
   boolean noNullChecks() {
     return options.NO_NULL_CHECK || method.hasNoNullCheckAnnotation();
   }
-  
+
   /**
    * Should bounds checks be generated?
    */
   boolean noBoundsChecks() {
     return options.NO_BOUNDS_CHECK || method.hasNoBoundsCheckAnnotation();
   }
-  
+
   /**
    * Make a register operand that refers to the given local variable number
    * and has the given type.

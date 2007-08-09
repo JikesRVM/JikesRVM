@@ -118,7 +118,7 @@ public class VM_GreenThread extends VM_Thread {
   /**
    * Create a thread.
    */
-  protected VM_GreenThread (byte[] stack, Thread thread, String name, boolean daemon, boolean system, int priority) {
+  protected VM_GreenThread(byte[] stack, Thread thread, String name, boolean daemon, boolean system, int priority) {
     super(stack, thread, name, daemon, system, priority);
     // for load balancing
     chosenProcessorId = (VM.runningVM ? VM_Processor.getCurrentProcessorId() : 0);
@@ -741,16 +741,14 @@ public class VM_GreenThread extends VM_Thread {
    */
   final boolean suspendIfPending() {
     if (suspendPending == 1) {
-      if(VM_Synchronization.tryCompareAndSwap(this, suspendPendingOffset, 1, 0)) {
+      if (VM_Synchronization.tryCompareAndSwap(this, suspendPendingOffset, 1, 0)) {
         // we turned the suspendPending flag off
         return true;
       } else {
         // swap failed, so it must have been resumed prior to being suspended
-        return false;
       }
-    } else {
-      return false;
     }
+    return false;
   }
   /**
    * Put this thread on ready queue for subsequent execution on a future

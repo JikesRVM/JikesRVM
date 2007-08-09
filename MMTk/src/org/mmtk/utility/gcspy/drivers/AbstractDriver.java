@@ -51,10 +51,10 @@ public abstract class AbstractDriver {
   protected static final byte CONTROL_LINK            = 16;
 
 
-  private static final int MAX_STREAMS = 64;	// Max number of streams
+  private static final int MAX_STREAMS = 64;    // Max number of streams
 
   private static final boolean DEBUG = false;
-  protected String myClass;			// used in debugging messages
+  protected String myClass;                     // used in debugging messages
 
 
   /****************************************************************************
@@ -93,9 +93,9 @@ public abstract class AbstractDriver {
    */
   public AbstractDriver(ServerInterpreter server,
                         String name,
-			            Space mmtkSpace,
-			            int blockSize,
-			            boolean mainSpace) {
+                        Space mmtkSpace,
+                        int blockSize,
+                        boolean mainSpace) {
     this.server = server;
     this.name = name;
     this.mmtkSpace = mmtkSpace;
@@ -115,7 +115,7 @@ public abstract class AbstractDriver {
    * @param mmtkSpace The MMTk space
    */
   @Interruptible
-  protected Subspace createSubspace (Space mmtkSpace) {
+  protected Subspace createSubspace(Space mmtkSpace) {
     Address start = mmtkSpace.getStart();
     return new Subspace(start, start, 0, blockSize, 0);
   }
@@ -130,24 +130,22 @@ public abstract class AbstractDriver {
   @Interruptible
   protected ServerSpace createServerSpace(ServerInterpreter server,
                   String spaceName,
-			      int maxTileNum,
-			      boolean mainSpace) {
+                  int maxTileNum,
+                  boolean mainSpace) {
     // Set the block label
     String tmp = "Block Size: " + ((blockSize < 1024) ?
                      blockSize + " bytes\n":
                      (blockSize / 1024) + " Kbytes\n");
 
     // Create a single GCspy Space
-    return VM.newGCspyServerSpace(
-		            server,   			        // the server
-                    spaceName,                  // space name
-                    getDriverName(),            // driver (space) name
-                    "Block ",                   // space title
-                    tmp,                        // block info
-                    maxTileNum,                 // number of tiles
-                    "UNUSED",                   // the label for unused blocks
-                    mainSpace                   // main space
-		    );
+    return VM.newGCspyServerSpace(server,           // the server
+                                  spaceName,        // space name
+                                  getDriverName(),  // driver (space) name
+                                  "Block ",         // space title
+                                  tmp,              // block info
+                                  maxTileNum,       // number of tiles
+                                  "UNUSED",         // the label for unused blocks
+                                  mainSpace);       // main space
   }
 
   /**
@@ -199,7 +197,7 @@ public abstract class AbstractDriver {
    * @param tileSize The size of each tile.
    * @return The number of tiles in this range.
    */
-  protected int countTileNum (Address start, Address end, int tileSize) {
+  protected int countTileNum(Address start, Address end, int tileSize) {
     if (end.LE(start)) return 0;
     int diff = end.diff(start).toInt();
     return countTileNum(diff, tileSize);
@@ -211,12 +209,12 @@ public abstract class AbstractDriver {
    * @param tileSize The size of each tile.
    * @return The number of tiles in this range.
    */
-  protected int countTileNum (Extent extent, int tileSize) {
+  protected int countTileNum(Extent extent, int tileSize) {
     int diff = extent.toInt();
     return countTileNum(diff, tileSize);
   }
 
-  private int countTileNum (int diff, int tileSize) {
+  private int countTileNum(int diff, int tileSize) {
     int tiles = diff / tileSize;
     if ((diff % tileSize) != 0)
       ++tiles;
@@ -277,7 +275,7 @@ public abstract class AbstractDriver {
    * Is the server connected to a GCspy client?
    * @param event The current event
    */
-  public boolean isConnected (int event) {
+  public boolean isConnected(int event) {
     return server.isConnected(event);
   }
 
@@ -362,7 +360,7 @@ public abstract class AbstractDriver {
    * @param val the control value.
    * @return true if the tile is used
    */
-  protected static boolean controlIsUsed (byte val) {
+  protected static boolean controlIsUsed(byte val) {
     return (val & CONTROL_USED) != 0;
   }
 
@@ -371,7 +369,7 @@ public abstract class AbstractDriver {
    * @param val the control value.
    * @return true if the tile is a background tile
    */
-  protected static boolean controlIsBackground (byte val) {
+  protected static boolean controlIsBackground(byte val) {
     return (val & CONTROL_BACKGROUND) != 0;
   }
 
@@ -380,7 +378,7 @@ public abstract class AbstractDriver {
    * @param val the control value.
    * @return true if the tile is unused
    */
-  protected static boolean controlIsUnused (byte val) {
+  protected static boolean controlIsUnused(byte val) {
     return (val & CONTROL_UNUSED) != 0;
   }
 
@@ -389,7 +387,7 @@ public abstract class AbstractDriver {
    * @param val the control value.
    * @return true if this is a separator
    */
-  protected static boolean controlIsSeparator (byte val) {
+  protected static boolean controlIsSeparator(byte val) {
     return (val & CONTROL_SEPARATOR) != 0;
   }
 
@@ -430,7 +428,7 @@ public abstract class AbstractDriver {
   /**
    * Initialise control values in all tiles
    */
-  protected void initControls () {
+  protected void initControls() {
     for (int index = 0; index < control.length; ++index) {
       initControl(index, CONTROL_USED);
     }
@@ -442,7 +440,7 @@ public abstract class AbstractDriver {
    * @param start The start index of the region.
    * @param len The number of tiles in the region.
    */
-  protected void controlValues (byte tag, int start, int len) {
+  protected void controlValues(byte tag, int start, int len) {
     if (DEBUG) {
       Log.write("AbstractDriver.controlValues for space ");
       Log.write(name);
@@ -501,5 +499,4 @@ public abstract class AbstractDriver {
       serverSpace.endCommunication();
     }
   }
-
 }

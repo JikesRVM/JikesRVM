@@ -933,7 +933,7 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    * (C frames), stopping at the native frame immediately preceding the glue
    * frame which contains the method ID of the native method (this is necessary
    * to allow retrieving the return address of the glue frame)
-   * 
+   *
    * @param currfp The current frame is expected to be one of the JNI functions
    *            called from C, below which is one or more native stack frames
    */

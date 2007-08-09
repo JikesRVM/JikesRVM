@@ -17,7 +17,6 @@ import org.mmtk.utility.Log;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.options.PrintPhaseStats;
 import org.mmtk.utility.options.XmlStats;
-import org.mmtk.utility.scan.Scan;
 
 import org.mmtk.vm.VM;
 

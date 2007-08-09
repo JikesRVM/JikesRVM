@@ -230,7 +230,7 @@ public class VM_Memory implements VM_SizeConstants {
       //       we are going into memcopy anyways and that will be faster than anything we do here.
       Address endPtr = srcPtr.plus(copyBytes);
       while (srcPtr.LT(endPtr)) {
-    	dstPtr.store(srcPtr.loadInt());
+        dstPtr.store(srcPtr.loadInt());
         srcPtr = srcPtr.plus(4);
         dstPtr = dstPtr.plus(4);
       }

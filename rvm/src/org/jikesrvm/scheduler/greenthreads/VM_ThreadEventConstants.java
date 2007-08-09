@@ -12,8 +12,6 @@
  */
 package org.jikesrvm.scheduler.greenthreads;
 
-import org.jikesrvm.scheduler.VM_Thread;
-
 /**
  * Constants specifying the state of a {@link VM_Thread} waiting
  * on a {@link VM_ThreadEventWaitQueue}.

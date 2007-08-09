@@ -90,7 +90,7 @@ import org.vmmagic.pragma.*;
     objectsStream         = createObjectsStream();
     rootsStream           = createRootsStream();
     refFromImmortalStream = createRefFromImmortalStream();
-    serverSpace.resize(0);	// the collector must call resize() before gathering data
+    serverSpace.resize(0); // the collector must call resize() before gathering data
 
     // Initialise the statistics
     resetData();
@@ -120,7 +120,7 @@ import org.vmmagic.pragma.*;
                      StreamConstants.PAINT_STYLE_ZERO,       // paint style
                      0,                                      // index of the max stream (only needed if presentation is *_VAR)
                      Color.Red,                              // tile colour
-		             true);                                  // summary enabled
+                     true);                                  // summary enabled
   }
 
   @Interruptible
@@ -138,7 +138,7 @@ import org.vmmagic.pragma.*;
                      StreamConstants.PAINT_STYLE_ZERO,
                      0,
                      Color.Green,
-		             true);
+                     true);
   }
 
   @Interruptible
@@ -157,7 +157,7 @@ import org.vmmagic.pragma.*;
                      StreamConstants.PAINT_STYLE_ZERO,
                      0,
                      Color.Blue,
-		             true);
+                     true);
   }
 
   @Interruptible
@@ -176,13 +176,13 @@ import org.vmmagic.pragma.*;
                      StreamConstants.PAINT_STYLE_ZERO,
                      0,
                      Color.Blue,
-		             true);
+                     true);
   }
 
   /**
    * Reset the tile stats for all streams, including values used for summaries
    */
-  public void resetData () {
+  public void resetData() {
     super.resetData();
 
     // Reset all the streams
@@ -231,7 +231,7 @@ import org.vmmagic.pragma.*;
    * @param event The event, either BEFORE_COLLECTION, SEMISPACE_COPIED
    * or AFTER_COLLECTION
    */
-  public void transmit (int event) {
+  public void transmit(int event) {
     if (!isConnected(event))
       return;
 
@@ -282,7 +282,7 @@ import org.vmmagic.pragma.*;
    * @param addr Root Address
    * @return true if the given Address is in this subspace.
    */
-  public boolean handleRoot (Address addr) {
+  public boolean handleRoot(Address addr) {
     if(subspace.addressInRange(addr)) {
       // increment tile
       int index = subspace.getIndex(addr);
@@ -290,16 +290,17 @@ import org.vmmagic.pragma.*;
       // increment summary
       this.totalRoots++;
       return true;
+    } else {
+      return false;
     }
-    else return false;
   }
 
   /**
    * Reset the roots Stream. <br>
    * The roots Stream has to be reset seperately because we do not
    * gather data in the usual way using <code>scan()</code>.
- */
-  public void resetRootsStream () {
+   */
+  public void resetRootsStream() {
     rootsStream.resetData();
     totalRoots = 0;
   }
@@ -318,8 +319,8 @@ import org.vmmagic.pragma.*;
       // increment summary
       this.totalRefFromImmortal++;
       return true;
+    } else {
+      return false;
     }
-    else return false;
-
   }
 }

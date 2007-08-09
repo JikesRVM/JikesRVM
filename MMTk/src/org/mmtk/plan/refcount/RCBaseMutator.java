@@ -157,7 +157,7 @@ import org.vmmagic.unboxed.*;
    *         <code>a</code>.
    */
   public Space getSpaceFromAllocator(Allocator a) {
-    if (a == rc ) return RCBase.rcSpace;
+    if (a == rc)  return RCBase.rcSpace;
     if (a == los) return RCBase.loSpace;
     return super.getSpaceFromAllocator(a);
   }

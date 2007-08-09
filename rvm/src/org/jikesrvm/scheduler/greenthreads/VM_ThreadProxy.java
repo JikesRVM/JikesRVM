@@ -20,7 +20,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * a waiting queue and a (the) wakeup queue. To facilitate this, a proxy
  * represents the thread on such queues. Unlike a thread, which can be on at
  * most one queue, a proxy can be on both a waiting queue and a wakeup queue.
- * 
+ *
  * When the proxy is dequeued it nullifies its thread reference. Either
  * queue finding a proxy with a null patron knows the other queue has handled
  * it and should skip that entry.
@@ -84,7 +84,7 @@ public final class VM_ThreadProxy {
   VM_GreenThread getPatron() {
     return patron;
   }
-  
+
   /** Get the wake up time */
   long getWakeupNano() {
     return wakeupNano;
@@ -94,7 +94,7 @@ public final class VM_ThreadProxy {
   VM_ThreadProxy getWaitingNext() {
     return waitingNext;
   }
-  
+
   /** Set the next element in the waiting queue */
   void setWaitingNext(VM_ThreadProxy wn) {
     waitingNext = wn;
@@ -107,5 +107,5 @@ public final class VM_ThreadProxy {
   /** Set the next element in the wakeup queue */
   void setWakeupNext(VM_ThreadProxy wn) {
     wakeupNext = wn;
-  }  
+  }
 }

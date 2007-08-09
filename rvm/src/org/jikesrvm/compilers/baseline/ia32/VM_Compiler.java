@@ -59,7 +59,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
   private int firstLocalOffset;
   /** Generate array index out of bounds checks? */
   private final boolean generateBoundsChecks;
-  
+
   private static final Offset NO_SLOT = Offset.zero();
   private static final Offset ONE_SLOT = NO_SLOT.plus(WORDSIZE);
   private static final Offset TWO_SLOTS = ONE_SLOT.plus(WORDSIZE);
@@ -1520,10 +1520,10 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
    * Emit code to implement the f2l bytecode
    */
   protected final void emit_f2l() {
-	 // TODO: SSE3 has a FISTTP instruction that stores the value with truncation
+    // TODO: SSE3 has a FISTTP instruction that stores the value with truncation
     // meaning the FPSCW can be left alone
 
-	 // Setup value into FP1
+    // Setup value into FP1
     asm.emitFLD_Reg_RegInd(FP0, SP);
     // Setup maxlong into FP0
     asm.emitFLD_Reg_RegDisp(FP0, JTOC, VM_Entrypoints.maxlongFloatField.getOffset());
@@ -2978,8 +2978,8 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
         asm.emitMOV_RegDisp_Reg(SP, T1_SAVE_OFFSET, T1);
         if (SSE2_FULL) {
           // TODO: Store SSE2 Control word?
-          asm.emitMOVQ_RegDisp_Reg(SP, XMM_SAVE_OFFSET.plus( 0), XMM0);
-          asm.emitMOVQ_RegDisp_Reg(SP, XMM_SAVE_OFFSET.plus( 8), XMM1);
+          asm.emitMOVQ_RegDisp_Reg(SP, XMM_SAVE_OFFSET.plus(0),  XMM0);
+          asm.emitMOVQ_RegDisp_Reg(SP, XMM_SAVE_OFFSET.plus(8),  XMM1);
           asm.emitMOVQ_RegDisp_Reg(SP, XMM_SAVE_OFFSET.plus(16), XMM2);
           asm.emitMOVQ_RegDisp_Reg(SP, XMM_SAVE_OFFSET.plus(24), XMM3);
           savedRegistersSize += XMM_STATE_SIZE;
@@ -3548,9 +3548,9 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
         return true;
       }
 
-      if (methodName == VM_MagicNames.prepareLong
-               || methodName == VM_MagicNames.loadLong
-               || methodName == VM_MagicNames.loadDouble) {
+      if (methodName == VM_MagicNames.prepareLong ||
+          methodName == VM_MagicNames.loadLong ||
+          methodName == VM_MagicNames.loadDouble) {
 
         if (types.length == 0) {
           // No offset
@@ -3704,24 +3704,24 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
       // (operation on memory is atomic)
       //t1:t0 with s0:ebx
       asm.emitMOV_Reg_RegDisp(T1, SP, THREE_SLOTS);
-      asm.emitMOV_Reg_RegDisp(T0, SP, TWO_SLOTS);   // T1:T0 (EDX:EAX) -> oldVal
+      asm.emitMOV_Reg_RegDisp(T0, SP, TWO_SLOTS);     // T1:T0 (EDX:EAX) -> oldVal
       asm.emitMOV_RegDisp_Reg(SP, THREE_SLOTS, EBX);  // Save EBX
       asm.emitMOV_RegDisp_Reg(SP, TWO_SLOTS, ESI);    // Save ESI
       asm.emitMOV_Reg_RegInd(EBX, SP);
-      asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT);   // S0:EBX (ECX:EBX) -> newVal
-      asm.emitMOV_Reg_RegDisp(ESI, SP, FIVE_SLOTS); // ESI := base
-      asm.emitADD_Reg_RegDisp(ESI, SP, FOUR_SLOTS); // ESI += offset
+      asm.emitMOV_Reg_RegDisp(S0, SP, ONE_SLOT);      // S0:EBX (ECX:EBX) -> newVal
+      asm.emitMOV_Reg_RegDisp(ESI, SP, FIVE_SLOTS);   // ESI := base
+      asm.emitADD_Reg_RegDisp(ESI, SP, FOUR_SLOTS);   // ESI += offset
       asm.emitLockNextInstruction();
-      asm.emitCMPXCHG8B_RegInd (ESI);        // atomic compare-and-exchange
+      asm.emitCMPXCHG8B_RegInd(ESI);                  // atomic compare-and-exchange
       VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.NE); // skip if compare fails
-      asm.emitMOV_RegDisp_Imm (SP, FIVE_SLOTS, 1);        // 'push' true (overwriting base)
-      VM_ForwardReference fr2 = asm.forwardJMP(); // skip if compare fails
+      asm.emitMOV_RegDisp_Imm(SP, FIVE_SLOTS, 1);     // 'push' true (overwriting base)
+      VM_ForwardReference fr2 = asm.forwardJMP();     // skip if compare fails
       fr1.resolve(asm);
-      asm.emitMOV_RegDisp_Imm (SP, FIVE_SLOTS, 0);        // 'push' false (overwriting base)
+      asm.emitMOV_RegDisp_Imm(SP, FIVE_SLOTS, 0);     // 'push' false (overwriting base)
       fr2.resolve(asm);
       asm.emitMOV_Reg_RegDisp(EBX, SP, THREE_SLOTS);  // Restore EBX
-      asm.emitMOV_Reg_RegDisp(ESI, SP, TWO_SLOTS);  // Restore ESI
-      asm.emitADD_Reg_Imm(SP, WORDSIZE*5);      // adjust SP popping the 4 args (6 slots) and pushing the result
+      asm.emitMOV_Reg_RegDisp(ESI, SP, TWO_SLOTS);    // Restore ESI
+      asm.emitADD_Reg_Imm(SP, WORDSIZE*5);            // adjust SP popping the 4 args (6 slots) and pushing the result
       return true;
     }
 
@@ -4153,8 +4153,8 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
 
       if (SSE2_FULL) {
         // TODO: Restore SSE2 Control word?
-        asm.emitMOVQ_Reg_RegDisp(XMM0, SP, XMM_SAVE_OFFSET.plus( 0));
-        asm.emitMOVQ_Reg_RegDisp(XMM1, SP, XMM_SAVE_OFFSET.plus( 8));
+        asm.emitMOVQ_Reg_RegDisp(XMM0, SP, XMM_SAVE_OFFSET.plus(0));
+        asm.emitMOVQ_Reg_RegDisp(XMM1, SP, XMM_SAVE_OFFSET.plus(8));
         asm.emitMOVQ_Reg_RegDisp(XMM2, SP, XMM_SAVE_OFFSET.plus(16));
         asm.emitMOVQ_Reg_RegDisp(XMM3, SP, XMM_SAVE_OFFSET.plus(24));
       } else {

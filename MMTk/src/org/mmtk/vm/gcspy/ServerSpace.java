@@ -118,38 +118,38 @@ import org.vmmagic.pragma.*;
   /**
    * End of this stream
    */
-  public abstract void streamEnd ();
+  public abstract void streamEnd();
 
   /**
    * Start to send a summary
    * @param id The stream's ID
    * @param len The number of items to be sent
    */
-  public abstract void summary (int id, int len);
+  public abstract void summary(int id, int len);
 
   /**
    * Send a summary value
    * @param val The value
    */
-  public abstract void summaryValue (int val);
+  public abstract void summaryValue(int val);
 
   /**
    * End the summary
    */
-  public abstract void summaryEnd ();
+  public abstract void summaryEnd();
 
   /**
    * Send all the control info for the space
    * @param space The GCspy driver for this space
    * @param tileNum The number of tiles
    */
-  public abstract void sendControls (AbstractDriver space, int tileNum);
+  public abstract void sendControls(AbstractDriver space, int tileNum);
 
   /**
    * Send info for this space
    * @param info A pointer to the information (held as C string)
    */
-  public abstract void spaceInfo (Address info);
+  public abstract void spaceInfo(Address info);
 
   /**
    * End the transmission (for this event)

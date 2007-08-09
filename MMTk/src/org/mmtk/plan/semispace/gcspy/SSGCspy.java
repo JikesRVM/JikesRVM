@@ -50,31 +50,31 @@ import org.vmmagic.pragma.*;
  * FIXME This seems to have changed
  * The order of phases and GCspy actions is important here. It is:
  *   PREPARE phase
- * 	SSGCspyMutator.gcspyGatherData(SSGCspy.BEFORE_COLLECTION); // safepoint
- * 	SSMutator.PREPARE // FIXME DOES NOT ss.rebind(SS.toSpace());
+ *      SSGCspyMutator.gcspyGatherData(SSGCspy.BEFORE_COLLECTION); // safepoint
+ *      SSMutator.PREPARE // FIXME DOES NOT ss.rebind(SS.toSpace());
  *
  *   PREPARE phase
- * 	SS.PREPARE // flip semispaces
- *	gcspySpace.prepare();
- * 	SSGCspyCollector.gcspyGatherData(SSGCspy.BEFORE_COLLECTION);
- * 	SSCollector.PREPARE // ss.rebind(SS.toSpace());
+ *      SS.PREPARE // flip semispaces
+ *      gcspySpace.prepare();
+ *      SSGCspyCollector.gcspyGatherData(SSGCspy.BEFORE_COLLECTION);
+ *      SSCollector.PREPARE // ss.rebind(SS.toSpace());
  *
  *
  *   FORWARD_FINALIZABLE phase
- * 	SSCollector.FORWARD_FINALIZABLE
- *	SSGCspyCollector.gcspyGatherData(SSGCspy.SEMISPACE_COPIED);
+ *      SSCollector.FORWARD_FINALIZABLE
+ *      SSGCspyCollector.gcspyGatherData(SSGCspy.SEMISPACE_COPIED);
  *
  *   RELEASE phase
- *	SSGCspyMutator.gcspyGatherData(SSGCspy.SEMISPACE_COPIED); // safepoint
- *	SSMutator.RELEASE // FIXME ss.rebind(SS.toSpace());
- *	SSGCspyMutator.gcspyGatherData(SSGCspy.AFTER_COLLECTION);
+ *      SSGCspyMutator.gcspyGatherData(SSGCspy.SEMISPACE_COPIED); // safepoint
+ *      SSMutator.RELEASE // FIXME ss.rebind(SS.toSpace());
+ *      SSGCspyMutator.gcspyGatherData(SSGCspy.AFTER_COLLECTION);
  *
  *   RELEASE phase
- *	SSCollector.RELEASE
- *	SSGCspyCollector.gcspyGatherData(SSGCspy.AFTER_COLLECTION);
- * 	SS.RELEASE
- *	gcspySpace.release();
- *	SSGCspy.gcspyGatherData(); // safepoint
+ *      SSCollector.RELEASE
+ *      SSGCspyCollector.gcspyGatherData(SSGCspy.AFTER_COLLECTION);
+ *      SS.RELEASE
+ *      gcspySpace.release();
+ *      SSGCspy.gcspyGatherData(); // safepoint
  *
  * Note that SSMutator has changed the point at which it rebinds toSpace
  * from PREPARE (2.4.6) to after RELEASE (3.x.x).
@@ -193,8 +193,8 @@ import org.vmmagic.pragma.*;
     // Initialise each driver
     ss0Driver      = newLinearSpaceDriver("Semispace 0 Space", copySpace0, true);
     ss1Driver      = newLinearSpaceDriver("Semispace 1 Space", copySpace1, false);
-    immortalDriver = new ImmortalSpaceDriver
-                        (GCspy.server,  "Immortal Space", immortalSpace,
+    immortalDriver = new ImmortalSpaceDriver(
+                         GCspy.server,  "Immortal Space", immortalSpace,
                          Options.gcspyTileSize.getValue(), false);
     losNurseryDriver  = newTreadmillDriver("LOS Nursery", loSpace);
     losDriver         = newTreadmillDriver("LOS", loSpace);

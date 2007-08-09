@@ -181,12 +181,12 @@ public class VM_Statics implements VM_Constants {
     synchronized (intSizeLiterals) {
       offsetAsInt = intSizeLiterals.get(literal);
       if (offsetAsInt != null) {
-	return offsetAsInt;
+        return offsetAsInt;
       } else {
-	Offset newOff = allocateNumericSlot(BYTES_IN_INT);
-	intSizeLiterals.put(literal, newOff.toInt());
-	setSlotContents(newOff, literal);
-	return newOff.toInt();
+        Offset newOff = allocateNumericSlot(BYTES_IN_INT);
+        intSizeLiterals.put(literal, newOff.toInt());
+        setSlotContents(newOff, literal);
+        return newOff.toInt();
       }
     }
   }
@@ -202,12 +202,12 @@ public class VM_Statics implements VM_Constants {
     synchronized (longSizeLiterals) {
       offsetAsInt = longSizeLiterals.get(literal);
       if (offsetAsInt != null) {
-	return offsetAsInt;
+        return offsetAsInt;
       } else {
-	Offset newOff = allocateNumericSlot(BYTES_IN_LONG);
-	longSizeLiterals.put(literal, newOff.toInt());
-	setSlotContents(newOff, literal);
-	return newOff.toInt();
+        Offset newOff = allocateNumericSlot(BYTES_IN_LONG);
+        longSizeLiterals.put(literal, newOff.toInt());
+        setSlotContents(newOff, literal);
+        return newOff.toInt();
       }
     }
   }
@@ -225,19 +225,19 @@ public class VM_Statics implements VM_Constants {
     synchronized (stringLiterals) {
       offAsInt = stringLiterals.get(literal);
       if (offAsInt != null) {
-	return offAsInt;
+        return offAsInt;
       } else {
-	String stringValue = literal.toUnicodeString();
-	if (VM.runningVM) {
-	  stringValue = stringValue.intern();
-	}
-	Offset newOff = allocateReferenceSlot();
-	stringLiterals.put(literal, newOff.toInt());
-	synchronized (objectLiterals) {
-	  objectLiterals.put(stringValue, newOff.toInt());
-	  setSlotContents(newOff, stringValue);
-	}
-	return newOff.toInt();
+        String stringValue = literal.toUnicodeString();
+        if (VM.runningVM) {
+          stringValue = stringValue.intern();
+        }
+        Offset newOff = allocateReferenceSlot();
+        stringLiterals.put(literal, newOff.toInt());
+        synchronized (objectLiterals) {
+          objectLiterals.put(stringValue, newOff.toInt());
+          setSlotContents(newOff, stringValue);
+        }
+        return newOff.toInt();
       }
     }
   }
@@ -270,12 +270,12 @@ public class VM_Statics implements VM_Constants {
     synchronized (objectLiterals) {
       offAsInt = objectLiterals.get(literalAsClass);
       if (offAsInt != null) {
-	return offAsInt;
+        return offAsInt;
       } else {
-	Offset newOff = allocateReferenceSlot();
-	objectLiterals.put(literalAsClass, newOff.toInt());
-	setSlotContents(newOff, literalAsClass);
-	return newOff.toInt();
+        Offset newOff = allocateReferenceSlot();
+        objectLiterals.put(literalAsClass, newOff.toInt());
+        setSlotContents(newOff, literalAsClass);
+        return newOff.toInt();
       }
     }
   }
@@ -291,12 +291,12 @@ public class VM_Statics implements VM_Constants {
     synchronized (objectLiterals) {
       offAsInt = objectLiterals.get(literal);
       if (offAsInt != null) {
-	return offAsInt;
+        return offAsInt;
       } else {
-	Offset newOff = allocateReferenceSlot();
+        Offset newOff = allocateReferenceSlot();
         objectLiterals.put(literal, newOff.toInt());
-	setSlotContents(newOff, literal);
-	return newOff.toInt();
+        setSlotContents(newOff, literal);
+        return newOff.toInt();
       }
     }
   }

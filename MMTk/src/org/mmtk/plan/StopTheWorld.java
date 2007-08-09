@@ -77,6 +77,8 @@ import org.vmmagic.pragma.*;
   public static final short SANITY_CHECK_TABLE  = Phase.createSimple("sanity-check-table", null);
   public static final short SANITY_RELEASE      = Phase.createSimple("sanity-release", null);
 
+  // CHECKSTYLE:OFF
+
   /** Trace and set up a sanity table */
   private static final short sanityBuildPhase = Phase.createComplex("sanity-build", null,
       Phase.scheduleGlobal     (SANITY_PREPARE),
@@ -165,6 +167,8 @@ import org.vmmagic.pragma.*;
       Phase.scheduleComplex(forwardPhase),
       Phase.scheduleComplex(completeClosurePhase),
       Phase.scheduleComplex(finishPhase));
+
+  // CHECKSTYLE:ON
 
   /* Basic GC sanity checker */
   private SanityChecker sanityChecker = new SanityChecker();

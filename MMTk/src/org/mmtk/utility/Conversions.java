@@ -26,11 +26,11 @@ import org.vmmagic.pragma.*;
 @Uninterruptible public class Conversions implements Constants {
 
   // public static Address roundDownVM(Address addr) {
-//     return roundDown(addr.toWord(), VMResource.LOG_BYTES_IN_VM_REGION).toAddress();
+  //   return roundDown(addr.toWord(), VMResource.LOG_BYTES_IN_VM_REGION).toAddress();
   // }
 
   // public static Extent roundDownVM(Extent bytes) {
-//     return roundDown(bytes.toWord(), VMResource.LOG_BYTES_IN_VM_REGION).toExtent();
+  //   return roundDown(bytes.toWord(), VMResource.LOG_BYTES_IN_VM_REGION).toExtent();
   // }
 
   public static Address roundDownMB(Address addr) {
@@ -47,7 +47,7 @@ import org.vmmagic.pragma.*;
   }
 
   public static int roundDown(int value, int alignment) {
-	return value & ~(alignment - 1);
+    return value & ~(alignment - 1);
   }
 
   // Round up (if necessary)

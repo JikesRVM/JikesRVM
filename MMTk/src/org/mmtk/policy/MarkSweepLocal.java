@@ -62,9 +62,9 @@ import org.vmmagic.pragma.*;
    * mark bit per block.
    */
   public static final boolean HEADER_MARK_BITS = VM.config.HEADER_MARK_BITS;
-  public static final int META_DATA_PAGES_PER_REGION = HEADER_MARK_BITS
-    ? SegregatedFreeList.META_DATA_PAGES_PER_REGION_NO_BITMAP
-    : SegregatedFreeList.META_DATA_PAGES_PER_REGION_WITH_BITMAP;
+  public static final int META_DATA_PAGES_PER_REGION = HEADER_MARK_BITS ?
+    SegregatedFreeList.META_DATA_PAGES_PER_REGION_NO_BITMAP :
+    SegregatedFreeList.META_DATA_PAGES_PER_REGION_WITH_BITMAP;
 
 
   /****************************************************************************

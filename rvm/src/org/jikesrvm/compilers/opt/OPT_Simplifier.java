@@ -3257,8 +3257,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
             Method m = method.getDeclaringClass().getClassForType().getDeclaredMethod(method.getName().toString(), argTypes);
             result = m.invoke(thisArg, otherArgs);
           }
-        }
-        catch (Throwable e) { t = e;}
+        } catch (Throwable e) { t = e;}
         if (t != null) {
           // Call threw exception so leave in to generate at execution time
           return DefUseEffect.UNCHANGED;
@@ -3285,32 +3284,23 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
   private static Object boxConstantOperand(OPT_ConstantOperand op, VM_TypeReference t){
     if (op.isObjectConstant()) {
       return op.asObjectConstant().value;
-    }
-    else if (op.isLongConstant()) {
+    } else if (op.isLongConstant()) {
       return op.asLongConstant().value;
-    }
-    else if (op.isFloatConstant()) {
+    } else if (op.isFloatConstant()) {
       return op.asFloatConstant().value;
-    }
-    else if (op.isDoubleConstant()) {
+    } else if (op.isDoubleConstant()) {
       return op.asDoubleConstant().value;
-    }
-    else if (t.isIntType()) {
+    } else if (t.isIntType()) {
       return op.asIntConstant().value;
-    }
-    else if (t.isBooleanType()) {
+    } else if (t.isBooleanType()) {
       return op.asIntConstant().value == 1;
-    }
-    else if (t.isByteType()) {
+    } else if (t.isByteType()) {
       return (byte)op.asIntConstant().value;
-    }
-    else if (t.isCharType()) {
+    } else if (t.isCharType()) {
       return (char)op.asIntConstant().value;
-    }
-    else if (t.isShortType()) {
+    } else if (t.isShortType()) {
       return (short)op.asIntConstant().value;
-    }
-    else {
+    } else {
       throw new OPT_OptimizingCompilerException("Trying to box an VM magic unboxed type for a pure method call is not possible");
     }
   }
@@ -3324,26 +3314,20 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
     if (VM.VerifyAssertions) VM._assert(!t.isUnboxedType());
     if (t.isIntLikeType()) {
       return IC((Integer)x);
-    }
-    else if (t.isLongType()) {
+    } else if (t.isLongType()) {
       return LC((Long)x);
-    }
-    else if (t.isFloatType()) {
+    } else if (t.isFloatType()) {
       return FC((Float)x);
-    }
-    else if (t.isDoubleType()) {
+    } else if (t.isDoubleType()) {
       return DC((Double)x);
-    }
-    else if(x instanceof String) {
+    } else if (x instanceof String) {
       // Handle as object constant but make sure to use interned String
       x = ((String)x).intern();
       return new OPT_ObjectConstantOperand(x, Offset.zero());
-    }
-    else if(x instanceof Class) {
+    } else if (x instanceof Class) {
       // Handle as object constant
       return new OPT_ObjectConstantOperand(x, Offset.zero());
-    }
-    else {
+    } else {
       return new OPT_ObjectConstantOperand(x, Offset.zero());
     }
   }

@@ -36,7 +36,7 @@ import org.vmmagic.pragma.*;
   public long nanoTime() {
     return VM_Time.nanoTime();
   }
-  
+
   /**
    * Read a cycle counter (high resolution, non-monotonic clock).
    * This method should be used with care as the cycle counters (especially on IA32 SMP machines)

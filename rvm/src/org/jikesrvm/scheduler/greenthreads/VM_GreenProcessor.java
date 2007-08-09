@@ -82,7 +82,7 @@ public final class VM_GreenProcessor extends VM_Processor {
 
   /** the collector thread to run */
   public VM_GreenThread collectorThread;
-  
+
   /**
    * Lock protecting a process wait queue.
    * This is needed because a thread may need to switch
@@ -295,7 +295,7 @@ public final class VM_GreenProcessor extends VM_Processor {
       scheduleThread(t);
     }
 
-    // If one of the threads has an active timerInteval, then we need to 
+    // If one of the threads has an active timerInteval, then we need to
     // update the timing information.
     if (previousThread.hasActiveTimedInterval() || newThread.hasActiveTimedInterval()) {
       long now = VM_Time.nanoTime();
@@ -303,7 +303,7 @@ public final class VM_GreenProcessor extends VM_Processor {
         previousThread.suspendInterval(now);
       }
       if (newThread.hasActiveTimedInterval()) {
-        newThread.resumeInterval(now);        
+        newThread.resumeInterval(now);
       }
     }
 

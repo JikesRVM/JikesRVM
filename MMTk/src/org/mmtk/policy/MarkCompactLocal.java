@@ -57,7 +57,7 @@ import org.vmmagic.unboxed.ObjectReference;
 
     /* Keep track of which regions are being used */
     int oldPages = 0;
-    int newPages = Conversions.bytesToPages(allocEnd.diff(allocStart).plus(BYTES_IN_ADDRESS));;
+    int newPages = Conversions.bytesToPages(allocEnd.diff(allocStart).plus(BYTES_IN_ADDRESS));
 
     while (!start.isZero()) {
       /* Get the end of this region */
