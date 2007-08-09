@@ -14,7 +14,6 @@ package org.jikesrvm.mm.mmtk;
 
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
-import org.mmtk.policy.Space;
 import org.mmtk.utility.options.Options;
 
 import org.vmmagic.pragma.*;
@@ -22,7 +21,6 @@ import org.vmmagic.unboxed.*;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.memorymanagers.mminterface.DebugUtil;
-import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_Entrypoints;
 import org.jikesrvm.scheduler.VM_Scheduler;
 
@@ -68,7 +66,7 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   private static final boolean TRACE = false;
   private static final boolean TRACE_UNREACHABLE = false;
   private static final boolean TRACE_DETAIL = false;
-  private static final boolean STRESS = false;
+  private static final boolean STRESS = false || VM.ForceFrequentGC;
 
   /** Initial size of the reference object table */
   private static final int INITIAL_SIZE = STRESS ? 1 : 256;
@@ -146,8 +144,10 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * Add a reference at the end of the table
    * @param ref The reference to add
    */
-  private void addReference(Reference<?> ref) {
-    setReference(maxIndex++,ObjectReference.fromObject(ref));
+  private void addReference(Reference<?> ref, ObjectReference referent) {
+    ObjectReference reference = ObjectReference.fromObject(ref);
+    setReferent(reference, referent);
+    setReference(maxIndex++,reference);
   }
 
   /**
@@ -171,10 +171,13 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   }
 
   /**
-   * Grow the reference table by GROWTH_FACTOR
+   * Grow the reference table by GROWTH_FACTOR.
    *
-   * Logically Uninterruptible because it can GC when it allocates, but
-   * the rest of the code can't tolerate GC
+   * <p>Logically Uninterruptible because it can GC when it allocates, but
+   * the rest of the code can't tolerate GC.
+   * 
+   * <p>This method is called without the reference processor lock held,
+   * but with the flag <code>growingTable</code> set.
    */
   @UninterruptibleNoWarn
   private AddressArray growReferenceTable() {
@@ -187,29 +190,40 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   }
 
   /**
-   * Add a reference to the list of references.
+   * Add a reference to the list of references.  This method is responsible
+   * for installing the  address of the referent into the Reference object
+   * so that the referent is traced at all yield points before the Reference
+   * is correctly installed in the reference table.
    *
    * (SJF: This method must NOT be inlined into an inlined allocation
    * sequence, since it contains a lock!)
    *
-   * @param ref the reference to add
+   * @param referent The referent of the reference
+   * @param ref The reference to add
    */
   @NoInline
-  private void addCandidate(Reference<?> ref) {
+  private void addCandidate(ObjectReference referent, Reference<?> ref) {
     if (TRACE) {
       ObjectReference referenceAsAddress = ObjectReference.fromObject(ref);
-      ObjectReference referent = getReferent(referenceAsAddress);
       VM.sysWrite("Adding Reference: ", referenceAsAddress);
       VM.sysWriteln(" ~> ", referent);
     }
 
     /* 
      * Ensure that only one thread at a time can grow the
-     * table of references
+     * table of references.  The volatile flag <code>growingTable</code> is
+     * used to allow growing the table to trigger GC, but to prevent
+     * any other thread from accessing the table while it is being grown.
+     * 
+     * If the table has space, threads will add the reference, incrementing maxIndex
+     * and exit.
+     * 
+     * If the table is full, the first thread to notice will grow the table.
+     * Subsequent threads will release the lock and yield at (1) while the
+     * first thread 
      */
     lock.acquire();
-    addReference(ref);
-    while (maxIndex >= references.length()) {
+    while (growingTable || maxIndex >= references.length()) {
       if (growingTable) {
         lock.release();
         VM_Scheduler.yield(); // (1) Allow another thread to grow the table
@@ -223,6 +237,7 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
         growingTable = false; // Allow other threads to grow the table rather than waiting for us
       }
     }
+    addReference(ref,referent);
     lock.release();
   }
 
@@ -253,7 +268,6 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
       ObjectReference newReference = trace.getForwardedReference(reference);
       setReference(i, newReference);
     }
-
     if (TRACE) VM.sysWriteln("Ending ReferenceGlue.forward(",semanticsStr,")");
   }
 
@@ -319,8 +333,8 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * @param ref the SoftReference to add
    */
   @Interruptible
-  public static void addSoftCandidate(SoftReference<?> ref) {
-    softReferenceProcessor.addCandidate(ref);
+  public static void addSoftCandidate(ObjectReference referent, SoftReference<?> ref) {
+    softReferenceProcessor.addCandidate(referent, ref);
   }
 
   /**
@@ -328,8 +342,8 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * @param ref the WeakReference to add
    */
   @Interruptible
-  public static void addWeakCandidate(WeakReference<?> ref) {
-    weakReferenceProcessor.addCandidate(ref);
+  public static void addWeakCandidate(ObjectReference referent, WeakReference<?> ref) {
+    weakReferenceProcessor.addCandidate(referent, ref);
   }
 
   /**
@@ -337,8 +351,8 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * @param ref the PhantomReference to add
    */
   @Interruptible
-  public static void addPhantomCandidate(PhantomReference<?> ref) {
-    phantomReferenceProcessor.addCandidate(ref);
+  public static void addPhantomCandidate(ObjectReference referent, PhantomReference<?> ref) {
+    phantomReferenceProcessor.addCandidate(referent, ref);
   }
 
   /****************************************************************************

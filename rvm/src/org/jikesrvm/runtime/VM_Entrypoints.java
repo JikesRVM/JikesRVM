@@ -211,8 +211,6 @@ public class VM_Entrypoints {
 
   public static final VM_Field referenceReferentField =
       getField(java.lang.ref.Reference.class, "referent", org.vmmagic.unboxed.Address.class);
-  public static final VM_Field referenceNextAsAddressField =
-      getField(java.lang.ref.Reference.class, "nextAsAddress", org.vmmagic.unboxed.Address.class);
 
   /** Used in deciding which stack frames we can elide when printing. */
   public static final VM_NormalMethod mainThreadRunMethod =

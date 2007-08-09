@@ -23,12 +23,11 @@ public class WeakReference<T> extends Reference<T> {
 
   public WeakReference(T referent) {
     super(referent);
-    MM_Interface.addWeakReference(this);
+    MM_Interface.addWeakReference(referent,this);
   }
 
   public WeakReference(T referent, ReferenceQueue<T> q) {
     super(referent, q);
-    MM_Interface.addWeakReference(this);
+    MM_Interface.addWeakReference(referent,this);
   }
-
 }

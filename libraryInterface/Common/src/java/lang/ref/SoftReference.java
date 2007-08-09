@@ -21,12 +21,11 @@ public class SoftReference<T> extends Reference<T> {
 
   public SoftReference(T referent) {
     super(referent);
-    MM_Interface.addSoftReference(this);
+    MM_Interface.addSoftReference(referent, this);
   }
 
   public SoftReference(T referent, ReferenceQueue<T> q) {
     super(referent, q);
-    MM_Interface.addSoftReference(this);
+    MM_Interface.addSoftReference(referent, this);
   }
-
 }

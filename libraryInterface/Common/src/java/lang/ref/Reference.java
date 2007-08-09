@@ -16,7 +16,7 @@ import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.*; 
 
 /**
  * The JikesRVM implementation of the java.lang.ref.Reference class.
@@ -26,17 +26,10 @@ public abstract class Reference<T> {
   /**
    * The underlying object.  This field is a Address so it will not
    * be automatically kept alive by the garbage collector.
+   * 
+   * Set and maintained by the ReferenceProcessor class.
    */
   private Address referent;
-
-  /**
-   * The address of the next Reference object in a linked list of
-   * Reference objects. This is an address to allow reference objects to
-   * be garbage collected if the mutator no longer maintains strong
-   * references to them.
-   */
-  @SuppressWarnings("unused") // Accessed via VM_EntryPoints
-  private Address nextAsAddress;
 
   /**
    * Link to the next entry on the queue.  If this is null, this
@@ -57,23 +50,15 @@ public abstract class Reference<T> {
    */
   ReferenceQueue<T> queue;
 
-  /**
-   * Record whether this object has ever been enqueued, to ensure
-   * phantom references are never enqueued more than once.
-   */
-  boolean wasEnqueued = false;
-
   Reference(T ref) {
-    referent = VM_Magic.objectAsAddress(ref);
   }
 
   Reference(T ref, ReferenceQueue<T> q) {
     if (q == null)
       throw new NullPointerException();
-    referent = VM_Magic.objectAsAddress(ref);
     queue = q;
   }
-
+  
   /**
    * Returns the object, this reference refers to.
    * @return the object, this reference refers to, or null if the
@@ -116,11 +101,6 @@ public abstract class Reference<T> {
     return nextOnQueue != null;
   }
 
-  @Uninterruptible
-  public boolean wasEverEnqueued() {
-    return wasEnqueued;
-  }
-
   /*
    * This method requires external synchronization.
    * The logically uninterruptible pragma is a bold faced lie;
@@ -132,12 +112,10 @@ public abstract class Reference<T> {
   @Uninterruptible
   public boolean enqueue() {
     if (nextOnQueue == null && queue != null) {
-      wasEnqueued = true;
       queue.enqueue(this);
       queue = null;
       return true;
     }
     return false;
   }
-
 }
