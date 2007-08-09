@@ -1506,7 +1506,7 @@ target.jni-suffix=${target.jni-suffix}
     <loadfile property="checkstyle.output" srcFile="${build.dir}/checkstyle/report.txt"/>
     <echo message="${checkstyle.output}"/>
  
-    <!-- <fail if="checkstyle.failed" message="Checkstyle failures must be corrected!"/> -->
+    <fail if="checkstyle.failed" message="Checkstyle failures must be corrected!"/>
   </target>
 
   <!-- **************************************************************************** -->
