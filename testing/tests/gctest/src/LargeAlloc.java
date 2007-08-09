@@ -21,10 +21,9 @@ class LargeAlloc {
 
   public static void main(String[] args)  throws Throwable {
     boolean base = true;
-    if (args.length == 0)
+    if (args.length == 0) {
       System.out.println("No argument.  Assuming base");
-    if (args[0].compareTo("opt") == 0 ||
-        args[0].compareTo("perf") == 0) {
+    } if (args[0].compareTo("opt") == 0 || args[0].compareTo("perf") == 0) {
       base = false;
       timeLimit = 600;
     }
