@@ -144,6 +144,7 @@ public class ReferenceStress {
       }
     }
     long time = (System.nanoTime() - start)/1000000;
-    System.out.println("Overall: "+elements+" references inserted in "+time+"ms. SUCCESS");
+    System.out.println(elements + " references inserted in " + time + "ms.");
+    System.out.println("Overall: SUCCESS");
   }
 }

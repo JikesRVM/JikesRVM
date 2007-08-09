@@ -105,15 +105,14 @@ class FixedLive {
   public static void showResults() {
     updateStats();
     System.out.println();
-    System.out.print("Overall:          tracing    rate = " + avgTraceRate + " Mb/s");
-    System.out.println("            allocation     rate = " + avgAllocRate + " Mb/s");
-    System.out.print("Overall:          tracing   sigma = " + rmsTraceRate + " Mb/s");
-    System.out.println("            allocation    sigma = " + rmsAllocRate + " Mb/s");
-    System.out.print("Overall:          tracing z-score = " + zTraceRate);
-    System.out.println("             allocation z-score = " + zAllocRate);
-    System.out.println("Overall:  Total Setup      Time = " + setupTime + " s");
-    System.out.println("Overall:  Total Allocation Time = " + sumAllocTime + " s");
-    System.out.println("Overall:  Total Tracing    Time = " + sumTraceTime + " s");
+    System.out.println("         Tracing rate: " + avgTraceRate + " Mb/s, sigma " + rmsTraceRate + " Mb/s, z-score " + zTraceRate);
+    System.out.println("      Allocation rate: " + avgAllocRate + " Mb/s, sigma " + rmsAllocRate + " Mb/s, z-score " + zAllocRate);
+    System.out.println();
+    System.out.println("     Total Setup Time: " + setupTime + " s");
+    System.out.println("Total Allocation Time: " + sumAllocTime + " s");
+    System.out.println("   Total Tracing Time: " + sumTraceTime + " s");
+    System.out.println();
+    System.out.println("Overall: SUCCESS");
   }
 
   // Allocate until either maxGC GC's have occurred or maxMb megabytes have been allocated

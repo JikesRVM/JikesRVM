@@ -41,7 +41,7 @@
     <attribute name="initialHeapSize" default="60"/>
     <sequential>
       <rvm tag="@{class}" class="@{class}" args="${arg}" initialHeapSize="@{initialHeapSize}"/>
-      <findStatistic tag="@{class}" pattern="Overall:" key="overall"/>
+      <findStatistic tag="@{class}" pattern="Overall: SUCCESS" key="success"/>
       <outputResults tag="@{class}"/>
     </sequential>
   </macrodef>
