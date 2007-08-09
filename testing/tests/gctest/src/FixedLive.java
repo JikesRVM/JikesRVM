@@ -22,11 +22,11 @@ class FixedLive {
 
   public static void main(String[] args)  throws Throwable {
     boolean base = true;
-    if (args.length == 0)
+    if (args.length == 0) {
       System.out.println("No argument.  Assuming base");
-    if (args[0].compareTo("opt") == 0 ||
-        args[0].compareTo("perf") == 0)
+    } else if (args[0].compareTo("opt") == 0 || args[0].compareTo("perf") == 0) {
       base = false;
+    }
     liveSize = base ? 30 : 100;
     exclude = base ? 0 : 2;
     sampleCount = -exclude;
