@@ -80,6 +80,7 @@ Testing Options:
  -t, --test           Specify a test to run (overriden by --test-run)
  -n, --name           Give the results run a name, link in results/buildit
      --test-run       The test run to use for each configuration on the target
+     --test-arg       Specify additional arguments(s) for the test
      --run-arg        Specify an additional argument for the test execution
      --email-report   Send a result summary email when done
      --ext-lib-dir    Specify the benchmarks directory for testing.
@@ -126,6 +127,7 @@ GetOptions(
   "target-user=s" => \$cmd_targetUser,
   "classpath-cvs" => \$cvs_head,
   "g|gdb-symbols" => \$gdb_symbols,
+  "test-arg=s" => \@test_arg_array,
   "test-run=s" => \$test_set,
   "t|test=s" => \@test_array,
   "build-arg=s" => \@build_array,
@@ -153,6 +155,7 @@ load_config($cacheFile);
 $test_list = join(" ", @test_array);
 $build_args = join(" ", @build_array);
 $run_args = join(" ", @run_array);
+$test_args = join(" ", @test_arg_array);
 $bc_args = join(" ", @bcarg_array);
   
 $start = `date`;
@@ -690,6 +693,10 @@ if ($ok && ($test_set ne "" || $test_list ne "")) {
   if ($test_list ne "") {
     $test .= "-Dtest.tests='$test_list' ".
              "-Dtest-run.name=local ";
+  }
+
+  if ($test_args ne "") {
+    $test .= " $test_args ";
   }
 
   if(! $implicitconfigs) {
