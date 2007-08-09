@@ -73,6 +73,7 @@
 
     <gcTest class="InlineAllocation"/>
     <gcTest class="ReferenceTest"/>
+    <gcTest class="ReferenceStress"/>
     <gcTest class="FixedLive" initialHeapSize="120"/>
     <gcTest class="LargeAlloc"/>
     <gcTest class="Exhaust" initialHeapSize="50"/>
