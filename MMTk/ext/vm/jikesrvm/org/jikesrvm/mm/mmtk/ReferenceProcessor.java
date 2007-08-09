@@ -202,7 +202,7 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * @param ref The reference to add
    */
   @NoInline
-  private void addCandidate(ObjectReference referent, Reference<?> ref) {
+  private void addCandidate(Reference<?> ref, ObjectReference referent) {
     if (TRACE) {
       ObjectReference referenceAsAddress = ObjectReference.fromObject(ref);
       VM.sysWrite("Adding Reference: ", referenceAsAddress);
@@ -333,8 +333,8 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * @param ref the SoftReference to add
    */
   @Interruptible
-  public static void addSoftCandidate(ObjectReference referent, SoftReference<?> ref) {
-    softReferenceProcessor.addCandidate(referent, ref);
+  public static void addSoftCandidate(SoftReference<?> ref, ObjectReference referent) {
+    softReferenceProcessor.addCandidate(ref, referent);
   }
 
   /**
@@ -342,8 +342,8 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * @param ref the WeakReference to add
    */
   @Interruptible
-  public static void addWeakCandidate(ObjectReference referent, WeakReference<?> ref) {
-    weakReferenceProcessor.addCandidate(referent, ref);
+  public static void addWeakCandidate(WeakReference<?> ref, ObjectReference referent) {
+    weakReferenceProcessor.addCandidate(ref, referent);
   }
 
   /**
@@ -351,8 +351,8 @@ public class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * @param ref the PhantomReference to add
    */
   @Interruptible
-  public static void addPhantomCandidate(ObjectReference referent, PhantomReference<?> ref) {
-    phantomReferenceProcessor.addCandidate(referent, ref);
+  public static void addPhantomCandidate(PhantomReference<?> ref, ObjectReference referent) {
+    phantomReferenceProcessor.addCandidate(ref, referent);
   }
 
   /****************************************************************************

@@ -859,8 +859,8 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * @param obj the soft reference to be added to the list
    */
   @Interruptible
-  public static void addSoftReference(Object referent, SoftReference<?> obj) {
-    ReferenceProcessor.addSoftCandidate(ObjectReference.fromObject(referent),obj);
+  public static void addSoftReference(SoftReference<?> obj, Object referent) {
+    ReferenceProcessor.addSoftCandidate(obj,ObjectReference.fromObject(referent));
   }
 
   /**
@@ -869,8 +869,8 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * @param obj the weak reference to be added to the list
    */
   @Interruptible
-  public static void addWeakReference(Object referent, WeakReference<?> obj) {
-    ReferenceProcessor.addWeakCandidate(ObjectReference.fromObject(referent),obj);
+  public static void addWeakReference(WeakReference<?> obj, Object referent) {
+    ReferenceProcessor.addWeakCandidate(obj,ObjectReference.fromObject(referent));
   }
 
   /**
@@ -879,8 +879,8 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    * @param obj the phantom reference to be added to the list
    */
   @Interruptible
-  public static void addPhantomReference(Object referent, PhantomReference<?> obj) {
-    ReferenceProcessor.addPhantomCandidate(ObjectReference.fromObject(referent),obj);
+  public static void addPhantomReference(PhantomReference<?> obj, Object referent) {
+    ReferenceProcessor.addPhantomCandidate(obj,ObjectReference.fromObject(referent));
   }
 
   /***********************************************************************

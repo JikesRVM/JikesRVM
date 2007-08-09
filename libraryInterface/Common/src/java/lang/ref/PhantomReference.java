@@ -21,7 +21,7 @@ public class PhantomReference<T> extends Reference<T> {
 
   public PhantomReference(T referent, ReferenceQueue<T> q) {
     super(referent, q);
-    MM_Interface.addPhantomReference(referent,this);
+    MM_Interface.addPhantomReference(this,referent);
   }
 
   /**
