@@ -87,7 +87,7 @@ class InlineAllocation {
    * of the generated machine code.
    */
   public static void main(String[] args) throws Exception {
-    Class clazz = Class.forName("InlineAllocation");
+    Class<?> clazz = Class.forName("InlineAllocation");
     Method trivialJ = clazz.getDeclaredMethod("trivial", new Class[] {clazz});
     Method alloc1J = clazz.getDeclaredMethod("alloc1", (Class[])null);
     Method alloc2J = clazz.getDeclaredMethod("alloc2", (Class[])null);

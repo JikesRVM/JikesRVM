@@ -23,9 +23,9 @@ import java.lang.ref.WeakReference;
 class ReferenceTest {
 
 
-  public static double checkReferenceArray (Reference [] ra, ReferenceQueue rq) {
+  public static <T> double checkReferenceArray (Reference<T> [] ra, ReferenceQueue<T> rq) {
     // Verify that all references on rq belong to ra and that if so they are cleared
-    for (Reference r = rq.poll(); r != null; r = rq.poll()) {
+    for (Reference<?> r = rq.poll(); r != null; r = rq.poll()) {
       int i;
       for (i=0; i<ra.length; i++)
           if (ra[i] == r)
@@ -34,7 +34,7 @@ class ReferenceTest {
     }
     // Return fraction of ra array whose references are not cleared
     int count = 0;
-    for (Reference aRa : ra)
+    for (Reference<T> aRa : ra)
       if (aRa.get() != null)
         count++;
     return count / ((double) ra.length);
@@ -55,7 +55,7 @@ class ReferenceTest {
     return result;
   }
 
-  private static Object dummy;
+  static Object dummy;
   public static void allocateDiscard (double amt) { // amt in Mb
     int rounds = MBtoUnits(amt);
     for (int i=0; i<rounds; i++)
@@ -88,19 +88,20 @@ class ReferenceTest {
     static final int WEAK = 0;
     static final int SOFT = 1;
 
-  public static Reference [] allocateReferenceArray (int type, double amt, ReferenceQueue rq) { // amt in Mb
+  public static Reference<Object[]> [] allocateReferenceArray (int type, double amt, ReferenceQueue<Object[]> rq) { // amt in Mb
     int rounds = MBtoUnits(amt);
-    Reference [] ra = new Reference[rounds];
+    @SuppressWarnings("unchecked")
+    Reference<Object[]> [] ra = new Reference[rounds];
     for (int i=0; i<rounds; i++)
     {
-      final Reference reference;
+      final Reference<Object[]> reference;
       if(type == WEAK)
       {
-        reference = new WeakReference(allocateUnit(), rq);
+        reference = new WeakReference<Object[]>(allocateUnit(), rq);
       }
       else if(type == SOFT)
       {
-        reference = new SoftReference(allocateUnit(), rq);
+        reference = new SoftReference<Object[]>(allocateUnit(), rq);
       }
       else
       {
@@ -152,9 +153,9 @@ class ReferenceTest {
 
       // ------ Test weak references -----------
       System.out.println("\nChecking weak references and reference queue");
-      ReferenceQueue wrq = new ReferenceQueue();
+      ReferenceQueue<Object[]> wrq = new ReferenceQueue<Object[]>();
       allocateUntilNextGC();
-      Reference [] wra = allocateReferenceArray(WEAK, 0.5 * initialHeapSize, wrq);
+      Reference<Object[]> [] wra = allocateReferenceArray(WEAK, 0.5 * initialHeapSize, wrq);
       double weakAvail = checkReferenceArray(wra, wrq);
       check("Fraction of weak references before GC still live = " + weakAvail, (weakAvail == 1.0));
       allocateDiscard(0.75 * initialHeapSize);
@@ -163,9 +164,9 @@ class ReferenceTest {
 
       // ------ Test soft references -----------
       System.out.println("\nChecking soft references and reference queue");
-      ReferenceQueue srq = new ReferenceQueue();
+      ReferenceQueue<Object[]> srq = new ReferenceQueue<Object[]>();
       allocateUntilNextGC();
-      Reference [] sra = allocateReferenceArray(SOFT, 0.75 * initialHeapSize, srq);
+      Reference<Object[]> [] sra = allocateReferenceArray(SOFT, 0.75 * initialHeapSize, srq);
       double softAvail = checkReferenceArray(sra, srq);
       check("Fraction of soft references before GC still live = " + softAvail, (softAvail == 1.0));
       allocateHold(0.5 * initialHeapSize);
