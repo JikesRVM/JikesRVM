@@ -74,6 +74,7 @@ Building Options:
  -j, --java-home      Specify a JAVA_HOME directory to use
      --build-arg      Specify an additional argument for the ant build
      --bc-arg         Specify arguments for the bootimage compiler
+     --checkstyle     Perform source code style checks.
 
 Testing Options:
  -t, --test           Specify a test to run (overriden by --test-run)
@@ -119,6 +120,7 @@ GetOptions(
   "m|mmtk-config=s" => \$mmtk_config,
   "nuke" => \$nuke,
   "c|cross-to=s" => \$target,
+  "checkstyle" => \$checkstyle,
   "u|user=s" => \$cmd_user,
   "build-user=s" => \$cmd_hostUser,
   "target-user=s" => \$cmd_targetUser,
@@ -344,6 +346,13 @@ if ($test_list ne "") {
 #
 # Configuration 
 #
+if ($test_set && !$checkstyle) {
+  $checkstyle = `grep require.checkstyle $localRoot/build/test-runs/$test_set.properties`;
+  chomp($checkstyle);
+  if ($checkstyle ne "") {
+    $checkstyle = 1;
+  }
+}
 $implicitconfigs = ($#gcs == -1 && $compiler eq "");
 if ($#gcs == -1 && $test_set && $compiler eq "") {
   my $rawconfigs = `grep \"^test.configs=.*$\" $localRoot/build/test-runs/$test_set.properties`;
@@ -515,8 +524,9 @@ if ($ok) {
     } else {
       $targetDir = $config."_".$targetConfig;
     }
- 
-      
+    if ($checkstyle ne "") {
+      $defs .= "-Drequire.checkstyle=true ";
+    } 
     if ($x87 ne "") {
       $defs .= "-Dtarget.arch.sse2=none ";
     }

@@ -24,7 +24,10 @@
   <!-- See http://checkstyle.sf.net/config_misc.html#NewlineAtEndOfFile -->
   <module name="NewlineAtEndOfFile"/>
 
+  <module name="SuppressionCommentFilter"/>
+
   <module name="TreeWalker">
+    <module name="FileContentsHolder"/>
 
     <!-- Checks for Javadoc comments.                     -->
     <!-- See http://checkstyle.sf.net/config_javadoc.html -->
@@ -57,7 +60,7 @@
 
     <!-- Checks for imports                              -->
     <!-- See http://checkstyle.sf.net/config_imports.html -->
-    <module name="AvoidStarImport"/>
+    <!-- <module name="AvoidStarImport"/> -->
     <module name="IllegalImport"/>
     <!-- defaults to sun.* packages -->
     <module name="RedundantImport"/>
@@ -124,7 +127,7 @@
     <!--<module name="MagicNumber"/>-->
     <!--<module name="MissingSwitchDefault"/>-->
     <!--<module name="RedundantThrows"/>-->
-    <module name="SimplifyBooleanExpression"/>
+    <!--<module name="SimplifyBooleanExpression"/>-->
     <module name="SimplifyBooleanReturn"/>
 
     <!-- Checks for class design                         -->

@@ -177,6 +177,7 @@
     <mkdir dir="${components.dir}"/>
     <ant antfile="build/components/ecj.xml" target="ensure"/>
     <ant antfile="build/components/classpath.xml" target="ensure"/>
+    <ant antfile="build/components/checkstyle.xml" target="ensure"/>
     <if>
       <conditions>
         <isset property="include.gcspy-client"/>
@@ -866,7 +867,7 @@ Check to make sure all required properties are specified. This includes properti
     </if>
   </target>
 
-  <target name="compile" depends="compile-mmtk,prepare-source,prepare-config-source,choose-classlib">
+  <target name="compile" depends="compile-mmtk,prepare-source,prepare-config-source,choose-classlib,do-checkstyle">
 
     <condition property="exclude-arch" value="IA" else="PPC">
       <equals arg1="${target.arch}" arg2="ppc"/>
@@ -1481,19 +1482,31 @@ target.jni-suffix=${target.jni-suffix}
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
+  <target name="do-checkstyle" if="require.checkstyle">
+    <antcall target="checkstyle"/>
+  </target>
+
   <target name="checkstyle" depends="prepare-source,prepare-config-source,choose-classlib">
-    <ant antfile="build/components/checkstyle.xml" target="ensure"/>
     <taskdef resource="checkstyletask.properties" classpath="${checkstyle.dir}/checkstyle-all-4.3.jar"/>
 
     <mkdir dir="${build.dir}/checkstyle"/>
-    <checkstyle config="build/checkstyle/rvm-checks.xml" failOnViolation="false">
+    <checkstyle config="build/checkstyle/rvm-checks.xml" failureProperty="checkstyle.failed" failOnViolation="false">
       <formatter type="xml" tofile="${build.dir}/checkstyle/report.xml"/>
       <fileset dir="rvm/src" includes="**/*.java"/>
+      <fileset dir="MMTk" includes="**/*.java"/>
     </checkstyle>
 
     <style in="${build.dir}/checkstyle/report.xml"
            out="${build.dir}/checkstyle/report.html"
            style="${checkstyle.dir}/contrib/checkstyle-simple.xsl"/>
+    <style in="${build.dir}/checkstyle/report.xml"
+           out="${build.dir}/checkstyle/report.txt"
+           style="build/checkstyle/text-output.xsl"/>
+
+    <loadfile property="checkstyle.output" srcFile="${build.dir}/checkstyle/report.txt"/>
+    <echo message="${checkstyle.output}"/>
+ 
+    <!-- <fail if="checkstyle.failed" message="Checkstyle failures must be corrected!"/> -->
   </target>
 
   <!-- **************************************************************************** -->
