@@ -62,12 +62,19 @@ class ReferenceTest {
         dummy = allocateUnit();
   }
 
-  public static Object allocateHold (double amt) { // amt in Mb
-    int rounds = MBtoUnits(amt);
-    Object [] a = new Object[rounds];
-    for (int i=0; i<rounds; i++)
-        a[i] = allocateUnit();
-    return a;
+  private static Object outOfMemoryHandle;
+
+  public static void allocateUntilOOM () {
+    try {
+      while(true) {
+        Object[] myArray = new Object[10000];
+        myArray[0] = outOfMemoryHandle;
+        outOfMemoryHandle = myArray;
+      }
+    } catch (OutOfMemoryError oome) {
+      outOfMemoryHandle = null;
+      System.out.println("Caught OutOfMemoryError");
+    }
   }
 
   public static double allocateUntilNextGC() {
@@ -169,7 +176,7 @@ class ReferenceTest {
       Reference<Object[]> [] sra = allocateReferenceArray(SOFT, 0.75 * initialHeapSize, srq);
       double softAvail = checkReferenceArray(sra, srq);
       check("Fraction of soft references before GC still live = " + softAvail, (softAvail == 1.0));
-      allocateHold(0.5 * initialHeapSize);
+      allocateUntilOOM();
       softAvail = checkReferenceArray(sra, srq);
       check("Fraction of soft references after  GC still live = " + softAvail,
             (softAvail >= 0.00) && (softAvail <= 0.67),
