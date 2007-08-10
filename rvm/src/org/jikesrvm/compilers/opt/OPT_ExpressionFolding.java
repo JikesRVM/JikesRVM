@@ -23,6 +23,7 @@ import org.jikesrvm.compilers.opt.ir.GuardedBinary;
 import org.jikesrvm.compilers.opt.ir.IfCmp;
 import org.jikesrvm.compilers.opt.ir.IfCmp2;
 import org.jikesrvm.compilers.opt.ir.Move;
+import org.jikesrvm.compilers.opt.ir.ZeroCheck;
 import org.jikesrvm.compilers.opt.ir.OPT_AddressConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_BranchOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_BranchProfileOperand;
@@ -127,6 +128,8 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_USHR;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_USHR_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_XOR;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_XOR_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_ZERO_CHECK;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_ZERO_CHECK_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_2INT_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_ADD;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_ADD_opcode;
@@ -159,6 +162,8 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_USHR;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_USHR_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_XOR;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_XOR_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_ZERO_CHECK;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_ZERO_CHECK_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_ADD;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_ADD_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_AND;
@@ -306,6 +311,11 @@ class OPT_ExpressionFolding extends OPT_IRTools {
   private static final boolean FOLD_2CONVERSION = true;
 
   /**
+   * Fold ZeroCheck where we're testing whether a value is 0 or not
+   */
+  private static final boolean FOLD_CHECKS = true;
+
+  /**
    * Perform expression folding on individual basic blocks
    */
   public static boolean performLocal(OPT_IR ir) {
@@ -450,6 +460,8 @@ class OPT_ExpressionFolding extends OPT_IRTools {
           val1 = IfCmp2.getVal1(s);
         } else if (CondMove.conforms(s)) {
           val1 = CondMove.getVal1(s);
+        } else if (ZeroCheck.conforms(s)) {
+          val1 = ZeroCheck.getValue(s);
         } else {
           // we're not optimising any other instruction types
           continue;
@@ -466,7 +478,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             } else {
               // The non-constant operand of the candidate expression is the
               // result of moving a constant. Remove as a candidate and leave
-              // for constant propogation and simplification.
+              // for constant propagation and simplification.
               it.remove();
               continue iterate_over_candidates;
             }
@@ -514,6 +526,8 @@ class OPT_ExpressionFolding extends OPT_IRTools {
         val1 = IfCmp2.getVal1(s);
       } else if (CondMove.conforms(s)) {
         val1 = CondMove.getVal1(s);
+      } else if (ZeroCheck.conforms(s)) {
+        val1 = ZeroCheck.getValue(s);
       } else {
         OPT_OptimizingCompilerException.UNREACHABLE();
         return;
@@ -539,7 +553,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
   }
 
   /**
-   * Perform the transfomation on the instruction
+   * Perform the transformation on the instruction
    *
    * @param s
    *          the instruction to transform of the form y = x op c1
@@ -549,8 +563,8 @@ class OPT_ExpressionFolding extends OPT_IRTools {
    * @return the new instruction to replace s;
    */
   private static OPT_Instruction transform(OPT_Instruction s, OPT_Instruction def) {
-    // x = a op1 c1
-    // y = x op2 c2
+    // x = a op1 c1  <-- def
+    // y = x op2 c2  <-- s
     OPT_RegisterOperand a;
     OPT_RegisterOperand y;
     if (Binary.conforms(def)) {
@@ -584,6 +598,8 @@ class OPT_ExpressionFolding extends OPT_IRTools {
       y = IfCmp2.getGuardResult(s);
     } else if (CondMove.conforms(s)) {
       y = CondMove.getResult(s);
+    } else if (ZeroCheck.conforms(s)) {
+      y = ZeroCheck.getGuardResult(s);
     } else {
       OPT_OptimizingCompilerException.UNREACHABLE();
       return null;
@@ -608,6 +624,8 @@ class OPT_ExpressionFolding extends OPT_IRTools {
           x1 = IfCmp2.getVal1(s).asRegister();
         } else if (CondMove.conforms(s)) {
           x1 = CondMove.getVal1(s).asRegister();
+        } else if (ZeroCheck.conforms(s)) {
+          x1 = ZeroCheck.getValue(s).asRegister();
         } else {
           OPT_OptimizingCompilerException.UNREACHABLE();
           return null;
@@ -627,6 +645,8 @@ class OPT_ExpressionFolding extends OPT_IRTools {
           x2 = IfCmp2.getGuardResult(def);
         } else if (CondMove.conforms(def)) {
           x2 = CondMove.getResult(def);
+        } else if (ZeroCheck.conforms(def)) {
+          x2 = ZeroCheck.getValue(def).asRegister();
         } else {
           OPT_OptimizingCompilerException.UNREACHABLE();
           return null;
@@ -885,7 +905,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             // x = a / c1; y = x / c2
             return GuardedBinary.create(INT_DIV, y.copyRO(), a.copyRO(), IC(c1 * c2), guard);
           } else if (def.operator == INT_NEG) {
-            OPT_Operand guard = GuardedBinary.getGuard(def);
+            OPT_Operand guard = GuardedBinary.getGuard(s);
             // x = -a; y = x / c2;
             return GuardedBinary.create(INT_DIV, y.copyRO(), a.copyRO(), IC(-c2), guard);
           }
@@ -901,7 +921,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             // x = a / c1; y = x / c2
             return GuardedBinary.create(LONG_DIV, y.copyRO(), a.copyRO(), LC(c1 * c2), guard);
           } else if (def.operator == LONG_NEG) {
-            OPT_Operand guard = GuardedBinary.getGuard(def);
+            OPT_Operand guard = GuardedBinary.getGuard(s);
             // x = -a; y = x / c2;
             return GuardedBinary.create(LONG_DIV, y.copyRO(), a.copyRO(), LC(-c2), guard);
           }
@@ -2505,7 +2525,24 @@ class OPT_ExpressionFolding extends OPT_IRTools {
       case FLOAT_2DOUBLE_opcode:
         // unused
         return null;
-
+      case INT_ZERO_CHECK_opcode: {
+        if (FOLD_INTS && FOLD_CHECKS) {
+          if (def.operator == INT_NEG) {
+            // x = -z; y = zerocheck x;
+            return ZeroCheck.create(INT_ZERO_CHECK, y.copyRO(), Unary.getVal(def).copy());
+          }
+        }
+        return null;
+      }
+      case LONG_ZERO_CHECK_opcode: {
+        if (FOLD_INTS && FOLD_CHECKS) {
+          if (def.operator == INT_NEG) {
+            // x = -z; y = zerocheck x;
+            return ZeroCheck.create(INT_ZERO_CHECK, y.copyRO(), Unary.getVal(def).copy());
+          }
+        }
+        return null;
+      }
       default:
         OPT_OptimizingCompilerException.UNREACHABLE();
         return null;
@@ -2825,6 +2862,23 @@ class OPT_ExpressionFolding extends OPT_IRTools {
           }
         }
         return null;
+      }
+      case INT_ZERO_CHECK_opcode:
+      case LONG_ZERO_CHECK_opcode:  {
+        OPT_Operand val1 = ZeroCheck.getValue(s);
+        // if val1 is constant too, this should've been constant folded
+        // beforehand. Give up.
+        if (val1.isConstant()) {
+          return null;
+        }
+        OPT_Register result = ZeroCheck.getGuardResult(s).asRegister().getRegister();
+        if (ssa) {
+          return result;
+        } else if (val1.asRegister().getRegister() != result) {
+          return result;
+        } else {
+          return null;
+        }
       }
       default:
         // Operator can't be folded
