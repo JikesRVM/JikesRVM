@@ -201,7 +201,7 @@ import org.vmmagic.unboxed.*;
       gcLoad = 1;
     }
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(liveRatio >= 0);
-    if (VM.VERIFY_ASSERTIONS && gcLoad < 0) {
+    if (VM.VERIFY_ASSERTIONS && gcLoad < -0.0) {
       Log.write("gcLoad computed to be "); Log.writeln(gcLoad);
       Log.write("\taccumulateGCTime was (ms) "); Log.writeln(accumulatedGCTime);
       Log.write("\ttotalTime was (ms) "); Log.writeln(totalTime);
