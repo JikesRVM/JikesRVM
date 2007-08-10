@@ -144,6 +144,11 @@ public class VM_DebuggerThread extends VM_Scheduler.ThreadModel {
         VM.sysWrite("terminating execution\n");
         VM.sysExit(VM.EXIT_STATUS_MISC_TROUBLE);
         return;
+        
+      case EOF: // got a signal without a stdin; dump VM and continue
+          VM_Scheduler.dumpVirtualMachine();
+          VM_Scheduler.suspendDebuggerThread();
+          return;
 
       default:
         if (tokens.length == 1) { // offer help
