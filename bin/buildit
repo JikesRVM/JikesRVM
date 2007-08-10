@@ -802,7 +802,7 @@ sub load_config {
     open(CONFIG, "< $file");
     while (<CONFIG>) {
       if (($_ =~ m/^#(.*)/) eq "") { 
-        my ($key, $value) = $_ =~ m/^(\S+)\s*=\s*(\S+)\s*$/;
+        my ($key, $value) = $_ =~ m/^(\S+)\s*=\s*(\S*)\s*$/;
         if ($key ne "") {
           $value = eval("\"".$value."\"");
           $config{$key} = $value;
