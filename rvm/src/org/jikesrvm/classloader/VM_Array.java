@@ -434,7 +434,7 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
 
     // Using the type information block for java.lang.Object as a template,
     // build a type information block for this new array type by copying the
-    // virtual method fields and substuting an appropriate type field.
+    // virtual method fields and substituting an appropriate type field.
     //
     Object[] javaLangObjectTIB = VM_Type.JavaLangObjectType.getTypeInformationBlock();
     typeInformationBlock = MM_Interface.newTIB(javaLangObjectTIB.length);

@@ -527,7 +527,7 @@ public class VM_Memory implements VM_SizeConstants {
     return address.toWord().and(Word.fromIntSignExtend(~(alignment - 1))).toAddress();
   }
 
-  // These versions are here to accomodate the boot image writer
+  // These versions are here to accommodate the boot image writer
   @Inline
   public static int alignUp(int address, int alignment) {
     return ((address + alignment - 1) & ~(alignment - 1));
