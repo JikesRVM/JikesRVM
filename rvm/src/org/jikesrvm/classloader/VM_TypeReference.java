@@ -32,10 +32,6 @@ import org.vmmagic.pragma.Uninterruptible;
  * Resolving a VM_TypeReference to a VM_Type can
  * be an expensive operation.  Therefore we canonicalize
  * VM_TypeReference instances and cache the result of resolution.
- * <p>
- * It is officially illegal (as of July 31, 2003)
- * to create a VM_TypeReference for a string that would not be syntactically
- * valid in a class file.   --Steven Augart
  */
 public final class VM_TypeReference {
   /**
@@ -256,7 +252,7 @@ public final class VM_TypeReference {
   /**
    * Convert a java.lang.Class into a type reference the slow way. For
    * use in boot image writing
-   * @param klass java.lang.Class to convert to typereference
+   * @param klass java.lang.Class to convert to type reference
    */
   public static VM_TypeReference findOrCreate(Class<?> klass) {
     if (VM.runningVM) {
