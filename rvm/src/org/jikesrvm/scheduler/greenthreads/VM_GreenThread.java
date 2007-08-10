@@ -470,7 +470,7 @@ public class VM_GreenThread extends VM_Thread {
   @Interruptible
   @Override
   protected void sleepInternal(long millis, int ns) throws InterruptedException {
-    wakeupNanoTime = VM_Time.nanoTime() + (millis * (long)1e6);
+    wakeupNanoTime = VM_Time.nanoTime() + (millis * (long)1e6) + ns;
     // cache the proxy before obtaining lock
     VM_ThreadProxy proxy = new VM_ThreadProxy(this, wakeupNanoTime);
     if(sleepImpl(proxy)) {
