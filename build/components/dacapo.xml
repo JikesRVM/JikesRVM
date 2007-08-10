@@ -1,0 +1,54 @@
+<!--
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Common Public License (CPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/cpl1.0.php
+ ~
+ ~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
+<project name="dacapo" default="build" basedir=".">
+
+  <import file="base.xml"/>
+
+  <property name="dacapo.version" value="2006-10"/>
+  <property name="dacapo.description" value="Dacapo Benchmark Suite"/>
+
+  <property name="dacapo.dir" location="${components.dir}/dacapo/${dacapo.version}"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *               Downloading and installing Dacapo Benchmarks               * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="init-dacapo-properties" depends="prepare-ant-tasks">
+    <condition property="dacapo.from-web" value="true">
+      <or>
+        <not>
+          <available file="${dacapo.dir}/dacapo.jar"/>
+        </not>
+        <isset property="dacapo.force-download"/>
+      </or>
+    </condition>
+  </target>
+
+  <target name="fetch" depends="init-dacapo-properties" if="dacapo.from-web">
+    <mkdir dir="${dacapo.dir}"/>
+    <get src="http://switch.dl.sourceforge.net/sourceforge/dacapobench/dacapo-${dacapo.version}.jar"
+         dest="${dacapo.dir}/dacapo.jar"/>
+    <writeComponentConstants dir="${dacapo.dir}"/>
+  </target>
+
+  <target name="build" depends="fetch">
+    <setComponentsConfig key="dacapo.jar" value="${dacapo.dir}/dacapo.jar"/>
+  </target>
+
+  <target name="ensure" depends="prepare-ant-tasks">
+    <ensureUptodate name="dacapo" dir="${dacapo.dir}"/>
+  </target>
+
+</project>
