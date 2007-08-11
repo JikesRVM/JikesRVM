@@ -162,7 +162,6 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_USHR;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_USHR_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_XOR;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_XOR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_ZERO_CHECK;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_ZERO_CHECK_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_ADD;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_ADD_opcode;
