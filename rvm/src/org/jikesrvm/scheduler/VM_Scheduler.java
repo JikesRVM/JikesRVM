@@ -351,7 +351,7 @@ public abstract class VM_Scheduler {
   public static int getNumberOfProcessors() {
     return getScheduler().getNumberOfProcessorsInternal();
   }
-  
+
   /**
    * Get the current executing thread on this VM_Processor
    */
@@ -855,7 +855,7 @@ public abstract class VM_Scheduler {
   public static VM_TypeReference getThreadType() {
     return getScheduler().getThreadTypeInternal();
   }
-  
+
   /**
    * Get the type of the processor (to avoid guarded inlining..)
    */
