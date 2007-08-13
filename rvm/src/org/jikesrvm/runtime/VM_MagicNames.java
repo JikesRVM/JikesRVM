@@ -117,6 +117,7 @@ public class VM_MagicNames {
   public static final VM_Atom objectAsIntArray = VM_Atom.findOrCreateAsciiAtom("objectAsIntArray");
 
   public static final VM_Atom objectAsProcessor = VM_Atom.findOrCreateAsciiAtom("objectAsProcessor");
+  public static final VM_Atom objectAsThread = VM_Atom.findOrCreateAsciiAtom("objectAsThread");
   public static final VM_Atom threadAsCollectorThread = VM_Atom.findOrCreateAsciiAtom("threadAsCollectorThread");
   public static final VM_Atom floatAsIntBits = VM_Atom.findOrCreateAsciiAtom("floatAsIntBits");
   public static final VM_Atom intBitsAsFloat = VM_Atom.findOrCreateAsciiAtom("intBitsAsFloat");

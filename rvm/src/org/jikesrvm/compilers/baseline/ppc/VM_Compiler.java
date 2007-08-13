@@ -4463,6 +4463,7 @@ public abstract class VM_Compiler extends VM_BaselineCompiler
                methodName == VM_MagicNames.objectAsShortArray ||
                methodName == VM_MagicNames.objectAsIntArray ||
                methodName == VM_MagicNames.objectAsProcessor ||
+               methodName == VM_MagicNames.objectAsThread ||
                methodName == VM_MagicNames.threadAsCollectorThread ||
                methodName == VM_MagicNames.floatAsIntBits ||
                methodName == VM_MagicNames.intBitsAsFloat ||

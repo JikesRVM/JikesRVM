@@ -351,11 +351,12 @@ public abstract class VM_Scheduler {
   public static int getNumberOfProcessors() {
     return getScheduler().getNumberOfProcessorsInternal();
   }
+  
   /**
    * Get the current executing thread on this VM_Processor
    */
   public static VM_Thread getCurrentThread() {
-    return VM_Processor.getCurrentThread();
+    return VM_Magic.objectAsThread(VM_Processor.getCurrentProcessor().activeThread);
   }
 
   /*
@@ -806,7 +807,7 @@ public abstract class VM_Scheduler {
       dumpStack(fp);
       VM.sysExit(VM.EXIT_STATUS_DUMP_STACK_AND_DIE);
     } else {
-      // Another failure occured while attempting to exit cleanly.
+      // Another failure occurred while attempting to exit cleanly.
       // Get out quick and dirty to avoid hanging.
       sysCall.sysExit(VM.EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN);
     }
@@ -841,6 +842,20 @@ public abstract class VM_Scheduler {
     return getScheduler().setupBootThreadInternal();
   }
 
+  /**
+   * Get the type of the thread (to avoid guarded inlining..)
+   */
+  @Interruptible
+  protected abstract VM_TypeReference getThreadTypeInternal();
+
+  /**
+   * Get the type of the thread (to avoid guarded inlining..)
+   */
+  @Interruptible
+  public static VM_TypeReference getThreadType() {
+    return getScheduler().getThreadTypeInternal();
+  }
+  
   /**
    * Get the type of the processor (to avoid guarded inlining..)
    */

@@ -605,6 +605,15 @@ public final class VM_GreenScheduler extends VM_Scheduler {
   }
 
   /**
+   * Get the type of the thread (to avoid guarded inlining..)
+   */
+  @Override
+  @Interruptible
+  protected VM_TypeReference getThreadTypeInternal() {
+    return VM_TypeReference.findOrCreate(VM_GreenThread.class);
+  }
+
+  /**
    * Get the type of the processor (to avoid guarded inlining..)
    */
   @Override

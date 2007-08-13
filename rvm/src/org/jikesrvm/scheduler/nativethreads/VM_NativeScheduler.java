@@ -16,6 +16,7 @@ import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.scheduler.VM_Lock;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.greenthreads.VM_GreenThread;
 import org.vmmagic.pragma.Interruptible;
 
 public class VM_NativeScheduler extends VM_Scheduler {
@@ -131,6 +132,16 @@ public class VM_NativeScheduler extends VM_Scheduler {
     // TODO Auto-generated method stub
     return null;
   }
+  
+  /**
+   * Get the type of the thread (to avoid guarded inlining..)
+   */
+  @Override
+  @Interruptible
+  protected VM_TypeReference getThreadTypeInternal() {
+    return VM_TypeReference.findOrCreate(VM_NativeThread.class);
+  }
+
   /**
    * Get the type of the processor (to avoid guarded inlining..)
    */

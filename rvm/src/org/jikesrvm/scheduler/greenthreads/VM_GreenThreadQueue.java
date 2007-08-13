@@ -46,7 +46,7 @@ public class VM_GreenThreadQueue extends VM_AbstractThreadQueue {
    * Atomic test to determine if any threads are on the queue.
    *    Note: The test is required for native idle threads
    */
-  boolean atomicIsEmpty(VM_ProcessorLock lock) {
+  final boolean atomicIsEmpty(VM_ProcessorLock lock) {
     boolean r;
 
     lock.lock("atomic is empty");

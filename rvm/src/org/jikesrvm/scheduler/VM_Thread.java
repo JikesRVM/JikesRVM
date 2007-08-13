@@ -479,7 +479,7 @@ public abstract class VM_Thread {
    * Get the current java.lang.Thread.
    */
   @Interruptible
-  public Thread getJavaLangThread() {
+  public final Thread getJavaLangThread() {
     if (VM.VerifyAssertions) VM._assert(thread != null);
     return thread;
   }
@@ -492,27 +492,27 @@ public abstract class VM_Thread {
   }
 
   /** Get the disable GC depth */
-  public int getDisableGCDepth() {
+  public final int getDisableGCDepth() {
     return disableGCDepth;
   }
 
   /** Modify the disable GC depth */
-  public void setDisableGCDepth(int d) {
+  public final void setDisableGCDepth(int d) {
     disableGCDepth = d;
   }
 
   /** Are allocations allowed by this thread? */
-  public boolean getDisallowAllocationsByThisThread() {
+  public final boolean getDisallowAllocationsByThisThread() {
     return disallowAllocationsByThisThread;
   }
 
   /** Disallow allocations by this thread */
-  public void setDisallowAllocationsByThisThread() {
+  public final void setDisallowAllocationsByThisThread() {
     disallowAllocationsByThisThread = true;
   }
 
   /** Allow allocations by this thread */
-  public void clearDisallowAllocationsByThisThread() {
+  public final void clearDisallowAllocationsByThisThread() {
     disallowAllocationsByThisThread = false;
   }
 
@@ -637,10 +637,10 @@ public abstract class VM_Thread {
 
   /**
    * Start execution of 'this' by putting it on the appropriate queue
-   * of an unspecified virutal processor.
+   * of an unspecified virtual processor.
    */
   @Interruptible
-  public void start() {
+  public final void start() {
     registerThread();
     schedule();
   }
@@ -650,7 +650,7 @@ public abstract class VM_Thread {
    * and resuming execution in some other (ready) thread.
    */
   @Interruptible
-  public void terminate() {
+  public final void terminate() {
     if (VM.VerifyAssertions) VM._assert(VM_Scheduler.getCurrentThread() == this);
     boolean terminateSystem = false;
     if (trace) VM_Scheduler.trace("VM_Thread", "terminate");
@@ -758,7 +758,7 @@ public abstract class VM_Thread {
   /**
    * Get the field that holds the cause of a thread death caused by a stop
    */
-  public Throwable getCauseOfThreadDeath() {
+  public final Throwable getCauseOfThreadDeath() {
     return causeOfThreadDeath;
   }
 
@@ -856,7 +856,7 @@ public abstract class VM_Thread {
    * Call only if caller has appropriate security clearance.
    */
   @Interruptible
-  public void resume() {
+  public final void resume() {
     changeThreadState(State.SUSPENDED, State.RUNNABLE);
     if (trace) VM_Scheduler.trace("VM_Thread", "resume() scheduleThread ", getIndex());
     resumeInternal();
@@ -890,7 +890,7 @@ public abstract class VM_Thread {
    */
 
   /**
-   * Thread model dependant sleep
+   * Thread model dependent sleep
    * @param millis
    * @param ns
    */
@@ -1413,7 +1413,7 @@ public abstract class VM_Thread {
   /**
    * @return whether or not the thread has an active timer interval
    */
-  public boolean hasActiveTimedInterval() {
+  public final boolean hasActiveTimedInterval() {
     return timingDepth > 0;
   }
 
@@ -1421,7 +1421,7 @@ public abstract class VM_Thread {
    * Begin a possibly nested timing interval.
    * @return the current value of {@link #totalNanos}.
    */
-  public long startTimedInterval() {
+  public final long startTimedInterval() {
     long now = VM_Time.nanoTime();
     if (timingDepth == 0) {
       timingDepth = 1;
@@ -1438,7 +1438,7 @@ public abstract class VM_Thread {
   /**
    * End a possibly nested timing interval
    */
-  public long endTimedInterval() {
+  public final long endTimedInterval() {
     long now = VM_Time.nanoTime();
     timingDepth--;
     totalNanos += now - startNano;
@@ -1450,7 +1450,7 @@ public abstract class VM_Thread {
    * Called from  VM_Processor.dispatch when a thread is about to
    * start executing.
    */
-  public void resumeInterval(long now) {
+  public final void resumeInterval(long now) {
     if (VM.VerifyAssertions) VM._assert(startNano == 0);
     startNano = now;
   }
@@ -1459,13 +1459,13 @@ public abstract class VM_Thread {
    * Called from {@link VM_Processor#dispatch} when a thread is about to stop
    * executing.
    */
-  public void suspendInterval(long now) {
+  public final void suspendInterval(long now) {
     totalNanos += now - startNano;
     startNano = 0;
   }
 
   /** @return The value of {@link #isBootThread} */
-  public boolean isBootThread() {
+  public final boolean isBootThread() {
     return this == bootThread;
   }
 
@@ -1545,7 +1545,7 @@ public abstract class VM_Thread {
    * Throw the external interrupt associated with the thread now it is running
    */
   @Interruptible
-  protected void postExternalInterrupt() {
+  protected final void postExternalInterrupt() {
     Throwable t = causeOfThreadDeath;
     causeOfThreadDeath = null;
     if (t instanceof InterruptedException  && t != proxyInterruptException) {
@@ -1682,7 +1682,7 @@ public abstract class VM_Thread {
    * Count the stack frames of this thread
    */
   @Interruptible
-  public int countStackFrames() {
+  public final int countStackFrames() {
     if (state != State.SUSPENDED) {
       throw new IllegalThreadStateException("Thread.countStackFrames called on non-suspended thread");
     }
@@ -1692,28 +1692,28 @@ public abstract class VM_Thread {
   /**
    * @return the length of the stack
    */
-  public int getStackLength() {
+  public final int getStackLength() {
     return stack.length;
   }
 
   /**
    * @return the stack
    */
-  public byte[] getStack() {
+  public final byte[] getStack() {
     return stack;
   }
 
   /**
    * @return the hardware exception registers
    */
-  public VM_Registers getHardwareExceptionRegisters() {
+  public final VM_Registers getHardwareExceptionRegisters() {
     return hardwareExceptionRegisters;
   }
 
   /**
    * @return the hardware exception registers
    */
-  public VM_Registers getContextRegisters() {
+  public final VM_Registers getContextRegisters() {
     return contextRegisters;
   }
 
@@ -1724,60 +1724,60 @@ public abstract class VM_Thread {
   public abstract String getThreadState();
 
   /** Set the initial attempt. */
-  public void reportCollectionAttempt() {
+  public final void reportCollectionAttempt() {
     collectionAttempt++;
   }
 
   /** Set the initial attempt. */
-  public int getCollectionAttempt() {
+  public final int getCollectionAttempt() {
     return collectionAttempt;
   }
 
   /** Resets the attempts. */
-  public void resetCollectionAttempts() {
+  public final void resetCollectionAttempts() {
     collectionAttempt = 0;
   }
 
   /** Get the physical allocation failed flag. */
-  public boolean physicalAllocationFailed() {
+  public final boolean physicalAllocationFailed() {
     return physicalAllocationFailed;
   }
 
   /** Set the physical allocation failed flag. */
-  public void setPhysicalAllocationFailed() {
+  public final void setPhysicalAllocationFailed() {
     physicalAllocationFailed = true;
   }
 
   /** Clear the physical allocation failed flag. */
-  public void clearPhysicalAllocationFailed() {
+  public final void clearPhysicalAllocationFailed() {
     physicalAllocationFailed = false;
   }
 
   /** Set the emergency allocation flag. */
-  public void setEmergencyAllocation() {
+  public final void setEmergencyAllocation() {
     emergencyAllocation = true;
   }
 
   /** Clear the emergency allocation flag. */
-  public void clearEmergencyAllocation() {
+  public final void clearEmergencyAllocation() {
     emergencyAllocation = false;
   }
 
   /** Read the emergency allocation flag. */
-  public boolean emergencyAllocation() {
+  public final boolean emergencyAllocation() {
     return emergencyAllocation;
   }
 
   /**
    * Returns the outstanding OutOfMemoryError.
    */
-  public OutOfMemoryError getOutOfMemoryError() {
+  public final OutOfMemoryError getOutOfMemoryError() {
     return outOfMemoryError;
   }
   /**
    * Sets the outstanding OutOfMemoryError.
    */
-  public void setOutOfMemoryError(OutOfMemoryError oome) {
+  public final void setOutOfMemoryError(OutOfMemoryError oome) {
     outOfMemoryError = oome;
   }
 
@@ -1793,7 +1793,7 @@ public abstract class VM_Thread {
   /**
    * Clears the outstanding OutOfMemoryError.
    */
-  public void clearOutOfMemoryError() {
+  public final void clearOutOfMemoryError() {
     outOfMemoryError = null;
   }
 

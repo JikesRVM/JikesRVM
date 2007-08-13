@@ -423,6 +423,10 @@ public class OPT_GenerateMagic {
       OPT_RegisterOperand reg = gc.temps.makeTemp(VM_Scheduler.getProcessorType());
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
       bc2ir.push(reg.copyD2U());
+    } else if (methodName == VM_MagicNames.objectAsThread) {
+      OPT_RegisterOperand reg = gc.temps.makeTemp(VM_Scheduler.getThreadType());
+      bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
+      bc2ir.push(reg.copyD2U());
     } else if (methodName == VM_MagicNames.objectAsAddress) {
       OPT_RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.Address);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));

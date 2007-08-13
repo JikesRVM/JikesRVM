@@ -131,13 +131,13 @@ public class VM_GreenThread extends VM_Thread {
   /**
    * Get the next element after this thread in a thread queue
    */
-  public VM_GreenThread getNext() {
+  public final VM_GreenThread getNext() {
     return next;
   }
   /**
    * Set the next element after this thread in a thread queue
    */
-  public void setNext(VM_GreenThread next) {
+  public final void setNext(VM_GreenThread next) {
     this.next = next;
   }
 
@@ -146,7 +146,7 @@ public class VM_GreenThread extends VM_Thread {
    * a thread is about to start
    */
   @Override
-  protected void registerThreadInternal() {
+  protected final void registerThreadInternal() {
     VM_GreenScheduler.registerThread(this);
   }
 
@@ -167,7 +167,7 @@ public class VM_GreenThread extends VM_Thread {
    * Thread is blocked on a heavyweight lock
    * @see VM_Lock#lockHeavy(Object)
    */
-  public void block(VM_ThreadQueue entering, VM_ProcessorLock mutex) {
+  public final void block(VM_ThreadQueue entering, VM_ProcessorLock mutex) {
     yield(entering, mutex);
   }
 
@@ -175,7 +175,7 @@ public class VM_GreenThread extends VM_Thread {
    * Unblock thread from heavyweight lock blocking
    * @see VM_Lock#unlockHeavy(Object)
    */
-  public void unblock() {
+  public final void unblock() {
     schedule();
   }
 
@@ -389,7 +389,7 @@ public class VM_GreenThread extends VM_Thread {
    * @param l lock guarding that queue (currently locked)
    */
   @NoInline
-  public void yield(VM_AbstractThreadQueue q, VM_ProcessorLock l) {
+  public final void yield(VM_AbstractThreadQueue q, VM_ProcessorLock l) {
     if (VM.VerifyAssertions) VM._assert(this == VM_GreenScheduler.getCurrentThread());
     if (state == State.RUNNABLE)
       changeThreadState(State.RUNNABLE, State.BLOCKED);
@@ -469,7 +469,7 @@ public class VM_GreenThread extends VM_Thread {
    */
   @Interruptible
   @Override
-  protected void sleepInternal(long millis, int ns) throws InterruptedException {
+  protected final void sleepInternal(long millis, int ns) throws InterruptedException {
     wakeupNanoTime = VM_Time.nanoTime() + (millis * (long)1e6) + ns;
     // cache the proxy before obtaining lock
     VM_ThreadProxy proxy = new VM_ThreadProxy(this, wakeupNanoTime);
@@ -500,7 +500,7 @@ public class VM_GreenThread extends VM_Thread {
    */
   @Override
   @Interruptible
-  protected Throwable waitInternal(Object o) {
+  protected final Throwable waitInternal(Object o) {
     return waitInternal2(o, false, 0L);
   }
   /**
@@ -511,7 +511,7 @@ public class VM_GreenThread extends VM_Thread {
    */
   @Override
   @Interruptible
-  protected Throwable waitInternal(Object o, long millis) {
+  protected final Throwable waitInternal(Object o, long millis) {
     return waitInternal2(o, true, millis);
   }
   /**
@@ -629,7 +629,7 @@ public class VM_GreenThread extends VM_Thread {
    * @param lock the heavy weight lock
    */
   @Override
-  protected void notifyInternal(Object o, VM_Lock lock) {
+  protected final void notifyInternal(Object o, VM_Lock lock) {
     VM_GreenLock l = (VM_GreenLock)lock;
     l.mutex.lock("notify mutex"); // until unlock(), thread-switching fatal
     VM_GreenThread t = l.waiting.dequeue();
@@ -647,7 +647,7 @@ public class VM_GreenThread extends VM_Thread {
    * @param lock the heavy weight lock
    */
   @Override
-  protected void notifyAllInternal(Object o, VM_Lock lock) {
+  protected final void notifyAllInternal(Object o, VM_Lock lock) {
     VM_GreenLock l = (VM_GreenLock)lock;
     l.mutex.lock("notifyAll mutex"); // until unlock(), thread-switching fatal
     VM_GreenThread t = l.waiting.dequeue();
@@ -700,7 +700,7 @@ public class VM_GreenThread extends VM_Thread {
    * Thread model dependent part of stopping/interrupting a thread
    */
   @Override
-  protected void killInternal() {
+  protected final void killInternal() {
     // remove this thread from wakeup and/or waiting queue
     VM_ThreadProxy p = threadProxy;
     if (p != null) {
@@ -722,7 +722,7 @@ public class VM_GreenThread extends VM_Thread {
    * Thread model dependent part of thread suspension
    */
   @Override
-  protected void suspendInternal() {
+  protected final void suspendInternal() {
     VM_Synchronization.tryCompareAndSwap(this, suspendPendingOffset, 0, 1);
     if (this == VM_GreenScheduler.getCurrentThread()) yield();
   }
@@ -730,7 +730,7 @@ public class VM_GreenThread extends VM_Thread {
    * Thread model dependent part of thread resumption
    */
   @Override
-  protected void resumeInternal() {
+  protected final void resumeInternal() {
     VM_Synchronization.tryCompareAndSwap(this, suspendPendingOffset, 1, 0);
     VM_GreenProcessor.getCurrentProcessor().scheduleThread(this);
   }

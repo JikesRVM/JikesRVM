@@ -56,7 +56,7 @@ public class VM_GreenLock extends VM_Lock {
    * @return true, if the lock succeeds; false, otherwise
    */
   @Override
-  public boolean lockHeavy(Object o) {
+  public final boolean lockHeavy(Object o) {
     if (tentativeMicrolocking) {
       if (!mutex.tryLock()) {
         return false;
@@ -97,7 +97,7 @@ public class VM_GreenLock extends VM_Lock {
    * @param o the object to be unlocked
    */
   @Override
-  public void unlockHeavy(Object o) {
+  public final void unlockHeavy(Object o) {
     boolean deflated = false;
     mutex.lock("unlock heavy"); // Note: thread switching is not allowed while mutex is held.
     VM_Processor mine = VM_Processor.getCurrentProcessor();
@@ -131,7 +131,7 @@ public class VM_GreenLock extends VM_Lock {
 
   /**
    * Disassociates this heavy-weight lock from the indicated object.
-   * This lock is not heald, nor are any threads on its queues.  Note:
+   * This lock is not held, nor are any threads on its queues.  Note:
    * the mutex for this lock is held when deflate is called.
    *
    * @param o the object from which this lock is to be disassociated
@@ -158,7 +158,7 @@ public class VM_GreenLock extends VM_Lock {
    * Is this lock blocking thread t?
    */
   @Override
-  protected boolean isBlocked(VM_Thread t) {
+  protected final boolean isBlocked(VM_Thread t) {
     return entering.contains(t);
   }
 
@@ -166,7 +166,7 @@ public class VM_GreenLock extends VM_Lock {
    * Is this thread t waiting on this lock?
    */
   @Override
-  protected boolean isWaiting(VM_Thread t) {
+  protected final boolean isWaiting(VM_Thread t) {
     return waiting.contains(t);
   }
 
