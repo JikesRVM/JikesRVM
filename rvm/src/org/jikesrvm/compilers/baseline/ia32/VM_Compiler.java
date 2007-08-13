@@ -1582,25 +1582,27 @@ public abstract class VM_Compiler extends VM_BaselineCompiler implements VM_Base
     } else {
       // TODO: use SSE/x87 operations to do this conversion inline taking care of
       // the boundary cases that differ between x87 and Java
-
       // (1) save RVM nonvolatiles
       int numNonVols = NONVOLATILE_GPRS.length;
       Offset off = Offset.fromIntSignExtend(numNonVols * WORDSIZE);
       for (int i = 0; i < numNonVols; i++) {
         asm.emitPUSH_Reg(NONVOLATILE_GPRS[i]);
       }
-      // (2) Push arg to C function
-      asm.emitPUSH_RegDisp(SP, off);
+      // (2) Push args to C function (reversed)
+      asm.emitPUSH_RegDisp(SP, off.plus(4));
+      asm.emitPUSH_RegDisp(SP, off.plus(4));
       // (3) invoke C function through bootrecord
       asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
       asm.emitCALL_RegDisp(S0, VM_Entrypoints.sysDoubleToIntIPField.getOffset());
-      // (4) pop argument;
+      // (4) pop arguments
+      asm.emitPOP_Reg(S0);
       asm.emitPOP_Reg(S0);
       // (5) restore RVM nonvolatiles
       for (int i = numNonVols - 1; i >= 0; i--) {
         asm.emitPOP_Reg(NONVOLATILE_GPRS[i]);
       }
       // (6) put result on expression stack
+      asm.emitPOP_Reg(S0); // shrink stack by 1 word
       asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T0);
     }
   }
