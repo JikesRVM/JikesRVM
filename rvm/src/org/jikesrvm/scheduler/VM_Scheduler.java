@@ -700,7 +700,7 @@ public abstract class VM_Scheduler {
 
   /**
    * Return true if the supplied address could be a valid frame pointer.
-   * To check for validity we make sure the framepointer is in  one of the
+   * To check for validity we make sure the frame pointer is in one of the
    * spaces;
    * <ul>
    *   <li>LOS (For regular threads)</li>
@@ -708,11 +708,16 @@ public abstract class VM_Scheduler {
    *   <li>Boot (For the boot thread)</li>
    * </ul>
    *
+   * <p>or it is {@link ArchitectureSpecific.VM_StackframeLayoutConstants#STACKFRAME_SENTINEL_FP}.
+   * The STACKFRAME_SENTINEL_FP is possible when the thread has been created but has yet to be
+   * scheduled.</p>
+   *
    * @param address the address.
    * @return true if the address could be a frame pointer, false otherwise.
    */
   private static boolean isAddressValidFramePointer(final Address address) {
-    return isAddressInSpace(address, Selected.Plan.loSpace) ||
+    return address.EQ(ArchitectureSpecific.VM_StackframeLayoutConstants.STACKFRAME_SENTINEL_FP) ||
+           isAddressInSpace(address, Selected.Plan.loSpace) ||
            isAddressInSpace(address, Selected.Plan.immortalSpace)||
            isAddressInSpace(address, Selected.Plan.vmSpace);
   }
