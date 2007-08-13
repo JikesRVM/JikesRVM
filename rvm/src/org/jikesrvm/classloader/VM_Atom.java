@@ -120,7 +120,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   /**
    * Find an atom.
    * @param utf8 atom value, as utf8 encoded bytes
-   * @return atom or null it it doesn't already exisit
+   * @return atom or null it it doesn't already exist
    */
   public static VM_Atom findUtf8Atom(byte[] utf8) {
     return findOrCreate(utf8, false);
