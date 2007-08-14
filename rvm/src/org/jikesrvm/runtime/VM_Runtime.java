@@ -34,7 +34,6 @@ import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.LogicallyUninterruptible;
 import org.vmmagic.pragma.NoInline;
-import org.vmmagic.pragma.NoOptCompile;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -879,7 +878,6 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
    *  <li> <em> or </em> current thread is terminated if no catch block is found
    * </ul>
    */
-  @NoOptCompile
   private static void deliverException(Throwable exceptionObject, VM_Registers exceptionRegisters) {
     if (VM.TraceExceptionDelivery) {
       VM.sysWriteln("VM_Runtime.deliverException() entered; just got an exception object.");
