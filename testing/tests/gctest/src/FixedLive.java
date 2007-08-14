@@ -54,8 +54,7 @@ class FixedLive {
     System.out.print("   allocation rate = " + allocRate + " Mb/s");
     if (sampleCount < 1) {
       System.out.println("  <--- Skipping");
-    }
-    else {
+    } else {
       System.out.println();
       sumTraceTime += traceElapsed;
       sumAllocTime += allocElapsed;
@@ -86,10 +85,10 @@ class FixedLive {
     sumTraceTime = chop(sumTraceTime);
     avgTraceRate = sumTraceRate / sampleCount;
     avgAllocRate = sumAllocRate / sampleCount;
-    diffSquaredSumTraceRate = squaredSumTraceRate + sampleCount * (avgTraceRate * avgTraceRate)
-      - 2 * avgTraceRate * sumTraceRate;
-    diffSquaredSumAllocRate = squaredSumAllocRate + sampleCount * (avgAllocRate * avgAllocRate)
-      - 2 * avgAllocRate * sumAllocRate;
+    diffSquaredSumTraceRate = squaredSumTraceRate + sampleCount * (avgTraceRate * avgTraceRate) -
+      2 * avgTraceRate * sumTraceRate;
+    diffSquaredSumAllocRate = squaredSumAllocRate + sampleCount * (avgAllocRate * avgAllocRate) -
+      2 * avgAllocRate * sumAllocRate;
     rmsTraceRate = Math.sqrt(diffSquaredSumTraceRate / sampleCount);
     rmsAllocRate = Math.sqrt(diffSquaredSumAllocRate / sampleCount);
     zTraceRate = rmsTraceRate / avgTraceRate;
