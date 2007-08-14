@@ -14,7 +14,7 @@
 
   <import file="base.xml"/>
 
-  <property name="dacapo.version" value="2006-10"/>
+  <property name="dacapo.version" value="2006-10-MR2"/>
   <property name="dacapo.description" value="Dacapo Benchmark Suite"/>
 
   <property name="dacapo.dir" location="${components.dir}/dacapo/${dacapo.version}"/>
