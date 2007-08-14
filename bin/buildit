@@ -546,7 +546,7 @@ if ($ok) {
       $defs       = $defs." ".$build_args." ";
     }
     if ($bc_args ne "") {
-      $defs       = $defs."-Dconfig.bootimage.compiler.args=\"$bc_args\" ";
+      $defs       = $defs."-Dconfig.bootimage.compiler.args=\\\"$bc_args\\\" ";
     }
     $hostdefs   = $defs."-Dhost.name=$hostConfig ";
     $targetdefs = $defs."-Dhost.name=$targetConfig ";
