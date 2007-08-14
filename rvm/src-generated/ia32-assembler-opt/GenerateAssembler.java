@@ -198,10 +198,10 @@ public class GenerateAssembler {
     static void setCurrentOpcode(String opcode) {
         try {
             currentOpcode = opcode;
-            currentOpcodeArgTable = (int[]) opcodeArgTables.get( opcode );
-            currentFormat = OPT_OperatorFormatTables.getFormat( opcode );
+            currentOpcodeArgTable = (int[]) opcodeArgTables.get(opcode);
+            currentFormat = OPT_OperatorFormatTables.getFormat(opcode);
             Field f = formats.getDeclaredField(currentFormat+"ParameterNames");
-            currentOpcodeSymbolicNames = (String[]) f.get( null );
+            currentOpcodeSymbolicNames = (String[]) f.get(null);
         } catch (Throwable e) {
           throw new Error("Cannot handle VM_Assembler opcode " + opcode, e);
         }
@@ -538,7 +538,7 @@ public class GenerateAssembler {
     static class EmitterDescriptor {
         private int size;
         private int count;
-        private final int args[];
+        private final int[] args;
 
         /**
          * Create an EmitterDescriptor for the given methodName.  This
@@ -567,7 +567,7 @@ public class GenerateAssembler {
                 else if (size != -1)
                     this.size = size;
                 else
-                    throw new BadEmitMethod( methodName, cs );
+                    throw new BadEmitMethod(methodName, cs);
             }
         }
 
@@ -644,7 +644,7 @@ public class GenerateAssembler {
 
         public String toString() {
             StringBuffer s = new StringBuffer();
-            s.append ("ed:");
+            s.append("ed:");
             for(int i = 0; i < count; i++)
                 s.append(" " + encoding[args[i]]);
             if (size != 0) s.append(" (" + encoding[size] + ")");
@@ -698,7 +698,7 @@ public class GenerateAssembler {
          * @param ed the EmitterDescriptor to insert
          */
         void add(EmitterDescriptor ed) {
-            emitters.add( ed );
+            emitters.add(ed);
         }
 
         /**
@@ -737,7 +737,7 @@ public class GenerateAssembler {
          *         emit method in this set.  */
         private int getEncodingSplit(int n, int code) {
             int count = countEncoding(n, code);
-            return Math.abs( (emitters.size() - count) - count );
+            return Math.abs((emitters.size() - count) - count);
         }
 
         /**
@@ -789,10 +789,11 @@ public class GenerateAssembler {
             Iterator<EmitterDescriptor> i = emitters.iterator();
             while (i.hasNext()) {
                 EmitterDescriptor ed = (EmitterDescriptor) i.next();
-                if (ed.argMatchesEncoding(arg, test))
-                    yes.add( ed );
-                else
-                    no.add( ed );
+                if (ed.argMatchesEncoding(arg, test)) {
+                    yes.add(ed);
+                } else {
+                    no.add(ed);
+                }
             }
 
             return new EmitterSet[]{yes, no};
@@ -910,8 +911,7 @@ public class GenerateAssembler {
                     for(int i = 0; i < count; i++)
                         if (args[i] == Register)
                             if (currentOpcode.indexOf("MOVZX") == -1 &&
-                                currentOpcode.indexOf("MOVSX") == -1)
-                            {
+                                currentOpcode.indexOf("MOVSX") == -1) {
                                 emitTab(level);
                                 emit("if (VM.VerifyAssertions && !(");
                                 emitArgs(i, Register);
@@ -969,7 +969,7 @@ public class GenerateAssembler {
                 testsPerformed[rec.argument][rec.test] = true;
                 EmitterSet[] splits = makeSplit(rec);
                 emitTab(level); emit("if (");
-                emitTest( rec.argument, rec.test );
+                emitTest(rec.argument, rec.test);
                 emit(") {\n");
                 splits[0].emitSet(opcode, testsPerformed, level+1);
                 emit("\n"); emitTab(level); emit("} else {\n");
@@ -996,15 +996,12 @@ public class GenerateAssembler {
      * @param opcode the opcode being examined
      */
     private static EmitterSet
-        buildSetForOpcode(Method[] emitters, String opcode)
-    {
+        buildSetForOpcode(Method[] emitters, String opcode) {
         EmitterSet s = new EmitterSet();
         for(int i = 0; i < emitters.length; i++) {
             Method m = emitters[i];
-            if (m.getName().startsWith("emit" + opcode + "_")
-                                    ||
-                m.getName().equals("emit" + opcode))
-            {
+            if (m.getName().startsWith("emit" + opcode + "_") ||
+                m.getName().equals("emit" + opcode)) {
                 s.add(new EmitterDescriptor(m.getName()));
             }
         }
@@ -1056,13 +1053,17 @@ public class GenerateAssembler {
                 int posOf_ = name.indexOf('_');
                 if (posOf_ != -1) {
                     String opcode = name.substring(4, posOf_);
-                    if (! excludedOpcodes.contains(opcode)) s.add( opcode );
+                    if (!excludedOpcodes.contains(opcode)) {
+                      s.add(opcode);
+                    }
                 } else {
                     String opcode = name.substring(4);
                     // make sure it is an opcode
-                    if (opcode.equals(opcode.toUpperCase(Locale.getDefault())))
-                        if (! excludedOpcodes.contains(opcode))
-                            s.add( opcode );
+                    if (opcode.equals(opcode.toUpperCase(Locale.getDefault()))) {
+                        if (!excludedOpcodes.contains(opcode)) {
+                          s.add(opcode);
+                        }
+                    }
                 }
             }
         }
@@ -1089,7 +1090,7 @@ public class GenerateAssembler {
         while (e.hasNext()) {
             String opcode = (String) e.next();
             if (! emittedOpcodes.contains(opcode))
-                errorOpcodes.add( opcode );
+                errorOpcodes.add(opcode);
         }
 
         return errorOpcodes;
@@ -1110,7 +1111,7 @@ public class GenerateAssembler {
         while (e.hasNext()) {
             String o = (String) e.next();
             if (o.equals(lowLevelOpcode) || o.startsWith(lowLevelOpcode+"__"))
-                matchingOperators.add( o );
+                matchingOperators.add(o);
         }
 
         return matchingOperators;
@@ -1164,7 +1165,7 @@ public class GenerateAssembler {
         Iterator<String> i = opcodes.iterator();
         while (i.hasNext()) {
             String opcode = (String) i.next();
-            setCurrentOpcode( opcode );
+            setCurrentOpcode(opcode);
             emitTab(1);emit("/**\n");
             emitTab(1);emit(" *  Emit the given instruction, assuming that\n");
             emitTab(1);emit(" * it is a " + currentFormat + " instruction\n");
@@ -1200,11 +1201,11 @@ public class GenerateAssembler {
         i = opcodes.iterator();
         while (i.hasNext()) {
             String opcode = i.next();
-            Iterator<String> operators = getMatchingOperators( opcode ).iterator();
+            Iterator<String> operators = getMatchingOperators(opcode).iterator();
             while (operators.hasNext()) {
                 String operator = operators.next();
                 emitTab(3);
-                emittedOpcodes.add( operator );
+                emittedOpcodes.add(operator);
                 emit("case IA32_" + operator + "_opcode:\n");
             }
             emitTab(4);    emit("do" + opcode + "(inst);\n");
@@ -1236,7 +1237,7 @@ public class GenerateAssembler {
         emitTab(4);    emit("emitPatchPoint();\n");
         emitTab(4);    emit("break;\n");
 
-        Set<String> errorOpcodes = getErrorOpcodes( emittedOpcodes );
+        Set<String> errorOpcodes = getErrorOpcodes(emittedOpcodes);
         if (! errorOpcodes.isEmpty()) {
             i = errorOpcodes.iterator();
             while (i.hasNext()) {
