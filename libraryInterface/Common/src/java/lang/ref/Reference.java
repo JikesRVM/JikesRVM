@@ -26,7 +26,7 @@ public abstract class Reference<T> {
   /**
    * The underlying object.  This field is a Address so it will not
    * be automatically kept alive by the garbage collector.
-   * 
+   *
    * Set and maintained by the ReferenceProcessor class.
    */
   private Address referent;
@@ -58,7 +58,7 @@ public abstract class Reference<T> {
       throw new NullPointerException();
     queue = q;
   }
-  
+
   /**
    * Returns the object, this reference refers to.
    * @return the object, this reference refers to, or null if the
@@ -80,17 +80,17 @@ public abstract class Reference<T> {
    *
    * @param tmp The non-zero referent address
    * @return The referent object.
-   */ 
+   */
   @Uninterruptible
   @Inline
-  private final Object getInternal(Address tmp) {
+  private Object getInternal(Address tmp) {
     Object ref = VM_Magic.addressAsObject(tmp);
 
     if (MM_Constants.NEEDS_REFTYPE_READ_BARRIER) {
       ref = MM_Interface.referenceTypeReadBarrier(ref);
     }
 
-    return ref; 
+    return ref;
   }
 
   public void clear() {

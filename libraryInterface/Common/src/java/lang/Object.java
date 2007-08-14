@@ -29,12 +29,12 @@ public class Object {
     return VM_Runtime.clone(this);
   }
 
-  public boolean equals (Object o) {
+  public boolean equals(Object o) {
     return this == o;
   }
 
   @SuppressWarnings({"PMD.EmptyFinalizer","FinalizeDoesntCallSuperFinalize"})
-  protected void finalize () throws Throwable {
+  protected void finalize() throws Throwable {
   }
 
   public final Class<?> getClass() {
@@ -53,24 +53,24 @@ public class Object {
     VM_Thread.notifyAll(this);
   }
 
-  public String toString () {
+  public String toString() {
     return getClass().getName() + "@" + Integer.toHexString(hashCode());
   }
 
-  public final void wait () throws InterruptedException,
+  public final void wait() throws InterruptedException,
                                    IllegalMonitorStateException {
     VM_Thread.wait(this);
   }
 
-  public final void wait (long time) throws InterruptedException,
+  public final void wait(long time) throws InterruptedException,
                                             IllegalMonitorStateException,
                                             IllegalArgumentException {
     wait(time, 0);
   }
 
-  public final void wait (long time, int frac)  throws InterruptedException,
-                                                       IllegalMonitorStateException,
-                                                       IllegalArgumentException {
+  public final void wait(long time, int frac)  throws InterruptedException,
+                                                      IllegalMonitorStateException,
+                                                      IllegalArgumentException {
     if (time >= 0 && frac >= 0 && frac < 1000000) {
       if (time == 0 && frac > 0) {
         time = 1;

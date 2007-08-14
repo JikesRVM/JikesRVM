@@ -90,15 +90,13 @@ public class JikesRVMSupport {
   public static VM_Thread getThread(Thread thread) {
     if (thread == null) {
       return null;
-    }
-    else if(thread.vmThread == null) {
+    } else if(thread.vmThread == null) {
       return null;
-    }
-    else {
+    } else {
       return thread.vmThread.vmdata;
     }
   }
-  
+
   public static void threadDied(Thread thread) {
     thread.die();
   }

@@ -140,9 +140,9 @@ public final class Method extends AccessibleObject implements Member {
       return VM_Reflection.invoke(method, receiver, args);
     } catch (Throwable t) {
       throw new InvocationTargetException(t,
-                "While invoking the method:\n\t\"" + method + "\"\n"
-                + " on the object:\n\t\"" + receiver + "\"\n"
-                + " it threw the exception:\n\t\"" + t + "\"");
+                "While invoking the method:\n\t\"" + method + "\"\n" +
+                " on the object:\n\t\"" + receiver + "\"\n" +
+                " it threw the exception:\n\t\"" + t + "\"");
      }
   }
 
@@ -153,16 +153,15 @@ public final class Method extends AccessibleObject implements Member {
     sb.append(getDeclaringClass().getName()).append('.');
     sb.append(getName()).append('(');
     Class<?>[] c = getParameterTypes();
-    if (c.length > 0)
-      {
+    if (c.length > 0) {
         sb.append(JikesRVMHelpers.getUserName(c[0]));
-        for (int i = 1; i < c.length; i++)
+        for (int i = 1; i < c.length; i++) {
           sb.append(',').append(JikesRVMHelpers.getUserName(c[i]));
+        }
       }
     sb.append(')');
     c = getExceptionTypes();
-    if (c.length > 0)
-      {
+    if (c.length > 0) {
         sb.append(" throws ").append(c[0].getName());
         for (int i = 1; i < c.length; i++)
           sb.append(',').append(c[i].getName());
@@ -226,19 +225,19 @@ public final class Method extends AccessibleObject implements Member {
     sb.append(getDeclaringClass().getName()).append('.');
     sb.append(getName()).append('(');
     Type[] types = getGenericParameterTypes();
-    if (types.length > 0)
-      {
+    if (types.length > 0) {
         sb.append(types[0]);
-        for (int i = 1; i < types.length; i++)
+        for (int i = 1; i < types.length; i++) {
           sb.append(',').append(types[i]);
+        }
       }
     sb.append(')');
     types = getGenericExceptionTypes();
-    if (types.length > 0)
-      {
+    if (types.length > 0) {
         sb.append(" throws ").append(types[0]);
-        for (int i = 1; i < types.length; i++)
+        for (int i = 1; i < types.length; i++) {
           sb.append(',').append(types[i]);
+        }
       }
     return sb.toString();
   }

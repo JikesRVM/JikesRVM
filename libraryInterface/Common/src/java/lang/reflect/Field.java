@@ -163,9 +163,8 @@ public final class Field extends AccessibleObject implements Member {
         } catch (NoClassDefFoundError e) {
           throw new IllegalArgumentException("field type mismatch");
         }
-        if (fieldType != valueType
-            && !VM_Runtime.isAssignableWith(fieldType, valueType))
-        {
+        if (fieldType != valueType &&
+            !VM_Runtime.isAssignableWith(fieldType, valueType)) {
           throw new IllegalArgumentException("field type mismatch");
         }
       }
