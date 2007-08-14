@@ -384,7 +384,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
 
     // Allow profile information to be read in from a file
     //
-    VM_EdgeCounts.boot();
+    VM_EdgeCounts.boot(EdgeCounterFile);
 
     if (VM.BuildForAdaptiveSystem) {
       VM_CompilerAdvice.postBoot();

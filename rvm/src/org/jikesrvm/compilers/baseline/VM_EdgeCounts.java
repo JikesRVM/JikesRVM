@@ -54,9 +54,9 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
 
   public void notifyExit(int value) { dumpCounts(); }
 
-  public static void boot() {
-    if (VM.EdgeCounterFile != null) {
-      readCounts(VM.EdgeCounterFile);
+  public static void boot(String inputFileName) {
+    if (inputFileName != null) {
+      readCounts(inputFileName);
     }
   }
 

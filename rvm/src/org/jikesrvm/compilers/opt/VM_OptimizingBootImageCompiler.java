@@ -20,6 +20,7 @@ import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.classloader.VM_Method;
 import org.jikesrvm.classloader.VM_NormalMethod;
 import org.jikesrvm.compilers.baseline.VM_BaselineCompiler;
+import org.jikesrvm.compilers.baseline.VM_EdgeCounts;
 import org.jikesrvm.compilers.common.VM_BootImageCompiler;
 import org.jikesrvm.compilers.common.VM_CompiledMethod;
 
@@ -75,7 +76,7 @@ public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
           }
         }
       }
-
+      VM_EdgeCounts.boot(masterOptions.EDGE_COUNT_INPUT_FILE);
       OPT_Compiler.init(masterOptions);
     } catch (OPT_OptimizingCompilerException e) {
       String msg = "VM_BootImageCompiler: OPT_Compiler failed during initialization: " + e + "\n";

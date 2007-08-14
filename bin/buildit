@@ -75,6 +75,7 @@ Building Options:
      --build-arg      Specify an additional argument for the ant build
      --bc-arg         Specify arguments for the bootimage compiler
      --checkstyle     Perform source code style checks.
+     --profile        Perform a profiled build (including creation of a profile)	
 
 Testing Options:
  -t, --test           Specify a test to run (overriden by --test-run)
@@ -122,6 +123,7 @@ GetOptions(
   "nuke" => \$nuke,
   "c|cross-to=s" => \$target,
   "checkstyle" => \$checkstyle,
+  "profile" => \$profile,
   "u|user=s" => \$cmd_user,
   "build-user=s" => \$cmd_hostUser,
   "target-user=s" => \$cmd_targetUser,
@@ -544,6 +546,9 @@ if ($ok) {
     }
     if ($build_args ne "") {
       $defs       = $defs." ".$build_args." ";
+    }
+    if ($profile ne "") {
+      $defs       = $defs." profiled-image ";
     }
     if ($bc_args ne "") {
       $defs       = $defs."-Dconfig.bootimage.compiler.args=\\\"$bc_args\\\" ";

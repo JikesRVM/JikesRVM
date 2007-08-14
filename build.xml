@@ -45,7 +45,8 @@
   <!-- Set the properties for intermediate directory -->
   <property name="build.dir" location="target"/>
   <property name="build.base" location="${build.dir}/${build.name}"/>
-
+  <property name="build.profiles" location="${build.dir}/profiles"/>
+	
   <property name="build.vmmagic-stub.classes" location="${build.dir}/vmmagic-stub/classes"/>
   <property name="build.mmtk.jar" location="${build.dir}/mmtk/mmtk.jar"/>
   <property name="build.native" location="${build.base}/c"/>
@@ -1459,7 +1460,32 @@ target.jni-suffix=${target.jni-suffix}
   <target name="runtime" depends="cross-compile-host,cross-compile-target" description="Build the runtime."/>
 
   <target name="main" depends="runtime"/>
-
+	
+  <!-- Create an image using a profile (which requires first creating a profile) -->
+  <target name="profiled-image">
+	<ant inheritAll="false" target="create-bootimage-profile">
+	  <property name="config.variant" value="profile"/>
+	  <property name="config.bootimage.compiler" value="base"/>
+	  <property name="config.bootimage.compiler.args" value="-X:bc:edge_counters=true"/>
+	</ant>
+  	<ant inheritAll="false" target="runtime">
+	  <property name="config.bootimage.compiler.args" value="-X:bc:edge_count_input_file=${build.profiles}/profile.ec ${config.bootimage.compiler.args}"/>
+	</ant>
+  </target>
+	
+  <!-- Create an edge profile by creating a baseline-compiled sibling to this image and profiling it -->
+  <target name="create-bootimage-profile" depends="runtime">
+	<ant antfile="build/components/dacapo.xml" target="ensure" inheritall="false" inheritrefs="false"/>
+	<mkdir dir="${build.profiles}"/>
+	<exec executable="${dist.base}/rvm"
+    dir="${build.profiles}">
+    <arg value="-X:base:edge_counters=true"/>
+	  <arg value="-X:base:edge_counter_file=${build.profiles}/profile.ec"/>
+	  <arg value="-X:aos:final_report_level=2"/>
+	  <arg line="-jar ${dacapo.jar} -n 3 fop"/>
+	</exec>
+  </target>
+	
   <target name="clean" description="Delete all the intermediate and image files.">
     <delete dir="${build.dir}"/>
     <delete dir="${dist.base}"/>
@@ -1475,7 +1501,7 @@ target.jni-suffix=${target.jni-suffix}
       <fileset dir="." includes="**/*~" defaultexcludes="false"/>
     </delete>
   </target>
-
+	
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
   <!-- *                                Doc                                       * -->
