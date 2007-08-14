@@ -740,7 +740,7 @@ sysNanoTime()
 	long long retVal;
 #ifndef __MACH__
 	struct timespec tp;
-        int rc = clock_gettime(CLOCK_MONOTONIC, &tp);
+    int rc = clock_gettime(CLOCK_MONOTONIC, &tp);
 	if (rc != 0) {
 		retVal = rc;
 	    if (lib_verbose) {

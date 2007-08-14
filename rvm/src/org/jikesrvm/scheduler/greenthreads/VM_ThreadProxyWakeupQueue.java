@@ -122,8 +122,12 @@ public final class VM_ThreadProxyWakeupQueue extends VM_AbstractThreadQueue {
   }
 
   public void dump() {
+    VM.sysWriteln("nowNano=", VM_Time.nanoTime());
     for (VM_ThreadProxy p = head; p != null; p = p.getWakeupNext()) {
-      if (p.getPatron() != null) p.getPatron().dump();
+      if (p.getPatron() != null) {
+        p.getPatron().dump();
+        VM.sysWrite("(wakeupNano=", p.getWakeupNano()); VM.sysWrite(")");
+      }
     }
     VM.sysWrite("\n");
   }
