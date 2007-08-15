@@ -92,7 +92,7 @@ public class VMSystemProperties {
        reads this value when it runs its initializer.
     */
     s = VM_CommandLineArgs.getEnvironmentArg("user.timezone");
-    s = (s == null ) ? "" : s;  // Maybe it's silly to set it to the empty
+    s = (s == null) ? "" : s;   // Maybe it's silly to set it to the empty
                                 // string.  Well, this should never succeed
                                 // anyway, since we're always called by
                                 // runrvm, which explicitly sets the value.
