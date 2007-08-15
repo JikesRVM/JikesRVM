@@ -19,10 +19,10 @@ import java.lang.annotation.ElementType;
 import org.vmmagic.Pragma;
 
 /**
- * A pragma that can be used to declare that a particular method is 
+ * A pragma that can be used to declare that a particular method is
  * logically uninterruptible even though it contains bytecodes that
  * are actually interruptible.
- * 
+ *
  * The effect of this pragma is to supress warning messages
  * about violations of uninterruptiblity when compiling a method
  * that throws this exception.
