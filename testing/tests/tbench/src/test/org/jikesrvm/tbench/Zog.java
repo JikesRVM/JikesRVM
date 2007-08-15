@@ -65,7 +65,7 @@ public class Zog extends Thread {
     }
   }
 
-  public static void main(String args[]) {
+  public static void main(String[] args) {
     final int threadCount = Integer.parseInt(args[0]);
     final int messageCount = Integer.parseInt(args[1]);
 
