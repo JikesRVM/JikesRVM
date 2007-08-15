@@ -31,10 +31,10 @@ class TypeCheck {
   static int num_cs = 10000;
   static int num_cc_cs = 10000;
   static int num_io_cc_cs = 10000;
-  volatile static Integer field1;
-  volatile static Object field2;
-  volatile static Throwable field3;
-  volatile static java.io.Serializable field4;
+  static volatile Integer field1;
+  static volatile Object field2;
+  static volatile Throwable field3;
+  static volatile java.io.Serializable field4;
   static Integer[] a1;
   static Object[] a2;
   static Throwable[] a3;

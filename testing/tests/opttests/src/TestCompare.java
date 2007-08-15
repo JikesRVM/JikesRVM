@@ -10,16 +10,12 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-class TestCompare
-{
-  public static void main(String args[])
-  {
-    // VM.boot();
+class TestCompare {
+  public static void main(String[] args) {
     run();
   }
   static boolean testSuccess = true;
-  public static boolean run()
-  {
+  public static boolean run() {
     boolean retSuccess = true;
     System.out.print("TestCompare");
 
@@ -103,15 +99,11 @@ class TestCompare
    static void zero() { str += "0"; }
    static void one()  { str += "1"; }
 
-   static void
-   zero_cmp()
-      {
+   static void zero_cmp() {
       int i = -1;
       zero_cmp(i);
    }
-   static void
-   zero_cmp(int i)
-      {
+   static void zero_cmp(int i) {
         // System.out.print("\nzero_cmp want: 100110\n got: ");
       str = "";
       if (i != 0) one(); else zero(); // ifeq
@@ -127,16 +119,13 @@ class TestCompare
       // System.out.println();
       }
 
-   static void
-   i_cmp()
-      {
+   static void i_cmp() {
       int i = -1;
       int j =  0;
       i_cmp(i,j);
    }
-   static void
-   i_cmp(int i, int j)
-      {
+
+   static void i_cmp(int i, int j) {
       str = "";
       //   System.out.print("i_cmp want: 100110\n got: ");
       if (i != j) one(); else zero(); // if_icmpeq
@@ -153,16 +142,13 @@ class TestCompare
       // System.out.println();
       }
 
-   static void
-   l_cmp()
-      {
+   static void l_cmp() {
       long a = 1;
       long b = 2;
       l_cmp(a,b);
    }
-   static void
-   l_cmp(long a, long b)
-      {
+
+   static void l_cmp(long a, long b) {
         //     System.out.print("\nl_cmp want: 100010001\n got: ");
       str = "";
 
@@ -185,18 +171,15 @@ class TestCompare
 
 
       //      System.out.println();
-      }
+   }
 
-   static void
-   f_cmp()
-      {
+   static void f_cmp() {
       float a = 1;
       float b = 2;
       f_cmp(a,b);
    }
-   static void
-   f_cmp(float a, float b)
-      {
+
+   static void f_cmp(float a, float b) {
         //      System.out.print("\nf_cmp want: 100010001\n got: ");
       str = "";
 
@@ -220,18 +203,15 @@ class TestCompare
       }
 
 
-      }
+   }
 
-   static void
-   d_cmp()
-      {
+   static void d_cmp() {
       double a = 1;
       double b = 2;
       d_cmp(a,b);
    }
-   static void
-   d_cmp(double a, double b)
-      {
+
+   static void d_cmp(double a, double b) {
         // System.out.print("\nd_cmp want: 100010001\n got: ");
       str = "";
 
@@ -254,18 +234,15 @@ class TestCompare
         testSuccess = false;
       }
 
-      }
+   }
 
-   static void
-   a_cmp()
-      {
+   static void a_cmp() {
       Object a = null;
       Object b = null;
       a_cmp(a,b);
    }
-   static void
-   a_cmp(Object a, Object b)
-      {
+
+   static void a_cmp(Object a, Object b) {
         //      System.out.print("\na_cmp want: 10\n got: ");
       str = "";
       if (a == b) one(); else zero(); // if_acmpne
@@ -277,17 +254,14 @@ class TestCompare
         testSuccess = false;
       }
 
-      }
+   }
 
-   static void
-   null_cmp()
-      {
+   static void null_cmp() {
       Object o = null;
       null_cmp(o);
    }
-   static void
-   null_cmp(Object o)
-      {
+
+   static void null_cmp(Object o) {
         //      System.out.print("\nnull_cmp want: 10\n got: ");
 
         str = "";
@@ -300,19 +274,16 @@ class TestCompare
         testSuccess = false;
       }
 
-      }
+   }
 
-   static void
-   str_cmp()
-      {
+   static void str_cmp() {
       String s1 = "abc";
       String s2 = "abc";
       String s3 = "ab"; s3 = s3 + "c";
       str_cmp(s1,s2,s3);
    }
-   static void
-   str_cmp(String s1, String s2, String s3)
-      {
+
+   static void str_cmp(String s1, String s2, String s3) {
         boolean strCmp = (s1 == s2);
 
         if (!strCmp) {
@@ -325,7 +296,5 @@ class TestCompare
           System.out.println("\nwant: false\n got: " + (s1 == s3));
           testSuccess = false;
         }
-      }
    }
-
-
+}

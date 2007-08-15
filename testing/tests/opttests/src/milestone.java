@@ -10,10 +10,8 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-final class milestone
-{
-  static int add(int a, int b)
-  {
+final class milestone {
+  static int add(int a, int b) {
     return a + b;
   }
 }

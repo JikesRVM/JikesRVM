@@ -25,8 +25,7 @@ class PingPong extends Thread {
                 System.out.print(word + " ");
                 sleep(delaytime);
             }
-        }
-        catch (InterruptedException e) {
+        } catch (InterruptedException e) {
             return;
         }
     }

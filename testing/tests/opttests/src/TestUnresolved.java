@@ -12,7 +12,7 @@
  */
 public class TestUnresolved {
 
-   public static void main(String args[]) {
+   public static void main(String[] args) {
       run();
    }
 
@@ -88,8 +88,7 @@ class temp1 {
 }
 
 
-class temp3
-   {
+class temp3 {
 
    static long temp = 1L;
    Object node;

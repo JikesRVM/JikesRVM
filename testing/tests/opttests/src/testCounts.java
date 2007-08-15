@@ -10,23 +10,21 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-class testCounts
-{
+class testCounts {
     public static void main() {
         bar(100);
     }
 
   public static void bar(int n) {
-        int a[] = new int[n];
+        int[] a = new int[n];
         int length = a.length;
 
-        for(int i = 0 ; i < length ; i++ )
-        {
+        for(int i = 0 ; i < length ; i++) {
             a[i] = a[i] + 1;
         }
     }
 
-    static int foo(int a[], int i) {
+    static int foo(int[] a, int i) {
         return a[i];
     }
 }

@@ -16,11 +16,10 @@ public class whet {
 static final int ITERATIONS=3000; /* 10 Million Whetstone instructions */
 
 static double           x1, x2, x3, x4, x, y, z, t, t1, t2;
-static double           e1[] = new double[4];
+static double[]         e1 = new double[4];
 static int              i, j, k, l, n1, n2, n3, n4, n6, n7, n8, n9, n10, n11;
 
-public static void main(String arg[])
-{
+public static void main(String[] arg) {
     run();
 }
 
@@ -52,10 +51,10 @@ public static void run() {
         x2 = x3 = x4 = -1.0;
 
         for(i = 1; i <= n1; i += 1) {
-                x1 = ( x1 + x2 + x3 - x4 ) * t;
-                x2 = ( x1 + x2 - x3 - x4 ) * t;
-                x3 = ( x1 - x2 + x3 + x4 ) * t;
-                x4 = (-x1 + x2 + x3 + x4 ) * t;
+                x1 = (x1 + x2 + x3 - x4) * t;
+                x2 = (x1 + x2 - x3 - x4) * t;
+                x3 = (x1 - x2 + x3 + x4) * t;
+                x4 = (-x1 + x2 + x3 + x4) * t;
         }
         pout(n1, n1, n1, x1, x2, x3, x4);
 
@@ -66,10 +65,10 @@ public static void run() {
         e1[1] = e1[2] = e1[3] = -1.0;
 
         for (i = 1; i <= n2; i +=1) {
-                e1[0] = ( e1[0] + e1[1] + e1[2] - e1[3] ) * t;
-                e1[1] = ( e1[0] + e1[1] - e1[2] + e1[3] ) * t;
-                e1[2] = ( e1[0] - e1[1] + e1[2] + e1[3] ) * t;
-                e1[3] = (-e1[0] + e1[1] + e1[2] + e1[3] ) * t;
+                e1[0] = (e1[0] + e1[1] + e1[2] - e1[3]) * t;
+                e1[1] = (e1[0] + e1[1] - e1[2] + e1[3]) * t;
+                e1[2] = (e1[0] - e1[1] + e1[2] + e1[3]) * t;
+                e1[3] = (-e1[0] + e1[1] + e1[2] + e1[3]) * t;
         }
         pout(n2, n3, n2, e1[0], e1[1], e1[2], e1[3]);
 
@@ -93,7 +92,7 @@ public static void run() {
                 else
                         j = 1;
 
-                if (j < 1 )
+                if (j < 1)
                         j = 1;
                 else
                         j = 0;
@@ -169,35 +168,32 @@ public static void run() {
         /* NOT YET SUPPORTED BY RVM
         x = 0.75;
         for(i = 1; i <= n11; i +=1)
-                x = Math.sqrt( Math.exp( Math.log(x) / t1));
+                x = Math.sqrt(Math.exp(Math.log(x) / t1));
 
         pout(n11, j, k, x, x, x, x);
         */
 }
 
-private static void pa(double e[])
-{
+private static void pa(double[] e) {
         int j;
 
         for (j=0; j < 6; j++) {
-        e[0] = (  e[0] + e[1] + e[2] - e[3] ) * t;
-        e[1] = (  e[0] + e[1] - e[2] + e[3] ) * t;
-        e[2] = (  e[0] - e[1] + e[2] + e[3] ) * t;
-        e[3] = ( -e[0] + e[1] + e[2] + e[3] ) / t2;
+        e[0] = (e[0] + e[1] + e[2] - e[3]) * t;
+        e[1] = (e[0] + e[1] - e[2] + e[3]) * t;
+        e[2] = (e[0] - e[1] + e[2] + e[3]) * t;
+        e[3] = (-e[0] + e[1] + e[2] + e[3]) / t2;
         }
 }
 
 
-private static void p3(double x, double y, double w)
-{
+private static void p3(double x, double y, double w) {
         x  = t * (x + y);
         y  = t * (x + y);
         z = (x + y) /t2;
 }
 
 
-private static void p0()
-{
+private static void p0() {
         e1[j] = e1[k];
         e1[k] = e1[l];
         e1[l] = e1[j];

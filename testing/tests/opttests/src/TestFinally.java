@@ -10,45 +10,33 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-class TestFinally
-   {
-   static int
-   foo(int a, int b)
-      {
-      try
-         {
+class TestFinally {
+
+   static int foo(int a, int b) {
+      try {
          return a / b;
-         }
-
-      catch(Exception e)
-         {
+     } catch(Exception e) {
          return 1;
-         }
-
-      finally
-         {
+     } finally {
          return 2;
-         }
-
+     }
       // not reached
-      }
+   }
 
-   static int
-   foo1(int a, int b)
-      {
+   static int foo1(int a, int b) {
       int c = 0;
-      if (a > 0)
-       try { return a/b;
-       }
-       catch(Exception e) {
+      if (a > 0) {
+       try {
+         return a/b;
+       } catch(Exception e) {
           c = 1;
-       }
-       finally {
+       } finally {
           c = 2;
        }
-      else
+      } else {
          return 0;
-      c= c + b;
+      }
+      c = c + b;
       return c;
    }
 
@@ -69,20 +57,20 @@ class TestFinally
    static boolean
    foo3(int a, int b) {
       int c = 0;
-      if (a > 0)
-       try { return a/b == 0;
-       }
-       catch(Exception e) {
+      if (a > 0) {
+       try {
+         return a/b == 0;
+       } catch(Exception e) {
           c = 1;
-       }
-       finally {
+       } finally {
           int x = a >> 3;
           int y = b + 2;
           c = foo2a(y&(x & 0x77))-1;
        }
-      else
+      } else {
          return false;
-      c= c + b;
+      }
+      c = c + b;
       return c >= a;
    }
 
@@ -92,8 +80,7 @@ class TestFinally
          return a/b;
       } catch (Exception e) {
          x = 10;
-      }
-      finally {
+      } finally {
          try {
             x = b/a + 3000;
          } catch (Exception e) {
@@ -103,12 +90,9 @@ class TestFinally
       return x;
    }
 
-   public static void
-   main(String args[])
-      {
-   // VM.boot();
+   public static void main(String[] args) {
       run();
-      }
+   }
 
    public static boolean run() {
       System.out.println("TestFinally");
@@ -123,8 +107,7 @@ class TestFinally
 
       try  {
          System.out.println("hi");      // jsr
-      }
-      finally {
+      } finally {
          System.out.println("bye");
       }                              // ret
       return true;

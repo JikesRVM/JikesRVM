@@ -13,7 +13,7 @@
 class ExceptionTest4 {
 
 
-  static int testa[] = new int[3];
+  static int[] testa = new int[3];
   public static void main(String[] args) {
 
     run();
@@ -27,8 +27,7 @@ class ExceptionTest4 {
   static int divide(int a, int b) {
      try {
          return a/b;
-     }
-     catch(ArithmeticException e) {
+     } catch(ArithmeticException e) {
          return a + 1;
      }
   }

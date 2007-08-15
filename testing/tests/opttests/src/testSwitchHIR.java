@@ -12,8 +12,7 @@
  */
 class testSwitchHIR {
 
-static int argwords(String sig)
-{
+  static int argwords(String sig) {
     int n = 0;
 
     for (int i = 1; i < sig.length(); i++) {

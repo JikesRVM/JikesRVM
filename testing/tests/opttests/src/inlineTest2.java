@@ -10,13 +10,11 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-class inlineTest2
-{
-  static int
-  run()
-  {
-    int i = l2i( 0x000000000fffffffL);
-    int j = l2i( 0x0000000000ffffffL);
+class inlineTest2 {
+
+  static int run() {
+    int i = l2i(0x000000000fffffffL);
+    int j = l2i(0x0000000000ffffffL);
 
     return i+j;
   }

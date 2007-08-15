@@ -10,15 +10,12 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-class TestCall
-   {
-   public static void main(String args[])
-      {
+class TestCall {
+   public static void main(String[] args) {
       run();
-      }
+   }
 
-   public static boolean run()
-      {
+   public static boolean run() {
       System.out.println("TestCall");
       System.out.print("want: 5\n");
       System.out.print(" got: "+fooI(1,2,3,4,5,6,7,8,9,10,11,12,1)+"\n");
@@ -36,7 +33,7 @@ class TestCall
       System.out.print(" got: "+fooD(1.,2.,3.,4.,5.,6.,7.,8.,
                                      9.,10.,11.,12.,13.,14.,15.,16.,1.)+"\n");
       return true;
-      }
+   }
 
    static int fooI(int a1, int a2, int a3, int a4, int a5, int a6, int a7, int a8,
               int a9, int a10, int a11, int a12, int a13) {

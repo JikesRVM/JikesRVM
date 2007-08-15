@@ -17,7 +17,7 @@ class TestLookupSwitch {
     return true;
   }
 
-  static int foo( int bar ) {
+  static int foo(int bar) {
     int retVal = 0;
 
     switch (bar) {

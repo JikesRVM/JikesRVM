@@ -26,7 +26,7 @@ class T {
 
 
 public class gctest {
-  public static void main(String arg[]) {
+  public static void main(String[] arg) {
     T o1 = new T(3);
     T o2 = new T(4);
     T o3 = new T(4);

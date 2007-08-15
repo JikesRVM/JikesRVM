@@ -10,18 +10,14 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-class TestStackAccess
-{
-  public static void main(String args[])
-  {
-    // VM.boot();
+class TestStackAccess {
+  public static void main(String[] args) {
     run();
   }
 
   static boolean testSuccess = true;
 
-  public static boolean run()
-  {
+  public static boolean run() {
     System.out.print("TestStackAccess");
 
     String str;
@@ -81,9 +77,7 @@ class TestStackAccess
     return testSuccess;
   }
 
-   static String
-  istoreload()
-  {
+  static String istoreload() {
     int x0 = 0;            // istore_0
     int x1 = 1;            // istore_1
     int x2 = 2;            // istore_2
@@ -101,9 +95,7 @@ class TestStackAccess
       Integer.toString(x4) ;
   }
 
-  static String
-  fstoreload()
-  {
+  static String fstoreload() {
     float x0 = 0;          // fstore_0
     float x1 = 1;          // fstore_1
     float x2 = 2;          // fstore_2
@@ -122,9 +114,7 @@ class TestStackAccess
       Float.toString(x4) ;
   }
 
-  static String
-  astoreload()
-  {
+  static String astoreload() {
     Object x0 = null;      // astore_0
     Object x1 = null;      // astore_1
     Object x2 = null;      // astore_2
@@ -149,9 +139,7 @@ class TestStackAccess
     return str;
   }
 
-   static String
-   lstoreload0()
-      {
+   static String lstoreload0() {
       long x0 = 0;           // lstore_0
 
       /*
@@ -161,9 +149,7 @@ class TestStackAccess
       return Long.toString(x0);
       }
 
-   static String
-   lstoreload1()
-      {
+   static String lstoreload1() {
       int  x0 = 0;
       long x1 = 1;           // lstore_1
 
@@ -173,11 +159,9 @@ class TestStackAccess
       */
 
       return Integer.toString(x0) + Long.toString(x1);
-      }
+   }
 
-   static String
-   lstoreload2()
-      {
+   static String lstoreload2() {
       int  x0 = 0;
       int  x1 = 1;
       long x2 = 2;           // lstore_2
@@ -189,12 +173,10 @@ class TestStackAccess
       */
 
       return Integer.toString(x0) + Integer.toString(x1) + Long.toString(x2);
-      }
+   }
 
 
-   static String
-   lstoreload3()
-      {
+   static String lstoreload3() {
       int  x0 = 0;
       int  x1 = 1;
       int  x2 = 2;
@@ -211,9 +193,7 @@ class TestStackAccess
              Long.toString(x3);
       }
 
-   static String
-   lstoreload()
-      {
+   static String lstoreload() {
       int  x0 = 0;
       int  x1 = 1;
       int  x2 = 2;
@@ -231,18 +211,14 @@ class TestStackAccess
              Integer.toString(x3) + Long.toString(x4);
       }
 
-   static String
-   dstoreload0()
-      {
+   static String dstoreload0() {
       double x0 = 0;         // dstore_0
       // System.out.print(x0);   // dload_0
 
       return Double.toString(x0);
       }
 
-   static String
-   dstoreload1()
-      {
+   static String dstoreload1() {
       int  x0 = 0;
       double x1 = 1;         // dstore_1
       /*
@@ -253,9 +229,7 @@ class TestStackAccess
       return Integer.toString(x0) + Double.toString(x1);
       }
 
-   static String
-   dstoreload2()
-      {
+   static String dstoreload2() {
       int  x0 = 0;
       int  x1 = 1;
       double x2 = 2;         // dstore_2
@@ -268,9 +242,7 @@ class TestStackAccess
       return Integer.toString(x0) + Integer.toString(x1) + Double.toString(x2);
       }
 
-   static String
-   dstoreload3()
-      {
+   static String dstoreload3() {
       int  x0 = 0;
       int  x1 = 1;
       int  x2 = 2;
@@ -282,13 +254,11 @@ class TestStackAccess
       System.out.print(x3);   // dload_3
       */
 
-      return Integer.toString(x0) + Integer.toString(x1) +Integer.toString(x2)
-             + Double.toString(x3);
+      return Integer.toString(x0) + Integer.toString(x1) +Integer.toString(x2) +
+             Double.toString(x3);
       }
 
-   static String
-   dstoreload()
-      {
+   static String dstoreload() {
       int  x0 = 0;
       int  x1 = 1;
       int  x2 = 2;
@@ -302,22 +272,20 @@ class TestStackAccess
       System.out.print(x3);
       System.out.print(x4);   // dload
       */
-      return Integer.toString(x0) + Integer.toString(x1) +Integer.toString(x2)
-             + Integer.toString(x3) + Double.toString(x4);
+      return Integer.toString(x0) + Integer.toString(x1) +Integer.toString(x2) +
+             Integer.toString(x3) + Double.toString(x4);
       }
 
    static long sa, sb;
    long         a,  b;
 
    int   pos   = 0;
-   int   buf[] = { 1, 2 };
+   int[]   buf = { 1, 2 };
 
    int  lpos   = 0;
-   long lbuf[] = { 1, 2 };
+   long[] lbuf = { 1, 2 };
 
-   static String
-   dup()
-      {
+   static String dup() {
       TestStackAccess t = new TestStackAccess(); // dup
 
       String str = Integer.toString(t.buf[t.pos++]);
@@ -335,9 +303,8 @@ class TestStackAccess
       str += Long.toString(t.lbuf[t.lpos]++);
       //System.out.print(t.lbuf[t.lpos]++);         // dup2_x2
 
-      int x[] = new int[1];
-      switch(x[0] = 1)                           // dup_x2
-         {
+      int[] x = new int[1];
+      switch(x[0] = 1) {                          // dup_x2
          case 1: {
            str += Integer.toString(1);
            //  System.out.print(1);
@@ -345,11 +312,9 @@ class TestStackAccess
 
          }
       return str;
-      }
+   }
 
-   static String
-   swap()
-      {
+   static String swap() {
       String s = "";
       s += "x";             // swap
 

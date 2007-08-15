@@ -13,7 +13,7 @@
 class ExceptionTest7 {
 
 
-  static int testa[] = null; //new int[3];
+  static int[] testa = null; //new int[3];
   public static void main(String[] args) {
 
     run();
