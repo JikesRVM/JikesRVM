@@ -20,7 +20,7 @@ class t3GT3 {
 
   public static native void nativeBlocking(int time);
 
-    public static void main(String args[]) {
+    public static void main(String[] args) {
 
         // Kludge for running under sanity harness
         if (args.length > 0 && args[0].equals("-quiet")) {
@@ -59,8 +59,7 @@ class t3GT3 {
                 t3GT3Worker.allocate(1,10);
             if (FORCE_GC)
                 System.gc();
-        }
-        else {
+        } else {
             int waiters = 0, wait_time = 0;
             if (args.length > 4) {
                 waiters = Integer.parseInt(args[3]);
@@ -69,7 +68,7 @@ class t3GT3 {
             }
 
             // if running waiters, create them
-            BlockingWorker b[] = new BlockingWorker[waiters];
+            BlockingWorker[] b = new BlockingWorker[waiters];
             for (int i = 0; i < waiters; i++) {
                 b[i] = new BlockingWorker(wait_time);
                 b[i].start();
@@ -77,19 +76,18 @@ class t3GT3 {
             // VM.sysWriteln("  Started blocking workers");
 
             // create worker threads which each do the computation
-            t3GT3Worker a[] = new t3GT3Worker[NUMBER_OF_WORKERS];
-            for ( int wrk = 0; wrk < NUMBER_OF_WORKERS; wrk++) {
+            t3GT3Worker[] a = new t3GT3Worker[NUMBER_OF_WORKERS];
+            for (int wrk = 0; wrk < NUMBER_OF_WORKERS; wrk++) {
                 a[wrk] = new t3GT3Worker(arg1, arg2, syncher);
                 a[wrk].start();
             }
             // VM.sysWriteln("  Created and started compute workers");
 
-            for ( int i = 0; i < NUMBER_OF_WORKERS; i++ ) {
-                while( ! a[i].isReady) {
+            for (int i = 0; i < NUMBER_OF_WORKERS; i++) {
+                while(!a[i].isReady) {
                     try {
                         Thread.sleep(100);
-                    }
-                    catch (InterruptedException e) {
+                    } catch (InterruptedException e) {
                     }
                 }
             }
@@ -101,15 +99,14 @@ class t3GT3 {
             }
             // VM.sysWriteln("  Notified all");
 
-            for ( int i = 0; i < NUMBER_OF_WORKERS; i++ ) {
-                while( ! a[i].isFinished) {
+            for (int i = 0; i < NUMBER_OF_WORKERS; i++) {
+                while(!a[i].isFinished) {
                     synchronized (syncher2) {
                         try {
                             // VM.sysWriteln("  Waiting for worker ", i);
                             syncher2.wait();
                             // VM.sysWriteln("    Returned from wait");
-                        }
-                        catch (InterruptedException e) {
+                        } catch (InterruptedException e) {
                             // VM.sysWriteln("  Worker done");
                         }
                     }

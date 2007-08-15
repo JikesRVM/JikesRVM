@@ -32,8 +32,7 @@ class t3GT3Worker extends Thread {
       synchronized (syncher) {
           try {
               syncher.wait();
-          }
-          catch (InterruptedException e) {
+          } catch (InterruptedException e) {
           }
       }
       allocate(reps,length);
@@ -44,12 +43,12 @@ class t3GT3Worker extends Thread {
   }
 
 
-   public static void allocate (int reps, int length) {
+   public static void allocate(int reps, int length) {
 
        for (int i = 0; i < reps; i++) {
-           char buf [] = new char[0];
+           char[] buf = new char[0];
            for (int j = 0; j < length; j++) {
-               char newbuf [] = new char[buf.length + 1];
+               char[] newbuf = new char[buf.length + 1];
                System.arraycopy(buf, 0, newbuf, 0, buf.length);
                newbuf[buf.length] = 'x';
                buf = newbuf;

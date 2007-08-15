@@ -12,7 +12,7 @@
  */
 public class myMain {
 
-  public static int compute (String[] args) {
+  public static int compute(String[] args) {
     // System.out.println(args[0].substring(0,8) + "-----" + args[0].substring(12));
     if (args[0].startsWith("C thread") &&
         args[0].endsWith("Hello from C"))

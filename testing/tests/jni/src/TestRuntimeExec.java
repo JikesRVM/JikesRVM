@@ -39,8 +39,7 @@ class TestRuntimeExec extends Thread {
                 threadList[i].join();
 
             System.out.println("All test threads finished");
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("TestRuntimeExec: FAILED");
             System.exit(1);
         }
@@ -80,7 +79,7 @@ class TestRuntimeExec extends Thread {
             Thread writer = new Thread() {
                 public void run() {
                     DataOutputStream stdin =
-                        new DataOutputStream( tac.getOutputStream() );
+                        new DataOutputStream(tac.getOutputStream());
 
                     try {
                         for(int x = 0; x < 10000; x++) {
@@ -102,7 +101,7 @@ class TestRuntimeExec extends Thread {
             Thread reader = new Thread() {
                 public void run() {
                     DataInputStream stdout =
-                        new DataInputStream( tac.getInputStream() );
+                        new DataInputStream(tac.getInputStream());
                     try {
 
                         for(int x = 0; x < 10000; x++) {
@@ -142,8 +141,7 @@ class TestRuntimeExec extends Thread {
                     try {
                         int exitCode = tac.waitFor();
                         System.out.println("waitFor(): Process exited with code " + exitCode);
-                    }
-                    catch (InterruptedException e) {
+                    } catch (InterruptedException e) {
                         if (!interruptWait) {
                             System.out.println("Waiting thread uninterrupted unexpectedly!!!");
                             System.out.println("TestRuntimeExec FAILED");
@@ -179,8 +177,7 @@ class TestRuntimeExec extends Thread {
                             exitCode = tac.exitValue();
                             //System.out.println( "GOT IT");
                             exited = true;
-                        }
-                        catch (IllegalThreadStateException e) {
+                        } catch (IllegalThreadStateException e) {
                             System.out.println("still alive!");
                             try { Thread.sleep(1000); } catch (Exception ee) { }
                         }
@@ -197,8 +194,7 @@ class TestRuntimeExec extends Thread {
                 writer.join();
                 waiter.join();
                 poller.join();
-            }
-            catch (InterruptedException eee) {
+            } catch (InterruptedException eee) {
                 eee.printStackTrace();
             }
 

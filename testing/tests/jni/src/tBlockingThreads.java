@@ -16,16 +16,14 @@ import org.jikesrvm.scheduler.VM_Scheduler;
  * Test native methods that block in native code
  */
 
-class tBlockingThreads
-{
+class tBlockingThreads {
 
   static final boolean FORCE_GC = true;
   static final int NUMBER_OF_WORKERS = 2;
 
   public static native int nativeBlocking(int time);
 
-  public static void main(String args[])
-  {
+  public static void main(String[] args) {
     int time;
 
     System.out.println("Testing threads that block in native code with WORKERS =" + NUMBER_OF_WORKERS);
@@ -43,13 +41,10 @@ class tBlockingThreads
         nativeBlocking(time);
         VM_Scheduler.trace("main","returned from nativeBlocking for time = ",time);
       }
-    }
-
-    else {
+    } else {
       // create worker threads which each make repeated native blocking calls
-      BlockingThreadsWorker a[] = new BlockingThreadsWorker[NUMBER_OF_WORKERS];
-      for ( int wrk = 0; wrk < NUMBER_OF_WORKERS; wrk++ )
-        {
+      BlockingThreadsWorker[] a = new BlockingThreadsWorker[NUMBER_OF_WORKERS];
+      for (int wrk = 0; wrk < NUMBER_OF_WORKERS; wrk++) {
           if (wrk%2 == 0)
             a[wrk] = new BlockingThreadsWorker(1);
           else
@@ -58,14 +53,13 @@ class tBlockingThreads
           a[wrk].start();
         }
 
-      for ( int i = 0; i < NUMBER_OF_WORKERS; i ++ ) {
+      for (int i = 0; i < NUMBER_OF_WORKERS; i ++) {
         int cntr = 1;
-        while( ! a[i].isFinished) {
+        while(!a[i].isFinished) {
 
           try {
             Thread.currentThread().sleep(100);
-          }
-          catch (InterruptedException e) {}
+          } catch (InterruptedException e) {}
 
           cntr++;
           if (cntr%1000 == 0)

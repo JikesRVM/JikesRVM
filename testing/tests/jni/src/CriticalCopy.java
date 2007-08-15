@@ -16,15 +16,15 @@ class CriticalCopy {
 
   public static native void setVerboseOff();
 
-  static int     intArray[]     = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-  static boolean booleanArray[] = {true, true, false, false, true, true, false, false, true, true};
-  static short   shortArray[]   = {1, 3, 5, 7, 9, 11, 13, 15, 17, 19};
-  static byte    byteArray[]    = {2, 4, 6, 8, 10, 12, 14, 16, 18, 20};
-  static char    charArray[]    = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'};
-  static long    longArray[]    = {0x80001000, 0x80001000, 0x80001000, 0x80001000, 0x80001000,
+  static int[]     intArray     = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  static boolean[] booleanArray = {true, true, false, false, true, true, false, false, true, true};
+  static short[]   shortArray   = {1, 3, 5, 7, 9, 11, 13, 15, 17, 19};
+  static byte[]    byteArray    = {2, 4, 6, 8, 10, 12, 14, 16, 18, 20};
+  static char[]    charArray    = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'};
+  static long[]    longArray    = {0x80001000, 0x80001000, 0x80001000, 0x80001000, 0x80001000,
                                    0x80001000, 0x80001000, 0x80001000, 0x80001000, 0x80001000};
-  static double  doubleArray[]  = {115.1, 115.1, 115.1, 115.1, 115.1, 115.1, 115.1, 115.1, 115.1, 115.1};
-  static float   floatArray[]   = {(float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1,
+  static double[]  doubleArray  = {115.1, 115.1, 115.1, 115.1, 115.1, 115.1, 115.1, 115.1, 115.1, 115.1};
+  static float[]   floatArray   = {(float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1,
                                    (float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1};
 
 
@@ -32,11 +32,11 @@ class CriticalCopy {
    * Declare native methods that will call the JNI Array Functions
    */
 
-  public static native int primitiveIntegerArray(int intArray[]);
-  public static native int primitiveByteArray(byte byteArray[]);
+  public static native int primitiveIntegerArray(int[] intArray);
+  public static native int primitiveByteArray(byte[] byteArray);
 
 
-  public static void main(String args[]) {
+  public static void main(String[] args) {
 
     int returnValue;
 
@@ -58,7 +58,7 @@ class CriticalCopy {
 
     for (int i=0; i<intArray.length; i++) {
       if (verbose)
-        System.out.println("    " + i + " = " + intArray[i] );
+        System.out.println("    " + i + " = " + intArray[i]);
       if (intArray[i]!=i)
         checkFlag = false;
     }

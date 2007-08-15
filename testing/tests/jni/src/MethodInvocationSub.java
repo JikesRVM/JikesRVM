@@ -99,7 +99,7 @@ class MethodInvocationSub extends MethodInvocation {
   /************************************************************
    * Dummy constructor to get to the virtual methods
    */
-  public MethodInvocationSub () {
+  public MethodInvocationSub() {
 
   }
 

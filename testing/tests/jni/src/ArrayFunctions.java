@@ -14,15 +14,15 @@ class ArrayFunctions {
   static boolean verbose = true;         // set to true to get messages for each test
   static boolean allTestPass = true;
 
-  static int     intArray[]     = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-  static boolean booleanArray[] = {true, true, false, false, true, true, false, false, true, true};
-  static short   shortArray[]   = {1, 3, 5, 7, 9, 11, 13, 15, 17, 19};
-  static byte    byteArray[]    = {2, 4, 6, 8, 10, 12, 14, 16, 18, 20};
-  static char    charArray[]    = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'};
-  static long    longArray[]    = {0x80001000, 0x80001000, 0x80001000, 0x80001000, 0x80001000,
+  static int[]     intArray     = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  static boolean[] booleanArray = {true, true, false, false, true, true, false, false, true, true};
+  static short[]   shortArray   = {1, 3, 5, 7, 9, 11, 13, 15, 17, 19};
+  static byte[]    byteArray    = {2, 4, 6, 8, 10, 12, 14, 16, 18, 20};
+  static char[]    charArray    = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'};
+  static long[]    longArray    = {0x80001000, 0x80001000, 0x80001000, 0x80001000, 0x80001000,
                                    0x80001000, 0x80001000, 0x80001000, 0x80001000, 0x80001000};
-  static double  doubleArray[]  = {115.1, 115.1, 115.1, 115.1, 115.1, 115.1, 115.1, 115.1, 115.1, 115.1};
-  static float   floatArray[]   = {(float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1,
+  static double[]  doubleArray  = {115.1, 115.1, 115.1, 115.1, 115.1, 115.1, 115.1, 115.1, 115.1, 115.1};
+  static float[]   floatArray   = {(float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1,
                                    (float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1};
 
 
@@ -64,9 +64,9 @@ class ArrayFunctions {
   static native boolean lastGetArrayElementsWasCopy();
 
   /*******************************************************/
-  public static boolean testObjectArray () {
+  public static boolean testObjectArray() {
 
-    String objectArray [] = new String[10];
+    String[] objectArray = new String[10];
 
     for (int i=0; i<objectArray.length; i++)
       objectArray[i] = new String("object " + i);
@@ -75,15 +75,11 @@ class ArrayFunctions {
 
     Object returnObject = testObjectArrayElement(objectArray, toAssign, 7);
 
-    if (((String) returnObject).equals("object 7") && objectArray[7]==toAssign)
-      return true;
-    else
-      return false;
-
+    return ((String)returnObject).equals("object 7") && objectArray[7]==toAssign;
   }
 
   /*******************************************************/
-  public static boolean testBooleanArray () {
+  public static boolean testBooleanArray() {
     boolean arrayFlag = true;
     boolean updateSucceeded, wasCopied;
 
@@ -127,7 +123,7 @@ class ArrayFunctions {
   }
 
   /*******************************************************/
-  public static boolean testByteArray () {
+  public static boolean testByteArray() {
     boolean arrayFlag = true;
     boolean wasCopied;
 
@@ -171,7 +167,7 @@ class ArrayFunctions {
   }
 
   /*******************************************************/
-  public static boolean testIntArray () {
+  public static boolean testIntArray() {
     boolean arrayFlag = true;
     boolean wasCopied;
 
@@ -214,7 +210,7 @@ class ArrayFunctions {
 
 
   /*******************************************************/
-  public static boolean testShortArray () {
+  public static boolean testShortArray() {
     boolean arrayFlag = true;
     boolean wasCopied;
 
@@ -258,7 +254,7 @@ class ArrayFunctions {
   }
 
   /*******************************************************/
-  public static boolean testCharArray () {
+  public static boolean testCharArray() {
     boolean arrayFlag = true;
     boolean wasCopied;
 
@@ -272,7 +268,7 @@ class ArrayFunctions {
           (lastGetArrayElementsWasCopy() ? "copied" : "did not copy")+" the array");
     if (returnArray[0]!='a' || returnArray[1]!='b' || returnArray[2]!='c' || returnArray[3]!='d' ||
         returnArray[4]!='e' || returnArray[5]!='f' || returnArray[6]!='g' || returnArray[7]!='h' ||
-        returnArray[8]!='i' || returnArray[9]!='j' )
+        returnArray[8]!='i' || returnArray[9]!='j')
       arrayFlag = false;
 
     // second part: update and release the copy
@@ -281,7 +277,7 @@ class ArrayFunctions {
     returnArray = testCharArrayElements(charArray, 1);
     if (returnArray[0]!='j' || returnArray[1]!='a' || returnArray[2]!='l' || returnArray[3]!='e' ||
         returnArray[4]!='p' || returnArray[5]!='e' || returnArray[6]!='n' || returnArray[7]!='o' ||
-        returnArray[8]!='v' || returnArray[9]!='m' )
+        returnArray[8]!='v' || returnArray[9]!='m')
       arrayFlag = false;
 
     // third part: release the copy with no update
@@ -300,7 +296,7 @@ class ArrayFunctions {
   }
 
   /*******************************************************/
-  public static boolean testLongArray () {
+  public static boolean testLongArray() {
     boolean arrayFlag = true;
     boolean wasCopied;
 
@@ -314,7 +310,7 @@ class ArrayFunctions {
           (lastGetArrayElementsWasCopy() ? "copied" : "did not copy")+" the array");
     for (int i=0; i<returnArray.length; i++) {
       // System.out.println(" first:  " + i + " = " + returnArray[i]);
-      if (returnArray[i]!=((long) i + 10) )
+      if (returnArray[i]!=((long) i + 10))
         arrayFlag = false;
     }
 
@@ -344,7 +340,7 @@ class ArrayFunctions {
   }
 
   /*******************************************************/
-  public static boolean testFloatArray () {
+  public static boolean testFloatArray() {
     boolean arrayFlag = true;
     boolean wasCopied;
 
@@ -388,7 +384,7 @@ class ArrayFunctions {
   }
 
   /*******************************************************/
-  public static boolean testDoubleArray () {
+  public static boolean testDoubleArray() {
     boolean arrayFlag = true;
     boolean wasCopied;
 
@@ -412,7 +408,7 @@ class ArrayFunctions {
     returnArray = testDoubleArrayElements(doubleArray, 1);
     for (int i=0; i<returnArray.length; i++) {
       // System.out.println(" second:  " + i + " = " + returnArray[i]);
-      if (returnArray[i]!=((double) i + (wasCopied ? 27.0 : 14.0)) )
+      if (returnArray[i]!=((double) i + (wasCopied ? 27.0 : 14.0)))
         arrayFlag = false;
     }
 
@@ -439,7 +435,7 @@ class ArrayFunctions {
   public ArrayFunctions() {
   }
 
-  public static void main(String args[]) {
+  public static void main(String[] args) {
 
     int returnValue;
     Object returnObject;
@@ -510,8 +506,7 @@ class ArrayFunctions {
       checkTest(0, (((Object[]) returnObject).length==31) &&
                 returnObject.getClass().getName().equals("[Ljava.lang.String;"),
                 "NewObjectArray");
-    }
-    catch (ClassNotFoundException e) {
+    } catch (ClassNotFoundException e) {
       System.out.println("Cannot run accessNewObjectArray");
     }
 
@@ -569,7 +564,7 @@ class ArrayFunctions {
         returnCharArray[6]!='n' ||
         returnCharArray[7]!='o' ||
         returnCharArray[8]!='v' ||
-        returnCharArray[9]!='m' )
+        returnCharArray[9]!='m')
       arrayFlag = false;
     checkTest(0, arrayFlag, "Get/SetCharArrayRegion");
 

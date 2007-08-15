@@ -14,9 +14,7 @@
 /**
  * Test native method with threads
  */
-
-class tNativeThreads
-{
+class tNativeThreads {
 
   static final int NUMBER_OF_WORKERS = 5;
 
@@ -27,8 +25,7 @@ class tNativeThreads
     return count +1;
   }
 
-  public static void main(String args[])
-  {
+  public static void main(String[] args) {
 
     // VM_Scheduler.dumpVirtualMachine();
 
@@ -41,9 +38,8 @@ class tNativeThreads
 
       System.out.println("starting TestDispatch stuff");
 
-      NativeThreadsWorker a[] = new NativeThreadsWorker[NUMBER_OF_WORKERS];
-      for ( int wrk = 0; wrk < NUMBER_OF_WORKERS; wrk++ )
-         {
+      NativeThreadsWorker[] a = new NativeThreadsWorker[NUMBER_OF_WORKERS];
+      for (int wrk = 0; wrk < NUMBER_OF_WORKERS; wrk++) {
            a[wrk] = new NativeThreadsWorker("ping");
            a[wrk].start();
          }
@@ -51,29 +47,28 @@ class tNativeThreads
       NativeThreadsWorker b = new NativeThreadsWorker("pong");
       b.start();
 
-      while ( ! b.isFinished )
+      while (!b.isFinished)
           Thread.currentThread().yield();
 
       //count number of workers that completed
       //
       int cntr = 0;
-      for ( int i = 0; i < NUMBER_OF_WORKERS; i ++ ) {
-          if ( a[i].isFinished)
+      for (int i = 0; i < NUMBER_OF_WORKERS; i++) {
+          if (a[i].isFinished)
              cntr++;
       }
-      if ( cntr < NUMBER_OF_WORKERS) {
+      if (cntr < NUMBER_OF_WORKERS) {
 
         //     VM_Scheduler.dumpVirtualMachine();
       }
 
 
-      for ( int wrk = 0; wrk < NUMBER_OF_WORKERS; wrk ++ )
-        while ( ! a[wrk].isFinished ) {
+      for (int wrk = 0; wrk < NUMBER_OF_WORKERS; wrk ++)
+        while (!a[wrk].isFinished) {
           try {
             //say(name, "sleeping");
             Thread.currentThread().sleep(300);
-          }
-          catch (InterruptedException e) {}
+          } catch (InterruptedException e) {}
           Thread.currentThread().yield();
         }
 

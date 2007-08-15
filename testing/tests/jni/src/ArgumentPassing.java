@@ -10,8 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-class ArgumentPassing
-{
+class ArgumentPassing {
 
   static boolean verbose = true;         // set to true to get messages for each test
   static boolean allTestPass = true;
@@ -525,8 +524,7 @@ class ArgumentPassing
 
   }
 
-  public static void main(String args[])
-  {
+  public static void main(String[] args) {
     int returnValue;
 
     System.loadLibrary("ArgumentPassing");
@@ -590,16 +588,16 @@ class ArgumentPassing
 
 
 
-    returnValue = longFitStatic(1l, 3l, 5l);
+    returnValue = longFitStatic(1L, 3L, 5L);
     checkTest(returnValue, "longFitStatic");
 
-    returnValue = longFitStaticStraddle(1, 3l, 5l, 7l);
+    returnValue = longFitStaticStraddle(1, 3L, 5L, 7L);
     checkTest(returnValue, "longFitStaticStraddle");
 
-    returnValue = longSpillAIXStatic(1l, 3l, 5l, 7l, 9l);
+    returnValue = longSpillAIXStatic(1L, 3L, 5L, 7L, 9L);
     checkTest(returnValue, "longSpillAIXStatic");
 
-    returnValue = longSpillBothStatic(1l, 3l, 5l, 7l, 9l, 11l, 13l);
+    returnValue = longSpillBothStatic(1L, 3L, 5L, 7L, 9L, 11L, 13L);
     checkTest(returnValue, "longSpillBothStatic");
 
 
@@ -619,13 +617,13 @@ class ArgumentPassing
     returnValue = integerDoubleSpillStatic(1.1d, 3, 5.5d, 7, 9.9d, 11);
     checkTest(returnValue, "integerDoubleSpillStatic");
 
-    returnValue = integerLongFitStatic(1, 3l, 5, 7l);
+    returnValue = integerLongFitStatic(1, 3L, 5, 7L);
     checkTest(returnValue, "integerLongFitStatic");
 
-    returnValue = integerLongFitStaticStraddle(1, 3l, 5, 7, 9l);
+    returnValue = integerLongFitStaticStraddle(1, 3L, 5, 7, 9L);
     checkTest(returnValue, "integerLongFitStaticStraddle");
 
-    returnValue = integerLongSpillStatic(1l, 3, 5l, 7, 9l, 11);
+    returnValue = integerLongSpillStatic(1L, 3, 5L, 7, 9L, 11);
     checkTest(returnValue, "integerLongSpillStatic");
 
     returnValue = floatDoubleFitStatic(1.1f, 3.3d, 5.5f, 7.7d);
@@ -634,16 +632,16 @@ class ArgumentPassing
     returnValue = floatDoubleSpillStatic(1.1d, 3.3f, 5.5d, 7.7f, 9.9d, 11.11f);
     checkTest(returnValue, "floatDoubleSpillStatic");
 
-    returnValue = floatLongFitStatic(1.1f, 3l, 5.5f, 7l);
+    returnValue = floatLongFitStatic(1.1f, 3L, 5.5f, 7L);
     checkTest(returnValue, "floatLongFitStatic");
 
-    returnValue = floatLongSpillStatic(1l, 3.3f, 5l, 7.7f, 9l, 11.11f);
+    returnValue = floatLongSpillStatic(1L, 3.3f, 5L, 7.7f, 9L, 11.11f);
     checkTest(returnValue, "floatLongSpillStatic");
 
-    returnValue = doubleLongFitStatic(1l, 3.3d, 5l);
+    returnValue = doubleLongFitStatic(1L, 3.3d, 5L);
     checkTest(returnValue, "doubleLongFitStatic");
 
-    returnValue = doubleLongSpillStatic(1l, 3.3d, 5l, 7.7d, 9l);
+    returnValue = doubleLongSpillStatic(1L, 3.3d, 5L, 7.7d, 9L);
     checkTest(returnValue, "doubleLongSpillStatic");
 
 
@@ -700,16 +698,16 @@ class ArgumentPassing
     checkTest(returnValue, "doubleSpillBothVirtual");
 
 
-    returnValue = testobj.longFitVirtual(1l, 3l, 5l);
+    returnValue = testobj.longFitVirtual(1L, 3L, 5L);
     checkTest(returnValue, "longFitVirtual");
 
-    returnValue = testobj.longFitVirtualStraddle(1, 3l, 5l, 7l);
+    returnValue = testobj.longFitVirtualStraddle(1, 3L, 5L, 7L);
     checkTest(returnValue, "longFitVirtualStraddle");
 
-    returnValue = testobj.longSpillAIXVirtual(1l, 3l, 5l, 7l, 9l);
+    returnValue = testobj.longSpillAIXVirtual(1L, 3L, 5L, 7L, 9L);
     checkTest(returnValue, "longSpillAIXVirtual");
 
-    returnValue = testobj.longSpillBothVirtual(1l, 3l, 5l, 7l, 9l, 11l, 13l);
+    returnValue = testobj.longSpillBothVirtual(1L, 3L, 5L, 7L, 9L, 11L, 13L);
     checkTest(returnValue, "longSpillBothVirtual");
 
 
@@ -729,13 +727,13 @@ class ArgumentPassing
     returnValue = testobj.integerDoubleSpillVirtual(1.1d, 3, 5.5d, 7, 9.9d, 11);
     checkTest(returnValue, "integerDoubleSpillVirtual");
 
-    returnValue = testobj.integerLongFitVirtual(1, 3l, 5, 7l);
+    returnValue = testobj.integerLongFitVirtual(1, 3L, 5, 7L);
     checkTest(returnValue, "integerLongFitVirtual");
 
-    returnValue = testobj.integerLongFitVirtualStraddle(1, 3l, 5, 7, 9l);
+    returnValue = testobj.integerLongFitVirtualStraddle(1, 3L, 5, 7, 9L);
     checkTest(returnValue, "integerLongFitVirtualStraddle");
 
-    returnValue = testobj.integerLongSpillVirtual(1l, 3, 5l, 7, 9l, 11);
+    returnValue = testobj.integerLongSpillVirtual(1L, 3, 5L, 7, 9L, 11);
     checkTest(returnValue, "integerLongSpillVirtual");
 
     returnValue = testobj.floatDoubleFitVirtual(1.1f, 3.3d, 5.5f, 7.7d);
@@ -744,16 +742,16 @@ class ArgumentPassing
     returnValue = testobj.floatDoubleSpillVirtual(1.1d, 3.3f, 5.5d, 7.7f, 9.9d, 11.11f);
     checkTest(returnValue, "floatDoubleSpillVirtual");
 
-    returnValue = testobj.floatLongFitVirtual(1.1f, 3l, 5.5f, 7l);
+    returnValue = testobj.floatLongFitVirtual(1.1f, 3L, 5.5f, 7L);
     checkTest(returnValue, "floatLongFitVirtual");
 
-    returnValue = testobj.floatLongSpillVirtual(1l, 3.3f, 5l, 7.7f, 9l, 11.11f);
+    returnValue = testobj.floatLongSpillVirtual(1L, 3.3f, 5L, 7.7f, 9L, 11.11f);
     checkTest(returnValue, "floatLongSpillVirtual");
 
-    returnValue = testobj.doubleLongFitVirtual(1l, 3.3d, 5l);
+    returnValue = testobj.doubleLongFitVirtual(1L, 3.3d, 5L);
     checkTest(returnValue, "doubleLongFitVirtual");
 
-    returnValue = testobj.doubleLongSpillVirtual(1l, 3.3d, 5l, 7.7d, 9l);
+    returnValue = testobj.doubleLongSpillVirtual(1L, 3.3d, 5L, 7.7d, 9L);
     checkTest(returnValue, "doubleLongSpillVirtual");
 
     long actualLong = returnLong(0x12345678);

@@ -101,11 +101,11 @@ class FieldAccess {
     instanceBoolean = false;
     instanceFloat = .456f;
     instanceDouble = 1234.567d;
-    instanceLong = 135l;
+    instanceLong = 135L;
     instanceObject = this;
   }
 
-  public static void main(String args[]) {
+  public static void main(String[] args) {
     int returnValue;
     FieldAccess tempObject;
 
@@ -128,7 +128,7 @@ class FieldAccess {
     staticByte = 12;
     staticChar = 'a';
     staticShort = 67;
-    staticLong = 246l;
+    staticLong = 246L;
     staticFloat = .123f;
     staticDouble = 567.123d;
     staticObject = new FieldAccess();
@@ -154,7 +154,7 @@ class FieldAccess {
     checkTest(returnValue, (staticShort==67), "accessStaticShortField");
 
     returnValue = accessStaticLongField();
-    checkTest(returnValue, (staticLong==246l), "accessStaticLongField");
+    checkTest(returnValue, (staticLong==246L), "accessStaticLongField");
 
     returnValue = accessStaticFloatField();
     checkTest(returnValue, (staticFloat==.123f), "accessStaticFloatField");
@@ -186,7 +186,7 @@ class FieldAccess {
     checkTest(returnValue, (anObj.instanceShort==45), "accessShortField");
 
     returnValue = accessLongField(anObj);
-    checkTest(returnValue, (anObj.instanceLong==135l), "accessLongField");
+    checkTest(returnValue, (anObj.instanceLong==135L), "accessLongField");
 
     returnValue = accessFloatField(anObj);
     checkTest(returnValue, (anObj.instanceFloat==.456f), "accessFloatField");
@@ -217,7 +217,7 @@ class FieldAccess {
     checkTest(returnValue, (staticShort==76), "setStaticShortField");
 
     returnValue = setStaticLongField();
-    checkTest(returnValue, (staticLong==357l), "setStaticLongField");
+    checkTest(returnValue, (staticLong==357L), "setStaticLongField");
 
     returnValue = setStaticFloatField();
     checkTest(returnValue, (staticFloat==.234f), "setStaticFloatField");
@@ -248,7 +248,7 @@ class FieldAccess {
     checkTest(returnValue, (anObj.instanceShort==25), "setShortField");
 
     returnValue = setLongField(anObj);
-    checkTest(returnValue, (anObj.instanceLong==345l), "setLongField");
+    checkTest(returnValue, (anObj.instanceLong==345L), "setLongField");
 
     returnValue = setFloatField(anObj);
     checkTest(returnValue, (anObj.instanceFloat==.789f), "setFloatField");

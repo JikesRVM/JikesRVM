@@ -21,7 +21,7 @@ class ClassQuery extends ClassQuerySuper {
    * Declare native methods that will call the JNI Array Functions
    */
 
-  static native Class testSuperClass (Class cls);
+  static native Class testSuperClass(Class cls);
   static native boolean testAssignable(Class cls1, Class cls2);
   static native boolean testSameObject(Object obj1, Object obj2);
   static native Object testAllocObject(Class cls);
@@ -35,7 +35,7 @@ class ClassQuery extends ClassQuerySuper {
   }
 
 
-  public static void main(String args[]) {
+  public static void main(String[] args) {
 
     int returnValue;
     boolean returnFlag;
@@ -86,8 +86,8 @@ class ClassQuery extends ClassQuerySuper {
         returnValue = 1;
 
       // case 3:  assignable primitive array
-      int ary1[] = new int[10];
-      int ary2[] = new int[10];
+      int[] ary1 = new int[10];
+      int[] ary2 = new int[10];
       subcls = ary1.getClass();
       supercls = ary2.getClass();
       returnFlag = testAssignable(subcls, supercls);
@@ -95,15 +95,15 @@ class ClassQuery extends ClassQuerySuper {
         returnValue = 1;
 
       // case 4:  non-assignable primitive array
-      boolean bary2[] = new boolean[10];
+      boolean[] bary2 = new boolean[10];
       supercls = bary2.getClass();
       returnFlag = testAssignable(subcls, supercls);
       if (returnFlag)             // should be false
         returnValue = 1;
 
       // case 5:  assignable object array
-      String str1[] = new String[7];
-      String str2[] = new String[7];
+      String[] str1 = new String[7];
+      String[] str2 = new String[7];
       subcls = str1.getClass();
       supercls = str2.getClass();
       returnFlag = testAssignable(subcls, supercls);
@@ -111,7 +111,7 @@ class ClassQuery extends ClassQuerySuper {
         returnValue = 1;
 
       // case 6:  non-assignable object array
-      ClassQuery ObjArray[] = new ClassQuery[7];
+      ClassQuery[] ObjArray = new ClassQuery[7];
       supercls = ObjArray.getClass();
       returnFlag = testAssignable(subcls, supercls);
       if (returnFlag)             // should be false

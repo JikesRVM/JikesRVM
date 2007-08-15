@@ -12,12 +12,9 @@
  */
 import org.jikesrvm.scheduler.VM_Scheduler;
 
-class TestDeadVPQueue
-   {
+class TestDeadVPQueue {
    public static void
-   main(String args[])
-      throws Exception
-      {
+   main(String[] args) throws Exception {
 
         TestDeadVPQueueWorker w = null;
 
@@ -61,7 +58,7 @@ class TestDeadVPQueue
     System.out.println("start semi asynchronous test- then dump VM state");
 
       // create start and run 9 threads
-      for ( int i = 1; i < 10; i++){
+      for (int i = 1; i < 10; i++){
 
        String s = " worker " + i;
        // create a thread and start it

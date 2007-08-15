@@ -19,11 +19,11 @@ class Allocation {
   /**
    * Declare native methods that will call the JNI NewObject Functions
    */
-  static native String testNewObjectA(Class cls, char inputCharArray[]);
-  static native String testNewObjectV(Class cls, char inputCharArray[]);
-  static native String testNewObject (Class cls, char inputCharArray[]);
+  static native String testNewObjectA(Class cls, char[] inputCharArray);
+  static native String testNewObjectV(Class cls, char[] inputCharArray);
+  static native String testNewObject(Class cls, char[] inputCharArray);
 
-  public static void main(String args[]) {
+  public static void main(String[] args) {
 
     String returnObj;
     Class classObj=null;
@@ -47,7 +47,7 @@ class Allocation {
 
     // get some input for creating the new instance of String
     String inputStr = "Month Of March";
-    char inputCharArray[] = new char[inputStr.length()];
+    char[] inputCharArray = new char[inputStr.length()];
     inputStr.getChars(0, inputStr.length(), inputCharArray, 0);
 
     returnObj = testNewObjectA(classObj, inputCharArray);

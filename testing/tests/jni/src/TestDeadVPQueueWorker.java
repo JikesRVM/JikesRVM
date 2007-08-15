@@ -10,8 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-class TestDeadVPQueueWorker extends Thread
-   {
+class TestDeadVPQueueWorker extends Thread {
 
    static final int starting      = 1;
    static final int inConstructor = 2;
@@ -23,17 +22,14 @@ class TestDeadVPQueueWorker extends Thread
 
    static int count = 0;
 
-   TestDeadVPQueueWorker(String name)
-      {
+   TestDeadVPQueueWorker(String name) {
       myname = name;
       state = inConstructor;
-      }
+   }
 
  public static native int nativeFoo(int count);
 
-   public void
-   run() //- overrides Thread
-      {
+   public void run() {
         state = running;
         count++;
 
