@@ -139,7 +139,7 @@ import org.vmmagic.pragma.*;
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Address(address);
  }
- 
+
   /**
    * Fabricate an {@link Address} instance from an integer
    *
