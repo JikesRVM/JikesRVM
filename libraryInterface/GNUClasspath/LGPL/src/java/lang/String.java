@@ -728,6 +728,7 @@ public final class String
    * @throws UnsupportedEncodingException if encoding is not supported
    * @since 1.1
    */
+  @Pure
   public byte[] getBytes(String enc) throws UnsupportedEncodingException
   {
     try 
@@ -825,7 +826,6 @@ public final class String
    * @throws NullPointerException if the given StringBuffer is null
    * @since 1.4
    */
-  @Pure
   public boolean contentEquals(StringBuffer buffer)
   {
     synchronized (buffer)
@@ -853,7 +853,6 @@ public final class String
    * @throws NullPointerException if the given CharSequence is null
    * @since 1.5
    */
-  @Pure
   public boolean contentEquals(CharSequence seq)
   {
     if (seq.length() != count)
@@ -1988,7 +1987,6 @@ public final class String
    * 
    * @since 1.5
    */
-  @Pure
   public boolean contains (CharSequence s)
   {
     return this.indexOf(s.toString()) != -1;
@@ -2002,7 +2000,6 @@ public final class String
    * @param replacement the sequence used as the replacement
    * @return the string constructed as above
    */
-  @Pure
   public String replace (CharSequence target, CharSequence replacement)
   {
     String targetString = target.toString();
@@ -2056,7 +2053,6 @@ public final class String
    * @return true if the length of the string is zero.
    * @since 1.6
    */
-  @Pure
   public boolean isEmpty()
   {
     return count == 0;
