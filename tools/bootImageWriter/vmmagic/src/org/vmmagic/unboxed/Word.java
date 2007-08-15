@@ -10,16 +10,16 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.vmmagic.unboxed; 
+package org.vmmagic.unboxed;
 
 import org.jikesrvm.VM;
 import org.vmmagic.pragma.*;
- 
+
 /**
- * The word type is used by the runtime system and collector to denote machine 
+ * The word type is used by the runtime system and collector to denote machine
  * word-sized quantities.
  * We use a separate type instead of the Java int type for coding clarity.
- * machine-portability (it can map to 32 bit and 64 bit integral types), 
+ * machine-portability (it can map to 32 bit and 64 bit integral types),
  * and access to unsigned operations (Java does not have unsigned int types).
  * <p>
  * For efficiency and to avoid meta-circularity, the Word class is intercepted like
@@ -40,36 +40,36 @@ import org.vmmagic.pragma.*;
     super(value);
   }
   public boolean equals(Object o) {
-    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED); 
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return (o instanceof Word) && ((Word) o).value == value;
   }
 
   @UninterruptibleNoWarn
-  public static Word fromIntSignExtend(int val) { 
-    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    return new Word(val);
-  }
-  
-  @UninterruptibleNoWarn
-  public static Word fromIntZeroExtend(int val) { 
-    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    return new Word(val, true);
-  }
-     
-  @UninterruptibleNoWarn
-  public static Word fromLong(long val) { 
+  public static Word fromIntSignExtend(int val) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(val);
   }
 
   @UninterruptibleNoWarn
-  public static Word zero() { 
+  public static Word fromIntZeroExtend(int val) {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
+    return new Word(val, true);
+  }
+
+  @UninterruptibleNoWarn
+  public static Word fromLong(long val) {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
+    return new Word(val);
+  }
+
+  @UninterruptibleNoWarn
+  public static Word zero() {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(0);
   }
 
   @UninterruptibleNoWarn
-  public static Word one() { 
+  public static Word one() {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(1);
   }
@@ -85,7 +85,7 @@ import org.vmmagic.pragma.*;
   }
 
   @UninterruptibleNoWarn
-  public long toLong() { 
+  public long toLong() {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     if (VM.BuildFor64Addr) {
       return value;
@@ -95,53 +95,53 @@ import org.vmmagic.pragma.*;
   }
 
   @UninterruptibleNoWarn
-  public Address toAddress() { 
+  public Address toAddress() {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Address(value);
   }
 
   @UninterruptibleNoWarn
-  public Offset toOffset() { 
+  public Offset toOffset() {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Offset(value);
   }
 
   @UninterruptibleNoWarn
-  public Extent toExtent() { 
+  public Extent toExtent() {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Extent(value);
   }
 
   @UninterruptibleNoWarn
-  public Word plus(Word w2) { 
+  public Word plus(Word w2) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(value + w2.value);
   }
 
   @UninterruptibleNoWarn
-  public Word plus(Offset w2) { 
+  public Word plus(Offset w2) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(value + w2.toWord().value);
   }
 
   @UninterruptibleNoWarn
-  public Word plus(Extent w2) { 
+  public Word plus(Extent w2) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(value + w2.toWord().value);
   }
 
   @UninterruptibleNoWarn
-  public Word minus(Word w2) { 
+  public Word minus(Word w2) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(value - w2.value);
   }
   @UninterruptibleNoWarn
-  public Word minus(Offset w2) { 
+  public Word minus(Offset w2) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(value - w2.toWord().value);
   }
   @UninterruptibleNoWarn
-  public Word minus(Extent w2) { 
+  public Word minus(Extent w2) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(value - w2.toWord().value);
   }
@@ -156,7 +156,7 @@ import org.vmmagic.pragma.*;
     return EQ(max());
   }
 
-  public boolean LT (Word addr2) {
+  public boolean LT(Word addr2) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     if (value >= 0 && addr2.value >= 0) return value < addr2.value;
     if (value < 0 && addr2.value < 0) return value < addr2.value;
@@ -164,69 +164,69 @@ import org.vmmagic.pragma.*;
     return false;
   }
 
-  public boolean LE (Word w2) {
+  public boolean LE(Word w2) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return (value == w2.value) || LT(w2);
   }
 
-  public boolean GT (Word w2) {
+  public boolean GT(Word w2) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return w2.LT(this);
   }
 
-  public boolean GE (Word w2) {
+  public boolean GE(Word w2) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return w2.LE(this);
   }
 
-  public boolean EQ (Word w2) {
+  public boolean EQ(Word w2) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return value == w2.value;
   }
 
-  public boolean NE (Word w2) {
+  public boolean NE(Word w2) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return !EQ(w2);
   }
 
   @UninterruptibleNoWarn
-  public Word and(Word w2) { 
+  public Word and(Word w2) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(value & w2.value);
   }
 
   @UninterruptibleNoWarn
-  public Word or(Word w2) { 
+  public Word or(Word w2) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(value | w2.value);
   }
 
   @UninterruptibleNoWarn
-  public Word not() { 
+  public Word not() {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(~value);
   }
 
   @UninterruptibleNoWarn
-  public Word xor(Word w2) { 
+  public Word xor(Word w2) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(value ^ w2.value);
   }
 
   @UninterruptibleNoWarn
-  public Word lsh (int amt) { 
+  public Word lsh(int amt) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(value << amt);
   }
 
   @UninterruptibleNoWarn
-  public Word rshl (int amt) { 
+  public Word rshl(int amt) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(value >>> amt);
   }
 
   @UninterruptibleNoWarn
-  public Word rsha (int amt) { 
+  public Word rsha(int amt) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(value >> amt);
   }

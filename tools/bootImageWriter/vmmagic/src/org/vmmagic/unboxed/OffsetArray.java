@@ -21,17 +21,17 @@ import org.jikesrvm.VM;
  *
  * @author Perry Cheng
  */
-@Uninterruptible final public class OffsetArray {
+@Uninterruptible public final class OffsetArray {
 
   private Offset[] data;
 
   @Interruptible
-  static public OffsetArray create (int size) { 
+  public static OffsetArray create(int size) {
     if (VM.runningVM) VM._assert(false);  // should be hijacked
     return new OffsetArray(size);
   }
 
-  private OffsetArray (int size) { 
+  private OffsetArray(int size) {
     data = new Offset[size];
     Offset zero = Offset.zero();
     for (int i=0; i<size; i++) {
@@ -40,25 +40,25 @@ import org.jikesrvm.VM;
   }
 
   @Inline
-  public Offset get (int index) { 
+  public Offset get(int index) {
     if (VM.runningVM || VM.writingImage) VM._assert(false);  // should be hijacked
     return data[index];
   }
 
   @Inline
-  public void set (int index, Offset v) { 
+  public void set(int index, Offset v) {
     if (VM.runningVM || VM.writingImage) VM._assert(false);  // should be hijacked
     data[index] = v;
   }
 
   @Inline
-  public int length() { 
+  public int length() {
     if (VM.runningVM || VM.writingImage) VM._assert(false);  // should be hijacked
     return data.length;
   }
 
   @Inline
-  public Object getBacking() { 
+  public Object getBacking() {
     if (!VM.writingImage)
       VM.sysFail("VM_OffsetArray.getBacking called when not writing boot image");
     return data;

@@ -55,15 +55,15 @@ import org.vmmagic.pragma.*;
    * @return An {@link Address} instance that reflects the value zero.
    */
   @UninterruptibleNoWarn
-  public static Address zero() { 
+  public static Address zero() {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Address(0);
   }
 
   /**
    * Return <code>true</code> if this instance is zero.
-   * 
-   * @return <code>true</code> if this instance is zero. 
+   *
+   * @return <code>true</code> if this instance is zero.
    */
   public boolean isZero() {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
@@ -85,7 +85,7 @@ import org.vmmagic.pragma.*;
   /**
    * Return <code>true</code> if this instance is the maximum allowable
    * {@link Address} value.
-   * 
+   *
    * @return <code>true</code> if this instance is the maximum allowable
    * {@link Address} value.
    */
@@ -108,7 +108,7 @@ import org.vmmagic.pragma.*;
    * @return An address instance
    */
   @UninterruptibleNoWarn
-  public static Address fromIntSignExtend(int address) { 
+  public static Address fromIntSignExtend(int address) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Address(address);
   }
@@ -122,7 +122,7 @@ import org.vmmagic.pragma.*;
    * @return An address instance
    */
   @UninterruptibleNoWarn
-  public static Address fromIntZeroExtend(int address) { 
+  public static Address fromIntZeroExtend(int address) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Address(address, true);
   }
@@ -135,8 +135,8 @@ import org.vmmagic.pragma.*;
    * @return An address instance
    */
   @UninterruptibleNoWarn
-  public static Address fromLong(long address) { 
-    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED); 
+  public static Address fromLong(long address) {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Address(address);
  }
  
@@ -151,7 +151,7 @@ import org.vmmagic.pragma.*;
    * @return An address instance
    */
   @UninterruptibleNoWarn
-  public static Address fromInt(int address) { 
+  public static Address fromInt(int address) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Address(address);
   }
@@ -177,7 +177,7 @@ import org.vmmagic.pragma.*;
    * @return An integer that reflects the value of this
    * {@link Address} instance.
    */
-  public int toInt () {
+  public int toInt() {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return (int) value;
   }
@@ -189,7 +189,7 @@ import org.vmmagic.pragma.*;
    * @return a <code>long</code> that reflects the value of this
    * {@link Address} instance.
    */
-  public long toLong () {
+  public long toLong() {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     if (VM.BuildFor64Addr) {
       return value;
@@ -223,7 +223,7 @@ import org.vmmagic.pragma.*;
    * of the addition.
    */
   @UninterruptibleNoWarn
-  public Address plus(int v) { 
+  public Address plus(int v) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Address(value + v);
   }
@@ -237,7 +237,7 @@ import org.vmmagic.pragma.*;
    * of the addition.
    */
   @UninterruptibleNoWarn
-  public Address plus(Offset offset) { 
+  public Address plus(Offset offset) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Address(value + offset.toWord().toAddress().value);
   }
@@ -252,7 +252,7 @@ import org.vmmagic.pragma.*;
    * of the addition.
    */
   @UninterruptibleNoWarn
-  public Address plus(Extent extent) { 
+  public Address plus(Extent extent) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Address(value + extent.toWord().toAddress().value);
   }
@@ -267,7 +267,7 @@ import org.vmmagic.pragma.*;
    * of the subtraction.
    */
   @UninterruptibleNoWarn
-  public Address minus(int v) { 
+  public Address minus(int v) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Address(value - v);
   }
@@ -282,7 +282,7 @@ import org.vmmagic.pragma.*;
    * of the subtraction.
    */
   @UninterruptibleNoWarn
-  public Address minus(Offset offset) { 
+  public Address minus(Offset offset) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Address(value - offset.toWord().toAddress().value);
   }
@@ -297,7 +297,7 @@ import org.vmmagic.pragma.*;
    * of the subtraction.
    */
   @UninterruptibleNoWarn
-  public Address minus(Extent extent) { 
+  public Address minus(Extent extent) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Address(value - extent.toWord().toAddress().value);
   }
@@ -312,7 +312,7 @@ import org.vmmagic.pragma.*;
    * of the subtraction.
    */
   @UninterruptibleNoWarn
-  public Offset diff(Address addr2) { 
+  public Offset diff(Address addr2) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Offset(value - addr2.value);
   }
@@ -336,7 +336,7 @@ import org.vmmagic.pragma.*;
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     if (value >= 0 && addr2.value >= 0) return value < addr2.value;
     if (value < 0 && addr2.value < 0) return value < addr2.value;
-    if (value < 0) return false; 
+    if (value < 0) return false;
     return true;
   }
 
@@ -421,7 +421,7 @@ import org.vmmagic.pragma.*;
    * Software prefetch and other per-address cache management operators
    */
 
-  /** 
+  /**
    * Prefetch a cache-line, architecture-independent
    */
   public void prefetch() {
@@ -435,9 +435,9 @@ import org.vmmagic.pragma.*;
    * NOTE: IA32-specific
    */
   public void prefetchNTA() {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
-  
+
 //   CURRENTLY UNIMPLEMENTED
 //   /**
 //    * IA32 "prefetcht0" operation: "fetches the data into all cache
@@ -446,16 +446,16 @@ import org.vmmagic.pragma.*;
 //    * your processor!)
 //    */
 //    public void prefetchT0() {
-//      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  
+//      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
 //    }
-  
+
 //   /**
 //    * IA32 "prefetcht1" operation, identical to prefetcht0 on the
 //    * Pentium 4 (Semantics are micro-architecture-specific: check for
 //    * your processor!)
 //    */
 //    public void prefetchT1() {
-//      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  
+//      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
 //    }
 
 //   /**
@@ -466,8 +466,8 @@ import org.vmmagic.pragma.*;
 //    public void prefetchT2() {
 //      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
 //    }
-  
-  /** 
+
+  /**
    * Write contents of this processor's modified data cache back to
    * main storage.
    */
@@ -475,7 +475,7 @@ import org.vmmagic.pragma.*;
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
-  /** 
+  /**
    * Touch a data cache block (use to prefetch).
    * NOTE: PowerPC-specific
    */
@@ -483,7 +483,7 @@ import org.vmmagic.pragma.*;
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
-  /** 
+  /**
    * Touch a data cache block for a store (use to prefetch on a
    * store).
    * NOTE: PowerPC-specific
@@ -492,7 +492,7 @@ import org.vmmagic.pragma.*;
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
-  /** 
+  /**
    * Zero all bytes of this 32 byte cache block without forcing a read
    * (use to avoid a miss on an initilizing store).
    * NOTE: PowerPC-specific
@@ -501,7 +501,7 @@ import org.vmmagic.pragma.*;
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
-  /** 
+  /**
    * Zero all bytes of this cache block without forcing a read (use to
    * avoid a miss on an initilizing store). Note: this is an extended
    * form of dcbz for the PPC970 that deals with the larger (128 byte)
@@ -512,7 +512,7 @@ import org.vmmagic.pragma.*;
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
-  /** 
+  /**
    * The icbi instruction invalidates a block containing the byte
    * addressed in the instruction cache.
    * NOTE: PowerPC-specific
@@ -520,13 +520,13 @@ import org.vmmagic.pragma.*;
   public void icbi() {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
- 
+
   /****************************************************************************
    *
    * Memory access operators
    */
 
-  /** 
+  /**
    * Loads a reference from the memory location pointed to by the
    * current instance.
    *
@@ -549,7 +549,7 @@ import org.vmmagic.pragma.*;
     return null;
   }
 
-  /** 
+  /**
    * Loads a byte from the memory location pointed to by the
    * current instance.
    *
@@ -560,7 +560,7 @@ import org.vmmagic.pragma.*;
     return (byte)0;
   }
 
-  /** 
+  /**
    * Loads a byte from the memory location pointed to by the
    * current instance.
    *
@@ -572,7 +572,7 @@ import org.vmmagic.pragma.*;
     return (byte)0;
   }
 
-  /** 
+  /**
    * Loads a char from the memory location pointed to by the
    * current instance.
    *
@@ -583,7 +583,7 @@ import org.vmmagic.pragma.*;
     return (char)0;
   }
 
-  /** 
+  /**
    * Loads a char from the memory location pointed to by the
    * current instance.
    *
@@ -595,7 +595,7 @@ import org.vmmagic.pragma.*;
     return (char)0;
   }
 
-  /** 
+  /**
    * Loads a short from the memory location pointed to by the
    * current instance.
    *
@@ -606,7 +606,7 @@ import org.vmmagic.pragma.*;
     return (short)0;
   }
 
-  /** 
+  /**
    * Loads a short from the memory location pointed to by the
    * current instance.
    *
@@ -629,7 +629,7 @@ import org.vmmagic.pragma.*;
     return (float)0;
   }
 
-  /** 
+  /**
    * Loads a float from the memory location pointed to by the
    * current instance.
    *
@@ -641,7 +641,7 @@ import org.vmmagic.pragma.*;
     return (float)0;
   }
 
-  /** 
+  /**
    * Loads an int from the memory location pointed to by the
    * current instance.
    *
@@ -652,7 +652,7 @@ import org.vmmagic.pragma.*;
     return 0;
   }
 
-  /** 
+  /**
    * Loads an int from the memory location pointed to by the
    * current instance.
    *
@@ -665,7 +665,7 @@ import org.vmmagic.pragma.*;
   }
 
 
-  /** 
+  /**
    * Loads a long from the memory location pointed to by the
    * current instance.
    *
@@ -676,7 +676,7 @@ import org.vmmagic.pragma.*;
     return 0L;
   }
 
-  /** 
+  /**
    * Loads a long from the memory location pointed to by the
    * current instance.
    *
@@ -688,7 +688,7 @@ import org.vmmagic.pragma.*;
     return 0L;
   }
 
-  /** 
+  /**
    * Loads a <code>double</code> from the memory location pointed to by the
    * current instance.
    *
@@ -699,7 +699,7 @@ import org.vmmagic.pragma.*;
     return 0;
   }
 
-  /** 
+  /**
    * Loads a <code>double</code> from the memory location pointed to by the
    * current instance.
    *
@@ -712,7 +712,7 @@ import org.vmmagic.pragma.*;
   }
 
 
-  /** 
+  /**
    * Loads an {@link Address} value from the memory location pointed to by the
    * current instance.
    *
@@ -723,7 +723,7 @@ import org.vmmagic.pragma.*;
     return null;
   }
 
-  /** 
+  /**
    * Loads an {@link Address} value from the memory location pointed to by the
    * current instance.
    *
@@ -735,7 +735,7 @@ import org.vmmagic.pragma.*;
     return null;
   }
 
-  /** 
+  /**
    * Loads a word value from the memory location pointed to by the
    * current instance.
    *
@@ -746,7 +746,7 @@ import org.vmmagic.pragma.*;
     return null;
   }
 
-  /** 
+  /**
    * Loads a word value from the memory location pointed to by the
    * current instance plus the passed offset.
    *
@@ -778,9 +778,9 @@ import org.vmmagic.pragma.*;
   public void store(ObjectReference value, Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
- 
+
   /**
-   * Stores the address value in the memory location pointed to by the 
+   * Stores the address value in the memory location pointed to by the
    * current instance.
    *
    * @param value The address value to store.
@@ -790,7 +790,7 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Stores the address value in the memory location pointed to by the 
+   * Stores the address value in the memory location pointed to by the
    * current instance plus the passed offset.
    *
    * @param value The address value to store.
@@ -800,7 +800,7 @@ import org.vmmagic.pragma.*;
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
-  /** 
+  /**
    * Stores the <code>float</code> value in the memory location pointed to by
    * the current instance.
    *
@@ -811,7 +811,7 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Stores a <code>float</code> in the memory location pointed to by the 
+   * Stores a <code>float</code> in the memory location pointed to by the
    * current instance plus the passed offset.
    *
    * @param value The float value to store.
@@ -823,7 +823,7 @@ import org.vmmagic.pragma.*;
 
 
   /**
-   * Stores the {@link Word} value in the memory location pointed to by the 
+   * Stores the {@link Word} value in the memory location pointed to by the
    * current instance.
    *
    * @param value The {@link Word} value to store.
@@ -833,7 +833,7 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Stores the {@link Word} value in the memory location pointed to by the 
+   * Stores the {@link Word} value in the memory location pointed to by the
    * current instance.
    *
    * @param value The {@link Word} value to store.
@@ -854,7 +854,7 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Stores the byte value in the memory location pointed to by the 
+   * Stores the byte value in the memory location pointed to by the
    * current instance.
    *
    * @param value The byte value to store.
@@ -865,7 +865,7 @@ import org.vmmagic.pragma.*;
   }
 
 
-  /** 
+  /**
    * Stores an <code>int</code> value in the memory location pointed to by the
    * current instance.
    *
@@ -875,7 +875,7 @@ import org.vmmagic.pragma.*;
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
-  /** 
+  /**
    * Stores an <code>int</code> value in the memory location pointed to by the
    * current instance plus the passed offset.
    *
@@ -886,8 +886,8 @@ import org.vmmagic.pragma.*;
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
-  /** 
-   * Stores a <code>double</code> value in the memory location pointed to 
+  /**
+   * Stores a <code>double</code> value in the memory location pointed to
    * by the current instance.
    *
    * @param value The double value to store.
@@ -896,7 +896,7 @@ import org.vmmagic.pragma.*;
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
-  /** 
+  /**
    * Stores a <code>double</code> value in the memory location pointed to by the
    * current instance plus the passed offset.
    *
@@ -908,7 +908,7 @@ import org.vmmagic.pragma.*;
   }
 
 
-  /** 
+  /**
    * Stores a <code>long</code> value in the memory location pointed to by the
    * current instance.
    *
@@ -918,7 +918,7 @@ import org.vmmagic.pragma.*;
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
-  /** 
+  /**
    * Stores a <code>long</code> value in the memory location pointed to by the
    * current instance.
    *
@@ -929,42 +929,42 @@ import org.vmmagic.pragma.*;
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
-  /** 
+  /**
    * Stores a <code>char</code> value in the memory location pointed to by the
    * current instance.
    *
-   * @param value The char value to store. 
+   * @param value The char value to store.
    */
   public void store(char value) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
-  /** 
+  /**
    * Stores a <code>char</code> value in the memory location pointed to by the
    * current instance.
    *
-   * @param value The char value to store. 
+   * @param value The char value to store.
    * @param offset The offset to the current instance.
    */
   public void store(char value, Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
-  /** 
+  /**
    * Stores a short value in the memory location pointed to by the
    * current instance.
    *
-   * @param value the short value to store. 
+   * @param value the short value to store.
    */
   public void store(short value) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
-  /** 
+  /**
    * Stores a short value in the memory location pointed to by the
    * current instance.
    *
-   * @param value the short value to store. 
+   * @param value the short value to store.
    * @param offset the offset to the current instance.
    */
   public void store(short value, Offset offset) {
@@ -1103,7 +1103,7 @@ import org.vmmagic.pragma.*;
    * @param old the old value.
    * @param value the new value.
    * @return true if the attempt was successful.
-   */ 
+   */
   public boolean attempt(Word old, Word value) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return false;
@@ -1130,7 +1130,7 @@ import org.vmmagic.pragma.*;
    * @param old the old value.
    * @param value the new value.
    * @return true if the attempt was successful.
-   */ 
+   */
   public boolean attempt(ObjectReference old, ObjectReference value) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return false;
@@ -1145,7 +1145,7 @@ import org.vmmagic.pragma.*;
    * @param offset the offset to the current instance.
    * @return true if the attempt was successful.
    */
-  public boolean attempt(ObjectReference old, ObjectReference value, 
+  public boolean attempt(ObjectReference old, ObjectReference value,
                          Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return false;
@@ -1158,7 +1158,7 @@ import org.vmmagic.pragma.*;
    * @param old the old value.
    * @param value the new value.
    * @return true if the attempt was successful.
-   */ 
+   */
   public boolean attempt(Address old, Address value) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return false;

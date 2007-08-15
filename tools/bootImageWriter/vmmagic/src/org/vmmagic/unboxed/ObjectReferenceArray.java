@@ -16,22 +16,22 @@ import org.vmmagic.pragma.*;
 import org.jikesrvm.VM;
 
 /**
- * The VM front end is not capable of correct handling an array 
+ * The VM front end is not capable of correct handling an array
  * of ObjectReferences ...
  *
  * @author Daniel Frampton
  */
-@Uninterruptible final public class ObjectReferenceArray {
+@Uninterruptible public final class ObjectReferenceArray {
 
   private ObjectReference[] data;
 
   @Interruptible
-  static public ObjectReferenceArray create (int size) { 
+  public static ObjectReferenceArray create(int size) {
     if (VM.runningVM) VM._assert(false);  // should be hijacked
     return new ObjectReferenceArray(size);
   }
 
-  private ObjectReferenceArray(int size) { 
+  private ObjectReferenceArray(int size) {
     data = new ObjectReference[size];
     for (int i=0; i<size; i++) {
       data[i] = ObjectReference.nullReference();
@@ -39,25 +39,25 @@ import org.jikesrvm.VM;
   }
 
   @Inline
-  public ObjectReference get(int index) { 
+  public ObjectReference get(int index) {
     if (VM.runningVM || VM.writingImage) VM._assert(false);  // should be hijacked
     return data[index];
   }
 
   @Inline
-  public void set(int index, ObjectReference v) { 
+  public void set(int index, ObjectReference v) {
     if (VM.runningVM || VM.writingImage) VM._assert(false);  // should be hijacked
     data[index] = v;
   }
 
   @Inline
-  public int length() { 
+  public int length() {
     if (VM.runningVM || VM.writingImage) VM._assert(false);  // should be hijacked
     return data.length;
   }
 
   @Inline
-  public Object getBacking() { 
+  public Object getBacking() {
     if (!VM.writingImage)
         VM.sysFail("ObjectReferenceArray.getBacking called when not writing boot image");
     return data;

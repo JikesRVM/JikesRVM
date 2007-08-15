@@ -16,14 +16,12 @@ import org.vmmagic.pragma.*;
 import org.jikesrvm.VM_SizeConstants;
 
 /**
- * The object reference type is used by the runtime system and collector to 
- * represent a type that holds a reference to a single object. 
+ * The object reference type is used by the runtime system and collector to
+ * represent a type that holds a reference to a single object.
  * We use a separate type instead of the Java Object type for coding clarity,
- * to make a clear distinction between objects the VM is written in, and 
+ * to make a clear distinction between objects the VM is written in, and
  * objects that the VM is managing. No operations that can not be completed in
  * pure Java should be allowed on Object.
- * 
- * @author Daniel Frampton
  */
 @Uninterruptible public final class ObjectReference extends ArchitecturalWord implements VM_SizeConstants {
   ObjectReference(int value) {
@@ -32,10 +30,10 @@ import org.jikesrvm.VM_SizeConstants;
   ObjectReference(long value) {
     super(value);
   }
-  
+
   /**
    * Convert from an object to a reference.
-   * @param obj The object 
+   * @param obj The object
    * @return The corresponding reference
    */
   public static ObjectReference fromObject(Object obj) {
@@ -46,19 +44,19 @@ import org.jikesrvm.VM_SizeConstants;
    * Return a null reference
    */
   @Inline
-  public static final ObjectReference nullReference() { 
+  public static ObjectReference nullReference() {
     return null;
   }
 
   /**
-   * Get a heap address for the object. 
+   * Get a heap address for the object.
    */
   public Address toAddress() {
     return null;
   }
-  
+
   /**
-   * Get the object this reference represents. 
+   * Get the object this reference represents.
    */
   public Object toObject() {
     return null;
