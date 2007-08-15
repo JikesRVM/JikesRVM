@@ -21,7 +21,7 @@ import org.jikesrvm.scheduler.VM_Synchronization;
 import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.unboxed.Offset;
 
-public class Unsafe {
+public final class Unsafe {
   private static final Unsafe unsafe = new Unsafe();
 
   private Unsafe() {}

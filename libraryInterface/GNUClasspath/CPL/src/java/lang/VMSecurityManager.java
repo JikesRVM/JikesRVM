@@ -24,8 +24,7 @@ import org.jikesrvm.classloader.VM_BootstrapClassLoader;
  * methods verbatim to there, rather than doing them by call, because of
  * the silly interface.
  */
-final class VMSecurityManager
-{
+final class VMSecurityManager {
   static Class<?>[] getClassContext() {
       VM_StackBrowser b = new VM_StackBrowser();
       int frames = 0;

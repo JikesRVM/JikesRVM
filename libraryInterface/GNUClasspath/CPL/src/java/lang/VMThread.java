@@ -24,9 +24,9 @@ final class VMThread {
    * Corresponding VM_Thread accessed by JikesRVMSupport.getThread()
    */
   final VM_Thread vmdata;
-  
+
   /**
-   * Constructor, called by JikesRVMSupport.createThread and VMThread.create 
+   * Constructor, called by JikesRVMSupport.createThread and VMThread.create
    */
   VMThread(VM_Thread vmdata) {
     this.vmdata = vmdata;
@@ -63,7 +63,7 @@ final class VMThread {
   /**
    * Does the currently running Thread hold the lock on an obj?
    * @param obj the object to check
-   * @return whether the thread holds the lock 
+   * @return whether the thread holds the lock
    */
   static boolean holdsLock(Object obj) {
     return VM_Scheduler.getCurrentThread().holdsLock(obj);
@@ -140,7 +140,7 @@ final class VMThread {
     return vmdata.isInterrupted();
   }
   /**
-   * Interrupt this thread 
+   * Interrupt this thread
    */
   void interrupt() {
     vmdata.interrupt();

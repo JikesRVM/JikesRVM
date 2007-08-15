@@ -21,7 +21,7 @@ import org.jikesrvm.scheduler.VM_Scheduler;
 public final class VMThrowable {
   /** The stack trace for this throwable */
   private VM_StackTrace stackTrace;
-  
+
   /**
    * Zero length array of stack trace elements, returned when handling an OOM or
    * an unexpected error

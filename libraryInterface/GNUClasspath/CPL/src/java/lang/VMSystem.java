@@ -12,22 +12,23 @@
  */
 package java.lang;
 
-import org.jikesrvm.VM;
-import org.jikesrvm.objectmodel.VM_ObjectModel;
-import org.jikesrvm.runtime.VM_Runtime;
-import org.jikesrvm.runtime.VM_Statics;
-import static org.jikesrvm.runtime.VM_SysCall.sysCall; // for sysCall.sysGetenv
-import org.jikesrvm.runtime.VM_Time;
-import org.jikesrvm.VM_UnimplementedError;
+import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 
+import java.io.InputStream;
+import java.io.PrintStream;
+import java.io.UTFDataFormatException;
+import java.util.List;
+
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_UnimplementedError;
 import org.jikesrvm.classloader.VM_Array;
 import org.jikesrvm.classloader.VM_Atom;
 import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.classloader.VM_Field;
-
-import java.io.*;
-import java.util.List;
-
+import org.jikesrvm.objectmodel.VM_ObjectModel;
+import org.jikesrvm.runtime.VM_Runtime;
+import org.jikesrvm.runtime.VM_Statics;
+import org.jikesrvm.runtime.VM_Time;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -37,28 +38,28 @@ public final class VMSystem {
 
 
   static void arraycopy(Object src, int srcPos, Object dst, int dstPos, int len) {
-	if (src == null || dst == null) {
-	  VM_Runtime.raiseNullPointerException();
-	} else if ((src instanceof char[]) && (dst instanceof char[])) {
-	  VM_Array.arraycopy((char[])src, srcPos, (char[])dst, dstPos, len);
-	} else if ((src instanceof Object[]) && (dst instanceof Object[])) {
-	  VM_Array.arraycopy((Object[])src, srcPos, (Object[])dst, dstPos, len);
-	} else if ((src instanceof byte[]) && (dst instanceof byte[])) {
-	  VM_Array.arraycopy((byte[])src, srcPos, (byte[])dst, dstPos, len);
-	} else if ((src instanceof boolean[]) && (dst instanceof boolean[])) {
-	  VM_Array.arraycopy((boolean[])src, srcPos, (boolean[])dst, dstPos, len);
-	} else if ((src instanceof short[]) && (dst instanceof short[])) {
-	  VM_Array.arraycopy((short[])src, srcPos, (short[])dst, dstPos, len);
-	} else if ((src instanceof int[]) && (dst instanceof int[])) {
-	  VM_Array.arraycopy((int[])src, srcPos, (int[])dst, dstPos, len);
-	} else if ((src instanceof long[]) && (dst instanceof long[])) {
-	  VM_Array.arraycopy((long[])src, srcPos, (long[])dst, dstPos, len);
-	} else if ((src instanceof float[]) && (dst instanceof float[])) {
-	  VM_Array.arraycopy((float[])src, srcPos, (float[])dst, dstPos, len);
-	} else if ((src instanceof double[]) && (dst instanceof double[])) {
-	  VM_Array.arraycopy((double[])src, srcPos, (double[])dst, dstPos, len);
-	} else {
-	  VM_Runtime.raiseArrayStoreException();
+    if (src == null || dst == null) {
+      VM_Runtime.raiseNullPointerException();
+    } else if ((src instanceof char[]) && (dst instanceof char[])) {
+      VM_Array.arraycopy((char[])src, srcPos, (char[])dst, dstPos, len);
+    } else if ((src instanceof Object[]) && (dst instanceof Object[])) {
+      VM_Array.arraycopy((Object[])src, srcPos, (Object[])dst, dstPos, len);
+    } else if ((src instanceof byte[]) && (dst instanceof byte[])) {
+      VM_Array.arraycopy((byte[])src, srcPos, (byte[])dst, dstPos, len);
+    } else if ((src instanceof boolean[]) && (dst instanceof boolean[])) {
+      VM_Array.arraycopy((boolean[])src, srcPos, (boolean[])dst, dstPos, len);
+    } else if ((src instanceof short[]) && (dst instanceof short[])) {
+      VM_Array.arraycopy((short[])src, srcPos, (short[])dst, dstPos, len);
+    } else if ((src instanceof int[]) && (dst instanceof int[])) {
+      VM_Array.arraycopy((int[])src, srcPos, (int[])dst, dstPos, len);
+    } else if ((src instanceof long[]) && (dst instanceof long[])) {
+      VM_Array.arraycopy((long[])src, srcPos, (long[])dst, dstPos, len);
+    } else if ((src instanceof float[]) && (dst instanceof float[])) {
+      VM_Array.arraycopy((float[])src, srcPos, (float[])dst, dstPos, len);
+    } else if ((src instanceof double[]) && (dst instanceof double[])) {
+      VM_Array.arraycopy((double[])src, srcPos, (double[])dst, dstPos, len);
+    } else {
+      VM_Runtime.raiseArrayStoreException();
     }
   }
 
@@ -88,7 +89,7 @@ public final class VMSystem {
 
       inField.setObjectValueUnchecked(null, in);
     } catch (Exception e) {
-      throw new Error( e.toString() );
+      throw new Error(e.toString());
     }
   }
 
@@ -102,7 +103,7 @@ public final class VMSystem {
 
       outField.setObjectValueUnchecked(null, out);
     } catch (Exception e) {
-      throw new Error( e.toString() );
+      throw new Error(e.toString());
     }
   }
 
@@ -116,7 +117,7 @@ public final class VMSystem {
 
       errField.setObjectValueUnchecked(null, err);
     } catch (Exception e) {
-      throw new Error( e.toString() );
+      throw new Error(e.toString());
     }
   }
 
@@ -132,7 +133,7 @@ public final class VMSystem {
         VM_Statics.getSlotContentsAsObject(Offset.fromIntSignExtend(
             VM_Statics.findOrCreateStringLiteral(VM_Atom.findOrCreateUnicodeAtom(string))));
     } catch (UTFDataFormatException ex) {
-      throw new InternalError( ex.toString() );
+      throw new InternalError(ex.toString());
     }
   }
 
@@ -149,7 +150,7 @@ public final class VMSystem {
     if (len < 0)                // not set.
       return null;
 
-    if (len > buf.length ) {
+    if (len > buf.length) {
       buf = new byte[len];
       sysCall.sysGetenv(nameBytes, buf, len);
     }
