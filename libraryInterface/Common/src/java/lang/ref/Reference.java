@@ -15,8 +15,10 @@ package java.lang.ref;
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.runtime.VM_Magic;
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*; 
+import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.LogicallyUninterruptible;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
 
 /**
  * The JikesRVM implementation of the java.lang.ref.Reference class.
