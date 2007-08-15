@@ -221,7 +221,7 @@ import org.vmmagic.unboxed.*;
   public final Allocator getOwnAllocator(Allocator a) {
     Space space = Plan.getSpaceFromAllocatorAnyLocal(a);
     if (space == null)
-      VM.assertions.fail("PlanLocal.getOwnAllocator could not obtain space");
+      VM.assertions.fail("MutatorContext.getOwnAllocator could not obtain space");
     return getAllocatorFromSpace(space);
   }
 
