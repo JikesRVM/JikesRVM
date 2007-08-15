@@ -1521,6 +1521,8 @@ target.jni-suffix=${target.jni-suffix}
       <fileset dir="rvm/src" includes="**/*.java"/>
       <fileset dir="MMTk" includes="**/*.java"/>
       <fileset dir="vmmagic" includes="**/*.java"/>
+      <fileset dir="libraryInterface/Common" includes="**/*.java"/>
+      <fileset dir="libraryInterface/GNUClasspath/CPL" includes="**/*.java"/>
     </checkstyle>
 
     <style in="${build.dir}/checkstyle/report.xml"
