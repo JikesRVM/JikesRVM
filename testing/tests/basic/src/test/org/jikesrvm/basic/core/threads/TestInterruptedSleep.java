@@ -28,8 +28,7 @@ public class TestInterruptedSleep {
         while (!sleeping) Thread.yield();
         try {
           Thread.sleep(1000);
-        }
-        catch (InterruptedException e) {
+        } catch (InterruptedException e) {
         }
         main.interrupt();
       }
@@ -40,8 +39,7 @@ public class TestInterruptedSleep {
       sleeping = true;
       Thread.sleep(2000);
       System.out.println("TestInterruptedSleep FAILED");
-    }
-    catch (InterruptedException e) {
+    } catch (InterruptedException e) {
       System.out.println("TestInterruptedSleep SUCCESS");
     }
   }

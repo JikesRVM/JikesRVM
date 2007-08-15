@@ -42,7 +42,7 @@ class TestTimedWait {
       //Have to wait for the messages to be sent
       //otherwises replies will be received in wrong
       //order if method is part-way through a compile
-      while( !task.sent ) { Thread.yield(); }
+      while(!task.sent) { Thread.yield(); }
     }
 
     // wait for mailbox to fill up

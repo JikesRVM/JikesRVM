@@ -23,8 +23,7 @@ public class TestInterruptedSleep2 {
         boolean interrupted = false;
         try {
           Thread.sleep(5000);
-        }
-        catch (InterruptedException e) {
+        } catch (InterruptedException e) {
           interrupted = true;
         }
         if (interrupted) {

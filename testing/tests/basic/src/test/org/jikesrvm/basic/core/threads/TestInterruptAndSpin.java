@@ -45,8 +45,7 @@ public class TestInterruptAndSpin {
 
       System.out.println("TestInterruptAndSpin SUCCESS");
 
-    }
-    catch (InterruptedException e) {
+    } catch (InterruptedException e) {
       // This should not have happened
       System.out.println("TestInterruptAndSpin FAILED");
     }

@@ -59,7 +59,7 @@ class TestSerialization {
       System.out.println("write success. Checking consistency of data written ...");
       System.out.println("actual.length (" + bytes.length + ") vs expected.length (" + data.length);
       for (int i = 0; i < data.length && i < bytes.length; i++) {
-        if( data[i] != bytes[i] ) {
+        if(data[i] != bytes[i]) {
           System.out.println("data differs at " + i);
           break;
         }

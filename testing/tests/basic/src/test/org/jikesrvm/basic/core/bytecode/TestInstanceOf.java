@@ -37,30 +37,18 @@ class TestInstanceOf {
 
   @SuppressWarnings({"UnusedDeclaration", "RedundantCast"})
   private static void testCasts(final Object x) {
-    try { final Object o = (Object) x; success(); }
-    catch (final ClassCastException cce) { failure(); }
-    try { final Science o = (Science) x; success(); }
-    catch (final ClassCastException cce) { failure(); }
-    try { final Magic o = (Magic) x; success(); }
-    catch (final ClassCastException cce) { failure(); }
-    try { final Object[] o = (Object[]) x; success(); }
-    catch (final ClassCastException cce) { failure(); }
-    try { final Magic[] o = (Magic[]) x; success(); }
-    catch (final ClassCastException cce) { failure(); }
-    try { final Science[] o = (Science[]) x; success(); }
-    catch (final ClassCastException cce) { failure(); }
-    try { final Object[][] o = (Object[][]) x; success(); }
-    catch (final ClassCastException cce) { failure(); }
-    try { final Magic[][] o = (Magic[][]) x; success(); }
-    catch (final ClassCastException cce) { failure(); }
-    try { final Science[][] o = (Science[][]) x; success(); }
-    catch (final ClassCastException cce) { failure(); }
-    try { final int[] o = (int[]) x; success(); }
-    catch (final ClassCastException cce) { failure(); }
-    try { final Serializable o = (Serializable) x; success(); }
-    catch (final ClassCastException cce) { failure(); }
-    try { final Cloneable o = (Cloneable) x; success(); }
-    catch (final ClassCastException cce) { failure(); }
+    try { final Object o = (Object) x; success(); } catch (final ClassCastException cce) { failure(); }
+    try { final Science o = (Science) x; success(); } catch (final ClassCastException cce) { failure(); }
+    try { final Magic o = (Magic) x; success(); } catch (final ClassCastException cce) { failure(); }
+    try { final Object[] o = (Object[]) x; success(); } catch (final ClassCastException cce) { failure(); }
+    try { final Magic[] o = (Magic[]) x; success(); } catch (final ClassCastException cce) { failure(); }
+    try { final Science[] o = (Science[]) x; success(); } catch (final ClassCastException cce) { failure(); }
+    try { final Object[][] o = (Object[][]) x; success(); } catch (final ClassCastException cce) { failure(); }
+    try { final Magic[][] o = (Magic[][]) x; success(); } catch (final ClassCastException cce) { failure(); }
+    try { final Science[][] o = (Science[][]) x; success(); } catch (final ClassCastException cce) { failure(); }
+    try { final int[] o = (int[]) x; success(); } catch (final ClassCastException cce) { failure(); }
+    try { final Serializable o = (Serializable) x; success(); } catch (final ClassCastException cce) { failure(); }
+    try { final Cloneable o = (Cloneable) x; success(); } catch (final ClassCastException cce) { failure(); }
   }
 
   private static void failure() {System.out.print("0");}

@@ -20,7 +20,7 @@ import java.io.File;
 public class JikesImageSizes {
 
   public static void main(String[] args) {
-    if( args.length != 3 ) {
+    if(args.length != 3) {
       System.err.println("Expect 3 arguments. <RVM.file.image> <RVM.data.image> <RVM.rmap.image>");
       System.exit(1);
     }
@@ -36,7 +36,7 @@ public class JikesImageSizes {
 
   private static long getFileLength(final String name, final String location) {
     final File file = new File(location);
-    if( !file.exists() ) {
+    if(!file.exists()) {
       System.err.println("Location for " + name + " given as " + location + " does not exist.");
       System.exit(2);
     }

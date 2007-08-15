@@ -30,8 +30,7 @@ public class TestInterruptedWait {
         while (!locking) Thread.yield();
         try {
           Thread.sleep(1000);
-        }
-        catch (InterruptedException e) {
+        } catch (InterruptedException e) {
         }
 
         main.interrupt();
@@ -43,8 +42,7 @@ public class TestInterruptedWait {
       locking = true;
       try {
         lock.wait(2000);
-      }
-      catch (InterruptedException e) {
+      } catch (InterruptedException e) {
         System.out.println("TestInterruptedWait SUCCESS");
         System.exit(0);
       }
