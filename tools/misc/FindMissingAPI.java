@@ -302,7 +302,7 @@ public class FindMissingAPI {
     }
     private void handle(Throwable t) { handle(t, ""); }
 
-    private final URL[] urls(List<File> paths) {
+    private URL[] urls(List<File> paths) {
       List<URL> urls = new ArrayList<URL>();
       for (File f : paths) {
         try {
@@ -314,7 +314,7 @@ public class FindMissingAPI {
       return (URL[])urls.toArray(new URL[]{});
     }
 
-    private final List<File> separate(String path) {
+    private List<File> separate(String path) {
       final List<File> list = new ArrayList<File>();
       if (path == null) {
         return list;
