@@ -2079,8 +2079,7 @@ public class BootImageWriter extends BootImageWriterMessages
    * @param rvmFieldAddress
    */
   private static boolean copyKnownClasspathInstanceField(Object jdkObject, String rvmFieldName, VM_TypeReference rvmFieldType, Address rvmFieldAddress)
-    throws IllegalAccessException
-  {
+    throws IllegalAccessException {
     if ((jdkObject instanceof java.lang.String) &&
         (rvmFieldName.equals("cachedHashCode")) &&
         (rvmFieldType.isIntType())
@@ -2088,8 +2087,7 @@ public class BootImageWriter extends BootImageWriterMessages
       // Populate String's cachedHashCode value
       bootImage.setFullWord(rvmFieldAddress, jdkObject.hashCode());
       return true;
-    }
-    else if (jdkObject instanceof java.lang.Class)   {
+    } else if (jdkObject instanceof java.lang.Class)   {
       Object value = null;
       String fieldName = null;
       boolean fieldIsFinal = false;
@@ -2098,32 +2096,23 @@ public class BootImageWriter extends BootImageWriterMessages
         // lets go over the common ones
         if (jdkObject == java.lang.Boolean.TYPE) {
           value = VM_Type.BooleanType;
-        }
-        else if (jdkObject == java.lang.Byte.TYPE) {
+        } else if (jdkObject == java.lang.Byte.TYPE) {
           value = VM_Type.ByteType;
-        }
-        else if (jdkObject == java.lang.Character.TYPE) {
+        } else if (jdkObject == java.lang.Character.TYPE) {
           value = VM_Type.CharType;
-        }
-        else if (jdkObject == java.lang.Double.TYPE) {
+        } else if (jdkObject == java.lang.Double.TYPE) {
           value = VM_Type.DoubleType;
-        }
-        else if (jdkObject == java.lang.Float.TYPE) {
+        } else if (jdkObject == java.lang.Float.TYPE) {
           value = VM_Type.FloatType;
-        }
-        else if (jdkObject == java.lang.Integer.TYPE) {
+        } else if (jdkObject == java.lang.Integer.TYPE) {
           value = VM_Type.IntType;
-        }
-        else if (jdkObject == java.lang.Long.TYPE) {
+        } else if (jdkObject == java.lang.Long.TYPE) {
           value = VM_Type.LongType;
-        }
-        else if (jdkObject == java.lang.Short.TYPE) {
+        } else if (jdkObject == java.lang.Short.TYPE) {
           value = VM_Type.ShortType;
-        }
-        else if (jdkObject == java.lang.Void.TYPE) {
+        } else if (jdkObject == java.lang.Void.TYPE) {
           value = VM_Type.VoidType;
-        }
-        else {
+        } else {
           value = VM_TypeReference.findOrCreate((Class)jdkObject).peekType();
           if (value == null) {
              throw new Error("Failed to populate Class.type for " + jdkObject);
@@ -2155,8 +2144,7 @@ public class BootImageWriter extends BootImageWriterMessages
         // Unknown Class field or value for type
         return false;
       }
-    }
-    else if (jdkObject instanceof java.lang.reflect.Constructor)   {
+    } else if (jdkObject instanceof java.lang.reflect.Constructor)   {
       Constructor cons = (Constructor)jdkObject;
       if(rvmFieldName.equals("constructor")) {
         // fill in this VM_Method field
@@ -2211,8 +2199,7 @@ public class BootImageWriter extends BootImageWriterMessages
         // Unknown Constructor field
         return false;
       }
-    }
-    else {
+    } else {
       // Unknown field
       return false;
     }
