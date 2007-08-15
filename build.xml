@@ -1523,6 +1523,7 @@ target.jni-suffix=${target.jni-suffix}
       <fileset dir="vmmagic" includes="**/*.java"/>
       <fileset dir="libraryInterface/Common" includes="**/*.java"/>
       <fileset dir="libraryInterface/GNUClasspath/CPL" includes="**/*.java"/>
+      <fileset dir="tools/ant-tasks" includes="**/*.java"/>
     </checkstyle>
 
     <style in="${build.dir}/checkstyle/report.xml"
