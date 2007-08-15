@@ -18,14 +18,14 @@ import java.util.WeakHashMap;
  * and add new elements to the list.  Rinse and repeat.
  */
 public class ReferenceStress {
-  
+
   static boolean verbose = false;
   static int elements = 0;
-  
+
   private static synchronized void report(int completed) {
     elements += completed;
   }
-  
+
   /**
    * The element type of the hash table - a simple linked list
    */
@@ -33,7 +33,7 @@ public class ReferenceStress {
     Element next;
     Element(Element next) { this.next = next; }
     void deleteNext() { if (next != null) next = next.next; }
-    int length() { 
+    int length() {
       int result = 1;
       Element cursor = next;
       while (cursor != null) {
@@ -43,11 +43,11 @@ public class ReferenceStress {
       return result;
     }
   }
-  
+
   /**
    * The kernel of the test.  Add elements to the linked list/hash table, while
    * killing off half of them.
-   * 
+   *
    * @param liveSize
    * @param iterations
    */
@@ -55,12 +55,12 @@ public class ReferenceStress {
     WeakHashMap<Element,Integer> map = new WeakHashMap<Element,Integer>();
     Element list = new Element(null);
     Integer serial = Integer.valueOf(0);
-    
+
     for (int i=0; i < liveSize; i++) {
       list = new Element(list);
       map.put(list, serial++);
     }
-    
+
     for (int j=0; j < iterations; j++) {
       Element cursor = list;
       int inserts = 0;
@@ -77,7 +77,7 @@ public class ReferenceStress {
       report(inserts);
     }
   }
-  
+
   /**
    * Print usage and die
    */
@@ -91,7 +91,7 @@ public class ReferenceStress {
     int liveSize = 5000;
     int iterations = 100;
     int threads = 2;
-    
+
     for (int i=0; i < args.length; i++) {
       if (args[i].charAt(0) == '-') {
         if (args[i].equals("-verbose")) {
@@ -113,29 +113,29 @@ public class ReferenceStress {
         usage();
       }
     }
-    
+
     System.out.println("Running "+threads+" threads with "+liveSize+" entries for "+iterations+" iterations");
-    
+
     Thread[] threadTable = new Thread[threads];
-    
+
     final int finalLiveSize = liveSize;
     final int finalIterations = iterations;
-    
+
     for (int i=0; i < threads; i++) {
       threadTable[i] = new Thread() {
         public void run() {
-          thrash(finalLiveSize, finalIterations);          
+          thrash(finalLiveSize, finalIterations);
         }
       };
     }
-    
+
     long start = System.nanoTime();
-    
+
     // Start the threads
     for (int i=0; i < threads; i++) {
       threadTable[i].start();
     }
-    
+
     // Wait for them to complete
     for (int i=0; i < threads; i++) {
       try {

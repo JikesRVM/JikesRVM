@@ -23,7 +23,7 @@ import java.lang.ref.WeakReference;
 class ReferenceTest {
 
 
-  public static <T> double checkReferenceArray (Reference<T> [] ra, ReferenceQueue<T> rq) {
+  public static <T> double checkReferenceArray(Reference<T> [] ra, ReferenceQueue<T> rq) {
     // Verify that all references on rq belong to ra and that if so they are cleared
     for (Reference<?> r = rq.poll(); r != null; r = rq.poll()) {
       int i;
@@ -43,11 +43,11 @@ class ReferenceTest {
   static int microUnitSize = 100;     // conservative upper bound for small object
   static int allocateUnitSize = 5000;
 
-  public static int MBtoUnits (double amt) {  // in Mbytes
+  public static int MBtoUnits(double amt) {  // in Mbytes
       return (int) ((amt * (1 << 20)) / allocateUnitSize);
   }
 
-  public static Object[] allocateUnit () {
+  public static Object[] allocateUnit() {
     int t = allocateUnitSize / microUnitSize;
     Object[] result = new Object[t];
     for (int i=0; i<t; i++)
@@ -56,7 +56,7 @@ class ReferenceTest {
   }
 
   static Object dummy;
-  public static void allocateDiscard (double amt) { // amt in Mb
+  public static void allocateDiscard(double amt) { // amt in Mb
     int rounds = MBtoUnits(amt);
     for (int i=0; i<rounds; i++)
         dummy = allocateUnit();
@@ -64,7 +64,7 @@ class ReferenceTest {
 
   private static Object outOfMemoryHandle;
 
-  public static void allocateUntilOOM () {
+  public static void allocateUntilOOM() {
     try {
       while(true) {
         Object[] myArray = new Object[10000];
@@ -95,23 +95,17 @@ class ReferenceTest {
     static final int WEAK = 0;
     static final int SOFT = 1;
 
-  public static Reference<Object[]> [] allocateReferenceArray (int type, double amt, ReferenceQueue<Object[]> rq) { // amt in Mb
+  public static Reference<Object[]> [] allocateReferenceArray(int type, double amt, ReferenceQueue<Object[]> rq) { // amt in Mb
     int rounds = MBtoUnits(amt);
     @SuppressWarnings("unchecked")
     Reference<Object[]> [] ra = new Reference[rounds];
-    for (int i=0; i<rounds; i++)
-    {
+    for (int i=0; i<rounds; i++) {
       final Reference<Object[]> reference;
-      if(type == WEAK)
-      {
+      if(type == WEAK) {
         reference = new WeakReference<Object[]>(allocateUnit(), rq);
-      }
-      else if(type == SOFT)
-      {
+      } else if(type == SOFT) {
         reference = new SoftReference<Object[]>(allocateUnit(), rq);
-      }
-      else
-      {
+      } else {
         reference = null;
       }
       ra[i] = reference;
@@ -133,19 +127,19 @@ class ReferenceTest {
   private static final int GOOD = 1;
   private static final int POOR = 2;
 
-  private static void check (String msg, boolean correct, int quality) {
+  private static void check(String msg, boolean correct, int quality) {
       System.out.print(msg + "     ");
       System.out.print(correct ? "PASS" : "FAIL");
       if (correct) {
         if (quality == GOOD) System.out.print("   GOOD");
         if (quality == POOR) System.out.print("   POOR");
-      }
-      else
+      } else {
         failCount++;
+      }
       System.out.println();
   }
 
-  private static void check (String msg, boolean correct) {
+  private static void check(String msg, boolean correct) {
       check(msg, correct, NO_QUALITY);
   }
 
