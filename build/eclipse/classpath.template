@@ -20,8 +20,6 @@
 	<classpathentry kind="src" path="vmmagic/src"/>
 	<classpathentry excluding="**/@OTHER_ARCH@/**|org/jikesrvm/tools/header_gen/GenArch_@OTHER_ARCH@.java" kind="src" path="rvm/src"/>
 
-	<classpathentry excluding="vmmagic/**" kind="src" path="tools/bootImageWriter"/>
-
 	<classpathentry kind="src" path="eclipse/gen-base"/>
 	<classpathentry kind="src" path="eclipse/gen-config"/>
 	<classpathentry kind="src" path="eclipse/gen-arch"/>
