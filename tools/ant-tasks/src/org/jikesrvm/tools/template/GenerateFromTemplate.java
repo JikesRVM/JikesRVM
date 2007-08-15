@@ -198,7 +198,7 @@ public class GenerateFromTemplate {
     int limit = argc;
     argc = 2;
     for (int i = 2; i < limit; i++) {
-      if ( args[i].indexOf("=") < 0 )
+      if (args[i].indexOf("=") < 0)
         args[ argc-1 ] = args[ argc-1 ] + " " + args[ i ];
       else {
         args[ argc++ ] = args[ i ];
@@ -1019,17 +1019,16 @@ public class GenerateFromTemplate {
     op = op.intern();
     if      (op == "==") retval = arg.equals(value[0]);
     else if (op == "!=") retval = !arg.equals(value[0]);
-    else if (op == "<" ) retval = arg.compareTo(value[0]) <  0;
+    else if (op == "<")  retval = arg.compareTo(value[0]) <  0;
     else if (op == "<=") retval = arg.compareTo(value[0]) <= 0;
-    else if (op == ">" ) retval = arg.compareTo(value[0]) >  0;
+    else if (op == ">")  retval = arg.compareTo(value[0]) >  0;
     else if (op == ">=") retval = arg.compareTo(value[0]) >= 0;
     else if (op == "=~") retval = arg.indexOf(value[0]) >= 0;
     else if (op == "IN") {
       for (int i = 0; i < value.length && !retval; i++)
         if (arg.equals(value[i]))
           retval = true;
-    }
-    else if (op == "eq")
+    } else if (op == "eq")
        retval = Integer.parseInt(arg) == Integer.parseInt(value[0]);
     else if (op == "ne")
        retval = Integer.parseInt(arg) != Integer.parseInt(value[0]);
@@ -1104,9 +1103,8 @@ public class GenerateFromTemplate {
   }
 
   Vector<Object> substituteInRegion(Vector<Object> region, String var,
-                            String[] fields, String[] fieldData)
-       throws IOException
-  {
+                                    String[] fields, String[] fieldData)
+                                    throws IOException {
     Vector<Object> newRegion = new Vector<Object>(region.size());
     for (int i = 0; i < region.size(); i++) {
       Object el = region.elementAt(i);
@@ -1125,8 +1123,7 @@ public class GenerateFromTemplate {
   }
 
   Vector<Object> substituteInRegion(Vector<Object> region, String var, String value)
-       throws IOException
-  {
+  throws IOException {
     Vector<Object> newRegion = new Vector<Object>(region.size());
     for (int i = 0; i < region.size(); i++) {
       Object el = region.elementAt(i);
@@ -1145,9 +1142,7 @@ public class GenerateFromTemplate {
   }
 
   String substitute(String input, String var,
-                    String[] fields, String[] fieldData)
-       throws IOException
-  {
+                    String[] fields, String[] fieldData) throws IOException {
     StringBuffer out = new StringBuffer();
     int varlen = var.length();
     int oidx = 0;
@@ -1187,9 +1182,7 @@ public class GenerateFromTemplate {
     return out.toString();
   }
 
-  String substitute(String input, String var, String value)
-       throws IOException
-  {
+  String substitute(String input, String var, String value) throws IOException {
     StringBuffer out = new StringBuffer();
     int varlen = var.length();
     int oidx = 0;
