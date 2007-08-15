@@ -20,8 +20,7 @@ import org.vmmagic.unboxed.Address;
  * bootimage.
  */
 public class BootImageMap extends BootImageWriterMessages
-  implements BootImageWriterConstants
-{
+  implements BootImageWriterConstants {
   /**
    * Key->Entry map
    */
