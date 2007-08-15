@@ -29,7 +29,7 @@ public class R1722506 {
       File newIndexFile = new File(filename);
       DataOutputStream stream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(newIndexFile, false), 2048));
       for (int i = 0; i < 50; i++)
-	stream.writeInt(i);
+        stream.writeInt(i);
       stream.close();
       long streamLen = (new File(filename)).length();
       RandomAccessFile raFile = new RandomAccessFile(filename, "rw");
