@@ -89,7 +89,7 @@ import org.vmmagic.pragma.*;
   protected Space space; // space this bump pointer is associated with
   protected Address initialRegion; // first contiguous region
   protected final boolean allowScanning; // linear scanning is permitted if true
-  protected Address region; // current contigious region
+  protected Address region; // current contiguous region
 
 
   /**
@@ -265,7 +265,7 @@ import org.vmmagic.pragma.*;
     if (start.isZero()) return start; // failed allocation
 
     if (!allowScanning) { // simple allocator
-      if (start.NE(limit)) cursor = start;  // discontigious
+      if (start.NE(limit)) cursor = start;  // discontiguous
       updateLimit(start.plus(chunkSize), start, bytes);
     } else                // scannable allocator
       updateMetaData(start, chunkSize, bytes);
@@ -295,7 +295,7 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * A bump pointer chuck/region has been consumed but the contigious region
+   * A bump pointer chuck/region has been consumed but the contiguous region
    * is available, so consume it and then return the address of the start
    * of a memory region satisfying the outstanding allocation request.  This
    * is relevant when re-using memory, as in a mark-compact collector.
@@ -405,7 +405,7 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Perform a linear scan through a single contigious region
+   * Perform a linear scan through a single contiguous region
    *
    * @param scanner The scan object to delegate to.
    * @param start The start of this region

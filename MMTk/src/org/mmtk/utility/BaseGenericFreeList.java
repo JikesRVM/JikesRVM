@@ -21,7 +21,7 @@ import org.vmmagic.pragma.*;
  * abstractly, in "units", which the user may associate with some
  * other allocatable resource (e.g. heap blocks).  The user issues
  * requests for N units and the allocator returns the index of the
- * first of a contigious set of N units or fails, returning -1.  The
+ * first of a contiguous set of N units or fails, returning -1.  The
  * user frees the block of N units by calling <code>free()</code> with
  * the index of the first unit as the argument.<p>
  *
@@ -44,11 +44,11 @@ import org.vmmagic.pragma.*;
  *
  *   - single free unit: "free", "single", "prev", "next"
  *   - single used unit: "used", "single"
- *    - contigious free units
+ *    - contiguous free units
  *     . first unit: "free", "multi", "prev", "next"
  *     . second unit: "free", "multi", "size"
  *     . last unit: "free", "multi", "size"
- *    - contigious used units
+ *    - contiguous used units
  *     . first unit: "used", "multi", "prev", "next"
  *     . second unit: "used", "multi", "size"
  *     . last unit: "used", "multi", "size"
@@ -101,7 +101,7 @@ import org.vmmagic.pragma.*;
    *
    * @param size  The number of units to be allocated
    * @return The index of the first of the <code>size</code>
-   * contigious units, or -1 if the request can't be satisfied
+   * contiguous units, or -1 if the request can't be satisfied
    */
   public final int alloc(int size) {
     // Note: -1 is both the default return value *and* the start sentinel index
@@ -131,7 +131,7 @@ import org.vmmagic.pragma.*;
    *
    * @param size  The number of units to be allocated
    * @return The index of the first of the <code>size</code>
-   * contigious units, or -1 if the request can't be satisfied
+   * contiguous units, or -1 if the request can't be satisfied
    */
   public final int alloc(int size, int unit) {
     int s = 0;
@@ -147,7 +147,7 @@ import org.vmmagic.pragma.*;
    *
    * @param size  The number of units to be allocated
    * @return The index of the first of the <code>size</code>
-   * contigious units, or -1 if the request can't be satisfied
+   * contiguous units, or -1 if the request can't be satisfied
    */
   private int alloc(int size, int unit, int unitSize) {
     if (unitSize >= size) {
@@ -162,7 +162,7 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Free a previously allocated contigious lump of units.
+   * Free a previously allocated contiguous lump of units.
    *
    * @param unit The index of the first unit.
    * @return The number of units freed.
@@ -246,7 +246,7 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Coalesce two or three contigious lumps of units, removing start
+   * Coalesce two or three contiguous lumps of units, removing start
    * and end lumps from the free list as necessary.
    * @param start The index of the start of the first lump
    * @param end The index of the start of the last lump

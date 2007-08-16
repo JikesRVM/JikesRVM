@@ -29,7 +29,7 @@ import org.vmmagic.pragma.*;
  * each header's object word, and a mark bitmap.  Sweeping is
  * performed lazily.<p>
  *
- * A free list block is a contigious region of memory containing cells
+ * A free list block is a contiguous region of memory containing cells
  * of a single size class, and is a construct of the
  * SegregatedFreeList.  This class extends the block to include a mark
  * bitmap.  During the mark phase, if an object is encountered with

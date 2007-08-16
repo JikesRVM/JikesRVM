@@ -24,9 +24,9 @@ import org.vmmagic.unboxed.*;
  * This class manages the encoding and decoding of space descriptors.<p>
  *
  * Space descriptors are integers that encode a space's mapping into
- * virtual memory.  For discontigious spaces, they indicate
+ * virtual memory.  For discontiguous spaces, they indicate
  * discontiguity and mapping must be done by consulting the space map.
- * For contigious spaces, the space's address range is encoded into
+ * For contiguous spaces, the space's address range is encoded into
  * the integer (using a fixed point notation).<p>
  *
  * The purpose of this class is to allow <code>static final int</code>
@@ -63,7 +63,7 @@ import org.vmmagic.unboxed.*;
    */
 
   /**
-   * Create a descriptor for a <i>contigious</i> space
+   * Create a descriptor for a <i>contiguous</i> space
    *
    * @param start The start address of the space
    * @param end The end address of the space
@@ -92,10 +92,10 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * Create a descriptor for a <i>dis-contigious</i> (shared) space
+   * Create a descriptor for a <i>dis-contiguous</i> (shared) space
    *
    * @return An integer descriptor reflecting the fact that this space
-   * is shared (and thus discontigious and so must be established via
+   * is shared (and thus discontiguous and so must be established via
    * maps).
    */
   public static int createDescriptor() {
@@ -108,10 +108,10 @@ import org.vmmagic.unboxed.*;
    */
 
   /**
-   * Return true if this descriptor describes a contigious space
+   * Return true if this descriptor describes a contiguous space
    *
    * @param descriptor
-   * @return True if this descriptor describes a contigious space
+   * @return True if this descriptor describes a contiguous space
    */
   @Inline
   public static boolean isContiguous(int descriptor) {
@@ -119,11 +119,11 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * Return true if this descriptor describes a contigious space that
+   * Return true if this descriptor describes a contiguous space that
    * is at the top of the virtual address space
    *
    * @param descriptor
-   * @return True if this descriptor describes a contigious space that
+   * @return True if this descriptor describes a contiguous space that
    * is at the top of the virtual address space
    */
   @Inline

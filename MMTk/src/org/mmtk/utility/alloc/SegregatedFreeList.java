@@ -136,7 +136,7 @@ import org.vmmagic.unboxed.*;
    */
 
   /**
-   * Allocate <code>bytes</code> contigious bytes of zeroed memory.<p>
+   * Allocate <code>bytes</code> contiguous bytes of zeroed memory.<p>
    *
    * This code first tries the fast version and, if needed, the slow path.
    *
@@ -146,7 +146,7 @@ import org.vmmagic.unboxed.*;
    * @param inGC If true, this allocation is occuring with respect to
    * a space that is currently being collected.
    * @return The address of the first word of <code>bytes</code>
-   * contigious bytes of zeroed memory.
+   * contiguous bytes of zeroed memory.
    */
   @Inline
   public final Address alloc(int bytes, int align, int offset, boolean inGC) {
@@ -160,7 +160,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * Allocate <code>bytes</code> contigious bytes of zeroed memory.<p>
+   * Allocate <code>bytes</code> contiguous bytes of zeroed memory.<p>
    *
    * This code must be efficient and must compile easily.  Here we
    * minimize the number of calls to inlined functions, and force the
@@ -174,7 +174,7 @@ import org.vmmagic.unboxed.*;
    * @param inGC If true, this allocation is occuring with respect to
    * a space that is currently being collected.
    * @return The address of the first word of <code>bytes</code>
-   * contigious bytes of zeroed memory.
+   * contiguous bytes of zeroed memory.
    */
   @Inline
   public final Address allocFast(int bytes, int align, int offset,
@@ -196,7 +196,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * Allocate <code>bytes</code> contigious bytes of non-zeroed
+   * Allocate <code>bytes</code> contiguous bytes of non-zeroed
    * memory.  First check if the fast path works.  This is needed
    * since this method may be called in the context when the fast
    * version was NOT just called.  If this fails, it will try finding
@@ -220,7 +220,7 @@ import org.vmmagic.unboxed.*;
    * @param inGC If true, this allocation is occuring with respect to
    * a space that is currently being collected.
    * @return The address of the first word of the <code>bytes</code>
-   *         contigious bytes of zerod memory.
+   *         contiguous bytes of zerod memory.
    */
   @NoInline
   public final Address allocSlowOnce(int bytes, int align, int offset,

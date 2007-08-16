@@ -21,7 +21,7 @@ import org.vmmagic.pragma.*;
  * abstractly, in "units", which the user may associate with some
  * other allocatable resource (e.g. heap blocks).  The user issues
  * requests for N units and the allocator returns the index of the
- * first of a contigious set of N units or fails, returning -1.  The
+ * first of a contiguous set of N units or fails, returning -1.  The
  * user frees the block of N units by calling <code>free()</code> with
  * the index of the first unit as the argument.<p>
  *

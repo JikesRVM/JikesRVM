@@ -29,7 +29,7 @@ import org.vmmagic.unboxed.*;
 
 /**
  * This class defines and manages spaces.  Each policy is an instance
- * of a space.  A space is a region of virtual memory (contigious or
+ * of a space.  A space is a region of virtual memory (contiguous or
  * discontigous) which is subject to the same memory management
  * regime.  Multiple spaces (instances of this class or its
  * descendants) may have the same policy (eg there could be numerous
@@ -41,7 +41,7 @@ import org.vmmagic.unboxed.*;
  * policy, spaces also manage memory consumption (<i>used</i> virtual
  * memory).<p>
  *
- * Discontigious spaces are currently unsupported.
+ * Discontiguous spaces are currently unsupported.
  */
 @Uninterruptible public abstract class Space implements Constants {
 
@@ -97,8 +97,8 @@ import org.vmmagic.unboxed.*;
    */
 
   /**
-   * This is the base constructor for <i>contigious</i> spaces
-   * (i.e. those that occupy a single contigious range of virtual
+   * This is the base constructor for <i>contiguous</i> spaces
+   * (i.e. those that occupy a single contiguous range of virtual
    * memory which is identified at construction time).<p>
    *
    * The caller specifies the region of virtual memory to be used for
@@ -237,7 +237,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * This is a private constructor that creates a contigious space at
+   * This is a private constructor that creates a contiguous space at
    * the top or bottom of the available virtual memory, if
    * possible.<p>
    *
@@ -686,7 +686,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Initialize/create the descriptor for this space
    *
-   * @param shared True if this is a shared (discontigious) space
+   * @param shared True if this is a shared (discontiguous) space
    */
   private void createDescriptor(boolean shared) {
     if (shared)

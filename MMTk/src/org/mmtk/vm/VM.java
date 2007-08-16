@@ -57,9 +57,9 @@ public final class VM {
   public static final Address HEAP_START;
   /** The highest address in virtual memory known to MMTk */
   public static final Address HEAP_END;
-  /** The lowest address in the contigiously available memory available to MMTk */
+  /** The lowest address in the contiguously available memory available to MMTk */
   public static final Address AVAILABLE_START;
-  /** The highest address in the contigiously available memory available to MMTk */
+  /** The highest address in the contiguously available memory available to MMTk */
   public static final Address AVAILABLE_END;
   /** The log base two of the size of an address */
   public static final byte LOG_BYTES_IN_ADDRESS;

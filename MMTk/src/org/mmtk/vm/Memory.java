@@ -150,9 +150,9 @@ import org.vmmagic.pragma.*;
   protected abstract Address getHeapStartConstant();
   /** @return The highest address in the virtual address space known to MMTk */
   protected abstract Address getHeapEndConstant();
-  /** @return The lowest address in the contigious address space available to MMTk  */
+  /** @return The lowest address in the contiguous address space available to MMTk  */
   protected abstract Address getAvailableStartConstant();
-  /** @return The highest address in the contigious address space available to MMTk */
+  /** @return The highest address in the contiguous address space available to MMTk */
   protected abstract Address getAvailableEndConstant();
   /** @return The log base two of the size of an address */
   protected abstract byte getLogBytesInAddressConstant();
