@@ -10,6 +10,8 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
+package org.jikesrvm.tools.bootImageWriter;
+
 import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_Class;

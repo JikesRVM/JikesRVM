@@ -1048,7 +1048,7 @@ Check to make sure all required properties are specified. This includes properti
   <target name="build-bootimage-writer" depends="package">
     <property name="build.bootimage-writer.dir" value="${build.base}/bootimage-writer"/>
     <mkdir dir="${build.bootimage-writer.dir}"/>
-    <javac srcdir="${basedir}/tools/bootImageWriter" destdir="${build.bootimage-writer.dir}" debug="true"
+    <javac srcdir="${basedir}/tools/bootImageWriter/src" destdir="${build.bootimage-writer.dir}" debug="true"
            debugLevel="lines,source" source="1.5" target="1.5">
       <classpath>
         <pathelement location="${build.vm.jar}"/>
@@ -1070,12 +1070,12 @@ Check to make sure all required properties are specified. This includes properti
 
     <echo message="Building bootimage. Output redirected to : ${build.base}/BootImageWriterOutput.txt"/>
     <echo message="MMTk properties = ${mmtk.properties}"/>
-    <java classname="BootImageWriter"
+    <java classname="org.jikesrvm.tools.bootImageWriter.BootImageWriter"
           fork="yes"
           maxmemory="500M"
           failonerror="false"
           resultproperty="bootimage-writer.result"
-          dir="${basedir}/tools/bootImageWriter"
+          dir="${basedir}/tools/bootImageWriter/src"
           output="${build.base}/BootImageWriterOutput.txt">
       <classpath>
         <pathelement location="${build.bootimage-writer.dir}"/>

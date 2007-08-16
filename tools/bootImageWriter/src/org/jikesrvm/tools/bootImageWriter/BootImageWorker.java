@@ -10,6 +10,9 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
+
+package org.jikesrvm.tools.bootImageWriter;
+
 import java.util.concurrent.atomic.AtomicLong;
 import org.jikesrvm.classloader.VM_Type;
 

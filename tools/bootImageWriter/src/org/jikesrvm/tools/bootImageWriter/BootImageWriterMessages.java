@@ -10,6 +10,9 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
+
+package org.jikesrvm.tools.bootImageWriter;
+
 public class BootImageWriterMessages {
 
   protected static void say(String...messages) {

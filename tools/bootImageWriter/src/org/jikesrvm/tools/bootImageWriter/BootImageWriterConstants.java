@@ -10,6 +10,8 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
+package org.jikesrvm.tools.bootImageWriter;
+
 import org.jikesrvm.VM_Constants;
 import org.vmmagic.unboxed.Address;
 

@@ -10,6 +10,8 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
+package org.jikesrvm.tools.bootImageWriter;
+
 import java.util.Hashtable;
 import java.util.Vector;
 import java.util.Stack;
