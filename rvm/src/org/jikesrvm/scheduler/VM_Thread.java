@@ -767,13 +767,6 @@ public abstract class VM_Thread {
    */
 
   /**
-   * Go to thread implementation specific yieldpoint code
-   */
-  public static void yieldpoint(int whereFrom) {
-    org.jikesrvm.scheduler.greenthreads.VM_GreenThread.yieldpoint(whereFrom);
-  }
-
-  /**
    * Yieldpoint taken in prologue
    */
   @BaselineSaveLSRegisters
@@ -784,7 +777,7 @@ public abstract class VM_Thread {
   //todo fix this -- related to SaveVolatile
   @Entrypoint
   public static void yieldpointFromPrologue() {
-    yieldpoint(PROLOGUE);
+    org.jikesrvm.scheduler.greenthreads.VM_GreenThread.yieldpoint(PROLOGUE);
   }
 
   /**
@@ -798,7 +791,7 @@ public abstract class VM_Thread {
   // TODO fix this -- related to SaveVolatile
   @Entrypoint
   public static void yieldpointFromBackedge() {
-    yieldpoint(BACKEDGE);
+    org.jikesrvm.scheduler.greenthreads.VM_GreenThread.yieldpoint(BACKEDGE);
   }
 
   /**
@@ -812,7 +805,7 @@ public abstract class VM_Thread {
   // TODO fix this -- related to SaveVolatile
   @Entrypoint
   public static void yieldpointFromEpilogue() {
-    yieldpoint(EPILOGUE);
+    org.jikesrvm.scheduler.greenthreads.VM_GreenThread.yieldpoint(EPILOGUE);
   }
 
   /*

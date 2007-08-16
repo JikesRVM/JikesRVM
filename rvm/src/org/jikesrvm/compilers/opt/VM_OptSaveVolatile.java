@@ -17,6 +17,7 @@ import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Processor;
 import org.jikesrvm.scheduler.VM_Thread;
+import org.jikesrvm.scheduler.greenthreads.VM_GreenThread;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.SaveVolatile;
 import org.vmmagic.pragma.Uninterruptible;
@@ -45,7 +46,7 @@ public class VM_OptSaveVolatile {
    * we also save the volatile registers.
    */
   public static void OPT_yieldpointFromPrologue() {
-    VM_Thread.yieldpoint(VM_Thread.PROLOGUE);
+    VM_GreenThread.yieldpoint(VM_Thread.PROLOGUE);
   }
 
   /**
@@ -55,7 +56,7 @@ public class VM_OptSaveVolatile {
    * we also save the volatile registers.
    */
   public static void OPT_yieldpointFromEpilogue() {
-    VM_Thread.yieldpoint(VM_Thread.EPILOGUE);
+    VM_GreenThread.yieldpoint(VM_Thread.EPILOGUE);
   }
 
   /**
@@ -65,7 +66,7 @@ public class VM_OptSaveVolatile {
    * we also save the volatile registers.
    */
   public static void OPT_yieldpointFromBackedge() {
-    VM_Thread.yieldpoint(VM_Thread.BACKEDGE);
+    VM_GreenThread.yieldpoint(VM_Thread.BACKEDGE);
   }
 
   /**
@@ -98,7 +99,7 @@ public class VM_OptSaveVolatile {
   @Uninterruptible
   public static void OPT_yieldpointFromOsrOpt() {
     VM_Processor.getCurrentProcessor().yieldToOSRRequested = true;
-    VM_Thread.yieldpoint(VM_Thread.OSROPT);
+    VM_GreenThread.yieldpoint(VM_Thread.OSROPT);
   }
 
   /**
