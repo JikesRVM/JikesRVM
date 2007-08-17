@@ -258,7 +258,6 @@ Ljava/lang/ClassLoader;
 Ljava/lang/ClassLoader$1;
 Ljava/lang/ClassLoader$StaticData;
 Ljava/lang/VMClassLoader;
-Ljava/lang/VMSecurityManager;
 Lgnu/classpath/VMStackWalker;
 Lgnu/java/io/PlatformHelper;
 Ljava/security/CodeSource;
