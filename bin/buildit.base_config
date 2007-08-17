@@ -45,6 +45,9 @@
 # Benchmarks directory
 global.ext.lib.dir=/usr/share/benchmarks
 
+# Components cache directory. Relative to home directory
+global.components.cache.dir=.buildit_components_cache
+
 # Default JAVA_HOME values
 global.javahome.ppc32-linux=/opt/ibm-java2-ppc-50
 global.javahome.ia32-linux=/opt/jdk1.5.0
