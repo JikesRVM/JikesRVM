@@ -51,7 +51,8 @@
   <target name="fetch" depends="init-gcspy-properties" if="gcspy.from-web">
     <property name="gcspy.web-archive" value="gcspy${gcspy.version}.tar.gz"/>
     <mkdir dir="${gcspy.package.dir}"/>
-    <get src="http://www.cs.kent.ac.uk/projects/gc/gcspy/${gcspy.web-archive}"
+    <cachedGet key="${gcspy.web-archive}"
+         src="http://www.cs.kent.ac.uk/projects/gc/gcspy/${gcspy.web-archive}"
          dest="${gcspy.package.dir}/${gcspy.web-archive}"/>
     <untar src="${gcspy.package.dir}/${gcspy.web-archive}" compression="gzip" dest="${gcspy.package.dir}"/>
   </target>

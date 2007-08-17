@@ -84,7 +84,8 @@
 
     <property name="classpath.web-archive" value="classpath-0.${classpath.version}${generics-extension}.tar.gz"/>
     <mkdir dir="${classpath.package.dir}"/>
-    <get src="http://ftp.gnu.org/gnu/classpath/${classpath.web-archive}"
+    <cachedGet key="${classpath.web-archive}"
+         src="http://ftp.gnu.org/gnu/classpath/${classpath.web-archive}"
          dest="${classpath.package.dir}/${classpath.web-archive}"/>
     <!-- use tar.exe so can maintain executable bits on appropriate files. Could use untar+chmod task for same but it was annoying -->
     <exec executable="${tar.exe}" failonerror="true" dir="${classpath.package.dir}">

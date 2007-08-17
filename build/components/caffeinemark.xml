@@ -39,7 +39,8 @@
   <target name="fetch" depends="init-caffeinemark-properties" if="caffeinemark.from-web">
     <mkdir dir="${caffeinemark.dir}"/>
     <mkdir dir="${caffeinemark.dir}"/>
-    <get src="http://www.benchmarkhq.ru/cm30/cmkit.zip"
+    <cachedGet key="caffienemark-${caffeinemark.version}-cmkit.zip"
+         src="http://www.benchmarkhq.ru/cm30/cmkit.zip"
          dest="${caffeinemark.dir}/cmkit.zip"/>
     <unzip src="${caffeinemark.dir}/cmkit.zip" dest="${caffeinemark.dir}"/>
     <writeComponentConstants dir="${caffeinemark.dir}"/>

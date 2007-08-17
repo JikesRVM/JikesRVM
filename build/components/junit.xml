@@ -35,7 +35,8 @@
   <target name="fetch" depends="init-junit-properties" if="junit.from-web">
     <property name="junit.web-archive" value="junit${junit.version}.zip"/>
     <mkdir dir="${junit.package.dir}"/>
-    <get src="http://superb-east.dl.sourceforge.net/sourceforge/junit/${junit.web-archive}"
+    <cachedGet key="${junit.web-archive}"
+         src="http://superb-east.dl.sourceforge.net/sourceforge/junit/${junit.web-archive}"
          dest="${junit.package.dir}/${junit.web-archive}"/>
     <unzip src="${junit.package.dir}/${junit.web-archive}" dest="${junit.package.dir}"/>
     <writeComponentConstants dir="${junit.dir}"/>

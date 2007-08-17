@@ -64,7 +64,8 @@
   <target name="get-jai-linux-ia32" depends="init-jai-properties" if="jai.from-web-for-linux-ia32">
     <property name="jai.web-archive" value="jai-${jai.version}-lib-linux-i586.tar.gz"/>
     <mkdir dir="${jai.package.dir}"/>
-    <get src="http://download.java.net/media/jai/builds/release/${jai.version}/${jai.web-archive}"
+    <cachedGet key="${jai.web-archive}"
+         src="http://download.java.net/media/jai/builds/release/${jai.version}/${jai.web-archive}"
          dest="${jai.package.dir}/${jai.web-archive}"/>
     <untar src="${jai.package.dir}/${jai.web-archive}" dest="${jai.package.dir}" compression="gzip"/>
     <mkdir dir="${jai.package.dir}/${target.name}/lib"/>

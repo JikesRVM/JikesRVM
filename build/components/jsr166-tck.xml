@@ -35,7 +35,8 @@
   <target name="fetch" depends="init-jsr166-tck-properties" if="jsr166-tck.from-web">
     <property name="jsr166-tck.web-archive" value="jsr166-tck.tar.gz"/>
     <mkdir dir="${jsr166-tck.package.dir}"/>
-    <get src="http://gee.cs.oswego.edu/cgi-bin/viewcvs.cgi/jsr166/src/test/tck/tck.tar.gz?tarball=1"
+    <cachedGet key="jsr166-tck.tar.gz"
+         src="http://gee.cs.oswego.edu/cgi-bin/viewcvs.cgi/jsr166/src/test/tck/tck.tar.gz?tarball=1"
          dest="${jsr166-tck.package.dir}/${jsr166-tck.web-archive}"/>
     <mkdir dir="${jsr166-tck.dir}"/>
     <untar src="${jsr166-tck.package.dir}/${jsr166-tck.web-archive}" compression="gzip" dest="${jsr166-tck.package.dir}"/>
