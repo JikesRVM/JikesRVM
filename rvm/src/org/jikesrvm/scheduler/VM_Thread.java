@@ -767,7 +767,14 @@ public abstract class VM_Thread {
    */
 
   /**
-   * Yieldpoint taken in prologue
+   * Yieldpoint taken in prologue.
+   *
+   * NOTE: The ThreadSwitchSampling code in the adaptive system
+   * depends on (a) knowing how many stack frames there are between here and the
+   * code in which the yieldpoint is taken and (b) this number being identical for
+   * all possible paths (ie, all compilers) from a yieldpoint in compiled code to
+   * the entry of this method. Changing this portion of the call stack is delicate and
+   * requires changes in the various AOS listeners that do call stack sampling.
    */
   @BaselineSaveLSRegisters
   //Save all non-volatile registers in prologue
@@ -781,7 +788,14 @@ public abstract class VM_Thread {
   }
 
   /**
-   * Yieldpoint taken on backedge
+   * Yieldpoint taken on backedge.
+   *
+   * NOTE: The ThreadSwitchSampling code in the adaptive system
+   * depends on (a) knowing how many stack frames there are between here and the
+   * code in which the yieldpoint is taken and (b) this number being identical for
+   * all possible paths (ie, all compilers) from a yieldpoint in compiled code to
+   * the entry of this method. Changing this portion of the call stack is delicate and
+   * requires changes in the various AOS listeners that do call stack sampling.
    */
   @BaselineSaveLSRegisters
   //Save all non-volatile registers in prologue
@@ -795,7 +809,14 @@ public abstract class VM_Thread {
   }
 
   /**
-   * Yieldpoint taken in epilogue
+   * Yieldpoint taken in epilogue.
+   *
+   * NOTE: The ThreadSwitchSampling code in the adaptive system
+   * depends on (a) knowing how many stack frames there are between here and the
+   * code in which the yieldpoint is taken and (b) this number being identical for
+   * all possible paths (ie, all compilers) from a yieldpoint in compiled code to
+   * the entry of this method. Changing this portion of the call stack is delicate and
+   * requires changes in the various AOS listeners that do call stack sampling.
    */
   @BaselineSaveLSRegisters
   //Save all non-volatile registers in prologue

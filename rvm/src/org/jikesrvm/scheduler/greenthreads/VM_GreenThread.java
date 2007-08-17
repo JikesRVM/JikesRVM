@@ -179,18 +179,17 @@ public class VM_GreenThread extends VM_Thread {
     schedule();
   }
 
-  // NOTE: The ThreadSwitchSampling code depends on there
-  // being the same number of wrapper routines for all
-  // compilers. Please talk to me (Dave G) before changing this. Thanks.
-  // We could try a substantially more complex implementation
-  // (especially on the opt side) to avoid the wrapper routine,
-  // for the baseline compiler, but I think this is the easiest way
-  // to handle all the cases at reasonable runtime-cost.
-
   /**
    * Process a taken yieldpoint.
    * May result in threadswitch, depending on state of various control
    * flags on the processor object.
+   *
+   * NOTE: The ThreadSwitchSampling code in the adaptive system
+   * depends on (a) knowing how many stack frames there are between here and the
+   * code in which the yieldpoint is taken and (b) this number being identical for
+   * all possible paths (ie, all compilers) from a yieldpoint in compiled code to
+   * the entry of this method. Changing this portion of the call stack is delicate and
+   * requires changes in the various AOS listeners that do call stack sampling.
    */
   @NoInline
   public static void yieldpoint(int whereFrom) {
