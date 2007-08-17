@@ -158,12 +158,28 @@ import org.vmmagic.pragma.*;
    * for this block, or zero if there are no available cells.
    */
   protected Address advanceToBlock(Address block, int sizeClass) {
+    if (HEADER_MARK_BITS) {
+      MarkSweepLocal.liveBlock(block);
+    }
+
     if (LAZY_SWEEP)
       return makeFreeListFromLiveBits(block, sizeClass, msSpace.getMarkState());
     else
       return getFreeList(block);
   }
 
+  /**
+   * Notify that a new block has been installed. This is to ensure that
+   * appropriate collection state can be initialized for the block
+   *
+   * @param block The new block
+   * @param sizeClass The block's sizeclass.
+   */
+  protected void notifyNewBlock(Address block, int sizeClass) {
+    if (HEADER_MARK_BITS) {
+      MarkSweepLocal.liveBlock(block);
+    }
+  }
 
   /****************************************************************************
    *

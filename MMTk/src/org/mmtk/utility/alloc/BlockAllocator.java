@@ -603,6 +603,16 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
+   * Mark the metadata for this block.
+   *
+   * @param block The block address
+   */
+  @Inline
+  public static void markBlockMeta(Address block) {
+    getMetaAddress(block).plus(FL_META_OFFSET).store(Word.one());
+  }
+
+  /**
    * Return true if the metadata for this block was set.
    *
    * @param block The block address

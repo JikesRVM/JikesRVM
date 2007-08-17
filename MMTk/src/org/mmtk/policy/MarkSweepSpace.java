@@ -332,9 +332,7 @@ import org.vmmagic.unboxed.*;
   @Inline
   public void postCopy(ObjectReference object, boolean majorGC) {
     initializeHeader(object, false);
-    if (MarkSweepLocal.HEADER_MARK_BITS) {
-      if (majorGC) MarkSweepLocal.liveBlock(object);
-    } else {
+    if (!MarkSweepLocal.HEADER_MARK_BITS) {
       MarkSweepLocal.liveObject(object);
     }
   }

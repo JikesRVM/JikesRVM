@@ -281,6 +281,7 @@ import org.vmmagic.unboxed.*;
     if (block.isZero())
       return Address.zero();
 
+    notifyNewBlock(block, sizeClass);
     installNewBlock(block, sizeClass);
 
     int cellExtent = cellSize[sizeClass];
@@ -517,6 +518,14 @@ import org.vmmagic.unboxed.*;
   protected abstract boolean maintainSideBitmap();
   protected abstract boolean preserveFreeList();
   protected abstract Address advanceToBlock(Address block, int sizeClass);
+
+  /**
+   * Notify that a new block has been installed.
+   *
+   * @param block The new block
+   * @param sizeClass The block's sizeclass.
+   */
+  protected void notifyNewBlock(Address block, int sizeClass) {}
 
   /**
    * Should the sweep reclaim the cell containing this object. Is this object
@@ -777,6 +786,16 @@ import org.vmmagic.unboxed.*;
   @Inline
   public static void liveBlock(ObjectReference object) {
     BlockAllocator.markBlockMeta(object);
+  }
+
+  /**
+   * Set the live bit for the given block.
+   *
+   * @param block The block whose liveness is to be set.
+   */
+  @Inline
+  public static void liveBlock(Address block) {
+    BlockAllocator.markBlockMeta(block);
   }
 
   /**

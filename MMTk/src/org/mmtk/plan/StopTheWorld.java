@@ -196,9 +196,9 @@ import org.vmmagic.pragma.*;
         Log.writeln("Collector does not support sanity checking!");
       } else {
         Log.writeln("Collection sanity checking enabled.");
-        replacePhase(Phase.schedulePlaceholder(PRE_SANITY_PLACEHOLDER), 
+        replacePhase(Phase.schedulePlaceholder(PRE_SANITY_PLACEHOLDER),
             Phase.scheduleComplex(sanityPhase));
-        replacePhase(Phase.schedulePlaceholder(POST_SANITY_PLACEHOLDER), 
+        replacePhase(Phase.schedulePlaceholder(POST_SANITY_PLACEHOLDER),
             Phase.scheduleComplex(sanityPhase));
       }
     }
