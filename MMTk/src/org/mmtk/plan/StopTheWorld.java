@@ -143,7 +143,7 @@ import org.vmmagic.pragma.*;
   /**
    * Complete closure including reference types and finalizable objects.
    */
-  protected static final short completeClosurePhase = Phase.createComplex("refType-closure", null,
+  protected static final short completeClosurePhase = Phase.createComplex("release", null,
       Phase.scheduleMutator    (RELEASE),
       Phase.scheduleCollector  (RELEASE),
       Phase.scheduleGlobal     (RELEASE));
@@ -196,8 +196,10 @@ import org.vmmagic.pragma.*;
         Log.writeln("Collector does not support sanity checking!");
       } else {
         Log.writeln("Collection sanity checking enabled.");
-        replacePhase(PRE_SANITY_PLACEHOLDER, Phase.scheduleComplex(sanityPhase));
-        replacePhase(POST_SANITY_PLACEHOLDER, Phase.scheduleComplex(sanityPhase));
+        replacePhase(Phase.schedulePlaceholder(PRE_SANITY_PLACEHOLDER), 
+            Phase.scheduleComplex(sanityPhase));
+        replacePhase(Phase.schedulePlaceholder(POST_SANITY_PLACEHOLDER), 
+            Phase.scheduleComplex(sanityPhase));
       }
     }
   }
