@@ -3174,8 +3174,16 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
    */
   private static OPT_ConstantOperand boxConstantObjectAsOperand(Object x, VM_TypeReference t){
     if (VM.VerifyAssertions) VM._assert(!t.isUnboxedType());
-    if (t.isIntLikeType()) {
+    if (t.isIntType()) {
       return IC((Integer)x);
+    } else if (t.isBooleanType()) {
+      return IC((Boolean)x ? 1 : 0);
+    } else if (t.isByteType()) {
+      return IC((Byte)x);
+    } else if (t.isCharType()) {
+      return IC((Character)x);
+    } else if (t.isShortType()) {
+      return IC((Short)x);
     } else if (t.isLongType()) {
       return LC((Long)x);
     } else if (t.isFloatType()) {
