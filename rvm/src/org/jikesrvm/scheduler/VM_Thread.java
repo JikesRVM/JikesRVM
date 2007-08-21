@@ -1558,15 +1558,15 @@ public abstract class VM_Thread {
   /**
    * Throw the external interrupt associated with the thread now it is running
    */
-  @Interruptible
+  @LogicallyUninterruptible
   protected final void postExternalInterrupt() {
+    throwInterruptWhenScheduled = false;
     Throwable t = causeOfThreadDeath;
     causeOfThreadDeath = null;
     if (t instanceof InterruptedException  && t != proxyInterruptException) {
       t.fillInStackTrace();
     }
     state = State.RUNNABLE;
-    throwInterruptWhenScheduled = false;
     VM_Runtime.athrow(t);
   }
 
