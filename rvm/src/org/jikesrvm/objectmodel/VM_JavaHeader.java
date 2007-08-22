@@ -484,6 +484,7 @@ public class VM_JavaHeader implements VM_JavaHeaderConstants {
   /**
    * Get the hash code of an object.
    */
+  @Inline
   public static int getObjectHashCode(Object o) {
     if (ADDRESS_BASED_HASHING) {
       if (MM_Constants.MOVES_OBJECTS) {
