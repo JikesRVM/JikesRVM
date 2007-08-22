@@ -864,7 +864,6 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
   /**
    * Deliver an exception to current java thread.
    * <STRONG> Precondition: </STRONG> VM.disableGC has already been called.
-   * --dave
    *  <ol>
    *   <li> exceptionRegisters may not match any reasonable stack
    *          frame at this point.
