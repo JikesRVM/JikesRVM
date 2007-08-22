@@ -466,6 +466,20 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
   }
 
   /**
+   * Returns a reference to a field, for use prior to the class being loaded.
+   * Used for getstatic, putstatic, getfield, putfield
+   * @return field reference
+   */
+  public final VM_FieldReference getFieldReference(int[] constantPool) {
+    if (VM.VerifyAssertions) {
+      VM._assert(opcode == JBC_getstatic ||
+                 opcode == JBC_putstatic ||
+                 opcode == JBC_getfield ||
+                 opcode == JBC_putfield);
+    }
+    return VM_Class.getFieldRef(constantPool, readUnsignedShort());
+  }
+  /**
    * Returns a reference to a field
    * Used for invokevirtual, invokespecial, invokestatic, invokeinterface
    * @return method reference

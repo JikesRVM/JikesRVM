@@ -684,6 +684,16 @@ public abstract class VM_Type extends VM_AnnotatedElement
   public abstract void resolve();
 
   /**
+   * This method is only called by the bootimage writer.
+   * It is called after {@link #resolve()} has been called on all
+   * bootimaage types but before {@link #instantiate()} has been called
+   * on any bootimaage type.
+   * This provides a hook to compute various summaries that cannot be computed before types
+   * are resolved.
+   */
+  public abstract void allBootImageTypesResolved();
+
+  /**
    * Cause instantiation to take place.
    * This will cause the class's methods to be compiled and slots in the
    * jtoc to be filled-in.

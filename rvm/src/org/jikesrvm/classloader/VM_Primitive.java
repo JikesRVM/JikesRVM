@@ -307,6 +307,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants, VM_Clas
    */
   public void resolve() {}
 
+  public void allBootImageTypesResolved() { }
+
   /**
    * Cause instantiation to take place.
    */

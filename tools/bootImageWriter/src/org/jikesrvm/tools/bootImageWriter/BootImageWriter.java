@@ -1047,10 +1047,19 @@ public class BootImageWriter extends BootImageWriterMessages
         // The resolution is supposed to be cached already.
         type.resolve();
       }
+
+      //
+      // Now that all types are resolved, do some additional fixup before we do any compilation
+      //
+      for (VM_Type type : bootImageTypes.values()) {
+        type.allBootImageTypesResolved();
+      }
+
       if (profile) {
         stopTime = System.currentTimeMillis();
         System.out.println("PROF: \tresolving types "+(stopTime-startTime)+" ms");
       }
+
 
       // Set tocRegister early so opt compiler can access it to
       //   perform fixed_jtoc optimization (compile static addresses into code).

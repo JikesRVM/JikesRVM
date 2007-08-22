@@ -452,6 +452,10 @@ public final class VM_Array extends VM_Type implements VM_Constants, VM_ClassLoa
     MM_Interface.notifyClassResolved(this);
   }
 
+  public void allBootImageTypesResolved() {
+    // nothing to do
+  }
+
   /**
    * Instantiate an array.
    * Main result is to copy the virtual methods from JavaLangObject's tib.
