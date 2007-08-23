@@ -500,7 +500,7 @@
 +            ThreadLocal<?> key = e.get();
 +            if (key instanceof InheritableThreadLocal)
 +              {
-+                set(key, e.value);
++                set(key, ((InheritableThreadLocal)key).childValue(e.value));
 +              }
 +          }
 +      }
