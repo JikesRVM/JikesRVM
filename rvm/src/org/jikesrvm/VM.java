@@ -244,6 +244,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     VM.safeToAllocateJavaThread = true;
 
     runClassInitializer("java.lang.ThreadLocal");
+    runClassInitializer("java.lang.ThreadLocalMap");
     // Possibly fix VMAccessController's contexts and inGetContext fields
     runClassInitializer("java.security.VMAccessController");
 

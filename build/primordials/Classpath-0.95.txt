@@ -360,6 +360,9 @@ Ljava/security/AccessControlContext;
 # Used by Classpath 0.11's reference VMAccessController
 Ljava/lang/ThreadLocal;
 # Used by ThreadLocal
+Ljava/lang/ThreadLocalMap;
+Ljava/lang/ThreadLocalMap$Entry;
+[Ljava/lang/ThreadLocalMap$Entry;
 Ljava/util/LinkedList;
 Ljava/util/LinkedList$Entry;
 Ljava/util/LinkedList$LinkedListItr;
