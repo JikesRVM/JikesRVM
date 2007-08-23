@@ -26,6 +26,7 @@ import org.jikesrvm.classloader.VM_Atom;
 import org.jikesrvm.classloader.VM_Array;
 import org.jikesrvm.classloader.VM_Class;
 import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.memorymanagers.mminterface.DebugUtil;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.memorymanagers.mminterface.Selected;
 
@@ -434,6 +435,15 @@ import org.vmmagic.pragma.*;
     }
     if (VM.VerifyAssertions) VM._assert(vmType.getMMType() != null);
     return (MMType) vmType.getMMType();
+  }
+
+  /**
+   * Dump debugging information for an object.
+   *
+   * @param object The object whose information is to be dumped
+   */
+  public void dumpObject(ObjectReference object) {
+    DebugUtil.dumpRef(object);
   }
 }
 

@@ -223,6 +223,13 @@ import org.vmmagic.unboxed.*;
    */
   public abstract MMType getObjectType(ObjectReference object);
 
+  /**
+   * Dump debugging information for an object.
+   *
+   * @param object The object whose information is to be dumped
+   */
+  public abstract void dumpObject(ObjectReference object);
+
   /*
    * NOTE: The following methods must be implemented by subclasses of this
    * class, but are internal to the VM<->MM interface glue, so are never
