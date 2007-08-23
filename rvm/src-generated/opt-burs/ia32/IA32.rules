@@ -131,7 +131,7 @@ sload8:	BYTE_LOAD(riv, riv)
 EMIT_INSTRUCTION
 pushMO(MO_L(P(p), B));
 
-sload8:	BYTE_ALOAD(r, riv)
+sload8:	BYTE_ALOAD(riv, riv)
 0
 EMIT_INSTRUCTION
 pushMO(MO_AL(P(p), B_S, B));
@@ -141,7 +141,7 @@ uload8:	UBYTE_LOAD(riv, riv)
 EMIT_INSTRUCTION
 pushMO(MO_L(P(p), B));
 
-uload8:	UBYTE_ALOAD(r, riv)
+uload8:	UBYTE_ALOAD(riv, riv)
 0
 EMIT_INSTRUCTION
 pushMO(MO_AL(P(p), B_S, B));
@@ -161,7 +161,7 @@ sload16: SHORT_LOAD(riv, riv)
 EMIT_INSTRUCTION
 pushMO(MO_L(P(p), W));
 
-sload16: SHORT_ALOAD(r, riv)
+sload16: SHORT_ALOAD(riv, riv)
 0
 EMIT_INSTRUCTION
 pushMO(MO_AL(P(p), W_S, W));
@@ -171,7 +171,7 @@ uload16: USHORT_LOAD(riv, riv)
 EMIT_INSTRUCTION
 pushMO(MO_L(P(p), W));
 
-uload16: USHORT_ALOAD(r, riv)
+uload16: USHORT_ALOAD(riv, riv)
 0
 EMIT_INSTRUCTION
 pushMO(MO_AL(P(p), W_S, W));
@@ -191,7 +191,7 @@ load32:	INT_LOAD(riv, riv)
 EMIT_INSTRUCTION
 pushMO(MO_L(P(p), DW));
 
-load32:	INT_ALOAD(r, riv)
+load32:	INT_ALOAD(riv, riv)
 0
 EMIT_INSTRUCTION
 pushMO(MO_AL(P(p), DW_S, DW));
@@ -221,7 +221,7 @@ load64:	LONG_LOAD(riv, riv)
 EMIT_INSTRUCTION
 pushMO(MO_L(P(p), QW));
 
-load64:	LONG_ALOAD(r, riv)
+load64:	LONG_ALOAD(riv, riv)
 0
 EMIT_INSTRUCTION
 pushMO(MO_AL(P(p), QW_S, QW));
@@ -505,7 +505,7 @@ ADDRESS_EQUAL(P(p), PLL(p), 17)
 EMIT_INSTRUCTION
 EMIT_Commutative(IA32_XOR, P(p), MO_S(P(p), B), MO_S(P(p), B), IC(1));
 
-stm:	BYTE_ASTORE(BOOLEAN_NOT(UBYTE_ALOAD(r,riv)),OTHER_OPERAND(r, riv))
+stm:	BYTE_ASTORE(BOOLEAN_NOT(UBYTE_ALOAD(riv,riv)),OTHER_OPERAND(riv, riv))
 ARRAY_ADDRESS_EQUAL(P(p), PLL(p), 17)
 EMIT_INSTRUCTION
 EMIT_Commutative(IA32_XOR, P(p), MO_AS(P(p), B_S, B), MO_AS(P(p), B_S, B), IC(1));
@@ -651,7 +651,7 @@ stm:	BYTE_STORE(boolcmp, OTHER_OPERAND(riv,riv))
 EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
 EMIT(MIR_Set.mutate(P(p), IA32_SET__B, MO_S(P(p),B), COND(consumeCOND())));
 
-stm:	BYTE_ASTORE(boolcmp, OTHER_OPERAND(r,riv))
+stm:	BYTE_ASTORE(boolcmp, OTHER_OPERAND(riv, riv))
 15
 EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
 EMIT(MIR_Set.mutate(P(p), IA32_SET__B, MO_AS(P(p),B_S,B), COND(consumeCOND())));
@@ -853,12 +853,12 @@ ADDRESS_EQUAL(P(p), PLR(p), 17)
 EMIT_INSTRUCTION
 EMIT_Commutative(IA32_ADD, P(p), MO_S(P(p), DW), MO_S(P(p), DW), Binary.getVal1(PL(p)));
 
-stm:	INT_ASTORE(INT_ADD(INT_ALOAD(r,riv),riv),OTHER_OPERAND(r, riv))
+stm:	INT_ASTORE(INT_ADD(INT_ALOAD(riv,riv),riv),OTHER_OPERAND(riv, riv))
 ARRAY_ADDRESS_EQUAL(P(p), PLL(p), 17)
 EMIT_INSTRUCTION
 EMIT_Commutative(IA32_ADD, P(p), MO_AS(P(p), DW_S, DW), MO_AS(P(p), DW_S, DW), Binary.getVal2(PL(p)));
 
-stm:	INT_ASTORE(INT_ADD(riv,INT_ALOAD(r,riv)),OTHER_OPERAND(r, riv))
+stm:	INT_ASTORE(INT_ADD(riv,INT_ALOAD(riv,riv)),OTHER_OPERAND(riv, riv))
 ARRAY_ADDRESS_EQUAL(P(p), PLR(p), 17)
 EMIT_INSTRUCTION
 EMIT_Commutative(IA32_ADD, P(p), MO_AS(P(p), DW_S, DW), MO_AS(P(p), DW_S, DW), Binary.getVal1(PL(p)));
@@ -910,12 +910,12 @@ OPT_MemoryOperand result = MO_S(P(p), DW); \
 EMIT(CPOS(P(p), MIR_UnaryAcc.create(IA32_NEG, result))); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_ADD, result.copy(), Binary.getVal1(PL(p))));
 
-stm:	INT_ASTORE(INT_SUB(INT_ALOAD(r,riv),riv),OTHER_OPERAND(r, riv))
+stm:	INT_ASTORE(INT_SUB(INT_ALOAD(riv,riv),riv),OTHER_OPERAND(riv, riv))
 ARRAY_ADDRESS_EQUAL(P(p), PLL(p), 17)
 EMIT_INSTRUCTION
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SUB, MO_AS(P(p), DW_S, DW), Binary.getVal2(PL(p))));
 
-stm:	INT_ASTORE(INT_SUB(riv, INT_ALOAD(r,riv)),OTHER_OPERAND(r, riv))
+stm:	INT_ASTORE(INT_SUB(riv, INT_ALOAD(riv,riv)),OTHER_OPERAND(riv, riv))
 ARRAY_ADDRESS_EQUAL(P(p), PLR(p), 27)
 EMIT_INSTRUCTION
 OPT_MemoryOperand result = MO_AS(P(p), DW_S, DW); \
@@ -968,7 +968,7 @@ ADDRESS_EQUAL(P(p), PLL(p), 17)
 EMIT_INSTRUCTION
 EMIT_Unary(IA32_NEG, P(p), MO_S(P(p), DW), MO_S(P(p), DW));
 
-stm:	INT_ASTORE(INT_NEG(INT_ALOAD(r,riv)),OTHER_OPERAND(r,riv))
+stm:	INT_ASTORE(INT_NEG(INT_ALOAD(riv,riv)),OTHER_OPERAND(riv, riv))
 ARRAY_ADDRESS_EQUAL(P(p), PLL(p), 17)
 EMIT_INSTRUCTION
 EMIT_Unary(IA32_NEG, P(p), MO_AS(P(p), DW_S, DW), MO_AS(P(p), DW_S, DW));
@@ -1024,13 +1024,13 @@ EMIT_INSTRUCTION
 if (VM.VerifyAssertions) VM._assert((VLR(p) & 0x7FFFFFFF) <= 31); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHL, MO_S(P(p), DW), Binary.getVal2(PL(p))));
 
-stm:	INT_ASTORE(INT_SHL(INT_ALOAD(r,riv),INT_AND(r, INT_CONSTANT)),OTHER_OPERAND(r, riv))
+stm:	INT_ASTORE(INT_SHL(INT_ALOAD(riv,riv),INT_AND(r, INT_CONSTANT)),OTHER_OPERAND(riv, riv))
 ARRAY_ADDRESS_EQUAL(P(p), PLL(p), VLRR(p) == 31 ? 27 : INFINITE)
 EMIT_INSTRUCTION
 EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int), Binary.getVal1(PLR(p)))); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHL, MO_AS(P(p), DW_S, DW), new OPT_RegisterOperand(getECX(), VM_TypeReference.Int)));
 
-stm:	INT_ASTORE(INT_SHL(INT_ALOAD(r,riv), INT_CONSTANT),OTHER_OPERAND(r, riv))
+stm:	INT_ASTORE(INT_SHL(INT_ALOAD(riv,riv), INT_CONSTANT),OTHER_OPERAND(riv, riv))
 ARRAY_ADDRESS_EQUAL(P(p), PLL(p), VLR(p) == 31 ? 17 : INFINITE)
 EMIT_INSTRUCTION
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHL, MO_AS(P(p), DW_S, DW), Binary.getVal2(PL(p))));
@@ -1069,13 +1069,13 @@ EMIT_INSTRUCTION
 if (VM.VerifyAssertions) VM._assert((VLR(p) & 0x7FFFFFFF) <= 31); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SAR, MO_S(P(p), DW), Binary.getVal2(PL(p))));
 
-stm:	INT_ASTORE(INT_SHR(INT_ALOAD(r,riv),INT_AND(r, INT_CONSTANT)),OTHER_OPERAND(r, riv))
+stm:	INT_ASTORE(INT_SHR(INT_ALOAD(riv,riv),INT_AND(r, INT_CONSTANT)),OTHER_OPERAND(riv, riv))
 ARRAY_ADDRESS_EQUAL(P(p), PLL(p), VLRR(p) == 31 ? 27 : INFINITE)
 EMIT_INSTRUCTION
 EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int), Binary.getVal1(PLR(p)))); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SAR, MO_AS(P(p), DW_S, DW), new OPT_RegisterOperand(getECX(), VM_TypeReference.Int)));
 
-stm:	INT_ASTORE(INT_SHR(INT_ALOAD(r,riv), INT_CONSTANT),OTHER_OPERAND(r, riv))
+stm:	INT_ASTORE(INT_SHR(INT_ALOAD(riv,riv), INT_CONSTANT),OTHER_OPERAND(riv, riv))
 ARRAY_ADDRESS_EQUAL(P(p), PLL(p), VLR(p) == 31 ? 17 : INFINITE)
 EMIT_INSTRUCTION
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SAR, MO_AS(P(p), DW_S, DW), Binary.getVal2(PL(p))));
@@ -1114,13 +1114,13 @@ EMIT_INSTRUCTION
 if (VM.VerifyAssertions) VM._assert((VLR(p) & 0x7FFFFFFF) <= 31); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHR, MO_S(P(p), DW), Binary.getVal2(PL(p))));
 
-stm:	INT_ASTORE(INT_USHR(INT_ALOAD(r,riv),INT_AND(r, INT_CONSTANT)),OTHER_OPERAND(r, riv))
+stm:	INT_ASTORE(INT_USHR(INT_ALOAD(riv,riv),INT_AND(r, INT_CONSTANT)),OTHER_OPERAND(riv, riv))
 ARRAY_ADDRESS_EQUAL(P(p), PLL(p), VLRR(p) == 31 ? 27 : INFINITE)
 EMIT_INSTRUCTION
 EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int), Binary.getVal1(PLR(p)))); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHR, MO_AS(P(p), DW_S, DW), new OPT_RegisterOperand(getECX(), VM_TypeReference.Int)));
 
-stm:	INT_ASTORE(INT_USHR(INT_ALOAD(r,riv), INT_CONSTANT),OTHER_OPERAND(r, riv))
+stm:	INT_ASTORE(INT_USHR(INT_ALOAD(riv,riv), INT_CONSTANT),OTHER_OPERAND(riv, riv))
 ARRAY_ADDRESS_EQUAL(P(p), PLL(p), VLR(p) == 31 ? 17 : INFINITE)
 EMIT_INSTRUCTION
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHR, MO_AS(P(p), DW_S, DW), Binary.getVal2(PL(p))));
@@ -1228,12 +1228,12 @@ ADDRESS_EQUAL(P(p), PLR(p), 17)
 EMIT_INSTRUCTION
 EMIT_Commutative(IA32_AND, P(p), MO_S(P(p), DW), MO_S(P(p), DW), Binary.getVal1(PL(p)) );
 
-stm:	INT_ASTORE(INT_AND(INT_ALOAD(r,riv),riv),OTHER_OPERAND(r, riv))
+stm:	INT_ASTORE(INT_AND(INT_ALOAD(riv,riv),riv),OTHER_OPERAND(riv, riv))
 ARRAY_ADDRESS_EQUAL(P(p), PLL(p), 17)
 EMIT_INSTRUCTION
 EMIT_Commutative(IA32_AND, P(p), MO_AS(P(p), DW_S, DW), MO_AS(P(p), DW_S, DW), Binary.getVal2(PL(p)) );
 
-stm:	INT_ASTORE(INT_AND(riv,INT_ALOAD(r,riv)),OTHER_OPERAND(r, riv))
+stm:	INT_ASTORE(INT_AND(riv,INT_ALOAD(riv,riv)),OTHER_OPERAND(riv, riv))
 ARRAY_ADDRESS_EQUAL(P(p), PLR(p), 17)
 EMIT_INSTRUCTION
 EMIT_Commutative(IA32_AND, P(p), MO_AS(P(p), DW_S, DW), MO_AS(P(p), DW_S, DW), Binary.getVal1(PL(p)) );
@@ -1267,12 +1267,12 @@ ADDRESS_EQUAL(P(p), PLR(p), 17)
 EMIT_INSTRUCTION
 EMIT_Commutative(IA32_OR, P(p), MO_S(P(p), DW), MO_S(P(p), DW), Binary.getVal1(PL(p)) );
 
-stm:	INT_ASTORE(INT_OR(INT_ALOAD(r,riv),riv),OTHER_OPERAND(r, riv))
+stm:	INT_ASTORE(INT_OR(INT_ALOAD(riv,riv),riv),OTHER_OPERAND(riv, riv))
 ARRAY_ADDRESS_EQUAL(P(p), PLL(p), 17)
 EMIT_INSTRUCTION
 EMIT_Commutative(IA32_OR, P(p), MO_AS(P(p), DW_S, DW), MO_AS(P(p), DW_S, DW), Binary.getVal2(PL(p)) );
 
-stm:	INT_ASTORE(INT_OR(riv, INT_ALOAD(r,riv)),OTHER_OPERAND(r, riv))
+stm:	INT_ASTORE(INT_OR(riv, INT_ALOAD(riv,riv)),OTHER_OPERAND(riv, riv))
 ARRAY_ADDRESS_EQUAL(P(p), PLR(p), 17)
 EMIT_INSTRUCTION
 EMIT_Commutative(IA32_OR, P(p), MO_AS(P(p), DW_S, DW), MO_AS(P(p), DW_S, DW), Binary.getVal1(PL(p)) );
@@ -1306,12 +1306,12 @@ ADDRESS_EQUAL(P(p), PLR(p), 17)
 EMIT_INSTRUCTION
 EMIT_Commutative(IA32_XOR, P(p), MO_S(P(p), DW), MO_S(P(p), DW), Binary.getVal1(PL(p)) );
 
-stm:	INT_ASTORE(INT_XOR(INT_ALOAD(r,riv),riv),OTHER_OPERAND(r, riv))
+stm:	INT_ASTORE(INT_XOR(INT_ALOAD(riv,riv),riv),OTHER_OPERAND(riv, riv))
 ARRAY_ADDRESS_EQUAL(P(p), PLL(p), 17)
 EMIT_INSTRUCTION
 EMIT_Commutative(IA32_XOR, P(p), MO_AS(P(p), DW_S, DW), MO_AS(P(p), DW_S, DW), Binary.getVal2(PL(p)) );
 
-stm:	INT_ASTORE(INT_XOR(riv,INT_ALOAD(r,riv)),OTHER_OPERAND(r, riv))
+stm:	INT_ASTORE(INT_XOR(riv,INT_ALOAD(riv,riv)),OTHER_OPERAND(riv, riv))
 ARRAY_ADDRESS_EQUAL(P(p), PLR(p), 17)
 EMIT_INSTRUCTION
 EMIT_Commutative(IA32_XOR, P(p), MO_AS(P(p), DW_S, DW), MO_AS(P(p), DW_S, DW), Binary.getVal1(PL(p)) );
@@ -1330,7 +1330,7 @@ ADDRESS_EQUAL(P(p), PLL(p), 17)
 EMIT_INSTRUCTION
 EMIT_Unary(IA32_NOT, P(p), MO_S(P(p), DW), MO_S(P(p), DW));
 
-stm:	INT_ASTORE(INT_NOT(INT_ALOAD(r,riv)),OTHER_OPERAND(r, riv))
+stm:	INT_ASTORE(INT_NOT(INT_ALOAD(riv,riv)),OTHER_OPERAND(riv, riv))
 ARRAY_ADDRESS_EQUAL(P(p), PLL(p), 17)
 EMIT_INSTRUCTION
 EMIT_Unary(IA32_NOT, P(p), MO_AS(P(p), DW_S, DW), MO_AS(P(p), DW_S, DW));
@@ -1465,7 +1465,7 @@ stm:	BYTE_STORE(INT_2BYTE(r),OTHER_OPERAND(riv, riv))
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), B), Unary.getVal(PL(p))));
 
-stm:	BYTE_ASTORE(INT_2BYTE(r),OTHER_OPERAND(r, riv))
+stm:	BYTE_ASTORE(INT_2BYTE(r),OTHER_OPERAND(riv, riv))
 15
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), B_S, B), Unary.getVal(PL(p))));
@@ -1489,7 +1489,7 @@ stm:	SHORT_STORE(INT_2USHORT(r), OTHER_OPERAND(riv,riv))
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), W), Unary.getVal(PL(p))));
 
-stm:	SHORT_ASTORE(INT_2USHORT(r), OTHER_OPERAND(r,riv))
+stm:	SHORT_ASTORE(INT_2USHORT(r), OTHER_OPERAND(riv, riv))
 15
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), W_S, W), Unary.getVal(PL(p))));
@@ -1512,7 +1512,7 @@ stm:	SHORT_STORE(INT_2SHORT(r), OTHER_OPERAND(riv,riv))
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), W), Unary.getVal(PL(p))));
 
-stm:	SHORT_ASTORE(INT_2SHORT(r), OTHER_OPERAND(r,riv))
+stm:	SHORT_ASTORE(INT_2SHORT(r), OTHER_OPERAND(riv, riv))
 15
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), W_S, W), Unary.getVal(PL(p))));
@@ -1573,7 +1573,7 @@ EMIT_INSTRUCTION
 OPT_Register lh = regpool.getSecondReg(R(Unary.getVal(PL(p))).getRegister()); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), DW), new OPT_RegisterOperand(lh, VM_TypeReference.Int)));
 
-stm:	INT_ASTORE(LONG_2INT(r), OTHER_OPERAND(r,riv))
+stm:	INT_ASTORE(LONG_2INT(r), OTHER_OPERAND(riv, riv))
 15
 EMIT_INSTRUCTION
 OPT_Register lh = regpool.getSecondReg(R(Unary.getVal(PL(p))).getRegister()); \
@@ -1771,7 +1771,7 @@ EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX__B, Load.getResult(P(p)), MO_L(P(p), B)))
 #####
 # BYTE_ALOAD
 #####
-r:	BYTE_ALOAD(r, riv)
+r:	BYTE_ALOAD(riv, riv)
 20
 EMIT_INSTRUCTION
 EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX__B, ALoad.getResult(P(p)), MO_AL(P(p), B_S, B)));
@@ -1787,7 +1787,7 @@ EMIT(MIR_Unary.mutate(P(p), IA32_MOVZX__B, Load.getResult(P(p)), MO_L(P(p), B)))
 #####
 # UBYTE_ALOAD
 #####
-r:	UBYTE_ALOAD(r, riv)
+r:	UBYTE_ALOAD(riv, riv)
 15
 EMIT_INSTRUCTION
 EMIT(MIR_Unary.mutate(P(p), IA32_MOVZX__B, ALoad.getResult(P(p)), MO_AL(P(p), B_S, B)));
@@ -1829,7 +1829,7 @@ EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX__W, Load.getResult(P(p)), MO_L(P(p), W)))
 #####
 # SHORT_ALOAD
 #####
-r:	SHORT_ALOAD(r, riv)
+r:	SHORT_ALOAD(riv, riv)
 20
 EMIT_INSTRUCTION
 EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX__W, ALoad.getResult(P(p)), MO_AL(P(p), W_S, W)));
@@ -1845,7 +1845,7 @@ EMIT(MIR_Unary.mutate(P(p), IA32_MOVZX__W, Load.getResult(P(p)), MO_L(P(p), W)))
 #####
 # USHORT_ALOAD
 #####
-r:	USHORT_ALOAD(r, riv)
+r:	USHORT_ALOAD(riv, riv)
 15
 EMIT_INSTRUCTION
 EMIT(MIR_Unary.mutate(P(p), IA32_MOVZX__W, ALoad.getResult(P(p)), MO_AL(P(p), W_S, W)));
@@ -1924,7 +1924,7 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, Load.getResult(P(p)), \
 #####
 #INT_ALOAD
 #####
-r:	INT_ALOAD(r, riv)
+r:	INT_ALOAD(riv, riv)
 15
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, ALoad.getResult(P(p)), MO_AL(P(p), DW_S, DW)));
@@ -1943,7 +1943,7 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, lres, MO_L(P(p), DW)));
 #####
 # LONG_ALOAD
 #####
-r:	LONG_ALOAD(r, riv)
+r:	LONG_ALOAD(riv, riv)
 30
 EMIT_INSTRUCTION
 OPT_RegisterOperand hres = ALoad.getResult(P(p)); \
@@ -2219,14 +2219,14 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), B), new OPT_RegisterOperand(tmp,
 #####
 # BYTE_ASTORE
 #####
-stm:	BYTE_ASTORE(riv, OTHER_OPERAND(r, riv))
+stm:	BYTE_ASTORE(riv, OTHER_OPERAND(riv, riv))
 15
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), B_S, B), AStore.getValue(P(p))));
 
 # Can avoid sign/zero extension when we are just doing a transfer of bits
 # from one memory location to another.
-stm:	BYTE_ASTORE(load8, OTHER_OPERAND(r, riv))
+stm:	BYTE_ASTORE(load8, OTHER_OPERAND(riv, riv))
 25
 EMIT_INSTRUCTION
 OPT_Register tmp = regpool.getInteger(); \
@@ -2253,14 +2253,14 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), W), new OPT_RegisterOperand(tmp,
 #####
 # SHORT_ASTORE
 #####
-stm:	SHORT_ASTORE(riv, OTHER_OPERAND(r, riv))
+stm:	SHORT_ASTORE(riv, OTHER_OPERAND(riv, riv))
 15
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), W_S, W), AStore.getValue(P(p))));
 
 # Can avoid sign/zero extension when we are just doing a transfer of bits
 # from one memory location to another.
-stm:	SHORT_ASTORE(load16, OTHER_OPERAND(r, riv))
+stm:	SHORT_ASTORE(load16, OTHER_OPERAND(riv, riv))
 25
 EMIT_INSTRUCTION
 OPT_Register tmp = regpool.getInteger(); \
@@ -2319,7 +2319,7 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV,  \
 #####
 # INT_ASTORE
 #####
-stm:	INT_ASTORE(riv, OTHER_OPERAND(r, riv))
+stm:	INT_ASTORE(riv, OTHER_OPERAND(riv, riv))
 15
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), DW_S, DW), AStore.getValue(P(p))));
@@ -2345,7 +2345,7 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), DW), IC(val.lower32())));
 #####
 # LONG_ASTORE
 #####
-stm:	LONG_ASTORE(r, OTHER_OPERAND(r, riv))
+stm:	LONG_ASTORE(r, OTHER_OPERAND(riv, riv))
 30
 EMIT_INSTRUCTION
 OPT_RegisterOperand hval = (OPT_RegisterOperand)AStore.getValue(P(p)); \
@@ -2353,7 +2353,7 @@ OPT_RegisterOperand lval = new OPT_RegisterOperand(regpool.getSecondReg(hval.get
 EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, MO_AS(P(p), QW_S, DW, DW).copy(), hval))); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), QW_S, DW), lval));
 
-stm:	LONG_ASTORE(LONG_CONSTANT, OTHER_OPERAND(r, riv))
+stm:	LONG_ASTORE(LONG_CONSTANT, OTHER_OPERAND(riv, riv))
 26
 EMIT_INSTRUCTION
 OPT_LongConstantOperand val = LC(AStore.getValue(P(p))); \

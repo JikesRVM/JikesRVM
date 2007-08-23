@@ -12,9 +12,12 @@
  */
 package org.jikesrvm.compilers.opt;
 
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.*;
+
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.BooleanCmp;
@@ -23,7 +26,6 @@ import org.jikesrvm.compilers.opt.ir.GuardedBinary;
 import org.jikesrvm.compilers.opt.ir.IfCmp;
 import org.jikesrvm.compilers.opt.ir.IfCmp2;
 import org.jikesrvm.compilers.opt.ir.Move;
-import org.jikesrvm.compilers.opt.ir.ZeroCheck;
 import org.jikesrvm.compilers.opt.ir.OPT_AddressConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_BranchOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_BranchProfileOperand;
@@ -36,161 +38,14 @@ import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
 import org.jikesrvm.compilers.opt.ir.OPT_IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_LongConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_NullConstantOperand;
+import org.jikesrvm.compilers.opt.ir.OPT_ObjectConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_Operand;
 import org.jikesrvm.compilers.opt.ir.OPT_OperandEnumeration;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BBEND;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_ADDR;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_ADDR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_DOUBLE;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_DOUBLE_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_FLOAT;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_FLOAT_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_INT;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_INT_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_LONG;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_CMP_LONG_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_NOT;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.BOOLEAN_NOT_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_2FLOAT_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_ADD;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_ADD_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_CMPG_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_CMPL_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_COND_MOVE;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_COND_MOVE_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_DIV;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_DIV_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_IFCMP;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_IFCMP_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_MOVE;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_MUL;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_MUL_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_NEG;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_NEG_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_SUB;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.DOUBLE_SUB_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_2DOUBLE;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_2DOUBLE_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_ADD;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_ADD_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_CMPG_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_CMPL_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_COND_MOVE;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_COND_MOVE_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_DIV;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_DIV_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_IFCMP;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_IFCMP_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_MOVE;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_MUL;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_MUL_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_NEG;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_NEG_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_SUB;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.FLOAT_SUB_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.GUARD_COND_MOVE_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_2BYTE;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_2BYTE_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_2LONG;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_2LONG_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_2SHORT;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_2SHORT_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_2USHORT;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_2USHORT_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_ADD;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_ADD_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_AND;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_AND_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_COND_MOVE;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_COND_MOVE_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_DIV;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_DIV_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_IFCMP;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_IFCMP2;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_IFCMP2_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_IFCMP_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_MOVE;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_MUL;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_MUL_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_NEG;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_NEG_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_NOT;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_NOT_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_OR;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_OR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_SHL;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_SHL_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_SHR;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_SHR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_SUB;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_SUB_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_USHR;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_USHR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_XOR;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_XOR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_ZERO_CHECK;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.INT_ZERO_CHECK_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_2INT_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_ADD;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_ADD_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_AND;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_AND_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_CMP;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_CMP_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_COND_MOVE;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_COND_MOVE_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_DIV;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_DIV_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_IFCMP;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_IFCMP_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_MOVE;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_MUL;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_MUL_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_NEG;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_NEG_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_NOT;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_NOT_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_OR;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_OR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_SHL;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_SHL_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_SHR;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_SHR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_SUB;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_SUB_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_USHR;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_USHR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_XOR;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_XOR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.LONG_ZERO_CHECK_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_ADD;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_ADD_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_AND;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_AND_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_COND_MOVE;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_COND_MOVE_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_IFCMP;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_IFCMP_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_MOVE;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_NEG;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_NEG_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_NOT;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_NOT_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_OR;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_OR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_SHL;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_SHL_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_SHR;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_SHR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_SUB;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_SUB_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_USHR;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_USHR_opcode;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_XOR;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_XOR_opcode;
 import org.jikesrvm.compilers.opt.ir.OPT_Register;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.Unary;
+import org.jikesrvm.compilers.opt.ir.ZeroCheck;
+import org.jikesrvm.runtime.VM_Magic;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Word;
 
@@ -2667,7 +2522,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
             }
 
             OPT_Operand val1 = Binary.getVal1(s);
-            if (s.operator.isCommutative() && val1.isConstant() && !val1.isObjectConstant() && !val1.isTIBConstant()) {
+            if (s.operator.isCommutative() && val1.isConstant() && !val1.isMoveableObjectConstant() && !val1.isTIBConstant()) {
               Binary.setVal1(s, Binary.getClearVal2(s));
               Binary.setVal2(s, val1);
               OPT_Register result = Binary.getResult(s).asRegister().getRegister();
@@ -2727,7 +2582,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               VM._assert(val2.isRegister());
             }
             OPT_Operand val1 = BooleanCmp.getVal1(s);
-            if (val1.isConstant() && !val1.isObjectConstant() && !val1.isTIBConstant()) {
+            if (val1.isConstant() && !val1.isMoveableObjectConstant() && !val1.isTIBConstant()) {
               BooleanCmp.setVal1(s, BooleanCmp.getClearVal2(s));
               BooleanCmp.setVal2(s, val1);
               BooleanCmp.getCond(s).flipOperands();
@@ -2768,7 +2623,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               VM._assert(val2.isRegister());
             }
             OPT_Operand val1 = IfCmp.getVal1(s);
-            if (val1.isConstant() && !val1.isObjectConstant() && !val1.isTIBConstant()) {
+            if (val1.isConstant() && !val1.isMoveableObjectConstant() && !val1.isTIBConstant()) {
               IfCmp.setVal1(s, IfCmp.getClearVal2(s));
               IfCmp.setVal2(s, val1);
               IfCmp.getCond(s).flipOperands();
@@ -2805,7 +2660,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               VM._assert(val2.isRegister());
             }
             OPT_Operand val1 = IfCmp2.getVal1(s);
-            if (val1.isConstant() && !val1.isObjectConstant() && !val1.isTIBConstant()) {
+            if (val1.isConstant() && !val1.isMoveableObjectConstant() && !val1.isTIBConstant()) {
               IfCmp2.setVal1(s, IfCmp2.getClearVal2(s));
               IfCmp2.setVal2(s, val1);
               IfCmp2.getCond1(s).flipOperands();
@@ -2847,7 +2702,7 @@ class OPT_ExpressionFolding extends OPT_IRTools {
               VM._assert(val2.isRegister());
             }
             OPT_Operand val1 = CondMove.getVal1(s);
-            if (val1.isConstant() && !val1.isObjectConstant()) {
+            if (val1.isConstant() && !val1.isMoveableObjectConstant()) {
               CondMove.setVal1(s, CondMove.getClearVal2(s));
               CondMove.setVal2(s, val1);
               CondMove.getCond(s).flipOperands();
@@ -2929,6 +2784,10 @@ class OPT_ExpressionFolding extends OPT_IRTools {
     }
     if (VM.BuildFor64Addr && op instanceof OPT_LongConstantOperand) {
       return Address.fromLong(op.asLongConstant().value);
+    }
+    if (op instanceof OPT_ObjectConstantOperand) {
+      if (VM.VerifyAssertions) VM._assert(!op.isMoveableObjectConstant());
+      return VM_Magic.objectAsAddress(op.asObjectConstant().value);
     }
     throw new OPT_OptimizingCompilerException(
         "Cannot getAddressValue from this operand " + op +

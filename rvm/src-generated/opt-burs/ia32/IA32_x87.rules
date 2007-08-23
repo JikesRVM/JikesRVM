@@ -32,7 +32,7 @@ fpload:	FLOAT_LOAD(riv, riv)
 EMIT_INSTRUCTION
 pushMO(MO_L(P(p), DW));
 
-fpload:	FLOAT_ALOAD(r, riv)
+fpload:	FLOAT_ALOAD(riv, riv)
 0
 EMIT_INSTRUCTION
 pushMO(MO_AL(P(p), DW_S, DW));
@@ -42,7 +42,7 @@ fpload:	DOUBLE_LOAD(riv, riv)
 EMIT_INSTRUCTION
 pushMO(MO_L(P(p), QW));
 
-fpload:	DOUBLE_ALOAD(r, riv)
+fpload:	DOUBLE_ALOAD(riv, riv)
 0
 EMIT_INSTRUCTION
 pushMO(MO_AL(P(p), QW_S, QW));
@@ -201,7 +201,7 @@ EMIT(MIR_Move.mutate(P(p), IA32_FMOV, Load.getResult(P(p)), MO_L(P(p), DW)));
 #####
 # FLOAT_ALOAD
 #####
-r:	FLOAT_ALOAD(r, riv)
+r:	FLOAT_ALOAD(riv, riv)
 30
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, ALoad.getResult(P(p)), MO_AL(P(p), DW_S, DW)));
@@ -217,7 +217,7 @@ EMIT(MIR_Move.mutate(P(p), IA32_FMOV, Load.getResult(P(p)), MO_L(P(p), QW)));
 #####
 # DOUBLE_ALOAD
 #####
-r:	DOUBLE_ALOAD(r, riv)
+r:	DOUBLE_ALOAD(riv, riv)
 30
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, ALoad.getResult(P(p)), MO_AL(P(p), QW_S, QW)));
@@ -233,7 +233,7 @@ EMIT(MIR_Move.mutate(P(p), IA32_FMOV, MO_S(P(p), DW), Store.getValue(P(p))));
 #####
 # FLOAT_ASTORE
 #####
-stm:	FLOAT_ASTORE(r, OTHER_OPERAND(r, riv))
+stm:	FLOAT_ASTORE(r, OTHER_OPERAND(riv, riv))
 15
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, MO_AS(P(p), DW_S, DW), AStore.getValue(P(p))));
@@ -249,7 +249,7 @@ EMIT(MIR_Move.mutate(P(p), IA32_FMOV, MO_S(P(p), QW), Store.getValue(P(p))));
 #####
 # DOUBLE_ASTORE
 #####
-stm:	DOUBLE_ASTORE(r, OTHER_OPERAND(r, riv))
+stm:	DOUBLE_ASTORE(r, OTHER_OPERAND(riv, riv))
 15
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, MO_AS(P(p), QW_S, QW), AStore.getValue(P(p))));

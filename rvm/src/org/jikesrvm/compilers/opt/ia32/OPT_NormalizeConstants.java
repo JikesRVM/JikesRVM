@@ -32,6 +32,7 @@ import org.jikesrvm.compilers.opt.ir.OPT_Operators;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_StringConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_TIBConstantOperand;
+import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Statics;
 import org.vmmagic.unboxed.Offset;
 
@@ -62,21 +63,25 @@ public abstract class OPT_NormalizeConstants implements OPT_Operators {
           OPT_Operand use = s.getOperand(idx);
           if (use != null) {
             if (use instanceof OPT_ObjectConstantOperand) {
-              OPT_RegisterOperand rop = ir.regpool.makeTemp(use.getType());
-              OPT_Operand jtoc = ir.regpool.makeJTOCOp(ir, s);
               OPT_ObjectConstantOperand oc = (OPT_ObjectConstantOperand) use;
-              Offset offset = oc.offset;
-              if (offset.isZero()) {
-                if (use instanceof OPT_StringConstantOperand) {
-                  throw new OPT_OptimizingCompilerException("String constant w/o valid JTOC offset");
-                } else if (use instanceof OPT_ClassConstantOperand) {
-                  throw new OPT_OptimizingCompilerException("Class constant w/o valid JTOC offset");
+              if(oc.moveable) {
+                OPT_RegisterOperand rop = ir.regpool.makeTemp(use.getType());
+                OPT_Operand jtoc = ir.regpool.makeJTOCOp(ir, s);
+                Offset offset = oc.offset;
+                if (offset.isZero()) {
+                  if (use instanceof OPT_StringConstantOperand) {
+                    throw new OPT_OptimizingCompilerException("String constant w/o valid JTOC offset");
+                  } else if (use instanceof OPT_ClassConstantOperand) {
+                    throw new OPT_OptimizingCompilerException("Class constant w/o valid JTOC offset");
+                  }
+                  offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateObjectLiteral(oc.value));
                 }
-                offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateObjectLiteral(oc.value));
+                OPT_LocationOperand loc = new OPT_LocationOperand(offset);
+                s.insertBefore(Load.create(INT_LOAD, rop, jtoc, new OPT_IntConstantOperand(offset.toInt()), loc));
+                s.putOperand(idx, rop.copyD2U());
+              } else {
+                s.putOperand(idx, new OPT_IntConstantOperand(VM_Magic.objectAsAddress(oc.value).toInt()));
               }
-              OPT_LocationOperand loc = new OPT_LocationOperand(offset);
-              s.insertBefore(Load.create(INT_LOAD, rop, jtoc, new OPT_IntConstantOperand(offset.toInt()), loc));
-              s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof OPT_DoubleConstantOperand) {
               OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.Double);
               OPT_Operand jtoc = ir.regpool.makeJTOCOp(ir, s);

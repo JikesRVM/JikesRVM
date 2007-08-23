@@ -188,6 +188,15 @@ public abstract class OPT_Operand {
   }
 
   /**
+   * Is the operand a moveable {@link OPT_ObjectConstantOperand}?
+   *
+   * @return false
+   */
+  public boolean isMoveableObjectConstant() {
+    return false;
+  }
+
+  /**
    * Is the operand an {@link OPT_TIBConstantOperand}?
    *
    * @return <code>true</code> if <code>this</code> is an
