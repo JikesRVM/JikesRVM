@@ -12,11 +12,11 @@
  */
 package org.jikesrvm.compilers.baseline;
 
+import org.jikesrvm.VM;
+import org.jikesrvm.VM_PrintLN;
 import org.jikesrvm.ArchitectureSpecific.VM_BaselineConstants;
 import org.jikesrvm.ArchitectureSpecific.VM_BaselineExceptionDeliverer;
 import org.jikesrvm.ArchitectureSpecific.VM_Compiler;
-import org.jikesrvm.VM;
-import org.jikesrvm.VM_PrintLN;
 import org.jikesrvm.classloader.VM_Array;
 import org.jikesrvm.classloader.VM_ExceptionHandlerMap;
 import org.jikesrvm.classloader.VM_Method;
@@ -183,6 +183,16 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod implement
     int bci = findBytecodeIndexForInstruction(instructionOffset);
     if (bci == -1) return 0;
     return ((VM_NormalMethod) method).getLineNumberForBCIndex(bci);
+  }
+
+  /**
+   * Return whether or not the instruction offset corresponds to an uninterruptible context.
+   *
+   * @param offset of addr from start of instructions in bytes
+   * @return true if the IP is within an Uninterruptible method, false otherwise.
+   */
+  public boolean isWithinUninterruptibleCode(Offset instructionOffset) {
+    return method.isUninterruptible();
   }
 
   /**

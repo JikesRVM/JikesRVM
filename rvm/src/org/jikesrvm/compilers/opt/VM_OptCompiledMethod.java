@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt;
 
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IG_PATCH_POINT;
+
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_PrintLN;
@@ -26,7 +28,6 @@ import org.jikesrvm.compilers.common.VM_ExceptionTable;
 import org.jikesrvm.compilers.opt.ir.InlineGuard;
 import org.jikesrvm.compilers.opt.ir.OPT_IR;
 import org.jikesrvm.compilers.opt.ir.OPT_Instruction;
-import static org.jikesrvm.compilers.opt.ir.OPT_Operators.IG_PATCH_POINT;
 import org.jikesrvm.osr.OSR_EncodedOSRMap;
 import org.jikesrvm.runtime.VM_DynamicLink;
 import org.jikesrvm.runtime.VM_ExceptionDeliverer;
@@ -104,6 +105,18 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod {
       VM.sysFail("Mapping to source code location not available at Dynamic Linking point\n");
     }
     realMethod.getDynamicLink(dynamicLink, bci);
+  }
+
+  /**
+   * Return whether or not the instruction offset corresponds to an uninterruptible context.
+   *
+   * @param offset of addr from start of instructions in bytes
+   * @return true if the IP is within an Uninterruptible method, false otherwise.
+   */
+  @Interruptible
+  public boolean isWithinUninterruptibleCode(Offset instructionOffset) {
+    VM_NormalMethod realMethod = _mcMap.getMethodForMCOffset(instructionOffset);
+    return realMethod.isUninterruptible();
   }
 
   /**
