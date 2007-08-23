@@ -473,30 +473,34 @@ public class OPT_GenerateMagic {
       bc2ir.pushDual(op0.copyD2U());
     } else if (methodName == VM_MagicNames.getObjectType) {
       OPT_Operand val = bc2ir.popRef();
-      OPT_Operand guard = OPT_BC2IR.getGuard(val);
-      if (guard == null) {
-        // it's magic, so assume that it's OK....
-        guard = new OPT_TrueGuardOperand();
-      }
-      OPT_RegisterOperand tibPtr = gc.temps.makeTemp(VM_TypeReference.JavaLangObjectArray);
-      bc2ir.appendInstruction(GuardedUnary.create(GET_OBJ_TIB, tibPtr, val, guard));
-      OPT_RegisterOperand op0;
-      VM_TypeReference argType = val.getType();
-      if (argType.isArrayType()) {
-        op0 = gc.temps.makeTemp(VM_TypeReference.VM_Array);
+      if(val.isObjectConstant()) {
+        bc2ir.push(new OPT_ObjectConstantOperand(val.getType().peekType(), Offset.zero()));
       } else {
-        if (argType == VM_TypeReference.JavaLangObject ||
-            argType == VM_TypeReference.JavaLangCloneable ||
-            argType == VM_TypeReference.JavaIoSerializable) {
-          // could be an array or a class, so make op0 be a VM_Type
-          op0 = gc.temps.makeTemp(VM_TypeReference.VM_Type);
-        } else {
-          op0 = gc.temps.makeTemp(VM_TypeReference.VM_Class);
+        OPT_Operand guard = OPT_BC2IR.getGuard(val);
+        if (guard == null) {
+          // it's magic, so assume that it's OK....
+          guard = new OPT_TrueGuardOperand();
         }
+        OPT_RegisterOperand tibPtr = gc.temps.makeTemp(VM_TypeReference.JavaLangObjectArray);
+        bc2ir.appendInstruction(GuardedUnary.create(GET_OBJ_TIB, tibPtr, val, guard));
+        OPT_RegisterOperand op0;
+        VM_TypeReference argType = val.getType();
+        if (argType.isArrayType()) {
+          op0 = gc.temps.makeTemp(VM_TypeReference.VM_Array);
+        } else {
+          if (argType == VM_TypeReference.JavaLangObject ||
+              argType == VM_TypeReference.JavaLangCloneable ||
+              argType == VM_TypeReference.JavaIoSerializable) {
+            // could be an array or a class, so make op0 be a VM_Type
+            op0 = gc.temps.makeTemp(VM_TypeReference.VM_Type);
+          } else {
+            op0 = gc.temps.makeTemp(VM_TypeReference.VM_Class);
+          }
+        }
+        bc2ir.markGuardlessNonNull(op0);
+        bc2ir.appendInstruction(Unary.create(GET_TYPE_FROM_TIB, op0, tibPtr.copyD2U()));
+        bc2ir.push(op0.copyD2U());
       }
-      bc2ir.markGuardlessNonNull(op0);
-      bc2ir.appendInstruction(Unary.create(GET_TYPE_FROM_TIB, op0, tibPtr.copyD2U()));
-      bc2ir.push(op0.copyD2U());
     } else if (methodName == VM_MagicNames.getArrayLength) {
       OPT_Operand val = bc2ir.popRef();
       OPT_RegisterOperand op0 = gc.temps.makeTempInt();
