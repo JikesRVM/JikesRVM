@@ -459,7 +459,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
   private static Object getObjectFrom(int vtype, int value, byte[] stack, Offset fpOffset,
                                       OSR_TempRegisters registers) {
     if (vtype == ICONST) { //kv:todo : to become ACONST
-      // the only constant object is for 64bit addressing is NULL
+      // the only constant object for 64bit addressing is NULL
       if (VM.VerifyAssertions) VM._assert(VM.BuildFor32Addr || value == 0);
       return VM_Magic.addressAsObject(Address.fromIntSignExtend(value));
 
