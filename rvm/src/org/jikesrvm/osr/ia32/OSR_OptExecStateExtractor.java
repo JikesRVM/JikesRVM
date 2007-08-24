@@ -282,10 +282,10 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
       }
 
       // create a OSR_VariableElement for it.
-      int kind = iterator.getKind();
-      int num = iterator.getNumber();
-      int tcode = iterator.getTypeCode();
-      int vtype = iterator.getValueType();
+      boolean kind = iterator.getKind();
+      char num = iterator.getNumber();
+      byte tcode = iterator.getTypeCode();
+      byte vtype = iterator.getValueType();
       int value = iterator.getValue();
 
       iterator.moveToNext();
@@ -368,8 +368,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
     return state;
   }
 
-  /* auxillary functions to get value from different places.
-  */
+  /** auxillary functions to get value from different places. */
   private static int getIntBitsFrom(int vtype, int value, byte[] stack, Offset fpOffset, OSR_TempRegisters registers) {
     // for INT_CONST type, the value is the value
     if (vtype == ICONST || vtype == ACONST) {
@@ -460,9 +459,9 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
   private static Object getObjectFrom(int vtype, int value, byte[] stack, Offset fpOffset,
                                       OSR_TempRegisters registers) {
     if (vtype == ICONST) { //kv:todo : to become ACONST
-      // the only constant object is NULL, I believe.
-      if (VM.VerifyAssertions) VM._assert(value == 0);
-      return VM_Magic.addressAsObject(Address.zero());
+      // the only constant object is for 64bit addressing is NULL
+      if (VM.VerifyAssertions) VM._assert(VM.BuildFor32Addr || value == 0);
+      return VM_Magic.addressAsObject(Address.fromIntSignExtend(value));
 
     } else if (vtype == PHYREG) {
       return registers.objs[value];

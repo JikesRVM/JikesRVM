@@ -46,7 +46,8 @@ public interface OSR_Constants extends VM_SizeConstants {
 
   /*
    * signifies there is no map entry for this machine code offset
-   */ int NO_OSR_ENTRY = (int) (OSRI_MASK >>> OSRI_SHIFT);
+   */
+  int NO_OSR_ENTRY = (int) (OSRI_MASK >>> OSRI_SHIFT);
   int INVALID_BCI = (int) (BCI_MASK >>> BCI_SHIFT);
   int INVALID_IEI = (int) (IEI_MASK >>> IEI_SHIFT);
 
@@ -78,33 +79,40 @@ public interface OSR_Constants extends VM_SizeConstants {
   int NEXT_BIT = 0x80000000;
   /* kind of element */ int KIND_MASK = 0x00400000;
   int KIND_SHIFT = 22;
-  /* type code */ int TCODE_MASK = 0x00380000;
+  /* type code */
+  int TCODE_MASK = 0x00380000;
   int TCODE_SHIFT = 19;
-  /* number */ int NUM_MASK = 0x0007fff8;
+  /* number */
+  int NUM_MASK = 0x0007fff8;
   int NUM_SHIFT = 3;
-  /* value type */ int VTYPE_MASK = 0x00000007;
+  /* value type */
+  int VTYPE_MASK = 0x00000007;
   int VTYPE_SHIFT = 0;
 
   ////////////////////////////////////////////
   //  Part II  constants used when extract VM scope descriptor
   ////////////////////////////////////////////
-  /* the kind of element */ int LOCAL = 0;
-  int STACK = 1;
+  /** Used to indicate the kind of element is a local variable */
+  boolean LOCAL = false;
+  /** Used to indicate the kind of element is from the operand stack */
+  boolean STACK = true;
 
-  /* the type code of the element, used in osr map encoding. */ int INT = 0;
-  int HIGH_64BIT = 1; //used to store the high bits of a 64-bit value
-  int LONG = 2;
-  int FLOAT = 3;
-  int DOUBLE = 4;
-  int RET_ADDR = 5;
-  int REF = 6;
-  int WORD = 7;
+  /* the type code of the element, used in osr map encoding. */
+  byte INT = 0;
+  byte HIGH_64BIT = 1; //used to store the high bits of a 64-bit value
+  byte LONG = 2;
+  byte FLOAT = 3;
+  byte DOUBLE = 4;
+  byte RET_ADDR = 5;
+  byte REF = 6;
+  byte WORD = 7;
 
-  /* value type */ int ICONST = 0;
-  int ACONST = 3;
-  int LCONST = 4;
-  int PHYREG = 1;
-  int SPILL = 2;
+  /* value type */
+  byte ICONST = 0;
+  byte ACONST = 3;
+  byte LCONST = 4;
+  byte PHYREG = 1;
+  byte SPILL = 2;
 
   /////////////////////////////////////////////////
   // Part III  Pseudo bytecodes

@@ -285,10 +285,10 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
       }
 
       // create a OSR_VariableElement for it.
-      int kind = iterator.getKind();
+      boolean kind = iterator.getKind();
       int num = iterator.getNumber();
-      int tcode = iterator.getTypeCode();
-      int vtype = iterator.getValueType();
+      byte tcode = iterator.getTypeCode();
+      byte vtype = iterator.getValueType();
       int value = iterator.getValue();
 
       iterator.moveToNext();
@@ -365,8 +365,7 @@ public abstract class OSR_OptExecStateExtractor extends OSR_ExecStateExtractor
     return state;
   }
 
-  /* auxillary functions to get value from different places.
-  */
+  /** auxillary functions to get value from different places. */
   private static int getIntBitsFrom(int vtype, int value, byte[] stack, Offset fpOffset, OSR_TempRegisters registers) {
     // for INT_CONST type, the value is the value
     if (vtype == ICONST || vtype == ACONST) {
