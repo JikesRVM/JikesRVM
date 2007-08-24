@@ -29,6 +29,7 @@
 
   <property name="rvm.exe" location="${test.rvm.dir}/rvm"/>
   <property name="timedrun.exe" location="${jikesrvm.dir}/bin/timedrun"/>
+  <property name="extractmmtkstats.exe" location="${jikesrvm.dir}/bin/extractmmtkstats"/>
 
   <!-- Default values -->
   <property name="test.mode" value=""/>
@@ -191,6 +192,27 @@
       <!-- set property if it has not been set -->
       <property name="test.@{tag}.statistic.@{key}" value=""/>
       <outputStatistic key="@{key}" value="${test.@{tag}.statistic.@{key}}"/>
+    </sequential>
+  </macrodef>
+
+  <!--
+      Macro to extract MMTk statistics from a log file. The statistics to extract is a space delimited string.
+  -->
+  <macrodef name="extractMMTkStatistics">
+    <attribute name="tag"/>
+    <attribute name="statistics"/>
+    <sequential>
+      <exec executable="${extractmmtkstats.exe}" failonerror="false" resultproperty="test.@{tag}.mmtkstats.exit.code">
+        <arg value="${test.@{tag}.sanitized.output.file}"/>
+        <arg value="${results.file}"/>
+        <arg line="@{statistics}"/>
+      </exec>
+      <condition property="test.@{tag}.result" value="FAILURE">
+        <not>
+          <equals arg1="${test.@{tag}.mmtkstats.exit.code}" arg2="0"/>
+        </not>
+      </condition>
+      <explainResult tag="@{tag}" message="Could not extract MMTk statistics."/>
     </sequential>
   </macrodef>
 
