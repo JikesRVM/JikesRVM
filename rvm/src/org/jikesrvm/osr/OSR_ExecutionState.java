@@ -171,8 +171,8 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants {
         // the number may not match because of long and double type
       }
     }
-    // ok, ready to indicate param initialized, thread swith
-    // and stack overflow check happends here
+    // ok, ready to indicate param initialized, thread switch
+    // and stack overflow check happens here
     tail.next = new BC_ParamInitEnd();
     tail = tail.next;
 

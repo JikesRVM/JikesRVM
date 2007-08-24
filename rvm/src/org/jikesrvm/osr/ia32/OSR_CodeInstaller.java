@@ -81,7 +81,7 @@ public abstract class OSR_CodeInstaller implements VM_BaselineConstants {
       asm.emitMOV_Reg_RegDisp(EBX, SP, EBX_SAVE_OFFSET);
       // restore frame pointer
       asm.emitPOP_RegDisp(PR, VM_ArchEntrypoints.framePointerField.getOffset());
-      // donot pop return address and parameters,
+      // do not pop return address and parameters,
       // we make a faked call to newly compiled method
       asm.emitJMP_Reg(S0);
     } else if (cType == VM_CompiledMethod.OPT) {

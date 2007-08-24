@@ -36,19 +36,19 @@ import org.vmmagic.unboxed.Offset;
 
 public final class OSR_OnStackReplacementEvent implements VM_ControllerInputEvent {
 
-  /* the suspended thread. */
+  /** the suspended thread. */
   public VM_Thread suspendedThread;
 
-  /* remember where it comes from */
+  /** remember where it comes from */
   public int whereFrom;
 
-  /* the compiled method id */
+  /** the compiled method id */
   public int CMID;
 
-  /* the threadSwithFrom fp offset */
+  /** the threadSwithFrom fp offset */
   public Offset tsFromFPoff;
 
-  /* the osr method's fp offset */
+  /** the osr method's fp offset */
   public Offset ypTakenFPoff;
 
   /**
