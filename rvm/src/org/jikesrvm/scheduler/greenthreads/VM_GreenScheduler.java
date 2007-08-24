@@ -429,7 +429,8 @@ public final class VM_GreenScheduler extends VM_Scheduler {
       VM_Thread thr = threads[i];
       if (thr != null && thr != VM_Scheduler.getCurrentThread() && thr.isAlive()) {
         thr.dump();
-        dumpStack(thr.contextRegisters.getInnermostFramePointer());
+        if (thr.contextRegisters != null)
+          dumpStack(thr.contextRegisters.getInnermostFramePointer());
       }
     }
     VM_GreenProcessor.getCurrentProcessor().enableThreadSwitching();
