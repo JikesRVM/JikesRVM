@@ -3447,7 +3447,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools {
     if (op instanceof OPT_ObjectConstantOperand) {
       if (VM.VerifyAssertions) VM._assert(!op.isMoveableObjectConstant());
       return VM_Magic.objectAsAddress(op.asObjectConstant().value);
-    }   
+    }
     throw new OPT_OptimizingCompilerException("Cannot getAddressValue from this operand " + op);
   }
 }

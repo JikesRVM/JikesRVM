@@ -188,7 +188,7 @@ public abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
   protected final OPT_MemoryOperand MO_L(OPT_Instruction s, byte size) {
     return MO_L(s, size, 0);
   }
-  
+
   /**
    * Construct a displaced memory operand for the effective address of the
    * load instruction
@@ -202,7 +202,7 @@ public abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
               Load.getLocation(s),
               Load.getGuard(s));
   }
-  
+
   /**
    * Construct a memory operand for the effective address of the
    * store instruction
@@ -368,7 +368,7 @@ public abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
       }
     }
   }
-  
+
   /**
    * Construct memory operand for a MATERIALIZE_FP_CONSTANT
    */

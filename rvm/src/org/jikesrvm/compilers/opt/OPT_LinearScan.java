@@ -2498,7 +2498,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     public OPT_CompilerPhase newExecution(OPT_IR ir) {
       return this;
     }
-    
+
     public String getName() {
       return "Update OSRMaps";
     }

@@ -254,7 +254,7 @@ if (VM.TraceOnStackReplacement) {
       first |= NEXT_BIT;
     }
 
-    first |= (tuple.kind ? 1 :0 ) << KIND_SHIFT;
+    first |= (tuple.kind ? 1 : 0) << KIND_SHIFT;
 
     first |= (tuple.valueType << VTYPE_SHIFT);
 
@@ -296,7 +296,7 @@ if (VM.TraceOnStackReplacement) {
 
           if (!isLast) first |= NEXT_BIT;
 
-          first |= (tuple.kind ? 1 : 0 ) << KIND_SHIFT;
+          first |= (tuple.kind ? 1 : 0) << KIND_SHIFT;
           first |= (tuple.valueType << VTYPE_SHIFT);
         }
         first |= (LONG << TCODE_SHIFT);

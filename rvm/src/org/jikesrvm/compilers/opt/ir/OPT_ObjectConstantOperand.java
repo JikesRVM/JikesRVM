@@ -41,7 +41,7 @@ public class OPT_ObjectConstantOperand extends OPT_ConstantOperand {
    * Can this object be moved in memory?
    */
   public final boolean moveable;
-  
+
   /**
    * Construct a new object constant operand
    *
@@ -97,7 +97,7 @@ public class OPT_ObjectConstantOperand extends OPT_ConstantOperand {
   public final boolean isRef() {
     return true;
   }
-  
+
   /**
    * Is the operand a moveable {@link OPT_ObjectConstantOperand}?
    *

@@ -484,7 +484,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
       if (v2.isObjectConstant()) {
         if (!v1.isMoveableObjectConstant() && !v2.isMoveableObjectConstant()) {
           return evaluate(VM_Magic.objectAsAddress(v1.asObjectConstant().value),
-              VM_Magic.objectAsAddress(v2.asObjectConstant().value));          
+              VM_Magic.objectAsAddress(v2.asObjectConstant().value));
         } else if (isEQUAL()) {
           return (v1.asObjectConstant().value == v2.asObjectConstant().value) ? TRUE : FALSE;
         } else if (isNOT_EQUAL()) {
@@ -500,7 +500,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
               Address.fromIntSignExtend(v2.asIntConstant().value));
         } else if (v2.isAddressConstant()) {
           return evaluate(VM_Magic.objectAsAddress(v1.asObjectConstant().value),
-              v2.asAddressConstant().value); 
+              v2.asAddressConstant().value);
         } else if (v2.isNullConstant()) {
           return evaluate(VM_Magic.objectAsAddress(v1.asObjectConstant().value),
               Address.zero());
