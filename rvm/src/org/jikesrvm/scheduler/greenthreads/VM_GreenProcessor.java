@@ -407,8 +407,7 @@ public final class VM_GreenProcessor extends VM_Processor {
         VM_GreenThread t = processWaitQueue.dequeue();
         if (VM.VerifyAssertions) {
           // local queue: no other dispatcher should be running on thread's stack
-          VM._assert(!t.beingDispatched ||
-                     t == VM_Scheduler.getCurrentThread());
+          VM._assert(!t.beingDispatched || t == VM_Scheduler.getCurrentThread());
         }
         result = t;
       }
@@ -425,8 +424,7 @@ public final class VM_GreenProcessor extends VM_Processor {
       }
       if (VM.VerifyAssertions) {
         // local queue: no other dispatcher should be running on thread's stack
-        VM._assert(!t.beingDispatched ||
-            t == VM_Scheduler.getCurrentThread());
+        VM._assert(!t.beingDispatched || t == VM_Scheduler.getCurrentThread());
       }
       return t;
     }
@@ -436,8 +434,7 @@ public final class VM_GreenProcessor extends VM_Processor {
       if (VM.TraceThreadScheduling > 1) VM_Scheduler.trace("VM_Processor", "getRunnableThread: ioQueue", t.getIndex());
       if (VM.VerifyAssertions) {
         // local queue: no other dispatcher should be running on thread's stack
-        VM._assert(!t.beingDispatched ||
-                   t == VM_Scheduler.getCurrentThread());
+        VM._assert(!t.beingDispatched || t == VM_Scheduler.getCurrentThread());
       }
       return t;
     }
@@ -449,8 +446,7 @@ public final class VM_GreenProcessor extends VM_Processor {
       }
       if (VM.VerifyAssertions) {
         // local queue: no other dispatcher should be running on thread's stack
-        VM._assert(!t.beingDispatched ||
-                   t == VM_Scheduler.getCurrentThread());
+        VM._assert(!t.beingDispatched || t == VM_Scheduler.getCurrentThread());
       }
       return t;
     }
