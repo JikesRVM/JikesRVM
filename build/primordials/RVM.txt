@@ -53,6 +53,7 @@
 [Lorg/jikesrvm/util/VM_HashSet$Bucket;
 
 [Lorg/jikesrvm/memorymanagers/mminterface/VM_CollectorThread;
+[Lorg/jikesrvm/memorymanagers/mminterface/VM_ConcurrentCollectorThread;
 [Lorg/jikesrvm/memorymanagers/mminterface/Selected$Collector;
 [Lorg/jikesrvm/memorymanagers/mminterface/Selected$Mutator;
 

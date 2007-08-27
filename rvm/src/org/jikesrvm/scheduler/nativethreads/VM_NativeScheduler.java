@@ -55,6 +55,18 @@ public class VM_NativeScheduler extends VM_Scheduler {
   }
 
   @Override
+  protected void requestMutatorFlushInternal() {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  protected void scheduleConcurrentCollectorThreadsInternal() {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
   protected void scheduleFinalizerInternal() {
     // TODO Auto-generated method stub
 
@@ -68,6 +80,12 @@ public class VM_NativeScheduler extends VM_Scheduler {
 
   @Override
   protected void suspendDebuggerThreadInternal() {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  protected void suspendConcurrentCollectorThreadInternal() {
     // TODO Auto-generated method stub
 
   }

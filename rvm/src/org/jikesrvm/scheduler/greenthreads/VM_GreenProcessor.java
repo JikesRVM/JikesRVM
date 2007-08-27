@@ -111,6 +111,11 @@ public final class VM_GreenProcessor extends VM_Processor {
   boolean isInSelect;
 
   /**
+   * Is there a pending flush request for this processor.
+   */
+  boolean flushRequested;
+
+  /**
    * Number of timer ticks that have actually been forwarded to the VM from
    * the C time slicing code
    */
@@ -277,6 +282,8 @@ public final class VM_GreenProcessor extends VM_Processor {
     // no processor locks should be held across a thread switch
     if (VM.VerifyAssertions) checkLockCount(0);
 
+    if (flushRequested) processMutatorFlushRequest();
+
     VM_GreenThread newThread = getRunnableThread();
     while (newThread.suspendIfPending()) {
       newThread = getRunnableThread();
@@ -310,6 +317,22 @@ public final class VM_GreenProcessor extends VM_Processor {
     threadId = newThread.getLockingId();
     activeThreadStackLimit = newThread.stackLimit; // Delay this to last possible moment so we can sysWrite
     VM_Magic.threadSwitch(previousThread, newThread.contextRegisters);
+  }
+
+  /**
+   * Handle a request from the garbage collector to flush the mutator context.
+   */
+  private void processMutatorFlushRequest() {
+    VM_GreenScheduler.flushMutatorContextsMutex.lock("handling flush request");
+    /* One context per processor under green threads */
+    MM_Interface.flushMutatorContext();
+    flushRequested = false;
+    if (++VM_GreenScheduler.flushedMutatorCount >= VM_GreenScheduler.numProcessors) {
+      while (!VM_GreenScheduler.flushMutatorContextsQueue.isEmpty()) {
+        VM_GreenScheduler.flushMutatorContextsQueue.dequeue().schedule();
+      }
+    }
+    VM_GreenScheduler.flushMutatorContextsMutex.unlock();
   }
 
   /**

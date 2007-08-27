@@ -45,8 +45,10 @@ import org.vmmagic.pragma.*;
    */
   @Inline
   public void collectionPhase(short phaseId, boolean primary) {
-    if (phaseId == StopTheWorld.INITIATE) {
-      VM.collection.prepareMutator(this);
+    if (phaseId == StopTheWorld.PREPARE_STACKS) {
+      if (!Plan.stacksPrepared()) {
+        VM.collection.prepareMutator(this);
+      }
       return;
     }
 

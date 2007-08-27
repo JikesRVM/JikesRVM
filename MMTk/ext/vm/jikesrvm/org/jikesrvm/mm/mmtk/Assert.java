@@ -20,8 +20,6 @@ import org.jikesrvm.scheduler.VM_Scheduler;
 import org.vmmagic.pragma.*;
 
 @Uninterruptible public class Assert extends org.mmtk.vm.Assert {
-  /* wriggle-room to accommodate memory demands while handling failures */
-  private static final int EMERGENCY_HEAP_REQ = 5<<20; // 5MB
   /**
    * <code>true</code> if assertions should be verified
    */

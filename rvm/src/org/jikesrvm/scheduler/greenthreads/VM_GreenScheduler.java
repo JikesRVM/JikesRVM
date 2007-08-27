@@ -16,6 +16,7 @@ import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.VM_TypeReference;
 import org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
+import org.jikesrvm.memorymanagers.mminterface.VM_ConcurrentCollectorThread;
 import org.jikesrvm.osr.OSR_ObjectHolder;
 import org.jikesrvm.runtime.VM_BootRecord;
 import org.jikesrvm.runtime.VM_Entrypoints;
@@ -45,7 +46,6 @@ public final class VM_GreenScheduler extends VM_Scheduler {
   public static final int PRIMORDIAL_PROCESSOR_ID = 1;
 
   /** Index of thread in which "VM.boot()" runs */
-  public static final int PRIMORDIAL_THREAD_INDEX = 1;
 
   // A processors id is its index in the processors array & a threads
   // id is its index in the threads array.  id's start at 1, so that
@@ -83,8 +83,7 @@ public final class VM_GreenScheduler extends VM_Scheduler {
   // Thread execution.
   //
   /** threads waiting to wake up from a sleep() */
-  static final VM_ThreadProxyWakeupQueue wakeupQueue =
-    new VM_ThreadProxyWakeupQueue();
+  static final VM_ThreadProxyWakeupQueue wakeupQueue = new VM_ThreadProxyWakeupQueue();
   /** mutex controlling access to wake up queue */
   static final VM_ProcessorLock wakeupMutex = new VM_ProcessorLock();
 
@@ -96,9 +95,18 @@ public final class VM_GreenScheduler extends VM_Scheduler {
   public static final VM_GreenThreadQueue collectorQueue = new VM_GreenThreadQueue();
   public static final VM_ProcessorLock collectorMutex = new VM_ProcessorLock();
 
+  /** Concurrent worker threads wait here when idle */
+  public static final VM_GreenThreadQueue concurrentCollectorQueue = new VM_GreenThreadQueue();
+  public static final VM_ProcessorLock concurrentCollectorMutex = new VM_ProcessorLock();
+
   /** Finalizer thread waits here when idle */
   public static final VM_GreenThreadQueue finalizerQueue = new VM_GreenThreadQueue();
   public static final VM_ProcessorLock finalizerMutex = new VM_ProcessorLock();
+
+  /** Collectors wait here while waiting for flushes */
+  public static final VM_GreenThreadQueue flushMutatorContextsQueue = new VM_GreenThreadQueue();
+  public static final VM_ProcessorLock flushMutatorContextsMutex = new VM_ProcessorLock();
+  public static int flushedMutatorCount = 0;
 
   /** How many extra procs (not counting primordial) ? */
   private static int NUM_EXTRA_PROCS = 0;
@@ -270,6 +278,12 @@ public final class VM_GreenScheduler extends VM_Scheduler {
       t.start(processors[1 + i].readyQueue);
     }
 
+    // Start concurrent collector threads on each VM_Processor.
+    for (int i = 0; i < numProcessors; ++i) {
+      VM_GreenThread t = VM_ConcurrentCollectorThread.createConcurrentCollectorThread(processors[1 + i]);
+      t.start(processors[1 + i].readyQueue);
+    }
+
     // Start the G.C. system.
 
     // Create the VM_FinalizerThread
@@ -345,6 +359,19 @@ public final class VM_GreenScheduler extends VM_Scheduler {
   }
 
   /**
+   * Schedule concurrent worker threads that are not already running.
+   * @see org.jikesrvm.mm.mmtk.Collection
+   */
+  @Override
+  protected void scheduleConcurrentCollectorThreadsInternal() {
+    concurrentCollectorMutex.lock("scheduling concurrent collector threads");
+    while (!concurrentCollectorQueue.isEmpty()) {
+      concurrentCollectorQueue.dequeue().schedule();
+    }
+    concurrentCollectorMutex.unlock();
+  }
+
+  /**
    * Schedule the finalizer thread if its not already running
    * @see org.jikesrvm.mm.mmtk.Collection
    */
@@ -355,6 +382,20 @@ public final class VM_GreenScheduler extends VM_Scheduler {
       VM_GreenThread t = finalizerQueue.dequeue();
       VM_GreenProcessor.getCurrentProcessor().scheduleThread(t);
     }
+  }
+
+  /**
+   * Request all mutators flush their context.
+   * @see org.jikesrvm.mm.mmtk.Collection
+   */
+  @Override
+  protected void requestMutatorFlushInternal() {
+    flushMutatorContextsMutex.lock("requesting mutator flush");
+    flushedMutatorCount = 0;
+    for(int i=0; i < numProcessors; i++) {
+      processors[i+1].flushRequested = true;
+    }
+    VM_GreenScheduler.getCurrentThread().yield(flushMutatorContextsQueue, flushMutatorContextsMutex);
   }
 
   /**
@@ -563,6 +604,15 @@ public final class VM_GreenScheduler extends VM_Scheduler {
   }
 
   /**
+   * Suspend a concurrent worker: it will resume when the garbage collector notifies.
+   */
+  @Override
+  protected void suspendConcurrentCollectorThreadInternal() {
+    concurrentCollectorMutex.lock("suspend concurrent collector thread mutex");
+    VM_GreenScheduler.getCurrentThread().yield(concurrentCollectorQueue, concurrentCollectorMutex);
+  }
+
+  /**
    * suspend the finalizer thread: it will resume when the garbage collector
    * places objects on the finalizer queue and notifies.
    */
@@ -571,6 +621,7 @@ public final class VM_GreenScheduler extends VM_Scheduler {
     finalizerMutex.lock("suspend finalizer mutex");
     VM_GreenScheduler.getCurrentThread().yield(finalizerQueue, finalizerMutex);
   }
+
   /**
    * Schedule thread waiting on l to give it a chance to acquire the lock
    * @param lock the lock to allow other thread chance to acquire

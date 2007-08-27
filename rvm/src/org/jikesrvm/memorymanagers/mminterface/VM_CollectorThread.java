@@ -364,8 +364,9 @@ public final class VM_CollectorThread extends VM_GreenThread {
       if (verbose > 2) VM.sysWriteln("GC Message: VM_CT.run entering first rendezvous - gcOrdinal =", gcOrdinal);
 
       boolean userTriggered = handshake.gcTrigger == Collection.EXTERNAL_GC_TRIGGER;
+      boolean internalPhaseTriggered = handshake.gcTrigger == Collection.INTERNAL_PHASE_GC_TRIGGER;
       if (gcOrdinal == 1) {
-        Plan.setUserTriggeredCollection(userTriggered);
+        Plan.setCollectionTrigger(handshake.gcTrigger);
       }
 
       /* wait for other collector threads to arrive or be made
@@ -383,7 +384,7 @@ public final class VM_CollectorThread extends VM_GreenThread {
         if (gcOrdinal == 1) {
           long elapsedTime = VM_Time.nanoTime() - startTime;
           HeapGrowthManager.recordGCTime(VM_Time.nanosToMillis(elapsedTime));
-          if (Selected.Plan.get().lastCollectionFullHeap()) {
+          if (Selected.Plan.get().lastCollectionFullHeap() && !internalPhaseTriggered) {
             if (Options.variableSizeHeap.getValue() && !userTriggered) {
               // Don't consider changing the heap size if gc was forced by System.gc()
               HeapGrowthManager.considerHeapSize();
@@ -391,20 +392,28 @@ public final class VM_CollectorThread extends VM_GreenThread {
             HeapGrowthManager.reset();
           }
 
-          /* Snip reference to any methods that are still marked
-           * obsolete after we've done stack scans. This allows
-           * reclaiming them on the next GC. */
-          VM_CompiledMethods.snipObsoleteCompiledMethods();
+          if (internalPhaseTriggered) {
+            if (Selected.Plan.get().lastCollectionFailed()) {
+              internalPhaseTriggered = false;
+              Plan.setCollectionTrigger(Collection.INTERNAL_GC_TRIGGER);
+            }
+          } else {
+            /* Snip reference to any methods that are still marked
+             * obsolete after we've done stack scans. This allows
+             * reclaiming them on the next GC. */
+            VM_CompiledMethods.snipObsoleteCompiledMethods();
+
+            collectionAttemptBase++;
+          }
 
           collectionCount += 1;
-          collectionAttemptBase++;
         }
 
         startTime = VM_Time.nanoTime();
         gcBarrier.rendezvous(5201);
       } while (Selected.Plan.get().lastCollectionFailed() && !Plan.isEmergencyCollection());
 
-      if (gcOrdinal == 1) {
+      if (gcOrdinal == 1 && !internalPhaseTriggered) {
         /* If the collection failed, we may need to throw OutOfMemory errors.
          * As we have not cleared the GC flag, allocation is not budgeted.
          *

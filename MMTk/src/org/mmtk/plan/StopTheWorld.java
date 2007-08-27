@@ -51,6 +51,7 @@ import org.vmmagic.pragma.*;
   public static final short INITIATE            = Phase.createSimple("initiate", null);
   public static final short PREPARE             = Phase.createSimple("prepare");
   public static final short PRECOPY             = Phase.createSimple("precopy");
+  public static final short PREPARE_STACKS      = Phase.createSimple("prepare-stacks", null);
   public static final short ROOTS               = Phase.createSimple("root");
   public static final short BOOTIMAGE_ROOTS     = Phase.createSimple("bootimage-root");
   public static final short START_CLOSURE       = Phase.createSimple("start-closure", scanTime);
@@ -78,23 +79,30 @@ import org.vmmagic.pragma.*;
   public static final short SANITY_RELEASE      = Phase.createSimple("sanity-release", null);
 
   // CHECKSTYLE:OFF
+  
+  /** Ensure stacks are ready to be scanned */
+  protected static final short prepareStacks = Phase.createComplex("prepare-stacks", null,
+      Phase.scheduleCollector  (PREPARE_STACKS),
+      Phase.scheduleMutator    (PREPARE_STACKS),
+      Phase.scheduleGlobal     (PREPARE_STACKS));   
 
   /** Trace and set up a sanity table */
-  private static final short sanityBuildPhase = Phase.createComplex("sanity-build", null,
+  protected static final short sanityBuildPhase = Phase.createComplex("sanity-build", null,
       Phase.scheduleGlobal     (SANITY_PREPARE),
       Phase.scheduleCollector  (SANITY_PREPARE),
+      Phase.scheduleComplex    (prepareStacks),
       Phase.scheduleCollector  (SANITY_ROOTS),
       Phase.scheduleGlobal     (SANITY_ROOTS),
       Phase.scheduleCollector  (SANITY_BUILD_TABLE));
 
   /** Validate a sanity table */
-  private static final short sanityCheckPhase = Phase.createComplex("sanity-check", null,
+  protected static final short sanityCheckPhase = Phase.createComplex("sanity-check", null,
       Phase.scheduleCollector  (SANITY_CHECK_TABLE),
       Phase.scheduleCollector  (SANITY_RELEASE),
       Phase.scheduleGlobal     (SANITY_RELEASE));
 
   /** Build and validate a sanity table */
-  private static final short sanityPhase = Phase.createComplex("sanity", null,
+  protected static final short sanityPhase = Phase.createComplex("sanity", null,
       Phase.scheduleComplex    (sanityBuildPhase),
       Phase.scheduleComplex    (sanityCheckPhase));
 
@@ -102,8 +110,6 @@ import org.vmmagic.pragma.*;
   protected static final short initPhase = Phase.createComplex("init",
       Phase.scheduleGlobal     (SET_COLLECTION_KIND),
       Phase.scheduleGlobal     (INITIATE),
-      Phase.scheduleCollector  (INITIATE),
-      Phase.scheduleMutator    (INITIATE),
       Phase.schedulePlaceholder(PRE_SANITY_PLACEHOLDER));
 
   /**
@@ -115,6 +121,7 @@ import org.vmmagic.pragma.*;
       Phase.scheduleCollector  (PREPARE),
       Phase.scheduleCollector  (PRECOPY),
       Phase.scheduleCollector  (BOOTIMAGE_ROOTS),
+      Phase.scheduleComplex    (prepareStacks),
       Phase.scheduleCollector  (ROOTS),
       Phase.scheduleGlobal     (ROOTS),
       Phase.scheduleCollector  (START_CLOSURE));
@@ -234,6 +241,11 @@ import org.vmmagic.pragma.*;
 
     if (phaseId == INITIATE) {
       setGCStatus(GC_PREPARE);
+      return;
+    }
+
+    if (phaseId == PREPARE_STACKS) {
+      stacksPrepared = true;
       return;
     }
 

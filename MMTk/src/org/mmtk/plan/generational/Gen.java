@@ -21,6 +21,8 @@ import org.mmtk.utility.Log;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.statistics.*;
 
+import org.mmtk.vm.Collection;
+
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
@@ -190,7 +192,7 @@ import org.vmmagic.unboxed.*;
    * @return True is this GC should be a full heap collection.
    */
   protected boolean requiresFullHeapCollection() {
-    if (userTriggeredCollection && Options.fullHeapSystemGC.getValue()) {
+    if (collectionTrigger == Collection.EXTERNAL_GC_TRIGGER && Options.fullHeapSystemGC.getValue()) {
       return true;
     }
 

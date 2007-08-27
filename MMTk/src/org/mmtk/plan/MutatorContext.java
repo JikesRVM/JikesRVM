@@ -383,6 +383,13 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
+   * Flush mutator context, in response to a requestMutatorFlush
+   */
+  public void flush() {
+    flushRememberedSets();
+  }
+
+  /**
    * Flush per-mutator remembered sets into the global remset pool.
    */
   public void flushRememberedSets() {

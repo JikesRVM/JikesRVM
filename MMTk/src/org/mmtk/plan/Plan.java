@@ -305,9 +305,9 @@ public abstract class Plan implements Constants {
    * @return True if we have run out of heap space.
    */
   public final boolean lastCollectionFailed() {
-    return !userTriggeredCollection &&
-      (getPagesAvail() < getHeapFullThreshold() ||
-       getPagesAvail() < requiredAtStart);
+    return !(collectionTrigger == Collection.EXTERNAL_GC_TRIGGER ||
+             collectionTrigger == Collection.INTERNAL_PHASE_GC_TRIGGER) &&
+      (getPagesAvail() < getHeapFullThreshold() || getPagesAvail() < requiredAtStart);
   }
 
   /**
@@ -350,9 +350,10 @@ public abstract class Plan implements Constants {
    */
 
   protected static int requiredAtStart;
-  protected static boolean userTriggeredCollection;
+  protected static int collectionTrigger;
   protected static boolean emergencyCollection;
   protected static boolean awaitingAsyncCollection;
+  protected static boolean stacksPrepared;
 
   private static boolean initialized = false;
   private static boolean collectionTriggered;
@@ -386,6 +387,14 @@ public abstract class Plan implements Constants {
   }
 
   /**
+   * Return true if stacks have been prepared in this collection cycle.
+   *
+   * @return True if stacks have been prepared in this collection cycle.
+   */
+  public static boolean stacksPrepared() {
+    return stacksPrepared;
+  }
+  /**
    * Return true if a collection is in progress.
    *
    * @return True if a collection is in progress.
@@ -411,6 +420,7 @@ public abstract class Plan implements Constants {
   public static void setGCStatus(int s) {
     if (gcStatus == NOT_IN_GC) {
       /* From NOT_IN_GC to any phase */
+      stacksPrepared = false;
       if (Stats.gatheringStats()) {
         Stats.startGC();
         VM.activePlan.global().printPreStats();
@@ -510,10 +520,10 @@ public abstract class Plan implements Constants {
   }
 
   /**
-   * A user-triggered GC has been initiated.
+   * Set the collection trigger.
    */
-  public static void setUserTriggeredCollection(boolean value) {
-    userTriggeredCollection = value;
+  public static void setCollectionTrigger(int trigger) {
+    collectionTrigger = trigger;
   }
 
   /****************************************************************************
@@ -813,6 +823,12 @@ public abstract class Plan implements Constants {
       return true;
     }
 
+    if (concurrentCollectionRequired()) {
+      logPoll(space, "Triggering collection");
+      VM.collection.triggerCollection(Collection.INTERNAL_PHASE_GC_TRIGGER);
+      return true;
+    }
+
     return false;
   }
 
@@ -868,6 +884,16 @@ public abstract class Plan implements Constants {
     boolean metaDataFull = metaDataSpace.reservedPages() > META_DATA_FULL_THRESHOLD;
 
     return spaceFull || stressForceGC || heapFull || metaDataFull;
+  }
+
+  /**
+   * This method controls the triggering of an atomic phase of a concurrent
+   * collection. It is called periodically during allocation.
+   *
+   * @return True if a collection is requested by the plan.
+   */
+  protected boolean concurrentCollectionRequired() {
+    return false;
   }
 
   /**

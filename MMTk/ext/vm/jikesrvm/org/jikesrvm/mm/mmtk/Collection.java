@@ -117,6 +117,9 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
     if (why == EXTERNAL_GC_TRIGGER) {
       if (Options.verbose.getValue() == 1 || Options.verbose.getValue() == 2)
         VM.sysWrite("[Forced GC]");
+    } else if (why == INTERNAL_PHASE_GC_TRIGGER) {
+      if (Options.verbose.getValue() == 1 || Options.verbose.getValue() == 2)
+        VM.sysWrite("[Phase GC]");
     } else {
       VM_Scheduler.getCurrentThread().reportCollectionAttempt();
     }
@@ -193,7 +196,13 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
    */
   public final void triggerAsyncCollection(int why) {
     Plan.setCollectionTriggered();
-    if (Options.verbose.getValue() >= 1) VM.sysWrite("[Async GC]");
+    if (Options.verbose.getValue() >= 1) {
+      if (why == INTERNAL_PHASE_GC_TRIGGER) {
+        VM.sysWrite("[Async-Phase GC]");
+      } else {
+        VM.sysWrite("[Async GC]");
+      }
+    }
     VM_CollectorThread.asyncCollect(VM_CollectorThread.handshake, why);
   }
 
@@ -271,6 +280,35 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
     return VM_CollectorThread.gcBarrier.rendezvous(where);
   }
 
+  /**
+   * Ensure all concurrent worker threads are scheduled.
+   */
+  public void scheduleConcurrentWorkers() {
+    scheduleConcurrentThreads();
+  }
+
+  /**
+   * Request each mutator flush remembered sets. This method
+   * will trigger the flush and then yield until all processors have
+   * flushed.
+   */
+  public void requestMutatorFlush() {
+    VM_Scheduler.requestMutatorFlush();
+  }
+
+  /**
+   * Possibly yield the current concurrent collector thread. Return
+   * true if yielded.
+   */
+  @Inline
+  public boolean yieldpoint() {
+    if (VM_Processor.getCurrentProcessor().takeYieldpoint != 0) {
+      VM_Thread.yieldpointFromBackedge();
+      return true;
+    }
+    return false;
+  }
+
   /***********************************************************************
    *
    * Finalizers
@@ -288,5 +326,12 @@ public class Collection extends org.mmtk.vm.Collection implements Constants, VM_
     if (finalizedCount > 0) {
       VM_Scheduler.scheduleFinalizer();
     }
+  }
+
+  /**
+   * Schedule the concurrent collector threads.
+   */
+  public static void scheduleConcurrentThreads() {
+    VM_Scheduler.scheduleConcurrentCollectorThreads();
   }
 }

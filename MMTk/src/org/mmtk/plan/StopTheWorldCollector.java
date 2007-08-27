@@ -58,8 +58,10 @@ import org.vmmagic.pragma.*;
    */
   @Inline
   public void collectionPhase(short phaseId, boolean primary) {
-    if (phaseId == StopTheWorld.INITIATE) {
-      VM.collection.prepareCollector(this);
+    if (phaseId == StopTheWorld.PREPARE_STACKS) {
+      if (!Plan.stacksPrepared()) {
+        VM.collection.prepareCollector(this);
+      }
       return;
     }
 
@@ -151,6 +153,15 @@ import org.vmmagic.pragma.*;
     Log.write("Per-collector phase "); Log.write(Phase.getName(phaseId));
     Log.writeln(" not handled.");
     VM.assertions.fail("Per-collector phase not handled!");
+  }
+
+  /**
+   * Perform some concurrent collection work.
+   *
+   * @param phaseId The unique phase identifier
+   */
+  public void concurrentCollectionPhase(short phaseId) {
+    VM.assertions.fail("Concurrent phase triggered on StopTheWorld collector");
   }
 
   /****************************************************************************

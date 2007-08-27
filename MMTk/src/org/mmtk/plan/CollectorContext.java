@@ -80,6 +80,8 @@ import org.vmmagic.unboxed.*;
   /** Per-collector allocator into the immortal space */
   protected BumpPointer immortal = new ImmortalLocal(Plan.immortalSpace);
 
+  /** Used for aborting concurrent phases pre-empted by stop the world collection */
+  protected boolean resetConcurrentWork;
 
   /****************************************************************************
    *
@@ -146,6 +148,16 @@ import org.vmmagic.unboxed.*;
   /** Perform a garbage collection */
   public abstract void collect();
 
+  /** Perform some concurrent garbage collection */
+  public final void concurrentCollect() {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!Plan.gcInProgress());
+    if (Phase.startConcurrentPhase()) {
+      /* Can't change while we are 'in' the concurrent phase */
+      short phaseId = Phase.getConcurrentPhaseId();
+      concurrentCollectionPhase(phaseId);
+    }
+  }
+
   /**
    * Perform a (local) collection phase.
    *
@@ -155,12 +167,33 @@ import org.vmmagic.unboxed.*;
    */
   public abstract void collectionPhase(short phaseId, boolean primary);
 
+  /**
+   * Perform some concurrent collection work.
+   *
+   * @param phaseId The unique phase identifier
+   */
+  public abstract void concurrentCollectionPhase(short phaseId);
+
   /** @return The current trace instance. */
   public abstract TraceLocal getCurrentTrace();
 
   /** @return Return the current sanity checker. */
   public SanityCheckerLocal getSanityChecker() {
     return null;
+  }
+
+  /**
+   * Abort concurrent work due to pre-empt by stop the world collection.
+   */
+  protected void resetConcurrentWork() {
+    resetConcurrentWork = true;
+  }
+
+  /**
+   * Allow concurrent work to continue.
+   */
+  protected void clearResetConcurrentWork() {
+    resetConcurrentWork = false;
   }
 
   /****************************************************************************

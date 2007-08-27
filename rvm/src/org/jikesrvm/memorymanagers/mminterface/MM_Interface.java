@@ -93,6 +93,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
   @Interruptible
   public static void init() {
     VM_CollectorThread.init();
+    VM_ConcurrentCollectorThread.init();
     org.jikesrvm.mm.mmtk.Collection.init();
   }
 
@@ -962,6 +963,13 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
   @Interruptible
   public static void startGCspyServer() {
     GCspy.startGCspyServer();
+  }
+
+  /**
+   * Flush the mutator context.
+   */
+  public static void flushMutatorContext() {
+    Selected.Mutator.get().flush();
   }
 
   /***********************************************************************

@@ -380,6 +380,32 @@ public abstract class VM_Scheduler {
   }
 
   /**
+   * Suspend a concurrent worker: it will resume when the garbage collector notifies.
+   */
+  protected abstract void suspendConcurrentCollectorThreadInternal();
+
+  /**
+   * Suspend a concurrent worker: it will resume when the garbage collector notifies.
+   */
+  public static void suspendConcurrentCollectorThread() {
+    getScheduler().suspendConcurrentCollectorThreadInternal();
+  }
+
+  /**
+   * Schedule the concurrent workers that are not already running
+   * @see org.jikesrvm.mm.mmtk.Collection
+   */
+  protected abstract void scheduleConcurrentCollectorThreadsInternal();
+
+  /**
+   * Schedule the concurrent workers that are not already running
+   * @see org.jikesrvm.mm.mmtk.Collection
+   */
+  public static void scheduleConcurrentCollectorThreads() {
+    getScheduler().scheduleConcurrentCollectorThreadsInternal();
+  }
+
+  /**
    * suspend the finalizer thread: it will resume when the garbage collector
    * places objects on the finalizer queue and notifies.
    */
@@ -405,6 +431,20 @@ public abstract class VM_Scheduler {
    */
   public static void scheduleFinalizer() {
     getScheduler().scheduleFinalizerInternal();
+  }
+
+  /**
+   * Request that all mutators flush their context for gc.
+   * @see org.jikesrvm.mm.mmtk.Collection
+   */
+  protected abstract void requestMutatorFlushInternal();
+
+  /**
+   * Request that all mutators flush their context for gc.
+   * @see org.jikesrvm.mm.mmtk.Collection
+   */
+  public static void requestMutatorFlush() {
+    getScheduler().requestMutatorFlushInternal();
   }
 
   /**
