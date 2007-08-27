@@ -19,7 +19,7 @@
   <!-- in target patch-classpath-web                                -->
   <property name="classpath.version" value="95"/>
   <!-- Change this whenever you alter the patches. It will let people know classpath has changed. -->
-  <property name="classpath.patchlevel" value="1"/>
+  <property name="classpath.patchlevel" value="2"/>
   <property name="classpath.description" value="GNU Classpath"/>
 
   <property name="classpath.component.dir" location="${components.dir}/classpath"/>
@@ -34,7 +34,6 @@
 
   <!-- init properties for downloading classpath from cvs or from web -->
   <target name="init-classpath-properties" depends="prepare-ant-tasks">
-    <check-host-and-target-match message="can not download and build Classpath."/>
     <condition property="classpath.from-web" value="true">
       <and>
         <not>

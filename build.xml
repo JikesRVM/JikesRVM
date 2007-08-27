@@ -59,7 +59,6 @@
   <!-- Set the properties for directory of generated artifacts -->
   <property name="generated.dir" location="generated"/>
   <property name="generated.config.dir" location="${generated.dir}/configurations/${build.name}"/>
-  <property name="generated.config.native" location="${generated.config.dir}/native"/>
   <property name="generated.config.java" location="${generated.config.dir}/java"/>
 
   <property name="generated.java" location="${generated.dir}/main/java"/>
@@ -793,16 +792,6 @@ Check to make sure all required properties are specified. This includes properti
       </filterset>
     </copy>
 
-    <mkdir dir="${generated.config.native}"/>
-    <echo file="${generated.config.native}/RunBootImage.h">
-      const unsigned heap_default_initial_size = ${config.default-heapsize.initial}*1024*1024;
-      const unsigned heap_default_maximum_size = ${config.default-heapsize.maximum}*1024*1024;
-      const char *rvm_version = "Jikes RVM ${rvm.version} (r${svn.revision})";
-      const char *rvm_configuration = "${config.name}";
-      const char *rvm_host_configuration = "${config.file}";
-      const char *rvm_target_configuration = "${target.file}";
-    </echo>
-
   </target>
 
   <!-- Control targets for the source generation -->
@@ -1171,8 +1160,20 @@ Check to make sure all required properties are specified. This includes properti
     </javah>
   </target>
 
+  <target name="gen-runbootimage" depends="check-properties">
+    <mkdir dir="${build.native}"/>
+    <echo file="${build.native}/RunBootImage.h">
+      const unsigned heap_default_initial_size = ${config.default-heapsize.initial}*1024*1024;
+      const unsigned heap_default_maximum_size = ${config.default-heapsize.maximum}*1024*1024;
+      const char *rvm_version = "Jikes RVM ${rvm.version} (r${svn.revision})";
+      const char *rvm_configuration = "${config.name}";
+      const char *rvm_host_configuration = "${config.file}";
+      const char *rvm_target_configuration = "${target.file}";
+    </echo>
+  </target>
+
   <!-- generate all headers required when compiling bootloader -->
-  <target name="gen-booter-headers" depends="gen-jni-headers,gen-interface"/>
+  <target name="gen-booter-headers" depends="gen-jni-headers,gen-interface,gen-runbootimage"/>
 
   <!-- Setup any properties required during native compile of bootloader -->
   <target name="check-bootloader-properties" depends="setup-filter-properties">
@@ -1208,7 +1209,7 @@ Check to make sure all required properties are specified. This includes properti
     </condition>
 
     <property name="rvm.includes"
-              value="-I${bl.dir} -I${basedir}/include -I${dist.base}/include -I${generated.config.native} ${gcspy.includes.dir} ${arch.includes}"/>
+              value="-I${bl.dir} -I${basedir}/include -I${dist.base}/include ${gcspy.includes.dir} ${arch.includes}"/>
 
     <property name="rvm.defines" value="-D_REENTRANT ${filter} "/>
 

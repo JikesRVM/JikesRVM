@@ -661,23 +661,25 @@ if ($ok) {
         $build .= "&& rsync -azvLe ssh --delete $localCompCache/ $sshTarget:$targetCompCache/ ";
       }
       $build .= "&& ".
-                "ssh -t $sshTarget mkdir -p $targetRoot && ";
+                "ssh -t $sshTarget mkdir -p $targetRoot/dist && ";
       if ($hostConfig eq $targetConfig) {
         #
         # Same architecture: just copy the dist directory
         #
-        $build .= "ssh -t $sshHost rsync -avz $hostRoot/dist/$targetDir ";
-        $build .= " $sshTarget:$targetRoot/dist/ ";
+        $build .= "ssh -t $sshHost rsync -avze ssh --delete $hostRoot/dist/$targetDir/ ";
+        $build .= " $sshTarget:$targetRoot/dist/$targetDir/ ";
       } else {
         # Copy the compiled classes and boot image
         $build .= "ssh -t $sshHost '".
-                  "  rsync -avz $hostRoot/target/$targetDir ".
-                  " $sshTarget:$targetRoot/target/ &&";
+                  "  rsync -avze ssh --delete $hostRoot/target/$targetDir/ ".
+                  " $sshTarget:$targetRoot/target/$targetDir/ &&".
+                  " rsync -avze ssh --delete $hostRoot/dist/$targetDir/ ".
+                  " $sshTarget:$targetRoot/dist/$targetDir/ &&";
         $copydirs = "";
         foreach $d (@ccdirs) {
           $copydirs .= " $hostRoot/$d";
         }
-        $build .= "  rsync -avz $copydirs $sshTarget:$targetRoot/' &&";
+        $build .= "  rsync -avze ssh --delete $copydirs $sshTarget:$targetRoot/' &&";
 
         #
         # post-processing for cross-compile
@@ -690,8 +692,11 @@ if ($ok) {
 
         $build .= "  ant check-components-properties ".
                   "-Dhost.name=$targetConfig ".
-                  "-Dtarget.name=$targetConfig ".
-                  $cp_flags."&& ";
+                  "-Dtarget.name=$targetConfig ";
+        if ($compcachedir ne "") {
+          $build .= "-Dcomponents.cache.dir=$targetCompCache ";
+        }
+        $build .= $cp_flags." && ";
 
         $build .= "  ant cross-compile-target $targetdefs \"'";
       }
