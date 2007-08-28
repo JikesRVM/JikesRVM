@@ -119,9 +119,9 @@ import org.vmmagic.pragma.*;
       Phase.scheduleMutator    (PREPARE),
       Phase.scheduleGlobal     (PREPARE),
       Phase.scheduleCollector  (PREPARE),
+      Phase.scheduleComplex    (prepareStacks),
       Phase.scheduleCollector  (PRECOPY),
       Phase.scheduleCollector  (BOOTIMAGE_ROOTS),
-      Phase.scheduleComplex    (prepareStacks),
       Phase.scheduleCollector  (ROOTS),
       Phase.scheduleGlobal     (ROOTS),
       Phase.scheduleCollector  (START_CLOSURE));
