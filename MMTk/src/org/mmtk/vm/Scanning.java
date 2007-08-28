@@ -13,7 +13,7 @@
 package org.mmtk.vm;
 
 import org.mmtk.plan.TraceLocal;
-import org.mmtk.plan.TraceStep;
+import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.Constants;
 
 import org.vmmagic.pragma.Uninterruptible;
@@ -26,7 +26,7 @@ import org.vmmagic.unboxed.*;
    *
    * @param object The object to be scanned.
    */
-  public abstract void scanObject(TraceStep trace, ObjectReference object);
+  public abstract void scanObject(TransitiveClosure trace, ObjectReference object);
 
   /**
    * Delegated precopying of a object's children, processing each pointer field

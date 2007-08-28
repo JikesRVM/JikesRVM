@@ -12,7 +12,7 @@
  */
 package org.mmtk.plan.refcount.cd;
 
-import org.mmtk.plan.TraceStep;
+import org.mmtk.plan.TransitiveClosure;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -20,7 +20,8 @@ import org.vmmagic.unboxed.*;
 /**
  * This trace step is used during trial deletion processing.
  */
-@Uninterruptible public final class TrialDeletionGreyStep extends TraceStep {
+@Uninterruptible
+public final class TrialDeletionGreyStep extends TransitiveClosure {
 
   /**
    * Trace a reference during GC.
@@ -28,7 +29,7 @@ import org.vmmagic.unboxed.*;
    * @param objLoc The location containing the object reference to be
    * traced.
    */
-  public void traceObjectLocation(Address objLoc) {
+  public void processEdge(Address objLoc) {
     ObjectReference object = objLoc.loadObjectReference();
     ((TrialDeletionCollector)CDCollector.current()).enumerateGrey(object);
   }

@@ -34,8 +34,7 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.plan.Trace
  */
 @Uninterruptible
-public abstract class TraceLocal extends TraceStep
-  implements Constants {
+public abstract class TraceLocal extends TransitiveClosure implements Constants {
   /****************************************************************************
    *
    * Instance variables
@@ -81,7 +80,7 @@ public abstract class TraceLocal extends TraceStep
    * @param root True if <code>objLoc</code> is within a root.
    */
   @Inline
-  public final void traceObjectLocation(Address objLoc, boolean root) {
+  public final void processEdge(Address objLoc, boolean root) {
     ObjectReference object = objLoc.loadObjectReference();
     ObjectReference newObject = traceObject(object, root);
     objLoc.store(newObject);
@@ -97,8 +96,8 @@ public abstract class TraceLocal extends TraceStep
    * traced.  The object reference is <i>NOT</i> an interior pointer.
    */
   @Inline
-  public final void traceObjectLocation(Address objLoc) {
-    traceObjectLocation(objLoc, false);
+  public final void processEdge(Address objLoc) {
+    processEdge(objLoc, false);
   }
 
   /**
@@ -111,9 +110,7 @@ public abstract class TraceLocal extends TraceStep
    * @param root True if the reference to <code>obj</code> was held in a root.
    * @return The possibly moved interior reference.
    */
-  public final Address traceInteriorReference(ObjectReference object,
-    Address interiorRef,
-    boolean root) {
+  public final Address processInteriorEdge(ObjectReference object, Address interiorRef, boolean root) {
     Offset offset = interiorRef.diff(object.toAddress());
     ObjectReference newObject = traceObject(object, root);
     if (VM.VERIFY_ASSERTIONS) {
@@ -158,7 +155,7 @@ public abstract class TraceLocal extends TraceStep
    * @param object The object to be enqueued
    */
   @Inline
-  public final void enqueue(ObjectReference object) {
+  public final void processNode(ObjectReference object) {
     values.push(object);
   }
 
@@ -446,14 +443,14 @@ public abstract class TraceLocal extends TraceStep
     logMessage(5, "processing root locations");
     while (!rootLocations.isEmpty()) {
       Address loc = rootLocations.pop();
-      traceObjectLocation(loc, true);
+      processEdge(loc, true);
     }
     logMessage(5, "processing interior root locations");
     while (!interiorRootLocations.isEmpty()) {
       ObjectReference obj = interiorRootLocations.pop1().toObjectReference();
       Address interiorLoc = interiorRootLocations.pop2();
       Address interior = interiorLoc.loadAddress();
-      Address newInterior = traceInteriorReference(obj, interior, true);
+      Address newInterior = processInteriorEdge(obj, interior, true);
       interiorLoc.store(newInterior);
     }
     completeTrace();
@@ -513,16 +510,6 @@ public abstract class TraceLocal extends TraceStep
       Log.write("    ");
       Log.writeln(message);
     }
-  }
-
-  /**
-   * Copying traces should override this stub
-   *
-   * @return The allocator id to use when copying.
-   */
-  public int getAllocator() {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
-    return -1;
   }
 
   /**

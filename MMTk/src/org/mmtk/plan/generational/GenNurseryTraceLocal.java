@@ -83,7 +83,7 @@ import org.vmmagic.unboxed.*;
   public ObjectReference traceObject(ObjectReference object) {
     if (!object.isNull() && object.toAddress().GE(Gen.NURSERY_START)) {
       if (object.toAddress().LT(Gen.NURSERY_END))
-        return Gen.nurserySpace.traceObject(this, object);
+        return Gen.nurserySpace.traceObject(this, object, Gen.ALLOC_MATURE_MINORGC);
       else
         return Gen.ploSpace.traceObject(this, object);
     }
@@ -98,7 +98,7 @@ import org.vmmagic.unboxed.*;
     logMessage(5, "processing remset");
     while (!remset.isEmpty()) {
       Address loc = remset.pop();
-      traceObjectLocation(loc, false);
+      processEdge(loc, false);
     }
     logMessage(5, "processing array remset");
     arrayRemset.flushLocal();
@@ -106,18 +106,10 @@ import org.vmmagic.unboxed.*;
       Address start = arrayRemset.pop1();
       Address guard = arrayRemset.pop2();
       while (start.LT(guard)) {
-        traceObjectLocation(start, false);
+        processEdge(start, false);
         start = start.plus(BYTES_IN_ADDRESS);
       }
     }
-  }
-
-  /**
-   * @return The allocator to use when copying objects during this trace.
-   */
-  @Inline
-  public int getAllocator() {
-    return Gen.ALLOC_MATURE_MINORGC;
   }
 
   /**

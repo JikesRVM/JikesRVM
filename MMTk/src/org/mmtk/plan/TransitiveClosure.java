@@ -12,8 +12,7 @@
  */
 package org.mmtk.plan;
 
-import org.mmtk.utility.Constants;
-
+import org.mmtk.vm.VM;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
@@ -21,15 +20,28 @@ import org.vmmagic.unboxed.*;
  * This abstract class is the fundamental mechanism for performing a
  * transitive closure over an object graph.<p>
  *
+ * Some mechanisms only operate on nodes or edges, but due to limitations
+ * of inheritance we have combined these two here.
+ *
  * @see org.mmtk.plan.TraceLocal
  */
-@Uninterruptible public abstract class TraceStep implements Constants {
+@Uninterruptible
+public abstract class TransitiveClosure {
+  /**
+   * Trace an edge during GC.
+   *
+   * @param objLoc The location containing the object reference.
+   */
+  public void processEdge(Address objLoc) {
+    VM.assertions.fail("processEdge not implemented.");
+  }
 
   /**
-   * Trace a reference during GC.
+   * Trace a node during GC.
    *
-   * @param objLoc The location containing the object reference to be
-   * traced.
+   * @param object The object to be processed.
    */
-  public abstract void traceObjectLocation(Address objLoc);
+  public void processNode(ObjectReference object) {
+    VM.assertions.fail("processNode not implemented.");
+  }
 }

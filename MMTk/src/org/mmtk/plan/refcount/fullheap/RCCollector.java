@@ -80,7 +80,7 @@ import org.vmmagic.pragma.*;
   }
 
   /** @return The current modified object processor. */
-  public final TraceStep getModifiedProcessor() {
+  public final TransitiveClosure getModifiedProcessor() {
     return modProcessor;
   }
 }

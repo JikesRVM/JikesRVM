@@ -12,6 +12,7 @@
  */
 package org.mmtk.plan.generational.copying;
 
+import org.mmtk.plan.generational.Gen;
 import org.mmtk.plan.generational.GenCollector;
 import org.mmtk.plan.generational.GenMatureTraceLocal;
 import org.mmtk.plan.Trace;
@@ -55,9 +56,9 @@ import org.vmmagic.unboxed.*;
     if (object.isNull()) return object;
 
     if (Space.isInSpace(GenCopy.MS0, object))
-      return GenCopy.matureSpace0.traceObject(this, object);
+      return GenCopy.matureSpace0.traceObject(this, object, Gen.ALLOC_MATURE_MAJORGC);
     if (Space.isInSpace(GenCopy.MS1, object))
-      return GenCopy.matureSpace1.traceObject(this, object);
+      return GenCopy.matureSpace1.traceObject(this, object, Gen.ALLOC_MATURE_MAJORGC);
     return super.traceObject(object);
   }
 

@@ -88,7 +88,7 @@ import org.vmmagic.unboxed.*;
         // Currently, Jikes RVM does not require many objects to be precopied.
         ObjectReference newObject = VM.objectModel.copy(object, MC.ALLOC_IMMORTAL);
         MarkCompactSpace.setForwardingPointer(object, newObject);
-        enqueue(newObject);
+        processNode(newObject);
         return newObject;
       }
       // Somebody else got to it first

@@ -149,7 +149,7 @@ import org.vmmagic.unboxed.*;
 
     if (SanityDataTable.incRC(tableEntry, root)) {
       SanityChecker.liveObjectCount++;
-      trace.enqueue(object);
+      trace.processNode(object);
     }
   }
 

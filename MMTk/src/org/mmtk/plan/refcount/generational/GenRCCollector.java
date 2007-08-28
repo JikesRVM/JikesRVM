@@ -13,7 +13,7 @@
 package org.mmtk.plan.refcount.generational;
 
 import org.mmtk.plan.TraceLocal;
-import org.mmtk.plan.TraceStep;
+import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.plan.refcount.RCBaseCollector;
 import org.mmtk.plan.refcount.RCHeader;
 import org.mmtk.policy.CopySpace;
@@ -155,7 +155,7 @@ implements Constants {
   }
 
   /** @return The current modified object processor. */
-  public final TraceStep getModifiedProcessor() {
+  public final TransitiveClosure getModifiedProcessor() {
     return modProcessor;
   }
 }

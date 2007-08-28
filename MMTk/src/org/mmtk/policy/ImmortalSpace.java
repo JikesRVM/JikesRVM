@@ -13,7 +13,7 @@
 package org.mmtk.policy;
 
 import org.mmtk.plan.Plan;
-import org.mmtk.plan.TraceLocal;
+import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.heap.MonotonePageResource;
 import org.mmtk.utility.Constants;
 
@@ -197,10 +197,9 @@ import org.vmmagic.pragma.*;
    * @param object The object to be traced.
    */
   @Inline
-  public ObjectReference traceObject(TraceLocal trace,
-                                           ObjectReference object) {
+  public ObjectReference traceObject(TransitiveClosure trace, ObjectReference object) {
     if (testAndMark(object, markState))
-      trace.enqueue(object);
+      trace.processNode(object);
     return object;
   }
 

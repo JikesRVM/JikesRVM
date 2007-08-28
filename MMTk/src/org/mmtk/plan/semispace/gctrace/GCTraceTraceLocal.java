@@ -150,9 +150,9 @@ import org.vmmagic.pragma.*;
   public ObjectReference getForwardedReference(ObjectReference object) {
     if (object.isNull()) return object;
     if (SS.hi && Space.isInSpace(SS.SS0, object)) {
-      return SS.copySpace0.traceObject(this, object);
+      return SS.copySpace0.traceObject(this, object, GCTrace.ALLOC_SS);
     } else if (!SS.hi && Space.isInSpace(SS.SS1, object)) {
-      return SS.copySpace1.traceObject(this, object);
+      return SS.copySpace1.traceObject(this, object, GCTrace.ALLOC_SS);
     }
     return object;
   }

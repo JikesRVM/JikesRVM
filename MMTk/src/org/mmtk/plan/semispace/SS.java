@@ -68,7 +68,7 @@ public class SS extends StopTheWorld {
   /**
    * Class variables
    */
-  protected static final int ALLOC_SS = Plan.ALLOC_DEFAULT;
+  public static final int ALLOC_SS = Plan.ALLOC_DEFAULT;
 
   /**
    * Class initializer.  This is executed <i>prior</i> to bootstrap

@@ -12,7 +12,7 @@
  */
 package org.mmtk.policy;
 
-import org.mmtk.plan.TraceLocal;
+import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.options.MarkSweepMarkBits;
@@ -242,16 +242,15 @@ import org.vmmagic.unboxed.*;
    * void method but for compliance to a more general interface).
    */
   @Inline
-  public ObjectReference traceObject(TraceLocal trace,
-                                           ObjectReference object) {
+  public ObjectReference traceObject(TransitiveClosure trace, ObjectReference object) {
     if (MarkSweepLocal.HEADER_MARK_BITS) {
       if (testAndMark(object, markState)) {
         MarkSweepLocal.liveBlock(object);
-        trace.enqueue(object);
+        trace.processNode(object);
       }
     } else {
       if (MarkSweepLocal.liveObject(object)) {
-        trace.enqueue(object);
+        trace.processNode(object);
       }
     }
     return object;

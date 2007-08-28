@@ -67,9 +67,9 @@ import org.vmmagic.unboxed.*;
   public ObjectReference traceObject(ObjectReference object) {
     if (object.isNull()) return object;
     if (Space.isInSpace(SS.SS0, object))
-      return SS.copySpace0.traceObject(this, object);
+      return SS.copySpace0.traceObject(this, object, SS.ALLOC_SS);
     if (Space.isInSpace(SS.SS1, object))
-      return SS.copySpace1.traceObject(this, object);
+      return SS.copySpace1.traceObject(this, object, SS.ALLOC_SS);
     return super.traceObject(object);
   }
 
@@ -83,9 +83,9 @@ import org.vmmagic.unboxed.*;
   public ObjectReference precopyObject(ObjectReference object) {
     if (object.isNull()) return object;
     if (Space.isInSpace(SS.SS0, object))
-      return SS.copySpace0.traceObject(this, object);
+      return SS.copySpace0.traceObject(this, object, SS.ALLOC_SS);
     if (Space.isInSpace(SS.SS1, object))
-      return SS.copySpace1.traceObject(this, object);
+      return SS.copySpace1.traceObject(this, object, SS.ALLOC_SS);
     return object;
   }
 
@@ -98,13 +98,5 @@ import org.vmmagic.unboxed.*;
   public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     return (SS.hi && !Space.isInSpace(SS.SS0, object)) ||
            (!SS.hi && !Space.isInSpace(SS.SS1, object));
-  }
-
-  /**
-   * @return The allocator to use when copying during the trace.
-   */
-  @Inline
-  public final int getAllocator() {
-    return SS.ALLOC_SS;
   }
 }

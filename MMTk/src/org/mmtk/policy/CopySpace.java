@@ -13,6 +13,7 @@
 package org.mmtk.policy;
 
 import org.mmtk.plan.TraceLocal;
+import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Constants;
 
@@ -237,7 +238,28 @@ import org.vmmagic.pragma.*;
    * @return The forwarded object.
    */
   @Inline
-  public ObjectReference traceObject(TraceLocal trace, ObjectReference object) {
+  public ObjectReference traceObject(TransitiveClosure trace, ObjectReference object) {
+    VM.assertions.fail("CopySpace.traceLocal called without allocator");
+    return ObjectReference.nullReference();
+  }
+
+  /**
+   * Trace an object under a copying collection policy.
+   *
+   * We use a tri-state algorithm to deal with races to forward
+   * the object.  The tracer must wait if the object is concurrently
+   * being forwarded by another thread.
+   *
+   * If the object is already forwarded, the copy is returned.
+   * Otherwise, the object is forwarded and the copy is returned.
+   *
+   * @param trace The trace being conducted.
+   * @param object The object to be forwarded.
+   * @param allocator The allocator to use when copying.
+   * @return The forwarded object.
+   */
+  @Inline
+  public ObjectReference traceObject(TransitiveClosure trace, ObjectReference object, int allocator) {
     /* If the object in question is already in to-space, then do nothing */
     if (!fromSpace) return object;
 
@@ -256,9 +278,9 @@ import org.vmmagic.pragma.*;
     } else {
       /* We are the designated copier, so forward it and enqueue it */
 
-      ObjectReference newObject = VM.objectModel.copy(object, trace.getAllocator());
+      ObjectReference newObject = VM.objectModel.copy(object, allocator);
       setForwardingPointer(object, newObject);
-      trace.enqueue(newObject); // Scan it later
+      trace.processNode(newObject); // Scan it later
 
       return newObject;
     }
@@ -301,7 +323,7 @@ import org.vmmagic.pragma.*;
   public static void markObject(TraceLocal trace, ObjectReference object,
       Word markState) {
     if (testAndMark(object, markState))
-      trace.enqueue(object);
+      trace.processNode(object);
   }
 
   /****************************************************************************

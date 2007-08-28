@@ -13,7 +13,7 @@
 package org.mmtk.utility.scan;
 
 import org.mmtk.plan.TraceLocal;
-import org.mmtk.plan.TraceStep;
+import org.mmtk.plan.TransitiveClosure;
 
 import org.mmtk.vm.VM;
 
@@ -31,14 +31,14 @@ import org.vmmagic.pragma.*;
    * @param object The object to be scanned.
    */
   @Inline
-  public static void scanObject(TraceStep trace,
+  public static void scanObject(TransitiveClosure trace,
                                 ObjectReference object) {
     MMType type = VM.objectModel.getObjectType(object);
     if (!type.isDelegated()) {
       int references = type.getReferences(object);
       for (int i = 0; i < references; i++) {
         Address slot = type.getSlot(object, i);
-        trace.traceObjectLocation(slot);
+        trace.processEdge(slot);
       }
     } else
       VM.scanning.scanObject(trace, object);

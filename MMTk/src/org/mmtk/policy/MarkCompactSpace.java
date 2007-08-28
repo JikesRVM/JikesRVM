@@ -13,6 +13,7 @@
 package org.mmtk.policy;
 
 import org.mmtk.plan.TraceLocal;
+import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Constants;
 
@@ -124,7 +125,7 @@ import org.vmmagic.pragma.*;
    * @return The forwarded object.
    */
   @Inline
-  public ObjectReference traceObject(TraceLocal trace, ObjectReference object) {
+  public ObjectReference traceObject(TransitiveClosure trace, ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(false);
     return null;
@@ -143,7 +144,7 @@ import org.vmmagic.pragma.*;
   @Inline
   public ObjectReference traceMarkObject(TraceLocal trace, ObjectReference object) {
     if (testAndMark(object)) {
-      trace.enqueue(object);
+      trace.processNode(object);
     } else if (!getForwardingPointer(object).isNull()) {
       return getForwardingPointer(object);
     }
@@ -163,7 +164,7 @@ import org.vmmagic.pragma.*;
   @Inline
   public ObjectReference traceForwardObject(TraceLocal trace, ObjectReference object) {
     if (testAndClearMark(object)) {
-      trace.enqueue(object);
+      trace.processNode(object);
     }
     ObjectReference newObject = getForwardingPointer(object);
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!newObject.isNull());

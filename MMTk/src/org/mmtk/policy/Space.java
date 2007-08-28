@@ -13,7 +13,7 @@
 package org.mmtk.policy;
 
 import org.mmtk.plan.Plan;
-import org.mmtk.plan.TraceLocal;
+import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.heap.Map;
 import org.mmtk.utility.heap.Mmapper;
 import org.mmtk.utility.heap.PageResource;
@@ -635,8 +635,7 @@ import org.vmmagic.unboxed.*;
    * @param object The object to trace
    * @return The object, forwarded, if appropriate
    */
-  public abstract ObjectReference traceObject(TraceLocal trace,
-      ObjectReference object);
+  public abstract ObjectReference traceObject(TransitiveClosure trace, ObjectReference object);
 
 
   /**

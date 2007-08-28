@@ -13,7 +13,7 @@
 package org.jikesrvm.mm.mmtk;
 
 import org.mmtk.plan.TraceLocal;
-import org.mmtk.plan.TraceStep;
+import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.scan.Scan;
 import org.mmtk.utility.Constants;
 
@@ -46,7 +46,7 @@ import org.vmmagic.pragma.*;
    */
   @Inline
   @Uninterruptible
-  public final void scanObject(TraceStep trace, ObjectReference object) {
+  public final void scanObject(TransitiveClosure trace, ObjectReference object) {
     // Never reached
     if (VM.VerifyAssertions) VM._assert(false);
   }

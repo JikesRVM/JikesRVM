@@ -12,7 +12,7 @@
  */
 package org.mmtk.policy;
 
-import org.mmtk.plan.TraceLocal;
+import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.alloc.LargeObjectAllocator;
 import org.mmtk.utility.heap.FreeListPageResource;
 import org.mmtk.utility.DoublyLinkedList;
@@ -247,13 +247,12 @@ import org.vmmagic.unboxed.*;
    * void method but for compliance to a more general interface).
    */
   @Inline
-  public ObjectReference traceObject(TraceLocal trace,
-      ObjectReference object) {
+  public ObjectReference traceObject(TransitiveClosure trace, ObjectReference object) {
     boolean nurseryObject = isInNursery(object);
     if (!inNurseryGC || nurseryObject) {
       if (testAndMark(object, markState)) {
         internalMarkObject(object, nurseryObject);
-        trace.enqueue(object);
+        trace.processNode(object);
       }
     }
     return object;

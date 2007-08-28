@@ -12,7 +12,7 @@
  */
 package org.mmtk.policy;
 
-import org.mmtk.plan.TraceLocal;
+import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.heap.FreeListPageResource;
 import org.mmtk.utility.Constants;
 
@@ -111,8 +111,7 @@ import org.vmmagic.unboxed.*;
    * @return <code>zero</code>: calling this is an error.
    */
   @Inline
-  public ObjectReference traceObject(TraceLocal trace,
-                                           ObjectReference object) {
+  public ObjectReference traceObject(TransitiveClosure trace, ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     return ObjectReference.nullReference();
   }

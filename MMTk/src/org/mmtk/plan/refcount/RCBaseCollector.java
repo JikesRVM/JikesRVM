@@ -195,7 +195,7 @@ import org.vmmagic.unboxed.*;
    * Process the modified object buffers.
    */
   public void processModBuffer() {
-    TraceStep modProcessor = getModifiedProcessor();
+    TransitiveClosure modProcessor = getModifiedProcessor();
     ObjectReference current;
     while (!(current = modBuffer.pop()).isNull()) {
       RCHeader.makeUnlogged(current);
@@ -220,7 +220,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /** @return The TraceStep to use when processing modified objects. */
-  protected abstract TraceStep getModifiedProcessor();
+  protected abstract TransitiveClosure getModifiedProcessor();
 
   /** @return The active cycle detector instance */
   @Inline

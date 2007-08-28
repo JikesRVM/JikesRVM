@@ -12,7 +12,7 @@
  */
 package org.mmtk.utility.deque;
 
-import org.mmtk.plan.TraceStep;
+import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.scan.Scan;
 
@@ -23,9 +23,10 @@ import org.vmmagic.unboxed.*;
  * This class is a combination of a Deque and a TraceStep, designed to include
  * intelligent processing of child references as objects are scanned.
  *
- * @see org.mmtk.plan.TraceStep
+ * @see org.mmtk.plan.TransitiveClosure
  */
-@Uninterruptible public abstract class ObjectReferenceBuffer extends TraceStep implements Constants {
+@Uninterruptible
+public abstract class ObjectReferenceBuffer extends TransitiveClosure implements Constants {
   /****************************************************************************
    *
    * Instance variables
@@ -54,7 +55,7 @@ import org.vmmagic.unboxed.*;
    * @param loc The location containing the object reference to process.
    */
   @Inline
-  public final void traceObjectLocation(Address loc) {
+  public final void processEdge(Address loc) {
     ObjectReference object = loc.loadObjectReference();
     process(object);
   }

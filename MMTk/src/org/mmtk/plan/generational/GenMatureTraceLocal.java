@@ -102,21 +102,11 @@ import org.vmmagic.pragma.*;
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
     if (object.toAddress().GE(Gen.NURSERY_START)) {
       if (object.toAddress().LT(Gen.NURSERY_END))
-      return Gen.nurserySpace.traceObject(this, object);
+        return Gen.nurserySpace.traceObject(this, object, Gen.ALLOC_MATURE_MAJORGC);
       else
         return Gen.ploSpace.traceObject(this, object);
     }
     return super.traceObject(object);
-  }
-
-  /**
-   * Where do we send copied objects ?
-   *
-   * @return The allocator for copied objects
-   */
-  @Inline
-  public final int getAllocator() {
-    return Gen.ALLOC_MATURE_MAJORGC;
   }
 
   /**
