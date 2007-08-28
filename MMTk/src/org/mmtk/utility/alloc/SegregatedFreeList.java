@@ -223,8 +223,7 @@ import org.vmmagic.unboxed.*;
    *         contiguous bytes of zerod memory.
    */
   @NoInline
-  public final Address allocSlowOnce(int bytes, int align, int offset,
-      boolean inGC) {
+  public final Address allocSlowOnce(int bytes, int align, int offset, boolean inGC) {
     Address cell = allocFast(bytes, align, offset, inGC);
     if (!cell.isZero())
       return cell;
@@ -241,7 +240,7 @@ import org.vmmagic.unboxed.*;
       // find a free list which is not empty
       current = BlockAllocator.getNextBlock(current);
       while (!current.isZero()) {
-        cell = advanceToBlock(current, sizeClass);
+        cell = advanceToBlock(current, sizeClass, inGC);
         if (!cell.isZero()) {
           // this block has at least one free cell, so use it
           currentBlock.set(sizeClass, current);
@@ -253,7 +252,7 @@ import org.vmmagic.unboxed.*;
       }
     }
 
-    cell = expandSizeClass(sizeClass);
+    cell = expandSizeClass(sizeClass, inGC);
     if (cell.isZero())
       return Address.zero();
 
@@ -271,17 +270,18 @@ import org.vmmagic.unboxed.*;
    * <b>This is guaranteed to return pre-zeroed cells</b>
    *
    * @param sizeClass The size class to be expanded
+   * @param inGC Is this space currently being collected
    * @return The address of the first available cell in the newly
    * allocated block of pre-zeroed cells, or return zero if there were
    *         insufficient resources to allocate a new block.
    */
   @Inline
-  private Address expandSizeClass(int sizeClass) {
+  private Address expandSizeClass(int sizeClass, boolean inGC) {
     Address block = blockAllocator.alloc(blockSizeClass[sizeClass]);
     if (block.isZero())
       return Address.zero();
 
-    notifyNewBlock(block, sizeClass);
+    notifyNewBlock(block, sizeClass, inGC);
     installNewBlock(block, sizeClass);
 
     int cellExtent = cellSize[sizeClass];
@@ -517,15 +517,16 @@ import org.vmmagic.unboxed.*;
 
   protected abstract boolean maintainSideBitmap();
   protected abstract boolean preserveFreeList();
-  protected abstract Address advanceToBlock(Address block, int sizeClass);
+  protected abstract Address advanceToBlock(Address block, int sizeClass, boolean inGC);
 
   /**
    * Notify that a new block has been installed.
    *
    * @param block The new block
    * @param sizeClass The block's sizeclass.
+   * @param inGC Is this space currently being collected.
    */
-  protected void notifyNewBlock(Address block, int sizeClass) {}
+  protected void notifyNewBlock(Address block, int sizeClass, boolean inGC) {}
 
   /**
    * Should the sweep reclaim the cell containing this object. Is this object
@@ -573,7 +574,7 @@ import org.vmmagic.unboxed.*;
       } else if (preserveFreeList()) {
         freeList.set(sizeClass, getFreeList(block));
       } else
-        freeList.set(sizeClass, advanceToBlock(block, sizeClass));
+        freeList.set(sizeClass, advanceToBlock(block, sizeClass, true));
     }
   }
 

@@ -44,8 +44,8 @@ import org.vmmagic.pragma.*;
  * @see SegregatedFreeList
  * @see MarkSweepSpace
  */
-@Uninterruptible public final class MarkSweepLocal extends SegregatedFreeList
-  implements Constants {
+@Uninterruptible
+public final class MarkSweepLocal extends SegregatedFreeList implements Constants {
 
   /****************************************************************************
    *
@@ -154,12 +154,13 @@ import org.vmmagic.pragma.*;
    *
    * @param block The block to be prepared for use
    * @param sizeClass The size class of the block
+   * @param inGC Is this space currently being collected
    * @return The address of the first pre-zeroed cell in the free list
    * for this block, or zero if there are no available cells.
    */
-  protected Address advanceToBlock(Address block, int sizeClass) {
+  protected Address advanceToBlock(Address block, int sizeClass, boolean inGC) {
     if (HEADER_MARK_BITS) {
-      MarkSweepLocal.liveBlock(block);
+      if (inGC) MarkSweepLocal.liveBlock(block);
     }
 
     if (LAZY_SWEEP)
@@ -175,9 +176,9 @@ import org.vmmagic.pragma.*;
    * @param block The new block
    * @param sizeClass The block's sizeclass.
    */
-  protected void notifyNewBlock(Address block, int sizeClass) {
+  protected void notifyNewBlock(Address block, int sizeClass, boolean inGC) {
     if (HEADER_MARK_BITS) {
-      MarkSweepLocal.liveBlock(block);
+      if (inGC) MarkSweepLocal.liveBlock(block);
     }
   }
 

@@ -231,8 +231,7 @@ import org.vmmagic.pragma.*;
    * @return The start address of the region, or zero if allocation fails
    */
   @Inline
-  public final Address allocSlowInline(int bytes, int alignment, int offset,
-      boolean inGC) {
+  public final Address allocSlowInline(int bytes, int alignment, int offset, boolean inGC) {
     int gcCountStart = Stats.gcCount();
     Allocator current = this;
     for (int i = 0; i < Plan.MAX_COLLECTION_ATTEMPTS; i++) {
