@@ -132,7 +132,14 @@
 
   <!-- Macro outputting the start of test. Uses propertys set by rvm macro. See rvm macro for details -->
   <macrodef name="outputTestStart">
-    <attribute name="name" default=""/>
+    <attribute name="tag"/>
+    <sequential>
+      <outputMultiInvocationTestStart tag="@{tag}"/>
+      <outputInvocationStart tag="@{tag}" invocation="1"/>
+    </sequential>
+  </macrodef>
+
+  <macrodef name="outputMultiInvocationTestStart">
     <attribute name="tag"/>
     <sequential>
       <res><![CDATA[
@@ -150,11 +157,27 @@
     <parameter key="processors" value='${test.@{tag}.processors}'/>
     <parameter key="max.opt.level" value='${test.@{tag}.max.opt.level}'/>
   </rvm-parameters>
-  <exit-code>${test.@{tag}.exit.code}</exit-code>
-  <time>${test.@{tag}.time.duration}</time>
 ]]></res>
     </sequential>
   </macrodef>
+
+  <macrodef name="outputInvocationStart">
+    <attribute name="tag"/>
+    <attribute name="invocation"/>
+    <sequential>
+      <if>
+        <conditions>
+          <isset property="${test.with-invocations}"/>
+        </conditions>
+        <sequential>
+          <res><![CDATA[<invocation number="@{invocation}">]]></res>
+        </sequential>
+      </if>
+<res><![CDATA[  <exit-code>${test.@{tag}.@{invocation}.exit.code}</exit-code>
+  <time>${test.@{tag}.@{invocation}.time.duration}</time>
+]]></res>
+    </sequential>
+  </macrodef>  
 
   <macrodef name="outputStatistic">
     <attribute name="key"/>
@@ -183,15 +206,16 @@
   -->
   <macrodef name="extractStatistic">
     <attribute name="tag"/>
+    <attribute name="invocation" default="1"/>
     <attribute name="pattern"/>
     <attribute name="key"/>
     <attribute name="select" default="\1"/>
     <attribute name="file" default=""/>
     <sequential>
-      <findStatistic tag="@{tag}" pattern="@{pattern}" key="@{key}" select="@{select}" file="@{file}"/>
+      <findStatistic tag="@{tag}" invocation="@{invocation}" pattern="@{pattern}" key="@{key}" select="@{select}" file="@{file}"/>
       <!-- set property if it has not been set -->
-      <property name="test.@{tag}.statistic.@{key}" value=""/>
-      <outputStatistic key="@{key}" value="${test.@{tag}.statistic.@{key}}"/>
+      <property name="test.@{tag}.@{invocation}.statistic.@{key}" value=""/>
+      <outputStatistic key="@{key}" value="${test.@{tag}.@{invocation}.statistic.@{key}}"/>
     </sequential>
   </macrodef>
 
@@ -200,19 +224,20 @@
   -->
   <macrodef name="extractMMTkStatistics">
     <attribute name="tag"/>
+    <attribute name="invocation" default="1"/>
     <attribute name="statistics"/>
     <sequential>
-      <exec executable="${extractmmtkstats.exe}" failonerror="false" resultproperty="test.@{tag}.mmtkstats.exit.code">
-        <arg value="${test.@{tag}.sanitized.output.file}"/>
+      <exec executable="${extractmmtkstats.exe}" failonerror="false" resultproperty="test.@{tag}.@{invocation}.mmtkstats.exit.code">
+        <arg value="${test.@{tag}.@{invocation}.sanitized.output.file}"/>
         <arg value="${results.file}"/>
         <arg line="@{statistics}"/>
       </exec>
-      <condition property="test.@{tag}.result" value="FAILURE">
+      <condition property="test.@{tag}.@{invocation}.result" value="FAILURE">
         <not>
-          <equals arg1="${test.@{tag}.mmtkstats.exit.code}" arg2="0"/>
+          <equals arg1="${test.@{tag}.@{invocation}.mmtkstats.exit.code}" arg2="0"/>
         </not>
       </condition>
-      <explainResult tag="@{tag}" message="Could not extract MMTk statistics."/>
+      <explainResult tag="@{tag}" invocation="@{invocation}" message="Could not extract MMTk statistics."/>
     </sequential>
   </macrodef>
 
@@ -221,39 +246,48 @@
   -->
   <macrodef name="findStatistic">
     <attribute name="tag"/>
+    <attribute name="invocation" default="1"/>
     <attribute name="pattern"/>
     <attribute name="key"/>
     <attribute name="select" default="\0"/>
     <attribute name="file" default=""/>
     <sequential>
-      <condition property="test.@{tag}.@{key}.input.file"
-                 value="${test.@{tag}.sanitized.output.file}"
+      <condition property="test.@{tag}.@{invocation}.@{key}.input.file"
+                 value="${test.@{tag}.@{invocation}.sanitized.output.file}"
                  else="@{file}">
         <equals arg1="@{file}" arg2=""/>
       </condition>
-      <selectRegex property="test.@{tag}.statistic.@{key}"
+      <selectRegex property="test.@{tag}.@{invocation}.statistic.@{key}"
                    select="@{select}"
-                   file="${test.@{tag}.@{key}.input.file}"
+                   file="${test.@{tag}.@{invocation}.@{key}.input.file}"
                    pattern="@{pattern}"/>
-      <condition property="test.@{tag}.result" value="FAILURE">
+      <condition property="test.@{tag}.@{invocation}.result" value="FAILURE">
         <not>
-          <isset property="test.@{tag}.statistic.@{key}"/>
+          <isset property="test.@{tag}.@{invocation}.statistic.@{key}"/>
         </not>
       </condition>
-      <explainResult tag="@{tag}" message="Failed to extract @{key} using pattern @{pattern}"/>
+      <explainResult tag="@{tag}" invocation="@{invocation}" message="Failed to extract @{key} using pattern @{pattern}"/>
     </sequential>
   </macrodef>
 
   <macrodef name="outputTestResults">
     <attribute name="tag"/>
     <sequential>
+      <outputInvocationResults tag="@{tag}" invocation="1"/>
+    </sequential>
+  </macrodef>
+      
+  <macrodef name="outputInvocationResults">
+    <attribute name="tag"/>
+    <attribute name="invocation"/>
+    <sequential>
       <!-- set results to success if not already set fo failure -->
-      <property name="test.@{tag}.result" value="SUCCESS"/>
-      <property name="test.@{tag}.result.explanation" value=""/>
-      <res><![CDATA[<result>${test.@{tag}.result}</result>]]></res>
-      <res><![CDATA[<result-explanation>${test.@{tag}.result.explanation}</result-explanation>]]></res>
+      <property name="test.@{tag}.@{invocation}.result" value="SUCCESS"/>
+      <property name="test.@{tag}.@{invocation}.result.explanation" value=""/>
+      <res><![CDATA[<result>${test.@{tag}.@{invocation}.result}</result>]]></res>
+      <res><![CDATA[<result-explanation>${test.@{tag}.@{invocation}.result.explanation}</result-explanation>]]></res>
       <res><![CDATA[<output><]]>![CDATA[</res>
-      <toAscii src="${test.@{tag}.output.file}" dest="${build.tests.dir}/deleteme.txt"/>
+      <toAscii src="${test.@{tag}.@{invocation}.output.file}" dest="${build.tests.dir}/deleteme.txt"/>
       <!-- truncate output to 500K -->
       <truncate file="${build.tests.dir}/deleteme.txt" size="502000"/>
       <replace file="${build.tests.dir}/deleteme.txt" token="]]&gt;" value="]]&gt;]]&lt;![CDATA[&gt;"/>
@@ -266,28 +300,57 @@
 
   <macrodef name="outputTestEnd">
     <sequential>
+      <outputInvocationEnd/>
+      <outputMultiInvocationTestEnd/>
+    </sequential>
+  </macrodef>
+
+  <macrodef name="outputMultiInvocationTestEnd">
+    <sequential>
       <res><![CDATA[</test>]]></res>
+    </sequential>
+  </macrodef>
+
+  <macrodef name="outputInvocationEnd">
+    <sequential>
+      <if>
+        <conditions>
+          <isset property="${test.with-invocations}"/>
+        </conditions>
+        <sequential>
+          <res><![CDATA[</invocation>]]></res>
+        </sequential>
+      </if>
     </sequential>
   </macrodef>
 
   <macrodef name="displayTestResults">
     <attribute name="tag"/>
     <sequential>
+      <displayInvocationResults tag="@{tag}" invocation="1"/>
+    </sequential>
+  </macrodef>
+
+  <macrodef name="displayInvocationResults">
+    <attribute name="tag"/>
+    <attribute name="invocation"/>
+    <sequential>
       <echo
-          message="Test Result for [${config.name}|${test.group.name}] @{tag} : ${test.@{tag}.result} ${test.@{tag}.result.explanation}"/>
+          message="Test Result for [${config.name}|${test.group.name}] @{tag} (@{invocation}) : ${test.@{tag}.@{invocation}.result} ${test.@{tag}.@{invocation}.result.explanation}"/>
     </sequential>
   </macrodef>
 
   <!-- Macro that sets explanation for result if set and not a success -->
   <macrodef name="explainResult">
     <attribute name="tag"/>
+    <attribute name="invocation" default="1"/>
     <attribute name="message"/>
     <sequential>
-      <condition property="test.@{tag}.result.explanation" value="@{message}">
+      <condition property="test.@{tag}.@{invocation}.result.explanation" value="@{message}">
         <and>
-          <isset property="test.@{tag}.result"/>
+          <isset property="test.@{tag}.@{invocation}.result"/>
           <not>
-            <equals arg1="test.@{tag}.result" arg2="SUCCESS"/>
+            <equals arg1="test.@{tag}.@{invocation}.result" arg2="SUCCESS"/>
           </not>
         </and>
       </condition>
@@ -378,6 +441,38 @@
     <attribute name="dir" default="${build.tests.dir}"/>
     <attribute name="requires-display" default="false"/>
     <sequential>
+      <prepareRvm tag="@{tag}"
+                  class="@{class}"
+                  args="@{args}"
+                  classpath="@{classpath}"
+                  processors="@{processors}"
+                  initialHeapSize="@{initialHeapSize}"
+                  maxHeapSize="@{maxHeapSize}"
+                  rvmArgs="@{rvmArgs}"
+                  timeLimit="@{timeLimit}"
+                  maxOptLevel="@{maxOptLevel}"
+                  exitCode="@{exitCode}"
+                  dir="@{dir}"
+                  requires-display="@{requires-display}"/>
+      <invokeRvm tag="@{tag}"/>
+    </sequential>
+  </macrodef>
+
+  <macrodef name="prepareRvm">
+    <attribute name="tag" default=""/>
+    <attribute name="class"/>
+    <attribute name="args" default=""/>
+    <attribute name="classpath" default=""/>
+    <attribute name="processors" default=""/>
+    <attribute name="initialHeapSize" default=""/>
+    <attribute name="maxHeapSize" default=""/>
+    <attribute name="rvmArgs" default=""/>
+    <attribute name="timeLimit" default=""/>
+    <attribute name="maxOptLevel" default=""/>
+    <attribute name="exitCode" default="0"/>
+    <attribute name="dir" default="${build.tests.dir}"/>
+    <attribute name="requires-display" default="false"/>
+    <sequential>
       <condition property="default.test.@{tag}.classpath" value="${test.class.path}" else="@{classpath}">
         <equals arg1="@{classpath}" arg2=""/>
       </condition>
@@ -418,9 +513,7 @@
       <property name="test.@{tag}.class" value="@{class}"/>
       <property name="test.@{tag}.args" value="@{args}"/>
       <property name="test.@{tag}.dir" value="@{dir}"/>
-
-      <property name="test.@{tag}.output.file" value="${output.dir}/@{tag}-output.txt"/>
-      <property name="test.@{tag}.sanitized.output.file" value="${output.dir}/@{tag}.txt"/>
+      <property name="test.@{tag}.expected.exit.code" value="@{exitCode}"/>
 
       <!-- Do we need a display wrapper ? -->
       <if>
@@ -441,18 +534,29 @@
 
       <property name="test.@{tag}.command"
                 value='${rvm.exe} ${test.@{tag}.rvm.args} -classpath "${test.@{tag}.class.path}" ${test.@{tag}.class} ${test.@{tag}.args}'/>
+    </sequential>
+  </macrodef>
+
+  <macrodef name="invokeRvm">
+    <attribute name="tag" default=""/>
+    <attribute name="invocation" default="1"/>
+    <sequential>
+      <property name="test.@{tag}.@{invocation}.output.file" value="${output.dir}/@{tag}.@{invocation}-output.txt"/>
+      <property name="test.@{tag}.@{invocation}.sanitized.output.file" value="${output.dir}/@{tag}.@{invocation}.txt"/>
+
       <if>
         <conditions>
           <equals arg1="${test.@{tag}.exclude}" arg2="true"/>
         </conditions>
         <sequential>
           <!-- If excluded then record result -->
-          <property name="test.@{tag}.result" value="EXCLUDED"/>
-          <explainResult tag="@{tag}" message="Test excluded."/>
-          <touch file="${test.@{tag}.output.file}"/>
+          <property name="test.@{tag}.@{invocation}.result" value="EXCLUDED"/>
+          <explainResult tag="@{tag}" invocation="@{invocation}" message="Test excluded."/>
+          <touch file="${test.@{tag}.@{invocation}.output.file}"/>
         </sequential>
       </if>
-      <timer property="test.@{tag}.time"/>
+
+      <timer property="test.@{tag}.@{invocation}.time"/>
       <if>
         <conditions>
           <not>
@@ -462,9 +566,9 @@
         <sequential>
           <exec executable="${test.@{tag}.rvm-wrapper.exe}"
                  failonerror="false"
-                 dir="@{dir}"
-                 output="${test.@{tag}.output.file}"
-                 resultproperty="test.@{tag}.exit.code">
+                 dir="${test.@{tag}.dir}"
+                 output="${test.@{tag}.@{invocation}.output.file}"
+                 resultproperty="test.@{tag}.@{invocation}.exit.code">
 
             <!-- Possible arguments for the display wrapper -->
             <arg line="${test.@{tag}.rvm.wrapper-args}"/>
@@ -481,27 +585,27 @@
           </exec>
         </sequential>
       </if>
-      <timer property="test.@{tag}.time" stop="true"/>
-      <cleanOutput file="${test.@{tag}.output.file}" tofile="${test.@{tag}.sanitized.output.file}"/>
+      <timer property="test.@{tag}.@{invocation}.time" stop="true"/>
+      <cleanOutput file="${test.@{tag}.@{invocation}.output.file}" tofile="${test.@{tag}.@{invocation}.sanitized.output.file}"/>
 
       <!-- If we run overtime then record result -->
-      <condition property="test.@{tag}.result" value="OVERTIME">
-        <equals arg1="${test.@{tag}.exit.code}" arg2="200"/>
+      <condition property="test.@{tag}.@{invocation}.result" value="OVERTIME">
+        <equals arg1="${test.@{tag}.@{invocation}.exit.code}" arg2="200"/>
       </condition>
-      <explainResult tag="@{tag}" message="Test exceeded time limit."/>
+      <explainResult tag="@{tag}" invocation="@{invocation}" message="Test exceeded time limit."/>
 
       <!-- check exit codes is valid. Set exitCode to empty string to disable check -->
-      <condition property="test.@{tag}.result" value="FAILURE">
+      <condition property="test.@{tag}.@{invocation}.result" value="FAILURE">
         <and>
           <not>
-            <equals arg1="@{exitCode}" arg2=""/>
+            <equals arg1="${test.@{tag}.expected.exit.code}" arg2=""/>
           </not>
           <not>
-            <equals arg1="@{exitCode}" arg2="${test.@{tag}.exit.code}"/>
+            <equals arg1="${test.@{tag}.expected.exit.code}" arg2="${test.@{tag}.@{invocation}.exit.code}"/>
           </not>
         </and>
       </condition>
-      <explainResult tag="@{tag}" message="Unexpected exit code."/>
+      <explainResult tag="@{tag}" invocation="@{invocation}" message="Unexpected exit code."/>
     </sequential>
   </macrodef>
 
@@ -514,13 +618,13 @@
       <touch file="@{expected}"/>
       <touch file="@{actual}"/>
       <checksum file="@{expected}" property="test.@{tag}.expected.checksum"/>
-      <checksum file="@{actual}" property="test.@{tag}.actual.checksum"/>
-      <condition property="test.@{tag}.result" value="FAILURE">
+      <checksum file="@{actual}" property="test.@{tag}.@{invocation}.actual.checksum"/>
+      <condition property="test.@{tag}.@{invocation}.result" value="FAILURE">
         <not>
-          <equals arg1="${test.@{tag}.expected.checksum}" arg2="${test.@{tag}.actual.checksum}"/>
+          <equals arg1="${test.@{tag}.expected.checksum}" arg2="${test.@{tag}.@{invocation}.actual.checksum}"/>
         </not>
       </condition>
-      <explainResult tag="@{tag}" message="Expected and actual output have different checksums"/>
+      <explainResult tag="@{tag}" invocation="@{invocation}" message="Expected and actual output have different checksums"/>
     </sequential>
   </macrodef>
 
@@ -550,7 +654,7 @@
 
       <diffCompareFiles tag="@{tag}"
                         expected="${main.java}/${test.@{tag}.expected.output.file}.expected"
-                        actual="${test.@{tag}.sanitized.output.file}"/>
+                        actual="${test.@{tag}.1.sanitized.output.file}"/>
 
       <outputResults tag="@{tag}"/>
     </sequential>
