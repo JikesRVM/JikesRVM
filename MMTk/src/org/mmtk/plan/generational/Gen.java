@@ -50,6 +50,7 @@ import org.vmmagic.unboxed.*;
   protected static final float SURVIVAL_ESTIMATE = (float) 0.8; // est yield
   protected static final float MATURE_FRACTION = (float) 0.5; // est yield
   public static final boolean IGNORE_REMSETS = false;
+  public static final boolean USE_STATIC_WRITE_BARRIER = false;
 
   // Allocators
   public static final int ALLOC_NURSERY        = ALLOC_DEFAULT;

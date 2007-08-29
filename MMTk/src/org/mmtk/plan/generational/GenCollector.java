@@ -90,6 +90,14 @@ import org.vmmagic.pragma.*;
       return;
     }
 
+    if (phaseId == StopTheWorld.ROOTS) {
+      if (!Gen.USE_STATIC_WRITE_BARRIER || global().traceFullHeap()) {
+        VM.scanning.computeStaticRoots(getCurrentTrace());
+      }
+      VM.scanning.computeThreadRoots(getCurrentTrace());
+      return;
+    }
+
     if (phaseId == Gen.BOOTIMAGE_ROOTS) {
       if (global().traceFullHeap()) {
         super.collectionPhase(phaseId, primary);
