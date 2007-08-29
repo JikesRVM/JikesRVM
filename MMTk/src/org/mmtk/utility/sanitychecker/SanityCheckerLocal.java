@@ -57,7 +57,8 @@ import org.vmmagic.unboxed.*;
     }
 
     if (phaseId == StopTheWorld.SANITY_ROOTS) {
-      VM.scanning.computeAllRoots(sanityTrace);
+      VM.scanning.computeStaticRoots(sanityTrace);
+      VM.scanning.computeThreadRoots(sanityTrace);
       if (Plan.SCAN_BOOT_IMAGE) {
         VM.scanning.computeBootImageRoots(sanityTrace);
       }

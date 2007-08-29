@@ -186,12 +186,32 @@ import org.vmmagic.pragma.*;
     Scan.precopyChildren(trace,ObjectReference.fromObject(object));
   }
 
- /**
-   * Computes all roots.  This method establishes all roots for
-   * collection and places them in the root values, root locations and
-   * interior root locations queues.  This method should not have side
-   * effects (such as copying or forwarding of objects).  There are a
-   * number of important preconditions:
+  /**
+   * Computes static roots.  This method establishes all such roots for
+   * collection and places them in the root locations queue.  This method
+   * should not have side effects (such as copying or forwarding of
+   * objects).  There are a number of important preconditions:
+   *
+   * <ul>
+   * <li> All objects used in the course of GC (such as the GC thread
+   * objects) need to be "pre-copied" prior to calling this method.
+   * <li> The <code>threadCounter</code> must be reset so that load
+   * balancing parallel GC can share the work of scanning threads.
+   * </ul>
+   *
+   * @param trace The trace to use for computing roots.
+   */
+  public final void computeStaticRoots(TraceLocal trace) {
+    /* scan statics */
+    ScanStatics.scanStatics(trace);
+  }
+
+  /**
+   * Computes roots pointed to by threads, their associated registers
+   * and stacks.  This method places these roots in the root values,
+   * root locations and interior root locations queues.  This method
+   * should not have side effects (such as copying or forwarding of
+   * objects).  There are a number of important preconditions:
    *
    * <ul>
    * <li> All objects used in the course of GC (such as the GC thread
@@ -202,15 +222,13 @@ import org.vmmagic.pragma.*;
    *
    * TODO rewrite to avoid the per-thread synchronization, like precopy.
    *
-   * @param trace The trace object to use to report root locations.
+   * @param trace The trace to use for computing roots.
    */
-  public final void computeAllRoots(TraceLocal trace) {
+  public final void computeThreadRoots(TraceLocal trace) {
     boolean processCodeLocations = MM_Constants.MOVES_OBJECTS;
+
     /* Set status flag */
     threadStacksScanned = true;
-
-    /* scan statics */
-    ScanStatics.scanStatics(trace);
 
     /* scan all threads */
     while (true) {

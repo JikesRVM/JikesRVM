@@ -78,7 +78,8 @@ import org.vmmagic.pragma.*;
     }
 
     if (phaseId == StopTheWorld.ROOTS) {
-      VM.scanning.computeAllRoots(getCurrentTrace());
+      VM.scanning.computeStaticRoots(getCurrentTrace());
+      VM.scanning.computeThreadRoots(getCurrentTrace());
       return;
     }
 
