@@ -63,7 +63,7 @@ public final class VM_ThinLock implements VM_ThinLockConstants {
   }
 
   /**
-   * Obtains a lock on the indicated object.  Abreviated light-weight
+   * Obtains a lock on the indicated object.  Abbreviated light-weight
    * locking sequence inlined by the optimizing compiler for the
    * prologue of synchronized methods and for the
    * <code>monitorenter</code> bytecode.
