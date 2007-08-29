@@ -312,7 +312,7 @@ import org.vmmagic.unboxed.*;
     Word oldValue, markBit;
     do {
       oldValue = VM.objectModel.prepareAvailableBits(object);
-      markBit = oldValue.and(LOS_BIT_MASK);
+      markBit = oldValue.and(inNurseryGC ? LOS_BIT_MASK : MARK_BIT);
       if (markBit.EQ(value)) return false;
     } while (!VM.objectModel.attemptAvailableBits(object, oldValue,
                                                   oldValue.and(LOS_BIT_MASK.not()).or(value)));
