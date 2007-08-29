@@ -146,7 +146,6 @@
         <not>
           <or>
             <equals arg1="${target.os}" arg2="AIX"/>
-            <equals arg1="${target.name}" arg2="x86_64-linux"/>
             <equals arg1="${target.name}" arg2="ppc64-linux"/>
           </or>
         </not>
