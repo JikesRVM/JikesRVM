@@ -36,6 +36,8 @@ import org.jikesrvm.compilers.opt.ir.OPT_IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_LocationOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_MethodOperand;
 import org.jikesrvm.compilers.opt.ir.OPT_Operand;
+import org.jikesrvm.compilers.opt.ir.PutStatic;
+
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.ATHROW_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.CALL;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.MONITORENTER_opcode;
@@ -46,6 +48,7 @@ import static org.jikesrvm.compilers.opt.ir.OPT_Operators.NEWOBJMULTIARRAY_opcod
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.NEW_UNRESOLVED_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.NEW_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PUTFIELD_opcode;
+import static org.jikesrvm.compilers.opt.ir.OPT_Operators.PUTSTATIC_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_ASTORE_opcode;
 import static org.jikesrvm.compilers.opt.ir.OPT_Operators.REF_MOVE;
 import org.jikesrvm.compilers.opt.ir.OPT_RegisterOperand;
@@ -355,6 +358,33 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase {
                                PutField.getRef(inst).copy(),
                                PutField.getOffset(inst).copy(),
                                PutField.getValue(inst).copy(),
+                               OPT_IRTools.IC(field.getId()));
+              wb.bcIndex = RUNTIME_SERVICES_BCI;
+              wb.position = inst.position;
+              inst.replace(wb);
+              next = wb.nextInstructionInCodeOrder();
+              if (ir.options.INLINE_WRITE_BARRIER) {
+                inline(wb, ir);
+              }
+            }
+          }
+        }
+        break;
+
+
+        case PUTSTATIC_opcode: {
+          if (MM_Constants.NEEDS_PUTSTATIC_WRITE_BARRIER) {
+            OPT_LocationOperand loc = PutStatic.getLocation(inst);
+            VM_FieldReference field = loc.getFieldRef();
+            if (!field.getFieldContentsType().isPrimitiveType()) {
+              VM_Method target = VM_Entrypoints.putstaticWriteBarrierMethod;
+              OPT_Instruction wb =
+                  Call.create3(CALL,
+                               null,
+                               OPT_IRTools.AC(target.getOffset()),
+                               OPT_MethodOperand.STATIC(target),
+                               PutStatic.getOffset(inst).copy(),
+                               PutStatic.getValue(inst).copy(),
                                OPT_IRTools.IC(field.getId()));
               wb.bcIndex = RUNTIME_SERVICES_BCI;
               wb.position = inst.position;

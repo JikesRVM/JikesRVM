@@ -59,12 +59,25 @@ class VM_Barriers implements VM_BaselineConstants {
     asm.emitBCCTRL();  // MM_Interface.putfieldWriteBarrier(T0,T1,T2,T3)
   }
 
-  // currently do not have a "write barrier for putstatic, emit
-  // nothing, for now...  (still scanning all of statics/jtoc during
-  // each GC)
-  //
-  static void compilePutstaticBarrier(VM_Compiler comp) { }
+  //  on entry java stack contains ...|ref_to_store|
+  // T0 already contains the offset of the field on entry
+  static void compilePutstaticBarrier(VM_Compiler comp, int locationMetadata) {
+    VM_Assembler asm = comp.asm;
+    asm.emitLAddrToc(S0, VM_Entrypoints.putstaticWriteBarrierMethod.getOffset());
+    asm.emitMTCTR(S0);
+    comp.peekAddr(T1, 0);                 // value to store
+    asm.emitLVAL(T2, locationMetadata);
+    asm.emitBCCTRL(); // MM_Interface.putstaticWriteBarrier(T0,T1)
+  }
 
-  static void compilePutstaticBarrierImm(VM_Compiler comp, Offset fieldOffset) { }
-
+  //  on entry java stack contains ...|ref_to_store|
+  static void compilePutstaticBarrierImm(VM_Compiler comp, Offset fieldOffset, int locationMetadata) {
+    VM_Assembler asm = comp.asm;
+    asm.emitLAddrToc(S0, VM_Entrypoints.putstaticWriteBarrierMethod.getOffset());
+    asm.emitMTCTR(S0);
+    asm.emitLVALAddr(T0, fieldOffset);    // offset
+    comp.peekAddr(T1, 0);                 // value to store
+    asm.emitLVAL(T2, locationMetadata);
+    asm.emitBCCTRL();  // MM_Interface.putstaticWriteBarrier(T0,T1)
+  }
 }

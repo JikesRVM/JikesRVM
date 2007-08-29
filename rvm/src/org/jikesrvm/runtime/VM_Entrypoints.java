@@ -275,7 +275,7 @@ public class VM_Entrypoints {
   public static final VM_NormalMethod putstaticWriteBarrierMethod =
       getMethod(org.jikesrvm.memorymanagers.mminterface.MM_Interface.class,
                 "putstaticWriteBarrier",
-                "(Lorg/vmmagic/unboxed/Offset;Ljava/lang/Object;)V");
+                "(Lorg/vmmagic/unboxed/Offset;Ljava/lang/Object;I)V");
   public static final VM_NormalMethod modifyCheckMethod =
       getMethod(org.jikesrvm.memorymanagers.mminterface.MM_Interface.class,
           "modifyCheck", "(Ljava/lang/Object;)V");

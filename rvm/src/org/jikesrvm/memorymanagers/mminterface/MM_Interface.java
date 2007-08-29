@@ -195,23 +195,23 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
                                         PUTFIELD_WRITE_BARRIER);
   }
 
-
   /**
    * Write barrier for putstatic operations.
    *
    * @param offset the offset of the field to be modified
    * @param value the new value for the field
+   * @param locationMetadata an int that encodes the source location being modified
    */
   @Inline
   @Entrypoint
-  public static void putstaticWriteBarrier(Offset offset, Object value) {
-    // putstatic barrier currently unimplemented
-    if (VM.VerifyAssertions) VM._assert(false);
-//     Address jtoc = VM_Magic.objectAsAddress(VM_Magic.getJTOC());
-//     VM_Interface.getPlan().writeBarrier(jtoc,
-//                                         jtoc.plus(offset),
-//                                         VM_Magic.objectAsAddress(value),
-//                                         PUTSTATIC_WRITE_BARRIER);
+  public static void putstaticWriteBarrier(Offset offset, Object value, int locationMetadata) {
+    ObjectReference src = ObjectReference.fromObject(VM_Magic.getJTOC());
+    Selected.Mutator.get().writeBarrier(src,
+                                        src.toAddress().plus(offset),
+                                        ObjectReference.fromObject(value),
+                                        offset,
+                                        locationMetadata,
+                                        PUTSTATIC_WRITE_BARRIER);
   }
 
   /**

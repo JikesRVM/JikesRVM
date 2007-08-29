@@ -63,6 +63,28 @@ class VM_Barriers implements VM_BaselineConstants {
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.putfieldWriteBarrierMethod.getOffset());
   }
 
+  static void compilePutstaticBarrier(VM_Assembler asm, byte reg, int locationMetadata) {
+    //  on entry java stack contains ...|ref_to_store|
+    //  SP -> ref_to_store
+    Offset of4 = Offset.fromIntSignExtend(4);
+    asm.emitPUSH_Reg(reg);
+    asm.emitPUSH_RegDisp(SP, of4);
+    asm.emitPUSH_Imm(locationMetadata);
+    genParameterRegisterLoad(asm, 3);
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.putstaticWriteBarrierMethod.getOffset());
+  }
+
+  static void compilePutstaticBarrierImm(VM_Assembler asm, Offset fieldOffset, int locationMetadata) {
+    //  on entry java stack contains ...|ref_to_store|
+    //  SP -> ref_to_store
+    Offset of4 = Offset.fromIntSignExtend(4);
+    asm.emitPUSH_Imm(fieldOffset.toInt());
+    asm.emitPUSH_RegDisp(SP, of4);
+    asm.emitPUSH_Imm(locationMetadata);
+    genParameterRegisterLoad(asm, 3);
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.putstaticWriteBarrierMethod.getOffset());
+  }
+
   static void compileModifyCheck(VM_Assembler asm, int offset) {
     if (!VM_Configuration.ExtremeAssertions) return;
     // on entry java stack contains ... [SP+offset] -> target_ref
@@ -71,13 +93,6 @@ class VM_Barriers implements VM_BaselineConstants {
     genParameterRegisterLoad(asm, 1);
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.modifyCheckMethod.getOffset());
   }
-
-  // currently do not have a "write barrier for putstatic, emit nothing, for now...
-  // (the collectors still scan all of statics/jtoc during each GC)
-  //
-  static void compilePutstaticBarrier(VM_Assembler asm, byte reg) { }
-
-  static void compilePutstaticBarrierImm(VM_Assembler asm, int fieldOffset) { }
 
   /**
    * (Taken from VM_Compiler.java)

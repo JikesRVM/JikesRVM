@@ -12,12 +12,14 @@
  */
 package org.jikesrvm.runtime;
 
-import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import org.jikesrvm.VM;
 import org.jikesrvm.VM_Constants;
+import org.jikesrvm.ArchitectureSpecific.VM_CodeArray;
 import org.jikesrvm.classloader.VM_Atom;
 import org.jikesrvm.classloader.VM_Type;
 import org.jikesrvm.classloader.VM_TypeReference;
+import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
+import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 import org.jikesrvm.util.VM_HashMap;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.UninterruptibleNoWarn;
@@ -603,7 +605,11 @@ public class VM_Statics implements VM_Constants {
     // happen as the fault would only ever occur when not running the
     // VM. We suppress the warning as we know the error can't happen.
 
-    setSlotContents(offset, VM_Magic.objectAsAddress(object).toWord());
+    if (VM.runningVM && MM_Constants.NEEDS_PUTSTATIC_WRITE_BARRIER) {
+      MM_Interface.putstaticWriteBarrier(offset, object, 0);
+    } else {
+      setSlotContents(offset, VM_Magic.objectAsAddress(object).toWord());
+    }
     if (VM.VerifyAssertions) VM._assert(offset.toInt() > 0);
     if (!VM.runningVM && objectSlots != null) {
       // When creating the boot image objectSlots is populated as
@@ -617,8 +623,7 @@ public class VM_Statics implements VM_Constants {
    */
   @Uninterruptible
   public static void setSlotContents(Offset offset, VM_CodeArray code) {
-    setSlotContents(offset, VM_Magic.codeArrayToAddress(code).toWord());
-    if (VM.VerifyAssertions) VM._assert(offset.toInt() > 0);
+    setSlotContents(offset, VM_Magic.codeArrayAsObject(code));
   }
 
   /**

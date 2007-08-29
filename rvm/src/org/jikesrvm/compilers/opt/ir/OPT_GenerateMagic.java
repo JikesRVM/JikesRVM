@@ -698,8 +698,8 @@ public class OPT_GenerateMagic {
       OPT_RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.Extent);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popAddress()));
       bc2ir.push(reg.copyD2U());
-    } else if (methodName == VM_MagicNames.codeArrayToAddress) {
-      OPT_RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.Word);
+    } else if (methodName == VM_MagicNames.codeArrayAsObject) {
+      OPT_RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.JavaLangObject);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.pop(VM_TypeReference.CodeArray)));
       bc2ir.push(reg.copyD2U());
     } else if (methodName == VM_MagicNames.wordPlus) {

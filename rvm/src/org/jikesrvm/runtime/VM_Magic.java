@@ -486,21 +486,17 @@ public final class VM_Magic {
   }
 
   /**
-   * Cast bits of code array into an address
+   * Cast bits of code array into an object
    * Note: for use by VM_Statics when assigning slots to static method pointers
    * @param code the code array to convert
-   * @return word that
+   * @return object reference
    */
-  public static Address codeArrayToAddress(VM_CodeArray code) {
+  public static Object codeArrayAsObject(VM_CodeArray code) {
     if (VM.runningVM && VM.VerifyAssertions) {
       VM._assert(VM.NOT_REACHED); // call site should have been hijacked by magic in compiler
     }
 
-    if (objectAddressRemapper == null) {
-      return Address.zero();                 // tool isn't interested in remapping
-    }
-
-    return objectAddressRemapper.objectAsAddress(code);
+    return code;
   }
 
   /**
