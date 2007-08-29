@@ -35,7 +35,24 @@ import org.vmmagic.pragma.*;
   private static final boolean TRACE_PRECOPY = false; // DEBUG
 
   /** Counter to track index into thread table for root tracing.  */
-  private static SynchronizedCounter threadCounter = new SynchronizedCounter();
+  private static final SynchronizedCounter threadCounter = new SynchronizedCounter();
+
+  /** Status flag used to determine if stacks were scanned in this collection increment */
+  private static boolean threadStacksScanned = false;
+
+  /**
+   * Were thread stacks scanned in this collection increment.
+   */
+  public static boolean threadStacksScanned() {
+    return threadStacksScanned;
+  }
+
+  /**
+   * Clear the flag that indicates thread stacks have been scanned.
+   */
+  public static void clearThreadStacksScanned() {
+    threadStacksScanned = false;
+  }
 
   /**
    * Delegated scanning of a object, processing each pointer field
@@ -189,7 +206,10 @@ import org.vmmagic.pragma.*;
    */
   public final void computeAllRoots(TraceLocal trace) {
     boolean processCodeLocations = MM_Constants.MOVES_OBJECTS;
-     /* scan statics */
+    /* Set status flag */
+    threadStacksScanned = true;
+
+    /* scan statics */
     ScanStatics.scanStatics(trace);
 
     /* scan all threads */

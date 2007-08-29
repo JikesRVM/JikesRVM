@@ -17,6 +17,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.VM_CompiledMethods;
 import org.jikesrvm.mm.mmtk.Collection;
 import org.jikesrvm.mm.mmtk.ScanThread;
+import org.jikesrvm.mm.mmtk.Scanning;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.runtime.VM_Time;
 import org.jikesrvm.scheduler.VM_Scheduler;
@@ -397,11 +398,14 @@ public final class VM_CollectorThread extends VM_GreenThread {
               internalPhaseTriggered = false;
               Plan.setCollectionTrigger(Collection.INTERNAL_GC_TRIGGER);
             }
-          } else {
+          }
+
+          if (Scanning.threadStacksScanned()) {
             /* Snip reference to any methods that are still marked
              * obsolete after we've done stack scans. This allows
              * reclaiming them on the next GC. */
             VM_CompiledMethods.snipObsoleteCompiledMethods();
+            Scanning.clearThreadStacksScanned();
 
             collectionAttemptBase++;
           }
