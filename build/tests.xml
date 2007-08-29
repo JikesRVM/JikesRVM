@@ -567,7 +567,6 @@
           <exec executable="${test.@{tag}.rvm-wrapper.exe}"
                  failonerror="false"
                  dir="${test.@{tag}.dir}"
-                 output="${test.@{tag}.@{invocation}.output.file}"
                  resultproperty="test.@{tag}.@{invocation}.exit.code">
 
             <!-- Possible arguments for the display wrapper -->
@@ -576,6 +575,7 @@
             <!-- Arguments for the timeout script -->
             <arg line="-t ${test.@{tag}.time.limit}"/>
             <arg line="-e 200"/>
+            <arg line="-o ${test.@{tag}.@{invocation}.output.file}"/>
 
             <!-- The RVM invocation -->
             <arg line="${rvm.exe} ${test.@{tag}.rvm.args}"/>

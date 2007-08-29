@@ -12,9 +12,15 @@
 #  regarding copyright ownership.
 #
 require "getopts.pl";
-&Getopts('t:e:');
+&Getopts('t:e:o:');
 
 $alarm_exit_code = 1;
+
+$outfile="timedrun.out";
+
+if ($opt_o ne "") {
+    $outfile = $opt_o;
+}
 
 if ($opt_t ne "") {
     $SIG{ALRM} = 'alarmHandler';
@@ -35,7 +41,7 @@ FORK: {
         exit($? >> 8);
     } elsif (defined $pid) { # $pid is zero here if defind
 	# child
-	exec @ARGV;
+	exec join(" ", @ARGV)." > ".$outfile." 2>&1";
     } elsif ($! =~ /No more process/) {
 	# EAGAIN, supposedly recoverable fork error
 	sleep 5;
