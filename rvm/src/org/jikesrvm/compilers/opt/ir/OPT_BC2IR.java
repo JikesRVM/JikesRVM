@@ -3378,6 +3378,10 @@ public final class OPT_BC2IR
         if (childType != VM_TypeReference.JavaLangObject) {
           if (OPT_ClassLoaderProxy.includesType(parentType, childType) == NO) {
             VM.sysWriteln("type reference equality " + (parentType == childType));
+            Enumeration<OPT_InlineSequence> callHierarchy = gc.inlineSequence.enumerateFromRoot();
+            while(callHierarchy.hasMoreElements()) {
+              VM.sysWriteln(callHierarchy.nextElement().toString());
+            }
             VM._assert(false, parentType + " not assignable with " + childType);
           }
         }
