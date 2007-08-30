@@ -361,11 +361,11 @@ import org.vmmagic.unboxed.*;
    */
   @Inline
   private static boolean testAndMark(ObjectReference object, Word value) {
-    Word oldValue, markBits;
-    oldValue = VM.objectModel.readAvailableBitsWord(object);
-    markBits = oldValue.and(MARK_BITS_MASK);
-    if (markBits.EQ(value)) return false;
-    VM.objectModel.writeAvailableBitsWord(object, oldValue.and(MARK_BITS_MASK.not()).or(value));
+    int oldValue, markBits;
+    oldValue = VM.objectModel.readAvailableByte(object);
+    markBits = oldValue & MARK_BITS_MASK.toInt();
+    if (markBits == value.toInt()) return false;
+    VM.objectModel.writeAvailableByte(object, (byte)(oldValue & ~MARK_BITS_MASK.toInt() | value.toInt()));
     return true;
   }
 
