@@ -44,6 +44,10 @@ extern "C" int sched_yield(void);
 #include <time.h>               // nanosleep() and other
 #include <utime.h>
 
+#ifdef RVM_WITH_PERFCTR
+#  include "perfctr.h"
+#endif
+
 #ifdef RVM_FOR_LINUX
 #include <sys/stat.h>
 #include <sys/sysinfo.h>
@@ -308,7 +312,54 @@ loadResultBuf(char * dest, int limit, const char *src)
     }
 }
 
+/*
+ * Performance counter support using the 'perfctr' system.
+ * 
+ * The implementations are 'out of line' in perfctr.C
+ */
 
+extern "C" int
+sysPerfCtrInit(int metric)
+{
+#ifdef RVM_WITH_PERFCTR
+  return perfCtrInit(metric);
+#else
+  return 0;
+#endif
+}
+
+extern "C" long long
+sysPerfCtrReadCycles()
+{
+#ifdef RVM_WITH_PERFCTR
+  return perfCtrReadCycles();
+#else
+  return 0;
+#endif
+}
+
+extern "C" long long
+sysPerfCtrReadMetric()
+{
+#ifdef RVM_WITH_PERFCTR
+  return perfCtrReadMetric();
+#else
+  return 0;
+#endif
+}
+
+/*
+ * The following is unused at present
+ */
+extern "C" int
+sysPerfCtrRead(char *str)
+{
+#ifdef RVM_WITH_PERFCTR
+  return perfCtrRead(str);
+#else
+  return 0;
+#endif
+}
 
 //------------------------//
 // Filesystem operations. //

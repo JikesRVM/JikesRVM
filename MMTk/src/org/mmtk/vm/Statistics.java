@@ -17,9 +17,9 @@ import org.vmmagic.pragma.Uninterruptible;
 
 @Uninterruptible public abstract class Statistics {
   /**
-   * Returns the number of collections that have occured.
+   * Returns the number of collections that have occurred.
    *
-   * @return The number of collections that have occured.
+   * @return The number of collections that have occurred.
    */
   public abstract int getCollectionCount();
 
@@ -47,4 +47,28 @@ import org.vmmagic.pragma.Uninterruptible;
    * Convert seconds to nanoseconds
    */
   public abstract long secsToNanos(double t);
+
+  /**
+   * Initialize performance counters
+   *
+   * @param metric An integer identifying the metric being read
+   */
+  public abstract void perfCtrInit(int metric);
+
+  /**
+   * Read the current cycle count from the perfctr libraries
+   *
+   * @return the current cycle count from the perfctr libraries
+   */
+  public abstract long perfCtrReadCycles();
+
+  /**
+   * Read the current event count for the metric being measured by the
+   * perfctr libraries
+   *
+   * @return the current event count for the metric being measured by the
+   * perfctr libraries
+   */
+  public abstract long perfCtrReadMetric();
+
 }

@@ -14,15 +14,16 @@ package org.jikesrvm.mm.mmtk;
 
 import org.mmtk.utility.Constants;
 import org.jikesrvm.runtime.VM_Time;
+import static org.jikesrvm.runtime.VM_SysCall.sysCall;
 import org.jikesrvm.memorymanagers.mminterface.MM_Interface;
 
 import org.vmmagic.pragma.*;
 
 @Uninterruptible public final class Statistics extends org.mmtk.vm.Statistics implements Constants {
   /**
-   * Returns the number of collections that have occured.
+   * Returns the number of collections that have occurred.
    *
-   * @return The number of collections that have occured.
+   * @return The number of collections that have occurred.
    */
   @Uninterruptible
   public int getCollectionCount() {
@@ -73,4 +74,34 @@ import org.vmmagic.pragma.*;
   public long secsToNanos(double t) {
     return (long)(t * 1e9);
   }
+
+  /**
+   * Initialize performance counters
+   *
+   * @param metric An integer identifying the metric being read
+   */
+  public void perfCtrInit(int metric) {
+    sysCall.sysPerfCtrInit(metric);
 }
+
+  /**
+   * Read the current cycle count from the perfctr libraries
+   *
+   * @return the current cycle count from the perfctr libraries
+   */
+  public long perfCtrReadCycles() {
+    return sysCall.sysPerfCtrReadCycles();
+  }
+
+  /**
+   * Read the current event count for the metric being measured by the
+   * perfctr libraries
+   *
+   * @return the current event count for the metric being measured by the
+   * perfctr libraries
+   */
+  public long perfCtrReadMetric() {
+    return sysCall.sysPerfCtrReadMetric();
+}
+}
+

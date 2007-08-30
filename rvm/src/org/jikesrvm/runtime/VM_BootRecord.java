@@ -381,4 +381,11 @@ public class VM_BootRecord {
 
   public Address gcspyFormatSizeIP;
   public Address gcspySprintfIP;
+
+   // perfctr
+   public Address sysPerfCtrInitIP;
+   public Address sysPerfCtrReadIP;
+   public Address sysPerfCtrReadCyclesIP;
+   public Address sysPerfCtrReadMetricIP;
+
 }

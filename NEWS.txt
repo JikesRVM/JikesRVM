@@ -8,10 +8,18 @@ on October 14, 2001,
 *Jikes RVM 2.9.2 Release Notes (Future)
 ** Highlights
 
+*** r13404: Added support for using the perfctr library to access hardware
+    performance counters (http://user.it.uu.se/~mikpe/linux/perfctr/).
+    To use this, perfctr must be installed on the host (involves a kernel
+    patch), and config.include.perfctr must be set to true at build
+    time (or simply use the "-p" option to buildit).  At run time, the MMTk
+    harness mechanism must be used to report the counter values at the end
+    of the harnessed execution.
+
 *** r13223: Fixes to enable the Jikes RVM to run on PPC32 OS/X, this
     functionality had been broken for at least half a year.
 
-*** r13106: refactored thread model to seperate out the decision of green and
+*** r13106: refactored thread model to separate out the decision of green and
     native threading. Improvements required in the area of OSR and collector
     threads. This solves many issues with thread model including RFE-1147574,
     RVM-62, RVM-64, RVM-55, RVM-125. The M-to-N greenthread model now passes

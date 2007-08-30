@@ -86,6 +86,18 @@ public abstract class VM_SysCall {
   @SysCallTemplate
   public abstract void sysSyncCache(Address address, int size);
 
+  /*
+   * Interface to performance counters
+   */
+  @SysCallTemplate
+  public abstract void sysPerfCtrInit(int metric);
+  @SysCallTemplate
+  public abstract void sysPerfCtrRead(byte[] name);
+  @SysCallTemplate
+  public abstract long sysPerfCtrReadMetric();
+  @SysCallTemplate
+  public abstract long sysPerfCtrReadCycles();
+
   // files
   @SysCallTemplate
   public abstract int sysStat(byte[] name, int kind);

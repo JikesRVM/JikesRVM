@@ -18,6 +18,7 @@ config.include.aos=false
 config.include.gcspy=false
 config.include.gcspy-stub=false
 config.include.gcspy-client=false
+config.include.perfctr=false
 config.include.all-classes=false
 config.assertions=normal
 config.default-heapsize.initial=20
