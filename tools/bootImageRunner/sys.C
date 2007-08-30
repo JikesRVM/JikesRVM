@@ -21,6 +21,11 @@
 // Only called externally from Java programs.
 extern "C" void sysExit(int) __attribute__((noreturn));
 
+//Solaris needs BSD_COMP to be set to enable the FIONREAD ioctl
+#if defined (__SVR4) && defined (__sun)
+#define BSD_COMP
+#endif
+
 // AIX needs this to get errno right. JTD
 #define _THREAD_SAFE_ERRNO
 
@@ -48,13 +53,15 @@ extern "C" int sched_yield(void);
 #  include "perfctr.h"
 #endif
 
-#ifdef RVM_FOR_LINUX
+#if (defined RVM_FOR_LINUX) || (defined RVM_FOR_SOLARIS) 
 #include <sys/stat.h>
 #include <sys/sysinfo.h>
 #include <netinet/in.h>
 #include <signal.h>
 #include <sys/ioctl.h>
+#ifdef RVM_FOR_LINUX
 #include <asm/ioctls.h>
+#endif
 
 # include <sched.h>
 
@@ -107,7 +114,7 @@ extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_
 #include "bootImageRunner.h"    // In tools/bootImageRunner.
 #include <pthread.h>
 
-#ifdef RVM_FOR_LINUX
+#if (defined RVM_FOR_LINUX) || (defined RVM_FOR_SOLARIS)
 # include "syswrap.h"
 #endif
 

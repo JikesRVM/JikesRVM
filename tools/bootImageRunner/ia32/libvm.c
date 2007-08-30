@@ -43,8 +43,15 @@
 
 #ifdef __APPLE__
 #include "osx_ucontext.h"
-#else
+#endif
+
+#ifdef __linux__
 #include "linux_ucontext.h"
+#endif
+
+#if defined (__SVR4) && defined (__sun)
+typedef unsigned int u_int32_t;
+#include "solaris_ucontext.h"
 #endif
 
 #define __STDC_FORMAT_MACROS    // include PRIxPTR
@@ -374,7 +381,10 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
          * There are 8 floating point registers, each 10 bytes wide.
          * See /usr/include/asm/sigcontext.h
          */
-        if (IA32_FPREGS(context)) {
+
+//Solaris doesn't seem to support these
+#if !(defined (__SVR4) && defined (__sun)) 
+	if (IA32_FPREGS(context)) {
                 writeErr("fp%d 0x%04x%04x%04x%04x%04x\n",
                                 0,
                                 IA32_STMM(context, 0, 0) & 0xffff,
@@ -432,7 +442,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
                                 IA32_STMM(context, 7, 3) & 0xffff,
                                 IA32_STMMEXP(context, 7) & 0xffff);
         }
-
+#endif
         if (isRecoverable) {
             fprintf(SysTraceFile, "%s: normal trap\n", Me);
         } else {

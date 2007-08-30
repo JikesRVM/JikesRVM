@@ -133,6 +133,8 @@
            dir="${classpath.package.dir}/classpath/" strip="0"/>
     <patch patchfile="${components.patch.dir}/classpath-web.RVM-185.patch"
            dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <patch patchfile="${components.patch.dir}/classpath-web.RVM-solaris.patch"
+           dir="${classpath.package.dir}/classpath/" strip="0"/>   
   </target>
   <target name="patch" depends="patch-classpath-web,patch-classpath-cvs"/>
 
@@ -145,6 +147,7 @@
       <and>
         <not>
           <or>
+            <equals arg1="${target.os}" arg2="Solaris"/> 
             <equals arg1="${target.os}" arg2="AIX"/>
             <equals arg1="${target.name}" arg2="ppc64-linux"/>
           </or>
@@ -215,6 +218,9 @@
     </condition>
     <condition property="library.suffix" value=".dylib">
       <equals arg1="${target.os}" arg2="OSX"/>
+    </condition>
+    <condition property="library.suffix" value=".so">
+      <equals arg1="${target.os}" arg2="Solaris"/>
     </condition>
 
     <copy todir="${classpath.package.dir}/${target.name}/lib" flatten="true">

@@ -23,7 +23,7 @@
 #define NEED_ASSEMBLER_DECLARATIONS
 #include "InterfaceDeclarations.h"
 
-#ifdef __linux__
+#if defined(__linux__) || (defined(__SVR4) && defined(__sun)) 
        .text
        .align 4
        .globl   bootThread   # external visibility

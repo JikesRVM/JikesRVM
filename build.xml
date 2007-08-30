@@ -1,7 +1,6 @@
 <!--
  ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
  ~
- ~  This file is licensed to You under the Common Public License (CPL);
  ~  You may not use this file except in compliance with the License. You
  ~  may obtain a copy of the License at
  ~
@@ -275,6 +274,9 @@ Check to make sure all required properties are specified. This includes properti
     </condition>
     <condition property="os.filter" value="-DRVM_FOR_OSX=1">
       <equals arg1="${target.os}" arg2="OSX"/>
+    </condition>
+    <condition property="os.filter" value="-DRVM_FOR_SOLARIS=1">
+      <equals arg1="${target.os}" arg2="Solaris"/>
     </condition>
 
     <condition property="gctrace.filter" value="-DRVM_WITH_GCTRACE=1" else="">
@@ -725,6 +727,9 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="pp_RVM_FOR_LINUX" value="true" else="false">
       <equals arg1="${target.os}" arg2="Linux"/>
     </condition>
+    <condition property="pp_RVM_FOR_SOLARIS" value="true" else="false"> 
+      <equals arg1="${target.os}" arg2="Solaris" /> 
+    </condition> 
     <condition property="pp_RVM_FOR_SSE2" value="true" else="false">
       <not>
         <equals arg1="${target.arch.sse2}" arg2="none"/>
@@ -759,7 +764,8 @@ Check to make sure all required properties are specified. This includes properti
         <filter token="_RVM_FOR_32_ADDR_" value="${pp_RVM_FOR_32_ADDR}"/>
         <filter token="_RVM_FOR_AIX_" value="${pp_RVM_FOR_AIX}"/>
         <filter token="_RVM_FOR_LINUX_" value="${pp_RVM_FOR_LINUX}"/>
-        <filter token="_RVM_FOR_SSE2_" value="${pp_RVM_FOR_SSE2}"/>
+        <filter token="_RVM_FOR_SOLARIS_" value="${pp_RVM_FOR_SOLARIS}" />
+	<filter token="_RVM_FOR_SSE2_" value="${pp_RVM_FOR_SSE2}"/>
         <filter token="_RVM_FOR_SSE2_FULL_" value="${pp_RVM_FOR_SSE2_FULL}"/>
         <filter token="_RVM_WITH_ALL_CLASSES_" value="${config.include.all-classes}"/>
         <filter token="_RVM_WITH_ASSERTIONS_" value="${pp_RVM_WITH_ASSERTIONS}"/>
@@ -1189,7 +1195,10 @@ Check to make sure all required properties are specified. This includes properti
     </condition>
 
     <condition property="include.syswrap" value="true">
-      <equals arg1="${target.os}" arg2="Linux"/>
+      <or>
+        <equals arg1="${target.os}" arg2="Linux"/>
+        <equals arg1="${target.os}" arg2="Solaris"/>
+      </or>
     </condition>
 
     <condition property="gcspy.includes.dir" value="-I${jikesrvm.dir}/tools/gcspy-stub/src">
@@ -1246,7 +1255,7 @@ Check to make sure all required properties are specified. This includes properti
     <property name="syswrap.dll" value="${target.dll-prefix}syswrap${target.dll-ext}"/>
     <exec executable="${c++.exe}" failonerror="true">
       <arg line="${rvm.c++.args}"/>
-      <arg line="-nostartfiles -Wl,--export-dynamic"/>
+      <arg line="-nostartfiles -shared"/>
       <arg value="-o"/>
       <arg value="${build.base}/${syswrap.dll}"/>
       <arg value="${bl.dir}/syswrap.C"/>

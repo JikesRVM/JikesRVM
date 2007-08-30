@@ -111,7 +111,7 @@ public final class VMRuntime {
    */
   static String mapLibraryName(String libname) {
     String libSuffix;
-    if (VM.BuildForLinux) {
+    if (VM.BuildForLinux || VM.BuildForSolaris) {
       libSuffix = ".so";
     } else if (VM.BuildForOsx) {
       libSuffix = ".jnilib";

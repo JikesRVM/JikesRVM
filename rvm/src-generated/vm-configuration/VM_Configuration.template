@@ -33,7 +33,8 @@ public abstract class VM_Configuration {
 
   public static final boolean BuildForAix = @_RVM_FOR_AIX_@;
   public static final boolean BuildForLinux = @_RVM_FOR_LINUX_@;
-  public static final boolean BuildForOsx = !BuildForAix && !BuildForLinux;
+  public static final boolean BuildForSolaris = @_RVM_FOR_SOLARIS_@; 
+  public static final boolean BuildForOsx = !BuildForAix && !BuildForLinux && !BuildForSolaris;
 
   public static final boolean LittleEndian = BuildForIA32;
 
@@ -43,7 +44,7 @@ public abstract class VM_Configuration {
   public static final boolean BuildForSVR4ABI = !(BuildForPowerOpenABI || BuildForMachOABI);
 
   /** Do we have the facilities to intercept blocking system calls? */
-  public static final boolean withoutInterceptBlockingSystemCalls = BuildForAix || BuildForOsx;
+  public static final boolean withoutInterceptBlockingSystemCalls = BuildForAix || BuildForOsx || BuildForSolaris;
 
   /**
    * Can a dereference of a null pointer result in an access
