@@ -672,41 +672,43 @@ public class VM_Runtime implements VM_Constants, ArchitectureSpecific.VM_Stackfr
 
     // Sanity checking.
     // Hardware traps in uninterruptible code should be considered hard failures.
-    Address fp = exceptionRegisters.getInnermostFramePointer();
-    int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
-    if (compiledMethodId != INVISIBLE_METHOD_ID) {
-      VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
-      Address ip = exceptionRegisters.getInnermostInstructionAddress();
-      Offset instructionOffset = compiledMethod.getInstructionOffset(ip);
-      if (compiledMethod.isWithinUninterruptibleCode(instructionOffset)) {
-        switch (trapCode) {
-        case TRAP_NULL_POINTER:
-          VM.sysWriteln("\nFatal error: NullPointerException within uninterruptible region.");
+    if (!VM.sysFailInProgress()) {
+      Address fp = exceptionRegisters.getInnermostFramePointer();
+      int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
+      if (compiledMethodId != INVISIBLE_METHOD_ID) {
+        VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
+        Address ip = exceptionRegisters.getInnermostInstructionAddress();
+        Offset instructionOffset = compiledMethod.getInstructionOffset(ip);
+        if (compiledMethod.isWithinUninterruptibleCode(instructionOffset)) {
+          switch (trapCode) {
+          case TRAP_NULL_POINTER:
+            VM.sysWriteln("\nFatal error: NullPointerException within uninterruptible region.");
+            break;
+          case TRAP_ARRAY_BOUNDS:
+            VM.sysWriteln("\nFatal error: ArrayIndexOutOfBoundsException within uninterruptible region.");
+            break;
+          case TRAP_DIVIDE_BY_ZERO:
+            VM.sysWriteln("\nFatal error: DivideByZero within uninterruptible region.");
+            break;
+          case TRAP_STACK_OVERFLOW:
+          case TRAP_JNI_STACK:
+            VM.sysWriteln("\nFatal error: StackOverflowError within uninterruptible region.");
+            break;
+          case TRAP_CHECKCAST:
+            VM.sysWriteln("\nFatal error: ClassCastException within uninterruptible region.");
+            break;
+          case TRAP_MUST_IMPLEMENT:
+            VM.sysWriteln("\nFatal error: IncompatibleClassChangeError within uninterruptible region.");
+            break;
+          case TRAP_STORE_CHECK:
+            VM.sysWriteln("\nFatal error: ArrayStoreException within uninterruptible region.");
+            break;
+          default:
+            VM.sysWriteln("\nFatal error: Unknown hardware trap within uninterruptible region.");
           break;
-        case TRAP_ARRAY_BOUNDS:
-          VM.sysWriteln("\nFatal error: ArrayIndexOutOfBoundsException within uninterruptible region.");
-          break;
-        case TRAP_DIVIDE_BY_ZERO:
-          VM.sysWriteln("\nFatal error: DivideByZero within uninterruptible region.");
-          break;
-        case TRAP_STACK_OVERFLOW:
-        case TRAP_JNI_STACK:
-          VM.sysWriteln("\nFatal error: StackOverflowError within uninterruptible region.");
-          break;
-        case TRAP_CHECKCAST:
-          VM.sysWriteln("\nFatal error: ClassCastException within uninterruptible region.");
-          break;
-        case TRAP_MUST_IMPLEMENT:
-          VM.sysWriteln("\nFatal error: IncompatibleClassChangeError within uninterruptible region.");
-          break;
-        case TRAP_STORE_CHECK:
-          VM.sysWriteln("\nFatal error: ArrayStoreException within uninterruptible region.");
-          break;
-        default:
-          VM.sysWriteln("\nFatal error: Unknown hardware trap within uninterruptible region.");
-        break;
+          }
+          VM.sysFail("Exiting virtual machine due to uninterruptibility violation.");
         }
-        VM.sysFail("Exiting virtual machine due to uninterruptibility violation.");
       }
     }
 

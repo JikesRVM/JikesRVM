@@ -2076,6 +2076,10 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
 
   private static int inSysFail = 0;
 
+  public static boolean sysFailInProgress() {
+    return inSysFail > 0;
+  }
+
   private static void handlePossibleRecursiveCallToSysFail(String message) {
     handlePossibleRecursiveExit("sysFail", ++inSysFail, message);
   }
