@@ -652,7 +652,6 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
    * Low level print to console.
    * @param value   what is printed
    */
-  @LogicallyUninterruptible
   @NoInline
   /* don't waste code space inlining these --dave */
   public static void write(String value) {
@@ -667,9 +666,14 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
           write(chars[offset + i]);
         }
       } else {
-        System.err.print(value);
+        writeNotRunningVM(value);
       }
     }
+  }
+  @UninterruptibleNoWarn
+  private static void writeNotRunningVM(String value) {
+    if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
+    System.err.print(value);
   }
 
   /**
@@ -697,15 +701,19 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
    * Low level print of a <code>char</code>to console.
    * @param value       The character to print
    */
-  @LogicallyUninterruptible
   @NoInline
   /* don't waste code space inlining these --dave */
   public static void write(char value) {
     if (runningVM) {
       sysCall.sysConsoleWriteChar(value);
     } else {
-      System.err.print(value);
+      writeNotRunningVM(value);
     }
+  }
+  @UninterruptibleNoWarn
+  private static void writeNotRunningVM(char value) {
+    if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
+    System.err.print(value);
   }
 
   /**
@@ -714,22 +722,25 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
    * @param value               <code>double</code> to be printed
    * @param postDecimalDigits   Number of decimal places
    */
-  @LogicallyUninterruptible
   @NoInline
   /* don't waste code space inlining these --dave */
   public static void write(double value, int postDecimalDigits) {
     if (runningVM) {
       sysCall.sysConsoleWriteDouble(value, postDecimalDigits);
     } else {
-      System.err.print(value);
+      writeNotRunningVM(value);
     }
+  }
+  @UninterruptibleNoWarn
+  private static void writeNotRunningVM(double value) {
+    if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
+    System.err.print(value);
   }
 
   /**
    * Low level print of an <code>int</code> to console.
    * @param value       what is printed
    */
-  @LogicallyUninterruptible
   @NoInline
   /* don't waste code space inlining these --dave */
   public static void write(int value) {
@@ -737,38 +748,51 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
       int mode = (value < -(1 << 20) || value > (1 << 20)) ? 2 : 0; // hex only or decimal only
       sysCall.sysConsoleWriteInteger(value, mode);
     } else {
-      System.err.print(value);
+      writeNotRunningVM(value);
     }
+  }
+  @UninterruptibleNoWarn
+  private static void writeNotRunningVM(int value) {
+    if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
+    System.err.print(value);
   }
 
   /**
    * Low level print to console.
    * @param value       What is printed, as hex only
    */
-  @LogicallyUninterruptible
   @NoInline
   /* don't waste code space inlining these --dave */
   public static void writeHex(int value) {
     if (runningVM) {
       sysCall.sysConsoleWriteInteger(value, 2 /*just hex*/);
     } else {
-      System.err.print(Integer.toHexString(value));
+      writeHexNotRunningVM(value);
     }
+  }
+  @UninterruptibleNoWarn
+  private static void writeHexNotRunningVM(int value) {
+    if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
+    System.err.print(Integer.toHexString(value));
   }
 
   /**
    * Low level print to console.
    * @param value       what is printed, as hex only
    */
-  @LogicallyUninterruptible
   @NoInline
   /* don't waste code space inlining these --dave */
   public static void writeHex(long value) {
     if (runningVM) {
       sysCall.sysConsoleWriteLong(value, 2);
     } else {
-      System.err.print(Long.toHexString(value));
+      writeHexNotRunningVM(value);
     }
+  }
+  @UninterruptibleNoWarn
+  private static void writeHexNotRunningVM(long value) {
+    if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
+    System.err.print(Long.toHexString(value));
   }
 
   @NoInline
@@ -819,15 +843,19 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
    * Low level print to console.
    * @param value       what is printed, as int only
    */
-  @LogicallyUninterruptible
   @NoInline
   /* don't waste code space inlining these --dave */
   public static void writeInt(int value) {
     if (runningVM) {
       sysCall.sysConsoleWriteInteger(value, 0 /*just decimal*/);
     } else {
-      System.err.print(value);
+      writeNotRunningVM(value);
     }
+  }
+  @UninterruptibleNoWarn
+  private static void writeNotRunningVM(long value) {
+    if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
+    System.err.print(value);
   }
 
   /**
@@ -846,14 +874,13 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
    * @param hexToo  how to print: true  - print as decimal followed by hex
    *                              false - print as decimal only
    */
-  @LogicallyUninterruptible
   @NoInline
   /* don't waste code space inlining these --dave */
   public static void write(long value, boolean hexToo) {
     if (runningVM) {
       sysCall.sysConsoleWriteLong(value, hexToo ? 1 : 0);
     } else {
-      System.err.print(value);
+      writeNotRunningVM(value);
     }
   }
 
@@ -870,7 +897,6 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
    * Low level print to console.
    * @param value       print value and left-fill with enough spaces to print at least fieldWidth characters
    */
-  @LogicallyUninterruptible
   @NoInline
   /* don't waste code space inlining these --dave */
   public static void writeField(int fieldWidth, int value) {
@@ -887,7 +913,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
     if (runningVM) {
       sysCall.sysConsoleWriteInteger(value, 0);
     } else {
-      System.err.print(value);
+      writeNotRunningVM(value);
     }
   }
 
@@ -2034,7 +2060,7 @@ public class VM extends VM_Properties implements VM_Constants, VM_ExitStatus {
    * Exit virtual machine.
    * @param value  value to pass to host o/s
    */
-  @LogicallyUninterruptible
+  @LogicallyUninterruptible /* TODO: This is completely wrong.  This method is very much Interruptible */
   @NoInline
   public static void sysExit(int value) {
     handlePossibleRecursiveCallToSysExit();
