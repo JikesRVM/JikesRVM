@@ -789,7 +789,7 @@ if ($ok && ($test_set ne "" || $test_list ne "")) {
     $test .= "-Dtest.configs='$configs' ";
     if ($run_args ne "") {
       foreach $conf (split(" ", $configs)) {
-        $test .= "-Dtest.config.$conf.extra.args='$run_args' ";
+        $test .= "-Dtest.config.$conf.extra.args=\\\"$run_args\\\" ";
       }
     }
   }
