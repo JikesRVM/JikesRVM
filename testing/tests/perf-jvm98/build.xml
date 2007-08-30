@@ -1,0 +1,150 @@
+<!--
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Common Public License (CPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/cpl1.0.php
+ ~
+ ~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
+<project name="perf-jvm98" default="test" basedir=".">
+
+  <property name="extractfinalspecresult.exe" location="${basedir}/bin/extractfinalresult"/>
+
+  <property file="jvm98.properties" prefix="jvm98"/>
+
+  <import file="../../../build/tests.xml"/>
+
+  <property name="specjvm98.dir" location="${external.lib.dir}/SPECjvm98"/>
+  <property name="test.class.path" value="${specjvm98.dir}"/>
+
+  <macrodef name="jvm98">
+    <attribute name="tag"/>
+    <attribute name="benchmark"/>
+    <attribute name="useSmallHeap"/>
+    <attribute name="iterations"/>
+    <sequential>
+      <fail unless="jvm98.@{benchmark}.largeHeap" message="@{benchmark}.largeHeap not specified"/> 
+      <fail unless="jvm98.@{benchmark}.smallHeap" message="@{benchmark}.smallHeap not specified"/> 
+
+      <!-- Currently support 1 3 and 10 iterations -->
+      <condition property="test.@{tag}.shortwarmup" value="@{benchmark} @{benchmark}" else="">
+        <not>
+          <equals arg1="@{iterations}" arg2="1"/>
+        </not>
+      </condition>
+      <condition property="test.@{tag}.longwarmup" value="@{benchmark} @{benchmark} @{benchmark} @{benchmark} @{benchmark} @{benchmark} @{benchmark}" else="">
+        <equals arg1="@{iterations}" arg2="10"/>
+      </condition>
+
+      <condition property="jvm98.@{tag}.heapSize"
+                 value="${jvm98.@{benchmark}.smallHeap}"
+                 else="${jvm98.@{benchmark}.largeHeap}">
+        <equals arg1="@{useSmallHeap}" arg2="true"/>
+      </condition>
+
+      <condition property="jvm98.@{tag}.timeLimit"
+                 value="${jvm98.@{benchmark}.i@{iterations}.smallHeap-@{useSmallHeap}.timeLimit}"
+                 else="${test.time.limit}">
+        <isset property="jvm98.@{benchmark}.i@{iterations}.smallHeap-@{useSmallHeap}.timeLimit"/>
+      </condition>
+
+      <prepareRvm tag="@{tag}" class="SpecApplication"
+         rvmArgs="${test.perf.extra.args}"
+         args="${test.@{tag}.shortwarmup} ${test.@{tag}.longwarmup} _997_begin @{benchmark} _998_end"
+         timeLimit="${jvm98.@{tag}.timeLimit}"
+         initialHeapSize="${jvm98.@{tag}.heapSize}"
+         maxHeapSize="${jvm98.@{tag}.heapSize}"/>
+
+      <outputMultiInvocationTestStart tag="@{tag}"/>
+
+      <forEach list="${test.perf.invocations}" property="invocation">
+        <sequential>
+          <invokeRvm tag="@{tag}" invocation="@{invocation}"/>
+          <outputInvocationStart tag="@{tag}" invocation="@{invocation}"/>
+          <outputStatisticStart/>
+          <extractMMTkStatistics tag="@{tag}" invocation="@{invocation}" statistics="time.mu time.gc GC majorGC"/>
+          <extractFinalSpecResult tag="@{tag}" invocation="@{invocation}" benchmark="@{benchmark}"/>
+          <outputStatisticEnd/>
+          <outputInvocationResults tag="@{tag}" invocation="@{invocation}"/>
+          <outputInvocationEnd/>
+          <displayInvocationResults tag="@{tag}" invocation="@{invocation}"/>
+        </sequential>
+      </forEach>
+
+      <outputMultiInvocationTestEnd/>
+    </sequential>
+  </macrodef>
+
+  <macrodef name="extractFinalSpecResult">
+    <attribute name="tag"/>
+    <attribute name="invocation" default="1"/>
+    <attribute name="benchmark"/>
+    <sequential>
+      <exec executable="${extractfinalspecresult.exe}" failonerror="false" resultproperty="test.@{tag}.@{invocation}.finalspec.exit.code">
+        <arg value="${test.@{tag}.@{invocation}.sanitized.output.file}"/>
+        <arg value="${results.file}"/>
+        <arg line="@{benchmark}"/>
+      </exec>
+      <condition property="test.@{tag}.@{invocation}.result" value="FAILURE">
+        <not>
+          <equals arg1="${test.@{tag}.@{invocation}.mmtkstats.exit.code}" arg2="0"/>
+        </not>
+      </condition>
+      <explainResult tag="@{tag}" invocation="@{invocation}" message="Could not extract SPECjvm98 time."/>
+    </sequential>
+  </macrodef>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Run the tests                                 * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="test" depends="init">
+    <test-property name="external.lib.dir" location="${jikesrvm.dir}/.ant.properties"/>
+    <test-file name="specjvm98.dir" location="${jikesrvm.dir}/.ant.properties"/>
+
+    <copy todir="${build.tests.dir}">
+      <fileset dir="${specjvm98.dir}">
+        <include name="spec/**"/>
+        <include name="props/**"/>
+      </fileset>
+    </copy>
+
+    <startResults/>
+
+    <fail unless="test.perf.runs" message="test.perf.runs missing"/>
+
+    <forEach list="${test.perf.runs}" property="run">
+      <sequential>
+
+        <fail unless="test.perf.run-@{run}.useSmallHeap" message="test.perf.run-@{run}.useSmallHeap missing"/>
+        <fail unless="test.perf.run-@{run}.iterations" message="test.perf.run-@{run}.iterations missing"/>
+
+        <runs suffix="@{run}" useSmallHeap="${test.perf.run-@{run}.useSmallHeap}" iterations="${test.perf.run-@{run}.iterations}"/>
+      </sequential>
+    </forEach>
+
+    <finishResults/>
+  </target>
+
+  <macrodef name="runs">
+    <attribute name="useSmallHeap"/>
+    <attribute name="iterations"/>
+    <attribute name="suffix"/>
+    <sequential>
+      <jvm98 tag="compress-@{suffix}"  benchmark="_201_compress"  useSmallHeap="@{useSmallHeap}" iterations="@{iterations}"/>
+      <jvm98 tag="jess-@{suffix}"      benchmark="_202_jess"      useSmallHeap="@{useSmallHeap}" iterations="@{iterations}"/>
+      <jvm98 tag="db-@{suffix}"        benchmark="_209_db"        useSmallHeap="@{useSmallHeap}" iterations="@{iterations}"/>
+      <jvm98 tag="javac-@{suffix}"     benchmark="_213_javac"     useSmallHeap="@{useSmallHeap}" iterations="@{iterations}"/>
+      <jvm98 tag="mpegaudio-@{suffix}" benchmark="_222_mpegaudio" useSmallHeap="@{useSmallHeap}" iterations="@{iterations}"/>
+      <jvm98 tag="mtrt-@{suffix}"      benchmark="_227_mtrt"      useSmallHeap="@{useSmallHeap}" iterations="@{iterations}"/>
+      <jvm98 tag="jack-@{suffix}"      benchmark="_228_jack"      useSmallHeap="@{useSmallHeap}" iterations="@{iterations}"/>
+    </sequential>
+  </macrodef>
+  
+</project>

@@ -1,0 +1,154 @@
+#
+# SPECjbb properties file
+#
+# This is a SAMPLE file which you can use to specify characteristics of
+# a particular system under test, and to control benchmark
+# operation. You can reuse this file repeatedly, and have a version for
+# each system setup you use. You should edit the reporting fields
+# appropriately. All of this can still be edited in the output properties
+# file after you run the test, but putting the values in here can save
+# you some typing for attributes which do not change from test to test.
+#
+
+#########################################################################
+#
+# System Under Test hardware
+#
+#########################################################################
+
+# Company which sells the hardware
+config.hw.vendor=Neptune Ocean King Systems
+
+# Home page for company which sells the hardware
+config.hw.vendor.url=http://www.neptune.com
+
+# What type of system was used
+config.hw.model=TurboBlaster 2
+
+# What type of processor(s) the system had
+config.hw.processor=ARM
+
+# MegaHertz rating of the chip. Usually an integer
+config.hw.MHz=300
+
+# Number of chips in the system as configured
+config.hw.nchips=1
+
+# Number of cores in the system as configured
+config.hw.ncores=2
+
+#Number of cores/chips
+config.hw.ncoresperchip=2
+
+# HW Threads enabled?  Yes, No or N/A
+config.hw.hwThreads=No
+
+# Amount of physical memory in the system, in Megabytes.  DO NOT USE MB
+# or GB, IT WILL CONFUSE THE REPORTER
+config.hw.memory=4096
+
+#Describe the memory in the system - e.g. 4 of 8 DIMMs filled with 1GB DDR 2100 CAS3 memory
+config.hw.memory_description=punch cards
+
+# Amount of level 1 cache for instruction and data on each CPU
+config.hw.primaryCache=4KBI+4KBD
+
+# Amount of level 2 cache, for instruction and data on each CPU
+config.hw.secondaryCache=64KB(I+D) off chip
+
+# Amount of level 3 cache (or above)
+config.hw.otherCache=
+
+# The file system the class files reside on
+config.hw.fileSystem=UFS
+
+# Size and type of disk on which the benchmark and OS reside on
+config.hw.disk=1 x 4GB SCSI (classes) 1 x 12GB SCSI (OS)
+
+# Any other hardware you think is performance-relative.  That is, you
+# would need this to reproduce the test
+config.hw.other=AT&T Rotary Telephone
+config.hw.available=Jan-2000
+
+#########################################################################
+#
+# System Under Test software
+#
+#########################################################################
+
+# The company that makes the JVM software
+config.sw.vendor=Phobos Ltd
+
+# Home page for the company that makes the JVM software
+config.sw.vendor.url=http://www.phobos.uk.co
+
+# Name of the JVM software product (including version)
+config.sw.JVM=Phobic Java 1.2.2
+
+# Date when the JVM software product is shipping and generally available
+# to the public
+config.sw.JVMavailable=Jan-2000
+
+# How many megabytes used by the JVM heap.  "Unlimited" or "dynamic" are
+# allowable values for JVMs that adjust automatically
+config.sw.JVMheapInitial=256
+config.sw.JVMheapMax=1024
+
+#Is the JVM 32- or 64-bit? (or some other number?)
+config.sw.JVMbitness=32
+
+# Command line to invoke the benchmark
+# On systems where the file separator is \, use \\ as the file separator
+# here
+config.sw.command_line=java -ms256m -mx1024m -spec.jbb.JBBmain -propfile Test1
+
+# Operating system (including version)
+config.sw.OS=Phobos DOS V33.333 patch-level 78
+
+# Date when the OS version is shipping and generally available to the
+# public
+config.sw.OSavailable=May-2000
+
+# Free text description of what sort of tuning one has to do to either
+# the OS or the JVM to get these results.  This is where kernel tunables
+# belong.  Use HTML list tags, if you want a list on the report page
+
+config.sw.tuning=Operating system tunings<UL><LI>bufcache=1024</LI><LI>maxthreads_per_user=65536</LI></UL>
+
+#Text explanation of the Ahead-of-Time Compilation mechanism
+config.sw.aot=<p>precompiled code for<ul><li>Deliverytransaction.process</li><li>TransactionManager.go</li></ul>loaded at startup</p>
+
+
+# Any additional software that you think is need to reproduce the
+# performance measured on this test
+config.sw.other=Neptune JIT Accelerator 2.3b6
+
+# Date when the other software is shipping and generally available to
+# the public
+config.sw.otherAvailable=Feb-2000
+
+#########################################################################
+#
+# Tester information
+#
+#########################################################################
+
+# The company that ran and submitted the result
+config.test.testedBy=Neptune Corp.
+
+# The person who ran and submitted this result (name does not go on
+# public pages
+config.testx.testedByName=Willie the Mailboy
+
+# A web page where people within the aforementioned company might get
+# more information
+config.test.internalReference=http://pluto.eng/specpubs/mar2000/
+
+# The company's SPEC license number
+config.test.specLicense=50
+
+# Physically, where the results were gathered
+config.test.location=Santa Monica, CA
+
+#Notes
+config.sw.notes="Notes here"
