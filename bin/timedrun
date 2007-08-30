@@ -41,7 +41,9 @@ FORK: {
         exit($? >> 8);
     } elsif (defined $pid) { # $pid is zero here if defind
 	# child
-	exec join(" ", @ARGV)." > ".$outfile." 2>&1";
+	open(STDOUT, '>', $outfile) or die "failed to redirect stdout";
+	open(STDERR, ">&STDOUT") or die "failed to redirect stderr";
+	exec @ARGV;
     } elsif ($! =~ /No more process/) {
 	# EAGAIN, supposedly recoverable fork error
 	sleep 5;
