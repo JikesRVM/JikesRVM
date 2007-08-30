@@ -72,6 +72,8 @@ import org.vmmagic.pragma.*;
   public static final short POST_SANITY_PLACEHOLDER = Phase.createSimple("post-sanity-placeholder", null);
 
   /* Sanity phases */
+  public static final short SANITY_SET_PREGC    = Phase.createSimple("sanity-setpre", null);
+  public static final short SANITY_SET_POSTGC   = Phase.createSimple("sanity-setpost", null);
   public static final short SANITY_PREPARE      = Phase.createSimple("sanity-prepare", null);
   public static final short SANITY_ROOTS        = Phase.createSimple("sanity-roots", null);
   public static final short SANITY_BUILD_TABLE  = Phase.createSimple("sanity-build-table", null);
@@ -102,8 +104,15 @@ import org.vmmagic.pragma.*;
       Phase.scheduleGlobal     (SANITY_RELEASE));
 
   /** Build and validate a sanity table */
-  protected static final short sanityPhase = Phase.createComplex("sanity", null,
+  protected static final short preSanityPhase = Phase.createComplex("pre-sanity", null,
       Phase.scheduleComplex    (sanityBuildPhase),
+      Phase.scheduleGlobal     (SANITY_SET_PREGC),
+      Phase.scheduleComplex    (sanityCheckPhase));
+
+  /** Build and validate a sanity table */
+  protected static final short postSanityPhase = Phase.createComplex("post-sanity", null,
+      Phase.scheduleComplex    (sanityBuildPhase),
+      Phase.scheduleGlobal     (SANITY_SET_POSTGC),
       Phase.scheduleComplex    (sanityCheckPhase));
 
   /** Start the collection, including preparation for any collected spaces. */
@@ -203,10 +212,8 @@ import org.vmmagic.pragma.*;
         Log.writeln("Collector does not support sanity checking!");
       } else {
         Log.writeln("Collection sanity checking enabled.");
-        replacePhase(Phase.schedulePlaceholder(PRE_SANITY_PLACEHOLDER),
-            Phase.scheduleComplex(sanityPhase));
-        replacePhase(Phase.schedulePlaceholder(POST_SANITY_PLACEHOLDER),
-            Phase.scheduleComplex(sanityPhase));
+        replacePhase(Phase.schedulePlaceholder(PRE_SANITY_PLACEHOLDER),  Phase.scheduleComplex(preSanityPhase));
+        replacePhase(Phase.schedulePlaceholder(POST_SANITY_PLACEHOLDER), Phase.scheduleComplex(postSanityPhase));
       }
     }
   }

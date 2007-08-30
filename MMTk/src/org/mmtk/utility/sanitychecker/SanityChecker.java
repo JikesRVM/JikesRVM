@@ -56,7 +56,6 @@ import org.vmmagic.unboxed.*;
   public SanityChecker() {
     sanityTable = new SanityDataTable(sanitySpace, LOG_SANITY_DATA_SIZE);
     trace = new Trace(sanitySpace);
-    preGCSanity = true;
   }
 
   /**
@@ -81,6 +80,16 @@ import org.vmmagic.unboxed.*;
    */
   @NoInline
   public boolean collectionPhase(int phaseId) {
+    if (phaseId == StopTheWorld.SANITY_SET_PREGC) {
+      preGCSanity = true;
+      return true;
+    }
+
+    if (phaseId == StopTheWorld.SANITY_SET_POSTGC) {
+      preGCSanity = false;
+      return true;
+    }
+
     if (phaseId == StopTheWorld.SANITY_PREPARE) {
       Log.writeln("");
       Log.write("============================== GC Sanity Checking ");
@@ -119,7 +128,6 @@ import org.vmmagic.unboxed.*;
       Log.write("========================================");
       Log.writeln("========================================");
 
-      preGCSanity = !preGCSanity;
       return true;
     }
 
