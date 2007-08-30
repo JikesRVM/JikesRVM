@@ -167,7 +167,7 @@
     <sequential>
       <if>
         <conditions>
-          <isset property="${test.with-invocations}"/>
+          <isset property="test.with-invocations"/>
         </conditions>
         <sequential>
           <res><![CDATA[<invocation number="@{invocation}">]]></res>
@@ -315,7 +315,7 @@
     <sequential>
       <if>
         <conditions>
-          <isset property="${test.with-invocations}"/>
+          <isset property="test.with-invocations"/>
         </conditions>
         <sequential>
           <res><![CDATA[</invocation>]]></res>
