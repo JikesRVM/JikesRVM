@@ -412,7 +412,7 @@ public class VM_Memory implements VM_SizeConstants {
   public static final int PROT_EXEC = 4;
 
   public static final int MAP_PRIVATE = 2;
-  public static final int MAP_FIXED     = (VM.BuildForLinux) ? 16 : (VM.BuildForOsx) ?     16 : (VM.BuildForSolaris) ? 0x10 :256; 
+  public static final int MAP_FIXED     = (VM.BuildForLinux) ? 16 : (VM.BuildForOsx) ?     16 : (VM.BuildForSolaris) ? 0x10 :256;
   public static final int MAP_ANONYMOUS = (VM.BuildForLinux) ? 32 : (VM.BuildForOsx) ? 0x1000 : (VM.BuildForSolaris) ? 0x100 : 16;
 
   public static boolean isPageMultiple(int val) {
