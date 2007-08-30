@@ -8,6 +8,9 @@ on October 14, 2001,
 *Jikes RVM 2.9.2 Release Notes (Future)
 ** Highlights
 
+*** r13413: Initial support for IA32 Solaris, capable of running basic tests
+    and partially running DaCapo benchmarks.
+
 *** r13404: Added support for using the perfctr library to access hardware
     performance counters (http://user.it.uu.se/~mikpe/linux/perfctr/).
     To use this, perfctr must be installed on the host (involves a kernel
