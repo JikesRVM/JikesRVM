@@ -54,4 +54,11 @@ import org.vmmagic.pragma.*;
     rootLocationPool.reset();
     interiorRootPool.reset();
   }
+
+  /**
+   * Is there any work outstanding in this trace. That is are there any pages in the pools.
+   */
+  public boolean hasWork() {
+    return (valuePool.enqueuedPages() + rootLocationPool.enqueuedPages() + interiorRootPool.enqueuedPages()) > 0;
+  }
 }
