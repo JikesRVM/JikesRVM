@@ -33,6 +33,9 @@
 
 # Test results
 /testing\/tests\/javalex\/qb1.lex.ref/ {next}
+/testing\/tests\/perf-jbb2000\/SPECjbb./ {next}
+/testing\/tests\/perf-jbb2005\/SPECjbb./ {next}
+/testing\/tests\/perf-dacapo\/SPECjbb./ {next}
 /testing\/tests\/SPECjbb2000\/SPECjbb./ {next}
 /testing\/tests\/SPECjbb2005\/SPECjbb./ {next}
 /testing\/tests\/pseudojbb\/pseudojbb/ {next}
