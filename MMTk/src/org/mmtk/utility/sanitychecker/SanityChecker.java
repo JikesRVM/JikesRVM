@@ -13,7 +13,7 @@
 package org.mmtk.utility.sanitychecker;
 
 import org.mmtk.plan.Trace;
-import org.mmtk.plan.StopTheWorld;
+import org.mmtk.plan.Simple;
 import org.mmtk.policy.RawPageSpace;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Constants;
@@ -25,7 +25,7 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This class performs sanity checks for StopTheWorld collectors.
+ * This class performs sanity checks for Simple collectors.
  */
 @Uninterruptible public final class SanityChecker implements Constants {
 
@@ -80,17 +80,17 @@ import org.vmmagic.unboxed.*;
    */
   @NoInline
   public boolean collectionPhase(int phaseId) {
-    if (phaseId == StopTheWorld.SANITY_SET_PREGC) {
+    if (phaseId == Simple.SANITY_SET_PREGC) {
       preGCSanity = true;
       return true;
     }
 
-    if (phaseId == StopTheWorld.SANITY_SET_POSTGC) {
+    if (phaseId == Simple.SANITY_SET_POSTGC) {
       preGCSanity = false;
       return true;
     }
 
-    if (phaseId == StopTheWorld.SANITY_PREPARE) {
+    if (phaseId == Simple.SANITY_PREPARE) {
       Log.writeln("");
       Log.write("============================== GC Sanity Checking ");
       Log.writeln("==============================");
@@ -110,12 +110,12 @@ import org.vmmagic.unboxed.*;
       return true;
     }
 
-    if (phaseId == StopTheWorld.SANITY_ROOTS) {
+    if (phaseId == Simple.SANITY_ROOTS) {
       VM.scanning.resetThreadCounter();
       return true;
     }
 
-    if (phaseId == StopTheWorld.SANITY_RELEASE) {
+    if (phaseId == Simple.SANITY_RELEASE) {
       trace.release();
       sanityTable.releaseTable();
 

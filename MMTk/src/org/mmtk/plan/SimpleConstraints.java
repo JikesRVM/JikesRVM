@@ -15,16 +15,8 @@ package org.mmtk.plan;
 import org.vmmagic.pragma.*;
 
 /**
- * This class (and its sub-classes) implement <i>per-mutator thread</i>
- * behavior and state.
- *
- * MMTk assumes that the VM instantiates instances of MutatorContext
- * in thread local storage (TLS) for each application thread. Accesses
- * to this state are therefore assumed to be low-cost during mutator
- * time.<p>
- *
- * @see MutatorContext
+ * Constraints specific to simple collectors.
  */
 @Uninterruptible
-public abstract class StopTheWorldMutator extends SimpleMutator {
+public abstract class SimpleConstraints extends PlanConstraints {
 }

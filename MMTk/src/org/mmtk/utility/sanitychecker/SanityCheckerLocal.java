@@ -13,7 +13,7 @@
 package org.mmtk.utility.sanitychecker;
 
 import org.mmtk.plan.Plan;
-import org.mmtk.plan.StopTheWorld;
+import org.mmtk.plan.Simple;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Constants;
@@ -25,7 +25,7 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This class performs sanity checks for StopTheWorld collectors.
+ * This class performs sanity checks for Simple collectors.
  */
 @Uninterruptible public class SanityCheckerLocal implements Constants {
 
@@ -49,14 +49,14 @@ import org.vmmagic.unboxed.*;
    */
   @NoInline
   public final boolean collectionPhase(int phaseId, boolean primary) {
-    if (phaseId == StopTheWorld.SANITY_PREPARE) {
+    if (phaseId == Simple.SANITY_PREPARE) {
       if (primary) {
         sanityTrace.prepare();
       }
       return true;
     }
 
-    if (phaseId == StopTheWorld.SANITY_ROOTS) {
+    if (phaseId == Simple.SANITY_ROOTS) {
       VM.scanning.computeStaticRoots(sanityTrace);
       VM.scanning.computeThreadRoots(sanityTrace);
       if (Plan.SCAN_BOOT_IMAGE) {
@@ -66,7 +66,7 @@ import org.vmmagic.unboxed.*;
       return true;
     }
 
-    if (phaseId == StopTheWorld.SANITY_BUILD_TABLE) {
+    if (phaseId == Simple.SANITY_BUILD_TABLE) {
       if (primary) {
         // Trace, checking for dangling pointers
         sanityTrace.startTrace();
@@ -74,7 +74,7 @@ import org.vmmagic.unboxed.*;
       return true;
     }
 
-    if (phaseId == StopTheWorld.SANITY_CHECK_TABLE) {
+    if (phaseId == Simple.SANITY_CHECK_TABLE) {
       if (primary) {
         // Iterate over the reachable objects.
         Address curr = global().getSanityTable().getFirst();
@@ -113,7 +113,7 @@ import org.vmmagic.unboxed.*;
       return true;
     }
 
-    if (phaseId == StopTheWorld.SANITY_RELEASE) {
+    if (phaseId == Simple.SANITY_RELEASE) {
       if (primary) {
         sanityTrace.release();
       }

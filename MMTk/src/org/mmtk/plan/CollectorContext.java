@@ -149,14 +149,7 @@ import org.vmmagic.unboxed.*;
   public abstract void collect();
 
   /** Perform some concurrent garbage collection */
-  public final void concurrentCollect() {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!Plan.gcInProgress());
-    if (Phase.startConcurrentPhase()) {
-      /* Can't change while we are 'in' the concurrent phase */
-      short phaseId = Phase.getConcurrentPhaseId();
-      concurrentCollectionPhase(phaseId);
-    }
-  }
+  public abstract void concurrentCollect();
 
   /**
    * Perform a (local) collection phase.
