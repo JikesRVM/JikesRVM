@@ -14,7 +14,7 @@ package org.mmtk.utility.deque;
 
 import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.Constants;
-import org.mmtk.utility.scan.Scan;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -50,13 +50,14 @@ public abstract class ObjectReferenceBuffer extends TransitiveClosure implements
   }
 
   /**
-   * Transitive step.
+   * Trace an edge during GC.
    *
-   * @param loc The location containing the object reference to process.
+   * @param source The source of the reference.
+   * @param slot The location containing the object reference.
    */
   @Inline
-  public final void processEdge(Address loc) {
-    ObjectReference object = loc.loadObjectReference();
+  public final void processEdge(ObjectReference source, Address slot) {
+    ObjectReference object = slot.loadObjectReference();
     process(object);
   }
 
@@ -74,7 +75,7 @@ public abstract class ObjectReferenceBuffer extends TransitiveClosure implements
    */
   @Inline
   public final void processChildren(ObjectReference object) {
-    Scan.scanObject(this, object);
+    VM.scanning.scanObject(this, object);
   }
 
   /**

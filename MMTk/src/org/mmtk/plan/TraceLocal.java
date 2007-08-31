@@ -16,7 +16,6 @@ import org.mmtk.policy.Space;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.deque.*;
-import org.mmtk.utility.scan.Scan;
 import org.mmtk.utility.options.Options;
 
 import org.mmtk.vm.VM;
@@ -75,29 +74,32 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    * collection policy applies and calling the appropriate
    * <code>trace</code> method.
    *
-   * @param objLoc The location containing the object reference to be
+   * @param source The source of the reference.
+   * @param slot The location containing the object reference to be
    * traced.  The object reference is <i>NOT</i> an interior pointer.
    * @param root True if <code>objLoc</code> is within a root.
    */
   @Inline
-  public final void processEdge(Address objLoc, boolean root) {
-    ObjectReference object = objLoc.loadObjectReference();
-    ObjectReference newObject = traceObject(object, root);
-    objLoc.store(newObject);
+  public final void processEdge(ObjectReference source, Address slot) {
+    ObjectReference object = slot.loadObjectReference();
+    ObjectReference newObject = traceObject(object, false);
+    slot.store(newObject);
   }
 
   /**
    * Trace a reference during GC.  This involves determining which
    * collection policy applies and calling the appropriate
-   * <code>trace</code> method.  This reference is presumed <i>not</i>
-   * to be from a root.
+   * <code>trace</code> method.
    *
-   * @param objLoc The location containing the object reference to be
+   * @param slot The location containing the object reference to be
    * traced.  The object reference is <i>NOT</i> an interior pointer.
+   * @param root True if <code>objLoc</code> is within a root.
    */
   @Inline
-  public final void processEdge(Address objLoc) {
-    processEdge(objLoc, false);
+  public final void processRootEdge(Address slot) {
+    ObjectReference object = slot.loadObjectReference();
+    ObjectReference newObject = traceObject(object, true);
+    slot.store(newObject);
   }
 
   /**
@@ -140,7 +142,7 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    */
   @Inline
   protected void scanObject(ObjectReference object) {
-    Scan.scanObject(this, object);
+    VM.scanning.scanObject(this, object);
   }
 
 
@@ -460,7 +462,7 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
     logMessage(5, "processing root locations");
     while (!rootLocations.isEmpty()) {
       Address loc = rootLocations.pop();
-      processEdge(loc, true);
+      processRootEdge(loc);
     }
     logMessage(5, "processing interior root locations");
     while (!interiorRootLocations.isEmpty()) {
@@ -558,7 +560,7 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    * @param slot The slot to check
    */
   @Inline
-  public final void precopyObjectLocation(Address slot) {
+  public final void processPrecopyEdge(Address slot) {
     ObjectReference child = slot.loadObjectReference();
     if (!child.isNull()) {
       child = precopyObject(child);

@@ -98,7 +98,7 @@ import org.vmmagic.unboxed.*;
     logMessage(5, "processing remset");
     while (!remset.isEmpty()) {
       Address loc = remset.pop();
-      processEdge(loc, false);
+      processRootEdge(loc);
     }
     logMessage(5, "processing array remset");
     arrayRemset.flushLocal();
@@ -106,7 +106,7 @@ import org.vmmagic.unboxed.*;
       Address start = arrayRemset.pop1();
       Address guard = arrayRemset.pop2();
       while (start.LT(guard)) {
-        processEdge(start, false);
+        processRootEdge(start);
         start = start.plus(BYTES_IN_ADDRESS);
       }
     }

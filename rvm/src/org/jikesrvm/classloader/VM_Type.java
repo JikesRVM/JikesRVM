@@ -751,33 +751,31 @@ public abstract class VM_Type extends VM_AnnotatedElement
   public abstract boolean isTIBSlotCode(int slot);
 
   /**
-   * The memory manager's notion of this type created after the
-   * resolving
+   * The memory manager's allocator id for this type.
    */
-  private Object mmType;
+  private int mmAllocator;
 
   /**
-   * Record the type information the memory manager holds about this
+   * Record the allocator information the memory manager holds about this
    * type.
+   *
    * @param mmType the type to record
    */
-  public final void setMMType(Object mmType) {
-    this.mmType = mmType;
+  public final void setMMAllocator(int allocator) {
+    this.mmAllocator = allocator;
   }
 
   /**
-   * This returns the type information as supplied by the memory manager.
+   * This returns the allocator id as supplied by the memory manager.
    * The method is located here as this is the only common superclass of VM_Array
    * and VM_Class, and due to performance reasons this needs to be a non-abstract
-   * method. For VM_Primitive instances the mmType will always be null.
+   * method. For VM_Primitive this field is unused.
    *
-   * @return the type information the memory manager previously
-   * recorded about this type
+   * @return the allocator id previously recorded.
    */
   @Uninterruptible
   @Inline
-  public final Object getMMType() {
-    if (VM.VerifyAssertions) VM._assert(mmType != null);
-    return mmType;
+  public final int getMMAllocator() {
+    return mmAllocator;
   }
 }

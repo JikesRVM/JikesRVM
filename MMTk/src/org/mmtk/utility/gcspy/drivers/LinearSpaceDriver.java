@@ -13,7 +13,6 @@
 package org.mmtk.utility.gcspy.drivers;
 
 import org.mmtk.policy.Space;
-import org.mmtk.utility.scan.MMType;
 import org.mmtk.utility.gcspy.Color;
 import org.mmtk.utility.gcspy.LinearScan;
 import org.mmtk.utility.gcspy.StreamConstants;
@@ -324,11 +323,7 @@ import org.vmmagic.pragma.*;
    * @param total Whether to accumulate the values
    */
   public void scan(ObjectReference obj, boolean total) {
-    // get length of object and determine if it's an array
-    MMType type =  VM.objectModel.getObjectType(obj);
-    // VM_Type would say whether it was an array;
-    // MMType won't, so we'll just show reference arrays
-    boolean isArray = type.isReferenceArray();
+    boolean isArray = VM.objectModel.isArray(obj);
     int length = VM.objectModel.getCurrentSize(obj);
     Address addr = obj.toAddress();
 

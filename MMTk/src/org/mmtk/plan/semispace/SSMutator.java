@@ -15,10 +15,7 @@ package org.mmtk.plan.semispace;
 import org.mmtk.plan.*;
 import org.mmtk.policy.CopyLocal;
 import org.mmtk.policy.Space;
-import org.mmtk.utility.alloc.AllocAdvice;
 import org.mmtk.utility.alloc.Allocator;
-import org.mmtk.utility.CallSite;
-import org.mmtk.utility.scan.*;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -129,24 +126,6 @@ import org.vmmagic.pragma.*;
     if (space == SS.copySpace0 || space == SS.copySpace1) return ss;
     return super.getAllocatorFromSpace(space);
   }
-
-  /**
-   * Give the compiler/runtime statically generated alloction advice
-   * which will be passed to the allocation routine at runtime.
-   *
-   * @param type The type id of the type being allocated
-   * @param bytes The size (in bytes) required for this object
-   * @param callsite Information identifying the point in the code
-   * where this allocation is taking place.
-   * @param hint A hint from the compiler as to which allocator this
-   * site should use.
-   * @return Allocation advice to be passed to the allocation routine
-   * at runtime
-   */
-  public final AllocAdvice getAllocAdvice(MMType type, int bytes, CallSite callsite, AllocAdvice hint) {
-    return null;
-  }
-
 
   /****************************************************************************
    *

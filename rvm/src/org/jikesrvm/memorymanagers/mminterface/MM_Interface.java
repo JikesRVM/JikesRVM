@@ -43,7 +43,6 @@ import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.gcspy.GCspy;
 import org.mmtk.utility.heap.HeapGrowthManager;
 import org.mmtk.utility.heap.Mmapper;
-import org.mmtk.utility.scan.MMType;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
@@ -498,8 +497,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
         return Plan.ALLOC_IMMORTAL;
       }
     }
-    MMType t = (MMType) type.getMMType();
-    return t.getAllocator();
+    return type.getMMAllocator();
   }
 
   /**
@@ -915,22 +913,7 @@ public final class MM_Interface implements VM_HeapLayoutConstants, Constants {
    */
   @Interruptible
   public static void notifyClassResolved(VM_Type vmType) {
-    MMType type;
-    if (vmType.isArrayType()) {
-      /* A reference array */
-      if (vmType.asArray().getElementType().isReferenceType()) {
-        type = MMType.createRefArray(vmType.isAcyclicReference(), pickAllocatorForType(vmType));
-      } else {
-        /* An array of primitive types */
-        type = MMType.createPrimArray(pickAllocatorForType(vmType));
-      }
-    } else {
-      type =
-          MMType.createScalar(vmType.isAcyclicReference(),
-                              pickAllocatorForType(vmType),
-                              vmType.asClass().getReferenceOffsets());
-    }
-    vmType.setMMType(type);
+    vmType.setMMAllocator(pickAllocatorForType(vmType));
   }
 
   /**

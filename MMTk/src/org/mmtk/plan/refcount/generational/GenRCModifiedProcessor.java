@@ -35,19 +35,19 @@ public final class GenRCModifiedProcessor extends TransitiveClosure {
   }
 
   /**
-   * Trace a reference during GC.
+   * Trace an edge during GC.
    *
-   * @param objLoc The location containing the object reference to be
-   * traced.
+   * @param source The source of the reference.
+   * @param slot The location containing the object reference.
    */
   @Inline
-  public void processEdge(Address objLoc) {
-    ObjectReference object = objLoc.loadObjectReference();
+  public void processEdge(ObjectReference source, Address slot) {
+    ObjectReference object = slot.loadObjectReference();
     if (!object.isNull()) {
       if (Space.isInSpace(GenRC.NS, object)) {
         object = GenRC.nurserySpace.traceObject(trace, object, GenRC.ALLOC_RC);
         RCHeader.incRC(object);
-        objLoc.store(object);
+        slot.store(object);
       } else if (GenRC.isRCObject(object)) {
         RCHeader.incRC(object);
       }

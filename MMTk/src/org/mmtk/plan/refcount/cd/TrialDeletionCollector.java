@@ -17,7 +17,6 @@ import org.mmtk.plan.refcount.RCBaseCollector;
 import org.mmtk.plan.refcount.RCHeader;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.deque.ObjectReferenceDeque;
-import org.mmtk.utility.scan.Scan;
 
 import org.mmtk.vm.VM;
 
@@ -246,7 +245,7 @@ import org.vmmagic.unboxed.ObjectReference;
 
       if (!RCHeader.isGrey(object)) {
         RCHeader.makeGrey(object);
-        Scan.scanObject(greyStep, object);
+        VM.scanning.scanObject(greyStep, object);
       }
       object = workQueue.pop();
     }
@@ -284,7 +283,7 @@ import org.vmmagic.unboxed.ObjectReference;
           scanBlack(object);
         } else {
           RCHeader.makeWhite(object);
-          Scan.scanObject(scanStep, object);
+          VM.scanning.scanObject(scanStep, object);
         }
       }
       object = workQueue.pop();
@@ -304,7 +303,7 @@ import org.vmmagic.unboxed.ObjectReference;
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!RCHeader.isGreen(object));
       if (!RCHeader.isBlack(object)) {  // FIXME can't this just be if (isGrey(object)) ??
         RCHeader.makeBlack(object);
-        Scan.scanObject(scanBlackStep, object);
+        VM.scanning.scanObject(scanBlackStep, object);
       }
       object = blackQueue.pop();
     }
@@ -334,7 +333,7 @@ import org.vmmagic.unboxed.ObjectReference;
     while (!object.isNull()) {
       if (RCHeader.isWhite(object) && !RCHeader.isBuffered(object)) {
         RCHeader.makeBlack(object);
-        Scan.scanObject(collectStep, object);
+        VM.scanning.scanObject(collectStep, object);
         freeBuffer.push(object);
       }
       object = workQueue.pop();

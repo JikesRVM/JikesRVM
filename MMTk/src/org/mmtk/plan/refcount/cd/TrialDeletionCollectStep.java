@@ -24,13 +24,14 @@ import org.vmmagic.unboxed.*;
 public final class TrialDeletionCollectStep extends TransitiveClosure {
 
   /**
-   * Trace a reference during GC.
+   * Trace an edge during GC.
    *
-   * @param objLoc The location containing the object reference to be
-   * traced.
+   * @param source The source of the reference.
+   * @param slot The location containing the object reference.
    */
-  public void processEdge(Address objLoc) {
-    ObjectReference object = objLoc.loadObjectReference();
+  @Inline
+  public void processEdge(ObjectReference source, Address slot) {
+    ObjectReference object = slot.loadObjectReference();
     ((TrialDeletionCollector)CDCollector.current()).enumerateCollect(object);
   }
 }

@@ -30,9 +30,10 @@ public abstract class TransitiveClosure {
   /**
    * Trace an edge during GC.
    *
-   * @param objLoc The location containing the object reference.
+   * @param source The source of the reference.
+   * @param slot The location containing the object reference.
    */
-  public void processEdge(Address objLoc) {
+  public void processEdge(ObjectReference source, Address slot) {
     VM.assertions.fail("processEdge not implemented.");
   }
 

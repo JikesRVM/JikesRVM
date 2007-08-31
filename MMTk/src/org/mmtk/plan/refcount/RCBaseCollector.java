@@ -18,7 +18,6 @@ import org.mmtk.plan.refcount.cd.NullCDCollector;
 import org.mmtk.plan.refcount.cd.TrialDeletionCollector;
 import org.mmtk.utility.deque.ObjectReferenceDeque;
 import org.mmtk.utility.sanitychecker.SanityCheckerLocal;
-import org.mmtk.utility.scan.Scan;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -199,7 +198,7 @@ import org.vmmagic.unboxed.*;
     ObjectReference current;
     while (!(current = modBuffer.pop()).isNull()) {
       RCHeader.makeUnlogged(current);
-      Scan.scanObject(modProcessor, current);
+      VM.scanning.scanObject(modProcessor, current);
     }
   }
 

@@ -14,12 +14,14 @@ package org.jikesrvm.mm.mmtk;
 
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.TransitiveClosure;
-import org.mmtk.utility.scan.Scan;
 import org.mmtk.utility.Constants;
 
 import org.jikesrvm.memorymanagers.mminterface.MM_Constants;
 import org.jikesrvm.memorymanagers.mminterface.VM_CollectorThread;
 import org.jikesrvm.VM;
+import org.jikesrvm.classloader.VM_Class;
+import org.jikesrvm.classloader.VM_Type;
+import org.jikesrvm.objectmodel.VM_ObjectModel;
 import org.jikesrvm.runtime.VM_Magic;
 import org.jikesrvm.scheduler.VM_Scheduler;
 import org.jikesrvm.scheduler.VM_Thread;
@@ -27,7 +29,8 @@ import org.jikesrvm.scheduler.VM_Thread;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
-@Uninterruptible public class Scanning extends org.mmtk.vm.Scanning implements Constants {
+@Uninterruptible
+public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
   /****************************************************************************
    *
    * Class variables
@@ -55,31 +58,47 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Delegated scanning of a object, processing each pointer field
-   * encountered. <b>Jikes RVM never delegates, so this is never
-   * executed</b>.
+   * Scanning of a object, processing each pointer field encountered.
    *
+   * @param trace The closure being used.
    * @param object The object to be scanned.
    */
   @Inline
-  @Uninterruptible
-  public final void scanObject(TransitiveClosure trace, ObjectReference object) {
-    // Never reached
-    if (VM.VerifyAssertions) VM._assert(false);
+  public void scanObject(TransitiveClosure trace, ObjectReference object) {
+    VM_Type type = VM_ObjectModel.getObjectType(object.toObject());
+    if (type.isClassType()) {
+      VM_Class klass = type.asClass();
+      int[] offsets = klass.getReferenceOffsets();
+      for(int i=0; i < offsets.length; i++) {
+        trace.processEdge(object, object.toAddress().plus(offsets[i]));
+      }
+    } else if (type.isArrayType() && type.asArray().getElementType().isReferenceType()) {
+      for(int i=0; i < VM_ObjectModel.getArrayLength(object.toObject()); i++) {
+        trace.processEdge(object, object.toAddress().plus(i << LOG_BYTES_IN_ADDRESS));
+      }
+    }
   }
 
   /**
-   * Delegated precopying of a object's children, processing each pointer field
-   * encountered. <b>Jikes RVM never delegates, so this is never
-   * executed</b>.
+   * Precopying of a object's fields, processing each pointer field encountered.
    *
+   * @param trace The trace being used.
    * @param object The object to be scanned.
    */
   @Inline
-  @Uninterruptible
-  public final void precopyChildren(TraceLocal trace, ObjectReference object) {
-    // Never reached
-    if (VM.VerifyAssertions) VM._assert(false);
+  public void precopyChildren(TraceLocal trace, ObjectReference object) {
+    VM_Type type = VM_ObjectModel.getObjectType(object.toObject());
+    if (type.isClassType()) {
+      VM_Class klass = type.asClass();
+      int[] offsets = klass.getReferenceOffsets();
+      for(int i=0; i < offsets.length; i++) {
+        trace.processPrecopyEdge(object.toAddress().plus(offsets[i]));
+      }
+    } else if (type.isArrayType() && type.asArray().getElementType().isReferenceType()) {
+      for(int i=0; i < VM_ObjectModel.getArrayLength(object.toObject()); i++) {
+        trace.processPrecopyEdge(object.toAddress().plus(i << LOG_BYTES_IN_ADDRESS));
+      }
+    }
   }
 
   /**
@@ -89,7 +108,7 @@ import org.vmmagic.pragma.*;
    * parallel GC threads were not important, the thread counter could
    * simply be replaced by a for loop).
    */
-  public final void resetThreadCounter() {
+  public void resetThreadCounter() {
     threadCounter.reset();
   }
 
@@ -113,7 +132,7 @@ import org.vmmagic.pragma.*;
    * TODO Experiment with specialization to remove virtual dispatch ?
    */
   @NoInline
-  public final void preCopyGCInstances(TraceLocal trace) {
+  public void preCopyGCInstances(TraceLocal trace) {
     int chunkSize = 2;
     int threadIndex, start, end, stride;
     VM_CollectorThread ct;
@@ -150,40 +169,25 @@ import org.vmmagic.pragma.*;
             VM._assert(ObjectReference.fromObject(thread).toAddress().EQ(
                 threadTableSlot.loadObjectReference().toAddress()),
             "Thread table address arithmetic is wrong!");
-          trace.precopyObjectLocation(threadTableSlot);
+          trace.processPrecopyEdge(threadTableSlot);
           thread = VM_Scheduler.threads[threadIndex];  // reload  it - it just moved!
           if (TRACE_PRECOPY) {
             VM.sysWrite(ct.getGCOrdinal()," New address ");
             VM.sysWriteln(ObjectReference.fromObject(thread).toAddress());
           }
-          precopyChildren(trace,thread);
-          precopyChildren(trace,thread.contextRegisters);
-          precopyChildren(trace,thread.getHardwareExceptionRegisters());
+          precopyChildren(trace, ObjectReference.fromObject(thread));
+          precopyChildren(trace, ObjectReference.fromObject(thread.contextRegisters));
+          precopyChildren(trace, ObjectReference.fromObject(thread.getHardwareExceptionRegisters()));
           if (thread.jniEnv != null) {
             // Right now, jniEnv are Java-visible objects (not C-visible)
             // if (VM.VerifyAssertions)
             //   VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(thread.jniEnv)));
-            precopyChildren(trace,thread.jniEnv);
+            precopyChildren(trace, ObjectReference.fromObject(thread.jniEnv));
           }
         }
       } // end of for loop
       start = start + stride;
     }
-  }
-
-
-  /**
-   * Enumerator the pointers in an object, calling back to a given plan
-   * for each pointer encountered. <i>NOTE</i> that only the "real"
-   * pointer fields are enumerated, not the TIB.
-   *
-   * @param trace The trace object to use to report precopy objects.
-   * @param object The object to be scanned.
-   */
-  @Inline
-  @Uninterruptible
-  private static void precopyChildren(TraceLocal trace, Object object) {
-    Scan.precopyChildren(trace,ObjectReference.fromObject(object));
   }
 
   /**
@@ -201,7 +205,7 @@ import org.vmmagic.pragma.*;
    *
    * @param trace The trace to use for computing roots.
    */
-  public final void computeStaticRoots(TraceLocal trace) {
+  public void computeStaticRoots(TraceLocal trace) {
     /* scan statics */
     ScanStatics.scanStatics(trace);
   }
@@ -224,7 +228,7 @@ import org.vmmagic.pragma.*;
    *
    * @param trace The trace to use for computing roots.
    */
-  public final void computeThreadRoots(TraceLocal trace) {
+  public void computeThreadRoots(TraceLocal trace) {
     boolean processCodeLocations = MM_Constants.MOVES_OBJECTS;
 
     /* Set status flag */

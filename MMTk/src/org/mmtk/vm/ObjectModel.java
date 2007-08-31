@@ -12,8 +12,6 @@
  */
 package org.mmtk.vm;
 
-import org.mmtk.utility.scan.MMType;
-
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.*;
 
@@ -117,6 +115,13 @@ import org.vmmagic.unboxed.*;
   public abstract byte[] getTypeDescriptor(ObjectReference ref);
 
   /**
+   * Is the passed object an array?
+   *
+   * @param object address of the object
+   */
+  public abstract boolean isArray(ObjectReference object);
+
+  /**
    * Get the length of an array object.
    *
    * @param object address of the object
@@ -214,14 +219,6 @@ import org.vmmagic.unboxed.*;
    * inherently acyclic
    */
   public abstract boolean isAcyclic(ObjectReference typeRef);
-
-  /**
-   * Return the type object for a give object
-   *
-   * @param object The object whose type is required
-   * @return The type object for <code>object</code>
-   */
-  public abstract MMType getObjectType(ObjectReference object);
 
   /**
    * Dump debugging information for an object.

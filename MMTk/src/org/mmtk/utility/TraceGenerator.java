@@ -19,7 +19,6 @@ import org.mmtk.policy.Space;
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.options.TraceRate;
-import org.mmtk.utility.scan.*;
 
 import org.mmtk.vm.VM;
 import org.mmtk.vm.Collection;
@@ -398,7 +397,7 @@ import org.vmmagic.unboxed.*;
            /* Set the "new" dead age. */
            agePropagate = currentAge;
            /* Scan the object, pushing the survivors */
-           Scan.scanObject(getTraceLocal(), ref);
+           VM.scanning.scanObject(getTraceLocal(), ref);
          }
          /* Get the next object to process */
          ref = worklist.pop();
