@@ -182,6 +182,14 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
   }
 
   /**
+   * Flush the local buffers of all deques.
+   */
+  public final void flush() {
+    flushRoots();
+    values.flushLocal();
+  }
+
+  /**
    * Flush the local buffers of the root deques.
    */
   public final void flushRoots() {
@@ -439,6 +447,15 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    */
   @Inline
   public void startTrace() {
+    processRoots();
+    completeTrace();
+  }
+
+  /**
+   * Process only the roots.
+   */
+  @Inline
+  public void processRoots() {
     logMessage(4, "Working on GC in parallel");
     logMessage(5, "processing root locations");
     while (!rootLocations.isEmpty()) {
@@ -453,7 +470,6 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
       Address newInterior = processInteriorEdge(obj, interior, true);
       interiorLoc.store(newInterior);
     }
-    completeTrace();
   }
 
   /**
@@ -473,6 +489,28 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
       processRememberedSets();
     } while (!values.isEmpty());
     assertMutatorRemsetsFlushed();
+  }
+
+  /**
+   * Process GC work until either complete or workLimit
+   * units of work are completed.
+   *
+   * @param workLimit The maximum units of work to perform.
+   * @return True if all work was completed within workLimit.
+   */
+  @Inline
+  public boolean traceIncrement(int workLimit) {
+    logMessage(4, "Continuing GC in parallel (incremental)");
+    logMessage(5, "processing gray objects");
+    int units = 0;
+    do {
+      while (!values.isEmpty() && units < workLimit) {
+        ObjectReference v = values.pop();
+        scanObject(v);
+        units++;
+      }
+    } while (!values.isEmpty() && units < workLimit);
+    return values.isEmpty();
   }
 
   /**
