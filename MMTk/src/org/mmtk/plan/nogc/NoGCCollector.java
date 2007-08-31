@@ -61,6 +61,11 @@ import org.vmmagic.pragma.Uninterruptible;
     VM.assertions.fail("GC Triggered in NoGC Plan. Is -X:gc:ignoreSystemGC=true ?");
   }
 
+  /** Perform some concurrent garbage collection */
+  public final void concurrentCollect() {
+    VM.assertions.fail("Concurrent GC Triggered in NoGC Plan.");
+  }
+
   /**
    * Perform a per-collector collection phase.
    *
