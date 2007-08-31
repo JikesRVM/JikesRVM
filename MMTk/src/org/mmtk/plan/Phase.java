@@ -447,6 +447,9 @@ public abstract class Phase implements Constants {
 
       /* Start the timer(s) */
       if (primary) {
+        if (resume) {
+          resumeComplexTimers();
+        }
         if (p.timer != null) p.timer.start();
         if (startComplexTimer > 0) {
           Phase.getPhase(startComplexTimer).timer.start();
@@ -497,6 +500,9 @@ public abstract class Phase implements Constants {
             Plan.setGCStatus(Plan.NOT_IN_GC);
           }
           VM.collection.rendezvous(1003);
+          if (primary) {
+            pauseComplexTimers();
+          }
           return false;
         }
 
@@ -614,10 +620,8 @@ public abstract class Phase implements Constants {
             continue;
           }
           if (VM.VERIFY_ASSERTIONS) {
-            for(int i=phaseStackPointer; i >= 0; i--) {
-              /* TODO: We currently don't support timing across a concurrent phase */
-              VM.assertions._assert(getPhase(getPhaseId(phaseStack[i])).timer == null);
-            }
+            /* Concurrent phases can not have a timer */
+            VM.assertions._assert(getPhase(getPhaseId(scheduledPhase)).timer == null);
           }
           return scheduledPhase;
         }
@@ -653,6 +657,26 @@ public abstract class Phase implements Constants {
       }
     }
     return -1;
+  }
+
+  /**
+   * Pause all of the timers for the complex phases sitting in the stack.
+   */
+  private static void pauseComplexTimers() {
+    for(int i=phaseStackPointer; i >=0; i--) {
+      Phase p = getPhase(getPhaseId(phaseStack[i]));
+      if (p.timer != null) p.timer.stop();
+    }
+  }
+
+  /**
+   * Resume all of the timers for the complex phases sitting in the stack.
+   */
+  private static void resumeComplexTimers() {
+    for(int i=phaseStackPointer; i >=0; i--) {
+      Phase p = getPhase(getPhaseId(phaseStack[i]));
+      if (p.timer != null) p.timer.start();
+    }
   }
 
   /**
