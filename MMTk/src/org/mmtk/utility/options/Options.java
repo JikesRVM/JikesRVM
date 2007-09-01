@@ -24,6 +24,7 @@ public final class Options {
 
   /* Other options */
   public static BoundedNursery boundedNursery;
+  public static ConcurrentTrigger concurrentTrigger;
   public static CycleFilterThreshold cycleFilterThreshold;
   public static CycleMetaDataLimit cycleMetaDataLimit;
   public static CycleTriggerThreshold cycleTriggerThreshold;
