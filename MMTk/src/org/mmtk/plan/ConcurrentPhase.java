@@ -44,7 +44,7 @@ public final class ConcurrentPhase extends Phase
    * @param atomicScheduledPhase The atomic scheduled phase
    */
   protected ConcurrentPhase(String name, int atomicScheduledPhase) {
-    super(name);
+    super(name, null);
     this.atomicScheduledPhase = atomicScheduledPhase;
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(getSchedule(this.atomicScheduledPhase) != SCHEDULE_CONCURRENT);
   }
@@ -59,6 +59,10 @@ public final class ConcurrentPhase extends Phase
    */
   protected ConcurrentPhase(String name, Timer timer, int atomicScheduledPhase) {
     super(name, timer);
+    if (VM.VERIFY_ASSERTIONS) {
+      /* Timers currently unsupported on concurrent phases */
+      VM.assertions._assert(timer == null);
+    }
     this.atomicScheduledPhase = atomicScheduledPhase;
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(getSchedule(this.atomicScheduledPhase) != SCHEDULE_CONCURRENT);
   }
